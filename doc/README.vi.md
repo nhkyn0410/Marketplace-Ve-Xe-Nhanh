@@ -20,7 +20,7 @@ Nguồn thiết kế chính nằm trong `doc/SDLC/`. Khi bắt đầu code, đ�
 
 | Khu vực | Lựa chọn |
 | --- | --- |
-| Runtime | Node.js 22 LTS, TypeScript strict |
+| Runtime | Node.js 24 LTS, TypeScript strict |
 | Package manager | pnpm 10 |
 | Monorepo | Turborepo |
 | Backend | NestJS 11, nestjs-zod |
@@ -54,10 +54,10 @@ packages/
 
 ## Yêu Cầu Môi Trường
 
-- Node.js `>=22 <23`
+- Node.js `>=24 <25`
 - pnpm `>=10 <11`
 
-Phiên bản Node được khai báo qua `engines.node` trong `package.json` (`>=22 <23`). Nếu pnpm báo unsupported engine, hãy đổi shell local sang Node 22 (vd `nvm use 22`) trước khi chạy lệnh của dự án.
+Phiên bản Node được khai báo qua `engines.node` trong `package.json` (`>=24 <25`). Nếu pnpm báo unsupported engine, hãy đổi shell local sang Node 24 (vd `nvm use 24`) trước khi chạy lệnh của dự án.
 
 ## Bắt Đầu Nhanh
 

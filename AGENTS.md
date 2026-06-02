@@ -10,7 +10,7 @@ Managed marketplace bán vé xe khách, 3 bên (Passenger ↔ Platform ↔ Opera
 
 ## Tech stack (đã chốt — ADR-002, ADR-009..027; KHÔNG đổi nếu chưa hỏi)
 
-- **Runtime**: TypeScript (strict) + Node.js LTS 22. Tiền = `BIGINT` VND + `Decimal.js`; **CẤM** `number`/`float` cho tiền.
+- **Runtime**: TypeScript (strict) + Node.js LTS 24. Tiền = `BIGINT` VND + `Decimal.js`; **CẤM** `number`/`float` cho tiền.
 - **Backend**: NestJS 11 + **nestjs-zod** (KHÔNG class-validator). Modular monolith, 1 module / business domain.
 - **DB**: PostgreSQL 16 + **Prisma 5** (operational); MongoDB 7 + Mongoose 8 (audit, cluster RIÊNG, chỉ `audit_event` + `system_log`, append-only).
 - **Cache / lock / queue**: Redis 7 (Upstash) + `ioredis`; **BullMQ** (`@nestjs/bullmq`).

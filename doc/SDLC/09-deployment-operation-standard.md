@@ -13,7 +13,7 @@
 | Người viết    | Nguyễn Hồng Khanh, AI Agent          |
 | Người duyệt   | Nguyễn Hồng Khanh                |
 | Ngày tạo      | 11/05/2026                       |
-| Ngày cập nhật | 01/06/2026                       |
+| Ngày cập nhật | 03/06/2026                       |
 
 ### 1.2. Lịch sử thay đổi
 
@@ -78,7 +78,7 @@ Monorepo Turborepo + pnpm (ADR-013). Build qua `turbo run build --filter=...` (c
 
 | Thành phần | Build / deploy | Ghi chú |
 | ---------- | -------------- | ------- |
-| API (`apps/api`) | Docker image → Render **Web Service** | NestJS 11, Node 22 (ADR-009/010/023) |
+| API (`apps/api`) | Docker image → Render **Web Service** | NestJS 11, Node 24 (ADR-009/010/023) |
 | Worker (`apps/api`) | Cùng image → Render **Background Worker** (khác start command) | BullMQ worker tách (ADR-024) |
 | Frontend (`apps/marketplace`, `operator-os`, `admin`) | Next.js build → Render Web Service (SSR Docker) hoặc Vercel | App count chốt LLD (ADR-013) |
 | Mobile (`apps/passenger-mobile`, `employee-mobile`) | **EAS Build** (cloud) + **EAS Update** (OTA) + **EAS Submit** | Windows dev OK, không cần Mac (ADR-014) |

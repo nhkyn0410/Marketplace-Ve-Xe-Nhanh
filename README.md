@@ -20,7 +20,7 @@ Primary design sources live in `doc/SDLC/`. For coding-agent guidance, read `AGE
 
 | Area | Choice |
 | --- | --- |
-| Runtime | Node.js 22 LTS, TypeScript strict |
+| Runtime | Node.js 24 LTS, TypeScript strict |
 | Package manager | pnpm 10 |
 | Monorepo | Turborepo |
 | Backend | NestJS 11, nestjs-zod |
@@ -54,10 +54,10 @@ packages/
 
 ## Prerequisites
 
-- Node.js `>=22 <23`
+- Node.js `>=24 <25`
 - pnpm `>=10 <11`
 
-The Node version policy is declared through `engines.node` in `package.json` (`>=22 <23`). If pnpm prints an unsupported engine warning, switch the local shell to Node 22 (for example, `nvm use 22`) before running project commands.
+The Node version policy is declared through `engines.node` in `package.json` (`>=24 <25`). If pnpm prints an unsupported engine warning, switch the local shell to Node 24 (for example, `nvm use 24`) before running project commands.
 
 ## Getting Started
 
