@@ -1,0 +1,59 @@
+# VCS and editor state
+.git
+.gitignore
+.idea
+.vscode
+*.code-workspace
+
+# Dependencies and package manager state
+node_modules
+**/node_modules
+.pnpm-store
+.pnp
+.pnp.*
+
+# Build and cache output
+dist
+**/dist
+build
+**/build
+out
+**/out
+.next
+**/.next
+.turbo
+**/.turbo
+.swc
+**/*.tsbuildinfo
+
+# Test output
+coverage
+**/coverage
+test-results
+playwright-report
+blob-report
+maestro-debug-output
+
+# Expo / native generated output
+.expo
+**/.expo
+**/web-build
+**/android
+**/ios
+
+# Logs, local data, and secrets
+*.log
+.env
+.env.*
+*.pem
+*.key
+storage
+uploads
+tmp
+temp
+.cache
+
+# Documentation and agent-local context are not needed in deploy images
+doc
+.agents
+.claude
