@@ -1,0 +1,110 @@
+# PROJECT-STATE
+
+Live state of the managed marketplace project `Marketplace-Ve-Xe-Nhanh` (codename renamed 25/05/2026 from `Ve_Xe_Nhanh_NestJS_NextJs_ReactNative`). Agents must consult this file before writing or editing any SDLC document. Update this file after every documentation change that affects status, decisions or blockers.
+
+Last updated: 01/06/2026.
+
+## 1. SDLC document status
+
+| Code | Document                                           | Path                                            | Version | Status | Owner             |
+| ---- | -------------------------------------------------- | ----------------------------------------------- | ------- | ------ | ----------------- |
+| 00a  | Quy chuẩn SDLC cho lập trình viên                  | `SDLC/00-quy-chuan-cho-lap-trinh-vien.md`    | v1.0    | Draft  | Nguyễn Hồng Khanh |
+| 01   | SRS - Software Requirements Specification          | `SDLC/01-srs-he-thong-dat-ve-xe-khach.md`    | v1.20   | Draft  | Nguyễn Hồng Khanh + team |
+| 02   | HLD - High Level Design                            | `SDLC/02-hld-he-thong-dat-ve-xe-khach.md`    | v0.4    | Draft  | AI Agent          |
+| 03   | LLD - Low Level Design                             | `SDLC/03-lld-he-thong-dat-ve-xe-khach.md`    | v0.4    | Draft  | AI Agent          |
+| 04   | Database Design                                    | `SDLC/04-database-design.md`                 | v0.4    | Draft  | AI Agent          |
+| 05   | API Specification                                  | `SDLC/05-api-specification.md`               | v0.2    | Draft  | AI Agent          |
+| 06   | UI / UX Flow Specification                         | `SDLC/06-ui-ux-flow-specification.md`        | v0.2    | Draft  | AI Agent          |
+| 07   | Security & Permission Design                       | `SDLC/07-security-permission-design.md`      | v0.4    | Draft  | AI Agent          |
+| 08   | Test Plan & Acceptance Criteria                    | `SDLC/08-test-plan-acceptance-criteria.md`   | v0.2    | Draft  | AI Agent          |
+| 09   | Deployment & Operation Standard                    | `SDLC/09-deployment-operation-standard.md`   | v0.4    | Draft  | AI Agent          |
+| 10   | Architecture Decision Record                       | `SDLC/10-architecture-decision-record.md`    | v0.21   | Draft  | AI Agent          |
+| 11   | Project Task Breakdown                             | `SDLC/11-project-task-breakdown.md`          | v0.3    | Draft  | AI Agent          |
+| 12   | Release Notes & Change Log                         | `SDLC/12-release-notes-change-log.md`        | v0.1    | Draft  | AI Agent          |
+
+Status legend per `00a §3.2`: `Writing` / `Draft` / `Review` / `Approved` / `Deprecated` / `Superseded`.
+
+## 2. Strategic decisions
+
+Position: **fresh build under codename `Marketplace-Ve-Xe-Nhanh`** (renamed 25/05/2026 from `Ve_Xe_Nhanh_NestJS_NextJs_ReactNative`).
+
+- Original decision "Phương án A — full rewrite" (11/05/2026) was the path to this position; the 25/05/2026 rebrand formalised it: no migration from legacy, no "skeleton" considered.
+- Any files left under `apps/backend/src/modules/` from the prior codebase are **out of scope** for v1 and must not be treated as a reference when designing or coding.
+- Target backend layout follows three service layers — see `@context/DOMAIN-MAP §1, §2`.
+- `DOMAIN-MAP` describes target state only; no refactor radar / legacy-to-target mapping is maintained.
+- **Tech stack đang re-select toàn bộ** (decided 25/05/2026): the stack referenced in v0.3 SDLC docs (NestJS/Next/Expo/Mongo/Redis/OSRM) was carryover from the legacy codebase, not a deliberate choice for the marketplace project. Workshop 15 layer / 4 phase per `CLAUDE.md §6.5`. 5 vendor OQs (OQ-05/09/10/14/16) re-opened — see §4. Several v0.3 SDLC docs are held back from Review pending tech selection — see §5.
+
+## 3. Closed decisions log (OQ + MQ)
+
+25 OQ/MQ từ SRS đã đóng 11/05/2026. 5 vendor OQ (OQ-05/09/10/14/16) re-opened 25/05/2026 (full tech re-select) → **tất cả re-closed** qua ADR. Chi tiết rationale: file 10 ADR + `archive/CHANGELOG.md`. SRS §21 có full text gốc.
+
+| ID | Topic | Status |
+| -- | ----- | ------ |
+| OQ-01..03 | State enums (Trip/Booking/Payment) align SRS §17 | Closed 05/05 |
+| OQ-04 | Employee roles TICKET_STAFF/DRIVER/SUPPORT_STAFF | Closed 05/05 |
+| OQ-05 | Payment gateway | Re-closed → **ADR-019** (VNPay primary + MoMo) |
+| OQ-06 | Seat hold 10 phút platform-wide | Closed 11/05 |
+| OQ-07 | Pay-first only; PENDING_CONFIRMATION giữ enum | Closed 11/05 |
+| OQ-08 | Fare collection riêng + booking snapshot; no segment fare | Closed 11/05 |
+| OQ-09 | Notification + OTP | Re-closed → **ADR-020** (Resend + Expo Push + OAuth) |
+| OQ-10 | Mobile architecture | Re-closed → **ADR-014** (Expo 2-app split) |
+| OQ-11 | Phone mask `0*** *** 789` | Closed 11/05 |
+| OQ-12 | VND + Vietnamese only v1 | Closed 11/05 |
+| OQ-13 | Cancel/refund Platform default + Operator override + snapshot | Closed 11/05 |
+| OQ-14 | Audit log storage | Re-closed → **ADR-011** (Mongo cluster RIÊNG) |
+| OQ-15 | Reporting aggregation + async | Closed 11/05 (refined ADR-011) |
+| OQ-16 | Escrow payout channel | Re-closed → **ADR-022** (manual + batch) |
+| OQ-17 | Price ceiling/floor = warning only | Closed 10/05 |
+| OQ-18 | Commission 5% default + per-Operator override | Closed 11/05 |
+| OQ-19 | KYC = biz reg + transport license + rep ID + bank | Closed 11/05 |
+| OQ-20 | Brand neutral marketplace; operator name primary | Closed 11/05 |
+| MQ-01..05 | Marketplace model (escrow/pricing/arbiter/commission/model B) | Closed 05/05 |
+
+## 4. Open Questions (current)
+
+5 vendor OQ re-opened 25/05/2026 đã **tất cả re-closed** (xem §3 + ADR). Còn **2 OQ mở** — production-blocker, KHÔNG chặn MVP/sandbox:
+
+| ID | Question | Impact | Status |
+| -- | -------- | ------ | ------ |
+| OQ-21 | KYC + payment-proof production storage location (VN local split-bucket vs R2 + DPIA NĐ 13/2023 cross-border); dev/test = local adapter | Compliance + KYC + storage | Open — defer production prep (ADR-018 Q2) |
+| OQ-22 | Giấy phép TGTT NHNN production: Platform giữ escrow + chi Operator = trung gian thanh toán (NĐ 52/2024) → cần license NHNN HOẶC qua cổng licensed. Hướng (a) tự xin TGTT; (b) cổng licensed VNPay/MoMo giữ+settle, escrow = sổ kế toán; (c) thu hộ/chi hộ qua đối tác licensed | Compliance + Payment + Escrow | Open — defer production prep (ADR-019 mục C) |
+
+## 5. Blockers
+
+Concrete blockers preventing a document from reaching `Review` or `Approved`. Updated 25/05/2026 — full tech re-select pause.
+
+| Document | Blocker | Owner | Since |
+| -------- | ------- | ----- | ----- |
+| 02 HLD §13 (tech stack), §8 (module map) | **Resolved 01/06/2026** — Sprint 5 rework: HLD reset v0.4 theo 18 ADR; sẵn sàng Khanh review → Review. 1 OQ phụ HLD-OQ-11 (realtime transport) có fallback polling, không chặn normative. | Khanh + AI | 25/05/2026 |
+| 03 LLD §5 (module structure)             | **Resolved 01/06/2026** — Sprint 5 rework v0.4 theo 18 ADR; **ADR-017 re-confirmed by Khanh** (chốt toàn bộ); thêm 6.5 auth + 6.6 payout; đóng LLD-OQ-01/05. Sẵn sàng Khanh review → Review. | Khanh + AI | 25/05/2026 |
+| 04 DB Design (toàn file)                 | **Resolved 01/06/2026** — Sprint 5 rework: reset v0.4 theo ADR-011 Hybrid-A (Postgres+Prisma ops / Mongo audit cluster riêng); đóng DB-OQ-01/04/05; sẵn sàng Khanh review → Review. Còn DB-OQ-03 (escrow accounting model, LLD-level) + DB-OQ-06 (retention) mở, không chặn. | Khanh + AI | 25/05/2026 |
+| 05 API Spec                              | **Resolved 01/06/2026** — Sprint 5 rework v0.2 theo ADR-012 (REST + OpenAPI 3.1 auto/Zod, RFC 7807, webhook HMAC VNPay/MoMo, auth 3-namespace); đóng API-OQ-01/02/03; sẵn sàng Khanh review → Review. | Khanh + AI | 25/05/2026 |
+| 07 Security §5 (auth), §6 (tenant filter)| **Unblocked 26/05/2026** (ADR-017 chốt Better Auth + Identity model 3 namespace `{slug}/{username}` + Account separate + Closed enrollment Platform-controlled + Hybrid JWT+opaque token + RBAC 8 role + TenantGuard JWT claims + Postgres RLS defense-in-depth; ADR-018 chốt storage R2 + KYC private bucket presigned URL + audit access, KYC production location defer OQ-21) — chờ Khanh quyết khi nào rework. **CRITICAL re-confirm Sprint 5-6** do Khanh "[No preference]" vòng 1 + reframe vòng 2. **ADR-017 re-confirmed 01/06/2026** (Khanh chốt toàn bộ qua AskUserQuestion khi rework 03 LLD); **ADR-019/020 re-confirmed 01/06/2026** (Khanh chốt VNPay primary + ADR-020 toàn bộ qua AskUserQuestion). **Resolved 01/06/2026** — 07 Security rework v0.4 (Better Auth 3-namespace + Hybrid token + MFA + OAuth + RLS + PCI SAQ-A + KYC R2); đóng SEC-OQ-01/02/04/06; sẵn sàng Khanh review → Review. | Khanh + AI | 26/05/2026 |
+| 09 Deploy (toàn file)                    | **Resolved 01/06/2026** — reworked v0.4 theo ADR-023..026 (Render/worker tách/Prisma migration/Sentry+GitHub Actions); đóng OPS-OQ-01/02/03/05; sẵn sàng Khanh review → Review. | Khanh + AI | 25/05/2026 |
+| 10 ADR                                   | Active growth — **Sprint 0 + 1 + 2 + 3 CLOSED** (ADR-002 refined + ADR-009..022 added; ADR-003/004/007 superseded). Sprint 3 Phase 3 VN vendor 4/4 layer chốt 31/05–01/06/2026 (ADR-019 Payment / ADR-020 Notification+OAuth / ADR-021 Routing / ADR-022 Payout; re-close OQ-05/09/16). Toàn bộ 5 OQ vendor re-closed. **Sprint 4 Phase 4 DevOps CLOSED 01/06/2026** (ADR-023 Render / ADR-024 worker tách / ADR-025 test / ADR-026 CI-CD+Sentry). **19/19 layer roadmap (15 tech + 4 DevOps) CHỐT XONG** (ADR-002 + ADR-009..026). | AI         | 01/06/2026 |
+| 11 Task Breakdown                        | **Resolved 01/06/2026** — reworked v0.3 (task gắn 19-layer stack: Turborepo/Render/Prisma/BullMQ/Better Auth/VNPay-MoMo/Vitest); sẵn sàng Khanh review → Review. | Khanh + AI | 25/05/2026 |
+
+Doc không bị block (vẫn có thể advance): 00 chuẩn, 01 SRS (business logic), 06 UI flow, 08 Test logic, GLOSSARY, DOMAIN-MAP (target naming layer, có thể cần update sau khi framework chốt).
+
+## 6. Known doc / structure issues to clean up
+
+| Issue                                                                            | Action proposed                                         | Status                |
+| -------------------------------------------------------------------------------- | ------------------------------------------------------- | --------------------- |
+| SDLC docs 03-LLD, 04-DB, 07-Security, 09-Deploy lack marketplace context          | Review v0.1 drafts and align with SRS v1.15             | Resolved 25/05/2026 — bumped to v0.2; module list aligned with DOMAIN-MAP; closed OQs reflected; new OQs surfaced where gaps remain |
+| HLD v0.1 was written before `DOMAIN-MAP` existed                                  | Review HLD against new `DOMAIN-MAP` and SRS v1.15       | Resolved 25/05/2026 — HLD bumped to v0.2; §8.1 module table rewritten to target state; §13/§16/§18 updated with closed OQs |
+
+## 7. Recent change log (latest first)
+
+| Date       | Change                                                                                                                                                                                                                                                                       | Author            |
+| ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------- |
+| 02/06/2026 | **Flatten doc structure + doc-reader subagent** (Khanh yêu cầu). (1) Bỏ wrapper `vi/` (thừa khi chỉ 1 ngôn ngữ sau khi gỡ en/): `doc/vi/SDLC/*` → **`doc/SDLC/`** (00-12); sed cập nhật ~22 path ref (CLAUDE.md / AGENTS.md / DOMAIN-MAP / GLOSSARY / PROJECT-STATE §1). SDLC docs cross-ref nhau bằng bare filename → flatten không gãy. (2) Bỏ `vi/agent/`: authoring standard → archive `agent-authoring-standard.md` (giữ ISO 15289/29148 + B3); gỡ row 00b §1 + 3 §6 historical row vi/agent. (3) AGENT.md rewrite slim (~32 dòng, doc/ guide, không vi/en); AGENTS.md line 5 sửa (CLAUDE.md = coding brain). (4) Tạo subagent **`sdlc-doc-reader`** (`.claude/agents/`, read-only Read/Grep/Glob, sonnet) — đọc SDLC docs trả design summary có citation, giữ context coding agent lean. Cấu trúc cuối: `doc/{AGENT.md, SDLC/00-12, context/{DOMAIN-MAP, GLOSSARY, PROJECT-STATE, archive/}}`. | AI Agent |
+| 02/06/2026 | **Pivot CLAUDE.md → coding agent + tích hợp 2 repo** (Khanh yêu cầu). (1) **CLAUDE.md** đổi vai trò doc-Scrum-Master → **coding agent**: §1 role + Karpathy 4 nguyên tắc, §3 thêm `.claude/agents` + `.claude/skills`, §4 constraints (gỡ "no-code" → code rules: ADR/DOMAIN-MAP/money-BIGINT/adapter/test/git), §5 coding workflow (think→surgical→goal-driven→subagent→review), §6 code-sprint DoD + build-phase status, §7 context. Giữ §2 stack + §8 verbatim (surgical). (2) **`.claude/agents/`** = 15 subagent curated (VoltAgent MIT) khớp stack: typescript-pro/nextjs-developer/react-specialist/backend-developer/fullstack-developer/api-designer/postgres-pro/docker-expert/devops-engineer/mobile-developer/code-reviewer/qa-expert/security-auditor/performance-engineer/agent-organizer. (3) **`.claude/skills/karpathy-guidelines/`** = Karpathy 4 principles (multica-ai MIT) + nhúng vào AGENTS.md. Kiến trúc: AGENTS.md = WHAT (stack/style), CLAUDE.md = HOW (Claude Code role/subagents/workflow). | AI Agent |
+| 02/06/2026 | **Dọn cấu trúc doc — gỡ `doc/en/`** (Khanh duyệt). `en/SDLC` rỗng + `en/agent/00` = bản dịch song song không consumer (vi phạm chính nguyên tắc AGENT.md "no parallel translation unless requested"). Xóa toàn bộ `doc/en/`; giữ `vi/agent/00` (standard đang dùng — ISO 15289/29148 + B3). AGENT.md rewrite Vietnamese-primary (gỡ nhánh vi/en trong 4 task-flow + directory map; 106 → ~80 dòng; thêm `archive/` + `AGENTS.md` ref). Gỡ row 00b-EN khỏi §1; gỡ row en/agent khỏi CLAUDE.md §3 map. Đóng §6 known-issue (abridged SDLC → `AGENTS.md`). Cấu trúc còn: `doc/{AGENT.md, context/{…,archive/}, vi/{agent/00, SDLC/00-12}}` — 1 nguồn, không trùng lặp. | AI Agent |
+| 02/06/2026 | **Context-engineering restructure** (Khanh yêu cầu — PROJECT-STATE quá dài; tham khảo chuẩn AGENTS.md + Claude Code lean-context). §7 changelog 46 entry → `archive/CHANGELOG.md` (giữ ~5 mới nhất); §3/§4 nén prose re-close OQ → terse + pointer ADR. **PROJECT-STATE 72KB → 20KB (−72%)**. CLAUDE.md Sprint 0-4 tables + roadmap §6.5.1/2 → `archive/SPRINT-LOG.md`; **321 → ~200 dòng**. Tạo root **`AGENTS.md`** (coding-agent brief cross-tool). Policy mới: lịch sử chi tiết → **git commit**, §7 = ~5 entry cửa sổ trượt (CLAUDE.md §5 step3 + §6.6 updated). Always-loaded context ~95KB → ~25KB (−70%) → coding agent đỡ tốn budget. | AI Agent |
+| 01/06/2026 | **Rework 06 UI/UX Flow Specification (v0.1 → v0.2)**. Khanh yêu cầu sau consistency pass. UI vốn tech-independent → chỉ đồng bộ touchpoint + naming: §4 kênh Marketplace/Operator OS/Admin (Next.js 16) + 2 app Expo passenger/employee-mobile (ADR-013/014); §6.1 thêm flow đăng nhập Passenger (Email OTP Resend + OAuth Google/FB/Apple + account linking, ADR-020); §6.2 payment VNPay/MoMo redirect (ADR-019) + seat hold timer 10 phút (OQ-06) + price BIGINT; §7 Operator login `{slug}/{username}` + Owner TOTP + KYC upload R2 (ADR-018) + Mapbox stop-point; §8 Employee employee-mobile; §9 Admin `platform/{username}` + TOTP + flow **payout confirm** (manual + nhập bank ref + maker-checker, ADR-022); §10 thêm state 503 Redis down (ADR-015) + RFC 7807 + Zod. Đổi "User" → "Passenger". **Đóng UX-OQ-01** (guest checkout SRS) + **UX-OQ-02** (cookie+Bearer ADR-017) + **UX-OQ-05** (brand trung lập OQ-20); giữ mở UX-OQ-03 (seat map editor) + UX-OQ-04 (offline check-in risk). Bump 06 v0.1 → v0.2 (Draft). **Toàn bộ doc thiết kế (02-09, 11) + 06 UI đã đồng bộ stack — chỉ còn 01 SRS (business, không đụng) + 00 chuẩn + 10 ADR + 12 skeleton.** | AI Agent |
+| 01/06/2026 | **Rà nhất quán chéo 8 doc reworked (consistency pass, KHÔNG bump version)**. Khanh yêu cầu. Sửa: (1) **8 stale ref ADR v0.17 → v0.21** ở HLD/LLD/DB/API/Security (ADR file tiến v0.17 Sprint 5 → v0.21 sau Phase 4 trong khi doc rework sớm đóng băng ref); (2) **HLD §12/§14 sync Phase 4**: "worker tách defer Phase 4" → "Render Background Worker tách (ADR-024)", "deploy/CI-CD/monitoring chưa chốt" → "Render + GitHub Actions + Sentry (ADR-023/024/026)", monitoring "TBD Phase 4" → "Sentry+Pino+OTel". **Verify sạch**: 0 thuật ngữ legacy normative (class-validator/Bull/MongoDB-primary/Ant Design/single-Expo); 0 mâu thuẫn audit cluster (toàn "cluster RIÊNG"); module folder pairing nhất quán (external/payment/{vnpay,momo}, external/routing/{mapbox,osrm}); key decision (seat hold Redis SET NX EX 600, token 15min/30d, payment dedup provider_txn_id, TOTP) nhất quán; realtime transport TBD (HLD-OQ-11) nhất quán HLD/LLD/API; cross-ref version tới doc khác đều current. KHÔNG bump version (8 doc Draft cùng ngày chưa review; bump HLD sẽ cascade stale ref 6+ doc). 8 doc nhất quán nội bộ, sẵn sàng Khanh review. | AI Agent |
+| 01/06/2026 | **Tạo 12 Release Notes & Change Log (skeleton, v0.1)** — bộ SDLC giờ đủ 12 doc (00-12). Khanh chọn dựng khung sẵn cho code phase. Theo 15289 (Release information) + Keep a Changelog: §3 phân biệt change log SDLC (PROJECT-STATE §7 / revision history) vs release code (doc 12, từ v1.0.0); §4 SemVer MAJOR.MINOR.PATCH + EAS OTA mapping (ADR-012/014); §5 quy trình release (Exit criteria 08 Test → GitHub Actions ADR-026 → tag → backup → Render auto-deploy ADR-023/024 → smoke + Sentry → rollback 09 Deploy §10); §6 phân loại Added/Changed/Deprecated/Removed/Fixed/Security; §7 release log **template trống** (chưa release; release đầu v1.0.0 khi code production); §8 migration template; §9 mapping ADR↔release; §10 REL-OQ-01/02/03. Khanh duyệt release (AI không tự promote). PROJECT-STATE §1 entry 12: not yet created → v0.1 Draft. Theo chuẩn B3 tạo doc mới (mã 12, 15289, tham chiếu input). | AI Agent |
+| 01/06/2026 | **Sprint 4 Rework batch 2 — 09 Deploy (v0.4) + 08 Test (v0.2) + 11 Task (v0.3) reset theo Phase 4 ADR-023..026 + stack ADR. TOÀN BỘ SDLC DOC REWORK HOÀN TẤT.** Khanh chọn rework 3 doc unblocked sau khi đóng Phase 4. **09 Deploy v0.4**: môi trường Render SG + Postgres Supabase/Neon + Mongo Atlas + Upstash; build Turborepo + Docker + EAS mobile; secret theo vendor (VNPay/MoMo/Resend/Expo/OAuth/Mapbox/R2/Sentry); Prisma Migrate + RLS; observability Sentry+Pino+OTel; Render rollback + EAS Update OTA; checklist BullMQ/Postgres/Mongo/payout T+3. Đóng OPS-OQ-01/02/03/05; refine OPS-OQ-04; thêm OPS-OQ-06 (residency OQ-21/22). **08 Test v0.2**: strategy map tool (Vitest unit/integration + Supertest API + Playwright web + Maestro mobile); Testcontainers + VNPay/MoMo/Resend/Expo sandbox; mandatory test money BIGINT/idempotency dedup/tenant RLS/webhook HMAC/refresh reuse; thêm TC-PAY-003/TC-MONEY-001/TC-SEC-002. Đóng TEST-OQ-02; refine TEST-OQ-01. **11 Task v0.3**: task theo module gắn 19-layer stack (Foundation Turborepo+Render+Prisma+BullMQ worker tách+OpenAPI gen; IAM Better Auth 3-namespace+token+RLS+TOTP+OAuth; TRN Mapbox cache; BTP Redis hold+VNPay/MoMo dedup+escrow+payout manual; NSR Resend+Expo+sms-noop; thêm TASK-TEST-001 + TASK-OPS-001); DoD thêm money BIGINT/RLS/OpenAPI; §6 doc status rework DONE chờ review. Bump 09 v0.3→v0.4, 08 v0.1→v0.2, 11 v0.2→v0.3. **TỔNG KẾT: 8/8 doc tech-dependent đã rework theo 19-layer stack (02 HLD / 03 LLD / 04 DB / 05 API / 07 Security / 08 Test / 09 Deploy / 11 Task). Toàn bộ SDLC đồng bộ stack. Còn lại: Khanh review/promote; 06 UI (tech-independent); 12 Release Notes (khi code). 2 production-blocker OQ-21/22.** | AI Agent |
+| 01/06/2026 | **Sprint 4 CLOSED — Layer 19 Monitoring + CI/CD = GitHub Actions + Render auto-deploy + Sentry-centric; 4/4 Phase 4 DevOps layer hoàn tất. TOÀN BỘ 19 LAYER ROADMAP (15 tech + 4 DevOps) CHỐT XONG.** Layer 19: CI/CD GitHub Actions (ESLint + tsc + Vitest + build + gen api-client + Turborepo affected) → merge main → Render auto-deploy (cùng image API+worker) + EAS Build mobile; Observability Sentry (error+perf+trace BE NestJS + FE Next + Mobile Expo 1 tool) + Pino structured log → Render logs + Render metric + OpenTelemetry vendor-neutral + free uptime; full Grafana/Prometheus defer, Datadog paid loại. Matrix 3 option (Sentry-centric / Grafana Cloud / Minimal) + CI/CD GitHub Actions chung + primer. Khanh chốt **Sentry-centric** + tiêu chí "miễn phí v1". 6 mitigation. ADR file 10 bump v0.20 → v0.21: thêm **ADR-026**. **Phase 4 DevOps (Sprint 4) 4/4 layer: ADR-023 Deploy=Render / ADR-024 Worker=tách Render Background Worker (resolve ADR-016 defer) / ADR-025 Test=Vitest+Supertest+Playwright+Maestro / ADR-026 Monitoring=Sentry+GitHub Actions.** **Unblock 09 Deploy + 08 Test + 11 Task** (giờ rework được theo stack đầy đủ). Còn 2 production-blocker OQ-21 (KYC storage) + OQ-22 (TGTT license). CLAUDE.md §2 thêm DevOps row + Stack→CLOSED; §6.5 Sprint 4 CLOSED. **Tổng kết: 19/19 layer + Sprint 5 rework 5 doc DONE. Còn lại: Khanh review/promote 5 doc rework; rework 09 Deploy + 08 Test + 11 Task (giờ unblocked); 06 UI tech-independent.** | AI Agent |
+
+> **Lịch sử đầy đủ** (entry trước 02/06/2026): `archive/CHANGELOG.md`. Từ 02/06/2026: thay đổi chi tiết ghi vào **git commit message**; §7 chỉ giữ ~5 entry gần nhất (cửa sổ trượt).

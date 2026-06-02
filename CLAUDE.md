@@ -1,0 +1,179 @@
+# CLAUDE.md
+
+File này được Claude Code tự động load mỗi session. Đây là "bộ não" cho **coding agent** của dự án Marketplace-Ve-Xe-Nhanh (giai đoạn build v1).
+
+---
+
+## 1. Vai trò của bạn
+
+Bạn là **coding agent** cho Nguyễn Hồng Khanh, hiện thực hóa dự án `Marketplace-Ve-Xe-Nhanh` (managed marketplace vé xe khách) từ thiết kế SDLC sang code v1. Dự án ở **giai đoạn build** — SDLC design đã xong (19/19 layer, 26 ADR, 12 doc).
+
+**Nguồn chân lý khi code (đọc trước khi viết):**
+
+- **`AGENTS.md`** (root) — stack, cấu trúc monorepo, code style, testing, boundaries. Brief gọn nhất.
+- **`doc/SDLC/`** — thiết kế chi tiết: SRS (01 yêu cầu) · HLD (02) · LLD (03 module/use case) · DB (04 schema) · API (05 endpoint) · UI (06) · Security (07 auth/RBAC) · Test (08) · Deploy (09) · ADR (10 quyết định công nghệ) · Task (11).
+- **`DOMAIN-MAP`** (tên module/folder) · **`GLOSSARY`** (entity/state/error code).
+
+**Nguyên tắc làm việc — Karpathy guidelines** (skill `karpathy-guidelines`, auto-load khi code):
+
+1. **Think Before Coding** — nêu rõ giả định + tradeoff trước khi viết; mơ hồ thì DỪNG, hỏi (đừng đoán im lặng).
+2. **Simplicity First** — code tối thiểu giải quyết đúng yêu cầu; không over-engineer, không "phòng xa", không abstraction cho code dùng-1-lần.
+3. **Surgical Changes** — chỉ chạm cái cần; giữ style hiện có; không refactor thứ không hỏng; mỗi dòng đổi truy được về yêu cầu.
+4. **Goal-Driven Execution** — biến task thành success-criteria verify được (thường = test); loop tới khi pass.
+
+Khanh tự nhận nghiệp dư quản lý/ops → chủ động đề xuất cấu trúc, giải thích lý do trước khi quyết, nêu rủi ro sớm.
+
+---
+
+## 2. Dự án ở góc nhìn 30 giây
+
+| Thuộc tính | Giá trị |
+| ---------- | ------- |
+| Loại hình | Managed marketplace bán vé xe khách, ba bên (Passenger ↔ Platform ↔ Operator) |
+| Ba lớp dịch vụ | Marketplace / Operator OS / Platform admin |
+| Chiến lược code | **Build mới hoàn toàn** sau khi rebrand `Marketplace-Ve-Xe-Nhanh` (25/05/2026). Mọi file dưới `apps/backend/src/modules/` còn lại từ codebase cũ `Ve_Xe_Nhanh_NestJS_NextJs_ReactNative` đều ngoài phạm vi v1. Quyết định gốc "Phương án A — full rewrite" (11/05/2026) đã hợp nhất vào framing này. |
+| Giai đoạn hiện tại | **Build v1** — SDLC design xong (19/19 layer, 26 ADR, 12 doc); bắt đầu code. Gate: promote doc nền + mở tài khoản dịch vụ + TASK-FND (11 Task §7.1) |
+| Architecture (Layer 1, chốt 25/05/2026) | **Modular monolith** framework-agnostic — 1 backend process, module per business domain theo `DOMAIN-MAP §1, §2`. Scalability ceiling ~50-100k concurrent với LB + DB replica + Redis cache + worker tách. Strangler-ready. Xem ADR-002. |
+| Backend language (Layer 2, chốt 25/05/2026) | **TypeScript** (strict mode) trên **Node.js LTS 22.x**. Single language full-stack BE+FE+Mobile, share types qua monorepo `packages/types/`. Money math: Decimal.js / BigInt (cấm `number` raw). Runtime validation: Zod tại boundary. Xem ADR-009. |
+| Backend framework (Layer 3, chốt 25/05/2026) | **NestJS 11** + **`nestjs-zod`** (thay class-validator). ESLint custom rule enforce DOMAIN-MAP §1, §2 module boundary qua tool. Strangler-ready qua `@nestjs/microservices`. Xem ADR-010. |
+| DB paradigm (Layer 4, chốt 25/05/2026) | **Hybrid-A**: **Postgres 16 + Prisma 5** cho toàn bộ operational (User/Operator/Booking/Payment/Escrow/Commission/Payout/Dispute/KYC/Trip/Route...); **MongoDB 7 + Mongoose** cluster RIÊNG cho audit/log (time-series collection, append-only). Money column = `BIGINT` VND. Multi-tenant qua app guard + Postgres RLS defense-in-depth. Xem ADR-011 (supersedes ADR-003). |
+| API style (Layer 5, chốt 25/05/2026) | **REST + OpenAPI 3.1 auto** (Zod single source). nestjs-zod gen OpenAPI → `openapi-typescript` + `orval`/`@hey-api` gen client TS. URL version `/v1/*`. Error RFC 7807. Webhook HMAC-SHA256. Xem ADR-012. |
+| Frontend framework (Layer 6, chốt 25/05/2026) | **Next.js 16 App Router** trong **Turborepo + pnpm workspace monorepo**. Structure: `apps/{api,marketplace,operator-os,admin} + packages/{types,api-client,ui,utils,config}`. Marketplace RSC+SSG/ISR cho SEO; Operator OS + Admin CSR sau auth. Component lib + app count cụ thể defer LLD Sprint 5-6. Xem ADR-013. |
+| Mobile framework (Layer 7, chốt 25/05/2026) | **Expo (managed) SDK 55+ React Native** + TypeScript, New Architecture (Fabric). **2 app split**: `apps/passenger-mobile/` (public, ASO marketing, permission minimal) + `apps/employee-mobile/` (internal Driver+Staff, Background geo + full permission). Cùng monorepo Layer 6, share `packages/types + api-client + ui-mobile-shared`. EAS Build cloud (Windows dev OK, không cần Mac) + EAS Update (OTA) + EAS Submit. Native API (Camera/Background geo/Push/Biometric/Secure store) trong Expo SDK, không eject v1. Xem ADR-014 (supersedes ADR-007). |
+| Cache + Lock (Layer 8, chốt 26/05/2026) | **Redis 7 trên Upstash managed SG** cho cả cache + distributed lock. Stack: `ioredis` + `@nestjs/cache-manager` + `cache-manager-redis-yet` + custom NestJS lock service (`SET NX EX` + Lua release). Seat hold v1 = Pure Redis `SET seat:{tripId}:{seatId}:hold {bookingId} NX EX 600`; Hybrid (+ Postgres `seat_hold` table) defer LLD Sprint 5-6 nếu race condition đo được. Cache invalidation TTL-based (60s search / 1h operator / 24h seat layout / 15min session). Redis down → 503 (KHÔNG in-memory fallback tránh overbooking). Cost ~$5-15/mo v1 (Upstash Pro). Xem ADR-015 (supersedes ADR-004). |
+| Async Job Queue (Layer 9, chốt 26/05/2026) | **BullMQ** + **`@nestjs/bullmq`** trên cùng Redis Upstash Layer 8 (0 infra mới). Stack: decorator `@Processor('queue-name')` + `@Process('job-name')`. Cover use case: booking SMS/email/push fan-out + audit batch + payout T+3 cron (`repeat: { pattern: '0 0 * * *' }` + concurrency 1) + webhook exponential retry+DLQ + reporting aggregation. Dashboard: `@bull-board/express` mount `/admin/queues` qua NestJS guard PlatformAdmin. **Worker deployment defer Sprint 4 (Phase 4 DevOps)** — v1 tạm in-process cùng API, refactor separate worker process khi container target chốt. Workflow engine Temporal không cần v1 (BullMQ Flows cover multi-step). Outbox best-effort (queue.add ~5ms hiếm fail), refactor pg outbox LLD nếu cần. Xem ADR-016. |
+| Auth (Layer 10, chốt 26/05/2026) | **Better Auth** (TypeScript-first, framework-agnostic, MIT, launched 2024) + custom NestJS adapter (LLD Sprint 5-6 wrap Express middleware → NestJS interceptor, ~2-3 ngày). **Identifier 3 namespace tách biệt**: Passenger=Email (OTP primary); Operator-side=`{operatorSlug}/{username}` slash separator (vd `phuongtrang/owner01`, `phuongtrang/driver042`); Platform-side=`platform/{username}` (vd `platform/khanh`). **Identity model Account-separate v1** (mỗi `(scope, username)` pair là account riêng, KHÔNG federate; migrate β post-v1 nếu sales yêu cầu). **Provisioning Closed enrollment**: Platform admin issue Operator slug + first Owner sau KYC approve; Operator owner issue employee qua Operator OS dashboard; super-admin (Khanh) issue Platform employee qua super-admin panel; Passenger self-register Email+OTP only. **Token Hybrid**: JWT RS256 15min access (httpOnly cookie Web + expo-secure-store Mobile) + opaque 32-byte refresh 30d persist Postgres `auth_session`, rotation mỗi lần refresh + family invalidation; Redis cache session metadata Layer 8. **TOTP mandatory** Owner/PlatformAdmin/PlatformSupport + backup code 10 single-use; optional Driver/TicketStaff/SupportStaff v1. **Multi-tenant defense-in-depth**: NestJS `TenantGuard` extract `operatorSlug` từ JWT claims + Postgres RLS policy (ADR-011) `SET LOCAL app.operator_slug`. **RBAC 8 role** hardcoded enum v1 (Anonymous / Passenger / OperatorOwner / Driver / TicketStaff / SupportStaff / PlatformAdmin / PlatformSupport); ABAC defer post-v1 qua context field. **OAuth defer Sprint 3 Phase 3 Layer 13** (Zalo/Google/Facebook quyết cùng notification provider OQ-09). **CRITICAL re-confirm** khi 07 Security §5/§6 + LLD Sprint 5-6 rework (do Khanh "[No preference]" vòng 1 + reframe vòng 2). Xem ADR-017. |
+| Object Storage (Layer 11, chốt 26/05/2026) | **Cloudflare R2** (S3-compatible, egress $0, CDN built-in) cho object storage chính. Stack: `@aws-sdk/client-s3` + `@aws-sdk/s3-request-presigner` (KHÔNG dùng R2 proprietary → swap S3/B2 dễ). 2 bucket: `vexenhanh-public` (logo/vehicle/avatar + CDN) + `vexenhanh-private` (dispute/report/KYC/payment — presigned URL TTL 5min + audit log mỗi access). Storage adapter pattern (ADR-006) cho swap dev-local ↔ R2 ↔ VN-local. **KYC + payment-proof**: dev/test = local storage adapter (filesystem/MinIO, không data thật); **production = defer** (VN local split-bucket vs R2+DPIA Nghị định 13/2023) — blocker trước go-live, track OQ-21. Xem ADR-018 (closes SEC-OQ-04). |
+| Payment Gateway (Layer 12, chốt 31/05/2026) | **VNPay primary + MoMo phương thức 2** (đa phương thức v1) sau `PaymentGateway` adapter port `external/payment/{vnpay,momo}/` per ADR-006/AS-08. Stack: `VnpayAdapter` (HMAC-SHA512 sign/verify + redirect/IPN/querydr/refund) + `MomoAdapter` (HMAC-SHA256 + AIO redirect/QR/deeplink + IPN/refund). Webhook async qua BullMQ Layer 9, verify HMAC + dedup `(provider, providerTxnId)` idempotent (FR-BTP-08). Refund API riêng từng cổng (OQ-13). Reconciliation scheduled BullMQ cron call querydr mỗi cổng đối chiếu DB (FR-BTP-17). Escrow giữ **in-house** `EscrowLedger` per ADR-005 (cổng chỉ thu hộ về merchant account Platform). Stripe **loại v1** (không onboarding merchant VN, không settle VND OQ-12); VietQR (PayOS/Casso/SePay) defer v1.x. **Compliance**: escrow = TGTT theo Nghị định 52/2024 → production cần NHNN license, MVP/sandbox không vướng → track OQ-22. **CRITICAL re-confirm Sprint 5-6** do Q1 primary + Q3 OQ AI tự áp recommendation. Xem ADR-019; re-closes OQ-05. |
+| Notification + OAuth (Layer 13, chốt 31/05/2026) | **Email = Resend** (free 3k/mo, React Email templates) + **SMS = defer v1** chỉ `SmsNotifier` port + LocalLoggerAdapter (production không enable; v1.x kích hoạt eSMS.vn candidate) + **Push = Expo Push Service** (native ADR-014 không eject, `expo-server-sdk-node` route FCM+APNs, free) + **OAuth = Google + Facebook + Apple** cho Passenger (Better Auth built-in providers; Apple Sign-In mandatory App Store Guideline 4.8; Apple Dev $99/yr sunk cost ADR-014); Zalo defer v1.x (cần custom adapter + Zalo OA KYC). Operator/Platform KHÔNG OAuth per ADR-017 (closed enrollment). Fan-out async qua BullMQ Layer 9 (booking confirm 3 kênh + retry + DLQ + `notification_log` Mongo audit per ADR-011). Account linking Better Auth tự handle (OAuth email match Email-OTP merge). Khanh chốt qua tiêu chí **"miễn phí cho v1"** → AI áp recommendation tier free/no marginal cost. **CRITICAL re-confirm Sprint 5-6** tương tự ADR-017 + ADR-019. Xem ADR-020; re-closes OQ-09. |
+| Routing + Map (Layer 14, chốt 31/05/2026) | **Mapbox** cho cả routing + map: **Matrix/Directions API** (free 100k req/mo, zero-ops) sau `RoutingProvider` adapter `external/routing/mapbox/` + **Mapbox GL** map tiles + geocoding (free 50k loads/mo, Web `mapbox-gl` + Mobile `@rnmapbox/maps`, cùng access token). Marketplace tuyến cố định → routing mức "assist": distance/duration giữa stop-point tính lúc config route/trip → **cache DB**, không gọi mỗi search; gợi ý điểm đón/trả geo proximity; map display marker. Ngoài phạm vi: turn-by-turn/dispatch realtime (SRS 346/350). **OSRM self-host = documented escape-hatch** (DOMAIN-MAP `external/routing/osrm/` chừa chỗ; swap khi volume/residency demand) — tránh carryover trap legacy. Data residency N/A (tọa độ stop-point không PII). Khanh chốt theo khuyến nghị (tiêu chí "miễn phí cho v1"). Xem ADR-021. |
+| Bank Payout (Layer 15, chốt 01/06/2026) | **Manual admin-confirm + batch export** sau `PayoutProvider` adapter port `external/payout/` (ADR-006), v1 = `ManualPayoutAdapter`. Vế CHI escrow đối xứng Layer 12 (vế THU). Flow: BullMQ cron T+3 concurrency 1 (ADR-016) gom escrow eligible → `Payout` PENDING (trừ commission OQ-18 + refund + adjustment + holdback, dòng SRS 570) → admin review batch → **tự chuyển khoản** tới `BankAccount` verified (KYC OQ-19) → nhập mã giao dịch ngân hàng → COMPLETED + `ReconciliationRecord` (DP-18). CO-27 audit who/why/when; AS-23 payout policy versioning; T+3 no min threshold (OQ-16). **Auto-disbursement** (VNPay/MoMo chi hộ reuse Layer 12) **defer v1.x** tied OQ-22 (TGTT license) — chỉ thêm `DisbursementAdapter`. **Maker-checker dual-control** documented (bật khi team Platform >1, RBAC PlatformAdmin maker vs checker per ADR-017). Khanh chốt Q1 manual trực tiếp + giữ tiêu chí "miễn phí cho v1". KHÔNG raise OQ mới (OQ-22 cover payout legal). Xem ADR-022; re-closes OQ-16. |
+| Deploy target (Layer 16, chốt 01/06/2026) | **Render managed PaaS (Singapore)** cho Node API + BullMQ worker. DB managed-separate: Postgres Supabase/Neon SG + Mongo Atlas SG (ADR-011). Service type Render: Web (API) + Background Worker (BullMQ) + Cron Job (payout T+3). Docker image portable (swap Fly/VPS/VN-cloud dễ) + GitHub auto-deploy. Free tier + ~$7/service. Region SG ~30-50ms VN. Data residency KYC/payment production → OQ-21/22 (MVP dev-local không vướng). Influences Layer 17 (worker = Render Background Worker). Xem ADR-023. |
+| DevOps — Worker/Test/CI-CD (Layer 17-19, chốt 01/06/2026) | **Worker** = Render Background Worker tách (cùng image, khác start command; payout cron BullMQ repeat concurrency 1) — resolve ADR-016 defer (ADR-024). **Test** = Vitest (unit+integration BE+FE monorepo) + Supertest (e2e API) + Playwright (e2e web) + Maestro (e2e mobile Expo); mandatory test money/idempotency/tenant-RLS (ADR-025). **CI/CD** = GitHub Actions (lint+typecheck+Vitest+build+gen-client+Turborepo affected) + Render auto-deploy + EAS Build mobile (ADR-026). **Observability** = Sentry (error+perf+trace BE+FE+Mobile, 1 tool) + Pino structured logs → Render + OpenTelemetry vendor-neutral + Render metric + free uptime. Full Grafana/Prometheus defer; Datadog paid loại v1. |
+| Stack (Layer 1-15 — CHỐT XONG) | **Toàn bộ 15 layer tech-selection ĐÃ CHỐT** (Sprint 0+1+2+3 closed; ADR-002 + ADR-009..022). **Phase 3 VN Vendor CLOSED 01/06/2026** (Payment VNPay+MoMo / Notification Resend+Expo+OAuth Google-FB-Apple / Routing Mapbox / Payout manual). Toàn bộ 5 OQ vendor re-opened (OQ-05/09/10/14/16) re-closed — KHÔNG còn OQ vendor block MVP. **Phase 4 DevOps (Sprint 4) CLOSED 01/06/2026** — 4/4 layer (ADR-023 Render / ADR-024 worker tách / ADR-025 test Vitest+Maestro / ADR-026 CI-CD GitHub Actions+Sentry). **19/19 layer roadmap (15 tech + 4 DevOps) CHỐT XONG.** **Sprint 5 Rework 5 doc (HLD/DB/LLD/API/Security) DONE** chờ Khanh review → Review. 2 production-blocker: OQ-21 (KYC storage), OQ-22 (TGTT license). |
+| Ngôn ngữ | SDLC docs = Tiếng Việt; code/API/DB identifier = English (giữ qua re-select) |
+| Vendor v1 | **Tất cả 5 OQ vendor re-closed** (chốt qua Sprint 1+3): OQ-05 Payment=VNPay+MoMo (ADR-019), OQ-09 Notification=Resend+Expo+OAuth (ADR-020), OQ-10 Mobile=Expo 2-app (ADR-014), OQ-14 Audit DB=Mongo cluster riêng (ADR-011), OQ-16 Payout=manual+batch (ADR-022). Routing=Mapbox (ADR-021). Storage=R2 (ADR-018). Còn 2 production-blocker defer: OQ-21 KYC storage, OQ-22 TGTT license. Xem `PROJECT-STATE §4` |
+
+---
+
+## 3. Map nơi đặt tài liệu
+
+| Đường dẫn | Vai trò |
+| --------- | ------- |
+| `doc/AGENT.md` | Entry point cho mọi việc đụng `doc/` |
+| `doc/context/PROJECT-STATE.md` | **Live state** (lean ~20KB) — doc status, OQ, blockers, §7 = ~5 entry mới nhất. ĐỌC TRƯỚC mọi edit SDLC |
+| `doc/context/DOMAIN-MAP.md` | Mapping ba lớp ↔ module backend ở target state |
+| `doc/context/GLOSSARY.md` | Thuật ngữ song ngữ Vi-En, nguồn đặt tên |
+| `doc/SDLC/01-srs-...md` (v1.20) | **Nguồn yêu cầu duy nhất** (đã rebrand sang Marketplace-Ve-Xe-Nhanh) |
+| `doc/SDLC/02..12-*.md` | HLD, LLD, DB, API, UI, Security, Test, Deploy, ADR, Tasks, Release Notes |
+| `AGENTS.md` (root) | **Coding-agent brief** cross-tool (stack, structure, code style, boundaries). ĐỌC TRƯỚC khi code |
+| `.claude/agents/` | **15 subagent chuyên môn** (VoltAgent, MIT) khớp stack: `typescript-pro`, `nextjs-developer`, `react-specialist`, `backend-developer`, `fullstack-developer`, `api-designer`, `postgres-pro`, `docker-expert`, `devops-engineer`, `mobile-developer`, `code-reviewer`, `qa-expert`, `security-auditor`, `performance-engineer`, `agent-organizer`. Spawn qua Agent tool khi hợp việc |
+| `.claude/skills/karpathy-guidelines/` | Skill **Karpathy** (4 nguyên tắc coding) — auto-trigger khi viết/review/refactor code |
+| `doc/context/archive/` | `CHANGELOG.md` (lịch sử §7) + `SPRINT-LOG.md` (Sprint 0-4 + roadmap) — **KHÔNG auto-load**, chỉ tra khi cần lịch sử |
+
+---
+
+## 4. Hard constraints — KHÔNG được vi phạm
+
+1. **KHÔNG mở rộng phạm vi**: không tự thêm module, actor, vendor, framework, business rule ngoài thiết kế SDLC. Phát sinh → DỪNG, hỏi Khanh.
+2. **Code đúng thiết kế đã chốt**: stack = 26 ADR (file 10); tên module/folder = `DOMAIN-MAP §1, §2` (singular `vehicle/`, `booking/`, `iam/auth/` — KHÔNG plural legacy `buses/`/`bookings/`); entity/state/error = `GLOSSARY`.
+3. **Money = `BIGINT` VND + `Decimal.js`** (cấm `number`/`float`); vendor ngoài qua adapter `external/<provider>/` (cấm gọi SDK vendor trực tiếp trong domain service); tenant filter `operatorId` + Postgres RLS.
+4. **Test bắt buộc** (ADR-025): money / idempotency (payment dedup, seat-hold) / tenant-RLS / webhook-HMAC. Vitest unit+integration.
+5. **KHÔNG tự promote** tài liệu SDLC → `Approved` (chỉ Khanh). Sửa SDLC doc thì theo `doc/AGENT.md`.
+6. **Production-blocker**: OQ-21 (KYC storage) + OQ-22 (giấy phép TGTT) — KYC/payment thật chỉ chạy dev-local/sandbox tới khi giải quyết.
+7. **Git**: branch từ default (không commit thẳng default trừ khi được yêu cầu); commit/push chỉ khi Khanh yêu cầu; 1 commit/thay đổi logic, message rõ; CI (GitHub Actions) phải pass.
+
+---
+
+## 5. Workflow chuẩn khi code
+
+### Trước khi code một tính năng
+1. Đọc `AGENTS.md` (stack/style/boundaries) nếu chưa thuộc.
+2. Đọc phần SDLC liên quan: LLD (03) module + use case · DB (04) schema · API (05) endpoint · Security (07) auth/RBAC · Test (08) acceptance.
+3. Đọc `DOMAIN-MAP` (tên module/folder) + `GLOSSARY` (entity/state/error code).
+4. **Think before coding**: nêu giả định + plan ngắn (mỗi bước → success criteria = test nào pass). Mơ hồ → hỏi.
+
+### Khi code
+- **Surgical** (Karpathy #3): chỉ chạm cái cần. Controller mỏng · logic ở service · Zod tại boundary · money BIGINT/Decimal · vendor qua adapter.
+- **Goal-driven** (Karpathy #4): viết test trước/cùng; money/idempotency/tenant-RLS bắt buộc (Vitest); loop tới khi pass.
+- **Dùng subagent** (`.claude/agents/`, spawn qua Agent tool) khi hợp việc: `typescript-pro`/`backend-developer` cho NestJS BE · `nextjs-developer`/`react-specialist` cho FE · `postgres-pro` cho schema/query · `mobile-developer` cho Expo · `code-reviewer`/`security-auditor` trước khi đóng task · `agent-organizer` điều phối nhiều bước.
+
+### Sau khi code
+- Chạy `lint` + `typecheck` + `Vitest` (test liên quan) → pass.
+- Tóm tắt thay đổi cho Khanh (ngắn). Commit khi Khanh yêu cầu.
+
+### Khi sửa tài liệu SDLC (không phải code)
+- Theo `doc/AGENT.md` + cập nhật `PROJECT-STATE` (§6.6 git-as-changelog). KHÔNG tự promote → Approved.
+
+### Ngưỡng cần hỏi Khanh trước
+- Mở rộng phạm vi (module/actor/vendor/rule mới ngoài SDLC).
+- Mâu thuẫn giữa SDLC design và thực tế (vd schema thiếu, API lệch, LLD mơ hồ).
+- Đổi quyết định công nghệ đã chốt (26 ADR).
+
+---
+
+## 6. Sprint management framework
+
+Đây là framework đề xuất. Khanh có thể điều chỉnh; sau khi điều chỉnh, cập nhật chính section này.
+
+### 6.1. Cadence
+
+| Giai đoạn | Sprint length | Lý do |
+| --------- | ------------- | ----- |
+| Pre-v1 (hiện tại) | **2 tuần** | Doc work nhiều suy nghĩ, ít chunk nhỏ; cadence 2 tuần đỡ áp lực |
+| Code v1 (sau này) | 2 tuần | Giữ đồng bộ với doc cadence |
+| Code v1.x maintenance | 1 tuần | Phản hồi bug/feedback nhanh hơn |
+
+### 6.2. Backlog nguồn (code phase)
+
+Lấy task từ **`doc/SDLC/11-project-task-breakdown.md`** theo thứ tự dependency §7 (TASK-FND foundation → IAM → Transport → Booking/Payment → Operator/Employee/Admin → Notification/Reporting). KHÔNG tự sáng tạo task ngoài đó. Doc-phase backlog (OQ/issues) vẫn ở `PROJECT-STATE §4/§5/§6` nếu cần sửa SDLC.
+
+### 6.3. Definition of Done (code)
+
+| Loại | DoD |
+| ---- | --- |
+| Backend feature | FR/UC linked · Zod DTO · service logic · Prisma schema/index/RLS · RBAC/ownership · RFC 7807 error · money BIGINT/Decimal · Vitest pass |
+| Frontend feature | API client (gen) · loading/error/empty/permission state · Zod form · responsive |
+| Mobile feature | expo-secure-store token · permission state · Maestro critical flow |
+| Mọi task | lint + typecheck + Vitest liên quan pass; **mandatory test** (money/idempotency/tenant-RLS/webhook-HMAC) nếu chạm |
+| Trước khi đóng | spawn `code-reviewer` (+ `security-auditor` nếu chạm auth/payment/tenant) |
+
+### 6.5. Trạng thái hiện tại — Build phase (cập nhật 02/06/2026)
+
+- **Tech roadmap: 19/19 layer CHỐT** (26 ADR, file 10 v0.21). Stack đầy đủ ở §2 + `AGENTS.md`.
+- **SDLC: 12 doc (00-12) đồng bộ stack**, tất cả **Draft** — chờ Khanh promote Review/Approved (gate trước khi code nền).
+- **Coding infra đã cài**: `AGENTS.md` (brief) + `.claude/agents/` (15 subagent) + `.claude/skills/karpathy-guidelines/`.
+- **2 production-blocker** (không chặn MVP/dev): OQ-21 (KYC storage), OQ-22 (TGTT).
+
+**Bắt đầu code** — gate: Khanh promote doc nền (HLD/DB/LLD/API/Security) + mở ~11 tài khoản dịch vụ + `TASK-FND-001..008` (11 Task §7.1: monorepo Turborepo → Render+CI → Prisma+Postgres+Mongo+RLS → BullMQ worker → Zod env → Pino+Sentry → audit → OpenAPI gen).
+
+> Lịch sử sprint: `doc/context/archive/SPRINT-LOG.md`.
+
+### 6.6. Báo cáo tiến độ
+
+Lịch sử thay đổi chi tiết = **git commit message** (1 commit / thay đổi logic, message rõ ngày + tóm tắt). `PROJECT-STATE §7` chỉ giữ **~5 entry gần nhất** (milestone/sprint) làm cửa sổ trượt; entry cũ archive ở `context/archive/CHANGELOG.md`. Tránh nhồi prose dài vào file always-loaded (context budget — mỗi token §7 ăn vào budget mọi task). Cuối mỗi Sprint, AI cập nhật §1 doc-status + 1 dòng §7 + git commit; Khanh không cần yêu cầu.
+
+---
+
+## 7. Context kế thừa cho session sau
+
+Đọc theo nhu cầu (lazy load):
+
+- **`AGENTS.md`** (root) — coding brief: stack, structure, style, testing, boundaries. ĐỌC TRƯỚC khi code.
+- **`PROJECT-STATE.md`** — live state (doc status, OQ mở, blockers). Lean ~20KB.
+- **`DOMAIN-MAP` / `GLOSSARY`** — tên module/folder / entity-state-error.
+- **`doc/SDLC/`** — thiết kế chi tiết; đọc phần liên quan task đang làm.
+- **`.claude/agents/`** (15 subagent) + **`.claude/skills/karpathy-guidelines/`**.
+
+Khanh: tiếng Việt mặc định, nghiệp dư ops → giải thích + đề xuất chủ động. Lịch sử: `doc/context/archive/` (KHÔNG auto-load).
+
+---
+
+## 8. Khi không chắc
+
+- Đụng SRS → tham chiếu `01-srs-...md` v1.20
+- Đụng tên module/folder → tham chiếu `DOMAIN-MAP §1, §2`
+- Đụng entity/state/error → tham chiếu `GLOSSARY`
+- Đụng OQ đã đóng → tham chiếu `PROJECT-STATE §3`
+- Đụng version doc → tham chiếu `PROJECT-STATE §1`
+- Vẫn không chắc → **DỪNG, hỏi Khanh**, không suy diễn
