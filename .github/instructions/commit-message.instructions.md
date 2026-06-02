@@ -2,6 +2,8 @@
 
 Generate commit messages for this repository using Conventional Commits.
 
+Output only the commit message. Do not explain the message.
+
 ## Format
 
 Use this shape:
@@ -46,6 +48,7 @@ Omit scope only when the change truly spans the whole repository.
 
 ## Rules
 
+- The first line must match this pattern: `<type>(<scope>): <summary>`.
 - Write the subject in English, imperative mood, lowercase after the type.
 - Keep the subject at 72 characters or fewer.
 - Describe exactly one logical change per commit.
@@ -56,6 +59,18 @@ Omit scope only when the change truly spans the whole repository.
 - For sprint, milestone, or changelog commits, include `Date: YYYY-MM-DD` in the body.
 
 ## Examples
+
+For README changes, prefer:
+
+```text
+docs(root): add bilingual project readmes
+```
+
+Do not generate plain sentence subjects such as:
+
+```text
+Add initial README with project overview, stack details, and development guidelines
+```
 
 ```text
 chore(root): scaffold pnpm turborepo workspace
