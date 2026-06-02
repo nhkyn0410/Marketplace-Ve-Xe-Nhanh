@@ -9,7 +9,6 @@
 | Tên tài liệu  | Database Design             |
 | Mã tài liệu   | 04-database-design          |
 | Dự án         | Marketplace-Ve-Xe-Nhanh     |
-| Phiên bản     | v0.4                        |
 | Trạng thái    | Approved                    |
 | Người viết    | Nguyễn Hồng Khanh, AI Agent |
 | Người duyệt   | Nguyễn Hồng Khanh           |
@@ -51,9 +50,9 @@ Tài liệu này mô tả thiết kế dữ liệu mức database cho hệ thố
 
 | Tài liệu                                     | Vai trò                                                                                                                                                             |
 | -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `01-srs-he-thong-dat-ve-xe-khach.md` (v1.20) | Entity groups §9.2, state enum §17, FR/BR ràng buộc dữ liệu                                                                                                         |
-| `02-hld-he-thong-dat-ve-xe-khach.md` (v0.4)  | Data ownership mức cao §9, tích hợp ngoài §13                                                                                                                       |
-| `10-architecture-decision-record.md` (v0.21) | **ADR-011** (Hybrid-A DB), **ADR-015** (Redis seat hold), **ADR-017** (identity + RLS), **ADR-018** (R2 storage), **ADR-019** (payment dedup), **ADR-022** (payout) |
+| `01-srs-he-thong-dat-ve-xe-khach.md` | Entity groups §9.2, state enum §17, FR/BR ràng buộc dữ liệu                                                                                                         |
+| `02-hld-he-thong-dat-ve-xe-khach.md`  | Data ownership mức cao §9, tích hợp ngoài §13                                                                                                                       |
+| `10-architecture-decision-record.md` | **ADR-011** (Hybrid-A DB), **ADR-015** (Redis seat hold), **ADR-017** (identity + RLS), **ADR-018** (R2 storage), **ADR-019** (payment dedup), **ADR-022** (payout) |
 | `03-lld-he-thong-dat-ve-xe-khach.md`         | Service ↔ table/collection ownership (rework Sprint 5)                                                                                                              |
 | `context/DOMAIN-MAP.md`                      | Entity groups §2, state enum §5, tenant boundary §6                                                                                                                 |
 | `context/GLOSSARY.md`                        | Đặt tên entity, attribute, state                                                                                                                                    |
@@ -86,7 +85,7 @@ Tài liệu này mô tả thiết kế dữ liệu mức database cho hệ thố
 | Operational | PostgreSQL 16 + Prisma 5                                     | Toàn bộ entity nghiệp vụ: Identity, Operator/KYC, Catalog, Transport, Trip, Booking/Ticket, Payment/Escrow/Payout, Promotion, Operation, Support, Notification, Policy | Postgres CTE + materialized view + async refresh job (BullMQ) cho structured business report |
 | Audit       | MongoDB 7 + Mongoose 8 (cluster RIÊNG, Atlas SG / self-host) | Chỉ `audit_event` + `system_log` (time-series, append-only)                                                                                                            | Mongo aggregation cho audit-style query nội bộ                                               |
 
-**Reporting cross-DB** (v1): không live-join giữa 2 kho. Báo cáo nghiệp vụ structured chạy hoàn toàn trên Postgres; audit query chạy trên Mongo; enrich qua snapshot-at-write (DB-PRIN-07). OLAP nặng (ClickHouse) defer post-v1 nếu volume analytics đòi (đóng nhánh follow-up ADR-011 hệ quả 6).
+**Reporting cross-DB**: không live-join giữa 2 kho. Báo cáo nghiệp vụ structured chạy hoàn toàn trên Postgres; audit query chạy trên Mongo; enrich qua snapshot-at-write (DB-PRIN-07). OLAP nặng (ClickHouse) defer post-v1 nếu volume analytics đòi (đóng nhánh follow-up ADR-011 hệ quả 6).
 
 **SeatHold không phải bảng v1**: giữ ghế = key Redis `SET seat:{tripId}:{seatId}:hold {bookingId} NX EX 600` (ADR-015). Bảng Postgres `seat_hold` (hybrid lock) defer LLD — chỉ thêm nếu đo được race condition production.
 

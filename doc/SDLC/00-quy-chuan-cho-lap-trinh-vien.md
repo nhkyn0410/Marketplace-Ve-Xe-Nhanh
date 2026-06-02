@@ -9,7 +9,6 @@
 | Tên tài liệu | Quy chuẩn SDLC cho lập trình viên - Hệ thống đặt vé xe khách |
 | Mã tài liệu  | 00a-quy-chuan-cho-lap-trinh-vien                             |
 | Dự án        | Hệ thống đặt vé xe khách                                     |
-| Phiên bản    | v1.0                                                         |
 | Trạng thái   | Approved                                                        |
 | Người viết   | AI Agent                                                     |
 | Người duyệt  | Nguyễn Hồng Khanh                                            |
@@ -104,26 +103,26 @@ Mọi tài liệu SDLC chính thức BẮT BUỘC có các phần sau:
 
 Metadata mỗi tài liệu BẮT BUỘC có đúng các trường sau, theo thứ tự:
 
-| Thuộc tính   | Bắt buộc | Quy định                                                      |
-| ------------ | -------- | ------------------------------------------------------------- |
-| Tên tài liệu | Có       | Đúng tên trong danh mục SDLC ở mục 3.1                        |
-| Mã tài liệu  | Có       | Trùng với tên file không có `.md`                             |
-| Dự án        | Có       | Hệ thống đặt vé xe khách                                      |
-| Phiên bản    | Có       | Dạng `vMAJOR.MINOR`                                           |
-| Trạng thái   | Có       | Writing / Draft / Review / Approved / Deprecated / Superseded |
-| Người viết   | Có       | Cá nhân, nhóm hoặc công cụ tạo nội dung                       |
-| Người duyệt  | Có       | Người chịu trách nhiệm phê duyệt                              |
-| Ngày tạo     | Có       | Dạng `DD/MM/YYYY`                                             |
+| Thuộc tính    | Bắt buộc | Quy định                                                      |
+| ------------- | -------- | ------------------------------------------------------------- |
+| Tên tài liệu  | Có       | Đúng tên trong danh mục SDLC ở mục 3.1                        |
+| Mã tài liệu   | Có       | Trùng với tên file không có `.md`                             |
+| Dự án         | Có       | Marketplace-Ve-Xe-Nhanh                                      |
+| Trạng thái    | Có       | Writing / Draft / Review / Approved / Deprecated / Superseded |
+| Người viết    | Có       | Cá nhân, nhóm hoặc công cụ tạo nội dung                       |
+| Người duyệt   | Có       | Người chịu trách nhiệm phê duyệt                              |
+| Ngày tạo      | Có       | Dạng `DD/MM/YYYY`                                             |
+| Ngày cập nhật | Có       | Dạng `DD/MM/YYYY` — ngày sửa gần nhất                         |
+
+> **Không dùng trường `Phiên bản` số (`vMAJOR.MINOR`)** — git là nguồn lịch sử (quyết định 02/06/2026). Định danh tài liệu = **Trạng thái** (gate) + **Ngày cập nhật**, không phải số phiên bản.
 
 ### 4.3. Lịch sử thay đổi
 
-Mỗi tài liệu BẮT BUỘC có bảng lịch sử thay đổi với đúng 4 cột:
+Lịch sử thay đổi tài liệu = **git log** (mỗi thay đổi logic = 1 commit, message rõ ngày + nội dung). KHÔNG duy trì bảng version trong tài liệu (tránh churn/drift/cascade). Milestone cấp dự án ghi ở `context/PROJECT-STATE.md §7` + `context/archive/CHANGELOG.md`.
 
-| Phiên bản | Ngày       | Người cập nhật | Nội dung thay đổi |
-| --------- | ---------- | -------------- | ----------------- |
-| v1.0      | DD/MM/YYYY | Tên            | Mô tả ngắn        |
+Các bảng `Lịch sử thay đổi` (§1.2) còn trong một số doc là **lịch sử cũ, giữ làm tham chiếu** — KHÔNG thêm dòng mới.
 
-Không được sửa tài liệu đã `Approved` mà không tăng phiên bản hoặc ghi lịch sử thay đổi.
+Khi sửa tài liệu đã `Approved`: cập nhật trường **Ngày cập nhật** + commit git mô tả rõ; nếu đổi nội dung normative thì đồng bộ `PROJECT-STATE`. Gate dùng-để-code là **Trạng thái** (`Draft`/`Review`/`Approved`), không phải số phiên bản.
 
 ### 4.4. Quy chuẩn trình bày
 

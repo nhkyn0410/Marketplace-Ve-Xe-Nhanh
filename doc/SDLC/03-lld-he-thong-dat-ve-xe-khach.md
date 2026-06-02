@@ -9,7 +9,6 @@
 | Tên tài liệu  | Low Level Design - Hệ thống đặt vé xe khách |
 | Mã tài liệu   | 03-lld-he-thong-dat-ve-xe-khach             |
 | Dự án         | Marketplace-Ve-Xe-Nhanh                     |
-| Phiên bản     | v0.4                                        |
 | Trạng thái    | Approved                                    |
 | Người viết    | Nguyễn Hồng Khanh, AI Agent                 |
 | Người duyệt   | Nguyễn Hồng Khanh                           |
@@ -52,10 +51,10 @@ Tài liệu này mô tả thiết kế chi tiết mức module/service cho các 
 
 | Tài liệu                                     | Vai trò                                                                                                                                                                                                |
 | -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `01-srs-he-thong-dat-ve-xe-khach.md` (v1.20) | Yêu cầu hệ thống                                                                                                                                                                                       |
-| `02-hld-he-thong-dat-ve-xe-khach.md` (v0.4)  | Kiến trúc tổng quan và module boundary                                                                                                                                                                 |
-| `04-database-design.md` (v0.4)               | Bảng Postgres / collection Mongo, index, transaction, migration                                                                                                                                        |
-| `10-architecture-decision-record.md` (v0.21) | **ADR-010** (nestjs-zod), **ADR-011** (Hybrid DB), **ADR-015** (Redis lock), **ADR-016** (BullMQ), **ADR-017** (auth/identity), **ADR-019** (payment), **ADR-022** (payout), **ADR-024** (worker tách) |
+| `01-srs-he-thong-dat-ve-xe-khach.md` | Yêu cầu hệ thống                                                                                                                                                                                       |
+| `02-hld-he-thong-dat-ve-xe-khach.md`  | Kiến trúc tổng quan và module boundary                                                                                                                                                                 |
+| `04-database-design.md`               | Bảng Postgres / collection Mongo, index, transaction, migration                                                                                                                                        |
+| `10-architecture-decision-record.md` | **ADR-010** (nestjs-zod), **ADR-011** (Hybrid DB), **ADR-015** (Redis lock), **ADR-016** (BullMQ), **ADR-017** (auth/identity), **ADR-019** (payment), **ADR-022** (payout), **ADR-024** (worker tách) |
 | `05-api-specification.md`                    | API contract (rework Sprint 5)                                                                                                                                                                         |
 | `07-security-permission-design.md`           | Auth, RBAC, audit, threat control (rework Sprint 5)                                                                                                                                                    |
 | `context/DOMAIN-MAP.md`                      | Mapping ba lớp ↔ module backend ở target state                                                                                                                                                         |

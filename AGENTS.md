@@ -6,7 +6,7 @@ Coding-agent brief (cross-tool: Claude Code / Codex / Cursor / Copilot). **Lean 
 
 ## Project
 
-Managed marketplace bán vé xe khách, 3 bên (Passenger ↔ Platform ↔ Operator), 3 lớp dịch vụ (Marketplace / Operator OS / Platform admin). **Modular monolith**. Trạng thái: **pre-code** — SDLC design xong (19/19 layer, 27 ADR), chưa scaffold code v1. SDLC docs = Tiếng Việt; **code / API / DB identifier = English**.
+Managed marketplace bán vé xe khách, 3 bên (Passenger ↔ Platform ↔ Operator), 3 lớp dịch vụ (Marketplace / Operator OS / Platform admin). **Modular monolith**. Trạng thái: **build v1 (foundation)** — SDLC design xong (19/19 layer, 27 ADR; 11/13 doc Approved), scaffold monorepo nền `TASK-FND-001` xong (Turborepo + 6 apps + 6 packages), tiếp tục TASK-FND. SDLC docs = Tiếng Việt; **code / API / DB identifier = English**.
 
 ## Tech stack (đã chốt — ADR-002, ADR-009..027; KHÔNG đổi nếu chưa hỏi)
 

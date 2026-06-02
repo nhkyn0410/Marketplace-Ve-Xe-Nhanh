@@ -9,7 +9,6 @@
 | Tên tài liệu | Architecture Decision Record - ADR |
 | Mã tài liệu  | 10-architecture-decision-record  |
 | Dự án        | Hệ thống đặt vé xe khách         |
-| Phiên bản    | v0.22                            |
 | Trạng thái   | Approved                            |
 | Người viết   | Nguyễn Hồng Khanh, AI Agent          |
 | Người duyệt  | Nguyễn Hồng Khanh                |

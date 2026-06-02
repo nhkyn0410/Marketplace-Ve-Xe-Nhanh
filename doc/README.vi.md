@@ -1,6 +1,6 @@
 # Marketplace Ve Xe Nhanh
 
-Ngôn ngữ: [English](README.md) | Tiếng Việt
+Ngôn ngữ: [English](../README.md) | Tiếng Việt
 
 Marketplace quản lý bán vé xe khách liên tỉnh tại Việt Nam, phục vụ ba phía của hệ thống:
 
@@ -57,7 +57,7 @@ packages/
 - Node.js `>=22 <23`
 - pnpm `>=10 <11`
 
-Repo có `.node-version` và `.nvmrc`. Nếu pnpm báo unsupported engine, hãy đổi shell local sang Node 22 trước khi chạy lệnh của dự án.
+Repo có `.node-version`. Nếu pnpm báo unsupported engine, hãy đổi shell local sang Node 22 trước khi chạy lệnh của dự án.
 
 ## Bắt Đầu Nhanh
 

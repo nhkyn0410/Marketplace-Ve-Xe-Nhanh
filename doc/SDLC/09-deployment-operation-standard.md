@@ -9,7 +9,6 @@
 | Tên tài liệu  | Deployment & Operation Standard  |
 | Mã tài liệu   | 09-deployment-operation-standard |
 | Dự án         | Marketplace-Ve-Xe-Nhanh          |
-| Phiên bản     | v0.4                             |
 | Trạng thái    | Approved                            |
 | Người viết    | Nguyễn Hồng Khanh, AI Agent          |
 | Người duyệt   | Nguyễn Hồng Khanh                |
@@ -52,11 +51,11 @@ Tài liệu này quy định triển khai và vận hành hệ thống từ loca
 
 | Tài liệu | Vai trò |
 | -------- | ------- |
-| `01-srs-he-thong-dat-ve-xe-khach.md` (v1.20) | NFR vận hành, sao lưu, sẵn sàng |
-| `02-hld-he-thong-dat-ve-xe-khach.md` (v0.4) | Deployment overview §14 |
-| `04-database-design.md` (v0.4) | Migration (Prisma + Mongo), retention, RLS |
-| `07-security-permission-design.md` (v0.4) | Secret, audit, KYC handling |
-| `10-architecture-decision-record.md` (v0.21) | **ADR-023** Render, **ADR-024** worker, **ADR-025** test, **ADR-026** CI/CD+observability; + ADR-011/015/016/018/019/020/021 |
+| `01-srs-he-thong-dat-ve-xe-khach.md` | NFR vận hành, sao lưu, sẵn sàng |
+| `02-hld-he-thong-dat-ve-xe-khach.md` | Deployment overview §14 |
+| `04-database-design.md` | Migration (Prisma + Mongo), retention, RLS |
+| `07-security-permission-design.md` | Secret, audit, KYC handling |
+| `10-architecture-decision-record.md` | **ADR-023** Render, **ADR-024** worker, **ADR-025** test, **ADR-026** CI/CD+observability; + ADR-011/015/016/018/019/020/021 |
 | `context/DOMAIN-MAP.md` | External adapter location |
 | `context/PROJECT-STATE.md` | OQ-21 (KYC storage), OQ-22 (TGTT license) — production blocker |
 

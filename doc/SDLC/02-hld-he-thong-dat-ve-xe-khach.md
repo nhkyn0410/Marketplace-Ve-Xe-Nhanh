@@ -9,7 +9,6 @@
 | Tên tài liệu  | High Level Design - Hệ thống đặt vé xe khách |
 | Mã tài liệu   | 02-hld-he-thong-dat-ve-xe-khach              |
 | Dự án         | Marketplace-Ve-Xe-Nhanh                      |
-| Phiên bản     | v0.4                                         |
 | Trạng thái    | Approved                                     |
 | Người viết    | Nguyễn Hồng Khanh, AI Agent                  |
 | Người duyệt   | Nguyễn Hồng Khanh                            |
@@ -83,8 +82,8 @@ Tài liệu này KHÔNG mô tả chi tiết schema, migration, DTO, endpoint, UI
 | Mã / File                                    | Vai trò trong HLD                                                                                                     |
 | -------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
 | `00-quy-chuan-cho-lap-trinh-vien.md`         | Quy chuẩn SDLC và điều kiện dùng tài liệu để triển khai                                                               |
-| `01-srs-he-thong-dat-ve-xe-khach.md` (v1.20) | Nguồn yêu cầu chính, các FR/BR/NFR và OQ đã chốt                                                                      |
-| `10-architecture-decision-record.md` (v0.21) | **Toàn bộ ADR chốt tech stack + DevOps** (ADR-002, ADR-009..026) — nguồn chuẩn cho mọi quyết định công nghệ trong HLD |
+| `01-srs-he-thong-dat-ve-xe-khach.md` | Nguồn yêu cầu chính, các FR/BR/NFR và OQ đã chốt                                                                      |
+| `10-architecture-decision-record.md` | **Toàn bộ ADR chốt tech stack + DevOps** (ADR-002, ADR-009..027) — nguồn chuẩn cho mọi quyết định công nghệ trong HLD |
 | `context/DOMAIN-MAP.md`                      | Mapping ba lớp dịch vụ ↔ module backend ở trạng thái target                                                           |
 | `context/GLOSSARY.md`                        | Thuật ngữ song ngữ Việt - Anh, nguồn đặt tên chuẩn                                                                    |
 | `context/PROJECT-STATE.md`                   | Trạng thái tài liệu, quyết định chiến lược và OQ/MQ đã chốt                                                           |
@@ -111,7 +110,7 @@ Các tiền đề dưới đây không còn là giả định mở; chúng phả
 | HLD-AS-02 | Persistence Hybrid-A: **Postgres 16 + Prisma 5** cho toàn bộ operational; **MongoDB 7 + Mongoose** cluster RIÊNG cho audit/log (append-only); **Redis 7 (Upstash)** cho cache + distributed lock + BullMQ backend.           | ADR-011, ADR-015, ADR-016 |
 | HLD-AS-03 | Frontend web = **Next.js 16 App Router** trong Turborepo + pnpm monorepo; Marketplace RSC+SSG/ISR cho SEO, Operator OS + Admin CSR sau auth. Số app cụ thể chốt LLD.                                                         | ADR-013                   |
 | HLD-AS-04 | Mobile = **Expo (managed) SDK 55+** New Architecture, **2 app tách biệt**: `apps/passenger-mobile` (public) + `apps/employee-mobile` (internal, background geo).                                                             | ADR-014                   |
-| HLD-AS-05 | Vendor tích hợp ngoài đã chốt (payment VNPay+MoMo, email Resend, push Expo, OAuth Google/FB/Apple, routing Goong, storage R2, payout manual); mọi vendor đứng sau adapter port `external/<provider>/` để swap không phá vỡ. | ADR-018..022, ADR-006     |
+| HLD-AS-05 | Vendor tích hợp ngoài đã chốt (payment VNPay+MoMo, email Resend, push Expo, OAuth Google/FB/Apple, routing Goong, storage R2, payout manual); mọi vendor đứng sau adapter port `external/<provider>/` để swap không phá vỡ. | ADR-018..022, ADR-027, ADR-006     |
 
 ---
 
@@ -176,7 +175,7 @@ flowchart LR
 | Persistence layer      | Schema, repository/query, index, state history, soft delete                              | PostgreSQL 16 + Prisma 5 (operational); MongoDB 7 + Mongoose (audit-only)       |
 | Async processing layer | Payment callback retry, notification fan-out, payout cron T+3, reconciliation, reporting | BullMQ + @nestjs/bullmq trên Redis 7 (Upstash)                                  |
 | Realtime layer         | Trip update, check-in sync, notification realtime, admin/operator monitoring             | Transport TBD (chưa thuộc 15-layer selection — xem HLD-OQ-11)                   |
-| Integration layer      | Payment, notification, routing/map, object storage, payout                               | Adapter pattern `external/<provider>/`; vendor đã chốt (ADR-018..022)           |
+| Integration layer      | Payment, notification, routing/map, object storage, payout                               | Adapter pattern `external/<provider>/`; vendor đã chốt (ADR-018..022, ADR-027)           |
 
 ### 5.3. Nguyên tắc kiến trúc
 
@@ -450,7 +449,7 @@ Tất cả vendor đứng sau adapter port `external/<provider>/` (ADR-006). Web
 | SMS               | **Defer v1** (ADR-020)                                  | `external/notification/sms/` chỉ adapter port + LocalLoggerAdapter; kích hoạt v1.x (eSMS.vn candidate)                                  |
 | Push notification | **Expo Push Service** — trong phạm vi v1 (ADR-020)      | `external/notification/push/`; `expo-server-sdk-node` route FCM + APNs                                                                  |
 | OAuth provider    | **Google + Facebook + Apple**, Passenger-only (ADR-020) | Better Auth built-in providers; Apple Sign-In mandatory App Store 4.8; Operator/Platform không OAuth                                    |
-| Routing + map     | **Goong** Matrix/Directions + GL (ADR-027)             | `external/routing/goong/`; distance/duration cache DB; `external/routing/osrm/` = escape-hatch self-host                               |
+| Routing + map     | **Goong** Direction + Distance Matrix + Maps + Geocoding (ADR-027, Make-in-VN thay Mapbox) | `external/routing/goong/`; Web `@goongmaps/goong-js`, Mobile MapLibre RN; distance/duration cache DB; `external/routing/osrm/` = escape-hatch (cần VN-corrected data) |
 | Object storage    | **Cloudflare R2** (ADR-018)                             | `external/storage/`; 2 bucket public/private; `@aws-sdk/client-s3` (S3-compatible); KYC production location defer OQ-21                 |
 | Bank payout       | **Manual admin-confirm + batch** (ADR-022)              | `external/payout/`; `ManualPayoutAdapter`; auto-disbursement defer v1.x tied OQ-22                                                      |
 | Cache + lock      | **Redis 7 (Upstash managed SG)** (ADR-015)              | `redis/`; `ioredis` + cache-manager + custom lock service (`SET NX EX` + Lua release)                                                   |
@@ -563,8 +562,8 @@ Cột `Trạng thái` đối chiếu với `PROJECT-STATE §3` (closed) và `PRO
 ### 19.1. Tài liệu liên quan
 
 - `00-quy-chuan-cho-lap-trinh-vien.md`
-- `01-srs-he-thong-dat-ve-xe-khach.md` (v1.20)
-- `10-architecture-decision-record.md` (v0.21)
+- `01-srs-he-thong-dat-ve-xe-khach.md`
+- `10-architecture-decision-record.md`
 - `03-lld-he-thong-dat-ve-xe-khach.md` (rework Sprint 5)
 - `04-database-design.md` (rework Sprint 5)
 - `05-api-specification.md` (rework Sprint 5)

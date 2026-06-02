@@ -9,7 +9,6 @@
 | Tên tài liệu  | Project Task Breakdown      |
 | Mã tài liệu   | 11-project-task-breakdown   |
 | Dự án         | Marketplace-Ve-Xe-Nhanh     |
-| Phiên bản     | v0.3                        |
 | Trạng thái    | Approved                    |
 | Người viết    | Nguyễn Hồng Khanh, AI Agent |
 | Người duyệt   | Nguyễn Hồng Khanh           |
@@ -43,7 +42,7 @@
 
 ## 3. Giới thiệu
 
-Tài liệu này chia nhỏ công việc từ SDLC sang task triển khai, kiểm thử và nghiệm thu. Stack đã chốt 19/19 layer (ADR-002 + ADR-009..026); tham chiếu `01-srs` (v1.20), `02-hld` (v0.4), `03-lld` (v0.4), `04-db` (v0.4), `05-api` (v0.2), `07-security` (v0.4), `08-test` (v0.2), `09-ops` (v0.4), `10-adr` (v0.21). Bản nháp này chưa thay thế issue tracker chính thức.
+Tài liệu này chia nhỏ công việc từ SDLC sang task triển khai, kiểm thử và nghiệm thu. Stack đã chốt 19/19 layer (ADR-002 + ADR-009..027); tham chiếu `01-srs`, `02-hld`, `03-lld`, `04-db`, `05-api`, `07-security`, `08-test`, `09-ops`, `10-adr`. Bản nháp này chưa thay thế issue tracker chính thức.
 
 ---
 
@@ -66,14 +65,14 @@ Tài liệu này chia nhỏ công việc từ SDLC sang task triển khai, kiể
 flowchart TD
     ADR[10 ADR - 19 layer CHỐT]
     SRS[01 SRS]
-    HLD[02 HLD v0.4]
-    LLD[03 LLD v0.4]
-    DB[04 DB v0.4]
-    API[05 API v0.2]
+    HLD[02 HLD]
+    LLD[03 LLD]
+    DB[04 DB]
+    API[05 API]
     UX[06 UI/UX Flow]
-    SEC[07 Security v0.4]
-    TEST[08 Test v0.2]
-    OPS[09 Deploy v0.4]
+    SEC[07 Security]
+    TEST[08 Test]
+    OPS[09 Deploy]
     CODE[Code v1]
 
     ADR --> HLD
@@ -100,12 +99,12 @@ Sau Sprint 5 rework + Sprint 4 Phase 4 DevOps, các doc thiết kế đã reset 
 
 | Task ID      | Task                                                    | Nguồn           | Owner              | Dependency    | Status            |
 | ------------ | ------------------------------------------------------- | --------------- | ------------------ | ------------- | ----------------- |
-| TASK-DOC-001 | Review + promote 02 HLD v0.4 (Review/Approved)          | 02 HLD          | Reviewer           | Rework DONE   | Ready (chờ Khanh) |
-| TASK-DOC-002 | Review + promote 04 DB v0.4                             | 04 DB           | Reviewer/BE        | Rework DONE   | Ready (chờ Khanh) |
-| TASK-DOC-003 | Review + promote 03 LLD v0.4                            | 03 LLD          | Reviewer/Architect | Rework DONE   | Ready (chờ Khanh) |
-| TASK-DOC-004 | Review + promote 05 API v0.2                            | 05 API          | Reviewer/BE        | Rework DONE   | Ready (chờ Khanh) |
-| TASK-DOC-005 | Review + promote 07 Security v0.4                       | 07 Security     | Reviewer/Security  | Rework DONE   | Ready (chờ Khanh) |
-| TASK-DOC-006 | Review + promote 08 Test v0.2 + 09 Deploy v0.4          | 08 Test, 09 Ops | Reviewer/QA/DevOps | Rework DONE   | Ready (chờ Khanh) |
+| TASK-DOC-001 | Review + promote 02 HLD (Review/Approved)          | 02 HLD          | Reviewer           | Rework DONE   | Ready (chờ Khanh) |
+| TASK-DOC-002 | Review + promote 04 DB                             | 04 DB           | Reviewer/BE        | Rework DONE   | Ready (chờ Khanh) |
+| TASK-DOC-003 | Review + promote 03 LLD                            | 03 LLD          | Reviewer/Architect | Rework DONE   | Ready (chờ Khanh) |
+| TASK-DOC-004 | Review + promote 05 API                            | 05 API          | Reviewer/BE        | Rework DONE   | Ready (chờ Khanh) |
+| TASK-DOC-005 | Review + promote 07 Security                       | 07 Security     | Reviewer/Security  | Rework DONE   | Ready (chờ Khanh) |
+| TASK-DOC-006 | Review + promote 08 Test + 09 Deploy          | 08 Test, 09 Ops | Reviewer/QA/DevOps | Rework DONE   | Ready (chờ Khanh) |
 | TASK-DOC-007 | Hoàn thiện 06 UI/UX flow (User/Operator/Employee/Admin) | 06 UI/UX        | FE/Mobile/Reviewer | TASK-DOC-001  | Draft             |
 | TASK-DOC-008 | Tạo 12 Release Notes & Change Log (khi vào code)        | —               | Reviewer           | Code v1 start | Draft             |
 

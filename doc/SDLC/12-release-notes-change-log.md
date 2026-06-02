@@ -9,7 +9,6 @@
 | Tên tài liệu  | Release Notes & Change Log       |
 | Mã tài liệu   | 12-release-notes-change-log      |
 | Dự án         | Marketplace-Ve-Xe-Nhanh          |
-| Phiên bản     | v0.1                             |
 | Trạng thái    | Draft                            |
 | Người viết    | Nguyễn Hồng Khanh, AI Agent      |
 | Người duyệt   | Nguyễn Hồng Khanh                |
@@ -60,10 +59,10 @@ Hiện dự án ở giai đoạn **SDLC documentation, chưa code v1** → relea
 
 | Tài liệu                                     | Vai trò                                    |
 | -------------------------------------------- | ------------------------------------------ |
-| `09-deployment-operation-standard.md` (v0.4) | Quy trình release (§5), rollback (§10)     |
-| `10-architecture-decision-record.md` (v0.21) | Quyết định kỹ thuật phản ánh trong release |
+| `09-deployment-operation-standard.md` | Quy trình release (§5), rollback (§10)     |
+| `10-architecture-decision-record.md` | Quyết định kỹ thuật phản ánh trong release |
 | `context/PROJECT-STATE.md`                   | Trạng thái doc, OQ, change log SDLC        |
-| `08-test-plan-acceptance-criteria.md` (v0.2) | Exit criteria gate cho release             |
+| `08-test-plan-acceptance-criteria.md` | Exit criteria gate cho release             |
 
 ---
 
@@ -153,11 +152,11 @@ Template entry cho mỗi release (copy khi release thật):
 
 ## 9. Mapping ADR ↔ release
 
-Release v1.0.0 sẽ là hiện thực hóa toàn bộ **19-layer stack** đã chốt (ADR-002 + ADR-009..026). Bảng này ghi nhận release nào đưa quyết định ADR nào vào production (điền khi release).
+Release v1.0.0 sẽ là hiện thực hóa toàn bộ **19-layer stack** đã chốt (ADR-002 + ADR-009..027). Bảng này ghi nhận release nào đưa quyết định ADR nào vào production (điền khi release).
 
 | Release           | ADR hiện thực hóa                        | Ghi chú             |
 | ----------------- | ---------------------------------------- | ------------------- |
-| `1.0.0` (dự kiến) | ADR-002, ADR-009..026 (toàn bộ stack v1) | TBD khi cắt release |
+| `1.0.0` (dự kiến) | ADR-002, ADR-009..027 (toàn bộ stack v1) | TBD khi cắt release |
 
 ---
 

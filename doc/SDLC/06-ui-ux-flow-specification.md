@@ -9,7 +9,6 @@
 | Tên tài liệu  | UI/UX Flow Specification         |
 | Mã tài liệu   | 06-ui-ux-flow-specification      |
 | Dự án         | Marketplace-Ve-Xe-Nhanh          |
-| Phiên bản     | v0.2                             |
 | Trạng thái    | Approved                            |
 | Người viết    | Nguyễn Hồng Khanh, AI Agent      |
 | Người duyệt   | Nguyễn Hồng Khanh                |
@@ -43,7 +42,7 @@
 
 ## 3. Giới thiệu
 
-Tài liệu này mô tả luồng màn hình, trạng thái giao diện, form validation và xử lý lỗi ở mức UX. UI/UX độc lập tech-stack về bản chất; bản rework này chỉ đồng bộ các touchpoint kỹ thuật (auth, payment, kênh) với quyết định đã chốt. Tham chiếu: `01-srs` (v1.20), `05-api` (v0.2, endpoint), `07-security` (v0.4, auth UX), `context/GLOSSARY` (actor naming). Visual/component/wireframe chi tiết phát triển sau khi flow được duyệt + sau khi chốt component lib (ADR-013 — Shadcn/ui recommend).
+Tài liệu này mô tả luồng màn hình, trạng thái giao diện, form validation và xử lý lỗi ở mức UX. UI/UX độc lập tech-stack về bản chất; bản rework này chỉ đồng bộ các touchpoint kỹ thuật (auth, payment, kênh) với quyết định đã chốt. Tham chiếu: `01-srs`, `05-api` (v0.2, endpoint), `07-security` (v0.4, auth UX), `context/GLOSSARY` (actor naming). Visual/component/wireframe chi tiết phát triển sau khi flow được duyệt + sau khi chốt component lib (ADR-013 — Shadcn/ui recommend).
 
 ---
 

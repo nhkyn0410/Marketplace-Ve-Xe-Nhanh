@@ -4,7 +4,7 @@ Mapping between marketplace business concepts (SRS) and codebase artifacts. This
 
 References:
 
-- `@SDLC/01-srs-he-thong-dat-ve-xe-khach` — SRS v1.20, sections §4, §7, §9, §10, §13
+- `@SDLC/01-srs-he-thong-dat-ve-xe-khach` — SRS, sections §4, §7, §9, §10, §13
 - `@context/GLOSSARY` — terminology
 
 ## 1. Three layers ↔ Backend module groups (target state)
@@ -50,7 +50,7 @@ Notes:
 
 ## 4. External system actors (SRS §7.6) ↔ Adapter location
 
-All 15 tech-selection layers are closed (ADR-002, ADR-009..022). The adapter ports below are mandated by `ADR-006` (ports & adapters) so vendors stay swappable.
+All 15 tech-selection layers are closed (ADR-002, ADR-009..022; routing Layer 14 uses ADR-027 superseding ADR-021). The adapter ports below are mandated by `ADR-006` (ports & adapters) so vendors stay swappable.
 
 | External actor              | Backend adapter (target)                        | Decision reference |
 | --------------------------- | ----------------------------------------------- | ------------------ |

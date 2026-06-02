@@ -9,7 +9,6 @@
 | Tên tài liệu  | Test Plan & Acceptance Criteria  |
 | Mã tài liệu   | 08-test-plan-acceptance-criteria |
 | Dự án         | Marketplace-Ve-Xe-Nhanh          |
-| Phiên bản     | v0.2                             |
 | Trạng thái    | Draft                            |
 | Người viết    | Nguyễn Hồng Khanh, AI Agent        |
 | Người duyệt   | Nguyễn Hồng Khanh                |
@@ -43,7 +42,7 @@
 
 ## 3. Giới thiệu
 
-Tài liệu này mô tả chiến lược kiểm thử, tiêu chí nghiệm thu và test case nháp. Test framework đã chốt (ADR-025): **Vitest** (unit+integration BE+FE monorepo), **Supertest** (e2e API), **Playwright** (e2e web), **Maestro** (e2e mobile Expo). Tham chiếu: `01-srs` (v1.20), `03-lld` (v0.4), `04-db` (v0.4), `05-api` (v0.2), `07-security` (v0.4), `10-adr` (v0.21 — ADR-025 + 009/011/015/017/019).
+Tài liệu này mô tả chiến lược kiểm thử, tiêu chí nghiệm thu và test case nháp. Test framework đã chốt (ADR-025): **Vitest** (unit+integration BE+FE monorepo), **Supertest** (e2e API), **Playwright** (e2e web), **Maestro** (e2e mobile Expo). Tham chiếu: `01-srs`, `03-lld`, `04-db`, `05-api`, `07-security`, `10-adr` (v0.21 — ADR-025 + 009/011/015/017/019).
 
 ---
 

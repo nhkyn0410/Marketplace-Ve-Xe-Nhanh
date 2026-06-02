@@ -9,7 +9,6 @@
 | Tên tài liệu | Software Requirements Specification - Hệ thống đặt vé xe khách |
 | Mã tài liệu  | 01-srs-he-thong-dat-ve-xe-khach                                |
 | Dự án        | Hệ thống đặt vé xe khách                                       |
-| Phiên bản    | v1.20                                                          |
 | Trạng thái   | Approved                                                       |
 | Người viết   | Nguyễn Hồng Khanh, AI Agent                                    |
 | Người duyệt  | Nguyễn Hồng Khanh                                              |

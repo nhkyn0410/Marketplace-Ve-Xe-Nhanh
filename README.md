@@ -1,6 +1,6 @@
 # Marketplace Ve Xe Nhanh
 
-Language: English | [Tiếng Việt](README.vi.md)
+Language: English | [Tiếng Việt](doc/README.vi.md)
 
 Managed marketplace for intercity bus tickets in Vietnam, serving three sides of the business:
 
@@ -57,7 +57,7 @@ packages/
 - Node.js `>=22 <23`
 - pnpm `>=10 <11`
 
-The repo includes `.node-version` and `.nvmrc`. If pnpm prints an unsupported engine warning, switch the local shell to Node 22 before running project commands.
+The repo includes `.node-version`. If pnpm prints an unsupported engine warning, switch the local shell to Node 22 before running project commands.
 
 ## Getting Started
 

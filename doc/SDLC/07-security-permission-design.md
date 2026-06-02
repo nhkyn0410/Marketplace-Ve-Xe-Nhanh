@@ -9,7 +9,6 @@
 | Tên tài liệu  | Security & Permission Design  |
 | Mã tài liệu   | 07-security-permission-design |
 | Dự án         | Marketplace-Ve-Xe-Nhanh       |
-| Phiên bản     | v0.4                          |
 | Trạng thái    | Approved                      |
 | Người viết    | Nguyễn Hồng Khanh, AI Agent   |
 | Người duyệt   | Nguyễn Hồng Khanh             |
@@ -52,12 +51,12 @@ Tài liệu này mô tả thiết kế bảo mật và phân quyền cho hệ th
 
 | Tài liệu                                     | Vai trò                                                                                        |
 | -------------------------------------------- | ---------------------------------------------------------------------------------------------- |
-| `01-srs-he-thong-dat-ve-xe-khach.md` (v1.20) | FR/BR/NFR bảo mật, actor §7, dispute final-arbiter (MQ-03)                                     |
-| `02-hld-he-thong-dat-ve-xe-khach.md` (v0.4)  | Bảo mật mức cao §11                                                                            |
-| `03-lld-he-thong-dat-ve-xe-khach.md` (v0.4)  | Module ↔ guard/audit, 6.5 auth flow                                                            |
-| `04-database-design.md` (v0.4)               | auth_sessions, audit Mongo, KYC metadata, PolicySnapshot                                       |
-| `05-api-specification.md` (v0.2)             | Auth endpoint, webhook HMAC, RFC 7807                                                          |
-| `10-architecture-decision-record.md` (v0.21) | **ADR-017** auth, **ADR-011** RLS, **ADR-018** storage, **ADR-019** payment, **ADR-020** OAuth |
+| `01-srs-he-thong-dat-ve-xe-khach.md` | FR/BR/NFR bảo mật, actor §7, dispute final-arbiter (MQ-03)                                     |
+| `02-hld-he-thong-dat-ve-xe-khach.md`  | Bảo mật mức cao §11                                                                            |
+| `03-lld-he-thong-dat-ve-xe-khach.md`  | Module ↔ guard/audit, 6.5 auth flow                                                            |
+| `04-database-design.md`               | auth_sessions, audit Mongo, KYC metadata, PolicySnapshot                                       |
+| `05-api-specification.md`             | Auth endpoint, webhook HMAC, RFC 7807                                                          |
+| `10-architecture-decision-record.md` | **ADR-017** auth, **ADR-011** RLS, **ADR-018** storage, **ADR-019** payment, **ADR-020** OAuth |
 | `context/DOMAIN-MAP.md`                      | Tenant boundary §6, actor §3                                                                   |
 | `context/GLOSSARY.md`                        | Actor / RBAC / Tenant / Snapshot / Idempotency                                                 |
 | `context/PROJECT-STATE.md`                   | OQ đã chốt + OQ-21 (KYC production), OQ-22 (TGTT license)                                      |

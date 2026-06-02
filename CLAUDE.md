@@ -6,7 +6,7 @@ File này được Claude Code tự động load mỗi session. Đây là "bộ 
 
 ## 1. Vai trò của bạn
 
-Bạn là **coding agent** cho Nguyễn Hồng Khanh, hiện thực hóa dự án `Marketplace-Ve-Xe-Nhanh` (managed marketplace vé xe khách) từ thiết kế SDLC sang code v1. Dự án ở **giai đoạn build** — SDLC design đã xong (19/19 layer, 26 ADR, 12 doc).
+Bạn là **coding agent** cho Nguyễn Hồng Khanh, hiện thực hóa dự án `Marketplace-Ve-Xe-Nhanh` (managed marketplace vé xe khách) từ thiết kế SDLC sang code v1. Dự án ở **giai đoạn build** — SDLC design đã xong (19/19 layer, 27 ADR, 12 doc).
 
 **Nguồn chân lý khi code (đọc trước khi viết):**
 
@@ -32,7 +32,7 @@ Khanh tự nhận nghiệp dư quản lý/ops → chủ động đề xuất c�
 | Loại hình | Managed marketplace bán vé xe khách, ba bên (Passenger ↔ Platform ↔ Operator) |
 | Ba lớp dịch vụ | Marketplace / Operator OS / Platform admin |
 | Chiến lược code | **Build mới hoàn toàn** sau khi rebrand `Marketplace-Ve-Xe-Nhanh` (25/05/2026). Mọi file dưới `apps/backend/src/modules/` còn lại từ codebase cũ `Ve_Xe_Nhanh_NestJS_NextJs_ReactNative` đều ngoài phạm vi v1. Quyết định gốc "Phương án A — full rewrite" (11/05/2026) đã hợp nhất vào framing này. |
-| Giai đoạn hiện tại | **Build v1** — SDLC design xong (19/19 layer, 26 ADR, 12 doc); bắt đầu code. Gate: promote doc nền + mở tài khoản dịch vụ + TASK-FND (11 Task §7.1) |
+| Giai đoạn hiện tại | **Build v1** — SDLC design xong (19/19 layer, 27 ADR, 12 doc); bắt đầu code. Gate: promote doc nền + mở tài khoản dịch vụ + TASK-FND (11 Task §7.1) |
 | Architecture (Layer 1, chốt 25/05/2026) | **Modular monolith** framework-agnostic — 1 backend process, module per business domain theo `DOMAIN-MAP §1, §2`. Scalability ceiling ~50-100k concurrent với LB + DB replica + Redis cache + worker tách. Strangler-ready. Xem ADR-002. |
 | Backend language (Layer 2, chốt 25/05/2026) | **TypeScript** (strict mode) trên **Node.js LTS 22.x**. Single language full-stack BE+FE+Mobile, share types qua monorepo `packages/types/`. Money math: Decimal.js / BigInt (cấm `number` raw). Runtime validation: Zod tại boundary. Xem ADR-009. |
 | Backend framework (Layer 3, chốt 25/05/2026) | **NestJS 11** + **`nestjs-zod`** (thay class-validator). ESLint custom rule enforce DOMAIN-MAP §1, §2 module boundary qua tool. Strangler-ready qua `@nestjs/microservices`. Xem ADR-010. |
@@ -46,7 +46,7 @@ Khanh tự nhận nghiệp dư quản lý/ops → chủ động đề xuất c�
 | Object Storage (Layer 11, chốt 26/05/2026) | **Cloudflare R2** (S3-compatible, egress $0, CDN built-in) cho object storage chính. Stack: `@aws-sdk/client-s3` + `@aws-sdk/s3-request-presigner` (KHÔNG dùng R2 proprietary → swap S3/B2 dễ). 2 bucket: `vexenhanh-public` (logo/vehicle/avatar + CDN) + `vexenhanh-private` (dispute/report/KYC/payment — presigned URL TTL 5min + audit log mỗi access). Storage adapter pattern (ADR-006) cho swap dev-local ↔ R2 ↔ VN-local. **KYC + payment-proof**: dev/test = local storage adapter (filesystem/MinIO, không data thật); **production = defer** (VN local split-bucket vs R2+DPIA Nghị định 13/2023) — blocker trước go-live, track OQ-21. Xem ADR-018 (closes SEC-OQ-04). |
 | Payment Gateway (Layer 12, chốt 31/05/2026) | **VNPay primary + MoMo phương thức 2** (đa phương thức v1) sau `PaymentGateway` adapter port `external/payment/{vnpay,momo}/` per ADR-006/AS-08. Stack: `VnpayAdapter` (HMAC-SHA512 sign/verify + redirect/IPN/querydr/refund) + `MomoAdapter` (HMAC-SHA256 + AIO redirect/QR/deeplink + IPN/refund). Webhook async qua BullMQ Layer 9, verify HMAC + dedup `(provider, providerTxnId)` idempotent (FR-BTP-08). Refund API riêng từng cổng (OQ-13). Reconciliation scheduled BullMQ cron call querydr mỗi cổng đối chiếu DB (FR-BTP-17). Escrow giữ **in-house** `EscrowLedger` per ADR-005 (cổng chỉ thu hộ về merchant account Platform). Stripe **loại v1** (không onboarding merchant VN, không settle VND OQ-12); VietQR (PayOS/Casso/SePay) defer v1.x. **Compliance**: escrow = TGTT theo Nghị định 52/2024 → production cần NHNN license, MVP/sandbox không vướng → track OQ-22. **CRITICAL re-confirm Sprint 5-6** do Q1 primary + Q3 OQ AI tự áp recommendation. Xem ADR-019; re-closes OQ-05. |
 | Notification + OAuth (Layer 13, chốt 31/05/2026) | **Email = Resend** (free 3k/mo, React Email templates) + **SMS = defer v1** chỉ `SmsNotifier` port + LocalLoggerAdapter (production không enable; v1.x kích hoạt eSMS.vn candidate) + **Push = Expo Push Service** (native ADR-014 không eject, `expo-server-sdk-node` route FCM+APNs, free) + **OAuth = Google + Facebook + Apple** cho Passenger (Better Auth built-in providers; Apple Sign-In mandatory App Store Guideline 4.8; Apple Dev $99/yr sunk cost ADR-014); Zalo defer v1.x (cần custom adapter + Zalo OA KYC). Operator/Platform KHÔNG OAuth per ADR-017 (closed enrollment). Fan-out async qua BullMQ Layer 9 (booking confirm 3 kênh + retry + DLQ + `notification_log` Mongo audit per ADR-011). Account linking Better Auth tự handle (OAuth email match Email-OTP merge). Khanh chốt qua tiêu chí **"miễn phí cho v1"** → AI áp recommendation tier free/no marginal cost. **CRITICAL re-confirm Sprint 5-6** tương tự ADR-017 + ADR-019. Xem ADR-020; re-closes OQ-09. |
-| Routing + Map (Layer 14 → **REVISED 02/06/2026 ADR-027**) | **Goong Maps** (Make-in-Vietnam — chủ quyền Hoàng Sa/Trường Sa đúng luật VN) cho cả routing + map + geocoding, **thay Mapbox** (ADR-021 SUPERSEDED: Mapbox/OSM thiếu đảo → rủi ro phạt; Grab bị phạt 60M VND, Ninja Van gỡ bản đồ Mapbox). Stack: Goong **Direction + Distance Matrix API** sau `RoutingProvider` adapter `external/routing/goong/` + Goong Maps (Web `@goongmaps/goong-js` Mapbox-GL-compat, Mobile MapLibre RN) + Goong Geocoding (địa chỉ VN tốt hơn Mapbox/Google). Routing mức "assist": distance/duration giữa stop-point tính lúc config route/trip → **cache DB**, không gọi mỗi search; proximity gợi ý đón/trả (PostGIS); map marker. Ngoài phạm vi: turn-by-turn/dispatch realtime. Free tier, zero-ops. **OSRM self-host = escape-hatch** (cần VN-corrected data; ưu tiên VietMap escape thứ 2). Compliance: bản đồ PHẢI hiển thị Hoàng Sa/Trường Sa. Xem ADR-027 (supersedes ADR-021). |
+| Routing + Map (Layer 14 → **REVISED 02/06/2027 ADR-027**) | **Goong Maps** (Make-in-Vietnam — chủ quyền Hoàng Sa/Trường Sa đúng luật VN) cho cả routing + map + geocoding, **thay Mapbox** (ADR-021 SUPERSEDED: Mapbox/OSM thiếu đảo → rủi ro phạt; Grab bị phạt 60M VND, Ninja Van gỡ bản đồ Mapbox). Stack: Goong **Direction + Distance Matrix API** sau `RoutingProvider` adapter `external/routing/goong/` + Goong Maps (Web `@goongmaps/goong-js` Mapbox-GL-compat, Mobile MapLibre RN) + Goong Geocoding (địa chỉ VN tốt hơn Mapbox/Google). Routing mức "assist": distance/duration giữa stop-point tính lúc config route/trip → **cache DB**, không gọi mỗi search; proximity gợi ý đón/trả (PostGIS); map marker. Ngoài phạm vi: turn-by-turn/dispatch realtime. Free tier, zero-ops. **OSRM self-host = escape-hatch** (cần VN-corrected data; ưu tiên VietMap escape thứ 2). Compliance: bản đồ PHẢI hiển thị Hoàng Sa/Trường Sa. Xem ADR-027 (supersedes ADR-021). |
 | Bank Payout (Layer 15, chốt 01/06/2026) | **Manual admin-confirm + batch export** sau `PayoutProvider` adapter port `external/payout/` (ADR-006), v1 = `ManualPayoutAdapter`. Vế CHI escrow đối xứng Layer 12 (vế THU). Flow: BullMQ cron T+3 concurrency 1 (ADR-016) gom escrow eligible → `Payout` PENDING (trừ commission OQ-18 + refund + adjustment + holdback, dòng SRS 570) → admin review batch → **tự chuyển khoản** tới `BankAccount` verified (KYC OQ-19) → nhập mã giao dịch ngân hàng → COMPLETED + `ReconciliationRecord` (DP-18). CO-27 audit who/why/when; AS-23 payout policy versioning; T+3 no min threshold (OQ-16). **Auto-disbursement** (VNPay/MoMo chi hộ reuse Layer 12) **defer v1.x** tied OQ-22 (TGTT license) — chỉ thêm `DisbursementAdapter`. **Maker-checker dual-control** documented (bật khi team Platform >1, RBAC PlatformAdmin maker vs checker per ADR-017). Khanh chốt Q1 manual trực tiếp + giữ tiêu chí "miễn phí cho v1". KHÔNG raise OQ mới (OQ-22 cover payout legal). Xem ADR-022; re-closes OQ-16. |
 | Deploy target (Layer 16, chốt 01/06/2026) | **Render managed PaaS (Singapore)** cho Node API + BullMQ worker. DB managed-separate: Postgres Supabase/Neon SG + Mongo Atlas SG (ADR-011). Service type Render: Web (API) + Background Worker (BullMQ) + Cron Job (payout T+3). Docker image portable (swap Fly/VPS/VN-cloud dễ) + GitHub auto-deploy. Free tier + ~$7/service. Region SG ~30-50ms VN. Data residency KYC/payment production → OQ-21/22 (MVP dev-local không vướng). Influences Layer 17 (worker = Render Background Worker). Xem ADR-023. |
 | DevOps — Worker/Test/CI-CD (Layer 17-19, chốt 01/06/2026) | **Worker** = Render Background Worker tách (cùng image, khác start command; payout cron BullMQ repeat concurrency 1) — resolve ADR-016 defer (ADR-024). **Test** = Vitest (unit+integration BE+FE monorepo) + Supertest (e2e API) + Playwright (e2e web) + Maestro (e2e mobile Expo); mandatory test money/idempotency/tenant-RLS (ADR-025). **CI/CD** = GitHub Actions (lint+typecheck+Vitest+build+gen-client+Turborepo affected) + Render auto-deploy + EAS Build mobile (ADR-026). **Observability** = Sentry (error+perf+trace BE+FE+Mobile, 1 tool) + Pino structured logs → Render + OpenTelemetry vendor-neutral + Render metric + free uptime. Full Grafana/Prometheus defer; Datadog paid loại v1. |
@@ -64,7 +64,7 @@ Khanh tự nhận nghiệp dư quản lý/ops → chủ động đề xuất c�
 | `doc/context/PROJECT-STATE.md` | **Live state** (lean ~20KB) — doc status, OQ, blockers, §7 = ~5 entry mới nhất. ĐỌC TRƯỚC mọi edit SDLC |
 | `doc/context/DOMAIN-MAP.md` | Mapping ba lớp ↔ module backend ở target state |
 | `doc/context/GLOSSARY.md` | Thuật ngữ song ngữ Vi-En, nguồn đặt tên |
-| `doc/SDLC/01-srs-...md` (v1.20) | **Nguồn yêu cầu duy nhất** (đã rebrand sang Marketplace-Ve-Xe-Nhanh) |
+| `doc/SDLC/01-srs-...md` | **Nguồn yêu cầu duy nhất** (đã rebrand sang Marketplace-Ve-Xe-Nhanh) |
 | `doc/SDLC/02..12-*.md` | HLD, LLD, DB, API, UI, Security, Test, Deploy, ADR, Tasks, Release Notes |
 | `AGENTS.md` (root) | **Coding-agent brief** cross-tool (stack, structure, code style, boundaries). ĐỌC TRƯỚC khi code |
 | `.claude/agents/` | **15 subagent chuyên môn** (VoltAgent, MIT) khớp stack: `typescript-pro`, `nextjs-developer`, `react-specialist`, `backend-developer`, `fullstack-developer`, `api-designer`, `postgres-pro`, `docker-expert`, `devops-engineer`, `mobile-developer`, `code-reviewer`, `qa-expert`, `security-auditor`, `performance-engineer`, `agent-organizer`. Spawn qua Agent tool khi hợp việc |
@@ -76,7 +76,7 @@ Khanh tự nhận nghiệp dư quản lý/ops → chủ động đề xuất c�
 ## 4. Hard constraints — KHÔNG được vi phạm
 
 1. **KHÔNG mở rộng phạm vi**: không tự thêm module, actor, vendor, framework, business rule ngoài thiết kế SDLC. Phát sinh → DỪNG, hỏi Khanh.
-2. **Code đúng thiết kế đã chốt**: stack = 26 ADR (file 10); tên module/folder = `DOMAIN-MAP §1, §2` (singular `vehicle/`, `booking/`, `iam/auth/` — KHÔNG plural legacy `buses/`/`bookings/`); entity/state/error = `GLOSSARY`.
+2. **Code đúng thiết kế đã chốt**: stack = 27 ADR (file 10); tên module/folder = `DOMAIN-MAP §1, §2` (singular `vehicle/`, `booking/`, `iam/auth/` — KHÔNG plural legacy `buses/`/`bookings/`); entity/state/error = `GLOSSARY`.
 3. **Money = `BIGINT` VND + `Decimal.js`** (cấm `number`/`float`); vendor ngoài qua adapter `external/<provider>/` (cấm gọi SDK vendor trực tiếp trong domain service); tenant filter `operatorId` + Postgres RLS.
 4. **Test bắt buộc** (ADR-025): money / idempotency (payment dedup, seat-hold) / tenant-RLS / webhook-HMAC. Vitest unit+integration.
 5. **KHÔNG tự promote** tài liệu SDLC → `Approved` (chỉ Khanh). Sửa SDLC doc thì theo `doc/AGENT.md`.
@@ -108,7 +108,7 @@ Khanh tự nhận nghiệp dư quản lý/ops → chủ động đề xuất c�
 ### Ngưỡng cần hỏi Khanh trước
 - Mở rộng phạm vi (module/actor/vendor/rule mới ngoài SDLC).
 - Mâu thuẫn giữa SDLC design và thực tế (vd schema thiếu, API lệch, LLD mơ hồ).
-- Đổi quyết định công nghệ đã chốt (26 ADR).
+- Đổi quyết định công nghệ đã chốt (27 ADR).
 
 ---
 
@@ -140,12 +140,12 @@ Lấy task từ **`doc/SDLC/11-project-task-breakdown.md`** theo thứ tự depe
 
 ### 6.5. Trạng thái hiện tại — Build phase (cập nhật 02/06/2026)
 
-- **Tech roadmap: 19/19 layer CHỐT** (26 ADR, file 10 v0.21). Stack đầy đủ ở §2 + `AGENTS.md`.
-- **SDLC: 12 doc (00-12) đồng bộ stack**, tất cả **Draft** — chờ Khanh promote Review/Approved (gate trước khi code nền).
+- **Tech roadmap: 19/19 layer CHỐT** (27 ADR, file 10). Stack đầy đủ ở §2 + `AGENTS.md`.
+- **SDLC: 12 doc (00-12) đồng bộ stack** — **11/13 Approved** (00a, SRS, HLD, LLD, DB, API, UI, Security, Deploy, ADR, Task); chỉ **08 Test + 12 Release** còn Draft. Doc nền (HLD/DB/LLD/API/Security) đã Approved → **doc-gate code nền ✓** (chỉ Khanh promote — Status là định danh doc, không dùng số version).
 - **Coding infra đã cài**: `AGENTS.md` (brief) + `.claude/agents/` (15 subagent) + `.claude/skills/karpathy-guidelines/`.
 - **2 production-blocker** (không chặn MVP/dev): OQ-21 (KYC storage), OQ-22 (TGTT).
 
-**Bắt đầu code** — gate: Khanh promote doc nền (HLD/DB/LLD/API/Security) + mở ~11 tài khoản dịch vụ + `TASK-FND-001..008` (11 Task §7.1: monorepo Turborepo → Render+CI → Prisma+Postgres+Mongo+RLS → BullMQ worker → Zod env → Pino+Sentry → audit → OpenAPI gen).
+**Bắt đầu code** — gate: doc nền (HLD/DB/LLD/API/Security) **✓ Approved**; còn lại = mở ~11 tài khoản dịch vụ + `TASK-FND-001..008` (11 Task §7.1: monorepo Turborepo → Render+CI → Prisma+Postgres+Mongo+RLS → BullMQ worker → Zod env → Pino+Sentry → audit → OpenAPI gen).
 
 > Lịch sử sprint: `doc/context/archive/SPRINT-LOG.md`.
 

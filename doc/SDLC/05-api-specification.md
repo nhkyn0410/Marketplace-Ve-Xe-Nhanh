@@ -9,7 +9,6 @@
 | Tên tài liệu  | API Specification           |
 | Mã tài liệu   | 05-api-specification        |
 | Dự án         | Marketplace-Ve-Xe-Nhanh     |
-| Phiên bản     | v0.2                        |
 | Trạng thái    | Approved                    |
 | Người viết    | Nguyễn Hồng Khanh, AI Agent |
 | Người duyệt   | Nguyễn Hồng Khanh           |
@@ -45,7 +44,7 @@
 
 Tài liệu này mô tả API contract cho frontend, mobile và backend. Theo **ADR-012**, API style v1 = **REST + OpenAPI 3.1** với **Zod là single source** (nestjs-zod + `@nestjs/swagger` auto-gen OpenAPI → `openapi-typescript` + `orval`/`@hey-api` gen client TS — tool client cụ thể chốt khi setup). Chi tiết request/response DTO hoàn thiện cùng LLD + DB Design.
 
-Tài liệu tham chiếu: `01-srs` (v1.20), `02-hld` (v0.4), `03-lld` (v0.4), `04-database-design` (v0.4), `10-adr` (v0.21 — ADR-012/017/019/020), `07-security` (v0.4), `context/GLOSSARY` (error code).
+Tài liệu tham chiếu: `01-srs`, `02-hld`, `03-lld`, `04-database-design`, `10-adr` (v0.21 — ADR-012/017/019/020), `07-security`, `context/GLOSSARY` (error code).
 
 ---
 
