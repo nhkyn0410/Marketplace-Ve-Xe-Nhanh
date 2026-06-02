@@ -10,7 +10,7 @@
 | Mã tài liệu   | 06-ui-ux-flow-specification      |
 | Dự án         | Marketplace-Ve-Xe-Nhanh          |
 | Phiên bản     | v0.2                             |
-| Trạng thái    | Draft                            |
+| Trạng thái    | Approved                            |
 | Người viết    | Nguyễn Hồng Khanh, AI Agent      |
 | Người duyệt   | Nguyễn Hồng Khanh                |
 | Ngày tạo      | 11/05/2026                       |
@@ -91,7 +91,7 @@ Web = Next.js 16 (ADR-013); Mobile = Expo 2 app tách (ADR-014).
 | ---- | -------- | ---------------- |
 | 1 | Search form | default, invalid input, loading |
 | 2 | Search result | loading, empty, result, filter/sort active, stale availability |
-| 3 | Trip detail | loading, unavailable, open for sale, seat map loaded (Mapbox map điểm đón/trả) |
+| 3 | Trip detail | loading, unavailable, open for sale, seat map loaded (Goong map điểm đón/trả) |
 | 4 | Seat selection | available/holding/booked/blocked, **hold timer 10 phút** (OQ-06), hold conflict |
 | 5 | Passenger/contact form | valid, invalid, promotion valid/invalid |
 | 6 | Booking summary | price snapshot (BIGINT VND), policy confirmation, expired hold |
@@ -126,7 +126,7 @@ Login `{operatorSlug}/{username}` + password; Owner bắt buộc TOTP (ADR-017).
 | ---- | -------------- | ------- |
 | KYC onboarding | Profile, KYC documents (upload R2 private), bank account, status tracker | Chờ Admin duyệt; Platform cấp slug + Owner sau KYC |
 | Vehicle/SeatMap | Vehicle list, vehicle form, seat map editor | Không sửa tùy tiện khi đã gắn trip có vé |
-| Route/StopPoint | Route list, route form, stop point proposal (Mapbox geo) | StopPoint mới cần Admin duyệt |
+| Route/StopPoint | Route list, route form, stop point proposal (Goong geocoding) | StopPoint mới cần Admin duyệt |
 | Trip/Fare | Trip calendar/list, trip form, fare form, open/lock sale | Thay đổi trip đã bán vé cần lý do + audit |
 | Booking/Ticket | Booking list, passenger list, export | Mask dữ liệu cá nhân (`0*** *** 789`) theo quyền |
 | Employee | Employee list, role, assignment | Role: TICKET_STAFF, DRIVER, SUPPORT_STAFF; Owner cấp account |

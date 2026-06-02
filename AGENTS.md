@@ -1,14 +1,14 @@
 # AGENTS.md — Marketplace-Ve-Xe-Nhanh
 
-Coding-agent brief (cross-tool: Claude Code / Codex / Cursor / Copilot). **Lean by design** — full SDLC ở `doc/SDLC/`; quyết định công nghệ ở `doc/SDLC/10-architecture-decision-record.md` (26 ADR); live state ở `doc/context/PROJECT-STATE.md`; module map ở `doc/context/DOMAIN-MAP.md`; thuật ngữ ở `doc/context/GLOSSARY.md`.
+Coding-agent brief (cross-tool: Claude Code / Codex / Cursor / Copilot). **Lean by design** — full SDLC ở `doc/SDLC/`; quyết định công nghệ ở `doc/SDLC/10-architecture-decision-record.md` (27 ADR); live state ở `doc/context/PROJECT-STATE.md`; module map ở `doc/context/DOMAIN-MAP.md`; thuật ngữ ở `doc/context/GLOSSARY.md`.
 
 > `CLAUDE.md` (root) = Claude Code operational brain (role · subagents · skills · workflow). File này (`AGENTS.md`) = stack · structure · code style · testing · boundaries (cross-tool). Đọc cả hai khi code; đọc tài liệu thiết kế qua subagent `sdlc-doc-reader`.
 
 ## Project
 
-Managed marketplace bán vé xe khách, 3 bên (Passenger ↔ Platform ↔ Operator), 3 lớp dịch vụ (Marketplace / Operator OS / Platform admin). **Modular monolith**. Trạng thái: **pre-code** — SDLC design xong (19/19 layer, 26 ADR), chưa scaffold code v1. SDLC docs = Tiếng Việt; **code / API / DB identifier = English**.
+Managed marketplace bán vé xe khách, 3 bên (Passenger ↔ Platform ↔ Operator), 3 lớp dịch vụ (Marketplace / Operator OS / Platform admin). **Modular monolith**. Trạng thái: **pre-code** — SDLC design xong (19/19 layer, 27 ADR), chưa scaffold code v1. SDLC docs = Tiếng Việt; **code / API / DB identifier = English**.
 
-## Tech stack (đã chốt — ADR-002, ADR-009..026; KHÔNG đổi nếu chưa hỏi)
+## Tech stack (đã chốt — ADR-002, ADR-009..027; KHÔNG đổi nếu chưa hỏi)
 
 - **Runtime**: TypeScript (strict) + Node.js LTS 22. Tiền = `BIGINT` VND + `Decimal.js`; **CẤM** `number`/`float` cho tiền.
 - **Backend**: NestJS 11 + **nestjs-zod** (KHÔNG class-validator). Modular monolith, 1 module / business domain.
@@ -18,7 +18,7 @@ Managed marketplace bán vé xe khách, 3 bên (Passenger ↔ Platform ↔ Opera
 - **API**: REST + OpenAPI 3.1 auto từ Zod; URL `/v1`; error RFC 7807; webhook HMAC.
 - **Frontend**: Next.js 16 App Router; **Turborepo + pnpm** monorepo.
 - **Mobile**: Expo SDK 55+ (2 app: `passenger-mobile`, `employee-mobile`).
-- **Vendor** (sau adapter): VNPay + MoMo (payment), Resend (email), Expo Push, OAuth Google/FB/Apple, Mapbox (routing/map), Cloudflare R2 (storage), manual payout.
+- **Vendor** (sau adapter): VNPay + MoMo (payment), Resend (email), Expo Push, OAuth Google/FB/Apple, Goong (routing/map), Cloudflare R2 (storage), manual payout.
 - **DevOps**: Render PaaS (SG); worker = Render Background Worker tách; Vitest + Supertest + Playwright + Maestro; GitHub Actions + Sentry + Pino + OpenTelemetry.
 
 ## Project structure (target monorepo)
@@ -28,7 +28,7 @@ apps/    api (NestJS)  marketplace · operator-os · admin (Next.js)  passenger-
 packages/  types (Zod single source) · api-client (gen từ OpenAPI) · ui · utils (Decimal wrappers) · config
 ```
 
-Module backend theo `DOMAIN-MAP §1/§2` (tên **singular**: `booking/`, `trip/`, `iam/auth/`, `vehicle/`...). Vendor ngoài sau adapter port `external/<provider>/`: `payment/{vnpay,momo}`, `notification/{email,push,sms}`, `routing/{mapbox,osrm}`, `storage`, `payout`.
+Module backend theo `DOMAIN-MAP §1/§2` (tên **singular**: `booking/`, `trip/`, `iam/auth/`, `vehicle/`...). Vendor ngoài sau adapter port `external/<provider>/`: `payment/{vnpay,momo}`, `notification/{email,push,sms}`, `routing/{goong,osrm}`, `storage`, `payout`.
 
 ## Commands (chính xác chốt khi scaffold; quy ước dự kiến)
 

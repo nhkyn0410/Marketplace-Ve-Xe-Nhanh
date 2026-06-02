@@ -60,7 +60,7 @@ All 15 tech-selection layers are closed (ADR-002, ADR-009..022). The adapter por
 | Dịch vụ SMS                 | `external/notification/sms/`                    | `ADR-020` (defer v1 — chỉ adapter port + LocalLoggerAdapter; kích hoạt v1.x) |
 | Push notification           | `external/notification/push/`                   | `ADR-020` (Expo Push Service — TRONG phạm vi v1) |
 | OAuth provider              | Better Auth built-in (Google, Facebook, Apple)  | `ADR-020` (Passenger-only; Operator/Platform không OAuth per `ADR-017`) |
-| Dịch vụ định tuyến + map    | `external/routing/mapbox/`                      | `ADR-021` (Mapbox Matrix/Directions + GL); `external/routing/osrm/` = escape-hatch self-host |
+| Dịch vụ định tuyến + map    | `external/routing/goong/`                      | `ADR-027` (Goong Direction + Distance Matrix + Maps); `external/routing/osrm/` = escape-hatch self-host |
 | Object storage              | `external/storage/`                             | `ADR-018` (Cloudflare R2, 2 bucket public/private; KYC production location defer `OQ-21`) |
 | Bank payout channel         | `external/payout/`                              | `ADR-022` (manual admin-confirm + batch, `ManualPayoutAdapter`; auto-disbursement defer v1.x tied `OQ-22`) |
 

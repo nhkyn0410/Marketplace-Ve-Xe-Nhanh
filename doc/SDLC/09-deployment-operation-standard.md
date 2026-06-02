@@ -10,7 +10,7 @@
 | Mã tài liệu   | 09-deployment-operation-standard |
 | Dự án         | Marketplace-Ve-Xe-Nhanh          |
 | Phiên bản     | v0.4                             |
-| Trạng thái    | Draft                            |
+| Trạng thái    | Approved                            |
 | Người viết    | Nguyễn Hồng Khanh, AI Agent          |
 | Người duyệt   | Nguyễn Hồng Khanh                |
 | Ngày tạo      | 11/05/2026                       |
@@ -23,7 +23,7 @@
 | v0.1      | 11/05/2026 | AI Agent       | Tạo bản nháp Deployment & Operation Standard                                                                                                       |
 | v0.2      | 25/05/2026 | AI Agent       | Bổ sung observability/operation cho escrow, payout T+3, KYC                                                                                         |
 | v0.3      | 25/05/2026 | AI Agent       | Rebrand `Marketplace-Ve-Xe-Nhanh`; gỡ tham chiếu `TECH-STACK.md`. Không thay đổi normative.                                                       |
-| v0.4      | 01/06/2026 | AI Agent       | **Sprint 4 Rework** — bake Phase 4 DevOps **ADR-023..026** + stack ADR. §4 môi trường: Render (SG) + Postgres Supabase/Neon + Mongo Atlas; §5 build Turborepo + Docker + EAS mobile; §6 secret theo vendor đã chốt (VNPay/MoMo/Resend/Expo/OAuth/Mapbox/R2/Sentry); §7 Prisma Migrate + Mongo + RLS; §8 observability Sentry + Pino + OTel; §10 Render rollback; §11 checklist BullMQ/Postgres/Mongo. **Đóng OPS-OQ-01** (Render ADR-023) + **OPS-OQ-02** (Render env + GitHub secrets ADR-026) + **OPS-OQ-03** (Sentry ADR-026) + **OPS-OQ-05** (EAS ADR-014); refine OPS-OQ-04. |
+| v0.4      | 01/06/2026 | AI Agent       | **Sprint 4 Rework** — bake Phase 4 DevOps **ADR-023..026** + stack ADR. §4 môi trường: Render (SG) + Postgres Supabase/Neon + Mongo Atlas; §5 build Turborepo + Docker + EAS mobile; §6 secret theo vendor đã chốt (VNPay/MoMo/Resend/Expo/OAuth/Goong/R2/Sentry); §7 Prisma Migrate + Mongo + RLS; §8 observability Sentry + Pino + OTel; §10 Render rollback; §11 checklist BullMQ/Postgres/Mongo. **Đóng OPS-OQ-01** (Render ADR-023) + **OPS-OQ-02** (Render env + GitHub secrets ADR-026) + **OPS-OQ-03** (Sentry ADR-026) + **OPS-OQ-05** (EAS ADR-014); refine OPS-OQ-04. |
 
 ---
 
@@ -66,7 +66,7 @@ Tài liệu này quy định triển khai và vận hành hệ thống từ loca
 
 | Môi trường | Mục đích | Hạ tầng |
 | ---------- | -------- | ------- |
-| Local | Dev và test thủ công | Docker Compose: Postgres 16 + Mongo 7; Redis = Upstash (hoặc local redis dev); R2/Mapbox/Resend = API key dev; KYC = local storage adapter (ADR-018) |
+| Local | Dev và test thủ công | Docker Compose: Postgres 16 + Mongo 7; Redis = Upstash (hoặc local redis dev); R2/Goong/Resend = API key dev; KYC = local storage adapter (ADR-018) |
 | CI | Typecheck, lint, test tự động | **GitHub Actions** + pnpm + Turborepo affected (ADR-026) |
 | Staging | E2E, UAT, provider sandbox | Render (SG); sandbox VNPay + MoMo + Resend + Expo Push |
 | Production | Vận hành thật | Render (SG) HTTPS; Supabase/Neon Postgres + Atlas Mongo + Upstash Redis + R2; Sentry; **blocker OQ-21 (KYC storage) + OQ-22 (TGTT license)** |
@@ -111,7 +111,7 @@ Secret quản lý qua **Render env group** + **GitHub Actions secrets** (ADR-026
 | Payment | VNPay TmnCode/HashSecret (SHA512); MoMo partnerCode/accessKey/secretKey (SHA256) | Chỉ staging/production secret store (ADR-019) |
 | Notification | Resend API key; Expo (FCM server key + APNs key) | SMS defer (chỉ adapter) (ADR-020) |
 | OAuth | Google/Facebook/Apple client id + secret | Passenger-only (ADR-020) |
-| Routing/Map | Mapbox access token | Free tier (ADR-021) |
+| Routing/Map | Goong API key | Free tier (ADR-027) |
 | Object storage | R2 account id/access key/secret/bucket (public + private) | `@aws-sdk/client-s3` (ADR-018) |
 | Payout | Manual (không credential v1); bank info trong DB verified | Auto-disbursement defer v1.x (ADR-022) |
 | Monitoring | Sentry DSN (BE/FE/Mobile); OTel endpoint | Không log secret (ADR-026) |

@@ -23,7 +23,7 @@
 | v0.1      | 11/05/2026 | AI Agent       | Tạo bản nháp HLD từ SRS `01-srs-he-thong-dat-ve-xe-khach.md` và context hiện tại                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
 | v0.2      | 25/05/2026 | AI Agent       | Align với `context/DOMAIN-MAP`, `context/GLOSSARY`, `context/PROJECT-STATE`; cập nhật module boundary sang target state; đóng HLD-OQ-02..08 theo các OQ đã chốt; bổ sung VNPay Sandbox và Email OTP                                                                                                                                                                                                                                                                                                                                                                                    |
 | v0.3      | 25/05/2026 | AI Agent       | Rebrand sang `Marketplace-Ve-Xe-Nhanh`; gỡ tham chiếu tới 2 context file đã xóa `PROJECT-STRUCTURE.md` và `TECH-STACK.md` ở §4.1. Không thay đổi nội dung normative.                                                                                                                                                                                                                                                                                                                                                                                                                   |
-| v0.4      | 01/06/2026 | AI Agent       | **Sprint 5 Rework** — reset toàn bộ tech stack theo 18 ADR đã chốt (ADR-002, ADR-009..022): Hybrid-A DB (Postgres+Prisma ops / Mongo audit cluster riêng), nestjs-zod, BullMQ, Redis Upstash, Better Auth 3-namespace, Next.js 16 monorepo, Expo 2-app, VNPay+MoMo, Resend+Expo Push+OAuth, Mapbox, R2, manual payout. Đóng HLD-OQ-09 (R2), HLD-OQ-10 (manual payout); cập nhật HLD-OQ-07 (Mongo cluster riêng). Raise HLD-OQ-11 (realtime transport chưa thuộc 15-layer selection). Reframe §4.3 giả định, §5 kiến trúc, §13 tích hợp ngoài, §14 deployment, §16 quyết định theo ADR. |
+| v0.4      | 01/06/2026 | AI Agent       | **Sprint 5 Rework** — reset toàn bộ tech stack theo 18 ADR đã chốt (ADR-002, ADR-009..022): Hybrid-A DB (Postgres+Prisma ops / Mongo audit cluster riêng), nestjs-zod, BullMQ, Redis Upstash, Better Auth 3-namespace, Next.js 16 monorepo, Expo 2-app, VNPay+MoMo, Resend+Expo Push+OAuth, Goong, R2, manual payout. Đóng HLD-OQ-09 (R2), HLD-OQ-10 (manual payout); cập nhật HLD-OQ-07 (Mongo cluster riêng). Raise HLD-OQ-11 (realtime transport chưa thuộc 15-layer selection). Reframe §4.3 giả định, §5 kiến trúc, §13 tích hợp ngoài, §14 deployment, §16 quyết định theo ADR. |
 
 ---
 
@@ -111,7 +111,7 @@ Các tiền đề dưới đây không còn là giả định mở; chúng phả
 | HLD-AS-02 | Persistence Hybrid-A: **Postgres 16 + Prisma 5** cho toàn bộ operational; **MongoDB 7 + Mongoose** cluster RIÊNG cho audit/log (append-only); **Redis 7 (Upstash)** cho cache + distributed lock + BullMQ backend.           | ADR-011, ADR-015, ADR-016 |
 | HLD-AS-03 | Frontend web = **Next.js 16 App Router** trong Turborepo + pnpm monorepo; Marketplace RSC+SSG/ISR cho SEO, Operator OS + Admin CSR sau auth. Số app cụ thể chốt LLD.                                                         | ADR-013                   |
 | HLD-AS-04 | Mobile = **Expo (managed) SDK 55+** New Architecture, **2 app tách biệt**: `apps/passenger-mobile` (public) + `apps/employee-mobile` (internal, background geo).                                                             | ADR-014                   |
-| HLD-AS-05 | Vendor tích hợp ngoài đã chốt (payment VNPay+MoMo, email Resend, push Expo, OAuth Google/FB/Apple, routing Mapbox, storage R2, payout manual); mọi vendor đứng sau adapter port `external/<provider>/` để swap không phá vỡ. | ADR-018..022, ADR-006     |
+| HLD-AS-05 | Vendor tích hợp ngoài đã chốt (payment VNPay+MoMo, email Resend, push Expo, OAuth Google/FB/Apple, routing Goong, storage R2, payout manual); mọi vendor đứng sau adapter port `external/<provider>/` để swap không phá vỡ. | ADR-018..022, ADR-006     |
 
 ---
 
@@ -139,7 +139,7 @@ flowchart LR
     MongoAudit[(MongoDB 7 - audit only)]
     Redis[(Redis 7 - Upstash)]
 
-    Routing[Mapbox API]
+    Routing[Goong API]
     Payment[VNPay / MoMo]
     Notify[Resend / Expo Push]
     Storage[Cloudflare R2]
@@ -272,7 +272,7 @@ Bảng module HLD dưới đây dùng tên **target state** theo `context/DOMAIN
 | Notification                 | `notification/`                                                                                                                                                                                               | Notification event, delivery (email/push/sms-noop), retry, NotificationPreference                                                               | Hệ thống, mọi actor             |
 | Reporting                    | `reporting/`                                                                                                                                                                                                  | Dashboard; Postgres CTE/materialized view (structured) + Mongo aggregation (audit); async export                                                | Operator, Admin                 |
 | Audit & Policy               | `audit/`, `policy/`                                                                                                                                                                                           | AuditLog (Mongo cluster riêng, append-only), PolicyVersion, PolicySnapshot                                                                      | Admin, hệ thống                 |
-| Cross-cutting                | `common/`, `database/` (Prisma + Mongoose), `redis/`, `external/payment/{vnpay,momo}/`, `external/notification/{email,push,sms}/`, `external/routing/{mapbox,osrm}/`, `external/storage/`, `external/payout/` | Guard, interceptor, pipe, adapter cho provider ngoài                                                                                            | Hệ thống                        |
+| Cross-cutting                | `common/`, `database/` (Prisma + Mongoose), `redis/`, `external/payment/{vnpay,momo}/`, `external/notification/{email,push,sms}/`, `external/routing/{goong,osrm}/`, `external/storage/`, `external/payout/` | Guard, interceptor, pipe, adapter cho provider ngoài                                                                                            | Hệ thống                        |
 
 ### 8.2. Module phụ thuộc trọng yếu
 
@@ -295,7 +295,7 @@ Dữ liệu operational nằm ở **Postgres** (Prisma); riêng AuditLog/notific
 | User / Session               | Identity & Access           | Audit, Notification                              | Session metadata cache Redis; không lộ token / OTP trong log                          |
 | Operator / KYC               | Identity & Access, Operator | Admin, Payment, Reporting                        | Operator phải được duyệt trước khi mở bán; KYC doc ở R2 private bucket                |
 | Vehicle / SeatMap            | Transport Resource          | Booking, Employee Operations, Reporting          | Thay đổi sau khi có vé bán phải kiểm policy                                           |
-| Route / StopPoint            | Transport Resource          | Search, Booking, Routing                         | StopPoint chuẩn do Platform quản lý hoặc duyệt; toạ độ cache distance/duration Mapbox |
+| Route / StopPoint            | Transport Resource          | Search, Booking, Routing                         | StopPoint chuẩn do Platform quản lý hoặc duyệt; toạ độ cache distance/duration Goong |
 | Trip / TripSeat              | Transport Resource          | Search, Booking, Employee Operations             | Ghế theo chuyến là tài nguyên giao dịch                                               |
 | SeatHold                     | Booking & Ticket            | Search                                           | Redis `SET NX EX 600` (10 phút TTL, ADR-015)                                          |
 | Booking / Ticket             | Booking & Ticket            | Payment, Support, Employee Operations, Reporting | Lưu snapshot bắt buộc theo SRS                                                        |
@@ -450,7 +450,7 @@ Tất cả vendor đứng sau adapter port `external/<provider>/` (ADR-006). Web
 | SMS               | **Defer v1** (ADR-020)                                  | `external/notification/sms/` chỉ adapter port + LocalLoggerAdapter; kích hoạt v1.x (eSMS.vn candidate)                                  |
 | Push notification | **Expo Push Service** — trong phạm vi v1 (ADR-020)      | `external/notification/push/`; `expo-server-sdk-node` route FCM + APNs                                                                  |
 | OAuth provider    | **Google + Facebook + Apple**, Passenger-only (ADR-020) | Better Auth built-in providers; Apple Sign-In mandatory App Store 4.8; Operator/Platform không OAuth                                    |
-| Routing + map     | **Mapbox** Matrix/Directions + GL (ADR-021)             | `external/routing/mapbox/`; distance/duration cache DB; `external/routing/osrm/` = escape-hatch self-host                               |
+| Routing + map     | **Goong** Matrix/Directions + GL (ADR-027)             | `external/routing/goong/`; distance/duration cache DB; `external/routing/osrm/` = escape-hatch self-host                               |
 | Object storage    | **Cloudflare R2** (ADR-018)                             | `external/storage/`; 2 bucket public/private; `@aws-sdk/client-s3` (S3-compatible); KYC production location defer OQ-21                 |
 | Bank payout       | **Manual admin-confirm + batch** (ADR-022)              | `external/payout/`; `ManualPayoutAdapter`; auto-disbursement defer v1.x tied OQ-22                                                      |
 | Cache + lock      | **Redis 7 (Upstash managed SG)** (ADR-015)              | `redis/`; `ioredis` + cache-manager + custom lock service (`SET NX EX` + Lua release)                                                   |
@@ -463,7 +463,7 @@ Tất cả vendor đứng sau adapter port `external/<provider>/` (ADR-006). Web
 
 | Môi trường | Mục đích                           | Ghi chú                                                                                                                                         |
 | ---------- | ---------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
-| Local      | Dev, test thủ công, docker-compose | Postgres + Mongo local; Redis = Upstash managed (hoặc local redis dev); Mapbox/R2 = API key; storage KYC dev = local adapter (filesystem/MinIO) |
+| Local      | Dev, test thủ công, docker-compose | Postgres + Mongo local; Redis = Upstash managed (hoặc local redis dev); Goong/R2 = API key; storage KYC dev = local adapter (filesystem/MinIO) |
 | Staging    | Kiểm thử tích hợp trước production | Cần sandbox VNPay/MoMo + Resend + Expo Push                                                                                                     |
 | Production | Vận hành thật                      | Cần HTTPS, backup, monitoring, secret manager; **blocker OQ-21 (KYC storage) + OQ-22 (giấy phép TGTT)**                                         |
 
@@ -480,7 +480,7 @@ Deploy target + CI-CD + monitoring đã chốt Phase 4 (Sprint 4): **Render mana
 | Redis 7 (Upstash)    | Cache, distributed lock, BullMQ backend (managed SG)                                                               |
 | Web frontend         | Marketplace, Operator OS, Admin (Next.js 16 monorepo)                                                              |
 | Mobile app           | Passenger app + Employee app (EAS Build / Update / Submit)                                                         |
-| Routing              | Mapbox API (managed); OSRM self-host = escape-hatch                                                                |
+| Routing              | Goong API (managed); OSRM self-host = escape-hatch                                                                |
 | Object storage       | Cloudflare R2 (2 bucket public/private)                                                                            |
 | Monitoring / logging | **Sentry** (error+perf+trace BE+FE+Mobile) + Pino logs + OpenTelemetry (ADR-026)                                   |
 
@@ -510,7 +510,7 @@ Các quyết định công nghệ đã được hình thức hóa thành ADR (fi
 | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------- |
 | HLD-DEC-01 | V1 dùng modular monolith framework-agnostic, NestJS 11; strangler-ready qua `@nestjs/microservices`; chưa tách microservice.                                 | ADR-002, ADR-010                            |
 | HLD-DEC-02 | Seat hold = Redis `SET seat:{tripId}:{seatId}:hold {bookingId} NX EX 600` (10 phút, platform-wide); BullMQ làm async backend trên cùng Redis Upstash.        | OQ-06; ADR-015, ADR-016                     |
-| HLD-DEC-03 | Vendor v1: payment VNPay+MoMo, email Resend, push Expo, OAuth Google/FB/Apple, routing Mapbox, storage R2, payout manual — đều sau adapter port.             | ADR-018, ADR-019, ADR-020, ADR-021, ADR-022 |
+| HLD-DEC-03 | Vendor v1: payment VNPay+MoMo, email Resend, push Expo, OAuth Google/FB/Apple, routing Goong, storage R2, payout manual — đều sau adapter port.             | ADR-018, ADR-019, ADR-020, ADR-027, ADR-022 |
 | HLD-DEC-04 | Reporting bất đồng bộ: Postgres CTE / materialized view cho structured report; Mongo aggregation cho audit query; không chặn luồng booking/payment/check-in. | OQ-15; ADR-011                              |
 | HLD-DEC-05 | Audit là cross-cutting bắt buộc cho thao tác tiền, vé, ghế, quyền, policy, tenant-sensitive; lưu **Mongo cluster RIÊNG** (time-series, append-only).         | OQ-14 re-closed; ADR-011                    |
 | HLD-DEC-06 | Build mới hoàn toàn (fresh build `Marketplace-Ve-Xe-Nhanh`); module boundary HLD viết theo target state DOMAIN-MAP, không theo skeleton legacy.              | `PROJECT-STATE §2`                          |

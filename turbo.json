@@ -1,0 +1,40 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "tasks": {
+    "build": {
+      "dependsOn": ["^build"],
+      "outputs": ["dist/**", ".next/**", "!.next/cache/**"]
+    },
+    "@vexenhanh/config#build": {
+      "dependsOn": ["^build"],
+      "outputs": []
+    },
+    "@vexenhanh/employee-mobile#build": {
+      "dependsOn": ["^build"],
+      "outputs": []
+    },
+    "@vexenhanh/passenger-mobile#build": {
+      "dependsOn": ["^build"],
+      "outputs": []
+    },
+    "dev": {
+      "cache": false,
+      "persistent": true
+    },
+    "lint": {
+      "outputs": []
+    },
+    "typecheck": {
+      "dependsOn": ["^build"],
+      "outputs": []
+    },
+    "test": {
+      "dependsOn": ["^build"],
+      "outputs": []
+    },
+    "gen:api-client": {
+      "cache": false,
+      "outputs": ["src/generated/**"]
+    }
+  }
+}

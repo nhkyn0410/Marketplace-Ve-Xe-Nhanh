@@ -10,7 +10,7 @@
 | Mã tài liệu   | 05-api-specification        |
 | Dự án         | Marketplace-Ve-Xe-Nhanh     |
 | Phiên bản     | v0.2                        |
-| Trạng thái    | Draft                       |
+| Trạng thái    | Approved                    |
 | Người viết    | Nguyễn Hồng Khanh, AI Agent |
 | Người duyệt   | Nguyễn Hồng Khanh           |
 | Ngày tạo      | 11/05/2026                  |

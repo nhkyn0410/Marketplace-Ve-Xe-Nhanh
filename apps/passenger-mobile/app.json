@@ -1,0 +1,12 @@
+{
+  "expo": {
+    "name": "Ve Xe Nhanh",
+    "slug": "ve-xe-nhanh-passenger",
+    "scheme": "vexenhanh",
+    "version": "0.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "assetBundlePatterns": ["**/*"]
+  }
+}
