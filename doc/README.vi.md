@@ -57,7 +57,7 @@ packages/
 - Node.js `>=22 <23`
 - pnpm `>=10 <11`
 
-Repo có `.node-version`. Nếu pnpm báo unsupported engine, hãy đổi shell local sang Node 22 trước khi chạy lệnh của dự án.
+Phiên bản Node được khai báo qua `engines.node` trong `package.json` (`>=22 <23`). Nếu pnpm báo unsupported engine, hãy đổi shell local sang Node 22 (vd `nvm use 22`) trước khi chạy lệnh của dự án.
 
 ## Bắt Đầu Nhanh
 

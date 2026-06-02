@@ -57,7 +57,7 @@ packages/
 - Node.js `>=22 <23`
 - pnpm `>=10 <11`
 
-The repo includes `.node-version`. If pnpm prints an unsupported engine warning, switch the local shell to Node 22 before running project commands.
+The Node version policy is declared through `engines.node` in `package.json` (`>=22 <23`). If pnpm prints an unsupported engine warning, switch the local shell to Node 22 (for example, `nvm use 22`) before running project commands.
 
 ## Getting Started
 
