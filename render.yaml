@@ -3,7 +3,9 @@ services:
     name: vexenhanh-api
     runtime: docker
     region: singapore
-    plan: starter
+    # v1 validate: free tier ($0). Ngủ sau ~15p inactivity → cold-start ~30-60s.
+    # Lên `starter` ($7, always-on) khi go-live ở TASK-OPS-001.
+    plan: free
     dockerfilePath: ./Dockerfile
     dockerContext: .
     autoDeployTrigger: checksPass
@@ -15,23 +17,26 @@ services:
       - key: PORT
         value: "3000"
 
-  - type: worker
-    name: vexenhanh-worker
-    runtime: docker
-    region: singapore
-    plan: starter
-    dockerfilePath: ./Dockerfile
-    dockerContext: .
-    dockerCommand: dist/worker.js
-    autoDeployTrigger: checksPass
-    maxShutdownDelaySeconds: 120
-    envVars:
-      - fromGroup: vexenhanh-foundation
-      - key: SENTRY_DSN
-        sync: false
+# ADR-024: worker = Render Background Worker (cùng image, command `dist/worker.js`);
+# payout/reconciliation = BullMQ repeatable jobs TRONG worker (KHÔNG Render Cron Job riêng).
+# Render Background Worker KHÔNG có free tier → DEFER tới TASK-OPS-001 (paid).
+# v1 validate: worker chạy LOCAL (`pnpm --filter @vexenhanh/api start:worker`).
+# Bật lại khi go-paid (uncomment + nạp thẻ):
+#  - type: worker
+#    name: vexenhanh-worker
+#    runtime: docker
+#    region: singapore
+#    plan: starter
+#    dockerfilePath: ./Dockerfile
+#    dockerContext: .
+#    dockerCommand: dist/worker.js
+#    autoDeployTrigger: checksPass
+#    maxShutdownDelaySeconds: 120
+#    envVars:
+#      - fromGroup: vexenhanh-foundation
+#      - key: SENTRY_DSN
+#        sync: false
 
-# ADR-024: payout/reconciliation schedules are BullMQ repeatable jobs inside
-# the background worker. Do not add a Render Cron Job for that flow.
 envVarGroups:
   - name: vexenhanh-foundation
     envVars:
