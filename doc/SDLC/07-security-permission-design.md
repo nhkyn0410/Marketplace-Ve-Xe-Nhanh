@@ -13,7 +13,7 @@
 | Người viết    | Nguyễn Hồng Khanh, AI Agent   |
 | Người duyệt   | Nguyễn Hồng Khanh             |
 | Ngày tạo      | 11/05/2026                    |
-| Ngày cập nhật | 01/06/2026                    |
+| Ngày cập nhật | 03/06/2026                    |
 
 ### 1.2. Lịch sử thay đổi
 
@@ -120,7 +120,7 @@ Auth library = **Better Auth** + custom NestJS adapter (ADR-017).
 
 ## 6. Authorization và tenant boundary
 
-RBAC 8-role hardcoded enum v1 (Anonymous / Passenger / OperatorOwner / Driver / TicketStaff / SupportStaff / PlatformAdmin / PlatformSupport); ABAC defer post-v1. Tenant defense-in-depth = NestJS `TenantGuard` (extract `operatorSlug` từ JWT claims) + Postgres RLS (`SET LOCAL app.operator_slug`) (ADR-011, ADR-017).
+RBAC 8-role hardcoded enum v1 (Anonymous / Passenger / OperatorOwner / Driver / TicketStaff / SupportStaff / PlatformAdmin / PlatformSupport); ABAC defer post-v1. Tenant defense-in-depth = NestJS `TenantGuard` (match `operatorSlug` URL từ JWT claims) + Postgres RLS DB-level theo `operator_id` (`SET LOCAL app.operator_id`; JWT mang `operatorId`) (ADR-011, ADR-017).
 
 | Boundary            | Rule                                                                                          |
 | ------------------- | --------------------------------------------------------------------------------------------- |
