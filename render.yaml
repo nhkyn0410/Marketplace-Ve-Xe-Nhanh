@@ -14,6 +14,10 @@ services:
       - fromGroup: vexenhanh-foundation
       - key: SENTRY_DSN
         sync: false
+      - key: REDIS_URL
+        sync: false
+      - key: BULL_BOARD_TOKEN
+        sync: false
       - key: PORT
         value: "3000"
 
@@ -36,6 +40,10 @@ services:
 #      - fromGroup: vexenhanh-foundation
 #      - key: SENTRY_DSN
 #        sync: false
+#      - key: REDIS_URL
+#        sync: false
+#      - key: BULL_BOARD_TOKEN
+#        sync: false
 
 envVarGroups:
   - name: vexenhanh-foundation
@@ -44,3 +52,5 @@ envVarGroups:
         value: production
       - key: SENTRY_ENVIRONMENT
         value: production
+      - key: BULLMQ_PREFIX
+        value: vexenhanh
