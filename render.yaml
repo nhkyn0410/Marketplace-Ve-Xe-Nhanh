@@ -1,0 +1,35 @@
+services:
+  - type: web
+    name: vexenhanh-api
+    runtime: docker
+    region: singapore
+    plan: starter
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    autoDeployTrigger: checksPass
+    healthCheckPath: /v1/health
+    envVars:
+      - fromGroup: vexenhanh-foundation
+      - key: PORT
+        value: "3000"
+
+  - type: worker
+    name: vexenhanh-worker
+    runtime: docker
+    region: singapore
+    plan: starter
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    dockerCommand: dist/worker.js
+    autoDeployTrigger: checksPass
+    maxShutdownDelaySeconds: 120
+    envVars:
+      - fromGroup: vexenhanh-foundation
+
+# ADR-024: payout/reconciliation schedules are BullMQ repeatable jobs inside
+# the background worker. Do not add a Render Cron Job for that flow.
+envVarGroups:
+  - name: vexenhanh-foundation
+    envVars:
+      - key: NODE_ENV
+        value: production
