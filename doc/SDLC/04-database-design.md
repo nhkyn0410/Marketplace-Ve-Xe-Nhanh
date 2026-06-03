@@ -13,7 +13,7 @@
 | Người viết    | Nguyễn Hồng Khanh, AI Agent |
 | Người duyệt   | Nguyễn Hồng Khanh           |
 | Ngày tạo      | 11/05/2026                  |
-| Ngày cập nhật | 01/06/2026                  |
+| Ngày cập nhật | 03/06/2026                  |
 
 ### 1.2. Lịch sử thay đổi
 
@@ -64,7 +64,7 @@ Tài liệu này mô tả thiết kế dữ liệu mức database cho hệ thố
 
 | ID         | Nguyên tắc                                                                                                                                                                                                                                                          |
 | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| DB-PRIN-01 | Dữ liệu theo Operator phải có cột `operator_id`; lọc tenant qua app guard **và** Postgres Row-Level Security (RLS) policy `SET LOCAL app.operator_slug` — defense-in-depth (ADR-011, ADR-017).                                                                      |
+| DB-PRIN-01 | Dữ liệu theo Operator phải có cột `operator_id`; lọc tenant qua app guard **và** Postgres RLS. Mỗi tenant table: `ENABLE` + **`FORCE ROW LEVEL SECURITY`** + `CREATE POLICY USING (operator_id = current_setting('app.operator_id')::bigint)`; app set `SET LOCAL app.operator_id` mỗi transaction (PrismaService `withOperatorContext`). **App DB role KHÔNG được owner/superuser** (nếu không RLS bị bypass) — defense-in-depth (ADR-011, ADR-017).                                                                      |
 | DB-PRIN-02 | Booking, Ticket, Payment, Refund, EscrowLedger và Payout phải truy vết hai chiều (state history + reconciliation).                                                                                                                                                  |
 | DB-PRIN-03 | Booking và Ticket phải lưu snapshot dữ liệu (fare, policy, promotion) tại thời điểm mua; snapshot không bị ghi đè khi nguồn đổi.                                                                                                                                    |
 | DB-PRIN-04 | Không xóa cứng dữ liệu giao dịch trong production (soft delete/archive). Audit lưu Mongo cluster RIÊNG, **append-only** qua REVOKE UPDATE/DELETE cho app DB user (ADR-011).                                                                                         |
