@@ -1,5 +1,6 @@
 import { Module } from "@nestjs/common";
 import { MongooseModule } from "@nestjs/mongoose";
+import { MongoHealthService } from "./mongo-health.service";
 
 @Module({
   imports: [
@@ -9,6 +10,7 @@ import { MongooseModule } from "@nestjs/mongoose";
       }),
     }),
   ],
-  exports: [MongooseModule],
+  providers: [MongoHealthService],
+  exports: [MongooseModule, MongoHealthService],
 })
 export class MongoAuditModule {}
