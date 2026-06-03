@@ -17,7 +17,7 @@ RUN pnpm install --frozen-lockfile --filter @vexenhanh/api...
 RUN pnpm --filter @vexenhanh/api... build
 RUN pnpm --filter @vexenhanh/api deploy --legacy --prod /runtime/api
 
-FROM base AS runtime
+FROM gcr.io/distroless/nodejs24-debian13:nonroot AS runtime
 
 ENV NODE_ENV="production"
 ENV PORT="3000"
@@ -28,4 +28,4 @@ COPY --from=build /runtime/api ./
 
 EXPOSE 3000
 
-CMD ["pnpm", "--filter", "@vexenhanh/api", "start"]
+CMD ["dist/main.js"]
