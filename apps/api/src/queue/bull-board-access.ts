@@ -1,4 +1,5 @@
 import type { NextFunction, Request, RequestHandler, Response } from "express";
+import { getRequestId } from "../common/observability/request-context";
 
 type Env = Record<string, string | undefined>;
 
@@ -7,6 +8,7 @@ type ProblemResponse = {
   title: string;
   status: number;
   detail: string;
+  code: string;
 };
 
 export function createBullBoardAccessGuard(env: Env = process.env): RequestHandler {
@@ -23,8 +25,9 @@ export function createBullBoardAccessGuard(env: Env = process.env): RequestHandl
         type: "about:blank",
         title: "Bull Board is not configured",
         status: 503,
-        detail: "BULL_BOARD_TOKEN must be configured before Bull Board is available."
-      });
+        detail: "BULL_BOARD_TOKEN must be configured before Bull Board is available.",
+        code: "SERVICE_UNAVAILABLE"
+      }, request);
       return;
     }
 
@@ -38,8 +41,9 @@ export function createBullBoardAccessGuard(env: Env = process.env): RequestHandl
       type: "about:blank",
       title: "Unauthorized",
       status: 401,
-      detail: "A valid Bull Board bearer token is required."
-    });
+      detail: "A valid Bull Board bearer token is required.",
+      code: "UNAUTHORIZED"
+    }, request);
   };
 }
 
@@ -53,7 +57,12 @@ function getPresentedToken(request: Request): string | undefined {
   return request.header("x-bull-board-token")?.trim();
 }
 
-function sendProblem(response: Response, problem: ProblemResponse): void {
-  response.status(problem.status).json(problem);
+function sendProblem(response: Response, problem: ProblemResponse, request: Request): void {
+  response.setHeader("Content-Type", "application/problem+json");
+  response.status(problem.status).json({
+    ...problem,
+    instance: request.originalUrl || request.url,
+    requestId: getRequestId()
+  });
 }
 

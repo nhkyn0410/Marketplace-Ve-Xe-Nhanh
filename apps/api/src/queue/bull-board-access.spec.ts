@@ -23,7 +23,9 @@ describe("createBullBoardAccessGuard", () => {
     expect(status).toHaveBeenCalledWith(503);
     expect(json).toHaveBeenCalledWith(
       expect.objectContaining({
-        title: "Bull Board is not configured"
+        title: "Bull Board is not configured",
+        code: "SERVICE_UNAVAILABLE",
+        instance: "/admin/queues"
       })
     );
   });
@@ -52,13 +54,16 @@ describe("createBullBoardAccessGuard", () => {
 
     expect(next).not.toHaveBeenCalled();
     expect(setHeader).toHaveBeenCalledWith("WWW-Authenticate", "Bearer");
+    expect(setHeader).toHaveBeenCalledWith("Content-Type", "application/problem+json");
     expect(status).toHaveBeenCalledWith(401);
   });
 });
 
 function createRequest(headers: Record<string, string | undefined>): Request {
   return {
-    header: (name: string) => headers[name.toLowerCase()]
+    header: (name: string) => headers[name.toLowerCase()],
+    originalUrl: "/admin/queues",
+    url: "/admin/queues"
   } as unknown as Request;
 }
 
