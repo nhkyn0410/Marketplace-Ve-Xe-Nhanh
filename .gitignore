@@ -1,10 +1,14 @@
 # Dependencies
 node_modules/
+**/node_modules/
 .pnp/
 .pnp.*
 
 # Package manager caches
 .pnpm-store/
+/.pnpm-store/
+**/.pnpm-store/
+.npm/
 .yarn/cache/
 .yarn/unplugged/
 .yarn/build-state.yml
@@ -12,18 +16,29 @@ node_modules/
 
 # Build output
 dist/
+**/dist/
 build/
+**/build/
 out/
+**/out/
 .next/
+**/.next/
 .turbo/
+/.turbo/
+**/.turbo/
 .vercel/
+**/.vercel/
 .swc/
+**/.swc/
 *.tsbuildinfo
+**/*.tsbuildinfo
 
 # Test and coverage output
 coverage/
+**/coverage/
 .nyc_output/
 test-results/
+**/test-results/
 playwright-report/
 blob-report/
 maestro-debug-output/
@@ -41,27 +56,40 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
+.eslintcache
 
 # Environment and secrets
 .env
 .env.*
+**/.env
+**/.env.*
 !.env.example
 !.env.sample
 !.env.template
+!**/.env.example
+!**/.env.sample
+!**/.env.template
 *.pem
 *.key
 
 # Local storage, uploads, and temp files
 storage/
+**/storage/
 uploads/
+**/uploads/
 tmp/
+**/tmp/
 temp/
+**/temp/
 .cache/
+**/.cache/
 
 # Database and tooling local artifacts
 *.sqlite
 *.sqlite3
 *.db
+*.dump
+*.backup
 dump.rdb
 
 # IDE and OS files
@@ -74,3 +102,4 @@ Desktop.ini
 
 # Agent-local machine settings
 .claude/settings.local.json
+.codex/settings.local.json

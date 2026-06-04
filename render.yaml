@@ -16,6 +16,10 @@ services:
         sync: false
       - key: REDIS_URL
         sync: false
+      - key: DATABASE_URL
+        sync: false
+      - key: MONGODB_AUDIT_URI
+        sync: false
       - key: BULL_BOARD_TOKEN
         sync: false
       - key: PORT
@@ -41,6 +45,10 @@ services:
 #      - key: SENTRY_DSN
 #        sync: false
 #      - key: REDIS_URL
+#        sync: false
+#      - key: DATABASE_URL
+#        sync: false
+#      - key: MONGODB_AUDIT_URI
 #        sync: false
 #      - key: BULL_BOARD_TOKEN
 #        sync: false

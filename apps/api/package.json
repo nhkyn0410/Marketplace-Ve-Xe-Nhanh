@@ -12,12 +12,12 @@
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "test": "vitest run --passWithNoTests",
-    "prisma:validate": "prisma validate --schema prisma/schema.prisma",
-    "prisma:generate": "prisma generate --schema prisma/schema.prisma --allow-no-models",
-    "prisma:studio": "prisma studio --schema prisma/schema.prisma",
-    "prisma:migrate:dev": "prisma migrate dev --schema prisma/schema.prisma",
-    "prisma:migrate:deploy": "prisma migrate deploy --schema prisma/schema.prisma",
-    "postinstall": "prisma generate --schema prisma/schema.prisma --allow-no-models"
+    "prisma:validate": "prisma validate",
+    "prisma:generate": "prisma generate",
+    "prisma:studio": "prisma studio",
+    "prisma:migrate:dev": "prisma migrate dev",
+    "prisma:migrate:deploy": "prisma migrate deploy",
+    "postinstall": "prisma generate"
   },
   "dependencies": {
     "@bull-board/api": "^7.1.5",
@@ -27,17 +27,21 @@
     "@nestjs/core": "^11.1.24",
     "@nestjs/mongoose": "11.0.4",
     "@nestjs/platform-express": "^11.1.24",
-    "@prisma/client": "5.22.0",
+    "@prisma/adapter-pg": "^7.8.0",
+    "@prisma/client": "^7.8.0",
     "bullmq": "^5.78.0",
     "ioredis": "^5.11.0",
     "mongoose": "8.24.0",
     "nestjs-zod": "^5.4.0",
+    "pg": "^8.21.0",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.2",
     "zod": "^4.1.13"
   },
   "devDependencies": {
     "@types/express": "^5.0.6",
-    "prisma": "5.22.0"
+    "@types/node": "^25.9.1",
+    "@types/pg": "^8.11.10",
+    "prisma": "^7.8.0"
   }
 }

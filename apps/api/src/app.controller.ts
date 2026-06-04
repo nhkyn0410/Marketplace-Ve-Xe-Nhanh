@@ -1,4 +1,9 @@
 import { Controller, Get } from "@nestjs/common";
+import {
+  DatabaseHealthService,
+  type DatabaseHealthResponse
+} from "./database/database-health.service";
+import { MongoHealthService, type MongoHealthResponse } from "./database/mongo-health.service";
 import { QueueHealthService, type QueueHealthResponse } from "./queue/queue-health.service";
 import { RedisHealthService, type RedisHealthResponse } from "./redis/redis-health.service";
 
@@ -12,7 +17,9 @@ type HealthResponse = {
 export class AppController {
   constructor(
     private readonly redisHealth: RedisHealthService,
-    private readonly queueHealth: QueueHealthService
+    private readonly queueHealth: QueueHealthService,
+    private readonly databaseHealth: DatabaseHealthService,
+    private readonly mongoHealth: MongoHealthService
   ) {}
 
   @Get()
@@ -22,6 +29,16 @@ export class AppController {
       service: "api",
       timestamp: new Date().toISOString()
     };
+  }
+
+  @Get("postgres")
+  postgres(): Promise<DatabaseHealthResponse> {
+    return this.databaseHealth.check();
+  }
+
+  @Get("mongo")
+  mongo(): Promise<MongoHealthResponse> {
+    return this.mongoHealth.check();
   }
 
   @Get("redis")

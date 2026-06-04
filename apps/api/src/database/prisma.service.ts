@@ -1,8 +1,20 @@
-import { Injectable, OnModuleDestroy, OnModuleInit } from "@nestjs/common";
+import { Inject, Injectable, OnModuleDestroy, OnModuleInit } from "@nestjs/common";
+import { PrismaPg } from "@prisma/adapter-pg";
 import { Prisma, PrismaClient } from "@prisma/client";
+import { APP_CONFIG, type AppConfig } from "../config/env.config";
 
 @Injectable()
 export class PrismaService extends PrismaClient implements OnModuleInit, OnModuleDestroy {
+  constructor(@Inject(APP_CONFIG) config: AppConfig) {
+    const connectionString = config.DATABASE_URL;
+    if (!connectionString) {
+      throw new Error("DATABASE_URL is required to initialize PrismaService.");
+    }
+
+    // Prisma 7: dùng driver adapter (pg) thay query-engine binary → hợp distroless (không libssl).
+    super({ adapter: new PrismaPg({ connectionString }) });
+  }
+
   async onModuleInit(): Promise<void> {
     await this.$connect();
   }
