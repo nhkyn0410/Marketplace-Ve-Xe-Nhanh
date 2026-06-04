@@ -1,11 +1,11 @@
 generator client {
-  provider      = "prisma-client-js"
-  binaryTargets = ["native", "debian-openssl-3.0.x"]
+  provider = "prisma-client-js"
 }
 
+// Prisma 7: connection URL KHÔNG ở đây nữa — đặt qua driver adapter (PrismaClient)
+// + prisma.config.ts (cho Migrate/Studio). Xem ADR-011 (amended Prisma 5 → 7).
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
 /// Foundation smoke model — chứng minh Prisma migrate + connection.
