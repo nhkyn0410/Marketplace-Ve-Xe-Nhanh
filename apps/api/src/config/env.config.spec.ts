@@ -8,6 +8,9 @@ describe("parseAppConfig", () => {
     expect(config.NODE_ENV).toBe("development");
     expect(config.PORT).toBe(3000);
     expect(config.DATABASE_URL).toBeUndefined();
+    expect(config.LOG_LEVEL).toBe("info");
+    expect(config.SENTRY_TRACES_SAMPLE_RATE).toBe(0.1);
+    expect(config.OTEL_SERVICE_NAME).toBe("vexenhanh-api");
   });
 
   it("coerces PORT to a number", () => {
@@ -20,6 +23,16 @@ describe("parseAppConfig", () => {
 
   it("rejects an unknown NODE_ENV", () => {
     expect(() => parseAppConfig({ NODE_ENV: "staging" })).toThrow(/Invalid environment/);
+  });
+
+  it("rejects an invalid LOG_LEVEL", () => {
+    expect(() => parseAppConfig({ LOG_LEVEL: "loud" })).toThrow(/Invalid environment/);
+  });
+
+  it("rejects an invalid SENTRY_TRACES_SAMPLE_RATE", () => {
+    expect(() => parseAppConfig({ SENTRY_TRACES_SAMPLE_RATE: "2" })).toThrow(
+      /Invalid environment/
+    );
   });
 
   it("keeps optional connection strings when provided", () => {

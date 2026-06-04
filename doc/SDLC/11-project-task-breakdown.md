@@ -13,7 +13,7 @@
 | Người viết    | Nguyễn Hồng Khanh, AI Agent |
 | Người duyệt   | Nguyễn Hồng Khanh           |
 | Ngày tạo      | 11/05/2026                  |
-| Ngày cập nhật | 03/06/2026                  |
+| Ngày cập nhật | 04/06/2026                  |
 
 ### 1.2. Lịch sử thay đổi
 
@@ -121,7 +121,7 @@ Sau Sprint 5 rework + Sprint 4 Phase 4 DevOps, các doc thiết kế đã reset 
 | TASK-FND-003 | Prisma + Postgres + Mongoose + Mongo audit + RLS policy + migration                                                        | ADR-011         | BE     | TASK-FND-001 | Done        |
 | TASK-FND-004 | Redis Upstash (ioredis) + BullMQ worker process tách + Bull Board                                                          | ADR-015/016/024 | BE     | TASK-FND-003 | Done        |
 | TASK-FND-005 | Zod env validation (nestjs-zod) + config theo môi trường                                                                   | ADR-010         | BE     | TASK-FND-002 | Done        |
-| TASK-FND-006 | Logging Pino + request id + RFC 7807 error + Sentry + OTel                                                                 | ADR-012/026     | BE     | TASK-FND-005 | Draft       |
+| TASK-FND-006 | Logging Pino + request id + RFC 7807 error + Sentry + OTel                                                                 | ADR-012/026     | BE     | TASK-FND-005 | Done        |
 | TASK-FND-007 | Audit module base (Mongo append-only) + ESLint boundary rule                                                               | ADR-010/011     | BE     | TASK-FND-006 | Draft       |
 | TASK-FND-008 | OpenAPI auto-gen (nestjs-zod) + gen api-client (`openapi-typescript`) CI                                                   | ADR-012         | BE     | TASK-FND-005 | Draft       |
 

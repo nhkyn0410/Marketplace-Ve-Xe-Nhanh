@@ -36,9 +36,23 @@ export const envSchema = z.object({
   BULLMQ_PREFIX: optionalString,
   BULL_BOARD_TOKEN: optionalString,
 
+  // Logging (Pino — ADR-026 / FND-006)
+  LOG_LEVEL: z.preprocess(
+    emptyToUndefined,
+    z.enum(["fatal", "error", "warn", "info", "debug", "trace", "silent"]).default("info")
+  ),
+
   // Observability (ADR-026 — FND-006)
   SENTRY_DSN: optionalString,
-  SENTRY_ENVIRONMENT: optionalString
+  SENTRY_ENVIRONMENT: optionalString,
+  SENTRY_TRACES_SAMPLE_RATE: z.preprocess(
+    emptyToUndefined,
+    z.coerce.number().min(0).max(1).default(0.1)
+  ),
+  OTEL_SERVICE_NAME: z.preprocess(
+    emptyToUndefined,
+    z.string().min(1).default("vexenhanh-api")
+  )
 });
 
 export type AppConfig = z.infer<typeof envSchema>;

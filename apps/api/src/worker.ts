@@ -1,17 +1,23 @@
+import "./instrument-worker";
 import "reflect-metadata";
 import { NestFactory } from "@nestjs/core";
+import { createAppLogger, createNestLogger } from "./common/observability/logger";
 import { loadAppConfig } from "./config/env.config";
 import { WorkerModule } from "./worker.module";
 
+const config = loadAppConfig();
+const logger = createAppLogger(config, "worker");
+
 async function bootstrapWorker(): Promise<void> {
-  loadAppConfig(); // nạp .env + validate (fail-fast) trước khi bootstrap worker
-  const app = await NestFactory.createApplicationContext(WorkerModule);
+  const app = await NestFactory.createApplicationContext(WorkerModule, {
+    logger: createNestLogger(logger)
+  });
   app.enableShutdownHooks();
 
-  console.log("Worker bootstrap complete. BullMQ processors are registered.");
+  logger.info("Worker bootstrap complete. BullMQ processors are registered.");
 }
 
 void bootstrapWorker().catch((error: unknown) => {
-  console.error("Worker bootstrap failed.", error);
+  logger.fatal({ err: error }, "Worker bootstrap failed.");
   process.exit(1);
 });
