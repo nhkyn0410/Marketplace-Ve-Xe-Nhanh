@@ -1,4 +1,9 @@
-import { Inject, Injectable, OnModuleDestroy, ServiceUnavailableException } from "@nestjs/common";
+import {
+  Inject,
+  Injectable,
+  OnModuleDestroy,
+  ServiceUnavailableException,
+} from "@nestjs/common";
 import type { RedisHealthResponse as SharedRedisHealthResponse } from "@vexenhanh/types";
 import type Redis from "ioredis";
 import { REDIS_CLIENT } from "./redis.constants";
@@ -32,11 +37,11 @@ export class RedisHealthService implements OnModuleDestroy {
       return {
         status: "ok",
         service: "redis",
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       };
     } catch (error) {
       throw new ServiceUnavailableException("Redis is unavailable.", {
-        cause: error
+        cause: error,
       });
     }
   }
