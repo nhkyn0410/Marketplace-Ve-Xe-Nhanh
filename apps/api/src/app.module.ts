@@ -1,5 +1,7 @@
 import { Module } from "@nestjs/common";
+import { APP_INTERCEPTOR } from "@nestjs/core";
 import { SentryModule } from "@sentry/nestjs/setup";
+import { ZodSerializerInterceptor } from "nestjs-zod";
 import { AppController } from "./app.controller";
 import { AuditModule } from "./audit/audit.module";
 import { AppConfigModule } from "./config/app-config.module";
@@ -16,6 +18,7 @@ import { QueueModule } from "./queue/queue.module";
     AuditModule,
     QueueModule
   ],
-  controllers: [AppController]
+  controllers: [AppController],
+  providers: [{ provide: APP_INTERCEPTOR, useClass: ZodSerializerInterceptor }]
 })
 export class AppModule {}

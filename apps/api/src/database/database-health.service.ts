@@ -1,11 +1,8 @@
 import { Injectable, ServiceUnavailableException } from "@nestjs/common";
+import type { PostgresHealthResponse } from "@vexenhanh/types";
 import { PrismaService } from "./prisma.service";
 
-export type DatabaseHealthResponse = {
-  status: "ok";
-  service: "postgres";
-  timestamp: string;
-};
+export type DatabaseHealthResponse = PostgresHealthResponse;
 
 @Injectable()
 export class DatabaseHealthService {
