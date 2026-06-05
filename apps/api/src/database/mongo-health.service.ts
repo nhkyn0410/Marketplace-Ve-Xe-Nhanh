@@ -1,12 +1,9 @@
 import { Injectable, ServiceUnavailableException } from "@nestjs/common";
 import { InjectConnection } from "@nestjs/mongoose";
+import type { MongoHealthResponse as SharedMongoHealthResponse } from "@vexenhanh/types";
 import type { Connection } from "mongoose";
 
-export type MongoHealthResponse = {
-  status: "ok";
-  service: "mongo";
-  timestamp: string;
-};
+export type MongoHealthResponse = SharedMongoHealthResponse;
 
 @Injectable()
 export class MongoHealthService {

@@ -6,6 +6,7 @@ import { createHttpLoggerMiddleware, createAppLogger, createNestLogger } from ".
 import { createRequestContextMiddleware } from "./common/observability/request-context";
 import { AppModule } from "./app.module";
 import { loadAppConfig } from "./config/env.config";
+import { configureApiRoutes, setupOpenApi } from "./openapi/openapi";
 import { createBullBoardAccessGuard } from "./queue/bull-board-access";
 import { BullBoardService } from "./queue/bull-board.service";
 import { BULL_BOARD_PATH } from "./queue/queue.constants";
@@ -20,7 +21,8 @@ async function bootstrap(): Promise<void> {
   app.use(createHttpLoggerMiddleware(logger));
   app.useGlobalFilters(new ProblemDetailsExceptionFilter());
   app.use(BULL_BOARD_PATH, createBullBoardAccessGuard(), bullBoard.getRouter());
-  app.setGlobalPrefix("v1");
+  configureApiRoutes(app);
+  setupOpenApi(app);
 
   await app.listen(config.PORT);
 }

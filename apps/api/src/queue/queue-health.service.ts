@@ -1,25 +1,16 @@
 import { InjectQueue } from "@nestjs/bullmq";
 import { Injectable, ServiceUnavailableException } from "@nestjs/common";
+import type { QueueHealthResponse as SharedQueueHealthResponse } from "@vexenhanh/types";
 import type { Queue } from "bullmq";
 import {
   FOUNDATION_JOB_NAMES,
   QUEUE_NAMES,
   type FoundationJobData,
   type FoundationJobName,
-  type FoundationJobResult,
-  type QueueName
+  type FoundationJobResult
 } from "./queue.constants";
 
-type QueueCounts = Record<string, number>;
-
-export type QueueHealthResponse = {
-  status: "ok";
-  queues: Array<{
-    name: QueueName;
-    counts: QueueCounts;
-  }>;
-  timestamp: string;
-};
+export type QueueHealthResponse = SharedQueueHealthResponse;
 
 @Injectable()
 export class QueueHealthService {

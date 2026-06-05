@@ -34,7 +34,7 @@ out/
 **/*.tsbuildinfo
 
 # Generated code (Prisma 7 client — regenerated bởi `prisma generate` / postinstall)
-**/src/generated/
+apps/api/src/generated/prisma/
 
 # Test and coverage output
 coverage/

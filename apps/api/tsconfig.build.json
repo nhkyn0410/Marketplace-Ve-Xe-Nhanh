@@ -3,6 +3,9 @@
   "compilerOptions": {
     "noEmit": false,
     "outDir": "dist",
+    "paths": {
+      "@vexenhanh/types": ["../../packages/types/dist/index.d.ts"]
+    },
     "rootDir": "src"
   },
   "include": [
