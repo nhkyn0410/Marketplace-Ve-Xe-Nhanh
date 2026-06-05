@@ -17,6 +17,9 @@ export function applyAppendOnlyGuard(schema: Schema): void {
   for (const operation of APPEND_ONLY_OPERATIONS) {
     schema.pre(operation, blockMutation);
   }
+
+  schema.pre("bulkWrite", blockMutation);
+  schema.pre("insertMany", blockMutation);
 }
 
 function blockMutation(next: CallbackWithoutResultAndOptionalError): void {

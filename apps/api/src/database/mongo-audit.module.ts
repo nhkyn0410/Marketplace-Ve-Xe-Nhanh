@@ -13,6 +13,8 @@ import { MongoHealthService } from "./mongo-health.service";
         }
 
         return {
+          autoCreate: config.NODE_ENV !== "production",
+          autoIndex: config.NODE_ENV !== "production",
           uri: config.MONGODB_AUDIT_URI
         };
       }
