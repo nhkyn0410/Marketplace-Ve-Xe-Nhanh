@@ -52,6 +52,35 @@ export const envSchema = z.object({
   OTEL_SERVICE_NAME: z.preprocess(
     emptyToUndefined,
     z.string().min(1).default("vexenhanh-api")
+  ),
+
+  // ── IAM / Auth (TASK-IAM-001) ──
+  // Better Auth (ADR-017). Secret bắt buộc ở production (validate khi wire).
+  BETTER_AUTH_SECRET: optionalString,
+  BETTER_AUTH_URL: z.preprocess(
+    emptyToUndefined,
+    z.url().default("http://localhost:3000")
+  ),
+  // JWT access RS256 (Security §5.1). Key = PEM (raw hoặc base64). Thiếu ở dev → sinh ephemeral.
+  JWT_ACCESS_PRIVATE_KEY: optionalString,
+  JWT_ACCESS_PUBLIC_KEY: optionalString,
+  JWT_ACCESS_TTL_SECONDS: z.preprocess(
+    emptyToUndefined,
+    z.coerce.number().int().positive().default(900)
+  ),
+  JWT_ISSUER: z.preprocess(emptyToUndefined, z.string().min(1).default("vexenhanh")),
+  // OAuth Passenger (ADR-020) — optional, chỉ bật provider khi có credential.
+  GOOGLE_CLIENT_ID: optionalString,
+  GOOGLE_CLIENT_SECRET: optionalString,
+  FACEBOOK_CLIENT_ID: optionalString,
+  FACEBOOK_CLIENT_SECRET: optionalString,
+  APPLE_CLIENT_ID: optionalString,
+  APPLE_CLIENT_SECRET: optionalString,
+  // Email OTP delivery (Resend optional; dev = console adapter).
+  RESEND_API_KEY: optionalString,
+  RESEND_FROM_EMAIL: z.preprocess(
+    emptyToUndefined,
+    z.email().default("no-reply@vexenhanh.com")
   )
 });
 
