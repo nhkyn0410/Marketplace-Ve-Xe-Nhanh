@@ -103,6 +103,42 @@ describe("audit schemas", () => {
 
     await connection.destroy();
   });
+
+  it("blocks audit_event bulk writes before hitting Mongo", async () => {
+    const connection = createConnection();
+    const model = connection.model("AuditEventBulkWriteSpec", AuditEventSchema.clone());
+
+    await expect(
+      model.bulkWrite([
+        {
+          updateOne: {
+            filter: { targetId: "operator_1" },
+            update: { action: "changed" }
+          }
+        }
+      ])
+    ).rejects.toThrow(APPEND_ONLY_ERROR_MESSAGE);
+
+    await connection.destroy();
+  });
+
+  it("blocks system_log insertMany so writes stay on the AuditService path", async () => {
+    const connection = createConnection();
+    const model = connection.model("SystemLogInsertManySpec", SystemLogSchema.clone());
+
+    await expect(
+      model.insertMany([
+        {
+          level: "info",
+          source: "test",
+          event: "audit.insert_many",
+          message: "Bypass attempt."
+        }
+      ])
+    ).rejects.toThrow(APPEND_ONLY_ERROR_MESSAGE);
+
+    await connection.destroy();
+  });
 });
 
 function createModelMock(): {

@@ -13,6 +13,7 @@
     "openapi:generate": "pnpm --filter @vexenhanh/types build && tsx src/openapi/generate-openapi.ts",
     "typecheck": "tsc --noEmit",
     "test": "vitest run --passWithNoTests",
+    "mongo:audit:hardening": "tsx src/audit/harden-mongo-audit.ts",
     "prisma:validate": "prisma validate",
     "prisma:generate": "prisma generate",
     "prisma:studio": "prisma studio",
