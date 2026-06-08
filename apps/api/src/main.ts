@@ -1,6 +1,7 @@
 import "./instrument-api";
 import "reflect-metadata";
 import { NestFactory } from "@nestjs/core";
+import { ZodValidationPipe } from "nestjs-zod";
 import { ProblemDetailsExceptionFilter } from "./common/errors/problem-details.filter";
 import { createHttpLoggerMiddleware, createAppLogger, createNestLogger } from "./common/observability/logger";
 import { createRequestContextMiddleware } from "./common/observability/request-context";
@@ -19,6 +20,7 @@ async function bootstrap(): Promise<void> {
 
   app.use(createRequestContextMiddleware());
   app.use(createHttpLoggerMiddleware(logger));
+  app.useGlobalPipes(new ZodValidationPipe());
   app.useGlobalFilters(new ProblemDetailsExceptionFilter());
   app.use(BULL_BOARD_PATH, createBullBoardAccessGuard(), bullBoard.getRouter());
   configureApiRoutes(app);
