@@ -19,6 +19,7 @@
     "prisma:studio": "prisma studio",
     "prisma:migrate:dev": "prisma migrate dev",
     "prisma:migrate:deploy": "prisma migrate deploy",
+    "db:seed": "tsx prisma/seed.ts",
     "postinstall": "prisma generate"
   },
   "dependencies": {
@@ -35,8 +36,10 @@
     "@prisma/client": "^7.8.0",
     "@sentry/nestjs": "^10.56.0",
     "@vexenhanh/types": "workspace:*",
+    "better-auth": "^1.6.14",
     "bullmq": "^5.78.0",
     "ioredis": "^5.11.0",
+    "jose": "^6.2.3",
     "mongoose": "8.24.0",
     "nestjs-zod": "^5.4.0",
     "pg": "^8.21.0",
