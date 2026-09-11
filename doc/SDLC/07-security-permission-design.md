@@ -13,7 +13,7 @@
 | Người viết    | Nguyễn Hồng Khanh, AI Agent   |
 | Người duyệt   | Nguyễn Hồng Khanh             |
 | Ngày tạo      | 11/05/2026                    |
-| Ngày cập nhật | 03/06/2026                    |
+| Ngày cập nhật | 08/09/2026                    |
 
 ### 1.2. Lịch sử thay đổi
 
@@ -95,7 +95,7 @@ Auth library = **Better Auth** + custom NestJS adapter (ADR-017).
 | ------------- | --------------------------------------------------------------------------------------------------- |
 | Access token  | JWT RS256, TTL **15 phút** (claims `sub`, `scope`, `role`, `operatorSlug`)                          |
 | Refresh token | Opaque 32-byte, TTL **30 ngày**, rotation mỗi lần refresh + family invalidation khi phát hiện reuse |
-| Token storage | Web = JWT trong httpOnly cookie (+ CSRF token); Mobile = `expo-secure-store`                        |
+| Token storage | Web = JWT trong httpOnly cookie (+ CSRF token); Mobile = `flutter_secure_storage`                        |
 | Session store | `auth_sessions` (Postgres) + Redis cache metadata                                                   |
 | Multi-device  | Mỗi login = 1 session family; revoke theo family hoặc revoke all                                    |
 | Force logout  | Khi khóa account, reset password, thu hồi quyền hoặc phát hiện rủi ro → revoke family               |

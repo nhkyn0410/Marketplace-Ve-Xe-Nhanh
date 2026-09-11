@@ -13,7 +13,7 @@
 | Người viết    | Nguyễn Hồng Khanh, AI Agent        |
 | Người duyệt   | Nguyễn Hồng Khanh                |
 | Ngày tạo      | 11/05/2026                       |
-| Ngày cập nhật | 01/06/2026                       |
+| Ngày cập nhật | 08/09/2026                       |
 
 ### 1.2. Lịch sử thay đổi
 
@@ -42,7 +42,7 @@
 
 ## 3. Giới thiệu
 
-Tài liệu này mô tả chiến lược kiểm thử, tiêu chí nghiệm thu và test case nháp. Test framework đã chốt (ADR-025): **Vitest** (unit+integration BE+FE monorepo), **Supertest** (e2e API), **Playwright** (e2e web), **Maestro** (e2e mobile Expo). Tham chiếu: `01-srs`, `03-lld`, `04-db`, `05-api`, `07-security`, `10-adr` (v0.21 — ADR-025 + 009/011/015/017/019).
+Tài liệu này mô tả chiến lược kiểm thử, tiêu chí nghiệm thu và test case nháp. Test framework đã chốt (ADR-025): **Vitest** (unit+integration BE+FE monorepo), **Supertest** (e2e API), **Playwright** (e2e web), **Maestro** (e2e mobile Flutter) + `flutter_test` / `integration_test` (widget + E2E in-app). Tham chiếu: `01-srs`, `03-lld`, `04-db`, `05-api`, `07-security`, `10-adr` (v0.21 — ADR-025 + 009/011/015/017/019).
 
 ---
 
@@ -54,7 +54,7 @@ Tài liệu này mô tả chiến lược kiểm thử, tiêu chí nghiệm thu 
 | Integration | **Vitest** + Testcontainers | Module với Postgres/Mongo/Redis thật, queue, provider mock | Developer/QA |
 | API contract / e2e | **Supertest** | Endpoint, Zod DTO, RFC 7807 error code, permission, RLS | QA/Developer |
 | E2E Web | **Playwright** | Luồng marketplace/operator/admin chính | QA |
-| E2E Mobile | **Maestro** | Luồng passenger + employee (booking, check-in) | QA |
+| E2E Mobile | **Maestro** + `integration_test` | Luồng passenger + employee (booking, check-in) | QA |
 | Security | Vitest + Supertest | Auth, RBAC, tenant RLS, IDOR, rate limit, webhook HMAC | QA/Security |
 | Performance | k6/Artillery (chốt LLD) | Search, seat hold, payment callback, report export | QA/DevOps |
 | UAT | Manual | Người duyệt xác nhận nghiệp vụ | Người duyệt/PO |
@@ -82,7 +82,7 @@ Tài liệu này mô tả chiến lược kiểm thử, tiêu chí nghiệm thu 
 | ---------- | ---- | ------- |
 | Local | Vitest + Testcontainers | Postgres 16 + Mongo 7 ephemeral; Redis local/Upstash dev |
 | CI | GitHub Actions + Vitest + Turborepo affected | Seed data ổn định; tách unit (mọi commit) vs integration/e2e (scheduled) (ADR-026) |
-| Staging | Playwright + Maestro + Supertest | Sandbox **VNPay + MoMo** + **Resend** + **Expo Push**; KYC local adapter |
+| Staging | Playwright + Maestro + Supertest | Sandbox **VNPay + MoMo** + **Resend** + **FCM/APNs**; KYC local adapter |
 | Production | Smoke test sau deploy | Không dùng dữ liệu giả nhạy cảm |
 
 ---
@@ -152,7 +152,7 @@ Mandatory (rủi ro cao, ADR-025): money math, idempotency, tenant RLS, seat-hol
 | SRS liên quan đã Review/Approved | TBD |
 | HLD/LLD/API/DB/Security liên quan đã Review/Approved | TBD (rework v0.x chờ Khanh promote) |
 | Test environment có seed data + Testcontainers | TBD |
-| Provider sandbox (VNPay/MoMo/Resend/Expo) sẵn sàng | TBD |
+| Provider sandbox (VNPay/MoMo/Resend/FCM) sẵn sàng | TBD |
 
 ### 10.2. Exit criteria
 
@@ -170,7 +170,7 @@ Mandatory (rủi ro cao, ADR-025): money math, idempotency, tenant RLS, seat-hol
 | ID | Câu hỏi | Tác động | Trạng thái |
 | -- | ------- | -------- | ---------- |
 | TEST-OQ-01 | Ưu tiên automation backend hay E2E trước? | Kế hoạch QA | Refined per ADR-025: **BE unit/integration (Vitest) trước** (ROI cao, nhanh); E2E critical path sau |
-| TEST-OQ-02 | Provider sandbox nào cho payment/notification? | Integration test | **Đóng theo ADR-019/020**: VNPay + MoMo sandbox; Resend; Expo Push |
+| TEST-OQ-02 | Provider sandbox nào cho payment/notification? | Integration test | **Đóng theo ADR-019/020**: VNPay + MoMo sandbox; Resend; FCM + APNs |
 | TEST-OQ-03 | Performance baseline cụ thể cho seat hold/payment? | Load test | Mở; cần target số liệu (k6/Artillery chốt LLD) |
 | TEST-OQ-04 | UAT data set do ai chuẩn bị? | UAT | Mở (solo: Khanh + AI seed) |
 

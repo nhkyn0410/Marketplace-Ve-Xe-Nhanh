@@ -13,7 +13,7 @@
 | Người viết    | Nguyễn Hồng Khanh, AI Agent      |
 | Người duyệt   | Nguyễn Hồng Khanh                |
 | Ngày tạo      | 11/05/2026                       |
-| Ngày cập nhật | 01/06/2026                       |
+| Ngày cập nhật | 08/09/2026                       |
 
 ### 1.2. Lịch sử thay đổi
 
@@ -48,15 +48,15 @@ Tài liệu này mô tả luồng màn hình, trạng thái giao diện, form va
 
 ## 4. Kênh giao diện
 
-Web = Next.js 16 (ADR-013); Mobile = Expo 2 app tách (ADR-014).
+Web = Next.js 16 (ADR-013); Mobile = Flutter 2 app tách (ADR-028).
 
 | Kênh | Actor | Mục tiêu |
 | ---- | ----- | -------- |
 | Marketplace (Web, RSC+SSG/ISR) | Passenger, Guest | Search, trip detail, booking, payment, ticket lookup |
 | Operator OS (Web, CSR sau auth) | Operator, Employee | Quản lý profile, vehicle, route, trip, booking, employee, finance |
 | Admin (Web, CSR sau auth) | Admin | KYC, catalog, policy, payment, payout, dispute, report, audit |
-| `apps/passenger-mobile` (Expo) | Passenger | Booking/ticket/notification/support trên mobile |
-| `apps/employee-mobile` (Expo) | Employee | Check-in, trip status, passenger list, incident report (background geo) |
+| `apps/passenger-mobile` (Flutter) | Passenger | Booking/ticket/notification/support trên mobile |
+| `apps/employee-mobile` (Flutter) | Employee | Check-in, trip status, passenger list, incident report (background geo) |
 
 ---
 
@@ -135,7 +135,7 @@ Login `{operatorSlug}/{username}` + password; Owner bắt buộc TOTP (ADR-017).
 
 ## 8. Flow Employee
 
-App `apps/employee-mobile`; login `{operatorSlug}/{username}` (ADR-014/017).
+App `apps/employee-mobile`; login `{operatorSlug}/{username}` (ADR-028/017).
 
 | Flow | Màn hình chính | Ghi chú |
 | ---- | -------------- | ------- |

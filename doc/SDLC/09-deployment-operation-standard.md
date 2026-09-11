@@ -13,7 +13,7 @@
 | Người viết    | Nguyễn Hồng Khanh, AI Agent          |
 | Người duyệt   | Nguyễn Hồng Khanh                |
 | Ngày tạo      | 11/05/2026                       |
-| Ngày cập nhật | 03/06/2026                       |
+| Ngày cập nhật | 08/09/2026                       |
 
 ### 1.2. Lịch sử thay đổi
 
@@ -67,7 +67,7 @@ Tài liệu này quy định triển khai và vận hành hệ thống từ loca
 | ---------- | -------- | ------- |
 | Local | Dev và test thủ công | Docker Compose: Postgres 16 + Mongo 7; Redis = Upstash (hoặc local redis dev); R2/Goong/Resend = API key dev; KYC = local storage adapter (ADR-018) |
 | CI | Typecheck, lint, test tự động | **GitHub Actions** + pnpm + Turborepo affected (ADR-026) |
-| Staging | E2E, UAT, provider sandbox | Render (SG); sandbox VNPay + MoMo + Resend + Expo Push |
+| Staging | E2E, UAT, provider sandbox | Render (SG); sandbox VNPay + MoMo + Resend + FCM/APNs |
 | Production | Vận hành thật | Render (SG) HTTPS; Supabase/Neon Postgres + Atlas Mongo + Upstash Redis + R2; Sentry; **blocker OQ-21 (KYC storage) + OQ-22 (TGTT license)** |
 
 ---
@@ -81,7 +81,7 @@ Monorepo Turborepo + pnpm (ADR-013). Build qua `turbo run build --filter=...` (c
 | API (`apps/api`) | Docker image → Render **Web Service** | NestJS 11, Node 24 (ADR-009/010/023) |
 | Worker (`apps/api`) | Cùng image → Render **Background Worker** (khác start command) | BullMQ worker tách (ADR-024) |
 | Frontend (`apps/marketplace`, `operator-os`, `admin`) | Next.js build → Render Web Service (SSR Docker) hoặc Vercel | App count chốt LLD (ADR-013) |
-| Mobile (`apps/passenger-mobile`, `employee-mobile`) | **EAS Build** (cloud) + **EAS Update** (OTA) + **EAS Submit** | Windows dev OK, không cần Mac (ADR-014) |
+| Mobile (`apps/passenger-mobile`, `employee-mobile`) | **Android** = `flutter build apk/appbundle` local (Windows OK) — nền tảng chính v1. **iOS** = tuỳ chọn, cần máy macOS + Xcode (hoặc Codemagic macOS runner) | v1 phục vụ môn học, **không phát hành store** → không cần submit, không cần OTA. Thiết bị iOS ≠ máy Mac (chỉ chạy được bản đã build). Lên store về sau ⇒ mở lại (ADR-028) |
 | Packages (`types`, `api-client`, `ui`...) | Build theo workspace; `api-client` gen từ OpenAPI (`openapi-typescript`) | Shared (ADR-012/013) |
 
 ### 5.1. Release checklist
@@ -108,7 +108,7 @@ Secret quản lý qua **Render env group** + **GitHub Actions secrets** (ADR-026
 | Redis/Queue | Upstash `REDIS_URL` (ioredis) | Cache + lock + BullMQ (ADR-015/016) |
 | Auth | Better Auth secret, JWT RS256 private/public key | Rotation policy; refresh opaque (ADR-017) |
 | Payment | VNPay TmnCode/HashSecret (SHA512); MoMo partnerCode/accessKey/secretKey (SHA256) | Chỉ staging/production secret store (ADR-019) |
-| Notification | Resend API key; Expo (FCM server key + APNs key) | SMS defer (chỉ adapter) (ADR-020) |
+| Notification | Resend API key; Firebase (FCM service account JSON + APNs auth key) | SMS defer (chỉ adapter) (ADR-020/028) |
 | OAuth | Google/Facebook/Apple client id + secret | Passenger-only (ADR-020) |
 | Routing/Map | Goong API key | Free tier (ADR-027) |
 | Object storage | R2 account id/access key/secret/bucket (public + private) | `@aws-sdk/client-s3` (ADR-018) |
@@ -173,7 +173,7 @@ Sentry-centric (ADR-026): error + performance + tracing phủ BE + FE + Mobile (
 | Migration lỗi | Prisma restore/forward-fix theo migration plan |
 | Payment callback lỗi | Bật maintenance nếu cần; chạy reconciliation cron (querydr) |
 | Notification lỗi | BullMQ retry + DLQ; không chặn ticket lookup |
-| Mobile lỗi | **EAS Update** OTA push fix (không qua store review) (ADR-014) |
+| Mobile lỗi | v1 **không qua store** → hotfix = build lại + cài lại trực tiếp (APK / `flutter run`), không có độ trễ review. Giảm rủi ro: `integration_test` + Maestro trước mỗi bản demo. ⚠️ Nếu sau này phát hành store, mất OTA trở lại thành vấn đề — cân nhắc Shorebird (có phí) khi đó (ADR-028) |
 
 ### 10.2. Incident priority
 
@@ -212,7 +212,7 @@ Sentry-centric (ADR-026): error + performance + tracing phủ BE + FE + Mobile (
 | OPS-OQ-02 | Secret manager dùng gì? | Security/operation | **Đóng theo ADR-026**: Render env group + GitHub Actions secrets |
 | OPS-OQ-03 | Monitoring stack dùng gì? | Alert/runbook | **Đóng theo ADR-026**: Sentry (error+perf+trace) + Pino logs + OpenTelemetry + Render metric |
 | OPS-OQ-04 | Backup/restore RPO/RTO mục tiêu là bao nhiêu? | DR plan | Mở; cần định nghĩa target (Supabase/Neon PITR + Atlas backup là nền) |
-| OPS-OQ-05 | Mobile release quy trình App Store/Play Store ra sao? | Release plan | **Đóng theo ADR-014**: EAS Build + EAS Update (OTA) + EAS Submit |
+| OPS-OQ-05 | Mobile release quy trình App Store/Play Store ra sao? | Release plan | **Đóng theo ADR-028** (thay closure cũ theo ADR-014): v1 **không phát hành store** (phục vụ môn học) → phân phối trực tiếp APK / cài qua Xcode. Android build local Windows; iOS tuỳ chọn khi có máy macOS. Quy trình store thật **defer** — mở lại nếu sản phẩm thương mại hoá |
 | OPS-OQ-06 | Data residency production cho KYC/payment (VN cloud vs Render+DPIA)? | Compliance | Mở — **OQ-21/OQ-22** production blocker (không chặn MVP) |
 
 ---
