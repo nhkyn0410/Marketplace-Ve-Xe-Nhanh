@@ -1,7 +1,11 @@
 import "./instrument-api";
 import "reflect-metadata";
 import { NestFactory } from "@nestjs/core";
+import type { NestExpressApplication } from "@nestjs/platform-express";
 import { ZodValidationPipe } from "nestjs-zod";
+import { assertDecoratorMetadata } from "./common/assert-decorator-metadata";
+import type { Auth } from "./iam/auth/auth.config";
+import { BETTER_AUTH, BETTER_AUTH_BASE_PATH } from "./iam/auth/auth.constants";
 import { ProblemDetailsExceptionFilter } from "./common/errors/problem-details.filter";
 import { createHttpLoggerMiddleware, createAppLogger, createNestLogger } from "./common/observability/logger";
 import { createRequestContextMiddleware } from "./common/observability/request-context";

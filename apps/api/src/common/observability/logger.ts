@@ -24,6 +24,16 @@ const REDACT_PATHS = [
   "apiKey"
 ];
 
+const DEVELOPMENT_TRANSPORT = {
+  target: "pino-pretty",
+  options: {
+    colorize: true,
+    customColors: "trace:gray,debug:blue,info:green,warn:yellow,error:red,fatal:bgRed",
+    singleLine: true,
+    translateTime: "SYS:yyyy-mm-dd HH:MM:ss.l"
+  }
+};
+
 export function createAppLogger(
   config: Pick<AppConfig, "LOG_LEVEL" | "NODE_ENV" | "OTEL_SERVICE_NAME">,
   runtime: RuntimeName
@@ -40,7 +50,8 @@ export function createAppLogger(
     redact: {
       paths: REDACT_PATHS,
       censor: "[Redacted]"
-    }
+    },
+    transport: config.NODE_ENV === "development" ? DEVELOPMENT_TRANSPORT : undefined
   });
 }
 
