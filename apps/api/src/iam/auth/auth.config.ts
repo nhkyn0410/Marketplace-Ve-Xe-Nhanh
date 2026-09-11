@@ -17,27 +17,14 @@ export async function createAuth(
   const { prismaAdapter } = await import("better-auth/adapters/prisma");
   const { emailOTP } = await import("better-auth/plugins");
 
-  const socialProviders: {
-    google?: { clientId: string; clientSecret: string };
-    facebook?: { clientId: string; clientSecret: string };
-    apple?: { clientId: string; clientSecret: string };
-  } = {};
+  // v1 chỉ wire Google (Khanh chốt 09/09/2026): v1 không phát hành store nên App Store Guideline
+  // 4.8 không ép Apple Sign-In nữa; Facebook cần app review, Apple cần cert — chi phí thuần cho
+  // một sản phẩm phục vụ môn học. Facebook + Apple defer v1.x (ADR-020 giữ nguyên định hướng).
+  const socialProviders: { google?: { clientId: string; clientSecret: string } } = {};
   if (config.GOOGLE_CLIENT_ID && config.GOOGLE_CLIENT_SECRET) {
     socialProviders.google = {
       clientId: config.GOOGLE_CLIENT_ID,
       clientSecret: config.GOOGLE_CLIENT_SECRET
-    };
-  }
-  if (config.FACEBOOK_CLIENT_ID && config.FACEBOOK_CLIENT_SECRET) {
-    socialProviders.facebook = {
-      clientId: config.FACEBOOK_CLIENT_ID,
-      clientSecret: config.FACEBOOK_CLIENT_SECRET
-    };
-  }
-  if (config.APPLE_CLIENT_ID && config.APPLE_CLIENT_SECRET) {
-    socialProviders.apple = {
-      clientId: config.APPLE_CLIENT_ID,
-      clientSecret: config.APPLE_CLIENT_SECRET
     };
   }
 
@@ -45,10 +32,14 @@ export async function createAuth(
     secret: config.BETTER_AUTH_SECRET ?? "dev-insecure-better-auth-secret-change-me",
     baseURL: config.BETTER_AUTH_URL,
     database: prismaAdapter(prisma, { provider: "postgresql" }),
+    // Lớp phòng thủ thứ hai chống open redirect sau xác thực. KHÔNG đủ một mình: middleware
+    // origin-check của Better Auth thoát sớm khi không có `ctx.request` (gọi server-side qua
+    // `auth.api.*`) → allowlist ở AuthService mới là lớp thực sự chặn.
+    trustedOrigins: config.AUTH_ALLOWED_CALLBACK_ORIGINS,
     account: {
       accountLinking: {
         enabled: true,
-        trustedProviders: ["google", "apple"],
+        trustedProviders: ["google"],
         allowDifferentEmails: false
       }
     },

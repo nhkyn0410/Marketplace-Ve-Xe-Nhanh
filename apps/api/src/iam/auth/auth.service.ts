@@ -1,20 +1,19 @@
-import { HttpStatus, Inject, Injectable } from "@nestjs/common";
+import { HttpStatus, Inject, Injectable, Logger } from "@nestjs/common";
+import { APP_CONFIG, type AppConfig } from "../../config/env.config";
 import { PrismaService } from "../../database/prisma.service";
 import { maskEmail } from "../../external/notification/email-notifier";
 import { type Auth } from "./auth.config";
 import { BETTER_AUTH, PASSENGER_ROLE } from "./auth.constants";
 import { accountLocked, AuthException, invalidCredentials, wrongLoginChannel } from "./auth.errors";
-import { CredentialService } from "./credential.service";
+import { CredentialService, DUMMY_PASSWORD_HASH } from "./credential.service";
 import { LoginHistoryService } from "./login-history.service";
 import { resolveIdentifier } from "./namespace.resolver";
 import { OtpRateLimiter } from "./otp-rate-limiter";
 import { type AuthScope, type IssuedAccessToken, TokenService } from "./token.service";
 
-const SUPPORTED_OAUTH = ["google", "facebook", "apple"] as const;
+/** v1 chỉ Google (ADR-020 + quyết định 09/09/2026); Facebook/Apple defer v1.x. */
+export const SUPPORTED_OAUTH = ["google"] as const;
 type OAuthProvider = (typeof SUPPORTED_OAUTH)[number];
-
-/** Hash giả (đúng format) để verify khi account không tồn tại → cân bằng thời gian, chống enumeration. */
-const DUMMY_PASSWORD_HASH = `scrypt$${Buffer.alloc(16).toString("base64")}$${Buffer.alloc(64).toString("base64")}`;
 
 export type RequestContext = { ip?: string; userAgent?: string };
 
@@ -31,8 +30,11 @@ type CredentialAccount = {
 
 @Injectable()
 export class AuthService {
+  private readonly logger = new Logger(AuthService.name);
+
   constructor(
     @Inject(BETTER_AUTH) private readonly auth: Auth,
+    @Inject(APP_CONFIG) private readonly config: AppConfig,
     private readonly prisma: PrismaService,
     private readonly tokens: TokenService,
     private readonly credentials: CredentialService,
@@ -41,7 +43,8 @@ export class AuthService {
   ) {}
 
   // ── Passenger (Better Auth: email-OTP) ──
-  async register(email: string, _name: string | undefined): Promise<void> {
+  // Đăng ký = gửi OTP; Better Auth tạo user khi verify. Hồ sơ (name...) cập nhật sau (FR-IAM-11).
+  async register(email: string): Promise<void> {
     await this.sendSignInOtp(email);
   }
 
@@ -53,8 +56,11 @@ export class AuthService {
     await this.otpRateLimiter.assertCanRequest(email);
     try {
       await this.auth.api.sendVerificationOTP({ body: { email, type: "sign-in" } });
-    } catch {
-      // KHÔNG leak gửi thành công/thất bại (account enumeration) — luôn trả 200.
+    } catch (error) {
+      // Response luôn 200 để KHÔNG leak account tồn tại hay không — nhưng phải LOG, nếu không
+      // Resend hỏng / config sai sẽ vô hình: user không bao giờ nhận OTP mà ops không có tín hiệu.
+      // Chống enumeration là về response, không phải về log.
+      this.logger.error(`Gửi OTP thất bại cho ${maskEmail(email)}: ${String(error)}`);
     }
   }
 
@@ -63,7 +69,12 @@ export class AuthService {
     try {
       const result = await this.auth.api.signInEmailOTP({ body: { email, otp } });
       userId = result.user.id;
-    } catch {
+    } catch (error) {
+      // Chỉ OTP sai mới là 401. Lỗi hạ tầng (Postgres/Redis) mà map thành 401 sẽ ghi audit sai
+      // sự thật ("otp_invalid") — làm hỏng chính bằng chứng dùng để điều tra sau này.
+      if (!isClientAuthError(error)) {
+        throw error;
+      }
       await this.loginHistory.record({
         scope: "passenger",
         result: "failure",
@@ -79,8 +90,11 @@ export class AuthService {
 
   // ── Operator / Employee (custom, `{slug}/{username}` + password) ──
   async operatorLogin(identifier: string, password: string, ctx: RequestContext): Promise<LoginResult> {
+    await this.otpRateLimiter.assertCanAttemptLogin(identifier, ctx.ip);
+
     const resolved = resolveIdentifier(identifier);
     if (!resolved || resolved.scope !== "operator") {
+      await this.recordUnknownAttempt("operator", identifier, "wrong_channel", ctx);
       throw wrongLoginChannel();
     }
     const { operatorSlug, username } = resolved;
@@ -92,18 +106,24 @@ export class AuthService {
 
     if (!operator || !account) {
       await this.credentials.verify(password, DUMMY_PASSWORD_HASH);
+      await this.recordUnknownAttempt("operator", identifier, "unknown_account", ctx);
       throw invalidCredentials();
     }
 
-    await this.verifyOrThrow(password, account, "operator", operatorSlug, ctx, !isActive(operator.status));
+    await this.verifyOrThrow(password, account, "operator", ctx, !isActive(operator.status));
 
-    return this.issueCredentialToken("operator", account, operatorSlug, ctx);
+    // Slug lấy từ DB, KHÔNG từ input người dùng: claim `operatorSlug` và `operatorId` phải cùng
+    // một nguồn, nếu không TenantGuard (khớp slug URL) và RLS (dùng operatorId) sẽ bất đồng ở IAM-003.
+    return this.issueCredentialToken("operator", account, operator.operatorSlug, ctx);
   }
 
   // ── Platform (custom, `platform/{username}` + password) ──
   async platformLogin(identifier: string, password: string, ctx: RequestContext): Promise<LoginResult> {
+    await this.otpRateLimiter.assertCanAttemptLogin(identifier, ctx.ip);
+
     const resolved = resolveIdentifier(identifier);
     if (!resolved || resolved.scope !== "platform") {
+      await this.recordUnknownAttempt("platform", identifier, "wrong_channel", ctx);
       throw wrongLoginChannel();
     }
 
@@ -114,10 +134,11 @@ export class AuthService {
 
     if (!account) {
       await this.credentials.verify(password, DUMMY_PASSWORD_HASH);
+      await this.recordUnknownAttempt("platform", identifier, "unknown_account", ctx);
       throw invalidCredentials();
     }
 
-    await this.verifyOrThrow(password, account, "platform", undefined, ctx, false);
+    await this.verifyOrThrow(password, account, "platform", ctx, false);
 
     return this.issueCredentialToken("platform", account, undefined, ctx);
   }
@@ -131,8 +152,9 @@ export class AuthService {
         `OAuth provider không hỗ trợ: ${provider}`
       );
     }
+    this.assertAllowedCallback(callbackURL);
     const result = await this.auth.api.signInSocial({
-      body: { provider: provider as OAuthProvider, callbackURL }
+      body: { provider: provider as OAuthProvider, callbackURL, disableRedirect: true }
     });
     if (!result.url) {
       throw new AuthException(
@@ -154,6 +176,31 @@ export class AuthService {
   }
 
   // ── helpers ──
+  /**
+   * `callbackURL` do client gửi lên là đầu vào KHÔNG tin được. Better Auth lưu nguyên nó vào
+   * bản ghi state rồi redirect tới đó **sau khi đã set session cookie** → attacker dụ nạn nhân
+   * mở luồng với callbackURL của mình, nạn nhân đăng nhập Google thật rồi bị đẩy sang trang giả
+   * ở trạng thái đã đăng nhập. Middleware origin-check của Better Auth KHÔNG cứu được vì nó
+   * thoát sớm khi không có `ctx.request` (ta gọi server-side qua `auth.api.signInSocial`).
+   */
+  private assertAllowedCallback(callbackURL: string | undefined): void {
+    if (!callbackURL) {
+      return;
+    }
+    const allowed = this.config.AUTH_ALLOWED_CALLBACK_ORIGINS.some((origin) =>
+      origin.endsWith("://")
+        ? callbackURL.startsWith(origin) // deep-link scheme mobile: vexenhanh://...
+        : callbackURL === origin || callbackURL.startsWith(`${origin}/`)
+    );
+    if (!allowed) {
+      throw new AuthException(
+        HttpStatus.BAD_REQUEST,
+        "AUTH_OAUTH_CALLBACK_NOT_ALLOWED",
+        "callbackURL không nằm trong danh sách cho phép."
+      );
+    }
+  }
+
   private async issuePassengerToken(userId: string, ctx: RequestContext): Promise<LoginResult> {
     const token = await this.tokens.mintAccessToken({
       sub: userId,
@@ -179,7 +226,11 @@ export class AuthService {
     const owner = await this.prisma.operatorAccount.findUnique({
       where: { operatorSlug_username: { operatorSlug, username } }
     });
-    if (owner) {
+    // `operator_slug` trên operator_accounts là bản sao denormalized: nếu nó lệch với
+    // operator_profiles (slug đổi tên ở IAM-005, sửa tay, tenant xoá rồi tạo lại) thì tra theo slug
+    // sẽ trả account của TENANT KHÁC — qua được cả check SUSPENDED lẫn claim tenant. Bắt buộc
+    // đối chiếu operatorId đã resolve, giống nhánh employee bên dưới.
+    if (owner && owner.operatorId === operatorId) {
       return {
         id: owner.id,
         passwordHash: owner.passwordHash,
@@ -206,11 +257,30 @@ export class AuthService {
     return null;
   }
 
+  /**
+   * Ghi audit cho lần thử vào account KHÔNG tồn tại / sai cổng. Không ghi thì password spraying
+   * và dò namespace không để lại dấu vết nào (FR-IAM-09, Security §11 "brute force → monitoring").
+   * Response trả về vẫn y hệt nhánh sai mật khẩu — audit không phải kênh leak.
+   */
+  private async recordUnknownAttempt(
+    scope: AuthScope,
+    identifier: string,
+    reason: string,
+    ctx: RequestContext
+  ): Promise<void> {
+    await this.loginHistory.record({
+      scope,
+      result: "failure",
+      targetId: maskIdentifier(identifier),
+      reason,
+      ...ctx
+    });
+  }
+
   private async verifyOrThrow(
     password: string,
     account: CredentialAccount,
     scope: AuthScope,
-    operatorSlug: string | undefined,
     ctx: RequestContext,
     tenantInactive: boolean
   ): Promise<void> {
@@ -269,4 +339,26 @@ export class AuthService {
 
 function isActive(status: string): boolean {
   return status === "ACTIVE";
+}
+
+/** Better Auth ném `APIError` có `status` cho lỗi phía client; lỗi hạ tầng thì không. */
+function isClientAuthError(error: unknown): boolean {
+  const status = (error as { status?: unknown } | null)?.status;
+  if (typeof status === "number") {
+    return status >= 400 && status < 500;
+  }
+  // better-auth dùng chuỗi cho một số mã (vd "BAD_REQUEST", "UNAUTHORIZED").
+  return typeof status === "string";
+}
+
+/** Che identifier trước khi ghi audit: `phuongtrang/ow***`, `platform/kh***`, email → maskEmail. */
+function maskIdentifier(identifier: string): string {
+  const value = identifier.trim();
+  if (value.includes("@")) {
+    return maskEmail(value);
+  }
+  const slash = value.lastIndexOf("/");
+  const prefix = slash >= 0 ? value.slice(0, slash + 1) : "";
+  const username = slash >= 0 ? value.slice(slash + 1) : value;
+  return `${prefix}${username.slice(0, 2)}***`;
 }

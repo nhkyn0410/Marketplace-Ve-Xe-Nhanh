@@ -3,10 +3,7 @@ import { z } from "zod";
 
 // ── Request DTOs (Zod tại boundary, nestjs-zod) ──
 export class RegisterDto extends createZodDto(
-  z.object({
-    email: z.email(),
-    name: z.string().min(1).max(120).optional()
-  })
+  z.object({ email: z.email() })
 ) {}
 
 export class OtpRequestDto extends createZodDto(

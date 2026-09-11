@@ -55,7 +55,7 @@ export class TokenService implements OnModuleInit {
     }
 
     this.logger.warn(
-      "JWT_ACCESS_PRIVATE_KEY chưa set — sinh keypair ephemeral cho dev (token mất hiệu lực sau restart)."
+      "JWT_ACCESS_PRIVATE_KEY chưa set - sinh keypair ephemeral cho dev (token mất hiệu lực sau restart).",
     );
     const pair = await this.jose.generateKeyPair(ALG, { extractable: true });
     this.privateKey = pair.privateKey;
@@ -63,7 +63,10 @@ export class TokenService implements OnModuleInit {
 
   async mintAccessToken(claims: AccessTokenClaims): Promise<IssuedAccessToken> {
     const ttl = this.config.JWT_ACCESS_TTL_SECONDS;
-    const payload: Record<string, string> = { scope: claims.scope, role: claims.role };
+    const payload: Record<string, string> = {
+      scope: claims.scope,
+      role: claims.role,
+    };
     if (claims.operatorId) {
       payload.operatorId = claims.operatorId;
     }
@@ -89,5 +92,7 @@ function decodePem(value: string | undefined): string | undefined {
     return undefined;
   }
   const trimmed = value.trim();
-  return trimmed.includes("BEGIN") ? trimmed : Buffer.from(trimmed, "base64").toString("utf8");
+  return trimmed.includes("BEGIN")
+    ? trimmed
+    : Buffer.from(trimmed, "base64").toString("utf8");
 }

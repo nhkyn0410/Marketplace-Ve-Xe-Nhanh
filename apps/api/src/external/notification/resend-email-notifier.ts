@@ -27,7 +27,8 @@ export class ResendEmailNotifier implements EmailNotifier {
         to: message.email,
         subject: "Mã OTP đăng nhập Vé Xe Nhanh",
         html: `<p>Mã OTP của bạn: <strong>${message.otp}</strong></p><p>Mã hết hạn sau 5 phút. Không chia sẻ mã cho bất kỳ ai.</p>`
-      })
+      }),
+      signal: AbortSignal.timeout(10_000)
     });
 
     if (!response.ok) {

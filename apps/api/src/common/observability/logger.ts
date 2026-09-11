@@ -3,6 +3,7 @@ import type { RequestHandler, Request, Response } from "express";
 import pino, { type Logger, type LogFn } from "pino";
 import pinoHttp from "pino-http";
 import type { AppConfig } from "../../config/env.config";
+import { resolveTrustedClientIp } from "../trusted-client-ip";
 import { getCurrentTraceId } from "./tracing";
 import { getRequestId } from "./request-context";
 
@@ -79,10 +80,20 @@ export function createHttpLoggerMiddleware(logger: Logger): RequestHandler {
 
       return "info";
     },
-    customProps: () => ({
-      requestId: getRequestId(),
-      traceId: getCurrentTraceId()
-    })
+    customProps: (request) => {
+      const cfConnectingIp = request.headers["cf-connecting-ip"];
+      const trustedClientIp = resolveTrustedClientIp(request, "production");
+
+      return {
+        requestId: getRequestId(),
+        traceId: getCurrentTraceId(),
+        clientIp: request.ip,
+        cfConnectingIp,
+        trustedClientIp,
+        clientIpMatchesCf:
+          cfConnectingIp === undefined ? undefined : trustedClientIp !== undefined
+      };
+    }
   });
 
   return (request, response, next): void => {

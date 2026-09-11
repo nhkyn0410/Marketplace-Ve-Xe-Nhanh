@@ -22,13 +22,40 @@ services:
         sync: false
       - key: BULL_BOARD_TOKEN
         sync: false
+      # IAM v1 — cấu hình riêng của API, không chia sẻ secret sang worker.
+      - key: BETTER_AUTH_SECRET
+        sync: false
+      - key: BETTER_AUTH_URL
+        sync: false
+      - key: JWT_ACCESS_PRIVATE_KEY
+        sync: false
+      - key: JWT_ACCESS_TTL_SECONDS
+        value: "900"
+      - key: JWT_ISSUER
+        value: vexenhanh
+      - key: AUTH_ALLOWED_CALLBACK_ORIGINS
+        sync: false
+      - key: RESEND_API_KEY
+        sync: false
+      - key: RESEND_FROM_EMAIL
+        sync: false
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
+      - key: OTEL_SERVICE_NAME
+        value: vexenhanh-api
       - key: PORT
         value: "3000"
+      # Express đếm từ socket: app -> Render -> Cloudflare -> client = 3 hop tin cậy.
+      - key: TRUST_PROXY_HOPS
+        value: "3"
 
 # ADR-024: worker = Render Background Worker (cùng image, command `dist/worker.js`);
 # payout/reconciliation = BullMQ repeatable jobs TRONG worker (KHÔNG Render Cron Job riêng).
 # Render Background Worker KHÔNG có free tier → DEFER tới TASK-OPS-001 (paid).
 # v1 validate: worker chạy LOCAL (`pnpm --filter @vexenhanh/api start:worker`).
+# Trước khi bật production: tách env validation theo runtime để worker không cần IAM/Resend secret.
 # Bật lại khi go-paid (uncomment + nạp thẻ):
 #  - type: worker
 #    name: vexenhanh-worker
@@ -50,8 +77,8 @@ services:
 #        sync: false
 #      - key: MONGODB_AUDIT_URI
 #        sync: false
-#      - key: BULL_BOARD_TOKEN
-#        sync: false
+#      - key: OTEL_SERVICE_NAME
+#        value: vexenhanh-worker
 
 envVarGroups:
   - name: vexenhanh-foundation
@@ -62,3 +89,7 @@ envVarGroups:
         value: production
       - key: BULLMQ_PREFIX
         value: vexenhanh
+      - key: LOG_LEVEL
+        value: info
+      - key: SENTRY_TRACES_SAMPLE_RATE
+        value: "0.1"

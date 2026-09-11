@@ -25,6 +25,11 @@ export const envSchema = z.object({
     emptyToUndefined,
     z.coerce.number().int().positive().max(65535).default(3000)
   ),
+  // Số proxy tin cậy tính từ socket gần app nhất. Local mặc định 0 (không tin forwarded IP).
+  TRUST_PROXY_HOPS: z.preprocess(
+    emptyToUndefined,
+    z.coerce.number().int().nonnegative().default(0)
+  ),
 
   // Postgres (Prisma) — operational DB
   DATABASE_URL: optionalString,
@@ -69,19 +74,52 @@ export const envSchema = z.object({
     z.coerce.number().int().positive().default(900)
   ),
   JWT_ISSUER: z.preprocess(emptyToUndefined, z.string().min(1).default("vexenhanh")),
-  // OAuth Passenger (ADR-020) — optional, chỉ bật provider khi có credential.
+  // OAuth Passenger (ADR-020) — v1 chỉ Google; Facebook/Apple defer v1.x (ADR-028: v1 không lên
+  // store nên App Store Guideline 4.8 không ép Apple Sign-In). Giữ biến để bật lại không cần sửa schema.
   GOOGLE_CLIENT_ID: optionalString,
   GOOGLE_CLIENT_SECRET: optionalString,
   FACEBOOK_CLIENT_ID: optionalString,
   FACEBOOK_CLIENT_SECRET: optionalString,
   APPLE_CLIENT_ID: optionalString,
   APPLE_CLIENT_SECRET: optionalString,
+  /**
+   * Origin được phép nhận redirect sau OAuth. `callbackURL` do client gửi lên KHÔNG được tin:
+   * Better Auth lưu nguyên nó vào state rồi redirect tới đó sau khi đã set session cookie
+   * → open redirect ở trạng thái đã đăng nhập (nền phishing rất thuyết phục). Mặc định chỉ
+   * localhost cho dev; production phải khai tường minh.
+   */
+  AUTH_ALLOWED_CALLBACK_ORIGINS: z.preprocess(
+    (value) =>
+      typeof value === "string" && value.trim().length > 0
+        ? value.split(",").map((origin) => origin.trim()).filter(Boolean)
+        : undefined,
+    z.array(z.string().min(1)).default(["http://localhost:3000", "vexenhanh://", "vexenhanh-operator://"])
+  ),
   // Email OTP delivery (Resend optional; dev = console adapter).
   RESEND_API_KEY: optionalString,
   RESEND_FROM_EMAIL: z.preprocess(
     emptyToUndefined,
     z.email().default("no-reply@vexenhanh.com")
   )
+}).superRefine((env, ctx) => {
+  // Production fail-fast: secret/key bắt buộc, base URL phải https non-localhost (sec H1/M4).
+  if (env.NODE_ENV !== "production") {
+    return;
+  }
+  // RESEND_API_KEY bắt buộc: thiếu nó thì NotificationModule âm thầm rơi về ConsoleEmailNotifier,
+  // adapter này in OTP nguyên văn ra log → chiếm tài khoản chỉ bằng quyền đọc log (Security §9).
+  for (const key of ["BETTER_AUTH_SECRET", "JWT_ACCESS_PRIVATE_KEY", "RESEND_API_KEY"] as const) {
+    if (!env[key]) {
+      ctx.addIssue({ code: "custom", path: [key], message: `${key} is required in production.` });
+    }
+  }
+  if (env.BETTER_AUTH_URL.startsWith("http://") || env.BETTER_AUTH_URL.includes("localhost")) {
+    ctx.addIssue({
+      code: "custom",
+      path: ["BETTER_AUTH_URL"],
+      message: "BETTER_AUTH_URL must be a non-localhost HTTPS URL in production."
+    });
+  }
 });
 
 export type AppConfig = z.infer<typeof envSchema>;

@@ -22,6 +22,8 @@ export function resolveIdentifier(rawIdentifier: string): ResolvedIdentity | nul
 
   const slashIndex = identifier.indexOf("/");
   if (slashIndex > 0) {
+    // Slug lowercase (định danh tenant, không phân biệt hoa/thường); username giữ nguyên hoa/thường
+    // (closed enrollment — admin cấp đúng dạng, vd `owner01`). Quyết định LLD §6.5.
     const prefix = identifier.slice(0, slashIndex).trim().toLowerCase();
     const username = identifier.slice(slashIndex + 1).trim();
     if (prefix.length === 0 || username.length === 0 || username.includes("/")) {
