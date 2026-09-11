@@ -75,7 +75,6 @@ export default tseslint.config(
       "**/dist/**",
       "**/.next/**",
       "**/.turbo/**",
-      "**/.expo/**",
       "**/coverage/**",
       "**/node_modules/**"
     ]

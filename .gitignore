@@ -46,12 +46,30 @@ playwright-report/
 blob-report/
 maestro-debug-output/
 
-# Expo / React Native generated state
-.expo/
-apps/**/.expo/
-apps/**/web-build/
-apps/**/android/
-apps/**/ios/
+# Flutter / Dart (ADR-028) — apps/*-mobile + packages/{mobile_shared,api_client_dart}
+# `build/`, `dist/` đã ignore ở mục "Build output" phía trên.
+**/.dart_tool/
+**/.flutter-plugins
+**/.flutter-plugins-dependencies
+**/.packages
+*.iml
+
+# QUAN TRỌNG: với Flutter, `android/` và `ios/` là SOURCE phải commit (AndroidManifest.xml khai
+# permission — chính là chỗ hiện thực việc tách 2 app theo ADR-028 — build.gradle, Info.plist,
+# cấu hình ký). Chỉ ignore phần do tooling sinh ra. (Expo thì ngược lại: 2 thư mục đó do
+# `expo prebuild` sinh nên ignore cả — đó là quy tắc cũ, đã bỏ cùng ADR-028.)
+**/android/.gradle/
+**/android/local.properties
+**/android/key.properties
+**/android/app/*.jks
+**/android/app/*.keystore
+**/ios/Pods/
+**/ios/.symlinks/
+**/ios/Flutter/Generated.xcconfig
+**/ios/Flutter/flutter_export_environment.sh
+**/ios/Flutter/ephemeral/
+**/*.xcuserstate
+**/xcuserdata/
 
 # Logs
 *.log

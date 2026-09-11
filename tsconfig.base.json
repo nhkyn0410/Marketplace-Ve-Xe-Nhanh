@@ -17,7 +17,6 @@
       "@vexenhanh/api-client": ["./packages/api-client/src/index.ts"],
       "@vexenhanh/types": ["./packages/types/src/index.ts"],
       "@vexenhanh/ui": ["./packages/ui/src/index.ts"],
-      "@vexenhanh/ui-mobile-shared": ["./packages/ui-mobile-shared/src/index.ts"],
       "@vexenhanh/utils": ["./packages/utils/src/index.ts"]
     }
   }

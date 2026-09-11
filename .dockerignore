@@ -34,9 +34,9 @@ playwright-report
 blob-report
 maestro-debug-output
 
-# Expo / native generated output
-.expo
-**/.expo
+# Flutter / native generated output (ADR-028)
+**/.dart_tool
+apps/*-mobile
 **/web-build
 **/android
 **/ios

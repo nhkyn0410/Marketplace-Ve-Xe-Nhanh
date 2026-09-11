@@ -1,3 +1,10 @@
 packages:
   - "apps/*"
   - "packages/*"
+  # Dart/Flutter (ADR-028) không phải package Node — loại trừ tường minh.
+  # pnpm vốn chỉ nhận thư mục có package.json, nhưng khai ra để ý định rõ ràng và tránh
+  # ai đó thêm nhầm package.json vào đây rồi kéo Dart vào graph của Turborepo.
+  - "!apps/passenger-mobile"
+  - "!apps/employee-mobile"
+  - "!packages/mobile_shared"
+  - "!packages/api_client_dart"
