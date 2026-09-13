@@ -132,7 +132,7 @@ Sau Sprint 5 rework + Sprint 4 Phase 4 DevOps, các doc thiết kế đã reset 
 
 | Task ID      | Task                                                                                                                   | Nguồn                  | Owner        | Dependency   | Status |
 | ------------ | ---------------------------------------------------------------------------------------------------------------------- | ---------------------- | ------------ | ------------ | ------ |
-| TASK-IAM-001 | Better Auth + custom NestJS adapter; login 3-namespace (Email/OTP/OAuth + `{slug}/{username}` + `platform/{username}`) | FR-IAM-\*, ADR-017/020 | BE/FE/Mobile | TASK-FND-006 | Draft  |
+| TASK-IAM-001 | Better Auth + custom NestJS adapter; login 3-namespace (Email/OTP/OAuth + `{slug}/{username}` + `platform/{username}`) | FR-IAM-\*, ADR-017/020 | BE/FE/Mobile | TASK-FND-006 | **Done** |
 | TASK-IAM-002 | Hybrid token (JWT RS256 15min + opaque refresh 30d rotation/family) + `auth_sessions` + Redis cache                    | ADR-017                | BE           | TASK-IAM-001 | Draft  |
 | TASK-IAM-003 | RBAC 8-role + TenantGuard (JWT claims) + Postgres RLS                                                                  | FR-IAM-06, ADR-011/017 | BE           | TASK-IAM-002 | Draft  |
 | TASK-IAM-004 | MFA TOTP (mandatory Owner/PlatformAdmin/PlatformSupport) + backup code                                                 | ADR-017                | BE           | TASK-IAM-002 | Draft  |

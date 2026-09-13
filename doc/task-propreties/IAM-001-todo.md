@@ -4,9 +4,11 @@
 > **Dependency:** TASK-FND-006 ✓ (Done).
 > **Cách dùng:** file này là **bản chụp để xem** (đồng bộ với task system của phiên). Tick `[x]` khi xong; AI cập nhật trạng thái khi làm.
 
-## Trạng thái (09/09/2026)
-- ✅ **.1 → .10 DONE**; **.11 đang chạy**. 2 review bắt buộc (`code-reviewer` + `security-auditor`) **đã xong**, toàn bộ finding chặn task đã sửa.
-- **Test**: 70 test IAM / **103 test API** — typecheck + lint + test + build **36/36 xanh**.
+## Trạng thái (14/09/2026) — ✅ **DONE**
+- ✅ **.1 → .11 DONE**. 2 review bắt buộc (`code-reviewer` + `security-auditor`) đã xong, toàn bộ finding chặn task đã sửa.
+- **Test**: **127 test / 20 file** — typecheck + lint + test + build **36/36 xanh**.
+- **Smoke test 14/09 trên Docker local**: 6 endpoint API §7.1 chạy đúng bảng kỳ vọng; `/api/auth/*` đã mount (get-session 200, callback/google 302 — trước đó 404).
+- Task row `11-project-task-breakdown.md` → **Done**; `PROJECT-STATE §7` đã ghi nhận.
 - **Không còn quyết định treo** — argon2 ↔ scrypt đã chốt 09/09/2026 (giữ scrypt, sửa doc). Còn lại chỉ là phần đóng task của `.11`.
 
 ### Review 08/09/2026 — đã sửa
