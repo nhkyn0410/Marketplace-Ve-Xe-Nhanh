@@ -25,7 +25,7 @@ Nguồn thiết kế chính nằm trong `doc/SDLC/`. Khi bắt đầu code, đ�
 | Monorepo | Turborepo |
 | Backend | NestJS 11, nestjs-zod |
 | Web | Next.js 16 App Router |
-| Mobile | Expo SDK 55+ |
+| Mobile | Flutter 3.x + Dart 3.x |
 | Operational DB | PostgreSQL 16, Prisma 5 |
 | Audit/log DB | MongoDB 7, Mongoose 8 |
 | Cache/lock/queue | Redis 7, ioredis, BullMQ |
@@ -40,14 +40,13 @@ apps/
   marketplace/          Next.js app cho hành khách
   operator-os/          Next.js dashboard cho nhà xe và nhân viên
   admin/                Next.js dashboard cho platform admin
-  passenger-mobile/     Expo app cho hành khách
-  employee-mobile/      Expo app cho nhân viên
+  passenger-mobile/     Flutter app cho hành khách
+  employee-mobile/      Flutter app cho nhân viên
 
 packages/
   types/                Zod schemas và shared TypeScript types
   api-client/           Placeholder cho generated API client
   ui/                   Shared web UI package
-  ui-mobile-shared/     Shared mobile UI helpers
   utils/                Shared utilities, gồm money helpers
   config/               Shared TypeScript configuration
 ```

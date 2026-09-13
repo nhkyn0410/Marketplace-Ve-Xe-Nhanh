@@ -20,3 +20,176 @@ model HealthCheck {
 
   @@map("health_checks")
 }
+
+// ════════════════════════════ IAM (TASK-IAM-001) ════════════════════════════
+// Identity 3 namespace Account-separate (ADR-017). Passenger = Better Auth native;
+// Operator/Platform = bảng domain riêng + verify password (KHÔNG federate).
+// RLS (FORCE + policy) đóng đinh ở IAM-003; ở đây chỉ mang `operator_id`.
+
+/// Trạng thái account (FR-IAM-08: khóa / mở khóa / vô hiệu hóa).
+enum AccountStatus {
+  ACTIVE
+  LOCKED
+  DISABLED
+}
+
+/// Trạng thái tenant Operator (tối thiểu v1; OPR-001 mở rộng KYC).
+enum OperatorStatus {
+  ACTIVE
+  SUSPENDED
+}
+
+/// Role account Operator-side (v1 chỉ owner; mở rộng sau nếu cần).
+enum OperatorRole {
+  OPERATOR_OWNER
+}
+
+/// Employee role đã chốt v1 (FR-IAM-05, GLOSSARY).
+enum EmployeeRole {
+  DRIVER
+  TICKET_STAFF
+  SUPPORT_STAFF
+}
+
+/// Role account Platform-side (RBAC 8-role, ADR-017).
+enum PlatformRole {
+  PLATFORM_ADMIN
+  PLATFORM_SUPPORT
+}
+
+// ──────────────── Passenger identity — Better Auth quản lý ────────────────
+// 4 bảng lõi theo schema chính thức Better Auth. Giữ tên model đúng default
+// (User/Session/Account/Verification) → adapter Prisma khỏi cần config modelName;
+// chỉ `@@map` đổi tên bảng DB. Better Auth tự sinh `id` (String).
+
+model User {
+  id            String   @id
+  name          String?
+  email         String   @unique
+  emailVerified Boolean  @default(false) @map("email_verified")
+  image         String?
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  sessions Session[]
+  accounts Account[]
+
+  @@map("users")
+}
+
+model Session {
+  id        String   @id
+  userId    String   @map("user_id")
+  token     String   @unique
+  expiresAt DateTime @map("expires_at")
+  ipAddress String?  @map("ip_address")
+  userAgent String?  @map("user_agent")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("user_sessions")
+}
+
+model Account {
+  id                    String    @id
+  userId                String    @map("user_id")
+  accountId             String    @map("account_id")
+  providerId            String    @map("provider_id")
+  accessToken           String?   @map("access_token")
+  refreshToken          String?   @map("refresh_token")
+  accessTokenExpiresAt  DateTime? @map("access_token_expires_at")
+  refreshTokenExpiresAt DateTime? @map("refresh_token_expires_at")
+  scope                 String?
+  idToken               String?   @map("id_token")
+  password              String?
+  createdAt             DateTime  @default(now()) @map("created_at")
+  updatedAt             DateTime  @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("user_accounts")
+}
+
+model Verification {
+  id         String   @id
+  identifier String
+  value      String
+  expiresAt  DateTime @map("expires_at")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  @@index([identifier])
+  @@map("verifications")
+}
+
+// ──────────────── Operator tenant root (tối thiểu) ────────────────
+/// Tenant root tối thiểu để login/seed; OPR-001 mở rộng KYC/profile.
+/// `operator_id` = id bảng này (RLS key, IAM-003).
+model OperatorProfile {
+  id           String         @id @default(uuid())
+  operatorSlug String         @unique @map("operator_slug")
+  displayName  String         @map("display_name")
+  status       OperatorStatus @default(ACTIVE)
+  createdAt    DateTime       @default(now()) @map("created_at")
+  updatedAt    DateTime       @updatedAt @map("updated_at")
+
+  operatorAccounts OperatorAccount[]
+  employeeAccounts EmployeeAccount[]
+
+  @@map("operator_profiles")
+}
+
+// ──────────────── Operator-side identity (custom, Account-separate) ────────────────
+/// Login Operator owner: `{operatorSlug}/{username}` + password (closed enrollment).
+model OperatorAccount {
+  id           String        @id @default(uuid())
+  operatorId   String        @map("operator_id")
+  operatorSlug String        @map("operator_slug")
+  username     String
+  passwordHash String        @map("password_hash")
+  role         OperatorRole  @default(OPERATOR_OWNER)
+  status       AccountStatus @default(ACTIVE)
+  createdAt    DateTime      @default(now()) @map("created_at")
+  updatedAt    DateTime      @updatedAt @map("updated_at")
+
+  operator OperatorProfile @relation(fields: [operatorId], references: [id], onDelete: Cascade)
+
+  @@unique([operatorSlug, username])
+  @@index([operatorId])
+  @@map("operator_accounts")
+}
+
+/// Login Employee trong tenant: username + password (operator-owned).
+model EmployeeAccount {
+  id           String        @id @default(uuid())
+  operatorId   String        @map("operator_id")
+  username     String
+  passwordHash String        @map("password_hash")
+  role         EmployeeRole
+  status       AccountStatus @default(ACTIVE)
+  createdAt    DateTime      @default(now()) @map("created_at")
+  updatedAt    DateTime      @updatedAt @map("updated_at")
+
+  operator OperatorProfile @relation(fields: [operatorId], references: [id], onDelete: Cascade)
+
+  @@unique([operatorId, username])
+  @@map("employee_accounts")
+}
+
+// ──────────────── Platform-side identity (custom) ────────────────
+/// Login Platform: `platform/{username}` + password (closed enrollment, KHÔNG OAuth).
+model PlatformAccount {
+  id           String        @id @default(uuid())
+  username     String        @unique
+  passwordHash String        @map("password_hash")
+  role         PlatformRole
+  status       AccountStatus @default(ACTIVE)
+  createdAt    DateTime      @default(now()) @map("created_at")
+  updatedAt    DateTime      @updatedAt @map("updated_at")
+
+  @@map("platform_accounts")
+}

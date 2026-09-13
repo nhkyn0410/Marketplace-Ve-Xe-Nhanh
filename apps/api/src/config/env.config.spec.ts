@@ -7,6 +7,7 @@ describe("parseAppConfig", () => {
 
     expect(config.NODE_ENV).toBe("development");
     expect(config.PORT).toBe(3000);
+    expect(config.TRUST_PROXY_HOPS).toBe(0);
     expect(config.DATABASE_URL).toBeUndefined();
     expect(config.LOG_LEVEL).toBe("info");
     expect(config.SENTRY_TRACES_SAMPLE_RATE).toBe(0.1);
@@ -15,6 +16,12 @@ describe("parseAppConfig", () => {
 
   it("coerces PORT to a number", () => {
     expect(parseAppConfig({ PORT: "8080" }).PORT).toBe(8080);
+  });
+
+  it("coerces TRUST_PROXY_HOPS to a non-negative integer", () => {
+    expect(parseAppConfig({ TRUST_PROXY_HOPS: "3" }).TRUST_PROXY_HOPS).toBe(3);
+    expect(() => parseAppConfig({ TRUST_PROXY_HOPS: "-1" })).toThrow(/Invalid environment/);
+    expect(() => parseAppConfig({ TRUST_PROXY_HOPS: "1.5" })).toThrow(/Invalid environment/);
   });
 
   it("rejects an invalid PORT", () => {

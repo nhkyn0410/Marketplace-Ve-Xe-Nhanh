@@ -17,14 +17,14 @@ Managed marketplace bán vé xe khách, 3 bên (Passenger ↔ Platform ↔ Opera
 - **Auth**: Better Auth + custom NestJS adapter; JWT RS256 15min + opaque refresh 30d (rotation + family); 3 namespace (Passenger=Email / Operator=`{slug}/{username}` / Platform=`platform/{username}`); RBAC 8-role enum; TenantGuard + Postgres RLS; TOTP.
 - **API**: REST + OpenAPI 3.1 auto từ Zod; URL `/v1`; error RFC 7807; webhook HMAC.
 - **Frontend**: Next.js 16 App Router; **Turborepo + pnpm** monorepo.
-- **Mobile**: Expo SDK 55+ (2 app: `passenger-mobile`, `employee-mobile`).
-- **Vendor** (sau adapter): VNPay + MoMo (payment), Resend (email), Expo Push, OAuth Google/FB/Apple, Goong (routing/map), Cloudflare R2 (storage), manual payout.
+- **Mobile**: Flutter 3.x + Dart 3.x (2 app: `passenger-mobile`, `employee-mobile`) — ADR-028. Nằm **ngoài** pnpm workspace / Turborepo; dùng `flutter`/`dart` CLI.
+- **Vendor** (sau adapter): VNPay + MoMo (payment), Resend (email), FCM + APNs (push), OAuth Google/FB/Apple, Goong (routing/map), Cloudflare R2 (storage), manual payout.
 - **DevOps**: Render PaaS (SG); worker = Render Background Worker tách; Vitest + Supertest + Playwright + Maestro; GitHub Actions + Sentry + Pino + OpenTelemetry.
 
 ## Project structure (target monorepo)
 
 ```
-apps/    api (NestJS)  marketplace · operator-os · admin (Next.js)  passenger-mobile · employee-mobile (Expo)
+apps/    api (NestJS)  marketplace · operator-os · admin (Next.js)  passenger-mobile · employee-mobile (Flutter)
 packages/  types (Zod single source) · api-client (gen từ OpenAPI) · ui · utils (Decimal wrappers) · config
 ```
 

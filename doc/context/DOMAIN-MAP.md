@@ -58,7 +58,7 @@ All 15 tech-selection layers are closed (ADR-002, ADR-009..022; routing Layer 14
 | Cổng thanh toán MoMo        | `external/payment/momo/`                        | `ADR-019` (phương thức 2 v1, đa phương thức) |
 | Dịch vụ email               | `external/notification/email/`                  | `ADR-020` (Resend, re-close `OQ-09`) |
 | Dịch vụ SMS                 | `external/notification/sms/`                    | `ADR-020` (defer v1 — chỉ adapter port + LocalLoggerAdapter; kích hoạt v1.x) |
-| Push notification           | `external/notification/push/`                   | `ADR-020` (Expo Push Service — TRONG phạm vi v1) |
+| Push notification           | `external/notification/push/`                   | `ADR-020` / `ADR-028` (FCM + APNs trực tiếp — TRONG phạm vi v1) |
 | OAuth provider              | Better Auth built-in (Google, Facebook, Apple)  | `ADR-020` (Passenger-only; Operator/Platform không OAuth per `ADR-017`) |
 | Dịch vụ định tuyến + map    | `external/routing/goong/`                      | `ADR-027` (Goong Direction + Distance Matrix + Maps); `external/routing/osrm/` = escape-hatch self-host |
 | Object storage              | `external/storage/`                             | `ADR-018` (Cloudflare R2, 2 bucket public/private; KYC production location defer `OQ-21`) |
@@ -78,7 +78,7 @@ Per `OQ-01..03` decisions, code state enums must align with SRS §17:
 | Refund status   | REQUESTED, APPROVED, PROCESSING, SUCCESS, FAILED, REJECTED                                                                               | `refund/`        |
 | Dispute status  | OPEN, WAITING_USER_EVIDENCE, WAITING_OPERATOR_RESPONSE, UNDER_REVIEW, ESCALATED, RESOLVED_REFUND, RESOLVED_NO_REFUND, CLOSED             | `dispute/`       |
 
-Code shared in `packages/types/` should expose these enums for frontend, mobile and backend.
+Code shared in `packages/types/` should expose these enums for **frontend (web) and backend**. Mobile (Flutter, ADR-028) cannot consume the Zod package — it gets the same enums through the Dart client generated from the OpenAPI 3.1 spec (`packages/api_client_dart/`).
 
 ## 6. Tenant boundary requirements
 

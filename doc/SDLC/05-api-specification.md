@@ -13,7 +13,7 @@
 | Người viết    | Nguyễn Hồng Khanh, AI Agent |
 | Người duyệt   | Nguyễn Hồng Khanh           |
 | Ngày tạo      | 11/05/2026                  |
-| Ngày cập nhật | 01/06/2026                  |
+| Ngày cập nhật | 08/09/2026                  |
 
 ### 1.2. Lịch sử thay đổi
 
@@ -55,7 +55,7 @@ Tài liệu tham chiếu: `01-srs`, `02-hld`, `03-lld`, `04-database-design`, `1
 | Base path          | `/v1` (URL versioning; breaking change → `/v2`, ADR-012)                                                                |
 | Spec               | OpenAPI 3.1 auto-gen từ Zod schema (sticky 3.0 v1 cho tới khi tool ecosystem support 3.1, ADR-012)                      |
 | Format             | JSON; error = `application/problem+json` (RFC 7807)                                                                     |
-| Auth               | Web = JWT access trong httpOnly cookie; Mobile = `Authorization: Bearer <jwt>` (token từ `expo-secure-store`) (ADR-017) |
+| Auth               | Web = JWT access trong httpOnly cookie; Mobile = `Authorization: Bearer <jwt>` (token từ `flutter_secure_storage`) (ADR-017/028) |
 | Timezone hiển thị  | `Asia/Ho_Chi_Minh`                                                                                                      |
 | Time lưu trữ       | UTC                                                                                                                     |
 | Currency           | VND (amount = integer đồng)                                                                                             |
@@ -263,7 +263,7 @@ Transport realtime (Socket.IO / SSE / polling) **chưa thuộc 15-layer selectio
 
 | ID        | Câu hỏi                                              | Tác động           | Trạng thái                                                                                     |
 | --------- | ---------------------------------------------------- | ------------------ | ---------------------------------------------------------------------------------------------- |
-| API-OQ-01 | Auth token lưu/cấp qua Bearer hay cookie cho web?    | FE/API/Security    | **Đóng theo ADR-017**: Web = httpOnly cookie; Mobile = Bearer (token từ expo-secure-store)     |
+| API-OQ-01 | Auth token lưu/cấp qua Bearer hay cookie cho web?    | FE/API/Security    | **Đóng theo ADR-017**: Web = httpOnly cookie; Mobile = Bearer (token từ `flutter_secure_storage`)     |
 | API-OQ-02 | Guest checkout có nằm trong v1 không?                | Booking API        | **Đóng theo SRS/GLOSSARY**: Guest có guest session cho hold/book/pay/lookup                    |
 | API-OQ-03 | Provider payment đầu tiên là gì?                     | Webhook contract   | **Đóng theo ADR-019**: VNPay (HMAC-SHA512) + MoMo (HMAC-SHA256)                                |
 | API-OQ-04 | Chuẩn pagination dùng page hay cursor cho từng list? | API consistency    | Mở; chốt per-endpoint khi LLD                                                                  |

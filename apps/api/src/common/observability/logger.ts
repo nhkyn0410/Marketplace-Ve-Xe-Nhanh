@@ -3,6 +3,7 @@ import type { RequestHandler, Request, Response } from "express";
 import pino, { type Logger, type LogFn } from "pino";
 import pinoHttp from "pino-http";
 import type { AppConfig } from "../../config/env.config";
+import { resolveTrustedClientIp } from "../trusted-client-ip";
 import { getCurrentTraceId } from "./tracing";
 import { getRequestId } from "./request-context";
 
@@ -14,6 +15,7 @@ const REDACT_PATHS = [
   "req.headers.cookie",
   "req.headers['x-bull-board-token']",
   "req.headers['x-api-key']",
+  "res.headers['set-cookie']",
   "authorization",
   "cookie",
   "password",
@@ -21,8 +23,26 @@ const REDACT_PATHS = [
   "token",
   "accessToken",
   "refreshToken",
-  "apiKey"
+  "apiKey",
+  "data.authorization",
+  "data.cookie",
+  "data.password",
+  "data.otp",
+  "data.token",
+  "data.accessToken",
+  "data.refreshToken",
+  "data.apiKey"
 ];
+
+const DEVELOPMENT_TRANSPORT = {
+  target: "pino-pretty",
+  options: {
+    colorize: true,
+    customColors: "trace:gray,debug:blue,info:green,warn:yellow,error:red,fatal:bgRed",
+    singleLine: true,
+    translateTime: "SYS:yyyy-mm-dd HH:MM:ss.l"
+  }
+};
 
 export function createAppLogger(
   config: Pick<AppConfig, "LOG_LEVEL" | "NODE_ENV" | "OTEL_SERVICE_NAME">,
@@ -40,7 +60,8 @@ export function createAppLogger(
     redact: {
       paths: REDACT_PATHS,
       censor: "[Redacted]"
-    }
+    },
+    transport: config.NODE_ENV === "development" ? DEVELOPMENT_TRANSPORT : undefined
   });
 }
 
@@ -68,10 +89,19 @@ export function createHttpLoggerMiddleware(logger: Logger): RequestHandler {
 
       return "info";
     },
-    customProps: () => ({
-      requestId: getRequestId(),
-      traceId: getCurrentTraceId()
-    })
+    customProps: (request) => {
+      const cfConnectingIp = request.headers["cf-connecting-ip"];
+      const trustedClientIp = resolveTrustedClientIp(request, "production");
+
+      return {
+        traceId: getCurrentTraceId(),
+        clientIp: request.ip,
+        cfConnectingIp,
+        trustedClientIp,
+        clientIpMatchesCf:
+          cfConnectingIp === undefined ? undefined : trustedClientIp !== undefined
+      };
+    }
   });
 
   return (request, response, next): void => {
@@ -146,6 +176,10 @@ function getLogMessage(message: unknown): string {
 
   if (typeof message === "string") {
     return message;
+  }
+
+  if (typeof message === "object" && message !== null && "event" in message && typeof message.event === "string") {
+    return message.event;
   }
 
   return "Nest application log";

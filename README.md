@@ -25,7 +25,7 @@ Primary design sources live in `doc/SDLC/`. For coding-agent guidance, read `AGE
 | Monorepo | Turborepo |
 | Backend | NestJS 11, nestjs-zod |
 | Web | Next.js 16 App Router |
-| Mobile | Expo SDK 55+ |
+| Mobile | Flutter 3.x + Dart 3.x |
 | Operational DB | PostgreSQL 16, Prisma 5 |
 | Audit/log DB | MongoDB 7, Mongoose 8 |
 | Cache/lock/queue | Redis 7, ioredis, BullMQ |
@@ -40,14 +40,13 @@ apps/
   marketplace/          Passenger-facing Next.js app
   operator-os/          Operator and employee Next.js dashboard
   admin/                Platform admin Next.js dashboard
-  passenger-mobile/     Passenger Expo app
-  employee-mobile/      Employee Expo app
+  passenger-mobile/     Passenger Flutter app
+  employee-mobile/      Employee Flutter app
 
 packages/
   types/                Zod schemas and shared TypeScript types
   api-client/           Generated API client placeholder
   ui/                   Shared web UI package
-  ui-mobile-shared/     Shared mobile UI helpers
   utils/                Shared utilities, including money helpers
   config/               Shared TypeScript configuration
 ```

@@ -13,7 +13,7 @@
 | Người viết    | Nguyễn Hồng Khanh, AI Agent                  |
 | Người duyệt   | Nguyễn Hồng Khanh                            |
 | Ngày tạo      | 11/05/2026                                   |
-| Ngày cập nhật | 03/06/2026                                   |
+| Ngày cập nhật | 08/09/2026                                   |
 
 ### 1.2. Lịch sử thay đổi
 
@@ -95,8 +95,8 @@ Tài liệu này KHÔNG mô tả chi tiết schema, migration, DTO, endpoint, UI
 | Marketplace layer       | Có                   | User / Guest search, booking, payment, ticket, support                                                    |
 | Operator OS layer       | Có                   | Operator profile, resources, trips, finance, employee                                                     |
 | Platform admin layer    | Có                   | KYC, catalog, policy, payment, dispute, audit                                                             |
-| Mobile Passenger        | Có                   | App riêng `apps/passenger-mobile` (ADR-014)                                                               |
-| Mobile Employee         | Có                   | App riêng `apps/employee-mobile` — check-in, trip status, journey log, incident, background geo (ADR-014) |
+| Mobile Passenger        | Có                   | App riêng `apps/passenger-mobile` (ADR-028)                                                               |
+| Mobile Employee         | Có                   | App riêng `apps/employee-mobile` — check-in, trip status, journey log, incident, background geo (ADR-028) |
 | External Operator API   | Ngoài phạm vi v1     | Theo SRS §6.4                                                                                             |
 | Multi-language/currency | Ngoài phạm vi v1     | Theo SRS §6.4 và OQ-12                                                                                    |
 
@@ -109,8 +109,8 @@ Các tiền đề dưới đây không còn là giả định mở; chúng phả
 | HLD-AS-01 | Backend = NestJS 11 modular monolith (framework-agnostic boundary) trong monorepo Turborepo `apps/api/`, 1 module per business domain theo DOMAIN-MAP §1, §2.                                                                | ADR-002, ADR-010          |
 | HLD-AS-02 | Persistence Hybrid-A: **Postgres 16 + Prisma 5** cho toàn bộ operational; **MongoDB 7 + Mongoose** cluster RIÊNG cho audit/log (append-only); **Redis 7 (Upstash)** cho cache + distributed lock + BullMQ backend.           | ADR-011, ADR-015, ADR-016 |
 | HLD-AS-03 | Frontend web = **Next.js 16 App Router** trong Turborepo + pnpm monorepo; Marketplace RSC+SSG/ISR cho SEO, Operator OS + Admin CSR sau auth. Số app cụ thể chốt LLD.                                                         | ADR-013                   |
-| HLD-AS-04 | Mobile = **Expo (managed) SDK 55+** New Architecture, **2 app tách biệt**: `apps/passenger-mobile` (public) + `apps/employee-mobile` (internal, background geo).                                                             | ADR-014                   |
-| HLD-AS-05 | Vendor tích hợp ngoài đã chốt (payment VNPay+MoMo, email Resend, push Expo, OAuth Google/FB/Apple, routing Goong, storage R2, payout manual); mọi vendor đứng sau adapter port `external/<provider>/` để swap không phá vỡ. | ADR-018..022, ADR-027, ADR-006     |
+| HLD-AS-04 | Mobile = **Flutter 3.x + Dart 3.x**, **2 app tách biệt**: `apps/passenger-mobile` (public) + `apps/employee-mobile` (internal, background geo).                                                             | ADR-028                   |
+| HLD-AS-05 | Vendor tích hợp ngoài đã chốt (payment VNPay+MoMo, email Resend, push FCM + APNs, OAuth Google/FB/Apple, routing Goong, storage R2, payout manual); mọi vendor đứng sau adapter port `external/<provider>/` để swap không phá vỡ. | ADR-018..022, ADR-027, ADR-006     |
 
 ---
 
@@ -126,8 +126,8 @@ flowchart LR
       Marketplace[Web Marketplace - Next.js 16]
       OperatorOS[Web Operator OS - Next.js 16]
       Admin[Web Admin - Next.js 16]
-      PassengerApp[Mobile Passenger - Expo]
-      EmployeeApp[Mobile Employee - Expo]
+      PassengerApp[Mobile Passenger - Flutter]
+      EmployeeApp[Mobile Employee - Flutter]
     end
 
     Api[NestJS 11 Backend API]
@@ -140,7 +140,7 @@ flowchart LR
 
     Routing[Goong API]
     Payment[VNPay / MoMo]
-    Notify[Resend / Expo Push]
+    Notify[Resend / FCM + APNs]
     Storage[Cloudflare R2]
 
     Marketplace --> Api
@@ -169,7 +169,7 @@ flowchart LR
 
 | Lớp                    | Trách nhiệm chính                                                                        | Công nghệ / thành phần                                                          |
 | ---------------------- | ---------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
-| Client presentation    | UI, form state, route, hiển thị loading/error/empty, gọi API                             | Next.js 16 (App Router), React 19, Expo SDK 55+ (2 app); component lib chốt LLD |
+| Client presentation    | UI, form state, route, hiển thị loading/error/empty, gọi API                             | Next.js 16 (App Router), React 19, Flutter 3.x (2 app); component lib chốt LLD |
 | API application layer  | Auth, validation, RBAC, use case orchestration, transaction boundary mức service         | NestJS 11 controller / service / guard / pipe / interceptor + nestjs-zod        |
 | Domain module layer    | Booking, payment, trip, operator, employee, support, notification, audit                 | NestJS modules (1 module per domain)                                            |
 | Persistence layer      | Schema, repository/query, index, state history, soft delete                              | PostgreSQL 16 + Prisma 5 (operational); MongoDB 7 + Mongoose (audit-only)       |
@@ -204,7 +204,7 @@ Web = Next.js 16 App Router trong Turborepo monorepo (ADR-013). Định hướng
 
 ### 6.2. Mobile app
 
-Mobile = Expo managed SDK 55+, **2 app tách biệt** cùng monorepo, share `packages/types + api-client + ui-mobile-shared` (ADR-014).
+Mobile = Flutter 3.x + Dart 3.x, **2 app tách biệt**; code Dart dùng chung qua package nội bộ `packages/mobile_shared/`, API contract qua Dart client sinh từ OpenAPI 3.1 (`packages/api_client_dart/`). Flutter app nằm **ngoài** pnpm workspace / Turborepo (ADR-028).
 
 | App                     | Actor    | Chức năng chính                                                                                             |
 | ----------------------- | -------- | ----------------------------------------------------------------------------------------------------------- |
@@ -217,7 +217,7 @@ Mobile = Expo managed SDK 55+, **2 app tách biệt** cùng monorepo, share `pac
 | -------------- | ----------------------------------- | ------------------------------------------------------------- |
 | Server state   | React Query (khuyến nghị, chốt LLD) | Booking, ticket, trip, operator, catalog, report              |
 | Local UI state | Component state / Zustand           | Filter, modal, selected seat, stepper state                   |
-| Auth/session   | Better Auth client + secure storage | Web = httpOnly cookie; Mobile = `expo-secure-store` (ADR-017) |
+| Auth/session   | Better Auth client + secure storage | Web = httpOnly cookie; Mobile = `flutter_secure_storage` (ADR-017/028) |
 | Form state     | React Hook Form + Zod schema        | Backend vẫn phải validate lại bằng nestjs-zod                 |
 
 ---
@@ -396,7 +396,7 @@ sequenceDiagram
 | Provisioning              | Closed enrollment (ADR-017): Platform admin cấp Operator slug + first Owner sau KYC; Operator owner cấp employee; Passenger self-register Email+OTP.                                                                  |
 | Tenant boundary           | Operator/Employee chỉ truy cập dữ liệu theo `operatorId`; defense-in-depth = NestJS `TenantGuard` (JWT claims) + Postgres RLS `SET LOCAL app.operator_id` (ADR-011, ADR-017).                                       |
 | Admin access              | RBAC 8 role hardcoded enum v1 (Anonymous / Passenger / OperatorOwner / Driver / TicketStaff / SupportStaff / PlatformAdmin / PlatformSupport); thao tác nhạy cảm cần audit + TOTP.                                    |
-| Token / session           | Hybrid: JWT RS256 15min access (httpOnly cookie Web + expo-secure-store Mobile) + opaque 32-byte refresh 30d, rotation + family invalidation; Redis cache session metadata (ADR-017).                                 |
+| Token / session           | Hybrid: JWT RS256 15min access (httpOnly cookie Web + `flutter_secure_storage` Mobile) + opaque 32-byte refresh 30d, rotation + family invalidation; Redis cache session metadata (ADR-017).                                 |
 | MFA                       | TOTP mandatory Owner / PlatformAdmin / PlatformSupport + 10 backup code single-use; optional Driver / TicketStaff / SupportStaff v1 (ADR-017).                                                                        |
 | Sensitive action          | Refund, payout, đổi bank account, đổi policy, khóa Operator, sửa chuyến đã bán vé.                                                                                                                                    |
 | Data masking              | Số điện thoại / PII chỉ hiển thị đầy đủ khi có quyền và lý do vận hành (`0*** *** 789`).                                                                                                                              |
@@ -447,7 +447,7 @@ Tất cả vendor đứng sau adapter port `external/<provider>/` (ADR-006). Web
 | Payment gateway   | **VNPay primary + MoMo phương thức 2** (ADR-019)        | `external/payment/{vnpay,momo}/`; VnpayAdapter HMAC-SHA512, MomoAdapter HMAC-SHA256; verify callback + idempotency key; escrow in-house |
 | Email             | **Resend** (ADR-020)                                    | `external/notification/email/`; React Email templates; fan-out async qua BullMQ                                                         |
 | SMS               | **Defer v1** (ADR-020)                                  | `external/notification/sms/` chỉ adapter port + LocalLoggerAdapter; kích hoạt v1.x (eSMS.vn candidate)                                  |
-| Push notification | **Expo Push Service** — trong phạm vi v1 (ADR-020)      | `external/notification/push/`; `expo-server-sdk-node` route FCM + APNs                                                                  |
+| Push notification | **FCM (Android) + APNs (iOS) trực tiếp** — trong phạm vi v1 (ADR-020/028) | `external/notification/push/fcm/`; `firebase-admin` (FCM HTTP v1); client `firebase_messaging` (Flutter) |
 | OAuth provider    | **Google + Facebook + Apple**, Passenger-only (ADR-020) | Better Auth built-in providers; Apple Sign-In mandatory App Store 4.8; Operator/Platform không OAuth                                    |
 | Routing + map     | **Goong** Direction + Distance Matrix + Maps + Geocoding (ADR-027, Make-in-VN thay Mapbox) | `external/routing/goong/`; Web `@goongmaps/goong-js`, Mobile MapLibre RN; distance/duration cache DB; `external/routing/osrm/` = escape-hatch (cần VN-corrected data) |
 | Object storage    | **Cloudflare R2** (ADR-018)                             | `external/storage/`; 2 bucket public/private; `@aws-sdk/client-s3` (S3-compatible); KYC production location defer OQ-21                 |
@@ -463,7 +463,7 @@ Tất cả vendor đứng sau adapter port `external/<provider>/` (ADR-006). Web
 | Môi trường | Mục đích                           | Ghi chú                                                                                                                                         |
 | ---------- | ---------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
 | Local      | Dev, test thủ công, docker-compose | Postgres + Mongo local; Redis = Upstash managed (hoặc local redis dev); Goong/R2 = API key; storage KYC dev = local adapter (filesystem/MinIO) |
-| Staging    | Kiểm thử tích hợp trước production | Cần sandbox VNPay/MoMo + Resend + Expo Push                                                                                                     |
+| Staging    | Kiểm thử tích hợp trước production | Cần sandbox VNPay/MoMo + Resend + FCM/APNs                                                                                                     |
 | Production | Vận hành thật                      | Cần HTTPS, backup, monitoring, secret manager; **blocker OQ-21 (KYC storage) + OQ-22 (giấy phép TGTT)**                                         |
 
 ### 14.2. Thành phần triển khai
@@ -478,7 +478,7 @@ Deploy target + CI-CD + monitoring đã chốt Phase 4 (Sprint 4): **Render mana
 | MongoDB 7            | Audit / log (cluster riêng, append-only)                                                                           |
 | Redis 7 (Upstash)    | Cache, distributed lock, BullMQ backend (managed SG)                                                               |
 | Web frontend         | Marketplace, Operator OS, Admin (Next.js 16 monorepo)                                                              |
-| Mobile app           | Passenger app + Employee app (EAS Build / Update / Submit)                                                         |
+| Mobile app           | Passenger app + Employee app (Codemagic build + submit; iOS cần macOS runner; **không có OTA** — ADR-028) |
 | Routing              | Goong API (managed); OSRM self-host = escape-hatch                                                                |
 | Object storage       | Cloudflare R2 (2 bucket public/private)                                                                            |
 | Monitoring / logging | **Sentry** (error+perf+trace BE+FE+Mobile) + Pino logs + OpenTelemetry (ADR-026)                                   |
@@ -509,7 +509,7 @@ Các quyết định công nghệ đã được hình thức hóa thành ADR (fi
 | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------- |
 | HLD-DEC-01 | V1 dùng modular monolith framework-agnostic, NestJS 11; strangler-ready qua `@nestjs/microservices`; chưa tách microservice.                                 | ADR-002, ADR-010                            |
 | HLD-DEC-02 | Seat hold = Redis `SET seat:{tripId}:{seatId}:hold {bookingId} NX EX 600` (10 phút, platform-wide); BullMQ làm async backend trên cùng Redis Upstash.        | OQ-06; ADR-015, ADR-016                     |
-| HLD-DEC-03 | Vendor v1: payment VNPay+MoMo, email Resend, push Expo, OAuth Google/FB/Apple, routing Goong, storage R2, payout manual — đều sau adapter port.             | ADR-018, ADR-019, ADR-020, ADR-027, ADR-022 |
+| HLD-DEC-03 | Vendor v1: payment VNPay+MoMo, email Resend, push FCM + APNs, OAuth Google/FB/Apple, routing Goong, storage R2, payout manual — đều sau adapter port.             | ADR-018, ADR-019, ADR-020, ADR-027, ADR-022 |
 | HLD-DEC-04 | Reporting bất đồng bộ: Postgres CTE / materialized view cho structured report; Mongo aggregation cho audit query; không chặn luồng booking/payment/check-in. | OQ-15; ADR-011                              |
 | HLD-DEC-05 | Audit là cross-cutting bắt buộc cho thao tác tiền, vé, ghế, quyền, policy, tenant-sensitive; lưu **Mongo cluster RIÊNG** (time-series, append-only).         | OQ-14 re-closed; ADR-011                    |
 | HLD-DEC-06 | Build mới hoàn toàn (fresh build `Marketplace-Ve-Xe-Nhanh`); module boundary HLD viết theo target state DOMAIN-MAP, không theo skeleton legacy.              | `PROJECT-STATE §2`                          |

@@ -13,7 +13,7 @@
 | Người viết    | Nguyễn Hồng Khanh, AI Agent   |
 | Người duyệt   | Nguyễn Hồng Khanh             |
 | Ngày tạo      | 11/05/2026                    |
-| Ngày cập nhật | 03/06/2026                    |
+| Ngày cập nhật | 12/09/2026                    |
 
 ### 1.2. Lịch sử thay đổi
 
@@ -69,7 +69,7 @@ Identity 3 namespace tách biệt (ADR-017): Passenger=Email; Operator-side=`{sl
 
 | Actor             | Trust level          | Boundary                                        |
 | ----------------- | -------------------- | ----------------------------------------------- |
-| Guest             | Public/untrusted     | Chỉ public data và ticket lookup có xác minh    |
+| Guest             | Public/untrusted     | Dữ liệu public; giữ ghế / đặt vé / thanh toán qua guest session; tra cứu / hủy / hoàn sau xác minh mã và thông tin liên hệ, bổ sung nếu policy yêu cầu |
 | Passenger (User)  | Authenticated user   | Chỉ dữ liệu của chính mình                      |
 | Operator          | Tenant admin         | Chỉ dữ liệu thuộc Operator (`operatorId` + RLS) |
 | Employee          | Tenant scoped worker | Chỉ dữ liệu theo Operator, role và assignment   |
@@ -95,7 +95,7 @@ Auth library = **Better Auth** + custom NestJS adapter (ADR-017).
 | ------------- | --------------------------------------------------------------------------------------------------- |
 | Access token  | JWT RS256, TTL **15 phút** (claims `sub`, `scope`, `role`, `operatorSlug`)                          |
 | Refresh token | Opaque 32-byte, TTL **30 ngày**, rotation mỗi lần refresh + family invalidation khi phát hiện reuse |
-| Token storage | Web = JWT trong httpOnly cookie (+ CSRF token); Mobile = `expo-secure-store`                        |
+| Token storage | Web = JWT trong httpOnly cookie (+ CSRF token); Mobile = `flutter_secure_storage`                        |
 | Session store | `auth_sessions` (Postgres) + Redis cache metadata                                                   |
 | Multi-device  | Mỗi login = 1 session family; revoke theo family hoặc revoke all                                    |
 | Force logout  | Khi khóa account, reset password, thu hồi quyền hoặc phát hiện rủi ro → revoke family               |
@@ -139,7 +139,7 @@ RBAC 8-role hardcoded enum v1 (Anonymous / Passenger / OperatorOwner / Driver / 
 | Search trip              | Có                 | Có          | Có trong phạm vi              | Không                  | Có                     |
 | Create booking           | Có (guest session) | Có          | Có thể hỗ trợ nếu được phép   | Không                  | Có thể hỗ trợ          |
 | Payment                  | Có (guest session) | Có          | Không trực tiếp               | Không                  | Giám sát/đối soát      |
-| Cancel/refund request    | Không              | Vé của mình | Vé thuộc Operator theo policy | Không                  | Có                     |
+| Cancel/refund request    | Vé / booking đã xác minh, theo policy | Vé của mình | Vé thuộc Operator theo policy | Không                  | Có                     |
 | Vehicle/SeatMap          | Không              | Không       | Có trong tenant               | Xem nếu được phân công | Giám sát/toàn hệ thống |
 | Check-in                 | Không              | Không       | Xem kết quả                   | Có theo assignment     | Giám sát               |
 | KYC Operator             | Không              | Không       | Hồ sơ của mình                | Không                  | Duyệt/quản lý          |
@@ -152,6 +152,7 @@ RBAC 8-role hardcoded enum v1 (Anonymous / Passenger / OperatorOwner / Driver / 
 
 | Thao tác                          | Kiểm soát bắt buộc                                                                                       |
 | --------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| Guest yêu cầu hủy vé / hoàn tiền  | Đối chiếu mã booking / mã vé với contact đã lưu; xác minh bổ sung theo policy; chỉ thao tác trên booking / ticket đã xác minh (`UC-08`, `UC-35`, `BR-21`) |
 | Refund thủ công                   | Admin permission, re-auth/TOTP, reason, audit, notification Operator                                     |
 | Payout confirm + nhập bank ref    | Admin permission, re-auth/TOTP, reason, audit; maker-checker dual-control khi team Platform >1 (ADR-022) |
 | Đổi bank account Operator         | Operator/Admin permission, re-auth, re-verify, audit                                                     |
@@ -166,7 +167,7 @@ RBAC 8-role hardcoded enum v1 (Anonymous / Passenger / OperatorOwner / Driver / 
 
 | Dữ liệu                            | Kiểm soát                                                                                                               |
 | ---------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
-| Password                           | Better Auth hashing (Argon2/bcrypt), không log plaintext                                                                |
+| Password                           | **scrypt** (Node built-in, `N=2^16, r=8, p=2`, salt 16B ngẫu nhiên/lần, so sánh timing-safe, cost params nhúng trong hash để nâng cost không vỡ format); không log plaintext. Chỉ áp cho Operator/Employee/Platform — Passenger dùng Email-OTP/OAuth, không có password. *(Chốt 09/09/2026: bản trước ghi "Better Auth hashing (Argon2/bcrypt)"; đổi sang scrypt vì không cần native dependency → an toàn với Docker distroless ADR-023, tránh đúng loại bẫy đã gặp với Prisma/libssl.)* |
 | OTP/token                          | Không log plaintext, TTL ngắn; refresh token opaque (không readable)                                                    |
 | Số điện thoại/email                | Mask khi không cần đầy đủ; SĐT theo `0*** *** 789` (OQ-11)                                                              |
 | Payment data                       | **PCI SAQ-A**: cổng hosted/redirect (VNPay/MoMo), KHÔNG lưu card data; chỉ lưu mã giao dịch/provider metadata (ADR-019) |
@@ -212,14 +213,14 @@ AuditLog ghi vào Mongo `audit_event` (cluster RIÊNG, append-only via REVOKE, A
 
 | ID        | Câu hỏi                                                                                 | Tác động                | Trạng thái                                                                                                                           |
 | --------- | --------------------------------------------------------------------------------------- | ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
-| SEC-OQ-01 | Web dùng Bearer token hay cookie session?                                               | CSRF/token storage      | **Đóng theo ADR-017**: Web = httpOnly cookie (+ CSRF); Mobile = Bearer (expo-secure-store)                                           |
+| SEC-OQ-01 | Web dùng Bearer token hay cookie session?                                               | CSRF/token storage      | **Đóng theo ADR-017**: Web = httpOnly cookie (+ CSRF); Mobile = Bearer (`flutter_secure_storage`)                                           |
 | SEC-OQ-02 | Có bật MFA cho Admin/Operator ở v1 không?                                               | Auth flow               | **Đóng theo ADR-017**: TOTP **bắt buộc** Owner/PlatformAdmin/PlatformSupport + backup code; optional Driver/TicketStaff/SupportStaff |
 | SEC-OQ-03 | Mask số điện thoại cụ thể theo rule nào?                                                | UI/API/report           | Đóng 11/05/2026 theo OQ-11: `0*** *** 789`                                                                                           |
 | SEC-OQ-04 | KYC document lưu provider nào?                                                          | Object storage security | **Đóng theo ADR-018**: Cloudflare R2 private bucket, presigned TTL 5min + audit. Production location → **OQ-21** (mở)                |
 | SEC-OQ-05 | AuditLog lưu bao lâu và ai được export?                                                 | Compliance/operation    | Storage đóng theo ADR-011 (Mongo cluster RIÊNG); **retention + export ACL còn mở** (DB-OQ-06)                                        |
 | SEC-OQ-06 | Token TTL access/refresh và multi-device limit cụ thể?                                  | Session policy §5.1     | **Đóng theo ADR-017**: access 15min + refresh 30d rotation/family; multi-device = session family                                     |
-| SEC-OQ-07 | OTP rate limit và reuse policy (cooldown, attempt limit)?                               | Brute force control     | Mở; chốt implementation LLD (default: cooldown 60s, ≤5 attempt/giờ)                                                                  |
-| SEC-OQ-08 | Policy account-linking OAuth (email khớp nhưng chưa verify, multi-provider cùng email)? | Auth edge case          | Mở; chốt LLD (Better Auth UI manual link, ADR-020 mitigation)                                                                        |
+| SEC-OQ-07 | OTP rate limit và reuse policy (cooldown, attempt limit)?                               | Brute force control     | **Đóng (08/06/2026) — IAM-001.1**: verify-attempt 3 lần/OTP (Better Auth `allowedAttempts`); OTP TTL 5 phút; gửi lại cooldown 60s + ≤5 lần/giờ/email                                                                  |
+| SEC-OQ-08 | Policy account-linking OAuth (email khớp nhưng chưa verify, multi-provider cùng email)? | Auth edge case          | **Đóng (08/06/2026) — IAM-001.1**: `accountLinking.enabled`, chỉ link khi email khớp + verified; `trustedProviders=[google,apple]`, Facebook đi đường verified-match; `allowDifferentEmails=false`; Operator/Platform không linking                                                                        |
 
 ---
 
