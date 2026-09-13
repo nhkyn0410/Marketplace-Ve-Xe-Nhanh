@@ -5,7 +5,7 @@ import { EMAIL_NOTIFIER, type EmailNotifier } from "./email-notifier";
 import { ResendEmailNotifier } from "./resend-email-notifier";
 
 /**
- * Chọn adapter EmailNotifier theo config: có RESEND_API_KEY → Resend; ngược lại → console (dev).
+ * Chọn adapter EmailNotifier theo config: có RESEND_API_KEY → Resend; ngược lại → dev fallback không gửi OTP.
  */
 @Module({
   providers: [

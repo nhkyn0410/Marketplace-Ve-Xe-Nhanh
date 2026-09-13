@@ -254,6 +254,18 @@ describe("AuthService passenger OTP", () => {
     });
   });
 
+  it("does not include provider error details in OTP delivery logs", async () => {
+    const errorLog = vi.spyOn(Logger.prototype, "error").mockImplementation(() => undefined);
+    try {
+      ctx.auth.api.sendVerificationOTP.mockRejectedValue(new Error("provider echoed OTP 123456"));
+      await ctx.service.requestOtp("a@b.com");
+      expect(errorLog).toHaveBeenCalled();
+      expect(JSON.stringify(errorLog.mock.calls)).not.toContain("123456");
+    } finally {
+      errorLog.mockRestore();
+    }
+  });
+
   it("does not send when rate limit throws", async () => {
     ctx.rateLimiter.assertCanRequest.mockRejectedValue(new Error("limited"));
     await expect(ctx.service.requestOtp("a@b.com")).rejects.toThrow();

@@ -56,11 +56,11 @@ export class AuthService {
     await this.otpRateLimiter.assertCanRequest(email);
     try {
       await this.auth.api.sendVerificationOTP({ body: { email, type: "sign-in" } });
-    } catch (error) {
+    } catch {
       // Response luôn 200 để KHÔNG leak account tồn tại hay không — nhưng phải LOG, nếu không
       // Resend hỏng / config sai sẽ vô hình: user không bao giờ nhận OTP mà ops không có tín hiệu.
       // Chống enumeration là về response, không phải về log.
-      this.logger.error(`Gửi OTP thất bại cho ${maskEmail(email)}: ${String(error)}`);
+      this.logger.error(`Gửi OTP thất bại cho ${maskEmail(email)}.`);
     }
   }
 

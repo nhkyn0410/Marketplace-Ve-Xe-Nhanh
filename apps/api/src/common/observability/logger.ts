@@ -15,6 +15,7 @@ const REDACT_PATHS = [
   "req.headers.cookie",
   "req.headers['x-bull-board-token']",
   "req.headers['x-api-key']",
+  "res.headers['set-cookie']",
   "authorization",
   "cookie",
   "password",
@@ -22,7 +23,15 @@ const REDACT_PATHS = [
   "token",
   "accessToken",
   "refreshToken",
-  "apiKey"
+  "apiKey",
+  "data.authorization",
+  "data.cookie",
+  "data.password",
+  "data.otp",
+  "data.token",
+  "data.accessToken",
+  "data.refreshToken",
+  "data.apiKey"
 ];
 
 const DEVELOPMENT_TRANSPORT = {
@@ -168,6 +177,10 @@ function getLogMessage(message: unknown): string {
 
   if (typeof message === "string") {
     return message;
+  }
+
+  if (typeof message === "object" && message !== null && "event" in message && typeof message.event === "string") {
+    return message.event;
   }
 
   return "Nest application log";

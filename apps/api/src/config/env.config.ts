@@ -95,7 +95,7 @@ export const envSchema = z.object({
         : undefined,
     z.array(z.string().min(1)).default(["http://localhost:3000", "vexenhanh://", "vexenhanh-operator://"])
   ),
-  // Email OTP delivery (Resend optional; dev = console adapter).
+  // Email OTP delivery (Resend required for delivery; dev fallback never prints OTP).
   RESEND_API_KEY: optionalString,
   RESEND_FROM_EMAIL: z.preprocess(
     emptyToUndefined,
@@ -106,8 +106,7 @@ export const envSchema = z.object({
   if (env.NODE_ENV !== "production") {
     return;
   }
-  // RESEND_API_KEY bắt buộc: thiếu nó thì NotificationModule âm thầm rơi về ConsoleEmailNotifier,
-  // adapter này in OTP nguyên văn ra log → chiếm tài khoản chỉ bằng quyền đọc log (Security §9).
+  // RESEND_API_KEY bắt buộc: production không được rơi về dev fallback không gửi OTP.
   for (const key of ["BETTER_AUTH_SECRET", "JWT_ACCESS_PRIVATE_KEY", "RESEND_API_KEY"] as const) {
     if (!env[key]) {
       ctx.addIssue({ code: "custom", path: [key], message: `${key} is required in production.` });
