@@ -94,7 +94,6 @@ export function createHttpLoggerMiddleware(logger: Logger): RequestHandler {
       const trustedClientIp = resolveTrustedClientIp(request, "production");
 
       return {
-        requestId: getRequestId(),
         traceId: getCurrentTraceId(),
         clientIp: request.ip,
         cfConnectingIp,

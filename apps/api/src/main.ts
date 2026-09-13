@@ -16,6 +16,7 @@ import { createBullBoardAccessGuard } from "./queue/bull-board-access";
 import { BullBoardService } from "./queue/bull-board.service";
 import { BULL_BOARD_PATH } from "./queue/queue.constants";
 import { configureTrustProxy } from "./common/trust-proxy";
+import { configureSecurityHeaders } from "./common/security-headers";
 
 async function bootstrap(): Promise<void> {
   // Fail-fast: sai runtime thì dependency inject theo kiểu thành undefined mà Nest không báo.
@@ -29,6 +30,7 @@ async function bootstrap(): Promise<void> {
     bodyParser: false
   });
   configureTrustProxy(app, config.TRUST_PROXY_HOPS);
+  configureSecurityHeaders(app, config.NODE_ENV);
   const bullBoard = app.get(BullBoardService);
 
   app.use(createRequestContextMiddleware());
