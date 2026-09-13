@@ -38,7 +38,7 @@ export class AuthController {
   private readonly logger = new Logger(AuthController.name);
 
   constructor(
-    private readonly authService: AuthService,
+    @Inject(AuthService) private readonly authService: AuthService,
     @Inject(APP_CONFIG) private readonly config: AppConfig
   ) {}
 
@@ -136,9 +136,10 @@ export class AuthController {
     const ip = resolveTrustedClientIp(req, this.config.NODE_ENV);
     if (this.config.NODE_ENV === "production" && !ip) {
       const cfRay = req.headers["cf-ray"];
-      this.logger.warn(
-        `Auth request không có client IP đáng tin cậy (cfRay=${typeof cfRay === "string" ? cfRay : "missing"}).`
-      );
+      this.logger.warn({
+        event: "auth.proxy_ip_untrusted",
+        cfRay: typeof cfRay === "string" ? cfRay : undefined
+      });
     }
 
     const userAgent = req.headers["user-agent"];

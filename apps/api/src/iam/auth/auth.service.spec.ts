@@ -395,7 +395,10 @@ describe("AuthController trusted client IP", () => {
         "password",
         expect.objectContaining({ ip: undefined })
       );
-      expect(warn).toHaveBeenCalledWith(expect.stringContaining("cfRay=test-ray-SIN"));
+      expect(warn).toHaveBeenCalledWith({
+        event: "auth.proxy_ip_untrusted",
+        cfRay: "test-ray-SIN"
+      });
     } finally {
       warn.mockRestore();
     }

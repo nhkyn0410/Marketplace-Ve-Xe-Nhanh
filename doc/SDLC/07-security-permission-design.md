@@ -13,7 +13,7 @@
 | Người viết    | Nguyễn Hồng Khanh, AI Agent   |
 | Người duyệt   | Nguyễn Hồng Khanh             |
 | Ngày tạo      | 11/05/2026                    |
-| Ngày cập nhật | 08/09/2026                    |
+| Ngày cập nhật | 12/09/2026                    |
 
 ### 1.2. Lịch sử thay đổi
 
@@ -69,7 +69,7 @@ Identity 3 namespace tách biệt (ADR-017): Passenger=Email; Operator-side=`{sl
 
 | Actor             | Trust level          | Boundary                                        |
 | ----------------- | -------------------- | ----------------------------------------------- |
-| Guest             | Public/untrusted     | Chỉ public data và ticket lookup có xác minh    |
+| Guest             | Public/untrusted     | Dữ liệu public; giữ ghế / đặt vé / thanh toán qua guest session; tra cứu / hủy / hoàn sau xác minh mã và thông tin liên hệ, bổ sung nếu policy yêu cầu |
 | Passenger (User)  | Authenticated user   | Chỉ dữ liệu của chính mình                      |
 | Operator          | Tenant admin         | Chỉ dữ liệu thuộc Operator (`operatorId` + RLS) |
 | Employee          | Tenant scoped worker | Chỉ dữ liệu theo Operator, role và assignment   |
@@ -139,7 +139,7 @@ RBAC 8-role hardcoded enum v1 (Anonymous / Passenger / OperatorOwner / Driver / 
 | Search trip              | Có                 | Có          | Có trong phạm vi              | Không                  | Có                     |
 | Create booking           | Có (guest session) | Có          | Có thể hỗ trợ nếu được phép   | Không                  | Có thể hỗ trợ          |
 | Payment                  | Có (guest session) | Có          | Không trực tiếp               | Không                  | Giám sát/đối soát      |
-| Cancel/refund request    | Không              | Vé của mình | Vé thuộc Operator theo policy | Không                  | Có                     |
+| Cancel/refund request    | Vé / booking đã xác minh, theo policy | Vé của mình | Vé thuộc Operator theo policy | Không                  | Có                     |
 | Vehicle/SeatMap          | Không              | Không       | Có trong tenant               | Xem nếu được phân công | Giám sát/toàn hệ thống |
 | Check-in                 | Không              | Không       | Xem kết quả                   | Có theo assignment     | Giám sát               |
 | KYC Operator             | Không              | Không       | Hồ sơ của mình                | Không                  | Duyệt/quản lý          |
@@ -152,6 +152,7 @@ RBAC 8-role hardcoded enum v1 (Anonymous / Passenger / OperatorOwner / Driver / 
 
 | Thao tác                          | Kiểm soát bắt buộc                                                                                       |
 | --------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| Guest yêu cầu hủy vé / hoàn tiền  | Đối chiếu mã booking / mã vé với contact đã lưu; xác minh bổ sung theo policy; chỉ thao tác trên booking / ticket đã xác minh (`UC-08`, `UC-35`, `BR-21`) |
 | Refund thủ công                   | Admin permission, re-auth/TOTP, reason, audit, notification Operator                                     |
 | Payout confirm + nhập bank ref    | Admin permission, re-auth/TOTP, reason, audit; maker-checker dual-control khi team Platform >1 (ADR-022) |
 | Đổi bank account Operator         | Operator/Admin permission, re-auth, re-verify, audit                                                     |

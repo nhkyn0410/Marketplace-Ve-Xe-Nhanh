@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { HttpException } from "@nestjs/common";
+import { Logger, type HttpException } from "@nestjs/common";
 import type Redis from "ioredis";
 import {
   LOGIN_MAX_PER_IDENTIFIER_PER_HOUR,
@@ -118,23 +118,41 @@ describe("OtpRateLimiter", () => {
     });
 
     it("chặn khi vượt giới hạn theo identifier", async () => {
+      const warn = vi.spyOn(Logger.prototype, "warn").mockImplementation(() => undefined);
       evalScript.mockResolvedValue(LOGIN_MAX_PER_IDENTIFIER_PER_HOUR + 1);
 
-      expect(await problemOf(limiter.assertCanAttemptLogin("platform/khanh", "1.2.3.4"))).toEqual({
-        status: 429,
-        code: "AUTH_LOGIN_RATE_LIMITED"
-      });
+      try {
+        expect(await problemOf(limiter.assertCanAttemptLogin("platform/khanh", "1.2.3.4"))).toEqual({
+          status: 429,
+          code: "AUTH_LOGIN_RATE_LIMITED"
+        });
+        expect(warn).toHaveBeenCalledWith({
+          event: "auth.login.rate_limited",
+          dimension: "identifier"
+        });
+      } finally {
+        warn.mockRestore();
+      }
     });
 
     it("chặn khi vượt giới hạn theo IP dù mỗi identifier đều còn quota", async () => {
+      const warn = vi.spyOn(Logger.prototype, "warn").mockImplementation(() => undefined);
       evalScript
         .mockResolvedValueOnce(1)
         .mockResolvedValueOnce(LOGIN_MAX_PER_IP_PER_HOUR + 1);
 
-      expect(await problemOf(limiter.assertCanAttemptLogin("platform/khanh", "1.2.3.4"))).toEqual({
-        status: 429,
-        code: "AUTH_LOGIN_RATE_LIMITED"
-      });
+      try {
+        expect(await problemOf(limiter.assertCanAttemptLogin("platform/khanh", "1.2.3.4"))).toEqual({
+          status: 429,
+          code: "AUTH_LOGIN_RATE_LIMITED"
+        });
+        expect(warn).toHaveBeenCalledWith({
+          event: "auth.login.rate_limited",
+          dimension: "ip"
+        });
+      } finally {
+        warn.mockRestore();
+      }
     });
 
     it("không có IP (proxy không gửi) thì vẫn giới hạn theo identifier", async () => {

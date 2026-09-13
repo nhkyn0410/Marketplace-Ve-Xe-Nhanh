@@ -1,4 +1,4 @@
-import { HttpStatus, Inject, Injectable } from "@nestjs/common";
+import { HttpStatus, Inject, Injectable, Logger } from "@nestjs/common";
 import type Redis from "ioredis";
 import { REDIS_CLIENT } from "../../redis/redis.constants";
 import {
@@ -37,6 +37,8 @@ function redisUnavailable(): AuthException {
  */
 @Injectable()
 export class OtpRateLimiter {
+  private readonly logger = new Logger(OtpRateLimiter.name);
+
   constructor(@Inject(REDIS_CLIENT) private readonly redis: Redis) {}
 
   async assertCanRequest(email: string): Promise<void> {
@@ -74,12 +76,14 @@ export class OtpRateLimiter {
       LOGIN_WINDOW_SECONDS
     );
     if (perIdentifier > LOGIN_MAX_PER_IDENTIFIER_PER_HOUR) {
+      this.logger.warn({ event: "auth.login.rate_limited", dimension: "identifier" });
       throw loginRateLimited();
     }
 
     if (ip) {
       const perIp = await this.bump(`login:ip:${ip}`, LOGIN_WINDOW_SECONDS);
       if (perIp > LOGIN_MAX_PER_IP_PER_HOUR) {
+        this.logger.warn({ event: "auth.login.rate_limited", dimension: "ip" });
         throw loginRateLimited();
       }
     }
