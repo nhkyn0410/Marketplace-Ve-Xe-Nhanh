@@ -36,7 +36,7 @@ maestro-debug-output
 
 # Flutter / native generated output (ADR-028)
 **/.dart_tool
-apps/*-mobile
+apps/*_mobile
 **/web-build
 **/android
 **/ios

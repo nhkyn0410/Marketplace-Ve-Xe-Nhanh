@@ -22,8 +22,8 @@
 | v0.1      | 11/05/2026 | AI Agent       | Tạo bản nháp Project Task Breakdown                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
 | v0.2      | 25/05/2026 | AI Agent       | Rebrand `Marketplace-Ve-Xe-Nhanh`; cập nhật TASK-FND-001 nguồn                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
 | v0.3      | 01/06/2026 | AI Agent       | **Sprint 4 Rework** — bake toàn bộ 19 layer stack (ADR-002 + 009..026). §6 cập nhật trạng thái doc (HLD/DB/LLD/API/Security/Test/Ops rework DONE). §7 task theo module gắn stack: Foundation (Turborepo+pnpm+Render+GitHub Actions+Prisma+BullMQ worker tách), IAM (Better Auth 3-namespace+token+RLS+TOTP+OAuth), BTP (Redis hold+VNPay/MoMo+dedup+escrow+payout manual), NSR (Resend+Expo+sms-noop BullMQ), thêm TASK-TEST (Vitest+Supertest+Playwright+Maestro). §8 DoD thêm money BIGINT/RLS/OpenAPI gen. §10 refine OQ. |
-| v0.4      | 08/09/2026 | AI Agent       | **Cascade ADR-028** (Mobile: Expo / React Native → Flutter). §7.5 `TASK-EMP-001` nguồn `ADR-014` → `ADR-028`; §7.6 `TASK-NSR-001` push `Expo` → `FCM/APNs`; §8 DoD Mobile `expo-secure-store` → `flutter_secure_storage` + thêm `integration_test`. |
-| v0.5      | 09/09/2026 | AI Agent       | Thêm **`TASK-FND-009`** — setup 2 app Flutter (`apps/passenger-mobile` + `apps/employee-mobile`, `packages/mobile_shared/`, Dart client `packages/api_client_dart/` sinh bằng `openapi-generator` pin `v7.25.0`), dependency `TASK-FND-008`. Sửa `TASK-OPS-001`: "EAS mobile" → build mobile Flutter (Android local; iOS tuỳ chọn khi có macOS) — vết Expo còn sót sau cascade v0.4. |
+| v0.4      | 08/09/2026 | AI Agent       | **Cascade ADR-028** (Mobile: Expo / React Native → Flutter). §7.5 `TASK-EMP-001` nguồn `ADR-014` → `ADR-028`; §7.6 `TASK-NSR-001` push `Expo` → `FCM/APNs`; §8 DoD Mobile `expo-secure-store` → `flutter_secure_storage` + thêm `integration_test`.                                                                                                                                                                                                                                                                          |
+| v0.5      | 09/09/2026 | AI Agent       | Thêm **`TASK-FND-009`** — setup 2 app Flutter (`apps/passenger_mobile` + `apps/employee_mobile`, `packages/mobile_shared/`, Dart client `packages/api_client_dart/` sinh bằng `openapi-generator` pin `v7.25.0`), dependency `TASK-FND-008`. Sửa `TASK-OPS-001`: "EAS mobile" → build mobile Flutter (Android local; iOS tuỳ chọn khi có macOS) — vết Expo còn sót sau cascade v0.4.                                                                                                                                         |
 
 ---
 
@@ -101,12 +101,12 @@ Sau Sprint 5 rework + Sprint 4 Phase 4 DevOps, các doc thiết kế đã reset 
 
 | Task ID      | Task                                                    | Nguồn           | Owner              | Dependency    | Status            |
 | ------------ | ------------------------------------------------------- | --------------- | ------------------ | ------------- | ----------------- |
-| TASK-DOC-001 | Review + promote 02 HLD (Review/Approved)          | 02 HLD          | Reviewer           | Rework DONE   | Ready (chờ Khanh) |
-| TASK-DOC-002 | Review + promote 04 DB                             | 04 DB           | Reviewer/BE        | Rework DONE   | Ready (chờ Khanh) |
-| TASK-DOC-003 | Review + promote 03 LLD                            | 03 LLD          | Reviewer/Architect | Rework DONE   | Ready (chờ Khanh) |
-| TASK-DOC-004 | Review + promote 05 API                            | 05 API          | Reviewer/BE        | Rework DONE   | Ready (chờ Khanh) |
-| TASK-DOC-005 | Review + promote 07 Security                       | 07 Security     | Reviewer/Security  | Rework DONE   | Ready (chờ Khanh) |
-| TASK-DOC-006 | Review + promote 08 Test + 09 Deploy          | 08 Test, 09 Ops | Reviewer/QA/DevOps | Rework DONE   | Ready (chờ Khanh) |
+| TASK-DOC-001 | Review + promote 02 HLD (Review/Approved)               | 02 HLD          | Reviewer           | Rework DONE   | Ready (chờ Khanh) |
+| TASK-DOC-002 | Review + promote 04 DB                                  | 04 DB           | Reviewer/BE        | Rework DONE   | Ready (chờ Khanh) |
+| TASK-DOC-003 | Review + promote 03 LLD                                 | 03 LLD          | Reviewer/Architect | Rework DONE   | Ready (chờ Khanh) |
+| TASK-DOC-004 | Review + promote 05 API                                 | 05 API          | Reviewer/BE        | Rework DONE   | Ready (chờ Khanh) |
+| TASK-DOC-005 | Review + promote 07 Security                            | 07 Security     | Reviewer/Security  | Rework DONE   | Ready (chờ Khanh) |
+| TASK-DOC-006 | Review + promote 08 Test + 09 Deploy                    | 08 Test, 09 Ops | Reviewer/QA/DevOps | Rework DONE   | Ready (chờ Khanh) |
 | TASK-DOC-007 | Hoàn thiện 06 UI/UX flow (User/Operator/Employee/Admin) | 06 UI/UX        | FE/Mobile/Reviewer | TASK-DOC-001  | Draft             |
 | TASK-DOC-008 | Tạo 12 Release Notes & Change Log (khi vào code)        | —               | Reviewer           | Code v1 start | Draft             |
 
@@ -116,34 +116,34 @@ Sau Sprint 5 rework + Sprint 4 Phase 4 DevOps, các doc thiết kế đã reset 
 
 ### 7.1. Foundation
 
-| Task ID      | Task                                                                                                                       | Nguồn           | Owner  | Dependency   | Status      |
-| ------------ | -------------------------------------------------------------------------------------------------------------------------- | --------------- | ------ | ------------ | ----------- |
-| TASK-FND-001 | Setup monorepo Turborepo + pnpm (`apps/api,marketplace,operator-os,admin,passenger-mobile,employee-mobile` + `packages/*`) | ADR-013/014     | DevOps | None         | Done           |
-| TASK-FND-002 | Docker foundation API+Worker (cùng image, khác start cmd `main.ts`/`worker.ts` — ADR-024) + Render Web Service (`apps/api`) + GitHub Actions CI skeleton + secret placeholders. **KHÔNG Render Cron Job riêng** — payout cron = BullMQ `repeat` concurrency 1 trong Worker (ADR-024). Frontend deploy + staging smoke → TASK-OPS-001; full observability (Pino/RFC 7807/Sentry SDK/OTel) → TASK-FND-006                                              | ADR-023/024/026 | DevOps | TASK-FND-001 | Done ( local worker)         |
-| TASK-FND-003 | Prisma + Postgres + Mongoose + Mongo audit + RLS policy + migration                                                        | ADR-011         | BE     | TASK-FND-001 | Done        |
-| TASK-FND-004 | Redis Upstash (ioredis) + BullMQ worker process tách + Bull Board                                                          | ADR-015/016/024 | BE     | TASK-FND-003 | Done        |
-| TASK-FND-005 | Zod env validation (nestjs-zod) + config theo môi trường                                                                   | ADR-010         | BE     | TASK-FND-002 | Done        |
-| TASK-FND-006 | Logging Pino + request id + RFC 7807 error + Sentry + OTel                                                                 | ADR-012/026     | BE     | TASK-FND-005 | Done        |
-| TASK-FND-007 | Audit module base (Mongo append-only) + ESLint boundary rule                                                               | ADR-010/011     | BE     | TASK-FND-006 | Done        |
-| TASK-FND-008 | OpenAPI auto-gen (nestjs-zod) + gen api-client (`openapi-typescript`) CI                                                   | ADR-012         | BE     | TASK-FND-005 | Done        |
-| TASK-FND-009 | **Setup 2 app Flutter**: `flutter create` `apps/passenger-mobile` + `apps/employee-mobile` (`--org com.vexenhanh`, `--project-name` snake_case vì thư mục có gạch ngang, `--platforms android,ios`); package Dart dùng chung `packages/mobile_shared/`; Dart client `packages/api_client_dart/` sinh bằng `openapi-generator` **pin v7.25.0** + `dart-dio`; pin Flutter SDK qua FVM; CI job `flutter analyze` + `flutter test` tách khỏi job Node | ADR-028         | Mobile | TASK-FND-008 | Draft       |
+| Task ID      | Task                                                                                                                                                                                                                                                                                                                                                                                                                                              | Nguồn           | Owner  | Dependency   | Status               |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------- | ------ | ------------ | -------------------- |
+| TASK-FND-001 | Setup monorepo Turborepo + pnpm (`apps/api,marketplace,operator-os,admin,passenger_mobile,employee_mobile` + `packages/*`)                                                                                                                                                                                                                                                                                                                        | ADR-013/014     | DevOps | None         | Done                 |
+| TASK-FND-002 | Docker foundation API+Worker (cùng image, khác start cmd `main.ts`/`worker.ts` — ADR-024) + Render Web Service (`apps/api`) + GitHub Actions CI skeleton + secret placeholders. **KHÔNG Render Cron Job riêng** — payout cron = BullMQ `repeat` concurrency 1 trong Worker (ADR-024). Frontend deploy + staging smoke → TASK-OPS-001; full observability (Pino/RFC 7807/Sentry SDK/OTel) → TASK-FND-006                                           | ADR-023/024/026 | DevOps | TASK-FND-001 | Done ( local worker) |
+| TASK-FND-003 | Prisma + Postgres + Mongoose + Mongo audit + RLS policy + migration                                                                                                                                                                                                                                                                                                                                                                               | ADR-011         | BE     | TASK-FND-001 | Done                 |
+| TASK-FND-004 | Redis Upstash (ioredis) + BullMQ worker process tách + Bull Board                                                                                                                                                                                                                                                                                                                                                                                 | ADR-015/016/024 | BE     | TASK-FND-003 | Done                 |
+| TASK-FND-005 | Zod env validation (nestjs-zod) + config theo môi trường                                                                                                                                                                                                                                                                                                                                                                                          | ADR-010         | BE     | TASK-FND-002 | Done                 |
+| TASK-FND-006 | Logging Pino + request id + RFC 7807 error + Sentry + OTel                                                                                                                                                                                                                                                                                                                                                                                        | ADR-012/026     | BE     | TASK-FND-005 | Done                 |
+| TASK-FND-007 | Audit module base (Mongo append-only) + ESLint boundary rule                                                                                                                                                                                                                                                                                                                                                                                      | ADR-010/011     | BE     | TASK-FND-006 | Done                 |
+| TASK-FND-008 | OpenAPI auto-gen (nestjs-zod) + gen api-client (`openapi-typescript`) CI                                                                                                                                                                                                                                                                                                                                                                          | ADR-012         | BE     | TASK-FND-005 | Done                 |
+| TASK-FND-009 | **Setup 2 app Flutter**: `flutter create` `apps/passenger_mobile` + `apps/employee_mobile` (`--org com.vexenhanh`, `--project-name` snake_case vì thư mục có gạch ngang, `--platforms android,ios`); package Dart dùng chung `packages/mobile_shared/`; Dart client `packages/api_client_dart/` sinh bằng `openapi-generator` **pin v7.25.0** + `dart-dio`; pin Flutter SDK qua FVM; CI job `flutter analyze` + `flutter test` tách khỏi job Node | ADR-028         | Mobile | TASK-FND-008 | Draft                |
 
 ### 7.2. IAM
 
-| Task ID      | Task                                                                                                                   | Nguồn                  | Owner        | Dependency   | Status |
-| ------------ | ---------------------------------------------------------------------------------------------------------------------- | ---------------------- | ------------ | ------------ | ------ |
+| Task ID      | Task                                                                                                                   | Nguồn                  | Owner        | Dependency   | Status   |
+| ------------ | ---------------------------------------------------------------------------------------------------------------------- | ---------------------- | ------------ | ------------ | -------- |
 | TASK-IAM-001 | Better Auth + custom NestJS adapter; login 3-namespace (Email/OTP/OAuth + `{slug}/{username}` + `platform/{username}`) | FR-IAM-\*, ADR-017/020 | BE/FE/Mobile | TASK-FND-006 | **Done** |
-| TASK-IAM-002 | Hybrid token (JWT RS256 15min + opaque refresh 30d rotation/family) + `auth_sessions` + Redis cache                    | ADR-017                | BE           | TASK-IAM-001 | Draft  |
-| TASK-IAM-003 | RBAC 8-role + TenantGuard (JWT claims) + Postgres RLS                                                                  | FR-IAM-06, ADR-011/017 | BE           | TASK-IAM-002 | Draft  |
-| TASK-IAM-004 | MFA TOTP (mandatory Owner/PlatformAdmin/PlatformSupport) + backup code                                                 | ADR-017                | BE           | TASK-IAM-002 | Draft  |
-| TASK-IAM-005 | Closed enrollment provisioning (Platform cấp Operator+Owner; Owner cấp employee)                                       | ADR-017                | BE/FE        | TASK-IAM-003 | Draft  |
+| TASK-IAM-002 | Hybrid token (JWT RS256 15min + opaque refresh 30d rotation/family) + `auth_sessions` + Redis cache                    | ADR-017                | BE           | TASK-IAM-001 | Draft    |
+| TASK-IAM-003 | RBAC 8-role + TenantGuard (JWT claims) + Postgres RLS                                                                  | FR-IAM-06, ADR-011/017 | BE           | TASK-IAM-002 | Draft    |
+| TASK-IAM-004 | MFA TOTP (mandatory Owner/PlatformAdmin/PlatformSupport) + backup code                                                 | ADR-017                | BE           | TASK-IAM-002 | Draft    |
+| TASK-IAM-005 | Closed enrollment provisioning (Platform cấp Operator+Owner; Owner cấp employee)                                       | ADR-017                | BE/FE        | TASK-IAM-003 | Draft    |
 
 ### 7.3. Transport resource
 
 | Task ID      | Task                                                              | Nguồn                  | Owner | Dependency   | Status |
 | ------------ | ----------------------------------------------------------------- | ---------------------- | ----- | ------------ | ------ |
 | TASK-TRN-001 | Vehicle/VehicleType/SeatMap (Prisma + JSONB layout) schema và API | FR-OPS-01..03          | BE/FE | TASK-FND-003 | Draft  |
-| TASK-TRN-002 | Route/StopPoint + Goong distance/duration cache DB               | FR-OPS-04..05, ADR-027 | BE/FE | TASK-TRN-001 | Draft  |
+| TASK-TRN-002 | Route/StopPoint + Goong distance/duration cache DB                | FR-OPS-04..05, ADR-027 | BE/FE | TASK-TRN-001 | Draft  |
 | TASK-TRN-003 | Trip/Fare/TripSeat inventory schema và API                        | FR-OPS-06..13          | BE/FE | TASK-TRN-002 | Draft  |
 | TASK-TRN-004 | Search index Postgres + cache Redis (TTL 60s) cho trip            | FR-MKT-01..04, ADR-015 | BE/FE | TASK-TRN-003 | Draft  |
 
@@ -164,7 +164,7 @@ Sau Sprint 5 rework + Sprint 4 Phase 4 DevOps, các doc thiết kế đã reset 
 | -------------- | -------------------------------------------------------- | ------------------------ | --------- | -------------------------- | ------ |
 | TASK-OPR-001   | Operator onboarding/KYC (R2 private + presigned)/profile | FR-OPR-01..06, ADR-018   | BE/FE     | TASK-IAM-005               | Draft  |
 | TASK-OPR-002   | Operator finance dashboard (escrow/payout view)          | FR-OPR-07..09            | BE/FE     | TASK-BTP-006               | Draft  |
-| TASK-EMP-001   | Employee assignment/passenger list (employee-mobile)     | FR-EMP-01..06, ADR-028   | BE/Mobile | TASK-IAM-005, TASK-TRN-003 | Draft  |
+| TASK-EMP-001   | Employee assignment/passenger list (employee_mobile)     | FR-EMP-01..06, ADR-028   | BE/Mobile | TASK-IAM-005, TASK-TRN-003 | Draft  |
 | TASK-EMP-002   | QR check-in + trip status (Maestro test)                 | FR-EMP-07..13            | BE/Mobile | TASK-BTP-004, TASK-EMP-001 | Draft  |
 | TASK-ADM-001   | Admin KYC approve/catalog/policy                         | FR-ADM-02..09            | BE/FE     | TASK-IAM-005               | Draft  |
 | TASK-ADM-002   | Admin payment/refund/payout confirm/dispute/audit        | FR-ADM-10..17, FR-DSP-\* | BE/FE     | TASK-BTP-005, TASK-FND-007 | Draft  |
@@ -172,14 +172,14 @@ Sau Sprint 5 rework + Sprint 4 Phase 4 DevOps, các doc thiết kế đã reset 
 
 ### 7.6. Notification, reporting, operation, test
 
-| Task ID       | Task                                                                                                          | Nguồn                  | Owner        | Dependency   | Status |
-| ------------- | ------------------------------------------------------------------------------------------------------------- | ---------------------- | ------------ | ------------ | ------ |
-| TASK-NSR-001  | Notification fan-out BullMQ (Resend email + FCM/APNs push + sms-noop) + retry + DLQ                               | FR-NSR-01..05, ADR-020 | BE           | TASK-FND-004 | Draft  |
-| TASK-NSR-002  | Notification preference + `notification_log` Mongo                                                            | FR-NSR-14              | BE/FE/Mobile | TASK-NSR-001 | Draft  |
-| TASK-RPT-001  | Operator reporting (Postgres CTE/materialized view)                                                           | FR-NSR-12, ADR-011     | BE/FE        | TASK-BTP-006 | Draft  |
-| TASK-RPT-002  | Admin reporting + Mongo audit aggregation                                                                     | FR-NSR-13              | BE/FE        | TASK-RPT-001 | Draft  |
+| Task ID       | Task                                                                                                                                    | Nguồn                  | Owner        | Dependency   | Status |
+| ------------- | --------------------------------------------------------------------------------------------------------------------------------------- | ---------------------- | ------------ | ------------ | ------ |
+| TASK-NSR-001  | Notification fan-out BullMQ (Resend email + FCM/APNs push + sms-noop) + retry + DLQ                                                     | FR-NSR-01..05, ADR-020 | BE           | TASK-FND-004 | Draft  |
+| TASK-NSR-002  | Notification preference + `notification_log` Mongo                                                                                      | FR-NSR-14              | BE/FE/Mobile | TASK-NSR-001 | Draft  |
+| TASK-RPT-001  | Operator reporting (Postgres CTE/materialized view)                                                                                     | FR-NSR-12, ADR-011     | BE/FE        | TASK-BTP-006 | Draft  |
+| TASK-RPT-002  | Admin reporting + Mongo audit aggregation                                                                                               | FR-NSR-13              | BE/FE        | TASK-RPT-001 | Draft  |
 | TASK-OPS-001  | Deployment pipeline Render + GitHub Actions + staging smoke + build mobile Flutter (Android local; iOS tuỳ chọn khi có macOS — ADR-028) | 09 Ops, ADR-023/026    | DevOps/BE    | TASK-FND-002 | Draft  |
-| TASK-TEST-001 | Setup Vitest + Supertest + Playwright + Maestro + Testcontainers; mandatory test money/idempotency/tenant-RLS | 08 Test, ADR-025       | QA/BE        | TASK-FND-002 | Draft  |
+| TASK-TEST-001 | Setup Vitest + Supertest + Playwright + Maestro + Testcontainers; mandatory test money/idempotency/tenant-RLS                           | 08 Test, ADR-025       | QA/BE        | TASK-FND-002 | Draft  |
 
 ---
 
@@ -189,7 +189,7 @@ Sau Sprint 5 rework + Sprint 4 Phase 4 DevOps, các doc thiết kế đã reset 
 | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Backend   | FR/UC linked, Zod DTO validation, service logic, Prisma schema/index/RLS, RBAC/ownership, RFC 7807 error code, money BIGINT/Decimal, Vitest tests |
 | Frontend  | API contract (gen client) linked, loading/error/empty/permission state, responsive, Zod form validation                                           |
-| Mobile    | `flutter_secure_storage` token, offline/sync state nếu có, permission state, `integration_test` + Maestro E2E critical flow                                                   |
+| Mobile    | `flutter_secure_storage` token, offline/sync state nếu có, permission state, `integration_test` + Maestro E2E critical flow                       |
 | Database  | Prisma schema/index/RLS reviewed, migration/rollback, seed data nếu cần                                                                           |
 | Security  | RBAC/RLS/ownership test, audit log (Mongo), no sensitive logging, webhook HMAC                                                                    |
 | QA        | Test case (Vitest/Supertest/Playwright/Maestro), evidence, regression, critical pass                                                              |

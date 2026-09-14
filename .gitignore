@@ -46,12 +46,15 @@ playwright-report/
 blob-report/
 maestro-debug-output/
 
-# Flutter / Dart (ADR-028) — apps/*-mobile + packages/{mobile_shared,api_client_dart}
+# Flutter / Dart (ADR-028) — apps/*_mobile + packages/{mobile_shared,api_client_dart}
 # `build/`, `dist/` đã ignore ở mục "Build output" phía trên.
 **/.dart_tool/
+**/.fvm/
 **/.flutter-plugins
 **/.flutter-plugins-dependencies
 **/.packages
+**/.pub-cache/
+**/.pub/
 *.iml
 
 # QUAN TRỌNG: với Flutter, `android/` và `ios/` là SOURCE phải commit (AndroidManifest.xml khai
@@ -80,6 +83,7 @@ pnpm-debug.log*
 .eslintcache
 
 # Environment and secrets
+.npmrc
 .env
 .env.*
 **/.env
@@ -92,16 +96,23 @@ pnpm-debug.log*
 !**/.env.template
 *.pem
 *.key
+*.p8
+*.p12
+*.pfx
+*.mobileprovision
+*.jks
+*.keystore
 
 # Local storage, uploads, and temp files
-storage/
-**/storage/
-uploads/
-**/uploads/
-tmp/
-**/tmp/
-temp/
-**/temp/
+# Anchor local data paths so source modules such as apps/api/src/external/storage/ stay visible.
+/storage/
+/apps/api/storage/
+/uploads/
+/apps/api/uploads/
+/tmp/
+/apps/api/tmp/
+/temp/
+/apps/api/temp/
 .cache/
 **/.cache/
 
