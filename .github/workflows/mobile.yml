@@ -1,0 +1,54 @@
+name: Mobile
+
+on:
+  push:
+    branches: [develop]
+    paths: &mobile-paths
+      - "apps/*_mobile/**"
+      - "packages/mobile_shared/**"
+      - ".github/workflows/mobile.yml"
+  pull_request:
+    branches: [develop]
+    paths: *mobile-paths
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  mobile:
+    name: Verify Flutter apps
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        app: [passenger_mobile, employee_mobile]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: 3.47.2 # phải khớp environment.flutter trong pubspec
+          channel: stable
+          cache: true
+
+      - run: flutter --version
+
+      - name: Pub get
+        working-directory: apps/${{ matrix.app }}
+        run: flutter pub get
+
+      - name: Analyze
+        working-directory: apps/${{ matrix.app }}
+        run: flutter analyze
+
+      - name: Test
+        working-directory: apps/${{ matrix.app }}
+        run: flutter test
