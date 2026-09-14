@@ -1,122 +1,172 @@
+import 'package:api_client_dart/api_client_dart.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:mobile_shared/mobile_shared.dart';
 
-void main() {
-  runApp(const MyApp());
-}
+/// Origin của API — KHÔNG kèm `/v1`.
+///
+/// `10.0.2.2` là alias của emulator Android trỏ về `localhost` máy host.
+/// Thiết bị thật thì truyền IP LAN qua `--dart-define`.
+const apiBaseUrl = String.fromEnvironment(
+  'API_BASE_URL',
+  defaultValue: 'http://10.0.2.2:3000',
+);
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+void main() => runApp(const PassengerApp());
 
-  // This widget is the root of your application.
+class PassengerApp extends StatelessWidget {
+  const PassengerApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'Vé Xe Nhanh',
       theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // TRY THIS: Try running your application with "flutter run". You'll see
-        // the application has a purple toolbar. Then, without quitting the app,
-        // try changing the seedColor in the colorScheme below to Colors.green
-        // and then invoke "hot reload" (save your changes or press the "hot
-        // reload" button in a Flutter-supported IDE, or press "r" if you used
-        // the command line to start the app).
-        //
-        // Notice that the counter didn't reset back to zero; the application
-        // state is not lost during the reload. To reset the state, use hot
-        // restart instead.
-        //
-        // This works for code too, not just values: Most code changes can be
-        // tested with just a hot reload.
-        colorScheme: .fromSeed(seedColor: Colors.deepPurple),
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.indigo),
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      home: const OtpLoginPage(),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
+/// Ba trạng thái của đường dọc mỏng: nhập email → nhập OTP → đã đăng nhập.
+enum _Step { email, otp, signedIn }
 
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
-  final String title;
+class OtpLoginPage extends StatefulWidget {
+  const OtpLoginPage({super.key});
 
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
+  State<OtpLoginPage> createState() => _OtpLoginPageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+class _OtpLoginPageState extends State<OtpLoginPage> {
+  final _api = createApiClient(baseUrl: apiBaseUrl);
+  final _tokens = const TokenStorage();
+  final _emailController = TextEditingController();
+  final _otpController = TextEditingController();
 
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-    });
+  _Step _step = _Step.email;
+  bool _busy = false;
+  String? _error;
+  AuthTokenResponseDtoOutput? _session;
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _otpController.dispose();
+    super.dispose();
   }
+
+  /// Bọc mọi lời gọi API: bật cờ bận, dịch lỗi Dio sang [ApiFailure], hiện lên UI.
+  Future<void> _run(Future<void> Function() action) async {
+    setState(() {
+      _busy = true;
+      _error = null;
+    });
+    try {
+      await action();
+    } on DioException catch (error) {
+      final failure = toApiFailure(error, _api.serializers);
+      if (mounted) setState(() => _error = failure.toString());
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  Future<void> _requestOtp() => _run(() async {
+    await _api.getAuthApi().authControllerRequestOtp(
+      otpRequestDto: OtpRequestDto(
+        (b) => b..email = _emailController.text.trim(),
+      ),
+    );
+    if (mounted) setState(() => _step = _Step.otp);
+  });
+
+  Future<void> _verifyOtp() => _run(() async {
+    final response = await _api.getAuthApi().authControllerVerifyOtp(
+      otpVerifyDto: OtpVerifyDto(
+        (b) => b
+          ..email = _emailController.text.trim()
+          ..otp = _otpController.text.trim(),
+      ),
+    );
+    final session = response.data!;
+    await _tokens.saveAccessToken(session.accessToken);
+    if (mounted) {
+      setState(() {
+        _session = session;
+        _step = _Step.signedIn;
+      });
+    }
+  });
 
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
     return Scaffold(
-      appBar: AppBar(
-        // TRY THIS: Try changing the color here to a specific color (to
-        // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
-        // change color while the other colors stay the same.
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
-      ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
+      appBar: AppBar(title: const Text('Đăng nhập')),
+      body: Padding(
+        padding: const EdgeInsets.all(24),
         child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          //
-          // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
-          // action in the IDE, or press "p" in the console), to see the
-          // wireframe for each widget.
-          mainAxisAlignment: .center,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const Text('You have pushed the button this many times:'),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
+            if (_step == _Step.signedIn) ..._signedIn() else ..._loginForm(),
+            if (_error != null) ...[
+              const SizedBox(height: 16),
+              Text(_error!, style: const TextStyle(color: Colors.red)),
+            ],
+            if (_busy) ...[
+              const SizedBox(height: 16),
+              const LinearProgressIndicator(),
+            ],
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ),
     );
+  }
+
+  List<Widget> _loginForm() => [
+    TextField(
+      controller: _emailController,
+      enabled: _step == _Step.email,
+      keyboardType: TextInputType.emailAddress,
+      decoration: const InputDecoration(labelText: 'Email'),
+    ),
+    const SizedBox(height: 12),
+    if (_step == _Step.email)
+      FilledButton(
+        onPressed: _busy ? null : _requestOtp,
+        child: const Text('Gửi mã OTP'),
+      )
+    else ...[
+      TextField(
+        controller: _otpController,
+        keyboardType: TextInputType.number,
+        decoration: const InputDecoration(labelText: 'Mã OTP (6 chữ số)'),
+      ),
+      const SizedBox(height: 12),
+      FilledButton(
+        onPressed: _busy ? null : _verifyOtp,
+        child: const Text('Xác minh'),
+      ),
+    ],
+  ];
+
+  List<Widget> _signedIn() {
+    final session = _session!;
+    // Dùng serializer để in ra giá trị **trên dây** (`operator`), không phải tên
+    // member Dart (`operator_`) — cùng loại bẫy với `Bearer` ↔ `bearer`.
+    final scope = _api.serializers.serializeWith(
+      AuthTokenResponseDtoOutputScopeEnum.serializer,
+      session.scope,
+    );
+    return [
+      const Text('Đăng nhập thành công', style: TextStyle(fontSize: 20)),
+      const SizedBox(height: 12),
+      Text('scope: $scope'),
+      Text('role: ${session.role}'),
+      Text('hết hạn sau: ${session.expiresIn}s'),
+      const SizedBox(height: 12),
+      const Text('Token đã lưu bằng flutter_secure_storage.'),
+    ];
   }
 }
