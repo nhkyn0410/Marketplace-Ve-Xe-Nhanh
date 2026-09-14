@@ -146,9 +146,11 @@ Thêm vào `pubspec.yaml` (chưa cần dùng hết ngay):
 | Biometric          | `local_auth`                                    | cả hai                       |
 | Deep link          | `app_links`                                     | cả hai                       |
 | Map (Goong)        | `maplibre_gl`                                   | cả hai                       |
-| **Background geo** | `geolocator` + `flutter_background_geolocation` | ⚠️ **chỉ `employee_mobile`** |
+| **Background geo** | `geolocator` (BSD-3) | ⚠️ **chỉ `employee_mobile`** |
 
 > Background geo **không được** đưa vào `mobile_shared` hay `passenger_mobile`. Lý do tách 2 app (ADR-014 giữ trong ADR-028) chính là để app hành khách không phải khai permission đó.
+
+> ⚠️ **`flutter_background_geolocation` — ADR-028 có nhắc, nhưng ĐỪNG thêm ở bước này** (chốt 14/09/2026). Nó là plugin **thương mại**: README + `help/INSTALL-ANDROID.md` của chính nó ghi _"The SDK is fully functional in `DEBUG` builds — no license required"_ và _"A license is required for `RELEASE` builds"_ (cả iOS lẫn Android). File `LICENSE` ghi **Apache-2.0** là gây hiểu nhầm — đã cài thử rồi đọc tận nơi để xác nhận, sau đó revert. FND-009 chỉ **khai báo** plugin; background geo mãi tới **TASK-EMP-001/002** mới chạy ⇒ hoãn quyết định sang lúc đó, cân 3 phương án: (a) chỉ build `DEBUG` — hợp lệ vì v1 không lên store; (b) `flutter_foreground_task` + `geolocator` — miễn phí, tự dựng foreground service; (c) mua license.
 
 Scheme deep link: `vexenhanh://` (passenger) và `vexenhanh-operator://` (employee) — phải khớp `AUTH_ALLOWED_CALLBACK_ORIGINS` của API.
 

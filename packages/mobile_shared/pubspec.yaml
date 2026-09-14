@@ -10,6 +10,11 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  api_client_dart:
+    path: ../api_client_dart
+  built_value: ^8.13.0
+  dio: ^5.7.0
+  flutter_secure_storage: ^11.1.1
 
 dev_dependencies:
   flutter_test:

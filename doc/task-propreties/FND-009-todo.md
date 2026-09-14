@@ -86,7 +86,9 @@ FND-009 dừng ở **"dựng được nền và chứng minh chuỗi thông su�
 
 ### ⬜ #5 — [FND-009.5] Ánh xạ plugin theo ADR-028
 
-Khai báo trong `pubspec.yaml` (chưa cần dùng hết): `mobile_scanner` (QR) · `geolocator` + `flutter_background_geolocation` (**chỉ employee**) · `firebase_messaging` (push) · `local_auth` · `flutter_secure_storage` · `maplibre_gl` (map Goong) · `app_links` (deep link `vexenhanh://` + `vexenhanh-operator://`).
+Khai báo trong `pubspec.yaml` (chưa cần dùng hết): `mobile_scanner` (QR) · `geolocator` (**chỉ employee**) · `firebase_messaging` (push) · `local_auth` · `flutter_secure_storage` · `maplibre_gl` (map Goong) · `app_links` (deep link `vexenhanh://` + `vexenhanh-operator://`).
+
+> ⚠️ **`flutter_background_geolocation` KHÔNG khai ở bước này** (chốt 14/09/2026). ADR-028 có nhắc nó, nhưng nó là plugin **thương mại**: README của chính nó ghi _"A license is required for `RELEASE` builds"_ (cả iOS lẫn Android) — file `LICENSE` ghi Apache-2.0 là gây hiểu nhầm, đã cài thử và đọc tận nơi để xác nhận. FND-009 chỉ **khai báo** plugin, background geo mãi tới **TASK-EMP-001/002** mới dùng ⇒ chốt một dependency trả phí bây giờ là quyết định sớm không cần thiết. Để lại 3 phương án cân ở EMP-001: (a) chỉ build `DEBUG` — hợp lệ vì v1 không lên store (ADR-028); (b) `flutter_foreground_task` + `geolocator` — miễn phí; (c) mua license. `geolocator` (BSD-3) vẫn khai bình thường.
 
 **Success:** `flutter pub get` cả 2 app thành công, permission khai đúng app (Passenger **không** có background location).
 

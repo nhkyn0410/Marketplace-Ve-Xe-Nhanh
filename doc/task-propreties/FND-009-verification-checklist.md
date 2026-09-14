@@ -60,7 +60,7 @@
 | `.2` `mobile_shared`   | Cả 2 app import được; có test cho tiện ích tiền tệ VND `BIGINT`; **không** chứa thứ kéo theo permission                                                              | [ ] |
 | `.3` `api_client_dart` | Sinh bằng v7.25.0; `dart analyze` 0 lỗi; round-trip pass                                                                                                             | [ ] |
 | `.4` Pin SDK           | Phiên bản Flutter ghi ở **một** chỗ; CI đọc đúng chỗ đó                                                                                                              | [ ] |
-| `.5` Plugin            | `flutter pub get` sạch cả 2 app; ⚠️ `passenger_mobile` **không** khai background location                                                                            | [ ] |
+| `.5` Plugin            | `flutter pub get` sạch cả 2 app; ⚠️ `passenger_mobile` **không** khai background location; **không** có `flutter_background_geolocation` trong `pubspec.yaml` nào (trả phí — hoãn tới EMP-001)                                                                            | [ ] |
 | `.6` Đường dọc         | Login OTP end-to-end trên thiết bị thật/emulator                                                                                                                     | [ ] |
 | `.7` CI                | Job Mobile tách khỏi job Node; sửa file Node **không** kích hoạt job Mobile                                                                                          | [ ] |
 | `.8` Đóng task         | `code-reviewer` không finding nghiêm trọng; `PROJECT-STATE §7` + task row → Done                                                                                     | [ ] |

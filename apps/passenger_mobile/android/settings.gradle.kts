@@ -25,7 +25,5 @@ plugins {
 
 include(":app")
 
-// Gradle lay ten thu muc lam ten root project khi khong khai bao -> ca hai app deu thanh
-// "android", va IDE/Gradle nap ca hai trong mot workspace se bao "A project with the name
-// android already exists". Dat ten rieng de tranh dung do.
 rootProject.name = "passenger_mobile_android"
+
