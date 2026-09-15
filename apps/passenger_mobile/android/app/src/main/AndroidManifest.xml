@@ -1,5 +1,11 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
     <uses-permission android:name="android.permission.INTERNET"/>
+    <!-- MapLibre (org.maplibre.gl:android-sdk-opengl) tự khai 2 quyền vị trí trong AAR
+         để phục vụ nút "vị trí của tôi". App hành khách không dùng tính năng đó, và
+         "permission tối thiểu" chính là lý do ADR-028 tách 2 app — nên gỡ tường minh. -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" tools:node="remove"/>
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" tools:node="remove"/>
 
     <application
         android:label="passenger_mobile"

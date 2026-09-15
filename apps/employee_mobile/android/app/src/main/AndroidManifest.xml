@@ -1,7 +1,11 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <uses-permission android:name="android.permission.INTERNET"/>
 
-
+    <!-- Định vị cho Driver (ADR-028). `geolocator` KHÔNG tự khai quyền này — manifest
+         của nó chỉ có `GeolocatorLocationService`, nên phải khai ở đây.
+         Đây cũng là điểm phân biệt thật giữa 2 app: `passenger_mobile` không có. -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
 
     <application
         android:label="employee_mobile"
@@ -34,6 +38,9 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
+
+        <service android:name=".GeolocatorLocationService"
+                 android:foregroundServiceType="location" />
     </application>
     <!-- Required to query activities that can process text, see:
          https://developer.android.com/training/package-visibility and
