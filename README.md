@@ -18,19 +18,19 @@ Primary design sources live in `doc/SDLC/`. For coding-agent guidance, read `AGE
 
 ## Stack
 
-| Area | Choice |
-| --- | --- |
-| Runtime | Node.js 24 LTS, TypeScript strict |
-| Package manager | pnpm 10 |
-| Monorepo | Turborepo |
-| Backend | NestJS 11, nestjs-zod |
-| Web | Next.js 16 App Router |
-| Mobile | Flutter 3.x + Dart 3.x |
-| Operational DB | PostgreSQL 16, Prisma 5 |
-| Audit/log DB | MongoDB 7, Mongoose 8 |
-| Cache/lock/queue | Redis 7, ioredis, BullMQ |
-| Tests | Vitest, Supertest, Playwright, Maestro |
-| Observability | Pino, Sentry, OpenTelemetry |
+| Area             | Choice                                 |
+| ---------------- | -------------------------------------- |
+| Runtime          | Node.js 24 LTS, TypeScript strict      |
+| Package manager  | pnpm 10                                |
+| Monorepo         | Turborepo                              |
+| Backend          | NestJS 11, nestjs-zod                  |
+| Web              | Next.js 16 App Router                  |
+| Mobile           | Flutter 3.x + Dart 3.x                 |
+| Operational DB   | PostgreSQL 16, Prisma 5                |
+| Audit/log DB     | MongoDB 7, Mongoose 8                  |
+| Cache/lock/queue | Redis 7, ioredis, BullMQ               |
+| Tests            | Vitest, Supertest, Playwright, Maestro |
+| Observability    | Pino, Sentry, OpenTelemetry            |
 
 ## Repository Layout
 
@@ -40,8 +40,8 @@ apps/
   marketplace/          Passenger-facing Next.js app
   operator-os/          Operator and employee Next.js dashboard
   admin/                Platform admin Next.js dashboard
-  passenger-mobile/     Passenger Flutter app
-  employee-mobile/      Employee Flutter app
+  passenger_mobile/     Passenger Flutter app
+  employee_mobile/      Employee Flutter app
 
 packages/
   types/                Zod schemas and shared TypeScript types
@@ -83,13 +83,13 @@ pnpm turbo run dev --filter=@vexenhanh/marketplace
 
 ## Root Commands
 
-| Command | Purpose |
-| --- | --- |
-| `pnpm dev` | Run workspace dev tasks in parallel |
-| `pnpm build` | Build all workspaces |
-| `pnpm lint` | Lint all workspaces |
-| `pnpm typecheck` | Typecheck all workspaces |
-| `pnpm test` | Run Vitest across workspaces |
+| Command               | Purpose                                               |
+| --------------------- | ----------------------------------------------------- |
+| `pnpm dev`            | Run workspace dev tasks in parallel                   |
+| `pnpm build`          | Build all workspaces                                  |
+| `pnpm lint`           | Lint all workspaces                                   |
+| `pnpm typecheck`      | Typecheck all workspaces                              |
+| `pnpm test`           | Run Vitest across workspaces                          |
 | `pnpm gen:api-client` | Generate the API client package after OpenAPI changes |
 
 ## Development Rules
@@ -125,15 +125,15 @@ Use focused tests for narrow changes and broaden test scope when touching shared
 
 ## Key Documents
 
-| File | Purpose |
-| --- | --- |
-| `AGENTS.md` | Cross-tool coding brief: stack, structure, style, testing, boundaries |
-| `CLAUDE.md` | Claude Code operational workflow and project state pointers |
-| `doc/context/PROJECT-STATE.md` | Live project status |
-| `doc/context/DOMAIN-MAP.md` | Domain and module naming map |
-| `doc/context/GLOSSARY.md` | Entity, state, and error-code terminology |
-| `doc/SDLC/10-architecture-decision-record.md` | Architecture decisions |
-| `doc/SDLC/11-project-task-breakdown.md` | Build task backlog |
+| File                                          | Purpose                                                               |
+| --------------------------------------------- | --------------------------------------------------------------------- |
+| `AGENTS.md`                                   | Cross-tool coding brief: stack, structure, style, testing, boundaries |
+| `CLAUDE.md`                                   | Claude Code operational workflow and project state pointers           |
+| `doc/context/PROJECT-STATE.md`                | Live project status                                                   |
+| `doc/context/DOMAIN-MAP.md`                   | Domain and module naming map                                          |
+| `doc/context/GLOSSARY.md`                     | Entity, state, and error-code terminology                             |
+| `doc/SDLC/10-architecture-decision-record.md` | Architecture decisions                                                |
+| `doc/SDLC/11-project-task-breakdown.md`       | Build task backlog                                                    |
 
 ## Production Blockers
 

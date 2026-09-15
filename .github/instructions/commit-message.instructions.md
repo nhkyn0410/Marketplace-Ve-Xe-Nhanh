@@ -36,8 +36,8 @@ Prefer a short workspace or domain scope, for example:
 - `marketplace`
 - `operator-os`
 - `admin`
-- `passenger-mobile`
-- `employee-mobile`
+- `passenger_mobile`
+- `employee_mobile`
 - `types`
 - `api-client`
 - `ui`
