@@ -63,11 +63,13 @@ FND-009 dừng ở **"dựng được nền và chứng minh chuỗi thông su�
 - Wrapper HTTP + auth interceptor: gắn Bearer, xử lý 401, parse **RFC 7807** → lỗi có kiểu.
 - Wrapper `flutter_secure_storage` (ADR-017).
 - Tiện ích tiền tệ: VND `BIGINT` ↔ hiển thị (CLAUDE.md §4.3 cấm `float` cho tiền; Dart `int` 64-bit map thẳng được) — **phải có test**.
-- Design token + trạng thái nền: loading / error / empty / permission (DoD Mobile, CLAUDE.md §6.3).
+- ~~Design token + trạng thái nền: loading / error / empty / permission~~ — **hoãn sang task UI**, xem ghi chú dưới.
 
 > ⚠️ **KHÔNG** đưa vào đây bất cứ thứ gì kéo theo permission — đặc biệt `flutter_background_geolocation`. Làm vậy là app hành khách phải khai background location và mất sạch lý do tách 2 app.
 
-**Success:** cả 2 app `import 'package:mobile_shared/...'` chạy; `dart test` trong package pass.
+> ⚠️ **Design token + trạng thái nền hoãn sang task UI** (Khanh chốt 15/09/2026). Ba mục đầu đã xong và có test; riêng mục thứ tư bị hoãn vì ở FND-009 **chưa có màn hình nghiệp vụ nào** để token và trạng thái đó phục vụ — `passenger_mobile` mới có đúng một màn đăng nhập dựng để chứng minh chuỗi API chạy (xem § *Phạm vi & ranh giới* ở đầu file). Thiết kế design token khi chưa biết màn hình cần gì là đoán, mà đoán sai thì phải làm lại toàn bộ khi TRN/BTP vào. **Chuyển sang task UI đầu tiên chạm `06-ui-ux-flow-specification`**, làm cùng lúc với màn hình thật. DoD Mobile của `CLAUDE.md §6.3` (“permission state”) **không đổi**, chỉ dời thời điểm.
+
+**Success:** cả 2 app `import 'package:mobile_shared/...'` chạy; `flutter test` trong package pass *(là `flutter test` chứ không phải `dart test` — gói này phụ thuộc `flutter`/`flutter_test`)*.
 
 ### ⬜ #3 — [FND-009.3] Sinh `packages/api_client_dart/` từ OpenAPI 3.1
 
@@ -76,7 +78,9 @@ FND-009 dừng ở **"dựng được nền và chứng minh chuỗi thông su�
 - **Không viết tay** — code sinh tự động.
 - Chạy `dart pub get` → `dart run build_runner build` (built_value) → `dart analyze`.
 
-**Success:** `dart analyze` 0 lỗi; có 7 method auth; test round-trip `AuthTokenResponse` (`"Bearer"` ↔ `bearer`) pass.
+> ⚠️ **Gói này hiện lệch bản sinh** (ghi nhận 15/09/2026). Commit `c693781` đã chạy `dart format` lên `lib/src/api/auth_api.dart` + `health_api.dart` và gỡ 4 dòng `import` thừa. Đã đối chiếu bằng `git diff -w --ignore-blank-lines`: **không có thay đổi logic nào** — chỉ xuống dòng lại và bỏ import. Hệ quả: lần regen tiếp theo sẽ **xoá các sửa đó** và `dart analyze` quay về 3 cảnh báo `unused_import` — checklist PHẦN B đã ghi rõ mấy cảnh báo này **chấp nhận được**. **Đừng sửa tay lại** — đó mới là trạng thái đúng của file sinh. Lệnh regen ở `FND-009-guide.md §3`.
+
+**Success:** `dart analyze` 0 lỗi (cảnh báo `unused_import` không tính); có 7 method auth; test round-trip `AuthTokenResponse` (`"Bearer"` ↔ `bearer`) pass — test đặt ở `packages/mobile_shared/test/`, **không** đặt trong gói sinh.
 
 ### ⬜ #4 — [FND-009.4] Pin Flutter SDK
 

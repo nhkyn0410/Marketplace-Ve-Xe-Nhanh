@@ -16,7 +16,7 @@
 
 - [ ] `apps/passenger_mobile/` và `apps/employee_mobile/` tồn tại, mỗi thư mục có `pubspec.yaml` + `lib/main.dart` + `android/` + `ios/`
 - [ ] `packages/mobile_shared/` tồn tại, `pubspec.yaml` có `publish_to: 'none'`
-- [ ] `packages/api_client_dart/` tồn tại và **được sinh tự động** (không commit code viết tay)
+- [ ] `packages/api_client_dart/` tồn tại và **được sinh tự động** (không commit code viết tay). *Ngoại lệ đã ghi nhận 15/09/2026: `lib/src/api/{auth,health}_api.dart` có chạy `dart format` + gỡ import thừa — chỉ định dạng, không đổi logic (verify bằng `git diff -w`). Regen sẽ xoá chúng và đó là bình thường, đừng sửa tay lại.*
 - [ ] ⚠️ `git check-ignore -v apps/passenger_mobile/android/app/src/main/AndroidManifest.xml` **không in gì** (exit 1) — chứng minh file không bị ignore. *(Đừng dùng `git status --short`: git gộp thư mục chưa track thành một dòng, tìm `android/` sẽ ra 0 kể cả khi đúng — phải thêm `-uall`.)* **Nếu bị ignore là hỏng**: `AndroidManifest.xml` (nơi khai permission — chỗ hiện thực hoá việc tách 2 app), `build.gradle`, `Info.plist`, cấu hình ký sẽ bị bỏ ngoài repo
 - [ ] `git check-ignore apps/passenger_mobile/android/local.properties` → **có** (phần tooling sinh ra thì phải ignore)
 - [ ] ⚠️ Mỗi `android/settings.gradle.kts` có `rootProject.name` **riêng** (`passenger_mobile_android` / `employee_mobile_android`). Thiếu ⇒ cả hai đều tên `android` ⇒ IDE báo `A project with the name android already exists`. Kiểm: `./gradlew projects -q` trong từng `android/`
@@ -57,7 +57,7 @@
 | Sub-task               | DoD                                                                                                                                                                  | ✓   |
 | ---------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --- |
 | `.1` 2 app             | `flutter analyze` sạch; `android/`+`ios/` được git theo dõi; ghi lại applicationId (`com.vexenhanh.passenger_mobile`) và bundle id (`com.vexenhanh.passengerMobile`) | [ ] |
-| `.2` `mobile_shared`   | Cả 2 app import được; có test cho tiện ích tiền tệ VND `BIGINT`; **không** chứa thứ kéo theo permission                                                              | [ ] |
+| `.2` `mobile_shared`   | Cả 2 app import được; có test cho tiện ích tiền tệ VND `BIGINT`; **không** chứa thứ kéo theo permission. *Design token + trạng thái nền đã **hoãn sang task UI** (15/09/2026) — không chặn nghiệm thu*                                                              | [ ] |
 | `.3` `api_client_dart` | Sinh bằng v7.25.0; `dart analyze` 0 lỗi; round-trip pass                                                                                                             | [ ] |
 | `.4` Pin SDK           | Phiên bản Flutter ghi ở **một** chỗ; CI đọc đúng chỗ đó                                                                                                              | [ ] |
 | `.5` Plugin            | `flutter pub get` sạch cả 2 app; ⚠️ `passenger_mobile` **không** khai background location; **không** có `flutter_background_geolocation` trong `pubspec.yaml` nào (trả phí — hoãn tới EMP-001)                                                                            | [ ] |
