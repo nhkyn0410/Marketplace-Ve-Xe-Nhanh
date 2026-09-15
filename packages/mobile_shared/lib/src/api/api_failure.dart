@@ -54,14 +54,20 @@ ApiFailure toApiFailure(DioException error, Serializers serializers) {
       // `ProblemDetailsDto` có 6 field non-nullable; thiếu ĐÚNG MỘT field là
       // built_value ném và ta mất luôn `code`/`detail` mà server ĐÃ gửi. Đọc lại
       // từng field một để giữ được phần dùng được của body.
+      // Phải kiểm KIỂU chứ không ép: một server lỗi có thể trả `status` là
+      // chuỗi `'401'`, và `as int?` sẽ ném TypeError NGAY TRONG khối catch này.
+      // Lỗi ném từ trong một `catch` không được `catch` anh em bắt — nó thoát
+      // thẳng ra ngoài, và nơi gọi mất luôn thông báo lỗi.
       final code = data['code'];
       final detail = data['detail'];
       if (code is String || detail is String) {
+        final requestId = data['requestId'];
         return ApiFailure(
-          status: (data['status'] as int?) ?? response?.statusCode ?? 0,
+          // Status lấy từ HTTP chứ không từ body: HTTP luôn đúng kiểu.
+          status: response?.statusCode ?? 0,
           code: code is String ? code : 'UNEXPECTED_RESPONSE',
           detail: detail is String ? detail : _genericMessage(response),
-          requestId: data['requestId'] as String?,
+          requestId: requestId is String ? requestId : null,
         );
       }
     }

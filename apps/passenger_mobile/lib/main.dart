@@ -66,25 +66,47 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
     super.dispose();
   }
 
-  /// Bọc mọi lời gọi API: bật cờ bận, dịch lỗi Dio sang [ApiFailure], hiện lên UI.
+  /// Bọc mọi lời gọi API: bật cờ bận, dịch lỗi thành câu tiếng Việt, hiện lên UI.
+  ///
+  /// Việc dịch lỗi nằm ở [_describeDioError] chứ **không** nằm trong thân `catch`.
+  /// Lý do: lỗi ném ra từ trong một nhánh `catch` KHÔNG được nhánh `catch` anh em
+  /// bắt — nó thoát thẳng ra ngoài `_run`, `finally` vẫn tắt `_busy`, và người
+  /// dùng nhận được một màn hình im lặng. (Đã đo: `caughtBySibling=false,
+  /// escaped=true, finallyRan=true`.)
   Future<void> _run(Future<void> Function() action) async {
     setState(() {
       _busy = true;
       _error = null;
     });
+    String? message;
     try {
       await action();
     } on DioException catch (error) {
-      final failure = toApiFailure(error, _api.serializers);
-      if (mounted) setState(() => _error = failure.toString());
+      message = _describeDioError(error);
     } catch (error) {
       // Không chỉ Dio mới ném. `flutter_secure_storage` ném `PlatformException`
       // khi Keystore hỏng, và `response.data!` ném `TypeError` nếu server trả 2xx
       // với body rỗng. Thiếu nhánh này thì nút chỉ nhấp nháy rồi im — người dùng
       // không biết chuyện gì xảy ra, mà OTP thì đã bị tiêu thụ ở server.
-      if (mounted) setState(() => _error = 'Lỗi không mong đợi: $error');
+      message = 'Lỗi không mong đợi: $error';
     } finally {
-      if (mounted) setState(() => _busy = false);
+      if (mounted) {
+        setState(() {
+          _busy = false;
+          _error = message;
+        });
+      }
+    }
+  }
+
+  /// Dịch [DioException] sang câu hiển thị được. **Không bao giờ được ném.**
+  String _describeDioError(DioException error) {
+    try {
+      return toApiFailure(error, _api.serializers).toString();
+    } catch (_) {
+      // Bộ dịch lỗi mà hỏng thì vẫn phải hiện được cái gì đó, không thể để màn
+      // hình trống.
+      return 'Máy chủ trả lỗi ${error.response?.statusCode ?? 0}.';
     }
   }
 

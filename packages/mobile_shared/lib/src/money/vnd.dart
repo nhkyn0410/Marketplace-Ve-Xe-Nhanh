@@ -31,13 +31,24 @@ String _group(String digits) {
   return buffer.toString();
 }
 
+/// Dạng chuỗi tiền VND hợp lệ: tuỳ chọn dấu âm, rồi **hoặc** dãy chữ số trần
+/// (`1234567`), **hoặc** dãy đã nhóm đúng ba (`1.234.567`). Không gì khác.
+final _vndPattern = RegExp(r'^-?(?:\d{1,3}(?:\.\d{3})+|\d+)$');
+
 /// Chiều ngược của [formatVnd]: `'1.234.567 ₫'` → `1234567`.
 ///
 /// Ném [FormatException] nếu chuỗi không phải số tiền hợp lệ.
 int parseVnd(String input) {
-  final cleaned = input
-      .replaceAll(_symbol, '')
-      .replaceAll(_groupSeparator, '')
-      .replaceAll(RegExp(r'\s'), '');
-  return int.parse(cleaned);
+  final trimmed = input.replaceAll(_symbol, '').replaceAll(RegExp(r'\s'), '');
+
+  // Xác thực TRƯỚC khi bỏ dấu nhóm. Làm ngược lại thì `'1.5'` bị biến thành
+  // `'15'` rồi parse trót lọt — nhận một chuỗi sai thành số tiền khác hẳn,
+  // im lặng, đúng loại lỗi tệ nhất với dữ liệu tiền.
+  if (!_vndPattern.hasMatch(trimmed)) {
+    throw FormatException('Không phải số tiền VND hợp lệ.', input);
+  }
+
+  // `radix: 10` bắt buộc: thiếu nó thì `int.parse` nhận tiền tố `0x`, và
+  // `'0xffffffffffffffff'` cuộn vòng im lặng thành `-1`.
+  return int.parse(trimmed.replaceAll(_groupSeparator, ''), radix: 10);
 }

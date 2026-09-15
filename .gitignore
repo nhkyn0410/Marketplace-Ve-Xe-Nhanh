@@ -135,3 +135,7 @@ Desktop.ini
 # Agent-local machine settings
 .claude/settings.local.json
 .codex/settings.local.json
+
+# Thu muc tam cua job "Contract" (sinh lai Dart client de so hop dong)
+/.regen/
+/.cmp/

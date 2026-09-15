@@ -65,6 +65,26 @@ void main() {
     expect(failure.detail, isNot(contains('validateStatus')));
   });
 
+  test('field đúng tên nhưng SAI KIỂU không được làm hàm ném', () {
+    // Hồi quy: bản đầu ép `data['status'] as int?`, gặp chuỗi '401' là ném
+    // TypeError ngay trong khối catch — mà lỗi ném từ trong catch thì catch anh
+    // em không bắt được, nó thoát ra ngoài và UI không hiện gì cả.
+    final failure = convert(_errorWith({
+      'title': 'Authentication error',
+      'status': '401', // chuỗi, không phải int
+      'detail': 'Thông tin đăng nhập không hợp lệ.',
+      'code': 'AUTH_INVALID_CREDENTIALS',
+      'requestId': 123, // số, không phải String
+    }, 401));
+
+    expect(failure.code, 'AUTH_INVALID_CREDENTIALS');
+    expect(failure.detail, 'Thông tin đăng nhập không hợp lệ.');
+    // Status lấy từ HTTP chứ không từ body.
+    expect(failure.status, 401);
+    // Metadata sai kiểu thì bỏ, không ném.
+    expect(failure.requestId, isNull);
+  });
+
   test('không chạm được tới server → isNetworkError', () {
     final failure = convert(DioException.connectionTimeout(
       timeout: const Duration(seconds: 10),
