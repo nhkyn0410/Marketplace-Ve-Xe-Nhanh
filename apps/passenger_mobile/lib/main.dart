@@ -40,8 +40,8 @@ class OtpLoginPage extends StatefulWidget {
 }
 
 class _OtpLoginPageState extends State<OtpLoginPage> {
-  final _api = createApiClient(baseUrl: apiBaseUrl);
   final _tokens = const TokenStorage();
+  late final _api = createApiClient(baseUrl: apiBaseUrl, tokens: _tokens);
   final _emailController = TextEditingController();
   final _otpController = TextEditingController();
 

@@ -6,6 +6,7 @@ on:
     paths: &mobile-paths
       - "apps/*_mobile/**"
       - "packages/mobile_shared/**"
+      - "packages/api_client_dart/**"
       - ".github/workflows/mobile.yml"
   pull_request:
     branches: [develop]
@@ -51,4 +52,25 @@ jobs:
 
       - name: Test
         working-directory: apps/${{ matrix.app }}
+        run: flutter test
+
+  shared:
+    name: Verify mobile_shared
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: 3.47.2 # phải khớp environment.flutter trong pubspec
+          channel: stable
+          cache: true
+      - name: Pub get
+        working-directory: packages/mobile_shared
+        run: flutter pub get
+      - name: Analyze
+        working-directory: packages/mobile_shared
+        run: flutter analyze
+      - name: Test
+        working-directory: packages/mobile_shared
         run: flutter test
