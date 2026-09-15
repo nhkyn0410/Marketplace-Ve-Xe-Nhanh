@@ -7,6 +7,7 @@ on:
       - "apps/*_mobile/**"
       - "packages/mobile_shared/**"
       - "packages/api_client_dart/**"
+      - ".fvmrc"
       - ".github/workflows/mobile.yml"
   pull_request:
     branches: [develop]
@@ -36,7 +37,7 @@ jobs:
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: 3.47.2 # phải khớp environment.flutter trong pubspec
+          flutter-version-file: .fvmrc
           channel: stable
           cache: true
 
@@ -59,10 +60,13 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v6
-      - uses: subosito/flutter-action@v2
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
         with:
-          flutter-version: 3.47.2 # phải khớp environment.flutter trong pubspec
+          flutter-version-file: .fvmrc
           channel: stable
           cache: true
       - name: Pub get
