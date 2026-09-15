@@ -51,13 +51,36 @@ ApiFailure toApiFailure(DioException error, Serializers serializers) {
         requestId: problem.requestId,
       );
     } catch (_) {
-      // Body không đúng dạng problem+json — rơi xuống nhánh chung bên dưới.
+      // `ProblemDetailsDto` có 6 field non-nullable; thiếu ĐÚNG MỘT field là
+      // built_value ném và ta mất luôn `code`/`detail` mà server ĐÃ gửi. Đọc lại
+      // từng field một để giữ được phần dùng được của body.
+      final code = data['code'];
+      final detail = data['detail'];
+      if (code is String || detail is String) {
+        return ApiFailure(
+          status: (data['status'] as int?) ?? response?.statusCode ?? 0,
+          code: code is String ? code : 'UNEXPECTED_RESPONSE',
+          detail: detail is String ? detail : _genericMessage(response),
+          requestId: data['requestId'] as String?,
+        );
+      }
     }
   }
 
   return ApiFailure(
     status: response?.statusCode ?? 0,
     code: response == null ? 'NETWORK_ERROR' : 'UNEXPECTED_RESPONSE',
-    detail: error.message ?? 'Không gọi được API.',
+    detail: _genericMessage(response),
   );
+}
+
+/// Câu hiển thị cho người dùng khi body không nói được gì có ích.
+///
+/// KHÔNG dùng `DioException.message`: đó là văn bản tiếng Anh nội bộ của thư viện
+/// ("...RequestOptions.validateStatus was configured to throw...") — đúng cho log,
+/// sai hoàn toàn khi đập thẳng vào mặt người dùng. Trang lỗi HTML 502/503 của
+/// hạ tầng là đường chạm được ngay hôm nay.
+String _genericMessage(Response<dynamic>? response) {
+  if (response == null) return 'Không kết nối được máy chủ.';
+  return 'Máy chủ trả lỗi ${response.statusCode}.';
 }

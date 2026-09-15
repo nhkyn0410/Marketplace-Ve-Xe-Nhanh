@@ -7,7 +7,13 @@
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" tools:node="remove"/>
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" tools:node="remove"/>
 
+    <!-- Tắt Android Auto Backup: `flutter_secure_storage` lưu ciphertext trong
+         SharedPreferences còn khoá bọc thì nằm trong Keystore, mà Keystore KHÔNG được
+         backup. Bật backup ⇒ khôi phục sang máy mới sẽ đọc token và ném
+         `InvalidKeyException: Failed to unwrap key`, đồng thời blob token rời khỏi
+         thiết bị. README của chính plugin yêu cầu đặt false. -->
     <application
+        android:allowBackup="false"
         android:label="passenger_mobile"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">

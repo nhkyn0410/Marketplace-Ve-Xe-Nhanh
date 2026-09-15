@@ -5,8 +5,17 @@ import 'package:mobile_shared/mobile_shared.dart';
 
 /// Origin của API — KHÔNG kèm `/v1`.
 ///
-/// `10.0.2.2` là alias của emulator Android trỏ về `localhost` máy host.
-/// Thiết bị thật thì truyền IP LAN qua `--dart-define`.
+/// Mặc định `localhost` dùng được cho **cả** emulator lẫn máy thật, với điều kiện
+/// mở đường hầm một lần mỗi phiên cắm máy:
+///
+/// ```
+/// adb reverse tcp:3000 tcp:3000
+/// ```
+///
+/// Chạy không cáp thì ghi đè bằng IP LAN:
+/// `--dart-define=API_BASE_URL=http://192.168.x.x:3000` (nhớ mở firewall cổng 3000).
+/// Lưu ý `String.fromEnvironment` là hằng compile-time: đổi giá trị phải dừng hẳn
+/// `flutter run` rồi chạy lại, hot restart không ăn.
 const apiBaseUrl = String.fromEnvironment(
   'API_BASE_URL',
   defaultValue: 'http://localhost:3000',
@@ -68,6 +77,12 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
     } on DioException catch (error) {
       final failure = toApiFailure(error, _api.serializers);
       if (mounted) setState(() => _error = failure.toString());
+    } catch (error) {
+      // Không chỉ Dio mới ném. `flutter_secure_storage` ném `PlatformException`
+      // khi Keystore hỏng, và `response.data!` ném `TypeError` nếu server trả 2xx
+      // với body rỗng. Thiếu nhánh này thì nút chỉ nhấp nháy rồi im — người dùng
+      // không biết chuyện gì xảy ra, mà OTP thì đã bị tiêu thụ ở server.
+      if (mounted) setState(() => _error = 'Lỗi không mong đợi: $error');
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -92,6 +107,9 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
     );
     final session = response.data!;
     await _tokens.saveAccessToken(session.accessToken);
+    // OTP dùng một lần rồi thôi — đừng để nó nằm lại trong heap. Text của
+    // `TextEditingController` bị in nguyên văn trong mọi widget-tree dump.
+    _otpController.clear();
     if (mounted) {
       setState(() {
         _session = session;

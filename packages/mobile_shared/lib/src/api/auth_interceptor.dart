@@ -2,8 +2,12 @@ import 'package:dio/dio.dart';
 
 import '../storage/token_storage.dart';
 
-/// Tên header, viết thường: HTTP không phân biệt hoa thường nhưng `Map` của Dio
-/// thì có, nên phải dùng đúng một hằng ở cả code lẫn test.
+/// Tên header, viết thường.
+///
+/// `RequestOptions.headers` của Dio **là** map không phân biệt hoa thường
+/// (`caseInsensitiveKeyMap` trong `options.dart`), nên `containsKey` bên dưới
+/// bắt được cả `Authorization` lẫn `authorization`. Vẫn giữ một hằng dùng chung
+/// cho code và test để khỏi lệch nhau.
 const authorizationHeader = 'authorization';
 
 /// Gắn `Authorization: Bearer <token>` vào mọi request và dọn token khi API trả 401.
@@ -19,7 +23,6 @@ class AuthInterceptor extends Interceptor {
   final TokenStore _tokens;
 
   /// Chạy sau khi token bị xoá vì 401 — nơi app điều hướng về màn đăng nhập.
-
   final Future<void> Function()? onUnauthorized;
 
   @override

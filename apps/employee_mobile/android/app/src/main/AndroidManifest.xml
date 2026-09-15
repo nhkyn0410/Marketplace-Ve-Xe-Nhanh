@@ -2,12 +2,20 @@
     <uses-permission android:name="android.permission.INTERNET"/>
 
     <!-- Định vị cho Driver (ADR-028). `geolocator` KHÔNG tự khai quyền này — manifest
-         của nó chỉ có `GeolocatorLocationService`, nên phải khai ở đây.
+         của nó chỉ khai `GeolocatorLocationService`, nên quyền phải khai ở đây.
+         Đừng khai lại `<service>` ở file này: plugin đã khai rồi, và `.GeolocatorLocationService`
+         ở đây sẽ trỏ vào `com.vexenhanh.employee_mobile.…` — một class không tồn tại.
          Đây cũng là điểm phân biệt thật giữa 2 app: `passenger_mobile` không có. -->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
 
+    <!-- Tắt Android Auto Backup: `flutter_secure_storage` lưu ciphertext trong
+         SharedPreferences còn khoá bọc thì nằm trong Keystore, mà Keystore KHÔNG được
+         backup. Bật backup ⇒ khôi phục sang máy mới sẽ đọc token và ném
+         `InvalidKeyException: Failed to unwrap key`, đồng thời blob token rời khỏi
+         thiết bị. README của chính plugin yêu cầu đặt false. -->
     <application
+        android:allowBackup="false"
         android:label="employee_mobile"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
@@ -38,9 +46,6 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
-
-        <service android:name=".GeolocatorLocationService"
-                 android:foregroundServiceType="location" />
     </application>
     <!-- Required to query activities that can process text, see:
          https://developer.android.com/training/package-visibility and

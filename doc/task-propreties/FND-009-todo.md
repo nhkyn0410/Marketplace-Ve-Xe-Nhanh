@@ -5,9 +5,12 @@
 > **Dependency:** `TASK-FND-008` ✓ Done (OpenAPI gen — `api_client_dart` sinh từ spec của nó).
 > **Cách dùng:** tick `[x]` khi xong; AI cập nhật trạng thái khi làm. Guide thao tác: `FND-009-guide.md`. Nghiệm thu: `FND-009-verification-checklist.md`.
 
-## Trạng thái (14/09/2026)
+## Trạng thái (15/09/2026)
 
-- ⬜ **0/8** — chưa bắt đầu. `apps/` hiện có `admin, api, marketplace, operator-os`; `packages/` có `api-client, config, types, ui, utils`.
+- ✅ **8/8 — DONE** (15/09/2026).
+- **Đo được 15/09/2026**: `flutter analyze` sạch cả 3 gói Flutter · `flutter test` **26 + 1 + 1** pass · `dart analyze` `api_client_dart` sạch · `pnpm turbo run typecheck lint test build` **36/36** · pnpm workspace vẫn đúng **9 gói Node** · build APK debug **cả 2 app** thành công.
+- **Permission tách đúng, verify ở tầng APK** (đọc manifest đã gộp, không phải file nguồn): `passenger` **không** còn `ACCESS_FINE/COARSE_LOCATION` — `tools:node="remove"` gỡ được quyền do AAR `org.maplibre.gl:android-sdk-opengl` tự khai; `employee` có hai quyền đó; **cả hai đều không có `ACCESS_BACKGROUND_LOCATION`**.
+- ⚠️ **CI chưa chạy thật lần nào.** `mobile.yml` chỉ trigger trên `develop`, mà việc này làm trên branch `TASK-FND-009`. Toàn bộ lệnh CI sẽ chạy đã được chạy tay và pass, nhưng **“CI xanh” vẫn là suy luận cho tới lần gộp đầu tiên vào `develop`**. Rủi ro còn lại thuộc loại môi trường: runner `ubuntu-latest` thay vì Windows, và hành vi của `subosito/flutter-action` khi đọc `.fvmrc`.
 - ✅ **Đã dọn đường trước** (commit `af3ec7a`): `.gitignore` sửa cho Flutter (`android/`+`ios/` là **source phải commit**, chỉ ignore phần tooling sinh ra) và `pnpm-workspace.yaml` loại trừ `packages/mobile_shared` + `packages/api_client_dart`.
 - ✅ **Môi trường sẵn sàng** (đo 14/09/2026): Flutter **3.47.2** stable · Dart **3.13.2** · `flutter doctor` không có issue · Android toolchain OK.
 
@@ -45,7 +48,7 @@ FND-009 dừng ở **"dựng được nền và chứng minh chuỗi thông su�
 
 ## Todo (ID = thứ tự thực hiện)
 
-### ⬜ #1 — [FND-009.1] Tạo 2 app Flutter
+### ✅ #1 — [FND-009.1] Tạo 2 app Flutter
 
 `flutter create` với `--org com.vexenhanh`, `--project-name` snake_case, `--platforms android,ios`, `--empty`.
 
@@ -54,7 +57,7 @@ FND-009 dừng ở **"dựng được nền và chứng minh chuỗi thông su�
 
 **Success:** 2 thư mục tồn tại, `flutter analyze` sạch, `git check-ignore` xác nhận `android/`+`ios/` **không** bị ignore, và mỗi `android/settings.gradle.kts` có `rootProject.name` riêng.
 
-### ⬜ #2 — [FND-009.2] Package Dart dùng chung `packages/mobile_shared/`
+### ✅ #2 — [FND-009.2] Package Dart dùng chung `packages/mobile_shared/`
 
 `flutter create --template=package`. Thêm `publish_to: 'none'`. Wire `path:` dependency vào cả 2 app.
 
@@ -71,7 +74,7 @@ FND-009 dừng ở **"dựng được nền và chứng minh chuỗi thông su�
 
 **Success:** cả 2 app `import 'package:mobile_shared/...'` chạy; `flutter test` trong package pass *(là `flutter test` chứ không phải `dart test` — gói này phụ thuộc `flutter`/`flutter_test`)*.
 
-### ⬜ #3 — [FND-009.3] Sinh `packages/api_client_dart/` từ OpenAPI 3.1
+### ✅ #3 — [FND-009.3] Sinh `packages/api_client_dart/` từ OpenAPI 3.1
 
 `openapi-generator` **pin `v7.25.0`**, generator `dart-dio`, đầu vào là `packages/api-client/src/generated/openapi.json`.
 
@@ -82,13 +85,13 @@ FND-009 dừng ở **"dựng được nền và chứng minh chuỗi thông su�
 
 **Success:** `dart analyze` 0 lỗi (cảnh báo `unused_import` không tính); có 7 method auth; test round-trip `AuthTokenResponse` (`"Bearer"` ↔ `bearer`) pass — test đặt ở `packages/mobile_shared/test/`, **không** đặt trong gói sinh.
 
-### ⬜ #4 — [FND-009.4] Pin Flutter SDK
+### ✅ #4 — [FND-009.4] Pin Flutter SDK
 
 `.fvmrc` (hoặc ghi rõ phiên bản trong `FND-009-guide.md` nếu chưa cài FVM) để CI và máy dev khớp nhau. Hiện tại: **3.47.2 stable**.
 
 **Success:** phiên bản được ghi ở một chỗ duy nhất, CI đọc đúng chỗ đó.
 
-### ⬜ #5 — [FND-009.5] Ánh xạ plugin theo ADR-028
+### ✅ #5 — [FND-009.5] Ánh xạ plugin theo ADR-028
 
 Khai báo trong `pubspec.yaml` (chưa cần dùng hết): `mobile_scanner` (QR) · `geolocator` (**chỉ employee**) · `firebase_messaging` (push) · `local_auth` · `flutter_secure_storage` · `maplibre_gl` (map Goong) · `app_links` (deep link `vexenhanh://` + `vexenhanh-operator://`).
 
@@ -96,7 +99,7 @@ Khai báo trong `pubspec.yaml` (chưa cần dùng hết): `mobile_scanner` (QR) 
 
 **Success:** `flutter pub get` cả 2 app thành công, permission khai đúng app (Passenger **không** có background location).
 
-### ⬜ #6 — [FND-009.6] Đường dọc mỏng nhất (chỉ `passenger_mobile`)
+### ✅ #6 — [FND-009.6] Đường dọc mỏng nhất (chỉ `passenger_mobile`)
 
 Màn login Email-OTP → gọi `/v1/auth/otp/request` + `/v1/auth/otp/verify` qua `api_client_dart` → lưu token bằng `flutter_secure_storage` → màn hình trống hiển thị `scope`/`role`.
 
@@ -106,13 +109,13 @@ Mục đích là **chứng minh cả chuỗi chạy được** (Dart client ↔ 
 
 **Success:** trên thiết bị/emulator Android, nhập email → nhập OTP → nhận token → hiển thị `scope=passenger`.
 
-### ⬜ #7 — [FND-009.7] CI job Flutter
+### ✅ #7 — [FND-009.7] CI job Flutter
 
 Thêm job GitHub Actions **tách khỏi job Node** (Turborepo không quản Mobile): cài Flutter SDK đúng phiên bản pin, chạy `flutter analyze` + `flutter test` cho 2 app + `dart test` cho `mobile_shared`. Chỉ trigger khi `apps/*_mobile/**` hoặc `packages/mobile_shared/**` đổi.
 
 **Success:** CI xanh; sửa file Node không kích hoạt job Mobile.
 
-### ⬜ #8 — [FND-009.8] Đóng task
+### ✅ #8 — [FND-009.8] Đóng task
 
 `flutter analyze` + `flutter test` pass; spawn `code-reviewer` (CLAUDE.md §6.3); cập nhật `PROJECT-STATE §7` + task row `11-project-task-breakdown.md` → Done; chạy `FND-009-verification-checklist.md`.
 
@@ -124,6 +127,17 @@ Thêm job GitHub Actions **tách khỏi job Node** (Turborepo không quản Mobi
 - 🔧 **Goong API key** — cần cho map, không chặn.
 - 🔧 **Máy macOS** — chỉ cần khi build iOS; Android không cần.
 - ⚠️ **Docker phải chạy** nếu làm #6 (cần API + Postgres + Redis).
+
+## Follow-up từ vòng review đóng task (15/09/2026)
+
+`code-reviewer` + `security-auditor` đã chạy. **Không có finding Critical/High.** Những cái nhỏ đã vá ngay (xem git log); dưới đây là phần cố ý để lại, kèm **mốc phải xử lý**:
+
+- 🔴 **Release đang ký bằng debug keystore** — `apps/*_mobile/android/app/build.gradle.kts` vẫn là `signingConfig = signingConfigs.getByName("debug")` (TODO của template Flutter). Debug keystore là private key **công khai**, nên bất kỳ ai cũng dựng được APK cùng `applicationId` + cùng chữ ký ⇒ Android nhận nó như **bản cập nhật** và giữ nguyên data directory, kế thừa luôn token trong Keystore. **Chặn mọi việc phát tán APK release**, kể cả gửi cho giảng viên ⇒ **TASK-OPS-001**.
+- 🟡 **`onUnauthorized` chưa nối dây + không có đăng xuất** — `main.dart` gọi `createApiClient(...)` bỏ trống callback, nên khi interceptor xoá token vì 401 thì UI vẫn đứng ở màn “đăng nhập thành công”. Cũng chưa lưu `expiresIn` nên client không tự biết token hết hạn. ⇒ làm cùng **màn hình thứ hai**.
+- 🟡 **`AuthInterceptor` gắn Bearer cho mọi host** — không kiểm `options.uri.origin`, mà Dio mặc định `followRedirects: true` và `dart:io` replay header sang host mới. Vô hại hôm nay (chỉ có endpoint cùng origin), nhưng **presigned URL R2 (ADR-018)** và **redirect VNPay/MoMo (ADR-019)** sẽ kích hoạt nó — JWT của user đi thẳng vào log bên thứ ba. Chốt nguyên tắc trước khi tác vụ nào dùng chung `Dio` instance này để tải file.
+- 🟡 **CI không gác được chính bất biến permission của ADR-028** — quy tắc “passenger không có location, không app nào có background location, cleartext chỉ ở debug” hiện chỉ nằm trong comment. Thêm job `flutter build apk --debug` rồi grep merged manifest để assert — đúng tinh thần “mandatory test” của ADR-025 áp cho control ở tầng manifest.
+- ⚪ **`api_client_factory` không có đường đóng** (`dio.close()`) — vô hại khi chỉ có một màn, thành rò socket ngay khi màn thứ hai tự tạo client.
+- ⚪ **iOS**: khi dựng đường build iOS, đặt `IOSOptions(accessibility: first_unlock_this_device)` cho `TokenStorage` — mặc định cho phép item đi theo backup iCloud, tức bản Apple của vấn đề `allowBackup` đã vá ở Android. Ngoài ra `Info.plist` chưa có key `NSLocation*` / `NSCamera*` / `NSFaceID*` nào.
 
 ## Backlog không chặn
 
