@@ -9,7 +9,7 @@ import 'package:mobile_shared/mobile_shared.dart';
 /// Thiết bị thật thì truyền IP LAN qua `--dart-define`.
 const apiBaseUrl = String.fromEnvironment(
   'API_BASE_URL',
-  defaultValue: 'http://10.0.2.2:3000',
+  defaultValue: 'http://localhost:3000',
 );
 
 void main() => runApp(const PassengerApp());
