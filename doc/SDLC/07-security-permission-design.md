@@ -95,7 +95,7 @@ Auth library = **Better Auth** + custom NestJS adapter (ADR-017).
 | ------------- | --------------------------------------------------------------------------------------------------- |
 | Access token  | JWT RS256, TTL **15 phút** (claims `sub`, `scope`, `role`, `operatorSlug`)                          |
 | Refresh token | Opaque 32-byte, TTL **30 ngày**, rotation mỗi lần refresh + family invalidation khi phát hiện reuse |
-| Token storage | Web = JWT trong httpOnly cookie (+ CSRF token); Mobile = `flutter_secure_storage`                        |
+| Token storage | Web = JWT trong httpOnly cookie (+ CSRF token); Mobile = `flutter_secure_storage`. ⚠️ **v1 defer phần Web**: API trả token trong **body JSON** cho cả hai phía (chốt 16/09/2026, TASK-IAM-002 Q1) — `apps/marketplace`, `operator-os`, `admin` còn rỗng nên cookie + CSRF sẽ là code không ai dùng. Mở lại khi dựng app web đầu tiên. |
 | Session store | `auth_sessions` (Postgres) + Redis cache metadata                                                   |
 | Multi-device  | Mỗi login = 1 session family; revoke theo family hoặc revoke all                                    |
 | Force logout  | Khi khóa account, reset password, thu hồi quyền hoặc phát hiện rủi ro → revoke family               |

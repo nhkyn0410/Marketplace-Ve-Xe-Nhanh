@@ -7,7 +7,8 @@
 ## Trạng thái (15/09/2026) — 🔲 **CHƯA BẮT ĐẦU**
 
 - Branch `TASK-IAM-002` đã tạo, code chưa có gì: `apps/api/src/iam/session/` chưa tồn tại, `auth_sessions` chưa có trong `schema.prisma`.
-- **Chặn ở `.1`**: 5 quyết định dưới đây cần Khanh chốt **trước khi** viết schema — chọn khác nhau thì schema + DTO khác nhau, sửa sau là migration + đổi contract client (TS lẫn Dart).
+- ✅ **`.1` xong (16/09/2026)**: 5 quyết định đã chốt theo đúng khuyến nghị — xem bảng dưới.
+- ✅ **`.2` xong (16/09/2026)**: migration `20260916035828_add_auth_sessions` đã áp dụng. `prisma migrate status` → *Database schema is up to date*; `prisma:generate` + `typecheck` pass. Đủ 7 index/constraint trong DB thật, và **CHECK `auth_sessions_user_ref_derived` đã thử cả hai chiều**: `user_ref` sai format bị từ chối, đúng format thì vào được. DB §7 đã cập nhật (v0.5) để ghi 2 index thêm — doc không lệch code.
 - Nền dùng lại được: `TokenService` (RS256), `OtpRateLimiter` (Redis + Lua, fail-closed 503), `LoginHistoryService` (Mongo append-only), `REDIS_CLIENT` (ioredis), queue BullMQ (`apps/api/src/queue/`), `resolveTrustedClientIp`.
 
 ---
@@ -28,35 +29,53 @@ IAM-002 = **LLD §6.5 bước 4–5** (phát hành hybrid token + refresh rotati
 
 ---
 
-## 5 quyết định cần Khanh chốt (task `.1`)
+## 5 quyết định — ✅ **ĐÃ CHỐT 16/09/2026** (task `.1`)
 
-| #      | Câu hỏi                                                                                                                                                                                                             | Lựa chọn                                                                                                                                                                       | Khuyến nghị của AI                                                                                                                                                                                                                                                                                       |
+Khanh chốt **cả năm theo đúng khuyến nghị**. Cột cuối giữ nguyên lập luận — đó chính là lý do chốt, không viết lại.
+
+| #      | Câu hỏi                                                                                                                                                                                                             | Lựa chọn                                                                                                                                                                       | Quyết định (chốt 16/09/2026)                                                                                                                                                                                                                                                                                     |
 | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Q1** | **Refresh token giao cho client thế nào?** Security §5.1 ghi _Web = httpOnly cookie (+ CSRF), Mobile = `flutter_secure_storage`_. IAM-001 đang trả token trong **body JSON**.                                    | (a) Body JSON cho cả web + mobile, cookie defer tới khi làm app web · (b) Dual-mode ngay: cookie cho web + body cho mobile (thêm `cookie-parser` + CSRF token)              | **(a)** — v1 chưa app web nào gọi auth thật (`apps/marketplace`, `operator-os`, `admin` còn rỗng); làm cookie + CSRF bây giờ là code không ai dùng mà vẫn phải test và bảo trì. Chọn (a) ⇒ **phải ghi chú defer vào `07-security` §5.1** để doc không lệch code.                                  |
-| **Q2** | **`auth_sessions` trỏ tới account kiểu gì?** Account-separate (ADR-017) ⇒ chủ thể nằm ở **4 bảng khác nhau** (`users`, `operator_accounts`, `employee_accounts`, `platform_accounts`) → không FK nào trỏ đủ cả 4. | (a) 1 cột `user_ref` = `"{subjectType}:{id}"` (khớp đúng chữ DB §7) · (b) 2 cột `subject_type` + `subject_id` · (c) 4 cột FK nullable                                   | **(b)** + cột `user_ref` sinh từ 2 cột đó để index `(user_ref, family_id)` của DB §7 vẫn đúng. ⚠️ `subject_type` phải có **4 giá trị** (`passenger`/`operator`/`employee`/`platform`), **không** phải 3 `scope` của JWT — scope `operator` gộp cả `operator_accounts` lẫn `employee_accounts`, chỉ lưu scope thì revoke-all sẽ đá nhầm người. |
-| **Q3** | **`/auth/re-auth` (FR-IAM-10) làm tới đâu ở v1?**                                                                                                                                                                  | (a) Chỉ cấp **bằng chứng re-auth** (Redis `reauth:{sid}` TTL 5 phút), chưa endpoint nghiệp vụ nào đọc · (b) Làm luôn guard `@RequireReauth()` cho endpoint nhạy cảm       | **(a)** — endpoint nhạy cảm (refund, payout confirm, đổi bank account) thuộc BTP/ADM **chưa tồn tại**; viết guard bây giờ là viết cho hư không. Cấp bằng chứng + service đọc, guard để task tiêu thụ đầu tiên làm. Nhánh TOTP của re-auth = IAM-004.                                            |
-| **Q4** | **FR-IAM-15 (xem danh sách phiên + thu hồi từng phiên)** — API §7.1 **không có** endpoint nào cho việc này.                                                                                                        | (a) Defer sang IAM-005 (provisioning / quản lý account) · (b) Thêm `GET /auth/sessions` + `DELETE /auth/sessions/{id}` ngay ở IAM-002                                        | **(a)** — thêm endpoint ngoài API §7.1 là mở rộng phạm vi (CLAUDE.md §4.1), cần Khanh duyệt riêng. Dữ liệu vẫn sẵn (`ip`/`user_agent`/`last_used_at`), chỉ thiếu endpoint. **Giới hạn số phiên hoạt động: v1 không giới hạn.**                                                            |
-| **Q5** | **Race refresh song song**: app bắn 2 request cùng lúc với cùng 1 refresh token → 1 cái rotate thắng, cái kia thấy token "đã dùng" → luật reuse detection **revoke cả family** ⇒ user bị đá ra oan.              | (a) **Strict** đúng ADR-017 + client single-flight (Dart `AuthInterceptor` / FE chỉ cho 1 refresh chạy) · (b) Cửa sổ ân hạn 10s: token vừa rotate trả lại đúng cặp kế nhiệm | **(a)** — đúng ADR, ít state hơn; nếu đo được lỗi thật thì nâng lên (b) (cùng lối "chốt đơn giản, nâng khi đo được" của seat-hold ADR-015). Đổi lại: **task FE/Mobile bắt buộc single-flight** — phải ghi vào todo của task đó, không để quên.                                             |
+| **Q1** | **Refresh token giao cho client thế nào?** Security §5.1 ghi _Web = httpOnly cookie (+ CSRF), Mobile = `flutter_secure_storage`_. IAM-001 đang trả token trong **body JSON**.                                    | (a) Body JSON cho cả web + mobile, cookie defer tới khi làm app web · (b) Dual-mode ngay: cookie cho web + body cho mobile (thêm `cookie-parser` + CSRF token)              | ✅ **(a)** — v1 chưa app web nào gọi auth thật (`apps/marketplace`, `operator-os`, `admin` còn rỗng); làm cookie + CSRF bây giờ là code không ai dùng mà vẫn phải test và bảo trì. Chọn (a) ⇒ **phải ghi chú defer vào `07-security` §5.1** để doc không lệch code.                                  |
+| **Q2** | **`auth_sessions` trỏ tới account kiểu gì?** Account-separate (ADR-017) ⇒ chủ thể nằm ở **4 bảng khác nhau** (`users`, `operator_accounts`, `employee_accounts`, `platform_accounts`) → không FK nào trỏ đủ cả 4. | (a) 1 cột `user_ref` = `"{subjectType}:{id}"` (khớp đúng chữ DB §7) · (b) 2 cột `subject_type` + `subject_id` · (c) 4 cột FK nullable                                   | ✅ **(b)** + cột `user_ref` sinh từ 2 cột đó để index `(user_ref, family_id)` của DB §7 vẫn đúng. ⚠️ `subject_type` phải có **4 giá trị** (`passenger`/`operator`/`employee`/`platform`), **không** phải 3 `scope` của JWT — scope `operator` gộp cả `operator_accounts` lẫn `employee_accounts`, chỉ lưu scope thì revoke-all sẽ đá nhầm người. |
+| **Q3** | **`/auth/re-auth` (FR-IAM-10) làm tới đâu ở v1?**                                                                                                                                                                  | (a) Chỉ cấp **bằng chứng re-auth** (Redis `reauth:{sid}` TTL 5 phút), chưa endpoint nghiệp vụ nào đọc · (b) Làm luôn guard `@RequireReauth()` cho endpoint nhạy cảm       | ✅ **(a)** — endpoint nhạy cảm (refund, payout confirm, đổi bank account) thuộc BTP/ADM **chưa tồn tại**; viết guard bây giờ là viết cho hư không. Cấp bằng chứng + service đọc, guard để task tiêu thụ đầu tiên làm. Nhánh TOTP của re-auth = IAM-004.                                            |
+| **Q4** | **FR-IAM-15 (xem danh sách phiên + thu hồi từng phiên)** — API §7.1 **không có** endpoint nào cho việc này.                                                                                                        | (a) Defer sang IAM-005 (provisioning / quản lý account) · (b) Thêm `GET /auth/sessions` + `DELETE /auth/sessions/{id}` ngay ở IAM-002                                        | ✅ **(a)** — thêm endpoint ngoài API §7.1 là mở rộng phạm vi (CLAUDE.md §4.1), cần Khanh duyệt riêng. Dữ liệu vẫn sẵn (`ip`/`user_agent`/`last_used_at`), chỉ thiếu endpoint. **Giới hạn số phiên hoạt động: v1 không giới hạn.**                                                            |
+| **Q5** | **Race refresh song song**: app bắn 2 request cùng lúc với cùng 1 refresh token → 1 cái rotate thắng, cái kia thấy token "đã dùng" → luật reuse detection **revoke cả family** ⇒ user bị đá ra oan.              | (a) **Strict** đúng ADR-017 + client single-flight (Dart `AuthInterceptor` / FE chỉ cho 1 refresh chạy) · (b) Cửa sổ ân hạn 10s: token vừa rotate trả lại đúng cặp kế nhiệm | ✅ **(a)** — đúng ADR, ít state hơn; nếu đo được lỗi thật thì nâng lên (b) (cùng lối "chốt đơn giản, nâng khi đo được" của seat-hold ADR-015). Đổi lại: **task FE/Mobile bắt buộc single-flight** — phải ghi vào todo của task đó, không để quên.                                             |
 
-> Chốt xong → cập nhật chính file này (✅ + ngày + lý do) rồi mới sang `.2`.
+> ✅ Chốt xong 16/09/2026 → `.1` đóng, sang `.2` được.
+>
+> **Ba nghĩa vụ kéo theo, đã thực hiện / đã ghi nhận:**
+>
+> 1. **Q1 (a)** ⇒ `07-security-permission-design.md` §5.1 hàng _Token storage_ đã ghi chú cookie Web defer — doc không còn lệch code. **Xong 16/09/2026.**
+> 2. **Q4 (a)** ⇒ FR-IAM-15 chuyển sang **TASK-IAM-005**, đã ghi vào `11-project-task-breakdown.md`. IAM-002 **không** được thêm endpoint ngoài API §7.1.
+> 3. **Q5 (a)** ⇒ client **bắt buộc single-flight** khi refresh. Phía Mobile đã ghi vào `FND-009-todo.md` (nơi `AuthInterceptor` sống); phía Web ghi vào todo của task dựng app web đầu tiên — chưa có task nào nên **chưa ghi được**, phải nhớ khi task đó ra đời.
 
 ---
 
 ## Thiết kế đã bám sẵn (không phải hỏi — trích từ doc đã Approved)
 
 **Bảng `auth_sessions`** — DB §7 yêu cầu: index `(user_ref, family_id)`, unique `refresh_token_hash`, index `expires_at`.
+**Bổ sung khi hiện thực (16/09/2026):** thêm index `family_id` **đứng riêng** và index `operator_id` — xem khối ⚠️ dưới bảng.
 
 | Cột                                   | Kiểu             | Ghi chú                                                                                                                                 |
 | -------------------------------------- | ----------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
 | `id`                                   | uuid PK           | = `sid` trong JWT                                                                                                                         |
-| `subject_type` / `subject_id` / `user_ref` | enum / text / text | Q2                                                                                                                                        |
+| `subject_type` / `subject_id` / `user_ref` | enum / text / text | Q2. `user_ref` là **cột thường do app ghi**, không phải generated column — Prisma không tả được generated column; ràng buộc bằng một `CHECK` constraint đặt trong migration (nối `lower(subject_type)` + `:` + `subject_id`) |
 | `family_id`                            | uuid              | 1 lần login = 1 family; rotation **giữ nguyên** `family_id`                                                                            |
 | `refresh_token_hash`                   | text unique       | **SHA-256** của token opaque — không dùng scrypt: token là random 32-byte (entropy đầy), và mỗi lần refresh phải tra cứu O(1) theo hash |
 | `issued_at` / `expires_at` / `last_used_at` | timestamptz  | TTL **30 ngày** (Security §5.1)                                                                                                          |
-| `rotated_at` / `replaced_by_id`        | timestamptz / uuid | Dấu vết rotation; row cũ **giữ lại** để còn phát hiện reuse                                                                          |
-| `revoked_at` / `revoked_reason`        | timestamptz / text | `logout` · `reuse_detected` · `account_locked` · `password_reset` · `admin_force` (FR-IAM-16)                                              |
+| `rotated_at` / `replaced_by_id`        | timestamptz / uuid **unique** | Dấu vết rotation; row cũ **giữ lại** để còn phát hiện reuse. `replaced_by_id` để `@unique` (hai row cùng trỏ một kế nhiệm = bug rotation), **không** làm self-relation FK |
+| `revoked_at` / `revoked_reason`        | timestamptz / **enum** | `LOGOUT` · `REUSE_DETECTED` · `ACCOUNT_LOCKED` · `PASSWORD_RESET` · `ADMIN_FORCE` (FR-IAM-16). Dùng enum thay `text`: tập giá trị đóng, để DB tự chặn giá trị lạ |
 | `operator_id`                          | uuid nullable     | Tenant cho IAM-003 (RLS) + revoke hàng loạt khi Operator bị suspend                                                                      |
 | `ip` / `user_agent`                    | text nullable     | FR-IAM-09/15; IP lấy qua `resolveTrustedClientIp` đã có                                                                                 |
+
+> ⚠️ **4 chỗ hiện thực lệch bảng trên — ghi nhận 16/09/2026, đã áp dụng:**
+>
+> 1. **Thêm `@@index([familyId])` đứng riêng.** DB §7 chỉ liệt kê `(user_ref, family_id)`, nhưng revoke-family tra **theo `family_id` một mình** — index composite có `user_ref` đứng đầu không phục vụ được truy vấn đó. Thiếu nó thì mỗi lần phát hiện reuse là seq-scan cả bảng, **đúng lúc đang bị tấn công**. Đã bổ sung vào DB §7 (bản v0.5).
+> 2. **`revoked_reason` là enum, không phải `text`.** DB §7 không quy định kiểu cột (chỉ quy định index), nên không nghịch doc Approved nào; enum để Postgres chặn giá trị lạ.
+> 3. **`replaced_by_id` có `@unique`, không làm self-relation.** Rows không bao giờ bị xoá nên FK không mang lại gì; `@unique` thì bắt được đúng cái bug đáng sợ (hai row cùng trỏ một kế nhiệm).
+> 4. **Không có cột `created_at`.** `issued_at` đã là thời điểm tạo — thêm cột nữa là hai nguồn cho cùng một sự thật. Vẫn giữ `updated_at` (`@updatedAt`) để debug.
+>
+> Và một chỗ lệch so với **chữ** của Q2: `user_ref` **không** phải generated column. Prisma không mô hình hoá được generated column, mà nếu thêm bằng SQL thô rồi không khai trong `schema.prisma` thì lần `migrate dev` sau sẽ coi là drift và sinh `DROP COLUMN`. Giải pháp: khai cột thường + `CHECK` constraint — Prisma **không** diff CHECK nên không xoá nó, khác hẳn cột. Tinh thần Q2 ("user_ref luôn khớp 2 cột kia") vẫn được Postgres bảo đảm.
 
 **Thuật toán refresh (bắt buộc atomic):**
 
@@ -80,14 +99,14 @@ IAM-002 = **LLD §6.5 bước 4–5** (phát hành hybrid token + refresh rotati
 
 ## Todo (ID = thứ tự thực hiện)
 
-### 🔲 #1 — [IAM-002.1] Chốt 5 quyết định + ghi chú boundary
+### ✅ #1 — [IAM-002.1] Chốt 5 quyết định + ghi chú boundary
 
-Trình Khanh bảng Q1–Q5; chốt xong ghi lại vào file này (✅ + ngày + lý do). Nếu Q1 = (a): mở `07-security-permission-design.md` §5.1 ghi rõ _"cookie Web defer — v1 trả body JSON"_ (doc không được lệch code).
+Chốt 16/09/2026: **cả năm theo khuyến nghị** — Q1 (a) · Q2 (b) · Q3 (a) · Q4 (a) · Q5 (a). Lý do giữ nguyên ở cột cuối bảng trên.
 
 **Nguồn:** ADR-017, Security §5.1, API §7.1.
-**Success:** 5 quyết định có dấu ✅; không đổi ADR đã chốt; không phát sinh endpoint ngoài API §7.1.
+**Success:** 5 quyết định có dấu ✅; không đổi ADR đã chốt; không phát sinh endpoint ngoài API §7.1. — **Đạt.** Security §5.1 đã ghi chú defer cookie; FR-IAM-15 đã chuyển sang IAM-005.
 
-### 🔲 #2 — [IAM-002.2] Prisma model `AuthSession` + migration
+### ✅ #2 — [IAM-002.2] Prisma model `AuthSession` + migration
 
 Model theo bảng thiết kế trên + enum `SubjectType`; đủ index `(user_ref, family_id)`, unique `refresh_token_hash`, index `expires_at` (DB §7). Migration tên `add_auth_sessions`.
 

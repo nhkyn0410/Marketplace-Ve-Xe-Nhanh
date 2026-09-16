@@ -193,3 +193,60 @@ model PlatformAccount {
 
   @@map("platform_accounts")
 }
+
+// ════════════════════════ IAM — Session (TASK-IAM-002) ════════════════════════
+
+/// Chủ thể của một phiên. **4 giá trị**, KHÔNG phải 3 `scope` của JWT:
+/// scope `operator` gộp cả `operator_accounts` lẫn `employee_accounts`, nên nếu
+/// chỉ lưu scope thì revoke-all sẽ đá nhầm người (quyết định Q2, 16/09/2026).
+
+enum SubjectType {
+  PASSENGER
+  OPERATOR
+  EMPLOYEE
+  PLATFORM
+}
+
+/// Vì sao phiên bị thu hồi (FR-IAM-16).
+enum SessionRevokeReason {
+  LOGOUT
+  REUSE_DETECTED
+  ACCOUNT_LOCKED
+  PASSWORD_RESET
+  ADMIN_FORCE
+}
+
+/// Một phiên đăng nhập = một refresh token đang sống (ADR-017, DB §7).
+/// Account-separate ⇒ chủ thể nằm ở 4 bảng khác nhau nên **không có FK nào trỏ
+/// đủ cả 4**; dùng cặp `subject_type` + `subject_id`.
+/// Row sau khi rotate **giữ lại, không xoá** — nó chính là thứ duy nhất cho phép
+/// phát hiện reuse. Dọn dẹp là việc của job retention, không phải của refresh.
+
+model AuthSession {
+  id               String               @id @default(uuid()) // = claim `sid` trong JWT
+  subjectType      SubjectType          @map("subject_type")
+  subjecId         String               @map("subject_id")
+  userRef          String               @map("user_ref")
+  familyId         String               @map("family_id") // 1 login = 1 family; rotation Giữ nguyên
+  /// SHA-256 của token opaque. KHÔNG scrypt: token là random 32-byte (entropy đã
+  /// đầy, không cần làm chậm brute-force), và mỗi lần refresh phải tra O(1).
+  refreshTokenHash String               @unique @map("refresh_token_hash")
+  issuedAt         DateTime             @default(now()) @map("issued_at")
+  expiresAt        DateTime             @map("expires_at")
+  lastUsedAt       DateTime?            @map("last_used_at")
+  rotatedAt        DateTime?            @map("rotated_at")
+  replacedById     String?              @unique @map("replaced_by_id")
+  revokedAt        DateTime?            @map("revoked_at")
+  revokedReason    SessionRevokeReason? @map("revoked_reason")
+  /// Tenant cho RLS ở IAM-003, và để revoke hàng loạt khi Operator bị suspend.
+  operatorId       String?              @map("operator_id")
+  ip               String?
+  userAgent        String?              @map("user_agent")
+  updatedAt        DateTime             @updatedAt @map("updated_at")
+
+  @@index([userRef, familyId])
+  @@index([familyId])
+  @@index([expiresAt])
+  @@index([operatorId])
+  @@map("auth_sessions")
+}

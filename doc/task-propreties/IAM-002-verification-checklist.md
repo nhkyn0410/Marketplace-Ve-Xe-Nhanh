@@ -7,14 +7,14 @@
 ## Snapshot trạng thái (15/09/2026)
 
 - 🔲 **Chưa chạy** — task chưa bắt đầu code. Checklist này là **success-criteria viết trước** (Karpathy #4), dùng làm đích khi làm `.2`–`.11`.
-- Chặn: 5 quyết định Q1–Q5 ở `IAM-002-todo.md` chưa chốt.
+- ✅ **Hết chặn**: Q1–Q5 đã chốt 16/09/2026 (cả năm theo khuyến nghị) — xem `IAM-002-todo.md`.
 
 ---
 
 ## PHẦN A — Thiết kế & ranh giới (kiểm trước, sai ở đây thì sửa sau rất đắt)
 
-- [ ] 5 quyết định **Q1–Q5** trong `IAM-002-todo.md` đã có dấu ✅ + ngày + lý do
-- [ ] Nếu Q1 = (a) (refresh trả body JSON): `07-security-permission-design.md` §5.1 **đã ghi chú** cookie Web defer — doc không lệch code
+- [x] 5 quyết định **Q1–Q5** trong `IAM-002-todo.md` đã có dấu ✅ + ngày + lý do — chốt 16/09/2026
+- [x] Q1 = **(a)** (refresh trả body JSON): `07-security-permission-design.md` §5.1 hàng _Token storage_ **đã ghi chú** cookie Web defer — doc không lệch code
 - [ ] **Không có endpoint nào ngoài API §7.1**: đúng 3 endpoint mới `/auth/refresh`, `/auth/logout`, `/auth/re-auth` (FR-IAM-15 theo quyết định Q4)
 - [ ] Code session nằm ở `apps/api/src/iam/session/` (DOMAIN-MAP §2 `iam/` split `auth,user,session,role`) — không nhét chung vào `iam/auth/`
 - [ ] `AccessTokenGuard` **chỉ** xác thực (authn), **không** kiểm role/tenant — có comment ghi rõ ranh giới với IAM-003
@@ -23,7 +23,9 @@
 ## PHẦN B — Schema & migration
 
 - [ ] Model `AuthSession` có đủ: `family_id`, `refresh_token_hash`, `issued_at`, `expires_at`, `rotated_at`, `replaced_by_id`, `revoked_at`, `revoked_reason`, `operator_id`, `ip`, `user_agent`
-- [ ] Index đúng DB §7: index `(user_ref, family_id)` · **unique** `refresh_token_hash` · index `expires_at`
+- [ ] Index đúng DB §7 (bản v0.5): index `(user_ref, family_id)` · index `family_id` **đứng riêng** · **unique** `refresh_token_hash` · index `expires_at` · index `operator_id`
+- [ ] ⚠️ Index `family_id` phải có **thật** — không có nó thì revoke-family seq-scan cả bảng đúng lúc phát hiện tấn công. Kiểm bằng `\d auth_sessions`, đừng tin mỗi `schema.prisma`
+- [ ] CHECK `auth_sessions_user_ref_derived` tồn tại **và chặn được thật**: thử `insert` một row có `user_ref` sai → phải bị từ chối (xem `IAM-002-guide.md`)
 - [ ] `subject_type` có **4 giá trị** (`passenger`/`operator`/`employee`/`platform`) — ⚠️ không phải 3 `scope` của JWT; thiếu tách `employee` thì revoke-all sẽ đá nhầm người của tenant
 - [ ] `pnpm --filter @vexenhanh/api exec prisma migrate status` → `Database schema is up to date!`
 - [ ] Migration chạy được trên DB **trống** (không chỉ DB đang có): `docker compose down -v` → `up -d` → `prisma:migrate:dev` → `db:seed`
@@ -71,7 +73,7 @@
 
 | Sub-task              | DoD                                                                                                   | ✓   |
 | --------------------- | ----------------------------------------------------------------------------------------------------- | --- |
-| `.1` Quyết định      | Q1–Q5 chốt + ghi lại; doc Security cập nhật nếu Q1=(a)                                             | [ ] |
+| `.1` Quyết định      | Q1–Q5 chốt + ghi lại; doc Security cập nhật nếu Q1=(a)                                             | [x] |
 | `.2` Schema           | Model + migration + index DB §7; chạy được trên DB trống                                            | [ ] |
 | `.3` Session service  | mint/rotate/revoke; rotate atomic; unit test phủ reuse + race                                          | [ ] |
 | `.4` Token + guard    | claim `sid`; `verifyAccessToken`; guard authn-only chặn token sửa/hết hạn/đã revoke               | [ ] |
