@@ -3,7 +3,10 @@ import { AuditModule } from "../audit/audit.module";
 import { APP_CONFIG, type AppConfig } from "../config/env.config";
 import { DatabaseModule } from "../database/database.module";
 import { PrismaService } from "../database/prisma.service";
-import { EMAIL_NOTIFIER, type EmailNotifier } from "../external/notification/email-notifier";
+import {
+  EMAIL_NOTIFIER,
+  type EmailNotifier,
+} from "../external/notification/email-notifier";
 import { NotificationModule } from "../external/notification/notification.module";
 import { RedisModule } from "../redis/redis.module";
 import { createAuth } from "./auth/auth.config";
@@ -14,6 +17,8 @@ import { CredentialService } from "./auth/credential.service";
 import { LoginHistoryService } from "./auth/login-history.service";
 import { OtpRateLimiter } from "./auth/otp-rate-limiter";
 import { TokenService } from "./auth/token.service";
+import { RefreshTokenService } from "./session/refresh-token.service";
+import { SessionService } from "./session/session.service";
 
 /** TASK-IAM-001 — Better Auth + login 3-namespace (DOMAIN-MAP `iam/auth`). */
 @Module({
@@ -23,15 +28,20 @@ import { TokenService } from "./auth/token.service";
     {
       provide: BETTER_AUTH,
       inject: [PrismaService, APP_CONFIG, EMAIL_NOTIFIER],
-      useFactory: (prisma: PrismaService, config: AppConfig, notifier: EmailNotifier) =>
-        createAuth(prisma, config, notifier)
+      useFactory: (
+        prisma: PrismaService,
+        config: AppConfig,
+        notifier: EmailNotifier,
+      ) => createAuth(prisma, config, notifier),
     },
     TokenService,
     CredentialService,
     OtpRateLimiter,
     LoginHistoryService,
-    AuthService
+    AuthService,
+    RefreshTokenService,
+    SessionService,
   ],
-  exports: [BETTER_AUTH, TokenService]
+  exports: [BETTER_AUTH, TokenService, SessionService],
 })
 export class IamModule {}

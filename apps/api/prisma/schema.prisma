@@ -225,7 +225,7 @@ enum SessionRevokeReason {
 model AuthSession {
   id               String               @id @default(uuid()) // = claim `sid` trong JWT
   subjectType      SubjectType          @map("subject_type")
-  subjecId         String               @map("subject_id")
+  subjectId        String               @map("subject_id")
   userRef          String               @map("user_ref")
   familyId         String               @map("family_id") // 1 login = 1 family; rotation Giữ nguyên
   /// SHA-256 của token opaque. KHÔNG scrypt: token là random 32-byte (entropy đã
