@@ -1,5 +1,13 @@
 import { randomUUID } from "node:crypto";
-import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
+import {
+  afterAll,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vitest";
 import type { AuditService } from "../../audit/audit.service";
 import { parseAppConfig } from "../../config/env.config";
 import { PrismaService } from "../../database/prisma.service";
@@ -114,5 +122,82 @@ describe.skipIf(!url)("SessionService — Postgres thật", () => {
     expect(JSON.stringify(audit.recordAuditEvent.mock.calls)).not.toContain(
       first.refreshToken,
     );
+  });
+
+  it("rotate hợp lệ: token mới khác token cữ, cùng family, row cũ trở sang row mới", async () => {
+    const first = await sessions.create(
+      { type: SubjectType.PASSENGER, id: subjectId },
+      {},
+    );
+    const second = await sessions.rotate(first.refreshToken, {});
+
+    expect(second.refreshToken).not.toBe(first.refreshToken);
+    expect(second.session.familyId).toBe(first.session.familyId);
+    const parent = await prisma.authSession.findUniqueOrThrow({
+      where: { id: first.session.id },
+    });
+    expect(parent.rotatedAt).not.toBeNull();
+    expect(parent.replacedById).toBe(second.session.id);
+
+    expect(JSON.stringify(parent)).not.toContain(first.refreshToken);
+  });
+
+  it("token không tồn tại / hết hạn / đã revoke: cùng AUTH_SESSION_EXPIRED, KHÔNG coi là reuse", async () => {
+    expect(await errorCode(sessions.rotate("khong-ton-tai", {}))).toBe(
+      "AUTH_SESSION_EXPIRED",
+    );
+
+    const expired = await sessions.create(
+      { type: SubjectType.PASSENGER, id: subjectId },
+      {},
+    );
+    await prisma.authSession.update({
+      where: { id: expired.session.id },
+      data: { expiresAt: new Date(Date.now() - 1000) },
+    });
+    expect(await errorCode(sessions.rotate(expired.refreshToken, {}))).toBe(
+      "AUTH_SESSION_EXPIRED",
+    );
+    const revoked = await sessions.create(
+      { type: SubjectType.PASSENGER, id: subjectId },
+      {},
+    );
+
+    await sessions.revokeSession(revoked.session.id, "LOGOUT");
+    expect(await errorCode(sessions.rotate(revoked.refreshToken, {}))).toBe(
+      "AUTH_SESSION_EXPIRED",
+    );
+    // Ba ca trên đều là "phiên đã hết", không phải tấn không audit, không đổi lý do revoke.
+    expect(audit.recordAuditEvent).not.toHaveBeenCalled();
+    const row = await prisma.authSession.findUniqueOrThrow({
+      where: { id: revoked.session.id },
+    });
+    expect(row.revokedReason).toBe("LOGOUT");
+  });
+  it("revokeAllForSubject(OPERATOR, id) không đụng EMPLOYEE trùng id (Q2)", async () => {
+    const shareId = `share_${randomUUID}`;
+    const operator = await sessions.create(
+      { type: SubjectType.OPERATOR, id: shareId },
+      {},
+    );
+    const employee = await sessions.create(
+      { type: SubjectType.EMPLOYEE, id: shareId },
+      {},
+    );
+
+    expect(
+      await sessions.revokeAllForSubject(
+        SubjectType.OPERATOR,
+        shareId,
+        "ACCOUNT_LOCKED",
+      ),
+    ).toBe(1);
+    expect(await errorCode(sessions.rotate(operator.refreshToken, {}))).toBe(
+      "AUTH_SESSION_EXPIRED",
+    );
+    const next = await sessions.rotate(employee.refreshToken, {});
+
+    expect(next.session.subjectType).toBe("EMPLOYEE");
+    await prisma.authSession.deleteMany({ where: { subjectId: shareId } });
   });
 });

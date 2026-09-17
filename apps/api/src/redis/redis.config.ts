@@ -3,6 +3,7 @@ import type { RedisOptions } from "ioredis";
 import { DEFAULT_REDIS_URL } from "./redis.constants";
 
 const DEFAULT_BULLMQ_PREFIX = "vexenhanh";
+const REQUEST_REDIS_COMMAND_TIMEOUT_MS = 1000;
 
 type Env = Record<string, string | undefined>;
 
@@ -19,17 +20,26 @@ export function createRedisClientOptions(connectionName: string): RedisOptions {
     connectionName,
     enableReadyCheck: false,
     lazyConnect: true,
-    maxRetriesPerRequest: null
+    maxRetriesPerRequest: null,
+  };
+}
+
+export function createRequestRedisClientOptions(
+  connectionName: string,
+): RedisOptions {
+  return {
+    ...createRedisClientOptions(connectionName),
+    maxRetriesPerRequest: 1,
+    commandTimeout: REQUEST_REDIS_COMMAND_TIMEOUT_MS,
   };
 }
 
 export function createBullMqConnectionOptions(
   connectionName: string,
-  env: Env = process.env
+  env: Env = process.env,
 ): ConnectionOptions {
   return {
     ...createRedisClientOptions(connectionName),
-    url: getRedisUrl(env)
+    url: getRedisUrl(env),
   };
 }
-

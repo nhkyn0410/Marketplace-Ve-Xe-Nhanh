@@ -5,7 +5,12 @@ import { HttpException, HttpStatus } from "@nestjs/common";
  * đọc `{ code, detail, title }` từ response. KHÔNG tiết lộ account tồn tại hay không (LLD §7).
  */
 export class AuthException extends HttpException {
-  constructor(status: HttpStatus, code: string, detail: string, title = "Authentication error") {
+  constructor(
+    status: HttpStatus,
+    code: string,
+    detail: string,
+    title = "Authentication error",
+  ) {
     super({ code, detail, title }, status);
   }
 }
@@ -15,7 +20,7 @@ export function invalidCredentials(): AuthException {
   return new AuthException(
     HttpStatus.UNAUTHORIZED,
     "AUTH_INVALID_CREDENTIALS",
-    "Thông tin đăng nhập không hợp lệ."
+    "Thông tin đăng nhập không hợp lệ.",
   );
 }
 
@@ -24,7 +29,7 @@ export function accountLocked(): AuthException {
   return new AuthException(
     HttpStatus.FORBIDDEN,
     "AUTH_ACCOUNT_LOCKED",
-    "Tài khoản đã bị khóa hoặc vô hiệu hóa."
+    "Tài khoản đã bị khóa hoặc vô hiệu hóa.",
   );
 }
 
@@ -33,7 +38,7 @@ export function otpRateLimited(): AuthException {
   return new AuthException(
     HttpStatus.TOO_MANY_REQUESTS,
     "AUTH_OTP_RATE_LIMITED",
-    "Yêu cầu OTP quá nhiều. Vui lòng thử lại sau."
+    "Yêu cầu OTP quá nhiều. Vui lòng thử lại sau.",
   );
 }
 
@@ -42,6 +47,15 @@ export function wrongLoginChannel(): AuthException {
   return new AuthException(
     HttpStatus.UNAUTHORIZED,
     "AUTH_INVALID_CREDENTIALS",
-    "Thông tin đăng nhập không hợp lệ."
+    "Thông tin đăng nhập không hợp lệ.",
+  );
+}
+
+/** Redis chết → fail-closed (KHÔNG bypass) nhưng trả đúng 503 thay vì 500 (ADR-015). */
+export function serviceUnavailable(): AuthException {
+  return new AuthException(
+    HttpStatus.SERVICE_UNAVAILABLE,
+    "SERVICE_UNAVAILABLE",
+    "Dịch vụ tạm thời không khả dụng, vui lòng thử lại sau",
   );
 }

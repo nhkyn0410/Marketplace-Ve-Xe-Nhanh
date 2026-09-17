@@ -2,8 +2,9 @@ import { describe, expect, it } from "vitest";
 import {
   createBullMqConnectionOptions,
   createRedisClientOptions,
+  createRequestRedisClientOptions,
   getBullMqPrefix,
-  getRedisUrl
+  getRedisUrl,
 } from "./redis.config";
 import { DEFAULT_REDIS_URL } from "./redis.constants";
 
@@ -16,10 +17,12 @@ describe("redis config", () => {
   it("trims configured Redis URL and BullMQ prefix", () => {
     const env = {
       BULLMQ_PREFIX: " custom-prefix ",
-      REDIS_URL: " rediss://default:secret@example.upstash.io:6379 "
+      REDIS_URL: " rediss://default:secret@example.upstash.io:6379 ",
     };
 
-    expect(getRedisUrl(env)).toBe("rediss://default:secret@example.upstash.io:6379");
+    expect(getRedisUrl(env)).toBe(
+      "rediss://default:secret@example.upstash.io:6379",
+    );
     expect(getBullMqPrefix(env)).toBe("custom-prefix");
   });
 
@@ -28,16 +31,32 @@ describe("redis config", () => {
       connectionName: "test-client",
       enableReadyCheck: false,
       lazyConnect: true,
-      maxRetriesPerRequest: null
+      maxRetriesPerRequest: null,
     });
 
-    expect(createBullMqConnectionOptions("test-bull", { REDIS_URL: "redis://cache:6379" })).toEqual({
+    expect(
+      createBullMqConnectionOptions("test-bull", {
+        REDIS_URL: "redis://cache:6379",
+      }),
+    ).toEqual({
       connectionName: "test-bull",
       enableReadyCheck: false,
       lazyConnect: true,
       maxRetriesPerRequest: null,
-      url: "redis://cache:6379"
+      url: "redis://cache:6379",
+    });
+  });
+
+  it("client đường request fail-fast; BullMQ vẫn giữ null", () => {
+    expect(createRequestRedisClientOptions("vexenhanh-api")).toEqual({
+      connectionName: "vexenhanh-api",
+      enableReadyCheck: false,
+      lazyConnect: true,
+      maxRetriesPerRequest: 1,
+      commandTimeout: 1000,
+    });
+    expect(createBullMqConnectionOptions("bull", {})).toMatchObject({
+      maxRetriesPerRequest: null,
     });
   });
 });
-

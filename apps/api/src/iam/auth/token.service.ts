@@ -1,5 +1,9 @@
 import { Inject, Injectable, Logger, type OnModuleInit } from "@nestjs/common";
 import { APP_CONFIG, type AppConfig } from "../../config/env.config";
+import z from "zod";
+import { createPublicKey } from "node:crypto";
+
+type VerifyKey = Awaited<ReturnType<Jose["importSPKI"]>>;
 
 const ALG = "RS256";
 
@@ -16,11 +20,32 @@ export type AuthScope = "passenger" | "operator" | "platform";
 export type AccessTokenClaims = {
   /** subject = id account (passenger user / operator-account / platform-account). */
   sub: string;
+  /**
+   * `auth_sessions.id` — để guard tra được phiên đã bị revoke chưa.
+   * Tuỳ chọn TẠM tới IAM-002.6 (4 đường login chưa tạo session). `.6` phải đổi thành bắt buộc.
+   */
+  sid?: string;
   scope: AuthScope;
   role: string;
   operatorId?: string;
   operatorSlug?: string;
 };
+
+/**
+ * Parse bằng Zod dù chữ ký đã đúng: chữ ký chỉ chứng minh token do ta ký, không chứng minh nó
+ * đúng hình dạng hiện tại — token IAM-001 (không có `sid`) vẫn ký hợp lệ nhưng KHÔNG revoke được.
+ */
+
+const verifiedClaimsSchema = z.object({
+  sub: z.string().min(1),
+  sid: z.uuid(),
+  scope: z.enum(["passenger", "operator", "platform"]),
+  role: z.string().min(1),
+  operatorId: z.string().min(1).optional(),
+  operatorSlug: z.string().min(1).optional(),
+});
+
+export type VerifiedAccessToken = z.infer<typeof verifiedClaimsSchema>;
 
 export type IssuedAccessToken = {
   accessToken: string;
@@ -38,6 +63,7 @@ export class TokenService implements OnModuleInit {
   private readonly logger = new Logger(TokenService.name);
   private jose!: Jose;
   private privateKey!: SignKey;
+  private publicKey!: VerifyKey;
 
   constructor(@Inject(APP_CONFIG) private readonly config: AppConfig) {}
 
@@ -47,6 +73,12 @@ export class TokenService implements OnModuleInit {
     const privatePem = decodePem(this.config.JWT_ACCESS_PRIVATE_KEY);
     if (privatePem) {
       this.privateKey = await this.jose.importPKCS8(privatePem, ALG);
+      // Suy public key TỪ private key thay vì đọc JWT_ACCESS_PUBLIC_KEY: một nguồn duy nhất,
+      // không thể lệch cặp. Lệch cặp = mọi token đều 401 mà lúc khởi động không báo gì.
+      const publicPem = createPublicKey(privatePem)
+        .export({ type: "spki", format: "pem" })
+        .toString();
+      this.publicKey = await this.jose.importSPKI(publicPem, ALG);
       return;
     }
 
@@ -59,6 +91,7 @@ export class TokenService implements OnModuleInit {
     );
     const pair = await this.jose.generateKeyPair(ALG, { extractable: true });
     this.privateKey = pair.privateKey;
+    this.publicKey = pair.publicKey;
   }
 
   async mintAccessToken(claims: AccessTokenClaims): Promise<IssuedAccessToken> {
@@ -67,6 +100,9 @@ export class TokenService implements OnModuleInit {
       scope: claims.scope,
       role: claims.role,
     };
+    if (claims.sid) {
+      payload.sid = claims.sid;
+    }
     if (claims.operatorId) {
       payload.operatorId = claims.operatorId;
     }
@@ -83,6 +119,24 @@ export class TokenService implements OnModuleInit {
       .sign(this.privateKey);
 
     return { accessToken, tokenType: "Bearer", expiresInSeconds: ttl };
+  }
+  /**
+   * `null` = không dùng được: sai chữ ký, hết hạn, sai issuer, sai thuật toán, thiếu/sai claim.
+   * Cố ý KHÔNG trả lý do — caller trả đúng một kiểu 401, không cho kẻ dò token biết sai ở đâu.
+   */
+
+  async verifyAccessToken(token: string): Promise<VerifiedAccessToken | null> {
+    try {
+      const { payload } = await this.jose.jwtVerify(token, this.publicKey, {
+        issuer: this.config.JWT_ISSUER,
+        // jose vốn đã từ chối `alg: none`; khoá cứng thuật toán để chặn nhầm thuật toán
+        algorithms: [ALG],
+      });
+      const claim = verifiedClaimsSchema.safeParse(payload);
+      return claim.success ? claim.data : null;
+    } catch {
+      return null;
+    }
   }
 }
 
