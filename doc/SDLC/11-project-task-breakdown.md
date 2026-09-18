@@ -13,7 +13,7 @@
 | Người viết    | Nguyễn Hồng Khanh, AI Agent |
 | Người duyệt   | Nguyễn Hồng Khanh           |
 | Ngày tạo      | 11/05/2026                  |
-| Ngày cập nhật | 08/09/2026                  |
+| Ngày cập nhật | 17/09/2026                  |
 
 ### 1.2. Lịch sử thay đổi
 
@@ -24,6 +24,8 @@
 | v0.3      | 01/06/2026 | AI Agent       | **Sprint 4 Rework** — bake toàn bộ 19 layer stack (ADR-002 + 009..026). §6 cập nhật trạng thái doc (HLD/DB/LLD/API/Security/Test/Ops rework DONE). §7 task theo module gắn stack: Foundation (Turborepo+pnpm+Render+GitHub Actions+Prisma+BullMQ worker tách), IAM (Better Auth 3-namespace+token+RLS+TOTP+OAuth), BTP (Redis hold+VNPay/MoMo+dedup+escrow+payout manual), NSR (Resend+Expo+sms-noop BullMQ), thêm TASK-TEST (Vitest+Supertest+Playwright+Maestro). §8 DoD thêm money BIGINT/RLS/OpenAPI gen. §10 refine OQ. |
 | v0.4      | 08/09/2026 | AI Agent       | **Cascade ADR-028** (Mobile: Expo / React Native → Flutter). §7.5 `TASK-EMP-001` nguồn `ADR-014` → `ADR-028`; §7.6 `TASK-NSR-001` push `Expo` → `FCM/APNs`; §8 DoD Mobile `expo-secure-store` → `flutter_secure_storage` + thêm `integration_test`.                                                                                                                                                                                                                                                                          |
 | v0.5      | 09/09/2026 | AI Agent       | Thêm **`TASK-FND-009`** — setup 2 app Flutter (`apps/passenger_mobile` + `apps/employee_mobile`, `packages/mobile_shared/`, Dart client `packages/api_client_dart/` sinh bằng `openapi-generator` pin `v7.25.0`), dependency `TASK-FND-008`. Sửa `TASK-OPS-001`: "EAS mobile" → build mobile Flutter (Android local; iOS tuỳ chọn khi có macOS) — vết Expo còn sót sau cascade v0.4.                                                                                                                                         |
+| v0.6      | 17/09/2026 | AI Agent       | Thêm **`TASK-FND-010`** — nền FE web (Tailwind 4 + token VXN + Shadcn/ui + khung layout 3 app), dependency `TASK-FND-001`. Khanh chốt Shadcn/ui cho cả 3 app web (ADR-013). |
+| v0.7      | 17/09/2026 | AI Agent       | Rà FE cũ phát hiện 4 nhóm yêu cầu SRS chưa có task chứa → thêm **`TASK-MKT-001`** (profile công khai Operator, FR-MKT-06 + FR-NSR-15), **`TASK-MKT-002`** (hồ sơ hành khách + hành khách thường dùng, FR-IAM-11 + FR-MKT-13), **`TASK-PROM-001`** (promotion, FR-PROM-01..07 + FR-ADM-12), **`TASK-ADM-003`** (kiểm duyệt nội dung, FR-ADM-13). Thu hẹp nguồn `TASK-ADM-002` `FR-ADM-10..17` → `FR-ADM-10..11, 14..17` để FR-ADM-12/13 chỉ thuộc một task. `TASK-FND-010`: layout Marketplace đổi header → sidebar. |
 
 ---
 
@@ -127,6 +129,7 @@ Sau Sprint 5 rework + Sprint 4 Phase 4 DevOps, các doc thiết kế đã reset 
 | TASK-FND-007 | Audit module base (Mongo append-only) + ESLint boundary rule                                                                                                                                                                                                                                                                                                                                                                                      | ADR-010/011     | BE     | TASK-FND-006 | Done                 |
 | TASK-FND-008 | OpenAPI auto-gen (nestjs-zod) + gen api-client (`openapi-typescript`) CI                                                                                                                                                                                                                                                                                                                                                                          | ADR-012         | BE     | TASK-FND-005 | Done                 |
 | TASK-FND-009 | **Setup 2 app Flutter**: `flutter create` `apps/passenger_mobile` + `apps/employee_mobile` (`--org com.vexenhanh`, `--project-name` snake_case trùng tên thư mục (quy ước 14/09/2026), `--platforms android,ios`); package Dart dùng chung `packages/mobile_shared/`; Dart client `packages/api_client_dart/` sinh bằng `openapi-generator` **pin v7.25.0** + `dart-dio`; pin Flutter SDK qua FVM; CI job `flutter analyze` + `flutter test` tách khỏi job Node | ADR-028         | Mobile | TASK-FND-008 | Done                 |
+| TASK-FND-010 | **Nền FE web** cho `apps/marketplace` + `apps/operator-os` + `apps/admin`: Tailwind CSS 4 + design token VXN (port từ FE cũ) + **Shadcn/ui** trong `packages/ui` (xuất source, `transpilePackages`) + font Be Vietnam Pro + khung layout (sidebar + footer Marketplace theo `CustomerShell` FE cũ; sidebar Operator OS/Admin; mục điều hướng theo 06 UI §5). KHÔNG gồm màn hình nghiệp vụ, auth, API client, phần Employee | ADR-013 | FE | TASK-FND-001 | In progress |
 
 ### 7.2. IAM
 
@@ -167,8 +170,12 @@ Sau Sprint 5 rework + Sprint 4 Phase 4 DevOps, các doc thiết kế đã reset 
 | TASK-EMP-001   | Employee assignment/passenger list (employee_mobile)     | FR-EMP-01..06, ADR-028   | BE/Mobile | TASK-IAM-005, TASK-TRN-003 | Draft  |
 | TASK-EMP-002   | QR check-in + trip status (Maestro test)                 | FR-EMP-07..13            | BE/Mobile | TASK-BTP-004, TASK-EMP-001 | Draft  |
 | TASK-ADM-001   | Admin KYC approve/catalog/policy                         | FR-ADM-02..09            | BE/FE     | TASK-IAM-005               | Draft  |
-| TASK-ADM-002   | Admin payment/refund/payout confirm/dispute/audit        | FR-ADM-10..17, FR-DSP-\* | BE/FE     | TASK-BTP-005, TASK-FND-007 | Draft  |
+| TASK-ADM-002   | Admin payment/refund/payout confirm/dispute/audit        | FR-ADM-10..11, FR-ADM-14..17, FR-DSP-\* | BE/FE     | TASK-BTP-005, TASK-FND-007 | Draft  |
 | TASK-TRUST-001 | Review/support/complaint/dispute workflow                | FR-NSR-06..11, FR-DSP-\* | BE/FE     | TASK-BTP-004               | Draft  |
+| TASK-MKT-001   | Profile công khai Operator: thông tin, đánh giá, scorecard, tuyến tiêu biểu, điều khoản dịch vụ | FR-MKT-06, FR-NSR-15, UC-03 | BE/FE | TASK-OPR-001, TASK-TRUST-001 | Draft |
+| TASK-MKT-002   | Hồ sơ hành khách + lưu hành khách thường dùng để đặt vé nhanh | FR-IAM-11, FR-MKT-13, UC-01 | BE/FE | TASK-IAM-003 | Draft |
+| TASK-PROM-001  | Promotion cấp Platform / Operator: rule + guardrail + giới hạn lượt dùng + redemption snapshot vào booking; màn quản lý (Admin, Operator OS) + nhập mã ở checkout; **test money bắt buộc** | FR-PROM-01..07, FR-ADM-12, FR-MKT-10, UC-33 | BE/FE | TASK-BTP-002, TASK-IAM-003 | Draft |
+| TASK-ADM-003   | Kiểm duyệt nội dung: review, báo cáo vi phạm, banner, FAQ, content page (ảnh qua R2 bucket public) + hiển thị banner/FAQ ở Marketplace | FR-ADM-13, UC-28, ADR-018 | BE/FE | TASK-TRUST-001, TASK-IAM-003 | Draft |
 
 ### 7.6. Notification, reporting, operation, test
 

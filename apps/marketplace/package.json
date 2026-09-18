@@ -11,8 +11,14 @@
     "test": "vitest run --passWithNoTests"
   },
   "dependencies": {
+    "@vexenhanh/ui": "workspace:*",
+    "lucide-react": "^1.47.0",
     "next": "^16.2.7",
     "react": "^19.2.7",
     "react-dom": "^19.2.7"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.3.3",
+    "tailwindcss": "^4.3.3"
   }
 }
