@@ -13,7 +13,7 @@
 | Người viết    | Nguyễn Hồng Khanh, AI Agent |
 | Người duyệt   | Nguyễn Hồng Khanh           |
 | Ngày tạo      | 11/05/2026                  |
-| Ngày cập nhật | 08/09/2026                  |
+| Ngày cập nhật | 17/09/2026                  |
 
 ### 1.2. Lịch sử thay đổi
 
@@ -21,6 +21,7 @@
 | --------- | ---------- | -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | v0.1      | 11/05/2026 | AI Agent       | Tạo bản nháp UI/UX Flow Specification                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
 | v0.2      | 01/06/2026 | AI Agent       | **Rework** đồng bộ stack/quyết định (UI vốn tech-independent, chỉ chỉnh touchpoint): §4 kênh = Marketplace/Operator OS/Admin (Next.js) + 2 app Expo (Passenger/Employee) (ADR-013/014); §6.1 thêm flow đăng nhập Passenger (Email OTP + OAuth Google/FB/Apple, ADR-020); §6.2 payment = VNPay/MoMo redirect + seat hold timer 10 phút; §7/§9 login `{slug}/{username}` + `platform/{username}` + TOTP (ADR-017); §9 thêm flow payout confirm (manual + bank ref, ADR-022); KYC upload R2 (ADR-018). Đổi "User" → "Passenger". **Đóng UX-OQ-01** (guest checkout per SRS), **UX-OQ-02** (cookie+Bearer per ADR-017), **UX-OQ-05** (brand trung lập per OQ-20). |
+| v0.3      | 17/09/2026 | AI Agent       | §3: component lib đã chốt **Shadcn/ui + Tailwind CSS 4** cho cả 3 app web (ADR-013, Khanh chốt). |
 
 ---
 
@@ -42,7 +43,7 @@
 
 ## 3. Giới thiệu
 
-Tài liệu này mô tả luồng màn hình, trạng thái giao diện, form validation và xử lý lỗi ở mức UX. UI/UX độc lập tech-stack về bản chất; bản rework này chỉ đồng bộ các touchpoint kỹ thuật (auth, payment, kênh) với quyết định đã chốt. Tham chiếu: `01-srs`, `05-api` (v0.2, endpoint), `07-security` (v0.4, auth UX), `context/GLOSSARY` (actor naming). Visual/component/wireframe chi tiết phát triển sau khi flow được duyệt + sau khi chốt component lib (ADR-013 — Shadcn/ui recommend).
+Tài liệu này mô tả luồng màn hình, trạng thái giao diện, form validation và xử lý lỗi ở mức UX. UI/UX độc lập tech-stack về bản chất; bản rework này chỉ đồng bộ các touchpoint kỹ thuật (auth, payment, kênh) với quyết định đã chốt. Tham chiếu: `01-srs`, `05-api` (v0.2, endpoint), `07-security` (v0.4, auth UX), `context/GLOSSARY` (actor naming). Visual/component/wireframe chi tiết phát triển sau khi flow được duyệt + trên component lib đã chốt (ADR-013 — Shadcn/ui + Tailwind CSS 4).
 
 ---
 

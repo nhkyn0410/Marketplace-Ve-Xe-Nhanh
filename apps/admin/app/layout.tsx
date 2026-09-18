@@ -1,14 +1,30 @@
+import "@vexenhanh/ui/globals.css";
+
 import type { Metadata } from "next";
+import { Be_Vietnam_Pro } from "next/font/google";
 import type { ReactNode } from "react";
 
+import { AppShell } from "../components/app-shell";
+
+const beVietnamPro = Be_Vietnam_Pro({
+  subsets: ["latin", "vietnamese"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-be-vietnam-pro",
+  display: "swap"
+});
+
 export const metadata: Metadata = {
-  title: "Ve Xe Nhanh Admin"
+  title: { default: "Admin hệ thống | Vé Xe Nhanh", template: "%s | Admin hệ thống" },
+  // Cổng nội bộ sau đăng nhập — không cho công cụ tìm kiếm index.
+  robots: { index: false, follow: false }
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="vi">
-      <body>{children}</body>
+    <html lang="vi" className={beVietnamPro.variable}>
+      <body>
+        <AppShell>{children}</AppShell>
+      </body>
     </html>
   );
 }

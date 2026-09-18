@@ -16,7 +16,7 @@ Managed marketplace bán vé xe khách, 3 bên (Passenger ↔ Platform ↔ Opera
 - **Cache / lock / queue**: Redis 7 (Upstash) + `ioredis`; **BullMQ** (`@nestjs/bullmq`).
 - **Auth**: Better Auth + custom NestJS adapter; JWT RS256 15min + opaque refresh 30d (rotation + family); 3 namespace (Passenger=Email / Operator=`{slug}/{username}` / Platform=`platform/{username}`); RBAC 8-role enum; TenantGuard + Postgres RLS; TOTP.
 - **API**: REST + OpenAPI 3.1 auto từ Zod; URL `/v1`; error RFC 7807; webhook HMAC.
-- **Frontend**: Next.js 16 App Router; **Turborepo + pnpm** monorepo.
+- **Frontend**: Next.js 16 App Router; **Turborepo + pnpm** monorepo; UI = **Shadcn/ui + Tailwind CSS 4** trong `packages/ui` (ADR-013).
 - **Mobile**: Flutter 3.x + Dart 3.x (2 app: `passenger_mobile`, `employee_mobile`) — ADR-028. Nằm **ngoài** pnpm workspace / Turborepo; dùng `flutter`/`dart` CLI.
 - **Vendor** (sau adapter): VNPay + MoMo (payment), Resend (email), FCM + APNs (push), OAuth Google/FB/Apple, Goong (routing/map), Cloudflare R2 (storage), manual payout.
 - **DevOps**: Render PaaS (SG); worker = Render Background Worker tách; Vitest + Supertest + Playwright + Maestro; GitHub Actions + Sentry + Pino + OpenTelemetry.
