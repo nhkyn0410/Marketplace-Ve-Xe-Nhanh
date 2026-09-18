@@ -1,0 +1,107 @@
+name: DB integration
+
+# Chạy các test cần hạ tầng THẬT (`*.int.spec.ts`) — ở `ci.yml` chúng tự bỏ qua vì không có DB.
+# Bắt buộc theo ADR-025 (tenant-RLS, idempotency refresh/rotation) và TASK-IAM-003: trước job này,
+# một migration lỡ bỏ FORCE/policy RLS vẫn merge xanh vì test RLS chưa từng chạy ở CI.
+#
+# Làm đúng như production: migrate bằng OWNER, app + test chạy bằng ROLE APP (không superuser,
+# không BYPASSRLS) — chạy test bằng owner thì RLS vô hiệu và test xanh giả.
+# REQUIRE_DB_TESTS=1: thiếu DB thì test ĐỎ thay vì lặng lẽ skip.
+
+on:
+  push:
+    branches:
+      - develop
+  pull_request:
+    branches:
+      - develop
+    types:
+      - opened
+      - synchronize
+      - reopened
+      - ready_for_review
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  db-integration:
+    name: Postgres + Redis + Mongo thật
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: vexenhanh
+          POSTGRES_PASSWORD: vexenhanh_ci
+          POSTGRES_DB: vexenhanh_ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U vexenhanh -d vexenhanh_ci"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+      mongo:
+        image: mongo:7
+        env:
+          MONGO_INITDB_ROOT_USERNAME: vexenhanh
+          MONGO_INITDB_ROOT_PASSWORD: vexenhanh_ci
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd "mongosh --quiet --eval 'db.runCommand({ ping: 1 }).ok'"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+
+    env:
+      CI: true
+      NODE_ENV: test
+      REQUIRE_DB_TESTS: "1"
+      MIGRATION_DATABASE_URL: postgresql://vexenhanh:vexenhanh_ci@localhost:5432/vexenhanh_ci?schema=public
+      DATABASE_URL: postgresql://vexenhanh_app:vexenhanh_app_ci@localhost:5432/vexenhanh_ci?schema=public
+      REDIS_URL: redis://localhost:6379
+      MONGODB_AUDIT_URI: mongodb://vexenhanh:vexenhanh_ci@localhost:27017/vexenhanh_audit?authSource=admin
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v6
+        with:
+          run_install: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # Owner migrate TRƯỚC, rồi mới tạo role app (script từ chối chạy khi chưa có _prisma_migrations).
+      - name: Migrate (owner)
+        run: pnpm --filter @vexenhanh/api exec prisma migrate deploy
+
+      - name: Create app role (NOSUPERUSER, NOBYPASSRLS)
+        run: pnpm --filter @vexenhanh/api db:app-role
+
+      - name: Build shared types
+        run: pnpm --filter @vexenhanh/types build
+
+      - name: Integration tests (role app)
+        run: pnpm --filter @vexenhanh/api exec vitest run

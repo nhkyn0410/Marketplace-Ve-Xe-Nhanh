@@ -7,7 +7,7 @@ import { ZodValidationPipe } from "nestjs-zod";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { AppModule } from "../../app.module";
 import { ProblemDetailsExceptionFilter } from "../../common/errors/problem-details.filter";
-import { PrismaService } from "../../database/prisma.service";
+import { type DbTransaction, PrismaService } from "../../database/prisma.service";
 import { configureApiRoutes } from "../../openapi/openapi";
 import { REDIS_CLIENT } from "../../redis/redis.config";
 import { CredentialService } from "./credential.service";
@@ -20,6 +20,28 @@ import { CredentialService } from "./credential.service";
 const ready = Boolean(
   process.env.DATABASE_URL && process.env.REDIS_URL && process.env.MONGODB_AUDIT_URI,
 );
+
+/**
+ * `auth_sessions` có RLS (TASK-IAM-003): test đọc/ghi thẳng bảng thì phải qua ngữ cảnh system,
+ * giống code thật. Proxy giữ nguyên cú pháp `sessionsTable.findMany(...)`.
+ */
+function systemSessions(prisma: PrismaService): DbTransaction["authSession"] {
+  return new Proxy({} as DbTransaction["authSession"], {
+    // `then` phải là undefined — nếu không Proxy bị coi là Promise khi lỡ `await`.
+    get: (_target, operation: string) =>
+      operation === "then"
+        ? undefined
+        : (args: unknown) =>
+      prisma.withSystem((tx) =>
+        (
+          tx.authSession as unknown as Record<
+            string,
+            (args: unknown) => Promise<unknown>
+          >
+        )[operation]!(args),
+      ),
+  });
+}
 
 type TokenPair = {
   accessToken: string;
@@ -36,12 +58,14 @@ function sidOf(accessToken: string): string {
   return payload.sid;
 }
 
-describe.skipIf(!ready)("Auth session — HTTP thật (IAM-002)", () => {
+// CI job `db-integration` đặt REQUIRE_DB_TESTS=1: thiếu hạ tầng thì ĐỎ thay vì lặng lẽ bỏ qua.
+describe.skipIf(!ready && process.env.REQUIRE_DB_TESTS !== "1")("Auth session — HTTP thật (IAM-002)", () => {
   const username = `e2e_${randomUUID().slice(0, 8)}`;
   const password = `E2e!${randomUUID()}`;
   let app: INestApplication;
   let base: string;
   let prisma: PrismaService;
+  let sessionsTable: DbTransaction["authSession"];
   let redis: Redis;
   let accountId: string;
 
@@ -85,6 +109,7 @@ describe.skipIf(!ready)("Auth session — HTTP thật (IAM-002)", () => {
     base = `http://127.0.0.1:${(app.getHttpServer().address() as AddressInfo).port}/v1`;
 
     prisma = app.get(PrismaService);
+    sessionsTable = systemSessions(prisma);
     redis = app.get<Redis>(REDIS_CLIENT);
     await clearLoopbackBuckets();
 
@@ -100,7 +125,7 @@ describe.skipIf(!ready)("Auth session — HTTP thật (IAM-002)", () => {
 
   afterAll(async () => {
     if (prisma && accountId) {
-      await prisma.authSession.deleteMany({ where: { subjectId: accountId } });
+      await sessionsTable.deleteMany({ where: { subjectId: accountId } });
       await prisma.platformAccount.delete({ where: { id: accountId } });
     }
     if (redis) {
@@ -117,7 +142,7 @@ describe.skipIf(!ready)("Auth session — HTTP thật (IAM-002)", () => {
     expect(pair.refreshToken).toEqual(expect.any(String));
     expect(pair.refreshExpiresIn).toBe(30 * 24 * 60 * 60);
 
-    const row = await prisma.authSession.findUniqueOrThrow({
+    const row = await sessionsTable.findUniqueOrThrow({
       where: { id: sidOf(pair.accessToken) },
     });
     expect(row.subjectType).toBe("PLATFORM");

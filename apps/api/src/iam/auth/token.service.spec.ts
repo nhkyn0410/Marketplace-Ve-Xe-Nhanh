@@ -113,6 +113,7 @@ describe("TokenService.verifyAccessToken", () => {
     scope: "operator" as const,
     role: "OPERATOR_OWNER",
     operatorId: "op-1",
+    operatorSlug: "phuongtrang",
   };
   let service: TokenService;
 
@@ -205,6 +206,22 @@ describe("TokenService.verifyAccessToken", () => {
       .setIssuedAt()
       .sign(pair.privateKey);
     expect(await keyed.verifyAccessToken(noExp)).toBeNull();
+  });
+
+  it("role không thuộc namespace của scope → null (TASK-IAM-003)", async () => {
+    for (const [scope, role] of [
+      ["platform", "PASSENGER"],
+      ["passenger", "PLATFORM_ADMIN"],
+      ["platform", "SUPER_ADMIN"],
+    ] as const) {
+      const { accessToken } = await service.mintAccessToken({ sub: "x", sid: randomUUID(), scope, role });
+      expect(await service.verifyAccessToken(accessToken), `${scope}/${role}`).toBeNull();
+    }
+  });
+
+  it("token operator thiếu operatorId/operatorSlug → null", async () => {
+    const { accessToken } = await service.mintAccessToken({ ...claims, operatorSlug: undefined });
+    expect(await service.verifyAccessToken(accessToken)).toBeNull();
   });
 
   it("alg none → null", async () => {

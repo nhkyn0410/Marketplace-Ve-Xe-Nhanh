@@ -11,7 +11,7 @@ import {
 } from "vitest";
 import type { AuditService } from "../../audit/audit.service";
 import { parseAppConfig } from "../../config/env.config";
-import { PrismaService } from "../../database/prisma.service";
+import { type DbTransaction, PrismaService } from "../../database/prisma.service";
 import { SubjectType } from "../../database/prisma.types";
 import { RefreshTokenService } from "./refresh-token.service";
 import type { SessionCache } from "./session-cache";
@@ -20,6 +20,31 @@ import { SessionService } from "./session.service";
 import { HttpException, Logger } from "@nestjs/common";
 
 const url = process.env.DATABASE_URL;
+// CI job `db-integration` đặt REQUIRE_DB_TESTS=1: thiếu DB thì ĐỎ thay vì lặng lẽ bỏ qua (xanh giả).
+const requireDb = process.env.REQUIRE_DB_TESTS === "1";
+
+/**
+ * `auth_sessions` có RLS (TASK-IAM-003): test đọc/ghi thẳng bảng thì phải qua ngữ cảnh system,
+ * giống code thật. Proxy giữ nguyên cú pháp `sessionsTable.findMany(...)`.
+ */
+function systemSessions(prisma: PrismaService): DbTransaction["authSession"] {
+  return new Proxy({} as DbTransaction["authSession"], {
+    // `then` phải là undefined — nếu không Proxy bị coi là Promise khi lỡ `await`.
+    get: (_target, operation: string) =>
+      operation === "then"
+        ? undefined
+        : (args: unknown) =>
+      prisma.withSystem((tx) =>
+        (
+          tx.authSession as unknown as Record<
+            string,
+            (args: unknown) => Promise<unknown>
+          >
+        )[operation]!(args),
+      ),
+  });
+}
+
 const audit = { recordAuditEvent: vi.fn() };
 
 function actions(): string[] {
@@ -40,8 +65,10 @@ async function errorCode(
 }
 
 // Tự bỏ qua khi không có DB — `pnpm test` trong CI không có Postgres.
-describe.skipIf(!url)("SessionService — Postgres thật", () => {
+describe.skipIf(!url && !requireDb)("SessionService — Postgres thật", () => {
   let prisma: PrismaService;
+  let sessionsTable: DbTransaction["authSession"];
+  let refreshTokens: RefreshTokenService;
   let sessions: SessionService;
   const subjectId = `int_${randomUUID()}`;
   // Redis có spec riêng (session-cache.spec.ts); ở đây chỉ cần biết service đánh dấu ĐÚNG phiên nào.
@@ -70,10 +97,12 @@ describe.skipIf(!url)("SessionService — Postgres thật", () => {
         { cause: error },
       );
     }
+    sessionsTable = systemSessions(prisma);
+    refreshTokens = new RefreshTokenService();
     sessions = new SessionService(
       config,
       prisma,
-      new RefreshTokenService(),
+      refreshTokens,
       audit as unknown as AuditService,
       cache as unknown as SessionCache,
     );
@@ -90,7 +119,7 @@ describe.skipIf(!url)("SessionService — Postgres thật", () => {
   afterAll(async () => {
     // DB không lên thì dọn dẹp cũng chỉ ném thêm một ECONNREFUSED che mất lỗi thật.
     if (reachable) {
-      await prisma.authSession.deleteMany({ where: { subjectId } });
+      await sessionsTable.deleteMany({ where: { subjectId } });
     }
     await prisma.$disconnect();
   });
@@ -104,35 +133,41 @@ describe.skipIf(!url)("SessionService — Postgres thật", () => {
     // Ép hai request CHỒNG LÊN NHAU thật: cả hai đọc row cha (thấy chưa rotate) rồi mới đi tiếp.
     // Không có rào này thì request đầu có thể commit xong trước khi request sau kịp đọc — request sau
     // đi nhánh `if (current.rotatedAt)` và câu UPDATE có điều kiện không hề được thử.
-    const read = prisma.authSession.findUnique.bind(prisma.authSession);
-    let reads = 0;
+    // Hai lần `withSystem` đầu tiên của cuộc đua là hai lượt đọc row cha — giữ chúng lại cho tới
+    // khi CẢ HAI đã đọc xong.
+    const withSystem = prisma.withSystem.bind(prisma);
+    let calls = 0;
     let open!: () => void;
     const barrier = new Promise<void>((resolve) => (open = resolve));
-    const spy = vi
-      .spyOn(prisma.authSession, "findUnique")
-      .mockImplementation((async (args: Parameters<typeof read>[0]) => {
-        const row = await read(args);
-        reads += 1;
-        if (reads === 2) open();
+    const spy = vi.spyOn(prisma, "withSystem").mockImplementation((async (
+      work: Parameters<typeof withSystem>[0],
+    ) => {
+      calls += 1;
+      const mine = calls;
+      const result = await withSystem(work);
+      if (mine <= 2) {
+        if (mine === 2) open();
         await barrier;
-        return row;
-      }) as unknown as typeof read);
-    const transactions = vi.spyOn(prisma, "$transaction");
+      }
+      return result;
+    }) as typeof withSystem);
+    // `mint()` chỉ chạy khi request đã qua kiểm tra `rotatedAt` và sắp vào transaction.
+    const mint = vi.spyOn(refreshTokens, "mint");
 
     const results = await Promise.allSettled([
       sessions.rotate(first.refreshToken, {}),
       sessions.rotate(first.refreshToken, {}),
     ]);
     spy.mockRestore();
-    const transactionCount = transactions.mock.calls.length;
-    transactions.mockRestore();
+    const mintCount = mint.mock.calls.length;
+    mint.mockRestore();
 
     expect(results.filter((r) => r.status === "fulfilled")).toHaveLength(1);
     // Cả hai đều vào transaction → bên thua bị chặn bởi chính câu UPDATE có điều kiện rồi rollback.
-    expect(transactionCount).toBe(2);
+    expect(mintCount).toBe(2);
 
     // Đúng 2 row trong family: gốc + đúng 1 row con. Row con của bên thua đã rollback.
-    const family = await prisma.authSession.findMany({
+    const family = await sessionsTable.findMany({
       where: { familyId: first.session.familyId },
     });
     expect(family).toHaveLength(2);
@@ -151,7 +186,7 @@ describe.skipIf(!url)("SessionService — Postgres thật", () => {
       "AUTH_SESSION_EXPIRED",
     );
 
-    const family = await prisma.authSession.findMany({
+    const family = await sessionsTable.findMany({
       where: { familyId: first.session.familyId },
     });
     expect(family.every((s) => s.revokedReason === "REUSE_DETECTED")).toBe(
@@ -181,7 +216,7 @@ describe.skipIf(!url)("SessionService — Postgres thật", () => {
 
     expect(second.refreshToken).not.toBe(first.refreshToken);
     expect(second.session.familyId).toBe(first.session.familyId);
-    const parent = await prisma.authSession.findUniqueOrThrow({
+    const parent = await sessionsTable.findUniqueOrThrow({
       where: { id: first.session.id },
     });
     expect(parent.rotatedAt).not.toBeNull();
@@ -199,7 +234,7 @@ describe.skipIf(!url)("SessionService — Postgres thật", () => {
       { type: SubjectType.PASSENGER, id: subjectId },
       {},
     );
-    await prisma.authSession.update({
+    await sessionsTable.update({
       where: { id: expired.session.id },
       data: { expiresAt: new Date(Date.now() - 1000) },
     });
@@ -217,19 +252,21 @@ describe.skipIf(!url)("SessionService — Postgres thật", () => {
     );
     // Ba ca trên đều là "phiên đã hết", không phải tấn công: không báo reuse, không đổi lý do revoke.
     expect(actions()).not.toContain("auth.token.reuse_detected");
-    const row = await prisma.authSession.findUniqueOrThrow({
+    const row = await sessionsTable.findUniqueOrThrow({
       where: { id: revoked.session.id },
     });
     expect(row.revokedReason).toBe("LOGOUT");
   });
   it("revokeAllForSubject(OPERATOR, id) không đụng EMPLOYEE trùng id (Q2)", async () => {
     const shareId = `share_${randomUUID()}`;
+    // Phiên phía Operator luôn mang tenant (CHECK `auth_sessions_operator_matches_subject`, IAM-003).
+    const operatorId = randomUUID();
     const operator = await sessions.create(
-      { type: SubjectType.OPERATOR, id: shareId },
+      { type: SubjectType.OPERATOR, id: shareId, operatorId },
       {},
     );
     const employee = await sessions.create(
-      { type: SubjectType.EMPLOYEE, id: shareId },
+      { type: SubjectType.EMPLOYEE, id: shareId, operatorId },
       {},
     );
 
@@ -246,7 +283,7 @@ describe.skipIf(!url)("SessionService — Postgres thật", () => {
     const next = await sessions.rotate(employee.refreshToken, {});
 
     expect(next.session.subjectType).toBe("EMPLOYEE");
-    await prisma.authSession.deleteMany({ where: { subjectId: shareId } });
+    await sessionsTable.deleteMany({ where: { subjectId: shareId } });
   });
   it("logout: revoke cả family, chỉ đánh dấu Redis phiên còn access token sống, gọi lại vẫn êm", async () => {
     const first = await sessions.create(
@@ -255,7 +292,7 @@ describe.skipIf(!url)("SessionService — Postgres thật", () => {
     );
     const second = await sessions.rotate(first.refreshToken, {});
     // Row gốc phát từ 1 giờ trước: access token của nó (15 phút) đã chết, khỏi ghi Redis.
-    await prisma.authSession.update({
+    await sessionsTable.update({
       where: { id: first.session.id },
       data: { issuedAt: new Date(Date.now() - 60 * 60 * 1000) },
     });
@@ -263,7 +300,7 @@ describe.skipIf(!url)("SessionService — Postgres thật", () => {
     await sessions.logout(second.session.id);
     await sessions.logout(second.session.id);
 
-    const family = await prisma.authSession.findMany({
+    const family = await sessionsTable.findMany({
       where: { familyId: first.session.familyId },
     });
     expect(family.every((s) => s.revokedReason === "LOGOUT")).toBe(true);
@@ -289,7 +326,7 @@ describe.skipIf(!url)("SessionService — Postgres thật", () => {
     let release!: () => void;
     const gate = new Promise<void>((resolve) => (release = resolve));
     let childId = "";
-    const rotating = prisma.$transaction(
+    const rotating = prisma.withSystem(
       async (tx) => {
         const child = await tx.authSession.create({
           data: {
@@ -308,7 +345,6 @@ describe.skipIf(!url)("SessionService — Postgres thật", () => {
         childId = child.id;
         await gate;
       },
-      { timeout: 10_000 },
     );
     await vi.waitUntil(() => childId !== "", { timeout: 5_000 });
 
@@ -322,7 +358,7 @@ describe.skipIf(!url)("SessionService — Postgres thật", () => {
     await rotating;
     await revoking;
 
-    const child = await prisma.authSession.findUniqueOrThrow({
+    const child = await sessionsTable.findUniqueOrThrow({
       where: { id: childId },
     });
     expect(child.revokedAt).not.toBeNull();
@@ -341,7 +377,7 @@ describe.skipIf(!url)("SessionService — Postgres thật", () => {
 
     await expect(sessions.rotate(first.refreshToken, {})).rejects.toThrow("503");
 
-    const family = await prisma.authSession.findMany({
+    const family = await sessionsTable.findMany({
       where: { familyId: first.session.familyId },
     });
     expect(family.every((s) => s.revokedAt === null)).toBe(true);
@@ -351,7 +387,7 @@ describe.skipIf(!url)("SessionService — Postgres thật", () => {
     expect(await errorCode(sessions.rotate(first.refreshToken, {}))).toBe(
       "AUTH_SESSION_EXPIRED",
     );
-    const after = await prisma.authSession.findMany({
+    const after = await sessionsTable.findMany({
       where: { familyId: first.session.familyId },
     });
     expect(after.every((s) => s.revokedAt !== null)).toBe(true);
@@ -431,11 +467,11 @@ describe.skipIf(!url)("SessionService — Postgres thật", () => {
       {},
     );
     const day = 24 * 60 * 60 * 1000;
-    await prisma.authSession.update({
+    await sessionsTable.update({
       where: { id: old.session.id },
       data: { expiresAt: new Date(Date.now() - 31 * day) },
     });
-    await prisma.authSession.update({
+    await sessionsTable.update({
       where: { id: recent.session.id },
       data: { expiresAt: new Date(Date.now() - 1 * day) },
     });
@@ -443,10 +479,10 @@ describe.skipIf(!url)("SessionService — Postgres thật", () => {
     expect(await deleteExpiredSessions(prisma)).toBeGreaterThanOrEqual(1);
 
     expect(
-      await prisma.authSession.findUnique({ where: { id: old.session.id } }),
+      await sessionsTable.findUnique({ where: { id: old.session.id } }),
     ).toBeNull();
     expect(
-      await prisma.authSession.findUnique({ where: { id: recent.session.id } }),
+      await sessionsTable.findUnique({ where: { id: recent.session.id } }),
     ).not.toBeNull();
   });
 });
