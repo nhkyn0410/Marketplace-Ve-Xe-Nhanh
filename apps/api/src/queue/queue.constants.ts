@@ -1,7 +1,8 @@
 export const BULL_BOARD_PATH = "/admin/queues";
 
 export const QUEUE_NAMES = {
-  foundation: "foundation"
+  foundation: "foundation",
+  sessionMaintenance: "session-maintenance"
 } as const;
 
 export type QueueName = (typeof QUEUE_NAMES)[keyof typeof QUEUE_NAMES];

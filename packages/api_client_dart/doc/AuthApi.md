@@ -9,14 +9,54 @@ All URIs are relative to *http://localhost*
 
 Method | HTTP request | Description
 ------------- | ------------- | -------------
+[**authControllerLogout**](AuthApi.md#authcontrollerlogout) | **POST** /v1/auth/logout | 
 [**authControllerOauth**](AuthApi.md#authcontrolleroauth) | **POST** /v1/auth/oauth/{provider} | 
 [**authControllerOauthSession**](AuthApi.md#authcontrolleroauthsession) | **POST** /v1/auth/oauth/session | 
 [**authControllerOperatorLogin**](AuthApi.md#authcontrolleroperatorlogin) | **POST** /v1/auth/operator/login | 
 [**authControllerPlatformLogin**](AuthApi.md#authcontrollerplatformlogin) | **POST** /v1/auth/platform/login | 
+[**authControllerReauth**](AuthApi.md#authcontrollerreauth) | **POST** /v1/auth/re-auth | 
+[**authControllerRefresh**](AuthApi.md#authcontrollerrefresh) | **POST** /v1/auth/refresh | 
 [**authControllerRegister**](AuthApi.md#authcontrollerregister) | **POST** /v1/auth/register | 
 [**authControllerRequestOtp**](AuthApi.md#authcontrollerrequestotp) | **POST** /v1/auth/otp/request | 
 [**authControllerVerifyOtp**](AuthApi.md#authcontrollerverifyotp) | **POST** /v1/auth/otp/verify | 
 
+
+# **authControllerLogout**
+> MessageResponseDtoOutput authControllerLogout()
+
+
+
+### Example
+```dart
+import 'package:api_client_dart/api.dart';
+
+final api = ApiClientDart().getAuthApi();
+
+try {
+    final response = api.authControllerLogout();
+    print(response);
+} on DioException catch (e) {
+    print('Exception when calling AuthApi->authControllerLogout: $e\n');
+}
+```
+
+### Parameters
+This endpoint does not need any parameter.
+
+### Return type
+
+[**MessageResponseDtoOutput**](MessageResponseDtoOutput.md)
+
+### Authorization
+
+[bearer](../README.md#bearer)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json, application/problem+json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **authControllerOauth**
 > OAuthRedirectResponseDtoOutput authControllerOauth(provider, oAuthInitDto)
@@ -164,6 +204,88 @@ try {
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
  **credentialLoginDto** | [**CredentialLoginDto**](CredentialLoginDto.md)|  | 
+
+### Return type
+
+[**AuthTokenResponseDtoOutput**](AuthTokenResponseDtoOutput.md)
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
+ - **Accept**: application/json, application/problem+json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **authControllerReauth**
+> MessageResponseDtoOutput authControllerReauth(reauthDto)
+
+
+
+### Example
+```dart
+import 'package:api_client_dart/api.dart';
+
+final api = ApiClientDart().getAuthApi();
+final ReauthDto reauthDto = ; // ReauthDto | 
+
+try {
+    final response = api.authControllerReauth(reauthDto);
+    print(response);
+} on DioException catch (e) {
+    print('Exception when calling AuthApi->authControllerReauth: $e\n');
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **reauthDto** | [**ReauthDto**](ReauthDto.md)|  | 
+
+### Return type
+
+[**MessageResponseDtoOutput**](MessageResponseDtoOutput.md)
+
+### Authorization
+
+[bearer](../README.md#bearer)
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
+ - **Accept**: application/json, application/problem+json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **authControllerRefresh**
+> AuthTokenResponseDtoOutput authControllerRefresh(refreshTokenDto)
+
+
+
+### Example
+```dart
+import 'package:api_client_dart/api.dart';
+
+final api = ApiClientDart().getAuthApi();
+final RefreshTokenDto refreshTokenDto = ; // RefreshTokenDto | 
+
+try {
+    final response = api.authControllerRefresh(refreshTokenDto);
+    print(response);
+} on DioException catch (e) {
+    print('Exception when calling AuthApi->authControllerRefresh: $e\n');
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **refreshTokenDto** | [**RefreshTokenDto**](RefreshTokenDto.md)|  | 
 
 ### Return type
 

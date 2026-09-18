@@ -1,7 +1,7 @@
+import { randomUUID } from "node:crypto";
 import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import type { AppConfig } from "../../config/env.config";
 import { TokenService } from "./token.service";
-import { randomUUID } from "node:crypto";
 
 const config = {
   NODE_ENV: "test",
@@ -18,8 +18,10 @@ describe("TokenService", () => {
   });
 
   it("mints an RS256 access token carrying the expected claims", async () => {
+    const sid = randomUUID();
     const issued = await service.mintAccessToken({
       sub: "acc-1",
+      sid,
       scope: "operator",
       role: "OPERATOR_OWNER",
       operatorId: "op-1",
@@ -34,6 +36,7 @@ describe("TokenService", () => {
 
     const payload = decodeJwt(issued.accessToken);
     expect(payload.sub).toBe("acc-1");
+    expect(payload.sid).toBe(sid);
     expect(payload.scope).toBe("operator");
     expect(payload.role).toBe("OPERATOR_OWNER");
     expect(payload.operatorId).toBe("op-1");
@@ -57,6 +60,7 @@ describe("TokenService", () => {
 
     const issued = await keyed.mintAccessToken({
       sub: "acc-9",
+      sid: randomUUID(),
       scope: "platform",
       role: "PLATFORM_ADMIN",
     });
@@ -90,6 +94,7 @@ describe("TokenService", () => {
   it("omits operator claims for a passenger token", async () => {
     const issued = await service.mintAccessToken({
       sub: "user-1",
+      sid: randomUUID(),
       scope: "passenger",
       role: "PASSENGER",
     });
@@ -135,9 +140,10 @@ describe("TokenService.verifyAccessToken", () => {
   });
 
   it("token không có sid (kiểu IAM-001) → null", async () => {
+    // Kiểu đã bắt buộc `sid` từ IAM-002.6; ép kiểu để dựng lại đúng token IAM-001 còn lưu hành.
     const { accessToken } = await service.mintAccessToken({
       ...claims,
-      sid: undefined,
+      sid: undefined as unknown as string,
     });
     expect(await service.verifyAccessToken(accessToken)).toBeNull();
   });
@@ -183,6 +189,22 @@ describe("TokenService.verifyAccessToken", () => {
     vi.useFakeTimers({ toFake: ["Date"] });
     vi.setSystemTime(Date.now() + 901_000);
     expect(await service.verifyAccessToken(accessToken)).toBeNull();
+  });
+
+  it("ký hợp lệ nhưng thiếu exp → null (không được sống vĩnh viễn)", async () => {
+    const { generateKeyPair, exportPKCS8, SignJWT } = await import("jose");
+    const pair = await generateKeyPair("RS256", { extractable: true });
+    const keyed = new TokenService({
+      ...config,
+      JWT_ACCESS_PRIVATE_KEY: await exportPKCS8(pair.privateKey),
+    } as AppConfig);
+    await keyed.onModuleInit();
+    const noExp = await new SignJWT({ ...claims })
+      .setProtectedHeader({ alg: "RS256" })
+      .setIssuer("vexenhanh-test")
+      .setIssuedAt()
+      .sign(pair.privateKey);
+    expect(await keyed.verifyAccessToken(noExp)).toBeNull();
   });
 
   it("alg none → null", async () => {

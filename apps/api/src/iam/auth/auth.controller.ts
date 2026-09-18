@@ -1,11 +1,33 @@
-import { Body, Controller, HttpCode, Inject, Logger, Param, Post, Req } from "@nestjs/common";
-import { ApiBody, ApiExtraModels, ApiParam, ApiResponse, ApiTags, getSchemaPath } from "@nestjs/swagger";
+import {
+  applyDecorators,
+  Body,
+  Controller,
+  Header,
+  HttpCode,
+  Inject,
+  Logger,
+  Param,
+  Post,
+  Req,
+  UseGuards
+} from "@nestjs/common";
+import {
+  ApiBearerAuth,
+  ApiBody,
+  ApiExtraModels,
+  ApiParam,
+  ApiResponse,
+  ApiTags,
+  getSchemaPath
+} from "@nestjs/swagger";
 import type { Request } from "express";
 import { ZodResponse } from "nestjs-zod";
 import { resolveTrustedClientIp } from "../../common/trusted-client-ip";
 import { APP_CONFIG, type AppConfig } from "../../config/env.config";
 import { ProblemDetailsDto } from "../../openapi/openapi.dto";
+import { AccessTokenGuard, AllowRevokedSession } from "./access-token.guard";
 import { AuthService, type LoginResult, type RequestContext, SUPPORTED_OAUTH } from "./auth.service";
+import { CurrentUser } from "./current-user.decorator";
 import {
   AuthTokenResponseDto,
   type AuthTokenResponse,
@@ -17,8 +39,15 @@ import {
   OAuthRedirectResponseDto,
   OtpRequestDto,
   OtpVerifyDto,
+  ReauthDto,
+  RefreshTokenDto,
   RegisterDto
 } from "./dto/auth.dto";
+import type { VerifiedAccessToken } from "./token.service";
+
+/** Response mang token: không proxy/CDN nào được lưu lại (RFC 6749 §5.1). */
+const NoStore = () =>
+  applyDecorators(Header("Cache-Control", "no-store"), Header("Pragma", "no-cache"));
 
 const problemContent = {
   "application/problem+json": { schema: { $ref: getSchemaPath(ProblemDetailsDto) } }
@@ -63,6 +92,7 @@ export class AuthController {
 
   @Post("otp/verify")
   @HttpCode(200)
+  @NoStore()
   @ApiBody({ type: OtpVerifyDto })
   @ZodResponse({ status: 200, description: "Xác thực OTP → cấp access token.", type: AuthTokenResponseDto })
   @ApiResponse({ status: 401, description: "OTP không hợp lệ.", content: problemContent })
@@ -74,6 +104,7 @@ export class AuthController {
 
   @Post("operator/login")
   @HttpCode(200)
+  @NoStore()
   @ApiBody({ type: CredentialLoginDto })
   @ZodResponse({ status: 200, description: "Login Operator/Employee `{slug}/{username}`.", type: AuthTokenResponseDto })
   @ApiResponse({ status: 401, description: "Sai thông tin đăng nhập.", content: problemContent })
@@ -90,6 +121,7 @@ export class AuthController {
 
   @Post("platform/login")
   @HttpCode(200)
+  @NoStore()
   @ApiBody({ type: CredentialLoginDto })
   @ZodResponse({ status: 200, description: "Login Platform `platform/{username}`.", type: AuthTokenResponseDto })
   @ApiResponse({ status: 401, description: "Sai thông tin đăng nhập.", content: problemContent })
@@ -122,6 +154,7 @@ export class AuthController {
    */
   @Post("oauth/session")
   @HttpCode(200)
+  @NoStore()
   @ZodResponse({ status: 200, description: "Đổi Better Auth session (sau OAuth callback) → access token.", type: AuthTokenResponseDto })
   async oauthSession(@Req() req: Request): Promise<AuthTokenResponse> {
     return toTokenResponse(
@@ -130,6 +163,58 @@ export class AuthController {
         this.context(req)
       )
     );
+  }
+
+  // ── IAM-002: vòng đời phiên ──
+  @Post("refresh")
+  @HttpCode(200)
+  @NoStore()
+  @ApiBody({ type: RefreshTokenDto })
+  @ZodResponse({
+    status: 200,
+    description: "Đổi refresh token lấy cặp token mới (rotation). Token cũ chết ngay; dùng lại nó = revoke cả family.",
+    type: AuthTokenResponseDto
+  })
+  @ApiResponse({ status: 401, description: "Refresh token không hợp lệ / hết hạn / đã dùng.", content: problemContent })
+  @ApiResponse({ status: 403, description: "Tài khoản bị khóa.", content: problemContent })
+  @ApiResponse({ status: 429, description: "Vượt giới hạn refresh.", content: problemContent })
+  @ApiResponse({ status: 503, description: "Redis không khả dụng (fail-closed).", content: problemContent })
+  async refresh(@Body() dto: RefreshTokenDto, @Req() req: Request): Promise<AuthTokenResponse> {
+    return toTokenResponse(await this.authService.refresh(dto.refreshToken, this.context(req)));
+  }
+
+  @Post("logout")
+  @HttpCode(200)
+  @UseGuards(AccessTokenGuard)
+  @AllowRevokedSession()
+  @ApiBearerAuth()
+  @ZodResponse({ status: 200, description: "Thu hồi phiên (cả family). Idempotent.", type: MessageResponseDto })
+  @ApiResponse({ status: 401, description: "Thiếu hoặc sai access token.", content: problemContent })
+  async logout(@CurrentUser() user: VerifiedAccessToken): Promise<MessageResponse> {
+    await this.authService.logout(user.sid);
+    return { status: "ok" };
+  }
+
+  @Post("re-auth")
+  @HttpCode(200)
+  @UseGuards(AccessTokenGuard)
+  @ApiBearerAuth()
+  @ApiBody({ type: ReauthDto })
+  @ZodResponse({
+    status: 200,
+    description: "Xác thực lại trước thao tác nhạy cảm — bằng chứng có hiệu lực 5 phút.",
+    type: MessageResponseDto
+  })
+  @ApiResponse({ status: 401, description: "Sai mật khẩu/OTP hoặc phiên đã hết.", content: problemContent })
+  @ApiResponse({ status: 403, description: "Tài khoản bị khóa.", content: problemContent })
+  @ApiResponse({ status: 429, description: "Vượt giới hạn thử.", content: problemContent })
+  async reauth(
+    @CurrentUser() user: VerifiedAccessToken,
+    @Body() dto: ReauthDto,
+    @Req() req: Request
+  ): Promise<MessageResponse> {
+    await this.authService.reauth(user, dto, this.context(req));
+    return { status: "ok" };
   }
 
   private context(req: Request): RequestContext {
@@ -168,6 +253,8 @@ function toTokenResponse(result: LoginResult): AuthTokenResponse {
     tokenType: result.tokenType,
     expiresIn: result.expiresInSeconds,
     scope: result.scope,
-    role: result.role
+    role: result.role,
+    refreshToken: result.refreshToken,
+    refreshExpiresIn: result.refreshExpiresInSeconds
   };
 }

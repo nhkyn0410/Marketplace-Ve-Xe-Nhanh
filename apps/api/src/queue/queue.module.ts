@@ -31,9 +31,10 @@ import { QueueHealthService } from "./queue-health.service";
         skipWaitingForReady: true
       })
     }),
-    BullModule.registerQueue({
-      name: QUEUE_NAMES.foundation
-    })
+    BullModule.registerQueue(
+      { name: QUEUE_NAMES.foundation },
+      { name: QUEUE_NAMES.sessionMaintenance }
+    )
   ],
   providers: [BullBoardService, QueueHealthService],
   exports: [RedisModule, BullModule, BullBoardService, QueueHealthService]

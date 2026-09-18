@@ -2,13 +2,23 @@ import {
   type CanActivate,
   type ExecutionContext,
   Injectable,
+  SetMetadata,
 } from "@nestjs/common";
+import { Reflector } from "@nestjs/core";
 import type { Request } from "express";
-import { SessionRevocationStore } from "../session/session-revocation.store";
 import { sessionExpired } from "../session/session.errors";
+import { SessionService } from "../session/session.service";
 import { TokenService, type VerifiedAccessToken } from "./token.service";
 
 export type AuthenticatedRequest = Request & { user?: VerifiedAccessToken };
+
+const ALLOW_REVOKED_SESSION = "iam:allow-revoked-session";
+
+/**
+ * Cho route chạy dù phiên đã bị revoke (chữ ký + hạn token vẫn phải đúng). Chỉ dành cho logout:
+ * logout lần hai phải 200 (idempotent), mà sau lần một phiên đã revoke rồi.
+ */
+export const AllowRevokedSession = () => SetMetadata(ALLOW_REVOKED_SESSION, true);
 
 /**
  * CHỈ xác thực "đã đăng nhập, phiên chưa bị revoke". KHÔNG phân quyền, KHÔNG kiểm tenant —
@@ -18,7 +28,8 @@ export type AuthenticatedRequest = Request & { user?: VerifiedAccessToken };
 export class AccessTokenGuard implements CanActivate {
   constructor(
     private readonly tokens: TokenService,
-    private readonly revocations: SessionRevocationStore,
+    private readonly sessions: SessionService,
+    private readonly reflector: Reflector,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -29,8 +40,12 @@ export class AccessTokenGuard implements CanActivate {
     if (!claims) {
       throw sessionExpired();
     }
-    if (await this.revocations.isRevoked(claims.sid)) {
-      throw sessionExpired();
+    const allowRevoked = this.reflector.getAllAndOverride<boolean | undefined>(
+      ALLOW_REVOKED_SESSION,
+      [context.getHandler(), context.getClass()],
+    );
+    if (!allowRevoked) {
+      await this.sessions.assertActive(claims.sid);
     }
     request.user = claims;
     return true;

@@ -15,6 +15,8 @@ function setup() {
     }
   };
   const prisma = {
+    session: { deleteMany: vi.fn().mockResolvedValue({ count: 1 }) },
+    user: { findUnique: vi.fn() },
     operatorProfile: { findUnique: vi.fn() },
     operatorAccount: { findUnique: vi.fn() },
     employeeAccount: { findUnique: vi.fn() },
@@ -28,11 +30,27 @@ function setup() {
   const credentials = { verify: vi.fn(), hash: vi.fn() };
   const rateLimiter = {
     assertCanRequest: vi.fn().mockResolvedValue(undefined),
-    assertCanAttemptLogin: vi.fn().mockResolvedValue(undefined)
+    assertCanAttemptLogin: vi.fn().mockResolvedValue(undefined),
+    assertCanRefresh: vi.fn().mockResolvedValue(undefined),
+    assertCanRotateFamily: vi.fn().mockResolvedValue(undefined),
+    assertCanReauth: vi.fn().mockResolvedValue(undefined)
   };
   const history = { record: vi.fn().mockResolvedValue(undefined) };
+  const sessions = {
+    create: vi.fn(async (subject: { type: string; id: string; operatorId?: string }) => ({
+      session: sessionRow({ subjectType: subject.type, subjectId: subject.id }),
+      refreshToken: "refresh-raw"
+    })),
+    rotate: vi.fn(),
+    logout: vi.fn(),
+    findById: vi.fn(),
+    revokeFamily: vi.fn(),
+    grantReauth: vi.fn(),
+    recordEvent: vi.fn()
+  };
   const config = {
-    AUTH_ALLOWED_CALLBACK_ORIGINS: ["http://localhost:3000", "vexenhanh://"]
+    AUTH_ALLOWED_CALLBACK_ORIGINS: ["http://localhost:3000", "vexenhanh://"],
+    REFRESH_TOKEN_TTL_SECONDS: 2_592_000
   };
 
   const service = new AuthService(
@@ -42,9 +60,23 @@ function setup() {
     tokens as never,
     credentials as never,
     rateLimiter as never,
-    history as never
+    history as never,
+    sessions as never
   );
-  return { service, auth, config, prisma, tokens, credentials, rateLimiter, history };
+  return { service, auth, config, prisma, tokens, credentials, rateLimiter, history, sessions };
+}
+
+function sessionRow(overrides: Record<string, unknown> = {}) {
+  return {
+    id: "sess-1",
+    subjectType: "PASSENGER",
+    subjectId: "user-9",
+    userRef: "passenger:user-9",
+    familyId: "fam-1",
+    operatorId: null,
+    revokedAt: null,
+    ...overrides
+  };
 }
 
 async function statusOf(promise: Promise<unknown>): Promise<number> {
@@ -166,6 +198,32 @@ describe("AuthService.operatorLogin", () => {
     expect(ctx.history.record).toHaveBeenCalledWith(expect.objectContaining({ result: "success" }));
   });
 
+  it("owner đăng nhập → phiên OPERATOR, access token mang sid của đúng phiên đó, trả kèm refresh", async () => {
+    ctx.prisma.operatorProfile.findUnique.mockResolvedValue(ACTIVE_OPERATOR);
+    ctx.prisma.operatorAccount.findUnique.mockResolvedValue(OWNER);
+    ctx.credentials.verify.mockResolvedValue(true);
+
+    const result = await ctx.service.operatorLogin("phuongtrang/owner01", "good", { ip: "1.2.3.4" });
+
+    expect(ctx.sessions.create).toHaveBeenCalledWith(
+      { type: "OPERATOR", id: "acc-1", operatorId: "op-1" },
+      { ip: "1.2.3.4" }
+    );
+    expect(ctx.tokens.mintAccessToken).toHaveBeenCalledWith(
+      expect.objectContaining({ sub: "acc-1", sid: "sess-1" })
+    );
+    expect(result).toMatchObject({ refreshToken: "refresh-raw", refreshExpiresInSeconds: 2_592_000 });
+  });
+
+  it("sai mật khẩu thì KHÔNG tạo phiên", async () => {
+    ctx.prisma.operatorProfile.findUnique.mockResolvedValue(ACTIVE_OPERATOR);
+    ctx.prisma.operatorAccount.findUnique.mockResolvedValue(OWNER);
+    ctx.credentials.verify.mockResolvedValue(false);
+
+    await ctx.service.operatorLogin("phuongtrang/owner01", "bad", {}).catch(() => undefined);
+    expect(ctx.sessions.create).not.toHaveBeenCalled();
+  });
+
   it("falls back to employee_accounts when not an owner", async () => {
     ctx.prisma.operatorProfile.findUnique.mockResolvedValue(ACTIVE_OPERATOR);
     ctx.prisma.operatorAccount.findUnique.mockResolvedValue(null);
@@ -181,6 +239,11 @@ describe("AuthService.operatorLogin", () => {
 
     const result = await ctx.service.operatorLogin("phuongtrang/driver042", "good", {});
     expect(result.role).toBe("DRIVER");
+    // Q2: employee KHÔNG được ghi thành OPERATOR — revoke-all của owner sẽ đá nhầm tài xế.
+    expect(ctx.sessions.create).toHaveBeenCalledWith(
+      { type: "EMPLOYEE", id: "emp-1", operatorId: "op-1" },
+      {}
+    );
   });
 });
 
@@ -205,7 +268,8 @@ describe("AuthService.platformLogin", () => {
     ctx.credentials.verify.mockResolvedValue(true);
 
     const result = await ctx.service.platformLogin("platform/khanh", "good", {});
-    expect(result).toMatchObject({ scope: "platform", role: "PLATFORM_ADMIN" });
+    expect(result).toMatchObject({ scope: "platform", role: "PLATFORM_ADMIN", refreshToken: "refresh-raw" });
+    expect(ctx.sessions.create).toHaveBeenCalledWith({ type: "PLATFORM", id: "padm-1", operatorId: undefined }, {});
   });
 
   it("account không tồn tại → 401 và VẪN chạy dummy verify (chống enumeration bằng timing)", async () => {
@@ -275,7 +339,20 @@ describe("AuthService passenger OTP", () => {
   it("issues a passenger token after a valid OTP", async () => {
     ctx.auth.api.signInEmailOTP.mockResolvedValue({ user: { id: "user-9" } });
     const result = await ctx.service.verifyOtp("a@b.com", "123456", {});
-    expect(result).toMatchObject({ scope: "passenger", role: "PASSENGER" });
+    expect(result).toMatchObject({ scope: "passenger", role: "PASSENGER", refreshToken: "refresh-raw" });
+    expect(ctx.sessions.create).toHaveBeenCalledWith({ type: "PASSENGER", id: "user-9" }, {});
+  });
+
+  it("xoá phiên Better Auth vừa sinh ra — phiên thật là auth_sessions, phiên cầu nối không được sống", async () => {
+    ctx.auth.api.signInEmailOTP.mockResolvedValue({ token: "ba-token", user: { id: "user-9" } });
+    await ctx.service.verifyOtp("a@b.com", "123456", {});
+    expect(ctx.prisma.session.deleteMany).toHaveBeenCalledWith({ where: { token: "ba-token" } });
+  });
+
+  it("KHÔNG gọi deleteMany khi thiếu token — `where: { token: undefined }` của Prisma là xoá sạch bảng", async () => {
+    ctx.auth.api.signInEmailOTP.mockResolvedValue({ user: { id: "user-9" } });
+    await ctx.service.verifyOtp("a@b.com", "123456", {});
+    expect(ctx.prisma.session.deleteMany).not.toHaveBeenCalled();
     expect(ctx.tokens.mintAccessToken).toHaveBeenCalledWith(
       expect.objectContaining({ sub: "user-9", scope: "passenger" })
     );
@@ -362,9 +439,14 @@ describe("AuthService OAuth + session exchange", () => {
   });
 
   it("exchanges a valid Better Auth session for a passenger token", async () => {
-    ctx.auth.api.getSession.mockResolvedValue({ user: { id: "user-oauth-1" } });
+    ctx.auth.api.getSession.mockResolvedValue({
+      session: { token: "ba-oauth-token" },
+      user: { id: "user-oauth-1" }
+    });
     const result = await ctx.service.exchangeSession(new Headers(), {});
-    expect(result).toMatchObject({ scope: "passenger", role: "PASSENGER" });
+    // Cookie Better Auth còn trên trình duyệt không được đổi ra family mới lần thứ hai.
+    expect(ctx.prisma.session.deleteMany).toHaveBeenCalledWith({ where: { token: "ba-oauth-token" } });
+    expect(result).toMatchObject({ scope: "passenger", role: "PASSENGER", refreshToken: "refresh-raw" });
     expect(ctx.tokens.mintAccessToken).toHaveBeenCalledWith(
       expect.objectContaining({ sub: "user-oauth-1", scope: "passenger" })
     );
@@ -373,6 +455,198 @@ describe("AuthService OAuth + session exchange", () => {
   it("rejects session exchange when there is no session", async () => {
     ctx.auth.api.getSession.mockResolvedValue(null);
     expect(await statusOf(ctx.service.exchangeSession(new Headers(), {}))).toBe(401);
+  });
+});
+
+describe("AuthService.refresh (IAM-002)", () => {
+  let ctx: ReturnType<typeof setup>;
+  beforeEach(() => {
+    ctx = setup();
+  });
+
+  const rotatedEmployee = sessionRow({
+    id: "sess-2",
+    subjectType: "EMPLOYEE",
+    subjectId: "emp-1",
+    userRef: "employee:emp-1",
+    operatorId: "op-1"
+  });
+
+  it("rate limit theo IP chạy TRƯỚC rotate — Redis chết thì không đụng Postgres", async () => {
+    ctx.rateLimiter.assertCanRefresh.mockRejectedValue(new Error("503"));
+    await expect(ctx.service.refresh("rt", { ip: "1.2.3.4" })).rejects.toThrow("503");
+    expect(ctx.rateLimiter.assertCanRefresh).toHaveBeenCalledWith("1.2.3.4");
+    expect(ctx.sessions.rotate).not.toHaveBeenCalled();
+  });
+
+  /** Giả lập `rotate` thật: chạy hook TRƯỚC khi "commit", hook ném thì không có phiên mới. */
+  function rotateRunsHook(current: ReturnType<typeof sessionRow>, child: ReturnType<typeof sessionRow>) {
+    ctx.sessions.rotate.mockImplementation(
+      async (_raw: string, _ctx: unknown, beforeRotate: (s: unknown) => Promise<void>) => {
+        await beforeRotate(current);
+        return { session: child, refreshToken: "rt-2" };
+      }
+    );
+  }
+
+  it("gắn rate limit theo family vào rotate (chạy trước khi ghi row mới)", async () => {
+    rotateRunsHook(rotatedEmployee, rotatedEmployee);
+    ctx.rateLimiter.assertCanRotateFamily.mockRejectedValue(new Error("429"));
+    await expect(ctx.service.refresh("rt", {})).rejects.toThrow("429");
+    expect(ctx.rateLimiter.assertCanRotateFamily).toHaveBeenCalledWith("fam-1");
+    expect(ctx.tokens.mintAccessToken).not.toHaveBeenCalled();
+  });
+
+  it("rotate xong thì đọc lại account: role/tenant mới nhất vào token, sid = phiên MỚI", async () => {
+    rotateRunsHook(rotatedEmployee, rotatedEmployee);
+    ctx.prisma.employeeAccount.findUnique.mockResolvedValue({
+      id: "emp-1",
+      operatorId: "op-1",
+      role: "TICKET_STAFF",
+      status: "ACTIVE",
+      passwordHash: "scrypt$x$y",
+      operator: ACTIVE_OPERATOR
+    });
+
+    const result = await ctx.service.refresh("rt-1", {});
+
+    expect(ctx.tokens.mintAccessToken).toHaveBeenCalledWith({
+      sub: "emp-1",
+      sid: "sess-2",
+      scope: "operator",
+      role: "TICKET_STAFF",
+      operatorId: "op-1",
+      operatorSlug: "phuongtrang"
+    });
+    expect(result).toMatchObject({ refreshToken: "rt-2", scope: "operator", role: "TICKET_STAFF" });
+  });
+
+  it("account bị khoá hoặc tenant bị suspend → revoke cả family + 403, TRƯỚC khi rotate commit", async () => {
+    rotateRunsHook(rotatedEmployee, rotatedEmployee);
+    ctx.prisma.employeeAccount.findUnique.mockResolvedValue({
+      id: "emp-1",
+      operatorId: "op-1",
+      role: "DRIVER",
+      status: "ACTIVE",
+      passwordHash: "x",
+      operator: { ...ACTIVE_OPERATOR, status: "SUSPENDED" }
+    });
+
+    expect(await statusOf(ctx.service.refresh("rt-1", {}))).toBe(403);
+    expect(ctx.sessions.revokeFamily).toHaveBeenCalledWith("fam-1", "ACCOUNT_LOCKED");
+    expect(ctx.tokens.mintAccessToken).not.toHaveBeenCalled();
+  });
+
+  it("account đã biến mất → revoke family + 401", async () => {
+    const platformRow = sessionRow({ subjectType: "PLATFORM", subjectId: "padm-x" });
+    rotateRunsHook(platformRow, platformRow);
+    ctx.prisma.platformAccount.findUnique.mockResolvedValue(null);
+
+    expect(await statusOf(ctx.service.refresh("rt-1", {}))).toBe(401);
+    expect(ctx.sessions.revokeFamily).toHaveBeenCalledWith("fam-1", "ACCOUNT_LOCKED");
+  });
+});
+
+describe("AuthService.reauth (IAM-002, FR-IAM-10)", () => {
+  let ctx: ReturnType<typeof setup>;
+  beforeEach(() => {
+    ctx = setup();
+  });
+
+  const platformSession = sessionRow({
+    id: "sess-p",
+    subjectType: "PLATFORM",
+    subjectId: "padm-1",
+    userRef: "platform:padm-1"
+  });
+  const platformUser = { sub: "padm-1", sid: "sess-p", scope: "platform" as const, role: "PLATFORM_ADMIN" };
+  const platformAccount = {
+    id: "padm-1",
+    username: "khanh",
+    passwordHash: "scrypt$x$y",
+    role: "PLATFORM_ADMIN",
+    status: "ACTIVE"
+  };
+
+  it("sai mật khẩu → 401, audit failure, KHÔNG cấp bằng chứng; có đi qua rate limit login", async () => {
+    ctx.sessions.findById.mockResolvedValue(platformSession);
+    ctx.prisma.platformAccount.findUnique.mockResolvedValue(platformAccount);
+    ctx.credentials.verify.mockResolvedValue(false);
+
+    expect(await statusOf(ctx.service.reauth(platformUser, { password: "bad" }, { ip: "1.2.3.4" }))).toBe(401);
+    expect(ctx.rateLimiter.assertCanReauth).toHaveBeenCalledWith("platform:padm-1", "1.2.3.4");
+    expect(ctx.sessions.recordEvent).toHaveBeenCalledWith(
+      expect.objectContaining({ action: "auth.reauth.failure", targetId: "sess-p" })
+    );
+    expect(ctx.sessions.grantReauth).not.toHaveBeenCalled();
+  });
+
+  it("đúng mật khẩu → cấp bằng chứng cho đúng sid + audit success", async () => {
+    ctx.sessions.findById.mockResolvedValue(platformSession);
+    ctx.prisma.platformAccount.findUnique.mockResolvedValue(platformAccount);
+    ctx.credentials.verify.mockResolvedValue(true);
+
+    await ctx.service.reauth(platformUser, { password: "good" }, {});
+    expect(ctx.credentials.verify).toHaveBeenCalledWith("good", "scrypt$x$y");
+    expect(ctx.sessions.grantReauth).toHaveBeenCalledWith("sess-p");
+    expect(ctx.sessions.recordEvent).toHaveBeenCalledWith(
+      expect.objectContaining({ action: "auth.reauth.success" })
+    );
+  });
+
+  it("gửi otp thay vì password cho account mật khẩu → 401 (vẫn chạy scrypt để không lộ nhánh)", async () => {
+    ctx.sessions.findById.mockResolvedValue(platformSession);
+    ctx.prisma.platformAccount.findUnique.mockResolvedValue(platformAccount);
+    ctx.credentials.verify.mockResolvedValue(false);
+
+    expect(await statusOf(ctx.service.reauth(platformUser, { otp: "123456" }, {}))).toBe(401);
+    expect(ctx.credentials.verify).toHaveBeenCalledOnce();
+    expect(ctx.sessions.grantReauth).not.toHaveBeenCalled();
+  });
+
+  it("đúng mật khẩu nhưng account đã bị khoá → revoke family + 403", async () => {
+    ctx.sessions.findById.mockResolvedValue(platformSession);
+    ctx.prisma.platformAccount.findUnique.mockResolvedValue({ ...platformAccount, status: "LOCKED" });
+    ctx.credentials.verify.mockResolvedValue(true);
+
+    expect(await statusOf(ctx.service.reauth(platformUser, { password: "good" }, {}))).toBe(403);
+    expect(ctx.sessions.revokeFamily).toHaveBeenCalledWith("fam-1", "ACCOUNT_LOCKED");
+    expect(ctx.sessions.grantReauth).not.toHaveBeenCalled();
+  });
+
+  it("passenger re-auth bằng OTP gửi tới email của CHÍNH account trong phiên", async () => {
+    ctx.sessions.findById.mockResolvedValue(sessionRow());
+    ctx.prisma.user.findUnique.mockResolvedValue({ id: "user-9", email: "rider@example.com" });
+    ctx.auth.api.signInEmailOTP.mockResolvedValue({ user: { id: "user-9" } });
+
+    await ctx.service.reauth(
+      { sub: "user-9", sid: "sess-1", scope: "passenger", role: "PASSENGER" },
+      { otp: "123456" },
+      {}
+    );
+    expect(ctx.auth.api.signInEmailOTP).toHaveBeenCalledWith({
+      body: { email: "rider@example.com", otp: "123456" }
+    });
+    expect(ctx.sessions.grantReauth).toHaveBeenCalledWith("sess-1");
+  });
+
+  it("passenger sai OTP → 401", async () => {
+    ctx.sessions.findById.mockResolvedValue(sessionRow());
+    ctx.prisma.user.findUnique.mockResolvedValue({ id: "user-9", email: "rider@example.com" });
+    ctx.auth.api.signInEmailOTP.mockRejectedValue(Object.assign(new Error("bad"), { status: 401 }));
+
+    expect(
+      await statusOf(
+        ctx.service.reauth({ sub: "user-9", sid: "sess-1", scope: "passenger", role: "PASSENGER" }, { otp: "000000" }, {})
+      )
+    ).toBe(401);
+    expect(ctx.sessions.grantReauth).not.toHaveBeenCalled();
+  });
+
+  it("phiên đã revoke → 401 trước cả rate limit", async () => {
+    ctx.sessions.findById.mockResolvedValue(sessionRow({ revokedAt: new Date() }));
+    expect(await statusOf(ctx.service.reauth(platformUser, { password: "good" }, {}))).toBe(401);
+    expect(ctx.rateLimiter.assertCanReauth).not.toHaveBeenCalled();
   });
 });
 
@@ -423,7 +697,9 @@ function setupAuthController() {
     tokenType: "Bearer",
     expiresInSeconds: 900,
     scope: "operator",
-    role: "OPERATOR_OWNER"
+    role: "OPERATOR_OWNER",
+    refreshToken: "refresh-token",
+    refreshExpiresInSeconds: 2_592_000
   };
   const operatorLogin = vi.fn().mockResolvedValue(result);
   const authService = { operatorLogin } as unknown as AuthService;

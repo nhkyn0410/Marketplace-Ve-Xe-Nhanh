@@ -29,13 +29,33 @@ export class OAuthInitDto extends createZodDto(
   z.object({ callbackURL: z.url().optional() })
 ) {}
 
+/** Refresh token opaque (43 ký tự base64url); trần 200 chỉ để chặn payload rác. */
+export class RefreshTokenDto extends createZodDto(
+  z.object({ refreshToken: z.string().min(1).max(200) })
+) {}
+
+/** Passenger gửi `otp` (xin mã qua `/auth/otp/request`); Operator/Employee/Platform gửi `password`. */
+export class ReauthDto extends createZodDto(
+  z
+    .object({
+      password: z.string().min(1).max(200).optional(),
+      otp: z.string().min(4).max(10).optional()
+    })
+    .refine((body) => (body.password === undefined) !== (body.otp === undefined), {
+      message: "Gửi đúng một trong hai: password hoặc otp."
+    })
+) {}
+
 // ── Response schemas + DTOs ──
 export const AuthTokenResponseSchema = z.object({
   accessToken: z.string(),
   tokenType: z.literal("Bearer"),
   expiresIn: z.number().int().positive(),
   scope: z.enum(["passenger", "operator", "platform"]),
-  role: z.string()
+  role: z.string(),
+  // IAM-002 — thêm field, KHÔNG đổi tên field cũ (client Dart đang dùng).
+  refreshToken: z.string(),
+  refreshExpiresIn: z.number().int().positive()
 });
 export type AuthTokenResponse = z.infer<typeof AuthTokenResponseSchema>;
 export class AuthTokenResponseDto extends createZodDto(AuthTokenResponseSchema) {}

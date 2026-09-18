@@ -7,9 +7,12 @@ import {
   LOGIN_WINDOW_SECONDS,
   OTP_COOLDOWN_SECONDS,
   OTP_MAX_PER_HOUR,
-  OTP_WINDOW_SECONDS
+  OTP_WINDOW_SECONDS,
+  REFRESH_MAX_PER_FAMILY_PER_HOUR,
+  REFRESH_MAX_PER_IP_PER_HOUR,
+  REFRESH_WINDOW_SECONDS
 } from "./auth.constants";
-import { OtpRateLimiter } from "./otp-rate-limiter";
+import { ipBucket, OtpRateLimiter } from "./otp-rate-limiter";
 
 async function problemOf(promise: Promise<unknown>): Promise<{ status: number; code?: string }> {
   try {
@@ -171,6 +174,109 @@ describe("OtpRateLimiter", () => {
         "login:ip:203.0.113.10",
         "login:ip:198.51.100.20"
       ]);
+    });
+  });
+
+  describe("Refresh (IAM-002)", () => {
+    it("đếm theo IP trong bucket riêng, không ăn chung quota login", async () => {
+      await limiter.assertCanRefresh("203.0.113.10");
+      expect(evalScript).toHaveBeenCalledWith(
+        expect.any(String),
+        1,
+        "refresh:ip:203.0.113.10",
+        String(REFRESH_WINDOW_SECONDS)
+      );
+    });
+
+    it("chặn khi vượt giới hạn theo IP", async () => {
+      evalScript.mockResolvedValue(REFRESH_MAX_PER_IP_PER_HOUR + 1);
+      const warn = vi.spyOn(Logger.prototype, "warn").mockImplementation(() => undefined);
+      try {
+        expect(await problemOf(limiter.assertCanRefresh("203.0.113.10"))).toEqual({
+          status: 429,
+          code: "AUTH_REFRESH_RATE_LIMITED"
+        });
+      } finally {
+        warn.mockRestore();
+      }
+    });
+
+    it("không có IP tin cậy thì không đếm (không gom mọi người vào một bucket)", async () => {
+      await limiter.assertCanRefresh(undefined);
+      expect(evalScript).not.toHaveBeenCalled();
+    });
+
+    it("bucket theo family không cần IP — gọi thẳng origin không lách được", async () => {
+      await limiter.assertCanRotateFamily("fam-1");
+      expect(evalScript).toHaveBeenCalledWith(
+        expect.any(String),
+        1,
+        "refresh:family:fam-1",
+        String(REFRESH_WINDOW_SECONDS)
+      );
+
+      evalScript.mockResolvedValue(REFRESH_MAX_PER_FAMILY_PER_HOUR + 1);
+      const warn = vi.spyOn(Logger.prototype, "warn").mockImplementation(() => undefined);
+      try {
+        expect(await problemOf(limiter.assertCanRotateFamily("fam-1"))).toEqual({
+          status: 429,
+          code: "AUTH_REFRESH_RATE_LIMITED"
+        });
+      } finally {
+        warn.mockRestore();
+      }
+    });
+
+    it("IPv6 gom theo /64 — xoay 64 bit cuối không đẻ ra bucket mới", async () => {
+      await limiter.assertCanRefresh("2001:db8:abcd:12::1");
+      await limiter.assertCanRefresh("2001:db8:abcd:12:ffff:ffff:ffff:ffff");
+      const keys = evalScript.mock.calls.map((call) => call[2]);
+      expect(keys).toEqual([
+        "refresh:ip:2001:0db8:abcd:0012::/64",
+        "refresh:ip:2001:0db8:abcd:0012::/64"
+      ]);
+    });
+
+    it("Redis chết → 503, không rotate nửa vời", async () => {
+      evalScript.mockRejectedValue(new Error("Command timed out"));
+      expect(await problemOf(limiter.assertCanRefresh("203.0.113.10"))).toEqual({
+        status: 503,
+        code: "SERVICE_UNAVAILABLE"
+      });
+    });
+  });
+
+  describe("Re-auth (IAM-002)", () => {
+    it("bucket chủ thể RIÊNG — gõ `sub` vào cổng login không khoá được re-auth của người khác", async () => {
+      await limiter.assertCanReauth("platform:padm-1", "1.2.3.4");
+      const keys = evalScript.mock.calls.map((call) => call[2]);
+      expect(keys).toEqual(["reauth-attempt:platform:padm-1", "login:ip:1.2.3.4"]);
+    });
+
+    it("chặn từ lần thứ 11 theo chủ thể", async () => {
+      evalScript.mockResolvedValue(LOGIN_MAX_PER_IDENTIFIER_PER_HOUR + 1);
+      const warn = vi.spyOn(Logger.prototype, "warn").mockImplementation(() => undefined);
+      try {
+        expect(await problemOf(limiter.assertCanReauth("platform:padm-1"))).toEqual({
+          status: 429,
+          code: "AUTH_LOGIN_RATE_LIMITED"
+        });
+      } finally {
+        warn.mockRestore();
+      }
+    });
+  });
+
+  describe("ipBucket", () => {
+    it.each([
+      ["203.0.113.10", "203.0.113.10"],
+      ["::ffff:203.0.113.10", "203.0.113.10"],
+      ["::1", "0000:0000:0000:0000::/64"],
+      ["2001:db8::", "2001:0db8:0000:0000::/64"],
+      ["fe80::1%eth0", "fe80:0000:0000:0000::/64"],
+      ["2001:DB8:0:0:1:2:3:4", "2001:0db8:0000:0000::/64"]
+    ])("%s → %s", (ip, bucket) => {
+      expect(ipBucket(ip)).toBe(bucket);
     });
   });
 

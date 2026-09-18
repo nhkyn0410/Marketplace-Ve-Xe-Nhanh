@@ -1,4 +1,4 @@
-# api_client_dart.model.AuthTokenResponseDtoOutput
+# api_client_dart.model.ReauthDto
 
 ## Load the model package
 ```dart
@@ -8,13 +8,8 @@ import 'package:api_client_dart/api.dart';
 ## Properties
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**accessToken** | **String** |  | 
-**tokenType** | **String** |  | 
-**expiresIn** | **int** |  | 
-**scope** | **String** |  | 
-**role** | **String** |  | 
-**refreshToken** | **String** |  | 
-**refreshExpiresIn** | **int** |  | 
+**password** | **String** |  | [optional] 
+**otp** | **String** |  | [optional] 
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)
 

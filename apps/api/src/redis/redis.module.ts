@@ -1,7 +1,6 @@
 import { Module } from "@nestjs/common";
 import Redis from "ioredis";
-import { createRequestRedisClientOptions, getRedisUrl } from "./redis.config";
-import { REDIS_CLIENT } from "./redis.constants";
+import { createRequestRedisClientOptions, getRedisUrl, REDIS_CLIENT } from "./redis.config";
 import { RedisHealthService } from "./redis-health.service";
 
 @Module({

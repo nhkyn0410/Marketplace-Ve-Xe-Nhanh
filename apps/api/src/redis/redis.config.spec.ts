@@ -3,10 +3,10 @@ import {
   createBullMqConnectionOptions,
   createRedisClientOptions,
   createRequestRedisClientOptions,
+  DEFAULT_REDIS_URL,
   getBullMqPrefix,
   getRedisUrl,
 } from "./redis.config";
-import { DEFAULT_REDIS_URL } from "./redis.constants";
 
 describe("redis config", () => {
   it("uses local Redis defaults when env is empty", () => {
@@ -50,7 +50,7 @@ describe("redis config", () => {
   it("client đường request fail-fast; BullMQ vẫn giữ null", () => {
     expect(createRequestRedisClientOptions("vexenhanh-api")).toEqual({
       connectionName: "vexenhanh-api",
-      enableReadyCheck: false,
+      enableReadyCheck: true,
       lazyConnect: true,
       maxRetriesPerRequest: 1,
       commandTimeout: 1000,

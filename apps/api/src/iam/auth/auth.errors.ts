@@ -56,6 +56,6 @@ export function serviceUnavailable(): AuthException {
   return new AuthException(
     HttpStatus.SERVICE_UNAVAILABLE,
     "SERVICE_UNAVAILABLE",
-    "Dịch vụ tạm thời không khả dụng, vui lòng thử lại sau",
+    "Dịch vụ tạm thời không khả dụng. Vui lòng thử lại.",
   );
 }

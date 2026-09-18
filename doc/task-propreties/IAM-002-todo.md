@@ -4,9 +4,10 @@
 > **Dependency:** TASK-IAM-001 ✓ (Done 14/09/2026) — Better Auth + login 3 namespace + `TokenService` mint JWT access.
 > **Cách dùng:** tick `[x]` khi xong; AI cập nhật trạng thái khi làm. Guide chạy tay: `IAM-002-guide.md`. Nghiệm thu: `IAM-002-verification-checklist.md`.
 
-## Trạng thái (15/09/2026) — 🔲 **CHƯA BẮT ĐẦU**
+## Trạng thái (17/09/2026) — 🟡 **CODE XONG `.1`–`.10`, CHỜ KHANH COMMIT + CI**
 
-- Branch `TASK-IAM-002` đã tạo, code chưa có gì: `apps/api/src/iam/session/` chưa tồn tại, `auth_sessions` chưa có trong `schema.prisma`.
+- ✅ **`.3`–`.10` xong (17/09/2026)** — chi tiết + quyết định lúc hiện thực ở mục **"Ghi nhận khi hiện thực"** cuối file. Đo được: API **202/202** test (có Postgres/Redis/Mongo thật), `pnpm turbo run typecheck lint test build` **36/36**, smoke chạy thật theo `IAM-002-guide.md` **41/41**, `mobile_shared` **30/30**, contract check Dart xanh.
+- 🟡 **`.11` còn**: commit + push để CI chạy (chưa commit — chờ Khanh), rồi đổi task row → Done. Hai review (`code-reviewer`, `security-auditor`) đã chạy; mọi finding đã sửa, có test.
 - ✅ **`.1` xong (16/09/2026)**: 5 quyết định đã chốt theo đúng khuyến nghị — xem bảng dưới.
 - ✅ **`.2` xong (16/09/2026)**: migration `20260916035828_add_auth_sessions` đã áp dụng. `prisma migrate status` → *Database schema is up to date*; `prisma:generate` + `typecheck` pass. Đủ 7 index/constraint trong DB thật, và **CHECK `auth_sessions_user_ref_derived` đã thử cả hai chiều**: `user_ref` sai format bị từ chối, đúng format thì vào được. DB §7 đã cập nhật (v0.5) để ghi 2 index thêm — doc không lệch code.
 - Nền dùng lại được: `TokenService` (RS256), `OtpRateLimiter` (Redis + Lua, fail-closed 503), `LoginHistoryService` (Mongo append-only), `REDIS_CLIENT` (ioredis), queue BullMQ (`apps/api/src/queue/`), `resolveTrustedClientIp`.
@@ -113,7 +114,7 @@ Model theo bảng thiết kế trên + enum `SubjectType`; đủ index `(user_re
 **Nguồn:** DB §7, DB §9, ADR-017.
 **Success:** `prisma migrate status` → up to date; `prisma:generate` ra model mới; `typecheck` pass; **chưa** bật RLS (để IAM-003) nhưng đã có sẵn cột `operator_id`.
 
-### 🔲 #3 — [IAM-002.3] `iam/session/` — `SessionService` + `RefreshTokenService`
+### ✅ #3 — [IAM-002.3] `iam/session/` — `SessionService` + `RefreshTokenService`
 
 Folder mới `apps/api/src/iam/session/` (DOMAIN-MAP §2: `iam/` split `auth/`, `user/`, `session/`, `role/`).
 
@@ -123,55 +124,55 @@ Folder mới `apps/api/src/iam/session/` (DOMAIN-MAP §2: `iam/` split `auth/`, 
 - **Không log token thô** ở bất kỳ đâu; audit chỉ ghi `sid` / `familyId`.
 
 **Nguồn:** ADR-017, Security §5.1, LLD §6.5 bước 5.
-**Success:** unit test phủ rotate / reuse / expired / revoked + test **2 rotate song song chỉ 1 thắng**.
+**Success:** unit test phủ rotate / reuse / expired / revoked + test **2 rotate song song chỉ 1 thắng**. — **Đạt.** Test race ép hai request chồng lên nhau bằng rào chắn; bỏ điều kiện `rotatedAt: null` thì đỏ 3/3 lần. `revokeSession` bị **bỏ** (xem ghi nhận #6).
 
-### 🔲 #4 — [IAM-002.4] `sid` claim + verify access token + guard authn-only
+### ✅ #4 — [IAM-002.4] `sid` claim + verify access token + guard authn-only
 
 - `TokenService`: thêm claim `sid` (giữ nguyên `operatorId`/`operatorSlug`); **giữ cả publicKey** (dev ephemeral hiện chỉ giữ private) + `verifyAccessToken()` (`jwtVerify`, check `iss`).
 - `AccessTokenGuard` (chỉ xác thực **đã đăng nhập**, chưa phân quyền) + decorator `@CurrentUser()` — dùng cho `/auth/logout`, `/auth/re-auth`.
 - ⚠️ Guard này **không phải** `TenantGuard`/RBAC — đó là IAM-003. Ghi rõ ranh giới trong comment để IAM-003 không viết chồng.
 
 **Nguồn:** ADR-017 (payload có `sessionId`), Security §5.1/§6.
-**Success:** token sửa / hết hạn / sai issuer → 401; token hợp lệ nhưng có `session:revoked:{sid}` → 401; Redis chết → 503.
+**Success:** token sửa / hết hạn / sai issuer → 401; token hợp lệ nhưng có `session:revoked:{sid}` → 401; Redis chết → 503. — **Đạt**, thêm: `alg: none`, ký bởi key khác, thiếu `sid`, thiếu `exp` đều → 401.
 
-### 🔲 #5 — [IAM-002.5] Redis session cache + tín hiệu revoke
+### ✅ #5 — [IAM-002.5] Redis session cache + tín hiệu revoke
 
 3 nhóm khoá ở bảng trên: ghi cache lúc login/refresh; xoá + set `session:revoked:{sid}` lúc logout/revoke. Fail-closed 503 theo ADR-015 (tái dùng đúng lối `OtpRateLimiter` đã có).
 
 **Nguồn:** ADR-015, ADR-017.
-**Success:** test cache hit/miss; test revoke → guard chặn **ngay**, không phải chờ hết 15 phút.
+**Success:** test cache hit/miss; test revoke → guard chặn **ngay**, không phải chờ hết 15 phút. — **Đạt.** Cache ghi lúc guard miss, không lúc login/refresh (ghi nhận #3).
 
-### 🔲 #6 — [IAM-002.6] Nối refresh vào 4 đường login sẵn có
+### ✅ #6 — [IAM-002.6] Nối refresh vào 4 đường login sẵn có
 
 `verifyOtp` · `exchangeSession` (OAuth) · `operatorLogin` · `platformLogin` → tạo session + trả `refreshToken` + `refreshExpiresIn` + `sid`. Mở rộng `LoginResult` + `AuthTokenResponseDto`; cập nhật assert trong `openapi.spec.ts`; chạy lại `gen:api-client` (TS + Dart).
 
 **Nguồn:** LLD §6.5 bước 4, API §7.1.
-**Success:** 4 đường login đều trả cặp token; client TS + Dart regen có field mới; test hồi quy OpenAPI xanh.
+**Success:** 4 đường login đều trả cặp token; client TS + Dart regen có field mới; test hồi quy OpenAPI xanh. — **Đạt.** Không trả `sid` riêng trong body (đã nằm trong JWT). `AccessTokenClaims.sid` giờ **bắt buộc**.
 
-### 🔲 #7 — [IAM-002.7] 3 endpoint mới (API §7.1)
+### ✅ #7 — [IAM-002.7] 3 endpoint mới (API §7.1)
 
 - `POST /auth/refresh` — rotation + family; rate-limit theo IP như login (tái dùng `OtpRateLimiter`).
 - `POST /auth/logout` — revoke family của `sid` + set `session:revoked:{sid}`; **idempotent** (gọi 2 lần vẫn 200).
 - `POST /auth/re-auth` — passenger = OTP; operator/platform = nhập lại password (qua `CredentialService`, **có đi qua rate-limit login**); thành công → `reauth:{sid}` TTL 5 phút (Q3).
 
 **Nguồn:** API §7.1, FR-IAM-10/13/14.
-**Success:** Supertest e2e cho cả 3; OpenAPI có đủ **9** path auth.
+**Success:** Supertest e2e cho cả 3; OpenAPI có đủ **9** path auth. — **Đạt**, e2e dùng `listen(0)` + `fetch` như `proxy-auth.integration.spec.ts` sẵn có thay vì thêm Supertest (ghi nhận #9).
 
-### 🔲 #8 — [IAM-002.8] Audit + force-revoke (FR-IAM-16, AC-02)
+### ✅ #8 — [IAM-002.8] Audit + force-revoke (FR-IAM-16, AC-02)
 
 Sự kiện Mongo append-only qua `AuditService`: `auth.session.issued` · `auth.session.rotated` · `auth.session.revoked` (kèm `reason`) · `auth.token.reuse_detected` · `auth.logout` · `auth.reauth.success|failure`. Audit hỏng **không được** làm hỏng luồng auth (đúng lối `LoginHistoryService`).
 
 **Nguồn:** ADR-011, FR-IAM-09/16, AC-02.
-**Success:** test có đủ event; test Mongo chết → refresh/logout vẫn chạy.
+**Success:** test có đủ event; test Mongo chết → refresh/logout vẫn chạy. — **Đạt**, thêm test Mongo **chậm** (không bao giờ trả lời) → rotate vẫn trả ngay.
 
-### 🔲 #9 — [IAM-002.9] Dọn session hết hạn (BullMQ cron)
+### ✅ #9 — [IAM-002.9] Dọn session hết hạn (BullMQ cron)
 
 Job `session-cleanup` trên queue sẵn có (`apps/api/src/queue/`), `repeat: { pattern: "0 3 * * *" }`, concurrency 1: xoá row `expires_at` cũ hơn 30 ngày. Row đã revoke/rotate phải giữ đủ lâu để còn điều tra được reuse.
 
 **Nguồn:** ADR-016, DB §9.
-**Success:** job đăng ký được; unit test hàm dọn (không chạy cron thật trong test).
+**Success:** job đăng ký được; unit test hàm dọn (không chạy cron thật trong test). — **Đạt.** Queue riêng `session-maintenance`, lịch `0 3 * * *` giờ `Asia/Ho_Chi_Minh`; chạy worker thật thấy scheduler trong Redis, lần chạy kế tiếp 03:00 giờ VN.
 
-### 🔲 #10 — [IAM-002.10] Test — mandatory + hồi quy
+### ✅ #10 — [IAM-002.10] Test — mandatory + hồi quy
 
 Vitest unit + Supertest e2e. **Bắt buộc** (ADR-025 + CLAUDE.md §4.4, nhóm idempotency):
 
@@ -183,15 +184,42 @@ Vitest unit + Supertest e2e. **Bắt buộc** (ADR-025 + CLAUDE.md §4.4, nhóm 
 - Redis chết → 503 `SERVICE_UNAVAILABLE`, không bypass.
 - DB chỉ lưu hash, log/audit không chứa token thô.
 
-**Success:** test xanh; `pnpm turbo run typecheck lint test build` xanh toàn bộ.
+**Success:** test xanh; `pnpm turbo run typecheck lint test build` xanh toàn bộ. — **Đạt** (36/36). ⚠️ CI **chưa có** Postgres/Redis/Mongo nên các file `*.int.spec.ts` bị skip ở CI — xem follow-up.
 
-### 🔲 #11 — [IAM-002.11] Review + smoke + đóng task
+### 🟡 #11 — [IAM-002.11] Review + smoke + đóng task
 
 Spawn `code-reviewer` **và** `security-auditor` (CLAUDE.md §6.3 — task chạm auth). Chạy hết `IAM-002-guide.md` trên Docker local, tick `IAM-002-verification-checklist.md`. Cập nhật task row `11-project-task-breakdown.md` → Done + `PROJECT-STATE §7` một dòng + commit.
 
-**Success:** 2 review không còn finding chặn; checklist tick hết (mục không tick được phải ghi lý do tại chỗ).
+**Success:** 2 review không còn finding chặn; checklist tick hết (mục không tick được phải ghi lý do tại chỗ). — **Review + smoke xong 17/09/2026**; còn commit + CI + đổi task row → Done.
 
 ---
+
+## Ghi nhận khi hiện thực (17/09/2026)
+
+Những chỗ code khác chữ của bảng trên, hoặc lộ ra lúc chạy thật. Mỗi mục có lý do; mục nào Khanh không đồng ý thì sửa trước khi commit.
+
+1. **Tên claim `sid`, không phải `sessionId`** như payload ADR-017. `sid` là tên chuẩn OIDC, cùng lối IAM-001 đã đổi `userId` → `sub`. Muốn đúng chữ ADR thì phải đổi **trước khi phát hành client**.
+2. **Logout cho phép phiên đã revoke** (`@AllowRevokedSession()`), vẫn đòi token ký hợp lệ + còn hạn. Không có thì lần logout thứ hai bị chính guard chặn 401, trái "idempotent 200".
+3. **Cache `session:{sid}` ghi lúc guard miss**, không lúc login/refresh. Ghi lúc refresh mà Redis lỗi SAU khi Postgres đã rotate thì client mất token mới, lần sau gửi token cũ bị coi là reuse và bị đá ra oan. Khoá `session:revoked:{sid}` được đọc TRƯỚC khoá active nên một lần ghi cache muộn không hồi sinh được phiên.
+4. **Revoke: Redis trước, Postgres sau, UPDATE lặp tới khi 0 row.** Tái hiện được bằng test: một rotate đang commit chen giữa lúc revoke sinh row con mà UPDATE đầu không thấy (READ COMMITTED) → kẻ trộm giữ được token sống. Lặp thì bắt được; để 1 vòng thì test đỏ.
+5. **Refresh đọc lại account TRƯỚC khi commit rotate**: account khoá / tenant suspend → revoke family + 403. Chưa có luồng khoá account nào gọi revoke (IAM-005), nên đây là chốt chặn duy nhất hiện tại.
+6. **Bỏ `revokeSession(sid)`** khỏi `.3`: chưa ai gọi, và gọi với `sid` của một phiên đã rotate thì chỉ revoke row đã chết, row con đang sống vẫn còn. FR-IAM-15 (IAM-005) nên revoke theo **family**.
+7. **Rate limit refresh**: 600/giờ theo IP (IPv6 gom theo **/64**) **+ 30/giờ theo family** (không phụ thuộc IP — gọi thẳng origin bỏ Cloudflare không lách được). Mã lỗi mới `AUTH_REFRESH_RATE_LIMITED` — cùng họ với `AUTH_LOGIN_RATE_LIMITED`/`AUTH_OTP_RATE_LIMITED` của IAM-001, **cả ba chưa có trong LLD §7 / GLOSSARY**. Con số là giả định v1.
+8. **Re-auth dùng bucket chủ thể riêng** (`reauth-attempt:{user_ref}`) + **chung bucket IP** với login. Dùng chung `login:id:` thì ai biết `sub` trong JWT cũng gõ được đúng chuỗi đó vào cổng login 11 lần để khoá re-auth của nạn nhân.
+9. **E2E không dùng Supertest** — theo đúng lối `proxy-auth.integration.spec.ts` sẵn có (`listen(0)` + `fetch`), khỏi thêm dependency.
+10. **Xoá phiên Better Auth ngay sau khi đổi sang phiên của ta** (OTP verify, OAuth session exchange, re-auth OTP). Để nó sống thì cookie Better Auth còn trên trình duyệt đổi ra family mới vô hạn lần, kể cả sau logout.
+11. **Audit không chờ** (fire-and-forget, vẫn bắt lỗi). Chờ thì Mongo chậm làm refresh treo ~10 giây SAU khi token cũ đã bị tiêu.
+12. **Response mang token có `Cache-Control: no-store`** (RFC 6749 §5.1). JWT verify bắt buộc có `exp` + `iat`.
+13. **Redis client của đường request đổi 3 option** (`redis.config.ts`, đo trên container thật): `maxRetriesPerRequest: 1` (trước đó Redis chết là request **treo mãi**, không 503 — lỗi có từ IAM-001), `commandTimeout: 1000`, `enableReadyCheck: true` (để `false` thì Redis sống lại mà API vẫn **503 mãi** tới khi restart). BullMQ giữ nguyên option cũ. `redis.constants.ts` đã bỏ, hằng chuyển vào `redis.config.ts` (Khanh yêu cầu).
+14. ⚠️ **Máy dev này**: `localhost:6379` trỏ vào **Redis trong WSL Ubuntu** (8.6.3), KHÔNG phải container `docker compose` (7.4.9). `docker compose stop redis` vì thế không ảnh hưởng API chạy với `REDIS_URL` mặc định. Smoke 4G đã chạy với `REDIS_URL=redis://<IP LAN>:6379`.
+
+**Follow-up (ngoài phạm vi, cần Khanh quyết):**
+
+- **CI chưa có service Postgres/Redis/Mongo** → mọi `*.int.spec.ts` (race, reuse, revoke, e2e) chỉ chạy trên máy dev. Test bắt buộc ADR-025 nhóm idempotency vì thế chưa được CI gác.
+- **Refresh hết hạn kiểu trượt**: mỗi lần rotate cấp thêm 30 ngày → phiên dùng đều không bao giờ hết hạn. ADR-017 chỉ ghi "TTL 30 ngày"; có cần trần tuyệt đối theo family không?
+- `LoginHistoryService` (IAM-001) vẫn **chờ** audit → Mongo chậm làm login chậm theo; kết nối Mongo audit chưa đặt `serverSelectionTimeoutMS`.
+- Bổ sung 3 mã `AUTH_*_RATE_LIMITED` vào LLD §7 / GLOSSARY. `JWT_ACCESS_PUBLIC_KEY` vẫn không dùng. `JWT_ACCESS_TTL_SECONDS` chưa có trần.
+- Client **single-flight** khi refresh (Q5) — đã ghi ở `FND-009-todo.md`; phía Web chờ task dựng app web.
 
 ## Rủi ro đã thấy trước
 

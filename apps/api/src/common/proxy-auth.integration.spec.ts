@@ -7,6 +7,8 @@ import { describe, expect, it, vi } from "vitest";
 import { APP_CONFIG, parseAppConfig } from "../config/env.config";
 import { AuthController } from "../iam/auth/auth.controller";
 import { AuthService } from "../iam/auth/auth.service";
+import { TokenService } from "../iam/auth/token.service";
+import { SessionService } from "../iam/session/session.service";
 import { LoginHistoryService } from "../iam/auth/login-history.service";
 import { OtpRateLimiter } from "../iam/auth/otp-rate-limiter";
 import { ProblemDetailsExceptionFilter } from "./errors/problem-details.filter";
@@ -108,7 +110,8 @@ async function createFixture() {
     {} as never,
     { verify: verifyPassword } as never,
     limiter,
-    history
+    history,
+    {} as never
   );
   const app = await NestFactory.create<NestExpressApplication>(
     {
@@ -116,7 +119,10 @@ async function createFixture() {
       controllers: [AuthController],
       providers: [
         { provide: AuthService, useValue: service },
-        { provide: APP_CONFIG, useValue: config }
+        { provide: APP_CONFIG, useValue: config },
+        // Dependency của AccessTokenGuard (logout, re-auth) — test này không đi qua hai route đó.
+        { provide: TokenService, useValue: {} },
+        { provide: SessionService, useValue: {} }
       ]
     },
     { logger: false }

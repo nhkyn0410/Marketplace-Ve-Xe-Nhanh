@@ -159,6 +159,8 @@ curl.exe -s -w "`n[%{http_code}]`n" -X POST "$base/auth/re-auth" -H ("Authorizat
 
 ### 4G. Redis chết → 503 (ADR-015, KHÔNG bypass)
 
+> ⚠️ Trước bước này, kiểm API có đang nói chuyện với **đúng** Redis của Docker không: trên máy có WSL chạy Redis riêng, `localhost:6379` trỏ vào Redis trong WSL (ghi nhận 17/09/2026). So `redis_version` của `docker compose exec -T redis redis-cli info server` với Redis mà API dùng; lệch thì chạy API với `REDIS_URL=redis://<IP LAN của máy>:6379`, nếu không `stop redis` sẽ chẳng ảnh hưởng gì và bước này đo sai.
+
 ```powershell
 docker compose stop redis
 curl.exe -s -w "`n[%{http_code}]`n" -X POST "$base/auth/refresh" -H "Content-Type: application/json" -d ('{"refreshToken":"' + $r1.refreshToken + '"}')
@@ -195,7 +197,7 @@ curl.exe -s -X POST "$base/auth/otp/verify" -H "Content-Type: application/json" 
 docker compose exec -T postgres psql -U vexenhanh -d vexenhanh_dev -c "select left(id::text,8) as sid, subject_type, left(family_id::text,8) as fam, left(refresh_token_hash,12) as hash, rotated_at is not null as rotated, revoked_at is not null as revoked, revoked_reason, expires_at from auth_sessions order by issued_at desc limit 10;"
 ```
 
-Phải thấy: cùng `fam`, row cũ `rotated=t`, sau bước 4C thì **mọi row trong family** `revoked=t` với `revoked_reason=reuse_detected`.
+Phải thấy: cùng `fam`, row cũ `rotated=t`, sau bước 4C thì **mọi row trong family** `revoked=t` với `revoked_reason=REUSE_DETECTED` (enum Postgres viết hoa).
 
 ⚠️ Cột `refresh_token_hash` phải là **hash** (hex/base64 dài đều), **không** phải token đang cầm trên tay. Đối chiếu nhanh: token thô trong `$r1.refreshToken` không được xuất hiện trong bất kỳ cột nào.
 
@@ -215,7 +217,7 @@ TTL phải ~900 (bằng TTL access token) — đủ để access token còn hạ
 **Audit Mongo (append-only):**
 
 ```powershell
-docker compose exec -T mongo mongosh --quiet -u vexenhanh -p vexenhanh_dev --authenticationDatabase admin vexenhanh_audit --eval "db.audit_events.find({action:/^auth\./}).sort({createdAt:-1}).limit(10).toArray()"
+docker compose exec -T mongo mongosh --quiet -u vexenhanh -p vexenhanh_dev --authenticationDatabase admin vexenhanh_audit --eval "db.audit_event.find({action:/^auth\./}).sort({createdAt:-1}).limit(10).toArray()"
 ```
 
 Phải có `auth.session.rotated`, `auth.token.reuse_detected`, `auth.logout`. **Không** được thấy token thô trong bất kỳ field nào.

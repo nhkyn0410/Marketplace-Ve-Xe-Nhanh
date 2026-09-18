@@ -1,7 +1,10 @@
 import { HttpStatus, Inject, Injectable, Logger } from "@nestjs/common";
 import { APP_CONFIG, type AppConfig } from "../../config/env.config";
 import { PrismaService } from "../../database/prisma.service";
+import { type AuthSession, SessionRevokeReason, SubjectType } from "../../database/prisma.types";
 import { maskEmail } from "../../external/notification/email-notifier";
+import { sessionExpired } from "../session/session.errors";
+import { SessionService, type SessionSubject } from "../session/session.service";
 import { type Auth } from "./auth.config";
 import { BETTER_AUTH, PASSENGER_ROLE } from "./auth.constants";
 import { accountLocked, AuthException, invalidCredentials, wrongLoginChannel } from "./auth.errors";
@@ -9,7 +12,13 @@ import { CredentialService, DUMMY_PASSWORD_HASH } from "./credential.service";
 import { LoginHistoryService } from "./login-history.service";
 import { resolveIdentifier } from "./namespace.resolver";
 import { OtpRateLimiter } from "./otp-rate-limiter";
-import { type AuthScope, type IssuedAccessToken, TokenService } from "./token.service";
+import {
+  type AccessTokenClaims,
+  type AuthScope,
+  type IssuedAccessToken,
+  TokenService,
+  type VerifiedAccessToken
+} from "./token.service";
 
 /** v1 chỉ Google (ADR-020 + quyết định 09/09/2026); Facebook/Apple defer v1.x. */
 export const SUPPORTED_OAUTH = ["google"] as const;
@@ -17,15 +26,36 @@ type OAuthProvider = (typeof SUPPORTED_OAUTH)[number];
 
 export type RequestContext = { ip?: string; userAgent?: string };
 
-export type LoginResult = IssuedAccessToken & { scope: AuthScope; role: string };
+export type LoginResult = IssuedAccessToken & {
+  scope: AuthScope;
+  role: string;
+  /** Opaque refresh token thô — chỉ xuất hiện đúng một lần, trong response này. */
+  refreshToken: string;
+  refreshExpiresInSeconds: number;
+};
+
+/** Passenger re-auth bằng OTP; Operator/Employee/Platform bằng mật khẩu (FR-IAM-10). TOTP = IAM-004. */
+export type ReauthInput = { password?: string; otp?: string };
+
+type SessionClaims = Omit<AccessTokenClaims, "sub" | "sid">;
 
 type CredentialAccount = {
   id: string;
   passwordHash: string;
   role: string;
   status: string;
+  /** Bảng nguồn — owner và employee cùng scope `operator` nhưng KHÁC subject (Q2). */
+  subjectType: SubjectType;
   operatorId?: string;
   operatorSlug?: string;
+};
+
+/** Chủ thể của một phiên, đọc lại từ DB — role/trạng thái có thể đã đổi kể từ lúc login. */
+type SessionOwner = {
+  claims: SessionClaims;
+  active: boolean;
+  email?: string;
+  passwordHash?: string;
 };
 
 @Injectable()
@@ -39,7 +69,8 @@ export class AuthService {
     private readonly tokens: TokenService,
     private readonly credentials: CredentialService,
     private readonly otpRateLimiter: OtpRateLimiter,
-    private readonly loginHistory: LoginHistoryService
+    private readonly loginHistory: LoginHistoryService,
+    private readonly sessions: SessionService
   ) {}
 
   // ── Passenger (Better Auth: email-OTP) ──
@@ -69,6 +100,7 @@ export class AuthService {
     try {
       const result = await this.auth.api.signInEmailOTP({ body: { email, otp } });
       userId = result.user.id;
+      await this.discardBetterAuthSession(result.token);
     } catch (error) {
       // Chỉ OTP sai mới là 401. Lỗi hạ tầng (Postgres/Redis) mà map thành 401 sẽ ghi audit sai
       // sự thật ("otp_invalid") — làm hỏng chính bằng chứng dùng để điều tra sau này.
@@ -129,7 +161,13 @@ export class AuthService {
 
     const row = await this.prisma.platformAccount.findUnique({ where: { username: resolved.username } });
     const account: CredentialAccount | null = row
-      ? { id: row.id, passwordHash: row.passwordHash, role: String(row.role), status: String(row.status) }
+      ? {
+          id: row.id,
+          passwordHash: row.passwordHash,
+          role: String(row.role),
+          status: String(row.status),
+          subjectType: SubjectType.PLATFORM
+        }
       : null;
 
     if (!account) {
@@ -172,7 +210,73 @@ export class AuthService {
     if (!session?.user) {
       throw invalidCredentials();
     }
+    // Phiên Better Auth chỉ là cầu nối một lần: để nó sống thì cookie còn trên trình duyệt đổi được
+    // ra family mới vô hạn lần — kể cả sau khi người dùng đã logout.
+    await this.discardBetterAuthSession(session.session.token);
     return this.issuePassengerToken(session.user.id, ctx);
+  }
+
+  // ── Phiên (IAM-002: refresh rotation + logout + re-auth) ──
+  async refresh(refreshToken: string, ctx: RequestContext): Promise<LoginResult> {
+    // Rate limit chạm Redis TRƯỚC Postgres: Redis chết thì 503 ngay, không rotate nửa vời.
+    await this.otpRateLimiter.assertCanRefresh(ctx.ip);
+    let claims: SessionClaims | undefined;
+    const { session, refreshToken: next } = await this.sessions.rotate(refreshToken, ctx, async (current) => {
+      await this.otpRateLimiter.assertCanRotateFamily(current.familyId);
+      // Đọc lại chủ thể TRƯỚC khi commit rotate: role mới nhất vào token mới, và account bị khoá /
+      // tenant bị suspend thì dừng ở đây — chưa có luồng khoá account (IAM-005) nào gọi revoke cả.
+      // Làm sau commit thì một lỗi tạm thời ở bước này (500/503) đã tiêu mất token cũ: client gửi lại
+      // token cũ và bị coi là reuse.
+      const owner = await this.loadSessionOwner(current);
+      if (!owner?.active) {
+        await this.sessions.revokeFamily(current.familyId, SessionRevokeReason.ACCOUNT_LOCKED);
+        throw owner ? accountLocked() : sessionExpired();
+      }
+      claims = owner.claims;
+    });
+    if (!claims) {
+      throw new Error("rotate() hoàn tất mà không chạy beforeRotate.");
+    }
+    // Sau commit chỉ còn ký JWT trong bộ nhớ — không còn gì có thể hỏng vì hạ tầng.
+    return this.mintForSession(session, next, claims);
+  }
+
+  async logout(sid: string): Promise<void> {
+    await this.sessions.logout(sid);
+  }
+
+  /** FR-IAM-10 (Q3): chỉ cấp bằng chứng `reauth:{sid}` 5 phút — chưa endpoint nghiệp vụ nào đọc. */
+  async reauth(user: VerifiedAccessToken, input: ReauthInput, ctx: RequestContext): Promise<void> {
+    const session = await this.sessions.findById(user.sid);
+    if (!session || session.revokedAt) {
+      throw sessionExpired();
+    }
+    // Chung bucket IP với login + bucket chủ thể riêng: không thành kênh dò mật khẩu đi vòng.
+    await this.otpRateLimiter.assertCanReauth(session.userRef, ctx.ip);
+
+    const owner = await this.loadSessionOwner(session);
+    const verified = await this.verifyReauthProof(owner, session, input);
+    this.sessions.recordEvent({
+      actorId: session.subjectId,
+      actorRole: session.subjectType,
+      action: verified ? "auth.reauth.success" : "auth.reauth.failure",
+      targetType: "auth_session",
+      targetId: session.id,
+      operatorId: session.operatorId ?? undefined,
+      after: {
+        ...(ctx.ip ? { ip: ctx.ip } : {}),
+        ...(ctx.userAgent ? { userAgent: ctx.userAgent } : {})
+      }
+    });
+    if (!verified || !owner) {
+      throw invalidCredentials();
+    }
+    // Như login: chỉ báo "bị khoá" SAU khi bằng chứng đã đúng — không leak trạng thái account.
+    if (!owner.active) {
+      await this.sessions.revokeFamily(session.familyId, SessionRevokeReason.ACCOUNT_LOCKED);
+      throw accountLocked();
+    }
+    await this.sessions.grantReauth(session.id);
   }
 
   // ── helpers ──
@@ -202,11 +306,11 @@ export class AuthService {
   }
 
   private async issuePassengerToken(userId: string, ctx: RequestContext): Promise<LoginResult> {
-    const token = await this.tokens.mintAccessToken({
-      sub: userId,
-      scope: "passenger",
-      role: PASSENGER_ROLE
-    });
+    const result = await this.issueSession(
+      { type: SubjectType.PASSENGER, id: userId },
+      { scope: "passenger", role: PASSENGER_ROLE },
+      ctx
+    );
     await this.loginHistory.record({
       scope: "passenger",
       result: "success",
@@ -215,7 +319,137 @@ export class AuthService {
       role: PASSENGER_ROLE,
       ...ctx
     });
-    return { ...token, scope: "passenger", role: PASSENGER_ROLE };
+    return result;
+  }
+
+  /**
+   * Better Auth tạo phiên riêng (bảng `user_sessions`) mỗi lần xác thực OTP/OAuth. Phiên thật của hệ
+   * thống là `auth_sessions`; phiên Better Auth để lại thì logout/reuse detection không chạm tới nó.
+   * Chặn rỗng: `deleteMany({ where: { token: undefined } })` của Prisma là XOÁ HẾT.
+   */
+  private async discardBetterAuthSession(token: string | undefined): Promise<void> {
+    if (!token) {
+      return;
+    }
+    await this.prisma.session.deleteMany({ where: { token } });
+  }
+
+  /** Mọi đường login đi qua đây: phiên tạo TRƯỚC, access token mang `sid` của đúng phiên đó. */
+  private async issueSession(
+    subject: SessionSubject,
+    claims: SessionClaims,
+    ctx: RequestContext
+  ): Promise<LoginResult> {
+    const { session, refreshToken } = await this.sessions.create(subject, ctx);
+    return this.mintForSession(session, refreshToken, claims);
+  }
+
+  private async mintForSession(
+    session: AuthSession,
+    refreshToken: string,
+    claims: SessionClaims
+  ): Promise<LoginResult> {
+    const token = await this.tokens.mintAccessToken({
+      ...claims,
+      sub: session.subjectId,
+      sid: session.id
+    });
+    return {
+      ...token,
+      scope: claims.scope,
+      role: claims.role,
+      refreshToken,
+      refreshExpiresInSeconds: this.config.REFRESH_TOKEN_TTL_SECONDS
+    };
+  }
+
+  private async loadSessionOwner(session: AuthSession): Promise<SessionOwner | null> {
+    const id = session.subjectId;
+    switch (session.subjectType) {
+      case SubjectType.PASSENGER: {
+        const user = await this.prisma.user.findUnique({ where: { id } });
+        return user
+          ? { claims: { scope: "passenger", role: PASSENGER_ROLE }, active: true, email: user.email }
+          : null;
+      }
+      case SubjectType.OPERATOR: {
+        const account = await this.prisma.operatorAccount.findUnique({
+          where: { id },
+          include: { operator: true }
+        });
+        return account
+          ? {
+              claims: {
+                scope: "operator",
+                role: String(account.role),
+                operatorId: account.operatorId,
+                operatorSlug: account.operator.operatorSlug
+              },
+              active: isActive(String(account.status)) && isActive(String(account.operator.status)),
+              passwordHash: account.passwordHash
+            }
+          : null;
+      }
+      case SubjectType.EMPLOYEE: {
+        const account = await this.prisma.employeeAccount.findUnique({
+          where: { id },
+          include: { operator: true }
+        });
+        return account
+          ? {
+              claims: {
+                scope: "operator",
+                role: String(account.role),
+                operatorId: account.operatorId,
+                operatorSlug: account.operator.operatorSlug
+              },
+              active: isActive(String(account.status)) && isActive(String(account.operator.status)),
+              passwordHash: account.passwordHash
+            }
+          : null;
+      }
+      case SubjectType.PLATFORM: {
+        const account = await this.prisma.platformAccount.findUnique({ where: { id } });
+        return account
+          ? {
+              claims: { scope: "platform", role: String(account.role) },
+              active: isActive(String(account.status)),
+              passwordHash: account.passwordHash
+            }
+          : null;
+      }
+    }
+  }
+
+  private async verifyReauthProof(
+    owner: SessionOwner | null,
+    session: AuthSession,
+    input: ReauthInput
+  ): Promise<boolean> {
+    if (session.subjectType === SubjectType.PASSENGER) {
+      if (!owner?.email || !input.otp) {
+        return false;
+      }
+      try {
+        const result = await this.auth.api.signInEmailOTP({
+          body: { email: owner.email, otp: input.otp }
+        });
+        await this.discardBetterAuthSession(result.token);
+        return result.user.id === session.subjectId;
+      } catch (error) {
+        // Cùng quy tắc với verifyOtp: chỉ lỗi phía client mới là "sai OTP".
+        if (!isClientAuthError(error)) {
+          throw error;
+        }
+        return false;
+      }
+    }
+    // Thiếu mật khẩu / account đã mất vẫn chạy scrypt: thời gian phản hồi không lộ nhánh nào đã chạy.
+    const ok = await this.credentials.verify(
+      input.password ?? "",
+      owner?.passwordHash ?? DUMMY_PASSWORD_HASH
+    );
+    return ok && owner !== null && input.password !== undefined;
   }
 
   private async findOperatorSideAccount(
@@ -236,6 +470,7 @@ export class AuthService {
         passwordHash: owner.passwordHash,
         role: String(owner.role),
         status: String(owner.status),
+        subjectType: SubjectType.OPERATOR,
         operatorId: owner.operatorId,
         operatorSlug: owner.operatorSlug
       };
@@ -250,6 +485,7 @@ export class AuthService {
         passwordHash: employee.passwordHash,
         role: String(employee.role),
         status: String(employee.status),
+        subjectType: SubjectType.EMPLOYEE,
         operatorId: employee.operatorId,
         operatorSlug
       };
@@ -317,13 +553,11 @@ export class AuthService {
     operatorSlug: string | undefined,
     ctx: RequestContext
   ): Promise<LoginResult> {
-    const token = await this.tokens.mintAccessToken({
-      sub: account.id,
-      scope,
-      role: account.role,
-      operatorId: account.operatorId,
-      operatorSlug
-    });
+    const result = await this.issueSession(
+      { type: account.subjectType, id: account.id, operatorId: account.operatorId },
+      { scope, role: account.role, operatorId: account.operatorId, operatorSlug },
+      ctx
+    );
     await this.loginHistory.record({
       scope,
       result: "success",
@@ -333,7 +567,7 @@ export class AuthService {
       operatorId: account.operatorId,
       ...ctx
     });
-    return { ...token, scope, role: account.role };
+    return result;
   }
 }
 

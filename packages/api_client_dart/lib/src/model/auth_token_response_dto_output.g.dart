@@ -140,6 +140,10 @@ class _$AuthTokenResponseDtoOutput extends AuthTokenResponseDtoOutput {
   final AuthTokenResponseDtoOutputScopeEnum scope;
   @override
   final String role;
+  @override
+  final String refreshToken;
+  @override
+  final int refreshExpiresIn;
 
   factory _$AuthTokenResponseDtoOutput(
           [void Function(AuthTokenResponseDtoOutputBuilder)? updates]) =>
@@ -150,7 +154,9 @@ class _$AuthTokenResponseDtoOutput extends AuthTokenResponseDtoOutput {
       required this.tokenType,
       required this.expiresIn,
       required this.scope,
-      required this.role})
+      required this.role,
+      required this.refreshToken,
+      required this.refreshExpiresIn})
       : super._();
   @override
   AuthTokenResponseDtoOutput rebuild(
@@ -169,7 +175,9 @@ class _$AuthTokenResponseDtoOutput extends AuthTokenResponseDtoOutput {
         tokenType == other.tokenType &&
         expiresIn == other.expiresIn &&
         scope == other.scope &&
-        role == other.role;
+        role == other.role &&
+        refreshToken == other.refreshToken &&
+        refreshExpiresIn == other.refreshExpiresIn;
   }
 
   @override
@@ -180,6 +188,8 @@ class _$AuthTokenResponseDtoOutput extends AuthTokenResponseDtoOutput {
     _$hash = $jc(_$hash, expiresIn.hashCode);
     _$hash = $jc(_$hash, scope.hashCode);
     _$hash = $jc(_$hash, role.hashCode);
+    _$hash = $jc(_$hash, refreshToken.hashCode);
+    _$hash = $jc(_$hash, refreshExpiresIn.hashCode);
     _$hash = $jf(_$hash);
     return _$hash;
   }
@@ -191,7 +201,9 @@ class _$AuthTokenResponseDtoOutput extends AuthTokenResponseDtoOutput {
           ..add('tokenType', tokenType)
           ..add('expiresIn', expiresIn)
           ..add('scope', scope)
-          ..add('role', role))
+          ..add('role', role)
+          ..add('refreshToken', refreshToken)
+          ..add('refreshExpiresIn', refreshExpiresIn))
         .toString();
   }
 }
@@ -223,6 +235,15 @@ class AuthTokenResponseDtoOutputBuilder
   String? get role => _$this._role;
   set role(String? role) => _$this._role = role;
 
+  String? _refreshToken;
+  String? get refreshToken => _$this._refreshToken;
+  set refreshToken(String? refreshToken) => _$this._refreshToken = refreshToken;
+
+  int? _refreshExpiresIn;
+  int? get refreshExpiresIn => _$this._refreshExpiresIn;
+  set refreshExpiresIn(int? refreshExpiresIn) =>
+      _$this._refreshExpiresIn = refreshExpiresIn;
+
   AuthTokenResponseDtoOutputBuilder() {
     AuthTokenResponseDtoOutput._defaults(this);
   }
@@ -235,6 +256,8 @@ class AuthTokenResponseDtoOutputBuilder
       _expiresIn = $v.expiresIn;
       _scope = $v.scope;
       _role = $v.role;
+      _refreshToken = $v.refreshToken;
+      _refreshExpiresIn = $v.refreshExpiresIn;
       _$v = null;
     }
     return this;
@@ -266,6 +289,12 @@ class AuthTokenResponseDtoOutputBuilder
               scope, r'AuthTokenResponseDtoOutput', 'scope'),
           role: BuiltValueNullFieldError.checkNotNull(
               role, r'AuthTokenResponseDtoOutput', 'role'),
+          refreshToken: BuiltValueNullFieldError.checkNotNull(
+              refreshToken, r'AuthTokenResponseDtoOutput', 'refreshToken'),
+          refreshExpiresIn: BuiltValueNullFieldError.checkNotNull(
+              refreshExpiresIn,
+              r'AuthTokenResponseDtoOutput',
+              'refreshExpiresIn'),
         );
     replace(_$result);
     return _$result;

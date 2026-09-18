@@ -27,7 +27,9 @@ import 'package:api_client_dart/src/model/postgres_health_response_dto_output.da
 import 'package:api_client_dart/src/model/problem_details_dto.dart';
 import 'package:api_client_dart/src/model/queue_health_response_dto_output.dart';
 import 'package:api_client_dart/src/model/queue_health_response_dto_output_queues_inner.dart';
+import 'package:api_client_dart/src/model/reauth_dto.dart';
 import 'package:api_client_dart/src/model/redis_health_response_dto_output.dart';
+import 'package:api_client_dart/src/model/refresh_token_dto.dart';
 import 'package:api_client_dart/src/model/register_dto.dart';
 
 part 'serializers.g.dart';
@@ -46,7 +48,9 @@ part 'serializers.g.dart';
   ProblemDetailsDto,
   QueueHealthResponseDtoOutput,
   QueueHealthResponseDtoOutputQueuesInner,
+  ReauthDto,
   RedisHealthResponseDtoOutput,
+  RefreshTokenDto,
   RegisterDto,
 ])
 Serializers serializers = (_$serializers.toBuilder()
@@ -55,14 +59,15 @@ Serializers serializers = (_$serializers.toBuilder()
         () => MapBuilder<String, int>(),
       )
       ..addBuilderFactory(
-        const FullType(BuiltList, [FullType(QueueHealthResponseDtoOutputQueuesInner)]),
+        const FullType(
+            BuiltList, [FullType(QueueHealthResponseDtoOutputQueuesInner)]),
         () => ListBuilder<QueueHealthResponseDtoOutputQueuesInner>(),
       )
       ..add(const OneOfSerializer())
       ..add(const AnyOfSerializer())
       ..add(const DateSerializer())
-      ..add(Iso8601DateTimeSerializer())
-    ).build();
+      ..add(Iso8601DateTimeSerializer()))
+    .build();
 
 Serializers standardSerializers =
     (serializers.toBuilder()..addPlugin(StandardJsonPlugin())).build();

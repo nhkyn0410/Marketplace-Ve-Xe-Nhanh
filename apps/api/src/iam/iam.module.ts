@@ -19,9 +19,9 @@ import { OtpRateLimiter } from "./auth/otp-rate-limiter";
 import { TokenService } from "./auth/token.service";
 import { RefreshTokenService } from "./session/refresh-token.service";
 import { SessionService } from "./session/session.service";
-import { SessionRevocationStore } from "./session/session-revocation.store";
+import { SessionCache } from "./session/session-cache";
 
-/** TASK-IAM-001 — Better Auth + login 3-namespace (DOMAIN-MAP `iam/auth`). */
+/** TASK-IAM-001/002 — Better Auth + login 3-namespace + hybrid token (DOMAIN-MAP `iam/auth`, `iam/session`). */
 @Module({
   imports: [DatabaseModule, AuditModule, RedisModule, NotificationModule],
   controllers: [AuthController],
@@ -42,7 +42,7 @@ import { SessionRevocationStore } from "./session/session-revocation.store";
     AuthService,
     RefreshTokenService,
     SessionService,
-    SessionRevocationStore,
+    SessionCache,
   ],
   exports: [BETTER_AUTH, TokenService, SessionService],
 })

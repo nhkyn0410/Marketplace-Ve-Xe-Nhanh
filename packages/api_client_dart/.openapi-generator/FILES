@@ -17,7 +17,9 @@ doc/PostgresHealthResponseDtoOutput.md
 doc/ProblemDetailsDto.md
 doc/QueueHealthResponseDtoOutput.md
 doc/QueueHealthResponseDtoOutputQueuesInner.md
+doc/ReauthDto.md
 doc/RedisHealthResponseDtoOutput.md
+doc/RefreshTokenDto.md
 doc/RegisterDto.md
 lib/api_client_dart.dart
 lib/src/api.dart
@@ -44,7 +46,9 @@ lib/src/model/postgres_health_response_dto_output.dart
 lib/src/model/problem_details_dto.dart
 lib/src/model/queue_health_response_dto_output.dart
 lib/src/model/queue_health_response_dto_output_queues_inner.dart
+lib/src/model/reauth_dto.dart
 lib/src/model/redis_health_response_dto_output.dart
+lib/src/model/refresh_token_dto.dart
 lib/src/model/register_dto.dart
 lib/src/serializers.dart
 pubspec.yaml
@@ -63,5 +67,7 @@ test/postgres_health_response_dto_output_test.dart
 test/problem_details_dto_test.dart
 test/queue_health_response_dto_output_queues_inner_test.dart
 test/queue_health_response_dto_output_test.dart
+test/reauth_dto_test.dart
 test/redis_health_response_dto_output_test.dart
+test/refresh_token_dto_test.dart
 test/register_dto_test.dart

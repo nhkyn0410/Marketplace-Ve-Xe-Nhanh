@@ -1,9 +1,7 @@
-import { Inject, Injectable, Logger, type OnModuleInit } from "@nestjs/common";
-import { APP_CONFIG, type AppConfig } from "../../config/env.config";
-import z from "zod";
 import { createPublicKey } from "node:crypto";
-
-type VerifyKey = Awaited<ReturnType<Jose["importSPKI"]>>;
+import { Inject, Injectable, Logger, type OnModuleInit } from "@nestjs/common";
+import { z } from "zod";
+import { APP_CONFIG, type AppConfig } from "../../config/env.config";
 
 const ALG = "RS256";
 
@@ -14,17 +12,15 @@ const ALG = "RS256";
 const loadJose = () => import("jose");
 type Jose = Awaited<ReturnType<typeof loadJose>>;
 type SignKey = Parameters<InstanceType<Jose["SignJWT"]>["sign"]>[0];
+type VerifyKey = Awaited<ReturnType<Jose["importSPKI"]>>;
 
 export type AuthScope = "passenger" | "operator" | "platform";
 
 export type AccessTokenClaims = {
   /** subject = id account (passenger user / operator-account / platform-account). */
   sub: string;
-  /**
-   * `auth_sessions.id` — để guard tra được phiên đã bị revoke chưa.
-   * Tuỳ chọn TẠM tới IAM-002.6 (4 đường login chưa tạo session). `.6` phải đổi thành bắt buộc.
-   */
-  sid?: string;
+  /** `auth_sessions.id` — để guard tra được phiên đã bị revoke chưa. */
+  sid: string;
   scope: AuthScope;
   role: string;
   operatorId?: string;
@@ -35,7 +31,6 @@ export type AccessTokenClaims = {
  * Parse bằng Zod dù chữ ký đã đúng: chữ ký chỉ chứng minh token do ta ký, không chứng minh nó
  * đúng hình dạng hiện tại — token IAM-001 (không có `sid`) vẫn ký hợp lệ nhưng KHÔNG revoke được.
  */
-
 const verifiedClaimsSchema = z.object({
   sub: z.string().min(1),
   sid: z.uuid(),
@@ -97,12 +92,10 @@ export class TokenService implements OnModuleInit {
   async mintAccessToken(claims: AccessTokenClaims): Promise<IssuedAccessToken> {
     const ttl = this.config.JWT_ACCESS_TTL_SECONDS;
     const payload: Record<string, string> = {
+      sid: claims.sid,
       scope: claims.scope,
       role: claims.role,
     };
-    if (claims.sid) {
-      payload.sid = claims.sid;
-    }
     if (claims.operatorId) {
       payload.operatorId = claims.operatorId;
     }
@@ -120,17 +113,19 @@ export class TokenService implements OnModuleInit {
 
     return { accessToken, tokenType: "Bearer", expiresInSeconds: ttl };
   }
+
   /**
    * `null` = không dùng được: sai chữ ký, hết hạn, sai issuer, sai thuật toán, thiếu/sai claim.
    * Cố ý KHÔNG trả lý do — caller trả đúng một kiểu 401, không cho kẻ dò token biết sai ở đâu.
    */
-
   async verifyAccessToken(token: string): Promise<VerifiedAccessToken | null> {
     try {
       const { payload } = await this.jose.jwtVerify(token, this.publicKey, {
         issuer: this.config.JWT_ISSUER,
         // jose vốn đã từ chối `alg: none`; khoá cứng thuật toán để chặn nhầm thuật toán
         algorithms: [ALG],
+        // jose chỉ kiểm `exp` KHI có mặt: token ký hợp lệ mà thiếu `exp` sẽ sống vĩnh viễn.
+        requiredClaims: ["exp", "iat"],
       });
       const claim = verifiedClaimsSchema.safeParse(payload);
       return claim.success ? claim.data : null;
