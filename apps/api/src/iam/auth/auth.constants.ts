@@ -24,3 +24,13 @@ export const OTP_WINDOW_SECONDS = 3600;
 export const LOGIN_MAX_PER_IDENTIFIER_PER_HOUR = 10;
 export const LOGIN_MAX_PER_IP_PER_HOUR = 30;
 export const LOGIN_WINDOW_SECONDS = 3600;
+
+/**
+ * Rate limit `/auth/refresh` theo IP (IAM-002). Client hợp lệ refresh ~4 lần/giờ/thiết bị (access 15
+ * phút), nên 600/giờ chừa chỗ cho ~150 thiết bị sau cùng một NAT nhà mạng. Con số giả định v1 —
+ * chỉnh khi đo được tải thật.
+ */
+export const REFRESH_MAX_PER_IP_PER_HOUR = 600;
+/** Một family = một thiết bị đăng nhập; hợp lệ ~4 lần/giờ + vài lần mở lại app. */
+export const REFRESH_MAX_PER_FAMILY_PER_HOUR = 30;
+export const REFRESH_WINDOW_SECONDS = 3600;

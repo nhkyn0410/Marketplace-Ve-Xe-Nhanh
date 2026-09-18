@@ -4,7 +4,6 @@ import { Injectable } from "@nestjs/common";
 /** Class mồi: có decorator + tham số constructor **suy theo kiểu** — đúng điều kiện để TypeScript phát `design:paramtypes`. */
 @Injectable()
 class MetadataProbe {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars, no-unused-vars
   constructor(private readonly probe: Date) {}
 }
 
@@ -30,7 +29,9 @@ class MetadataProbe {
  * Runtime đã kiểm chứng: `tsc` → OK · `vitest` 4 (rolldown/oxc) → OK · `tsx` (esbuild) → HỎNG.
  */
 export function assertDecoratorMetadata(entrypoint: string): void {
-  const paramTypes = Reflect.getMetadata("design:paramtypes", MetadataProbe) as unknown[] | undefined;
+  const paramTypes = Reflect.getMetadata("design:paramtypes", MetadataProbe) as
+    | unknown[]
+    | undefined;
 
   if (Array.isArray(paramTypes) && paramTypes.length === 1) {
     return;
@@ -43,7 +44,7 @@ export function assertDecoratorMetadata(entrypoint: string): void {
       "app vẫn boot rồi vỡ khi handler chạm tới nó. (@Inject tường minh thì vẫn đúng.)",
       "Nguyên nhân thường gặp: chạy bằng `tsx`/esbuild. Hãy dùng bản biên dịch",
       "(`pnpm build` rồi `node dist/...`) hoặc `pnpm dev` (tsc --watch).",
-      "Chi tiết: src/common/assert-decorator-metadata.ts"
-    ].join(" ")
+      "Chi tiết: src/common/assert-decorator-metadata.ts",
+    ].join(" "),
   );
 }

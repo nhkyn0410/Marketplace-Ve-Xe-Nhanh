@@ -13,6 +13,8 @@ Name | Type | Description | Notes
 **expiresIn** | **int** |  | 
 **scope** | **String** |  | 
 **role** | **String** |  | 
+**refreshToken** | **String** |  | 
+**refreshExpiresIn** | **int** |  | 
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)
 

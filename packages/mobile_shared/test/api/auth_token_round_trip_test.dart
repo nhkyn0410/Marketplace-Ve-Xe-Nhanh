@@ -9,6 +9,9 @@ void main() {
     'expiresIn': 900,
     'scope': 'passenger',
     'role': 'PASSENGER',
+    // IAM-002: login trả kèm refresh token.
+    'refreshToken': 'opaque-refresh-token',
+    'refreshExpiresIn': 2592000,
   };
 
   AuthTokenResponseDtoOutput decode(Map<String, dynamic> json) =>

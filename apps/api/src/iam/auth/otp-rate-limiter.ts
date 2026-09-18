@@ -1,15 +1,19 @@
+import { isIP } from "node:net";
 import { HttpStatus, Inject, Injectable, Logger } from "@nestjs/common";
 import type Redis from "ioredis";
-import { REDIS_CLIENT } from "../../redis/redis.constants";
+import { REDIS_CLIENT } from "../../redis/redis.config";
 import {
   LOGIN_MAX_PER_IDENTIFIER_PER_HOUR,
   LOGIN_MAX_PER_IP_PER_HOUR,
   LOGIN_WINDOW_SECONDS,
   OTP_COOLDOWN_SECONDS,
   OTP_MAX_PER_HOUR,
-  OTP_WINDOW_SECONDS
+  OTP_WINDOW_SECONDS,
+  REFRESH_MAX_PER_FAMILY_PER_HOUR,
+  REFRESH_MAX_PER_IP_PER_HOUR,
+  REFRESH_WINDOW_SECONDS
 } from "./auth.constants";
-import { AuthException, otpRateLimited } from "./auth.errors";
+import { AuthException, otpRateLimited, serviceUnavailable } from "./auth.errors";
 
 /**
  * INCR + EXPIRE trong MỘT lệnh. Tách hai lệnh thì lỗi/timeout đúng khe giữa chúng sẽ để lại
@@ -20,15 +24,6 @@ local c = redis.call('INCR', KEYS[1])
 if c == 1 then redis.call('EXPIRE', KEYS[1], ARGV[1]) end
 return c
 `;
-
-/** Redis chết → fail-closed (KHÔNG bypass rate limit) nhưng trả đúng 503 thay vì 500 (ADR-015). */
-function redisUnavailable(): AuthException {
-  return new AuthException(
-    HttpStatus.SERVICE_UNAVAILABLE,
-    "SERVICE_UNAVAILABLE",
-    "Dịch vụ tạm thời không khả dụng. Vui lòng thử lại."
-  );
-}
 
 /**
  * Rate limit đường xác thực. Dùng Redis (ADR-015).
@@ -54,7 +49,7 @@ export class OtpRateLimiter {
         "NX"
       );
     } catch {
-      throw redisUnavailable();
+      throw serviceUnavailable();
     }
     if (acquired === null) {
       throw otpRateLimited();
@@ -80,12 +75,58 @@ export class OtpRateLimiter {
       throw loginRateLimited();
     }
 
-    if (ip) {
-      const perIp = await this.bump(`login:ip:${ip}`, LOGIN_WINDOW_SECONDS);
-      if (perIp > LOGIN_MAX_PER_IP_PER_HOUR) {
-        this.logger.warn({ event: "auth.login.rate_limited", dimension: "ip" });
-        throw loginRateLimited();
-      }
+    await this.assertLoginIp(ip);
+  }
+
+  /**
+   * Re-auth (IAM-002, FR-IAM-10). Bucket chủ thể RIÊNG (`reauth-attempt:`), không dùng chung
+   * `login:id:` — identifier login là chuỗi người dùng gõ, nên ai biết `sub` trong JWT cũng có thể
+   * gõ đúng chuỗi đó vào cổng login 11 lần để khoá re-auth của nạn nhân. Bucket IP thì dùng CHUNG
+   * với login: đổi cổng không cho thêm lượt đoán mật khẩu từ cùng một nguồn.
+   */
+  async assertCanReauth(userRef: string, ip?: string): Promise<void> {
+    const perSubject = await this.bump(`reauth-attempt:${userRef}`, LOGIN_WINDOW_SECONDS);
+    if (perSubject > LOGIN_MAX_PER_IDENTIFIER_PER_HOUR) {
+      this.logger.warn({ event: "auth.reauth.rate_limited", dimension: "subject" });
+      throw loginRateLimited();
+    }
+    await this.assertLoginIp(ip);
+  }
+
+  private async assertLoginIp(ip?: string): Promise<void> {
+    if (!ip) {
+      return;
+    }
+    const perIp = await this.bump(`login:ip:${ipBucket(ip)}`, LOGIN_WINDOW_SECONDS);
+    if (perIp > LOGIN_MAX_PER_IP_PER_HOUR) {
+      this.logger.warn({ event: "auth.login.rate_limited", dimension: "ip" });
+      throw loginRateLimited();
+    }
+  }
+
+  /**
+   * `/auth/refresh` (IAM-002) theo IP. Refresh token là 256 bit ngẫu nhiên nên không dò được —
+   * giới hạn này để hãm lũ request ghi Postgres + audit append-only, không phải chống brute-force.
+   * Không có IP tin cậy thì bỏ qua ở đây; bucket theo family (`assertCanRotateFamily`) vẫn chặn.
+   */
+  async assertCanRefresh(ip?: string): Promise<void> {
+    if (!ip) {
+      return;
+    }
+    if ((await this.bump(`refresh:ip:${ipBucket(ip)}`, REFRESH_WINDOW_SECONDS)) > REFRESH_MAX_PER_IP_PER_HOUR) {
+      this.logger.warn({ event: "auth.refresh.rate_limited", dimension: "ip" });
+      throw refreshRateLimited();
+    }
+  }
+
+  /**
+   * Theo family — không phụ thuộc IP, nên gọi thẳng origin (bỏ Cloudflare) hay xoay địa chỉ IPv6
+   * cũng không lách được. Mỗi lần rotate ghi một row Postgres + một bản ghi audit không xoá được.
+   */
+  async assertCanRotateFamily(familyId: string): Promise<void> {
+    if ((await this.bump(`refresh:family:${familyId}`, REFRESH_WINDOW_SECONDS)) > REFRESH_MAX_PER_FAMILY_PER_HOUR) {
+      this.logger.warn({ event: "auth.refresh.rate_limited", dimension: "family" });
+      throw refreshRateLimited();
     }
   }
 
@@ -93,13 +134,46 @@ export class OtpRateLimiter {
     try {
       return Number(await this.redis.eval(INCR_WITH_TTL, 1, key, String(windowSeconds)));
     } catch {
-      throw redisUnavailable();
+      throw serviceUnavailable();
     }
   }
 }
 
 function normalize(value: string): string {
   return value.trim().toLowerCase();
+}
+
+/**
+ * IPv6: một khách hàng thường được cấp nguyên dải /64 — đếm theo địa chỉ đầy đủ thì đổi 64 bit cuối
+ * là có bucket mới vô hạn. Gom theo /64. IPv4 (kể cả dạng `::ffff:a.b.c.d`) giữ nguyên địa chỉ.
+ */
+export function ipBucket(ip: string): string {
+  const mapped = /^::ffff:(\d{1,3}(?:\.\d{1,3}){3})$/i.exec(ip);
+  if (mapped) {
+    return mapped[1] as string;
+  }
+  if (isIP(ip) !== 6) {
+    return ip;
+  }
+  const [head = "", tail] = ip.split("%")[0]!.split("::");
+  const headParts = head ? head.split(":") : [];
+  const tailParts = tail ? tail.split(":") : [];
+  const groups =
+    tail === undefined
+      ? headParts
+      : [...headParts, ...Array<string>(8 - headParts.length - tailParts.length).fill("0"), ...tailParts];
+  return `${groups
+    .slice(0, 4)
+    .map((group) => group.toLowerCase().padStart(4, "0"))
+    .join(":")}::/64`;
+}
+
+function refreshRateLimited(): AuthException {
+  return new AuthException(
+    HttpStatus.TOO_MANY_REQUESTS,
+    "AUTH_REFRESH_RATE_LIMITED",
+    "Làm mới phiên quá nhiều lần. Vui lòng thử lại sau."
+  );
 }
 
 function loginRateLimited(): AuthException {

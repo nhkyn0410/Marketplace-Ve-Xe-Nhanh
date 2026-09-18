@@ -26,6 +26,7 @@ export 'package:api_client_dart/src/model/postgres_health_response_dto_output.da
 export 'package:api_client_dart/src/model/problem_details_dto.dart';
 export 'package:api_client_dart/src/model/queue_health_response_dto_output.dart';
 export 'package:api_client_dart/src/model/queue_health_response_dto_output_queues_inner.dart';
+export 'package:api_client_dart/src/model/reauth_dto.dart';
 export 'package:api_client_dart/src/model/redis_health_response_dto_output.dart';
+export 'package:api_client_dart/src/model/refresh_token_dto.dart';
 export 'package:api_client_dart/src/model/register_dto.dart';
-

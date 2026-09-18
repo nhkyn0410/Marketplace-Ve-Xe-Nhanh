@@ -17,6 +17,8 @@ part 'auth_token_response_dto_output.g.dart';
 /// * [expiresIn]
 /// * [scope]
 /// * [role]
+/// * [refreshToken]
+/// * [refreshExpiresIn]
 @BuiltValue()
 abstract class AuthTokenResponseDtoOutput
     implements
@@ -37,6 +39,12 @@ abstract class AuthTokenResponseDtoOutput
 
   @BuiltValueField(wireName: r'role')
   String get role;
+
+  @BuiltValueField(wireName: r'refreshToken')
+  String get refreshToken;
+
+  @BuiltValueField(wireName: r'refreshExpiresIn')
+  int get refreshExpiresIn;
 
   AuthTokenResponseDtoOutput._();
 
@@ -92,6 +100,16 @@ class _$AuthTokenResponseDtoOutputSerializer
     yield serializers.serialize(
       object.role,
       specifiedType: const FullType(String),
+    );
+    yield r'refreshToken';
+    yield serializers.serialize(
+      object.refreshToken,
+      specifiedType: const FullType(String),
+    );
+    yield r'refreshExpiresIn';
+    yield serializers.serialize(
+      object.refreshExpiresIn,
+      specifiedType: const FullType(int),
     );
   }
 
@@ -153,6 +171,20 @@ class _$AuthTokenResponseDtoOutputSerializer
             specifiedType: const FullType(String),
           ) as String;
           result.role = valueDes;
+          break;
+        case r'refreshToken':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(String),
+          ) as String;
+          result.refreshToken = valueDes;
+          break;
+        case r'refreshExpiresIn':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(int),
+          ) as int;
+          result.refreshExpiresIn = valueDes;
           break;
         default:
           unhandled.add(key);

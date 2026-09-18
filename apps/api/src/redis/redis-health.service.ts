@@ -6,7 +6,7 @@ import {
 } from "@nestjs/common";
 import type { RedisHealthResponse as SharedRedisHealthResponse } from "@vexenhanh/types";
 import type Redis from "ioredis";
-import { REDIS_CLIENT } from "./redis.constants";
+import { REDIS_CLIENT } from "./redis.config";
 
 export type RedisHealthResponse = SharedRedisHealthResponse;
 

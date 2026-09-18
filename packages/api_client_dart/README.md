@@ -48,14 +48,12 @@ import 'package:api_client_dart/api_client_dart.dart';
 
 
 final api = ApiClientDart().getAuthApi();
-final String provider = provider_example; // String | OAuth provider (v1: google).
-final OAuthInitDto oAuthInitDto = ; // OAuthInitDto | 
 
 try {
-    final response = await api.authControllerOauth(provider, oAuthInitDto);
+    final response = await api.authControllerLogout();
     print(response);
 } on DioException catch (e) {
-    print("Exception when calling AuthApi->authControllerOauth: $e\n");
+    print("Exception when calling AuthApi->authControllerLogout: $e\n");
 }
 
 ```
@@ -66,10 +64,13 @@ All URIs are relative to *http://localhost*
 
 Class | Method | HTTP request | Description
 ------------ | ------------- | ------------- | -------------
+[*AuthApi*](doc/AuthApi.md) | [**authControllerLogout**](doc/AuthApi.md#authcontrollerlogout) | **POST** /v1/auth/logout | 
 [*AuthApi*](doc/AuthApi.md) | [**authControllerOauth**](doc/AuthApi.md#authcontrolleroauth) | **POST** /v1/auth/oauth/{provider} | 
 [*AuthApi*](doc/AuthApi.md) | [**authControllerOauthSession**](doc/AuthApi.md#authcontrolleroauthsession) | **POST** /v1/auth/oauth/session | 
 [*AuthApi*](doc/AuthApi.md) | [**authControllerOperatorLogin**](doc/AuthApi.md#authcontrolleroperatorlogin) | **POST** /v1/auth/operator/login | 
 [*AuthApi*](doc/AuthApi.md) | [**authControllerPlatformLogin**](doc/AuthApi.md#authcontrollerplatformlogin) | **POST** /v1/auth/platform/login | 
+[*AuthApi*](doc/AuthApi.md) | [**authControllerReauth**](doc/AuthApi.md#authcontrollerreauth) | **POST** /v1/auth/re-auth | 
+[*AuthApi*](doc/AuthApi.md) | [**authControllerRefresh**](doc/AuthApi.md#authcontrollerrefresh) | **POST** /v1/auth/refresh | 
 [*AuthApi*](doc/AuthApi.md) | [**authControllerRegister**](doc/AuthApi.md#authcontrollerregister) | **POST** /v1/auth/register | 
 [*AuthApi*](doc/AuthApi.md) | [**authControllerRequestOtp**](doc/AuthApi.md#authcontrollerrequestotp) | **POST** /v1/auth/otp/request | 
 [*AuthApi*](doc/AuthApi.md) | [**authControllerVerifyOtp**](doc/AuthApi.md#authcontrollerverifyotp) | **POST** /v1/auth/otp/verify | 
@@ -95,13 +96,19 @@ Class | Method | HTTP request | Description
  - [ProblemDetailsDto](doc/ProblemDetailsDto.md)
  - [QueueHealthResponseDtoOutput](doc/QueueHealthResponseDtoOutput.md)
  - [QueueHealthResponseDtoOutputQueuesInner](doc/QueueHealthResponseDtoOutputQueuesInner.md)
+ - [ReauthDto](doc/ReauthDto.md)
  - [RedisHealthResponseDtoOutput](doc/RedisHealthResponseDtoOutput.md)
+ - [RefreshTokenDto](doc/RefreshTokenDto.md)
  - [RegisterDto](doc/RegisterDto.md)
 
 
 ## Documentation For Authorization
 
-Endpoints do not require authorization.
+
+Authentication schemes defined for the API:
+### bearer
+
+- **Type**: HTTP Bearer Token authentication (JWT)
 
 
 ## Author

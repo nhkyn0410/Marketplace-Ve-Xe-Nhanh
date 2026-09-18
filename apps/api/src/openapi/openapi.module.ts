@@ -7,6 +7,8 @@ import { DatabaseHealthService } from "../database/database-health.service";
 import { MongoHealthService } from "../database/mongo-health.service";
 import { AuthController } from "../iam/auth/auth.controller";
 import { AuthService } from "../iam/auth/auth.service";
+import { TokenService } from "../iam/auth/token.service";
+import { SessionService } from "../iam/session/session.service";
 import { QueueHealthService } from "../queue/queue-health.service";
 import { RedisHealthService } from "../redis/redis-health.service";
 
@@ -18,6 +20,9 @@ import { RedisHealthService } from "../redis/redis-health.service";
     { provide: APP_INTERCEPTOR, useClass: ZodSerializerInterceptor },
     // Scan-only: chỉ cần metadata route, không cần dependency thật (không Postgres/Redis/Mongo).
     { provide: AuthService, useValue: {} },
+    // Dependency của AccessTokenGuard (logout, re-auth) — Nest dựng guard lúc khởi tạo module.
+    { provide: TokenService, useValue: {} },
+    { provide: SessionService, useValue: {} },
     { provide: APP_CONFIG, useValue: { NODE_ENV: "test" } },
     {
       provide: DatabaseHealthService,

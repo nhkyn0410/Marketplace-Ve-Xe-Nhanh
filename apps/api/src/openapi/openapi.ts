@@ -16,6 +16,7 @@ export function buildOpenApiDocument(app: INestApplication): OpenAPIObject {
     .setDescription("Managed marketplace API for passenger, operator, and platform workflows.")
     .setVersion("0.0.0")
     .setOpenAPIVersion("3.1.0")
+    .addBearerAuth()
     .build();
 
   return cleanupOpenApiDoc(SwaggerModule.createDocument(app, config), { version: "3.1" });

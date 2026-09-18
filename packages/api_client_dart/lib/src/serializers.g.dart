@@ -29,9 +29,11 @@ Serializers _$serializers = (Serializers().toBuilder()
       ..add(QueueHealthResponseDtoOutput.serializer)
       ..add(QueueHealthResponseDtoOutputQueuesInner.serializer)
       ..add(QueueHealthResponseDtoOutputStatusEnum.serializer)
+      ..add(ReauthDto.serializer)
       ..add(RedisHealthResponseDtoOutput.serializer)
       ..add(RedisHealthResponseDtoOutputServiceEnum.serializer)
       ..add(RedisHealthResponseDtoOutputStatusEnum.serializer)
+      ..add(RefreshTokenDto.serializer)
       ..add(RegisterDto.serializer)
       ..addBuilderFactory(
           const FullType(BuiltList,
