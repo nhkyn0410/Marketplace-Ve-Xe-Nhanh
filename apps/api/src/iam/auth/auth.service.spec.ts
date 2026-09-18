@@ -20,8 +20,15 @@ function setup() {
     operatorProfile: { findUnique: vi.fn() },
     operatorAccount: { findUnique: vi.fn() },
     employeeAccount: { findUnique: vi.fn() },
-    platformAccount: { findUnique: vi.fn() }
+    platformAccount: { findUnique: vi.fn() },
+    // Ngữ cảnh RLS (IAM-003): unit test không có Postgres — chạy callback thẳng trên chính mock này.
+    withSystem: vi.fn(),
+    withTenant: vi.fn()
   };
+  prisma.withSystem.mockImplementation((work: (tx: typeof prisma) => Promise<unknown>) => work(prisma));
+  prisma.withTenant.mockImplementation((_operatorId: string, work: (tx: typeof prisma) => Promise<unknown>) =>
+    work(prisma)
+  );
   const tokens = {
     mintAccessToken: vi
       .fn()
@@ -209,6 +216,9 @@ describe("AuthService.operatorLogin", () => {
       { type: "OPERATOR", id: "acc-1", operatorId: "op-1" },
       { ip: "1.2.3.4" }
     );
+    // Tenant đã biết → account đọc trong ngữ cảnh TENANT, không phải system (RLS tự chặn tenant khác).
+    expect(ctx.prisma.withTenant).toHaveBeenCalledWith("op-1", expect.any(Function));
+    expect(ctx.prisma.withSystem).not.toHaveBeenCalled();
     expect(ctx.tokens.mintAccessToken).toHaveBeenCalledWith(
       expect.objectContaining({ sub: "acc-1", sid: "sess-1" })
     );
@@ -534,6 +544,22 @@ describe("AuthService.refresh (IAM-002)", () => {
 
     expect(await statusOf(ctx.service.refresh("rt-1", {}))).toBe(403);
     expect(ctx.sessions.revokeFamily).toHaveBeenCalledWith("fam-1", "ACCOUNT_LOCKED");
+    expect(ctx.tokens.mintAccessToken).not.toHaveBeenCalled();
+  });
+
+  it("account thuộc tenant khác phiên (dữ liệu lệch) → coi như không có account", async () => {
+    rotateRunsHook(rotatedEmployee, rotatedEmployee);
+    ctx.prisma.employeeAccount.findUnique.mockResolvedValue({
+      id: "emp-1",
+      operatorId: "op-KHAC",
+      role: "DRIVER",
+      status: "ACTIVE",
+      passwordHash: "x",
+      operator: ACTIVE_OPERATOR
+    });
+
+    expect(await statusOf(ctx.service.refresh("rt-1", {}))).toBe(401);
+    expect(ctx.prisma.withTenant).toHaveBeenCalledWith("op-1", expect.any(Function));
     expect(ctx.tokens.mintAccessToken).not.toHaveBeenCalled();
   });
 

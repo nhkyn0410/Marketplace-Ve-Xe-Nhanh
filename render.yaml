@@ -16,6 +16,8 @@ services:
         sync: false
       - key: REDIS_URL
         sync: false
+      # Role APP (NOSUPERUSER, NOBYPASSRLS) — KHÔNG phải owner, nếu không RLS vô hiệu (TASK-IAM-003).
+      # URL owner (MIGRATION_DATABASE_URL) chỉ dùng lúc migrate, KHÔNG khai ở service này.
       - key: DATABASE_URL
         sync: false
       - key: MONGODB_AUDIT_URI

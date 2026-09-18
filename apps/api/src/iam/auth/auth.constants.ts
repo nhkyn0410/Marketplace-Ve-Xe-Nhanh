@@ -1,3 +1,5 @@
+import { Role } from "../role/role";
+
 /** DI token cho instance Better Auth (tạo qua factory ở IamModule). */
 export const BETTER_AUTH = Symbol("BETTER_AUTH");
 
@@ -9,7 +11,7 @@ export const BETTER_AUTH = Symbol("BETTER_AUTH");
 export const BETTER_AUTH_BASE_PATH = "/api/auth/{*splat}";
 
 /** Role passenger (RBAC 8-role, ADR-017) — passenger không lưu ở bảng account riêng. */
-export const PASSENGER_ROLE = "PASSENGER";
+export const PASSENGER_ROLE = Role.PASSENGER;
 
 /** Rate limit OTP (SEC-OQ-07). */
 export const OTP_COOLDOWN_SECONDS = 60;

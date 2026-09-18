@@ -20,7 +20,9 @@ export default defineConfig({
   },
   // Prisma 7: Migrate/Introspect lấy connection URL từ đây (KHÔNG còn `adapter` ở config).
   // Driver adapter (PrismaPg) chỉ truyền vào `PrismaClient` ở runtime (prisma.service.ts).
+  // Migrate cần DDL → owner (`MIGRATION_DATABASE_URL`); app chạy bằng role không DDL (TASK-IAM-003).
+  // Fallback `DATABASE_URL` để môi trường chỉ có một URL (CI `prisma generate`, máy cũ) không vỡ.
   datasource: {
-    url: process.env.DATABASE_URL ?? ""
+    url: process.env.MIGRATION_DATABASE_URL ?? process.env.DATABASE_URL ?? ""
   }
 });

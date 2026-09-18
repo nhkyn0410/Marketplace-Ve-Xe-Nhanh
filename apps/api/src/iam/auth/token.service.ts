@@ -2,6 +2,7 @@ import { createPublicKey } from "node:crypto";
 import { Inject, Injectable, Logger, type OnModuleInit } from "@nestjs/common";
 import { z } from "zod";
 import { APP_CONFIG, type AppConfig } from "../../config/env.config";
+import { isRole, ROLE_SCOPE } from "../role/role";
 
 const ALG = "RS256";
 
@@ -31,14 +32,25 @@ export type AccessTokenClaims = {
  * Parse bằng Zod dù chữ ký đã đúng: chữ ký chỉ chứng minh token do ta ký, không chứng minh nó
  * đúng hình dạng hiện tại — token IAM-001 (không có `sid`) vẫn ký hợp lệ nhưng KHÔNG revoke được.
  */
-const verifiedClaimsSchema = z.object({
-  sub: z.string().min(1),
-  sid: z.uuid(),
-  scope: z.enum(["passenger", "operator", "platform"]),
-  role: z.string().min(1),
-  operatorId: z.string().min(1).optional(),
-  operatorSlug: z.string().min(1).optional(),
-});
+const verifiedClaimsSchema = z
+  .object({
+    sub: z.string().min(1),
+    sid: z.uuid(),
+    scope: z.enum(["passenger", "operator", "platform"]),
+    role: z.string().min(1),
+    operatorId: z.string().min(1).optional(),
+    operatorSlug: z.string().min(1).optional(),
+  })
+  .superRefine((claims, ctx) => {
+    // TASK-IAM-003: role phải thuộc đúng namespace của scope, và token phía Operator phải mang đủ
+    // claim tenant — một lỗi phát token (vd scope platform + role PASSENGER) không được thành quyền.
+    if (!isRole(claims.role) || ROLE_SCOPE[claims.role] !== claims.scope) {
+      ctx.addIssue({ code: "custom", message: "role không thuộc scope" });
+    }
+    if (claims.scope === "operator" && (!claims.operatorId || !claims.operatorSlug)) {
+      ctx.addIssue({ code: "custom", message: "token operator thiếu claim tenant" });
+    }
+  });
 
 export type VerifiedAccessToken = z.infer<typeof verifiedClaimsSchema>;
 

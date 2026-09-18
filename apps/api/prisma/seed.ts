@@ -39,9 +39,10 @@ async function main(): Promise<void> {
     throw new Error("Không seed ở production — script này reset mật khẩu và trạng thái tài khoản.");
   }
 
-  const connectionString = process.env.DATABASE_URL;
+  // Seed ghi thẳng bảng tenant (có RLS) → chạy bằng owner như migrate (TASK-IAM-003).
+  const connectionString = process.env.MIGRATION_DATABASE_URL ?? process.env.DATABASE_URL;
   if (!connectionString) {
-    throw new Error("DATABASE_URL is required to seed.");
+    throw new Error("MIGRATION_DATABASE_URL (hoặc DATABASE_URL) is required to seed.");
   }
 
   const prisma = new PrismaClient({ adapter: new PrismaPg({ connectionString }) });
@@ -54,37 +55,42 @@ async function main(): Promise<void> {
       create: { username: "khanh", passwordHash: platformHash, role: "PLATFORM_ADMIN", status: "ACTIVE" }
     });
 
-    const operator = await prisma.operatorProfile.upsert({
-      where: { operatorSlug: "phuongtrang" },
-      update: { displayName: "Phương Trang", status: "ACTIVE" },
-      create: { operatorSlug: "phuongtrang", displayName: "Phương Trang", status: "ACTIVE" }
-    });
-
     const ownerHash = await credentials.hash(requirePassword("SEED_OPERATOR_PASSWORD"));
-    await prisma.operatorAccount.upsert({
-      where: { operatorSlug_username: { operatorSlug: "phuongtrang", username: "owner01" } },
-      update: { passwordHash: ownerHash },
-      create: {
-        operatorId: operator.id,
-        operatorSlug: "phuongtrang",
-        username: "owner01",
-        passwordHash: ownerHash,
-        role: "OPERATOR_OWNER",
-        status: "ACTIVE"
-      }
-    });
-
     const driverHash = await credentials.hash(requirePassword("SEED_EMPLOYEE_PASSWORD"));
-    await prisma.employeeAccount.upsert({
-      where: { operatorId_username: { operatorId: operator.id, username: "driver042" } },
-      update: { passwordHash: driverHash },
-      create: {
-        operatorId: operator.id,
-        username: "driver042",
-        passwordHash: driverHash,
-        role: "DRIVER",
-        status: "ACTIVE"
-      }
+    // operator_profiles + bảng account có RLS (TASK-IAM-003, FORCE áp cả owner không phải superuser)
+    // → ghi trong ngữ cảnh system. Hash tính TRƯỚC: scrypt chậm, không để transaction mở lâu.
+    await prisma.$transaction(async (tx) => {
+      await tx.$executeRaw`SELECT set_config('app.scope', 'system', true)`;
+      const operator = await tx.operatorProfile.upsert({
+        where: { operatorSlug: "phuongtrang" },
+        update: { displayName: "Phương Trang", status: "ACTIVE" },
+        create: { operatorSlug: "phuongtrang", displayName: "Phương Trang", status: "ACTIVE" }
+      });
+
+      await tx.operatorAccount.upsert({
+        where: { operatorSlug_username: { operatorSlug: "phuongtrang", username: "owner01" } },
+        update: { passwordHash: ownerHash },
+        create: {
+          operatorId: operator.id,
+          operatorSlug: "phuongtrang",
+          username: "owner01",
+          passwordHash: ownerHash,
+          role: "OPERATOR_OWNER",
+          status: "ACTIVE"
+        }
+      });
+
+      await tx.employeeAccount.upsert({
+        where: { operatorId_username: { operatorId: operator.id, username: "driver042" } },
+        update: { passwordHash: driverHash },
+        create: {
+          operatorId: operator.id,
+          username: "driver042",
+          passwordHash: driverHash,
+          role: "DRIVER",
+          status: "ACTIVE"
+        }
+      });
     });
 
     console.log("Seed IAM done: platform/khanh, phuongtrang/owner01, phuongtrang/driver042");

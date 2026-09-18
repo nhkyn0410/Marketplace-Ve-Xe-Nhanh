@@ -373,11 +373,14 @@ export class AuthService {
           : null;
       }
       case SubjectType.OPERATOR: {
-        const account = await this.prisma.operatorAccount.findUnique({
-          where: { id },
-          include: { operator: true }
-        });
-        return account
+        // Phiên phía Operator luôn mang tenant (CHECK trong DB) → đọc account trong đúng tenant đó.
+        if (!session.operatorId) {
+          return null;
+        }
+        const account = await this.prisma.withTenant(session.operatorId, (tx) =>
+          tx.operatorAccount.findUnique({ where: { id }, include: { operator: true } })
+        );
+        return account && account.operatorId === session.operatorId
           ? {
               claims: {
                 scope: "operator",
@@ -391,11 +394,13 @@ export class AuthService {
           : null;
       }
       case SubjectType.EMPLOYEE: {
-        const account = await this.prisma.employeeAccount.findUnique({
-          where: { id },
-          include: { operator: true }
-        });
-        return account
+        if (!session.operatorId) {
+          return null;
+        }
+        const account = await this.prisma.withTenant(session.operatorId, (tx) =>
+          tx.employeeAccount.findUnique({ where: { id }, include: { operator: true } })
+        );
+        return account && account.operatorId === session.operatorId
           ? {
               claims: {
                 scope: "operator",
@@ -457,9 +462,16 @@ export class AuthService {
     operatorSlug: string,
     username: string
   ): Promise<CredentialAccount | null> {
-    const owner = await this.prisma.operatorAccount.findUnique({
-      where: { operatorSlug_username: { operatorSlug, username } }
-    });
+    // Tenant đã biết từ operator_profiles (đọc công khai) → đọc account trong ngữ cảnh TENANT: Postgres
+    // tự chặn account của tenant khác, không chỉ dựa vào phép so operatorId bên dưới (TASK-IAM-003).
+    const { owner, employee } = await this.prisma.withTenant(operatorId, async (tx) => ({
+      owner: await tx.operatorAccount.findUnique({
+        where: { operatorSlug_username: { operatorSlug, username } }
+      }),
+      employee: await tx.employeeAccount.findUnique({
+        where: { operatorId_username: { operatorId, username } }
+      })
+    }));
     // `operator_slug` trên operator_accounts là bản sao denormalized: nếu nó lệch với
     // operator_profiles (slug đổi tên ở IAM-005, sửa tay, tenant xoá rồi tạo lại) thì tra theo slug
     // sẽ trả account của TENANT KHÁC — qua được cả check SUSPENDED lẫn claim tenant. Bắt buộc
@@ -476,9 +488,6 @@ export class AuthService {
       };
     }
 
-    const employee = await this.prisma.employeeAccount.findUnique({
-      where: { operatorId_username: { operatorId, username } }
-    });
     if (employee) {
       return {
         id: employee.id,

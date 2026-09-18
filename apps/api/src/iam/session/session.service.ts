@@ -2,7 +2,7 @@ import { randomUUID } from "node:crypto";
 import { Inject, Injectable, Logger } from "@nestjs/common";
 import { type AuditEventInput, AuditService } from "../../audit/audit.service";
 import { APP_CONFIG, type AppConfig } from "../../config/env.config";
-import { PrismaService } from "../../database/prisma.service";
+import { type DbTransaction, PrismaService } from "../../database/prisma.service";
 import {
   type AuthSession,
   SessionRevokeReason,
@@ -52,6 +52,15 @@ export class SessionService {
     private readonly cache: SessionCache,
   ) {}
 
+  /**
+   * Mọi truy vấn `auth_sessions` đi qua ngữ cảnh `system` (TASK-IAM-003): phiên là hạ tầng auth,
+   * tra theo hash/sid TRƯỚC khi biết tenant và revoke xuyên tenant. Bảng có RLS — gọi thẳng
+   * `this.prisma.authSession` sẽ nhận 0 row.
+   */
+  private system<T>(work: (sessions: DbTransaction["authSession"]) => Promise<T>): Promise<T> {
+    return this.prisma.withSystem((tx) => work(tx.authSession));
+  }
+
   private refreshExpiry(from: Date): Date {
     return new Date(
       from.getTime() + this.config.REFRESH_TOKEN_TTL_SECONDS * 1000,
@@ -63,19 +72,21 @@ export class SessionService {
     ctx: RequestContext,
   ): Promise<IssuedSession> {
     const { token, hash } = this.refreshTokens.mint();
-    const session = await this.prisma.authSession.create({
-      data: {
-        subjectType: subject.type,
-        subjectId: subject.id,
-        userRef: userRefOf(subject.type, subject.id),
-        familyId: randomUUID(),
-        refreshTokenHash: hash,
-        expiresAt: this.refreshExpiry(new Date()),
-        operatorId: subject.operatorId,
-        ip: ctx.ip,
-        userAgent: ctx.userAgent,
-      },
-    });
+    const session = await this.system((sessions) =>
+      sessions.create({
+        data: {
+          subjectType: subject.type,
+          subjectId: subject.id,
+          userRef: userRefOf(subject.type, subject.id),
+          familyId: randomUUID(),
+          refreshTokenHash: hash,
+          expiresAt: this.refreshExpiry(new Date()),
+          operatorId: subject.operatorId,
+          ip: ctx.ip,
+          userAgent: ctx.userAgent,
+        },
+      }),
+    );
     this.recordEvent(
       subjectEvent(session, "auth.session.issued", {
         after: { familyId: session.familyId },
@@ -89,9 +100,11 @@ export class SessionService {
     ctx: RequestContext,
     beforeRotate?: BeforeRotate,
   ): Promise<IssuedSession> {
-    const current = await this.prisma.authSession.findUnique({
-      where: { refreshTokenHash: this.refreshTokens.hash(rawToken) },
-    });
+    const current = await this.system((sessions) =>
+      sessions.findUnique({
+        where: { refreshTokenHash: this.refreshTokens.hash(rawToken) },
+      }),
+    );
 
     if (!current || current.expiresAt <= new Date() || current.revokedAt) {
       throw sessionExpired();
@@ -108,7 +121,8 @@ export class SessionService {
 
     let next: AuthSession;
     try {
-      next = await this.prisma.$transaction(async (tx) => {
+      // withSystem = một transaction READ COMMITTED như `$transaction` trước đây, chỉ thêm ngữ cảnh RLS.
+      next = await this.prisma.withSystem(async (tx) => {
         const created = await tx.authSession.create({
           data: {
             subjectType: current.subjectType,
@@ -165,10 +179,9 @@ export class SessionService {
     if (cached === "active") {
       return;
     }
-    const session = await this.prisma.authSession.findUnique({
-      where: { id: sid },
-      select: { revokedAt: true },
-    });
+    const session = await this.system((sessions) =>
+      sessions.findUnique({ where: { id: sid }, select: { revokedAt: true } }),
+    );
     if (!session || session.revokedAt) {
       throw sessionExpired();
     }
@@ -176,7 +189,7 @@ export class SessionService {
   }
 
   async findById(sid: string): Promise<AuthSession | null> {
-    return this.prisma.authSession.findUnique({ where: { id: sid } });
+    return this.system((sessions) => sessions.findUnique({ where: { id: sid } }));
   }
 
   /**
@@ -255,10 +268,13 @@ export class SessionService {
     await this.blockLiveAccessTokens(target);
     let total = 0;
     for (let round = 0; round < MAX_REVOKE_ROUNDS; round++) {
-      const { count } = await this.prisma.authSession.updateMany({
-        where: { ...target, revokedAt: null },
-        data: { revokedAt: new Date(), revokedReason: reason },
-      });
+      // Mỗi vòng là một transaction riêng → snapshot mới, đúng điều vòng lặp cần.
+      const { count } = await this.system((sessions) =>
+        sessions.updateMany({
+          where: { ...target, revokedAt: null },
+          data: { revokedAt: new Date(), revokedReason: reason },
+        }),
+      );
       total += count;
       if (count === 0) {
         break;
@@ -282,10 +298,12 @@ export class SessionService {
       Date.now() -
         (this.config.JWT_ACCESS_TTL_SECONDS + ACCESS_TOKEN_SKEW_SECONDS) * 1000,
     );
-    const live = await this.prisma.authSession.findMany({
-      where: { ...where, issuedAt: { gte: cutoff } },
-      select: { id: true },
-    });
+    const live = await this.system((sessions) =>
+      sessions.findMany({
+        where: { ...where, issuedAt: { gte: cutoff } },
+        select: { id: true },
+      }),
+    );
     await this.cache.markRevoked(live.map((session) => session.id));
   }
 

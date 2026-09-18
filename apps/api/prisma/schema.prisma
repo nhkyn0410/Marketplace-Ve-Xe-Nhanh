@@ -156,7 +156,9 @@ model OperatorAccount {
   createdAt    DateTime      @default(now()) @map("created_at")
   updatedAt    DateTime      @updatedAt @map("updated_at")
 
-  operator OperatorProfile @relation(fields: [operatorId], references: [id], onDelete: Cascade)
+  // RESTRICT, không CASCADE (TASK-IAM-003): hành động cascade của FK chạy với quyền owner và BỎ QUA
+  // RLS (kể cả FORCE) — xoá/đổi id một operator_profiles sẽ quét luôn account của tenant đó.
+  operator OperatorProfile @relation(fields: [operatorId], references: [id], onDelete: Restrict, onUpdate: Restrict)
 
   @@unique([operatorSlug, username])
   @@index([operatorId])
@@ -174,7 +176,9 @@ model EmployeeAccount {
   createdAt    DateTime      @default(now()) @map("created_at")
   updatedAt    DateTime      @updatedAt @map("updated_at")
 
-  operator OperatorProfile @relation(fields: [operatorId], references: [id], onDelete: Cascade)
+  // RESTRICT, không CASCADE (TASK-IAM-003): hành động cascade của FK chạy với quyền owner và BỎ QUA
+  // RLS (kể cả FORCE) — xoá/đổi id một operator_profiles sẽ quét luôn account của tenant đó.
+  operator OperatorProfile @relation(fields: [operatorId], references: [id], onDelete: Restrict, onUpdate: Restrict)
 
   @@unique([operatorId, username])
   @@map("employee_accounts")

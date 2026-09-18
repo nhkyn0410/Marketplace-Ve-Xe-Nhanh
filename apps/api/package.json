@@ -20,6 +20,7 @@
     "prisma:migrate:dev": "prisma migrate dev",
     "prisma:migrate:deploy": "prisma migrate deploy",
     "db:seed": "tsx prisma/seed.ts",
+    "db:app-role": "node scripts/db-app-role.mjs",
     "postinstall": "prisma generate"
   },
   "dependencies": {
