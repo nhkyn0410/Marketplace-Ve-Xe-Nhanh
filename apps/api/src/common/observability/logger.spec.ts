@@ -42,7 +42,11 @@ describe("auth monitoring log shape", () => {
         token: "token-secret",
         accessToken: "access-secret",
         refreshToken: "refresh-secret",
-        apiKey: "api-key-secret"
+        apiKey: "api-key-secret",
+        mfaCode: "mfa-code-secret",
+        challengeToken: "challenge-secret",
+        otpAuthUri: "otpauth-secret",
+        backupCodes: ["backup-secret"]
       });
     } finally {
       write.mockRestore();
@@ -50,13 +54,17 @@ describe("auth monitoring log shape", () => {
 
     const raw = chunks.join("");
     for (const secret of [
-      "otp-secret", "password-secret", "token-secret", "access-secret", "refresh-secret", "api-key-secret"
+      "otp-secret", "password-secret", "token-secret", "access-secret", "refresh-secret", "api-key-secret",
+      "mfa-code-secret", "challenge-secret", "otpauth-secret", "backup-secret"
     ]) {
       expect(raw).not.toContain(secret);
     }
     const record = JSON.parse(raw) as { data: Record<string, string>; msg: string };
     expect(record.msg).toBe("auth.otp.delivery_disabled");
-    for (const key of ["otp", "password", "token", "accessToken", "refreshToken", "apiKey"]) {
+    for (const key of [
+      "otp", "password", "token", "accessToken", "refreshToken", "apiKey",
+      "mfaCode", "challengeToken", "otpAuthUri", "backupCodes"
+    ]) {
       expect(record.data[key]).toBe("[Redacted]");
     }
   });
