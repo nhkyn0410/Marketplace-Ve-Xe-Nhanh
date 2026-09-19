@@ -100,6 +100,11 @@ jobs:
       - name: Create app role (NOSUPERUSER, NOBYPASSRLS)
         run: pnpm --filter @vexenhanh/api db:app-role
 
+      # TASK-IAM-004: key AES-256-GCM tường minh (gần production hơn fallback dev), sinh mới mỗi lần
+      # chạy — không commit key cố định nào vào repo.
+      - name: MFA encryption key (ephemeral)
+        run: echo "MFA_ENCRYPTION_KEY=$(openssl rand -base64 32)" >> "$GITHUB_ENV"
+
       - name: Build shared types
         run: pnpm --filter @vexenhanh/types build
 

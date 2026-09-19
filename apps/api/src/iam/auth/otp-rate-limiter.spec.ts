@@ -5,6 +5,8 @@ import {
   LOGIN_MAX_PER_IDENTIFIER_PER_HOUR,
   LOGIN_MAX_PER_IP_PER_HOUR,
   LOGIN_WINDOW_SECONDS,
+  MFA_FAILURE_WINDOW_SECONDS,
+  MFA_MAX_FAILURES_PER_WINDOW,
   OTP_COOLDOWN_SECONDS,
   OTP_MAX_PER_HOUR,
   OTP_WINDOW_SECONDS,
@@ -31,8 +33,10 @@ async function problemOf(promise: Promise<unknown>): Promise<{ status: number; c
  */
 describe("OtpRateLimiter", () => {
   const set = vi.fn();
+  const get = vi.fn();
+  const del = vi.fn();
   const evalScript = vi.fn();
-  const redis = { set, eval: evalScript } as unknown as Redis;
+  const redis = { set, get, del, eval: evalScript } as unknown as Redis;
   const limiter = new OtpRateLimiter(redis);
 
   beforeEach(() => {
@@ -192,6 +196,41 @@ describe("OtpRateLimiter", () => {
         "login:id:phuongtrang/owner01",
         "login:id:rider@example.com"
       ]);
+    });
+  });
+
+  describe("MFA — trần lần sai theo chủ thể (IAM-004)", () => {
+    it("đếm lần sai bằng INCR có TTL 24h", async () => {
+      evalScript.mockResolvedValue(1);
+      await limiter.recordMfaFailure("platform:padm-1");
+      expect(evalScript.mock.calls[0]![2]).toBe("mfa-fail:platform:padm-1");
+      expect(evalScript.mock.calls[0]![3]).toBe(String(MFA_FAILURE_WINDOW_SECONDS));
+    });
+
+    it("dưới trần thì cho qua; chạm trần → 429 AUTH_LOGIN_RATE_LIMITED", async () => {
+      const warn = vi.spyOn(Logger.prototype, "warn").mockImplementation(() => undefined);
+      try {
+        get.mockResolvedValueOnce(String(MFA_MAX_FAILURES_PER_WINDOW - 1));
+        await expect(limiter.assertMfaNotLocked("platform:padm-1")).resolves.toBeUndefined();
+        get.mockResolvedValueOnce(String(MFA_MAX_FAILURES_PER_WINDOW));
+        expect(await problemOf(limiter.assertMfaNotLocked("platform:padm-1"))).toEqual({
+          status: 429,
+          code: "AUTH_LOGIN_RATE_LIMITED"
+        });
+        expect(get).toHaveBeenCalledWith("mfa-fail:platform:padm-1");
+      } finally {
+        warn.mockRestore();
+      }
+    });
+
+    it("Redis chết khi kiểm trần → 503 (fail-closed); xoá bộ đếm lỗi thì bỏ qua", async () => {
+      get.mockRejectedValueOnce(new Error("ECONNREFUSED"));
+      expect(await problemOf(limiter.assertMfaNotLocked("platform:padm-1"))).toEqual({
+        status: 503,
+        code: "SERVICE_UNAVAILABLE"
+      });
+      del.mockRejectedValueOnce(new Error("ECONNREFUSED"));
+      await expect(limiter.clearMfaFailures("platform:padm-1")).resolves.toBeUndefined();
     });
   });
 

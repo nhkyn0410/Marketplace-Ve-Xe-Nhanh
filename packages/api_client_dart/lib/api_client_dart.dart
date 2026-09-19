@@ -15,8 +15,13 @@ export 'package:api_client_dart/src/api/health_api.dart';
 
 export 'package:api_client_dart/src/model/auth_token_response_dto_output.dart';
 export 'package:api_client_dart/src/model/credential_login_dto.dart';
+export 'package:api_client_dart/src/model/credential_login_response_dto_output.dart';
+export 'package:api_client_dart/src/model/credential_token_response.dart';
 export 'package:api_client_dart/src/model/health_response_dto_output.dart';
 export 'package:api_client_dart/src/model/message_response_dto_output.dart';
+export 'package:api_client_dart/src/model/mfa_challenge_response.dart';
+export 'package:api_client_dart/src/model/mfa_verify_dto.dart';
+export 'package:api_client_dart/src/model/mfa_verify_response_dto_output.dart';
 export 'package:api_client_dart/src/model/mongo_health_response_dto_output.dart';
 export 'package:api_client_dart/src/model/o_auth_init_dto.dart';
 export 'package:api_client_dart/src/model/o_auth_redirect_response_dto_output.dart';
@@ -30,3 +35,4 @@ export 'package:api_client_dart/src/model/reauth_dto.dart';
 export 'package:api_client_dart/src/model/redis_health_response_dto_output.dart';
 export 'package:api_client_dart/src/model/refresh_token_dto.dart';
 export 'package:api_client_dart/src/model/register_dto.dart';
+

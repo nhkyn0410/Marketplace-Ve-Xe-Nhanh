@@ -17,6 +17,8 @@ export const RLS_TABLES = [
   "operator_accounts",
   "employee_accounts",
   "auth_sessions",
+  "mfa_credentials",
+  "mfa_backup_codes",
 ] as const;
 
 @Injectable()

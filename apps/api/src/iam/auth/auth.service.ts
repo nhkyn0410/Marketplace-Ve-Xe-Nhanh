@@ -3,13 +3,21 @@ import { APP_CONFIG, type AppConfig } from "../../config/env.config";
 import { PrismaService } from "../../database/prisma.service";
 import { type AuthSession, SessionRevokeReason, SubjectType } from "../../database/prisma.types";
 import { maskEmail } from "../../external/notification/email-notifier";
+import { requiresMfa } from "../role/role";
 import { sessionExpired } from "../session/session.errors";
 import { SessionService, type SessionSubject } from "../session/session.service";
 import { type Auth } from "./auth.config";
 import { BETTER_AUTH, PASSENGER_ROLE } from "./auth.constants";
-import { accountLocked, AuthException, invalidCredentials, wrongLoginChannel } from "./auth.errors";
+import {
+  accountLocked,
+  AuthException,
+  invalidCredentials,
+  mfaRequired,
+  wrongLoginChannel
+} from "./auth.errors";
 import { CredentialService, DUMMY_PASSWORD_HASH } from "./credential.service";
 import { LoginHistoryService } from "./login-history.service";
+import { MfaService, type MfaChallengeResult } from "./mfa.service";
 import { resolveIdentifier } from "./namespace.resolver";
 import { OtpRateLimiter } from "./otp-rate-limiter";
 import {
@@ -34,8 +42,11 @@ export type LoginResult = IssuedAccessToken & {
   refreshExpiresInSeconds: number;
 };
 
-/** Passenger re-auth bằng OTP; Operator/Employee/Platform bằng mật khẩu (FR-IAM-10). TOTP = IAM-004. */
-export type ReauthInput = { password?: string; otp?: string };
+export type CredentialLoginResult = LoginResult | MfaChallengeResult;
+export type MfaLoginResult = LoginResult & { backupCodes?: string[] };
+
+/** Passenger re-auth bằng email OTP; account mật khẩu dùng password hoặc MFA đã enrollment. */
+export type ReauthInput = { password?: string; otp?: string; mfaCode?: string };
 
 type SessionClaims = Omit<AccessTokenClaims, "sub" | "sid">;
 
@@ -70,7 +81,8 @@ export class AuthService {
     private readonly credentials: CredentialService,
     private readonly otpRateLimiter: OtpRateLimiter,
     private readonly loginHistory: LoginHistoryService,
-    private readonly sessions: SessionService
+    private readonly sessions: SessionService,
+    private readonly mfa: MfaService
   ) {}
 
   // ── Passenger (Better Auth: email-OTP) ──
@@ -121,7 +133,7 @@ export class AuthService {
   }
 
   // ── Operator / Employee (custom, `{slug}/{username}` + password) ──
-  async operatorLogin(identifier: string, password: string, ctx: RequestContext): Promise<LoginResult> {
+  async operatorLogin(identifier: string, password: string, ctx: RequestContext): Promise<CredentialLoginResult> {
     await this.otpRateLimiter.assertCanAttemptLogin(identifier, ctx.ip);
 
     const resolved = resolveIdentifier(identifier);
@@ -144,13 +156,25 @@ export class AuthService {
 
     await this.verifyOrThrow(password, account, "operator", ctx, !isActive(operator.status));
 
+    if (requiresMfa(account.role)) {
+      return this.mfa.begin(
+        {
+          subjectType: account.subjectType,
+          subjectId: account.id,
+          operatorId: account.operatorId,
+          label: `${operator.operatorSlug}/${username}`
+        },
+        ctx
+      );
+    }
+
     // Slug lấy từ DB, KHÔNG từ input người dùng: claim `operatorSlug` và `operatorId` phải cùng
     // một nguồn, nếu không TenantGuard (khớp slug URL) và RLS (dùng operatorId) sẽ bất đồng ở IAM-003.
     return this.issueCredentialToken("operator", account, operator.operatorSlug, ctx);
   }
 
   // ── Platform (custom, `platform/{username}` + password) ──
-  async platformLogin(identifier: string, password: string, ctx: RequestContext): Promise<LoginResult> {
+  async platformLogin(identifier: string, password: string, ctx: RequestContext): Promise<CredentialLoginResult> {
     await this.otpRateLimiter.assertCanAttemptLogin(identifier, ctx.ip);
 
     const resolved = resolveIdentifier(identifier);
@@ -178,7 +202,60 @@ export class AuthService {
 
     await this.verifyOrThrow(password, account, "platform", ctx, false);
 
+    if (requiresMfa(account.role)) {
+      return this.mfa.begin(
+        { subjectType: account.subjectType, subjectId: account.id, label: `platform/${resolved.username}` },
+        ctx
+      );
+    }
+
     return this.issueCredentialToken("platform", account, undefined, ctx);
+  }
+
+  /** Password đã đúng ở bước trước; chỉ sau proof này mới tạo session + phát token. */
+  async verifyMfa(challengeToken: string, code: string, ctx: RequestContext): Promise<MfaLoginResult> {
+    // Account/tenant bị khoá trong lúc challenge còn sống → dừng TRƯỚC khi tiêu proof (backup code
+    // không bị đốt, secret của người khác không kịp được lưu). Như login: chỉ báo khoá khi proof đúng.
+    const verified = await this.mfa.verifyChallenge(challengeToken, code, ctx, async (subject) => {
+      const owner = await this.loadSubjectOwner(subject.subjectType, subject.subjectId, subject.operatorId);
+      if (!owner?.active) {
+        await this.loginHistory.record({
+          scope: owner?.claims.scope ?? (subject.subjectType === SubjectType.PLATFORM ? "platform" : "operator"),
+          result: "failure",
+          targetId: subject.subjectId,
+          operatorId: subject.operatorId,
+          reason: owner ? "account_inactive" : "unknown_account",
+          ...ctx
+        });
+        throw owner ? accountLocked() : invalidCredentials();
+      }
+      return owner;
+    });
+    const owner = verified.checked;
+
+    const result = await this.issueSession(
+      {
+        type: verified.subjectType,
+        id: verified.subjectId,
+        operatorId: verified.operatorId,
+        mfaVerified: true
+      },
+      { ...owner.claims, mfa: true },
+      ctx
+    );
+    await this.loginHistory.record({
+      scope: owner.claims.scope,
+      result: "success",
+      targetId: verified.subjectId,
+      accountId: verified.subjectId,
+      role: owner.claims.role,
+      operatorId: verified.operatorId,
+      ...ctx
+    });
+    return {
+      ...result,
+      ...(verified.backupCodes ? { backupCodes: verified.backupCodes } : {})
+    };
   }
 
   // ── OAuth (Passenger — Better Auth, ADR-020) ──
@@ -232,7 +309,13 @@ export class AuthService {
         await this.sessions.revokeFamily(current.familyId, SessionRevokeReason.ACCOUNT_LOCKED);
         throw owner ? accountLocked() : sessionExpired();
       }
-      claims = owner.claims;
+      const mfaVerified = current.mfaVerifiedAt != null;
+      if (requiresMfa(owner.claims.role) && !mfaVerified) {
+        // Session phát trước rollout IAM-004 không được tiếp tục refresh để né MFA.
+        await this.sessions.revokeFamily(current.familyId, SessionRevokeReason.MFA_REQUIRED);
+        throw mfaRequired();
+      }
+      claims = { ...owner.claims, ...(mfaVerified ? { mfa: true as const } : {}) };
     });
     if (!claims) {
       throw new Error("rotate() hoàn tất mà không chạy beforeRotate.");
@@ -255,7 +338,7 @@ export class AuthService {
     await this.otpRateLimiter.assertCanReauth(session.userRef, ctx.ip);
 
     const owner = await this.loadSessionOwner(session);
-    const verified = await this.verifyReauthProof(owner, session, input);
+    const verified = await this.verifyReauthProof(owner, session, input, ctx);
     this.sessions.recordEvent({
       actorId: session.subjectId,
       actorRole: session.subjectType,
@@ -364,8 +447,19 @@ export class AuthService {
   }
 
   private async loadSessionOwner(session: AuthSession): Promise<SessionOwner | null> {
-    const id = session.subjectId;
-    switch (session.subjectType) {
+    return this.loadSubjectOwner(
+      session.subjectType,
+      session.subjectId,
+      session.operatorId ?? undefined
+    );
+  }
+
+  private async loadSubjectOwner(
+    subjectType: SubjectType,
+    id: string,
+    operatorId?: string
+  ): Promise<SessionOwner | null> {
+    switch (subjectType) {
       case SubjectType.PASSENGER: {
         const user = await this.prisma.user.findUnique({ where: { id } });
         return user
@@ -374,13 +468,13 @@ export class AuthService {
       }
       case SubjectType.OPERATOR: {
         // Phiên phía Operator luôn mang tenant (CHECK trong DB) → đọc account trong đúng tenant đó.
-        if (!session.operatorId) {
+        if (!operatorId) {
           return null;
         }
-        const account = await this.prisma.withTenant(session.operatorId, (tx) =>
+        const account = await this.prisma.withTenant(operatorId, (tx) =>
           tx.operatorAccount.findUnique({ where: { id }, include: { operator: true } })
         );
-        return account && account.operatorId === session.operatorId
+        return account && account.operatorId === operatorId
           ? {
               claims: {
                 scope: "operator",
@@ -394,13 +488,13 @@ export class AuthService {
           : null;
       }
       case SubjectType.EMPLOYEE: {
-        if (!session.operatorId) {
+        if (!operatorId) {
           return null;
         }
-        const account = await this.prisma.withTenant(session.operatorId, (tx) =>
+        const account = await this.prisma.withTenant(operatorId, (tx) =>
           tx.employeeAccount.findUnique({ where: { id }, include: { operator: true } })
         );
-        return account && account.operatorId === session.operatorId
+        return account && account.operatorId === operatorId
           ? {
               claims: {
                 scope: "operator",
@@ -429,7 +523,8 @@ export class AuthService {
   private async verifyReauthProof(
     owner: SessionOwner | null,
     session: AuthSession,
-    input: ReauthInput
+    input: ReauthInput,
+    ctx: RequestContext
   ): Promise<boolean> {
     if (session.subjectType === SubjectType.PASSENGER) {
       if (!owner?.email || !input.otp) {
@@ -448,6 +543,14 @@ export class AuthService {
         }
         return false;
       }
+    }
+    if (input.mfaCode) {
+      const subject = {
+        subjectType: session.subjectType,
+        subjectId: session.subjectId,
+        ...(session.operatorId ? { operatorId: session.operatorId } : {})
+      };
+      return owner !== null && (await this.mfa.verifyForSubject(subject, input.mfaCode, ctx)) !== null;
     }
     // Thiếu mật khẩu / account đã mất vẫn chạy scrypt: thời gian phản hồi không lộ nhánh nào đã chạy.
     const ok = await this.credentials.verify(

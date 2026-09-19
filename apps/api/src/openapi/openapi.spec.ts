@@ -28,7 +28,8 @@ describe("OpenAPI generation", () => {
         "/v1/auth/platform/login",
         "/v1/auth/refresh",
         "/v1/auth/logout",
-        "/v1/auth/re-auth"
+        "/v1/auth/re-auth",
+        "/v1/auth/mfa/verify"
       ]) {
         expect(document.paths[path]?.post, `thiếu POST ${path} trong OpenAPI`).toBeDefined();
       }
@@ -45,7 +46,8 @@ describe("OpenAPI generation", () => {
         "/v1/auth/operator/login",
         "/v1/auth/platform/login",
         "/v1/auth/refresh",
-        "/v1/auth/re-auth"
+        "/v1/auth/re-auth",
+        "/v1/auth/mfa/verify"
       ]) {
         expect(
           document.paths[path]?.post?.requestBody,
@@ -72,6 +74,30 @@ describe("OpenAPI generation", () => {
         ]);
       }
       expect(document.components?.securitySchemes?.bearer).toBeDefined();
+
+      // IAM-004: login Operator/Platform trả token HOẶC MFA challenge — client phải thấy cả hai nhánh,
+      // thiếu nhánh challenge thì client gen ra không đọc được `challengeToken` (không login nổi owner/admin).
+      type Schema = { properties?: Record<string, unknown>; required?: string[]; anyOf?: Schema[] };
+      const schemas = document.components?.schemas as Record<string, Schema> | undefined;
+      for (const path of ["/v1/auth/operator/login", "/v1/auth/platform/login"]) {
+        const ref = (
+          document.paths[path]?.post?.responses?.[200] as {
+            content?: Record<string, { schema?: { $ref?: string } }>;
+          }
+        )?.content?.["application/json"]?.schema?.$ref;
+        const variants = schemas?.[ref?.split("/").pop() ?? ""]?.anyOf ?? [];
+        expect(variants.map((variant) => variant.required ?? []), path).toEqual(
+          expect.arrayContaining([
+            expect.arrayContaining(["accessToken", "refreshToken", "mfaRequired"]),
+            expect.arrayContaining(["mfaRequired", "challengeToken", "challengeExpiresIn"])
+          ])
+        );
+      }
+      expect(schemas?.MfaVerifyDto?.required).toEqual(expect.arrayContaining(["challengeToken", "code"]));
+      expect(schemas?.MfaVerifyResponseDto_Output?.properties?.backupCodes).toBeDefined();
+      expect(schemas?.ReauthDto?.properties?.mfaCode).toBeDefined();
+      // Verify dùng challenge token trong body, KHÔNG dùng Bearer (chưa có access token ở bước này).
+      expect(document.paths["/v1/auth/mfa/verify"]?.post?.security).toBeUndefined();
 
       const oauthParams = document.paths["/v1/auth/oauth/{provider}"]?.post?.parameters ?? [];
       expect(

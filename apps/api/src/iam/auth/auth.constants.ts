@@ -28,6 +28,15 @@ export const LOGIN_MAX_PER_IP_PER_HOUR = 30;
 export const LOGIN_WINDOW_SECONDS = 3600;
 
 /**
+ * Trần số lần sai MFA của MỘT chủ thể, cộng dồn qua mọi challenge + re-auth (TASK-IAM-004, Security §11).
+ * 5 lần/challenge (Q9) chưa đủ: người đã có mật khẩu login được 10 lần/giờ → 50 lần đoán TOTP/giờ, vô
+ * thời hạn (~73%/năm trúng với cửa sổ ±1). Trần 20/24h → ~2%/năm. Reset khi xác thực đúng (NIST
+ * 800-63B §5.2.2 "consecutive failed attempts"). Con số giả định v1 — Khanh xác nhận.
+ */
+export const MFA_MAX_FAILURES_PER_WINDOW = 20;
+export const MFA_FAILURE_WINDOW_SECONDS = 24 * 60 * 60;
+
+/**
  * Rate limit `/auth/refresh` theo IP (IAM-002). Client hợp lệ refresh ~4 lần/giờ/thiết bị (access 15
  * phút), nên 600/giờ chừa chỗ cho ~150 thiết bị sau cùng một NAT nhà mạng. Con số giả định v1 —
  * chỉnh khi đo được tải thật.

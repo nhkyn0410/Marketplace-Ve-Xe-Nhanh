@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { EmployeeRole, OperatorRole, PlatformRole } from "../../database/prisma.types";
 import { can } from "./access-policy";
 import { type GrantScope, PERMISSIONS, ROLE_GRANTS } from "./permissions";
-import { isRole, Role } from "./role";
+import { isRole, requiresMfa, Role } from "./role";
 
 /**
  * Bất biến của bảng quyền (TASK-IAM-003). Đây là "lưới an toàn" cho việc mở rộng role: thêm role
@@ -54,6 +54,25 @@ describe("ROLE_GRANTS — bất biến", () => {
       const holders = Object.values(Role).filter((role) => ROLE_GRANTS[role][permission]);
       expect(holders.length, `${permission} không ai được cấp`).toBeGreaterThan(0);
     }
+  });
+});
+
+describe("ROLE_REQUIRES_MFA — Security §5.2 (TASK-IAM-004)", () => {
+  it("đúng 3 role bắt buộc TOTP; Employee optional (defer) và Passenger không bị ép", () => {
+    const mandatory = Object.values(Role).filter((role) => requiresMfa(role));
+    expect(mandatory.sort()).toEqual(
+      [Role.OPERATOR_OWNER, Role.PLATFORM_ADMIN, Role.PLATFORM_SUPPORT].sort(),
+    );
+  });
+
+  it("mọi role platform đều bắt buộc MFA (quyền `any` toàn hệ thống)", () => {
+    for (const role of PLATFORM_SIDE) {
+      expect(requiresMfa(role), role).toBe(true);
+    }
+  });
+
+  it("role lạ → false (TokenService đã chặn role lạ trước đó)", () => {
+    expect(requiresMfa("SUPERUSER")).toBe(false);
   });
 });
 

@@ -51,6 +51,15 @@ export function wrongLoginChannel(): AuthException {
   );
 }
 
+/** Credential đầu tiên đúng nhưng role bắt buộc chưa hoàn tất MFA. */
+export function mfaRequired(): AuthException {
+  return new AuthException(
+    HttpStatus.UNAUTHORIZED,
+    "AUTH_MFA_REQUIRED",
+    "Phiên đăng nhập cần xác thực MFA.",
+  );
+}
+
 /** Redis chết → fail-closed (KHÔNG bypass) nhưng trả đúng 503 thay vì 500 (ADR-015). */
 export function serviceUnavailable(): AuthException {
   return new AuthException(

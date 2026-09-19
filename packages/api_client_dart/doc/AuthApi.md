@@ -18,6 +18,7 @@ Method | HTTP request | Description
 [**authControllerRefresh**](AuthApi.md#authcontrollerrefresh) | **POST** /v1/auth/refresh | 
 [**authControllerRegister**](AuthApi.md#authcontrollerregister) | **POST** /v1/auth/register | 
 [**authControllerRequestOtp**](AuthApi.md#authcontrollerrequestotp) | **POST** /v1/auth/otp/request | 
+[**authControllerVerifyMfa**](AuthApi.md#authcontrollerverifymfa) | **POST** /v1/auth/mfa/verify | 
 [**authControllerVerifyOtp**](AuthApi.md#authcontrollerverifyotp) | **POST** /v1/auth/otp/verify | 
 
 
@@ -139,7 +140,7 @@ No authorization required
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **authControllerOperatorLogin**
-> AuthTokenResponseDtoOutput authControllerOperatorLogin(credentialLoginDto)
+> CredentialLoginResponseDtoOutput authControllerOperatorLogin(credentialLoginDto)
 
 
 
@@ -166,7 +167,7 @@ Name | Type | Description  | Notes
 
 ### Return type
 
-[**AuthTokenResponseDtoOutput**](AuthTokenResponseDtoOutput.md)
+[**CredentialLoginResponseDtoOutput**](CredentialLoginResponseDtoOutput.md)
 
 ### Authorization
 
@@ -180,7 +181,7 @@ No authorization required
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **authControllerPlatformLogin**
-> AuthTokenResponseDtoOutput authControllerPlatformLogin(credentialLoginDto)
+> CredentialLoginResponseDtoOutput authControllerPlatformLogin(credentialLoginDto)
 
 
 
@@ -207,7 +208,7 @@ Name | Type | Description  | Notes
 
 ### Return type
 
-[**AuthTokenResponseDtoOutput**](AuthTokenResponseDtoOutput.md)
+[**CredentialLoginResponseDtoOutput**](CredentialLoginResponseDtoOutput.md)
 
 ### Authorization
 
@@ -372,6 +373,47 @@ Name | Type | Description  | Notes
 ### Return type
 
 [**MessageResponseDtoOutput**](MessageResponseDtoOutput.md)
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
+ - **Accept**: application/json, application/problem+json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **authControllerVerifyMfa**
+> MfaVerifyResponseDtoOutput authControllerVerifyMfa(mfaVerifyDto)
+
+
+
+### Example
+```dart
+import 'package:api_client_dart/api.dart';
+
+final api = ApiClientDart().getAuthApi();
+final MfaVerifyDto mfaVerifyDto = ; // MfaVerifyDto | 
+
+try {
+    final response = api.authControllerVerifyMfa(mfaVerifyDto);
+    print(response);
+} on DioException catch (e) {
+    print('Exception when calling AuthApi->authControllerVerifyMfa: $e\n');
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **mfaVerifyDto** | [**MfaVerifyDto**](MfaVerifyDto.md)|  | 
+
+### Return type
+
+[**MfaVerifyResponseDtoOutput**](MfaVerifyResponseDtoOutput.md)
 
 ### Authorization
 

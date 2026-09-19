@@ -6,6 +6,8 @@ import {
   LOGIN_MAX_PER_IDENTIFIER_PER_HOUR,
   LOGIN_MAX_PER_IP_PER_HOUR,
   LOGIN_WINDOW_SECONDS,
+  MFA_FAILURE_WINDOW_SECONDS,
+  MFA_MAX_FAILURES_PER_WINDOW,
   OTP_COOLDOWN_SECONDS,
   OTP_MAX_PER_HOUR,
   OTP_WINDOW_SECONDS,
@@ -89,6 +91,29 @@ export class OtpRateLimiter {
       throw loginRateLimited();
     }
     await this.assertLoginIp(ip);
+  }
+
+  /** Chủ thể đã sai MFA quá trần → 429, kể cả khi mã lần này đúng (không cho "đoán tiếp chờ trúng"). */
+  async assertMfaNotLocked(userRef: string): Promise<void> {
+    let failures: string | null;
+    try {
+      failures = await this.redis.get(`mfa-fail:${userRef}`);
+    } catch {
+      throw serviceUnavailable();
+    }
+    if (Number(failures ?? 0) >= MFA_MAX_FAILURES_PER_WINDOW) {
+      this.logger.warn({ event: "auth.mfa.rate_limited", dimension: "subject" });
+      throw loginRateLimited();
+    }
+  }
+
+  async recordMfaFailure(userRef: string): Promise<void> {
+    await this.bump(`mfa-fail:${userRef}`, MFA_FAILURE_WINDOW_SECONDS);
+  }
+
+  /** Xác thực đúng → xoá bộ đếm (trần tính theo lần sai LIÊN TIẾP). Lỗi Redis ở đây không chặn login. */
+  async clearMfaFailures(userRef: string): Promise<void> {
+    await this.redis.del(`mfa-fail:${userRef}`).catch(() => undefined);
   }
 
   private async assertLoginIp(ip?: string): Promise<void> {

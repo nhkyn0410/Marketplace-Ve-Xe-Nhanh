@@ -55,6 +55,16 @@ function setup() {
     grantReauth: vi.fn(),
     recordEvent: vi.fn()
   };
+  const mfa = {
+    begin: vi.fn().mockResolvedValue({
+      mfaRequired: true,
+      challengeToken: "mfa-challenge-token-that-is-long-enough",
+      enrollmentRequired: false,
+      challengeExpiresIn: 300
+    }),
+    verifyChallenge: vi.fn(),
+    verifyForSubject: vi.fn()
+  };
   const config = {
     AUTH_ALLOWED_CALLBACK_ORIGINS: ["http://localhost:3000", "vexenhanh://"],
     REFRESH_TOKEN_TTL_SECONDS: 2_592_000
@@ -68,9 +78,10 @@ function setup() {
     credentials as never,
     rateLimiter as never,
     history as never,
-    sessions as never
+    sessions as never,
+    mfa as never
   );
-  return { service, auth, config, prisma, tokens, credentials, rateLimiter, history, sessions };
+  return { service, auth, config, prisma, tokens, credentials, rateLimiter, history, sessions, mfa };
 }
 
 function sessionRow(overrides: Record<string, unknown> = {}) {
@@ -81,6 +92,7 @@ function sessionRow(overrides: Record<string, unknown> = {}) {
     userRef: "passenger:user-9",
     familyId: "fam-1",
     operatorId: null,
+    mfaVerifiedAt: null,
     revokedAt: null,
     ...overrides
   };
@@ -92,6 +104,16 @@ async function statusOf(promise: Promise<unknown>): Promise<number> {
     return 0;
   } catch (error) {
     return (error as HttpException).getStatus();
+  }
+}
+
+async function problemOf(promise: Promise<unknown>): Promise<{ status: number; code?: string }> {
+  try {
+    await promise;
+    return { status: 0 };
+  } catch (error) {
+    const exception = error as HttpException;
+    return { status: exception.getStatus(), code: (exception.getResponse() as { code?: string }).code };
   }
 }
 
@@ -128,15 +150,16 @@ describe("AuthService.operatorLogin", () => {
     );
   });
 
-  it("mint claim operatorSlug từ DB chứ không phải từ input người dùng", async () => {
+  it("MFA label dùng operatorSlug từ DB chứ không dùng nguyên input", async () => {
     ctx.prisma.operatorProfile.findUnique.mockResolvedValue(ACTIVE_OPERATOR);
     ctx.prisma.operatorAccount.findUnique.mockResolvedValue(OWNER);
     ctx.credentials.verify.mockResolvedValue(true);
 
     await ctx.service.operatorLogin("PhuongTrang/owner01", "p", {});
 
-    expect(ctx.tokens.mintAccessToken).toHaveBeenCalledWith(
-      expect.objectContaining({ operatorId: "op-1", operatorSlug: ACTIVE_OPERATOR.operatorSlug })
+    expect(ctx.mfa.begin).toHaveBeenCalledWith(
+      { subjectType: "OPERATOR", subjectId: "acc-1", operatorId: "op-1", label: "phuongtrang/owner01" },
+      {}
     );
   });
 
@@ -192,37 +215,33 @@ describe("AuthService.operatorLogin", () => {
     expect(await statusOf(ctx.service.operatorLogin("phuongtrang/owner01", "good", {}))).toBe(403);
   });
 
-  it("issues an operator token on success with tenant claims", async () => {
+  it("owner password đúng chỉ nhận MFA challenge, chưa nhận token", async () => {
     ctx.prisma.operatorProfile.findUnique.mockResolvedValue(ACTIVE_OPERATOR);
     ctx.prisma.operatorAccount.findUnique.mockResolvedValue(OWNER);
     ctx.credentials.verify.mockResolvedValue(true);
 
     const result = await ctx.service.operatorLogin("phuongtrang/owner01", "good", {});
-    expect(result).toMatchObject({ accessToken: "tok", scope: "operator", role: "OPERATOR_OWNER" });
-    expect(ctx.tokens.mintAccessToken).toHaveBeenCalledWith(
-      expect.objectContaining({ sub: "acc-1", scope: "operator", operatorId: "op-1", operatorSlug: "phuongtrang" })
-    );
-    expect(ctx.history.record).toHaveBeenCalledWith(expect.objectContaining({ result: "success" }));
+    expect(result).toMatchObject({ mfaRequired: true, challengeExpiresIn: 300 });
+    expect(ctx.tokens.mintAccessToken).not.toHaveBeenCalled();
+    expect(ctx.sessions.create).not.toHaveBeenCalled();
+    expect(ctx.history.record).not.toHaveBeenCalledWith(expect.objectContaining({ result: "success" }));
   });
 
-  it("owner đăng nhập → phiên OPERATOR, access token mang sid của đúng phiên đó, trả kèm refresh", async () => {
+  it("owner challenge giữ đúng subject OPERATOR + tenant cho bước verify", async () => {
     ctx.prisma.operatorProfile.findUnique.mockResolvedValue(ACTIVE_OPERATOR);
     ctx.prisma.operatorAccount.findUnique.mockResolvedValue(OWNER);
     ctx.credentials.verify.mockResolvedValue(true);
 
-    const result = await ctx.service.operatorLogin("phuongtrang/owner01", "good", { ip: "1.2.3.4" });
+    await ctx.service.operatorLogin("phuongtrang/owner01", "good", { ip: "1.2.3.4" });
 
-    expect(ctx.sessions.create).toHaveBeenCalledWith(
-      { type: "OPERATOR", id: "acc-1", operatorId: "op-1" },
+    expect(ctx.mfa.begin).toHaveBeenCalledWith(
+      expect.objectContaining({ subjectType: "OPERATOR", subjectId: "acc-1", operatorId: "op-1" }),
       { ip: "1.2.3.4" }
     );
     // Tenant đã biết → account đọc trong ngữ cảnh TENANT, không phải system (RLS tự chặn tenant khác).
     expect(ctx.prisma.withTenant).toHaveBeenCalledWith("op-1", expect.any(Function));
     expect(ctx.prisma.withSystem).not.toHaveBeenCalled();
-    expect(ctx.tokens.mintAccessToken).toHaveBeenCalledWith(
-      expect.objectContaining({ sub: "acc-1", sid: "sess-1" })
-    );
-    expect(result).toMatchObject({ refreshToken: "refresh-raw", refreshExpiresInSeconds: 2_592_000 });
+    expect(ctx.tokens.mintAccessToken).not.toHaveBeenCalled();
   });
 
   it("sai mật khẩu thì KHÔNG tạo phiên", async () => {
@@ -248,7 +267,7 @@ describe("AuthService.operatorLogin", () => {
     ctx.credentials.verify.mockResolvedValue(true);
 
     const result = await ctx.service.operatorLogin("phuongtrang/driver042", "good", {});
-    expect(result.role).toBe("DRIVER");
+    expect(result).toMatchObject({ role: "DRIVER", accessToken: "tok" });
     // Q2: employee KHÔNG được ghi thành OPERATOR — revoke-all của owner sẽ đá nhầm tài xế.
     expect(ctx.sessions.create).toHaveBeenCalledWith(
       { type: "EMPLOYEE", id: "emp-1", operatorId: "op-1" },
@@ -267,7 +286,7 @@ describe("AuthService.platformLogin", () => {
     expect(await statusOf(ctx.service.platformLogin("phuongtrang/owner01", "p", {}))).toBe(401);
   });
 
-  it("issues a platform token on success", async () => {
+  it("platform password đúng chỉ nhận MFA challenge", async () => {
     ctx.prisma.platformAccount.findUnique.mockResolvedValue({
       id: "padm-1",
       username: "khanh",
@@ -278,8 +297,12 @@ describe("AuthService.platformLogin", () => {
     ctx.credentials.verify.mockResolvedValue(true);
 
     const result = await ctx.service.platformLogin("platform/khanh", "good", {});
-    expect(result).toMatchObject({ scope: "platform", role: "PLATFORM_ADMIN", refreshToken: "refresh-raw" });
-    expect(ctx.sessions.create).toHaveBeenCalledWith({ type: "PLATFORM", id: "padm-1", operatorId: undefined }, {});
+    expect(result).toMatchObject({ mfaRequired: true, challengeExpiresIn: 300 });
+    expect(ctx.mfa.begin).toHaveBeenCalledWith(
+      { subjectType: "PLATFORM", subjectId: "padm-1", label: "platform/khanh" },
+      {}
+    );
+    expect(ctx.sessions.create).not.toHaveBeenCalled();
   });
 
   it("account không tồn tại → 401 và VẪN chạy dummy verify (chống enumeration bằng timing)", async () => {
@@ -311,6 +334,88 @@ describe("AuthService.platformLogin", () => {
     ctx.rateLimiter.assertCanAttemptLogin.mockRejectedValue(new Error("limited"));
     await expect(ctx.service.platformLogin("platform/khanh", "p", {})).rejects.toThrow();
     expect(ctx.prisma.platformAccount.findUnique).not.toHaveBeenCalled();
+  });
+});
+
+describe("AuthService.verifyMfa", () => {
+  let ctx: ReturnType<typeof setup>;
+  beforeEach(() => {
+    ctx = setup();
+  });
+
+  /** MfaService thật chạy `precheck` sau khi proof đúng, trước khi tiêu proof — giả lập đúng thứ tự đó. */
+  function proofAccepted(subject: Record<string, unknown>, extra: Record<string, unknown> = {}) {
+    ctx.mfa.verifyChallenge.mockImplementation(
+      async (_token: string, _code: string, _ctx: unknown, precheck: (s: unknown) => Promise<unknown>) => ({
+        ...subject,
+        enrolled: false,
+        method: "totp",
+        ...extra,
+        checked: await precheck(subject)
+      })
+    );
+  }
+
+  it("proof hợp lệ mới tạo session MFA, mint token và trả 10 backup code lúc enrollment", async () => {
+    const backupCodes = Array.from({ length: 10 }, (_, index) => `BACKUP-${index}`);
+    proofAccepted({ subjectType: "OPERATOR", subjectId: "acc-1", operatorId: "op-1" }, { enrolled: true, backupCodes });
+    ctx.prisma.operatorAccount.findUnique.mockResolvedValue({
+      ...OWNER,
+      operator: ACTIVE_OPERATOR
+    });
+
+    const result = await ctx.service.verifyMfa("challenge", "123456", { ip: "1.2.3.4" });
+
+    expect(ctx.mfa.verifyChallenge).toHaveBeenCalledWith("challenge", "123456", { ip: "1.2.3.4" }, expect.any(Function));
+    // Account nạp một lần trong precheck, trong đúng ngữ cảnh tenant.
+    expect(ctx.prisma.withTenant).toHaveBeenCalledTimes(1);
+    expect(ctx.sessions.create).toHaveBeenCalledWith(
+      { type: "OPERATOR", id: "acc-1", operatorId: "op-1", mfaVerified: true },
+      { ip: "1.2.3.4" }
+    );
+    expect(ctx.tokens.mintAccessToken).toHaveBeenCalledWith(
+      expect.objectContaining({
+        sub: "acc-1",
+        scope: "operator",
+        role: "OPERATOR_OWNER",
+        operatorId: "op-1",
+        operatorSlug: "phuongtrang",
+        mfa: true
+      })
+    );
+    expect(result.backupCodes).toEqual(backupCodes);
+    expect(ctx.history.record).toHaveBeenCalledWith(
+      expect.objectContaining({ result: "success", targetId: "acc-1", role: "OPERATOR_OWNER" })
+    );
+  });
+
+  it("account bị khoá trong lúc challenge sống → 403 từ precheck (proof chưa bị tiêu), không phát token", async () => {
+    proofAccepted({ subjectType: "PLATFORM", subjectId: "padm-1" });
+    ctx.prisma.platformAccount.findUnique.mockResolvedValue({
+      id: "padm-1",
+      username: "khanh",
+      passwordHash: "x",
+      role: "PLATFORM_ADMIN",
+      status: "LOCKED"
+    });
+
+    expect(await statusOf(ctx.service.verifyMfa("challenge", "123456", { ip: "1.2.3.4" }))).toBe(403);
+    expect(ctx.sessions.create).not.toHaveBeenCalled();
+    expect(ctx.tokens.mintAccessToken).not.toHaveBeenCalled();
+    expect(ctx.history.record).toHaveBeenCalledWith(
+      expect.objectContaining({ result: "failure", reason: "account_inactive", targetId: "padm-1", ip: "1.2.3.4" })
+    );
+  });
+
+  it("account đã bị xoá trong lúc challenge sống → 401 generic, không phát token", async () => {
+    proofAccepted({ subjectType: "PLATFORM", subjectId: "padm-1" });
+    ctx.prisma.platformAccount.findUnique.mockResolvedValue(null);
+
+    expect(await statusOf(ctx.service.verifyMfa("challenge", "123456", {}))).toBe(401);
+    expect(ctx.sessions.create).not.toHaveBeenCalled();
+    expect(ctx.history.record).toHaveBeenCalledWith(
+      expect.objectContaining({ result: "failure", reason: "unknown_account" })
+    );
   });
 });
 
@@ -507,6 +612,40 @@ describe("AuthService.refresh (IAM-002)", () => {
     expect(ctx.tokens.mintAccessToken).not.toHaveBeenCalled();
   });
 
+  it("IAM-004: phiên owner/admin KHÔNG có mfa_verified_at (cấp trước rollout) → revoke family MFA_REQUIRED + 401", async () => {
+    const legacyAdmin = sessionRow({ subjectType: "PLATFORM", subjectId: "padm-1", userRef: "platform:padm-1" });
+    rotateRunsHook(legacyAdmin, legacyAdmin);
+    ctx.prisma.platformAccount.findUnique.mockResolvedValue({
+      id: "padm-1",
+      role: "PLATFORM_ADMIN",
+      status: "ACTIVE",
+      passwordHash: "x"
+    });
+
+    expect(await problemOf(ctx.service.refresh("rt", {}))).toMatchObject({ status: 401, code: "AUTH_MFA_REQUIRED" });
+    expect(ctx.sessions.revokeFamily).toHaveBeenCalledWith("fam-1", "MFA_REQUIRED");
+    expect(ctx.tokens.mintAccessToken).not.toHaveBeenCalled();
+  });
+
+  it("IAM-004: phiên đã qua MFA → token mới giữ claim mfa", async () => {
+    const mfaAdmin = sessionRow({
+      subjectType: "PLATFORM",
+      subjectId: "padm-1",
+      userRef: "platform:padm-1",
+      mfaVerifiedAt: new Date()
+    });
+    rotateRunsHook(mfaAdmin, mfaAdmin);
+    ctx.prisma.platformAccount.findUnique.mockResolvedValue({
+      id: "padm-1",
+      role: "PLATFORM_ADMIN",
+      status: "ACTIVE",
+      passwordHash: "x"
+    });
+
+    await ctx.service.refresh("rt", {});
+    expect(ctx.tokens.mintAccessToken).toHaveBeenCalledWith(expect.objectContaining({ role: "PLATFORM_ADMIN", mfa: true }));
+  });
+
   it("rotate xong thì đọc lại account: role/tenant mới nhất vào token, sid = phiên MỚI", async () => {
     rotateRunsHook(rotatedEmployee, rotatedEmployee);
     ctx.prisma.employeeAccount.findUnique.mockResolvedValue({
@@ -630,6 +769,32 @@ describe("AuthService.reauth (IAM-002, FR-IAM-10)", () => {
     expect(ctx.sessions.grantReauth).not.toHaveBeenCalled();
   });
 
+  it("mfaCode → xác thực bằng MFA của đúng chủ thể + tenant của phiên, không chạy scrypt", async () => {
+    const ownerSession = sessionRow({
+      id: "sess-o",
+      subjectType: "OPERATOR",
+      subjectId: "acc-1",
+      userRef: "operator:acc-1",
+      operatorId: "op-1"
+    });
+    ctx.sessions.findById.mockResolvedValue(ownerSession);
+    ctx.prisma.operatorAccount.findUnique.mockResolvedValue({ ...OWNER, operator: ACTIVE_OPERATOR });
+    ctx.mfa.verifyForSubject.mockResolvedValueOnce("backup_code").mockResolvedValueOnce(null);
+    const ownerUser = { sub: "acc-1", sid: "sess-o", scope: "operator" as const, role: "OPERATOR_OWNER" };
+
+    await ctx.service.reauth(ownerUser, { mfaCode: "10203-40506-70809-A0B0C" }, { ip: "1.2.3.4" });
+    expect(ctx.mfa.verifyForSubject).toHaveBeenCalledWith(
+      { subjectType: "OPERATOR", subjectId: "acc-1", operatorId: "op-1" },
+      "10203-40506-70809-A0B0C",
+      { ip: "1.2.3.4" }
+    );
+    expect(ctx.sessions.grantReauth).toHaveBeenCalledWith("sess-o");
+    expect(ctx.credentials.verify).not.toHaveBeenCalled();
+
+    expect(await statusOf(ctx.service.reauth(ownerUser, { mfaCode: "000000" }, {}))).toBe(401);
+    expect(ctx.sessions.grantReauth).toHaveBeenCalledTimes(1);
+  });
+
   it("đúng mật khẩu nhưng account đã bị khoá → revoke family + 403", async () => {
     ctx.sessions.findById.mockResolvedValue(platformSession);
     ctx.prisma.platformAccount.findUnique.mockResolvedValue({ ...platformAccount, status: "LOCKED" });
@@ -734,6 +899,7 @@ function setupAuthController() {
     BETTER_AUTH_SECRET: "test-secret",
     BETTER_AUTH_URL: "https://api.example.com",
     JWT_ACCESS_PRIVATE_KEY: "test-key",
+    MFA_ENCRYPTION_KEY: Buffer.alloc(32, 1).toString("base64"),
     RESEND_API_KEY: "test-resend-key"
   });
 

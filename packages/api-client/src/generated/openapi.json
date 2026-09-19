@@ -325,11 +325,11 @@
         },
         "responses": {
           "200": {
-            "description": "Login Operator/Employee `{slug}/{username}`.",
+            "description": "Login Operator/Employee; role bắt buộc MFA nhận challenge thay vì token.",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/AuthTokenResponseDto_Output"
+                  "$ref": "#/components/schemas/CredentialLoginResponseDto_Output"
                 }
               }
             }
@@ -376,11 +376,11 @@
         },
         "responses": {
           "200": {
-            "description": "Login Platform `platform/{username}`.",
+            "description": "Login Platform; password đúng nhận MFA challenge, chưa cấp token.",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/AuthTokenResponseDto_Output"
+                  "$ref": "#/components/schemas/CredentialLoginResponseDto_Output"
                 }
               }
             }
@@ -397,6 +397,67 @@
           },
           "403": {
             "description": "Tài khoản bị khóa.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/v1/auth/mfa/verify": {
+      "post": {
+        "operationId": "AuthController_verifyMfa",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MfaVerifyDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Xác thực pre-auth challenge bằng TOTP/backup code rồi mới cấp token.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MfaVerifyResponseDto_Output"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Challenge/mã sai, hết hạn, đã dùng hoặc quá 5 lần thử — cùng một lỗi generic.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Tài khoản bị khóa trong lúc challenge còn sống.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Redis không khả dụng (fail-closed).",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -502,7 +563,7 @@
             }
           },
           "401": {
-            "description": "Refresh token không hợp lệ / hết hạn / đã dùng.",
+            "description": "Refresh token không hợp lệ / hết hạn / đã dùng (`AUTH_SESSION_EXPIRED`); phiên owner/admin cấp trước khi bật MFA (`AUTH_MFA_REQUIRED`) → đăng nhập lại qua MFA.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -971,6 +1032,171 @@
           "password"
         ]
       },
+      "CredentialLoginResponseDto_Output": {
+        "anyOf": [
+          {
+            "type": "object",
+            "properties": {
+              "accessToken": {
+                "type": "string"
+              },
+              "tokenType": {
+                "type": "string",
+                "const": "Bearer"
+              },
+              "expiresIn": {
+                "type": "integer",
+                "exclusiveMinimum": 0,
+                "maximum": 9007199254740991
+              },
+              "scope": {
+                "type": "string",
+                "enum": [
+                  "passenger",
+                  "operator",
+                  "platform"
+                ]
+              },
+              "role": {
+                "type": "string"
+              },
+              "refreshToken": {
+                "type": "string"
+              },
+              "refreshExpiresIn": {
+                "type": "integer",
+                "exclusiveMinimum": 0,
+                "maximum": 9007199254740991
+              },
+              "mfaRequired": {
+                "type": "boolean",
+                "const": false
+              }
+            },
+            "required": [
+              "accessToken",
+              "tokenType",
+              "expiresIn",
+              "scope",
+              "role",
+              "refreshToken",
+              "refreshExpiresIn",
+              "mfaRequired"
+            ],
+            "additionalProperties": false,
+            "title": "CredentialTokenResponse"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "mfaRequired": {
+                "type": "boolean",
+                "const": true
+              },
+              "challengeToken": {
+                "type": "string"
+              },
+              "enrollmentRequired": {
+                "type": "boolean"
+              },
+              "challengeExpiresIn": {
+                "type": "integer",
+                "exclusiveMinimum": 0,
+                "maximum": 9007199254740991
+              },
+              "otpAuthUri": {
+                "type": "string",
+                "pattern": "^otpauth:\\/\\/totp\\/.*"
+              }
+            },
+            "required": [
+              "mfaRequired",
+              "challengeToken",
+              "enrollmentRequired",
+              "challengeExpiresIn"
+            ],
+            "additionalProperties": false,
+            "title": "MfaChallengeResponse"
+          }
+        ]
+      },
+      "MfaVerifyDto": {
+        "type": "object",
+        "properties": {
+          "challengeToken": {
+            "type": "string",
+            "minLength": 32,
+            "maxLength": 200
+          },
+          "code": {
+            "type": "string",
+            "pattern": "^(\\d{3}\\s?\\d{3}|[0-9A-Fa-f]{5}([\\s-]?[0-9A-Fa-f]{5}){3})$"
+          }
+        },
+        "required": [
+          "challengeToken",
+          "code"
+        ]
+      },
+      "MfaVerifyResponseDto_Output": {
+        "type": "object",
+        "properties": {
+          "accessToken": {
+            "type": "string"
+          },
+          "tokenType": {
+            "type": "string",
+            "const": "Bearer"
+          },
+          "expiresIn": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "maximum": 9007199254740991
+          },
+          "scope": {
+            "type": "string",
+            "enum": [
+              "passenger",
+              "operator",
+              "platform"
+            ]
+          },
+          "role": {
+            "type": "string"
+          },
+          "refreshToken": {
+            "type": "string"
+          },
+          "refreshExpiresIn": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "maximum": 9007199254740991
+          },
+          "mfaRequired": {
+            "type": "boolean",
+            "const": false
+          },
+          "backupCodes": {
+            "type": "array",
+            "minItems": 10,
+            "maxItems": 10,
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "accessToken",
+          "tokenType",
+          "expiresIn",
+          "scope",
+          "role",
+          "refreshToken",
+          "refreshExpiresIn",
+          "mfaRequired"
+        ],
+        "additionalProperties": false
+      },
       "OAuthInitDto": {
         "type": "object",
         "properties": {
@@ -1018,6 +1244,10 @@
             "type": "string",
             "minLength": 4,
             "maxLength": 10
+          },
+          "mfaCode": {
+            "type": "string",
+            "pattern": "^(\\d{3}\\s?\\d{3}|[0-9A-Fa-f]{5}([\\s-]?[0-9A-Fa-f]{5}){3})$"
           }
         }
       }

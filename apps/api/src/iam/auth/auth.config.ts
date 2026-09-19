@@ -2,6 +2,9 @@ import type { AppConfig } from "../../config/env.config";
 import type { PrismaService } from "../../database/prisma.service";
 import type { EmailNotifier } from "../../external/notification/email-notifier";
 
+/** Chỉ dev/test (production bắt buộc `BETTER_AUTH_SECRET`). MfaService derive key dev từ cùng giá trị. */
+export const DEV_BETTER_AUTH_SECRET = "dev-insecure-better-auth-secret-change-me";
+
 /**
  * Tạo instance Better Auth (ADR-017). Better Auth là ESM-only → phải dynamic `import()`
  * (module=Node16 giữ import động ở runtime). Quản lý Passenger: email-OTP + OAuth + account-linking.
@@ -29,7 +32,7 @@ export async function createAuth(
   }
 
   return betterAuth({
-    secret: config.BETTER_AUTH_SECRET ?? "dev-insecure-better-auth-secret-change-me",
+    secret: config.BETTER_AUTH_SECRET ?? DEV_BETTER_AUTH_SECRET,
     baseURL: config.BETTER_AUTH_URL,
     database: prismaAdapter(prisma, { provider: "postgresql" }),
     // Lớp phòng thủ thứ hai chống open redirect sau xác thực. KHÔNG đủ một mình: middleware

@@ -218,6 +218,8 @@ enum SessionRevokeReason {
   ACCOUNT_LOCKED
   PASSWORD_RESET
   ADMIN_FORCE
+  /// Phiên của role bắt buộc MFA nhưng cấp trước TASK-IAM-004 (không có `mfa_verified_at`).
+  MFA_REQUIRED
 }
 
 /// Một phiên đăng nhập = một refresh token đang sống (ADR-017, DB §7).
@@ -242,6 +244,7 @@ model AuthSession {
   replacedById     String?              @unique @map("replaced_by_id")
   revokedAt        DateTime?            @map("revoked_at")
   revokedReason    SessionRevokeReason? @map("revoked_reason")
+  mfaVerifiedAt    DateTime?            @map("mfa_verified_at")
   /// Tenant cho RLS ở IAM-003, và để revoke hàng loạt khi Operator bị suspend.
   operatorId       String?              @map("operator_id")
   ip               String?
@@ -253,4 +256,37 @@ model AuthSession {
   @@index([expiresAt])
   @@index([operatorId])
   @@map("auth_sessions")
+}
+
+// ════════════════════════════ IAM — MFA (TASK-IAM-004) ════════════════════════════
+
+/// Thông tin TOTP do app quản lý cho một chủ thể. Quan hệ chủ thể là đa hình nên
+/// không có FK đến ba bảng account; ràng buộc PASSENGER được đặt trong migration.
+model MfaCredential {
+  id               String          @id @default(uuid())
+  subjectType      SubjectType     @map("subject_type")
+  subjectId        String          @map("subject_id")
+  secretCiphertext String          @map("secret_ciphertext")
+  lastTotpCounter  BigInt?         @map("last_totp_counter")
+  enabledAt        DateTime        @default(now()) @map("enabled_at")
+  createdAt        DateTime        @default(now()) @map("created_at")
+  updatedAt        DateTime        @updatedAt @map("updated_at")
+  backupCodes      MfaBackupCode[]
+
+  @@unique([subjectType, subjectId])
+  @@map("mfa_credentials")
+}
+
+/// Backup code chỉ lưu hash; `used_at` được set atomically khi tiêu thụ.
+model MfaBackupCode {
+  id           String        @id @default(uuid())
+  credentialId String        @map("credential_id")
+  codeHash     String        @map("code_hash")
+  usedAt       DateTime?     @map("used_at")
+  createdAt    DateTime      @default(now()) @map("created_at")
+  credential   MfaCredential @relation(fields: [credentialId], references: [id], onDelete: Cascade)
+
+  @@unique([credentialId, codeHash])
+  @@index([credentialId, usedAt])
+  @@map("mfa_backup_codes")
 }
