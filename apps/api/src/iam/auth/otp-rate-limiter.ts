@@ -14,6 +14,7 @@ import {
   REFRESH_WINDOW_SECONDS
 } from "./auth.constants";
 import { AuthException, otpRateLimited, serviceUnavailable } from "./auth.errors";
+import { resolveIdentifier } from "./namespace.resolver";
 
 /**
  * INCR + EXPIRE trong MỘT lệnh. Tách hai lệnh thì lỗi/timeout đúng khe giữa chúng sẽ để lại
@@ -66,10 +67,7 @@ export class OtpRateLimiter {
    * botnet lách được.
    */
   async assertCanAttemptLogin(identifier: string, ip?: string): Promise<void> {
-    const perIdentifier = await this.bump(
-      `login:id:${normalize(identifier)}`,
-      LOGIN_WINDOW_SECONDS
-    );
+    const perIdentifier = await this.bump(`login:id:${loginBucket(identifier)}`, LOGIN_WINDOW_SECONDS);
     if (perIdentifier > LOGIN_MAX_PER_IDENTIFIER_PER_HOUR) {
       this.logger.warn({ event: "auth.login.rate_limited", dimension: "identifier" });
       throw loginRateLimited();
@@ -141,6 +139,23 @@ export class OtpRateLimiter {
 
 function normalize(value: string): string {
   return value.trim().toLowerCase();
+}
+
+/**
+ * Bucket theo danh tính ĐÃ resolve, không theo chuỗi thô: resolver bỏ khoảng trắng quanh `/`, nên
+ * `platform/khanh`, `platform /khanh`, `platform/	khanh`... cùng vào một account — đếm theo chuỗi
+ * thô thì mỗi biến thể là một bucket mới và giới hạn 10/giờ vô nghĩa.
+ */
+function loginBucket(identifier: string): string {
+  const resolved = resolveIdentifier(identifier);
+  switch (resolved?.scope) {
+    case "platform":
+      return normalize(`platform/${resolved.username}`);
+    case "operator":
+      return normalize(`${resolved.operatorSlug}/${resolved.username}`);
+    default:
+      return normalize(identifier);
+  }
 }
 
 /**

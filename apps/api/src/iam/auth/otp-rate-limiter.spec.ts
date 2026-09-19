@@ -177,6 +177,24 @@ describe("OtpRateLimiter", () => {
     });
   });
 
+  describe("Login bucket theo danh tính đã resolve (IAM-004 review)", () => {
+    it("biến thể khoảng trắng/hoa-thường của cùng một account dồn về MỘT bucket", async () => {
+      evalScript.mockResolvedValue(1);
+      for (const variant of ["platform/khanh", "platform /khanh", "platform/	khanh", " Platform / Khanh ", "platform /khanh"]) {
+        await limiter.assertCanAttemptLogin(variant);
+      }
+      await limiter.assertCanAttemptLogin("phuongtrang / owner01");
+      await limiter.assertCanAttemptLogin("rider@Example.com ");
+
+      const keys = new Set(evalScript.mock.calls.map((call) => call[2]));
+      expect([...keys]).toEqual([
+        "login:id:platform/khanh",
+        "login:id:phuongtrang/owner01",
+        "login:id:rider@example.com"
+      ]);
+    });
+  });
+
   describe("Refresh (IAM-002)", () => {
     it("đếm theo IP trong bucket riêng, không ăn chung quota login", async () => {
       await limiter.assertCanRefresh("203.0.113.10");
