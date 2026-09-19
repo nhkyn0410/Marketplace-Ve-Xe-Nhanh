@@ -35,9 +35,30 @@ export const ROLE_SCOPE: Readonly<Record<Role, "passenger" | "operator" | "platf
   [Role.PLATFORM_SUPPORT]: "platform",
 };
 
+/**
+ * Role phải qua TOTP/backup code trước khi được cấp token (ADR-017, Security §5.2; TASK-IAM-004).
+ * Employee (Driver/TicketStaff/SupportStaff) là "optional" — defer, nên hiện `false`.
+ * `Record<Role, …>`: thêm role mà quên quyết định MFA thì TypeScript báo lỗi.
+ */
+export const ROLE_REQUIRES_MFA: Readonly<Record<Role, boolean>> = {
+  [Role.ANONYMOUS]: false,
+  [Role.PASSENGER]: false,
+  [Role.OPERATOR_OWNER]: true,
+  [Role.DRIVER]: false,
+  [Role.TICKET_STAFF]: false,
+  [Role.SUPPORT_STAFF]: false,
+  [Role.PLATFORM_ADMIN]: true,
+  [Role.PLATFORM_SUPPORT]: true,
+};
+
 const ROLES: ReadonlySet<string> = new Set(Object.values(Role));
 
 /** Claim `role` là chuỗi trong JWT — role lạ thì KHÔNG được coi là role nào (fail-closed). */
 export function isRole(value: unknown): value is Role {
   return typeof value === "string" && ROLES.has(value);
+}
+
+/** Role lạ → `false` ở đây, nhưng TokenService đã từ chối role lạ trước đó (fail-closed). */
+export function requiresMfa(role: string): boolean {
+  return isRole(role) && ROLE_REQUIRES_MFA[role];
 }

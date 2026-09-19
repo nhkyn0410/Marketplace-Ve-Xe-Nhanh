@@ -2,7 +2,7 @@ import { createPublicKey } from "node:crypto";
 import { Inject, Injectable, Logger, type OnModuleInit } from "@nestjs/common";
 import { z } from "zod";
 import { APP_CONFIG, type AppConfig } from "../../config/env.config";
-import { isRole, ROLE_SCOPE } from "../role/role";
+import { isRole, requiresMfa, ROLE_SCOPE } from "../role/role";
 
 const ALG = "RS256";
 
@@ -24,6 +24,8 @@ export type AccessTokenClaims = {
   sid: string;
   scope: AuthScope;
   role: string;
+  /** Chỉ `true` khi session được tạo sau TOTP/backup-code hợp lệ. */
+  mfa?: true;
   operatorId?: string;
   operatorSlug?: string;
 };
@@ -38,6 +40,7 @@ const verifiedClaimsSchema = z
     sid: z.uuid(),
     scope: z.enum(["passenger", "operator", "platform"]),
     role: z.string().min(1),
+    mfa: z.literal(true).optional(),
     operatorId: z.string().min(1).optional(),
     operatorSlug: z.string().min(1).optional(),
   })
@@ -49,6 +52,10 @@ const verifiedClaimsSchema = z
     }
     if (claims.scope === "operator" && (!claims.operatorId || !claims.operatorSlug)) {
       ctx.addIssue({ code: "custom", message: "token operator thiếu claim tenant" });
+    }
+    // Token cũ / code phát token nhầm không được bypass rollout MFA chỉ vì chữ ký vẫn hợp lệ.
+    if (requiresMfa(claims.role) && claims.mfa !== true) {
+      ctx.addIssue({ code: "custom", message: "role bắt buộc MFA nhưng token thiếu bằng chứng" });
     }
   });
 
@@ -103,11 +110,14 @@ export class TokenService implements OnModuleInit {
 
   async mintAccessToken(claims: AccessTokenClaims): Promise<IssuedAccessToken> {
     const ttl = this.config.JWT_ACCESS_TTL_SECONDS;
-    const payload: Record<string, string> = {
+    const payload: Record<string, string | boolean> = {
       sid: claims.sid,
       scope: claims.scope,
       role: claims.role,
     };
+    if (claims.mfa) {
+      payload.mfa = true;
+    }
     if (claims.operatorId) {
       payload.operatorId = claims.operatorId;
     }

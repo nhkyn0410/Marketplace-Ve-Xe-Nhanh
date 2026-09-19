@@ -164,6 +164,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/auth/mfa/verify": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AuthController_verifyMfa"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/auth/oauth/{provider}": {
         parameters: {
             query?: never;
@@ -333,6 +349,44 @@ export interface components {
             identifier: string;
             password: string;
         };
+        CredentialLoginResponseDto_Output: {
+            accessToken: string;
+            /** @constant */
+            tokenType: "Bearer";
+            expiresIn: number;
+            /** @enum {string} */
+            scope: "passenger" | "operator" | "platform";
+            role: string;
+            refreshToken: string;
+            refreshExpiresIn: number;
+            /** @constant */
+            mfaRequired: false;
+        } | {
+            /** @constant */
+            mfaRequired: true;
+            challengeToken: string;
+            enrollmentRequired: boolean;
+            challengeExpiresIn: number;
+            otpAuthUri?: string;
+        };
+        MfaVerifyDto: {
+            challengeToken: string;
+            code: string;
+        };
+        MfaVerifyResponseDto_Output: {
+            accessToken: string;
+            /** @constant */
+            tokenType: "Bearer";
+            expiresIn: number;
+            /** @enum {string} */
+            scope: "passenger" | "operator" | "platform";
+            role: string;
+            refreshToken: string;
+            refreshExpiresIn: number;
+            /** @constant */
+            mfaRequired: false;
+            backupCodes?: string[];
+        };
         OAuthInitDto: {
             /** Format: uri */
             callbackURL?: string;
@@ -347,6 +401,7 @@ export interface components {
         ReauthDto: {
             password?: string;
             otp?: string;
+            mfaCode?: string;
         };
     };
     responses: never;
@@ -641,13 +696,13 @@ export interface operations {
             };
         };
         responses: {
-            /** @description Login Operator/Employee `{slug}/{username}`. */
+            /** @description Login Operator/Employee; role bắt buộc MFA nhận challenge thay vì token. */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["AuthTokenResponseDto_Output"];
+                    "application/json": components["schemas"]["CredentialLoginResponseDto_Output"];
                 };
             };
             /** @description Sai thông tin đăng nhập. */
@@ -683,13 +738,13 @@ export interface operations {
             };
         };
         responses: {
-            /** @description Login Platform `platform/{username}`. */
+            /** @description Login Platform; password đúng nhận MFA challenge, chưa cấp token. */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["AuthTokenResponseDto_Output"];
+                    "application/json": components["schemas"]["CredentialLoginResponseDto_Output"];
                 };
             };
             /** @description Sai thông tin đăng nhập. */
@@ -703,6 +758,57 @@ export interface operations {
             };
             /** @description Tài khoản bị khóa. */
             403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AuthController_verifyMfa: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MfaVerifyDto"];
+            };
+        };
+        responses: {
+            /** @description Xác thực pre-auth challenge bằng TOTP/backup code rồi mới cấp token. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MfaVerifyResponseDto_Output"];
+                };
+            };
+            /** @description Challenge/mã sai, hết hạn, đã dùng hoặc quá 5 lần thử — cùng một lỗi generic. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Tài khoản bị khóa trong lúc challenge còn sống. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Redis không khả dụng (fail-closed). */
+            503: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -781,7 +887,7 @@ export interface operations {
                     "application/json": components["schemas"]["AuthTokenResponseDto_Output"];
                 };
             };
-            /** @description Refresh token không hợp lệ / hết hạn / đã dùng. */
+            /** @description Refresh token không hợp lệ / hết hạn / đã dùng (`AUTH_SESSION_EXPIRED`); phiên owner/admin cấp trước khi bật MFA (`AUTH_MFA_REQUIRED`) → đăng nhập lại qua MFA. */
             401: {
                 headers: {
                     [name: string]: unknown;

@@ -34,15 +34,34 @@ export class RefreshTokenDto extends createZodDto(
   z.object({ refreshToken: z.string().min(1).max(200) })
 ) {}
 
-/** Passenger gửi `otp` (xin mã qua `/auth/otp/request`); Operator/Employee/Platform gửi `password`. */
+/**
+ * Mã MFA: TOTP 6 số (app hay hiển thị `123 456`), hoặc backup code 20 hex (`XXXXX-XXXXX-XXXXX-XXXXX`,
+ * gạch/khoảng trắng tuỳ ý). Sai định dạng → 400; đúng định dạng nhưng sai mã → 401 generic.
+ */
+const MfaCodeSchema = z
+  .string()
+  .trim()
+  .regex(/^(\d{3}\s?\d{3}|[0-9A-Fa-f]{5}([\s-]?[0-9A-Fa-f]{5}){3})$/, "TOTP 6 số hoặc backup code.");
+
+/** Challenge MFA là credential tạm thời, entropy 256-bit; không phải access token. */
+export class MfaVerifyDto extends createZodDto(
+  z.object({
+    challengeToken: z.string().min(32).max(200),
+    /** Một field cho cả TOTP và backup code (Q: API §7.1 `/auth/mfa/verify`). */
+    code: MfaCodeSchema
+  })
+) {}
+
+/** Passenger gửi `otp`; account mật khẩu gửi `password` hoặc `mfaCode` khi MFA đã bật. */
 export class ReauthDto extends createZodDto(
   z
     .object({
       password: z.string().min(1).max(200).optional(),
-      otp: z.string().min(4).max(10).optional()
+      otp: z.string().min(4).max(10).optional(),
+      mfaCode: MfaCodeSchema.optional()
     })
-    .refine((body) => (body.password === undefined) !== (body.otp === undefined), {
-      message: "Gửi đúng một trong hai: password hoặc otp."
+    .refine((body) => [body.password, body.otp, body.mfaCode].filter((value) => value !== undefined).length === 1, {
+      message: "Gửi đúng một trong ba: password, otp hoặc mfaCode."
     })
 ) {}
 
@@ -59,6 +78,38 @@ export const AuthTokenResponseSchema = z.object({
 });
 export type AuthTokenResponse = z.infer<typeof AuthTokenResponseSchema>;
 export class AuthTokenResponseDto extends createZodDto(AuthTokenResponseSchema) {}
+
+export const MfaChallengeResponseSchema = z.object({
+  mfaRequired: z.literal(true),
+  challengeToken: z.string(),
+  enrollmentRequired: z.boolean(),
+  challengeExpiresIn: z.number().int().positive(),
+  otpAuthUri: z.string().startsWith("otpauth://totp/").optional()
+});
+export type MfaChallengeResponse = z.infer<typeof MfaChallengeResponseSchema>;
+
+const CredentialTokenResponseSchema = AuthTokenResponseSchema.extend({
+  mfaRequired: z.literal(false)
+});
+
+/** Login Operator/Platform: token (role không bắt buộc MFA) HOẶC challenge (role bắt buộc MFA). */
+// `title`: generator Dart đặt tên model theo nó (thiếu thì ra `...OutputAnyOf1`).
+export const CredentialLoginResponseSchema = z.union([
+  CredentialTokenResponseSchema.meta({ title: "CredentialTokenResponse" }),
+  MfaChallengeResponseSchema.meta({ title: "MfaChallengeResponse" })
+]);
+export type CredentialLoginResponse = z.infer<typeof CredentialLoginResponseSchema>;
+// Union không `extends` được (TS2509) → DTO dạng hằng. nestjs-zod đặt tên component OpenAPI theo
+// `name` của class (mặc định "AugmentedZodDto") → đặt lại cho client sinh ra có tên có nghĩa.
+export const CredentialLoginResponseDto = createZodDto(CredentialLoginResponseSchema);
+Object.defineProperty(CredentialLoginResponseDto, "name", { value: "CredentialLoginResponseDto" });
+
+export const MfaVerifyResponseSchema = CredentialTokenResponseSchema.extend({
+  /** Chỉ xuất hiện đúng một lần khi enrollment thành công. */
+  backupCodes: z.array(z.string()).length(10).optional()
+});
+export type MfaVerifyResponse = z.infer<typeof MfaVerifyResponseSchema>;
+export class MfaVerifyResponseDto extends createZodDto(MfaVerifyResponseSchema) {}
 
 export const MessageResponseSchema = z.object({ status: z.literal("ok") });
 export type MessageResponse = z.infer<typeof MessageResponseSchema>;

@@ -11,11 +11,12 @@ import { type DbTransaction, PrismaService } from "../../database/prisma.service
 import { configureApiRoutes } from "../../openapi/openapi";
 import { REDIS_CLIENT } from "../../redis/redis.config";
 import { CredentialService } from "./credential.service";
+import { generateTotp } from "./totp";
 
 /**
  * E2E IAM-002 qua HTTP thật (app đầy đủ, Postgres + Redis + Mongo thật). Cùng lối
  * `proxy-auth.integration.spec.ts`: `listen(0)` + `fetch`, không thêm Supertest.
- * Thiếu hạ tầng thì tự bỏ qua — CI hiện chưa có service container.
+ * Thiếu hạ tầng thì tự bỏ qua; CI job `db-integration` đặt REQUIRE_DB_TESTS=1 để bắt buộc chạy.
  */
 const ready = Boolean(
   process.env.DATABASE_URL && process.env.REDIS_URL && process.env.MONGODB_AUDIT_URI,
@@ -68,6 +69,8 @@ describe.skipIf(!ready && process.env.REQUIRE_DB_TESTS !== "1")("Auth session �
   let sessionsTable: DbTransaction["authSession"];
   let redis: Redis;
   let accountId: string;
+  /** PLATFORM_ADMIN bắt buộc MFA (IAM-004): login đầu enrollment bằng TOTP, các lần sau dùng backup code. */
+  let backupCodes: string[] = [];
 
   async function post(
     path: string,
@@ -92,7 +95,18 @@ describe.skipIf(!ready && process.env.REQUIRE_DB_TESTS !== "1")("Auth session �
       password,
     });
     expect(status).toBe(200);
-    return json as unknown as TokenPair;
+    expect(json).toMatchObject({ mfaRequired: true });
+    expect(json).not.toHaveProperty("accessToken");
+    // Mỗi backup code chỉ dùng một lần; TOTP cùng time-step cũng vậy → mỗi login tiêu một backup code.
+    const code = json.enrollmentRequired
+      ? generateTotp(new URL(String(json.otpAuthUri)).searchParams.get("secret")!)
+      : backupCodes.shift();
+    const verified = await post("/auth/mfa/verify", { challengeToken: json.challengeToken, code });
+    expect(verified.status).toBe(200);
+    if (verified.json.backupCodes) {
+      backupCodes = verified.json.backupCodes as string[];
+    }
+    return verified.json as unknown as TokenPair;
   }
 
   /** Bucket rate limit của loopback tích luỹ qua các lần chạy test → 429 giả. */
@@ -126,6 +140,7 @@ describe.skipIf(!ready && process.env.REQUIRE_DB_TESTS !== "1")("Auth session �
   afterAll(async () => {
     if (prisma && accountId) {
       await sessionsTable.deleteMany({ where: { subjectId: accountId } });
+      await prisma.withSystem((tx) => tx.mfaCredential.deleteMany({ where: { subjectId: accountId } }));
       await prisma.platformAccount.delete({ where: { id: accountId } });
     }
     if (redis) {
@@ -146,6 +161,7 @@ describe.skipIf(!ready && process.env.REQUIRE_DB_TESTS !== "1")("Auth session �
       where: { id: sidOf(pair.accessToken) },
     });
     expect(row.subjectType).toBe("PLATFORM");
+    expect(row.mfaVerifiedAt).toBeInstanceOf(Date);
     // Chỉ hash nằm trong DB.
     expect(JSON.stringify(row)).not.toContain(pair.refreshToken);
   });

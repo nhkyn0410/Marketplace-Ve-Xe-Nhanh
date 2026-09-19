@@ -11,8 +11,9 @@ part 'reauth_dto.g.dart';
 /// ReauthDto
 ///
 /// Properties:
-/// * [password]
-/// * [otp]
+/// * [password] 
+/// * [otp] 
+/// * [mfaCode] 
 @BuiltValue()
 abstract class ReauthDto implements Built<ReauthDto, ReauthDtoBuilder> {
   @BuiltValueField(wireName: r'password')
@@ -20,6 +21,9 @@ abstract class ReauthDto implements Built<ReauthDto, ReauthDtoBuilder> {
 
   @BuiltValueField(wireName: r'otp')
   String? get otp;
+
+  @BuiltValueField(wireName: r'mfaCode')
+  String? get mfaCode;
 
   ReauthDto._();
 
@@ -58,6 +62,13 @@ class _$ReauthDtoSerializer implements PrimitiveSerializer<ReauthDto> {
         specifiedType: const FullType(String),
       );
     }
+    if (object.mfaCode != null) {
+      yield r'mfaCode';
+      yield serializers.serialize(
+        object.mfaCode,
+        specifiedType: const FullType(String),
+      );
+    }
   }
 
   @override
@@ -66,9 +77,7 @@ class _$ReauthDtoSerializer implements PrimitiveSerializer<ReauthDto> {
     ReauthDto object, {
     FullType specifiedType = FullType.unspecified,
   }) {
-    return _serializeProperties(serializers, object,
-            specifiedType: specifiedType)
-        .toList();
+    return _serializeProperties(serializers, object, specifiedType: specifiedType).toList();
   }
 
   void _deserializeProperties(
@@ -99,6 +108,14 @@ class _$ReauthDtoSerializer implements PrimitiveSerializer<ReauthDto> {
           if (valueDes == null) continue;
           result.otp = valueDes;
           break;
+        case r'mfaCode':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType.nullable(String),
+          ) as String?;
+          if (valueDes == null) continue;
+          result.mfaCode = valueDes;
+          break;
         default:
           unhandled.add(key);
           unhandled.add(value);
@@ -127,3 +144,5 @@ class _$ReauthDtoSerializer implements PrimitiveSerializer<ReauthDto> {
     return result.build();
   }
 }
+
+

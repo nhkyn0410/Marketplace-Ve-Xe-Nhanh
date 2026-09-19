@@ -31,6 +31,10 @@ services:
         sync: false
       - key: JWT_ACCESS_PRIVATE_KEY
         sync: false
+      # TASK-IAM-004: AES-256-GCM cho TOTP secret — `openssl rand -base64 32`. Production thiếu → không
+      # khởi động. KHÔNG đổi sau khi đã có người enroll (secret cũ không giải mã được nữa).
+      - key: MFA_ENCRYPTION_KEY
+        sync: false
       - key: JWT_ACCESS_TTL_SECONDS
         value: "900"
       - key: JWT_ISSUER

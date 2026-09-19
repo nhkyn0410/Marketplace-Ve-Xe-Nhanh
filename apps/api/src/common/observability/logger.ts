@@ -24,6 +24,11 @@ const REDACT_PATHS = [
   "accessToken",
   "refreshToken",
   "apiKey",
+  // TASK-IAM-004: challenge + mã MFA + secret enrollment. KHÔNG thêm `code` trơn — sẽ che luôn mã lỗi.
+  "mfaCode",
+  "challengeToken",
+  "otpAuthUri",
+  "backupCodes",
   "data.authorization",
   "data.cookie",
   "data.password",
@@ -31,7 +36,11 @@ const REDACT_PATHS = [
   "data.token",
   "data.accessToken",
   "data.refreshToken",
-  "data.apiKey"
+  "data.apiKey",
+  "data.mfaCode",
+  "data.challengeToken",
+  "data.otpAuthUri",
+  "data.backupCodes"
 ];
 
 const DEVELOPMENT_TRANSPORT = {

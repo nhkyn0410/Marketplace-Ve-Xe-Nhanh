@@ -6,6 +6,8 @@ import {
   LOGIN_MAX_PER_IDENTIFIER_PER_HOUR,
   LOGIN_MAX_PER_IP_PER_HOUR,
   LOGIN_WINDOW_SECONDS,
+  MFA_FAILURE_WINDOW_SECONDS,
+  MFA_MAX_FAILURES_PER_WINDOW,
   OTP_COOLDOWN_SECONDS,
   OTP_MAX_PER_HOUR,
   OTP_WINDOW_SECONDS,
@@ -14,6 +16,7 @@ import {
   REFRESH_WINDOW_SECONDS
 } from "./auth.constants";
 import { AuthException, otpRateLimited, serviceUnavailable } from "./auth.errors";
+import { resolveIdentifier } from "./namespace.resolver";
 
 /**
  * INCR + EXPIRE trong MỘT lệnh. Tách hai lệnh thì lỗi/timeout đúng khe giữa chúng sẽ để lại
@@ -66,10 +69,7 @@ export class OtpRateLimiter {
    * botnet lách được.
    */
   async assertCanAttemptLogin(identifier: string, ip?: string): Promise<void> {
-    const perIdentifier = await this.bump(
-      `login:id:${normalize(identifier)}`,
-      LOGIN_WINDOW_SECONDS
-    );
+    const perIdentifier = await this.bump(`login:id:${loginBucket(identifier)}`, LOGIN_WINDOW_SECONDS);
     if (perIdentifier > LOGIN_MAX_PER_IDENTIFIER_PER_HOUR) {
       this.logger.warn({ event: "auth.login.rate_limited", dimension: "identifier" });
       throw loginRateLimited();
@@ -91,6 +91,29 @@ export class OtpRateLimiter {
       throw loginRateLimited();
     }
     await this.assertLoginIp(ip);
+  }
+
+  /** Chủ thể đã sai MFA quá trần → 429, kể cả khi mã lần này đúng (không cho "đoán tiếp chờ trúng"). */
+  async assertMfaNotLocked(userRef: string): Promise<void> {
+    let failures: string | null;
+    try {
+      failures = await this.redis.get(`mfa-fail:${userRef}`);
+    } catch {
+      throw serviceUnavailable();
+    }
+    if (Number(failures ?? 0) >= MFA_MAX_FAILURES_PER_WINDOW) {
+      this.logger.warn({ event: "auth.mfa.rate_limited", dimension: "subject" });
+      throw loginRateLimited();
+    }
+  }
+
+  async recordMfaFailure(userRef: string): Promise<void> {
+    await this.bump(`mfa-fail:${userRef}`, MFA_FAILURE_WINDOW_SECONDS);
+  }
+
+  /** Xác thực đúng → xoá bộ đếm (trần tính theo lần sai LIÊN TIẾP). Lỗi Redis ở đây không chặn login. */
+  async clearMfaFailures(userRef: string): Promise<void> {
+    await this.redis.del(`mfa-fail:${userRef}`).catch(() => undefined);
   }
 
   private async assertLoginIp(ip?: string): Promise<void> {
@@ -141,6 +164,23 @@ export class OtpRateLimiter {
 
 function normalize(value: string): string {
   return value.trim().toLowerCase();
+}
+
+/**
+ * Bucket theo danh tính ĐÃ resolve, không theo chuỗi thô: resolver bỏ khoảng trắng quanh `/`, nên
+ * `platform/khanh`, `platform /khanh`, `platform/	khanh`... cùng vào một account — đếm theo chuỗi
+ * thô thì mỗi biến thể là một bucket mới và giới hạn 10/giờ vô nghĩa.
+ */
+function loginBucket(identifier: string): string {
+  const resolved = resolveIdentifier(identifier);
+  switch (resolved?.scope) {
+    case "platform":
+      return normalize(`platform/${resolved.username}`);
+    case "operator":
+      return normalize(`${resolved.operatorSlug}/${resolved.username}`);
+    default:
+      return normalize(identifier);
+  }
 }
 
 /**

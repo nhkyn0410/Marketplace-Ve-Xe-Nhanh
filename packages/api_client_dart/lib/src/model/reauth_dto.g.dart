@@ -11,11 +11,13 @@ class _$ReauthDto extends ReauthDto {
   final String? password;
   @override
   final String? otp;
+  @override
+  final String? mfaCode;
 
   factory _$ReauthDto([void Function(ReauthDtoBuilder)? updates]) =>
       (ReauthDtoBuilder()..update(updates))._build();
 
-  _$ReauthDto._({this.password, this.otp}) : super._();
+  _$ReauthDto._({this.password, this.otp, this.mfaCode}) : super._();
   @override
   ReauthDto rebuild(void Function(ReauthDtoBuilder) updates) =>
       (toBuilder()..update(updates)).build();
@@ -26,7 +28,10 @@ class _$ReauthDto extends ReauthDto {
   @override
   bool operator ==(Object other) {
     if (identical(other, this)) return true;
-    return other is ReauthDto && password == other.password && otp == other.otp;
+    return other is ReauthDto &&
+        password == other.password &&
+        otp == other.otp &&
+        mfaCode == other.mfaCode;
   }
 
   @override
@@ -34,6 +39,7 @@ class _$ReauthDto extends ReauthDto {
     var _$hash = 0;
     _$hash = $jc(_$hash, password.hashCode);
     _$hash = $jc(_$hash, otp.hashCode);
+    _$hash = $jc(_$hash, mfaCode.hashCode);
     _$hash = $jf(_$hash);
     return _$hash;
   }
@@ -42,7 +48,8 @@ class _$ReauthDto extends ReauthDto {
   String toString() {
     return (newBuiltValueToStringHelper(r'ReauthDto')
           ..add('password', password)
-          ..add('otp', otp))
+          ..add('otp', otp)
+          ..add('mfaCode', mfaCode))
         .toString();
   }
 }
@@ -58,6 +65,10 @@ class ReauthDtoBuilder implements Builder<ReauthDto, ReauthDtoBuilder> {
   String? get otp => _$this._otp;
   set otp(String? otp) => _$this._otp = otp;
 
+  String? _mfaCode;
+  String? get mfaCode => _$this._mfaCode;
+  set mfaCode(String? mfaCode) => _$this._mfaCode = mfaCode;
+
   ReauthDtoBuilder() {
     ReauthDto._defaults(this);
   }
@@ -67,6 +78,7 @@ class ReauthDtoBuilder implements Builder<ReauthDto, ReauthDtoBuilder> {
     if ($v != null) {
       _password = $v.password;
       _otp = $v.otp;
+      _mfaCode = $v.mfaCode;
       _$v = null;
     }
     return this;
@@ -90,6 +102,7 @@ class ReauthDtoBuilder implements Builder<ReauthDto, ReauthDtoBuilder> {
         _$ReauthDto._(
           password: password,
           otp: otp,
+          mfaCode: mfaCode,
         );
     replace(_$result);
     return _$result;

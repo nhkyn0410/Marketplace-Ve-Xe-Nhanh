@@ -11,10 +11,22 @@ Serializers _$serializers = (Serializers().toBuilder()
       ..add(AuthTokenResponseDtoOutputScopeEnum.serializer)
       ..add(AuthTokenResponseDtoOutputTokenTypeEnum.serializer)
       ..add(CredentialLoginDto.serializer)
+      ..add(CredentialLoginResponseDtoOutput.serializer)
+      ..add(CredentialTokenResponse.serializer)
+      ..add(CredentialTokenResponseMfaRequiredEnum.serializer)
+      ..add(CredentialTokenResponseScopeEnum.serializer)
+      ..add(CredentialTokenResponseTokenTypeEnum.serializer)
       ..add(HealthResponseDtoOutput.serializer)
       ..add(HealthResponseDtoOutputStatusEnum.serializer)
       ..add(MessageResponseDtoOutput.serializer)
       ..add(MessageResponseDtoOutputStatusEnum.serializer)
+      ..add(MfaChallengeResponse.serializer)
+      ..add(MfaChallengeResponseMfaRequiredEnum.serializer)
+      ..add(MfaVerifyDto.serializer)
+      ..add(MfaVerifyResponseDtoOutput.serializer)
+      ..add(MfaVerifyResponseDtoOutputMfaRequiredEnum.serializer)
+      ..add(MfaVerifyResponseDtoOutputScopeEnum.serializer)
+      ..add(MfaVerifyResponseDtoOutputTokenTypeEnum.serializer)
       ..add(MongoHealthResponseDtoOutput.serializer)
       ..add(MongoHealthResponseDtoOutputServiceEnum.serializer)
       ..add(MongoHealthResponseDtoOutputStatusEnum.serializer)
@@ -39,6 +51,9 @@ Serializers _$serializers = (Serializers().toBuilder()
           const FullType(BuiltList,
               const [const FullType(QueueHealthResponseDtoOutputQueuesInner)]),
           () => ListBuilder<QueueHealthResponseDtoOutputQueuesInner>())
+      ..addBuilderFactory(
+          const FullType(BuiltList, const [const FullType(String)]),
+          () => ListBuilder<String>())
       ..addBuilderFactory(
           const FullType(
               BuiltMap, const [const FullType(String), const FullType(int)]),

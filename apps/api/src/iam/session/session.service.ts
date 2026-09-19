@@ -18,6 +18,8 @@ export type SessionSubject = {
   type: SubjectType;
   id: string;
   operatorId?: string;
+  /** Session chỉ được đánh dấu sau khi TOTP/backup-code hợp lệ; không nhận từ client. */
+  mfaVerified?: boolean;
 };
 
 export type IssuedSession = {
@@ -82,6 +84,7 @@ export class SessionService {
           refreshTokenHash: hash,
           expiresAt: this.refreshExpiry(new Date()),
           operatorId: subject.operatorId,
+          mfaVerifiedAt: subject.mfaVerified ? new Date() : undefined,
           ip: ctx.ip,
           userAgent: ctx.userAgent,
         },
@@ -132,6 +135,7 @@ export class SessionService {
             refreshTokenHash: hash,
             expiresAt: this.refreshExpiry(now),
             operatorId: current.operatorId,
+            mfaVerifiedAt: current.mfaVerifiedAt,
             ip: ctx.ip,
             userAgent: ctx.userAgent,
           },

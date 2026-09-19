@@ -15,6 +15,7 @@ import { AuthController } from "./auth/auth.controller";
 import { AuthService } from "./auth/auth.service";
 import { CredentialService } from "./auth/credential.service";
 import { LoginHistoryService } from "./auth/login-history.service";
+import { MfaService } from "./auth/mfa.service";
 import { OtpRateLimiter } from "./auth/otp-rate-limiter";
 import { TokenService } from "./auth/token.service";
 import { RefreshTokenService } from "./session/refresh-token.service";
@@ -39,6 +40,7 @@ import { SessionCache } from "./session/session-cache";
     CredentialService,
     OtpRateLimiter,
     LoginHistoryService,
+    MfaService,
     AuthService,
     RefreshTokenService,
     SessionService,

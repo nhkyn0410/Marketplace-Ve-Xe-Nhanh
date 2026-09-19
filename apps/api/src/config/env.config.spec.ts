@@ -52,6 +52,33 @@ describe("parseAppConfig", () => {
     expect(config.REDIS_URL).toBe("redis://localhost:6379");
   });
 
+  it("accepts only a 32-byte base64 MFA encryption key", () => {
+    const key = Buffer.alloc(32, 7).toString("base64");
+    expect(parseAppConfig({ MFA_ENCRYPTION_KEY: key }).MFA_ENCRYPTION_KEY).toBe(key);
+    expect(() => parseAppConfig({ MFA_ENCRYPTION_KEY: "not-base64" })).toThrow(
+      /MFA_ENCRYPTION_KEY/,
+    );
+    expect(() =>
+      parseAppConfig({ MFA_ENCRYPTION_KEY: Buffer.alloc(31).toString("base64") }),
+    ).toThrow(/MFA_ENCRYPTION_KEY/);
+    // Bit đệm khác 0: vẫn decode ra 32 byte nhưng không phải dạng chuẩn → từ chối.
+    expect(() => parseAppConfig({ MFA_ENCRYPTION_KEY: `${key.slice(0, 42)}B=` })).toThrow(
+      /MFA_ENCRYPTION_KEY/,
+    );
+  });
+
+  it("requires the dedicated MFA encryption key in production", () => {
+    expect(() =>
+      parseAppConfig({
+        NODE_ENV: "production",
+        BETTER_AUTH_SECRET: "test-secret",
+        BETTER_AUTH_URL: "https://api.example.com",
+        JWT_ACCESS_PRIVATE_KEY: "test-key",
+        RESEND_API_KEY: "test-resend-key",
+      }),
+    ).toThrow(/MFA_ENCRYPTION_KEY/);
+  });
+
   it("treats empty / whitespace strings as unset", () => {
     const config = parseAppConfig({ DATABASE_URL: "   ", PORT: "", SENTRY_DSN: "" });
 

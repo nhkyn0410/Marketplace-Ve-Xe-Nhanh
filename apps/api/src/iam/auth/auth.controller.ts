@@ -26,14 +26,26 @@ import { resolveTrustedClientIp } from "../../common/trusted-client-ip";
 import { APP_CONFIG, type AppConfig } from "../../config/env.config";
 import { ProblemDetailsDto } from "../../openapi/openapi.dto";
 import { AccessTokenGuard, AllowRevokedSession } from "./access-token.guard";
-import { AuthService, type LoginResult, type RequestContext, SUPPORTED_OAUTH } from "./auth.service";
+import {
+  AuthService,
+  type CredentialLoginResult,
+  type LoginResult,
+  type MfaLoginResult,
+  type RequestContext,
+  SUPPORTED_OAUTH
+} from "./auth.service";
 import { CurrentUser } from "./current-user.decorator";
 import {
   AuthTokenResponseDto,
   type AuthTokenResponse,
   CredentialLoginDto,
+  type CredentialLoginResponse,
+  CredentialLoginResponseDto,
   type MessageResponse,
   MessageResponseDto,
+  MfaVerifyDto,
+  type MfaVerifyResponse,
+  MfaVerifyResponseDto,
   OAuthInitDto,
   type OAuthRedirectResponse,
   OAuthRedirectResponseDto,
@@ -106,11 +118,15 @@ export class AuthController {
   @HttpCode(200)
   @NoStore()
   @ApiBody({ type: CredentialLoginDto })
-  @ZodResponse({ status: 200, description: "Login Operator/Employee `{slug}/{username}`.", type: AuthTokenResponseDto })
+  @ZodResponse({
+    status: 200,
+    description: "Login Operator/Employee; role bắt buộc MFA nhận challenge thay vì token.",
+    type: CredentialLoginResponseDto
+  })
   @ApiResponse({ status: 401, description: "Sai thông tin đăng nhập.", content: problemContent })
   @ApiResponse({ status: 403, description: "Tài khoản bị khóa.", content: problemContent })
-  async operatorLogin(@Body() dto: CredentialLoginDto, @Req() req: Request): Promise<AuthTokenResponse> {
-    return toTokenResponse(
+  async operatorLogin(@Body() dto: CredentialLoginDto, @Req() req: Request): Promise<CredentialLoginResponse> {
+    return toCredentialLoginResponse(
       await this.authService.operatorLogin(
         dto.identifier,
         dto.password,
@@ -123,16 +139,42 @@ export class AuthController {
   @HttpCode(200)
   @NoStore()
   @ApiBody({ type: CredentialLoginDto })
-  @ZodResponse({ status: 200, description: "Login Platform `platform/{username}`.", type: AuthTokenResponseDto })
+  @ZodResponse({
+    status: 200,
+    description: "Login Platform; password đúng nhận MFA challenge, chưa cấp token.",
+    type: CredentialLoginResponseDto
+  })
   @ApiResponse({ status: 401, description: "Sai thông tin đăng nhập.", content: problemContent })
   @ApiResponse({ status: 403, description: "Tài khoản bị khóa.", content: problemContent })
-  async platformLogin(@Body() dto: CredentialLoginDto, @Req() req: Request): Promise<AuthTokenResponse> {
-    return toTokenResponse(
+  async platformLogin(@Body() dto: CredentialLoginDto, @Req() req: Request): Promise<CredentialLoginResponse> {
+    return toCredentialLoginResponse(
       await this.authService.platformLogin(
         dto.identifier,
         dto.password,
         this.context(req)
       )
+    );
+  }
+
+  @Post("mfa/verify")
+  @HttpCode(200)
+  @NoStore()
+  @ApiBody({ type: MfaVerifyDto })
+  @ZodResponse({
+    status: 200,
+    description: "Xác thực pre-auth challenge bằng TOTP/backup code rồi mới cấp token.",
+    type: MfaVerifyResponseDto
+  })
+  @ApiResponse({
+    status: 401,
+    description: "Challenge/mã sai, hết hạn, đã dùng hoặc quá 5 lần thử — cùng một lỗi generic.",
+    content: problemContent
+  })
+  @ApiResponse({ status: 403, description: "Tài khoản bị khóa trong lúc challenge còn sống.", content: problemContent })
+  @ApiResponse({ status: 503, description: "Redis không khả dụng (fail-closed).", content: problemContent })
+  async verifyMfa(@Body() dto: MfaVerifyDto, @Req() req: Request): Promise<MfaVerifyResponse> {
+    return toMfaVerifyResponse(
+      await this.authService.verifyMfa(dto.challengeToken, dto.code, this.context(req))
     );
   }
 
@@ -175,7 +217,13 @@ export class AuthController {
     description: "Đổi refresh token lấy cặp token mới (rotation). Token cũ chết ngay; dùng lại nó = revoke cả family.",
     type: AuthTokenResponseDto
   })
-  @ApiResponse({ status: 401, description: "Refresh token không hợp lệ / hết hạn / đã dùng.", content: problemContent })
+  @ApiResponse({
+    status: 401,
+    description:
+      "Refresh token không hợp lệ / hết hạn / đã dùng (`AUTH_SESSION_EXPIRED`); phiên owner/admin cấp trước khi bật MFA " +
+      "(`AUTH_MFA_REQUIRED`) → đăng nhập lại qua MFA.",
+    content: problemContent
+  })
   @ApiResponse({ status: 403, description: "Tài khoản bị khóa.", content: problemContent })
   @ApiResponse({ status: 429, description: "Vượt giới hạn refresh.", content: problemContent })
   @ApiResponse({ status: 503, description: "Redis không khả dụng (fail-closed).", content: problemContent })
@@ -256,5 +304,20 @@ function toTokenResponse(result: LoginResult): AuthTokenResponse {
     role: result.role,
     refreshToken: result.refreshToken,
     refreshExpiresIn: result.refreshExpiresInSeconds
+  };
+}
+
+function toCredentialLoginResponse(result: CredentialLoginResult): CredentialLoginResponse {
+  if ("mfaRequired" in result) {
+    return result;
+  }
+  return { ...toTokenResponse(result), mfaRequired: false };
+}
+
+function toMfaVerifyResponse(result: MfaLoginResult): MfaVerifyResponse {
+  return {
+    ...toTokenResponse(result),
+    mfaRequired: false,
+    ...(result.backupCodes ? { backupCodes: result.backupCodes } : {})
   };
 }

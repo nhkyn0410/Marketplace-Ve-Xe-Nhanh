@@ -24,6 +24,7 @@ describe("TokenService", () => {
       sid,
       scope: "operator",
       role: "OPERATOR_OWNER",
+      mfa: true,
       operatorId: "op-1",
       operatorSlug: "phuongtrang",
     });
@@ -39,6 +40,7 @@ describe("TokenService", () => {
     expect(payload.sid).toBe(sid);
     expect(payload.scope).toBe("operator");
     expect(payload.role).toBe("OPERATOR_OWNER");
+    expect(payload.mfa).toBe(true);
     expect(payload.operatorId).toBe("op-1");
     expect(payload.operatorSlug).toBe("phuongtrang");
     expect(payload.iss).toBe("vexenhanh-test");
@@ -63,6 +65,7 @@ describe("TokenService", () => {
       sid: randomUUID(),
       scope: "platform",
       role: "PLATFORM_ADMIN",
+      mfa: true,
     });
     const publicKey = await importSPKI(
       await exportSPKI(pair.publicKey),
@@ -112,6 +115,7 @@ describe("TokenService.verifyAccessToken", () => {
     sid: randomUUID(),
     scope: "operator" as const,
     role: "OPERATOR_OWNER",
+    mfa: true as const,
     operatorId: "op-1",
     operatorSlug: "phuongtrang",
   };
@@ -221,6 +225,11 @@ describe("TokenService.verifyAccessToken", () => {
 
   it("token operator thiếu operatorId/operatorSlug → null", async () => {
     const { accessToken } = await service.mintAccessToken({ ...claims, operatorSlug: undefined });
+    expect(await service.verifyAccessToken(accessToken)).toBeNull();
+  });
+
+  it("token ký hợp lệ của role bắt buộc nhưng thiếu bằng chứng MFA → null", async () => {
+    const { accessToken } = await service.mintAccessToken({ ...claims, mfa: undefined });
     expect(await service.verifyAccessToken(accessToken)).toBeNull();
   });
 

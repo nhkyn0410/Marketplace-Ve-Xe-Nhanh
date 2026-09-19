@@ -99,7 +99,7 @@ describe("@Authorize — HTTP", () => {
   }
 
   const owner = () =>
-    token({ sub: "acc-1", scope: "operator", role: "OPERATOR_OWNER", operatorId, operatorSlug: "phuongtrang" });
+    token({ sub: "acc-1", scope: "operator", role: "OPERATOR_OWNER", mfa: true, operatorId, operatorSlug: "phuongtrang" });
 
   it("không token → 401 AUTH_SESSION_EXPIRED", async () => {
     expect(await get("/vehicles")).toMatchObject({ status: 401, body: { code: "AUTH_SESSION_EXPIRED" } });
@@ -144,14 +144,14 @@ describe("@Authorize — HTTP", () => {
   });
 
   it("token phía Operator thiếu claim tenant → 401 ngay ở bước verify (không tới được guard)", async () => {
-    const orphan = await token({ sub: "acc-2", scope: "operator", role: "OPERATOR_OWNER" });
+    const orphan = await token({ sub: "acc-2", scope: "operator", role: "OPERATOR_OWNER", mfa: true });
     expect(await get("/vehicles", orphan)).toMatchObject({ status: 401, body: { code: "AUTH_SESSION_EXPIRED" } });
   });
 
   it("PLATFORM_ADMIN duyệt KYC → DbScope platform; PLATFORM_SUPPORT → 403", async () => {
-    const admin = await token({ sub: "padm-1", scope: "platform", role: "PLATFORM_ADMIN" });
+    const admin = await token({ sub: "padm-1", scope: "platform", role: "PLATFORM_ADMIN", mfa: true });
     expect(await get("/kyc-queue", admin)).toMatchObject({ status: 200, body: { db: { kind: "platform" } } });
-    const support = await token({ sub: "psup-1", scope: "platform", role: "PLATFORM_SUPPORT" });
+    const support = await token({ sub: "psup-1", scope: "platform", role: "PLATFORM_SUPPORT", mfa: true });
     expect(await get("/kyc-queue", support)).toMatchObject({ status: 403, body: { code: "PERMISSION_DENIED" } });
   });
 

@@ -73,6 +73,7 @@ Class | Method | HTTP request | Description
 [*AuthApi*](doc/AuthApi.md) | [**authControllerRefresh**](doc/AuthApi.md#authcontrollerrefresh) | **POST** /v1/auth/refresh | 
 [*AuthApi*](doc/AuthApi.md) | [**authControllerRegister**](doc/AuthApi.md#authcontrollerregister) | **POST** /v1/auth/register | 
 [*AuthApi*](doc/AuthApi.md) | [**authControllerRequestOtp**](doc/AuthApi.md#authcontrollerrequestotp) | **POST** /v1/auth/otp/request | 
+[*AuthApi*](doc/AuthApi.md) | [**authControllerVerifyMfa**](doc/AuthApi.md#authcontrollerverifymfa) | **POST** /v1/auth/mfa/verify | 
 [*AuthApi*](doc/AuthApi.md) | [**authControllerVerifyOtp**](doc/AuthApi.md#authcontrollerverifyotp) | **POST** /v1/auth/otp/verify | 
 [*HealthApi*](doc/HealthApi.md) | [**appControllerHealth**](doc/HealthApi.md#appcontrollerhealth) | **GET** /v1/health | 
 [*HealthApi*](doc/HealthApi.md) | [**appControllerMongo**](doc/HealthApi.md#appcontrollermongo) | **GET** /v1/health/mongo | 
@@ -85,8 +86,13 @@ Class | Method | HTTP request | Description
 
  - [AuthTokenResponseDtoOutput](doc/AuthTokenResponseDtoOutput.md)
  - [CredentialLoginDto](doc/CredentialLoginDto.md)
+ - [CredentialLoginResponseDtoOutput](doc/CredentialLoginResponseDtoOutput.md)
+ - [CredentialTokenResponse](doc/CredentialTokenResponse.md)
  - [HealthResponseDtoOutput](doc/HealthResponseDtoOutput.md)
  - [MessageResponseDtoOutput](doc/MessageResponseDtoOutput.md)
+ - [MfaChallengeResponse](doc/MfaChallengeResponse.md)
+ - [MfaVerifyDto](doc/MfaVerifyDto.md)
+ - [MfaVerifyResponseDtoOutput](doc/MfaVerifyResponseDtoOutput.md)
  - [MongoHealthResponseDtoOutput](doc/MongoHealthResponseDtoOutput.md)
  - [OAuthInitDto](doc/OAuthInitDto.md)
  - [OAuthRedirectResponseDtoOutput](doc/OAuthRedirectResponseDtoOutput.md)

@@ -19,6 +19,22 @@ const optionalString = z.preprocess(
   z.string().min(1).optional(),
 );
 
+// So lại dạng chuẩn: Buffer.from bỏ qua bit đệm/ký tự lạ nên chuỗi gõ sai vẫn "decode được" thành key khác.
+const optionalBase64Key32 = z.preprocess(
+  emptyToUndefined,
+  z
+    .string()
+    .regex(/^[A-Za-z0-9+/]+={0,2}$/, "must be standard base64")
+    .refine(
+      (value) => {
+        const key = Buffer.from(value, "base64");
+        return key.length === 32 && key.toString("base64") === value;
+      },
+      "must be canonical base64 of exactly 32 bytes",
+    )
+    .optional(),
+);
+
 export const envSchema = z
   .object({
     NODE_ENV: z.preprocess(
@@ -95,6 +111,9 @@ export const envSchema = z
         .max(30 * 24 * 60 * 60)
         .default(30 * 24 * 60 * 60),
     ),
+    // AES-256-GCM key mã hóa TOTP secret (TASK-IAM-004). Production bắt buộc tách khỏi
+    // BETTER_AUTH_SECRET; dev thiếu key thì MfaService mới dùng derivation ổn định có domain separation.
+    MFA_ENCRYPTION_KEY: optionalBase64Key32,
     // OAuth Passenger (ADR-020) — v1 chỉ Google; Facebook/Apple defer v1.x (ADR-028: v1 không lên
     // store nên App Store Guideline 4.8 không ép Apple Sign-In). Giữ biến để bật lại không cần sửa schema.
     GOOGLE_CLIENT_ID: optionalString,
@@ -141,6 +160,7 @@ export const envSchema = z
     for (const key of [
       "BETTER_AUTH_SECRET",
       "JWT_ACCESS_PRIVATE_KEY",
+      "MFA_ENCRYPTION_KEY",
       "RESEND_API_KEY",
     ] as const) {
       if (!env[key]) {

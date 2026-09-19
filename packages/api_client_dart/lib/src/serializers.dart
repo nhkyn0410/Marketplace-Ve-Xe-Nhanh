@@ -16,8 +16,13 @@ import 'package:api_client_dart/src/model/date.dart';
 
 import 'package:api_client_dart/src/model/auth_token_response_dto_output.dart';
 import 'package:api_client_dart/src/model/credential_login_dto.dart';
+import 'package:api_client_dart/src/model/credential_login_response_dto_output.dart';
+import 'package:api_client_dart/src/model/credential_token_response.dart';
 import 'package:api_client_dart/src/model/health_response_dto_output.dart';
 import 'package:api_client_dart/src/model/message_response_dto_output.dart';
+import 'package:api_client_dart/src/model/mfa_challenge_response.dart';
+import 'package:api_client_dart/src/model/mfa_verify_dto.dart';
+import 'package:api_client_dart/src/model/mfa_verify_response_dto_output.dart';
 import 'package:api_client_dart/src/model/mongo_health_response_dto_output.dart';
 import 'package:api_client_dart/src/model/o_auth_init_dto.dart';
 import 'package:api_client_dart/src/model/o_auth_redirect_response_dto_output.dart';
@@ -37,8 +42,13 @@ part 'serializers.g.dart';
 @SerializersFor([
   AuthTokenResponseDtoOutput,
   CredentialLoginDto,
+  CredentialLoginResponseDtoOutput,
+  CredentialTokenResponse,
   HealthResponseDtoOutput,
   MessageResponseDtoOutput,
+  MfaChallengeResponse,
+  MfaVerifyDto,
+  MfaVerifyResponseDtoOutput,
   MongoHealthResponseDtoOutput,
   OAuthInitDto,
   OAuthRedirectResponseDtoOutput,
@@ -59,15 +69,18 @@ Serializers serializers = (_$serializers.toBuilder()
         () => MapBuilder<String, int>(),
       )
       ..addBuilderFactory(
-        const FullType(
-            BuiltList, [FullType(QueueHealthResponseDtoOutputQueuesInner)]),
+        const FullType(BuiltList, [FullType(QueueHealthResponseDtoOutputQueuesInner)]),
         () => ListBuilder<QueueHealthResponseDtoOutputQueuesInner>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(String)]),
+        () => ListBuilder<String>(),
       )
       ..add(const OneOfSerializer())
       ..add(const AnyOfSerializer())
       ..add(const DateSerializer())
-      ..add(Iso8601DateTimeSerializer()))
-    .build();
+      ..add(Iso8601DateTimeSerializer())
+    ).build();
 
 Serializers standardSerializers =
     (serializers.toBuilder()..addPlugin(StandardJsonPlugin())).build();
