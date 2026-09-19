@@ -13,7 +13,7 @@
 | Người viết    | Nguyễn Hồng Khanh, AI Agent |
 | Người duyệt   | Nguyễn Hồng Khanh           |
 | Ngày tạo      | 11/05/2026                  |
-| Ngày cập nhật | 08/09/2026                  |
+| Ngày cập nhật | 19/09/2026                  |
 
 ### 1.2. Lịch sử thay đổi
 
@@ -21,6 +21,7 @@
 | --------- | ---------- | -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | v0.1      | 11/05/2026 | AI Agent       | Tạo bản nháp API Specification                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
 | v0.2      | 01/06/2026 | AI Agent       | **Sprint 5 Rework** — reset theo **ADR-012** (REST + OpenAPI 3.1 auto từ Zod single source, URL `/v1/*`, RFC 7807 error, webhook HMAC), **ADR-017** (auth 3-namespace + Hybrid token + MFA), **ADR-019** (webhook VNPay/MoMo HMAC dedup), **ADR-020** (OAuth + notification). §4 quy ước OpenAPI/Zod/versioning; §5 auth 3-namespace; §6 error → RFC 7807; §7 endpoint cập nhật (auth OTP/OAuth/MFA, admin complex-action POST sub-resource); §10 webhook HMAC + realtime transport TBD. Đóng API-OQ-01 (cookie+Bearer per ADR-017), API-OQ-02 (guest checkout per SRS), API-OQ-03 (VNPay+MoMo per ADR-019). |
+| v0.3      | 19/09/2026 | AI Agent       | **§7.1 làm rõ khi hiện thực TASK-IAM-004 (MFA)**: `/auth/operator/login` + `/auth/platform/login` với role bắt buộc TOTP (Owner/PlatformAdmin/PlatformSupport) trả **challenge** (`mfaRequired: true`, `challengeToken`, `challengeExpiresIn: 300`, `otpAuthUri` chỉ ở lần enrollment đầu) thay vì token; `/auth/mfa/verify` được xác thực bằng `challengeToken` (không phải Bearer) và là endpoint duy nhất cấp token cho các role đó; `/auth/re-auth` nhận đúng một trong `password` / `otp` / `mfaCode`. Không thêm endpoint. Hợp đồng chi tiết = OpenAPI sinh từ Zod (ADR-012). |
 
 ---
 
@@ -141,12 +142,12 @@ Path dưới đây tương đối với base `/v1`.
 | POST   | `/auth/otp/request`      | Passenger, Guest   | Gửi Email OTP (Resend)                    |
 | POST   | `/auth/otp/verify`       | Passenger          | Xác thực OTP + cấp token                  |
 | POST   | `/auth/oauth/{provider}` | Passenger          | OAuth Google / Facebook / Apple (ADR-020) |
-| POST   | `/auth/operator/login`   | Operator, Employee | Login `{slug}/{username}` + password      |
-| POST   | `/auth/platform/login`   | Admin, Platform    | Login `platform/{username}` + password    |
-| POST   | `/auth/mfa/verify`       | Authenticated      | Xác thực TOTP / backup code               |
+| POST   | `/auth/operator/login`   | Operator, Employee | Login `{slug}/{username}` + password; Owner nhận MFA challenge thay vì token |
+| POST   | `/auth/platform/login`   | Admin, Platform    | Login `platform/{username}` + password; nhận MFA challenge thay vì token |
+| POST   | `/auth/mfa/verify`       | Có `challengeToken` từ login (không Bearer) | Xác thực TOTP / backup code (lần đầu = enrollment) → cấp token |
 | POST   | `/auth/refresh`          | Authenticated      | Refresh token (rotation + family)         |
 | POST   | `/auth/logout`           | Authenticated      | Logout + revoke session                   |
-| POST   | `/auth/re-auth`          | Authenticated      | Re-auth thao tác nhạy cảm                 |
+| POST   | `/auth/re-auth`          | Authenticated      | Re-auth thao tác nhạy cảm (password / OTP / mã MFA) |
 
 ### 7.2. Marketplace
 
