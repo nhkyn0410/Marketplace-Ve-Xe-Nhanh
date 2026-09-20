@@ -71,3 +71,13 @@ Bắt buộc test: **money math** (BIGINT/Decimal), **idempotency** (payment ded
 - **KHÔNG tự promote** tài liệu → `Approved` (chỉ Khanh).
 - **Production-blocker**: OQ-21 (KYC storage residency) + OQ-22 (giấy phép TGTT NHNN) — KYC / payment thật chỉ chạy dev-local / sandbox cho tới khi giải quyết.
 - Đụng tên module → `DOMAIN-MAP`; entity/state/error code → `GLOSSARY`; quyết định công nghệ → file 10 ADR. Không chắc → DỪNG, hỏi.
+
+## Nhật ký sử dụng AI (bắt buộc, không commit)
+
+Mỗi lần sinh/sửa code đáng kể → ghi 1 dòng bằng lệnh, **KHÔNG đọc/mở/sửa tay** file nhật ký:
+
+```bash
+node .claude/hooks/ai-journal.mjs add "<Mảng kỹ thuật>" "<AI sử dụng>" "<Mục đích>" "<Phần AI sinh>" "" "<Nhận xét>"
+```
+
+Quy tắc đầy đủ: **`doc/AI-JOURNAL.md`**. `.ai-journal/` đã gitignore — ghi bắt buộc, commit thì KHÔNG. "Phần AI sinh" = đường dẫn + phạm vi, **không dán mã nguồn** (trần 300 ký tự/ô). "Phần SV chỉnh" truyền `""` — Khanh tự điền, agent không bịa.

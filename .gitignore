@@ -136,6 +136,9 @@ Desktop.ini
 .claude/settings.local.json
 .codex/settings.local.json
 
+# Nhat ky su dung AI (doc/AI-JOURNAL.md) — bat buoc ghi, KHONG commit
+/.ai-journal/
+
 # Thu muc tam cua job "Contract" (sinh lai Dart client de so hop dong)
 /.regen/
 /.cmp/

@@ -182,3 +182,20 @@ Khanh: tiếng Việt mặc định, nghiệp dư ops → giải thích + đề 
 - Đụng OQ đã đóng → tham chiếu `PROJECT-STATE §3`
 - Đụng version doc → tham chiếu `PROJECT-STATE §1`
 - Vẫn không chắc → **DỪNG, hỏi Khanh**, không suy diễn
+
+---
+
+## 9. Nhật ký sử dụng AI — BẮT BUỘC
+
+Mỗi lần sinh/sửa code đáng kể, ghi 1 dòng bằng lệnh — **KHÔNG đọc, KHÔNG mở, KHÔNG sửa tay** file nhật ký:
+
+```bash
+node .claude/hooks/ai-journal.mjs add "<Mảng kỹ thuật>" "<AI sử dụng>" "<Mục đích>" "<Phần AI sinh>" "" "<Nhận xét>"
+```
+
+Quy tắc đầy đủ: **`doc/AI-JOURNAL.md`**.
+
+- Thư mục `.ai-journal/` đã gitignore — **KHÔNG commit, KHÔNG push**, nhưng bắt buộc ghi.
+- "Phần AI sinh" = **đường dẫn + phạm vi**, TUYỆT ĐỐI không dán mã nguồn. Trần 300 ký tự/ô, script từ chối nếu vượt.
+- "Phần SV chỉnh" truyền `""` — Khanh tự điền. KHÔNG bịa cột này và cột "Nhận xét".
+- Hook `Stop` (`.claude/settings.json` → `.claude/hooks/ai-journal.mjs`) chặn kết thúc lượt nếu code đổi mà chưa có dòng nhật ký mới.
