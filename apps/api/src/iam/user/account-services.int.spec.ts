@@ -32,6 +32,7 @@ describe.skipIf(!url && !requireDb)("IAM-005 account services — Postgres thậ
   const tenant = randomUUID();
   const foreignTenant = randomUUID();
   const provisionTenant = randomUUID();
+  const concurrentProvisionTenant = randomUUID();
   const retryTenant = randomUUID();
   const foreignEmployee = randomUUID();
   const tenantSlug = `iam005-service-${tag}`;
@@ -69,10 +70,11 @@ describe.skipIf(!url && !requireDb)("IAM-005 account services — Postgres thậ
   afterAll(async () => {
     if (prisma) {
       await prisma.withSystem(async (tx) => {
-        await tx.authSession.deleteMany({ where: { operatorId: { in: [tenant, foreignTenant, provisionTenant, retryTenant] } } });
-        await tx.employeeAccount.deleteMany({ where: { operatorId: { in: [tenant, foreignTenant, provisionTenant, retryTenant] } } });
-        await tx.operatorAccount.deleteMany({ where: { operatorId: { in: [tenant, foreignTenant, provisionTenant, retryTenant] } } });
-        await tx.operatorProfile.deleteMany({ where: { id: { in: [tenant, foreignTenant, provisionTenant, retryTenant] } } });
+        const operatorIds = [tenant, foreignTenant, provisionTenant, concurrentProvisionTenant, retryTenant];
+        await tx.authSession.deleteMany({ where: { operatorId: { in: operatorIds } } });
+        await tx.employeeAccount.deleteMany({ where: { operatorId: { in: operatorIds } } });
+        await tx.operatorAccount.deleteMany({ where: { operatorId: { in: operatorIds } } });
+        await tx.operatorProfile.deleteMany({ where: { id: { in: operatorIds } } });
       });
       await prisma.$disconnect();
     }
@@ -98,6 +100,32 @@ describe.skipIf(!url && !requireDb)("IAM-005 account services — Postgres thậ
     expect(account.authEpoch).toBe(0);
     expect(account.passwordHash).not.toContain(delivered);
     expect(await credentials.verify(delivered, account.passwordHash)).toBe(true);
+  });
+
+  it("concurrent provision requests create exactly one tenant and Owner", async () => {
+    const input = {
+      operatorId: concurrentProvisionTenant,
+      operatorSlug: `iam005-provision-race-${tag}`,
+      displayName: "Concurrent provision tenant",
+      ownerUsername: `owner-race-${tag}`,
+      contactEmail: "owner-race@example.com",
+      reason: "KYC approved",
+    };
+
+    const results = await Promise.allSettled([
+      provisioning.provisionOperatorOwner(admin, platformAuthz, input),
+      provisioning.provisionOperatorOwner(admin, platformAuthz, input),
+    ]);
+
+    expect(results.filter((result) => result.status === "fulfilled")).toHaveLength(1);
+    const rejected = results.filter((result) => result.status === "rejected");
+    expect(rejected).toHaveLength(1);
+    expect((rejected[0] as PromiseRejectedResult).reason).toMatchObject({ status: 409 });
+    const [profiles, owners] = await prisma.withSystem(async (tx) => Promise.all([
+      tx.operatorProfile.count({ where: { id: concurrentProvisionTenant } }),
+      tx.operatorAccount.count({ where: { operatorId: concurrentProvisionTenant } }),
+    ]));
+    expect({ profiles, owners }).toEqual({ profiles: 1, owners: 1 });
   });
 
   it("delivery failure leaves Owner pending; retry sends a new password without changing status", async () => {
@@ -156,6 +184,28 @@ describe.skipIf(!url && !requireDb)("IAM-005 account services — Postgres thậ
     expect(afterReset.passwordChangeRequired).toBe(true);
     expect(afterReset.credentialDeliveryPending).toBe(false);
     expect(afterReset.status).toBe("LOCKED");
+  });
+
+  it("concurrent Employee creates with one username leave exactly one account", async () => {
+    const username = `driver-race-${tag}`;
+    const results = await Promise.allSettled([
+      employees.create(owner, tenantAuthz, {
+        username, contactEmail: "driver-race-a@example.com", role: "DRIVER",
+        reason: "New driver",
+      }),
+      employees.create(owner, tenantAuthz, {
+        username, contactEmail: "driver-race-b@example.com", role: "DRIVER",
+        reason: "New driver",
+      }),
+    ]);
+
+    expect(results.filter((result) => result.status === "fulfilled")).toHaveLength(1);
+    const rejected = results.filter((result) => result.status === "rejected");
+    expect(rejected).toHaveLength(1);
+    expect((rejected[0] as PromiseRejectedResult).reason).toMatchObject({ status: 409 });
+    await expect(prisma.withSystem((tx) => tx.employeeAccount.count({
+      where: { operatorId: tenant, username },
+    }))).resolves.toBe(1);
   });
 
   it("Employee delivery failure remains recoverable by ID and password reset", async () => {

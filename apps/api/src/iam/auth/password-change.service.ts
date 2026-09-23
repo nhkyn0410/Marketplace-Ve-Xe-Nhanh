@@ -45,6 +45,7 @@ type PasswordAccount = {
   credentialDeliveryPending: boolean;
   passwordChangeRequired: boolean;
   temporaryPasswordExpiresAt: Date | null;
+  operator: { status: string };
 };
 
 const CONSUME_SCRIPT = `
@@ -117,7 +118,8 @@ export class PasswordChangeService {
       !account.passwordChangeRequired ||
       !account.temporaryPasswordExpiresAt ||
       account.temporaryPasswordExpiresAt <= new Date() ||
-      account.status !== "ACTIVE"
+      account.status !== "ACTIVE" ||
+      account.operator.status !== "ACTIVE"
     ) {
       throw invalidPasswordChangeToken();
     }
@@ -148,6 +150,7 @@ export class PasswordChangeService {
         operatorId: challenge.operatorId,
         authEpoch: challenge.authEpoch,
         status: "ACTIVE" as const,
+        operator: { status: "ACTIVE" as const },
         credentialDeliveryPending: false,
         passwordHash: account.passwordHash,
         passwordChangeRequired: true,
@@ -232,7 +235,8 @@ export class PasswordChangeService {
       authEpoch: true,
       credentialDeliveryPending: true,
       passwordChangeRequired: true,
-      temporaryPasswordExpiresAt: true
+      temporaryPasswordExpiresAt: true,
+      operator: { select: { status: true } }
     } as const;
     return this.prisma.withTenant<PasswordAccount | null>(challenge.operatorId, async (tx) => {
       if (challenge.subjectType === SubjectType.OPERATOR) {

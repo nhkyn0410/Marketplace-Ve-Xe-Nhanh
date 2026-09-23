@@ -141,7 +141,7 @@ Sau Sprint 5 rework + Sprint 4 Phase 4 DevOps, các doc thiết kế đã reset 
 | TASK-IAM-002 | Hybrid token (JWT RS256 15min + opaque refresh 30d rotation/family) + `auth_sessions` + Redis cache                    | ADR-017                | BE           | TASK-IAM-001 | Done     |
 | TASK-IAM-003 | RBAC 8-role + TenantGuard (JWT claims) + Postgres RLS                                                                  | FR-IAM-06, ADR-011/017 | BE           | TASK-IAM-002 | Done     |
 | TASK-IAM-004 | MFA TOTP (mandatory Owner/PlatformAdmin/PlatformSupport) + backup code                                                 | ADR-017                | BE           | TASK-IAM-002 | Done     |
-| TASK-IAM-005 | Closed enrollment provisioning (Platform cấp Operator+Owner; Owner cấp employee) + **FR-IAM-15** (xem danh sách phiên + thu hồi theo thiết bị) — Q1–Q8 được Khanh duyệt ngày 22/09/2026; đang triển khai backend/OpenAPI/client | ADR-017, FR-IAM-15     | BE/FE        | TASK-IAM-003 | Draft  |
+| TASK-IAM-005 | Closed enrollment provisioning (Platform cấp Operator+Owner; Owner cấp employee) + **FR-IAM-15** (xem danh sách phiên + thu hồi theo thiết bị) — Q1–Q8 được Khanh duyệt ngày 22/09/2026; backend/OpenAPI/client và hardening local đã xong, chờ smoke/CI | ADR-017, FR-IAM-15     | BE/FE        | TASK-IAM-003 | Draft  |
 
 ### 7.3. Transport resource
 

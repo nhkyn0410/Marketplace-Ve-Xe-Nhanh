@@ -82,9 +82,6 @@ export class AccountProvisioningService {
     const ownerUsername = valid.ownerUsername;
     const contactEmail = valid.contactEmail;
     const reason = valid.reason;
-    const temporaryPassword = generateTemporaryPassword();
-    const passwordHash = await this.credentials.hash(temporaryPassword);
-    const temporaryPasswordExpiresAt = new Date(Date.now() + TEMPORARY_PASSWORD_TTL_MS);
 
     await this.audit.recordAuditEvent({
       actorId: actor.sub,
@@ -106,6 +103,10 @@ export class AccountProvisioningService {
       actorType: actor.scope,
       actorId: actor.sub,
     });
+
+    const temporaryPassword = generateTemporaryPassword();
+    const passwordHash = await this.credentials.hash(temporaryPassword);
+    const temporaryPasswordExpiresAt = new Date(Date.now() + TEMPORARY_PASSWORD_TTL_MS);
 
     let ownerVersion: number;
     try {
@@ -235,9 +236,6 @@ export class AccountProvisioningService {
       throw accountStateConflict();
     }
     const reason = requireAccountReason(input.reason);
-    const temporaryPassword = generateTemporaryPassword();
-    const passwordHash = await this.credentials.hash(temporaryPassword);
-    const temporaryPasswordExpiresAt = new Date(Date.now() + TEMPORARY_PASSWORD_TTL_MS);
     await this.audit.recordAuditEvent({
       actorId: actor.sub,
       actorRole: actor.role,
@@ -253,6 +251,9 @@ export class AccountProvisioningService {
       actorType: actor.scope,
       actorId: actor.sub,
     });
+    const temporaryPassword = generateTemporaryPassword();
+    const passwordHash = await this.credentials.hash(temporaryPassword);
+    const temporaryPasswordExpiresAt = new Date(Date.now() + TEMPORARY_PASSWORD_TTL_MS);
     const [pending] = await this.prisma.withScope(authz.db, (tx) =>
       tx.operatorAccount.updateManyAndReturn({
         where: {

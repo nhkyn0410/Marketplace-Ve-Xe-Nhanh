@@ -4,13 +4,14 @@
 > **Dependency:** TASK-IAM-003 đã Done (CI đã được Khanh xác nhận); RBAC + TenantGuard + RLS là nền của task này.
 > **Cách dùng:** Q1–Q8 đã được Khanh chốt ngày 22/09/2026. Guide chạy tay: `IAM-005-guide.md`. Nghiệm thu: `IAM-005-verification-checklist.md`.
 
-## Trạng thái (23/09/2026) — 🟡 **ĐANG HARDENING, CHƯA ĐÓNG GATE**
+## Trạng thái (24/09/2026) — 🟡 **ĐÃ XONG CORE LOCAL, CHỜ QUERY-PLAN/SMOKE/CI**
 
 - ✅ TASK-IAM-004 đã đóng sau xác nhận CI xanh.
 - ✅ Đã đối chiếu task row với SRS, HLD/LLD, DB, API, Security, Test, ADR-017, DOMAIN-MAP, GLOSSARY và code IAM-001..004.
 - ✅ Khanh duyệt toàn bộ Q1–Q8 theo khuyến nghị ngày 22/09/2026, gồm endpoint quản lý phiên mới và contract mật khẩu tạm.
 - ✅ Phạm vi defer KYC workflow, Platform employee, MFA reset và UI được giữ nguyên; không mở self-registration.
-- ⏳ Code/migration/OpenAPI/test đang được triển khai; chưa đóng task trước khi review, smoke và CI đạt gate.
+- ✅ Code/migration/OpenAPI và test local đã hoàn tất hardening; PostgreSQL/Redis/Mongo thật đạt 433/433 test, không skip.
+- ⏳ Chưa đóng task trước khi smoke rollout và CI branch được Khanh xác nhận.
 
 ---
 
@@ -91,7 +92,7 @@
 
 ## Data design dự kiến
 
-- Account auth thêm `contact_email`, `password_change_required`, `temporary_password_expires_at`, `credential_delivery_pending`, `auth_epoch`, `version`; `auth_sessions.auth_epoch` chụp phiên bản lúc phát session. Lock/role-change/reset/password-change tăng epoch trong DB; guard so epoch trên mỗi request Operator/Employee, kể cả Redis đang cache active.
+- Account auth thêm `contact_email`, `password_change_required`, `temporary_password_expires_at`, `credential_delivery_pending`, `auth_epoch`, `version`; `auth_sessions.auth_epoch` chụp phiên bản lúc phát session. Mọi chuyển trạng thái (kể cả unlock), role-change/reset/password-change tăng epoch trong DB; guard so epoch trên mỗi request Operator/Employee, kể cả Redis đang cache active.
 - Không lưu temp password plaintext, token đổi mật khẩu plaintext hoặc raw refresh token.
 - Namespace Operator có invariant DB duy nhất cho `(operator_id, username)` xuyên Owner/Employee.
 - `operator_accounts` không được chứa cặp `operator_id`/`operator_slug` lệch tenant.
@@ -108,53 +109,53 @@ Cập nhật ba file task-properties bằng ngày/quyết định; nếu thêm e
 
 **Success:** đạt ngày 22/09/2026 — không còn quyết định security/API/schema ngầm; endpoint, response, expiry, defer và owner module rõ.
 
-### ⬜ #2 — [IAM-005.2] Schema + migration + RLS/invariant
+### ✅ #2 — [IAM-005.2] Schema + migration + RLS/invariant
 
 Thêm fields/invariant đã chốt; migration chạy trên DB trống và DB nâng cấp; cấp quyền role app; kiểm FORCE RLS và không drift Prisma.
 
 **Success:** DB chặn username collision, slug drift, cross-tenant write; plaintext secret không tồn tại.
 
-### ⬜ #3 — [IAM-005.3] Temp credential + first-login challenge
+### ✅ #3 — [IAM-005.3] Temp credential + first-login challenge
 
 Sinh/delivery temp password; pre-auth challenge one-time/TTL; change password atomic; không cấp access/refresh/MFA data trước khi đổi.
 
 **Success:** fake/expired/replay/concurrent challenge fail-closed; email/log/audit không lộ secret.
 
-### ⬜ #4 — [IAM-005.4] Operator Owner provisioning primitive
+### ✅ #4 — [IAM-005.4] Operator Owner provisioning primitive
 
 Tạo Operator + Owner transactionally, slug immutable, permission Platform-only; không dựng KYC workflow giả.
 
 **Success:** duplicate/concurrent request không tạo tenant/account nửa vời; PlatformSupport/Operator bị từ chối.
 
-### ⬜ #5 — [IAM-005.5] Employee account API
+### ✅ #5 — [IAM-005.5] Employee account API
 
 List/create/update/reset trong tenant; Zod DTO; controller mỏng; service filter `operatorId`; role chỉ ba giá trị.
 
 **Success:** tenant A không đọc/ghi tenant B kể cả query bỏ filter; duplicate namespace 409; reset/lock/role-change revoke-all.
 
-### ⬜ #6 — [IAM-005.6] Session list/revoke theo device family
+### ✅ #6 — [IAM-005.6] Session list/revoke theo device family
 
 Group family ổn định, mask metadata, ownership check trong query; revoke family qua Redis + Postgres fail-closed.
 
 **Success:** rotation không tạo device giả; IDOR trả 404; revoke một device không giết device khác; current access token chết ngay.
 
-### ⬜ #7 — [IAM-005.7] Audit, re-auth và notification
+### ✅ #7 — [IAM-005.7] Audit, re-auth và notification
 
 Enforce recent re-auth cho mutation nhạy cảm; audit actor/target/reason/IP-device/before-after/result đã mask; notification qua adapter.
 
 **Success:** không mutation nhạy cảm nào bypass re-auth/reason/audit; Mongo/Redis failure có hành vi đã chốt.
 
-### ⬜ #8 — [IAM-005.8] OpenAPI + generated clients
+### ✅ #8 — [IAM-005.8] OpenAPI + generated clients
 
 Khai báo request/response/error tường minh; regen TS + Dart clients; contract tests chặn route/requestBody bị mất.
 
 **Success:** OpenAPI 3.1 và cả hai client không drift.
 
-### ⬜ #9 — [IAM-005.9] Test bắt buộc + regression
+### ✅ #9 — [IAM-005.9] Test bắt buộc + regression
 
 Unit + Postgres/Redis/Mongo integration bằng role app; Supertest; tenant-RLS/IDOR/race/leak scan; chạy lại IAM-001..004.
 
-**Success:** checklist A–G có evidence; `REQUIRE_DB_TESTS=1` không skip; mutation security chủ chốt làm test đỏ.
+**Success:** 24/09/2026 — `REQUIRE_DB_TESTS=1` đạt 48/48 file, 433/433 test với role app + PostgreSQL/Redis/Mongo thật; có HTTP, RLS/IDOR, provision/create/password-change/limiter race và regression IAM-001..004, không skip im lặng.
 
 ### ⬜ #10 — [IAM-005.10] Review, smoke, CI và đóng task
 

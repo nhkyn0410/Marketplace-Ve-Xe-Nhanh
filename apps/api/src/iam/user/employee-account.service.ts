@@ -97,9 +97,6 @@ export class EmployeeAccountService {
     const username = input.username.trim();
     const contactEmail = input.contactEmail.trim().toLowerCase();
     const reason = requireAccountReason(input.reason);
-    const temporaryPassword = generateTemporaryPassword();
-    const passwordHash = await this.credentials.hash(temporaryPassword);
-    const temporaryPasswordExpiresAt = new Date(Date.now() + TEMPORARY_PASSWORD_TTL_MS);
 
     await this.audit.recordAuditEvent({
       actorId: actor.sub,
@@ -123,6 +120,10 @@ export class EmployeeAccountService {
       actorType: actor.scope,
       actorId: actor.sub,
     });
+
+    const temporaryPassword = generateTemporaryPassword();
+    const passwordHash = await this.credentials.hash(temporaryPassword);
+    const temporaryPasswordExpiresAt = new Date(Date.now() + TEMPORARY_PASSWORD_TTL_MS);
 
     let created: EmployeeRow;
     try {
@@ -217,6 +218,7 @@ export class EmployeeAccountService {
     const contactEmailChanged =
       input.contactEmail !== undefined &&
       input.contactEmail.trim().toLowerCase() !== current.contactEmail;
+    const statusChanged = input.status !== undefined && input.status !== current.status;
     const data = {
       ...(input.username !== undefined ? { username: input.username.trim() } : {}),
       ...(input.contactEmail !== undefined
@@ -254,8 +256,7 @@ export class EmployeeAccountService {
       usernameChanged ||
       contactEmailChanged ||
       input.role !== undefined ||
-      input.status === "LOCKED" ||
-      input.status === "DISABLED";
+      statusChanged;
     if (mustRevoke) {
       await this.sessions.revokeAllForSubject(
         SubjectType.EMPLOYEE,
@@ -322,9 +323,6 @@ export class EmployeeAccountService {
     }
 
     const reason = requireAccountReason(input.reason);
-    const temporaryPassword = generateTemporaryPassword();
-    const passwordHash = await this.credentials.hash(temporaryPassword);
-    const temporaryPasswordExpiresAt = new Date(Date.now() + TEMPORARY_PASSWORD_TTL_MS);
 
     await this.audit.recordAuditEvent({
       actorId: actor.sub,
@@ -348,6 +346,10 @@ export class EmployeeAccountService {
       actorId: actor.sub,
       employeeId,
     });
+
+    const temporaryPassword = generateTemporaryPassword();
+    const passwordHash = await this.credentials.hash(temporaryPassword);
+    const temporaryPasswordExpiresAt = new Date(Date.now() + TEMPORARY_PASSWORD_TTL_MS);
 
     await this.sessions.revokeAllForSubject(
       SubjectType.EMPLOYEE,

@@ -144,8 +144,19 @@ describe("AccountProvisioningService", () => {
     ctx.audit.recordAuditEvent.mockRejectedValueOnce(new Error("Mongo down"));
 
     await expect(ctx.service.provisionOperatorOwner(admin, platformAuthz, input)).rejects.toThrow("Mongo down");
+    expect(ctx.credentials.hash).not.toHaveBeenCalled();
     expect(ctx.prisma.withScope).not.toHaveBeenCalled();
     expect(ctx.email.sendTemporaryPassword).not.toHaveBeenCalled();
+  });
+
+  it("rejects an exhausted email budget before hashing a provision credential", async () => {
+    const ctx = setup();
+    ctx.emailLimiter.reserve.mockRejectedValueOnce({ status: 429 });
+
+    await expect(ctx.service.provisionOperatorOwner(admin, platformAuthz, input))
+      .rejects.toMatchObject({ status: 429 });
+    expect(ctx.credentials.hash).not.toHaveBeenCalled();
+    expect(ctx.prisma.withScope).not.toHaveBeenCalled();
   });
 
   it("leaves the Owner delivery-pending when email delivery fails", async () => {
@@ -212,6 +223,19 @@ describe("AccountProvisioningService", () => {
       { operatorSlug: "north-bus", ownerUsername: "owner01", reason: "  " },
     )).rejects.toThrow(/requires a reason/);
     expect(ctx.audit.recordAuditEvent).not.toHaveBeenCalled();
+    expect(ctx.operatorAccount.updateManyAndReturn).not.toHaveBeenCalled();
+  });
+
+  it("retry bị giới hạn email không thực hiện phép hash scrypt", async () => {
+    const ctx = setup();
+    ctx.emailLimiter.reserve.mockRejectedValueOnce({ status: 429 });
+
+    await expect(ctx.service.retryOwnerDelivery(
+      admin,
+      platformAuthz,
+      { operatorSlug: "north-bus", ownerUsername: "owner01", reason: "Resend retry" },
+    )).rejects.toMatchObject({ status: 429 });
+    expect(ctx.credentials.hash).not.toHaveBeenCalled();
     expect(ctx.operatorAccount.updateManyAndReturn).not.toHaveBeenCalled();
   });
 

@@ -139,10 +139,10 @@ Token tenant A chỉ thấy Employee tenant A. Dùng id tenant B ở PATCH/reset
 
 Mỗi mutation nhạy cảm cần recent re-auth + `reason`. Kỳ vọng:
 
-- lock/disable/role-change/reset password tăng `auth_epoch` và revoke mọi family của Employee;
+- mọi chuyển trạng thái (lock/disable/unlock), role-change và reset password tăng `auth_epoch` rồi revoke mọi family của Employee;
 - đổi username cũng tăng `auth_epoch`; đổi `contactEmail` tăng epoch, revoke phiên và bật `credentialDeliveryPending`, nên Owner phải password-reset tới địa chỉ mới trước khi Employee đăng nhập lại;
 - access JWT cũ bị chặn ngay qua Redis; refresh token cũ bị 401;
-- unlock không tự làm temp password cũ sống lại;
+- unlock không tự làm temp password/session cũ sống lại và vẫn rotate epoch để chặn session legacy;
 - audit không chứa hash/password/token.
 - reset Employee đang `LOCKED` vì kỷ luật không được đổi `status` thành `ACTIVE`; `PATCH status=ACTIVE` khi còn pending cũng không cấp quyền login cho tới khi giao mật khẩu thành công.
 

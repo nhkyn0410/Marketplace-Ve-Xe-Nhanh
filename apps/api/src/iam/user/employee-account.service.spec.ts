@@ -162,6 +162,7 @@ describe("EmployeeAccountService", () => {
         reason: "Nhân viên mới",
       }),
     ).rejects.toThrow("Mongo down");
+    expect(ctx.credentials.hash).not.toHaveBeenCalled();
     expect(ctx.employeeAccount.create).not.toHaveBeenCalled();
     expect(ctx.email.sendTemporaryPassword).not.toHaveBeenCalled();
   });
@@ -176,6 +177,7 @@ describe("EmployeeAccountService", () => {
       role: "DRIVER",
       reason: "Nhân viên mới",
     })).rejects.toMatchObject({ status: 429 });
+    expect(ctx.credentials.hash).not.toHaveBeenCalled();
     expect(ctx.employeeAccount.create).not.toHaveBeenCalled();
     expect(ctx.email.sendTemporaryPassword).not.toHaveBeenCalled();
   });
@@ -255,6 +257,7 @@ describe("EmployeeAccountService", () => {
       operatorId: "operator-a",
       employeeId: current.id,
     }));
+    expect(ctx.credentials.hash).not.toHaveBeenCalled();
     expect(ctx.employeeAccount.updateManyAndReturn).not.toHaveBeenCalled();
     expect(ctx.sessions.revokeAllForSubject).not.toHaveBeenCalled();
   });
@@ -294,6 +297,30 @@ describe("EmployeeAccountService", () => {
         data: expect.objectContaining({ authEpoch: { increment: 1 }, version: { increment: 1 } }),
       }),
     );
+    expect(ctx.sessions.revokeAllForSubject).toHaveBeenCalledTimes(2);
+  });
+
+  it("unlock rotates the epoch, revokes legacy sessions and never restores a credential", async () => {
+    const ctx = setup();
+    const current = row({ status: "LOCKED" });
+    ctx.employeeAccount.findFirst.mockResolvedValue(current);
+    ctx.employeeAccount.updateManyAndReturn.mockResolvedValue([
+      row({ status: "ACTIVE", version: 1 }),
+    ]);
+
+    await ctx.service.update(actor, authz, current.id, {
+      status: "ACTIVE",
+      reason: "Kết thúc kỷ luật",
+    });
+
+    const mutation = ctx.employeeAccount.updateManyAndReturn.mock.calls[0][0].data;
+    expect(mutation).toEqual({
+      status: "ACTIVE",
+      authEpoch: { increment: 1 },
+      version: { increment: 1 },
+    });
+    expect(mutation).not.toHaveProperty("passwordHash");
+    expect(mutation).not.toHaveProperty("credentialDeliveryPending");
     expect(ctx.sessions.revokeAllForSubject).toHaveBeenCalledTimes(2);
   });
 

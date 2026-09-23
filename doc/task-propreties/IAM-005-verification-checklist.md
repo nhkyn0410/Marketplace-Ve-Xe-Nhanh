@@ -3,11 +3,11 @@
 > Mục tiêu: chứng minh chỉ actor có thẩm quyền mới cấp/quản lý account nội bộ, tenant không thể vượt biên và mỗi actor tự xem/thu hồi đúng device family của mình.
 > Chạy theo thứ tự **A → G**; chỉ tick `[x]` khi có evidence. Lệnh: `IAM-005-guide.md`. Phạm vi/sub-task: `IAM-005-todo.md`.
 
-## Snapshot trạng thái (22/09/2026)
+## Snapshot trạng thái (24/09/2026)
 
 - [x] Đã đối chiếu SDLC/code và tạo bộ ba todo/guide/checklist.
 - [x] Q1–Q8 được Khanh chốt theo khuyến nghị ngày 22/09/2026; task đã qua design gate và đang triển khai.
-- [x] Local evidence 22/09/2026: migration 6/6 trên PostgreSQL 16 test rỗng và SQL upgrade từ 5 migration IAM-004 có 3 account legacy (slug backfill/registry/default flags/FORCE RLS đúng), `db:app-role` chạy lại idempotent, Prisma schema diff = `No difference detected`; `REQUIRE_DB_TESTS=1` với app role + Redis 7 + Mongo 7: API 386/386 test pass, 0 skip (gồm provisioning/Employee service trên DB thật). `pnpm turbo run typecheck lint test build`: 35/35 task pass. `pnpm gen:api-client` pass; Dart client 47 generated lib files khớp byte-for-byte, `dart test` 148/148 pass. Chưa có CI branch/smoke production; `dart analyze` còn 7 warning từ generator.
+- [x] Local evidence 24/09/2026: migration 7/7 trên PostgreSQL 16 test riêng; chạy lại `prisma:migrate:deploy` báo không còn migration và `db:app-role` idempotent/RLS-safe. `REQUIRE_DB_TESTS=1` với role app + Redis 7 + Mongo 7: 48/48 file, 433/433 test pass, 0 skip; gồm race thật cho provision/create, password-change với PostgreSQL+Redis, limiter Lua với Redis concurrent và HTTP route mới. `pnpm turbo run typecheck lint build`: 26/26 task pass; API lint/typecheck/build được chạy lại sau fix cuối. `pnpm gen:api-client` pass và TS/OpenAPI không có semantic diff; Dart 150/150 pass, analyzer không có error nhưng còn 7 warning từ generator. Hậu kiểm code/security không còn finding blocking/high/medium. Chưa có CI branch hoặc smoke production.
 
 ## PHẦN A — Quyết định & ranh giới
 
@@ -25,64 +25,64 @@
 - [x] Fields temp credential/force-change/contact và `auth_epoch` đúng migration; không plaintext secret.
 - [x] DB invariant cấm username trùng Owner/Employee trong một tenant, cho phép tenant khác trùng (`account-lifecycle.int.spec.ts`).
 - [x] Compound FK/invariant chặn `operator_id`/`operator_slug` drift; slug immutable (`account-lifecycle.int.spec.ts`).
-- [x] Migration chạy được trên DB trống và DB IAM-004 có Owner/Employee legacy; `prisma migrate diff` không drift trên DB test rỗng đã migrate.
+- [x] Migration 7/7 chạy trên DB test riêng và chạy lại không còn pending; corrective migration giữ checksum migration cũ, có preflight slug cho DB legacy.
 - [x] `db:app-role` chạy lại idempotent trên DB test; app role không DDL, SUPERUSER, BYPASSRLS hay table owner.
 - [x] Tenant tables/session giữ `ENABLE + FORCE RLS`; thiếu context → 0 row (`tenant-rls.int.spec.ts` + registry test).
 - [ ] Index phục vụ lookup username, subject/family, expiry; không seq-scan đường revoke nóng.
 
 ## PHẦN C — Closed enrollment & password lifecycle
 
-- [ ] Chỉ PlatformAdmin provision Operator+Owner; PlatformSupport/Operator/Employee bị từ chối.
-- [x] Provision transactionally: profile + Owner cùng DB transaction; integration DB thật xác nhận delivery lỗi để Owner `LOCKED`, retry cấp password mới và chỉ kích hoạt sau khi gửi thành công.
-- [ ] Server sinh temp password đủ entropy; hash scrypt; plaintext chỉ đi qua delivery đã chốt.
-- [ ] Temp password hết hạn đúng TTL; expired không cấp challenge/token.
-- [ ] Login temp password không cấp access/refresh token, MFA secret/backup code.
-- [ ] Password-change token TTL/one-time/bind subject; fake/expired/replay trả lỗi generic.
-- [ ] Hai consume đồng thời → đúng một thành công; password cũ chết sau đổi.
+- [x] Chỉ PlatformAdmin provision Operator+Owner; PlatformSupport/Operator/Employee bị từ chối.
+- [x] Provision transactionally: profile + Owner cùng DB transaction; delivery lỗi để Owner `ACTIVE` nhưng `credentialDeliveryPending=true`; retry cấp mật khẩu mới, tăng epoch, giữ nguyên trạng thái kỷ luật và chỉ xóa pending sau khi gửi thành công.
+- [x] Server sinh temp password 192-bit; hash scrypt; plaintext chỉ đi qua delivery đã chốt và không vào response/audit/log.
+- [x] Temp password hết hạn đúng TTL; expired/pending không cấp challenge/token.
+- [x] Login temp password không cấp access/refresh token, MFA secret/backup code.
+- [x] Password-change token TTL/one-time/bind subject+`authEpoch`; fake/expired/replay/reset/status/tenant-suspend trả lỗi generic.
+- [x] PostgreSQL+Redis thật: hai consume đồng thời đúng một thành công; hash cũ chết sau đổi.
 - [ ] Owner bắt buộc login lại rồi enroll/verify MFA trước khi nhận token.
 
 ## PHẦN D — Employee account & tenant isolation
 
 - [x] Owner tạo/list Employee đúng tenant trên DB thật; unit test chặn role không có quyền create.
-- [ ] DTO chỉ nhận field cho phép; tenant/operator id không lấy từ body.
-- [ ] Chỉ nhận `DRIVER`, `TICKET_STAFF`, `SUPPORT_STAFF`.
-- [ ] Duplicate username trong namespace tenant → 409; concurrent create vẫn chỉ một account.
+- [x] DTO chỉ nhận field cho phép; tenant/operator id không lấy từ body.
+- [x] Chỉ nhận `DRIVER`, `TICKET_STAFF`, `SUPPORT_STAFF`.
+- [x] Duplicate username trong namespace tenant → 409; concurrent create/provision trên PostgreSQL thật vẫn chỉ một account/tenant.
 - [x] Tenant A query không filter vẫn chỉ thấy A qua RLS (`tenant-rls.int.spec.ts`); update id B trả 404 trên DB thật (`account-services.int.spec.ts`).
-- [ ] Role/status/password reset bắt reason + recent re-auth theo Q8.
+- [x] Role/status/password reset bắt reason + recent re-auth theo Q8.
 - [x] Lock/disable/role-change/reset tăng `auth_epoch`, revoke mọi family; test DB thật chứng minh access cũ bị chặn dù cache `active`, refresh epoch cũ bị từ chối.
-- [ ] Unlock không tự cấp credential hoặc phục hồi session cũ.
-- [ ] Audit intent fail-closed trước account mutation; success best-effort sau commit; residual cross-DB được ghi rõ; không password/hash/token/contact đầy đủ.
+- [x] Unlock không tự cấp credential; tiếp tục tăng epoch và revoke để cả session legacy cũng không được phục hồi.
+- [x] Audit intent fail-closed trước account mutation; success best-effort sau commit; residual cross-DB được ghi rõ; không password/hash/token/contact đầy đủ.
 
 ## PHẦN E — Session list/revoke (FR-IAM-15)
 
 - [x] GET trả đúng một item/family, kể cả family đã rotate nhiều lần (`session.service.int.spec.ts`).
-- [ ] Response có current/timestamps/device label/IP masked; `sessionId` là public family id; không row `sid`/hash/token/raw user-agent.
-- [ ] Chỉ list subject hiện tại cho Passenger/Owner/Employee/Platform.
-- [ ] DELETE ownership check trong query; family subject khác và id giả cùng 404 generic.
-- [ ] DELETE idempotent 204; revoke current family được phép.
-- [ ] Revoke một family chặn access JWT + refresh của family đó, không ảnh hưởng device khác.
-- [ ] Redis down → 503/fail-closed, không success giả; retry sau recovery an toàn.
-- [ ] Không tự áp hard cap session ngoài quyết định IAM-002.
+- [x] Response có current/timestamps/device label/IP masked; `sessionId` là public family id; không row `sid`/hash/token/raw user-agent.
+- [x] Chỉ list subject hiện tại cho Passenger/Owner/Employee/Platform.
+- [x] DELETE ownership check trong query; family subject khác và id giả cùng 404 generic.
+- [x] DELETE idempotent 204; revoke current family được phép.
+- [x] Revoke một family chặn access JWT + refresh của family đó, không ảnh hưởng device khác.
+- [x] Redis down → 503/fail-closed, không success giả; retry sau recovery an toàn.
+- [x] Không tự áp hard cap session ngoài quyết định IAM-002.
 
 ## PHẦN F — Contract, leak scan & regression
 
-- [ ] OpenAPI có đủ route, Bearer security, requestBody/response/RFC7807 error.
-- [ ] Generated TS + Dart client khớp spec, không drift.
-- [ ] Log Pino/Mongo audit/Sentry/Redis/DB/response không lộ temp password, change token, refresh hash, MFA data.
-- [ ] IAM-001 namespace/OTP/OAuth regression xanh.
-- [ ] IAM-002 rotation/reuse/logout/re-auth regression xanh.
-- [ ] IAM-003 permission/TenantGuard/RLS regression xanh bằng role app.
-- [ ] IAM-004 MFA challenge/TOTP/backup/re-auth regression xanh.
+- [x] OpenAPI có đủ route, Bearer security, requestBody/response/RFC7807 error.
+- [x] Generated TS + Dart client chứa contract mới; TS/OpenAPI regen không có semantic diff, Dart 150/150 test pass.
+- [x] Log Pino/Mongo audit/Sentry/Redis/DB/response không lộ temp password, change token, refresh hash, MFA data.
+- [x] IAM-001 namespace/OTP/OAuth regression xanh.
+- [x] IAM-002 rotation/reuse/logout/re-auth regression xanh.
+- [x] IAM-003 permission/TenantGuard/RLS regression xanh bằng role app.
+- [x] IAM-004 MFA challenge/TOTP/backup/re-auth regression xanh.
 
 ## PHẦN G — Static, review, smoke & CI
 
-- [ ] Unit + integration/Supertest test happy/negative/race/IDOR/fail-closed.
-- [x] `REQUIRE_DB_TESTS=1`; Postgres/Redis/Mongo thật, 386/386 pass, không skip im lặng.
-- [x] `pnpm gen:api-client` pass; 47 Dart generated lib files khớp generator v7.25.0 byte-for-byte (không gồm `.g.dart`), `dart test` 148/148.
-- [x] `pnpm turbo run typecheck lint test build` xanh 35/35.
+- [x] Unit + integration/Supertest test happy/negative/race/IDOR/fail-closed.
+- [x] `REQUIRE_DB_TESTS=1`; PostgreSQL/Redis/Mongo thật, 48/48 file và 433/433 test pass, không skip im lặng.
+- [x] `pnpm gen:api-client` pass; TS/OpenAPI không semantic diff; `dart test` 150/150, analyzer 0 error/7 warning generator.
+- [x] `pnpm turbo run typecheck lint build` xanh 26/26.
 - [ ] Guide smoke chạy đủ provisioning/password/employee/session/race/failure.
-- [ ] `code-reviewer` + `security-auditor` không còn finding blocking/high.
-- [ ] AI journal đã ghi cho code sinh/sửa; không commit journal.
+- [x] `code-reviewer` + `security-auditor` hậu kiểm sau fix không còn finding blocking/high/medium.
+- [x] AI journal đã ghi cho code sinh/sửa; không commit journal.
 - [ ] CI branch xanh do Khanh xác nhận.
 - [ ] Chỉ sau toàn bộ gate mới cập nhật task row/PROJECT-STATE; không đổi status Approved của SDLC.
 
@@ -92,13 +92,13 @@
 | --- | --- | --- |
 | `.1` Quyết định | Q1–Q8 chốt + contract/defer ghi rõ | [x] |
 | `.2` Schema | Migration/invariant/RLS/index chạy DB thật | [ ] |
-| `.3` Temp credential | Delivery + force-change one-time/fail-closed | [ ] |
-| `.4` Owner provision | Platform-only, atomic, conflict/race safe | [ ] |
-| `.5` Employee API | RBAC + tenant filter + RLS + revoke-all | [ ] |
+| `.3` Temp credential | Delivery + force-change one-time/fail-closed | [x] |
+| `.4` Owner provision | Platform-only, atomic, conflict/race safe | [x] |
+| `.5` Employee API | RBAC + tenant filter + RLS + revoke-all | [x] |
 | `.6` Session API | Family grouping + ownership + idempotent revoke | [x] |
-| `.7` Security | Re-auth + audit + notification, không leak | [ ] |
+| `.7` Security | Re-auth + audit + notification, không leak | [x] |
 | `.8` Contract | OpenAPI + TS/Dart clients không drift | [x] |
-| `.9` Test | Full regression + hạ tầng thật + mutation evidence | [ ] |
+| `.9` Test | Full regression + hạ tầng thật + mutation evidence | [x] |
 | `.10` Đóng task | review + smoke + CI + state update đúng gate | [ ] |
 
 ## PHẦN I — Ranh giới không chặn nghiệm thu nếu Q8 giữ khuyến nghị

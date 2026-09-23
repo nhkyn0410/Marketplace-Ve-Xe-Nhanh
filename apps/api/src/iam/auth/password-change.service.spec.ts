@@ -32,7 +32,8 @@ function setup() {
     authEpoch: 0,
     credentialDeliveryPending: false,
     passwordChangeRequired: true,
-    temporaryPasswordExpiresAt: new Date(Date.now() + 60_000)
+    temporaryPasswordExpiresAt: new Date(Date.now() + 60_000),
+    operator: { status: "ACTIVE" }
   };
   const tx = {
     operatorAccount: {
@@ -138,6 +139,7 @@ describe("PasswordChangeService", () => {
         operatorId: "operator-1",
         authEpoch: 0,
         status: "ACTIVE",
+        operator: { status: "ACTIVE" },
         credentialDeliveryPending: false,
         passwordHash: "temporary-password-hash",
         passwordChangeRequired: true
@@ -166,6 +168,36 @@ describe("PasswordChangeService", () => {
         {}
       )
     ).rejects.toMatchObject({ status: 401 });
+    expect(ctx.tx.operatorAccount.updateMany).toHaveBeenCalledTimes(1);
+  });
+
+  it("hai consume đồng thời chỉ cho phép đúng một lần đổi mật khẩu", async () => {
+    const challenge = await ctx.service.begin({
+      subjectType: SubjectType.OPERATOR,
+      subjectId: "owner-1",
+      operatorId: "operator-1",
+      authEpoch: 0
+    });
+
+    const results = await Promise.allSettled([
+      ctx.service.changeRequiredPassword(
+        challenge.passwordChangeToken,
+        "a-new-password-that-is-long",
+        {}
+      ),
+      ctx.service.changeRequiredPassword(
+        challenge.passwordChangeToken,
+        "a-different-password-that-is-long",
+        {}
+      )
+    ]);
+
+    expect(results.filter((result) => result.status === "fulfilled")).toHaveLength(1);
+    const rejected = results.find((result) => result.status === "rejected");
+    expect(rejected).toMatchObject({
+      status: "rejected",
+      reason: expect.objectContaining({ status: 401 })
+    });
     expect(ctx.tx.operatorAccount.updateMany).toHaveBeenCalledTimes(1);
   });
 
@@ -255,9 +287,30 @@ describe("PasswordChangeService", () => {
       where: expect.objectContaining({
         status: "ACTIVE",
         authEpoch: 0,
+        operator: { status: "ACTIVE" },
         credentialDeliveryPending: false
       })
     }));
+  });
+
+  it("tenant bị đình chỉ sau khi cấp challenge thì không được đổi mật khẩu", async () => {
+    const challenge = await ctx.service.begin({
+      subjectType: SubjectType.OPERATOR,
+      subjectId: "owner-1",
+      operatorId: "operator-1",
+      authEpoch: 0
+    });
+    ctx.tx.operatorAccount.findFirst.mockResolvedValue({
+      ...ctx.account,
+      operator: { status: "SUSPENDED" }
+    });
+
+    expect(await problemOf(ctx.service.changeRequiredPassword(
+      challenge.passwordChangeToken,
+      "a-new-password-that-is-long",
+      {}
+    ))).toEqual({ status: 401, code: "AUTH_PASSWORD_CHANGE_TOKEN_INVALID" });
+    expect(ctx.tx.operatorAccount.updateMany).not.toHaveBeenCalled();
   });
 
   it("tài khoản đang chờ gửi mật khẩu không được dùng challenge", async () => {
