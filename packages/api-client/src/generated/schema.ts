@@ -534,6 +534,7 @@ export interface components {
                 role: "DRIVER" | "TICKET_STAFF" | "SUPPORT_STAFF";
                 /** @enum {string} */
                 status: "ACTIVE" | "LOCKED" | "DISABLED";
+                credentialDeliveryPending: boolean;
                 /** Format: date-time */
                 createdAt: string;
                 /** Format: date-time */
@@ -558,6 +559,7 @@ export interface components {
             role: "DRIVER" | "TICKET_STAFF" | "SUPPORT_STAFF";
             /** @enum {string} */
             status: "ACTIVE" | "LOCKED" | "DISABLED";
+            credentialDeliveryPending: boolean;
             /** Format: date-time */
             createdAt: string;
             /** Format: date-time */
@@ -1421,7 +1423,16 @@ export interface operations {
                     "application/problem+json": components["schemas"]["ProblemDetailsDto"];
                 };
             };
-            /** @description Không gửi được mật khẩu tạm hoặc audit không khả dụng. */
+            /** @description Vượt giới hạn email mật khẩu tạm. */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Gửi mật khẩu tạm lỗi: detail chứa employeeId để list/reset lại; hoặc audit không khả dụng. */
             503: {
                 headers: {
                     [name: string]: unknown;
@@ -1556,6 +1567,15 @@ export interface operations {
             };
             /** @description Trạng thái tài khoản xung đột. */
             409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Vượt giới hạn email mật khẩu tạm hoặc cooldown reset. */
+            429: {
                 headers: {
                     [name: string]: unknown;
                 };

@@ -42,6 +42,7 @@ type EmployeeRow = {
   contactEmail: string | null;
   role: "DRIVER" | "TICKET_STAFF" | "SUPPORT_STAFF";
   status: "ACTIVE" | "LOCKED" | "DISABLED";
+  credentialDeliveryPending: boolean;
   version: number;
   createdAt: Date;
   updatedAt: Date;
@@ -212,6 +213,10 @@ export class EmployeeAccountService {
     }
 
     const reason = requireAccountReason(input.reason);
+    const usernameChanged = input.username !== undefined && input.username.trim() !== current.username;
+    const contactEmailChanged =
+      input.contactEmail !== undefined &&
+      input.contactEmail.trim().toLowerCase() !== current.contactEmail;
     const data = {
       ...(input.username !== undefined ? { username: input.username.trim() } : {}),
       ...(input.contactEmail !== undefined
@@ -219,6 +224,18 @@ export class EmployeeAccountService {
         : {}),
       ...(input.role !== undefined ? { role: input.role } : {}),
       ...(input.status !== undefined ? { status: input.status } : {}),
+      // A contact change must never leave the credential delivered to the old mailbox usable.
+      // Block login until the owner explicitly performs password-reset to the new address.
+      ...(contactEmailChanged
+        ? {
+            credentialDeliveryPending: true,
+            passwordChangeRequired: true,
+            // Existing DB invariant requires an expiry whenever change is required. Use an
+            // already-expired marker: pending blocks login until password-reset delivers a
+            // fresh credential and real expiry to the new mailbox.
+            temporaryPasswordExpiresAt: new Date(0),
+          }
+        : {}),
     };
     await this.audit.recordAuditEvent({
       actorId: actor.sub,
@@ -234,7 +251,11 @@ export class EmployeeAccountService {
 
     // Gọi cả trước và sau update để đóng race login trong lúc đổi role/khóa.
     const mustRevoke =
-      input.role !== undefined || input.status === "LOCKED" || input.status === "DISABLED";
+      usernameChanged ||
+      contactEmailChanged ||
+      input.role !== undefined ||
+      input.status === "LOCKED" ||
+      input.status === "DISABLED";
     if (mustRevoke) {
       await this.sessions.revokeAllForSubject(
         SubjectType.EMPLOYEE,
@@ -468,6 +489,7 @@ const EMPLOYEE_PUBLIC_SELECT = {
   contactEmail: true,
   role: true,
   status: true,
+  credentialDeliveryPending: true,
   version: true,
   createdAt: true,
   updatedAt: true,
@@ -480,6 +502,7 @@ function toResponse(row: EmployeeRow): EmployeeAccountResponse {
     contactEmail: row.contactEmail,
     role: row.role,
     status: row.status,
+    credentialDeliveryPending: row.credentialDeliveryPending,
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
   };
@@ -491,6 +514,7 @@ function publicAudit(row: EmployeeRow): Record<string, unknown> {
     contactEmail: row.contactEmail ? maskEmail(row.contactEmail) : null,
     role: row.role,
     status: row.status,
+    credentialDeliveryPending: row.credentialDeliveryPending,
   };
 }
 

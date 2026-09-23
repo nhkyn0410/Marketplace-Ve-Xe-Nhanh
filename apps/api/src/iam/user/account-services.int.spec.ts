@@ -184,4 +184,31 @@ describe.skipIf(!url && !requireDb)("IAM-005 account services — Postgres thậ
     expect(recovered.credentialDeliveryPending).toBe(false);
     expect(recovered.authEpoch).toBe(1);
   });
+
+  it("contact-email change satisfies DB invariants and invalidates the previous credential", async () => {
+    const created = await employees.create(owner, tenantAuthz, {
+      username: `email-change-${tag}`,
+      contactEmail: "old-address@example.com",
+      role: "DRIVER",
+      reason: "New driver",
+    });
+
+    const changed = await employees.update(owner, tenantAuthz, created.id, {
+      contactEmail: "new-address@example.com",
+      reason: "Correct delivery address",
+    });
+
+    expect(changed).toMatchObject({
+      contactEmail: "new-address@example.com",
+      credentialDeliveryPending: true,
+    });
+    const stored = await prisma.withSystem((tx) =>
+      tx.employeeAccount.findUniqueOrThrow({ where: { id: created.id } }),
+    );
+    expect(stored.authEpoch).toBe(1);
+    expect(stored.passwordChangeRequired).toBe(true);
+    expect(stored.credentialDeliveryPending).toBe(true);
+    expect(stored.temporaryPasswordExpiresAt).toEqual(new Date(0));
+    expect(sessions.revokeAllForSubject).toHaveBeenCalled();
+  });
 });

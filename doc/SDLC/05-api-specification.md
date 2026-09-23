@@ -185,7 +185,7 @@ Operator/Employee login bằng mật khẩu tạm còn hạn trả `passwordChan
 | GET/POST/PUT | `/operator/trips`           | Operator | Quản lý trip                      |
 | GET          | `/operator/bookings`        | Operator | Xem booking/ticket thuộc Operator |
 | GET/POST | `/operator/employees`       | Operator Owner | List/tạo Employee trong tenant; create gửi mật khẩu tạm qua email |
-| PATCH | `/operator/employees/{employeeId}` | Operator Owner | Đổi username/contactEmail/role/status; reason + recent re-auth bắt buộc |
+| PATCH | `/operator/employees/{employeeId}` | Operator Owner | Đổi username/contactEmail/role/status; reason + recent re-auth bắt buộc. Response có `credentialDeliveryPending`; đổi email revoke phiên và cần password-reset tới email mới trước khi login lại |
 | POST | `/operator/employees/{employeeId}/password-reset` | Operator Owner | Cấp mật khẩu tạm mới và revoke-all; reason + recent re-auth bắt buộc |
 
 `POST /operator/employees` và password-reset áp giới hạn email mật khẩu tạm: 30/24h toàn hệ thống, 10/24h/tenant, 5/24h/actor, cùng Employee reset tối đa một lần/giờ. Vượt ngưỡng trả 429 `ACCOUNT_TEMP_EMAIL_RATE_LIMITED`; Redis lỗi thì fail-closed 503. Reset giữ nguyên `status` kỷ luật. Khi create đã ghi DB nhưng delivery lỗi, 503 `detail` chứa `employeeId`; Owner dùng `GET /operator/employees` và password-reset để phục hồi, không create lại. Các thao tác nhạy cảm giữ Q8 recent re-auth bằng mật khẩu hoặc MFA, chưa bắt buộc TOTP riêng.

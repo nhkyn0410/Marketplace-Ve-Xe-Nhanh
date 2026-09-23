@@ -32,6 +32,11 @@ void main() {
       // TODO
     });
 
+    // bool credentialDeliveryPending
+    test('to test the property `credentialDeliveryPending`', () async {
+      // TODO
+    });
+
     // DateTime createdAt
     test('to test the property `createdAt`', () async {
       // TODO

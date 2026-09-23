@@ -55,6 +55,7 @@ describe("Employee account routes — HTTP authorization", () => {
       contactEmail: "driver@example.com",
       role: "DRIVER",
       status: "ACTIVE",
+      credentialDeliveryPending: false,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };

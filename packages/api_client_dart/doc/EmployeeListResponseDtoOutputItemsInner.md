@@ -13,6 +13,7 @@ Name | Type | Description | Notes
 **contactEmail** | **String** |  | 
 **role** | **String** |  | 
 **status** | **String** |  | 
+**credentialDeliveryPending** | **bool** |  | 
 **createdAt** | [**DateTime**](DateTime.md) |  | 
 **updatedAt** | [**DateTime**](DateTime.md) |  | 
 

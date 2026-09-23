@@ -30,6 +30,7 @@ function row(
     contactEmail: string | null;
     role: "DRIVER" | "TICKET_STAFF" | "SUPPORT_STAFF";
     status: "ACTIVE" | "LOCKED" | "DISABLED";
+    credentialDeliveryPending: boolean;
     version: number;
     updatedAt: Date;
   }> = {},
@@ -41,6 +42,7 @@ function row(
     contactEmail: overrides.contactEmail === undefined ? "driver@example.com" : overrides.contactEmail,
     role: overrides.role ?? ("DRIVER" as const),
     status: overrides.status ?? ("ACTIVE" as const),
+    credentialDeliveryPending: overrides.credentialDeliveryPending ?? false,
     version: overrides.version ?? 0,
     createdAt: new Date("2026-09-22T00:00:00.000Z"),
     updatedAt: overrides.updatedAt ?? new Date("2026-09-22T00:00:00.000Z"),
@@ -86,8 +88,8 @@ function setup() {
 describe("EmployeeAccountService", () => {
   it("creates delivery-pending, delivers once, clears pending flag, and never leaks password", async () => {
     const ctx = setup();
-    const pending = row();
-    const active = row({ version: 1 });
+    const pending = row({ credentialDeliveryPending: true });
+    const active = row({ version: 1, credentialDeliveryPending: false });
     ctx.employeeAccount.create.mockResolvedValue(pending);
     ctx.employeeAccount.updateManyAndReturn.mockResolvedValue([active]);
 
@@ -116,7 +118,11 @@ describe("EmployeeAccountService", () => {
     }));
     const secret = ctx.email.sendTemporaryPassword.mock.calls[0][0].temporaryPassword as string;
     expect(secret).toHaveLength(32);
-    expect(result).toMatchObject({ username: "driver01", status: "ACTIVE" });
+    expect(result).toMatchObject({
+      username: "driver01",
+      status: "ACTIVE",
+      credentialDeliveryPending: false,
+    });
     expect(JSON.stringify(result)).not.toContain(secret);
     expect(JSON.stringify(ctx.audit.recordAuditEvent.mock.calls)).not.toContain(secret);
   });
@@ -203,7 +209,7 @@ describe("EmployeeAccountService", () => {
   it("preserves disciplinary LOCKED during reset and clears only delivery flag", async () => {
     const ctx = setup();
     const current = row({ status: "LOCKED" });
-    const pending = row({ status: "LOCKED", version: 1 });
+    const pending = row({ status: "LOCKED", credentialDeliveryPending: true, version: 1 });
     ctx.employeeAccount.findFirst.mockResolvedValue(current);
     ctx.employeeAccount.updateManyAndReturn.mockResolvedValue([pending]);
     ctx.employeeAccount.updateMany.mockResolvedValue({ count: 1 });
@@ -286,6 +292,59 @@ describe("EmployeeAccountService", () => {
       expect.objectContaining({
         where: expect.objectContaining({ version: 0 }),
         data: expect.objectContaining({ authEpoch: { increment: 1 }, version: { increment: 1 } }),
+      }),
+    );
+    expect(ctx.sessions.revokeAllForSubject).toHaveBeenCalledTimes(2);
+  });
+
+  it("contact-email change invalidates old challenges and blocks login until reset to the new address", async () => {
+    const ctx = setup();
+    const current = row();
+    ctx.employeeAccount.findFirst.mockResolvedValue(current);
+    ctx.employeeAccount.updateManyAndReturn.mockResolvedValue([
+      row({ contactEmail: "new@example.com", credentialDeliveryPending: true, version: 1 }),
+    ]);
+
+    const result = await ctx.service.update(actor, authz, current.id, {
+      contactEmail: "NEW@EXAMPLE.COM",
+      reason: "Sửa địa chỉ nhận thông tin đăng nhập",
+    });
+
+    expect(ctx.employeeAccount.updateManyAndReturn).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          contactEmail: "new@example.com",
+          credentialDeliveryPending: true,
+          passwordChangeRequired: true,
+          temporaryPasswordExpiresAt: new Date(0),
+          authEpoch: { increment: 1 },
+          version: { increment: 1 },
+        }),
+      }),
+    );
+    expect(ctx.sessions.revokeAllForSubject).toHaveBeenCalledTimes(2);
+    expect(result.credentialDeliveryPending).toBe(true);
+  });
+
+  it("username change invalidates an already issued password-change challenge", async () => {
+    const ctx = setup();
+    const current = row();
+    ctx.employeeAccount.findFirst.mockResolvedValue(current);
+    ctx.employeeAccount.updateManyAndReturn.mockResolvedValue([
+      row({ username: "driver-renamed", version: 1 }),
+    ]);
+
+    await ctx.service.update(actor, authz, current.id, {
+      username: "driver-renamed",
+      reason: "Đổi tên đăng nhập",
+    });
+
+    expect(ctx.employeeAccount.updateManyAndReturn).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          username: "driver-renamed",
+          authEpoch: { increment: 1 },
+        }),
       }),
     );
     expect(ctx.sessions.revokeAllForSubject).toHaveBeenCalledTimes(2);

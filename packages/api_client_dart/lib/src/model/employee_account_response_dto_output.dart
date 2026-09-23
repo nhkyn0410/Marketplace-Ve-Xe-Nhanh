@@ -17,6 +17,7 @@ part 'employee_account_response_dto_output.g.dart';
 /// * [contactEmail] 
 /// * [role] 
 /// * [status] 
+/// * [credentialDeliveryPending] 
 /// * [createdAt] 
 /// * [updatedAt] 
 @BuiltValue()
@@ -37,6 +38,9 @@ abstract class EmployeeAccountResponseDtoOutput implements Built<EmployeeAccount
   @BuiltValueField(wireName: r'status')
   EmployeeAccountResponseDtoOutputStatusEnum get status;
   // enum statusEnum {  ACTIVE,  LOCKED,  DISABLED,  };
+
+  @BuiltValueField(wireName: r'credentialDeliveryPending')
+  bool get credentialDeliveryPending;
 
   @BuiltValueField(wireName: r'createdAt')
   DateTime get createdAt;
@@ -91,6 +95,11 @@ class _$EmployeeAccountResponseDtoOutputSerializer implements PrimitiveSerialize
     yield serializers.serialize(
       object.status,
       specifiedType: const FullType(EmployeeAccountResponseDtoOutputStatusEnum),
+    );
+    yield r'credentialDeliveryPending';
+    yield serializers.serialize(
+      object.credentialDeliveryPending,
+      specifiedType: const FullType(bool),
     );
     yield r'createdAt';
     yield serializers.serialize(
@@ -160,6 +169,13 @@ class _$EmployeeAccountResponseDtoOutputSerializer implements PrimitiveSerialize
             specifiedType: const FullType(EmployeeAccountResponseDtoOutputStatusEnum),
           ) as EmployeeAccountResponseDtoOutputStatusEnum;
           result.status = valueDes;
+          break;
+        case r'credentialDeliveryPending':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(bool),
+          ) as bool;
+          result.credentialDeliveryPending = valueDes;
           break;
         case r'createdAt':
           final valueDes = serializers.deserialize(

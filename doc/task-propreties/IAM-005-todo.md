@@ -51,6 +51,7 @@
 ### Hardening được Khanh xác nhận ngày 23/09/2026
 
 - Challenge đổi mật khẩu gắn `authEpoch`; reset/retry làm challenge cấp trước vô hiệu. Lệnh ghi kiểm lại epoch, trạng thái `ACTIVE` và cờ delivery.
+- Đổi username/contact email cũng tăng `authEpoch` và revoke phiên; đổi email chuyển account sang `credentialDeliveryPending` cho tới khi Owner reset và giao credential mới đến địa chỉ mới.
 - Temp-credential email giới hạn Redis nguyên tử: toàn hệ thống 30/24h, mỗi tenant 10/24h, mỗi actor 5/24h; reset cùng Employee cách ít nhất 1 giờ. Redis lỗi thì từ chối gửi (fail-closed). Các ngưỡng này áp dụng riêng cho mật khẩu tạm, không thay giới hạn OTP Passenger.
 - `version` nguyên tăng dần làm optimistic concurrency; `updatedAt` chỉ dùng hiển thị/audit. Mỗi request Operator/Employee vẫn kiểm tài khoản bằng một transaction DB để chặn token cũ khi khóa/reset; chi phí DB này được chấp nhận cho v1 và cần đo tải về sau.
 
@@ -72,7 +73,7 @@
 | --- | --- | --- |
 | `GET` | `/operator/employees` | `employee:manage`, tenant từ JWT/RLS |
 | `POST` | `/operator/employees` | Tạo Employee + temp password delivery |
-| `PATCH` | `/operator/employees/{employeeId}` | Đổi role/status, reason + recent re-auth |
+| `PATCH` | `/operator/employees/{employeeId}` | Đổi username/email/role/status, reason + recent re-auth; response có delivery pending |
 | `POST` | `/operator/employees/{employeeId}/password-reset` | Server sinh temp password mới, revoke-all, delivery một lần |
 
 ### Error tối thiểu

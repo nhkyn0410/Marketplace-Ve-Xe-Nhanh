@@ -1030,8 +1030,18 @@
               }
             }
           },
+          "429": {
+            "description": "Vượt giới hạn email mật khẩu tạm.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
           "503": {
-            "description": "Không gửi được mật khẩu tạm hoặc audit không khả dụng.",
+            "description": "Gửi mật khẩu tạm lỗi: detail chứa employeeId để list/reset lại; hoặc audit không khả dụng.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -1214,6 +1224,16 @@
           },
           "409": {
             "description": "Trạng thái tài khoản xung đột.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Vượt giới hạn email mật khẩu tạm hoặc cooldown reset.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -1945,6 +1965,9 @@
                     "DISABLED"
                   ]
                 },
+                "credentialDeliveryPending": {
+                  "type": "boolean"
+                },
                 "createdAt": {
                   "type": "string",
                   "format": "date-time",
@@ -1962,6 +1985,7 @@
                 "contactEmail",
                 "role",
                 "status",
+                "credentialDeliveryPending",
                 "createdAt",
                 "updatedAt"
               ],
@@ -2061,6 +2085,9 @@
               "DISABLED"
             ]
           },
+          "credentialDeliveryPending": {
+            "type": "boolean"
+          },
           "createdAt": {
             "type": "string",
             "format": "date-time",
@@ -2078,6 +2105,7 @@
           "contactEmail",
           "role",
           "status",
+          "credentialDeliveryPending",
           "createdAt",
           "updatedAt"
         ],

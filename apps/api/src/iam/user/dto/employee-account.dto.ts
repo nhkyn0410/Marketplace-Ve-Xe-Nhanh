@@ -55,6 +55,7 @@ export const EmployeeAccountResponseSchema = z.object({
   contactEmail: z.email().nullable(),
   role: EmployeeRoleSchema,
   status: AccountStatusSchema,
+  credentialDeliveryPending: z.boolean(),
   createdAt: z.iso.datetime(),
   updatedAt: z.iso.datetime(),
 });

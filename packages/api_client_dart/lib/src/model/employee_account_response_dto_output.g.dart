@@ -158,6 +158,8 @@ class _$EmployeeAccountResponseDtoOutput
   @override
   final EmployeeAccountResponseDtoOutputStatusEnum status;
   @override
+  final bool credentialDeliveryPending;
+  @override
   final DateTime createdAt;
   @override
   final DateTime updatedAt;
@@ -172,6 +174,7 @@ class _$EmployeeAccountResponseDtoOutput
       this.contactEmail,
       required this.role,
       required this.status,
+      required this.credentialDeliveryPending,
       required this.createdAt,
       required this.updatedAt})
       : super._();
@@ -193,6 +196,7 @@ class _$EmployeeAccountResponseDtoOutput
         contactEmail == other.contactEmail &&
         role == other.role &&
         status == other.status &&
+        credentialDeliveryPending == other.credentialDeliveryPending &&
         createdAt == other.createdAt &&
         updatedAt == other.updatedAt;
   }
@@ -205,6 +209,7 @@ class _$EmployeeAccountResponseDtoOutput
     _$hash = $jc(_$hash, contactEmail.hashCode);
     _$hash = $jc(_$hash, role.hashCode);
     _$hash = $jc(_$hash, status.hashCode);
+    _$hash = $jc(_$hash, credentialDeliveryPending.hashCode);
     _$hash = $jc(_$hash, createdAt.hashCode);
     _$hash = $jc(_$hash, updatedAt.hashCode);
     _$hash = $jf(_$hash);
@@ -219,6 +224,7 @@ class _$EmployeeAccountResponseDtoOutput
           ..add('contactEmail', contactEmail)
           ..add('role', role)
           ..add('status', status)
+          ..add('credentialDeliveryPending', credentialDeliveryPending)
           ..add('createdAt', createdAt)
           ..add('updatedAt', updatedAt))
         .toString();
@@ -253,6 +259,11 @@ class EmployeeAccountResponseDtoOutputBuilder
   set status(EmployeeAccountResponseDtoOutputStatusEnum? status) =>
       _$this._status = status;
 
+  bool? _credentialDeliveryPending;
+  bool? get credentialDeliveryPending => _$this._credentialDeliveryPending;
+  set credentialDeliveryPending(bool? credentialDeliveryPending) =>
+      _$this._credentialDeliveryPending = credentialDeliveryPending;
+
   DateTime? _createdAt;
   DateTime? get createdAt => _$this._createdAt;
   set createdAt(DateTime? createdAt) => _$this._createdAt = createdAt;
@@ -273,6 +284,7 @@ class EmployeeAccountResponseDtoOutputBuilder
       _contactEmail = $v.contactEmail;
       _role = $v.role;
       _status = $v.status;
+      _credentialDeliveryPending = $v.credentialDeliveryPending;
       _createdAt = $v.createdAt;
       _updatedAt = $v.updatedAt;
       _$v = null;
@@ -305,6 +317,10 @@ class EmployeeAccountResponseDtoOutputBuilder
               role, r'EmployeeAccountResponseDtoOutput', 'role'),
           status: BuiltValueNullFieldError.checkNotNull(
               status, r'EmployeeAccountResponseDtoOutput', 'status'),
+          credentialDeliveryPending: BuiltValueNullFieldError.checkNotNull(
+              credentialDeliveryPending,
+              r'EmployeeAccountResponseDtoOutput',
+              'credentialDeliveryPending'),
           createdAt: BuiltValueNullFieldError.checkNotNull(
               createdAt, r'EmployeeAccountResponseDtoOutput', 'createdAt'),
           updatedAt: BuiltValueNullFieldError.checkNotNull(
