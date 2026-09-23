@@ -2,7 +2,7 @@
 
 Live state of the managed marketplace project `Marketplace-Ve-Xe-Nhanh` (codename renamed 25/05/2026 from `Ve_Xe_Nhanh_NestJS_NextJs_ReactNative`). Agents must consult this file before writing or editing any SDLC document. Update this file after every documentation change that affects status, decisions or blockers.
 
-Last updated: 12/09/2026.
+Last updated: 23/09/2026.
 
 ## 1. SDLC document status
 
@@ -16,7 +16,7 @@ Last updated: 12/09/2026.
 | 03   | LLD - Low Level Design                    | `SDLC/03-lld-he-thong-dat-ve-xe-khach.md`  | Approved | AI Agent                 |
 | 04   | Database Design                           | `SDLC/04-database-design.md`               | Approved | AI Agent                 |
 | 05   | API Specification                         | `SDLC/05-api-specification.md`             | Approved | AI Agent                 |
-| 06   | UI / UX Flow Specification                | `SDLC/06-ui-ux-flow-specification.md`      | Approved | AI Agent                 |
+| 06   | UI / UX Flow Specification                | `SDLC/06-ui-ux-flow-specification.md`      | Review   | AI Agent                 |
 | 07   | Security & Permission Design              | `SDLC/07-security-permission-design.md`    | Approved | AI Agent                 |
 | 08   | Test Plan & Acceptance Criteria           | `SDLC/08-test-plan-acceptance-criteria.md` | Draft    | AI Agent                 |
 | 09   | Deployment & Operation Standard           | `SDLC/09-deployment-operation-standard.md` | Approved | AI Agent                 |
