@@ -13,7 +13,7 @@
 | Người viết    | Nguyễn Hồng Khanh, AI Agent |
 | Người duyệt   | Nguyễn Hồng Khanh           |
 | Ngày tạo      | 11/05/2026                  |
-| Ngày cập nhật | 17/09/2026                  |
+| Ngày cập nhật | 23/09/2026                  |
 
 ### 1.2. Lịch sử thay đổi
 
@@ -26,6 +26,8 @@
 | v0.5      | 09/09/2026 | AI Agent       | Thêm **`TASK-FND-009`** — setup 2 app Flutter (`apps/passenger_mobile` + `apps/employee_mobile`, `packages/mobile_shared/`, Dart client `packages/api_client_dart/` sinh bằng `openapi-generator` pin `v7.25.0`), dependency `TASK-FND-008`. Sửa `TASK-OPS-001`: "EAS mobile" → build mobile Flutter (Android local; iOS tuỳ chọn khi có macOS) — vết Expo còn sót sau cascade v0.4.                                                                                                                                         |
 | v0.6      | 17/09/2026 | AI Agent       | Thêm **`TASK-FND-010`** — nền FE web (Tailwind 4 + token VXN + Shadcn/ui + khung layout 3 app), dependency `TASK-FND-001`. Khanh chốt Shadcn/ui cho cả 3 app web (ADR-013). |
 | v0.7      | 17/09/2026 | AI Agent       | Rà FE cũ phát hiện 4 nhóm yêu cầu SRS chưa có task chứa → thêm **`TASK-MKT-001`** (profile công khai Operator, FR-MKT-06 + FR-NSR-15), **`TASK-MKT-002`** (hồ sơ hành khách + hành khách thường dùng, FR-IAM-11 + FR-MKT-13), **`TASK-PROM-001`** (promotion, FR-PROM-01..07 + FR-ADM-12), **`TASK-ADM-003`** (kiểm duyệt nội dung, FR-ADM-13). Thu hẹp nguồn `TASK-ADM-002` `FR-ADM-10..17` → `FR-ADM-10..11, 14..17` để FR-ADM-12/13 chỉ thuộc một task. `TASK-FND-010`: layout Marketplace đổi header → sidebar. |
+| v0.8      | 21/09/2026 | AI Agent       | Cập nhật `TASK-IAM-004` → **Done** sau khi Khanh xác nhận CI branch xanh; không thay đổi trạng thái Approved của tài liệu.                                                                                                                                                                                                                                                                                                                                                                                                   |
+| v0.9      | 23/09/2026 | AI Agent       | Sửa `TASK-DOC-006` về Ready (chờ Khanh): tài liệu 08 vẫn Draft, 09 Approved. `TASK-DOC-008` chỉ yêu cầu tạo tài liệu 12 nên giữ Done. Giảm nhiễu căn lề bảng. |
 
 ---
 
@@ -103,14 +105,14 @@ Sau Sprint 5 rework + Sprint 4 Phase 4 DevOps, các doc thiết kế đã reset 
 
 | Task ID      | Task                                                    | Nguồn           | Owner              | Dependency    | Status            |
 | ------------ | ------------------------------------------------------- | --------------- | ------------------ | ------------- | ----------------- |
-| TASK-DOC-001 | Review + promote 02 HLD (Review/Approved)               | 02 HLD          | Reviewer           | Rework DONE   | Ready (chờ Khanh) |
-| TASK-DOC-002 | Review + promote 04 DB                                  | 04 DB           | Reviewer/BE        | Rework DONE   | Ready (chờ Khanh) |
-| TASK-DOC-003 | Review + promote 03 LLD                                 | 03 LLD          | Reviewer/Architect | Rework DONE   | Ready (chờ Khanh) |
-| TASK-DOC-004 | Review + promote 05 API                                 | 05 API          | Reviewer/BE        | Rework DONE   | Ready (chờ Khanh) |
-| TASK-DOC-005 | Review + promote 07 Security                            | 07 Security     | Reviewer/Security  | Rework DONE   | Ready (chờ Khanh) |
+| TASK-DOC-001 | Review + promote 02 HLD (Review/Approved)               | 02 HLD          | Reviewer           | Rework DONE   | Done              |
+| TASK-DOC-002 | Review + promote 04 DB                                  | 04 DB           | Reviewer/BE        | Rework DONE   | Done              |
+| TASK-DOC-003 | Review + promote 03 LLD                                 | 03 LLD          | Reviewer/Architect | Rework DONE   | Done              |
+| TASK-DOC-004 | Review + promote 05 API                                 | 05 API          | Reviewer/BE        | Rework DONE   | Done              |
+| TASK-DOC-005 | Review + promote 07 Security                            | 07 Security     | Reviewer/Security  | Rework DONE   | Done              |
 | TASK-DOC-006 | Review + promote 08 Test + 09 Deploy                    | 08 Test, 09 Ops | Reviewer/QA/DevOps | Rework DONE   | Ready (chờ Khanh) |
-| TASK-DOC-007 | Hoàn thiện 06 UI/UX flow (User/Operator/Employee/Admin) | 06 UI/UX        | FE/Mobile/Reviewer | TASK-DOC-001  | Draft             |
-| TASK-DOC-008 | Tạo 12 Release Notes & Change Log (khi vào code)        | —               | Reviewer           | Code v1 start | Draft             |
+| TASK-DOC-007 | Hoàn thiện 06 UI/UX flow (User/Operator/Employee/Admin) | 06 UI/UX        | FE/Mobile/Reviewer | TASK-DOC-001  | Done              |
+| TASK-DOC-008 | Tạo 12 Release Notes & Change Log (khi vào code)        | —               | Reviewer           | Code v1 start | Done              |
 
 ---
 
@@ -135,11 +137,11 @@ Sau Sprint 5 rework + Sprint 4 Phase 4 DevOps, các doc thiết kế đã reset 
 
 | Task ID      | Task                                                                                                                   | Nguồn                  | Owner        | Dependency   | Status   |
 | ------------ | ---------------------------------------------------------------------------------------------------------------------- | ---------------------- | ------------ | ------------ | -------- |
-| TASK-IAM-001 | Better Auth + custom NestJS adapter; login 3-namespace (Email/OTP/OAuth + `{slug}/{username}` + `platform/{username}`) | FR-IAM-\*, ADR-017/020 | BE/FE/Mobile | TASK-FND-006 | **Done** |
-| TASK-IAM-002 | Hybrid token (JWT RS256 15min + opaque refresh 30d rotation/family) + `auth_sessions` + Redis cache                    | ADR-017                | BE           | TASK-IAM-001 | Draft    |
-| TASK-IAM-003 | RBAC 8-role + TenantGuard (JWT claims) + Postgres RLS                                                                  | FR-IAM-06, ADR-011/017 | BE           | TASK-IAM-002 | Draft    |
-| TASK-IAM-004 | MFA TOTP (mandatory Owner/PlatformAdmin/PlatformSupport) + backup code                                                 | ADR-017                | BE           | TASK-IAM-002 | Draft    |
-| TASK-IAM-005 | Closed enrollment provisioning (Platform cấp Operator+Owner; Owner cấp employee) + **FR-IAM-15** (xem danh sách phiên + thu hồi theo thiết bị) — chuyển từ IAM-002 theo quyết định Q4 ngày 16/09/2026; API §7.1 chưa có endpoint nên cần Khanh duyệt trước khi thêm | ADR-017, FR-IAM-15     | BE/FE        | TASK-IAM-003 | Draft    |
+| TASK-IAM-001 | Better Auth + custom NestJS adapter; login 3-namespace (Email/OTP/OAuth + `{slug}/{username}` + `platform/{username}`) | FR-IAM-\*, ADR-017/020 | BE/FE/Mobile | TASK-FND-006 | Done     |
+| TASK-IAM-002 | Hybrid token (JWT RS256 15min + opaque refresh 30d rotation/family) + `auth_sessions` + Redis cache                    | ADR-017                | BE           | TASK-IAM-001 | Done     |
+| TASK-IAM-003 | RBAC 8-role + TenantGuard (JWT claims) + Postgres RLS                                                                  | FR-IAM-06, ADR-011/017 | BE           | TASK-IAM-002 | Done     |
+| TASK-IAM-004 | MFA TOTP (mandatory Owner/PlatformAdmin/PlatformSupport) + backup code                                                 | ADR-017                | BE           | TASK-IAM-002 | Done     |
+| TASK-IAM-005 | Closed enrollment provisioning (Platform cấp Operator+Owner; Owner cấp employee) + **FR-IAM-15** (xem danh sách phiên + thu hồi theo thiết bị) — Q1–Q8 được Khanh duyệt ngày 22/09/2026; backend/OpenAPI/client và hardening local đã xong, chờ smoke/CI | ADR-017, FR-IAM-15     | BE/FE        | TASK-IAM-003 | Draft  |
 
 ### 7.3. Transport resource
 
