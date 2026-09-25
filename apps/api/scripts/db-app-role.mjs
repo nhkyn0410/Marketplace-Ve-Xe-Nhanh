@@ -14,7 +14,6 @@
 //
 // Dùng:
 // - Provision: pnpm --filter @vexenhanh/api db:app-role
-// - Cleanup role pooler tạo nhầm bởi bản script cũ: pnpm --filter @vexenhanh/api db:app-role:cleanup
 import { createHash, createHmac, pbkdf2Sync, randomBytes } from "node:crypto";
 import { existsSync } from "node:fs";
 import { createRequire } from "node:module";
@@ -24,7 +23,6 @@ import { fileURLToPath } from "node:url";
 const require = createRequire(import.meta.url);
 const { Client } = require("pg");
 const apiRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const CLEANUP_FLAG = "--cleanup-legacy-pooler-role";
 const SUPABASE_POOLER_HOST_SUFFIX = ".pooler.supabase.com";
 const SUPABASE_PROJECT_REF_PATTERN = /^[a-z0-9]{20}$/;
 const POOLER_AUTH_RETRY_DELAYS_MS = [0, 1_000, 2_000, 4_000, 8_000];
@@ -303,87 +301,6 @@ export async function provisionAppRole(client, { appRole, appPassword, ownerRole
   }
 }
 
-export async function cleanupLegacyPoolerRole(client, { appIdentity, database, schema }) {
-  const candidate = appIdentity.connectionRole;
-  const expectedCandidate = appIdentity.projectRef
-    ? `${appIdentity.sqlRole}.${appIdentity.projectRef}`
-    : undefined;
-  if (!appIdentity.isSupabasePooler || !expectedCandidate || candidate !== expectedCandidate) {
-    throw new Error("Cleanup chỉ áp dụng cho role định tuyến suy ra từ Supabase pooler URL hiện tại.");
-  }
-
-  const { rows } = await client.query(
-    `select r.rolsuper, r.rolbypassrls, r.rolcreaterole, r.rolcreatedb, r.rolreplication,
-            r.rolconfig,
-            r.rolname = current_user as is_current,
-            exists (
-              select 1 from pg_auth_members m where m.member = r.oid
-            ) as is_member_of_other_role,
-            exists (
-              select 1
-                from pg_auth_members m
-                join pg_roles member_role on member_role.oid = m.member
-               where m.roleid = r.oid
-                 and member_role.rolname <> current_user
-            ) as has_unexpected_members,
-            exists (
-              select 1
-                from pg_shdepend d
-               where d.refclassid = 'pg_authid'::regclass
-                 and d.refobjid = r.oid
-                 and d.deptype = 'o'
-            ) as owns_objects
-       from pg_roles r
-      where r.rolname = $1`,
-    [candidate]
-  );
-  const [state] = rows;
-  if (!state) {
-    return { status: "absent", role: candidate };
-  }
-
-  const problems = [
-    state.is_current && "đang là current_user",
-    state.rolsuper && "SUPERUSER",
-    state.rolbypassrls && "BYPASSRLS",
-    state.rolcreaterole && "CREATEROLE",
-    state.rolcreatedb && "CREATEDB",
-    state.rolreplication && "REPLICATION",
-    state.rolconfig && "có tham số mặc định",
-    state.is_member_of_other_role && "là thành viên của role khác",
-    state.has_unexpected_members && "có member không phải current_user",
-    state.owns_objects && "đang sở hữu object"
-  ].filter(Boolean);
-  if (problems.length > 0) {
-    throw new Error(`Từ chối cleanup role "${candidate}": ${problems.join(", ")}.`);
-  }
-
-  const role = client.escapeIdentifier(candidate);
-  const db = client.escapeIdentifier(database);
-  const ns = client.escapeIdentifier(schema);
-  const statements = [
-    `REVOKE CONNECT ON DATABASE ${db} FROM ${role}`,
-    `REVOKE USAGE ON SCHEMA ${ns} FROM ${role}`,
-    `REVOKE SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA ${ns} FROM ${role}`,
-    `REVOKE USAGE, SELECT ON ALL SEQUENCES IN SCHEMA ${ns} FROM ${role}`,
-    // Không dùng DROP OWNED/REASSIGN OWNED: DROP ROLE phải tự từ chối nếu còn dependency ngoài dự kiến.
-    `DROP ROLE ${role}`
-  ];
-
-  await client.query("BEGIN");
-  try {
-    for (const sql of statements) {
-      await client.query(sql);
-    }
-    await client.query("COMMIT");
-  } catch (error) {
-    await client.query("ROLLBACK");
-    throw error;
-  }
-
-  return { status: "removed", role: candidate };
-}
-
 function isTransientPoolerAuthError(error) {
   if (!(error instanceof Error)) return false;
   const code = "code" in error ? String(error.code) : "";
@@ -446,7 +363,6 @@ export async function verifyAppConnection({
 export async function runAppRole({
   ownerUrl,
   appUrl,
-  cleanupRequested = false,
   createClient = (connectionString) => new Client({ connectionString }),
   sleep
 }) {
@@ -467,9 +383,6 @@ export async function runAppRole({
     schema === (ownerUrl.searchParams.get("schema") || "public");
   if (!sameTarget) {
     throw new Error("DATABASE_URL và MIGRATION_DATABASE_URL phải cùng host, port, database và schema.");
-  }
-  if (cleanupRequested && !appIdentity.isSupabasePooler) {
-    throw new Error("Cleanup role pooler yêu cầu DATABASE_URL và MIGRATION_DATABASE_URL dạng Supabase pooler.");
   }
 
   const client = createClient(ownerUrl.toString());
@@ -496,40 +409,20 @@ export async function runAppRole({
         "đăng nhập thành công, không có thuộc tính/ownership trực tiếp vượt RLS, " +
         "quyền bảng được giới hạn theo allowlist CRUD."
     );
-
-    if (cleanupRequested) {
-      const result = await cleanupLegacyPoolerRole(client, { appIdentity, database, schema });
-      if (result.status === "removed") {
-        console.log(`Đã thu hồi quyền và xoá role pooler tạo nhầm "${result.role}".`);
-      } else {
-        console.log(`Không có role pooler tạo nhầm "${result.role}" — không cần cleanup.`);
-      }
-    } else if (appIdentity.isSupabasePooler) {
-      const { rowCount } = await client.query("select 1 from pg_roles where rolname = $1", [
-        appIdentity.connectionRole
-      ]);
-      if (rowCount > 0) {
-        console.warn(
-          `Phát hiện role pooler tạo nhầm "${appIdentity.connectionRole}". ` +
-            "Sau khi kiểm tra role app hoạt động, chạy `pnpm --filter @vexenhanh/api db:app-role:cleanup`."
-        );
-      }
-    }
   } finally {
     await client.end();
   }
 }
 
 export async function main(argv = process.argv.slice(2)) {
-  const unexpectedArgs = argv.filter((arg) => arg !== CLEANUP_FLAG);
-  if (unexpectedArgs.length > 0) {
-    throw new Error(`Tham số không hỗ trợ: ${unexpectedArgs.join(", ")}`);
+  if (argv.length > 0) {
+    throw new Error(`Tham số không hỗ trợ: ${argv.join(", ")}`);
   }
 
   loadEnv();
   const ownerUrl = requireUrl("MIGRATION_DATABASE_URL");
   const appUrl = requireUrl("DATABASE_URL");
-  await runAppRole({ ownerUrl, appUrl, cleanupRequested: argv.includes(CLEANUP_FLAG) });
+  await runAppRole({ ownerUrl, appUrl });
 }
 
 const invokedPath = process.argv[1] ? resolve(process.argv[1]) : undefined;
