@@ -3,8 +3,10 @@
 > Mục tiêu: chứng minh chỉ actor có thẩm quyền mới cấp/quản lý account nội bộ, tenant không thể vượt biên và mỗi actor tự xem/thu hồi đúng device family của mình.
 > Chạy theo thứ tự **A → G**; chỉ tick `[x]` khi có evidence. Lệnh: `IAM-005-guide.md`. Phạm vi/sub-task: `IAM-005-todo.md`.
 
-## Snapshot trạng thái (24/09/2026)
+## Snapshot trạng thái (25/09/2026)
 
+- [x] **TASK-IAM-005 hoàn tất 25/09/2026**: Khanh xác nhận CI 5/5 job xanh (CI `Verify monorepo`, Contract `Dart client khớp OpenAPI`, DB integration `Postgres + Redis + Mongo thật`, Mobile `Verify Flutter apps` + `Verify mobile_shared`); PR #10 đã merge vào `develop`; task row §7.2 chuyển `Done`.
+- [x] Rollout production 24/09/2026: preflight slug trên Supabase (có đặt `app.scope`) trả 0 Owner, 0 lệch → `prisma:migrate:deploy` áp 2 migration IAM-005, `migrate status` up to date → `db:app-role` pass → Render deploy live, kiểm tra RLS lúc khởi động qua, `GET /v1/health` 200. Chưa có smoke nghiệp vụ trên production (Supabase chưa có Owner; provisioning là primitive cho OPR-001).
 - [x] Đã đối chiếu SDLC/code và tạo bộ ba todo/guide/checklist.
 - [x] Q1–Q8 được Khanh chốt theo khuyến nghị ngày 22/09/2026; task đã qua design gate và đang triển khai.
 - [x] Local evidence 24/09/2026: migration 7/7 trên PostgreSQL 16 test riêng; chạy lại `prisma:migrate:deploy` báo không còn migration và `db:app-role` idempotent/RLS-safe. `REQUIRE_DB_TESTS=1` với role app + Redis 7 + Mongo 7: 48/48 file, 433/433 test pass, 0 skip; gồm race thật cho provision/create, password-change với PostgreSQL+Redis, limiter Lua với Redis concurrent và HTTP route mới. `pnpm turbo run typecheck lint build`: 26/26 task pass; API lint/typecheck/build được chạy lại sau fix cuối. `pnpm gen:api-client` pass và TS/OpenAPI không có semantic diff; Dart 150/150 pass, analyzer không có error nhưng còn 7 warning từ generator. Hậu kiểm code/security không còn finding blocking/high/medium. Smoke local §4–§8 và Owner MFA đã chạy lại ngày 24/09/2026; chưa có CI branch hoặc smoke production.
@@ -83,8 +85,8 @@
 - [x] Guide smoke §4–§8 chạy local 24/09/2026: 10 suite integration/HTTP/race với PostgreSQL/Redis/Mongo thật, role app, `REQUIRE_DB_TESTS=1` — 63/63 test pass; kèm Owner login → MFA enrollment → token → session list HTTP smoke.
 - [x] `code-reviewer` + `security-auditor` hậu kiểm sau fix không còn finding blocking/high/medium.
 - [x] AI journal đã ghi cho code sinh/sửa; không commit journal.
-- [ ] CI branch xanh do Khanh xác nhận (GitHub Actions API hiện trả 0 workflow runs cho `TASK-IAM-005`; chưa đủ bằng chứng để tick).
-- [ ] Chỉ sau toàn bộ gate mới cập nhật task row/PROJECT-STATE; không đổi status Approved của SDLC.
+- [x] CI branch xanh — Khanh xác nhận ngày 25/09/2026: 5/5 job pass.
+- [x] Sau toàn bộ gate đã cập nhật task row/PROJECT-STATE; không thay đổi trạng thái Approved của tài liệu SDLC.
 
 ## PHẦN H — DoD theo sub-task
 
@@ -99,7 +101,7 @@
 | `.7` Security | Re-auth + audit + notification, không leak | [x] |
 | `.8` Contract | OpenAPI + TS/Dart clients không drift | [x] |
 | `.9` Test | Full regression + hạ tầng thật + mutation evidence | [x] |
-| `.10` Đóng task | review + smoke + CI + state update đúng gate | [ ] |
+| `.10` Đóng task | review + smoke + CI + state update đúng gate | [x] |
 
 ## PHẦN I — Ranh giới không chặn nghiệm thu nếu Q8 giữ khuyến nghị
 
