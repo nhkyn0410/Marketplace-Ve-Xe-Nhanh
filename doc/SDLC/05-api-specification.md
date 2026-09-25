@@ -13,7 +13,7 @@
 | Người viết    | Nguyễn Hồng Khanh, AI Agent |
 | Người duyệt   | Nguyễn Hồng Khanh           |
 | Ngày tạo      | 11/05/2026                  |
-| Ngày cập nhật | 23/09/2026                  |
+| Ngày cập nhật | 26/09/2026                  |
 
 ### 1.2. Lịch sử thay đổi
 
@@ -24,6 +24,10 @@
 | v0.3      | 19/09/2026 | AI Agent       | **§7.1 làm rõ khi hiện thực TASK-IAM-004 (MFA)**: `/auth/operator/login` + `/auth/platform/login` với role bắt buộc TOTP (Owner/PlatformAdmin/PlatformSupport) trả **challenge** (`mfaRequired: true`, `challengeToken`, `challengeExpiresIn: 300`, `otpAuthUri` chỉ ở lần enrollment đầu) thay vì token; `/auth/mfa/verify` được xác thực bằng `challengeToken` (không phải Bearer) và là endpoint duy nhất cấp token cho các role đó; `/auth/re-auth` nhận đúng một trong `password` / `otp` / `mfaCode`. Không thêm endpoint. Hợp đồng chi tiết = OpenAPI sinh từ Zod (ADR-012). |
 | v0.4      | 22/09/2026 | AI Agent       | **TASK-IAM-005 Q1–Q8 do Khanh duyệt:** §7.1 bổ sung first-login password-change challenge và session family list/revoke; §7.3 chốt Employee CRUD/lifecycle tối thiểu. Provision Operator+Owner là service primitive cho OPR-001, chưa có HTTP KYC giả. OpenAPI sinh từ Zod là contract chi tiết. Giữ trạng thái Approved, không tự promote. |
 | v0.5      | 23/09/2026 | AI Agent       | Hardening IAM-005: cờ chờ giao mật khẩu riêng trạng thái khóa, challenge vô hiệu theo `authEpoch`, quota/cooldown email mật khẩu tạm (429), recovery khi gửi mail lỗi. Giữ quyết định Q8 re-auth bằng mật khẩu hoặc MFA theo Khanh; không đổi trạng thái Approved. |
+| v0.6      | 25/09/2026 | AI Agent       | **Đóng TASK-OQ-05 / mở khóa TASK-IAM-006:** chốt dual transport bằng `X-Auth-Transport`; cookie `vxn_access`/`vxn_refresh`; signed double-submit CSRF `vxn_csrf`; CORS credentialed allowlist; thêm `GET /auth/csrf` + `GET /auth/me`. Giữ nguyên JSON/Bearer mặc định cho Mobile; không thay đổi trạng thái Approved. |
+| v0.7      | 25/09/2026 | AI Agent       | **TASK-CAT-001 Q1 do Khanh duyệt:** thêm §7.6 — 5 endpoint đọc catalog công khai `/catalog/*` (provinces, wards, stop-points, vehicle-types, amenities), chỉ item `ACTIVE`. Ghi catalog vẫn ở `/admin/catalog/*` (ADM-001). Giữ trạng thái Approved, không tự promote. |
+| v0.8      | 25/09/2026 | AI Agent       | **TASK-TRN-001 Q1–Q3 do Khanh duyệt:** §7.3 tách route Vehicle/SeatMap có path param (`GET/PUT /{id}`), quyền Owner `vehicle:manage`, lỗi `VEHICLE_PLATE_CONFLICT` / `CATALOG_ITEM_UNAVAILABLE`, SeatMap mẫu dùng chung + tùy chỉnh bằng bản sao. Giữ trạng thái Approved, không tự promote. |
+| v0.9      | 26/09/2026 | AI Agent       | **TASK-TRN-002 Q1–Q8 do Khanh duyệt:** §7.3 thêm route chi tiết `/operator/routes`, `/operator/stop-points`, `/operator/stop-point-proposals` (endpoint đề xuất StopPoint mới), quyền `route:manage`, lỗi Goong 503. Giữ trạng thái Approved, không tự promote. |
 
 ---
 
@@ -58,7 +62,7 @@ Tài liệu tham chiếu: `01-srs`, `02-hld`, `03-lld`, `04-database-design`, `1
 | Base path          | `/v1` (URL versioning; breaking change → `/v2`, ADR-012)                                                                |
 | Spec               | OpenAPI 3.1 auto-gen từ Zod schema (sticky 3.0 v1 cho tới khi tool ecosystem support 3.1, ADR-012)                      |
 | Format             | JSON; error = `application/problem+json` (RFC 7807)                                                                     |
-| Auth               | Web = JWT access trong httpOnly cookie; Mobile = `Authorization: Bearer <jwt>` (token từ `flutter_secure_storage`) (ADR-017/028) |
+| Auth               | Web Operator OS/Admin opt-in `X-Auth-Transport: cookie`; Mobile mặc định/`bearer` giữ JSON + `Authorization: Bearer <jwt>` (ADR-017/028, TASK-IAM-006) |
 | Timezone hiển thị  | `Asia/Ho_Chi_Minh`                                                                                                      |
 | Time lưu trữ       | UTC                                                                                                                     |
 | Currency           | VND (amount = integer đồng)                                                                                             |
@@ -148,6 +152,8 @@ Path dưới đây tương đối với base `/v1`.
 | POST   | `/auth/platform/login`   | Admin, Platform    | Login `platform/{username}` + password; nhận MFA challenge thay vì token |
 | POST   | `/auth/mfa/verify`       | Có `challengeToken` từ login (không Bearer) | Xác thực TOTP / backup code (lần đầu = enrollment) → cấp token |
 | POST   | `/auth/password/change-required` | Có `passwordChangeToken` từ login (không Bearer) | Đổi mật khẩu tạm một lần; token TTL 5 phút; phải login lại trước MFA/token |
+| GET    | `/auth/csrf`             | Web Operator/Admin | Cấp signed double-submit CSRF token; đặt cookie `vxn_csrf`; `no-store` |
+| GET    | `/auth/me`               | Authenticated      | Bootstrap phiên hiện tại từ access cookie hoặc Bearer; không tự refresh, không trả token thô |
 | POST   | `/auth/refresh`          | Authenticated      | Refresh token (rotation + family)         |
 | POST   | `/auth/logout`           | Authenticated      | Logout + revoke session                   |
 | POST   | `/auth/re-auth`          | Authenticated      | Re-auth thao tác nhạy cảm (password / OTP / mã MFA) |
@@ -155,6 +161,30 @@ Path dưới đây tương đối với base `/v1`.
 | DELETE | `/auth/sessions/{sessionId}` | Authenticated   | Revoke đúng family của chính subject, idempotent 204; foreign/missing 404 |
 
 Operator/Employee login bằng mật khẩu tạm còn hạn trả `passwordChangeRequired`, `passwordChangeToken`, `passwordChangeExpiresIn` thay vì access/refresh token hay MFA secret. Khi `credentialDeliveryPending` hoặc `status` không `ACTIVE`, login bị chặn. Challenge cấp trước reset/retry bị vô hiệu bởi `authEpoch`; lệnh đổi mật khẩu kiểm lại epoch và `ACTIVE`. Password change thành công không tự đăng nhập. V1 không hard-cap số phiên.
+
+#### 7.1.1. Dual transport Web / Mobile (TASK-OQ-05 — đóng 25/09/2026)
+
+- Client chọn tường minh bằng `X-Auth-Transport: cookie | bearer`; **không sniff User-Agent**. Thiếu header = `bearer` để giữ tương thích Mobile. Giá trị khác → `400 AUTH_TRANSPORT_INVALID`.
+- Header áp dụng cho login Operator/Platform, MFA verify, đổi mật khẩu bắt buộc, refresh, logout và re-auth. Challenge `passwordChangeToken`/`challengeToken` vẫn ở JSON và web chỉ giữ trong memory; chưa cấp cookie auth trước khi hoàn tất login/MFA.
+- `bearer`: response token giữ nguyên `{accessToken, refreshToken, tokenType, expiresIn, refreshExpiresIn, scope, role}`; không có `Set-Cookie`.
+- `cookie`: response cấp session **không chứa** access/refresh token thô; trả metadata `{authenticated, scope, role, expiresIn, refreshExpiresIn}` và `backupCodes` đúng một lần nếu vừa enrollment MFA. CSRF token mới trả qua header `X-CSRF-Token`.
+- Protected endpoint nhận đúng một credential: `Authorization: Bearer` **hoặc** `vxn_access`. Có cả hai → `400 AUTH_TRANSPORT_AMBIGUOUS`; không có ưu tiên ngầm.
+
+| Cookie        | HttpOnly | Secure                              | SameSite | Path               | Domain    | Max-Age |
+| ------------- | -------- | ----------------------------------- | -------- | ------------------ | --------- | ------- |
+| `vxn_access`  | Có       | Có ở staging/prod; local HTTP = false | `Lax`  | `/v1`              | host-only | 900s    |
+| `vxn_refresh` | Có       | Như trên                            | `Strict` | `/v1/auth/refresh` | host-only | 30 ngày |
+| `vxn_csrf`    | Không    | Như trên                            | `Strict` | `/v1`              | host-only | 30 ngày, rotate |
+
+Gửi cả `Max-Age` và `Expires`; logout/reuse/revoke current family phải xóa bằng đúng attributes. Không đặt `Domain=.vexenhanh.vn`, không chia sẻ auth credential giữa các app web.
+
+#### 7.1.2. CSRF, CORS và bootstrap
+
+- CSRF dùng **signed double-submit cookie**: web gọi `GET /auth/csrf`, nhận cookie `vxn_csrf` và body `{csrfToken}`; giữ token trong memory, gửi `X-CSRF-Token`.
+- Bắt buộc CSRF + `Origin` hợp allowlist cho mọi `POST/PUT/PATCH/DELETE` dùng cookie trong `/v1/**`, gồm login/MFA/password-change/refresh/logout/re-auth/session revoke và mutation nghiệp vụ. `GET/HEAD/OPTIONS` và Bearer mode được miễn; các method an toàn không được tạo side effect.
+- Rotate CSRF khi cấp session, refresh hoặc đổi mật khẩu thành công; clear khi logout/current family bị revoke. Thiếu/sai/cũ → `403 AUTH_CSRF_INVALID`; origin sai/thiếu ở unsafe cookie request → `403 AUTH_ORIGIN_FORBIDDEN`.
+- CORS: `credentials: true`, echo đúng exact origin từ `CORS_ALLOWED_ORIGINS`, `Vary: Origin`, tuyệt đối không `*`; `OPTIONS` không qua auth/CSRF. Cho phép `Content-Type`, `Authorization`, `X-Auth-Transport`, `X-CSRF-Token`, `X-Request-Id`, `Idempotency-Key`; expose `X-CSRF-Token`, `X-Request-Id`, `Deprecation`.
+- `GET /auth/me` trả `subjectId`, `scope`, `role`, `username`, `sessionId`, `accessExpiresAt`, `mfaVerified`; Operator thêm `operatorId`, `operatorSlug`. Response `no-store`, không trả access/refresh token, MFA secret hay backup code và **không tự refresh**. Web nhận 401 thì chạy đúng một refresh single-flight rồi retry `/auth/me`.
 
 ### 7.2. Marketplace
 
@@ -179,14 +209,25 @@ Operator/Employee login bằng mật khẩu tạm còn hạn trả `passwordChan
 | POST         | `/operator/kyc-documents`   | Operator | Upload hồ sơ KYC (presigned R2)   |
 | GET          | `/operator/finance/escrow`  | Operator | Xem escrow balance                |
 | GET          | `/operator/finance/payouts` | Operator | Xem lịch sử payout                |
-| GET/POST/PUT | `/operator/vehicles`        | Operator | Quản lý vehicle                   |
-| GET/POST/PUT | `/operator/seat-maps`       | Operator | Quản lý seat map                  |
-| GET/POST/PUT | `/operator/routes`          | Operator | Quản lý route                     |
+| GET/POST | `/operator/vehicles`        | Operator Owner | List (cursor 20/tối đa 100, lọc `status`) / tạo vehicle |
+| GET/PUT  | `/operator/vehicles/{vehicleId}` | Operator Owner | Xem / thay toàn bộ vehicle; khác tenant → 404 |
+| GET/POST | `/operator/seat-maps`       | Operator Owner | List (không kèm ghế) / tạo seat map do nhà xe tự cấu hình |
+| GET/PUT  | `/operator/seat-maps/{seatMapId}` | Operator Owner | Xem kèm ghế / thay toàn bộ bố cục + ghế; khác tenant → 404 |
+| GET/POST | `/operator/routes`          | Operator Owner | List (cursor 20/tối đa 100, lọc `status`) / tạo route + tính khoảng cách/thời gian qua Goong |
+| GET/PUT  | `/operator/routes/{routeId}` | Operator Owner | Xem kèm điểm dừng / thay toàn bộ route; chỉ tính lại khi chuỗi toạ độ đổi |
+| GET/POST | `/operator/stop-points`     | Operator Owner | List / tạo điểm đón-trả riêng của nhà xe (dùng ngay trong tenant) |
+| GET/PUT  | `/operator/stop-points/{stopPointId}` | Operator Owner | Xem / thay toàn bộ điểm riêng |
+| GET/POST | `/operator/stop-point-proposals` | Operator Owner | List / gửi đề xuất đưa điểm vào catalog chuẩn (`PENDING`) |
+| PUT      | `/operator/stop-point-proposals/{proposalId}` | Operator Owner | Sửa + gửi lại đề xuất đang `REJECTED` (→ `PENDING`); trạng thái khác → 409 |
 | GET/POST/PUT | `/operator/trips`           | Operator | Quản lý trip                      |
 | GET          | `/operator/bookings`        | Operator | Xem booking/ticket thuộc Operator |
 | GET/POST | `/operator/employees`       | Operator Owner | List/tạo Employee trong tenant; create gửi mật khẩu tạm qua email |
 | PATCH | `/operator/employees/{employeeId}` | Operator Owner | Đổi username/contactEmail/role/status; reason + recent re-auth bắt buộc. Response có `credentialDeliveryPending`; đổi email revoke phiên và cần password-reset tới email mới trước khi login lại |
 | POST | `/operator/employees/{employeeId}/password-reset` | Operator Owner | Cấp mật khẩu tạm mới và revoke-all; reason + recent re-auth bắt buộc |
+
+Vehicle/SeatMap (TASK-TRN-001): quyền `vehicle:manage`. POST và PUT (thay toàn bộ) phải gửi đủ trường, thiếu → 400. Biển số chuẩn hóa (chữ hoa, bỏ khoảng trắng/`.`/`-`), trùng trong tenant → 409 `VEHICLE_PLATE_CONFLICT`. Loại xe/tiện ích phải là catalog `ACTIVE`, sai → 422 `CATALOG_ITEM_UNAVAILABLE`. SeatMap là mẫu dùng chung nhiều xe; tùy chỉnh cho một xe = tạo SeatMap mới từ bản sao rồi gắn cho xe đó. Chặn sửa khi đã gắn chuyến thuộc TASK-TRN-003.
+
+Route/StopPoint (TASK-TRN-002): quyền `route:manage` (Owner). Route gồm 2–25 điểm theo thứ tự, mỗi điểm là catalog `ACTIVE` **hoặc** điểm riêng `ACTIVE` của tenant, không lặp; vai trò `ORIGIN`/`INTERMEDIATE`/`DESTINATION` suy từ vị trí. Khoảng cách/thời gian tính lúc tạo/đổi chuỗi toạ độ và lưu DB (ADR-027 cache-once); Goong lỗi → 503 `ROUTING_PROVIDER_UNAVAILABLE`, không lưu gì. Điểm không dùng được / khác tenant → 422 `STOP_POINT_UNAVAILABLE`. Admin duyệt đề xuất ở `/admin/catalog/*` (ADM-001).
 
 `POST /operator/employees` và password-reset áp giới hạn email mật khẩu tạm: 30/24h toàn hệ thống, 10/24h/tenant, 5/24h/actor, cùng Employee reset tối đa một lần/giờ. Vượt ngưỡng trả 429 `ACCOUNT_TEMP_EMAIL_RATE_LIMITED`; Redis lỗi thì fail-closed 503. Reset giữ nguyên `status` kỷ luật. Khi create đã ghi DB nhưng delivery lỗi, 503 `detail` chứa `employeeId`; Owner dùng `GET /operator/employees` và password-reset để phục hồi, không create lại. Các thao tác nhạy cảm giữ Q8 recent re-auth bằng mật khẩu hoặc MFA, chưa bắt buộc TOTP riêng.
 
@@ -220,6 +261,18 @@ Thao tác phức tạp dùng `POST` + sub-resource (ADR-012).
 | POST         | `/admin/payouts/{payoutId}/confirm`         | Admin | Confirm payout + nhập bank ref (ADR-022) |
 | GET/PUT      | `/admin/disputes`                           | Admin | Dispute workflow (final arbiter)         |
 | GET          | `/admin/audit-logs`                         | Admin | Truy xuất audit (Mongo)                  |
+
+### 7.6. Catalog (đọc công khai)
+
+Dữ liệu chuẩn Platform (DB §5.2 nhóm Catalog) cho Marketplace search và Operator OS cấu hình xe/tuyến. Không cần token; chỉ trả item `ACTIVE` và field công khai (Security §6 "Public catalog"). Ghi/vô hiệu hóa catalog vẫn qua `/admin/catalog/*` (§7.5).
+
+| Method | Path                     | Actor                   | Mục đích                                                                                   |
+| ------ | ------------------------ | ----------------------- | ------------------------------------------------------------------------------------------ |
+| GET    | `/catalog/provinces`     | Guest, User, Operator   | Danh sách tỉnh / thành                                                                     |
+| GET    | `/catalog/wards`         | Guest, User, Operator   | Phường / xã của một tỉnh (`provinceId` bắt buộc)                                           |
+| GET    | `/catalog/stop-points`   | Guest, User, Operator   | Điểm đón / trả chuẩn; lọc `provinceId`, `wardId`, `type`; cursor mặc định 20 / tối đa 100 |
+| GET    | `/catalog/vehicle-types` | Guest, User, Operator   | Loại phương tiện chuẩn                                                                     |
+| GET    | `/catalog/amenities`     | Guest, User, Operator   | Tiện ích chuẩn                                                                             |
 
 ---
 
@@ -275,7 +328,7 @@ Transport realtime (Socket.IO / SSE / polling) **chưa thuộc 15-layer selectio
 
 | ID        | Câu hỏi                                              | Tác động           | Trạng thái                                                                                     |
 | --------- | ---------------------------------------------------- | ------------------ | ---------------------------------------------------------------------------------------------- |
-| API-OQ-01 | Auth token lưu/cấp qua Bearer hay cookie cho web?    | FE/API/Security    | **Đóng theo ADR-017**: Web = httpOnly cookie; Mobile = Bearer (token từ `flutter_secure_storage`)     |
+| API-OQ-01 | Auth token lưu/cấp qua Bearer hay cookie cho web?    | FE/API/Security    | **Đóng theo ADR-017 + TASK-OQ-05 (25/09/2026)**: Web Operator/Admin opt-in cookie qua `X-Auth-Transport`; Mobile mặc định giữ JSON/Bearer; contract §7.1.1–§7.1.2 |
 | API-OQ-02 | Guest checkout có nằm trong v1 không?                | Booking API        | **Đóng theo SRS/GLOSSARY**: Guest có guest session cho hold/book/pay/lookup                    |
 | API-OQ-03 | Provider payment đầu tiên là gì?                     | Webhook contract   | **Đóng theo ADR-019**: VNPay (HMAC-SHA512) + MoMo (HMAC-SHA256)                                |
 | API-OQ-04 | Chuẩn pagination dùng page hay cursor cho từng list? | API consistency    | Mở; chốt per-endpoint khi LLD                                                                  |
