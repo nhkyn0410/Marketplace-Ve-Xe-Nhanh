@@ -146,7 +146,7 @@ Lấy task từ **`doc/SDLC/11-project-task-breakdown.md`** theo thứ tự depe
 ### 6.5. Trạng thái hiện tại — Build phase (cập nhật 02/06/2026)
 
 - **Tech roadmap: 19/19 layer CHỐT** (27 ADR, file 10). Stack đầy đủ ở §2 + `AGENTS.md`.
-- **SDLC: 12 doc (00-12) đồng bộ stack** — **11/13 Approved** (00a, SRS, HLD, LLD, DB, API, UI, Security, Deploy, ADR, Task); chỉ **08 Test + 12 Release** còn Draft. Doc nền (HLD/DB/LLD/API/Security) đã Approved → **doc-gate code nền ✓** (chỉ Khanh promote — Status là định danh doc, không dùng số version).
+- **SDLC: 12 doc (00-12) đồng bộ stack** — **10/13 Approved** (00a, SRS, HLD, LLD, DB, API, Security, Deploy, ADR, Task); **06 UI = Review** (23/09/2026 viết lại §6 Passenger theo Figma, mở UX-OQ-06..09); **08 Test + 12 Release** còn Draft. Doc nền (HLD/DB/LLD/API/Security) đã Approved → **doc-gate code nền ✓** (chỉ Khanh promote — Status là định danh doc, không dùng số version).
 - **Coding infra đã cài**: `AGENTS.md` (brief) + `.claude/agents/` (15 subagent) + `.claude/skills/karpathy-guidelines/`.
 - **2 production-blocker** (không chặn MVP/dev): OQ-21 (KYC storage), OQ-22 (TGTT).
 
