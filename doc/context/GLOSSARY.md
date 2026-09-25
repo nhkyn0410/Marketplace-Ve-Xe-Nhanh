@@ -36,7 +36,9 @@ Rules:
 | Seat                   | Ghế / giường               | A seat or berth slot defined within a SeatMap.                                                        |
 | SeatMap                | Sơ đồ ghế                  | Layout describing seats / berths of a Vehicle.                                                        |
 | Route                  | Tuyến đường                | A logical route between two endpoints, composed of ordered RouteStops.                                |
-| StopPoint              | Điểm đón / trả             | A pickup or drop-off location in the platform catalog.                                                |
+| StopPoint              | Điểm đón / trả             | A pickup or drop-off location in the platform catalog, or a private point owned by one Operator.      |
+| StopPointProposal      | Đề xuất điểm đón / trả     | An Operator's request to add a point to the platform catalog; `PENDING` → `APPROVED` / `REJECTED` by Admin. |
+| RouteStop              | Điểm dừng của tuyến        | An ordered stop of a Route (`ORIGIN` / `INTERMEDIATE` / `DESTINATION`) with cached distance/duration from the previous stop. |
 | Trip                   | Chuyến xe                  | A concrete operating instance of a Route on a specific date / time, served by a Vehicle and crew.     |
 | TripStop               | Điểm dừng của chuyến       | An ordered stop within a Trip.                                                                        |
 | TripSeat               | Ghế của chuyến             | A seat allocation for a specific Trip, with its own status lifecycle.                                 |
@@ -92,3 +94,12 @@ Rules:
 | OQ      | Câu hỏi mở          | Open Question. Either still open or marked as decided.                      |
 | MQ      | Câu hỏi marketplace | Marketplace-strategic decision question; subset of OQ but tracked separately.|
 | ADR     | Bản ghi quyết định kiến trúc | Architecture Decision Record.                                       |
+
+## 6. Auth error codes
+
+| Code | Nghĩa | HTTP |
+| ---- | ----- | ---- |
+| `AUTH_TRANSPORT_INVALID` | `X-Auth-Transport` không thuộc `cookie \| bearer`. | 400 |
+| `AUTH_TRANSPORT_AMBIGUOUS` | Request đồng thời mang Bearer và access cookie; hệ thống không chọn ngầm. | 400 |
+| `AUTH_CSRF_INVALID` | CSRF token thiếu, sai chữ ký, không khớp cookie/session hoặc đã rotate. | 403 |
+| `AUTH_ORIGIN_FORBIDDEN` | Unsafe cookie request thiếu `Origin` hoặc origin không thuộc allowlist. | 403 |

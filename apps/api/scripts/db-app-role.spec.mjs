@@ -1,7 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
 import {
-  cleanupLegacyPoolerRole,
   parseDatabaseUrl,
   parseRoleIdentity,
   provisionAppRole,
@@ -18,36 +17,6 @@ function poolerUrl(role, projectRef = PROJECT_REF, port = 5432) {
   return new URL(
     `postgresql://${role}.${projectRef}:test-password-abcdefghijklmnopqrstuvwxyz@aws-1-ap-southeast-1.pooler.supabase.com:${port}/postgres?schema=public&sslmode=verify-full`
   );
-}
-
-function safeCleanupState(overrides = {}) {
-  return {
-    rolsuper: false,
-    rolbypassrls: false,
-    rolcreaterole: false,
-    rolcreatedb: false,
-    rolreplication: false,
-    rolconfig: null,
-    is_current: false,
-    is_member_of_other_role: false,
-    has_unexpected_members: false,
-    owns_objects: false,
-    ...overrides
-  };
-}
-
-function mockCleanupClient(states) {
-  const queue = [...states];
-  return {
-    escapeIdentifier: (value) => `"${value.replaceAll('"', '""')}"`,
-    query: vi.fn(async (sql) => {
-      if (sql.includes("from pg_roles r")) {
-        const state = queue.shift();
-        return { rows: state ? [state] : [] };
-      }
-      return { rows: [] };
-    })
-  };
 }
 
 function safeProvisionState(overrides = {}) {
@@ -215,79 +184,6 @@ describe("db-app-role Supabase pooler identity", () => {
     expect(() => validateRolePasswords(unicodeOwnerUrl, unicodeAppUrl)).toThrow(
       "không được trùng mật khẩu owner"
     );
-  });
-});
-
-describe("db-app-role legacy pooler cleanup", () => {
-  const appIdentity = parseRoleIdentity(poolerUrl("vexenhanh_app"), "DATABASE_URL");
-  const cleanupInput = { appIdentity, database: "postgres", schema: "public" };
-
-  it("is idempotent when the legacy role is absent", async () => {
-    const client = mockCleanupClient([undefined, undefined]);
-
-    await expect(cleanupLegacyPoolerRole(client, cleanupInput)).resolves.toEqual({
-      status: "absent",
-      role: `vexenhanh_app.${PROJECT_REF}`
-    });
-    await expect(cleanupLegacyPoolerRole(client, cleanupInput)).resolves.toMatchObject({ status: "absent" });
-    expect(client.query).toHaveBeenCalledTimes(2);
-  });
-
-  it.each([
-    ["elevated", { rolsuper: true }],
-    ["outgoing membership", { is_member_of_other_role: true }],
-    ["unexpected incoming member", { has_unexpected_members: true }],
-    ["ownership", { owns_objects: true }]
-  ])("refuses cleanup when the legacy role has %s state", async (_label, unsafeState) => {
-    const client = mockCleanupClient([safeCleanupState(unsafeState)]);
-
-    await expect(cleanupLegacyPoolerRole(client, cleanupInput)).rejects.toThrow("Từ chối cleanup");
-    expect(client.query).toHaveBeenCalledTimes(1);
-  });
-
-  it("does not expose role configuration values when cleanup is refused", async () => {
-    const secret = "DO_NOT_LOG_THIS_SECRET";
-    const client = mockCleanupClient([safeCleanupState({ rolconfig: [`app.secret=${secret}`] })]);
-
-    const error = await cleanupLegacyPoolerRole(client, cleanupInput).catch((reason) => reason);
-
-    expect(error).toBeInstanceOf(Error);
-    expect(error.message).toContain("có tham số mặc định");
-    expect(error.message).not.toContain(secret);
-  });
-
-  it("revokes only the known legacy grants and drops the exact derived role", async () => {
-    const client = mockCleanupClient([safeCleanupState()]);
-
-    await expect(cleanupLegacyPoolerRole(client, cleanupInput)).resolves.toEqual({
-      status: "removed",
-      role: `vexenhanh_app.${PROJECT_REF}`
-    });
-
-    const statements = client.query.mock.calls.map(([sql]) => sql);
-    expect(statements).toContain("BEGIN");
-    expect(statements).toContain(`DROP ROLE "vexenhanh_app.${PROJECT_REF}"`);
-    expect(statements.at(-1)).toBe("COMMIT");
-    expect(statements.join("\n")).not.toMatch(/DROP OWNED|REASSIGN OWNED/);
-    expect(statements[0]).toContain("member_role.rolname <> current_user");
-  });
-
-  it("rolls back if PostgreSQL finds an unexpected remaining dependency", async () => {
-    const client = mockCleanupClient([safeCleanupState()]);
-    client.query.mockImplementation(async (sql) => {
-      if (sql.includes("from pg_roles r")) {
-        return { rows: [safeCleanupState()] };
-      }
-      if (sql.startsWith("DROP ROLE")) {
-        throw new Error("dependent objects still exist");
-      }
-      return { rows: [] };
-    });
-
-    await expect(cleanupLegacyPoolerRole(client, cleanupInput)).rejects.toThrow(
-      "dependent objects still exist"
-    );
-    expect(client.query.mock.calls.map(([sql]) => sql).at(-1)).toBe("ROLLBACK");
   });
 });
 
