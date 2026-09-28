@@ -17,15 +17,24 @@ import { EmployeeAccountController } from "../iam/user/employee-account.controll
 import { EmployeeAccountService } from "../iam/user/employee-account.service";
 import { QueueHealthService } from "../queue/queue-health.service";
 import { RedisHealthService } from "../redis/redis-health.service";
+import { CatalogController } from "../catalog/catalog.controller";
+import { CatalogService } from "../catalog/catalog.service";
 
 @Module({
   // Mọi controller IAM phải có mặt ở đây, nếu không route biến mất khỏi OpenAPI
   // và `gen:api-client` sinh client thiếu toàn bộ auth mà CI vẫn xanh (ADR-012).
-  controllers: [AppController, AuthController, SessionController, EmployeeAccountController],
+  controllers: [
+    AppController,
+    AuthController,
+    SessionController,
+    EmployeeAccountController,
+    CatalogController,
+  ],
   providers: [
     { provide: APP_INTERCEPTOR, useClass: ZodSerializerInterceptor },
     // Scan-only: chỉ cần metadata route, không cần dependency thật (không Postgres/Redis/Mongo).
     { provide: AuthService, useValue: {} },
+    { provide: CatalogService, useValue: {} },
     // Dependency của AccessTokenGuard (logout, re-auth) — Nest dựng guard lúc khởi tạo module.
     { provide: TokenService, useValue: {} },
     { provide: SessionService, useValue: {} },
@@ -36,15 +45,36 @@ import { RedisHealthService } from "../redis/redis-health.service";
     { provide: APP_CONFIG, useValue: { NODE_ENV: "test" } },
     {
       provide: DatabaseHealthService,
-      useValue: { check: () => Promise.resolve({ status: "ok", service: "postgres", timestamp: timestamp() }) }
+      useValue: {
+        check: () =>
+          Promise.resolve({
+            status: "ok",
+            service: "postgres",
+            timestamp: timestamp(),
+          }),
+      },
     },
     {
       provide: MongoHealthService,
-      useValue: { check: () => Promise.resolve({ status: "ok", service: "mongo", timestamp: timestamp() }) }
+      useValue: {
+        check: () =>
+          Promise.resolve({
+            status: "ok",
+            service: "mongo",
+            timestamp: timestamp(),
+          }),
+      },
     },
     {
       provide: RedisHealthService,
-      useValue: { check: () => Promise.resolve({ status: "ok", service: "redis", timestamp: timestamp() }) }
+      useValue: {
+        check: () =>
+          Promise.resolve({
+            status: "ok",
+            service: "redis",
+            timestamp: timestamp(),
+          }),
+      },
     },
     {
       provide: QueueHealthService,
@@ -53,11 +83,11 @@ import { RedisHealthService } from "../redis/redis-health.service";
           Promise.resolve({
             status: "ok",
             queues: [{ name: "foundation", counts: {} }],
-            timestamp: timestamp()
-          })
-      }
-    }
-  ]
+            timestamp: timestamp(),
+          }),
+      },
+    },
+  ],
 })
 export class OpenApiModule {}
 
