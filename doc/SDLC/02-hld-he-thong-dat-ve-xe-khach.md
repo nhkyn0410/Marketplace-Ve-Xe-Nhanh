@@ -13,7 +13,7 @@
 | Người viết    | Nguyễn Hồng Khanh, AI Agent                  |
 | Người duyệt   | Nguyễn Hồng Khanh                            |
 | Ngày tạo      | 11/05/2026                                   |
-| Ngày cập nhật | 08/09/2026                                   |
+| Ngày cập nhật | 28/09/2026                                   |
 
 ### 1.2. Lịch sử thay đổi
 
@@ -23,6 +23,7 @@
 | v0.2      | 25/05/2026 | AI Agent       | Align với `context/DOMAIN-MAP`, `context/GLOSSARY`, `context/PROJECT-STATE`; cập nhật module boundary sang target state; đóng HLD-OQ-02..08 theo các OQ đã chốt; bổ sung VNPay Sandbox và Email OTP                                                                                                                                                                                                                                                                                                                                                                                   |
 | v0.3      | 25/05/2026 | AI Agent       | Rebrand sang `Marketplace-Ve-Xe-Nhanh`; gỡ tham chiếu tới 2 context file đã xóa `PROJECT-STRUCTURE.md` và `TECH-STACK.md` ở §4.1. Không thay đổi nội dung normative.                                                                                                                                                                                                                                                                                                                                                                                                                  |
 | v0.4      | 01/06/2026 | AI Agent       | **Sprint 5 Rework** — reset toàn bộ tech stack theo 18 ADR đã chốt (ADR-002, ADR-009..022): Hybrid-A DB (Postgres+Prisma ops / Mongo audit cluster riêng), nestjs-zod, BullMQ, Redis Upstash, Better Auth 3-namespace, Next.js 16 monorepo, Expo 2-app, VNPay+MoMo, Resend+Expo Push+OAuth, Goong, R2, manual payout. Đóng HLD-OQ-09 (R2), HLD-OQ-10 (manual payout); cập nhật HLD-OQ-07 (Mongo cluster riêng). Raise HLD-OQ-11 (realtime transport chưa thuộc 15-layer selection). Reframe §4.3 giả định, §5 kiến trúc, §13 tích hợp ngoài, §14 deployment, §16 quyết định theo ADR. |
+| v0.5      | 28/09/2026 | AI Agent       | Theo ADR-017 amend 28/09 (TASK-IAM-006, Khanh chốt): §6.1 Operator OS chỉ còn actor Operator (Owner) — Employee dùng `employee_mobile`; §8.1 IAM và §11 identity boundary ghi hai cổng đăng nhập Owner/Employee và tiền tố username Employee `nv.`. |
 
 ---
 
@@ -199,7 +200,7 @@ Web = Next.js 16 App Router trong Turborepo monorepo (ADR-013). Định hướng
 | App / vùng dịch vụ | Actor chính        | Render & Vai trò                                                                     |
 | ------------------ | ------------------ | ------------------------------------------------------------------------------------ |
 | Marketplace        | User, Guest        | RSC + SSG/ISR cho SEO; search, trip detail, booking, payment redirect, ticket lookup |
-| Operator OS        | Operator, Employee | CSR sau auth; operator profile, vehicle, route, trip, booking, employee, finance     |
+| Operator OS        | Operator (Owner)   | CSR sau auth; operator profile, vehicle, route, trip, booking, employee, finance. Employee không vào Operator OS — dùng `employee_mobile` (ADR-017 amend 28/09/2026) |
 | Admin              | Admin              | CSR sau auth; KYC, catalog, policy, payment/refund, dispute, report, audit           |
 
 ### 6.2. Mobile app
@@ -257,7 +258,7 @@ Bảng module HLD dưới đây dùng tên **target state** theo `context/DOMAIN
 
 | Module HLD                   | Backend module nhóm (target)                                                                                                                                                                                 | Trách nhiệm chính                                                                                                                               | Actor dùng chính                |
 | ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------- |
-| Identity & Access Management | `iam/auth/`, `iam/user/`, `iam/session/`, `iam/role/`                                                                                                                                                        | Đăng ký, đăng nhập, session, role, permission, account status; 3 namespace identity (Passenger Email / Operator `{slug}/{username}` / Platform) | User, Operator, Employee, Admin |
+| Identity & Access Management | `iam/auth/`, `iam/user/`, `iam/session/`, `iam/role/`                                                                                                                                                        | Đăng ký, đăng nhập, session, role, permission, account status; 3 namespace identity (Passenger Email / Operator `{slug}/{username}` / Platform); Owner và Employee (`nv.`) đăng nhập qua hai cổng riêng | User, Operator, Employee, Admin |
 | Operator Profile & KYC       | `operator/`, `operator-kyc/`                                                                                                                                                                                 | Operator profile, hồ sơ KYC, bank account, status history                                                                                       | Operator, Admin                 |
 | Marketplace Search           | `search/`, `catalog/`                                                                                                                                                                                        | Search chuyến, filter, sort, public trip availability; catalog do Platform quản lý                                                              | User, Guest                     |
 | Transport Resource           | `vehicle/`, `route/`, `stop-point/`                                                                                                                                                                          | Vehicle, VehicleType, SeatMap, Route, RouteStop, StopPoint (Operator-owned phần)                                                                | Operator, Admin                 |
@@ -392,7 +393,7 @@ sequenceDiagram
 
 | Chủ đề                    | Thiết kế mức cao                                                                                                                                                                                                      |
 | ------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Actor & Identity boundary | 3 namespace tách biệt (ADR-017): Passenger = Email (OTP primary); Operator-side = `{operatorSlug}/{username}`; Platform-side = `platform/{username}`. Mỗi `(scope, username)` là account riêng (Account-separate v1). |
+| Actor & Identity boundary | 3 namespace tách biệt (ADR-017): Passenger = Email (OTP primary); Operator-side = `{operatorSlug}/{username}`; Platform-side = `platform/{username}`. Mỗi `(scope, username)` là account riêng (Account-separate v1). Operator-side tách hai cổng đăng nhập (ADR-017 amend 28/09/2026): Owner qua `/auth/operator/login` (web Operator OS), Employee qua `/auth/employee/login` (chỉ app `employee_mobile`, Bearer); username Employee bắt buộc tiền tố `nv.`, Owner cấm `nv.`; sai cổng trả lỗi chung. |
 | Provisioning              | Closed enrollment (ADR-017): Platform admin cấp Operator slug + first Owner sau KYC; Operator owner cấp employee; Passenger self-register Email+OTP.                                                                  |
 | Tenant boundary           | Operator/Employee chỉ truy cập dữ liệu theo `operatorId`; defense-in-depth = NestJS `TenantGuard` (JWT claims) + Postgres RLS `SET LOCAL app.operator_id` (ADR-011, ADR-017).                                         |
 | Admin access              | RBAC 8 role hardcoded enum v1 (Anonymous / Passenger / OperatorOwner / Driver / TicketStaff / SupportStaff / PlatformAdmin / PlatformSupport); thao tác nhạy cảm cần audit + TOTP.                                    |
