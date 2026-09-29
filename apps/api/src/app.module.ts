@@ -9,6 +9,7 @@ import { DatabaseModule } from "./database/database.module";
 import { MongoAuditModule } from "./database/mongo-audit.module";
 import { IamModule } from "./iam/iam.module";
 import { QueueModule } from "./queue/queue.module";
+import { CatalogModule } from "./catalog/catalog.module";
 
 @Module({
   imports: [
@@ -18,9 +19,10 @@ import { QueueModule } from "./queue/queue.module";
     MongoAuditModule,
     AuditModule,
     QueueModule,
-    IamModule
+    IamModule,
+    CatalogModule,
   ],
   controllers: [AppController],
-  providers: [{ provide: APP_INTERCEPTOR, useClass: ZodSerializerInterceptor }]
+  providers: [{ provide: APP_INTERCEPTOR, useClass: ZodSerializerInterceptor }],
 })
 export class AppModule {}

@@ -1,8 +1,18 @@
-import { Inject, Injectable, OnModuleDestroy, OnModuleInit } from "@nestjs/common";
+import {
+  Inject,
+  Injectable,
+  OnModuleDestroy,
+  OnModuleInit,
+} from "@nestjs/common";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { Prisma, PrismaClient } from "../generated/prisma/client";
 import { APP_CONFIG, type AppConfig } from "../config/env.config";
-import { type DbScope, platformScope, systemScope, tenantScope } from "./db-scope";
+import {
+  type DbScope,
+  platformScope,
+  systemScope,
+  tenantScope,
+} from "./db-scope";
 
 export type { DbScope } from "./db-scope";
 
@@ -20,10 +30,19 @@ export const RLS_TABLES = [
   "auth_sessions",
   "mfa_credentials",
   "mfa_backup_codes",
+  // Catalog Platform (TASK-CAT-001): không tenant, nhưng RLS chặn ghi ngoài platform/system.
+  "provinces",
+  "wards",
+  "stop_points_catalog",
+  "vehicle_types",
+  "amenities",
 ] as const;
 
 @Injectable()
-export class PrismaService extends PrismaClient implements OnModuleInit, OnModuleDestroy {
+export class PrismaService
+  extends PrismaClient
+  implements OnModuleInit, OnModuleDestroy
+{
   constructor(@Inject(APP_CONFIG) private readonly config: AppConfig) {
     const connectionString = config.DATABASE_URL;
     if (!connectionString) {
@@ -43,7 +62,9 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
     // chạy "an toàn giả". Ca hay gặp: DATABASE_URL trên Render vẫn là owner (DB-PRIN-01).
     const problems = await this.rlsProblems();
     if (problems.length > 0) {
-      throw new Error(`RLS không có hiệu lực — từ chối khởi động: ${problems.join("; ")}`);
+      throw new Error(
+        `RLS không có hiệu lực — từ chối khởi động: ${problems.join("; ")}`,
+      );
     }
   }
 
@@ -58,7 +79,12 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
   async rlsProblems(): Promise<string[]> {
     const tables = [...RLS_TABLES];
     const [role] = await this.$queryRaw<
-      { user: string; rolsuper: boolean; rolbypassrls: boolean; owns: boolean }[]
+      {
+        user: string;
+        rolsuper: boolean;
+        rolbypassrls: boolean;
+        owns: boolean;
+      }[]
     >`
       SELECT current_user AS "user", r.rolsuper, r.rolbypassrls,
         EXISTS (
@@ -78,10 +104,14 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
     }
     if (role.rolsuper) problems.push(`role "${role.user}" là SUPERUSER`);
     if (role.rolbypassrls) problems.push(`role "${role.user}" có BYPASSRLS`);
-    if (role.owns) problems.push(`role "${role.user}" là owner (hoặc thành viên role owner) của bảng tenant`);
+    if (role.owns)
+      problems.push(
+        `role "${role.user}" là owner (hoặc thành viên role owner) của bảng tenant`,
+      );
     const forcedNames = new Set(forced.map((row) => row.relname));
     const missing = tables.filter((table) => !forcedNames.has(table));
-    if (missing.length > 0) problems.push(`chưa ENABLE+FORCE RLS: ${missing.join(", ")}`);
+    if (missing.length > 0)
+      problems.push(`chưa ENABLE+FORCE RLS: ${missing.join(", ")}`);
     return problems;
   }
 
@@ -96,7 +126,10 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
    * Chi phí: mỗi lần gọi là BEGIN + set_config + query + COMMIT, và chịu giới hạn transaction tương
    * tác của Prisma (chờ ≤2s, chạy ≤5s) — gom query vào một lần gọi thay vì gọi lẻ từng câu.
    */
-  async withScope<T>(scope: DbScope, work: (tx: DbTransaction) => Promise<T>): Promise<T> {
+  async withScope<T>(
+    scope: DbScope,
+    work: (tx: DbTransaction) => Promise<T>,
+  ): Promise<T> {
     const operatorId = scope.kind === "tenant" ? scope.operatorId : "";
     return this.$transaction(async (tx) => {
       await tx.$executeRaw`SELECT set_config('app.scope', ${scope.kind}, true), set_config('app.operator_id', ${operatorId}, true)`;
@@ -104,7 +137,10 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
     });
   }
 
-  async withTenant<T>(operatorId: string, work: (tx: DbTransaction) => Promise<T>): Promise<T> {
+  async withTenant<T>(
+    operatorId: string,
+    work: (tx: DbTransaction) => Promise<T>,
+  ): Promise<T> {
     return this.withScope(tenantScope(operatorId), work);
   }
 
