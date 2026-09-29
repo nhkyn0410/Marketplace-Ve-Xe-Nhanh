@@ -13,7 +13,7 @@
 | Người viết    | Nguyễn Hồng Khanh, AI Agent |
 | Người duyệt   | Nguyễn Hồng Khanh           |
 | Ngày tạo      | 11/05/2026                  |
-| Ngày cập nhật | 26/09/2026                  |
+| Ngày cập nhật | 28/09/2026                  |
 
 ### 1.2. Lịch sử thay đổi
 
@@ -24,6 +24,7 @@
 | v0.3      | 25/05/2026 | AI Agent       | Cập nhật tham chiếu SRS v1.15 → v1.20; cập nhật số mục DOMAIN-MAP sau khi §5 "Refactor radar" được xóa. Không thay đổi nội dung normative.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
 | v0.7      | 19/09/2026 | AI Agent       | **TASK-IAM-004 (MFA TOTP)**: thêm `mfa_credentials` (secret TOTP chỉ lưu AES-256-GCM, `last_totp_counter` chống replay, unique `(subject_type, subject_id)`, CHECK không cho `PASSENGER`) + `mfa_backup_codes` (chỉ hash SHA-256, `used_at` single-use, unique `(credential_id, code_hash)`) — cả hai **RLS chỉ cho ngữ cảnh `system`** (xoá được credential = login sau quay về enrollment chỉ bằng mật khẩu); thêm `auth_sessions.mfa_verified_at` và giá trị `MFA_REQUIRED` cho `SessionRevokeReason`. §5 + §7. |
 | v0.8      | 22/09/2026 | AI Agent       | **TASK-IAM-005 Q3/Q4/Q6/Q8:** `operator_accounts` và `employee_accounts` thêm contact email, cờ đổi mật khẩu lần đầu, hạn mật khẩu tạm và `auth_epoch`; legacy không bị force-change. `auth_sessions.auth_epoch` chụp phiên bản lúc phát, guard so lại trên mỗi request nội bộ để chặn session cũ khi Redis post-revoke lỗi. `operator_login_names` khóa unique `(operator_id, username)` xuyên Owner/Employee, trigger giữ registry và RLS `ENABLE+FORCE`; `operatorSlug` immutable và Owner có compound FK `(operator_id, operator_slug)`. Migration kiểm collision/backfill trước khi thêm constraint. |
+| v0.11     | 28/09/2026 | AI Agent       | **ADR-017 amend / TASK-IAM-006 (Khanh chốt 28/09):** §7 thêm CHECK tiền tố username — Employee bắt buộc `nv.` + `[a-z0-9._-]{2,61}`, Owner cấm `nv.` (không phân biệt hoa/thường); ghi chú migration đổi tên Employee hiện có và ba điều kiện dừng (Owner dùng `nv.`, quá 64 ký tự, trùng sau khi đổi). Registry `operator_login_names` không đổi. |
 | v0.10     | 26/09/2026 | AI Agent       | **TASK-TRN-002** (Khanh duyệt Q1–Q8): thêm `stop_point_proposals`; ràng buộc `stop_points`, `routes`, `route_stops` (nguồn điểm XOR, sequence unique, FK ghép tenant) và RLS đề xuất khoá state machine phía tenant. §5.2 + §7. |
 | v0.9      | 25/09/2026 | AI Agent       | **TASK-CAT-001 + TASK-TRN-001** (Khanh duyệt Q): catalog 5 bảng không `operator_id`, RLS đọc tự do / ghi chỉ platform-system, FK ghép phường–tỉnh; Transport thêm bảng nối `vehicle_amenities`; `vehicles`/`seats` dùng FK ghép `(…, operator_id)` chặn gắn chéo tenant; seat map unique tên trong tenant, ghế unique mã + vị trí. §5.2 + §7. |
 | v0.6      | 18/09/2026 | AI Agent       | **DB-PRIN-01** khớp hiện thực TASK-IAM-003: policy so **text** (id tenant là uuid chuỗi, bản cũ ghi `::bigint` sai kiểu), hàm `app_rls_allows()` đọc GUC `app.scope` (`tenant`/`platform`/`system`, không set → 0 row); app chạy bằng role riêng không superuser/BYPASSRLS, migrate/seed bằng owner qua `MIGRATION_DATABASE_URL`. RLS bật trên `operator_accounts`, `employee_accounts` (tenant đọc/ghi), `auth_sessions` (tenant chỉ đọc, `system` ghi), `operator_profiles` (ai cũng đọc, platform/system ghi); FK account → `operator_profiles` đổi sang RESTRICT. |
@@ -157,8 +158,8 @@ erDiagram
 | Bảng / Collection     | Index / constraint dự kiến                                                           | Mục đích                                         |
 | --------------------- | ------------------------------------------------------------------------------------ | ------------------------------------------------ |
 | `users`               | unique `email`                                                                       | Đăng ký/đăng nhập Passenger                      |
-| `operator_accounts`   | unique `(operator_slug, username)`                                                   | Login Operator-side namespace                    |
-| `employee_accounts`   | unique `(operator_id, username)`                                                     | Employee login trong tenant                      |
+| `operator_accounts`   | unique `(operator_slug, username)`; CHECK `operator_accounts_username_not_employee_prefix`: `lower(username)` không bắt đầu bằng `nv.` | Login Owner (`/auth/operator/login`); Owner không thể mang tiền tố của Employee (v0.11) |
+| `employee_accounts`   | unique `(operator_id, username)`; CHECK `employee_accounts_username_employee_prefix`: `username ~ '^nv\.[a-z0-9._-]{2,61}$'` | Login Employee (`/auth/employee/login`); tiền tố `nv.` + chữ thường, tổng 5–64 ký tự (v0.11) |
 | `operator_login_names` | primary key `(operator_id, username)` xuyên Owner/Employee, unique `(account_type, account_id)`, FORCE RLS | Một username không thể bị Owner/Employee dùng trùng trong cùng tenant; registry do trigger quản lý |
 | `platform_accounts`   | unique `username`                                                                    | Login Platform-side namespace                    |
 | `auth_sessions`       | index `(user_ref, family_id)`, **index `family_id`**, unique `refresh_token_hash`, index `expires_at`, index `operator_id` | Refresh rotation + family invalidation (ADR-017). `family_id` đứng riêng là **bắt buộc**: revoke-family tra theo `family_id` một mình, index composite có `user_ref` đứng đầu không phục vụ được (bổ sung v0.5, TASK-IAM-002) |
@@ -179,6 +180,8 @@ erDiagram
 | `audit_event` (Mongo) | index `(actor_id, created_at)`, `(target_type, target_id)`, time-series `created_at` | Truy xuất audit                                  |
 
 > Mọi bảng Operator-owned (nhóm Transport, Trip, Booking, Payment...) gắn **RLS policy** theo `operator_id` ngoài unique/index trên.
+
+> **Tách login Owner/Employee (ADR-017 amend 28/09/2026, TASK-IAM-006).** Registry `operator_login_names` giữ nguyên nên username vẫn duy nhất xuyên Owner/Employee trong một Operator. Migration thêm hai CHECK trên phải: (1) đổi username Employee hiện có thành `nv.` + `lower(username)` và đồng bộ registry; (2) **dừng cả migration kèm thông báo rõ** nếu có Owner đang dùng tiền tố `nv.` (mọi kiểu hoa/thường), nếu tên sau khi đổi dài quá 64 ký tự, hoặc nếu hai username trùng nhau sau khi đổi trong cùng Operator (vd `Driver01` và `driver01`). Trước khi migrate production: kiểm không có Owner nào dùng `nv.`; nếu đã có Employee thì báo họ username mới.
 
 ---
 

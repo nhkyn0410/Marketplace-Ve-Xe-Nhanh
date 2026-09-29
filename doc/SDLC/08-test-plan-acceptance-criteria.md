@@ -13,7 +13,7 @@
 | Người viết    | Nguyễn Hồng Khanh, AI Agent        |
 | Người duyệt   | Nguyễn Hồng Khanh                |
 | Ngày tạo      | 11/05/2026                       |
-| Ngày cập nhật | 25/09/2026                       |
+| Ngày cập nhật | 28/09/2026                       |
 
 ### 1.2. Lịch sử thay đổi
 
@@ -22,6 +22,7 @@
 | v0.1      | 11/05/2026 | AI Agent       | Tạo bản nháp Test Plan & Acceptance Criteria |
 | v0.2      | 01/06/2026 | AI Agent       | **Sprint 4 Rework** — bake **ADR-025** test framework (Vitest + Supertest + Playwright + Maestro) + stack ADR. §4 strategy map tool cụ thể; §6 môi trường Postgres/Mongo Testcontainers + VNPay/MoMo sandbox; §8/§9 thêm mandatory test money BIGINT/idempotency dedup/tenant RLS/webhook HMAC/OAuth (ADR-009/011/015/017/019). Đóng TEST-OQ-02 (sandbox VNPay+MoMo+Resend+Expo per ADR-019/020); refine TEST-OQ-01. |
 | v0.3      | 25/09/2026 | AI Agent       | **TASK-OQ-05 / TASK-IAM-006:** thêm acceptance + Supertest/Playwright cho dual transport, cookie flags, CSRF/CORS, `/auth/me`, first-login/TOTP, refresh single-flight và hồi quy Mobile JSON/Bearer. Giữ trạng thái Draft. |
+| v0.4      | 28/09/2026 | AI Agent       | **ADR-017 amend / TASK-IAM-006 (Khanh chốt 28/09):** thêm TC-SEC-009..011 cho tách cổng Owner/Employee, cổng Employee chỉ Bearer, CHECK tiền tố `nv.` và migration đổi tên. Giữ trạng thái Draft. |
 
 ---
 
@@ -145,6 +146,9 @@ Mandatory (rủi ro cao, ADR-025): money math, idempotency, tenant RLS, seat-hol
 | TC-SEC-006 | Bearer và access cookie đồng thời bị `AUTH_TRANSPORT_AMBIGUOUS`; transport lạ bị `AUTH_TRANSPORT_INVALID` | Security | Cao |
 | TC-SEC-007 | `/auth/me` không trả secret/không tự refresh; access hết hạn → web refresh single-flight rồi retry | API/E2E Web | Cao |
 | TC-SEC-008 | Playwright Operator: temp password → đổi → login lại → TOTP enrollment → backup code một lần → reload/protected route; Admin password → TOTP → protected route | E2E Web | Rất cao |
+| TC-SEC-009 | Sai cổng Owner/Employee (DB thật): Employee đúng mật khẩu ở `/auth/operator/login` và Owner đúng mật khẩu ở `/auth/employee/login` → `401 AUTH_INVALID_CREDENTIALS`, không tạo `auth_sessions`, không trả MFA/password-change challenge; unit: mỗi cổng chỉ tra đúng bảng account | Security | Rất cao |
+| TC-SEC-010 | `/auth/employee/login` trả token JSON, không `Set-Cookie`; `X-Auth-Transport: cookie` → `400 AUTH_TRANSPORT_INVALID`; `/auth/me` với token Employee đọc đúng Employee | API/Security | Cao |
+| TC-SEC-011 | DB từ chối Employee thiếu `nv.`/có chữ hoa và Owner dùng `nv.` ở mọi kiểu hoa/thường; migration đổi tên Employee cũ (`Driver01` → `nv.driver01`) + đồng bộ registry, dừng khi có Owner `nv.`, tên quá 64 ký tự hoặc trùng sau khi đổi | Integration | Cao |
 | TC-EMP-001 | Employee check-in ticket hợp lệ được phân công (Maestro) | E2E | Cao |
 | TC-EMP-002 | Employee không check-in chuyến ngoài assignment | Security | Cao |
 | TC-ADM-001 | Admin refund/payout thủ công yêu cầu re-auth/TOTP + audit | E2E/Security | Cao |

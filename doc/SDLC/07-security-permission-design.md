@@ -13,7 +13,7 @@
 | Người viết    | Nguyễn Hồng Khanh, AI Agent   |
 | Người duyệt   | Nguyễn Hồng Khanh             |
 | Ngày tạo      | 11/05/2026                    |
-| Ngày cập nhật | 26/09/2026                    |
+| Ngày cập nhật | 28/09/2026                    |
 
 ### 1.2. Lịch sử thay đổi
 
@@ -25,6 +25,7 @@
 | v0.4      | 01/06/2026 | AI Agent       | **Sprint 5 Rework** — bake **ADR-017/019/020 (Khanh re-confirm CRITICAL 01/06/2026)** + ADR-011/018. §5 auth: Better Auth 3-namespace + Hybrid token (JWT 15min + opaque refresh 30d rotation/family) + §5.2 MFA TOTP + §5.3 OAuth Google/FB/Apple PKCE. §6 TenantGuard + Postgres RLS. §8 payout manual confirm + maker-checker (ADR-022). §9 KYC R2 private presigned (ADR-018) + payment PCI SAQ-A (ADR-019) + cross-border PII. §11 webhook HMAC + OAuth/refresh-reuse threat + SQL injection (Prisma). **Đóng SEC-OQ-01/02/04/06** (per ADR-017/018); refine SEC-OQ-05/07; thêm SEC-OQ-08 (OAuth linking). |
 | v0.5      | 25/09/2026 | AI Agent       | **Hiện thực hóa phần Web của ADR-017 qua TASK-OQ-05/TASK-IAM-006:** bỏ defer cookie; chốt cookie host-only, signed double-submit CSRF, strict Origin/CORS allowlist, dual transport tường minh và chống credential ambiguity. Giữ JSON/Bearer cho Mobile; không thay đổi trạng thái Approved. |
 | v0.6      | 26/09/2026 | AI Agent       | §7 thêm dòng Route/StopPoint theo SRS permission matrix (TASK-TRN-002, Khanh duyệt Q6): quyền `route:manage` chỉ Operator Owner trong tenant. Giữ trạng thái Approved, không tự promote. |
+| v0.7      | 28/09/2026 | AI Agent       | **ADR-017 amend / TASK-IAM-006 (Khanh chốt 28/09):** §4/§5 tách cổng đăng nhập Owner và Employee (Employee `nv.`, chỉ Bearer, không cookie session); §11 thêm threat "sai cổng Owner/Employee": trả lỗi chung, không cấp phiên. Kiểm role ở FE Operator OS giữ làm lớp phòng thủ thứ hai. Giữ trạng thái Approved. |
 
 ---
 
@@ -67,7 +68,7 @@ Tài liệu này mô tả thiết kế bảo mật và phân quyền cho hệ th
 
 ## 4. Actor và trust boundary
 
-Identity 3 namespace tách biệt (ADR-017): Passenger=Email; Operator-side=`{slug}/{username}`; Platform-side=`platform/{username}`.
+Identity 3 namespace tách biệt (ADR-017): Passenger=Email; Operator-side=`{slug}/{username}`; Platform-side=`platform/{username}`. Trong Operator-side, Owner và Employee là hai bảng account với hai cổng đăng nhập riêng; Employee (username `nv.…`) chỉ dùng app Nhân viên, không vào Operator OS web (ADR-017 amend 28/09/2026).
 
 | Actor             | Trust level          | Boundary                                        |
 | ----------------- | -------------------- | ----------------------------------------------- |
@@ -87,7 +88,8 @@ Auth library = **Better Auth** + custom NestJS adapter (ADR-017).
 | Actor               | Cơ chế                                                                | Rule                                                                         |
 | ------------------- | --------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
 | Passenger (User)    | Email + OTP (Resend) primary; hoặc OAuth Google/Facebook/Apple (PKCE) | Self-register; reset qua email; account linking email-match                  |
-| Operator / Employee | `{operatorSlug}/{username}` + password; closed enrollment             | Không public/OAuth; Operator quản lý trạng thái + assignment scope           |
+| Operator Owner      | `{operatorSlug}/{username}` + password qua `/auth/operator/login`; closed enrollment | Không public/OAuth; username cấm tiền tố `nv.`; cổng chỉ tra `operator_accounts` |
+| Employee            | `{operatorSlug}/nv.{…}` + password qua `/auth/employee/login`; closed enrollment | Không public/OAuth; chỉ Bearer (app Nhân viên), không bao giờ nhận cookie session; cổng chỉ tra `employee_accounts`; Owner quản lý trạng thái + assignment scope |
 | Admin / Platform    | `platform/{username}` + password; closed enrollment                   | TOTP mandatory; không public/OAuth                                           |
 | Guest               | Guest session, không login                                            | Search/hold/book/pay/lookup; email/OTP verify cho thao tác nhạy cảm + lookup |
 
@@ -209,6 +211,7 @@ AuditLog ghi vào Mongo `audit_event` (cluster RIÊNG, append-only via REVOKE, A
 | CSRF                  | Web cookie dùng signed double-submit `vxn_csrf` + `X-CSRF-Token` và exact `Origin`; rotate theo session/refresh; Mobile Bearer không áp dụng |
 | CORS                  | Credentialed exact-origin allowlist theo môi trường; không wildcard; reject unsafe cookie request thiếu/sai Origin             |
 | Credential confusion  | Bearer và access cookie cùng xuất hiện → `400 AUTH_TRANSPORT_AMBIGUOUS`; không ưu tiên ngầm                                     |
+| Sai cổng Owner/Employee | Mỗi cổng chỉ tra đúng bảng account; Employee ở cổng Owner hoặc Owner ở cổng Employee → `401 AUTH_INVALID_CREDENTIALS`, không tạo session, không trả challenge, không lộ account tồn tại; audit ghi lần thử như account không tồn tại. FE Operator OS vẫn kiểm role sau `/auth/me` làm lớp phòng thủ thứ hai |
 | OAuth abuse           | PKCE + `state` param; verify email ownership chống account-linking takeover (ADR-020)                                          |
 | Refresh token reuse   | Rotation + family invalidation (ADR-017)                                                                                       |
 | Brute force login/OTP | Rate limit, lock tạm, monitoring (SEC-OQ-07)                                                                                   |

@@ -45,7 +45,7 @@ Notes:
 | User (Passenger) | `apps/marketplace` (web) + `apps/passenger_mobile`                     | Search, booking, ticket, profile, review, complaint.               |
 | Guest            | `apps/marketplace` (web) + `apps/passenger_mobile` (guest session)     | Search, hold seat, book, pay, lookup ticket; no long-term history. |
 | Operator         | `apps/operator-os` (web, CSR sau auth)                                 | Operator OS layer entry.                                           |
-| Employee         | `apps/employee_mobile` (mobile) + `apps/operator-os` (web sub-section) | Check-in, manifest, status update, journey log, incident.          |
+| Employee         | `apps/employee_mobile` (mobile only)                                   | Check-in, manifest, status update, journey log, incident. No Operator OS access — login `/auth/employee/login` (ADR-017 amend 28/09/2026). |
 | Admin            | `apps/admin` (web)                                                     | Platform admin layer entry; no mobile app for v1.                  |
 
 > **Folder naming — Flutter apps use `snake_case` (decided 14/09/2026).** `apps/passenger_mobile`,

@@ -13,7 +13,7 @@
 | Người viết    | Nguyễn Hồng Khanh, AI Agent |
 | Người duyệt   | Nguyễn Hồng Khanh           |
 | Ngày tạo      | 11/05/2026                  |
-| Ngày cập nhật | 25/09/2026                  |
+| Ngày cập nhật | 28/09/2026                  |
 
 ### 1.2. Lịch sử thay đổi
 
@@ -37,6 +37,7 @@
 | v0.16     | 25/09/2026 | AI Agent       | `TASK-TRN-001` → **In Progress** sau khi Khanh duyệt Q1–Q4 (API §7.3 route chi tiết, DB §5.2 thêm `vehicle_amenities`). Không thay đổi trạng thái Approved của tài liệu. |
 | v0.17     | 25/09/2026 | AI Agent       | Bắt đầu **`TASK-TRN-002`** theo yêu cầu của Khanh: tạo todo/guide/checklist và chuyển `Draft → In Progress`. Chưa code trước khi chốt Q1–Q7 về StopPoint/proposal, API, RouteStop/state, Goong, permission và phạm vi FE; giữ trạng thái Approved của tài liệu. |
 | v0.18     | 26/09/2026 | AI Agent       | `TASK-TRN-002`: Khanh duyệt Q1–Q8 (thêm Q8 provider ước lượng ở dev); API §7.3, DB §5.2/§7, Security §7, GLOSSARY đồng bộ. Không thay đổi trạng thái Approved của tài liệu. |
+| v0.19     | 28/09/2026 | AI Agent       | **ADR-017 amend (Khanh chốt 28/09):** mở rộng phạm vi `TASK-IAM-006` với tách cổng login Owner/Employee, tiền tố username Employee `nv.` + migration đổi tên; `TASK-EMP-001` ghi màn login dùng `/auth/employee/login`. IAM-006 giữ **Ready**. Không thay đổi trạng thái Approved của tài liệu. |
 
 ---
 
@@ -151,7 +152,7 @@ Sau Sprint 5 rework + Sprint 4 Phase 4 DevOps, các doc thiết kế đã reset 
 | TASK-IAM-003 | RBAC 8-role + TenantGuard (JWT claims) + Postgres RLS                                                                  | FR-IAM-06, ADR-011/017 | BE           | TASK-IAM-002 | Done     |
 | TASK-IAM-004 | MFA TOTP (mandatory Owner/PlatformAdmin/PlatformSupport) + backup code                                                 | ADR-017                | BE           | TASK-IAM-002 | Done     |
 | TASK-IAM-005 | Closed enrollment provisioning (Platform cấp Operator+Owner; Owner cấp employee) + **FR-IAM-15** (xem danh sách phiên + thu hồi theo thiết bị) — Q1–Q8 được Khanh duyệt ngày 22/09/2026; CI 5/5 job xanh, PR #10 merge ngày 25/09/2026 | ADR-017, FR-IAM-15     | BE/FE        | TASK-IAM-003 | Done     |
-| TASK-IAM-006 | **Web auth cho `apps/operator-os` + `apps/admin`**: login đúng namespace; state machine mật khẩu tạm → đổi bắt buộc → login lại → TOTP enrollment/verify + backup code một lần → cookie httpOnly; `GET /auth/csrf` + `/auth/me`; protected route; refresh single-flight; logout/revoke + clear cookie; signed double-submit CSRF; exact CORS allowlist theo contract TASK-OQ-05. Giữ JSON/Bearer cho Mobile. **Không gồm** auth Passenger/Marketplace, Employee mobile, màn nghiệp vụ, provisioning Platform employee, recovery/reset MFA | FR-IAM-02b/02c, FR-IAM-13..16, ADR-017, 05 API §7.1, 06 UI §7/§9, 07 Security §5/§11 | BE/FE/QA | TASK-FND-010, TASK-IAM-004, TASK-IAM-005 | Ready |
+| TASK-IAM-006 | **Web auth cho `apps/operator-os` + `apps/admin`**: login đúng namespace; state machine mật khẩu tạm → đổi bắt buộc → login lại → TOTP enrollment/verify + backup code một lần → cookie httpOnly; `GET /auth/csrf` + `/auth/me`; protected route; refresh single-flight; logout/revoke + clear cookie; signed double-submit CSRF; exact CORS allowlist theo contract TASK-OQ-05. Giữ JSON/Bearer cho Mobile. **Tách cổng Owner/Employee** (ADR-017 amend, Khanh chốt 28/09/2026): `/auth/operator/login` chỉ Owner; thêm `/auth/employee/login` chỉ Employee + chỉ Bearer; sai cổng = `AUTH_INVALID_CREDENTIALS`; username Employee bắt buộc `nv.`, Owner cấm `nv.` (DTO + DB CHECK + migration đổi tên Employee cũ, dừng khi xung đột); seed dev `phuongtrang/nv.driver042`; sinh lại TS/Dart client. **Không gồm** auth Passenger/Marketplace, màn login Employee mobile (→ TASK-EMP-001), màn nghiệp vụ, provisioning Platform employee, recovery/reset MFA | FR-IAM-02b/02c, FR-IAM-13..16, UC-01 A6, ADR-017, 04 DB §7, 05 API §7.1/§7.3, 06 UI §4/§7/§9, 07 Security §5/§11, 08 TC-SEC-009..011 | BE/FE/QA | TASK-FND-010, TASK-IAM-004, TASK-IAM-005 | Ready |
 
 ### 7.3. Transport resource
 
@@ -186,7 +187,7 @@ Bảng xếp theo thứ tự làm. ID cũ giữ nguyên để không vỡ tham c
 | -------------- | -------------------------------------------------------- | ------------------------ | --------- | -------------------------- | ------ |
 | TASK-OPR-001   | Operator onboarding/KYC (R2 private + presigned)/profile | FR-OPR-01..06, ADR-018   | BE/FE     | TASK-IAM-005               | Draft  |
 | TASK-OPR-002   | Operator finance dashboard (escrow/payout view)          | FR-OPR-07..09            | BE/FE     | TASK-BTP-006               | Draft  |
-| TASK-EMP-001   | Employee assignment/passenger list (employee_mobile)     | FR-EMP-01..06, ADR-028   | BE/Mobile | TASK-IAM-005, TASK-TRN-003 | Draft  |
+| TASK-EMP-001   | Employee assignment/passenger list (employee_mobile); màn login gọi `/auth/employee/login` (Bearer, username `nv.`) | FR-EMP-01..06, ADR-028, ADR-017 amend 28/09 | BE/Mobile | TASK-IAM-005, TASK-TRN-003 | Draft  |
 | TASK-EMP-002   | QR check-in + trip status (Maestro test)                 | FR-EMP-07..13            | BE/Mobile | TASK-BTP-004, TASK-EMP-001 | Draft  |
 | TASK-ADM-001   | Admin KYC approve/catalog/policy                         | FR-ADM-02..09            | BE/FE     | TASK-IAM-005               | Draft  |
 | TASK-ADM-002   | Admin payment/refund/payout confirm/dispute/audit        | FR-ADM-10..11, FR-ADM-14..17, FR-DSP-\* | BE/FE     | TASK-BTP-005, TASK-FND-007 | Draft  |

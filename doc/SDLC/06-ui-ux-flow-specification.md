@@ -13,7 +13,7 @@
 | Người viết    | Nguyễn Hồng Khanh, AI Agent |
 | Người duyệt   | Nguyễn Hồng Khanh           |
 | Ngày tạo      | 11/05/2026                  |
-| Ngày cập nhật | 25/09/2026                  |
+| Ngày cập nhật | 28/09/2026                  |
 
 ### 1.2. Lịch sử thay đổi
 
@@ -24,6 +24,7 @@
 | v0.3      | 17/09/2026 | AI Agent       | §3: component lib đã chốt **Shadcn/ui + Tailwind CSS 4** cho cả 3 app web (ADR-013, Khanh chốt). |
 | v0.4      | 23/09/2026 | AI Agent       | **Viết lại §6 Passenger/Guest theo Figma** (section _Giao diện dành cho Khách hàng_, 24 frame): §6.1 danh mục 35 màn `SCR-PSG-NN` (24 Review = có frame; 11 Draft = AI bổ sung); §6.2 luồng; §6.3 mỗi màn 1 bảng 5 trạng thái (Ideal / Empty / Loading / Partial-Edge / Error) đánh dấu Review/Draft; §10.1 thêm quy tắc 5 Key UI States áp cho mọi màn §6–§9; §6.4 8 điểm Figma lệch ADR/SRS (auth mật khẩu, phương thức thanh toán, hold 15', bản đồ OSM, SMS, copy hoàn/đổi vé, loyalty, add-on). §5 IA Passenger theo nav Figma. §11 mở UX-OQ-06..09. Trạng thái doc Approved → **Review** (còn OQ ảnh hưởng code, 00a §3.2). §7–§9 chưa đổi. |
 | v0.5      | 25/09/2026 | AI Agent       | **TASK-IAM-006:** bổ sung §7/§9 state machine đăng nhập web, first-login đổi mật khẩu, TOTP, bootstrap cookie session, refresh single-flight và logout. Giữ trạng thái Review. |
+| v0.6      | 28/09/2026 | AI Agent       | **ADR-017 amend / TASK-IAM-006 (Khanh chốt 28/09):** §4 Operator OS chỉ còn Owner; §7 login chỉ Owner, FE nhận ra username `nv.` và chỉ sang app Nhân viên, shell chỉ render khi `/auth/me` là `OPERATOR_OWNER`; form Employee có tiền tố cố định `nv.`; §8 Employee login `{slug}/nv.{…}` qua `/auth/employee/login`. Giữ trạng thái Review. |
 
 ---
 
@@ -56,7 +57,7 @@ Web = Next.js 16 (ADR-013); Mobile = Flutter 2 app tách (ADR-028).
 | Kênh                              | Actor              | Mục tiêu                                                                |
 | --------------------------------- | ------------------ | ----------------------------------------------------------------------- |
 | Marketplace (Web, RSC+SSG/ISR)    | Passenger, Guest   | Search, trip detail, booking, payment, ticket lookup                    |
-| Operator OS (Web, CSR sau auth)   | Operator, Employee | Quản lý profile, vehicle, route, trip, booking, employee, finance       |
+| Operator OS (Web, CSR sau auth)   | Operator (Owner)   | Quản lý profile, vehicle, route, trip, booking, employee, finance. Employee không vào Operator OS (ADR-017 amend 28/09/2026) |
 | Admin (Web, CSR sau auth)         | Admin              | KYC, catalog, policy, payment, payout, dispute, report, audit           |
 | `apps/passenger_mobile` (Flutter) | Passenger          | Booking/ticket/notification/support trên mobile                         |
 | `apps/employee_mobile` (Flutter)  | Employee           | Check-in, trip status, passenger list, incident report (background geo) |
@@ -518,12 +519,12 @@ Mỗi màn hình là một bảng đủ 5 trạng thái theo §10.1. Cột **Thi
 
 ## 7. Flow Operator
 
-Login `{operatorSlug}/{username}` + password; Owner bắt buộc TOTP (ADR-017). Trước mọi màn nghiệp vụ, Operator OS chạy state machine: lấy CSRF → bootstrap `/auth/me`; 401 thì refresh single-flight một lần rồi retry; không refresh được thì về login. First login: mật khẩu tạm → đổi bắt buộc → login lại → TOTP enrollment/verify → hiển thị 10 backup code đúng một lần → vào app. Challenge chỉ giữ trong memory; reload giữa flow thì bắt đầu lại từ login.
+Login `{operatorSlug}/{username}` + password qua `/auth/operator/login` — **chỉ Owner**; Owner bắt buộc TOTP (ADR-017). Employee không đăng nhập Operator OS (ADR-017 amend 28/09/2026). Chỉ render shell Operator OS sau khi `/auth/me` trả scope `operator` và role `OPERATOR_OWNER`; sai scope/role thì logout và về trang login (lớp phòng thủ thứ hai, API đã chặn Employee ở cổng). Trước mọi màn nghiệp vụ, Operator OS chạy state machine: lấy CSRF → bootstrap `/auth/me`; 401 thì refresh single-flight một lần rồi retry; không refresh được thì về login. First login: mật khẩu tạm → đổi bắt buộc → login lại → TOTP enrollment/verify → hiển thị 10 backup code đúng một lần → vào app. Challenge chỉ giữ trong memory; reload giữa flow thì bắt đầu lại từ login.
 
 | Trạng thái auth | UI bắt buộc |
 | --------------- | ----------- |
 | Loading/bootstrap | Full-page loading, chưa render sidebar/dữ liệu bảo vệ |
-| Login | Identifier `{slug}/{username}`, password; lỗi generic không lộ account tồn tại |
+| Login | Identifier `{slug}/{username}`, password; lỗi generic không lộ account tồn tại. Phần sau `/` bắt đầu bằng `nv.` (không phân biệt hoa/thường) → không gọi API, hiển thị hướng dẫn "Tài khoản nhân viên đăng nhập trên app Nhân viên" (suy từ quy ước tên, không lộ account tồn tại) |
 | Password change | Mật khẩu mới + xác nhận; thành công quay lại login, không tự vào app |
 | MFA | QR/secret enrollment khi cần, TOTP hoặc backup code; backup code chỉ hiện một lần |
 | Session expired/error | Thử refresh đúng một lần; thất bại clear state và về login; giữ safe return URL nội bộ |
@@ -535,14 +536,14 @@ Login `{operatorSlug}/{username}` + password; Owner bắt buộc TOTP (ADR-017).
 | Route/StopPoint | Route list, route form, stop point proposal (Goong geocoding)            | StopPoint mới cần Admin duyệt                                |
 | Trip/Fare       | Trip calendar/list, trip form, fare form, open/lock sale                 | Thay đổi trip đã bán vé cần lý do + audit                    |
 | Booking/Ticket  | Booking list, passenger list, export                                     | Mask dữ liệu cá nhân (`0*** *** 789`) theo quyền             |
-| Employee        | Employee list, role, assignment                                          | Role: TICKET_STAFF, DRIVER, SUPPORT_STAFF; Owner cấp account |
+| Employee        | Employee list, role, assignment                                          | Role: TICKET_STAFF, DRIVER, SUPPORT_STAFF; Owner cấp account. Ô username hiển thị tiền tố cố định `nv.`, Owner nhập phần sau (2–61 ký tự `a-z 0-9 . _ -`) |
 | Finance         | Escrow balance, commission, payout history, reconciliation               | Dữ liệu chỉ thuộc Operator (tenant + RLS)                    |
 
 ---
 
 ## 8. Flow Employee
 
-App `apps/employee_mobile`; login `{operatorSlug}/{username}` (ADR-028/017).
+App `apps/employee_mobile`; login `{operatorSlug}/nv.{…}` + password qua `/auth/employee/login`, chỉ Bearer (ADR-028/017, amend 28/09/2026). Đây là kênh đăng nhập duy nhất của Employee. Phần sau `/` không bắt đầu bằng `nv.` → không gọi API, hiển thị hướng dẫn "Chủ nhà xe đăng nhập trên web Operator OS"; lỗi từ API luôn generic.
 
 | Flow            | Màn hình chính           | Ghi chú                                    |
 | --------------- | ------------------------ | ------------------------------------------ |

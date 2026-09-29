@@ -13,7 +13,7 @@
 | Người viết    | Nguyễn Hồng Khanh, AI Agent |
 | Người duyệt   | Nguyễn Hồng Khanh           |
 | Ngày tạo      | 11/05/2026                  |
-| Ngày cập nhật | 26/09/2026                  |
+| Ngày cập nhật | 28/09/2026                  |
 
 ### 1.2. Lịch sử thay đổi
 
@@ -28,6 +28,7 @@
 | v0.7      | 25/09/2026 | AI Agent       | **TASK-CAT-001 Q1 do Khanh duyệt:** thêm §7.6 — 5 endpoint đọc catalog công khai `/catalog/*` (provinces, wards, stop-points, vehicle-types, amenities), chỉ item `ACTIVE`. Ghi catalog vẫn ở `/admin/catalog/*` (ADM-001). Giữ trạng thái Approved, không tự promote. |
 | v0.8      | 25/09/2026 | AI Agent       | **TASK-TRN-001 Q1–Q3 do Khanh duyệt:** §7.3 tách route Vehicle/SeatMap có path param (`GET/PUT /{id}`), quyền Owner `vehicle:manage`, lỗi `VEHICLE_PLATE_CONFLICT` / `CATALOG_ITEM_UNAVAILABLE`, SeatMap mẫu dùng chung + tùy chỉnh bằng bản sao. Giữ trạng thái Approved, không tự promote. |
 | v0.9      | 26/09/2026 | AI Agent       | **TASK-TRN-002 Q1–Q8 do Khanh duyệt:** §7.3 thêm route chi tiết `/operator/routes`, `/operator/stop-points`, `/operator/stop-point-proposals` (endpoint đề xuất StopPoint mới), quyền `route:manage`, lỗi Goong 503. Giữ trạng thái Approved, không tự promote. |
+| v0.10     | 28/09/2026 | AI Agent       | **ADR-017 amend / TASK-IAM-006 (Khanh chốt 28/09):** §5 tách actor Owner/Employee; §7.1 `/auth/operator/login` chỉ Owner, thêm `/auth/employee/login` chỉ Employee + chỉ Bearer; sai cổng = `401 AUTH_INVALID_CREDENTIALS`; §7.1.1 Employee không nhận cookie session; §7.3 username Employee bắt buộc `nv.`, Owner cấm `nv.`. Giữ trạng thái Approved. |
 
 ---
 
@@ -81,7 +82,8 @@ Identity 3 namespace tách biệt (ADR-017). Hybrid token: JWT RS256 access 15mi
 | ------------------- | ---------------------------------------------------------------------------- | -------------------------------------------------------- |
 | Guest               | Không token cho public search/detail; guest session cho hold/book/pay/lookup | Guest checkout có trong v1 (SRS/GLOSSARY)                |
 | Passenger (User)    | Email + OTP (primary) hoặc OAuth Google/Facebook/Apple (ADR-020)             | Self-register; Hybrid token                              |
-| Operator / Employee | `{operatorSlug}/{username}` + password (closed enrollment)                   | Scope theo `operatorId` + assignment; không public/OAuth |
+| Operator Owner      | `{operatorSlug}/{username}` + password qua `/auth/operator/login` (closed enrollment); username cấm tiền tố `nv.` | Web Operator OS (cookie) hoặc Bearer; scope theo `operatorId`; không public/OAuth |
+| Employee            | `{operatorSlug}/nv.{…}` + password qua `/auth/employee/login` (closed enrollment) | Chỉ app `employee_mobile`, chỉ Bearer; scope theo `operatorId` + assignment; không public/OAuth |
 | Admin / Platform    | `platform/{username}` + password (closed enrollment)                         | TOTP mandatory; không public/OAuth                       |
 
 MFA: TOTP bắt buộc OperatorOwner / PlatformAdmin / PlatformSupport; optional Driver / TicketStaff / SupportStaff (ADR-017).
@@ -148,7 +150,8 @@ Path dưới đây tương đối với base `/v1`.
 | POST   | `/auth/otp/request`      | Passenger, Guest   | Gửi Email OTP (Resend)                    |
 | POST   | `/auth/otp/verify`       | Passenger          | Xác thực OTP + cấp token                  |
 | POST   | `/auth/oauth/{provider}` | Passenger          | OAuth Google / Facebook / Apple (ADR-020) |
-| POST   | `/auth/operator/login`   | Operator, Employee | Login `{slug}/{username}` + password; Owner nhận MFA challenge thay vì token |
+| POST   | `/auth/operator/login`   | Operator Owner     | Login `{slug}/{username}` + password; chỉ tra account Owner; Owner nhận MFA challenge thay vì token |
+| POST   | `/auth/employee/login`   | Employee           | Login `{slug}/nv.{…}` + password; chỉ tra account Employee; **chỉ Bearer** (app Nhân viên) |
 | POST   | `/auth/platform/login`   | Admin, Platform    | Login `platform/{username}` + password; nhận MFA challenge thay vì token |
 | POST   | `/auth/mfa/verify`       | Có `challengeToken` từ login (không Bearer) | Xác thực TOTP / backup code (lần đầu = enrollment) → cấp token |
 | POST   | `/auth/password/change-required` | Có `passwordChangeToken` từ login (không Bearer) | Đổi mật khẩu tạm một lần; token TTL 5 phút; phải login lại trước MFA/token |
@@ -162,10 +165,12 @@ Path dưới đây tương đối với base `/v1`.
 
 Operator/Employee login bằng mật khẩu tạm còn hạn trả `passwordChangeRequired`, `passwordChangeToken`, `passwordChangeExpiresIn` thay vì access/refresh token hay MFA secret. Khi `credentialDeliveryPending` hoặc `status` không `ACTIVE`, login bị chặn. Challenge cấp trước reset/retry bị vô hiệu bởi `authEpoch`; lệnh đổi mật khẩu kiểm lại epoch và `ACTIVE`. Password change thành công không tự đăng nhập. V1 không hard-cap số phiên.
 
+Tách cổng Owner/Employee (ADR-017 amend 28/09/2026, TASK-IAM-006): mỗi cổng chỉ tra đúng bảng account của mình. Account đúng mật khẩu nhưng gọi sai cổng (Employee ở `/auth/operator/login`, Owner ở `/auth/employee/login`) bị xử lý như account không tồn tại: `401 AUTH_INVALID_CREDENTIALS`, không tạo session, không trả MFA challenge hay password-change challenge.
+
 #### 7.1.1. Dual transport Web / Mobile (TASK-OQ-05 — đóng 25/09/2026)
 
 - Client chọn tường minh bằng `X-Auth-Transport: cookie | bearer`; **không sniff User-Agent**. Thiếu header = `bearer` để giữ tương thích Mobile. Giá trị khác → `400 AUTH_TRANSPORT_INVALID`.
-- Header áp dụng cho login Operator/Platform, MFA verify, đổi mật khẩu bắt buộc, refresh, logout và re-auth. Challenge `passwordChangeToken`/`challengeToken` vẫn ở JSON và web chỉ giữ trong memory; chưa cấp cookie auth trước khi hoàn tất login/MFA.
+- Header áp dụng cho login Operator/Platform, MFA verify, đổi mật khẩu bắt buộc, refresh, logout và re-auth. Employee chỉ nhận phiên Bearer: `/auth/employee/login` và `/auth/mfa/verify` với challenge của Employee nhận `X-Auth-Transport: cookie` → `400 AUTH_TRANSPORT_INVALID`. Challenge `passwordChangeToken`/`challengeToken` vẫn ở JSON và web chỉ giữ trong memory; chưa cấp cookie auth trước khi hoàn tất login/MFA.
 - `bearer`: response token giữ nguyên `{accessToken, refreshToken, tokenType, expiresIn, refreshExpiresIn, scope, role}`; không có `Set-Cookie`.
 - `cookie`: response cấp session **không chứa** access/refresh token thô; trả metadata `{authenticated, scope, role, expiresIn, refreshExpiresIn}` và `backupCodes` đúng một lần nếu vừa enrollment MFA. CSRF token mới trả qua header `X-CSRF-Token`.
 - Protected endpoint nhận đúng một credential: `Authorization: Bearer` **hoặc** `vxn_access`. Có cả hai → `400 AUTH_TRANSPORT_AMBIGUOUS`; không có ưu tiên ngầm.
@@ -228,6 +233,8 @@ Gửi cả `Max-Age` và `Expires`; logout/reuse/revoke current family phải x�
 Vehicle/SeatMap (TASK-TRN-001): quyền `vehicle:manage`. POST và PUT (thay toàn bộ) phải gửi đủ trường, thiếu → 400. Biển số chuẩn hóa (chữ hoa, bỏ khoảng trắng/`.`/`-`), trùng trong tenant → 409 `VEHICLE_PLATE_CONFLICT`. Loại xe/tiện ích phải là catalog `ACTIVE`, sai → 422 `CATALOG_ITEM_UNAVAILABLE`. SeatMap là mẫu dùng chung nhiều xe; tùy chỉnh cho một xe = tạo SeatMap mới từ bản sao rồi gắn cho xe đó. Chặn sửa khi đã gắn chuyến thuộc TASK-TRN-003.
 
 Route/StopPoint (TASK-TRN-002): quyền `route:manage` (Owner). Route gồm 2–25 điểm theo thứ tự, mỗi điểm là catalog `ACTIVE` **hoặc** điểm riêng `ACTIVE` của tenant, không lặp; vai trò `ORIGIN`/`INTERMEDIATE`/`DESTINATION` suy từ vị trí. Khoảng cách/thời gian tính lúc tạo/đổi chuỗi toạ độ và lưu DB (ADR-027 cache-once); Goong lỗi → 503 `ROUTING_PROVIDER_UNAVAILABLE`, không lưu gì. Điểm không dùng được / khác tenant → 422 `STOP_POINT_UNAVAILABLE`. Admin duyệt đề xuất ở `/admin/catalog/*` (ADM-001).
+
+Username Employee (create/PATCH) bắt buộc `nv.` + 2–61 ký tự `[a-z0-9._-]` (Owner đặt phần sau tiền tố); sai → 400 validation. Provisioning Owner từ chối username bắt đầu bằng `nv.` (không phân biệt hoa/thường). DB CHECK giữ cả hai (04 DB §7).
 
 `POST /operator/employees` và password-reset áp giới hạn email mật khẩu tạm: 30/24h toàn hệ thống, 10/24h/tenant, 5/24h/actor, cùng Employee reset tối đa một lần/giờ. Vượt ngưỡng trả 429 `ACCOUNT_TEMP_EMAIL_RATE_LIMITED`; Redis lỗi thì fail-closed 503. Reset giữ nguyên `status` kỷ luật. Khi create đã ghi DB nhưng delivery lỗi, 503 `detail` chứa `employeeId`; Owner dùng `GET /operator/employees` và password-reset để phục hồi, không create lại. Các thao tác nhạy cảm giữ Q8 recent re-auth bằng mật khẩu hoặc MFA, chưa bắt buộc TOTP riêng.
 
