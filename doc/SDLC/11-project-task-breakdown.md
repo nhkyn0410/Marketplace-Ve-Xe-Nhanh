@@ -41,7 +41,7 @@
 | v0.20     | 29/09/2026 | AI Agent       | **Loyalty VXN Plus / ví voucher / bài viết (Khanh chốt 29/09/2026, SRS v1.21):** §7.5 thêm `TASK-PROM-002` (ví voucher), `TASK-LOY-001` (VXN Plus), `TASK-CNT-001` (bài viết); §9 rủi ro chi phí / lạm dụng loyalty. Trạng thái Approved → **Review**. |
 | v0.21     | 29/09/2026 | AI Agent       | SRS v1.22 tách use case: nguồn `TASK-LOY-001` thêm `UC-39`, `TASK-CNT-001` thêm `UC-40`. Giữ trạng thái Review. |
 | v0.22     | 30/09/2026 | AI Agent       | **A2 — đăng ký nhà xe theo closed enrollment (Khanh duyệt 30/09/2026, SRS v1.23)**: `TASK-OPR-001` = form đăng ký công khai + link bảo mật + upload KYC; `TASK-ADM-001` duyệt hồ sơ gọi `provisionOperatorOwner`. Giữ trạng thái Review. |
-| v0.23     | 30/09/2026 | AI Agent       | **Mốc M0–M5 (Khanh duyệt 30/09/2026)**: §7 thêm bảng mốc theo luồng đầu-cuối; đóng `TASK-OQ-02` / `TASK-OQ-04`. M0 đồng bộ trạng thái với code: `TASK-IAM-006` Ready → **In Progress** (tách cổng Owner/Employee đã merge PR #16, còn web auth); `TASK-CAT-001` ghi rõ chỉ còn seed file danh mục chính thức; `TASK-TRN-001` ghi tiến độ port. Giữ trạng thái Review. |
+| v0.23     | 30/09/2026 | AI Agent       | **Mốc M0–M5 (Khanh duyệt 30/09/2026)**: §7 thêm bảng mốc theo luồng đầu-cuối; đóng `TASK-OQ-02` / `TASK-OQ-04`. M0 đồng bộ trạng thái với code: `TASK-IAM-006` Ready → **In Progress** (tách cổng Owner/Employee đã merge PR #16, còn web auth); `TASK-CAT-001` ghi rõ chỉ còn seed file danh mục chính thức; `TASK-TRN-001` ghi tiến độ port. Cùng ngày Khanh chọn **đưa FE lên sớm**: IAM-006 phần web vào M1 ngay sau TRN-002, làm bù màn TRN-001/002, từ TRN-003 mỗi task làm cả BE lẫn màn. Giữ trạng thái Review. |
 
 ---
 
@@ -137,13 +137,13 @@ Sau Sprint 5 rework + Sprint 4 Phase 4 DevOps, các doc thiết kế đã reset 
 | Mốc | Task | Kết quả kiểm chứng được |
 | --- | ---- | ----------------------- |
 | M0 — Dọn dẹp | Cập nhật trạng thái task cho khớp code; rút `PROJECT-STATE §7` | Bảng task khớp `develop` |
-| M1 — Có chuyến để bán | TRN-001 → TRN-002 → TRN-003 → TRN-005 → TRN-006 (chỉ BE) | Nhà xe tạo được chuyến đang mở bán qua API |
-| M2 — Đặt vé lõi | TRN-004 → BTP-001 → BTP-002 → BTP-003 (VNPay sandbox trước, MoMo sau) → BTP-004; NSR-001 (chỉ email vé) | Đặt + thanh toán sandbox + nhận vé qua API; test bắt buộc money / idempotency / webhook-HMAC |
-| M3 — Demo được | IAM-006 (phần web) + màn xe / tuyến / chuyến Operator OS; Marketplace tìm → chọn ghế → thanh toán → vé; EMP-001 / EMP-002; OPS-001 | Luồng hoàn chỉnh chạy trên giao diện, deploy staging |
+| M1 — Có chuyến để bán | TRN-001 → TRN-002 (BE) → **IAM-006 phần web** → màn Operator OS cho TRN-001 (xe, sơ đồ ghế) + TRN-002 (tuyến, điểm dừng, đề xuất) → TRN-003 → TRN-005 → TRN-006, **từ TRN-003 mỗi task làm cả BE lẫn màn Operator OS** | Nhà xe đăng nhập Operator OS và tạo được chuyến đang mở bán trên giao diện |
+| M2 — Đặt vé lõi | TRN-004 → BTP-001 → BTP-002 → BTP-003 (VNPay sandbox trước, MoMo sau) → BTP-004; NSR-001 (chỉ email vé); màn Marketplace đi cùng từng task | Đặt + thanh toán sandbox + nhận vé; test bắt buộc money / idempotency / webhook-HMAC |
+| M3 — Demo được | Hoàn thiện luồng Marketplace tìm → chọn ghế → thanh toán → vé; EMP-001 / EMP-002; OPS-001 | Luồng hoàn chỉnh chạy trên giao diện, deploy staging |
 | M4 — Tiền và quản trị | BTP-005, BTP-006, OPR-001, ADM-001, ADM-002, OPR-002 | Đủ nghiệp vụ hủy / hoàn, escrow, payout, onboarding nhà xe |
 | M5 — Mở rộng | TRUST-001, MKT-001 / 002, PROM-001 / 002, LOY-001, CNT-001, ADM-003, RPT-001 / 002, NSR-002, TRN-007 / 008 | Cắt được nếu thiếu thời gian |
 
-`TASK-TEST-001` làm dần theo mốc (Playwright ở M3, Maestro cùng EMP-002). Onboarding nhà xe để M4 vì seed đã tạo sẵn Operator + Owner cho demo.
+`TASK-TEST-001` làm dần theo mốc (Playwright cùng màn hình đầu tiên, Maestro cùng EMP-002). Onboarding nhà xe để M4 vì seed đã tạo sẵn Operator + Owner cho demo. **FE đưa lên sớm** (Khanh chọn 30/09/2026): TRN-001 Q4 / TRN-002 Q7 hoãn màn hình vì Operator OS chưa có đăng nhập web; IAM-006 phần web đã gần xong ở repo bản sao nên port ngay sau TRN-002, rồi làm bù màn của hai task này thay vì dồn FE về M3.
 
 ### 7.1. Foundation
 
