@@ -23,7 +23,7 @@ import type {
   ProvisionedOperatorOwner,
   ProvisionOperatorOwnerInput,
 } from "./account.types";
-import { requireAccountReason } from "./account.types";
+import { EMPLOYEE_USERNAME_PREFIX, requireAccountReason } from "./account.types";
 import { TemporaryCredentialEmailLimiter } from "./temporary-credential-email-limiter";
 
 export const TEMPORARY_PASSWORD_TTL_MS = 24 * 60 * 60 * 1000;
@@ -33,7 +33,8 @@ const ProvisionOperatorOwnerSchema = z.object({
   operatorSlug: z.string().trim().toLowerCase().min(3).max(64)
     .regex(/^[a-z0-9][a-z0-9-]*$/).refine((slug) => slug !== "platform"),
   displayName: z.string().trim().min(1).max(200),
-  ownerUsername: z.string().trim().min(3).max(64).regex(/^[A-Za-z0-9._-]+$/),
+  ownerUsername: z.string().trim().min(3).max(64).regex(/^[A-Za-z0-9._-]+$/)
+    .refine((username) => !username.toLowerCase().startsWith(EMPLOYEE_USERNAME_PREFIX)),
   contactEmail: z.string().trim().pipe(z.email().max(254)).transform((email) => email.toLowerCase()),
   reason: z.string().trim().min(3).max(500),
 });

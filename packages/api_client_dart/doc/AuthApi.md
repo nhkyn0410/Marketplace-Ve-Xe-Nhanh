@@ -10,6 +10,7 @@ All URIs are relative to *http://localhost*
 Method | HTTP request | Description
 ------------- | ------------- | -------------
 [**authControllerChangeRequiredPassword**](AuthApi.md#authcontrollerchangerequiredpassword) | **POST** /v1/auth/password/change-required | 
+[**authControllerEmployeeLogin**](AuthApi.md#authcontrolleremployeelogin) | **POST** /v1/auth/employee/login | 
 [**authControllerLogout**](AuthApi.md#authcontrollerlogout) | **POST** /v1/auth/logout | 
 [**authControllerOauth**](AuthApi.md#authcontrolleroauth) | **POST** /v1/auth/oauth/{provider} | 
 [**authControllerOauthSession**](AuthApi.md#authcontrolleroauthsession) | **POST** /v1/auth/oauth/session | 
@@ -54,6 +55,49 @@ Name | Type | Description  | Notes
 ### Return type
 
 [**MessageResponseDtoOutput**](MessageResponseDtoOutput.md)
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
+ - **Accept**: application/json, application/problem+json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **authControllerEmployeeLogin**
+> CredentialLoginResponseDtoOutput authControllerEmployeeLogin(credentialLoginDto, xAuthTransport)
+
+
+
+### Example
+```dart
+import 'package:api_client_dart/api.dart';
+
+final api = ApiClientDart().getAuthApi();
+final CredentialLoginDto credentialLoginDto = ; // CredentialLoginDto | 
+final String xAuthTransport = xAuthTransport_example; // String | Chỉ nhận `bearer` (mặc định khi bỏ trống); giá trị khác → 400 AUTH_TRANSPORT_INVALID.
+
+try {
+    final response = api.authControllerEmployeeLogin(credentialLoginDto, xAuthTransport);
+    print(response);
+} on DioException catch (e) {
+    print('Exception when calling AuthApi->authControllerEmployeeLogin: $e\n');
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **credentialLoginDto** | [**CredentialLoginDto**](CredentialLoginDto.md)|  | 
+ **xAuthTransport** | **String**| Chỉ nhận `bearer` (mặc định khi bỏ trống); giá trị khác → 400 AUTH_TRANSPORT_INVALID. | [optional] 
+
+### Return type
+
+[**CredentialLoginResponseDtoOutput**](CredentialLoginResponseDtoOutput.md)
 
 ### Authorization
 

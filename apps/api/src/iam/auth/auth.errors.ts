@@ -51,6 +51,18 @@ export function wrongLoginChannel(): AuthException {
   );
 }
 
+/**
+ * `X-Auth-Transport` không hợp lệ cho endpoint (API §7.1.1). Cổng Employee chỉ cấp phiên Bearer,
+ * nên `cookie` ở đó cũng rơi vào đây (ADR-017 amend 28/09/2026).
+ */
+export function transportInvalid(): AuthException {
+  return new AuthException(
+    HttpStatus.BAD_REQUEST,
+    "AUTH_TRANSPORT_INVALID",
+    "Kiểu phiên đăng nhập không được hỗ trợ.",
+  );
+}
+
 /** Credential đầu tiên đúng nhưng role bắt buộc chưa hoàn tất MFA. */
 export function mfaRequired(): AuthException {
   return new AuthException(

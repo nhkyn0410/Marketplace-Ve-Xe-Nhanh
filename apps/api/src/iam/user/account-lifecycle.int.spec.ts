@@ -33,8 +33,8 @@ describe.skipIf(!url && !requireDb)("IAM-005 account lifecycle — Postgres th�
   const epochSessionId = randomUUID();
   const slugA = `iam005-a-${tag}`;
   const slugB = `iam005-b-${tag}`;
-  const sharedUsername = `shared-${tag}`;
-  const employeeUsername = `driver-${tag}`;
+  const ownerUsername = `owner-${tag}`;
+  const sharedUsername = `nv.shared-${tag}`;
   let ready = false;
 
   beforeAll(async () => {
@@ -57,13 +57,13 @@ describe.skipIf(!url && !requireDb)("IAM-005 account lifecycle — Postgres th�
           id: ownerA,
           operatorId: tenantA,
           operatorSlug: slugA,
-          username: sharedUsername,
+          username: ownerUsername,
           passwordHash: "x",
         },
       });
       await tx.employeeAccount.createMany({
         data: [
-          { id: employeeA, operatorId: tenantA, username: employeeUsername, passwordHash: "x", role: "DRIVER" },
+          { id: employeeA, operatorId: tenantA, username: sharedUsername, passwordHash: "x", role: "DRIVER" },
           { id: employeeB, operatorId: tenantB, username: sharedUsername, passwordHash: "x", role: "DRIVER" },
         ],
       });
@@ -83,7 +83,7 @@ describe.skipIf(!url && !requireDb)("IAM-005 account lifecycle — Postgres th�
     await prisma?.$disconnect();
   });
 
-  it("Owner và Employee cùng tenant không thể lấy cùng username, nhưng tenant khác được", async () => {
+  it("cùng tenant không thể trùng username, nhưng tenant khác được", async () => {
     const employeeConflict = await rejectionText(
       prisma.withSystem((tx) =>
         tx.employeeAccount.create({
@@ -93,19 +93,33 @@ describe.skipIf(!url && !requireDb)("IAM-005 account lifecycle — Postgres th�
     );
     expect(employeeConflict).toMatch(/operator_login_names_pkey|P2002|unique constraint/i);
 
-    const ownerConflict = await rejectionText(
-      prisma.withSystem((tx) =>
-        tx.operatorAccount.create({
-          data: { operatorId: tenantA, operatorSlug: slugA, username: employeeUsername, passwordHash: "x" },
-        }),
-      ),
-    );
-    expect(ownerConflict).toMatch(/operator_login_names_pkey|P2002|unique constraint/i);
-
     const crossTenant = await prisma.withSystem((tx) =>
       tx.operatorLoginName.findMany({ where: { username: sharedUsername }, select: { operatorId: true } }),
     );
     expect(crossTenant.map((row) => row.operatorId).sort()).toEqual([tenantA, tenantB].sort());
+  });
+
+  // ADR-017 amend 28/09/2026: tiền tố tách Owner/Employee nên hai bảng không bao giờ giành cùng một tên.
+  it.each([
+    ["Employee thiếu `nv.`", `driver-${tag}`],
+    ["Employee chữ hoa", `nv.Driver-${tag}`],
+    ["Employee phần sau tiền tố quá ngắn", "nv.a"],
+  ])("DB từ chối %s", async (_case, username) => {
+    const text = await rejectionText(
+      prisma.withSystem((tx) =>
+        tx.employeeAccount.create({ data: { operatorId: tenantA, username, passwordHash: "x", role: "DRIVER" } }),
+      ),
+    );
+    expect(text).toMatch(/employee_accounts_username_employee_prefix/);
+  });
+
+  it.each([`nv.boss-${tag}`, `NV.boss-${tag}`, `Nv.boss-${tag}`])("DB từ chối Owner dùng tiền tố Employee: %s", async (username) => {
+    const text = await rejectionText(
+      prisma.withSystem((tx) =>
+        tx.operatorAccount.create({ data: { operatorId: tenantA, operatorSlug: slugA, username, passwordHash: "x" } }),
+      ),
+    );
+    expect(text).toMatch(/operator_accounts_username_not_employee_prefix/);
   });
 
   it("operator_slug bất biến kể cả trước khi tenant có account", async () => {
@@ -137,7 +151,7 @@ describe.skipIf(!url && !requireDb)("IAM-005 account lifecycle — Postgres th�
         select: { operatorId: true, username: true },
       }),
     );
-    expect(seenA.map((row) => row.username).sort()).toEqual([employeeUsername, sharedUsername].sort());
+    expect(seenA.map((row) => row.username).sort()).toEqual([ownerUsername, sharedUsername].sort());
     expect(seenA.every((row) => row.operatorId === tenantA)).toBe(true);
 
     const seenB = await prisma.withTenant(tenantB, (tx) =>

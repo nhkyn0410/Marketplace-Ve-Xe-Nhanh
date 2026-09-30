@@ -81,11 +81,11 @@ async function main(): Promise<void> {
       });
 
       await tx.employeeAccount.upsert({
-        where: { operatorId_username: { operatorId: operator.id, username: "driver042" } },
+        where: { operatorId_username: { operatorId: operator.id, username: "nv.driver042" } },
         update: { passwordHash: driverHash },
         create: {
           operatorId: operator.id,
-          username: "driver042",
+          username: "nv.driver042",
           passwordHash: driverHash,
           role: "DRIVER",
           status: "ACTIVE"
@@ -93,7 +93,7 @@ async function main(): Promise<void> {
       });
     });
 
-    console.log("Seed IAM done: platform/khanh, phuongtrang/owner01, phuongtrang/driver042");
+    console.log("Seed IAM done: platform/khanh, phuongtrang/owner01, phuongtrang/nv.driver042");
   } finally {
     await prisma.$disconnect();
   }

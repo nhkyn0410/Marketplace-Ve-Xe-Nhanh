@@ -15,6 +15,7 @@ import {
   ApiBearerAuth,
   ApiBody,
   ApiExtraModels,
+  ApiHeader,
   ApiParam,
   ApiResponse,
   ApiTags,
@@ -26,6 +27,7 @@ import { resolveTrustedClientIp } from "../../common/trusted-client-ip";
 import { APP_CONFIG, type AppConfig } from "../../config/env.config";
 import { ProblemDetailsDto } from "../../openapi/openapi.dto";
 import { AccessTokenGuard, AllowRevokedSession } from "./access-token.guard";
+import { transportInvalid } from "./auth.errors";
 import {
   AuthService,
   type CredentialLoginResult,
@@ -121,7 +123,7 @@ export class AuthController {
   @ApiBody({ type: CredentialLoginDto })
   @ZodResponse({
     status: 200,
-    description: "Login Operator/Employee; role bắt buộc MFA nhận challenge thay vì token.",
+    description: "Login Operator Owner (chỉ account Owner); role bắt buộc MFA nhận challenge thay vì token.",
     type: CredentialLoginResponseDto
   })
   @ApiResponse({ status: 401, description: "Sai thông tin đăng nhập.", content: problemContent })
@@ -129,6 +131,39 @@ export class AuthController {
   async operatorLogin(@Body() dto: CredentialLoginDto, @Req() req: Request): Promise<CredentialLoginResponse> {
     return toCredentialLoginResponse(
       await this.authService.operatorLogin(
+        dto.identifier,
+        dto.password,
+        this.context(req)
+      )
+    );
+  }
+
+  /** App Nhân viên: chỉ account Employee (`{slug}/nv.…`), chỉ Bearer — không bao giờ cấp cookie. */
+  @Post("employee/login")
+  @HttpCode(200)
+  @NoStore()
+  @ApiHeader({
+    name: "X-Auth-Transport",
+    required: false,
+    description: "Chỉ nhận `bearer` (mặc định khi bỏ trống); giá trị khác → 400 AUTH_TRANSPORT_INVALID.",
+    schema: { type: "string", enum: ["bearer"] }
+  })
+  @ApiBody({ type: CredentialLoginDto })
+  @ZodResponse({
+    status: 200,
+    description: "Login Employee (chỉ account Employee); token trả trong JSON cho app Nhân viên.",
+    type: CredentialLoginResponseDto
+  })
+  @ApiResponse({ status: 400, description: "X-Auth-Transport không phải bearer.", content: problemContent })
+  @ApiResponse({ status: 401, description: "Sai thông tin đăng nhập.", content: problemContent })
+  @ApiResponse({ status: 403, description: "Tài khoản bị khóa.", content: problemContent })
+  async employeeLogin(@Body() dto: CredentialLoginDto, @Req() req: Request): Promise<CredentialLoginResponse> {
+    const transport = req.headers["x-auth-transport"];
+    if (transport !== undefined && transport !== "bearer") {
+      throw transportInvalid();
+    }
+    return toCredentialLoginResponse(
+      await this.authService.employeeLogin(
         dto.identifier,
         dto.password,
         this.context(req)

@@ -333,51 +333,107 @@ describe("AuthService.operatorLogin", () => {
     expect(ctx.sessions.create).not.toHaveBeenCalled();
   });
 
-  it("falls back to employee_accounts when not an owner", async () => {
+  it("cổng Owner không tra employee_accounts: Employee đúng mật khẩu nhận 401 như account không tồn tại", async () => {
     ctx.prisma.operatorProfile.findUnique.mockResolvedValue(ACTIVE_OPERATOR);
     ctx.prisma.operatorAccount.findUnique.mockResolvedValue(null);
-    ctx.prisma.employeeAccount.findUnique.mockResolvedValue({
-      id: "emp-1",
-      operatorId: "op-1",
-      username: "driver042",
-      passwordHash: "scrypt$x$y",
-      authEpoch: 0,
-      role: "DRIVER",
-      status: "ACTIVE",
-      passwordChangeRequired: false,
-      operator: ACTIVE_OPERATOR
-    });
+    ctx.prisma.employeeAccount.findUnique.mockResolvedValue(EMPLOYEE);
     ctx.credentials.verify.mockResolvedValue(true);
 
-    const result = await ctx.service.operatorLogin("phuongtrang/driver042", "good", {});
+    expect(
+      await problemOf(ctx.service.operatorLogin("phuongtrang/nv.driver042", "good", {}))
+    ).toEqual({ status: 401, code: "AUTH_INVALID_CREDENTIALS" });
+    expect(ctx.prisma.employeeAccount.findUnique).not.toHaveBeenCalled();
+    expect(ctx.credentials.verify).toHaveBeenCalledTimes(1); // chỉ dummy hash
+    expect(ctx.sessions.create).not.toHaveBeenCalled();
+    expect(ctx.passwordChanges.begin).not.toHaveBeenCalled();
+    expect(ctx.mfa.begin).not.toHaveBeenCalled();
+    expect(ctx.history.record).toHaveBeenCalledWith(
+      expect.objectContaining({ result: "failure", reason: "unknown_account" })
+    );
+  });
+});
+
+const EMPLOYEE = {
+  id: "emp-1",
+  operatorId: "op-1",
+  username: "nv.driver042",
+  passwordHash: "scrypt$x$y",
+  authEpoch: 0,
+  role: "DRIVER",
+  status: "ACTIVE",
+  credentialDeliveryPending: false,
+  passwordChangeRequired: false,
+  temporaryPasswordExpiresAt: null,
+  operator: ACTIVE_OPERATOR
+};
+
+describe("AuthService.employeeLogin", () => {
+  let ctx: ReturnType<typeof setup>;
+  beforeEach(() => {
+    ctx = setup();
+  });
+
+  it("Employee đúng mật khẩu nhận token; phiên ghi subject EMPLOYEE, không tra operator_accounts", async () => {
+    ctx.prisma.operatorProfile.findUnique.mockResolvedValue(ACTIVE_OPERATOR);
+    ctx.prisma.employeeAccount.findUnique.mockResolvedValue(EMPLOYEE);
+    ctx.credentials.verify.mockResolvedValue(true);
+
+    const result = await ctx.service.employeeLogin("phuongtrang/nv.driver042", "good", {});
     expect(result).toMatchObject({ role: "DRIVER", accessToken: "tok" });
     // Q2: employee KHÔNG được ghi thành OPERATOR — revoke-all của owner sẽ đá nhầm tài xế.
     expect(ctx.sessions.create).toHaveBeenCalledWith(
       { type: "EMPLOYEE", id: "emp-1", operatorId: "op-1", authEpoch: 0 },
       {}
     );
+    expect(ctx.prisma.operatorAccount.findUnique).not.toHaveBeenCalled();
+    expect(ctx.prisma.withTenant).toHaveBeenCalledWith("op-1", expect.any(Function));
+  });
+
+  it("cổng Employee không tra operator_accounts: Owner đúng mật khẩu nhận 401, không MFA challenge", async () => {
+    ctx.prisma.operatorProfile.findUnique.mockResolvedValue(ACTIVE_OPERATOR);
+    ctx.prisma.operatorAccount.findUnique.mockResolvedValue(OWNER);
+    ctx.prisma.employeeAccount.findUnique.mockResolvedValue(null);
+    ctx.credentials.verify.mockResolvedValue(true);
+
+    expect(
+      await problemOf(ctx.service.employeeLogin("phuongtrang/owner01", "good", {}))
+    ).toEqual({ status: 401, code: "AUTH_INVALID_CREDENTIALS" });
+    expect(ctx.prisma.operatorAccount.findUnique).not.toHaveBeenCalled();
+    expect(ctx.credentials.verify).toHaveBeenCalledTimes(1); // chỉ dummy hash
+    expect(ctx.mfa.begin).not.toHaveBeenCalled();
+    expect(ctx.passwordChanges.begin).not.toHaveBeenCalled();
+    expect(ctx.sessions.create).not.toHaveBeenCalled();
+  });
+
+  it("mật khẩu tạm của Employee cấp password-change challenge với subject EMPLOYEE", async () => {
+    ctx.prisma.operatorProfile.findUnique.mockResolvedValue(ACTIVE_OPERATOR);
+    ctx.prisma.employeeAccount.findUnique.mockResolvedValue({
+      ...EMPLOYEE,
+      passwordChangeRequired: true,
+      temporaryPasswordExpiresAt: new Date(Date.now() + 60_000)
+    });
+    ctx.credentials.verify.mockResolvedValue(true);
+
+    const result = await ctx.service.employeeLogin("phuongtrang/nv.driver042", "temporary", {});
+
+    expect(result).toMatchObject({ passwordChangeRequired: true });
+    expect(ctx.passwordChanges.begin).toHaveBeenCalledWith({
+      subjectType: "EMPLOYEE",
+      subjectId: "emp-1",
+      operatorId: "op-1",
+      authEpoch: 0
+    });
+    expect(ctx.sessions.create).not.toHaveBeenCalled();
   });
 
   it("khóa Employee sau khi đọc password nhưng trước khi phát token: tự revoke session mới", async () => {
-    const employee = {
-      id: "emp-1",
-      operatorId: "op-1",
-      username: "driver042",
-      passwordHash: "scrypt$x$y",
-      authEpoch: 0,
-      role: "DRIVER",
-      status: "ACTIVE",
-      passwordChangeRequired: false,
-      operator: ACTIVE_OPERATOR
-    };
     ctx.prisma.operatorProfile.findUnique.mockResolvedValue(ACTIVE_OPERATOR);
-    ctx.prisma.operatorAccount.findUnique.mockResolvedValue(null);
     ctx.prisma.employeeAccount.findUnique
-      .mockResolvedValueOnce(employee)
-      .mockResolvedValueOnce({ ...employee, status: "LOCKED" });
+      .mockResolvedValueOnce(EMPLOYEE)
+      .mockResolvedValueOnce({ ...EMPLOYEE, status: "LOCKED" });
     ctx.credentials.verify.mockResolvedValue(true);
 
-    expect(await statusOf(ctx.service.operatorLogin("phuongtrang/driver042", "good", {}))).toBe(403);
+    expect(await statusOf(ctx.service.employeeLogin("phuongtrang/nv.driver042", "good", {}))).toBe(403);
     expect(ctx.sessions.create).toHaveBeenCalledTimes(1);
     expect(ctx.sessions.revokeFamily).toHaveBeenCalledWith("fam-1", "ACCOUNT_LOCKED");
     expect(ctx.tokens.mintAccessToken).not.toHaveBeenCalled();
@@ -1007,6 +1063,32 @@ describe("AuthController trusted client IP", () => {
   });
 });
 
+describe("AuthController employee login — chỉ Bearer", () => {
+  const login = { identifier: "phuongtrang/nv.driver042", password: "password" };
+
+  it.each([undefined, "bearer"])("X-Auth-Transport=%s gọi cổng Employee và trả token JSON", async (transport) => {
+    const { controller, employeeLogin, operatorLogin } = setupAuthController();
+    const headers: Record<string, string> = transport ? { "x-auth-transport": transport } : {};
+
+    const response = await controller.employeeLogin(login, proxyRequest("203.0.113.10", "203.0.113.10", headers));
+
+    expect(response).toMatchObject({ accessToken: "access-token", refreshToken: "refresh-token", role: "DRIVER" });
+    expect(employeeLogin).toHaveBeenCalledWith(login.identifier, login.password, expect.any(Object));
+    expect(operatorLogin).not.toHaveBeenCalled();
+  });
+
+  it.each(["cookie", "Bearer", "session"])("X-Auth-Transport=%s → 400 AUTH_TRANSPORT_INVALID, không chạm service", async (transport) => {
+    const { controller, employeeLogin } = setupAuthController();
+
+    expect(
+      await problemOf(
+        controller.employeeLogin(login, proxyRequest("203.0.113.10", "203.0.113.10", { "x-auth-transport": transport }))
+      )
+    ).toEqual({ status: 400, code: "AUTH_TRANSPORT_INVALID" });
+    expect(employeeLogin).not.toHaveBeenCalled();
+  });
+});
+
 function setupAuthController() {
   const result: LoginResult = {
     accessToken: "access-token",
@@ -1018,7 +1100,8 @@ function setupAuthController() {
     refreshExpiresInSeconds: 2_592_000
   };
   const operatorLogin = vi.fn().mockResolvedValue(result);
-  const authService = { operatorLogin } as unknown as AuthService;
+  const employeeLogin = vi.fn().mockResolvedValue({ ...result, role: "DRIVER" });
+  const authService = { operatorLogin, employeeLogin } as unknown as AuthService;
   const config = parseAppConfig({
     NODE_ENV: "production",
     BETTER_AUTH_SECRET: "test-secret",
@@ -1028,16 +1111,17 @@ function setupAuthController() {
     RESEND_API_KEY: "test-resend-key"
   });
 
-  return { controller: new AuthController(authService, config), operatorLogin };
+  return { controller: new AuthController(authService, config), operatorLogin, employeeLogin };
 }
 
-function proxyRequest(ip: string, cfConnectingIp: string): Request {
+function proxyRequest(ip: string, cfConnectingIp: string, extraHeaders: Record<string, string> = {}): Request {
   return {
     ip,
     headers: {
       "cf-connecting-ip": cfConnectingIp,
       "cf-ray": "test-ray-SIN",
-      "user-agent": "vitest"
+      "user-agent": "vitest",
+      ...extraHeaders
     }
   } as unknown as Request;
 }

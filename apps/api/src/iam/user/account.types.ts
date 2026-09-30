@@ -10,6 +10,15 @@ export type AccountRequestContext = {
   userAgent?: string;
 };
 
+/**
+ * Username Employee = `nv.` + phần Owner đặt; Owner cấm tiền tố này (ADR-017 amend 28/09/2026).
+ * Hai cổng login tách theo bảng account, tiền tố cho người dùng/FE biết account thuộc cổng nào.
+ * DB CHECK `employee_accounts_username_employee_prefix` / `operator_accounts_username_not_employee_prefix`
+ * giữ cùng quy tắc.
+ */
+export const EMPLOYEE_USERNAME_PREFIX = "nv.";
+export const EMPLOYEE_USERNAME_PATTERN = /^nv\.[a-z0-9._-]{2,61}$/;
+
 export type ProvisionOperatorOwnerInput = {
   /** OPR-001 có thể truyền id của hồ sơ KYC đã duyệt; bỏ trống thì service sinh UUID. */
   operatorId?: string;

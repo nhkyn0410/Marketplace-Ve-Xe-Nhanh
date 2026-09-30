@@ -1,12 +1,14 @@
 import { createZodDto } from "nestjs-zod";
 import { z } from "zod";
+import { EMPLOYEE_USERNAME_PATTERN } from "../account.types";
 
 const UsernameSchema = z
   .string()
   .trim()
-  .min(3)
-  .max(64)
-  .regex(/^[A-Za-z0-9._-]+$/, "Username chỉ gồm chữ, số, dấu chấm, gạch dưới hoặc gạch ngang.");
+  .regex(
+    EMPLOYEE_USERNAME_PATTERN,
+    "Username nhân viên phải là `nv.` + 2–61 ký tự thường (chữ, số, dấu chấm, gạch dưới, gạch ngang).",
+  );
 const ContactEmailSchema = z.email().transform((email) => email.toLowerCase());
 const EmployeeRoleSchema = z.enum(["DRIVER", "TICKET_STAFF", "SUPPORT_STAFF"]);
 const AccountStatusSchema = z.enum(["ACTIVE", "LOCKED", "DISABLED"]);

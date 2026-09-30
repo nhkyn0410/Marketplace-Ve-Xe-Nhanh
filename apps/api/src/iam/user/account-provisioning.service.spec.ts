@@ -242,6 +242,9 @@ describe("AccountProvisioningService", () => {
   it.each([
     { operatorSlug: "platform" },
     { ownerUsername: "bad/name" },
+    // Tiền tố `nv.` dành riêng cho Employee (ADR-017 amend 28/09/2026), mọi kiểu hoa/thường.
+    { ownerUsername: "nv.boss" },
+    { ownerUsername: "NV.Boss" },
     { contactEmail: "first@example.com,second@example.com" },
   ])("rejects invalid internal provision input before audit", async (override) => {
     const ctx = setup();

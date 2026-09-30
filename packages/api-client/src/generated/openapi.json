@@ -325,11 +325,85 @@
         },
         "responses": {
           "200": {
-            "description": "Login Operator/Employee; role bắt buộc MFA nhận challenge thay vì token.",
+            "description": "Login Operator Owner (chỉ account Owner); role bắt buộc MFA nhận challenge thay vì token.",
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/CredentialLoginResponseDto_Output"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sai thông tin đăng nhập.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Tài khoản bị khóa.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/v1/auth/employee/login": {
+      "post": {
+        "operationId": "AuthController_employeeLogin",
+        "parameters": [
+          {
+            "name": "X-Auth-Transport",
+            "in": "header",
+            "description": "Chỉ nhận `bearer` (mặc định khi bỏ trống); giá trị khác → 400 AUTH_TRANSPORT_INVALID.",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "bearer"
+              ]
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CredentialLoginDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Login Employee (chỉ account Employee); token trả trong JSON cho app Nhân viên.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CredentialLoginResponseDto_Output"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "X-Auth-Transport không phải bearer.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
                 }
               }
             }
@@ -2208,9 +2282,7 @@
         "properties": {
           "username": {
             "type": "string",
-            "minLength": 3,
-            "maxLength": 64,
-            "pattern": "^[A-Za-z0-9._-]+$"
+            "pattern": "^nv\\.[a-z0-9._-]{2,61}$"
           },
           "contactEmail": {
             "type": "string",
@@ -2308,9 +2380,7 @@
         "properties": {
           "username": {
             "type": "string",
-            "minLength": 3,
-            "maxLength": 64,
-            "pattern": "^[A-Za-z0-9._-]+$"
+            "pattern": "^nv\\.[a-z0-9._-]{2,61}$"
           },
           "contactEmail": {
             "type": "string",

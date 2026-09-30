@@ -51,7 +51,7 @@ describe("Employee account routes — HTTP authorization", () => {
   function account() {
     return {
       id: employeeId,
-      username: "driver-test",
+      username: "nv.driver-test",
       contactEmail: "driver@example.com",
       role: "DRIVER",
       status: "ACTIVE",
@@ -97,7 +97,7 @@ describe("Employee account routes — HTTP authorization", () => {
   }
 
   it.each([
-    ["POST", "", { username: "driver-test", contactEmail: "driver@example.com", role: "DRIVER", reason: "onboarding" }],
+    ["POST", "", { username: "nv.driver-test", contactEmail: "driver@example.com", role: "DRIVER", reason: "onboarding" }],
     ["PATCH", `/${employeeId}`, { status: "LOCKED", reason: "disciplinary lock" }],
     ["POST", `/${employeeId}/password-reset`, { reason: "security reset" }],
   ])("%s %s requires recent re-auth at the real route", async (method, path, body) => {
@@ -122,12 +122,28 @@ describe("Employee account routes — HTTP authorization", () => {
     recentReauth = true;
     const driverToken = await token("DRIVER");
     const response = await request("POST", "", driverToken, {
-      username: "driver-test",
+      username: "nv.driver-test",
       contactEmail: "driver@example.com",
       role: "DRIVER",
       reason: "onboarding",
     });
     expect(response.status).toBe(403);
     expect(response.body.code).toBe("PERMISSION_DENIED");
+  });
+
+  it.each([
+    ["POST", "", { username: "driver-test", contactEmail: "driver@example.com", role: "DRIVER", reason: "onboarding" }],
+    ["POST", "", { username: "nv.Tuan", contactEmail: "driver@example.com", role: "DRIVER", reason: "onboarding" }],
+    ["POST", "", { username: "nv.a", contactEmail: "driver@example.com", role: "DRIVER", reason: "onboarding" }],
+    ["PATCH", `/${employeeId}`, { username: "tuan", reason: "rename" }],
+  ])("%s %s từ chối username Employee không đúng dạng `nv.` + chữ thường (ADR-017 amend)", async (method, path, body) => {
+    recentReauth = true;
+    create.mockClear();
+    update.mockClear();
+    const ownerToken = await token("OPERATOR_OWNER");
+
+    expect((await request(method, path, ownerToken, body)).status).toBe(400);
+    expect(create).not.toHaveBeenCalled();
+    expect(update).not.toHaveBeenCalled();
   });
 });

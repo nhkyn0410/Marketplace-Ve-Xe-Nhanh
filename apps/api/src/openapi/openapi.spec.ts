@@ -27,6 +27,7 @@ describe("OpenAPI generation", () => {
         "/v1/auth/otp/verify",
         "/v1/auth/oauth/{provider}",
         "/v1/auth/operator/login",
+        "/v1/auth/employee/login",
         "/v1/auth/platform/login",
         "/v1/auth/refresh",
         "/v1/auth/logout",
@@ -60,6 +61,7 @@ describe("OpenAPI generation", () => {
         "/v1/auth/otp/verify",
         "/v1/auth/oauth/{provider}",
         "/v1/auth/operator/login",
+        "/v1/auth/employee/login",
         "/v1/auth/platform/login",
         "/v1/auth/refresh",
         "/v1/auth/re-auth",
@@ -124,6 +126,7 @@ describe("OpenAPI generation", () => {
         | undefined;
       for (const path of [
         "/v1/auth/operator/login",
+        "/v1/auth/employee/login",
         "/v1/auth/platform/login",
       ]) {
         const ref = (
