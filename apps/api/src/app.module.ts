@@ -10,6 +10,7 @@ import { MongoAuditModule } from "./database/mongo-audit.module";
 import { IamModule } from "./iam/iam.module";
 import { QueueModule } from "./queue/queue.module";
 import { CatalogModule } from "./catalog/catalog.module";
+import { VehicleModule } from "./vehicle/vehicle.module";
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { CatalogModule } from "./catalog/catalog.module";
     QueueModule,
     IamModule,
     CatalogModule,
+    VehicleModule,
   ],
   controllers: [AppController],
   providers: [{ provide: APP_INTERCEPTOR, useClass: ZodSerializerInterceptor }],
