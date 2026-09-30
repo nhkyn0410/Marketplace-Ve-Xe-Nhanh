@@ -146,11 +146,11 @@ Lấy task từ **`doc/SDLC/11-project-task-breakdown.md`** theo thứ tự depe
 ### 6.5. Trạng thái hiện tại — Build phase (cập nhật 02/06/2026)
 
 - **Tech roadmap: 19/19 layer CHỐT** (27 ADR, file 10). Stack đầy đủ ở §2 + `AGENTS.md`.
-- **SDLC: 12 doc (00-12) đồng bộ stack** — **10/13 Approved** (00a, SRS, HLD, LLD, DB, API, Security, Deploy, ADR, Task); **06 UI = Review** (23/09/2026 viết lại §6 Passenger theo Figma, mở UX-OQ-06..09); **08 Test + 12 Release** còn Draft. Doc nền (HLD/DB/LLD/API/Security) đã Approved → **doc-gate code nền ✓** (chỉ Khanh promote — Status là định danh doc, không dùng số version).
+- **SDLC: 12 doc (00-12) đồng bộ stack** — **3/13 Approved** (00a, Deploy, ADR); **8 Review**: SRS, HLD, LLD, DB, API, Security, Task hạ Approved → Review ngày 29/09/2026 để Khanh duyệt phần bổ sung Loyalty VXN Plus / ví voucher / bài viết (đóng UX-OQ-06/08), 06 UI Review từ 23/09 (còn UX-OQ-07/09); **08 Test + 12 Release** còn Draft. Doc nền (HLD/DB/LLD/API/Security) đang **Review** → doc-gate code nền chờ Khanh promote lại (chỉ Khanh promote — Status là định danh doc, không dùng số version).
 - **Coding infra đã cài**: `AGENTS.md` (brief) + `.claude/agents/` (15 subagent) + `.claude/skills/karpathy-guidelines/`.
 - **2 production-blocker** (không chặn MVP/dev): OQ-21 (KYC storage), OQ-22 (TGTT).
 
-**Bắt đầu code** — gate: doc nền (HLD/DB/LLD/API/Security) **✓ Approved**; còn lại = mở ~11 tài khoản dịch vụ + `TASK-FND-001..008` (11 Task §7.1: monorepo Turborepo → Render+CI → Prisma+Postgres+Mongo+RLS → BullMQ worker → Zod env → Pino+Sentry → audit → OpenAPI gen).
+**Bắt đầu code** — gate: doc nền (HLD/DB/LLD/API/Security) **Review từ 29/09/2026** (chờ Khanh promote lại); còn lại = mở ~11 tài khoản dịch vụ + `TASK-FND-001..008` (11 Task §7.1: monorepo Turborepo → Render+CI → Prisma+Postgres+Mongo+RLS → BullMQ worker → Zod env → Pino+Sentry → audit → OpenAPI gen).
 
 > Lịch sử sprint: `doc/context/archive/SPRINT-LOG.md`.
 

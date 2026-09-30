@@ -13,7 +13,7 @@
 | Người viết    | Nguyễn Hồng Khanh, AI Agent        |
 | Người duyệt   | Nguyễn Hồng Khanh                |
 | Ngày tạo      | 11/05/2026                       |
-| Ngày cập nhật | 28/09/2026                       |
+| Ngày cập nhật | 30/09/2026                       |
 
 ### 1.2. Lịch sử thay đổi
 
@@ -23,6 +23,8 @@
 | v0.2      | 01/06/2026 | AI Agent       | **Sprint 4 Rework** — bake **ADR-025** test framework (Vitest + Supertest + Playwright + Maestro) + stack ADR. §4 strategy map tool cụ thể; §6 môi trường Postgres/Mongo Testcontainers + VNPay/MoMo sandbox; §8/§9 thêm mandatory test money BIGINT/idempotency dedup/tenant RLS/webhook HMAC/OAuth (ADR-009/011/015/017/019). Đóng TEST-OQ-02 (sandbox VNPay+MoMo+Resend+Expo per ADR-019/020); refine TEST-OQ-01. |
 | v0.3      | 25/09/2026 | AI Agent       | **TASK-OQ-05 / TASK-IAM-006:** thêm acceptance + Supertest/Playwright cho dual transport, cookie flags, CSRF/CORS, `/auth/me`, first-login/TOTP, refresh single-flight và hồi quy Mobile JSON/Bearer. Giữ trạng thái Draft. |
 | v0.4      | 28/09/2026 | AI Agent       | **ADR-017 amend / TASK-IAM-006 (Khanh chốt 28/09):** thêm TC-SEC-009..011 cho tách cổng Owner/Employee, cổng Employee chỉ Bearer, CHECK tiền tố `nv.` và migration đổi tên. Giữ trạng thái Draft. |
+| v0.5      | 29/09/2026 | AI Agent       | **Loyalty VXN Plus / ví voucher / bài viết (Khanh chốt 29/09/2026, SRS v1.21):** §5 scope Loyalty / Content; §7 truy vết `FR-LOY-*`, `FR-PROM-08..10`; §8 AC; §9 `TC-LOY-001..007`, `TC-CNT-001` (loyalty ledger / voucher vào nhóm bắt buộc money + idempotency). |
+| v0.6      | 30/09/2026 | AI Agent       | **A2 — đăng ký nhà xe theo closed enrollment (Khanh duyệt 30/09/2026, SRS v1.23)**: thêm `TC-OPR-001..003` (link bảo mật, duyệt hồ sơ tạo đúng một Operator + Owner, form công khai không lộ email). |
 
 ---
 
@@ -75,6 +77,8 @@ Tài liệu này mô tả chiến lược kiểm thử, tiêu chí nghiệm thu 
 | Admin | KYC approval, policy, payment/refund, payout confirm, dispute, audit | Cao |
 | Notification | Fan-out email/push/sms-noop, delivery retry, preference | Trung bình |
 | Reporting | Dashboard, filter, async export | Trung bình |
+| Loyalty / ví voucher | Tích điểm, hạng, đổi điểm, hết hạn, voucher giữ / dùng / trả, phần giảm Platform chịu | Rất cao |
+| Content | Bài viết CRUD / xuất bản, đọc công khai, sanitize | Thấp |
 
 ---
 
@@ -102,6 +106,9 @@ Tài liệu này mô tả chiến lược kiểm thử, tiêu chí nghiệm thu 
 | FR-ADM-* | Admin Playwright/Supertest/security/audit |
 | FR-NSR-* | Notification/support/review/reporting Vitest |
 | FR-DSP-* | Dispute state machine Vitest |
+| FR-LOY-* | Sổ điểm / đổi điểm / hết hạn Vitest integration (money + idempotency bắt buộc); màn VXN Plus Playwright + Maestro |
+| FR-PROM-08..10 | Ví voucher Vitest / Supertest; chọn voucher ở checkout Playwright |
+| FR-MKT-14, FR-ADM-18..19 | Bài viết Supertest (public chỉ `PUBLISHED`) + sanitize |
 | NFR-* | Performance, security (RLS/IDOR), availability, privacy |
 
 ---
@@ -121,12 +128,14 @@ Tài liệu này mô tả chiến lược kiểm thử, tiêu chí nghiệm thu 
 | Admin | Admin xử lý KYC/refund/dispute/payout có re-auth/TOTP/audit với quyền phù hợp. |
 | Notification | Ticket vẫn xem được dù email/push thất bại; delivery retry ghi nhận (BullMQ DLQ). |
 | Reporting | Báo cáo lớn không làm chậm luồng booking/payment/check-in chính. |
+| Loyalty | Điểm cộng đúng một lần khi chuyến `COMPLETED`; đổi điểm không âm số dư, không tạo voucher trùng; escrow Operator không bị giảm bởi voucher đổi điểm, phần Platform chịu khớp ledger. |
+| Content | Chỉ bài `PUBLISHED` hiển thị công khai; nội dung chứa script không chạy. |
 
 ---
 
 ## 9. Test case nháp trọng yếu
 
-Mandatory (rủi ro cao, ADR-025): money math, idempotency, tenant RLS, seat-hold race, webhook HMAC.
+Mandatory (rủi ro cao, ADR-025): money math, idempotency, tenant RLS, seat-hold race, webhook HMAC; loyalty ledger + voucher thuộc nhóm money / idempotency.
 
 | ID | Test case | Loại test | Ưu tiên |
 | -- | --------- | --------- | ------- |
@@ -152,6 +161,17 @@ Mandatory (rủi ro cao, ADR-025): money math, idempotency, tenant RLS, seat-hol
 | TC-EMP-001 | Employee check-in ticket hợp lệ được phân công (Maestro) | E2E | Cao |
 | TC-EMP-002 | Employee không check-in chuyến ngoài assignment | Security | Cao |
 | TC-ADM-001 | Admin refund/payout thủ công yêu cầu re-auth/TOTP + audit | E2E/Security | Cao |
+| TC-LOY-001 | Trip `COMPLETED` cộng `EARN` đúng công thức BR-66 (Decimal, làm tròn xuống); event trùng không cộng lần hai; booking Guest không cộng | Integration | Rất cao |
+| TC-LOY-002 | Hai request đổi điểm song song vượt số dư → chỉ một thành công; cùng `Idempotency-Key` → cùng voucher; số dư không âm | Integration/Concurrency | Rất cao |
+| TC-LOY-003 | Booking dùng voucher đổi điểm: escrow Operator + commission tính trên giá trước giảm; entry `PLATFORM_FUNDED_DISCOUNT` khớp; hoàn vé đảo phần Platform chịu theo tỷ lệ | Integration (money) | Rất cao |
+| TC-LOY-004 | Voucher `RESERVED → USED` khi payment `SUCCESS`; booking `EXPIRED` / fail → `AVAILABLE`; không giữ được cho booking thứ hai; voucher của User khác bị từ chối | Integration/Security | Rất cao |
+| TC-LOY-005 | Job hết hạn điểm theo FIFO; chạy hai lần cùng ngày không trừ thêm | Integration | Cao |
+| TC-LOY-006 | Hoàn ticket đã tích điểm → `REVERSAL`, số dư không âm | Integration | Cao |
+| TC-LOY-007 | Scope `tenant` không đọc / ghi được `loyalty_accounts`, `loyalty_point_transactions`, `user_vouchers` (RLS) | Security | Cao |
+| TC-CNT-001 | Bài `DRAFT` / `ARCHIVED` không trả qua API công khai; nội dung chứa `<script>` bị loại khi render | Security/E2E | Cao |
+| TC-OPR-001 | Link hồ sơ nhà xe: token sai / hết hạn / đã thu hồi → `OPERATOR_APPLICATION_LINK_INVALID`; token hồ sơ A không đọc được hồ sơ B; sửa hồ sơ `SUBMITTED` bị chặn; link hết hiệu lực sau `APPROVED` / `REJECTED` | Security | Rất cao |
+| TC-OPR-002 | Duyệt hồ sơ gửi lặp (cùng `Idempotency-Key` và khác key) chỉ tạo một Operator + một Owner; slug trùng → `OPERATOR_SLUG_CONFLICT`, không tạo gì; giấy tờ và tài khoản nhận tiền sang đúng tenant (RLS) | Integration | Rất cao |
+| TC-OPR-003 | `POST /operator-applications` và gửi lại link trả cùng `202` cho email có / chưa có hồ sơ; vượt rate limit bị chặn | Security | Cao |
 
 ---
 

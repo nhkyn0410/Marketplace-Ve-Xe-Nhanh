@@ -9,11 +9,11 @@
 | Tên tài liệu  | Database Design             |
 | Mã tài liệu   | 04-database-design          |
 | Dự án         | Marketplace-Ve-Xe-Nhanh     |
-| Trạng thái    | Approved                    |
+| Trạng thái    | Review                      |
 | Người viết    | Nguyễn Hồng Khanh, AI Agent |
 | Người duyệt   | Nguyễn Hồng Khanh           |
 | Ngày tạo      | 11/05/2026                  |
-| Ngày cập nhật | 28/09/2026                  |
+| Ngày cập nhật | 30/09/2026                  |
 
 ### 1.2. Lịch sử thay đổi
 
@@ -25,6 +25,8 @@
 | v0.7      | 19/09/2026 | AI Agent       | **TASK-IAM-004 (MFA TOTP)**: thêm `mfa_credentials` (secret TOTP chỉ lưu AES-256-GCM, `last_totp_counter` chống replay, unique `(subject_type, subject_id)`, CHECK không cho `PASSENGER`) + `mfa_backup_codes` (chỉ hash SHA-256, `used_at` single-use, unique `(credential_id, code_hash)`) — cả hai **RLS chỉ cho ngữ cảnh `system`** (xoá được credential = login sau quay về enrollment chỉ bằng mật khẩu); thêm `auth_sessions.mfa_verified_at` và giá trị `MFA_REQUIRED` cho `SessionRevokeReason`. §5 + §7. |
 | v0.8      | 22/09/2026 | AI Agent       | **TASK-IAM-005 Q3/Q4/Q6/Q8:** `operator_accounts` và `employee_accounts` thêm contact email, cờ đổi mật khẩu lần đầu, hạn mật khẩu tạm và `auth_epoch`; legacy không bị force-change. `auth_sessions.auth_epoch` chụp phiên bản lúc phát, guard so lại trên mỗi request nội bộ để chặn session cũ khi Redis post-revoke lỗi. `operator_login_names` khóa unique `(operator_id, username)` xuyên Owner/Employee, trigger giữ registry và RLS `ENABLE+FORCE`; `operatorSlug` immutable và Owner có compound FK `(operator_id, operator_slug)`. Migration kiểm collision/backfill trước khi thêm constraint. |
 | v0.11     | 28/09/2026 | AI Agent       | **ADR-017 amend / TASK-IAM-006 (Khanh chốt 28/09):** §7 thêm CHECK tiền tố username — Employee bắt buộc `nv.` + `[a-z0-9._-]{2,61}`, Owner cấm `nv.` (không phân biệt hoa/thường); ghi chú migration đổi tên Employee hiện có và ba điều kiện dừng (Owner dùng `nv.`, quá 64 ký tự, trùng sau khi đổi). Registry `operator_login_names` không đổi. |
+| v0.12     | 29/09/2026 | AI Agent       | **Loyalty VXN Plus / ví voucher / bài viết (Khanh chốt 29/09/2026, SRS v1.21):** §5.2 thêm `loyalty_accounts`, `loyalty_point_transactions`, `user_vouchers`, `articles`, `article_categories`; §6 ERD; §7 unique / CHECK / index + RLS cấp Platform; §8 transaction đổi điểm / cộng điểm / voucher + entry `PLATFORM_FUNDED_DISCOUNT`; §9 retention; §10 `DB-MIG-07` seed. Trạng thái Approved → **Review**. |
+| v0.13     | 30/09/2026 | AI Agent       | **A2 — đăng ký nhà xe theo closed enrollment (Khanh duyệt 30/09/2026, SRS v1.23)**: §5.2 thêm `operator_applications`, `operator_application_documents`, `operator_application_access_tokens` (cấp Platform, chưa có tenant); §6 ERD; §7 unique / index / RLS; §8 transaction duyệt hồ sơ gọi `provisionOperatorOwner`; §9 retention. Giữ trạng thái Review. |
 | v0.10     | 26/09/2026 | AI Agent       | **TASK-TRN-002** (Khanh duyệt Q1–Q8): thêm `stop_point_proposals`; ràng buộc `stop_points`, `routes`, `route_stops` (nguồn điểm XOR, sequence unique, FK ghép tenant) và RLS đề xuất khoá state machine phía tenant. §5.2 + §7. |
 | v0.9      | 25/09/2026 | AI Agent       | **TASK-CAT-001 + TASK-TRN-001** (Khanh duyệt Q): catalog 5 bảng không `operator_id`, RLS đọc tự do / ghi chỉ platform-system, FK ghép phường–tỉnh; Transport thêm bảng nối `vehicle_amenities`; `vehicles`/`seats` dùng FK ghép `(…, operator_id)` chặn gắn chéo tenant; seat map unique tên trong tenant, ghế unique mã + vị trí. §5.2 + §7. |
 | v0.6      | 18/09/2026 | AI Agent       | **DB-PRIN-01** khớp hiện thực TASK-IAM-003: policy so **text** (id tenant là uuid chuỗi, bản cũ ghi `::bigint` sai kiểu), hàm `app_rls_allows()` đọc GUC `app.scope` (`tenant`/`platform`/`system`, không set → 0 row); app chạy bằng role riêng không superuser/BYPASSRLS, migrate/seed bằng owner qua `MIGRATION_DATABASE_URL`. RLS bật trên `operator_accounts`, `employee_accounts` (tenant đọc/ghi), `auth_sessions` (tenant chỉ đọc, `system` ghi), `operator_profiles` (ai cũng đọc, platform/system ghi); FK account → `operator_profiles` đổi sang RESTRICT. |
@@ -101,12 +103,14 @@ Tài liệu này mô tả thiết kế dữ liệu mức database cho hệ thố
 | Nhóm                                   | Bảng dự kiến (snake_case)                                                                                        | Chủ sở hữu module (target)                                         | Ghi chú                                                                                                                                                                                                                                                             |
 | -------------------------------------- | ---------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Identity                               | `users`, `operator_accounts`, `employee_accounts`, `operator_login_names`, `platform_accounts`, `auth_sessions`, `mfa_credentials`, `mfa_backup_codes` | `iam/` (auth, user, session, role)                                 | 3 namespace identity (Passenger Email / Operator `{slug}/{username}` / Platform `platform/{username}`), Account-separate (ADR-017). RBAC 8-role = enum hardcoded v1 (chưa cần bảng `permissions`). `auth_sessions` giữ opaque refresh token 30d (rotation + family) |
-| Operator KYC                           | `operator_profiles`, `kyc_documents`, `bank_accounts`, `operator_status_histories`                               | `operator/`, `operator-kyc/`                                       | `kyc_documents` chỉ lưu metadata + R2 object key; file ở R2 private bucket (ADR-018). `bank_accounts` verified phục vụ payout (OQ-19)                                                                                                                               |
+| Operator KYC                           | `operator_applications`, `operator_application_documents`, `operator_application_access_tokens`, `operator_profiles`, `kyc_documents`, `bank_accounts`, `operator_status_histories`                               | `operator/`, `operator-kyc/`                                       | Hồ sơ đăng ký (`operator_applications*`) là dữ liệu cấp Platform **chưa có** `operator_id`; khi duyệt mới tạo `operator_profiles` + Owner và chép giấy tờ / tài khoản nhận tiền sang tenant (BR-75). `kyc_documents` chỉ lưu metadata + R2 object key; file ở R2 private bucket (ADR-018). `bank_accounts` verified phục vụ payout (OQ-19)                                                                                                                               |
 | Catalog                                | `provinces`, `wards`, `stop_points_catalog`, `vehicle_types`, `amenities`, `content_pages`                       | `catalog/`                                                         | Dữ liệu chuẩn Platform, KHÔNG `operator_id`; `stop_points_catalog` tách khỏi `stop_points` Operator-owned                                                                                                                                                           |
 | Transport Resource                     | `vehicles`, `vehicle_amenities`, `seat_maps`, `seats`, `routes`, `route_stops`, `stop_points`, `stop_point_proposals` | `vehicle/`, `route/`, `stop-point/`                                | Operator-owned, BẮT BUỘC `operator_id` + RLS. Seat layout config dùng `JSONB`. Toạ độ stop-point cache distance/duration Goong (ADR-027)                                                                                                                            |
 | Trip & Inventory                       | `trips`, `trip_stops`, `trip_seats`, `fares`, `fare_rules`                                                       | `trip/`, `fare/`, `seat-hold/`                                     | SeatHold = Redis (ADR-015), không bảng v1. Fare collection riêng, snapshot vào booking (OQ-08)                                                                                                                                                                      |
 | Booking & Ticket                       | `bookings`, `passenger_infos`, `tickets`, `ticket_qr_tokens`, `booking_status_histories`                         | `booking/`, `ticket/`                                              | Booking snapshot bắt buộc (fare, policy, promotion). QR token lưu hash, không plaintext                                                                                                                                                                             |
-| Promotion                              | `promotions`, `promotion_rules`, `promotion_redemptions`, `promotion_usage_limits`                               | `promotion/`                                                       | PromotionRedemption snapshot vào booking                                                                                                                                                                                                                            |
+| Promotion                              | `promotions`, `promotion_rules`, `promotion_redemptions`, `promotion_usage_limits`, `user_vouchers` | `promotion/` | PromotionRedemption snapshot vào booking. `user_vouchers` = ví voucher của User (nguồn `LOYALTY_REDEMPTION` giá trị cố định VND hoặc `SAVED_PROMOTION` tham chiếu promotion); không `operator_id` |
+| Loyalty                                | `loyalty_accounts`, `loyalty_point_transactions` | `loyalty/` | Cấp Platform, KHÔNG `operator_id`. Sổ điểm append-only; `loyalty_accounts.available_points` là số dư cache cập nhật cùng transaction. Hạng = enum `membership_tier`; mốc / hệ số / tỷ lệ lưu `policy_versions` loại `LOYALTY` (`JSONB`, Zod) |
+| Content                                | `articles`, `article_categories` | `content/` | Dữ liệu Platform, KHÔNG `operator_id`; nội dung Markdown; ảnh bìa = R2 object key bucket public (ADR-018). `content_pages` (catalog) giữ nguyên cho trang tĩnh |
 | Payment / Escrow / Payout / Commission | `payments`, `refunds`, `escrow_ledgers`, `commission_rules`, `payouts`, `payout_items`, `reconciliation_records` | `payment/`, `refund/`, `escrow/`, `payout/`, `commission/`         | Idempotency dedup `(provider, provider_txn_id)` (ADR-019). EscrowLedger append-only in-house (ADR-005). Commission mặc định 5% + override (OQ-18). Payout T+3 manual confirm (OQ-16, ADR-022). Amount = `BIGINT`                                                    |
 | Operation                              | `employee_assignments`, `manifests`, `check_in_events`, `journey_logs`, `incident_reports`                       | `employee/`, `manifest/`, `check-in/`, `journey-log/`, `incident/` | Mobile offline/sync cần version/conflict field (employee_mobile, ADR-028)                                                                                                                                                                                           |
 | Support & Trust                        | `support_tickets`, `complaints`, `reviews`, `dispute_cases`, `attachments`, `operator_scorecards`                | `support/`, `complaint/`, `review/`, `dispute/`, `scorecard/`      | `attachments` lưu metadata + R2 object key (ADR-018); DisputeCase final-arbiter Admin (MQ-03)                                                                                                                                                                       |
@@ -147,6 +151,16 @@ erDiagram
     ESCROW_LEDGER ||--o{ PAYOUT_ITEM : settles
     BOOKING ||--o{ SUPPORT_TICKET : references
     SUPPORT_TICKET ||--o{ DISPUTE_CASE : escalates
+    USER ||--|| LOYALTY_ACCOUNT : has
+    LOYALTY_ACCOUNT ||--o{ POINT_TRANSACTION : records
+    USER ||--o{ USER_VOUCHER : owns
+    POINT_TRANSACTION |o--o| USER_VOUCHER : redeems_into
+    PROMOTION |o--o{ USER_VOUCHER : saved_as
+    USER_VOUCHER |o--o| BOOKING : applied_to
+    ARTICLE_CATEGORY ||--o{ ARTICLE : groups
+    OPERATOR_APPLICATION ||--o{ OPERATOR_APPLICATION_DOCUMENT : has
+    OPERATOR_APPLICATION ||--o{ OPERATOR_APPLICATION_ACCESS_TOKEN : grants
+    OPERATOR_APPLICATION |o--o| OPERATOR : approved_into
 ```
 
 > Audit (`audit_event`, `system_log`) nằm ở Mongo cluster riêng, không có quan hệ khóa ngoại với Postgres — liên kết qua giá trị snapshot (`target_type`, `target_id`, `operator_id`).
@@ -177,6 +191,13 @@ erDiagram
 | `refunds`             | unique `refund_code`, index `(payment_id, status)`                                   | Đối soát hoàn tiền                               |
 | `escrow_ledgers`      | index `(operator_id, created_at)`, `(booking_id, payment_id)`                        | Ledger và payout                                 |
 | `payouts`             | unique `(operator_id, period)`, index `status`                                       | Chống payout trùng kỳ (ADR-022)                  |
+| `loyalty_accounts`    | unique `user_id`, CHECK `available_points >= 0`, cột `version` (optimistic lock); RLS: chỉ scope `platform` / `system` (scope `tenant` bị chặn) | Một tài khoản / User; Operator không đọc loyalty |
+| `loyalty_point_transactions` | unique `idempotency_key`; index `(account_id, created_at desc)`, `(account_id, type, expires_at)`; CHECK dấu `points` theo `type` (`EARN` > 0; `REDEEM` / `EXPIRE` / `REVERSAL` < 0; `ADJUST` ≠ 0); append-only (REVOKE UPDATE/DELETE cho app role); RLS như `loyalty_accounts` | Chống cộng / đổi trùng; lịch sử điểm; job hết hạn |
+| `user_vouchers`       | partial unique `(user_id, promotion_id)` WHERE `source = SAVED_PROMOTION`; partial unique `booking_id` WHERE `booking_id IS NOT NULL`; CHECK nguồn (`LOYALTY_REDEMPTION` ⇒ `discount_amount > 0` và `promotion_id IS NULL`; `SAVED_PROMOTION` ⇒ `promotion_id` NOT NULL); CHECK `status IN (RESERVED, USED)` ⇔ `booking_id IS NOT NULL`; index `(user_id, status, expires_at)`; RLS như `loyalty_accounts` | Không lưu trùng mã; một voucher ↔ tối đa một booking |
+| `articles` / `article_categories` | `articles` unique `slug`, index `(status, published_at desc)`, `(category_id, status, published_at desc)`, CHECK `status = PUBLISHED` ⇒ `published_at` NOT NULL; `article_categories` unique `slug`; RLS đọc tự do / ghi chỉ `platform` / `system` (như catalog) | Trang Khám phá; tìm kiếm v1 dùng `ILIKE` tiêu đề / tóm tắt, thêm `pg_trgm` khi đo chậm |
+| `operator_applications` | unique `application_code`; unique `operator_id` (nullable, set khi `APPROVED`); index `(status, submitted_at)`, `contact_email`, `tax_code` (phát hiện trùng, không unique); CHECK `status = APPROVED` ⇔ `operator_id` NOT NULL; RLS chỉ scope `platform` / `system` | Hàng đợi duyệt; mỗi hồ sơ tối đa một Operator |
+| `operator_application_documents` | FK `application_id`; lưu metadata + R2 object key (private bucket), không lưu file; RLS như `operator_applications` | Giấy tờ KYC trước khi có tenant |
+| `operator_application_access_tokens` | unique `token_hash` (SHA-256, không lưu token gốc); index `(application_id, revoked_at)`; `expires_at` bắt buộc; RLS như `operator_applications` | Link bảo mật: một hồ sơ, có hạn dùng, thu hồi khi cấp link mới hoặc hồ sơ kết thúc |
 | `audit_event` (Mongo) | index `(actor_id, created_at)`, `(target_type, target_id)`, time-series `created_at` | Truy xuất audit                                  |
 
 > Mọi bảng Operator-owned (nhóm Transport, Trip, Booking, Payment...) gắn **RLS policy** theo `operator_id` ngoài unique/index trên.
@@ -191,11 +212,16 @@ erDiagram
 | ---------------- | --------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
 | SeatHold         | **Redis** `SET seat:{tripId}:{seatId}:hold {bookingId} NX EX 600` (10 phút)                               | Atomic + auto-release; verify ownership trong Lua `EVAL` lúc create booking (ADR-015) |
 | Create booking   | Postgres transaction: verify Redis hold ownership → tạo booking trong 1 boundary                          | Không tạo booking nếu hold hết hạn / đổi chủ                                          |
-| Escrow chain     | Postgres transaction + savepoint: Booking + Payment + EscrowEntry + CommissionEntry trong 1 txn (no saga) | Money correctness (ADR-011)                                                           |
+| Escrow chain     | Postgres transaction + savepoint: Booking + Payment + EscrowEntry + CommissionEntry trong 1 txn (no saga); booking có voucher đổi điểm ghi thêm entry `PLATFORM_FUNDED_DISCOUNT` + voucher `USED` + redemption cùng txn (BR-73) | Money correctness (ADR-011)                                                           |
 | Payment callback | Idempotency dedup unique `(provider, provider_txn_id)`                                                    | Không ghi tiền trùng (ADR-019, FR-BTP-08)                                             |
 | Ticket issuance  | Idempotent theo booking item / passenger / seat                                                           | Không tạo trùng ticket                                                                |
 | Refund           | Idempotency theo refund request / provider refund id                                                      | Không hoàn tiền trùng                                                                 |
 | Payout           | Ledger-based; BullMQ cron concurrency 1 + idempotent per `(operator_id, period)`                          | Chống payout trùng (ADR-016, ADR-022)                                                 |
+| Loyalty earn     | Idempotent `earn:{bookingId}` (unique) + cập nhật số dư cùng txn; `REVERSAL` theo `reversal:{refundId}`                    | Không cộng / thu hồi trùng (BR-66, BR-67)                                              |
+| Đổi điểm         | `SELECT … FOR UPDATE` `loyalty_accounts` + insert `REDEEM` + insert `user_vouchers` trong 1 txn; `Idempotency-Key` → `idempotency_key` | Không âm số dư, không tạo 2 voucher (BR-71)                                            |
+| Voucher          | Đổi trạng thái compare-and-set (`UPDATE … WHERE status = …`) cùng txn create booking / payment callback / booking expiry      | Một voucher không giữ cho hai booking (BR-72)                                          |
+| Hết hạn điểm     | BullMQ cron concurrency 1; `expire:{accountId}:{date}`                                                                        | Chạy lại không trừ thêm (BR-70)                                                        |
+| Duyệt hồ sơ nhà xe | 1 Postgres transaction: `provisionOperatorOwner` (tạo `operator_profiles` + `operator_accounts` mật khẩu tạm) + chép giấy tờ sang `kyc_documents` + tạo `bank_accounts` + set `operator_id`, `APPROVED` + thu hồi token; `Idempotency-Key`; email thông tin đăng nhập gửi sau commit | Không tạo 2 Operator cho một hồ sơ (BR-75); gửi mail lỗi → `credential_delivery_pending` (IAM-005) |
 
 ---
 
@@ -208,6 +234,9 @@ erDiagram
 | KYC document / attachment                | File ở R2 private bucket; DB giữ metadata. Lưu theo quy định pháp lý + hợp đồng; production location → OQ-21 |
 | Notification delivery                    | Lưu trạng thái gửi (Postgres) + delivery audit (`system_log` Mongo); retention TBD                           |
 | Session                                  | `auth_sessions` có TTL/revoke; archive login history tùy chọn                                                |
+| Loyalty (sổ điểm, voucher)               | Không xóa cứng; giao dịch điểm append-only; voucher hết hạn giữ trạng thái `EXPIRED` để đối soát |
+| Bài viết                                 | `ARCHIVED` thay cho xóa; ảnh R2 public giữ theo bài |
+| Hồ sơ đăng ký nhà xe                     | Không xóa cứng; hồ sơ `REJECTED` và giấy tờ giữ theo retention KYC (DB-OQ-06, OQ-21); token hết hạn có thể dọn định kỳ |
 
 ---
 
@@ -221,6 +250,7 @@ erDiagram
 | DB-MIG-04 | Seed catalog tối thiểu: tỉnh/thành, ward, stop point mẫu, vehicle type, first Platform account.                                                   |
 | DB-MIG-05 | **Fresh build** — không backfill từ codebase legacy (Phương án A, `PROJECT-STATE §2`); không có dữ liệu cũ để migrate.                            |
 | DB-MIG-06 | Kiểm rollback cho migration enum/index/RLS quan trọng.                                                                                            |
+| DB-MIG-07 | Seed `policy_versions` loại `LOYALTY` phiên bản đầu (giá trị theo `LLD-OQ-06`), `loyalty_accounts` cho User hiện có, chuyên mục bài viết mặc định (Tin tức, Cẩm nang, Khuyến mãi, Mẹo du lịch, VXN). |
 
 ---
 

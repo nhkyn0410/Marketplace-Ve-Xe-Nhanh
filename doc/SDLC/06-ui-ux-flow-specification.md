@@ -13,7 +13,7 @@
 | Người viết    | Nguyễn Hồng Khanh, AI Agent |
 | Người duyệt   | Nguyễn Hồng Khanh           |
 | Ngày tạo      | 11/05/2026                  |
-| Ngày cập nhật | 28/09/2026                  |
+| Ngày cập nhật | 30/09/2026                  |
 
 ### 1.2. Lịch sử thay đổi
 
@@ -25,6 +25,10 @@
 | v0.4      | 23/09/2026 | AI Agent       | **Viết lại §6 Passenger/Guest theo Figma** (section _Giao diện dành cho Khách hàng_, 24 frame): §6.1 danh mục 35 màn `SCR-PSG-NN` (24 Review = có frame; 11 Draft = AI bổ sung); §6.2 luồng; §6.3 mỗi màn 1 bảng 5 trạng thái (Ideal / Empty / Loading / Partial-Edge / Error) đánh dấu Review/Draft; §10.1 thêm quy tắc 5 Key UI States áp cho mọi màn §6–§9; §6.4 8 điểm Figma lệch ADR/SRS (auth mật khẩu, phương thức thanh toán, hold 15', bản đồ OSM, SMS, copy hoàn/đổi vé, loyalty, add-on). §5 IA Passenger theo nav Figma. §11 mở UX-OQ-06..09. Trạng thái doc Approved → **Review** (còn OQ ảnh hưởng code, 00a §3.2). §7–§9 chưa đổi. |
 | v0.5      | 25/09/2026 | AI Agent       | **TASK-IAM-006:** bổ sung §7/§9 state machine đăng nhập web, first-login đổi mật khẩu, TOTP, bootstrap cookie session, refresh single-flight và logout. Giữ trạng thái Review. |
 | v0.6      | 28/09/2026 | AI Agent       | **ADR-017 amend / TASK-IAM-006 (Khanh chốt 28/09):** §4 Operator OS chỉ còn Owner; §7 login chỉ Owner, FE nhận ra username `nv.` và chỉ sang app Nhân viên, shell chỉ render khi `/auth/me` là `OPERATOR_OWNER`; form Employee có tiền tố cố định `nv.`; §8 Employee login `{slug}/nv.{…}` qua `/auth/employee/login`. Giữ trạng thái Review. |
+| v0.7      | 29/09/2026 | AI Agent | **Loyalty VXN Plus / ví voucher / bài viết (Khanh chốt 29/09/2026, SRS v1.21) — đóng UX-OQ-06, UX-OQ-08:** §5 nav Thành viên + menu Ví voucher / Lịch sử điểm, Admin thêm Loyalty / Articles; §6.1 SCR-PSG-02, 33–35 vào phạm vi, thêm SCR-PSG-36 (Ví voucher) và SCR-PSG-37 (Chi tiết bài viết); §6.2 luồng VXN Plus và Khám phá; §6.3 viết đủ 5 trạng thái cho 33–37; §6.4 #7 đổi thành lệch "giảm giá / ưu tiên CSKH theo hạng" (v1 chỉ hệ số điểm); §9 Admin Loyalty + Bài viết. Giữ trạng thái Review. |
+| v0.8      | 29/09/2026 | AI Agent | SRS v1.22 tách use case: §9 Admin dòng Loyalty → `UC-39`, dòng Bài viết → `UC-40` (SCR-PSG-02/37 vẫn là `UC-38` đọc bài). Giữ trạng thái Review. |
+| v0.9      | 30/09/2026 | AI Agent | **A2 — đăng ký nhà xe theo closed enrollment (Khanh duyệt 30/09/2026, SRS v1.23)**: §7 dòng đăng ký nhà xe là trang công khai + link bảo mật, không cần đăng nhập; §9 Admin duyệt hồ sơ nhập slug + username Owner. Giữ trạng thái Review. |
+| v0.10     | 30/09/2026 | AI Agent | §6.4 #1: ghi nhận SRS v1.25 đã đồng bộ xác thực hành khách (email OTP + OAuth, không mật khẩu); Figma vẫn cần sửa. Giữ trạng thái Review. |
 
 ---
 
@@ -68,10 +72,10 @@ Web = Next.js 16 (ADR-013); Mobile = Flutter 2 app tách (ADR-028).
 
 | Portal                | Nhóm navigation chính                                                                                                                |
 | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
-| Marketplace/Passenger | Nav theo Figma: Khám phá, Trang chủ, Mua vé, Dịch vụ bổ trợ ⚠, Hành trình (vé của tôi), Thành viên ⚠, Tra cứu vé, Khiếu nại, Câu hỏi thường gặp. Menu tài khoản: Hồ sơ, Hành khách đã lưu, Bảo mật, Thông báo, Đánh giá của tôi, Hỗ trợ. ⚠ = chờ UX-OQ-06/07 |
+| Marketplace/Passenger | Nav theo Figma: Khám phá, Trang chủ, Mua vé, Dịch vụ bổ trợ ⚠, Hành trình (vé của tôi), Thành viên (VXN Plus), Tra cứu vé, Khiếu nại, Câu hỏi thường gặp. Menu tài khoản: Hồ sơ, Hành khách đã lưu, Ví voucher, Lịch sử điểm, Bảo mật, Thông báo, Đánh giá của tôi, Hỗ trợ. ⚠ = chờ UX-OQ-07 |
 | Operator OS           | Dashboard, Profile/KYC, Vehicles, Seat maps, Routes, Trips, Bookings, Employees, Finance (escrow/payout), Reports, Support           |
 | Employee              | Assigned trips, Passenger list, QR scan, Trip status, Journey log, Incidents, Profile                                                |
-| Admin                 | Dashboard, Operators/KYC, Passengers, Catalog, Policy, Payments/Refunds, Payouts, Disputes, Promotions, Reports, Audit, Integrations |
+| Admin                 | Dashboard, Operators/KYC, Passengers, Catalog, Policy, Payments/Refunds, Payouts, Disputes, Promotions, Loyalty, Articles, Reports, Audit, Integrations |
 
 ---
 
@@ -93,7 +97,8 @@ Quy ước cột **Thiết kế**:
 | ---------- | ----------------------------------------------------------------- | ----------- | -------- | ------------------------------ |
 | **Chung**  |                                                                   |             |          |                                |
 | SCR-PSG-01 | Trang chủ (form tìm chuyến)                                       | `373:588`   | Review   | FR-MKT-01                      |
-| SCR-PSG-02 | Khám phá — cẩm nang & tin tức                                     | `384:3031`  | Review ⚠ | FR-ADM-13, UX-OQ-08            |
+| SCR-PSG-02 | Khám phá — cẩm nang & tin tức                                     | `384:3031`  | Review   | FR-MKT-14, UC-38               |
+| SCR-PSG-37 | Chi tiết bài viết                                                 | —           | Draft    | FR-MKT-14, UC-38               |
 | SCR-PSG-03 | Câu hỏi thường gặp                                                | `385:16931` | Review   | FR-ADM-13                      |
 | SCR-PSG-04 | Dịch vụ bổ trợ (frame còn skeleton TODO)                          | `383:598`   | Review ⚠ | UX-OQ-07                       |
 | SCR-PSG-05 | Trang lỗi 404 / 403 / 500 / 503                                   | —           | Draft    | §10, ADR-015                   |
@@ -112,7 +117,7 @@ Quy ước cột **Thiết kế**:
 | SCR-PSG-16 | Chi tiết chuyến                                                   | `385:5411`  | Review ⚠ | FR-MKT-05, ADR-027             |
 | SCR-PSG-17 | Trang nhà xe (link "Xem trang nhà xe" đã có, chưa có frame)       | —           | Draft    | FR-MKT-06, FR-NSR-15           |
 | SCR-PSG-18 | B1 — Chọn điểm đón/trả + ghế                                      | `385:4627`  | Review ⚠ | FR-MKT-07/09, FR-BTP-01..03    |
-| SCR-PSG-19 | B2 — Thông tin hành khách                                         | `385:3716`  | Review ⚠ | FR-MKT-08/10/13, UX-OQ-07      |
+| SCR-PSG-19 | B2 — Thông tin hành khách                                         | `385:3716`  | Review ⚠ | FR-MKT-08/10/13, FR-PROM-10, UX-OQ-07      |
 | SCR-PSG-20 | B3 — Thanh toán                                                   | `385:9097`  | Review ⚠ | FR-BTP-06/07, ADR-019          |
 | SCR-PSG-21 | Chờ xác nhận thanh toán (quay về từ cổng)                         | —           | Draft    | FR-BTP-08/09                   |
 | SCR-PSG-22 | B4 — Thanh toán thành công                                        | `385:8500`  | Review ⚠ | FR-BTP-10                      |
@@ -129,10 +134,11 @@ Quy ước cột **Thiết kế**:
 | SCR-PSG-30 | Khiếu nại của tôi (danh sách + chi tiết + trao đổi)               | `385:17467` | Review   | FR-NSR-06/09                   |
 | SCR-PSG-31 | Gửi khiếu nại (modal)                                             | `410:2`     | Review   | FR-NSR-06                      |
 | SCR-PSG-32 | Khiếu nại của Guest (từ kết quả tra cứu)                          | —           | Draft    | FR-NSR-06 (Guest đã xác minh)  |
-| **VXN Plus (ngoài SRS)** |                                                     |             |          |                                |
-| SCR-PSG-33 | VXN Plus — hạng thành viên                                        | `383:4`     | Review ⚠ | UX-OQ-06                       |
-| SCR-PSG-34 | Lịch sử điểm                                                      | `385:15629` | Review ⚠ | UX-OQ-06                       |
-| SCR-PSG-35 | Đổi điểm lấy mã giảm giá (modal)                                  | `385:16127` | Review ⚠ | UX-OQ-06                       |
+| **VXN Plus & ví voucher** |                                                     |             |          |                                |
+| SCR-PSG-33 | VXN Plus — hạng thành viên                                        | `383:4`     | Review ⚠ | FR-LOY-03..04, UC-36                       |
+| SCR-PSG-34 | Lịch sử điểm                                                      | `385:15629` | Review   | FR-LOY-05, UC-36                       |
+| SCR-PSG-35 | Đổi điểm lấy mã giảm giá (modal)                                  | `385:16127` | Review   | FR-LOY-06..07, UC-37                       |
+| SCR-PSG-36 | Ví voucher                                                        | —           | Draft    | FR-PROM-08..10, UC-37          |
 
 > **Draft — chưa có trong Figma cho cả nhóm:** bản **responsive mobile web** của mọi màn trên (DoD Frontend, `CLAUDE.md §6.3`) và toàn bộ **`apps/passenger_mobile`** (Flutter, ADR-028).
 
@@ -145,6 +151,8 @@ Quy ước cột **Thiết kế**:
 | Hủy vé / hoàn tiền  | 24 hoặc 29 → 25 → 26 → 09 (xác minh lại) → 25 (theo dõi refund)            | Chính sách hủy = snapshot lúc đặt (FR-BTP-12)                                                              |
 | Tra cứu vé Guest    | 27 → 28 → 29 → 25 → 26 hoặc 32                                             | Guest session sau OTP có thời hạn                                                                         |
 | Hỗ trợ / đánh giá   | 25 hoặc 30 → 31 → 30; 24 → 14                                              | Đánh giá chỉ khi trip `COMPLETED` và vé hợp lệ                                                             |
+| VXN Plus / ví voucher | 11 → 33 → 35 → 36; 33 → 34; 19 chọn voucher từ ví (36)                   | Chỉ User đăng nhập; tối đa một voucher / mã cho mỗi booking (BR-72); tổng tiền tách dòng giảm (CO-12)     |
+| Khám phá            | 02 → 37                                                                    | Không cần đăng nhập; chỉ bài `PUBLISHED`                                                                  |
 
 ### 6.3. Trạng thái màn hình (5 Key UI States)
 
@@ -154,13 +162,13 @@ Mỗi màn hình là một bảng đủ 5 trạng thái theo §10.1. Cột **Thi
 
 | Trạng thái     | Nội dung cần có                                                                                                             | Thiết kế       |
 | -------------- | --------------------------------------------------------------------------------------------------------------------------- | -------------- |
-| Ideal          | Form tìm chuyến (điểm đi, điểm đến, ngày, số khách); tab "Theo nhà xe"; khối ưu đãi, tuyến phổ biến, nhà xe đối tác, tin tức | Review ⚠ (#6, #7) |
+| Ideal          | Form tìm chuyến (điểm đi, điểm đến, ngày, số khách); tab "Theo nhà xe"; khối ưu đãi, tuyến phổ biến, nhà xe đối tác, tin tức | Review ⚠ (#6) |
 | Empty          | Chưa có tuyến phổ biến / nhà xe / bài viết → ẩn khối, form tìm chuyến vẫn dùng được                                          | Draft          |
 | Loading        | Skeleton các khối nội dung; gợi ý địa điểm đang tải                                                                          | Draft          |
 | Partial / Edge | Số lớn (12.840 đánh giá, 5.400+ chuyến — thống nhất dấu chấm, Figma đang lẫn "5,400+"); tên nhà xe / địa danh dài; chỉ 1–2 nhà xe; header đã đăng nhập | Review + Draft |
 | Error          | Form invalid (thiếu điểm đi/đến, trùng điểm, ngày quá khứ); gợi ý địa điểm không có kết quả; lỗi tải khối (ẩn khối, không chặn tìm chuyến); offline | Draft          |
 
-#### SCR-PSG-02 — Khám phá (`384:3031`) · Chờ UX-OQ-08
+#### SCR-PSG-02 — Khám phá (`384:3031`)
 
 | Trạng thái     | Nội dung cần có                                                         | Thiết kế |
 | -------------- | ----------------------------------------------------------------------- | -------- |
@@ -170,7 +178,7 @@ Mỗi màn hình là một bảng đủ 5 trạng thái theo §10.1. Cột **Thi
 | Partial / Edge | Tiêu đề / mô tả dài (cắt chữ); lượt xem lớn; chỉ 1–2 bài                 | Review   |
 | Error          | Tìm không có kết quả; lỗi tải (thử lại); bài không tồn tại (404)         | Draft    |
 
-> Chi tiết bài viết chưa có frame — Draft.
+> Chi tiết bài viết: SCR-PSG-37.
 
 #### SCR-PSG-03 — Câu hỏi thường gặp (`385:16931`)
 
@@ -256,7 +264,7 @@ Mỗi màn hình là một bảng đủ 5 trạng thái theo §10.1. Cột **Thi
 
 | Trạng thái     | Nội dung cần có                                                                                                                     | Thiết kế            |
 | -------------- | ----------------------------------------------------------------------------------------------------------------------------------- | ------------------- |
-| Ideal          | Hồ sơ (họ tên, ngày sinh, giới tính, CCCD, email, SĐT); tiện ích tài khoản; khối bảo mật. Figma có đổi mật khẩu + 2FA, hạng thành viên, Ví voucher, tab Thanh toán "Sắp ra mắt" (ngoài v1) | Review ⚠ (#1, #7)   |
+| Ideal          | Hồ sơ (họ tên, ngày sinh, giới tính, CCCD, email, SĐT); tiện ích tài khoản; khối bảo mật. Figma có đổi mật khẩu + 2FA (ngoài v1, #1); hạng thành viên và lối vào VXN Plus / Ví voucher / Lịch sử điểm (trong v1); tab Thanh toán "Sắp ra mắt" (ngoài v1) | Review ⚠ (#1)   |
 | Empty          | Hành khách đã lưu 0/5 + CTA thêm; hồ sơ chưa điền hiện "—"                                                                          | Review              |
 | Loading        | Skeleton hồ sơ; đang lưu                                                                                                            | Draft               |
 | Partial / Edge | Danh sách đầy 5/5 (ẩn nút thêm); tên / email dài; sửa hồ sơ; đổi email cần OTP; thêm / sửa / xóa hành khách đã lưu                   | Draft               |
@@ -472,47 +480,69 @@ Mỗi màn hình là một bảng đủ 5 trạng thái theo §10.1. Cột **Thi
 | Partial / Edge | Như SCR-PSG-30                                          | Draft    |
 | Error          | Phiên tra cứu hết hạn → xác minh lại OTP                 | Draft    |
 
-#### SCR-PSG-33 — VXN Plus (`383:4`) · Chờ UX-OQ-06
+#### SCR-PSG-33 — VXN Plus (`383:4`)
 
-| Trạng thái     | Nội dung cần có                                                    | Thiết kế      |
-| -------------- | ------------------------------------------------------------------ | ------------- |
-| Ideal          | Hạng hiện tại; điểm hiện có; bảng 4 hạng; ưu đãi theo hạng           | Review ⚠ (#7) |
-| Empty          | —                                                                  | Chờ UX-OQ-06  |
-| Loading        | —                                                                  | Chờ UX-OQ-06  |
-| Partial / Edge | —                                                                  | Chờ UX-OQ-06  |
-| Error          | —                                                                  | Chờ UX-OQ-06  |
+| Trạng thái     | Nội dung cần có                                                                                                                                          | Thiết kế      |
+| -------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------- |
+| Ideal          | Hạng hiện tại; điểm khả dụng + giá trị quy đổi ước tính; số điểm cần để lên hạng kế tiếp; bảng 4 hạng (mốc điểm 12 tháng, hệ số tích điểm); CTA đổi điểm, xem lịch sử | Review ⚠ (#7) |
+| Empty          | User mới: Bronze, 0 điểm → giải thích cách tích điểm (sau mỗi chuyến hoàn thành) + CTA tìm chuyến                                                       | Draft         |
+| Loading        | Skeleton thẻ hạng và bảng hạng                                                                                                                           | Draft         |
+| Partial / Edge | Hạng cao nhất (ẩn "cần X điểm để lên hạng"); số điểm lớn (1.000.000+); có điểm sắp hết hạn (nhắc số điểm + ngày); vừa đổi hạng                          | Draft         |
+| Error          | Lỗi tải (thử lại); chưa đăng nhập / phiên hết hạn → SCR-PSG-07                                                                                          | Draft         |
 
-#### SCR-PSG-34 — Lịch sử điểm (`385:15629`) · Chờ UX-OQ-06
+#### SCR-PSG-34 — Lịch sử điểm (`385:15629`)
 
-| Trạng thái     | Nội dung cần có                                              | Thiết kế      |
-| -------------- | ------------------------------------------------------------ | ------------- |
-| Ideal          | —                                                            | Chờ UX-OQ-06  |
-| Empty          | "Bạn chưa có giao dịch điểm nào" + CTA tìm chuyến             | Review ⚠ (#7) |
-| Loading        | —                                                            | Chờ UX-OQ-06  |
-| Partial / Edge | —                                                            | Chờ UX-OQ-06  |
-| Error          | —                                                            | Chờ UX-OQ-06  |
+| Trạng thái     | Nội dung cần có                                                                                                                                  | Thiết kế |
+| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ | -------- |
+| Ideal          | 4 thẻ tổng (hiện có / đã tích / đã đổi / hết hạn); tab Tất cả / Tích điểm / Đổi điểm / Hết hạn; mỗi dòng: loại, số điểm (+/−), booking hoặc voucher nguồn, ngày; lọc thời gian | Draft    |
+| Empty          | "Bạn chưa có giao dịch điểm nào" + CTA tìm chuyến / về VXN Plus                                                                                  | Review   |
+| Loading        | Skeleton danh sách                                                                                                                               | Draft    |
+| Partial / Edge | Danh sách dài (phân trang); dòng điều chỉnh / thu hồi hiển thị lý do; tab không có dòng nào                                                     | Draft    |
+| Error          | Lỗi tải (thử lại); lọc không có kết quả                                                                                                          | Draft    |
 
-#### SCR-PSG-35 — Đổi điểm lấy mã giảm giá (`385:16127`) · Chờ UX-OQ-06
+#### SCR-PSG-35 — Đổi điểm lấy mã giảm giá (`385:16127`)
 
-| Trạng thái     | Nội dung cần có                                                               | Thiết kế      |
-| -------------- | ----------------------------------------------------------------------------- | ------------- |
-| Ideal          | Modal: điểm hiện tại; số điểm muốn đổi; chọn nhanh; giảm giá nhận được; điểm còn lại | Review ⚠ (#7) |
-| Empty          | —                                                                             | Chờ UX-OQ-06  |
-| Loading        | —                                                                             | Chờ UX-OQ-06  |
-| Partial / Edge | —                                                                             | Chờ UX-OQ-06  |
-| Error          | —                                                                             | Chờ UX-OQ-06  |
+| Trạng thái     | Nội dung cần có                                                                                                                         | Thiết kế |
+| -------------- | --------------------------------------------------------------------------------------------------------------------------------------- | -------- |
+| Ideal          | Modal: quy đổi và số điểm tối thiểu (theo policy); điểm hiện tại; số điểm muốn đổi (nhập + thanh trượt + chọn nhanh); giảm giá nhận được; điểm còn lại; lưu ý hạn voucher, áp mọi tuyến, không hoàn điểm | Review   |
+| Empty          | Điểm dưới mức tối thiểu → nút xác nhận vô hiệu + giải thích số điểm còn thiếu                                                           | Draft    |
+| Loading        | Đang đổi điểm: khóa nút, chống bấm lặp (cùng `Idempotency-Key`)                                                                         | Draft    |
+| Partial / Edge | Chọn "Tất cả"; nhập vượt số dư hoặc dưới tối thiểu → báo tại field; đổi thành công → thông báo + link sang ví voucher (SCR-PSG-36)       | Draft    |
+| Error          | `LOYALTY_INSUFFICIENT_POINTS` / `LOYALTY_BELOW_MIN_REDEEM` / lỗi mạng → giữ modal, không trừ điểm, cho thử lại                         | Draft    |
+
+#### SCR-PSG-36 — Ví voucher (chưa có frame)
+
+| Trạng thái     | Nội dung cần có                                                                                                                  | Thiết kế |
+| -------------- | -------------------------------------------------------------------------------------------------------------------------------- | -------- |
+| Ideal          | Tab Khả dụng / Đã dùng / Hết hạn; mỗi voucher: nguồn (đổi điểm / mã đã lưu), giá trị, điều kiện, hạn dùng, trạng thái; ô nhập mã để lưu | Draft    |
+| Empty          | Chưa có voucher → CTA đổi điểm (SCR-PSG-35) hoặc nhập mã khuyến mãi                                                              | Draft    |
+| Loading        | Skeleton thẻ voucher                                                                                                             | Draft    |
+| Partial / Edge | Voucher đang giữ cho booking chờ thanh toán (hiện mã booking); sắp hết hạn; promotion gốc đã dừng; mã dài                         | Draft    |
+| Error          | `VOUCHER_ALREADY_SAVED`, mã không tồn tại / hết hạn → báo tại field; lỗi tải (thử lại)                                          | Draft    |
+
+> Ở B2 (SCR-PSG-19), User đã đăng nhập chọn voucher từ ví hoặc nhập mã — **tối đa một** (BR-72); Guest chỉ nhập mã. Tổng tiền tách dòng giảm giá (CO-12).
+
+#### SCR-PSG-37 — Chi tiết bài viết (chưa có frame)
+
+| Trạng thái     | Nội dung cần có                                                                 | Thiết kế |
+| -------------- | ------------------------------------------------------------------------------- | -------- |
+| Ideal          | Tiêu đề, chuyên mục, ngày xuất bản, ảnh bìa, nội dung, bài liên quan cùng chuyên mục | Draft    |
+| Empty          | — (bài luôn có nội dung khi `PUBLISHED`)                                        | —        |
+| Loading        | Skeleton tiêu đề + nội dung                                                     | Draft    |
+| Partial / Edge | Bài rất dài; tiêu đề dài; ảnh lỗi → placeholder; không có bài liên quan (ẩn khối) | Draft    |
+| Error          | Slug không tồn tại / bài đã gỡ → 404 (SCR-PSG-05); lỗi tải (thử lại)             | Draft    |
 
 ### 6.4. Lệch giữa Figma và thiết kế đã chốt
 
 | #   | Màn hình (SCR-PSG-) | Figma hiện tại                                                                                                              | Nguồn đã chốt                                                                                                     | Đề xuất                                                                                                                                         |
 | --- | ------------------- | --------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | 07, 08, 11          | Đăng ký/đăng nhập bằng email/SĐT + mật khẩu; quên / đổi mật khẩu; 2FA                                                       | 07 Security §5 + ADR-017/020: Passenger = Email OTP + OAuth Google/Facebook/Apple, không có mật khẩu; TOTP post-v1 | Sửa Figma theo Email OTP + OAuth, bỏ mật khẩu / 2FA. SRS FR-IAM-01/03a còn ghi "SĐT", "quên mật khẩu" → cần đồng bộ lại SRS                      |
+| 1   | 07, 08, 11          | Đăng ký/đăng nhập bằng email/SĐT + mật khẩu; quên / đổi mật khẩu; 2FA                                                       | 07 Security §5 + ADR-017/020: Passenger = Email OTP + OAuth Google/Facebook/Apple, không có mật khẩu; TOTP post-v1 | Sửa Figma theo Email OTP + OAuth, bỏ mật khẩu / 2FA. SRS đã đồng bộ ở v1.25 (`FR-IAM-01..03a`, `UC-01`)                      |
 | 2   | 20, 22, 25          | 6 phương thức: MoMo (sắp hỗ trợ), VNPay, ZaloPay (sắp hỗ trợ), Visa/Master, ATM, Tiền mặt; màn thành công mẫu "Tiền mặt — Chưa thanh toán" | ADR-019: v1 chỉ VNPay + MoMo (ZaloPay không có trong ADR; VietQR defer v1.x). OQ-07: v1 thanh toán trước, không mở trả sau cho passenger | Giữ VNPay (QR / ATM / thẻ quốc tế là lựa chọn con trong VNPay) + bật MoMo; bỏ ZaloPay + Tiền mặt; màn thành công dùng mẫu thanh toán online      |
 | 3   | 18, 19, 20          | Bộ đếm "Giữ ghế trong 14:56" (~15 phút), chỉ hiện từ bước thanh toán                                                        | ADR-015 / OQ-06: hold 10 phút (`EX 600`); SRS UC giữ ghế: hiện bộ đếm ngay khi giữ ghế                             | Đổi 10:00; hiện bộ đếm từ B1 sau khi hold thành công                                                                                            |
 | 4   | 16, 25              | Bản đồ Leaflet + © OpenStreetMap                                                                                            | ADR-027: Goong Maps (hiển thị đúng Hoàng Sa / Trường Sa)                                                           | Thay bằng Goong                                                                                                                                 |
 | 5   | 22, 27, 28          | "Vé gửi qua email & SMS"; tra cứu / OTP qua SMS                                                                             | ADR-020: SMS defer v1                                                                                             | Copy chỉ nói email; tra cứu theo UX-OQ-09                                                                                                       |
 | 6   | 01, footer          | Copy "Hoàn 90% trước 24h", "Đổi chuyến miễn phí trước 24h", link "Đổi và hủy vé"                                            | FR-BTP-12: hoàn theo chính sách snapshot của từng chuyến; SRS không có đổi vé tự phục vụ (chỉ trong luồng chuyến bị hủy / dispute) | Sửa copy trung tính ("theo chính sách nhà xe"). Muốn có đổi vé tự phục vụ = mở rộng phạm vi, cần Khanh quyết                                     |
-| 7   | 01, 11, 33–35       | "Tích điểm", hạng thành viên, VXN Plus, Ví voucher                                                                          | Không có trong SRS                                                                                                | UX-OQ-06                                                                                                                                        |
+| 7   | 33                  | Khối "Ưu đãi hạng": giảm 5 / 10 / 15% mọi chuyến theo hạng, "Hỗ trợ ưu tiên 30 phút"; cột "Giảm giá" trong bảng hạng        | SRS v1.21 `BR-68`: hạng v1 chỉ ảnh hưởng hệ số tích điểm, không giảm giá / ưu tiên CSKH                            | Bỏ khối ưu đãi giảm giá / ưu tiên CSKH và cột "Giảm giá"; giữ hệ số điểm                                                                          |
 | 8   | 04, 19, 20          | Dịch vụ bổ trợ (bảo hiểm, hành lý, đưa đón) cộng vào tổng tiền                                                              | Không có trong SRS                                                                                                | UX-OQ-07                                                                                                                                        |
 
 ---
@@ -531,7 +561,7 @@ Login `{operatorSlug}/{username}` + password qua `/auth/operator/login` — **ch
 
 | Flow            | Màn hình chính                                                           | Ghi chú                                                      |
 | --------------- | ------------------------------------------------------------------------ | ------------------------------------------------------------ |
-| KYC onboarding  | Profile, KYC documents (upload R2 private), bank account, status tracker | Chờ Admin duyệt; Platform cấp slug + Owner sau KYC           |
+| Đăng ký nhà xe (trang công khai, không đăng nhập) | Form bước 1 (tên nhà xe, người liên hệ, email) → màn "Kiểm tra email"; mở link → form hồ sơ, upload KYC (R2 private), tài khoản nhận tiền, gửi duyệt; trang trạng thái qua link; form gửi lại link (email + mã hồ sơ) | Link hết hạn / bị thay → hướng dẫn gửi lại. Duyệt xong nhận email tài khoản Owner `{slug}/{username}` + mật khẩu tạm → đăng nhập, đổi mật khẩu, bật TOTP (BR-75) |
 | Vehicle/SeatMap | Vehicle list, vehicle form, seat map editor                              | Không sửa tùy tiện khi đã gắn trip có vé                     |
 | Route/StopPoint | Route list, route form, stop point proposal (Goong geocoding)            | StopPoint mới cần Admin duyệt                                |
 | Trip/Fare       | Trip calendar/list, trip form, fare form, open/lock sale                 | Thay đổi trip đã bán vé cần lý do + audit                    |
@@ -562,12 +592,14 @@ Login `platform/{username}` + password + **TOTP bắt buộc** (ADR-017). Dùng 
 
 | Flow                      | Màn hình chính                                                              | Ghi chú                                                                                  |
 | ------------------------- | --------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
-| KYC Operator              | Pending KYC list, KYC detail (xem doc R2 presigned + audit), decision modal | Approve (cấp slug+Owner) / reject / request more info                                    |
+| KYC Operator              | Hàng đợi hồ sơ đăng ký, chi tiết hồ sơ (doc R2 presigned + audit), modal quyết định | Duyệt (nhập slug + username Owner; báo trùng slug) / yêu cầu bổ sung / từ chối (lý do bắt buộc); TOTP + re-auth |
 | Catalog/policy            | Catalog list, policy editor, effective date                                 | Thay đổi policy cần audit, không áp ngược (PolicySnapshot)                               |
 | Payment/refund            | Transaction list, detail, refund decision                                   | Re-auth/TOTP + audit                                                                     |
 | Payout confirm            | Payout batch (T+3), review, **nhập mã giao dịch ngân hàng**                 | Manual confirm tới BankAccount verified → COMPLETED (ADR-022); maker-checker khi team >1 |
 | Dispute                   | Dispute queue, evidence view, decision                                      | Admin là arbiter cuối cùng (MQ-03)                                                       |
 | Content/review moderation | Review/content list                                                         | Ẩn/duyệt/từ chối theo policy                                                             |
+| Loyalty                   | Policy editor (phiên bản + effective date), tra cứu tài khoản User, điều chỉnh điểm, báo cáo | Điều chỉnh bắt buộc lý do + audit; tham số không áp ngược (FR-LOY-10..12, UC-39) |
+| Bài viết                  | Danh sách (lọc trạng thái / chuyên mục), editor Markdown + xem trước, upload ảnh, xuất bản / gỡ, chuyên mục | Audit xuất bản; chỉ `PUBLISHED` công khai (FR-ADM-18..19, UC-40) |
 | Report                    | Dashboard, filter, export job (async BullMQ)                                | Dữ liệu lớn không chặn luồng chính                                                       |
 | Audit                     | Audit search (Mongo), detail, export                                        | Mask dữ liệu nhạy cảm                                                                    |
 
@@ -611,9 +643,9 @@ Mỗi màn hình ở §6–§9 được viết thành **một bảng đủ 5 tr�
 | UX-OQ-03 | Seat map editor dùng grid tự do hay template theo vehicle type?          | Operator UI         | Mở; chốt khi thiết kế component (LLD/UI detail)                              |
 | UX-OQ-04 | Offline check-in cho Employee có cho xác nhận khi chưa gọi server không? | Mobile flow và risk | Mở; cần quyết risk (double check-in vs UX offline)                           |
 | UX-OQ-05 | Brand positioning marketplace trung lập hay Platform brand nổi bật?      | Public UI           | **Đóng theo OQ-20**: marketplace trung lập; tên Operator là tín hiệu chính   |
-| UX-OQ-06 | Chương trình thành viên **VXN Plus** (hạng, tích điểm, đổi điểm lấy mã giảm, Ví voucher, giảm theo hạng) có vào v1 không? Không có trong SRS; đụng money (quy đổi điểm → VND), ai chịu phần giảm (Platform hay Operator — ảnh hưởng commission/escrow), cần module mới | SRS, DB, API, booking total | Mở. Đề xuất: post-v1, ẩn khỏi nav v1 |
+| UX-OQ-06 | Chương trình thành viên **VXN Plus** (hạng, tích điểm, đổi điểm lấy mã giảm, Ví voucher, giảm theo hạng) có vào v1 không? Không có trong SRS; đụng money (quy đổi điểm → VND), ai chịu phần giảm (Platform hay Operator — ảnh hưởng commission/escrow), cần module mới | SRS, DB, API, booking total | **Đóng 29/09/2026** (SRS v1.21 §21): vào v1 — Platform chịu phần giảm của voucher đổi điểm; hạng chỉ ảnh hưởng hệ số điểm; ví = voucher đổi điểm + mã công khai đã lưu |
 | UX-OQ-07 | **Dịch vụ bổ trợ** (bảo hiểm chuyến đi, hành lý ký gửi, đưa đón) có vào v1 không? Không có trong SRS; đụng price snapshot, tách dòng (CO-12), hoàn tiền, commission; bảo hiểm cần đối tác bên ngoài (vendor mới) | SRS, booking total, refund | Mở. Đề xuất: post-v1; Figma trang này còn skeleton TODO |
-| UX-OQ-08 | Trang **Khám phá** (tin tức / cẩm nang): SRS chỉ có banner, FAQ, content page do Admin kiểm duyệt (FR-ADM-13). Bài viết có tính là content page không, ai soạn (Admin CMS)? | Admin CMS, SEO Marketplace | Mở |
+| UX-OQ-08 | Trang **Khám phá** (tin tức / cẩm nang): SRS chỉ có banner, FAQ, content page do Admin kiểm duyệt (FR-ADM-13). Bài viết có tính là content page không, ai soạn (Admin CMS)? | Admin CMS, SEO Marketplace | **Đóng 29/09/2026** (SRS v1.21 §21): module bài viết riêng (`Article`), chỉ Admin soạn |
 | UX-OQ-09 | **Tra cứu vé Guest bằng SĐT**: SMS defer v1 (ADR-020) thì OTP gửi về đâu? (a) chỉ cho tra cứu bằng email; (b) SĐT chỉ dùng để tìm, OTP gửi về email liên hệ của booking | FR-MKT-12, `/guest/ticket-lookup` | Mở |
 
 ---
