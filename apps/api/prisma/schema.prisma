@@ -176,6 +176,7 @@ model OperatorAccount {
   id                         String        @id @default(uuid())
   operatorId                 String        @map("operator_id")
   operatorSlug               String        @map("operator_slug")
+  // CHECK `operator_accounts_username_not_employee_prefix`: cấm tiền tố `nv.` của Employee (TASK-IAM-006).
   username                   String
   contactEmail               String?       @map("contact_email")
   passwordHash               String        @map("password_hash")
@@ -203,6 +204,7 @@ model OperatorAccount {
 model EmployeeAccount {
   id                         String        @id @default(uuid())
   operatorId                 String        @map("operator_id")
+  // CHECK `employee_accounts_username_employee_prefix`: `nv.` + 2–61 ký tự [a-z0-9._-] (TASK-IAM-006).
   username                   String
   contactEmail               String?       @map("contact_email")
   passwordHash               String        @map("password_hash")

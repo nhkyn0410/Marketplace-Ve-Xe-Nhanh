@@ -66,6 +66,7 @@ All URIs are relative to *http://localhost*
 Class | Method | HTTP request | Description
 ------------ | ------------- | ------------- | -------------
 [*AuthApi*](doc/AuthApi.md) | [**authControllerChangeRequiredPassword**](doc/AuthApi.md#authcontrollerchangerequiredpassword) | **POST** /v1/auth/password/change-required | 
+[*AuthApi*](doc/AuthApi.md) | [**authControllerEmployeeLogin**](doc/AuthApi.md#authcontrolleremployeelogin) | **POST** /v1/auth/employee/login | 
 [*AuthApi*](doc/AuthApi.md) | [**authControllerLogout**](doc/AuthApi.md#authcontrollerlogout) | **POST** /v1/auth/logout | 
 [*AuthApi*](doc/AuthApi.md) | [**authControllerOauth**](doc/AuthApi.md#authcontrolleroauth) | **POST** /v1/auth/oauth/{provider} | 
 [*AuthApi*](doc/AuthApi.md) | [**authControllerOauthSession**](doc/AuthApi.md#authcontrolleroauthsession) | **POST** /v1/auth/oauth/session | 

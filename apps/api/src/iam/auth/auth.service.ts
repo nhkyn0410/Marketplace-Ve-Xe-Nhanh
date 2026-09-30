@@ -55,6 +55,8 @@ export type ReauthInput = { password?: string; otp?: string; mfaCode?: string };
 
 type SessionClaims = Omit<AccessTokenClaims, "sub" | "sid">;
 
+type OperatorSideSubjectType = Extract<SubjectType, "OPERATOR" | "EMPLOYEE">;
+
 type CredentialAccount = {
   id: string;
   passwordHash: string;
@@ -144,7 +146,22 @@ export class AuthService {
   }
 
   // ── Operator / Employee (custom, `{slug}/{username}` + password) ──
+  // Hai cổng tách (ADR-017 amend 28/09/2026): mỗi cổng chỉ tra bảng account của mình, nên account
+  // gọi sai cổng đi đúng nhánh "không tồn tại" — cùng response, không phiên, không challenge.
   async operatorLogin(identifier: string, password: string, ctx: RequestContext): Promise<CredentialLoginResult> {
+    return this.operatorSideLogin(SubjectType.OPERATOR, identifier, password, ctx);
+  }
+
+  async employeeLogin(identifier: string, password: string, ctx: RequestContext): Promise<CredentialLoginResult> {
+    return this.operatorSideLogin(SubjectType.EMPLOYEE, identifier, password, ctx);
+  }
+
+  private async operatorSideLogin(
+    subjectType: OperatorSideSubjectType,
+    identifier: string,
+    password: string,
+    ctx: RequestContext
+  ): Promise<CredentialLoginResult> {
     await this.otpRateLimiter.assertCanAttemptLogin(identifier, ctx.ip);
 
     const resolved = resolveIdentifier(identifier);
@@ -156,7 +173,7 @@ export class AuthService {
 
     const operator = await this.prisma.operatorProfile.findUnique({ where: { operatorSlug } });
     const account = operator
-      ? await this.findOperatorSideAccount(operator.id, operatorSlug, username)
+      ? await this.findOperatorSideAccount(subjectType, operator.id, operatorSlug, username)
       : null;
 
     if (!operator || !account) {
@@ -179,7 +196,7 @@ export class AuthService {
         );
       }
       return this.passwordChanges.begin({
-        subjectType: account.subjectType as Extract<SubjectType, "OPERATOR" | "EMPLOYEE">,
+        subjectType,
         subjectId: account.id,
         operatorId: account.operatorId!,
         authEpoch: account.authEpoch
@@ -635,20 +652,42 @@ export class AuthService {
   }
 
   private async findOperatorSideAccount(
+    subjectType: OperatorSideSubjectType,
     operatorId: string,
     operatorSlug: string,
     username: string
   ): Promise<CredentialAccount | null> {
     // Tenant đã biết từ operator_profiles (đọc công khai) → đọc account trong ngữ cảnh TENANT: Postgres
     // tự chặn account của tenant khác, không chỉ dựa vào phép so operatorId bên dưới (TASK-IAM-003).
-    const { owner, employee } = await this.prisma.withTenant(operatorId, async (tx) => ({
-      owner: await tx.operatorAccount.findUnique({
+    // Chỉ tra bảng của cổng đang gọi: không bao giờ đọc bảng kia, kể cả khi bảng này không có account.
+    if (subjectType === SubjectType.EMPLOYEE) {
+      const employee = await this.prisma.withTenant(operatorId, (tx) =>
+        tx.employeeAccount.findUnique({
+          where: { operatorId_username: { operatorId, username } }
+        })
+      );
+      return employee
+        ? {
+            id: employee.id,
+            passwordHash: employee.passwordHash,
+            authEpoch: employee.authEpoch,
+            role: String(employee.role),
+            status: String(employee.status),
+            subjectType: SubjectType.EMPLOYEE,
+            operatorId: employee.operatorId,
+            operatorSlug,
+            credentialDeliveryPending: employee.credentialDeliveryPending,
+            passwordChangeRequired: employee.passwordChangeRequired,
+            temporaryPasswordExpiresAt: employee.temporaryPasswordExpiresAt
+          }
+        : null;
+    }
+
+    const owner = await this.prisma.withTenant(operatorId, (tx) =>
+      tx.operatorAccount.findUnique({
         where: { operatorSlug_username: { operatorSlug, username } }
-      }),
-      employee: await tx.employeeAccount.findUnique({
-        where: { operatorId_username: { operatorId, username } }
       })
-    }));
+    );
     // `operator_slug` trên operator_accounts là bản sao denormalized. IAM-005 giữ slug immutable
     // và thêm FK kép, nhưng vẫn đối chiếu operatorId ở application boundary để defense-in-depth.
     if (owner && owner.operatorId === operatorId) {
@@ -664,22 +703,6 @@ export class AuthService {
         credentialDeliveryPending: owner.credentialDeliveryPending,
         passwordChangeRequired: owner.passwordChangeRequired,
         temporaryPasswordExpiresAt: owner.temporaryPasswordExpiresAt
-      };
-    }
-
-    if (employee) {
-      return {
-        id: employee.id,
-        passwordHash: employee.passwordHash,
-        authEpoch: employee.authEpoch,
-        role: String(employee.role),
-        status: String(employee.status),
-        subjectType: SubjectType.EMPLOYEE,
-        operatorId: employee.operatorId,
-        operatorSlug,
-        credentialDeliveryPending: employee.credentialDeliveryPending,
-        passwordChangeRequired: employee.passwordChangeRequired,
-        temporaryPasswordExpiresAt: employee.temporaryPasswordExpiresAt
       };
     }
     return null;

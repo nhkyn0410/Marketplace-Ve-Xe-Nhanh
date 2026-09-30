@@ -38,7 +38,7 @@ function row(
   return {
     id: overrides.id ?? "00000000-0000-4000-8000-000000000099",
     operatorId: "operator-a",
-    username: overrides.username ?? "driver01",
+    username: overrides.username ?? "nv.driver01",
     contactEmail: overrides.contactEmail === undefined ? "driver@example.com" : overrides.contactEmail,
     role: overrides.role ?? ("DRIVER" as const),
     status: overrides.status ?? ("ACTIVE" as const),
@@ -94,7 +94,7 @@ describe("EmployeeAccountService", () => {
     ctx.employeeAccount.updateManyAndReturn.mockResolvedValue([active]);
 
     const result = await ctx.service.create(actor, authz, {
-      username: "driver01",
+      username: "nv.driver01",
       contactEmail: "DRIVER@EXAMPLE.COM",
       role: "DRIVER",
       reason: "Nhân viên mới",
@@ -119,7 +119,7 @@ describe("EmployeeAccountService", () => {
     const secret = ctx.email.sendTemporaryPassword.mock.calls[0][0].temporaryPassword as string;
     expect(secret).toHaveLength(32);
     expect(result).toMatchObject({
-      username: "driver01",
+      username: "nv.driver01",
       status: "ACTIVE",
       credentialDeliveryPending: false,
     });
@@ -133,7 +133,7 @@ describe("EmployeeAccountService", () => {
     ctx.email.sendTemporaryPassword.mockRejectedValue(new Error("provider down"));
 
     const failed = ctx.service.create(actor, authz, {
-      username: "driver01",
+      username: "nv.driver01",
       contactEmail: "driver@example.com",
       role: "DRIVER",
       reason: "Nhân viên mới",
@@ -156,7 +156,7 @@ describe("EmployeeAccountService", () => {
 
     await expect(
       ctx.service.create(actor, authz, {
-        username: "driver01",
+        username: "nv.driver01",
         contactEmail: "driver@example.com",
         role: "DRIVER",
         reason: "Nhân viên mới",
@@ -172,7 +172,7 @@ describe("EmployeeAccountService", () => {
     ctx.emailLimiter.reserve.mockRejectedValueOnce({ status: 429 });
 
     await expect(ctx.service.create(actor, authz, {
-      username: "driver01",
+      username: "nv.driver01",
       contactEmail: "driver@example.com",
       role: "DRIVER",
       reason: "Nhân viên mới",
@@ -200,7 +200,7 @@ describe("EmployeeAccountService", () => {
     ctx.employeeAccount.findMany.mockResolvedValue([row()]);
 
     await expect(ctx.service.list(actor, authz, { limit: 20 })).resolves.toMatchObject({
-      items: [expect.objectContaining({ username: "driver01" })],
+      items: [expect.objectContaining({ username: "nv.driver01" })],
       nextCursor: null,
     });
     expect(ctx.employeeAccount.findMany).toHaveBeenCalledWith(
@@ -358,18 +358,18 @@ describe("EmployeeAccountService", () => {
     const current = row();
     ctx.employeeAccount.findFirst.mockResolvedValue(current);
     ctx.employeeAccount.updateManyAndReturn.mockResolvedValue([
-      row({ username: "driver-renamed", version: 1 }),
+      row({ username: "nv.driver-renamed", version: 1 }),
     ]);
 
     await ctx.service.update(actor, authz, current.id, {
-      username: "driver-renamed",
+      username: "nv.driver-renamed",
       reason: "Đổi tên đăng nhập",
     });
 
     expect(ctx.employeeAccount.updateManyAndReturn).toHaveBeenCalledWith(
       expect.objectContaining({
         data: expect.objectContaining({
-          username: "driver-renamed",
+          username: "nv.driver-renamed",
           authEpoch: { increment: 1 },
         }),
       }),

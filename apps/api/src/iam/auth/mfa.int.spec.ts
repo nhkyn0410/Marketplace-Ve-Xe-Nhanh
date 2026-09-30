@@ -86,7 +86,11 @@ describe.skipIf(!ready && process.env.REQUIRE_DB_TESTS !== "1")("MFA TOTP + back
   }
 
   async function login(identifier: string): Promise<Json> {
-    const path = identifier.startsWith("platform/") ? "/auth/platform/login" : "/auth/operator/login";
+    const path = identifier.startsWith("platform/")
+      ? "/auth/platform/login"
+      : identifier.includes("/nv.")
+        ? "/auth/employee/login"
+        : "/auth/operator/login";
     const { status, json } = await post(path, { identifier, password });
     expect(status).toBe(200);
     return json;
@@ -146,7 +150,7 @@ describe.skipIf(!ready && process.env.REQUIRE_DB_TESTS !== "1")("MFA TOTP + back
         data: { operatorId, operatorSlug, username: "owner", passwordHash, role: "OPERATOR_OWNER" },
       });
       const driver = await tx.employeeAccount.create({
-        data: { operatorId, username: "driver", passwordHash, role: "DRIVER" },
+        data: { operatorId, username: "nv.driver", passwordHash, role: "DRIVER" },
       });
       operatorAccountIds.push(owner.id);
       employeeIds.push(driver.id);
@@ -383,7 +387,7 @@ describe.skipIf(!ready && process.env.REQUIRE_DB_TESTS !== "1")("MFA TOTP + back
       mfa: true,
     });
 
-    const driver = await login(`${operatorSlug}/driver`);
+    const driver = await login(`${operatorSlug}/nv.driver`);
     expect(driver).toMatchObject({ mfaRequired: false, role: "DRIVER", tokenType: "Bearer" });
     expect(claimsOf(String(driver.accessToken))).not.toHaveProperty("mfa");
     await prisma.withSystem(async (tx) =>

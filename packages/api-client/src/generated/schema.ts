@@ -148,6 +148,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/auth/employee/login": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AuthController_employeeLogin"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/auth/platform/login": {
         parameters: {
             query?: never;
@@ -1008,13 +1024,67 @@ export interface operations {
             };
         };
         responses: {
-            /** @description Login Operator/Employee; role bắt buộc MFA nhận challenge thay vì token. */
+            /** @description Login Operator Owner (chỉ account Owner); role bắt buộc MFA nhận challenge thay vì token. */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": components["schemas"]["CredentialLoginResponseDto_Output"];
+                };
+            };
+            /** @description Sai thông tin đăng nhập. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Tài khoản bị khóa. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AuthController_employeeLogin: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Chỉ nhận `bearer` (mặc định khi bỏ trống); giá trị khác → 400 AUTH_TRANSPORT_INVALID. */
+                "X-Auth-Transport"?: "bearer";
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CredentialLoginDto"];
+            };
+        };
+        responses: {
+            /** @description Login Employee (chỉ account Employee); token trả trong JSON cho app Nhân viên. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CredentialLoginResponseDto_Output"];
+                };
+            };
+            /** @description X-Auth-Transport không phải bearer. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
                 };
             };
             /** @description Sai thông tin đăng nhập. */
