@@ -9,11 +9,11 @@
 | Tên tài liệu  | API Specification           |
 | Mã tài liệu   | 05-api-specification        |
 | Dự án         | Marketplace-Ve-Xe-Nhanh     |
-| Trạng thái    | Approved                    |
+| Trạng thái    | Review                      |
 | Người viết    | Nguyễn Hồng Khanh, AI Agent |
 | Người duyệt   | Nguyễn Hồng Khanh           |
 | Ngày tạo      | 11/05/2026                  |
-| Ngày cập nhật | 28/09/2026                  |
+| Ngày cập nhật | 30/09/2026                  |
 
 ### 1.2. Lịch sử thay đổi
 
@@ -29,6 +29,8 @@
 | v0.8      | 25/09/2026 | AI Agent       | **TASK-TRN-001 Q1–Q3 do Khanh duyệt:** §7.3 tách route Vehicle/SeatMap có path param (`GET/PUT /{id}`), quyền Owner `vehicle:manage`, lỗi `VEHICLE_PLATE_CONFLICT` / `CATALOG_ITEM_UNAVAILABLE`, SeatMap mẫu dùng chung + tùy chỉnh bằng bản sao. Giữ trạng thái Approved, không tự promote. |
 | v0.9      | 26/09/2026 | AI Agent       | **TASK-TRN-002 Q1–Q8 do Khanh duyệt:** §7.3 thêm route chi tiết `/operator/routes`, `/operator/stop-points`, `/operator/stop-point-proposals` (endpoint đề xuất StopPoint mới), quyền `route:manage`, lỗi Goong 503. Giữ trạng thái Approved, không tự promote. |
 | v0.10     | 28/09/2026 | AI Agent       | **ADR-017 amend / TASK-IAM-006 (Khanh chốt 28/09):** §5 tách actor Owner/Employee; §7.1 `/auth/operator/login` chỉ Owner, thêm `/auth/employee/login` chỉ Employee + chỉ Bearer; sai cổng = `401 AUTH_INVALID_CREDENTIALS`; §7.1.1 Employee không nhận cookie session; §7.3 username Employee bắt buộc `nv.`, Owner cấm `nv.`. Giữ trạng thái Approved. |
+| v0.11     | 29/09/2026 | AI Agent       | **Loyalty VXN Plus / ví voucher / bài viết (Khanh chốt 29/09/2026, SRS v1.21):** §6.3 thêm prefix `LOYALTY_*`, `VOUCHER_*`, `ARTICLE_*`; §7.2 endpoint bài viết (public), `/me/loyalty*`, `/me/vouchers`, `POST /bookings` nhận `userVoucherId` / `promotionCode` (tối đa một); §7.5 `/admin/loyalty/*`, `/admin/articles*`, `/admin/article-categories`; §8 idempotency đổi điểm / cộng điểm / hết hạn / điều chỉnh. Trạng thái Approved → **Review**. |
+| v0.12     | 30/09/2026 | AI Agent       | **A2 — đăng ký nhà xe theo closed enrollment (Khanh duyệt 30/09/2026, SRS v1.23)**: §5 thêm actor người nộp hồ sơ (link bảo mật, header `X-Application-Token`); §6.3 prefix `OPERATOR_*` gồm hồ sơ đăng ký; §7.3 thêm nhóm endpoint công khai `/operator-applications*`; §7.5 thay `/admin/operators/{operatorId}/kyc*` bằng `/admin/operator-applications*` (duyệt = tạo Operator + Owner qua `provisionOperatorOwner`); §8 idempotency cho duyệt hồ sơ. Giữ trạng thái Review. |
 
 ---
 
@@ -81,6 +83,7 @@ Identity 3 namespace tách biệt (ADR-017). Hybrid token: JWT RS256 access 15mi
 | Actor               | Auth flow                                                                    | Ghi chú                                                  |
 | ------------------- | ---------------------------------------------------------------------------- | -------------------------------------------------------- |
 | Guest               | Không token cho public search/detail; guest session cho hold/book/pay/lookup | Guest checkout có trong v1 (SRS/GLOSSARY)                |
+| Người nộp hồ sơ nhà xe | Không tài khoản; link bảo mật gửi email liên hệ, token gửi qua header `X-Application-Token` | Chỉ xem / sửa đúng một hồ sơ đăng ký (BR-75); không vào Operator OS |
 | Passenger (User)    | Email + OTP (primary) hoặc OAuth Google/Facebook/Apple (ADR-020)             | Self-register; Hybrid token                              |
 | Operator Owner      | `{operatorSlug}/{username}` + password qua `/auth/operator/login` (closed enrollment); username cấm tiền tố `nv.` | Web Operator OS (cookie) hoặc Bearer; scope theo `operatorId`; không public/OAuth |
 | Employee            | `{operatorSlug}/nv.{…}` + password qua `/auth/employee/login` (closed enrollment) | Chỉ app `employee_mobile`, chỉ Bearer; scope theo `operatorId` + assignment; không public/OAuth |
@@ -132,8 +135,11 @@ Field `code` dùng error code chuẩn (GLOSSARY); `type` là URI ổn định; `
 | `PAYMENT_*`    | Payment, callback, reconciliation                            |
 | `REFUND_*`     | Refund policy/state                                          |
 | `TICKET_*`     | Ticket, QR, check-in                                         |
-| `OPERATOR_*`   | KYC, profile, status                                         |
+| `OPERATOR_*`   | Hồ sơ đăng ký nhà xe, KYC, profile, status                                         |
 | `PAYOUT_*`     | Payout, escrow, commission                                   |
+| `LOYALTY_*`    | Tài khoản thành viên, điểm, đổi điểm                         |
+| `VOUCHER_*`    | Ví voucher, áp voucher vào booking                           |
+| `ARTICLE_*`    | Bài viết, chuyên mục                                         |
 | `SYSTEM_*`     | Provider lỗi, bảo trì, 503 (Redis down), lỗi không phân loại |
 
 ---
@@ -205,8 +211,32 @@ Gửi cả `Max-Age` và `Expires`; logout/reuse/revoke current family phải x�
 | POST   | `/bookings/{bookingId}/payments`         | User, Guest | Tạo payment (VNPay/MoMo)          |
 | GET    | `/tickets/{ticketId}`                    | User        | Xem vé                            |
 | POST   | `/guest/ticket-lookup`                   | Guest       | Tra cứu vé khách vãng lai         |
+| GET    | `/article-categories`                    | User, Guest | Chuyên mục bài viết + số bài đã xuất bản |
+| GET    | `/articles`                              | User, Guest | Bài `PUBLISHED` (lọc `category`, `q`, `featured`; phân trang) |
+| GET    | `/articles/{slug}`                       | User, Guest | Chi tiết bài `PUBLISHED` (khác → 404) |
+| POST   | `/articles/{slug}/views`                 | User, Guest | Ghi lượt xem best-effort (rate limit) |
+| GET    | `/me/loyalty`                            | User        | Hạng, điểm khả dụng, điểm cần lên hạng, bảng hạng theo policy hiện hành |
+| GET    | `/me/loyalty/transactions`               | User        | Lịch sử điểm (lọc `type`, thời gian) + tổng đã tích / đổi / hết hạn |
+| POST   | `/me/loyalty/redemptions`                | User        | Đổi điểm → voucher (`Idempotency-Key` bắt buộc) |
+| GET    | `/me/vouchers`                           | User        | Ví voucher (lọc `status`) |
+| POST   | `/me/vouchers`                           | User        | Lưu mã khuyến mãi công khai vào ví (`promotionCode`) |
+
+`POST /bookings` nhận thêm **tối đa một** trong hai field tùy chọn: `userVoucherId` (User đăng nhập, voucher của chính mình) hoặc `promotionCode`; gửi cả hai → `422 VOUCHER_ONE_PER_BOOKING`. Response booking tách dòng giảm giá kèm `fundedBy` (CO-12, BR-72/73).
 
 ### 7.3. Operator OS
+
+Đăng ký nhà xe — **công khai, trước khi có tài khoản** (BR-75). Mọi endpoint `current` yêu cầu header `X-Application-Token`; rate limit theo IP và email; `POST` tạo hồ sơ / gửi lại link luôn trả `202` giống nhau để không lộ email đã có hồ sơ.
+
+| Method | Path                                           | Actor                  | Mục đích                                                                 |
+| ------ | ---------------------------------------------- | ---------------------- | ------------------------------------------------------------------------ |
+| POST   | `/operator-applications`                       | Public                 | Tạo hồ sơ `DRAFT` (tên nhà xe, người liên hệ, email) + gửi link bảo mật  |
+| POST   | `/operator-applications/access-link`           | Public                 | Gửi lại link (email liên hệ + mã hồ sơ); link cũ hết hiệu lực            |
+| GET    | `/operator-applications/current`               | Người nộp hồ sơ        | Xem hồ sơ và trạng thái                                                  |
+| PUT    | `/operator-applications/current`               | Người nộp hồ sơ        | Cập nhật thông tin doanh nghiệp, tài khoản nhận tiền (`DRAFT` / `NEEDS_INFO`) |
+| POST   | `/operator-applications/current/documents`     | Người nộp hồ sơ        | Presigned upload giấy tờ KYC (R2 private)                                |
+| POST   | `/operator-applications/current/submit`        | Người nộp hồ sơ        | Gửi duyệt → `SUBMITTED`                                                  |
+
+Sau khi được duyệt (Owner đã đăng nhập):
 
 | Method       | Path                        | Actor    | Mục đích                          |
 | ------------ | --------------------------- | -------- | --------------------------------- |
@@ -256,9 +286,11 @@ Thao tác phức tạp dùng `POST` + sub-resource (ADR-012).
 | Method       | Path                                        | Actor | Mục đích                                 |
 | ------------ | ------------------------------------------- | ----- | ---------------------------------------- |
 | GET          | `/admin/dashboard`                          | Admin | Dashboard tổng quan                      |
-| GET          | `/admin/operators/{operatorId}/kyc`         | Admin | Xem hồ sơ KYC                            |
-| POST         | `/admin/operators/{operatorId}/kyc/approve` | Admin | Duyệt KYC + cấp slug/Owner               |
-| POST         | `/admin/operators/{operatorId}/kyc/reject`  | Admin | Từ chối / yêu cầu bổ sung                |
+| GET          | `/admin/operator-applications`              | Admin | Danh sách hồ sơ đăng ký nhà xe (lọc trạng thái) |
+| GET          | `/admin/operator-applications/{applicationId}` | Admin | Xem hồ sơ + giấy tờ KYC (presigned, audit)  |
+| POST         | `/admin/operator-applications/{applicationId}/approve` | Admin | Duyệt: nhập slug + username Owner → tạo Operator + Owner mật khẩu tạm (`Idempotency-Key`, TOTP, audited) |
+| POST         | `/admin/operator-applications/{applicationId}/request-info` | Admin | Yêu cầu bổ sung (lý do) → `NEEDS_INFO` + link mới |
+| POST         | `/admin/operator-applications/{applicationId}/reject` | Admin | Từ chối (lý do) → `REJECTED`, thu hồi link |
 | GET/POST/PUT | `/admin/catalog/*`                          | Admin | Catalog chuẩn                            |
 | GET/POST/PUT | `/admin/policies`                           | Admin | Policy hủy/giữ ghế/dữ liệu               |
 | GET/POST/PUT | `/admin/commission-rules`                   | Admin | Commission rule (5% + override)          |
@@ -268,6 +300,15 @@ Thao tác phức tạp dùng `POST` + sub-resource (ADR-012).
 | POST         | `/admin/payouts/{payoutId}/confirm`         | Admin | Confirm payout + nhập bank ref (ADR-022) |
 | GET/PUT      | `/admin/disputes`                           | Admin | Dispute workflow (final arbiter)         |
 | GET          | `/admin/audit-logs`                         | Admin | Truy xuất audit (Mongo)                  |
+| GET/PUT      | `/admin/loyalty/policy`                     | Admin | Tham số loyalty theo phiên bản + effective date (audited) |
+| GET          | `/admin/loyalty/accounts/{userId}`          | Admin | Tài khoản thành viên + giao dịch điểm    |
+| POST         | `/admin/loyalty/accounts/{userId}/adjustments` | Admin | Điều chỉnh điểm thủ công (lý do, audited) |
+| GET          | `/admin/loyalty/reports`                    | Admin | Điểm phát hành / đổi / hết hạn, giảm Platform chịu theo kỳ |
+| GET/POST/PUT | `/admin/articles`                           | Admin | CRUD bài viết (`DRAFT`)                  |
+| POST         | `/admin/articles/{articleId}/publish`       | Admin | Xuất bản (audited, revalidate ISR)       |
+| POST         | `/admin/articles/{articleId}/archive`       | Admin | Gỡ bài (audited)                         |
+| POST         | `/admin/articles/images`                    | Admin | Presigned upload ảnh (R2 public)         |
+| GET/POST/PUT | `/admin/article-categories`                 | Admin | Chuyên mục bài viết                      |
 
 ### 7.6. Catalog (đọc công khai)
 
@@ -294,6 +335,11 @@ Dữ liệu chuẩn Platform (DB §5.2 nhóm Catalog) cho Marketplace search và
 | Refund request                     | Có                   | booking/payment/refund id + reason                   |
 | Ticket issuance                    | Có                   | booking item id                                      |
 | `POST /admin/payouts/{id}/confirm` | Có                   | `(operator_id, period)`                              |
+| `POST /admin/operator-applications/{applicationId}/approve` | Có | `Idempotency-Key` + mỗi hồ sơ tối đa một Operator (unique `operator_applications.operator_id`) |
+| `POST /me/loyalty/redemptions`     | Có                   | `Idempotency-Key` bắt buộc → unique trong sổ điểm   |
+| `POST /admin/loyalty/accounts/{userId}/adjustments` | Có  | `Idempotency-Key` bắt buộc                          |
+| Loyalty earn / reversal (job)      | Có                   | `earn:{bookingId}` / `reversal:{refundId}`           |
+| Point expiry (job)                 | Có                   | `expire:{accountId}:{date}`                          |
 
 ---
 

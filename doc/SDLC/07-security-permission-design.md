@@ -9,11 +9,11 @@
 | Tên tài liệu  | Security & Permission Design  |
 | Mã tài liệu   | 07-security-permission-design |
 | Dự án         | Marketplace-Ve-Xe-Nhanh       |
-| Trạng thái    | Approved                      |
+| Trạng thái    | Review                        |
 | Người viết    | Nguyễn Hồng Khanh, AI Agent   |
 | Người duyệt   | Nguyễn Hồng Khanh             |
 | Ngày tạo      | 11/05/2026                    |
-| Ngày cập nhật | 28/09/2026                    |
+| Ngày cập nhật | 30/09/2026                    |
 
 ### 1.2. Lịch sử thay đổi
 
@@ -26,6 +26,9 @@
 | v0.5      | 25/09/2026 | AI Agent       | **Hiện thực hóa phần Web của ADR-017 qua TASK-OQ-05/TASK-IAM-006:** bỏ defer cookie; chốt cookie host-only, signed double-submit CSRF, strict Origin/CORS allowlist, dual transport tường minh và chống credential ambiguity. Giữ JSON/Bearer cho Mobile; không thay đổi trạng thái Approved. |
 | v0.6      | 26/09/2026 | AI Agent       | §7 thêm dòng Route/StopPoint theo SRS permission matrix (TASK-TRN-002, Khanh duyệt Q6): quyền `route:manage` chỉ Operator Owner trong tenant. Giữ trạng thái Approved, không tự promote. |
 | v0.7      | 28/09/2026 | AI Agent       | **ADR-017 amend / TASK-IAM-006 (Khanh chốt 28/09):** §4/§5 tách cổng đăng nhập Owner và Employee (Employee `nv.`, chỉ Bearer, không cookie session); §11 thêm threat "sai cổng Owner/Employee": trả lỗi chung, không cấp phiên. Kiểm role ở FE Operator OS giữ làm lớp phòng thủ thứ hai. Giữ trạng thái Approved. |
+| v0.8      | 29/09/2026 | AI Agent       | **Loyalty VXN Plus / ví voucher / bài viết (Khanh chốt 29/09/2026, SRS v1.21):** §6 boundary loyalty / voucher / bài viết; §7 dòng Loyalty + ví voucher, Bài viết; §8 điều chỉnh điểm, đổi tham số loyalty, xuất bản bài; §11 threat farm điểm, voucher IDOR / dùng trùng, stored XSS bài viết. Trạng thái Approved → **Review**. |
+| v0.9      | 30/09/2026 | AI Agent       | **A2 — đăng ký nhà xe theo closed enrollment (Khanh duyệt 30/09/2026, SRS v1.23)**: §4/§5 thêm actor người nộp hồ sơ nhà xe (link bảo mật); §7 dòng KYC; §8 duyệt hồ sơ tạo Operator + Owner; §9 hồ sơ đăng ký; §11 threat spam form / lộ link. Giữ trạng thái Review. |
+| v0.10     | 30/09/2026 | AI Agent       | §5 Passenger: làm rõ không có mật khẩu / luồng reset, khớp SRS v1.25 (A1). Giữ trạng thái Review. |
 
 ---
 
@@ -73,6 +76,7 @@ Identity 3 namespace tách biệt (ADR-017): Passenger=Email; Operator-side=`{sl
 | Actor             | Trust level          | Boundary                                        |
 | ----------------- | -------------------- | ----------------------------------------------- |
 | Guest             | Public/untrusted     | Dữ liệu public; giữ ghế / đặt vé / thanh toán qua guest session; tra cứu / hủy / hoàn sau xác minh mã và thông tin liên hệ, bổ sung nếu policy yêu cầu |
+| Người nộp hồ sơ nhà xe | Public/untrusted, có link | Chỉ đúng một hồ sơ đăng ký gắn với link; không có dữ liệu tenant, không vào Operator OS |
 | Passenger (User)  | Authenticated user   | Chỉ dữ liệu của chính mình                      |
 | Operator          | Tenant admin         | Chỉ dữ liệu thuộc Operator (`operatorId` + RLS) |
 | Employee          | Tenant scoped worker | Chỉ dữ liệu theo Operator, role và assignment   |
@@ -87,11 +91,12 @@ Auth library = **Better Auth** + custom NestJS adapter (ADR-017).
 
 | Actor               | Cơ chế                                                                | Rule                                                                         |
 | ------------------- | --------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
-| Passenger (User)    | Email + OTP (Resend) primary; hoặc OAuth Google/Facebook/Apple (PKCE) | Self-register; reset qua email; account linking email-match                  |
+| Passenger (User)    | Email + OTP (Resend) primary; hoặc OAuth Google/Facebook/Apple (PKCE) | Self-register; không có mật khẩu nên không có luồng reset (truy cập lại bằng OTP email); account linking chỉ khi email khớp và đã xác minh (SEC-OQ-08)                  |
 | Operator Owner      | `{operatorSlug}/{username}` + password qua `/auth/operator/login`; closed enrollment | Không public/OAuth; username cấm tiền tố `nv.`; cổng chỉ tra `operator_accounts` |
 | Employee            | `{operatorSlug}/nv.{…}` + password qua `/auth/employee/login`; closed enrollment | Không public/OAuth; chỉ Bearer (app Nhân viên), không bao giờ nhận cookie session; cổng chỉ tra `employee_accounts`; Owner quản lý trạng thái + assignment scope |
 | Admin / Platform    | `platform/{username}` + password; closed enrollment                   | TOTP mandatory; không public/OAuth                                           |
 | Guest               | Guest session, không login                                            | Search/hold/book/pay/lookup; email/OTP verify cho thao tác nhạy cảm + lookup |
+| Người nộp hồ sơ nhà xe | Link bảo mật gửi email liên hệ; token qua header `X-Application-Token` | Không phải tài khoản. Token 32 byte ngẫu nhiên, chỉ lưu SHA-256; hạn dùng mặc định 72 giờ (cấu hình được); link mới thay link cũ; hết hiệu lực khi hồ sơ `APPROVED` / `REJECTED` (BR-75) |
 
 ### 5.1. Session và token policy (ADR-017)
 
@@ -137,6 +142,8 @@ RBAC 8-role hardcoded enum v1 (Anonymous / Passenger / OperatorOwner / Driver / 
 | Employee assignment | Employee chỉ xem/chỉnh chuyến/passenger list được phân công hoặc được cấp quyền               |
 | Admin scope         | Admin quyền cao nhưng thao tác nhạy cảm cần permission, re-auth/TOTP và audit                 |
 | Public catalog      | Chỉ dữ liệu đã được phép public mới trả qua API Guest                                         |
+| Loyalty / voucher   | Cấp Platform, không `operatorId`: chỉ User sở hữu (`userId`) và Admin; RLS chặn scope `tenant`; Guest không có tài khoản thành viên |
+| Public article      | Chỉ bài `PUBLISHED` trả qua API công khai; `DRAFT` / `ARCHIVED` chỉ Admin |
 
 ---
 
@@ -151,8 +158,10 @@ RBAC 8-role hardcoded enum v1 (Anonymous / Passenger / OperatorOwner / Driver / 
 | Vehicle/SeatMap          | Không              | Không       | Có trong tenant               | Xem nếu được phân công | Giám sát/toàn hệ thống |
 | Route/StopPoint riêng/đề xuất | Không         | Không       | Có trong tenant (`route:manage`, Owner) | Xem theo chuyến được phân công (task sau) | Duyệt đề xuất, quản lý catalog (ADM-001) |
 | Check-in                 | Không              | Không       | Xem kết quả                   | Có theo assignment     | Giám sát               |
-| KYC Operator             | Không              | Không       | Hồ sơ của mình                | Không                  | Duyệt/quản lý          |
+| KYC Operator             | Không              | Không       | Người đại diện: hồ sơ đăng ký qua link (chưa có tài khoản); Owner: cập nhật giấy tờ sau khi duyệt                | Không                  | Duyệt/quản lý          |
 | Policy/commission/payout | Không              | Không       | Xem phần liên quan            | Không                  | Cấu hình               |
+| Loyalty / ví voucher     | Không              | Của mình    | Không                         | Không                  | Cấu hình, xem, điều chỉnh (audit) |
+| Bài viết                 | Đọc bài công khai  | Đọc bài công khai | Đọc bài công khai       | Không                  | Soạn, xuất bản, gỡ     |
 | Audit log                | Không              | Không       | Log của tenant nếu được cấp   | Không                  | Có                     |
 
 ---
@@ -167,7 +176,10 @@ RBAC 8-role hardcoded enum v1 (Anonymous / Passenger / OperatorOwner / Driver / 
 | Đổi bank account Operator         | Operator/Admin permission, re-auth, re-verify, audit                                                     |
 | Đổi trip đã bán vé                | Operator/Admin permission, reason, notification, audit                                                   |
 | Khóa Operator/User/Employee       | Permission, reason, audit, session revoke (family)                                                       |
+| Duyệt hồ sơ đăng ký nhà xe         | Admin permission `kyc:review`, re-auth/TOTP, `Idempotency-Key`, reason khi từ chối / yêu cầu bổ sung, audit; mỗi hồ sơ tối đa một Operator; email mật khẩu tạm chỉ tới email đã xác minh |
 | Đổi policy hủy/giữ ghế/commission | Admin permission, effective date, audit, không áp ngược booking cũ (PolicySnapshot)                      |
+| Điều chỉnh điểm / đổi tham số loyalty | Admin permission, reason, audit; tham số theo phiên bản có effective date, không áp ngược giao dịch điểm đã ghi |
+| Xuất bản / gỡ bài viết            | Admin permission, audit |
 | Xem/export dữ liệu cá nhân        | Permission, masking, purpose, audit nếu nhạy cảm                                                         |
 
 ---
@@ -181,6 +193,7 @@ RBAC 8-role hardcoded enum v1 (Anonymous / Passenger / OperatorOwner / Driver / 
 | Số điện thoại/email                | Mask khi không cần đầy đủ; SĐT theo `0*** *** 789` (OQ-11)                                                              |
 | Payment data                       | **PCI SAQ-A**: cổng hosted/redirect (VNPay/MoMo), KHÔNG lưu card data; chỉ lưu mã giao dịch/provider metadata (ADR-019) |
 | KYC document                       | R2 **private bucket**; presigned URL TTL **5 phút** + audit log mỗi access (ADR-018)                                    |
+| Hồ sơ đăng ký nhà xe               | Giấy tờ ở R2 private (presigned 5 phút + audit như KYC); tài khoản nhận tiền mask khi hiển thị; token link chỉ lưu hash |
 | Attachment (dispute/payment-proof) | R2 private bucket, presigned URL + audit                                                                                |
 | Cross-border PII                   | Resend (email) + R2 (storage) đặt ngoài VN → DPIA NĐ 13/2023 cho KYC production (blocker **OQ-21**)                     |
 | QR token                           | Không đoán được, lưu hash; verify server-side                                                                           |
@@ -218,6 +231,11 @@ AuditLog ghi vào Mongo `audit_event` (cluster RIÊNG, append-only via REVOKE, A
 | Double booking        | Redis `SET NX EX 600` atomic + idempotency + state validation                                                                  |
 | Payment spoofing      | Webhook verify HMAC (VNPay SHA512 / MoMo SHA256) + timestamp + nonce + dedup `(provider, provider_txn_id)` (ADR-019)           |
 | QR forgery            | QR token random, server-side validation                                                                                        |
+| Loyalty abuse         | Chỉ cộng điểm khi trip `COMPLETED`, thu hồi khi hoàn; đổi điểm idempotent + `SELECT … FOR UPDATE`; rate limit `/me/loyalty/redemptions`; báo cáo chi phí cho Admin |
+| Voucher IDOR / dùng trùng | Ownership `userId`; compare-and-set trạng thái; partial unique `booking_id` trên `user_vouchers` |
+| Stored XSS bài viết   | Lưu Markdown, render allowlist (web + Flutter), không render HTML thô; chỉ Admin soạn; CSP |
+| Spam / dò email qua form đăng ký nhà xe | Rate limit theo IP + email; phản hồi luôn giống nhau; hồ sơ chỉ vào hàng đợi Admin sau khi email được xác minh qua link |
+| Lộ / đoán link hồ sơ nhà xe | Token ngẫu nhiên 32 byte, lưu hash, có hạn dùng, một hồ sơ, thu hồi khi cấp link mới hoặc hồ sơ kết thúc; chỉ gửi tới email liên hệ |
 
 ---
 

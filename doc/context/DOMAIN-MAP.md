@@ -11,9 +11,9 @@ References:
 
 | Layer                | Backend module group (target)                                                                                                                              | Primary SRS sections                        | Primary FR group                                           |
 | -------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------- | ---------------------------------------------------------- |
-| Marketplace layer    | `iam/`, `marketplace/`, `booking/`, `payment/`, `ticket/`, `notification/`, `support/`, `review/`, `dispute/`                                              | §10.1 IAM, §10.2 MKT, §10.3 BTP, §10.9 NSR  | `FR-IAM-*`, `FR-MKT-*`, `FR-BTP-*`, `FR-NSR-*`, `FR-DSP-*` |
+| Marketplace layer    | `iam/`, `marketplace/`, `booking/`, `payment/`, `ticket/`, `notification/`, `support/`, `review/`, `dispute/`, `loyalty/`                                              | §10.1 IAM, §10.2 MKT, §10.3 BTP, §10.9 NSR, §10.11 LOY  | `FR-IAM-*`, `FR-MKT-*`, `FR-BTP-*`, `FR-NSR-*`, `FR-DSP-*`, `FR-LOY-*` |
 | Operator OS layer    | `operator/`, `vehicle/`, `route/`, `stop-point/`, `trip/`, `fare/`, `promotion/`, `employee/`, `manifest/`, `finance/` (escrow + payout view)              | §10.4 OPR, §10.5 OPS, §10.6 PROM, §10.7 EMP | `FR-OPR-*`, `FR-OPS-*`, `FR-PROM-*`, `FR-EMP-*`            |
-| Platform admin layer | `admin/`, `catalog/`, `policy/`, `commission/`, `payout/`, `audit/`, `reporting/`, `search/`                                                               | §10.8 ADM, §10.9 NSR (admin parts)          | `FR-ADM-*`                                                 |
+| Platform admin layer | `admin/`, `catalog/`, `policy/`, `commission/`, `payout/`, `audit/`, `reporting/`, `search/`, `content/`                                                               | §10.8 ADM, §10.9 NSR (admin parts)          | `FR-ADM-*`                                                 |
 | Cross-cutting        | `common/` (guards, interceptors, pipes), `database/` (Prisma + Mongoose), `redis/`, `external/` (payment, notification, routing, storage, payout adapters) | §11 NFR, §8 dependencies                    | `NFR-*`                                                    |
 
 Notes:
@@ -27,12 +27,14 @@ Notes:
 | Entity group             | Target module(s)                                              | Notes                                                                                                |
 | ------------------------ | ------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
 | Identity & Access        | `iam/` (split: `auth/`, `user/`, `session/`, `role/`)         | Owns User, Admin, Operator account, Employee account, Role, Session.                                 |
-| Operator Profile & KYC   | `operator/` + `operator-kyc/`                                 | Owns OperatorProfile, KycDocument, BankAccount, OperatorStatusHistory.                               |
+| Operator Profile & KYC   | `operator/` + `operator-kyc/`                                 | Owns OperatorApplication (pre-tenant registration, BR-75), OperatorProfile, KycDocument, BankAccount, OperatorStatusHistory.                               |
 | Location & Catalog       | `catalog/`                                                    | Province, Ward, StopPoint, VehicleType, Amenity, ContentPage.                                        |
 | Transport Resource       | `vehicle/`, `route/`, `stop-point/`                           | Vehicle, SeatMap, Seat, Route, RouteStop.                                                            |
 | Trip & Inventory         | `trip/`, `fare/`, `seat-hold/`                                | Trip, TripStop, TripSeat, SeatHold, Fare, FareRule.                                                  |
 | Booking & Ticket         | `booking/`, `ticket/`                                         | Booking, PassengerInfo, Ticket, TicketQrToken, BookingStatusHistory.                                 |
-| Promotion & Campaign     | `promotion/`                                                  | Promotion, PromotionRule, PromotionRedemption, PromotionUsageLimit.                                  |
+| Promotion & Campaign     | `promotion/`                                                  | Promotion, PromotionRule, PromotionRedemption, PromotionUsageLimit, UserVoucher (voucher wallet).                                  |
+| Loyalty (VXN Plus)       | `loyalty/`                                                    | LoyaltyAccount, PointTransaction (append-only ledger), MembershipTier (enum; thresholds/multipliers in `PolicyVersion`). Platform-level, no `operatorId`. |
+| Content                  | `content/`                                                    | Article, ArticleCategory (Khám phá page). `ContentPage` (static pages) stays in `catalog/`.          |
 | Payment, Escrow & Payout | `payment/`, `refund/`, `escrow/`, `payout/`, `commission/`    | Payment, Refund, EscrowLedger, CommissionRule, Payout, ReconciliationRecord.                         |
 | Operation & Check-in     | `manifest/`, `check-in/`, `journey-log/`, `incident/`         | CheckInEvent, JourneyLog, IncidentReport, EmployeeAssignment.                                        |
 | Support & Trust          | `support/`, `complaint/`, `review/`, `dispute/`, `scorecard/` | SupportTicket, Complaint, Review, DisputeCase, OperatorScorecard.                                    |
@@ -85,9 +87,17 @@ Per `OQ-01..03` decisions, code state enums must align with SRS §17:
 | Payment status | INITIATED, PROCESSING, SUCCESS, FAILED, EXPIRED, CANCELLED, RECONCILING                                                                  | `payment/`    |
 | Refund status  | REQUESTED, APPROVED, PROCESSING, SUCCESS, FAILED, REJECTED                                                                               | `refund/`     |
 | Dispute status | OPEN, WAITING_USER_EVIDENCE, WAITING_OPERATOR_RESPONSE, UNDER_REVIEW, ESCALATED, RESOLVED_REFUND, RESOLVED_NO_REFUND, CLOSED             | `dispute/`    |
+| Membership tier | BRONZE, SILVER, GOLD, PLATINUM                                                                                                           | `loyalty/`    |
+| Point transaction type | EARN, REDEEM, EXPIRE, ADJUST, REVERSAL (append-only, no lifecycle)                                                                | `loyalty/`    |
+| User voucher status | AVAILABLE, RESERVED, USED, EXPIRED                                                                                                   | `promotion/`  |
+| Article status | DRAFT, PUBLISHED, ARCHIVED                                                                                                                | `content/`    |
+| Operator application status | DRAFT, SUBMITTED, NEEDS_INFO, APPROVED, REJECTED                                                                             | `operator-kyc/` |
+| Operator status | ACTIVE, SUSPENDED                                                                                                                        | `operator/`   |
 
 Code shared in `packages/types/` should expose these enums for **frontend (web) and backend**. Mobile (Flutter, ADR-028) cannot consume the Zod package — it gets the same enums through the Dart client generated from the OpenAPI 3.1 spec (`packages/api_client_dart/`).
 
 ## 6. Tenant boundary requirements
 
 For every entity owned by an Operator (entity groups 4–11 above except platform catalog), the schema must carry `operatorId` and every query / mutation must enforce tenant filter via guard or repository layer. This is a cross-cutting requirement defined by `FR-OPR-11`, `FR-IAM-06` and `DM-01` (SRS §9.1).
+
+Loyalty (`loyalty/`), the voucher wallet (`user_vouchers`) and articles (`content/`) are **Platform-level** data with no `operatorId`: loyalty and vouchers are owned by `userId` (checked in the service), and RLS blocks the `tenant` scope from reading them (SRS v1.21, `BR-65..74`).

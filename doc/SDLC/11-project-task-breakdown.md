@@ -9,11 +9,11 @@
 | Tên tài liệu  | Project Task Breakdown      |
 | Mã tài liệu   | 11-project-task-breakdown   |
 | Dự án         | Marketplace-Ve-Xe-Nhanh     |
-| Trạng thái    | Approved                    |
+| Trạng thái    | Review                      |
 | Người viết    | Nguyễn Hồng Khanh, AI Agent |
 | Người duyệt   | Nguyễn Hồng Khanh           |
 | Ngày tạo      | 11/05/2026                  |
-| Ngày cập nhật | 28/09/2026                  |
+| Ngày cập nhật | 30/09/2026                  |
 
 ### 1.2. Lịch sử thay đổi
 
@@ -38,6 +38,9 @@
 | v0.17     | 25/09/2026 | AI Agent       | Bắt đầu **`TASK-TRN-002`** theo yêu cầu của Khanh: tạo todo/guide/checklist và chuyển `Draft → In Progress`. Chưa code trước khi chốt Q1–Q7 về StopPoint/proposal, API, RouteStop/state, Goong, permission và phạm vi FE; giữ trạng thái Approved của tài liệu. |
 | v0.18     | 26/09/2026 | AI Agent       | `TASK-TRN-002`: Khanh duyệt Q1–Q8 (thêm Q8 provider ước lượng ở dev); API §7.3, DB §5.2/§7, Security §7, GLOSSARY đồng bộ. Không thay đổi trạng thái Approved của tài liệu. |
 | v0.19     | 28/09/2026 | AI Agent       | **ADR-017 amend (Khanh chốt 28/09):** mở rộng phạm vi `TASK-IAM-006` với tách cổng login Owner/Employee, tiền tố username Employee `nv.` + migration đổi tên; `TASK-EMP-001` ghi màn login dùng `/auth/employee/login`. IAM-006 giữ **Ready**. Không thay đổi trạng thái Approved của tài liệu. |
+| v0.20     | 29/09/2026 | AI Agent       | **Loyalty VXN Plus / ví voucher / bài viết (Khanh chốt 29/09/2026, SRS v1.21):** §7.5 thêm `TASK-PROM-002` (ví voucher), `TASK-LOY-001` (VXN Plus), `TASK-CNT-001` (bài viết); §9 rủi ro chi phí / lạm dụng loyalty. Trạng thái Approved → **Review**. |
+| v0.21     | 29/09/2026 | AI Agent       | SRS v1.22 tách use case: nguồn `TASK-LOY-001` thêm `UC-39`, `TASK-CNT-001` thêm `UC-40`. Giữ trạng thái Review. |
+| v0.22     | 30/09/2026 | AI Agent       | **A2 — đăng ký nhà xe theo closed enrollment (Khanh duyệt 30/09/2026, SRS v1.23)**: `TASK-OPR-001` = form đăng ký công khai + link bảo mật + upload KYC; `TASK-ADM-001` duyệt hồ sơ gọi `provisionOperatorOwner`. Giữ trạng thái Review. |
 
 ---
 
@@ -185,17 +188,20 @@ Bảng xếp theo thứ tự làm. ID cũ giữ nguyên để không vỡ tham c
 
 | Task ID        | Task                                                     | Nguồn                    | Owner     | Dependency                 | Status |
 | -------------- | -------------------------------------------------------- | ------------------------ | --------- | -------------------------- | ------ |
-| TASK-OPR-001   | Operator onboarding/KYC (R2 private + presigned)/profile | FR-OPR-01..06, ADR-018   | BE/FE     | TASK-IAM-005               | Draft  |
+| TASK-OPR-001   | Operator onboarding: form đăng ký công khai + link bảo mật (BR-75), upload KYC (R2 private + presigned), gửi duyệt; profile sau khi duyệt | FR-OPR-01..06, FR-OPR-12, BR-75, ADR-018   | BE/FE     | TASK-IAM-005               | Draft  |
 | TASK-OPR-002   | Operator finance dashboard (escrow/payout view)          | FR-OPR-07..09            | BE/FE     | TASK-BTP-006               | Draft  |
 | TASK-EMP-001   | Employee assignment/passenger list (employee_mobile); màn login gọi `/auth/employee/login` (Bearer, username `nv.`) | FR-EMP-01..06, ADR-028, ADR-017 amend 28/09 | BE/Mobile | TASK-IAM-005, TASK-TRN-003 | Draft  |
 | TASK-EMP-002   | QR check-in + trip status (Maestro test)                 | FR-EMP-07..13            | BE/Mobile | TASK-BTP-004, TASK-EMP-001 | Draft  |
-| TASK-ADM-001   | Admin KYC approve/catalog/policy                         | FR-ADM-02..09            | BE/FE     | TASK-IAM-005               | Draft  |
+| TASK-ADM-001   | Admin duyệt hồ sơ đăng ký nhà xe (gọi `provisionOperatorOwner`: tạo Operator + Owner mật khẩu tạm) / catalog / policy                         | FR-ADM-02..09            | BE/FE     | TASK-IAM-005               | Draft  |
 | TASK-ADM-002   | Admin payment/refund/payout confirm/dispute/audit        | FR-ADM-10..11, FR-ADM-14..17, FR-DSP-\* | BE/FE     | TASK-BTP-005, TASK-FND-007 | Draft  |
 | TASK-TRUST-001 | Review/support/complaint/dispute workflow                | FR-NSR-06..11, FR-DSP-\* | BE/FE     | TASK-BTP-004               | Draft  |
 | TASK-MKT-001   | Profile công khai Operator: thông tin, đánh giá, scorecard, tuyến tiêu biểu, điều khoản dịch vụ | FR-MKT-06, FR-NSR-15, UC-03 | BE/FE | TASK-OPR-001, TASK-TRUST-001 | Draft |
 | TASK-MKT-002   | Hồ sơ hành khách + lưu hành khách thường dùng để đặt vé nhanh | FR-IAM-11, FR-MKT-13, UC-01 | BE/FE | TASK-IAM-003 | Draft |
 | TASK-PROM-001  | Promotion cấp Platform / Operator: rule + guardrail + giới hạn lượt dùng + redemption snapshot vào booking; màn quản lý (Admin, Operator OS) + nhập mã ở checkout; **test money bắt buộc** | FR-PROM-01..07, FR-ADM-12, FR-MKT-10, UC-33 | BE/FE | TASK-BTP-002, TASK-IAM-003 | Draft |
 | TASK-ADM-003   | Kiểm duyệt nội dung: review, báo cáo vi phạm, banner, FAQ, content page (ảnh qua R2 bucket public) + hiển thị banner/FAQ ở Marketplace | FR-ADM-13, UC-28, ADR-018 | BE/FE | TASK-TRUST-001, TASK-IAM-003 | Draft |
+| TASK-PROM-002  | Ví voucher: lưu mã công khai, danh sách + trạng thái, chọn voucher ở checkout, giữ / tiêu / trả theo BR-72; màn Marketplace + `passenger_mobile`; **test money / idempotency bắt buộc** | FR-PROM-08..10, UC-37, BR-72 | BE/FE/Mobile | TASK-PROM-001 | Draft |
+| TASK-LOY-001   | Loyalty VXN Plus: `LoyaltyAccount`, sổ điểm append-only, cộng điểm khi trip `COMPLETED` + thu hồi khi hoàn, hạng 12 tháng, đổi điểm → voucher, job hết hạn, phần giảm Platform chịu vào escrow ledger; màn VXN Plus / lịch sử / đổi điểm (web + `passenger_mobile`) + Admin policy / điều chỉnh / báo cáo; **test money / idempotency / RLS bắt buộc**. Gate: chốt `LLD-OQ-06` | FR-LOY-01..12, UC-36..37, UC-39, BR-65..73 | BE/FE/Mobile | TASK-PROM-002, TASK-BTP-006, TASK-EMP-002 | Draft |
+| TASK-CNT-001   | Bài viết tin tức / cẩm nang: `Article` + `ArticleCategory`, Admin CRUD / xuất bản / gỡ (ảnh R2 public, Markdown sanitize), trang Khám phá + chi tiết bài (Marketplace ISR + `passenger_mobile`) | FR-MKT-14, FR-ADM-18..19, UC-38, UC-40, BR-74, ADR-018 | BE/FE/Mobile | TASK-IAM-003, TASK-FND-010 | Draft |
 
 ### 7.6. Notification, reporting, operation, test
 
@@ -232,6 +238,7 @@ Bảng xếp theo thứ tự làm. ID cũ giữ nguyên để không vỡ tham c
 | Money rounding                  | Sai tiền commission/refund/payout  | BIGINT/Decimal + lint cấm float + test mandatory (ADR-009/011)                            |
 | Tenant leak                     | Operator xem dữ liệu nhau          | TenantGuard + Postgres RLS + test RLS bắt buộc                                            |
 | Webhook spoofing/trùng          | Ghi tiền sai                       | HMAC verify + dedup `(provider,txn)` (ADR-019)                                            |
+| Loyalty chi phí / lạm dụng      | Platform chịu tiền sai hoặc lỗ     | Sổ điểm append-only + idempotency + test money; tham số theo phiên bản; báo cáo chi phí (FR-LOY-12); chốt `LLD-OQ-06` trước khi code |
 | **OQ-22 giấy phép TGTT**        | Chặn production escrow/payout thật | Sandbox/MVP không vướng; production prep (defer)                                          |
 | **OQ-21 KYC storage residency** | Chặn production KYC                | dev-local adapter; production VN-cloud/DPIA (defer)                                       |
 

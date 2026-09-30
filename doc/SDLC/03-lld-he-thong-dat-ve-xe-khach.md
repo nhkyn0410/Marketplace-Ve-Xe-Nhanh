@@ -9,11 +9,11 @@
 | Tên tài liệu  | Low Level Design - Hệ thống đặt vé xe khách |
 | Mã tài liệu   | 03-lld-he-thong-dat-ve-xe-khach             |
 | Dự án         | Marketplace-Ve-Xe-Nhanh                     |
-| Trạng thái    | Approved                                    |
+| Trạng thái    | Review                                      |
 | Người viết    | Nguyễn Hồng Khanh, AI Agent                 |
 | Người duyệt   | Nguyễn Hồng Khanh                           |
 | Ngày tạo      | 11/05/2026                                  |
-| Ngày cập nhật | 28/09/2026                                  |
+| Ngày cập nhật | 30/09/2026                                  |
 
 ### 1.2. Lịch sử thay đổi
 
@@ -25,6 +25,8 @@
 | v0.4      | 01/06/2026 | AI Agent       | **Sprint 5 Rework** — reset stack theo 18 ADR. §5.1 pattern: Prisma repo (Postgres) + Mongoose (audit), Zod DTO (nestjs-zod), BullMQ processor. §5.2 module: Identity bake **ADR-017 confirmed** (Better Auth + Hybrid token + 3-namespace + closed enrollment + TenantGuard); Payment VNPay+MoMo; Notification Resend+Expo+sms-noop; Reporting Postgres CTE+Mongo agg; Audit Mongo cluster riêng; cross-cutting external adapters per ADR. §6 thêm 6.5 Auth login+token refresh + 6.6 Payout T+3; seat hold = Redis. **Đóng LLD-OQ-01** (seat hold Redis per ADR-015) + **LLD-OQ-05** (audit Mongo cluster RIÊNG per ADR-011); cập nhật LLD-OQ-03 (VNPay+MoMo). ⚠️ ADR-017 re-confirm CRITICAL — Khanh chốt toàn bộ 01/06/2026. |
 | v0.5      | 25/09/2026 | AI Agent       | **TASK-OQ-05 / TASK-IAM-006:** chi tiết hóa §6.5 dual transport Web cookie / Mobile Bearer, CSRF/CORS, bootstrap `/auth/me`, refresh single-flight; §7 thêm bốn error code auth transport/CSRF/origin. Không đổi kiến trúc ADR-017 hay trạng thái Approved. |
 | v0.6      | 28/09/2026 | AI Agent       | **ADR-017 amend / TASK-IAM-006 (Khanh chốt 28/09):** §6.5 bước 1–2 tách cổng Owner `/auth/operator/login` và Employee `/auth/employee/login` (chỉ Bearer); mỗi cổng chỉ tra đúng bảng account; sai cổng = `AUTH_INVALID_CREDENTIALS`. Giữ trạng thái Approved. |
+| v0.7      | 29/09/2026 | AI Agent       | **Loyalty VXN Plus / ví voucher / bài viết (Khanh chốt 29/09/2026, SRS v1.21):** §5.2 thêm `loyalty/`, `content/`, `UserVoucherService`; §6.2/§6.3 voucher trong create booking + payment callback (`fundedBy`, `PLATFORM_FUNDED_DISCOUNT`); thêm §6.7–§6.10 (cộng điểm, đổi điểm, hết hạn điểm, xuất bản bài viết); §7 error `LOYALTY_*` / `VOUCHER_*` / `ARTICLE_*`; §8 state; §9 audit; mở `LLD-OQ-06` (giá trị seed loyalty), `LLD-OQ-07` (bên chịu giảm của promotion cấp Platform). Trạng thái Approved → **Review**. |
+| v0.8      | 30/09/2026 | AI Agent       | **A2 — đăng ký nhà xe theo closed enrollment (Khanh duyệt 30/09/2026, SRS v1.23)**: §5.2 `OperatorApplicationService`; thêm §6.11 đăng ký và duyệt hồ sơ nhà xe; §7 error `OPERATOR_APPLICATION_*`, `OPERATOR_SLUG_CONFLICT`; §9 audit duyệt hồ sơ. Giữ trạng thái Review. |
 
 ---
 
@@ -100,14 +102,16 @@ Tên module / folder dưới đây dùng **target state** theo `context/DOMAIN-M
 | Module nhóm                  | Folder target                                                                                                                                                                                                | Service chính                                                                                                              | Trách nhiệm LLD                                                                                                                                                                                                                                                                                                             | Rủi ro cần kiểm                                                           |
 | ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
 | Identity & Access            | `iam/auth/`, `iam/user/`, `iam/session/`, `iam/role/`                                                                                                                                                        | `AuthService`, `SessionService`, `UserProfileService`, `RoleService`                                                       | **Better Auth** login 3-namespace; Hybrid token; closed enrollment; RBAC/TOTP (ADR-017). TASK-IAM-006 thêm dual transport, cookie writer/reader, CSRF + Origin/CORS guard và bootstrap `/auth/csrf`, `/auth/me`; Mobile JSON/Bearer không đổi; tách cổng login Owner/Employee (§6.5) | brute force, token leak/reuse, CSRF, credential ambiguity, sai namespace, sai cổng Owner/Employee, IDOR |
-| Operator Profile & KYC       | `operator/`, `operator-kyc/`                                                                                                                                                                                 | `OperatorProfileService`, `KycService`, `BankAccountService`                                                               | KYC submission (file → R2 private bucket, metadata Postgres), admin approval, profile, bank account, OperatorStatusHistory                                                                                                                                                                                                  | KYC giả, đổi tài khoản nhận tiền không audit                              |
+| Operator Profile & KYC       | `operator/`, `operator-kyc/`                                                                                                                                                                                 | `OperatorProfileService`, `OperatorApplicationService`, `KycService`, `BankAccountService`                                                               | KYC submission (file → R2 private bucket, metadata Postgres), admin approval, profile, bank account, OperatorStatusHistory                                                                                                                                                                                                  | KYC giả, đổi tài khoản nhận tiền không audit                              |
 | Catalog & Search             | `catalog/`, `search/`                                                                                                                                                                                        | `ProvinceService`, `WardService`, `StopPointCatalogService`, `VehicleTypeService`, `AmenityService`, `SearchService`       | Catalog Platform sở hữu; search public trip availability (cache Redis TTL 60s)                                                                                                                                                                                                                                              | search lệch tải, catalog cập nhật không đồng bộ                           |
 | Transport Resource           | `vehicle/`, `route/`, `stop-point/`                                                                                                                                                                          | `VehicleService`, `SeatMapService`, `RouteService`, `RouteStopService`                                                     | Vehicle, SeatMap (layout `JSONB`), Seat, Route, RouteStop, StopPoint Operator-owned; cache distance/duration Goong                                                                                                                                                                                                          | đổi xe/sơ đồ ghế sau khi đã có vé                                         |
 | Trip & Inventory             | `trip/`, `trip-seat/`, `seat-hold/`, `fare/`                                                                                                                                                                 | `TripService`, `TripSeatService`, `SeatHoldService`, `FareService`                                                         | Trip, TripStop, TripSeat, SeatHold (Redis `SET NX EX 600`, ADR-015), Fare riêng                                                                                                                                                                                                                                             | bán trùng ghế, fare snapshot sai                                          |
 | Booking & Ticket             | `booking/`, `ticket/`                                                                                                                                                                                        | `BookingService`, `TicketService`, `QrTokenService`, `BookingStatusHistoryService`                                         | Booking snapshot bắt buộc (fare, policy, promotion), ticket, QR token hash                                                                                                                                                                                                                                                  | snapshot drift, ticket giả, hold consume sai                              |
 | Payment & Refund             | `payment/`, `refund/`                                                                                                                                                                                        | `PaymentService`, `RefundService`                                                                                          | Payment intent VNPay (HMAC-SHA512) + MoMo (HMAC-SHA256) qua adapter; callback verify + dedup `(provider, provider_txn_id)`; refund riêng từng cổng (ADR-019)                                                                                                                                                                | callback trùng, hoàn tiền trùng, signature giả                            |
 | Escrow / Payout / Commission | `escrow/`, `payout/`, `commission/`                                                                                                                                                                          | `EscrowLedgerService`, `PayoutService`, `CommissionService`                                                                | EscrowLedger append-only in-house, commission 5% + override, payout T+3 manual confirm + batch (ADR-022)                                                                                                                                                                                                                    | điều chỉnh ledger không audit, payout sai operator                        |
-| Promotion                    | `promotion/`                                                                                                                                                                                                 | `PromotionService`, `PromotionRuleService`, `PromotionRedemptionService`, `PromotionUsageLimitService`                     | Rule, validation, redemption snapshot, usage limit                                                                                                                                                                                                                                                                          | dùng sai mã, vượt giới hạn                                                |
+| Promotion                    | `promotion/` | `PromotionService`, `PromotionRuleService`, `PromotionRedemptionService`, `PromotionUsageLimitService`, `UserVoucherService` | Rule, validation, redemption snapshot, usage limit; ví voucher (lưu mã, giữ / tiêu / trả theo BR-72) | dùng sai mã, vượt giới hạn, voucher dùng trùng |
+| Loyalty                      | `loyalty/` | `LoyaltyAccountService`, `PointLedgerService`, `TierService`, `RedemptionService`, `LoyaltyEarnProcessor`, `PointExpiryProcessor` | Tài khoản thành viên, sổ điểm append-only, hạng 12 tháng, đổi điểm → voucher, hết hạn điểm; cấp Platform (không `operatorId`) | cộng trùng, số dư lệch, farm điểm, Platform chịu tiền sai |
+| Content                      | `content/` | `ArticleService`, `ArticleCategoryService` | Bài viết + chuyên mục, xuất bản / gỡ, lượt xem, revalidate ISR Marketplace | XSS nội dung, slug trùng |
 | Employee Operations          | `employee/`, `manifest/`, `check-in/`, `journey-log/`, `incident/`                                                                                                                                           | `EmployeeAccountService`, `AssignmentService`, `ManifestService`, `CheckInService`, `JourneyLogService`, `IncidentService` | Employee account, assignment scope, manifest, QR check-in, journey log, incident (employee_mobile, ADR-028)                                                                                                                                                                                                                 | Employee xem sai chuyến, manifest lộ dữ liệu                              |
 | Support & Trust              | `support/`, `complaint/`, `review/`, `dispute/`, `scorecard/`                                                                                                                                                | `SupportTicketService`, `ComplaintService`, `ReviewService`, `DisputeCaseService`, `OperatorScorecardService`              | Support, complaint, review moderation, dispute final-arbiter Admin, scorecard; attachment → R2                                                                                                                                                                                                                              | thiếu bằng chứng, dispute sai state, review giả                           |
 | Notification                 | `notification/`                                                                                                                                                                                              | `NotificationService`, `DeliveryService`, `PreferenceService`                                                              | Fan-out BullMQ: email Resend + push FCM/APNs + sms-noop (ADR-020/028); retry + DLQ; delivery log → Mongo `system_log`; NotificationPreference (mandatory không tắt được)                                                                                                                                                    | gửi lỗi, lộ OTP/token trong log                                           |
@@ -135,9 +139,9 @@ Tên module / folder dưới đây dùng **target state** theo `context/DOMAIN-M
 | Bước | Xử lý                                                                                                                         |
 | ---- | ----------------------------------------------------------------------------------------------------------------------------- |
 | 1    | Verify Redis seat hold còn hiệu lực + ownership (Lua `EVAL` atomic).                                                          |
-| 2    | Validate passenger info, contact, pickup/dropoff, fare, promotion.                                                            |
-| 3    | Tính tổng tiền (`BIGINT`) và lưu snapshot bắt buộc: trip, operator, route, fare, policy, promotion.                           |
-| 4    | Tạo booking `PENDING_PAYMENT` trong Postgres transaction (v1 chỉ pay-first per OQ-07; `PENDING_CONFIRMATION` giữ trong enum). |
+| 2    | Validate passenger info, contact, pickup/dropoff, fare, promotion hoặc voucher trong ví (tối đa một, BR-72; voucher phải thuộc User).                                                            |
+| 3    | Tính tổng tiền (`BIGINT`) và lưu snapshot bắt buộc: trip, operator, route, fare, policy, promotion / voucher. Mỗi dòng giảm giá ghi `fundedBy` (`OPERATOR` cho promotion Operator, `PLATFORM` cho voucher đổi điểm; promotion cấp Platform theo `LLD-OQ-07`); số tiền phải trả không thấp hơn mức tối thiểu của cổng.                           |
+| 4    | Tạo booking `PENDING_PAYMENT` trong Postgres transaction (v1 chỉ pay-first per OQ-07; `PENDING_CONFIRMATION` giữ trong enum); cùng transaction chuyển voucher `AVAILABLE → RESERVED` bằng compare-and-set. Booking `EXPIRED` → trả voucher về `AVAILABLE` (hoặc `EXPIRED` nếu quá hạn). |
 | 5    | Ghi state history và audit nếu có thao tác nhạy cảm.                                                                          |
 
 ### 6.3. Payment callback
@@ -146,7 +150,7 @@ Tên module / folder dưới đây dùng **target state** theo `context/DOMAIN-M
 | ---- | ------------------------------------------------------------------------------------------------------------------------------------------- |
 | 1    | Verify HMAC signature (VNPay SHA512 / MoMo SHA256), provider transaction id, amount, booking id, status.                                    |
 | 2    | Kiểm idempotency dedup unique `(provider, provider_txn_id)` (ADR-019, FR-BTP-08).                                                           |
-| 3    | Nếu success hợp lệ, cập nhật payment + booking + seat + escrow ledger + commission + ticket trigger trong Postgres transaction (savepoint). |
+| 3    | Nếu success hợp lệ, cập nhật payment + booking + seat + escrow ledger + commission + ticket trigger trong Postgres transaction (savepoint). Có voucher: `RESERVED → USED` + `promotion_redemptions`; phần giảm `fundedBy = PLATFORM` ghi entry `PLATFORM_FUNDED_DISCOUNT`, escrow Operator + commission tính trên giá trước phần giảm này (BR-73). |
 | 4    | Nếu lệch trạng thái hoặc callback trễ, chuyển `RECONCILING`; reconciliation cron BullMQ call querydr đối chiếu.                             |
 | 5    | Fan-out notification (BullMQ) và ghi audit/state history.                                                                                   |
 
@@ -183,6 +187,57 @@ Tên module / folder dưới đây dùng **target state** theo `context/DOMAIN-M
 | 4    | Admin review batch → tự chuyển khoản tới `bank_accounts` verified (KYC OQ-19) → nhập bank ref → COMPLETED.           |
 | 5    | Tạo `ReconciliationRecord` (DP-18); audit who/why/when (CO-27); policy versioning (AS-23).                           |
 
+### 6.7. Loyalty — cộng / thu hồi điểm (BR-66, BR-67)
+
+| Bước | Xử lý |
+| ---- | ----- |
+| 1    | `trip/` phát event `trip.completed` → BullMQ job `loyalty-earn` (một job / trip). |
+| 2    | Với mỗi booking có `user_id` trên chuyến: bỏ qua nếu đã có giao dịch với `idempotency_key = earn:{bookingId}` (unique). |
+| 3    | Số tiền căn cứ (`BIGINT`) = Σ số tiền User thực trả của ticket không `CANCELLED` / `REFUNDED` / `NO_SHOW` (phân bổ giảm giá theo snapshot booking). |
+| 4    | `points = floor(Decimal(base) / earnUnit × multiplier(tier))` theo `PolicyVersion` loyalty đang hiệu lực. |
+| 5    | Transaction: insert `EARN` (points, base, multiplier, `policy_version_id`, `expires_at`) + cập nhật `loyalty_accounts.available_points` (optimistic `version`) + tính lại hạng = f(Σ `EARN` 12 tháng). |
+| 6    | Enqueue thông báo NTF-23 / NTF-24 (không bắt buộc). |
+| 7    | Refund `SUCCESS` của ticket đã tích điểm → `REVERSAL` = min(điểm tương ứng, số dư); `idempotency_key = reversal:{refundId}`. |
+
+### 6.8. Loyalty — đổi điểm lấy voucher (BR-71)
+
+| Bước | Xử lý |
+| ---- | ----- |
+| 1    | `POST /me/loyalty/redemptions` với header `Idempotency-Key` bắt buộc; body `points`. |
+| 2    | Transaction: `SELECT … FOR UPDATE` `loyalty_accounts`; kiểm `points ≥ minRedeem` và `points ≤ available_points`. |
+| 3    | `amount = points × redeemValue` (`BIGINT`, Decimal). |
+| 4    | Insert `REDEEM` (−points) + `user_vouchers` (`LOYALTY_REDEMPTION`, `discount_amount`, `expires_at`) + trừ `available_points`. Trùng `Idempotency-Key` → trả voucher đã tạo. |
+| 5    | Trả voucher mới; client điều hướng sang ví voucher. |
+
+### 6.9. Loyalty — hết hạn điểm và voucher (BR-70)
+
+| Bước | Xử lý |
+| ---- | ----- |
+| 1    | BullMQ cron hằng ngày, concurrency 1 (ADR-016). |
+| 2    | Với mỗi tài khoản có điểm tới hạn: `toExpire = max(0, Σ credit có expires_at ≤ now − Σ debit đã ghi)` — FIFO tính bằng tổng, không sửa giao dịch cũ; `REVERSAL` coi như tiêu điểm theo FIFO. |
+| 3    | Insert `EXPIRE` với `idempotency_key = expire:{accountId}:{date}`; cập nhật số dư. |
+| 4    | `user_vouchers` `AVAILABLE` quá `expires_at` → `EXPIRED`. |
+| 5    | Enqueue nhắc NTF-25 / NTF-26 cho điểm / voucher sắp hết hạn (số ngày nhắc theo policy). |
+
+### 6.10. Content — xuất bản bài viết (BR-74)
+
+| Bước | Xử lý |
+| ---- | ----- |
+| 1    | Admin tạo bài `DRAFT`; ảnh upload qua presigned URL vào R2 public bucket (ADR-018). |
+| 2    | Nội dung lưu Markdown; khi render (web + Flutter) chỉ cho phép tập thẻ allowlist, không render HTML thô. |
+| 3    | `publish` → `PUBLISHED`, set `published_at`, audit; gọi revalidate ISR Marketplace (tag bài viết). `archive` → `ARCHIVED`, revalidate. |
+| 4    | Lượt xem: `POST /articles/{slug}/views` best-effort, rate limit theo IP / session; không chặn render trang. |
+
+### 6.11. Đăng ký và duyệt hồ sơ nhà xe (BR-75, ADR-017 closed enrollment)
+
+| Bước | Xử lý |
+| ---- | ----- |
+| 1    | `POST /operator-applications` (public, rate limit IP + email): tạo `operator_applications` `DRAFT` + `application_code`; sinh token 32 byte, lưu SHA-256 + `expires_at`; enqueue email link (BullMQ). Luôn trả `202`. |
+| 2    | Link → client gửi token qua `X-Application-Token`; guard tra hash, kiểm hạn, chưa thu hồi, hồ sơ chưa `APPROVED` / `REJECTED`; lần dùng đầu ghi `contact_email_verified_at`. |
+| 3    | `PUT …/current`, `POST …/current/documents` (presigned R2 private) chỉ khi `DRAFT` / `NEEDS_INFO`; `POST …/current/submit` → `SUBMITTED`, báo Admin. |
+| 4    | Admin `approve` (TOTP + re-auth, `Idempotency-Key`): 1 transaction gọi `provisionOperatorOwner` (tạo `operator_profiles` + Owner mật khẩu tạm), chép giấy tờ → `kyc_documents`, tạo `bank_accounts`, set `operator_id` + `APPROVED`, thu hồi mọi token, audit. Sau commit enqueue email thông tin đăng nhập; gửi lỗi → `credentialDeliveryPending`, gửi lại theo quota IAM-005. |
+| 5    | `request-info` → `NEEDS_INFO` + lý do + token mới (thu hồi token cũ); `reject` → `REJECTED` + lý do + thu hồi token; cả hai gửi NTF-15 và ghi audit. |
+
 ---
 
 ## 7. Validation và error handling
@@ -198,6 +253,10 @@ Error response theo RFC 7807 Problem Details (`application/problem+json`) với 
 | Payment    | `PAYMENT_INVALID_CALLBACK`, `PAYMENT_AMOUNT_MISMATCH`, `PAYMENT_RECONCILING`                   | Không ghi tiền trùng                           |
 | Refund     | `REFUND_POLICY_DENIED`, `REFUND_ALREADY_PROCESSED`, `REFUND_RECONCILING`                       | Audit bắt buộc                                 |
 | Ticket     | `TICKET_INVALID`, `TICKET_ALREADY_CHECKED_IN`, `TICKET_REVOKED`                                | QR xác thực server-side                        |
+| Loyalty    | `LOYALTY_NOT_ELIGIBLE`, `LOYALTY_INSUFFICIENT_POINTS`, `LOYALTY_BELOW_MIN_REDEEM`                | Guest / số dư / mức tối thiểu; không trừ điểm khi lỗi |
+| Voucher    | `VOUCHER_NOT_AVAILABLE`, `VOUCHER_EXPIRED`, `VOUCHER_NOT_APPLICABLE`, `VOUCHER_ALREADY_SAVED`, `VOUCHER_ONE_PER_BOOKING` | Kiểm lại tại create booking |
+| Content    | `ARTICLE_NOT_FOUND`, `ARTICLE_SLUG_CONFLICT`                                                   | Bài không `PUBLISHED` trả 404 cho public |
+| Operator onboarding | `OPERATOR_APPLICATION_LINK_INVALID` (401), `OPERATOR_APPLICATION_INVALID_STATE` (409), `OPERATOR_SLUG_CONFLICT` (409) | Link sai / hết hạn / đã thu hồi dùng chung một mã, không lộ lý do |
 | Infra      | `SERVICE_UNAVAILABLE` (Redis down → 503)                                                       | Không in-memory fallback lock (ADR-015)        |
 
 ---
@@ -213,6 +272,9 @@ Error response theo RFC 7807 Problem Details (`application/problem+json`) với 
 | Payment     | SRS §17.5                 | Callback idempotency và reconciliation               |
 | Refund      | SRS §17.6                 | Manual/auto refund state machine                     |
 | DisputeCase | SRS §17.7                 | Evidence, timeout, escalation, final decision        |
+| UserVoucher | SRS §17.16                | `AVAILABLE ↔ RESERVED → USED`, `→ EXPIRED`; trả về khi booking hết hạn / chuyến bị hủy |
+| PointTransaction | SRS §17.15           | Append-only; loại `EARN` / `REDEEM` / `EXPIRE` / `ADJUST` / `REVERSAL` |
+| Article     | SRS §17.17                | `DRAFT → PUBLISHED ↔ ARCHIVED`                        |
 
 ---
 
@@ -228,6 +290,10 @@ Sự kiện nhạy cảm ghi vào Mongo `audit_event` (cluster RIÊNG, append-on
 | Đổi trip đã có vé bán          | Có             | tripId, affected bookings, reason                  |
 | Khóa/mở khóa tài khoản         | Có             | target actor, actor thực hiện, reason              |
 | Confirm payout / nhập bank ref | Có             | adminId, payoutId, operatorId, amount, bank ref    |
+| Điều chỉnh điểm loyalty        | Có             | adminId, userId, points (+/−), reason, số dư trước / sau |
+| Đổi tham số loyalty            | Có             | before/after, effective date, actor (PolicyVersion) |
+| Xuất bản / gỡ bài viết         | Có             | adminId, articleId, action, slug                   |
+| Duyệt / từ chối / yêu cầu bổ sung hồ sơ nhà xe | Có  | adminId, applicationId, operatorId + slug (khi duyệt), reason |
 | Check-in                       | Operation log  | employeeId, tripId, ticketId, result               |
 
 ---
@@ -241,6 +307,8 @@ Sự kiện nhạy cảm ghi vào Mongo `audit_event` (cluster RIÊNG, append-on
 | LLD-OQ-03 | Payment provider đầu tiên là gì?                              | Callback verification  | **Đóng theo ADR-019**: VNPay primary (HMAC-SHA512) + MoMo phương thức 2 (HMAC-SHA256), sau `PaymentGateway` adapter         |
 | LLD-OQ-04 | QR token rotate/revoke policy cụ thể ra sao?                  | Ticket/check-in        | Mở; chốt cùng 07 Security Design (rework Sprint 5)                                                                          |
 | LLD-OQ-05 | AuditLog lưu cùng DB hay storage riêng?                       | Audit implementation   | **Đóng 25/05/2026 theo ADR-011**: Mongo **cluster RIÊNG**, append-only                                                      |
+| LLD-OQ-06 | Giá trị seed tham số loyalty (đơn vị tích điểm, giá trị quy đổi, mốc + hệ số hạng, số điểm đổi tối thiểu, hạn điểm, hạn voucher)? Figma: 1 điểm = 1.000đ, mốc 0 / 2.000 / 5.000 / 10.000, hệ số 1.0 / 1.2 / 1.5 / 2.0, đổi tối thiểu 100 điểm, voucher 30 ngày; **chưa có đơn vị tích điểm** và các số chưa khớp nhau về chi phí | Chi phí Platform, seed DB | Mở; chốt trước `TASK-LOY-001` |
+| LLD-OQ-07 | Promotion **cấp Platform** (không phải voucher đổi điểm) do ai chịu phần giảm khi `BR-48` cấm subsidy? Ảnh hưởng `fundedBy` snapshot và escrow ledger | Promotion, escrow, ví voucher | Mở (có từ trước, lộ ra khi thiết kế ví voucher); chốt trong `TASK-PROM-001` |
 
 ---
 

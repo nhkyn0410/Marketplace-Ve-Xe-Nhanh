@@ -9,11 +9,11 @@
 | Tên tài liệu  | High Level Design - Hệ thống đặt vé xe khách |
 | Mã tài liệu   | 02-hld-he-thong-dat-ve-xe-khach              |
 | Dự án         | Marketplace-Ve-Xe-Nhanh                      |
-| Trạng thái    | Approved                                     |
+| Trạng thái    | Review                                       |
 | Người viết    | Nguyễn Hồng Khanh, AI Agent                  |
 | Người duyệt   | Nguyễn Hồng Khanh                            |
 | Ngày tạo      | 11/05/2026                                   |
-| Ngày cập nhật | 28/09/2026                                   |
+| Ngày cập nhật | 30/09/2026                                   |
 
 ### 1.2. Lịch sử thay đổi
 
@@ -24,6 +24,8 @@
 | v0.3      | 25/05/2026 | AI Agent       | Rebrand sang `Marketplace-Ve-Xe-Nhanh`; gỡ tham chiếu tới 2 context file đã xóa `PROJECT-STRUCTURE.md` và `TECH-STACK.md` ở §4.1. Không thay đổi nội dung normative.                                                                                                                                                                                                                                                                                                                                                                                                                  |
 | v0.4      | 01/06/2026 | AI Agent       | **Sprint 5 Rework** — reset toàn bộ tech stack theo 18 ADR đã chốt (ADR-002, ADR-009..022): Hybrid-A DB (Postgres+Prisma ops / Mongo audit cluster riêng), nestjs-zod, BullMQ, Redis Upstash, Better Auth 3-namespace, Next.js 16 monorepo, Expo 2-app, VNPay+MoMo, Resend+Expo Push+OAuth, Goong, R2, manual payout. Đóng HLD-OQ-09 (R2), HLD-OQ-10 (manual payout); cập nhật HLD-OQ-07 (Mongo cluster riêng). Raise HLD-OQ-11 (realtime transport chưa thuộc 15-layer selection). Reframe §4.3 giả định, §5 kiến trúc, §13 tích hợp ngoài, §14 deployment, §16 quyết định theo ADR. |
 | v0.5      | 28/09/2026 | AI Agent       | Theo ADR-017 amend 28/09 (TASK-IAM-006, Khanh chốt): §6.1 Operator OS chỉ còn actor Operator (Owner) — Employee dùng `employee_mobile`; §8.1 IAM và §11 identity boundary ghi hai cổng đăng nhập Owner/Employee và tiền tố username Employee `nv.`. |
+| v0.6      | 29/09/2026 | AI Agent       | **Loyalty VXN Plus / ví voucher / bài viết (Khanh chốt 29/09/2026, SRS v1.21):** §6.1/§6.2 thêm Khám phá, VXN Plus, ví voucher (Marketplace + `passenger_mobile`) và màn Admin bài viết / loyalty; §8.1 thêm module `loyalty/`, `content/`, `promotion/` sở hữu thêm `UserVoucher`; §8.2 phụ thuộc Loyalty / Content; §9 data ownership; §12.2 job cộng điểm + hết hạn điểm; §17 `HLD-RISK-09`. Trạng thái Approved → **Review** chờ Khanh duyệt phần bổ sung. |
+| v0.7      | 30/09/2026 | AI Agent       | **A2 — đăng ký nhà xe theo closed enrollment (Khanh duyệt 30/09/2026, SRS v1.23)**: §6.1 Operator OS có trang đăng ký nhà xe công khai; §11 provisioning ghi hồ sơ đăng ký + link bảo mật trước khi cấp Owner. Giữ trạng thái Review. |
 
 ---
 
@@ -199,9 +201,9 @@ Web = Next.js 16 App Router trong Turborepo monorepo (ADR-013). Định hướng
 
 | App / vùng dịch vụ | Actor chính        | Render & Vai trò                                                                     |
 | ------------------ | ------------------ | ------------------------------------------------------------------------------------ |
-| Marketplace        | User, Guest        | RSC + SSG/ISR cho SEO; search, trip detail, booking, payment redirect, ticket lookup |
-| Operator OS        | Operator (Owner)   | CSR sau auth; operator profile, vehicle, route, trip, booking, employee, finance. Employee không vào Operator OS — dùng `employee_mobile` (ADR-017 amend 28/09/2026) |
-| Admin              | Admin              | CSR sau auth; KYC, catalog, policy, payment/refund, dispute, report, audit           |
+| Marketplace        | User, Guest        | RSC + SSG/ISR cho SEO; search, trip detail, booking, payment redirect, ticket lookup; Khám phá (bài viết, ISR); VXN Plus + ví voucher (User đăng nhập, CSR) |
+| Operator OS        | Operator (Owner)   | Trang đăng ký nhà xe công khai (link bảo mật, BR-75); CSR sau auth; operator profile, vehicle, route, trip, booking, employee, finance. Employee không vào Operator OS — dùng `employee_mobile` (ADR-017 amend 28/09/2026) |
+| Admin              | Admin              | CSR sau auth; KYC, catalog, policy, payment/refund, dispute, report, audit, bài viết / chuyên mục, cấu hình loyalty           |
 
 ### 6.2. Mobile app
 
@@ -209,7 +211,7 @@ Mobile = Flutter 3.x + Dart 3.x, **2 app tách biệt**; code Dart dùng chung q
 
 | App                     | Actor    | Chức năng chính                                                                                             |
 | ----------------------- | -------- | ----------------------------------------------------------------------------------------------------------- |
-| `apps/passenger_mobile` | User     | Search, booking, ticket, notification, support; permission minimal, ASO marketing                           |
+| `apps/passenger_mobile` | User     | Search, booking, ticket, notification, support, VXN Plus / ví voucher, Khám phá; permission minimal, ASO marketing                           |
 | `apps/employee_mobile`  | Employee | Assigned trips, passenger list, QR check-in, trip status, incident report; background geo + full permission |
 
 ### 6.3. Client state
@@ -266,7 +268,9 @@ Bảng module HLD dưới đây dùng tên **target state** theo `context/DOMAIN
 | Booking & Ticket             | `booking/`, `ticket/`                                                                                                                                                                                        | Booking, PassengerInfo, Ticket, QR token, BookingStatusHistory, snapshot                                                                        | User, Guest, Operator, Employee |
 | Payment & Refund             | `payment/`, `refund/`                                                                                                                                                                                        | Payment intent, callback verify, refund, idempotency, reconciliation                                                                            | User, Operator, Admin           |
 | Escrow & Payout & Commission | `escrow/`, `payout/`, `commission/`                                                                                                                                                                          | EscrowLedger append-only (in-house, ADR-005), commission rule, payout T+3 manual confirm                                                        | Operator, Admin                 |
-| Promotion                    | `promotion/`                                                                                                                                                                                                 | Promotion, PromotionRule, PromotionRedemption, PromotionUsageLimit                                                                              | User, Operator, Admin           |
+| Promotion                    | `promotion/`                                                                                                                                                                                                 | Promotion, PromotionRule, PromotionRedemption, PromotionUsageLimit, UserVoucher (ví voucher: lưu / giữ / tiêu / trả)                                                                              | User, Operator, Admin           |
+| Loyalty (VXN Plus)           | `loyalty/`                                                                                                                                                                                                   | LoyaltyAccount, PointTransaction append-only, hạng thành viên; cộng điểm khi trip `COMPLETED`, thu hồi khi hoàn, đổi điểm → UserVoucher, hết hạn điểm. Cấp Platform, không `operatorId` | User, Admin                     |
+| Content                      | `content/`                                                                                                                                                                                                   | Article, ArticleCategory (trang Khám phá); đọc công khai, Admin soạn / xuất bản                                                                  | User, Guest, Admin              |
 | Employee Operations          | `employee/`, `manifest/`, `check-in/`, `journey-log/`, `incident/`                                                                                                                                           | Assignment, manifest, check-in QR, trip status, journey log, incident report                                                                    | Employee, Operator              |
 | Support & Trust              | `support/`, `complaint/`, `review/`, `dispute/`, `scorecard/`                                                                                                                                                | SupportTicket, Complaint, Review, DisputeCase, OperatorScorecard                                                                                | User, Operator, Admin           |
 | Notification                 | `notification/`                                                                                                                                                                                              | Notification event, delivery (email/push/sms-noop), retry, NotificationPreference                                                               | Hệ thống, mọi actor             |
@@ -282,6 +286,8 @@ Bảng module HLD dưới đây dùng tên **target state** theo `context/DOMAIN
 | Payment             | Booking & Ticket, Escrow, Notification, Audit               | Cập nhật booking/payment/refund, ghi escrow, thông báo, truy vết |
 | Employee Operations | Booking & Ticket, Transport Resource, Notification, Audit   | Check-in, trạng thái chuyến, sự cố, đồng bộ vận hành             |
 | Support & Trust     | Booking & Ticket, Payment, Operator, Notification, Audit    | Khiếu nại, tranh chấp, review, scorecard                         |
+| Loyalty             | Booking & Ticket, Trip (event `COMPLETED`), Promotion, Policy, Notification, Audit | Cộng / thu hồi điểm theo booking, tạo UserVoucher khi đổi điểm, tham số theo PolicyVersion, thông báo, audit điều chỉnh |
+| Content             | Storage adapter (R2 public), Audit                          | Ảnh bài viết, audit xuất bản / gỡ                               |
 | Reporting           | Booking, Payment, Trip, Operator, Support, Audit            | Dashboard và export                                              |
 
 ---
@@ -301,6 +307,9 @@ Dữ liệu operational nằm ở **Postgres** (Prisma); riêng AuditLog/notific
 | Booking / Ticket             | Booking & Ticket            | Payment, Support, Employee Operations, Reporting | Lưu snapshot bắt buộc theo SRS                                                       |
 | Payment / Refund             | Payment                     | Booking, Support, Reporting, Audit               | Callback / refund phải idempotent; dedup `(provider, providerTxnId)`                 |
 | Escrow / Payout              | Escrow, Payout              | Operator, Admin, Reporting                       | EscrowLedger append-only in-house; payout đối soát hai chiều                         |
+| Loyalty / PointTransaction   | Loyalty                     | Booking (đọc số tiền đã trả), Reporting, Admin   | Cấp Platform, không `operator_id`; sổ điểm append-only, số dư = tổng giao dịch; RLS chặn scope `tenant` |
+| UserVoucher                  | Promotion                   | Booking, Loyalty, Payment                        | Một voucher chỉ gắn một booking; đổi trạng thái compare-and-set; phần giảm Platform chịu ghi escrow ledger (BR-73) |
+| Article / ArticleCategory    | Content                     | Marketplace (đọc), Admin                         | Ảnh ở R2 public bucket; chỉ `PUBLISHED` công khai; nội dung Markdown sanitize khi render |
 | Review / Complaint / Dispute | Support & Trust             | Operator, Admin, Reporting                       | Attachment ở R2 private bucket nếu có                                                |
 | Notification                 | Notification                | Mọi module phát event                            | Delivery status riêng theo kênh; `notification_log` ở Mongo                          |
 | AuditLog                     | Audit                       | Mọi module ghi, Admin đọc                        | Mongo cluster riêng, append-only (REVOKE UPDATE/DELETE)                              |
@@ -394,7 +403,7 @@ sequenceDiagram
 | Chủ đề                    | Thiết kế mức cao                                                                                                                                                                                                      |
 | ------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Actor & Identity boundary | 3 namespace tách biệt (ADR-017): Passenger = Email (OTP primary); Operator-side = `{operatorSlug}/{username}`; Platform-side = `platform/{username}`. Mỗi `(scope, username)` là account riêng (Account-separate v1). Operator-side tách hai cổng đăng nhập (ADR-017 amend 28/09/2026): Owner qua `/auth/operator/login` (web Operator OS), Employee qua `/auth/employee/login` (chỉ app `employee_mobile`, Bearer); username Employee bắt buộc tiền tố `nv.`, Owner cấm `nv.`; sai cổng trả lỗi chung. |
-| Provisioning              | Closed enrollment (ADR-017): Platform admin cấp Operator slug + first Owner sau KYC; Operator owner cấp employee; Passenger self-register Email+OTP.                                                                  |
+| Provisioning              | Closed enrollment (ADR-017): nhà xe nộp hồ sơ qua form công khai + link bảo mật (chưa có tài khoản, BR-75); Platform admin cấp Operator slug + first Owner khi duyệt KYC; Operator owner cấp employee; Passenger self-register Email+OTP.                                                                  |
 | Tenant boundary           | Operator/Employee chỉ truy cập dữ liệu theo `operatorId`; defense-in-depth = NestJS `TenantGuard` (JWT claims) + Postgres RLS `SET LOCAL app.operator_id` (ADR-011, ADR-017).                                         |
 | Admin access              | RBAC 8 role hardcoded enum v1 (Anonymous / Passenger / OperatorOwner / Driver / TicketStaff / SupportStaff / PlatformAdmin / PlatformSupport); thao tác nhạy cảm cần audit + TOTP.                                    |
 | Token / session           | Hybrid: JWT RS256 15min access (httpOnly cookie Web + `flutter_secure_storage` Mobile) + opaque 32-byte refresh 30d, rotation + family invalidation; Redis cache session metadata (ADR-017).                          |
@@ -435,6 +444,8 @@ Job chạy trên **BullMQ + @nestjs/bullmq** (Redis Upstash, ADR-016); worker ch
 | Notification fan-out + retry | Business event                 | Fan-out email + push + sms-noop song song; retry + DLQ + `notification_log`       |
 | Reporting export             | Báo cáo lớn                    | Tạo file bất đồng bộ và thông báo khi hoàn tất                                    |
 | Payout calculation T+3       | Cron `0 0 * * *` concurrency 1 | Gom escrow eligible − commission − refund − adjustment → Payout PENDING (ADR-022) |
+| Loyalty earn / reversal      | Event trip `COMPLETED`, refund `SUCCESS` | Ghi `EARN` idempotent theo booking (`earn:{bookingId}`) hoặc `REVERSAL`; cập nhật hạng |
+| Loyalty expiry + reminder    | Cron hằng ngày, concurrency 1  | Ghi `EXPIRE` theo FIFO, voucher quá hạn → `EXPIRED`, nhắc điểm / voucher sắp hết hạn |
 | Audit archive                | Retention policy - TBD         | Archive log Mongo theo chính sách dữ liệu                                         |
 
 ---
@@ -535,6 +546,7 @@ Các quyết định công nghệ đã được hình thức hóa thành ADR (fi
 | HLD-RISK-06 | Redis (Upstash) là single point cho seat hold + lock + queue | Cao        | Redis down → 503 có kiểm soát (không in-memory fallback, tránh overbooking); managed SLA Upstash (ADR-015)                              |
 | HLD-RISK-07 | Production blocker pháp lý/lưu trữ chưa giải quyết           | Cao        | OQ-21 (KYC storage location) + OQ-22 (giấy phép TGTT NHNN) — không block MVP/sandbox, defer production prep                             |
 | HLD-RISK-08 | Realtime transport chưa chốt (carryover Socket.IO bị gỡ)     | Trung bình | HLD-OQ-11; v1 fallback polling; chốt khi rework LLD nếu cần push thật                                                                   |
+| HLD-RISK-09 | Phần giảm voucher đổi điểm do Platform chịu làm lệch escrow / commission / payout | Cao        | Booking snapshot ghi `fundedBy`; escrow Operator + commission tính trên giá trước giảm; entry ledger riêng; test money bắt buộc (BR-73) |
 
 ---
 
