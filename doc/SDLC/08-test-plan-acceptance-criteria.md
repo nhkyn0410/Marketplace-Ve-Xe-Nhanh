@@ -25,6 +25,10 @@
 | v0.4      | 28/09/2026 | AI Agent       | **ADR-017 amend / TASK-IAM-006 (Khanh chốt 28/09):** thêm TC-SEC-009..011 cho tách cổng Owner/Employee, cổng Employee chỉ Bearer, CHECK tiền tố `nv.` và migration đổi tên. Giữ trạng thái Draft. |
 | v0.5      | 29/09/2026 | AI Agent       | **Loyalty VXN Plus / ví voucher / bài viết (Khanh chốt 29/09/2026, SRS v1.21):** §5 scope Loyalty / Content; §7 truy vết `FR-LOY-*`, `FR-PROM-08..10`; §8 AC; §9 `TC-LOY-001..007`, `TC-CNT-001` (loyalty ledger / voucher vào nhóm bắt buộc money + idempotency). |
 | v0.6      | 30/09/2026 | AI Agent       | **A2 — đăng ký nhà xe theo closed enrollment (Khanh duyệt 30/09/2026, SRS v1.23)**: thêm `TC-OPR-001..003` (link bảo mật, duyệt hồ sơ tạo đúng một Operator + Owner, form công khai không lộ email). |
+| v0.7      | 30/09/2026 | AI Agent       | **TASK-TRN-003:** §9 thêm `TC-TRN-001..003` (một xe không chạy hai chuyến chồng giờ kể cả request đồng thời — không đệm quay đầu; tenant-RLS/IDOR chuyến; sơ đồ ghế đang được chuyến dùng không sửa được). |
+| v0.8      | 30/09/2026 | AI Agent       | **TASK-TRN-005:** §9 thêm `TC-FARE-001..003` (rule cụ thể nhất thắng + biên khung giờ, money `BIGINT`; lịch sử giá ghi trong transaction — audit lỗi thì không đổi giá; tenant-RLS bảng giá). |
+| v0.9      | 30/09/2026 | AI Agent       | **TASK-TRN-006:** §9 thêm `TC-TRN-004..007` (điều kiện mở bán trả đủ lý do, bảng chuyển trạng thái + đồng thời, khóa ghế theo lô + giữ khi đổi xe, audit / tenant). Giữ trạng thái Review. |
+| v0.10     | 30/09/2026 | AI Agent       | **TASK-TRN-006 (review):** `TC-TRN-005` sửa mô tả đồng thời (xếp hàng, không phải "một thắng" khi cả hai chuyển đều hợp lệ) + thêm hủy lúc ghế đang được bán. Giữ trạng thái Review. |
 
 ---
 
@@ -158,6 +162,16 @@ Mandatory (rủi ro cao, ADR-025): money math, idempotency, tenant RLS, seat-hol
 | TC-SEC-009 | Sai cổng Owner/Employee (DB thật): Employee đúng mật khẩu ở `/auth/operator/login` và Owner đúng mật khẩu ở `/auth/employee/login` → `401 AUTH_INVALID_CREDENTIALS`, không tạo `auth_sessions`, không trả MFA/password-change challenge; unit: mỗi cổng chỉ tra đúng bảng account | Security | Rất cao |
 | TC-SEC-010 | `/auth/employee/login` trả token JSON, không `Set-Cookie`; `X-Auth-Transport: cookie` → `400 AUTH_TRANSPORT_INVALID`; `/auth/me` với token Employee đọc đúng Employee | API/Security | Cao |
 | TC-SEC-011 | DB từ chối Employee thiếu `nv.`/có chữ hoa và Owner dùng `nv.` ở mọi kiểu hoa/thường; migration đổi tên Employee cũ (`Driver01` → `nv.driver01`) + đồng bộ registry, dừng khi có Owner `nv.`, tên quá 64 ký tự hoặc trùng sau khi đổi | Integration | Cao |
+| TC-TRN-001 | Hai request đồng thời gắn cùng xe vào hai chuyến chồng giờ → đúng một thành công, bên kia `409 VEHICLE_SCHEDULE_CONFLICT`; chuyến khởi hành đúng giờ đến chuyến trước được (BR-14, không đệm quay đầu); chuyến `CANCELLED` không giữ xe | Integration/Concurrency | Rất cao |
+| TC-TRN-002 | Nhà xe B không đọc/sửa chuyến, điểm dừng, ghế của A (RLS, kể cả query quên lọc); `routeId`/`vehicleId` của B trong body → 422 như không tồn tại | Security | Rất cao |
+| TC-TRN-003 | Sơ đồ ghế đang được chuyến chưa kết thúc dùng: `PUT` sơ đồ / đổi sơ đồ của xe → `409 SEAT_MAP_IN_USE`; ghế của chuyến là bản chụp, không đổi theo sơ đồ (UC-12 A3) | Integration | Cao |
+| TC-TRN-004 | Mở bán chuyến thiếu điều kiện → 422 `TRIP_NOT_READY_FOR_SALE` kèm **mọi** lý do (chưa gắn xe, xe ngừng dùng, điểm dừng ngừng dùng, tuyến chưa có bảng giá, ghế thiếu giá / giá 0, quá giờ ngừng bán online); đủ điều kiện → `OPEN_FOR_SALE`; khóa ↔ mở lại (mở lại kiểm lại) (BR-39, FR-OPS-10) | Integration | Rất cao |
+| TC-TRN-005 | Chuyển trạng thái sai bảng (vd `CANCELLED → OPEN_FOR_SALE`) → 409; hủy thiếu lý do → 400; hai request cùng mở bán đồng thời → đúng một thành công (request xếp hàng, bên sau chạy trên trạng thái mới); hủy trong lúc ghế đang được bán (chưa commit) → chờ rồi 409; hủy xong xe rảnh ngay | Integration | Cao |
+| TC-TRN-006 | Khóa / mở ghế theo lô: được cả lô hoặc không; ghế đã bán / đang giữ → 409; mã ghế lạ → 422; đổi xe giữ ghế khóa theo mã, sơ đồ mới thiếu ghế đã khóa → 409 (BR-42, chống overbooking) | Integration | Rất cao |
+| TC-TRN-007 | Đổi trạng thái chuyến: audit lỗi → 503, không đổi; khóa ghế khi audit lỗi vẫn thành công; nhà xe B không đổi trạng thái / khóa ghế chuyến của A (404) | Security | Cao |
+| TC-FARE-001 | Giá ghế = rule cụ thể nhất (khung giờ > không; đúng loại xe > mọi loại; đúng loại chỗ > mọi loại); biên `[validFrom, validTo)` đúng giờ khởi hành; đổi xe thường → xe VIP thì giá đổi theo; tiền `BIGINT` không qua số thực | Unit/Integration (money) | Rất cao |
+| TC-FARE-002 | Mỗi lần tạo/sửa bảng giá có đúng một bản ghi lịch sử (Mongo `audit_event`) chứa before/after; Mongo lỗi → không đổi giá | Integration | Cao |
+| TC-FARE-003 | Nhà xe B không đọc/sửa bảng giá, rule, lịch sử giá của A; `routeId` của B → 422 | Security | Rất cao |
 | TC-EMP-001 | Employee check-in ticket hợp lệ được phân công (Maestro) | E2E | Cao |
 | TC-EMP-002 | Employee không check-in chuyến ngoài assignment | Security | Cao |
 | TC-ADM-001 | Admin refund/payout thủ công yêu cầu re-auth/TOTP + audit | E2E/Security | Cao |
