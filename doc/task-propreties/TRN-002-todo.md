@@ -11,6 +11,7 @@
 - ✅ Đã đối chiếu task với SRS, LLD, DB, API, Security, Test, ADR-027, DOMAIN-MAP, GLOSSARY và code hiện tại.
 - ✅ Đã tạo bộ ba todo/guide/checklist.
 - ✅ Khanh duyệt **Q1–Q8 theo khuyến nghị** ngày 26/09/2026 (Q8 bổ sung: ước lượng đường chim bay ở dev khi thiếu key; production bắt buộc key).
+- ✅ 02/10/2026: port sang repo chính trên nhánh `TASK-TRN-002` mới (từ `develop`), migration đổi tên `20260930030000_add_route`, thêm `GOONG_API_KEY` vào `render.yaml`; test, contract và smoke 42/42 đo lại — chi tiết ở checklist. ⏳ Chờ Khanh review diff (chưa commit) → đặt `GOONG_API_KEY` trên Render → CI → Done.
 - ✅ Đối chiếu tài liệu Goong Distance Matrix (26/09/2026): `GET https://rsapi.goong.io/distancematrix?origins=lat,lng&destinations=lat,lng|…&vehicle=car&api_key=…` → `rows[].elements[] { status: "OK", distance.value (m), duration.value (s) }`. Tài liệu **không nêu giới hạn** số origin/destination → adapter gọi **từng chặng 1×1** (n−1 phần tử quota, không phụ thuộc giới hạn chưa biết); tối đa 25 điểm/route.
 
 ### Chi tiết hiện thực bám Q1–Q8 (AI đặt, Khanh phản đối thì sửa)
