@@ -10,6 +10,7 @@
 
 - ⚠️ **Trước khi merge/deploy:** Khanh đặt `OPERATOR_WEB_ORIGINS` + `ADMIN_WEB_ORIGINS` + `WEB_CSRF_SECRET` trên Render (`vexenhanh-api`) — production thiếu thì API không khởi động; kiểm không có Owner dùng tiền tố `nv.` (migration sẽ dừng).
 - ✅ **Vòng 2 (27/09/2026, Khanh chốt):** tách cổng đăng nhập nhân viên `/auth/employee/login` + tiền tố `nv.` (amend ADR-017) — nhật ký: `IAM-006-nhat-ky-tach-login-nhan-vien.md`; M1 ràng origin ↔ scope; sửa route `oauth/session`; xử lý toàn bộ finding High/Medium của 2 review (bảng #8).
+- ✅ **02/10/2026 (Khanh chốt):** Operator OS **không** hiện hướng dẫn "dùng ứng dụng Nhân viên" — bỏ yêu cầu FE nhận ra tiền tố `nv.` (UI v0.11 §7). Nhân viên gõ vào Operator OS chỉ nhận lỗi generic từ cổng Owner (đúng hành vi code + Playwright hiện có). Khi port sang repo chính: thông báo của lớp phòng thủ thứ hai (`EMPLOYEE_NOTICE` trong `auth-context.tsx`) đổi sang thông báo chung về phiên, không nhắc app Nhân viên. Thay cho phần "báo dùng ứng dụng Nhân viên" của Q4.
 
 - ✅ Nhánh `TASK-IAM-006` tạo từ `develop` (`5eb6b75`, đã gồm CAT-001/TRN-001/TRN-002).
 - ✅ Đã đối chiếu contract OQ-05 ở API/Security/LLD/UI/Test/Deploy/GLOSSARY với code IAM-001..005 (`auth.controller.ts`, `access-token.guard.ts`, `session.controller.ts`, `main.ts`) và 2 app Next sau FND-010 (mới có khung layout, chưa form/fetch client).

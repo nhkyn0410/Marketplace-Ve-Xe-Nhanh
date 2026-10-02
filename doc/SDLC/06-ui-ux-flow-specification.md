@@ -13,7 +13,7 @@
 | Người viết    | Nguyễn Hồng Khanh, AI Agent |
 | Người duyệt   | Nguyễn Hồng Khanh           |
 | Ngày tạo      | 11/05/2026                  |
-| Ngày cập nhật | 30/09/2026                  |
+| Ngày cập nhật | 02/10/2026                  |
 
 ### 1.2. Lịch sử thay đổi
 
@@ -29,6 +29,7 @@
 | v0.8      | 29/09/2026 | AI Agent | SRS v1.22 tách use case: §9 Admin dòng Loyalty → `UC-39`, dòng Bài viết → `UC-40` (SCR-PSG-02/37 vẫn là `UC-38` đọc bài). Giữ trạng thái Review. |
 | v0.9      | 30/09/2026 | AI Agent | **A2 — đăng ký nhà xe theo closed enrollment (Khanh duyệt 30/09/2026, SRS v1.23)**: §7 dòng đăng ký nhà xe là trang công khai + link bảo mật, không cần đăng nhập; §9 Admin duyệt hồ sơ nhập slug + username Owner. Giữ trạng thái Review. |
 | v0.10     | 30/09/2026 | AI Agent | §6.4 #1: ghi nhận SRS v1.25 đã đồng bộ xác thực hành khách (email OTP + OAuth, không mật khẩu); Figma vẫn cần sửa. Giữ trạng thái Review. |
+| v0.11     | 02/10/2026 | AI Agent | **Bỏ hướng dẫn "sai cổng" ở cả hai màn đăng nhập (Khanh chốt 02/10/2026):** §7 màn Login Operator OS không còn nhận ra tiền tố `nv.` để hiện "đăng nhập trên app Nhân viên"; nhân viên gõ vào Operator OS nhận cùng lỗi generic `AUTH_INVALID_CREDENTIALS` từ API. §8 app Nhân viên đối xứng: username thiếu `nv.` không còn bị chặn tại app để hiện "Chủ nhà xe đăng nhập trên web Operator OS", cũng nhận lỗi generic từ API. Lớp phòng thủ thứ hai (kiểm role qua `/auth/me`) giữ nguyên nhưng chỉ hiện thông báo chung về phiên. Không đổi API / Security / Test (TC-SEC-009 đã kiểm lỗi generic). Giữ trạng thái Review. |
 
 ---
 
@@ -549,12 +550,12 @@ Mỗi màn hình là một bảng đủ 5 trạng thái theo §10.1. Cột **Thi
 
 ## 7. Flow Operator
 
-Login `{operatorSlug}/{username}` + password qua `/auth/operator/login` — **chỉ Owner**; Owner bắt buộc TOTP (ADR-017). Employee không đăng nhập Operator OS (ADR-017 amend 28/09/2026). Chỉ render shell Operator OS sau khi `/auth/me` trả scope `operator` và role `OPERATOR_OWNER`; sai scope/role thì logout và về trang login (lớp phòng thủ thứ hai, API đã chặn Employee ở cổng). Trước mọi màn nghiệp vụ, Operator OS chạy state machine: lấy CSRF → bootstrap `/auth/me`; 401 thì refresh single-flight một lần rồi retry; không refresh được thì về login. First login: mật khẩu tạm → đổi bắt buộc → login lại → TOTP enrollment/verify → hiển thị 10 backup code đúng một lần → vào app. Challenge chỉ giữ trong memory; reload giữa flow thì bắt đầu lại từ login.
+Login `{operatorSlug}/{username}` + password qua `/auth/operator/login` — **chỉ Owner**; Owner bắt buộc TOTP (ADR-017). Employee không đăng nhập Operator OS (ADR-017 amend 28/09/2026). Chỉ render shell Operator OS sau khi `/auth/me` trả scope `operator` và role `OPERATOR_OWNER`; sai scope/role thì logout và về trang login với thông báo chung về phiên, không nhắc app Nhân viên (lớp phòng thủ thứ hai, API đã chặn Employee ở cổng). Trước mọi màn nghiệp vụ, Operator OS chạy state machine: lấy CSRF → bootstrap `/auth/me`; 401 thì refresh single-flight một lần rồi retry; không refresh được thì về login. First login: mật khẩu tạm → đổi bắt buộc → login lại → TOTP enrollment/verify → hiển thị 10 backup code đúng một lần → vào app. Challenge chỉ giữ trong memory; reload giữa flow thì bắt đầu lại từ login.
 
 | Trạng thái auth | UI bắt buộc |
 | --------------- | ----------- |
 | Loading/bootstrap | Full-page loading, chưa render sidebar/dữ liệu bảo vệ |
-| Login | Identifier `{slug}/{username}`, password; lỗi generic không lộ account tồn tại. Phần sau `/` bắt đầu bằng `nv.` (không phân biệt hoa/thường) → không gọi API, hiển thị hướng dẫn "Tài khoản nhân viên đăng nhập trên app Nhân viên" (suy từ quy ước tên, không lộ account tồn tại) |
+| Login | Identifier `{slug}/{username}`, password; lỗi generic không lộ account tồn tại. Username nhân viên (`nv.…`) **không** có xử lý riêng ở FE: gửi lên API như mọi tài khoản và nhận cùng lỗi generic `AUTH_INVALID_CREDENTIALS` ("Tên đăng nhập hoặc mật khẩu không đúng"); không hiển thị hướng dẫn chuyển sang app Nhân viên (Khanh chốt 02/10/2026) |
 | Password change | Mật khẩu mới + xác nhận; thành công quay lại login, không tự vào app |
 | MFA | QR/secret enrollment khi cần, TOTP hoặc backup code; backup code chỉ hiện một lần |
 | Session expired/error | Thử refresh đúng một lần; thất bại clear state và về login; giữ safe return URL nội bộ |
@@ -573,7 +574,7 @@ Login `{operatorSlug}/{username}` + password qua `/auth/operator/login` — **ch
 
 ## 8. Flow Employee
 
-App `apps/employee_mobile`; login `{operatorSlug}/nv.{…}` + password qua `/auth/employee/login`, chỉ Bearer (ADR-028/017, amend 28/09/2026). Đây là kênh đăng nhập duy nhất của Employee. Phần sau `/` không bắt đầu bằng `nv.` → không gọi API, hiển thị hướng dẫn "Chủ nhà xe đăng nhập trên web Operator OS"; lỗi từ API luôn generic.
+App `apps/employee_mobile`; login `{operatorSlug}/nv.{…}` + password qua `/auth/employee/login`, chỉ Bearer (ADR-028/017, amend 28/09/2026). Đây là kênh đăng nhập duy nhất của Employee. App **không** xử lý riêng username thiếu tiền tố `nv.`: gửi lên API như mọi tài khoản và nhận cùng lỗi generic `AUTH_INVALID_CREDENTIALS`; không hiển thị hướng dẫn chuyển sang web Operator OS (Khanh chốt 02/10/2026). Lỗi từ API luôn generic.
 
 | Flow            | Màn hình chính           | Ghi chú                                    |
 | --------------- | ------------------------ | ------------------------------------------ |
