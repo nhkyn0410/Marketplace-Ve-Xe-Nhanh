@@ -45,6 +45,10 @@ services:
         sync: false
       - key: RESEND_FROM_EMAIL
         sync: false
+      # TASK-TRN-002 (ADR-027): Goong REST key tính khoảng cách/thời gian route. Production thiếu → không
+      # khởi động (dev để trống thì dùng ước lượng đường chim bay).
+      - key: GOONG_API_KEY
+        sync: false
       - key: GOOGLE_CLIENT_ID
         sync: false
       - key: GOOGLE_CLIENT_SECRET

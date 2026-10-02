@@ -8,6 +8,7 @@
 - [x] Đã đối chiếu SDLC/code và tạo bộ ba todo/guide/checklist trên nhánh `TASK-TRN-002`.
 - [ ] Khanh đặt `GOONG_API_KEY` trên Render trước khi deploy nhánh này (production bắt buộc key).
 - [x] Q1–Q8 được Khanh chốt 26/09/2026.
+- [x] **Port 02/10/2026** (code viết 26/09 ở repo bản sao, commit `5eb6b75`, không sửa thêm sau đó): nhánh `TASK-TRN-002` mới từ `develop` repo chính; `route/`, `stop-point/`, `external/routing/` và migration **giống hệt** bản đã review; migration đổi tên `20260926010000` → `20260930030000_add_route` để chạy sau `add_vehicle`; gỡ xung đột `app.module.ts`, `openapi.module.ts`, `openapi.spec.ts` (chỉ ở chỗ đăng ký module); client TS + Dart sinh lại trên `develop`; thêm `GOONG_API_KEY` vào `render.yaml` (commit gốc bỏ sót). Evidence bên dưới đo lại sau port.
 - [x] Contract API §7.3 / DB §5.2,§7 / Security §7 / GLOSSARY được đồng bộ.
 
 ## PHẦN A — Quyết định & ranh giới
@@ -29,7 +30,7 @@
 - [x] CHECK chặn tọa độ/metrics/state dữ liệu sai ở mức DB (điểm đầu không có chặng trước, đề xuất nhất quán trạng thái).
 - [x] FK RESTRICT; không cascade vượt RLS.
 - [x] Mọi bảng tenant có `ENABLE + FORCE RLS`, policy fail-closed và nằm trong `RLS_TABLES`; đề xuất có 4 policy theo lệnh khoá state machine phía tenant.
-- [x] 10 migration áp tuần tự trên DB trống; `db:app-role` pass.
+- [x] 10 migration áp tuần tự trên DB trống; `db:app-role` pass. Sau port (02/10): **11** migration trên DB trống, `db:app-role` pass, `prisma migrate diff` DB ↔ `schema.prisma` rỗng, `migrate status` up to date.
 
 ## PHẦN C — StopPoint & proposal
 
@@ -53,7 +54,7 @@
 
 - [x] OpenAPI có đủ route, Bearer security, request body/path/query/response/RFC 7807 (kể cả 503).
 - [x] `openapi.spec.ts` chặn mất controller/requestBody/path param + chặn trùng tên DTO.
-- [x] Client TS + Dart sinh lại, chỉ thêm phần TRN-002 (so ngữ nghĩa); `dart test` 373/373.
+- [x] Client TS + Dart sinh lại, chỉ thêm phần TRN-002 (so ngữ nghĩa); `dart test` 373/373. Sau port: OpenAPI so với `develop` chỉ **thêm** 11 operation, không operation/schema cũ nào đổi hay mất; `dart test` 373/373, `dart analyze` 0 error (19 warning `unused_import` / `unused_element_parameter` của generator).
 - [x] Mã lỗi mới có trong contract (API §7.3, OpenAPI) và test assertion.
 
 ## PHẦN F — Test & regression
@@ -62,7 +63,7 @@
 - [x] HTTP auth/RBAC/400 qua guard/filter thật; 404/409/422/503 qua test DB thật.
 - [x] PostgreSQL thật bằng role app: RLS/IDOR/FK/CHECK/unique/transaction/concurrency (19 test).
 - [x] Mutation tắt RLS/nới policy đề xuất/bỏ CHECK/FK làm 6 test đỏ.
-- [x] `REQUIRE_DB_TESTS=1` pass, 0 skip: 59/59 file, 635/635 test (sau khi sửa review, xanh 2 lần liên tiếp); regression IAM/CAT/Vehicle xanh.
+- [x] `REQUIRE_DB_TESTS=1` pass, 0 skip: 59/59 file, 635/635 test (sau khi sửa review, xanh 2 lần liên tiếp); regression IAM/CAT/Vehicle xanh. Sau port trên `develop` repo chính: **60/60 file, 651/651 test**, 0 skip; `pnpm turbo run typecheck lint test build --force` 35/35.
 - [x] Key Goong không lộ qua Sentry (breadcrumb/span/request được che); Goong ≤ 4 request song song, huỷ khi lỗi.
 - [x] Typecheck, lint và build toàn monorepo xanh 26/26.
 
@@ -71,7 +72,7 @@
 - [x] `code-reviewer` không còn finding blocking/high (H1 đã sửa + test; bảng ở todo #8).
 - [x] `security-auditor` không finding blocking/high; medium đã sửa trừ rate limit theo tenant (chờ Khanh quyết).
 - [x] AI journal đã ghi (5 dòng `add` + 1 `ops` key Goong); không commit `.ai-journal/`.
-- [ ] Smoke API theo guide có evidence hoặc có test tương đương được ghi rõ.
+- [x] Smoke API theo guide có evidence hoặc có test tương đương được ghi rõ — 02/10/2026, API build (`dist/main.js`) + Postgres/Redis/Mongo container tạm, không đặt `GOONG_API_KEY` (provider ước lượng): **42/42 kiểm tra đạt** (3A điểm riêng: tạo/sửa, 400/422/409, lỗi không ghi gì, khác tenant 404; 3B proposal: `PENDING` → fixture `REJECTED` bằng SQL ngữ cảnh system → sửa + gửi lại về `PENDING`, `PENDING`/`APPROVED` không sửa được 409; 3C route: vai trò theo vị trí, tổng = tổng chặng, `ESTIMATE`, đổi tên giữ số liệu, đổi chuỗi tính lại, điểm tenant khác / `INACTIVE` / id lạ 422, trùng tên 409, khác tenant 404; Driver / Platform 403, không token 401). **Chưa smoke với Goong thật** (không có key ở máy dev) — adapter Goong mới được phủ bằng `routing-provider.spec.ts` (fetch giả).
 - [ ] CI branch xanh — Khanh xác nhận.
 - [ ] Task row §7.3 chuyển `Done`; không đổi trạng thái Approved của tài liệu SDLC.
 
