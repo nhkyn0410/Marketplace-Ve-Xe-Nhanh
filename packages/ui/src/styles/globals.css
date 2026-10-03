@@ -1,0 +1,139 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+/* Tailwind chỉ tự quét thư mục app đang build → khai báo thêm source của package UI và 3 app web. */
+@source "../";
+@source "../../../../apps/marketplace";
+@source "../../../../apps/operator-os";
+@source "../../../../apps/admin";
+
+/* v1 chưa có dark mode: chỉ bật `dark:` khi có class `.dark`, không theo prefers-color-scheme của hệ điều hành. */
+@custom-variant dark (&:is(.dark *));
+
+/* Bảng màu thương hiệu VXN — port từ FE cũ (`frontend/src/styles/design-system.js`). */
+@theme {
+  --color-vxn-teal-50: #eef8fa;
+  --color-vxn-teal-100: #ddf1f5;
+  --color-vxn-teal-200: #b9e1e9;
+  --color-vxn-teal-300: #85cad8;
+  --color-vxn-teal-400: #4dabc0;
+  --color-vxn-teal-500: #2b7ead;
+  --color-vxn-teal-600: #006481;
+  --color-vxn-teal-700: #00506a;
+  --color-vxn-teal-800: #00476b;
+  --color-vxn-teal-900: #07364c;
+
+  --color-vxn-saffron-50: #fff8ea;
+  --color-vxn-saffron-100: #fff1d2;
+  --color-vxn-saffron-200: #ffe2a8;
+  --color-vxn-saffron-300: #ffd078;
+  --color-vxn-saffron-400: #f8bf4e;
+  --color-vxn-saffron-500: #f3b132;
+  --color-vxn-saffron-600: #e89b26;
+  --color-vxn-saffron-700: #d18a1e;
+  --color-vxn-saffron-800: #9b6518;
+  --color-vxn-saffron-900: #704512;
+
+  --color-vxn-ink: #181c22;
+  --color-vxn-fg-1: #2d3138;
+  --color-vxn-fg-2: #404753;
+  --color-vxn-fg-3: #475569;
+  --color-vxn-fg-4: #5e6165;
+  --color-vxn-fg-5: #64748b;
+  --color-vxn-bg-soft: #f9f9ff;
+  --color-vxn-bg-mist: #f1f3fd;
+  --color-vxn-bg-cloud: #ebeef7;
+  --color-vxn-border: #dfe2ec;
+  --color-vxn-border-strong: #cbd5e1;
+
+  --color-success-50: #ecfdf3;
+  --color-success-100: #d4f5e2;
+  --color-success-500: #0f9f62;
+  --color-success-600: #007a4f;
+  --color-success-700: #00613d;
+  --color-warning-50: #fffbeb;
+  --color-warning-100: #fef3c7;
+  --color-warning-500: #e89b26;
+  --color-warning-600: #d18a1e;
+  --color-warning-700: #b45309;
+  --color-error-50: #fef2f2;
+  --color-error-100: #fee2e2;
+  --color-error-500: #ef4444;
+  --color-error-600: #dc2626;
+  --color-error-700: #b91c1c;
+
+  --shadow-vxn: 0 4px 6px -4px rgb(0 100 129 / 0.2), 0 10px 15px -3px rgb(0 100 129 / 0.2);
+  --shadow-card: 0 25px 50px -12px rgb(0 40 60 / 0.25);
+
+  --breakpoint-xs: 29.6875rem;
+  --container-8xl: 88rem;
+}
+
+/* Token ngữ nghĩa Shadcn/ui, gán vào bảng màu VXN. */
+:root {
+  --radius: 0.5rem;
+  --background: #f9f9ff;
+  --foreground: #2d3138;
+  --card: #ffffff;
+  --card-foreground: #181c22;
+  --popover: #ffffff;
+  --popover-foreground: #181c22;
+  --primary: #006481;
+  --primary-foreground: #ffffff;
+  --secondary: #f1f3fd;
+  --secondary-foreground: #181c22;
+  --muted: #f1f3fd;
+  --muted-foreground: #64748b;
+  --accent: #eef8fa;
+  --accent-foreground: #00506a;
+  --destructive: #dc2626;
+  --border: #dfe2ec;
+  --input: #dfe2ec;
+  --ring: #2b7ead;
+}
+
+@theme inline {
+  --font-sans: var(--font-be-vietnam-pro), ui-sans-serif, system-ui, sans-serif;
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+}
+
+@utility bg-gradient-primary {
+  background-image: linear-gradient(135deg, #2b7ead 0%, #006481 100%);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  html {
+    scrollbar-gutter: stable;
+  }
+
+  body {
+    @apply min-w-80 bg-background font-sans text-foreground antialiased;
+  }
+}

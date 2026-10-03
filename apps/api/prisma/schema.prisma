@@ -1,0 +1,683 @@
+generator client {
+  provider     = "prisma-client"
+  output       = "../src/generated/prisma"
+  runtime      = "nodejs"
+  moduleFormat = "cjs"
+}
+
+// Prisma 7: connection URL KHÔNG ở đây nữa — đặt qua driver adapter (PrismaClient)
+// + prisma.config.ts (cho Migrate/Studio). Xem ADR-011 (amended Prisma 5 → 7).
+datasource db {
+  provider = "postgresql"
+}
+
+/// Foundation smoke model — chứng minh Prisma migrate + connection.
+/// Bảng Platform (KHÔNG operator_id → KHÔNG tenant → KHÔNG RLS, theo DB-PRIN-01).
+model HealthCheck {
+  id        String   @id @default(uuid())
+  label     String
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("health_checks")
+}
+
+// ════════════════════════════ IAM (TASK-IAM-001) ════════════════════════════
+// Identity 3 namespace Account-separate (ADR-017). Passenger = Better Auth native;
+// Operator/Platform = bảng domain riêng + verify password (KHÔNG federate).
+// RLS (FORCE + policy) đóng đinh ở IAM-003; ở đây chỉ mang `operator_id`.
+
+/// Trạng thái account (FR-IAM-08: khóa / mở khóa / vô hiệu hóa).
+enum AccountStatus {
+  ACTIVE
+  LOCKED
+  DISABLED
+}
+
+/// Trạng thái tenant Operator (tối thiểu v1; OPR-001 mở rộng KYC).
+enum OperatorStatus {
+  ACTIVE
+  SUSPENDED
+}
+
+/// Role account Operator-side (v1 chỉ owner; mở rộng sau nếu cần).
+enum OperatorRole {
+  OPERATOR_OWNER
+}
+
+/// Employee role đã chốt v1 (FR-IAM-05, GLOSSARY).
+enum EmployeeRole {
+  DRIVER
+  TICKET_STAFF
+  SUPPORT_STAFF
+}
+
+/// Loại account sở hữu một tên đăng nhập trong namespace Operator.
+/// Registry dùng enum riêng để DB cấm Owner và Employee trùng username trong cùng tenant.
+enum OperatorLoginAccountType {
+  OPERATOR
+  EMPLOYEE
+}
+
+/// Role account Platform-side (RBAC 8-role, ADR-017).
+enum PlatformRole {
+  PLATFORM_ADMIN
+  PLATFORM_SUPPORT
+}
+
+// ──────────────── Passenger identity — Better Auth quản lý ────────────────
+// 4 bảng lõi theo schema chính thức Better Auth. Giữ tên model đúng default
+// (User/Session/Account/Verification) → adapter Prisma khỏi cần config modelName;
+// chỉ `@@map` đổi tên bảng DB. Better Auth tự sinh `id` (String).
+
+model User {
+  id            String   @id
+  name          String?
+  email         String   @unique
+  emailVerified Boolean  @default(false) @map("email_verified")
+  image         String?
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  sessions Session[]
+  accounts Account[]
+
+  @@map("users")
+}
+
+model Session {
+  id        String   @id
+  userId    String   @map("user_id")
+  token     String   @unique
+  expiresAt DateTime @map("expires_at")
+  ipAddress String?  @map("ip_address")
+  userAgent String?  @map("user_agent")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("user_sessions")
+}
+
+model Account {
+  id                    String    @id
+  userId                String    @map("user_id")
+  accountId             String    @map("account_id")
+  providerId            String    @map("provider_id")
+  accessToken           String?   @map("access_token")
+  refreshToken          String?   @map("refresh_token")
+  accessTokenExpiresAt  DateTime? @map("access_token_expires_at")
+  refreshTokenExpiresAt DateTime? @map("refresh_token_expires_at")
+  scope                 String?
+  idToken               String?   @map("id_token")
+  password              String?
+  createdAt             DateTime  @default(now()) @map("created_at")
+  updatedAt             DateTime  @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("user_accounts")
+}
+
+model Verification {
+  id         String   @id
+  identifier String
+  value      String
+  expiresAt  DateTime @map("expires_at")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  @@index([identifier])
+  @@map("verifications")
+}
+
+// ──────────────── Operator tenant root (tối thiểu) ────────────────
+/// Tenant root tối thiểu để login/seed; OPR-001 mở rộng KYC/profile.
+/// `operator_id` = id bảng này (RLS key, IAM-003).
+model OperatorProfile {
+  id           String         @id @default(uuid())
+  operatorSlug String         @unique @map("operator_slug")
+  displayName  String         @map("display_name")
+  status       OperatorStatus @default(ACTIVE)
+  createdAt    DateTime       @default(now()) @map("created_at")
+  updatedAt    DateTime       @updatedAt @map("updated_at")
+
+  operatorAccounts   OperatorAccount[]
+  employeeAccounts   EmployeeAccount[]
+  operatorLoginNames OperatorLoginName[]
+  seatMaps           SeatMap[]
+  stopPoints         StopPoint[]
+  stopPointProposals StopPointProposal[]
+  routes             Route[]
+  vehicles           Vehicle[]
+
+  @@unique([id, operatorSlug])
+  @@map("operator_profiles")
+}
+
+/// Registry namespace đăng nhập dùng chung cho Owner và Employee trong một Operator.
+/// Trigger DB đồng bộ bảng này; application không tự ghi trực tiếp.
+model OperatorLoginName {
+  operatorId  String                   @map("operator_id")
+  username    String
+  accountType OperatorLoginAccountType @map("account_type")
+  accountId   String                   @map("account_id")
+  createdAt   DateTime                 @default(now()) @map("created_at")
+
+  operator         OperatorProfile   @relation(fields: [operatorId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  operatorAccounts OperatorAccount[]
+  employeeAccounts EmployeeAccount[]
+
+  @@id([operatorId, username])
+  @@unique([accountType, accountId])
+  @@map("operator_login_names")
+}
+
+// ──────────────── Operator-side identity (custom, Account-separate) ────────────────
+/// Login Operator owner: `{operatorSlug}/{username}` + password (closed enrollment).
+model OperatorAccount {
+  id                         String        @id @default(uuid())
+  operatorId                 String        @map("operator_id")
+  operatorSlug               String        @map("operator_slug")
+  // CHECK `operator_accounts_username_not_employee_prefix`: cấm tiền tố `nv.` của Employee (TASK-IAM-006).
+  username                   String
+  contactEmail               String?       @map("contact_email")
+  passwordHash               String        @map("password_hash")
+  authEpoch                  Int           @default(0) @map("auth_epoch")
+  version                    Int           @default(0)
+  credentialDeliveryPending  Boolean       @default(false) @map("credential_delivery_pending")
+  passwordChangeRequired     Boolean       @default(false) @map("password_change_required")
+  temporaryPasswordExpiresAt DateTime?     @map("temporary_password_expires_at")
+  role                       OperatorRole  @default(OPERATOR_OWNER)
+  status                     AccountStatus @default(ACTIVE)
+  createdAt                  DateTime      @default(now()) @map("created_at")
+  updatedAt                  DateTime      @updatedAt @map("updated_at")
+
+  // RESTRICT, không CASCADE (TASK-IAM-003): hành động cascade của FK chạy với quyền owner và BỎ QUA
+  // RLS (kể cả FORCE) — xoá/đổi id một operator_profiles sẽ quét luôn account của tenant đó.
+  operator  OperatorProfile   @relation(fields: [operatorId, operatorSlug], references: [id, operatorSlug], onDelete: Restrict, onUpdate: Restrict)
+  loginName OperatorLoginName @relation(fields: [operatorId, username], references: [operatorId, username], onDelete: NoAction, onUpdate: NoAction)
+
+  @@unique([operatorSlug, username])
+  @@index([operatorId])
+  @@map("operator_accounts")
+}
+
+/// Login Employee trong tenant: username + password (operator-owned).
+model EmployeeAccount {
+  id                         String        @id @default(uuid())
+  operatorId                 String        @map("operator_id")
+  // CHECK `employee_accounts_username_employee_prefix`: `nv.` + 2–61 ký tự [a-z0-9._-] (TASK-IAM-006).
+  username                   String
+  contactEmail               String?       @map("contact_email")
+  passwordHash               String        @map("password_hash")
+  authEpoch                  Int           @default(0) @map("auth_epoch")
+  version                    Int           @default(0)
+  credentialDeliveryPending  Boolean       @default(false) @map("credential_delivery_pending")
+  passwordChangeRequired     Boolean       @default(false) @map("password_change_required")
+  temporaryPasswordExpiresAt DateTime?     @map("temporary_password_expires_at")
+  role                       EmployeeRole
+  status                     AccountStatus @default(ACTIVE)
+  createdAt                  DateTime      @default(now()) @map("created_at")
+  updatedAt                  DateTime      @updatedAt @map("updated_at")
+
+  // RESTRICT, không CASCADE (TASK-IAM-003): hành động cascade của FK chạy với quyền owner và BỎ QUA
+  // RLS (kể cả FORCE) — xoá/đổi id một operator_profiles sẽ quét luôn account của tenant đó.
+  operator  OperatorProfile   @relation(fields: [operatorId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  loginName OperatorLoginName @relation(fields: [operatorId, username], references: [operatorId, username], onDelete: NoAction, onUpdate: NoAction)
+
+  @@unique([operatorId, username])
+  @@map("employee_accounts")
+}
+
+// ──────────────── Platform-side identity (custom) ────────────────
+/// Login Platform: `platform/{username}` + password (closed enrollment, KHÔNG OAuth).
+model PlatformAccount {
+  id           String        @id @default(uuid())
+  username     String        @unique
+  passwordHash String        @map("password_hash")
+  role         PlatformRole
+  status       AccountStatus @default(ACTIVE)
+  createdAt    DateTime      @default(now()) @map("created_at")
+  updatedAt    DateTime      @updatedAt @map("updated_at")
+
+  @@map("platform_accounts")
+}
+
+// ════════════════════════ IAM — Session (TASK-IAM-002) ════════════════════════
+
+/// Chủ thể của một phiên. **4 giá trị**, KHÔNG phải 3 `scope` của JWT:
+/// scope `operator` gộp cả `operator_accounts` lẫn `employee_accounts`, nên nếu
+/// chỉ lưu scope thì revoke-all sẽ đá nhầm người (quyết định Q2, 16/09/2026).
+
+enum SubjectType {
+  PASSENGER
+  OPERATOR
+  EMPLOYEE
+  PLATFORM
+}
+
+/// Vì sao phiên bị thu hồi (FR-IAM-16).
+enum SessionRevokeReason {
+  LOGOUT
+  REUSE_DETECTED
+  ACCOUNT_LOCKED
+  PASSWORD_RESET
+  ADMIN_FORCE
+  /// Phiên của role bắt buộc MFA nhưng cấp trước TASK-IAM-004 (không có `mfa_verified_at`).
+  MFA_REQUIRED
+}
+
+/// Một phiên đăng nhập = một refresh token đang sống (ADR-017, DB §7).
+/// Account-separate ⇒ chủ thể nằm ở 4 bảng khác nhau nên **không có FK nào trỏ
+/// đủ cả 4**; dùng cặp `subject_type` + `subject_id`.
+/// Row sau khi rotate **giữ lại, không xoá** — nó chính là thứ duy nhất cho phép
+/// phát hiện reuse. Dọn dẹp là việc của job retention, không phải của refresh.
+
+model AuthSession {
+  id               String               @id @default(uuid()) // = claim `sid` trong JWT
+  subjectType      SubjectType          @map("subject_type")
+  subjectId        String               @map("subject_id")
+  userRef          String               @map("user_ref")
+  familyId         String               @map("family_id") // 1 login = 1 family; rotation Giữ nguyên
+  /// SHA-256 của token opaque. KHÔNG scrypt: token là random 32-byte (entropy đã
+  /// đầy, không cần làm chậm brute-force), và mỗi lần refresh phải tra O(1).
+  refreshTokenHash String               @unique @map("refresh_token_hash")
+  authEpoch        Int                  @default(0) @map("auth_epoch")
+  issuedAt         DateTime             @default(now()) @map("issued_at")
+  expiresAt        DateTime             @map("expires_at")
+  lastUsedAt       DateTime?            @map("last_used_at")
+  rotatedAt        DateTime?            @map("rotated_at")
+  replacedById     String?              @unique @map("replaced_by_id")
+  revokedAt        DateTime?            @map("revoked_at")
+  revokedReason    SessionRevokeReason? @map("revoked_reason")
+  mfaVerifiedAt    DateTime?            @map("mfa_verified_at")
+  /// Tenant cho RLS ở IAM-003, và để revoke hàng loạt khi Operator bị suspend.
+  operatorId       String?              @map("operator_id")
+  ip               String?
+  userAgent        String?              @map("user_agent")
+  updatedAt        DateTime             @updatedAt @map("updated_at")
+
+  @@index([userRef, familyId])
+  @@index([familyId])
+  @@index([expiresAt])
+  @@index([operatorId])
+  @@map("auth_sessions")
+}
+
+// ════════════════════════════ IAM — MFA (TASK-IAM-004) ════════════════════════════
+
+/// Thông tin TOTP do app quản lý cho một chủ thể. Quan hệ chủ thể là đa hình nên
+/// không có FK đến ba bảng account; ràng buộc PASSENGER được đặt trong migration.
+model MfaCredential {
+  id               String          @id @default(uuid())
+  subjectType      SubjectType     @map("subject_type")
+  subjectId        String          @map("subject_id")
+  secretCiphertext String          @map("secret_ciphertext")
+  lastTotpCounter  BigInt?         @map("last_totp_counter")
+  enabledAt        DateTime        @default(now()) @map("enabled_at")
+  createdAt        DateTime        @default(now()) @map("created_at")
+  updatedAt        DateTime        @updatedAt @map("updated_at")
+  backupCodes      MfaBackupCode[]
+
+  @@unique([subjectType, subjectId])
+  @@map("mfa_credentials")
+}
+
+/// Backup code chỉ lưu hash; `used_at` được set atomically khi tiêu thụ.
+model MfaBackupCode {
+  id           String        @id @default(uuid())
+  credentialId String        @map("credential_id")
+  codeHash     String        @map("code_hash")
+  usedAt       DateTime?     @map("used_at")
+  createdAt    DateTime      @default(now()) @map("created_at")
+  credential   MfaCredential @relation(fields: [credentialId], references: [id], onDelete: Cascade)
+
+  @@unique([credentialId, codeHash])
+  @@index([credentialId, usedAt])
+  @@map("mfa_backup_codes")
+}
+
+// ════════════════════════════ Catalog (TASK-CAT-001) ════════════════════════════
+// Dữ liệu chuẩn Platform (DB §5.2): KHÔNG `operator_id`. RLS: ai cũng đọc, chỉ scope platform/system
+// được ghi (migration `add_catalog`). Không xoá cứng — vô hiệu hoá bằng `status` (UC-24 A1).
+// FK RESTRICT, không CASCADE: cascade chạy quyền owner và bỏ qua RLS.
+
+/// Trạng thái catalog item; API công khai chỉ trả `ACTIVE`.
+enum CatalogStatus {
+  ACTIVE
+  INACTIVE
+}
+
+/// Loại điểm đón / trả chuẩn (AS-15, DP-08).
+enum StopPointType {
+  BUS_STATION
+  OFFICE
+  REST_STOP
+  PICKUP_POINT
+}
+
+/// Tỉnh / thành phố - 'code' theo danh mục hành chính chình thức.
+model Province {
+  id        String        @id @default(uuid())
+  code      String        @unique
+  name      String
+  status    CatalogStatus @default(ACTIVE)
+  createdAt DateTime      @default(now()) @map("created_at")
+  updatedAt DateTime      @updatedAt @map("updated_at")
+
+  wards Ward[]
+
+  @@map("provinces")
+}
+
+/// Phường / xã thuộc một tỉnh — `code` theo danh mục hành chính chính thức.
+model Ward {
+  id         String        @id @default(uuid())
+  provinceId String        @map("province_id")
+  code       String        @unique
+  name       String
+  status     CatalogStatus @default(ACTIVE)
+  createdAt  DateTime      @default(now()) @map("created_at")
+  updatedAt  DateTime      @updatedAt @map("updated_at")
+
+  province   Province           @relation(fields: [provinceId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  stopPoints         StopPointCatalog[]
+  privateStopPoints  StopPoint[]
+  stopPointProposals StopPointProposal[]
+
+  // Đích của FK ghép từ stop point: DB tự chặn phường không thuộc tỉnh (UC-24 A2).
+  @@unique([id, provinceId])
+  @@index([provinceId])
+  @@map("wards")
+}
+
+/// Điểm đón / trả chuẩn Platform; tách khỏi `stop_points` riêng của Operator (TRN-002).
+/// Toạ độ `double precision` + CHECK phạm vi trong migration; chưa PostGIS.
+model StopPointCatalog {
+  id          String        @id @default(uuid())
+  name        String
+  type        StopPointType
+  address     String
+  provinceId  String        @map("province_id")
+  wardId      String        @map("ward_id")
+  latitude    Float
+  longitude   Float
+  description String?
+  status      CatalogStatus @default(ACTIVE)
+  createdAt   DateTime      @default(now()) @map("created_at")
+  updatedAt   DateTime      @updatedAt @map("updated_at")
+
+  ward       Ward                @relation(fields: [wardId, provinceId], references: [id, provinceId], onDelete: Restrict, onUpdate: Restrict)
+  routeStops RouteStop[]
+  proposals  StopPointProposal[]
+
+  @@index([provinceId, status])
+  @@index([wardId])
+  @@map("stop_points_catalog")
+}
+
+/// Loại phương tiện chuẩn (GLOSSARY: seater, sleeper, limousine, cabin).
+model VehicleType {
+  id          String        @id @default(uuid())
+  code        String        @unique
+  name        String
+  description String?
+  status      CatalogStatus @default(ACTIVE)
+  createdAt   DateTime      @default(now()) @map("created_at")
+  updatedAt   DateTime      @updatedAt @map("updated_at")
+
+  vehicles Vehicle[]
+
+  @@map("vehicle_types")
+}
+
+/// Tiện ích chuẩn gắn cho phương tiện (TRN-001).
+model Amenity {
+  id        String        @id @default(uuid())
+  code      String        @unique
+  name      String
+  status    CatalogStatus @default(ACTIVE)
+  createdAt DateTime      @default(now()) @map("created_at")
+  updatedAt DateTime      @updatedAt @map("updated_at")
+
+  vehicleAmenities VehicleAmenity[]
+
+  @@map("amenities")
+}
+
+// ════════════════════════════ Transport — Vehicle (TASK-TRN-001) ════════════════════════════
+// Operator-owned: mọi bảng có `operator_id` + ENABLE/FORCE RLS `tenant_isolation` (migration
+// `add_vehicle`). FK ghép `(…, operator_id)` để DB chặn gắn SeatMap/ghế/tiện ích xe của tenant khác.
+// FK RESTRICT, không CASCADE: cascade chạy quyền owner và bỏ qua RLS.
+
+/// Trạng thái vận hành xe (FR-OPS-02); chỉ `ACTIVE` mới được gán chuyến (TRN-003).
+enum VehicleStatus {
+  ACTIVE
+  MAINTENANCE
+  INACTIVE
+}
+
+/// Loại chỗ trong sơ đồ (UC-12 "loại ghế / giường").
+enum SeatType {
+  SEAT
+  BED
+}
+
+/// Sơ đồ ghế do nhà xe tự cấu hình, dùng làm mẫu chung cho nhiều xe (quyết định Q1).
+model SeatMap {
+  id         String   @id @default(uuid())
+  operatorId String   @map("operator_id")
+  name       String
+  /// `{ decks: [{ deck, rows, columns }] }` — Zod kiểm ở biên API.
+  layout     Json
+  seatCount  Int      @map("seat_count")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  operator OperatorProfile @relation(fields: [operatorId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  seats    Seat[]
+  vehicles Vehicle[]
+
+  @@unique([operatorId, name])
+  @@unique([id, operatorId])
+  @@map("seat_maps")
+}
+
+/// Một ghế/giường trong SeatMap; TRN-003 sinh TripSeat từ đây.
+model Seat {
+  id         String   @id @default(uuid())
+  operatorId String   @map("operator_id")
+  seatMapId  String   @map("seat_map_id")
+  code       String
+  deck       Int
+  row        Int
+  column     Int
+  type       SeatType
+
+  seatMap SeatMap @relation(fields: [seatMapId, operatorId], references: [id, operatorId], onDelete: Restrict, onUpdate: Restrict)
+
+  @@unique([seatMapId, code])
+  @@unique([seatMapId, deck, row, column])
+  @@map("seats")
+}
+
+/// Phương tiện của nhà xe (FR-OPS-01..02).
+model Vehicle {
+  id            String        @id @default(uuid())
+  operatorId    String        @map("operator_id")
+  /// Đã chuẩn hoá: chữ hoa, bỏ khoảng trắng / `.` / `-`.
+  plateNumber   String        @map("plate_number")
+  vehicleTypeId String        @map("vehicle_type_id")
+  seatMapId     String?       @map("seat_map_id")
+  status        VehicleStatus @default(ACTIVE)
+  description   String?
+  createdAt     DateTime      @default(now()) @map("created_at")
+  updatedAt     DateTime      @updatedAt @map("updated_at")
+
+  operator    OperatorProfile  @relation(fields: [operatorId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  vehicleType VehicleType      @relation(fields: [vehicleTypeId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  seatMap     SeatMap?         @relation(fields: [seatMapId, operatorId], references: [id, operatorId], onDelete: Restrict, onUpdate: Restrict)
+  amenities   VehicleAmenity[]
+
+  @@unique([operatorId, plateNumber])
+  @@unique([id, operatorId])
+  @@index([operatorId, status])
+  @@map("vehicles")
+}
+
+/// Tiện ích catalog gắn cho một xe (bảng nối, quyết định Q2).
+model VehicleAmenity {
+  vehicleId  String @map("vehicle_id")
+  amenityId  String @map("amenity_id")
+  operatorId String @map("operator_id")
+
+  vehicle Vehicle @relation(fields: [vehicleId, operatorId], references: [id, operatorId], onDelete: Restrict, onUpdate: Restrict)
+  amenity Amenity @relation(fields: [amenityId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+
+  @@id([vehicleId, amenityId])
+  @@map("vehicle_amenities")
+}
+
+// ════════════════════════════ Transport — Route & StopPoint (TASK-TRN-002) ════════════════════════════
+// Operator-owned + RLS (migration `add_route`). Đề xuất StopPoint: RLS chỉ cho tenant tạo/ghi `PENDING`
+// và sửa bản `REJECTED` — Operator không tự duyệt được; Admin (scope platform) duyệt ở ADM-001.
+
+/// Trạng thái điểm đón/trả riêng của nhà xe; `INACTIVE` không gắn mới vào route.
+enum StopPointStatus {
+  ACTIVE
+  INACTIVE
+}
+
+/// Trạng thái đề xuất đưa điểm vào catalog chuẩn (Admin duyệt ở ADM-001).
+enum StopPointProposalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+/// Trạng thái route; `INACTIVE` không dùng để tạo chuyến mới (TRN-003).
+enum RouteStatus {
+  ACTIVE
+  INACTIVE
+}
+
+/// Vai trò điểm trong route — suy ra từ vị trí (đầu / giữa / cuối).
+enum RouteStopRole {
+  ORIGIN
+  INTERMEDIATE
+  DESTINATION
+}
+
+/// Nguồn số liệu khoảng cách/thời gian: Goong thật hay ước lượng đường chim bay (dev, Q8).
+enum RoutingMetricsSource {
+  GOONG
+  ESTIMATE
+}
+
+/// Điểm đón/trả riêng của một nhà xe — dùng ngay trong route của tenant (Q1).
+model StopPoint {
+  id          String          @id @default(uuid())
+  operatorId  String          @map("operator_id")
+  name        String
+  type        StopPointType
+  address     String
+  provinceId  String          @map("province_id")
+  wardId      String          @map("ward_id")
+  latitude    Float
+  longitude   Float
+  description String?
+  status      StopPointStatus @default(ACTIVE)
+  createdAt   DateTime        @default(now()) @map("created_at")
+  updatedAt   DateTime        @updatedAt @map("updated_at")
+
+  operator   OperatorProfile @relation(fields: [operatorId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  ward       Ward            @relation(fields: [wardId, provinceId], references: [id, provinceId], onDelete: Restrict, onUpdate: Restrict)
+  routeStops RouteStop[]
+
+  @@unique([operatorId, name])
+  @@unique([id, operatorId])
+  @@index([operatorId, status])
+  @@map("stop_points")
+}
+
+/// Đề xuất của nhà xe đưa một điểm vào catalog chuẩn (FR-OPS-05, UC-13 bước 7–8).
+model StopPointProposal {
+  id                 String                  @id @default(uuid())
+  operatorId         String                  @map("operator_id")
+  name               String
+  type               StopPointType
+  address            String
+  provinceId         String                  @map("province_id")
+  wardId             String                  @map("ward_id")
+  latitude           Float
+  longitude          Float
+  description        String?
+  status             StopPointProposalStatus @default(PENDING)
+  rejectionReason    String?                 @map("rejection_reason")
+  /// Điểm catalog Admin tạo/link khi duyệt (ADM-001).
+  catalogStopPointId String?                 @map("catalog_stop_point_id")
+  createdAt          DateTime                @default(now()) @map("created_at")
+  updatedAt          DateTime                @updatedAt @map("updated_at")
+
+  operator         OperatorProfile   @relation(fields: [operatorId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  ward             Ward              @relation(fields: [wardId, provinceId], references: [id, provinceId], onDelete: Restrict, onUpdate: Restrict)
+  catalogStopPoint StopPointCatalog? @relation(fields: [catalogStopPointId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+
+  @@index([operatorId, status])
+  @@index([status])
+  @@map("stop_point_proposals")
+}
+
+/// Tuyến của nhà xe (FR-OPS-04); tổng khoảng cách/thời gian = tổng các chặng đã lưu.
+model Route {
+  id                   String               @id @default(uuid())
+  operatorId           String               @map("operator_id")
+  name                 String
+  status               RouteStatus          @default(ACTIVE)
+  note                 String?
+  totalDistanceMeters  Int                  @map("total_distance_meters")
+  totalDurationSeconds Int                  @map("total_duration_seconds")
+  metricsSource        RoutingMetricsSource @map("metrics_source")
+  createdAt            DateTime             @default(now()) @map("created_at")
+  updatedAt            DateTime             @updatedAt @map("updated_at")
+
+  operator OperatorProfile @relation(fields: [operatorId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  stops    RouteStop[]
+
+  @@unique([operatorId, name])
+  @@unique([id, operatorId])
+  @@index([operatorId, status])
+  @@map("routes")
+}
+
+/// Một điểm theo thứ tự trong route: tham chiếu catalog HOẶC điểm riêng (CHECK trong migration).
+model RouteStop {
+  id                          String        @id @default(uuid())
+  operatorId                  String        @map("operator_id")
+  routeId                     String        @map("route_id")
+  sequence                    Int
+  role                        RouteStopRole
+  catalogStopPointId          String?       @map("catalog_stop_point_id")
+  stopPointId                 String?       @map("stop_point_id")
+  note                        String?
+  /// Toạ độ đã dùng để tính số liệu chặng — so với toạ độ hiện tại của điểm để biết khi nào phải tính lại.
+  latitude                    Float
+  longitude                   Float
+  /// Từ điểm liền trước; điểm đầu để trống (CHECK trong migration).
+  distanceMetersFromPrevious  Int?          @map("distance_meters_from_previous")
+  durationSecondsFromPrevious Int?          @map("duration_seconds_from_previous")
+
+  route            Route             @relation(fields: [routeId, operatorId], references: [id, operatorId], onDelete: Restrict, onUpdate: Restrict)
+  catalogStopPoint StopPointCatalog? @relation(fields: [catalogStopPointId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  stopPoint        StopPoint?        @relation(fields: [stopPointId, operatorId], references: [id, operatorId], onDelete: Restrict, onUpdate: Restrict)
+
+  @@unique([routeId, sequence])
+  @@unique([routeId, catalogStopPointId])
+  @@unique([routeId, stopPointId])
+  @@index([catalogStopPointId])
+  @@index([stopPointId])
+  @@map("route_stops")
+}

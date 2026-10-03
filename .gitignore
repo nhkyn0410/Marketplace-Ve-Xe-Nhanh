@@ -1,10 +1,14 @@
 # Dependencies
 node_modules/
+**/node_modules/
 .pnp/
 .pnp.*
 
 # Package manager caches
 .pnpm-store/
+/.pnpm-store/
+**/.pnpm-store/
+.npm/
 .yarn/cache/
 .yarn/unplugged/
 .yarn/build-state.yml
@@ -12,28 +16,63 @@ node_modules/
 
 # Build output
 dist/
+**/dist/
 build/
+**/build/
 out/
+**/out/
 .next/
+**/.next/
 .turbo/
+/.turbo/
+**/.turbo/
 .vercel/
+**/.vercel/
 .swc/
+**/.swc/
 *.tsbuildinfo
+**/*.tsbuildinfo
+
+# Generated code (Prisma 7 client — regenerated bởi `prisma generate` / postinstall)
+apps/api/src/generated/prisma/
 
 # Test and coverage output
 coverage/
+**/coverage/
 .nyc_output/
 test-results/
+**/test-results/
 playwright-report/
 blob-report/
 maestro-debug-output/
 
-# Expo / React Native generated state
-.expo/
-apps/**/.expo/
-apps/**/web-build/
-apps/**/android/
-apps/**/ios/
+# Flutter / Dart (ADR-028) — apps/*_mobile + packages/{mobile_shared,api_client_dart}
+# `build/`, `dist/` đã ignore ở mục "Build output" phía trên.
+**/.dart_tool/
+**/.fvm/
+**/.flutter-plugins
+**/.flutter-plugins-dependencies
+**/.packages
+**/.pub-cache/
+**/.pub/
+*.iml
+
+# QUAN TRỌNG: với Flutter, `android/` và `ios/` là SOURCE phải commit (AndroidManifest.xml khai
+# permission — chính là chỗ hiện thực việc tách 2 app theo ADR-028 — build.gradle, Info.plist,
+# cấu hình ký). Chỉ ignore phần do tooling sinh ra. (Expo thì ngược lại: 2 thư mục đó do
+# `expo prebuild` sinh nên ignore cả — đó là quy tắc cũ, đã bỏ cùng ADR-028.)
+**/android/.gradle/
+**/android/local.properties
+**/android/key.properties
+**/android/app/*.jks
+**/android/app/*.keystore
+**/ios/Pods/
+**/ios/.symlinks/
+**/ios/Flutter/Generated.xcconfig
+**/ios/Flutter/flutter_export_environment.sh
+**/ios/Flutter/ephemeral/
+**/*.xcuserstate
+**/xcuserdata/
 
 # Logs
 *.log
@@ -41,27 +80,48 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
+.eslintcache
 
 # Environment and secrets
+.npmrc
 .env
 .env.*
+**/.env
+**/.env.*
 !.env.example
 !.env.sample
 !.env.template
+!**/.env.example
+!**/.env.sample
+!**/.env.template
 *.pem
 *.key
+*.p8
+*.p12
+*.pfx
+*.mobileprovision
+*.jks
+*.keystore
 
 # Local storage, uploads, and temp files
-storage/
-uploads/
-tmp/
-temp/
+# Anchor local data paths so source modules such as apps/api/src/external/storage/ stay visible.
+/storage/
+/apps/api/storage/
+/uploads/
+/apps/api/uploads/
+/tmp/
+/apps/api/tmp/
+/temp/
+/apps/api/temp/
 .cache/
+**/.cache/
 
 # Database and tooling local artifacts
 *.sqlite
 *.sqlite3
 *.db
+*.dump
+*.backup
 dump.rdb
 
 # IDE and OS files
@@ -74,3 +134,11 @@ Desktop.ini
 
 # Agent-local machine settings
 .claude/settings.local.json
+.codex/settings.local.json
+
+# Nhat ky su dung AI (doc/AI-JOURNAL.md) — bat buoc ghi, KHONG commit
+/.ai-journal/
+
+# Thu muc tam cua job "Contract" (sinh lai Dart client de so hop dong)
+/.regen/
+/.cmp/

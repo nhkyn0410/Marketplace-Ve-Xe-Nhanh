@@ -1,34 +1,34 @@
 # AGENTS.md — Marketplace-Ve-Xe-Nhanh
 
-Coding-agent brief (cross-tool: Claude Code / Codex / Cursor / Copilot). **Lean by design** — full SDLC ở `doc/SDLC/`; quyết định công nghệ ở `doc/SDLC/10-architecture-decision-record.md` (26 ADR); live state ở `doc/context/PROJECT-STATE.md`; module map ở `doc/context/DOMAIN-MAP.md`; thuật ngữ ở `doc/context/GLOSSARY.md`.
+Coding-agent brief (cross-tool: Claude Code / Codex / Cursor / Copilot). **Lean by design** — full SDLC ở `doc/SDLC/`; quyết định công nghệ ở `doc/SDLC/10-architecture-decision-record.md` (27 ADR); live state ở `doc/context/PROJECT-STATE.md`; module map ở `doc/context/DOMAIN-MAP.md`; thuật ngữ ở `doc/context/GLOSSARY.md`.
 
 > `CLAUDE.md` (root) = Claude Code operational brain (role · subagents · skills · workflow). File này (`AGENTS.md`) = stack · structure · code style · testing · boundaries (cross-tool). Đọc cả hai khi code; đọc tài liệu thiết kế qua subagent `sdlc-doc-reader`.
 
 ## Project
 
-Managed marketplace bán vé xe khách, 3 bên (Passenger ↔ Platform ↔ Operator), 3 lớp dịch vụ (Marketplace / Operator OS / Platform admin). **Modular monolith**. Trạng thái: **pre-code** — SDLC design xong (19/19 layer, 26 ADR), chưa scaffold code v1. SDLC docs = Tiếng Việt; **code / API / DB identifier = English**.
+Managed marketplace bán vé xe khách, 3 bên (Passenger ↔ Platform ↔ Operator), 3 lớp dịch vụ (Marketplace / Operator OS / Platform admin). **Modular monolith**. Trạng thái: **build v1 (foundation)** — SDLC design xong (19/19 layer, 27 ADR; 11/13 doc Approved), scaffold monorepo nền `TASK-FND-001` xong (Turborepo + 6 apps + 6 packages), tiếp tục TASK-FND. SDLC docs = Tiếng Việt; **code / API / DB identifier = English**.
 
-## Tech stack (đã chốt — ADR-002, ADR-009..026; KHÔNG đổi nếu chưa hỏi)
+## Tech stack (đã chốt — ADR-002, ADR-009..027; KHÔNG đổi nếu chưa hỏi)
 
-- **Runtime**: TypeScript (strict) + Node.js LTS 22. Tiền = `BIGINT` VND + `Decimal.js`; **CẤM** `number`/`float` cho tiền.
+- **Runtime**: TypeScript (strict) + Node.js LTS 24. Tiền = `BIGINT` VND + `Decimal.js`; **CẤM** `number`/`float` cho tiền.
 - **Backend**: NestJS 11 + **nestjs-zod** (KHÔNG class-validator). Modular monolith, 1 module / business domain.
-- **DB**: PostgreSQL 16 + **Prisma 5** (operational); MongoDB 7 + Mongoose 8 (audit, cluster RIÊNG, chỉ `audit_event` + `system_log`, append-only).
+- **DB**: PostgreSQL 16 + **Prisma 7.8.0** (operational; driver adapter `@prisma/adapter-pg` + `pg`, `prisma.config.ts` cho Migrate/Studio); MongoDB 7 + Mongoose 8 (audit, cluster RIÊNG, chỉ `audit_event` + `system_log`, append-only).
 - **Cache / lock / queue**: Redis 7 (Upstash) + `ioredis`; **BullMQ** (`@nestjs/bullmq`).
 - **Auth**: Better Auth + custom NestJS adapter; JWT RS256 15min + opaque refresh 30d (rotation + family); 3 namespace (Passenger=Email / Operator=`{slug}/{username}` / Platform=`platform/{username}`); RBAC 8-role enum; TenantGuard + Postgres RLS; TOTP.
 - **API**: REST + OpenAPI 3.1 auto từ Zod; URL `/v1`; error RFC 7807; webhook HMAC.
-- **Frontend**: Next.js 16 App Router; **Turborepo + pnpm** monorepo.
-- **Mobile**: Expo SDK 55+ (2 app: `passenger-mobile`, `employee-mobile`).
-- **Vendor** (sau adapter): VNPay + MoMo (payment), Resend (email), Expo Push, OAuth Google/FB/Apple, Mapbox (routing/map), Cloudflare R2 (storage), manual payout.
+- **Frontend**: Next.js 16 App Router; **Turborepo + pnpm** monorepo; UI = **Shadcn/ui + Tailwind CSS 4** trong `packages/ui` (ADR-013).
+- **Mobile**: Flutter 3.x + Dart 3.x (2 app: `passenger_mobile`, `employee_mobile`) — ADR-028. Nằm **ngoài** pnpm workspace / Turborepo; dùng `flutter`/`dart` CLI.
+- **Vendor** (sau adapter): VNPay + MoMo (payment), Resend (email), FCM + APNs (push), OAuth Google/FB/Apple, Goong (routing/map), Cloudflare R2 (storage), manual payout.
 - **DevOps**: Render PaaS (SG); worker = Render Background Worker tách; Vitest + Supertest + Playwright + Maestro; GitHub Actions + Sentry + Pino + OpenTelemetry.
 
 ## Project structure (target monorepo)
 
 ```
-apps/    api (NestJS)  marketplace · operator-os · admin (Next.js)  passenger-mobile · employee-mobile (Expo)
+apps/    api (NestJS)  marketplace · operator-os · admin (Next.js)  passenger_mobile · employee_mobile (Flutter)
 packages/  types (Zod single source) · api-client (gen từ OpenAPI) · ui · utils (Decimal wrappers) · config
 ```
 
-Module backend theo `DOMAIN-MAP §1/§2` (tên **singular**: `booking/`, `trip/`, `iam/auth/`, `vehicle/`...). Vendor ngoài sau adapter port `external/<provider>/`: `payment/{vnpay,momo}`, `notification/{email,push,sms}`, `routing/{mapbox,osrm}`, `storage`, `payout`.
+Module backend theo `DOMAIN-MAP §1/§2` (tên **singular**: `booking/`, `trip/`, `iam/auth/`, `vehicle/`...). Vendor ngoài sau adapter port `external/<provider>/`: `payment/{vnpay,momo}`, `notification/{email,push,sms}`, `routing/{goong,osrm}`, `storage`, `payout`.
 
 ## Commands (chính xác chốt khi scaffold; quy ước dự kiến)
 
@@ -71,3 +71,13 @@ Bắt buộc test: **money math** (BIGINT/Decimal), **idempotency** (payment ded
 - **KHÔNG tự promote** tài liệu → `Approved` (chỉ Khanh).
 - **Production-blocker**: OQ-21 (KYC storage residency) + OQ-22 (giấy phép TGTT NHNN) — KYC / payment thật chỉ chạy dev-local / sandbox cho tới khi giải quyết.
 - Đụng tên module → `DOMAIN-MAP`; entity/state/error code → `GLOSSARY`; quyết định công nghệ → file 10 ADR. Không chắc → DỪNG, hỏi.
+
+## Nhật ký sử dụng AI (bắt buộc, không commit)
+
+Mỗi lần sinh/sửa code đáng kể → ghi 1 dòng bằng lệnh, **KHÔNG đọc/mở/sửa tay** file nhật ký:
+
+```bash
+node .claude/hooks/ai-journal.mjs add "<Mảng kỹ thuật>" "<AI sử dụng>" "<Mục đích>" "<Phần AI sinh>" "" "<Nhận xét>"
+```
+
+Quy tắc đầy đủ: **`doc/AI-JOURNAL.md`**. `.ai-journal/` đã gitignore — ghi bắt buộc, commit thì KHÔNG. "Phần AI sinh" = đường dẫn + phạm vi, **không dán mã nguồn** (trần 300 ký tự/ô). "Phần SV chỉnh" truyền `""` — Khanh tự điền, agent không bịa.

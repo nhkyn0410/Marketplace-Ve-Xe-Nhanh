@@ -1,0 +1,114 @@
+services:
+  - type: web
+    name: vexenhanh-api
+    runtime: docker
+    region: singapore
+    # v1 validate: free tier ($0). Ngủ sau ~15p inactivity → cold-start ~30-60s.
+    # Lên `starter` ($7, always-on) khi go-live ở TASK-OPS-001.
+    plan: free
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    autoDeployTrigger: checksPass
+    healthCheckPath: /v1/health
+    envVars:
+      - fromGroup: vexenhanh-foundation
+      - key: SENTRY_DSN
+        sync: false
+      - key: REDIS_URL
+        sync: false
+      # Role APP (NOSUPERUSER, NOBYPASSRLS) — KHÔNG phải owner, nếu không RLS vô hiệu (TASK-IAM-003).
+      # URL owner (MIGRATION_DATABASE_URL) chỉ dùng lúc migrate, KHÔNG khai ở service này.
+      - key: DATABASE_URL
+        sync: false
+      - key: MONGODB_AUDIT_URI
+        sync: false
+      - key: BULL_BOARD_TOKEN
+        sync: false
+      # IAM v1 — cấu hình riêng của API, không chia sẻ secret sang worker.
+      - key: BETTER_AUTH_SECRET
+        sync: false
+      - key: BETTER_AUTH_URL
+        sync: false
+      - key: JWT_ACCESS_PRIVATE_KEY
+        sync: false
+      # TASK-IAM-004: AES-256-GCM cho TOTP secret — `openssl rand -base64 32`. Production thiếu → không
+      # khởi động. KHÔNG đổi sau khi đã có người enroll (secret cũ không giải mã được nữa).
+      - key: MFA_ENCRYPTION_KEY
+        sync: false
+      - key: JWT_ACCESS_TTL_SECONDS
+        value: "900"
+      - key: JWT_ISSUER
+        value: vexenhanh
+      - key: AUTH_ALLOWED_CALLBACK_ORIGINS
+        sync: false
+      # TASK-IAM-006: web auth cookie mode. Thiếu → API không khởi động. Exact HTTPS origin TỪNG app
+      # (vd https://operator.vexenhanh.vn và https://admin.vexenhanh.vn) — phiên chỉ dùng được từ app đúng scope;
+      # WEB_CSRF_SECRET = `openssl rand -base64 32`, khác MFA_ENCRYPTION_KEY/BETTER_AUTH_SECRET.
+      - key: OPERATOR_WEB_ORIGINS
+        sync: false
+      - key: ADMIN_WEB_ORIGINS
+        sync: false
+      - key: WEB_CSRF_SECRET
+        sync: false
+      - key: RESEND_API_KEY
+        sync: false
+      - key: RESEND_FROM_EMAIL
+        sync: false
+      # TASK-TRN-002 (ADR-027): Goong REST key tính khoảng cách/thời gian route. Production thiếu → không
+      # khởi động (dev để trống thì dùng ước lượng đường chim bay).
+      - key: GOONG_API_KEY
+        sync: false
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
+      - key: OTEL_SERVICE_NAME
+        value: vexenhanh-api
+      - key: PORT
+        value: "3000"
+      # Express đếm từ socket: app -> Render -> Cloudflare -> client = 3 hop tin cậy.
+      - key: TRUST_PROXY_HOPS
+        value: "3"
+
+# ADR-024: worker = Render Background Worker (cùng image, command `dist/worker.js`);
+# payout/reconciliation = BullMQ repeatable jobs TRONG worker (KHÔNG Render Cron Job riêng).
+# Render Background Worker KHÔNG có free tier → DEFER tới TASK-OPS-001 (paid).
+# v1 validate: worker chạy LOCAL (`pnpm --filter @vexenhanh/api start:worker`).
+# Trước khi bật production: tách env validation theo runtime để worker không cần IAM/Resend secret.
+# Bật lại khi go-paid (uncomment + nạp thẻ):
+#  - type: worker
+#    name: vexenhanh-worker
+#    runtime: docker
+#    region: singapore
+#    plan: starter
+#    dockerfilePath: ./Dockerfile
+#    dockerContext: .
+#    dockerCommand: dist/worker.js
+#    autoDeployTrigger: checksPass
+#    maxShutdownDelaySeconds: 120
+#    envVars:
+#      - fromGroup: vexenhanh-foundation
+#      - key: SENTRY_DSN
+#        sync: false
+#      - key: REDIS_URL
+#        sync: false
+#      - key: DATABASE_URL
+#        sync: false
+#      - key: MONGODB_AUDIT_URI
+#        sync: false
+#      - key: OTEL_SERVICE_NAME
+#        value: vexenhanh-worker
+
+envVarGroups:
+  - name: vexenhanh-foundation
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: SENTRY_ENVIRONMENT
+        value: production
+      - key: BULLMQ_PREFIX
+        value: vexenhanh
+      - key: LOG_LEVEL
+        value: info
+      - key: SENTRY_TRACES_SAMPLE_RATE
+        value: "0.1"

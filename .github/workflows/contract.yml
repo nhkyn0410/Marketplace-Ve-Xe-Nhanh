@@ -1,0 +1,89 @@
+name: Contract
+
+# Gác một bất biến duy nhất: **client sinh ra phải khớp OpenAPI đang commit**.
+#
+# ADR-012 lấy OpenAPI 3.1 làm nguồn duy nhất, ADR-028 nói Dart client "chạy trong
+# CI cạnh `openapi-typescript` cho Web". Trước workflow này không có gì kiểm:
+# đổi một DTO backend rồi quên regen thì `ci.yml` vẫn xanh (nó sinh lại rồi vứt,
+# không so sánh) và `mobile.yml` còn không chạy (path filter không có `apps/api`).
+# Hệ quả là Mobile gửi/đọc sai payload mà không ai biết cho tới lúc chạy thật.
+#
+# Tách khỏi `mobile.yml` có chủ ý: đây là mối quan tâm riêng, và không đáng để
+# một thay đổi backend kéo theo cả ma trận analyze/test của 2 app Flutter.
+
+on:
+  push:
+    branches: [develop]
+    paths: &contract-paths
+      - "apps/api/src/**"
+      - "packages/types/**"
+      - "packages/api-client/src/generated/**"
+      - "packages/api_client_dart/**"
+      - ".github/workflows/contract.yml"
+  pull_request:
+    branches: [develop]
+    paths: *contract-paths
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  dart-client:
+    name: Dart client khớp OpenAPI
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version-file: .fvmrc
+          channel: stable
+          cache: true
+
+      # Pin `v7.25.0`: tag `latest` từng trỏ `7.26.0-SNAPSHOT` (ADR-028).
+      # Dùng đúng phiên bản đã sinh ra code đang commit, nếu không thì diff bên
+      # dưới sẽ đỏ vì đổi generator chứ không phải vì đổi hợp đồng.
+      - name: Sinh lại Dart client vào thư mục tạm
+        run: |
+          docker run --rm \
+            -v "${{ github.workspace }}/packages/api-client/src/generated:/spec:ro" \
+            -v "${{ github.workspace }}/.regen:/out" \
+            openapitools/openapi-generator-cli:v7.25.0 \
+            generate -i /spec/openapi.json -g dart-dio -o /out \
+            --additional-properties=pubName=api_client_dart,pubLibrary=api_client_dart
+          sudo chown -R "$(id -u):$(id -g)" .regen
+
+      # So sánh phải bỏ qua **định dạng**, vì nó không phải hợp đồng. Không thể
+      # format mỗi bên mới rồi so: `dart format` chọn style theo language version
+      # của package (bản commit có `.dart_tool` ghi 2.18 → style cũ; `.regen`
+      # không có → style "tall" của Dart 3.7+), lệch tới ~3300 dòng vì lý do vô
+      # nghĩa. Chép cả hai sang chỗ trung lập rồi format bằng **cùng một lệnh**
+      # thì khác biệt định dạng tự triệt tiêu, dù bản commit đang ở style nào.
+      #
+      # `.g.dart` do `build_runner` sinh chứ không phải openapi-generator, nên
+      # `.regen` không có — loại khỏi phép so.
+      - name: Chuẩn hoá hai bên về cùng một mặt bằng
+        run: |
+          mkdir -p .cmp/committed .cmp/regen
+          cp -r packages/api_client_dart/lib/. .cmp/committed/
+          cp -r .regen/lib/. .cmp/regen/
+          find .cmp -name '*.g.dart' -delete
+          dart format .cmp/committed .cmp/regen
+
+      # `-I '^import '` bỏ đúng ngoại lệ đã ghi nhận 15/09/2026: 4 dòng import
+      # thừa bị gỡ tay, không đổi logic (xem FND-009-todo muc .3).
+      # Mọi khác biệt còn lại là hợp đồng đã lệch thật.
+      - name: So sánh với bản đang commit
+        run: |
+          if ! git diff --no-index --exit-code -w -I '^import ' .cmp/committed .cmp/regen; then
+            echo "::error::Dart client lech OpenAPI. Sinh lai theo FND-009-guide.md muc 3 roi commit."
+            exit 1
+          fi

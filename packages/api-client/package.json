@@ -1,0 +1,24 @@
+{
+  "name": "@vexenhanh/api-client",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "gen:api-client": "pnpm -C ../../apps/api openapi:generate -- ../../packages/api-client/src/generated/openapi.json && openapi-typescript src/generated/openapi.json -o src/generated/schema.ts",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run --passWithNoTests"
+  },
+  "devDependencies": {
+    "openapi-typescript": "^7.13.0"
+  }
+}
