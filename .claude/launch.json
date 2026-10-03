@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "operator-os",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["--filter", "@vexenhanh/operator-os", "dev"],
+      "port": 3002
+    }
+  ]
+}

@@ -9,6 +9,25 @@
 - [x] Q1–Q4 được Khanh chốt; task row `Ready → In Progress` (11 Task v0.19).
 - [ ] Khanh đặt `OPERATOR_WEB_ORIGINS` + `ADMIN_WEB_ORIGINS` + `WEB_CSRF_SECRET` trên Render trước khi deploy (production thiếu → API không khởi động); kiểm không có Owner dùng `nv.`.
 
+## Port sang repo chính — 03/10/2026 (nhánh `TASK-IAM-006-web`, chưa commit)
+
+Evidence các phần A–G bên dưới là của lần chạy ở repo bản sao (27/09). Phần này ghi lại lần port + đo lại trên `develop` repo chính.
+
+- [x] **Phạm vi lần này (Khanh chốt 03/10):** BE web auth + giao diện đăng nhập **nhà xe** (Operator OS). **Chưa làm**: trang Admin (`apps/admin` không đổi), bố cục màn hình hẹp, nút đăng xuất trong shell (`app-shell.tsx`, `dashboard-shell.tsx` không đổi).
+- [x] BE: lấy phần web auth của bản sao (cookie transport, CSRF, `/auth/csrf`, `/auth/me`, CORS, env); **giữ bản tách cổng Owner/Employee + migration của repo chính** (PR #16), không lấy migration `20260927010000` của bản sao. Gỡ 9 file xung đột theo nguyên tắc đó.
+- [x] Sửa lệch contract lộ ra khi chạy test của repo chính: cổng chỉ-Bearer (`/auth/employee/login`, `/auth/otp/verify`, `/auth/oauth/session`) nhận `X-Auth-Transport: cookie` trả **400 `AUTH_TRANSPORT_INVALID` trước** kiểm Origin/CSRF (API §7.1.1, TC-SEC-010) — thêm `@BearerOnly()` + kiểm trong `WebCsrfGuard`. Bản sao trả 403 `AUTH_ORIGIN_FORBIDDEN` khi thiếu Origin.
+- [x] Test API bằng role app, Postgres + Redis + Mongo thật, `REQUIRE_DB_TESTS=1`: **65/65 file, 748/748 test**, 0 skip; 11 migration trên DB trống, `migrate diff` rỗng.
+- [x] Giao diện theo Figma "Giao diện nhà xe" (section `830:1977`, 22 khung): bố cục hai cột, hộp thoại thông báo, nút hiện/ẩn mật khẩu, nút đang xử lý, trạng thái kiểm tra phiên / chuyển tiếp. Asset biểu tượng xuất từ Figma ở `apps/operator-os/public/auth/`.
+- [x] Quyết định áp dụng (Khanh, 03/10): "Cần cấp lại mật khẩu?" mở hộp thoại hướng dẫn liên hệ quản trị nền tảng; khối "Trở thành đối tác / Đăng ký" **ẩn** tới TASK-OPR-001; chip "VI" chỉ trang trí. Không còn thông báo "dùng app Nhân viên" (UI v0.11).
+- [x] Trạng thái Figma chưa có khung, đã làm trong code và **bổ sung khung vào Figma**: `Màn 3A - Mã xác thực không hợp lệ` (`989:388`), `Màn 1 - Lỗi kết nối khi gửi` (`989:443`), `Màn 1 - Hướng dẫn cấp lại mật khẩu` (`989:529`).
+- [x] Playwright Operator OS **4/4** (Chrome local, API build + DB thật): first-login → đổi mật khẩu → hộp thoại → login lại → TOTP → 10 mã dự phòng → vào app, reload giữ phiên; access hết hạn → đúng 1 refresh; nhân viên nhận lỗi chung; hộp thoại cấp lại mật khẩu + không có lối đăng ký. Ca đăng xuất qua giao diện bỏ vì chưa có nút.
+- [x] Chụp 19 trạng thái ở 1440×890 và đối chiếu Figma (thủ công).
+- [x] Co giãn desktop (Khanh yêu cầu 03/10, không thêm khung Figma): nội dung tối đa 1440px ở giữa; lề ngang 48px dưới 1440; khung nhìn thấp hơn 890px thu đệm dọc, logo 48px, thẻ đệm nhỏ hơn, QR 128px, ô mã dự phòng 36px. Đo 8 trạng thái × 8 khung nhìn (1280×585 → 2560×1305): **0 tràn ngang**; đăng nhập + xác thực hai lớp vừa khung mọi cỡ; bật xác thực + mã dự phòng vừa từ 1536×729, laptop 1366×768 / 1280×800 còn cuộn 30–90px, màn 1280×720 cuộn 110–140px (đổi mật khẩu 33px). Ở 1440×890 các màn dữ liệu cố định giống từng byte bản trước. QR giải mã lại (jsQR) khớp khóa ở 1440×890, 1366×633, 1280×585, 1536×729 phóng 125%.
+- [x] Contract: OpenAPI thêm `GET /auth/csrf`, `GET /auth/me`; 8 operation auth + 3 schema đổi theo cookie mode. Client TS + Dart sinh lại: `dart test` 423/423, `dart analyze` 0 error; `mobile_shared` 30/30, 2 app Flutter analyze sạch.
+- [x] `pnpm turbo run typecheck lint test build --force` **35/35**.
+- [ ] Review `code-reviewer` + `security-auditor` cho phần riêng của lần port (guard `BearerOnly`, FE mới) — chưa chạy lại; phần BE web giống bản đã review ở bản sao.
+- [ ] Trang Admin, màn hình hẹp (<1280px: tablet/điện thoại), nút đăng xuất — ngoài phạm vi lần này.
+
 ## PHẦN A — Quyết định & ranh giới
 
 - [x] Q1 viết riêng từng app · Q2 QR (`qrcode`) + secret · Q3 Playwright tối thiểu trong task · Q4 Employee vào Operator OS → báo không có dữ liệu + thu hồi phiên.

@@ -49,9 +49,11 @@ import 'package:api_client_dart/api_client_dart.dart';
 
 final api = ApiClientDart().getAuthApi();
 final PasswordChangeRequiredDto passwordChangeRequiredDto = ; // PasswordChangeRequiredDto | 
+final String xAuthTransport = xAuthTransport_example; // String | `cookie` (web: phiên trong cookie httpOnly) hoặc `bearer` (mặc định, Mobile).
+final String xCSRFToken = xCSRFToken_example; // String | Bắt buộc ở cookie mode: token từ `GET /auth/csrf` (signed double-submit).
 
 try {
-    final response = await api.authControllerChangeRequiredPassword(passwordChangeRequiredDto);
+    final response = await api.authControllerChangeRequiredPassword(passwordChangeRequiredDto, xAuthTransport, xCSRFToken);
     print(response);
 } on DioException catch (e) {
     print("Exception when calling AuthApi->authControllerChangeRequiredPassword: $e\n");
@@ -66,8 +68,10 @@ All URIs are relative to *http://localhost*
 Class | Method | HTTP request | Description
 ------------ | ------------- | ------------- | -------------
 [*AuthApi*](doc/AuthApi.md) | [**authControllerChangeRequiredPassword**](doc/AuthApi.md#authcontrollerchangerequiredpassword) | **POST** /v1/auth/password/change-required | 
+[*AuthApi*](doc/AuthApi.md) | [**authControllerCsrf**](doc/AuthApi.md#authcontrollercsrf) | **GET** /v1/auth/csrf | 
 [*AuthApi*](doc/AuthApi.md) | [**authControllerEmployeeLogin**](doc/AuthApi.md#authcontrolleremployeelogin) | **POST** /v1/auth/employee/login | 
 [*AuthApi*](doc/AuthApi.md) | [**authControllerLogout**](doc/AuthApi.md#authcontrollerlogout) | **POST** /v1/auth/logout | 
+[*AuthApi*](doc/AuthApi.md) | [**authControllerMe**](doc/AuthApi.md#authcontrollerme) | **GET** /v1/auth/me | 
 [*AuthApi*](doc/AuthApi.md) | [**authControllerOauth**](doc/AuthApi.md#authcontrolleroauth) | **POST** /v1/auth/oauth/{provider} | 
 [*AuthApi*](doc/AuthApi.md) | [**authControllerOauthSession**](doc/AuthApi.md#authcontrolleroauthsession) | **POST** /v1/auth/oauth/session | 
 [*AuthApi*](doc/AuthApi.md) | [**authControllerOperatorLogin**](doc/AuthApi.md#authcontrolleroperatorlogin) | **POST** /v1/auth/operator/login | 
@@ -119,10 +123,13 @@ Class | Method | HTTP request | Description
 
  - [AccountMutationResponseDtoOutput](doc/AccountMutationResponseDtoOutput.md)
  - [AmenityListResponseDtoOutput](doc/AmenityListResponseDtoOutput.md)
+ - [AuthMeResponseDtoOutput](doc/AuthMeResponseDtoOutput.md)
  - [AuthTokenResponseDtoOutput](doc/AuthTokenResponseDtoOutput.md)
  - [CredentialLoginDto](doc/CredentialLoginDto.md)
  - [CredentialLoginResponseDtoOutput](doc/CredentialLoginResponseDtoOutput.md)
  - [CredentialTokenResponse](doc/CredentialTokenResponse.md)
+ - [CredentialWebSessionResponse](doc/CredentialWebSessionResponse.md)
+ - [CsrfTokenResponseDtoOutput](doc/CsrfTokenResponseDtoOutput.md)
  - [EmployeeAccountResponseDtoOutput](doc/EmployeeAccountResponseDtoOutput.md)
  - [EmployeeCreateDto](doc/EmployeeCreateDto.md)
  - [EmployeeListResponseDtoOutput](doc/EmployeeListResponseDtoOutput.md)
@@ -134,6 +141,8 @@ Class | Method | HTTP request | Description
  - [MfaChallengeResponse](doc/MfaChallengeResponse.md)
  - [MfaVerifyDto](doc/MfaVerifyDto.md)
  - [MfaVerifyResponseDtoOutput](doc/MfaVerifyResponseDtoOutput.md)
+ - [MfaVerifyTokenResponse](doc/MfaVerifyTokenResponse.md)
+ - [MfaVerifyWebSessionResponse](doc/MfaVerifyWebSessionResponse.md)
  - [MongoHealthResponseDtoOutput](doc/MongoHealthResponseDtoOutput.md)
  - [OAuthInitDto](doc/OAuthInitDto.md)
  - [OAuthRedirectResponseDtoOutput](doc/OAuthRedirectResponseDtoOutput.md)
@@ -153,7 +162,10 @@ Class | Method | HTTP request | Description
  - [QueueHealthResponseDtoOutputQueuesInner](doc/QueueHealthResponseDtoOutputQueuesInner.md)
  - [ReauthDto](doc/ReauthDto.md)
  - [RedisHealthResponseDtoOutput](doc/RedisHealthResponseDtoOutput.md)
+ - [RefreshResponseDtoOutput](doc/RefreshResponseDtoOutput.md)
  - [RefreshTokenDto](doc/RefreshTokenDto.md)
+ - [RefreshTokenPairResponse](doc/RefreshTokenPairResponse.md)
+ - [RefreshWebSessionResponse](doc/RefreshWebSessionResponse.md)
  - [RegisterDto](doc/RegisterDto.md)
  - [RouteInputDto](doc/RouteInputDto.md)
  - [RouteInputDtoStopsInner](doc/RouteInputDtoStopsInner.md)

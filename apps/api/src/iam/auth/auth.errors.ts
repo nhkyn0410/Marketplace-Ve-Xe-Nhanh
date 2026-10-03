@@ -51,18 +51,6 @@ export function wrongLoginChannel(): AuthException {
   );
 }
 
-/**
- * `X-Auth-Transport` không hợp lệ cho endpoint (API §7.1.1). Cổng Employee chỉ cấp phiên Bearer,
- * nên `cookie` ở đó cũng rơi vào đây (ADR-017 amend 28/09/2026).
- */
-export function transportInvalid(): AuthException {
-  return new AuthException(
-    HttpStatus.BAD_REQUEST,
-    "AUTH_TRANSPORT_INVALID",
-    "Kiểu phiên đăng nhập không được hỗ trợ.",
-  );
-}
-
 /** Credential đầu tiên đúng nhưng role bắt buộc chưa hoàn tất MFA. */
 export function mfaRequired(): AuthException {
   return new AuthException(
@@ -102,6 +90,38 @@ export function passwordReuseForbidden(): AuthException {
     HttpStatus.BAD_REQUEST,
     "AUTH_PASSWORD_REUSE_FORBIDDEN",
     "Mật khẩu mới phải khác mật khẩu tạm.",
+  );
+}
+
+/** `X-Auth-Transport` khác `cookie`/`bearer`, hoặc endpoint không hỗ trợ cookie mode (API §7.1.1). */
+export function authTransportInvalid(detail = "X-Auth-Transport chỉ nhận cookie hoặc bearer."): AuthException {
+  return new AuthException(HttpStatus.BAD_REQUEST, "AUTH_TRANSPORT_INVALID", detail);
+}
+
+/** Request mang đồng thời Bearer và access cookie — không chọn ngầm credential nào (API §7.1.1). */
+export function authTransportAmbiguous(): AuthException {
+  return new AuthException(
+    HttpStatus.BAD_REQUEST,
+    "AUTH_TRANSPORT_AMBIGUOUS",
+    "Chỉ gửi một loại credential: Authorization Bearer hoặc cookie phiên.",
+  );
+}
+
+/** CSRF token thiếu, sai chữ ký, hết hạn hoặc không khớp cookie (API §7.1.2). */
+export function csrfInvalid(): AuthException {
+  return new AuthException(
+    HttpStatus.FORBIDDEN,
+    "AUTH_CSRF_INVALID",
+    "CSRF token không hợp lệ. Vui lòng tải lại trang.",
+  );
+}
+
+/** `Origin` thiếu hoặc không thuộc allowlist ở unsafe request dùng cookie (API §7.1.2). */
+export function originForbidden(): AuthException {
+  return new AuthException(
+    HttpStatus.FORBIDDEN,
+    "AUTH_ORIGIN_FORBIDDEN",
+    "Nguồn gửi yêu cầu không được phép.",
   );
 }
 
