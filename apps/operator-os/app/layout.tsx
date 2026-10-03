@@ -1,15 +1,25 @@
 import "@vexenhanh/ui/globals.css";
 
 import type { Metadata } from "next";
-import { Be_Vietnam_Pro } from "next/font/google";
+import { Be_Vietnam_Pro, JetBrains_Mono } from "next/font/google";
 import type { ReactNode } from "react";
 
 import { AppShell } from "../components/app-shell";
+import { AuthGate } from "../components/auth/auth-gate";
+import { AuthProvider } from "../lib/auth/auth-context";
 
 const beVietnamPro = Be_Vietnam_Pro({
   subsets: ["latin", "vietnamese"],
   weight: ["400", "500", "600", "700"],
   variable: "--font-be-vietnam-pro",
+  display: "swap"
+});
+
+// Chữ đơn cách cho khóa thiết lập TOTP và mã dự phòng (Figma "VXN / Auth / Code").
+const jetBrainsMono = JetBrains_Mono({
+  subsets: ["latin"],
+  weight: ["400"],
+  variable: "--font-jetbrains-mono",
   display: "swap"
 });
 
@@ -21,9 +31,13 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="vi" className={beVietnamPro.variable}>
+    <html lang="vi" className={`${beVietnamPro.variable} ${jetBrainsMono.variable}`}>
       <body>
-        <AppShell>{children}</AppShell>
+        <AuthProvider>
+          <AuthGate>
+            <AppShell>{children}</AppShell>
+          </AuthGate>
+        </AuthProvider>
       </body>
     </html>
   );

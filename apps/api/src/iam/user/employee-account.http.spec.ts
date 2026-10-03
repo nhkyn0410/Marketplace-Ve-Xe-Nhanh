@@ -118,6 +118,22 @@ describe("Employee account routes — HTTP authorization", () => {
     expect((await request(method, path, ownerToken, body)).status).toBe(method === "PATCH" ? 200 : path ? 200 : 201);
   });
 
+  it.each(["driver-test", "NV.driver", "nv.x", "nv.Tuan"])(
+    "TASK-IAM-006: username nhân viên sai quy tắc `nv.` (%s) → 400, không gọi service",
+    async (username) => {
+      recentReauth = true;
+      create.mockClear();
+      const response = await request("POST", "", await token("OPERATOR_OWNER"), {
+        username,
+        contactEmail: "driver@example.com",
+        role: "DRIVER",
+        reason: "onboarding",
+      });
+      expect(response.status).toBe(400);
+      expect(create).not.toHaveBeenCalled();
+    },
+  );
+
   it("rejects an employee role even when recent re-auth exists", async () => {
     recentReauth = true;
     const driverToken = await token("DRIVER");

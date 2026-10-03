@@ -3,7 +3,7 @@ import { APP_CONFIG, type AppConfig } from "../../config/env.config";
 import { PrismaService } from "../../database/prisma.service";
 import { type AuthSession, SessionRevokeReason, SubjectType } from "../../database/prisma.types";
 import { maskEmail } from "../../external/notification/email-notifier";
-import { requiresMfa } from "../role/role";
+import { isOperatorOwnerRole, requiresMfa } from "../role/role";
 import { sessionExpired } from "../session/session.errors";
 import { SessionService, type SessionSubject } from "../session/session.service";
 import { type Auth } from "./auth.config";
@@ -13,10 +13,12 @@ import {
   AuthException,
   invalidCredentials,
   mfaRequired,
+  originForbidden,
   passwordChangeRequired,
   wrongLoginChannel
 } from "./auth.errors";
 import { CredentialService, DUMMY_PASSWORD_HASH } from "./credential.service";
+import type { AuthMeResponse } from "./dto/auth.dto";
 import { LoginHistoryService } from "./login-history.service";
 import { MfaService, type MfaChallengeResult } from "./mfa.service";
 import { resolveIdentifier } from "./namespace.resolver";
@@ -172,6 +174,7 @@ export class AuthService {
     const { operatorSlug, username } = resolved;
 
     const operator = await this.prisma.operatorProfile.findUnique({ where: { operatorSlug } });
+    // Chỉ tra đúng bảng của cổng: sai cổng = không tồn tại → cùng lỗi generic, không lộ account.
     const account = operator
       ? await this.findOperatorSideAccount(subjectType, operator.id, operatorSlug, username)
       : null;
@@ -349,7 +352,11 @@ export class AuthService {
   }
 
   // ── Phiên (IAM-002: refresh rotation + logout + re-auth) ──
-  async refresh(refreshToken: string, ctx: RequestContext): Promise<LoginResult> {
+  /**
+   * `expectedScope` (web cookie mode): scope của app gửi request theo `Origin`. Phiên khác scope → 403
+   * `AUTH_ORIGIN_FORBIDDEN` TRƯỚC khi xoay token, không revoke gì (TASK-IAM-006 M1).
+   */
+  async refresh(refreshToken: string, ctx: RequestContext, expectedScope?: AuthScope): Promise<LoginResult> {
     // Rate limit chạm Redis TRƯỚC Postgres: Redis chết thì 503 ngay, không rotate nửa vời.
     await this.otpRateLimiter.assertCanRefresh(ctx.ip);
     let claims: SessionClaims | undefined;
@@ -360,6 +367,9 @@ export class AuthService {
       // Làm sau commit thì một lỗi tạm thời ở bước này (500/503) đã tiêu mất token cũ: client gửi lại
       // token cũ và bị coi là reuse.
       const owner = await this.loadSessionOwner(current);
+      if (owner && expectedScope && owner.claims.scope !== expectedScope) {
+        throw originForbidden();
+      }
       if (!owner?.active || owner.authEpoch !== current.authEpoch) {
         await this.sessions.revokeFamily(current.familyId, SessionRevokeReason.ACCOUNT_LOCKED);
         throw owner?.active ? sessionExpired() : owner ? accountLocked() : sessionExpired();
@@ -381,6 +391,43 @@ export class AuthService {
 
   async logout(sid: string): Promise<void> {
     await this.sessions.logout(sid);
+  }
+
+  /**
+   * `GET /auth/me` (TASK-IAM-006): phiên hiện tại cho web bootstrap. Guard đã kiểm phiên còn sống và
+   * account operator còn hiệu lực; ở đây chỉ đọc family id công khai + username. Không tự refresh.
+   */
+  async me(user: VerifiedAccessToken): Promise<AuthMeResponse> {
+    const found = await this.prisma.withSystem(async (tx) => {
+      const session = await tx.authSession.findUnique({ where: { id: user.sid }, select: { familyId: true } });
+      let username: string | undefined;
+      if (user.scope === "passenger") {
+        username = (await tx.user.findUnique({ where: { id: user.sub }, select: { email: true } }))?.email;
+      } else if (user.scope === "platform") {
+        username = (await tx.platformAccount.findUnique({ where: { id: user.sub }, select: { username: true } }))
+          ?.username;
+      } else if (isOperatorOwnerRole(user.role)) {
+        username = (await tx.operatorAccount.findUnique({ where: { id: user.sub }, select: { username: true } }))
+          ?.username;
+      } else {
+        username = (await tx.employeeAccount.findUnique({ where: { id: user.sub }, select: { username: true } }))
+          ?.username;
+      }
+      return { familyId: session?.familyId, username };
+    });
+    if (!found.familyId || !found.username || !user.exp) {
+      throw sessionExpired();
+    }
+    return {
+      subjectId: user.sub,
+      scope: user.scope,
+      role: user.role,
+      username: found.username,
+      sessionId: found.familyId,
+      accessExpiresAt: new Date(user.exp * 1000).toISOString(),
+      mfaVerified: user.mfa === true,
+      ...(user.scope === "operator" ? { operatorId: user.operatorId, operatorSlug: user.operatorSlug } : {})
+    };
   }
 
   async changeRequiredPassword(

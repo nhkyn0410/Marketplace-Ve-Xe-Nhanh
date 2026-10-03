@@ -1,9 +1,10 @@
 import { Logger, type HttpException } from "@nestjs/common";
-import type { Request } from "express";
+import type { Request, Response } from "express";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { parseAppConfig } from "../../config/env.config";
 import { AuthController } from "./auth.controller";
 import { AuthService, type LoginResult } from "./auth.service";
+import { WebAuthService } from "./web/web-auth.service";
 
 function setup() {
   const auth = {
@@ -21,6 +22,7 @@ function setup() {
     operatorAccount: { findUnique: vi.fn() },
     employeeAccount: { findUnique: vi.fn() },
     platformAccount: { findUnique: vi.fn() },
+    authSession: { findUnique: vi.fn() },
     // Ngữ cảnh RLS (IAM-003): unit test không có Postgres — chạy callback thẳng trên chính mock này.
     withSystem: vi.fn(),
     withTenant: vi.fn()
@@ -380,6 +382,7 @@ describe("AuthService.employeeLogin", () => {
 
     const result = await ctx.service.employeeLogin("phuongtrang/nv.driver042", "good", {});
     expect(result).toMatchObject({ role: "DRIVER", accessToken: "tok" });
+    expect(ctx.prisma.operatorAccount.findUnique).not.toHaveBeenCalled();
     // Q2: employee KHÔNG được ghi thành OPERATOR — revoke-all của owner sẽ đá nhầm tài xế.
     expect(ctx.sessions.create).toHaveBeenCalledWith(
       { type: "EMPLOYEE", id: "emp-1", operatorId: "op-1", authEpoch: 0 },
@@ -1022,13 +1025,55 @@ describe("AuthService.reauth (IAM-002, FR-IAM-10)", () => {
   });
 });
 
+describe("AuthService.me (TASK-IAM-006)", () => {
+  let ctx: ReturnType<typeof setup>;
+  const exp = Math.floor(Date.now() / 1000) + 900;
+  beforeEach(() => {
+    ctx = setup();
+    ctx.prisma.authSession.findUnique.mockResolvedValue({ familyId: "fam-9" });
+  });
+
+  it.each([
+    ["Owner", { scope: "operator", role: "OPERATOR_OWNER", mfa: true, operatorId: "op-1", operatorSlug: "phuongtrang" }, "operatorAccount", { username: "owner01" }, "owner01"],
+    ["nhân viên", { scope: "operator", role: "DRIVER", operatorId: "op-1", operatorSlug: "phuongtrang" }, "employeeAccount", { username: "nv.driver042" }, "nv.driver042"],
+    ["Platform", { scope: "platform", role: "PLATFORM_ADMIN", mfa: true }, "platformAccount", { username: "khanh" }, "khanh"],
+    ["Passenger", { scope: "passenger", role: "PASSENGER" }, "user", { email: "a@example.com" }, "a@example.com"],
+  ] as const)("%s: đọc username đúng bảng, sessionId = family công khai", async (_label, claims, table, row, username) => {
+    (ctx.prisma[table].findUnique as ReturnType<typeof vi.fn>).mockResolvedValue(row);
+    const me = await ctx.service.me({ sub: "subj-1", sid: "sid-1", exp, ...claims } as never);
+
+    expect(me).toMatchObject({
+      subjectId: "subj-1",
+      scope: claims.scope,
+      role: claims.role,
+      username,
+      sessionId: "fam-9",
+      mfaVerified: "mfa" in claims,
+      accessExpiresAt: new Date(exp * 1000).toISOString(),
+    });
+    expect("operatorSlug" in me).toBe(claims.scope === "operator");
+    for (const other of ["operatorAccount", "employeeAccount", "platformAccount", "user"] as const) {
+      if (other !== table) {
+        expect(ctx.prisma[other].findUnique).not.toHaveBeenCalled();
+      }
+    }
+  });
+
+  it("account hoặc session không còn → 401 AUTH_SESSION_EXPIRED", async () => {
+    ctx.prisma.operatorAccount.findUnique.mockResolvedValue(null);
+    const claims = { sub: "subj-1", sid: "sid-1", exp, scope: "operator", role: "OPERATOR_OWNER", mfa: true };
+    expect(await problemOf(ctx.service.me(claims as never))).toEqual({ status: 401, code: "AUTH_SESSION_EXPIRED" });
+  });
+});
+
 describe("AuthController trusted client IP", () => {
   it("passes a Cloudflare-confirmed IP to credential login", async () => {
     const { controller, operatorLogin } = setupAuthController();
 
     await controller.operatorLogin(
       { identifier: "phuongtrang/owner01", password: "password" },
-      proxyRequest("203.0.113.10", "203.0.113.10")
+      proxyRequest("203.0.113.10", "203.0.113.10"),
+      {} as Response
     );
 
     expect(operatorLogin).toHaveBeenCalledWith(
@@ -1045,7 +1090,8 @@ describe("AuthController trusted client IP", () => {
     try {
       await controller.operatorLogin(
         { identifier: "phuongtrang/owner01", password: "password" },
-        proxyRequest("192.0.2.99", "203.0.113.10")
+        proxyRequest("192.0.2.99", "203.0.113.10"),
+        {} as Response
       );
 
       expect(operatorLogin).toHaveBeenCalledWith(
@@ -1109,10 +1155,13 @@ function setupAuthController() {
     JWT_ACCESS_PRIVATE_KEY: "test-key",
     MFA_ENCRYPTION_KEY: Buffer.alloc(32, 1).toString("base64"),
     RESEND_API_KEY: "test-resend-key",
-    GOONG_API_KEY: "test-goong-key"
+    GOONG_API_KEY: "test-goong-key",
+    WEB_CSRF_SECRET: Buffer.alloc(32, 2).toString("base64"),
+    OPERATOR_WEB_ORIGINS: "https://operator.example.com",
+    ADMIN_WEB_ORIGINS: "https://admin.example.com"
   });
 
-  return { controller: new AuthController(authService, config), operatorLogin, employeeLogin };
+  return { controller: new AuthController(authService, config, new WebAuthService(config)), operatorLogin, employeeLogin };
 }
 
 function proxyRequest(ip: string, cfConnectingIp: string, extraHeaders: Record<string, string> = {}): Request {
