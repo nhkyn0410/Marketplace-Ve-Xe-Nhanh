@@ -13,7 +13,7 @@
 | Người viết    | Nguyễn Hồng Khanh, AI Agent |
 | Người duyệt   | Nguyễn Hồng Khanh           |
 | Ngày tạo      | 11/05/2026                  |
-| Ngày cập nhật | 30/09/2026                  |
+| Ngày cập nhật | 03/10/2026                  |
 
 ### 1.2. Lịch sử thay đổi
 
@@ -36,6 +36,7 @@
 | v0.15     | 30/09/2026 | AI Agent       | **TASK-TRN-005 (review):** §7.3 Fare — ghi lịch sử giới hạn 2 giây, lỗi/chậm → 503 `SERVICE_UNAVAILABLE` (không đổi giá); `PUT` không đổi gì không ghi lịch sử; lịch sử tối đa 20 dòng / trang (mỗi dòng mang bản trước + sau tới 200 rule). Giữ trạng thái Review. |
 | v0.16     | 30/09/2026 | AI Agent       | **TASK-TRN-006 (Khanh chốt Q1–Q8):** §6.2 member mở rộng `reasons`; §7.3 thêm `PUT /operator/trips/{tripId}/status` (bảng chuyển trạng thái, điều kiện mở bán BR-39 trả mọi lý do, lý do hủy bắt buộc, audit trong transaction) và `PUT /operator/trips/{tripId}/seats/status` (khóa / mở ghế theo lô); body chuyến thêm `onlineSaleCutoffMinutes`; đổi xe giữ ghế khóa. Giữ trạng thái Review. |
 | v0.17     | 30/09/2026 | AI Agent       | **TASK-TRN-006 (review):** §7.3 — request đồng thời xếp hàng (mở bán rồi hủy cả hai chạy); ghế Postgres `HOLDING` / `BOOKED` / `CHECKED_IN` chặn khóa ghế và sinh lại ghế; giữ ghế Redis để BTP-001 tự kiểm; `TRIP_BLOCKED_SEATS_MISSING` nêu mã ghế; 503 khi quá hạn transaction. Giữ trạng thái Review. |
+| v0.18     | 03/10/2026 | AI Agent       | **Hình ảnh phương tiện (Khanh chốt 03/10/2026, SRS v1.32):** §7.2 `/trips/search` thêm `vehicleCoverImageUrl`, `/trips/{tripId}` thêm `vehicleImages`; §7.3 thêm `POST /operator/vehicles/{vehicleId}/images/upload-url`, `PUT /operator/vehicles/{vehicleId}/images`, vehicle trả kèm `images`, lỗi `VEHICLE_IMAGE_*`; §7.5 thêm `GET /admin/vehicle-images`, `POST /admin/vehicle-images/{imageId}/remove`. Giữ trạng thái Review. |
 
 ---
 
@@ -206,8 +207,8 @@ Gửi cả `Max-Age` và `Expires`; logout/reuse/revoke current family phải x�
 
 | Method | Path                                     | Actor       | Mục đích                          |
 | ------ | ---------------------------------------- | ----------- | --------------------------------- |
-| GET    | `/trips/search`                          | User, Guest | Tìm kiếm chuyến (cache Redis 60s) |
-| GET    | `/trips/{tripId}`                        | User, Guest | Xem chi tiết chuyến               |
+| GET    | `/trips/search`                          | User, Guest | Tìm kiếm chuyến (cache Redis 60s); mỗi chuyến kèm `vehicleCoverImageUrl` (ảnh đại diện của xe, `null` nếu chưa có) |
+| GET    | `/trips/{tripId}`                        | User, Guest | Xem chi tiết chuyến; kèm `vehicleImages` (URL ảnh xe theo thứ tự, mảng rỗng nếu chưa có) |
 | GET    | `/operators/{operatorId}/public-profile` | User, Guest | Xem profile Operator              |
 | POST   | `/seat-holds`                            | User, Guest | Giữ ghế (Redis SET NX EX 600)     |
 | DELETE | `/seat-holds/{holdId}`                   | User, Guest | Hủy hold                          |
@@ -251,6 +252,8 @@ Sau khi được duyệt (Owner đã đăng nhập):
 | GET          | `/operator/finance/payouts` | Operator | Xem lịch sử payout                |
 | GET/POST | `/operator/vehicles`        | Operator Owner | List (cursor 20/tối đa 100, lọc `status`) / tạo vehicle |
 | GET/PUT  | `/operator/vehicles/{vehicleId}` | Operator Owner | Xem / thay toàn bộ vehicle; khác tenant → 404 |
+| POST     | `/operator/vehicles/{vehicleId}/images/upload-url` | Operator Owner | Xin presigned `PUT` (R2 public, TTL 5 phút) cho một ảnh xe: body `{ contentType, sizeBytes }` → `{ uploadUrl, objectKey, expiresAt }` |
+| PUT      | `/operator/vehicles/{vehicleId}/images` | Operator Owner | Thay toàn bộ bộ ảnh của xe theo thứ tự: body `{ objectKeys }` (0–8 phần tử); phần tử đầu là ảnh đại diện |
 | GET/POST | `/operator/seat-maps`       | Operator Owner | List (không kèm ghế) / tạo seat map do nhà xe tự cấu hình |
 | GET/PUT  | `/operator/seat-maps/{seatMapId}` | Operator Owner | Xem kèm ghế / thay toàn bộ bố cục + ghế; khác tenant → 404 |
 | GET/POST | `/operator/routes`          | Operator Owner | List (cursor 20/tối đa 100, lọc `status`) / tạo route + tính khoảng cách/thời gian qua Goong |
@@ -272,6 +275,8 @@ Sau khi được duyệt (Owner đã đăng nhập):
 | POST | `/operator/employees/{employeeId}/password-reset` | Operator Owner | Cấp mật khẩu tạm mới và revoke-all; reason + recent re-auth bắt buộc |
 
 Vehicle/SeatMap (TASK-TRN-001): quyền `vehicle:manage`. POST và PUT (thay toàn bộ) phải gửi đủ trường, thiếu → 400. Biển số chuẩn hóa (chữ hoa, bỏ khoảng trắng/`.`/`-`), trùng trong tenant → 409 `VEHICLE_PLATE_CONFLICT`. Loại xe/tiện ích phải là catalog `ACTIVE`, sai → 422 `CATALOG_ITEM_UNAVAILABLE`. SeatMap là mẫu dùng chung nhiều xe; tùy chỉnh cho một xe = tạo SeatMap mới từ bản sao rồi gắn cho xe đó. Sơ đồ đang được xe của chuyến chưa kết thúc (chưa `COMPLETED`/`CANCELLED` và chưa qua giờ đến) dùng thì `PUT` sơ đồ và đổi `seatMapId` của xe → 409 `SEAT_MAP_IN_USE` (UC-12 A3, TASK-TRN-003).
+
+Ảnh xe (TASK-TRN-009, BR-76): quyền `vehicle:manage`. `GET` xe (list + chi tiết) trả thêm `images: [{ id, url, position }]` — `url` là địa chỉ công khai (CDN R2 public); ảnh không đổi qua `POST` / `PUT` xe. `upload-url`: `contentType` là `image/jpeg`, `image/png` hoặc `image/webp`, `sizeBytes` 1–5.242.880, sai → 400; `objectKey` do server sinh, không chứa tên file gốc. `PUT …/images` thay toàn bộ: mỗi `objectKey` phải thuộc đúng xe đó và object đã tải lên hợp lệ (tồn tại, đúng loại, đúng dung lượng), sai → 422 `VEHICLE_IMAGE_INVALID`; quá 8 phần tử → 422 `VEHICLE_IMAGE_LIMIT_EXCEEDED`; gửi `[]` = xóa hết ảnh. Xe khác tenant → 404 `VEHICLE_NOT_FOUND`.
 
 Trip (TASK-TRN-003): quyền `trip:manage` (Owner). Body `{ routeId, vehicleId | null, departureAt, arrivalAt, stopTimes | null, onlineSaleCutoffMinutes, note }` — POST và PUT (thay toàn bộ) gửi đủ trường; `onlineSaleCutoffMinutes` = số phút trước giờ khởi hành thì ngừng bán online (0–1440, UI gợi ý 60 — cột DB mặc định 60, AS-20); giờ ISO 8601 có múi giờ, lưu UTC; giờ đi ở tương lai, giờ đến sau giờ đi, tối đa 7 ngày. Trạng thái không nằm trong body: chỉ tạo/sửa `DRAFT`, chuyến đã rời `DRAFT` → 409 `TRIP_NOT_EDITABLE` (đổi trạng thái qua `/status`, thu hồi về nháp để sửa). Điểm dừng chép từ route; `stopTimes = null` thì giờ từng điểm chia [giờ đi, giờ đến] theo tỉ lệ thời gian chặng đã lưu của route, gửi `stopTimes` thì phải đủ số điểm (sai → 422 `TRIP_STOP_TIMES_INVALID`), đầu/cuối trùng giờ đi/đến, không giảm dần. Ghế chuyến sinh từ SeatMap của xe lúc gắn/đổi xe (tham chiếu `seat_code`, bắt đầu `AVAILABLE`); ghế đang `BLOCKED` được giữ theo `seat_code`, sơ đồ mới thiếu ghế đã khóa → 409 `TRIP_BLOCKED_SEATS_MISSING` (`detail` nêu mã ghế); còn ghế `HOLDING` / `BOOKED` / `CHECKED_IN` thì không sinh lại ghế → 409 `TRIP_SEAT_NOT_AVAILABLE`. Chi tiết chuyến trả thêm `onlineSaleCutoffMinutes`, `statusReason`. Route mới chọn phải `ACTIVE` của tenant (sai → 422 `ROUTE_UNAVAILABLE`); xe mới chọn phải `ACTIVE` và có SeatMap (sai → 422 `VEHICLE_UNAVAILABLE`); route/xe đang gắn được giữ dù đã ngừng dùng. Một xe không chạy hai chuyến chồng giờ trong `[departureAt, arrivalAt)` — không có thời gian đệm quay đầu, chuyến huỷ không giữ xe (BR-14, ràng buộc DB) → 409 `VEHICLE_SCHEDULE_CONFLICT`.
 
@@ -326,6 +331,8 @@ Thao tác phức tạp dùng `POST` + sub-resource (ADR-012).
 | POST         | `/admin/articles/{articleId}/archive`       | Admin | Gỡ bài (audited)                         |
 | POST         | `/admin/articles/images`                    | Admin | Presigned upload ảnh (R2 public)         |
 | GET/POST/PUT | `/admin/article-categories`                 | Admin | Chuyên mục bài viết                      |
+| GET          | `/admin/vehicle-images`                     | Admin | Ảnh phương tiện để rà soát (lọc `operatorId`, mới nhất trước, cursor) |
+| POST         | `/admin/vehicle-images/{imageId}/remove`    | Admin | Gỡ ảnh vi phạm (lý do bắt buộc, audited); không tồn tại → 404 `VEHICLE_IMAGE_NOT_FOUND` |
 
 ### 7.6. Catalog (đọc công khai)
 

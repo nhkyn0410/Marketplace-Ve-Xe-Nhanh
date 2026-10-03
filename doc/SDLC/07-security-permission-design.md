@@ -13,7 +13,7 @@
 | Người viết    | Nguyễn Hồng Khanh, AI Agent   |
 | Người duyệt   | Nguyễn Hồng Khanh             |
 | Ngày tạo      | 11/05/2026                    |
-| Ngày cập nhật | 30/09/2026                    |
+| Ngày cập nhật | 03/10/2026                    |
 
 ### 1.2. Lịch sử thay đổi
 
@@ -32,6 +32,7 @@
 | v0.11     | 30/09/2026 | AI Agent       | **TASK-TRN-003** (Khanh duyệt Q5): §7 thêm dòng Trip — quyền `trip:manage` chỉ Operator Owner trong tenant; Employee/Admin để task sau. Giữ trạng thái Review. |
 | v0.12     | 30/09/2026 | AI Agent       | **TASK-TRN-005** (Khanh duyệt Q5): §7 dòng Trip thêm bảng giá — dùng lại quyền `trip:manage` (Owner). Lịch sử giá đọc từ Mongo `audit_event`: kiểm bảng giá thuộc tenant ở Postgres trước, rồi lọc `operatorId` + `targetId`. Giữ trạng thái Review. |
 | v0.13     | 30/09/2026 | AI Agent       | **TASK-TRN-006** (Khanh duyệt Q7): §7 dòng Trip thêm mở bán / khóa / hủy chuyến và khóa ghế thủ công — dùng lại `trip:manage` (Owner); Employee không khóa ghế ở v1. Hủy bắt buộc lý do; đổi trạng thái ghi audit trong transaction. Giữ trạng thái Review. |
+| v0.14     | 03/10/2026 | AI Agent       | **Hình ảnh phương tiện (Khanh chốt 03/10/2026, SRS v1.32):** §6 ranh giới ảnh xe công khai; §7 dòng ảnh phương tiện; §8 Admin gỡ ảnh; §9 kiểm soát file ảnh ở R2 public; §11 threat tải file độc hại / gắn ảnh tenant khác. Giữ trạng thái Review. |
 
 ---
 
@@ -147,6 +148,7 @@ RBAC 8-role hardcoded enum v1 (Anonymous / Passenger / OperatorOwner / Driver / 
 | Public catalog      | Chỉ dữ liệu đã được phép public mới trả qua API Guest                                         |
 | Loyalty / voucher   | Cấp Platform, không `operatorId`: chỉ User sở hữu (`userId`) và Admin; RLS chặn scope `tenant`; Guest không có tài khoản thành viên |
 | Public article      | Chỉ bài `PUBLISHED` trả qua API công khai; `DRAFT` / `ARCHIVED` chỉ Admin |
+| Public vehicle image | Ảnh xe là nội dung công khai ở R2 public: Guest chỉ nhận URL qua search / chi tiết chuyến; tải lên, sắp xếp, xóa chỉ Owner trong tenant của xe; `objectKey` phải nằm dưới prefix của chính xe đó |
 
 ---
 
@@ -159,6 +161,7 @@ RBAC 8-role hardcoded enum v1 (Anonymous / Passenger / OperatorOwner / Driver / 
 | Payment                  | Có (guest session) | Có          | Không trực tiếp               | Không                  | Giám sát/đối soát      |
 | Cancel/refund request    | Vé / booking đã xác minh, theo policy | Vé của mình | Vé thuộc Operator theo policy | Không                  | Có                     |
 | Vehicle/SeatMap          | Không              | Không       | Có trong tenant               | Xem nếu được phân công | Giám sát/toàn hệ thống |
+| Ảnh phương tiện          | Xem qua chuyến     | Xem qua chuyến | Tải lên / sắp xếp / xóa trong tenant (`vehicle:manage`, Owner) | Không | Rà soát, gỡ ảnh vi phạm (lý do + audit) |
 | Route/StopPoint riêng/đề xuất | Không         | Không       | Có trong tenant (`route:manage`, Owner) | Xem theo chuyến được phân công (task sau) | Duyệt đề xuất, quản lý catalog (ADM-001) |
 | Trip (tạo/sửa chuyến nháp, mở bán / khóa / hủy, khóa ghế thủ công), bảng giá (fare) | Không | Không  | Có trong tenant (`trip:manage`, Owner) | Xem / cập nhật trạng thái chuyến được phân công (EMP-001/002) | Giám sát, khoá khi vi phạm (task Admin sau) |
 | Check-in                 | Không              | Không       | Xem kết quả                   | Có theo assignment     | Giám sát               |
@@ -184,6 +187,7 @@ RBAC 8-role hardcoded enum v1 (Anonymous / Passenger / OperatorOwner / Driver / 
 | Đổi policy hủy/giữ ghế/commission | Admin permission, effective date, audit, không áp ngược booking cũ (PolicySnapshot)                      |
 | Điều chỉnh điểm / đổi tham số loyalty | Admin permission, reason, audit; tham số theo phiên bản có effective date, không áp ngược giao dịch điểm đã ghi |
 | Xuất bản / gỡ bài viết            | Admin permission, audit |
+| Gỡ ảnh phương tiện vi phạm        | Admin permission kiểm duyệt nội dung, reason bắt buộc, audit, thông báo Operator; không duyệt trước (BR-76) |
 | Xem/export dữ liệu cá nhân        | Permission, masking, purpose, audit nếu nhạy cảm                                                         |
 
 ---
@@ -199,6 +203,7 @@ RBAC 8-role hardcoded enum v1 (Anonymous / Passenger / OperatorOwner / Driver / 
 | KYC document                       | R2 **private bucket**; presigned URL TTL **5 phút** + audit log mỗi access (ADR-018)                                    |
 | Hồ sơ đăng ký nhà xe               | Giấy tờ ở R2 private (presigned 5 phút + audit như KYC); tài khoản nhận tiền mask khi hiển thị; token link chỉ lưu hash |
 | Attachment (dispute/payment-proof) | R2 private bucket, presigned URL + audit                                                                                |
+| Ảnh phương tiện                    | R2 **public bucket** (ADR-018), không chứa PII / giấy tờ; chỉ JPEG / PNG / WebP ≤ 5 MB (không SVG); tên object ngẫu nhiên, không dùng tên file gốc; presigned `PUT` TTL 5 phút ký kèm `Content-Type`; server kiểm lại loại + dung lượng + chữ ký định dạng trước khi gắn vào xe; EXIF (vị trí chụp) bị loại khi nén ở trình duyệt (LLD-OQ-08) |
 | Cross-border PII                   | Resend (email) + R2 (storage) đặt ngoài VN → DPIA NĐ 13/2023 cho KYC production (blocker **OQ-21**)                     |
 | QR token                           | Không đoán được, lưu hash; verify server-side                                                                           |
 | Audit log                          | Không chứa secret/plaintext nhạy cảm; Mongo cluster riêng                                                               |
@@ -238,6 +243,8 @@ AuditLog ghi vào Mongo `audit_event` (cluster RIÊNG, append-only via REVOKE, A
 | Loyalty abuse         | Chỉ cộng điểm khi trip `COMPLETED`, thu hồi khi hoàn; đổi điểm idempotent + `SELECT … FOR UPDATE`; rate limit `/me/loyalty/redemptions`; báo cáo chi phí cho Admin |
 | Voucher IDOR / dùng trùng | Ownership `userId`; compare-and-set trạng thái; partial unique `booking_id` trên `user_vouchers` |
 | Stored XSS bài viết   | Lưu Markdown, render allowlist (web + Flutter), không render HTML thô; chỉ Admin soạn; CSP |
+| Tải file độc hại qua ảnh xe | Allowlist content-type + kiểm chữ ký định dạng lúc gắn; cấm SVG / HTML; R2 public trả đúng `Content-Type` kèm `X-Content-Type-Options: nosniff`; rate limit xin URL upload; tối đa 8 ảnh / xe |
+| Gắn / ghi đè ảnh của tenant khác | `objectKey` do server sinh theo prefix `vehicles/{operatorId}/{vehicleId}/`; `PUT …/images` từ chối key ngoài prefix của xe; `vehicle_images` có `operator_id` + RLS + FK ghép |
 | Spam / dò email qua form đăng ký nhà xe | Rate limit theo IP + email; phản hồi luôn giống nhau; hồ sơ chỉ vào hàng đợi Admin sau khi email được xác minh qua link |
 | Lộ / đoán link hồ sơ nhà xe | Token ngẫu nhiên 32 byte, lưu hash, có hạn dùng, một hồ sơ, thu hồi khi cấp link mới hoặc hồ sơ kết thúc; chỉ gửi tới email liên hệ |
 

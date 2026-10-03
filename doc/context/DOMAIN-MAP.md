@@ -29,7 +29,7 @@ Notes:
 | Identity & Access        | `iam/` (split: `auth/`, `user/`, `session/`, `role/`)         | Owns User, Admin, Operator account, Employee account, Role, Session.                                 |
 | Operator Profile & KYC   | `operator/` + `operator-kyc/`                                 | Owns OperatorApplication (pre-tenant registration, BR-75), OperatorProfile, KycDocument, BankAccount, OperatorStatusHistory.                               |
 | Location & Catalog       | `catalog/`                                                    | Province, Ward, StopPoint, VehicleType, Amenity, ContentPage.                                        |
-| Transport Resource       | `vehicle/`, `route/`, `stop-point/`                           | Vehicle, SeatMap, Seat, Route, RouteStop.                                                            |
+| Transport Resource       | `vehicle/`, `route/`, `stop-point/`                           | Vehicle, VehicleImage, SeatMap, Seat, Route, RouteStop.                                              |
 | Trip & Inventory         | `trip/`, `fare/`, `seat-hold/`                                | Trip, TripStop, TripSeat, SeatHold, Fare, FareRule.                                                  |
 | Booking & Ticket         | `booking/`, `ticket/`                                         | Booking, PassengerInfo, Ticket, TicketQrToken, BookingStatusHistory.                                 |
 | Promotion & Campaign     | `promotion/`                                                  | Promotion, PromotionRule, PromotionRedemption, PromotionUsageLimit, UserVoucher (voucher wallet).                                  |

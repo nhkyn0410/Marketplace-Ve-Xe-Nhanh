@@ -31,7 +31,8 @@ Rules:
 
 | English                | Vietnamese                 | Definition                                                                                            |
 | ---------------------- | -------------------------- | ----------------------------------------------------------------------------------------------------- |
-| Vehicle                | Phương tiện                | A physical bus owned by an Operator; carries plate, type, amenities, seat map.                        |
+| Vehicle                | Phương tiện                | A physical bus owned by an Operator; carries plate, type, amenities, seat map, photos.                |
+| VehicleImage           | Hình ảnh phương tiện       | A public photo of a Vehicle uploaded by its Operator; ordered, the first one is the cover (BR-76).    |
 | VehicleType            | Loại phương tiện           | Standardized vehicle category (e.g. seater, sleeper, limousine, cabin).                               |
 | Seat                   | Ghế / giường               | A seat or berth slot defined within a SeatMap.                                                        |
 | SeatMap                | Sơ đồ ghế                  | Layout describing seats / berths of a Vehicle.                                                        |
