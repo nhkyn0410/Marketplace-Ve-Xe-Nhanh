@@ -83,6 +83,7 @@ doc/StopPointProposalResponseDtoOutput.md
 doc/VehicleInputDto.md
 doc/VehicleListResponseDtoOutput.md
 doc/VehicleListResponseDtoOutputItemsInner.md
+doc/VehicleListResponseDtoOutputItemsInnerSeatMap.md
 doc/VehicleResponseDtoOutput.md
 doc/VehicleTypeListResponseDtoOutput.md
 doc/VehicleTypeListResponseDtoOutputItemsInner.md
@@ -180,6 +181,7 @@ lib/src/model/stop_point_proposal_response_dto_output.dart
 lib/src/model/vehicle_input_dto.dart
 lib/src/model/vehicle_list_response_dto_output.dart
 lib/src/model/vehicle_list_response_dto_output_items_inner.dart
+lib/src/model/vehicle_list_response_dto_output_items_inner_seat_map.dart
 lib/src/model/vehicle_response_dto_output.dart
 lib/src/model/vehicle_type_list_response_dto_output.dart
 lib/src/model/vehicle_type_list_response_dto_output_items_inner.dart
@@ -187,3 +189,4 @@ lib/src/model/ward_list_response_dto_output.dart
 lib/src/model/ward_list_response_dto_output_items_inner.dart
 lib/src/serializers.dart
 pubspec.yaml
+test/vehicle_list_response_dto_output_items_inner_seat_map_test.dart

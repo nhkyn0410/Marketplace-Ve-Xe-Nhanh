@@ -81,6 +81,21 @@
 | `.6` Test | Hạ tầng thật + mutation + regression | [x] |
 | `.7` Đóng task | Review + CI + state update | [ ] |
 
+## PHẦN J — Màn Operator OS, phần 1 (04/10/2026, nhánh `TASK-TRN-001-web`)
+
+Đo trên máy dev: API thật + Postgres / Redis / Mongo tạm, đăng nhập Owner qua giao diện, trình duyệt Chrome 1440×1160.
+
+- [x] Danh sách xe (`/vehicles`) khớp Figma `1095:3344`: cột, nhãn trạng thái, sơ đồ + số chỗ / sức chứa / số tầng, tiện ích hai dòng.
+- [x] Trạng thái: đang tải, chưa có xe, lỗi kết nối + thử lại, lọc theo trạng thái, lọc không có kết quả, "Tải thêm" theo `nextCursor`.
+- [x] Form thêm / sửa (`/vehicles/new`, `/vehicles/{id}`) khớp Figma `1096:3496`: 13 / 13 bước kiểm tay bằng script — lỗi tại ô, biển số sai dạng, 6 loại xe đúng thứ tự, tạo → sang trang sửa + báo đã lưu, sửa → danh sách cập nhật, trùng biển số báo tại ô, hủy khi chưa lưu hỏi lại, id lạ báo không tìm thấy.
+- [x] Màn 1280 không tràn ngang (danh sách + form).
+- [x] `vitest` Operator OS 46 pass (định dạng biển số, nhãn loại xe, luật form, đổi lỗi API thành thông báo); `turbo typecheck lint test` 29 / 29; `next build` qua.
+- [x] API (`TASK-TRN-011`): Vehicle trả `seatMap` tóm tắt + `seatMapLocked`, SeatMap trả `inUse`; `vitest` API 766 pass với `REQUIRE_DB_TESTS=1`; client TS + Dart sinh lại (`dart analyze` 0 lỗi, `dart test` 431 pass).
+- [ ] Khối ảnh xe: mới dựng giao diện theo mock, chưa tải được ảnh — chờ `TASK-TRN-009`.
+- [ ] Nút "Tùy chỉnh bản sao" và trạng thái khóa sơ đồ khi có chuyến: làm ở phần 2 / khi port TRN-003.
+- [ ] Khung trang (thẻ nhà xe, thẻ hỗ trợ, khối tài khoản + đăng xuất) chưa theo Figma — chờ Khanh mở phạm vi.
+- [ ] E2E Playwright cho màn xe (`TASK-TEST-001`) — chưa viết; hiện mới kiểm bằng script chạy tay.
+
 ## PHẦN I — Ranh giới không chặn nghiệm thu
 
 - Chặn sửa xe/SeatMap đã gắn chuyến, xung đột lịch xe → TASK-TRN-003; đổi xe có vé → TASK-TRN-008.

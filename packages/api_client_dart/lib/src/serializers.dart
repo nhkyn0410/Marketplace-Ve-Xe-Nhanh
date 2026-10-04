@@ -87,6 +87,7 @@ import 'package:api_client_dart/src/model/stop_point_proposal_response_dto_outpu
 import 'package:api_client_dart/src/model/vehicle_input_dto.dart';
 import 'package:api_client_dart/src/model/vehicle_list_response_dto_output.dart';
 import 'package:api_client_dart/src/model/vehicle_list_response_dto_output_items_inner.dart';
+import 'package:api_client_dart/src/model/vehicle_list_response_dto_output_items_inner_seat_map.dart';
 import 'package:api_client_dart/src/model/vehicle_response_dto_output.dart';
 import 'package:api_client_dart/src/model/vehicle_type_list_response_dto_output.dart';
 import 'package:api_client_dart/src/model/vehicle_type_list_response_dto_output_items_inner.dart';
@@ -169,6 +170,7 @@ part 'serializers.g.dart';
   VehicleInputDto,
   VehicleListResponseDtoOutput,
   VehicleListResponseDtoOutputItemsInner,
+  VehicleListResponseDtoOutputItemsInnerSeatMap,
   VehicleResponseDtoOutput,
   VehicleTypeListResponseDtoOutput,
   VehicleTypeListResponseDtoOutputItemsInner,

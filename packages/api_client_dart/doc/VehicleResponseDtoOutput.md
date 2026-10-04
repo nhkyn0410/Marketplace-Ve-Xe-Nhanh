@@ -12,6 +12,8 @@ Name | Type | Description | Notes
 **plateNumber** | **String** |  | 
 **vehicleTypeId** | **String** |  | 
 **seatMapId** | **String** |  | 
+**seatMap** | [**VehicleListResponseDtoOutputItemsInnerSeatMap**](VehicleListResponseDtoOutputItemsInnerSeatMap.md) |  | 
+**seatMapLocked** | **bool** |  | 
 **amenityIds** | **BuiltList&lt;String&gt;** |  | 
 **status** | **String** |  | 
 **description** | **String** |  | 

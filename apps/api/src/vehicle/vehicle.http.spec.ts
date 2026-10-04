@@ -25,6 +25,8 @@ describe("Vehicle / SeatMap routes — HTTP", () => {
     plateNumber: "51B12345",
     vehicleTypeId: randomUUID(),
     seatMapId: null,
+    seatMap: null,
+    seatMapLocked: false,
     amenityIds: [],
     status: "ACTIVE",
     description: null,
@@ -37,6 +39,7 @@ describe("Vehicle / SeatMap routes — HTTP", () => {
     seatCount: 1,
     passengerCapacity: 2,
     deckCount: 1,
+    inUse: false,
     layout: { decks: [{ deck: 1, rows: 1, columns: 1 }] },
     seats: [{ code: "A1", deck: 1, row: 1, column: 1, type: "CABIN_DOUBLE" }],
     createdAt: now,
@@ -165,6 +168,17 @@ describe("Vehicle / SeatMap routes — HTTP", () => {
       expect.anything(),
       expect.objectContaining({ seats: [expect.objectContaining({ code: "A1" })] }),
     );
+  });
+
+  it("Vehicle trả kèm tóm tắt sơ đồ đang gắn, không kèm bố cục / ghế (TRN-011)", async () => {
+    const { layout: _layout, seats: _seats, ...summary } = seatMap;
+    // Service lỡ trả cả bố cục + ghế thì serializer cắt: danh sách xe chỉ mang phần tóm tắt.
+    vehicles.list.mockResolvedValueOnce({
+      items: [{ ...vehicle, seatMapId, seatMap }],
+      nextCursor: null,
+    } as never);
+    const listed = await call("GET", "/vehicles", await token("OPERATOR_OWNER"));
+    expect(listed.body).toEqual({ items: [{ ...vehicle, seatMapId, seatMap: summary }], nextCursor: null });
   });
 
   it("SeatMap trả sức chứa + số tầng ở cả chi tiết và danh sách (BR-78, TRN-011)", async () => {

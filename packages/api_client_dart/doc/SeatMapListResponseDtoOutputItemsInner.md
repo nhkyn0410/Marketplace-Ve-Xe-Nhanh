@@ -13,6 +13,7 @@ Name | Type | Description | Notes
 **seatCount** | **int** |  | 
 **passengerCapacity** | **int** |  | 
 **deckCount** | **int** |  | 
+**inUse** | **bool** |  | 
 **createdAt** | [**DateTime**](DateTime.md) |  | 
 **updatedAt** | [**DateTime**](DateTime.md) |  | 
 

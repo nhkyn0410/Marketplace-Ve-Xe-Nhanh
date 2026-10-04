@@ -194,6 +194,7 @@ Class | Method | HTTP request | Description
  - [VehicleInputDto](doc/VehicleInputDto.md)
  - [VehicleListResponseDtoOutput](doc/VehicleListResponseDtoOutput.md)
  - [VehicleListResponseDtoOutputItemsInner](doc/VehicleListResponseDtoOutputItemsInner.md)
+ - [VehicleListResponseDtoOutputItemsInnerSeatMap](doc/VehicleListResponseDtoOutputItemsInnerSeatMap.md)
  - [VehicleResponseDtoOutput](doc/VehicleResponseDtoOutput.md)
  - [VehicleTypeListResponseDtoOutput](doc/VehicleTypeListResponseDtoOutput.md)
  - [VehicleTypeListResponseDtoOutputItemsInner](doc/VehicleTypeListResponseDtoOutputItemsInner.md)

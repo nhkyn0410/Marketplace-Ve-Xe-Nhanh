@@ -1,0 +1,200 @@
+// GENERATED CODE - DO NOT MODIFY BY HAND
+
+part of 'vehicle_list_response_dto_output_items_inner_seat_map.dart';
+
+// **************************************************************************
+// BuiltValueGenerator
+// **************************************************************************
+
+class _$VehicleListResponseDtoOutputItemsInnerSeatMap
+    extends VehicleListResponseDtoOutputItemsInnerSeatMap {
+  @override
+  final String id;
+  @override
+  final String name;
+  @override
+  final int seatCount;
+  @override
+  final int passengerCapacity;
+  @override
+  final int deckCount;
+  @override
+  final bool inUse;
+  @override
+  final DateTime createdAt;
+  @override
+  final DateTime updatedAt;
+
+  factory _$VehicleListResponseDtoOutputItemsInnerSeatMap(
+          [void Function(VehicleListResponseDtoOutputItemsInnerSeatMapBuilder)?
+              updates]) =>
+      (VehicleListResponseDtoOutputItemsInnerSeatMapBuilder()..update(updates))
+          ._build();
+
+  _$VehicleListResponseDtoOutputItemsInnerSeatMap._(
+      {required this.id,
+      required this.name,
+      required this.seatCount,
+      required this.passengerCapacity,
+      required this.deckCount,
+      required this.inUse,
+      required this.createdAt,
+      required this.updatedAt})
+      : super._();
+  @override
+  VehicleListResponseDtoOutputItemsInnerSeatMap rebuild(
+          void Function(VehicleListResponseDtoOutputItemsInnerSeatMapBuilder)
+              updates) =>
+      (toBuilder()..update(updates)).build();
+
+  @override
+  VehicleListResponseDtoOutputItemsInnerSeatMapBuilder toBuilder() =>
+      VehicleListResponseDtoOutputItemsInnerSeatMapBuilder()..replace(this);
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(other, this)) return true;
+    return other is VehicleListResponseDtoOutputItemsInnerSeatMap &&
+        id == other.id &&
+        name == other.name &&
+        seatCount == other.seatCount &&
+        passengerCapacity == other.passengerCapacity &&
+        deckCount == other.deckCount &&
+        inUse == other.inUse &&
+        createdAt == other.createdAt &&
+        updatedAt == other.updatedAt;
+  }
+
+  @override
+  int get hashCode {
+    var _$hash = 0;
+    _$hash = $jc(_$hash, id.hashCode);
+    _$hash = $jc(_$hash, name.hashCode);
+    _$hash = $jc(_$hash, seatCount.hashCode);
+    _$hash = $jc(_$hash, passengerCapacity.hashCode);
+    _$hash = $jc(_$hash, deckCount.hashCode);
+    _$hash = $jc(_$hash, inUse.hashCode);
+    _$hash = $jc(_$hash, createdAt.hashCode);
+    _$hash = $jc(_$hash, updatedAt.hashCode);
+    _$hash = $jf(_$hash);
+    return _$hash;
+  }
+
+  @override
+  String toString() {
+    return (newBuiltValueToStringHelper(
+            r'VehicleListResponseDtoOutputItemsInnerSeatMap')
+          ..add('id', id)
+          ..add('name', name)
+          ..add('seatCount', seatCount)
+          ..add('passengerCapacity', passengerCapacity)
+          ..add('deckCount', deckCount)
+          ..add('inUse', inUse)
+          ..add('createdAt', createdAt)
+          ..add('updatedAt', updatedAt))
+        .toString();
+  }
+}
+
+class VehicleListResponseDtoOutputItemsInnerSeatMapBuilder
+    implements
+        Builder<VehicleListResponseDtoOutputItemsInnerSeatMap,
+            VehicleListResponseDtoOutputItemsInnerSeatMapBuilder> {
+  _$VehicleListResponseDtoOutputItemsInnerSeatMap? _$v;
+
+  String? _id;
+  String? get id => _$this._id;
+  set id(String? id) => _$this._id = id;
+
+  String? _name;
+  String? get name => _$this._name;
+  set name(String? name) => _$this._name = name;
+
+  int? _seatCount;
+  int? get seatCount => _$this._seatCount;
+  set seatCount(int? seatCount) => _$this._seatCount = seatCount;
+
+  int? _passengerCapacity;
+  int? get passengerCapacity => _$this._passengerCapacity;
+  set passengerCapacity(int? passengerCapacity) =>
+      _$this._passengerCapacity = passengerCapacity;
+
+  int? _deckCount;
+  int? get deckCount => _$this._deckCount;
+  set deckCount(int? deckCount) => _$this._deckCount = deckCount;
+
+  bool? _inUse;
+  bool? get inUse => _$this._inUse;
+  set inUse(bool? inUse) => _$this._inUse = inUse;
+
+  DateTime? _createdAt;
+  DateTime? get createdAt => _$this._createdAt;
+  set createdAt(DateTime? createdAt) => _$this._createdAt = createdAt;
+
+  DateTime? _updatedAt;
+  DateTime? get updatedAt => _$this._updatedAt;
+  set updatedAt(DateTime? updatedAt) => _$this._updatedAt = updatedAt;
+
+  VehicleListResponseDtoOutputItemsInnerSeatMapBuilder() {
+    VehicleListResponseDtoOutputItemsInnerSeatMap._defaults(this);
+  }
+
+  VehicleListResponseDtoOutputItemsInnerSeatMapBuilder get _$this {
+    final $v = _$v;
+    if ($v != null) {
+      _id = $v.id;
+      _name = $v.name;
+      _seatCount = $v.seatCount;
+      _passengerCapacity = $v.passengerCapacity;
+      _deckCount = $v.deckCount;
+      _inUse = $v.inUse;
+      _createdAt = $v.createdAt;
+      _updatedAt = $v.updatedAt;
+      _$v = null;
+    }
+    return this;
+  }
+
+  @override
+  void replace(VehicleListResponseDtoOutputItemsInnerSeatMap other) {
+    _$v = other as _$VehicleListResponseDtoOutputItemsInnerSeatMap;
+  }
+
+  @override
+  void update(
+      void Function(VehicleListResponseDtoOutputItemsInnerSeatMapBuilder)?
+          updates) {
+    if (updates != null) updates(this);
+  }
+
+  @override
+  VehicleListResponseDtoOutputItemsInnerSeatMap build() => _build();
+
+  _$VehicleListResponseDtoOutputItemsInnerSeatMap _build() {
+    final _$result = _$v ??
+        _$VehicleListResponseDtoOutputItemsInnerSeatMap._(
+          id: BuiltValueNullFieldError.checkNotNull(
+              id, r'VehicleListResponseDtoOutputItemsInnerSeatMap', 'id'),
+          name: BuiltValueNullFieldError.checkNotNull(
+              name, r'VehicleListResponseDtoOutputItemsInnerSeatMap', 'name'),
+          seatCount: BuiltValueNullFieldError.checkNotNull(seatCount,
+              r'VehicleListResponseDtoOutputItemsInnerSeatMap', 'seatCount'),
+          passengerCapacity: BuiltValueNullFieldError.checkNotNull(
+              passengerCapacity,
+              r'VehicleListResponseDtoOutputItemsInnerSeatMap',
+              'passengerCapacity'),
+          deckCount: BuiltValueNullFieldError.checkNotNull(deckCount,
+              r'VehicleListResponseDtoOutputItemsInnerSeatMap', 'deckCount'),
+          inUse: BuiltValueNullFieldError.checkNotNull(
+              inUse, r'VehicleListResponseDtoOutputItemsInnerSeatMap', 'inUse'),
+          createdAt: BuiltValueNullFieldError.checkNotNull(createdAt,
+              r'VehicleListResponseDtoOutputItemsInnerSeatMap', 'createdAt'),
+          updatedAt: BuiltValueNullFieldError.checkNotNull(updatedAt,
+              r'VehicleListResponseDtoOutputItemsInnerSeatMap', 'updatedAt'),
+        );
+    replace(_$result);
+    return _$result;
+  }
+}
+
+// ignore_for_file: deprecated_member_use_from_same_package,type=lint

@@ -258,6 +258,7 @@ describe.skipIf(!url && !requireDb)("Vehicle / SeatMap — Postgres thật, role
         seatCount: 5,
         passengerCapacity: 7,
         deckCount: 2,
+        inUse: false,
         createdAt: created.createdAt,
         updatedAt: created.updatedAt,
       });
@@ -331,6 +332,47 @@ describe.skipIf(!url && !requireDb)("Vehicle / SeatMap — Postgres thật, role
         status: "ACTIVE",
       });
       expect(await vehicles.get(authzA, created.id)).toEqual(created);
+    });
+
+    it("xe trả kèm tóm tắt sơ đồ đang gắn — chi tiết lẫn danh sách; không gắn thì null (TRN-011)", async () => {
+      const map = await seatMaps.create(
+        authzA,
+        SeatMapInputSchema.parse({
+          name: `Tóm tắt ${tag}`,
+          layout: { decks: [{ deck: 1, rows: 1, columns: 2 }, { deck: 2, rows: 1, columns: 1 }] },
+          seats: [
+            { code: "A1", deck: 1, row: 1, column: 1, type: "BED" },
+            { code: "A2", deck: 1, row: 1, column: 2, type: "CABIN_DOUBLE" },
+            { code: "B1", deck: 2, row: 1, column: 1, type: "BED_DOUBLE" },
+          ],
+        }),
+      );
+      const summary = {
+        id: map.id,
+        name: map.name,
+        seatCount: 3,
+        passengerCapacity: 5,
+        deckCount: 2,
+        inUse: false,
+        createdAt: map.createdAt,
+        updatedAt: map.updatedAt,
+      };
+      const withMap = await vehicles.create(authzA, vehicleInput({ plateNumber: "30A-20001", seatMapId: map.id }));
+      const withoutMap = await vehicles.create(authzA, vehicleInput({ plateNumber: "30A-20002" }));
+      expect(withMap.seatMap).toEqual(summary);
+      expect(withoutMap.seatMap).toBeNull();
+      // Chưa có module chuyến (TRN-003): cờ khóa có mặt trong response và luôn `false`.
+      expect(withMap.seatMapLocked).toBe(false);
+      expect((await vehicles.get(authzA, withMap.id)).seatMap).toEqual(summary);
+
+      const listed = (await vehicles.list(authzA, { limit: 100 })).items;
+      expect(listed.find((item) => item.id === withMap.id)?.seatMap).toEqual(summary);
+      expect(listed.find((item) => item.id === withoutMap.id)?.seatMap).toBeNull();
+
+      // Gỡ sơ đồ khỏi xe → tóm tắt về null; sơ đồ vẫn còn nguyên cho xe khác dùng.
+      const detached = await vehicles.update(authzA, withMap.id, vehicleInput({ plateNumber: "30A-20001" }));
+      expect(detached).toMatchObject({ seatMapId: null, seatMap: null });
+      expect((await seatMaps.get(authzA, map.id)).seatCount).toBe(3);
     });
 
     it("biển số trùng trong tenant (khác cách gõ) → 409; tenant khác được trùng", async () => {
