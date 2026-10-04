@@ -4,8 +4,8 @@ import { accounts, totp } from "./helpers";
 
 // TC-SEC-008 (08 Test) phía Operator OS: first-login Owner → TOTP → backup code → reload giữ phiên;
 // access hết hạn → refresh một lần; Employee bị chặn (06 UI §7, TASK-IAM-006 Q4). Chạy tuần tự vì
-// các ca sau dùng lại Owner đã enrollment ở ca đầu. Giao diện theo Figma "Giao diện nhà xe"; nút đăng
-// xuất trong shell chưa làm nên chưa có ca đăng xuất qua giao diện (API logout có test riêng).
+// các ca sau dùng lại Owner đã enrollment ở ca đầu. Giao diện theo Figma "Giao diện nhà xe"; ca đăng
+// xuất qua nút trong khung trang nằm ở `fleet.e2e.ts`.
 test.describe.configure({ mode: "serial" });
 
 const API = "http://localhost:3000/v1";

@@ -6,6 +6,7 @@ import { isPrismaUniqueConflict } from "../iam/user/account.errors";
 import type { VehicleInput, VehicleListResponse, VehicleResponse } from "./dto/vehicle.dto";
 import { catalogItemUnavailable } from "../catalog/catalog.errors";
 import { requireTenant } from "../iam/role/require-tenant";
+import { SEAT_MAP_SUMMARY_SELECT, type SeatMapSummaryRow, toSeatMapSummary } from "./seat-map.service";
 import { seatMapNotFound, vehicleNotFound, vehiclePlateConflict } from "./vehicle.errors";
 
 const VEHICLE_SELECT = {
@@ -13,6 +14,8 @@ const VEHICLE_SELECT = {
   plateNumber: true,
   vehicleTypeId: true,
   seatMapId: true,
+  // FK ghép `(seat_map_id, operator_id)` + RLS: sơ đồ lấy kèm luôn cùng tenant với xe.
+  seatMap: { select: SEAT_MAP_SUMMARY_SELECT },
   status: true,
   description: true,
   createdAt: true,
@@ -25,6 +28,7 @@ type VehicleRow = {
   plateNumber: string;
   vehicleTypeId: string;
   seatMapId: string | null;
+  seatMap: SeatMapSummaryRow | null;
   status: VehicleStatus;
   description: string | null;
   createdAt: Date;
@@ -188,9 +192,12 @@ async function assertReferences(
 }
 
 function toResponse(row: VehicleRow): VehicleResponse {
-  const { amenities, ...vehicle } = row;
+  const { amenities, seatMap, ...vehicle } = row;
   return {
     ...vehicle,
+    seatMap: seatMap && toSeatMapSummary(seatMap),
+    // TRN-003 sẽ tính theo chuyến chưa kết thúc; trước đó luôn `false` (API §7.3).
+    seatMapLocked: false,
     amenityIds: amenities.map((amenity) => amenity.amenityId),
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),

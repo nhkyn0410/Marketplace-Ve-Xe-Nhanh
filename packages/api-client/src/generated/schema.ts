@@ -988,6 +988,20 @@ export interface components {
                 /** Format: uuid */
                 vehicleTypeId: string;
                 seatMapId: string | null;
+                seatMap: {
+                    /** Format: uuid */
+                    id: string;
+                    name: string;
+                    seatCount: number;
+                    passengerCapacity: number;
+                    deckCount: number;
+                    inUse: boolean;
+                    /** Format: date-time */
+                    createdAt: string;
+                    /** Format: date-time */
+                    updatedAt: string;
+                } | null;
+                seatMapLocked: boolean;
                 amenityIds: string[];
                 /** @enum {string} */
                 status: "ACTIVE" | "MAINTENANCE" | "INACTIVE";
@@ -1006,6 +1020,20 @@ export interface components {
             /** Format: uuid */
             vehicleTypeId: string;
             seatMapId: string | null;
+            seatMap: {
+                /** Format: uuid */
+                id: string;
+                name: string;
+                seatCount: number;
+                passengerCapacity: number;
+                deckCount: number;
+                inUse: boolean;
+                /** Format: date-time */
+                createdAt: string;
+                /** Format: date-time */
+                updatedAt: string;
+            } | null;
+            seatMapLocked: boolean;
             amenityIds: string[];
             /** @enum {string} */
             status: "ACTIVE" | "MAINTENANCE" | "INACTIVE";
@@ -1033,6 +1061,7 @@ export interface components {
                 seatCount: number;
                 passengerCapacity: number;
                 deckCount: number;
+                inUse: boolean;
                 /** Format: date-time */
                 createdAt: string;
                 /** Format: date-time */
@@ -1047,6 +1076,7 @@ export interface components {
             seatCount: number;
             passengerCapacity: number;
             deckCount: number;
+            inUse: boolean;
             /** Format: date-time */
             createdAt: string;
             /** Format: date-time */

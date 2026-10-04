@@ -45,13 +45,17 @@ async function main(): Promise<void> {
   const accounts = {
     operatorSlug,
     owner: { username: `owner-${tag}`, temporaryPassword: password(), newPassword: password() },
+    // Owner thứ hai cho E2E màn nghiệp vụ (xe, sơ đồ ghế): mật khẩu thường, chưa bật TOTP — spec tự
+    // enrollment, không phụ thuộc thứ tự chạy với các ca đăng nhập của `owner`.
+    fleetOwner: { username: `fleet-${tag}`, password: password() },
     employee: { username: `nv.driver-${tag}`, password: password() },
     platform: { username: `e2e-${tag}`, password: password() }
   };
 
   const credentials = new CredentialService();
-  const [ownerHash, employeeHash, platformHash] = await Promise.all([
+  const [ownerHash, fleetOwnerHash, employeeHash, platformHash] = await Promise.all([
     credentials.hash(accounts.owner.temporaryPassword),
+    credentials.hash(accounts.fleetOwner.password),
     credentials.hash(accounts.employee.password),
     credentials.hash(accounts.platform.password)
   ]);
@@ -72,6 +76,15 @@ async function main(): Promise<void> {
           passwordHash: ownerHash,
           passwordChangeRequired: true,
           temporaryPasswordExpiresAt: new Date(Date.now() + 60 * 60_000)
+        }
+      });
+      await tx.operatorAccount.create({
+        data: {
+          operatorId: operator.id,
+          operatorSlug,
+          username: accounts.fleetOwner.username,
+          contactEmail: `fleet-${tag}@example.com`,
+          passwordHash: fleetOwnerHash
         }
       });
       await tx.employeeAccount.create({

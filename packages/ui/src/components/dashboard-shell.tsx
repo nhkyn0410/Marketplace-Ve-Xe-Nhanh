@@ -17,18 +17,41 @@ type DashboardShellProps = {
   /** Nhãn phụ màu saffron cạnh tên cổng, vd "Hệ thống". */
   badge?: string;
   navGroups: NavGroup[];
+  /** Thay khối thương hiệu mặc định ở đầu sidebar (vd. logo + hai dòng tên của Operator OS). */
+  brand?: ReactNode;
+  /** Khối giữa thương hiệu và menu, vd. thẻ nhà xe đang đăng nhập. */
+  sidebarTop?: ReactNode;
+  /** Khối cuối sidebar, vd. thẻ hỗ trợ và tài khoản + đăng xuất. */
+  sidebarBottom?: ReactNode;
   children: ReactNode;
 };
 
 /** Khung Operator OS / Admin: sidebar cố định trên desktop, menu trượt trên mobile. */
-export function DashboardShell({ title, badge, navGroups, children }: DashboardShellProps) {
+export function DashboardShell({
+  title,
+  badge,
+  navGroups,
+  brand,
+  sidebarTop,
+  sidebarBottom,
+  children
+}: DashboardShellProps) {
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const closeMobileNav = () => setMobileNavOpen(false);
+  // Một nội dung cho cả sidebar desktop và menu trượt mobile; `onNavigate` đóng menu trượt sau khi chọn.
+  const sidebar = (onNavigate?: () => void) => (
+    <>
+      {brand ?? <Brand title={title} badge={badge} />}
+      {sidebarTop}
+      <SidebarNav navGroups={navGroups} onNavigate={onNavigate} />
+      {sidebarBottom && <div className="mt-auto">{sidebarBottom}</div>}
+    </>
+  );
 
   return (
     <div className="flex min-h-screen">
       <aside className="sticky top-0 hidden h-screen w-60 shrink-0 flex-col overflow-y-auto border-r bg-card lg:flex">
-        <Brand title={title} badge={badge} />
-        <SidebarNav navGroups={navGroups} />
+        {sidebar()}
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
@@ -41,8 +64,7 @@ export function DashboardShell({ title, badge, navGroups, children }: DashboardS
             </SheetTrigger>
             <SheetContent side="left" className="w-72 gap-0 overflow-y-auto p-0" aria-describedby={undefined}>
               <SheetTitle className="sr-only">Điều hướng</SheetTitle>
-              <Brand title={title} badge={badge} />
-              <SidebarNav navGroups={navGroups} onNavigate={() => setMobileNavOpen(false)} />
+              {sidebar(closeMobileNav)}
             </SheetContent>
           </Sheet>
           <span className="truncate text-sm font-semibold text-vxn-ink">{title}</span>

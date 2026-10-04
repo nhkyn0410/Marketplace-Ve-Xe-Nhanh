@@ -7,6 +7,7 @@ import type { ReactNode } from "react";
 import { AppShell } from "../components/app-shell";
 import { AuthGate } from "../components/auth/auth-gate";
 import { AuthProvider } from "../lib/auth/auth-context";
+import { QueryProvider } from "../lib/query-provider";
 
 const beVietnamPro = Be_Vietnam_Pro({
   subsets: ["latin", "vietnamese"],
@@ -35,7 +36,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       <body>
         <AuthProvider>
           <AuthGate>
-            <AppShell>{children}</AppShell>
+            <QueryProvider>
+              <AppShell>{children}</AppShell>
+            </QueryProvider>
           </AuthGate>
         </AuthProvider>
       </body>

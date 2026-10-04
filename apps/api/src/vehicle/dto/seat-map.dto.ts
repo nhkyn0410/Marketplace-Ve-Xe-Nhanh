@@ -78,7 +78,8 @@ export class SeatMapListQueryDto extends createZodDto(
   }),
 ) {}
 
-const SeatMapSummarySchema = z.object({
+/** Tóm tắt SeatMap (không kèm bố cục / ghế): dùng ở danh sách SeatMap và gắn vào Vehicle. */
+export const SeatMapSummarySchema = z.object({
   id: z.uuid(),
   name: z.string(),
   seatCount: z.int(),
@@ -86,9 +87,14 @@ const SeatMapSummarySchema = z.object({
   passengerCapacity: z.int(),
   // Số tầng = số phần tử `layout.decks` (TRN-011), để danh sách không phải tải bố cục.
   deckCount: z.int(),
+  // TRN-011: `true` khi sơ đồ đang được chuyến chưa kết thúc dùng (PUT sẽ nhận 409). Chỉ để giao diện
+  // khóa trước; chưa có module chuyến (TRN-003) nên hiện luôn `false`.
+  inUse: z.boolean(),
   createdAt: z.iso.datetime(),
   updatedAt: z.iso.datetime(),
 });
+
+export type SeatMapSummary = z.infer<typeof SeatMapSummarySchema>;
 
 export const SeatMapListResponseSchema = z.object({
   items: z.array(SeatMapSummarySchema),
