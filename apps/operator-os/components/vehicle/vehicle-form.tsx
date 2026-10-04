@@ -32,7 +32,7 @@ import {
 import { Skeleton } from "@vexenhanh/ui/components/skeleton";
 import { Textarea } from "@vexenhanh/ui/components/textarea";
 import { cn } from "@vexenhanh/ui/lib/utils";
-import { ChevronDown, CircleAlert, CircleCheck, FileX2, ImagePlus, LoaderCircle, RefreshCw } from "lucide-react";
+import { ChevronDown, CircleAlert, CircleCheck, Copy, FileX2, ImagePlus, LoaderCircle, RefreshCw } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useId, useMemo, useState, type ReactNode } from "react";
@@ -162,14 +162,23 @@ function VehicleFormBody({
 }) {
   const router = useRouter();
   const queryClient = useQueryClient();
-  const justCreated = useSearchParams().get("saved") === "1";
+  const searchParams = useSearchParams();
+  const justCreated = searchParams.get("saved") === "1";
+  // Vừa lưu một sơ đồ ở trình soạn rồi quay lại (`?seatMap=`): chọn sẵn sơ đồ đó, người dùng chỉ cần lưu xe.
+  const returnedSeatMap =
+    !vehicle?.seatMapLocked && seatMaps.find((seatMap) => seatMap.id === searchParams.get("seatMap"));
   const [saved, setSaved] = useState(justCreated);
   const [formError, setFormError] = useState<string | null>(null);
   const [confirmLeave, setConfirmLeave] = useState(false);
+  const [confirmCopy, setConfirmCopy] = useState(false);
 
+  const stored = vehicle ? toFormValues(vehicle, formatPlateNumber) : EMPTY_VEHICLE_FORM;
   const form = useForm<VehicleFormValues>({
     resolver: zodResolver(vehicleFormSchema),
-    defaultValues: vehicle ? toFormValues(vehicle, formatPlateNumber) : EMPTY_VEHICLE_FORM
+    // `defaultValues` là dữ liệu đã lưu; `values` chồng sơ đồ vừa tạo lên trên nên form ở trạng thái "đã sửa".
+    defaultValues: stored,
+    values: returnedSeatMap ? { ...stored, seatMapId: returnedSeatMap.id } : undefined,
+    resetOptions: { keepDefaultValues: true }
   });
   const { errors, isDirty } = form.formState;
   const description = form.watch("description");
@@ -214,6 +223,7 @@ function VehicleFormBody({
   const plate = vehicle ? formatPlateNumber(vehicle.plateNumber) : null;
   const locked = vehicle?.seatMapLocked ?? false;
   const selectedSeatMap = seatMaps.find((seatMap) => seatMap.id === seatMapId) ?? null;
+  const copyHref = `/seat-maps/new?copyFrom=${seatMapId}&vehicle=${vehicle?.id ?? "new"}`;
 
   function submit(values: VehicleFormValues) {
     setFormError(null);
@@ -264,6 +274,11 @@ function VehicleFormBody({
           <CircleAlert className="size-5 shrink-0" />
           {formError}
         </div>
+      )}
+      {returnedSeatMap && isDirty && (
+        <p role="status" className="rounded-lg bg-accent px-5 py-3.5 text-sm leading-5 text-vxn-teal-700">
+          Đã chọn sơ đồ “{returnedSeatMap.name}” vừa lưu. Bấm “Lưu phương tiện” để gắn sơ đồ này cho xe.
+        </p>
       )}
 
       <form
@@ -395,6 +410,22 @@ function VehicleFormBody({
               )}
             </Field>
             {selectedSeatMap && <SeatMapSection seatMap={selectedSeatMap} />}
+            {selectedSeatMap && !locked && (
+              <>
+                <p className="text-sm leading-5 text-muted-foreground">
+                  Muốn thay đổi bố cục? Tạo bản sao để giữ nguyên sơ đồ dùng chung.
+                </p>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className={`${BUTTON} w-full bg-card text-vxn-fg-1`}
+                  onClick={() => (isDirty ? setConfirmCopy(true) : router.push(copyHref))}
+                >
+                  <Copy className="size-[18px]" />
+                  Tùy chỉnh bản sao
+                </Button>
+              </>
+            )}
             {locked && (
               <div className="flex flex-col gap-2 rounded-lg bg-warning-50 p-4 text-warning-700">
                 <p className="text-sm leading-5 font-semibold">Chưa thể đổi sơ đồ ghế</p>
@@ -426,6 +457,23 @@ function VehicleFormBody({
           <AlertDialogFooter>
             <AlertDialogCancel>Ở lại</AlertDialogCancel>
             <AlertDialogAction onClick={() => router.push("/vehicles")}>Rời trang</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Khanh chốt 04/10/2026: sang trình soạn thì KHÔNG giữ dữ liệu form chưa lưu, chỉ cảnh báo trước. */}
+      <AlertDialog open={confirmCopy} onOpenChange={setConfirmCopy}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Thông tin xe chưa lưu sẽ mất</AlertDialogTitle>
+            <AlertDialogDescription>
+              Mở trình soạn sơ đồ sẽ rời form này. Các thay đổi chưa lưu của phương tiện không được giữ lại — hãy
+              lưu phương tiện trước nếu cần.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Ở lại để lưu</AlertDialogCancel>
+            <AlertDialogAction onClick={() => router.push(copyHref)}>Vẫn mở trình soạn</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

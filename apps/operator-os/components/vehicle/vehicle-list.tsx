@@ -11,17 +11,7 @@ import {
   SelectValue
 } from "@vexenhanh/ui/components/select";
 import { Skeleton } from "@vexenhanh/ui/components/skeleton";
-import {
-  Armchair,
-  ArrowUpRight,
-  CircleAlert,
-  FileX2,
-  ImageOff,
-  LoaderCircle,
-  Pencil,
-  Plus,
-  RefreshCw
-} from "lucide-react";
+import { Armchair, ArrowUpRight, CircleAlert, FileX2, ImageOff, Pencil, Plus, RefreshCw } from "lucide-react";
 import Link from "next/link";
 import { useId, useMemo, useState, type ReactNode } from "react";
 
@@ -40,12 +30,15 @@ import {
   VEHICLE_STATUS_ORDER,
   vehicleTypeLabel
 } from "../../lib/vehicle/vehicle-format";
+import { BUTTON, ListFooterNote, ListLoadMoreFooter, ListStatePanel } from "../list-parts";
 import { PageHeader } from "../page-header";
 
 const ALL_STATUSES = "ALL";
-const BUTTON = "h-10 rounded-lg px-4 text-sm font-semibold";
 
-/** Màn danh sách phương tiện của nhà xe (Figma 01, 05–07 + "Tải thêm"; FR-OPS-01..02). */
+/**
+ * Màn danh sách phương tiện của nhà xe (Figma 01, 05–07 + "Tải thêm"; FR-OPS-01..02). Kiểu bảng, nút ở
+ * trạng thái rỗng / lỗi và chân bảng theo chuẩn của màn danh sách sơ đồ ghế (Khanh chốt 05/10/2026).
+ */
 export function VehicleList() {
   const [status, setStatus] = useState<VehicleStatus | typeof ALL_STATUSES>(ALL_STATUSES);
   const filterId = useId();
@@ -82,31 +75,30 @@ export function VehicleList() {
 
   let subtitle: string;
   let body: ReactNode;
-  let footer: ReactNode;
+  let footer: ReactNode = null;
   if (failed) {
     subtitle = "Chưa tải được dữ liệu";
     body = (
-      <StatePanel
+      <ListStatePanel
         icon={<CircleAlert className="size-6 text-warning-700" />}
         title="Không tải được phương tiện"
-        description="Không kết nối được máy chủ. Vui lòng kiểm tra kết nối và thử lại."
+        description="Kiểm tra kết nối mạng rồi thử lại."
         action={
-          <Button variant="outline" className={`${BUTTON} bg-card`} onClick={retry}>
+          <Button className={`${BUTTON} w-36`} onClick={retry}>
             <RefreshCw className="size-[18px]" />
             Thử lại
           </Button>
         }
       />
     );
-    footer = <FooterNote>Thử lại để tải danh sách phương tiện của nhà xe.</FooterNote>;
   } else if (pending) {
     subtitle = "Đang tải phương tiện…";
     body = <LoadingRows />;
-    footer = <FooterNote>Đang tải danh sách phương tiện…</FooterNote>;
+    footer = <ListFooterNote>Đang tải danh sách phương tiện…</ListFooterNote>;
   } else if (items.length === 0) {
     subtitle = filtered ? "Không có phương tiện ở trạng thái này" : "Nhà xe chưa có phương tiện";
     body = filtered ? (
-      <StatePanel
+      <ListStatePanel
         icon={<FileX2 className="size-6 text-vxn-fg-3" />}
         title="Không có phương tiện ở trạng thái này"
         description="Chọn trạng thái khác hoặc bỏ lọc để xem toàn bộ phương tiện."
@@ -117,12 +109,12 @@ export function VehicleList() {
         }
       />
     ) : (
-      <StatePanel
+      <ListStatePanel
         icon={<FileX2 className="size-6 text-vxn-fg-3" />}
         title="Thêm phương tiện đầu tiên"
         description="Bắt đầu với biển số, loại xe và ảnh. Bạn có thể bổ sung sơ đồ ghế sau."
         action={
-          <Button asChild variant="outline" className={`${BUTTON} bg-card`}>
+          <Button asChild className={`${BUTTON} w-[220px]`}>
             <Link href="/vehicles/new">
               <Plus className="size-[18px]" />
               Thêm phương tiện
@@ -131,7 +123,6 @@ export function VehicleList() {
         }
       />
     );
-    footer = <FooterNote>{filtered ? "Không có phương tiện phù hợp bộ lọc" : "Chưa có dữ liệu phương tiện"}</FooterNote>;
   } else {
     subtitle = `Đang hiển thị ${items.length} phương tiện`;
     body = (
@@ -142,11 +133,13 @@ export function VehicleList() {
       />
     );
     footer = (
-      <LoadMoreFooter
-        count={items.length}
+      <ListLoadMoreFooter
         hasMore={vehicles.hasNextPage}
         loading={vehicles.isFetchingNextPage}
         failed={vehicles.isFetchNextPageError}
+        loadedText={`Đã tải ${items.length} phương tiện`}
+        endText={`Đã hiển thị tất cả ${items.length} phương tiện`}
+        errorText="Chưa tải thêm được phương tiện. Các xe đã tải vẫn được giữ lại."
         onLoadMore={() => void vehicles.fetchNextPage()}
       />
     );
@@ -167,8 +160,8 @@ export function VehicleList() {
         }
       />
 
-      <section aria-labelledby="vehicle-list-heading" className="flex flex-col gap-5 rounded-xl border bg-card p-6">
-        <div className="flex flex-wrap items-center gap-x-5 gap-y-3">
+      <section aria-labelledby="vehicle-list-heading" className="flex flex-col rounded-xl border bg-card p-6">
+        <div className="flex flex-wrap items-center gap-x-5 gap-y-3 pb-5">
           <div className="flex min-w-0 flex-1 flex-col gap-1">
             <h2 id="vehicle-list-heading" className="text-base leading-6 font-semibold text-vxn-ink">
               Danh sách phương tiện
@@ -201,8 +194,8 @@ export function VehicleList() {
           </div>
         </div>
 
-        <div className="min-h-[524px]">{body}</div>
-        <div className="flex min-h-10 flex-wrap items-center gap-3">{footer}</div>
+        <div className="min-h-[504px]">{body}</div>
+        {footer && <div className="flex min-h-20 flex-wrap items-center gap-3 py-5">{footer}</div>}
       </section>
 
       <div className="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-lg bg-accent px-5 py-3.5">
@@ -222,8 +215,8 @@ export function VehicleList() {
 }
 
 // Tỉ lệ cột theo Figma (242 / 210 / 238 / 162 / 140 / 96 trên bảng rộng 1088).
-const COLUMNS = ["w-[22.2%]", "w-[19.3%]", "w-[21.9%]", "w-[14.9%]", "w-[12.9%]", "w-24"];
-const HEADINGS = ["Phương tiện", "Dạng chỗ · Hạng xe", "Sơ đồ ghế", "Tiện ích", "Trạng thái"];
+const COLUMNS = ["w-[22.2%]", "w-[19.3%]", "w-[21.9%]", "w-[14.9%]", "w-[12.9%]", "w-28"];
+const HEADINGS = ["Dạng chỗ · Hạng xe", "Sơ đồ ghế", "Tiện ích", "Trạng thái"];
 
 function VehicleTable({
   items,
@@ -237,7 +230,7 @@ function VehicleTable({
 }) {
   return (
     <div className="overflow-x-auto">
-      <table className="w-full min-w-[880px] table-fixed border-collapse text-left">
+      <table className="w-full min-w-[920px] table-fixed border-collapse text-left">
         <colgroup>
           {COLUMNS.map((width) => (
             <col key={width} className={width} />
@@ -245,13 +238,16 @@ function VehicleTable({
         </colgroup>
         <thead>
           <tr className="h-11 text-xs leading-[18px] text-muted-foreground">
+            <th scope="col" className="rounded-l-lg bg-muted pl-4 font-medium">
+              Phương tiện
+            </th>
             {HEADINGS.map((heading) => (
-              <th key={heading} scope="col" className="bg-muted font-medium first:rounded-l-lg">
+              <th key={heading} scope="col" className="bg-muted font-medium">
                 {heading}
               </th>
             ))}
-            <th scope="col" className="rounded-r-lg bg-muted">
-              <span className="sr-only">Thao tác</span>
+            <th scope="col" className="rounded-r-lg bg-muted pl-4 font-medium">
+              Thao tác
             </th>
           </tr>
         </thead>
@@ -262,8 +258,8 @@ function VehicleTable({
             const amenity = amenitySummary(names);
             const state = VEHICLE_STATUS[vehicle.status];
             return (
-              <tr key={vehicle.id} className="h-20 border-b">
-                <td>
+              <tr key={vehicle.id} className="h-[84px] border-b">
+                <td className="pl-4">
                   <div className="flex items-center gap-3 pr-3">
                     {/* Ảnh xe thuộc TASK-TRN-009: chưa có API nên mọi dòng hiện hình thay thế. */}
                     <span className="flex h-12 w-[60px] shrink-0 items-center justify-center rounded-lg bg-muted">
@@ -330,10 +326,11 @@ function TwoLines({ first, second, suffix }: { first: string; second: string; su
 function LoadingRows() {
   return (
     <div role="status" aria-label="Đang tải danh sách phương tiện" className="flex flex-col">
+      <div className="h-11 rounded-lg bg-muted" />
       {Array.from({ length: 6 }, (_, row) => (
-        <div key={row} className="flex h-20 items-center gap-5">
+        <div key={row} className="flex h-[84px] items-center gap-5 border-b pl-4">
           <Skeleton className="h-12 w-[60px] shrink-0" />
-          <div className="flex w-[14%] flex-col gap-2.5">
+          <div className="flex w-[13%] flex-col gap-2.5">
             <Skeleton className="h-4" />
             <Skeleton className="h-2.5 w-3/5" />
           </div>
@@ -345,70 +342,5 @@ function LoadingRows() {
         </div>
       ))}
     </div>
-  );
-}
-
-function StatePanel({
-  icon,
-  title,
-  description,
-  action
-}: {
-  icon: ReactNode;
-  title: string;
-  description: string;
-  action: ReactNode;
-}) {
-  return (
-    <div className="flex min-h-[524px] flex-col items-center justify-center gap-3 px-4 text-center">
-      {icon}
-      <p className="text-base leading-6 font-semibold text-vxn-ink">{title}</p>
-      <p className="max-w-md text-sm leading-5 text-muted-foreground">{description}</p>
-      {action}
-    </div>
-  );
-}
-
-function FooterNote({ children }: { children: ReactNode }) {
-  return <p className="flex-1 text-xs leading-[18px] text-muted-foreground">{children}</p>;
-}
-
-/** Chân bảng theo `nextCursor`: còn trang thì hiện "Tải thêm"; lỗi tải thêm vẫn giữ các xe đã tải. */
-function LoadMoreFooter({
-  count,
-  hasMore,
-  loading,
-  failed,
-  onLoadMore
-}: {
-  count: number;
-  hasMore: boolean;
-  loading: boolean;
-  failed: boolean;
-  onLoadMore: () => void;
-}) {
-  if (failed) {
-    return (
-      <div role="alert" className="flex flex-1 flex-wrap items-center gap-3 rounded-lg bg-error-50 px-5 py-3">
-        <p className="flex-1 text-sm leading-5 text-error-600">
-          Chưa tải thêm được phương tiện. Các xe đã tải vẫn được giữ lại.
-        </p>
-        <Button variant="outline" className={`${BUTTON} w-36 bg-card`} onClick={onLoadMore}>
-          Thử lại
-        </Button>
-      </div>
-    );
-  }
-  if (!hasMore) {
-    return <FooterNote>Đã hiển thị tất cả phương tiện</FooterNote>;
-  }
-  return (
-    <>
-      <FooterNote>Đã tải {count} phương tiện</FooterNote>
-      <Button variant="outline" className={`${BUTTON} w-36 bg-card`} disabled={loading} onClick={onLoadMore}>
-        {loading && <LoaderCircle className="size-[18px] animate-spin" />}
-        {loading ? "Đang tải thêm…" : "Tải thêm"}
-      </Button>
-    </>
   );
 }

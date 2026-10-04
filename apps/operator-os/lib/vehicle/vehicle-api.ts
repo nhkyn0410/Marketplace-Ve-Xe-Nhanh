@@ -15,6 +15,7 @@ export type Amenity = Schemas["AmenityListResponseDto_Output"]["items"][number];
 export type SeatMapSummary = Schemas["SeatMapListResponseDto_Output"]["items"][number];
 export type SeatMapPage = Schemas["SeatMapListResponseDto_Output"];
 export type SeatMap = Schemas["SeatMapResponseDto_Output"];
+export type SeatMapInput = Schemas["SeatMapInputDto"];
 export type Seat = SeatMap["seats"][number];
 export type SeatType = Seat["type"];
 
@@ -77,4 +78,23 @@ export async function listAllSeatMaps(): Promise<SeatMapSummary[]> {
 /** Chi tiết một sơ đồ ghế kèm bố cục và danh sách chỗ. */
 export function getSeatMap(seatMapId: string): Promise<SeatMap> {
   return apiRequest<SeatMap>(`/operator/seat-maps/${seatMapId}`);
+}
+
+/** Một trang sơ đồ ghế của nhà xe (không kèm ghế); `cursor` là `nextCursor` của trang trước. */
+export function listSeatMaps(params: { cursor?: string }): Promise<SeatMapPage> {
+  const query = new URLSearchParams({ limit: String(VEHICLE_PAGE_SIZE) });
+  if (params.cursor) {
+    query.set("cursor", params.cursor);
+  }
+  return apiRequest<SeatMapPage>(`/operator/seat-maps?${query}`);
+}
+
+/** Tạo sơ đồ ghế mới (cũng dùng khi lưu một bản sao). */
+export function createSeatMap(input: SeatMapInput): Promise<SeatMap> {
+  return apiRequest<SeatMap>("/operator/seat-maps", { method: "POST", body: input });
+}
+
+/** Thay toàn bộ tên, bố cục và danh sách chỗ của một sơ đồ. */
+export function updateSeatMap(seatMapId: string, input: SeatMapInput): Promise<SeatMap> {
+  return apiRequest<SeatMap>(`/operator/seat-maps/${seatMapId}`, { method: "PUT", body: input });
 }

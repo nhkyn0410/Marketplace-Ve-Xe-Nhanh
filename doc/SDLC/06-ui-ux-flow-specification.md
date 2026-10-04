@@ -13,7 +13,7 @@
 | Người viết    | Nguyễn Hồng Khanh, AI Agent |
 | Người duyệt   | Nguyễn Hồng Khanh           |
 | Ngày tạo      | 11/05/2026                  |
-| Ngày cập nhật | 04/10/2026                  |
+| Ngày cập nhật | 05/10/2026                  |
 
 ### 1.2. Lịch sử thay đổi
 
@@ -35,6 +35,7 @@
 | v0.14     | 04/10/2026 | AI Agent | **Đối chiếu Figma nhà xe (Khanh chốt 04/10/2026):** đóng phần "chỗ đôi" của `UX-OQ-03` — chỗ đôi là một ô lưới, vẽ rộng hơn chỗ đơn (Figma `1115:4906`); §7 — ảnh xe có chú thích, mỗi tầng có số hàng / cột riêng, khóa trước sơ đồ đang dùng theo `seatMapLocked` / `inUse`. Giữ trạng thái Review. |
 | v0.15     | 04/10/2026 | AI Agent | **Đóng `UX-OQ-03` (Khanh chốt 04/10/2026):** trình soạn sơ đồ ghế dùng lưới tự do, v1 không làm mẫu theo loại xe; §7 thêm quy tắc tạo lưới (số hàng / cột theo từng tầng, mã tự đánh, đổi ô, xác nhận khi tạo lại lưới). "Bố cục gợi ý" điền sẵn để sau v1. Giữ trạng thái Review. |
 | v0.16     | 04/10/2026 | AI Agent | **Thiết kế lại điểm dừng (Khanh chốt 04/10/2026, SRS v1.35):** §5 thêm mục Điểm dừng cho Operator OS và Admin; §7 màn Điểm dừng của nhà xe (hai tab, hộp thoại, đề xuất kèm căn cứ, bản đồ chọn tọa độ) + form tuyến chọn cho đón / cho trả; §9 màn Điểm dừng của Admin (ba tab); SCR-PSG-15 / 16 / 18 — tìm theo tỉnh và địa danh, nhãn trung chuyển, trạm dừng nghỉ không chọn được. Giữ trạng thái Review. |
+| v0.17     | 05/10/2026 | AI Agent | **Trình soạn sơ đồ ghế dùng chung (Khanh chốt 05/10/2026, Figma `1197:6838`):** §7 thêm bốn chế độ (tạo mới / chỉnh sửa / tạo bản sao / xem chỉ đọc), ô "Loại chỗ ban đầu" có ở mọi chế độ sửa được, mỗi tầng phải có ít nhất một chỗ, số tầng / kích thước chỉ áp dụng khi tạo lại lưới. Giữ trạng thái Review. |
 
 ---
 
@@ -584,6 +585,10 @@ Login `{operatorSlug}/{username}` + password qua `/auth/operator/login` — **ch
 - Bấm từng ô để đổi loại chỗ (`BR-78`), sửa mã hoặc chuyển thành ô trống làm lối đi. Chỗ đôi là một ô lưới, vẽ rộng hơn chỗ đơn.
 - Bấm "Tạo lưới" lần nữa sẽ thay toàn bộ chỉnh sửa chưa lưu, nên phải hỏi xác nhận trước.
 - Bố cục không bị ràng buộc theo loại xe; toàn bộ sơ đồ tối đa 100 chỗ. Muốn dùng lại một bố cục thì tạo bản sao từ sơ đồ có sẵn.
+- Một trình soạn dùng cho bốn chế độ (Khanh chốt 05/10/2026): tạo mới, chỉnh sửa, tạo bản sao (lưu thành sơ đồ mới, yêu cầu tên mới) và xem chỉ đọc khi sơ đồ đang được chuyến dùng (`inUse`) — chế độ xem khóa mọi ô, chỉ còn "Tạo bản sao".
+- "Loại chỗ ban đầu" có ở mọi chế độ sửa được và là loại gán cho mọi ô khi tạo / tạo lại lưới. Danh sách "Loại ô" là lối bấm nhanh để đổi loại cho ô đang chọn, đồng bộ với ô "Loại chỗ" của ô đó; chọn một loại cho ô trống thì tạo chỗ mới với mã còn trống kế tiếp của tầng.
+- Số tầng / kích thước vừa đổi chỉ có hiệu lực khi bấm "Tạo lại lưới"; lưu thì gửi đúng lưới đang hiển thị. Mỗi tầng phải có ít nhất một chỗ, nếu không thì nhắc giảm số tầng.
+- Lưu từ danh sách thì về danh sách; mở từ form phương tiện thì báo trước rằng thông tin xe chưa lưu sẽ mất, lưu xong quay lại form với sơ đồ mới được chọn sẵn.
 - "Bố cục gợi ý" điền sẵn lưới (giường nằm 40, cabin đơn 34, cabin đôi 22…) là phần tùy chọn, để sau v1.
 
 **Màn Điểm dừng của nhà xe** (thiết kế lại, Khanh chốt 04/10/2026; mục riêng trên thanh bên, đứng trước "Tuyến đường"; bố cục tham khảo Figma cũ `386:19771`, `386:18417`):

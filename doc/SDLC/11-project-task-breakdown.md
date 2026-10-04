@@ -13,7 +13,7 @@
 | Người viết    | Nguyễn Hồng Khanh, AI Agent |
 | Người duyệt   | Nguyễn Hồng Khanh           |
 | Ngày tạo      | 11/05/2026                  |
-| Ngày cập nhật | 04/10/2026                  |
+| Ngày cập nhật | 05/10/2026                  |
 
 ### 1.2. Lịch sử thay đổi
 
@@ -55,6 +55,7 @@
 | v0.34     | 04/10/2026 | AI Agent       | **Thiết kế lại điểm dừng (Khanh chốt 04/10/2026, SRS v1.35):** thêm `TASK-TRN-012` (BE: loại điểm riêng, khóa, đề xuất kèm căn cứ, cho đón / cho trả), `TASK-TRN-013` (màn Điểm dừng Operator OS), `TASK-TRN-014` (bản đồ Goong chọn tọa độ), `TASK-ADM-004` (Admin quản lý điểm dừng — tách khỏi `ADM-001`). `TASK-TRN-002` Q1 / Q3 bị sửa; `TASK-TRN-003` chép cờ đón / trả; `TASK-TRN-004` tìm theo vị trí. Giữ trạng thái Review. |
 | v0.35     | 04/10/2026 | AI Agent       | Bắt đầu **`TASK-TRN-010`** theo yêu cầu của Khanh: nhánh `TASK-TRN-010`, tạo `TRN-010-todo.md` / guide / checklist, Draft → **In Progress**. Thiết kế đã chốt 04/10/2026 (SRS v1.33) nên không có câu hỏi cần chốt thêm; giả định hiện thực ghi ở todo. Phần `deckCount` của `TASK-TRN-011` làm cùng task này. Giữ trạng thái Review. |
 | v0.36     | 04/10/2026 | AI Agent       | Bắt đầu **màn Operator OS của `TASK-TRN-001`** (nhánh `TASK-TRN-001-web`, phần 1: danh sách xe + form thêm / sửa xe; phần 2 là danh sách và trình soạn sơ đồ ghế). `TASK-TRN-011` Draft → **In Progress**: Vehicle trả thêm `seatMap` tóm tắt (Khanh chốt 04/10/2026: bổ sung vào API, không để giao diện tự ghép); `seatMapLocked` / `inUse` đã có trong response, luôn `false` tới khi port TRN-003. Giữ trạng thái Review. |
+| v0.37     | 05/10/2026 | AI Agent       | **Màn Operator OS của `TASK-TRN-001`, phần 2** (nhánh `TASK-TRN-001-web`; Khanh chốt 05/10/2026 theo Figma `1180:6017`, `1197:6838`): danh sách sơ đồ ghế, trình soạn dùng chung bốn chế độ, nối từ form xe, khung trang theo Figma (thẻ nhà xe, hỗ trợ, tài khoản + đăng xuất), hai màn danh sách dùng chung một kiểu, E2E Playwright cho màn xe + sơ đồ ghế (một phần `TASK-TEST-001`). Thứ tự dòng danh sách vẫn theo mã — sắp "mới cập nhật trước" để bổ sung API sau. Giữ trạng thái Review. |
 
 ---
 

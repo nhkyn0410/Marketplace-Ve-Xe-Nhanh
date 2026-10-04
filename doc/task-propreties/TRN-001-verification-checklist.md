@@ -92,9 +92,27 @@
 - [x] `vitest` Operator OS 46 pass (định dạng biển số, nhãn loại xe, luật form, đổi lỗi API thành thông báo); `turbo typecheck lint test` 29 / 29; `next build` qua.
 - [x] API (`TASK-TRN-011`): Vehicle trả `seatMap` tóm tắt + `seatMapLocked`, SeatMap trả `inUse`; `vitest` API 766 pass với `REQUIRE_DB_TESTS=1`; client TS + Dart sinh lại (`dart analyze` 0 lỗi, `dart test` 431 pass).
 - [ ] Khối ảnh xe: mới dựng giao diện theo mock, chưa tải được ảnh — chờ `TASK-TRN-009`.
-- [ ] Nút "Tùy chỉnh bản sao" và trạng thái khóa sơ đồ khi có chuyến: làm ở phần 2 / khi port TRN-003.
-- [ ] Khung trang (thẻ nhà xe, thẻ hỗ trợ, khối tài khoản + đăng xuất) chưa theo Figma — chờ Khanh mở phạm vi.
-- [ ] E2E Playwright cho màn xe (`TASK-TEST-001`) — chưa viết; hiện mới kiểm bằng script chạy tay.
+- [x] Nút "Tùy chỉnh bản sao" — làm ở phần 2 (PHẦN K). Trạng thái khóa sơ đồ khi có chuyến đã có giao diện, chờ TRN-003 để API trả cờ thật.
+- [x] Khung trang theo Figma — làm ở phần 2 (PHẦN K).
+- [x] E2E Playwright cho màn xe — `fleet.e2e.ts` (PHẦN K).
+
+## PHẦN K — Màn Operator OS, phần 2 (05/10/2026, nhánh `TASK-TRN-001-web`)
+
+Đo trên máy dev: API thật + Postgres / Redis / Mongo tạm, đăng nhập Owner qua giao diện, Chrome 1440×1160.
+
+- [x] Danh sách sơ đồ ghế (`/seat-maps`) khớp Figma `1180:6017`: cột, ngày cập nhật, số tầng / số chỗ / sức chứa, nhãn sử dụng, nút Chỉnh sửa / Xem / Tạo bản sao / Tạo sơ đồ; trạng thái đang tải, rỗng, lỗi, "Tải thêm".
+- [x] Trình soạn bốn chế độ theo Figma `1197:6838`, kiểm tay bằng script 20 / 20 bước: khóa nút khi chưa đủ cấu hình; tạo lưới theo từng tầng, mã `A01…` / `B01…`; đổi loại chỗ, ô trống và đặt lại chỗ (lấy mã còn trống); trùng mã báo tại ô và chặn lưu; tầng không có chỗ; trùng tên báo tại ô tên; tạo lại lưới hỏi xác nhận; kích thước chưa áp dụng có dòng nhắc; rời trang chưa lưu hỏi lại; tạo bản sao lưu thành dòng riêng; chế độ xem khóa mọi ô.
+- [x] Chế độ xem chỉ đọc kiểm bằng cách giả lập API trả `inUse = true` (trước TRN-003 API luôn trả `false`).
+- [x] Từ form xe: "Tùy chỉnh bản sao" cảnh báo mất dữ liệu chưa lưu → trình soạn (nút "Về phương tiện") → lưu → quay lại form với sơ đồ mới chọn sẵn → lưu xe, danh sách xe hiện đúng sơ đồ.
+- [x] Khung trang theo Figma: thương hiệu hai dòng, thẻ nhà xe, thẻ hỗ trợ, khối tài khoản + nút đăng xuất (đăng xuất xóa cookie phiên; menu trượt ở màn hẹp có đủ các khối). App Admin không đổi.
+- [x] Hai màn danh sách dùng chung một kiểu (thụt lề tiêu đề cột, dòng cao 84, nút đặc ở trạng thái rỗng / lỗi, câu hết danh sách có số).
+- [x] Màn 1280 không tràn ngang (danh sách sơ đồ, trình soạn).
+- [x] `vitest` Operator OS 74 pass (thêm lõi trình soạn: tạo lưới, đổi ô, số chỗ / sức chứa, luật kiểm, tham số URL); `turbo typecheck lint test` 29 / 29; `next build` qua.
+- [x] E2E Playwright `pnpm --filter @vexenhanh/operator-os test:e2e`: 8 / 8 pass (4 ca đăng nhập cũ + 4 ca `fleet.e2e.ts`: tạo sơ đồ, tạo xe gắn sơ đồ, trùng biển số, đăng xuất). Seed E2E thêm Owner `fleetOwner`.
+- [ ] Thẻ nhà xe đang hiện **mã nhà xe** (slug) vì `/auth/me` chưa trả tên hiển thị — cần bổ sung API nếu muốn hiện tên như Figma.
+- [ ] Thứ tự dòng hai danh sách theo mã, chưa "mới cập nhật trước" như mock — bổ sung API sau.
+- [ ] Hình ô cho "Ghế" và "Giường đôi" do AI suy từ ký hiệu "Loại ô" (Figma chỉ vẽ cabin) — Khanh xem lại.
+- [ ] `code-reviewer` trước khi đóng task (DoD §6.3) — chưa chạy.
 
 ## PHẦN I — Ranh giới không chặn nghiệm thu
 
