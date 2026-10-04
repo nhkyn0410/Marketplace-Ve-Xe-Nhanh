@@ -61,6 +61,8 @@
 
 | Q8 | **Chạy khi chưa có key Goong** (bổ sung 25/09/2026) | Chọn provider theo config giống `EmailNotifier`: có `GOONG_API_KEY` → Goong; **production bắt buộc key** (env fail-fast). Dev/test không có key → provider ước lượng đường chim bay (haversine, tốc độ giả định 50 km/h), log cảnh báo — để dev/demo tạo route được mà không tốn quota. Test tự động luôn dùng fake provider. |
 
+> **Sửa đổi 04/10/2026 — thiết kế lại điểm dừng (Khanh chốt, SRS v1.35):** **Q1** — điểm riêng chỉ còn loại văn phòng trung chuyển (`OFFICE`) và trạm dừng nghỉ (`REST_STOP`); bến xe và điểm dừng đón trả khách chỉ có trong danh mục dùng chung, vào bằng đề xuất kèm căn cứ công bố hoặc do Admin lập (`BR-38`). **Q3** — điểm dừng của route có `allowPickup` / `allowDropoff` theo `BR-79`, không còn mặc định "điểm trung gian dùng cho cả pickup / dropoff". Code TRN-002 sửa ở `TASK-TRN-012`.
+
 ### Giả định (không cần chốt riêng — Khanh phản đối thì sửa)
 
 - **A1** — UC-13 A2 chỉ yêu cầu **cảnh báo** route trùng chuỗi điểm: BE không chặn; chỉ tên Route unique trong tenant (`ROUTE_NAME_CONFLICT`). FE cảnh báo dựa trên danh sách route.

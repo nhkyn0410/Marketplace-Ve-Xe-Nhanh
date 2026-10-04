@@ -85,6 +85,8 @@ Per `OQ-01..03` decisions, code state enums must align with SRS §17:
 | Seat type      | SEAT, BED, BED_DOUBLE, CABIN, CABIN_DOUBLE (classification, no lifecycle — BR-78)                                                        | `vehicle/`    |
 | Vehicle form   | SEATER, SLEEPER, CABIN (attribute of a catalog vehicle type — BR-77)                                                                     | `catalog/`    |
 | Vehicle class  | STANDARD, LIMOUSINE (attribute of a catalog vehicle type — BR-77)                                                                        | `catalog/`    |
+| Stop point type | BUS_STATION, PICKUP_POINT, REST_STOP (shared catalog); OFFICE, REST_STOP (Operator-private) — BR-38                                     | `catalog/`, `stop-point/` |
+| Stop point status (private) | ACTIVE, INACTIVE, SUSPENDED (set by Admin only — BR-81)                                                                    | `stop-point/` |
 | Booking status | PENDING_PAYMENT, PENDING_CONFIRMATION, PAID, CONFIRMED, PARTIALLY_CANCELLED, CANCELLED, EXPIRED, REFUND_PENDING, REFUNDED, REFUND_FAILED | `booking/`    |
 | Ticket status  | VALID, CANCELLED, CHECKED_IN, NO_SHOW, USED, REFUNDED                                                                                    | `ticket/`     |
 | Payment status | INITIATED, PROCESSING, SUCCESS, FAILED, EXPIRED, CANCELLED, RECONCILING                                                                  | `payment/`    |

@@ -39,6 +39,7 @@
 | v0.18     | 03/10/2026 | AI Agent       | **Hình ảnh phương tiện (Khanh chốt 03/10/2026, SRS v1.32):** §7.2 `/trips/search` thêm `vehicleCoverImageUrl`, `/trips/{tripId}` thêm `vehicleImages`; §7.3 thêm `POST /operator/vehicles/{vehicleId}/images/upload-url`, `PUT /operator/vehicles/{vehicleId}/images`, vehicle trả kèm `images`, lỗi `VEHICLE_IMAGE_*`; §7.5 thêm `GET /admin/vehicle-images`, `POST /admin/vehicle-images/{imageId}/remove`. Giữ trạng thái Review. |
 | v0.19     | 04/10/2026 | AI Agent       | **Phân loại xe và loại chỗ (Khanh chốt 04/10/2026, SRS v1.33):** §7.6 `/catalog/vehicle-types` trả thêm `form`, `class`; §7.2 `/trips/search` lọc `vehicleForm`, `vehicleClass`; §7.3 ghế nhận 5 loại chỗ, SeatMap trả `passengerCapacity`; rule giá dùng chung 5 loại chỗ. Giữ trạng thái Review. |
 | v0.20     | 04/10/2026 | AI Agent       | **Đối chiếu Figma nhà xe (Khanh chốt 04/10/2026):** §7.3 — ảnh xe thêm `caption` (body `PUT …/images` đổi thành `{ images: [{ objectKey, caption }] }`); SeatMap trả thêm `deckCount`, `inUse`; Vehicle trả thêm `seatMapLocked` (`TASK-TRN-011`); §7.2 `vehicleImages` kèm `caption`. Giữ trạng thái Review. |
+| v0.21     | 04/10/2026 | AI Agent       | **Thiết kế lại điểm dừng (Khanh chốt 04/10/2026, SRS v1.35):** §7.2 tìm chuyến theo vị trí (`provinceId` hoặc `stopPointId` mỗi phía), điểm dừng của chuyến trả `type` + `allowPickup` / `allowDropoff`; §7.3 điểm riêng chỉ `OFFICE` / `REST_STOP`, `SUSPENDED`, lọc + `routeCount`, đề xuất thêm `legalBasis`, route thêm hai cờ; §7.5 bộ endpoint Admin cho điểm dừng; §7.6 `/catalog/stop-points` thêm `q`. Giữ trạng thái Review. |
 
 ---
 
@@ -231,6 +232,8 @@ Gửi cả `Max-Age` và `Expires`; logout/reuse/revoke current family phải x�
 
 `POST /bookings` nhận thêm **tối đa một** trong hai field tùy chọn: `userVoucherId` (User đăng nhập, voucher của chính mình) hoặc `promotionCode`; gửi cả hai → `422 VOUCHER_ONE_PER_BOOKING`. Response booking tách dòng giảm giá kèm `fundedBy` (CO-12, BR-72/73).
 
+Tìm chuyến theo vị trí (TASK-TRN-004, BR-80): điểm đi và điểm đến mỗi phía gửi **một** trong hai — tỉnh / thành (`fromProvinceId`, `toProvinceId`) hoặc địa danh là điểm dừng dùng chung (`fromStopPointId`, `toStopPointId`); thiếu hoặc gửi cả hai ở một phía → 400. Theo tỉnh: khớp điểm dừng của chuyến thuộc tỉnh đó. Theo địa danh: khớp điểm dừng của chuyến, dùng chung hay riêng, trong bán kính cấu hình quanh địa danh (mặc định 5 km). Chỉ xét điểm cho đón ở phía đi và cho trả ở phía đến, điểm đón đứng trước điểm trả; trạm dừng nghỉ không tham gia. Mỗi chuyến trong kết quả kèm điểm đón / trả khớp gần nhất. `GET /trips/{tripId}` trả từng điểm dừng kèm `type`, `allowPickup`, `allowDropoff`; điểm loại `OFFICE` là điểm trung chuyển miễn phí. `POST /bookings`: điểm đón phải `allowPickup`, điểm trả phải `allowDropoff`, đón trước trả — sai → 422 (BR-23).
+
 ### 7.3. Operator OS
 
 Đăng ký nhà xe — **công khai, trước khi có tài khoản** (BR-75). Mọi endpoint `current` yêu cầu header `X-Application-Token`; rate limit theo IP và email; `POST` tạo hồ sơ / gửi lại link luôn trả `202` giống nhau để không lộ email đã có hồ sơ.
@@ -260,9 +263,9 @@ Sau khi được duyệt (Owner đã đăng nhập):
 | GET/PUT  | `/operator/seat-maps/{seatMapId}` | Operator Owner | Xem kèm ghế / thay toàn bộ bố cục + ghế; khác tenant → 404 |
 | GET/POST | `/operator/routes`          | Operator Owner | List (cursor 20/tối đa 100, lọc `status`) / tạo route + tính khoảng cách/thời gian qua Goong |
 | GET/PUT  | `/operator/routes/{routeId}` | Operator Owner | Xem kèm điểm dừng / thay toàn bộ route; chỉ tính lại khi chuỗi toạ độ đổi |
-| GET/POST | `/operator/stop-points`     | Operator Owner | List / tạo điểm đón-trả riêng của nhà xe (dùng ngay trong tenant) |
-| GET/PUT  | `/operator/stop-points/{stopPointId}` | Operator Owner | Xem / thay toàn bộ điểm riêng |
-| GET/POST | `/operator/stop-point-proposals` | Operator Owner | List / gửi đề xuất đưa điểm vào catalog chuẩn (`PENDING`) |
+| GET/POST | `/operator/stop-points`     | Operator Owner | List (lọc `status`, `type`, `provinceId`, tìm `q` theo tên / địa chỉ; kèm `routeCount`) / tạo điểm dừng riêng — chỉ loại `OFFICE`, `REST_STOP`, dùng ngay trong tenant |
+| GET/PUT  | `/operator/stop-points/{stopPointId}` | Operator Owner | Xem / thay toàn bộ điểm riêng; điểm đang bị Admin khóa → 409 `STOP_POINT_SUSPENDED` |
+| GET/POST | `/operator/stop-point-proposals` | Operator Owner | List / gửi đề xuất bến xe hoặc điểm dừng đón trả khách vào danh mục dùng chung (`PENDING`), bắt buộc `legalBasis` |
 | PUT      | `/operator/stop-point-proposals/{proposalId}` | Operator Owner | Sửa + gửi lại đề xuất đang `REJECTED` (→ `PENDING`); trạng thái khác → 409 |
 | GET/POST | `/operator/trips`           | Operator Owner | List chuyến sắp theo giờ đi (lọc `routeId`/`vehicleId`/`status`/`departureFrom`/`departureTo`, cursor = id chuyến cuối trang, 20/tối đa 100) / tạo chuyến `DRAFT` |
 | GET/PUT  | `/operator/trips/{tripId}`  | Operator Owner | Xem kèm điểm dừng + ghế (kèm `price` từng ghế) / thay toàn bộ chuyến còn `DRAFT`; khác tenant → 404 |
@@ -290,7 +293,9 @@ Trạng thái bán (TASK-TRN-006): quyền `trip:manage` (Owner). `PUT /status` 
 
 Fare (TASK-TRN-005): quyền `trip:manage` (Owner). Mỗi tuyến **một** bảng giá: `POST` body `{ routeId, status, note, rules }`, tuyến phải `ACTIVE` của tenant (sai → 422 `ROUTE_UNAVAILABLE`), tuyến đã có bảng giá → 409 `FARE_ROUTE_CONFLICT`; `PUT` body `{ status, note, rules }` (không đổi tuyến). Rule `{ vehicleTypeId | null, seatType | null, validFrom | null, validTo | null, price }`: `null` = mọi loại xe / mọi loại chỗ / không khung giờ; khung giờ theo **giờ khởi hành**, `[validFrom, validTo)`, gửi đủ cả hai hoặc bỏ cả hai; `price` = số nguyên đồng 0–100.000.000; tối đa 200 rule; hai rule cùng loại xe × loại chỗ mà cùng không khung giờ hoặc chồng khung giờ → 400 `FARE_RULES_OVERLAP`. Loại xe mới thêm phải `ACTIVE` trong catalog (sai → 422 `CATALOG_ITEM_UNAVAILABLE`). Giá ghế của chuyến = rule **cụ thể nhất** khớp tuyến của chuyến, loại xe đang gắn, loại chỗ của ghế và giờ khởi hành (có khung giờ > không; đúng loại xe > mọi loại; đúng loại chỗ > mọi loại); không có rule / bảng giá `INACTIVE` / chuyến chưa gắn xe → `price = null`. Sửa bảng giá không đổi giá vé đã bán (booking snapshot, BTP-002). Mỗi lần tạo/sửa ghi audit (lịch sử, BR-40) trong cùng transaction — audit lỗi hoặc chậm quá 2 giây thì không đổi giá, trả 503 `SERVICE_UNAVAILABLE` (thử lại); `PUT` không đổi gì (kể cả chỉ đảo thứ tự rule) thì không ghi DB, không thêm lịch sử.
 
-Route/StopPoint (TASK-TRN-002): quyền `route:manage` (Owner). Route gồm 2–25 điểm theo thứ tự, mỗi điểm là catalog `ACTIVE` **hoặc** điểm riêng `ACTIVE` của tenant, không lặp; vai trò `ORIGIN`/`INTERMEDIATE`/`DESTINATION` suy từ vị trí. Khoảng cách/thời gian tính lúc tạo/đổi chuỗi toạ độ và lưu DB (ADR-027 cache-once); Goong lỗi → 503 `ROUTING_PROVIDER_UNAVAILABLE`, không lưu gì. Điểm không dùng được / khác tenant → 422 `STOP_POINT_UNAVAILABLE`. Admin duyệt đề xuất ở `/admin/catalog/*` (ADM-001).
+Route/StopPoint (TASK-TRN-002): quyền `route:manage` (Owner). Route gồm 2–25 điểm theo thứ tự, mỗi điểm là catalog `ACTIVE` **hoặc** điểm riêng `ACTIVE` của tenant, không lặp; vai trò `ORIGIN`/`INTERMEDIATE`/`DESTINATION` suy từ vị trí. Khoảng cách/thời gian tính lúc tạo/đổi chuỗi toạ độ và lưu DB (ADR-027 cache-once); Goong lỗi → 503 `ROUTING_PROVIDER_UNAVAILABLE`, không lưu gì. Điểm không dùng được / khác tenant → 422 `STOP_POINT_UNAVAILABLE`. Admin duyệt đề xuất ở `/admin/stop-point-proposals` (ADM-004).
+
+Điểm dừng — thiết kế lại (TASK-TRN-012, BR-38, BR-79, BR-81): điểm riêng chỉ nhận `type` ∈ `OFFICE` / `REST_STOP`, khác → 422 `STOP_POINT_TYPE_NOT_ALLOWED`. `status` nhà xe đặt được là `ACTIVE` / `INACTIVE`; `SUSPENDED` chỉ Admin đặt, response kèm `suspensionReason`. Đề xuất chỉ nhận `type` ∈ `BUS_STATION` / `PICKUP_POINT` và thêm `legalBasis` (căn cứ công bố, 1–300 ký tự). Body route: mỗi điểm thêm `allowPickup`, `allowDropoff` — điểm đầu `true` / `false`, điểm cuối `false` / `true`, điểm giữa do nhà xe chọn (ít nhất một quyền), trạm dừng nghỉ luôn `false` / `false` và không đứng đầu / cuối; sai → 422 `ROUTE_STOP_PICKUP_DROPOFF_INVALID`. Hai đầu route không phải bến xe không bị chặn ở v1; giao diện tự cảnh báo từ loại điểm (OQ-24). Response route trả lại hai cờ và `type` của từng điểm.
 
 Username Employee (create/PATCH) bắt buộc `nv.` + 2–61 ký tự `[a-z0-9._-]` (Owner đặt phần sau tiền tố); sai → 400 validation. Provisioning Owner từ chối username bắt đầu bằng `nv.` (không phân biệt hoa/thường). DB CHECK giữ cả hai (04 DB §7).
 
@@ -319,7 +324,7 @@ Thao tác phức tạp dùng `POST` + sub-resource (ADR-012).
 | POST         | `/admin/operator-applications/{applicationId}/approve` | Admin | Duyệt: nhập slug + username Owner → tạo Operator + Owner mật khẩu tạm (`Idempotency-Key`, TOTP, audited) |
 | POST         | `/admin/operator-applications/{applicationId}/request-info` | Admin | Yêu cầu bổ sung (lý do) → `NEEDS_INFO` + link mới |
 | POST         | `/admin/operator-applications/{applicationId}/reject` | Admin | Từ chối (lý do) → `REJECTED`, thu hồi link |
-| GET/POST/PUT | `/admin/catalog/*`                          | Admin | Catalog chuẩn                            |
+| GET/POST/PUT | `/admin/catalog/*`                          | Admin | Catalog chuẩn (tỉnh, phường, loại xe, tiện ích); điểm dừng ở `/admin/stop-points` |
 | GET/POST/PUT | `/admin/policies`                           | Admin | Policy hủy/giữ ghế/dữ liệu               |
 | GET/POST/PUT | `/admin/commission-rules`                   | Admin | Commission rule (5% + override)          |
 | GET          | `/admin/payments`                           | Admin | Giám sát payment                         |
@@ -339,6 +344,14 @@ Thao tác phức tạp dùng `POST` + sub-resource (ADR-012).
 | GET/POST/PUT | `/admin/article-categories`                 | Admin | Chuyên mục bài viết                      |
 | GET          | `/admin/vehicle-images`                     | Admin | Ảnh phương tiện để rà soát (lọc `operatorId`, mới nhất trước, cursor) |
 | POST         | `/admin/vehicle-images/{imageId}/remove`    | Admin | Gỡ ảnh vi phạm (lý do bắt buộc, audited); không tồn tại → 404 `VEHICLE_IMAGE_NOT_FOUND` |
+| GET/POST     | `/admin/stop-points`                        | Admin | Điểm dừng dùng chung: list (lọc `type`, `provinceId`, `status`, tìm `q`; kèm `routeCount`) / tạo — `BUS_STATION`, `PICKUP_POINT` bắt buộc `legalBasis` (audited) |
+| GET/PUT      | `/admin/stop-points/{stopPointId}`          | Admin | Xem / sửa / ngừng dùng điểm dùng chung (audited); không xóa |
+| GET          | `/admin/stop-point-proposals`               | Admin | Đề xuất của nhà xe (lọc `status`, `operatorId`); kèm cảnh báo điểm dùng chung ở gần |
+| POST         | `/admin/stop-point-proposals/{proposalId}/approve` | Admin | Duyệt (được chỉnh tên, địa chỉ, tọa độ) → tạo điểm dùng chung (audited); không còn `PENDING` → 409 |
+| POST         | `/admin/stop-point-proposals/{proposalId}/reject` | Admin | Từ chối, lý do bắt buộc → `REJECTED` (audited) |
+| GET          | `/admin/operator-stop-points`               | Admin | Điểm dừng riêng của mọi nhà xe (lọc `operatorId`, `type`, `provinceId`, `status`, tìm `q`; kèm `routeCount`) |
+| POST         | `/admin/operator-stop-points/{stopPointId}/suspend` | Admin | Khóa điểm riêng, lý do bắt buộc → `SUSPENDED` (audited, thông báo nhà xe) |
+| POST         | `/admin/operator-stop-points/{stopPointId}/unsuspend` | Admin | Mở khóa → `ACTIVE` (audited) |
 
 ### 7.6. Catalog (đọc công khai)
 
@@ -348,7 +361,7 @@ Dữ liệu chuẩn Platform (DB §5.2 nhóm Catalog) cho Marketplace search và
 | ------ | ------------------------ | ----------------------- | ------------------------------------------------------------------------------------------ |
 | GET    | `/catalog/provinces`     | Guest, User, Operator   | Danh sách tỉnh / thành                                                                     |
 | GET    | `/catalog/wards`         | Guest, User, Operator   | Phường / xã của một tỉnh (`provinceId` bắt buộc)                                           |
-| GET    | `/catalog/stop-points`   | Guest, User, Operator   | Điểm đón / trả chuẩn; lọc `provinceId`, `wardId`, `type`; cursor mặc định 20 / tối đa 100 |
+| GET    | `/catalog/stop-points`   | Guest, User, Operator   | Điểm dừng dùng chung (bến xe, điểm dừng đón trả, trạm dừng nghỉ); lọc `provinceId`, `wardId`, `type`, tìm `q`; cursor mặc định 20 / tối đa 100 |
 | GET    | `/catalog/vehicle-types` | Guest, User, Operator   | Loại phương tiện chuẩn; mỗi item kèm `form` (`SEATER` / `SLEEPER` / `CABIN`) và `class` (`STANDARD` / `LIMOUSINE`) — BR-77 |
 | GET    | `/catalog/amenities`     | Guest, User, Operator   | Tiện ích chuẩn                                                                             |
 

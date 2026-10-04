@@ -13,7 +13,7 @@
 | Người viết    | Nguyễn Hồng Khanh, AI Agent                  |
 | Người duyệt   | Nguyễn Hồng Khanh                            |
 | Ngày tạo      | 11/05/2026                                   |
-| Ngày cập nhật | 03/10/2026                                   |
+| Ngày cập nhật | 04/10/2026                                   |
 
 ### 1.2. Lịch sử thay đổi
 
@@ -29,6 +29,7 @@
 | v0.8      | 30/09/2026 | AI Agent       | **TASK-TRN-003:** §8 nhóm Trip & Inventory — TripSeat nằm trong module `trip/` (cùng Trip, TripStop), bỏ module riêng `trip-seat/` cho khớp code. Giữ trạng thái Review. |
 | v0.9      | 30/09/2026 | AI Agent       | **TASK-TRN-005 Q1 = PA1:** `HLD-OQ-05` ghi chi tiết fare route-level (mỗi tuyến một bảng giá, rule theo loại xe × loại chỗ × giờ khởi hành). Giữ trạng thái Review. |
 | v0.10     | 03/10/2026 | AI Agent       | **Hình ảnh phương tiện (Khanh chốt 03/10/2026, SRS v1.32):** §8.2 Transport Resource phụ thuộc Storage adapter (R2 public); §9 dòng Vehicle / SeatMap thêm `VehicleImage` (ảnh công khai, Search đọc để hiển thị cho khách). Giữ trạng thái Review. |
+| v0.11     | 04/10/2026 | AI Agent       | **Thiết kế lại điểm dừng (Khanh chốt 04/10/2026, SRS v1.35):** §9 dòng Route / StopPoint — điểm dừng dùng chung do Admin lập / duyệt, điểm riêng chỉ văn phòng trung chuyển + trạm dừng nghỉ, Admin giám sát; quyền cho đón / cho trả; Search khớp theo vị trí. Giữ trạng thái Review. |
 
 ---
 
@@ -305,7 +306,7 @@ Dữ liệu operational nằm ở **Postgres** (Prisma); riêng AuditLog/notific
 | User / Session               | Identity & Access           | Audit, Notification                              | Session metadata cache Redis; không lộ token / OTP trong log                         |
 | Operator / KYC               | Identity & Access, Operator | Admin, Payment, Reporting                        | Operator phải được duyệt trước khi mở bán; KYC doc ở R2 private bucket               |
 | Vehicle / SeatMap            | Transport Resource          | Search, Booking, Employee Operations, Reporting  | Thay đổi sau khi có vé bán phải kiểm policy; `VehicleImage` (tối đa 8 ảnh / xe, BR-76) ở R2 public bucket, Search đọc để hiển thị cho khách |
-| Route / StopPoint            | Transport Resource          | Search, Booking, Routing                         | StopPoint chuẩn do Platform quản lý hoặc duyệt; toạ độ cache distance/duration Goong |
+| Route / StopPoint            | Transport Resource          | Search, Booking, Routing, Admin                  | Điểm dừng dùng chung do Admin lập / duyệt (bến xe, điểm dừng đón trả, trạm dừng nghỉ); điểm riêng của nhà xe chỉ văn phòng trung chuyển + trạm dừng nghỉ, Admin giám sát (BR-38, BR-81); route / trip stop có quyền cho đón / cho trả (BR-79); Search khớp theo vị trí (BR-80); toạ độ cache distance/duration Goong |
 | Trip / TripSeat              | Transport Resource          | Search, Booking, Employee Operations             | Ghế theo chuyến là tài nguyên giao dịch                                              |
 | SeatHold                     | Booking & Ticket            | Search                                           | Redis `SET NX EX 600` (10 phút TTL, ADR-015)                                         |
 | Booking / Ticket             | Booking & Ticket            | Payment, Support, Employee Operations, Reporting | Lưu snapshot bắt buộc theo SRS                                                       |
