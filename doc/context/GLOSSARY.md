@@ -33,8 +33,11 @@ Rules:
 | ---------------------- | -------------------------- | ----------------------------------------------------------------------------------------------------- |
 | Vehicle                | Phương tiện                | A physical bus owned by an Operator; carries plate, type, amenities, seat map, photos.                |
 | VehicleImage           | Hình ảnh phương tiện       | A public photo of a Vehicle uploaded by its Operator; ordered, the first one is the cover (BR-76).    |
-| VehicleType            | Loại phương tiện           | Standardized vehicle category (e.g. seater, sleeper, limousine, cabin).                               |
-| Seat                   | Ghế / giường               | A seat or berth slot defined within a SeatMap.                                                        |
+| VehicleType            | Loại phương tiện           | Standardized vehicle line in the Platform catalog; carries two independent attributes: vehicle form and vehicle class (BR-77). |
+| Vehicle form           | Dạng chỗ của xe            | `SEATER` (seats), `SLEEPER` (open berths, no enclosing partition), `CABIN` (private compartment with partitions plus a curtain or door; marketed as phòng / cabin / khoang / giường phòng). |
+| Vehicle class          | Hạng xe                    | `STANDARD` or `LIMOUSINE`. Limousine is a class, not a form: a limousine vehicle still has exactly one of the three forms. Self-declared by the Operator. |
+| Seat                   | Ghế / giường               | A seat, berth or cabin slot defined within a SeatMap; has a seat type and a deck.                     |
+| Seat type              | Loại chỗ                   | `SEAT`, `BED` (single berth), `BED_DOUBLE`, `CABIN` (single cabin), `CABIN_DOUBLE`. Double slots hold up to two passengers, the others one (BR-78). |
 | SeatMap                | Sơ đồ ghế                  | Layout describing seats / berths of a Vehicle.                                                        |
 | Route                  | Tuyến đường                | A logical route between two endpoints, composed of ordered RouteStops.                                |
 | StopPoint              | Điểm đón / trả             | A pickup or drop-off location in the platform catalog, or a private point owned by one Operator.      |

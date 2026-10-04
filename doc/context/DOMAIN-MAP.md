@@ -82,6 +82,9 @@ Per `OQ-01..03` decisions, code state enums must align with SRS §17:
 | -------------- | ---------------------------------------------------------------------------------------------------------------------------------------- | ------------- |
 | Trip status    | DRAFT, OPEN_FOR_SALE, SOLD_OUT, LOCKED, BOARDING, DEPARTED, IN_PROGRESS, COMPLETED, CANCELLED, INCIDENT                                  | `trip/`       |
 | Seat status    | AVAILABLE, HOLDING, BOOKED, CHECKED_IN, BLOCKED                                                                                          | `trip/`       |
+| Seat type      | SEAT, BED, BED_DOUBLE, CABIN, CABIN_DOUBLE (classification, no lifecycle — BR-78)                                                        | `vehicle/`    |
+| Vehicle form   | SEATER, SLEEPER, CABIN (attribute of a catalog vehicle type — BR-77)                                                                     | `catalog/`    |
+| Vehicle class  | STANDARD, LIMOUSINE (attribute of a catalog vehicle type — BR-77)                                                                        | `catalog/`    |
 | Booking status | PENDING_PAYMENT, PENDING_CONFIRMATION, PAID, CONFIRMED, PARTIALLY_CANCELLED, CANCELLED, EXPIRED, REFUND_PENDING, REFUNDED, REFUND_FAILED | `booking/`    |
 | Ticket status  | VALID, CANCELLED, CHECKED_IN, NO_SHOW, USED, REFUNDED                                                                                    | `ticket/`     |
 | Payment status | INITIATED, PROCESSING, SUCCESS, FAILED, EXPIRED, CANCELLED, RECONCILING                                                                  | `payment/`    |

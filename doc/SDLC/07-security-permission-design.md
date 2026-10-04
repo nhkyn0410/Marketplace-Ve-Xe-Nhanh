@@ -13,7 +13,7 @@
 | Người viết    | Nguyễn Hồng Khanh, AI Agent   |
 | Người duyệt   | Nguyễn Hồng Khanh             |
 | Ngày tạo      | 11/05/2026                    |
-| Ngày cập nhật | 03/10/2026                    |
+| Ngày cập nhật | 04/10/2026                    |
 
 ### 1.2. Lịch sử thay đổi
 
@@ -33,6 +33,7 @@
 | v0.12     | 30/09/2026 | AI Agent       | **TASK-TRN-005** (Khanh duyệt Q5): §7 dòng Trip thêm bảng giá — dùng lại quyền `trip:manage` (Owner). Lịch sử giá đọc từ Mongo `audit_event`: kiểm bảng giá thuộc tenant ở Postgres trước, rồi lọc `operatorId` + `targetId`. Giữ trạng thái Review. |
 | v0.13     | 30/09/2026 | AI Agent       | **TASK-TRN-006** (Khanh duyệt Q7): §7 dòng Trip thêm mở bán / khóa / hủy chuyến và khóa ghế thủ công — dùng lại `trip:manage` (Owner); Employee không khóa ghế ở v1. Hủy bắt buộc lý do; đổi trạng thái ghi audit trong transaction. Giữ trạng thái Review. |
 | v0.14     | 03/10/2026 | AI Agent       | **Hình ảnh phương tiện (Khanh chốt 03/10/2026, SRS v1.32):** §6 ranh giới ảnh xe công khai; §7 dòng ảnh phương tiện; §8 Admin gỡ ảnh; §9 kiểm soát file ảnh ở R2 public; §11 threat tải file độc hại / gắn ảnh tenant khác. Giữ trạng thái Review. |
+| v0.15     | 04/10/2026 | AI Agent       | **Đối chiếu Figma nhà xe (Khanh chốt 04/10/2026):** §9 — chú thích ảnh phương tiện là văn bản công khai do nhà xe nhập, hiển thị dạng text thuần. Giữ trạng thái Review. |
 
 ---
 
@@ -203,7 +204,7 @@ RBAC 8-role hardcoded enum v1 (Anonymous / Passenger / OperatorOwner / Driver / 
 | KYC document                       | R2 **private bucket**; presigned URL TTL **5 phút** + audit log mỗi access (ADR-018)                                    |
 | Hồ sơ đăng ký nhà xe               | Giấy tờ ở R2 private (presigned 5 phút + audit như KYC); tài khoản nhận tiền mask khi hiển thị; token link chỉ lưu hash |
 | Attachment (dispute/payment-proof) | R2 private bucket, presigned URL + audit                                                                                |
-| Ảnh phương tiện                    | R2 **public bucket** (ADR-018), không chứa PII / giấy tờ; chỉ JPEG / PNG / WebP ≤ 5 MB (không SVG); tên object ngẫu nhiên, không dùng tên file gốc; presigned `PUT` TTL 5 phút ký kèm `Content-Type`; server kiểm lại loại + dung lượng + chữ ký định dạng trước khi gắn vào xe; EXIF (vị trí chụp) bị loại khi nén ở trình duyệt (LLD-OQ-08) |
+| Ảnh phương tiện                    | R2 **public bucket** (ADR-018), không chứa PII / giấy tờ; chỉ JPEG / PNG / WebP ≤ 5 MB (không SVG); tên object ngẫu nhiên, không dùng tên file gốc; presigned `PUT` TTL 5 phút ký kèm `Content-Type`; server kiểm lại loại + dung lượng + chữ ký định dạng trước khi gắn vào xe; EXIF (vị trí chụp) bị loại khi nén ở trình duyệt (LLD-OQ-08); chú thích ảnh (tối đa 60 ký tự) là văn bản công khai do nhà xe nhập, hiển thị dạng text thuần, không render HTML |
 | Cross-border PII                   | Resend (email) + R2 (storage) đặt ngoài VN → DPIA NĐ 13/2023 cho KYC production (blocker **OQ-21**)                     |
 | QR token                           | Không đoán được, lưu hash; verify server-side                                                                           |
 | Audit log                          | Không chứa secret/plaintext nhạy cảm; Mongo cluster riêng                                                               |

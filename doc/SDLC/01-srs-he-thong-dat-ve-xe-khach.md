@@ -13,7 +13,7 @@
 | Người viết    | Nguyễn Hồng Khanh, AI Agent                                    |
 | Người duyệt   | Nguyễn Hồng Khanh                                              |
 | Ngày tạo      | 05/05/2026                                                     |
-| Ngày cập nhật | 03/10/2026                                                     |
+| Ngày cập nhật | 04/10/2026                                                     |
 
 ### 1.2. Lịch sử thay đổi
 
@@ -52,6 +52,8 @@
 | v1.30     | 30/09/2026 | AI Agent, Nguyễn Hồng Khanh | **TASK-TRN-005 Q1 = PA1 (Khanh chốt 30/09/2026):** `FR-OPS-08` thêm chiều **loại xe**; §9 + `UC-14` bước 4: mỗi tuyến một bảng giá, rule theo loại xe × loại chỗ × giờ khởi hành, trip tự áp giá theo loại xe đang gắn (xe thường ≠ xe VIP). Lịch sử giá (BR-40) = audit Mongo (Q4). Giữ trạng thái Review. |
 | v1.31     | 30/09/2026 | AI Agent, Nguyễn Hồng Khanh | **TASK-TRN-006 Q1–Q8 (Khanh chốt 30/09/2026):** `FR-OPS-10` + §17.3 `LOCKED` — tạm dừng bán = khóa bán, mở lại được, hủy bắt buộc lý do; `AS-20` — v1 khai thời điểm ngừng bán online theo từng chuyến (mặc định 60 phút); `BR-39` — mọi ghế có giá > 0, kiểm lúc mở bán / mở lại; `UC-14` bước 6 — cửa sổ đón khách thuộc luồng check-in / no-show. Giữ trạng thái Review. |
 | v1.32     | 03/10/2026 | AI Agent, Nguyễn Hồng Khanh | **Hình ảnh phương tiện (Khanh chốt 03/10/2026):** thêm `FR-OPS-16` (Operator tải lên / sắp xếp / xóa ảnh của từng xe), `FR-MKT-15` (ảnh đại diện ở kết quả tìm + bộ ảnh ở chi tiết chuyến), `FR-ADM-20` (Admin gỡ ảnh vi phạm, không duyệt trước), `BR-76` (tối đa 8 ảnh / xe, JPEG / PNG / WebP ≤ 5 MB), `AC-40`; §6.1–6.3 phạm vi; §9 thực thể `VehicleImage`; `UC-02` bước 5, `UC-03` bước 3 + A5, `UC-12` bước 2 + A6, `UC-28` + A6; §15.3. Giữ trạng thái Review. |
+| v1.33     | 04/10/2026 | AI Agent, Nguyễn Hồng Khanh | **Phân loại xe và loại chỗ (Khanh chốt 04/10/2026):** thêm `BR-77` — `VehicleType` mang hai thuộc tính độc lập là **dạng chỗ** (ghế ngồi / giường nằm / cabin) và **hạng xe** (thường / limousine); limousine là hạng, không còn là một loại ngang hàng với ghế ngồi / giường nằm / cabin. Thêm `BR-78` — loại chỗ có thêm cabin và chỗ đôi (giường đôi, cabin đôi), sức chứa gắn ở từng chỗ. `AC-41`; §3.5, §9.3; `FR-MKT-03`, `FR-OPS-03`; `UC-02` bước 6, `UC-12` bước 3–4. Đóng `OQ-23` (§21): chỗ đôi bán nguyên chỗ, giá theo chỗ. Giữ trạng thái Review. |
+| v1.34     | 04/10/2026 | AI Agent, Nguyễn Hồng Khanh | **Chú thích ảnh phương tiện (Khanh chốt 04/10/2026, đối chiếu Figma nhà xe):** `BR-76` + `FR-OPS-16` — mỗi ảnh xe có thể kèm chú thích ngắn (tối đa 60 ký tự), hiển thị công khai cùng ảnh. Giữ trạng thái Review. |
 
 ---
 
@@ -153,7 +155,7 @@ Các tài liệu cụ thể liên quan đến nghiệp vụ và hiện trạng k
 | Marketplace            | Lớp dịch vụ giúp hành khách tìm kiếm, đặt vé, thanh toán và nhận hỗ trợ |
 | Operator OS            | Lớp công cụ vận hành dành cho Operator và Employee                      |
 | Vehicle                | Phương tiện vận tải thuộc Operator                                      |
-| VehicleType            | Loại phương tiện chuẩn hóa bởi Platform                                 |
+| VehicleType            | Loại phương tiện chuẩn hóa bởi Platform; mỗi loại có dạng chỗ và hạng xe (`BR-77`) |
 | SeatHold               | Bản ghi giữ ghế tạm thời có thời hạn                                    |
 | Escrow                 | Cơ chế Platform giữ tiền giao dịch trước khi payout cho Operator        |
 | Payout                 | Khoản tiền Platform chuyển cho Operator sau đối soát                    |
@@ -586,6 +588,7 @@ Phần này mô tả mô hình dữ liệu **mức khái niệm** để làm n�
 - Một `OperatorApplication` là hồ sơ đăng ký của nhà xe trước khi có tenant, truy cập qua link bảo mật gửi email liên hệ; khi Admin duyệt, hệ thống tạo đúng một `Operator` cùng tài khoản Owner đầu tiên và chuyển giấy tờ KYC, tài khoản nhận tiền sang tenant đó.
 - Một `Employee` thuộc đúng một `Operator`; role của Employee thuộc tập đã chốt ở §7.4 gồm `TICKET_STAFF`, `DRIVER`, `SUPPORT_STAFF`.
 - Một `Vehicle` có một `SeatMap`; `SeatMap` gồm nhiều `Seat`. Trạng thái ghế bán vé phải được quản lý theo `TripSeat` hoặc cấu trúc tương đương trên từng chuyến.
+- Một `Vehicle` thuộc đúng một `VehicleType`; `VehicleType` mang hai thuộc tính độc lập là dạng chỗ và hạng xe (`BR-77`). Mỗi `Seat` có loại chỗ và nằm ở một tầng; chỗ đôi chứa tối đa hai hành khách, sức chứa của xe là tổng sức chứa các chỗ (`BR-78`).
 - Một `Vehicle` có nhiều `VehicleImage` xếp theo thứ tự, trong giới hạn `BR-76`; ảnh đứng đầu là ảnh đại diện. Ảnh là nội dung công khai, hiển thị cùng các chuyến dùng xe đó.
 - Một `Route` gồm nhiều `RouteStop`; mỗi `RouteStop` tham chiếu một `StopPoint` chuẩn hoặc điểm được Platform duyệt.
 - Một `Trip` là phiên bản vận hành cụ thể của một `Route`, dùng một `Vehicle` hoặc cấu hình xe hợp lệ, có nhiều `TripStop`, nhiều `TripSeat` và có thể gán nhiều `Employee`.
@@ -665,7 +668,7 @@ Phần này mô tả yêu cầu chức năng ở mức SRS. Mỗi yêu cầu ph�
 | --------- | ---------------------------------------------------------------------------------------------------------------------------------------------- | ----------------- |
 | FR-MKT-01 | Hệ thống phải cho phép hành khách tìm kiếm chuyến theo điểm đi, điểm đến, ngày đi và số lượng khách.                                           | Người dùng, Guest |
 | FR-MKT-02 | Hệ thống phải chỉ hiển thị chuyến còn mở bán, còn ghế phù hợp và chưa hết thời gian bán online.                                                | Hệ thống          |
-| FR-MKT-03 | Hệ thống phải cho phép lọc kết quả theo Operator, giờ khởi hành, giá vé, loại phương tiện, tiện ích, điểm đón / trả, đánh giá.                 | Người dùng, Guest |
+| FR-MKT-03 | Hệ thống phải cho phép lọc kết quả theo Operator, giờ khởi hành, giá vé, loại phương tiện (dạng chỗ, hạng xe — `BR-77`), tiện ích, điểm đón / trả, đánh giá. | Người dùng, Guest |
 | FR-MKT-04 | Hệ thống phải cho phép sắp xếp kết quả theo giá, giờ đi, đánh giá, thời gian di chuyển hoặc tiêu chí được cấu hình.                            | Người dùng, Guest |
 | FR-MKT-05 | Hệ thống phải hiển thị chi tiết chuyến gồm Operator, tuyến, điểm đón / trả, lịch trình, loại phương tiện, sơ đồ ghế, giá vé và chính sách hủy. | Người dùng, Guest |
 | FR-MKT-06 | Hệ thống phải hiển thị profile Operator gồm thông tin công khai, đánh giá, scorecard, tuyến tiêu biểu và điều khoản dịch vụ.                   | Người dùng, Guest |
@@ -725,7 +728,7 @@ Phần này mô tả yêu cầu chức năng ở mức SRS. Mỗi yêu cầu ph�
 | --------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------- |
 | FR-OPS-01 | Hệ thống phải cho phép Operator quản lý danh sách `Vehicle` thuộc nhà xe.                                                                                                   | Nhà xe      |
 | FR-OPS-02 | Hệ thống phải cho phép Operator cấu hình `VehicleType`, tiện ích, biển số, trạng thái vận hành và thông tin mô tả phương tiện.                                              | Nhà xe      |
-| FR-OPS-03 | Hệ thống phải cho phép Operator tạo và cập nhật `SeatMap` cho phương tiện hoặc loại phương tiện.                                                                            | Nhà xe      |
+| FR-OPS-03 | Hệ thống phải cho phép Operator tạo và cập nhật `SeatMap` cho phương tiện hoặc loại phương tiện; mỗi chỗ khai mã, tầng, vị trí và loại chỗ theo `BR-78`.                    | Nhà xe      |
 | FR-OPS-04 | Hệ thống phải cho phép Operator tạo tuyến, chọn điểm đầu / cuối và gắn các điểm đón / trả theo danh mục chuẩn của Platform.                                                 | Nhà xe      |
 | FR-OPS-05 | Hệ thống phải cho phép Operator đề xuất StopPoint mới để Admin duyệt nếu điểm chưa có trong danh mục chuẩn.                                                                 | Nhà xe      |
 | FR-OPS-06 | Hệ thống phải cho phép Operator tạo chuyến cụ thể theo tuyến, ngày giờ, phương tiện, giá vé và điểm đón / trả áp dụng.                                                      | Nhà xe      |
@@ -738,7 +741,7 @@ Phần này mô tả yêu cầu chức năng ở mức SRS. Mỗi yêu cầu ph�
 | FR-OPS-13 | Hệ thống phải cho phép Operator khóa ghế thủ công hoặc đồng bộ ghế bán ngoài Platform nếu vận hành đa kênh.                                                                 | Nhà xe      |
 | FR-OPS-14 | Hệ thống phải cho phép Operator xem danh sách booking / ticket theo chuyến, ngày, trạng thái và kênh bán.                                                                   | Nhà xe      |
 | FR-OPS-15 | Hệ thống phải cho phép Operator xuất danh sách hành khách theo chuyến trong phạm vi quyền được cấp.                                                                         | Nhà xe      |
-| FR-OPS-16 | Hệ thống phải cho phép Operator tải lên, sắp xếp thứ tự và xóa hình ảnh của từng `Vehicle` trong giới hạn `BR-76`; ảnh đứng đầu là ảnh đại diện.                                                          | Nhà xe      |
+| FR-OPS-16 | Hệ thống phải cho phép Operator tải lên, sắp xếp thứ tự, đặt chú thích và xóa hình ảnh của từng `Vehicle` trong giới hạn `BR-76`; ảnh đứng đầu là ảnh đại diện.                                                          | Nhà xe      |
 
 ### 10.6. Promotion & Campaign Management
 
@@ -1443,7 +1446,7 @@ Luồng chính:
 3. Hệ thống tìm các chuyến có route hoặc chặng phù hợp, thuộc Operator đã được duyệt và còn mở bán công khai.
 4. Hệ thống chỉ đưa vào kết quả các chuyến còn ghế phù hợp với số lượng khách và chưa hết thời gian bán online.
 5. Hệ thống hiển thị danh sách chuyến gồm Operator, ảnh đại diện của xe, giờ đi / đến, giá, loại xe, tiện ích, điểm đón / trả, số ghế còn lại và chỉ số đánh giá công khai nếu có.
-6. User hoặc Guest lọc kết quả theo Operator, giờ khởi hành, giá vé, loại xe, tiện ích, điểm đón / trả hoặc đánh giá.
+6. User hoặc Guest lọc kết quả theo Operator, giờ khởi hành, giá vé, loại xe (dạng chỗ, hạng xe), tiện ích, điểm đón / trả hoặc đánh giá.
 7. User hoặc Guest sắp xếp kết quả theo giá, giờ đi, đánh giá, thời gian di chuyển hoặc tiêu chí được Platform cấu hình.
 8. User hoặc Guest chọn một chuyến để xem chi tiết hoặc quay lại điều chỉnh tiêu chí tìm kiếm.
 
@@ -1763,8 +1766,8 @@ Luồng chính:
 
 1. Operator mở danh sách Vehicle thuộc nhà xe của mình.
 2. Operator tạo hoặc cập nhật Vehicle với biển số, loại xe, tiện ích, trạng thái vận hành, mô tả, hình ảnh và thông tin liên quan.
-3. Operator chọn VehicleType từ catalog Platform hoặc cấu hình VehicleType trong phạm vi được Platform cho phép.
-4. Operator tạo hoặc cập nhật SeatMap cho phương tiện / loại phương tiện, gồm mã ghế, tầng, vị trí, loại ghế / giường và tổng số ghế.
+3. Operator chọn VehicleType từ catalog Platform hoặc cấu hình VehicleType trong phạm vi được Platform cho phép; mỗi VehicleType cho biết dạng chỗ và hạng xe (`BR-77`).
+4. Operator tạo hoặc cập nhật SeatMap cho phương tiện / loại phương tiện, gồm mã chỗ, tầng, vị trí, loại chỗ (`BR-78`), tổng số chỗ và sức chứa hành khách.
 5. Hệ thống kiểm tra Vehicle thuộc đúng Operator, biển số không trùng trong phạm vi áp dụng, SeatMap không trùng mã ghế và tổng số ghế khớp bố cục.
 6. Hệ thống lưu Vehicle, VehicleType và SeatMap; dữ liệu này trở thành cơ sở tạo TripSeat, SeatHold, Booking và ticket về sau.
 7. Nếu thay đổi ảnh hưởng vận hành hoặc inventory, hệ thống ghi lịch sử thay đổi và yêu cầu lý do / xác thực lại theo policy.
@@ -2704,7 +2707,9 @@ Mục này chốt các quy tắc nghiệp vụ áp dụng cho v1, được rút 
 | BR-73 | Loyalty Funding          | Phần giảm từ voucher đổi điểm do Platform chịu: escrow của Operator và commission tính trên giá trước phần giảm này, phần Platform chịu ghi dòng ledger riêng. Khi hoàn vé, số tiền hoàn cho khách tính trên số tiền khách thực trả và phần Platform chịu được đảo theo cùng tỷ lệ hoàn. Đây là ngoại lệ duy nhất của `BR-48` ở v1. | `§4.3`, `FR-LOY-09`, `FR-BTP-15..16`, `UC-37` |
 | BR-74 | Article Publishing       | Chỉ Admin tạo và xuất bản bài viết; chỉ bài `PUBLISHED` hiển thị công khai; nội dung phải được làm sạch trước khi hiển thị; slug duy nhất; bài `ARCHIVED` không hiển thị nhưng được giữ để truy vết. | `FR-ADM-18..19`, `FR-MKT-14`, `UC-38`, `UC-40` |
 | BR-75 | Operator Application     | Hồ sơ đăng ký nhà xe được nộp khi chưa có tài khoản và chỉ truy cập qua link bảo mật gửi tới email liên hệ; link có hạn dùng, chỉ mở đúng một hồ sơ, bị thay khi cấp link mới và hết hiệu lực khi hồ sơ `APPROVED` / `REJECTED`. Tài khoản Owner chỉ được tạo khi Admin phê duyệt; mỗi hồ sơ tạo tối đa một Operator. | `FR-OPR-01..05`, `FR-OPR-12`, `FR-ADM-03`, `UC-10`, `UC-23` |
-| BR-76 | Vehicle Image            | Mỗi `Vehicle` có tối đa 8 ảnh; chỉ nhận JPEG, PNG hoặc WebP, mỗi ảnh tối đa 5 MB; ảnh đứng đầu theo thứ tự là ảnh đại diện. Ảnh hiển thị công khai ngay sau khi Operator lưu (v1 không duyệt trước); Admin gỡ ảnh vi phạm phải có lý do và audit log. Ảnh phương tiện là nội dung công khai nên không được chứa giấy tờ hay dữ liệu cá nhân. | `FR-OPS-16`, `FR-MKT-15`, `FR-ADM-20`, `UC-02..03`, `UC-12`, `UC-28` |
+| BR-76 | Vehicle Image            | Mỗi `Vehicle` có tối đa 8 ảnh; chỉ nhận JPEG, PNG hoặc WebP, mỗi ảnh tối đa 5 MB; ảnh đứng đầu theo thứ tự là ảnh đại diện. Mỗi ảnh có thể kèm một chú thích ngắn (tối đa 60 ký tự), hiển thị công khai cùng ảnh. Ảnh hiển thị công khai ngay sau khi Operator lưu (v1 không duyệt trước); Admin gỡ ảnh vi phạm phải có lý do và audit log. Ảnh phương tiện là nội dung công khai nên không được chứa giấy tờ hay dữ liệu cá nhân. | `FR-OPS-16`, `FR-MKT-15`, `FR-ADM-20`, `UC-02..03`, `UC-12`, `UC-28` |
+| BR-77 | Vehicle Type             | Mỗi `VehicleType` trong catalog mang hai thuộc tính độc lập: **dạng chỗ** — `SEATER` (ghế ngồi), `SLEEPER` (giường nằm, không có vách ngăn kín), `CABIN` (khoang riêng có vách ngăn, kèm rèm hoặc cửa; thị trường gọi là phòng, cabin, khoang, giường phòng) — và **hạng xe** — `STANDARD`, `LIMOUSINE`. Limousine là hạng, không phải dạng chỗ: xe limousine vẫn thuộc đúng một trong ba dạng chỗ. Mỗi `Vehicle` chọn một `VehicleType`; hạng do nhà xe tự khai qua loại xe đã chọn, Platform không thẩm định tiêu chuẩn limousine ở v1. Tìm kiếm lọc theo dạng chỗ và hạng xe độc lập; giá vé tiếp tục tính theo `VehicleType`. | `FR-OPS-02`, `FR-OPS-08`, `FR-MKT-03`, `FR-ADM-04`, `UC-02`, `UC-12` |
+| BR-78 | Seat Type & Capacity     | Mỗi chỗ trong `SeatMap` có một loại chỗ — `SEAT` (ghế), `BED` (giường đơn), `BED_DOUBLE` (giường đôi), `CABIN` (cabin đơn), `CABIN_DOUBLE` (cabin đôi) — và nằm ở một tầng (tối đa hai tầng). Chỗ đôi chứa tối đa hai hành khách, các loại còn lại một hành khách; sức chứa của xe là tổng sức chứa các chỗ. Một xe được có nhiều loại chỗ, không bắt buộc khớp dạng chỗ của `VehicleType`. Chỗ đôi được bán nguyên chỗ cho một booking với giá theo chỗ do nhà xe đặt riêng trong bảng giá, không tính theo đầu người; chỗ đôi nhận một hoặc hai hành khách, khách đi một mình vẫn mua được và trả đủ giá chỗ. v1 không cho nhà xe tự cấu hình cách bán này (`OQ-23`). | `FR-OPS-03`, `FR-OPS-08`, `FR-MKT-07`, `UC-04..05`, `UC-12` |
 
 ---
 
@@ -3497,6 +3502,7 @@ Mục này xác định tiêu chí nghiệm thu cấp SRS cho v1. Test Plan chi 
 | AC-38 | Ví voucher               | User lưu mã công khai, xem trạng thái voucher, chọn tối đa một voucher cho mỗi booking; voucher được giữ / dùng / trả đúng `BR-72`; không dùng được voucher của User khác. | `FR-PROM-08..10`, `UC-37`, `BR-72` |
 | AC-39 | Bài viết                 | Admin tạo / xuất bản / gỡ bài và quản lý chuyên mục; Marketplace chỉ hiển thị bài `PUBLISHED`, lọc chuyên mục, tìm kiếm; nội dung đã được làm sạch. | `FR-ADM-18..19`, `FR-MKT-14`, `UC-38`, `UC-40`, `BR-74` |
 | AC-40 | Ảnh phương tiện          | Operator tải lên, sắp xếp, xóa ảnh xe trong tenant của mình trong giới hạn `BR-76`; Marketplace hiển thị ảnh đại diện ở kết quả tìm và bộ ảnh ở chi tiết chuyến, xe chưa có ảnh dùng hình thay thế; Admin gỡ được ảnh vi phạm kèm lý do và audit log. | `FR-OPS-16`, `FR-MKT-15`, `FR-ADM-20`, `UC-02..03`, `UC-12`, `UC-28`, `BR-76` |
+| AC-41 | Phân loại xe và chỗ      | Catalog loại xe cho biết dạng chỗ và hạng xe; xe limousine giường nằm xuất hiện cả khi lọc giường nằm lẫn khi lọc limousine. Sơ đồ ghế nhận đủ năm loại chỗ, sức chứa tính chỗ đôi là hai người; bảng giá đặt được giá riêng cho giường đôi / cabin đôi. | `FR-OPS-03`, `FR-OPS-08`, `FR-MKT-03`, `UC-02`, `UC-12`, `BR-77`, `BR-78` |
 
 ### 19.3. Điều kiện đủ để chuyển sang tài liệu thiết kế tiếp theo
 
@@ -3599,6 +3605,7 @@ Toàn bộ Open Questions (`OQ-*`) và Marketplace Questions (`MQ-*`) phát sinh
 | ~~OQ-20~~ | **CHỐT (11/05/2026):** Platform dùng định vị **managed marketplace trung lập**: thương hiệu Platform hiển thị để bảo chứng giao dịch / hỗ trợ / tranh chấp, nhưng thông tin nhà xe, tuyến, giờ chạy và điều kiện dịch vụ vẫn là tín hiệu chính với hành khách.                                                                                                                                                                                                                      | Ảnh hưởng UI hành khách, scorecard, review, dispute và nội dung public Operator profile    |
 | ~~UX-OQ-06~~ | **CHỐT (29/09/2026, Khanh):** đưa chương trình thành viên **VXN Plus** và **ví voucher** vào v1: (a) phần giảm từ voucher đổi điểm **do Platform chịu** — Operator nhận escrow và commission tính trên giá trước giảm; đây là ngoại lệ duy nhất của `BR-48`; (b) hạng thành viên v1 **chỉ ảnh hưởng hệ số tích điểm** — không giảm giá tự động theo hạng, không ưu tiên CSKH; (c) ví voucher chứa voucher đổi điểm và mã khuyến mãi công khai User đã lưu. Phản ánh ở §4.3, §6, §10.6, §10.11, `UC-36..37`, `UC-39`, `BR-65..73`. Giá trị mặc định của tham số chương trình (đơn vị tích điểm, giá trị quy đổi, mốc hạng, hạn điểm / voucher) do Admin cấu hình; giá trị seed chốt trước khi triển khai (`TASK-LOY-001`). | `UX-OQ-06` mở ở 06 UI v0.4 (Figma VXN Plus, SCR-PSG-33..35); đóng tại đây, 06 UI §11 cập nhật tương ứng. Mở `LLD-OQ-06` (giá trị seed) và `LLD-OQ-07` (bên chịu giảm của promotion cấp Platform). |
 | ~~UX-OQ-08~~ | **CHỐT (29/09/2026, Khanh):** trang **Khám phá** dùng module bài viết riêng (`Article`, `ArticleCategory`), khác `ContentPage` (trang nội dung tĩnh); chỉ Admin soạn và xuất bản. Phản ánh ở `FR-MKT-14`, `FR-ADM-18..19`, `UC-38`, `UC-40`, `BR-74`. | `UX-OQ-08` mở ở 06 UI v0.4 (Figma Khám phá, SCR-PSG-02); `FR-ADM-13` (banner / FAQ / trang tĩnh) giữ nguyên. |
+| ~~OQ-23~~ | **CHỐT (04/10/2026, Khanh):** chỗ đôi bán nguyên chỗ cho một booking, giá theo chỗ do nhà xe đặt riêng trong bảng giá (không tính theo đầu người); nhận một hoặc hai hành khách; khách đi một mình vẫn mua được và trả đủ giá chỗ; v1 không cho nhà xe tự cấu hình cách bán. Phản ánh ở `BR-78`. | `OQ-23` mở ngày 04/10/2026 khi thêm loại chỗ đôi (giường đôi, cabin đôi). Số vé phát cho chỗ đôi và hủy / hoàn lẻ một người chốt ở thiết kế đặt vé (`LLD-OQ-09`). |
 
 ---
 
