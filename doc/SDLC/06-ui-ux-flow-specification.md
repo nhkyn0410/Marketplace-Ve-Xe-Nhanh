@@ -13,7 +13,7 @@
 | Người viết    | Nguyễn Hồng Khanh, AI Agent |
 | Người duyệt   | Nguyễn Hồng Khanh           |
 | Ngày tạo      | 11/05/2026                  |
-| Ngày cập nhật | 02/10/2026                  |
+| Ngày cập nhật | 04/10/2026                  |
 
 ### 1.2. Lịch sử thay đổi
 
@@ -30,6 +30,10 @@
 | v0.9      | 30/09/2026 | AI Agent | **A2 — đăng ký nhà xe theo closed enrollment (Khanh duyệt 30/09/2026, SRS v1.23)**: §7 dòng đăng ký nhà xe là trang công khai + link bảo mật, không cần đăng nhập; §9 Admin duyệt hồ sơ nhập slug + username Owner. Giữ trạng thái Review. |
 | v0.10     | 30/09/2026 | AI Agent | §6.4 #1: ghi nhận SRS v1.25 đã đồng bộ xác thực hành khách (email OTP + OAuth, không mật khẩu); Figma vẫn cần sửa. Giữ trạng thái Review. |
 | v0.11     | 02/10/2026 | AI Agent | **Bỏ hướng dẫn "sai cổng" ở cả hai màn đăng nhập (Khanh chốt 02/10/2026):** §7 màn Login Operator OS không còn nhận ra tiền tố `nv.` để hiện "đăng nhập trên app Nhân viên"; nhân viên gõ vào Operator OS nhận cùng lỗi generic `AUTH_INVALID_CREDENTIALS` từ API. §8 app Nhân viên đối xứng: username thiếu `nv.` không còn bị chặn tại app để hiện "Chủ nhà xe đăng nhập trên web Operator OS", cũng nhận lỗi generic từ API. Lớp phòng thủ thứ hai (kiểm role qua `/auth/me`) giữ nguyên nhưng chỉ hiện thông báo chung về phiên. Không đổi API / Security / Test (TC-SEC-009 đã kiểm lỗi generic). Giữ trạng thái Review. |
+| v0.12     | 03/10/2026 | AI Agent | **Hình ảnh phương tiện (Khanh chốt 03/10/2026, SRS v1.32):** SCR-PSG-15 thêm ảnh đại diện xe trên thẻ chuyến; SCR-PSG-16 thêm bộ ảnh xe trong khối "Thông tin xe"; §6.4 #9 — Figma `385:7387` và `385:5411` chưa có vùng ảnh; §7 form xe thêm khối ảnh; §9 Admin rà soát / gỡ ảnh xe. Giữ trạng thái Review. |
+| v0.13     | 04/10/2026 | AI Agent | **Phân loại xe và loại chỗ (Khanh chốt 04/10/2026, SRS v1.33):** SCR-PSG-15 lọc loại xe tách hai nhóm (dạng chỗ, hạng); SCR-PSG-18 hiển thị chỗ đôi; §6.4 #10; §7 form xe hiện dạng chỗ + hạng, seat map editor chọn 5 loại chỗ; `UX-OQ-03` thêm cách vẽ chỗ đôi. Giữ trạng thái Review. |
+| v0.14     | 04/10/2026 | AI Agent | **Đối chiếu Figma nhà xe (Khanh chốt 04/10/2026):** đóng phần "chỗ đôi" của `UX-OQ-03` — chỗ đôi là một ô lưới, vẽ rộng hơn chỗ đơn (Figma `1115:4906`); §7 — ảnh xe có chú thích, mỗi tầng có số hàng / cột riêng, khóa trước sơ đồ đang dùng theo `seatMapLocked` / `inUse`. Giữ trạng thái Review. |
+| v0.15     | 04/10/2026 | AI Agent | **Đóng `UX-OQ-03` (Khanh chốt 04/10/2026):** trình soạn sơ đồ ghế dùng lưới tự do, v1 không làm mẫu theo loại xe; §7 thêm quy tắc tạo lưới (số hàng / cột theo từng tầng, mã tự đánh, đổi ô, xác nhận khi tạo lại lưới). "Bố cục gợi ý" điền sẵn để sau v1. Giữ trạng thái Review. |
 
 ---
 
@@ -308,7 +312,7 @@ Mỗi màn hình là một bảng đủ 5 trạng thái theo §10.1. Cột **Thi
 | Ideal          | Thanh tìm kiếm; lọc giá / giờ / loại xe / nhà xe / tiện ích; sắp xếp; thẻ chuyến (giờ, thời lượng, điểm dừng, giá, số chỗ còn)                    | Review   |
 | Empty          | Không có chuyến nào đang mở bán → gợi ý tuyến phổ biến                                                                                           | Draft    |
 | Loading        | Skeleton thẻ chuyến                                                                                                                              | Draft    |
-| Partial / Edge | 1–2 chuyến; hàng trăm chuyến → phân trang / tải thêm; tên nhà xe / địa danh dài; sắp hết chỗ; chuyến qua đêm (đến ngày hôm sau); lọc điểm đón/trả + đánh giá, sắp xếp theo thời gian di chuyển (FR-MKT-03/04 — Figma thiếu) | Draft    |
+| Partial / Edge | 1–2 chuyến; hàng trăm chuyến → phân trang / tải thêm; tên nhà xe / địa danh dài; sắp hết chỗ; chuyến qua đêm (đến ngày hôm sau); lọc điểm đón/trả + đánh giá, sắp xếp theo thời gian di chuyển (FR-MKT-03/04 — Figma thiếu); ảnh đại diện của xe trên thẻ chuyến (tải lười), xe chưa có ảnh hoặc ảnh lỗi tải → hình thay thế (FR-MKT-15 — Figma thiếu); lọc loại xe tách hai nhóm: dạng chỗ (ghế ngồi / giường nằm / cabin) và hạng (limousine) — BR-77, Figma đang gộp một nhóm "Loại xe" | Draft    |
 | Error          | Không tìm thấy chuyến theo tiêu chí → gợi ý đổi ngày / xóa lọc; ghế đã đổi khi bấm chọn (stale); lỗi tải; 503                                    | Draft    |
 
 #### SCR-PSG-16 — Chi tiết chuyến (`385:5411`)
@@ -318,7 +322,7 @@ Mỗi màn hình là một bảng đủ 5 trạng thái theo §10.1. Cột **Thi
 | Ideal          | Tóm tắt chuyến + giá; nhà xe; lộ trình + điểm dừng; bản đồ; tiện nghi; chính sách; CTA đặt vé                                     | Review ⚠ (#4) |
 | Empty          | Chưa có đánh giá                                                                                                                 | Review        |
 | Loading        | Skeleton; bản đồ đang tải                                                                                                        | Draft         |
-| Partial / Edge | Nhiều điểm dừng; địa chỉ dài; có đánh giá (danh sách + điểm trung bình); ngừng bán (hết giờ bán online / hết ghế / chuyến bị khóa → CTA vô hiệu) | Draft         |
+| Partial / Edge | Nhiều điểm dừng; địa chỉ dài; có đánh giá (danh sách + điểm trung bình); ngừng bán (hết giờ bán online / hết ghế / chuyến bị khóa → CTA vô hiệu); bộ ảnh xe trong khối "Thông tin xe" (tối đa 8, bấm để xem lớn), xe chưa có ảnh hoặc ảnh lỗi tải → hình thay thế (FR-MKT-15 — Figma thiếu) | Draft         |
 | Error          | Chuyến không tồn tại / đã hủy (404); bản đồ lỗi tải (vẫn hiện danh sách điểm dừng); lỗi tải                                       | Draft         |
 
 #### SCR-PSG-17 — Trang nhà xe (chưa có frame)
@@ -338,7 +342,7 @@ Mỗi màn hình là một bảng đủ 5 trạng thái theo §10.1. Cột **Thi
 | Ideal          | Điểm đón/trả; sơ đồ ghế với chú thích Còn trống / Đang chọn / Đang giữ / Đã đặt; giới hạn "x/10 ghế"; tạm tính. Thiếu bộ đếm giữ ghế | Review ⚠ (#3) |
 | Empty          | Chưa chọn ghế → CTA vô hiệu                                                                                                         | Draft         |
 | Loading        | Đang tải sơ đồ ghế; đang tạo hold                                                                                                   | Draft         |
-| Partial / Edge | Chỉ còn 1–2 ghế trống; ghế `BLOCKED`; xe 2 tầng; nhiều điểm đón/trả; đã chọn tối đa → khóa ghế còn lại                              | Draft         |
+| Partial / Edge | Chỉ còn 1–2 ghế trống; ghế `BLOCKED`; xe 2 tầng; nhiều điểm đón/trả; đã chọn tối đa → khóa ghế còn lại; chỗ đôi (giường đôi / cabin đôi) vẽ khác chỗ đơn và ghi rõ "2 người" — BR-78, bán nguyên chỗ cho 1–2 hành khách, giá theo chỗ (`OQ-23`) | Draft         |
 | Error          | Ghế vừa bị giữ/bán → từ chối cả nhóm, chọn lại (UC A1); chuyến bị khóa / seat map đổi (A2); hold hết hạn → chọn lại (A4); 503 giữ ghế (A5, ADR-015) | Draft         |
 
 #### SCR-PSG-19 — B2 Thông tin hành khách (`385:3716`)
@@ -545,6 +549,8 @@ Mỗi màn hình là một bảng đủ 5 trạng thái theo §10.1. Cột **Thi
 | 6   | 01, footer          | Copy "Hoàn 90% trước 24h", "Đổi chuyến miễn phí trước 24h", link "Đổi và hủy vé"                                            | FR-BTP-12: hoàn theo chính sách snapshot của từng chuyến; SRS không có đổi vé tự phục vụ (chỉ trong luồng chuyến bị hủy / dispute) | Sửa copy trung tính ("theo chính sách nhà xe"). Muốn có đổi vé tự phục vụ = mở rộng phạm vi, cần Khanh quyết                                     |
 | 7   | 33                  | Khối "Ưu đãi hạng": giảm 5 / 10 / 15% mọi chuyến theo hạng, "Hỗ trợ ưu tiên 30 phút"; cột "Giảm giá" trong bảng hạng        | SRS v1.21 `BR-68`: hạng v1 chỉ ảnh hưởng hệ số tích điểm, không giảm giá / ưu tiên CSKH                            | Bỏ khối ưu đãi giảm giá / ưu tiên CSKH và cột "Giảm giá"; giữ hệ số điểm                                                                          |
 | 8   | 04, 19, 20          | Dịch vụ bổ trợ (bảo hiểm, hành lý, đưa đón) cộng vào tổng tiền                                                              | Không có trong SRS                                                                                                | UX-OQ-07                                                                                                                                        |
+| 9   | 15, 16              | Thẻ chuyến và khối "Thông tin xe" chưa có ảnh xe | SRS v1.32 `FR-MKT-15`, `BR-76` | Thêm ảnh đại diện của xe vào thẻ chuyến và bộ ảnh vào khối "Thông tin xe"; có hình thay thế khi xe chưa có ảnh |
+| 10  | 15                  | Bộ lọc "Loại xe" là một nhóm duy nhất, limousine đứng ngang hàng với các dạng xe khác | SRS v1.33 `BR-77` | Tách hai nhóm lọc: dạng chỗ (ghế ngồi / giường nằm / cabin) và hạng xe (limousine) |
 
 ---
 
@@ -563,12 +569,21 @@ Login `{operatorSlug}/{username}` + password qua `/auth/operator/login` — **ch
 | Flow            | Màn hình chính                                                           | Ghi chú                                                      |
 | --------------- | ------------------------------------------------------------------------ | ------------------------------------------------------------ |
 | Đăng ký nhà xe (trang công khai, không đăng nhập) | Form bước 1 (tên nhà xe, người liên hệ, email) → màn "Kiểm tra email"; mở link → form hồ sơ, upload KYC (R2 private), tài khoản nhận tiền, gửi duyệt; trang trạng thái qua link; form gửi lại link (email + mã hồ sơ) | Link hết hạn / bị thay → hướng dẫn gửi lại. Duyệt xong nhận email tài khoản Owner `{slug}/{username}` + mật khẩu tạm → đăng nhập, đổi mật khẩu, bật TOTP (BR-75) |
-| Vehicle/SeatMap | Vehicle list, vehicle form, seat map editor                              | Không sửa tùy tiện khi đã gắn trip có vé                     |
+| Vehicle/SeatMap | Vehicle list (kèm ảnh đại diện), vehicle form (chọn loại xe — mỗi lựa chọn hiện dạng chỗ + hạng xe; khối ảnh xe: tải lên tối đa 8, kéo thả sắp xếp, đặt chú thích ngắn, xóa; ảnh đầu là ảnh đại diện), seat map editor (theo tầng, mỗi tầng có số hàng / cột riêng; chỗ đôi là một ô lưới vẽ rộng hơn; mỗi ô chọn loại chỗ: ghế / giường đơn / giường đôi / cabin đơn / cabin đôi; hiện tổng số chỗ và sức chứa) | Không sửa tùy tiện khi đã gắn trip có vé; ảnh sai loại / quá 5 MB / quá 8 ảnh báo lỗi tại chỗ (BR-76); ô chọn sơ đồ khóa sẵn khi `seatMapLocked`, trình soạn chỉ đọc khi sơ đồ `inUse` và gợi ý tạo bản sao (TRN-011) |
 | Route/StopPoint | Route list, route form, stop point proposal (Goong geocoding)            | StopPoint mới cần Admin duyệt                                |
 | Trip/Fare       | Trip calendar/list, trip form, fare form, open/lock sale                 | Thay đổi trip đã bán vé cần lý do + audit                    |
 | Booking/Ticket  | Booking list, passenger list, export                                     | Mask dữ liệu cá nhân (`0*** *** 789`) theo quyền             |
 | Employee        | Employee list, role, assignment                                          | Role: TICKET_STAFF, DRIVER, SUPPORT_STAFF; Owner cấp account. Ô username hiển thị tiền tố cố định `nv.`, Owner nhập phần sau (2–61 ký tự `a-z 0-9 . _ -`) |
 | Finance         | Escrow balance, commission, payout history, reconciliation               | Dữ liệu chỉ thuộc Operator (tenant + RLS)                    |
+
+**Trình soạn sơ đồ ghế — lưới tự do** (đóng `UX-OQ-03`, Khanh chốt 04/10/2026; v1 không có mẫu theo loại xe):
+
+- Nhà xe nhập số tầng (1 hoặc 2), số hàng (1–30) và số cột (1–10) cho từng tầng, rồi bấm "Tạo lưới".
+- Lưới sinh ra với mọi ô là loại chỗ đang chọn; mã tự đánh theo thứ tự — tầng 1 là `A01`, `A02`…, tầng 2 là `B01`, `B02`…
+- Bấm từng ô để đổi loại chỗ (`BR-78`), sửa mã hoặc chuyển thành ô trống làm lối đi. Chỗ đôi là một ô lưới, vẽ rộng hơn chỗ đơn.
+- Bấm "Tạo lưới" lần nữa sẽ thay toàn bộ chỉnh sửa chưa lưu, nên phải hỏi xác nhận trước.
+- Bố cục không bị ràng buộc theo loại xe; toàn bộ sơ đồ tối đa 100 chỗ. Muốn dùng lại một bố cục thì tạo bản sao từ sơ đồ có sẵn.
+- "Bố cục gợi ý" điền sẵn lưới (giường nằm 40, cabin đơn 34, cabin đôi 22…) là phần tùy chọn, để sau v1.
 
 ---
 
@@ -598,7 +613,7 @@ Login `platform/{username}` + password + **TOTP bắt buộc** (ADR-017). Dùng 
 | Payment/refund            | Transaction list, detail, refund decision                                   | Re-auth/TOTP + audit                                                                     |
 | Payout confirm            | Payout batch (T+3), review, **nhập mã giao dịch ngân hàng**                 | Manual confirm tới BankAccount verified → COMPLETED (ADR-022); maker-checker khi team >1 |
 | Dispute                   | Dispute queue, evidence view, decision                                      | Admin là arbiter cuối cùng (MQ-03)                                                       |
-| Content/review moderation | Review/content list                                                         | Ẩn/duyệt/từ chối theo policy                                                             |
+| Content/review moderation | Review/content list; danh sách ảnh phương tiện (lọc nhà xe)                 | Ẩn/duyệt/từ chối theo policy; gỡ ảnh xe vi phạm bắt buộc lý do + audit (FR-ADM-20)       |
 | Loyalty                   | Policy editor (phiên bản + effective date), tra cứu tài khoản User, điều chỉnh điểm, báo cáo | Điều chỉnh bắt buộc lý do + audit; tham số không áp ngược (FR-LOY-10..12, UC-39) |
 | Bài viết                  | Danh sách (lọc trạng thái / chuyên mục), editor Markdown + xem trước, upload ảnh, xuất bản / gỡ, chuyên mục | Audit xuất bản; chỉ `PUBLISHED` công khai (FR-ADM-18..19, UC-40) |
 | Report                    | Dashboard, filter, export job (async BullMQ)                                | Dữ liệu lớn không chặn luồng chính                                                       |
@@ -641,7 +656,7 @@ Mỗi màn hình ở §6–§9 được viết thành **một bảng đủ 5 tr�
 | -------- | ------------------------------------------------------------------------ | ------------------- | ---------------------------------------------------------------------------- |
 | UX-OQ-01 | Guest checkout có trong v1 không?                                        | Public booking flow | **Đóng theo SRS/GLOSSARY**: Guest có guest session cho hold/book/pay/lookup  |
 | UX-OQ-02 | Web dùng token storage hay cookie session?                               | Auth UX và Security | **Đóng theo ADR-017**: Web = httpOnly cookie; Mobile = secure-store (Bearer) |
-| UX-OQ-03 | Seat map editor dùng grid tự do hay template theo vehicle type?          | Operator UI         | Mở; chốt khi thiết kế component (LLD/UI detail)                              |
+| UX-OQ-03 | Seat map editor dùng grid tự do hay template theo vehicle type?          | Operator UI         | **Đóng 04/10/2026 (Khanh):** lưới tự do, v1 không làm mẫu theo loại xe; chỗ đôi là một ô lưới, vẽ rộng hơn chỗ đơn (BR-78). Quy tắc tạo lưới ở §7 |
 | UX-OQ-04 | Offline check-in cho Employee có cho xác nhận khi chưa gọi server không? | Mobile flow và risk | Mở; cần quyết risk (double check-in vs UX offline)                           |
 | UX-OQ-05 | Brand positioning marketplace trung lập hay Platform brand nổi bật?      | Public UI           | **Đóng theo OQ-20**: marketplace trung lập; tên Operator là tín hiệu chính   |
 | UX-OQ-06 | Chương trình thành viên **VXN Plus** (hạng, tích điểm, đổi điểm lấy mã giảm, Ví voucher, giảm theo hạng) có vào v1 không? Không có trong SRS; đụng money (quy đổi điểm → VND), ai chịu phần giảm (Platform hay Operator — ảnh hưởng commission/escrow), cần module mới | SRS, DB, API, booking total | **Đóng 29/09/2026** (SRS v1.21 §21): vào v1 — Platform chịu phần giảm của voucher đổi điểm; hạng chỉ ảnh hưởng hệ số điểm; ví = voucher đổi điểm + mã công khai đã lưu |
