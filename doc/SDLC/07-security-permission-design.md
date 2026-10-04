@@ -34,6 +34,7 @@
 | v0.13     | 30/09/2026 | AI Agent       | **TASK-TRN-006** (Khanh duyệt Q7): §7 dòng Trip thêm mở bán / khóa / hủy chuyến và khóa ghế thủ công — dùng lại `trip:manage` (Owner); Employee không khóa ghế ở v1. Hủy bắt buộc lý do; đổi trạng thái ghi audit trong transaction. Giữ trạng thái Review. |
 | v0.14     | 03/10/2026 | AI Agent       | **Hình ảnh phương tiện (Khanh chốt 03/10/2026, SRS v1.32):** §6 ranh giới ảnh xe công khai; §7 dòng ảnh phương tiện; §8 Admin gỡ ảnh; §9 kiểm soát file ảnh ở R2 public; §11 threat tải file độc hại / gắn ảnh tenant khác. Giữ trạng thái Review. |
 | v0.15     | 04/10/2026 | AI Agent       | **Đối chiếu Figma nhà xe (Khanh chốt 04/10/2026):** §9 — chú thích ảnh phương tiện là văn bản công khai do nhà xe nhập, hiển thị dạng text thuần. Giữ trạng thái Review. |
+| v0.16     | 04/10/2026 | AI Agent       | **Thiết kế lại điểm dừng (Khanh chốt 04/10/2026, SRS v1.35):** §6 ranh giới điểm dừng dùng chung / riêng; §7 dòng Route/StopPoint; §8 duyệt đề xuất và khóa điểm riêng; §11 chặn nhà xe tự hợp thức hóa điểm đón trả. Giữ trạng thái Review. |
 
 ---
 
@@ -150,6 +151,7 @@ RBAC 8-role hardcoded enum v1 (Anonymous / Passenger / OperatorOwner / Driver / 
 | Loyalty / voucher   | Cấp Platform, không `operatorId`: chỉ User sở hữu (`userId`) và Admin; RLS chặn scope `tenant`; Guest không có tài khoản thành viên |
 | Public article      | Chỉ bài `PUBLISHED` trả qua API công khai; `DRAFT` / `ARCHIVED` chỉ Admin |
 | Public vehicle image | Ảnh xe là nội dung công khai ở R2 public: Guest chỉ nhận URL qua search / chi tiết chuyến; tải lên, sắp xếp, xóa chỉ Owner trong tenant của xe; `objectKey` phải nằm dưới prefix của chính xe đó |
+| Stop point          | Điểm dùng chung: ghi chỉ scope `platform` (Admin), đọc công khai. Điểm riêng: Owner trong tenant, chỉ loại văn phòng trung chuyển / trạm dừng nghỉ; Admin đọc mọi tenant và khóa, không sửa nội dung; tenant không tự đặt hay gỡ `SUSPENDED`. Đề xuất: tenant không tự duyệt (RLS) |
 
 ---
 
@@ -163,7 +165,7 @@ RBAC 8-role hardcoded enum v1 (Anonymous / Passenger / OperatorOwner / Driver / 
 | Cancel/refund request    | Vé / booking đã xác minh, theo policy | Vé của mình | Vé thuộc Operator theo policy | Không                  | Có                     |
 | Vehicle/SeatMap          | Không              | Không       | Có trong tenant               | Xem nếu được phân công | Giám sát/toàn hệ thống |
 | Ảnh phương tiện          | Xem qua chuyến     | Xem qua chuyến | Tải lên / sắp xếp / xóa trong tenant (`vehicle:manage`, Owner) | Không | Rà soát, gỡ ảnh vi phạm (lý do + audit) |
-| Route/StopPoint riêng/đề xuất | Không         | Không       | Có trong tenant (`route:manage`, Owner) | Xem theo chuyến được phân công (task sau) | Duyệt đề xuất, quản lý catalog (ADM-001) |
+| Route/StopPoint riêng/đề xuất | Không         | Không       | Có trong tenant (`route:manage`, Owner): điểm riêng chỉ văn phòng trung chuyển / trạm dừng nghỉ; đề xuất bến xe / điểm dừng đón trả | Xem theo chuyến được phân công (task sau) | Quản lý điểm dùng chung, duyệt đề xuất, xem và khóa điểm riêng (ADM-004) |
 | Trip (tạo/sửa chuyến nháp, mở bán / khóa / hủy, khóa ghế thủ công), bảng giá (fare) | Không | Không  | Có trong tenant (`trip:manage`, Owner) | Xem / cập nhật trạng thái chuyến được phân công (EMP-001/002) | Giám sát, khoá khi vi phạm (task Admin sau) |
 | Check-in                 | Không              | Không       | Xem kết quả                   | Có theo assignment     | Giám sát               |
 | KYC Operator             | Không              | Không       | Người đại diện: hồ sơ đăng ký qua link (chưa có tài khoản); Owner: cập nhật giấy tờ sau khi duyệt                | Không                  | Duyệt/quản lý          |
@@ -189,6 +191,8 @@ RBAC 8-role hardcoded enum v1 (Anonymous / Passenger / OperatorOwner / Driver / 
 | Điều chỉnh điểm / đổi tham số loyalty | Admin permission, reason, audit; tham số theo phiên bản có effective date, không áp ngược giao dịch điểm đã ghi |
 | Xuất bản / gỡ bài viết            | Admin permission, audit |
 | Gỡ ảnh phương tiện vi phạm        | Admin permission kiểm duyệt nội dung, reason bắt buộc, audit, thông báo Operator; không duyệt trước (BR-76) |
+| Tạo / sửa điểm dừng dùng chung; duyệt / từ chối đề xuất | Admin permission quản lý danh mục, audit; từ chối bắt buộc reason; bến xe / điểm dừng đón trả bắt buộc căn cứ công bố (BR-38) |
+| Khóa / mở khóa điểm dừng riêng     | Admin permission quản lý danh mục, reason bắt buộc, audit, thông báo Operator (BR-81) |
 | Xem/export dữ liệu cá nhân        | Permission, masking, purpose, audit nếu nhạy cảm                                                         |
 
 ---
@@ -246,6 +250,7 @@ AuditLog ghi vào Mongo `audit_event` (cluster RIÊNG, append-only via REVOKE, A
 | Stored XSS bài viết   | Lưu Markdown, render allowlist (web + Flutter), không render HTML thô; chỉ Admin soạn; CSP |
 | Tải file độc hại qua ảnh xe | Allowlist content-type + kiểm chữ ký định dạng lúc gắn; cấm SVG / HTML; R2 public trả đúng `Content-Type` kèm `X-Content-Type-Options: nosniff`; rate limit xin URL upload; tối đa 8 ảnh / xe |
 | Gắn / ghi đè ảnh của tenant khác | `objectKey` do server sinh theo prefix `vehicles/{operatorId}/{vehicleId}/`; `PUT …/images` từ chối key ngoài prefix của xe; `vehicle_images` có `operator_id` + RLS + FK ghép |
+| Nhà xe tự hợp thức hóa điểm đón trả | Điểm riêng không nhận loại bến xe / điểm dừng đón trả (API + CHECK DB); hai loại này chỉ có qua Admin; trạm dừng nghỉ không bật được đón / trả; Admin khóa điểm riêng sai lệch (BR-38, BR-79, BR-81) |
 | Spam / dò email qua form đăng ký nhà xe | Rate limit theo IP + email; phản hồi luôn giống nhau; hồ sơ chỉ vào hàng đợi Admin sau khi email được xác minh qua link |
 | Lộ / đoán link hồ sơ nhà xe | Token ngẫu nhiên 32 byte, lưu hash, có hạn dùng, một hồ sơ, thu hồi khi cấp link mới hoặc hồ sơ kết thúc; chỉ gửi tới email liên hệ |
 

@@ -32,6 +32,7 @@
 | v0.11     | 03/10/2026 | AI Agent       | **Hình ảnh phương tiện (SRS v1.32):** §7 truy vết `FR-OPS-16`, `FR-MKT-15`, `FR-ADM-20`; §8 AC ảnh phương tiện; §9 thêm `TC-TRN-008..011` (giới hạn + kiểm file, tenant-RLS, đồng thời, hiển thị công khai + Admin gỡ). Giữ trạng thái Draft. |
 | v0.12     | 04/10/2026 | AI Agent       | **Phân loại xe và loại chỗ (Khanh chốt 04/10/2026, SRS v1.33):** §9 thêm `TC-TRN-012..013` (lọc dạng chỗ / hạng xe độc lập; 5 loại chỗ, sức chứa chỗ đôi, giá riêng cho chỗ đôi). Giữ trạng thái Draft. |
 | v0.13     | 04/10/2026 | AI Agent       | **Đối chiếu Figma nhà xe (Khanh chốt 04/10/2026):** `TC-TRN-008` thêm chú thích ảnh; thêm `TC-TRN-014` (`deckCount`, `inUse`, `seatMapLocked`). Giữ trạng thái Draft. |
+| v0.14     | 04/10/2026 | AI Agent       | **Thiết kế lại điểm dừng (Khanh chốt 04/10/2026, SRS v1.35):** §7 truy vết; §8 AC điểm dừng; §9 thêm `TC-TRN-015..019` (loại điểm + đề xuất, cho đón / cho trả, Admin duyệt, Admin khóa, tìm theo vị trí). Giữ trạng thái Draft. |
 
 ---
 
@@ -117,6 +118,7 @@ Tài liệu này mô tả chiến lược kiểm thử, tiêu chí nghiệm thu 
 | FR-PROM-08..10 | Ví voucher Vitest / Supertest; chọn voucher ở checkout Playwright |
 | FR-MKT-14, FR-ADM-18..19 | Bài viết Supertest (public chỉ `PUBLISHED`) + sanitize |
 | FR-OPS-16, FR-MKT-15, FR-ADM-20 | Ảnh phương tiện: Vitest integration (giới hạn, kiểm file, tenant-RLS) + Supertest (Admin gỡ, audit) + Playwright (tải ảnh ở Operator OS, hiển thị ở Marketplace) |
+| FR-OPS-04..05, FR-OPS-17, FR-ADM-21, FR-MKT-01, FR-MKT-09 | Điểm dừng: Vitest integration (loại điểm, cho đón / cho trả, khóa, tenant-RLS, tìm theo vị trí) + Supertest (Admin duyệt / khóa, audit) + Playwright (màn Điểm dừng của nhà xe và Admin) |
 | NFR-* | Performance, security (RLS/IDOR), availability, privacy |
 
 ---
@@ -139,6 +141,7 @@ Tài liệu này mô tả chiến lược kiểm thử, tiêu chí nghiệm thu 
 | Loyalty | Điểm cộng đúng một lần khi chuyến `COMPLETED`; đổi điểm không âm số dư, không tạo voucher trùng; escrow Operator không bị giảm bởi voucher đổi điểm, phần Platform chịu khớp ledger. |
 | Content | Chỉ bài `PUBLISHED` hiển thị công khai; nội dung chứa script không chạy. |
 | Ảnh phương tiện | Operator quản lý tối đa 8 ảnh / xe trong tenant của mình; file sai loại / quá dung lượng bị từ chối; Marketplace hiển thị ảnh đại diện và bộ ảnh, có hình thay thế; Admin gỡ ảnh vi phạm có lý do + audit. |
+| Điểm dừng | Nhà xe chỉ tạo văn phòng trung chuyển / trạm dừng nghỉ; bến xe / điểm dừng đón trả chỉ có qua Admin; cho đón / cho trả đúng loại điểm và vị trí; tìm chuyến khớp theo vị trí; Admin khóa điểm riêng có lý do + audit. |
 
 ---
 
@@ -181,6 +184,11 @@ Mandatory (rủi ro cao, ADR-025): money math, idempotency, tenant RLS, seat-hol
 | TC-TRN-012 | Catalog loại xe trả `form` + `class`; tìm chuyến lọc dạng chỗ và hạng xe độc lập — xe `SLEEPER_LIMOUSINE` khớp cả lọc `SLEEPER` lẫn lọc `LIMOUSINE`, không khớp lọc `SEATER` (BR-77) | Integration | Cao |
 | TC-TRN-013 | SeatMap nhận đủ 5 loại chỗ, loại lạ → 400; `passengerCapacity` = số chỗ + số chỗ đôi; bảng giá đặt giá riêng cho `BED_DOUBLE` / `CABIN_DOUBLE` và ghế của chuyến lấy đúng giá theo loại chỗ (BR-78, money) | Integration | Cao |
 | TC-TRN-014 | SeatMap trả `deckCount` đúng số tầng; `inUse` / `seatMapLocked` = `true` khi còn chuyến chưa kết thúc dùng sơ đồ / xe, về `false` khi chuyến `COMPLETED` / `CANCELLED` hoặc đã qua giờ đến; cờ đang `false` mà trạng thái vừa đổi thì thao tác ghi vẫn trả 409 `SEAT_MAP_IN_USE`; nhà xe B không đọc được cờ của A | Integration | Cao |
+| TC-TRN-015 | Điểm riêng loại `BUS_STATION` / `PICKUP_POINT` → 422 `STOP_POINT_TYPE_NOT_ALLOWED` và bị CHECK DB chặn; đề xuất loại `OFFICE` / `REST_STOP` hoặc thiếu `legalBasis` → 400; nhà xe không tự chuyển đề xuất sang `APPROVED` kể cả ghi thẳng DB bằng role app (BR-38) | Integration/Security | Rất cao |
+| TC-TRN-016 | Route: điểm đầu chỉ đón, điểm cuối chỉ trả; trạm dừng nghỉ bật đón / trả hoặc đứng đầu / cuối → 422 `ROUTE_STOP_PICKUP_DROPOFF_INVALID`; chuyến chép đúng hai cờ; đặt vé với điểm đón không cho đón, điểm trả không cho trả hoặc trả trước đón → 422 (BR-23, BR-79) | Integration | Cao |
+| TC-TRN-017 | Admin duyệt đề xuất → đúng một điểm dùng chung, mọi nhà xe gắn được vào route; hai Admin duyệt đồng thời → một thành công, một 409; từ chối thiếu lý do → 400; nhà xe không thấy đề xuất của nhà xe khác | Integration/Concurrency | Cao |
+| TC-TRN-018 | Admin khóa điểm riêng: thiếu lý do → 400; có `audit_event`; nhà xe sửa hoặc tự mở lại → 409 `STOP_POINT_SUSPENDED`, kể cả ghi thẳng DB bằng role app; điểm bị khóa không gắn mới vào route; chuyến dùng điểm đó không mở bán được, chuyến đã có vé giữ nguyên (BR-81) | Integration/Security | Cao |
+| TC-TRN-019 | Tìm chuyến: theo tỉnh → đúng chuyến có điểm cho đón ở tỉnh đi và sau đó điểm cho trả ở tỉnh đến; theo địa danh → khớp cả văn phòng riêng trong bán kính, không khớp điểm ngoài bán kính; trạm dừng nghỉ và điểm không cho đón / trả không khớp; chiều ngược lại không khớp (BR-80) | Integration | Cao |
 | TC-FARE-001 | Giá ghế = rule cụ thể nhất (khung giờ > không; đúng loại xe > mọi loại; đúng loại chỗ > mọi loại); biên `[validFrom, validTo)` đúng giờ khởi hành; đổi xe thường → xe VIP thì giá đổi theo; tiền `BIGINT` không qua số thực | Unit/Integration (money) | Rất cao |
 | TC-FARE-002 | Mỗi lần tạo/sửa bảng giá có đúng một bản ghi lịch sử (Mongo `audit_event`) chứa before/after; Mongo lỗi → không đổi giá | Integration | Cao |
 | TC-FARE-003 | Nhà xe B không đọc/sửa bảng giá, rule, lịch sử giá của A; `routeId` của B → 422 | Security | Rất cao |

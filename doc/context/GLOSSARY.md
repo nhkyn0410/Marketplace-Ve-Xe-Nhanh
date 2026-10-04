@@ -40,9 +40,10 @@ Rules:
 | Seat type              | Loại chỗ                   | `SEAT`, `BED` (single berth), `BED_DOUBLE`, `CABIN` (single cabin), `CABIN_DOUBLE`. Double slots hold up to two passengers, the others one (BR-78). |
 | SeatMap                | Sơ đồ ghế                  | Layout describing seats / berths of a Vehicle.                                                        |
 | Route                  | Tuyến đường                | A logical route between two endpoints, composed of ordered RouteStops.                                |
-| StopPoint              | Điểm đón / trả             | A pickup or drop-off location in the platform catalog, or a private point owned by one Operator.      |
-| StopPointProposal      | Đề xuất điểm đón / trả     | An Operator's request to add a point to the platform catalog; `PENDING` → `APPROVED` / `REJECTED` by Admin. |
-| RouteStop              | Điểm dừng của tuyến        | An ordered stop of a Route (`ORIGIN` / `INTERMEDIATE` / `DESTINATION`) with cached distance/duration from the previous stop. |
+| StopPoint              | Điểm dừng                  | A place where a trip stops. Shared (Platform catalog: bus station, designated pickup/drop-off point, rest stop) or private to one Operator (office / transfer point, rest stop) — BR-38. |
+| StopPointProposal      | Đề xuất điểm dừng dùng chung | An Operator's request to add a bus station or designated pickup/drop-off point to the shared catalog, with its legal basis; `PENDING` → `APPROVED` / `REJECTED` by Admin. |
+| Transfer point         | Điểm trung chuyển          | An Operator office where passengers gather and are shuttled free of charge to a bus station or designated pickup/drop-off point; shown to passengers with a transfer label (BR-79). |
+| RouteStop              | Điểm dừng của tuyến        | An ordered stop of a Route (`ORIGIN` / `INTERMEDIATE` / `DESTINATION`) with cached distance/duration from the previous stop and allow-pickup / allow-drop-off flags (BR-79). |
 | Trip                   | Chuyến xe                  | A concrete operating instance of a Route on a specific date / time, served by a Vehicle and crew.     |
 | TripStop               | Điểm dừng của chuyến       | An ordered stop within a Trip.                                                                        |
 | TripSeat               | Ghế của chuyến             | A seat allocation for a specific Trip, with its own status lifecycle.                                 |
