@@ -145,6 +145,8 @@ Serializers _$serializers = (Serializers().toBuilder()
       ..add(VehicleResponseDtoOutputStatusEnum.serializer)
       ..add(VehicleTypeListResponseDtoOutput.serializer)
       ..add(VehicleTypeListResponseDtoOutputItemsInner.serializer)
+      ..add(VehicleTypeListResponseDtoOutputItemsInnerClass_Enum.serializer)
+      ..add(VehicleTypeListResponseDtoOutputItemsInnerFormEnum.serializer)
       ..add(WardListResponseDtoOutput.serializer)
       ..add(WardListResponseDtoOutputItemsInner.serializer)
       ..addBuilderFactory(

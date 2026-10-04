@@ -478,7 +478,13 @@ describe.skipIf(!url && !requireDb)("Catalog — Postgres thật, role app", () 
         },
       ],
       vehicleTypes: [
-        { code: `VT-${tag}`, name: "Loại test", description: "mô tả" },
+        {
+          code: `VT-${tag}`,
+          name: "Loại test",
+          description: "mô tả",
+          form: "SLEEPER",
+          class: "LIMOUSINE",
+        },
       ],
       amenities: [{ code: `AM-${tag}`, name: "Tiện ích test" }],
       sampleStopPoints: [
@@ -545,6 +551,30 @@ describe.skipIf(!url && !requireDb)("Catalog — Postgres thật, role app", () 
           where: { name: `Bến mẫu ${tag}` },
         }),
       ).toBe(1);
+
+      // BR-77, TC-TRN-012: loại xe seed ra mang dạng chỗ + hạng xe và API catalog trả đúng hai field này.
+      const seeded = (await catalog.listVehicleTypes()).items.find(
+        (item) => item.code === `VT-${tag}`,
+      );
+      expect(seeded).toEqual({
+        id: expect.any(String),
+        code: `VT-${tag}`,
+        name: "Loại test",
+        description: "mô tả",
+        form: "SLEEPER",
+        class: "LIMOUSINE",
+      });
+    });
+
+    it("DB không cho loại xe thiếu dạng chỗ / hạng xe (NOT NULL, không default)", async () => {
+      const text = await rejectionText(
+        prisma.withSystem(
+          (tx) => tx.$executeRaw`
+            INSERT INTO "vehicle_types" ("id", "code", "name", "updated_at")
+            VALUES (${randomUUID()}, ${`NOFORM-${tag}`}, 'Thiếu phân loại', now())`,
+        ),
+      );
+      expect(text).toMatch(/23502|null value in column "(form|class)"/);
     });
 
     it("scope tenant không seed được (RLS chặn cả đường seed)", async () => {

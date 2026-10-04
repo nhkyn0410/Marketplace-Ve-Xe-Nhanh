@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { StopPointType } from "../database/prisma.types";
+import {
+  StopPointType,
+  VehicleClass,
+  VehicleForm,
+} from "../database/prisma.types";
 import {
   AMENITIES,
   catalogSeedData,
@@ -116,13 +120,19 @@ describe("catalogSeedData — dữ liệu theo môi trường", () => {
     },
   );
 
-  it("loại xe đúng 4 mã GLOSSARY; mã loại xe/tiện ích không trùng", () => {
-    expect(VEHICLE_TYPES.map((item) => item.code)).toEqual([
-      "SEATER",
-      "SLEEPER",
-      "LIMOUSINE",
-      "CABIN",
+  it("loại xe đủ 3 dạng chỗ × 2 hạng xe, mã khớp thuộc tính (BR-77); mã tiện ích không trùng", () => {
+    expect(
+      VEHICLE_TYPES.map((item) => [item.code, item.form, item.class]),
+    ).toEqual([
+      ["SEATER", VehicleForm.SEATER, VehicleClass.STANDARD],
+      ["SLEEPER", VehicleForm.SLEEPER, VehicleClass.STANDARD],
+      ["CABIN", VehicleForm.CABIN, VehicleClass.STANDARD],
+      ["SEATER_LIMOUSINE", VehicleForm.SEATER, VehicleClass.LIMOUSINE],
+      ["SLEEPER_LIMOUSINE", VehicleForm.SLEEPER, VehicleClass.LIMOUSINE],
+      ["CABIN_LIMOUSINE", VehicleForm.CABIN, VehicleClass.LIMOUSINE],
     ]);
+    // Limousine là hạng, không còn là một mã ngang hàng với ba dạng chỗ.
+    expect(VEHICLE_TYPES.map((item) => item.code)).not.toContain("LIMOUSINE");
     expect(new Set(AMENITIES.map((item) => item.code)).size).toBe(
       AMENITIES.length,
     );

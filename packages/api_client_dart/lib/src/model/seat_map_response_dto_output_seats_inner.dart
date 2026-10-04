@@ -33,7 +33,7 @@ abstract class SeatMapResponseDtoOutputSeatsInner implements Built<SeatMapRespon
 
   @BuiltValueField(wireName: r'type')
   SeatMapResponseDtoOutputSeatsInnerTypeEnum get type;
-  // enum typeEnum {  SEAT,  BED,  };
+  // enum typeEnum {  SEAT,  BED,  BED_DOUBLE,  CABIN,  CABIN_DOUBLE,  };
 
   SeatMapResponseDtoOutputSeatsInner._();
 
@@ -177,6 +177,12 @@ class SeatMapResponseDtoOutputSeatsInnerTypeEnum extends EnumClass {
   static const SeatMapResponseDtoOutputSeatsInnerTypeEnum SEAT = _$seatMapResponseDtoOutputSeatsInnerTypeEnum_SEAT;
   @BuiltValueEnumConst(wireName: r'BED')
   static const SeatMapResponseDtoOutputSeatsInnerTypeEnum BED = _$seatMapResponseDtoOutputSeatsInnerTypeEnum_BED;
+  @BuiltValueEnumConst(wireName: r'BED_DOUBLE')
+  static const SeatMapResponseDtoOutputSeatsInnerTypeEnum BED_DOUBLE = _$seatMapResponseDtoOutputSeatsInnerTypeEnum_BED_DOUBLE;
+  @BuiltValueEnumConst(wireName: r'CABIN')
+  static const SeatMapResponseDtoOutputSeatsInnerTypeEnum CABIN = _$seatMapResponseDtoOutputSeatsInnerTypeEnum_CABIN;
+  @BuiltValueEnumConst(wireName: r'CABIN_DOUBLE')
+  static const SeatMapResponseDtoOutputSeatsInnerTypeEnum CABIN_DOUBLE = _$seatMapResponseDtoOutputSeatsInnerTypeEnum_CABIN_DOUBLE;
 
   static Serializer<SeatMapResponseDtoOutputSeatsInnerTypeEnum> get serializer => _$seatMapResponseDtoOutputSeatsInnerTypeEnumSerializer;
 

@@ -84,7 +84,14 @@ export class CatalogService {
     const items = await this.prisma.vehicleType.findMany({
       where: { status: ACTIVE },
       orderBy: { code: "asc" },
-      select: { id: true, code: true, name: true, description: true },
+      select: {
+        id: true,
+        code: true,
+        name: true,
+        description: true,
+        form: true,
+        class: true,
+      },
     });
     return { items };
   }

@@ -419,12 +419,28 @@ model StopPointCatalog {
   @@map("stop_points_catalog")
 }
 
-/// Loại phương tiện chuẩn (GLOSSARY: seater, sleeper, limousine, cabin).
+/// Dạng chỗ của loại xe (BR-77).
+enum VehicleForm {
+  SEATER
+  SLEEPER
+  CABIN
+}
+
+/// Hạng xe (BR-77). Limousine là hạng, không phải dạng chỗ.
+enum VehicleClass {
+  STANDARD
+  LIMOUSINE
+}
+
+/// Loại phương tiện chuẩn: mỗi dòng mang dạng chỗ + hạng xe (BR-77, TASK-TRN-010).
+/// Không đặt default cho `form` / `class`: mọi đường ghi phải khai rõ cả hai.
 model VehicleType {
   id          String        @id @default(uuid())
   code        String        @unique
   name        String
   description String?
+  form        VehicleForm
+  class       VehicleClass
   status      CatalogStatus @default(ACTIVE)
   createdAt   DateTime      @default(now()) @map("created_at")
   updatedAt   DateTime      @updatedAt @map("updated_at")
@@ -460,10 +476,13 @@ enum VehicleStatus {
   INACTIVE
 }
 
-/// Loại chỗ trong sơ đồ (UC-12 "loại ghế / giường").
+/// Loại chỗ trong sơ đồ (BR-78). Chỗ đôi (`*_DOUBLE`) chứa tối đa hai hành khách, còn lại một.
 enum SeatType {
   SEAT
   BED
+  BED_DOUBLE
+  CABIN
+  CABIN_DOUBLE
 }
 
 /// Sơ đồ ghế do nhà xe tự cấu hình, dùng làm mẫu chung cho nhiều xe (quyết định Q1).

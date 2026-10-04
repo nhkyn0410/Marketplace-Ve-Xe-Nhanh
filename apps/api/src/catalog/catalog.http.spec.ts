@@ -38,7 +38,20 @@ describe("Catalog routes — HTTP công khai", () => {
   }));
   const listWards = vi.fn(async () => ({ items: [] }));
   const listStopPoints = vi.fn(async () => ({ items: [], nextCursor: null }));
-  const listVehicleTypes = vi.fn(async () => ({ items: [] }));
+  const vehicleTypeId = randomUUID();
+  const listVehicleTypes = vi.fn(async () => ({
+    items: [
+      {
+        id: vehicleTypeId,
+        code: "SLEEPER_LIMOUSINE",
+        name: "Giường nằm Limousine",
+        description: null,
+        form: "SLEEPER",
+        class: "LIMOUSINE",
+        ...timestamps,
+      },
+    ],
+  }));
   const listAmenities = vi.fn(async () => ({ items: [] }));
   let app: INestApplication;
   let base: string;
@@ -96,6 +109,22 @@ describe("Catalog routes — HTTP công khai", () => {
     const body = await (await fetch(`${base}/provinces`)).json();
     expect(body).toEqual({
       items: [{ id: provinceId, code: "79", name: "Thành phố Hồ Chí Minh" }],
+    });
+  });
+
+  it("vehicle-types trả dạng chỗ + hạng xe (BR-77), không status/timestamp", async () => {
+    const body = await (await fetch(`${base}/vehicle-types`)).json();
+    expect(body).toEqual({
+      items: [
+        {
+          id: vehicleTypeId,
+          code: "SLEEPER_LIMOUSINE",
+          name: "Giường nằm Limousine",
+          description: null,
+          form: "SLEEPER",
+          class: "LIMOUSINE",
+        },
+      ],
     });
   });
 

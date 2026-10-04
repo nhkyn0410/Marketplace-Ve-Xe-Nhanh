@@ -8,6 +8,9 @@ export const MAX_ROWS = 30;
 export const MAX_COLUMNS = 10;
 export const MAX_SEATS = 100;
 
+/** Chỗ đôi chứa tối đa hai hành khách, các loại còn lại một (BR-78). */
+export const DOUBLE_SEAT_TYPES: SeatType[] = [SeatType.BED_DOUBLE, SeatType.CABIN_DOUBLE];
+
 const DeckSchema = z.object({
   deck: z.int().min(1).max(MAX_DECKS),
   rows: z.int().min(1).max(MAX_ROWS),
@@ -79,6 +82,10 @@ const SeatMapSummarySchema = z.object({
   id: z.uuid(),
   name: z.string(),
   seatCount: z.int(),
+  // BR-78: sức chứa = số chỗ + số chỗ đôi (mỗi chỗ đôi tính hai người).
+  passengerCapacity: z.int(),
+  // Số tầng = số phần tử `layout.decks` (TRN-011), để danh sách không phải tải bố cục.
+  deckCount: z.int(),
   createdAt: z.iso.datetime(),
   updatedAt: z.iso.datetime(),
 });
