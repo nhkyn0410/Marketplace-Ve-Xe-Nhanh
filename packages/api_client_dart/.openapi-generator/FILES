@@ -187,11 +187,3 @@ lib/src/model/ward_list_response_dto_output.dart
 lib/src/model/ward_list_response_dto_output_items_inner.dart
 lib/src/serializers.dart
 pubspec.yaml
-test/auth_me_response_dto_output_test.dart
-test/credential_web_session_response_test.dart
-test/csrf_token_response_dto_output_test.dart
-test/mfa_verify_token_response_test.dart
-test/mfa_verify_web_session_response_test.dart
-test/refresh_response_dto_output_test.dart
-test/refresh_token_pair_response_test.dart
-test/refresh_web_session_response_test.dart

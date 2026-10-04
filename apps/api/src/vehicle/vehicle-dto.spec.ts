@@ -94,6 +94,24 @@ describe("SeatMapInputSchema — bố cục hợp lệ (UC-12 bước 5, A2)", (
     expect(parsed.seats.map((seat) => seat.code)).toEqual(["A1", "A2", "B1"]);
   });
 
+  it.each(["SEAT", "BED", "BED_DOUBLE", "CABIN", "CABIN_DOUBLE"])("chấp nhận loại chỗ %s (BR-78)", (type) => {
+    const parsed = SeatMapInputSchema.parse({ ...valid, seats: [{ ...valid.seats[0], type }] });
+    expect(parsed.seats[0]!.type).toBe(type);
+  });
+
+  it("một sơ đồ được trộn nhiều loại chỗ, không ràng buộc theo dạng chỗ của loại xe (BR-78)", () => {
+    const seats = [
+      { ...valid.seats[0], type: "SEAT" },
+      { ...valid.seats[1], type: "CABIN_DOUBLE" },
+      { ...valid.seats[2], type: "BED" },
+    ];
+    expect(SeatMapInputSchema.parse({ ...valid, seats }).seats.map((seat) => seat.type)).toEqual([
+      "SEAT",
+      "CABIN_DOUBLE",
+      "BED",
+    ]);
+  });
+
   it.each([
     ["trùng mã (khác hoa/thường)", { seats: [valid.seats[0], { ...valid.seats[1], code: "A1" }] }],
     ["hai ghế cùng vị trí", { seats: [valid.seats[0], { ...valid.seats[1], column: 1 }] }],

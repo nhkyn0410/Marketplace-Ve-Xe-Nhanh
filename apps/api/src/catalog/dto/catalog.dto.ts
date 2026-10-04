@@ -1,6 +1,10 @@
 import { createZodDto } from "nestjs-zod";
 import { z } from "zod";
-import { StopPointType } from "../../database/prisma.types";
+import {
+  StopPointType,
+  VehicleClass,
+  VehicleForm,
+} from "../../database/prisma.types";
 
 /** Query `GET /catalog/wards`: phường/xã phải thuộc một tỉnh cụ thể. */
 export class WardListQueryDto extends createZodDto(
@@ -77,6 +81,9 @@ export const VehicleTypeListResponseSchema = z.object({
       code: z.string(),
       name: z.string(),
       description: z.string().nullable(),
+      // BR-77: hai thuộc tính độc lập — dạng chỗ và hạng xe.
+      form: z.enum(VehicleForm),
+      class: z.enum(VehicleClass),
     }),
   ),
 });

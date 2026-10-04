@@ -1,5 +1,9 @@
 import type { DbTransaction } from "../database/prisma.service";
-import { StopPointType } from "../database/prisma.types";
+import {
+  StopPointType,
+  VehicleClass,
+  VehicleForm,
+} from "../database/prisma.types";
 
 /**
  * Seed catalog (TASK-CAT-001, DB-MIG-04, quyết định Q4). Lõi nằm trong `src/` để test được; CLI mỏng ở
@@ -21,6 +25,8 @@ export type AdministrativeUnits = {
 
 type CodedItem = { code: string; name: string; description?: string };
 
+type VehicleTypeItem = CodedItem & { form: VehicleForm; class: VehicleClass };
+
 type SampleStopPoint = {
   name: string;
   type: StopPointType;
@@ -33,7 +39,7 @@ type SampleStopPoint = {
 };
 
 export type CatalogSeedData = AdministrativeUnits & {
-  vehicleTypes: CodedItem[];
+  vehicleTypes: VehicleTypeItem[];
   amenities: CodedItem[];
   sampleStopPoints: SampleStopPoint[];
 };
@@ -47,19 +53,52 @@ export type CatalogSeedResult = {
   skippedStopPoints: string[];
 };
 
-/** Loại phương tiện chuẩn theo GLOSSARY (seater, sleeper, limousine, cabin). */
-export const VEHICLE_TYPES: CodedItem[] = [
-  { code: "SEATER", name: "Ghế ngồi", description: "Xe khách ghế ngồi." },
-  { code: "SLEEPER", name: "Giường nằm", description: "Xe khách giường nằm." },
+/**
+ * Loại phương tiện chuẩn: ba dạng chỗ × hai hạng xe (BR-77). Limousine là hạng, không phải dạng chỗ.
+ * Mã `LIMOUSINE` cũ được migration `add_vehicle_classification` đổi thành `SEATER_LIMOUSINE`.
+ */
+export const VEHICLE_TYPES: VehicleTypeItem[] = [
   {
-    code: "LIMOUSINE",
-    name: "Limousine",
-    description: "Xe ghế ngồi cao cấp, ít chỗ.",
+    code: "SEATER",
+    name: "Ghế ngồi",
+    description: "Xe khách ghế ngồi.",
+    form: VehicleForm.SEATER,
+    class: VehicleClass.STANDARD,
+  },
+  {
+    code: "SLEEPER",
+    name: "Giường nằm",
+    description: "Xe khách giường nằm.",
+    form: VehicleForm.SLEEPER,
+    class: VehicleClass.STANDARD,
   },
   {
     code: "CABIN",
     name: "Cabin",
     description: "Xe giường nằm dạng phòng cabin riêng.",
+    form: VehicleForm.CABIN,
+    class: VehicleClass.STANDARD,
+  },
+  {
+    code: "SEATER_LIMOUSINE",
+    name: "Ghế ngồi Limousine",
+    description: "Xe ghế ngồi cao cấp, ít chỗ.",
+    form: VehicleForm.SEATER,
+    class: VehicleClass.LIMOUSINE,
+  },
+  {
+    code: "SLEEPER_LIMOUSINE",
+    name: "Giường nằm Limousine",
+    description: "Xe giường nằm hạng limousine.",
+    form: VehicleForm.SLEEPER,
+    class: VehicleClass.LIMOUSINE,
+  },
+  {
+    code: "CABIN_LIMOUSINE",
+    name: "Cabin Limousine",
+    description: "Xe cabin riêng hạng limousine.",
+    form: VehicleForm.CABIN,
+    class: VehicleClass.LIMOUSINE,
   },
 ];
 

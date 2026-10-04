@@ -2,24 +2,39 @@ import { Inject, Injectable } from "@nestjs/common";
 import { PrismaService, type DbTransaction } from "../database/prisma.service";
 import type { Authorization } from "../iam/role/authorization";
 import { isPrismaUniqueConflict } from "../iam/user/account.errors";
-import type {
-  SeatMapInput,
-  SeatMapLayout,
-  SeatMapListResponse,
-  SeatMapResponse,
+import {
+  DOUBLE_SEAT_TYPES,
+  type SeatMapInput,
+  type SeatMapLayout,
+  type SeatMapListResponse,
+  type SeatMapResponse,
 } from "./dto/seat-map.dto";
 import { requireTenant } from "../iam/role/require-tenant";
 import { seatMapNameConflict, seatMapNotFound } from "./vehicle.errors";
 
-const SUMMARY_SELECT = { id: true, name: true, seatCount: true, createdAt: true, updatedAt: true } as const;
+const SUMMARY_SELECT = {
+  id: true,
+  name: true,
+  layout: true,
+  seatCount: true,
+  createdAt: true,
+  updatedAt: true,
+  // Đếm chỗ đôi ngay trong truy vấn: danh sách tính được sức chứa mà không tải từng ghế (BR-78).
+  _count: { select: { seats: { where: { type: { in: DOUBLE_SEAT_TYPES } } } } },
+} as const;
 const SEAT_SELECT = { code: true, deck: true, row: true, column: true, type: true } as const;
 const SEAT_ORDER = [{ deck: "asc" }, { row: "asc" }, { column: "asc" }] as const;
 
-type SummaryRow = { id: string; name: string; seatCount: number; createdAt: Date; updatedAt: Date };
-type DetailRow = SummaryRow & {
+type SummaryRow = {
+  id: string;
+  name: string;
   layout: unknown;
-  seats: SeatMapResponse["seats"];
+  seatCount: number;
+  createdAt: Date;
+  updatedAt: Date;
+  _count: { seats: number };
 };
+type DetailRow = SummaryRow & { seats: SeatMapResponse["seats"] };
 
 /**
  * Sơ đồ ghế do nhà xe tự cấu hình (TASK-TRN-001, Q1): mẫu dùng chung cho nhiều xe; tùy chỉnh cho một
@@ -113,7 +128,7 @@ export class SeatMapService {
 function findDetail(tx: DbTransaction, operatorId: string, seatMapId: string) {
   return tx.seatMap.findFirst({
     where: { id: seatMapId, operatorId },
-    select: { ...SUMMARY_SELECT, layout: true, seats: { select: SEAT_SELECT, orderBy: [...SEAT_ORDER] } },
+    select: { ...SUMMARY_SELECT, seats: { select: SEAT_SELECT, orderBy: [...SEAT_ORDER] } },
   });
 }
 
@@ -131,7 +146,15 @@ function seatRows(input: SeatMapInput, operatorId: string, seatMapId: string) {
 }
 
 function toSummary(row: SummaryRow) {
-  return { ...row, createdAt: row.createdAt.toISOString(), updatedAt: row.updatedAt.toISOString() };
+  return {
+    id: row.id,
+    name: row.name,
+    seatCount: row.seatCount,
+    passengerCapacity: row.seatCount + row._count.seats,
+    deckCount: (row.layout as SeatMapLayout).decks.length,
+    createdAt: row.createdAt.toISOString(),
+    updatedAt: row.updatedAt.toISOString(),
+  };
 }
 
 function toDetail(row: DetailRow): SeatMapResponse {

@@ -33,7 +33,7 @@ abstract class SeatMapInputDtoSeatsInner implements Built<SeatMapInputDtoSeatsIn
 
   @BuiltValueField(wireName: r'type')
   SeatMapInputDtoSeatsInnerTypeEnum get type;
-  // enum typeEnum {  SEAT,  BED,  };
+  // enum typeEnum {  SEAT,  BED,  BED_DOUBLE,  CABIN,  CABIN_DOUBLE,  };
 
   SeatMapInputDtoSeatsInner._();
 
@@ -177,6 +177,12 @@ class SeatMapInputDtoSeatsInnerTypeEnum extends EnumClass {
   static const SeatMapInputDtoSeatsInnerTypeEnum SEAT = _$seatMapInputDtoSeatsInnerTypeEnum_SEAT;
   @BuiltValueEnumConst(wireName: r'BED')
   static const SeatMapInputDtoSeatsInnerTypeEnum BED = _$seatMapInputDtoSeatsInnerTypeEnum_BED;
+  @BuiltValueEnumConst(wireName: r'BED_DOUBLE')
+  static const SeatMapInputDtoSeatsInnerTypeEnum BED_DOUBLE = _$seatMapInputDtoSeatsInnerTypeEnum_BED_DOUBLE;
+  @BuiltValueEnumConst(wireName: r'CABIN')
+  static const SeatMapInputDtoSeatsInnerTypeEnum CABIN = _$seatMapInputDtoSeatsInnerTypeEnum_CABIN;
+  @BuiltValueEnumConst(wireName: r'CABIN_DOUBLE')
+  static const SeatMapInputDtoSeatsInnerTypeEnum CABIN_DOUBLE = _$seatMapInputDtoSeatsInnerTypeEnum_CABIN_DOUBLE;
 
   static Serializer<SeatMapInputDtoSeatsInnerTypeEnum> get serializer => _$seatMapInputDtoSeatsInnerTypeEnumSerializer;
 

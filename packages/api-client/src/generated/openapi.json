@@ -4811,13 +4811,30 @@
                       "type": "null"
                     }
                   ]
+                },
+                "form": {
+                  "type": "string",
+                  "enum": [
+                    "SEATER",
+                    "SLEEPER",
+                    "CABIN"
+                  ]
+                },
+                "class": {
+                  "type": "string",
+                  "enum": [
+                    "STANDARD",
+                    "LIMOUSINE"
+                  ]
                 }
               },
               "required": [
                 "id",
                 "code",
                 "name",
-                "description"
+                "description",
+                "form",
+                "class"
               ],
               "additionalProperties": false
             }
@@ -5126,6 +5143,16 @@
                   "minimum": -9007199254740991,
                   "maximum": 9007199254740991
                 },
+                "passengerCapacity": {
+                  "type": "integer",
+                  "minimum": -9007199254740991,
+                  "maximum": 9007199254740991
+                },
+                "deckCount": {
+                  "type": "integer",
+                  "minimum": -9007199254740991,
+                  "maximum": 9007199254740991
+                },
                 "createdAt": {
                   "type": "string",
                   "format": "date-time",
@@ -5141,6 +5168,8 @@
                 "id",
                 "name",
                 "seatCount",
+                "passengerCapacity",
+                "deckCount",
                 "createdAt",
                 "updatedAt"
               ],
@@ -5178,6 +5207,16 @@
             "type": "string"
           },
           "seatCount": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "passengerCapacity": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "deckCount": {
             "type": "integer",
             "minimum": -9007199254740991,
             "maximum": 9007199254740991
@@ -5259,7 +5298,10 @@
                   "type": "string",
                   "enum": [
                     "SEAT",
-                    "BED"
+                    "BED",
+                    "BED_DOUBLE",
+                    "CABIN",
+                    "CABIN_DOUBLE"
                   ]
                 }
               },
@@ -5278,6 +5320,8 @@
           "id",
           "name",
           "seatCount",
+          "passengerCapacity",
+          "deckCount",
           "createdAt",
           "updatedAt",
           "layout",
@@ -5361,7 +5405,10 @@
                   "type": "string",
                   "enum": [
                     "SEAT",
-                    "BED"
+                    "BED",
+                    "BED_DOUBLE",
+                    "CABIN",
+                    "CABIN_DOUBLE"
                   ]
                 }
               },

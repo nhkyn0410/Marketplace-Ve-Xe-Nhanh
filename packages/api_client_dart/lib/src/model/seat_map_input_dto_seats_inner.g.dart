@@ -12,6 +12,15 @@ const SeatMapInputDtoSeatsInnerTypeEnum
 const SeatMapInputDtoSeatsInnerTypeEnum
     _$seatMapInputDtoSeatsInnerTypeEnum_BED =
     const SeatMapInputDtoSeatsInnerTypeEnum._('BED');
+const SeatMapInputDtoSeatsInnerTypeEnum
+    _$seatMapInputDtoSeatsInnerTypeEnum_BED_DOUBLE =
+    const SeatMapInputDtoSeatsInnerTypeEnum._('BED_DOUBLE');
+const SeatMapInputDtoSeatsInnerTypeEnum
+    _$seatMapInputDtoSeatsInnerTypeEnum_CABIN =
+    const SeatMapInputDtoSeatsInnerTypeEnum._('CABIN');
+const SeatMapInputDtoSeatsInnerTypeEnum
+    _$seatMapInputDtoSeatsInnerTypeEnum_CABIN_DOUBLE =
+    const SeatMapInputDtoSeatsInnerTypeEnum._('CABIN_DOUBLE');
 
 SeatMapInputDtoSeatsInnerTypeEnum _$seatMapInputDtoSeatsInnerTypeEnumValueOf(
     String name) {
@@ -20,6 +29,12 @@ SeatMapInputDtoSeatsInnerTypeEnum _$seatMapInputDtoSeatsInnerTypeEnumValueOf(
       return _$seatMapInputDtoSeatsInnerTypeEnum_SEAT;
     case 'BED':
       return _$seatMapInputDtoSeatsInnerTypeEnum_BED;
+    case 'BED_DOUBLE':
+      return _$seatMapInputDtoSeatsInnerTypeEnum_BED_DOUBLE;
+    case 'CABIN':
+      return _$seatMapInputDtoSeatsInnerTypeEnum_CABIN;
+    case 'CABIN_DOUBLE':
+      return _$seatMapInputDtoSeatsInnerTypeEnum_CABIN_DOUBLE;
     default:
       throw ArgumentError(name);
   }
@@ -30,6 +45,9 @@ final BuiltSet<SeatMapInputDtoSeatsInnerTypeEnum>
         SeatMapInputDtoSeatsInnerTypeEnum>(const <SeatMapInputDtoSeatsInnerTypeEnum>[
   _$seatMapInputDtoSeatsInnerTypeEnum_SEAT,
   _$seatMapInputDtoSeatsInnerTypeEnum_BED,
+  _$seatMapInputDtoSeatsInnerTypeEnum_BED_DOUBLE,
+  _$seatMapInputDtoSeatsInnerTypeEnum_CABIN,
+  _$seatMapInputDtoSeatsInnerTypeEnum_CABIN_DOUBLE,
 ]);
 
 Serializer<SeatMapInputDtoSeatsInnerTypeEnum>
@@ -41,10 +59,16 @@ class _$SeatMapInputDtoSeatsInnerTypeEnumSerializer
   static const Map<String, Object> _toWire = const <String, Object>{
     'SEAT': 'SEAT',
     'BED': 'BED',
+    'BED_DOUBLE': 'BED_DOUBLE',
+    'CABIN': 'CABIN',
+    'CABIN_DOUBLE': 'CABIN_DOUBLE',
   };
   static const Map<Object, String> _fromWire = const <Object, String>{
     'SEAT': 'SEAT',
     'BED': 'BED',
+    'BED_DOUBLE': 'BED_DOUBLE',
+    'CABIN': 'CABIN',
+    'CABIN_DOUBLE': 'CABIN_DOUBLE',
   };
 
   @override

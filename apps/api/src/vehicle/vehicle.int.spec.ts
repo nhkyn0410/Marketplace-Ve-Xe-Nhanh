@@ -94,9 +94,9 @@ describe.skipIf(!url && !requireDb)("Vehicle / SeatMap — Postgres thật, role
       });
       await tx.vehicleType.createMany({
         data: [
-          { id: typeActive, code: `T1-${tag}`, name: "Ghế" },
-          { id: typeOther, code: `T2-${tag}`, name: "Giường" },
-          { id: typeInactive, code: `T3-${tag}`, name: "Ngừng", status: "INACTIVE" },
+          { id: typeActive, code: `T1-${tag}`, name: "Ghế", form: "SEATER", class: "STANDARD" },
+          { id: typeOther, code: `T2-${tag}`, name: "Giường", form: "SLEEPER", class: "LIMOUSINE" },
+          { id: typeInactive, code: `T3-${tag}`, name: "Ngừng", form: "CABIN", class: "STANDARD", status: "INACTIVE" },
         ],
       });
       await tx.amenity.createMany({
@@ -232,6 +232,51 @@ describe.skipIf(!url && !requireDb)("Vehicle / SeatMap — Postgres thật, role
       expect(created.seats.map((seat) => seat.code)).toEqual(["A1", "A2", "A3"]);
       expect((await rejectionOf(seatMaps.get(authzB, created.id))).code).toBe("SEAT_MAP_NOT_FOUND");
       expect((await seatMaps.list(authzB, { limit: 100 })).items.map((item) => item.id)).not.toContain(created.id);
+    });
+
+    it("5 loại chỗ lưu đúng; sức chứa = số chỗ + số chỗ đôi, số tầng theo bố cục — ở chi tiết lẫn danh sách (BR-78, TC-TRN-013)", async () => {
+      const mixed = SeatMapInputSchema.parse({
+        name: `Hỗn hợp ${tag}`,
+        layout: { decks: [{ deck: 1, rows: 2, columns: 2 }, { deck: 2, rows: 1, columns: 2 }] },
+        seats: [
+          { code: "A1", deck: 1, row: 1, column: 1, type: "SEAT" },
+          { code: "A2", deck: 1, row: 1, column: 2, type: "BED" },
+          { code: "A3", deck: 1, row: 2, column: 1, type: "BED_DOUBLE" },
+          { code: "A4", deck: 1, row: 2, column: 2, type: "CABIN" },
+          { code: "B1", deck: 2, row: 1, column: 1, type: "CABIN_DOUBLE" },
+        ],
+      });
+      const created = await seatMaps.create(authzA, mixed);
+      expect(created).toMatchObject({ seatCount: 5, passengerCapacity: 7, deckCount: 2 });
+      expect(created.seats.map((seat) => seat.type)).toEqual(["SEAT", "BED", "BED_DOUBLE", "CABIN", "CABIN_DOUBLE"]);
+      expect(await seatMaps.get(authzA, created.id)).toEqual(created);
+
+      const listed = (await seatMaps.list(authzA, { limit: 100 })).items.find((item) => item.id === created.id);
+      expect(listed).toEqual({
+        id: created.id,
+        name: created.name,
+        seatCount: 5,
+        passengerCapacity: 7,
+        deckCount: 2,
+        createdAt: created.createdAt,
+        updatedAt: created.updatedAt,
+      });
+
+      // PUT thay ghế: sức chứa và số tầng tính lại theo ghế mới, không giữ số cũ.
+      const single = await seatMaps.update(authzA, created.id, seatMapInput(`Hỗn hợp ${tag}`, 3));
+      expect(single).toMatchObject({ seatCount: 3, passengerCapacity: 3, deckCount: 1 });
+    });
+
+    it("DB chặn loại chỗ ngoài 5 giá trị (enum), kể cả đường ghi bỏ qua Zod", async () => {
+      const map = await seatMaps.create(authzA, seatMapInput(`Enum ${tag}`, 1));
+      const failure = await rejectionOf(
+        prisma.withSystem(
+          (tx) => tx.$executeRaw`
+            INSERT INTO "seats" ("id", "operator_id", "seat_map_id", "code", "deck", "row", "column", "type")
+            VALUES (${randomUUID()}, ${tenantA}, ${map.id}, 'Z1', 1, 5, 2, 'SOFA')`,
+        ),
+      );
+      expect(failure.text).toMatch(/22P02|invalid input value for enum/);
     });
 
     it("trùng tên trong tenant → 409; tenant khác được trùng tên", async () => {

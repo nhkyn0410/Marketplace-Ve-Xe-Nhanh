@@ -14,6 +14,8 @@ part 'seat_map_list_response_dto_output_items_inner.g.dart';
 /// * [id] 
 /// * [name] 
 /// * [seatCount] 
+/// * [passengerCapacity] 
+/// * [deckCount] 
 /// * [createdAt] 
 /// * [updatedAt] 
 @BuiltValue()
@@ -26,6 +28,12 @@ abstract class SeatMapListResponseDtoOutputItemsInner implements Built<SeatMapLi
 
   @BuiltValueField(wireName: r'seatCount')
   int get seatCount;
+
+  @BuiltValueField(wireName: r'passengerCapacity')
+  int get passengerCapacity;
+
+  @BuiltValueField(wireName: r'deckCount')
+  int get deckCount;
 
   @BuiltValueField(wireName: r'createdAt')
   DateTime get createdAt;
@@ -69,6 +77,16 @@ class _$SeatMapListResponseDtoOutputItemsInnerSerializer implements PrimitiveSer
     yield r'seatCount';
     yield serializers.serialize(
       object.seatCount,
+      specifiedType: const FullType(int),
+    );
+    yield r'passengerCapacity';
+    yield serializers.serialize(
+      object.passengerCapacity,
+      specifiedType: const FullType(int),
+    );
+    yield r'deckCount';
+    yield serializers.serialize(
+      object.deckCount,
       specifiedType: const FullType(int),
     );
     yield r'createdAt';
@@ -124,6 +142,20 @@ class _$SeatMapListResponseDtoOutputItemsInnerSerializer implements PrimitiveSer
             specifiedType: const FullType(int),
           ) as int;
           result.seatCount = valueDes;
+          break;
+        case r'passengerCapacity':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(int),
+          ) as int;
+          result.passengerCapacity = valueDes;
+          break;
+        case r'deckCount':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(int),
+          ) as int;
+          result.deckCount = valueDes;
           break;
         case r'createdAt':
           final valueDes = serializers.deserialize(

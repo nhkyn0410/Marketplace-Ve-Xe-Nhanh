@@ -966,6 +966,10 @@ export interface components {
                 code: string;
                 name: string;
                 description: string | null;
+                /** @enum {string} */
+                form: "SEATER" | "SLEEPER" | "CABIN";
+                /** @enum {string} */
+                class: "STANDARD" | "LIMOUSINE";
             }[];
         };
         AmenityListResponseDto_Output: {
@@ -1027,6 +1031,8 @@ export interface components {
                 id: string;
                 name: string;
                 seatCount: number;
+                passengerCapacity: number;
+                deckCount: number;
                 /** Format: date-time */
                 createdAt: string;
                 /** Format: date-time */
@@ -1039,6 +1045,8 @@ export interface components {
             id: string;
             name: string;
             seatCount: number;
+            passengerCapacity: number;
+            deckCount: number;
             /** Format: date-time */
             createdAt: string;
             /** Format: date-time */
@@ -1056,7 +1064,7 @@ export interface components {
                 row: number;
                 column: number;
                 /** @enum {string} */
-                type: "SEAT" | "BED";
+                type: "SEAT" | "BED" | "BED_DOUBLE" | "CABIN" | "CABIN_DOUBLE";
             }[];
         };
         SeatMapInputDto: {
@@ -1074,7 +1082,7 @@ export interface components {
                 row: number;
                 column: number;
                 /** @enum {string} */
-                type: "SEAT" | "BED";
+                type: "SEAT" | "BED" | "BED_DOUBLE" | "CABIN" | "CABIN_DOUBLE";
             }[];
         };
         OperatorStopPointListResponseDto_Output: {
