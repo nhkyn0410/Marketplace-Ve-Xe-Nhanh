@@ -23,6 +23,7 @@ part 'stop_point_proposal_response_dto_output.g.dart';
 /// * [description] 
 /// * [createdAt] 
 /// * [updatedAt] 
+/// * [legalBasis] 
 /// * [status] 
 /// * [rejectionReason] 
 /// * [catalogStopPointId] 
@@ -61,6 +62,9 @@ abstract class StopPointProposalResponseDtoOutput implements Built<StopPointProp
 
   @BuiltValueField(wireName: r'updatedAt')
   DateTime get updatedAt;
+
+  @BuiltValueField(wireName: r'legalBasis')
+  String get legalBasis;
 
   @BuiltValueField(wireName: r'status')
   StopPointProposalResponseDtoOutputStatusEnum get status;
@@ -149,6 +153,11 @@ class _$StopPointProposalResponseDtoOutputSerializer implements PrimitiveSeriali
     yield serializers.serialize(
       object.updatedAt,
       specifiedType: const FullType(DateTime),
+    );
+    yield r'legalBasis';
+    yield serializers.serialize(
+      object.legalBasis,
+      specifiedType: const FullType(String),
     );
     yield r'status';
     yield serializers.serialize(
@@ -265,6 +274,13 @@ class _$StopPointProposalResponseDtoOutputSerializer implements PrimitiveSeriali
             specifiedType: const FullType(DateTime),
           ) as DateTime;
           result.updatedAt = valueDes;
+          break;
+        case r'legalBasis':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(String),
+          ) as String;
+          result.legalBasis = valueDes;
           break;
         case r'status':
           final valueDes = serializers.deserialize(

@@ -13,10 +13,13 @@ Name | Type | Description | Notes
 **catalogStopPointId** | **String** |  | 
 **stopPointId** | **String** |  | 
 **name** | **String** |  | 
+**type** | **String** |  | 
 **address** | **String** |  | 
 **latitude** | **num** |  | 
 **longitude** | **num** |  | 
 **note** | **String** |  | 
+**allowPickup** | **bool** |  | 
+**allowDropoff** | **bool** |  | 
 **distanceMetersFromPrevious** | **int** |  | 
 **durationSecondsFromPrevious** | **int** |  | 
 

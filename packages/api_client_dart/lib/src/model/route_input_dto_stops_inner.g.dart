@@ -13,13 +13,21 @@ class _$RouteInputDtoStopsInner extends RouteInputDtoStopsInner {
   final String? stopPointId;
   @override
   final String? note;
+  @override
+  final bool allowPickup;
+  @override
+  final bool allowDropoff;
 
   factory _$RouteInputDtoStopsInner(
           [void Function(RouteInputDtoStopsInnerBuilder)? updates]) =>
       (RouteInputDtoStopsInnerBuilder()..update(updates))._build();
 
   _$RouteInputDtoStopsInner._(
-      {this.catalogStopPointId, this.stopPointId, this.note})
+      {this.catalogStopPointId,
+      this.stopPointId,
+      this.note,
+      required this.allowPickup,
+      required this.allowDropoff})
       : super._();
   @override
   RouteInputDtoStopsInner rebuild(
@@ -36,7 +44,9 @@ class _$RouteInputDtoStopsInner extends RouteInputDtoStopsInner {
     return other is RouteInputDtoStopsInner &&
         catalogStopPointId == other.catalogStopPointId &&
         stopPointId == other.stopPointId &&
-        note == other.note;
+        note == other.note &&
+        allowPickup == other.allowPickup &&
+        allowDropoff == other.allowDropoff;
   }
 
   @override
@@ -45,6 +55,8 @@ class _$RouteInputDtoStopsInner extends RouteInputDtoStopsInner {
     _$hash = $jc(_$hash, catalogStopPointId.hashCode);
     _$hash = $jc(_$hash, stopPointId.hashCode);
     _$hash = $jc(_$hash, note.hashCode);
+    _$hash = $jc(_$hash, allowPickup.hashCode);
+    _$hash = $jc(_$hash, allowDropoff.hashCode);
     _$hash = $jf(_$hash);
     return _$hash;
   }
@@ -54,7 +66,9 @@ class _$RouteInputDtoStopsInner extends RouteInputDtoStopsInner {
     return (newBuiltValueToStringHelper(r'RouteInputDtoStopsInner')
           ..add('catalogStopPointId', catalogStopPointId)
           ..add('stopPointId', stopPointId)
-          ..add('note', note))
+          ..add('note', note)
+          ..add('allowPickup', allowPickup)
+          ..add('allowDropoff', allowDropoff))
         .toString();
   }
 }
@@ -77,6 +91,14 @@ class RouteInputDtoStopsInnerBuilder
   String? get note => _$this._note;
   set note(String? note) => _$this._note = note;
 
+  bool? _allowPickup;
+  bool? get allowPickup => _$this._allowPickup;
+  set allowPickup(bool? allowPickup) => _$this._allowPickup = allowPickup;
+
+  bool? _allowDropoff;
+  bool? get allowDropoff => _$this._allowDropoff;
+  set allowDropoff(bool? allowDropoff) => _$this._allowDropoff = allowDropoff;
+
   RouteInputDtoStopsInnerBuilder() {
     RouteInputDtoStopsInner._defaults(this);
   }
@@ -87,6 +109,8 @@ class RouteInputDtoStopsInnerBuilder
       _catalogStopPointId = $v.catalogStopPointId;
       _stopPointId = $v.stopPointId;
       _note = $v.note;
+      _allowPickup = $v.allowPickup;
+      _allowDropoff = $v.allowDropoff;
       _$v = null;
     }
     return this;
@@ -111,6 +135,10 @@ class RouteInputDtoStopsInnerBuilder
           catalogStopPointId: catalogStopPointId,
           stopPointId: stopPointId,
           note: note,
+          allowPickup: BuiltValueNullFieldError.checkNotNull(
+              allowPickup, r'RouteInputDtoStopsInner', 'allowPickup'),
+          allowDropoff: BuiltValueNullFieldError.checkNotNull(
+              allowDropoff, r'RouteInputDtoStopsInner', 'allowDropoff'),
         );
     replace(_$result);
     return _$result;

@@ -147,8 +147,6 @@ class _$OperatorStopPointInputDto extends OperatorStopPointInputDto {
   @override
   final String name;
   @override
-  final OperatorStopPointInputDtoTypeEnum type;
-  @override
   final String address;
   @override
   final String provinceId;
@@ -161,6 +159,8 @@ class _$OperatorStopPointInputDto extends OperatorStopPointInputDto {
   @override
   final String? description;
   @override
+  final OperatorStopPointInputDtoTypeEnum type;
+  @override
   final OperatorStopPointInputDtoStatusEnum status;
 
   factory _$OperatorStopPointInputDto(
@@ -169,13 +169,13 @@ class _$OperatorStopPointInputDto extends OperatorStopPointInputDto {
 
   _$OperatorStopPointInputDto._(
       {required this.name,
-      required this.type,
       required this.address,
       required this.provinceId,
       required this.wardId,
       required this.latitude,
       required this.longitude,
       this.description,
+      required this.type,
       required this.status})
       : super._();
   @override
@@ -192,13 +192,13 @@ class _$OperatorStopPointInputDto extends OperatorStopPointInputDto {
     if (identical(other, this)) return true;
     return other is OperatorStopPointInputDto &&
         name == other.name &&
-        type == other.type &&
         address == other.address &&
         provinceId == other.provinceId &&
         wardId == other.wardId &&
         latitude == other.latitude &&
         longitude == other.longitude &&
         description == other.description &&
+        type == other.type &&
         status == other.status;
   }
 
@@ -206,13 +206,13 @@ class _$OperatorStopPointInputDto extends OperatorStopPointInputDto {
   int get hashCode {
     var _$hash = 0;
     _$hash = $jc(_$hash, name.hashCode);
-    _$hash = $jc(_$hash, type.hashCode);
     _$hash = $jc(_$hash, address.hashCode);
     _$hash = $jc(_$hash, provinceId.hashCode);
     _$hash = $jc(_$hash, wardId.hashCode);
     _$hash = $jc(_$hash, latitude.hashCode);
     _$hash = $jc(_$hash, longitude.hashCode);
     _$hash = $jc(_$hash, description.hashCode);
+    _$hash = $jc(_$hash, type.hashCode);
     _$hash = $jc(_$hash, status.hashCode);
     _$hash = $jf(_$hash);
     return _$hash;
@@ -222,13 +222,13 @@ class _$OperatorStopPointInputDto extends OperatorStopPointInputDto {
   String toString() {
     return (newBuiltValueToStringHelper(r'OperatorStopPointInputDto')
           ..add('name', name)
-          ..add('type', type)
           ..add('address', address)
           ..add('provinceId', provinceId)
           ..add('wardId', wardId)
           ..add('latitude', latitude)
           ..add('longitude', longitude)
           ..add('description', description)
+          ..add('type', type)
           ..add('status', status))
         .toString();
   }
@@ -242,10 +242,6 @@ class OperatorStopPointInputDtoBuilder
   String? _name;
   String? get name => _$this._name;
   set name(String? name) => _$this._name = name;
-
-  OperatorStopPointInputDtoTypeEnum? _type;
-  OperatorStopPointInputDtoTypeEnum? get type => _$this._type;
-  set type(OperatorStopPointInputDtoTypeEnum? type) => _$this._type = type;
 
   String? _address;
   String? get address => _$this._address;
@@ -271,6 +267,10 @@ class OperatorStopPointInputDtoBuilder
   String? get description => _$this._description;
   set description(String? description) => _$this._description = description;
 
+  OperatorStopPointInputDtoTypeEnum? _type;
+  OperatorStopPointInputDtoTypeEnum? get type => _$this._type;
+  set type(OperatorStopPointInputDtoTypeEnum? type) => _$this._type = type;
+
   OperatorStopPointInputDtoStatusEnum? _status;
   OperatorStopPointInputDtoStatusEnum? get status => _$this._status;
   set status(OperatorStopPointInputDtoStatusEnum? status) =>
@@ -284,13 +284,13 @@ class OperatorStopPointInputDtoBuilder
     final $v = _$v;
     if ($v != null) {
       _name = $v.name;
-      _type = $v.type;
       _address = $v.address;
       _provinceId = $v.provinceId;
       _wardId = $v.wardId;
       _latitude = $v.latitude;
       _longitude = $v.longitude;
       _description = $v.description;
+      _type = $v.type;
       _status = $v.status;
       _$v = null;
     }
@@ -315,8 +315,6 @@ class OperatorStopPointInputDtoBuilder
         _$OperatorStopPointInputDto._(
           name: BuiltValueNullFieldError.checkNotNull(
               name, r'OperatorStopPointInputDto', 'name'),
-          type: BuiltValueNullFieldError.checkNotNull(
-              type, r'OperatorStopPointInputDto', 'type'),
           address: BuiltValueNullFieldError.checkNotNull(
               address, r'OperatorStopPointInputDto', 'address'),
           provinceId: BuiltValueNullFieldError.checkNotNull(
@@ -328,6 +326,8 @@ class OperatorStopPointInputDtoBuilder
           longitude: BuiltValueNullFieldError.checkNotNull(
               longitude, r'OperatorStopPointInputDto', 'longitude'),
           description: description,
+          type: BuiltValueNullFieldError.checkNotNull(
+              type, r'OperatorStopPointInputDto', 'type'),
           status: BuiltValueNullFieldError.checkNotNull(
               status, r'OperatorStopPointInputDto', 'status'),
         );

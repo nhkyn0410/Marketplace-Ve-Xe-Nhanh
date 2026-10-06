@@ -177,6 +177,7 @@ class CatalogApi {
   /// * [provinceId] 
   /// * [wardId] 
   /// * [type] 
+  /// * [q] - Tìm theo tên hoặc địa chỉ; không phân biệt dấu và hoa/thường.
   /// * [cursor] 
   /// * [limit] 
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
@@ -192,6 +193,7 @@ class CatalogApi {
     String? provinceId,
     String? wardId,
     String? type,
+    String? q,
     String? cursor,
     num? limit = 20,
     CancelToken? cancelToken,
@@ -218,6 +220,7 @@ class CatalogApi {
       if (provinceId != null) r'provinceId': encodeQueryParameter(_serializers, provinceId, const FullType(String)),
       if (wardId != null) r'wardId': encodeQueryParameter(_serializers, wardId, const FullType(String)),
       if (type != null) r'type': encodeQueryParameter(_serializers, type, const FullType(String)),
+      if (q != null) r'q': encodeQueryParameter(_serializers, q, const FullType(String)),
       if (cursor != null) r'cursor': encodeQueryParameter(_serializers, cursor, const FullType(String)),
       if (limit != null) r'limit': encodeQueryParameter(_serializers, limit, const FullType(num)),
     };

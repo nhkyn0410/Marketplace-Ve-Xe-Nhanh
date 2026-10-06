@@ -245,6 +245,7 @@ describe("OpenAPI generation", () => {
           "provinceId",
           "wardId",
           "type",
+          "q",
           "cursor",
           "limit",
         ],

@@ -21,6 +21,7 @@ const PROPOSAL_SELECT = {
   latitude: true,
   longitude: true,
   description: true,
+  legalBasis: true,
   status: true,
   rejectionReason: true,
   catalogStopPointId: true,
@@ -29,9 +30,10 @@ const PROPOSAL_SELECT = {
 } as const;
 
 /**
- * Đề xuất đưa điểm vào catalog chuẩn (FR-OPS-05, UC-13 bước 7–8, Q1). Operator chỉ tạo bản `PENDING` và
- * sửa-gửi-lại bản `REJECTED`; duyệt/từ chối là việc của Admin (ADM-001). RLS của bảng cũng khoá đúng các
- * chuyển trạng thái này cho scope tenant — service có bug cũng không tự duyệt được.
+ * Đề xuất đưa bến xe / điểm dừng đón trả khách vào danh mục dùng chung, kèm căn cứ công bố (FR-OPS-05,
+ * UC-13 bước 7–8, BR-38). Operator chỉ tạo bản `PENDING` và sửa-gửi-lại bản `REJECTED`; duyệt/từ chối là
+ * việc của Admin (ADM-004). RLS của bảng cũng khoá đúng các chuyển trạng thái này cho scope tenant —
+ * service có bug cũng không tự duyệt được.
  */
 @Injectable()
 export class StopPointProposalService {
@@ -106,5 +108,6 @@ function toData(input: StopPointProposalInput) {
     latitude: input.latitude,
     longitude: input.longitude,
     description: input.description,
+    legalBasis: input.legalBasis,
   };
 }

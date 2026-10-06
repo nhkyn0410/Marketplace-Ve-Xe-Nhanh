@@ -189,4 +189,3 @@ lib/src/model/ward_list_response_dto_output.dart
 lib/src/model/ward_list_response_dto_output_items_inner.dart
 lib/src/serializers.dart
 pubspec.yaml
-test/vehicle_list_response_dto_output_items_inner_seat_map_test.dart

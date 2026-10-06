@@ -31,8 +31,10 @@ describe("Route / StopPoint / Proposal routes — HTTP", () => {
     longitude: 106.66,
     description: null,
   };
-  const stopPoint = { ...location, id, status: "ACTIVE", createdAt: now, updatedAt: now };
-  const proposal = { ...location, id, status: "PENDING", rejectionReason: null, catalogStopPointId: null, createdAt: now, updatedAt: now };
+  // BR-38: đề xuất chỉ nhận bến xe / điểm dừng đón trả và phải kèm căn cứ công bố.
+  const proposalBody = { ...location, type: "BUS_STATION", legalBasis: "QĐ 1234/QĐ-SGTVT" };
+  const stopPoint = { ...location, id, status: "ACTIVE", suspensionReason: null, routeCount: 0, createdAt: now, updatedAt: now };
+  const proposal = { ...proposalBody, id, status: "PENDING", rejectionReason: null, catalogStopPointId: null, createdAt: now, updatedAt: now };
   const route = {
     id,
     name: "SG - ĐL",
@@ -117,8 +119,8 @@ describe("Route / StopPoint / Proposal routes — HTTP", () => {
     status: "ACTIVE",
     note: null,
     stops: [
-      { catalogStopPointId: randomUUID(), stopPointId: null, note: null },
-      { catalogStopPointId: null, stopPointId: randomUUID(), note: null },
+      { catalogStopPointId: randomUUID(), stopPointId: null, note: null, allowPickup: true, allowDropoff: false },
+      { catalogStopPointId: null, stopPointId: randomUUID(), note: null, allowPickup: false, allowDropoff: true },
     ],
   };
   const routes: [string, string, object | undefined, number][] = [
@@ -131,8 +133,8 @@ describe("Route / StopPoint / Proposal routes — HTTP", () => {
     ["POST", "/stop-points", { ...location, status: "ACTIVE" }, 201],
     ["PUT", `/stop-points/${id}`, { ...location, status: "ACTIVE" }, 200],
     ["GET", "/stop-point-proposals", undefined, 200],
-    ["POST", "/stop-point-proposals", location, 201],
-    ["PUT", `/stop-point-proposals/${id}`, location, 200],
+    ["POST", "/stop-point-proposals", proposalBody, 201],
+    ["PUT", `/stop-point-proposals/${id}`, proposalBody, 200],
   ];
 
   it.each(routes)("%s %s: Owner được, không token 401, Employee/Platform 403", async (method, path, body, ok) => {
@@ -147,7 +149,7 @@ describe("Route / StopPoint / Proposal routes — HTTP", () => {
 
   it("mass assignment: tenant lấy từ JWT; đề xuất không nhận status/catalogStopPointId từ body", async () => {
     await call("POST", "/stop-point-proposals", await token("OPERATOR_OWNER"), {
-      ...location,
+      ...proposalBody,
       operatorId: randomUUID(),
       status: "APPROVED",
       catalogStopPointId: randomUUID(),
@@ -160,15 +162,71 @@ describe("Route / StopPoint / Proposal routes — HTTP", () => {
     for (const field of ["operatorId", "status", "catalogStopPointId", "rejectionReason"]) {
       expect(input).not.toHaveProperty(field);
     }
+    expect(input).toMatchObject({ type: "BUS_STATION", legalBasis: "QĐ 1234/QĐ-SGTVT" });
+  });
+
+  it("GET /stop-points chuyển bộ lọc trạng thái / loại / tỉnh / từ khoá xuống service; response có lý do tạm ngưng và số tuyến", async () => {
+    const owner = await token("OPERATOR_OWNER");
+    services.stopPoints.list.mockResolvedValueOnce({
+      items: [{ ...stopPoint, status: "SUSPENDED", suspensionReason: "Sai vị trí", routeCount: 2 }],
+      nextCursor: null,
+    } as never);
+    const provinceId = randomUUID();
+    const query = `status=SUSPENDED&type=REST_STOP&provinceId=${provinceId}&q=${encodeURIComponent("  tram dung ")}`;
+    const response = await call("GET", `/stop-points?${query}`, owner);
+    expect(response.status).toBe(200);
+    expect((response.body.items as Record<string, unknown>[])[0]).toMatchObject({
+      status: "SUSPENDED",
+      suspensionReason: "Sai vị trí",
+      routeCount: 2,
+    });
+    const [, listQuery] = services.stopPoints.list.mock.calls[0] as unknown as [unknown, Record<string, unknown>];
+    expect(listQuery).toEqual({ status: "SUSPENDED", type: "REST_STOP", provinceId, q: "tram dung", limit: 20 });
+  });
+
+  it("response tuyến trả loại điểm và hai cờ cho đón / cho trả của từng điểm", async () => {
+    const stop = {
+      sequence: 1,
+      role: "ORIGIN",
+      catalogStopPointId: randomUUID(),
+      stopPointId: null,
+      name: "Bến xe Miền Đông",
+      type: "BUS_STATION",
+      address: "292 Đinh Bộ Lĩnh",
+      latitude: 10.81,
+      longitude: 106.71,
+      note: null,
+      allowPickup: true,
+      allowDropoff: false,
+      distanceMetersFromPrevious: null,
+      durationSecondsFromPrevious: null,
+    };
+    services.routes.get.mockResolvedValueOnce({ ...route, stops: [stop] } as never);
+    const response = await call("GET", `/routes/${id}`, await token("OPERATOR_OWNER"));
+    expect(response.status).toBe(200);
+    expect((response.body.stops as Record<string, unknown>[])[0]).toMatchObject({
+      type: "BUS_STATION",
+      allowPickup: true,
+      allowDropoff: false,
+    });
   });
 
   it.each([
     ["POST", "/routes", { ...routeBody, stops: routeBody.stops.slice(0, 1) }],
     ["POST", "/routes", { ...routeBody, stops: [routeBody.stops[0], routeBody.stops[0]] }],
     ["PUT", `/routes/${id}`, { name: "x", stops: routeBody.stops }],
+    // BR-79: thiếu cờ cho đón / cho trả là 400, không ngầm hiểu.
+    ["POST", "/routes", { ...routeBody, stops: routeBody.stops.map(({ allowPickup: _allowPickup, ...stop }) => stop) }],
     ["POST", "/stop-points", { ...location, status: "ACTIVE", latitude: 95 }],
-    ["POST", "/stop-point-proposals", { ...location, wardId: "khong-phai-uuid" }],
+    // Tạm ngưng là quyền của Admin Platform: nhà xe không tự đặt được.
+    ["PUT", `/stop-points/${id}`, { ...location, status: "SUSPENDED" }],
+    ["POST", "/stop-point-proposals", { ...proposalBody, wardId: "khong-phai-uuid" }],
+    ["POST", "/stop-point-proposals", { ...proposalBody, type: "OFFICE" }],
+    ["POST", "/stop-point-proposals", location],
+    ["PUT", `/stop-point-proposals/${id}`, { ...proposalBody, legalBasis: "  " }],
     ["GET", "/routes?status=DRAFT", undefined],
+    ["GET", "/stop-points?type=AIRPORT", undefined],
+    ["GET", `/stop-points?q=${"x".repeat(101)}`, undefined],
     ["GET", "/stop-point-proposals?status=UNKNOWN", undefined],
   ])("%s %s dữ liệu sai → 400, service không bị gọi", async (method, path, body) => {
     const response = await call(method, path, await token("OPERATOR_OWNER"), body);

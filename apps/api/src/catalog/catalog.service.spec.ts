@@ -19,14 +19,16 @@ function stopPoint(id: string) {
 
 function serviceWith(rows: unknown[]) {
   const findMany = vi.fn(async () => rows);
+  const queryRaw = vi.fn(async (): Promise<unknown[]> => []);
   const prisma = {
     province: { findMany },
     ward: { findMany },
     stopPointCatalog: { findMany },
     vehicleType: { findMany },
     amenity: { findMany },
+    $queryRaw: queryRaw,
   } as unknown as PrismaService;
-  return { service: new CatalogService(prisma), findMany };
+  return { service: new CatalogService(prisma), findMany, queryRaw };
 }
 
 describe("CatalogService — chỉ ACTIVE + cursor", () => {
@@ -83,6 +85,23 @@ describe("CatalogService — chỉ ACTIVE + cursor", () => {
     const call = findMany.mock.calls[0] as unknown as [Record<string, unknown>];
     expect(call[0]).not.toHaveProperty("skip");
     expect(call[0]).not.toHaveProperty("cursor");
+  });
+
+  it("listStopPoints: `q` so với cột `search_text` bằng từ khoá database đã chuẩn hoá; không có `q` thì không thêm điều kiện, không hỏi database", async () => {
+    const { service, findMany, queryRaw } = serviceWith([]);
+    queryRaw.mockResolvedValueOnce([{ value: "ben xe 50%" }]);
+    await service.listStopPoints({ q: "Bến xe 50%", limit: 20 });
+    const [withQuery] = findMany.mock.calls[0] as unknown as [
+      { where: Record<string, unknown> },
+    ];
+    expect(withQuery.where.searchText).toEqual({ contains: "ben xe 50\\%" });
+
+    await service.listStopPoints({ limit: 20 });
+    const [withoutQuery] = findMany.mock.calls[1] as unknown as [
+      { where: Record<string, unknown> },
+    ];
+    expect(withoutQuery.where).not.toHaveProperty("searchText");
+    expect(queryRaw).toHaveBeenCalledTimes(1);
   });
 
   it("nextCursor = id cuối trang khi còn dòng; null ở trang cuối", async () => {

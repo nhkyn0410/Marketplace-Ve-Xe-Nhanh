@@ -56,7 +56,11 @@ export class RouteController {
   @ZodResponse({ status: 201, description: "Route đã tạo.", type: RouteResponseDto })
   @ApiResponse({ status: 400, description: "Dữ liệu không hợp lệ (dưới 2 điểm, điểm lặp...).", content: problemContent })
   @ApiResponse({ status: 409, description: "`ROUTE_NAME_CONFLICT`.", content: problemContent })
-  @ApiResponse({ status: 422, description: "`STOP_POINT_UNAVAILABLE`.", content: problemContent })
+  @ApiResponse({
+    status: 422,
+    description: "`STOP_POINT_UNAVAILABLE` hoặc `ROUTE_STOP_PICKUP_DROPOFF_INVALID` (cho đón / cho trả sai quy tắc).",
+    content: problemContent,
+  })
   @ApiResponse({ status: 503, description: "`ROUTING_PROVIDER_UNAVAILABLE` — không lưu gì.", content: problemContent })
   create(@Authz() authz: Authorization, @Body() input: RouteInputDto): Promise<RouteResponse> {
     return this.routes.create(authz, input);
@@ -71,7 +75,11 @@ export class RouteController {
   @ApiResponse({ status: 400, description: "Dữ liệu không hợp lệ.", content: problemContent })
   @ApiResponse({ status: 404, description: "`ROUTE_NOT_FOUND` (kể cả khác tenant).", content: problemContent })
   @ApiResponse({ status: 409, description: "`ROUTE_NAME_CONFLICT`.", content: problemContent })
-  @ApiResponse({ status: 422, description: "`STOP_POINT_UNAVAILABLE`.", content: problemContent })
+  @ApiResponse({
+    status: 422,
+    description: "`STOP_POINT_UNAVAILABLE` hoặc `ROUTE_STOP_PICKUP_DROPOFF_INVALID` (cho đón / cho trả sai quy tắc).",
+    content: problemContent,
+  })
   @ApiResponse({ status: 503, description: "`ROUTING_PROVIDER_UNAVAILABLE` — không đổi gì.", content: problemContent })
   update(
     @Authz() authz: Authorization,

@@ -24,6 +24,8 @@ part 'operator_stop_point_list_response_dto_output_items_inner.g.dart';
 /// * [createdAt] 
 /// * [updatedAt] 
 /// * [status] 
+/// * [suspensionReason] 
+/// * [routeCount] 
 @BuiltValue()
 abstract class OperatorStopPointListResponseDtoOutputItemsInner implements Built<OperatorStopPointListResponseDtoOutputItemsInner, OperatorStopPointListResponseDtoOutputItemsInnerBuilder> {
   @BuiltValueField(wireName: r'id')
@@ -62,7 +64,13 @@ abstract class OperatorStopPointListResponseDtoOutputItemsInner implements Built
 
   @BuiltValueField(wireName: r'status')
   OperatorStopPointListResponseDtoOutputItemsInnerStatusEnum get status;
-  // enum statusEnum {  ACTIVE,  INACTIVE,  };
+  // enum statusEnum {  ACTIVE,  INACTIVE,  SUSPENDED,  };
+
+  @BuiltValueField(wireName: r'suspensionReason')
+  String? get suspensionReason;
+
+  @BuiltValueField(wireName: r'routeCount')
+  int get routeCount;
 
   OperatorStopPointListResponseDtoOutputItemsInner._();
 
@@ -146,6 +154,16 @@ class _$OperatorStopPointListResponseDtoOutputItemsInnerSerializer implements Pr
     yield serializers.serialize(
       object.status,
       specifiedType: const FullType(OperatorStopPointListResponseDtoOutputItemsInnerStatusEnum),
+    );
+    yield r'suspensionReason';
+    yield object.suspensionReason == null ? null : serializers.serialize(
+      object.suspensionReason,
+      specifiedType: const FullType.nullable(String),
+    );
+    yield r'routeCount';
+    yield serializers.serialize(
+      object.routeCount,
+      specifiedType: const FullType(int),
     );
   }
 
@@ -255,6 +273,21 @@ class _$OperatorStopPointListResponseDtoOutputItemsInnerSerializer implements Pr
           ) as OperatorStopPointListResponseDtoOutputItemsInnerStatusEnum;
           result.status = valueDes;
           break;
+        case r'suspensionReason':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType.nullable(String),
+          ) as String?;
+          if (valueDes == null) continue;
+          result.suspensionReason = valueDes;
+          break;
+        case r'routeCount':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(int),
+          ) as int;
+          result.routeCount = valueDes;
+          break;
         default:
           unhandled.add(key);
           unhandled.add(value);
@@ -310,6 +343,8 @@ class OperatorStopPointListResponseDtoOutputItemsInnerStatusEnum extends EnumCla
   static const OperatorStopPointListResponseDtoOutputItemsInnerStatusEnum ACTIVE = _$operatorStopPointListResponseDtoOutputItemsInnerStatusEnum_ACTIVE;
   @BuiltValueEnumConst(wireName: r'INACTIVE')
   static const OperatorStopPointListResponseDtoOutputItemsInnerStatusEnum INACTIVE = _$operatorStopPointListResponseDtoOutputItemsInnerStatusEnum_INACTIVE;
+  @BuiltValueEnumConst(wireName: r'SUSPENDED')
+  static const OperatorStopPointListResponseDtoOutputItemsInnerStatusEnum SUSPENDED = _$operatorStopPointListResponseDtoOutputItemsInnerStatusEnum_SUSPENDED;
 
   static Serializer<OperatorStopPointListResponseDtoOutputItemsInnerStatusEnum> get serializer => _$operatorStopPointListResponseDtoOutputItemsInnerStatusEnumSerializer;
 

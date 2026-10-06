@@ -10,12 +10,6 @@ const StopPointProposalInputDtoTypeEnum
     _$stopPointProposalInputDtoTypeEnum_BUS_STATION =
     const StopPointProposalInputDtoTypeEnum._('BUS_STATION');
 const StopPointProposalInputDtoTypeEnum
-    _$stopPointProposalInputDtoTypeEnum_OFFICE =
-    const StopPointProposalInputDtoTypeEnum._('OFFICE');
-const StopPointProposalInputDtoTypeEnum
-    _$stopPointProposalInputDtoTypeEnum_REST_STOP =
-    const StopPointProposalInputDtoTypeEnum._('REST_STOP');
-const StopPointProposalInputDtoTypeEnum
     _$stopPointProposalInputDtoTypeEnum_PICKUP_POINT =
     const StopPointProposalInputDtoTypeEnum._('PICKUP_POINT');
 
@@ -24,10 +18,6 @@ StopPointProposalInputDtoTypeEnum _$stopPointProposalInputDtoTypeEnumValueOf(
   switch (name) {
     case 'BUS_STATION':
       return _$stopPointProposalInputDtoTypeEnum_BUS_STATION;
-    case 'OFFICE':
-      return _$stopPointProposalInputDtoTypeEnum_OFFICE;
-    case 'REST_STOP':
-      return _$stopPointProposalInputDtoTypeEnum_REST_STOP;
     case 'PICKUP_POINT':
       return _$stopPointProposalInputDtoTypeEnum_PICKUP_POINT;
     default:
@@ -39,8 +29,6 @@ final BuiltSet<StopPointProposalInputDtoTypeEnum>
     _$stopPointProposalInputDtoTypeEnumValues = BuiltSet<
         StopPointProposalInputDtoTypeEnum>(const <StopPointProposalInputDtoTypeEnum>[
   _$stopPointProposalInputDtoTypeEnum_BUS_STATION,
-  _$stopPointProposalInputDtoTypeEnum_OFFICE,
-  _$stopPointProposalInputDtoTypeEnum_REST_STOP,
   _$stopPointProposalInputDtoTypeEnum_PICKUP_POINT,
 ]);
 
@@ -52,14 +40,10 @@ class _$StopPointProposalInputDtoTypeEnumSerializer
     implements PrimitiveSerializer<StopPointProposalInputDtoTypeEnum> {
   static const Map<String, Object> _toWire = const <String, Object>{
     'BUS_STATION': 'BUS_STATION',
-    'OFFICE': 'OFFICE',
-    'REST_STOP': 'REST_STOP',
     'PICKUP_POINT': 'PICKUP_POINT',
   };
   static const Map<Object, String> _fromWire = const <Object, String>{
     'BUS_STATION': 'BUS_STATION',
-    'OFFICE': 'OFFICE',
-    'REST_STOP': 'REST_STOP',
     'PICKUP_POINT': 'PICKUP_POINT',
   };
 
@@ -86,8 +70,6 @@ class _$StopPointProposalInputDto extends StopPointProposalInputDto {
   @override
   final String name;
   @override
-  final StopPointProposalInputDtoTypeEnum type;
-  @override
   final String address;
   @override
   final String provinceId;
@@ -99,6 +81,10 @@ class _$StopPointProposalInputDto extends StopPointProposalInputDto {
   final num longitude;
   @override
   final String? description;
+  @override
+  final StopPointProposalInputDtoTypeEnum type;
+  @override
+  final String legalBasis;
 
   factory _$StopPointProposalInputDto(
           [void Function(StopPointProposalInputDtoBuilder)? updates]) =>
@@ -106,13 +92,14 @@ class _$StopPointProposalInputDto extends StopPointProposalInputDto {
 
   _$StopPointProposalInputDto._(
       {required this.name,
-      required this.type,
       required this.address,
       required this.provinceId,
       required this.wardId,
       required this.latitude,
       required this.longitude,
-      this.description})
+      this.description,
+      required this.type,
+      required this.legalBasis})
       : super._();
   @override
   StopPointProposalInputDto rebuild(
@@ -128,26 +115,28 @@ class _$StopPointProposalInputDto extends StopPointProposalInputDto {
     if (identical(other, this)) return true;
     return other is StopPointProposalInputDto &&
         name == other.name &&
-        type == other.type &&
         address == other.address &&
         provinceId == other.provinceId &&
         wardId == other.wardId &&
         latitude == other.latitude &&
         longitude == other.longitude &&
-        description == other.description;
+        description == other.description &&
+        type == other.type &&
+        legalBasis == other.legalBasis;
   }
 
   @override
   int get hashCode {
     var _$hash = 0;
     _$hash = $jc(_$hash, name.hashCode);
-    _$hash = $jc(_$hash, type.hashCode);
     _$hash = $jc(_$hash, address.hashCode);
     _$hash = $jc(_$hash, provinceId.hashCode);
     _$hash = $jc(_$hash, wardId.hashCode);
     _$hash = $jc(_$hash, latitude.hashCode);
     _$hash = $jc(_$hash, longitude.hashCode);
     _$hash = $jc(_$hash, description.hashCode);
+    _$hash = $jc(_$hash, type.hashCode);
+    _$hash = $jc(_$hash, legalBasis.hashCode);
     _$hash = $jf(_$hash);
     return _$hash;
   }
@@ -156,13 +145,14 @@ class _$StopPointProposalInputDto extends StopPointProposalInputDto {
   String toString() {
     return (newBuiltValueToStringHelper(r'StopPointProposalInputDto')
           ..add('name', name)
-          ..add('type', type)
           ..add('address', address)
           ..add('provinceId', provinceId)
           ..add('wardId', wardId)
           ..add('latitude', latitude)
           ..add('longitude', longitude)
-          ..add('description', description))
+          ..add('description', description)
+          ..add('type', type)
+          ..add('legalBasis', legalBasis))
         .toString();
   }
 }
@@ -175,10 +165,6 @@ class StopPointProposalInputDtoBuilder
   String? _name;
   String? get name => _$this._name;
   set name(String? name) => _$this._name = name;
-
-  StopPointProposalInputDtoTypeEnum? _type;
-  StopPointProposalInputDtoTypeEnum? get type => _$this._type;
-  set type(StopPointProposalInputDtoTypeEnum? type) => _$this._type = type;
 
   String? _address;
   String? get address => _$this._address;
@@ -204,6 +190,14 @@ class StopPointProposalInputDtoBuilder
   String? get description => _$this._description;
   set description(String? description) => _$this._description = description;
 
+  StopPointProposalInputDtoTypeEnum? _type;
+  StopPointProposalInputDtoTypeEnum? get type => _$this._type;
+  set type(StopPointProposalInputDtoTypeEnum? type) => _$this._type = type;
+
+  String? _legalBasis;
+  String? get legalBasis => _$this._legalBasis;
+  set legalBasis(String? legalBasis) => _$this._legalBasis = legalBasis;
+
   StopPointProposalInputDtoBuilder() {
     StopPointProposalInputDto._defaults(this);
   }
@@ -212,13 +206,14 @@ class StopPointProposalInputDtoBuilder
     final $v = _$v;
     if ($v != null) {
       _name = $v.name;
-      _type = $v.type;
       _address = $v.address;
       _provinceId = $v.provinceId;
       _wardId = $v.wardId;
       _latitude = $v.latitude;
       _longitude = $v.longitude;
       _description = $v.description;
+      _type = $v.type;
+      _legalBasis = $v.legalBasis;
       _$v = null;
     }
     return this;
@@ -242,8 +237,6 @@ class StopPointProposalInputDtoBuilder
         _$StopPointProposalInputDto._(
           name: BuiltValueNullFieldError.checkNotNull(
               name, r'StopPointProposalInputDto', 'name'),
-          type: BuiltValueNullFieldError.checkNotNull(
-              type, r'StopPointProposalInputDto', 'type'),
           address: BuiltValueNullFieldError.checkNotNull(
               address, r'StopPointProposalInputDto', 'address'),
           provinceId: BuiltValueNullFieldError.checkNotNull(
@@ -255,6 +248,10 @@ class StopPointProposalInputDtoBuilder
           longitude: BuiltValueNullFieldError.checkNotNull(
               longitude, r'StopPointProposalInputDto', 'longitude'),
           description: description,
+          type: BuiltValueNullFieldError.checkNotNull(
+              type, r'StopPointProposalInputDto', 'type'),
+          legalBasis: BuiltValueNullFieldError.checkNotNull(
+              legalBasis, r'StopPointProposalInputDto', 'legalBasis'),
         );
     replace(_$result);
     return _$result;

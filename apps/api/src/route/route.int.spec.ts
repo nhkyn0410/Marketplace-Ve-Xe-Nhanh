@@ -92,11 +92,29 @@ describe.skipIf(!url && !requireDb)("Route / StopPoint / Proposal — Postgres t
   }
   const stopPointInput = (overrides: Record<string, unknown> = {}) =>
     StopPointInputSchema.parse({ ...location(overrides), status: "ACTIVE", ...overrides });
-  const proposalInput = (overrides: Record<string, unknown> = {}) => StopPointProposalInputSchema.parse(location(overrides));
-  const catalogStop = (id: string) => ({ catalogStopPointId: id, stopPointId: null, note: null });
-  const privateStop = (id: string) => ({ catalogStopPointId: null, stopPointId: id, note: null });
-  const routeInput = (name: string, stops: object[], overrides: Record<string, unknown> = {}) =>
-    RouteInputSchema.parse({ name, status: "ACTIVE", note: null, stops, ...overrides });
+  // Đề xuất chỉ nhận bến xe / điểm dừng đón trả và bắt buộc căn cứ công bố (BR-38).
+  const proposalInput = (overrides: Record<string, unknown> = {}) =>
+    StopPointProposalInputSchema.parse({
+      ...location({ type: "BUS_STATION", ...overrides }),
+      legalBasis: "QĐ 1234/QĐ-SGTVT ngày 01/01/2026",
+      ...overrides,
+    });
+  type StopFlags = { allowPickup?: boolean; allowDropoff?: boolean };
+  const catalogStop = (id: string, flags: StopFlags = {}) => ({ catalogStopPointId: id, stopPointId: null, note: null, ...flags });
+  const privateStop = (id: string, flags: StopFlags = {}) => ({ catalogStopPointId: null, stopPointId: id, note: null, ...flags });
+  /** Điểm không khai cờ thì nhận mặc định hợp lệ theo vị trí: đầu chỉ đón, cuối chỉ trả, giữa cả hai (BR-79). */
+  const routeInput = (name: string, stops: (object & StopFlags)[], overrides: Record<string, unknown> = {}) =>
+    RouteInputSchema.parse({
+      name,
+      status: "ACTIVE",
+      note: null,
+      stops: stops.map((stop, index) => ({
+        allowPickup: index !== stops.length - 1,
+        allowDropoff: index !== 0,
+        ...stop,
+      })),
+      ...overrides,
+    });
 
   beforeAll(async () => {
     prisma = new PrismaService(parseAppConfig({ DATABASE_URL: url }));
@@ -190,7 +208,57 @@ describe.skipIf(!url && !requireDb)("Route / StopPoint / Proposal — Postgres t
         "SELECT:tenant_read",
         "UPDATE:tenant_resubmit_rejected",
       ]);
+      // TRN-012: điểm riêng cũng tách policy theo lệnh để khoá `SUSPENDED` và chặn xoá cứng phía tenant.
+      const stopPointPolicies = await prisma.$queryRaw<{ policyname: string; cmd: string }[]>`
+        SELECT policyname, cmd FROM pg_policies WHERE tablename = 'stop_points'`;
+      expect(stopPointPolicies.map((row) => `${row.cmd}:${row.policyname}`).sort()).toEqual([
+        "DELETE:platform_delete",
+        "INSERT:tenant_insert_not_suspended",
+        "SELECT:tenant_read",
+        "UPDATE:tenant_update_not_suspended",
+      ]);
       expect(await prisma.rlsProblems()).toEqual([]);
+    });
+
+    it("điểm riêng bị khóa (BR-81, TC-TRN-018): ghi thẳng DB bằng scope tenant cũng không tự khóa, tự mở, sửa hay xoá được", async () => {
+      const own = await stopPoints.create(authzA, stopPointInput({ name: `Khóa RLS ${tag}` }));
+      const tenantOnly = (work: Parameters<PrismaService["withTenant"]>[1]) => prisma.withTenant(tenantA, work);
+
+      // Nhà xe không tự đặt SUSPENDED: tạo mới hay sửa đều bị RLS chặn.
+      const insertSuspended = await rejectionOf(
+        tenantOnly((tx) =>
+          tx.stopPoint.create({
+            data: { ...stopPointInput(), operatorId: tenantA, status: "SUSPENDED", suspensionReason: "tự khóa" },
+          }),
+        ),
+      );
+      expect(insertSuspended.text).toMatch(/row-level security|42501/);
+      const selfSuspend = await rejectionOf(
+        tenantOnly((tx) =>
+          tx.stopPoint.update({ where: { id: own.id }, data: { status: "SUSPENDED", suspensionReason: "tự khóa" } }),
+        ),
+      );
+      expect(selfSuspend.text).toMatch(/row-level security|42501/);
+
+      // Admin (scope platform) khóa → tenant vẫn ĐỌC được kèm lý do, nhưng không ghi được dòng đó.
+      await prisma.withPlatform((tx) =>
+        tx.stopPoint.update({ where: { id: own.id }, data: { status: "SUSPENDED", suspensionReason: "Sai toạ độ" } }),
+      );
+      expect(await stopPoints.get(authzA, own.id)).toMatchObject({ status: "SUSPENDED", suspensionReason: "Sai toạ độ" });
+      expect(
+        await tenantOnly((tx) =>
+          tx.stopPoint.updateMany({ where: { id: own.id }, data: { status: "ACTIVE", suspensionReason: null } }),
+        ),
+      ).toEqual({ count: 0 });
+      expect(await tenantOnly((tx) => tx.stopPoint.updateMany({ where: { id: own.id }, data: { name: "đổi lén" } }))).toEqual({
+        count: 0,
+      });
+      // Không xoá cứng điểm dừng (BR-38): kể cả điểm chưa bị khóa.
+      const other = await stopPoints.create(authzA, stopPointInput());
+      expect(await tenantOnly((tx) => tx.stopPoint.deleteMany({ where: { id: { in: [own.id, other.id] } } }))).toEqual({
+        count: 0,
+      });
+      expect(await stopPoints.get(authzA, own.id)).toMatchObject({ status: "SUSPENDED", name: `Khóa RLS ${tag}` });
     });
 
     it("query CỐ Ý quên lọc operator_id: tenant B không đọc/sửa/xoá được điểm, route, điểm dừng của A", async () => {
@@ -274,6 +342,8 @@ describe.skipIf(!url && !requireDb)("Route / StopPoint / Proposal — Postgres t
       routeId,
       sequence: 2,
       role: "DESTINATION" as const,
+      allowPickup: false,
+      allowDropoff: true,
       latitude: 10,
       longitude: 106,
       distanceMetersFromPrevious: 1,
@@ -284,8 +354,15 @@ describe.skipIf(!url && !requireDb)("Route / StopPoint / Proposal — Postgres t
     it.each([
       ["không có nguồn", { catalogStopPointId: null, stopPointId: null }, /route_stops_single_source|23514/],
       ["hai nguồn", { catalogStopPointId: "__catalog__", stopPointId: "__private__" }, /route_stops_single_source|23514/],
-      ["điểm đầu có số liệu chặng", { sequence: 1, role: "ORIGIN", catalogStopPointId: "__catalog2__" }, /route_stops_sequence_consistent|23514/],
+      [
+        "điểm đầu có số liệu chặng",
+        { sequence: 1, role: "ORIGIN", allowPickup: true, allowDropoff: false, catalogStopPointId: "__catalog2__" },
+        /route_stops_sequence_consistent/,
+      ],
       ["điểm riêng của tenant khác", { stopPointId: "__privateB__" }, /route_stops_stop_point_id_operator_id_fkey|23503|Foreign key/i],
+      // BR-79: điểm cuối chỉ trả, điểm đầu chỉ đón — DB tự chặn dù service có bug.
+      ["điểm cuối cho đón", { catalogStopPointId: "__catalog2__", allowPickup: true }, /route_stops_pickup_dropoff_by_role/],
+      ["điểm cuối không cho trả", { catalogStopPointId: "__catalog2__", allowDropoff: false }, /route_stops_pickup_dropoff_by_role/],
     ])("route_stops: %s → DB từ chối", async (_case, extra, message) => {
       const route = await routes.create(authzA, routeInput(`INV ${randomUUID().slice(0, 6)}`, [catalogStop(catalog1), catalogStop(catalog2)]));
       const ownA = await stopPoints.create(authzA, stopPointInput());
@@ -314,6 +391,43 @@ describe.skipIf(!url && !requireDb)("Route / StopPoint / Proposal — Postgres t
       }
     });
 
+    it.each(["BUS_STATION", "PICKUP_POINT"] as const)(
+      "điểm riêng loại %s → CHECK chặn cả đường ghi bỏ qua service (BR-38, TC-TRN-015)",
+      async (type) => {
+        const failure = await rejectionOf(
+          prisma.withSystem((tx) => tx.stopPoint.create({ data: { ...stopPointInput(), operatorId: tenantA, type } })),
+        );
+        expect(failure.text).toMatch(/stop_points_private_type/);
+      },
+    );
+
+    it("điểm riêng: SUSPENDED phải có lý do, không khóa thì không được có lý do", async () => {
+      const own = await stopPoints.create(authzA, stopPointInput());
+      for (const data of [
+        { status: "SUSPENDED" as const },
+        { status: "SUSPENDED" as const, suspensionReason: "   " },
+        { status: "ACTIVE" as const, suspensionReason: "lý do thừa" },
+      ]) {
+        const failure = await rejectionOf(prisma.withPlatform((tx) => tx.stopPoint.update({ where: { id: own.id }, data })));
+        expect(failure.text).toMatch(/stop_points_suspension_consistent/);
+      }
+    });
+
+    it("đề xuất: loại văn phòng / trạm nghỉ hoặc căn cứ công bố rỗng → CHECK chặn cả với scope system", async () => {
+      for (const data of [{ type: "OFFICE" as const }, { type: "REST_STOP" as const }]) {
+        const failure = await rejectionOf(
+          prisma.withSystem((tx) => tx.stopPointProposal.create({ data: { ...proposalInput(), operatorId: tenantA, ...data } })),
+        );
+        expect(failure.text).toMatch(/stop_point_proposals_shared_type/);
+      }
+      const blank = await rejectionOf(
+        prisma.withSystem((tx) =>
+          tx.stopPointProposal.create({ data: { ...proposalInput(), operatorId: tenantA, legalBasis: "  " } }),
+        ),
+      );
+      expect(blank.text).toMatch(/stop_point_proposals_legal_basis_present/);
+    });
+
     it("điểm riêng: phường không thuộc tỉnh → FK ghép chặn", async () => {
       const failure = await rejectionOf(
         prisma.withSystem((tx) =>
@@ -340,6 +454,111 @@ describe.skipIf(!url && !requireDb)("Route / StopPoint / Proposal — Postgres t
           status: 422,
         });
       }
+    });
+
+    it.each(["BUS_STATION", "PICKUP_POINT"])(
+      "điểm riêng loại %s → 422 STOP_POINT_TYPE_NOT_ALLOWED khi tạo và khi sửa (BR-38, TC-TRN-015)",
+      async (type) => {
+        expect(await rejectionOf(stopPoints.create(authzA, stopPointInput({ type })))).toMatchObject({
+          code: "STOP_POINT_TYPE_NOT_ALLOWED",
+          status: 422,
+        });
+        const office = await stopPoints.create(authzA, stopPointInput());
+        expect((await rejectionOf(stopPoints.update(authzA, office.id, stopPointInput({ name: office.name, type })))).code).toBe(
+          "STOP_POINT_TYPE_NOT_ALLOWED",
+        );
+        expect((await stopPoints.get(authzA, office.id)).type).toBe("OFFICE");
+      },
+    );
+
+    it("nhà xe chỉ đặt được ACTIVE / INACTIVE; body gửi SUSPENDED hoặc lý do khóa bị từ chối / bỏ qua ở biên", () => {
+      expect(StopPointInputSchema.safeParse({ ...location(), status: "SUSPENDED" }).success).toBe(false);
+      expect(StopPointInputSchema.parse({ ...location(), status: "ACTIVE", suspensionReason: "x" })).not.toHaveProperty(
+        "suspensionReason",
+      );
+    });
+
+    it("điểm bị Admin khóa (BR-81, TC-TRN-018): sửa / tự mở lại → 409; không gắn mới vào route; route cũ vẫn giữ", async () => {
+      const own = await stopPoints.create(authzA, stopPointInput({ latitude: 11.4, longitude: 107.6 }));
+      const stops = [catalogStop(catalog1), privateStop(own.id), catalogStop(catalog2)];
+      const route = await routes.create(authzA, routeInput(`Khóa ${tag}`, stops));
+      await prisma.withPlatform((tx) =>
+        tx.stopPoint.update({ where: { id: own.id }, data: { status: "SUSPENDED", suspensionReason: "Vị trí sai lệch" } }),
+      );
+
+      for (const status of ["ACTIVE", "INACTIVE"]) {
+        expect(await rejectionOf(stopPoints.update(authzA, own.id, stopPointInput({ name: own.name, status })))).toMatchObject({
+          code: "STOP_POINT_SUSPENDED",
+          status: 409,
+        });
+      }
+      expect(await stopPoints.get(authzA, own.id)).toMatchObject({
+        status: "SUSPENDED",
+        suspensionReason: "Vị trí sai lệch",
+        routeCount: 1,
+      });
+      expect((await stopPoints.list(authzA, { status: "SUSPENDED", limit: 100 })).items.map((item) => item.id)).toContain(own.id);
+
+      // Gắn MỚI vào route khác → 422; route đã có điểm này vẫn đổi tên được (mẫu "điểm đã ngừng").
+      expect(
+        (await rejectionOf(routes.create(authzA, routeInput(`Khóa mới ${tag}`, [catalogStop(catalog1), privateStop(own.id)])))).code,
+      ).toBe("STOP_POINT_UNAVAILABLE");
+      expect((await routes.update(authzA, route.id, routeInput(`Khóa đổi tên ${tag}`, stops))).name).toBe(`Khóa đổi tên ${tag}`);
+    });
+
+    it("list điểm riêng: lọc loại / tỉnh, tìm KHÔNG DẤU theo tên hoặc địa chỉ, kèm số route đang dùng; không lộ điểm tenant khác", async () => {
+      const office = await stopPoints.create(
+        authzA,
+        stopPointInput({ name: `Văn phòng Đà Lạt ${tag}`, address: "12 Trần Phú, Phường Xuân Hương" }),
+      );
+      const rest = await stopPoints.create(
+        authzA,
+        stopPointInput({ name: `Trạm nghỉ Bảo Lộc ${tag}`, type: "REST_STOP", address: "Quốc lộ 20, Đèo Bảo Lộc" }),
+      );
+      await stopPoints.create(authzB, stopPointInput({ name: `Văn phòng Đà Lạt ${tag}` }));
+      await routes.create(
+        authzA,
+        routeInput(`Đếm route 1 ${tag}`, [catalogStop(catalog1), privateStop(rest.id, { allowPickup: false, allowDropoff: false }), privateStop(office.id)]),
+      );
+      await routes.create(authzA, routeInput(`Đếm route 2 ${tag}`, [privateStop(office.id), catalogStop(catalog2)]));
+
+      const ids = async (query: Record<string, unknown>) =>
+        (await stopPoints.list(authzA, { limit: 100, ...query } as never)).items.map((item) => item.id);
+      // Gõ không dấu, khác hoa/thường, khớp tên hoặc địa chỉ.
+      expect(await ids({ q: `van phong da lat ${tag}` })).toEqual([office.id]);
+      expect(await ids({ q: "DEO BAO LOC" })).toEqual([rest.id]);
+      expect(await ids({ q: `Trạm nghỉ Bảo Lộc ${tag}` })).toEqual([rest.id]);
+      expect(await ids({ q: `khong-co-diem-nao-${tag}` })).toEqual([]);
+      // Ký tự đại diện của LIKE trong từ khoá chỉ là chữ thường, không khớp mọi dòng.
+      expect(await ids({ q: "%" })).toEqual([]);
+      expect(await ids({ q: `van_phong da lat ${tag}` })).toEqual([]);
+      // Ký hiệu in ấn (gạch ngang dài, ngoặc cong) database đổi sang ASCII: dán nguyên tên hay gõ tay đều ra.
+      const dashed = await stopPoints.create(authzA, stopPointInput({ name: `Trạm “Madagui” – QL20 ${tag}`, type: "REST_STOP" }));
+      expect(await ids({ q: `Trạm “Madagui” – QL20 ${tag}` })).toEqual([dashed.id]);
+      expect(await ids({ q: `tram "madagui" - ql20 ${tag}` })).toEqual([dashed.id]);
+      expect((await ids({ type: "REST_STOP", q: tag })).sort()).toEqual([rest.id, dashed.id].sort());
+      expect(await ids({ type: "OFFICE", q: `bao loc ${tag}` })).toEqual([]);
+      expect(await ids({ provinceId: provinceOther })).toEqual([]);
+      expect((await ids({ provinceId: province })).sort()).toEqual(expect.arrayContaining([office.id, rest.id]));
+
+      const listed = (await stopPoints.list(authzA, { q: tag, limit: 100 })).items;
+      expect(listed.find((item) => item.id === office.id)?.routeCount).toBe(2);
+      expect(listed.find((item) => item.id === rest.id)?.routeCount).toBe(1);
+      expect((await stopPoints.create(authzA, stopPointInput())).routeCount).toBe(0);
+    });
+
+    it("đề xuất (BR-38, TC-TRN-015): chỉ bến xe / điểm dừng đón trả, bắt buộc căn cứ công bố; response trả lại căn cứ", async () => {
+      for (const bad of [{ type: "OFFICE" }, { type: "REST_STOP" }, { legalBasis: "" }, { legalBasis: "   " }, { legalBasis: "x".repeat(301) }]) {
+        expect(
+          StopPointProposalInputSchema.safeParse({ ...location({ type: "BUS_STATION" }), legalBasis: "QĐ 1", ...bad }).success,
+          JSON.stringify(bad),
+        ).toBe(false);
+      }
+      const { legalBasis: _omitted, ...missing } = proposalInput();
+      expect(StopPointProposalInputSchema.safeParse(missing).success).toBe(false);
+
+      const created = await proposals.create(authzA, proposalInput({ type: "PICKUP_POINT", legalBasis: "  QĐ 77/QĐ-UBND  " }));
+      expect(created).toMatchObject({ type: "PICKUP_POINT", legalBasis: "QĐ 77/QĐ-UBND", status: "PENDING" });
     });
 
     it("phường của điểm bị vô hiệu hoá sau đó: vẫn sửa tên/tạm ngưng được; đổi SANG phường ngừng thì 422", async () => {
@@ -387,6 +606,59 @@ describe.skipIf(!url && !requireDb)("Route / StopPoint / Proposal — Postgres t
       await routes.get(authzA, created.id);
       await routes.list(authzA, { limit: 100 });
       expect(routing.calls).toBe(1);
+    });
+
+    it("cho đón / cho trả (BR-79, TC-TRN-016): lưu đúng từng điểm, trả kèm loại điểm; đổi cờ không gọi lại provider", async () => {
+      const office = await stopPoints.create(authzA, stopPointInput({ latitude: 11.2, longitude: 107.1 }));
+      const rest = await stopPoints.create(authzA, stopPointInput({ type: "REST_STOP", latitude: 11.5, longitude: 107.8 }));
+      const stops = (officeFlags: StopFlags) => [
+        catalogStop(catalog1),
+        privateStop(office.id, officeFlags),
+        privateStop(rest.id, { allowPickup: false, allowDropoff: false }),
+        catalogStop(catalog2),
+      ];
+      const created = await routes.create(authzA, routeInput(`Cờ ${tag}`, stops({ allowPickup: true, allowDropoff: false })));
+      expect(created.stops.map((stop) => [stop.type, stop.allowPickup, stop.allowDropoff])).toEqual([
+        ["BUS_STATION", true, false],
+        ["OFFICE", true, false],
+        ["REST_STOP", false, false],
+        ["BUS_STATION", false, true],
+      ]);
+      expect(await routes.get(authzA, created.id)).toEqual(created);
+
+      routing.calls = 0;
+      const toggled = await routes.update(authzA, created.id, routeInput(`Cờ ${tag}`, stops({ allowPickup: false, allowDropoff: true })));
+      expect(toggled.stops[1]).toMatchObject({ allowPickup: false, allowDropoff: true });
+      expect(routing.calls).toBe(0);
+    });
+
+    it("cho đón / cho trả sai quy tắc → 422 ROUTE_STOP_PICKUP_DROPOFF_INVALID, không gọi provider, không lưu gì", async () => {
+      const office = await stopPoints.create(authzA, stopPointInput());
+      const rest = await stopPoints.create(authzA, stopPointInput({ type: "REST_STOP" }));
+      const no = { allowPickup: false, allowDropoff: false };
+      const invalid: [string, object[]][] = [
+        ["điểm đầu cho trả", [catalogStop(catalog1, { allowDropoff: true }), catalogStop(catalog2)]],
+        ["điểm đầu không cho đón", [catalogStop(catalog1, { allowPickup: false }), catalogStop(catalog2)]],
+        ["điểm cuối cho đón", [catalogStop(catalog1), catalogStop(catalog2, { allowPickup: true })]],
+        ["điểm cuối không cho trả", [catalogStop(catalog1), catalogStop(catalog2, { allowDropoff: false })]],
+        ["điểm giữa tắt cả hai quyền", [catalogStop(catalog1), privateStop(office.id, no), catalogStop(catalog2)]],
+        ["trạm dừng nghỉ cho đón", [catalogStop(catalog1), privateStop(rest.id, { ...no, allowPickup: true }), catalogStop(catalog2)]],
+        ["trạm dừng nghỉ cho trả", [catalogStop(catalog1), privateStop(rest.id, { ...no, allowDropoff: true }), catalogStop(catalog2)]],
+        ["trạm dừng nghỉ đứng đầu", [privateStop(rest.id), catalogStop(catalog2)]],
+        ["trạm dừng nghỉ đứng cuối", [catalogStop(catalog1), privateStop(rest.id)]],
+        ["trạm dừng nghỉ đứng đầu, tắt cả hai quyền", [privateStop(rest.id, no), catalogStop(catalog2)]],
+      ];
+      for (const [label, stops] of invalid) {
+        const failure = await rejectionOf(routes.create(authzA, routeInput(`Sai cờ ${randomUUID().slice(0, 6)}`, stops)));
+        expect(failure, label).toMatchObject({ code: "ROUTE_STOP_PICKUP_DROPOFF_INVALID", status: 422 });
+      }
+      expect(routing.calls).toBe(0);
+      expect(
+        await prisma.withTenant(tenantA, (tx) => tx.route.count({ where: { operatorId: tenantA, name: { startsWith: "Sai cờ" } } })),
+      ).toBe(0);
+      // Hai đầu không phải bến xe KHÔNG bị chặn ở v1 (OQ-24): văn phòng trung chuyển vẫn là điểm đầu hợp lệ.
+      const fromOffice = await routes.create(authzA, routeInput(`VP đầu ${tag}`, [privateStop(office.id), catalogStop(catalog2)]));
+      expect(fromOffice.stops[0]).toMatchObject({ type: "OFFICE", allowPickup: true, allowDropoff: false });
     });
 
     it("PUT: đổi tên/ghi chú không gọi provider; đổi thứ tự gọi lại; điểm riêng đổi toạ độ → tính lại", async () => {
