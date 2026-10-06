@@ -8,6 +8,9 @@ export const MAX_ROWS = 30;
 export const MAX_COLUMNS = 10;
 export const MAX_SEATS = 100;
 
+/** Chỗ đôi chứa tối đa hai hành khách, các loại còn lại một (BR-78). */
+export const DOUBLE_SEAT_TYPES: SeatType[] = [SeatType.BED_DOUBLE, SeatType.CABIN_DOUBLE];
+
 const DeckSchema = z.object({
   deck: z.int().min(1).max(MAX_DECKS),
   rows: z.int().min(1).max(MAX_ROWS),
@@ -75,13 +78,23 @@ export class SeatMapListQueryDto extends createZodDto(
   }),
 ) {}
 
-const SeatMapSummarySchema = z.object({
+/** Tóm tắt SeatMap (không kèm bố cục / ghế): dùng ở danh sách SeatMap và gắn vào Vehicle. */
+export const SeatMapSummarySchema = z.object({
   id: z.uuid(),
   name: z.string(),
   seatCount: z.int(),
+  // BR-78: sức chứa = số chỗ + số chỗ đôi (mỗi chỗ đôi tính hai người).
+  passengerCapacity: z.int(),
+  // Số tầng = số phần tử `layout.decks` (TRN-011), để danh sách không phải tải bố cục.
+  deckCount: z.int(),
+  // TRN-011: `true` khi sơ đồ đang được chuyến chưa kết thúc dùng (PUT sẽ nhận 409). Chỉ để giao diện
+  // khóa trước; chưa có module chuyến (TRN-003) nên hiện luôn `false`.
+  inUse: z.boolean(),
   createdAt: z.iso.datetime(),
   updatedAt: z.iso.datetime(),
 });
+
+export type SeatMapSummary = z.infer<typeof SeatMapSummarySchema>;
 
 export const SeatMapListResponseSchema = z.object({
   items: z.array(SeatMapSummarySchema),

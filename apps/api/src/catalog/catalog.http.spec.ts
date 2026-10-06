@@ -38,7 +38,20 @@ describe("Catalog routes — HTTP công khai", () => {
   }));
   const listWards = vi.fn(async () => ({ items: [] }));
   const listStopPoints = vi.fn(async () => ({ items: [], nextCursor: null }));
-  const listVehicleTypes = vi.fn(async () => ({ items: [] }));
+  const vehicleTypeId = randomUUID();
+  const listVehicleTypes = vi.fn(async () => ({
+    items: [
+      {
+        id: vehicleTypeId,
+        code: "SLEEPER_LIMOUSINE",
+        name: "Giường nằm Limousine",
+        description: null,
+        form: "SLEEPER",
+        class: "LIMOUSINE",
+        ...timestamps,
+      },
+    ],
+  }));
   const listAmenities = vi.fn(async () => ({ items: [] }));
   let app: INestApplication;
   let base: string;
@@ -99,6 +112,22 @@ describe("Catalog routes — HTTP công khai", () => {
     });
   });
 
+  it("vehicle-types trả dạng chỗ + hạng xe (BR-77), không status/timestamp", async () => {
+    const body = await (await fetch(`${base}/vehicle-types`)).json();
+    expect(body).toEqual({
+      items: [
+        {
+          id: vehicleTypeId,
+          code: "SLEEPER_LIMOUSINE",
+          name: "Giường nằm Limousine",
+          description: null,
+          form: "SLEEPER",
+          class: "LIMOUSINE",
+        },
+      ],
+    });
+  });
+
   it("wards chuyển đúng provinceId xuống service", async () => {
     await fetch(`${base}/wards?provinceId=${provinceId}`);
     expect(listWards).toHaveBeenCalledWith(provinceId);
@@ -114,6 +143,21 @@ describe("Catalog routes — HTTP công khai", () => {
     expect(listStopPoints).toHaveBeenLastCalledWith({ limit: 20 });
   });
 
+  it("stop-points nhận từ khoá `q` (cắt khoảng trắng); `q` trống coi như không tìm", async () => {
+    await fetch(
+      `${base}/stop-points?q=${encodeURIComponent("  bến xe miền đông ")}`,
+    );
+    expect(listStopPoints).toHaveBeenLastCalledWith({
+      q: "bến xe miền đông",
+      limit: 20,
+    });
+    await fetch(`${base}/stop-points?q=${encodeURIComponent("   ")}`);
+    expect(listStopPoints).toHaveBeenLastCalledWith({
+      q: undefined,
+      limit: 20,
+    });
+  });
+
   it.each([
     "wards",
     "wards?provinceId=khong-phai-uuid",
@@ -122,6 +166,7 @@ describe("Catalog routes — HTTP công khai", () => {
     "stop-points?type=AIRPORT",
     "stop-points?cursor=abc",
     "stop-points?wardId=abc",
+    `stop-points?q=${"x".repeat(101)}`,
   ])(
     "GET /catalog/%s → 400 problem+json, service không bị gọi",
     async (path) => {

@@ -2,24 +2,41 @@ import { Inject, Injectable } from "@nestjs/common";
 import { PrismaService, type DbTransaction } from "../database/prisma.service";
 import type { Authorization } from "../iam/role/authorization";
 import { isPrismaUniqueConflict } from "../iam/user/account.errors";
-import type {
-  SeatMapInput,
-  SeatMapLayout,
-  SeatMapListResponse,
-  SeatMapResponse,
+import {
+  DOUBLE_SEAT_TYPES,
+  type SeatMapInput,
+  type SeatMapLayout,
+  type SeatMapListResponse,
+  type SeatMapResponse,
+  type SeatMapSummary,
 } from "./dto/seat-map.dto";
 import { requireTenant } from "../iam/role/require-tenant";
 import { seatMapNameConflict, seatMapNotFound } from "./vehicle.errors";
 
-const SUMMARY_SELECT = { id: true, name: true, seatCount: true, createdAt: true, updatedAt: true } as const;
+/** Cột đủ để dựng tóm tắt SeatMap; `VehicleService` dùng lại cho sơ đồ gắn vào xe. */
+export const SEAT_MAP_SUMMARY_SELECT = {
+  id: true,
+  name: true,
+  layout: true,
+  seatCount: true,
+  createdAt: true,
+  updatedAt: true,
+  // Đếm chỗ đôi ngay trong truy vấn: danh sách tính được sức chứa mà không tải từng ghế (BR-78).
+  _count: { select: { seats: { where: { type: { in: DOUBLE_SEAT_TYPES } } } } },
+} as const;
 const SEAT_SELECT = { code: true, deck: true, row: true, column: true, type: true } as const;
 const SEAT_ORDER = [{ deck: "asc" }, { row: "asc" }, { column: "asc" }] as const;
 
-type SummaryRow = { id: string; name: string; seatCount: number; createdAt: Date; updatedAt: Date };
-type DetailRow = SummaryRow & {
+export type SeatMapSummaryRow = {
+  id: string;
+  name: string;
   layout: unknown;
-  seats: SeatMapResponse["seats"];
+  seatCount: number;
+  createdAt: Date;
+  updatedAt: Date;
+  _count: { seats: number };
 };
+type DetailRow = SeatMapSummaryRow & { seats: SeatMapResponse["seats"] };
 
 /**
  * Sơ đồ ghế do nhà xe tự cấu hình (TASK-TRN-001, Q1): mẫu dùng chung cho nhiều xe; tùy chỉnh cho một
@@ -37,12 +54,12 @@ export class SeatMapService {
         where: { operatorId, ...(query.cursor ? { id: { gt: query.cursor } } : {}) },
         orderBy: { id: "asc" },
         take: query.limit + 1,
-        select: SUMMARY_SELECT,
+        select: SEAT_MAP_SUMMARY_SELECT,
       }),
     );
     const page = rows.slice(0, query.limit);
     return {
-      items: page.map(toSummary),
+      items: page.map(toSeatMapSummary),
       nextCursor: rows.length > query.limit ? page[page.length - 1]!.id : null,
     };
   }
@@ -113,7 +130,7 @@ export class SeatMapService {
 function findDetail(tx: DbTransaction, operatorId: string, seatMapId: string) {
   return tx.seatMap.findFirst({
     where: { id: seatMapId, operatorId },
-    select: { ...SUMMARY_SELECT, layout: true, seats: { select: SEAT_SELECT, orderBy: [...SEAT_ORDER] } },
+    select: { ...SEAT_MAP_SUMMARY_SELECT, seats: { select: SEAT_SELECT, orderBy: [...SEAT_ORDER] } },
   });
 }
 
@@ -130,10 +147,21 @@ function seatRows(input: SeatMapInput, operatorId: string, seatMapId: string) {
   }));
 }
 
-function toSummary(row: SummaryRow) {
-  return { ...row, createdAt: row.createdAt.toISOString(), updatedAt: row.updatedAt.toISOString() };
+/** Dựng tóm tắt SeatMap từ dòng DB: sức chứa = số chỗ + số chỗ đôi, số tầng theo bố cục. */
+export function toSeatMapSummary(row: SeatMapSummaryRow): SeatMapSummary {
+  return {
+    id: row.id,
+    name: row.name,
+    seatCount: row.seatCount,
+    passengerCapacity: row.seatCount + row._count.seats,
+    deckCount: (row.layout as SeatMapLayout).decks.length,
+    // TRN-003 sẽ tính theo chuyến chưa kết thúc; trước đó luôn `false` (API §7.3).
+    inUse: false,
+    createdAt: row.createdAt.toISOString(),
+    updatedAt: row.updatedAt.toISOString(),
+  };
 }
 
 function toDetail(row: DetailRow): SeatMapResponse {
-  return { ...toSummary(row), layout: row.layout as SeatMapLayout, seats: row.seats };
+  return { ...toSeatMapSummary(row), layout: row.layout as SeatMapLayout, seats: row.seats };
 }

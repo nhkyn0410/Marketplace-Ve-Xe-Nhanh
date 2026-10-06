@@ -3,6 +3,7 @@
 //
 
 // ignore_for_file: unused_element
+import 'package:built_collection/built_collection.dart';
 import 'package:built_value/built_value.dart';
 import 'package:built_value/serializer.dart';
 
@@ -15,6 +16,8 @@ part 'vehicle_type_list_response_dto_output_items_inner.g.dart';
 /// * [code] 
 /// * [name] 
 /// * [description] 
+/// * [form] 
+/// * [class_] 
 @BuiltValue()
 abstract class VehicleTypeListResponseDtoOutputItemsInner implements Built<VehicleTypeListResponseDtoOutputItemsInner, VehicleTypeListResponseDtoOutputItemsInnerBuilder> {
   @BuiltValueField(wireName: r'id')
@@ -28,6 +31,14 @@ abstract class VehicleTypeListResponseDtoOutputItemsInner implements Built<Vehic
 
   @BuiltValueField(wireName: r'description')
   String? get description;
+
+  @BuiltValueField(wireName: r'form')
+  VehicleTypeListResponseDtoOutputItemsInnerFormEnum get form;
+  // enum formEnum {  SEATER,  SLEEPER,  CABIN,  };
+
+  @BuiltValueField(wireName: r'class')
+  VehicleTypeListResponseDtoOutputItemsInnerClass_Enum get class_;
+  // enum class_Enum {  STANDARD,  LIMOUSINE,  };
 
   VehicleTypeListResponseDtoOutputItemsInner._();
 
@@ -71,6 +82,16 @@ class _$VehicleTypeListResponseDtoOutputItemsInnerSerializer implements Primitiv
     yield object.description == null ? null : serializers.serialize(
       object.description,
       specifiedType: const FullType.nullable(String),
+    );
+    yield r'form';
+    yield serializers.serialize(
+      object.form,
+      specifiedType: const FullType(VehicleTypeListResponseDtoOutputItemsInnerFormEnum),
+    );
+    yield r'class';
+    yield serializers.serialize(
+      object.class_,
+      specifiedType: const FullType(VehicleTypeListResponseDtoOutputItemsInnerClass_Enum),
     );
   }
 
@@ -124,6 +145,20 @@ class _$VehicleTypeListResponseDtoOutputItemsInnerSerializer implements Primitiv
           if (valueDes == null) continue;
           result.description = valueDes;
           break;
+        case r'form':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(VehicleTypeListResponseDtoOutputItemsInnerFormEnum),
+          ) as VehicleTypeListResponseDtoOutputItemsInnerFormEnum;
+          result.form = valueDes;
+          break;
+        case r'class':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(VehicleTypeListResponseDtoOutputItemsInnerClass_Enum),
+          ) as VehicleTypeListResponseDtoOutputItemsInnerClass_Enum;
+          result.class_ = valueDes;
+          break;
         default:
           unhandled.add(key);
           unhandled.add(value);
@@ -153,4 +188,36 @@ class _$VehicleTypeListResponseDtoOutputItemsInnerSerializer implements Primitiv
   }
 }
 
+
+class VehicleTypeListResponseDtoOutputItemsInnerFormEnum extends EnumClass {
+
+  @BuiltValueEnumConst(wireName: r'SEATER')
+  static const VehicleTypeListResponseDtoOutputItemsInnerFormEnum SEATER = _$vehicleTypeListResponseDtoOutputItemsInnerFormEnum_SEATER;
+  @BuiltValueEnumConst(wireName: r'SLEEPER')
+  static const VehicleTypeListResponseDtoOutputItemsInnerFormEnum SLEEPER = _$vehicleTypeListResponseDtoOutputItemsInnerFormEnum_SLEEPER;
+  @BuiltValueEnumConst(wireName: r'CABIN')
+  static const VehicleTypeListResponseDtoOutputItemsInnerFormEnum CABIN = _$vehicleTypeListResponseDtoOutputItemsInnerFormEnum_CABIN;
+
+  static Serializer<VehicleTypeListResponseDtoOutputItemsInnerFormEnum> get serializer => _$vehicleTypeListResponseDtoOutputItemsInnerFormEnumSerializer;
+
+  const VehicleTypeListResponseDtoOutputItemsInnerFormEnum._(String name): super(name);
+
+  static BuiltSet<VehicleTypeListResponseDtoOutputItemsInnerFormEnum> get values => _$vehicleTypeListResponseDtoOutputItemsInnerFormEnumValues;
+  static VehicleTypeListResponseDtoOutputItemsInnerFormEnum valueOf(String name) => _$vehicleTypeListResponseDtoOutputItemsInnerFormEnumValueOf(name);
+}
+
+class VehicleTypeListResponseDtoOutputItemsInnerClass_Enum extends EnumClass {
+
+  @BuiltValueEnumConst(wireName: r'STANDARD')
+  static const VehicleTypeListResponseDtoOutputItemsInnerClass_Enum STANDARD = _$vehicleTypeListResponseDtoOutputItemsInnerClassEnum_STANDARD;
+  @BuiltValueEnumConst(wireName: r'LIMOUSINE')
+  static const VehicleTypeListResponseDtoOutputItemsInnerClass_Enum LIMOUSINE = _$vehicleTypeListResponseDtoOutputItemsInnerClassEnum_LIMOUSINE;
+
+  static Serializer<VehicleTypeListResponseDtoOutputItemsInnerClass_Enum> get serializer => _$vehicleTypeListResponseDtoOutputItemsInnerClassEnumSerializer;
+
+  const VehicleTypeListResponseDtoOutputItemsInnerClass_Enum._(String name): super(name);
+
+  static BuiltSet<VehicleTypeListResponseDtoOutputItemsInnerClass_Enum> get values => _$vehicleTypeListResponseDtoOutputItemsInnerClassEnumValues;
+  static VehicleTypeListResponseDtoOutputItemsInnerClass_Enum valueOf(String name) => _$vehicleTypeListResponseDtoOutputItemsInnerClassEnumValueOf(name);
+}
 

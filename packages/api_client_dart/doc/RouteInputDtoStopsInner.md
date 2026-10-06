@@ -11,6 +11,8 @@ Name | Type | Description | Notes
 **catalogStopPointId** | **String** |  | 
 **stopPointId** | **String** |  | 
 **note** | **String** |  | 
+**allowPickup** | **bool** |  | 
+**allowDropoff** | **bool** |  | 
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)
 

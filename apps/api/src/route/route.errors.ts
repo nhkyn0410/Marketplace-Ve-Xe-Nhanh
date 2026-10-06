@@ -17,6 +17,18 @@ export function routeNameConflict(): HttpException {
   return problem(HttpStatus.CONFLICT, "ROUTE_NAME_CONFLICT", "Tên tuyến đã tồn tại trong nhà xe.");
 }
 
+/**
+ * Cho đón / cho trả không đúng quy tắc (BR-79): điểm đầu chỉ đón, điểm cuối chỉ trả, điểm giữa có ít nhất
+ * một quyền; trạm dừng nghỉ không đón, không trả và không đứng đầu / cuối.
+ */
+export function routeStopPickupDropoffInvalid(): HttpException {
+  return problem(
+    HttpStatus.UNPROCESSABLE_ENTITY,
+    "ROUTE_STOP_PICKUP_DROPOFF_INVALID",
+    "Cho đón / cho trả chưa đúng quy tắc: điểm đầu chỉ đón, điểm cuối chỉ trả, điểm giữa có ít nhất một quyền; trạm dừng nghỉ không đón, không trả và không đứng đầu hoặc cuối tuyến.",
+  );
+}
+
 /** Goong (hoặc provider routing) không trả được số liệu hợp lệ — route không được lưu (Q5). */
 export function routingProviderUnavailable(): HttpException {
   return problem(

@@ -31,14 +31,19 @@ Rules:
 
 | English                | Vietnamese                 | Definition                                                                                            |
 | ---------------------- | -------------------------- | ----------------------------------------------------------------------------------------------------- |
-| Vehicle                | Phương tiện                | A physical bus owned by an Operator; carries plate, type, amenities, seat map.                        |
-| VehicleType            | Loại phương tiện           | Standardized vehicle category (e.g. seater, sleeper, limousine, cabin).                               |
-| Seat                   | Ghế / giường               | A seat or berth slot defined within a SeatMap.                                                        |
+| Vehicle                | Phương tiện                | A physical bus owned by an Operator; carries plate, type, amenities, seat map, photos.                |
+| VehicleImage           | Hình ảnh phương tiện       | A public photo of a Vehicle uploaded by its Operator; ordered, the first one is the cover (BR-76).    |
+| VehicleType            | Loại phương tiện           | Standardized vehicle line in the Platform catalog; carries two independent attributes: vehicle form and vehicle class (BR-77). |
+| Vehicle form           | Dạng chỗ của xe            | `SEATER` (seats), `SLEEPER` (open berths, no enclosing partition), `CABIN` (private compartment with partitions plus a curtain or door; marketed as phòng / cabin / khoang / giường phòng). |
+| Vehicle class          | Hạng xe                    | `STANDARD` or `LIMOUSINE`. Limousine is a class, not a form: a limousine vehicle still has exactly one of the three forms. Self-declared by the Operator. |
+| Seat                   | Ghế / giường               | A seat, berth or cabin slot defined within a SeatMap; has a seat type and a deck.                     |
+| Seat type              | Loại chỗ                   | `SEAT`, `BED` (single berth), `BED_DOUBLE`, `CABIN` (single cabin), `CABIN_DOUBLE`. Double slots hold up to two passengers, the others one (BR-78). |
 | SeatMap                | Sơ đồ ghế                  | Layout describing seats / berths of a Vehicle.                                                        |
 | Route                  | Tuyến đường                | A logical route between two endpoints, composed of ordered RouteStops.                                |
-| StopPoint              | Điểm đón / trả             | A pickup or drop-off location in the platform catalog, or a private point owned by one Operator.      |
-| StopPointProposal      | Đề xuất điểm đón / trả     | An Operator's request to add a point to the platform catalog; `PENDING` → `APPROVED` / `REJECTED` by Admin. |
-| RouteStop              | Điểm dừng của tuyến        | An ordered stop of a Route (`ORIGIN` / `INTERMEDIATE` / `DESTINATION`) with cached distance/duration from the previous stop. |
+| StopPoint              | Điểm dừng                  | A place where a trip stops. Shared (Platform catalog: bus station, designated pickup/drop-off point, rest stop) or private to one Operator (office / transfer point, rest stop) — BR-38. |
+| StopPointProposal      | Đề xuất điểm dừng dùng chung | An Operator's request to add a bus station or designated pickup/drop-off point to the shared catalog, with its legal basis; `PENDING` → `APPROVED` / `REJECTED` by Admin. |
+| Transfer point         | Điểm trung chuyển          | An Operator office where passengers gather and are shuttled free of charge to a bus station or designated pickup/drop-off point; shown to passengers with a transfer label (BR-79). |
+| RouteStop              | Điểm dừng của tuyến        | An ordered stop of a Route (`ORIGIN` / `INTERMEDIATE` / `DESTINATION`) with cached distance/duration from the previous stop and allow-pickup / allow-drop-off flags (BR-79). |
 | Trip                   | Chuyến xe                  | A concrete operating instance of a Route on a specific date / time, served by a Vehicle and crew.     |
 | TripStop               | Điểm dừng của chuyến       | An ordered stop within a Trip.                                                                        |
 | TripSeat               | Ghế của chuyến             | A seat allocation for a specific Trip, with its own status lifecycle.                                 |

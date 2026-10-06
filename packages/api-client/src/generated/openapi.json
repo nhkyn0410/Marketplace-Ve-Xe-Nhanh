@@ -1734,6 +1734,16 @@
             }
           },
           {
+            "name": "q",
+            "required": false,
+            "in": "query",
+            "description": "Tìm theo tên hoặc địa chỉ; không phân biệt dấu và hoa/thường.",
+            "schema": {
+              "maxLength": 100,
+              "type": "string"
+            }
+          },
+          {
             "name": "cursor",
             "required": false,
             "in": "query",
@@ -2502,8 +2512,43 @@
             "schema": {
               "enum": [
                 "ACTIVE",
-                "INACTIVE"
+                "INACTIVE",
+                "SUSPENDED"
               ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "type",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "enum": [
+                "BUS_STATION",
+                "OFFICE",
+                "REST_STOP",
+                "PICKUP_POINT"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "provinceId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            }
+          },
+          {
+            "name": "q",
+            "required": false,
+            "in": "query",
+            "description": "Tìm theo tên hoặc địa chỉ; không phân biệt dấu và hoa/thường.",
+            "schema": {
+              "maxLength": 100,
               "type": "string"
             }
           },
@@ -2645,7 +2690,7 @@
             }
           },
           "422": {
-            "description": "`CATALOG_ITEM_UNAVAILABLE` (tỉnh/phường).",
+            "description": "`STOP_POINT_TYPE_NOT_ALLOWED` (điểm riêng chỉ là văn phòng hoặc trạm dừng nghỉ) hoặc `CATALOG_ITEM_UNAVAILABLE` (tỉnh/phường).",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -2805,7 +2850,7 @@
             }
           },
           "409": {
-            "description": "`STOP_POINT_NAME_CONFLICT`.",
+            "description": "`STOP_POINT_NAME_CONFLICT` hoặc `STOP_POINT_SUSPENDED` (điểm đang bị Platform tạm ngưng).",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -2815,7 +2860,7 @@
             }
           },
           "422": {
-            "description": "`CATALOG_ITEM_UNAVAILABLE` (tỉnh/phường).",
+            "description": "`STOP_POINT_TYPE_NOT_ALLOWED` (điểm riêng chỉ là văn phòng hoặc trạm dừng nghỉ) hoặc `CATALOG_ITEM_UNAVAILABLE` (tỉnh/phường).",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -3260,7 +3305,7 @@
             }
           },
           "422": {
-            "description": "`STOP_POINT_UNAVAILABLE`.",
+            "description": "`STOP_POINT_UNAVAILABLE` hoặc `ROUTE_STOP_PICKUP_DROPOFF_INVALID` (cho đón / cho trả sai quy tắc).",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -3440,7 +3485,7 @@
             }
           },
           "422": {
-            "description": "`STOP_POINT_UNAVAILABLE`.",
+            "description": "`STOP_POINT_UNAVAILABLE` hoặc `ROUTE_STOP_PICKUP_DROPOFF_INVALID` (cho đón / cho trả sai quy tắc).",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -4811,13 +4856,30 @@
                       "type": "null"
                     }
                   ]
+                },
+                "form": {
+                  "type": "string",
+                  "enum": [
+                    "SEATER",
+                    "SLEEPER",
+                    "CABIN"
+                  ]
+                },
+                "class": {
+                  "type": "string",
+                  "enum": [
+                    "STANDARD",
+                    "LIMOUSINE"
+                  ]
                 }
               },
               "required": [
                 "id",
                 "code",
                 "name",
-                "description"
+                "description",
+                "form",
+                "class"
               ],
               "additionalProperties": false
             }
@@ -4895,6 +4957,68 @@
                     }
                   ]
                 },
+                "seatMap": {
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "format": "uuid",
+                          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "seatCount": {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        },
+                        "passengerCapacity": {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        },
+                        "deckCount": {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        },
+                        "inUse": {
+                          "type": "boolean"
+                        },
+                        "createdAt": {
+                          "type": "string",
+                          "format": "date-time",
+                          "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$"
+                        },
+                        "updatedAt": {
+                          "type": "string",
+                          "format": "date-time",
+                          "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "name",
+                        "seatCount",
+                        "passengerCapacity",
+                        "deckCount",
+                        "inUse",
+                        "createdAt",
+                        "updatedAt"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "seatMapLocked": {
+                  "type": "boolean"
+                },
                 "amenityIds": {
                   "type": "array",
                   "items": {
@@ -4937,6 +5061,8 @@
                 "plateNumber",
                 "vehicleTypeId",
                 "seatMapId",
+                "seatMap",
+                "seatMapLocked",
                 "amenityIds",
                 "status",
                 "description",
@@ -4993,6 +5119,68 @@
               }
             ]
           },
+          "seatMap": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                  },
+                  "name": {
+                    "type": "string"
+                  },
+                  "seatCount": {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 9007199254740991
+                  },
+                  "passengerCapacity": {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 9007199254740991
+                  },
+                  "deckCount": {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 9007199254740991
+                  },
+                  "inUse": {
+                    "type": "boolean"
+                  },
+                  "createdAt": {
+                    "type": "string",
+                    "format": "date-time",
+                    "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$"
+                  },
+                  "updatedAt": {
+                    "type": "string",
+                    "format": "date-time",
+                    "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$"
+                  }
+                },
+                "required": [
+                  "id",
+                  "name",
+                  "seatCount",
+                  "passengerCapacity",
+                  "deckCount",
+                  "inUse",
+                  "createdAt",
+                  "updatedAt"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "seatMapLocked": {
+            "type": "boolean"
+          },
           "amenityIds": {
             "type": "array",
             "items": {
@@ -5035,6 +5223,8 @@
           "plateNumber",
           "vehicleTypeId",
           "seatMapId",
+          "seatMap",
+          "seatMapLocked",
           "amenityIds",
           "status",
           "description",
@@ -5126,6 +5316,19 @@
                   "minimum": -9007199254740991,
                   "maximum": 9007199254740991
                 },
+                "passengerCapacity": {
+                  "type": "integer",
+                  "minimum": -9007199254740991,
+                  "maximum": 9007199254740991
+                },
+                "deckCount": {
+                  "type": "integer",
+                  "minimum": -9007199254740991,
+                  "maximum": 9007199254740991
+                },
+                "inUse": {
+                  "type": "boolean"
+                },
                 "createdAt": {
                   "type": "string",
                   "format": "date-time",
@@ -5141,6 +5344,9 @@
                 "id",
                 "name",
                 "seatCount",
+                "passengerCapacity",
+                "deckCount",
+                "inUse",
                 "createdAt",
                 "updatedAt"
               ],
@@ -5181,6 +5387,19 @@
             "type": "integer",
             "minimum": -9007199254740991,
             "maximum": 9007199254740991
+          },
+          "passengerCapacity": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "deckCount": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "inUse": {
+            "type": "boolean"
           },
           "createdAt": {
             "type": "string",
@@ -5259,7 +5478,10 @@
                   "type": "string",
                   "enum": [
                     "SEAT",
-                    "BED"
+                    "BED",
+                    "BED_DOUBLE",
+                    "CABIN",
+                    "CABIN_DOUBLE"
                   ]
                 }
               },
@@ -5278,6 +5500,9 @@
           "id",
           "name",
           "seatCount",
+          "passengerCapacity",
+          "deckCount",
+          "inUse",
           "createdAt",
           "updatedAt",
           "layout",
@@ -5361,7 +5586,10 @@
                   "type": "string",
                   "enum": [
                     "SEAT",
-                    "BED"
+                    "BED",
+                    "BED_DOUBLE",
+                    "CABIN",
+                    "CABIN_DOUBLE"
                   ]
                 }
               },
@@ -5449,8 +5677,24 @@
                   "type": "string",
                   "enum": [
                     "ACTIVE",
-                    "INACTIVE"
+                    "INACTIVE",
+                    "SUSPENDED"
                   ]
+                },
+                "suspensionReason": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "routeCount": {
+                  "type": "integer",
+                  "minimum": -9007199254740991,
+                  "maximum": 9007199254740991
                 }
               },
               "required": [
@@ -5465,7 +5709,9 @@
                 "description",
                 "createdAt",
                 "updatedAt",
-                "status"
+                "status",
+                "suspensionReason",
+                "routeCount"
               ],
               "additionalProperties": false
             }
@@ -5552,8 +5798,24 @@
             "type": "string",
             "enum": [
               "ACTIVE",
-              "INACTIVE"
+              "INACTIVE",
+              "SUSPENDED"
             ]
+          },
+          "suspensionReason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "routeCount": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
           }
         },
         "required": [
@@ -5568,7 +5830,9 @@
           "description",
           "createdAt",
           "updatedAt",
-          "status"
+          "status",
+          "suspensionReason",
+          "routeCount"
         ],
         "additionalProperties": false
       },
@@ -5579,15 +5843,6 @@
             "type": "string",
             "minLength": 1,
             "maxLength": 150
-          },
-          "type": {
-            "type": "string",
-            "enum": [
-              "BUS_STATION",
-              "OFFICE",
-              "REST_STOP",
-              "PICKUP_POINT"
-            ]
           },
           "address": {
             "type": "string",
@@ -5625,6 +5880,15 @@
               }
             ]
           },
+          "type": {
+            "type": "string",
+            "enum": [
+              "BUS_STATION",
+              "OFFICE",
+              "REST_STOP",
+              "PICKUP_POINT"
+            ]
+          },
           "status": {
             "type": "string",
             "enum": [
@@ -5635,13 +5899,13 @@
         },
         "required": [
           "name",
-          "type",
           "address",
           "provinceId",
           "wardId",
           "latitude",
           "longitude",
           "description",
+          "type",
           "status"
         ]
       },
@@ -5709,6 +5973,9 @@
                   "format": "date-time",
                   "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$"
                 },
+                "legalBasis": {
+                  "type": "string"
+                },
                 "status": {
                   "type": "string",
                   "enum": [
@@ -5752,6 +6019,7 @@
                 "description",
                 "createdAt",
                 "updatedAt",
+                "legalBasis",
                 "status",
                 "rejectionReason",
                 "catalogStopPointId"
@@ -5785,15 +6053,6 @@
             "type": "string",
             "minLength": 1,
             "maxLength": 150
-          },
-          "type": {
-            "type": "string",
-            "enum": [
-              "BUS_STATION",
-              "OFFICE",
-              "REST_STOP",
-              "PICKUP_POINT"
-            ]
           },
           "address": {
             "type": "string",
@@ -5830,17 +6089,30 @@
                 "type": "null"
               }
             ]
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "BUS_STATION",
+              "PICKUP_POINT"
+            ]
+          },
+          "legalBasis": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 300
           }
         },
         "required": [
           "name",
-          "type",
           "address",
           "provinceId",
           "wardId",
           "latitude",
           "longitude",
-          "description"
+          "description",
+          "type",
+          "legalBasis"
         ]
       },
       "StopPointProposalResponseDto_Output": {
@@ -5902,6 +6174,9 @@
             "format": "date-time",
             "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$"
           },
+          "legalBasis": {
+            "type": "string"
+          },
           "status": {
             "type": "string",
             "enum": [
@@ -5945,6 +6220,7 @@
           "description",
           "createdAt",
           "updatedAt",
+          "legalBasis",
           "status",
           "rejectionReason",
           "catalogStopPointId"
@@ -6140,6 +6416,15 @@
                 "name": {
                   "type": "string"
                 },
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "BUS_STATION",
+                    "OFFICE",
+                    "REST_STOP",
+                    "PICKUP_POINT"
+                  ]
+                },
                 "address": {
                   "type": "string"
                 },
@@ -6158,6 +6443,12 @@
                       "type": "null"
                     }
                   ]
+                },
+                "allowPickup": {
+                  "type": "boolean"
+                },
+                "allowDropoff": {
+                  "type": "boolean"
                 },
                 "distanceMetersFromPrevious": {
                   "anyOf": [
@@ -6190,10 +6481,13 @@
                 "catalogStopPointId",
                 "stopPointId",
                 "name",
+                "type",
                 "address",
                 "latitude",
                 "longitude",
                 "note",
+                "allowPickup",
+                "allowDropoff",
                 "distanceMetersFromPrevious",
                 "durationSecondsFromPrevious"
               ],
@@ -6282,12 +6576,20 @@
                       "type": "null"
                     }
                   ]
+                },
+                "allowPickup": {
+                  "type": "boolean"
+                },
+                "allowDropoff": {
+                  "type": "boolean"
                 }
               },
               "required": [
                 "catalogStopPointId",
                 "stopPointId",
-                "note"
+                "note",
+                "allowPickup",
+                "allowDropoff"
               ]
             }
           }

@@ -1,8 +1,12 @@
 import { createHmac } from "node:crypto";
 
+import { expect, type Page } from "@playwright/test";
+
 export type E2eAccounts = {
   operatorSlug: string;
   owner: { username: string; temporaryPassword: string; newPassword: string };
+  /** Owner riêng cho E2E màn nghiệp vụ: mật khẩu thường, chưa bật TOTP. */
+  fleetOwner: { username: string; password: string };
   employee: { username: string; password: string };
   platform: { username: string; password: string };
 };
@@ -30,4 +34,22 @@ export function totp(secretBase32: string, nowMs = Date.now()): string {
   const offset = hmac[hmac.length - 1]! & 0x0f;
   const code = (hmac.readUInt32BE(offset) & 0x7fffffff) % 1_000_000;
   return code.toString().padStart(6, "0");
+}
+
+/**
+ * Đăng nhập Owner chưa bật TOTP rồi hoàn tất enrollment (QR + mã + lưu backup code) để vào app.
+ * Dùng cho các spec màn nghiệp vụ; luồng đăng nhập đầy đủ được kiểm ở `auth.e2e.ts`.
+ */
+export async function signInWithEnrollment(page: Page, identifier: string, password: string): Promise<void> {
+  await page.goto("/");
+  await expect(page.getByRole("heading", { name: "Đăng nhập" })).toBeVisible();
+  await page.locator('input[name="identifier"]').fill(identifier);
+  await page.locator('input[name="password"]').fill(password);
+  await page.getByRole("button", { name: "Đăng nhập", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "Bật xác thực hai lớp" })).toBeVisible();
+  const secret = (await page.locator("code").innerText()).replace(/\s+/g, "");
+  await page.locator('input[name="code"]').fill(totp(secret));
+  await page.getByRole("button", { name: "Xác nhận" }).click();
+  await page.getByRole("button", { name: "Tôi đã lưu mã, vào trang quản lý" }).click();
+  await expect(page.getByRole("navigation", { name: "Điều hướng chính" })).toBeVisible();
 }

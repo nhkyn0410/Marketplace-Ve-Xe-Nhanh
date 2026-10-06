@@ -93,6 +93,7 @@ export 'package:api_client_dart/src/model/stop_point_proposal_response_dto_outpu
 export 'package:api_client_dart/src/model/vehicle_input_dto.dart';
 export 'package:api_client_dart/src/model/vehicle_list_response_dto_output.dart';
 export 'package:api_client_dart/src/model/vehicle_list_response_dto_output_items_inner.dart';
+export 'package:api_client_dart/src/model/vehicle_list_response_dto_output_items_inner_seat_map.dart';
 export 'package:api_client_dart/src/model/vehicle_response_dto_output.dart';
 export 'package:api_client_dart/src/model/vehicle_type_list_response_dto_output.dart';
 export 'package:api_client_dart/src/model/vehicle_type_list_response_dto_output_items_inner.dart';

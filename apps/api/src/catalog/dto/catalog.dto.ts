@@ -1,6 +1,11 @@
 import { createZodDto } from "nestjs-zod";
 import { z } from "zod";
-import { StopPointType } from "../../database/prisma.types";
+import { SearchQueryField } from "../../common/search-text";
+import {
+  StopPointType,
+  VehicleClass,
+  VehicleForm,
+} from "../../database/prisma.types";
 
 /** Query `GET /catalog/wards`: phường/xã phải thuộc một tỉnh cụ thể. */
 export class WardListQueryDto extends createZodDto(
@@ -11,11 +16,12 @@ export const StopPointListQuerySchema = z.object({
   provinceId: z.uuid().optional(),
   wardId: z.uuid().optional(),
   type: z.enum(StopPointType).optional(),
+  q: SearchQueryField,
   cursor: z.uuid().optional(),
   limit: z.coerce.number().int().min(1).max(100).default(20),
 });
 export type StopPointListQuery = z.infer<typeof StopPointListQuerySchema>;
-/** Query `GET /catalog/stop-points`: lọc theo tỉnh/phường/loại, phân trang cursor theo `id`. */
+/** Query `GET /catalog/stop-points`: lọc theo tỉnh/phường/loại, tìm không dấu theo tên hoặc địa chỉ, phân trang cursor theo `id`. */
 export class StopPointListQueryDto extends createZodDto(
   StopPointListQuerySchema,
 ) {}
@@ -77,6 +83,9 @@ export const VehicleTypeListResponseSchema = z.object({
       code: z.string(),
       name: z.string(),
       description: z.string().nullable(),
+      // BR-77: hai thuộc tính độc lập — dạng chỗ và hạng xe.
+      form: z.enum(VehicleForm),
+      class: z.enum(VehicleClass),
     }),
   ),
 });

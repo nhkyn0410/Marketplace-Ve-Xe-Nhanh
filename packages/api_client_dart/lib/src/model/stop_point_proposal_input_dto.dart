@@ -13,21 +13,18 @@ part 'stop_point_proposal_input_dto.g.dart';
 ///
 /// Properties:
 /// * [name] 
-/// * [type] 
 /// * [address] 
 /// * [provinceId] 
 /// * [wardId] 
 /// * [latitude] 
 /// * [longitude] 
 /// * [description] 
+/// * [type] 
+/// * [legalBasis] 
 @BuiltValue()
 abstract class StopPointProposalInputDto implements Built<StopPointProposalInputDto, StopPointProposalInputDtoBuilder> {
   @BuiltValueField(wireName: r'name')
   String get name;
-
-  @BuiltValueField(wireName: r'type')
-  StopPointProposalInputDtoTypeEnum get type;
-  // enum typeEnum {  BUS_STATION,  OFFICE,  REST_STOP,  PICKUP_POINT,  };
 
   @BuiltValueField(wireName: r'address')
   String get address;
@@ -46,6 +43,13 @@ abstract class StopPointProposalInputDto implements Built<StopPointProposalInput
 
   @BuiltValueField(wireName: r'description')
   String? get description;
+
+  @BuiltValueField(wireName: r'type')
+  StopPointProposalInputDtoTypeEnum get type;
+  // enum typeEnum {  BUS_STATION,  PICKUP_POINT,  };
+
+  @BuiltValueField(wireName: r'legalBasis')
+  String get legalBasis;
 
   StopPointProposalInputDto._();
 
@@ -74,11 +78,6 @@ class _$StopPointProposalInputDtoSerializer implements PrimitiveSerializer<StopP
     yield serializers.serialize(
       object.name,
       specifiedType: const FullType(String),
-    );
-    yield r'type';
-    yield serializers.serialize(
-      object.type,
-      specifiedType: const FullType(StopPointProposalInputDtoTypeEnum),
     );
     yield r'address';
     yield serializers.serialize(
@@ -110,6 +109,16 @@ class _$StopPointProposalInputDtoSerializer implements PrimitiveSerializer<StopP
       object.description,
       specifiedType: const FullType.nullable(String),
     );
+    yield r'type';
+    yield serializers.serialize(
+      object.type,
+      specifiedType: const FullType(StopPointProposalInputDtoTypeEnum),
+    );
+    yield r'legalBasis';
+    yield serializers.serialize(
+      object.legalBasis,
+      specifiedType: const FullType(String),
+    );
   }
 
   @override
@@ -139,13 +148,6 @@ class _$StopPointProposalInputDtoSerializer implements PrimitiveSerializer<StopP
             specifiedType: const FullType(String),
           ) as String;
           result.name = valueDes;
-          break;
-        case r'type':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(StopPointProposalInputDtoTypeEnum),
-          ) as StopPointProposalInputDtoTypeEnum;
-          result.type = valueDes;
           break;
         case r'address':
           final valueDes = serializers.deserialize(
@@ -190,6 +192,20 @@ class _$StopPointProposalInputDtoSerializer implements PrimitiveSerializer<StopP
           if (valueDes == null) continue;
           result.description = valueDes;
           break;
+        case r'type':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(StopPointProposalInputDtoTypeEnum),
+          ) as StopPointProposalInputDtoTypeEnum;
+          result.type = valueDes;
+          break;
+        case r'legalBasis':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(String),
+          ) as String;
+          result.legalBasis = valueDes;
+          break;
         default:
           unhandled.add(key);
           unhandled.add(value);
@@ -224,10 +240,6 @@ class StopPointProposalInputDtoTypeEnum extends EnumClass {
 
   @BuiltValueEnumConst(wireName: r'BUS_STATION')
   static const StopPointProposalInputDtoTypeEnum BUS_STATION = _$stopPointProposalInputDtoTypeEnum_BUS_STATION;
-  @BuiltValueEnumConst(wireName: r'OFFICE')
-  static const StopPointProposalInputDtoTypeEnum OFFICE = _$stopPointProposalInputDtoTypeEnum_OFFICE;
-  @BuiltValueEnumConst(wireName: r'REST_STOP')
-  static const StopPointProposalInputDtoTypeEnum REST_STOP = _$stopPointProposalInputDtoTypeEnum_REST_STOP;
   @BuiltValueEnumConst(wireName: r'PICKUP_POINT')
   static const StopPointProposalInputDtoTypeEnum PICKUP_POINT = _$stopPointProposalInputDtoTypeEnum_PICKUP_POINT;
 

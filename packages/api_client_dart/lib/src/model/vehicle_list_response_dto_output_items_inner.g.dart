@@ -88,6 +88,10 @@ class _$VehicleListResponseDtoOutputItemsInner
   @override
   final String? seatMapId;
   @override
+  final VehicleListResponseDtoOutputItemsInnerSeatMap? seatMap;
+  @override
+  final bool seatMapLocked;
+  @override
   final BuiltList<String> amenityIds;
   @override
   final VehicleListResponseDtoOutputItemsInnerStatusEnum status;
@@ -109,6 +113,8 @@ class _$VehicleListResponseDtoOutputItemsInner
       required this.plateNumber,
       required this.vehicleTypeId,
       this.seatMapId,
+      this.seatMap,
+      required this.seatMapLocked,
       required this.amenityIds,
       required this.status,
       this.description,
@@ -133,6 +139,8 @@ class _$VehicleListResponseDtoOutputItemsInner
         plateNumber == other.plateNumber &&
         vehicleTypeId == other.vehicleTypeId &&
         seatMapId == other.seatMapId &&
+        seatMap == other.seatMap &&
+        seatMapLocked == other.seatMapLocked &&
         amenityIds == other.amenityIds &&
         status == other.status &&
         description == other.description &&
@@ -147,6 +155,8 @@ class _$VehicleListResponseDtoOutputItemsInner
     _$hash = $jc(_$hash, plateNumber.hashCode);
     _$hash = $jc(_$hash, vehicleTypeId.hashCode);
     _$hash = $jc(_$hash, seatMapId.hashCode);
+    _$hash = $jc(_$hash, seatMap.hashCode);
+    _$hash = $jc(_$hash, seatMapLocked.hashCode);
     _$hash = $jc(_$hash, amenityIds.hashCode);
     _$hash = $jc(_$hash, status.hashCode);
     _$hash = $jc(_$hash, description.hashCode);
@@ -164,6 +174,8 @@ class _$VehicleListResponseDtoOutputItemsInner
           ..add('plateNumber', plateNumber)
           ..add('vehicleTypeId', vehicleTypeId)
           ..add('seatMapId', seatMapId)
+          ..add('seatMap', seatMap)
+          ..add('seatMapLocked', seatMapLocked)
           ..add('amenityIds', amenityIds)
           ..add('status', status)
           ..add('description', description)
@@ -195,6 +207,18 @@ class VehicleListResponseDtoOutputItemsInnerBuilder
   String? _seatMapId;
   String? get seatMapId => _$this._seatMapId;
   set seatMapId(String? seatMapId) => _$this._seatMapId = seatMapId;
+
+  VehicleListResponseDtoOutputItemsInnerSeatMapBuilder? _seatMap;
+  VehicleListResponseDtoOutputItemsInnerSeatMapBuilder get seatMap =>
+      _$this._seatMap ??=
+          VehicleListResponseDtoOutputItemsInnerSeatMapBuilder();
+  set seatMap(VehicleListResponseDtoOutputItemsInnerSeatMapBuilder? seatMap) =>
+      _$this._seatMap = seatMap;
+
+  bool? _seatMapLocked;
+  bool? get seatMapLocked => _$this._seatMapLocked;
+  set seatMapLocked(bool? seatMapLocked) =>
+      _$this._seatMapLocked = seatMapLocked;
 
   ListBuilder<String>? _amenityIds;
   ListBuilder<String> get amenityIds =>
@@ -231,6 +255,8 @@ class VehicleListResponseDtoOutputItemsInnerBuilder
       _plateNumber = $v.plateNumber;
       _vehicleTypeId = $v.vehicleTypeId;
       _seatMapId = $v.seatMapId;
+      _seatMap = $v.seatMap?.toBuilder();
+      _seatMapLocked = $v.seatMapLocked;
       _amenityIds = $v.amenityIds.toBuilder();
       _status = $v.status;
       _description = $v.description;
@@ -267,6 +293,9 @@ class VehicleListResponseDtoOutputItemsInnerBuilder
             vehicleTypeId: BuiltValueNullFieldError.checkNotNull(vehicleTypeId,
                 r'VehicleListResponseDtoOutputItemsInner', 'vehicleTypeId'),
             seatMapId: seatMapId,
+            seatMap: _seatMap?.build(),
+            seatMapLocked: BuiltValueNullFieldError.checkNotNull(seatMapLocked,
+                r'VehicleListResponseDtoOutputItemsInner', 'seatMapLocked'),
             amenityIds: amenityIds.build(),
             status: BuiltValueNullFieldError.checkNotNull(
                 status, r'VehicleListResponseDtoOutputItemsInner', 'status'),
@@ -279,6 +308,9 @@ class VehicleListResponseDtoOutputItemsInnerBuilder
     } catch (_) {
       late String _$failedField;
       try {
+        _$failedField = 'seatMap';
+        _seatMap?.build();
+
         _$failedField = 'amenityIds';
         amenityIds.build();
       } catch (e) {

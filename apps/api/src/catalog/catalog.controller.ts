@@ -90,6 +90,14 @@ export class CatalogController {
     required: false,
     enum: Object.values(StopPointType),
   })
+  @ApiQuery({
+    name: "q",
+    required: false,
+    type: String,
+    maxLength: 100,
+    description:
+      "Tìm theo tên hoặc địa chỉ; không phân biệt dấu và hoa/thường.",
+  })
   @ApiQuery({ name: "cursor", required: false, type: String, format: "uuid" })
   @ApiQuery({
     name: "limit",

@@ -1,6 +1,6 @@
 import { createZodDto } from "nestjs-zod";
 import { z } from "zod";
-import { RouteStatus, RouteStopRole, RoutingMetricsSource } from "../../database/prisma.types";
+import { RouteStatus, RouteStopRole, RoutingMetricsSource, StopPointType } from "../../database/prisma.types";
 
 /** Giới hạn điểm/route: đủ cho tuyến liên tỉnh, chặn payload và số lần gọi Goong (mỗi chặng một lần). */
 export const MAX_ROUTE_STOPS = 25;
@@ -18,6 +18,10 @@ const RouteStopInputSchema = z
     catalogStopPointId: z.uuid().nullable(),
     stopPointId: z.uuid().nullable(),
     note: optionalText(300),
+    // BR-79: cho đón / cho trả tại điểm này. Quy tắc theo vị trí và loại điểm kiểm ở service (cần loại
+    // điểm) và trả 422 `ROUTE_STOP_PICKUP_DROPOFF_INVALID`.
+    allowPickup: z.boolean(),
+    allowDropoff: z.boolean(),
   })
   .refine(
     (stop) => (stop.catalogStopPointId === null) !== (stop.stopPointId === null),
@@ -85,10 +89,14 @@ export const RouteResponseSchema = z.object({
       catalogStopPointId: z.uuid().nullable(),
       stopPointId: z.uuid().nullable(),
       name: z.string(),
+      // Loại điểm: giao diện tự cảnh báo khi hai đầu route không phải bến xe (OQ-24).
+      type: z.enum(StopPointType),
       address: z.string(),
       latitude: z.number(),
       longitude: z.number(),
       note: z.string().nullable(),
+      allowPickup: z.boolean(),
+      allowDropoff: z.boolean(),
       distanceMetersFromPrevious: z.int().nullable(),
       durationSecondsFromPrevious: z.int().nullable(),
     }),

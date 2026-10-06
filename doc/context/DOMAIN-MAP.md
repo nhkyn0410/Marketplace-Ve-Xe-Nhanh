@@ -29,7 +29,7 @@ Notes:
 | Identity & Access        | `iam/` (split: `auth/`, `user/`, `session/`, `role/`)         | Owns User, Admin, Operator account, Employee account, Role, Session.                                 |
 | Operator Profile & KYC   | `operator/` + `operator-kyc/`                                 | Owns OperatorApplication (pre-tenant registration, BR-75), OperatorProfile, KycDocument, BankAccount, OperatorStatusHistory.                               |
 | Location & Catalog       | `catalog/`                                                    | Province, Ward, StopPoint, VehicleType, Amenity, ContentPage.                                        |
-| Transport Resource       | `vehicle/`, `route/`, `stop-point/`                           | Vehicle, SeatMap, Seat, Route, RouteStop.                                                            |
+| Transport Resource       | `vehicle/`, `route/`, `stop-point/`                           | Vehicle, VehicleImage, SeatMap, Seat, Route, RouteStop.                                              |
 | Trip & Inventory         | `trip/`, `fare/`, `seat-hold/`                                | Trip, TripStop, TripSeat, SeatHold, Fare, FareRule.                                                  |
 | Booking & Ticket         | `booking/`, `ticket/`                                         | Booking, PassengerInfo, Ticket, TicketQrToken, BookingStatusHistory.                                 |
 | Promotion & Campaign     | `promotion/`                                                  | Promotion, PromotionRule, PromotionRedemption, PromotionUsageLimit, UserVoucher (voucher wallet).                                  |
@@ -82,6 +82,11 @@ Per `OQ-01..03` decisions, code state enums must align with SRS §17:
 | -------------- | ---------------------------------------------------------------------------------------------------------------------------------------- | ------------- |
 | Trip status    | DRAFT, OPEN_FOR_SALE, SOLD_OUT, LOCKED, BOARDING, DEPARTED, IN_PROGRESS, COMPLETED, CANCELLED, INCIDENT                                  | `trip/`       |
 | Seat status    | AVAILABLE, HOLDING, BOOKED, CHECKED_IN, BLOCKED                                                                                          | `trip/`       |
+| Seat type      | SEAT, BED, BED_DOUBLE, CABIN, CABIN_DOUBLE (classification, no lifecycle — BR-78)                                                        | `vehicle/`    |
+| Vehicle form   | SEATER, SLEEPER, CABIN (attribute of a catalog vehicle type — BR-77)                                                                     | `catalog/`    |
+| Vehicle class  | STANDARD, LIMOUSINE (attribute of a catalog vehicle type — BR-77)                                                                        | `catalog/`    |
+| Stop point type | BUS_STATION, PICKUP_POINT, REST_STOP (shared catalog); OFFICE, REST_STOP (Operator-private) — BR-38                                     | `catalog/`, `stop-point/` |
+| Stop point status (private) | ACTIVE, INACTIVE, SUSPENDED (set by Admin only — BR-81)                                                                    | `stop-point/` |
 | Booking status | PENDING_PAYMENT, PENDING_CONFIRMATION, PAID, CONFIRMED, PARTIALLY_CANCELLED, CANCELLED, EXPIRED, REFUND_PENDING, REFUNDED, REFUND_FAILED | `booking/`    |
 | Ticket status  | VALID, CANCELLED, CHECKED_IN, NO_SHOW, USED, REFUNDED                                                                                    | `ticket/`     |
 | Payment status | INITIATED, PROCESSING, SUCCESS, FAILED, EXPIRED, CANCELLED, RECONCILING                                                                  | `payment/`    |

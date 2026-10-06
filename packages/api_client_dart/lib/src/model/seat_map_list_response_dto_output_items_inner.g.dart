@@ -15,6 +15,12 @@ class _$SeatMapListResponseDtoOutputItemsInner
   @override
   final int seatCount;
   @override
+  final int passengerCapacity;
+  @override
+  final int deckCount;
+  @override
+  final bool inUse;
+  @override
   final DateTime createdAt;
   @override
   final DateTime updatedAt;
@@ -29,6 +35,9 @@ class _$SeatMapListResponseDtoOutputItemsInner
       {required this.id,
       required this.name,
       required this.seatCount,
+      required this.passengerCapacity,
+      required this.deckCount,
+      required this.inUse,
       required this.createdAt,
       required this.updatedAt})
       : super._();
@@ -49,6 +58,9 @@ class _$SeatMapListResponseDtoOutputItemsInner
         id == other.id &&
         name == other.name &&
         seatCount == other.seatCount &&
+        passengerCapacity == other.passengerCapacity &&
+        deckCount == other.deckCount &&
+        inUse == other.inUse &&
         createdAt == other.createdAt &&
         updatedAt == other.updatedAt;
   }
@@ -59,6 +71,9 @@ class _$SeatMapListResponseDtoOutputItemsInner
     _$hash = $jc(_$hash, id.hashCode);
     _$hash = $jc(_$hash, name.hashCode);
     _$hash = $jc(_$hash, seatCount.hashCode);
+    _$hash = $jc(_$hash, passengerCapacity.hashCode);
+    _$hash = $jc(_$hash, deckCount.hashCode);
+    _$hash = $jc(_$hash, inUse.hashCode);
     _$hash = $jc(_$hash, createdAt.hashCode);
     _$hash = $jc(_$hash, updatedAt.hashCode);
     _$hash = $jf(_$hash);
@@ -72,6 +87,9 @@ class _$SeatMapListResponseDtoOutputItemsInner
           ..add('id', id)
           ..add('name', name)
           ..add('seatCount', seatCount)
+          ..add('passengerCapacity', passengerCapacity)
+          ..add('deckCount', deckCount)
+          ..add('inUse', inUse)
           ..add('createdAt', createdAt)
           ..add('updatedAt', updatedAt))
         .toString();
@@ -96,6 +114,19 @@ class SeatMapListResponseDtoOutputItemsInnerBuilder
   int? get seatCount => _$this._seatCount;
   set seatCount(int? seatCount) => _$this._seatCount = seatCount;
 
+  int? _passengerCapacity;
+  int? get passengerCapacity => _$this._passengerCapacity;
+  set passengerCapacity(int? passengerCapacity) =>
+      _$this._passengerCapacity = passengerCapacity;
+
+  int? _deckCount;
+  int? get deckCount => _$this._deckCount;
+  set deckCount(int? deckCount) => _$this._deckCount = deckCount;
+
+  bool? _inUse;
+  bool? get inUse => _$this._inUse;
+  set inUse(bool? inUse) => _$this._inUse = inUse;
+
   DateTime? _createdAt;
   DateTime? get createdAt => _$this._createdAt;
   set createdAt(DateTime? createdAt) => _$this._createdAt = createdAt;
@@ -114,6 +145,9 @@ class SeatMapListResponseDtoOutputItemsInnerBuilder
       _id = $v.id;
       _name = $v.name;
       _seatCount = $v.seatCount;
+      _passengerCapacity = $v.passengerCapacity;
+      _deckCount = $v.deckCount;
+      _inUse = $v.inUse;
       _createdAt = $v.createdAt;
       _updatedAt = $v.updatedAt;
       _$v = null;
@@ -144,6 +178,14 @@ class SeatMapListResponseDtoOutputItemsInnerBuilder
               name, r'SeatMapListResponseDtoOutputItemsInner', 'name'),
           seatCount: BuiltValueNullFieldError.checkNotNull(seatCount,
               r'SeatMapListResponseDtoOutputItemsInner', 'seatCount'),
+          passengerCapacity: BuiltValueNullFieldError.checkNotNull(
+              passengerCapacity,
+              r'SeatMapListResponseDtoOutputItemsInner',
+              'passengerCapacity'),
+          deckCount: BuiltValueNullFieldError.checkNotNull(deckCount,
+              r'SeatMapListResponseDtoOutputItemsInner', 'deckCount'),
+          inUse: BuiltValueNullFieldError.checkNotNull(
+              inUse, r'SeatMapListResponseDtoOutputItemsInner', 'inUse'),
           createdAt: BuiltValueNullFieldError.checkNotNull(createdAt,
               r'SeatMapListResponseDtoOutputItemsInner', 'createdAt'),
           updatedAt: BuiltValueNullFieldError.checkNotNull(updatedAt,

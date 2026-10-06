@@ -1,6 +1,7 @@
 import { createZodDto } from "nestjs-zod";
 import { z } from "zod";
 import { VehicleStatus } from "../../database/prisma.types";
+import { SeatMapSummarySchema } from "./seat-map.dto";
 
 /**
  * Biển số chuẩn hoá trước khi lưu và so trùng (giả định A1): `51b-123.45` → `51B12345`. Nhờ vậy cách
@@ -49,6 +50,12 @@ export const VehicleResponseSchema = z.object({
   plateNumber: z.string(),
   vehicleTypeId: z.uuid(),
   seatMapId: z.uuid().nullable(),
+  // TRN-011: tóm tắt sơ đồ đang gắn, để danh sách xe hiện tên / số chỗ / sức chứa / số tầng mà không
+  // phải ghép với danh sách SeatMap (hai danh sách phân trang riêng).
+  seatMap: SeatMapSummarySchema.nullable(),
+  // TRN-011: `true` khi xe còn chuyến chưa kết thúc nên chưa đổi được `seatMapId`. Chỉ để giao diện khóa
+  // trước; chưa có module chuyến (TRN-003) nên hiện luôn `false`.
+  seatMapLocked: z.boolean(),
   amenityIds: z.array(z.uuid()),
   status: z.enum(VehicleStatus),
   description: z.string().nullable(),

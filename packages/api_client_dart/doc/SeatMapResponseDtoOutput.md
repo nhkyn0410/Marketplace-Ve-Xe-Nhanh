@@ -11,6 +11,9 @@ Name | Type | Description | Notes
 **id** | **String** |  | 
 **name** | **String** |  | 
 **seatCount** | **int** |  | 
+**passengerCapacity** | **int** |  | 
+**deckCount** | **int** |  | 
+**inUse** | **bool** |  | 
 **createdAt** | [**DateTime**](DateTime.md) |  | 
 **updatedAt** | [**DateTime**](DateTime.md) |  | 
 **layout** | [**SeatMapResponseDtoOutputLayout**](SeatMapResponseDtoOutputLayout.md) |  | 

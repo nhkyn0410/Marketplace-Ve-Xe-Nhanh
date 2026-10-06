@@ -17,10 +17,13 @@ part 'route_response_dto_output_stops_inner.g.dart';
 /// * [catalogStopPointId] 
 /// * [stopPointId] 
 /// * [name] 
+/// * [type] 
 /// * [address] 
 /// * [latitude] 
 /// * [longitude] 
 /// * [note] 
+/// * [allowPickup] 
+/// * [allowDropoff] 
 /// * [distanceMetersFromPrevious] 
 /// * [durationSecondsFromPrevious] 
 @BuiltValue()
@@ -41,6 +44,10 @@ abstract class RouteResponseDtoOutputStopsInner implements Built<RouteResponseDt
   @BuiltValueField(wireName: r'name')
   String get name;
 
+  @BuiltValueField(wireName: r'type')
+  RouteResponseDtoOutputStopsInnerTypeEnum get type;
+  // enum typeEnum {  BUS_STATION,  OFFICE,  REST_STOP,  PICKUP_POINT,  };
+
   @BuiltValueField(wireName: r'address')
   String get address;
 
@@ -52,6 +59,12 @@ abstract class RouteResponseDtoOutputStopsInner implements Built<RouteResponseDt
 
   @BuiltValueField(wireName: r'note')
   String? get note;
+
+  @BuiltValueField(wireName: r'allowPickup')
+  bool get allowPickup;
+
+  @BuiltValueField(wireName: r'allowDropoff')
+  bool get allowDropoff;
 
   @BuiltValueField(wireName: r'distanceMetersFromPrevious')
   int? get distanceMetersFromPrevious;
@@ -107,6 +120,11 @@ class _$RouteResponseDtoOutputStopsInnerSerializer implements PrimitiveSerialize
       object.name,
       specifiedType: const FullType(String),
     );
+    yield r'type';
+    yield serializers.serialize(
+      object.type,
+      specifiedType: const FullType(RouteResponseDtoOutputStopsInnerTypeEnum),
+    );
     yield r'address';
     yield serializers.serialize(
       object.address,
@@ -126,6 +144,16 @@ class _$RouteResponseDtoOutputStopsInnerSerializer implements PrimitiveSerialize
     yield object.note == null ? null : serializers.serialize(
       object.note,
       specifiedType: const FullType.nullable(String),
+    );
+    yield r'allowPickup';
+    yield serializers.serialize(
+      object.allowPickup,
+      specifiedType: const FullType(bool),
+    );
+    yield r'allowDropoff';
+    yield serializers.serialize(
+      object.allowDropoff,
+      specifiedType: const FullType(bool),
     );
     yield r'distanceMetersFromPrevious';
     yield object.distanceMetersFromPrevious == null ? null : serializers.serialize(
@@ -197,6 +225,13 @@ class _$RouteResponseDtoOutputStopsInnerSerializer implements PrimitiveSerialize
           ) as String;
           result.name = valueDes;
           break;
+        case r'type':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(RouteResponseDtoOutputStopsInnerTypeEnum),
+          ) as RouteResponseDtoOutputStopsInnerTypeEnum;
+          result.type = valueDes;
+          break;
         case r'address':
           final valueDes = serializers.deserialize(
             value,
@@ -225,6 +260,20 @@ class _$RouteResponseDtoOutputStopsInnerSerializer implements PrimitiveSerialize
           ) as String?;
           if (valueDes == null) continue;
           result.note = valueDes;
+          break;
+        case r'allowPickup':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(bool),
+          ) as bool;
+          result.allowPickup = valueDes;
+          break;
+        case r'allowDropoff':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(bool),
+          ) as bool;
+          result.allowDropoff = valueDes;
           break;
         case r'distanceMetersFromPrevious':
           final valueDes = serializers.deserialize(
@@ -287,5 +336,24 @@ class RouteResponseDtoOutputStopsInnerRoleEnum extends EnumClass {
 
   static BuiltSet<RouteResponseDtoOutputStopsInnerRoleEnum> get values => _$routeResponseDtoOutputStopsInnerRoleEnumValues;
   static RouteResponseDtoOutputStopsInnerRoleEnum valueOf(String name) => _$routeResponseDtoOutputStopsInnerRoleEnumValueOf(name);
+}
+
+class RouteResponseDtoOutputStopsInnerTypeEnum extends EnumClass {
+
+  @BuiltValueEnumConst(wireName: r'BUS_STATION')
+  static const RouteResponseDtoOutputStopsInnerTypeEnum BUS_STATION = _$routeResponseDtoOutputStopsInnerTypeEnum_BUS_STATION;
+  @BuiltValueEnumConst(wireName: r'OFFICE')
+  static const RouteResponseDtoOutputStopsInnerTypeEnum OFFICE = _$routeResponseDtoOutputStopsInnerTypeEnum_OFFICE;
+  @BuiltValueEnumConst(wireName: r'REST_STOP')
+  static const RouteResponseDtoOutputStopsInnerTypeEnum REST_STOP = _$routeResponseDtoOutputStopsInnerTypeEnum_REST_STOP;
+  @BuiltValueEnumConst(wireName: r'PICKUP_POINT')
+  static const RouteResponseDtoOutputStopsInnerTypeEnum PICKUP_POINT = _$routeResponseDtoOutputStopsInnerTypeEnum_PICKUP_POINT;
+
+  static Serializer<RouteResponseDtoOutputStopsInnerTypeEnum> get serializer => _$routeResponseDtoOutputStopsInnerTypeEnumSerializer;
+
+  const RouteResponseDtoOutputStopsInnerTypeEnum._(String name): super(name);
+
+  static BuiltSet<RouteResponseDtoOutputStopsInnerTypeEnum> get values => _$routeResponseDtoOutputStopsInnerTypeEnumValues;
+  static RouteResponseDtoOutputStopsInnerTypeEnum valueOf(String name) => _$routeResponseDtoOutputStopsInnerTypeEnumValueOf(name);
 }
 

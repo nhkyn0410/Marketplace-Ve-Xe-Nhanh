@@ -4,6 +4,7 @@
 
 // ignore_for_file: unused_element
 import 'package:built_collection/built_collection.dart';
+import 'package:api_client_dart/src/model/vehicle_list_response_dto_output_items_inner_seat_map.dart';
 import 'package:built_value/built_value.dart';
 import 'package:built_value/serializer.dart';
 
@@ -16,6 +17,8 @@ part 'vehicle_list_response_dto_output_items_inner.g.dart';
 /// * [plateNumber] 
 /// * [vehicleTypeId] 
 /// * [seatMapId] 
+/// * [seatMap] 
+/// * [seatMapLocked] 
 /// * [amenityIds] 
 /// * [status] 
 /// * [description] 
@@ -34,6 +37,12 @@ abstract class VehicleListResponseDtoOutputItemsInner implements Built<VehicleLi
 
   @BuiltValueField(wireName: r'seatMapId')
   String? get seatMapId;
+
+  @BuiltValueField(wireName: r'seatMap')
+  VehicleListResponseDtoOutputItemsInnerSeatMap? get seatMap;
+
+  @BuiltValueField(wireName: r'seatMapLocked')
+  bool get seatMapLocked;
 
   @BuiltValueField(wireName: r'amenityIds')
   BuiltList<String> get amenityIds;
@@ -93,6 +102,16 @@ class _$VehicleListResponseDtoOutputItemsInnerSerializer implements PrimitiveSer
     yield object.seatMapId == null ? null : serializers.serialize(
       object.seatMapId,
       specifiedType: const FullType.nullable(String),
+    );
+    yield r'seatMap';
+    yield object.seatMap == null ? null : serializers.serialize(
+      object.seatMap,
+      specifiedType: const FullType.nullable(VehicleListResponseDtoOutputItemsInnerSeatMap),
+    );
+    yield r'seatMapLocked';
+    yield serializers.serialize(
+      object.seatMapLocked,
+      specifiedType: const FullType(bool),
     );
     yield r'amenityIds';
     yield serializers.serialize(
@@ -170,6 +189,21 @@ class _$VehicleListResponseDtoOutputItemsInnerSerializer implements PrimitiveSer
           ) as String?;
           if (valueDes == null) continue;
           result.seatMapId = valueDes;
+          break;
+        case r'seatMap':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType.nullable(VehicleListResponseDtoOutputItemsInnerSeatMap),
+          ) as VehicleListResponseDtoOutputItemsInnerSeatMap?;
+          if (valueDes == null) continue;
+          result.seatMap.replace(valueDes);
+          break;
+        case r'seatMapLocked':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(bool),
+          ) as bool;
+          result.seatMapLocked = valueDes;
           break;
         case r'amenityIds':
           final valueDes = serializers.deserialize(

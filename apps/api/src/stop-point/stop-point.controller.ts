@@ -1,7 +1,7 @@
 import { Body, Controller, Get, HttpCode, Inject, Param, Post, Put, Query } from "@nestjs/common";
 import { ApiBody, ApiParam, ApiQuery, ApiResponse, ApiTags, getSchemaPath } from "@nestjs/swagger";
 import { ZodResponse } from "nestjs-zod";
-import { StopPointStatus } from "../database/prisma.types";
+import { StopPointStatus, StopPointType } from "../database/prisma.types";
 import { Authorize, Authz } from "../iam/role/authorize.decorator";
 import type { Authorization } from "../iam/role/authorization";
 import { ProblemDetailsDto } from "../openapi/openapi.dto";
@@ -30,6 +30,15 @@ export class StopPointController {
   @Get()
   @Authorize("route:manage")
   @ApiQuery({ name: "status", required: false, enum: Object.values(StopPointStatus) })
+  @ApiQuery({ name: "type", required: false, enum: Object.values(StopPointType) })
+  @ApiQuery({ name: "provinceId", required: false, type: String, format: "uuid" })
+  @ApiQuery({
+    name: "q",
+    required: false,
+    type: String,
+    maxLength: 100,
+    description: "Tìm theo tên hoặc địa chỉ; không phân biệt dấu và hoa/thường.",
+  })
   @ApiQuery({ name: "cursor", required: false, type: String, format: "uuid" })
   @ApiQuery({ name: "limit", required: false, type: Number, minimum: 1, maximum: 100 })
   @ZodResponse({ status: 200, description: "Điểm riêng của nhà xe.", type: OperatorStopPointListResponseDto })
@@ -56,7 +65,12 @@ export class StopPointController {
   @ZodResponse({ status: 201, description: "Điểm riêng đã tạo.", type: OperatorStopPointResponseDto })
   @ApiResponse({ status: 400, description: "Dữ liệu không hợp lệ.", content: problemContent })
   @ApiResponse({ status: 409, description: "`STOP_POINT_NAME_CONFLICT`.", content: problemContent })
-  @ApiResponse({ status: 422, description: "`CATALOG_ITEM_UNAVAILABLE` (tỉnh/phường).", content: problemContent })
+  @ApiResponse({
+    status: 422,
+    description:
+      "`STOP_POINT_TYPE_NOT_ALLOWED` (điểm riêng chỉ là văn phòng hoặc trạm dừng nghỉ) hoặc `CATALOG_ITEM_UNAVAILABLE` (tỉnh/phường).",
+    content: problemContent,
+  })
   create(@Authz() authz: Authorization, @Body() input: OperatorStopPointInputDto): Promise<StopPointResponse> {
     return this.stopPoints.create(authz, input);
   }
@@ -69,8 +83,17 @@ export class StopPointController {
   @ZodResponse({ status: 200, description: "Điểm riêng sau khi thay.", type: OperatorStopPointResponseDto })
   @ApiResponse({ status: 400, description: "Dữ liệu không hợp lệ.", content: problemContent })
   @ApiResponse({ status: 404, description: "`STOP_POINT_NOT_FOUND` (kể cả khác tenant).", content: problemContent })
-  @ApiResponse({ status: 409, description: "`STOP_POINT_NAME_CONFLICT`.", content: problemContent })
-  @ApiResponse({ status: 422, description: "`CATALOG_ITEM_UNAVAILABLE` (tỉnh/phường).", content: problemContent })
+  @ApiResponse({
+    status: 409,
+    description: "`STOP_POINT_NAME_CONFLICT` hoặc `STOP_POINT_SUSPENDED` (điểm đang bị Platform tạm ngưng).",
+    content: problemContent,
+  })
+  @ApiResponse({
+    status: 422,
+    description:
+      "`STOP_POINT_TYPE_NOT_ALLOWED` (điểm riêng chỉ là văn phòng hoặc trạm dừng nghỉ) hoặc `CATALOG_ITEM_UNAVAILABLE` (tỉnh/phường).",
+    content: problemContent,
+  })
   update(
     @Authz() authz: Authorization,
     @Param("stopPointId") stopPointId: string,

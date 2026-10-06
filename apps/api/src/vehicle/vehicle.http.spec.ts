@@ -25,6 +25,8 @@ describe("Vehicle / SeatMap routes — HTTP", () => {
     plateNumber: "51B12345",
     vehicleTypeId: randomUUID(),
     seatMapId: null,
+    seatMap: null,
+    seatMapLocked: false,
     amenityIds: [],
     status: "ACTIVE",
     description: null,
@@ -35,8 +37,11 @@ describe("Vehicle / SeatMap routes — HTTP", () => {
     id: seatMapId,
     name: "Ghế 2",
     seatCount: 1,
+    passengerCapacity: 2,
+    deckCount: 1,
+    inUse: false,
     layout: { decks: [{ deck: 1, rows: 1, columns: 1 }] },
-    seats: [{ code: "A1", deck: 1, row: 1, column: 1, type: "SEAT" }],
+    seats: [{ code: "A1", deck: 1, row: 1, column: 1, type: "CABIN_DOUBLE" }],
     createdAt: now,
     updatedAt: now,
   };
@@ -165,6 +170,38 @@ describe("Vehicle / SeatMap routes — HTTP", () => {
     );
   });
 
+  it("Vehicle trả kèm tóm tắt sơ đồ đang gắn, không kèm bố cục / ghế (TRN-011)", async () => {
+    const { layout: _layout, seats: _seats, ...summary } = seatMap;
+    // Service lỡ trả cả bố cục + ghế thì serializer cắt: danh sách xe chỉ mang phần tóm tắt.
+    vehicles.list.mockResolvedValueOnce({
+      items: [{ ...vehicle, seatMapId, seatMap }],
+      nextCursor: null,
+    } as never);
+    const listed = await call("GET", "/vehicles", await token("OPERATOR_OWNER"));
+    expect(listed.body).toEqual({ items: [{ ...vehicle, seatMapId, seatMap: summary }], nextCursor: null });
+  });
+
+  it("SeatMap trả sức chứa + số tầng ở cả chi tiết và danh sách (BR-78, TRN-011)", async () => {
+    const owner = await token("OPERATOR_OWNER");
+    const detail = await call("GET", `/seat-maps/${seatMapId}`, owner);
+    expect(detail.body).toMatchObject({ seatCount: 1, passengerCapacity: 2, deckCount: 1 });
+    expect(detail.body.seats).toEqual([{ code: "A1", deck: 1, row: 1, column: 1, type: "CABIN_DOUBLE" }]);
+
+    const { layout: _layout, seats: _seats, ...summary } = seatMap;
+    // Service lỡ trả kèm ghế ở danh sách thì serializer cắt: danh sách chỉ có phần tóm tắt.
+    seatMaps.list.mockResolvedValueOnce({ items: [seatMap], nextCursor: null } as never);
+    expect((await call("GET", "/seat-maps", owner)).body).toEqual({ items: [summary], nextCursor: null });
+  });
+
+  it.each(["BED_DOUBLE", "CABIN", "CABIN_DOUBLE"])("POST /seat-maps nhận loại chỗ %s", async (type) => {
+    const body = { ...seatMapBody, seats: [{ ...seatMapBody.seats[0], type }] };
+    expect((await call("POST", "/seat-maps", await token("OPERATOR_OWNER"), body)).status).toBe(201);
+    expect(seatMaps.create).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ seats: [expect.objectContaining({ type })] }),
+    );
+  });
+
   it("mass assignment: operatorId/id trong body bị bỏ, tenant chỉ lấy từ JWT", async () => {
     const otherTenant = randomUUID();
     await call("POST", "/vehicles", await token("OPERATOR_OWNER"), { ...vehicleBody, operatorId: otherTenant, id: randomUUID() });
@@ -191,6 +228,8 @@ describe("Vehicle / SeatMap routes — HTTP", () => {
     ["POST", "/vehicles", { ...vehicleBody, vehicleTypeId: "x" }],
     ["PUT", `/vehicles/${vehicleId}`, { plateNumber: "51B12345" }],
     ["POST", "/seat-maps", { ...seatMapBody, seats: [{ ...seatMapBody.seats[0], row: 2 }] }],
+    ["POST", "/seat-maps", { ...seatMapBody, seats: [{ ...seatMapBody.seats[0], type: "SOFA" }] }],
+    ["PUT", `/seat-maps/${seatMapId}`, { ...seatMapBody, seats: [{ ...seatMapBody.seats[0], type: "LIMOUSINE" }] }],
     ["GET", "/vehicles?status=BROKEN", undefined],
     ["GET", "/seat-maps?limit=101", undefined],
   ])("%s %s dữ liệu sai → 400 problem+json, service không bị gọi", async (method, path, body) => {
@@ -200,6 +239,7 @@ describe("Vehicle / SeatMap routes — HTTP", () => {
     expect(vehicles.update).not.toHaveBeenCalled();
     expect(vehicles.list).not.toHaveBeenCalled();
     expect(seatMaps.create).not.toHaveBeenCalled();
+    expect(seatMaps.update).not.toHaveBeenCalled();
     expect(seatMaps.list).not.toHaveBeenCalled();
   });
 });

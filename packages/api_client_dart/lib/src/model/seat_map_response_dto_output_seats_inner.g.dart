@@ -12,6 +12,15 @@ const SeatMapResponseDtoOutputSeatsInnerTypeEnum
 const SeatMapResponseDtoOutputSeatsInnerTypeEnum
     _$seatMapResponseDtoOutputSeatsInnerTypeEnum_BED =
     const SeatMapResponseDtoOutputSeatsInnerTypeEnum._('BED');
+const SeatMapResponseDtoOutputSeatsInnerTypeEnum
+    _$seatMapResponseDtoOutputSeatsInnerTypeEnum_BED_DOUBLE =
+    const SeatMapResponseDtoOutputSeatsInnerTypeEnum._('BED_DOUBLE');
+const SeatMapResponseDtoOutputSeatsInnerTypeEnum
+    _$seatMapResponseDtoOutputSeatsInnerTypeEnum_CABIN =
+    const SeatMapResponseDtoOutputSeatsInnerTypeEnum._('CABIN');
+const SeatMapResponseDtoOutputSeatsInnerTypeEnum
+    _$seatMapResponseDtoOutputSeatsInnerTypeEnum_CABIN_DOUBLE =
+    const SeatMapResponseDtoOutputSeatsInnerTypeEnum._('CABIN_DOUBLE');
 
 SeatMapResponseDtoOutputSeatsInnerTypeEnum
     _$seatMapResponseDtoOutputSeatsInnerTypeEnumValueOf(String name) {
@@ -20,6 +29,12 @@ SeatMapResponseDtoOutputSeatsInnerTypeEnum
       return _$seatMapResponseDtoOutputSeatsInnerTypeEnum_SEAT;
     case 'BED':
       return _$seatMapResponseDtoOutputSeatsInnerTypeEnum_BED;
+    case 'BED_DOUBLE':
+      return _$seatMapResponseDtoOutputSeatsInnerTypeEnum_BED_DOUBLE;
+    case 'CABIN':
+      return _$seatMapResponseDtoOutputSeatsInnerTypeEnum_CABIN;
+    case 'CABIN_DOUBLE':
+      return _$seatMapResponseDtoOutputSeatsInnerTypeEnum_CABIN_DOUBLE;
     default:
       throw ArgumentError(name);
   }
@@ -30,6 +45,9 @@ final BuiltSet<SeatMapResponseDtoOutputSeatsInnerTypeEnum>
         SeatMapResponseDtoOutputSeatsInnerTypeEnum>(const <SeatMapResponseDtoOutputSeatsInnerTypeEnum>[
   _$seatMapResponseDtoOutputSeatsInnerTypeEnum_SEAT,
   _$seatMapResponseDtoOutputSeatsInnerTypeEnum_BED,
+  _$seatMapResponseDtoOutputSeatsInnerTypeEnum_BED_DOUBLE,
+  _$seatMapResponseDtoOutputSeatsInnerTypeEnum_CABIN,
+  _$seatMapResponseDtoOutputSeatsInnerTypeEnum_CABIN_DOUBLE,
 ]);
 
 Serializer<SeatMapResponseDtoOutputSeatsInnerTypeEnum>
@@ -41,10 +59,16 @@ class _$SeatMapResponseDtoOutputSeatsInnerTypeEnumSerializer
   static const Map<String, Object> _toWire = const <String, Object>{
     'SEAT': 'SEAT',
     'BED': 'BED',
+    'BED_DOUBLE': 'BED_DOUBLE',
+    'CABIN': 'CABIN',
+    'CABIN_DOUBLE': 'CABIN_DOUBLE',
   };
   static const Map<Object, String> _fromWire = const <Object, String>{
     'SEAT': 'SEAT',
     'BED': 'BED',
+    'BED_DOUBLE': 'BED_DOUBLE',
+    'CABIN': 'CABIN',
+    'CABIN_DOUBLE': 'CABIN_DOUBLE',
   };
 
   @override

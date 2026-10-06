@@ -418,6 +418,29 @@ describe.skipIf(!url && !requireDb)("Catalog — Postgres thật, role app", () 
       ]);
     });
 
+    it("stop-points tìm theo tên hoặc địa chỉ, gõ không dấu / khác hoa thường vẫn ra (TRN-012)", async () => {
+      const search = async (q: string) =>
+        (
+          await catalog.listStopPoints({ provinceId: provinceA, q, limit: 100 })
+        ).items.map((item) => item.id);
+      // Fixture: tên `Bến <tag>`, địa chỉ "Địa chỉ test".
+      expect(await search(`ben ${tag}`)).toEqual(activeStopIds);
+      expect(await search(`BẾN ${tag.toUpperCase()}`)).toEqual(activeStopIds);
+      expect(await search("dia chi test")).toEqual(activeStopIds);
+      expect(await search("Địa Chỉ")).toEqual(activeStopIds);
+      expect(await search(`khong-co-${tag}`)).toEqual([]);
+      // Kết hợp với bộ lọc loại: vẫn chỉ ra đúng loại.
+      const office = await catalog.listStopPoints({
+        provinceId: provinceA,
+        type: StopPointType.OFFICE,
+        q: `ben ${tag}`,
+        limit: 100,
+      });
+      expect(office.items).toHaveLength(1);
+      // Cột sinh không lộ ra response.
+      expect(office.items[0]).not.toHaveProperty("searchText");
+    });
+
     it("cursor đi hết các trang không lặp/sót, kể cả khi dòng cursor bị vô hiệu hoá giữa hai trang", async () => {
       const first = await catalog.listStopPoints({
         provinceId: provinceA,
@@ -478,7 +501,13 @@ describe.skipIf(!url && !requireDb)("Catalog — Postgres thật, role app", () 
         },
       ],
       vehicleTypes: [
-        { code: `VT-${tag}`, name: "Loại test", description: "mô tả" },
+        {
+          code: `VT-${tag}`,
+          name: "Loại test",
+          description: "mô tả",
+          form: "SLEEPER",
+          class: "LIMOUSINE",
+        },
       ],
       amenities: [{ code: `AM-${tag}`, name: "Tiện ích test" }],
       sampleStopPoints: [
@@ -545,6 +574,30 @@ describe.skipIf(!url && !requireDb)("Catalog — Postgres thật, role app", () 
           where: { name: `Bến mẫu ${tag}` },
         }),
       ).toBe(1);
+
+      // BR-77, TC-TRN-012: loại xe seed ra mang dạng chỗ + hạng xe và API catalog trả đúng hai field này.
+      const seeded = (await catalog.listVehicleTypes()).items.find(
+        (item) => item.code === `VT-${tag}`,
+      );
+      expect(seeded).toEqual({
+        id: expect.any(String),
+        code: `VT-${tag}`,
+        name: "Loại test",
+        description: "mô tả",
+        form: "SLEEPER",
+        class: "LIMOUSINE",
+      });
+    });
+
+    it("DB không cho loại xe thiếu dạng chỗ / hạng xe (NOT NULL, không default)", async () => {
+      const text = await rejectionText(
+        prisma.withSystem(
+          (tx) => tx.$executeRaw`
+            INSERT INTO "vehicle_types" ("id", "code", "name", "updated_at")
+            VALUES (${randomUUID()}, ${`NOFORM-${tag}`}, 'Thiếu phân loại', now())`,
+        ),
+      );
+      expect(text).toMatch(/23502|null value in column "(form|class)"/);
     });
 
     it("scope tenant không seed được (RLS chặn cả đường seed)", async () => {
