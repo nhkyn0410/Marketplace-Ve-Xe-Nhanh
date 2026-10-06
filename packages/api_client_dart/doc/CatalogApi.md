@@ -91,7 +91,7 @@ No authorization required
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **catalogControllerListStopPoints**
-> StopPointListResponseDtoOutput catalogControllerListStopPoints(provinceId, wardId, type, cursor, limit)
+> StopPointListResponseDtoOutput catalogControllerListStopPoints(provinceId, wardId, type, q, cursor, limit)
 
 
 
@@ -103,11 +103,12 @@ final api = ApiClientDart().getCatalogApi();
 final String provinceId = 38400000-8cf0-11bd-b23e-10b96e4ef00d; // String | 
 final String wardId = 38400000-8cf0-11bd-b23e-10b96e4ef00d; // String | 
 final String type = type_example; // String | 
+final String q = q_example; // String | Tìm theo tên hoặc địa chỉ; không phân biệt dấu và hoa/thường.
 final String cursor = 38400000-8cf0-11bd-b23e-10b96e4ef00d; // String | 
 final num limit = 8.14; // num | 
 
 try {
-    final response = api.catalogControllerListStopPoints(provinceId, wardId, type, cursor, limit);
+    final response = api.catalogControllerListStopPoints(provinceId, wardId, type, q, cursor, limit);
     print(response);
 } on DioException catch (e) {
     print('Exception when calling CatalogApi->catalogControllerListStopPoints: $e\n');
@@ -121,6 +122,7 @@ Name | Type | Description  | Notes
  **provinceId** | **String**|  | [optional] 
  **wardId** | **String**|  | [optional] 
  **type** | **String**|  | [optional] 
+ **q** | **String**| Tìm theo tên hoặc địa chỉ; không phân biệt dấu và hoa/thường. | [optional] 
  **cursor** | **String**|  | [optional] 
  **limit** | **num**|  | [optional] [default to 20]
 

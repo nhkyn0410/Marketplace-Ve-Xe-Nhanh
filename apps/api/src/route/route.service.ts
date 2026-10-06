@@ -4,6 +4,7 @@ import {
   CatalogStatus,
   RouteStopRole,
   StopPointStatus,
+  StopPointType,
   type RouteStatus,
   type RoutingMetricsSource,
 } from "../database/prisma.types";
@@ -18,20 +19,28 @@ import { requireTenant } from "../iam/role/require-tenant";
 import { isPrismaUniqueConflict } from "../iam/user/account.errors";
 import { stopPointUnavailable } from "../stop-point/stop-point.errors";
 import type { RouteInput, RouteListResponse, RouteResponse } from "./dto/route.dto";
-import { routeNameConflict, routeNotFound, routingProviderUnavailable } from "./route.errors";
+import {
+  routeNameConflict,
+  routeNotFound,
+  routeStopPickupDropoffInvalid,
+  routingProviderUnavailable,
+} from "./route.errors";
 
-/** Một điểm đã kiểm còn hiệu lực + toạ độ hiện tại của nó. */
+/** Một điểm đã kiểm còn hiệu lực + loại, toạ độ hiện tại của nó và quyền đón / trả nhà xe khai. */
 type ResolvedStop = {
   catalogStopPointId: string | null;
   stopPointId: string | null;
   note: string | null;
+  type: StopPointType;
+  allowPickup: boolean;
+  allowDropoff: boolean;
   latitude: number;
   longitude: number;
 };
 
 type Measured = { source: RoutingMetricsSource; legs: RouteLeg[] };
 
-const POINT_SELECT = { name: true, address: true } as const;
+const POINT_SELECT = { name: true, address: true, type: true } as const;
 /** Trần một chặng: 5.000 km / 7 ngày — quá mức là provider trả sai; 25 điểm × trần vẫn nằm trong INT4. */
 const MAX_LEG_METERS = 5_000_000;
 const MAX_LEG_SECONDS = 7 * 24 * 3_600;
@@ -219,8 +228,9 @@ async function assertNameFree(tx: DbTransaction, operatorId: string, name: strin
 
 /**
  * Kiểm điểm dùng được (BR-38, UC-13 A1): điểm MỚI phải là catalog `ACTIVE`, hoặc điểm riêng `ACTIVE` CỦA
- * TENANT NÀY, với phường/tỉnh `ACTIVE`; điểm trong `kept` (đã có trên route) được giữ dù đã vô hiệu hoá.
- * Điểm riêng luôn lọc theo tenant. Không phân biệt lý do để không lộ điểm của tenant khác.
+ * TENANT NÀY (điểm bị Admin khóa không gắn mới được — BR-81), với phường/tỉnh `ACTIVE`; điểm trong `kept`
+ * (đã có trên route) được giữ dù đã vô hiệu hoá. Điểm riêng luôn lọc theo tenant. Không phân biệt lý do để
+ * không lộ điểm của tenant khác. Sau đó kiểm quyền đón / trả theo vị trí và loại điểm (BR-79).
  */
 async function resolveStops(
   tx: DbTransaction,
@@ -230,7 +240,7 @@ async function resolveStops(
 ): Promise<ResolvedStop[]> {
   const catalogIds = stops.flatMap((stop) => (stop.catalogStopPointId ? [stop.catalogStopPointId] : []));
   const privateIds = stops.flatMap((stop) => (stop.stopPointId ? [stop.stopPointId] : []));
-  const coordinates = { id: true, latitude: true, longitude: true } as const;
+  const coordinates = { id: true, type: true, latitude: true, longitude: true } as const;
   const [catalog, own] = await Promise.all([
     tx.stopPointCatalog.findMany({
       where: {
@@ -250,7 +260,7 @@ async function resolveStops(
   ]);
   const catalogById = new Map(catalog.map((point) => [point.id, point]));
   const ownById = new Map(own.map((point) => [point.id, point]));
-  return stops.map((stop) => {
+  const resolved = stops.map((stop) => {
     const point = stop.catalogStopPointId
       ? catalogById.get(stop.catalogStopPointId)
       : ownById.get(stop.stopPointId!);
@@ -261,10 +271,39 @@ async function resolveStops(
       catalogStopPointId: stop.catalogStopPointId,
       stopPointId: stop.stopPointId,
       note: stop.note,
+      type: point.type,
+      allowPickup: stop.allowPickup,
+      allowDropoff: stop.allowDropoff,
       latitude: point.latitude,
       longitude: point.longitude,
     };
   });
+  assertPickupDropoff(resolved);
+  return resolved;
+}
+
+/**
+ * BR-79: điểm đầu chỉ đón, điểm cuối chỉ trả, điểm giữa có ít nhất một quyền; trạm dừng nghỉ không đón,
+ * không trả và không đứng đầu / cuối. Hai đầu không phải bến xe KHÔNG bị chặn ở v1 (OQ-24) — giao diện tự
+ * cảnh báo từ `type`.
+ */
+function assertPickupDropoff(stops: ResolvedStop[]): void {
+  const last = stops.length - 1;
+  const valid = stops.every((stop, index) => {
+    if (stop.type === StopPointType.REST_STOP) {
+      return index !== 0 && index !== last && !stop.allowPickup && !stop.allowDropoff;
+    }
+    if (index === 0) {
+      return stop.allowPickup && !stop.allowDropoff;
+    }
+    if (index === last) {
+      return !stop.allowPickup && stop.allowDropoff;
+    }
+    return stop.allowPickup || stop.allowDropoff;
+  });
+  if (!valid) {
+    throw routeStopPickupDropoffInvalid();
+  }
 }
 
 function sameCoordinates(
@@ -298,6 +337,8 @@ function stopRows(operatorId: string, routeId: string, stops: ResolvedStop[], le
     catalogStopPointId: stop.catalogStopPointId,
     stopPointId: stop.stopPointId,
     note: stop.note,
+    allowPickup: stop.allowPickup,
+    allowDropoff: stop.allowDropoff,
     latitude: stop.latitude,
     longitude: stop.longitude,
     distanceMetersFromPrevious: index === 0 ? null : legs[index - 1]!.distanceMeters,
@@ -326,6 +367,8 @@ function findDetail(tx: DbTransaction, operatorId: string, routeId: string) {
           catalogStopPointId: true,
           stopPointId: true,
           note: true,
+          allowPickup: true,
+          allowDropoff: true,
           latitude: true,
           longitude: true,
           distanceMetersFromPrevious: true,
@@ -345,7 +388,7 @@ function toResponse(row: NonNullable<Awaited<ReturnType<typeof findDetail>>>): R
     updatedAt: row.updatedAt.toISOString(),
     stops: row.stops.map(({ catalogStopPoint, stopPoint, ...stop }) => {
       const point = catalogStopPoint ?? stopPoint!;
-      return { ...stop, name: point.name, address: point.address };
+      return { ...stop, name: point.name, type: point.type, address: point.address };
     }),
   };
 }

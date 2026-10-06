@@ -1135,7 +1135,9 @@ export interface components {
                 /** Format: date-time */
                 updatedAt: string;
                 /** @enum {string} */
-                status: "ACTIVE" | "INACTIVE";
+                status: "ACTIVE" | "INACTIVE" | "SUSPENDED";
+                suspensionReason: string | null;
+                routeCount: number;
             }[];
             nextCursor: string | null;
         };
@@ -1158,12 +1160,12 @@ export interface components {
             /** Format: date-time */
             updatedAt: string;
             /** @enum {string} */
-            status: "ACTIVE" | "INACTIVE";
+            status: "ACTIVE" | "INACTIVE" | "SUSPENDED";
+            suspensionReason: string | null;
+            routeCount: number;
         };
         OperatorStopPointInputDto: {
             name: string;
-            /** @enum {string} */
-            type: "BUS_STATION" | "OFFICE" | "REST_STOP" | "PICKUP_POINT";
             address: string;
             /** Format: uuid */
             provinceId: string;
@@ -1172,6 +1174,8 @@ export interface components {
             latitude: number;
             longitude: number;
             description: string | null;
+            /** @enum {string} */
+            type: "BUS_STATION" | "OFFICE" | "REST_STOP" | "PICKUP_POINT";
             /** @enum {string} */
             status: "ACTIVE" | "INACTIVE";
         };
@@ -1194,6 +1198,7 @@ export interface components {
                 createdAt: string;
                 /** Format: date-time */
                 updatedAt: string;
+                legalBasis: string;
                 /** @enum {string} */
                 status: "PENDING" | "APPROVED" | "REJECTED";
                 rejectionReason: string | null;
@@ -1203,8 +1208,6 @@ export interface components {
         };
         StopPointProposalInputDto: {
             name: string;
-            /** @enum {string} */
-            type: "BUS_STATION" | "OFFICE" | "REST_STOP" | "PICKUP_POINT";
             address: string;
             /** Format: uuid */
             provinceId: string;
@@ -1213,6 +1216,9 @@ export interface components {
             latitude: number;
             longitude: number;
             description: string | null;
+            /** @enum {string} */
+            type: "BUS_STATION" | "PICKUP_POINT";
+            legalBasis: string;
         };
         StopPointProposalResponseDto_Output: {
             /** Format: uuid */
@@ -1232,6 +1238,7 @@ export interface components {
             createdAt: string;
             /** Format: date-time */
             updatedAt: string;
+            legalBasis: string;
             /** @enum {string} */
             status: "PENDING" | "APPROVED" | "REJECTED";
             rejectionReason: string | null;
@@ -1278,10 +1285,14 @@ export interface components {
                 catalogStopPointId: string | null;
                 stopPointId: string | null;
                 name: string;
+                /** @enum {string} */
+                type: "BUS_STATION" | "OFFICE" | "REST_STOP" | "PICKUP_POINT";
                 address: string;
                 latitude: number;
                 longitude: number;
                 note: string | null;
+                allowPickup: boolean;
+                allowDropoff: boolean;
                 distanceMetersFromPrevious: number | null;
                 durationSecondsFromPrevious: number | null;
             }[];
@@ -1295,6 +1306,8 @@ export interface components {
                 catalogStopPointId: string | null;
                 stopPointId: string | null;
                 note: string | null;
+                allowPickup: boolean;
+                allowDropoff: boolean;
             }[];
         };
     };
@@ -2582,6 +2595,8 @@ export interface operations {
                 provinceId?: string;
                 wardId?: string;
                 type?: "BUS_STATION" | "OFFICE" | "REST_STOP" | "PICKUP_POINT";
+                /** @description Tìm theo tên hoặc địa chỉ; không phân biệt dấu và hoa/thường. */
+                q?: string;
                 cursor?: string;
                 limit?: number;
             };
@@ -3142,7 +3157,11 @@ export interface operations {
     StopPointController_list: {
         parameters: {
             query?: {
-                status?: "ACTIVE" | "INACTIVE";
+                status?: "ACTIVE" | "INACTIVE" | "SUSPENDED";
+                type?: "BUS_STATION" | "OFFICE" | "REST_STOP" | "PICKUP_POINT";
+                provinceId?: string;
+                /** @description Tìm theo tên hoặc địa chỉ; không phân biệt dấu và hoa/thường. */
+                q?: string;
                 cursor?: string;
                 limit?: number;
             };
@@ -3248,7 +3267,7 @@ export interface operations {
                     "application/problem+json": components["schemas"]["ProblemDetailsDto"];
                 };
             };
-            /** @description `CATALOG_ITEM_UNAVAILABLE` (tỉnh/phường). */
+            /** @description `STOP_POINT_TYPE_NOT_ALLOWED` (điểm riêng chỉ là văn phòng hoặc trạm dừng nghỉ) hoặc `CATALOG_ITEM_UNAVAILABLE` (tỉnh/phường). */
             422: {
                 headers: {
                     [name: string]: unknown;
@@ -3368,7 +3387,7 @@ export interface operations {
                     "application/problem+json": components["schemas"]["ProblemDetailsDto"];
                 };
             };
-            /** @description `STOP_POINT_NAME_CONFLICT`. */
+            /** @description `STOP_POINT_NAME_CONFLICT` hoặc `STOP_POINT_SUSPENDED` (điểm đang bị Platform tạm ngưng). */
             409: {
                 headers: {
                     [name: string]: unknown;
@@ -3377,7 +3396,7 @@ export interface operations {
                     "application/problem+json": components["schemas"]["ProblemDetailsDto"];
                 };
             };
-            /** @description `CATALOG_ITEM_UNAVAILABLE` (tỉnh/phường). */
+            /** @description `STOP_POINT_TYPE_NOT_ALLOWED` (điểm riêng chỉ là văn phòng hoặc trạm dừng nghỉ) hoặc `CATALOG_ITEM_UNAVAILABLE` (tỉnh/phường). */
             422: {
                 headers: {
                     [name: string]: unknown;
@@ -3688,7 +3707,7 @@ export interface operations {
                     "application/problem+json": components["schemas"]["ProblemDetailsDto"];
                 };
             };
-            /** @description `STOP_POINT_UNAVAILABLE`. */
+            /** @description `STOP_POINT_UNAVAILABLE` hoặc `ROUTE_STOP_PICKUP_DROPOFF_INVALID` (cho đón / cho trả sai quy tắc). */
             422: {
                 headers: {
                     [name: string]: unknown;
@@ -3826,7 +3845,7 @@ export interface operations {
                     "application/problem+json": components["schemas"]["ProblemDetailsDto"];
                 };
             };
-            /** @description `STOP_POINT_UNAVAILABLE`. */
+            /** @description `STOP_POINT_UNAVAILABLE` hoặc `ROUTE_STOP_PICKUP_DROPOFF_INVALID` (cho đón / cho trả sai quy tắc). */
             422: {
                 headers: {
                     [name: string]: unknown;

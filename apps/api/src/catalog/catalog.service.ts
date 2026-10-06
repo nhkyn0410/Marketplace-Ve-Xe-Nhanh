@@ -1,4 +1,5 @@
 import { Inject, Injectable } from "@nestjs/common";
+import { searchTextContains } from "../common/search-text";
 import { PrismaService } from "../database/prisma.service";
 import { CatalogStatus } from "../database/prisma.types";
 import type {
@@ -57,6 +58,14 @@ export class CatalogService {
         provinceId: query.provinceId,
         wardId: query.wardId,
         type: query.type,
+        // `search_text` do database sinh (chữ thường, bỏ dấu): gõ "ben xe" vẫn ra "Bến xe…".
+        ...(query.q
+          ? {
+              searchText: {
+                contains: await searchTextContains(this.prisma, query.q),
+              },
+            }
+          : {}),
         ...(query.cursor ? { id: { gt: query.cursor } } : {}),
       },
       orderBy: { id: "asc" },

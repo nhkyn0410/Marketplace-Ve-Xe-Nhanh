@@ -14,6 +14,8 @@ part 'route_input_dto_stops_inner.g.dart';
 /// * [catalogStopPointId] 
 /// * [stopPointId] 
 /// * [note] 
+/// * [allowPickup] 
+/// * [allowDropoff] 
 @BuiltValue()
 abstract class RouteInputDtoStopsInner implements Built<RouteInputDtoStopsInner, RouteInputDtoStopsInnerBuilder> {
   @BuiltValueField(wireName: r'catalogStopPointId')
@@ -24,6 +26,12 @@ abstract class RouteInputDtoStopsInner implements Built<RouteInputDtoStopsInner,
 
   @BuiltValueField(wireName: r'note')
   String? get note;
+
+  @BuiltValueField(wireName: r'allowPickup')
+  bool get allowPickup;
+
+  @BuiltValueField(wireName: r'allowDropoff')
+  bool get allowDropoff;
 
   RouteInputDtoStopsInner._();
 
@@ -62,6 +70,16 @@ class _$RouteInputDtoStopsInnerSerializer implements PrimitiveSerializer<RouteIn
     yield object.note == null ? null : serializers.serialize(
       object.note,
       specifiedType: const FullType.nullable(String),
+    );
+    yield r'allowPickup';
+    yield serializers.serialize(
+      object.allowPickup,
+      specifiedType: const FullType(bool),
+    );
+    yield r'allowDropoff';
+    yield serializers.serialize(
+      object.allowDropoff,
+      specifiedType: const FullType(bool),
     );
   }
 
@@ -109,6 +127,20 @@ class _$RouteInputDtoStopsInnerSerializer implements PrimitiveSerializer<RouteIn
           ) as String?;
           if (valueDes == null) continue;
           result.note = valueDes;
+          break;
+        case r'allowPickup':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(bool),
+          ) as bool;
+          result.allowPickup = valueDes;
+          break;
+        case r'allowDropoff':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(bool),
+          ) as bool;
+          result.allowDropoff = valueDes;
           break;
         default:
           unhandled.add(key);

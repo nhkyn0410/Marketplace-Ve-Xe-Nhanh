@@ -407,6 +407,8 @@ model StopPointCatalog {
   longitude   Float
   description String?
   status      CatalogStatus @default(ACTIVE)
+  /// Cột DO DATABASE SINH (tên + địa chỉ, chữ thường, bỏ dấu) để tìm không dấu — KHÔNG ghi từ code.
+  searchText  String?       @map("search_text")
   createdAt   DateTime      @default(now()) @map("created_at")
   updatedAt   DateTime      @updatedAt @map("updated_at")
 
@@ -568,6 +570,8 @@ model VehicleAmenity {
 enum StopPointStatus {
   ACTIVE
   INACTIVE
+  /// Admin khóa điểm sai lệch / vi phạm (BR-81); nhà xe không tự đặt và không tự gỡ (RLS).
+  SUSPENDED
 }
 
 /// Trạng thái đề xuất đưa điểm vào catalog chuẩn (Admin duyệt ở ADM-001).
@@ -596,21 +600,27 @@ enum RoutingMetricsSource {
   ESTIMATE
 }
 
-/// Điểm đón/trả riêng của một nhà xe — dùng ngay trong route của tenant (Q1).
+/// Điểm dừng riêng của một nhà xe — dùng ngay trong route của tenant (Q1). Chỉ loại `OFFICE` (văn phòng /
+/// điểm trung chuyển) hoặc `REST_STOP` (CHECK trong migration, BR-38); bến xe và điểm dừng đón trả chỉ có ở
+/// danh mục dùng chung.
 model StopPoint {
-  id          String          @id @default(uuid())
-  operatorId  String          @map("operator_id")
-  name        String
-  type        StopPointType
-  address     String
-  provinceId  String          @map("province_id")
-  wardId      String          @map("ward_id")
-  latitude    Float
-  longitude   Float
-  description String?
-  status      StopPointStatus @default(ACTIVE)
-  createdAt   DateTime        @default(now()) @map("created_at")
-  updatedAt   DateTime        @updatedAt @map("updated_at")
+  id               String          @id @default(uuid())
+  operatorId       String          @map("operator_id")
+  name             String
+  type             StopPointType
+  address          String
+  provinceId       String          @map("province_id")
+  wardId           String          @map("ward_id")
+  latitude         Float
+  longitude        Float
+  description      String?
+  status           StopPointStatus @default(ACTIVE)
+  /// Có giá trị khi và chỉ khi `status = SUSPENDED` (CHECK trong migration).
+  suspensionReason String?         @map("suspension_reason")
+  /// Cột DO DATABASE SINH (tên + địa chỉ, chữ thường, bỏ dấu) để tìm không dấu — KHÔNG ghi từ code.
+  searchText       String?         @map("search_text")
+  createdAt        DateTime        @default(now()) @map("created_at")
+  updatedAt        DateTime        @updatedAt @map("updated_at")
 
   operator   OperatorProfile @relation(fields: [operatorId], references: [id], onDelete: Restrict, onUpdate: Restrict)
   ward       Ward            @relation(fields: [wardId, provinceId], references: [id, provinceId], onDelete: Restrict, onUpdate: Restrict)
@@ -634,6 +644,8 @@ model StopPointProposal {
   latitude           Float
   longitude          Float
   description        String?
+  /// Căn cứ công bố của cơ quan quản lý (BR-38): bắt buộc, tối đa 300 ký tự.
+  legalBasis         String                  @map("legal_basis")
   status             StopPointProposalStatus @default(PENDING)
   rejectionReason    String?                 @map("rejection_reason")
   /// Điểm catalog Admin tạo/link khi duyệt (ADM-001).
@@ -682,6 +694,10 @@ model RouteStop {
   catalogStopPointId          String?       @map("catalog_stop_point_id")
   stopPointId                 String?       @map("stop_point_id")
   note                        String?
+  /// Cho đón / cho trả tại điểm này (BR-79): điểm đầu chỉ đón, điểm cuối chỉ trả (CHECK trong migration);
+  /// phần phụ thuộc loại điểm (trạm dừng nghỉ không đón, không trả) kiểm ở service.
+  allowPickup                 Boolean       @map("allow_pickup")
+  allowDropoff                Boolean       @map("allow_dropoff")
   /// Toạ độ đã dùng để tính số liệu chặng — so với toạ độ hiện tại của điểm để biết khi nào phải tính lại.
   latitude                    Float
   longitude                   Float

@@ -19,6 +19,7 @@ Name | Type | Description | Notes
 **description** | **String** |  | 
 **createdAt** | [**DateTime**](DateTime.md) |  | 
 **updatedAt** | [**DateTime**](DateTime.md) |  | 
+**legalBasis** | **String** |  | 
 **status** | **String** |  | 
 **rejectionReason** | **String** |  | 
 **catalogStopPointId** | **String** |  | 

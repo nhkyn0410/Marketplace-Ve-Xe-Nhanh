@@ -98,7 +98,7 @@ Name | Type | Description  | Notes
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **stopPointControllerList**
-> OperatorStopPointListResponseDtoOutput stopPointControllerList(status, cursor, limit)
+> OperatorStopPointListResponseDtoOutput stopPointControllerList(status, type, provinceId, q, cursor, limit)
 
 
 
@@ -108,11 +108,14 @@ import 'package:api_client_dart/api.dart';
 
 final api = ApiClientDart().getOperatorStopPointsApi();
 final String status = status_example; // String | 
+final String type = type_example; // String | 
+final String provinceId = 38400000-8cf0-11bd-b23e-10b96e4ef00d; // String | 
+final String q = q_example; // String | Tìm theo tên hoặc địa chỉ; không phân biệt dấu và hoa/thường.
 final String cursor = 38400000-8cf0-11bd-b23e-10b96e4ef00d; // String | 
 final num limit = 8.14; // num | 
 
 try {
-    final response = api.stopPointControllerList(status, cursor, limit);
+    final response = api.stopPointControllerList(status, type, provinceId, q, cursor, limit);
     print(response);
 } on DioException catch (e) {
     print('Exception when calling OperatorStopPointsApi->stopPointControllerList: $e\n');
@@ -124,6 +127,9 @@ try {
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
  **status** | **String**|  | [optional] 
+ **type** | **String**|  | [optional] 
+ **provinceId** | **String**|  | [optional] 
+ **q** | **String**| Tìm theo tên hoặc địa chỉ; không phân biệt dấu và hoa/thường. | [optional] 
  **cursor** | **String**|  | [optional] 
  **limit** | **num**|  | [optional] [default to 20]
 

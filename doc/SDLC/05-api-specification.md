@@ -13,7 +13,7 @@
 | Người viết    | Nguyễn Hồng Khanh, AI Agent |
 | Người duyệt   | Nguyễn Hồng Khanh           |
 | Ngày tạo      | 11/05/2026                  |
-| Ngày cập nhật | 04/10/2026                  |
+| Ngày cập nhật | 05/10/2026                  |
 
 ### 1.2. Lịch sử thay đổi
 
@@ -41,6 +41,7 @@
 | v0.20     | 04/10/2026 | AI Agent       | **Đối chiếu Figma nhà xe (Khanh chốt 04/10/2026):** §7.3 — ảnh xe thêm `caption` (body `PUT …/images` đổi thành `{ images: [{ objectKey, caption }] }`); SeatMap trả thêm `deckCount`, `inUse`; Vehicle trả thêm `seatMapLocked` (`TASK-TRN-011`); §7.2 `vehicleImages` kèm `caption`. Giữ trạng thái Review. |
 | v0.21     | 04/10/2026 | AI Agent       | **Thiết kế lại điểm dừng (Khanh chốt 04/10/2026, SRS v1.35):** §7.2 tìm chuyến theo vị trí (`provinceId` hoặc `stopPointId` mỗi phía), điểm dừng của chuyến trả `type` + `allowPickup` / `allowDropoff`; §7.3 điểm riêng chỉ `OFFICE` / `REST_STOP`, `SUSPENDED`, lọc + `routeCount`, đề xuất thêm `legalBasis`, route thêm hai cờ; §7.5 bộ endpoint Admin cho điểm dừng; §7.6 `/catalog/stop-points` thêm `q`. Giữ trạng thái Review. |
 | v0.22     | 04/10/2026 | AI Agent       | **Bổ sung cho màn xe Operator OS (Khanh chốt 04/10/2026, `TASK-TRN-011`):** §7.3 — Vehicle (list + chi tiết) trả thêm `seatMap`, tóm tắt sơ đồ đang gắn, để danh sách xe không phải ghép với danh sách SeatMap. Giữ trạng thái Review. |
+| v0.23     | 05/10/2026 | AI Agent       | **Hiện thực `TASK-TRN-012` (Khanh chốt 05/10/2026):** §7.3 + §7.6 — tham số `q` của `/operator/stop-points` và `/catalog/stop-points` tìm theo tên hoặc địa chỉ, **không phân biệt dấu và hoa / thường**, tối đa 100 ký tự; `routeCount` tính cả tuyến ngừng dùng; `status = SUSPENDED` trong body → 400; thiếu `allowPickup` / `allowDropoff` → 400. Giữ trạng thái Review. |
 
 ---
 
@@ -296,7 +297,7 @@ Fare (TASK-TRN-005): quyền `trip:manage` (Owner). Mỗi tuyến **một** bả
 
 Route/StopPoint (TASK-TRN-002): quyền `route:manage` (Owner). Route gồm 2–25 điểm theo thứ tự, mỗi điểm là catalog `ACTIVE` **hoặc** điểm riêng `ACTIVE` của tenant, không lặp; vai trò `ORIGIN`/`INTERMEDIATE`/`DESTINATION` suy từ vị trí. Khoảng cách/thời gian tính lúc tạo/đổi chuỗi toạ độ và lưu DB (ADR-027 cache-once); Goong lỗi → 503 `ROUTING_PROVIDER_UNAVAILABLE`, không lưu gì. Điểm không dùng được / khác tenant → 422 `STOP_POINT_UNAVAILABLE`. Admin duyệt đề xuất ở `/admin/stop-point-proposals` (ADM-004).
 
-Điểm dừng — thiết kế lại (TASK-TRN-012, BR-38, BR-79, BR-81): điểm riêng chỉ nhận `type` ∈ `OFFICE` / `REST_STOP`, khác → 422 `STOP_POINT_TYPE_NOT_ALLOWED`. `status` nhà xe đặt được là `ACTIVE` / `INACTIVE`; `SUSPENDED` chỉ Admin đặt, response kèm `suspensionReason`. Đề xuất chỉ nhận `type` ∈ `BUS_STATION` / `PICKUP_POINT` và thêm `legalBasis` (căn cứ công bố, 1–300 ký tự). Body route: mỗi điểm thêm `allowPickup`, `allowDropoff` — điểm đầu `true` / `false`, điểm cuối `false` / `true`, điểm giữa do nhà xe chọn (ít nhất một quyền), trạm dừng nghỉ luôn `false` / `false` và không đứng đầu / cuối; sai → 422 `ROUTE_STOP_PICKUP_DROPOFF_INVALID`. Hai đầu route không phải bến xe không bị chặn ở v1; giao diện tự cảnh báo từ loại điểm (OQ-24). Response route trả lại hai cờ và `type` của từng điểm.
+Điểm dừng — thiết kế lại (TASK-TRN-012, BR-38, BR-79, BR-81): điểm riêng chỉ nhận `type` ∈ `OFFICE` / `REST_STOP`, khác → 422 `STOP_POINT_TYPE_NOT_ALLOWED`. `status` nhà xe đặt được là `ACTIVE` / `INACTIVE`; `SUSPENDED` chỉ Admin đặt (body gửi `SUSPENDED` → 400), response kèm `suspensionReason`; sửa điểm đang bị khóa → 409 `STOP_POINT_SUSPENDED` dù body không đổi gì; điểm bị khóa không gắn mới được vào route (422 `STOP_POINT_UNAVAILABLE`), route đã có điểm đó vẫn giữ. List điểm riêng lọc `status` / `type` / `provinceId`; `q` (tối đa 100 ký tự, dùng chung cho `/catalog/stop-points`) khớp một phần tên hoặc địa chỉ, không phân biệt dấu và hoa / thường — gõ "ben xe mien dong" ra "Bến xe Miền Đông"; `routeCount` = số route của nhà xe đang có điểm đó, tính cả route ngừng dùng. Đề xuất chỉ nhận `type` ∈ `BUS_STATION` / `PICKUP_POINT` và thêm `legalBasis` (căn cứ công bố, 1–300 ký tự). Body route: mỗi điểm thêm `allowPickup`, `allowDropoff` (bắt buộc, thiếu → 400) — điểm đầu `true` / `false`, điểm cuối `false` / `true`, điểm giữa do nhà xe chọn (ít nhất một quyền), trạm dừng nghỉ luôn `false` / `false` và không đứng đầu / cuối; sai → 422 `ROUTE_STOP_PICKUP_DROPOFF_INVALID`. Hai đầu route không phải bến xe không bị chặn ở v1; giao diện tự cảnh báo từ loại điểm (OQ-24). Response route trả lại hai cờ và `type` của từng điểm.
 
 Username Employee (create/PATCH) bắt buộc `nv.` + 2–61 ký tự `[a-z0-9._-]` (Owner đặt phần sau tiền tố); sai → 400 validation. Provisioning Owner từ chối username bắt đầu bằng `nv.` (không phân biệt hoa/thường). DB CHECK giữ cả hai (04 DB §7).
 

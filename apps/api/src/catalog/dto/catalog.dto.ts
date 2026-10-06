@@ -1,5 +1,6 @@
 import { createZodDto } from "nestjs-zod";
 import { z } from "zod";
+import { SearchQueryField } from "../../common/search-text";
 import {
   StopPointType,
   VehicleClass,
@@ -15,11 +16,12 @@ export const StopPointListQuerySchema = z.object({
   provinceId: z.uuid().optional(),
   wardId: z.uuid().optional(),
   type: z.enum(StopPointType).optional(),
+  q: SearchQueryField,
   cursor: z.uuid().optional(),
   limit: z.coerce.number().int().min(1).max(100).default(20),
 });
 export type StopPointListQuery = z.infer<typeof StopPointListQuerySchema>;
-/** Query `GET /catalog/stop-points`: lọc theo tỉnh/phường/loại, phân trang cursor theo `id`. */
+/** Query `GET /catalog/stop-points`: lọc theo tỉnh/phường/loại, tìm không dấu theo tên hoặc địa chỉ, phân trang cursor theo `id`. */
 export class StopPointListQueryDto extends createZodDto(
   StopPointListQuerySchema,
 ) {}

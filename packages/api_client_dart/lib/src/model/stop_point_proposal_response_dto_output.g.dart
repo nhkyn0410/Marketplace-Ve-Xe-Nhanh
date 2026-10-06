@@ -179,6 +179,8 @@ class _$StopPointProposalResponseDtoOutput
   @override
   final DateTime updatedAt;
   @override
+  final String legalBasis;
+  @override
   final StopPointProposalResponseDtoOutputStatusEnum status;
   @override
   final String? rejectionReason;
@@ -202,6 +204,7 @@ class _$StopPointProposalResponseDtoOutput
       this.description,
       required this.createdAt,
       required this.updatedAt,
+      required this.legalBasis,
       required this.status,
       this.rejectionReason,
       this.catalogStopPointId})
@@ -230,6 +233,7 @@ class _$StopPointProposalResponseDtoOutput
         description == other.description &&
         createdAt == other.createdAt &&
         updatedAt == other.updatedAt &&
+        legalBasis == other.legalBasis &&
         status == other.status &&
         rejectionReason == other.rejectionReason &&
         catalogStopPointId == other.catalogStopPointId;
@@ -249,6 +253,7 @@ class _$StopPointProposalResponseDtoOutput
     _$hash = $jc(_$hash, description.hashCode);
     _$hash = $jc(_$hash, createdAt.hashCode);
     _$hash = $jc(_$hash, updatedAt.hashCode);
+    _$hash = $jc(_$hash, legalBasis.hashCode);
     _$hash = $jc(_$hash, status.hashCode);
     _$hash = $jc(_$hash, rejectionReason.hashCode);
     _$hash = $jc(_$hash, catalogStopPointId.hashCode);
@@ -270,6 +275,7 @@ class _$StopPointProposalResponseDtoOutput
           ..add('description', description)
           ..add('createdAt', createdAt)
           ..add('updatedAt', updatedAt)
+          ..add('legalBasis', legalBasis)
           ..add('status', status)
           ..add('rejectionReason', rejectionReason)
           ..add('catalogStopPointId', catalogStopPointId))
@@ -328,6 +334,10 @@ class StopPointProposalResponseDtoOutputBuilder
   DateTime? get updatedAt => _$this._updatedAt;
   set updatedAt(DateTime? updatedAt) => _$this._updatedAt = updatedAt;
 
+  String? _legalBasis;
+  String? get legalBasis => _$this._legalBasis;
+  set legalBasis(String? legalBasis) => _$this._legalBasis = legalBasis;
+
   StopPointProposalResponseDtoOutputStatusEnum? _status;
   StopPointProposalResponseDtoOutputStatusEnum? get status => _$this._status;
   set status(StopPointProposalResponseDtoOutputStatusEnum? status) =>
@@ -361,6 +371,7 @@ class StopPointProposalResponseDtoOutputBuilder
       _description = $v.description;
       _createdAt = $v.createdAt;
       _updatedAt = $v.updatedAt;
+      _legalBasis = $v.legalBasis;
       _status = $v.status;
       _rejectionReason = $v.rejectionReason;
       _catalogStopPointId = $v.catalogStopPointId;
@@ -407,6 +418,8 @@ class StopPointProposalResponseDtoOutputBuilder
               createdAt, r'StopPointProposalResponseDtoOutput', 'createdAt'),
           updatedAt: BuiltValueNullFieldError.checkNotNull(
               updatedAt, r'StopPointProposalResponseDtoOutput', 'updatedAt'),
+          legalBasis: BuiltValueNullFieldError.checkNotNull(
+              legalBasis, r'StopPointProposalResponseDtoOutput', 'legalBasis'),
           status: BuiltValueNullFieldError.checkNotNull(
               status, r'StopPointProposalResponseDtoOutput', 'status'),
           rejectionReason: rejectionReason,

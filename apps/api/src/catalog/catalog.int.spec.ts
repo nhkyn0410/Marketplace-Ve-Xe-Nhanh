@@ -418,6 +418,29 @@ describe.skipIf(!url && !requireDb)("Catalog — Postgres thật, role app", () 
       ]);
     });
 
+    it("stop-points tìm theo tên hoặc địa chỉ, gõ không dấu / khác hoa thường vẫn ra (TRN-012)", async () => {
+      const search = async (q: string) =>
+        (
+          await catalog.listStopPoints({ provinceId: provinceA, q, limit: 100 })
+        ).items.map((item) => item.id);
+      // Fixture: tên `Bến <tag>`, địa chỉ "Địa chỉ test".
+      expect(await search(`ben ${tag}`)).toEqual(activeStopIds);
+      expect(await search(`BẾN ${tag.toUpperCase()}`)).toEqual(activeStopIds);
+      expect(await search("dia chi test")).toEqual(activeStopIds);
+      expect(await search("Địa Chỉ")).toEqual(activeStopIds);
+      expect(await search(`khong-co-${tag}`)).toEqual([]);
+      // Kết hợp với bộ lọc loại: vẫn chỉ ra đúng loại.
+      const office = await catalog.listStopPoints({
+        provinceId: provinceA,
+        type: StopPointType.OFFICE,
+        q: `ben ${tag}`,
+        limit: 100,
+      });
+      expect(office.items).toHaveLength(1);
+      // Cột sinh không lộ ra response.
+      expect(office.items[0]).not.toHaveProperty("searchText");
+    });
+
     it("cursor đi hết các trang không lặp/sót, kể cả khi dòng cursor bị vô hiệu hoá giữa hai trang", async () => {
       const first = await catalog.listStopPoints({
         provinceId: provinceA,

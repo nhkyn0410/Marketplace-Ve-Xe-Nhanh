@@ -13,22 +13,18 @@ part 'operator_stop_point_input_dto.g.dart';
 ///
 /// Properties:
 /// * [name] 
-/// * [type] 
 /// * [address] 
 /// * [provinceId] 
 /// * [wardId] 
 /// * [latitude] 
 /// * [longitude] 
 /// * [description] 
+/// * [type] 
 /// * [status] 
 @BuiltValue()
 abstract class OperatorStopPointInputDto implements Built<OperatorStopPointInputDto, OperatorStopPointInputDtoBuilder> {
   @BuiltValueField(wireName: r'name')
   String get name;
-
-  @BuiltValueField(wireName: r'type')
-  OperatorStopPointInputDtoTypeEnum get type;
-  // enum typeEnum {  BUS_STATION,  OFFICE,  REST_STOP,  PICKUP_POINT,  };
 
   @BuiltValueField(wireName: r'address')
   String get address;
@@ -47,6 +43,10 @@ abstract class OperatorStopPointInputDto implements Built<OperatorStopPointInput
 
   @BuiltValueField(wireName: r'description')
   String? get description;
+
+  @BuiltValueField(wireName: r'type')
+  OperatorStopPointInputDtoTypeEnum get type;
+  // enum typeEnum {  BUS_STATION,  OFFICE,  REST_STOP,  PICKUP_POINT,  };
 
   @BuiltValueField(wireName: r'status')
   OperatorStopPointInputDtoStatusEnum get status;
@@ -80,11 +80,6 @@ class _$OperatorStopPointInputDtoSerializer implements PrimitiveSerializer<Opera
       object.name,
       specifiedType: const FullType(String),
     );
-    yield r'type';
-    yield serializers.serialize(
-      object.type,
-      specifiedType: const FullType(OperatorStopPointInputDtoTypeEnum),
-    );
     yield r'address';
     yield serializers.serialize(
       object.address,
@@ -114,6 +109,11 @@ class _$OperatorStopPointInputDtoSerializer implements PrimitiveSerializer<Opera
     yield object.description == null ? null : serializers.serialize(
       object.description,
       specifiedType: const FullType.nullable(String),
+    );
+    yield r'type';
+    yield serializers.serialize(
+      object.type,
+      specifiedType: const FullType(OperatorStopPointInputDtoTypeEnum),
     );
     yield r'status';
     yield serializers.serialize(
@@ -149,13 +149,6 @@ class _$OperatorStopPointInputDtoSerializer implements PrimitiveSerializer<Opera
             specifiedType: const FullType(String),
           ) as String;
           result.name = valueDes;
-          break;
-        case r'type':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(OperatorStopPointInputDtoTypeEnum),
-          ) as OperatorStopPointInputDtoTypeEnum;
-          result.type = valueDes;
           break;
         case r'address':
           final valueDes = serializers.deserialize(
@@ -199,6 +192,13 @@ class _$OperatorStopPointInputDtoSerializer implements PrimitiveSerializer<Opera
           ) as String?;
           if (valueDes == null) continue;
           result.description = valueDes;
+          break;
+        case r'type':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(OperatorStopPointInputDtoTypeEnum),
+          ) as OperatorStopPointInputDtoTypeEnum;
+          result.type = valueDes;
           break;
         case r'status':
           final valueDes = serializers.deserialize(

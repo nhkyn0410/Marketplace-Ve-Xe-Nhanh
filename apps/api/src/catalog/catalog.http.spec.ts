@@ -143,6 +143,21 @@ describe("Catalog routes — HTTP công khai", () => {
     expect(listStopPoints).toHaveBeenLastCalledWith({ limit: 20 });
   });
 
+  it("stop-points nhận từ khoá `q` (cắt khoảng trắng); `q` trống coi như không tìm", async () => {
+    await fetch(
+      `${base}/stop-points?q=${encodeURIComponent("  bến xe miền đông ")}`,
+    );
+    expect(listStopPoints).toHaveBeenLastCalledWith({
+      q: "bến xe miền đông",
+      limit: 20,
+    });
+    await fetch(`${base}/stop-points?q=${encodeURIComponent("   ")}`);
+    expect(listStopPoints).toHaveBeenLastCalledWith({
+      q: undefined,
+      limit: 20,
+    });
+  });
+
   it.each([
     "wards",
     "wards?provinceId=khong-phai-uuid",
@@ -151,6 +166,7 @@ describe("Catalog routes — HTTP công khai", () => {
     "stop-points?type=AIRPORT",
     "stop-points?cursor=abc",
     "stop-points?wardId=abc",
+    `stop-points?q=${"x".repeat(101)}`,
   ])(
     "GET /catalog/%s → 400 problem+json, service không bị gọi",
     async (path) => {

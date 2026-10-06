@@ -56,6 +56,10 @@ const OperatorStopPointListResponseDtoOutputItemsInnerStatusEnum
     _$operatorStopPointListResponseDtoOutputItemsInnerStatusEnum_INACTIVE =
     const OperatorStopPointListResponseDtoOutputItemsInnerStatusEnum._(
         'INACTIVE');
+const OperatorStopPointListResponseDtoOutputItemsInnerStatusEnum
+    _$operatorStopPointListResponseDtoOutputItemsInnerStatusEnum_SUSPENDED =
+    const OperatorStopPointListResponseDtoOutputItemsInnerStatusEnum._(
+        'SUSPENDED');
 
 OperatorStopPointListResponseDtoOutputItemsInnerStatusEnum
     _$operatorStopPointListResponseDtoOutputItemsInnerStatusEnumValueOf(
@@ -65,6 +69,8 @@ OperatorStopPointListResponseDtoOutputItemsInnerStatusEnum
       return _$operatorStopPointListResponseDtoOutputItemsInnerStatusEnum_ACTIVE;
     case 'INACTIVE':
       return _$operatorStopPointListResponseDtoOutputItemsInnerStatusEnum_INACTIVE;
+    case 'SUSPENDED':
+      return _$operatorStopPointListResponseDtoOutputItemsInnerStatusEnum_SUSPENDED;
     default:
       throw ArgumentError(name);
   }
@@ -76,6 +82,7 @@ final BuiltSet<OperatorStopPointListResponseDtoOutputItemsInnerStatusEnum>
         OperatorStopPointListResponseDtoOutputItemsInnerStatusEnum>(const <OperatorStopPointListResponseDtoOutputItemsInnerStatusEnum>[
   _$operatorStopPointListResponseDtoOutputItemsInnerStatusEnum_ACTIVE,
   _$operatorStopPointListResponseDtoOutputItemsInnerStatusEnum_INACTIVE,
+  _$operatorStopPointListResponseDtoOutputItemsInnerStatusEnum_SUSPENDED,
 ]);
 
 Serializer<OperatorStopPointListResponseDtoOutputItemsInnerTypeEnum>
@@ -131,10 +138,12 @@ class _$OperatorStopPointListResponseDtoOutputItemsInnerStatusEnumSerializer
   static const Map<String, Object> _toWire = const <String, Object>{
     'ACTIVE': 'ACTIVE',
     'INACTIVE': 'INACTIVE',
+    'SUSPENDED': 'SUSPENDED',
   };
   static const Map<Object, String> _fromWire = const <Object, String>{
     'ACTIVE': 'ACTIVE',
     'INACTIVE': 'INACTIVE',
+    'SUSPENDED': 'SUSPENDED',
   };
 
   @override
@@ -185,6 +194,10 @@ class _$OperatorStopPointListResponseDtoOutputItemsInner
   final DateTime updatedAt;
   @override
   final OperatorStopPointListResponseDtoOutputItemsInnerStatusEnum status;
+  @override
+  final String? suspensionReason;
+  @override
+  final int routeCount;
 
   factory _$OperatorStopPointListResponseDtoOutputItemsInner(
           [void Function(
@@ -206,7 +219,9 @@ class _$OperatorStopPointListResponseDtoOutputItemsInner
       this.description,
       required this.createdAt,
       required this.updatedAt,
-      required this.status})
+      required this.status,
+      this.suspensionReason,
+      required this.routeCount})
       : super._();
   @override
   OperatorStopPointListResponseDtoOutputItemsInner rebuild(
@@ -233,7 +248,9 @@ class _$OperatorStopPointListResponseDtoOutputItemsInner
         description == other.description &&
         createdAt == other.createdAt &&
         updatedAt == other.updatedAt &&
-        status == other.status;
+        status == other.status &&
+        suspensionReason == other.suspensionReason &&
+        routeCount == other.routeCount;
   }
 
   @override
@@ -251,6 +268,8 @@ class _$OperatorStopPointListResponseDtoOutputItemsInner
     _$hash = $jc(_$hash, createdAt.hashCode);
     _$hash = $jc(_$hash, updatedAt.hashCode);
     _$hash = $jc(_$hash, status.hashCode);
+    _$hash = $jc(_$hash, suspensionReason.hashCode);
+    _$hash = $jc(_$hash, routeCount.hashCode);
     _$hash = $jf(_$hash);
     return _$hash;
   }
@@ -270,7 +289,9 @@ class _$OperatorStopPointListResponseDtoOutputItemsInner
           ..add('description', description)
           ..add('createdAt', createdAt)
           ..add('updatedAt', updatedAt)
-          ..add('status', status))
+          ..add('status', status)
+          ..add('suspensionReason', suspensionReason)
+          ..add('routeCount', routeCount))
         .toString();
   }
 }
@@ -334,6 +355,15 @@ class OperatorStopPointListResponseDtoOutputItemsInnerBuilder
           OperatorStopPointListResponseDtoOutputItemsInnerStatusEnum? status) =>
       _$this._status = status;
 
+  String? _suspensionReason;
+  String? get suspensionReason => _$this._suspensionReason;
+  set suspensionReason(String? suspensionReason) =>
+      _$this._suspensionReason = suspensionReason;
+
+  int? _routeCount;
+  int? get routeCount => _$this._routeCount;
+  set routeCount(int? routeCount) => _$this._routeCount = routeCount;
+
   OperatorStopPointListResponseDtoOutputItemsInnerBuilder() {
     OperatorStopPointListResponseDtoOutputItemsInner._defaults(this);
   }
@@ -353,6 +383,8 @@ class OperatorStopPointListResponseDtoOutputItemsInnerBuilder
       _createdAt = $v.createdAt;
       _updatedAt = $v.updatedAt;
       _status = $v.status;
+      _suspensionReason = $v.suspensionReason;
+      _routeCount = $v.routeCount;
       _$v = null;
     }
     return this;
@@ -401,6 +433,11 @@ class OperatorStopPointListResponseDtoOutputItemsInnerBuilder
               r'OperatorStopPointListResponseDtoOutputItemsInner', 'updatedAt'),
           status: BuiltValueNullFieldError.checkNotNull(status,
               r'OperatorStopPointListResponseDtoOutputItemsInner', 'status'),
+          suspensionReason: suspensionReason,
+          routeCount: BuiltValueNullFieldError.checkNotNull(
+              routeCount,
+              r'OperatorStopPointListResponseDtoOutputItemsInner',
+              'routeCount'),
         );
     replace(_$result);
     return _$result;
