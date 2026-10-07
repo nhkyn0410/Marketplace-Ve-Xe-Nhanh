@@ -154,6 +154,10 @@ class _$RouteListResponseDtoOutputItemsInner
   final DateTime updatedAt;
   @override
   final int stopCount;
+  @override
+  final String originName;
+  @override
+  final String destinationName;
 
   factory _$RouteListResponseDtoOutputItemsInner(
           [void Function(RouteListResponseDtoOutputItemsInnerBuilder)?
@@ -169,7 +173,9 @@ class _$RouteListResponseDtoOutputItemsInner
       required this.metricsSource,
       required this.createdAt,
       required this.updatedAt,
-      required this.stopCount})
+      required this.stopCount,
+      required this.originName,
+      required this.destinationName})
       : super._();
   @override
   RouteListResponseDtoOutputItemsInner rebuild(
@@ -192,7 +198,9 @@ class _$RouteListResponseDtoOutputItemsInner
         metricsSource == other.metricsSource &&
         createdAt == other.createdAt &&
         updatedAt == other.updatedAt &&
-        stopCount == other.stopCount;
+        stopCount == other.stopCount &&
+        originName == other.originName &&
+        destinationName == other.destinationName;
   }
 
   @override
@@ -207,6 +215,8 @@ class _$RouteListResponseDtoOutputItemsInner
     _$hash = $jc(_$hash, createdAt.hashCode);
     _$hash = $jc(_$hash, updatedAt.hashCode);
     _$hash = $jc(_$hash, stopCount.hashCode);
+    _$hash = $jc(_$hash, originName.hashCode);
+    _$hash = $jc(_$hash, destinationName.hashCode);
     _$hash = $jf(_$hash);
     return _$hash;
   }
@@ -222,7 +232,9 @@ class _$RouteListResponseDtoOutputItemsInner
           ..add('metricsSource', metricsSource)
           ..add('createdAt', createdAt)
           ..add('updatedAt', updatedAt)
-          ..add('stopCount', stopCount))
+          ..add('stopCount', stopCount)
+          ..add('originName', originName)
+          ..add('destinationName', destinationName))
         .toString();
   }
 }
@@ -276,6 +288,15 @@ class RouteListResponseDtoOutputItemsInnerBuilder
   int? get stopCount => _$this._stopCount;
   set stopCount(int? stopCount) => _$this._stopCount = stopCount;
 
+  String? _originName;
+  String? get originName => _$this._originName;
+  set originName(String? originName) => _$this._originName = originName;
+
+  String? _destinationName;
+  String? get destinationName => _$this._destinationName;
+  set destinationName(String? destinationName) =>
+      _$this._destinationName = destinationName;
+
   RouteListResponseDtoOutputItemsInnerBuilder() {
     RouteListResponseDtoOutputItemsInner._defaults(this);
   }
@@ -292,6 +313,8 @@ class RouteListResponseDtoOutputItemsInnerBuilder
       _createdAt = $v.createdAt;
       _updatedAt = $v.updatedAt;
       _stopCount = $v.stopCount;
+      _originName = $v.originName;
+      _destinationName = $v.destinationName;
       _$v = null;
     }
     return this;
@@ -336,6 +359,12 @@ class RouteListResponseDtoOutputItemsInnerBuilder
               updatedAt, r'RouteListResponseDtoOutputItemsInner', 'updatedAt'),
           stopCount: BuiltValueNullFieldError.checkNotNull(
               stopCount, r'RouteListResponseDtoOutputItemsInner', 'stopCount'),
+          originName: BuiltValueNullFieldError.checkNotNull(originName,
+              r'RouteListResponseDtoOutputItemsInner', 'originName'),
+          destinationName: BuiltValueNullFieldError.checkNotNull(
+              destinationName,
+              r'RouteListResponseDtoOutputItemsInner',
+              'destinationName'),
         );
     replace(_$result);
     return _$result;

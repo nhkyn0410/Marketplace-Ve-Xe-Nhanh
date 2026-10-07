@@ -12,6 +12,7 @@ import {
   LayoutDashboard,
   LifeBuoy,
   LogOut,
+  MapPin,
   Route,
   Ticket,
   Users,
@@ -30,6 +31,7 @@ const NAV_GROUPS: NavGroup[] = [
     items: [
       { href: "/vehicles", label: "Phương tiện", icon: Bus },
       { href: "/seat-maps", label: "Sơ đồ ghế", icon: Armchair },
+      { href: "/stop-points", label: "Điểm dừng", icon: MapPin },
       { href: "/routes", label: "Tuyến đường", icon: Route },
       { href: "/trips", label: "Chuyến xe", icon: CalendarClock }
     ]
