@@ -30,6 +30,8 @@ import { useMemo, useState, type ReactNode } from "react";
 import { Controller, useForm } from "react-hook-form";
 
 import { ApiError } from "../../lib/auth/api-client";
+import { GOONG_MAPTILES_KEY } from "../../lib/map/map-config";
+import { useMapOpen } from "../../lib/map/use-map-open";
 import { createRoute, getRoute, updateRoute, type Route } from "../../lib/route/route-api";
 import {
   addStop,
@@ -54,7 +56,8 @@ import {
   totalsOf,
   validateStops,
   type DraftStop,
-  type RouteInfoValues
+  type RouteInfoValues,
+  type StopCandidate
 } from "../../lib/route/route-form";
 import {
   COMPUTED_ON_SAVE,
@@ -67,6 +70,7 @@ import {
 } from "../../lib/route/route-format";
 import { FormField } from "../form-field";
 import { BUTTON } from "../list-parts";
+import { RouteMap } from "../map/route-map";
 import { PageHeader } from "../page-header";
 import { RouteStopList } from "./route-stop-list";
 import { StopPicker } from "./stop-picker";
@@ -78,7 +82,7 @@ const FORM_ID = "route-form";
 
 /**
  * Màn Thêm / Chỉnh sửa tuyến (Figma 02, 03, 04 của "Nhà xe · Tuyến đường"; FR-OPS-04, UC-13, BR-79). Không
- * truyền `routeId` = thêm mới. Bản đồ lộ trình thuộc TASK-TRN-014 nên chưa có ở đây.
+ * truyền `routeId` = thêm mới. Thẻ bản đồ lộ trình chỉ hiện khi môi trường có khóa bản đồ (TASK-TRN-014).
  */
 export function RouteForm({ routeId }: { routeId?: string }) {
   const route = useQuery({
@@ -144,6 +148,10 @@ function RouteFormBody({ route }: { route?: Route }) {
   const [stops, setStops] = useState<DraftStop[]>(() => (route ? toDraftStops(route) : []));
   const [pickerOpen, setPickerOpen] = useState(false);
   const [confirmLeave, setConfirmLeave] = useState(false);
+  // Bản đồ lộ trình: các điểm bảng chọn đang liệt kê và dòng đang được rê tới.
+  const [mapOpen, setMapOpen] = useMapOpen("route", true);
+  const [candidates, setCandidates] = useState<StopCandidate[]>([]);
+  const [highlightedKey, setHighlightedKey] = useState<string | null>(null);
 
   const form = useForm<RouteInfoValues>({
     resolver: zodResolver(routeInfoSchema),
@@ -292,6 +300,8 @@ function RouteFormBody({ route }: { route?: Route }) {
               stopCount={stops.length}
               onAdd={(candidate) => changeStops(addStop(stops, candidate))}
               onClose={() => setPickerOpen(false)}
+              onCandidatesChange={GOONG_MAPTILES_KEY ? setCandidates : undefined}
+              onHighlight={GOONG_MAPTILES_KEY ? setHighlightedKey : undefined}
             />
           ) : (
             <div className="flex flex-wrap items-center gap-4">
@@ -376,6 +386,18 @@ function RouteFormBody({ route }: { route?: Route }) {
               </FormField>
             </form>
           </section>
+
+          {GOONG_MAPTILES_KEY && (
+            <RouteMap
+              mapKey={GOONG_MAPTILES_KEY}
+              stops={stops}
+              candidates={candidates}
+              highlightedKey={highlightedKey}
+              pickerOpen={pickerOpen}
+              open={mapOpen}
+              onOpenChange={setMapOpen}
+            />
+          )}
 
           <section aria-labelledby="route-summary-heading" className={CARD}>
             <h2 id="route-summary-heading" className={CARD_TITLE}>

@@ -34,14 +34,18 @@ const shared = (id: string, type: StopPointType = "BUS_STATION"): StopCandidate 
   stopPointId: null,
   name: `Điểm ${id}`,
   address: "x",
-  type
+  type,
+  latitude: 10,
+  longitude: 106
 });
 const own = (id: string, type: StopPointType = "OFFICE"): StopCandidate => ({
   catalogStopPointId: null,
   stopPointId: id,
   name: `Điểm ${id}`,
   address: "x",
-  type
+  type,
+  latitude: 10,
+  longitude: 106
 });
 const build = (...candidates: StopCandidate[]) => candidates.reduce<DraftStop[]>(addStop, []);
 const flags = (stops: DraftStop[]) => stops.map((stop) => [stop.allowPickup, stop.allowDropoff]);
@@ -162,6 +166,7 @@ describe("thông tin tuyến và đổi sang DTO", () => {
     expect(routeInfoSchema.safeParse({ ...EMPTY_ROUTE_INFO, name: "x", note: "x".repeat(501) }).success).toBe(false);
   });
 
+  // Tọa độ trong form chỉ để vẽ bản đồ: `toEqual` bên dưới đỏ nếu chúng lọt vào body.
   it("body gửi đủ mọi trường, cắt khoảng trắng, ghi chú trống gửi null, giữ đúng thứ tự điểm", () => {
     const stops = setStopNote(build(shared("a"), own("r", "REST_STOP"), own("o")), 1, "  Nghỉ 20 phút ");
     expect(toRouteInput({ name: " Sài Gòn – Đà Lạt ", status: "INACTIVE", note: "  " }, stops)).toEqual({
@@ -209,15 +214,20 @@ describe("tuyến đã lưu → form", () => {
     // Cố ý đảo thứ tự mảng: form phải xếp theo `sequence`.
     stops: [
       stop(3, "c", { allowPickup: false, distanceMetersFromPrevious: 78_000, durationSecondsFromPrevious: 6_600, note: "Cổng B" }),
-      stop(1, "a", { allowDropoff: false }),
+      stop(1, "a", { allowDropoff: false, latitude: 10.75, longitude: 106.68 }),
       stop(2, "b", { distanceMetersFromPrevious: 62_000, durationSecondsFromPrevious: 5_100 })
     ]
   };
 
-  it("điểm dừng theo đúng thứ tự hành trình, ghi chú null thành rỗng", () => {
+  it("điểm dừng theo đúng thứ tự hành trình, ghi chú null thành rỗng, giữ tọa độ để vẽ bản đồ", () => {
     const stops = toDraftStops(route);
     expect(stops.map((item) => item.name)).toEqual(["Điểm a", "Điểm b", "Điểm c"]);
     expect(stops.map((item) => item.note)).toEqual(["", "", "Cổng B"]);
+    expect(stops.map((item) => [item.latitude, item.longitude])).toEqual([
+      [10.75, 106.68],
+      [10, 106],
+      [10, 106]
+    ]);
     expect(toRouteInfoValues(route)).toEqual({ name: "Sài Gòn – Đà Lạt", status: "ACTIVE", note: "" });
     expect(validateStops(stops)).toBeNull();
   });

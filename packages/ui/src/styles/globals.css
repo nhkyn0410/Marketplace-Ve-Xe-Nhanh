@@ -137,3 +137,16 @@
     @apply min-w-80 bg-background font-sans text-foreground antialiased;
   }
 }
+
+/* Thẻ nổi trên bản đồ (`MapPopup`): bỏ khung và mũi tên mặc định của thư viện, phần nội dung tự vẽ khung.
+   Để ngoài `@layer` và dùng hai class để thắng CSS của thư viện dù file nào được nạp trước. */
+.maplibregl-popup.vxn-map-popup .maplibregl-popup-content {
+  padding: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.maplibregl-popup.vxn-map-popup .maplibregl-popup-tip {
+  display: none;
+}

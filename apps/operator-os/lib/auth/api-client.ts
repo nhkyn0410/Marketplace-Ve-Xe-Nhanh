@@ -3,10 +3,11 @@
 
 /**
  * Base URL API (có `/v1`). Local mặc định theo Deploy §4 (http://localhost:3000). Build production thiếu env
- * thì dùng đường dẫn tương đối — hỏng rõ ràng thay vì gửi mật khẩu tới localhost của người dùng.
+ * thì dùng đường dẫn tương đối — hỏng rõ ràng thay vì gửi mật khẩu tới localhost của người dùng. Biến để
+ * trống (`NEXT_PUBLIC_API_BASE_URL=` như trong `.env.example`) được coi như chưa đặt.
  */
 export const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL ??
+  process.env.NEXT_PUBLIC_API_BASE_URL ||
   (process.env.NODE_ENV === "production" ? "/v1" : "http://localhost:3000/v1");
 
 /** Lỗi RFC 7807 từ API: giữ `status` + `code` (GLOSSARY) để UI chọn thông báo. */

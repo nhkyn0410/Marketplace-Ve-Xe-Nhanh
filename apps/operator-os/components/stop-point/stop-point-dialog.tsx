@@ -25,6 +25,8 @@ import { useMemo, useState } from "react";
 import { Controller, useForm, type Resolver } from "react-hook-form";
 
 import { ApiError } from "../../lib/auth/api-client";
+import { GOONG_MAPTILES_KEY } from "../../lib/map/map-config";
+import { formatCoordinate, markerKind, pointFromInputs } from "../../lib/map/stop-map";
 import {
   createStopPoint,
   createStopPointProposal,
@@ -33,7 +35,8 @@ import {
   resubmitStopPointProposal,
   updateStopPoint,
   type StopPoint,
-  type StopPointProposal
+  type StopPointProposal,
+  type StopPointType
 } from "../../lib/stop-point/stop-point-api";
 import {
   ADDRESS_MAX_LENGTH,
@@ -58,6 +61,7 @@ import {
 } from "../../lib/stop-point/stop-point-format";
 import { FormField } from "../form-field";
 import { BUTTON } from "../list-parts";
+import { LocationPickerMap } from "../map/location-picker-map";
 
 /** Hộp thoại đang mở cho việc gì: thêm / sửa điểm riêng, gửi đề xuất mới hay sửa đề xuất bị từ chối. */
 export type StopPointDialogTarget =
@@ -110,8 +114,9 @@ const COPY = {
 } as const;
 
 /**
- * Hộp thoại Thêm / Sửa điểm dừng riêng và Đề xuất điểm dừng (Figma 03, 04; FR-OPS-17, BR-38). Bản đồ chọn
- * vị trí thuộc TASK-TRN-014 — trước đó tọa độ nhập tay.
+ * Hộp thoại Thêm / Sửa điểm dừng riêng và Đề xuất điểm dừng (Figma 03, 04; FR-OPS-17, BR-38). Có khóa bản đồ
+ * thì cột phải là bản đồ để bấm / kéo ghim lấy tọa độ (TASK-TRN-014); chưa có khóa thì hộp thoại một cột và
+ * tọa độ nhập tay.
  */
 export function StopPointDialog({
   target,
@@ -166,6 +171,8 @@ function DialogForm({
   const provinceId = form.watch("provinceId");
   const legalBasis = form.watch("legalBasis");
   const description = form.watch("description");
+  const selectedType = form.watch("type");
+  const position = pointFromInputs(form.watch("latitude"), form.watch("longitude"));
 
   const provinces = useQuery({ queryKey: ["catalog", "provinces"], queryFn: listProvinces, staleTime: 300_000 });
   const wards = useQuery({
@@ -243,10 +250,31 @@ function DialogForm({
 
   const catalogFailed = provinces.isError || wards.isError;
   const typeOptions = isProposal ? PROPOSAL_STOP_POINT_TYPES : OWN_STOP_POINT_TYPES;
+  const mapKey = GOONG_MAPTILES_KEY;
+
+  // Hai ô tọa độ nằm dưới bản đồ khi có bản đồ, còn không thì nằm trong lưới các ô nhập như trước.
+  const coordinateFields = (
+    <>
+      <FormField
+        label="Vĩ độ *"
+        helper={mapKey ? "Từ -90 đến 90" : "Từ -90 đến 90, ví dụ 11.9404"}
+        error={errors.latitude?.message}
+      >
+        {(control) => <Input {...control} {...form.register("latitude")} autoComplete="off" inputMode="decimal" />}
+      </FormField>
+      <FormField
+        label="Kinh độ *"
+        helper={mapKey ? "Từ -180 đến 180" : "Từ -180 đến 180, ví dụ 108.4583"}
+        error={errors.longitude?.message}
+      >
+        {(control) => <Input {...control} {...form.register("longitude")} autoComplete="off" inputMode="decimal" />}
+      </FormField>
+    </>
+  );
 
   return (
     <DialogContent
-      className="sm:max-w-2xl"
+      className={mapKey ? "sm:max-w-2xl lg:max-w-[920px]" : "sm:max-w-2xl"}
       // Đang nhập dở thì bấm nhầm ra ngoài không làm mất dữ liệu; vẫn đóng được bằng ✕, Hủy hoặc Esc.
       onInteractOutside={(event) => isDirty && event.preventDefault()}
     >
@@ -280,170 +308,189 @@ function DialogForm({
         </div>
       )}
 
-      <form
-        noValidate
-        onSubmit={(event) => void form.handleSubmit(submit)(event)}
-        className="grid gap-x-4 gap-y-4 sm:grid-cols-2"
-      >
-        <FormField
-          label="Tên điểm dừng *"
-          helper={`Tối đa ${NAME_MAX_LENGTH} ký tự${isProposal ? "" : " · không trùng tên trong nhà xe"}`}
-          error={errors.name?.message}
-          className="sm:col-span-2"
-        >
-          {(control) => <Input {...control} {...form.register("name")} autoComplete="off" maxLength={NAME_MAX_LENGTH} />}
-        </FormField>
-
-        <FormField
-          label="Loại điểm *"
-          helper={isProposal ? "Chỉ chọn được Bến xe hoặc Điểm dừng đón trả khách" : undefined}
-          error={errors.type?.message}
-          className={isProposal ? "sm:col-span-2" : undefined}
-        >
-          {(control) => (
-            <Controller
-              control={form.control}
-              name="type"
-              render={({ field }) => (
-                <Select value={field.value} onValueChange={field.onChange}>
-                  <SelectTrigger {...control} onBlur={field.onBlur}>
-                    <SelectValue placeholder="Chọn loại điểm" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {typeOptions.map((type) => (
-                      <SelectItem key={type} value={type}>
-                        {STOP_POINT_TYPE_LABELS[type]}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+      <form noValidate onSubmit={(event) => void form.handleSubmit(submit)(event)} className="flex flex-col gap-5">
+        <div className={mapKey ? "grid gap-x-6 gap-y-4 lg:grid-cols-[minmax(0,1fr)_380px]" : undefined}>
+          <div className="grid content-start gap-x-4 gap-y-4 sm:grid-cols-2">
+            <FormField
+              label="Tên điểm dừng *"
+              helper={`Tối đa ${NAME_MAX_LENGTH} ký tự${isProposal ? "" : " · không trùng tên trong nhà xe"}`}
+              error={errors.name?.message}
+              className="sm:col-span-2"
+            >
+              {(control) => (
+                <Input {...control} {...form.register("name")} autoComplete="off" maxLength={NAME_MAX_LENGTH} />
               )}
-            />
-          )}
-        </FormField>
+            </FormField>
 
-        {!isProposal && (
-          <FormField label="Trạng thái *" error={errors.status?.message}>
-            {(control) => (
-              <Controller
-                control={form.control}
-                name="status"
-                render={({ field }) => (
-                  <Select value={field.value} onValueChange={field.onChange}>
-                    <SelectTrigger {...control} onBlur={field.onBlur}>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="ACTIVE">{STOP_POINT_STATUS.ACTIVE.label}</SelectItem>
-                      <SelectItem value="INACTIVE">{STOP_POINT_STATUS.INACTIVE.label}</SelectItem>
-                    </SelectContent>
-                  </Select>
+            <FormField
+              label="Loại điểm *"
+              helper={isProposal ? "Chỉ chọn được Bến xe hoặc Điểm dừng đón trả khách" : undefined}
+              error={errors.type?.message}
+              className={isProposal ? "sm:col-span-2" : undefined}
+            >
+              {(control) => (
+                <Controller
+                  control={form.control}
+                  name="type"
+                  render={({ field }) => (
+                    <Select value={field.value} onValueChange={field.onChange}>
+                      <SelectTrigger {...control} onBlur={field.onBlur}>
+                        <SelectValue placeholder="Chọn loại điểm" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {typeOptions.map((type) => (
+                          <SelectItem key={type} value={type}>
+                            {STOP_POINT_TYPE_LABELS[type]}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
+              )}
+            </FormField>
+
+            {!isProposal && (
+              <FormField label="Trạng thái *" error={errors.status?.message}>
+                {(control) => (
+                  <Controller
+                    control={form.control}
+                    name="status"
+                    render={({ field }) => (
+                      <Select value={field.value} onValueChange={field.onChange}>
+                        <SelectTrigger {...control} onBlur={field.onBlur}>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="ACTIVE">{STOP_POINT_STATUS.ACTIVE.label}</SelectItem>
+                          <SelectItem value="INACTIVE">{STOP_POINT_STATUS.INACTIVE.label}</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
                 )}
-              />
+              </FormField>
             )}
-          </FormField>
-        )}
 
-        <FormField label="Địa chỉ *" error={errors.address?.message} className="sm:col-span-2">
-          {(control) => (
-            <Input {...control} {...form.register("address")} autoComplete="off" maxLength={ADDRESS_MAX_LENGTH} />
-          )}
-        </FormField>
+            <FormField label="Địa chỉ *" error={errors.address?.message} className="sm:col-span-2">
+              {(control) => (
+                <Input {...control} {...form.register("address")} autoComplete="off" maxLength={ADDRESS_MAX_LENGTH} />
+              )}
+            </FormField>
 
-        <FormField label="Tỉnh / thành *" error={errors.provinceId?.message}>
-          {(control) => (
-            <Controller
-              control={form.control}
-              name="provinceId"
-              render={({ field }) => (
-                <Select
-                  value={field.value}
-                  onValueChange={(value) => {
-                    field.onChange(value);
-                    // Phường / xã thuộc tỉnh cũ không còn hợp lệ.
-                    form.setValue("wardId", "", { shouldDirty: true });
+            <FormField label="Tỉnh / thành *" error={errors.provinceId?.message}>
+              {(control) => (
+                <Controller
+                  control={form.control}
+                  name="provinceId"
+                  render={({ field }) => (
+                    <Select
+                      value={field.value}
+                      onValueChange={(value) => {
+                        field.onChange(value);
+                        // Phường / xã thuộc tỉnh cũ không còn hợp lệ.
+                        form.setValue("wardId", "", { shouldDirty: true });
+                      }}
+                      disabled={provinces.isPending}
+                    >
+                      <SelectTrigger {...control} onBlur={field.onBlur}>
+                        <SelectValue placeholder={provinces.isPending ? "Đang tải…" : "Chọn tỉnh / thành"} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {provinceOptions.map((option) => (
+                          <SelectItem key={option.id} value={option.id}>
+                            {option.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
+              )}
+            </FormField>
+
+            <FormField label="Phường / xã *" error={errors.wardId?.message}>
+              {(control) => (
+                <Controller
+                  control={form.control}
+                  name="wardId"
+                  render={({ field }) => (
+                    <Select
+                      value={field.value}
+                      onValueChange={field.onChange}
+                      disabled={provinceId === "" || wards.isPending}
+                    >
+                      <SelectTrigger {...control} onBlur={field.onBlur}>
+                        <SelectValue
+                          placeholder={
+                            provinceId === ""
+                              ? "Chọn tỉnh / thành trước"
+                              : wards.isPending
+                                ? "Đang tải…"
+                                : "Chọn phường / xã"
+                          }
+                        />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {wardOptions.map((option) => (
+                          <SelectItem key={option.id} value={option.id}>
+                            {option.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
+              )}
+            </FormField>
+
+            {!mapKey && coordinateFields}
+
+            {isProposal && (
+              <FormField
+                label="Căn cứ công bố *"
+                helper={`Số và ngày văn bản công bố của cơ quan có thẩm quyền · ${legalBasis.length} / ${LEGAL_BASIS_MAX_LENGTH} ký tự`}
+                error={errors.legalBasis?.message}
+                className="sm:col-span-2"
+              >
+                {(control) => (
+                  <Textarea {...control} {...form.register("legalBasis")} rows={3} maxLength={LEGAL_BASIS_MAX_LENGTH} />
+                )}
+              </FormField>
+            )}
+
+            <FormField
+              label="Ghi chú"
+              helper={`Tùy chọn · ${description.length} / ${DESCRIPTION_MAX_LENGTH} ký tự`}
+              error={errors.description?.message}
+              className="sm:col-span-2"
+            >
+              {(control) => (
+                <Textarea {...control} {...form.register("description")} rows={3} maxLength={DESCRIPTION_MAX_LENGTH} />
+              )}
+            </FormField>
+          </div>
+
+          {mapKey && (
+            <div className="flex min-w-0 flex-col gap-4">
+              <div className="flex flex-col gap-1.5">
+                <p className="text-sm leading-none font-medium text-vxn-fg-1">Vị trí trên bản đồ</p>
+                <LocationPickerMap
+                  mapKey={mapKey}
+                  value={position}
+                  kind={selectedType === "" ? "busStation" : markerKind(selectedType as StopPointType)}
+                  onChange={(point) => {
+                    form.setValue("latitude", formatCoordinate(point.latitude), { shouldDirty: true, shouldValidate: true });
+                    form.setValue("longitude", formatCoordinate(point.longitude), { shouldDirty: true, shouldValidate: true });
                   }}
-                  disabled={provinces.isPending}
-                >
-                  <SelectTrigger {...control} onBlur={field.onBlur}>
-                    <SelectValue placeholder={provinces.isPending ? "Đang tải…" : "Chọn tỉnh / thành"} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {provinceOptions.map((option) => (
-                      <SelectItem key={option.id} value={option.id}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
-            />
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">{coordinateFields}</div>
+            </div>
           )}
-        </FormField>
+        </div>
 
-        <FormField label="Phường / xã *" error={errors.wardId?.message}>
-          {(control) => (
-            <Controller
-              control={form.control}
-              name="wardId"
-              render={({ field }) => (
-                <Select
-                  value={field.value}
-                  onValueChange={field.onChange}
-                  disabled={provinceId === "" || wards.isPending}
-                >
-                  <SelectTrigger {...control} onBlur={field.onBlur}>
-                    <SelectValue
-                      placeholder={
-                        provinceId === "" ? "Chọn tỉnh / thành trước" : wards.isPending ? "Đang tải…" : "Chọn phường / xã"
-                      }
-                    />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {wardOptions.map((option) => (
-                      <SelectItem key={option.id} value={option.id}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
-            />
-          )}
-        </FormField>
-
-        <FormField label="Vĩ độ *" helper="Từ -90 đến 90, ví dụ 11.9404" error={errors.latitude?.message}>
-          {(control) => <Input {...control} {...form.register("latitude")} autoComplete="off" inputMode="decimal" />}
-        </FormField>
-        <FormField label="Kinh độ *" helper="Từ -180 đến 180, ví dụ 108.4583" error={errors.longitude?.message}>
-          {(control) => <Input {...control} {...form.register("longitude")} autoComplete="off" inputMode="decimal" />}
-        </FormField>
-
-        {isProposal && (
-          <FormField
-            label="Căn cứ công bố *"
-            helper={`Số và ngày văn bản công bố của cơ quan có thẩm quyền · ${legalBasis.length} / ${LEGAL_BASIS_MAX_LENGTH} ký tự`}
-            error={errors.legalBasis?.message}
-            className="sm:col-span-2"
-          >
-            {(control) => (
-              <Textarea {...control} {...form.register("legalBasis")} rows={3} maxLength={LEGAL_BASIS_MAX_LENGTH} />
-            )}
-          </FormField>
-        )}
-
-        <FormField
-          label="Ghi chú"
-          helper={`Tùy chọn · ${description.length} / ${DESCRIPTION_MAX_LENGTH} ký tự`}
-          error={errors.description?.message}
-          className="sm:col-span-2"
-        >
-          {(control) => (
-            <Textarea {...control} {...form.register("description")} rows={3} maxLength={DESCRIPTION_MAX_LENGTH} />
-          )}
-        </FormField>
-
-        <DialogFooter className="sm:col-span-2">
+        <DialogFooter>
           <Button type="button" variant="outline" className={`${BUTTON} bg-card`} disabled={save.isPending} onClick={onClose}>
             Hủy
           </Button>
