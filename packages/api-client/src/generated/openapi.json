@@ -6281,6 +6281,12 @@
                   "type": "integer",
                   "minimum": -9007199254740991,
                   "maximum": 9007199254740991
+                },
+                "originName": {
+                  "type": "string"
+                },
+                "destinationName": {
+                  "type": "string"
                 }
               },
               "required": [
@@ -6292,7 +6298,9 @@
                 "metricsSource",
                 "createdAt",
                 "updatedAt",
-                "stopCount"
+                "stopCount",
+                "originName",
+                "destinationName"
               ],
               "additionalProperties": false
             }

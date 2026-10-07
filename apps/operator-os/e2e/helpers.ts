@@ -7,6 +7,8 @@ export type E2eAccounts = {
   owner: { username: string; temporaryPassword: string; newPassword: string };
   /** Owner riêng cho E2E màn nghiệp vụ: mật khẩu thường, chưa bật TOTP. */
   fleetOwner: { username: string; password: string };
+  /** Owner riêng cho E2E màn điểm dừng / tuyến đường: mật khẩu thường, chưa bật TOTP. */
+  routeOwner: { username: string; password: string };
   employee: { username: string; password: string };
   platform: { username: string; password: string };
 };

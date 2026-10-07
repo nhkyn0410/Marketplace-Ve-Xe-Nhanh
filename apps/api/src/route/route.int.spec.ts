@@ -800,5 +800,35 @@ describe.skipIf(!url && !requireDb)("Route / StopPoint / Proposal — Postgres t
       expect(new Set(seen).size).toBe(seen.length);
       expect(seen.length).toBe(3);
     });
+
+    it("list trả tên điểm đầu / điểm cuối theo thứ tự hiện tại, cả điểm dùng chung lẫn điểm riêng (TRN-013)", async () => {
+      const office = await stopPoints.create(authzB, stopPointInput({ name: `Văn phòng đầu tuyến ${tag}` }));
+      const rest = await stopPoints.create(authzB, stopPointInput({ name: `Trạm giữa tuyến ${tag}`, type: "REST_STOP" }));
+      const created = await routes.create(
+        authzB,
+        routeInput(`ENDS ${tag}`, [
+          privateStop(office.id),
+          privateStop(rest.id, { allowPickup: false, allowDropoff: false }),
+          catalogStop(catalog1),
+          catalogStop(catalog2),
+        ]),
+      );
+      const find = async () => (await routes.list(authzB, { limit: 100 })).items.find((item) => item.id === created.id)!;
+      expect(await find()).toMatchObject({
+        stopCount: 4,
+        originName: `Văn phòng đầu tuyến ${tag}`,
+        destinationName: `Bến 2 ${tag}`,
+      });
+
+      // Đảo hai đầu: tên theo vị trí mới, không theo thứ tự cũ.
+      await routes.update(authzB, created.id, routeInput(`ENDS ${tag}`, [catalogStop(catalog2), privateStop(office.id)]));
+      expect(await find()).toMatchObject({
+        stopCount: 2,
+        originName: `Bến 2 ${tag}`,
+        destinationName: `Văn phòng đầu tuyến ${tag}`,
+      });
+      // Tenant khác không thấy route này trong danh sách của mình.
+      expect((await routes.list(authzA, { limit: 100 })).items.some((item) => item.id === created.id)).toBe(false);
+    });
   });
 });

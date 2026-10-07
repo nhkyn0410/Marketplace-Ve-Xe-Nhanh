@@ -48,14 +48,18 @@ async function main(): Promise<void> {
     // Owner thứ hai cho E2E màn nghiệp vụ (xe, sơ đồ ghế): mật khẩu thường, chưa bật TOTP — spec tự
     // enrollment, không phụ thuộc thứ tự chạy với các ca đăng nhập của `owner`.
     fleetOwner: { username: `fleet-${tag}`, password: password() },
+    // Owner thứ ba cho E2E màn điểm dừng / tuyến đường: mỗi spec tự enrollment TOTP một lần nên không dùng
+    // chung tài khoản với spec khác.
+    routeOwner: { username: `route-${tag}`, password: password() },
     employee: { username: `nv.driver-${tag}`, password: password() },
     platform: { username: `e2e-${tag}`, password: password() }
   };
 
   const credentials = new CredentialService();
-  const [ownerHash, fleetOwnerHash, employeeHash, platformHash] = await Promise.all([
+  const [ownerHash, fleetOwnerHash, routeOwnerHash, employeeHash, platformHash] = await Promise.all([
     credentials.hash(accounts.owner.temporaryPassword),
     credentials.hash(accounts.fleetOwner.password),
+    credentials.hash(accounts.routeOwner.password),
     credentials.hash(accounts.employee.password),
     credentials.hash(accounts.platform.password)
   ]);
@@ -85,6 +89,15 @@ async function main(): Promise<void> {
           username: accounts.fleetOwner.username,
           contactEmail: `fleet-${tag}@example.com`,
           passwordHash: fleetOwnerHash
+        }
+      });
+      await tx.operatorAccount.create({
+        data: {
+          operatorId: operator.id,
+          operatorSlug,
+          username: accounts.routeOwner.username,
+          contactEmail: `route-${tag}@example.com`,
+          passwordHash: routeOwnerHash
         }
       });
       await tx.employeeAccount.create({

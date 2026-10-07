@@ -13,7 +13,7 @@
 | Người viết    | Nguyễn Hồng Khanh, AI Agent |
 | Người duyệt   | Nguyễn Hồng Khanh           |
 | Ngày tạo      | 11/05/2026                  |
-| Ngày cập nhật | 05/10/2026                  |
+| Ngày cập nhật | 07/10/2026                  |
 
 ### 1.2. Lịch sử thay đổi
 
@@ -42,6 +42,7 @@
 | v0.21     | 04/10/2026 | AI Agent       | **Thiết kế lại điểm dừng (Khanh chốt 04/10/2026, SRS v1.35):** §7.2 tìm chuyến theo vị trí (`provinceId` hoặc `stopPointId` mỗi phía), điểm dừng của chuyến trả `type` + `allowPickup` / `allowDropoff`; §7.3 điểm riêng chỉ `OFFICE` / `REST_STOP`, `SUSPENDED`, lọc + `routeCount`, đề xuất thêm `legalBasis`, route thêm hai cờ; §7.5 bộ endpoint Admin cho điểm dừng; §7.6 `/catalog/stop-points` thêm `q`. Giữ trạng thái Review. |
 | v0.22     | 04/10/2026 | AI Agent       | **Bổ sung cho màn xe Operator OS (Khanh chốt 04/10/2026, `TASK-TRN-011`):** §7.3 — Vehicle (list + chi tiết) trả thêm `seatMap`, tóm tắt sơ đồ đang gắn, để danh sách xe không phải ghép với danh sách SeatMap. Giữ trạng thái Review. |
 | v0.23     | 05/10/2026 | AI Agent       | **Hiện thực `TASK-TRN-012` (Khanh chốt 05/10/2026):** §7.3 + §7.6 — tham số `q` của `/operator/stop-points` và `/catalog/stop-points` tìm theo tên hoặc địa chỉ, **không phân biệt dấu và hoa / thường**, tối đa 100 ký tự; `routeCount` tính cả tuyến ngừng dùng; `status = SUSPENDED` trong body → 400; thiếu `allowPickup` / `allowDropoff` → 400. Giữ trạng thái Review. |
+| v0.24     | 07/10/2026 | AI Agent       | **Bổ sung cho màn Tuyến đường Operator OS (Khanh chốt 07/10/2026, `TASK-TRN-013`):** §7.3 — danh sách route trả thêm tên điểm đầu / điểm cuối (`originName`, `destinationName`) để hiện cột "Điểm đầu → Điểm cuối". Đã hiện thực ở phần 2 của `TASK-TRN-013`; client TS + Dart đã sinh lại. Giữ trạng thái Review. |
 
 ---
 
@@ -263,7 +264,7 @@ Sau khi được duyệt (Owner đã đăng nhập):
 | PUT      | `/operator/vehicles/{vehicleId}/images` | Operator Owner | Thay toàn bộ bộ ảnh của xe theo thứ tự: body `{ images: [{ objectKey, caption }] }` (0–8 phần tử); phần tử đầu là ảnh đại diện |
 | GET/POST | `/operator/seat-maps`       | Operator Owner | List (không kèm ghế) / tạo seat map do nhà xe tự cấu hình |
 | GET/PUT  | `/operator/seat-maps/{seatMapId}` | Operator Owner | Xem kèm ghế / thay toàn bộ bố cục + ghế; khác tenant → 404 |
-| GET/POST | `/operator/routes`          | Operator Owner | List (cursor 20/tối đa 100, lọc `status`) / tạo route + tính khoảng cách/thời gian qua Goong |
+| GET/POST | `/operator/routes`          | Operator Owner | List (cursor 20/tối đa 100, lọc `status`; mỗi item kèm `stopCount`, `originName`, `destinationName`) / tạo route + tính khoảng cách/thời gian qua Goong |
 | GET/PUT  | `/operator/routes/{routeId}` | Operator Owner | Xem kèm điểm dừng / thay toàn bộ route; chỉ tính lại khi chuỗi toạ độ đổi |
 | GET/POST | `/operator/stop-points`     | Operator Owner | List (lọc `status`, `type`, `provinceId`, tìm `q` theo tên / địa chỉ; kèm `routeCount`) / tạo điểm dừng riêng — chỉ loại `OFFICE`, `REST_STOP`, dùng ngay trong tenant |
 | GET/PUT  | `/operator/stop-points/{stopPointId}` | Operator Owner | Xem / thay toàn bộ điểm riêng; điểm đang bị Admin khóa → 409 `STOP_POINT_SUSPENDED` |

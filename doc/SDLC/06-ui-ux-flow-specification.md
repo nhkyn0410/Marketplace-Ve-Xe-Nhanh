@@ -13,7 +13,7 @@
 | Người viết    | Nguyễn Hồng Khanh, AI Agent |
 | Người duyệt   | Nguyễn Hồng Khanh           |
 | Ngày tạo      | 11/05/2026                  |
-| Ngày cập nhật | 05/10/2026                  |
+| Ngày cập nhật | 07/10/2026                  |
 
 ### 1.2. Lịch sử thay đổi
 
@@ -37,6 +37,7 @@
 | v0.16     | 04/10/2026 | AI Agent | **Thiết kế lại điểm dừng (Khanh chốt 04/10/2026, SRS v1.35):** §5 thêm mục Điểm dừng cho Operator OS và Admin; §7 màn Điểm dừng của nhà xe (hai tab, hộp thoại, đề xuất kèm căn cứ, bản đồ chọn tọa độ) + form tuyến chọn cho đón / cho trả; §9 màn Điểm dừng của Admin (ba tab); SCR-PSG-15 / 16 / 18 — tìm theo tỉnh và địa danh, nhãn trung chuyển, trạm dừng nghỉ không chọn được. Giữ trạng thái Review. |
 | v0.17     | 05/10/2026 | AI Agent | **Trình soạn sơ đồ ghế dùng chung (Khanh chốt 05/10/2026, Figma `1197:6838`):** §7 thêm bốn chế độ (tạo mới / chỉnh sửa / tạo bản sao / xem chỉ đọc), ô "Loại chỗ ban đầu" có ở mọi chế độ sửa được, mỗi tầng phải có ít nhất một chỗ, số tầng / kích thước chỉ áp dụng khi tạo lại lưới. Giữ trạng thái Review. |
 | v0.18     | 05/10/2026 | AI Agent | **Màn Điểm dừng của nhà xe (Khanh chốt 05/10/2026, `TASK-TRN-012`):** §7 — cột "số tuyến đang dùng" chỉ có ở tab Của nhà xe; ghi rõ tab Dùng chung không có nút sửa, cột và lọc trạng thái (API danh mục chỉ trả điểm đang hoạt động); ô tìm gõ không dấu vẫn ra kết quả. Giữ trạng thái Review. |
+| v0.19     | 07/10/2026 | AI Agent | **Màn Điểm dừng và màn Tuyến đường của nhà xe (Khanh chốt 07/10/2026 khi duyệt Figma `1305:6710`, `TASK-TRN-013`):** §7 — nút gọi là "Đề xuất điểm dừng"; bản đồ thuộc V1 (tổng quan đóng mở ở màn Điểm dừng, chọn tọa độ trong hộp thoại, lộ trình trong form tuyến — `TASK-TRN-014`); thêm mô tả màn Tuyến đường: danh sách có cột Điểm đầu → Điểm cuối, form có thẻ Tổng quan + bản đồ lộ trình, bảng chọn điểm dừng mở ngay trong form. Giữ trạng thái Review. |
 
 ---
 
@@ -592,13 +593,22 @@ Login `{operatorSlug}/{username}` + password qua `/auth/operator/login` — **ch
 - Lưu từ danh sách thì về danh sách; mở từ form phương tiện thì báo trước rằng thông tin xe chưa lưu sẽ mất, lưu xong quay lại form với sơ đồ mới được chọn sẵn.
 - "Bố cục gợi ý" điền sẵn lưới (giường nằm 40, cabin đơn 34, cabin đôi 22…) là phần tùy chọn, để sau v1.
 
-**Màn Điểm dừng của nhà xe** (thiết kế lại, Khanh chốt 04/10/2026; mục riêng trên thanh bên, đứng trước "Tuyến đường"; bố cục tham khảo Figma cũ `386:19771`, `386:18417`):
+**Màn Điểm dừng của nhà xe** (thiết kế lại, Khanh chốt 04/10/2026; mục riêng trên thanh bên, đứng trước "Tuyến đường"; thiết kế: Figma `1305:6710`, nhóm `Nhà xe · Điểm dừng · TRN-013`; hai khung cũ `386:19771`, `386:18417` không còn dùng):
 
 - Hai tab: **Của nhà xe** (văn phòng trung chuyển, trạm dừng nghỉ — thêm, sửa, ngừng dùng) và **Dùng chung** (bến xe, điểm dừng đón trả khách, trạm dừng nghỉ của Platform — chỉ xem).
 - Bảng: tên và địa chỉ, loại điểm, tỉnh / thành, số tuyến đang dùng, trạng thái (Hoạt động / Ngừng dùng / Bị khóa kèm lý do của Admin), nút sửa. Cột "số tuyến đang dùng" chỉ có ở tab Của nhà xe (Khanh chốt 05/10/2026). Tab Dùng chung chỉ xem nên không có nút sửa; API danh mục chỉ trả điểm đang hoạt động nên tab này cũng không có cột và lọc trạng thái. Ô tìm theo tên / địa chỉ, gõ không dấu vẫn ra ("ben xe" ra "Bến xe…"); lọc loại điểm, tỉnh / thành, trạng thái; "Tải thêm" thay cho số trang.
 - Hộp thoại thêm / sửa: tên, loại điểm, địa chỉ, tỉnh / thành và phường / xã (ô chọn từ danh mục), vĩ độ, kinh độ, trạng thái đều bắt buộc; ghi chú tùy chọn. Bản đồ Goong để bấm hoặc kéo ghim lấy tọa độ, vẫn cho gõ tay (`TASK-TRN-014`).
-- Tab Dùng chung có nút "Đề xuất điểm mới" cho bến xe / điểm dừng đón trả khách còn thiếu: các ô như trên cộng "căn cứ công bố" (bắt buộc). Danh sách đề xuất của nhà xe hiện trạng thái Chờ duyệt / Đã duyệt / Bị từ chối kèm lý do; bản bị từ chối sửa và gửi lại được.
-- Bỏ so với Figma cũ: cột mã, khối thống kê, cột lượt / ngày, nút xoá; bản đồ tổng quan để sau v1.
+- Tab Dùng chung có nút "Đề xuất điểm dừng" (Khanh chốt 07/10/2026; không nhắc việc nhà xe khác dùng được) cho bến xe / điểm dừng đón trả khách còn thiếu: các ô như trên cộng "căn cứ công bố" (bắt buộc). Danh sách đề xuất của nhà xe hiện trạng thái Chờ duyệt / Đã duyệt / Bị từ chối kèm lý do; bản bị từ chối sửa và gửi lại được.
+- Bỏ so với Figma cũ: cột mã, khối thống kê, cột lượt / ngày, nút xoá.
+- Bản đồ thuộc V1 (Khanh chốt 07/10/2026), làm ở `TASK-TRN-014`: khối "Bản đồ điểm dừng" đóng mở được nằm trên bảng, hiện các điểm đang có trong danh sách với màu ghim theo loại, bấm ghim xem nhanh, bấm một dòng thì bản đồ chuyển tới điểm đó; mặc định thu gọn và nhớ lựa chọn gần nhất (giả định). Khi chưa có bản đồ thì ẩn khối này và nhập tọa độ bằng tay.
+
+**Màn Tuyến đường của nhà xe** (Khanh chốt 07/10/2026; Figma `1305:6710`, nhóm `Nhà xe · Tuyến đường · TRN-013`):
+
+- Danh sách: tên tuyến, điểm đầu → điểm cuối, số điểm dừng, quãng đường, thời gian chạy, trạng thái, nút sửa; lọc theo trạng thái; "Tải thêm" thay cho số trang. Không có mã tuyến, giá vé, số chuyến.
+- Form Thêm / Chỉnh sửa là một trang riêng, hai cột. Cột trái: danh sách điểm dừng theo thứ tự, mỗi điểm có số thứ tự, tên, địa chỉ, loại và nguồn (dùng chung / của nhà xe), ghi chú tùy chọn, công tắc cho đón / cho trả, nút lên / xuống / bỏ; giữa hai điểm hiện quãng đường và thời gian của chặng. Cột phải: thông tin tuyến (tên, trạng thái, ghi chú), bản đồ lộ trình đóng mở được (ghim đánh số nối bằng đường thẳng — không phải đường đi thực tế), thẻ Tổng quan (số điểm dừng, số điểm cho đón, số điểm cho trả, quãng đường, thời gian chạy, lần cập nhật cuối).
+- Công tắc theo `BR-79`: điểm đầu chỉ đón, điểm cuối chỉ trả, trạm dừng nghỉ tắt cả hai — ba trường hợp này khóa công tắc; điểm ở giữa bật ít nhất một. Hai đầu không phải bến xe thì hiện cảnh báo màu vàng, vẫn cho lưu (`OQ-24`).
+- Quãng đường và thời gian do hệ thống tính khi lưu, không nhập tay; form thêm mới hiện "Tính khi lưu".
+- Bấm "Thêm điểm dừng" thì bảng chọn mở ngay dưới danh sách điểm dừng, không che form và không làm mờ nền: hai tab Dùng chung / Của nhà xe, ô tìm, lọc loại và tỉnh / thành, nút "Thêm" từng dòng. Điểm vừa thêm xếp cuối danh sách, bản đồ cập nhật ngay; điểm đã có trong tuyến không chọn lại được; điểm ngừng dùng hoặc bị khóa không hiện.
 
 ---
 

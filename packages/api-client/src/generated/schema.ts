@@ -1260,6 +1260,8 @@ export interface components {
                 /** Format: date-time */
                 updatedAt: string;
                 stopCount: number;
+                originName: string;
+                destinationName: string;
             }[];
             nextCursor: string | null;
         };

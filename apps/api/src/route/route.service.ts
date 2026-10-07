@@ -58,7 +58,7 @@ export class RouteService {
     @Inject(ROUTING_PROVIDER) private readonly routing: RoutingProvider,
   ) {}
 
-  /** Liệt kê route của nhà xe (không kèm điểm), lọc trạng thái, phân trang theo `id`. */
+  /** Liệt kê route của nhà xe kèm số điểm và tên điểm đầu / điểm cuối, lọc trạng thái, phân trang theo `id`. */
   async list(
     authz: Authorization,
     query: { status?: RouteStatus; cursor?: string; limit: number },
@@ -79,14 +79,29 @@ export class RouteService {
           createdAt: true,
           updatedAt: true,
           _count: { select: { stops: true } },
+          // Chỉ hai đầu route, không kéo cả danh sách điểm.
+          stops: {
+            where: { role: { in: [RouteStopRole.ORIGIN, RouteStopRole.DESTINATION] } },
+            select: {
+              role: true,
+              catalogStopPoint: { select: { name: true } },
+              stopPoint: { select: { name: true } },
+            },
+          },
         },
       }),
     );
     const page = rows.slice(0, query.limit);
+    const endpointName = (stops: (typeof rows)[number]["stops"], role: RouteStopRole) => {
+      const stop = stops.find((candidate) => candidate.role === role);
+      return (stop?.catalogStopPoint ?? stop?.stopPoint)?.name ?? "";
+    };
     return {
-      items: page.map(({ _count, ...route }) => ({
+      items: page.map(({ _count, stops, ...route }) => ({
         ...route,
         stopCount: _count.stops,
+        originName: endpointName(stops, RouteStopRole.ORIGIN),
+        destinationName: endpointName(stops, RouteStopRole.DESTINATION),
         createdAt: route.createdAt.toISOString(),
         updatedAt: route.updatedAt.toISOString(),
       })),
