@@ -71,7 +71,7 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
 
   return (
     <div className="flex h-full w-full flex-col justify-between bg-vxn-teal-700 text-white">
-      <div className="flex min-h-0 flex-1 flex-col gap-4.5 overflow-y-auto pt-7">
+      <div className="flex min-h-0 flex-1 flex-col gap-4.5 overflow-y-auto pt-7 [scrollbar-gutter:stable]">
         <Link href="/" onClick={onNavigate} className="mx-6 w-fit" aria-label="Về trang chủ Vé Xe Nhanh">
           <LogoWordmark className="h-9 w-auto text-[#f7f9fb]" />
         </Link>

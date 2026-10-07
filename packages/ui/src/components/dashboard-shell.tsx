@@ -50,7 +50,7 @@ export function DashboardShell({
 
   return (
     <div className="flex min-h-screen">
-      <aside className="sticky top-0 hidden h-screen w-60 shrink-0 flex-col overflow-y-auto border-r bg-card lg:flex">
+      <aside className="sticky top-0 hidden h-screen w-60 shrink-0 flex-col overflow-y-auto border-r bg-card [scrollbar-gutter:stable] lg:flex">
         {sidebar()}
       </aside>
 
@@ -62,7 +62,7 @@ export function DashboardShell({
                 <MenuIcon className="size-5" />
               </Button>
             </SheetTrigger>
-            <SheetContent side="left" className="w-72 gap-0 overflow-y-auto p-0" aria-describedby={undefined}>
+            <SheetContent side="left" className="w-72 gap-0 overflow-y-auto p-0 [scrollbar-gutter:stable]" aria-describedby={undefined}>
               <SheetTitle className="sr-only">Điều hướng</SheetTitle>
               {sidebar(closeMobileNav)}
             </SheetContent>
