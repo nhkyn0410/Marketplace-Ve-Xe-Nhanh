@@ -39,6 +39,16 @@ export function totp(secretBase32: string, nowMs = Date.now()): string {
 }
 
 /**
+ * Thay bản đồ nền Goong bằng một nền trống để E2E không gọi ra ngoài và không cần khóa thật (TASK-TRN-014).
+ * Ghim, đường nối và thao tác trên bản đồ vẫn kiểm được; hình bản đồ thật thì không — phần đó kiểm tay.
+ */
+export async function stubMapTiles(page: Page): Promise<void> {
+  await page.route("https://tiles.goong.io/**", (route) =>
+    route.fulfill({ contentType: "application/json", body: JSON.stringify({ version: 8, sources: {}, layers: [] }) })
+  );
+}
+
+/**
  * Đăng nhập Owner chưa bật TOTP rồi hoàn tất enrollment (QR + mã + lưu backup code) để vào app.
  * Dùng cho các spec màn nghiệp vụ; luồng đăng nhập đầy đủ được kiểm ở `auth.e2e.ts`.
  */

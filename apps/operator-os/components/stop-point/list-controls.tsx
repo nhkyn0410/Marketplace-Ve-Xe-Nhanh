@@ -11,7 +11,7 @@ import {
 import { Skeleton } from "@vexenhanh/ui/components/skeleton";
 import { cn } from "@vexenhanh/ui/lib/utils";
 import { Search } from "lucide-react";
-import { useEffect, useId, useState } from "react";
+import { useEffect, useId, useState, type MouseEvent } from "react";
 
 /** Giá trị "không lọc" của các ô lọc. */
 export const ALL = "ALL";
@@ -131,3 +131,57 @@ export const TABLE = "w-full table-fixed border-collapse text-left";
 export const TABLE_HEAD_ROW = "h-11 text-xs leading-[18px] text-muted-foreground";
 export const TABLE_HEAD_CELL = "bg-muted pr-3 font-medium first:rounded-l-lg first:pl-4 last:rounded-r-lg";
 export const TABLE_CELL = "py-3.5 pr-3 align-middle text-sm leading-5 text-vxn-fg-1 first:pl-4";
+
+/**
+ * Thuộc tính của một dòng điểm dừng. Khi bản đồ tổng quan đang mở (`onLocate` có giá trị), bấm vào dòng thì
+ * bản đồ chuyển tới điểm đó — trừ khi bấm trúng một nút trong dòng; dòng của điểm đang chọn được tô nền.
+ */
+export function locatableRow(id: string, selectedId: string | null, onLocate?: (id: string) => void) {
+  return {
+    className: cn(
+      "h-[76px] border-b",
+      onLocate && "cursor-pointer hover:bg-muted/50",
+      onLocate && id === selectedId && "bg-accent hover:bg-accent"
+    ),
+    onClick: onLocate
+      ? (event: MouseEvent<HTMLTableRowElement>) => {
+          if (!(event.target as Element).closest("button, a")) {
+            onLocate(id);
+          }
+        }
+      : undefined
+  };
+}
+
+/**
+ * Tên điểm dừng trong bảng. Khi bản đồ tổng quan đang mở thì tên là một nút, để dùng bàn phím cũng đưa được
+ * bản đồ tới điểm đó (bấm vào dòng chỉ dùng được bằng chuột).
+ */
+export function LocatableName({
+  id,
+  name,
+  className,
+  onLocate
+}: {
+  id: string;
+  name: string;
+  className?: string;
+  onLocate?: (id: string) => void;
+}) {
+  if (!onLocate) {
+    return <span className={className}>{name}</span>;
+  }
+  return (
+    <button
+      type="button"
+      aria-label={`Xem ${name} trên bản đồ`}
+      className={cn(
+        "max-w-full cursor-pointer self-start rounded text-left underline-offset-2 outline-none hover:underline focus-visible:ring-[3px] focus-visible:ring-ring/50",
+        className
+      )}
+      onClick={() => onLocate(id)}
+    >
+      {name}
+    </button>
+  );
+}

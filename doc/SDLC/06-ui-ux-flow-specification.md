@@ -38,6 +38,7 @@
 | v0.17     | 05/10/2026 | AI Agent | **Trình soạn sơ đồ ghế dùng chung (Khanh chốt 05/10/2026, Figma `1197:6838`):** §7 thêm bốn chế độ (tạo mới / chỉnh sửa / tạo bản sao / xem chỉ đọc), ô "Loại chỗ ban đầu" có ở mọi chế độ sửa được, mỗi tầng phải có ít nhất một chỗ, số tầng / kích thước chỉ áp dụng khi tạo lại lưới. Giữ trạng thái Review. |
 | v0.18     | 05/10/2026 | AI Agent | **Màn Điểm dừng của nhà xe (Khanh chốt 05/10/2026, `TASK-TRN-012`):** §7 — cột "số tuyến đang dùng" chỉ có ở tab Của nhà xe; ghi rõ tab Dùng chung không có nút sửa, cột và lọc trạng thái (API danh mục chỉ trả điểm đang hoạt động); ô tìm gõ không dấu vẫn ra kết quả. Giữ trạng thái Review. |
 | v0.19     | 07/10/2026 | AI Agent | **Màn Điểm dừng và màn Tuyến đường của nhà xe (Khanh chốt 07/10/2026 khi duyệt Figma `1305:6710`, `TASK-TRN-013`):** §7 — nút gọi là "Đề xuất điểm dừng"; bản đồ thuộc V1 (tổng quan đóng mở ở màn Điểm dừng, chọn tọa độ trong hộp thoại, lộ trình trong form tuyến — `TASK-TRN-014`); thêm mô tả màn Tuyến đường: danh sách có cột Điểm đầu → Điểm cuối, form có thẻ Tổng quan + bản đồ lộ trình, bảng chọn điểm dừng mở ngay trong form. Giữ trạng thái Review. |
+| v0.20     | 07/10/2026 | AI Agent | **Hiện thực ba bản đồ của nhà xe (`TASK-TRN-014`):** §7 — thêm mô tả hành vi đã làm cho bản đồ tổng quan, bản đồ chọn vị trí và bản đồ lộ trình (thiếu khóa / tải lỗi, khung nhìn mặc định, bấm ghim khác bấm dòng, giữ Ctrl để phóng to, chấm xám của bảng chọn — Khanh chốt giữ 07/10/2026). Giữ trạng thái Review. |
 
 ---
 
@@ -601,6 +602,7 @@ Login `{operatorSlug}/{username}` + password qua `/auth/operator/login` — **ch
 - Tab Dùng chung có nút "Đề xuất điểm dừng" (Khanh chốt 07/10/2026; không nhắc việc nhà xe khác dùng được) cho bến xe / điểm dừng đón trả khách còn thiếu: các ô như trên cộng "căn cứ công bố" (bắt buộc). Danh sách đề xuất của nhà xe hiện trạng thái Chờ duyệt / Đã duyệt / Bị từ chối kèm lý do; bản bị từ chối sửa và gửi lại được.
 - Bỏ so với Figma cũ: cột mã, khối thống kê, cột lượt / ngày, nút xoá.
 - Bản đồ thuộc V1 (Khanh chốt 07/10/2026), làm ở `TASK-TRN-014`: khối "Bản đồ điểm dừng" đóng mở được nằm trên bảng, hiện các điểm đang có trong danh sách với màu ghim theo loại, bấm ghim xem nhanh, bấm một dòng thì bản đồ chuyển tới điểm đó; mặc định thu gọn và nhớ lựa chọn gần nhất (giả định). Khi chưa có bản đồ thì ẩn khối này và nhập tọa độ bằng tay.
+- Hiện thực bản đồ (`TASK-TRN-014`, 07/10/2026): bản đồ nền Goong, không có nguồn dự phòng — môi trường chưa đặt khóa Maptiles thì ẩn mọi khối bản đồ; tải lỗi thì hiện "Không tải được bản đồ" kèm nút Thử lại, bảng và form vẫn dùng được. Khung nhìn mặc định là toàn Việt Nam, gồm Hoàng Sa và Trường Sa. Bấm ghim thì giữ mức phóng đang xem; bấm một dòng thì phóng tới gần và tô nền dòng đó; khi bản đồ mở, tên điểm là một nút để dùng được bằng bàn phím. Bản đồ nằm trong trang cuộn phải giữ Ctrl mới phóng to bằng con lăn. Trong hộp thoại: tọa độ lấy từ bản đồ làm tròn 6 chữ số thập phân; gõ tay thì ghim nhảy theo. Hai tab dùng chung một lựa chọn mở / thu gọn.
 
 **Màn Tuyến đường của nhà xe** (Khanh chốt 07/10/2026; Figma `1305:6710`, nhóm `Nhà xe · Tuyến đường · TRN-013`):
 
@@ -609,6 +611,7 @@ Login `{operatorSlug}/{username}` + password qua `/auth/operator/login` — **ch
 - Công tắc theo `BR-79`: điểm đầu chỉ đón, điểm cuối chỉ trả, trạm dừng nghỉ tắt cả hai — ba trường hợp này khóa công tắc; điểm ở giữa bật ít nhất một. Hai đầu không phải bến xe thì hiện cảnh báo màu vàng, vẫn cho lưu (`OQ-24`).
 - Quãng đường và thời gian do hệ thống tính khi lưu, không nhập tay; form thêm mới hiện "Tính khi lưu".
 - Bấm "Thêm điểm dừng" thì bảng chọn mở ngay dưới danh sách điểm dừng, không che form và không làm mờ nền: hai tab Dùng chung / Của nhà xe, ô tìm, lọc loại và tỉnh / thành, nút "Thêm" từng dòng. Điểm vừa thêm xếp cuối danh sách, bản đồ cập nhật ngay; điểm đã có trong tuyến không chọn lại được; điểm ngừng dùng hoặc bị khóa không hiện.
+- Hiện thực bản đồ lộ trình (`TASK-TRN-014`, 07/10/2026): mặc định mở và nhớ lựa chọn riêng; trạm dừng nghỉ màu vàng; khi bảng chọn mở, các điểm trong bảng chưa thuộc tuyến hiện bằng chấm xám (Khanh chốt giữ, 07/10/2026) và khung nhìn bao cả các điểm đó; rê chuột hoặc đưa tiêu điểm vào một dòng thì chấm của dòng đó nổi lên kèm nhãn "Chưa có trong tuyến".
 
 ---
 

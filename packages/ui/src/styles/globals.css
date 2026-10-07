@@ -138,11 +138,24 @@
   }
 }
 
-/*
+/* Thẻ nổi trên bản đồ (`MapPopup`): bỏ khung và mũi tên mặc định của thư viện, phần nội dung tự vẽ khung.
+   Để ngoài `@layer` và dùng hai class để thắng CSS của thư viện dù file nào được nạp trước. */
+.maplibregl-popup.vxn-map-popup .maplibregl-popup-content {
+  padding: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.maplibregl-popup.vxn-map-popup .maplibregl-popup-tip {
+  display: none;
+  
+}  
+  /*
  * Radix (Dialog/Sheet/Select/DropdownMenu) khóa cuộn bằng react-remove-scroll-bar: thêm `margin-right` bằng
  * `innerWidth - clientWidth` cho body. html đã giữ chỗ thanh cuộn (scrollbar-gutter: stable) nên phần bù này
  * bị cộng dồn → nội dung co lại ~15px khi mở. Đặt ngoài @layer và tăng độ ưu tiên để thắng style tiêm động.
  */
 html body[data-scroll-locked] {
-  margin-right: 0 !important;
-}
+margin-right: 0 !important;
+

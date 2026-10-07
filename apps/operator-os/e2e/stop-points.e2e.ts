@@ -1,11 +1,13 @@
 import { expect, test, type Page } from "@playwright/test";
 
-import { accounts, signInWithEnrollment } from "./helpers";
+import { accounts, signInWithEnrollment, stubMapTiles } from "./helpers";
 
 // TASK-TRN-013 (màn Điểm dừng + màn Tuyến đường) — luồng chính của Owner: tạo điểm riêng, tìm không dấu, lỗi
 // trùng tên báo tại ô, sửa trạng thái, gửi đề xuất ở tab Dùng chung, rồi lập tuyến từ các điểm vừa tạo. Cần
 // catalog đã seed (`db:seed:catalog`, RB-08) để có tỉnh / phường. Chạy tuần tự, dùng chung một phiên: mỗi ca
 // dựa trên dữ liệu ca trước tạo ra.
+// TASK-TRN-014 (ba bản đồ) — các ca cuối file; bản đồ nền được thay bằng nền trống nên chỉ kiểm ghim, đường
+// nối và thao tác.
 test.describe.configure({ mode: "serial" });
 
 const API = "http://localhost:3000/v1";
@@ -15,9 +17,12 @@ const ORIGIN = "E2E Văn phòng Sài Gòn";
 const REST = "E2E Trạm nghỉ Bảo Lộc";
 const DESTINATION = "E2E Văn phòng Nha Trang";
 const ROUTE = "E2E Sài Gòn – Nha Trang";
+const PICKED = "E2E Trạm nghỉ chọn trên bản đồ";
 // Lần đầu mở một trang, máy chủ dev của Next phải biên dịch trang đó — có thể lâu hơn 5 giây mặc định.
 const FIRST_VISIT = { timeout: 30_000 };
+const NO_MAP_KEY = "Máy chủ dev đang chạy không có NEXT_PUBLIC_GOONG_MAPTILES_KEY nên không có khối bản đồ.";
 let page: Page;
+let mapEnabled = false;
 let province: { id: string; name: string };
 let ward: { name: string };
 
@@ -30,6 +35,7 @@ test.beforeAll(async ({ browser, request }) => {
   ward = wards.items[0]!;
 
   page = await browser.newPage();
+  await stubMapTiles(page);
   const { operatorSlug, routeOwner } = accounts();
   await signInWithEnrollment(page, `${operatorSlug}/${routeOwner.username}`, routeOwner.password);
 });
@@ -206,12 +212,13 @@ test("lập tuyến: bảng chọn mở ngay trong form, công tắc đón / tr�
     await expect(toggle("Cho trả", name)).toBeDisabled();
   }
   await expect(page.getByRole("note").filter({ hasText: "Điểm đầu và điểm cuối không phải bến xe" })).toBeVisible();
-  await expect(page.getByText("Tính khi lưu").first()).toBeVisible();
+  // `exact`: chú thích của bản đồ lộ trình cũng có cụm "tính khi lưu".
+  await expect(page.getByText("Tính khi lưu", { exact: true }).first()).toBeVisible();
 
   await save.click();
   await expect(page.getByRole("heading", { name: "Chỉnh sửa tuyến", level: 1 })).toBeVisible(FIRST_VISIT);
   await expect(page.getByText("Đã lưu tuyến")).toBeVisible();
-  await expect(page.getByText("Tính khi lưu")).toHaveCount(0);
+  await expect(page.getByText("Tính khi lưu", { exact: true })).toHaveCount(0);
   await expect(stops.getByText(/ km · /)).toHaveCount(2);
 });
 
@@ -226,4 +233,134 @@ test("danh sách tuyến hiện điểm đầu → điểm cuối; điểm dừn
   await page.getByRole("link", { name: "Điểm dừng", exact: true }).click();
   await expect(page.getByRole("row", { name: new RegExp(ORIGIN) })).toContainText("1 tuyến");
   await expect(page.getByRole("row", { name: new RegExp(OFFICE) })).toContainText("Chưa dùng");
+});
+
+test("bản đồ tổng quan: mặc định thu gọn, mỗi dòng một ghim, bấm ghim / dòng hiện thẻ xem nhanh, nhớ lựa chọn", async () => {
+  // Đang ở tab Của nhà xe với 4 điểm: OFFICE (ngừng dùng), ORIGIN, REST, DESTINATION.
+  const show = page.getByRole("button", { name: "Hiện bản đồ" });
+  mapEnabled = await show.isVisible();
+  test.skip(!mapEnabled, NO_MAP_KEY);
+  await expect(show).toHaveAttribute("aria-expanded", "false");
+  await expect(page.getByRole("button", { name: /^Xem .+ trên bản đồ$/ })).toHaveCount(0);
+
+  await show.click();
+  const pins = page.getByRole("button", { name: /^Xem nhanh / });
+  await expect(pins).toHaveCount(4, FIRST_VISIT);
+  await expect(page.getByText("Đang hiện 4 điểm trong danh sách bên dưới.")).toBeVisible();
+
+  // Bấm ghim của điểm ngừng dùng: thẻ ghi rõ trạng thái.
+  await page.getByRole("button", { name: `Xem nhanh ${OFFICE}` }).click();
+  const officeCard = page.getByRole("group", { name: `Thông tin ${OFFICE}` });
+  await expect(officeCard).toContainText("Văn phòng trung chuyển · Ngừng dùng");
+  await officeCard.getByRole("button", { name: "Đóng thẻ xem nhanh" }).click();
+  await expect(officeCard).toHaveCount(0);
+
+  // Bấm một dòng của bảng: bản đồ chuyển tới điểm đó, dòng được tô.
+  await page.getByRole("row", { name: new RegExp(ORIGIN) }).getByText("Văn phòng trung chuyển").click();
+  await expect(page.getByRole("group", { name: `Thông tin ${ORIGIN}` })).toContainText("1 tuyến đang dùng");
+  // Dùng bàn phím: tên điểm là một nút.
+  await page.getByRole("button", { name: `Xem ${REST} trên bản đồ` }).press("Enter");
+  await expect(page.getByRole("group", { name: `Thông tin ${REST}` })).toContainText("Trạm dừng nghỉ");
+  // Bấm nút Sửa trong dòng không đổi điểm đang chọn trên bản đồ.
+  await page.getByRole("button", { name: `Sửa điểm dừng ${DESTINATION}` }).click();
+  await page.getByRole("dialog", { name: "Sửa điểm dừng" }).getByRole("button", { name: "Hủy" }).click();
+  await expect(page.getByRole("group", { name: `Thông tin ${REST}` })).toBeVisible();
+
+  // Bản đồ theo đúng bộ lọc của bảng.
+  await page.getByLabel("Tìm kiếm").fill("e2e tram nghi");
+  await expect(pins).toHaveCount(1);
+  await page.getByLabel("Tìm kiếm").fill("");
+  await expect(pins).toHaveCount(4);
+
+  // Nhớ lựa chọn: tải lại trang vẫn mở; thu gọn lại cho các ca sau.
+  await page.reload();
+  const hide = page.getByRole("button", { name: "Ẩn bản đồ" });
+  await expect(hide).toBeVisible(FIRST_VISIT);
+  await hide.click();
+  await expect(show).toHaveAttribute("aria-expanded", "false");
+  await expect(pins).toHaveCount(0);
+});
+
+test("hộp thoại điểm dừng: bấm bản đồ để lấy tọa độ, lưu được điểm với tọa độ đó", async () => {
+  test.skip(!mapEnabled, NO_MAP_KEY);
+  await headerButton("Thêm điểm dừng").click();
+  const dialog = page.getByRole("dialog", { name: "Thêm điểm dừng" });
+  const map = dialog.getByRole("region", { name: "Bản đồ chọn vị trí điểm dừng" });
+  await expect(map).toBeVisible(FIRST_VISIT);
+  await expect(dialog.getByRole("status", { name: "Đang tải bản đồ" })).toHaveCount(0);
+  await expect(dialog.getByText("Bấm vào bản đồ để đặt ghim")).toBeVisible();
+
+  await choose("Loại điểm *", "Trạm dừng nghỉ");
+  await dialog.getByLabel("Tên điểm dừng *").fill(PICKED);
+  await dialog.getByLabel("Địa chỉ *").fill("Quốc lộ 20");
+  await choose("Tỉnh / thành *", province.name);
+  await choose("Phường / xã *", ward.name);
+
+  const coordinate = /^-?\d+(\.\d{1,6})?$/;
+  await map.click({ position: { x: 150, y: 110 } });
+  await expect(dialog.getByLabel("Vĩ độ *")).toHaveValue(coordinate);
+  await expect(dialog.getByLabel("Kinh độ *")).toHaveValue(coordinate);
+  await expect(dialog.getByText("Bấm hoặc kéo ghim để chọn vị trí")).toBeVisible();
+  const latitude = await dialog.getByLabel("Vĩ độ *").inputValue();
+
+  // Bấm chỗ khác thì ghim và tọa độ đổi theo.
+  await map.click({ position: { x: 230, y: 170 } });
+  await expect(dialog.getByLabel("Vĩ độ *")).not.toHaveValue(latitude);
+  const picked = await dialog.getByLabel("Vĩ độ *").inputValue();
+
+  await dialog.getByRole("button", { name: "Lưu điểm dừng" }).click();
+  await expect(page.getByRole("row", { name: new RegExp(PICKED) })).toBeVisible();
+
+  // Mở lại để sửa: tọa độ đã lưu đúng như đã chọn trên bản đồ, ghim đã có sẵn.
+  await page.getByRole("button", { name: `Sửa điểm dừng ${PICKED}` }).click();
+  const edit = page.getByRole("dialog", { name: "Sửa điểm dừng" });
+  await expect(edit.getByLabel("Vĩ độ *")).toHaveValue(picked);
+  await expect(edit.getByText("Bấm hoặc kéo ghim để chọn vị trí")).toBeVisible();
+  await edit.getByRole("button", { name: "Hủy" }).click();
+});
+
+test("bản đồ lộ trình: ghim đánh số theo thứ tự, đổi theo khi thêm / đổi chỗ, bảng chọn hiện chấm của điểm chưa thêm", async () => {
+  test.skip(!mapEnabled, NO_MAP_KEY);
+  await page.getByRole("link", { name: "Tuyến đường", exact: true }).click();
+  await page.getByRole("link", { name: `Sửa tuyến ${ROUTE}` }).click();
+  await expect(page.getByRole("heading", { name: "Chỉnh sửa tuyến", level: 1 })).toBeVisible(FIRST_VISIT);
+
+  const routeMap = page.getByRole("region", { name: "Lộ trình trên bản đồ" });
+  const numbered = routeMap.getByRole("img");
+  await expect(numbered).toHaveText(["1", "2", "3"], FIRST_VISIT);
+  await expect(numbered.nth(0)).toHaveAccessibleName(`Điểm 1: ${ORIGIN}`);
+  await expect(numbered.nth(1)).toHaveAccessibleName(`Điểm 2: ${REST}`);
+  await expect(numbered.nth(2)).toHaveAccessibleName(`Điểm 3: ${DESTINATION}`);
+  await expect(routeMap.getByText("Điểm trong bảng chọn")).toHaveCount(0);
+
+  // Mở bảng chọn: điểm chưa có trong tuyến hiện trên bản đồ; rê vào dòng thì có nhãn.
+  await page.getByRole("button", { name: "Thêm điểm dừng", exact: true }).click();
+  const picker = page.getByRole("region", { name: "Thêm điểm dừng vào tuyến" });
+  await picker.getByRole("tab", { name: "Của nhà xe" }).click();
+  const add = picker.getByRole("button", { name: `Thêm ${PICKED} vào tuyến` });
+  await expect(add).toBeVisible();
+  await expect(routeMap.getByText("Điểm trong bảng chọn")).toBeVisible();
+  await add.hover();
+  await expect(routeMap.getByText("Chưa có trong tuyến")).toBeVisible();
+  await expect(routeMap.getByText(PICKED)).toBeVisible();
+
+  // Thêm vào tuyến: thành ghim số 4, hết nhãn "chưa có trong tuyến".
+  await add.click();
+  await expect(numbered).toHaveText(["1", "2", "3", "4"]);
+  await expect(routeMap.getByRole("img", { name: `Điểm 4: ${PICKED}` })).toBeVisible();
+  await expect(routeMap.getByText("Chưa có trong tuyến")).toHaveCount(0);
+
+  // Đổi chỗ trong danh sách: số trên bản đồ đổi theo.
+  await page.getByRole("button", { name: `Chuyển ${PICKED} lên trước` }).click();
+  await expect(routeMap.getByRole("img", { name: `Điểm 3: ${PICKED}` })).toBeVisible();
+  await expect(routeMap.getByRole("img", { name: `Điểm 4: ${DESTINATION}` })).toBeVisible();
+  // Bỏ khỏi tuyến: ghim mất.
+  await page.getByRole("button", { name: `Bỏ ${PICKED} khỏi tuyến` }).click();
+  await expect(numbered).toHaveText(["1", "2", "3"]);
+
+  // Ẩn / hiện bản đồ lộ trình.
+  await routeMap.getByRole("button", { name: "Ẩn bản đồ" }).click();
+  await expect(numbered).toHaveCount(0);
+  await routeMap.getByRole("button", { name: "Hiện bản đồ" }).click();
+  await expect(numbered).toHaveText(["1", "2", "3"]);
 });

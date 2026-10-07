@@ -6,7 +6,7 @@ import { Skeleton } from "@vexenhanh/ui/components/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@vexenhanh/ui/components/tabs";
 import { Check, LoaderCircle, Plus, X } from "lucide-react";
 import Link from "next/link";
-import { useId, useMemo, useState } from "react";
+import { useEffect, useId, useMemo, useState } from "react";
 
 import { MAX_ROUTE_STOPS, stopKey, type StopCandidate } from "../../lib/route/route-form";
 import {
@@ -35,13 +35,19 @@ export function StopPicker({
   selectedKeys,
   stopCount,
   onAdd,
-  onClose
+  onClose,
+  onCandidatesChange,
+  onHighlight
 }: {
   /** Khóa (`stopKey`) của các điểm đã có trong tuyến — hiện "Đã thêm" thay cho nút. */
   selectedKeys: ReadonlySet<string>;
   stopCount: number;
   onAdd: (candidate: StopCandidate) => void;
   onClose: () => void;
+  /** Báo các điểm bảng đang liệt kê, để bản đồ lộ trình vẽ chúng bằng chấm xám. */
+  onCandidatesChange?: (candidates: StopCandidate[]) => void;
+  /** Báo dòng đang được rê chuột / đưa tiêu điểm tới (`stopKey`), `null` khi rời đi. */
+  onHighlight?: (key: string | null) => void;
 }) {
   const headingId = useId();
   const [source, setSource] = useState<Source>("shared");
@@ -68,7 +74,9 @@ export function StopPicker({
           stopPointId: source === "own" ? point.id : null,
           name: point.name,
           address: point.address,
-          type: point.type
+          type: point.type,
+          latitude: point.latitude,
+          longitude: point.longitude
         })),
         provinceIds: page.items.map((point) => point.provinceId),
         nextCursor: page.nextCursor
@@ -91,6 +99,10 @@ export function StopPicker({
   );
   const full = stopCount >= MAX_ROUTE_STOPS;
   const filtered = q !== "" || type !== ALL || provinceId !== ALL;
+
+  useEffect(() => {
+    onCandidatesChange?.(rows.map((row) => row.item));
+  }, [rows, onCandidatesChange]);
 
   function selectSource(value: string) {
     setSource(value as Source);
@@ -196,9 +208,17 @@ export function StopPicker({
         ) : (
           <ul aria-label="Điểm dừng có thể thêm">
             {rows.map(({ item, provinceId: itemProvinceId }) => {
-              const added = selectedKeys.has(stopKey(item));
+              const key = stopKey(item);
+              const added = selectedKeys.has(key);
               return (
-                <li key={stopKey(item)} className="flex min-h-[68px] items-center gap-3 border-b px-4 py-3 last:border-b-0">
+                <li
+                  key={key}
+                  className={`flex min-h-[68px] items-center gap-3 border-b px-4 py-3 last:border-b-0${onHighlight ? " hover:bg-accent/60" : ""}`}
+                  onMouseEnter={() => onHighlight?.(key)}
+                  onMouseLeave={() => onHighlight?.(null)}
+                  onFocus={() => onHighlight?.(key)}
+                  onBlur={() => onHighlight?.(null)}
+                >
                   <div className="flex min-w-0 flex-1 flex-col gap-1">
                     <span className={`text-sm leading-5 font-semibold ${added ? "text-muted-foreground" : "text-vxn-ink"}`}>
                       {item.name}

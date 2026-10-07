@@ -20,13 +20,19 @@ export type DraftStop = {
   name: string;
   address: string;
   type: StopPointType;
+  /** Tọa độ chỉ để vẽ bản đồ lộ trình; không gửi lên API (API tự lấy theo id điểm dừng). */
+  latitude: number;
+  longitude: number;
   allowPickup: boolean;
   allowDropoff: boolean;
   note: string;
 };
 
 /** Điểm chọn từ bảng chọn để thêm vào tuyến. */
-export type StopCandidate = Pick<DraftStop, "catalogStopPointId" | "stopPointId" | "name" | "address" | "type">;
+export type StopCandidate = Pick<
+  DraftStop,
+  "catalogStopPointId" | "stopPointId" | "name" | "address" | "type" | "latitude" | "longitude"
+>;
 
 /** Khóa nhận diện một điểm trong tuyến; một điểm không xuất hiện hai lần (UC-13). */
 export function stopKey(stop: Pick<DraftStop, "catalogStopPointId" | "stopPointId">): string {
@@ -169,6 +175,8 @@ export function toDraftStops(route: Route): DraftStop[] {
       name: stop.name,
       address: stop.address,
       type: stop.type,
+      latitude: stop.latitude,
+      longitude: stop.longitude,
       allowPickup: stop.allowPickup,
       allowDropoff: stop.allowDropoff,
       note: stop.note ?? ""
