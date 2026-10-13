@@ -6,6 +6,8 @@ import { accounts, signInWithEnrollment } from "./helpers";
 // báo tại ô Xe (BR-14), sửa chuyến với giờ tự nhập tại điểm dừng, lọc danh sách, và sơ đồ ghế của xe đang có
 // chuyến bị khóa ở màn Sơ đồ ghế (UC-12 A3). Tuyến + xe do global-setup seed (`tripFixtures`), cần catalog đã
 // seed (`db:seed:catalog`, RB-08). Chạy tuần tự, dùng chung một phiên: mỗi ca dựa trên dữ liệu ca trước tạo ra.
+// TASK-TRN-005 (màn Bảng giá) — hai ca cuối file, cùng phiên vì cần tuyến và chuyến ở trên: tạo bảng giá cho
+// tuyến, quy tắc trùng bị chặn, giá hiện trên từng chỗ của chuyến, sửa giá ghi vào lịch sử (BR-40).
 test.describe.configure({ mode: "serial" });
 
 // Lần đầu mở một trang, máy chủ dev của Next phải biên dịch trang đó — có thể lâu hơn 5 giây mặc định.
@@ -96,7 +98,9 @@ test("tạo chuyến nháp: thiếu ô báo tại ô, giờ đến tự gợi ý
   const deck = page.getByRole("region", { name: "Tầng 1: 4 chỗ" });
   await expect(deck).toContainText("A01");
   await expect(deck).toContainText("A04");
-  await expect(deck.getByText("Còn trống")).toHaveCount(4);
+  // Chỗ còn trống ghi giá; tuyến chưa có bảng giá nên cả bốn chỗ đều "Chưa có giá" (TRN-005).
+  await expect(page.getByRole("list", { name: "Chú giải tình trạng chỗ" })).toHaveText("Còn trống");
+  await expect(deck.getByText("Chưa có giá")).toHaveCount(4);
   await expect(stopRows().nth(1)).toContainText("08:45");
   const info = page.getByRole("region", { name: "Thông tin chuyến" });
   await expect(info).toContainText("5 giờ 30 phút");
@@ -191,4 +195,111 @@ test("sơ đồ ghế của xe đang có chuyến chưa kết thúc bị khóa �
   await page.getByRole("link", { name: "Phương tiện", exact: true }).click();
   await page.getByRole("link", { name: new RegExp(`Sửa .*${plate.replace(".", "\\.")}`) }).click();
   await expect(page.getByText("Đang được chuyến chưa kết thúc sử dụng")).toBeVisible(FIRST_VISIT);
+});
+
+/** Khối nhập quy tắc giá đang mở ("Thêm quy tắc" / "Sửa quy tắc đang chọn"). */
+const ruleForm = () => page.getByRole("group", { name: /quy tắc/ });
+const ruleRow = (text: string | RegExp) => page.getByRole("row").filter({ hasText: text });
+
+test("bảng giá: tạo cho tuyến chưa có giá, thiếu giá và quy tắc trùng bị chặn, lưu xong danh sách hiện khoảng giá", async () => {
+  await page.getByRole("link", { name: "Bảng giá", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "Bảng giá", level: 1 })).toBeVisible(FIRST_VISIT);
+  const listRow = ruleRow(routeName);
+  await expect(listRow).toContainText("Chưa có bảng giá");
+  await expect(listRow).toContainText("E2E Văn phòng Sài Gòn → E2E Văn phòng Đà Lạt");
+
+  // Gõ không dấu vẫn tìm ra tuyến; lọc "Đang áp dụng" thì tuyến chưa có bảng giá không hiện.
+  await page.getByLabel("Tìm tuyến").fill("sai gon");
+  await expect(listRow).toBeVisible();
+  await choose("Trạng thái", "Đang áp dụng");
+  await expect(page.getByText("Không có tuyến phù hợp")).toBeVisible();
+  await page.getByRole("button", { name: "Bỏ lọc" }).click();
+
+  await page.getByRole("link", { name: `Tạo bảng giá cho tuyến ${routeName}` }).click();
+  await expect(page.getByRole("heading", { name: `Bảng giá · ${routeName}`, level: 1 })).toBeVisible(FIRST_VISIT);
+  await expect(page.getByText("0 / 200 quy tắc")).toBeVisible();
+
+  // Quy tắc 1 — giá thường cho mọi loại xe, mọi loại chỗ. Thiếu giá thì báo ngay tại ô.
+  await page.getByRole("button", { name: "Thêm quy tắc" }).click();
+  await ruleForm().getByRole("button", { name: "Áp dụng quy tắc" }).click();
+  await expect(ruleForm().getByRole("alert")).toHaveText("Giá là số nguyên từ 0 đến 100.000.000 ₫.");
+  await ruleForm().getByLabel("Giá mỗi chỗ (₫) *").fill("300.000");
+  await ruleForm().getByRole("button", { name: "Áp dụng quy tắc" }).click();
+  await expect(ruleRow("Mọi loại xe").filter({ hasText: "Mọi ngày" })).toContainText("300.000 ₫");
+
+  // Quy tắc 2 — trùng phạm vi với quy tắc 1 thì bị chặn; đổi sang loại chỗ riêng thì được.
+  await page.getByRole("button", { name: "Thêm quy tắc" }).click();
+  await ruleForm().getByLabel("Giá mỗi chỗ (₫) *").fill("310000");
+  await ruleForm().getByRole("button", { name: "Áp dụng quy tắc" }).click();
+  await expect(ruleForm().getByText(/Đã có quy tắc cùng loại xe, loại chỗ và trùng khung giờ/)).toBeVisible();
+  await ruleForm().getByLabel("Loại chỗ", { exact: true }).click();
+  await page.getByRole("option", { name: "Giường đơn" }).click();
+  await ruleForm().getByRole("button", { name: "Áp dụng quy tắc" }).click();
+  await expect(ruleRow("Giường đơn")).toContainText("310.000 ₫");
+
+  // Quy tắc 3 — giá dịp Tết theo khung giờ khởi hành; mốc kết thúc trước mốc bắt đầu bị chặn.
+  await page.getByRole("button", { name: "Thêm quy tắc" }).click();
+  await ruleForm().getByLabel("Khởi hành từ").fill("2031-01-27T00:00");
+  await ruleForm().getByLabel("Đến trước").fill("2031-01-20T00:00");
+  await ruleForm().getByLabel("Giá mỗi chỗ (₫) *").fill("600000");
+  await ruleForm().getByRole("button", { name: "Áp dụng quy tắc" }).click();
+  await expect(ruleForm().getByText("Mốc kết thúc phải sau mốc bắt đầu.")).toBeVisible();
+  await ruleForm().getByLabel("Khởi hành từ").fill("2031-01-20T00:00");
+  await ruleForm().getByLabel("Đến trước").fill("2031-01-27T00:00");
+  await ruleForm().getByRole("button", { name: "Áp dụng quy tắc" }).click();
+  await expect(ruleRow("20/01/2031 00:00 – 27/01/2031 00:00")).toContainText("600.000 ₫");
+  await expect(page.getByText("3 / 200 quy tắc")).toBeVisible();
+
+  await page.getByRole("button", { name: "Lưu bảng giá" }).click();
+  await expect(page).toHaveURL(/\/fares\/[0-9a-f-]{36}\?saved=1$/, FIRST_VISIT);
+  await expect(page.getByText("Đã lưu bảng giá")).toBeVisible();
+  const history = page.getByRole("region", { name: "Lịch sử thay đổi" });
+  await expect(history).toContainText("Tạo bảng giá");
+  await expect(history).toContainText("3 quy tắc · Chủ nhà xe");
+
+  await page.getByRole("link", { name: "Quay lại danh sách bảng giá" }).click();
+  await expect(listRow).toContainText("3 quy tắc");
+  await expect(listRow).toContainText("300.000 ₫ – 600.000 ₫");
+  await expect(listRow).toContainText("Đang áp dụng");
+});
+
+test("giá của bảng giá hiện trên từng chỗ của chuyến; sửa giá ghi vào lịch sử; ngừng áp dụng thì chỗ mất giá", async () => {
+  /** Mở chi tiết chuyến khởi hành 06:00 và trả về khối tầng 1 của sơ đồ ghế. */
+  async function openTripSeats() {
+    await page.getByRole("link", { name: "Chuyến xe", exact: true }).click();
+    await page.getByRole("row").filter({ hasText: routeName }).first().getByText("06:00").click();
+    await expect(page.getByRole("heading", { name: routeName, level: 1 })).toBeVisible();
+    return page.getByRole("region", { name: "Tầng 1: 4 chỗ" });
+  }
+  async function openFare() {
+    await page.getByRole("link", { name: "Bảng giá", exact: true }).click();
+    await page.getByRole("link", { name: `Sửa bảng giá tuyến ${routeName}` }).click();
+    await expect(page.getByRole("heading", { name: `Bảng giá · ${routeName}`, level: 1 })).toBeVisible();
+  }
+  const history = page.getByRole("region", { name: "Lịch sử thay đổi" });
+
+  // Cả bốn chỗ là giường đơn: quy tắc riêng cho giường đơn (310.000) thắng quy tắc chung (300.000).
+  await expect((await openTripSeats()).getByText("310.000 ₫")).toHaveCount(4);
+
+  await openFare();
+  await page.getByRole("button", { name: /Sửa quy tắc Mọi loại xe, Giường đơn/ }).click();
+  await ruleForm().getByLabel("Giá mỗi chỗ (₫) *").fill("320000");
+  // Còn quy tắc đang nhập dở thì chưa cho lưu, để không lặng lẽ bỏ mất nó.
+  await page.getByRole("button", { name: "Lưu bảng giá" }).click();
+  await expect(page.getByText(/Bấm “Áp dụng quy tắc” hoặc “Bỏ”/)).toBeVisible();
+  await ruleForm().getByRole("button", { name: "Áp dụng quy tắc" }).click();
+  await page.getByRole("button", { name: "Lưu bảng giá" }).click();
+  await expect(page.getByText("Đã lưu bảng giá")).toBeVisible();
+  await expect(history).toContainText("Sửa giá giường đơn");
+  await expect(history).toContainText("310.000 ₫ → 320.000 ₫ · Chủ nhà xe");
+  await expect((await openTripSeats()).getByText("320.000 ₫")).toHaveCount(4);
+
+  // Bảng giá ngừng áp dụng: chỗ của chuyến không còn giá và trang chuyến nhắc mở Bảng giá.
+  await openFare();
+  await choose("Trạng thái *", "Ngừng áp dụng");
+  await page.getByRole("button", { name: "Lưu bảng giá" }).click();
+  await expect(page.getByText("Đã lưu bảng giá")).toBeVisible();
+  await expect(history).toContainText("Đang áp dụng → Ngừng áp dụng");
+  await expect((await openTripSeats()).getByText("Chưa có giá")).toHaveCount(4);
+  await expect(page.getByText(/Có chỗ chưa có giá/)).toBeVisible();
 });

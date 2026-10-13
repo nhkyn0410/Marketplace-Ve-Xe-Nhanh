@@ -54,13 +54,17 @@ export function TripList() {
   const routes = useQuery({ queryKey: ["routes", "all"], queryFn: () => listAllRoutes() });
   const vehicles = useQuery({ queryKey: ["vehicles", "all"], queryFn: listAllVehicles });
 
+  // Gõ năm bằng bàn phím, ô ngày phát ra giá trị dở dang (`0002-…`, `0202-…`); API chỉ nhận năm từ 1970 nên
+  // mốc như vậy coi như chưa nhập xong, không gửi đi.
+  const sentFrom = from >= MIN_FILTER_DATE ? from : "";
+  const sentTo = to >= MIN_FILTER_DATE ? to : "";
   const trips = useInfiniteQuery({
-    queryKey: ["trips", { from, to, routeId, vehicleId, status }],
+    queryKey: ["trips", { from: sentFrom, to: sentTo, routeId, vehicleId, status }],
     queryFn: ({ pageParam }) =>
       listTrips({
-        departureFrom: from ? fromLocalParts(from, "00:00") : undefined,
+        departureFrom: sentFrom ? fromLocalParts(sentFrom, "00:00") : undefined,
         // API lấy chuyến khởi hành TRƯỚC mốc này, nên "đến ngày" tính hết ngày đó.
-        departureTo: to ? fromLocalParts(nextLocalDate(to), "00:00") : undefined,
+        departureTo: sentTo ? fromLocalParts(nextLocalDate(sentTo), "00:00") : undefined,
         routeId: routeId === ALL ? undefined : routeId,
         vehicleId: vehicleId === ALL ? undefined : vehicleId,
         status: status === ALL ? undefined : (status as TripStatus),
@@ -202,6 +206,9 @@ export function TripList() {
     </div>
   );
 }
+
+/** Ngày sớm nhất gửi được cho API ở ô lọc (đổi sang UTC vẫn còn trong năm 1970). */
+const MIN_FILTER_DATE = "1970-01-02";
 
 // Năm ô lọc chia đều một hàng (Figma "Toolbar"); màn hẹp thì xuống dòng.
 const FILTER = "w-auto min-w-[170px] flex-1";

@@ -108,7 +108,8 @@ export function TripForm({ tripId }: { tripId?: string }) {
       </FormShell>
     );
   }
-  if (trip.isError || tripRoute.isError) {
+  // Chỉ khi CHƯA có dữ liệu: refetch nền lỗi (đổi tab rồi quay lại) không được xóa form đang nhập dở.
+  if ((trip.isError && !trip.data) || (tripRoute.isError && !tripRoute.data)) {
     return (
       <FormShell title={title} description="Chưa tải được dữ liệu.">
         <StatePanel

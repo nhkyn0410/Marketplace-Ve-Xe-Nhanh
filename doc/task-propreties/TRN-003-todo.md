@@ -5,7 +5,12 @@
 > **Mở khóa:** TASK-TRN-005 (Fare), TASK-TRN-006 (mở bán), TASK-EMP-001 (phân công theo chuyến), TASK-BTP-001 (giữ ghế theo TripSeat).
 > **Cách dùng:** Guide chạy tay `TRN-003-guide.md`. Nghiệm thu `TRN-003-verification-checklist.md`.
 
-## Trạng thái (30/09/2026) — 🔨 **ĐANG TRIỂN KHAI (BE xong, chờ review/CI + màn Operator OS)**
+## Trạng thái (13/10/2026) — ✅ **ĐÃ MERGE `develop` (PR #31, CI xanh) — còn nợ review phần port + màn Operator OS**
+
+- ✅ 13/10/2026: đưa về repo chính trên nhánh `TASK-TRN-003` — migration đổi tên `20261013010000_add_trip`; `trip_stops` thêm `allow_pickup` / `allow_dropoff` + CHECK theo vai trò (`TASK-TRN-012`); điểm dừng trả thêm `type`; loại chỗ 5 giá trị (`TASK-TRN-010`); cờ `inUse` / `seatMapLocked` (`TASK-TRN-011`) tính thật.
+- ✅ 13/10/2026: màn Operator OS `/trips`, `/trips/new`, `/trips/{id}`, `/trips/{id}/edit` theo Figma `1338:9559` (khung 01–03) + E2E `trips.e2e.ts`. Evidence lúc đóng: API 69 file / 869 test trên Postgres + Redis + Mongo thật, Operator OS 219 test, E2E 21/21.
+- ⏳ Chưa chạy lại `code-reviewer` + `security-auditor` cho phần port và phần giao diện (hai lượt review ngày 13/10 bị dừng giữa chừng).
+- Dưới đây là ghi chép gốc ở repo bản sao (30/09/2026); tên migration `20260930100000_add_trip` và số test là của repo đó.
 
 - ✅ Đối chiếu task row với SRS, DB, API, Security, DOMAIN-MAP, GLOSSARY và code TRN-001/002 (bàn giao ở `TRN-001-todo.md`, `TRN-002-todo.md`).
 - ✅ Khanh duyệt Q1–Q6 ngày 30/09/2026 (Q1 đổi so với khuyến nghị — xem bảng).
@@ -121,7 +126,7 @@ DTO Zod, `TripService`, `TripController` mỏng, quyền `trip:manage`, đăng k
 | security | Info | Supabase: bảng mới trong `public` thừa hưởng grant mặc định cho anon/authenticated (RLS FORCE vẫn chặn) | ⏸ Khanh kiểm Data API không mở schema `public` (có từ trước, không riêng TRN-003) |
 | code-reviewer | Nit | `PUT` sơ đồ chỉ đổi tên cũng bị chặn khi đang dùng | Chấp nhận — UC-12 A3 "không sửa tùy tiện" |
 
-### ⏳ #8 — [TRN-003.8] Màn Operator OS
+### ✅ #8 — [TRN-003.8] Màn Operator OS (13/10/2026)
 
 Danh sách chuyến + form chuyến (06 UI "Trip calendar/list, trip form") dùng client TS đã sinh. Làm sau khi IAM-006 phần web (đăng nhập Operator OS) sẵn sàng theo M1.
 

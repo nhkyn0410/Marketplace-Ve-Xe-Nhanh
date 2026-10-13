@@ -1,5 +1,6 @@
 import { cn } from "@vexenhanh/ui/lib/utils";
 
+import { formatVnd } from "../../lib/fare/fare-format";
 import type { TripSeat, TripSeatStatus } from "../../lib/trip/trip-api";
 import { seatCountLabel, TRIP_SEAT_STATUS, TRIP_SEAT_STATUS_ORDER } from "../../lib/trip/trip-format";
 
@@ -15,8 +16,9 @@ const SEAT_STYLE: Record<TripSeatStatus, string> = {
 };
 
 /**
- * Sơ đồ ghế theo chuyến (Figma "Trip seat map"): mỗi tầng một khối, mỗi chỗ ghi mã và tình trạng. Ghế là bản
- * chụp sơ đồ của xe lúc gắn xe nên lưới dựng từ chính vị trí của các chỗ. Chỉ đọc — khóa chỗ thuộc TRN-006.
+ * Sơ đồ ghế theo chuyến (Figma "Trip seat map"): mỗi tầng một khối, mỗi chỗ ghi mã kèm giá (chỗ còn trống) hoặc
+ * tình trạng. Ghế là bản chụp sơ đồ của xe lúc gắn xe nên lưới dựng từ chính vị trí của các chỗ. Giá lấy theo
+ * bảng giá của tuyến (TRN-005), màn này chỉ hiển thị. Chỉ đọc — khóa chỗ thuộc TRN-006.
  */
 export function TripSeatMap({ seats }: { seats: TripSeat[] }) {
   const decks = [...new Set(seats.map((seat) => seat.deck))].sort((a, b) => a - b);
@@ -37,6 +39,31 @@ export function TripSeatMap({ seats }: { seats: TripSeat[] }) {
         ))}
       </div>
     </div>
+  );
+}
+
+/**
+ * Dòng dưới mã chỗ: chỗ còn trống ghi giá ("Chưa có giá" nếu bảng giá chưa phủ tới); chỗ khác ghi tình trạng. Chỗ
+ * đôi ghi thêm "Đôi" để không chỉ phân biệt bằng bề rộng ô.
+ */
+function SeatDetail({ seat, double }: { seat: TripSeat; double: boolean }) {
+  const suffix = double ? " · Đôi" : "";
+  if (seat.status !== "AVAILABLE") {
+    return (
+      <span className="text-[11px] leading-4">
+        {TRIP_SEAT_STATUS[seat.status]}
+        {suffix}
+      </span>
+    );
+  }
+  if (seat.price === null) {
+    return <span className="text-[11px] leading-4 text-error-600">Chưa có giá{suffix}</span>;
+  }
+  return (
+    <span className="text-[11px] leading-4 text-muted-foreground">
+      {formatVnd(seat.price)}
+      {suffix}
+    </span>
   );
 }
 
@@ -73,10 +100,7 @@ function Deck({ deck, seats }: { deck: number; seats: TripSeat[] }) {
                   )}
                 >
                   <span className="text-[13px] leading-[18px] font-semibold">{seat.code}</span>
-                  <span className={cn("text-[11px] leading-4", seat.status === "AVAILABLE" && "text-muted-foreground")}>
-                    {TRIP_SEAT_STATUS[seat.status]}
-                    {double && " · Đôi"}
-                  </span>
+                  <SeatDetail seat={seat} double={double} />
                 </span>
               );
             })}

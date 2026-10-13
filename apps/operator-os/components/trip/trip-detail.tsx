@@ -135,12 +135,23 @@ function TripDetailBody({ trip, saved, onDismissSaved }: { trip: Trip; saved: bo
               </h2>
               <p className={HELPER}>
                 {plate
-                  ? `${seatCountLabel(trip.seatCount)} lấy từ sơ đồ ghế của xe ${plate} lúc gắn xe cho chuyến.`
+                  ? `${seatCountLabel(trip.seatCount)} lấy từ sơ đồ ghế của xe ${plate} lúc gắn xe cho chuyến. Giá từng chỗ lấy theo bảng giá của tuyến và loại xe.`
                   : "Chuyến chưa gắn xe nên chưa có ghế."}
               </p>
             </div>
             {trip.seats.length > 0 ? (
-              <TripSeatMap seats={trip.seats} />
+              <>
+                <TripSeatMap seats={trip.seats} />
+                {trip.seats.some((seat) => seat.price === null) && (
+                  <p role="note" className="flex flex-wrap items-center gap-x-2 rounded-lg bg-warning-50 px-4 py-3 text-xs leading-[18px] text-warning-700">
+                    Có chỗ chưa có giá: tuyến chưa có bảng giá đang áp dụng, hoặc bảng giá chưa có quy tắc cho loại xe /
+                    loại chỗ này.
+                    <Link href="/fares" className="font-semibold underline underline-offset-2">
+                      Mở Bảng giá
+                    </Link>
+                  </p>
+                )}
+              </>
             ) : (
               <p className="rounded-lg border border-dashed px-4 py-6 text-center text-sm leading-5 text-muted-foreground">
                 {trip.status === "DRAFT"

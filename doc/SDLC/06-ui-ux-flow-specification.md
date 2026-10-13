@@ -40,6 +40,7 @@
 | v0.19     | 07/10/2026 | AI Agent | **Màn Điểm dừng và màn Tuyến đường của nhà xe (Khanh chốt 07/10/2026 khi duyệt Figma `1305:6710`, `TASK-TRN-013`):** §7 — nút gọi là "Đề xuất điểm dừng"; bản đồ thuộc V1 (tổng quan đóng mở ở màn Điểm dừng, chọn tọa độ trong hộp thoại, lộ trình trong form tuyến — `TASK-TRN-014`); thêm mô tả màn Tuyến đường: danh sách có cột Điểm đầu → Điểm cuối, form có thẻ Tổng quan + bản đồ lộ trình, bảng chọn điểm dừng mở ngay trong form. Giữ trạng thái Review. |
 | v0.20     | 07/10/2026 | AI Agent | **Hiện thực ba bản đồ của nhà xe (`TASK-TRN-014`):** §7 — thêm mô tả hành vi đã làm cho bản đồ tổng quan, bản đồ chọn vị trí và bản đồ lộ trình (thiếu khóa / tải lỗi, khung nhìn mặc định, bấm ghim khác bấm dòng, giữ Ctrl để phóng to, chấm xám của bảng chọn — Khanh chốt giữ 07/10/2026). Giữ trạng thái Review. |
 | v0.21     | 13/10/2026 | AI Agent | **Màn Chuyến xe của nhà xe (`TASK-TRN-003`):** §7 — thêm mô tả ba màn đã làm theo Figma `1338:9559` (danh sách, tạo / sửa chuyến nháp, chi tiết chuyến) và phần của thiết kế để lại cho `TASK-TRN-005` / `TASK-TRN-006`. Giữ trạng thái Review. |
+| v0.22     | 13/10/2026 | AI Agent | **Màn Bảng giá của nhà xe (`TASK-TRN-005`):** §5 thêm mục "Bảng giá" vào thanh bên Operator OS (sau "Tuyến đường"); §7 — mô tả hai màn đã làm theo Figma `1665:24187` / `1665:24475` (danh sách, tạo / chỉnh sửa), giá trên từng chỗ ở trang chi tiết chuyến, và hai điểm làm khác khung Figma (khung giờ là khoảng ngày giờ khởi hành chứ không phải giờ trong ngày; chưa có dải cảnh báo khung giá). Giữ trạng thái Review. |
 
 ---
 
@@ -84,7 +85,7 @@ Web = Next.js 16 (ADR-013); Mobile = Flutter 2 app tách (ADR-028).
 | Portal                | Nhóm navigation chính                                                                                                                |
 | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
 | Marketplace/Passenger | Nav theo Figma: Khám phá, Trang chủ, Mua vé, Dịch vụ bổ trợ ⚠, Hành trình (vé của tôi), Thành viên (VXN Plus), Tra cứu vé, Khiếu nại, Câu hỏi thường gặp. Menu tài khoản: Hồ sơ, Hành khách đã lưu, Ví voucher, Lịch sử điểm, Bảo mật, Thông báo, Đánh giá của tôi, Hỗ trợ. ⚠ = chờ UX-OQ-07 |
-| Operator OS           | Dashboard, Profile/KYC, Vehicles, Seat maps, Stop points, Routes, Trips, Bookings, Employees, Finance (escrow/payout), Reports, Support |
+| Operator OS           | Dashboard, Profile/KYC, Vehicles, Seat maps, Stop points, Routes, Fares, Trips, Bookings, Employees, Finance (escrow/payout), Reports, Support |
 | Employee              | Assigned trips, Passenger list, QR scan, Trip status, Journey log, Incidents, Profile                                                |
 | Admin                 | Dashboard, Operators/KYC, Passengers, Catalog, Stop points, Policy, Payments/Refunds, Payouts, Disputes, Promotions, Loyalty, Articles, Reports, Audit, Integrations |
 
@@ -620,8 +621,17 @@ Login `{operatorSlug}/{username}` + password qua `/auth/operator/login` — **ch
 - Tạo / sửa chuyến nháp (`/trips/new`, `/trips/{id}/edit`): chỉ chọn được tuyến đang hoạt động và xe đang hoạt động đã có sơ đồ ghế; tuyến / xe đang gắn được giữ dù đã ngừng dùng. Ngày và giờ nhập theo giờ Việt Nam. Giờ đến tự gợi ý bằng giờ khởi hành cộng thời gian chạy của tuyến cho tới khi nhà xe sửa tay. Xe để trống được khi còn nháp. Lỗi hiện tại ô sai — xe trùng giờ (`BR-14`) báo tại ô Xe — và dữ liệu đang nhập giữ nguyên. Lưu xong chuyển sang trang chi tiết.
 - Giờ tại từng điểm dừng: bật "Tự chia" (mặc định) thì các ô giờ bị khóa và hiện đúng giờ máy chủ sẽ lưu; tắt thì nhập giờ cho các điểm ở giữa, ô nhập chỉ có giờ trên đồng hồ còn ngày do giao diện suy ra (giờ nhỏ hơn điểm liền trước nghĩa là đã sang hôm sau) và ghi ngay dưới ô. Giờ vượt giờ đến bị chặn trước khi gửi. Mở lại một chuyến đang dùng giờ tự nhập thì công tắc tắt sẵn.
 - Chi tiết (`/trips/{id}`): tên tuyến kèm nhãn trạng thái, sơ đồ ghế theo chuyến (mỗi tầng một khối, mỗi chỗ ghi mã và tình trạng), lịch trình (loại điểm, điểm đầu / cuối, cho đón / cho trả theo `BR-79`) và thẻ thông tin chuyến. Chuyến đang Nháp có nút "Sửa chuyến".
-- Để lại cho task sau, theo đúng khung Figma đã vẽ: giá trên từng chỗ (`TASK-TRN-005`); ô "Ngừng bán online", nút Mở bán / Hủy chuyến, khối Điều kiện mở bán, chọn chỗ để khóa và hai hộp thoại (`TASK-TRN-006`, khung 04–06).
+- Giá trên từng chỗ (`TASK-TRN-005`, 13/10/2026): chỗ còn trống ghi giá lấy từ bảng giá của tuyến theo loại xe đang gắn, loại chỗ và giờ khởi hành; chưa có giá thì ghi "Chưa có giá" màu đỏ kèm dòng nhắc mở Bảng giá. Chỗ không còn trống ghi tình trạng.
+- Để lại cho task sau, theo đúng khung Figma đã vẽ: ô "Ngừng bán online", nút Mở bán / Hủy chuyến, khối Điều kiện mở bán, chọn chỗ để khóa và hai hộp thoại (`TASK-TRN-006`, khung 04–06).
 - Nhãn trạng thái: Nháp, Đang mở bán, Tạm dừng bán, Hết chỗ, Đang đón khách, Đã khởi hành, Đang chạy, Hoàn thành, Đã hủy, Có sự cố.
+
+**Màn Bảng giá của nhà xe** (`TASK-TRN-005`; Figma nhóm `Nhà xe · Bảng giá`, khung `1665:24187` và `1665:24475`; mục riêng trên thanh bên, đứng sau "Tuyến đường"):
+
+- Danh sách (`/fares`): mỗi tuyến một dòng — tên tuyến kèm điểm đầu → điểm cuối, số quy tắc, khoảng giá mỗi chỗ (ghi "Gồm giá chỗ đôi" khi có quy tắc riêng cho giường đôi / cabin đôi), trạng thái (Đang áp dụng / Ngừng áp dụng / Chưa có bảng giá), ngày giờ cập nhật, nút "Sửa" hoặc "Tạo". Ô tìm theo tên tuyến gõ không dấu vẫn ra; lọc theo trạng thái. Tuyến đã ngừng dùng mà chưa có bảng giá thì không hiện. Danh sách ghép tuyến với bảng giá ở phía giao diện nên tải hết một lần, không có "Tải thêm".
+- Tạo / chỉnh sửa (`/fares/new`, `/fares/{id}`): bảng quy tắc (loại xe, loại chỗ, khung giờ khởi hành, giá mỗi chỗ) với nút sửa / xóa từng dòng; khối nhập mở ngay dưới bảng cho "Thêm quy tắc" hoặc "Sửa quy tắc đang chọn", bấm "Áp dụng quy tắc" mới đưa vào bảng và bấm "Lưu bảng giá" mới gửi lên máy chủ (thay toàn bộ quy tắc). Thiếu giá, khung giờ thiếu một đầu hoặc ngược chiều, quy tắc trùng phạm vi với dòng đang có đều báo ngay tại khối nhập. Còn quy tắc đang nhập dở thì chưa cho lưu. Tối đa 200 quy tắc.
+- Cột phải: thông tin bảng giá (tuyến — khi tạo là ô chọn chỉ liệt kê tuyến đang hoạt động chưa có bảng giá; trạng thái; ghi chú) và thẻ Lịch sử thay đổi (`BR-40`): mỗi dòng tóm tắt thay đổi từ bản chụp trước / sau — đổi giá một quy tắc thì ghi giá cũ → giá mới, nhiều thay đổi thì đếm số quy tắc thêm / xóa / đổi giá; tải thêm 5 dòng mỗi lần.
+- Tiền nhập bằng số nguyên đồng, nhận dấu chấm ngăn hàng nghìn (`300.000`); hiển thị dạng `300.000 ₫`.
+- Khác khung Figma, theo quyết định đã chốt của `TASK-TRN-005` (Q2, Q3): khung giờ của quy tắc là một **khoảng ngày giờ khởi hành** (giá dịp lễ, Tết — hai ô ngày giờ "Khởi hành từ" / "Đến trước"), không phải giờ trong ngày như khung Figma vẽ ("18:00 – 24:00"); quy tắc không có khung giờ ghi "Mọi ngày". Dải cảnh báo "giá nằm ngoài khung giá" chưa có vì khung trần / sàn thuộc `TASK-ADM-001`.
 
 ---
 

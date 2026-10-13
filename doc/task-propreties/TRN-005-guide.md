@@ -2,7 +2,7 @@
 
 > Mục tiêu: chứng minh Operator Owner tạo/sửa bảng giá theo tuyến đúng tenant, giá ghế của chuyến lấy đúng rule cụ thể nhất theo loại xe × loại chỗ × giờ khởi hành, và mọi lần đổi giá có lịch sử (audit Mongo) — audit lỗi thì không đổi giá.
 > Phạm vi/quyết định: `TRN-005-todo.md`. Checklist nghiệm thu: `TRN-005-verification-checklist.md`.
-> **Hiện tại:** Q1–Q7 đã chốt 30/09/2026; code + test tự động đã chạy (evidence ở todo). Smoke HTTP §3 chưa chạy.
+> **Hiện tại:** Q1–Q7 đã chốt 30/09/2026; 13/10/2026 đã đưa về repo chính (migration `20261013020000_add_fare`) kèm màn Operator OS; code + test tự động + E2E đã chạy (evidence ở todo). Smoke HTTP §3 chưa chạy riêng — E2E `trips.e2e.ts` đi qua API thật.
 
 ## 0. Gate trước khi chạy
 
@@ -77,7 +77,7 @@ Sinh client Dart theo [RB-04](../runbook/RB-04-api-client.md). Kiểm `git diff`
 
 ## 5. Production rollout
 
-Chỉ sau CI và review: backup → migrate bằng owner (2 migration: `add_fare`, `fare_price_cap`) → `db:app-role` → `pnpm --filter @vexenhanh/api run mongo:audit:hardening` (thêm index `targetType_1_targetId_1_createdAt_-1` cho lịch sử giá; index cũ `targetType_1_targetId_1` để lại vô hại) → deploy API. Sửa giá cần Mongo audit sống: Mongo sập / chậm quá 2 giây → sửa giá trả 503, bảng giá không đổi (giống thao tác tài khoản IAM) — kiểm `/v1/health/mongo` trước khi mở tính năng.
+Chỉ sau CI và review: backup → migrate bằng owner (1 migration ở repo chính: `20261013020000_add_fare`) → `db:app-role` → `pnpm --filter @vexenhanh/api run mongo:audit:hardening` (thêm index `targetType_1_targetId_1_createdAt_-1` cho lịch sử giá; index cũ `targetType_1_targetId_1` để lại vô hại) → deploy API. Sửa giá cần Mongo audit sống: Mongo sập / chậm quá 2 giây → sửa giá trả 503, bảng giá không đổi (giống thao tác tài khoản IAM) — kiểm `/v1/health/mongo` trước khi mở tính năng.
 
 ## Lưu ý phạm vi
 

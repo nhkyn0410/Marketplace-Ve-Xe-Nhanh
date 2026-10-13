@@ -156,6 +156,7 @@ describe("Trip routes — HTTP", () => {
     ["GET", "/trips?status=UNKNOWN", undefined],
     ["GET", "/trips?limit=101", undefined],
     ["GET", "/trips?departureFrom=hom-nay", undefined],
+    ["GET", `/trips?departureFrom=${encodeURIComponent("0202-10-13T00:00:00+07:00")}`, undefined],
   ])("%s %s dữ liệu sai → 400, service không bị gọi", async (method, path, body) => {
     const response = await call(method, path, await token("OPERATOR_OWNER"), body);
     expect(response.status).toBe(400);

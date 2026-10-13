@@ -34,6 +34,7 @@
 | v0.13     | 04/10/2026 | AI Agent       | **Đối chiếu Figma nhà xe (Khanh chốt 04/10/2026):** `TC-TRN-008` thêm chú thích ảnh; thêm `TC-TRN-014` (`deckCount`, `inUse`, `seatMapLocked`). Giữ trạng thái Draft. |
 | v0.14     | 04/10/2026 | AI Agent       | **Thiết kế lại điểm dừng (Khanh chốt 04/10/2026, SRS v1.35):** §7 truy vết; §8 AC điểm dừng; §9 thêm `TC-TRN-015..019` (loại điểm + đề xuất, cho đón / cho trả, Admin duyệt, Admin khóa, tìm theo vị trí). Giữ trạng thái Draft. |
 | v0.15     | 13/10/2026 | AI Agent       | **Đưa `TASK-TRN-003` về repo chính:** §9 thêm `TC-TRN-020` (điểm dừng của chuyến chép cho đón / cho trả từ tuyến + CHECK ở DB) và `TC-TRN-021` (E2E màn Chuyến xe Operator OS). Giữ trạng thái Draft. |
+| v0.16     | 13/10/2026 | AI Agent       | **Đưa `TASK-TRN-005` về repo chính:** §9 thêm `TC-FARE-004` (ràng buộc trùng phạm vi đủ 5 loại chỗ + khoảng giá ở danh sách) và `TC-FARE-005` (E2E màn Bảng giá Operator OS). Giữ trạng thái Draft. |
 
 ---
 
@@ -195,6 +196,8 @@ Mandatory (rủi ro cao, ADR-025): money math, idempotency, tenant RLS, seat-hol
 | TC-FARE-001 | Giá ghế = rule cụ thể nhất (khung giờ > không; đúng loại xe > mọi loại; đúng loại chỗ > mọi loại); biên `[validFrom, validTo)` đúng giờ khởi hành; đổi xe thường → xe VIP thì giá đổi theo; tiền `BIGINT` không qua số thực | Unit/Integration (money) | Rất cao |
 | TC-FARE-002 | Mỗi lần tạo/sửa bảng giá có đúng một bản ghi lịch sử (Mongo `audit_event`) chứa before/after; Mongo lỗi → không đổi giá | Integration | Cao |
 | TC-FARE-003 | Nhà xe B không đọc/sửa bảng giá, rule, lịch sử giá của A; `routeId` của B → 422 | Security | Rất cao |
+| TC-FARE-004 | Hai rule cùng loại xe × cùng loại chỗ (đủ 5 loại, BR-78) không cùng là giá thường và không chồng khung giờ — DB chặn kể cả ghi thẳng; rule của hai loại chỗ khác nhau không đụng nhau. Danh sách bảng giá trả đúng `minPrice` / `maxPrice` (`null` khi chưa có rule) và `hasDoubleSeatPrice` | Integration | Cao |
+| TC-FARE-005 | Operator OS — màn Bảng giá: tạo bảng giá cho tuyến chưa có giá (thiếu giá, quy tắc trùng, khung giờ ngược chiều báo tại khối nhập), danh sách hiện khoảng giá; giá hiện trên từng chỗ của chuyến theo quy tắc cụ thể nhất; sửa giá ghi vào lịch sử (giá cũ → giá mới); ngừng áp dụng thì chỗ của chuyến ghi "Chưa có giá" | E2E (Playwright) | Cao |
 | TC-EMP-001 | Employee check-in ticket hợp lệ được phân công (Maestro) | E2E | Cao |
 | TC-EMP-002 | Employee không check-in chuyến ngoài assignment | Security | Cao |
 | TC-ADM-001 | Admin refund/payout thủ công yêu cầu re-auth/TOTP + audit | E2E/Security | Cao |

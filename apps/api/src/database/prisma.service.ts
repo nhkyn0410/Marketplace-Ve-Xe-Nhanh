@@ -18,6 +18,20 @@ export type { DbScope } from "./db-scope";
 
 export type DbTransaction = Prisma.TransactionClient;
 
+// Giới hạn transaction tương tác (bằng mặc định của Prisma, ghi tường minh để hạn chót ghi audit bên dưới tính đúng).
+const TRANSACTION_MAX_WAIT_MS = 2_000;
+const TRANSACTION_TIMEOUT_MS = 5_000;
+// Chừa cho phần còn lại sau lệnh ghi audit (đọc lại + COMMIT) — ghi audit phải xong trước mốc này.
+const TRANSACTION_COMMIT_MARGIN_MS = 500;
+
+/**
+ * Hạn chót (epoch ms) để một lệnh ngoài Postgres (audit Mongo) chạy xong trong transaction bắt đầu lúc `startedAt`:
+ * request phải xếp hàng chờ khoá dòng đã tiêu một phần hạn 5s, nên ghi audit không được dùng trọn 2s cố định.
+ */
+export function transactionDeadline(startedAt: number): number {
+  return startedAt + TRANSACTION_TIMEOUT_MS - TRANSACTION_COMMIT_MARGIN_MS;
+}
+
 /**
  * Bảng đã bật + ÉP RLS (migration `add_tenant_rls`). Thêm bảng tenant mới (vehicles, bookings...) thì
  * thêm tên vào đây — kiểm tra lúc khởi động (`rlsProblems`) sẽ đòi bảng đó có FORCE RLS.
@@ -50,6 +64,9 @@ export const RLS_TABLES = [
   "trips",
   "trip_stops",
   "trip_seats",
+  // Fare (TASK-TRN-005).
+  "fares",
+  "fare_rules",
 ] as const;
 
 @Injectable()
@@ -145,10 +162,13 @@ export class PrismaService
     work: (tx: DbTransaction) => Promise<T>,
   ): Promise<T> {
     const operatorId = scope.kind === "tenant" ? scope.operatorId : "";
-    return this.$transaction(async (tx) => {
-      await tx.$executeRaw`SELECT set_config('app.scope', ${scope.kind}, true), set_config('app.operator_id', ${operatorId}, true)`;
-      return work(tx);
-    });
+    return this.$transaction(
+      async (tx) => {
+        await tx.$executeRaw`SELECT set_config('app.scope', ${scope.kind}, true), set_config('app.operator_id', ${operatorId}, true)`;
+        return work(tx);
+      },
+      { maxWait: TRANSACTION_MAX_WAIT_MS, timeout: TRANSACTION_TIMEOUT_MS },
+    );
   }
 
   async withTenant<T>(

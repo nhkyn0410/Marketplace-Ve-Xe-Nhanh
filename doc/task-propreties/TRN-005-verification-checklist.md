@@ -67,5 +67,19 @@
 - [ ] Smoke guide §3 trên API chạy thật — chưa chạy. Tương đương: `fare.http.spec.ts` (route + guard thật) + `fare.int.spec.ts` (Postgres + Mongo thật).
 - [x] AI journal đã ghi; không commit journal.
 - [ ] CI branch xanh — Khanh xác nhận.
-- [ ] Màn Operator OS (form bảng giá) — sau khi có đăng nhập web (M1).
+- [x] Màn Operator OS (danh sách + tạo / chỉnh sửa + lịch sử, giá trên chỗ của chuyến) — 13/10/2026, E2E 23 / 23.
 - [ ] Task row §7.3 → `Done`.
+
+## PHẦN I — Đưa về repo chính (13/10/2026)
+
+- [x] Migration `20261013020000_add_fare` (gộp `add_fare` + `fare_price_cap`) áp được sau `20261013010000_add_trip`; `db:app-role` pass.
+- [x] EXCLUDE phân biệt đủ 5 loại chỗ: giá thường của `BED_DOUBLE` / `CABIN` / `CABIN_DOUBLE` cùng tồn tại, dòng thứ hai cùng loại bị chặn; khung giờ chồng nhau của cùng loại bị chặn (`fare.int.spec.ts`).
+- [x] `SeatType` khoá 5 giá trị trong `fare-dto.spec.ts` — thêm loại chỗ mà quên sửa `CASE` thì test đỏ.
+- [x] Giá riêng của chỗ đôi không lấy nhầm giá loại đơn (`fare-pricing.spec.ts`).
+- [x] Danh sách bảng giá trả `minPrice` / `maxPrice` / `hasDoubleSeatPrice` đúng, `null` khi chưa có rule (`fare.int.spec.ts`).
+- [x] `REQUIRE_DB_TESTS=1`, role app, Postgres 16 + Redis + Mongo 7: 74 / 74 file, 937 / 937 test, 0 skip.
+- [x] `pnpm lint` + `typecheck` + `test` + `build` cả monorepo đạt; client TS + Dart sinh lại (`dart analyze` 0 lỗi).
+- [x] Operator OS: test đơn vị `lib/fare` (đọc giá gõ vào, khung giờ theo giờ Việt Nam, trùng phạm vi khớp máy chủ, tóm tắt lịch sử); E2E hai ca bảng giá.
+- [x] `code-reviewer` + `security-auditor` cho phần port và màn Operator OS: không có finding chặn; 1 Medium + 8 Low đã sửa, phần hoãn có lý do — bảng ở todo. Sau sửa: Operator OS 280 test, E2E 23 / 23, lint + typecheck + build đạt.
+- [ ] Khanh duyệt bổ sung API (#3) và bốn điểm khác khung Figma (F1–F4) ở todo.
+- [ ] CI branch xanh — Khanh xác nhận.
