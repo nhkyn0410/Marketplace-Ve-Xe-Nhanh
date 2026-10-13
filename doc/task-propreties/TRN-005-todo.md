@@ -4,8 +4,9 @@
 > **Dependency:** TASK-TRN-003 (chuyến) — nhánh `TASK-TRN-005` tách từ nhánh TRN-003 (`claude/admiring-thompson-38d7s8`), chưa merge `develop`. Merge TRN-003 trước rồi đưa `develop` vào nhánh này.
 > **Mở khóa:** TASK-TRN-006 (mở bán cần fare hợp lệ — BR-39), TASK-TRN-004 (search hiển thị giá), TASK-BTP-002 (booking snapshot giá).
 
-## Trạng thái (13/10/2026) — 🔨 **ĐÃ ĐƯA VỀ REPO CHÍNH (BE + màn Operator OS), chờ Khanh review + CI**
+## Trạng thái (14/10/2026) — 🔨 **ĐÃ ĐƯA VỀ REPO CHÍNH (BE + màn Operator OS), Khanh đã commit + chốt các điểm còn mở; chờ CI + merge**
 
+- ✅ 14/10/2026: Khanh chốt bốn điểm còn mở **theo đề xuất** — (1) khung giờ của quy tắc giữ là khoảng ngày giờ khởi hành, không làm giá theo giờ trong ngày như khung Figma; (2) duyệt ba trường `minPrice` / `maxPrice` / `hasDoubleSeatPrice` của danh sách bảng giá; (3) khoảng giá tính trên mọi quy tắc, kể cả quy tắc có khung giờ đã qua; (4) dải cảnh báo "giá ngoài khung giá" để `TASK-ADM-001`. Không đổi code; tài liệu đồng bộ: API v0.27, UI v0.23, file 11 v0.43.
 - ✅ 13/10/2026: port sang repo chính trên nhánh `TASK-TRN-005` (từ `develop` sau khi TRN-003 merge PR #31) — chi tiết ở mục "Đưa về repo chính" cuối file.
 - Các dòng dưới đây và bảng "Kết quả review" là ghi chép gốc ở repo bản sao (30/09/2026); tên migration và số test trong đó là của repo đó.
 
@@ -140,7 +141,7 @@ Chọn **P** nếu Khanh muốn lịch sử giá vẫn xem/sửa giá được k
 
 ## Đưa về repo chính (13/10/2026)
 
-Nhánh `TASK-TRN-005` từ `develop` (đã có TRN-003, PR #31). Chưa commit — chờ Khanh review.
+Nhánh `TASK-TRN-005` từ `develop` (đã có TRN-003, PR #31). Khanh commit `d16bfac` ngày 13/10/2026.
 
 ### Khác với bản ở repo bản sao
 
@@ -148,7 +149,7 @@ Nhánh `TASK-TRN-005` từ `develop` (đã có TRN-003, PR #31). Chưa commit �
 | --- | --- | --- |
 | 1 | Một migration `20261013020000_add_fare` thay cho hai (`add_fare` + `fare_price_cap`) | Repo chính chưa có bản nào chạy migration cũ nên gộp; thứ tự đặt sau `20261013010000_add_trip` |
 | 2 | Hai ràng buộc EXCLUDE của `fare_rules` đổi loại chỗ sang số bằng `CASE` đủ 5 giá trị (`SEAT` 1 … `CABIN_DOUBLE` 5, "mọi loại" 0) | Bản gốc chỉ biết `SEAT` / `BED` (`ELSE 2`) nên giá thường của giường đơn và cabin sẽ bị chặn nhầm là trùng (BR-78, `TASK-TRN-010`). Test `fare-dto.spec.ts` khoá danh sách 5 loại; `fare.int.spec.ts` kiểm từng loại không đụng nhau và trùng thì bị chặn |
-| 3 | `GET /operator/fares` trả thêm `minPrice`, `maxPrice`, `hasDoubleSeatPrice` | Cột "Khoảng giá mỗi chỗ" + dòng "Gồm giá chỗ đôi" của Figma `1665:24187`. **Bổ sung của AI ngoài contract gốc — cần Khanh duyệt.** Tính trong service từ các rule của trang (so `bigint`), không thêm truy vấn |
+| 3 | `GET /operator/fares` trả thêm `minPrice`, `maxPrice`, `hasDoubleSeatPrice` | Cột "Khoảng giá mỗi chỗ" + dòng "Gồm giá chỗ đôi" của Figma `1665:24187`. Bổ sung ngoài contract gốc — **Khanh duyệt 14/10/2026**. Tính trong service từ **mọi** rule của bảng giá (so `bigint`), kể cả rule có khung giờ đã qua; không thêm truy vấn |
 | 4 | Test tích hợp dựng tuyến với `allowPickup` / `allowDropoff` và loại xe có `form` + `class` | Schema hiện tại của `TASK-TRN-012` / `TASK-TRN-010` |
 
 Không đổi: quyết định Q1–Q7, cách tính giá (`resolveSeatPrice`), ghi lịch sử vào Mongo trong transaction có giới hạn thời gian, mã lỗi.
@@ -160,7 +161,9 @@ Không đổi: quyết định Q1–Q7, cách tính giá (`resolveSeatPrice`), g
 - `/fares/new` (nhận `?routeId=`), `/fares/{id}` — bảng quy tắc + khối thêm / sửa quy tắc + thông tin bảng giá + lịch sử thay đổi.
 - Trang chi tiết chuyến: chỗ còn trống ghi giá, thiếu giá ghi "Chưa có giá" kèm dòng nhắc mở Bảng giá.
 
-### Điểm làm khác khung Figma — cần Khanh xem
+### Điểm làm khác khung Figma
+
+Khanh chốt 14/10/2026: **F1 và F2 giữ như đã làm**. F3, F4 là cách trình bày, không nằm trong các điểm Khanh trả lời — giữ như đã làm. Khung Figma `1665:24475` chưa được vẽ lại theo F1 / F2.
 
 | # | Figma `1665:24475` | Đã làm | Lý do |
 | --- | --- | --- | --- |
@@ -193,7 +196,7 @@ Không đổi: quyết định Q1–Q7, cách tính giá (`resolveSeatPrice`), g
 | code-reviewer | Low | Chặn năm trước 1970 ở giờ vào API làm bộ lọc ngày của danh sách chuyến trả 400 khi đang gõ dở năm (`0202-…`) | ✅ Màn danh sách chuyến không gửi mốc có năm trước 1970 (coi như chưa nhập xong); thêm ca 400 vào `trip.http.spec.ts` |
 | code-reviewer | Low | Mở / đóng khối nhập quy tắc làm mất tiêu điểm bàn phím | ✅ Mở thì tiêu điểm vào ô "Loại xe"; đóng thì trả về nút "Thêm quy tắc" |
 | code-reviewer | Nit | Chú thích của `sameContent` lạc sang `priceRange`; khoảng ký tự dấu viết bằng ký tự thô; `key` theo vị trí dòng; dải "Đã lưu" không tắt khi đổi trạng thái / ghi chú; lỗi "Xem thêm lịch sử" bị nuốt; câu báo 503 gán cứng nguyên nhân "lịch sử giá" | ✅ Đã sửa cả sáu |
-| code-reviewer | Nit | `minPrice` / `maxPrice` tính cả quy tắc có khung giờ đã qua (giá Tết năm trước vẫn nằm trong khoảng giá) | ⏸ Đúng mô tả hiện tại của API; nêu để Khanh quyết có lọc theo thời điểm hay không |
+| code-reviewer | Nit | `minPrice` / `maxPrice` tính cả quy tắc có khung giờ đã qua (giá Tết năm trước vẫn nằm trong khoảng giá) | ✅ Khanh chốt 14/10/2026: giữ nguyên — khoảng giá tính trên mọi quy tắc của bảng giá |
 | code-reviewer | Nit | Lịch sử luôn ghi "Chủ nhà xe", không dùng `actorId` | ⏸ Chỉ Owner sửa được bảng giá; cần tên hiển thị của tài khoản (chưa có API) mới ghi được ai |
 | code-reviewer | Nit | Trang chuyến chỉ nhắc khi chỗ thiếu giá, không nhắc chỗ giá 0 đ (BR-39 đòi giá > 0) | ⏸ Điều kiện mở bán thuộc `TASK-TRN-006` |
 | code-reviewer | Nit | `take: limit + 1` tải thừa rule của một dòng; sửa quy tắc tạo ngoài giao diện thì mất phần giây | ⏸ Không đáng kể |

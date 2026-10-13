@@ -140,4 +140,15 @@ describe("api-client cookie mode (TC-SEC-007 phía web)", () => {
     await apiRequest("/probe", { method: "POST", body: {} });
     expect(calls.at(-1)?.headers["X-CSRF-Token"]).toBe("after-refresh");
   });
+
+  it("lỗi RFC 7807 giữ `reasons` (05 API §6.2) — chỉ nhận chuỗi; lỗi không có thì mảng rỗng", async () => {
+    handler = () =>
+      json(422, { code: "TRIP_NOT_READY_FOR_SALE", detail: "x", reasons: ["VEHICLE_MISSING", 7, "FARE_MISSING"] });
+    const notReady = await apiRequest("/probe").catch((error: unknown) => error);
+    expect(notReady).toBeInstanceOf(ApiError);
+    expect((notReady as ApiError).reasons).toEqual(["VEHICLE_MISSING", "FARE_MISSING"]);
+
+    handler = () => json(409, { code: "TRIP_NOT_EDITABLE", detail: "x", reasons: "không phải mảng" });
+    expect(((await apiRequest("/probe").catch((error: unknown) => error)) as ApiError).reasons).toEqual([]);
+  });
 });

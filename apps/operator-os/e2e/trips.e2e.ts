@@ -8,6 +8,8 @@ import { accounts, signInWithEnrollment } from "./helpers";
 // seed (`db:seed:catalog`, RB-08). Chạy tuần tự, dùng chung một phiên: mỗi ca dựa trên dữ liệu ca trước tạo ra.
 // TASK-TRN-005 (màn Bảng giá) — hai ca cuối file, cùng phiên vì cần tuyến và chuyến ở trên: tạo bảng giá cho
 // tuyến, quy tắc trùng bị chặn, giá hiện trên từng chỗ của chuyến, sửa giá ghi vào lịch sử (BR-40).
+// TASK-TRN-006 (vòng đời bán + khóa chỗ) — ba ca cuối file: mở bán thiếu điều kiện bị chặn kèm lý do (BR-39), khóa
+// / mở khóa chỗ (BR-42), tạm dừng bán, mở bán lại, thu hồi về nháp và hủy chuyến bắt buộc lý do.
 test.describe.configure({ mode: "serial" });
 
 // Lần đầu mở một trang, máy chủ dev của Next phải biên dịch trang đó — có thể lâu hơn 5 giây mặc định.
@@ -99,7 +101,11 @@ test("tạo chuyến nháp: thiếu ô báo tại ô, giờ đến tự gợi ý
   await expect(deck).toContainText("A01");
   await expect(deck).toContainText("A04");
   // Chỗ còn trống ghi giá; tuyến chưa có bảng giá nên cả bốn chỗ đều "Chưa có giá" (TRN-005).
-  await expect(page.getByRole("list", { name: "Chú giải tình trạng chỗ" })).toHaveText("Còn trống");
+  // Chuyến nháp khóa chỗ được (TRN-006) nên chú giải có thêm "Đang chọn".
+  await expect(page.getByRole("list", { name: "Chú giải tình trạng chỗ" }).getByRole("listitem")).toHaveText([
+    "Còn trống",
+    "Đang chọn"
+  ]);
   await expect(deck.getByText("Chưa có giá")).toHaveCount(4);
   await expect(stopRows().nth(1)).toContainText("08:45");
   const info = page.getByRole("region", { name: "Thông tin chuyến" });
@@ -302,4 +308,124 @@ test("giá của bảng giá hiện trên từng chỗ của chuyến; sửa gi�
   await expect(history).toContainText("Đang áp dụng → Ngừng áp dụng");
   await expect((await openTripSeats()).getByText("Chưa có giá")).toHaveCount(4);
   await expect(page.getByText(/Có chỗ chưa có giá/)).toBeVisible();
+});
+
+/** Mở chi tiết chuyến khởi hành 06:00 từ danh sách. */
+async function openFirstTrip() {
+  await page.getByRole("link", { name: "Chuyến xe", exact: true }).click();
+  await page.getByRole("row").filter({ hasText: routeName }).first().getByText("06:00").click();
+  await expect(page.getByRole("heading", { name: routeName, level: 1 })).toBeVisible();
+}
+
+const deck = () => page.getByRole("region", { name: "Tầng 1: 4 chỗ" });
+const seatButton = (code: string) => deck().getByRole("button", { name: new RegExp(`^${code}`) });
+const seatSummary = () => page.getByRole("region", { name: "Tình trạng chỗ" });
+
+test("mở bán: thiếu bảng giá thì bị chặn kèm lý do, chuyến vẫn Nháp; bật lại bảng giá thì mở bán được (BR-39)", async () => {
+  await openFirstTrip();
+  const readiness = page.getByRole("region", { name: "Điều kiện mở bán" });
+  // Chưa bấm: mục giao diện tự biết thì kết luận, còn lại chờ kiểm. Bảng giá đang ngừng áp dụng (ca trước).
+  await expect(readiness).toContainText("Chưa bấm Mở bán");
+  await expect(readiness).toContainText("Kiểm khi bấm Mở bán");
+  await expect(page.getByRole("region", { name: "Thông tin chuyến" })).toContainText("60 phút trước giờ khởi hành");
+
+  await page.getByRole("button", { name: "Mở bán", exact: true }).click();
+  const blocked = page.getByRole("alert").filter({ hasText: "Chưa mở bán được" });
+  await expect(blocked).toContainText("Còn 1 điều kiện chưa đạt. Chuyến vẫn ở trạng thái Nháp");
+  await expect(readiness).toContainText("Kết quả lần bấm Mở bán gần nhất: 6 mục đạt, 1 mục chưa đạt, 1 mục chưa kiểm được.");
+  await expect(readiness).toContainText("Tuyến chưa có bảng giá đang áp dụng. Tạo hoặc bật lại bảng giá ở mục Bảng giá.");
+  await expect(page.getByRole("link", { name: "Sửa chuyến" })).toBeVisible();
+
+  await page.getByRole("link", { name: "Bảng giá", exact: true }).click();
+  await page.getByRole("link", { name: `Sửa bảng giá tuyến ${routeName}` }).click();
+  await choose("Trạng thái *", "Đang áp dụng");
+  await page.getByRole("button", { name: "Lưu bảng giá" }).click();
+  await expect(page.getByText("Đã lưu bảng giá")).toBeVisible();
+
+  await openFirstTrip();
+  await expect(deck().getByText("320.000 ₫")).toHaveCount(4);
+  await page.getByRole("button", { name: "Mở bán", exact: true }).click();
+  await expect(page.getByRole("status").filter({ hasText: "Đã mở bán" })).toContainText(`Chuyến bán online tới 05:00 · ${DAY_LABEL}.`);
+  await expect(page.getByText("Đang mở bán", { exact: true })).toBeVisible();
+  // Đang bán thì không sửa thẳng được; khối Điều kiện mở bán nhường chỗ cho Tình trạng chỗ + Bán online.
+  await expect(page.getByRole("link", { name: "Sửa chuyến" })).toHaveCount(0);
+  await expect(readiness).toHaveCount(0);
+  await expect(seatSummary()).toContainText("Còn trống4 chỗ");
+  const online = page.getByRole("region", { name: "Bán online" });
+  await expect(online).toContainText(`05:00 · ${DAY_LABEL}`);
+  await expect(online).toContainText("60 phút trước giờ khởi hành");
+});
+
+test("khóa chỗ bán ngoài hệ thống rồi mở khóa (BR-42); tạm dừng bán, mở bán lại, thu hồi về nháp", async () => {
+  // Chọn hai chỗ còn trống rồi khóa một lần, kèm ghi chú.
+  await seatButton("A01").click();
+  await seatButton("A02").click();
+  const picked = page.getByRole("group", { name: "Chỗ đang chọn" });
+  await expect(picked).toContainText("Đã chọn 2 chỗ: A01, A02");
+  await picked.getByRole("button", { name: "Khóa chỗ đã chọn" }).click();
+  const dialog = page.getByRole("dialog");
+  await expect(dialog.getByRole("heading", { name: "Khóa 2 chỗ đã chọn?" })).toBeVisible();
+  await expect(dialog.getByRole("list", { name: "Chỗ đã chọn" }).getByRole("listitem")).toHaveText(["A01", "A02"]);
+  await dialog.getByLabel("Ghi chú").fill("Bán tại quầy bến xe.");
+  await dialog.getByRole("button", { name: "Khóa chỗ" }).click();
+  await expect(page.getByRole("status").filter({ hasText: "Đã khóa 2 chỗ: A01, A02" })).toBeVisible();
+  await expect(deck().getByText("Đã khóa")).toHaveCount(2);
+  await expect(seatSummary()).toContainText("Còn trống2 chỗ");
+  await expect(seatSummary()).toContainText("Đã khóa2 chỗ");
+
+  // Chọn chỗ đã khóa để mở: trong lúc đó chỗ còn trống tạm không bấm được (một lô một loại).
+  await seatButton("A01").click();
+  await expect(picked).toContainText("Đã chọn 1 chỗ đã khóa: A01");
+  await expect(seatButton("A03")).toBeDisabled();
+  await picked.getByRole("button", { name: "Mở khóa chỗ đã chọn" }).click();
+  await expect(dialog.getByRole("heading", { name: "Mở khóa 1 chỗ đã chọn?" })).toBeVisible();
+  await dialog.getByRole("button", { name: "Mở khóa chỗ" }).click();
+  await expect(page.getByRole("status").filter({ hasText: "Đã mở khóa 1 chỗ: A01" })).toBeVisible();
+  await expect(deck().getByText("Đã khóa")).toHaveCount(1);
+  await expect(seatButton("A03")).toBeEnabled();
+
+  await page.getByRole("button", { name: "Tạm dừng bán" }).click();
+  await expect(page.getByRole("status").filter({ hasText: "Đã tạm dừng bán" })).toBeVisible();
+  await expect(page.getByText("Tạm dừng bán", { exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "Mở bán lại" }).click();
+  await expect(page.getByRole("status").filter({ hasText: "Đã mở bán lại" })).toBeVisible();
+  await expect(page.getByText("Đang mở bán", { exact: true })).toBeVisible();
+
+  // Danh sách lọc "Đang mở bán" thấy đúng chuyến này.
+  await page.getByRole("link", { name: "Danh sách chuyến" }).click();
+  await choose("Trạng thái", "Đang mở bán");
+  const rows = page.getByRole("row").filter({ hasText: routeName });
+  await expect(rows).toHaveCount(1);
+  await rows.first().getByText("06:00").click();
+
+  await page.getByRole("button", { name: "Thu hồi về nháp" }).click();
+  await expect(page.getByRole("status").filter({ hasText: "Đã thu hồi về nháp" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Sửa chuyến" })).toBeVisible();
+  // Chỗ đã khóa giữ nguyên qua các lần đổi trạng thái.
+  await expect(deck().getByText("Đã khóa")).toHaveCount(1);
+});
+
+test("hủy chuyến chưa có vé: bắt buộc lý do; hủy xong không còn nút thao tác và không khóa chỗ được nữa", async () => {
+  await page.getByRole("button", { name: "Hủy chuyến" }).click();
+  const dialog = page.getByRole("dialog");
+  await expect(dialog.getByRole("heading", { name: `Hủy chuyến ${routeName}?` })).toBeVisible();
+  await expect(dialog).toContainText("Hủy xong chuyến không mở bán lại được");
+
+  await dialog.getByRole("button", { name: "Hủy chuyến" }).click();
+  await expect(dialog.getByRole("alert")).toHaveText("Nhập lý do hủy chuyến.");
+  await dialog.getByLabel("Lý do hủy *").fill("Xe vào xưởng bảo dưỡng đột xuất.");
+  await dialog.getByRole("button", { name: "Hủy chuyến" }).click();
+
+  await expect(page.getByRole("status").filter({ hasText: "Đã hủy chuyến" })).toBeVisible();
+  await expect(page.getByText("Đã hủy", { exact: true })).toBeVisible();
+  await expect(page.getByRole("region", { name: "Thông tin chuyến" })).toContainText("Xe vào xưởng bảo dưỡng đột xuất.");
+  for (const name of ["Mở bán", "Hủy chuyến", "Thu hồi về nháp", "Tạm dừng bán"]) {
+    await expect(page.getByRole("button", { name, exact: true })).toHaveCount(0);
+  }
+  await expect(page.getByRole("link", { name: "Sửa chuyến" })).toHaveCount(0);
+  await expect(deck().getByRole("button")).toHaveCount(0);
+
+  await page.getByRole("link", { name: "Danh sách chuyến" }).click();
+  await choose("Trạng thái", "Đã hủy");
+  await expect(page.getByRole("row").filter({ hasText: routeName })).toHaveCount(1);
 });

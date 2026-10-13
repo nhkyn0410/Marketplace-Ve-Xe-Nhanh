@@ -81,5 +81,5 @@
 - [x] `pnpm lint` + `typecheck` + `test` + `build` cả monorepo đạt; client TS + Dart sinh lại (`dart analyze` 0 lỗi).
 - [x] Operator OS: test đơn vị `lib/fare` (đọc giá gõ vào, khung giờ theo giờ Việt Nam, trùng phạm vi khớp máy chủ, tóm tắt lịch sử); E2E hai ca bảng giá.
 - [x] `code-reviewer` + `security-auditor` cho phần port và màn Operator OS: không có finding chặn; 1 Medium + 8 Low đã sửa, phần hoãn có lý do — bảng ở todo. Sau sửa: Operator OS 280 test, E2E 23 / 23, lint + typecheck + build đạt.
-- [ ] Khanh duyệt bổ sung API (#3) và bốn điểm khác khung Figma (F1–F4) ở todo.
+- [x] Khanh chốt 14/10/2026: duyệt bổ sung API (#3); F1 (khung giờ = khoảng ngày giờ khởi hành) và F2 (dải cảnh báo để `TASK-ADM-001`) giữ như đã làm; khoảng giá tính cả quy tắc có khung giờ đã qua. F3, F4 không nằm trong các điểm Khanh trả lời — giữ như đã làm.
 - [ ] CI branch xanh — Khanh xác nhận.

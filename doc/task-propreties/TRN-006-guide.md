@@ -64,6 +64,19 @@ Kỳ vọng:
 - **3D — Tenant / quyền:** token nhà xe khác → 404; không token → 401; token Employee / Platform → 403.
 - **3E — Audit:** Mongo `audit_event` có `trip.status.change` (trước / sau, lý do) cho mỗi lần đổi trạng thái; `trip.seats.block` / `trip.seats.unblock` chỉ liệt kê ghế thực sự đổi.
 
+## 3F. Màn Operator OS (14/10/2026)
+
+Cần API chạy ở `http://localhost:3000` và `pnpm --filter @vexenhanh/operator-os dev`. Đăng nhập bằng Owner, mở **Chuyến xe**.
+
+- Tạo chuyến: ô "Ngừng bán online trước giờ khởi hành (phút)" có sẵn 60; gõ 1441 hoặc để trống → báo lỗi tại ô.
+- Mở chi tiết chuyến nháp của tuyến chưa có bảng giá → bấm **Mở bán** → dải đỏ "Chưa mở bán được", khối Điều kiện mở bán tô đỏ mục bảng giá, nhãn vẫn "Nháp".
+- Tạo / bật bảng giá cho tuyến → bấm **Mở bán** → nhãn "Đang mở bán", có thẻ Tình trạng chỗ và Bán online.
+- Bấm hai chỗ còn trống → "Khóa chỗ đã chọn" → nhập ghi chú → hai chỗ ghi "Đã khóa". Bấm một chỗ đã khóa → "Mở khóa chỗ đã chọn".
+- **Tạm dừng bán** → **Mở bán lại** → **Thu hồi về nháp** (nút Sửa chuyến hiện lại, chỗ đã khóa giữ nguyên).
+- **Hủy chuyến**: để trống lý do → báo lỗi; nhập lý do → nhãn "Đã hủy", không còn nút thao tác.
+
+Tự động: `PLAYWRIGHT_CHANNEL=chrome pnpm --filter @vexenhanh/operator-os exec playwright test e2e/trips.e2e.ts` (ba ca cuối).
+
 ## 4. OpenAPI và client
 
 ```powershell

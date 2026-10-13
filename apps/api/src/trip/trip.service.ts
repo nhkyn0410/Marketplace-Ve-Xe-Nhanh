@@ -1,20 +1,48 @@
-import { Inject, Injectable } from "@nestjs/common";
-import { PrismaService, type DbTransaction } from "../database/prisma.service";
-import { FareStatus, RouteStatus, TripStatus, type RouteStopRole, type SeatType } from "../database/prisma.types";
+import { Inject, Injectable, Logger } from "@nestjs/common";
+import { AuditService, AuditWriteError } from "../audit/audit.service";
+import { PrismaService, transactionDeadline, type DbTransaction } from "../database/prisma.service";
+import {
+  CatalogStatus,
+  FareStatus,
+  RouteStatus,
+  StopPointStatus,
+  TripSeatStatus,
+  TripStatus,
+  type RouteStopRole,
+  type SeatType,
+} from "../database/prisma.types";
 import { resolveSeatPrice, vndToJson } from "../fare/fare-pricing";
 import type { Authorization } from "../iam/role/authorization";
 import { requireTenant } from "../iam/role/require-tenant";
-import type { TripInput, TripListResponse, TripResponse } from "./dto/trip.dto";
+import type {
+  TripInput,
+  TripListResponse,
+  TripResponse,
+  TripSeatStatusInput,
+  TripStatusInput,
+} from "./dto/trip.dto";
+import { canTransition, saleReadinessProblems, SEAT_EDITABLE_STATUSES } from "./trip-sale";
 import {
   isDeadlock,
+  isTransactionExpired,
   isVehicleOverlapViolation,
   routeUnavailable,
+  tripBlockedSeatsMissing,
+  tripBusy,
+  tripHistoryUnavailable,
   tripNotEditable,
   tripNotFound,
+  tripNotReadyForSale,
+  tripSeatNotAvailable,
+  tripSeatUnknown,
+  tripStatusTransitionInvalid,
   tripStopTimesInvalid,
   vehicleScheduleConflict,
   vehicleUnavailable,
 } from "./trip.errors";
+
+/** Người thực hiện thao tác (từ access token) — ghi vào audit. */
+export type TripActor = { sub: string; role: string };
 
 type ListQuery = {
   routeId?: string;
@@ -37,18 +65,28 @@ type RouteStopRow = {
   durationSecondsFromPrevious: number | null;
 };
 
-const POINT_SELECT = { name: true, address: true, type: true } as const;
+const POINT_SELECT = { name: true, address: true, type: true, status: true } as const;
 const MINUTE = 60_000;
 const SEAT_ORDER = [{ deck: "asc" }, { row: "asc" }, { column: "asc" }] as const;
+const AUDIT_TARGET = "trip";
+// Ghi audit đổi trạng thái nằm trong transaction Postgres (≤ 5s) — giới hạn 2s như bảng giá (TRN-005 review).
+const AUDIT_TIMEOUT_MS = 2_000;
+const SOLD_SEAT_STATUSES: readonly TripSeatStatus[] = [TripSeatStatus.BOOKED, TripSeatStatus.CHECKED_IN];
 
 /**
  * Chuyến của nhà xe (TASK-TRN-003, FR-OPS-06, UC-14). Chỉ tạo/sửa chuyến `DRAFT`. Điểm dừng chép từ route
  * lúc tạo/sửa (kèm cho đón / cho trả — BR-79); ghế chép từ SeatMap của xe lúc gắn xe. BR-14 (một xe không chạy hai chuyến chồng giờ) do
- * ràng buộc EXCLUDE ở DB giữ — kể cả khi hai request chạy đồng thời.
+ * ràng buộc EXCLUDE ở DB giữ — kể cả khi hai request chạy đồng thời. Vòng đời bán khi chưa có vé + khóa ghế thủ
+ * công: TASK-TRN-006.
  */
 @Injectable()
 export class TripService {
-  constructor(@Inject(PrismaService) private readonly prisma: PrismaService) {}
+  private readonly logger = new Logger(TripService.name);
+
+  constructor(
+    @Inject(PrismaService) private readonly prisma: PrismaService,
+    @Inject(AuditService) private readonly audit: AuditService,
+  ) {}
 
   /** Liệt kê chuyến của nhà xe theo giờ đi tăng dần, lọc route/xe/trạng thái/khoảng giờ đi. */
   async list(authz: Authorization, query: ListQuery): Promise<TripListResponse> {
@@ -138,6 +176,7 @@ export class TripService {
             vehicleId: input.vehicleId,
             departureAt: input.departureAt,
             arrivalAt: input.arrivalAt,
+            onlineSaleCutoffMinutes: input.onlineSaleCutoffMinutes,
             note: input.note,
           },
           select: { id: true },
@@ -180,6 +219,14 @@ export class TripService {
         const expired = new Date(current.arrivalAt).getTime() <= Date.now();
         const rebuildSeats = expired || input.vehicleId !== current.vehicleId;
         const seats = rebuildSeats && input.vehicleId ? await lockVehicleSeats(tx, operatorId, input.vehicleId) : [];
+        // Ghế đã khóa thủ công (bán ngoài Platform — BR-42) giữ theo `seat_code` khi sinh lại ghế; sơ đồ mới thiếu ghế
+        // đã khóa → từ chối, không âm thầm làm mất ghế đã bán quầy (overbooking) — TRN-006 Q5. Ghế đang giữ / đã bán
+        // (không phải AVAILABLE / BLOCKED) thì không sinh lại được.
+        const blocked = rebuildSeats ? await blockedSeatCodes(tx, operatorId, tripId) : new Set<string>();
+        const missing = [...blocked].filter((code) => !seats.some((seat) => seat.code === code));
+        if (missing.length > 0) {
+          throw tripBlockedSeatsMissing(missing);
+        }
         const updated = await tx.trip.updateMany({
           where: { id: tripId, operatorId, status: TripStatus.DRAFT },
           data: {
@@ -187,6 +234,7 @@ export class TripService {
             vehicleId: input.vehicleId,
             departureAt: input.departureAt,
             arrivalAt: input.arrivalAt,
+            onlineSaleCutoffMinutes: input.onlineSaleCutoffMinutes,
             note: input.note,
           },
         });
@@ -198,12 +246,162 @@ export class TripService {
         await tx.tripStop.createMany({ data: stopRows(operatorId, tripId, routeStops, stopTimes) });
         if (rebuildSeats) {
           await tx.tripSeat.deleteMany({ where: { tripId, operatorId } });
-          await tx.tripSeat.createMany({ data: seatRows(operatorId, tripId, seats) });
+          await tx.tripSeat.createMany({ data: seatRows(operatorId, tripId, seats, blocked) });
         }
         return findDetail(tx, operatorId, tripId);
       }),
     );
     return toResponse(row!);
+  }
+
+  /**
+   * Đổi trạng thái bán của chuyến chưa có vé (TASK-TRN-006, FR-OPS-10, LLD §8): mở bán / khóa (= tạm dừng) / mở lại /
+   * thu hồi về nháp / hủy. Khoá dòng chuyến khi đọc nên các request đồng thời XẾP HÀNG: bên sau chạy trên trạng thái
+   * mới — chuyển không còn hợp lệ (vd hai lần mở bán) thì 409, còn hợp lệ (mở bán rồi hủy) thì vẫn chạy. Mở bán / mở lại
+   * kiểm BR-39, trả MỌI lý do chưa đạt. Audit là lệnh cuối trong transaction.
+   */
+  async changeStatus(actor: TripActor, authz: Authorization, tripId: string, input: TripStatusInput): Promise<TripResponse> {
+    const { db, operatorId } = requireTenant(authz);
+    const row = await this.withRetryable(() =>
+      this.prisma.withScope(db, async (tx) => {
+        const deadline = transactionDeadline(Date.now());
+        const [current] = await tx.$queryRaw<{ status: TripStatus }[]>`
+          SELECT status::text AS "status" FROM trips
+          WHERE id = ${tripId} AND operator_id = ${operatorId}
+          FOR NO KEY UPDATE`;
+        if (!current) {
+          throw tripNotFound();
+        }
+        if (!canTransition(current.status, input.status)) {
+          throw tripStatusTransitionInvalid(`Không chuyển được chuyến từ ${current.status} sang ${input.status}.`);
+        }
+        if (input.status === TripStatus.DRAFT || input.status === TripStatus.CANCELLED) {
+          // Khoá TOÀN BỘ ghế của chuyến (không lọc trạng thái — Postgres chỉ kiểm lại dòng khớp điều kiện): ghế đang được
+          // một transaction khác đổi sang HOLDING / BOOKED thì chờ nó commit rồi đọc trạng thái mới. Không thay được việc
+          // luồng bán vé (BTP) phải khoá chuyến `FOR SHARE` + kiểm `OPEN_FOR_SALE` — ghi ở bàn giao TRN-006.
+          const seats = await tx.$queryRaw<{ status: TripSeatStatus }[]>`
+            SELECT status::text AS "status" FROM trip_seats
+            WHERE trip_id = ${tripId} AND operator_id = ${operatorId}
+            FOR SHARE`;
+          if (seats.some((seat) => SOLD_SEAT_STATUSES.includes(seat.status))) {
+            throw tripStatusTransitionInvalid("Chuyến đã có vé — đổi / hủy chuyến đã bán vé theo luồng riêng.");
+          }
+        }
+        if (input.status === TripStatus.OPEN_FOR_SALE) {
+          await assertReadyForSale(tx, operatorId, tripId);
+        }
+        const updated = await tx.trip.updateMany({
+          where: { id: tripId, operatorId, status: current.status },
+          data: { status: input.status, statusReason: input.reason },
+        });
+        if (updated.count === 0) {
+          // Chốt phòng thủ: dòng đã khoá từ lúc đọc nên trạng thái không đổi giữa chừng được.
+          throw tripStatusTransitionInvalid("Trạng thái chuyến vừa thay đổi. Tải lại rồi thử lại.");
+        }
+        const after = await findDetail(tx, operatorId, tripId);
+        // Lệnh cuối trước COMMIT, giới hạn theo hạn còn lại của transaction: không còn bước nào lỗi được SAU khi Mongo đã
+        // ghi (ngoài COMMIT) → thu hẹp khả năng dòng lịch sử "ma".
+        await this.audit.recordAuditEvent(
+          {
+            actorId: actor.sub,
+            actorRole: actor.role,
+            action: "trip.status.change",
+            targetType: AUDIT_TARGET,
+            targetId: tripId,
+            operatorId,
+            before: { status: current.status },
+            after: { status: input.status },
+            reason: input.reason ?? undefined,
+          },
+          { timeoutMs: AUDIT_TIMEOUT_MS, deadline },
+        );
+        return after;
+      }),
+    );
+    return toResponse(row!);
+  }
+
+  /**
+   * Khóa / mở ghế thủ công theo lô (FR-OPS-13, BR-42, UC-14 A6): được cả lô hoặc không; chỉ `AVAILABLE ↔ BLOCKED`,
+   * ghế đã ở trạng thái đích bỏ qua. Audit ghi SAU commit và không chờ: khóa ghế là để chống bán trùng, Mongo sập
+   * không được chặn việc khóa ghế đã bán quầy (Q6).
+   */
+  async setSeatStatus(
+    actor: TripActor,
+    authz: Authorization,
+    tripId: string,
+    input: TripSeatStatusInput,
+  ): Promise<TripResponse> {
+    const { db, operatorId } = requireTenant(authz);
+    const from = input.status === TripSeatStatus.BLOCKED ? TripSeatStatus.AVAILABLE : TripSeatStatus.BLOCKED;
+    const { row, changed } = await this.withRetryable(() => this.prisma.withScope(db, async (tx) => {
+      // Khoá dòng chuyến: xếp hàng với PUT chuyến (đổi xe sinh lại ghế) và đổi trạng thái.
+      const [current] = await tx.$queryRaw<{ status: TripStatus }[]>`
+        SELECT status::text AS "status" FROM trips
+        WHERE id = ${tripId} AND operator_id = ${operatorId}
+        FOR NO KEY UPDATE`;
+      if (!current) {
+        throw tripNotFound();
+      }
+      if (!SEAT_EDITABLE_STATUSES.includes(current.status)) {
+        throw tripNotEditable("Chỉ khóa / mở ghế khi chuyến đang nháp, đang mở bán hoặc đang khóa bán.");
+      }
+      const seats = await tx.tripSeat.findMany({
+        where: { tripId, operatorId, seatCode: { in: input.seatCodes } },
+        select: { seatCode: true, status: true },
+      });
+      if (seats.length !== input.seatCodes.length) {
+        throw tripSeatUnknown();
+      }
+      if (seats.some((seat) => seat.status !== TripSeatStatus.AVAILABLE && seat.status !== TripSeatStatus.BLOCKED)) {
+        throw tripSeatNotAvailable();
+      }
+      const changed = seats.filter((seat) => seat.status === from).map((seat) => seat.seatCode).sort();
+      if (changed.length > 0) {
+        const updated = await tx.tripSeat.updateMany({
+          where: { tripId, operatorId, seatCode: { in: changed }, status: from },
+          data: { status: input.status },
+        });
+        if (updated.count !== changed.length) {
+          // Ghế vừa bị giữ / bán giữa lúc đọc và ghi (luồng giữ ghế BTP-001) — không đổi nửa lô.
+          throw tripSeatNotAvailable();
+        }
+      }
+      return { row: (await findDetail(tx, operatorId, tripId))!, changed };
+    }));
+    if (changed.length > 0) {
+      this.audit
+        .recordAuditEvent({
+          actorId: actor.sub,
+          actorRole: actor.role,
+          action: input.status === TripSeatStatus.BLOCKED ? "trip.seats.block" : "trip.seats.unblock",
+          targetType: AUDIT_TARGET,
+          targetId: tripId,
+          operatorId,
+          after: { seatCodes: changed, status: input.status },
+          reason: input.note ?? undefined,
+        })
+        .catch((error: unknown) => {
+          this.logger.error({ event: "audit.write_failed", action: "trip.seats", tripId, error });
+        });
+    }
+    return toResponse(row);
+  }
+
+  // Audit Mongo lỗi / chậm (AuditWriteError) hoặc transaction hết hạn (P2028, vd chờ khoá dòng quá lâu) → 503 thử lại
+  // được: Postgres đã rollback, không đổi gì.
+  private async withRetryable<T>(work: () => Promise<T>): Promise<T> {
+    try {
+      return await work();
+    } catch (error) {
+      if (error instanceof AuditWriteError) {
+        throw tripHistoryUnavailable();
+      }
+      if (isTransactionExpired(error)) {
+        throw tripBusy();
+      }
+      throw error;
+    }
   }
 
   private async withOverlapConflict<T>(work: () => Promise<T>): Promise<T> {
@@ -319,11 +517,13 @@ function stopRows(operatorId: string, tripId: string, stops: RouteStopRow[], tim
   }));
 }
 
-// Liệt kê từng field: không phụ thuộc shape của Seat để khỏi chép nhầm `id`/`seatMapId`.
+// Liệt kê từng field: không phụ thuộc shape của Seat để khỏi chép nhầm `id`/`seatMapId`. Ghế có mã trong `blocked`
+// giữ trạng thái khóa thủ công (TRN-006).
 function seatRows(
   operatorId: string,
   tripId: string,
   seats: { code: string; deck: number; row: number; column: number; type: SeatType }[],
+  blocked: ReadonlySet<string> = new Set(),
 ) {
   return seats.map(({ code, deck, row, column, type }) => ({
     operatorId,
@@ -333,7 +533,60 @@ function seatRows(
     row,
     column,
     type,
+    status: blocked.has(code) ? TripSeatStatus.BLOCKED : TripSeatStatus.AVAILABLE,
   }));
+}
+
+// Mã ghế đang khóa thủ công trước khi sinh lại ghế. Ghế đang giữ / đã bán (khác AVAILABLE / BLOCKED) → 409: sinh lại
+// sẽ âm thầm xoá chúng.
+async function blockedSeatCodes(tx: DbTransaction, operatorId: string, tripId: string): Promise<Set<string>> {
+  const rows = await tx.tripSeat.findMany({ where: { tripId, operatorId }, select: { seatCode: true, status: true } });
+  if (rows.some((row) => row.status !== TripSeatStatus.AVAILABLE && row.status !== TripSeatStatus.BLOCKED)) {
+    throw tripSeatNotAvailable();
+  }
+  return new Set(rows.filter((row) => row.status === TripSeatStatus.BLOCKED).map((row) => row.seatCode));
+}
+
+/**
+ * BR-39 (Q3): đọc lại chuyến + nhà xe trong transaction đang khoá dòng chuyến, chưa đạt → 422 kèm mọi lý do. Khoá
+ * `FOR SHARE` tuyến, bảng giá, xe trước khi đọc: sửa bảng giá / xe / tuyến đồng thời (khoá ghi cùng dòng) phải chờ lần
+ * mở bán này commit, nên điều kiện kiểm được không đổi ngay giữa lúc kiểm và lúc commit. Các luồng đó không khoá `trips`
+ * nên không có vòng chờ.
+ */
+async function assertReadyForSale(tx: DbTransaction, operatorId: string, tripId: string): Promise<void> {
+  await tx.$queryRaw`
+    SELECT 1 FROM routes r JOIN trips t ON t.route_id = r.id AND t.operator_id = r.operator_id
+    WHERE t.id = ${tripId} AND t.operator_id = ${operatorId}
+    FOR SHARE OF r`;
+  await tx.$queryRaw`
+    SELECT 1 FROM fares f JOIN trips t ON t.route_id = f.route_id AND t.operator_id = f.operator_id
+    WHERE t.id = ${tripId} AND t.operator_id = ${operatorId}
+    FOR SHARE OF f`;
+  await tx.$queryRaw`
+    SELECT 1 FROM vehicles v JOIN trips t ON t.vehicle_id = v.id AND t.operator_id = v.operator_id
+    WHERE t.id = ${tripId} AND t.operator_id = ${operatorId}
+    FOR SHARE OF v`;
+  const trip = (await findDetail(tx, operatorId, tripId))!;
+  // `operator_profiles` có policy `public_read` nên đọc được trong scope tenant.
+  const operator = await tx.operatorProfile.findUnique({ where: { id: operatorId }, select: { status: true } });
+  const reasons = saleReadinessProblems({
+    operatorStatus: operator!.status,
+    routeStatus: trip.route.status,
+    stopsActive: trip.stops.map((stop) =>
+      stop.catalogStopPoint
+        ? stop.catalogStopPoint.status === CatalogStatus.ACTIVE
+        : stop.stopPoint!.status === StopPointStatus.ACTIVE,
+    ),
+    vehicle: trip.vehicle ? { status: trip.vehicle.status, vehicleTypeId: trip.vehicle.vehicleTypeId } : null,
+    seatTypes: trip.seats.map((seat) => seat.type),
+    fare: trip.route.fare,
+    departureAt: trip.departureAt,
+    onlineSaleCutoffMinutes: trip.onlineSaleCutoffMinutes,
+    now: new Date(),
+  });
+  if (reasons.length > 0) {
+    throw tripNotReadyForSale(reasons);
+  }
 }
 
 function findDetail(tx: DbTransaction, operatorId: string, tripId: string) {
@@ -346,12 +599,15 @@ function findDetail(tx: DbTransaction, operatorId: string, tripId: string) {
       departureAt: true,
       arrivalAt: true,
       status: true,
+      onlineSaleCutoffMinutes: true,
+      statusReason: true,
       note: true,
       createdAt: true,
       updatedAt: true,
       route: {
         select: {
           name: true,
+          status: true,
           // Bảng giá của tuyến (TRN-005): giá ghế tính khi đọc theo loại xe đang gắn + giờ khởi hành.
           fare: {
             select: {
@@ -361,7 +617,7 @@ function findDetail(tx: DbTransaction, operatorId: string, tripId: string) {
           },
         },
       },
-      vehicle: { select: { plateNumber: true, vehicleTypeId: true } },
+      vehicle: { select: { plateNumber: true, vehicleTypeId: true, status: true } },
       stops: {
         orderBy: { sequence: "asc" },
         select: {
