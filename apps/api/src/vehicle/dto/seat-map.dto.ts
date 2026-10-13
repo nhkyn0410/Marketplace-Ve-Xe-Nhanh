@@ -88,7 +88,7 @@ export const SeatMapSummarySchema = z.object({
   // Số tầng = số phần tử `layout.decks` (TRN-011), để danh sách không phải tải bố cục.
   deckCount: z.int(),
   // TRN-011: `true` khi sơ đồ đang được chuyến chưa kết thúc dùng (PUT sẽ nhận 409). Chỉ để giao diện
-  // khóa trước; chưa có module chuyến (TRN-003) nên hiện luôn `false`.
+  // khóa trước; server vẫn kiểm lại khi ghi.
   inUse: z.boolean(),
   createdAt: z.iso.datetime(),
   updatedAt: z.iso.datetime(),

@@ -11,19 +11,31 @@ import {
   type SeatMapSummary,
 } from "./dto/seat-map.dto";
 import { requireTenant } from "../iam/role/require-tenant";
-import { seatMapNameConflict, seatMapNotFound } from "./vehicle.errors";
+import { unfinishedTripWhere } from "../trip/trip-usage";
+import { seatMapInUse, seatMapNameConflict, seatMapNotFound } from "./vehicle.errors";
 
-/** Cột đủ để dựng tóm tắt SeatMap; `VehicleService` dùng lại cho sơ đồ gắn vào xe. */
-export const SEAT_MAP_SUMMARY_SELECT = {
-  id: true,
-  name: true,
-  layout: true,
-  seatCount: true,
-  createdAt: true,
-  updatedAt: true,
-  // Đếm chỗ đôi ngay trong truy vấn: danh sách tính được sức chứa mà không tải từng ghế (BR-78).
-  _count: { select: { seats: { where: { type: { in: DOUBLE_SEAT_TYPES } } } } },
-} as const;
+/**
+ * Cột đủ để dựng tóm tắt SeatMap; `VehicleService` dùng lại cho sơ đồ gắn vào xe. `now` là mốc xét
+ * "chuyến chưa kết thúc" của cờ `inUse` (UC-12 A3, TRN-011).
+ */
+export function seatMapSummarySelect(now: Date) {
+  return {
+    id: true,
+    name: true,
+    layout: true,
+    seatCount: true,
+    createdAt: true,
+    updatedAt: true,
+    _count: {
+      select: {
+        // Đếm chỗ đôi ngay trong truy vấn: danh sách tính được sức chứa mà không tải từng ghế (BR-78).
+        seats: { where: { type: { in: DOUBLE_SEAT_TYPES } } },
+        // Xe gắn sơ đồ này còn chuyến chưa kết thúc — đúng điều kiện của 409 `SEAT_MAP_IN_USE` khi `PUT`.
+        vehicles: { where: { trips: { some: unfinishedTripWhere(now) } } },
+      },
+    },
+  } as const;
+}
 const SEAT_SELECT = { code: true, deck: true, row: true, column: true, type: true } as const;
 const SEAT_ORDER = [{ deck: "asc" }, { row: "asc" }, { column: "asc" }] as const;
 
@@ -34,7 +46,7 @@ export type SeatMapSummaryRow = {
   seatCount: number;
   createdAt: Date;
   updatedAt: Date;
-  _count: { seats: number };
+  _count: { seats: number; vehicles: number };
 };
 type DetailRow = SeatMapSummaryRow & { seats: SeatMapResponse["seats"] };
 
@@ -54,7 +66,7 @@ export class SeatMapService {
         where: { operatorId, ...(query.cursor ? { id: { gt: query.cursor } } : {}) },
         orderBy: { id: "asc" },
         take: query.limit + 1,
-        select: SEAT_MAP_SUMMARY_SELECT,
+        select: seatMapSummarySelect(new Date()),
       }),
     );
     const page = rows.slice(0, query.limit);
@@ -93,7 +105,7 @@ export class SeatMapService {
 
   /**
    * Thay toàn bộ tên, bố cục và ghế trong MỘT transaction: lỗi giữa chừng thì ghế cũ còn nguyên.
-   * TRN-003 phải chặn thao tác này khi SeatMap đã được chuyến dùng (UC-12 A3).
+   * Bị chặn khi SeatMap đang gắn với xe của chuyến chưa kết thúc (UC-12 A3, TRN-003).
    */
   async update(authz: Authorization, seatMapId: string, input: SeatMapInput): Promise<SeatMapResponse> {
     const { db, operatorId } = requireTenant(authz);
@@ -105,6 +117,14 @@ export class SeatMapService {
         });
         if (updated.count === 0) {
           throw seatMapNotFound();
+        }
+        // Kiểm SAU lệnh ghi (đã khoá dòng sơ đồ): tạo chuyến khoá `FOR SHARE` cùng dòng này, nên chuyến tạo
+        // đồng thời hoặc đã commit trước → thấy ở đây; hoặc phải chờ và đọc bố cục mới.
+        const inUse = await tx.trip.count({
+          where: { operatorId, vehicle: { seatMapId }, ...unfinishedTripWhere(new Date()) },
+        });
+        if (inUse > 0) {
+          throw seatMapInUse();
         }
         await tx.seat.deleteMany({ where: { seatMapId, operatorId } });
         await tx.seat.createMany({ data: seatRows(input, operatorId, seatMapId) });
@@ -130,7 +150,7 @@ export class SeatMapService {
 function findDetail(tx: DbTransaction, operatorId: string, seatMapId: string) {
   return tx.seatMap.findFirst({
     where: { id: seatMapId, operatorId },
-    select: { ...SEAT_MAP_SUMMARY_SELECT, seats: { select: SEAT_SELECT, orderBy: [...SEAT_ORDER] } },
+    select: { ...seatMapSummarySelect(new Date()), seats: { select: SEAT_SELECT, orderBy: [...SEAT_ORDER] } },
   });
 }
 
@@ -155,8 +175,7 @@ export function toSeatMapSummary(row: SeatMapSummaryRow): SeatMapSummary {
     seatCount: row.seatCount,
     passengerCapacity: row.seatCount + row._count.seats,
     deckCount: (row.layout as SeatMapLayout).decks.length,
-    // TRN-003 sẽ tính theo chuyến chưa kết thúc; trước đó luôn `false` (API §7.3).
-    inUse: false,
+    inUse: row._count.vehicles > 0,
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
   };

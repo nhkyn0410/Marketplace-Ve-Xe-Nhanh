@@ -9,6 +9,12 @@ export type E2eAccounts = {
   fleetOwner: { username: string; password: string };
   /** Owner riêng cho E2E màn điểm dừng / tuyến đường: mật khẩu thường, chưa bật TOTP. */
   routeOwner: { username: string; password: string };
+  /** Nhà xe riêng của E2E màn chuyến xe (có sẵn tuyến + xe, nên tách khỏi nhà xe của các spec kiểm danh sách rỗng). */
+  tripOperatorSlug: string;
+  /** Owner của nhà xe đó: mật khẩu thường, chưa bật TOTP. */
+  tripOwner: { username: string; password: string };
+  /** Tuyến và xe dựng sẵn cho `tripOwner`; `null` khi catalog chưa seed. */
+  tripFixtures: { routeName: string; plateNumber: string; seatMapName: string } | null;
   employee: { username: string; password: string };
   platform: { username: string; password: string };
 };

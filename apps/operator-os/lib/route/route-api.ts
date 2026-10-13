@@ -28,6 +28,25 @@ export function listRoutes(params: { status?: RouteStatus; cursor?: string }): P
   return apiRequest<RoutePage>(`/operator/routes?${query}`);
 }
 
+/** Mọi tuyến của nhà xe; đi hết các trang vì ô chọn tuyến của màn Chuyến xe cần đủ danh sách. */
+export async function listAllRoutes(status?: RouteStatus): Promise<RouteSummary[]> {
+  const items: RouteSummary[] = [];
+  let cursor: string | null = null;
+  do {
+    const query = new URLSearchParams({ limit: "100" });
+    if (status) {
+      query.set("status", status);
+    }
+    if (cursor) {
+      query.set("cursor", cursor);
+    }
+    const page: RoutePage = await apiRequest<RoutePage>(`/operator/routes?${query}`);
+    items.push(...page.items);
+    cursor = page.nextCursor;
+  } while (cursor);
+  return items;
+}
+
 /** Chi tiết một tuyến kèm điểm dừng theo thứ tự và số liệu từng chặng. */
 export function getRoute(routeId: string): Promise<Route> {
   return apiRequest<Route>(`/operator/routes/${routeId}`);

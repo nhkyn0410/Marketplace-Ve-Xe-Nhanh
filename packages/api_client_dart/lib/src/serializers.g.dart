@@ -137,6 +137,18 @@ Serializers _$serializers = (Serializers().toBuilder()
       ..add(StopPointProposalResponseDtoOutput.serializer)
       ..add(StopPointProposalResponseDtoOutputStatusEnum.serializer)
       ..add(StopPointProposalResponseDtoOutputTypeEnum.serializer)
+      ..add(TripInputDto.serializer)
+      ..add(TripListResponseDtoOutput.serializer)
+      ..add(TripListResponseDtoOutputItemsInner.serializer)
+      ..add(TripListResponseDtoOutputItemsInnerStatusEnum.serializer)
+      ..add(TripResponseDtoOutput.serializer)
+      ..add(TripResponseDtoOutputSeatsInner.serializer)
+      ..add(TripResponseDtoOutputSeatsInnerStatusEnum.serializer)
+      ..add(TripResponseDtoOutputSeatsInnerTypeEnum.serializer)
+      ..add(TripResponseDtoOutputStatusEnum.serializer)
+      ..add(TripResponseDtoOutputStopsInner.serializer)
+      ..add(TripResponseDtoOutputStopsInnerRoleEnum.serializer)
+      ..add(TripResponseDtoOutputStopsInnerTypeEnum.serializer)
       ..add(VehicleInputDto.serializer)
       ..add(VehicleInputDtoStatusEnum.serializer)
       ..add(VehicleListResponseDtoOutput.serializer)
@@ -151,6 +163,9 @@ Serializers _$serializers = (Serializers().toBuilder()
       ..add(VehicleTypeListResponseDtoOutputItemsInnerFormEnum.serializer)
       ..add(WardListResponseDtoOutput.serializer)
       ..add(WardListResponseDtoOutputItemsInner.serializer)
+      ..addBuilderFactory(
+          const FullType(BuiltList, const [const FullType(DateTime)]),
+          () => ListBuilder<DateTime>())
       ..addBuilderFactory(
           const FullType(BuiltList,
               const [const FullType(EmployeeListResponseDtoOutputItemsInner)]),
@@ -232,6 +247,18 @@ Serializers _$serializers = (Serializers().toBuilder()
       ..addBuilderFactory(
           const FullType(BuiltList, const [const FullType(String)]),
           () => ListBuilder<String>())
+      ..addBuilderFactory(
+          const FullType(BuiltList,
+              const [const FullType(TripListResponseDtoOutputItemsInner)]),
+          () => ListBuilder<TripListResponseDtoOutputItemsInner>())
+      ..addBuilderFactory(
+          const FullType(BuiltList,
+              const [const FullType(TripResponseDtoOutputStopsInner)]),
+          () => ListBuilder<TripResponseDtoOutputStopsInner>())
+      ..addBuilderFactory(
+          const FullType(BuiltList,
+              const [const FullType(TripResponseDtoOutputSeatsInner)]),
+          () => ListBuilder<TripResponseDtoOutputSeatsInner>())
       ..addBuilderFactory(
           const FullType(BuiltList,
               const [const FullType(VehicleListResponseDtoOutputItemsInner)]),

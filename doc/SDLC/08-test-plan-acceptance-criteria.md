@@ -13,7 +13,7 @@
 | Người viết    | Nguyễn Hồng Khanh, AI Agent        |
 | Người duyệt   | Nguyễn Hồng Khanh                |
 | Ngày tạo      | 11/05/2026                       |
-| Ngày cập nhật | 04/10/2026                       |
+| Ngày cập nhật | 13/10/2026                       |
 
 ### 1.2. Lịch sử thay đổi
 
@@ -33,6 +33,7 @@
 | v0.12     | 04/10/2026 | AI Agent       | **Phân loại xe và loại chỗ (Khanh chốt 04/10/2026, SRS v1.33):** §9 thêm `TC-TRN-012..013` (lọc dạng chỗ / hạng xe độc lập; 5 loại chỗ, sức chứa chỗ đôi, giá riêng cho chỗ đôi). Giữ trạng thái Draft. |
 | v0.13     | 04/10/2026 | AI Agent       | **Đối chiếu Figma nhà xe (Khanh chốt 04/10/2026):** `TC-TRN-008` thêm chú thích ảnh; thêm `TC-TRN-014` (`deckCount`, `inUse`, `seatMapLocked`). Giữ trạng thái Draft. |
 | v0.14     | 04/10/2026 | AI Agent       | **Thiết kế lại điểm dừng (Khanh chốt 04/10/2026, SRS v1.35):** §7 truy vết; §8 AC điểm dừng; §9 thêm `TC-TRN-015..019` (loại điểm + đề xuất, cho đón / cho trả, Admin duyệt, Admin khóa, tìm theo vị trí). Giữ trạng thái Draft. |
+| v0.15     | 13/10/2026 | AI Agent       | **Đưa `TASK-TRN-003` về repo chính:** §9 thêm `TC-TRN-020` (điểm dừng của chuyến chép cho đón / cho trả từ tuyến + CHECK ở DB) và `TC-TRN-021` (E2E màn Chuyến xe Operator OS). Giữ trạng thái Draft. |
 
 ---
 
@@ -189,6 +190,8 @@ Mandatory (rủi ro cao, ADR-025): money math, idempotency, tenant RLS, seat-hol
 | TC-TRN-017 | Admin duyệt đề xuất → đúng một điểm dùng chung, mọi nhà xe gắn được vào route; hai Admin duyệt đồng thời → một thành công, một 409; từ chối thiếu lý do → 400; nhà xe không thấy đề xuất của nhà xe khác | Integration/Concurrency | Cao |
 | TC-TRN-018 | Admin khóa điểm riêng: thiếu lý do → 400; có `audit_event`; nhà xe sửa hoặc tự mở lại → 409 `STOP_POINT_SUSPENDED`, kể cả ghi thẳng DB bằng role app; điểm bị khóa không gắn mới vào route; chuyến dùng điểm đó không mở bán được, chuyến đã có vé giữ nguyên (BR-81) | Integration/Security | Cao |
 | TC-TRN-019 | Tìm chuyến: theo tỉnh → đúng chuyến có điểm cho đón ở tỉnh đi và sau đó điểm cho trả ở tỉnh đến; theo địa danh → khớp cả văn phòng riêng trong bán kính, không khớp điểm ngoài bán kính; trạm dừng nghỉ và điểm không cho đón / trả không khớp; chiều ngược lại không khớp (BR-80) | Integration | Cao |
+| TC-TRN-020 | Tạo / sửa chuyến chép `allow_pickup` / `allow_dropoff` và loại điểm từ tuyến vào `trip_stops` (BR-79); ghi thẳng DB điểm đầu cho trả hoặc điểm cuối cho đón → CHECK `trip_stops_pickup_dropoff_by_role` từ chối | Integration | Cao |
+| TC-TRN-021 | Operator OS — màn Chuyến xe: tạo chuyến nháp (thiếu ô báo tại ô, giờ đến tự gợi ý, giờ từng điểm tự chia), xe trùng giờ báo tại ô Xe và khởi hành đúng giờ đến chuyến trước thì lưu được, sửa chuyến với giờ tự nhập (vượt giờ đến bị chặn), lọc danh sách, sơ đồ ghế của xe đang có chuyến hiện "Đang dùng cho chuyến" | E2E (Playwright) | Cao |
 | TC-FARE-001 | Giá ghế = rule cụ thể nhất (khung giờ > không; đúng loại xe > mọi loại; đúng loại chỗ > mọi loại); biên `[validFrom, validTo)` đúng giờ khởi hành; đổi xe thường → xe VIP thì giá đổi theo; tiền `BIGINT` không qua số thực | Unit/Integration (money) | Rất cao |
 | TC-FARE-002 | Mỗi lần tạo/sửa bảng giá có đúng một bản ghi lịch sử (Mongo `audit_event`) chứa before/after; Mongo lỗi → không đổi giá | Integration | Cao |
 | TC-FARE-003 | Nhà xe B không đọc/sửa bảng giá, rule, lịch sử giá của A; `routeId` của B → 422 | Security | Rất cao |
