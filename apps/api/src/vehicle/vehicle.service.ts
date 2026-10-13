@@ -6,22 +6,28 @@ import { isPrismaUniqueConflict } from "../iam/user/account.errors";
 import type { VehicleInput, VehicleListResponse, VehicleResponse } from "./dto/vehicle.dto";
 import { catalogItemUnavailable } from "../catalog/catalog.errors";
 import { requireTenant } from "../iam/role/require-tenant";
-import { SEAT_MAP_SUMMARY_SELECT, type SeatMapSummaryRow, toSeatMapSummary } from "./seat-map.service";
-import { seatMapNotFound, vehicleNotFound, vehiclePlateConflict } from "./vehicle.errors";
+import { unfinishedTripWhere } from "../trip/trip-usage";
+import { seatMapSummarySelect, type SeatMapSummaryRow, toSeatMapSummary } from "./seat-map.service";
+import { seatMapInUse, seatMapNotFound, vehicleNotFound, vehiclePlateConflict } from "./vehicle.errors";
 
-const VEHICLE_SELECT = {
-  id: true,
-  plateNumber: true,
-  vehicleTypeId: true,
-  seatMapId: true,
-  // FK ghép `(seat_map_id, operator_id)` + RLS: sơ đồ lấy kèm luôn cùng tenant với xe.
-  seatMap: { select: SEAT_MAP_SUMMARY_SELECT },
-  status: true,
-  description: true,
-  createdAt: true,
-  updatedAt: true,
-  amenities: { select: { amenityId: true }, orderBy: { amenityId: "asc" } },
-} as const;
+/** `now` là mốc xét "chuyến chưa kết thúc" của cờ `seatMapLocked` và `seatMap.inUse` (UC-12 A3, TRN-011). */
+function vehicleSelect(now: Date) {
+  return {
+    id: true,
+    plateNumber: true,
+    vehicleTypeId: true,
+    seatMapId: true,
+    // FK ghép `(seat_map_id, operator_id)` + RLS: sơ đồ lấy kèm luôn cùng tenant với xe.
+    seatMap: { select: seatMapSummarySelect(now) },
+    status: true,
+    description: true,
+    createdAt: true,
+    updatedAt: true,
+    amenities: { select: { amenityId: true }, orderBy: { amenityId: "asc" } },
+    // Chuyến chưa kết thúc của xe — đúng điều kiện của 409 `SEAT_MAP_IN_USE` khi đổi `seatMapId`.
+    _count: { select: { trips: { where: unfinishedTripWhere(now) } } },
+  } as const;
+}
 
 type VehicleRow = {
   id: string;
@@ -34,6 +40,7 @@ type VehicleRow = {
   createdAt: Date;
   updatedAt: Date;
   amenities: { amenityId: string }[];
+  _count: { trips: number };
 };
 
 /**
@@ -60,7 +67,7 @@ export class VehicleService {
         },
         orderBy: { id: "asc" },
         take: query.limit + 1,
-        select: VEHICLE_SELECT,
+        select: vehicleSelect(new Date()),
       }),
     );
     const page = rows.slice(0, query.limit);
@@ -74,7 +81,7 @@ export class VehicleService {
   async get(authz: Authorization, vehicleId: string): Promise<VehicleResponse> {
     const { db, operatorId } = requireTenant(authz);
     const row = await this.prisma.withScope(db, (tx) =>
-      tx.vehicle.findFirst({ where: { id: vehicleId, operatorId }, select: VEHICLE_SELECT }),
+      tx.vehicle.findFirst({ where: { id: vehicleId, operatorId }, select: vehicleSelect(new Date()) }),
     );
     if (!row) {
       throw vehicleNotFound();
@@ -98,7 +105,7 @@ export class VehicleService {
             description: input.description,
             amenities: { create: input.amenityIds.map((amenityId) => ({ amenityId })) },
           },
-          select: VEHICLE_SELECT,
+          select: vehicleSelect(new Date()),
         });
       }),
     );
@@ -110,9 +117,12 @@ export class VehicleService {
     const { db, operatorId } = requireTenant(authz);
     const row = await this.withPlateConflict(() =>
       this.prisma.withScope(db, async (tx) => {
+        // Khoá dòng xe TRƯỚC khi đọc: `current.seatMapId` quyết định có kiểm UC-12 A3 hay không, đọc giá trị
+        // cũ (PUT khác vừa đổi sơ đồ) thì bỏ sót kiểm. Khoá này cũng xếp hàng với tạo chuyến (`FOR SHARE`).
+        await tx.$queryRaw`SELECT 1 FROM vehicles WHERE id = ${vehicleId} AND operator_id = ${operatorId} FOR NO KEY UPDATE`;
         const current = await tx.vehicle.findFirst({
           where: { id: vehicleId, operatorId },
-          select: { vehicleTypeId: true, amenities: { select: { amenityId: true } } },
+          select: { vehicleTypeId: true, seatMapId: true, amenities: { select: { amenityId: true } } },
         });
         if (!current) {
           throw vehicleNotFound();
@@ -134,11 +144,23 @@ export class VehicleService {
             description: input.description,
           },
         });
+        // UC-12 A3: xe đang chạy chuyến chưa kết thúc không đổi sơ đồ ghế (ghế chuyến lấy từ sơ đồ này).
+        // Dòng xe đã khoá từ đầu transaction nên chuyến tạo đồng thời (khoá `FOR SHARE` cùng dòng) đã commit
+        // trước — thấy ở đây — hoặc phải chờ và đọc sơ đồ mới.
+        if (input.seatMapId !== current.seatMapId) {
+          const inUse = await tx.trip.count({ where: { operatorId, vehicleId, ...unfinishedTripWhere(new Date()) } });
+          if (inUse > 0) {
+            throw seatMapInUse();
+          }
+        }
         await tx.vehicleAmenity.deleteMany({ where: { vehicleId, operatorId } });
         await tx.vehicleAmenity.createMany({
           data: input.amenityIds.map((amenityId) => ({ vehicleId, amenityId, operatorId })),
         });
-        return tx.vehicle.findFirstOrThrow({ where: { id: vehicleId, operatorId }, select: VEHICLE_SELECT });
+        return tx.vehicle.findFirstOrThrow({
+          where: { id: vehicleId, operatorId },
+          select: vehicleSelect(new Date()),
+        });
       }),
     );
     return toResponse(row);
@@ -192,12 +214,11 @@ async function assertReferences(
 }
 
 function toResponse(row: VehicleRow): VehicleResponse {
-  const { amenities, seatMap, ...vehicle } = row;
+  const { amenities, seatMap, _count, ...vehicle } = row;
   return {
     ...vehicle,
     seatMap: seatMap && toSeatMapSummary(seatMap),
-    // TRN-003 sẽ tính theo chuyến chưa kết thúc; trước đó luôn `false` (API §7.3).
-    seatMapLocked: false,
+    seatMapLocked: _count.trips > 0,
     amenityIds: amenities.map((amenity) => amenity.amenityId),
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),

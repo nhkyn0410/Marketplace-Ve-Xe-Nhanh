@@ -34,6 +34,22 @@ export function listVehicles(params: { status?: VehicleStatus; cursor?: string }
   return apiRequest<VehiclePage>(`/operator/vehicles?${query}`);
 }
 
+/** Mọi xe của nhà xe; đi hết các trang vì ô chọn xe của màn Chuyến xe cần đủ danh sách. */
+export async function listAllVehicles(): Promise<Vehicle[]> {
+  const items: Vehicle[] = [];
+  let cursor: string | null = null;
+  do {
+    const query = new URLSearchParams({ limit: "100" });
+    if (cursor) {
+      query.set("cursor", cursor);
+    }
+    const page: VehiclePage = await apiRequest<VehiclePage>(`/operator/vehicles?${query}`);
+    items.push(...page.items);
+    cursor = page.nextCursor;
+  } while (cursor);
+  return items;
+}
+
 /** Chi tiết một xe của nhà xe. */
 export function getVehicle(vehicleId: string): Promise<Vehicle> {
   return apiRequest<Vehicle>(`/operator/vehicles/${vehicleId}`);

@@ -17,6 +17,8 @@ export {
   StopPointStatus,
   StopPointType,
   SubjectType,
+  TripSeatStatus,
+  TripStatus,
   VehicleClass,
   VehicleForm,
   VehicleStatus,
