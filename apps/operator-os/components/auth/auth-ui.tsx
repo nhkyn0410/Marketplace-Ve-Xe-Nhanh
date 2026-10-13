@@ -28,8 +28,10 @@ export function AuthPage({ languageChip = true, children }: { languageChip?: boo
   }, []);
 
   return (
-    <div className="flex min-h-screen flex-col bg-vxn-bg-soft">
-      <div className="flex flex-1 flex-col bg-[linear-gradient(58.28deg,rgb(10,40,64)_15.109%,rgba(53,113,141,0.7)_70.074%,rgb(0,80,106)_87.469%)]">
+    // Khung tự cuộn + luôn giữ chỗ thanh cuộn: chuyển bước làm nội dung cao hơn khung nhìn không làm bố cục nhảy.
+    // Gradient đặt ở khung cuộn với `bg-origin-border` để phủ cả vùng giữ chỗ (không lộ dải nền trắng).
+    <div className="flex h-dvh flex-col overflow-y-auto bg-[linear-gradient(58.28deg,rgb(10,40,64)_15.109%,rgba(53,113,141,0.7)_70.074%,rgb(0,80,106)_87.469%)] bg-origin-border [scrollbar-gutter:stable]">
+      <div className="flex flex-1 flex-col">
         <header className="mx-auto flex w-full max-w-[1440px] items-center justify-between px-12 pt-16 pb-6 min-[1440px]:px-[94px] [@media(max-height:889px)]:pt-5 [@media(max-height:889px)]:pb-3">
           <LogoWordmark className="h-[60px] w-[235px] text-white [@media(max-height:889px)]:h-12 [@media(max-height:889px)]:w-[188px]" />
           {languageChip && (

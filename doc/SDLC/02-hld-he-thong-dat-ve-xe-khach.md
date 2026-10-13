@@ -13,7 +13,7 @@
 | Người viết    | Nguyễn Hồng Khanh, AI Agent                  |
 | Người duyệt   | Nguyễn Hồng Khanh                            |
 | Ngày tạo      | 11/05/2026                                   |
-| Ngày cập nhật | 04/10/2026                                   |
+| Ngày cập nhật | 07/10/2026                                   |
 
 ### 1.2. Lịch sử thay đổi
 
@@ -30,6 +30,7 @@
 | v0.9      | 30/09/2026 | AI Agent       | **TASK-TRN-005 Q1 = PA1:** `HLD-OQ-05` ghi chi tiết fare route-level (mỗi tuyến một bảng giá, rule theo loại xe × loại chỗ × giờ khởi hành). Giữ trạng thái Review. |
 | v0.10     | 03/10/2026 | AI Agent       | **Hình ảnh phương tiện (Khanh chốt 03/10/2026, SRS v1.32):** §8.2 Transport Resource phụ thuộc Storage adapter (R2 public); §9 dòng Vehicle / SeatMap thêm `VehicleImage` (ảnh công khai, Search đọc để hiển thị cho khách). Giữ trạng thái Review. |
 | v0.11     | 04/10/2026 | AI Agent       | **Thiết kế lại điểm dừng (Khanh chốt 04/10/2026, SRS v1.35):** §9 dòng Route / StopPoint — điểm dừng dùng chung do Admin lập / duyệt, điểm riêng chỉ văn phòng trung chuyển + trạm dừng nghỉ, Admin giám sát; quyền cho đón / cho trả; Search khớp theo vị trí. Giữ trạng thái Review. |
+| v0.12     | 07/10/2026 | AI Agent       | **Bản đồ trên web (`TASK-TRN-014`, ADR-027 amend 07/10/2026):** §13 dòng Routing + map — web vẽ bản đồ nền Goong bằng MapLibre GL JS qua lớp bản đồ dùng chung ở `packages/ui`, thay `@goongmaps/goong-js`. Khanh xác nhận 07/10/2026 (xem ADR-027). Giữ trạng thái Review. |
 
 ---
 
@@ -466,7 +467,7 @@ Tất cả vendor đứng sau adapter port `external/<provider>/` (ADR-006). Web
 | SMS               | **Defer v1** (ADR-020)                                                                     | `external/notification/sms/` chỉ adapter port + LocalLoggerAdapter; kích hoạt v1.x (eSMS.vn candidate)                                                                |
 | Push notification | **FCM (Android) + APNs (iOS) trực tiếp** — trong phạm vi v1 (ADR-020/028)                  | `external/notification/push/fcm/`; `firebase-admin` (FCM HTTP v1); client `firebase_messaging` (Flutter)                                                              |
 | OAuth provider    | **Google + Facebook + Apple**, Passenger-only (ADR-020)                                    | Better Auth built-in providers; Apple Sign-In mandatory App Store 4.8; Operator/Platform không OAuth                                                                  |
-| Routing + map     | **Goong** Direction + Distance Matrix + Maps + Geocoding (ADR-027, Make-in-VN thay Mapbox) | `external/routing/goong/`; Web `@goongmaps/goong-js`, Mobile MapLibre RN; distance/duration cache DB; `external/routing/osrm/` = escape-hatch (cần VN-corrected data) |
+| Routing + map     | **Goong** Direction + Distance Matrix + Maps + Geocoding (ADR-027, Make-in-VN thay Mapbox) | `external/routing/goong/`; Web MapLibre GL JS + bản đồ nền Goong (lớp bản đồ dùng chung ở `packages/ui`; ADR-027 amend 07/10/2026), Mobile MapLibre RN; distance/duration cache DB; `external/routing/osrm/` = escape-hatch (cần VN-corrected data) |
 | Object storage    | **Cloudflare R2** (ADR-018)                                                                | `external/storage/`; 2 bucket public/private; `@aws-sdk/client-s3` (S3-compatible); KYC production location defer OQ-21                                               |
 | Bank payout       | **Manual admin-confirm + batch** (ADR-022)                                                 | `external/payout/`; `ManualPayoutAdapter`; auto-disbursement defer v1.x tied OQ-22                                                                                    |
 | Cache + lock      | **Redis 7 (Upstash managed SG)** (ADR-015)                                                 | `redis/`; `ioredis` + cache-manager + custom lock service (`SET NX EX` + Lua release)                                                                                 |

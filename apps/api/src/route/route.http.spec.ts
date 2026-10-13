@@ -184,6 +184,19 @@ describe("Route / StopPoint / Proposal routes — HTTP", () => {
     expect(listQuery).toEqual({ status: "SUSPENDED", type: "REST_STOP", provinceId, q: "tram dung", limit: 20 });
   });
 
+  it("GET /routes: mỗi dòng trả số điểm và tên điểm đầu / điểm cuối, không kèm danh sách điểm (TRN-013)", async () => {
+    const { note: _note, stops: _stops, ...summary } = route;
+    services.routes.list.mockResolvedValueOnce({
+      items: [{ ...summary, stopCount: 3, originName: "Bến xe Miền Đông mới", destinationName: "Bến xe liên tỉnh Đà Lạt", stops: [] }],
+      nextCursor: null,
+    } as never);
+    const response = await call("GET", "/routes", await token("OPERATOR_OWNER"));
+    expect(response.status).toBe(200);
+    const [item] = response.body.items as Record<string, unknown>[];
+    expect(item).toMatchObject({ stopCount: 3, originName: "Bến xe Miền Đông mới", destinationName: "Bến xe liên tỉnh Đà Lạt" });
+    expect(item).not.toHaveProperty("stops");
+  });
+
   it("response tuyến trả loại điểm và hai cờ cho đón / cho trả của từng điểm", async () => {
     const stop = {
       sequence: 1,

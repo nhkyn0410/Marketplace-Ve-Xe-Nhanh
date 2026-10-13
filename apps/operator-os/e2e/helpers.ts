@@ -7,6 +7,14 @@ export type E2eAccounts = {
   owner: { username: string; temporaryPassword: string; newPassword: string };
   /** Owner riêng cho E2E màn nghiệp vụ: mật khẩu thường, chưa bật TOTP. */
   fleetOwner: { username: string; password: string };
+  /** Owner riêng cho E2E màn điểm dừng / tuyến đường: mật khẩu thường, chưa bật TOTP. */
+  routeOwner: { username: string; password: string };
+  /** Nhà xe riêng của E2E màn chuyến xe (có sẵn tuyến + xe, nên tách khỏi nhà xe của các spec kiểm danh sách rỗng). */
+  tripOperatorSlug: string;
+  /** Owner của nhà xe đó: mật khẩu thường, chưa bật TOTP. */
+  tripOwner: { username: string; password: string };
+  /** Tuyến và xe dựng sẵn cho `tripOwner`; `null` khi catalog chưa seed. */
+  tripFixtures: { routeName: string; plateNumber: string; seatMapName: string } | null;
   employee: { username: string; password: string };
   platform: { username: string; password: string };
 };
@@ -34,6 +42,16 @@ export function totp(secretBase32: string, nowMs = Date.now()): string {
   const offset = hmac[hmac.length - 1]! & 0x0f;
   const code = (hmac.readUInt32BE(offset) & 0x7fffffff) % 1_000_000;
   return code.toString().padStart(6, "0");
+}
+
+/**
+ * Thay bản đồ nền Goong bằng một nền trống để E2E không gọi ra ngoài và không cần khóa thật (TASK-TRN-014).
+ * Ghim, đường nối và thao tác trên bản đồ vẫn kiểm được; hình bản đồ thật thì không — phần đó kiểm tay.
+ */
+export async function stubMapTiles(page: Page): Promise<void> {
+  await page.route("https://tiles.goong.io/**", (route) =>
+    route.fulfill({ contentType: "application/json", body: JSON.stringify({ version: 8, sources: {}, layers: [] }) })
+  );
 }
 
 /**

@@ -46,6 +46,10 @@ export const RLS_TABLES = [
   "stop_point_proposals",
   "routes",
   "route_stops",
+  // Trip & Inventory (TASK-TRN-003).
+  "trips",
+  "trip_stops",
+  "trip_seats",
 ] as const;
 
 @Injectable()

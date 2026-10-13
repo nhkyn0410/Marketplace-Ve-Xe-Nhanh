@@ -21,6 +21,8 @@ part 'route_list_response_dto_output_items_inner.g.dart';
 /// * [createdAt] 
 /// * [updatedAt] 
 /// * [stopCount] 
+/// * [originName] 
+/// * [destinationName] 
 @BuiltValue()
 abstract class RouteListResponseDtoOutputItemsInner implements Built<RouteListResponseDtoOutputItemsInner, RouteListResponseDtoOutputItemsInnerBuilder> {
   @BuiltValueField(wireName: r'id')
@@ -51,6 +53,12 @@ abstract class RouteListResponseDtoOutputItemsInner implements Built<RouteListRe
 
   @BuiltValueField(wireName: r'stopCount')
   int get stopCount;
+
+  @BuiltValueField(wireName: r'originName')
+  String get originName;
+
+  @BuiltValueField(wireName: r'destinationName')
+  String get destinationName;
 
   RouteListResponseDtoOutputItemsInner._();
 
@@ -119,6 +127,16 @@ class _$RouteListResponseDtoOutputItemsInnerSerializer implements PrimitiveSeria
     yield serializers.serialize(
       object.stopCount,
       specifiedType: const FullType(int),
+    );
+    yield r'originName';
+    yield serializers.serialize(
+      object.originName,
+      specifiedType: const FullType(String),
+    );
+    yield r'destinationName';
+    yield serializers.serialize(
+      object.destinationName,
+      specifiedType: const FullType(String),
     );
   }
 
@@ -205,6 +223,20 @@ class _$RouteListResponseDtoOutputItemsInnerSerializer implements PrimitiveSeria
             specifiedType: const FullType(int),
           ) as int;
           result.stopCount = valueDes;
+          break;
+        case r'originName':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(String),
+          ) as String;
+          result.originName = valueDes;
+          break;
+        case r'destinationName':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(String),
+          ) as String;
+          result.destinationName = valueDes;
           break;
         default:
           unhandled.add(key);

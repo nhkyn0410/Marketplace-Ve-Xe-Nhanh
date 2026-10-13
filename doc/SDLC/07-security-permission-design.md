@@ -13,7 +13,7 @@
 | Người viết    | Nguyễn Hồng Khanh, AI Agent   |
 | Người duyệt   | Nguyễn Hồng Khanh             |
 | Ngày tạo      | 11/05/2026                    |
-| Ngày cập nhật | 04/10/2026                    |
+| Ngày cập nhật | 07/10/2026                    |
 
 ### 1.2. Lịch sử thay đổi
 
@@ -35,6 +35,7 @@
 | v0.14     | 03/10/2026 | AI Agent       | **Hình ảnh phương tiện (Khanh chốt 03/10/2026, SRS v1.32):** §6 ranh giới ảnh xe công khai; §7 dòng ảnh phương tiện; §8 Admin gỡ ảnh; §9 kiểm soát file ảnh ở R2 public; §11 threat tải file độc hại / gắn ảnh tenant khác. Giữ trạng thái Review. |
 | v0.15     | 04/10/2026 | AI Agent       | **Đối chiếu Figma nhà xe (Khanh chốt 04/10/2026):** §9 — chú thích ảnh phương tiện là văn bản công khai do nhà xe nhập, hiển thị dạng text thuần. Giữ trạng thái Review. |
 | v0.16     | 04/10/2026 | AI Agent       | **Thiết kế lại điểm dừng (Khanh chốt 04/10/2026, SRS v1.35):** §6 ranh giới điểm dừng dùng chung / riêng; §7 dòng Route/StopPoint; §8 duyệt đề xuất và khóa điểm riêng; §11 chặn nhà xe tự hợp thức hóa điểm đón trả. Giữ trạng thái Review. |
+| v0.17     | 07/10/2026 | AI Agent       | **Bản đồ trên web (`TASK-TRN-014`):** §11 dòng XSS — ghi sẵn các nguồn mà bản đồ cần khi viết CSP đầy đủ. Khóa Goong Maptiles là khóa công khai phía trình duyệt, không phải bí mật. Giữ trạng thái Review. |
 
 ---
 
@@ -234,7 +235,7 @@ AuditLog ghi vào Mongo `audit_event` (cluster RIÊNG, append-only via REVOKE, A
 | --------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
 | IDOR                  | Backend ownership check + tenant filter + Postgres RLS, test case bắt buộc                                                     |
 | SQL/NoSQL Injection   | Prisma parameterized query (Postgres); Mongoose schema validation (Mongo audit); Zod input validation; không truyền filter raw |
-| XSS                   | Escape/sanitize nội dung user-generated, CSP TBD                                                                               |
+| XSS                   | Escape/sanitize nội dung user-generated, CSP TBD (khi viết: bản đồ web cần `worker-src 'self'`, `connect-src` tới các tên miền Goong, `img-src data: blob:` — `TASK-TRN-014`)                                                                               |
 | CSRF                  | Web cookie dùng signed double-submit `vxn_csrf` + `X-CSRF-Token` và exact `Origin`; rotate theo session/refresh; Mobile Bearer không áp dụng |
 | CORS                  | Credentialed exact-origin allowlist theo môi trường; không wildcard; reject unsafe cookie request thiếu/sai Origin             |
 | Credential confusion  | Bearer và access cookie cùng xuất hiện → `400 AUTH_TRANSPORT_AMBIGUOUS`; không ưu tiên ngầm                                     |

@@ -12,6 +12,7 @@ import { QueueModule } from "./queue/queue.module";
 import { CatalogModule } from "./catalog/catalog.module";
 import { RouteModule } from "./route/route.module";
 import { StopPointModule } from "./stop-point/stop-point.module";
+import { TripModule } from "./trip/trip.module";
 import { VehicleModule } from "./vehicle/vehicle.module";
 
 @Module({
@@ -27,6 +28,7 @@ import { VehicleModule } from "./vehicle/vehicle.module";
     VehicleModule,
     StopPointModule,
     RouteModule,
+    TripModule,
   ],
   controllers: [AppController],
   providers: [{ provide: APP_INTERCEPTOR, useClass: ZodSerializerInterceptor }],

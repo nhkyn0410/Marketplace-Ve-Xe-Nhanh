@@ -9,6 +9,7 @@ import { CredentialService } from "../src/iam/auth/credential.service";
  * Seed cho E2E web auth (TASK-IAM-006, TC-SEC-008): mỗi lần chạy tạo bộ tài khoản MỚI với mật khẩu
  * ngẫu nhiên — Owner mật khẩu tạm + Employee DRIVER trong một nhà xe mới, và một Platform admin chưa
  * bật TOTP. In JSON ra stdout cho global-setup của Playwright; KHÔNG ghi file, KHÔNG chạy ở production.
+ * Kèm dữ liệu nền cho E2E màn Chuyến xe (TASK-TRN-003): một tuyến ba điểm và một xe đã gắn sơ đồ ghế.
  */
 function loadEnv(): void {
   const nodeEnv = process.env.NODE_ENV?.trim() || "development";
@@ -48,14 +49,25 @@ async function main(): Promise<void> {
     // Owner thứ hai cho E2E màn nghiệp vụ (xe, sơ đồ ghế): mật khẩu thường, chưa bật TOTP — spec tự
     // enrollment, không phụ thuộc thứ tự chạy với các ca đăng nhập của `owner`.
     fleetOwner: { username: `fleet-${tag}`, password: password() },
+    // Owner thứ ba cho E2E màn điểm dừng / tuyến đường: mỗi spec tự enrollment TOTP một lần nên không dùng
+    // chung tài khoản với spec khác.
+    routeOwner: { username: `route-${tag}`, password: password() },
+    // Owner cho E2E màn Chuyến xe, ở một nhà xe RIÊNG kèm tuyến + xe dựng sẵn (`tripFixtures`): dữ liệu nền
+    // không được lẫn vào nhà xe ở trên, vì spec xe / điểm dừng kiểm cả trạng thái danh sách rỗng.
+    tripOperatorSlug: `e2e-trip-${tag}`,
+    tripOwner: { username: `trip-${tag}`, password: password() },
+    // `null` khi catalog chưa seed (thiếu phường / loại xe) — spec Chuyến xe sẽ báo cần chạy `db:seed:catalog`.
+    tripFixtures: null as { routeName: string; plateNumber: string; seatMapName: string } | null,
     employee: { username: `nv.driver-${tag}`, password: password() },
     platform: { username: `e2e-${tag}`, password: password() }
   };
 
   const credentials = new CredentialService();
-  const [ownerHash, fleetOwnerHash, employeeHash, platformHash] = await Promise.all([
+  const [ownerHash, fleetOwnerHash, routeOwnerHash, tripOwnerHash, employeeHash, platformHash] = await Promise.all([
     credentials.hash(accounts.owner.temporaryPassword),
     credentials.hash(accounts.fleetOwner.password),
+    credentials.hash(accounts.routeOwner.password),
+    credentials.hash(accounts.tripOwner.password),
     credentials.hash(accounts.employee.password),
     credentials.hash(accounts.platform.password)
   ]);
@@ -87,6 +99,28 @@ async function main(): Promise<void> {
           passwordHash: fleetOwnerHash
         }
       });
+      await tx.operatorAccount.create({
+        data: {
+          operatorId: operator.id,
+          operatorSlug,
+          username: accounts.routeOwner.username,
+          contactEmail: `route-${tag}@example.com`,
+          passwordHash: routeOwnerHash
+        }
+      });
+      const tripOperator = await tx.operatorProfile.create({
+        data: { operatorSlug: accounts.tripOperatorSlug, displayName: `E2E chuyến ${tag}`, status: "ACTIVE" }
+      });
+      await tx.operatorAccount.create({
+        data: {
+          operatorId: tripOperator.id,
+          operatorSlug: accounts.tripOperatorSlug,
+          username: accounts.tripOwner.username,
+          contactEmail: `trip-${tag}@example.com`,
+          passwordHash: tripOwnerHash
+        }
+      });
+      accounts.tripFixtures = await seedTripFixtures(tx, tripOperator.id);
       await tx.employeeAccount.create({
         data: { operatorId: operator.id, username: accounts.employee.username, passwordHash: employeeHash, role: "DRIVER" }
       });
@@ -99,6 +133,84 @@ async function main(): Promise<void> {
   }
 
   process.stdout.write(`${JSON.stringify(accounts)}\n`);
+}
+
+/**
+ * Tuyến ba điểm (văn phòng → trạm dừng nghỉ → văn phòng, hai chặng 2 giờ 45 phút) và một xe gắn sơ đồ bốn
+ * giường, ghi thẳng DB để E2E màn Chuyến xe không phải dựng lại qua giao diện (các luồng đó đã có spec riêng).
+ */
+async function seedTripFixtures(
+  tx: Parameters<Parameters<PrismaClient["$transaction"]>[0]>[0],
+  operatorId: string
+): Promise<{ routeName: string; plateNumber: string; seatMapName: string } | null> {
+  const ward = await tx.ward.findFirst({ select: { id: true, provinceId: true } });
+  const vehicleType = await tx.vehicleType.findFirst({ where: { status: "ACTIVE" }, select: { id: true } });
+  if (!ward || !vehicleType) {
+    return null;
+  }
+  const fixtures = { routeName: "E2E Sài Gòn – Đà Lạt", plateNumber: "51B28912", seatMapName: "E2E Giường 4 chỗ" };
+  const points = [
+    { name: "E2E Văn phòng Sài Gòn", type: "OFFICE", latitude: 10.8142, longitude: 106.7109 },
+    { name: "E2E Trạm dừng nghỉ Madagui", type: "REST_STOP", latitude: 11.3912, longitude: 107.5345 },
+    { name: "E2E Văn phòng Đà Lạt", type: "OFFICE", latitude: 11.9404, longitude: 108.4583 }
+  ] as const;
+  const stopPoints = [];
+  for (const point of points) {
+    stopPoints.push(
+      await tx.stopPoint.create({
+        data: { ...point, operatorId, address: "Địa chỉ E2E", provinceId: ward.provinceId, wardId: ward.id }
+      })
+    );
+  }
+  const last = stopPoints.length - 1;
+  const route = await tx.route.create({
+    data: {
+      operatorId,
+      name: fixtures.routeName,
+      totalDistanceMeters: 300_000,
+      totalDurationSeconds: 19_800,
+      metricsSource: "ESTIMATE"
+    }
+  });
+  await tx.routeStop.createMany({
+    data: stopPoints.map((point, index) => ({
+      operatorId,
+      routeId: route.id,
+      sequence: index + 1,
+      role: index === 0 ? ("ORIGIN" as const) : index === last ? ("DESTINATION" as const) : ("INTERMEDIATE" as const),
+      stopPointId: point.id,
+      // BR-79: điểm đầu chỉ đón, điểm cuối chỉ trả, trạm dừng nghỉ không đón trả.
+      allowPickup: index === 0,
+      allowDropoff: index === last,
+      latitude: point.latitude,
+      longitude: point.longitude,
+      distanceMetersFromPrevious: index === 0 ? null : 150_000,
+      durationSecondsFromPrevious: index === 0 ? null : 9_900
+    }))
+  });
+  const seatMap = await tx.seatMap.create({
+    data: {
+      operatorId,
+      name: fixtures.seatMapName,
+      layout: { decks: [{ deck: 1, rows: 2, columns: 2 }] },
+      seatCount: 4
+    }
+  });
+  await tx.seat.createMany({
+    data: [1, 2, 3, 4].map((order) => ({
+      operatorId,
+      seatMapId: seatMap.id,
+      code: `A0${order}`,
+      deck: 1,
+      row: Math.ceil(order / 2),
+      column: ((order - 1) % 2) + 1,
+      type: "BED" as const
+    }))
+  });
+  await tx.vehicle.create({
+    data: { operatorId, plateNumber: fixtures.plateNumber, vehicleTypeId: vehicleType.id, seatMapId: seatMap.id }
+  });
+  return fixtures;
 }
 
 main().catch((error: unknown) => {

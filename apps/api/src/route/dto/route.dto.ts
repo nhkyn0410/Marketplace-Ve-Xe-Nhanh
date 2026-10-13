@@ -72,11 +72,19 @@ const RouteSummaryFields = {
 };
 
 export const RouteListResponseSchema = z.object({
-  items: z.array(z.object({ ...RouteSummaryFields, stopCount: z.int() })),
+  items: z.array(
+    z.object({
+      ...RouteSummaryFields,
+      stopCount: z.int(),
+      // Tên điểm đầu / điểm cuối cho cột "Điểm đầu → Điểm cuối" của màn danh sách (TASK-TRN-013).
+      originName: z.string(),
+      destinationName: z.string(),
+    }),
+  ),
   nextCursor: z.uuid().nullable(),
 });
 export type RouteListResponse = z.infer<typeof RouteListResponseSchema>;
-/** Một trang route (không kèm điểm dừng). */
+/** Một trang route (không kèm danh sách điểm dừng, chỉ tên điểm đầu / điểm cuối). */
 export class RouteListResponseDto extends createZodDto(RouteListResponseSchema) {}
 
 export const RouteResponseSchema = z.object({

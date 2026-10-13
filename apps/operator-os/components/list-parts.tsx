@@ -10,19 +10,24 @@ export function ListStatePanel({
   icon,
   title,
   description,
-  action
+  action,
+  compact = false
 }: {
   icon: ReactNode;
   title: string;
   description: string;
-  action: ReactNode;
+  action?: ReactNode;
+  /** Bảng phụ đứng chung trang với bảng khác (vd đề xuất điểm dừng): khối thấp hơn, không chiếm cả màn. */
+  compact?: boolean;
 }) {
   return (
-    <div className="flex min-h-[504px] flex-col items-center justify-center gap-2 px-4 text-center">
+    <div
+      className={`flex flex-col items-center justify-center gap-2 px-4 text-center ${compact ? "min-h-[240px]" : "min-h-[504px]"}`}
+    >
       {icon}
       <p className="mt-1 text-base leading-6 font-semibold text-vxn-ink">{title}</p>
       <p className="max-w-md text-sm leading-5 text-muted-foreground">{description}</p>
-      <div className="mt-4">{action}</div>
+      {action && <div className="mt-4">{action}</div>}
     </div>
   );
 }

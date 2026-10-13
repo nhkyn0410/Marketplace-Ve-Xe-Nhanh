@@ -54,7 +54,7 @@ export const VehicleResponseSchema = z.object({
   // phải ghép với danh sách SeatMap (hai danh sách phân trang riêng).
   seatMap: SeatMapSummarySchema.nullable(),
   // TRN-011: `true` khi xe còn chuyến chưa kết thúc nên chưa đổi được `seatMapId`. Chỉ để giao diện khóa
-  // trước; chưa có module chuyến (TRN-003) nên hiện luôn `false`.
+  // trước; server vẫn kiểm lại khi ghi (409 `SEAT_MAP_IN_USE`).
   seatMapLocked: z.boolean(),
   amenityIds: z.array(z.uuid()),
   status: z.enum(VehicleStatus),
