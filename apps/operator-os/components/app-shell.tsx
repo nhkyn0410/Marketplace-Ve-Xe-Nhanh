@@ -94,17 +94,25 @@ export function AppShell({ children }: { children: ReactNode }) {
             <span className="text-sm leading-5 font-semibold text-vxn-teal-700">Cần hỗ trợ vận hành?</span>
             <span className="text-xs leading-[18px] text-vxn-teal-700">Trung tâm hỗ trợ</span>
           </Link>
-          <div className="flex items-center gap-3 px-5 py-4">
-            <span
-              aria-hidden
-              className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-accent text-sm font-semibold text-vxn-teal-700"
+          <div className="flex items-center gap-1 px-3 py-4">
+            {/* Khối tài khoản mở màn Tài khoản và bảo mật (phiên đăng nhập — FR-IAM-15). */}
+            <Link
+              href="/account"
+              aria-label="Tài khoản và bảo mật"
+              title="Tài khoản và bảo mật"
+              className="flex min-w-0 flex-1 items-center gap-3 rounded-lg p-2 outline-none hover:bg-muted focus-visible:ring-[3px] focus-visible:ring-ring/50"
             >
-              {username.slice(0, 2).toUpperCase()}
-            </span>
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-sm leading-5 font-semibold text-vxn-fg-1">Chủ nhà xe</p>
-              <p className="truncate text-xs leading-[18px] text-muted-foreground">{username}</p>
-            </div>
+              <span
+                aria-hidden
+                className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-accent text-sm font-semibold text-vxn-teal-700"
+              >
+                {username.slice(0, 2).toUpperCase()}
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="block truncate text-sm leading-5 font-semibold text-vxn-fg-1">Chủ nhà xe</span>
+                <span className="block truncate text-xs leading-[18px] text-muted-foreground">{username}</span>
+              </span>
+            </Link>
             <button
               type="button"
               aria-label="Đăng xuất"

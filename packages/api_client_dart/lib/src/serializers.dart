@@ -103,9 +103,15 @@ import 'package:api_client_dart/src/model/trip_response_dto_output_seats_inner.d
 import 'package:api_client_dart/src/model/trip_response_dto_output_stops_inner.dart';
 import 'package:api_client_dart/src/model/trip_seat_status_input_dto.dart';
 import 'package:api_client_dart/src/model/trip_status_input_dto.dart';
+import 'package:api_client_dart/src/model/vehicle_image_upload_input_dto.dart';
+import 'package:api_client_dart/src/model/vehicle_image_upload_response_dto_output.dart';
+import 'package:api_client_dart/src/model/vehicle_images_input_dto.dart';
+import 'package:api_client_dart/src/model/vehicle_images_input_dto_images_inner.dart';
+import 'package:api_client_dart/src/model/vehicle_images_response_dto_output.dart';
 import 'package:api_client_dart/src/model/vehicle_input_dto.dart';
 import 'package:api_client_dart/src/model/vehicle_list_response_dto_output.dart';
 import 'package:api_client_dart/src/model/vehicle_list_response_dto_output_items_inner.dart';
+import 'package:api_client_dart/src/model/vehicle_list_response_dto_output_items_inner_images_inner.dart';
 import 'package:api_client_dart/src/model/vehicle_list_response_dto_output_items_inner_seat_map.dart';
 import 'package:api_client_dart/src/model/vehicle_response_dto_output.dart';
 import 'package:api_client_dart/src/model/vehicle_type_list_response_dto_output.dart';
@@ -205,9 +211,15 @@ part 'serializers.g.dart';
   TripResponseDtoOutputStopsInner,
   TripSeatStatusInputDto,
   TripStatusInputDto,
+  VehicleImageUploadInputDto,
+  VehicleImageUploadResponseDtoOutput,
+  VehicleImagesInputDto,
+  VehicleImagesInputDtoImagesInner,
+  VehicleImagesResponseDtoOutput,
   VehicleInputDto,
   VehicleListResponseDtoOutput,
   VehicleListResponseDtoOutputItemsInner,
+  VehicleListResponseDtoOutputItemsInnerImagesInner,
   VehicleListResponseDtoOutputItemsInnerSeatMap,
   VehicleResponseDtoOutput,
   VehicleTypeListResponseDtoOutput,
@@ -219,6 +231,10 @@ Serializers serializers = (_$serializers.toBuilder()
       ..addBuilderFactory(
         const FullType(BuiltList, [FullType(RouteInputDtoStopsInner)]),
         () => ListBuilder<RouteInputDtoStopsInner>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(VehicleImagesInputDtoImagesInner)]),
+        () => ListBuilder<VehicleImagesInputDtoImagesInner>(),
       )
       ..addBuilderFactory(
         const FullType(BuiltList, [FullType(FareListResponseDtoOutputItemsInner)]),
@@ -259,6 +275,10 @@ Serializers serializers = (_$serializers.toBuilder()
       ..addBuilderFactory(
         const FullType(BuiltList, [FullType(ProvinceListResponseDtoOutputItemsInner)]),
         () => ListBuilder<ProvinceListResponseDtoOutputItemsInner>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(VehicleListResponseDtoOutputItemsInnerImagesInner)]),
+        () => ListBuilder<VehicleListResponseDtoOutputItemsInnerImagesInner>(),
       )
       ..addBuilderFactory(
         const FullType(BuiltList, [FullType(RouteListResponseDtoOutputItemsInner)]),

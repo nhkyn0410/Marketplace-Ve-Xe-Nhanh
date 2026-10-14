@@ -111,9 +111,15 @@ export 'package:api_client_dart/src/model/trip_response_dto_output_seats_inner.d
 export 'package:api_client_dart/src/model/trip_response_dto_output_stops_inner.dart';
 export 'package:api_client_dart/src/model/trip_seat_status_input_dto.dart';
 export 'package:api_client_dart/src/model/trip_status_input_dto.dart';
+export 'package:api_client_dart/src/model/vehicle_image_upload_input_dto.dart';
+export 'package:api_client_dart/src/model/vehicle_image_upload_response_dto_output.dart';
+export 'package:api_client_dart/src/model/vehicle_images_input_dto.dart';
+export 'package:api_client_dart/src/model/vehicle_images_input_dto_images_inner.dart';
+export 'package:api_client_dart/src/model/vehicle_images_response_dto_output.dart';
 export 'package:api_client_dart/src/model/vehicle_input_dto.dart';
 export 'package:api_client_dart/src/model/vehicle_list_response_dto_output.dart';
 export 'package:api_client_dart/src/model/vehicle_list_response_dto_output_items_inner.dart';
+export 'package:api_client_dart/src/model/vehicle_list_response_dto_output_items_inner_images_inner.dart';
 export 'package:api_client_dart/src/model/vehicle_list_response_dto_output_items_inner_seat_map.dart';
 export 'package:api_client_dart/src/model/vehicle_response_dto_output.dart';
 export 'package:api_client_dart/src/model/vehicle_type_list_response_dto_output.dart';

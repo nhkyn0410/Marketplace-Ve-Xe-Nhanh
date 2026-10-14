@@ -2,14 +2,18 @@ import { randomBytes, randomUUID } from "node:crypto";
 import { existsSync } from "node:fs";
 import { resolve } from "node:path";
 import { PrismaPg } from "@prisma/adapter-pg";
+import Redis from "ioredis";
 import { PrismaClient } from "../src/generated/prisma/client";
 import { CredentialService } from "../src/iam/auth/credential.service";
+import { TEMP_EMAIL_GLOBAL_KEY } from "../src/iam/user/temporary-credential-email-limiter";
+import { getRedisUrl } from "../src/redis/redis.config";
 
 /**
  * Seed cho E2E web auth (TASK-IAM-006, TC-SEC-008): mỗi lần chạy tạo bộ tài khoản MỚI với mật khẩu
  * ngẫu nhiên — Owner mật khẩu tạm + Employee DRIVER trong một nhà xe mới, và một Platform admin chưa
  * bật TOTP. In JSON ra stdout cho global-setup của Playwright; KHÔNG ghi file, KHÔNG chạy ở production.
  * Kèm dữ liệu nền cho E2E màn Chuyến xe (TASK-TRN-003): một tuyến ba điểm và một xe đã gắn sơ đồ ghế.
+ * E2E màn Nhân viên gửi mật khẩu tạm thật qua API nên seed đặt lại ngân sách email toàn hệ thống ở Redis local.
  */
 function loadEnv(): void {
   const nodeEnv = process.env.NODE_ENV?.trim() || "development";
@@ -52,6 +56,8 @@ async function main(): Promise<void> {
     // Owner thứ ba cho E2E màn điểm dừng / tuyến đường: mỗi spec tự enrollment TOTP một lần nên không dùng
     // chung tài khoản với spec khác.
     routeOwner: { username: `route-${tag}`, password: password() },
+    // Owner cho E2E màn Nhân viên + Tài khoản: thao tác nhạy cảm cần xác nhận lại bằng mật khẩu của chính Owner.
+    staffOwner: { username: `staff-${tag}`, password: password() },
     // Owner cho E2E màn Chuyến xe, ở một nhà xe RIÊNG kèm tuyến + xe dựng sẵn (`tripFixtures`): dữ liệu nền
     // không được lẫn vào nhà xe ở trên, vì spec xe / điểm dừng kiểm cả trạng thái danh sách rỗng.
     tripOperatorSlug: `e2e-trip-${tag}`,
@@ -63,14 +69,16 @@ async function main(): Promise<void> {
   };
 
   const credentials = new CredentialService();
-  const [ownerHash, fleetOwnerHash, routeOwnerHash, tripOwnerHash, employeeHash, platformHash] = await Promise.all([
-    credentials.hash(accounts.owner.temporaryPassword),
-    credentials.hash(accounts.fleetOwner.password),
-    credentials.hash(accounts.routeOwner.password),
-    credentials.hash(accounts.tripOwner.password),
-    credentials.hash(accounts.employee.password),
-    credentials.hash(accounts.platform.password)
-  ]);
+  const [ownerHash, fleetOwnerHash, routeOwnerHash, staffOwnerHash, tripOwnerHash, employeeHash, platformHash] =
+    await Promise.all([
+      credentials.hash(accounts.owner.temporaryPassword),
+      credentials.hash(accounts.fleetOwner.password),
+      credentials.hash(accounts.routeOwner.password),
+      credentials.hash(accounts.staffOwner.password),
+      credentials.hash(accounts.tripOwner.password),
+      credentials.hash(accounts.employee.password),
+      credentials.hash(accounts.platform.password)
+    ]);
 
   const prisma = new PrismaClient({ adapter: new PrismaPg({ connectionString }) });
   try {
@@ -108,6 +116,15 @@ async function main(): Promise<void> {
           passwordHash: routeOwnerHash
         }
       });
+      await tx.operatorAccount.create({
+        data: {
+          operatorId: operator.id,
+          operatorSlug,
+          username: accounts.staffOwner.username,
+          contactEmail: `staff-${tag}@example.com`,
+          passwordHash: staffOwnerHash
+        }
+      });
       const tripOperator = await tx.operatorProfile.create({
         data: { operatorSlug: accounts.tripOperatorSlug, displayName: `E2E chuyến ${tag}`, status: "ACTIVE" }
       });
@@ -131,8 +148,31 @@ async function main(): Promise<void> {
   } finally {
     await prisma.$disconnect();
   }
+  await resetTemporaryPasswordEmailBudget();
 
   process.stdout.write(`${JSON.stringify(accounts)}\n`);
+}
+
+/**
+ * Ngân sách email mật khẩu tạm toàn hệ thống là 30 / 24 giờ và mọi lần chạy E2E trên máy dev dùng chung một
+ * Redis: không đặt lại thì sau vài chục lần chạy, ca tạo nhân viên nhận 429. Ngân sách theo nhà xe / người thao
+ * tác không cần đặt lại vì mỗi lần seed là nhà xe mới. Chỉ đụng Redis local; Redis chưa chạy thì bỏ qua — API khi
+ * đó tự trả 503 và spec báo rõ.
+ */
+async function resetTemporaryPasswordEmailBudget(): Promise<void> {
+  const url = getRedisUrl();
+  if (!["localhost", "127.0.0.1", "[::1]", "::1"].includes(new URL(url).hostname)) {
+    return;
+  }
+  const redis = new Redis(url, { lazyConnect: true, maxRetriesPerRequest: 1, retryStrategy: () => null });
+  try {
+    await redis.connect();
+    await redis.del(TEMP_EMAIL_GLOBAL_KEY);
+  } catch {
+    // Redis local chưa chạy.
+  } finally {
+    redis.disconnect();
+  }
 }
 
 /**

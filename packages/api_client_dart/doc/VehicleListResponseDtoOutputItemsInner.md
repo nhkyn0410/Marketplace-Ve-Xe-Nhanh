@@ -15,6 +15,7 @@ Name | Type | Description | Notes
 **seatMap** | [**VehicleListResponseDtoOutputItemsInnerSeatMap**](VehicleListResponseDtoOutputItemsInnerSeatMap.md) |  | 
 **seatMapLocked** | **bool** |  | 
 **amenityIds** | **BuiltList&lt;String&gt;** |  | 
+**images** | [**BuiltList&lt;VehicleListResponseDtoOutputItemsInnerImagesInner&gt;**](VehicleListResponseDtoOutputItemsInnerImagesInner.md) |  | 
 **status** | **String** |  | 
 **description** | **String** |  | 
 **createdAt** | [**DateTime**](DateTime.md) |  | 

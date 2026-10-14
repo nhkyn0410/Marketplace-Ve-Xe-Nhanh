@@ -43,6 +43,8 @@ type EmployeeRow = {
   role: "DRIVER" | "TICKET_STAFF" | "SUPPORT_STAFF";
   status: "ACTIVE" | "LOCKED" | "DISABLED";
   credentialDeliveryPending: boolean;
+  passwordChangeRequired: boolean;
+  temporaryPasswordExpiresAt: Date | null;
   version: number;
   createdAt: Date;
   updatedAt: Date;
@@ -492,6 +494,8 @@ const EMPLOYEE_PUBLIC_SELECT = {
   role: true,
   status: true,
   credentialDeliveryPending: true,
+  passwordChangeRequired: true,
+  temporaryPasswordExpiresAt: true,
   version: true,
   createdAt: true,
   updatedAt: true,
@@ -505,6 +509,8 @@ function toResponse(row: EmployeeRow): EmployeeAccountResponse {
     role: row.role,
     status: row.status,
     credentialDeliveryPending: row.credentialDeliveryPending,
+    passwordChangeRequired: row.passwordChangeRequired,
+    temporaryPasswordExpiresAt: row.temporaryPasswordExpiresAt?.toISOString() ?? null,
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
   };

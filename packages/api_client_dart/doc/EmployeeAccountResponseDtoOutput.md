@@ -14,6 +14,8 @@ Name | Type | Description | Notes
 **role** | **String** |  | 
 **status** | **String** |  | 
 **credentialDeliveryPending** | **bool** |  | 
+**passwordChangeRequired** | **bool** |  | 
+**temporaryPasswordExpiresAt** | [**DateTime**](DateTime.md) |  | 
 **createdAt** | [**DateTime**](DateTime.md) |  | 
 **updatedAt** | [**DateTime**](DateTime.md) |  | 
 

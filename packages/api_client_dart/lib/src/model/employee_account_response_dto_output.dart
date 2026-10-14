@@ -18,6 +18,8 @@ part 'employee_account_response_dto_output.g.dart';
 /// * [role] 
 /// * [status] 
 /// * [credentialDeliveryPending] 
+/// * [passwordChangeRequired] 
+/// * [temporaryPasswordExpiresAt] 
 /// * [createdAt] 
 /// * [updatedAt] 
 @BuiltValue()
@@ -41,6 +43,12 @@ abstract class EmployeeAccountResponseDtoOutput implements Built<EmployeeAccount
 
   @BuiltValueField(wireName: r'credentialDeliveryPending')
   bool get credentialDeliveryPending;
+
+  @BuiltValueField(wireName: r'passwordChangeRequired')
+  bool get passwordChangeRequired;
+
+  @BuiltValueField(wireName: r'temporaryPasswordExpiresAt')
+  DateTime? get temporaryPasswordExpiresAt;
 
   @BuiltValueField(wireName: r'createdAt')
   DateTime get createdAt;
@@ -100,6 +108,16 @@ class _$EmployeeAccountResponseDtoOutputSerializer implements PrimitiveSerialize
     yield serializers.serialize(
       object.credentialDeliveryPending,
       specifiedType: const FullType(bool),
+    );
+    yield r'passwordChangeRequired';
+    yield serializers.serialize(
+      object.passwordChangeRequired,
+      specifiedType: const FullType(bool),
+    );
+    yield r'temporaryPasswordExpiresAt';
+    yield object.temporaryPasswordExpiresAt == null ? null : serializers.serialize(
+      object.temporaryPasswordExpiresAt,
+      specifiedType: const FullType.nullable(DateTime),
     );
     yield r'createdAt';
     yield serializers.serialize(
@@ -176,6 +194,21 @@ class _$EmployeeAccountResponseDtoOutputSerializer implements PrimitiveSerialize
             specifiedType: const FullType(bool),
           ) as bool;
           result.credentialDeliveryPending = valueDes;
+          break;
+        case r'passwordChangeRequired':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(bool),
+          ) as bool;
+          result.passwordChangeRequired = valueDes;
+          break;
+        case r'temporaryPasswordExpiresAt':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType.nullable(DateTime),
+          ) as DateTime?;
+          if (valueDes == null) continue;
+          result.temporaryPasswordExpiresAt = valueDes;
           break;
         case r'createdAt':
           final valueDes = serializers.deserialize(

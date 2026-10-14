@@ -32,6 +32,8 @@ import { TripController } from "../trip/trip.controller";
 import { TripService } from "../trip/trip.service";
 import { SeatMapController } from "../vehicle/seat-map.controller";
 import { SeatMapService } from "../vehicle/seat-map.service";
+import { VehicleImageController } from "../vehicle/vehicle-image.controller";
+import { VehicleImageService } from "../vehicle/vehicle-image.service";
 import { VehicleController } from "../vehicle/vehicle.controller";
 import { VehicleService } from "../vehicle/vehicle.service";
 
@@ -45,6 +47,7 @@ import { VehicleService } from "../vehicle/vehicle.service";
     EmployeeAccountController,
     CatalogController,
     VehicleController,
+    VehicleImageController,
     SeatMapController,
     StopPointController,
     StopPointProposalController,
@@ -58,6 +61,7 @@ import { VehicleService } from "../vehicle/vehicle.service";
     { provide: AuthService, useValue: {} },
     { provide: CatalogService, useValue: {} },
     { provide: VehicleService, useValue: {} },
+    { provide: VehicleImageService, useValue: {} },
     { provide: SeatMapService, useValue: {} },
     { provide: StopPointService, useValue: {} },
     { provide: StopPointProposalService, useValue: {} },

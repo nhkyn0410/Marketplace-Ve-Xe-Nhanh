@@ -58,6 +58,10 @@ export const EmployeeAccountResponseSchema = z.object({
   role: EmployeeRoleSchema,
   status: AccountStatusSchema,
   credentialDeliveryPending: z.boolean(),
+  /** Đang dùng mật khẩu tạm, chưa đổi ở lần đăng nhập đầu (Q4) — màn Nhân viên báo cho Owner biết ai chưa kích hoạt. */
+  passwordChangeRequired: z.boolean(),
+  /** Hạn của mật khẩu tạm đang chờ đổi; `null` khi không có mật khẩu tạm. Quá hạn thì Owner phải cấp lại. */
+  temporaryPasswordExpiresAt: z.iso.datetime().nullable(),
   createdAt: z.iso.datetime(),
   updatedAt: z.iso.datetime(),
 });

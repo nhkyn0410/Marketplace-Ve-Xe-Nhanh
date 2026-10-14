@@ -137,7 +137,7 @@ describe.skipIf(!(url && mongoUrl) && !requireDb)("Fare â€” Postgres + Mongo thá
     trips = new TripService(prisma, audit);
     routes = new RouteService(prisma, new FakeRouting());
     seatMaps = new SeatMapService(prisma);
-    vehicles = new VehicleService(prisma);
+    vehicles = new VehicleService(prisma, { publicUrl: (key) => `https://cdn.test/${key}` });
     const [role] = await prisma.$queryRaw<{ rolsuper: boolean; rolbypassrls: boolean }[]>`
       SELECT rolsuper, rolbypassrls FROM pg_roles WHERE rolname = current_user`;
     if (!role || role.rolsuper || role.rolbypassrls) {

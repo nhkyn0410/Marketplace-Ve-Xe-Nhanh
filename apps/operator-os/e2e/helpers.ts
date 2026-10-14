@@ -9,6 +9,8 @@ export type E2eAccounts = {
   fleetOwner: { username: string; password: string };
   /** Owner riêng cho E2E màn điểm dừng / tuyến đường: mật khẩu thường, chưa bật TOTP. */
   routeOwner: { username: string; password: string };
+  /** Owner riêng cho E2E màn Nhân viên + Tài khoản: mật khẩu thường, chưa bật TOTP. */
+  staffOwner: { username: string; password: string };
   /** Nhà xe riêng của E2E màn chuyến xe (có sẵn tuyến + xe, nên tách khỏi nhà xe của các spec kiểm danh sách rỗng). */
   tripOperatorSlug: string;
   /** Owner của nhà xe đó: mật khẩu thường, chưa bật TOTP. */
@@ -56,9 +58,10 @@ export async function stubMapTiles(page: Page): Promise<void> {
 
 /**
  * Đăng nhập Owner chưa bật TOTP rồi hoàn tất enrollment (QR + mã + lưu backup code) để vào app.
- * Dùng cho các spec màn nghiệp vụ; luồng đăng nhập đầy đủ được kiểm ở `auth.e2e.ts`.
+ * Dùng cho các spec màn nghiệp vụ; luồng đăng nhập đầy đủ được kiểm ở `auth.e2e.ts`. Trả về khóa TOTP để spec
+ * cần đăng nhập thêm một phiên (màn Tài khoản) tự sinh mã.
  */
-export async function signInWithEnrollment(page: Page, identifier: string, password: string): Promise<void> {
+export async function signInWithEnrollment(page: Page, identifier: string, password: string): Promise<string> {
   await page.goto("/");
   await expect(page.getByRole("heading", { name: "Đăng nhập" })).toBeVisible();
   await page.locator('input[name="identifier"]').fill(identifier);
@@ -70,4 +73,5 @@ export async function signInWithEnrollment(page: Page, identifier: string, passw
   await page.getByRole("button", { name: "Xác nhận" }).click();
   await page.getByRole("button", { name: "Tôi đã lưu mã, vào trang quản lý" }).click();
   await expect(page.getByRole("navigation", { name: "Điều hướng chính" })).toBeVisible();
+  return secret;
 }

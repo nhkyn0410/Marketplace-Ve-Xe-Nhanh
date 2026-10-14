@@ -141,6 +141,21 @@ describe("api-client cookie mode (TC-SEC-007 phía web)", () => {
     expect(calls.at(-1)?.headers["X-CSRF-Token"]).toBe("after-refresh");
   });
 
+  it.each(["AUTH_REAUTH_REQUIRED", "AUTH_INVALID_CREDENTIALS"])(
+    "401 %s không phải hết phiên: không refresh, không đăng xuất, ném đúng mã lỗi",
+    async (code) => {
+      const expired = vi.fn();
+      onSessionExpired(expired);
+      handler = () => json(401, { code, detail: "x" });
+      const error = await apiRequest("/operator/employees", { method: "POST", body: {} }).catch((e: unknown) => e);
+      expect(error).toBeInstanceOf(ApiError);
+      expect((error as ApiError).code).toBe(code);
+      expect(calls.filter((call) => call.path === "/auth/refresh")).toHaveLength(0);
+      expect(calls.filter((call) => call.path === "/operator/employees")).toHaveLength(1);
+      expect(expired).not.toHaveBeenCalled();
+    }
+  );
+
   it("lỗi RFC 7807 giữ `reasons` (05 API §6.2) — chỉ nhận chuỗi; lỗi không có thì mảng rỗng", async () => {
     handler = () =>
       json(422, { code: "TRIP_NOT_READY_FOR_SALE", detail: "x", reasons: ["VEHICLE_MISSING", 7, "FARE_MISSING"] });

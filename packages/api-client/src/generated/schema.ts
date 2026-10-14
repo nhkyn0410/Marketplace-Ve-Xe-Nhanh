@@ -516,6 +516,38 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/operator/vehicles/{vehicleId}/images/upload-url": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["VehicleImageController_createUploadUrl"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operator/vehicles/{vehicleId}/images": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["VehicleImageController_replace"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/operator/seat-maps": {
         parameters: {
             query?: never;
@@ -989,6 +1021,8 @@ export interface components {
                 /** @enum {string} */
                 status: "ACTIVE" | "LOCKED" | "DISABLED";
                 credentialDeliveryPending: boolean;
+                passwordChangeRequired: boolean;
+                temporaryPasswordExpiresAt: string | null;
                 /** Format: date-time */
                 createdAt: string;
                 /** Format: date-time */
@@ -1014,6 +1048,8 @@ export interface components {
             /** @enum {string} */
             status: "ACTIVE" | "LOCKED" | "DISABLED";
             credentialDeliveryPending: boolean;
+            passwordChangeRequired: boolean;
+            temporaryPasswordExpiresAt: string | null;
             /** Format: date-time */
             createdAt: string;
             /** Format: date-time */
@@ -1116,6 +1152,15 @@ export interface components {
                 } | null;
                 seatMapLocked: boolean;
                 amenityIds: string[];
+                images: {
+                    /** Format: uuid */
+                    id: string;
+                    objectKey: string;
+                    /** Format: uri */
+                    url: string;
+                    position: number;
+                    caption: string | null;
+                }[];
                 /** @enum {string} */
                 status: "ACTIVE" | "MAINTENANCE" | "INACTIVE";
                 description: string | null;
@@ -1148,6 +1193,15 @@ export interface components {
             } | null;
             seatMapLocked: boolean;
             amenityIds: string[];
+            images: {
+                /** Format: uuid */
+                id: string;
+                objectKey: string;
+                /** Format: uri */
+                url: string;
+                position: number;
+                caption: string | null;
+            }[];
             /** @enum {string} */
             status: "ACTIVE" | "MAINTENANCE" | "INACTIVE";
             description: string | null;
@@ -1165,6 +1219,35 @@ export interface components {
             /** @enum {string} */
             status: "ACTIVE" | "MAINTENANCE" | "INACTIVE";
             description: string | null;
+        };
+        VehicleImageUploadInputDto: {
+            /** @enum {string} */
+            contentType: "image/jpeg" | "image/png" | "image/webp";
+            sizeBytes: number;
+        };
+        VehicleImageUploadResponseDto_Output: {
+            /** Format: uri */
+            uploadUrl: string;
+            objectKey: string;
+            /** Format: date-time */
+            expiresAt: string;
+        };
+        VehicleImagesInputDto: {
+            images: {
+                objectKey: string;
+                caption: string | null;
+            }[];
+        };
+        VehicleImagesResponseDto_Output: {
+            images: {
+                /** Format: uuid */
+                id: string;
+                objectKey: string;
+                /** Format: uri */
+                url: string;
+                position: number;
+                caption: string | null;
+            }[];
         };
         SeatMapListResponseDto_Output: {
             items: {
@@ -3231,6 +3314,166 @@ export interface operations {
             };
             /** @description `CATALOG_ITEM_UNAVAILABLE`. */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    VehicleImageController_createUploadUrl: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                vehicleId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["VehicleImageUploadInputDto"];
+            };
+        };
+        responses: {
+            /** @description URL tải lên và khóa object. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VehicleImageUploadResponseDto_Output"];
+                };
+            };
+            /** @description Loại file hoặc dung lượng không hợp lệ. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `VEHICLE_NOT_FOUND` (kể cả khác tenant). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `VEHICLE_IMAGE_UPLOAD_RATE_LIMITED`. */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Kho lưu ảnh không phản hồi. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    VehicleImageController_replace: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                vehicleId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["VehicleImagesInputDto"];
+            };
+        };
+        responses: {
+            /** @description Bộ ảnh sau khi thay. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VehicleImagesResponseDto_Output"];
+                };
+            };
+            /** @description Dữ liệu không hợp lệ (chú thích quá dài, ảnh lặp). */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `VEHICLE_NOT_FOUND` (kể cả khác tenant). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `VEHICLE_IMAGE_INVALID` / `VEHICLE_IMAGE_LIMIT_EXCEEDED`. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Kho lưu ảnh không phản hồi. */
+            503: {
                 headers: {
                     [name: string]: unknown;
                 };

@@ -90,6 +90,8 @@ class _$VehicleResponseDtoOutput extends VehicleResponseDtoOutput {
   @override
   final BuiltList<String> amenityIds;
   @override
+  final BuiltList<VehicleListResponseDtoOutputItemsInnerImagesInner> images;
+  @override
   final VehicleResponseDtoOutputStatusEnum status;
   @override
   final String? description;
@@ -110,6 +112,7 @@ class _$VehicleResponseDtoOutput extends VehicleResponseDtoOutput {
       this.seatMap,
       required this.seatMapLocked,
       required this.amenityIds,
+      required this.images,
       required this.status,
       this.description,
       required this.createdAt,
@@ -135,6 +138,7 @@ class _$VehicleResponseDtoOutput extends VehicleResponseDtoOutput {
         seatMap == other.seatMap &&
         seatMapLocked == other.seatMapLocked &&
         amenityIds == other.amenityIds &&
+        images == other.images &&
         status == other.status &&
         description == other.description &&
         createdAt == other.createdAt &&
@@ -151,6 +155,7 @@ class _$VehicleResponseDtoOutput extends VehicleResponseDtoOutput {
     _$hash = $jc(_$hash, seatMap.hashCode);
     _$hash = $jc(_$hash, seatMapLocked.hashCode);
     _$hash = $jc(_$hash, amenityIds.hashCode);
+    _$hash = $jc(_$hash, images.hashCode);
     _$hash = $jc(_$hash, status.hashCode);
     _$hash = $jc(_$hash, description.hashCode);
     _$hash = $jc(_$hash, createdAt.hashCode);
@@ -169,6 +174,7 @@ class _$VehicleResponseDtoOutput extends VehicleResponseDtoOutput {
           ..add('seatMap', seatMap)
           ..add('seatMapLocked', seatMapLocked)
           ..add('amenityIds', amenityIds)
+          ..add('images', images)
           ..add('status', status)
           ..add('description', description)
           ..add('createdAt', createdAt)
@@ -217,6 +223,15 @@ class VehicleResponseDtoOutputBuilder
   set amenityIds(ListBuilder<String>? amenityIds) =>
       _$this._amenityIds = amenityIds;
 
+  ListBuilder<VehicleListResponseDtoOutputItemsInnerImagesInner>? _images;
+  ListBuilder<VehicleListResponseDtoOutputItemsInnerImagesInner> get images =>
+      _$this._images ??=
+          ListBuilder<VehicleListResponseDtoOutputItemsInnerImagesInner>();
+  set images(
+          ListBuilder<VehicleListResponseDtoOutputItemsInnerImagesInner>?
+              images) =>
+      _$this._images = images;
+
   VehicleResponseDtoOutputStatusEnum? _status;
   VehicleResponseDtoOutputStatusEnum? get status => _$this._status;
   set status(VehicleResponseDtoOutputStatusEnum? status) =>
@@ -248,6 +263,7 @@ class VehicleResponseDtoOutputBuilder
       _seatMap = $v.seatMap?.toBuilder();
       _seatMapLocked = $v.seatMapLocked;
       _amenityIds = $v.amenityIds.toBuilder();
+      _images = $v.images.toBuilder();
       _status = $v.status;
       _description = $v.description;
       _createdAt = $v.createdAt;
@@ -286,6 +302,7 @@ class VehicleResponseDtoOutputBuilder
             seatMapLocked: BuiltValueNullFieldError.checkNotNull(
                 seatMapLocked, r'VehicleResponseDtoOutput', 'seatMapLocked'),
             amenityIds: amenityIds.build(),
+            images: images.build(),
             status: BuiltValueNullFieldError.checkNotNull(
                 status, r'VehicleResponseDtoOutput', 'status'),
             description: description,
@@ -302,6 +319,8 @@ class VehicleResponseDtoOutputBuilder
 
         _$failedField = 'amenityIds';
         amenityIds.build();
+        _$failedField = 'images';
+        images.build();
       } catch (e) {
         throw BuiltValueNestedFieldError(
             r'VehicleResponseDtoOutput', _$failedField, e.toString());
