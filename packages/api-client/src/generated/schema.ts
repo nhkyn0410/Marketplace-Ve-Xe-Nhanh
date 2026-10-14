@@ -788,6 +788,102 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/operator-applications": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["OperatorApplicationController_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operator-applications/access-link": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["OperatorApplicationController_requestAccessLink"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operator-applications/current": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["OperatorApplicationController_get"];
+        put: operations["OperatorApplicationController_update"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operator-applications/current/documents": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["OperatorApplicationController_createDocumentUpload"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operator-applications/current/documents/{type}/download-url": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["OperatorApplicationController_createDocumentDownload"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operator-applications/current/submit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["OperatorApplicationController_submit"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -1708,6 +1804,92 @@ export interface components {
                 };
             }[];
             nextCursor: string | null;
+        };
+        ApplicationCreateInputDto: {
+            operatorName: string;
+            contactName: string;
+            contactEmail: string;
+            /** @constant */
+            acceptTerms: true;
+        };
+        ApplicationAccessLinkInputDto: {
+            contactEmail: string;
+            applicationCode: string;
+        };
+        ApplicationResponseDto_Output: {
+            applicationCode: string;
+            /** @enum {string} */
+            status: "DRAFT" | "SUBMITTED" | "NEEDS_INFO" | "APPROVED" | "REJECTED";
+            operatorName: string;
+            contactName: string;
+            contactEmail: string;
+            contactEmailVerifiedAt: string | null;
+            legalName: string | null;
+            taxCode: string | null;
+            hotline: string | null;
+            address: string | null;
+            displayName: string | null;
+            description: string | null;
+            bankName: string | null;
+            bankAccountNumberMasked: string | null;
+            bankAccountHolder: string | null;
+            documents: {
+                /** @enum {string} */
+                type: "BUSINESS_REGISTRATION" | "TRANSPORT_LICENSE" | "REPRESENTATIVE_AUTHORIZATION";
+                objectKey: string;
+                fileName: string;
+                contentType: string;
+                sizeBytes: number;
+                /** Format: date-time */
+                uploadedAt: string;
+            }[];
+            missing: string[];
+            reviewNote: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            submittedAt: string | null;
+            /** Format: date-time */
+            updatedAt: string;
+            /** Format: date-time */
+            linkExpiresAt: string;
+        };
+        ApplicationUpdateInputDto: {
+            legalName: string | null;
+            taxCode: string | null;
+            hotline: string | null;
+            address: string | null;
+            displayName: string | null;
+            description: string | null;
+            bankName: string | null;
+            bankAccountNumber?: string | null;
+            bankAccountHolder: string | null;
+            documents: {
+                /** @enum {string} */
+                type: "BUSINESS_REGISTRATION" | "TRANSPORT_LICENSE" | "REPRESENTATIVE_AUTHORIZATION";
+                objectKey: string;
+                fileName: string;
+            }[];
+        };
+        DocumentUploadInputDto: {
+            /** @enum {string} */
+            type: "BUSINESS_REGISTRATION" | "TRANSPORT_LICENSE" | "REPRESENTATIVE_AUTHORIZATION";
+            /** @enum {string} */
+            contentType: "application/pdf" | "image/jpeg" | "image/png";
+            sizeBytes: number;
+            fileName: string;
+        };
+        DocumentUploadResponseDto_Output: {
+            /** Format: uri */
+            uploadUrl: string;
+            objectKey: string;
+            /** Format: date-time */
+            expiresAt: string;
+        };
+        DocumentDownloadResponseDto_Output: {
+            /** Format: uri */
+            url: string;
+            /** Format: date-time */
+            expiresAt: string;
         };
     };
     responses: never;
@@ -5148,6 +5330,391 @@ export interface operations {
             };
             /** @description `FARE_NOT_FOUND` (kể cả khác tenant). */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    OperatorApplicationController_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ApplicationCreateInputDto"];
+            };
+        };
+        responses: {
+            /** @description Đã nhận; link (nếu hợp lệ) được gửi tới email liên hệ. */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Dữ liệu không hợp lệ. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `OPERATOR_APPLICATION_RATE_LIMITED`. */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Bộ đếm / kho giấy tờ / audit không phản hồi. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    OperatorApplicationController_requestAccessLink: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ApplicationAccessLinkInputDto"];
+            };
+        };
+        responses: {
+            /** @description Đã nhận; khớp hồ sơ chưa có kết quả thì link mới được gửi. */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Dữ liệu không hợp lệ. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `OPERATOR_APPLICATION_RATE_LIMITED`. */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Bộ đếm / kho giấy tờ / audit không phản hồi. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    OperatorApplicationController_get: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Token trong link bảo mật gửi email. */
+                "X-Application-Token": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Hồ sơ và trạng thái. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApplicationResponseDto_Output"];
+                };
+            };
+            /** @description `OPERATOR_APPLICATION_LINK_INVALID` — link sai, hết hạn, đã bị thay hoặc hồ sơ đã có kết quả. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    OperatorApplicationController_update: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Token trong link bảo mật gửi email. */
+                "X-Application-Token": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ApplicationUpdateInputDto"];
+            };
+        };
+        responses: {
+            /** @description Hồ sơ sau khi lưu. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApplicationResponseDto_Output"];
+                };
+            };
+            /** @description Dữ liệu không hợp lệ. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `OPERATOR_APPLICATION_LINK_INVALID` — link sai, hết hạn, đã bị thay hoặc hồ sơ đã có kết quả. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `OPERATOR_APPLICATION_INVALID_STATE` — hồ sơ không ở `DRAFT` / `NEEDS_INFO`. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `OPERATOR_APPLICATION_DOCUMENT_INVALID`. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Bộ đếm / kho giấy tờ / audit không phản hồi. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    OperatorApplicationController_createDocumentUpload: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Token trong link bảo mật gửi email. */
+                "X-Application-Token": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DocumentUploadInputDto"];
+            };
+        };
+        responses: {
+            /** @description URL tải lên và khóa object. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DocumentUploadResponseDto_Output"];
+                };
+            };
+            /** @description Loại file / dung lượng không hợp lệ. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `OPERATOR_APPLICATION_LINK_INVALID` — link sai, hết hạn, đã bị thay hoặc hồ sơ đã có kết quả. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `OPERATOR_APPLICATION_INVALID_STATE` — hồ sơ không ở `DRAFT` / `NEEDS_INFO`. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `OPERATOR_APPLICATION_RATE_LIMITED`. */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Bộ đếm / kho giấy tờ / audit không phản hồi. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    OperatorApplicationController_createDocumentDownload: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Token trong link bảo mật gửi email. */
+                "X-Application-Token": string;
+            };
+            path: {
+                type: "BUSINESS_REGISTRATION" | "TRANSPORT_LICENSE" | "REPRESENTATIVE_AUTHORIZATION";
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description URL xem giấy tờ. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DocumentDownloadResponseDto_Output"];
+                };
+            };
+            /** @description `OPERATOR_APPLICATION_LINK_INVALID` — link sai, hết hạn, đã bị thay hoặc hồ sơ đã có kết quả. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `OPERATOR_APPLICATION_DOCUMENT_NOT_FOUND`. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Bộ đếm / kho giấy tờ / audit không phản hồi. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    OperatorApplicationController_submit: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Token trong link bảo mật gửi email. */
+                "X-Application-Token": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Hồ sơ đã gửi duyệt. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApplicationResponseDto_Output"];
+                };
+            };
+            /** @description `OPERATOR_APPLICATION_LINK_INVALID` — link sai, hết hạn, đã bị thay hoặc hồ sơ đã có kết quả. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `OPERATOR_APPLICATION_INVALID_STATE` — hồ sơ không ở `DRAFT` / `NEEDS_INFO`. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `OPERATOR_APPLICATION_INCOMPLETE` (+ `reasons`). */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Bộ đếm / kho giấy tờ / audit không phản hồi. */
+            503: {
                 headers: {
                     [name: string]: unknown;
                 };

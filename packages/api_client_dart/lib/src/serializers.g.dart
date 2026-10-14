@@ -10,6 +10,16 @@ Serializers _$serializers = (Serializers().toBuilder()
       ..add(AccountMutationResponseDtoOutput.serializer)
       ..add(AccountMutationResponseDtoOutputStatusEnum.serializer)
       ..add(AmenityListResponseDtoOutput.serializer)
+      ..add(ApplicationAccessLinkInputDto.serializer)
+      ..add(ApplicationCreateInputDto.serializer)
+      ..add(ApplicationCreateInputDtoAcceptTermsEnum.serializer)
+      ..add(ApplicationResponseDtoOutput.serializer)
+      ..add(ApplicationResponseDtoOutputDocumentsInner.serializer)
+      ..add(ApplicationResponseDtoOutputDocumentsInnerTypeEnum.serializer)
+      ..add(ApplicationResponseDtoOutputStatusEnum.serializer)
+      ..add(ApplicationUpdateInputDto.serializer)
+      ..add(ApplicationUpdateInputDtoDocumentsInner.serializer)
+      ..add(ApplicationUpdateInputDtoDocumentsInnerTypeEnum.serializer)
       ..add(AuthMeResponseDtoOutput.serializer)
       ..add(AuthMeResponseDtoOutputScopeEnum.serializer)
       ..add(AuthTokenResponseDtoOutput.serializer)
@@ -25,6 +35,11 @@ Serializers _$serializers = (Serializers().toBuilder()
       ..add(CredentialWebSessionResponseAuthenticatedEnum.serializer)
       ..add(CredentialWebSessionResponseScopeEnum.serializer)
       ..add(CsrfTokenResponseDtoOutput.serializer)
+      ..add(DocumentDownloadResponseDtoOutput.serializer)
+      ..add(DocumentUploadInputDto.serializer)
+      ..add(DocumentUploadInputDtoContentTypeEnum.serializer)
+      ..add(DocumentUploadInputDtoTypeEnum.serializer)
+      ..add(DocumentUploadResponseDtoOutput.serializer)
       ..add(EmployeeAccountResponseDtoOutput.serializer)
       ..add(EmployeeAccountResponseDtoOutputRoleEnum.serializer)
       ..add(EmployeeAccountResponseDtoOutputStatusEnum.serializer)
@@ -196,6 +211,18 @@ Serializers _$serializers = (Serializers().toBuilder()
       ..add(VehicleTypeListResponseDtoOutputItemsInnerFormEnum.serializer)
       ..add(WardListResponseDtoOutput.serializer)
       ..add(WardListResponseDtoOutputItemsInner.serializer)
+      ..addBuilderFactory(
+          const FullType(BuiltList, const [
+            const FullType(ApplicationResponseDtoOutputDocumentsInner)
+          ]),
+          () => ListBuilder<ApplicationResponseDtoOutputDocumentsInner>())
+      ..addBuilderFactory(
+          const FullType(BuiltList, const [const FullType(String)]),
+          () => ListBuilder<String>())
+      ..addBuilderFactory(
+          const FullType(BuiltList,
+              const [const FullType(ApplicationUpdateInputDtoDocumentsInner)]),
+          () => ListBuilder<ApplicationUpdateInputDtoDocumentsInner>())
       ..addBuilderFactory(
           const FullType(BuiltList, const [const FullType(DateTime)]),
           () => ListBuilder<DateTime>())

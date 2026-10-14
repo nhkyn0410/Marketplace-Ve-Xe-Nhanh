@@ -20,10 +20,21 @@ export type TemporaryPasswordEmailMessage = {
   expiresAt: Date;
 };
 
+/** Link bảo mật của hồ sơ đăng ký nhà xe (BR-75, TASK-OPR-001). */
+export type OperatorApplicationLinkEmailMessage = {
+  email: string;
+  applicationCode: string;
+  operatorName: string;
+  /** Link chứa token — chỉ tồn tại trong memory để gửi đúng một lần; caller không được log/lưu. */
+  link: string;
+  expiresAt: Date;
+};
+
 export interface EmailNotifier {
   sendOtp(message: OtpEmailMessage): Promise<void>;
   /** Optional trong port để adapter/mocks OTP legacy không giả vờ hỗ trợ enrollment. */
   sendTemporaryPassword?(message: TemporaryPasswordEmailMessage): Promise<void>;
+  sendOperatorApplicationLink?(message: OperatorApplicationLinkEmailMessage): Promise<void>;
 }
 
 /** Mask email cho log/audit — không lộ địa chỉ đầy đủ (Security §9). */

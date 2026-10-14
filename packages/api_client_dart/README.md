@@ -94,6 +94,13 @@ Class | Method | HTTP request | Description
 [*HealthApi*](doc/HealthApi.md) | [**appControllerPostgres**](doc/HealthApi.md#appcontrollerpostgres) | **GET** /v1/health/postgres | 
 [*HealthApi*](doc/HealthApi.md) | [**appControllerQueues**](doc/HealthApi.md#appcontrollerqueues) | **GET** /v1/health/queues | 
 [*HealthApi*](doc/HealthApi.md) | [**appControllerRedis**](doc/HealthApi.md#appcontrollerredis) | **GET** /v1/health/redis | 
+[*OperatorApplicationsApi*](doc/OperatorApplicationsApi.md) | [**operatorApplicationControllerCreate**](doc/OperatorApplicationsApi.md#operatorapplicationcontrollercreate) | **POST** /v1/operator-applications | 
+[*OperatorApplicationsApi*](doc/OperatorApplicationsApi.md) | [**operatorApplicationControllerCreateDocumentDownload**](doc/OperatorApplicationsApi.md#operatorapplicationcontrollercreatedocumentdownload) | **POST** /v1/operator-applications/current/documents/{type}/download-url | 
+[*OperatorApplicationsApi*](doc/OperatorApplicationsApi.md) | [**operatorApplicationControllerCreateDocumentUpload**](doc/OperatorApplicationsApi.md#operatorapplicationcontrollercreatedocumentupload) | **POST** /v1/operator-applications/current/documents | 
+[*OperatorApplicationsApi*](doc/OperatorApplicationsApi.md) | [**operatorApplicationControllerGet**](doc/OperatorApplicationsApi.md#operatorapplicationcontrollerget) | **GET** /v1/operator-applications/current | 
+[*OperatorApplicationsApi*](doc/OperatorApplicationsApi.md) | [**operatorApplicationControllerRequestAccessLink**](doc/OperatorApplicationsApi.md#operatorapplicationcontrollerrequestaccesslink) | **POST** /v1/operator-applications/access-link | 
+[*OperatorApplicationsApi*](doc/OperatorApplicationsApi.md) | [**operatorApplicationControllerSubmit**](doc/OperatorApplicationsApi.md#operatorapplicationcontrollersubmit) | **POST** /v1/operator-applications/current/submit | 
+[*OperatorApplicationsApi*](doc/OperatorApplicationsApi.md) | [**operatorApplicationControllerUpdate**](doc/OperatorApplicationsApi.md#operatorapplicationcontrollerupdate) | **PUT** /v1/operator-applications/current | 
 [*OperatorEmployeesApi*](doc/OperatorEmployeesApi.md) | [**employeeAccountControllerCreate**](doc/OperatorEmployeesApi.md#employeeaccountcontrollercreate) | **POST** /v1/operator/employees | 
 [*OperatorEmployeesApi*](doc/OperatorEmployeesApi.md) | [**employeeAccountControllerList**](doc/OperatorEmployeesApi.md#employeeaccountcontrollerlist) | **GET** /v1/operator/employees | 
 [*OperatorEmployeesApi*](doc/OperatorEmployeesApi.md) | [**employeeAccountControllerResetPassword**](doc/OperatorEmployeesApi.md#employeeaccountcontrollerresetpassword) | **POST** /v1/operator/employees/{employeeId}/password-reset | 
@@ -136,6 +143,12 @@ Class | Method | HTTP request | Description
 
  - [AccountMutationResponseDtoOutput](doc/AccountMutationResponseDtoOutput.md)
  - [AmenityListResponseDtoOutput](doc/AmenityListResponseDtoOutput.md)
+ - [ApplicationAccessLinkInputDto](doc/ApplicationAccessLinkInputDto.md)
+ - [ApplicationCreateInputDto](doc/ApplicationCreateInputDto.md)
+ - [ApplicationResponseDtoOutput](doc/ApplicationResponseDtoOutput.md)
+ - [ApplicationResponseDtoOutputDocumentsInner](doc/ApplicationResponseDtoOutputDocumentsInner.md)
+ - [ApplicationUpdateInputDto](doc/ApplicationUpdateInputDto.md)
+ - [ApplicationUpdateInputDtoDocumentsInner](doc/ApplicationUpdateInputDtoDocumentsInner.md)
  - [AuthMeResponseDtoOutput](doc/AuthMeResponseDtoOutput.md)
  - [AuthTokenResponseDtoOutput](doc/AuthTokenResponseDtoOutput.md)
  - [CredentialLoginDto](doc/CredentialLoginDto.md)
@@ -143,6 +156,9 @@ Class | Method | HTTP request | Description
  - [CredentialTokenResponse](doc/CredentialTokenResponse.md)
  - [CredentialWebSessionResponse](doc/CredentialWebSessionResponse.md)
  - [CsrfTokenResponseDtoOutput](doc/CsrfTokenResponseDtoOutput.md)
+ - [DocumentDownloadResponseDtoOutput](doc/DocumentDownloadResponseDtoOutput.md)
+ - [DocumentUploadInputDto](doc/DocumentUploadInputDto.md)
+ - [DocumentUploadResponseDtoOutput](doc/DocumentUploadResponseDtoOutput.md)
  - [EmployeeAccountResponseDtoOutput](doc/EmployeeAccountResponseDtoOutput.md)
  - [EmployeeCreateDto](doc/EmployeeCreateDto.md)
  - [EmployeeListResponseDtoOutput](doc/EmployeeListResponseDtoOutput.md)

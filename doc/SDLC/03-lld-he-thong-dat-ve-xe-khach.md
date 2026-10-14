@@ -37,6 +37,7 @@
 | v0.16     | 04/10/2026 | AI Agent       | **Đối chiếu Figma nhà xe (Khanh chốt 04/10/2026):** §6.12 bước 4 — bộ ảnh gửi kèm chú thích từng ảnh (BR-76). Cờ `inUse` / `seatMapLocked` dùng lại đúng điều kiện của lỗi `SEAT_MAP_IN_USE` (API §7.3, `TASK-TRN-011`). Giữ trạng thái Review. |
 | v0.17     | 04/10/2026 | AI Agent       | **Thiết kế lại điểm dừng (Khanh chốt 04/10/2026, SRS v1.35):** §5.2 — search khớp theo vị trí, điểm riêng chỉ văn phòng trung chuyển + trạm dừng nghỉ, RouteStop có cho đón / cho trả; §6.13 luồng điểm dừng (loại điểm, đề xuất kèm căn cứ, Admin duyệt / khóa, quy tắc đón trả, tìm theo vị trí); §7 mã lỗi; §9 audit. Giữ trạng thái Review. |
 | v0.18     | 14/10/2026 | AI Agent       | **`TASK-TRN-009` (ảnh phương tiện) đã làm:** §6.12 ghi rõ phần đã hiện thực — nén ở trình duyệt luôn xuất lại JPEG (bỏ EXIF), chỉ gắn object tải lên chưa quá 23 giờ, job dọn chạy 03:30 hằng ngày trên hàng đợi `storage-maintenance`; `LLD-OQ-08` ghi mặc định đã áp dụng, chờ Khanh chốt. Giữ trạng thái Review. |
+| v0.19     | 14/10/2026 | AI Agent       | **`TASK-OPR-001` phần đăng ký công khai (001a) đã làm:** §6.11 ghi phần đã hiện thực — email link gửi sau commit, không chờ (worker chưa chạy trên production); guard của link trao scope `system`; giấy tờ gắn vào hồ sơ qua `PUT …/current`, xem bằng URL có hạn + audit; job dọn giấy tờ mồ côi; §7 thêm `OPERATOR_APPLICATION_INCOMPLETE`, `…_DOCUMENT_INVALID`, `…_DOCUMENT_NOT_FOUND`, `…_RATE_LIMITED` (chờ Khanh duyệt — `OPR-001-todo.md`). Giữ trạng thái Review. |
 
 ---
 
@@ -242,9 +243,9 @@ Tên module / folder dưới đây dùng **target state** theo `context/DOMAIN-M
 
 | Bước | Xử lý |
 | ---- | ----- |
-| 1    | `POST /operator-applications` (public, rate limit IP + email): tạo `operator_applications` `DRAFT` + `application_code`; sinh token 32 byte, lưu SHA-256 + `expires_at`; enqueue email link (BullMQ). Luôn trả `202`. |
-| 2    | Link → client gửi token qua `X-Application-Token`; guard tra hash, kiểm hạn, chưa thu hồi, hồ sơ chưa `APPROVED` / `REJECTED`; lần dùng đầu ghi `contact_email_verified_at`. |
-| 3    | `PUT …/current`, `POST …/current/documents` (presigned R2 private) chỉ khi `DRAFT` / `NEEDS_INFO`; `POST …/current/submit` → `SUBMITTED`, báo Admin. |
+| 1    | `POST /operator-applications` (public, rate limit IP + email): tạo `operator_applications` `DRAFT` + `application_code`; sinh token 32 byte, lưu SHA-256 + `expires_at`; enqueue email link (BullMQ). Luôn trả `202`. `TASK-OPR-001`: email gửi thẳng sau commit, không chờ (worker chưa chạy trên production), gửi lỗi chỉ ghi log — người nộp dùng gửi lại link. |
+| 2    | Link → client gửi token qua `X-Application-Token`; guard tra hash, kiểm hạn, chưa thu hồi, hồ sơ chưa `APPROVED` / `REJECTED`; lần dùng đầu ghi `contact_email_verified_at`. `TASK-OPR-001`: guard ở `iam/role` trao scope `system` (RLS của hồ sơ chỉ cho platform / system — DB §7); service chỉ đọc / ghi đúng hồ sơ lấy từ token. |
+| 3    | `PUT …/current`, `POST …/current/documents` (presigned R2 private) chỉ khi `DRAFT` / `NEEDS_INFO`; `POST …/current/submit` → `SUBMITTED`, báo Admin. `TASK-OPR-001`: giấy tờ tải thẳng lên kho riêng tư rồi gắn vào hồ sơ qua `PUT …/current` (kiểm object như ảnh xe — LLD §6.12 bước 4); xem bằng `POST …/current/documents/{type}/download-url` (presigned 5 phút + audit); gửi duyệt kiểm đủ trường + ba giấy tờ + tài khoản nhận tiền, chuyển trạng thái và audit trong một transaction; giấy tờ không được gắn quá 24 giờ do job `kyc-maintenance` dọn. "Báo Admin" để ADM-001. |
 | 4    | Admin `approve` (TOTP + re-auth, `Idempotency-Key`): 1 transaction gọi `provisionOperatorOwner` (tạo `operator_profiles` + Owner mật khẩu tạm), chép giấy tờ → `kyc_documents`, tạo `bank_accounts`, set `operator_id` + `APPROVED`, thu hồi mọi token, audit. Sau commit enqueue email thông tin đăng nhập; gửi lỗi → `credentialDeliveryPending`, gửi lại theo quota IAM-005. |
 | 5    | `request-info` → `NEEDS_INFO` + lý do + token mới (thu hồi token cũ); `reject` → `REJECTED` + lý do + thu hồi token; cả hai gửi NTF-15 và ghi audit. |
 
@@ -292,7 +293,7 @@ Error response theo RFC 7807 Problem Details (`application/problem+json`) với 
 | Content    | `ARTICLE_NOT_FOUND`, `ARTICLE_SLUG_CONFLICT`                                                   | Bài không `PUBLISHED` trả 404 cho public |
 | Ảnh phương tiện | `VEHICLE_IMAGE_INVALID` (422), `VEHICLE_IMAGE_LIMIT_EXCEEDED` (422), `VEHICLE_IMAGE_NOT_FOUND` (404) | Sai loại / dung lượng / object không tồn tại / key của xe khác dùng chung một mã, không lộ lý do; `NOT_FOUND` chỉ cho Admin gỡ ảnh |
 | Điểm dừng | `STOP_POINT_TYPE_NOT_ALLOWED` (422), `STOP_POINT_SUSPENDED` (409), `ROUTE_STOP_PICKUP_DROPOFF_INVALID` (422) | Loại điểm riêng ngoài văn phòng trung chuyển / trạm dừng nghỉ; nhà xe sửa điểm đang bị Admin khóa; cho đón / cho trả sai BR-79 |
-| Operator onboarding | `OPERATOR_APPLICATION_LINK_INVALID` (401), `OPERATOR_APPLICATION_INVALID_STATE` (409), `OPERATOR_SLUG_CONFLICT` (409) | Link sai / hết hạn / đã thu hồi dùng chung một mã, không lộ lý do |
+| Operator onboarding | `OPERATOR_APPLICATION_LINK_INVALID` (401), `OPERATOR_APPLICATION_INVALID_STATE` (409), `OPERATOR_SLUG_CONFLICT` (409); `TASK-OPR-001` thêm (chờ duyệt): `OPERATOR_APPLICATION_INCOMPLETE` (422 + `reasons`), `OPERATOR_APPLICATION_DOCUMENT_INVALID` (422, một thông báo chung), `OPERATOR_APPLICATION_DOCUMENT_NOT_FOUND` (404), `OPERATOR_APPLICATION_RATE_LIMITED` (429) | Link sai / hết hạn / đã thu hồi dùng chung một mã, không lộ lý do |
 | Infra      | `SERVICE_UNAVAILABLE` (Redis down → 503)                                                       | Không in-memory fallback lock (ADR-015)        |
 
 ---

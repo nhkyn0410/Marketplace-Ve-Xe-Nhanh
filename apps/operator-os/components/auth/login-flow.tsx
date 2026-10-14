@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import QRCode from "qrcode";
 import { useEffect, useState, type FormEvent } from "react";
 
@@ -274,7 +275,19 @@ function CredentialsStep({ onResult, onNotice }: { onResult: (result: LoginRespo
           <p className="text-center text-sm leading-5 text-vxn-fg-4">Xác thực bảo mật ở bước tiếp theo.</p>
           <img src="/auth/divider.svg" alt="" width={300} height={1} className="self-center" />
         </form>
-        {/* Khối "Trở thành đối tác" + nút Đăng ký trong Figma: ẩn tới khi có form đăng ký nhà xe (TASK-OPR-001). */}
+        {/* Figma 840:2074 — nhà xe chưa có tài khoản nộp hồ sơ đăng ký công khai (TASK-OPR-001, BR-75). */}
+        <div className="flex items-end gap-3.5 rounded-[10px] border border-warning-500 bg-gradient-to-br from-[#fff7e6] to-[#ffeac7] p-4">
+          <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+            <p className="text-sm font-semibold text-vxn-ink">Trở thành đối tác</p>
+            <p className="text-sm leading-5 text-vxn-fg-3">Gửi hồ sơ đăng ký. Tài khoản được cấp sau khi hồ sơ được phê duyệt.</p>
+          </div>
+          <Link
+            href="/register"
+            className="flex h-[34px] shrink-0 items-center rounded px-3.5 text-[13px] font-semibold text-white outline-none bg-warning-500 hover:bg-warning-600 focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            Đăng ký
+          </Link>
+        </div>
       </LoginCard>
     </>
   );
