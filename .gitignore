@@ -142,3 +142,7 @@ Desktop.ini
 # Thu muc tam cua job "Contract" (sinh lai Dart client de so hop dong)
 /.regen/
 /.cmp/
+
+# Kho object local của API khi chạy dev / test (TASK-TRN-009)
+.storage/
+**/.storage/

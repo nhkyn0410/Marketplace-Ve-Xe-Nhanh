@@ -175,10 +175,17 @@ Serializers _$serializers = (Serializers().toBuilder()
       ..add(TripSeatStatusInputDtoStatusEnum.serializer)
       ..add(TripStatusInputDto.serializer)
       ..add(TripStatusInputDtoStatusEnum.serializer)
+      ..add(VehicleImageUploadInputDto.serializer)
+      ..add(VehicleImageUploadInputDtoContentTypeEnum.serializer)
+      ..add(VehicleImageUploadResponseDtoOutput.serializer)
+      ..add(VehicleImagesInputDto.serializer)
+      ..add(VehicleImagesInputDtoImagesInner.serializer)
+      ..add(VehicleImagesResponseDtoOutput.serializer)
       ..add(VehicleInputDto.serializer)
       ..add(VehicleInputDtoStatusEnum.serializer)
       ..add(VehicleListResponseDtoOutput.serializer)
       ..add(VehicleListResponseDtoOutputItemsInner.serializer)
+      ..add(VehicleListResponseDtoOutputItemsInnerImagesInner.serializer)
       ..add(VehicleListResponseDtoOutputItemsInnerSeatMap.serializer)
       ..add(VehicleListResponseDtoOutputItemsInnerStatusEnum.serializer)
       ..add(VehicleResponseDtoOutput.serializer)
@@ -306,8 +313,20 @@ Serializers _$serializers = (Serializers().toBuilder()
           const FullType(BuiltList, const [const FullType(String)]),
           () => ListBuilder<String>())
       ..addBuilderFactory(
+          const FullType(BuiltList, const [
+            const FullType(VehicleListResponseDtoOutputItemsInnerImagesInner)
+          ]),
+          () =>
+              ListBuilder<VehicleListResponseDtoOutputItemsInnerImagesInner>())
+      ..addBuilderFactory(
           const FullType(BuiltList, const [const FullType(String)]),
           () => ListBuilder<String>())
+      ..addBuilderFactory(
+          const FullType(BuiltList, const [
+            const FullType(VehicleListResponseDtoOutputItemsInnerImagesInner)
+          ]),
+          () =>
+              ListBuilder<VehicleListResponseDtoOutputItemsInnerImagesInner>())
       ..addBuilderFactory(
           const FullType(BuiltList,
               const [const FullType(TripListResponseDtoOutputItemsInner)]),
@@ -322,8 +341,18 @@ Serializers _$serializers = (Serializers().toBuilder()
           () => ListBuilder<TripResponseDtoOutputSeatsInner>())
       ..addBuilderFactory(
           const FullType(BuiltList,
+              const [const FullType(VehicleImagesInputDtoImagesInner)]),
+          () => ListBuilder<VehicleImagesInputDtoImagesInner>())
+      ..addBuilderFactory(
+          const FullType(BuiltList,
               const [const FullType(VehicleListResponseDtoOutputItemsInner)]),
           () => ListBuilder<VehicleListResponseDtoOutputItemsInner>())
+      ..addBuilderFactory(
+          const FullType(BuiltList, const [
+            const FullType(VehicleListResponseDtoOutputItemsInnerImagesInner)
+          ]),
+          () =>
+              ListBuilder<VehicleListResponseDtoOutputItemsInnerImagesInner>())
       ..addBuilderFactory(
           const FullType(BuiltList, const [
             const FullType(VehicleTypeListResponseDtoOutputItemsInner)

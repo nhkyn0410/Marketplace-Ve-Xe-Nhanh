@@ -1,6 +1,15 @@
 import { describe, expect, it } from "vitest";
 import { parseAppConfig, webAllowedOrigins, webOriginScopes } from "./env.config";
 
+/** Cấu hình R2 đầy đủ — production bắt buộc (TASK-TRN-009). */
+const R2 = {
+  R2_ACCOUNT_ID: "account",
+  R2_ACCESS_KEY_ID: "key-id",
+  R2_SECRET_ACCESS_KEY: "secret",
+  R2_PUBLIC_BUCKET: "vexenhanh-public",
+  R2_PUBLIC_BASE_URL: "https://cdn.example.com",
+};
+
 describe("parseAppConfig", () => {
   it("applies defaults when env is empty", () => {
     const config = parseAppConfig({});
@@ -90,6 +99,7 @@ describe("parseAppConfig", () => {
       WEB_CSRF_SECRET: Buffer.alloc(32, 2).toString("base64"),
       OPERATOR_WEB_ORIGINS: "https://operator.example.com",
       ADMIN_WEB_ORIGINS: "https://admin.example.com",
+      ...R2,
     };
     expect(() => parseAppConfig(production)).toThrow(/GOONG_API_KEY/);
     expect(parseAppConfig({ ...production, GOONG_API_KEY: "k" }).GOONG_API_KEY).toBe("k");
@@ -108,7 +118,18 @@ describe("parseAppConfig", () => {
       WEB_CSRF_SECRET: Buffer.alloc(32, 2).toString("base64"),
       OPERATOR_WEB_ORIGINS: "https://operator.vexenhanh.vn",
       ADMIN_WEB_ORIGINS: "https://admin.vexenhanh.vn, https://admin2.vexenhanh.vn",
+      ...R2,
     };
+
+    it("kho object (TASK-TRN-009): production bắt buộc R2; dev bỏ trống thì dùng ổ đĩa; khai dở bị từ chối", () => {
+      const withoutR2 = Object.fromEntries(Object.entries(production).filter(([key]) => !key.startsWith("R2_")));
+      expect(() => parseAppConfig(withoutR2)).toThrow(/R2_ACCOUNT_ID/);
+      expect(parseAppConfig(production).R2_PUBLIC_BUCKET).toBe("vexenhanh-public");
+      expect(parseAppConfig({}).R2_ACCOUNT_ID).toBeUndefined();
+      // Chỉ khai một phần ở dev: không được lặng lẽ rơi về ổ đĩa local.
+      expect(() => parseAppConfig({ R2_ACCOUNT_ID: "account" })).toThrow(/R2_PUBLIC_BUCKET/);
+      expect(() => parseAppConfig({ ...R2, R2_PUBLIC_BASE_URL: "khong-phai-url" })).toThrow(/Invalid environment/);
+    });
 
     it("ràng từng origin với scope của app (M1): operator ↔ Operator OS, platform ↔ Admin", () => {
       expect([...webOriginScopes(parseAppConfig(production))]).toEqual([

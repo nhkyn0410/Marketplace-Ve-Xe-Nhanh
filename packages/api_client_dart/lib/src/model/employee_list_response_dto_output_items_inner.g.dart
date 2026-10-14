@@ -162,6 +162,10 @@ class _$EmployeeListResponseDtoOutputItemsInner
   @override
   final bool credentialDeliveryPending;
   @override
+  final bool passwordChangeRequired;
+  @override
+  final DateTime? temporaryPasswordExpiresAt;
+  @override
   final DateTime createdAt;
   @override
   final DateTime updatedAt;
@@ -179,6 +183,8 @@ class _$EmployeeListResponseDtoOutputItemsInner
       required this.role,
       required this.status,
       required this.credentialDeliveryPending,
+      required this.passwordChangeRequired,
+      this.temporaryPasswordExpiresAt,
       required this.createdAt,
       required this.updatedAt})
       : super._();
@@ -202,6 +208,8 @@ class _$EmployeeListResponseDtoOutputItemsInner
         role == other.role &&
         status == other.status &&
         credentialDeliveryPending == other.credentialDeliveryPending &&
+        passwordChangeRequired == other.passwordChangeRequired &&
+        temporaryPasswordExpiresAt == other.temporaryPasswordExpiresAt &&
         createdAt == other.createdAt &&
         updatedAt == other.updatedAt;
   }
@@ -215,6 +223,8 @@ class _$EmployeeListResponseDtoOutputItemsInner
     _$hash = $jc(_$hash, role.hashCode);
     _$hash = $jc(_$hash, status.hashCode);
     _$hash = $jc(_$hash, credentialDeliveryPending.hashCode);
+    _$hash = $jc(_$hash, passwordChangeRequired.hashCode);
+    _$hash = $jc(_$hash, temporaryPasswordExpiresAt.hashCode);
     _$hash = $jc(_$hash, createdAt.hashCode);
     _$hash = $jc(_$hash, updatedAt.hashCode);
     _$hash = $jf(_$hash);
@@ -231,6 +241,8 @@ class _$EmployeeListResponseDtoOutputItemsInner
           ..add('role', role)
           ..add('status', status)
           ..add('credentialDeliveryPending', credentialDeliveryPending)
+          ..add('passwordChangeRequired', passwordChangeRequired)
+          ..add('temporaryPasswordExpiresAt', temporaryPasswordExpiresAt)
           ..add('createdAt', createdAt)
           ..add('updatedAt', updatedAt))
         .toString();
@@ -271,6 +283,17 @@ class EmployeeListResponseDtoOutputItemsInnerBuilder
   set credentialDeliveryPending(bool? credentialDeliveryPending) =>
       _$this._credentialDeliveryPending = credentialDeliveryPending;
 
+  bool? _passwordChangeRequired;
+  bool? get passwordChangeRequired => _$this._passwordChangeRequired;
+  set passwordChangeRequired(bool? passwordChangeRequired) =>
+      _$this._passwordChangeRequired = passwordChangeRequired;
+
+  DateTime? _temporaryPasswordExpiresAt;
+  DateTime? get temporaryPasswordExpiresAt =>
+      _$this._temporaryPasswordExpiresAt;
+  set temporaryPasswordExpiresAt(DateTime? temporaryPasswordExpiresAt) =>
+      _$this._temporaryPasswordExpiresAt = temporaryPasswordExpiresAt;
+
   DateTime? _createdAt;
   DateTime? get createdAt => _$this._createdAt;
   set createdAt(DateTime? createdAt) => _$this._createdAt = createdAt;
@@ -292,6 +315,8 @@ class EmployeeListResponseDtoOutputItemsInnerBuilder
       _role = $v.role;
       _status = $v.status;
       _credentialDeliveryPending = $v.credentialDeliveryPending;
+      _passwordChangeRequired = $v.passwordChangeRequired;
+      _temporaryPasswordExpiresAt = $v.temporaryPasswordExpiresAt;
       _createdAt = $v.createdAt;
       _updatedAt = $v.updatedAt;
       _$v = null;
@@ -329,6 +354,11 @@ class EmployeeListResponseDtoOutputItemsInnerBuilder
               credentialDeliveryPending,
               r'EmployeeListResponseDtoOutputItemsInner',
               'credentialDeliveryPending'),
+          passwordChangeRequired: BuiltValueNullFieldError.checkNotNull(
+              passwordChangeRequired,
+              r'EmployeeListResponseDtoOutputItemsInner',
+              'passwordChangeRequired'),
+          temporaryPasswordExpiresAt: temporaryPasswordExpiresAt,
           createdAt: BuiltValueNullFieldError.checkNotNull(createdAt,
               r'EmployeeListResponseDtoOutputItemsInner', 'createdAt'),
           updatedAt: BuiltValueNullFieldError.checkNotNull(updatedAt,

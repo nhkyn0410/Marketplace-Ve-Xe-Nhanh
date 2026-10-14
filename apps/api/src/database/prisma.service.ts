@@ -67,6 +67,7 @@ export const RLS_TABLES = [
   // Fare (TASK-TRN-005).
   "fares",
   "fare_rules",
+  "vehicle_images",
 ] as const;
 
 @Injectable()

@@ -13,7 +13,7 @@
 | Người viết    | Nguyễn Hồng Khanh, AI Agent                 |
 | Người duyệt   | Nguyễn Hồng Khanh                           |
 | Ngày tạo      | 11/05/2026                                  |
-| Ngày cập nhật | 04/10/2026                                  |
+| Ngày cập nhật | 14/10/2026                                  |
 
 ### 1.2. Lịch sử thay đổi
 
@@ -36,6 +36,7 @@
 | v0.15     | 04/10/2026 | AI Agent       | **Phân loại xe và loại chỗ (Khanh chốt 04/10/2026, SRS v1.33):** §5.2 — catalog loại xe mang `form` + `class` (BR-77), search lọc theo hai thuộc tính; loại chỗ 5 giá trị gồm chỗ đôi (BR-78), `FareService` không đổi cấu trúc; mở `LLD-OQ-09` (vé và hoàn vé cho chỗ đôi). Giữ trạng thái Review. |
 | v0.16     | 04/10/2026 | AI Agent       | **Đối chiếu Figma nhà xe (Khanh chốt 04/10/2026):** §6.12 bước 4 — bộ ảnh gửi kèm chú thích từng ảnh (BR-76). Cờ `inUse` / `seatMapLocked` dùng lại đúng điều kiện của lỗi `SEAT_MAP_IN_USE` (API §7.3, `TASK-TRN-011`). Giữ trạng thái Review. |
 | v0.17     | 04/10/2026 | AI Agent       | **Thiết kế lại điểm dừng (Khanh chốt 04/10/2026, SRS v1.35):** §5.2 — search khớp theo vị trí, điểm riêng chỉ văn phòng trung chuyển + trạm dừng nghỉ, RouteStop có cho đón / cho trả; §6.13 luồng điểm dừng (loại điểm, đề xuất kèm căn cứ, Admin duyệt / khóa, quy tắc đón trả, tìm theo vị trí); §7 mã lỗi; §9 audit. Giữ trạng thái Review. |
+| v0.18     | 14/10/2026 | AI Agent       | **`TASK-TRN-009` (ảnh phương tiện) đã làm:** §6.12 ghi rõ phần đã hiện thực — nén ở trình duyệt luôn xuất lại JPEG (bỏ EXIF), chỉ gắn object tải lên chưa quá 23 giờ, job dọn chạy 03:30 hằng ngày trên hàng đợi `storage-maintenance`; `LLD-OQ-08` ghi mặc định đã áp dụng, chờ Khanh chốt. Giữ trạng thái Review. |
 
 ---
 
@@ -251,11 +252,11 @@ Tên module / folder dưới đây dùng **target state** theo `context/DOMAIN-M
 
 | Bước | Xử lý |
 | ---- | ----- |
-| 1    | Operator OS nén ảnh ở trình duyệt trước khi tải lên (cạnh dài tối đa 1600 px) để danh sách kết quả tìm tải nhẹ — xem `LLD-OQ-08`. |
+| 1    | Operator OS nén ảnh ở trình duyệt trước khi tải lên (cạnh dài tối đa 1600 px) để danh sách kết quả tìm tải nhẹ — xem `LLD-OQ-08`. `TASK-TRN-009` luôn xuất lại JPEG: bỏ EXIF (vị trí GPS của ảnh điện thoại) trước khi ảnh thành công khai, phần trong suốt thành nền trắng. |
 | 2    | `POST /operator/vehicles/{vehicleId}/images/upload-url`: kiểm xe thuộc tenant, `contentType` ∈ {`image/jpeg`, `image/png`, `image/webp`}, `sizeBytes` ≤ 5 MB; sinh `objectKey = vehicles/{operatorId}/{vehicleId}/{uuid}.{ext}` (không dùng tên file gốc); trả presigned `PUT` vào R2 public, TTL 5 phút, ký kèm `Content-Type`. Rate limit theo tài khoản. |
 | 3    | Trình duyệt `PUT` file thẳng lên R2; API không nhận byte ảnh. |
 | 4    | `PUT /operator/vehicles/{vehicleId}/images` nhận danh sách `images` (mỗi phần tử gồm `objectKey` và `caption` tùy chọn, tối đa 60 ký tự) theo thứ tự hiển thị (0–8 phần tử, thay toàn bộ). Mỗi key phải nằm dưới prefix của chính xe đó; key mới thì `HEAD` object để kiểm tồn tại, dung lượng, content-type và đọc các byte đầu để kiểm chữ ký định dạng; sai → 422 `VEHICLE_IMAGE_INVALID`, quá 8 → 422 `VEHICLE_IMAGE_LIMIT_EXCEEDED`. Một transaction khóa dòng xe rồi xóa + ghi lại `vehicle_images` (cùng cách `PUT` xe thay tiện ích); phần tử đầu là ảnh đại diện. |
-| 5    | Sau commit xóa object của ảnh vừa bị bỏ (best-effort). Object đã tải lên nhưng không được gắn, hoặc xóa lỗi, do job BullMQ định kỳ dọn: object dưới `vehicles/` không có dòng tham chiếu và cũ hơn 24 giờ. |
+| 5    | Sau commit xóa object của ảnh vừa bị bỏ (best-effort). Object đã tải lên nhưng không được gắn, hoặc xóa lỗi, do job BullMQ định kỳ dọn: object dưới `vehicles/` không có dòng tham chiếu và cũ hơn 24 giờ (`TASK-TRN-009`: hàng đợi `storage-maintenance`, 03:30 giờ VN mỗi ngày, trong worker). Bước 4 chỉ gắn object tải lên chưa quá 23 giờ, nên job không xóa nhầm object vừa được gắn. |
 | 6    | Marketplace: search trả `vehicleCoverImageUrl`, chi tiết chuyến trả `vehicleImages` của xe đang gắn (URL CDN của R2 public). Xe chưa có ảnh trả `null` / mảng rỗng, client hiển thị hình thay thế. Cache search 60 giây nên ảnh mới hoặc vừa bị gỡ có thể hiện chậm tối đa 60 giây. |
 | 7    | Admin gỡ ảnh vi phạm: `POST /admin/vehicle-images/{imageId}/remove` + lý do bắt buộc → scope `platform` xóa dòng + object, ghi audit, thông báo Operator (UC-28 bước 7). Không có bước duyệt trước. |
 
@@ -351,7 +352,7 @@ Sự kiện nhạy cảm ghi vào Mongo `audit_event` (cluster RIÊNG, append-on
 | LLD-OQ-05 | AuditLog lưu cùng DB hay storage riêng?                       | Audit implementation   | **Đóng 25/05/2026 theo ADR-011**: Mongo **cluster RIÊNG**, append-only                                                      |
 | LLD-OQ-06 | Giá trị seed tham số loyalty (đơn vị tích điểm, giá trị quy đổi, mốc + hệ số hạng, số điểm đổi tối thiểu, hạn điểm, hạn voucher)? Figma: 1 điểm = 1.000đ, mốc 0 / 2.000 / 5.000 / 10.000, hệ số 1.0 / 1.2 / 1.5 / 2.0, đổi tối thiểu 100 điểm, voucher 30 ngày; **chưa có đơn vị tích điểm** và các số chưa khớp nhau về chi phí | Chi phí Platform, seed DB | Mở; chốt trước `TASK-LOY-001` |
 | LLD-OQ-07 | Promotion **cấp Platform** (không phải voucher đổi điểm) do ai chịu phần giảm khi `BR-48` cấm subsidy? Ảnh hưởng `fundedBy` snapshot và escrow ledger | Promotion, escrow, ví voucher | Mở (có từ trước, lộ ra khi thiết kế ví voucher); chốt trong `TASK-PROM-001` |
-| LLD-OQ-08 | Ảnh thu nhỏ cho danh sách kết quả tìm: nén ở trình duyệt Operator OS trước khi tải lên (không thêm hạ tầng) hay sinh bản thu nhỏ ở server (thư viện xử lý ảnh + job nền, loại luôn EXIF)? | Tốc độ trang tìm kiếm (NFR-PERF-01), `TASK-TRN-009` | Mở — mặc định v1: nén ở trình duyệt; chốt khi làm `TASK-TRN-009` |
+| LLD-OQ-08 | Ảnh thu nhỏ cho danh sách kết quả tìm: nén ở trình duyệt Operator OS trước khi tải lên (không thêm hạ tầng) hay sinh bản thu nhỏ ở server (thư viện xử lý ảnh + job nền, loại luôn EXIF)? | Tốc độ trang tìm kiếm (NFR-PERF-01), `TASK-TRN-009` | Mở — mặc định v1 đã áp dụng ở `TASK-TRN-009` (14/10/2026): nén ở trình duyệt, cạnh dài 1600 px, xuất lại JPEG bỏ EXIF; chờ Khanh chốt |
 | LLD-OQ-09 | Chỗ đôi có hai hành khách (`BR-78`, `OQ-23`): phát một vé chung hay mỗi hành khách một vé cùng mã chỗ; có cho hủy / hoàn lẻ một người không? Đề xuất: mỗi hành khách một vé cùng mã chỗ; giá tính theo chỗ nên hủy / hoàn theo cả chỗ | Booking, Ticket, Refund | Mở; chốt khi làm `TASK-BTP-002` / `BTP-004` / `BTP-005` |
 
 ---

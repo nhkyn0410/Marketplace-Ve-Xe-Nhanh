@@ -32,10 +32,10 @@ import {
 import { Skeleton } from "@vexenhanh/ui/components/skeleton";
 import { Textarea } from "@vexenhanh/ui/components/textarea";
 import { cn } from "@vexenhanh/ui/lib/utils";
-import { ChevronDown, CircleAlert, CircleCheck, Copy, FileX2, ImagePlus, LoaderCircle, RefreshCw } from "lucide-react";
+import { ChevronDown, CircleAlert, CircleCheck, Copy, FileX2, LoaderCircle, RefreshCw } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useId, useMemo, useState, type ReactNode } from "react";
+import { useEffect, useId, useMemo, useState, type ReactNode } from "react";
 import { Controller, useForm } from "react-hook-form";
 
 import { ApiError } from "../../lib/auth/api-client";
@@ -46,12 +46,25 @@ import {
   listAllSeatMaps,
   listAmenities,
   listVehicleTypes,
+  replaceVehicleImages,
+  requestVehicleImageUpload,
   updateVehicle,
+  uploadVehicleImageFile,
   type Amenity,
   type SeatMapSummary,
   type Vehicle,
+  type VehicleImageUploadInput,
   type VehicleType
 } from "../../lib/vehicle/vehicle-api";
+import { clearPendingImages, peekPendingImages, stashPendingImages } from "../../lib/vehicle/pending-images";
+import {
+  describeImageSaveError,
+  imagesChanged,
+  syncVehicleImages,
+  toImageItems,
+  type ImageItem,
+  type ImageSyncResult
+} from "../../lib/vehicle/vehicle-images";
 import {
   describeSaveError,
   DESCRIPTION_MAX_LENGTH,
@@ -70,6 +83,7 @@ import {
 } from "../../lib/vehicle/vehicle-format";
 import { PageHeader } from "../page-header";
 import { SeatMapPreview } from "./seat-map-preview";
+import { VehicleImagesBlock } from "./vehicle-images-block";
 
 const BUTTON = "h-10 rounded-lg px-4 text-sm font-semibold";
 const CARD = "flex flex-col gap-5 rounded-xl border bg-card p-6";
@@ -77,6 +91,27 @@ const CARD_TITLE = "text-base leading-6 font-semibold text-vxn-ink";
 const HELPER = "text-xs leading-[18px] text-muted-foreground";
 const NO_SEAT_MAP = "NONE";
 const FORM_ID = "vehicle-form";
+
+/** Lưu bộ ảnh ở form vào một xe đã có (TASK-TRN-009). */
+function saveImages(vehicleId: string, items: ImageItem[]): Promise<ImageSyncResult> {
+  return syncVehicleImages(items, {
+    requestUpload: (input) => requestVehicleImageUpload(vehicleId, input as VehicleImageUploadInput),
+    uploadFile: uploadVehicleImageFile,
+    replaceImages: (input) => replaceVehicleImages(vehicleId, input)
+  });
+}
+
+/** Cảnh báo ở khối ảnh khi xe đã lưu nhưng còn ảnh chưa lưu được (Figma 08). */
+function imageNotice(created: boolean, sync: ImageSyncResult): string | null {
+  const what = created ? "Đã tạo xe" : "Đã lưu xe";
+  if (sync.failed > 0) {
+    return `${what}, chưa lưu được ${sync.failed} ảnh. Hãy thử lại ảnh lỗi${created ? "; không cần tạo xe mới" : ""}.`;
+  }
+  if (sync.error) {
+    return `${what}, nhưng bộ ảnh chưa được lưu. Bấm “Lưu phương tiện” để thử lại.`;
+  }
+  return null;
+}
 
 /** Màn Thêm / Sửa phương tiện (Figma 02, 04; FR-OPS-01..02, UC-12). Không truyền `vehicleId` = thêm mới. */
 export function VehicleForm({ vehicleId }: { vehicleId?: string }) {
@@ -171,6 +206,18 @@ function VehicleFormBody({
   const [formError, setFormError] = useState<string | null>(null);
   const [confirmLeave, setConfirmLeave] = useState(false);
   const [confirmCopy, setConfirmCopy] = useState(false);
+  // Ảnh: `savedImages` là bộ ảnh đang có trên xe, `images` là bộ ảnh ở form (chỉ lưu khi bấm "Lưu phương tiện").
+  // Vừa tạo xe mà còn ảnh chưa lưu được thì màn sửa nhận lại các ô ảnh đó (Figma 08).
+  const [pending] = useState(() => (vehicle ? peekPendingImages(vehicle.id) : null));
+  const [savedImages, setSavedImages] = useState(vehicle?.images ?? []);
+  const [images, setImages] = useState<ImageItem[]>(() => pending?.items ?? toImageItems(vehicle?.images ?? []));
+  const [imageWarning, setImageWarning] = useState<string | null>(pending?.notice ?? null);
+  const [imageError, setImageError] = useState<string | null>(null);
+  useEffect(() => {
+    if (vehicle) {
+      clearPendingImages(vehicle.id);
+    }
+  }, [vehicle]);
 
   const stored = vehicle ? toFormValues(vehicle, formatPlateNumber) : EMPTY_VEHICLE_FORM;
   const form = useForm<VehicleFormValues>({
@@ -180,21 +227,34 @@ function VehicleFormBody({
     values: returnedSeatMap ? { ...stored, seatMapId: returnedSeatMap.id } : undefined,
     resetOptions: { keepDefaultValues: true }
   });
-  const { errors, isDirty } = form.formState;
+  const { errors } = form.formState;
+  const isDirty = form.formState.isDirty || imagesChanged(savedImages, images);
   const description = form.watch("description");
   const seatMapId = form.watch("seatMapId");
 
+  // Xe lưu trước, ảnh lưu sau: ảnh lỗi không làm mất thông tin xe vừa lưu ("giữ ảnh hợp lệ khi một ảnh lỗi").
   const save = useMutation({
-    mutationFn: (values: VehicleFormValues) =>
-      vehicle ? updateVehicle(vehicle.id, toVehicleInput(values)) : createVehicle(toVehicleInput(values)),
-    onSuccess: (result) => {
+    mutationFn: async (values: VehicleFormValues) => {
+      const result = vehicle
+        ? await updateVehicle(vehicle.id, toVehicleInput(values))
+        : await createVehicle(toVehicleInput(values));
+      const sync = imagesChanged(savedImages, images) ? await saveImages(result.id, images) : null;
+      return { result, sync };
+    },
+    onSuccess: ({ result, sync }) => {
       void queryClient.invalidateQueries({ queryKey: ["vehicles"] });
-      queryClient.setQueryData(["vehicle", result.id], result);
+      const current = { ...result, images: sync?.saved ?? result.images };
+      queryClient.setQueryData(["vehicle", result.id], current);
       if (!vehicle) {
+        const notice = sync && imageNotice(true, sync);
+        if (sync && notice) {
+          stashPendingImages(result.id, { items: sync.items, notice });
+        }
         router.replace(`/vehicles/${result.id}?saved=1`);
         return;
       }
       form.reset(toFormValues(result, formatPlateNumber));
+      applyImageSync(sync, current.images);
       setSaved(true);
     },
     onError: (error) => {
@@ -210,6 +270,30 @@ function VehicleFormBody({
       }
     }
   });
+
+  // "Thử lại" ở ô ảnh lỗi: chỉ lưu bộ ảnh, không gửi lại thông tin xe.
+  const retryImages = useMutation({
+    mutationFn: () => saveImages(vehicle!.id, images),
+    onSuccess: (sync) => {
+      if (sync.saved) {
+        queryClient.setQueryData<Vehicle>(["vehicle", vehicle!.id], (old) => old && { ...old, images: sync.saved! });
+        void queryClient.invalidateQueries({ queryKey: ["vehicles"] });
+      }
+      applyImageSync(sync, sync.saved ?? savedImages);
+    }
+  });
+
+  function applyImageSync(sync: ImageSyncResult | null, nextSaved: Vehicle["images"]) {
+    setSavedImages(nextSaved);
+    if (!sync) {
+      setImageWarning(null);
+      setImageError(null);
+      return;
+    }
+    setImages(sync.items);
+    setImageWarning(sync.failed > 0 ? imageNotice(false, sync) : null);
+    setImageError(sync.error ? describeImageSaveError(sync.error) : null);
+  }
 
   // Loại xe đã bị ngừng vẫn giữ được trên xe cũ (API cho phép) → thêm một lựa chọn để không mất khi lưu.
   const typeOptions = useMemo(() => {
@@ -370,7 +454,15 @@ function VehicleFormBody({
             </Field>
           </section>
 
-          <VehicleImagesBlock />
+          <VehicleImagesBlock
+            items={images}
+            setItems={setImages}
+            busy={save.isPending}
+            notice={imageWarning}
+            error={imageError}
+            retrying={retryImages.isPending}
+            onRetry={vehicle ? () => retryImages.mutate() : undefined}
+          />
         </div>
 
         <div className="flex min-w-0 flex-col gap-6">
@@ -622,35 +714,5 @@ function SeatMapSection({ seatMap }: { seatMap: SeatMapSummary }) {
       )}
       {detail.data && <SeatMapPreview key={detail.data.id} seatMap={detail.data} />}
     </>
-  );
-}
-
-/**
- * Khối ảnh phương tiện theo mock (Khanh chốt "giữ như mock"). Tải / sắp xếp / xóa ảnh cần API của
- * TASK-TRN-009 nên vùng thêm ảnh chưa bấm được.
- */
-function VehicleImagesBlock() {
-  return (
-    <section aria-labelledby="vehicle-images-heading" className={CARD}>
-      <div className="flex items-start">
-        <h2 id="vehicle-images-heading" className={`${CARD_TITLE} flex-1`}>
-          Ảnh phương tiện
-        </h2>
-        <p className="text-xs leading-[18px] font-medium text-muted-foreground">0 / 8 ảnh</p>
-      </div>
-      <p className="text-sm leading-5 text-muted-foreground">Kéo thả để sắp xếp. Ảnh đầu tiên là ảnh đại diện.</p>
-      <button
-        type="button"
-        disabled
-        title="Tải ảnh sẽ có trong bản cập nhật sau."
-        className="flex h-[120px] w-[212px] max-w-full cursor-not-allowed flex-col items-center justify-center gap-2 rounded-lg border border-dashed bg-background"
-      >
-        <ImagePlus className="size-6 text-vxn-teal-700" />
-        <span className="text-sm leading-5 font-semibold text-vxn-teal-700">Thêm ảnh</span>
-        <span className={HELPER}>hoặc kéo thả vào đây</span>
-      </button>
-      <p className={HELPER}>JPEG, PNG hoặc WebP · Tối đa 5 MB / ảnh · Tối đa 8 ảnh</p>
-      <p className={`${HELPER} rounded-lg bg-muted p-3`}>Ảnh sẽ hiển thị công khai ngay sau khi lưu.</p>
-    </section>
   );
 }

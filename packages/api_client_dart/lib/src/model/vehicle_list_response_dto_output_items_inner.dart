@@ -3,6 +3,7 @@
 //
 
 // ignore_for_file: unused_element
+import 'package:api_client_dart/src/model/vehicle_list_response_dto_output_items_inner_images_inner.dart';
 import 'package:built_collection/built_collection.dart';
 import 'package:api_client_dart/src/model/vehicle_list_response_dto_output_items_inner_seat_map.dart';
 import 'package:built_value/built_value.dart';
@@ -20,6 +21,7 @@ part 'vehicle_list_response_dto_output_items_inner.g.dart';
 /// * [seatMap] 
 /// * [seatMapLocked] 
 /// * [amenityIds] 
+/// * [images] 
 /// * [status] 
 /// * [description] 
 /// * [createdAt] 
@@ -46,6 +48,9 @@ abstract class VehicleListResponseDtoOutputItemsInner implements Built<VehicleLi
 
   @BuiltValueField(wireName: r'amenityIds')
   BuiltList<String> get amenityIds;
+
+  @BuiltValueField(wireName: r'images')
+  BuiltList<VehicleListResponseDtoOutputItemsInnerImagesInner> get images;
 
   @BuiltValueField(wireName: r'status')
   VehicleListResponseDtoOutputItemsInnerStatusEnum get status;
@@ -117,6 +122,11 @@ class _$VehicleListResponseDtoOutputItemsInnerSerializer implements PrimitiveSer
     yield serializers.serialize(
       object.amenityIds,
       specifiedType: const FullType(BuiltList, [FullType(String)]),
+    );
+    yield r'images';
+    yield serializers.serialize(
+      object.images,
+      specifiedType: const FullType(BuiltList, [FullType(VehicleListResponseDtoOutputItemsInnerImagesInner)]),
     );
     yield r'status';
     yield serializers.serialize(
@@ -211,6 +221,13 @@ class _$VehicleListResponseDtoOutputItemsInnerSerializer implements PrimitiveSer
             specifiedType: const FullType(BuiltList, [FullType(String)]),
           ) as BuiltList<String>;
           result.amenityIds.replace(valueDes);
+          break;
+        case r'images':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(BuiltList, [FullType(VehicleListResponseDtoOutputItemsInnerImagesInner)]),
+          ) as BuiltList<VehicleListResponseDtoOutputItemsInnerImagesInner>;
+          result.images.replace(valueDes);
           break;
         case r'status':
           final valueDes = serializers.deserialize(

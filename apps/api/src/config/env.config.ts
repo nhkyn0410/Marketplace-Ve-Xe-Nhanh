@@ -176,6 +176,15 @@ export const envSchema = z
     ADMIN_WEB_ORIGINS: webOriginList,
     // Khoá HMAC ký CSRF token double-submit (base64 32 byte, tách khỏi mọi key khác). Thiếu ở dev → ephemeral.
     WEB_CSRF_SECRET: optionalBase64Key32,
+    // Kho object công khai — Cloudflare R2 (ADR-018, TASK-TRN-009). Đủ cả năm biến → dùng R2; bỏ trống cả năm →
+    // lưu ổ đĩa local ở `STORAGE_LOCAL_DIR` (chỉ dev / test); production bắt buộc đủ.
+    R2_ACCOUNT_ID: optionalString,
+    R2_ACCESS_KEY_ID: optionalString,
+    R2_SECRET_ACCESS_KEY: optionalString,
+    R2_PUBLIC_BUCKET: optionalString,
+    // Gốc địa chỉ công khai của bucket (CDN / custom domain), vd `https://cdn.vexenhanh.com`.
+    R2_PUBLIC_BASE_URL: z.preprocess(emptyToUndefined, z.url().optional()),
+    STORAGE_LOCAL_DIR: optionalString,
   })
   .superRefine((env, ctx) => {
     // Một origin thuộc cả hai app thì không biết ràng phiên với scope nào → từ chối ở mọi môi trường.
@@ -187,9 +196,29 @@ export const envSchema = z
         message: "OPERATOR_WEB_ORIGINS and ADMIN_WEB_ORIGINS must not share an origin.",
       });
     }
+    // Khai dở cấu hình R2 thì từ chối ở mọi môi trường: nếu lặng lẽ rơi về ổ đĩa local, file "đã tải lên"
+    // sẽ không nằm ở R2 như người cấu hình tưởng.
+    const r2Keys = [
+      "R2_ACCOUNT_ID",
+      "R2_ACCESS_KEY_ID",
+      "R2_SECRET_ACCESS_KEY",
+      "R2_PUBLIC_BUCKET",
+      "R2_PUBLIC_BASE_URL",
+    ] as const;
+    const r2Set = r2Keys.filter((key) => env[key]);
+    if (r2Set.length > 0 && r2Set.length < r2Keys.length) {
+      for (const key of r2Keys.filter((name) => !env[name])) {
+        ctx.addIssue({ code: "custom", path: [key], message: `${key} is required when any R2_* variable is set.` });
+      }
+    }
     // Production fail-fast: secret/key bắt buộc, base URL phải https non-localhost (sec H1/M4).
     if (env.NODE_ENV !== "production") {
       return;
+    }
+    if (r2Set.length === 0) {
+      for (const key of r2Keys) {
+        ctx.addIssue({ code: "custom", path: [key], message: `${key} is required in production.` });
+      }
     }
     // RESEND_API_KEY bắt buộc: production không được rơi về dev fallback không gửi OTP.
     for (const key of [

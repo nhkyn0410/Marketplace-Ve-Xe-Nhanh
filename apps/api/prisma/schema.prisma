@@ -546,6 +546,7 @@ model Vehicle {
   vehicleType VehicleType      @relation(fields: [vehicleTypeId], references: [id], onDelete: Restrict, onUpdate: Restrict)
   seatMap     SeatMap?         @relation(fields: [seatMapId, operatorId], references: [id, operatorId], onDelete: Restrict, onUpdate: Restrict)
   amenities   VehicleAmenity[]
+  images      VehicleImage[]
   trips       Trip[]
 
   @@unique([operatorId, plateNumber])
@@ -565,6 +566,26 @@ model VehicleAmenity {
 
   @@id([vehicleId, amenityId])
   @@map("vehicle_amenities")
+}
+
+/// Ảnh công khai của xe (BR-76, TASK-TRN-009): `objectKey` trỏ object ở kho public (ADR-018), `position` nhỏ
+/// nhất là ảnh đại diện. Giới hạn 8 ảnh / xe, loại và dung lượng file giữ bằng CHECK ở migration.
+model VehicleImage {
+  id          String   @id @default(uuid())
+  operatorId  String   @map("operator_id")
+  vehicleId   String   @map("vehicle_id")
+  objectKey   String   @unique @map("object_key")
+  position    Int
+  caption     String?
+  sizeBytes   Int      @map("size_bytes")
+  contentType String   @map("content_type")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  vehicle Vehicle @relation(fields: [vehicleId, operatorId], references: [id, operatorId], onDelete: Restrict, onUpdate: Restrict)
+
+  @@unique([vehicleId, position])
+  @@index([operatorId])
+  @@map("vehicle_images")
 }
 
 // ════════════════════════════ Transport — Route & StopPoint (TASK-TRN-002) ════════════════════════════

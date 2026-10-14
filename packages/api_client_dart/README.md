@@ -128,6 +128,8 @@ Class | Method | HTTP request | Description
 [*OperatorVehiclesApi*](doc/OperatorVehiclesApi.md) | [**vehicleControllerGet**](doc/OperatorVehiclesApi.md#vehiclecontrollerget) | **GET** /v1/operator/vehicles/{vehicleId} | 
 [*OperatorVehiclesApi*](doc/OperatorVehiclesApi.md) | [**vehicleControllerList**](doc/OperatorVehiclesApi.md#vehiclecontrollerlist) | **GET** /v1/operator/vehicles | 
 [*OperatorVehiclesApi*](doc/OperatorVehiclesApi.md) | [**vehicleControllerUpdate**](doc/OperatorVehiclesApi.md#vehiclecontrollerupdate) | **PUT** /v1/operator/vehicles/{vehicleId} | 
+[*OperatorVehiclesApi*](doc/OperatorVehiclesApi.md) | [**vehicleImageControllerCreateUploadUrl**](doc/OperatorVehiclesApi.md#vehicleimagecontrollercreateuploadurl) | **POST** /v1/operator/vehicles/{vehicleId}/images/upload-url | 
+[*OperatorVehiclesApi*](doc/OperatorVehiclesApi.md) | [**vehicleImageControllerReplace**](doc/OperatorVehiclesApi.md#vehicleimagecontrollerreplace) | **PUT** /v1/operator/vehicles/{vehicleId}/images | 
 
 
 ## Documentation For Models
@@ -221,9 +223,15 @@ Class | Method | HTTP request | Description
  - [TripResponseDtoOutputStopsInner](doc/TripResponseDtoOutputStopsInner.md)
  - [TripSeatStatusInputDto](doc/TripSeatStatusInputDto.md)
  - [TripStatusInputDto](doc/TripStatusInputDto.md)
+ - [VehicleImageUploadInputDto](doc/VehicleImageUploadInputDto.md)
+ - [VehicleImageUploadResponseDtoOutput](doc/VehicleImageUploadResponseDtoOutput.md)
+ - [VehicleImagesInputDto](doc/VehicleImagesInputDto.md)
+ - [VehicleImagesInputDtoImagesInner](doc/VehicleImagesInputDtoImagesInner.md)
+ - [VehicleImagesResponseDtoOutput](doc/VehicleImagesResponseDtoOutput.md)
  - [VehicleInputDto](doc/VehicleInputDto.md)
  - [VehicleListResponseDtoOutput](doc/VehicleListResponseDtoOutput.md)
  - [VehicleListResponseDtoOutputItemsInner](doc/VehicleListResponseDtoOutputItemsInner.md)
+ - [VehicleListResponseDtoOutputItemsInnerImagesInner](doc/VehicleListResponseDtoOutputItemsInnerImagesInner.md)
  - [VehicleListResponseDtoOutputItemsInnerSeatMap](doc/VehicleListResponseDtoOutputItemsInnerSeatMap.md)
  - [VehicleResponseDtoOutput](doc/VehicleResponseDtoOutput.md)
  - [VehicleTypeListResponseDtoOutput](doc/VehicleTypeListResponseDtoOutput.md)

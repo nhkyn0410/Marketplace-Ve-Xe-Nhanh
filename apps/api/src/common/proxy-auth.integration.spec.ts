@@ -105,7 +105,12 @@ async function createFixture() {
     GOONG_API_KEY: "test-goong-key",
     WEB_CSRF_SECRET: Buffer.alloc(32, 2).toString("base64"),
     OPERATOR_WEB_ORIGINS: "https://operator.example.com",
-    ADMIN_WEB_ORIGINS: "https://admin.example.com"
+    ADMIN_WEB_ORIGINS: "https://admin.example.com",
+    R2_ACCOUNT_ID: "account",
+    R2_ACCESS_KEY_ID: "key-id",
+    R2_SECRET_ACCESS_KEY: "secret",
+    R2_PUBLIC_BUCKET: "vexenhanh-public",
+    R2_PUBLIC_BASE_URL: "https://cdn.example.com"
   });
   const history = new LoginHistoryService(audit as never);
   const limiter = new OtpRateLimiter(redis as never);

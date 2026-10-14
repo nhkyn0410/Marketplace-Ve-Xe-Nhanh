@@ -33,6 +33,10 @@ type RequestOptions = {
   retryOnUnauthorized?: boolean;
 };
 
+// 401 KHÔNG phải do phiên hết hạn: sai mật khẩu / mã khi xác nhận lại danh tính, hoặc thao tác nhạy cảm chưa có
+// bằng chứng xác nhận lại (TASK-IAM-005 Q8). Làm mới phiên không giúp gì, còn coi là hết phiên thì đăng xuất oan.
+const NON_SESSION_401 = new Set(["AUTH_REAUTH_REQUIRED", "AUTH_INVALID_CREDENTIALS"]);
+
 let csrfToken: string | null = null;
 let refreshInFlight: Promise<RefreshOutcome> | null = null;
 let sessionExpiredListener: (() => void) | null = null;
@@ -100,7 +104,8 @@ function withRefreshLock<T>(work: () => Promise<T>): Promise<T> {
 
 /**
  * Gọi API cookie mode. Unsafe method tự gắn `X-CSRF-Token`; 403 `AUTH_CSRF_INVALID` (token bị tab khác
- * rotate) → lấy CSRF mới và thử lại một lần; 401 → refresh single-flight rồi thử lại đúng một lần.
+ * rotate) → lấy CSRF mới và thử lại một lần; 401 → refresh single-flight rồi thử lại đúng một lần, trừ 401
+ * không liên quan tới phiên (`AUTH_REAUTH_REQUIRED`, `AUTH_INVALID_CREDENTIALS`) — ném thẳng cho màn hình xử lý.
  */
 export async function apiRequest<T>(path: string, options: RequestOptions = {}): Promise<T> {
   const unsafe = (options.method ?? "GET") !== "GET";
@@ -114,7 +119,11 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
     response = await send(path, options);
   }
 
-  if (response.status === 401 && options.retryOnUnauthorized !== false) {
+  if (
+    response.status === 401 &&
+    options.retryOnUnauthorized !== false &&
+    !NON_SESSION_401.has((await problemCode(response)) ?? "")
+  ) {
     const outcome = await refreshSession();
     if (outcome === "unavailable") {
       throw new ApiError(503, "SERVICE_UNAVAILABLE", "Không làm mới được phiên đăng nhập. Vui lòng thử lại.");

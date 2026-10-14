@@ -58,6 +58,20 @@ services:
       # khởi động (dev để trống thì dùng ước lượng đường chim bay).
       - key: GOONG_API_KEY
         sync: false
+      # TASK-TRN-009 (ADR-018): kho object công khai Cloudflare R2 — ảnh xe. Production thiếu một trong năm biến →
+      # không khởi động (ổ đĩa của Render mất sau mỗi lần deploy nên không dùng kho local). Bucket cần CORS cho
+      # `PUT` từ origin Operator OS với header `Content-Type`.
+      - key: R2_ACCOUNT_ID
+        sync: false
+      - key: R2_ACCESS_KEY_ID
+        sync: false
+      - key: R2_SECRET_ACCESS_KEY
+        sync: false
+      - key: R2_PUBLIC_BUCKET
+        sync: false
+      # Gốc địa chỉ công khai của bucket (custom domain / CDN), vd https://cdn.vexenhanh.vn
+      - key: R2_PUBLIC_BASE_URL
+        sync: false
       - key: GOOGLE_CLIENT_ID
         sync: false
       - key: GOOGLE_CLIENT_SECRET
@@ -95,6 +109,17 @@ services:
 #      - key: DATABASE_URL
 #        sync: false
 #      - key: MONGODB_AUDIT_URI
+#        sync: false
+#      # TASK-TRN-009: job dọn ảnh xe mồ côi đọc / xóa object ở R2 — cùng năm biến R2_* như API.
+#      - key: R2_ACCOUNT_ID
+#        sync: false
+#      - key: R2_ACCESS_KEY_ID
+#        sync: false
+#      - key: R2_SECRET_ACCESS_KEY
+#        sync: false
+#      - key: R2_PUBLIC_BUCKET
+#        sync: false
+#      - key: R2_PUBLIC_BASE_URL
 #        sync: false
 #      - key: OTEL_SERVICE_NAME
 #        value: vexenhanh-worker

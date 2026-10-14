@@ -3,6 +3,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 
 import { ApiError, apiRequest, ensureCsrf, forgetCsrf, onSessionExpired } from "./api-client";
+import { forgetReauth } from "./reauth";
 
 /** Response `GET /auth/me` (05 API §7.1.2). */
 export type AuthMe = {
@@ -53,6 +54,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Phiên đã chết/không gọi được API: vẫn về màn đăng nhập; cookie hết hạn tự rơi.
     }
     forgetCsrf();
+    // Bằng chứng xác nhận lại danh tính gắn với phiên vừa đóng.
+    forgetReauth();
     setState({ status: "anonymous", notice });
   }, []);
 
