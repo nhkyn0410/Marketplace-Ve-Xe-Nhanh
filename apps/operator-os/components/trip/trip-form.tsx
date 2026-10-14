@@ -41,7 +41,9 @@ import {
   describeTripSaveError,
   EMPTY_TRIP_VALUES,
   hasCompleteTimes,
+  MAX_ONLINE_SALE_CUTOFF_MINUTES,
   NO_VEHICLE,
+  parseCutoffMinutes,
   resolveManualTimes,
   suggestArrival,
   toTripFormValues,
@@ -59,6 +61,7 @@ import {
   TRIP_STATUS,
   tripDurationLabel
 } from "../../lib/trip/trip-format";
+import { onlineSaleCloseLabel } from "../../lib/trip/trip-sale";
 import { listAllVehicles, listVehicleTypes } from "../../lib/vehicle/vehicle-api";
 import { formatPlateNumber, vehicleTypeLabel } from "../../lib/vehicle/vehicle-format";
 import { FormField } from "../form-field";
@@ -108,7 +111,8 @@ export function TripForm({ tripId }: { tripId?: string }) {
       </FormShell>
     );
   }
-  if (trip.isError || tripRoute.isError) {
+  // Chỉ khi CHƯA có dữ liệu: refetch nền lỗi (đổi tab rồi quay lại) không được xóa form đang nhập dở.
+  if ((trip.isError && !trip.data) || (tripRoute.isError && !tripRoute.data)) {
     return (
       <FormShell title={title} description="Chưa tải được dữ liệu.">
         <StatePanel
@@ -216,6 +220,12 @@ function TripFormBody({ trip, tripRoute }: { trip?: Trip; tripRoute?: Route }) {
   const departureMs = complete ? new Date(departureIso(values)).getTime() : undefined;
   const arrivalMs = complete ? new Date(arrivalIso(values)).getTime() : undefined;
   const validSpan = departureMs !== undefined && arrivalMs !== undefined && arrivalMs > departureMs;
+  // Mốc ngừng bán online tính được khi đã có giờ khởi hành và số phút hợp lệ.
+  const cutoffMinutes = parseCutoffMinutes(values.onlineSaleCutoffMinutes);
+  const saleClose =
+    departureMs === undefined || cutoffMinutes === null
+      ? null
+      : onlineSaleCloseLabel(departureIso(values), cutoffMinutes);
   const clockTimes = stops.map((_stop, index) => manualTimes[index] ?? "");
   // Giờ tại từng điểm để hiển thị: tự chia thì đủ cả dãy; tự nhập thì có tới đâu ghi ngày tới đó.
   let stopTimes: (number | undefined)[] = [];
@@ -435,7 +445,7 @@ function TripFormBody({ trip, tripRoute }: { trip?: Trip; tripRoute?: Route }) {
 
               <FormField
                 label="Xe"
-                helper="Để trống được khi còn nháp. Chỉ liệt kê xe đang hoạt động và đã có sơ đồ ghế."
+                helper="Để trống được khi còn nháp, bắt buộc khi mở bán. Chỉ liệt kê xe đang hoạt động và đã có sơ đồ ghế."
                 error={errors.vehicleId?.message}
               >
                 {(control) => (
@@ -459,6 +469,16 @@ function TripFormBody({ trip, tripRoute }: { trip?: Trip; tripRoute?: Route }) {
                       </Select>
                     )}
                   />
+                )}
+              </FormField>
+
+              <FormField
+                label="Ngừng bán online trước giờ khởi hành (phút) *"
+                helper={`Từ 0 đến ${MAX_ONLINE_SALE_CUTOFF_MINUTES} phút.${saleClose ? ` Với giờ trên, khách đặt online được tới ${saleClose}.` : ""}`}
+                error={errors.onlineSaleCutoffMinutes?.message}
+              >
+                {(control) => (
+                  <Input {...control} inputMode="numeric" maxLength={4} {...form.register("onlineSaleCutoffMinutes")} />
                 )}
               </FormField>
 
@@ -611,6 +631,7 @@ function TripFormBody({ trip, tripRoute }: { trip?: Trip; tripRoute?: Route }) {
                 label="Thời lượng"
                 value={validSpan ? tripDurationLabel(departureIso(values), arrivalIso(values)) : "—"}
               />
+              <SummaryRow label="Ngừng bán online" value={saleClose ?? "Chưa nhập"} />
               <SummaryRow label="Trạng thái sau khi lưu" value={TRIP_STATUS.DRAFT.label} />
             </dl>
           </section>

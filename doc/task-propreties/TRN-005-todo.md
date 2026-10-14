@@ -4,7 +4,11 @@
 > **Dependency:** TASK-TRN-003 (chuyến) — nhánh `TASK-TRN-005` tách từ nhánh TRN-003 (`claude/admiring-thompson-38d7s8`), chưa merge `develop`. Merge TRN-003 trước rồi đưa `develop` vào nhánh này.
 > **Mở khóa:** TASK-TRN-006 (mở bán cần fare hợp lệ — BR-39), TASK-TRN-004 (search hiển thị giá), TASK-BTP-002 (booking snapshot giá).
 
-## Trạng thái (30/09/2026) — 🔨 **CODE + REVIEW XONG, CHỜ CI + MÀN OPERATOR OS**
+## Trạng thái (14/10/2026) — 🔨 **ĐÃ ĐƯA VỀ REPO CHÍNH (BE + màn Operator OS), Khanh đã commit + chốt các điểm còn mở; chờ CI + merge**
+
+- ✅ 14/10/2026: Khanh chốt bốn điểm còn mở **theo đề xuất** — (1) khung giờ của quy tắc giữ là khoảng ngày giờ khởi hành, không làm giá theo giờ trong ngày như khung Figma; (2) duyệt ba trường `minPrice` / `maxPrice` / `hasDoubleSeatPrice` của danh sách bảng giá; (3) khoảng giá tính trên mọi quy tắc, kể cả quy tắc có khung giờ đã qua; (4) dải cảnh báo "giá ngoài khung giá" để `TASK-ADM-001`. Không đổi code; tài liệu đồng bộ: API v0.27, UI v0.23, file 11 v0.43.
+- ✅ 13/10/2026: port sang repo chính trên nhánh `TASK-TRN-005` (từ `develop` sau khi TRN-003 merge PR #31) — chi tiết ở mục "Đưa về repo chính" cuối file.
+- Các dòng dưới đây và bảng "Kết quả review" là ghi chép gốc ở repo bản sao (30/09/2026); tên migration và số test trong đó là của repo đó.
 
 - ✅ Review `code-reviewer` + `security-auditor` đã xử lý (bảng "Kết quả review"); tài liệu đồng bộ: API v0.15, DB v0.17, LLD v0.11.
 
@@ -105,7 +109,7 @@ Chọn **P** nếu Khanh muốn lịch sử giá vẫn xem/sửa giá được k
 - [x] #4 [TRN-005.4] OpenAPI (+5 operation, +5 schema, `TripResponse` thêm `price`) + client TS/Dart; phép so CI Contract khớp.
 - [x] #5 [TRN-005.5] Test: 71/71 file, **835/835** test, 0 skip (Postgres/Redis/Mongo thật, role app); mutation 3/3 (EXCLUDE, RLS, nuốt lỗi audit) đỏ đúng chỗ.
 - [x] #6 [TRN-005.6] Review (`code-reviewer` + `security-auditor`): không blocking; 1 High = 1 Medium trùng nhau (audit Mongo chậm trong transaction) đã sửa + test — bảng dưới. Sau sửa: 72/72 file, **849/849** test, 0 skip; lint + typecheck + build sạch.
-- [ ] #7 [TRN-005.7] CI (PR vào `develop`, sau TRN-003) + màn Operator OS (sau M1).
+- [x] #7 [TRN-005.7] Màn Operator OS — xong 13/10/2026 (mục "Đưa về repo chính"). CI: chờ Khanh mở PR vào `develop`.
 
 ### Kết quả review (30/09/2026)
 
@@ -132,3 +136,71 @@ Chọn **P** nếu Khanh muốn lịch sử giá vẫn xem/sửa giá được k
 - Gắn bảng giá / tuyến của nhà xe khác (IDOR qua body).
 - Sửa giá mà không có lịch sử, hoặc lịch sử bị sửa/xoá.
 - Tiền bị ép qua `number` rồi làm tròn sai.
+
+---
+
+## Đưa về repo chính (13/10/2026)
+
+Nhánh `TASK-TRN-005` từ `develop` (đã có TRN-003, PR #31). Khanh commit `d16bfac` ngày 13/10/2026.
+
+### Khác với bản ở repo bản sao
+
+| # | Điểm | Lý do |
+| --- | --- | --- |
+| 1 | Một migration `20261013020000_add_fare` thay cho hai (`add_fare` + `fare_price_cap`) | Repo chính chưa có bản nào chạy migration cũ nên gộp; thứ tự đặt sau `20261013010000_add_trip` |
+| 2 | Hai ràng buộc EXCLUDE của `fare_rules` đổi loại chỗ sang số bằng `CASE` đủ 5 giá trị (`SEAT` 1 … `CABIN_DOUBLE` 5, "mọi loại" 0) | Bản gốc chỉ biết `SEAT` / `BED` (`ELSE 2`) nên giá thường của giường đơn và cabin sẽ bị chặn nhầm là trùng (BR-78, `TASK-TRN-010`). Test `fare-dto.spec.ts` khoá danh sách 5 loại; `fare.int.spec.ts` kiểm từng loại không đụng nhau và trùng thì bị chặn |
+| 3 | `GET /operator/fares` trả thêm `minPrice`, `maxPrice`, `hasDoubleSeatPrice` | Cột "Khoảng giá mỗi chỗ" + dòng "Gồm giá chỗ đôi" của Figma `1665:24187`. Bổ sung ngoài contract gốc — **Khanh duyệt 14/10/2026**. Tính trong service từ **mọi** rule của bảng giá (so `bigint`), kể cả rule có khung giờ đã qua; không thêm truy vấn |
+| 4 | Test tích hợp dựng tuyến với `allowPickup` / `allowDropoff` và loại xe có `form` + `class` | Schema hiện tại của `TASK-TRN-012` / `TASK-TRN-010` |
+
+Không đổi: quyết định Q1–Q7, cách tính giá (`resolveSeatPrice`), ghi lịch sử vào Mongo trong transaction có giới hạn thời gian, mã lỗi.
+
+### Màn Operator OS
+
+- Thanh bên thêm mục **Bảng giá** (sau "Tuyến đường") — đúng thành phần sidebar của Figma đã có mục này.
+- `/fares` — danh sách: mỗi tuyến một dòng (ghép danh sách tuyến với danh sách bảng giá ở phía giao diện), tìm không dấu, lọc trạng thái gồm "Chưa có bảng giá".
+- `/fares/new` (nhận `?routeId=`), `/fares/{id}` — bảng quy tắc + khối thêm / sửa quy tắc + thông tin bảng giá + lịch sử thay đổi.
+- Trang chi tiết chuyến: chỗ còn trống ghi giá, thiếu giá ghi "Chưa có giá" kèm dòng nhắc mở Bảng giá.
+
+### Điểm làm khác khung Figma
+
+Khanh chốt 14/10/2026: **F1 và F2 giữ như đã làm**. F3, F4 là cách trình bày, không nằm trong các điểm Khanh trả lời — giữ như đã làm. Khung Figma `1665:24475` chưa được vẽ lại theo F1 / F2.
+
+| # | Figma `1665:24475` | Đã làm | Lý do |
+| --- | --- | --- | --- |
+| F1 | Cột "Giờ khởi hành" ghi giờ trong ngày ("Cả ngày", "18:00 – 24:00"); hai ô "Từ giờ" / "Đến giờ" | Cột "Khung giờ khởi hành" ghi khoảng ngày giờ ("Mọi ngày", "20/01/2031 00:00 – 27/01/2031 00:00"); hai ô ngày giờ "Khởi hành từ" / "Đến trước" | Q2 + Q3 + A4 đã chốt 30/09: khung giờ là khoảng thời điểm khởi hành `[validFrom, validTo)` cho giá dịp lễ / Tết; backend, DB và test đều theo nghĩa này. Giá theo giờ trong ngày (lặp lại hằng ngày) **không có trong thiết kế đã chốt** — muốn có thì phải mở lại Q2 |
+| F2 | Dải vàng "Vé Xe Nhanh có thể cảnh báo khi giá nằm ngoài khung giá…" | Không hiện | Khung trần / sàn và cảnh báo đã chuyển sang `TASK-ADM-001` (Q6); hiện chưa có gì để cảnh báo |
+| F3 | Lịch sử ghi ngày ngắn "08/10 · 14:20", có link "Xem toàn bộ lịch sử ›" | Ghi đủ năm "08/10/2026 14:20"; nút "Xem thêm lịch sử ›" tải thêm 5 dòng ngay trong thẻ | Lịch sử kéo dài qua nhiều năm; chưa có màn lịch sử riêng trong thiết kế |
+| F4 | Nút "Tạo bảng giá" ở đầu trang danh sách | Mở `/fares/new` với ô chọn tuyến (chỉ tuyến đang hoạt động chưa có bảng giá) | Figma không vẽ bước chọn tuyến |
+
+### Evidence (13/10/2026)
+
+- Migration áp trên PostgreSQL 16 (database thử riêng), `db:app-role` pass.
+- API, `REQUIRE_DB_TESTS=1`, role app, Postgres 16 + Redis + Mongo 7 thật: **74 / 74 file, 937 / 937 test, 0 skip**; lint sạch.
+- `pnpm lint`, `pnpm typecheck`, `pnpm test`, `pnpm build` cả monorepo: đạt (chạy lại sau khi sửa review). Operator OS 280 test (61 test cho `lib/fare`).
+- OpenAPI: thêm đúng 5 operation + 5 schema, `TripResponseDto_Output` thêm `price`; không mất gì. Client Dart sinh bằng openapi-generator v7.25.0, `dart analyze` 0 lỗi, `dart test` 539 / 539.
+- E2E Playwright (Chrome): 23 / 23 (chạy lại sau khi sửa review) — hai ca mới ở cuối `trips.e2e.ts` (tạo bảng giá, quy tắc trùng bị chặn, giá hiện trên chỗ của chuyến, sửa giá ghi lịch sử, ngừng áp dụng thì chỗ mất giá).
+- Soi trên trình duyệt với API chạy thật: màn danh sách và màn chỉnh sửa đúng bố cục Figma (trừ F1–F4).
+
+### Kết quả review phần port + màn Operator OS (13/10/2026)
+
+`security-auditor`: không có Critical / High / Medium. `code-reviewer`: không có Blocking / High. Không finding nào chặn đóng task.
+
+| Nguồn | Mức | Finding | Xử lý |
+| --- | --- | --- | --- |
+| cả hai | Medium / Low | `parsePrice` xóa mọi dấu chấm: gõ `300.00` ra 30.000 đ, `1.5` ra 15 đ, `300.5` ra 3.005 đ | ✅ Chỉ nhận dãy chữ số liền hoặc dấu chấm / khoảng trắng ngăn đúng nhóm ba số; còn lại báo lỗi tại ô. Thêm 9 ca từ chối vào `fare-form.test.ts` |
+| cả hai | Low | Tạo bảng giá: `routeId` lấy từ `?routeId=` vẫn được gửi dù ô "Tuyến" hiện trống (tuyến không nằm trong danh sách chọn, hoặc danh sách chưa tải / tải lỗi) | ✅ Chỉ lưu khi tuyến đúng là lựa chọn đang hiện; danh sách tuyến tải lỗi thì báo ngay tại ô |
+| code-reviewer | Low | Tải lại ngầm bị lỗi (đổi tab rồi quay lại) thay cả form đang sửa bằng khung lỗi → mất quy tắc chưa lưu | ✅ Khung lỗi chỉ hiện khi chưa có dữ liệu; tắt tải lại khi quay lại tab cho bảng giá đang mở. Sửa luôn cùng lỗi ở `trip-form.tsx` (TRN-003) |
+| code-reviewer | Low | Sửa / xóa / thêm quy tắc trong lúc đang lưu bị kết quả lưu ghi đè lặng lẽ | ✅ Khóa ba nút khi đang lưu |
+| code-reviewer | Low | Sơ đồ ghế của chuyến mất chỉ dấu "· Đôi" sau khi ô ghế đổi sang ghi giá | ✅ Ghi lại "· Đôi" sau giá / tình trạng |
+| code-reviewer | Low | Danh mục loại xe chưa tải xong hoặc tải lỗi bị hiện thành "Loại xe đã ngừng dùng" | ✅ Ghi "Đang tải…" / "Chưa tải được loại xe"; tải lỗi có dòng báo kèm nút Thử lại |
+| code-reviewer | Low | Chặn năm trước 1970 ở giờ vào API làm bộ lọc ngày của danh sách chuyến trả 400 khi đang gõ dở năm (`0202-…`) | ✅ Màn danh sách chuyến không gửi mốc có năm trước 1970 (coi như chưa nhập xong); thêm ca 400 vào `trip.http.spec.ts` |
+| code-reviewer | Low | Mở / đóng khối nhập quy tắc làm mất tiêu điểm bàn phím | ✅ Mở thì tiêu điểm vào ô "Loại xe"; đóng thì trả về nút "Thêm quy tắc" |
+| code-reviewer | Nit | Chú thích của `sameContent` lạc sang `priceRange`; khoảng ký tự dấu viết bằng ký tự thô; `key` theo vị trí dòng; dải "Đã lưu" không tắt khi đổi trạng thái / ghi chú; lỗi "Xem thêm lịch sử" bị nuốt; câu báo 503 gán cứng nguyên nhân "lịch sử giá" | ✅ Đã sửa cả sáu |
+| code-reviewer | Nit | `minPrice` / `maxPrice` tính cả quy tắc có khung giờ đã qua (giá Tết năm trước vẫn nằm trong khoảng giá) | ✅ Khanh chốt 14/10/2026: giữ nguyên — khoảng giá tính trên mọi quy tắc của bảng giá |
+| code-reviewer | Nit | Lịch sử luôn ghi "Chủ nhà xe", không dùng `actorId` | ⏸ Chỉ Owner sửa được bảng giá; cần tên hiển thị của tài khoản (chưa có API) mới ghi được ai |
+| code-reviewer | Nit | Trang chuyến chỉ nhắc khi chỗ thiếu giá, không nhắc chỗ giá 0 đ (BR-39 đòi giá > 0) | ⏸ Điều kiện mở bán thuộc `TASK-TRN-006` |
+| code-reviewer | Nit | `take: limit + 1` tải thừa rule của một dòng; sửa quy tắc tạo ngoài giao diện thì mất phần giây | ⏸ Không đáng kể |
+| security-auditor | Info | Hạn chót ghi audit tính sau lệnh `set_config` (ăn bớt một lượt gọi Postgres trong biên 500 ms) | ⏸ Giữ như bản gốc; cùng loại rủi ro đã chấp nhận ở Q4 |
+| security-auditor | Info | `fareId` nối thẳng vào URL API không mã hóa (mẫu chung của mọi `*-api.ts`); dải "Đã lưu" bật theo `?saved=1` khi tải lại trang | ⏸ Mẫu có sẵn của các màn khác, không riêng TRN-005 |
+| security-auditor | Info | Ghi chú tự do nằm trong bản chụp audit không xóa được | ⏸ Xét khi làm chính sách lưu trữ dữ liệu |
+| security-auditor | Info | Giá 0 hợp lệ và bảng giá sửa được sau khi mở bán → luồng đặt vé phải tự kiểm giá `null` / 0 lúc giữ chỗ | ⏸ Bàn giao `TASK-TRN-006` / `TASK-BTP-002` |

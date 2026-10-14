@@ -17,6 +17,10 @@ const VN_OFFSET_MS = 7 * 3_600_000;
 const MAX_TRIP_DURATION_MS = 7 * DAY_MS;
 const DATE = /^\d{4}-\d{2}-\d{2}$/;
 const TIME = /^([01]\d|2[0-3]):[0-5]\d$/;
+/** Ngừng bán online sớm nhất một ngày trước giờ khởi hành (giống máy chủ — AS-20). */
+export const MAX_ONLINE_SALE_CUTOFF_MINUTES = 1440;
+/** Số phút ngừng bán online gợi ý cho chuyến mới. */
+export const DEFAULT_ONLINE_SALE_CUTOFF_MINUTES = 60;
 
 export type TripFormValues = {
   routeId: string;
@@ -25,6 +29,8 @@ export type TripFormValues = {
   arrivalDate: string;
   arrivalTime: string;
   vehicleId: string;
+  /** Số phút ngừng bán online trước giờ khởi hành, đang gõ dạng chữ. */
+  onlineSaleCutoffMinutes: string;
   note: string;
 };
 
@@ -65,6 +71,9 @@ export const tripInfoSchema = z
     arrivalDate: z.string().regex(DATE, "Chọn ngày đến."),
     arrivalTime: z.string().regex(TIME, "Nhập giờ đến."),
     vehicleId: z.string(),
+    onlineSaleCutoffMinutes: z
+      .string()
+      .refine((value) => parseCutoffMinutes(value) !== null, `Nhập số phút nguyên từ 0 đến ${MAX_ONLINE_SALE_CUTOFF_MINUTES}.`),
     note: z.string().max(TRIP_NOTE_MAX_LENGTH, `Ghi chú tối đa ${TRIP_NOTE_MAX_LENGTH} ký tự.`)
   })
   .superRefine((values, ctx) => {
@@ -81,8 +90,19 @@ export const EMPTY_TRIP_VALUES: TripFormValues = {
   arrivalDate: "",
   arrivalTime: "",
   vehicleId: NO_VEHICLE,
+  onlineSaleCutoffMinutes: String(DEFAULT_ONLINE_SALE_CUTOFF_MINUTES),
   note: ""
 };
+
+/** Số phút ngừng bán online đang gõ → số nguyên 0–1440; chữ, số lẻ, số âm hay vượt khoảng → `null`. */
+export function parseCutoffMinutes(value: string): number | null {
+  const text = value.trim();
+  if (!/^\d{1,4}$/.test(text)) {
+    return null;
+  }
+  const minutes = Number(text);
+  return minutes <= MAX_ONLINE_SALE_CUTOFF_MINUTES ? minutes : null;
+}
 
 /** Giá trị form của một chuyến đã lưu. */
 export function toTripFormValues(trip: Trip): TripFormValues {
@@ -95,6 +115,7 @@ export function toTripFormValues(trip: Trip): TripFormValues {
     arrivalDate: arrival.date,
     arrivalTime: arrival.time,
     vehicleId: trip.vehicleId ?? NO_VEHICLE,
+    onlineSaleCutoffMinutes: String(trip.onlineSaleCutoffMinutes),
     note: trip.note ?? ""
   };
 }
@@ -206,6 +227,8 @@ export function toTripInput(values: TripFormValues, stopTimesMs: number[] | null
     departureAt: departureIso(values),
     arrivalAt: arrivalIso(values),
     stopTimes: stopTimesMs && stopTimesMs.map((ms) => new Date(ms).toISOString()),
+    // Form đã kiểm trước khi gọi; giá trị sai lọt tới đây thì gửi mức gợi ý thay vì NaN.
+    onlineSaleCutoffMinutes: parseCutoffMinutes(values.onlineSaleCutoffMinutes) ?? DEFAULT_ONLINE_SALE_CUTOFF_MINUTES,
     note: values.note.trim() || null
   };
 }
@@ -230,6 +253,11 @@ export function describeTripSaveError(error: unknown): { field: TripSaveErrorFie
           field: "stops",
           message: "Tuyến vừa thay đổi số điểm dừng. Tải lại trang rồi nhập lại giờ tại từng điểm."
         };
+      case "TRIP_BLOCKED_SEATS_MISSING":
+        // Câu của máy chủ nêu đúng mã các chỗ đang khóa mà xe mới không có (BR-42).
+        return { field: "vehicleId", message: error.message };
+      case "TRIP_SEAT_NOT_AVAILABLE":
+        return { field: "vehicleId", message: "Chuyến có chỗ đang được giữ hoặc đã bán nên không đổi xe được." };
       case "TRIP_NOT_EDITABLE":
         return { field: null, message: "Chuyến không còn ở trạng thái Nháp nên không sửa được." };
       case "TRIP_NOT_FOUND":

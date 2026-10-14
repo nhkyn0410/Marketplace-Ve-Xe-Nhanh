@@ -82,6 +82,7 @@ Khanh tự nhận nghiệp dư quản lý/ops → chủ động đề xuất c�
 5. **KHÔNG tự promote** tài liệu SDLC → `Approved` (chỉ Khanh). Sửa SDLC doc thì theo `doc/AGENT.md`.
 6. **Production-blocker**: OQ-21 (KYC storage) + OQ-22 (giấy phép TGTT) — KYC/payment thật chỉ chạy dev-local/sandbox tới khi giải quyết.
 7. **Git**: branch từ default (không commit thẳng default trừ khi được yêu cầu); commit/push chỉ khi Khanh yêu cầu; 1 commit/thay đổi logic, message rõ; CI (GitHub Actions) phải pass.
+8. **Review**: KHÔNG tự chạy `code-reviewer` / `security-auditor` (kể cả `/code-review`, `/security-review`) — chỉ chạy khi Khanh yêu cầu rõ (Khanh chốt 14/10/2026). Phần chưa được review thì nêu rõ trong báo cáo và ghi chú task; không ghi là đã review.
 
 ---
 
@@ -98,7 +99,7 @@ Khanh tự nhận nghiệp dư quản lý/ops → chủ động đề xuất c�
 
 - **Surgical** (Karpathy #3): chỉ chạm cái cần. Controller mỏng · logic ở service · Zod tại boundary · money BIGINT/Decimal · vendor qua adapter.
 - **Goal-driven** (Karpathy #4): viết test trước/cùng; money/idempotency/tenant-RLS bắt buộc (Vitest); loop tới khi pass.
-- **Dùng subagent** (`.claude/agents/`, spawn qua Agent tool) khi hợp việc: `typescript-pro`/`backend-developer` cho NestJS BE · `nextjs-developer`/`react-specialist` cho FE · `postgres-pro` cho schema/query · `mobile-developer` cho Flutter · `code-reviewer`/`security-auditor` trước khi đóng task · `agent-organizer` điều phối nhiều bước.
+- **Dùng subagent** (`.claude/agents/`, spawn qua Agent tool) khi hợp việc: `typescript-pro`/`backend-developer` cho NestJS BE · `nextjs-developer`/`react-specialist` cho FE · `postgres-pro` cho schema/query · `mobile-developer` cho Flutter · `code-reviewer`/`security-auditor` **chỉ khi Khanh yêu cầu** (§4.8) · `agent-organizer` điều phối nhiều bước.
 
 ### Sau khi code
 
@@ -141,7 +142,7 @@ Lấy task từ **`doc/SDLC/11-project-task-breakdown.md`** theo thứ tự depe
 | Frontend feature | API client (gen) · loading/error/empty/permission state · Zod form · responsive                                                         |
 | Mobile feature   | `flutter_secure_storage` token · permission state · `integration_test` + Maestro critical flow                                          |
 | Mọi task         | lint + typecheck + Vitest liên quan pass; **mandatory test** (money/idempotency/tenant-RLS/webhook-HMAC) nếu chạm                       |
-| Trước khi đóng   | spawn `code-reviewer` (+ `security-auditor` nếu chạm auth/payment/tenant)                                                               |
+| Trước khi đóng   | nêu rõ phần chưa được review; `code-reviewer` / `security-auditor` chỉ chạy khi Khanh yêu cầu (§4.8)                                    |
 
 ### 6.5. Trạng thái hiện tại — Build phase (cập nhật 02/06/2026)
 

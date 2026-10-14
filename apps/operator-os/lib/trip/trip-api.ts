@@ -14,6 +14,8 @@ export type TripPage = Schemas["TripListResponseDto_Output"];
 export type TripSummary = TripPage["items"][number];
 export type TripInput = Schemas["TripInputDto"];
 export type TripStatus = Trip["status"];
+export type TripStatusInput = Schemas["TripStatusInputDto"];
+export type TripSeatStatusInput = Schemas["TripSeatStatusInputDto"];
 
 /** Số dòng mỗi lần tải danh sách chuyến (mặc định của API). */
 export const TRIP_PAGE_SIZE = 20;
@@ -52,4 +54,17 @@ export function createTrip(input: TripInput): Promise<Trip> {
 /** Thay toàn bộ một chuyến còn Nháp (PUT gửi đủ mọi trường). */
 export function updateTrip(tripId: string, input: TripInput): Promise<Trip> {
   return apiRequest<Trip>(`/operator/trips/${tripId}`, { method: "PUT", body: input });
+}
+
+/**
+ * Đổi trạng thái bán của chuyến chưa có vé: mở bán / tạm dừng bán / mở bán lại / thu hồi về nháp / hủy. Mở bán
+ * chưa đủ điều kiện → 422 `TRIP_NOT_READY_FOR_SALE`, `ApiError.reasons` liệt kê mọi điều kiện chưa đạt (BR-39).
+ */
+export function changeTripStatus(tripId: string, input: TripStatusInput): Promise<Trip> {
+  return apiRequest<Trip>(`/operator/trips/${tripId}/status`, { method: "PUT", body: input });
+}
+
+/** Khóa / mở khóa một lô chỗ của chuyến (bán ngoài hệ thống — BR-42): được cả lô hoặc không. */
+export function setTripSeatStatus(tripId: string, input: TripSeatStatusInput): Promise<Trip> {
+  return apiRequest<Trip>(`/operator/trips/${tripId}/seats/status`, { method: "PUT", body: input });
 }

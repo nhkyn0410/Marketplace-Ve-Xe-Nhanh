@@ -295,7 +295,8 @@ describe("OpenAPI generation", () => {
         ["/v1/operator/seat-maps", "seatMapId"],
         ["/v1/operator/routes", "routeId"],
         ["/v1/operator/stop-points", "stopPointId"],
-        ["/v1/operator/trips", "tripId"]
+        ["/v1/operator/trips", "tripId"],
+        ["/v1/operator/fares", "fareId"]
       ] as const) {
         const item = `${collection}/{${param}}`;
         for (const operation of [
@@ -338,6 +339,41 @@ describe("OpenAPI generation", () => {
       expect(tripQuery).toEqual(
         expect.arrayContaining(["routeId", "vehicleId", "status", "departureFrom", "departureTo", "cursor", "limit"])
       );
+      // TRN-005: lịch sử giá có route riêng; giá ghế của chuyến có trong hợp đồng (số nguyên đồng, có thể null).
+      const revisions = document.paths["/v1/operator/fares/{fareId}/revisions"]?.get;
+      expect(revisions, "thiếu route lịch sử giá").toBeDefined();
+      expect(revisions?.security).toEqual([{ bearer: [] }]);
+      const tripSeat = (
+        schemas?.TripResponseDto_Output?.properties?.seats as { items?: Schema } | undefined
+      )?.items;
+      expect(Object.keys(tripSeat?.properties ?? {})).toContain("price");
+      expect(document.paths["/v1/operator/fares"]?.post?.responses?.[409]).toBeDefined();
+      // Review TRN-005: ghi lịch sử lỗi / chậm → 503 (bảng giá không đổi); trang lịch sử tối đa 20.
+      expect(document.paths["/v1/operator/fares"]?.post?.responses?.[503]).toBeDefined();
+      expect(document.paths["/v1/operator/fares/{fareId}"]?.put?.responses?.[503]).toBeDefined();
+      const revisionLimit = revisions?.parameters?.find((parameter) => "name" in parameter && parameter.name === "limit");
+      expect(revisionLimit && "schema" in revisionLimit ? revisionLimit.schema : undefined).toMatchObject({ maximum: 20 });
+      // TRN-006: đổi trạng thái bán + khóa ghế — Bearer, requestBody, path param; lỗi nghiệp vụ trong hợp đồng.
+      const tripStatus = document.paths["/v1/operator/trips/{tripId}/status"]?.put;
+      const seatStatus = document.paths["/v1/operator/trips/{tripId}/seats/status"]?.put;
+      for (const [name, operation, codes] of [
+        ["status", tripStatus, [400, 404, 409, 422, 503]],
+        ["seats/status", seatStatus, [400, 404, 409, 422]]
+      ] as const) {
+        expect(operation, `thiếu route PUT /trips/{tripId}/${name}`).toBeDefined();
+        expect(operation?.security).toEqual([{ bearer: [] }]);
+        expect(operation?.requestBody, `PUT ${name} thiếu @ApiBody`).toBeDefined();
+        expect((operation?.parameters ?? []).map((p) => ("name" in p ? p.name : ""))).toContain("tripId");
+        for (const code of codes) {
+          expect(operation?.responses?.[code], `PUT ${name} thiếu ${code}`).toBeDefined();
+        }
+      }
+      expect(document.paths["/v1/operator/trips/{tripId}"]?.put?.responses?.[409]).toBeDefined();
+      expect(Object.keys(schemas?.TripResponseDto_Output?.properties ?? {})).toEqual(
+        expect.arrayContaining(["onlineSaleCutoffMinutes", "statusReason"])
+      );
+      // API §6.2: `reasons` là member mở rộng của Problem Details.
+      expect(Object.keys(schemas?.ProblemDetailsDto?.properties ?? {})).toContain("reasons");
     } finally {
       await app.close();
     }

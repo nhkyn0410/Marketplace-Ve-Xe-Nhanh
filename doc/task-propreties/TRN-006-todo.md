@@ -4,7 +4,11 @@
 > **Dependency:** TASK-TRN-005 (fare) — nhánh `TASK-TRN-006` tách từ nhánh `TASK-TRN-005` (chưa merge `develop`; thứ tự merge: TRN-003 → TRN-005 → TRN-006).
 > **Mở khóa:** TASK-TRN-004 (search chỉ chuyến đang mở bán), TASK-TRN-007 (lịch lặp), TASK-BTP-001 (giữ ghế: chuyến mở bán + ghế không `BLOCKED`), TASK-TRN-008 (đổi chuyến đã bán vé).
 
-## Trạng thái (30/09/2026) — 🔨 **ĐANG TRIỂN KHAI**
+## Trạng thái (14/10/2026) — 🔨 **ĐÃ ĐƯA VỀ REPO CHÍNH (BE + màn Operator OS), chưa commit — chờ Khanh review + CI**
+
+- ✅ 14/10/2026: port sang repo chính trên nhánh `TASK-TRN-006` (tách từ `TASK-TRN-005`, commit `d16bfac`) và làm màn Operator OS theo Figma khung 03–06 — chi tiết ở mục "Đưa về repo chính" cuối file.
+- Phần port và màn Operator OS **chưa qua** `code-reviewer` / `security-auditor`: từ 14/10/2026 hai bước này chỉ chạy khi Khanh yêu cầu (`CLAUDE.md` §4.8).
+- Các dòng dưới đây và bảng "Kết quả review" là ghi chép gốc ở repo bản sao (30/09/2026); tên migration và số test trong đó là của repo đó.
 
 - ✅ Tạo nhánh `TASK-TRN-006`; đối chiếu SDLC. SDLC có danh sách trạng thái (§17.3/§17.4) và điều kiện mở bán (BR-39) nhưng **chưa có**: bảng chuyển trạng thái, "tạm dừng" khác "khóa" thế nào, nơi cấu hình thời điểm ngừng bán online / cửa sổ đón, endpoint, audit cho đổi trạng thái / khóa ghế.
 - 📝 Q5: Khanh lưu ý "hệ thống quầy" chưa có trong tài liệu nào → ghi chú tạm ở Q5 (30/09/2026). Các ý khác của Q5 và Q1–Q4, Q6–Q8 vẫn chờ chốt.
@@ -147,7 +151,7 @@ Bảng giá bị tắt / thiếu rule, xe chuyển `INACTIVE`, điểm hoặc tu
 | 4 | Test: unit (bảng chuyển trạng thái, điều kiện), HTTP (RBAC, 400), int (RLS, đồng thời, audit lỗi, đổi xe giữ ghế khóa) | ✅ 74/74 file, **947/947** test sau sửa review (942 trước review), 0 skip (PG + Redis + Mongo thật); mutation 3/3 đỏ đúng chỗ. Sửa 3 test TRN-003 do đổi hành vi có chủ đích (giữ ghế khóa khi đổi xe; CHECK hủy có lý do; mock thiếu trường mới) |
 | 5 | OpenAPI + client TS/Dart | ✅ TS: 2 route, 2 DTO, 2 trường chuyến, `reasons`; Dart 7.25.0 + `build_runner`: analyze 0 error, test 533/533 |
 | 6 | Review (`code-reviewer` + `security-auditor`) + guide/checklist + commit/push | ✅ không blocking / high; Medium tiềm ẩn → bàn giao BTP / Admin; Low sửa + test (bảng dưới) |
-| 7 | Màn Operator OS (mở/khóa bán, sơ đồ ghế khóa) — sau M1 | ⏸ |
+| 7 | Màn Operator OS (mở/khóa bán, sơ đồ ghế khóa) — sau M1 | ✅ 14/10/2026 (mục "Đưa về repo chính") |
 
 ---
 
@@ -186,3 +190,57 @@ Bảng giá bị tắt / thiếu rule, xe chuyển `INACTIVE`, điểm hoặc tu
 - Hủy chuyến khi audit Mongo lỗi → không được hủy nửa chừng.
 - Chuyến / ghế của tenant khác qua id đoán được (IDOR) → 404; RLS chặn kể cả query quên lọc.
 - Chuyến quá thời điểm ngừng bán vẫn mở lại được.
+
+---
+
+## Đưa về repo chính (14/10/2026)
+
+Nhánh `TASK-TRN-006` tách từ `TASK-TRN-005` (`d16bfac`). Chưa commit — chờ Khanh review. Cách port: lấy `git diff origin/TASK-TRN-005 origin/TASK-TRN-006` của repo bản sao, áp vào repo chính, sửa tay bốn chỗ lệch.
+
+### Khác với bản ở repo bản sao
+
+| # | Điểm | Lý do |
+| --- | --- | --- |
+| 1 | Migration đổi tên thành `20261014010000_trip_sale_lifecycle` (nội dung giữ nguyên) | Xếp sau `20261013020000_add_fare` của repo chính |
+| 2 | `POINT_SELECT` của chuyến đọc thêm `status` bên cạnh `type` | Repo chính đã đọc `type` cho điểm dừng (`TASK-TRN-012`); điều kiện mở bán cần `status` |
+| 3 | Điểm riêng bị Admin khóa (`SUSPENDED`, `BR-81`) cũng tính là điểm dừng không hoạt động → `STOP_POINT_INACTIVE` | Trạng thái `SUSPENDED` có sau bản gốc; điều kiện là "đang `ACTIVE`" nên không phải sửa code |
+| 4 | Test tích hợp dựng tuyến với `allowPickup` / `allowDropoff`, loại xe có `form` + `class`, điểm riêng loại `OFFICE` | Schema hiện tại của `TASK-TRN-012` / `TASK-TRN-010` (điểm riêng chỉ là văn phòng hoặc trạm dừng nghỉ) |
+
+Không đổi: quyết định Q1–Q8, bảng chuyển trạng thái, điều kiện mở bán, cách khoá dòng, audit, mã lỗi, hai route và body.
+
+### Màn Operator OS
+
+- Form tạo / sửa chuyến: thêm ô **Ngừng bán online trước giờ khởi hành (phút)** (bắt buộc, 0–1440, gợi ý 60) ngay dưới ô Xe; dòng gợi ý và thẻ Tổng quan ghi mốc ngừng bán tính ra. Đổi xe mà xe mới thiếu chỗ đang khóa thì lỗi hiện tại ô Xe, nêu mã chỗ.
+- Trang chi tiết chuyến (`/trips/{id}`), nút theo trạng thái:
+  - Nháp: Hủy chuyến · Sửa chuyến · **Mở bán**.
+  - Đang mở bán: Hủy chuyến · Thu hồi về nháp · **Tạm dừng bán**.
+  - Tạm dừng bán: Hủy chuyến · Thu hồi về nháp · **Mở bán lại**.
+  - Trạng thái khác (kể cả Đã hủy): không có nút. Chuyến đã có vé: Hủy chuyến và Thu hồi về nháp mờ đi kèm dòng giải thích.
+- Khối **Điều kiện mở bán** (Nháp, Tạm dừng bán): tám mục. Trước khi bấm Mở bán, mục giao diện tự biết từ dữ liệu chuyến (đã gắn xe, có chỗ, có giá, còn giờ bán) được kết luận ngay; mục còn lại ghi "Kiểm khi bấm Mở bán". Bấm mà chưa đủ điều kiện: dải đỏ "Chưa mở bán được" + mục chưa đạt tô đỏ kèm cách sửa; chuyến giữ nguyên trạng thái.
+- **Khóa / mở khóa chỗ** (Nháp, Đang mở bán, Tạm dừng bán): bấm chỗ Còn trống để chọn nhiều chỗ rồi khóa một lần; bấm chỗ Đã khóa để chọn rồi mở khóa. Hộp thoại xác nhận liệt kê mã chỗ, ô ghi chú tùy chọn. Chỗ đang giữ / đã bán / đã lên xe không bấm được.
+- **Hủy chuyến**: hộp thoại bắt buộc nhập lý do (tối đa 500 ký tự); hủy xong trang ghi "Lý do hủy" trong thẻ Thông tin chuyến.
+- Thẻ **Tình trạng chỗ** (mọi trạng thái trừ Nháp) và thẻ **Bán online** (Đang mở bán).
+- `ApiError` của Operator OS giữ thêm `reasons` (member mở rộng RFC 7807, API §6.2).
+
+### Điểm làm khác khung Figma / phần AI tự quyết — cần Khanh xem
+
+| # | Figma | Đã làm | Lý do |
+| --- | --- | --- | --- |
+| G1 | Khối Điều kiện mở bán vẽ sẵn kết quả đủ tám mục | Trước lần bấm đầu: chỉ kết luận mục giao diện tự biết, còn lại "Kiểm khi bấm Mở bán" | Đúng ghi chú handoff trong Figma; chưa có API kiểm thử điều kiện, thêm API là ngoài phạm vi |
+| G2 | Dòng giải thích chuyến đã có vé ghi "(TASK-TRN-008)" | Ghi "Đổi hoặc hủy chuyến đã bán vé chưa làm được ở màn này." | Mã task là chữ nội bộ, nhà xe không hiểu |
+| G3 | Chỉ vẽ hộp thoại khóa chỗ | Mở khóa dùng cùng cách chọn + hộp thoại tương tự. Một lô chỉ gồm một loại: đang chọn chỗ để khóa thì chỗ đã khóa tạm không bấm được (và ngược lại) | API đổi cả lô sang một trạng thái; gộp hai loại trong một lô sẽ phải gọi hai lần, không còn "được cả lô hoặc không" |
+| G4 | Ô "Ngừng bán online" hiện "60 phút" | Ô nhập số, nhãn ghi "(phút)" | Ô nhập kèm đơn vị dễ gõ sai; chỉ nhận số nguyên 0–1440 |
+| G5 | Không có khung cho chuyến Tạm dừng bán và chuyến Đã hủy | Tạm dừng bán: Điều kiện mở bán + Tình trạng chỗ. Đã hủy: không có nút, sơ đồ chỉ xem, ghi lý do hủy | Suy từ bảng chuyển trạng thái (LLD §8) |
+| G6 | Giá trên chỗ ghi `320.000đ` | `320.000 ₫` | Cách ghi tiền đã dùng ở màn Bảng giá (`TASK-TRN-005`) |
+| G7 | Tạm dừng bán / thu hồi về nháp | Đổi ngay, không hỏi lý do, không hộp thoại xác nhận | Giả định ghi trong handoff; cả hai đều đảo lại được |
+
+Không làm ở task này: khung 07 "Lịch xe", khung 08 "Chọn xe theo rảnh / trùng giờ" và thẻ "Lịch xe trong ngày" của khung 02 (Khanh duyệt thiết kế 13/10/2026 nhưng chưa thuộc task nào trong file 11); cột số chỗ đã bán ở danh sách (API danh sách chưa trả).
+
+### Evidence (14/10/2026)
+
+- Migration áp trên PostgreSQL 16 (database thử riêng), `db:app-role` pass; `migrate diff` không lệch ở `trips` / `trip_seats` (chỉ còn hai cột `search_text` do DB sinh, có từ `TASK-TRN-012`).
+- API, `REQUIRE_DB_TESTS=1`, role app, Postgres 16 + Redis + Mongo 7 thật: **76 / 76 file, 1035 / 1035 test, 0 skip**.
+- `pnpm lint`, `pnpm typecheck`, `pnpm test`, `pnpm build` cả monorepo: đạt. Operator OS 340 test đơn vị (thêm `lib/trip/trip-sale.test.ts`).
+- OpenAPI + client TS: cùng số dòng thay đổi với bản gốc (2 route, 2 DTO, 2 trường chuyến, `reasons`). Client Dart sinh bằng openapi-generator v7.25.0 + `build_runner`: `dart analyze` không có lỗi (25 cảnh báo có sẵn), `dart test` 544 / 544.
+- E2E Playwright (Chrome), API chạy thật: **26 / 26** — ba ca mới ở cuối `trips.e2e.ts` (mở bán thiếu bảng giá bị chặn kèm lý do rồi mở được; khóa / mở khóa chỗ, tạm dừng, mở lại, thu hồi về nháp; hủy bắt buộc lý do).
+- Soi ảnh chụp các trạng thái với khung Figma 02–06: đúng bố cục, trừ G1–G7.

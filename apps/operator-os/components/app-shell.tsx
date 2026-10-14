@@ -14,6 +14,7 @@ import {
   LogOut,
   MapPin,
   Route,
+  Tag,
   Ticket,
   Users,
   Wallet
@@ -33,6 +34,7 @@ const NAV_GROUPS: NavGroup[] = [
       { href: "/seat-maps", label: "Sơ đồ ghế", icon: Armchair },
       { href: "/stop-points", label: "Điểm dừng", icon: MapPin },
       { href: "/routes", label: "Tuyến đường", icon: Route },
+      { href: "/fares", label: "Bảng giá", icon: Tag },
       { href: "/trips", label: "Chuyến xe", icon: CalendarClock }
     ]
   },

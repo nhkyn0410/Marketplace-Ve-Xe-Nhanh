@@ -32,17 +32,21 @@ export function useDebouncedValue<T>(value: T, delay = 300): T {
 export function SearchField({
   value,
   onChange,
+  label = "Tìm kiếm",
+  placeholder = "Tìm theo tên hoặc địa chỉ",
   className
 }: {
   value: string;
   onChange: (value: string) => void;
+  label?: string;
+  placeholder?: string;
   className?: string;
 }) {
   const id = useId();
   return (
     <div className={cn("flex min-w-[220px] flex-1 flex-col gap-1.5", className)}>
       <label htmlFor={id} className={CONTROL_LABEL}>
-        Tìm kiếm
+        {label}
       </label>
       <div className="relative">
         <Search className="pointer-events-none absolute top-3 left-3 size-4 text-muted-foreground" aria-hidden />
@@ -52,7 +56,7 @@ export function SearchField({
           value={value}
           onChange={(event) => onChange(event.target.value)}
           maxLength={100}
-          placeholder="Tìm theo tên hoặc địa chỉ"
+          placeholder={placeholder}
           autoComplete="off"
           className="pl-9"
         />

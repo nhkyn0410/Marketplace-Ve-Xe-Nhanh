@@ -10,12 +10,16 @@ export const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL ||
   (process.env.NODE_ENV === "production" ? "/v1" : "http://localhost:3000/v1");
 
-/** Lỗi RFC 7807 từ API: giữ `status` + `code` (GLOSSARY) để UI chọn thông báo. */
+/**
+ * Lỗi RFC 7807 từ API: giữ `status` + `code` (GLOSSARY) để UI chọn thông báo. `reasons` là member mở rộng
+ * (05 API §6.2): mọi nguyên nhân khi một lỗi có nhiều, vd các điều kiện mở bán chưa đạt; lỗi khác là mảng rỗng.
+ */
 export class ApiError extends Error {
   constructor(
     readonly status: number,
     readonly code: string,
-    message: string
+    message: string,
+    readonly reasons: string[] = []
   ) {
     super(message);
     this.name = "ApiError";
@@ -166,14 +170,18 @@ async function parse<T>(response: Response): Promise<T> {
   }
   let code = "UNKNOWN_ERROR";
   let detail = "Đã có lỗi xảy ra. Vui lòng thử lại.";
+  let reasons: string[] = [];
   try {
-    const body = (await response.json()) as { code?: unknown; detail?: unknown };
+    const body = (await response.json()) as { code?: unknown; detail?: unknown; reasons?: unknown };
     code = typeof body.code === "string" ? body.code : code;
     detail = typeof body.detail === "string" ? body.detail : detail;
+    if (Array.isArray(body.reasons)) {
+      reasons = body.reasons.filter((reason): reason is string => typeof reason === "string");
+    }
   } catch {
     // Body không phải JSON (proxy/mạng) — giữ thông báo chung.
   }
-  throw new ApiError(response.status, code, detail);
+  throw new ApiError(response.status, code, detail, reasons);
 }
 
 /** Chỉ dùng trong test: xoá trạng thái module giữa các ca. */
