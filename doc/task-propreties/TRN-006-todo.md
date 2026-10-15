@@ -4,7 +4,7 @@
 > **Dependency:** TASK-TRN-005 (fare) — nhánh `TASK-TRN-006` tách từ nhánh `TASK-TRN-005` (chưa merge `develop`; thứ tự merge: TRN-003 → TRN-005 → TRN-006).
 > **Mở khóa:** TASK-TRN-004 (search chỉ chuyến đang mở bán), TASK-TRN-007 (lịch lặp), TASK-BTP-001 (giữ ghế: chuyến mở bán + ghế không `BLOCKED`), TASK-TRN-008 (đổi chuyến đã bán vé).
 
-## Trạng thái (14/10/2026) — 🔨 **ĐÃ ĐƯA VỀ REPO CHÍNH (BE + màn Operator OS), chưa commit — chờ Khanh review + CI**
+## Trạng thái (14/10/2026) — 🔨 **Đã merge `develop` (PR #33 — tên PR ghi nhầm "Task iam 005 web", CI xanh); còn G1–G7 chờ Khanh**
 
 - ✅ 14/10/2026: port sang repo chính trên nhánh `TASK-TRN-006` (tách từ `TASK-TRN-005`, commit `d16bfac`) và làm màn Operator OS theo Figma khung 03–06 — chi tiết ở mục "Đưa về repo chính" cuối file.
 - Phần port và màn Operator OS **chưa qua** `code-reviewer` / `security-auditor`: từ 14/10/2026 hai bước này chỉ chạy khi Khanh yêu cầu (`CLAUDE.md` §4.8).

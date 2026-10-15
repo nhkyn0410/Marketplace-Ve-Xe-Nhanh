@@ -185,6 +185,14 @@ export const envSchema = z
     // Gốc địa chỉ công khai của bucket (CDN / custom domain), vd `https://cdn.vexenhanh.com`.
     R2_PUBLIC_BASE_URL: z.preprocess(emptyToUndefined, z.url().optional()),
     STORAGE_LOCAL_DIR: optionalString,
+    // Bucket private cho giấy tờ KYC (ADR-018, TASK-OPR-001), dùng chung tài khoản R2 ở trên. Production chưa khai
+    // thì API tải / xem giấy tờ trả 503 — nơi lưu KYC production chờ OQ-21; dev / test bỏ trống thì lưu ổ đĩa.
+    R2_PRIVATE_BUCKET: optionalString,
+    // Hạn dùng link bảo mật của hồ sơ đăng ký nhà xe (Security §5: mặc định 72 giờ; DB chặn quá 30 ngày).
+    OPERATOR_APPLICATION_LINK_TTL_HOURS: z.preprocess(
+      emptyToUndefined,
+      z.coerce.number().int().positive().max(720).default(72),
+    ),
   })
   .superRefine((env, ctx) => {
     // Một origin thuộc cả hai app thì không biết ràng phiên với scope nào → từ chối ở mọi môi trường.

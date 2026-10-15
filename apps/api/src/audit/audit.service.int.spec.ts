@@ -63,6 +63,26 @@ describe.skipIf(!mongoUrl && !requireDb)("AuditService — ghi có giới hạn 
     insertOne.mockRestore();
   });
 
+  it("đối tượng cấp Platform (operatorId null): chỉ đọc sự kiện không gắn tenant, không lẫn sự kiện cùng target của tenant", async () => {
+    const { audit } = auditOn(connection);
+    const targetId = randomUUID();
+    const platformEvent = { ...event(targetId, "", "operator_application.submit"), targetType: "operator_application" };
+    delete platformEvent.operatorId;
+    await audit.recordAuditEvent(platformEvent);
+    await audit.recordAuditEvent({
+      ...event(targetId, randomUUID(), "operator_application.submit"),
+      targetType: "operator_application",
+    });
+    const items = await audit.listAuditEvents({
+      targetType: "operator_application",
+      targetId,
+      operatorId: null,
+      actions: ["operator_application.submit"],
+      limit: 10,
+    });
+    expect(items).toHaveLength(1);
+  });
+
   it("hạn chót transaction: rút ngắn timeoutMS theo phần còn lại; không còn đủ thì từ chối TRƯỚC khi ghi", async () => {
     const { audit, events } = auditOn(connection);
     const insertOne = vi.spyOn(events.collection, "insertOne");

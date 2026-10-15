@@ -20,9 +20,11 @@ import {
   Wallet
 } from "lucide-react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 
 import { useAuth } from "../lib/auth/auth-context";
+import { isPublicPath } from "../lib/public-routes";
 
 // Theo 06 UI/UX §5 (Information architecture — Operator OS).
 const NAV_GROUPS: NavGroup[] = [
@@ -62,6 +64,10 @@ const NAV_GROUPS: NavGroup[] = [
  */
 export function AppShell({ children }: { children: ReactNode }) {
   const { state, logout } = useAuth();
+  // Trang đăng ký nhà xe công khai có khung riêng (`RegisterShell`), không có thanh quản trị.
+  if (isPublicPath(usePathname())) {
+    return children;
+  }
   // `AuthGate` chỉ dựng khung này khi đã đăng nhập; kiểm lại để kiểu dữ liệu chặt.
   const me = state.status === "authenticated" ? state.me : null;
   // `/auth/me` chưa trả tên hiển thị của nhà xe nên tạm dùng mã nhà xe (slug).

@@ -9,6 +9,8 @@ export const CORS_ALLOWED_HEADERS = [
   "X-CSRF-Token",
   "X-Request-Id",
   "Idempotency-Key",
+  // Link bảo mật của hồ sơ đăng ký nhà xe (TASK-OPR-001) — trang đăng ký nằm trên origin của Operator OS.
+  "X-Application-Token",
 ] as const;
 export const CORS_EXPOSED_HEADERS = ["X-CSRF-Token", "X-Request-Id", "Deprecation"] as const;
 

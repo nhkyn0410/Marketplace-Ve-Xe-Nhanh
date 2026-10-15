@@ -78,17 +78,19 @@ export class AuditService {
   /**
    * Đọc audit event của một đối tượng trong một tenant, mới nhất trước — dùng cho lịch sử hiển thị (vd lịch sử giá,
    * BR-40). Chỉ đọc các `actions` nơi gọi liệt kê và chỉ trả `AuditHistoryItem`; nơi gọi phải kiểm đối tượng thuộc
-   * tenant trước (Mongo không có RLS).
+   * tenant trước (Mongo không có RLS). `operatorId: null` = đối tượng cấp Platform, chưa thuộc tenant nào (vd hồ sơ
+   * đăng ký nhà xe) — chỉ đọc sự kiện không gắn tenant.
    */
   async listAuditEvents(query: {
     targetType: string;
     targetId: string;
-    operatorId: string;
+    operatorId: string | null;
     actions: readonly string[];
     before?: Date;
     limit: number;
   }): Promise<AuditHistoryItem[]> {
-    if (!query.operatorId || !query.targetId || query.actions.length === 0) {
+    // `undefined` / chuỗi rỗng KHÔNG phải `null`: thiếu bộ lọc tenant thì Mongoose bỏ điều kiện → đọc lẫn tenant.
+    if ((query.operatorId !== null && !query.operatorId) || !query.targetId || query.actions.length === 0) {
       // Bộ lọc rỗng sẽ đọc lịch sử của tenant / đối tượng khác — lỗi lập trình, không phải lỗi người dùng.
       throw new Error("listAuditEvents cần operatorId, targetId và ít nhất một action.");
     }
@@ -96,6 +98,7 @@ export class AuditService {
       .find({
         targetType: query.targetType,
         targetId: query.targetId,
+        // `null` khớp cả bản ghi không có trường `operatorId` (sự kiện cấp Platform).
         operatorId: query.operatorId,
         action: { $in: query.actions },
         ...(query.before ? { createdAt: { $lt: query.before } } : {}),

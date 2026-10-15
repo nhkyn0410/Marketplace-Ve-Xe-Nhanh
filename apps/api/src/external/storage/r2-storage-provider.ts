@@ -7,14 +7,21 @@ import {
   S3Client,
 } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
-import type { StorageProvider, StoredObject, UploadTarget, UploadUrlInput } from "./storage-provider";
+import type {
+  DownloadTarget,
+  DownloadUrlInput,
+  StorageProvider,
+  StoredObject,
+  UploadTarget,
+  UploadUrlInput,
+} from "./storage-provider";
 
 export type R2StorageConfig = {
   accountId: string;
   accessKeyId: string;
   secretAccessKey: string;
   bucket: string;
-  /** Gốc địa chỉ công khai của bucket (CDN / custom domain), không có `/` cuối. */
+  /** Gốc địa chỉ công khai của bucket (CDN / custom domain), không có `/` cuối. Bucket private: chuỗi rỗng. */
   publicBaseUrl: string;
 };
 
@@ -95,6 +102,26 @@ export class R2StorageProvider implements StorageProvider {
   publicUrl(key: string): string {
     return `${this.config.publicBaseUrl}/${key}`;
   }
+
+  async createDownloadUrl(input: DownloadUrlInput): Promise<DownloadTarget> {
+    const expiresAt = new Date(Date.now() + input.expiresInSeconds * 1000);
+    const url = await getSignedUrl(
+      this.client,
+      new GetObjectCommand({
+        Bucket: this.config.bucket,
+        Key: input.key,
+        ResponseContentDisposition: contentDisposition(input.fileName),
+      }),
+      { expiresIn: input.expiresInSeconds },
+    );
+    return { url, expiresAt };
+  }
+}
+
+/** `inline` để PDF / ảnh mở ngay trong tab; tên file mã hóa theo RFC 5987 vì có thể có dấu tiếng Việt. */
+export function contentDisposition(fileName: string): string {
+  const ascii = fileName.replace(/[^\x20-\x7e]/g, "_").replace(/["\\]/g, "_");
+  return `inline; filename="${ascii}"; filename*=UTF-8''${encodeURIComponent(fileName)}`;
 }
 
 function isNotFound(error: unknown): boolean {

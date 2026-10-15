@@ -7,6 +7,8 @@ export {
   CatalogStatus,
   EmployeeRole,
   FareStatus,
+  OperatorApplicationDocumentType,
+  OperatorApplicationStatus,
   OperatorRole,
   OperatorStatus,
   PlatformRole,

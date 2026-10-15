@@ -121,6 +121,16 @@ describe("parseAppConfig", () => {
       ...R2,
     };
 
+    it("hồ sơ đăng ký nhà xe (TASK-OPR-001): link mặc định 72 giờ, tối đa 30 ngày; bucket private tùy chọn", () => {
+      expect(parseAppConfig({}).OPERATOR_APPLICATION_LINK_TTL_HOURS).toBe(72);
+      expect(parseAppConfig({ OPERATOR_APPLICATION_LINK_TTL_HOURS: "24" }).OPERATOR_APPLICATION_LINK_TTL_HOURS).toBe(24);
+      expect(() => parseAppConfig({ OPERATOR_APPLICATION_LINK_TTL_HOURS: "721" })).toThrow(/OPERATOR_APPLICATION_LINK_TTL_HOURS/);
+      expect(() => parseAppConfig({ OPERATOR_APPLICATION_LINK_TTL_HOURS: "0" })).toThrow(/OPERATOR_APPLICATION_LINK_TTL_HOURS/);
+      // Production không bắt buộc bucket private: chưa chốt nơi lưu KYC (OQ-21) thì API giấy tờ trả 503.
+      expect(parseAppConfig(production).R2_PRIVATE_BUCKET).toBeUndefined();
+      expect(parseAppConfig({ ...production, R2_PRIVATE_BUCKET: "vexenhanh-private" }).R2_PRIVATE_BUCKET).toBe("vexenhanh-private");
+    });
+
     it("kho object (TASK-TRN-009): production bắt buộc R2; dev bỏ trống thì dùng ổ đĩa; khai dở bị từ chối", () => {
       const withoutR2 = Object.fromEntries(Object.entries(production).filter(([key]) => !key.startsWith("R2_")));
       expect(() => parseAppConfig(withoutR2)).toThrow(/R2_ACCOUNT_ID/);

@@ -68,6 +68,10 @@ export const RLS_TABLES = [
   "fares",
   "fare_rules",
   "vehicle_images",
+  // Operator onboarding (TASK-OPR-001): dữ liệu cấp Platform, chỉ scope platform / system.
+  "operator_applications",
+  "operator_application_documents",
+  "operator_application_access_tokens",
 ] as const;
 
 @Injectable()
