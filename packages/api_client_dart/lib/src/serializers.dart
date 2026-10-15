@@ -16,6 +16,12 @@ import 'package:api_client_dart/src/model/date.dart';
 
 import 'package:api_client_dart/src/model/account_mutation_response_dto_output.dart';
 import 'package:api_client_dart/src/model/amenity_list_response_dto_output.dart';
+import 'package:api_client_dart/src/model/application_access_link_input_dto.dart';
+import 'package:api_client_dart/src/model/application_create_input_dto.dart';
+import 'package:api_client_dart/src/model/application_response_dto_output.dart';
+import 'package:api_client_dart/src/model/application_response_dto_output_documents_inner.dart';
+import 'package:api_client_dart/src/model/application_update_input_dto.dart';
+import 'package:api_client_dart/src/model/application_update_input_dto_documents_inner.dart';
 import 'package:api_client_dart/src/model/auth_me_response_dto_output.dart';
 import 'package:api_client_dart/src/model/auth_token_response_dto_output.dart';
 import 'package:api_client_dart/src/model/credential_login_dto.dart';
@@ -23,6 +29,9 @@ import 'package:api_client_dart/src/model/credential_login_response_dto_output.d
 import 'package:api_client_dart/src/model/credential_token_response.dart';
 import 'package:api_client_dart/src/model/credential_web_session_response.dart';
 import 'package:api_client_dart/src/model/csrf_token_response_dto_output.dart';
+import 'package:api_client_dart/src/model/document_download_response_dto_output.dart';
+import 'package:api_client_dart/src/model/document_upload_input_dto.dart';
+import 'package:api_client_dart/src/model/document_upload_response_dto_output.dart';
 import 'package:api_client_dart/src/model/employee_account_response_dto_output.dart';
 import 'package:api_client_dart/src/model/employee_create_dto.dart';
 import 'package:api_client_dart/src/model/employee_list_response_dto_output.dart';
@@ -124,6 +133,12 @@ part 'serializers.g.dart';
 @SerializersFor([
   AccountMutationResponseDtoOutput,
   AmenityListResponseDtoOutput,
+  ApplicationAccessLinkInputDto,
+  ApplicationCreateInputDto,
+  ApplicationResponseDtoOutput,
+  ApplicationResponseDtoOutputDocumentsInner,
+  ApplicationUpdateInputDto,
+  ApplicationUpdateInputDtoDocumentsInner,
   AuthMeResponseDtoOutput,
   AuthTokenResponseDtoOutput,
   CredentialLoginDto,
@@ -131,6 +146,9 @@ part 'serializers.g.dart';
   CredentialTokenResponse,
   CredentialWebSessionResponse,
   CsrfTokenResponseDtoOutput,
+  DocumentDownloadResponseDtoOutput,
+  DocumentUploadInputDto,
+  DocumentUploadResponseDtoOutput,
   EmployeeAccountResponseDtoOutput,
   EmployeeCreateDto,
   EmployeeListResponseDtoOutput,
@@ -285,6 +303,10 @@ Serializers serializers = (_$serializers.toBuilder()
         () => ListBuilder<RouteListResponseDtoOutputItemsInner>(),
       )
       ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(ApplicationUpdateInputDtoDocumentsInner)]),
+        () => ListBuilder<ApplicationUpdateInputDtoDocumentsInner>(),
+      )
+      ..addBuilderFactory(
         const FullType(BuiltList, [FullType(SeatMapResponseDtoOutputSeatsInner)]),
         () => ListBuilder<SeatMapResponseDtoOutputSeatsInner>(),
       )
@@ -299,6 +321,10 @@ Serializers serializers = (_$serializers.toBuilder()
       ..addBuilderFactory(
         const FullType(BuiltList, [FullType(StopPointProposalListResponseDtoOutputItemsInner)]),
         () => ListBuilder<StopPointProposalListResponseDtoOutputItemsInner>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(ApplicationResponseDtoOutputDocumentsInner)]),
+        () => ListBuilder<ApplicationResponseDtoOutputDocumentsInner>(),
       )
       ..addBuilderFactory(
         const FullType(BuiltList, [FullType(SeatMapResponseDtoOutputLayoutDecksInner)]),

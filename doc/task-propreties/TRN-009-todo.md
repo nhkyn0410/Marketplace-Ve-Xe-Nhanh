@@ -4,7 +4,7 @@
 > **Nhánh:** `TASK-TRN-009`, tách từ nhánh `TASK-IAM-005-web` khi phần màn Nhân viên / Tài khoản **chưa commit** — cây làm việc của nhánh này đang chứa cả thay đổi của IAM-005-web (xem `IAM-005-web-todo.md`).
 > **Ngoài task:** hiển thị ảnh cho khách (`vehicleCoverImageUrl`, `vehicleImages`) làm ở `TASK-TRN-004`; Admin rà soát / gỡ ảnh làm ở `TASK-ADM-003`; kho private cho KYC (OQ-21) làm ở `TASK-OPR-001`.
 
-## Trạng thái (14/10/2026) — 🔨 **XONG BE + màn Operator OS, chưa commit — chờ Khanh review + CI**
+## Trạng thái (14/10/2026) — 🔨 **Đã merge `develop` (PR #34, CI xanh); còn G1–G9 chờ Khanh (G9: biến `R2_*` trên Render trước khi lên `master`)**
 
 - Chưa qua `code-reviewer` / `security-auditor` (chỉ chạy khi Khanh yêu cầu — `CLAUDE.md` §4.8).
 - **Chưa thử với Cloudflare R2 thật** (chưa có tài khoản / bucket). Adapter R2 chỉ được kiểm bằng client giả + ký URL thật (không gọi mạng). Mọi test và E2E chạy với kho ổ đĩa local.

@@ -154,6 +154,7 @@ model OperatorProfile {
   vehicles           Vehicle[]
   trips              Trip[]
   fares              Fare[]
+  application        OperatorApplication?
 
   @@unique([id, operatorSlug])
   @@map("operator_profiles")
@@ -385,7 +386,7 @@ model Ward {
   createdAt  DateTime      @default(now()) @map("created_at")
   updatedAt  DateTime      @updatedAt @map("updated_at")
 
-  province   Province           @relation(fields: [provinceId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  province           Province            @relation(fields: [provinceId], references: [id], onDelete: Restrict, onUpdate: Restrict)
   stopPoints         StopPointCatalog[]
   privateStopPoints  StopPoint[]
   stopPointProposals StopPointProposal[]
@@ -900,4 +901,90 @@ model FareRule {
   @@index([fareId])
   @@index([vehicleTypeId])
   @@map("fare_rules")
+}
+
+// ── Operator onboarding (TASK-OPR-001, BR-75, LLD §6.11) ──
+
+enum OperatorApplicationStatus {
+  DRAFT
+  SUBMITTED
+  NEEDS_INFO
+  APPROVED
+  REJECTED
+}
+
+/// Bộ giấy tờ KYC bắt buộc v1 (OQ-19). Tài khoản nhận tiền là trường của hồ sơ, không phải giấy tờ.
+enum OperatorApplicationDocumentType {
+  BUSINESS_REGISTRATION
+  TRANSPORT_LICENSE
+  REPRESENTATIVE_AUTHORIZATION
+}
+
+/// Hồ sơ đăng ký nhà xe, nộp TRƯỚC khi có tài khoản (BR-75). Dữ liệu cấp Platform: chưa có tenant, RLS chỉ cho
+/// scope `platform` / `system`. `operatorId` chỉ có khi `APPROVED` (mỗi hồ sơ tối đa một Operator).
+model OperatorApplication {
+  id                     String                    @id @default(uuid())
+  applicationCode        String                    @unique @map("application_code")
+  status                 OperatorApplicationStatus @default(DRAFT)
+  operatorName           String                    @map("operator_name")
+  contactName            String                    @map("contact_name")
+  contactEmail           String                    @map("contact_email")
+  contactEmailVerifiedAt DateTime?                 @map("contact_email_verified_at")
+  termsAcceptedAt        DateTime                  @map("terms_accepted_at")
+  legalName              String?                   @map("legal_name")
+  taxCode                String?                   @map("tax_code")
+  hotline                String?
+  address                String?
+  displayName            String?                   @map("display_name")
+  description            String?
+  bankName               String?                   @map("bank_name")
+  bankAccountNumber      String?                   @map("bank_account_number")
+  bankAccountHolder      String?                   @map("bank_account_holder")
+  /// Lý do Admin ghi khi yêu cầu bổ sung / từ chối (UC-23).
+  reviewNote             String?                   @map("review_note")
+  submittedAt            DateTime?                 @map("submitted_at")
+  operatorId             String?                   @unique @map("operator_id")
+  createdAt              DateTime                  @default(now()) @map("created_at")
+  updatedAt              DateTime                  @updatedAt @map("updated_at")
+
+  operator     OperatorProfile?                 @relation(fields: [operatorId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  documents    OperatorApplicationDocument[]
+  accessTokens OperatorApplicationAccessToken[]
+
+  @@index([status, submittedAt])
+  @@index([contactEmail])
+  @@index([taxCode])
+  @@map("operator_applications")
+}
+
+/// Giấy tờ KYC của hồ sơ: chỉ metadata + khóa object ở kho private (ADR-018), không lưu file. Mỗi loại một bản.
+model OperatorApplicationDocument {
+  id            String                          @id @default(uuid())
+  applicationId String                          @map("application_id")
+  type          OperatorApplicationDocumentType
+  objectKey     String                          @unique @map("object_key")
+  fileName      String                          @map("file_name")
+  contentType   String                          @map("content_type")
+  sizeBytes     Int                             @map("size_bytes")
+  uploadedAt    DateTime                        @default(now()) @map("uploaded_at")
+
+  application OperatorApplication @relation(fields: [applicationId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+
+  @@unique([applicationId, type])
+  @@map("operator_application_documents")
+}
+
+/// Link bảo mật của hồ sơ: chỉ lưu SHA-256 của token (BR-75, Security §5). Cấp link mới thu hồi link cũ.
+model OperatorApplicationAccessToken {
+  id            String    @id @default(uuid())
+  applicationId String    @map("application_id")
+  tokenHash     String    @unique @map("token_hash")
+  expiresAt     DateTime  @map("expires_at")
+  revokedAt     DateTime? @map("revoked_at")
+  createdAt     DateTime  @default(now()) @map("created_at")
+
+  application OperatorApplication @relation(fields: [applicationId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+
+  @@index([applicationId, revokedAt])
+  @@map("operator_application_access_tokens")
 }

@@ -8,6 +8,7 @@ import { AppConfigModule } from "./config/app-config.module";
 import { DatabaseModule } from "./database/database.module";
 import { FareModule } from "./fare/fare.module";
 import { MongoAuditModule } from "./database/mongo-audit.module";
+import { OperatorKycModule } from "./operator-kyc/operator-kyc.module";
 import { IamModule } from "./iam/iam.module";
 import { QueueModule } from "./queue/queue.module";
 import { CatalogModule } from "./catalog/catalog.module";
@@ -31,6 +32,7 @@ import { VehicleModule } from "./vehicle/vehicle.module";
     RouteModule,
     TripModule,
     FareModule,
+    OperatorKycModule,
   ],
   controllers: [AppController],
   providers: [{ provide: APP_INTERCEPTOR, useClass: ZodSerializerInterceptor }],

@@ -4,6 +4,7 @@ import { ZodSerializerInterceptor } from "nestjs-zod";
 import { AppController } from "../app.controller";
 import { APP_CONFIG } from "../config/env.config";
 import { DatabaseHealthService } from "../database/database-health.service";
+import { PrismaService } from "../database/prisma.service";
 import { MongoHealthService } from "../database/mongo-health.service";
 import { AuthController } from "../iam/auth/auth.controller";
 import { AuthService } from "../iam/auth/auth.service";
@@ -32,6 +33,8 @@ import { TripController } from "../trip/trip.controller";
 import { TripService } from "../trip/trip.service";
 import { SeatMapController } from "../vehicle/seat-map.controller";
 import { SeatMapService } from "../vehicle/seat-map.service";
+import { OperatorApplicationController } from "../operator-kyc/operator-application.controller";
+import { OperatorApplicationService } from "../operator-kyc/operator-application.service";
 import { VehicleImageController } from "../vehicle/vehicle-image.controller";
 import { VehicleImageService } from "../vehicle/vehicle-image.service";
 import { VehicleController } from "../vehicle/vehicle.controller";
@@ -54,6 +57,7 @@ import { VehicleService } from "../vehicle/vehicle.service";
     RouteController,
     TripController,
     FareController,
+    OperatorApplicationController,
   ],
   providers: [
     { provide: APP_INTERCEPTOR, useClass: ZodSerializerInterceptor },
@@ -62,6 +66,9 @@ import { VehicleService } from "../vehicle/vehicle.service";
     { provide: CatalogService, useValue: {} },
     { provide: VehicleService, useValue: {} },
     { provide: VehicleImageService, useValue: {} },
+    { provide: OperatorApplicationService, useValue: {} },
+    // Dependency của ApplicationTokenGuard (link bảo mật hồ sơ nhà xe) — Nest dựng guard lúc khởi tạo module.
+    { provide: PrismaService, useValue: {} },
     { provide: SeatMapService, useValue: {} },
     { provide: StopPointService, useValue: {} },
     { provide: StopPointProposalService, useValue: {} },

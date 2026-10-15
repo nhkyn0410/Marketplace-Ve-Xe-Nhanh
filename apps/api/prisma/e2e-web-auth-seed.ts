@@ -156,8 +156,9 @@ async function main(): Promise<void> {
 /**
  * Ngân sách email mật khẩu tạm toàn hệ thống là 30 / 24 giờ và mọi lần chạy E2E trên máy dev dùng chung một
  * Redis: không đặt lại thì sau vài chục lần chạy, ca tạo nhân viên nhận 429. Ngân sách theo nhà xe / người thao
- * tác không cần đặt lại vì mỗi lần seed là nhà xe mới. Chỉ đụng Redis local; Redis chưa chạy thì bỏ qua — API khi
- * đó tự trả 503 và spec báo rõ.
+ * tác không cần đặt lại vì mỗi lần seed là nhà xe mới. Bộ đếm theo IP của luồng đăng ký nhà xe (TASK-OPR-001, 10
+ * lần / giờ) cũng vậy: mọi lần chạy đều từ cùng một IP local. Chỉ đụng Redis local; Redis chưa chạy thì bỏ qua — API
+ * khi đó tự trả 503 và spec báo rõ.
  */
 async function resetTemporaryPasswordEmailBudget(): Promise<void> {
   const url = getRedisUrl();
@@ -168,6 +169,10 @@ async function resetTemporaryPasswordEmailBudget(): Promise<void> {
   try {
     await redis.connect();
     await redis.del(TEMP_EMAIL_GLOBAL_KEY);
+    const applicationIpKeys = await redis.keys("opr-app:*:ip:*");
+    if (applicationIpKeys.length > 0) {
+      await redis.del(...applicationIpKeys);
+    }
   } catch {
     // Redis local chưa chạy.
   } finally {

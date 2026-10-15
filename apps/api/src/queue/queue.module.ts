@@ -34,7 +34,8 @@ import { QueueHealthService } from "./queue-health.service";
     BullModule.registerQueue(
       { name: QUEUE_NAMES.foundation },
       { name: QUEUE_NAMES.sessionMaintenance },
-      { name: QUEUE_NAMES.storageMaintenance }
+      { name: QUEUE_NAMES.storageMaintenance },
+      { name: QUEUE_NAMES.kycMaintenance }
     )
   ],
   providers: [BullBoardService, QueueHealthService],

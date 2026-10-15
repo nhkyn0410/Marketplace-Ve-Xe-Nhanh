@@ -12,6 +12,7 @@ import 'package:api_client_dart/src/auth/oauth.dart';
 import 'package:api_client_dart/src/api/auth_api.dart';
 import 'package:api_client_dart/src/api/catalog_api.dart';
 import 'package:api_client_dart/src/api/health_api.dart';
+import 'package:api_client_dart/src/api/operator_applications_api.dart';
 import 'package:api_client_dart/src/api/operator_employees_api.dart';
 import 'package:api_client_dart/src/api/operator_fares_api.dart';
 import 'package:api_client_dart/src/api/operator_routes_api.dart';
@@ -131,6 +132,12 @@ class ApiClientDart {
   /// by doing that all interceptors will not be executed
   HealthApi getHealthApi() {
     return HealthApi(dio, serializers);
+  }
+
+  /// Get OperatorApplicationsApi instance, base route and serializer can be overridden by a given but be careful,
+  /// by doing that all interceptors will not be executed
+  OperatorApplicationsApi getOperatorApplicationsApi() {
+    return OperatorApplicationsApi(dio, serializers);
   }
 
   /// Get OperatorEmployeesApi instance, base route and serializer can be overridden by a given but be careful,
