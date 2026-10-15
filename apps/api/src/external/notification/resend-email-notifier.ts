@@ -5,6 +5,7 @@ import {
   type OperatorApplicationDecisionEmailMessage,
   type OperatorApplicationLinkEmailMessage,
   type OtpEmailMessage,
+  type StopPointDecisionEmailMessage,
   type TemporaryPasswordEmailMessage,
 } from "./email-notifier";
 
@@ -82,6 +83,41 @@ export class ResendEmailNotifier implements EmailNotifier {
         "<p>Link hồ sơ không còn dùng được. Muốn tham gia lại, hãy nộp hồ sơ mới.</p>",
       "operator application rejected",
     );
+  }
+
+  async sendStopPointDecision(message: StopPointDecisionEmailMessage): Promise<void> {
+    const point = `<strong>${escapeHtml(message.stopPointName)}</strong>`;
+    const reason = message.reason ? `<p>Lý do:</p><blockquote>${escapeHtml(message.reason)}</blockquote>` : "";
+    const content: Record<StopPointDecisionEmailMessage["decision"], { subject: string; html: string }> = {
+      PROPOSAL_APPROVED: {
+        subject: `Đề xuất điểm dừng “${message.stopPointName}” đã được duyệt`,
+        html:
+          `<p>Đề xuất ${point} của nhà xe ${escapeHtml(message.operatorName)} đã được duyệt.</p>` +
+          `<p>Điểm <strong>${escapeHtml(message.sharedName ?? message.stopPointName)}</strong> đã có trong danh mục ` +
+          "dùng chung — nhà xe chọn được khi lập tuyến.</p>",
+      },
+      PROPOSAL_REJECTED: {
+        subject: `Đề xuất điểm dừng “${message.stopPointName}” chưa được duyệt`,
+        html:
+          `<p>Đề xuất ${point} của nhà xe ${escapeHtml(message.operatorName)} chưa được duyệt.</p>${reason}` +
+          "<p>Sửa đề xuất theo lý do trên rồi gửi lại ở mục Điểm dừng của trang quản lý nhà xe.</p>",
+      },
+      SUSPENDED: {
+        subject: `Điểm dừng “${message.stopPointName}” bị khóa`,
+        html:
+          `<p>Điểm dừng ${point} của nhà xe ${escapeHtml(message.operatorName)} đã bị quản trị viên khóa.</p>${reason}` +
+          "<p>Điểm bị khóa không gắn mới vào tuyến và chuyến dùng điểm này không mở bán mới. Liên hệ quản trị " +
+          "nền tảng nếu cần mở lại.</p>",
+      },
+      UNSUSPENDED: {
+        subject: `Điểm dừng “${message.stopPointName}” đã được mở khóa`,
+        html:
+          `<p>Điểm dừng ${point} của nhà xe ${escapeHtml(message.operatorName)} đã được mở khóa và dùng lại ` +
+          "được như trước.</p>",
+      },
+    };
+    const { subject, html } = content[message.decision];
+    await this.send(message.email, `${subject} — Vé Xe Nhanh`, html, `stop point ${message.decision}`);
   }
 
   private async send(

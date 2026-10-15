@@ -1,11 +1,11 @@
 "use client";
 
-import { MapMarker, MapPopup, MapView, type MapFocus } from "@vexenhanh/ui/components/map";
-import type { MapPoint } from "@vexenhanh/ui/lib/map";
 import { X } from "lucide-react";
 import { useEffect, useId, useMemo, useRef } from "react";
 
-import type { MapLegendItem, MarkerKind, OverviewSelection } from "../../lib/map/stop-map";
+import type { MapPoint } from "../lib/map";
+import type { MapLegendItem, MarkerKind, OverviewSelection } from "../lib/stop-map";
+import { MapMarker, MapPopup, MapView, type MapFocus } from "./map";
 import { MapDot, MapLegend, MapToggle } from "./map-parts";
 
 /** Một điểm dừng trên bản đồ tổng quan. */

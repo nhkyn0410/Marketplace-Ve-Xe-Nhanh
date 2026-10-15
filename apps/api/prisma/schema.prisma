@@ -409,6 +409,8 @@ model StopPointCatalog {
   latitude    Float
   longitude   Float
   description String?
+  /// Căn cứ công bố của cơ quan quản lý (BR-38): bắt buộc với bến xe / điểm dừng đón trả, tối đa 300 ký tự (CHECK).
+  legalBasis  String?       @map("legal_basis")
   status      CatalogStatus @default(ACTIVE)
   /// Cột DO DATABASE SINH (tên + địa chỉ, chữ thường, bỏ dấu) để tìm không dấu — KHÔNG ghi từ code.
   searchText  String?       @map("search_text")
@@ -421,6 +423,7 @@ model StopPointCatalog {
   proposals  StopPointProposal[]
 
   @@index([provinceId, status])
+  @@index([provinceId, type, status])
   @@index([wardId])
   @@map("stop_points_catalog")
 }

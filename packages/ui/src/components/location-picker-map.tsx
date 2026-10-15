@@ -1,10 +1,10 @@
 "use client";
 
-import { MapMarker, MapView, type MapFocus } from "@vexenhanh/ui/components/map";
-import type { MapPoint } from "@vexenhanh/ui/lib/map";
 import { useState } from "react";
 
-import { roundPoint, samePoint, type MarkerKind } from "../../lib/map/stop-map";
+import type { MapPoint } from "../lib/map";
+import { roundPoint, samePoint, type MarkerKind } from "../lib/stop-map";
+import { MapMarker, MapView, type MapFocus } from "./map";
 import { MapDot } from "./map-parts";
 
 // Gõ tọa độ bằng tay thì bản đồ phóng tới mức đủ để kiểm ghim nằm đúng chỗ.

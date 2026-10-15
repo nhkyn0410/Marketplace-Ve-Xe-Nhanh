@@ -227,6 +227,7 @@ describe.skipIf(!(url && mongoUrl) && !requireDb)("Trip sale lifecycle — Postg
           id,
           name: `Bến ${index + 1} ${tag}`,
           type: "BUS_STATION" as const,
+          legalBasis: "QĐ công bố (test)",
           address: "x",
           provinceId: province,
           wardId: ward,

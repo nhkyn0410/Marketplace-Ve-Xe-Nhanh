@@ -64,10 +64,17 @@ async function main(): Promise<void> {
     tripOwner: { username: `trip-${tag}`, password: password() },
     // `null` khi catalog chưa seed (thiếu phường / loại xe) — spec Chuyến xe sẽ báo cần chạy `db:seed:catalog`.
     tripFixtures: null as { routeName: string; plateNumber: string; seatMapName: string } | null,
+    // E2E màn Điểm dừng của Admin (TASK-ADM-004): một đề xuất chờ duyệt + một điểm riêng để khóa, ở nhà xe chuyến.
+    // `null` khi catalog chưa seed (thiếu phường).
+    adminStopPoints: null as AdminStopPointFixtures | null,
     employee: { username: `nv.driver-${tag}`, password: password() },
     platform: { username: `e2e-${tag}`, password: password() },
     // Quản trị viên thứ hai cho E2E duyệt hồ sơ nhà xe (cổng Admin): mỗi spec tự bật TOTP một lần.
-    platformReviewer: { username: `e2e-review-${tag}`, password: password() }
+    platformReviewer: { username: `e2e-review-${tag}`, password: password() },
+    // Quản trị viên thứ ba cho E2E màn Điểm dừng của Admin.
+    platformCatalog: { username: `e2e-catalog-${tag}`, password: password() },
+    // Quản trị viên thứ tư cho E2E màn Danh mục chuẩn (tỉnh / phường / loại xe / tiện ích).
+    platformData: { username: `e2e-data-${tag}`, password: password() }
   };
 
   const credentials = new CredentialService();
@@ -79,7 +86,9 @@ async function main(): Promise<void> {
     tripOwnerHash,
     employeeHash,
     platformHash,
-    reviewerHash
+    reviewerHash,
+    catalogHash,
+    dataHash
   ] = await Promise.all([
     credentials.hash(accounts.owner.temporaryPassword),
     credentials.hash(accounts.fleetOwner.password),
@@ -88,7 +97,9 @@ async function main(): Promise<void> {
     credentials.hash(accounts.tripOwner.password),
     credentials.hash(accounts.employee.password),
     credentials.hash(accounts.platform.password),
-    credentials.hash(accounts.platformReviewer.password)
+    credentials.hash(accounts.platformReviewer.password),
+    credentials.hash(accounts.platformCatalog.password),
+    credentials.hash(accounts.platformData.password)
   ]);
 
   const prisma = new PrismaClient({ adapter: new PrismaPg({ connectionString }) });
@@ -149,6 +160,7 @@ async function main(): Promise<void> {
         }
       });
       accounts.tripFixtures = await seedTripFixtures(tx, tripOperator.id);
+      accounts.adminStopPoints = await seedAdminStopPointFixtures(tx, tripOperator.id, tag);
       await tx.employeeAccount.create({
         data: { operatorId: operator.id, username: accounts.employee.username, passwordHash: employeeHash, role: "DRIVER" }
       });
@@ -156,7 +168,9 @@ async function main(): Promise<void> {
     await prisma.platformAccount.createMany({
       data: [
         { username: accounts.platform.username, passwordHash: platformHash, role: "PLATFORM_ADMIN" },
-        { username: accounts.platformReviewer.username, passwordHash: reviewerHash, role: "PLATFORM_ADMIN" }
+        { username: accounts.platformReviewer.username, passwordHash: reviewerHash, role: "PLATFORM_ADMIN" },
+        { username: accounts.platformCatalog.username, passwordHash: catalogHash, role: "PLATFORM_ADMIN" },
+        { username: accounts.platformData.username, passwordHash: dataHash, role: "PLATFORM_ADMIN" }
       ]
     });
   } finally {
@@ -192,6 +206,54 @@ async function resetTemporaryPasswordEmailBudget(): Promise<void> {
   } finally {
     redis.disconnect();
   }
+}
+
+type AdminStopPointFixtures = {
+  proposalName: string;
+  rejectProposalName: string;
+  privatePointName: string;
+  operatorName: string;
+  provinceName: string;
+  wardName: string;
+};
+
+/**
+ * Hai đề xuất điểm dừng đón trả đang chờ duyệt (một để duyệt, một để từ chối) và một văn phòng riêng chưa dùng ở
+ * tuyến nào (Admin khóa / mở khóa). Tọa độ ngẫu nhiên mỗi lần chạy: điểm dùng chung do lần chạy trước duyệt không
+ * nằm trong bán kính cảnh báo trùng của lần này.
+ */
+async function seedAdminStopPointFixtures(
+  tx: Parameters<Parameters<PrismaClient["$transaction"]>[0]>[0],
+  operatorId: string,
+  tag: string
+): Promise<AdminStopPointFixtures | null> {
+  // Phường / tỉnh còn hiệu lực: duyệt đề xuất kiểm lại vị trí.
+  const ward = await tx.ward.findFirst({
+    where: { status: "ACTIVE", province: { status: "ACTIVE" } },
+    select: { id: true, provinceId: true, name: true, province: { select: { name: true } } }
+  });
+  if (!ward) {
+    return null;
+  }
+  const fixtures = {
+    proposalName: `E2E Đề xuất điểm đón ${tag}`,
+    rejectProposalName: `E2E Đề xuất bị từ chối ${tag}`,
+    privatePointName: `E2E Văn phòng khóa ${tag}`,
+    operatorName: `E2E chuyến ${tag}`,
+    provinceName: ward.province.name,
+    wardName: ward.name
+  };
+  const location = { address: "Địa chỉ E2E", provinceId: ward.provinceId, wardId: ward.id, operatorId };
+  const randomPoint = () => ({ latitude: 10.5 + Math.random() * 0.5, longitude: 106.4 + Math.random() * 0.5 });
+  for (const name of [fixtures.proposalName, fixtures.rejectProposalName]) {
+    await tx.stopPointProposal.create({
+      data: { ...location, ...randomPoint(), name, type: "PICKUP_POINT", legalBasis: "QĐ E2E/QĐ-SGTVT" }
+    });
+  }
+  await tx.stopPoint.create({
+    data: { ...location, ...randomPoint(), name: fixtures.privatePointName, type: "OFFICE" }
+  });
+  return fixtures;
 }
 
 /**

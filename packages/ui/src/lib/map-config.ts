@@ -1,4 +1,4 @@
-// Cấu hình bản đồ Goong của Operator OS (ADR-027, TASK-TRN-014).
+// Cấu hình bản đồ Goong của Operator OS và Admin (ADR-027, TASK-TRN-014). Mỗi app tự khai biến môi trường.
 
 const rawKey = process.env.NEXT_PUBLIC_GOONG_MAPTILES_KEY;
 

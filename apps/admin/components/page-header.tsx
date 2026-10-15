@@ -4,7 +4,7 @@ import type { ReactNode } from "react";
 export function PageHeader({ title, description, actions }: { title: string; description: string; actions?: ReactNode }) {
   return (
     <header className="flex min-h-[70px] flex-wrap items-center gap-x-6 gap-y-3">
-      <div className="flex min-w-0 flex-1 flex-col gap-1.5">
+      <div className="flex min-w-0 flex-[1_1_18rem] flex-col gap-1.5">
         <h1 className="text-[30px] leading-[38px] font-semibold text-vxn-ink">{title}</h1>
         <p className="text-sm leading-5 text-muted-foreground">{description}</p>
       </div>

@@ -11,6 +11,19 @@ export type E2eAccounts = {
   platform: { username: string; password: string };
   /** Quản trị viên riêng cho E2E duyệt hồ sơ nhà xe. */
   platformReviewer: { username: string; password: string };
+  /** Quản trị viên riêng cho E2E màn Điểm dừng. */
+  platformCatalog: { username: string; password: string };
+  /** Quản trị viên riêng cho E2E màn Danh mục chuẩn. */
+  platformData: { username: string; password: string };
+  /** `null` khi catalog chưa seed. */
+  adminStopPoints: {
+    proposalName: string;
+    rejectProposalName: string;
+    privatePointName: string;
+    operatorName: string;
+    provinceName: string;
+    wardName: string;
+  } | null;
 };
 
 type Credentials = { username: string; password: string };

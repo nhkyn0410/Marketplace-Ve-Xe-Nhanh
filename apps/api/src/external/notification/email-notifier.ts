@@ -43,12 +43,26 @@ export type OperatorApplicationDecisionEmailMessage = {
   expiresAt?: Date;
 };
 
+/** Quyết định của Admin về điểm dừng của nhà xe, gửi chủ nhà xe (LLD §6.13 bước 3, 6; TASK-ADM-004). */
+export type StopPointDecisionEmailMessage = {
+  email: string;
+  operatorName: string;
+  /** Tên điểm như nhà xe biết (tên đề xuất / tên điểm riêng). */
+  stopPointName: string;
+  decision: "PROPOSAL_APPROVED" | "PROPOSAL_REJECTED" | "SUSPENDED" | "UNSUSPENDED";
+  /** Lý do từ chối / khóa. */
+  reason?: string;
+  /** Tên điểm dùng chung Admin đặt khi duyệt (có thể khác tên đề xuất). */
+  sharedName?: string;
+};
+
 export interface EmailNotifier {
   sendOtp(message: OtpEmailMessage): Promise<void>;
   /** Optional trong port để adapter/mocks OTP legacy không giả vờ hỗ trợ enrollment. */
   sendTemporaryPassword?(message: TemporaryPasswordEmailMessage): Promise<void>;
   sendOperatorApplicationLink?(message: OperatorApplicationLinkEmailMessage): Promise<void>;
   sendOperatorApplicationDecision?(message: OperatorApplicationDecisionEmailMessage): Promise<void>;
+  sendStopPointDecision?(message: StopPointDecisionEmailMessage): Promise<void>;
 }
 
 /** Mask email cho log/audit — không lộ địa chỉ đầy đủ (Security §9). */

@@ -1,9 +1,9 @@
-import { Button } from "@vexenhanh/ui/components/button";
-import { cn } from "@vexenhanh/ui/lib/utils";
 import { ChevronDown, ChevronRight } from "lucide-react";
 
-import { MARKER_KIND_CLASS, type MapLegendItem, type MarkerKind } from "../../lib/map/stop-map";
-import { BUTTON } from "../list-parts";
+import { MARKER_KIND_CLASS, type MapLegendItem, type MarkerKind } from "../lib/stop-map";
+import { cn } from "../lib/utils";
+import { Button } from "./button";
+import { BUTTON } from "./list-parts";
 
 /** Chấm màu của một điểm dừng trên bản đồ (Figma "VXN / Map marker"). */
 export function MapDot({ kind, className }: { kind: MarkerKind; className?: string }) {

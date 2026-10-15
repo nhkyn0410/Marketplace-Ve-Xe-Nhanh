@@ -19,6 +19,7 @@ export const PERMISSIONS = [
   "checkin:read", // §7 Check-in — "xem kết quả" / "giám sát"
   "kyc:submit", // §7 KYC — "hồ sơ của mình"
   "kyc:review", // §7 KYC — "duyệt/quản lý"
+  "catalog:manage", // §7 Route/StopPoint cột Admin (TASK-ADM-004) — điểm dùng chung, duyệt đề xuất, khóa điểm riêng
   "finance:read", // §7 Policy/commission/payout — "xem phần liên quan"
   "finance:configure", // §7 Policy/commission/payout — "cấu hình"
   "audit:read", // §7 Audit log
@@ -86,6 +87,7 @@ export const ROLE_GRANTS: Readonly<Record<Role, Grants>> = {
     "vehicle:read": "any",
     "checkin:read": "any",
     "kyc:review": "any",
+    "catalog:manage": "any",
     "finance:read": "any",
     "finance:configure": "any",
     "audit:read": "any",

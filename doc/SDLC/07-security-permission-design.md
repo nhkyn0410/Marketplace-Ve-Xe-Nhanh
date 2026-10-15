@@ -13,7 +13,7 @@
 | Người viết    | Nguyễn Hồng Khanh, AI Agent   |
 | Người duyệt   | Nguyễn Hồng Khanh             |
 | Ngày tạo      | 11/05/2026                    |
-| Ngày cập nhật | 07/10/2026                    |
+| Ngày cập nhật | 15/10/2026                    |
 
 ### 1.2. Lịch sử thay đổi
 
@@ -36,6 +36,8 @@
 | v0.15     | 04/10/2026 | AI Agent       | **Đối chiếu Figma nhà xe (Khanh chốt 04/10/2026):** §9 — chú thích ảnh phương tiện là văn bản công khai do nhà xe nhập, hiển thị dạng text thuần. Giữ trạng thái Review. |
 | v0.16     | 04/10/2026 | AI Agent       | **Thiết kế lại điểm dừng (Khanh chốt 04/10/2026, SRS v1.35):** §6 ranh giới điểm dừng dùng chung / riêng; §7 dòng Route/StopPoint; §8 duyệt đề xuất và khóa điểm riêng; §11 chặn nhà xe tự hợp thức hóa điểm đón trả. Giữ trạng thái Review. |
 | v0.17     | 07/10/2026 | AI Agent       | **Bản đồ trên web (`TASK-TRN-014`):** §11 dòng XSS — ghi sẵn các nguồn mà bản đồ cần khi viết CSP đầy đủ. Khóa Goong Maptiles là khóa công khai phía trình duyệt, không phải bí mật. Giữ trạng thái Review. |
+| v0.18     | 15/10/2026 | AI Agent       | **`TASK-ADM-004` (chờ Khanh duyệt):** §7 dòng Route/StopPoint — cột Admin hiện thực bằng quyền `catalog:manage` (chỉ PlatformAdmin; PlatformSupport không có). Giữ trạng thái hiện có. |
+| v0.19     | 16/10/2026 | AI Agent       | **`TASK-ADM-001` phần danh mục (chờ Khanh duyệt):** §7 thêm dòng Danh mục chuẩn — đọc công khai mục đang dùng (`/catalog/*`); Admin thêm / sửa tên / ngừng dùng / dùng lại bằng quyền `catalog:manage` (chỉ PlatformAdmin), lý do ngừng dùng vào audit, không xóa. Giữ trạng thái hiện có. |
 
 ---
 
@@ -166,7 +168,8 @@ RBAC 8-role hardcoded enum v1 (Anonymous / Passenger / OperatorOwner / Driver / 
 | Cancel/refund request    | Vé / booking đã xác minh, theo policy | Vé của mình | Vé thuộc Operator theo policy | Không                  | Có                     |
 | Vehicle/SeatMap          | Không              | Không       | Có trong tenant               | Xem nếu được phân công | Giám sát/toàn hệ thống |
 | Ảnh phương tiện          | Xem qua chuyến     | Xem qua chuyến | Tải lên / sắp xếp / xóa trong tenant (`vehicle:manage`, Owner) | Không | Rà soát, gỡ ảnh vi phạm (lý do + audit) |
-| Route/StopPoint riêng/đề xuất | Không         | Không       | Có trong tenant (`route:manage`, Owner): điểm riêng chỉ văn phòng trung chuyển / trạm dừng nghỉ; đề xuất bến xe / điểm dừng đón trả | Xem theo chuyến được phân công (task sau) | Quản lý điểm dùng chung, duyệt đề xuất, xem và khóa điểm riêng (ADM-004) |
+| Danh mục chuẩn (tỉnh, phường, loại xe, tiện ích) | Đọc mục đang dùng (`/catalog/*`) | Đọc mục đang dùng | Đọc mục đang dùng; chọn khi cấu hình xe / điểm dừng | Không | Thêm / sửa tên / ngừng dùng (lý do) / dùng lại — `catalog:manage`, chỉ PlatformAdmin, audit; không xóa |
+| Route/StopPoint riêng/đề xuất | Không         | Không       | Có trong tenant (`route:manage`, Owner): điểm riêng chỉ văn phòng trung chuyển / trạm dừng nghỉ; đề xuất bến xe / điểm dừng đón trả | Xem theo chuyến được phân công (task sau) | Quản lý điểm dùng chung, duyệt đề xuất, xem và khóa điểm riêng (ADM-004; quyền `catalog:manage`, chỉ PlatformAdmin) |
 | Trip (tạo/sửa chuyến nháp, mở bán / khóa / hủy, khóa ghế thủ công), bảng giá (fare) | Không | Không  | Có trong tenant (`trip:manage`, Owner) | Xem / cập nhật trạng thái chuyến được phân công (EMP-001/002) | Giám sát, khoá khi vi phạm (task Admin sau) |
 | Check-in                 | Không              | Không       | Xem kết quả                   | Có theo assignment     | Giám sát               |
 | KYC Operator             | Không              | Không       | Người đại diện: hồ sơ đăng ký qua link (chưa có tài khoản); Owner: cập nhật giấy tờ sau khi duyệt                | Không                  | Duyệt/quản lý          |

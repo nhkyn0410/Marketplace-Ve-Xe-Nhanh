@@ -157,6 +157,7 @@ describe.skipIf(!(url && mongoUrl) && !requireDb)("Fare — Postgres + Mongo th�
           id,
           name: `Bến ${index + 1} ${tag}`,
           type: "BUS_STATION" as const,
+          legalBasis: "QĐ công bố (test)",
           address: "x",
           provinceId: province,
           wardId: ward,

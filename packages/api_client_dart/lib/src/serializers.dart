@@ -15,6 +15,10 @@ import 'package:api_client_dart/src/date_serializer.dart';
 import 'package:api_client_dart/src/model/date.dart';
 
 import 'package:api_client_dart/src/model/account_mutation_response_dto_output.dart';
+import 'package:api_client_dart/src/model/admin_amenity_dto_output.dart';
+import 'package:api_client_dart/src/model/admin_amenity_input_dto.dart';
+import 'package:api_client_dart/src/model/admin_amenity_list_dto_output.dart';
+import 'package:api_client_dart/src/model/admin_amenity_list_dto_output_items_inner.dart';
 import 'package:api_client_dart/src/model/admin_application_detail_dto_output.dart';
 import 'package:api_client_dart/src/model/admin_application_detail_dto_output_documents_inner.dart';
 import 'package:api_client_dart/src/model/admin_application_detail_dto_output_duplicates.dart';
@@ -23,6 +27,33 @@ import 'package:api_client_dart/src/model/admin_application_detail_dto_output_hi
 import 'package:api_client_dart/src/model/admin_application_detail_dto_output_operator.dart';
 import 'package:api_client_dart/src/model/admin_application_list_response_dto_output.dart';
 import 'package:api_client_dart/src/model/admin_application_list_response_dto_output_items_inner.dart';
+import 'package:api_client_dart/src/model/admin_catalog_deactivate_dto.dart';
+import 'package:api_client_dart/src/model/admin_catalog_rename_dto.dart';
+import 'package:api_client_dart/src/model/admin_operator_stop_point_dto_output.dart';
+import 'package:api_client_dart/src/model/admin_operator_stop_point_list_dto_output.dart';
+import 'package:api_client_dart/src/model/admin_operator_stop_point_list_dto_output_items_inner.dart';
+import 'package:api_client_dart/src/model/admin_province_dto_output.dart';
+import 'package:api_client_dart/src/model/admin_province_input_dto.dart';
+import 'package:api_client_dart/src/model/admin_province_page_dto_output.dart';
+import 'package:api_client_dart/src/model/admin_province_page_dto_output_items_inner.dart';
+import 'package:api_client_dart/src/model/admin_shared_stop_point_dto_output.dart';
+import 'package:api_client_dart/src/model/admin_shared_stop_point_input_dto.dart';
+import 'package:api_client_dart/src/model/admin_shared_stop_point_list_dto_output.dart';
+import 'package:api_client_dart/src/model/admin_shared_stop_point_list_dto_output_items_inner.dart';
+import 'package:api_client_dart/src/model/admin_stop_point_proposal_approval_dto.dart';
+import 'package:api_client_dart/src/model/admin_stop_point_proposal_dto_output.dart';
+import 'package:api_client_dart/src/model/admin_stop_point_proposal_list_dto_output.dart';
+import 'package:api_client_dart/src/model/admin_stop_point_proposal_list_dto_output_items_inner.dart';
+import 'package:api_client_dart/src/model/admin_stop_point_proposal_list_dto_output_items_inner_nearby_inner.dart';
+import 'package:api_client_dart/src/model/admin_vehicle_type_dto_output.dart';
+import 'package:api_client_dart/src/model/admin_vehicle_type_input_dto.dart';
+import 'package:api_client_dart/src/model/admin_vehicle_type_list_dto_output.dart';
+import 'package:api_client_dart/src/model/admin_vehicle_type_list_dto_output_items_inner.dart';
+import 'package:api_client_dart/src/model/admin_vehicle_type_update_dto.dart';
+import 'package:api_client_dart/src/model/admin_ward_dto_output.dart';
+import 'package:api_client_dart/src/model/admin_ward_input_dto.dart';
+import 'package:api_client_dart/src/model/admin_ward_page_dto_output.dart';
+import 'package:api_client_dart/src/model/admin_ward_page_dto_output_items_inner.dart';
 import 'package:api_client_dart/src/model/amenity_list_response_dto_output.dart';
 import 'package:api_client_dart/src/model/application_access_link_input_dto.dart';
 import 'package:api_client_dart/src/model/application_create_input_dto.dart';
@@ -116,6 +147,7 @@ import 'package:api_client_dart/src/model/stop_point_proposal_input_dto.dart';
 import 'package:api_client_dart/src/model/stop_point_proposal_list_response_dto_output.dart';
 import 'package:api_client_dart/src/model/stop_point_proposal_list_response_dto_output_items_inner.dart';
 import 'package:api_client_dart/src/model/stop_point_proposal_response_dto_output.dart';
+import 'package:api_client_dart/src/model/stop_point_reason_input_dto.dart';
 import 'package:api_client_dart/src/model/trip_input_dto.dart';
 import 'package:api_client_dart/src/model/trip_list_response_dto_output.dart';
 import 'package:api_client_dart/src/model/trip_list_response_dto_output_items_inner.dart';
@@ -144,6 +176,10 @@ part 'serializers.g.dart';
 
 @SerializersFor([
   AccountMutationResponseDtoOutput,
+  AdminAmenityDtoOutput,
+  AdminAmenityInputDto,
+  AdminAmenityListDtoOutput,
+  AdminAmenityListDtoOutputItemsInner,
   AdminApplicationDetailDtoOutput,
   AdminApplicationDetailDtoOutputDocumentsInner,
   AdminApplicationDetailDtoOutputDuplicates,
@@ -152,6 +188,33 @@ part 'serializers.g.dart';
   AdminApplicationDetailDtoOutputOperator,
   AdminApplicationListResponseDtoOutput,
   AdminApplicationListResponseDtoOutputItemsInner,
+  AdminCatalogDeactivateDto,
+  AdminCatalogRenameDto,
+  AdminOperatorStopPointDtoOutput,
+  AdminOperatorStopPointListDtoOutput,
+  AdminOperatorStopPointListDtoOutputItemsInner,
+  AdminProvinceDtoOutput,
+  AdminProvinceInputDto,
+  AdminProvincePageDtoOutput,
+  AdminProvincePageDtoOutputItemsInner,
+  AdminSharedStopPointDtoOutput,
+  AdminSharedStopPointInputDto,
+  AdminSharedStopPointListDtoOutput,
+  AdminSharedStopPointListDtoOutputItemsInner,
+  AdminStopPointProposalApprovalDto,
+  AdminStopPointProposalDtoOutput,
+  AdminStopPointProposalListDtoOutput,
+  AdminStopPointProposalListDtoOutputItemsInner,
+  AdminStopPointProposalListDtoOutputItemsInnerNearbyInner,
+  AdminVehicleTypeDtoOutput,
+  AdminVehicleTypeInputDto,
+  AdminVehicleTypeListDtoOutput,
+  AdminVehicleTypeListDtoOutputItemsInner,
+  AdminVehicleTypeUpdateDto,
+  AdminWardDtoOutput,
+  AdminWardInputDto,
+  AdminWardPageDtoOutput,
+  AdminWardPageDtoOutputItemsInner,
   AmenityListResponseDtoOutput,
   ApplicationAccessLinkInputDto,
   ApplicationCreateInputDto,
@@ -245,6 +308,7 @@ part 'serializers.g.dart';
   StopPointProposalListResponseDtoOutput,
   StopPointProposalListResponseDtoOutputItemsInner,
   StopPointProposalResponseDtoOutput,
+  StopPointReasonInputDto,
   TripInputDto,
   TripListResponseDtoOutput,
   TripListResponseDtoOutputItemsInner,
@@ -270,6 +334,14 @@ part 'serializers.g.dart';
   WardListResponseDtoOutputItemsInner,
 ])
 Serializers serializers = (_$serializers.toBuilder()
+      ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(AdminOperatorStopPointListDtoOutputItemsInner)]),
+        () => ListBuilder<AdminOperatorStopPointListDtoOutputItemsInner>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(AdminWardPageDtoOutputItemsInner)]),
+        () => ListBuilder<AdminWardPageDtoOutputItemsInner>(),
+      )
       ..addBuilderFactory(
         const FullType(BuiltList, [FullType(RouteInputDtoStopsInner)]),
         () => ListBuilder<RouteInputDtoStopsInner>(),
@@ -307,6 +379,14 @@ Serializers serializers = (_$serializers.toBuilder()
         () => ListBuilder<SeatMapListResponseDtoOutputItemsInner>(),
       )
       ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(AdminSharedStopPointListDtoOutputItemsInner)]),
+        () => ListBuilder<AdminSharedStopPointListDtoOutputItemsInner>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(AdminAmenityListDtoOutputItemsInner)]),
+        () => ListBuilder<AdminAmenityListDtoOutputItemsInner>(),
+      )
+      ..addBuilderFactory(
         const FullType(BuiltMap, [FullType(String), FullType(int)]),
         () => MapBuilder<String, int>(),
       )
@@ -317,6 +397,10 @@ Serializers serializers = (_$serializers.toBuilder()
       ..addBuilderFactory(
         const FullType(BuiltList, [FullType(RouteResponseDtoOutputStopsInner)]),
         () => ListBuilder<RouteResponseDtoOutputStopsInner>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(AdminStopPointProposalListDtoOutputItemsInnerNearbyInner)]),
+        () => ListBuilder<AdminStopPointProposalListDtoOutputItemsInnerNearbyInner>(),
       )
       ..addBuilderFactory(
         const FullType(BuiltList, [FullType(ProvinceListResponseDtoOutputItemsInner)]),
@@ -333,6 +417,10 @@ Serializers serializers = (_$serializers.toBuilder()
       ..addBuilderFactory(
         const FullType(BuiltList, [FullType(ApplicationUpdateInputDtoDocumentsInner)]),
         () => ListBuilder<ApplicationUpdateInputDtoDocumentsInner>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(AdminVehicleTypeListDtoOutputItemsInner)]),
+        () => ListBuilder<AdminVehicleTypeListDtoOutputItemsInner>(),
       )
       ..addBuilderFactory(
         const FullType(BuiltList, [FullType(SeatMapResponseDtoOutputSeatsInner)]),
@@ -369,6 +457,10 @@ Serializers serializers = (_$serializers.toBuilder()
       ..addBuilderFactory(
         const FullType(BuiltList, [FullType(AdminApplicationDetailDtoOutputDuplicatesContactEmailInner)]),
         () => ListBuilder<AdminApplicationDetailDtoOutputDuplicatesContactEmailInner>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(AdminProvincePageDtoOutputItemsInner)]),
+        () => ListBuilder<AdminProvincePageDtoOutputItemsInner>(),
       )
       ..addBuilderFactory(
         const FullType(BuiltList, [FullType(AdminApplicationListResponseDtoOutputItemsInner)]),
@@ -409,6 +501,10 @@ Serializers serializers = (_$serializers.toBuilder()
       ..addBuilderFactory(
         const FullType(BuiltList, [FullType(String)]),
         () => ListBuilder<String>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(AdminStopPointProposalListDtoOutputItemsInner)]),
+        () => ListBuilder<AdminStopPointProposalListDtoOutputItemsInner>(),
       )
       ..addBuilderFactory(
         const FullType(BuiltList, [FullType(FareRevisionListResponseDtoOutputItemsInner)]),

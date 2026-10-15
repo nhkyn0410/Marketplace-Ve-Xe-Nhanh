@@ -9,6 +9,12 @@ part of 'serializers.dart';
 Serializers _$serializers = (Serializers().toBuilder()
       ..add(AccountMutationResponseDtoOutput.serializer)
       ..add(AccountMutationResponseDtoOutputStatusEnum.serializer)
+      ..add(AdminAmenityDtoOutput.serializer)
+      ..add(AdminAmenityDtoOutputStatusEnum.serializer)
+      ..add(AdminAmenityInputDto.serializer)
+      ..add(AdminAmenityListDtoOutput.serializer)
+      ..add(AdminAmenityListDtoOutputItemsInner.serializer)
+      ..add(AdminAmenityListDtoOutputItemsInnerStatusEnum.serializer)
       ..add(AdminApplicationDetailDtoOutput.serializer)
       ..add(AdminApplicationDetailDtoOutputDocumentsInner.serializer)
       ..add(AdminApplicationDetailDtoOutputDocumentsInnerTypeEnum.serializer)
@@ -27,6 +33,60 @@ Serializers _$serializers = (Serializers().toBuilder()
           .serializer)
       ..add(
           AdminApplicationListResponseDtoOutputItemsInnerStatusEnum.serializer)
+      ..add(AdminCatalogDeactivateDto.serializer)
+      ..add(AdminCatalogRenameDto.serializer)
+      ..add(AdminOperatorStopPointDtoOutput.serializer)
+      ..add(AdminOperatorStopPointDtoOutputStatusEnum.serializer)
+      ..add(AdminOperatorStopPointDtoOutputTypeEnum.serializer)
+      ..add(AdminOperatorStopPointListDtoOutput.serializer)
+      ..add(AdminOperatorStopPointListDtoOutputItemsInner.serializer)
+      ..add(AdminOperatorStopPointListDtoOutputItemsInnerStatusEnum.serializer)
+      ..add(AdminOperatorStopPointListDtoOutputItemsInnerTypeEnum.serializer)
+      ..add(AdminProvinceDtoOutput.serializer)
+      ..add(AdminProvinceDtoOutputStatusEnum.serializer)
+      ..add(AdminProvinceInputDto.serializer)
+      ..add(AdminProvincePageDtoOutput.serializer)
+      ..add(AdminProvincePageDtoOutputItemsInner.serializer)
+      ..add(AdminProvincePageDtoOutputItemsInnerStatusEnum.serializer)
+      ..add(AdminSharedStopPointDtoOutput.serializer)
+      ..add(AdminSharedStopPointDtoOutputStatusEnum.serializer)
+      ..add(AdminSharedStopPointDtoOutputTypeEnum.serializer)
+      ..add(AdminSharedStopPointInputDto.serializer)
+      ..add(AdminSharedStopPointInputDtoStatusEnum.serializer)
+      ..add(AdminSharedStopPointInputDtoTypeEnum.serializer)
+      ..add(AdminSharedStopPointListDtoOutput.serializer)
+      ..add(AdminSharedStopPointListDtoOutputItemsInner.serializer)
+      ..add(AdminSharedStopPointListDtoOutputItemsInnerStatusEnum.serializer)
+      ..add(AdminSharedStopPointListDtoOutputItemsInnerTypeEnum.serializer)
+      ..add(AdminStopPointProposalApprovalDto.serializer)
+      ..add(AdminStopPointProposalApprovalDtoTypeEnum.serializer)
+      ..add(AdminStopPointProposalDtoOutput.serializer)
+      ..add(AdminStopPointProposalDtoOutputStatusEnum.serializer)
+      ..add(AdminStopPointProposalDtoOutputTypeEnum.serializer)
+      ..add(AdminStopPointProposalListDtoOutput.serializer)
+      ..add(AdminStopPointProposalListDtoOutputItemsInner.serializer)
+      ..add(AdminStopPointProposalListDtoOutputItemsInnerNearbyInner.serializer)
+      ..add(AdminStopPointProposalListDtoOutputItemsInnerStatusEnum.serializer)
+      ..add(AdminStopPointProposalListDtoOutputItemsInnerTypeEnum.serializer)
+      ..add(AdminVehicleTypeDtoOutput.serializer)
+      ..add(AdminVehicleTypeDtoOutputClass_Enum.serializer)
+      ..add(AdminVehicleTypeDtoOutputFormEnum.serializer)
+      ..add(AdminVehicleTypeDtoOutputStatusEnum.serializer)
+      ..add(AdminVehicleTypeInputDto.serializer)
+      ..add(AdminVehicleTypeInputDtoClass_Enum.serializer)
+      ..add(AdminVehicleTypeInputDtoFormEnum.serializer)
+      ..add(AdminVehicleTypeListDtoOutput.serializer)
+      ..add(AdminVehicleTypeListDtoOutputItemsInner.serializer)
+      ..add(AdminVehicleTypeListDtoOutputItemsInnerClass_Enum.serializer)
+      ..add(AdminVehicleTypeListDtoOutputItemsInnerFormEnum.serializer)
+      ..add(AdminVehicleTypeListDtoOutputItemsInnerStatusEnum.serializer)
+      ..add(AdminVehicleTypeUpdateDto.serializer)
+      ..add(AdminWardDtoOutput.serializer)
+      ..add(AdminWardDtoOutputStatusEnum.serializer)
+      ..add(AdminWardInputDto.serializer)
+      ..add(AdminWardPageDtoOutput.serializer)
+      ..add(AdminWardPageDtoOutputItemsInner.serializer)
+      ..add(AdminWardPageDtoOutputItemsInnerStatusEnum.serializer)
       ..add(AmenityListResponseDtoOutput.serializer)
       ..add(ApplicationAccessLinkInputDto.serializer)
       ..add(ApplicationCreateInputDto.serializer)
@@ -198,6 +258,7 @@ Serializers _$serializers = (Serializers().toBuilder()
       ..add(StopPointProposalResponseDtoOutput.serializer)
       ..add(StopPointProposalResponseDtoOutputStatusEnum.serializer)
       ..add(StopPointProposalResponseDtoOutputTypeEnum.serializer)
+      ..add(StopPointReasonInputDto.serializer)
       ..add(TripInputDto.serializer)
       ..add(TripListResponseDtoOutput.serializer)
       ..add(TripListResponseDtoOutputItemsInner.serializer)
@@ -235,6 +296,10 @@ Serializers _$serializers = (Serializers().toBuilder()
       ..add(VehicleTypeListResponseDtoOutputItemsInnerFormEnum.serializer)
       ..add(WardListResponseDtoOutput.serializer)
       ..add(WardListResponseDtoOutputItemsInner.serializer)
+      ..addBuilderFactory(
+          const FullType(BuiltList,
+              const [const FullType(AdminAmenityListDtoOutputItemsInner)]),
+          () => ListBuilder<AdminAmenityListDtoOutputItemsInner>())
       ..addBuilderFactory(
           const FullType(BuiltList, const [
             const FullType(AdminApplicationDetailDtoOutputDocumentsInner)
@@ -278,6 +343,47 @@ Serializers _$serializers = (Serializers().toBuilder()
           ]),
           () => ListBuilder<
               AdminApplicationListResponseDtoOutputItemsInnerDuplicatesEnum>())
+      ..addBuilderFactory(
+          const FullType(BuiltList, const [
+            const FullType(AdminOperatorStopPointListDtoOutputItemsInner)
+          ]),
+          () => ListBuilder<AdminOperatorStopPointListDtoOutputItemsInner>())
+      ..addBuilderFactory(
+          const FullType(BuiltList,
+              const [const FullType(AdminProvincePageDtoOutputItemsInner)]),
+          () => ListBuilder<AdminProvincePageDtoOutputItemsInner>())
+      ..addBuilderFactory(
+          const FullType(BuiltList, const [
+            const FullType(AdminSharedStopPointListDtoOutputItemsInner)
+          ]),
+          () => ListBuilder<AdminSharedStopPointListDtoOutputItemsInner>())
+      ..addBuilderFactory(
+          const FullType(BuiltList, const [
+            const FullType(AdminStopPointProposalListDtoOutputItemsInner)
+          ]),
+          () => ListBuilder<AdminStopPointProposalListDtoOutputItemsInner>())
+      ..addBuilderFactory(
+          const FullType(BuiltList, const [
+            const FullType(
+                AdminStopPointProposalListDtoOutputItemsInnerNearbyInner)
+          ]),
+          () => ListBuilder<
+              AdminStopPointProposalListDtoOutputItemsInnerNearbyInner>())
+      ..addBuilderFactory(
+          const FullType(BuiltList, const [
+            const FullType(
+                AdminStopPointProposalListDtoOutputItemsInnerNearbyInner)
+          ]),
+          () => ListBuilder<
+              AdminStopPointProposalListDtoOutputItemsInnerNearbyInner>())
+      ..addBuilderFactory(
+          const FullType(BuiltList,
+              const [const FullType(AdminVehicleTypeListDtoOutputItemsInner)]),
+          () => ListBuilder<AdminVehicleTypeListDtoOutputItemsInner>())
+      ..addBuilderFactory(
+          const FullType(BuiltList,
+              const [const FullType(AdminWardPageDtoOutputItemsInner)]),
+          () => ListBuilder<AdminWardPageDtoOutputItemsInner>())
       ..addBuilderFactory(
           const FullType(BuiltList, const [
             const FullType(ApplicationResponseDtoOutputDocumentsInner)

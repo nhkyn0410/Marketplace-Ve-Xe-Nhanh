@@ -79,4 +79,5 @@
 ## Việc tiếp theo
 
 1. Khanh review A1 + A2, chốt G1–G12; commit / PR theo thứ tự `TASK-OPR-001` → `TASK-IAM-006-admin`.
-2. A3 — màn Điểm dừng của Admin (`TASK-ADM-004`, hộp thoại dùng lại bản đồ của `TASK-TRN-014`).
+2. A3 — màn Điểm dừng của Admin (`TASK-ADM-004`, hộp thoại dùng lại bản đồ của `TASK-TRN-014`): ✅ code xong, chờ duyệt — `ADM-004-todo.md`.
+3. A4 — Danh mục (phần danh mục của task này): ✅ code xong 16/10/2026, chờ duyệt — `ADM-001-catalog-todo.md`.

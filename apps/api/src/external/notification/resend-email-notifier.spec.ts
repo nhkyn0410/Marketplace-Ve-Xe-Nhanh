@@ -83,3 +83,35 @@ describe("ResendEmailNotifier operator application decision (NTF-15)", () => {
     expect(rejected!.html).not.toContain("href=");
   });
 });
+
+describe("ResendEmailNotifier stop point decision (TASK-ADM-004)", () => {
+  afterEach(() => vi.unstubAllGlobals());
+
+  it("bốn quyết định có tiêu đề riêng; lý do / tên điểm do người dùng nhập được escape", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({ ok: true, status: 200 });
+    vi.stubGlobal("fetch", fetchMock);
+    const notifier = new ResendEmailNotifier("api-key", "noreply@example.com");
+    const base = { email: "owner@example.com", operatorName: "Sao <Việt>", stopPointName: "Điểm <A>" };
+
+    await notifier.sendStopPointDecision({ ...base, decision: "PROPOSAL_APPROVED", sharedName: "Điểm đón <B>" });
+    await notifier.sendStopPointDecision({ ...base, decision: "PROPOSAL_REJECTED", reason: "Thiếu <QĐ>" });
+    await notifier.sendStopPointDecision({ ...base, decision: "SUSPENDED", reason: "Sai tọa độ" });
+    await notifier.sendStopPointDecision({ ...base, decision: "UNSUSPENDED" });
+
+    const [approved, rejected, suspended, unsuspended] = fetchMock.mock.calls.map(
+      (call) => JSON.parse(call[1].body as string) as { subject: string; html: string },
+    );
+    expect(approved!.subject).toContain("đã được duyệt");
+    expect(approved!.html).toContain("Điểm đón &lt;B&gt;");
+    expect(rejected!.subject).toContain("chưa được duyệt");
+    expect(rejected!.html).toContain("Thiếu &lt;QĐ&gt;");
+    expect(suspended!.subject).toContain("bị khóa");
+    expect(suspended!.html).toContain("Sai tọa độ");
+    expect(unsuspended!.subject).toContain("mở khóa");
+    // Tiêu đề là chữ thường (không phải HTML) nên giữ nguyên; phần HTML phải escape.
+    for (const body of [approved, rejected, suspended, unsuspended]) {
+      expect(body!.html).toContain("Điểm &lt;A&gt;");
+      expect(body!.html).not.toContain("<A>");
+    }
+  });
+});

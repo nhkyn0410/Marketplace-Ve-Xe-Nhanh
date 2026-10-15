@@ -186,6 +186,7 @@ describe.skipIf(!url && !requireDb)("Trip — Postgres thật, role app", () => 
           id,
           name: `Bến ${index + 1} ${tag}`,
           type: "BUS_STATION" as const,
+          legalBasis: "QĐ công bố (test)",
           address: `Địa chỉ ${index + 1}`,
           provinceId: province,
           wardId: ward,

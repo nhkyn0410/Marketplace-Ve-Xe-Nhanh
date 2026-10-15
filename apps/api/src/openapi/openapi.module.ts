@@ -20,10 +20,18 @@ import { EmployeeAccountService } from "../iam/user/employee-account.service";
 import { QueueHealthService } from "../queue/queue-health.service";
 import { RedisHealthService } from "../redis/redis-health.service";
 import { CatalogController } from "../catalog/catalog.controller";
+import { AdminCatalogController } from "../catalog/admin-catalog.controller";
+import { AdminCatalogService } from "../catalog/admin-catalog.service";
 import { CatalogService } from "../catalog/catalog.service";
 import { RouteController } from "../route/route.controller";
 import { RouteService } from "../route/route.service";
 import { StopPointProposalController } from "../stop-point/stop-point-proposal.controller";
+import {
+  AdminOperatorStopPointController,
+  AdminSharedStopPointController,
+  AdminStopPointProposalController,
+} from "../stop-point/admin-stop-point.controller";
+import { AdminStopPointService } from "../stop-point/admin-stop-point.service";
 import { StopPointProposalService } from "../stop-point/stop-point-proposal.service";
 import { StopPointController } from "../stop-point/stop-point.controller";
 import { StopPointService } from "../stop-point/stop-point.service";
@@ -51,11 +59,15 @@ import { VehicleService } from "../vehicle/vehicle.service";
     SessionController,
     EmployeeAccountController,
     CatalogController,
+    AdminCatalogController,
     VehicleController,
     VehicleImageController,
     SeatMapController,
     StopPointController,
     StopPointProposalController,
+    AdminSharedStopPointController,
+    AdminStopPointProposalController,
+    AdminOperatorStopPointController,
     RouteController,
     TripController,
     FareController,
@@ -67,6 +79,7 @@ import { VehicleService } from "../vehicle/vehicle.service";
     // Scan-only: chỉ cần metadata route, không cần dependency thật (không Postgres/Redis/Mongo).
     { provide: AuthService, useValue: {} },
     { provide: CatalogService, useValue: {} },
+    { provide: AdminCatalogService, useValue: {} },
     { provide: VehicleService, useValue: {} },
     { provide: VehicleImageService, useValue: {} },
     { provide: OperatorApplicationService, useValue: {} },
@@ -76,6 +89,7 @@ import { VehicleService } from "../vehicle/vehicle.service";
     { provide: SeatMapService, useValue: {} },
     { provide: StopPointService, useValue: {} },
     { provide: StopPointProposalService, useValue: {} },
+    { provide: AdminStopPointService, useValue: {} },
     { provide: RouteService, useValue: {} },
     { provide: TripService, useValue: {} },
     { provide: FareService, useValue: {} },

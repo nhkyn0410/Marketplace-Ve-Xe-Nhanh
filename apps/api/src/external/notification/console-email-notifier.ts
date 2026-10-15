@@ -5,6 +5,7 @@ import {
   type OperatorApplicationDecisionEmailMessage,
   type OperatorApplicationLinkEmailMessage,
   type OtpEmailMessage,
+  type StopPointDecisionEmailMessage,
   type TemporaryPasswordEmailMessage,
 } from "./email-notifier";
 
@@ -59,5 +60,17 @@ export class ConsoleEmailNotifier implements EmailNotifier {
       email: maskEmail(message.email),
     });
     throw new Error("Operator application decision delivery unavailable: configure RESEND_API_KEY.");
+  }
+
+  async sendStopPointDecision(message: StopPointDecisionEmailMessage): Promise<void> {
+    if (process.env.NODE_ENV === "production") {
+      throw new Error("ConsoleEmailNotifier is not available in production.");
+    }
+    this.logger.warn({
+      event: "stop_point.decision.delivery_unavailable",
+      decision: message.decision,
+      email: maskEmail(message.email),
+    });
+    throw new Error("Stop point decision delivery unavailable: configure RESEND_API_KEY.");
   }
 }

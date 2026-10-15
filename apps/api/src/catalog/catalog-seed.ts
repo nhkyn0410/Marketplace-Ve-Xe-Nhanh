@@ -174,6 +174,7 @@ export const SAMPLE_STOP_POINTS: SampleStopPoint[] = [
 ];
 
 const SAMPLE_DESCRIPTION = "Dữ liệu mẫu cho môi trường dev — toạ độ gần đúng.";
+const SAMPLE_LEGAL_BASIS = "Căn cứ giả lập cho dữ liệu mẫu dev — không phải văn bản thật.";
 
 /**
  * Ghép dữ liệu seed. Bến xe mẫu phải xin TƯỜNG MINH (`withSamples`) — mặc định không có, để lỡ trỏ
@@ -392,6 +393,8 @@ export async function seedCatalog(
         latitude: sample.latitude,
         longitude: sample.longitude,
         description: SAMPLE_DESCRIPTION,
+        // Dữ liệu mẫu dev: căn cứ giả lập (DB §7) — bến xe / điểm dừng đón trả bắt buộc có căn cứ.
+        legalBasis: SAMPLE_LEGAL_BASIS,
       },
     });
     stopPoints++;
