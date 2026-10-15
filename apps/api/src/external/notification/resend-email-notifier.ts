@@ -2,6 +2,7 @@ import { Logger } from "@nestjs/common";
 import {
   type EmailNotifier,
   maskEmail,
+  type OperatorApplicationDecisionEmailMessage,
   type OperatorApplicationLinkEmailMessage,
   type OtpEmailMessage,
   type TemporaryPasswordEmailMessage,
@@ -52,6 +53,34 @@ export class ResendEmailNotifier implements EmailNotifier {
         `<p>Link chỉ mở đúng hồ sơ này và hết hạn lúc ${escapeHtml(message.expiresAt.toISOString())}. ` +
         "Không chuyển tiếp email này. Cần link mới, hãy dùng mục “Gửi lại link” với email này và mã hồ sơ.</p>",
       "operator application link",
+    );
+  }
+
+  async sendOperatorApplicationDecision(message: OperatorApplicationDecisionEmailMessage): Promise<void> {
+    const intro =
+      `<p>Hồ sơ đăng ký của nhà xe <strong>${escapeHtml(message.operatorName)}</strong> ` +
+      `(mã <strong>${escapeHtml(message.applicationCode)}</strong>)`;
+    const reason = `<blockquote>${escapeHtml(message.reason)}</blockquote>`;
+    if (message.decision === "NEEDS_INFO") {
+      await this.send(
+        message.email,
+        `Hồ sơ ${message.applicationCode} cần bổ sung — Vé Xe Nhanh`,
+        `${intro} cần bổ sung trước khi được duyệt:</p>${reason}` +
+          (message.link
+            ? `<p><a href="${escapeHtml(message.link)}">Mở hồ sơ để bổ sung và gửi duyệt lại</a></p>` +
+              `<p>Link chỉ mở đúng hồ sơ này và hết hạn lúc ${escapeHtml(message.expiresAt?.toISOString() ?? "")}. ` +
+              "Link cũ không còn dùng được. Không chuyển tiếp email này.</p>"
+            : ""),
+        "operator application needs info",
+      );
+      return;
+    }
+    await this.send(
+      message.email,
+      `Hồ sơ ${message.applicationCode} không được duyệt — Vé Xe Nhanh`,
+      `${intro} không được duyệt. Lý do:</p>${reason}` +
+        "<p>Link hồ sơ không còn dùng được. Muốn tham gia lại, hãy nộp hồ sơ mới.</p>",
+      "operator application rejected",
     );
   }
 

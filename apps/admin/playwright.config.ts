@@ -1,0 +1,25 @@
+import { defineConfig } from "@playwright/test";
+
+// E2E cổng Admin (TASK-IAM-006 phần web Admin). API phải chạy sẵn ở http://localhost:3000 với DB đã migrate, giống E2E
+// của Operator OS (doc/task-propreties/IAM-006-guide.md §3); Playwright tự bật Next dev ở 3003 nếu chưa chạy.
+// Local có Chrome: đặt PLAYWRIGHT_CHANNEL=chrome để khỏi tải Chromium của Playwright. API của E2E chạy với
+// RESEND_API_KEY để trống để không gửi email thật.
+export default defineConfig({
+  testDir: "./e2e",
+  testMatch: /.*\.e2e\.ts$/,
+  globalSetup: "./e2e/global-setup.ts",
+  timeout: 60_000,
+  workers: 1,
+  reporter: [["list"]],
+  use: {
+    baseURL: "http://localhost:3003",
+    channel: process.env.PLAYWRIGHT_CHANNEL || undefined,
+    trace: "retain-on-failure"
+  },
+  webServer: {
+    command: "pnpm dev",
+    url: "http://localhost:3003",
+    reuseExistingServer: true,
+    timeout: 180_000
+  }
+});

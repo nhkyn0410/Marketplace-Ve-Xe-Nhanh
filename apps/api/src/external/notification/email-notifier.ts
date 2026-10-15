@@ -30,11 +30,25 @@ export type OperatorApplicationLinkEmailMessage = {
   expiresAt: Date;
 };
 
+/** Kết quả duyệt hồ sơ đăng ký nhà xe gửi người nộp (NTF-15, UC-10 A4 / A5). Duyệt dùng email mật khẩu tạm. */
+export type OperatorApplicationDecisionEmailMessage = {
+  email: string;
+  applicationCode: string;
+  operatorName: string;
+  decision: "NEEDS_INFO" | "REJECTED";
+  /** Nội dung cần bổ sung / lý do từ chối do Admin nhập. */
+  reason: string;
+  /** Chỉ khi `NEEDS_INFO`: link mới để bổ sung hồ sơ — chỉ tồn tại trong memory, caller không được log/lưu. */
+  link?: string;
+  expiresAt?: Date;
+};
+
 export interface EmailNotifier {
   sendOtp(message: OtpEmailMessage): Promise<void>;
   /** Optional trong port để adapter/mocks OTP legacy không giả vờ hỗ trợ enrollment. */
   sendTemporaryPassword?(message: TemporaryPasswordEmailMessage): Promise<void>;
   sendOperatorApplicationLink?(message: OperatorApplicationLinkEmailMessage): Promise<void>;
+  sendOperatorApplicationDecision?(message: OperatorApplicationDecisionEmailMessage): Promise<void>;
 }
 
 /** Mask email cho log/audit — không lộ địa chỉ đầy đủ (Security §9). */

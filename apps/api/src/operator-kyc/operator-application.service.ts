@@ -387,7 +387,7 @@ export class OperatorApplicationService {
   }
 
   private linkExpiry(now: Date): Date {
-    return new Date(now.getTime() + this.config.OPERATOR_APPLICATION_LINK_TTL_HOURS * 3_600_000);
+    return applicationLinkExpiry(this.config, now);
   }
 
   /** Mã hồ sơ ngẫu nhiên; trùng (rất hiếm) thì sinh lại. */
@@ -408,9 +408,7 @@ export class OperatorApplicationService {
    * phản hồi. Gửi lỗi thì người nộp dùng "Gửi lại link".
    */
   private sendLink(email: string, applicationCode: string, operatorName: string, token: string, expiresAt: Date): void {
-    const origin = (this.config.OPERATOR_WEB_ORIGINS ?? [LOCAL_OPERATOR_WEB_ORIGIN])[0]!;
-    // Token đặt sau `#`: trình duyệt không gửi phần này lên máy chủ web, không lọt vào log / Referer.
-    const link = `${origin}/register/application#token=${token}`;
+    const link = applicationLink(this.config, token);
     const send = this.email.sendOperatorApplicationLink?.({ email, applicationCode, operatorName, link, expiresAt });
     void (send ?? Promise.reject(new Error("Email adapter does not support application links."))).catch(
       (error: unknown) => {
@@ -495,6 +493,18 @@ export class OperatorApplicationService {
       throw error instanceof AuditWriteError ? applicationServiceUnavailable() : error;
     });
   }
+}
+
+/** Hạn của link bảo mật mới cấp. */
+export function applicationLinkExpiry(config: AppConfig, now: Date): Date {
+  return new Date(now.getTime() + config.OPERATOR_APPLICATION_LINK_TTL_HOURS * 3_600_000);
+}
+
+/** Link mở hồ sơ ở Operator OS. */
+export function applicationLink(config: AppConfig, token: string): string {
+  const origin = (config.OPERATOR_WEB_ORIGINS ?? [LOCAL_OPERATOR_WEB_ORIGIN])[0]!;
+  // Token đặt sau `#`: trình duyệt không gửi phần này lên máy chủ web, không lọt vào log / Referer.
+  return `${origin}/register/application#token=${token}`;
 }
 
 function dbOf(authz: Authorization): DbScope {

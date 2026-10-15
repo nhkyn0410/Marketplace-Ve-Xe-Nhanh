@@ -31,6 +31,8 @@ type RequestOptions = {
   body?: unknown;
   /** `false` cho login/MFA/đổi mật khẩu: 401 ở đó là sai thông tin, không phải hết phiên. */
   retryOnUnauthorized?: boolean;
+  /** Header riêng của thao tác, vd `Idempotency-Key` (05 API §8). */
+  headers?: Record<string, string>;
 };
 
 // 401 KHÔNG phải do phiên hết hạn: sai mật khẩu / mã khi xác nhận lại danh tính, hoặc thao tác nhạy cảm chưa có
@@ -142,7 +144,10 @@ async function send(path: string, options: RequestOptions): Promise<Response> {
   const method = options.method ?? "GET";
   // Chỉ endpoint /auth/* cần chọn transport; route nghiệp vụ đọc cookie sẵn — bớt một header là bớt
   // preflight CORS cho mọi GET danh sách.
-  const headers: Record<string, string> = path.startsWith("/auth/") ? { "X-Auth-Transport": "cookie" } : {};
+  const headers: Record<string, string> = {
+    ...options.headers,
+    ...(path.startsWith("/auth/") ? { "X-Auth-Transport": "cookie" } : {})
+  };
   if (options.body !== undefined) {
     headers["Content-Type"] = "application/json";
   }

@@ -15,6 +15,14 @@ import 'package:api_client_dart/src/date_serializer.dart';
 import 'package:api_client_dart/src/model/date.dart';
 
 import 'package:api_client_dart/src/model/account_mutation_response_dto_output.dart';
+import 'package:api_client_dart/src/model/admin_application_detail_dto_output.dart';
+import 'package:api_client_dart/src/model/admin_application_detail_dto_output_documents_inner.dart';
+import 'package:api_client_dart/src/model/admin_application_detail_dto_output_duplicates.dart';
+import 'package:api_client_dart/src/model/admin_application_detail_dto_output_duplicates_contact_email_inner.dart';
+import 'package:api_client_dart/src/model/admin_application_detail_dto_output_history_inner.dart';
+import 'package:api_client_dart/src/model/admin_application_detail_dto_output_operator.dart';
+import 'package:api_client_dart/src/model/admin_application_list_response_dto_output.dart';
+import 'package:api_client_dart/src/model/admin_application_list_response_dto_output_items_inner.dart';
 import 'package:api_client_dart/src/model/amenity_list_response_dto_output.dart';
 import 'package:api_client_dart/src/model/application_access_link_input_dto.dart';
 import 'package:api_client_dart/src/model/application_create_input_dto.dart';
@@ -22,6 +30,8 @@ import 'package:api_client_dart/src/model/application_response_dto_output.dart';
 import 'package:api_client_dart/src/model/application_response_dto_output_documents_inner.dart';
 import 'package:api_client_dart/src/model/application_update_input_dto.dart';
 import 'package:api_client_dart/src/model/application_update_input_dto_documents_inner.dart';
+import 'package:api_client_dart/src/model/approval_input_dto.dart';
+import 'package:api_client_dart/src/model/approval_response_dto_output.dart';
 import 'package:api_client_dart/src/model/auth_me_response_dto_output.dart';
 import 'package:api_client_dart/src/model/auth_token_response_dto_output.dart';
 import 'package:api_client_dart/src/model/credential_login_dto.dart';
@@ -29,6 +39,8 @@ import 'package:api_client_dart/src/model/credential_login_response_dto_output.d
 import 'package:api_client_dart/src/model/credential_token_response.dart';
 import 'package:api_client_dart/src/model/credential_web_session_response.dart';
 import 'package:api_client_dart/src/model/csrf_token_response_dto_output.dart';
+import 'package:api_client_dart/src/model/decision_input_dto.dart';
+import 'package:api_client_dart/src/model/decision_response_dto_output.dart';
 import 'package:api_client_dart/src/model/document_download_response_dto_output.dart';
 import 'package:api_client_dart/src/model/document_upload_input_dto.dart';
 import 'package:api_client_dart/src/model/document_upload_response_dto_output.dart';
@@ -132,6 +144,14 @@ part 'serializers.g.dart';
 
 @SerializersFor([
   AccountMutationResponseDtoOutput,
+  AdminApplicationDetailDtoOutput,
+  AdminApplicationDetailDtoOutputDocumentsInner,
+  AdminApplicationDetailDtoOutputDuplicates,
+  AdminApplicationDetailDtoOutputDuplicatesContactEmailInner,
+  AdminApplicationDetailDtoOutputHistoryInner,
+  AdminApplicationDetailDtoOutputOperator,
+  AdminApplicationListResponseDtoOutput,
+  AdminApplicationListResponseDtoOutputItemsInner,
   AmenityListResponseDtoOutput,
   ApplicationAccessLinkInputDto,
   ApplicationCreateInputDto,
@@ -139,6 +159,8 @@ part 'serializers.g.dart';
   ApplicationResponseDtoOutputDocumentsInner,
   ApplicationUpdateInputDto,
   ApplicationUpdateInputDtoDocumentsInner,
+  ApprovalInputDto,
+  ApprovalResponseDtoOutput,
   AuthMeResponseDtoOutput,
   AuthTokenResponseDtoOutput,
   CredentialLoginDto,
@@ -146,6 +168,8 @@ part 'serializers.g.dart';
   CredentialTokenResponse,
   CredentialWebSessionResponse,
   CsrfTokenResponseDtoOutput,
+  DecisionInputDto,
+  DecisionResponseDtoOutput,
   DocumentDownloadResponseDtoOutput,
   DocumentUploadInputDto,
   DocumentUploadResponseDtoOutput,
@@ -271,6 +295,10 @@ Serializers serializers = (_$serializers.toBuilder()
         () => ListBuilder<TripListResponseDtoOutputItemsInner>(),
       )
       ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(AdminApplicationDetailDtoOutputHistoryInner)]),
+        () => ListBuilder<AdminApplicationDetailDtoOutputHistoryInner>(),
+      )
+      ..addBuilderFactory(
         const FullType(BuiltList, [FullType(StopPointListResponseDtoOutputItemsInner)]),
         () => ListBuilder<StopPointListResponseDtoOutputItemsInner>(),
       )
@@ -327,12 +355,24 @@ Serializers serializers = (_$serializers.toBuilder()
         () => ListBuilder<ApplicationResponseDtoOutputDocumentsInner>(),
       )
       ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(AdminApplicationDetailDtoOutputDocumentsInner)]),
+        () => ListBuilder<AdminApplicationDetailDtoOutputDocumentsInner>(),
+      )
+      ..addBuilderFactory(
         const FullType(BuiltList, [FullType(SeatMapResponseDtoOutputLayoutDecksInner)]),
         () => ListBuilder<SeatMapResponseDtoOutputLayoutDecksInner>(),
       )
       ..addBuilderFactory(
         const FullType(BuiltList, [FullType(FareResponseDtoOutputRulesInner)]),
         () => ListBuilder<FareResponseDtoOutputRulesInner>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(AdminApplicationDetailDtoOutputDuplicatesContactEmailInner)]),
+        () => ListBuilder<AdminApplicationDetailDtoOutputDuplicatesContactEmailInner>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(AdminApplicationListResponseDtoOutputItemsInner)]),
+        () => ListBuilder<AdminApplicationListResponseDtoOutputItemsInner>(),
       )
       ..addBuilderFactory(
         const FullType(BuiltList, [FullType(TripResponseDtoOutputSeatsInner)]),

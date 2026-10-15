@@ -13,7 +13,7 @@
 | Người viết    | Nguyễn Hồng Khanh, AI Agent |
 | Người duyệt   | Nguyễn Hồng Khanh           |
 | Ngày tạo      | 11/05/2026                  |
-| Ngày cập nhật | 14/10/2026                  |
+| Ngày cập nhật | 15/10/2026                  |
 
 ### 1.2. Lịch sử thay đổi
 
@@ -47,6 +47,7 @@
 | v0.26     | 14/10/2026 | AI Agent | **Màn Nhân viên và màn Tài khoản của nhà xe (phần giao diện của `TASK-IAM-005`):** §7 — mô tả hai màn đã làm theo Figma `1666:25163` … `1666:25910` và `1668:28980`: bảng nhân viên, thêm / sửa / khóa / mở khóa / cấp lại mật khẩu tạm, bước xác nhận lại danh tính, bảng phiên đăng nhập và thu hồi phiên; các điểm làm khác khung Figma. Giữ trạng thái Review. |
 | v0.27     | 14/10/2026 | AI Agent | **Khối ảnh của form xe (`TASK-TRN-009`):** §7 — mô tả khối đã làm theo Figma khung 01 / 02 / 04 / 08 và "Ảnh · Lỗi tại tệp" (`1106:5855`): ảnh lưu cùng nút "Lưu phương tiện", ảnh tải lỗi giữ ô với nút "Thử lại" và ảnh khác vẫn được lưu, đổi chỗ bằng kéo thả hoặc phím mũi tên, ảnh nén ở trình duyệt; danh sách xe có ảnh đại diện thu nhỏ. Giữ trạng thái Review. |
 | v0.28     | 14/10/2026 | AI Agent | **Trang đăng ký nhà xe (`TASK-OPR-001`):** §7 — mô tả ba trang công khai đã làm theo Figma `1669:29021` … `1669:29595` (đăng ký → kiểm tra email → hoàn thiện hồ sơ / chờ duyệt / cần bổ sung → gửi lại link) và khối "Trở thành đối tác" ở màn đăng nhập (`840:2074`). Figma 07 / 08 (được duyệt / bị từ chối qua link) không tới được vì BR-75 thu hồi link khi có kết quả — chờ Khanh. Giữ trạng thái Review. |
+| v0.29     | 15/10/2026 | AI Agent | **Cổng Admin (A1 + A2):** §9 — đăng nhập Admin dùng chung luồng web với Operator OS (màu indigo, thanh bên tối theo Figma `1661:24142`); dòng KYC Operator ghi màn hàng đợi / chi tiết / hộp thoại đã làm theo Figma ADM-02a…02d (`TASK-ADM-001`, chờ duyệt). Giữ trạng thái Review. |
 
 ---
 
@@ -683,7 +684,7 @@ Login `platform/{username}` + password + **TOTP bắt buộc** (ADR-017). Dùng 
 
 | Flow                      | Màn hình chính                                                              | Ghi chú                                                                                  |
 | ------------------------- | --------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
-| KYC Operator              | Hàng đợi hồ sơ đăng ký, chi tiết hồ sơ (doc R2 presigned + audit), modal quyết định | Duyệt (nhập slug + username Owner; báo trùng slug) / yêu cầu bổ sung / từ chối (lý do bắt buộc); TOTP + re-auth |
+| KYC Operator              | Hàng đợi hồ sơ đăng ký, chi tiết hồ sơ (doc R2 presigned + audit), modal quyết định | Duyệt (nhập slug + username Owner; báo trùng slug) / yêu cầu bổ sung / từ chối (lý do bắt buộc); TOTP + re-auth. `TASK-ADM-001` đã làm theo Figma ADM-02a…02d (chờ duyệt): hàng đợi lọc trạng thái / thời điểm gửi / cảnh báo trùng + tìm; chi tiết hai cột (doanh nghiệp, giấy tờ "Mở tệp" ở tab mới, tài khoản nhận tiền che | trùng định danh, người liên hệ, lịch sử); ô TOTP chỉ hiện khi chưa xác nhận trong 5 phút; yêu cầu bổ sung không hỏi TOTP; sau khi duyệt hiện tài khoản `slug/username` và nút gửi lại mật khẩu tạm nếu chưa gửi được. Chưa có tab "Nhà xe" |
 | Catalog/policy            | Catalog list, policy editor, effective date                                 | Thay đổi policy cần audit, không áp ngược (PolicySnapshot)                               |
 | Payment/refund            | Transaction list, detail, refund decision                                   | Re-auth/TOTP + audit                                                                     |
 | Payout confirm            | Payout batch (T+3), review, **nhập mã giao dịch ngân hàng**                 | Manual confirm tới BankAccount verified → COMPLETED (ADR-022); maker-checker khi team >1 |

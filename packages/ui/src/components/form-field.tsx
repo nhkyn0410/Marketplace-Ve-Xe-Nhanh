@@ -1,5 +1,5 @@
-import { Label } from "@vexenhanh/ui/components/label";
-import { cn } from "@vexenhanh/ui/lib/utils";
+import { cn } from "../lib/utils";
+import { Label } from "./label";
 import { useId, type ReactNode } from "react";
 
 /** Thuộc tính nối ô nhập với nhãn và dòng gợi ý / lỗi của nó. */

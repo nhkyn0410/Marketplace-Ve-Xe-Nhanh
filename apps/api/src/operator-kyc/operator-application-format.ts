@@ -26,6 +26,14 @@ export const OPEN_STATUSES = [
   OperatorApplicationStatus.NEEDS_INFO,
 ] as const;
 
+/** Hồ sơ Admin thấy ở hàng đợi duyệt: đã gửi duyệt ít nhất một lần (nháp chưa gửi không hiện). */
+export const REVIEWABLE_STATUSES = [
+  OperatorApplicationStatus.SUBMITTED,
+  OperatorApplicationStatus.NEEDS_INFO,
+  OperatorApplicationStatus.APPROVED,
+  OperatorApplicationStatus.REJECTED,
+] as const;
+
 const EXTENSIONS: Record<DocumentContentType, string> = {
   "application/pdf": "pdf",
   "image/jpeg": "jpg",

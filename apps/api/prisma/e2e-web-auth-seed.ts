@@ -65,20 +65,31 @@ async function main(): Promise<void> {
     // `null` khi catalog chưa seed (thiếu phường / loại xe) — spec Chuyến xe sẽ báo cần chạy `db:seed:catalog`.
     tripFixtures: null as { routeName: string; plateNumber: string; seatMapName: string } | null,
     employee: { username: `nv.driver-${tag}`, password: password() },
-    platform: { username: `e2e-${tag}`, password: password() }
+    platform: { username: `e2e-${tag}`, password: password() },
+    // Quản trị viên thứ hai cho E2E duyệt hồ sơ nhà xe (cổng Admin): mỗi spec tự bật TOTP một lần.
+    platformReviewer: { username: `e2e-review-${tag}`, password: password() }
   };
 
   const credentials = new CredentialService();
-  const [ownerHash, fleetOwnerHash, routeOwnerHash, staffOwnerHash, tripOwnerHash, employeeHash, platformHash] =
-    await Promise.all([
-      credentials.hash(accounts.owner.temporaryPassword),
-      credentials.hash(accounts.fleetOwner.password),
-      credentials.hash(accounts.routeOwner.password),
-      credentials.hash(accounts.staffOwner.password),
-      credentials.hash(accounts.tripOwner.password),
-      credentials.hash(accounts.employee.password),
-      credentials.hash(accounts.platform.password)
-    ]);
+  const [
+    ownerHash,
+    fleetOwnerHash,
+    routeOwnerHash,
+    staffOwnerHash,
+    tripOwnerHash,
+    employeeHash,
+    platformHash,
+    reviewerHash
+  ] = await Promise.all([
+    credentials.hash(accounts.owner.temporaryPassword),
+    credentials.hash(accounts.fleetOwner.password),
+    credentials.hash(accounts.routeOwner.password),
+    credentials.hash(accounts.staffOwner.password),
+    credentials.hash(accounts.tripOwner.password),
+    credentials.hash(accounts.employee.password),
+    credentials.hash(accounts.platform.password),
+    credentials.hash(accounts.platformReviewer.password)
+  ]);
 
   const prisma = new PrismaClient({ adapter: new PrismaPg({ connectionString }) });
   try {
@@ -142,8 +153,11 @@ async function main(): Promise<void> {
         data: { operatorId: operator.id, username: accounts.employee.username, passwordHash: employeeHash, role: "DRIVER" }
       });
     });
-    await prisma.platformAccount.create({
-      data: { username: accounts.platform.username, passwordHash: platformHash, role: "PLATFORM_ADMIN" }
+    await prisma.platformAccount.createMany({
+      data: [
+        { username: accounts.platform.username, passwordHash: platformHash, role: "PLATFORM_ADMIN" },
+        { username: accounts.platformReviewer.username, passwordHash: reviewerHash, role: "PLATFORM_ADMIN" }
+      ]
     });
   } finally {
     await prisma.$disconnect();

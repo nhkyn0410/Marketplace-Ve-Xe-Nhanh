@@ -311,12 +311,19 @@ describe.skipIf(!url && !requireDb)("Hồ sơ đăng ký nhà xe — Postgres th
             });
             await tx.operatorApplication.update({
               where: { applicationCode: closed.code },
-              data: { status, submittedAt: new Date(), operatorId: operator.id },
+              data: {
+                status,
+                submittedAt: new Date(),
+                operatorId: operator.id,
+                reviewedAt: new Date(),
+                reviewedBy: randomUUID(),
+                approvalIdempotencyKey: randomUUID(),
+              },
             });
           } else {
             await tx.operatorApplication.update({
               where: { applicationCode: closed.code },
-              data: { status, submittedAt: new Date() },
+              data: { status, submittedAt: new Date(), reviewedAt: new Date(), reviewedBy: randomUUID() },
             });
           }
         });

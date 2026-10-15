@@ -67,6 +67,7 @@ describe("AuditService", () => {
 
   it.each([
     ["operatorId rỗng", { operatorId: "" }],
+    ["thiếu operatorId", { operatorId: undefined as unknown as null }],
     ["targetId rỗng", { targetId: "" }],
     ["không liệt kê action", { actions: [] }]
   ])("listAuditEvents từ chối bộ lọc rỗng (%s) trước khi chạm Mongo", async (_case, override) => {

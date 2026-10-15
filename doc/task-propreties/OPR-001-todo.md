@@ -58,5 +58,5 @@
 
 ## Việc tiếp theo
 
-1. Admin tối thiểu: đăng nhập Admin (phần còn lại của IAM-006) + phần duyệt hồ sơ của ADM-001 (`approve` tạo Operator + Owner, `request-info`, `reject`) — khép vòng đăng ký → duyệt → Owner đăng nhập.
+1. ~~Admin tối thiểu: đăng nhập Admin (phần còn lại của IAM-006) + phần duyệt hồ sơ của ADM-001~~ — **đã làm 15/10/2026** trên nhánh `TASK-IAM-006-admin` (G10: Admin thấy hồ sơ trong hàng đợi, chưa có thông báo chủ động; G11: cảnh báo trùng email / mã số thuế / tài khoản nhận tiền) — xem `ADM-001-todo.md`.
 2. OPR-001b: màn Hồ sơ & KYC sau khi duyệt (Figma `1667:27240`, `1667:27586`).

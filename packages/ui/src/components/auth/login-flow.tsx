@@ -1,11 +1,10 @@
 "use client";
 
-import Link from "next/link";
 import QRCode from "qrcode";
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useState, type FormEvent } from "react";
 
 import { ApiError, apiRequest } from "../../lib/auth/api-client";
-import type { AuthNotice } from "../../lib/auth/auth-context";
+import { type AuthNotice, type AuthPortal, useAuthPortal } from "./auth-context";
 import {
   AUTH_MONO,
   AuthButton,
@@ -17,18 +16,17 @@ import {
   LoginButton,
   LoginCard,
   LoginField,
-  LoginHero,
   NoticeDialog,
   type NoticeTone,
   StepCard,
   StepField,
-  StepHero
+  StepHero,
+  useAuthLinkClass
 } from "./auth-ui";
 
-// Luồng đăng nhập Operator OS (06 UI §7): định danh → [đổi mật khẩu tạm → đăng nhập lại] → TOTP
-// (enrollment lần đầu) → backup code một lần → vào app. Challenge chỉ nằm trong state React (memory);
-// reload giữa chừng thì bắt đầu lại từ bước đăng nhập. Giao diện theo Figma "Giao diện nhà xe".
-const LOGIN_PATH = "/auth/operator/login";
+// Luồng đăng nhập web (06 UI §7, TASK-IAM-006) dùng chung cho Operator OS và Admin: định danh → [đổi mật khẩu tạm →
+// đăng nhập lại] → TOTP (enrollment lần đầu) → backup code một lần → vào app. Challenge chỉ nằm trong state React
+// (memory); reload giữa chừng thì bắt đầu lại từ bước đăng nhập. Endpoint, chữ và bảng màu theo cổng (`AuthPortal`).
 
 type LoginResponse =
   | { passwordChangeRequired: true; passwordChangeToken: string }
@@ -48,78 +46,80 @@ type Step =
 type Notice = { tone: NoticeTone; title: string; description: string[]; actionLabel: string };
 
 // Nội dung hộp thoại. Lỗi luôn chung chung, không lộ tài khoản có tồn tại hay không (06 UI §7).
-const NOTICES = {
-  sessionExpired: {
-    tone: "warning",
-    title: "Phiên đăng nhập đã hết hạn",
-    description: ["Vui lòng đăng nhập lại."],
-    actionLabel: "Đăng nhập lại"
-  },
-  // Lớp phòng thủ thứ hai (sai scope/role): thông báo chung về phiên, không nhắc app Nhân viên.
-  sessionInvalid: {
-    tone: "warning",
-    title: "Phiên đăng nhập không hợp lệ",
-    description: ["Vui lòng đăng nhập lại."],
-    actionLabel: "Đăng nhập lại"
-  },
-  accountLocked: {
-    tone: "danger",
-    title: "Tài khoản bị hạn chế",
-    description: ["Tài khoản đã bị khóa hoặc vô hiệu hóa.", "Vui lòng liên hệ quản trị nền tảng để được hỗ trợ."],
-    actionLabel: "Đã hiểu"
-  },
-  loginRateLimited: {
-    tone: "warning",
-    title: "Bạn đã thử quá nhiều lần",
-    description: ["Vui lòng chờ rồi thử đăng nhập lại."],
-    actionLabel: "Đã hiểu"
-  },
-  mfaRateLimited: {
-    tone: "warning",
-    title: "Bạn đã thử quá nhiều lần",
-    description: ["Vui lòng chờ rồi nhập lại mã xác thực."],
-    actionLabel: "Đã hiểu"
-  },
-  network: {
-    tone: "danger",
-    title: "Không thể kết nối",
-    description: ["Chưa thể kết nối đến máy chủ.", "Kiểm tra kết nối mạng rồi thử lại."],
-    actionLabel: "Đã hiểu"
-  },
-  rejected: {
-    tone: "danger",
-    title: "Yêu cầu bị từ chối",
-    description: ["Vui lòng tải lại trang rồi thử lại."],
-    actionLabel: "Đã hiểu"
-  },
-  // Owner không tự đặt lại mật khẩu (closed enrollment, ADR-017): chỉ hướng dẫn liên hệ.
-  passwordHelp: {
-    tone: "warning",
-    title: "Cấp lại mật khẩu",
-    description: ["Mật khẩu nhà xe do quản trị nền tảng cấp.", "Vui lòng liên hệ quản trị nền tảng để được cấp lại."],
-    actionLabel: "Đã hiểu"
-  },
-  passwordChanged: {
-    tone: "success",
-    title: "Đổi mật khẩu thành công",
-    description: ["Vui lòng đăng nhập lại bằng mật khẩu mới", "để tiếp tục vào trang quản lý."],
-    actionLabel: "Quay lại đăng nhập"
-  },
-  passwordChangeExpired: {
-    tone: "warning",
-    title: "Yêu cầu đã hết hạn",
-    description: ["Yêu cầu đổi mật khẩu không còn hiệu lực.", "Vui lòng đăng nhập lại để tiếp tục."],
-    actionLabel: "Quay lại đăng nhập"
-  },
-  mfaExpired: {
-    tone: "warning",
-    title: "Yêu cầu xác thực đã hết hạn",
-    description: ["Yêu cầu đã quá thời hạn 5 phút.", "Vui lòng đăng nhập lại để tiếp tục."],
-    actionLabel: "Quay lại đăng nhập"
-  }
-} satisfies Record<string, Notice>;
+function buildNotices(portal: AuthPortal) {
+  return {
+    sessionExpired: {
+      tone: "warning",
+      title: "Phiên đăng nhập đã hết hạn",
+      description: ["Vui lòng đăng nhập lại."],
+      actionLabel: "Đăng nhập lại"
+    },
+    // Lớp phòng thủ thứ hai (sai scope/role): thông báo chung về phiên, không nhắc app Nhân viên.
+    sessionInvalid: {
+      tone: "warning",
+      title: "Phiên đăng nhập không hợp lệ",
+      description: ["Vui lòng đăng nhập lại."],
+      actionLabel: "Đăng nhập lại"
+    },
+    accountLocked: {
+      tone: "danger",
+      title: "Tài khoản bị hạn chế",
+      description: ["Tài khoản đã bị khóa hoặc vô hiệu hóa.", `Vui lòng liên hệ ${portal.texts.contact} để được hỗ trợ.`],
+      actionLabel: "Đã hiểu"
+    },
+    loginRateLimited: {
+      tone: "warning",
+      title: "Bạn đã thử quá nhiều lần",
+      description: ["Vui lòng chờ rồi thử đăng nhập lại."],
+      actionLabel: "Đã hiểu"
+    },
+    mfaRateLimited: {
+      tone: "warning",
+      title: "Bạn đã thử quá nhiều lần",
+      description: ["Vui lòng chờ rồi nhập lại mã xác thực."],
+      actionLabel: "Đã hiểu"
+    },
+    network: {
+      tone: "danger",
+      title: "Không thể kết nối",
+      description: ["Chưa thể kết nối đến máy chủ.", "Kiểm tra kết nối mạng rồi thử lại."],
+      actionLabel: "Đã hiểu"
+    },
+    rejected: {
+      tone: "danger",
+      title: "Yêu cầu bị từ chối",
+      description: ["Vui lòng tải lại trang rồi thử lại."],
+      actionLabel: "Đã hiểu"
+    },
+    // Không tự đặt lại mật khẩu (closed enrollment, ADR-017): chỉ hướng dẫn liên hệ.
+    passwordHelp: {
+      tone: "warning",
+      title: portal.passwordHelp?.title ?? "Cấp lại mật khẩu",
+      description: portal.passwordHelp?.description ?? ["Mật khẩu do quản trị viên cấp.", "Vui lòng liên hệ quản trị viên."],
+      actionLabel: "Đã hiểu"
+    },
+    passwordChanged: {
+      tone: "success",
+      title: "Đổi mật khẩu thành công",
+      description: ["Vui lòng đăng nhập lại bằng mật khẩu mới", `để tiếp tục vào ${portal.texts.destination}.`],
+      actionLabel: "Quay lại đăng nhập"
+    },
+    passwordChangeExpired: {
+      tone: "warning",
+      title: "Yêu cầu đã hết hạn",
+      description: ["Yêu cầu đổi mật khẩu không còn hiệu lực.", "Vui lòng đăng nhập lại để tiếp tục."],
+      actionLabel: "Quay lại đăng nhập"
+    },
+    mfaExpired: {
+      tone: "warning",
+      title: "Yêu cầu xác thực đã hết hạn",
+      description: ["Yêu cầu đã quá thời hạn 5 phút.", "Vui lòng đăng nhập lại để tiếp tục."],
+      actionLabel: "Quay lại đăng nhập"
+    }
+  } satisfies Record<string, Notice>;
+}
 
-type NoticeKey = keyof typeof NOTICES;
+type NoticeKey = keyof ReturnType<typeof buildNotices>;
 
 /** Hộp thoại mà sau khi đóng phải quay về bước đăng nhập (challenge đã hết giá trị). */
 const RESTART_AFTER: ReadonlySet<NoticeKey> = new Set(["passwordChanged", "passwordChangeExpired", "mfaExpired"]);
@@ -128,6 +128,8 @@ const SESSION_NOTICE: Record<AuthNotice, NoticeKey> = { expired: "sessionExpired
 
 /** Các bước đăng nhập web; gọi `onAuthenticated` khi cookie phiên đã được cấp. */
 export function LoginFlow({ notice, onAuthenticated }: { notice?: AuthNotice; onAuthenticated: () => Promise<void> }) {
+  const portal = useAuthPortal();
+  const notices = useMemo(() => buildNotices(portal), [portal]);
   const [step, setStep] = useState<Step>({ kind: "credentials" });
   const [dialog, setDialog] = useState<NoticeKey | undefined>(notice ? SESSION_NOTICE[notice] : undefined);
 
@@ -182,7 +184,7 @@ export function LoginFlow({ notice, onAuthenticated }: { notice?: AuthNotice; on
         )}
         {step.kind === "backup-codes" && <BackupCodesStep codes={step.codes} onContinue={enter} />}
       </AuthMain>
-      {dialog && <NoticeDialog {...NOTICES[dialog]} onAction={closeDialog} />}
+      {dialog && <NoticeDialog {...notices[dialog]} onAction={closeDialog} />}
     </AuthPage>
   );
 }
@@ -190,6 +192,8 @@ export function LoginFlow({ notice, onAuthenticated }: { notice?: AuthNotice; on
 type StepNotice = (notice: NoticeKey) => void;
 
 function CredentialsStep({ onResult, onNotice }: { onResult: (result: LoginResponse) => void; onNotice: StepNotice }) {
+  const portal = useAuthPortal();
+  const linkClass = useAuthLinkClass();
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string>();
@@ -205,7 +209,7 @@ function CredentialsStep({ onResult, onNotice }: { onResult: (result: LoginRespo
     setError(undefined);
     try {
       onResult(
-        await apiRequest<LoginResponse>(LOGIN_PATH, {
+        await apiRequest<LoginResponse>(portal.loginPath, {
           method: "POST",
           body: { identifier: identifier.trim(), password },
           retryOnUnauthorized: false
@@ -231,19 +235,59 @@ function CredentialsStep({ onResult, onNotice }: { onResult: (result: LoginRespo
     }
   }
 
+  if (portal.id === "admin") {
+    // Figma ADM-00a: thẻ trắng 420px, ô nhập kiểu "VXN / Auth field", nút "VXN / Auth button".
+    return (
+      <>
+        {portal.loginHero}
+        <div className="flex w-[420px] shrink-0 flex-col gap-[18px] rounded-2xl border bg-white p-8 shadow-[0_12px_16px_-4px_rgba(16,24,40,0.08),0_4px_6px_-2px_rgba(16,24,40,0.03)]">
+          <div className="flex flex-col gap-1">
+            <h1 className="text-[22px] leading-7 font-semibold text-[#181c22]">{portal.texts.loginTitle}</h1>
+            <p className="text-sm leading-5 text-[#64748b]">{portal.texts.loginSubtitle}</p>
+          </div>
+          <form onSubmit={submit} className="flex flex-col gap-[18px]" noValidate>
+            <StepField
+              label="Tên đăng nhập *"
+              name="identifier"
+              autoComplete="username"
+              placeholder={portal.texts.identifierPlaceholder}
+              value={identifier}
+              onChange={(event) => setIdentifier(event.target.value)}
+            />
+            <StepField
+              label="Mật khẩu *"
+              password
+              name="password"
+              autoComplete="current-password"
+              placeholder="Nhập mật khẩu"
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              error={error}
+            />
+            <AuthButton type="submit" loading={pending} loadingLabel="Đang đăng nhập…">
+              Đăng nhập
+            </AuthButton>
+            <p className="text-center text-xs leading-[18px] text-[#64748b]">Bước tiếp theo: xác thực hai lớp (bắt buộc).</p>
+          </form>
+          {portal.loginFooter}
+        </div>
+      </>
+    );
+  }
+
   return (
     <>
-      <LoginHero />
+      {portal.loginHero}
       <LoginCard>
-        <h1 className="text-[26px] font-bold tracking-[-0.26px] text-[#1c1e22]">Đăng nhập nhà xe</h1>
-        <p className="text-sm text-[#94a3b8]">Dùng tài khoản đối tác đã được xác minh.</p>
+        <h1 className="text-[26px] font-bold tracking-[-0.26px] text-[#1c1e22]">{portal.texts.loginTitle}</h1>
+        <p className="text-sm text-[#94a3b8]">{portal.texts.loginSubtitle}</p>
         <form onSubmit={submit} className="flex flex-col gap-2" noValidate>
           <LoginField
             label="Tên đăng nhập"
             icon="user"
             name="identifier"
             autoComplete="username"
-            placeholder="nhaxe/taikhoan"
+            placeholder={portal.texts.identifierPlaceholder}
             value={identifier}
             onChange={(event) => setIdentifier(event.target.value)}
             invalid={Boolean(error)}
@@ -260,40 +304,31 @@ function CredentialsStep({ onResult, onNotice }: { onResult: (result: LoginRespo
             invalid={Boolean(error)}
           />
           <FieldError>{error}</FieldError>
-          <div className="flex justify-end">
-            <button
-              type="button"
-              onClick={() => onNotice("passwordHelp")}
-              className="rounded text-sm leading-5 font-medium text-vxn-teal-700 outline-none hover:underline focus-visible:ring-2 focus-visible:ring-ring"
-            >
-              Cần cấp lại mật khẩu?
-            </button>
-          </div>
+          {portal.passwordHelp && (
+            <div className="flex justify-end">
+              <button
+                type="button"
+                onClick={() => onNotice("passwordHelp")}
+                className={`rounded text-sm leading-5 font-medium outline-none hover:underline focus-visible:ring-2 focus-visible:ring-ring ${linkClass}`}
+              >
+                Cần cấp lại mật khẩu?
+              </button>
+            </div>
+          )}
           <LoginButton type="submit" loading={pending} loadingLabel="Đang đăng nhập…">
             Đăng nhập
           </LoginButton>
           <p className="text-center text-sm leading-5 text-vxn-fg-4">Xác thực bảo mật ở bước tiếp theo.</p>
           <img src="/auth/divider.svg" alt="" width={300} height={1} className="self-center" />
         </form>
-        {/* Figma 840:2074 — nhà xe chưa có tài khoản nộp hồ sơ đăng ký công khai (TASK-OPR-001, BR-75). */}
-        <div className="flex items-end gap-3.5 rounded-[10px] border border-warning-500 bg-gradient-to-br from-[#fff7e6] to-[#ffeac7] p-4">
-          <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-            <p className="text-sm font-semibold text-vxn-ink">Trở thành đối tác</p>
-            <p className="text-sm leading-5 text-vxn-fg-3">Gửi hồ sơ đăng ký. Tài khoản được cấp sau khi hồ sơ được phê duyệt.</p>
-          </div>
-          <Link
-            href="/register"
-            className="flex h-[34px] shrink-0 items-center rounded px-3.5 text-[13px] font-semibold text-white outline-none bg-warning-500 hover:bg-warning-600 focus-visible:ring-2 focus-visible:ring-ring"
-          >
-            Đăng ký
-          </Link>
-        </div>
+        {portal.loginFooter}
       </LoginCard>
     </>
   );
 }
 
 function PasswordChangeStep({ token, onNotice, onRestart }: { token: string; onNotice: StepNotice; onRestart: () => void }) {
+  const portal = useAuthPortal();
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [errors, setErrors] = useState<{ password?: string; confirm?: string }>({});
@@ -337,7 +372,7 @@ function PasswordChangeStep({ token, onNotice, onRestart }: { token: string; onN
       <StepHero
         accent="Mật khẩu mới."
         title="Khởi đầu an toàn."
-        description={["Tạo mật khẩu riêng để bảo vệ tài khoản nhà xe.", "Bạn sẽ đăng nhập lại sau khi hoàn tất."]}
+        description={[`Tạo mật khẩu riêng để bảo vệ ${portal.texts.accountNoun}.`, "Bạn sẽ đăng nhập lại sau khi hoàn tất."]}
       />
       <StepCard title="Đổi mật khẩu tạm" description="Thiết lập mật khẩu mới cho lần đăng nhập đầu.">
         <form onSubmit={submit} className="flex flex-col gap-4" noValidate>
@@ -392,6 +427,7 @@ function MfaStep({
   onNotice: StepNotice;
   onRestart: () => void;
 }) {
+  const portal = useAuthPortal();
   const [code, setCode] = useState("");
   const [error, setError] = useState<string>();
   const [pending, setPending] = useState(false);
@@ -465,7 +501,7 @@ function MfaStep({
     <>
       <StepHero
         accent="Thêm một lớp bảo vệ"
-        title="cho tài khoản nhà xe."
+        title={`cho ${portal.texts.accountNoun}.`}
         description={["Không quét được QR? Nhập khóa thiết lập vào ứng dụng.", "Sau đó, ứng dụng sẽ tạo mã 6 số để bạn xác nhận."]}
       />
       <StepCard
@@ -482,12 +518,8 @@ function MfaStep({
     </>
   ) : (
     <>
-      <StepHero
-        accent="Xác thực an toàn."
-        title="Tiếp tục vận hành."
-        description={["Dùng mã từ ứng dụng xác thực hoặc mã dự phòng", "để truy cập trang quản lý nhà xe."]}
-      />
-      <StepCard title="Xác thực hai lớp" description="Nhập mã xác thực để vào trang quản lý." className="gap-3">
+      <StepHero {...portal.texts.mfaHero} />
+      <StepCard title="Xác thực hai lớp" description={`Nhập mã xác thực để vào ${portal.texts.destination}.`} className="gap-3">
         <form onSubmit={submit} className="flex flex-col gap-3" noValidate>
           {codeField}
           {actions}
@@ -543,6 +575,7 @@ function TotpEnrollment({ otpAuthUri }: { otpAuthUri: string }) {
 }
 
 function BackupCodesStep({ codes, onContinue }: { codes: string[]; onContinue: () => void }) {
+  const portal = useAuthPortal();
   const [copied, setCopied] = useState(false);
 
   async function copy() {
@@ -592,7 +625,7 @@ function BackupCodesStep({ codes, onContinue }: { codes: string[]; onContinue: (
             {copied ? "Đã sao chép" : "Sao chép mã"}
           </AuthButton>
           <AuthButton type="button" onClick={onContinue}>
-            Tôi đã lưu mã, vào trang quản lý
+            Tôi đã lưu mã, vào {portal.texts.destination}
           </AuthButton>
         </div>
       </StepCard>

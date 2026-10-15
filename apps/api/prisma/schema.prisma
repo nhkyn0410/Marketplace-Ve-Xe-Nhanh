@@ -943,6 +943,12 @@ model OperatorApplication {
   /// Lý do Admin ghi khi yêu cầu bổ sung / từ chối (UC-23).
   reviewNote             String?                   @map("review_note")
   submittedAt            DateTime?                 @map("submitted_at")
+  /// Lần ra quyết định gần nhất của Admin (bổ sung / từ chối / duyệt) — UC-23 bước 5.
+  reviewedAt             DateTime?                 @map("reviewed_at")
+  /// `platform_accounts.id` của Admin ra quyết định gần nhất.
+  reviewedBy             String?                   @map("reviewed_by")
+  /// `Idempotency-Key` của lần duyệt (API §8); chỉ có khi `APPROVED`.
+  approvalIdempotencyKey String?                   @map("approval_idempotency_key")
   operatorId             String?                   @unique @map("operator_id")
   createdAt              DateTime                  @default(now()) @map("created_at")
   updatedAt              DateTime                  @updatedAt @map("updated_at")
@@ -954,6 +960,7 @@ model OperatorApplication {
   @@index([status, submittedAt])
   @@index([contactEmail])
   @@index([taxCode])
+  @@index([bankAccountNumber])
   @@map("operator_applications")
 }
 

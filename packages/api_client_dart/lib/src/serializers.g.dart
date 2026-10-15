@@ -9,6 +9,24 @@ part of 'serializers.dart';
 Serializers _$serializers = (Serializers().toBuilder()
       ..add(AccountMutationResponseDtoOutput.serializer)
       ..add(AccountMutationResponseDtoOutputStatusEnum.serializer)
+      ..add(AdminApplicationDetailDtoOutput.serializer)
+      ..add(AdminApplicationDetailDtoOutputDocumentsInner.serializer)
+      ..add(AdminApplicationDetailDtoOutputDocumentsInnerTypeEnum.serializer)
+      ..add(AdminApplicationDetailDtoOutputDuplicates.serializer)
+      ..add(
+          AdminApplicationDetailDtoOutputDuplicatesContactEmailInner.serializer)
+      ..add(AdminApplicationDetailDtoOutputDuplicatesContactEmailInnerStatusEnum
+          .serializer)
+      ..add(AdminApplicationDetailDtoOutputHistoryInner.serializer)
+      ..add(AdminApplicationDetailDtoOutputHistoryInnerEventEnum.serializer)
+      ..add(AdminApplicationDetailDtoOutputOperator.serializer)
+      ..add(AdminApplicationDetailDtoOutputStatusEnum.serializer)
+      ..add(AdminApplicationListResponseDtoOutput.serializer)
+      ..add(AdminApplicationListResponseDtoOutputItemsInner.serializer)
+      ..add(AdminApplicationListResponseDtoOutputItemsInnerDuplicatesEnum
+          .serializer)
+      ..add(
+          AdminApplicationListResponseDtoOutputItemsInnerStatusEnum.serializer)
       ..add(AmenityListResponseDtoOutput.serializer)
       ..add(ApplicationAccessLinkInputDto.serializer)
       ..add(ApplicationCreateInputDto.serializer)
@@ -20,6 +38,9 @@ Serializers _$serializers = (Serializers().toBuilder()
       ..add(ApplicationUpdateInputDto.serializer)
       ..add(ApplicationUpdateInputDtoDocumentsInner.serializer)
       ..add(ApplicationUpdateInputDtoDocumentsInnerTypeEnum.serializer)
+      ..add(ApprovalInputDto.serializer)
+      ..add(ApprovalResponseDtoOutput.serializer)
+      ..add(ApprovalResponseDtoOutputStatusEnum.serializer)
       ..add(AuthMeResponseDtoOutput.serializer)
       ..add(AuthMeResponseDtoOutputScopeEnum.serializer)
       ..add(AuthTokenResponseDtoOutput.serializer)
@@ -35,6 +56,9 @@ Serializers _$serializers = (Serializers().toBuilder()
       ..add(CredentialWebSessionResponseAuthenticatedEnum.serializer)
       ..add(CredentialWebSessionResponseScopeEnum.serializer)
       ..add(CsrfTokenResponseDtoOutput.serializer)
+      ..add(DecisionInputDto.serializer)
+      ..add(DecisionResponseDtoOutput.serializer)
+      ..add(DecisionResponseDtoOutputStatusEnum.serializer)
       ..add(DocumentDownloadResponseDtoOutput.serializer)
       ..add(DocumentUploadInputDto.serializer)
       ..add(DocumentUploadInputDtoContentTypeEnum.serializer)
@@ -211,6 +235,49 @@ Serializers _$serializers = (Serializers().toBuilder()
       ..add(VehicleTypeListResponseDtoOutputItemsInnerFormEnum.serializer)
       ..add(WardListResponseDtoOutput.serializer)
       ..add(WardListResponseDtoOutputItemsInner.serializer)
+      ..addBuilderFactory(
+          const FullType(BuiltList, const [
+            const FullType(AdminApplicationDetailDtoOutputDocumentsInner)
+          ]),
+          () => ListBuilder<AdminApplicationDetailDtoOutputDocumentsInner>())
+      ..addBuilderFactory(
+          const FullType(BuiltList, const [
+            const FullType(AdminApplicationDetailDtoOutputHistoryInner)
+          ]),
+          () => ListBuilder<AdminApplicationDetailDtoOutputHistoryInner>())
+      ..addBuilderFactory(
+          const FullType(BuiltList, const [
+            const FullType(
+                AdminApplicationDetailDtoOutputDuplicatesContactEmailInner)
+          ]),
+          () => ListBuilder<
+              AdminApplicationDetailDtoOutputDuplicatesContactEmailInner>())
+      ..addBuilderFactory(
+          const FullType(BuiltList, const [
+            const FullType(
+                AdminApplicationDetailDtoOutputDuplicatesContactEmailInner)
+          ]),
+          () => ListBuilder<
+              AdminApplicationDetailDtoOutputDuplicatesContactEmailInner>())
+      ..addBuilderFactory(
+          const FullType(BuiltList, const [
+            const FullType(
+                AdminApplicationDetailDtoOutputDuplicatesContactEmailInner)
+          ]),
+          () => ListBuilder<
+              AdminApplicationDetailDtoOutputDuplicatesContactEmailInner>())
+      ..addBuilderFactory(
+          const FullType(BuiltList, const [
+            const FullType(AdminApplicationListResponseDtoOutputItemsInner)
+          ]),
+          () => ListBuilder<AdminApplicationListResponseDtoOutputItemsInner>())
+      ..addBuilderFactory(
+          const FullType(BuiltList, const [
+            const FullType(
+                AdminApplicationListResponseDtoOutputItemsInnerDuplicatesEnum)
+          ]),
+          () => ListBuilder<
+              AdminApplicationListResponseDtoOutputItemsInnerDuplicatesEnum>())
       ..addBuilderFactory(
           const FullType(BuiltList, const [
             const FullType(ApplicationResponseDtoOutputDocumentsInner)

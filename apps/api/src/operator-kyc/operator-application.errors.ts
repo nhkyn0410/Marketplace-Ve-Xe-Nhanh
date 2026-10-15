@@ -58,3 +58,22 @@ export function applicationServiceUnavailable(): HttpException {
     "Hệ thống tạm thời không phản hồi hoặc chức năng giấy tờ chưa mở. Vui lòng thử lại sau.",
   );
 }
+
+/** Admin mở / thao tác một hồ sơ không tồn tại (id sai). */
+export function applicationNotFound(): HttpException {
+  return problem(HttpStatus.NOT_FOUND, "OPERATOR_APPLICATION_NOT_FOUND", "Không tìm thấy hồ sơ đăng ký.");
+}
+
+/** Slug đã thuộc nhà xe khác — chọn slug khác; không tạo Operator / Owner nào (UC-23 A2). */
+export function operatorSlugConflict(): HttpException {
+  return problem(HttpStatus.CONFLICT, "OPERATOR_SLUG_CONFLICT", "Slug đã được dùng cho nhà xe khác. Hãy chọn slug khác.");
+}
+
+/** Thiếu / sai header `Idempotency-Key` ở thao tác bắt buộc idempotent (API §8). */
+export function idempotencyKeyInvalid(): HttpException {
+  return problem(
+    HttpStatus.BAD_REQUEST,
+    "VALIDATION_FAILED",
+    "Thiếu header Idempotency-Key hợp lệ (8–128 ký tự chữ, số, dấu gạch ngang, gạch dưới).",
+  );
+}

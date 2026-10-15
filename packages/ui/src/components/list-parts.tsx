@@ -1,4 +1,4 @@
-import { Button } from "@vexenhanh/ui/components/button";
+import { Button } from "./button";
 import { LoaderCircle } from "lucide-react";
 import type { ReactNode } from "react";
 

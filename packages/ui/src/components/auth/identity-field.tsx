@@ -1,10 +1,10 @@
 "use client";
 
-import { Input } from "@vexenhanh/ui/components/input";
 import { useState } from "react";
 
 import { hasRecentReauth } from "../../lib/auth/reauth";
 import { FormField } from "../form-field";
+import { Input } from "../input";
 
 /** Lỗi khi để trống ô xác nhận danh tính. */
 export const IDENTITY_REQUIRED = "Nhập mật khẩu của bạn hoặc mã xác thực 6 số.";
@@ -49,21 +49,26 @@ export function useIdentityField() {
   };
 }
 
-/** Ô nhập "mật khẩu hoặc mã xác thực" (Figma "03 · Nhân viên / Hộp thoại cấp lại mật khẩu tạm"). */
+/**
+ * Ô nhập "mật khẩu hoặc mã xác thực" (Figma "03 · Nhân viên / Hộp thoại cấp lại mật khẩu tạm"). `totp`: chỉ mã của
+ * ứng dụng xác thực — cổng Admin, nơi TOTP là bắt buộc (Figma ADM-02c / 02d).
+ */
 export function IdentityField({
   value,
   error,
   disabled,
+  totp = false,
   onChange
 }: {
   value: string;
   error: string | null;
   disabled?: boolean;
+  totp?: boolean;
   onChange: (value: string) => void;
 }) {
   return (
     <FormField
-      label="Mật khẩu của bạn hoặc mã xác thực *"
+      label={totp ? "Mã xác thực (TOTP) *" : "Mật khẩu của bạn hoặc mã xác thực *"}
       helper="Thao tác nhạy cảm cần xác nhận lại danh tính. Sau khi xác nhận, 5 phút tới không phải nhập lại."
       error={error ?? undefined}
     >
@@ -71,8 +76,8 @@ export function IdentityField({
         <Input
           {...control}
           type="password"
-          autoComplete="current-password"
-          maxLength={200}
+          {...(totp ? { inputMode: "numeric" as const, autoComplete: "one-time-code" } : { autoComplete: "current-password" })}
+          maxLength={totp ? 7 : 200}
           value={value}
           disabled={disabled}
           onChange={(event) => onChange(event.target.value)}

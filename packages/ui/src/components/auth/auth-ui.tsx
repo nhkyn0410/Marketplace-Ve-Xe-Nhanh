@@ -1,12 +1,15 @@
 "use client";
 
-import { Button } from "@vexenhanh/ui/components/button";
-import { LogoWordmark } from "@vexenhanh/ui/components/logo";
-import { cn } from "@vexenhanh/ui/lib/utils";
-import { EyeOff } from "lucide-react";
+import { EyeOff, LockKeyhole } from "lucide-react";
 import { useEffect, useId, useState, type ComponentProps, type ReactNode } from "react";
 
-// Khối dựng giao diện luồng đăng nhập nhà xe theo Figma "Giao diện nhà xe" (section 830:1977).
+import { cn } from "../../lib/utils";
+import { Button } from "../button";
+import { LogoWordmark } from "../logo";
+import { useAuthPortal } from "./auth-context";
+
+// Khối dựng giao diện luồng đăng nhập web theo Figma "Giao diện nhà xe" (section 830:1977); Admin dùng cùng bố cục
+// với bảng màu indigo (Figma ADM-00a / 00b, mode `Admin`) — màu lấy theo cổng qua `useAuthPortal()`.
 // Figma chỉ có khung 1440×890 → co giãn cho desktop từ 1280px: nội dung tối đa 1440px ở giữa (màn
 // 1920/2560 không dạt ra hai mép), lề ngang 48px khi hẹp hơn 1440, và khung nhìn thấp hơn 890px
 // (laptop 1366×768, 1920×1080 phóng 125%) thu khoảng đệm dọc qua biến thể `[@media(max-height:889px)]`.
@@ -15,8 +18,34 @@ import { useEffect, useId, useState, type ComponentProps, type ReactNode } from 
 
 const MONO = "font-[family-name:var(--font-jetbrains-mono),ui-monospace,monospace]";
 
+/** Lớp màu theo cổng. Nhà xe giữ nguyên màu Figma "Giao diện nhà xe"; Admin theo mode `Admin` (indigo). */
+const THEMES = {
+  operator: {
+    page: "bg-[linear-gradient(58.28deg,rgb(10,40,64)_15.109%,rgba(53,113,141,0.7)_70.074%,rgb(0,80,106)_87.469%)]",
+    primary: "bg-vxn-teal-700 text-white hover:bg-vxn-teal-700/90",
+    secondary: "border border-vxn-teal-700 bg-white text-vxn-teal-700 hover:bg-vxn-teal-50",
+    link: "text-vxn-teal-700",
+    overlay: "bg-[rgba(10,40,64,0.5)]",
+    back: "h-10 w-full rounded text-sm leading-5 font-medium text-vxn-teal-700 hover:underline"
+  },
+  admin: {
+    page: "bg-[linear-gradient(144.33deg,rgb(15,20,48)_13.433%,rgb(33,41,107)_54.478%,rgb(79,69,219)_88.06%)]",
+    primary: "bg-[#4338ca] text-white hover:bg-[#4338ca]/90",
+    secondary: "border border-[#4338ca] bg-white text-[#4338ca] hover:bg-[#eef2ff]",
+    link: "text-[#4338ca]",
+    overlay: "bg-[rgba(15,20,48,0.55)]",
+    back: "h-[52px] w-full rounded-xl border border-[#4338ca] bg-white text-sm leading-5 font-medium text-[#4338ca] hover:bg-[#eef2ff]"
+  }
+} as const;
+
+function useTheme() {
+  return THEMES[useAuthPortal().id];
+}
+
 /** Nền gradient + logo + chân trang dùng chung cho mọi màn xác thực. */
 export function AuthPage({ languageChip = true, children }: { languageChip?: boolean; children: ReactNode }) {
+  const portal = useAuthPortal();
+  const theme = useTheme();
   // globals.css chừa sẵn chỗ thanh cuộn (scrollbar-gutter: stable) → lộ dải nền trắng cạnh gradient tràn viền.
   useEffect(() => {
     const root = document.documentElement;
@@ -30,11 +59,18 @@ export function AuthPage({ languageChip = true, children }: { languageChip?: boo
   return (
     // Khung tự cuộn + luôn giữ chỗ thanh cuộn: chuyển bước làm nội dung cao hơn khung nhìn không làm bố cục nhảy.
     // Gradient đặt ở khung cuộn với `bg-origin-border` để phủ cả vùng giữ chỗ (không lộ dải nền trắng).
-    <div className="flex h-dvh flex-col overflow-y-auto bg-[linear-gradient(58.28deg,rgb(10,40,64)_15.109%,rgba(53,113,141,0.7)_70.074%,rgb(0,80,106)_87.469%)] bg-origin-border [scrollbar-gutter:stable]">
+    <div className={cn("flex h-dvh flex-col overflow-y-auto bg-origin-border [scrollbar-gutter:stable]", theme.page)}>
       <div className="flex flex-1 flex-col">
         <header className="mx-auto flex w-full max-w-[1440px] items-center justify-between px-12 pt-16 pb-6 min-[1440px]:px-[94px] [@media(max-height:889px)]:pt-5 [@media(max-height:889px)]:pb-3">
           <LogoWordmark className="h-[60px] w-[235px] text-white [@media(max-height:889px)]:h-12 [@media(max-height:889px)]:w-[188px]" />
-          {languageChip && (
+          {languageChip && portal.id === "admin" && (
+            // Figma ADM-00a: nhãn "Cổng nội bộ" thay cho chip ngôn ngữ.
+            <div className="flex h-8 items-center gap-2 rounded-full bg-white/[0.12] px-3">
+              <LockKeyhole className="size-3.5 text-white" aria-hidden />
+              <span className="text-xs leading-[18px] font-medium text-white">Cổng nội bộ</span>
+            </div>
+          )}
+          {languageChip && portal.id === "operator" && (
             // v1 chỉ có tiếng Việt (OQ-12): nhãn trang trí, không phải nút chọn ngôn ngữ.
             <div
               aria-hidden
@@ -49,7 +85,7 @@ export function AuthPage({ languageChip = true, children }: { languageChip?: boo
         </header>
         {children}
         <footer className="flex items-end justify-center py-[35px] [@media(max-height:889px)]:py-3">
-          <p className="text-sm leading-5 text-white/[0.72]">Cổng quản lý dành cho chủ nhà xe</p>
+          <p className="text-center text-sm leading-5 text-white/[0.72]">{portal.texts.footer}</p>
         </footer>
       </div>
     </div>
@@ -65,16 +101,17 @@ export function AuthMain({ children }: { children: ReactNode }) {
   );
 }
 
-function HeroChip({ children }: { children: ReactNode }) {
+/** Chip trên hero (`dot` = chấm saffron như Figma Admin). */
+export function HeroChip({ children, dot = "white" }: { children: ReactNode; dot?: "white" | "saffron" }) {
   return (
     <div className="flex w-fit items-center gap-2 rounded-full bg-white/15 px-7 py-3">
-      <span className="size-1.5 rounded-full bg-white opacity-90" />
+      <span className={cn("size-1.5 rounded-full opacity-90", dot === "saffron" ? "bg-vxn-saffron-500" : "bg-white")} />
       <span className="text-xs font-semibold tracking-[0.96px] text-white uppercase">{children}</span>
     </div>
   );
 }
 
-/** Hero màn đăng nhập (chữ 56px); co lại nhường chỗ cho thẻ form, thẻ luôn giữ đủ bề rộng. */
+/** Hero màn đăng nhập của nhà xe (chữ 56px); co lại nhường chỗ cho thẻ form, thẻ luôn giữ đủ bề rộng. */
 export function LoginHero() {
   return (
     <div className="flex w-[648px] min-w-0 flex-col">
@@ -96,9 +133,10 @@ export function LoginHero() {
 
 /** Hero các bước bảo mật (đổi mật khẩu, xác thực hai lớp, mã dự phòng). */
 export function StepHero({ accent, title, description }: { accent: string; title: string; description: [string, string] }) {
+  const portal = useAuthPortal();
   return (
     <div className="flex w-[600px] min-w-0 flex-col gap-6">
-      <HeroChip>Bảo mật tài khoản</HeroChip>
+      <HeroChip dot={portal.id === "admin" ? "saffron" : "white"}>{portal.texts.securityChip}</HeroChip>
       <p className="text-[44px] leading-[56px] font-bold text-white">
         <span className="text-vxn-saffron-500">{accent}</span>
         <br />
@@ -308,13 +346,12 @@ export function AuthButton({
   className,
   ...props
 }: ActionProps & { secondary?: boolean }) {
+  const theme = useTheme();
   return (
     <Button
       className={cn(
         "h-[52px] w-full rounded-xl px-3 text-sm font-medium tracking-[0.14px] disabled:opacity-100",
-        secondary
-          ? "border border-vxn-teal-700 bg-white text-vxn-teal-700 hover:bg-vxn-teal-50"
-          : "bg-vxn-teal-700 text-white hover:bg-vxn-teal-700/90",
+        secondary ? theme.secondary : theme.primary,
         !loading && "disabled:bg-[#e4e5e7] disabled:text-vxn-fg-4",
         className
       )}
@@ -329,11 +366,12 @@ export function AuthButton({
 
 /** "VXN / Auth back link": quay về màn đăng nhập. */
 export function BackLink({ onClick }: { onClick: () => void }) {
+  const theme = useTheme();
   return (
     <button
       type="button"
       onClick={onClick}
-      className="h-10 w-full rounded text-sm leading-5 font-medium text-vxn-teal-700 outline-none hover:underline focus-visible:ring-2 focus-visible:ring-ring"
+      className={cn("outline-none focus-visible:ring-2 focus-visible:ring-ring", theme.back)}
     >
       Quay lại đăng nhập
     </button>
@@ -366,8 +404,9 @@ export function NoticeDialog({
   onAction: () => void;
 }) {
   const titleId = useId();
+  const theme = useTheme();
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[rgba(10,40,64,0.5)] p-4">
+    <div className={cn("fixed inset-0 z-50 flex items-center justify-center p-4", theme.overlay)}>
       <div
         role="alertdialog"
         aria-modal="true"
@@ -416,3 +455,8 @@ export function AuthLoading({ label }: { label: string }) {
 
 /** Chữ đơn cách (khóa thiết lập, mã dự phòng) — "VXN / Auth / Code". */
 export const AUTH_MONO = `${MONO} text-sm leading-[22px] text-[#0a2840]`;
+
+/** Lớp màu chữ của liên kết theo cổng (vd. "Cần cấp lại mật khẩu?"). */
+export function useAuthLinkClass(): string {
+  return useTheme().link;
+}

@@ -35,6 +35,8 @@ import { SeatMapController } from "../vehicle/seat-map.controller";
 import { SeatMapService } from "../vehicle/seat-map.service";
 import { OperatorApplicationController } from "../operator-kyc/operator-application.controller";
 import { OperatorApplicationService } from "../operator-kyc/operator-application.service";
+import { OperatorApplicationReviewController } from "../operator-kyc/operator-application-review.controller";
+import { OperatorApplicationReviewService } from "../operator-kyc/operator-application-review.service";
 import { VehicleImageController } from "../vehicle/vehicle-image.controller";
 import { VehicleImageService } from "../vehicle/vehicle-image.service";
 import { VehicleController } from "../vehicle/vehicle.controller";
@@ -58,6 +60,7 @@ import { VehicleService } from "../vehicle/vehicle.service";
     TripController,
     FareController,
     OperatorApplicationController,
+    OperatorApplicationReviewController,
   ],
   providers: [
     { provide: APP_INTERCEPTOR, useClass: ZodSerializerInterceptor },
@@ -67,6 +70,7 @@ import { VehicleService } from "../vehicle/vehicle.service";
     { provide: VehicleService, useValue: {} },
     { provide: VehicleImageService, useValue: {} },
     { provide: OperatorApplicationService, useValue: {} },
+    { provide: OperatorApplicationReviewService, useValue: {} },
     // Dependency của ApplicationTokenGuard (link bảo mật hồ sơ nhà xe) — Nest dựng guard lúc khởi tạo module.
     { provide: PrismaService, useValue: {} },
     { provide: SeatMapService, useValue: {} },
