@@ -82,6 +82,8 @@ export const RLS_TABLES = [
   "policy_versions",
   "commission_rules",
   "fare_bands",
+  // Lịch chuyến lặp lại (TASK-TRN-007): tenant_isolation.
+  "trip_schedules",
 ] as const;
 
 @Injectable()

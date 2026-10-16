@@ -13,6 +13,11 @@ export function tripNotFound(): HttpException {
   return problem(HttpStatus.NOT_FOUND, "TRIP_NOT_FOUND", "Không tìm thấy chuyến.");
 }
 
+/** Lịch chuyến lặp lại không tồn tại HOẶC thuộc tenant khác (TRN-007). */
+export function tripScheduleNotFound(): HttpException {
+  return problem(HttpStatus.NOT_FOUND, "TRIP_SCHEDULE_NOT_FOUND", "Không tìm thấy lịch chuyến.");
+}
+
 /** Chuyến đang ở trạng thái không cho thao tác này (sửa chuyến: chỉ `DRAFT`; khóa ghế: `DRAFT`/`OPEN_FOR_SALE`/`LOCKED`). */
 export function tripNotEditable(detail = "Chỉ sửa được chuyến đang ở trạng thái nháp."): HttpException {
   return problem(HttpStatus.CONFLICT, "TRIP_NOT_EDITABLE", detail);

@@ -6,7 +6,7 @@ import { Button } from "@vexenhanh/ui/components/button";
 import { Input } from "@vexenhanh/ui/components/input";
 import { Tabs, TabsList, TabsTrigger } from "@vexenhanh/ui/components/tabs";
 import { cn } from "@vexenhanh/ui/lib/utils";
-import { CalendarClock, ChevronRight, CircleAlert, FileX2, Plus, RefreshCw } from "lucide-react";
+import { CalendarClock, CalendarSync, ChevronRight, CircleAlert, FileX2, Plus, RefreshCw } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useId, useMemo, useState, type ReactNode } from "react";
@@ -74,6 +74,12 @@ export function TripList() {
                 </TabsTrigger>
               </TabsList>
             </Tabs>
+            <Button asChild variant="outline" className={`${BUTTON} bg-card`}>
+              <Link href="/trips/schedules">
+                <CalendarSync className="size-[18px]" />
+                Lịch chạy lặp lại
+              </Link>
+            </Button>
             <Button asChild className={`${BUTTON} w-40`}>
               <Link href="/trips/new">
                 <Plus className="size-[18px]" />

@@ -39,6 +39,8 @@ import { FareController } from "../fare/fare.controller";
 import { FareService } from "../fare/fare.service";
 import { TripController } from "../trip/trip.controller";
 import { TripService } from "../trip/trip.service";
+import { TripScheduleController } from "../trip/trip-schedule.controller";
+import { TripScheduleService } from "../trip/trip-schedule.service";
 import { SeatMapController } from "../vehicle/seat-map.controller";
 import { SeatMapService } from "../vehicle/seat-map.service";
 import { OperatorApplicationController } from "../operator-kyc/operator-application.controller";
@@ -95,6 +97,7 @@ import { VehicleService } from "../vehicle/vehicle.service";
     AdminOperatorStopPointController,
     RouteController,
     TripController,
+    TripScheduleController,
     FareController,
     OperatorApplicationController,
     OperatorApplicationReviewController,
@@ -139,6 +142,7 @@ import { VehicleService } from "../vehicle/vehicle.service";
     { provide: AdminStopPointService, useValue: {} },
     { provide: RouteService, useValue: {} },
     { provide: TripService, useValue: {} },
+    { provide: TripScheduleService, useValue: {} },
     { provide: FareService, useValue: {} },
     // Dependency của AccessTokenGuard (logout, re-auth) — Nest dựng guard lúc khởi tạo module.
     { provide: TokenService, useValue: {} },

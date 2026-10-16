@@ -165,26 +165,7 @@ export class TripService {
   async create(authz: Authorization, input: TripInput): Promise<TripResponse> {
     const { db, operatorId } = requireTenant(authz);
     const row = await this.withOverlapConflict(() =>
-      this.prisma.withScope(db, async (tx) => {
-        const routeStops = await loadRouteStops(tx, operatorId, input.routeId, false);
-        const stopTimes = planStopTimes(input, routeStops);
-        const seats = input.vehicleId ? await lockVehicleSeats(tx, operatorId, input.vehicleId) : [];
-        const trip = await tx.trip.create({
-          data: {
-            operatorId,
-            routeId: input.routeId,
-            vehicleId: input.vehicleId,
-            departureAt: input.departureAt,
-            arrivalAt: input.arrivalAt,
-            onlineSaleCutoffMinutes: input.onlineSaleCutoffMinutes,
-            note: input.note,
-          },
-          select: { id: true },
-        });
-        await tx.tripStop.createMany({ data: stopRows(operatorId, trip.id, routeStops, stopTimes) });
-        await tx.tripSeat.createMany({ data: seatRows(operatorId, trip.id, seats) });
-        return findDetail(tx, operatorId, trip.id);
-      }),
+      this.prisma.withScope(db, async (tx) => findDetail(tx, operatorId, await insertDraftTrip(tx, operatorId, input))),
     );
     return toResponse(row!);
   }
@@ -416,6 +397,38 @@ export class TripService {
       throw error;
     }
   }
+}
+
+/**
+ * Chèn chuyến `DRAFT` trong transaction đang mở: chép điểm dừng từ route, ghế từ SeatMap của xe (nếu gắn xe). Dùng chung
+ * cho tạo chuyến lẻ và sinh chuyến từ lịch lặp lại (`origin`, TRN-007). Xe chồng giờ → lỗi EXCLUDE, người gọi đổi sang 409.
+ */
+export async function insertDraftTrip(
+  tx: DbTransaction,
+  operatorId: string,
+  input: TripInput,
+  origin?: { scheduleId: string; serviceDate: Date },
+): Promise<string> {
+  const routeStops = await loadRouteStops(tx, operatorId, input.routeId, false);
+  const stopTimes = planStopTimes(input, routeStops);
+  const seats = input.vehicleId ? await lockVehicleSeats(tx, operatorId, input.vehicleId) : [];
+  const trip = await tx.trip.create({
+    data: {
+      operatorId,
+      routeId: input.routeId,
+      vehicleId: input.vehicleId,
+      departureAt: input.departureAt,
+      arrivalAt: input.arrivalAt,
+      onlineSaleCutoffMinutes: input.onlineSaleCutoffMinutes,
+      note: input.note,
+      scheduleId: origin?.scheduleId,
+      serviceDate: origin?.serviceDate,
+    },
+    select: { id: true },
+  });
+  await tx.tripStop.createMany({ data: stopRows(operatorId, trip.id, routeStops, stopTimes) });
+  await tx.tripSeat.createMany({ data: seatRows(operatorId, trip.id, seats) });
+  return trip.id;
 }
 
 /**
