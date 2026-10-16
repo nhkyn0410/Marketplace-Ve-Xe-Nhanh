@@ -170,6 +170,7 @@ model OperatorProfile {
   vehicles            Vehicle[]
   trips               Trip[]
   tripSchedules       TripSchedule[]
+  employeeAssignments EmployeeAssignment[]
   fares               Fare[]
   application         OperatorApplication?
   kycDocuments        KycDocument[]
@@ -249,10 +250,12 @@ model EmployeeAccount {
 
   // RESTRICT, không CASCADE (TASK-IAM-003): hành động cascade của FK chạy với quyền owner và BỎ QUA
   // RLS (kể cả FORCE) — xoá/đổi id một operator_profiles sẽ quét luôn account của tenant đó.
-  operator  OperatorProfile   @relation(fields: [operatorId], references: [id], onDelete: Restrict, onUpdate: Restrict)
-  loginName OperatorLoginName @relation(fields: [operatorId, username], references: [operatorId, username], onDelete: NoAction, onUpdate: NoAction)
+  operator    OperatorProfile      @relation(fields: [operatorId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  loginName   OperatorLoginName    @relation(fields: [operatorId, username], references: [operatorId, username], onDelete: NoAction, onUpdate: NoAction)
+  assignments EmployeeAssignment[]
 
   @@unique([operatorId, username])
+  @@unique([id, operatorId])
   @@map("employee_accounts")
 }
 
@@ -837,6 +840,7 @@ model Trip {
   schedule    TripSchedule?        @relation(fields: [scheduleId, operatorId], references: [id, operatorId], onDelete: Restrict, onUpdate: Restrict)
   stops       TripStop[]
   seats       TripSeat[]
+  assignments EmployeeAssignment[]
 
   @@unique([id, operatorId])
   /// Chạy lại lịch không sinh trùng ngày (TRN-007).
@@ -879,6 +883,28 @@ model TripSchedule {
   @@unique([id, operatorId])
   @@index([operatorId, endDate])
   @@map("trip_schedules")
+}
+
+/// Phân công nhân viên cho chuyến (TASK-EMP-001, UC-16 bước 4–6 — chờ Khanh duyệt). v1 chỉ tài xế (`DRIVER`); mỗi chuyến
+/// tối đa một người mỗi vai trò. Không cho một tài xế chạy hai chuyến chồng giờ: service khoá dòng nhân viên rồi kiểm.
+model EmployeeAssignment {
+  id         String       @id @default(uuid())
+  operatorId String       @map("operator_id")
+  tripId     String       @map("trip_id")
+  employeeId String       @map("employee_id")
+  role       EmployeeRole
+  /// Tài khoản chủ nhà xe phân công lần cuối.
+  assignedBy String?      @map("assigned_by")
+  createdAt  DateTime     @default(now()) @map("created_at")
+  updatedAt  DateTime     @updatedAt @map("updated_at")
+
+  operator OperatorProfile @relation(fields: [operatorId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  trip     Trip            @relation(fields: [tripId, operatorId], references: [id, operatorId], onDelete: Restrict, onUpdate: Restrict)
+  employee EmployeeAccount @relation(fields: [employeeId, operatorId], references: [id, operatorId], onDelete: Restrict, onUpdate: Restrict)
+
+  @@unique([tripId, role])
+  @@index([employeeId])
+  @@map("employee_assignments")
 }
 
 /// Điểm dừng của chuyến: chép từ RouteStop lúc tạo/sửa chuyến, kèm giờ dự kiến tại điểm.
