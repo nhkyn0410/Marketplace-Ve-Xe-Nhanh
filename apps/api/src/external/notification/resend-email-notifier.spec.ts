@@ -114,4 +114,25 @@ describe("ResendEmailNotifier stop point decision (TASK-ADM-004)", () => {
       expect(body!.html).not.toContain("<A>");
     }
   });
+
+  it("email gỡ ảnh xe: biển số, chú thích, lý do; HTML được escape", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({ ok: true, status: 200 });
+    vi.stubGlobal("fetch", fetchMock);
+    const notifier = new ResendEmailNotifier("api-key", "noreply@example.com");
+
+    await notifier.sendVehicleImageRemoved({
+      email: "owner@example.com",
+      operatorName: "Sao <Việt>",
+      plateNumber: "51B12345",
+      caption: "Khoang <giường>",
+      reason: "Ảnh có <giấy tờ>",
+    });
+
+    const sent = JSON.parse(fetchMock.mock.calls[0]![1].body as string) as { subject: string; html: string };
+    expect(sent.subject).toContain("51B12345");
+    expect(sent.html).toContain("Khoang &lt;giường&gt;");
+    expect(sent.html).toContain("Ảnh có &lt;giấy tờ&gt;");
+    expect(sent.html).toContain("Sao &lt;Việt&gt;");
+    expect(sent.html).not.toContain("<giấy tờ>");
+  });
 });

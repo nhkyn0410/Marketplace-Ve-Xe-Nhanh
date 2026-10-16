@@ -35,6 +35,7 @@ import {
   operatorSlugConflict,
 } from "./operator-application.errors";
 import { applicationLink, applicationLinkExpiry, DOCUMENT_URL_TTL_SECONDS } from "./operator-application.service";
+import { copyApplicationToOperator } from "./approved-operator-copy";
 
 const AUDIT_TIMEOUT_MS = 2_000;
 const AUDIT_TARGET = "operator_application";
@@ -313,6 +314,7 @@ export class OperatorApplicationReviewService {
               where: { applicationId, revokedAt: null },
               data: { revokedAt: now },
             });
+            await copyApplicationToOperator(tx, applicationId, created.operatorId, actor.sub, now);
             await this.recordAudit(actor, {
               action: "operator_application.approve",
               targetId: applicationId,

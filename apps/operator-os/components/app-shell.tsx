@@ -13,6 +13,7 @@ import {
   LifeBuoy,
   LogOut,
   MapPin,
+  Megaphone,
   Route,
   Tag,
   Ticket,
@@ -44,6 +45,8 @@ const NAV_GROUPS: NavGroup[] = [
     label: "Kinh doanh",
     items: [
       { href: "/bookings", label: "Đặt vé", icon: Ticket },
+      // Figma "VXN / Operator sidebar" (Khanh duyệt thêm mục 13/10/2026).
+      { href: "/promotions", label: "Khuyến mãi", icon: Megaphone },
       { href: "/finance", label: "Tài chính", icon: Wallet },
       { href: "/reports", label: "Báo cáo", icon: ChartColumn }
     ]

@@ -16,3 +16,20 @@ export async function findReferencedApplicationDocumentKeys(
   );
   return new Set(rows.map((row) => row.objectKey));
 }
+
+/**
+ * Như trên cho giấy tờ KYC nhà xe tải lên sau khi được duyệt (`kyc_documents`, TASK-OPR-001b). Job dọn chạy ngoài
+ * mọi tenant nên đọc ở ngữ cảnh `system`.
+ */
+export async function findReferencedKycDocumentKeys(
+  prisma: Pick<PrismaService, "withSystem">,
+  keys: readonly string[],
+): Promise<Set<string>> {
+  if (keys.length === 0) {
+    return new Set();
+  }
+  const rows = await prisma.withSystem((tx) =>
+    tx.kycDocument.findMany({ where: { objectKey: { in: [...keys] } }, select: { objectKey: true } }),
+  );
+  return new Set(rows.map((row) => row.objectKey));
+}

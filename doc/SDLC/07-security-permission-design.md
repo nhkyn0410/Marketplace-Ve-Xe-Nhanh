@@ -13,7 +13,7 @@
 | Người viết    | Nguyễn Hồng Khanh, AI Agent   |
 | Người duyệt   | Nguyễn Hồng Khanh             |
 | Ngày tạo      | 11/05/2026                    |
-| Ngày cập nhật | 15/10/2026                    |
+| Ngày cập nhật | 17/10/2026                    |
 
 ### 1.2. Lịch sử thay đổi
 
@@ -38,6 +38,8 @@
 | v0.17     | 07/10/2026 | AI Agent       | **Bản đồ trên web (`TASK-TRN-014`):** §11 dòng XSS — ghi sẵn các nguồn mà bản đồ cần khi viết CSP đầy đủ. Khóa Goong Maptiles là khóa công khai phía trình duyệt, không phải bí mật. Giữ trạng thái Review. |
 | v0.18     | 15/10/2026 | AI Agent       | **`TASK-ADM-004` (chờ Khanh duyệt):** §7 dòng Route/StopPoint — cột Admin hiện thực bằng quyền `catalog:manage` (chỉ PlatformAdmin; PlatformSupport không có). Giữ trạng thái hiện có. |
 | v0.19     | 16/10/2026 | AI Agent       | **`TASK-ADM-001` phần danh mục (chờ Khanh duyệt):** §7 thêm dòng Danh mục chuẩn — đọc công khai mục đang dùng (`/catalog/*`); Admin thêm / sửa tên / ngừng dùng / dùng lại bằng quyền `catalog:manage` (chỉ PlatformAdmin), lý do ngừng dùng vào audit, không xóa. Giữ trạng thái hiện có. |
+| v0.20     | 16/10/2026 | AI Agent       | **A5 Admin (chờ Khanh duyệt):** §7 dòng Ảnh phương tiện — cột Admin hiện thực bằng quyền mới `content:moderate` (chỉ PlatformAdmin); dòng Audit log — `audit:read` (PlatformAdmin) đọc toàn hệ thống, dữ liệu nhạy cảm che ở server, mỗi lượt xem chi tiết ghi audit. Giữ trạng thái hiện có. |
+| v0.21     | 17/10/2026 | AI Agent       | **Đợt hoàn thiện Admin + Operator OS (Khanh 16/10/2026, chờ duyệt):** §7 ghi quyền mới `content:manage` (bài viết), `user:manage` (khóa nhà xe / hành khách, cấp / khóa tài khoản quản trị), `system:read` (trang Tích hợp & hệ thống chỉ đọc) — đều chỉ PlatformAdmin; KYC Operator: chủ nhà xe sửa hồ sơ công khai / thay giấy tờ / yêu cầu đổi tài khoản nhận tiền bằng `kyc:submit`, Admin xác minh bằng `kyc:review`; chính sách / hoa hồng / khung giá dùng `finance:configure`. §8 ghi kiểm soát đã hiện thực cho đổi tài khoản nhận tiền, khóa nhà xe / người dùng, đổi chính sách, bài viết. §9 tài khoản nhận tiền: số đầy đủ chỉ Admin xem khi xác minh (audit). Giữ trạng thái hiện có. |
 
 ---
 
@@ -167,16 +169,18 @@ RBAC 8-role hardcoded enum v1 (Anonymous / Passenger / OperatorOwner / Driver / 
 | Payment                  | Có (guest session) | Có          | Không trực tiếp               | Không                  | Giám sát/đối soát      |
 | Cancel/refund request    | Vé / booking đã xác minh, theo policy | Vé của mình | Vé thuộc Operator theo policy | Không                  | Có                     |
 | Vehicle/SeatMap          | Không              | Không       | Có trong tenant               | Xem nếu được phân công | Giám sát/toàn hệ thống |
-| Ảnh phương tiện          | Xem qua chuyến     | Xem qua chuyến | Tải lên / sắp xếp / xóa trong tenant (`vehicle:manage`, Owner) | Không | Rà soát, gỡ ảnh vi phạm (lý do + audit) |
+| Ảnh phương tiện          | Xem qua chuyến     | Xem qua chuyến | Tải lên / sắp xếp / xóa trong tenant (`vehicle:manage`, Owner) | Không | Rà soát, gỡ ảnh vi phạm (lý do + audit) — `content:moderate`, chỉ PlatformAdmin |
 | Danh mục chuẩn (tỉnh, phường, loại xe, tiện ích) | Đọc mục đang dùng (`/catalog/*`) | Đọc mục đang dùng | Đọc mục đang dùng; chọn khi cấu hình xe / điểm dừng | Không | Thêm / sửa tên / ngừng dùng (lý do) / dùng lại — `catalog:manage`, chỉ PlatformAdmin, audit; không xóa |
 | Route/StopPoint riêng/đề xuất | Không         | Không       | Có trong tenant (`route:manage`, Owner): điểm riêng chỉ văn phòng trung chuyển / trạm dừng nghỉ; đề xuất bến xe / điểm dừng đón trả | Xem theo chuyến được phân công (task sau) | Quản lý điểm dùng chung, duyệt đề xuất, xem và khóa điểm riêng (ADM-004; quyền `catalog:manage`, chỉ PlatformAdmin) |
 | Trip (tạo/sửa chuyến nháp, mở bán / khóa / hủy, khóa ghế thủ công), bảng giá (fare) | Không | Không  | Có trong tenant (`trip:manage`, Owner) | Xem / cập nhật trạng thái chuyến được phân công (EMP-001/002) | Giám sát, khoá khi vi phạm (task Admin sau) |
 | Check-in                 | Không              | Không       | Xem kết quả                   | Có theo assignment     | Giám sát               |
-| KYC Operator             | Không              | Không       | Người đại diện: hồ sơ đăng ký qua link (chưa có tài khoản); Owner: cập nhật giấy tờ sau khi duyệt                | Không                  | Duyệt/quản lý          |
-| Policy/commission/payout | Không              | Không       | Xem phần liên quan            | Không                  | Cấu hình               |
+| KYC Operator             | Không              | Không       | Người đại diện: hồ sơ đăng ký qua link (chưa có tài khoản); Owner: cập nhật giấy tờ sau khi duyệt — hiện thực `kyc:submit` (Owner, tenant): sửa thông tin công khai, thay giấy tờ, yêu cầu đổi tài khoản nhận tiền (chờ duyệt, `OPR-001b-todo.md`) | Không                  | Duyệt/quản lý — `kyc:review`: duyệt hồ sơ, xem giấy tờ, xác minh / từ chối đổi tài khoản nhận tiền |
+| Policy/commission/payout | Không              | Không       | Xem phần liên quan (bảng giá nhận cảnh báo khung giá) | Không                  | Cấu hình — `finance:configure` (PlatformAdmin): phiên bản chính sách, hoa hồng, khung giá (chờ duyệt, `ADM-001-policy-todo.md`) |
 | Loyalty / ví voucher     | Không              | Của mình    | Không                         | Không                  | Cấu hình, xem, điều chỉnh (audit) |
-| Bài viết                 | Đọc bài công khai  | Đọc bài công khai | Đọc bài công khai       | Không                  | Soạn, xuất bản, gỡ     |
-| Audit log                | Không              | Không       | Log của tenant nếu được cấp   | Không                  | Có                     |
+| Bài viết                 | Đọc bài công khai  | Đọc bài công khai | Đọc bài công khai       | Không                  | Soạn, xuất bản, gỡ — `content:manage`, chỉ PlatformAdmin (`TASK-CNT-001`, chờ duyệt) |
+| Quản lý tài khoản        | Không              | Không       | Không                         | Không                  | `user:manage` (PlatformAdmin): tạm khóa / mở nhà xe, khóa / mở hành khách, cấp / khóa / cấp lại mật khẩu tài khoản quản trị; nhân viên nhà xe chỉ xem (chờ duyệt, `ADM-001-accounts-todo.md`) |
+| Tích hợp & hệ thống      | Không              | Không       | Không                         | Không                  | `system:read` (PlatformAdmin): xem trạng thái tích hợp + tác vụ nền, **chỉ đọc**, không trả khóa / bí mật (chờ duyệt, `ADM-system-shells-todo.md`) |
+| Audit log                | Không              | Không       | Log của tenant nếu được cấp   | Không                  | Có — `audit:read` (PlatformAdmin): tra cứu toàn hệ thống, trước / sau che ở server, mỗi lượt xem chi tiết được ghi audit |
 
 ---
 
@@ -187,13 +191,13 @@ RBAC 8-role hardcoded enum v1 (Anonymous / Passenger / OperatorOwner / Driver / 
 | Guest yêu cầu hủy vé / hoàn tiền  | Đối chiếu mã booking / mã vé với contact đã lưu; xác minh bổ sung theo policy; chỉ thao tác trên booking / ticket đã xác minh (`UC-08`, `UC-35`, `BR-21`) |
 | Refund thủ công                   | Admin permission, re-auth/TOTP, reason, audit, notification Operator                                     |
 | Payout confirm + nhập bank ref    | Admin permission, re-auth/TOTP, reason, audit; maker-checker dual-control khi team Platform >1 (ADR-022) |
-| Đổi bank account Operator         | Operator/Admin permission, re-auth, re-verify, audit                                                     |
+| Đổi bank account Operator         | Operator/Admin permission, re-auth, re-verify, audit — hiện thực (chờ duyệt): Owner `kyc:submit` + xác nhận lại danh tính tạo yêu cầu `PENDING` (tài khoản cũ vẫn dùng chi trả tới khi duyệt); Admin `kyc:review` + re-auth/TOTP xác minh / từ chối (lý do), khóa dòng + `changeId`; audit cả hai phía, email kết quả |
 | Đổi trip đã bán vé                | Operator/Admin permission, reason, notification, audit                                                   |
-| Khóa Operator/User/Employee       | Permission, reason, audit, session revoke (family)                                                       |
+| Khóa Operator/User/Employee       | Permission, reason, audit, session revoke (family) — hiện thực Admin `user:manage` + re-auth/TOTP (chờ duyệt) |
 | Duyệt hồ sơ đăng ký nhà xe         | Admin permission `kyc:review`, re-auth/TOTP, `Idempotency-Key`, reason khi từ chối / yêu cầu bổ sung, audit; mỗi hồ sơ tối đa một Operator; email mật khẩu tạm chỉ tới email đã xác minh |
-| Đổi policy hủy/giữ ghế/commission | Admin permission, effective date, audit, không áp ngược booking cũ (PolicySnapshot)                      |
+| Đổi policy hủy/giữ ghế/commission | Admin permission, effective date, audit, không áp ngược booking cũ (PolicySnapshot) — hiện thực `finance:configure` + re-auth/TOTP + lý do khi kích hoạt / hủy lịch / đổi hoa hồng / khung giá; hiệu lực phải ở tương lai; PolicySnapshot làm cùng `TASK-BTP-*` |
 | Điều chỉnh điểm / đổi tham số loyalty | Admin permission, reason, audit; tham số theo phiên bản có effective date, không áp ngược giao dịch điểm đã ghi |
-| Xuất bản / gỡ bài viết            | Admin permission, audit |
+| Xuất bản / gỡ bài viết            | Admin permission, audit — hiện thực `content:manage` (chờ duyệt) |
 | Gỡ ảnh phương tiện vi phạm        | Admin permission kiểm duyệt nội dung, reason bắt buộc, audit, thông báo Operator; không duyệt trước (BR-76) |
 | Tạo / sửa điểm dừng dùng chung; duyệt / từ chối đề xuất | Admin permission quản lý danh mục, audit; từ chối bắt buộc reason; bến xe / điểm dừng đón trả bắt buộc căn cứ công bố (BR-38) |
 | Khóa / mở khóa điểm dừng riêng     | Admin permission quản lý danh mục, reason bắt buộc, audit, thông báo Operator (BR-81) |
@@ -211,6 +215,7 @@ RBAC 8-role hardcoded enum v1 (Anonymous / Passenger / OperatorOwner / Driver / 
 | Payment data                       | **PCI SAQ-A**: cổng hosted/redirect (VNPay/MoMo), KHÔNG lưu card data; chỉ lưu mã giao dịch/provider metadata (ADR-019) |
 | KYC document                       | R2 **private bucket**; presigned URL TTL **5 phút** + audit log mỗi access (ADR-018)                                    |
 | Hồ sơ đăng ký nhà xe               | Giấy tờ ở R2 private (presigned 5 phút + audit như KYC); tài khoản nhận tiền mask khi hiển thị; token link chỉ lưu hash |
+| Tài khoản nhận tiền (`bank_accounts`) | Nhà xe chỉ thấy 4 số cuối; Admin xem số đầy đủ khi xác minh yêu cầu đổi — mỗi lượt xem ghi audit; audit / email chỉ ghi số đã che (chờ duyệt, `OPR-001b-todo.md`) |
 | Attachment (dispute/payment-proof) | R2 private bucket, presigned URL + audit                                                                                |
 | Ảnh phương tiện                    | R2 **public bucket** (ADR-018), không chứa PII / giấy tờ; chỉ JPEG / PNG / WebP ≤ 5 MB (không SVG); tên object ngẫu nhiên, không dùng tên file gốc; presigned `PUT` TTL 5 phút ký kèm `Content-Type`; server kiểm lại loại + dung lượng + chữ ký định dạng trước khi gắn vào xe; EXIF (vị trí chụp) bị loại khi nén ở trình duyệt (LLD-OQ-08); chú thích ảnh (tối đa 60 ký tự) là văn bản công khai do nhà xe nhập, hiển thị dạng text thuần, không render HTML |
 | Cross-border PII                   | Resend (email) + R2 (storage) đặt ngoài VN → DPIA NĐ 13/2023 cho KYC production (blocker **OQ-21**)                     |

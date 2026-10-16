@@ -9,6 +9,7 @@ part of 'serializers.dart';
 Serializers _$serializers = (Serializers().toBuilder()
       ..add(AccountMutationResponseDtoOutput.serializer)
       ..add(AccountMutationResponseDtoOutputStatusEnum.serializer)
+      ..add(AdminAccountLockDto.serializer)
       ..add(AdminAmenityDtoOutput.serializer)
       ..add(AdminAmenityDtoOutputStatusEnum.serializer)
       ..add(AdminAmenityInputDto.serializer)
@@ -33,8 +34,48 @@ Serializers _$serializers = (Serializers().toBuilder()
           .serializer)
       ..add(
           AdminApplicationListResponseDtoOutputItemsInnerStatusEnum.serializer)
+      ..add(AdminArticleCategoryDtoOutput.serializer)
+      ..add(AdminArticleCategoryDtoOutputStatusEnum.serializer)
+      ..add(AdminArticleCategoryInputDto.serializer)
+      ..add(AdminArticleCategoryInputDtoStatusEnum.serializer)
+      ..add(AdminArticleCategoryListDtoOutput.serializer)
+      ..add(AdminArticleCategoryListDtoOutputItemsInner.serializer)
+      ..add(AdminArticleCategoryListDtoOutputItemsInnerStatusEnum.serializer)
+      ..add(AdminArticleDtoOutput.serializer)
+      ..add(AdminArticleDtoOutputStatusEnum.serializer)
+      ..add(AdminArticleImageUploadInputDto.serializer)
+      ..add(AdminArticleImageUploadInputDtoContentTypeEnum.serializer)
+      ..add(AdminArticleImageUploadResponseDtoOutput.serializer)
+      ..add(AdminArticleInputDto.serializer)
+      ..add(AdminArticlePageDtoOutput.serializer)
+      ..add(AdminArticlePageDtoOutputItemsInner.serializer)
+      ..add(AdminArticlePageDtoOutputItemsInnerStatusEnum.serializer)
+      ..add(AdminArticlePublishDto.serializer)
+      ..add(AdminAuditLogDetailDtoOutput.serializer)
+      ..add(AdminAuditLogDetailDtoOutputActorTypeEnum.serializer)
+      ..add(AdminAuditLogDetailDtoOutputModuleEnum.serializer)
+      ..add(AdminAuditLogDetailDtoOutputResultEnum.serializer)
+      ..add(AdminAuditLogListDtoOutput.serializer)
+      ..add(AdminAuditLogListDtoOutputItemsInner.serializer)
+      ..add(AdminAuditLogListDtoOutputItemsInnerActorTypeEnum.serializer)
+      ..add(AdminAuditLogListDtoOutputItemsInnerModuleEnum.serializer)
+      ..add(AdminAuditLogListDtoOutputItemsInnerOperator.serializer)
+      ..add(AdminAuditLogListDtoOutputItemsInnerResultEnum.serializer)
+      ..add(AdminBankChangeApproveDto.serializer)
+      ..add(AdminBankChangeDtoOutput.serializer)
+      ..add(AdminBankChangeDtoOutputCurrent.serializer)
+      ..add(AdminBankChangeDtoOutputRequested.serializer)
+      ..add(AdminBankChangeRejectDto.serializer)
       ..add(AdminCatalogDeactivateDto.serializer)
       ..add(AdminCatalogRenameDto.serializer)
+      ..add(AdminEmployeePageDtoOutput.serializer)
+      ..add(AdminEmployeePageDtoOutputItemsInner.serializer)
+      ..add(AdminEmployeePageDtoOutputItemsInnerRoleEnum.serializer)
+      ..add(AdminEmployeePageDtoOutputItemsInnerStatusEnum.serializer)
+      ..add(AdminOperatorPageDtoOutput.serializer)
+      ..add(AdminOperatorPageDtoOutputItemsInner.serializer)
+      ..add(AdminOperatorPageDtoOutputItemsInnerOwner.serializer)
+      ..add(AdminOperatorPageDtoOutputItemsInnerStatusEnum.serializer)
       ..add(AdminOperatorStopPointDtoOutput.serializer)
       ..add(AdminOperatorStopPointDtoOutputStatusEnum.serializer)
       ..add(AdminOperatorStopPointDtoOutputTypeEnum.serializer)
@@ -42,12 +83,26 @@ Serializers _$serializers = (Serializers().toBuilder()
       ..add(AdminOperatorStopPointListDtoOutputItemsInner.serializer)
       ..add(AdminOperatorStopPointListDtoOutputItemsInnerStatusEnum.serializer)
       ..add(AdminOperatorStopPointListDtoOutputItemsInnerTypeEnum.serializer)
+      ..add(AdminOperatorSuspendDto.serializer)
+      ..add(AdminPassengerPageDtoOutput.serializer)
+      ..add(AdminPassengerPageDtoOutputItemsInner.serializer)
+      ..add(AdminPassengerPageDtoOutputItemsInnerStatusEnum.serializer)
+      ..add(AdminPlatformAccountCreateDto.serializer)
+      ..add(AdminPlatformAccountCreateDtoRoleEnum.serializer)
+      ..add(AdminPlatformAccountDtoOutput.serializer)
+      ..add(AdminPlatformAccountDtoOutputRoleEnum.serializer)
+      ..add(AdminPlatformAccountDtoOutputStatusEnum.serializer)
+      ..add(AdminPlatformAccountListDtoOutput.serializer)
+      ..add(AdminPlatformAccountListDtoOutputItemsInner.serializer)
+      ..add(AdminPlatformAccountListDtoOutputItemsInnerRoleEnum.serializer)
+      ..add(AdminPlatformAccountListDtoOutputItemsInnerStatusEnum.serializer)
       ..add(AdminProvinceDtoOutput.serializer)
       ..add(AdminProvinceDtoOutputStatusEnum.serializer)
       ..add(AdminProvinceInputDto.serializer)
       ..add(AdminProvincePageDtoOutput.serializer)
       ..add(AdminProvincePageDtoOutputItemsInner.serializer)
       ..add(AdminProvincePageDtoOutputItemsInnerStatusEnum.serializer)
+      ..add(AdminRemoveVehicleImageInputDto.serializer)
       ..add(AdminSharedStopPointDtoOutput.serializer)
       ..add(AdminSharedStopPointDtoOutputStatusEnum.serializer)
       ..add(AdminSharedStopPointDtoOutputTypeEnum.serializer)
@@ -68,6 +123,9 @@ Serializers _$serializers = (Serializers().toBuilder()
       ..add(AdminStopPointProposalListDtoOutputItemsInnerNearbyInner.serializer)
       ..add(AdminStopPointProposalListDtoOutputItemsInnerStatusEnum.serializer)
       ..add(AdminStopPointProposalListDtoOutputItemsInnerTypeEnum.serializer)
+      ..add(AdminVehicleImageListDtoOutput.serializer)
+      ..add(AdminVehicleImageListDtoOutputItemsInner.serializer)
+      ..add(AdminVehicleImageListDtoOutputOperatorsInner.serializer)
       ..add(AdminVehicleTypeDtoOutput.serializer)
       ..add(AdminVehicleTypeDtoOutputClass_Enum.serializer)
       ..add(AdminVehicleTypeDtoOutputFormEnum.serializer)
@@ -101,11 +159,34 @@ Serializers _$serializers = (Serializers().toBuilder()
       ..add(ApprovalInputDto.serializer)
       ..add(ApprovalResponseDtoOutput.serializer)
       ..add(ApprovalResponseDtoOutputStatusEnum.serializer)
+      ..add(ArticleCategoryListDtoOutput.serializer)
+      ..add(ArticleCategoryListDtoOutputItemsInner.serializer)
+      ..add(ArticleDtoOutput.serializer)
+      ..add(ArticlePageDtoOutput.serializer)
+      ..add(ArticlePageDtoOutputItemsInner.serializer)
+      ..add(ArticlePageDtoOutputItemsInnerCategory.serializer)
       ..add(AuthMeResponseDtoOutput.serializer)
       ..add(AuthMeResponseDtoOutputScopeEnum.serializer)
       ..add(AuthTokenResponseDtoOutput.serializer)
       ..add(AuthTokenResponseDtoOutputScopeEnum.serializer)
       ..add(AuthTokenResponseDtoOutputTokenTypeEnum.serializer)
+      ..add(BackgroundJobsDtoOutput.serializer)
+      ..add(BackgroundJobsDtoOutputJobsInner.serializer)
+      ..add(BackgroundJobsDtoOutputJobsInnerLastRun.serializer)
+      ..add(BackgroundJobsDtoOutputJobsInnerLastRunStateEnum.serializer)
+      ..add(BackgroundJobsDtoOutputQueuesInner.serializer)
+      ..add(BankChangeInputDto.serializer)
+      ..add(CommissionOverviewDtoOutput.serializer)
+      ..add(CommissionOverviewDtoOutputDefault.serializer)
+      ..add(CommissionOverviewDtoOutputOverridesInner.serializer)
+      ..add(CommissionOverviewDtoOutputOverridesInnerStateEnum.serializer)
+      ..add(CommissionOverviewDtoOutputOverridesInnerStatusEnum.serializer)
+      ..add(CommissionRuleCancelDto.serializer)
+      ..add(CommissionRuleCreateDto.serializer)
+      ..add(CommissionRuleDtoOutput.serializer)
+      ..add(CommissionRuleDtoOutputStateEnum.serializer)
+      ..add(CommissionRuleDtoOutputStatusEnum.serializer)
+      ..add(CommissionRuleUpdateDto.serializer)
       ..add(CredentialLoginDto.serializer)
       ..add(CredentialLoginResponseDtoOutput.serializer)
       ..add(CredentialTokenResponse.serializer)
@@ -137,6 +218,14 @@ Serializers _$serializers = (Serializers().toBuilder()
       ..add(EmployeeUpdateDto.serializer)
       ..add(EmployeeUpdateDtoRoleEnum.serializer)
       ..add(EmployeeUpdateDtoStatusEnum.serializer)
+      ..add(FareBandCreateDto.serializer)
+      ..add(FareBandDtoOutput.serializer)
+      ..add(FareBandDtoOutputStateEnum.serializer)
+      ..add(FareBandDtoOutputStatusEnum.serializer)
+      ..add(FareBandListDtoOutput.serializer)
+      ..add(FareBandListDtoOutputItemsInner.serializer)
+      ..add(FareBandListDtoOutputItemsInnerStateEnum.serializer)
+      ..add(FareBandListDtoOutputItemsInnerStatusEnum.serializer)
       ..add(FareCreateInputDto.serializer)
       ..add(FareCreateInputDtoRulesInner.serializer)
       ..add(FareCreateInputDtoRulesInnerSeatTypeEnum.serializer)
@@ -145,6 +234,7 @@ Serializers _$serializers = (Serializers().toBuilder()
       ..add(FareListResponseDtoOutputItemsInner.serializer)
       ..add(FareListResponseDtoOutputItemsInnerStatusEnum.serializer)
       ..add(FareResponseDtoOutput.serializer)
+      ..add(FareResponseDtoOutputBandWarningsInner.serializer)
       ..add(FareResponseDtoOutputRulesInner.serializer)
       ..add(FareResponseDtoOutputRulesInnerSeatTypeEnum.serializer)
       ..add(FareResponseDtoOutputStatusEnum.serializer)
@@ -161,6 +251,11 @@ Serializers _$serializers = (Serializers().toBuilder()
       ..add(FareUpdateInputDtoStatusEnum.serializer)
       ..add(HealthResponseDtoOutput.serializer)
       ..add(HealthResponseDtoOutputStatusEnum.serializer)
+      ..add(KycDownloadResponseDtoOutput.serializer)
+      ..add(KycReplaceInputDto.serializer)
+      ..add(KycUploadInputDto.serializer)
+      ..add(KycUploadInputDtoContentTypeEnum.serializer)
+      ..add(KycUploadResponseDtoOutput.serializer)
       ..add(MessageResponseDtoOutput.serializer)
       ..add(MessageResponseDtoOutputStatusEnum.serializer)
       ..add(MfaChallengeResponse.serializer)
@@ -179,6 +274,12 @@ Serializers _$serializers = (Serializers().toBuilder()
       ..add(MongoHealthResponseDtoOutputStatusEnum.serializer)
       ..add(OAuthInitDto.serializer)
       ..add(OAuthRedirectResponseDtoOutput.serializer)
+      ..add(OperatorProfileResponseDtoOutput.serializer)
+      ..add(OperatorProfileResponseDtoOutputBankAccount.serializer)
+      ..add(OperatorProfileResponseDtoOutputBankChange.serializer)
+      ..add(OperatorProfileResponseDtoOutputBankChangeStatusEnum.serializer)
+      ..add(OperatorProfileResponseDtoOutputStatusEnum.serializer)
+      ..add(OperatorProfileUpdateDto.serializer)
       ..add(OperatorStopPointInputDto.serializer)
       ..add(OperatorStopPointInputDtoStatusEnum.serializer)
       ..add(OperatorStopPointInputDtoTypeEnum.serializer)
@@ -196,6 +297,32 @@ Serializers _$serializers = (Serializers().toBuilder()
       ..add(
           PasswordChangeChallengeResponsePasswordChangeRequiredEnum.serializer)
       ..add(PasswordChangeRequiredDto.serializer)
+      ..add(PolicyCancelDto.serializer)
+      ..add(PolicyDraftCreateDto.serializer)
+      ..add(PolicyDraftUpdateDto.serializer)
+      ..add(PolicyOverviewDtoOutput.serializer)
+      ..add(PolicyOverviewDtoOutputOverridesInner.serializer)
+      ..add(PolicyOverviewDtoOutputOverridesInnerStateEnum.serializer)
+      ..add(PolicyOverviewDtoOutputTypeEnum.serializer)
+      ..add(PolicyOverviewDtoOutputVersionsInner.serializer)
+      ..add(PolicyOverviewDtoOutputVersionsInnerRules.serializer)
+      ..add(PolicyOverviewDtoOutputVersionsInnerRulesAnyOf.serializer)
+      ..add(PolicyOverviewDtoOutputVersionsInnerRulesAnyOf1.serializer)
+      ..add(PolicyOverviewDtoOutputVersionsInnerRulesAnyOf2.serializer)
+      ..add(
+          PolicyOverviewDtoOutputVersionsInnerRulesAnyOf2ChannelEnum.serializer)
+      ..add(
+          PolicyOverviewDtoOutputVersionsInnerRulesAnyOf2ManualConfirmationEnum
+              .serializer)
+      ..add(PolicyOverviewDtoOutputVersionsInnerRulesAnyOfTiersInner.serializer)
+      ..add(PolicyOverviewDtoOutputVersionsInnerStateEnum.serializer)
+      ..add(PolicyOverviewDtoOutputVersionsInnerStatusEnum.serializer)
+      ..add(PolicyOverviewDtoOutputVersionsInnerTypeEnum.serializer)
+      ..add(PolicyPublishDto.serializer)
+      ..add(PolicyVersionDtoOutput.serializer)
+      ..add(PolicyVersionDtoOutputStateEnum.serializer)
+      ..add(PolicyVersionDtoOutputStatusEnum.serializer)
+      ..add(PolicyVersionDtoOutputTypeEnum.serializer)
       ..add(PostgresHealthResponseDtoOutput.serializer)
       ..add(PostgresHealthResponseDtoOutputServiceEnum.serializer)
       ..add(PostgresHealthResponseDtoOutputStatusEnum.serializer)
@@ -259,6 +386,9 @@ Serializers _$serializers = (Serializers().toBuilder()
       ..add(StopPointProposalResponseDtoOutputStatusEnum.serializer)
       ..add(StopPointProposalResponseDtoOutputTypeEnum.serializer)
       ..add(StopPointReasonInputDto.serializer)
+      ..add(SystemIntegrationsDtoOutput.serializer)
+      ..add(SystemIntegrationsDtoOutputItemsInner.serializer)
+      ..add(SystemIntegrationsDtoOutputItemsInnerStatusEnum.serializer)
       ..add(TripInputDto.serializer)
       ..add(TripListResponseDtoOutput.serializer)
       ..add(TripListResponseDtoOutputItemsInner.serializer)
@@ -307,6 +437,11 @@ Serializers _$serializers = (Serializers().toBuilder()
           () => ListBuilder<AdminApplicationDetailDtoOutputDocumentsInner>())
       ..addBuilderFactory(
           const FullType(BuiltList, const [
+            const FullType(AdminApplicationDetailDtoOutputDocumentsInner)
+          ]),
+          () => ListBuilder<AdminApplicationDetailDtoOutputDocumentsInner>())
+      ..addBuilderFactory(
+          const FullType(BuiltList, const [
             const FullType(AdminApplicationDetailDtoOutputHistoryInner)
           ]),
           () => ListBuilder<AdminApplicationDetailDtoOutputHistoryInner>())
@@ -345,9 +480,44 @@ Serializers _$serializers = (Serializers().toBuilder()
               AdminApplicationListResponseDtoOutputItemsInnerDuplicatesEnum>())
       ..addBuilderFactory(
           const FullType(BuiltList, const [
+            const FullType(AdminArticleCategoryListDtoOutputItemsInner)
+          ]),
+          () => ListBuilder<AdminArticleCategoryListDtoOutputItemsInner>())
+      ..addBuilderFactory(
+          const FullType(BuiltList,
+              const [const FullType(AdminArticlePageDtoOutputItemsInner)]),
+          () => ListBuilder<AdminArticlePageDtoOutputItemsInner>())
+      ..addBuilderFactory(
+          const FullType(BuiltList,
+              const [const FullType(AdminAuditLogListDtoOutputItemsInner)]),
+          () => ListBuilder<AdminAuditLogListDtoOutputItemsInner>())
+      ..addBuilderFactory(
+          const FullType(BuiltList,
+              const [const FullType(AdminEmployeePageDtoOutputItemsInner)]),
+          () => ListBuilder<AdminEmployeePageDtoOutputItemsInner>())
+      ..addBuilderFactory(
+          const FullType(BuiltList, const [
+            const FullType(AdminVehicleImageListDtoOutputOperatorsInner)
+          ]),
+          () => ListBuilder<AdminVehicleImageListDtoOutputOperatorsInner>())
+      ..addBuilderFactory(
+          const FullType(BuiltList,
+              const [const FullType(AdminOperatorPageDtoOutputItemsInner)]),
+          () => ListBuilder<AdminOperatorPageDtoOutputItemsInner>())
+      ..addBuilderFactory(
+          const FullType(BuiltList, const [
             const FullType(AdminOperatorStopPointListDtoOutputItemsInner)
           ]),
           () => ListBuilder<AdminOperatorStopPointListDtoOutputItemsInner>())
+      ..addBuilderFactory(
+          const FullType(BuiltList,
+              const [const FullType(AdminPassengerPageDtoOutputItemsInner)]),
+          () => ListBuilder<AdminPassengerPageDtoOutputItemsInner>())
+      ..addBuilderFactory(
+          const FullType(BuiltList, const [
+            const FullType(AdminPlatformAccountListDtoOutputItemsInner)
+          ]),
+          () => ListBuilder<AdminPlatformAccountListDtoOutputItemsInner>())
       ..addBuilderFactory(
           const FullType(BuiltList,
               const [const FullType(AdminProvincePageDtoOutputItemsInner)]),
@@ -378,6 +548,15 @@ Serializers _$serializers = (Serializers().toBuilder()
               AdminStopPointProposalListDtoOutputItemsInnerNearbyInner>())
       ..addBuilderFactory(
           const FullType(BuiltList,
+              const [const FullType(AdminVehicleImageListDtoOutputItemsInner)]),
+          () => ListBuilder<AdminVehicleImageListDtoOutputItemsInner>())
+      ..addBuilderFactory(
+          const FullType(BuiltList, const [
+            const FullType(AdminVehicleImageListDtoOutputOperatorsInner)
+          ]),
+          () => ListBuilder<AdminVehicleImageListDtoOutputOperatorsInner>())
+      ..addBuilderFactory(
+          const FullType(BuiltList,
               const [const FullType(AdminVehicleTypeListDtoOutputItemsInner)]),
           () => ListBuilder<AdminVehicleTypeListDtoOutputItemsInner>())
       ..addBuilderFactory(
@@ -397,12 +576,37 @@ Serializers _$serializers = (Serializers().toBuilder()
               const [const FullType(ApplicationUpdateInputDtoDocumentsInner)]),
           () => ListBuilder<ApplicationUpdateInputDtoDocumentsInner>())
       ..addBuilderFactory(
+          const FullType(BuiltList,
+              const [const FullType(ArticleCategoryListDtoOutputItemsInner)]),
+          () => ListBuilder<ArticleCategoryListDtoOutputItemsInner>())
+      ..addBuilderFactory(
+          const FullType(BuiltList,
+              const [const FullType(ArticlePageDtoOutputItemsInner)]),
+          () => ListBuilder<ArticlePageDtoOutputItemsInner>())
+      ..addBuilderFactory(
+          const FullType(BuiltList,
+              const [const FullType(BackgroundJobsDtoOutputJobsInner)]),
+          () => ListBuilder<BackgroundJobsDtoOutputJobsInner>())
+      ..addBuilderFactory(
+          const FullType(BuiltList,
+              const [const FullType(BackgroundJobsDtoOutputQueuesInner)]),
+          () => ListBuilder<BackgroundJobsDtoOutputQueuesInner>())
+      ..addBuilderFactory(
+          const FullType(BuiltList, const [
+            const FullType(CommissionOverviewDtoOutputOverridesInner)
+          ]),
+          () => ListBuilder<CommissionOverviewDtoOutputOverridesInner>())
+      ..addBuilderFactory(
           const FullType(BuiltList, const [const FullType(DateTime)]),
           () => ListBuilder<DateTime>())
       ..addBuilderFactory(
           const FullType(BuiltList,
               const [const FullType(EmployeeListResponseDtoOutputItemsInner)]),
           () => ListBuilder<EmployeeListResponseDtoOutputItemsInner>())
+      ..addBuilderFactory(
+          const FullType(BuiltList,
+              const [const FullType(FareBandListDtoOutputItemsInner)]),
+          () => ListBuilder<FareBandListDtoOutputItemsInner>())
       ..addBuilderFactory(
           const FullType(
               BuiltList, const [const FullType(FareCreateInputDtoRulesInner)]),
@@ -428,6 +632,10 @@ Serializers _$serializers = (Serializers().toBuilder()
               const [const FullType(FareResponseDtoOutputRulesInner)]),
           () => ListBuilder<FareResponseDtoOutputRulesInner>())
       ..addBuilderFactory(
+          const FullType(BuiltList,
+              const [const FullType(FareResponseDtoOutputBandWarningsInner)]),
+          () => ListBuilder<FareResponseDtoOutputBandWarningsInner>())
+      ..addBuilderFactory(
           const FullType(BuiltList, const [
             const FullType(FareRevisionListResponseDtoOutputItemsInner)
           ]),
@@ -437,6 +645,21 @@ Serializers _$serializers = (Serializers().toBuilder()
             const FullType(OperatorStopPointListResponseDtoOutputItemsInner)
           ]),
           () => ListBuilder<OperatorStopPointListResponseDtoOutputItemsInner>())
+      ..addBuilderFactory(
+          const FullType(BuiltList,
+              const [const FullType(PolicyOverviewDtoOutputVersionsInner)]),
+          () => ListBuilder<PolicyOverviewDtoOutputVersionsInner>())
+      ..addBuilderFactory(
+          const FullType(BuiltList,
+              const [const FullType(PolicyOverviewDtoOutputOverridesInner)]),
+          () => ListBuilder<PolicyOverviewDtoOutputOverridesInner>())
+      ..addBuilderFactory(
+          const FullType(BuiltList, const [
+            const FullType(
+                PolicyOverviewDtoOutputVersionsInnerRulesAnyOfTiersInner)
+          ]),
+          () => ListBuilder<
+              PolicyOverviewDtoOutputVersionsInnerRulesAnyOfTiersInner>())
       ..addBuilderFactory(
           const FullType(BuiltList,
               const [const FullType(ProvinceListResponseDtoOutputItemsInner)]),
@@ -513,6 +736,9 @@ Serializers _$serializers = (Serializers().toBuilder()
           const FullType(BuiltList, const [const FullType(String)]),
           () => ListBuilder<String>())
       ..addBuilderFactory(
+          const FullType(BuiltList, const [const FullType(String)]),
+          () => ListBuilder<String>())
+      ..addBuilderFactory(
           const FullType(BuiltList, const [
             const FullType(VehicleListResponseDtoOutputItemsInnerImagesInner)
           ]),
@@ -527,6 +753,10 @@ Serializers _$serializers = (Serializers().toBuilder()
           ]),
           () =>
               ListBuilder<VehicleListResponseDtoOutputItemsInnerImagesInner>())
+      ..addBuilderFactory(
+          const FullType(BuiltList,
+              const [const FullType(SystemIntegrationsDtoOutputItemsInner)]),
+          () => ListBuilder<SystemIntegrationsDtoOutputItemsInner>())
       ..addBuilderFactory(
           const FullType(BuiltList,
               const [const FullType(TripListResponseDtoOutputItemsInner)]),
@@ -565,7 +795,23 @@ Serializers _$serializers = (Serializers().toBuilder()
       ..addBuilderFactory(
           const FullType(
               BuiltMap, const [const FullType(String), const FullType(int)]),
-          () => MapBuilder<String, int>()))
+          () => MapBuilder<String, int>())
+      ..addBuilderFactory(
+          const FullType(BuiltMap, const [
+            const FullType(String),
+            const FullType.nullable(JsonObject)
+          ]),
+          () => MapBuilder<String, JsonObject?>())
+      ..addBuilderFactory(
+          const FullType(BuiltMap, const [
+            const FullType(String),
+            const FullType.nullable(JsonObject)
+          ]),
+          () => MapBuilder<String, JsonObject?>())
+      ..addBuilderFactory(
+          const FullType(BuiltList,
+              const [const FullType(AdminAuditLogListDtoOutputItemsInner)]),
+          () => ListBuilder<AdminAuditLogListDtoOutputItemsInner>()))
     .build();
 
 // ignore_for_file: deprecated_member_use_from_same_package,type=lint

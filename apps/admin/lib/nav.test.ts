@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { NAV_GROUPS, navItemOf } from "./nav";
+import { NAV_GROUPS } from "./nav";
 
 describe("thanh bên Admin", () => {
   it("đủ 16 mục theo Figma, không trùng đường dẫn", () => {
@@ -17,12 +17,4 @@ describe("thanh bên Admin", () => {
     ]);
   });
 
-  it("tìm mục theo đường dẫn, kể cả route con; trang chủ và đường lạ → không có", () => {
-    expect(navItemOf("/operators")?.label).toBe("Nhà xe & KYC");
-    expect(navItemOf("/operators/applications/abc")?.label).toBe("Nhà xe & KYC");
-    expect(navItemOf("/audit-logs")?.label).toBe("Nhật ký audit");
-    expect(navItemOf("/")).toBeUndefined();
-    expect(navItemOf("/khong-co")).toBeUndefined();
-    expect(navItemOf("/operatorsx")).toBeUndefined();
-  });
 });

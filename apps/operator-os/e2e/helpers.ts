@@ -13,6 +13,10 @@ export type E2eAccounts = {
   routeOwner: { username: string; password: string };
   /** Owner riêng cho E2E màn Nhân viên + Tài khoản: mật khẩu thường, chưa bật TOTP. */
   staffOwner: { username: string; password: string };
+  /** Nhà xe riêng của E2E màn Hồ sơ & KYC: đã có hồ sơ pháp lý + tài khoản nhận tiền đã xác minh. */
+  kycOperatorSlug: string;
+  /** Owner của nhà xe đó: mật khẩu thường, chưa bật TOTP. */
+  kycOwner: { username: string; password: string };
   /** Nhà xe riêng của E2E màn chuyến xe (có sẵn tuyến + xe, nên tách khỏi nhà xe của các spec kiểm danh sách rỗng). */
   tripOperatorSlug: string;
   /** Owner của nhà xe đó: mật khẩu thường, chưa bật TOTP. */

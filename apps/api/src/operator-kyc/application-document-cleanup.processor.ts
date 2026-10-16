@@ -8,6 +8,7 @@ import {
   APPLICATION_DOCUMENT_CLEANUP_JOB,
   APPLICATION_DOCUMENT_CLEANUP_SCHEDULE,
   deleteOrphanApplicationDocuments,
+  deleteOrphanKycDocuments,
 } from "./application-document-cleanup";
 
 /** TASK-OPR-001 — dọn giấy tờ hồ sơ đăng ký mồ côi trong kho riêng tư. Chạy trong worker (ADR-024), concurrency 1. */
@@ -35,7 +36,10 @@ export class ApplicationDocumentCleanupProcessor extends WorkerHost implements O
       throw new Error(`Unsupported KYC maintenance job: ${job.name}`);
     }
     // Production chưa có kho riêng tư (OQ-21) thì cũng chưa có giấy tờ nào để dọn.
-    const deleted = this.storage ? await deleteOrphanApplicationDocuments(this.storage, this.prisma) : 0;
+    const deleted = this.storage
+      ? (await deleteOrphanApplicationDocuments(this.storage, this.prisma)) +
+        (await deleteOrphanKycDocuments(this.storage, this.prisma))
+      : 0;
     this.logger.log({ event: "operator_application.document.cleanup", deleted });
     return { deleted };
   }

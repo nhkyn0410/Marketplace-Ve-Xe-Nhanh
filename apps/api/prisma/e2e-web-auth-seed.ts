@@ -4,9 +4,11 @@ import { resolve } from "node:path";
 import { PrismaPg } from "@prisma/adapter-pg";
 import Redis from "ioredis";
 import { PrismaClient } from "../src/generated/prisma/client";
+import { LocalStorageProvider } from "../src/external/storage/local-storage-provider";
 import { CredentialService } from "../src/iam/auth/credential.service";
 import { TEMP_EMAIL_GLOBAL_KEY } from "../src/iam/user/temporary-credential-email-limiter";
 import { getRedisUrl } from "../src/redis/redis.config";
+import { vehicleImageKey } from "../src/vehicle/vehicle-image-format";
 
 /**
  * Seed cho E2E web auth (TASK-IAM-006, TC-SEC-008): mỗi lần chạy tạo bộ tài khoản MỚI với mật khẩu
@@ -58,6 +60,9 @@ async function main(): Promise<void> {
     routeOwner: { username: `route-${tag}`, password: password() },
     // Owner cho E2E màn Nhân viên + Tài khoản: thao tác nhạy cảm cần xác nhận lại bằng mật khẩu của chính Owner.
     staffOwner: { username: `staff-${tag}`, password: password() },
+    // Owner cho E2E màn Hồ sơ & KYC (TASK-OPR-001b), ở một nhà xe RIÊNG đã có hồ sơ pháp lý + tài khoản nhận tiền.
+    kycOperatorSlug: `e2e-kyc-${tag}`,
+    kycOwner: { username: `kyc-${tag}`, password: password() },
     // Owner cho E2E màn Chuyến xe, ở một nhà xe RIÊNG kèm tuyến + xe dựng sẵn (`tripFixtures`): dữ liệu nền
     // không được lẫn vào nhà xe ở trên, vì spec xe / điểm dừng kiểm cả trạng thái danh sách rỗng.
     tripOperatorSlug: `e2e-trip-${tag}`,
@@ -74,7 +79,24 @@ async function main(): Promise<void> {
     // Quản trị viên thứ ba cho E2E màn Điểm dừng của Admin.
     platformCatalog: { username: `e2e-catalog-${tag}`, password: password() },
     // Quản trị viên thứ tư cho E2E màn Danh mục chuẩn (tỉnh / phường / loại xe / tiện ích).
-    platformData: { username: `e2e-data-${tag}`, password: password() }
+    platformData: { username: `e2e-data-${tag}`, password: password() },
+    // Quản trị viên thứ năm cho E2E màn Kiểm duyệt ảnh phương tiện + Nhật ký audit.
+    platformModeration: { username: `e2e-mod-${tag}`, password: password() },
+    // Quản trị viên thứ sáu cho E2E màn Bài viết (TASK-CNT-001).
+    platformContent: { username: `e2e-cnt-${tag}`, password: password() },
+    // Quản trị viên thứ bảy cho E2E quản lý nhà xe + người dùng; kèm một nhà xe để tạm khóa và một hành khách để khóa.
+    platformUsers: { username: `e2e-usr-${tag}`, password: password() },
+    // Quản trị viên thứ tám cho E2E màn Chính sách (TASK-ADM-001 phần chính sách) + một nhà xe để làm phạm vi riêng /
+    // mức hoa hồng riêng (không đụng chính sách mặc định dùng chung giữa các lần chạy).
+    platformPolicy: { username: `e2e-pol-${tag}`, password: password() },
+    adminPolicy: { operatorName: `E2E chính sách ${tag}`, operatorSlug: `e2e-pol-${tag}` },
+    adminUsers: {
+      operatorName: `E2E khóa ${tag}`,
+      operatorSlug: `e2e-lock-${tag}`,
+      passengerEmail: `e2e-rider-${tag}@example.com`
+    },
+    // Nhà xe RIÊNG có một xe hai ảnh để gỡ (không đụng xe của spec Chuyến xe / Phương tiện). `null` khi chưa có loại xe.
+    moderation: null as ModerationFixtures | null
   };
 
   const credentials = new CredentialService();
@@ -84,25 +106,36 @@ async function main(): Promise<void> {
     routeOwnerHash,
     staffOwnerHash,
     tripOwnerHash,
+    kycOwnerHash,
     employeeHash,
     platformHash,
     reviewerHash,
     catalogHash,
-    dataHash
+    dataHash,
+    moderationHash,
+    contentHash,
+    usersHash,
+    policyHash
   ] = await Promise.all([
     credentials.hash(accounts.owner.temporaryPassword),
     credentials.hash(accounts.fleetOwner.password),
     credentials.hash(accounts.routeOwner.password),
     credentials.hash(accounts.staffOwner.password),
     credentials.hash(accounts.tripOwner.password),
+    credentials.hash(accounts.kycOwner.password),
     credentials.hash(accounts.employee.password),
     credentials.hash(accounts.platform.password),
     credentials.hash(accounts.platformReviewer.password),
     credentials.hash(accounts.platformCatalog.password),
-    credentials.hash(accounts.platformData.password)
+    credentials.hash(accounts.platformData.password),
+    credentials.hash(accounts.platformModeration.password),
+    credentials.hash(accounts.platformContent.password),
+    credentials.hash(accounts.platformUsers.password),
+    credentials.hash(accounts.platformPolicy.password)
   ]);
 
   const prisma = new PrismaClient({ adapter: new PrismaPg({ connectionString }) });
+  let moderationImages: Awaited<ReturnType<typeof seedModerationFixtures>> = null;
   try {
     await prisma.$transaction(async (tx) => {
       await tx.$executeRaw`SELECT set_config('app.scope', 'system', true)`;
@@ -159,8 +192,84 @@ async function main(): Promise<void> {
           passwordHash: tripOwnerHash
         }
       });
+      const kycOperator = await tx.operatorProfile.create({
+        data: {
+          operatorSlug: accounts.kycOperatorSlug,
+          displayName: `E2E hồ sơ ${tag}`,
+          status: "ACTIVE",
+          legalName: `Công ty TNHH E2E ${tag}`,
+          taxCode: "0312345678",
+          hotline: "19006868",
+          publicEmail: `lienhe-${tag}@example.com`,
+          address: "266 Đồng Đen, TP. Hồ Chí Minh",
+          approvedAt: new Date()
+        }
+      });
+      await tx.operatorAccount.create({
+        data: {
+          operatorId: kycOperator.id,
+          operatorSlug: accounts.kycOperatorSlug,
+          username: accounts.kycOwner.username,
+          contactEmail: `kyc-${tag}@example.com`,
+          passwordHash: kycOwnerHash
+        }
+      });
+      await tx.bankAccount.create({
+        data: {
+          operatorId: kycOperator.id,
+          bankName: "Vietcombank",
+          accountNumber: "0071000124521",
+          accountHolder: "CTY TNHH E2E",
+          status: "VERIFIED",
+          reviewedAt: new Date()
+        }
+      });
       accounts.tripFixtures = await seedTripFixtures(tx, tripOperator.id);
       accounts.adminStopPoints = await seedAdminStopPointFixtures(tx, tripOperator.id, tag);
+      moderationImages = await seedModerationFixtures(tx, tag);
+      const lockable = await tx.operatorProfile.create({
+        data: { operatorSlug: accounts.adminUsers.operatorSlug, displayName: accounts.adminUsers.operatorName, status: "ACTIVE" }
+      });
+      await tx.operatorAccount.create({
+        data: {
+          operatorId: lockable.id,
+          operatorSlug: accounts.adminUsers.operatorSlug,
+          username: "owner01",
+          contactEmail: `lock-${tag}@example.com`,
+          passwordHash: "e2e-not-for-login"
+        }
+      });
+      // Một tài khoản nhận tiền đã xác minh + một yêu cầu đổi đang chờ để E2E Admin xác minh (TASK-OPR-001b).
+      await tx.bankAccount.createMany({
+        data: [
+          {
+            operatorId: lockable.id,
+            bankName: "Vietcombank",
+            accountNumber: "0071000124521",
+            accountHolder: "CTY E2E KHOA",
+            status: "VERIFIED",
+            reviewedAt: new Date(),
+            createdAt: new Date(Date.now() - 60_000),
+            updatedAt: new Date()
+          },
+          {
+            operatorId: lockable.id,
+            bankName: "Techcombank",
+            accountNumber: "190366880011",
+            accountHolder: "CTY E2E KHOA",
+            status: "PENDING",
+            changeReason: "Đổi sang tài khoản công ty mới",
+            updatedAt: new Date()
+          }
+        ]
+      });
+      await tx.operatorProfile.create({
+        data: { operatorSlug: accounts.adminPolicy.operatorSlug, displayName: accounts.adminPolicy.operatorName, status: "ACTIVE" }
+      });
+      await tx.user.create({
+        data: { id: `e2erider${tag}`, email: accounts.adminUsers.passengerEmail, name: `Khách E2E ${tag}`, emailVerified: true }
+      });
+      accounts.moderation = moderationImages?.fixtures ?? null;
       await tx.employeeAccount.create({
         data: { operatorId: operator.id, username: accounts.employee.username, passwordHash: employeeHash, role: "DRIVER" }
       });
@@ -170,12 +279,17 @@ async function main(): Promise<void> {
         { username: accounts.platform.username, passwordHash: platformHash, role: "PLATFORM_ADMIN" },
         { username: accounts.platformReviewer.username, passwordHash: reviewerHash, role: "PLATFORM_ADMIN" },
         { username: accounts.platformCatalog.username, passwordHash: catalogHash, role: "PLATFORM_ADMIN" },
-        { username: accounts.platformData.username, passwordHash: dataHash, role: "PLATFORM_ADMIN" }
+        { username: accounts.platformData.username, passwordHash: dataHash, role: "PLATFORM_ADMIN" },
+        { username: accounts.platformModeration.username, passwordHash: moderationHash, role: "PLATFORM_ADMIN" },
+        { username: accounts.platformContent.username, passwordHash: contentHash, role: "PLATFORM_ADMIN" },
+        { username: accounts.platformUsers.username, passwordHash: usersHash, role: "PLATFORM_ADMIN" },
+        { username: accounts.platformPolicy.username, passwordHash: policyHash, role: "PLATFORM_ADMIN" }
       ]
     });
   } finally {
     await prisma.$disconnect();
   }
+  await writeModerationImages(moderationImages?.objectKeys ?? []);
   await resetTemporaryPasswordEmailBudget();
 
   process.stdout.write(`${JSON.stringify(accounts)}\n`);
@@ -185,8 +299,9 @@ async function main(): Promise<void> {
  * Ngân sách email mật khẩu tạm toàn hệ thống là 30 / 24 giờ và mọi lần chạy E2E trên máy dev dùng chung một
  * Redis: không đặt lại thì sau vài chục lần chạy, ca tạo nhân viên nhận 429. Ngân sách theo nhà xe / người thao
  * tác không cần đặt lại vì mỗi lần seed là nhà xe mới. Bộ đếm theo IP của luồng đăng ký nhà xe (TASK-OPR-001, 10
- * lần / giờ) cũng vậy: mọi lần chạy đều từ cùng một IP local. Chỉ đụng Redis local; Redis chưa chạy thì bỏ qua — API
- * khi đó tự trả 503 và spec báo rõ.
+ * lần / giờ) cũng vậy: mọi lần chạy đều từ cùng một IP local. Bộ đếm đăng nhập theo IP (`login:ip:*`) cũng thế: mỗi
+ * spec đăng nhập vài lần nên chạy lại Admin + Operator OS vài lượt trong một giờ là chạm trần. Chỉ đụng Redis local;
+ * Redis chưa chạy thì bỏ qua — API khi đó tự trả 503 và spec báo rõ.
  */
 async function resetTemporaryPasswordEmailBudget(): Promise<void> {
   const url = getRedisUrl();
@@ -197,14 +312,84 @@ async function resetTemporaryPasswordEmailBudget(): Promise<void> {
   try {
     await redis.connect();
     await redis.del(TEMP_EMAIL_GLOBAL_KEY);
-    const applicationIpKeys = await redis.keys("opr-app:*:ip:*");
-    if (applicationIpKeys.length > 0) {
-      await redis.del(...applicationIpKeys);
+    const ipKeys = [...(await redis.keys("opr-app:*:ip:*")), ...(await redis.keys("login:ip:*"))];
+    if (ipKeys.length > 0) {
+      await redis.del(...ipKeys);
     }
   } catch {
     // Redis local chưa chạy.
   } finally {
     redis.disconnect();
+  }
+}
+
+type ModerationFixtures = { operatorName: string; plateNumber: string; captions: string[] };
+
+/** PNG 1×1 hợp lệ — đủ để ảnh hiện được trên màn Kiểm duyệt. */
+const PIXEL_PNG = Buffer.from(
+  "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==",
+  "base64"
+);
+
+/**
+ * Nhà xe riêng với một xe hai ảnh (ảnh đại diện + ảnh thứ hai) cho E2E màn Kiểm duyệt của Admin (TASK-ADM-003 phần
+ * ảnh xe). Ghi thẳng dòng `vehicle_images`; file ảnh ghi sau khi commit (`writeModerationImages`).
+ */
+async function seedModerationFixtures(
+  tx: Parameters<Parameters<PrismaClient["$transaction"]>[0]>[0],
+  tag: string
+): Promise<{ fixtures: ModerationFixtures; objectKeys: string[] } | null> {
+  const vehicleType = await tx.vehicleType.findFirst({ where: { status: "ACTIVE" }, select: { id: true } });
+  if (!vehicleType) {
+    return null;
+  }
+  const operatorSlug = `e2e-mod-${tag}`;
+  const fixtures = {
+    operatorName: `E2E kiểm duyệt ${tag}`,
+    plateNumber: `51B${10_000 + Math.floor(Math.random() * 90_000)}`,
+    captions: [`Ngoại thất E2E ${tag}`, `Khoang E2E ${tag}`]
+  };
+  const operator = await tx.operatorProfile.create({
+    data: { operatorSlug, displayName: fixtures.operatorName, status: "ACTIVE" }
+  });
+  await tx.operatorAccount.create({
+    data: {
+      operatorId: operator.id,
+      operatorSlug,
+      username: "owner01",
+      contactEmail: `mod-${tag}@example.com`,
+      passwordHash: "e2e-not-for-login"
+    }
+  });
+  const vehicle = await tx.vehicle.create({
+    data: { operatorId: operator.id, plateNumber: fixtures.plateNumber, vehicleTypeId: vehicleType.id }
+  });
+  const objectKeys = fixtures.captions.map(() => vehicleImageKey(operator.id, vehicle.id, randomUUID(), "image/png"));
+  await tx.vehicleImage.createMany({
+    data: objectKeys.map((objectKey, position) => ({
+      operatorId: operator.id,
+      vehicleId: vehicle.id,
+      objectKey,
+      position,
+      caption: fixtures.captions[position],
+      sizeBytes: PIXEL_PNG.length,
+      contentType: "image/png"
+    }))
+  });
+  return { fixtures, objectKeys };
+}
+
+/** Kho local của API dev (không cấu hình R2): ghi file ảnh để màn Kiểm duyệt hiển thị được. */
+async function writeModerationImages(objectKeys: string[]): Promise<void> {
+  if (objectKeys.length === 0 || process.env.R2_PUBLIC_BUCKET) {
+    return;
+  }
+  const storage = new LocalStorageProvider({
+    rootDir: resolve(process.env.STORAGE_LOCAL_DIR ?? ".storage/public"),
+    apiBaseUrl: "http://localhost"
+  });
+  for (const key of objectKeys) {
+    await storage.write(key, "image/png", PIXEL_PNG);
   }
 }
 

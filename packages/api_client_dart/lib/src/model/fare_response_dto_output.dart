@@ -4,6 +4,7 @@
 
 // ignore_for_file: unused_element
 import 'package:built_collection/built_collection.dart';
+import 'package:api_client_dart/src/model/fare_response_dto_output_band_warnings_inner.dart';
 import 'package:api_client_dart/src/model/fare_response_dto_output_rules_inner.dart';
 import 'package:built_value/built_value.dart';
 import 'package:built_value/serializer.dart';
@@ -21,6 +22,7 @@ part 'fare_response_dto_output.g.dart';
 /// * [updatedAt] 
 /// * [note] 
 /// * [rules] 
+/// * [bandWarnings] 
 @BuiltValue()
 abstract class FareResponseDtoOutput implements Built<FareResponseDtoOutput, FareResponseDtoOutputBuilder> {
   @BuiltValueField(wireName: r'id')
@@ -47,6 +49,9 @@ abstract class FareResponseDtoOutput implements Built<FareResponseDtoOutput, Far
 
   @BuiltValueField(wireName: r'rules')
   BuiltList<FareResponseDtoOutputRulesInner> get rules;
+
+  @BuiltValueField(wireName: r'bandWarnings')
+  BuiltList<FareResponseDtoOutputBandWarningsInner> get bandWarnings;
 
   FareResponseDtoOutput._();
 
@@ -110,6 +115,11 @@ class _$FareResponseDtoOutputSerializer implements PrimitiveSerializer<FareRespo
     yield serializers.serialize(
       object.rules,
       specifiedType: const FullType(BuiltList, [FullType(FareResponseDtoOutputRulesInner)]),
+    );
+    yield r'bandWarnings';
+    yield serializers.serialize(
+      object.bandWarnings,
+      specifiedType: const FullType(BuiltList, [FullType(FareResponseDtoOutputBandWarningsInner)]),
     );
   }
 
@@ -190,6 +200,13 @@ class _$FareResponseDtoOutputSerializer implements PrimitiveSerializer<FareRespo
             specifiedType: const FullType(BuiltList, [FullType(FareResponseDtoOutputRulesInner)]),
           ) as BuiltList<FareResponseDtoOutputRulesInner>;
           result.rules.replace(valueDes);
+          break;
+        case r'bandWarnings':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(BuiltList, [FullType(FareResponseDtoOutputBandWarningsInner)]),
+          ) as BuiltList<FareResponseDtoOutputBandWarningsInner>;
+          result.bandWarnings.replace(valueDes);
           break;
         default:
           unhandled.add(key);

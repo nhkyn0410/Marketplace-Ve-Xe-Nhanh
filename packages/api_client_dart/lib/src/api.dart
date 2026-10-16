@@ -9,15 +9,25 @@ import 'package:api_client_dart/src/auth/api_key_auth.dart';
 import 'package:api_client_dart/src/auth/basic_auth.dart';
 import 'package:api_client_dart/src/auth/bearer_auth.dart';
 import 'package:api_client_dart/src/auth/oauth.dart';
+import 'package:api_client_dart/src/api/admin_articles_api.dart';
+import 'package:api_client_dart/src/api/admin_audit_logs_api.dart';
 import 'package:api_client_dart/src/api/admin_catalog_api.dart';
+import 'package:api_client_dart/src/api/admin_commission_api.dart';
 import 'package:api_client_dart/src/api/admin_operator_applications_api.dart';
+import 'package:api_client_dart/src/api/admin_operators_api.dart';
+import 'package:api_client_dart/src/api/admin_policies_api.dart';
 import 'package:api_client_dart/src/api/admin_stop_points_api.dart';
+import 'package:api_client_dart/src/api/admin_system_api.dart';
+import 'package:api_client_dart/src/api/admin_users_api.dart';
+import 'package:api_client_dart/src/api/admin_vehicle_images_api.dart';
+import 'package:api_client_dart/src/api/articles_api.dart';
 import 'package:api_client_dart/src/api/auth_api.dart';
 import 'package:api_client_dart/src/api/catalog_api.dart';
 import 'package:api_client_dart/src/api/health_api.dart';
 import 'package:api_client_dart/src/api/operator_applications_api.dart';
 import 'package:api_client_dart/src/api/operator_employees_api.dart';
 import 'package:api_client_dart/src/api/operator_fares_api.dart';
+import 'package:api_client_dart/src/api/operator_profile_api.dart';
 import 'package:api_client_dart/src/api/operator_routes_api.dart';
 import 'package:api_client_dart/src/api/operator_seat_maps_api.dart';
 import 'package:api_client_dart/src/api/operator_stop_point_proposals_api.dart';
@@ -119,10 +129,28 @@ class ApiClientDart {
     }
   }
 
+  /// Get AdminArticlesApi instance, base route and serializer can be overridden by a given but be careful,
+  /// by doing that all interceptors will not be executed
+  AdminArticlesApi getAdminArticlesApi() {
+    return AdminArticlesApi(dio, serializers);
+  }
+
+  /// Get AdminAuditLogsApi instance, base route and serializer can be overridden by a given but be careful,
+  /// by doing that all interceptors will not be executed
+  AdminAuditLogsApi getAdminAuditLogsApi() {
+    return AdminAuditLogsApi(dio, serializers);
+  }
+
   /// Get AdminCatalogApi instance, base route and serializer can be overridden by a given but be careful,
   /// by doing that all interceptors will not be executed
   AdminCatalogApi getAdminCatalogApi() {
     return AdminCatalogApi(dio, serializers);
+  }
+
+  /// Get AdminCommissionApi instance, base route and serializer can be overridden by a given but be careful,
+  /// by doing that all interceptors will not be executed
+  AdminCommissionApi getAdminCommissionApi() {
+    return AdminCommissionApi(dio, serializers);
   }
 
   /// Get AdminOperatorApplicationsApi instance, base route and serializer can be overridden by a given but be careful,
@@ -131,10 +159,46 @@ class ApiClientDart {
     return AdminOperatorApplicationsApi(dio, serializers);
   }
 
+  /// Get AdminOperatorsApi instance, base route and serializer can be overridden by a given but be careful,
+  /// by doing that all interceptors will not be executed
+  AdminOperatorsApi getAdminOperatorsApi() {
+    return AdminOperatorsApi(dio, serializers);
+  }
+
+  /// Get AdminPoliciesApi instance, base route and serializer can be overridden by a given but be careful,
+  /// by doing that all interceptors will not be executed
+  AdminPoliciesApi getAdminPoliciesApi() {
+    return AdminPoliciesApi(dio, serializers);
+  }
+
   /// Get AdminStopPointsApi instance, base route and serializer can be overridden by a given but be careful,
   /// by doing that all interceptors will not be executed
   AdminStopPointsApi getAdminStopPointsApi() {
     return AdminStopPointsApi(dio, serializers);
+  }
+
+  /// Get AdminSystemApi instance, base route and serializer can be overridden by a given but be careful,
+  /// by doing that all interceptors will not be executed
+  AdminSystemApi getAdminSystemApi() {
+    return AdminSystemApi(dio, serializers);
+  }
+
+  /// Get AdminUsersApi instance, base route and serializer can be overridden by a given but be careful,
+  /// by doing that all interceptors will not be executed
+  AdminUsersApi getAdminUsersApi() {
+    return AdminUsersApi(dio, serializers);
+  }
+
+  /// Get AdminVehicleImagesApi instance, base route and serializer can be overridden by a given but be careful,
+  /// by doing that all interceptors will not be executed
+  AdminVehicleImagesApi getAdminVehicleImagesApi() {
+    return AdminVehicleImagesApi(dio, serializers);
+  }
+
+  /// Get ArticlesApi instance, base route and serializer can be overridden by a given but be careful,
+  /// by doing that all interceptors will not be executed
+  ArticlesApi getArticlesApi() {
+    return ArticlesApi(dio, serializers);
   }
 
   /// Get AuthApi instance, base route and serializer can be overridden by a given but be careful,
@@ -171,6 +235,12 @@ class ApiClientDart {
   /// by doing that all interceptors will not be executed
   OperatorFaresApi getOperatorFaresApi() {
     return OperatorFaresApi(dio, serializers);
+  }
+
+  /// Get OperatorProfileApi instance, base route and serializer can be overridden by a given but be careful,
+  /// by doing that all interceptors will not be executed
+  OperatorProfileApi getOperatorProfileApi() {
+    return OperatorProfileApi(dio, serializers);
   }
 
   /// Get OperatorRoutesApi instance, base route and serializer can be overridden by a given but be careful,

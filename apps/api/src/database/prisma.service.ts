@@ -72,6 +72,16 @@ export const RLS_TABLES = [
   "operator_applications",
   "operator_application_documents",
   "operator_application_access_tokens",
+  // Content (TASK-CNT-001): ai cũng đọc, chỉ platform / system ghi.
+  "article_categories",
+  "articles",
+  // Hồ sơ & KYC sau duyệt (TASK-OPR-001b): tenant_isolation; bank_accounts tenant chỉ gửi yêu cầu PENDING.
+  "kyc_documents",
+  "bank_accounts",
+  // Chính sách nền tảng (TASK-ADM-001): ai cũng đọc (hoa hồng: tenant chỉ thấy của mình), chỉ platform / system ghi.
+  "policy_versions",
+  "commission_rules",
+  "fare_bands",
 ] as const;
 
 @Injectable()

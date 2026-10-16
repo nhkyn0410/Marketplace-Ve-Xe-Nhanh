@@ -34,12 +34,11 @@ import {
   SUBMITTED_WINDOWS,
   submittedSince
 } from "../../lib/operator-application/application-format";
-import { PageHeader } from "../page-header";
 
 const FLAGGED = "FLAGGED";
 
 /**
- * Hàng đợi hồ sơ đăng ký nhà xe (Figma ADM-02a; UC-23 bước 1): hồ sơ đã gửi duyệt, mới gửi trước, lọc theo trạng
+ * Tab "Hồ sơ đăng ký" của màn Nhà xe & KYC — hàng đợi hồ sơ đăng ký nhà xe (Figma ADM-02a; UC-23 bước 1): hồ sơ đã gửi duyệt, mới gửi trước, lọc theo trạng
  * thái / thời điểm gửi / cảnh báo trùng định danh, tìm theo mã, tên hoặc email. Lọc và phân trang ở máy chủ.
  */
 export function ApplicationQueue() {
@@ -128,8 +127,6 @@ export function ApplicationQueue() {
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader title="Nhà xe & KYC" description="Duyệt hồ sơ đăng ký và quản lý trạng thái hoạt động của nhà xe." />
-
       <section aria-label="Hàng đợi hồ sơ đăng ký" className="flex flex-col rounded-xl border bg-card p-6">
         <div className="flex flex-wrap items-end gap-x-4 gap-y-3 pb-5">
           <FilterSelect

@@ -74,3 +74,17 @@ export function vehicleImageStorageUnavailable(): HttpException {
     "Kho lưu ảnh tạm thời không phản hồi. Vui lòng thử lại sau.",
   );
 }
+
+/** Admin gỡ ảnh không còn tồn tại (đã bị gỡ hoặc nhà xe vừa thay bộ ảnh) — API §7.5. */
+export function vehicleImageNotFound(): HttpException {
+  return problem(HttpStatus.NOT_FOUND, "VEHICLE_IMAGE_NOT_FOUND", "Không tìm thấy ảnh phương tiện.");
+}
+
+/** Ghi audit lỗi trong transaction gỡ ảnh: ảnh chưa bị gỡ. */
+export function vehicleImageAuditUnavailable(): HttpException {
+  return problem(
+    HttpStatus.SERVICE_UNAVAILABLE,
+    "SERVICE_UNAVAILABLE",
+    "Chưa ghi được nhật ký nên ảnh chưa được gỡ. Vui lòng thử lại sau.",
+  );
+}

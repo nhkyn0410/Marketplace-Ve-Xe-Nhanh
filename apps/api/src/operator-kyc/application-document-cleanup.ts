@@ -1,6 +1,10 @@
-import { findReferencedApplicationDocumentKeys } from "../database/operator-application-document-keys";
+import {
+  findReferencedApplicationDocumentKeys,
+  findReferencedKycDocumentKeys,
+} from "../database/operator-application-document-keys";
 import type { PrismaService } from "../database/prisma.service";
 import { deleteOrphanObjects } from "../external/storage/orphan-objects";
+import { KYC_DOCUMENT_ROOT } from "../operator/kyc-document-format";
 import type { StorageProvider } from "../external/storage/storage-provider";
 
 export const APPLICATION_DOCUMENT_CLEANUP_JOB = "application-document-cleanup";
@@ -28,6 +32,24 @@ export function deleteOrphanApplicationDocuments(
     prefix: APPLICATION_DOCUMENT_ROOT,
     minAgeMs: DOCUMENT_ORPHAN_MIN_AGE_MS,
     findReferenced: (keys) => findReferencedApplicationDocumentKeys(prisma, keys),
+    now,
+  });
+}
+
+/**
+ * Xóa giấy tờ KYC dưới `operator-kyc/` không còn dòng `kyc_documents` nào tham chiếu và đã cũ hơn 24 giờ: tải lên
+ * rồi bỏ dở, hoặc bản cũ bị thay mà lần xóa sau commit thất bại (TASK-OPR-001b).
+ */
+export function deleteOrphanKycDocuments(
+  storage: Pick<StorageProvider, "list" | "delete">,
+  prisma: Pick<PrismaService, "withSystem">,
+  now: Date = new Date(),
+): Promise<number> {
+  return deleteOrphanObjects({
+    storage,
+    prefix: KYC_DOCUMENT_ROOT,
+    minAgeMs: DOCUMENT_ORPHAN_MIN_AGE_MS,
+    findReferenced: (keys) => findReferencedKycDocumentKeys(prisma, keys),
     now,
   });
 }
