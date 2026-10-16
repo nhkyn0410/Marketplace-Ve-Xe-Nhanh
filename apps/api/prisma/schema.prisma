@@ -1296,3 +1296,53 @@ model FareBand {
   @@index([status, effectiveTo])
   @@map("fare_bands")
 }
+
+// ════════════════════════════ Nội dung công khai (TASK-ADM-003 — chờ Khanh duyệt) ════════════════════════════
+// `ContentPage` ở `catalog/` (DOMAIN-MAP): banner trang chủ, câu hỏi thường gặp, trang tĩnh chân trang. Dữ liệu cấp
+// Platform, KHÔNG `operator_id`. RLS: ai cũng đọc, chỉ platform / system ghi. CHECK theo loại ở migration.
+
+enum ContentPageType {
+  FAQ
+  BANNER
+  PAGE
+}
+
+/// Vị trí hiển thị: banner → HOME; trang tĩnh → FOOTER; FAQ → nhóm BOOKING / TICKET / ACCOUNT.
+enum ContentPlacement {
+  HOME
+  FOOTER
+  BOOKING
+  TICKET
+  ACCOUNT
+}
+
+enum ContentPageStatus {
+  DRAFT
+  PUBLISHED
+}
+
+model ContentPage {
+  id           String            @id @default(uuid())
+  type         ContentPageType
+  placement    ContentPlacement
+  title        String
+  /// Chỉ trang tĩnh: đường dẫn công khai `/trang/{slug}`.
+  slug         String?           @unique
+  /// FAQ: câu trả lời; trang tĩnh: nội dung; banner: dòng phụ (tuỳ chọn). Markdown, nơi hiển thị không render HTML thô.
+  bodyMarkdown String            @default("") @map("body_markdown")
+  /// Chỉ banner: khóa object ở kho công khai.
+  imageKey     String?           @map("image_key")
+  /// Chỉ banner: liên kết khi bấm (đường dẫn nội bộ `/…` hoặc `https://`).
+  linkUrl      String?           @map("link_url")
+  displayOrder Int               @default(0) @map("display_order")
+  status       ContentPageStatus @default(DRAFT)
+  publishedAt  DateTime?         @map("published_at")
+  createdBy    String            @map("created_by")
+  updatedBy    String            @map("updated_by")
+  createdAt    DateTime          @default(now()) @map("created_at")
+  updatedAt    DateTime          @updatedAt @map("updated_at")
+
+  @@index([type, status, placement, displayOrder])
+  @@index([updatedAt(sort: Desc)])
+  @@map("content_pages")
+}

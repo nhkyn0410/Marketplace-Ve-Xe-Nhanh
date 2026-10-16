@@ -41,6 +41,8 @@ import { TripController } from "../trip/trip.controller";
 import { TripService } from "../trip/trip.service";
 import { TripScheduleController } from "../trip/trip-schedule.controller";
 import { EmployeeAssignmentController } from "../employee/employee-assignment.controller";
+import { AdminContentPageController, ContentPageController } from "../catalog/content-page.controller";
+import { ContentPageService } from "../catalog/content-page.service";
 import { EmployeeAssignmentService } from "../employee/employee-assignment.service";
 import { TripScheduleService } from "../trip/trip-schedule.service";
 import { SeatMapController } from "../vehicle/seat-map.controller";
@@ -101,6 +103,8 @@ import { VehicleService } from "../vehicle/vehicle.service";
     TripController,
     TripScheduleController,
     EmployeeAssignmentController,
+    ContentPageController,
+    AdminContentPageController,
     FareController,
     OperatorApplicationController,
     OperatorApplicationReviewController,
@@ -147,6 +151,7 @@ import { VehicleService } from "../vehicle/vehicle.service";
     { provide: TripService, useValue: {} },
     { provide: TripScheduleService, useValue: {} },
     { provide: EmployeeAssignmentService, useValue: {} },
+    { provide: ContentPageService, useValue: {} },
     { provide: FareService, useValue: {} },
     // Dependency của AccessTokenGuard (logout, re-auth) — Nest dựng guard lúc khởi tạo module.
     { provide: TokenService, useValue: {} },
