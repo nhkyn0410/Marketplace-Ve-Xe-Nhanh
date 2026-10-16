@@ -120,6 +120,13 @@ import 'package:api_client_dart/src/model/commission_rule_cancel_dto.dart';
 import 'package:api_client_dart/src/model/commission_rule_create_dto.dart';
 import 'package:api_client_dart/src/model/commission_rule_dto_output.dart';
 import 'package:api_client_dart/src/model/commission_rule_update_dto.dart';
+import 'package:api_client_dart/src/model/content_image_upload_input_dto.dart';
+import 'package:api_client_dart/src/model/content_image_upload_response_dto_output.dart';
+import 'package:api_client_dart/src/model/content_page_detail_dto_output.dart';
+import 'package:api_client_dart/src/model/content_page_input_dto.dart';
+import 'package:api_client_dart/src/model/content_page_page_dto_output.dart';
+import 'package:api_client_dart/src/model/content_page_page_dto_output_items_inner.dart';
+import 'package:api_client_dart/src/model/content_page_status_input_dto.dart';
 import 'package:api_client_dart/src/model/credential_login_dto.dart';
 import 'package:api_client_dart/src/model/credential_login_response_dto_output.dart';
 import 'package:api_client_dart/src/model/credential_token_response.dart';
@@ -130,6 +137,7 @@ import 'package:api_client_dart/src/model/decision_response_dto_output.dart';
 import 'package:api_client_dart/src/model/document_download_response_dto_output.dart';
 import 'package:api_client_dart/src/model/document_upload_input_dto.dart';
 import 'package:api_client_dart/src/model/document_upload_response_dto_output.dart';
+import 'package:api_client_dart/src/model/driver_assignment_input_dto.dart';
 import 'package:api_client_dart/src/model/employee_account_response_dto_output.dart';
 import 'package:api_client_dart/src/model/employee_create_dto.dart';
 import 'package:api_client_dart/src/model/employee_list_response_dto_output.dart';
@@ -195,6 +203,9 @@ import 'package:api_client_dart/src/model/postgres_health_response_dto_output.da
 import 'package:api_client_dart/src/model/problem_details_dto.dart';
 import 'package:api_client_dart/src/model/province_list_response_dto_output.dart';
 import 'package:api_client_dart/src/model/province_list_response_dto_output_items_inner.dart';
+import 'package:api_client_dart/src/model/public_content_item_dto_output.dart';
+import 'package:api_client_dart/src/model/public_content_list_dto_output.dart';
+import 'package:api_client_dart/src/model/public_content_list_dto_output_items_inner.dart';
 import 'package:api_client_dart/src/model/queue_health_response_dto_output.dart';
 import 'package:api_client_dart/src/model/queue_health_response_dto_output_queues_inner.dart';
 import 'package:api_client_dart/src/model/reauth_dto.dart';
@@ -231,12 +242,25 @@ import 'package:api_client_dart/src/model/stop_point_proposal_response_dto_outpu
 import 'package:api_client_dart/src/model/stop_point_reason_input_dto.dart';
 import 'package:api_client_dart/src/model/system_integrations_dto_output.dart';
 import 'package:api_client_dart/src/model/system_integrations_dto_output_items_inner.dart';
+import 'package:api_client_dart/src/model/trip_assignment_dto_output.dart';
+import 'package:api_client_dart/src/model/trip_assignment_page_dto_output.dart';
+import 'package:api_client_dart/src/model/trip_assignment_page_dto_output_items_inner.dart';
+import 'package:api_client_dart/src/model/trip_assignment_page_dto_output_items_inner_conflict.dart';
+import 'package:api_client_dart/src/model/trip_assignment_page_dto_output_items_inner_driver.dart';
 import 'package:api_client_dart/src/model/trip_input_dto.dart';
 import 'package:api_client_dart/src/model/trip_list_response_dto_output.dart';
 import 'package:api_client_dart/src/model/trip_list_response_dto_output_items_inner.dart';
 import 'package:api_client_dart/src/model/trip_response_dto_output.dart';
 import 'package:api_client_dart/src/model/trip_response_dto_output_seats_inner.dart';
 import 'package:api_client_dart/src/model/trip_response_dto_output_stops_inner.dart';
+import 'package:api_client_dart/src/model/trip_schedule_generate_input_dto.dart';
+import 'package:api_client_dart/src/model/trip_schedule_generate_response_dto_output.dart';
+import 'package:api_client_dart/src/model/trip_schedule_generate_response_dto_output_created_inner.dart';
+import 'package:api_client_dart/src/model/trip_schedule_generate_response_dto_output_skipped_inner.dart';
+import 'package:api_client_dart/src/model/trip_schedule_input_dto.dart';
+import 'package:api_client_dart/src/model/trip_schedule_list_response_dto_output.dart';
+import 'package:api_client_dart/src/model/trip_schedule_list_response_dto_output_items_inner.dart';
+import 'package:api_client_dart/src/model/trip_schedule_response_dto_output.dart';
 import 'package:api_client_dart/src/model/trip_seat_status_input_dto.dart';
 import 'package:api_client_dart/src/model/trip_status_input_dto.dart';
 import 'package:api_client_dart/src/model/vehicle_image_upload_input_dto.dart';
@@ -364,6 +388,13 @@ part 'serializers.g.dart';
   CommissionRuleCreateDto,
   CommissionRuleDtoOutput,
   CommissionRuleUpdateDto,
+  ContentImageUploadInputDto,
+  ContentImageUploadResponseDtoOutput,
+  ContentPageDetailDtoOutput,
+  ContentPageInputDto,
+  ContentPagePageDtoOutput,
+  ContentPagePageDtoOutputItemsInner,
+  ContentPageStatusInputDto,
   CredentialLoginDto,
   CredentialLoginResponseDtoOutput,
   CredentialTokenResponse,
@@ -374,6 +405,7 @@ part 'serializers.g.dart';
   DocumentDownloadResponseDtoOutput,
   DocumentUploadInputDto,
   DocumentUploadResponseDtoOutput,
+  DriverAssignmentInputDto,
   EmployeeAccountResponseDtoOutput,
   EmployeeCreateDto,
   EmployeeListResponseDtoOutput,
@@ -439,6 +471,9 @@ part 'serializers.g.dart';
   ProblemDetailsDto,
   ProvinceListResponseDtoOutput,
   ProvinceListResponseDtoOutputItemsInner,
+  PublicContentItemDtoOutput,
+  PublicContentListDtoOutput,
+  PublicContentListDtoOutputItemsInner,
   QueueHealthResponseDtoOutput,
   QueueHealthResponseDtoOutputQueuesInner,
   ReauthDto,
@@ -475,12 +510,25 @@ part 'serializers.g.dart';
   StopPointReasonInputDto,
   SystemIntegrationsDtoOutput,
   SystemIntegrationsDtoOutputItemsInner,
+  TripAssignmentDtoOutput,
+  TripAssignmentPageDtoOutput,
+  TripAssignmentPageDtoOutputItemsInner,
+  TripAssignmentPageDtoOutputItemsInnerConflict,
+  TripAssignmentPageDtoOutputItemsInnerDriver,
   TripInputDto,
   TripListResponseDtoOutput,
   TripListResponseDtoOutputItemsInner,
   TripResponseDtoOutput,
   TripResponseDtoOutputSeatsInner,
   TripResponseDtoOutputStopsInner,
+  TripScheduleGenerateInputDto,
+  TripScheduleGenerateResponseDtoOutput,
+  TripScheduleGenerateResponseDtoOutputCreatedInner,
+  TripScheduleGenerateResponseDtoOutputSkippedInner,
+  TripScheduleInputDto,
+  TripScheduleListResponseDtoOutput,
+  TripScheduleListResponseDtoOutputItemsInner,
+  TripScheduleResponseDtoOutput,
   TripSeatStatusInputDto,
   TripStatusInputDto,
   VehicleImageUploadInputDto,
@@ -500,6 +548,18 @@ part 'serializers.g.dart';
   WardListResponseDtoOutputItemsInner,
 ])
 Serializers serializers = (_$serializers.toBuilder()
+      ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(TripScheduleGenerateResponseDtoOutputSkippedInner)]),
+        () => ListBuilder<TripScheduleGenerateResponseDtoOutputSkippedInner>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(TripScheduleListResponseDtoOutputItemsInner)]),
+        () => ListBuilder<TripScheduleListResponseDtoOutputItemsInner>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(ContentPagePageDtoOutputItemsInner)]),
+        () => ListBuilder<ContentPagePageDtoOutputItemsInner>(),
+      )
       ..addBuilderFactory(
         const FullType(BuiltList, [FullType(AdminWardPageDtoOutputItemsInner)]),
         () => ListBuilder<AdminWardPageDtoOutputItemsInner>(),
@@ -539,6 +599,10 @@ Serializers serializers = (_$serializers.toBuilder()
       ..addBuilderFactory(
         const FullType(BuiltList, [FullType(SeatMapListResponseDtoOutputItemsInner)]),
         () => ListBuilder<SeatMapListResponseDtoOutputItemsInner>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(PublicContentListDtoOutputItemsInner)]),
+        () => ListBuilder<PublicContentListDtoOutputItemsInner>(),
       )
       ..addBuilderFactory(
         const FullType(BuiltList, [FullType(ArticlePageDtoOutputItemsInner)]),
@@ -617,6 +681,10 @@ Serializers serializers = (_$serializers.toBuilder()
         () => ListBuilder<AdminOperatorStopPointListDtoOutputItemsInner>(),
       )
       ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(TripScheduleGenerateResponseDtoOutputCreatedInner)]),
+        () => ListBuilder<TripScheduleGenerateResponseDtoOutputCreatedInner>(),
+      )
+      ..addBuilderFactory(
         const FullType(BuiltList, [FullType(RouteInputDtoStopsInner)]),
         () => ListBuilder<RouteInputDtoStopsInner>(),
       )
@@ -667,6 +735,10 @@ Serializers serializers = (_$serializers.toBuilder()
       ..addBuilderFactory(
         const FullType(BuiltList, [FullType(AdminStopPointProposalListDtoOutputItemsInnerNearbyInner)]),
         () => ListBuilder<AdminStopPointProposalListDtoOutputItemsInnerNearbyInner>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(TripAssignmentPageDtoOutputItemsInner)]),
+        () => ListBuilder<TripAssignmentPageDtoOutputItemsInner>(),
       )
       ..addBuilderFactory(
         const FullType(BuiltList, [FullType(AdminArticleCategoryListDtoOutputItemsInner)]),
@@ -727,6 +799,10 @@ Serializers serializers = (_$serializers.toBuilder()
       ..addBuilderFactory(
         const FullType(BuiltList, [FullType(VehicleTypeListResponseDtoOutputItemsInner)]),
         () => ListBuilder<VehicleTypeListResponseDtoOutputItemsInner>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(int)]),
+        () => ListBuilder<int>(),
       )
       ..addBuilderFactory(
         const FullType(BuiltList, [FullType(OperatorStopPointListResponseDtoOutputItemsInner)]),

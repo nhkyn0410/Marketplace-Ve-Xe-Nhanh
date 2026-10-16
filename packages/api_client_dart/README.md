@@ -95,6 +95,12 @@ Class | Method | HTTP request | Description
 [*AdminCommissionApi*](doc/AdminCommissionApi.md) | [**adminCommissionControllerCreate**](doc/AdminCommissionApi.md#admincommissioncontrollercreate) | **POST** /v1/admin/commission-rules | 
 [*AdminCommissionApi*](doc/AdminCommissionApi.md) | [**adminCommissionControllerOverview**](doc/AdminCommissionApi.md#admincommissioncontrolleroverview) | **GET** /v1/admin/commission-rules | 
 [*AdminCommissionApi*](doc/AdminCommissionApi.md) | [**adminCommissionControllerUpdate**](doc/AdminCommissionApi.md#admincommissioncontrollerupdate) | **PUT** /v1/admin/commission-rules/{id} | 
+[*AdminContentPagesApi*](doc/AdminContentPagesApi.md) | [**adminContentPageControllerCreate**](doc/AdminContentPagesApi.md#admincontentpagecontrollercreate) | **POST** /v1/admin/content-pages | 
+[*AdminContentPagesApi*](doc/AdminContentPagesApi.md) | [**adminContentPageControllerCreateImageUploadUrl**](doc/AdminContentPagesApi.md#admincontentpagecontrollercreateimageuploadurl) | **POST** /v1/admin/content-pages/image-upload-url | 
+[*AdminContentPagesApi*](doc/AdminContentPagesApi.md) | [**adminContentPageControllerGet**](doc/AdminContentPagesApi.md#admincontentpagecontrollerget) | **GET** /v1/admin/content-pages/{id} | 
+[*AdminContentPagesApi*](doc/AdminContentPagesApi.md) | [**adminContentPageControllerList**](doc/AdminContentPagesApi.md#admincontentpagecontrollerlist) | **GET** /v1/admin/content-pages | 
+[*AdminContentPagesApi*](doc/AdminContentPagesApi.md) | [**adminContentPageControllerSetStatus**](doc/AdminContentPagesApi.md#admincontentpagecontrollersetstatus) | **PUT** /v1/admin/content-pages/{id}/status | 
+[*AdminContentPagesApi*](doc/AdminContentPagesApi.md) | [**adminContentPageControllerUpdate**](doc/AdminContentPagesApi.md#admincontentpagecontrollerupdate) | **PUT** /v1/admin/content-pages/{id} | 
 [*AdminOperatorApplicationsApi*](doc/AdminOperatorApplicationsApi.md) | [**operatorApplicationReviewControllerApprove**](doc/AdminOperatorApplicationsApi.md#operatorapplicationreviewcontrollerapprove) | **POST** /v1/admin/operator-applications/{applicationId}/approve | 
 [*AdminOperatorApplicationsApi*](doc/AdminOperatorApplicationsApi.md) | [**operatorApplicationReviewControllerCreateDocumentDownload**](doc/AdminOperatorApplicationsApi.md#operatorapplicationreviewcontrollercreatedocumentdownload) | **POST** /v1/admin/operator-applications/{applicationId}/documents/{type}/download-url | 
 [*AdminOperatorApplicationsApi*](doc/AdminOperatorApplicationsApi.md) | [**operatorApplicationReviewControllerGet**](doc/AdminOperatorApplicationsApi.md#operatorapplicationreviewcontrollerget) | **GET** /v1/admin/operator-applications/{applicationId} | 
@@ -168,6 +174,8 @@ Class | Method | HTTP request | Description
 [*CatalogApi*](doc/CatalogApi.md) | [**catalogControllerListStopPoints**](doc/CatalogApi.md#catalogcontrollerliststoppoints) | **GET** /v1/catalog/stop-points | 
 [*CatalogApi*](doc/CatalogApi.md) | [**catalogControllerListVehicleTypes**](doc/CatalogApi.md#catalogcontrollerlistvehicletypes) | **GET** /v1/catalog/vehicle-types | 
 [*CatalogApi*](doc/CatalogApi.md) | [**catalogControllerListWards**](doc/CatalogApi.md#catalogcontrollerlistwards) | **GET** /v1/catalog/wards | 
+[*ContentPagesApi*](doc/ContentPagesApi.md) | [**contentPageControllerGet**](doc/ContentPagesApi.md#contentpagecontrollerget) | **GET** /v1/content-pages/{slug} | 
+[*ContentPagesApi*](doc/ContentPagesApi.md) | [**contentPageControllerList**](doc/ContentPagesApi.md#contentpagecontrollerlist) | **GET** /v1/content-pages | 
 [*HealthApi*](doc/HealthApi.md) | [**appControllerHealth**](doc/HealthApi.md#appcontrollerhealth) | **GET** /v1/health | 
 [*HealthApi*](doc/HealthApi.md) | [**appControllerMongo**](doc/HealthApi.md#appcontrollermongo) | **GET** /v1/health/mongo | 
 [*HealthApi*](doc/HealthApi.md) | [**appControllerPostgres**](doc/HealthApi.md#appcontrollerpostgres) | **GET** /v1/health/postgres | 
@@ -210,6 +218,13 @@ Class | Method | HTTP request | Description
 [*OperatorStopPointsApi*](doc/OperatorStopPointsApi.md) | [**stopPointControllerGet**](doc/OperatorStopPointsApi.md#stoppointcontrollerget) | **GET** /v1/operator/stop-points/{stopPointId} | 
 [*OperatorStopPointsApi*](doc/OperatorStopPointsApi.md) | [**stopPointControllerList**](doc/OperatorStopPointsApi.md#stoppointcontrollerlist) | **GET** /v1/operator/stop-points | 
 [*OperatorStopPointsApi*](doc/OperatorStopPointsApi.md) | [**stopPointControllerUpdate**](doc/OperatorStopPointsApi.md#stoppointcontrollerupdate) | **PUT** /v1/operator/stop-points/{stopPointId} | 
+[*OperatorTripAssignmentsApi*](doc/OperatorTripAssignmentsApi.md) | [**employeeAssignmentControllerAssignDriver**](doc/OperatorTripAssignmentsApi.md#employeeassignmentcontrollerassigndriver) | **PUT** /v1/operator/trips/{tripId}/driver | 
+[*OperatorTripAssignmentsApi*](doc/OperatorTripAssignmentsApi.md) | [**employeeAssignmentControllerList**](doc/OperatorTripAssignmentsApi.md#employeeassignmentcontrollerlist) | **GET** /v1/operator/trip-assignments | 
+[*OperatorTripSchedulesApi*](doc/OperatorTripSchedulesApi.md) | [**tripScheduleControllerCreate**](doc/OperatorTripSchedulesApi.md#tripschedulecontrollercreate) | **POST** /v1/operator/trip-schedules | 
+[*OperatorTripSchedulesApi*](doc/OperatorTripSchedulesApi.md) | [**tripScheduleControllerGenerate**](doc/OperatorTripSchedulesApi.md#tripschedulecontrollergenerate) | **POST** /v1/operator/trip-schedules/{scheduleId}/generate | 
+[*OperatorTripSchedulesApi*](doc/OperatorTripSchedulesApi.md) | [**tripScheduleControllerGet**](doc/OperatorTripSchedulesApi.md#tripschedulecontrollerget) | **GET** /v1/operator/trip-schedules/{scheduleId} | 
+[*OperatorTripSchedulesApi*](doc/OperatorTripSchedulesApi.md) | [**tripScheduleControllerList**](doc/OperatorTripSchedulesApi.md#tripschedulecontrollerlist) | **GET** /v1/operator/trip-schedules | 
+[*OperatorTripSchedulesApi*](doc/OperatorTripSchedulesApi.md) | [**tripScheduleControllerUpdate**](doc/OperatorTripSchedulesApi.md#tripschedulecontrollerupdate) | **PUT** /v1/operator/trip-schedules/{scheduleId} | 
 [*OperatorTripsApi*](doc/OperatorTripsApi.md) | [**tripControllerChangeStatus**](doc/OperatorTripsApi.md#tripcontrollerchangestatus) | **PUT** /v1/operator/trips/{tripId}/status | 
 [*OperatorTripsApi*](doc/OperatorTripsApi.md) | [**tripControllerCreate**](doc/OperatorTripsApi.md#tripcontrollercreate) | **POST** /v1/operator/trips | 
 [*OperatorTripsApi*](doc/OperatorTripsApi.md) | [**tripControllerGet**](doc/OperatorTripsApi.md#tripcontrollerget) | **GET** /v1/operator/trips/{tripId} | 
@@ -332,6 +347,13 @@ Class | Method | HTTP request | Description
  - [CommissionRuleCreateDto](doc/CommissionRuleCreateDto.md)
  - [CommissionRuleDtoOutput](doc/CommissionRuleDtoOutput.md)
  - [CommissionRuleUpdateDto](doc/CommissionRuleUpdateDto.md)
+ - [ContentImageUploadInputDto](doc/ContentImageUploadInputDto.md)
+ - [ContentImageUploadResponseDtoOutput](doc/ContentImageUploadResponseDtoOutput.md)
+ - [ContentPageDetailDtoOutput](doc/ContentPageDetailDtoOutput.md)
+ - [ContentPageInputDto](doc/ContentPageInputDto.md)
+ - [ContentPagePageDtoOutput](doc/ContentPagePageDtoOutput.md)
+ - [ContentPagePageDtoOutputItemsInner](doc/ContentPagePageDtoOutputItemsInner.md)
+ - [ContentPageStatusInputDto](doc/ContentPageStatusInputDto.md)
  - [CredentialLoginDto](doc/CredentialLoginDto.md)
  - [CredentialLoginResponseDtoOutput](doc/CredentialLoginResponseDtoOutput.md)
  - [CredentialTokenResponse](doc/CredentialTokenResponse.md)
@@ -342,6 +364,7 @@ Class | Method | HTTP request | Description
  - [DocumentDownloadResponseDtoOutput](doc/DocumentDownloadResponseDtoOutput.md)
  - [DocumentUploadInputDto](doc/DocumentUploadInputDto.md)
  - [DocumentUploadResponseDtoOutput](doc/DocumentUploadResponseDtoOutput.md)
+ - [DriverAssignmentInputDto](doc/DriverAssignmentInputDto.md)
  - [EmployeeAccountResponseDtoOutput](doc/EmployeeAccountResponseDtoOutput.md)
  - [EmployeeCreateDto](doc/EmployeeCreateDto.md)
  - [EmployeeListResponseDtoOutput](doc/EmployeeListResponseDtoOutput.md)
@@ -407,6 +430,9 @@ Class | Method | HTTP request | Description
  - [ProblemDetailsDto](doc/ProblemDetailsDto.md)
  - [ProvinceListResponseDtoOutput](doc/ProvinceListResponseDtoOutput.md)
  - [ProvinceListResponseDtoOutputItemsInner](doc/ProvinceListResponseDtoOutputItemsInner.md)
+ - [PublicContentItemDtoOutput](doc/PublicContentItemDtoOutput.md)
+ - [PublicContentListDtoOutput](doc/PublicContentListDtoOutput.md)
+ - [PublicContentListDtoOutputItemsInner](doc/PublicContentListDtoOutputItemsInner.md)
  - [QueueHealthResponseDtoOutput](doc/QueueHealthResponseDtoOutput.md)
  - [QueueHealthResponseDtoOutputQueuesInner](doc/QueueHealthResponseDtoOutputQueuesInner.md)
  - [ReauthDto](doc/ReauthDto.md)
@@ -443,12 +469,25 @@ Class | Method | HTTP request | Description
  - [StopPointReasonInputDto](doc/StopPointReasonInputDto.md)
  - [SystemIntegrationsDtoOutput](doc/SystemIntegrationsDtoOutput.md)
  - [SystemIntegrationsDtoOutputItemsInner](doc/SystemIntegrationsDtoOutputItemsInner.md)
+ - [TripAssignmentDtoOutput](doc/TripAssignmentDtoOutput.md)
+ - [TripAssignmentPageDtoOutput](doc/TripAssignmentPageDtoOutput.md)
+ - [TripAssignmentPageDtoOutputItemsInner](doc/TripAssignmentPageDtoOutputItemsInner.md)
+ - [TripAssignmentPageDtoOutputItemsInnerConflict](doc/TripAssignmentPageDtoOutputItemsInnerConflict.md)
+ - [TripAssignmentPageDtoOutputItemsInnerDriver](doc/TripAssignmentPageDtoOutputItemsInnerDriver.md)
  - [TripInputDto](doc/TripInputDto.md)
  - [TripListResponseDtoOutput](doc/TripListResponseDtoOutput.md)
  - [TripListResponseDtoOutputItemsInner](doc/TripListResponseDtoOutputItemsInner.md)
  - [TripResponseDtoOutput](doc/TripResponseDtoOutput.md)
  - [TripResponseDtoOutputSeatsInner](doc/TripResponseDtoOutputSeatsInner.md)
  - [TripResponseDtoOutputStopsInner](doc/TripResponseDtoOutputStopsInner.md)
+ - [TripScheduleGenerateInputDto](doc/TripScheduleGenerateInputDto.md)
+ - [TripScheduleGenerateResponseDtoOutput](doc/TripScheduleGenerateResponseDtoOutput.md)
+ - [TripScheduleGenerateResponseDtoOutputCreatedInner](doc/TripScheduleGenerateResponseDtoOutputCreatedInner.md)
+ - [TripScheduleGenerateResponseDtoOutputSkippedInner](doc/TripScheduleGenerateResponseDtoOutputSkippedInner.md)
+ - [TripScheduleInputDto](doc/TripScheduleInputDto.md)
+ - [TripScheduleListResponseDtoOutput](doc/TripScheduleListResponseDtoOutput.md)
+ - [TripScheduleListResponseDtoOutputItemsInner](doc/TripScheduleListResponseDtoOutputItemsInner.md)
+ - [TripScheduleResponseDtoOutput](doc/TripScheduleResponseDtoOutput.md)
  - [TripSeatStatusInputDto](doc/TripSeatStatusInputDto.md)
  - [TripStatusInputDto](doc/TripStatusInputDto.md)
  - [VehicleImageUploadInputDto](doc/VehicleImageUploadInputDto.md)
