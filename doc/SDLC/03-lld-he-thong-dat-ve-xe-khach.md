@@ -43,6 +43,7 @@
 | v0.22     | 16/10/2026 | AI Agent       | **`TASK-ADM-001` phần danh mục đã làm, chờ Khanh duyệt — `ADM-001-catalog-todo.md`:** §5.2 Catalog ghi phần ghi của Admin (`AdminCatalogService`: thêm / sửa tên / ngừng dùng / dùng lại, audit trong transaction, đổi trạng thái so-rồi-đặt); §7 thêm nhóm lỗi Danh mục. Giữ trạng thái Review. |
 | v0.23     | 16/10/2026 | AI Agent       | **A5 Admin đã làm, chờ Khanh duyệt — `ADM-003-vehicle-images-todo.md`, `ADM-002-audit-log-todo.md`:** §6.12 bước 7 ghi phần đã hiện thực (khóa dòng xe như lần nhà xe thay bộ ảnh, audit trong transaction, xóa object + email sau commit); §9 ghi phần đọc audit của Admin (che theo tên trường, ghi lượt xem, quy ước tên hành động thất bại) và dòng "Admin xem chi tiết một bản ghi audit"; §7 thêm `AUDIT_LOG_NOT_FOUND`. Giữ trạng thái Review. |
 | v0.24     | 17/10/2026 | AI Agent       | **Đợt hoàn thiện Admin + Operator OS (Khanh 16/10/2026, chờ duyệt):** §6.10 ghi phần bài viết đã làm (`TASK-CNT-001`); §6.11 bước 4 ghi chép thông tin pháp lý / giấy tờ / tài khoản nhận tiền khi duyệt (`TASK-OPR-001b`); thêm §6.14 Hồ sơ nhà xe + đổi tài khoản nhận tiền, §6.15 Chính sách có phiên bản + hoa hồng + khung giá (`TASK-ADM-001`), §6.16 Lịch xe (`TASK-TRN-015`, chỉ giao diện); §9 thêm các hành động audit mới. Điểm chờ Khanh ở các file `doc/task-propreties/*-todo.md` cùng ngày. Giữ trạng thái Review. |
+| v0.25     | 17/10/2026 | AI Agent       | **Phần không cần đặt vé (Khanh 17/10/2026, chờ duyệt):** thêm §6.17 Lịch chuyến lặp lại (`TASK-TRN-007`), §6.18 Phân công tài xế cho chuyến (`TASK-EMP-001` phía Operator OS), §6.19 Nội dung công khai (`TASK-ADM-003`); §7 thêm lỗi lịch / phân công / nội dung; §9 thêm sự kiện audit. Điểm chờ Khanh: `TRN-007-todo.md`, `EMP-001-todo.md`, `ADM-003-content-todo.md`. Giữ trạng thái Review. |
 
 ---
 
@@ -307,6 +308,30 @@ Tên module / folder dưới đây dùng **target state** theo `context/DOMAIN-M
 | 1    | Operator OS tải chuyến khởi hành từ đầu ngày hôm trước tới hết ngày đang xem (`GET /operator/trips`, mọi trang) để thấy chuyến qua đêm; xe bận trong [giờ khởi hành, giờ đến) của mọi chuyến chưa hủy (khớp ràng buộc EXCLUDE `trips_vehicle_no_overlap`). |
 | 2    | Dòng thời gian theo xe, "Rảnh từ (dự kiến)" = giờ đến của chuyến chưa hủy cuối cùng + điểm cuối tuyến (chỉ hiển thị); form chuyến chia xe Rảnh / Trùng giờ cho khoảng giờ đang nhập (bỏ qua chính chuyến đang sửa). Máy chủ vẫn chặn trùng xe khi lưu. |
 
+### 6.17. Lịch chuyến lặp lại (FR-OPS-07, UC-14 bước 7 — TASK-TRN-007, chờ duyệt)
+
+| Bước | Xử lý |
+| ---- | ----- |
+| 1    | `TripScheduleService` (module `trip/`, quyền `trip:manage`): `trip_schedules` = quy tắc (tuyến, xe tuỳ chọn, giờ khởi hành theo giờ VN, thời gian chạy, thứ chạy bitmask, khoảng ngày ≤ 93 ngày, ngừng bán online, ghi chú). Tuyến phải đang dùng, xe (nếu có) đang hoạt động + có sơ đồ ghế (kiểm khi tạo / sửa / trước khi sinh). |
+| 2    | "Sinh chuyến" (thủ công): mỗi ngày khớp quy tắc một transaction — khoá dòng lịch `FOR UPDATE`, đọc quy tắc hiện tại, ngày đã có chuyến của lịch → `EXISTS`, giờ khởi hành đã qua → `PAST`, còn lại chèn chuyến `DRAFT` qua `insertDraftTrip` (chung với tạo chuyến lẻ: chép điểm dừng + ghế); xe chồng giờ (EXCLUDE) → `VEHICLE_CONFLICT`, bỏ qua ngày đó. UNIQUE `trips(schedule_id, service_date)` là chốt cuối khi chạy đồng thời. |
+| 3    | `openForSale`: mở bán từng chuyến vừa sinh qua `TripService.changeStatus` (BR-39 + audit từng chuyến); chưa đủ điều kiện → giữ nháp, trả lý do. Sửa lịch chỉ áp cho ngày chưa sinh. Audit lịch ghi sau commit, không chặn. |
+
+### 6.18. Phân công tài xế cho chuyến (UC-16 bước 4–6 — TASK-EMP-001 phía Operator OS, chờ duyệt)
+
+| Bước | Xử lý |
+| ---- | ----- |
+| 1    | `EmployeeAssignmentService` (module `employee/`, quyền `employee:manage`): danh sách chuyến chưa hủy khởi hành trong một ngày (giờ VN) kèm tài xế, chồng giờ (khi giờ chuyến bị sửa sau khi phân công), cần lý do hay không. |
+| 2    | `PUT /operator/trips/{tripId}/driver`: khoá dòng chuyến (`FOR NO KEY UPDATE`); chuyến hủy / hoàn thành → 409; gửi lại đúng người → trả nguyên. Chuyến đang chạy hoặc còn < 2 giờ là khởi hành → bắt buộc lý do (UC-16 A4). |
+| 3    | Phân công: khoá dòng nhân viên (`FOR NO KEY UPDATE`) — hai lần phân công cùng tài xế xếp hàng; nhân viên phải là tài xế đang hoạt động của nhà xe (A1, A2); không chồng giờ chuyến chưa hủy khác (A3 — chặn, 409 nêu giờ chuyến kia). Upsert `employee_assignments` (UNIQUE `(trip_id, role)`). Audit trong transaction (Mongo lỗi → 503). Thông báo nhân viên (bước 7) chờ `TASK-NSR-001`. |
+
+### 6.19. Nội dung công khai — banner, câu hỏi thường gặp, trang tĩnh (FR-ADM-13, UC-28 — TASK-ADM-003, chờ duyệt)
+
+| Bước | Xử lý |
+| ---- | ----- |
+| 1    | `ContentPageService` (module `catalog/` theo DOMAIN-MAP, quyền `content:moderate`): `content_pages` cấp Platform; vị trí theo loại (banner → trang chủ, trang tĩnh → chân trang, FAQ → nhóm); trang tĩnh có đường dẫn duy nhất; banner có ảnh (kho công khai, kiểm object + chữ ký định dạng như ảnh bài viết) + liên kết `/…` hoặc `https://`. |
+| 2    | Tạo = bản nháp; sửa không đổi loại; hiển thị / ẩn khoá dòng (lặp → 409). Audit trong transaction (lỗi → 503). |
+| 3    | API công khai chỉ trả mục đang hiển thị theo thứ tự; trang tĩnh nháp → 404. Nơi hiển thị không render HTML thô. |
+
 ---
 
 ## 7. Validation và error handling
@@ -328,6 +353,9 @@ Error response theo RFC 7807 Problem Details (`application/problem+json`) với 
 | Ảnh phương tiện | `VEHICLE_IMAGE_INVALID` (422), `VEHICLE_IMAGE_LIMIT_EXCEEDED` (422), `VEHICLE_IMAGE_NOT_FOUND` (404) | Sai loại / dung lượng / object không tồn tại / key của xe khác dùng chung một mã, không lộ lý do; `NOT_FOUND` chỉ cho Admin gỡ ảnh |
 | Điểm dừng | `STOP_POINT_TYPE_NOT_ALLOWED` (422), `STOP_POINT_SUSPENDED` (409), `ROUTE_STOP_PICKUP_DROPOFF_INVALID` (422) | Loại điểm riêng ngoài văn phòng trung chuyển / trạm dừng nghỉ; nhà xe sửa điểm đang bị Admin khóa; cho đón / cho trả sai BR-79 `TASK-ADM-004` thêm (chờ duyệt): `STOP_POINT_STATE_INVALID` (409); duyệt / từ chối đề xuất không còn `PENDING` dùng `STOP_POINT_PROPOSAL_STATE_INVALID` (409). |
 | Danh mục | `CATALOG_CODE_CONFLICT` (409), `CATALOG_ITEM_NOT_FOUND` (404), `CATALOG_STATE_INVALID` (409) | `TASK-ADM-001` (chờ duyệt): trùng mã; id lạ / tỉnh của phường mới không tồn tại; ngừng dùng mục đã ngừng (hoặc ngược lại). `CATALOG_ITEM_UNAVAILABLE` (422) có từ `TASK-CAT-001` cho nhà xe chọn mục đã ngừng |
+| Lịch chuyến lặp lại | `TRIP_SCHEDULE_NOT_FOUND` (404), `ROUTE_UNAVAILABLE` / `VEHICLE_UNAVAILABLE` (422) | `TASK-TRN-007` (chờ duyệt): lịch khác tenant = không có; ngày không sinh trả trong kết quả (`EXISTS` / `PAST` / `VEHICLE_CONFLICT`), không phải lỗi |
+| Phân công | `EMPLOYEE_NOT_ASSIGNABLE` (422), `DRIVER_SCHEDULE_CONFLICT` (409), `TRIP_NOT_ASSIGNABLE` (409), `ASSIGNMENT_REASON_REQUIRED` (422) | `TASK-EMP-001` (chờ duyệt) |
+| Nội dung công khai | `CONTENT_PAGE_NOT_FOUND` (404), `CONTENT_PAGE_SLUG_CONFLICT` (409), `CONTENT_PAGE_TYPE_IMMUTABLE` (422), `CONTENT_PAGE_STATE_INVALID` (409), `CONTENT_IMAGE_INVALID` (422) | `TASK-ADM-003` (chờ duyệt) |
 | Audit log | `AUDIT_LOG_NOT_FOUND` (404) | `TASK-ADM-002` (chờ duyệt): id bản ghi không có; kho audit không phản hồi khi đọc → 503 `SERVICE_UNAVAILABLE` |
 | Operator onboarding | `OPERATOR_APPLICATION_LINK_INVALID` (401), `OPERATOR_APPLICATION_INVALID_STATE` (409), `OPERATOR_SLUG_CONFLICT` (409); `TASK-OPR-001` thêm (chờ duyệt): `OPERATOR_APPLICATION_INCOMPLETE` (422 + `reasons`), `OPERATOR_APPLICATION_DOCUMENT_INVALID` (422, một thông báo chung), `OPERATOR_APPLICATION_DOCUMENT_NOT_FOUND` (404), `OPERATOR_APPLICATION_RATE_LIMITED` (429); `TASK-ADM-001` thêm (chờ duyệt): `OPERATOR_APPLICATION_NOT_FOUND` (404 — id lạ hoặc hồ sơ nháp, Admin không thấy nháp) | Link sai / hết hạn / đã thu hồi dùng chung một mã, không lộ lý do |
 | Bài viết | `ARTICLE_NOT_FOUND` / `ARTICLE_CATEGORY_NOT_FOUND` (404), `ARTICLE_SLUG_CONFLICT` / `ARTICLE_CATEGORY_SLUG_CONFLICT` / `ARTICLE_STATE_INVALID` (409), `ARTICLE_INCOMPLETE` / `ARTICLE_CATEGORY_UNAVAILABLE` / `ARTICLE_IMAGE_INVALID` (422) | `TASK-CNT-001` (chờ duyệt) |
@@ -374,6 +402,9 @@ Sự kiện nhạy cảm ghi vào Mongo `audit_event` (cluster RIÊNG, append-on
 | Tạo/sửa bảng giá (fare)        | Có — `audit_event` ghi **trong** transaction Postgres, trước commit, giới hạn 2 giây ở driver Mongo và không vượt phần còn lại của hạn transaction (lỗi / chậm / chưa kết nối / hết giờ → không đổi giá, 503; server Mongo tự huỷ lệnh quá hạn nên không có dòng lịch sử "ma"); cũng là lịch sử giá BR-40 | fareId, operatorId, actor, before/after toàn bộ rule |
 | Đổi trạng thái chuyến (mở bán / khóa / mở lại / thu hồi nháp / hủy) | Có — `audit_event` ghi **trong** transaction, giới hạn 2 giây như bảng giá (lỗi → không đổi, 503) | tripId, operatorId, actor, trạng thái trước / sau, reason (hủy bắt buộc) |
 | Khóa / mở ghế thủ công (đa kênh, BR-42) | Có — ghi **sau commit, best-effort**: Mongo lỗi không được chặn khóa ghế (khóa ghế là để chống overbooking) | tripId, operatorId, actor, seatCodes, trạng thái đích, ghi chú |
+| Lịch chuyến lặp lại (`trip_schedule.create` / `.update` / `.generate`) | Có — ghi sau commit, không chặn | trước / sau quy tắc; kết quả sinh (số chuyến tạo / mở bán / bỏ qua, ngày trùng xe) — `TASK-TRN-007` |
+| Phân công tài xế (`trip.driver.assign` / `.unassign`) | Có — **trong** transaction | tài xế trước / sau, lý do (bắt buộc khi chuyến sắp chạy / đang chạy) — `TASK-EMP-001` |
+| Nội dung công khai (`content_page.create` / `.update` / `.publish` / `.unpublish`) | Có — **trong** transaction | trước / sau (nội dung dài chỉ ghi độ dài) — `TASK-ADM-003` |
 | Khóa/mở khóa tài khoản         | Có             | target actor, actor thực hiện, reason              |
 | Confirm payout / nhập bank ref | Có             | adminId, payoutId, operatorId, amount, bank ref    |
 | Điều chỉnh điểm loyalty        | Có             | adminId, userId, points (+/−), reason, số dư trước / sau |
