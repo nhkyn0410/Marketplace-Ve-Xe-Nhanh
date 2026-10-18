@@ -39,6 +39,7 @@ import { FareController } from "../fare/fare.controller";
 import { FareService } from "../fare/fare.service";
 import { TripController } from "../trip/trip.controller";
 import { TripService } from "../trip/trip.service";
+import { TripChangeService } from "../trip/trip-change.service";
 import { TripScheduleController } from "../trip/trip-schedule.controller";
 import { EmployeeAssignmentController } from "../employee/employee-assignment.controller";
 import { AdminContentPageController, ContentPageController } from "../catalog/content-page.controller";
@@ -182,6 +183,7 @@ import { VehicleService } from "../vehicle/vehicle.service";
     { provide: AdminStopPointService, useValue: {} },
     { provide: RouteService, useValue: {} },
     { provide: TripService, useValue: {} },
+    { provide: TripChangeService, useValue: {} },
     { provide: TripScheduleService, useValue: {} },
     { provide: EmployeeAssignmentService, useValue: {} },
     { provide: ContentPageService, useValue: {} },

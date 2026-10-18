@@ -546,6 +546,11 @@ type BookingFixtures = {
   reconcilePaymentCode: string;
   /** Hoàn tiền thất bại của một thanh toán trùng khác — chờ Admin xử lý. */
   failedRefundCode: string;
+  /** Chuyến thứ hai (ngày khác) có một đơn đã thanh toán, không đơn chờ — E2E đổi / hủy chuyến đã bán (TASK-TRN-008). */
+  changeTripId: string;
+  changeBookingCode: string;
+  /** Biển số xe dự phòng cùng sơ đồ ghế (đổi xe được). */
+  spareVehiclePlate: string;
 };
 
 /**
@@ -725,6 +730,66 @@ async function seedBookingFixtures(
   await tx.bookingStatusHistory.create({ data: { bookingId: pending.id, operatorId, toStatus: "PENDING_PAYMENT", actor: "guest" } });
   await tx.tripSeat.updateMany({ where: { tripId: trip.id, seatCode: "A03" }, data: { status: "HOLDING", bookingId: pending.id } });
 
+  // Chuyến thứ hai cho E2E đổi / hủy chuyến đã bán (TRN-008): một đơn 1 chỗ đã thanh toán, không có đơn chờ (đổi chuyến bị
+  // chặn khi còn khách đang thanh toán). Không ghi sổ giữ hộ để số liệu màn Tài chính của các E2E khác không đổi.
+  const spareVehiclePlate = `51B${String(30_000 + Math.floor(Math.random() * 60_000))}`;
+  await tx.vehicle.create({ data: { operatorId, plateNumber: spareVehiclePlate, vehicleTypeId: vehicleType.id, seatMapId: seatMap.id } });
+  const changeDate = new Date(Date.now() + 55 * 24 * HOUR + VN).toISOString().slice(0, 10);
+  const changeDeparture = new Date(Date.parse(`${changeDate}T00:00:00Z`) - VN + 22.5 * HOUR);
+  const changeArrival = new Date(changeDeparture.getTime() + 7 * HOUR);
+  const changeTrip = await tx.trip.create({
+    data: { operatorId, routeId: route.id, vehicleId: vehicle.id, departureAt: changeDeparture, arrivalAt: changeArrival, status: "OPEN_FOR_SALE" },
+    select: { id: true }
+  });
+  await tx.tripStop.createMany({
+    data: points.map((point, index) => ({
+      operatorId,
+      tripId: changeTrip.id,
+      sequence: index + 1,
+      role: index === 0 ? ("ORIGIN" as const) : ("DESTINATION" as const),
+      stopPointId: point.id,
+      allowPickup: index === 0,
+      allowDropoff: index === 1,
+      plannedAt: index === 0 ? changeDeparture : changeArrival
+    }))
+  });
+  await tx.tripSeat.createMany({
+    data: codes.map((seatCode, index) => ({ operatorId, tripId: changeTrip.id, seatCode, deck: 1, row: Math.floor(index / 2) + 1, column: (index % 2) + 1, type: "BED" as const, status: index === 0 ? ("BOOKED" as const) : ("AVAILABLE" as const) }))
+  });
+  const changeBookingCode = `VXN${suffix.slice(0, 5)}C`;
+  const changeSnapshot = { ...snapshot, trip: { ...snapshot.trip, departureAt: changeDeparture.toISOString(), arrivalAt: changeArrival.toISOString() } };
+  const changeBooking = await tx.booking.create({
+    data: {
+      bookingCode: changeBookingCode,
+      operatorId,
+      tripId: changeTrip.id,
+      holdId: randomUUID(),
+      status: "CONFIRMED",
+      contactName: "Phạm Văn Đổi",
+      contactPhone: "0933111222",
+      contactEmail: `khach-${changeBookingCode.toLowerCase()}@example.com`,
+      pickupSequence: 1,
+      dropoffSequence: 2,
+      subtotal: 300_000n,
+      total: 300_000n,
+      snapshot: changeSnapshot,
+      accessTokenHash: hash(),
+      expiresAt: created,
+      paidAt: created,
+      confirmedAt: created,
+      createdAt: created,
+      passengers: { create: [{ tripId: changeTrip.id, seatCode: "A01", seatType: "BED" as const, price: 300_000n, fullName: "Phạm Văn Đổi", phone: null }] }
+    },
+    select: { id: true, passengers: { select: { id: true } } }
+  });
+  await tx.tripSeat.updateMany({ where: { tripId: changeTrip.id, seatCode: "A01" }, data: { bookingId: changeBooking.id } });
+  await tx.payment.create({
+    data: { paymentCode: `PAY${suffix}GGGGGG`, operatorId, bookingId: changeBooking.id, provider: "VNPAY", status: "SUCCESS", amount: 300_000n, providerTxnId: `E2EG${suffix}`, expiresAt: created, paidAt: created }
+  });
+  await tx.ticket.create({
+    data: { ticketCode: `${changeBookingCode}-01`, operatorId, bookingId: changeBooking.id, tripId: changeTrip.id, passengerInfoId: changeBooking.passengers[0]!.id, seatCode: "A01", qrTokenHash: hash(), issuedAt: created }
+  });
+
   // Sổ escrow (BTP-006) của đơn đã xác nhận: chuyến còn ở tương lai → chờ đủ điều kiện.
   const eligibleFuture = new Date(arrivalAt.getTime() + 3 * 24 * HOUR);
   const confirmedPayment = await tx.payment.findFirstOrThrow({ where: { bookingId: confirmed.id }, select: { id: true } });
@@ -825,7 +890,20 @@ async function seedBookingFixtures(
       histories: { create: { toStatus: "PENDING_REVIEW", reason: "Tạo kỳ chi trả.", actor: "system" } }
     }
   });
-  return { routeName, date, confirmedCode, pendingCode, operatorName: operator.displayName, pastCode, payoutCode, reconcilePaymentCode, failedRefundCode };
+  return {
+    routeName,
+    date,
+    confirmedCode,
+    pendingCode,
+    operatorName: operator.displayName,
+    pastCode,
+    payoutCode,
+    reconcilePaymentCode,
+    failedRefundCode,
+    changeTripId: changeTrip.id,
+    changeBookingCode,
+    spareVehiclePlate
+  };
 }
 
 async function seedTripFixtures(

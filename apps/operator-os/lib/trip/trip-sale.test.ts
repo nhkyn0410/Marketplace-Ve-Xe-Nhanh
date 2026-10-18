@@ -69,17 +69,18 @@ describe("tripActions", () => {
 
   it("nút theo trạng thái khi chuyến chưa có vé", () => {
     expect(names("DRAFT")).toEqual(["cancel", "edit", "open"]);
-    expect(names("OPEN_FOR_SALE")).toEqual(["cancel", "withdraw", "lock"]);
-    expect(names("LOCKED")).toEqual(["cancel", "withdraw", "reopen"]);
+    expect(names("OPEN_FOR_SALE")).toEqual(["cancel", "withdraw", "change", "lock"]);
+    expect(names("LOCKED")).toEqual(["cancel", "withdraw", "change", "reopen"]);
+    expect(names("SOLD_OUT")).toEqual(["cancel", "change"]);
   });
 
-  it("đã có vé: hủy và thu hồi về nháp mờ đi, tạm dừng / mở bán lại vẫn dùng được", () => {
-    expect(names("OPEN_FOR_SALE", true)).toEqual(["cancel (mờ)", "withdraw (mờ)", "lock"]);
-    expect(names("LOCKED", true)).toEqual(["cancel (mờ)", "withdraw (mờ)", "reopen"]);
+  it("đã có vé: chỉ thu hồi về nháp mờ đi; đổi lịch chạy / hủy (hoàn 100%) / tạm dừng vẫn dùng được (TRN-008)", () => {
+    expect(names("OPEN_FOR_SALE", true)).toEqual(["cancel", "withdraw (mờ)", "change", "lock"]);
+    expect(names("LOCKED", true)).toEqual(["cancel", "withdraw (mờ)", "change", "reopen"]);
   });
 
-  it("trạng thái do việc bán vé / nhân viên trên xe tạo ra và chuyến đã hủy: không có nút", () => {
-    for (const status of TRIP_STATUS_ORDER.filter((value) => !["DRAFT", "OPEN_FOR_SALE", "LOCKED"].includes(value))) {
+  it("trạng thái do nhân viên trên xe tạo ra và chuyến đã hủy: không có nút", () => {
+    for (const status of TRIP_STATUS_ORDER.filter((value) => !["DRAFT", "OPEN_FOR_SALE", "LOCKED", "SOLD_OUT"].includes(value))) {
       expect(tripActions(status, false), status).toEqual([]);
     }
   });

@@ -86,8 +86,9 @@ export const TripStatusInputSchema = z
     reason: optionalText(500),
   })
   .superRefine((input, ctx) => {
-    if (input.status === TripStatus.CANCELLED && !input.reason) {
-      ctx.addIssue({ code: "custom", path: ["reason"], message: "Hủy chuyến phải có lý do." });
+    // Lý do hủy gửi cho khách bị ảnh hưởng + lưu lịch sử đổi / hủy chuyến (TRN-008, CHECK 3–500 ký tự).
+    if (input.status === TripStatus.CANCELLED && (!input.reason || input.reason.length < 3)) {
+      ctx.addIssue({ code: "custom", path: ["reason"], message: "Hủy chuyến phải có lý do (tối thiểu 3 ký tự)." });
     }
   });
 export type TripStatusInput = z.infer<typeof TripStatusInputSchema>;

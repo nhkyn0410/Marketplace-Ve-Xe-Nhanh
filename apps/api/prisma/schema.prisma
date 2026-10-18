@@ -181,6 +181,7 @@ model OperatorProfile {
   commissionRules     CommissionRule[]
   escrowEntries       EscrowLedger[]
   payouts             Payout[]
+  notifications       Notification[]
 
   @@unique([id, operatorSlug])
   @@map("operator_profiles")
@@ -846,6 +847,7 @@ model Trip {
   seats       TripSeat[]
   assignments EmployeeAssignment[]
   bookings    Booking[]
+  changes     TripChange[]
 
   @@unique([id, operatorId])
   /// Chạy lại lịch không sinh trùng ngày (TRN-007).
@@ -1823,4 +1825,108 @@ model PayoutStatusHistory {
 
   @@index([payoutId, createdAt])
   @@map("payout_status_histories")
+}
+
+// ════════════════════════════ Notification (TASK-NSR-001) + đổi chuyến (TASK-TRN-008) ═══════
+// Operator-owned + RLS (migration `notifications_trip_changes`). Thông báo ghi CÙNG transaction nghiệp vụ rồi gửi sau
+// commit (kiểu outbox): worker gửi theo `notification_deliveries`, job quét gửi lại bản ghi còn `PENDING`.
+
+enum NotificationKind {
+  /// Vé điện tử sau thanh toán thành công (DP-06).
+  BOOKING_CONFIRMED
+  /// Hành khách hủy vé (UC-08).
+  TICKETS_CANCELLED
+  /// Hoàn tiền xong (cổng xác nhận / Admin ghi nhận).
+  REFUND_SUCCEEDED
+  /// Đổi giờ / xe / điểm đón trả của chuyến đã bán vé (BR-10).
+  TRIP_CHANGED
+  /// Hủy chuyến đã bán vé (BR-12).
+  TRIP_CANCELLED
+  /// Admin hoàn tiền thủ công — báo chủ nhà xe (Security §8).
+  MANUAL_REFUND
+}
+
+enum NotificationChannel {
+  EMAIL
+  PUSH
+  SMS
+}
+
+enum NotificationDeliveryStatus {
+  PENDING
+  SENT
+  FAILED
+  SKIPPED
+}
+
+model Notification {
+  id           String           @id @default(uuid())
+  operatorId   String           @map("operator_id")
+  kind         NotificationKind
+  /// Khoá chống trùng theo sự kiện (vd `TRIP_CHANGED:{changeId}:{bookingId}`).
+  dedupKey     String           @unique @map("dedup_key")
+  bookingId    String?          @map("booking_id")
+  tripId       String?          @map("trip_id")
+  refundId     String?          @map("refund_id")
+  tripChangeId String?          @map("trip_change_id")
+  /// Dữ liệu dựng nội dung chụp lúc phát sinh — không chứa email / số điện thoại.
+  payload      Json             @default("{}")
+  createdAt    DateTime         @default(now()) @map("created_at")
+
+  operator   OperatorProfile        @relation(fields: [operatorId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  deliveries NotificationDelivery[]
+
+  @@unique([id, operatorId])
+  @@index([bookingId])
+  @@map("notifications")
+}
+
+model NotificationDelivery {
+  id              String                     @id @default(uuid())
+  operatorId      String                     @map("operator_id")
+  notificationId  String                     @map("notification_id")
+  channel         NotificationChannel
+  /// Người nhận đã che — địa chỉ đầy đủ đọc lại lúc gửi.
+  recipientMasked String                     @map("recipient_masked")
+  status          NotificationDeliveryStatus @default(PENDING)
+  attempts        Int                        @default(0)
+  lastError       String?                    @map("last_error")
+  sentAt          DateTime?                  @map("sent_at")
+  createdAt       DateTime                   @default(now()) @map("created_at")
+  updatedAt       DateTime                   @updatedAt @map("updated_at")
+
+  notification Notification @relation(fields: [notificationId, operatorId], references: [id, operatorId], onDelete: Restrict, onUpdate: Restrict)
+
+  @@unique([notificationId, channel])
+  @@index([status, createdAt])
+  @@map("notification_deliveries")
+}
+
+/// Loại thay đổi của chuyến đã bán vé (BR-10, BR-12).
+enum TripChangeKind {
+  SCHEDULE
+  VEHICLE
+  STOP
+  CANCEL
+}
+
+/// Lịch sử đổi / hủy chuyến đã bán vé: lý do + trước / sau + số đơn bị ảnh hưởng (TASK-TRN-008).
+model TripChange {
+  id               String           @id @default(uuid())
+  operatorId       String           @map("operator_id")
+  tripId           String           @map("trip_id")
+  kinds            TripChangeKind[]
+  before           Json
+  after            Json
+  reason           String
+  affectedBookings Int              @default(0) @map("affected_bookings")
+  /// `operator:{id}` / `platform:{id}`.
+  actor            String
+  createdAt        DateTime         @default(now()) @map("created_at")
+
+  trip Trip @relation(fields: [tripId, operatorId], references: [id, operatorId], onDelete: Restrict, onUpdate: Restrict)
+
+  @@unique([id, operatorId])
+  @@index([tripId, createdAt])
+  @@map("trip_changes")
 }

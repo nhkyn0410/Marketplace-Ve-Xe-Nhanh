@@ -1,6 +1,6 @@
 import { createZodDto } from "nestjs-zod";
 import { z } from "zod";
-import { BookingStatus, PaymentProvider, PaymentStatus, RefundStatus, SeatType, TicketStatus } from "../../database/prisma.types";
+import { BookingStatus, PaymentProvider, PaymentStatus, RefundStatus, SeatType, TicketStatus, TripChangeKind } from "../../database/prisma.types";
 import { MAX_PASSENGERS } from "../../marketplace/dto/public-trip.dto";
 import { SeatCodeSchema } from "../../vehicle/dto/seat-map.dto";
 
@@ -46,6 +46,13 @@ export type BookingInput = z.infer<typeof BookingInputSchema>;
 export class BookingInputDto extends createZodDto(BookingInputSchema) {}
 
 const StopSchema = z.object({ sequence: z.int(), name: z.string(), address: z.string(), plannedAt: z.iso.datetime() });
+
+const TripScheduleSchema = z.object({
+  departureAt: z.iso.datetime(),
+  arrivalAt: z.iso.datetime(),
+  vehiclePlateNumber: z.string().nullable(),
+  stops: z.array(z.object({ sequence: z.int(), name: z.string() })),
+});
 
 export const BookingResponseSchema = z.object({
   bookingId: z.uuid(),
@@ -100,6 +107,19 @@ export const BookingResponseSchema = z.object({
   ),
   /** Các lần hoàn tiền (BTP-005), cũ trước. */
   refunds: z.array(z.object({ refundCode: z.string(), amount: z.int(), status: z.enum(RefundStatus), createdAt: z.iso.datetime() })),
+  /**
+   * Nhà xe đổi / hủy chuyến SAU khi đặt (TRN-008, BF-06), cũ trước — `trip` / `pickup` / `dropoff` là bản chụp lúc đặt, lịch
+   * chạy mới nhất là `after` của lần cuối. Khách vẫn tra cứu được dù email thông báo gửi lỗi.
+   */
+  tripChanges: z.array(
+    z.object({
+      kinds: z.array(z.enum(TripChangeKind)),
+      before: TripScheduleSchema,
+      after: TripScheduleSchema,
+      reason: z.string(),
+      createdAt: z.iso.datetime(),
+    }),
+  ),
   createdAt: z.iso.datetime(),
 });
 export type BookingResponse = z.infer<typeof BookingResponseSchema>;

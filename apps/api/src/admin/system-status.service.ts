@@ -24,6 +24,8 @@ const JOB_LABELS: Record<string, string> = {
   "payment-callback": "Xử lý callback thanh toán (VNPay / MoMo)",
   refund: "Hoàn tiền qua cổng thanh toán",
   "payout-generation": "Tạo kỳ chi trả nhà xe (T+3)",
+  deliver: "Gửi email thông báo (vé, hoàn tiền, đổi / hủy chuyến)",
+  sweep: "Gửi lại thông báo bị kẹt",
   "foundation.smoke": "Kiểm tra hàng đợi (smoke)",
 };
 
@@ -52,8 +54,9 @@ export class SystemStatusService {
     @InjectQueue(QUEUE_NAMES.paymentCallbacks) payments: Queue,
     @InjectQueue(QUEUE_NAMES.refundProcessing) refunds: Queue,
     @InjectQueue(QUEUE_NAMES.payoutMaintenance) payouts: Queue,
+    @InjectQueue(QUEUE_NAMES.notifications) notifications: Queue,
   ) {
-    this.queues = [sessions, storage, kyc, bookings, payments, refunds, payouts, foundation];
+    this.queues = [sessions, storage, kyc, bookings, payments, refunds, payouts, notifications, foundation];
   }
 
   async integrations(): Promise<SystemIntegrations> {

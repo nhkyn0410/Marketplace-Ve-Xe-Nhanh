@@ -8,6 +8,7 @@ import { BookingInputSchema } from "../booking/dto/booking.dto";
 import { parseAppConfig } from "../config/env.config";
 import { tenantScope } from "../database/db-scope";
 import { PrismaService } from "../database/prisma.service";
+import type { NotificationDispatcher } from "../notification/notification-dispatcher";
 import { PaymentGatewayError, type PaymentGateway, type PaymentGateways, type RefundRequest } from "../external/payment/payment-gateway";
 import type { Coordinates, RouteLeg, RoutingProvider } from "../external/routing/routing-provider";
 import type { VerifiedAccessToken } from "../iam/auth/token.service";
@@ -168,7 +169,7 @@ describe.skipIf(!ready && !requireDb)("Hủy vé + hoàn tiền — Postgres + R
     redis = new Redis(getRedisUrl(), createRequestRedisClientOptions("cancellation-test"));
     holds = new SeatHoldService(prisma, redis);
     bookings = new BookingService(prisma, holds, qr);
-    cancellations = new CancellationService(prisma, bookings, queue);
+    cancellations = new CancellationService(prisma, bookings, queue, { dispatch: vi.fn(async () => undefined) } as unknown as NotificationDispatcher);
     trips = new TripService(prisma, {} as AuditService);
     await prisma.withSystem(async (tx) => {
       await tx.operatorProfile.create({ data: { id: operatorId, operatorSlug: `rf-${tag}`, displayName: `Nhà xe ${tag}` } });
@@ -230,6 +231,9 @@ describe.skipIf(!ready && !requireDb)("Hủy vé + hoàn tiền — Postgres + R
       await tx.escrowLedger.deleteMany({ where: { operatorId } });
       await tx.payoutStatusHistory.deleteMany({ where: { operatorId } });
       await tx.payout.deleteMany({ where: { operatorId } });
+      await tx.notificationDelivery.deleteMany({ where: { operatorId } });
+      await tx.notification.deleteMany({ where: { operatorId } });
+      await tx.tripChange.deleteMany({ where: { operatorId } });
       await tx.ticketStatusHistory.deleteMany({ where: { operatorId } });
       await tx.ticket.deleteMany({ where: { operatorId } });
       await tx.refundStatusHistory.deleteMany({ where: { operatorId } });

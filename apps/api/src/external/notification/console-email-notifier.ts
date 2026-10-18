@@ -2,6 +2,7 @@ import { Injectable, Logger } from "@nestjs/common";
 import {
   type BankAccountChangeEmailMessage,
   type EmailNotifier,
+  EmailUnavailableError,
   maskEmail,
   type OperatorApplicationDecisionEmailMessage,
   type OperatorApplicationLinkEmailMessage,
@@ -9,6 +10,7 @@ import {
   type OtpEmailMessage,
   type StopPointDecisionEmailMessage,
   type TemporaryPasswordEmailMessage,
+  type TransactionalEmailMessage,
   type VehicleImageRemovedEmailMessage,
 } from "./email-notifier";
 
@@ -91,6 +93,15 @@ export class ConsoleEmailNotifier implements EmailNotifier {
     }
     this.logger.warn({ event: "operator.status.delivery_unavailable", suspended: message.suspended, email: maskEmail(message.email) });
     throw new Error("Operator status delivery unavailable: configure RESEND_API_KEY.");
+  }
+
+  /** Dev không có `RESEND_API_KEY`: ghi log (đã che) rồi báo chưa có kênh gửi — thông báo được đánh dấu `SKIPPED`. */
+  async sendTransactional(message: TransactionalEmailMessage): Promise<void> {
+    if (process.env.NODE_ENV === "production") {
+      throw new Error("ConsoleEmailNotifier is not available in production.");
+    }
+    this.logger.warn({ event: "notification.email.delivery_unavailable", kind: message.logLabel, email: maskEmail(message.email) });
+    throw new EmailUnavailableError();
   }
 
   async sendBankAccountChangeDecision(message: BankAccountChangeEmailMessage): Promise<void> {

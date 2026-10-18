@@ -26,31 +26,39 @@ export function cutoffLabel(cutoffMinutes: number): string {
 
 // ── Nút thao tác theo trạng thái ──
 
-export type TripAction = "cancel" | "edit" | "withdraw" | "lock" | "open" | "reopen";
+export type TripAction = "cancel" | "edit" | "withdraw" | "change" | "lock" | "open" | "reopen";
 
 /**
  * Nút ở đầu trang chi tiết theo trạng thái chuyến (LLD §8). Nhà xe chỉ tự đổi giữa Nháp, Đang mở bán, Tạm dừng
- * bán và Đã hủy. Thu hồi về nháp và hủy chỉ dùng được khi chuyến chưa có vé — đã có vé thì nút mờ đi.
+ * bán và Đã hủy. Thu hồi về nháp chỉ dùng được khi chuyến chưa có vé — đã có vé thì nút mờ đi. Chuyến đang bán (kể cả đã có
+ * vé) đổi lịch chạy / hủy theo TRN-008: bắt buộc lý do, khách nhận thông báo, hủy thì hoàn 100% giá vé.
  */
 export function tripActions(status: TripStatus, hasTickets: boolean): { action: TripAction; disabled: boolean }[] {
   switch (status) {
     case "DRAFT":
       return [
-        { action: "cancel", disabled: hasTickets },
+        { action: "cancel", disabled: false },
         { action: "edit", disabled: false },
         { action: "open", disabled: false }
       ];
     case "OPEN_FOR_SALE":
       return [
-        { action: "cancel", disabled: hasTickets },
+        { action: "cancel", disabled: false },
         { action: "withdraw", disabled: hasTickets },
+        { action: "change", disabled: false },
         { action: "lock", disabled: false }
       ];
     case "LOCKED":
       return [
-        { action: "cancel", disabled: hasTickets },
+        { action: "cancel", disabled: false },
         { action: "withdraw", disabled: hasTickets },
+        { action: "change", disabled: false },
         { action: "reopen", disabled: false }
+      ];
+    case "SOLD_OUT":
+      return [
+        { action: "cancel", disabled: false },
+        { action: "change", disabled: false }
       ];
     default:
       return [];

@@ -106,6 +106,10 @@ export const RLS_TABLES = [
   "payouts",
   "payout_items",
   "payout_status_histories",
+  // Thông báo (TASK-NSR-001) + lịch sử đổi chuyến đã bán vé (TASK-TRN-008): tenant_isolation.
+  "notifications",
+  "notification_deliveries",
+  "trip_changes",
 ] as const;
 
 @Injectable()

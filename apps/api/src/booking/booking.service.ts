@@ -2,7 +2,7 @@ import { randomBytes, randomInt } from "node:crypto";
 import { HttpException, HttpStatus, Inject, Injectable } from "@nestjs/common";
 import { bookingIdOfCode, bookingIdOfHold, withBookingOperator, withTripOperator } from "../database/marketplace-scope";
 import { PrismaService, type DbTransaction } from "../database/prisma.service";
-import { BookingStatus, type PaymentProvider, type PaymentStatus, type RefundStatus, type SeatType, type TicketStatus } from "../database/prisma.types";
+import { BookingStatus, type PaymentProvider, type PaymentStatus, type RefundStatus, type SeatType, type TicketStatus, type TripChangeKind } from "../database/prisma.types";
 import { resolveSeatPrice, vndToJson } from "../fare/fare-pricing";
 import type { VerifiedAccessToken } from "../iam/auth/token.service";
 import { seatNotAvailable, stopsInvalid } from "../seat-hold/seat-hold.errors";
@@ -56,6 +56,7 @@ type BookingRow = {
   payments: { paymentCode: string; provider: PaymentProvider; status: PaymentStatus; amount: bigint; paidAt: Date | null }[];
   tickets: { id: string; ticketCode: string; seatCode: string; status: TicketStatus; passenger: { fullName: string } }[];
   refunds: { refundCode: string; amount: bigint; status: RefundStatus; createdAt: Date }[];
+  trip: { changes: { kinds: TripChangeKind[]; before: unknown; after: unknown; reason: string; createdAt: Date }[] };
 };
 
 const BOOKING_SELECT = {
@@ -89,6 +90,7 @@ const BOOKING_SELECT = {
     select: { id: true, ticketCode: true, seatCode: true, status: true, passenger: { select: { fullName: true } } },
   },
   refunds: { orderBy: { createdAt: "asc" }, select: { refundCode: true, amount: true, status: true, createdAt: true } },
+  trip: { select: { changes: { orderBy: { createdAt: "asc" }, select: { kinds: true, before: true, after: true, reason: true, createdAt: true } } } },
 } as const;
 
 /**
@@ -393,6 +395,15 @@ function toResponse(row: BookingRow, qr: TicketQrSigner): BookingResponse {
       qrToken: qr.token(ticket.id),
     })),
     refunds: row.refunds.map((refund) => ({ ...refund, amount: vndToJson(refund.amount), createdAt: refund.createdAt.toISOString() })),
+    tripChanges: row.trip.changes
+      .filter((change) => change.createdAt >= row.createdAt)
+      .map((change) => ({
+        kinds: change.kinds,
+        before: change.before as BookingResponse["tripChanges"][number]["before"],
+        after: change.after as BookingResponse["tripChanges"][number]["after"],
+        reason: change.reason,
+        createdAt: change.createdAt.toISOString(),
+      })),
     createdAt: row.createdAt.toISOString(),
   };
 }

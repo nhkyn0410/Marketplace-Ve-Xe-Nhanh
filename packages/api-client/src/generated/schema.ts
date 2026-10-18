@@ -1044,6 +1044,38 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/operator/trips/{tripId}/sales": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["TripController_sales"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operator/trips/{tripId}/changes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["TripController_change"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/operator/trips/{tripId}/status": {
         parameters: {
             query?: never;
@@ -4029,6 +4061,60 @@ export interface components {
             onlineSaleCutoffMinutes: number;
             note: string | null;
         };
+        TripSalesDto_Output: {
+            soldSeats: number;
+            holdingSeats: number;
+            activeBookings: number;
+            pendingBookings: number;
+            refundOnCancel: number;
+            changes: {
+                /** Format: uuid */
+                id: string;
+                kinds: ("SCHEDULE" | "VEHICLE" | "STOP" | "CANCEL")[];
+                before: {
+                    /** Format: date-time */
+                    departureAt: string;
+                    /** Format: date-time */
+                    arrivalAt: string;
+                    vehiclePlateNumber: string | null;
+                    stops: {
+                        sequence: number;
+                        name: string;
+                    }[];
+                };
+                after: {
+                    /** Format: date-time */
+                    departureAt: string;
+                    /** Format: date-time */
+                    arrivalAt: string;
+                    vehiclePlateNumber: string | null;
+                    stops: {
+                        sequence: number;
+                        name: string;
+                    }[];
+                };
+                reason: string;
+                affectedBookings: number;
+                actor: string | null;
+                /** Format: date-time */
+                createdAt: string;
+            }[];
+        };
+        TripChangeInputDto: {
+            /** Format: date-time */
+            departureAt: string;
+            /** Format: date-time */
+            arrivalAt: string;
+            stopTimes: string[] | null;
+            /** Format: uuid */
+            vehicleId: string;
+            stops: {
+                sequence: number;
+                catalogStopPointId: string | null;
+                stopPointId: string | null;
+            }[];
+            reason: string;
+        };
         TripStatusInputDto: {
             /** @enum {string} */
             status: "OPEN_FOR_SALE" | "LOCKED" | "DRAFT" | "CANCELLED";
@@ -4560,6 +4646,34 @@ export interface components {
                 /** Format: date-time */
                 createdAt: string;
             }[];
+            tripChanges: {
+                kinds: ("SCHEDULE" | "VEHICLE" | "STOP" | "CANCEL")[];
+                before: {
+                    /** Format: date-time */
+                    departureAt: string;
+                    /** Format: date-time */
+                    arrivalAt: string;
+                    vehiclePlateNumber: string | null;
+                    stops: {
+                        sequence: number;
+                        name: string;
+                    }[];
+                };
+                after: {
+                    /** Format: date-time */
+                    departureAt: string;
+                    /** Format: date-time */
+                    arrivalAt: string;
+                    vehiclePlateNumber: string | null;
+                    stops: {
+                        sequence: number;
+                        name: string;
+                    }[];
+                };
+                reason: string;
+                /** Format: date-time */
+                createdAt: string;
+            }[];
             /** Format: date-time */
             createdAt: string;
             accessToken: string;
@@ -4646,6 +4760,34 @@ export interface components {
                 amount: number;
                 /** @enum {string} */
                 status: "REQUESTED" | "APPROVED" | "PROCESSING" | "SUCCESS" | "FAILED" | "REJECTED";
+                /** Format: date-time */
+                createdAt: string;
+            }[];
+            tripChanges: {
+                kinds: ("SCHEDULE" | "VEHICLE" | "STOP" | "CANCEL")[];
+                before: {
+                    /** Format: date-time */
+                    departureAt: string;
+                    /** Format: date-time */
+                    arrivalAt: string;
+                    vehiclePlateNumber: string | null;
+                    stops: {
+                        sequence: number;
+                        name: string;
+                    }[];
+                };
+                after: {
+                    /** Format: date-time */
+                    departureAt: string;
+                    /** Format: date-time */
+                    arrivalAt: string;
+                    vehiclePlateNumber: string | null;
+                    stops: {
+                        sequence: number;
+                        name: string;
+                    }[];
+                };
+                reason: string;
                 /** Format: date-time */
                 createdAt: string;
             }[];
@@ -5099,6 +5241,34 @@ export interface components {
                     /** Format: date-time */
                     createdAt: string;
                 }[];
+                tripChanges: {
+                    kinds: ("SCHEDULE" | "VEHICLE" | "STOP" | "CANCEL")[];
+                    before: {
+                        /** Format: date-time */
+                        departureAt: string;
+                        /** Format: date-time */
+                        arrivalAt: string;
+                        vehiclePlateNumber: string | null;
+                        stops: {
+                            sequence: number;
+                            name: string;
+                        }[];
+                    };
+                    after: {
+                        /** Format: date-time */
+                        departureAt: string;
+                        /** Format: date-time */
+                        arrivalAt: string;
+                        vehiclePlateNumber: string | null;
+                        stops: {
+                            sequence: number;
+                            name: string;
+                        }[];
+                    };
+                    reason: string;
+                    /** Format: date-time */
+                    createdAt: string;
+                }[];
                 /** Format: date-time */
                 createdAt: string;
             };
@@ -5126,7 +5296,7 @@ export interface components {
                 operatorId: string;
                 operatorName: string;
                 /** @enum {string} */
-                source: "CUSTOMER" | "PLATFORM";
+                source: "CUSTOMER" | "OPERATOR" | "PLATFORM";
                 amount: number;
                 refundPercent: number;
                 /** @enum {string} */
@@ -5157,7 +5327,7 @@ export interface components {
             operatorId: string;
             operatorName: string;
             /** @enum {string} */
-            source: "CUSTOMER" | "PLATFORM";
+            source: "CUSTOMER" | "OPERATOR" | "PLATFORM";
             amount: number;
             refundPercent: number;
             /** @enum {string} */
@@ -10963,6 +11133,135 @@ export interface operations {
             };
         };
     };
+    TripController_sales: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tripId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Tình hình bán + lịch sử đổi / hủy chuyến. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TripSalesDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `TRIP_NOT_FOUND` (kể cả khác tenant). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    TripController_change: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tripId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TripChangeInputDto"];
+            };
+        };
+        responses: {
+            /** @description Chuyến sau khi đổi. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TripResponseDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `TRIP_NOT_FOUND` (kể cả khác tenant). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `TRIP_CHANGE_NOT_ALLOWED` (trạng thái / đang có khách thanh toán) / `TRIP_SEATS_UNMAPPABLE` (xe mới thiếu chỗ đã bán — `reasons`) / `VEHICLE_SCHEDULE_CONFLICT`. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `TRIP_CHANGE_EMPTY` / `TRIP_STOPS_INVALID` / `TRIP_STOP_TIMES_INVALID` / `VEHICLE_UNAVAILABLE`. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Chưa ghi được lịch sử — chuyến không đổi, thử lại. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
     TripController_changeStatus: {
         parameters: {
             query?: never;
@@ -11023,7 +11322,7 @@ export interface operations {
                     "application/problem+json": components["schemas"]["ProblemDetailsDto"];
                 };
             };
-            /** @description `TRIP_STATUS_TRANSITION_INVALID` (chuyển sai bảng, hoặc thu hồi nháp / hủy khi đã có vé). */
+            /** @description `TRIP_STATUS_TRANSITION_INVALID` (chuyển sai bảng, hoặc thu hồi nháp khi đã có vé). */
             409: {
                 headers: {
                     [name: string]: unknown;
@@ -12972,7 +13271,7 @@ export interface operations {
                 from?: string;
                 to?: string;
                 operatorId?: string;
-                source?: "CUSTOMER" | "PLATFORM";
+                source?: "CUSTOMER" | "OPERATOR" | "PLATFORM";
                 status?: "REQUESTED" | "APPROVED" | "PROCESSING" | "SUCCESS" | "FAILED" | "REJECTED";
                 q?: string;
                 cursor?: string;

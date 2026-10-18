@@ -6,8 +6,11 @@ import { PaymentProvider, PaymentStatus, RefundStatus, TicketStatus } from "../.
 // Xem: `payment:monitor`. Thao tác (gửi lại cổng / ghi nhận đã hoàn / hoàn thanh toán cần đối soát): `finance:configure`
 // + xác nhận lại danh tính + lý do + audit.
 
-/** Nguồn yêu cầu: khách hủy vé (hành khách / khách vãng lai) hoặc Vé Xe Nhanh (Admin hoàn thanh toán cần đối soát). */
-export const REFUND_SOURCES = ["CUSTOMER", "PLATFORM"] as const;
+/**
+ * Nguồn yêu cầu: khách hủy vé (hành khách / khách vãng lai), nhà xe hủy chuyến (TRN-008) hoặc Vé Xe Nhanh (Admin hoàn thanh toán
+ * cần đối soát).
+ */
+export const REFUND_SOURCES = ["CUSTOMER", "OPERATOR", "PLATFORM"] as const;
 
 export const AdminRefundSummarySchema = z.object({
   refundId: z.uuid(),

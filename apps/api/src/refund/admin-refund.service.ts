@@ -4,16 +4,18 @@ import type { Queue } from "bullmq";
 import { AuditService, AuditWriteError } from "../audit/audit.service";
 import type { DbScope } from "../database/db-scope";
 import { PrismaService, transactionDeadline, type DbTransaction } from "../database/prisma.service";
-import { PaymentStatus, RefundStatus } from "../database/prisma.types";
+import { AccountStatus, NotificationKind, OperatorRole, PaymentStatus, RefundStatus } from "../database/prisma.types";
 import { vndToJson } from "../fare/fare-pricing";
 import type { VerifiedAccessToken } from "../iam/auth/token.service";
 import type { Authorization } from "../iam/role/authorization";
+import { NotificationDispatcher } from "../notification/notification-dispatcher";
+import { queueNotification } from "../notification/notification-outbox";
 import { paymentNotFound } from "../payment/payment.errors";
 import { QUEUE_NAMES } from "../queue/queue.constants";
 import { settleBookingStatus } from "./booking-settlement";
 import { newRefundCode } from "./cancellation.service";
 import type { AdminRefundDetail, AdminRefundPage, AdminRefundSummary, RefundResolveInput } from "./dto/admin-refund.dto";
-import { completeRefund, REFUND_JOB, REFUND_JOB_OPTIONS, transition } from "./refund-processing";
+import { completeRefund, REFUND_JOB, REFUND_JOB_OPTIONS, refundSucceededKey, transition } from "./refund-processing";
 import { refundNotFound, refundServiceUnavailable, refundStatusInvalid } from "./refund.errors";
 
 const AUDIT_TIMEOUT_MS = 2_000;
@@ -26,7 +28,7 @@ type ListQuery = {
   from?: string;
   to?: string;
   operatorId?: string;
-  source?: "CUSTOMER" | "PLATFORM";
+  source?: "CUSTOMER" | "OPERATOR" | "PLATFORM";
   status?: RefundStatus;
   q?: string;
   cursor?: string;
@@ -84,6 +86,7 @@ export class AdminRefundService {
     @Inject(PrismaService) private readonly prisma: PrismaService,
     @Inject(AuditService) private readonly audit: AuditService,
     @InjectQueue(QUEUE_NAMES.refundProcessing) private readonly queue: Queue,
+    @Inject(NotificationDispatcher) private readonly notifications: NotificationDispatcher,
   ) {}
 
   async list(authz: Authorization, query: ListQuery): Promise<AdminRefundPage> {
@@ -91,7 +94,13 @@ export class AdminRefundService {
     const where = {
       operatorId: query.operatorId,
       status: query.status,
-      ...(query.source === "PLATFORM" ? { requestedBy: { startsWith: "platform:" } } : query.source === "CUSTOMER" ? { NOT: { requestedBy: { startsWith: "platform:" } } } : {}),
+      ...(query.source === "PLATFORM"
+        ? { requestedBy: { startsWith: "platform:" } }
+        : query.source === "OPERATOR"
+          ? { requestedBy: { startsWith: "operator:" } }
+          : query.source === "CUSTOMER"
+            ? { NOT: [{ requestedBy: { startsWith: "platform:" } }, { requestedBy: { startsWith: "operator:" } }] }
+            : {}),
       createdAt: {
         ...(query.from ? { gte: vnDayStart(query.from) } : {}),
         ...(query.to ? { lt: new Date(vnDayStart(query.to).getTime() + DAY_MS) } : {}),
@@ -147,7 +156,7 @@ export class AdminRefundService {
    * `REFUNDED`, ghi sổ giữ hộ, suy lại booking như khi cổng xác nhận.
    */
   async resolve(authz: Authorization, actor: Actor, refundId: string, input: RefundResolveInput): Promise<AdminRefundDetail> {
-    return this.write(authz, async (tx, deadline) => {
+    const detail = await this.write(authz, async (tx, deadline) => {
       const locked = await lockFailed(tx, refundId);
       await completeRefund(tx, locked.operatorId, refundId, {
         from: RefundStatus.FAILED,
@@ -156,10 +165,28 @@ export class AdminRefundService {
         actor: `platform:${actor.sub}`,
         at: new Date(),
       });
+      // Refund thủ công trừ vào tiền của nhà xe → báo chủ nhà xe (Security §8). Thanh toán cần đối soát không đụng tiền nhà xe.
+      if (locked.paymentStatus !== PaymentStatus.RECONCILING) {
+        const owner = await tx.operatorAccount.findFirst({
+          where: { operatorId: locked.operatorId, role: OperatorRole.OPERATOR_OWNER, status: AccountStatus.ACTIVE, contactEmail: { not: null } },
+          orderBy: { createdAt: "asc" },
+          select: { contactEmail: true },
+        });
+        await queueNotification(tx, locked.operatorId, {
+          kind: NotificationKind.MANUAL_REFUND,
+          dedupKey: manualRefundKey(refundId),
+          recipientEmail: owner?.contactEmail ?? null,
+          bookingId: locked.bookingId,
+          refundId,
+          payload: { reference: input.reference, reason: input.reason },
+        });
+      }
       const detail = (await loadDetail(tx, refundId))!;
       await this.record(actor, "refund.resolve_manual", refundId, locked.operatorId, { status: RefundStatus.FAILED }, { status: RefundStatus.SUCCESS, bankReference: input.reference }, deadline, input.reason);
       return detail;
     });
+    await this.notifications.dispatch([refundSucceededKey(refundId), manualRefundKey(refundId)]);
+    return detail;
   }
 
   /**
@@ -250,6 +277,10 @@ export class AdminRefundService {
   }
 }
 
+function manualRefundKey(refundId: string): string {
+  return `MANUAL_REFUND:${refundId}`;
+}
+
 /** Khoá refund + bắt buộc đang `FAILED` (chỉ refund thất bại mới cần Admin xử lý). */
 async function lockFailed(tx: DbTransaction, refundId: string) {
   const [locked] = await tx.$queryRaw<
@@ -315,7 +346,7 @@ function toSummary(row: SummaryRow): AdminRefundSummary {
     provider: row.payment.provider,
     operatorId: row.operatorId,
     operatorName: row.booking.operator.displayName,
-    source: row.requestedBy.startsWith("platform:") ? "PLATFORM" : "CUSTOMER",
+    source: row.requestedBy.startsWith("platform:") ? "PLATFORM" : row.requestedBy.startsWith("operator:") ? "OPERATOR" : "CUSTOMER",
     amount: vndToJson(row.amount),
     refundPercent: row.refundPercent,
     status: row.status,
@@ -335,7 +366,7 @@ async function actorLabel(tx: DbTransaction, actor: string | null): Promise<stri
     const account = await tx.platformAccount.findUnique({ where: { id: actor.slice("platform:".length) }, select: { username: true } });
     return account ? `platform/${account.username}` : "Vé Xe Nhanh";
   }
-  return actor === "guest" || actor.startsWith("user:") ? "Khách hàng" : actor;
+  return actor === "guest" || actor.startsWith("user:") ? "Khách hàng" : actor.startsWith("operator:") ? "Nhà xe" : actor;
 }
 
 /** `2026-10-13` → 00:00 giờ VN ngày đó. */

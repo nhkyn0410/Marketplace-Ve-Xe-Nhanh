@@ -239,6 +239,9 @@ describe.skipIf(!ready && !requireDb)("Thanh toán — Postgres + Redis thật (
       await tx.payout.deleteMany({ where: { operatorId } });
       await tx.paymentStatusHistory.deleteMany({ where: { operatorId } });
       await tx.payment.deleteMany({ where: { operatorId } });
+      await tx.notificationDelivery.deleteMany({ where: { operatorId } });
+      await tx.notification.deleteMany({ where: { operatorId } });
+      await tx.tripChange.deleteMany({ where: { operatorId } });
       await tx.ticketStatusHistory.deleteMany({ where: { operatorId } });
       await tx.ticket.deleteMany({ where: { operatorId } });
       await tx.tripSeat.updateMany({ where: { operatorId }, data: { bookingId: null } });

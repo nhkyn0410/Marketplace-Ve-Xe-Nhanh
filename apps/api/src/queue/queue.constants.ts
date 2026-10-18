@@ -8,7 +8,8 @@ export const QUEUE_NAMES = {
   bookingMaintenance: "booking-maintenance",
   paymentCallbacks: "payment-callbacks",
   refundProcessing: "refund-processing",
-  payoutMaintenance: "payout-maintenance"
+  payoutMaintenance: "payout-maintenance",
+  notifications: "notifications"
 } as const;
 
 export type QueueName = (typeof QUEUE_NAMES)[keyof typeof QUEUE_NAMES];

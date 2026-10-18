@@ -1,8 +1,9 @@
 import { withPaymentOperator } from "../database/marketplace-scope";
 import type { DbTransaction, PrismaService } from "../database/prisma.service";
-import { BookingStatus, PaymentStatus } from "../database/prisma.types";
+import { BookingStatus, NotificationKind, PaymentStatus } from "../database/prisma.types";
 import type { GatewayProvider } from "../external/payment/payment-gateway";
 import { recordCapture } from "../escrow/escrow-entries";
+import { queueNotification } from "../notification/notification-outbox";
 import { issueTickets } from "../ticket/ticket-issuer";
 import type { TicketQrSigner } from "../ticket/ticket-qr";
 
@@ -89,7 +90,7 @@ async function apply(tx: DbTransaction, operatorId: string, callback: PaymentCal
   await tx.$queryRaw`SELECT id FROM bookings WHERE id = ${payment.bookingId} AND operator_id = ${operatorId} FOR UPDATE`;
   const booking = await tx.booking.findFirstOrThrow({
     where: { id: payment.bookingId, operatorId },
-    select: { status: true, tripId: true, total: true, subtotal: true, trip: { select: { arrivalAt: true } }, _count: { select: { passengers: true } } },
+    select: { status: true, tripId: true, total: true, subtotal: true, contactEmail: true, trip: { select: { arrivalAt: true } }, _count: { select: { passengers: true } } },
   });
   if (booking.status !== BookingStatus.PENDING_PAYMENT) {
     return reconcile(booking.status === BookingStatus.EXPIRED ? "BOOKING_EXPIRED" : booking.status === BookingStatus.CANCELLED ? "BOOKING_CANCELLED" : "DUPLICATE_PAYMENT");
@@ -133,5 +134,17 @@ async function apply(tx: DbTransaction, operatorId: string, callback: PaymentCal
       data: { paymentId: other.id, operatorId, fromStatus: other.status, toStatus: PaymentStatus.CANCELLED, reason: "Booking đã thanh toán qua cổng khác.", actor: "system" },
     });
   }
+  // Vé điện tử qua email (DP-06, TASK-NSR-001) — ghi cùng transaction, worker gửi sau commit.
+  await queueNotification(tx, operatorId, {
+    kind: NotificationKind.BOOKING_CONFIRMED,
+    dedupKey: bookingConfirmedKey(callback.paymentCode),
+    recipientEmail: booking.contactEmail,
+    bookingId: payment.bookingId,
+  });
   return "SUCCESS";
+}
+
+/** Khoá chống trùng thông báo vé điện tử — một booking chỉ được xác nhận bởi một payment. */
+export function bookingConfirmedKey(paymentCode: string): string {
+  return `BOOKING_CONFIRMED:${paymentCode}`;
 }

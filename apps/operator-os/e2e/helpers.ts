@@ -39,6 +39,10 @@ export type E2eAccounts = {
     /** Đơn của chuyến đã chạy — tiền đã vào kỳ `payoutCode` (chờ rà soát). */
     pastCode: string;
     payoutCode: string;
+    /** Chuyến có một đơn đã thanh toán — E2E đổi / hủy chuyến đã bán (TASK-TRN-008). */
+    changeTripId: string;
+    changeBookingCode: string;
+    spareVehiclePlate: string;
   } | null;
   employee: { username: string; password: string };
   platform: { username: string; password: string };
