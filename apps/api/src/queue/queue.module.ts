@@ -35,7 +35,11 @@ import { QueueHealthService } from "./queue-health.service";
       { name: QUEUE_NAMES.foundation },
       { name: QUEUE_NAMES.sessionMaintenance },
       { name: QUEUE_NAMES.storageMaintenance },
-      { name: QUEUE_NAMES.kycMaintenance }
+      { name: QUEUE_NAMES.kycMaintenance },
+      { name: QUEUE_NAMES.bookingMaintenance },
+      { name: QUEUE_NAMES.paymentCallbacks },
+      { name: QUEUE_NAMES.refundProcessing },
+      { name: QUEUE_NAMES.payoutMaintenance }
     )
   ],
   providers: [BullBoardService, QueueHealthService],

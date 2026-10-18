@@ -1193,6 +1193,7 @@ function setupAuthController() {
     RESEND_API_KEY: "test-resend-key",
     GOONG_API_KEY: "test-goong-key",
     WEB_CSRF_SECRET: Buffer.alloc(32, 2).toString("base64"),
+    TICKET_QR_SECRET: Buffer.alloc(32, 3).toString("base64"),
     OPERATOR_WEB_ORIGINS: "https://operator.example.com",
     ADMIN_WEB_ORIGINS: "https://admin.example.com",
     R2_ACCOUNT_ID: "account",

@@ -24,6 +24,19 @@ export type E2eAccounts = {
   /** Quản trị viên riêng cho E2E màn Chính sách + nhà xe làm phạm vi riêng / mức hoa hồng riêng. */
   platformPolicy: { username: string; password: string };
   adminPolicy: { operatorName: string; operatorSlug: string };
+  /** Quản trị viên riêng cho E2E màn Chi trả nhà xe + kỳ chờ rà soát của nhà xe đặt vé. */
+  platformFinance: { username: string; password: string };
+  /** Quản trị viên riêng cho E2E màn Thanh toán & hoàn tiền (TASK-ADM-002). */
+  platformPayments: { username: string; password: string };
+  bookingFixtures: {
+    operatorName: string;
+    payoutCode: string;
+    confirmedCode: string;
+    /** Thanh toán trùng cần đối soát, chưa xử lý. */
+    reconcilePaymentCode: string;
+    /** Hoàn tiền thất bại chờ Admin xử lý. */
+    failedRefundCode: string;
+  } | null;
   /** Nhà xe riêng có một xe hai ảnh; `null` khi chưa có loại xe. */
   moderation: { operatorName: string; plateNumber: string; captions: string[] } | null;
   /** `null` khi catalog chưa seed. */

@@ -22,7 +22,7 @@ function queue(name: string, jobs: { active?: JobLike[]; completed?: JobLike[]; 
 function service(overrides: { config?: Partial<AppConfig>; postgres?: () => Promise<unknown>; privateStorage?: StorageProvider | null; queues?: Queue[] } = {}) {
   const ok = async () => ({ status: "ok" });
   const storage = { head: vi.fn(async () => null) } as unknown as StorageProvider;
-  const [sessions, files, kyc, foundation] = overrides.queues ?? [queue("session-maintenance"), queue("storage-maintenance"), queue("kyc-maintenance"), queue("foundation")];
+  const [sessions, files, kyc, foundation, bookings] = overrides.queues ?? [queue("session-maintenance"), queue("storage-maintenance"), queue("kyc-maintenance"), queue("foundation"), queue("booking-maintenance")];
   return new SystemStatusService(
     { NODE_ENV: "development", ...overrides.config } as AppConfig,
     { check: overrides.postgres ?? ok } as unknown as DatabaseHealthService,
@@ -34,6 +34,10 @@ function service(overrides: { config?: Partial<AppConfig>; postgres?: () => Prom
     sessions!,
     files!,
     kyc!,
+    bookings ?? queue("booking-maintenance"),
+    queue("payment-callbacks"),
+    queue("refund-processing"),
+    queue("payout-maintenance"),
   );
 }
 

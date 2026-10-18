@@ -74,6 +74,11 @@ async function main(): Promise<void> {
     assignOperatorSlug: `e2e-asg-${tag}`,
     assignOwner: { username: `asg-${tag}`, password: password() },
     assignmentFixtures: null as AssignmentFixtures | null,
+    // Owner cho E2E màn Đặt vé (TASK-OPR-003), ở một nhà xe RIÊNG có một chuyến mở bán + hai đơn dựng sẵn
+    // (`bookingFixtures`): một đơn đã xác nhận có vé, một đơn chờ thanh toán. `null` khi catalog chưa seed.
+    bookingOperatorSlug: `e2e-bkg-${tag}`,
+    bookingOwner: { username: `bkg-${tag}`, password: password() },
+    bookingFixtures: null as BookingFixtures | null,
     // E2E màn Điểm dừng của Admin (TASK-ADM-004): một đề xuất chờ duyệt + một điểm riêng để khóa, ở nhà xe chuyến.
     // `null` khi catalog chưa seed (thiếu phường).
     adminStopPoints: null as AdminStopPointFixtures | null,
@@ -94,6 +99,10 @@ async function main(): Promise<void> {
     // Quản trị viên thứ tám cho E2E màn Chính sách (TASK-ADM-001 phần chính sách) + một nhà xe để làm phạm vi riêng /
     // mức hoa hồng riêng (không đụng chính sách mặc định dùng chung giữa các lần chạy).
     platformPolicy: { username: `e2e-pol-${tag}`, password: password() },
+    // Quản trị viên thứ chín cho E2E màn Chi trả nhà xe (TASK-BTP-006 / ADM-002) — kỳ chờ rà soát của nhà xe đặt vé.
+    platformFinance: { username: `e2e-fin-${tag}`, password: password() },
+    // Quản trị viên thứ mười cho E2E màn Thanh toán & hoàn tiền (TASK-ADM-002).
+    platformPayments: { username: `e2e-pay-${tag}`, password: password() },
     adminPolicy: { operatorName: `E2E chính sách ${tag}`, operatorSlug: `e2e-pol-${tag}` },
     adminUsers: {
       operatorName: `E2E khóa ${tag}`,
@@ -113,6 +122,7 @@ async function main(): Promise<void> {
     tripOwnerHash,
     kycOwnerHash,
     assignOwnerHash,
+    bookingOwnerHash,
     employeeHash,
     platformHash,
     reviewerHash,
@@ -121,7 +131,9 @@ async function main(): Promise<void> {
     moderationHash,
     contentHash,
     usersHash,
-    policyHash
+    policyHash,
+    financeHash,
+    paymentsHash
   ] = await Promise.all([
     credentials.hash(accounts.owner.temporaryPassword),
     credentials.hash(accounts.fleetOwner.password),
@@ -130,6 +142,7 @@ async function main(): Promise<void> {
     credentials.hash(accounts.tripOwner.password),
     credentials.hash(accounts.kycOwner.password),
     credentials.hash(accounts.assignOwner.password),
+    credentials.hash(accounts.bookingOwner.password),
     credentials.hash(accounts.employee.password),
     credentials.hash(accounts.platform.password),
     credentials.hash(accounts.platformReviewer.password),
@@ -138,7 +151,9 @@ async function main(): Promise<void> {
     credentials.hash(accounts.platformModeration.password),
     credentials.hash(accounts.platformContent.password),
     credentials.hash(accounts.platformUsers.password),
-    credentials.hash(accounts.platformPolicy.password)
+    credentials.hash(accounts.platformPolicy.password),
+    credentials.hash(accounts.platformFinance.password),
+    credentials.hash(accounts.platformPayments.password)
   ]);
 
   const prisma = new PrismaClient({ adapter: new PrismaPg({ connectionString }) });
@@ -233,6 +248,7 @@ async function main(): Promise<void> {
       });
       accounts.tripFixtures = await seedTripFixtures(tx, tripOperator.id);
       accounts.assignmentFixtures = await seedAssignmentFixtures(tx, accounts.assignOperatorSlug, accounts.assignOwner.username, assignOwnerHash, tag);
+      accounts.bookingFixtures = await seedBookingFixtures(tx, accounts.bookingOperatorSlug, accounts.bookingOwner.username, bookingOwnerHash, tag);
       accounts.adminStopPoints = await seedAdminStopPointFixtures(tx, tripOperator.id, tag);
       moderationImages = await seedModerationFixtures(tx, tag);
       const lockable = await tx.operatorProfile.create({
@@ -291,7 +307,9 @@ async function main(): Promise<void> {
         { username: accounts.platformModeration.username, passwordHash: moderationHash, role: "PLATFORM_ADMIN" },
         { username: accounts.platformContent.username, passwordHash: contentHash, role: "PLATFORM_ADMIN" },
         { username: accounts.platformUsers.username, passwordHash: usersHash, role: "PLATFORM_ADMIN" },
-        { username: accounts.platformPolicy.username, passwordHash: policyHash, role: "PLATFORM_ADMIN" }
+        { username: accounts.platformPolicy.username, passwordHash: policyHash, role: "PLATFORM_ADMIN" },
+        { username: accounts.platformFinance.username, passwordHash: financeHash, role: "PLATFORM_ADMIN" },
+        { username: accounts.platformPayments.username, passwordHash: paymentsHash, role: "PLATFORM_ADMIN" }
       ]
     });
   } finally {
@@ -513,6 +531,301 @@ async function seedAssignmentFixtures(
     data: { operatorId: operator.id, tripId: soon.id, employeeId: employees[1]!.id, role: "DRIVER" }
   });
   return { routeName, date, soonDate: vnDate(now + HOUR) };
+}
+
+type BookingFixtures = {
+  routeName: string;
+  date: string;
+  confirmedCode: string;
+  pendingCode: string;
+  operatorName: string;
+  /** Đơn của chuyến đã chạy (10 ngày trước) — tiền đã vào kỳ chi trả `payoutCode` (chờ rà soát). */
+  pastCode: string;
+  payoutCode: string;
+  /** Thanh toán trùng của đơn đã xác nhận — cần đối soát, chưa xử lý (TASK-ADM-002). */
+  reconcilePaymentCode: string;
+  /** Hoàn tiền thất bại của một thanh toán trùng khác — chờ Admin xử lý. */
+  failedRefundCode: string;
+};
+
+/**
+ * Nhà xe + chuyến 22:30 (giờ VN) ngày `date` mở bán, xe 4 chỗ, và hai đơn: đã xác nhận (A01, A02 — có vé, thanh toán VNPay
+ * thành công) và chờ thanh toán của khách vãng lai (A03). Dựng thẳng DB như dữ liệu sau thanh toán (luồng thật kiểm ở API).
+ */
+async function seedBookingFixtures(
+  tx: Parameters<Parameters<PrismaClient["$transaction"]>[0]>[0],
+  operatorSlug: string,
+  ownerUsername: string,
+  ownerHash: string,
+  tag: string
+): Promise<BookingFixtures | null> {
+  const ward = await tx.ward.findFirst({ select: { id: true, provinceId: true } });
+  const vehicleType = await tx.vehicleType.findFirst({ where: { status: "ACTIVE" }, select: { id: true, name: true } });
+  if (!ward || !vehicleType) {
+    return null;
+  }
+  const HOUR = 3_600_000;
+  const VN = 7 * HOUR;
+  const operator = await tx.operatorProfile.create({ data: { operatorSlug, displayName: `E2E đặt vé ${tag}`, status: "ACTIVE", hotline: "19006868" } });
+  const operatorId = operator.id;
+  await tx.operatorAccount.create({
+    data: { operatorId, operatorSlug, username: ownerUsername, contactEmail: `bkg-${tag}@example.com`, passwordHash: ownerHash }
+  });
+  const names = ["E2E Bến xe Miền Đông mới", "E2E Bến xe liên tỉnh Đà Lạt"];
+  const points = [];
+  for (const [index, name] of names.entries()) {
+    points.push(
+      await tx.stopPoint.create({
+        data: { operatorId, name, type: "OFFICE", address: "Địa chỉ E2E", provinceId: ward.provinceId, wardId: ward.id, latitude: 10.8 + index, longitude: 106.7 + index }
+      })
+    );
+  }
+  const routeName = "E2E Sài Gòn – Đà Lạt (đặt vé)";
+  const route = await tx.route.create({
+    data: { operatorId, name: routeName, totalDistanceMeters: 300_000, totalDurationSeconds: 25_200, metricsSource: "ESTIMATE" }
+  });
+  const seatMap = await tx.seatMap.create({
+    data: { operatorId, name: `E2E đặt vé ${tag}`, layout: { decks: [{ deck: 1, rows: 2, columns: 2 }] }, seatCount: 4 }
+  });
+  const codes = ["A01", "A02", "A03", "A04"];
+  await tx.seat.createMany({
+    data: codes.map((code, index) => ({ operatorId, seatMapId: seatMap.id, code, deck: 1, row: Math.floor(index / 2) + 1, column: (index % 2) + 1, type: "BED" as const }))
+  });
+  const plate = `51B${String(30_000 + Math.floor(Math.random() * 60_000))}`;
+  const vehicle = await tx.vehicle.create({ data: { operatorId, plateNumber: plate, vehicleTypeId: vehicleType.id, seatMapId: seatMap.id } });
+  const date = new Date(Date.now() + 50 * 24 * HOUR + VN).toISOString().slice(0, 10);
+  const departureAt = new Date(Date.parse(`${date}T00:00:00Z`) - VN + 22.5 * HOUR);
+  const arrivalAt = new Date(departureAt.getTime() + 7 * HOUR);
+  const trip = await tx.trip.create({
+    data: { operatorId, routeId: route.id, vehicleId: vehicle.id, departureAt, arrivalAt, status: "OPEN_FOR_SALE" }
+  });
+  await tx.tripStop.createMany({
+    data: points.map((point, index) => ({
+      operatorId,
+      tripId: trip.id,
+      sequence: index + 1,
+      role: index === 0 ? ("ORIGIN" as const) : ("DESTINATION" as const),
+      stopPointId: point.id,
+      allowPickup: index === 0,
+      allowDropoff: index === 1,
+      plannedAt: index === 0 ? departureAt : arrivalAt
+    }))
+  });
+  await tx.tripSeat.createMany({
+    data: codes.map((seatCode, index) => ({ operatorId, tripId: trip.id, seatCode, deck: 1, row: Math.floor(index / 2) + 1, column: (index % 2) + 1, type: "BED" as const }))
+  });
+  const snapshot = {
+    trip: { routeName, operatorName: operator.displayName, operatorHotline: "19006868", vehicleTypeName: vehicleType.name, departureAt: departureAt.toISOString(), arrivalAt: arrivalAt.toISOString() },
+    pickup: { sequence: 1, name: names[0], address: "Địa chỉ E2E", plannedAt: departureAt.toISOString() },
+    dropoff: { sequence: 2, name: names[1], address: "Địa chỉ E2E", plannedAt: arrivalAt.toISOString() },
+    cancellationPolicy: { tiers: [{ minHoursBefore: 24, refundPercent: 90 }, { minHoursBefore: 4, refundPercent: 50 }] }
+  };
+  const suffix = tag.toUpperCase().replace(/[^A-Z0-9]/g, "0").padEnd(6, "0").slice(0, 6);
+  const confirmedCode = `VXN${suffix}`;
+  const pendingCode = `VXN${suffix.slice(0, 5)}Z`;
+  const created = new Date(Date.now() - 2 * HOUR);
+  const hash = () => randomBytes(32).toString("hex");
+  const booking = (code: string, status: "CONFIRMED" | "PENDING_PAYMENT", contact: [string, string], seats: string[], at: Date) =>
+    tx.booking.create({
+      data: {
+        bookingCode: code,
+        operatorId,
+        tripId: trip.id,
+        holdId: randomUUID(),
+        status,
+        contactName: contact[0],
+        contactPhone: contact[1],
+        contactEmail: `khach-${code.toLowerCase()}@example.com`,
+        pickupSequence: 1,
+        dropoffSequence: 2,
+        subtotal: BigInt(300_000 * seats.length),
+        total: BigInt(300_000 * seats.length),
+        snapshot,
+        accessTokenHash: hash(),
+        expiresAt: status === "CONFIRMED" ? at : new Date(Date.now() + 10 * 60_000),
+        paidAt: status === "CONFIRMED" ? at : null,
+        confirmedAt: status === "CONFIRMED" ? at : null,
+        createdAt: at,
+        passengers: { create: seats.map((seatCode, index) => ({ tripId: trip.id, seatCode, seatType: "BED" as const, price: 300_000n, fullName: `${contact[0]} ${index + 1}`, phone: null })) }
+      },
+      select: { id: true, passengers: { select: { id: true, seatCode: true } } }
+    });
+  const confirmed = await booking(confirmedCode, "CONFIRMED", ["Nguyễn Văn Khách", "0901234567"], ["A01", "A02"], created);
+  await tx.bookingStatusHistory.createMany({
+    data: [
+      { bookingId: confirmed.id, operatorId, toStatus: "PENDING_PAYMENT" as const, actor: "guest", createdAt: created },
+      { bookingId: confirmed.id, operatorId, fromStatus: "PENDING_PAYMENT" as const, toStatus: "PAID" as const, reason: "Thanh toán VNPAY.", actor: "provider:VNPAY", createdAt: new Date(created.getTime() + 60_000) },
+      { bookingId: confirmed.id, operatorId, fromStatus: "PAID" as const, toStatus: "CONFIRMED" as const, reason: "Đã phát hành vé.", actor: "system", createdAt: new Date(created.getTime() + 60_001) }
+    ]
+  });
+  await tx.payment.create({
+    data: { paymentCode: `PAY${suffix}AAAAAA`, operatorId, bookingId: confirmed.id, provider: "VNPAY", status: "SUCCESS", amount: 600_000n, providerTxnId: `E2E${suffix}`, expiresAt: created, paidAt: created }
+  });
+  await tx.ticket.createMany({
+    data: confirmed.passengers
+      .sort((a, b) => a.seatCode.localeCompare(b.seatCode))
+      .map((passenger, index) => ({ ticketCode: `${confirmedCode}-0${index + 1}`, operatorId, bookingId: confirmed.id, tripId: trip.id, passengerInfoId: passenger.id, seatCode: passenger.seatCode, qrTokenHash: hash(), issuedAt: created }))
+  });
+  await tx.tripSeat.updateMany({ where: { tripId: trip.id, seatCode: { in: ["A01", "A02"] } }, data: { status: "BOOKED", bookingId: confirmed.id } });
+  // Khách trả thêm hai lần cho đơn đã xác nhận (TASK-ADM-002): cổng trừ tiền nhưng không nhận vào đơn → cần đối soát. Không có
+  // vé, chưa vào sổ giữ hộ → màn đơn / tài chính của nhà xe không đổi. Khoản thứ hai Admin đã hoàn nhưng cổng từ chối.
+  const reconcilePaymentCode = `PAY${suffix}DDDDDD`;
+  const duplicates = [];
+  for (const [index, code] of [reconcilePaymentCode, `PAY${suffix}EEEEEE`].entries()) {
+    const at = new Date(created.getTime() + (index + 2) * 60_000);
+    duplicates.push(
+      await tx.payment.create({
+        data: {
+          paymentCode: code,
+          operatorId,
+          bookingId: confirmed.id,
+          provider: "VNPAY",
+          status: "RECONCILING",
+          reconcileReason: "DUPLICATE_PAYMENT",
+          amount: 600_000n,
+          providerTxnId: `E2E${index === 0 ? "D" : "E"}${suffix}`,
+          expiresAt: new Date(at.getTime() + 10 * 60_000),
+          createdAt: at,
+          histories: {
+            create: [
+              { toStatus: "PROCESSING" as const, actor: "guest", createdAt: at },
+              { fromStatus: "PROCESSING" as const, toStatus: "RECONCILING" as const, reason: "Cần đối soát: DUPLICATE_PAYMENT.", actor: "provider:VNPAY", createdAt: new Date(at.getTime() + 30_000) }
+            ]
+          }
+        },
+        select: { id: true, createdAt: true }
+      })
+    );
+  }
+  const failedRefundCode = `RFD${suffix}FFFFFF`;
+  const refundAt = new Date(duplicates[1]!.createdAt.getTime() + 60_000);
+  await tx.refund.create({
+    data: {
+      refundCode: failedRefundCode,
+      operatorId,
+      bookingId: confirmed.id,
+      paymentId: duplicates[1]!.id,
+      status: "FAILED",
+      amount: 600_000n,
+      refundPercent: 100,
+      reason: "Khách trả hai lần cho cùng đơn",
+      failureCode: "91",
+      requestedBy: "platform:e2e-seed",
+      createdAt: refundAt,
+      histories: {
+        create: [
+          { toStatus: "APPROVED" as const, reason: "Hoàn toàn bộ thanh toán cần đối soát.", actor: "system", createdAt: refundAt },
+          { fromStatus: "APPROVED" as const, toStatus: "PROCESSING" as const, reason: "Đã gửi yêu cầu hoàn tới cổng thanh toán.", actor: "system", createdAt: new Date(refundAt.getTime() + 1_000) },
+          { fromStatus: "PROCESSING" as const, toStatus: "FAILED" as const, reason: "Giao dịch không đủ điều kiện hoàn.", actor: "system", createdAt: new Date(refundAt.getTime() + 2_000) }
+        ]
+      }
+    }
+  });
+  const pending = await booking(pendingCode, "PENDING_PAYMENT", ["Lê Thị Hoa", "0987654112"], ["A03"], new Date(Date.now() - HOUR));
+  await tx.bookingStatusHistory.create({ data: { bookingId: pending.id, operatorId, toStatus: "PENDING_PAYMENT", actor: "guest" } });
+  await tx.tripSeat.updateMany({ where: { tripId: trip.id, seatCode: "A03" }, data: { status: "HOLDING", bookingId: pending.id } });
+
+  // Sổ escrow (BTP-006) của đơn đã xác nhận: chuyến còn ở tương lai → chờ đủ điều kiện.
+  const eligibleFuture = new Date(arrivalAt.getTime() + 3 * 24 * HOUR);
+  const confirmedPayment = await tx.payment.findFirstOrThrow({ where: { bookingId: confirmed.id }, select: { id: true } });
+  await tx.escrowLedger.createMany({
+    data: [
+      { operatorId, entryType: "PAYMENT_CAPTURED" as const, amount: 600_000n, bookingId: confirmed.id, tripId: trip.id, paymentId: confirmedPayment.id, eligibleAt: eligibleFuture, createdBy: "system", createdAt: created },
+      { operatorId, entryType: "COMMISSION" as const, amount: -30_000n, commissionRateBps: 500, bookingId: confirmed.id, tripId: trip.id, paymentId: confirmedPayment.id, eligibleAt: eligibleFuture, createdBy: "system", createdAt: created }
+    ]
+  });
+
+  // Chuyến đã chạy 10 ngày trước + một đơn đã thanh toán → đã qua T+3 → kỳ chi trả hôm nay đang chờ rà soát; nhà xe có tài
+  // khoản nhận tiền đã xác minh.
+  await tx.bankAccount.create({
+    data: { operatorId, bankName: "Vietcombank", accountNumber: "0071000124521", accountHolder: "CTY TNHH E2E DAT VE", status: "VERIFIED", reviewedAt: new Date() }
+  });
+  const pastDeparture = new Date(Date.now() - 10 * 24 * HOUR);
+  const pastArrival = new Date(pastDeparture.getTime() + 7 * HOUR);
+  const pastTrip = await tx.trip.create({ data: { operatorId, routeId: route.id, vehicleId: vehicle.id, departureAt: pastDeparture, arrivalAt: pastArrival, status: "COMPLETED" } });
+  await tx.tripStop.createMany({
+    data: points.map((point, index) => ({
+      operatorId,
+      tripId: pastTrip.id,
+      sequence: index + 1,
+      role: index === 0 ? ("ORIGIN" as const) : ("DESTINATION" as const),
+      stopPointId: point.id,
+      allowPickup: index === 0,
+      allowDropoff: index === 1,
+      plannedAt: index === 0 ? pastDeparture : pastArrival
+    }))
+  });
+  await tx.tripSeat.createMany({
+    data: codes.map((seatCode, index) => ({ operatorId, tripId: pastTrip.id, seatCode, deck: 1, row: Math.floor(index / 2) + 1, column: (index % 2) + 1, type: "BED" as const, status: index === 0 ? ("BOOKED" as const) : ("AVAILABLE" as const) }))
+  });
+  const pastCode = `VXN${suffix.slice(0, 5)}P`;
+  const pastCreated = new Date(pastDeparture.getTime() - 2 * 24 * HOUR);
+  const past = await tx.booking.create({
+    data: {
+      bookingCode: pastCode,
+      operatorId,
+      tripId: pastTrip.id,
+      holdId: randomUUID(),
+      status: "CONFIRMED",
+      contactName: "Trần Thị Mai",
+      contactPhone: "0912345678",
+      contactEmail: `khach-${pastCode.toLowerCase()}@example.com`,
+      pickupSequence: 1,
+      dropoffSequence: 2,
+      subtotal: 450_000n,
+      total: 450_000n,
+      snapshot: { ...snapshot, trip: { ...snapshot.trip, departureAt: pastDeparture.toISOString(), arrivalAt: pastArrival.toISOString() } },
+      accessTokenHash: hash(),
+      expiresAt: pastCreated,
+      paidAt: pastCreated,
+      confirmedAt: pastCreated,
+      createdAt: pastCreated,
+      passengers: { create: [{ tripId: pastTrip.id, seatCode: "A01", seatType: "BED" as const, price: 450_000n, fullName: "Trần Thị Mai", phone: null }] }
+    },
+    select: { id: true }
+  });
+  await tx.tripSeat.updateMany({ where: { tripId: pastTrip.id, seatCode: "A01" }, data: { bookingId: past.id } });
+  const pastPayment = await tx.payment.create({
+    data: { paymentCode: `PAY${suffix}PPPPPP`, operatorId, bookingId: past.id, provider: "MOMO", status: "SUCCESS", amount: 450_000n, providerTxnId: `E2EP${suffix}`, expiresAt: pastCreated, paidAt: pastCreated },
+    select: { id: true }
+  });
+  const eligiblePast = new Date(pastArrival.getTime() + 3 * 24 * HOUR);
+  const capture = await tx.escrowLedger.create({
+    data: { operatorId, entryType: "PAYMENT_CAPTURED", amount: 450_000n, bookingId: past.id, tripId: pastTrip.id, paymentId: pastPayment.id, eligibleAt: eligiblePast, createdBy: "system", createdAt: pastCreated },
+    select: { id: true }
+  });
+  const commission = await tx.escrowLedger.create({
+    data: { operatorId, entryType: "COMMISSION", amount: -22_500n, commissionRateBps: 500, bookingId: past.id, tripId: pastTrip.id, paymentId: pastPayment.id, eligibleAt: eligiblePast, createdBy: "system", createdAt: pastCreated },
+    select: { id: true }
+  });
+  const period = new Date(Date.now() + 7 * HOUR).toISOString().slice(0, 10);
+  const [{ seq }] = await tx.$queryRaw<{ seq: bigint }[]>`SELECT nextval('payout_code_seq') AS seq`;
+  const payoutCode = `PO-${period.replace(/-/g, "")}-${String(seq).padStart(3, "0")}`;
+  await tx.payout.create({
+    data: {
+      payoutCode,
+      operatorId,
+      period: new Date(period),
+      status: "PENDING_REVIEW",
+      grossAmount: 450_000n,
+      commissionAmount: 22_500n,
+      refundAmount: 0n,
+      adjustmentAmount: 0n,
+      amount: 427_500n,
+      commissionRateBps: 500,
+      bankName: "Vietcombank",
+      bankAccountNumber: "0071000124521",
+      bankAccountHolder: "CTY TNHH E2E DAT VE",
+      items: {
+        create: [
+          { ledgerEntryId: capture.id, entryType: "PAYMENT_CAPTURED", amount: 450_000n, bookingId: past.id, tripId: pastTrip.id },
+          { ledgerEntryId: commission.id, entryType: "COMMISSION", amount: -22_500n, bookingId: past.id, tripId: pastTrip.id }
+        ]
+      },
+      histories: { create: { toStatus: "PENDING_REVIEW", reason: "Tạo kỳ chi trả.", actor: "system" } }
+    }
+  });
+  return { routeName, date, confirmedCode, pendingCode, operatorName: operator.displayName, pastCode, payoutCode, reconcilePaymentCode, failedRefundCode };
 }
 
 async function seedTripFixtures(

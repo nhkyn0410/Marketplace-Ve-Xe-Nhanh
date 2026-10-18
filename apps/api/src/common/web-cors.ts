@@ -12,7 +12,8 @@ export const CORS_ALLOWED_HEADERS = [
   // Link bảo mật của hồ sơ đăng ký nhà xe (TASK-OPR-001) — trang đăng ký nằm trên origin của Operator OS.
   "X-Application-Token",
 ] as const;
-export const CORS_EXPOSED_HEADERS = ["X-CSRF-Token", "X-Request-Id", "Deprecation"] as const;
+// `Content-Disposition`: tên tệp khi tải danh sách hành khách (TASK-OPR-003) — trình duyệt chỉ cho JS đọc header được expose.
+export const CORS_EXPOSED_HEADERS = ["X-CSRF-Token", "X-Request-Id", "Deprecation", "Content-Disposition"] as const;
 
 /**
  * CORS credentialed cho Operator OS/Admin (TASK-IAM-006): echo đúng origin thuộc `OPERATOR_WEB_ORIGINS` ∪ `ADMIN_WEB_ORIGINS`
