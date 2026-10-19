@@ -74,6 +74,8 @@ export const OperatorBookingDetailSchema = OperatorBookingSummarySchema.extend({
   subtotal: z.int(),
   serviceFee: z.int(),
   discount: z.int(),
+  /** Bên chịu ưu đãi được chụp lúc đặt. */
+  discountFunding: z.enum(["OPERATOR", "PLATFORM"]).nullable().default(null),
   cancellationPolicy: z.object({ tiers: z.array(z.object({ minHoursBefore: z.int(), refundPercent: z.int() })) }),
   /** Lịch sử trạng thái, cũ trước. `actor`: `PASSENGER` / `GUEST` / `SYSTEM` / `PROVIDER` / `PLATFORM`. */
   histories: z.array(

@@ -1,5 +1,6 @@
 import { createZodDto } from "nestjs-zod";
 import { z } from "zod";
+import { DirectDisputeInputSchema } from "@vexenhanh/types";
 import { CaseParty, DisputeDecision, DisputeEventKind, DisputeStatus, RefundStatus } from "../../database/prisma.types";
 import { AssigneeFilterSchema, AttachmentInputSchema, AttachmentSchema } from "../../support/dto/support.dto";
 
@@ -7,6 +8,8 @@ import { AssigneeFilterSchema, AttachmentInputSchema, AttachmentSchema } from ".
 // xuất, chờ Khanh duyệt (`doc/task-propreties/TRUST-001-todo.md`).
 
 const reason = z.string().trim().min(3).max(500);
+/** Mở tranh chấp trực tiếp từ một đơn, không cần khiếu nại trung gian (FR-DSP-01). */
+export class DirectDisputeInputDto extends createZodDto(DirectDisputeInputSchema) {}
 /** Trạng thái còn mở (chưa có quyết định). */
 export const OPEN_DISPUTE_STATUSES = [
   DisputeStatus.OPEN,

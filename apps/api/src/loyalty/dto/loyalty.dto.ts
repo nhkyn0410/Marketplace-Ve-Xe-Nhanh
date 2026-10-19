@@ -75,7 +75,7 @@ const ReportFiguresSchema = z.object({
   issued: z.int(),
   redeemed: z.int(),
   expired: z.int(),
-  /** Voucher đổi điểm đã dùng + phần giảm Vé Xe Nhanh chịu (VND) — 0 tới khi có ví voucher (TASK-PROM-002). */
+  /** Voucher đổi điểm đã dùng và chi phí nền tảng ròng sau đảo khi hoàn tiền (BR-73). */
   vouchersRedeemed: z.int(),
   vouchersUsed: z.int(),
   platformDiscount: z.int(),

@@ -52,7 +52,7 @@ export async function payoutDelayDays(tx: DbTransaction, at: Date): Promise<numb
 export async function recordCapture(
   tx: DbTransaction,
   operatorId: string,
-  capture: { bookingId: string; tripId: string; paymentId: string; total: bigint; ticketRevenue: bigint; arrivalAt: Date },
+  capture: { bookingId: string; tripId: string; paymentId: string; total: bigint; ticketRevenue: bigint; platformDiscount?: bigint; arrivalAt: Date },
   now: Date,
 ): Promise<void> {
   // Tuần tự: một transaction là một kết nối, không chạy truy vấn song song.
@@ -61,6 +61,9 @@ export async function recordCapture(
   const eligibleAt = new Date(capture.arrivalAt.getTime() + delayDays * DAY_MS);
   const base = { operatorId, bookingId: capture.bookingId, tripId: capture.tripId, paymentId: capture.paymentId, eligibleAt, createdBy: "system", createdAt: now };
   await tx.escrowLedger.create({ data: { ...base, entryType: EscrowEntryType.PAYMENT_CAPTURED, amount: capture.total } });
+  if ((capture.platformDiscount ?? 0n) > 0n) {
+    await tx.escrowLedger.create({ data: { ...base, entryType: EscrowEntryType.PLATFORM_FUNDED_DISCOUNT, amount: capture.platformDiscount! } });
+  }
   const commission = commissionOf(capture.ticketRevenue, rateBps);
   if (commission > 0n) {
     await tx.escrowLedger.create({ data: { ...base, entryType: EscrowEntryType.COMMISSION, amount: -commission, commissionRateBps: rateBps } });
@@ -77,16 +80,34 @@ export async function recordRefund(
   refund: { refundId: string; bookingId: string; amount: bigint },
   now: Date,
 ): Promise<void> {
+  // Tuần tự hóa các lần hoàn của cùng đơn để tổng đảo trợ giá / hoa hồng không vượt lúc thu.
+  await tx.$queryRaw`SELECT id FROM bookings WHERE id = ${refund.bookingId} AND operator_id = ${operatorId} FOR UPDATE`;
   const captured = await tx.escrowLedger.findMany({
-    where: { operatorId, bookingId: refund.bookingId, entryType: { in: [EscrowEntryType.PAYMENT_CAPTURED, EscrowEntryType.COMMISSION] } },
-    select: { entryType: true, tripId: true, eligibleAt: true, commissionRateBps: true },
+    where: { operatorId, bookingId: refund.bookingId, entryType: { in: [EscrowEntryType.PAYMENT_CAPTURED, EscrowEntryType.COMMISSION, EscrowEntryType.PLATFORM_FUNDED_DISCOUNT, EscrowEntryType.PLATFORM_FUNDED_DISCOUNT_REVERSAL, EscrowEntryType.REFUND, EscrowEntryType.COMMISSION_REVERSAL] } },
+    select: { entryType: true, amount: true, tripId: true, eligibleAt: true, commissionRateBps: true },
   });
   const capture = captured.find((entry) => entry.entryType === EscrowEntryType.PAYMENT_CAPTURED);
   const rateBps = captured.find((entry) => entry.entryType === EscrowEntryType.COMMISSION)?.commissionRateBps ?? 0;
   const base = { operatorId, bookingId: refund.bookingId, tripId: capture?.tripId ?? null, refundId: refund.refundId, eligibleAt: capture?.eligibleAt ?? now, createdBy: "system", createdAt: now };
+  const sum = (type: EscrowEntryType) => captured.filter((entry) => entry.entryType === type).reduce((total, entry) => total + entry.amount, 0n);
+  const totalRefunded = -sum(EscrowEntryType.REFUND) + refund.amount;
+  const discount = sum(EscrowEntryType.PLATFORM_FUNDED_DISCOUNT);
+  const alreadyReversed = -sum(EscrowEntryType.PLATFORM_FUNDED_DISCOUNT_REVERSAL);
+  const subsidy = subsidyReversal(discount, capture?.amount ?? 0n, totalRefunded, alreadyReversed);
   await tx.escrowLedger.create({ data: { ...base, entryType: EscrowEntryType.REFUND, amount: -refund.amount } });
-  const reversal = commissionOf(refund.amount, rateBps);
+  if (subsidy > 0n) await tx.escrowLedger.create({ data: { ...base, entryType: EscrowEntryType.PLATFORM_FUNDED_DISCOUNT_REVERSAL, amount: -subsidy } });
+  const commission = -sum(EscrowEntryType.COMMISSION);
+  const target = commissionOf(totalRefunded + alreadyReversed + subsidy, rateBps);
+  const reversal = (target > commission ? commission : target) - sum(EscrowEntryType.COMMISSION_REVERSAL);
   if (reversal > 0n) {
     await tx.escrowLedger.create({ data: { ...base, entryType: EscrowEntryType.COMMISSION_REVERSAL, amount: reversal, commissionRateBps: rateBps } });
   }
+}
+
+/** Đảo phần nền tảng bù theo tỷ lệ hoàn lũy kế, không mất đồng lẻ khi hoàn nhiều lần và không vượt phần đã bù (BR-73). */
+export function subsidyReversal(discount: bigint, paid: bigint, cumulativeRefund: bigint, reversed: bigint): bigint {
+  if (discount <= 0n || paid <= 0n) return 0n;
+  const target = (discount * cumulativeRefund) / paid;
+  const bounded = target > discount ? discount : target;
+  return bounded > reversed ? bounded - reversed : 0n;
 }

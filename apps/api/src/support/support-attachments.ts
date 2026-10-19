@@ -25,12 +25,12 @@ const UUID = "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}";
  * Nơi tải tệp lên: khách của một đơn, nhà xe, hay Vé Xe Nhanh. Khóa object chứa nhà xe + nơi tải → bên này không gắn được tệp
  * bên khác vừa tải (kể cả biết khóa).
  */
-export type AttachmentOwner = { operatorId: string; kind: "booking"; bookingId: string } | { operatorId: string; kind: "operator" } | { operatorId: string; kind: "platform" };
+export type AttachmentOwner = { operatorId: string; kind: "booking"; bookingId: string } | { operatorId: string; kind: "operator" } | { operatorId: string; kind: "platform" } | { operatorId: string; kind: "employee"; employeeId: string };
 
 export type SavedAttachment = { attachmentId: string; fileName: string; contentType: string; sizeBytes: number };
 
 function scopeSegment(owner: AttachmentOwner): string {
-  return owner.kind === "booking" ? `b-${owner.bookingId}` : owner.kind;
+  return owner.kind === "booking" ? `b-${owner.bookingId}` : owner.kind === "employee" ? `e-${owner.employeeId}` : owner.kind;
 }
 
 /** Khóa object mới — do server sinh, không chứa tên file gốc. */

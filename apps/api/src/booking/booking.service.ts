@@ -20,6 +20,8 @@ import { canAccessBooking, hashBookingToken } from "./booking-access";
 import { expireBooking } from "./booking-expiry";
 import type { BookingInput, BookingResponse, CreatedBooking } from "./dto/booking.dto";
 import { claimPromotion } from "../promotion/promotion-apply";
+import { evaluateVoucher, reserveVoucher } from "../promotion/voucher-apply";
+import { voucherProblem } from "../loyalty/passenger-loyalty.service";
 
 const MINUTE = 60_000;
 /** Mã booking `VXN` + 6 ký tự, bỏ 0/O/1/I cho dễ đọc qua điện thoại (32^6 ≈ 1 tỷ mã). */
@@ -102,8 +104,7 @@ const BOOKING_SELECT = {
  * thái chuyến — bàn giao TRN-006) + kiểm lại còn mở bán, khoá các ghế `FOR UPDATE` + kiểm còn `AVAILABLE`, tính lại giá
  * từ bảng giá đang áp dụng (khác số khách đã thấy → 409), rồi ghi booking `PENDING_PAYMENT` + hành khách + lịch sử và
  * chuyển ghế sang `HOLDING`. Xong mới trả khóa Redis — chỗ từ đây do Postgres giữ tới hạn thanh toán (= hạn giữ chỗ).
- * v1: chỉ trả trước (OQ-07), phí dịch vụ 0 nhưng vẫn tách dòng (CO-12), chưa có khuyến mãi / voucher (TASK-PROM-001,
- * TASK-LOY-001) nên giảm giá 0.
+ * v1: chỉ trả trước (OQ-07), phí dịch vụ 0 nhưng vẫn tách dòng (CO-12); tối đa một mã khuyến mãi hoặc voucher của chính hành khách.
  */
 @Injectable()
 export class BookingService {
@@ -114,6 +115,7 @@ export class BookingService {
   ) {}
 
   async create(user: VerifiedAccessToken | null, input: BookingInput): Promise<CreatedBooking> {
+    if (input.userVoucherId && input.promotionCode) throw voucherProblem("VOUCHER_ONE_PER_BOOKING", "Mỗi đơn chỉ áp dụng một voucher hoặc một mã khuyến mãi.", HttpStatus.UNPROCESSABLE_ENTITY);
     const hold = await this.holds.takeForBooking(user, input.holdId);
     const held = new Set(hold.seatCodes);
     if (input.passengers.length !== held.size || input.passengers.some((passenger) => !held.has(passenger.seatCode))) {
@@ -258,7 +260,9 @@ export class BookingService {
     const subtotal = priced.reduce((sum, seat) => sum + seat.price!, 0n);
     const serviceFee = 0n;
     // Giữ một lượt dùng của mã ngay trong transaction này: đơn không tạo được thì rollback trả luôn lượt (TASK-PROM-001).
-    const promotion = input.promotionCode
+    const promotion = input.userVoucherId
+      ? await evaluateVoucher(tx, user?.sub ?? null, input.userVoucherId, { operatorId, routeId: trip.routeId, tripId: hold.tripId, subtotal, now })
+      : input.promotionCode
       ? await claimPromotion(tx, { operatorId, routeId: trip.routeId, tripId: hold.tripId, subtotal, code: input.promotionCode, now })
       : null;
     const discount = promotion?.discount ?? 0n;
@@ -340,8 +344,9 @@ export class BookingService {
       data: { status: "HOLDING", bookingId: booking.id },
     });
     if (promotion) {
+      if (promotion.userVoucherId) await reserveVoucher(tx, promotion.userVoucherId, user!.sub, booking.id, operatorId, now);
       await tx.promotionRedemption.create({
-        data: { promotionId: promotion.promotionId, operatorId, bookingId: booking.id, code: promotion.code, discount: promotion.discount, fundedBy: promotion.fundedBy },
+        data: { promotionId: promotion.promotionId, userVoucherId: promotion.userVoucherId ?? null, operatorId, bookingId: booking.id, code: promotion.code, discount: promotion.discount, fundedBy: promotion.fundedBy },
       });
     }
     return toResponse(booking, this.qr);
@@ -395,6 +400,7 @@ function toResponse(row: BookingRow, qr: TicketQrSigner): BookingResponse {
     subtotal: vndToJson(row.subtotal),
     serviceFee: vndToJson(row.serviceFee),
     discount: vndToJson(row.discount),
+    discountFunding: snapshot.promotion?.fundedBy ?? null,
     total: vndToJson(row.total),
     cancellationPolicy: snapshot.cancellationPolicy,
     expiresAt: row.expiresAt.toISOString(),

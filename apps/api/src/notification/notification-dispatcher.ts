@@ -5,6 +5,7 @@ import { pendingDeliveryIds } from "../database/notification-scope";
 import { PrismaService } from "../database/prisma.service";
 import { QUEUE_NAMES } from "../queue/queue.constants";
 import { NOTIFICATION_JOB, NOTIFICATION_JOB_OPTIONS } from "./notification-delivery";
+import { prepareNotificationChannels } from "./notification-outbox";
 
 /**
  * Xếp hàng gửi các thông báo vừa ghi (TASK-NSR-001) — gọi SAU commit với khoá chống trùng đã dùng khi ghi. Job theo id bản
@@ -21,6 +22,7 @@ export class NotificationDispatcher {
 
   async dispatch(dedupKeys: string[]): Promise<void> {
     try {
+      await prepareNotificationChannels(this.prisma, dedupKeys);
       for (const deliveryId of await pendingDeliveryIds(this.prisma, dedupKeys)) {
         await this.queue.add(NOTIFICATION_JOB, { deliveryId }, { ...NOTIFICATION_JOB_OPTIONS, jobId: deliveryId });
       }

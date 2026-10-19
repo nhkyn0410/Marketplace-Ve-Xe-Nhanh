@@ -24,7 +24,7 @@ import { ALL, FilterSelect, TABLE, TABLE_CELL, TABLE_HEAD_CELL, TABLE_HEAD_ROW, 
 /**
  * Báo cáo (Figma "Nhà xe · Báo cáo / Tổng hợp" 1667:26847; TASK-RPT-001, FR-NSR-12, UC-17): doanh thu gộp, vé bán, lấp đầy, tỷ lệ
  * hủy, bảng theo tuyến và nhân viên theo chuyến được phân công, cho chuyến khởi hành trong khoảng ngày; xuất CSV (có nhật ký).
- * Chưa có: thẻ đánh giá của hành khách (chưa có chức năng đánh giá), cột sự cố, hàng đợi xuất nền — xem `RPT-todo.md`.
+ * Thẻ đánh giá chỉ tính đánh giá công khai của chuyến trong bộ lọc; sự cố tính theo thời điểm nhân viên báo.
  */
 export function ReportScreen() {
   const initial = monthToDate();
@@ -77,6 +77,9 @@ export function ReportScreen() {
             note={data && `Hoàn tiền ${percentLabel(data.totals.refundedTickets, data.totals.ticketsSold + data.totals.cancelledTickets)} số vé`}
           />
         </div>
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          <Stat label="Đánh giá của hành khách" value={data && (data.totals.averageRating === null ? "—" : `${data.totals.averageRating.toFixed(1)} / 5`)} note={data && `${countLabel(data.totals.reviewCount)} đánh giá công khai`} />
+        </div>
         <Panel title="Theo tuyến">
           {!data ? (
             <TableSkeleton label="Đang tải số liệu theo tuyến" rows={3} />
@@ -128,7 +131,7 @@ export function ReportScreen() {
                     <th scope="col" className={`${TABLE_HEAD_CELL} w-[20%]`}>
                       Vai trò
                     </th>
-                    {["Chuyến được phân công", "Chuyến hoàn thành", "Vé đã soát"].map((heading) => (
+                    {["Chuyến được phân công", "Chuyến hoàn thành", "Vé đã soát", "Sự cố đã báo"].map((heading) => (
                       <th key={heading} scope="col" className={`${TABLE_HEAD_CELL} text-right`}>
                         {heading}
                       </th>
@@ -143,6 +146,7 @@ export function ReportScreen() {
                       <td className={`${TABLE_CELL} text-right tabular-nums`}>{countLabel(row.assignedTrips)}</td>
                       <td className={`${TABLE_CELL} text-right tabular-nums`}>{countLabel(row.completedTrips)}</td>
                       <td className={`${TABLE_CELL} text-right tabular-nums`}>{countLabel(row.ticketsChecked)}</td>
+                      <td className={`${TABLE_CELL} text-right tabular-nums`}>{countLabel(row.incidentsReported)}</td>
                     </tr>
                   ))}
                 </tbody>

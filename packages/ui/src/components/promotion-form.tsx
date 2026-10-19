@@ -21,6 +21,7 @@ export type PromotionFormValues = {
   maxDiscount: number | null;
   minOrder: number;
   routeId: string | null;
+  routeIds?: string[];
   tripId: string | null;
   startsAt: string;
   endsAt: string;
@@ -43,6 +44,7 @@ export function emptyPromotion(now: number = Date.now()): PromotionFormValues {
     maxDiscount: null,
     minOrder: 0,
     routeId: null,
+    routeIds: [],
     tripId: null,
     startsAt: start.toISOString(),
     endsAt: new Date(start.getTime() + 30 * 86_400_000).toISOString(),
@@ -67,6 +69,7 @@ export function validatePromotion(values: PromotionFormValues): Errors {
 export function PromotionForm({
   initial,
   routes,
+  platformRoutes,
   pending,
   serverError,
   editable = true,
@@ -76,6 +79,8 @@ export function PromotionForm({
   initial: PromotionFormValues;
   /** Có = form của nhà xe (chọn tuyến); không = khuyến mãi nền tảng. */
   routes?: { value: string; label: string }[];
+  /** Các tuyến của nhiều nhà xe để chọn phạm vi chiến dịch nền tảng. */
+  platformRoutes?: { value: string; label: string }[];
   pending: boolean;
   serverError: string | null;
   editable?: boolean;
@@ -137,6 +142,21 @@ export function PromotionForm({
           </div>
         </Section>
         <Section title="Phạm vi và thời gian">
+          {platformRoutes && (
+            <fieldset className="flex flex-col gap-3" disabled={disabled}>
+              <legend className="mb-2 text-sm font-medium">Tuyến áp dụng</legend>
+              <p className="text-sm text-muted-foreground">Để trống để áp dụng mọi tuyến của nhà xe tham gia.</p>
+              <div className="grid max-h-60 gap-2 overflow-auto rounded-lg border p-3 md:grid-cols-2">
+                {platformRoutes.map((route) => (
+                  <label key={route.value} className="flex items-center gap-2 text-sm">
+                    <input type="checkbox" checked={(values.routeIds ?? []).includes(route.value)} onChange={(event) => set("routeIds", event.target.checked ? [...(values.routeIds ?? []), route.value] : (values.routeIds ?? []).filter((id) => id !== route.value))} />
+                    {route.label}
+                  </label>
+                ))}
+                {platformRoutes.length === 0 && <p className="text-sm text-muted-foreground">Chưa có tuyến hoạt động.</p>}
+              </div>
+            </fieldset>
+          )}
           {routes && (
             <FormField label="Tuyến áp dụng *">
               {(control) => (

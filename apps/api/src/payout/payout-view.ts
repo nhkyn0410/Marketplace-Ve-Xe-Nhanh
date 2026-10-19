@@ -132,7 +132,7 @@ export async function loadPayoutDetail(
   for (const item of row.items) {
     const group = groups.get(item.tripId) ?? { bookings: new Set<string>(), gross: 0n, commission: 0n, other: 0n };
     if (item.bookingId) group.bookings.add(item.bookingId);
-    if (item.entryType === "PAYMENT_CAPTURED") group.gross += item.amount;
+    if (item.entryType === "PAYMENT_CAPTURED" || item.entryType === "PLATFORM_FUNDED_DISCOUNT") group.gross += item.amount;
     else if (item.entryType === "COMMISSION" || item.entryType === "COMMISSION_REVERSAL") group.commission -= item.amount;
     else group.other += item.amount;
     groups.set(item.tripId, group);

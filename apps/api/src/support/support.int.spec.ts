@@ -7,6 +7,8 @@ import { BookingInputSchema } from "../booking/dto/booking.dto";
 import { parseAppConfig } from "../config/env.config";
 import { platformScope, tenantScope } from "../database/db-scope";
 import { PrismaService } from "../database/prisma.service";
+import { loadPublicOperatorProfile } from "../database/public-operator-profile";
+import { PassengerProfileService } from "../iam/user/passenger-profile.service";
 import { escalateOverdueDisputes } from "../dispute/dispute-overdue";
 import { DisputeService } from "../dispute/dispute.service";
 import type { StorageProvider } from "../external/storage/storage-provider";
@@ -100,7 +102,7 @@ describe.skipIf(!ready && !requireDb)("Khiếu nại, tranh chấp, đánh giá 
   const userId = `trust${tag}`;
   const admin = { sub: adminId, role: "PLATFORM_ADMIN" } as VerifiedAccessToken;
   const owner = { sub: ownerId, role: "OPERATOR_OWNER" } as VerifiedAccessToken;
-  const passenger = { sub: userId, role: "PASSENGER" } as VerifiedAccessToken;
+  const passenger = { sub: userId, role: "PASSENGER", scope: "passenger", sid: randomUUID() } as VerifiedAccessToken;
   const ownerAuthz: Authorization = { permission: "trip:manage", scope: "tenant", db: tenantScope(operatorId) };
   const operatorAuthz: Authorization = { permission: "support:respond", scope: "tenant", db: tenantScope(operatorId) };
   const strangerAuthz: Authorization = { permission: "support:respond", scope: "tenant", db: tenantScope(otherOperatorId) };
@@ -379,6 +381,25 @@ describe.skipIf(!ready && !requireDb)("Khiếu nại, tranh chấp, đánh giá 
     expect(await rejectionOf(disputes.operatorRespond(operatorAuthz, owner, opened.disputeId, { body: "Thêm", attachments: [] }))).toMatchObject({ status: 409 });
   }, 60_000);
 
+  it("mở tranh chấp trực tiếp từ đơn; danh sách /me chỉ có tài nguyên của hành khách, cursor tài khoản khác không dùng được", async () => {
+    const mine = await paidBooking(55, ["A1"], passenger);
+    const guest = await paidBooking(56, ["A1"], null);
+    const ticket = await support.customerCreate(passenger, mine.bookingId, undefined, { category: "SCHEDULE", priority: "MEDIUM", subject: "Xe thay đổi điểm đón", body: "Xin hỗ trợ.", attachments: [] });
+    const opened = await disputes.openFromBooking(platformAuthz, admin, { bookingId: mine.bookingId, title: "Mở từ đơn thanh toán", customerRequest: null, reason: "Cần phân xử trực tiếp" });
+    expect(opened).toMatchObject({ bookingId: mine.bookingId, status: "OPEN", supportTicketId: null });
+    expect(await rejectionOf(disputes.openFromBooking(platformAuthz, admin, { bookingId: mine.bookingId, title: "Gửi lặp lại", customerRequest: null, reason: "Lặp lại yêu cầu" }))).toMatchObject({ status: 409 });
+    const profiles = new PassengerProfileService(prisma);
+    const bookingsPage = await profiles.bookings(passenger, { limit: 100 });
+    expect(bookingsPage.items.some((item) => item.bookingId === mine.bookingId)).toBe(true);
+    expect(bookingsPage.items.some((item) => item.bookingId === guest.bookingId)).toBe(false);
+    expect(await profiles.bookings(passenger, { limit: 20, cursor: guest.bookingId })).toEqual({ items: [], nextCursor: null });
+    expect((await profiles.tickets(passenger, { limit: 100 })).items.filter((item) => item.bookingId === mine.bookingId)).toHaveLength(1);
+    expect((await profiles.supportTickets(passenger, { limit: 100 })).items.map((item) => item.ticketId)).toContain(ticket.ticketId);
+    expect((await profiles.disputes(passenger, { limit: 100 })).items.map((item) => item.disputeId)).toContain(opened.disputeId);
+    const stranger = { ...passenger, sub: "different-account" };
+    for (const method of ["bookings", "tickets", "supportTickets", "disputes"] as const) expect((await profiles[method](stranger, { limit: 20 })).items).toEqual([]);
+  }, 60_000);
+
   it("đánh giá: chỉ hành khách, chuyến đã hoàn thành + đã đi, một lần; nhà xe phản hồi / báo cáo → Admin cần xem xét; ẩn → không tính điểm", async () => {
     const guest = await paidBooking(50, ["A1"], null);
     const mine = await paidBooking(60, ["A1"], passenger);
@@ -397,6 +418,12 @@ describe.skipIf(!ready && !requireDb)("Khiếu nại, tranh chấp, đánh giá 
 
     const list = await reviews.operatorList(operatorAuthz, { limit: 20 });
     expect([list.items.map((item) => item.reviewId), list.average, list.validCount]).toEqual([[review.reviewId], 2, 1]);
+    const publicProfile = await loadPublicOperatorProfile(prisma, operatorId, { limit: 20 }, new Date());
+    expect(publicProfile?.scorecard).toMatchObject({ averageRating: 2, reviewCount: 1 });
+    expect(publicProfile?.reviews.map((item) => item.reviewId)).toEqual([review.reviewId]);
+    expect(publicProfile).not.toHaveProperty("taxCode");
+    expect(publicProfile).not.toHaveProperty("bankAccounts");
+    expect(publicProfile).not.toHaveProperty("kycDocuments");
     expect((await reviews.operatorList(strangerAuthz, { limit: 20 })).items).toEqual([]);
     expect((await reviews.reply(operatorAuthz, owner, review.reviewId, { reply: "Cảm ơn góp ý." })).operatorReply).toBe("Cảm ơn góp ý.");
     expect((await reviews.operatorList(operatorAuthz, { replied: "no", limit: 20 })).items).toEqual([]);
@@ -411,6 +438,9 @@ describe.skipIf(!ready && !requireDb)("Khiếu nại, tranh chấp, đánh giá 
     expect(events.at(-1)).toMatchObject({ action: "review.moderate", targetId: review.reviewId, before: { status: "VISIBLE" }, after: { status: "HIDDEN" } });
     const afterHide = await reviews.operatorList(operatorAuthz, { limit: 20 });
     expect([afterHide.items, afterHide.average, afterHide.validCount]).toEqual([[], null, 0]);
+    const hiddenPublic = await loadPublicOperatorProfile(prisma, operatorId, { limit: 20 }, new Date());
+    expect(hiddenPublic?.scorecard).toMatchObject({ averageRating: null, reviewCount: 0 });
+    expect(hiddenPublic?.reviews).toEqual([]);
     expect((await reviews.adminList(moderationAuthz, { status: "attention", operatorId, limit: 20 })).items).toEqual([]);
     expect(await rejectionOf(reviews.reply(operatorAuthz, owner, review.reviewId, { reply: "Sửa" }))).toMatchObject({ status: 404 });
   }, 60_000);

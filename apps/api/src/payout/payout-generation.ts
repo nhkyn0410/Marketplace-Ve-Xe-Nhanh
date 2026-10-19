@@ -53,9 +53,9 @@ async function generateFor(tx: DbTransaction, operatorId: string, period: string
       )
     ORDER BY e.created_at, e.id`;
   const sum = (types: EscrowEntryType[]) => entries.filter((entry) => types.includes(entry.entryType)).reduce((total, entry) => total + entry.amount, 0n);
-  const gross = sum([EscrowEntryType.PAYMENT_CAPTURED]);
+  const gross = sum([EscrowEntryType.PAYMENT_CAPTURED, EscrowEntryType.PLATFORM_FUNDED_DISCOUNT]);
   const commission = -sum([EscrowEntryType.COMMISSION, EscrowEntryType.COMMISSION_REVERSAL]);
-  const refund = -sum([EscrowEntryType.REFUND]);
+  const refund = -sum([EscrowEntryType.REFUND, EscrowEntryType.PLATFORM_FUNDED_DISCOUNT_REVERSAL]);
   const adjustment = sum([EscrowEntryType.ADJUSTMENT]);
   const amount = gross - commission - refund + adjustment;
   if (amount <= 0n) {

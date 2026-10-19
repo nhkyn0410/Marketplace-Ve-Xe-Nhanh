@@ -32,6 +32,7 @@ describe("Đặt vé — HTTP", () => {
     subtotal: 320000,
     serviceFee: 0,
     discount: 0,
+    discountFunding: null,
     total: 320000,
     cancellationPolicy: { tiers: [] },
     expiresAt: now,

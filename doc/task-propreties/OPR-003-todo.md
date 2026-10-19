@@ -27,7 +27,7 @@
 | G2 | Che dữ liệu cá nhân | Danh sách / chi tiết / hành khách luôn che; xem đầy đủ từng đơn hoặc xuất CSV đều ghi audit | Duyệt |
 | G3 | SĐT trong danh sách hành khách | SĐT hành khách, không có thì SĐT người liên hệ của đơn | Duyệt |
 | G4 | "Kênh bán" (Figma có ô lọc) | Bỏ: v1 chỉ bán online qua Marketplace | Duyệt / mở lại khi có bán tại quầy |
-| G5 | "Giảm giá do Vé Xe Nhanh chịu" (Figma 02) | Hiện dòng "Giảm giá" khi > 0; v1 chưa có voucher (TASK-LOY-001) | — |
+| G5 | "Giảm giá do Vé Xe Nhanh chịu" (Figma 02) | Đã tách nhãn bên chịu theo snapshot booking (`discountFunding`); ghi chú cơ sở doanh thu / hoa hồng theo nguồn ưu đãi | — |
 | G6 | Thao tác trên đơn (hủy / hoàn) | Không có — nhà xe chỉ xem, hoàn tiền theo luồng BTP-005 | — |
 | G7 | Số "Còn n chỗ chưa bán" | Tổng chỗ − vé còn hiệu lực (không trừ chỗ khóa / đang giữ) | Duyệt |
 

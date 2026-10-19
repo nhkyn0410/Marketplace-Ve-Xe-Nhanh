@@ -5,9 +5,11 @@ import { LoyaltyPointType, LoyaltyTier, type AccountStatus } from "../database/p
 import type { VerifiedAccessToken } from "../iam/auth/token.service";
 import type { Authorization } from "../iam/role/authorization";
 import { platformDb } from "../support/support.service";
+import { vndToJson } from "../fare/fare-pricing";
 import type { LoyaltyMember, LoyaltyReport, LoyaltyReportQuery, LoyaltyTransactionPage, PointAdjustInput } from "./dto/loyalty.dto";
 import { addMonths, appendEntry, earnedWithinWindow, lockAccount, loyaltyPolicyAt, nextTierFor, tierFor } from "./loyalty-rules";
 import { loyaltyInsufficientPoints, loyaltyMemberNotFound, loyaltyRequestConflict, loyaltyUnavailable } from "./loyalty.errors";
+import { queueLoyaltyNotice } from "./loyalty-notifications";
 
 const AUDIT_TIMEOUT_MS = 2_000;
 const VN_OFFSET_MS = 7 * 3_600_000;
@@ -15,6 +17,7 @@ const VN_OFFSET_MS = 7 * 3_600_000;
 type Actor = Pick<VerifiedAccessToken, "sub" | "role">;
 type UserRow = { id: string; name: string | null; email: string; status: AccountStatus; createdAt: Date };
 type MonthRow = { month: string; issued: number; redeemed: number; expired: number; vouchersRedeemed: number };
+type VoucherMonthRow = { month: string; vouchersUsed: number; platformDiscount: bigint };
 
 const USER_SELECT = { id: true, name: true, email: true, status: true, createdAt: true } as const;
 
@@ -118,6 +121,7 @@ export class AdminLoyaltyService {
         },
         { timeoutMs: AUDIT_TIMEOUT_MS, deadline },
       );
+      await queueLoyaltyNotice(tx, userId, `LOYALTY_ADJUSTED:${key}`, "Điểm VXN Plus đã được điều chỉnh", `Tài khoản của bạn ${points > 0 ? "được cộng" : "bị trừ"} ${Math.abs(points).toLocaleString("vi-VN")} điểm. Mở lịch sử điểm để xem chi tiết.`);
       return summarize(tx, user, now);
     });
   }
@@ -139,6 +143,18 @@ export class AdminLoyaltyService {
         GROUP BY 1`,
     );
     const byMonth = new Map(rows.map((row) => [row.month, row]));
+    const voucherMonths = await this.prisma.withScope(platformDb(authz), (tx) => tx.$queryRaw<VoucherMonthRow[]>`
+      SELECT to_char(e.created_at + interval '7 hours', 'YYYY-MM') AS month,
+        COUNT(*) FILTER (WHERE e.entry_type = 'PLATFORM_FUNDED_DISCOUNT')::int AS "vouchersUsed",
+        COALESCE(SUM(e.amount), 0)::bigint AS "platformDiscount"
+      FROM escrow_ledgers e
+      JOIN promotion_redemptions r ON r.booking_id = e.booking_id AND r.operator_id = e.operator_id
+      JOIN user_vouchers v ON v.id = r.user_voucher_id
+      JOIN loyalty_point_transactions l ON l.id = v.loyalty_transaction_id
+      WHERE e.entry_type IN ('PLATFORM_FUNDED_DISCOUNT', 'PLATFORM_FUNDED_DISCOUNT_REVERSAL')
+        AND e.created_at >= ${start} AND e.created_at < ${end} AND (${tier}::text IS NULL OR l.tier::text = ${tier})
+      GROUP BY 1`);
+    const voucherByMonth = new Map(voucherMonths.map((row) => [row.month, row]));
     const nowLocal = new Date(Date.now() + VN_OFFSET_MS);
     const currentMonth = `${nowLocal.getUTCFullYear()}-${String(nowLocal.getUTCMonth() + 1).padStart(2, "0")}`;
     const months = [3, 2, 1]
@@ -146,10 +162,10 @@ export class AdminLoyaltyService {
       .filter((month) => month <= currentMonth)
       .map((month) => {
         const row = byMonth.get(month);
-        // Ví voucher (TASK-PROM-002) chưa có: voucher đã dùng + phần giảm Vé Xe Nhanh chịu = 0.
-        return { month, issued: row?.issued ?? 0, redeemed: row?.redeemed ?? 0, expired: row?.expired ?? 0, vouchersRedeemed: row?.vouchersRedeemed ?? 0, vouchersUsed: 0, platformDiscount: 0 };
+        const voucher = voucherByMonth.get(month);
+        return { month, issued: row?.issued ?? 0, redeemed: row?.redeemed ?? 0, expired: row?.expired ?? 0, vouchersRedeemed: row?.vouchersRedeemed ?? 0, vouchersUsed: voucher?.vouchersUsed ?? 0, platformDiscount: signedVndToJson(voucher?.platformDiscount ?? 0n) };
       });
-    const sum = (key: "issued" | "redeemed" | "expired" | "vouchersRedeemed" | "vouchersUsed" | "platformDiscount") => months.reduce((total, month) => total + month[key], 0);
+    const sum = (key: "issued" | "redeemed" | "expired" | "vouchersRedeemed" | "vouchersUsed") => months.reduce((total, month) => total + month[key], 0);
     return {
       year: query.year,
       quarter: query.quarter,
@@ -161,7 +177,7 @@ export class AdminLoyaltyService {
         expired: sum("expired"),
         vouchersRedeemed: sum("vouchersRedeemed"),
         vouchersUsed: sum("vouchersUsed"),
-        platformDiscount: sum("platformDiscount"),
+        platformDiscount: signedVndToJson(months.reduce((total, month) => total + (voucherByMonth.get(month.month)?.platformDiscount ?? 0n), 0n)),
       },
     };
   }
@@ -178,8 +194,12 @@ export class AdminLoyaltyService {
   }
 }
 
+function signedVndToJson(amount: bigint): number {
+  return amount < 0n ? -vndToJson(-amount) : vndToJson(amount);
+}
+
 /** Thẻ thành viên (Figma ADM-12b): điểm khả dụng, điểm tích 12 tháng, hạng + hạng kế tiếp theo chính sách đang áp dụng. */
-async function summarize(tx: DbTransaction, user: UserRow, now: Date): Promise<LoyaltyMember> {
+export async function summarize(tx: DbTransaction, user: UserRow, now: Date): Promise<LoyaltyMember> {
   const account = await tx.loyaltyAccount.findUnique({ where: { userId: user.id }, select: { id: true, availablePoints: true } });
   const policy = await loyaltyPolicyAt(tx, now);
   const earned12m = account ? await earnedWithinWindow(tx, account.id, now) : 0;

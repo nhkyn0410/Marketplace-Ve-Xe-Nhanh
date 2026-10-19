@@ -11,6 +11,8 @@ import { SessionService } from "../iam/session/session.service";
 import { configureApiRoutes } from "../openapi/openapi";
 import { AdminLoyaltyController } from "./admin-loyalty.controller";
 import { AdminLoyaltyService } from "./admin-loyalty.service";
+import { PassengerLoyaltyController } from "./passenger-loyalty.controller";
+import { PassengerLoyaltyService } from "./passenger-loyalty.service";
 
 /** Chuỗi guard thật của VXN Plus phía Admin (TASK-LOY-001): chỉ Quản trị viên nền tảng; điều chỉnh điểm cần xác nhận lại danh tính. */
 describe("VXN Plus — HTTP", () => {
@@ -33,17 +35,26 @@ describe("VXN Plus — HTTP", () => {
     adjust: vi.fn(async () => member),
     report: vi.fn(async () => ({ year: 2026, quarter: 4, tier: null, months: [{ month: "2026-10", ...figures }], totals: figures })),
   };
+  const voucher = { userVoucherId: randomUUID(), source: "LOYALTY_REDEMPTION", status: "AVAILABLE", promotionCode: null, name: "Voucher VXN Plus", discountAmount: "100000", discountType: "AMOUNT", discountValue: "100000", maxDiscount: null, minOrder: "0", expiresAt: "2026-11-19T00:00:00.000Z", createdAt: "2026-10-19T00:00:00.000Z" };
+  const passenger = {
+    member: vi.fn(async () => ({ ...member, rules: null })),
+    transactions: vi.fn(async () => ({ items: [], total: 0, totals: { earned: 0, redeemed: 0, expired: 0 } })),
+    vouchers: vi.fn(async () => ({ items: [voucher], total: 1 })),
+    redeem: vi.fn(async () => voucher),
+    save: vi.fn(async () => voucher),
+  };
   let reauthed = false;
   let app: INestApplication;
   let base: string;
   let tokens: TokenService;
 
   @Module({
-    controllers: [AdminLoyaltyController],
+    controllers: [AdminLoyaltyController, PassengerLoyaltyController],
     providers: [
       { provide: APP_CONFIG, useValue: { NODE_ENV: "test", JWT_ACCESS_TTL_SECONDS: 900, JWT_ISSUER: "vexenhanh-test" } as AppConfig },
       TokenService,
       { provide: AdminLoyaltyService, useValue: service },
+      { provide: PassengerLoyaltyService, useValue: passenger },
       { provide: SessionService, useValue: { assertActive: async () => undefined, assertOperatorAccountCurrent: async () => undefined, hasRecentReauth: async () => reauthed } },
     ],
   })
@@ -70,8 +81,9 @@ describe("VXN Plus — HTTP", () => {
 
   async function token(role: AccessTokenClaims["role"]): Promise<string> {
     const platform = role.startsWith("PLATFORM");
+    const scope = role === "PASSENGER" ? "passenger" : platform ? "platform" : "operator";
     return (
-      await tokens.mintAccessToken({ sub: randomUUID(), sid: randomUUID(), scope: platform ? "platform" : "operator", role, ...(platform ? {} : { operatorId: randomUUID(), operatorSlug: "nhaxe" }), mfa: true })
+      await tokens.mintAccessToken({ sub: "actor-from-token", sid: randomUUID(), scope, role, ...(scope === "operator" ? { operatorId: randomUUID(), operatorSlug: "nhaxe" } : {}), ...(scope === "passenger" ? {} : { mfa: true }) })
     ).accessToken;
   }
 
@@ -125,5 +137,23 @@ describe("VXN Plus — HTTP", () => {
     expect((await call("POST", "/admin/loyalty/accounts/u1/adjustments", admin, valid, key)).status).toBe(201);
     expect((service.adjust.mock.calls[0] as unknown as unknown[]).slice(2)).toEqual(["u1", valid, key]);
     expect((await call("POST", "/admin/loyalty/accounts/u1/adjustments", await token("OPERATOR_OWNER"), valid, key)).status).toBe(403);
+  });
+
+  it("hành khách chỉ thao tác ví / điểm của token; Admin, nhà xe, khách chưa đăng nhập bị chặn", async () => {
+    const user = await token("PASSENGER");
+    expect((await call("GET", "/me/loyalty", user)).status).toBe(200);
+    expect(passenger.member.mock.calls[0]).toEqual(["actor-from-token"]);
+    expect((await call("GET", "/me/vouchers?status=AVAILABLE", user)).status).toBe(200);
+    expect(passenger.vouchers.mock.calls[0]).toEqual(["actor-from-token", { status: "AVAILABLE", offset: 0, limit: 20 }]);
+    for (const role of ["PLATFORM_ADMIN", "OPERATOR_OWNER"] as const) expect((await call("GET", "/me/vouchers", await token(role))).status).toBe(403);
+    expect((await call("GET", "/me/loyalty", null)).status).toBe(401);
+    expect((await call("POST", "/me/loyalty/redemptions", user, { points: 100 })).status).toBe(400);
+    expect((await call("POST", "/me/loyalty/redemptions", user, { points: 0 }, randomUUID())).status).toBe(400);
+    const key = randomUUID();
+    expect((await call("POST", "/me/loyalty/redemptions", user, { points: 100, userId: "someone-else" }, key)).status).toBe(201);
+    expect(passenger.redeem.mock.calls[0]).toEqual(["actor-from-token", 100, key]);
+    expect((await call("POST", "/me/vouchers", user, { promotionCode: "  saved20  " })).status).toBe(201);
+    expect(passenger.save.mock.calls[0]).toEqual(["actor-from-token", "SAVED20"]);
+    expect((await call("GET", "/me/loyalty/transactions?from=2026-12-01T00:00:00Z&to=2026-10-01T00:00:00Z", user)).status).toBe(400);
   });
 });

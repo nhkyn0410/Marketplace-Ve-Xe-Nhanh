@@ -44,6 +44,8 @@ import {
 } from "./trip.errors";
 import { findDetail, loadRouteStops, lockVehicleSeats, planStopTimes, toResponse, type TripActor } from "./trip.service";
 import { releaseRedemption } from "../promotion/promotion-apply";
+import { transitionVoucher } from "../promotion/voucher-apply";
+import { tripCancellationRefund } from "./trip-cancellation-amount";
 
 const AUDIT_TIMEOUT_MS = 2_000;
 /** Chuyến đang bán / tạm khóa bán / hết chỗ — đổi lịch chạy được (nháp sửa thẳng bằng PUT chuyến). */
@@ -84,7 +86,15 @@ export class TripChangeService {
       }
       const seats = await tx.tripSeat.groupBy({ by: ["status"], where: { tripId, operatorId }, _count: { _all: true } });
       const count = (statuses: readonly TripSeatStatus[]) => seats.filter((row) => statuses.includes(row.status)).reduce((sum, row) => sum + row._count._all, 0);
-      const tickets = await tx.ticket.findMany({ where: { tripId, operatorId, status: { in: LIVE_TICKETS } }, select: { bookingId: true, passenger: { select: { price: true } } } });
+      const bookings = await tx.booking.findMany({
+        where: { tripId, operatorId, tickets: { some: { status: { in: LIVE_TICKETS } } } },
+        select: {
+          subtotal: true, discount: true,
+          tickets: { where: { status: { in: LIVE_TICKETS } }, select: { passenger: { select: { price: true } } } },
+          payments: { where: { status: PaymentStatus.SUCCESS }, take: 1, select: { amount: true } },
+          refunds: { where: { status: { not: RefundStatus.REJECTED }, payment: { status: { not: PaymentStatus.RECONCILING } } }, select: { amount: true } },
+        },
+      });
       const pendingBookings = await tx.booking.count({ where: { tripId, operatorId, status: BookingStatus.PENDING_PAYMENT } });
       const changes = await tx.tripChange.findMany({
         where: { tripId, operatorId },
@@ -96,9 +106,9 @@ export class TripChangeService {
       return {
         soldSeats: count(SOLD),
         holdingSeats: count([TripSeatStatus.HOLDING]),
-        activeBookings: new Set(tickets.map((ticket) => ticket.bookingId)).size,
+        activeBookings: bookings.length,
         pendingBookings,
-        refundOnCancel: vndToJson(tickets.reduce((sum, ticket) => sum + ticket.passenger.price, 0n)),
+        refundOnCancel: vndToJson(bookings.reduce((sum, booking) => sum + tripCancellationRefund(booking.tickets.map((ticket) => ticket.passenger.price), booking.subtotal, booking.discount, booking.payments[0]?.amount ?? 0n, booking.refunds.reduce((total, refund) => total + refund.amount, 0n)), 0n)),
         changes: changes.map((change) => ({
           ...change,
           before: change.before as TripScheduleSnapshot,
@@ -262,6 +272,7 @@ export class TripChangeService {
           const live = await liveBookings(tx, operatorId, tripId);
           const refunded = new Map<string, bigint | null>();
           for (const booking of live) {
+            await transitionVoucher(tx, operatorId, booking.id, "TRIP_CANCELLED", now);
             const refund = await cancelLiveTickets(tx, operatorId, booking.id, reason, by, now);
             if (refund) {
               refundIds.push(refund.id);
@@ -427,9 +438,8 @@ async function cancelLiveTickets(
     where: { bookingId, operatorId, status: { not: RefundStatus.REJECTED }, payment: { status: { not: PaymentStatus.RECONCILING } } },
     _sum: { amount: true },
   });
-  const ticketTotal = tickets.reduce((sum, ticket) => sum + ticket.passenger.price, 0n);
-  const remaining = payment ? payment.amount - (priorRefunds._sum.amount ?? 0n) : 0n;
-  const amount = ticketTotal < remaining ? ticketTotal : remaining;
+  const booking = await tx.booking.findFirstOrThrow({ where: { id: bookingId, operatorId }, select: { subtotal: true, discount: true } });
+  const amount = tripCancellationRefund(tickets.map((ticket) => ticket.passenger.price), booking.subtotal, booking.discount, payment?.amount ?? 0n, priorRefunds._sum.amount ?? 0n);
   const refund =
     payment && amount > 0n
       ? await tx.refund.create({

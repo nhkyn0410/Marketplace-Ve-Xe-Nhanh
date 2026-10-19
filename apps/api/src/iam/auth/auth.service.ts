@@ -1,4 +1,5 @@
 import { HttpStatus, Inject, Injectable, Logger } from "@nestjs/common";
+import { randomUUID } from "node:crypto";
 import { APP_CONFIG, type AppConfig } from "../../config/env.config";
 import { PrismaService } from "../../database/prisma.service";
 import { type AuthSession, SessionRevokeReason, SubjectType } from "../../database/prisma.types";
@@ -526,6 +527,10 @@ export class AuthService {
       });
       throw accountLocked();
     }
+    // FR-LOY-01: đăng ký chỉ hoàn tất sau OTP/OAuth; đăng nhập lại không tạo thêm sổ thành viên.
+    await this.prisma.withSystem((tx) => tx.$executeRaw`
+      INSERT INTO loyalty_accounts (id, user_id, updated_at) VALUES (${randomUUID()}, ${userId}, CURRENT_TIMESTAMP)
+      ON CONFLICT (user_id) DO NOTHING`);
     const result = await this.issueSession(
       { type: SubjectType.PASSENGER, id: userId },
       { scope: "passenger", role: PASSENGER_ROLE },

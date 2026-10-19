@@ -113,6 +113,25 @@ test("tạo chuyến nháp: thiếu ô báo tại ô, giờ đến tự gợi ý
   await expect(info).toContainText("4 chỗ");
 });
 
+test("cửa sổ đón theo điểm: kiểm tra hai mốc, lưu giờ Việt Nam và giữ sau tải lại", async () => {
+  const panel = page.getByRole("region", { name: "Cửa sổ đón theo điểm" });
+  const form = panel.locator("form").first();
+  const start = form.getByLabel(/^Bắt đầu đón tại /);
+  const end = form.getByLabel(/^Kết thúc đón tại /);
+  await start.fill(`${DAY}T05:45`);
+  await expect(form.getByRole("alert")).toContainText("Nhập đủ hai mốc");
+  await expect(form.getByRole("button", { name: "Lưu", exact: true })).toBeDisabled();
+  await end.fill(`${DAY}T05:30`);
+  await expect(form.getByRole("button", { name: "Lưu", exact: true })).toBeDisabled();
+  await end.fill(`${DAY}T06:15`);
+  const saved = page.waitForResponse((response) => response.request().method() === "PUT" && response.url().includes("/pickup-window"));
+  await form.getByRole("button", { name: "Lưu", exact: true }).click();
+  expect((await saved).status()).toBe(200);
+  await page.reload();
+  await expect(start).toHaveValue(`${DAY}T05:45`, FIRST_VISIT);
+  await expect(end).toHaveValue(`${DAY}T06:15`);
+});
+
 test("xe trùng giờ nằm ở nhóm Trùng giờ, không chọn được (BR-14, Lịch xe); khởi hành đúng lúc chuyến trước đến thì xe rảnh, lưu được", async () => {
   await page.getByRole("link", { name: "Danh sách chuyến" }).click();
   await page.getByRole("link", { name: "Tạo chuyến" }).first().click();

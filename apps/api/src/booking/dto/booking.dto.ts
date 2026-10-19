@@ -34,6 +34,8 @@ export const BookingInputSchema = z
      * giá mới (`GET /seat-holds/{holdId}`) rồi gửi lại — không tự thu khác số khách đã đồng ý.
      */
     expectedTotal: z.int().min(0),
+    /** Voucher thuộc hành khách đang đăng nhập; không kết hợp với mã khuyến mãi. */
+    userVoucherId: z.uuid().nullish(),
     /** Mã khuyến mãi (FR-MKT-10, TASK-PROM-001) — tối đa một mã mỗi đơn; `expectedTotal` là tổng SAU giảm. */
     promotionCode: z
       .string()
@@ -84,6 +86,8 @@ export const BookingResponseSchema = z.object({
   subtotal: z.int(),
   serviceFee: z.int(),
   discount: z.int(),
+  /** Bên chịu phần giảm đã chụp lúc đặt (BR-73). */
+  discountFunding: z.enum(["OPERATOR", "PLATFORM"]).nullable().default(null),
   total: z.int(),
   /** Mốc hủy / hoàn chụp lúc đặt (BR-07) — áp cho booking này dù chính sách đổi sau. */
   cancellationPolicy: z.object({ tiers: z.array(z.object({ minHoursBefore: z.int(), refundPercent: z.int() })) }),

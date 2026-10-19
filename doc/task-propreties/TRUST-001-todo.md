@@ -24,15 +24,15 @@
 |---|------|-------------|
 | G1 | Khiếu nại không gắn đơn (hỗ trợ chung) | Chưa — mọi khiếu nại gắn một đơn (Figma luôn có "Đơn") |
 | G2 | Nhà xe thấy khiếu nại khi nào | Chỉ sau khi Admin chọn bên xử lý chính = nhà xe lần đầu; thấy toàn bộ trao đổi (liên hệ khách đã che) |
-| G3 | Mở tranh chấp trực tiếp từ đơn / thanh toán (FR-DSP-01) | Chưa — chỉ từ khiếu nại |
+| G3 | Mở tranh chấp trực tiếp từ đơn / thanh toán (FR-DSP-01) | Đã có `POST /admin/disputes` theo bookingId; nút trên chi tiết thanh toán Admin; `support:manage`, audit, thông báo hai bên; khóa đơn tránh gửi lặp tạo hai vụ trực tiếp đang mở |
 | G4 | Quyết định "phương án khác" (đổi vé…) | Chỉ ghi quyết định + lý do, trạng thái "Đã quyết định · không hoàn"; không tự đổi vé |
 | G5 | Ai được ra quyết định | Chỉ PlatformAdmin + xác nhận lại danh tính; PlatformSupport xử lý khiếu nại, yêu cầu minh chứng, đổi trạng thái |
 | G6 | Hạn phản hồi / leo thang | Admin tự đặt (tối đa 30 ngày); quá hạn → "Đã leo thang" (job 15 phút) |
 | G7 | Danh mục khiếu nại | 5 mục: thanh toán / hoàn tiền, giờ chạy, chất lượng dịch vụ, đổi vé, khác |
 | G8 | Tín hiệu đánh giá nghi spam | Heuristic số điện thoại / đường dẫn / ký tự lặp — cần quy tắc chính thức |
 | G9 | Nhà xe thấy đánh giá đã ẩn? | Không (chỉ đang hiển thị + giữ chờ) |
-| G10 | Thẻ đánh giá trên báo cáo nhà xe / cột đánh giá báo cáo Admin, scorecard (FR-NSR-11), hồ sơ công khai (MKT-001) | Chưa nối — dữ liệu đã có (`reviews` đang hiển thị) |
-| G11 | Danh sách khiếu nại của hành khách trên mọi đơn (`/me/...`) | Chưa — API theo từng đơn; app hành khách chưa làm |
+| G10 | Thẻ đánh giá trên báo cáo nhà xe / cột đánh giá báo cáo Admin, scorecard (FR-NSR-11), hồ sơ công khai (MKT-001) | Đã nối báo cáo và hồ sơ công khai; chỉ review VISIBLE tính điểm; chỉ số thiếu dữ liệu trả null — xem `MKT-backend-todo.md` |
+| G11 | Danh sách khiếu nại của hành khách trên mọi đơn (`/me/...`) | Đã có `/me/support-tickets`, `/me/disputes` kèm `/me/bookings`, `/me/tickets`; phân trang và lọc qua booking.userId từ token; app hành khách chưa làm |
 
 ## Kiểm tra
 

@@ -24,6 +24,7 @@ import {
   tripMoment
 } from "../../lib/payment/payment-format";
 import { PaymentRefundDialog, RefundDialog } from "./refund-dialog";
+import { OpenBookingDispute } from "../support/open-booking-dispute";
 
 /**
  * Chi tiết thanh toán (Figma ADM-07b; TASK-ADM-002, FR-BTP-17, NFR-AUDIT-04): dòng thời gian booking → thanh toán → cổng →
@@ -200,6 +201,7 @@ function DetailBody({ payment }: { payment: PaymentDetail }) {
               <Row label="Chỗ" value={payment.booking.seatCodes.join(", ")} />
               <Row label="Tuyến" value={payment.booking.routeName} />
             </dl>
+            <OpenBookingDispute bookingId={payment.bookingId} bookingCode={payment.bookingCode} />
           </Card>
         </div>
       </div>

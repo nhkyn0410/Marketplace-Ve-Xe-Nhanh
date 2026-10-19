@@ -212,6 +212,8 @@ describe.skipIf(!ready && !requireDb)("Báo cáo nhà xe + Admin — Postgres + 
       await tx.$executeRaw`SELECT set_config('app.allow_ledger_delete', 'on', true)`;
       await tx.notificationDelivery.deleteMany({ where: { operatorId } });
       await tx.notification.deleteMany({ where: { operatorId } });
+      await tx.review.deleteMany({ where: { operatorId } });
+      await tx.incidentReport.deleteMany({ where: { operatorId } });
       await tx.escrowLedger.deleteMany({ where: { operatorId } });
       await tx.ticketStatusHistory.deleteMany({ where: { operatorId } });
       await tx.ticket.deleteMany({ where: { operatorId } });
@@ -247,9 +249,9 @@ describe.skipIf(!ready && !requireDb)("Báo cáo nhà xe + Admin — Postgres + 
   it("báo cáo nhà xe: tổng theo kỳ, theo tuyến, nhân viên soát vé; lọc xe; tenant khác không thấy gì; Admin gọi route nhà xe → 403", async () => {
     const range = { from: vnDate(new Date()), to: vnDate(new Date(Date.now() + 3 * DAY)) };
     const report = await reports.operatorReport(financeAuthz, range);
-    expect(report.totals).toEqual({ grossRevenue: 600_000, trips: 2, completedTrips: 0, ticketsSold: 2, bookings: 1, seats: 8, cancelledTickets: 1, refundedTickets: 1 });
+    expect(report.totals).toEqual({ grossRevenue: 600_000, trips: 2, completedTrips: 0, ticketsSold: 2, bookings: 1, seats: 8, cancelledTickets: 1, refundedTickets: 1, averageRating: null, reviewCount: 0 });
     expect(report.byRoute).toEqual([{ routeId, routeName: `=Tuyến báo cáo ${tag}`, trips: 2, completedTrips: 0, seats: 8, ticketsSold: 2, grossRevenue: 600_000 }]);
-    expect(report.employees).toEqual([{ employeeId: driverId, loginName: `rp-${tag}/nv.tai-${tag}`, role: "DRIVER", assignedTrips: 1, completedTrips: 0, ticketsChecked: 1 }]);
+    expect(report.employees).toEqual([{ employeeId: driverId, loginName: `rp-${tag}/nv.tai-${tag}`, role: "DRIVER", assignedTrips: 1, completedTrips: 0, ticketsChecked: 1, incidentsReported: 0 }]);
 
     const byVehicle = await reports.operatorReport(financeAuthz, { ...range, vehicleId: fixture.second!.vehicleId });
     expect(byVehicle.totals).toMatchObject({ trips: 1, ticketsSold: 0, seats: 4, cancelledTickets: 1, grossRevenue: 0 });
@@ -294,13 +296,13 @@ describe.skipIf(!ready && !requireDb)("Báo cáo nhà xe + Admin — Postgres + 
     const range = { from: today, to: vnDate(new Date(Date.now() + 3 * DAY)), operatorId };
     const report = await reports.adminReport(platformAuthz, range);
     expect(report.totals).toMatchObject({ gmv: 900_000, bookings: 2, tickets: 3, netRevenue: 600_000, reconcileOpen: 0, trips: 2, completedTrips: 0, seats: 8, ticketsSold: 2, operatorCancelledTrips: 0, tripsWithSales: 2 });
-    expect(report.byOperator).toEqual([{ operatorId, operatorName: `Nhà xe báo cáo ${tag}`, trips: 2, ticketsSold: 2, seats: 8, gmv: 900_000, refunded: 300_000 }]);
+    expect(report.byOperator).toEqual([{ operatorId, operatorName: `Nhà xe báo cáo ${tag}`, trips: 2, ticketsSold: 2, seats: 8, gmv: 900_000, refunded: 300_000, averageRating: null, reviewCount: 0 }]);
     expect(report.paymentMethods).toEqual([{ provider: "VNPAY", amount: 900_000, count: 2 }]);
     const momo = await reports.adminReport(platformAuthz, { ...range, provider: "MOMO" });
     expect([momo.totals.gmv, momo.byOperator[0]?.gmv, momo.paymentMethods]).toEqual([0, 0, [{ provider: "VNPAY", amount: 900_000, count: 2 }]]);
 
     const file = await reports.adminReportCsv(platformAuthz, admin, range);
-    expect(file.csv.split("\r\n")[1]).toBe(`"Nhà xe báo cáo ${tag}","2","2","25.0","900000","300000"`);
+    expect(file.csv.split("\r\n")[1]).toBe(`"Nhà xe báo cáo ${tag}","2","2","25.0","900000","300000","","0"`);
     expect(events.at(-1)).toMatchObject({ action: "report.export", targetType: "platform_report", actorId: admin.sub });
 
     const week = { from: vnDate(new Date(Date.now() - 6 * DAY)), to: today, operatorId };
@@ -320,5 +322,22 @@ describe.skipIf(!ready && !requireDb)("Báo cáo nhà xe + Admin — Postgres + 
     expect(overview.daily.at(-1)).toEqual({ date: today, gmv: 900_000 });
     expect(overview.daily.slice(0, 6).every((day) => day.gmv === 0)).toBe(true);
     await expect(reports.adminReport(financeAuthz, range)).rejects.toThrow("ngữ cảnh DB platform");
+  }, 30_000);
+
+  it("điểm chỉ tính VISIBLE của chuyến trong bộ lọc; số sự cố theo người báo", async () => {
+    await prisma.withSystem(async (tx) => {
+      await tx.review.createMany({ data: [
+        { operatorId, bookingId: fixture.first!.bookingId, tripId: fixture.first!.tripId, userId: randomUUID(), authorName: "Khách A***", rating: 5, status: "VISIBLE" },
+        { operatorId, bookingId: fixture.second!.bookingId, tripId: fixture.second!.tripId, userId: randomUUID(), authorName: "Khách B***", rating: 1, status: "HELD" },
+      ] });
+      await tx.incidentReport.create({ data: { operatorId, tripId: fixture.first!.tripId, employeeId: driverId, type: "TRAFFIC", severity: "LOW", description: "Đường ùn tắc.", occurredAt: new Date() } });
+    });
+    const range = { from: vnDate(new Date()), to: vnDate(new Date(Date.now() + 3 * DAY)) };
+    const report = await reports.operatorReport(financeAuthz, range);
+    expect(report.totals).toMatchObject({ averageRating: 5, reviewCount: 1 });
+    expect(report.employees[0]?.incidentsReported).toBe(1);
+    expect((await reports.operatorReport(financeAuthz, { ...range, vehicleId: fixture.second!.vehicleId })).totals).toMatchObject({ averageRating: null, reviewCount: 0 });
+    const admin = await reports.adminReport(platformAuthz, { ...range, operatorId });
+    expect(admin.byOperator[0]).toMatchObject({ averageRating: 5, reviewCount: 1 });
   }, 30_000);
 });

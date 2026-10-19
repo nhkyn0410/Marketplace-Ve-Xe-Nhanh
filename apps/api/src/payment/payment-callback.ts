@@ -6,7 +6,7 @@ import { recordCapture } from "../escrow/escrow-entries";
 import { queueNotification } from "../notification/notification-outbox";
 import { issueTickets } from "../ticket/ticket-issuer";
 import type { TicketQrSigner } from "../ticket/ticket-qr";
-import { useRedemption } from "../promotion/promotion-apply";
+import { releaseRedemption, useRedemption } from "../promotion/promotion-apply";
 
 // Xử lý callback ĐÃ xác thực chữ ký (TASK-BTP-003, LLD §6.3, FR-BTP-08/09, BR-27/28): chạy trong worker (job
 // `payment-callback`). Một transaction ở tenant của nhà xe: khoá payment rồi booking, quyết theo trạng thái hiện tại —
@@ -72,6 +72,10 @@ async function apply(tx: DbTransaction, operatorId: string, callback: PaymentCal
       data: { status: PaymentStatus.FAILED, failureCode: callback.resultCode, providerTxnId: callback.providerTxnId, callback: callback.fields },
     });
     await history(PaymentStatus.FAILED, `Cổng báo thất bại (mã ${callback.resultCode}).`);
+    if (await tx.promotionRedemption.findFirst({ where: { bookingId: payment.bookingId, operatorId, userVoucherId: { not: null }, status: "RESERVED" }, select: { id: true } })) {
+      await tx.$queryRaw`SELECT id FROM bookings WHERE id = ${payment.bookingId} AND operator_id = ${operatorId} FOR UPDATE`;
+      await releaseRedemption(tx, operatorId, payment.bookingId);
+    }
     return "FAILED";
   }
 
@@ -101,6 +105,9 @@ async function apply(tx: DbTransaction, operatorId: string, callback: PaymentCal
     return reconcile("SEATS_RELEASED");
   }
 
+  const [voucherReady] = await tx.$queryRaw<{ ready: boolean }[]>`SELECT voucher_reclaim(${payment.bookingId}, ${operatorId}, ${now}::timestamp) AS ready`;
+  if (!voucherReady?.ready) return reconcile("VOUCHER_NOT_AVAILABLE");
+
   await tx.payment.update({
     where: { id: payment.id },
     data: { status: PaymentStatus.SUCCESS, providerTxnId: callback.providerTxnId, paidAt: now, callback: callback.fields },
@@ -112,12 +119,14 @@ async function apply(tx: DbTransaction, operatorId: string, callback: PaymentCal
   });
   await tx.tripSeat.updateMany({ where: { bookingId: payment.bookingId, operatorId, status: "HOLDING" }, data: { status: "BOOKED" } });
   await useRedemption(tx, operatorId, payment.bookingId);
+  const redemption = await tx.promotionRedemption.findFirst({ where: { bookingId: payment.bookingId, operatorId }, select: { fundedBy: true, discount: true } });
+  const platformDiscount = redemption?.fundedBy === "PLATFORM" ? redemption.discount : 0n;
   // Ghi sổ escrow + hoa hồng (BR-30/31), phát hành vé cùng transaction (BR-28) rồi `PAID → CONFIRMED` (SRS §17.6).
   await recordCapture(
     tx,
     operatorId,
     // Khuyến mãi do nhà xe chịu (TASK-PROM-001): hoa hồng tính trên tiền vé sau giảm — số khách thực trả.
-    { bookingId: payment.bookingId, tripId: booking.tripId, paymentId: payment.id, total: booking.total, ticketRevenue: booking.subtotal - booking.discount, arrivalAt: booking.trip.arrivalAt },
+    { bookingId: payment.bookingId, tripId: booking.tripId, paymentId: payment.id, total: booking.total, ticketRevenue: booking.subtotal - booking.discount + platformDiscount, platformDiscount, arrivalAt: booking.trip.arrivalAt },
     now,
   );
   await issueTickets(tx, operatorId, payment.bookingId, qr, now, "system");

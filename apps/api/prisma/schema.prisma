@@ -70,11 +70,14 @@ enum PlatformRole {
 // chỉ `@@map` đổi tên bảng DB. Better Auth tự sinh `id` (String).
 
 model User {
+  vouchers UserVoucher[]
   id            String        @id
   name          String?
   email         String        @unique
   emailVerified Boolean       @default(false) @map("email_verified")
   image         String?
+  phone         String?
+  dateOfBirth   DateTime?     @map("date_of_birth") @db.Date
   /// Admin khóa hành khách (FR-IAM-08) — app kiểm khi cấp phiên; Better Auth không dùng cột này.
   status        AccountStatus @default(ACTIVE)
   lockedReason  String?       @map("locked_reason")
@@ -86,9 +89,25 @@ model User {
   accounts       Account[]
   bookings       Booking[]
   loyaltyAccount LoyaltyAccount?
+  savedPassengers SavedPassenger[]
 
   @@index([status, createdAt(sort: Desc)])
   @@map("users")
+}
+
+/// Hành khách thường dùng do chủ tài khoản lưu để điền nhanh lúc đặt vé (FR-MKT-13).
+model SavedPassenger {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  fullName  String   @map("full_name")
+  phone     String?
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@map("saved_passengers")
 }
 
 model Session {
@@ -931,7 +950,46 @@ model EmployeeAssignment {
 }
 
 /// Điểm dừng của chuyến: chép từ RouteStop lúc tạo/sửa chuyến, kèm giờ dự kiến tại điểm.
+/// Sự cố được nhân viên báo từ chuyến đang được phân công.
+model IncidentReport {
+  id String @id @default(uuid())
+  operatorId String @map("operator_id")
+  tripId String @map("trip_id")
+  employeeId String @map("employee_id")
+  type String
+  severity String
+  description String
+  location String?
+  occurredAt DateTime @map("occurred_at")
+  evidence Json @default("[]")
+  resolvedAt DateTime? @map("resolved_at")
+  resolvedBy String? @map("resolved_by")
+  resolution String?
+  createdAt DateTime @default(now()) @map("created_at")
+  @@index([operatorId, createdAt])
+  @@index([operatorId, tripId])
+  @@map("incident_reports")
+}
+
+/// Nhật trình thực tế của tài xế theo chuyến và điểm dừng.
+model JourneyLog {
+  id String @id @default(uuid())
+  operatorId String @map("operator_id")
+  tripId String @map("trip_id")
+  employeeId String @map("employee_id")
+  stopSequence Int? @map("stop_sequence")
+  actualAt DateTime @map("actual_at")
+  vehicleStatus String? @map("vehicle_status")
+  note String?
+  delayMinutes Int @default(0) @map("delay_minutes")
+  createdAt DateTime @default(now()) @map("created_at")
+  @@index([operatorId, tripId, actualAt])
+  @@map("journey_logs")
+}
+
 model TripStop {
+  pickupWindowStart DateTime? @map("pickup_window_start")
+  pickupWindowEnd DateTime? @map("pickup_window_end")
   id                 String        @id @default(uuid())
   operatorId         String        @map("operator_id")
   tripId             String        @map("trip_id")
@@ -1396,6 +1454,7 @@ enum BookingStatus {
 /// Đơn đặt vé (FR-BTP-05/06). Tiền BIGINT VND, `total = subtotal + serviceFee − discount` (CHECK). `snapshot` = dữ liệu
 /// bắt buộc lúc đặt (SRS §9.4): chuyến, nhà xe, tuyến, điểm đón / trả, giá từng chỗ, chính sách hủy.
 model Booking {
+  userVoucher UserVoucher?
   id              String        @id @default(uuid())
   /// `VXN` + 6 ký tự (CHECK).
   bookingCode     String        @unique @map("booking_code")
@@ -1727,6 +1786,10 @@ enum EscrowEntryType {
   REFUND
   /// + phần hoa hồng trả lại theo tiền đã hoàn.
   COMMISSION_REVERSAL
+  /// + phần giảm voucher đổi điểm do nền tảng bù cho nhà xe (BR-73).
+  PLATFORM_FUNDED_DISCOUNT
+  /// − phần nền tảng bù được đảo khi hoàn tiền.
+  PLATFORM_FUNDED_DISCOUNT_REVERSAL
   /// − đã chi trả cho nhà xe.
   PAYOUT
   /// ± điều chỉnh thủ công (luôn có ghi chú + audit).
@@ -1877,6 +1940,9 @@ enum NotificationKind {
   MANUAL_REFUND
   /// Khiếu nại / tranh chấp có cập nhật cần bên nhận biết (FR-DSP-07, TASK-TRUST-001).
   CASE_UPDATED
+  OPERATIONS_ALERT
+  LOYALTY_UPDATED
+  PROMOTION
 }
 
 enum NotificationChannel {
@@ -1893,8 +1959,9 @@ enum NotificationDeliveryStatus {
 }
 
 model Notification {
+  channelsPreparedAt DateTime? @map("channels_prepared_at")
   id           String           @id @default(uuid())
-  operatorId   String           @map("operator_id")
+  operatorId   String?          @map("operator_id")
   kind         NotificationKind
   /// Khoá chống trùng theo sự kiện (vd `TRIP_CHANGED:{changeId}:{bookingId}`).
   dedupKey     String           @unique @map("dedup_key")
@@ -1906,7 +1973,7 @@ model Notification {
   payload      Json             @default("{}")
   createdAt    DateTime         @default(now()) @map("created_at")
 
-  operator   OperatorProfile        @relation(fields: [operatorId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  operator   OperatorProfile?       @relation(fields: [operatorId], references: [id], onDelete: Restrict, onUpdate: Restrict)
   deliveries NotificationDelivery[]
 
   @@unique([id, operatorId])
@@ -1916,9 +1983,11 @@ model Notification {
 
 model NotificationDelivery {
   id              String                     @id @default(uuid())
-  operatorId      String                     @map("operator_id")
+  operatorId      String?                    @map("operator_id")
   notificationId  String                     @map("notification_id")
   channel         NotificationChannel
+  recipientType   SubjectType?               @map("recipient_type")
+  recipientId     String?                    @map("recipient_id")
   /// Người nhận đã che — địa chỉ đầy đủ đọc lại lúc gửi.
   recipientMasked String                     @map("recipient_masked")
   status          NotificationDeliveryStatus @default(PENDING)
@@ -1928,11 +1997,52 @@ model NotificationDelivery {
   createdAt       DateTime                   @default(now()) @map("created_at")
   updatedAt       DateTime                   @updatedAt @map("updated_at")
 
-  notification Notification @relation(fields: [notificationId, operatorId], references: [id, operatorId], onDelete: Restrict, onUpdate: Restrict)
+  notification Notification @relation(fields: [notificationId], references: [id], onDelete: Restrict, onUpdate: Restrict)
 
   @@unique([notificationId, channel])
   @@index([status, createdAt])
   @@map("notification_deliveries")
+}
+
+/// Tùy chọn nhận thông báo của từng chủ thể theo loại.
+model NotificationPreference {
+  id String @id @default(uuid())
+  subjectType SubjectType @map("subject_type")
+  subjectId String @map("subject_id")
+  operatorId String? @map("operator_id")
+  kind NotificationKind
+  email Boolean @default(true)
+  push Boolean @default(true)
+  updatedAt DateTime @updatedAt @map("updated_at")
+  @@unique([subjectType, subjectId, kind])
+  @@map("notification_preferences")
+}
+
+/// Thiết bị đẩy đã đăng ký; token không được trả lại qua API.
+model PushDevice {
+  id String @id @default(uuid())
+  subjectType SubjectType @map("subject_type")
+  subjectId String @map("subject_id")
+  operatorId String? @map("operator_id")
+  provider String
+  token String
+  tokenHash String @unique @map("token_hash")
+  active Boolean @default(true)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  @@index([subjectType, subjectId, active])
+  @@map("push_devices")
+}
+
+/// Kết quả gửi từng thiết bị để lần thử lại bỏ qua thiết bị đã nhận.
+model NotificationPushReceipt {
+  id String @id @default(uuid())
+  deliveryId String @map("delivery_id")
+  deviceId String @map("device_id")
+  status NotificationDeliveryStatus @default(PENDING)
+  updatedAt DateTime @updatedAt @map("updated_at")
+  @@unique([deliveryId, deviceId])
+  @@map("notification_push_receipts")
 }
 
 /// Loại thay đổi của chuyến đã bán vé (BR-10, BR-12).
@@ -2285,6 +2395,7 @@ model PromotionPermission {
 
 /// Chương trình khuyến mãi — cấp nền tảng (`operator_id` null) hoặc của một nhà xe. Mã nhập khi đặt vé, duy nhất toàn hệ thống.
 model Promotion {
+  savedVouchers UserVoucher[]
   id            String          @id @default(uuid())
   code          String          @unique
   name          String
@@ -2296,6 +2407,8 @@ model Promotion {
   minOrder      BigInt          @default(0) @map("min_order")
   /// Chỉ khuyến mãi của nhà xe: một tuyến / một chuyến của chính nhà xe; `null` = mọi tuyến / mọi chuyến.
   routeId       String?         @map("route_id")
+  /// Danh sách tuyến áp dụng của khuyến mãi nền tảng; rỗng = mọi tuyến của nhà xe tham gia.
+  routeIds      String[]        @default([]) @map("route_ids")
   tripId        String?         @map("trip_id")
   startsAt      DateTime        @map("starts_at")
   endsAt        DateTime        @map("ends_at")
@@ -2333,8 +2446,10 @@ model PromotionParticipation {
 
 /// Lượt áp dụng mã vào một đơn (FR-PROM-06, BR-47): số tiền giảm + bên chịu, theo vòng đời đơn.
 model PromotionRedemption {
+  voucher UserVoucher? @relation(fields: [userVoucherId], references: [id], onDelete: Restrict, onUpdate: Restrict)
   id          String           @id @default(uuid())
-  promotionId String           @map("promotion_id")
+  promotionId String?          @map("promotion_id")
+  userVoucherId String?        @map("user_voucher_id")
   operatorId  String           @map("operator_id")
   bookingId   String           @unique @map("booking_id")
   code        String
@@ -2344,7 +2459,7 @@ model PromotionRedemption {
   createdAt   DateTime         @default(now()) @map("created_at")
   updatedAt   DateTime         @updatedAt @map("updated_at")
 
-  promotion Promotion @relation(fields: [promotionId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  promotion Promotion? @relation(fields: [promotionId], references: [id], onDelete: Restrict, onUpdate: Restrict)
   booking   Booking   @relation(fields: [bookingId, operatorId], references: [id, operatorId], onDelete: Restrict, onUpdate: Restrict)
 
   @@index([promotionId, status])
@@ -2394,6 +2509,7 @@ model LoyaltyAccount {
 
 /// Sổ điểm CHỈ GHI THÊM (BR-69): tích / đổi / hết hạn / điều chỉnh / thu hồi, kèm nguồn + phiên bản chính sách.
 model LoyaltyPointTransaction {
+  voucher UserVoucher?
   id              String           @id @default(uuid())
   accountId       String           @map("account_id")
   type            LoyaltyPointType
@@ -2423,4 +2539,64 @@ model LoyaltyPointTransaction {
   @@index([accountId, createdAt])
   @@index([type, createdAt])
   @@map("loyalty_point_transactions")
+}
+
+/// Kết quả và checkpoint đối soát tiền để vận hành tra cứu, xử lý sai lệch thủ công.
+model ReconciliationRecord {
+  id String @id @default(uuid())
+  source String
+  status String @default("QUEUED")
+  requestedBy String? @map("requested_by")
+  reason String?
+  checkpoint String @default("QUEUED")
+  paymentResult Json? @map("payment_result")
+  ledgerEntriesChecked Int @default(0) @map("ledger_entries_checked")
+  payoutsChecked Int @default(0) @map("payouts_checked")
+  issueCount Int @default(0) @map("issue_count")
+  issues Json @default("[]")
+  error String?
+  startedAt DateTime? @map("started_at")
+  finishedAt DateTime? @map("finished_at")
+  createdAt DateTime @default(now()) @map("created_at")
+  @@index([createdAt(sort: Desc)])
+  @@map("reconciliation_records")
+}
+
+/// Nguồn voucher trong ví hành khách (FR-PROM-08..10).
+enum UserVoucherSource {
+  LOYALTY_REDEMPTION
+  SAVED_PROMOTION
+}
+
+/// Trạng thái voucher (SRS §17.16).
+enum UserVoucherStatus {
+  AVAILABLE
+  RESERVED
+  USED
+  EXPIRED
+}
+
+/// Voucher thuộc một hành khách; giữ / dùng / trả cùng giao dịch của booking (BR-71/72).
+model UserVoucher {
+  user User @relation(fields: [userId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  promotion Promotion? @relation(fields: [promotionId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  booking Booking? @relation(fields: [bookingId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  loyaltyTransaction LoyaltyPointTransaction? @relation(fields: [loyaltyTransactionId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  redemptions PromotionRedemption[]
+  id                   String            @id @default(uuid())
+  userId               String            @map("user_id")
+  source               UserVoucherSource
+  promotionId          String?           @map("promotion_id")
+  discountAmount       BigInt?           @map("discount_amount")
+  loyaltyTransactionId String?           @unique @map("loyalty_transaction_id")
+  policyVersion        Int?              @map("policy_version")
+  status               UserVoucherStatus @default(AVAILABLE)
+  bookingId            String?           @unique @map("booking_id")
+  expiresAt            DateTime          @map("expires_at")
+  usedAt               DateTime?         @map("used_at")
+  createdAt            DateTime          @default(now()) @map("created_at")
+  updatedAt            DateTime          @updatedAt @map("updated_at")
+
+  @@index([userId, status, expiresAt])
+  @@map("user_vouchers")
 }

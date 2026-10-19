@@ -839,7 +839,7 @@ async function seedBookingFixtures(
   await tx.tripSeat.createMany({
     data: codes.map((seatCode, index) => ({ operatorId, tripId: changeTrip.id, seatCode, deck: 1, row: Math.floor(index / 2) + 1, column: (index % 2) + 1, type: "BED" as const, status: index === 0 ? ("BOOKED" as const) : ("AVAILABLE" as const) }))
   });
-  const changeBookingCode = `VXN${suffix.slice(0, 5)}C`;
+  const changeBookingCode = `VXN${suffix.slice(0, 5)}X`;
   const changeSnapshot = { ...snapshot, trip: { ...snapshot.trip, departureAt: changeDeparture.toISOString(), arrivalAt: changeArrival.toISOString() } };
   const changeBooking = await tx.booking.create({
     data: {

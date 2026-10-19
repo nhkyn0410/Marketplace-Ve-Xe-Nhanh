@@ -27,6 +27,7 @@ type Snapshot = {
   pickup: OperatorBookingDetail["pickup"];
   dropoff: OperatorBookingDetail["dropoff"];
   cancellationPolicy: OperatorBookingDetail["cancellationPolicy"];
+  promotion?: { fundedBy: "OPERATOR" | "PLATFORM" };
 };
 
 type ListQuery = { date: string; tripId?: string; status?: OperatorBookingSummary["status"]; q?: string; cursor?: string; limit: number };
@@ -133,6 +134,7 @@ export class OperatorBookingService {
       subtotal: vndToJson(row.subtotal),
       serviceFee: vndToJson(row.serviceFee),
       discount: vndToJson(row.discount),
+      discountFunding: snapshot.promotion?.fundedBy ?? null,
       cancellationPolicy: snapshot.cancellationPolicy,
       histories: row.histories.map((history) => ({ ...history, actor: actorKind(history.actor), createdAt: history.createdAt.toISOString() })),
     };

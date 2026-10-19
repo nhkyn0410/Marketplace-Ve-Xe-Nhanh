@@ -77,6 +77,11 @@ export function escalateTicket(ticketId: string, input: { title: string | null; 
 
 export type DisputeListParams = { status?: DisputeStatus | "open"; operatorId?: string; due?: "overdue" | "upcoming"; assigneeId?: string; q?: string; cursor?: string };
 
+/** Mở tranh chấp trực tiếp từ đơn của giao dịch thanh toán. */
+export function openBookingDispute(input: { bookingId: string; title: string; customerRequest: string | null; reason: string }): Promise<DisputeDetail> {
+  return apiRequest<DisputeDetail>("/admin/disputes", { method: "POST", body: input });
+}
+
 export function listDisputes(params: DisputeListParams): Promise<DisputePage> {
   return apiRequest<DisputePage>(`/admin/disputes?${query(params)}`);
 }

@@ -57,3 +57,13 @@ test("báo cáo: dòng nhà xe, phương thức VNPay; xuất CSV theo nhà xe",
   expect(file.suggestedFilename()).toMatch(/^bao-cao-he-thong-\d{4}-\d{2}-\d{2}-\d{4}-\d{2}-\d{2}\.csv$/);
   expect(await readFile((await file.path())!, "utf8")).toContain(`"${fixtures.operatorName}"`);
 });
+
+test("điểm đánh giá theo nhà xe tính đánh giá công khai trong kỳ", async () => {
+  const from = new Date(Date.now() + 7 * 3_600_000 - 15 * 86_400_000).toISOString().slice(0, 10);
+  const to = new Date(Date.now() + 7 * 3_600_000).toISOString().slice(0, 10);
+  await page.getByLabel("Từ ngày").fill(from);
+  await page.getByLabel("Đến ngày").fill(to);
+  const table = page.getByRole("region", { name: "Theo nhà xe" });
+  await expect(table.getByRole("columnheader", { name: "Đánh giá" })).toBeVisible();
+  await expect(table.getByRole("row").filter({ hasText: fixtures.operatorName })).toContainText("4.0 / 5 (1)", FIRST_VISIT);
+});

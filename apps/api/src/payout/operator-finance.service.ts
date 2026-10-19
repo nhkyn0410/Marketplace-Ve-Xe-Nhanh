@@ -112,10 +112,10 @@ export class OperatorFinanceService {
           JOIN LATERAL (
             SELECT
               -- SUM(bigint) trả numeric → ép về bigint (tiền BIGINT, không qua Decimal).
-              COALESCE(SUM(e.amount) FILTER (WHERE e.entry_type = 'PAYMENT_CAPTURED'), 0)::bigint AS gross,
+              COALESCE(SUM(e.amount) FILTER (WHERE e.entry_type IN ('PAYMENT_CAPTURED', 'PLATFORM_FUNDED_DISCOUNT')), 0)::bigint AS gross,
               (-COALESCE(SUM(e.amount) FILTER (WHERE e.entry_type IN ('COMMISSION', 'COMMISSION_REVERSAL')), 0))::bigint AS commission,
-              COALESCE(SUM(e.amount) FILTER (WHERE e.entry_type IN ('REFUND', 'ADJUSTMENT')), 0)::bigint AS other,
-              COALESCE(SUM(e.amount) FILTER (WHERE e.entry_type = 'REFUND'), 0)::bigint AS refunded,
+              COALESCE(SUM(e.amount) FILTER (WHERE e.entry_type IN ('REFUND', 'ADJUSTMENT', 'PLATFORM_FUNDED_DISCOUNT_REVERSAL')), 0)::bigint AS other,
+              COALESCE(SUM(e.amount) FILTER (WHERE e.entry_type IN ('REFUND', 'PLATFORM_FUNDED_DISCOUNT_REVERSAL')), 0)::bigint AS refunded,
               COALESCE(t.payout_eligible_at, MIN(e.eligible_at)) AS eligible_at,
               COUNT(*) FILTER (WHERE i.id IS NULL) AS unassigned,
               COUNT(*) FILTER (WHERE i.id IS NOT NULL AND p.status <> 'PAID') AS unpaid,

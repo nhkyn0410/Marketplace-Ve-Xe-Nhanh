@@ -13,7 +13,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-import { createPromotion, describePromotionError, getPromotion, setPromotionStatus, updatePromotion, type Promotion } from "../../lib/promotion/promotion-api";
+import { createPromotion, describePromotionError, getPromotion, listPromotionRoutes, setPromotionStatus, updatePromotion, type Promotion } from "../../lib/promotion/promotion-api";
 
 /**
  * Tạo / sửa khuyến mãi nền tảng (Figma ADM-11a "Tạo khuyến mãi"; TASK-PROM-001): lưu nháp hoặc kích hoạt; khuyến mãi đã có đơn dùng mã
@@ -56,6 +56,7 @@ function toValues(promotion: Promotion): PromotionFormValues {
     maxDiscount: promotion.maxDiscount,
     minOrder: promotion.minOrder,
     routeId: null,
+    routeIds: promotion.routeIds,
     tripId: null,
     startsAt: promotion.startsAt,
     endsAt: promotion.endsAt,
@@ -64,6 +65,7 @@ function toValues(promotion: Promotion): PromotionFormValues {
 }
 
 function EditorBody({ promotion }: { promotion: Promotion | null }) {
+  const routeOptions = useQuery({ queryKey: ["admin-promotion-routes"], queryFn: listPromotionRoutes });
   const router = useRouter();
   const queryClient = useQueryClient();
   const [error, setError] = useState<string | null>(null);
@@ -138,9 +140,10 @@ function EditorBody({ promotion }: { promotion: Promotion | null }) {
       )}
       <PromotionForm
         initial={promotion ? toValues(promotion) : emptyPromotion()}
-        pending={save.isPending}
-        serverError={error}
-        editable={!promotion || promotion.editable}
+        platformRoutes={routeOptions.data?.items.map((route) => ({ value: route.routeId, label: `${route.operatorName} · ${route.routeName}` })) ?? []}
+        pending={save.isPending || routeOptions.isPending}
+        serverError={error ?? (routeOptions.isError ? "Không tải được danh sách tuyến. Tải lại trang để chọn phạm vi chương trình." : null)}
+        editable={(!promotion || promotion.editable) && !routeOptions.isError}
         onSubmit={(values, activate) => save.mutate({ values, activate })}
         aside={(values) => (
           <>

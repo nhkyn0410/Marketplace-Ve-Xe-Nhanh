@@ -1,5 +1,8 @@
 import { Module } from "@nestjs/common";
 import { DatabaseModule } from "../database/database.module";
+import { AuditModule } from "../audit/audit.module";
+import { AdminReconciliationController } from "./admin-reconciliation.controller";
+import { AdminReconciliationService } from "./admin-reconciliation.service";
 import { PaymentGatewayModule } from "../external/payment/payment.module";
 import { IamModule } from "../iam/iam.module";
 import { QueueModule } from "../queue/queue.module";
@@ -15,8 +18,8 @@ import { PaymentWebhookService } from "./payment-webhook.service";
  * giám sát thanh toán phía Admin.
  */
 @Module({
-  imports: [DatabaseModule, IamModule, QueueModule, PaymentGatewayModule],
-  controllers: [PaymentController, PaymentWebhookController, AdminPaymentController],
-  providers: [PaymentService, PaymentWebhookService, AdminPaymentService],
+  imports: [DatabaseModule, IamModule, QueueModule, PaymentGatewayModule, AuditModule],
+  controllers: [PaymentController, PaymentWebhookController, AdminPaymentController, AdminReconciliationController],
+  providers: [PaymentService, PaymentWebhookService, AdminPaymentService, AdminReconciliationService],
 })
 export class PaymentModule {}

@@ -27,6 +27,7 @@ import { VehicleInputSchema } from "../vehicle/dto/vehicle.dto";
 import { SeatMapService } from "../vehicle/seat-map.service";
 import { VehicleService } from "../vehicle/vehicle.service";
 import { PromotionInputSchema } from "./dto/promotion.dto";
+import { evaluatePromotion } from "./promotion-apply";
 import { PromotionService } from "./promotion.service";
 
 /**
@@ -315,5 +316,19 @@ describe.skipIf(!ready && !requireDb)("Khuyến mãi — Postgres + Redis thật
     expect(await rejectionOf(promotions.setStatus(platformAuthz, admin, own.promotionId, { status: "ACTIVE" }))).toMatchObject({ status: 409 });
     expect(await rejectionOf(promotions.check({ tripId, code, subtotal: 600_000 }))).toMatchObject({ status: 422 });
     expect(events.some((event) => event.action === "promotion.permission" && event.operatorId === operatorId)).toBe(true);
+  }, 60_000);
+  it("khuyến mãi nền tảng chỉ áp các tuyến Admin đã chọn và vẫn yêu cầu nhà xe tham gia", async () => {
+    const input = PromotionInputSchema.parse({ code: `ROUTE${tag}`, name: "Ưu đãi theo tuyến", discountType: "AMOUNT", discountValue: 20_000, routeIds: [routeId, routeId], ...window(), usageLimit: 10 });
+    expect(await rejectionOf(promotions.create(platformAuthz, admin, { ...input, routeIds: [randomUUID()] }))).toMatchObject({ status: 422, code: "PROMOTION_GUARDRAIL" });
+    const campaign = await promotions.create(platformAuthz, admin, input);
+    expect(campaign.routeIds).toEqual([routeId]);
+    expect(campaign.routeNames).toEqual([`Tuyến khuyến mãi ${tag}`]);
+    expect((await promotions.routeOptions(platformAuthz)).items.some((route) => route.routeId === routeId)).toBe(true);
+    await promotions.setStatus(platformAuthz, admin, campaign.promotionId, { status: "ACTIVE" });
+    const tripId = await openTrip(48);
+    expect(await rejectionOf(promotions.check({ tripId, code: campaign.code, subtotal: 300_000 }))).toMatchObject({ status: 422 });
+    await promotions.setParticipation(operatorAuthz, owner, campaign.promotionId, true);
+    expect((await promotions.check({ tripId, code: campaign.code, subtotal: 300_000 })).discount).toBe(20_000);
+    expect(await rejectionOf(prisma.withTenant(operatorId, (tx) => evaluatePromotion(tx, { operatorId, routeId: randomUUID(), tripId, subtotal: 300_000n, code: campaign.code, now: new Date() })))).toMatchObject({ status: 422, code: "PROMOTION_INVALID" });
   }, 60_000);
 });

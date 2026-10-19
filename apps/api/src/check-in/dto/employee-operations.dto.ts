@@ -5,7 +5,7 @@ import { EmployeeRole, TicketStatus, TripStatus } from "../../database/prisma.ty
 // API §7.4 `/employee/*` — thao tác của nhân viên trên chuyến được phân công (TASK-EMP-002 phần backend, FR-EMP-07..09/13,
 // UC-20/21, BR-05/29/44). App `employee_mobile` gọi bằng Bearer. Shape AI tự đề xuất, chờ Khanh duyệt.
 
-const PointSchema = z.object({ sequence: z.int(), name: z.string() });
+const PointSchema = z.object({ sequence: z.int(), name: z.string(), pickupWindowStart: z.iso.datetime().nullable(), pickupWindowEnd: z.iso.datetime().nullable() });
 
 export const EmployeeAssignmentsQuerySchema = z
   .object({

@@ -234,7 +234,7 @@ function PaymentCard({ booking }: { booking: OperatorBookingDetail }) {
       <dl className="flex flex-col gap-3">
         <Row label={`Giá vé (${booking.seats.length} chỗ)`} value={formatVnd(booking.subtotal)} strong />
         <Row label="Phí dịch vụ" value={formatVnd(booking.serviceFee)} />
-        {booking.discount > 0 && <Row label="Giảm giá" value={`−${formatVnd(booking.discount)}`} />}
+        {booking.discount > 0 && <Row label={booking.discountFunding === "PLATFORM" ? "Giảm giá do Vé Xe Nhanh chịu" : booking.discountFunding === "OPERATOR" ? "Giảm giá do nhà xe chịu" : "Giảm giá"} value={`−${formatVnd(booking.discount)}`} />}
         <Row label="Khách thanh toán" value={formatVnd(booking.total)} strong />
       </dl>
       <div className="mt-4 flex items-center justify-between gap-3 border-t pt-4">
@@ -243,7 +243,7 @@ function PaymentCard({ booking }: { booking: OperatorBookingDetail }) {
         </span>
         <Badge tone={payment.tone}>{payment.label}</Badge>
       </div>
-      <Note>Doanh thu và hoa hồng của nhà xe tính trên giá vé; tiền về nhà xe theo kỳ đối soát (T+3).</Note>
+      <Note>{booking.discountFunding === "PLATFORM" ? "Vé Xe Nhanh bù phần giảm voucher; doanh thu và hoa hồng của nhà xe tính trên giá trước phần giảm này. " : "Doanh thu và hoa hồng tính trên tiền vé sau phần giảm nhà xe chịu. "}Tiền về nhà xe theo kỳ đối soát (T+3).</Note>
     </Card>
   );
 }

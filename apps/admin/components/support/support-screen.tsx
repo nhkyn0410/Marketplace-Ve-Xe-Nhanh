@@ -35,6 +35,7 @@ import {
   TICKET_STATUS_ORDER
 } from "../../lib/support/support-format";
 import { PageHeader } from "../page-header";
+import { IncidentPanel } from "./incident-panel";
 
 const DISPUTES = "disputes";
 const OPEN = "open";
@@ -49,17 +50,18 @@ export function SupportScreen() {
   const router = useRouter();
   const pathname = usePathname();
   const params = useSearchParams();
-  const tab = params.get("tab") === DISPUTES ? DISPUTES : "tickets";
+  const tab = params.get("tab") === "incidents" ? "incidents" : params.get("tab") === DISPUTES ? DISPUTES : "tickets";
   const unclassified = useQuery({ queryKey: ["admin-tickets", "count"], queryFn: () => listTickets({ status: "NEW" }) });
   const open = useQuery({ queryKey: ["admin-disputes", "count"], queryFn: () => listDisputes({ status: "open" }) });
   return (
     <div className="flex flex-col gap-6">
       <PageHeader title="Khiếu nại & tranh chấp" description="Phân loại, phân công và theo dõi khiếu nại; phân xử tranh chấp giữa hành khách và nhà xe." />
-      <Tabs value={tab} onValueChange={(next) => router.replace(next === DISPUTES ? `${pathname}?tab=${DISPUTES}` : pathname, { scroll: false })} className="flex flex-col gap-6">
+      <Tabs value={tab} onValueChange={(next) => router.replace(next === "tickets" ? pathname : `${pathname}?tab=${next}`, { scroll: false })} className="flex flex-col gap-6">
         <TabsList className="h-10 w-fit max-w-full overflow-x-auto" aria-label="Nhóm hồ sơ">
           <TabsTrigger value="tickets" className={TAB_TRIGGER}>
             Khiếu nại{unclassified.data ? ` (${COUNT.format(unclassified.data.unclassified)} chưa phân loại)` : ""}
           </TabsTrigger>
+          <TabsTrigger value="incidents" className={TAB_TRIGGER}>Sự cố vận hành</TabsTrigger>
           <TabsTrigger value={DISPUTES} className={TAB_TRIGGER}>
             Tranh chấp{open.data ? ` (${COUNT.format(open.data.open)} đang mở)` : ""}
           </TabsTrigger>
@@ -70,6 +72,7 @@ export function SupportScreen() {
         <TabsContent value={DISPUTES}>
           <DisputeList />
         </TabsContent>
+        <TabsContent value="incidents"><IncidentPanel /></TabsContent>
       </Tabs>
     </div>
   );

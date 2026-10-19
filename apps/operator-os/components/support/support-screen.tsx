@@ -8,7 +8,7 @@ import { Skeleton } from "@vexenhanh/ui/components/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@vexenhanh/ui/components/tabs";
 import { Textarea } from "@vexenhanh/ui/components/textarea";
 import { ApiError } from "@vexenhanh/ui/lib/auth/api-client";
-import { CircleAlert, Clock, Info, LoaderCircle, MessageSquareWarning, RefreshCw, Scale, Send, Siren } from "lucide-react";
+import { CircleAlert, Clock, Info, LoaderCircle, MessageSquareWarning, RefreshCw, Scale, Send } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useState, type ReactNode } from "react";
 
@@ -42,6 +42,7 @@ import { TAB_TRIGGER } from "../stop-point/list-controls";
 import { BUTTON, ListLoadMoreFooter, ListStatePanel } from "../list-parts";
 import { PageHeader } from "../page-header";
 import { ReviewPanel } from "./review-panel";
+import { IncidentPanel } from "./incident-panel";
 
 const TABS = ["tickets", "disputes", "reviews", "incidents"] as const;
 type Tab = (typeof TABS)[number];
@@ -49,7 +50,7 @@ type Tab = (typeof TABS)[number];
 /**
  * Hỗ trợ (Figma "Nhà xe · Hỗ trợ" 01–03; TASK-TRUST-001, FR-NSR-07, FR-DSP-04): khiếu nại Vé Xe Nhanh chuyển cho nhà xe (phản hồi
  * khách kèm minh chứng), tranh chấp (giải trình + minh chứng theo yêu cầu, có hạn), đánh giá (phản hồi / báo vi phạm). Tab "Sự cố
- * và nhật trình" chờ ứng dụng Nhân viên. Tab + hồ sơ đang mở nằm trên URL (`?tab=…&id=…`).
+ * và nhật trình" hiện báo cáo nhân viên gửi về. Tab + hồ sơ đang mở nằm trên URL (`?tab=…&id=…`).
  */
 export function SupportScreen() {
   const router = useRouter();
@@ -89,14 +90,7 @@ export function SupportScreen() {
           <ReviewPanel />
         </TabsContent>
         <TabsContent value="incidents">
-          <div className="rounded-xl border bg-card">
-            <ListStatePanel
-              icon={<Siren className="size-6 text-vxn-fg-3" />}
-              title="Chưa có sự cố và nhật trình"
-              description="Sự cố và nhật trình tài xế gửi từ ứng dụng Nhân viên hiện ở đây khi ứng dụng được phát hành."
-              compact
-            />
-          </div>
+          <IncidentPanel />
         </TabsContent>
       </Tabs>
     </div>

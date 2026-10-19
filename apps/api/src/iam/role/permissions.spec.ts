@@ -41,10 +41,10 @@ describe("ROLE_GRANTS — bất biến", () => {
     }
   });
 
-  it("role platform chỉ có grant `any`", () => {
+  it("role platform chỉ có grant any, trừ tùy chọn thông báo của chính mình", () => {
     for (const role of PLATFORM_SIDE) {
       for (const [permission, scope] of grantsOf(role as Role)) {
-        expect(scope, `${role} → ${permission}`).toBe("any");
+        expect(scope, `${role} → ${permission}`).toBe(permission === "notification:manage" ? "own" : "any");
       }
     }
   });

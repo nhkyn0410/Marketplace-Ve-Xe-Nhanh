@@ -9,6 +9,7 @@ import { TripScheduleController } from "./trip-schedule.controller";
 import { TripScheduleService } from "./trip-schedule.service";
 import { TripController } from "./trip.controller";
 import { TripService } from "./trip.service";
+import { PickupWindowController } from "./pickup-window.controller";
 
 /**
  * TASK-TRN-003 — chuyến + điểm dừng + ghế theo chuyến của nhà xe (DOMAIN-MAP `trip/`); TASK-TRN-006 — trạng thái bán
@@ -16,7 +17,7 @@ import { TripService } from "./trip.service";
  */
 @Module({
   imports: [DatabaseModule, IamModule, AuditModule, QueueModule, NotificationDispatchModule],
-  controllers: [TripController, TripScheduleController],
+  controllers: [TripController, TripScheduleController, PickupWindowController],
   providers: [TripService, TripScheduleService, TripChangeService],
 })
 export class TripModule {}

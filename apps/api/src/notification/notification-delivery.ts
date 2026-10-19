@@ -6,6 +6,7 @@ import { NotificationDeliveryStatus, NotificationKind, OperatorRole, AccountStat
 import { EmailUnavailableError, type EmailNotifier } from "../external/notification/email-notifier";
 import { vndToJson } from "../fare/fare-pricing";
 import { renderNotification, type NotificationContent, type TripScheduleSnapshot } from "./notification-templates";
+import { withNotificationSubject } from "../database/preference-scope";
 
 // Gửi một bản thông báo (TASK-NSR-001, ADR-020, RSK-14): job BullMQ ở worker. Ba bước như hoàn tiền: (1) đọc bản gửi còn
 // `PENDING` + dữ liệu MỚI NHẤT để dựng nội dung; (2) gửi email NGOÀI transaction; (3) ghi `SENT` / `FAILED` / `SKIPPED` có điều
@@ -24,7 +25,7 @@ export const NOTIFICATION_JOB_OPTIONS = {
 
 export type DeliveryOutcome = "NOT_FOUND" | "ALREADY_DONE" | "SENT" | "SKIPPED" | "FAILED";
 
-type Loaded = { done: true } | { done: false; kind: NotificationKind; email: string | null; content: NotificationContent | null };
+type Loaded = { done: true } | { done: false; kind: NotificationKind; email: string | null; content: NotificationContent | null; recipientType?: string | null; recipientId?: string | null };
 
 const logger = new Logger("NotificationDelivery");
 
@@ -39,7 +40,7 @@ export async function deliverNotification(
   const loaded = await withDeliveryOperator(prisma, deliveryId, async (tx, operatorId): Promise<Loaded | null> => {
     const delivery = await tx.notificationDelivery.findFirst({
       where: { id: deliveryId, operatorId },
-      select: { status: true, notification: { select: { kind: true, bookingId: true, refundId: true, tripChangeId: true, payload: true } } },
+      select: { status: true, recipientType: true, recipientId: true, notification: { select: { kind: true, bookingId: true, refundId: true, tripChangeId: true, payload: true } } },
     });
     if (!delivery) {
       return null;
@@ -48,13 +49,21 @@ export async function deliverNotification(
       return { done: true };
     }
     const target = await loadTarget(tx, operatorId, delivery.notification);
-    return { done: false, kind: delivery.notification.kind, ...target };
+    return { done: false, kind: delivery.notification.kind, recipientType: delivery.recipientType, recipientId: delivery.recipientId, ...target };
   });
   if (!loaded) {
     return "NOT_FOUND";
   }
   if (loaded.done) {
     return "ALREADY_DONE";
+  }
+  if ((loaded.kind === NotificationKind.OPERATIONS_ALERT || loaded.kind === NotificationKind.LOYALTY_UPDATED || loaded.kind === NotificationKind.PROMOTION) && loaded.recipientId) {
+    loaded.email = await withNotificationSubject(prisma, async (tx) => {
+      if (loaded.recipientType === "PASSENGER") return (await tx.user.findUnique({ where: { id: loaded.recipientId! }, select: { email: true } }))?.email ?? null;
+      if (loaded.recipientType === "PLATFORM") return (await tx.platformAccount.findUnique({ where: { id: loaded.recipientId! }, select: { contactEmail: true } }))?.contactEmail ?? null;
+      if (loaded.recipientType === "EMPLOYEE") return (await tx.employeeAccount.findFirst({ where: { id: loaded.recipientId! }, select: { contactEmail: true } }))?.contactEmail ?? null;
+      return loaded.email;
+    });
   }
   const finish = async (status: NotificationDeliveryStatus, lastError: string | null, outcome: DeliveryOutcome): Promise<DeliveryOutcome> => {
     await withDeliveryOperator(prisma, deliveryId, (tx, operatorId) =>
@@ -94,13 +103,13 @@ export async function deliverNotification(
 }
 
 /** Người nhận + nội dung theo loại thông báo, đọc dữ liệu mới nhất ở tenant của nhà xe. */
-async function loadTarget(
+export async function loadTarget(
   tx: DbTransaction,
-  operatorId: string,
+  operatorId: string | null,
   notification: { kind: NotificationKind; bookingId: string | null; refundId: string | null; tripChangeId: string | null; payload: unknown },
 ): Promise<{ email: string | null; content: NotificationContent | null }> {
   const payload = (notification.payload ?? {}) as Record<string, unknown>;
-  const booking = notification.bookingId
+  const booking = notification.bookingId && operatorId
     ? await tx.booking.findFirst({
         where: { id: notification.bookingId, operatorId },
         select: {
@@ -113,15 +122,19 @@ async function loadTarget(
       })
     : null;
   const snapshot = booking?.snapshot as { trip: { routeName: string; departureAt: string }; pickup: { name: string }; dropoff: { name: string } } | undefined;
-  const change = notification.tripChangeId
+  const change = notification.tripChangeId && operatorId
     ? await tx.tripChange.findFirst({ where: { id: notification.tripChangeId, operatorId }, select: { before: true, after: true, reason: true } })
     : null;
-  const refund = notification.refundId
+  const refund = notification.refundId && operatorId
     ? await tx.refund.findFirst({ where: { id: notification.refundId, operatorId }, select: { refundCode: true, amount: true, payment: { select: { provider: true } } } })
     : null;
   const provider = refund ? (refund.payment.provider === "VNPAY" ? "VNPay" : "MoMo") : "";
 
   switch (notification.kind) {
+    case NotificationKind.OPERATIONS_ALERT:
+    case NotificationKind.LOYALTY_UPDATED:
+    case NotificationKind.PROMOTION:
+      return { email: operatorId ? (await tx.operatorAccount.findFirst({ where: { operatorId, role: OperatorRole.OPERATOR_OWNER, status: AccountStatus.ACTIVE }, orderBy: { createdAt: "asc" }, select: { contactEmail: true } }))?.contactEmail ?? null : null, content: { kind: notification.kind, title: String(payload.title ?? "Vé Xe Nhanh"), message: String(payload.message ?? "Có cập nhật mới.") } };
     case NotificationKind.BOOKING_CONFIRMED:
       return booking && snapshot
         ? {
@@ -183,7 +196,7 @@ async function loadTarget(
     case NotificationKind.CASE_UPDATED: {
       // Khiếu nại / tranh chấp (TASK-TRUST-001): báo khách theo email liên hệ của đơn, hoặc chủ nhà xe.
       const operatorAudience = payload.audience === "OPERATOR";
-      const owner = operatorAudience
+      const owner = operatorAudience && operatorId
         ? await tx.operatorAccount.findFirst({
             where: { operatorId, role: OperatorRole.OPERATOR_OWNER, status: AccountStatus.ACTIVE, contactEmail: { not: null } },
             orderBy: { createdAt: "asc" },
@@ -205,6 +218,7 @@ async function loadTarget(
       };
     }
     case NotificationKind.MANUAL_REFUND: {
+      if (!operatorId) return { email: null, content: null };
       const owner = await tx.operatorAccount.findFirst({
         where: { operatorId, role: OperatorRole.OPERATOR_OWNER, status: AccountStatus.ACTIVE, contactEmail: { not: null } },
         orderBy: { createdAt: "asc" },

@@ -37,6 +37,13 @@ export function transactionDeadline(startedAt: number): number {
  * thêm tên vào đây — kiểm tra lúc khởi động (`rlsProblems`) sẽ đòi bảng đó có FORCE RLS.
  */
 export const RLS_TABLES = [
+  "incident_reports",
+  "reconciliation_records",
+  "user_vouchers",
+  "journey_logs",
+  "notification_preferences",
+  "push_devices",
+  "notification_push_receipts",
   "operator_profiles",
   "operator_accounts",
   "employee_accounts",
@@ -125,6 +132,7 @@ export const RLS_TABLES = [
   // VXN Plus (TASK-LOY-001): chỉ platform / system.
   "loyalty_accounts",
   "loyalty_point_transactions",
+  "user_vouchers",
 ] as const;
 
 @Injectable()

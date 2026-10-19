@@ -37,6 +37,10 @@ import { DisputeModule } from "./dispute/dispute.module";
 import { ReviewModule } from "./review/review.module";
 import { PromotionModule } from "./promotion/promotion.module";
 import { LoyaltyModule } from "./loyalty/loyalty.module";
+import { PreferenceModule } from "./notification/preference.module";
+import { IncidentModule } from "./incident/incident.module";
+import { JourneyLogModule } from "./journey-log/journey-log.module";
+import { PassengerProfileModule } from "./iam/user/passenger-profile.module";
 
 @Module({
   imports: [
@@ -75,6 +79,10 @@ import { LoyaltyModule } from "./loyalty/loyalty.module";
     ReviewModule,
     PromotionModule,
     LoyaltyModule,
+    PreferenceModule,
+    IncidentModule,
+    JourneyLogModule,
+    PassengerProfileModule,
   ],
   controllers: [AppController],
   providers: [{ provide: APP_INTERCEPTOR, useClass: ZodSerializerInterceptor }],

@@ -118,11 +118,39 @@ import { VehicleImageController } from "../vehicle/vehicle-image.controller";
 import { VehicleImageService } from "../vehicle/vehicle-image.service";
 import { VehicleController } from "../vehicle/vehicle.controller";
 import { VehicleService } from "../vehicle/vehicle.service";
+import { AdminNotificationController, PreferenceController } from "../notification/preference.controller";
+import { PreferenceService } from "../notification/preference.service";
+import { EmployeeIncidentController, OperatorIncidentController, AdminIncidentController } from "../incident/incident.controller";
+import { IncidentService } from "../incident/incident.service";
+import { EmployeeJourneyLogController, OperatorJourneyLogController, AdminJourneyLogController } from "../journey-log/journey-log.controller";
+import { JourneyLogService } from "../journey-log/journey-log.service";
+import { PickupWindowController } from "../trip/pickup-window.controller";
+import { PassengerProfileController } from "../iam/user/passenger-profile.controller";
+import { PassengerProfileService } from "../iam/user/passenger-profile.service";
+import { PublicOperatorProfileController } from "../operator/public-operator-profile.controller";
+import { PublicOperatorProfileService } from "../operator/public-operator-profile.service";
+import { PassengerLoyaltyController } from "../loyalty/passenger-loyalty.controller";
+import { PassengerLoyaltyService } from "../loyalty/passenger-loyalty.service";
+import { AdminReconciliationController } from "../payment/admin-reconciliation.controller";
+import { AdminReconciliationService } from "../payment/admin-reconciliation.service";
 
 @Module({
   // Mọi controller IAM phải có mặt ở đây, nếu không route biến mất khỏi OpenAPI
   // và `gen:api-client` sinh client thiếu toàn bộ auth mà CI vẫn xanh (ADR-012).
   controllers: [
+    AdminNotificationController,
+    AdminReconciliationController,
+    PreferenceController,
+    EmployeeIncidentController,
+    OperatorIncidentController,
+    AdminIncidentController,
+    EmployeeJourneyLogController,
+    OperatorJourneyLogController,
+    AdminJourneyLogController,
+    PickupWindowController,
+    PassengerProfileController,
+    PublicOperatorProfileController,
+    PassengerLoyaltyController,
     AppController,
     AuthController,
     SessionController,
@@ -188,6 +216,13 @@ import { VehicleService } from "../vehicle/vehicle.service";
     AdminPlatformAccountController,
   ],
   providers: [
+    { provide: AdminReconciliationService, useValue: {} },
+    { provide: PreferenceService, useValue: {} },
+    { provide: IncidentService, useValue: {} },
+    { provide: JourneyLogService, useValue: {} },
+    { provide: PassengerProfileService, useValue: {} },
+    { provide: PublicOperatorProfileService, useValue: {} },
+    { provide: PassengerLoyaltyService, useValue: {} },
     { provide: APP_INTERCEPTOR, useClass: ZodSerializerInterceptor },
     // Scan-only: chỉ cần metadata route, không cần dependency thật (không Postgres/Redis/Mongo).
     { provide: AuthService, useValue: {} },

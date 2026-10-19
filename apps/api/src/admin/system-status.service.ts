@@ -24,9 +24,9 @@ const JOB_LABELS: Record<string, string> = {
   "payment-callback": "Xử lý callback thanh toán (VNPay / MoMo)",
   refund: "Hoàn tiền qua cổng thanh toán",
   "payout-generation": "Tạo kỳ chi trả nhà xe (T+3)",
-  deliver: "Gửi email thông báo (vé, hoàn tiền, đổi / hủy chuyến)",
+  deliver: "Gửi email / push thông báo",
   sweep: "Gửi lại thông báo bị kẹt",
-  "payment-reconciliation": "Đối soát thanh toán với cổng (VNPay / MoMo)",
+  "payment-reconciliation": "Đối soát thanh toán, sổ giữ hộ và kỳ chi trả",
   "dispute-overdue": "Leo thang tranh chấp quá hạn phản hồi",
   "loyalty-maintenance": "VXN Plus: tích / thu hồi / hết hạn điểm",
   "foundation.smoke": "Kiểm tra hàng đợi (smoke)",
@@ -99,21 +99,13 @@ export class SystemStatusService {
             detail: "Chưa cấu hình — tải / xem giấy tờ trả 503 (OQ-21).",
           }),
     ]);
-    const configured = (key: string, name: string, category: string, value: string | undefined, yes: string, no: string): Integration => ({
+    const configured = (key: string, name: string, category: string, value: string | undefined, yes: string, no: string, localFallback = true): Integration => ({
       key,
       name,
       category,
-      status: value ? "CONFIGURED" : config.NODE_ENV === "production" ? "NOT_CONFIGURED" : "LOCAL",
+      status: value ? "CONFIGURED" : config.NODE_ENV === "production" || !localFallback ? "NOT_CONFIGURED" : "LOCAL",
       latencyMs: null,
       detail: value ? yes : no,
-    });
-    const pending = (key: string, name: string, category: string, detail: string): Integration => ({
-      key,
-      name,
-      category,
-      status: "NOT_INTEGRATED",
-      latencyMs: null,
-      detail,
     });
     return {
       checkedAt: new Date().toISOString(),
@@ -127,9 +119,9 @@ export class SystemStatusService {
         configured("goong", "Goong", "Bản đồ và định tuyến", config.GOONG_API_KEY, "Đã cấu hình khóa (không gọi thử).", "Chưa cấu hình — khoảng cách tuyến ước lượng đường chim bay."),
         publicStore,
         privateStore,
-        pending("vnpay", "VNPay", "Cổng thanh toán", "Chưa tích hợp ở phiên bản này (TASK-BTP — ADR-019)."),
-        pending("momo", "MoMo", "Cổng thanh toán", "Chưa tích hợp ở phiên bản này (TASK-BTP — ADR-019)."),
-        pending("push", "FCM / APNs", "Thông báo đẩy", "Chưa tích hợp ở phiên bản này (ADR-020 / ADR-028)."),
+        configured("vnpay", "VNPay", "Cổng thanh toán", config.VNPAY_TMN_CODE && config.VNPAY_HASH_SECRET, "Đã cấu hình adapter VNPay (không giao dịch thử).", "Chưa cấu hình khóa — dev dùng cổng giả lập, production chưa sẵn sàng (OQ-22)."),
+        configured("momo", "MoMo", "Cổng thanh toán", config.MOMO_PARTNER_CODE && config.MOMO_ACCESS_KEY && config.MOMO_SECRET_KEY, "Đã cấu hình adapter MoMo (không giao dịch thử).", "Chưa cấu hình khóa — dev dùng cổng giả lập, production chưa sẵn sàng (OQ-22)."),
+        configured("push", "FCM / APNs", "Thông báo đẩy", (config.FCM_PROJECT_ID && config.FCM_CLIENT_EMAIL && config.FCM_PRIVATE_KEY) || (config.APNS_TEAM_ID && config.APNS_KEY_ID && config.APNS_PRIVATE_KEY && config.APNS_TOPIC) || undefined, "Đã cấu hình adapter push server (không gửi thử).", "Chưa cấu hình khóa FCM / APNs; thông báo email vẫn hoạt động.", false),
         { key: "sms", name: "SMS", category: "Tin nhắn", status: "DISABLED", latencyMs: null, detail: "Tắt ở v1; mã xác minh và thông báo gửi qua email (ADR-020)." },
       ],
     };
