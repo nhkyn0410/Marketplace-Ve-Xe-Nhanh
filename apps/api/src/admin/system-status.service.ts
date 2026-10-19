@@ -20,6 +20,10 @@ const JOB_LABELS: Record<string, string> = {
   "session-cleanup": "Dọn phiên đăng nhập hết hạn",
   "vehicle-image-cleanup": "Dọn ảnh phương tiện mồ côi",
   "application-document-cleanup": "Dọn giấy tờ hồ sơ / KYC mồ côi",
+  "booking-expiry": "Hủy booking quá hạn thanh toán, trả chỗ",
+  "payment-callback": "Xử lý callback thanh toán (VNPay / MoMo)",
+  refund: "Hoàn tiền qua cổng thanh toán",
+  "payout-generation": "Tạo kỳ chi trả nhà xe (T+3)",
   "foundation.smoke": "Kiểm tra hàng đợi (smoke)",
 };
 
@@ -44,8 +48,12 @@ export class SystemStatusService {
     @InjectQueue(QUEUE_NAMES.sessionMaintenance) sessions: Queue,
     @InjectQueue(QUEUE_NAMES.storageMaintenance) storage: Queue,
     @InjectQueue(QUEUE_NAMES.kycMaintenance) kyc: Queue,
+    @InjectQueue(QUEUE_NAMES.bookingMaintenance) bookings: Queue,
+    @InjectQueue(QUEUE_NAMES.paymentCallbacks) payments: Queue,
+    @InjectQueue(QUEUE_NAMES.refundProcessing) refunds: Queue,
+    @InjectQueue(QUEUE_NAMES.payoutMaintenance) payouts: Queue,
   ) {
-    this.queues = [sessions, storage, kyc, foundation];
+    this.queues = [sessions, storage, kyc, bookings, payments, refunds, payouts, foundation];
   }
 
   async integrations(): Promise<SystemIntegrations> {

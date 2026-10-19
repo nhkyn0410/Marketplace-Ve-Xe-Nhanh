@@ -267,6 +267,10 @@ export class TripService {
           if (seats.some((seat) => SOLD_SEAT_STATUSES.includes(seat.status))) {
             throw tripStatusTransitionInvalid("Chuyến đã có vé — đổi / hủy chuyến đã bán vé theo luồng riêng.");
           }
+          // Ghế `HOLDING` = booking đang chờ thanh toán (BTP-002): hủy / thu hồi lúc này thì tiền về sau cho chuyến đã hủy.
+          if (seats.some((seat) => seat.status === TripSeatStatus.HOLDING)) {
+            throw tripStatusTransitionInvalid("Có khách đang thanh toán vé của chuyến — thử lại sau khi hết hạn thanh toán.");
+          }
         }
         if (input.status === TripStatus.OPEN_FOR_SALE) {
           await assertReadyForSale(tx, operatorId, tripId);

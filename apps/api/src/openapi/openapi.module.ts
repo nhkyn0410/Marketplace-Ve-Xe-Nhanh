@@ -43,6 +43,28 @@ import { TripScheduleController } from "../trip/trip-schedule.controller";
 import { EmployeeAssignmentController } from "../employee/employee-assignment.controller";
 import { AdminContentPageController, ContentPageController } from "../catalog/content-page.controller";
 import { ContentPageService } from "../catalog/content-page.service";
+import { PublicTripController } from "../marketplace/public-trip.controller";
+import { TripSearchService } from "../marketplace/trip-search.service";
+import { SeatHoldController } from "../seat-hold/seat-hold.controller";
+import { SeatHoldService } from "../seat-hold/seat-hold.service";
+import { BookingController } from "../booking/booking.controller";
+import { BookingService } from "../booking/booking.service";
+import { OperatorBookingController } from "../booking/operator-booking.controller";
+import { OperatorBookingService } from "../booking/operator-booking.service";
+import { PaymentController } from "../payment/payment.controller";
+import { PaymentService } from "../payment/payment.service";
+import { AdminPaymentController } from "../payment/admin-payment.controller";
+import { AdminPaymentService } from "../payment/admin-payment.service";
+import { TicketController } from "../ticket/ticket.controller";
+import { TicketService } from "../ticket/ticket.service";
+import { CancellationController } from "../refund/cancellation.controller";
+import { CancellationService } from "../refund/cancellation.service";
+import { AdminRefundController } from "../refund/admin-refund.controller";
+import { AdminRefundService } from "../refund/admin-refund.service";
+import { AdminPayoutController } from "../payout/admin-payout.controller";
+import { AdminPayoutService } from "../payout/admin-payout.service";
+import { OperatorFinanceController } from "../payout/operator-finance.controller";
+import { OperatorFinanceService } from "../payout/operator-finance.service";
 import { EmployeeAssignmentService } from "../employee/employee-assignment.service";
 import { TripScheduleService } from "../trip/trip-schedule.service";
 import { SeatMapController } from "../vehicle/seat-map.controller";
@@ -105,6 +127,17 @@ import { VehicleService } from "../vehicle/vehicle.service";
     EmployeeAssignmentController,
     ContentPageController,
     AdminContentPageController,
+    PublicTripController,
+    SeatHoldController,
+    BookingController,
+    OperatorBookingController,
+    PaymentController,
+    AdminPaymentController,
+    TicketController,
+    CancellationController,
+    AdminRefundController,
+    AdminPayoutController,
+    OperatorFinanceController,
     FareController,
     OperatorApplicationController,
     OperatorApplicationReviewController,
@@ -152,6 +185,17 @@ import { VehicleService } from "../vehicle/vehicle.service";
     { provide: TripScheduleService, useValue: {} },
     { provide: EmployeeAssignmentService, useValue: {} },
     { provide: ContentPageService, useValue: {} },
+    { provide: TripSearchService, useValue: {} },
+    { provide: SeatHoldService, useValue: {} },
+    { provide: BookingService, useValue: {} },
+    { provide: OperatorBookingService, useValue: {} },
+    { provide: PaymentService, useValue: {} },
+    { provide: AdminPaymentService, useValue: {} },
+    { provide: TicketService, useValue: {} },
+    { provide: CancellationService, useValue: {} },
+    { provide: AdminRefundService, useValue: {} },
+    { provide: AdminPayoutService, useValue: {} },
+    { provide: OperatorFinanceService, useValue: {} },
     { provide: FareService, useValue: {} },
     // Dependency của AccessTokenGuard (logout, re-auth) — Nest dựng guard lúc khởi tạo module.
     { provide: TokenService, useValue: {} },

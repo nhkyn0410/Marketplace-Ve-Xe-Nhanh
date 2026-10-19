@@ -20,6 +20,7 @@ describe("WebAuthService cookie attributes", () => {
       RESEND_API_KEY: "test-resend-key",
       GOONG_API_KEY: "k",
       WEB_CSRF_SECRET: Buffer.alloc(32, 2).toString("base64"),
+      TICKET_QR_SECRET: Buffer.alloc(32, 3).toString("base64"),
       OPERATOR_WEB_ORIGINS: "https://operator.vexenhanh.vn",
       ADMIN_WEB_ORIGINS: "https://admin.vexenhanh.vn",
       R2_ACCOUNT_ID: "account",

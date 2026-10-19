@@ -1252,6 +1252,582 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/trips/search": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["PublicTripController_search"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/trips/{tripId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["PublicTripController_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/seat-holds": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["SeatHoldController_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/seat-holds/{holdId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["SeatHoldController_get"];
+        put?: never;
+        post?: never;
+        delete: operations["SeatHoldController_release"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/bookings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["BookingController_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/bookings/{bookingId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["BookingController_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operator/bookings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["OperatorBookingController_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operator/bookings/{bookingId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["OperatorBookingController_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operator/bookings/{bookingId}/contact-reveal": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["OperatorBookingController_revealContact"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operator/trips/{tripId}/passengers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["OperatorBookingController_passengers"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operator/trips/{tripId}/passengers/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["OperatorBookingController_exportPassengers"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/bookings/{bookingId}/payments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["PaymentController_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/payments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminPaymentController_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/payments/{paymentId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminPaymentController_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/tickets/{ticketId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["TicketController_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/guest/ticket-lookup": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["TicketController_lookup"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/bookings/{bookingId}/cancellation-quote": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["CancellationController_quote"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/bookings/{bookingId}/cancellations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["CancellationController_cancel"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/refunds": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminRefundController_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/refunds/{refundId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminRefundController_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/refunds/{refundId}/retry": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AdminRefundController_retry"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/refunds/{refundId}/resolve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AdminRefundController_resolve"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/payments/{paymentId}/refunds": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AdminRefundController_refundPayment"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/payouts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminPayoutController_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/payouts/stats": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminPayoutController_stats"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/payouts/{payoutId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminPayoutController_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/payouts/{payoutId}/review": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AdminPayoutController_review"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/payouts/{payoutId}/hold": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AdminPayoutController_hold"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/payouts/{payoutId}/release": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AdminPayoutController_release"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/payouts/{payoutId}/confirm": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AdminPayoutController_confirm"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/payouts/{payoutId}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AdminPayoutController_cancel"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/payouts/{payoutId}/bank-reveal": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AdminPayoutController_revealBank"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operator/finance/summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["OperatorFinanceController_summary"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operator/finance/bookings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["OperatorFinanceController_bookings"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operator/payouts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["OperatorFinanceController_payouts"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operator/payouts/{payoutId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["OperatorFinanceController_payout"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/operator/fares": {
         parameters: {
             query?: never;
@@ -3719,6 +4295,1066 @@ export interface components {
         ContentPageStatusInputDto: {
             /** @enum {string} */
             status: "DRAFT" | "PUBLISHED";
+        };
+        TripSearchResponseDto_Output: {
+            items: {
+                /** Format: uuid */
+                tripId: string;
+                operator: {
+                    /** Format: uuid */
+                    id: string;
+                    name: string;
+                    slug: string;
+                };
+                routeName: string;
+                vehicleType: {
+                    name: string;
+                    /** @enum {string} */
+                    form: "SEATER" | "SLEEPER" | "CABIN";
+                    /** @enum {string} */
+                    class: "STANDARD" | "LIMOUSINE";
+                };
+                /** Format: date-time */
+                departureAt: string;
+                /** Format: date-time */
+                arrivalAt: string;
+                pickup: {
+                    sequence: number;
+                    name: string;
+                    address: string;
+                    /** Format: date-time */
+                    plannedAt: string;
+                };
+                dropoff: {
+                    sequence: number;
+                    name: string;
+                    address: string;
+                    /** Format: date-time */
+                    plannedAt: string;
+                };
+                durationMinutes: number;
+                availableSeats: number;
+                minPrice: number;
+                vehicleCoverImageUrl: string | null;
+                amenities: {
+                    id: string;
+                    name: string;
+                }[];
+                /** Format: date-time */
+                onlineSaleClosesAt: string;
+            }[];
+            total: number;
+            page: number;
+            limit: number;
+            facets: {
+                operators: {
+                    /** Format: uuid */
+                    id: string;
+                    name: string;
+                    count: number;
+                }[];
+                priceMin: number | null;
+                priceMax: number | null;
+            };
+        };
+        PublicTripDto_Output: {
+            /** Format: uuid */
+            tripId: string;
+            operator: {
+                /** Format: uuid */
+                id: string;
+                name: string;
+                slug: string;
+                hotline: string | null;
+            };
+            routeName: string;
+            /** Format: date-time */
+            departureAt: string;
+            /** Format: date-time */
+            arrivalAt: string;
+            /** Format: date-time */
+            onlineSaleClosesAt: string;
+            note: string | null;
+            vehicleType: {
+                name: string;
+                /** @enum {string} */
+                form: "SEATER" | "SLEEPER" | "CABIN";
+                /** @enum {string} */
+                class: "STANDARD" | "LIMOUSINE";
+            };
+            amenities: {
+                id: string;
+                name: string;
+            }[];
+            vehicleImages: {
+                url: string;
+                caption: string | null;
+            }[];
+            stops: {
+                sequence: number;
+                /** @enum {string} */
+                role: "ORIGIN" | "INTERMEDIATE" | "DESTINATION";
+                name: string;
+                address: string;
+                /** @enum {string} */
+                type: "BUS_STATION" | "OFFICE" | "REST_STOP" | "PICKUP_POINT";
+                latitude: number;
+                longitude: number;
+                /** Format: date-time */
+                plannedAt: string;
+                allowPickup: boolean;
+                allowDropoff: boolean;
+                note: string | null;
+            }[];
+            seats: {
+                code: string;
+                deck: number;
+                row: number;
+                column: number;
+                /** @enum {string} */
+                type: "SEAT" | "BED" | "BED_DOUBLE" | "CABIN" | "CABIN_DOUBLE";
+                /** @enum {string} */
+                status: "AVAILABLE" | "UNAVAILABLE";
+                price: number | null;
+            }[];
+            cancellationPolicy: {
+                tiers: {
+                    minHoursBefore: number;
+                    refundPercent: number;
+                }[];
+            };
+        };
+        SeatHoldInputDto: {
+            /** Format: uuid */
+            tripId: string;
+            seatCodes: string[];
+            pickupSequence: number;
+            dropoffSequence: number;
+        };
+        SeatHoldResponseDto_Output: {
+            /** Format: uuid */
+            holdId: string;
+            /** Format: uuid */
+            tripId: string;
+            pickup: {
+                sequence: number;
+                name: string;
+                /** Format: date-time */
+                plannedAt: string;
+            };
+            dropoff: {
+                sequence: number;
+                name: string;
+                /** Format: date-time */
+                plannedAt: string;
+            };
+            seats: {
+                code: string;
+                /** @enum {string} */
+                type: "SEAT" | "BED" | "BED_DOUBLE" | "CABIN" | "CABIN_DOUBLE";
+                price: number;
+            }[];
+            subtotal: number;
+            /** Format: date-time */
+            expiresAt: string;
+        };
+        BookingInputDto: {
+            /** Format: uuid */
+            holdId: string;
+            contact: {
+                fullName: string;
+                phone: string;
+                /** Format: email */
+                email: string;
+            };
+            passengers: {
+                seatCode: string;
+                fullName: string;
+                phone: string | null;
+            }[];
+            note: string | null;
+            expectedTotal: number;
+        };
+        CreatedBookingDto_Output: {
+            /** Format: uuid */
+            bookingId: string;
+            bookingCode: string;
+            /** @enum {string} */
+            status: "PENDING_PAYMENT" | "PENDING_CONFIRMATION" | "PAID" | "CONFIRMED" | "PARTIALLY_CANCELLED" | "CANCELLED" | "EXPIRED" | "REFUND_PENDING" | "REFUNDED" | "REFUND_FAILED";
+            /** Format: uuid */
+            tripId: string;
+            trip: {
+                routeName: string;
+                operatorName: string;
+                operatorHotline: string | null;
+                vehicleTypeName: string;
+                /** Format: date-time */
+                departureAt: string;
+                /** Format: date-time */
+                arrivalAt: string;
+            };
+            pickup: {
+                sequence: number;
+                name: string;
+                address: string;
+                /** Format: date-time */
+                plannedAt: string;
+            };
+            dropoff: {
+                sequence: number;
+                name: string;
+                address: string;
+                /** Format: date-time */
+                plannedAt: string;
+            };
+            contact: {
+                fullName: string;
+                phone: string;
+                email: string;
+            };
+            passengers: {
+                seatCode: string;
+                /** @enum {string} */
+                seatType: "SEAT" | "BED" | "BED_DOUBLE" | "CABIN" | "CABIN_DOUBLE";
+                fullName: string;
+                phone: string | null;
+                price: number;
+            }[];
+            note: string | null;
+            subtotal: number;
+            serviceFee: number;
+            discount: number;
+            total: number;
+            cancellationPolicy: {
+                tiers: {
+                    minHoursBefore: number;
+                    refundPercent: number;
+                }[];
+            };
+            /** Format: date-time */
+            expiresAt: string;
+            payment: {
+                paymentCode: string;
+                /** @enum {string} */
+                provider: "VNPAY" | "MOMO";
+                /** @enum {string} */
+                status: "INITIATED" | "PROCESSING" | "SUCCESS" | "FAILED" | "EXPIRED" | "CANCELLED" | "RECONCILING";
+                amount: number;
+                paidAt: string | null;
+            } | null;
+            tickets: {
+                /** Format: uuid */
+                ticketId: string;
+                ticketCode: string;
+                seatCode: string;
+                passengerName: string;
+                /** @enum {string} */
+                status: "VALID" | "CANCELLED" | "CHECKED_IN" | "NO_SHOW" | "USED" | "REFUNDED";
+                qrToken: string;
+            }[];
+            refunds: {
+                refundCode: string;
+                amount: number;
+                /** @enum {string} */
+                status: "REQUESTED" | "APPROVED" | "PROCESSING" | "SUCCESS" | "FAILED" | "REJECTED";
+                /** Format: date-time */
+                createdAt: string;
+            }[];
+            /** Format: date-time */
+            createdAt: string;
+            accessToken: string;
+        };
+        BookingResponseDto_Output: {
+            /** Format: uuid */
+            bookingId: string;
+            bookingCode: string;
+            /** @enum {string} */
+            status: "PENDING_PAYMENT" | "PENDING_CONFIRMATION" | "PAID" | "CONFIRMED" | "PARTIALLY_CANCELLED" | "CANCELLED" | "EXPIRED" | "REFUND_PENDING" | "REFUNDED" | "REFUND_FAILED";
+            /** Format: uuid */
+            tripId: string;
+            trip: {
+                routeName: string;
+                operatorName: string;
+                operatorHotline: string | null;
+                vehicleTypeName: string;
+                /** Format: date-time */
+                departureAt: string;
+                /** Format: date-time */
+                arrivalAt: string;
+            };
+            pickup: {
+                sequence: number;
+                name: string;
+                address: string;
+                /** Format: date-time */
+                plannedAt: string;
+            };
+            dropoff: {
+                sequence: number;
+                name: string;
+                address: string;
+                /** Format: date-time */
+                plannedAt: string;
+            };
+            contact: {
+                fullName: string;
+                phone: string;
+                email: string;
+            };
+            passengers: {
+                seatCode: string;
+                /** @enum {string} */
+                seatType: "SEAT" | "BED" | "BED_DOUBLE" | "CABIN" | "CABIN_DOUBLE";
+                fullName: string;
+                phone: string | null;
+                price: number;
+            }[];
+            note: string | null;
+            subtotal: number;
+            serviceFee: number;
+            discount: number;
+            total: number;
+            cancellationPolicy: {
+                tiers: {
+                    minHoursBefore: number;
+                    refundPercent: number;
+                }[];
+            };
+            /** Format: date-time */
+            expiresAt: string;
+            payment: {
+                paymentCode: string;
+                /** @enum {string} */
+                provider: "VNPAY" | "MOMO";
+                /** @enum {string} */
+                status: "INITIATED" | "PROCESSING" | "SUCCESS" | "FAILED" | "EXPIRED" | "CANCELLED" | "RECONCILING";
+                amount: number;
+                paidAt: string | null;
+            } | null;
+            tickets: {
+                /** Format: uuid */
+                ticketId: string;
+                ticketCode: string;
+                seatCode: string;
+                passengerName: string;
+                /** @enum {string} */
+                status: "VALID" | "CANCELLED" | "CHECKED_IN" | "NO_SHOW" | "USED" | "REFUNDED";
+                qrToken: string;
+            }[];
+            refunds: {
+                refundCode: string;
+                amount: number;
+                /** @enum {string} */
+                status: "REQUESTED" | "APPROVED" | "PROCESSING" | "SUCCESS" | "FAILED" | "REJECTED";
+                /** Format: date-time */
+                createdAt: string;
+            }[];
+            /** Format: date-time */
+            createdAt: string;
+        };
+        OperatorBookingPageDto_Output: {
+            items: {
+                /** Format: uuid */
+                bookingId: string;
+                bookingCode: string;
+                /** @enum {string} */
+                status: "PENDING_PAYMENT" | "PENDING_CONFIRMATION" | "PAID" | "CONFIRMED" | "PARTIALLY_CANCELLED" | "CANCELLED" | "EXPIRED" | "REFUND_PENDING" | "REFUNDED" | "REFUND_FAILED";
+                /** Format: date-time */
+                createdAt: string;
+                contactName: string;
+                contactPhoneMasked: string;
+                guest: boolean;
+                trip: {
+                    /** Format: uuid */
+                    tripId: string;
+                    /** Format: date-time */
+                    departureAt: string;
+                    routeName: string;
+                    vehiclePlateNumber: string | null;
+                };
+                seatCodes: string[];
+                cancelledTicketCount: number;
+                total: number;
+                payment: {
+                    /** @enum {string} */
+                    provider: "VNPAY" | "MOMO";
+                    /** @enum {string} */
+                    status: "INITIATED" | "PROCESSING" | "SUCCESS" | "FAILED" | "EXPIRED" | "CANCELLED" | "RECONCILING";
+                    paidAt: string | null;
+                } | null;
+            }[];
+            nextCursor: string | null;
+        };
+        OperatorBookingDetailDto_Output: {
+            /** Format: uuid */
+            bookingId: string;
+            bookingCode: string;
+            /** @enum {string} */
+            status: "PENDING_PAYMENT" | "PENDING_CONFIRMATION" | "PAID" | "CONFIRMED" | "PARTIALLY_CANCELLED" | "CANCELLED" | "EXPIRED" | "REFUND_PENDING" | "REFUNDED" | "REFUND_FAILED";
+            /** Format: date-time */
+            createdAt: string;
+            contactName: string;
+            contactPhoneMasked: string;
+            guest: boolean;
+            trip: {
+                /** Format: uuid */
+                tripId: string;
+                /** Format: date-time */
+                departureAt: string;
+                routeName: string;
+                vehiclePlateNumber: string | null;
+            };
+            seatCodes: string[];
+            cancelledTicketCount: number;
+            total: number;
+            payment: {
+                /** @enum {string} */
+                provider: "VNPAY" | "MOMO";
+                /** @enum {string} */
+                status: "INITIATED" | "PROCESSING" | "SUCCESS" | "FAILED" | "EXPIRED" | "CANCELLED" | "RECONCILING";
+                paidAt: string | null;
+            } | null;
+            contactEmailMasked: string;
+            note: string | null;
+            pickup: {
+                sequence: number;
+                name: string;
+                address: string;
+                /** Format: date-time */
+                plannedAt: string;
+            };
+            dropoff: {
+                sequence: number;
+                name: string;
+                address: string;
+                /** Format: date-time */
+                plannedAt: string;
+            };
+            seats: {
+                seatCode: string;
+                /** @enum {string} */
+                seatType: "SEAT" | "BED" | "BED_DOUBLE" | "CABIN" | "CABIN_DOUBLE";
+                passengerName: string;
+                phoneMasked: string | null;
+                ticketCode: string | null;
+                ticketStatus: ("VALID" | "CANCELLED" | "CHECKED_IN" | "NO_SHOW" | "USED" | "REFUNDED") | null;
+            }[];
+            subtotal: number;
+            serviceFee: number;
+            discount: number;
+            cancellationPolicy: {
+                tiers: {
+                    minHoursBefore: number;
+                    refundPercent: number;
+                }[];
+            };
+            histories: {
+                fromStatus: ("PENDING_PAYMENT" | "PENDING_CONFIRMATION" | "PAID" | "CONFIRMED" | "PARTIALLY_CANCELLED" | "CANCELLED" | "EXPIRED" | "REFUND_PENDING" | "REFUNDED" | "REFUND_FAILED") | null;
+                /** @enum {string} */
+                toStatus: "PENDING_PAYMENT" | "PENDING_CONFIRMATION" | "PAID" | "CONFIRMED" | "PARTIALLY_CANCELLED" | "CANCELLED" | "EXPIRED" | "REFUND_PENDING" | "REFUNDED" | "REFUND_FAILED";
+                reason: string | null;
+                actor: string;
+                /** Format: date-time */
+                createdAt: string;
+            }[];
+        };
+        BookingContactDto_Output: {
+            fullName: string;
+            phone: string;
+            email: string;
+            passengers: {
+                seatCode: string;
+                phone: string | null;
+            }[];
+        };
+        TripPassengerListDto_Output: {
+            trip: {
+                /** Format: uuid */
+                tripId: string;
+                /** Format: date-time */
+                departureAt: string;
+                routeName: string;
+                vehiclePlateNumber: string | null;
+                seatCount: number;
+            };
+            summary: {
+                sold: number;
+                checkedIn: number;
+                notBoarded: number;
+                noShow: number;
+            };
+            pickups: {
+                sequence: number;
+                name: string;
+            }[];
+            items: {
+                seatCode: string;
+                passengerName: string;
+                phoneMasked: string | null;
+                /** Format: uuid */
+                bookingId: string;
+                bookingCode: string;
+                guest: boolean;
+                pickup: {
+                    sequence: number;
+                    name: string;
+                };
+                dropoff: {
+                    sequence: number;
+                    name: string;
+                };
+                ticketCode: string;
+                /** @enum {string} */
+                ticketStatus: "VALID" | "CANCELLED" | "CHECKED_IN" | "NO_SHOW" | "USED" | "REFUNDED";
+            }[];
+        };
+        PaymentInputDto: {
+            /** @enum {string} */
+            provider: "VNPAY" | "MOMO";
+        };
+        PaymentResponseDto_Output: {
+            /** Format: uuid */
+            paymentId: string;
+            paymentCode: string;
+            /** @enum {string} */
+            provider: "VNPAY" | "MOMO";
+            /** @enum {string} */
+            status: "INITIATED" | "PROCESSING" | "SUCCESS" | "FAILED" | "EXPIRED" | "CANCELLED" | "RECONCILING";
+            amount: number;
+            paymentUrl: string;
+            /** Format: date-time */
+            expiresAt: string;
+        };
+        AdminPaymentPageDto_Output: {
+            items: {
+                /** Format: uuid */
+                paymentId: string;
+                paymentCode: string;
+                /** Format: uuid */
+                bookingId: string;
+                bookingCode: string;
+                /** Format: uuid */
+                operatorId: string;
+                operatorName: string;
+                /** @enum {string} */
+                provider: "VNPAY" | "MOMO";
+                amount: number;
+                /** @enum {string} */
+                status: "INITIATED" | "PROCESSING" | "SUCCESS" | "FAILED" | "EXPIRED" | "CANCELLED" | "RECONCILING";
+                reconcileReason: string | null;
+                failureCode: string | null;
+                reconcileResolved: boolean;
+                /** Format: date-time */
+                createdAt: string;
+                paidAt: string | null;
+            }[];
+            nextCursor: string | null;
+            total: number;
+            reconcileOpen: number;
+        };
+        AdminPaymentDetailDto_Output: {
+            /** Format: uuid */
+            paymentId: string;
+            paymentCode: string;
+            /** Format: uuid */
+            bookingId: string;
+            bookingCode: string;
+            /** Format: uuid */
+            operatorId: string;
+            operatorName: string;
+            /** @enum {string} */
+            provider: "VNPAY" | "MOMO";
+            amount: number;
+            /** @enum {string} */
+            status: "INITIATED" | "PROCESSING" | "SUCCESS" | "FAILED" | "EXPIRED" | "CANCELLED" | "RECONCILING";
+            reconcileReason: string | null;
+            failureCode: string | null;
+            reconcileResolved: boolean;
+            /** Format: date-time */
+            createdAt: string;
+            paidAt: string | null;
+            providerTxnId: string | null;
+            /** Format: date-time */
+            expiresAt: string;
+            lastCallbackAt: string | null;
+            amountMatches: boolean | null;
+            booking: {
+                /** @enum {string} */
+                status: "PENDING_PAYMENT" | "PENDING_CONFIRMATION" | "PAID" | "CONFIRMED" | "PARTIALLY_CANCELLED" | "CANCELLED" | "EXPIRED" | "REFUND_PENDING" | "REFUNDED" | "REFUND_FAILED";
+                routeName: string;
+                /** Format: date-time */
+                departureAt: string;
+                contactName: string;
+                seatCodes: string[];
+                subtotal: number;
+                serviceFee: number;
+                discount: number;
+                total: number;
+                /** Format: date-time */
+                createdAt: string;
+            };
+            allocation: {
+                commissionAmount: number;
+                commissionRateBps: number | null;
+                operatorNet: number;
+            } | null;
+            histories: {
+                fromStatus: ("INITIATED" | "PROCESSING" | "SUCCESS" | "FAILED" | "EXPIRED" | "CANCELLED" | "RECONCILING") | null;
+                /** @enum {string} */
+                toStatus: "INITIATED" | "PROCESSING" | "SUCCESS" | "FAILED" | "EXPIRED" | "CANCELLED" | "RECONCILING";
+                reason: string | null;
+                actor: string | null;
+                /** Format: date-time */
+                createdAt: string;
+            }[];
+            tickets: {
+                ticketCode: string;
+                seatCode: string;
+                /** @enum {string} */
+                status: "VALID" | "CANCELLED" | "CHECKED_IN" | "NO_SHOW" | "USED" | "REFUNDED";
+                /** Format: date-time */
+                issuedAt: string;
+            }[];
+            ledger: {
+                /** @enum {string} */
+                entryType: "PAYMENT_CAPTURED" | "COMMISSION" | "REFUND" | "COMMISSION_REVERSAL" | "PAYOUT" | "ADJUSTMENT";
+                amount: number;
+                /** Format: date-time */
+                eligibleAt: string;
+                /** Format: date-time */
+                createdAt: string;
+            }[];
+            refunds: {
+                /** Format: uuid */
+                refundId: string;
+                refundCode: string;
+                /** @enum {string} */
+                status: "REQUESTED" | "APPROVED" | "PROCESSING" | "SUCCESS" | "FAILED" | "REJECTED";
+                amount: number;
+                /** Format: date-time */
+                createdAt: string;
+            }[];
+            canRefund: boolean;
+        };
+        TicketResponseDto_Output: {
+            /** Format: uuid */
+            ticketId: string;
+            ticketCode: string;
+            /** @enum {string} */
+            status: "VALID" | "CANCELLED" | "CHECKED_IN" | "NO_SHOW" | "USED" | "REFUNDED";
+            seatCode: string;
+            /** @enum {string} */
+            seatType: "SEAT" | "BED" | "BED_DOUBLE" | "CABIN" | "CABIN_DOUBLE";
+            passengerName: string;
+            /** Format: uuid */
+            bookingId: string;
+            bookingCode: string;
+            /** @enum {string} */
+            bookingStatus: "PENDING_PAYMENT" | "PENDING_CONFIRMATION" | "PAID" | "CONFIRMED" | "PARTIALLY_CANCELLED" | "CANCELLED" | "EXPIRED" | "REFUND_PENDING" | "REFUNDED" | "REFUND_FAILED";
+            trip: {
+                routeName: string;
+                operatorName: string;
+                operatorHotline: string | null;
+                vehicleTypeName: string;
+                /** Format: date-time */
+                departureAt: string;
+                /** Format: date-time */
+                arrivalAt: string;
+            };
+            pickup: {
+                sequence: number;
+                name: string;
+                address: string;
+                /** Format: date-time */
+                plannedAt: string;
+            };
+            dropoff: {
+                sequence: number;
+                name: string;
+                address: string;
+                /** Format: date-time */
+                plannedAt: string;
+            };
+            qrToken: string;
+            /** Format: date-time */
+            issuedAt: string;
+            checkedInAt: string | null;
+        };
+        TicketLookupInputDto: {
+            bookingCode: string;
+            phone?: string;
+            /** Format: email */
+            email?: string;
+        };
+        CancellationQuoteDto_Output: {
+            tickets: {
+                /** Format: uuid */
+                ticketId: string;
+                ticketCode: string;
+                seatCode: string;
+                passengerName: string;
+                /** @enum {string} */
+                status: "VALID" | "CANCELLED" | "CHECKED_IN" | "NO_SHOW" | "USED" | "REFUNDED";
+                price: number;
+                cancellable: boolean;
+                reason: string | null;
+            }[];
+            tier: {
+                minHoursBefore: number;
+                refundPercent: number;
+            } | null;
+            refundPercent: number;
+            selectedTotal: number;
+            refundAmount: number;
+            nonRefundable: number;
+        };
+        CancellationInputDto: {
+            ticketIds: string[];
+            expectedRefund: number;
+            reason: string | null;
+        };
+        CancellationResultDto_Output: {
+            booking: {
+                /** Format: uuid */
+                bookingId: string;
+                bookingCode: string;
+                /** @enum {string} */
+                status: "PENDING_PAYMENT" | "PENDING_CONFIRMATION" | "PAID" | "CONFIRMED" | "PARTIALLY_CANCELLED" | "CANCELLED" | "EXPIRED" | "REFUND_PENDING" | "REFUNDED" | "REFUND_FAILED";
+                /** Format: uuid */
+                tripId: string;
+                trip: {
+                    routeName: string;
+                    operatorName: string;
+                    operatorHotline: string | null;
+                    vehicleTypeName: string;
+                    /** Format: date-time */
+                    departureAt: string;
+                    /** Format: date-time */
+                    arrivalAt: string;
+                };
+                pickup: {
+                    sequence: number;
+                    name: string;
+                    address: string;
+                    /** Format: date-time */
+                    plannedAt: string;
+                };
+                dropoff: {
+                    sequence: number;
+                    name: string;
+                    address: string;
+                    /** Format: date-time */
+                    plannedAt: string;
+                };
+                contact: {
+                    fullName: string;
+                    phone: string;
+                    email: string;
+                };
+                passengers: {
+                    seatCode: string;
+                    /** @enum {string} */
+                    seatType: "SEAT" | "BED" | "BED_DOUBLE" | "CABIN" | "CABIN_DOUBLE";
+                    fullName: string;
+                    phone: string | null;
+                    price: number;
+                }[];
+                note: string | null;
+                subtotal: number;
+                serviceFee: number;
+                discount: number;
+                total: number;
+                cancellationPolicy: {
+                    tiers: {
+                        minHoursBefore: number;
+                        refundPercent: number;
+                    }[];
+                };
+                /** Format: date-time */
+                expiresAt: string;
+                payment: {
+                    paymentCode: string;
+                    /** @enum {string} */
+                    provider: "VNPAY" | "MOMO";
+                    /** @enum {string} */
+                    status: "INITIATED" | "PROCESSING" | "SUCCESS" | "FAILED" | "EXPIRED" | "CANCELLED" | "RECONCILING";
+                    amount: number;
+                    paidAt: string | null;
+                } | null;
+                tickets: {
+                    /** Format: uuid */
+                    ticketId: string;
+                    ticketCode: string;
+                    seatCode: string;
+                    passengerName: string;
+                    /** @enum {string} */
+                    status: "VALID" | "CANCELLED" | "CHECKED_IN" | "NO_SHOW" | "USED" | "REFUNDED";
+                    qrToken: string;
+                }[];
+                refunds: {
+                    refundCode: string;
+                    amount: number;
+                    /** @enum {string} */
+                    status: "REQUESTED" | "APPROVED" | "PROCESSING" | "SUCCESS" | "FAILED" | "REJECTED";
+                    /** Format: date-time */
+                    createdAt: string;
+                }[];
+                /** Format: date-time */
+                createdAt: string;
+            };
+            refund: {
+                refundCode: string;
+                amount: number;
+                /** @enum {string} */
+                status: "REQUESTED" | "APPROVED" | "PROCESSING" | "SUCCESS" | "FAILED" | "REJECTED";
+            } | null;
+        };
+        AdminRefundPageDto_Output: {
+            items: {
+                /** Format: uuid */
+                refundId: string;
+                refundCode: string;
+                /** Format: uuid */
+                bookingId: string;
+                bookingCode: string;
+                /** Format: uuid */
+                paymentId: string;
+                paymentCode: string;
+                /** @enum {string} */
+                provider: "VNPAY" | "MOMO";
+                /** Format: uuid */
+                operatorId: string;
+                operatorName: string;
+                /** @enum {string} */
+                source: "CUSTOMER" | "PLATFORM";
+                amount: number;
+                refundPercent: number;
+                /** @enum {string} */
+                status: "REQUESTED" | "APPROVED" | "PROCESSING" | "SUCCESS" | "FAILED" | "REJECTED";
+                failureCode: string | null;
+                reason: string;
+                /** Format: date-time */
+                createdAt: string;
+                /** Format: date-time */
+                updatedAt: string;
+            }[];
+            nextCursor: string | null;
+            total: number;
+        };
+        AdminRefundDetailDto_Output: {
+            /** Format: uuid */
+            refundId: string;
+            refundCode: string;
+            /** Format: uuid */
+            bookingId: string;
+            bookingCode: string;
+            /** Format: uuid */
+            paymentId: string;
+            paymentCode: string;
+            /** @enum {string} */
+            provider: "VNPAY" | "MOMO";
+            /** Format: uuid */
+            operatorId: string;
+            operatorName: string;
+            /** @enum {string} */
+            source: "CUSTOMER" | "PLATFORM";
+            amount: number;
+            refundPercent: number;
+            /** @enum {string} */
+            status: "REQUESTED" | "APPROVED" | "PROCESSING" | "SUCCESS" | "FAILED" | "REJECTED";
+            failureCode: string | null;
+            reason: string;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+            paidAmount: number;
+            /** @enum {string} */
+            paymentStatus: "INITIATED" | "PROCESSING" | "SUCCESS" | "FAILED" | "EXPIRED" | "CANCELLED" | "RECONCILING";
+            attempt: number;
+            providerRefundId: string | null;
+            bankReference: string | null;
+            processedAt: string | null;
+            tickets: {
+                ticketCode: string;
+                seatCode: string;
+                /** @enum {string} */
+                status: "VALID" | "CANCELLED" | "CHECKED_IN" | "NO_SHOW" | "USED" | "REFUNDED";
+            }[];
+            histories: {
+                fromStatus: ("REQUESTED" | "APPROVED" | "PROCESSING" | "SUCCESS" | "FAILED" | "REJECTED") | null;
+                /** @enum {string} */
+                toStatus: "REQUESTED" | "APPROVED" | "PROCESSING" | "SUCCESS" | "FAILED" | "REJECTED";
+                reason: string | null;
+                actor: string | null;
+                /** Format: date-time */
+                createdAt: string;
+            }[];
+            canRetry: boolean;
+            canResolve: boolean;
+        };
+        RefundReasonInputDto: {
+            reason: string;
+        };
+        RefundResolveInputDto: {
+            reference: string;
+            reason: string;
+        };
+        PayoutPageDto_Output: {
+            items: {
+                /** Format: uuid */
+                payoutId: string;
+                payoutCode: string;
+                /** Format: uuid */
+                operatorId: string;
+                operatorName: string;
+                /** Format: date */
+                period: string;
+                /** @enum {string} */
+                status: "PENDING_REVIEW" | "ON_HOLD" | "READY_TO_TRANSFER" | "TRANSFERRING" | "PAID" | "FAILED" | "CANCELLED";
+                grossAmount: number;
+                commissionAmount: number;
+                refundAmount: number;
+                adjustmentAmount: number;
+                amount: number;
+                commissionRateBps: number | null;
+                holdReason: string | null;
+                bank: {
+                    bankName: string;
+                    accountNumberMasked: string;
+                    accountHolder: string;
+                } | null;
+                paidAt: string | null;
+                /** Format: date-time */
+                createdAt: string;
+            }[];
+            nextCursor: string | null;
+        };
+        AdminPayoutStatsDto_Output: {
+            pendingReview: {
+                count: number;
+                amount: number;
+            };
+            readyToTransfer: {
+                count: number;
+                amount: number;
+            };
+            onHold: {
+                count: number;
+                amount: number;
+            };
+            paidThisMonth: {
+                count: number;
+                amount: number;
+            };
+        };
+        PayoutDetailDto_Output: {
+            /** Format: uuid */
+            payoutId: string;
+            payoutCode: string;
+            /** Format: uuid */
+            operatorId: string;
+            operatorName: string;
+            /** Format: date */
+            period: string;
+            /** @enum {string} */
+            status: "PENDING_REVIEW" | "ON_HOLD" | "READY_TO_TRANSFER" | "TRANSFERRING" | "PAID" | "FAILED" | "CANCELLED";
+            grossAmount: number;
+            commissionAmount: number;
+            refundAmount: number;
+            adjustmentAmount: number;
+            amount: number;
+            commissionRateBps: number | null;
+            holdReason: string | null;
+            bank: {
+                bankName: string;
+                accountNumberMasked: string;
+                accountHolder: string;
+            } | null;
+            paidAt: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            trips: {
+                tripId: string | null;
+                departureAt: string | null;
+                routeName: string | null;
+                vehiclePlateNumber: string | null;
+                bookingCount: number;
+                grossAmount: number;
+                commissionAmount: number;
+                refundAdjustmentAmount: number;
+                amount: number;
+            }[];
+            checks: {
+                ledgerMatches: boolean;
+                noPendingRefunds: boolean;
+                bankVerified: boolean;
+            };
+            bankReference: string | null;
+            transferredAt: string | null;
+            confirmationNote: string | null;
+            cancelReason: string | null;
+            histories: {
+                fromStatus: ("PENDING_REVIEW" | "ON_HOLD" | "READY_TO_TRANSFER" | "TRANSFERRING" | "PAID" | "FAILED" | "CANCELLED") | null;
+                /** @enum {string} */
+                toStatus: "PENDING_REVIEW" | "ON_HOLD" | "READY_TO_TRANSFER" | "TRANSFERRING" | "PAID" | "FAILED" | "CANCELLED";
+                reason: string | null;
+                actor: string | null;
+                /** Format: date-time */
+                createdAt: string;
+            }[];
+        };
+        PayoutReasonInputDto: {
+            reason: string;
+        };
+        PayoutConfirmInputDto: {
+            bankReference: string;
+            /** Format: date-time */
+            transferredAt: string;
+            note: string;
+        };
+        PayoutBankAccountDto_Output: {
+            bankName: string;
+            accountNumber: string;
+            accountHolder: string;
+        };
+        FinanceSummaryDto_Output: {
+            heldBalance: number;
+            eligibleAmount: number;
+            pendingAmount: number;
+            lastPayout: {
+                /** Format: uuid */
+                payoutId: string;
+                amount: number;
+                /** Format: date-time */
+                paidAt: string;
+            } | null;
+            payoutDelayDays: number;
+        };
+        FinanceBookingPageDto_Output: {
+            items: {
+                /** Format: uuid */
+                bookingId: string;
+                bookingCode: string;
+                trip: {
+                    /** Format: uuid */
+                    tripId: string;
+                    /** Format: date-time */
+                    departureAt: string;
+                    /** Format: date-time */
+                    arrivalAt: string;
+                    routeName: string;
+                };
+                grossAmount: number;
+                commissionAmount: number;
+                refundAdjustmentAmount: number;
+                netAmount: number;
+                /** @enum {string} */
+                state: "WAITING_TRIP" | "ON_HOLD" | "ELIGIBLE" | "IN_PAYOUT" | "PAID" | "REFUNDED";
+                /** Format: date-time */
+                eligibleAt: string;
+            }[];
+            nextCursor: string | null;
         };
         FareListResponseDto_Output: {
             items: {
@@ -10300,6 +11936,2068 @@ export interface operations {
             };
             /** @description `CONTENT_PAGE_STATE_INVALID`. */
             409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    PublicTripController_search: {
+        parameters: {
+            query: {
+                fromProvinceId?: string;
+                fromStopPointId?: string;
+                toProvinceId?: string;
+                toStopPointId?: string;
+                date: string;
+                passengers?: number;
+                operatorId?: string;
+                vehicleForm?: "SEATER" | "SLEEPER" | "CABIN";
+                vehicleClass?: "STANDARD" | "LIMOUSINE";
+                departureFrom?: string;
+                departureTo?: string;
+                priceMin?: number;
+                priceMax?: number;
+                amenityIds?: string;
+                sort?: "departure" | "price" | "duration";
+                page?: number;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Một trang chuyến đang mở bán khớp truy vấn. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TripSearchResponseDto_Output"];
+                };
+            };
+            /** @description Query không hợp lệ. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    PublicTripController_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tripId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Chi tiết chuyến. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PublicTripDto_Output"];
+                };
+            };
+            /** @description `TRIP_NOT_FOUND` (không tồn tại hoặc không hiển thị). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    SeatHoldController_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SeatHoldInputDto"];
+            };
+        };
+        responses: {
+            /** @description Đã giữ chỗ. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SeatHoldResponseDto_Output"];
+                };
+            };
+            /** @description Gửi token nhưng token sai / hết hạn (không gửi token = khách vãng lai). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `TRIP_NOT_FOUND`. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `SEAT_HOLD_CONFLICT` / `SEAT_NOT_AVAILABLE` (`reasons` = mã chỗ). */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `SEAT_HOLD_STOPS_INVALID` / `TRIP_SEAT_UNKNOWN`. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `SEAT_HOLD_RATE_LIMITED`. */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Hệ thống giữ chỗ gián đoạn. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    SeatHoldController_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                holdId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Giữ chỗ đang hiệu lực. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SeatHoldResponseDto_Output"];
+                };
+            };
+            /** @description Gửi token nhưng token sai / hết hạn (không gửi token = khách vãng lai). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `SEAT_HOLD_EXPIRED`. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    SeatHoldController_release: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                holdId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Đã bỏ giữ chỗ. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Gửi token nhưng token sai / hết hạn (không gửi token = khách vãng lai). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `SEAT_HOLD_EXPIRED`. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    BookingController_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BookingInputDto"];
+            };
+        };
+        responses: {
+            /** @description Đã tạo booking `PENDING_PAYMENT`. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CreatedBookingDto_Output"];
+                };
+            };
+            /** @description Gửi token nhưng token sai / hết hạn (không gửi token = khách vãng lai). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `SEAT_HOLD_EXPIRED` — giữ chỗ hết hạn / không phải của người gọi. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `BOOKING_SNAPSHOT_CHANGED` (`reasons[0]` = tổng mới) / `BOOKING_ALREADY_CREATED` / `TRIP_NOT_ON_SALE` / `SEAT_NOT_AVAILABLE`. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `BOOKING_PASSENGERS_MISMATCH` / `SEAT_HOLD_STOPS_INVALID`. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Hệ thống giữ chỗ / cơ sở dữ liệu bận. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    BookingController_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Mã truy cập trả lúc tạo booking (khách vãng lai). */
+                "X-Booking-Token"?: string;
+            };
+            path: {
+                bookingId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Booking. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BookingResponseDto_Output"];
+                };
+            };
+            /** @description Gửi token nhưng token sai / hết hạn (không gửi token = khách vãng lai). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `BOOKING_NOT_FOUND`. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    OperatorBookingController_list: {
+        parameters: {
+            query: {
+                date: string;
+                tripId?: string;
+                status?: "PENDING_PAYMENT" | "PENDING_CONFIRMATION" | "PAID" | "CONFIRMED" | "PARTIALLY_CANCELLED" | "CANCELLED" | "EXPIRED" | "REFUND_PENDING" | "REFUNDED" | "REFUND_FAILED";
+                q?: string;
+                cursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Một trang đơn (liên hệ đã che). */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OperatorBookingPageDto_Output"];
+                };
+            };
+            /** @description Query không hợp lệ. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    OperatorBookingController_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                bookingId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Chi tiết đơn (liên hệ đã che). */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OperatorBookingDetailDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `BOOKING_NOT_FOUND` (kể cả của nhà xe khác). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    OperatorBookingController_revealContact: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                bookingId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Liên hệ đầy đủ. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BookingContactDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `BOOKING_NOT_FOUND`. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Chưa ghi được nhật ký — không trả dữ liệu. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    OperatorBookingController_passengers: {
+        parameters: {
+            query?: {
+                pickupSequence?: number;
+                ticketStatus?: "VALID" | "CANCELLED" | "CHECKED_IN" | "NO_SHOW" | "USED" | "REFUNDED";
+                q?: string;
+            };
+            header?: never;
+            path: {
+                tripId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Danh sách hành khách (số điện thoại đã che). */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TripPassengerListDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `TRIP_NOT_FOUND` (kể cả của nhà xe khác). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    OperatorBookingController_exportPassengers: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tripId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Tệp CSV (UTF-8, có BOM). */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/csv": string;
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `TRIP_NOT_FOUND`. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Chưa ghi được nhật ký — không xuất. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    PaymentController_create: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Mã truy cập trả lúc tạo booking (khách vãng lai). */
+                "X-Booking-Token"?: string;
+            };
+            path: {
+                bookingId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PaymentInputDto"];
+            };
+        };
+        responses: {
+            /** @description Payment `PROCESSING` kèm link thanh toán. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaymentResponseDto_Output"];
+                };
+            };
+            /** @description Gửi token nhưng token sai / hết hạn (không gửi token = khách vãng lai). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `BOOKING_NOT_FOUND`. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `BOOKING_EXPIRED` / `BOOKING_INVALID_STATE` / `PAYMENT_IN_PROGRESS`. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PAYMENT_AMOUNT_OUT_OF_RANGE`. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PAYMENT_PROVIDER_ERROR`. */
+            502: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PAYMENT_PROVIDER_UNAVAILABLE` — cổng chưa cấu hình. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminPaymentController_list: {
+        parameters: {
+            query?: {
+                from?: string;
+                to?: string;
+                operatorId?: string;
+                provider?: "VNPAY" | "MOMO";
+                status?: "INITIATED" | "PROCESSING" | "SUCCESS" | "FAILED" | "EXPIRED" | "CANCELLED" | "RECONCILING";
+                reconcile?: "open";
+                q?: string;
+                cursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Một trang giao dịch, mới trước + tổng + số cần đối soát. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminPaymentPageDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminPaymentController_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                paymentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Chi tiết giao dịch: dòng thời gian, phân bổ số tiền, vé, sổ giữ hộ, hoàn tiền. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminPaymentDetailDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PAYMENT_NOT_FOUND`. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    TicketController_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Mã truy cập booking (khách vãng lai). */
+                "X-Booking-Token"?: string;
+            };
+            path: {
+                ticketId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Vé kèm nội dung mã QR. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TicketResponseDto_Output"];
+                };
+            };
+            /** @description Gửi token nhưng token sai / hết hạn (không gửi token = khách vãng lai). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `TICKET_NOT_FOUND`. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    TicketController_lookup: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TicketLookupInputDto"];
+            };
+        };
+        responses: {
+            /** @description Booking kèm vé. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BookingResponseDto_Output"];
+                };
+            };
+            /** @description Gửi token nhưng token sai / hết hạn (không gửi token = khách vãng lai). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `BOOKING_NOT_FOUND` — sai mã hoặc liên hệ. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `TICKET_LOOKUP_RATE_LIMITED`. */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Tra cứu tạm gián đoạn. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    CancellationController_quote: {
+        parameters: {
+            query: {
+                /** @description Mã vé, phân tách bằng dấu phẩy. */
+                ticketIds: string;
+            };
+            header?: {
+                /** @description Mã truy cập booking (khách vãng lai). */
+                "X-Booking-Token"?: string;
+            };
+            path: {
+                bookingId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Điều kiện hủy. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CancellationQuoteDto_Output"];
+                };
+            };
+            /** @description Gửi token nhưng token sai / hết hạn (không gửi token = khách vãng lai). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `BOOKING_NOT_FOUND`. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `CANCELLATION_TICKETS_INVALID`. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    CancellationController_cancel: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Mã truy cập booking (khách vãng lai). */
+                "X-Booking-Token"?: string;
+            };
+            path: {
+                bookingId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CancellationInputDto"];
+            };
+        };
+        responses: {
+            /** @description Đã hủy vé. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CancellationResultDto_Output"];
+                };
+            };
+            /** @description Gửi token nhưng token sai / hết hạn (không gửi token = khách vãng lai). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `BOOKING_NOT_FOUND`. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `CANCELLATION_NOT_ALLOWED` (`reasons` = từng vé + lý do) / `REFUND_AMOUNT_CHANGED` (`reasons[0]` = số mới). */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `CANCELLATION_TICKETS_INVALID`. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminRefundController_list: {
+        parameters: {
+            query?: {
+                from?: string;
+                to?: string;
+                operatorId?: string;
+                source?: "CUSTOMER" | "PLATFORM";
+                status?: "REQUESTED" | "APPROVED" | "PROCESSING" | "SUCCESS" | "FAILED" | "REJECTED";
+                q?: string;
+                cursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Một trang yêu cầu hoàn tiền, mới trước + tổng. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminRefundPageDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminRefundController_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                refundId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Chi tiết yêu cầu hoàn tiền. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminRefundDetailDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `REFUND_NOT_FOUND`. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminRefundController_retry: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                refundId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RefundReasonInputDto"];
+            };
+        };
+        responses: {
+            /** @description Yêu cầu đã chuyển về chờ hoàn qua cổng. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminRefundDetailDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `REFUND_NOT_FOUND` / `PAYMENT_NOT_FOUND`. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `REFUND_STATUS_INVALID`. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Chưa ghi được audit — không đổi gì. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminRefundController_resolve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                refundId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RefundResolveInputDto"];
+            };
+        };
+        responses: {
+            /** @description Yêu cầu đã hoàn. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminRefundDetailDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `REFUND_NOT_FOUND` / `PAYMENT_NOT_FOUND`. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `REFUND_STATUS_INVALID`. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Chưa ghi được audit — không đổi gì. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminRefundController_refundPayment: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                paymentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RefundReasonInputDto"];
+            };
+        };
+        responses: {
+            /** @description Yêu cầu hoàn tiền vừa tạo (chờ hoàn qua cổng). */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminRefundDetailDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `REFUND_NOT_FOUND` / `PAYMENT_NOT_FOUND`. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `REFUND_STATUS_INVALID`. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Chưa ghi được audit — không đổi gì. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminPayoutController_list: {
+        parameters: {
+            query?: {
+                period?: string;
+                operatorId?: string;
+                status?: "PENDING_REVIEW" | "ON_HOLD" | "READY_TO_TRANSFER" | "TRANSFERRING" | "PAID" | "FAILED" | "CANCELLED";
+                q?: string;
+                cursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Một trang kỳ chi trả, mới trước. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PayoutPageDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminPayoutController_stats: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Số kỳ chờ rà soát / sẵn sàng / đang giữ, đã chi trong tháng. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminPayoutStatsDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminPayoutController_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                payoutId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Chi tiết kỳ chi trả. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PayoutDetailDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PAYOUT_NOT_FOUND`. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminPayoutController_review: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                payoutId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Kỳ sau khi rà soát. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PayoutDetailDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PAYOUT_NOT_FOUND`. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PAYOUT_STATUS_INVALID` / `PAYOUT_CHECKS_FAILED` (`reasons`). */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Chưa ghi được audit — không đổi gì. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminPayoutController_hold: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                payoutId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PayoutReasonInputDto"];
+            };
+        };
+        responses: {
+            /** @description Kỳ đang giữ lại. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PayoutDetailDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PAYOUT_NOT_FOUND`. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PAYOUT_STATUS_INVALID` / `PAYOUT_CHECKS_FAILED` (`reasons`). */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Chưa ghi được audit — không đổi gì. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminPayoutController_release: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                payoutId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Kỳ chờ rà soát. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PayoutDetailDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PAYOUT_NOT_FOUND`. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PAYOUT_STATUS_INVALID` / `PAYOUT_CHECKS_FAILED` (`reasons`). */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Chưa ghi được audit — không đổi gì. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminPayoutController_confirm: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                payoutId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PayoutConfirmInputDto"];
+            };
+        };
+        responses: {
+            /** @description Kỳ đã chi. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PayoutDetailDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PAYOUT_NOT_FOUND`. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PAYOUT_STATUS_INVALID` / `PAYOUT_CHECKS_FAILED` (`reasons`). */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PAYOUT_TRANSFER_TIME_INVALID`. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Chưa ghi được audit — không đổi gì. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminPayoutController_cancel: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                payoutId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PayoutReasonInputDto"];
+            };
+        };
+        responses: {
+            /** @description Kỳ đã hủy. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PayoutDetailDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PAYOUT_NOT_FOUND`. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PAYOUT_STATUS_INVALID` / `PAYOUT_CHECKS_FAILED` (`reasons`). */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Chưa ghi được audit — không đổi gì. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminPayoutController_revealBank: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                payoutId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Tài khoản nhận tiền đầy đủ. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PayoutBankAccountDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PAYOUT_NOT_FOUND`. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PAYOUT_STATUS_INVALID` / `PAYOUT_CHECKS_FAILED` (`reasons`). */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Chưa ghi được audit — không đổi gì. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    OperatorFinanceController_summary: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Số dư giữ hộ, đủ điều kiện / chờ, kỳ đã chi gần nhất. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FinanceSummaryDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    OperatorFinanceController_bookings: {
+        parameters: {
+            query: {
+                from: string;
+                to: string;
+                routeId?: string;
+                state?: "WAITING_TRIP" | "ON_HOLD" | "ELIGIBLE" | "IN_PAYOUT" | "PAID" | "REFUNDED";
+                q?: string;
+                cursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Một trang giao dịch theo đơn. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FinanceBookingPageDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    OperatorFinanceController_payouts: {
+        parameters: {
+            query?: {
+                /** @description `YYYY-MM` */
+                month?: string;
+                status?: "PENDING_REVIEW" | "ON_HOLD" | "READY_TO_TRANSFER" | "TRANSFERRING" | "PAID" | "FAILED" | "CANCELLED";
+                cursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Một trang kỳ chi trả của nhà xe. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PayoutPageDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    OperatorFinanceController_payout: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                payoutId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Chi tiết kỳ chi trả. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PayoutDetailDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PAYOUT_NOT_FOUND` (kể cả của nhà xe khác). */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };

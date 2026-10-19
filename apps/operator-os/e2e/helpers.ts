@@ -27,6 +27,19 @@ export type E2eAccounts = {
   assignOperatorSlug: string;
   assignOwner: { username: string; password: string };
   assignmentFixtures: { routeName: string; date: string; soonDate: string } | null;
+  /** Nhà xe riêng của E2E màn Đặt vé: một chuyến mở bán ngày `date` + đơn đã xác nhận (có vé) và đơn chờ thanh toán. */
+  bookingOperatorSlug: string;
+  bookingOwner: { username: string; password: string };
+  bookingFixtures: {
+    routeName: string;
+    date: string;
+    confirmedCode: string;
+    pendingCode: string;
+    operatorName: string;
+    /** Đơn của chuyến đã chạy — tiền đã vào kỳ `payoutCode` (chờ rà soát). */
+    pastCode: string;
+    payoutCode: string;
+  } | null;
   employee: { username: string; password: string };
   platform: { username: string; password: string };
 };

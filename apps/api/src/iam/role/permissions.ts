@@ -8,6 +8,7 @@ import { Role } from "./role";
 export const PERMISSIONS = [
   "trip:search", // §7 Search trip
   "booking:create", // §7 Create booking
+  "booking:read", // API §7.3 /operator/bookings, FR-OPS-14/15 (TASK-OPR-003) — booking / vé / hành khách của nhà xe
   "payment:create", // §7 Payment
   "payment:monitor", // §7 Payment — "giám sát/đối soát"
   "refund:request", // §7 Cancel/refund request
@@ -79,6 +80,7 @@ export const ROLE_GRANTS: Readonly<Record<Role, Grants>> = {
     "kyc:submit": "tenant",
     "finance:read": "tenant",
     "employee:manage": "tenant",
+    "booking:read": "tenant",
     "account:lock": "tenant",
   },
   [Role.DRIVER]: EMPLOYEE,

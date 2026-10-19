@@ -15,6 +15,13 @@ import { PolicyModule } from "./policy/policy.module";
 import { CommissionModule } from "./commission/commission.module";
 import { AdminSystemModule } from "./admin/admin-system.module";
 import { EmployeeModule } from "./employee/employee.module";
+import { MarketplaceModule } from "./marketplace/marketplace.module";
+import { SeatHoldModule } from "./seat-hold/seat-hold.module";
+import { BookingModule } from "./booking/booking.module";
+import { PaymentModule } from "./payment/payment.module";
+import { TicketModule } from "./ticket/ticket.module";
+import { RefundModule } from "./refund/refund.module";
+import { PayoutModule } from "./payout/payout.module";
 import { IamModule } from "./iam/iam.module";
 import { QueueModule } from "./queue/queue.module";
 import { CatalogModule } from "./catalog/catalog.module";
@@ -47,6 +54,13 @@ import { VehicleModule } from "./vehicle/vehicle.module";
     CommissionModule,
     AdminSystemModule,
     EmployeeModule,
+    MarketplaceModule,
+    SeatHoldModule,
+    BookingModule,
+    PaymentModule,
+    TicketModule,
+    RefundModule,
+    PayoutModule,
   ],
   controllers: [AppController],
   providers: [{ provide: APP_INTERCEPTOR, useClass: ZodSerializerInterceptor }],

@@ -16,19 +16,26 @@ import 'package:api_client_dart/src/api/admin_commission_api.dart';
 import 'package:api_client_dart/src/api/admin_content_pages_api.dart';
 import 'package:api_client_dart/src/api/admin_operator_applications_api.dart';
 import 'package:api_client_dart/src/api/admin_operators_api.dart';
+import 'package:api_client_dart/src/api/admin_payments_api.dart';
+import 'package:api_client_dart/src/api/admin_payouts_api.dart';
 import 'package:api_client_dart/src/api/admin_policies_api.dart';
+import 'package:api_client_dart/src/api/admin_refunds_api.dart';
 import 'package:api_client_dart/src/api/admin_stop_points_api.dart';
 import 'package:api_client_dart/src/api/admin_system_api.dart';
 import 'package:api_client_dart/src/api/admin_users_api.dart';
 import 'package:api_client_dart/src/api/admin_vehicle_images_api.dart';
 import 'package:api_client_dart/src/api/articles_api.dart';
 import 'package:api_client_dart/src/api/auth_api.dart';
+import 'package:api_client_dart/src/api/bookings_api.dart';
+import 'package:api_client_dart/src/api/cancellations_api.dart';
 import 'package:api_client_dart/src/api/catalog_api.dart';
 import 'package:api_client_dart/src/api/content_pages_api.dart';
 import 'package:api_client_dart/src/api/health_api.dart';
 import 'package:api_client_dart/src/api/operator_applications_api.dart';
+import 'package:api_client_dart/src/api/operator_bookings_api.dart';
 import 'package:api_client_dart/src/api/operator_employees_api.dart';
 import 'package:api_client_dart/src/api/operator_fares_api.dart';
+import 'package:api_client_dart/src/api/operator_finance_api.dart';
 import 'package:api_client_dart/src/api/operator_profile_api.dart';
 import 'package:api_client_dart/src/api/operator_routes_api.dart';
 import 'package:api_client_dart/src/api/operator_seat_maps_api.dart';
@@ -38,6 +45,10 @@ import 'package:api_client_dart/src/api/operator_trip_assignments_api.dart';
 import 'package:api_client_dart/src/api/operator_trip_schedules_api.dart';
 import 'package:api_client_dart/src/api/operator_trips_api.dart';
 import 'package:api_client_dart/src/api/operator_vehicles_api.dart';
+import 'package:api_client_dart/src/api/payments_api.dart';
+import 'package:api_client_dart/src/api/seat_holds_api.dart';
+import 'package:api_client_dart/src/api/tickets_api.dart';
+import 'package:api_client_dart/src/api/trips_api.dart';
 
 class ApiClientDart {
   static const String basePath = r'http://localhost';
@@ -175,10 +186,28 @@ class ApiClientDart {
     return AdminOperatorsApi(dio, serializers);
   }
 
+  /// Get AdminPaymentsApi instance, base route and serializer can be overridden by a given but be careful,
+  /// by doing that all interceptors will not be executed
+  AdminPaymentsApi getAdminPaymentsApi() {
+    return AdminPaymentsApi(dio, serializers);
+  }
+
+  /// Get AdminPayoutsApi instance, base route and serializer can be overridden by a given but be careful,
+  /// by doing that all interceptors will not be executed
+  AdminPayoutsApi getAdminPayoutsApi() {
+    return AdminPayoutsApi(dio, serializers);
+  }
+
   /// Get AdminPoliciesApi instance, base route and serializer can be overridden by a given but be careful,
   /// by doing that all interceptors will not be executed
   AdminPoliciesApi getAdminPoliciesApi() {
     return AdminPoliciesApi(dio, serializers);
+  }
+
+  /// Get AdminRefundsApi instance, base route and serializer can be overridden by a given but be careful,
+  /// by doing that all interceptors will not be executed
+  AdminRefundsApi getAdminRefundsApi() {
+    return AdminRefundsApi(dio, serializers);
   }
 
   /// Get AdminStopPointsApi instance, base route and serializer can be overridden by a given but be careful,
@@ -217,6 +246,18 @@ class ApiClientDart {
     return AuthApi(dio, serializers);
   }
 
+  /// Get BookingsApi instance, base route and serializer can be overridden by a given but be careful,
+  /// by doing that all interceptors will not be executed
+  BookingsApi getBookingsApi() {
+    return BookingsApi(dio, serializers);
+  }
+
+  /// Get CancellationsApi instance, base route and serializer can be overridden by a given but be careful,
+  /// by doing that all interceptors will not be executed
+  CancellationsApi getCancellationsApi() {
+    return CancellationsApi(dio, serializers);
+  }
+
   /// Get CatalogApi instance, base route and serializer can be overridden by a given but be careful,
   /// by doing that all interceptors will not be executed
   CatalogApi getCatalogApi() {
@@ -241,6 +282,12 @@ class ApiClientDart {
     return OperatorApplicationsApi(dio, serializers);
   }
 
+  /// Get OperatorBookingsApi instance, base route and serializer can be overridden by a given but be careful,
+  /// by doing that all interceptors will not be executed
+  OperatorBookingsApi getOperatorBookingsApi() {
+    return OperatorBookingsApi(dio, serializers);
+  }
+
   /// Get OperatorEmployeesApi instance, base route and serializer can be overridden by a given but be careful,
   /// by doing that all interceptors will not be executed
   OperatorEmployeesApi getOperatorEmployeesApi() {
@@ -251,6 +298,12 @@ class ApiClientDart {
   /// by doing that all interceptors will not be executed
   OperatorFaresApi getOperatorFaresApi() {
     return OperatorFaresApi(dio, serializers);
+  }
+
+  /// Get OperatorFinanceApi instance, base route and serializer can be overridden by a given but be careful,
+  /// by doing that all interceptors will not be executed
+  OperatorFinanceApi getOperatorFinanceApi() {
+    return OperatorFinanceApi(dio, serializers);
   }
 
   /// Get OperatorProfileApi instance, base route and serializer can be overridden by a given but be careful,
@@ -305,5 +358,29 @@ class ApiClientDart {
   /// by doing that all interceptors will not be executed
   OperatorVehiclesApi getOperatorVehiclesApi() {
     return OperatorVehiclesApi(dio, serializers);
+  }
+
+  /// Get PaymentsApi instance, base route and serializer can be overridden by a given but be careful,
+  /// by doing that all interceptors will not be executed
+  PaymentsApi getPaymentsApi() {
+    return PaymentsApi(dio, serializers);
+  }
+
+  /// Get SeatHoldsApi instance, base route and serializer can be overridden by a given but be careful,
+  /// by doing that all interceptors will not be executed
+  SeatHoldsApi getSeatHoldsApi() {
+    return SeatHoldsApi(dio, serializers);
+  }
+
+  /// Get TicketsApi instance, base route and serializer can be overridden by a given but be careful,
+  /// by doing that all interceptors will not be executed
+  TicketsApi getTicketsApi() {
+    return TicketsApi(dio, serializers);
+  }
+
+  /// Get TripsApi instance, base route and serializer can be overridden by a given but be careful,
+  /// by doing that all interceptors will not be executed
+  TripsApi getTripsApi() {
+    return TripsApi(dio, serializers);
   }
 }

@@ -88,6 +88,24 @@ export const RLS_TABLES = [
   "employee_assignments",
   // Nội dung công khai (TASK-ADM-003): ai cũng đọc, chỉ platform / system ghi.
   "content_pages",
+  // Booking (TASK-BTP-002): tenant_isolation.
+  "bookings",
+  "passenger_infos",
+  "booking_status_histories",
+  // Payment (TASK-BTP-003): tenant_isolation.
+  "payments",
+  "payment_status_histories",
+  // Ticket (TASK-BTP-004): tenant_isolation.
+  "tickets",
+  "ticket_status_histories",
+  // Refund (TASK-BTP-005): tenant_isolation.
+  "refunds",
+  "refund_status_histories",
+  // Escrow + payout (TASK-BTP-006): tenant_isolation; sổ escrow chỉ ghi thêm.
+  "escrow_ledgers",
+  "payouts",
+  "payout_items",
+  "payout_status_histories",
 ] as const;
 
 @Injectable()
