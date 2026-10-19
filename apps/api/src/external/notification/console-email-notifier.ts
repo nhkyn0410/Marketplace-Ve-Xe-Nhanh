@@ -2,6 +2,8 @@ import { Injectable, Logger } from "@nestjs/common";
 import {
   type EmailNotifier,
   maskEmail,
+  type OperatorApplicationDecisionEmailMessage,
+  type OperatorApplicationLinkEmailMessage,
   type OtpEmailMessage,
   type TemporaryPasswordEmailMessage,
 } from "./email-notifier";
@@ -33,5 +35,29 @@ export class ConsoleEmailNotifier implements EmailNotifier {
       email: maskEmail(message.email),
     });
     throw new Error("Temporary password delivery unavailable: configure RESEND_API_KEY.");
+  }
+
+  // Không in link ra log: link là chìa khóa mở hồ sơ (BR-75). E2E cấp token thẳng trong DB test.
+  async sendOperatorApplicationLink(message: OperatorApplicationLinkEmailMessage): Promise<void> {
+    if (process.env.NODE_ENV === "production") {
+      throw new Error("ConsoleEmailNotifier is not available in production.");
+    }
+    this.logger.warn({
+      event: "operator_application.link.delivery_unavailable",
+      email: maskEmail(message.email),
+    });
+    throw new Error("Operator application link delivery unavailable: configure RESEND_API_KEY.");
+  }
+
+  async sendOperatorApplicationDecision(message: OperatorApplicationDecisionEmailMessage): Promise<void> {
+    if (process.env.NODE_ENV === "production") {
+      throw new Error("ConsoleEmailNotifier is not available in production.");
+    }
+    this.logger.warn({
+      event: "operator_application.decision.delivery_unavailable",
+      decision: message.decision,
+      email: maskEmail(message.email),
+    });
+    throw new Error("Operator application decision delivery unavailable: configure RESEND_API_KEY.");
   }
 }

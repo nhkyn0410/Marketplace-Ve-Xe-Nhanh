@@ -51,6 +51,14 @@ describe("api-client cookie mode (TC-SEC-007 phía web)", () => {
     expect(calls.find((call) => call.path === "/auth/me")?.headers["X-Auth-Transport"]).toBe("cookie");
   });
 
+  it("header riêng của thao tác (Idempotency-Key) được gửi kèm, không đè CSRF", async () => {
+    handler = () => json(200, { ok: true });
+    await apiRequest("/probe", { method: "POST", body: {}, headers: { "Idempotency-Key": "key-12345678" } });
+    const probe = calls.find((call) => call.path === "/probe")!;
+    expect(probe.headers["Idempotency-Key"]).toBe("key-12345678");
+    expect(probe.headers["X-CSRF-Token"]).toBe("csrf-1");
+  });
+
   it("refresh gặp CSRF cũ (tab khác đã rotate) → lấy CSRF mới, thử lại, không đăng xuất", async () => {
     const expired = vi.fn();
     onSessionExpired(expired);

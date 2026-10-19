@@ -23,7 +23,20 @@ type DashboardShellProps = {
   sidebarTop?: ReactNode;
   /** Khối cuối sidebar, vd. thẻ hỗ trợ và tài khoản + đăng xuất. */
   sidebarBottom?: ReactNode;
+  /** `dark` = sidebar nền tối của Admin (Figma "VXN / Admin sidebar"); mặc định sidebar sáng của Operator OS. */
+  tone?: "light" | "dark";
   children: ReactNode;
+};
+
+/**
+ * Màu sidebar tối của Admin (Figma 1661:24142). Không chừa chỗ thanh cuộn (vẫn cuộn bằng chuột / bàn phím): chỗ chừa
+ * 15px làm nhãn dài nhất ("Thanh toán & hoàn tiền") rớt xuống dòng, khác Figma; lề phải mục hẹp hơn lề trái cùng lý do.
+ */
+const DARK = {
+  aside: "border-[#2a3156] bg-[#151b36] [scrollbar-gutter:auto] [scrollbar-width:none]",
+  item: "pr-2 text-[#e7e9f7] hover:bg-[#2b3472] hover:text-white",
+  active: "bg-[#2b3472] font-semibold text-white",
+  group: "px-3.5 pt-3 pb-1 text-xs leading-[18px] font-semibold text-[#9aa3c7] uppercase"
 };
 
 /** Khung Operator OS / Admin: sidebar cố định trên desktop, menu trượt trên mobile. */
@@ -34,6 +47,7 @@ export function DashboardShell({
   brand,
   sidebarTop,
   sidebarBottom,
+  tone = "light",
   children
 }: DashboardShellProps) {
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
@@ -43,14 +57,19 @@ export function DashboardShell({
     <>
       {brand ?? <Brand title={title} badge={badge} />}
       {sidebarTop}
-      <SidebarNav navGroups={navGroups} onNavigate={onNavigate} />
+      <SidebarNav navGroups={navGroups} onNavigate={onNavigate} tone={tone} />
       {sidebarBottom && <div className="mt-auto">{sidebarBottom}</div>}
     </>
   );
 
   return (
     <div className="flex min-h-screen">
-      <aside className="sticky top-0 hidden h-screen w-60 shrink-0 flex-col overflow-y-auto border-r bg-card [scrollbar-gutter:stable] lg:flex">
+      <aside
+        className={cn(
+          "sticky top-0 hidden h-screen w-60 shrink-0 flex-col overflow-y-auto border-r [scrollbar-gutter:stable] lg:flex",
+          tone === "dark" ? DARK.aside : "bg-card"
+        )}
+      >
         {sidebar()}
       </aside>
 
@@ -62,7 +81,11 @@ export function DashboardShell({
                 <MenuIcon className="size-5" />
               </Button>
             </SheetTrigger>
-            <SheetContent side="left" className="w-72 gap-0 overflow-y-auto p-0 [scrollbar-gutter:stable]" aria-describedby={undefined}>
+            <SheetContent
+              side="left"
+              className={cn("w-72 gap-0 overflow-y-auto p-0 [scrollbar-gutter:stable]", tone === "dark" && DARK.aside)}
+              aria-describedby={undefined}
+            >
               <SheetTitle className="sr-only">Điều hướng</SheetTitle>
               {sidebar(closeMobileNav)}
             </SheetContent>
@@ -92,7 +115,16 @@ function Brand({ title, badge }: { title: string; badge?: string }) {
   );
 }
 
-function SidebarNav({ navGroups, onNavigate }: { navGroups: NavGroup[]; onNavigate?: () => void }) {
+function SidebarNav({
+  navGroups,
+  onNavigate,
+  tone
+}: {
+  navGroups: NavGroup[];
+  onNavigate?: () => void;
+  tone: "light" | "dark";
+}) {
+  const dark = tone === "dark";
   const pathname = usePathname();
 
   return (
@@ -100,7 +132,11 @@ function SidebarNav({ navGroups, onNavigate }: { navGroups: NavGroup[]; onNaviga
       {navGroups.map((group, index) => (
         <div key={group.label ?? index}>
           {group.label && (
-            <div className="px-3.5 pt-3.5 pb-1.5 text-[10px] font-medium tracking-widest text-vxn-fg-5 uppercase">
+            <div
+              className={
+                dark ? DARK.group : "px-3.5 pt-3.5 pb-1.5 text-[10px] font-medium tracking-widest text-vxn-fg-5 uppercase"
+              }
+            >
               {group.label}
             </div>
           )}
@@ -114,8 +150,13 @@ function SidebarNav({ navGroups, onNavigate }: { navGroups: NavGroup[]; onNaviga
                     onClick={onNavigate}
                     aria-current={active ? "page" : undefined}
                     className={cn(
-                      "flex items-center gap-3 rounded-lg px-3.5 py-2.5 text-sm text-vxn-fg-2 transition-colors hover:bg-accent hover:text-accent-foreground",
-                      active && "bg-accent font-medium text-accent-foreground"
+                      "flex items-center gap-3 rounded-lg px-3.5 py-2.5 text-sm transition-colors",
+                      dark
+                        ? cn(DARK.item, active && DARK.active)
+                        : cn(
+                            "text-vxn-fg-2 hover:bg-accent hover:text-accent-foreground",
+                            active && "bg-accent font-medium text-accent-foreground"
+                          )
                     )}
                   >
                     <Icon className={cn("size-[18px] shrink-0", !active && "opacity-75")} />

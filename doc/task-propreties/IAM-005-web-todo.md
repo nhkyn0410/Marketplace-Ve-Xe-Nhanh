@@ -4,7 +4,7 @@
 > **Thiết kế:** Figma `Giao diện nhà xe · Màn bổ sung` — Nhân viên `1666:25163` (danh sách), `1666:25550` (thêm), `1666:25738` (cấp lại mật khẩu tạm), `1666:25910` (khóa); Tài khoản `1668:28980` (bảo mật).
 > **Nhánh:** `TASK-IAM-005-web`, tách từ `TASK-TRN-006` (TRN-005 và TRN-006 chưa merge `develop`).
 
-## Trạng thái (14/10/2026) — 🔨 xong code + test, chưa commit, chờ Khanh review
+## Trạng thái (14/10/2026) — 🔨 Đã merge `develop` cùng TRN-009 (PR #34, CI xanh); còn N1–N8 chờ Khanh
 
 Chưa qua `code-reviewer` / `security-auditor` (chỉ chạy khi Khanh yêu cầu — `CLAUDE.md` §4.8). Phần này chạm xác thực (xác nhận lại danh tính, thu hồi phiên) nên đáng được review trước khi merge.
 

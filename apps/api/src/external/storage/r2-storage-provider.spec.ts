@@ -103,6 +103,26 @@ describe("R2StorageProvider", () => {
     expect(second!.input.ContinuationToken).toBe("next");
   });
 
+  it("URL tải về (kho riêng tư): presigned GET đúng khóa, hạn đúng TTL, tên file tiếng Việt mã hóa an toàn", async () => {
+    const storage = new R2StorageProvider({ ...config, bucket: "vexenhanh-private", publicBaseUrl: "" });
+    const before = Date.now();
+    const target = await storage.createDownloadUrl({
+      key: "operator-applications/app/doc.pdf",
+      expiresInSeconds: 300,
+      fileName: "Giấy phép \"kinh doanh\".pdf",
+    });
+    const url = new URL(target.url);
+    expect(`${url.host}${url.pathname}`).toContain("vexenhanh-private");
+    expect(url.pathname.endsWith("/operator-applications/app/doc.pdf")).toBe(true);
+    expect(url.searchParams.get("X-Amz-Expires")).toBe("300");
+    const disposition = url.searchParams.get("response-content-disposition") ?? "";
+    expect(disposition.startsWith("inline;")).toBe(true);
+    expect(disposition).toContain("filename*=UTF-8''Gi%E1%BA%A5y");
+    // Dấu nháy trong tên file không phá được header.
+    expect(disposition).toContain('filename="Gi_y ph_p _kinh doanh_.pdf"');
+    expect(target.expiresAt.getTime()).toBeGreaterThanOrEqual(before + 300_000);
+  });
+
   it("địa chỉ công khai ghép từ gốc CDN", () => {
     expect(new R2StorageProvider(config).publicUrl("vehicles/op/veh/a.jpg")).toBe(
       "https://cdn.example.com/vehicles/op/veh/a.jpg",

@@ -47,16 +47,16 @@ Please follow the [installation procedure](#installation--usage) and then run th
 import 'package:api_client_dart/api_client_dart.dart';
 
 
-final api = ApiClientDart().getAuthApi();
-final PasswordChangeRequiredDto passwordChangeRequiredDto = ; // PasswordChangeRequiredDto | 
-final String xAuthTransport = xAuthTransport_example; // String | `cookie` (web: phiên trong cookie httpOnly) hoặc `bearer` (mặc định, Mobile).
-final String xCSRFToken = xCSRFToken_example; // String | Bắt buộc ở cookie mode: token từ `GET /auth/csrf` (signed double-submit).
+final api = ApiClientDart().getAdminOperatorApplicationsApi();
+final String applicationId = 38400000-8cf0-11bd-b23e-10b96e4ef00d; // String | 
+final String idempotencyKey = idempotencyKey_example; // String | 8–128 ký tự `[A-Za-z0-9_-]`; gửi lặp cùng khóa trả lại kết quả lần đầu.
+final ApprovalInputDto approvalInputDto = ; // ApprovalInputDto | 
 
 try {
-    final response = await api.authControllerChangeRequiredPassword(passwordChangeRequiredDto, xAuthTransport, xCSRFToken);
+    final response = await api.operatorApplicationReviewControllerApprove(applicationId, idempotencyKey, approvalInputDto);
     print(response);
 } on DioException catch (e) {
-    print("Exception when calling AuthApi->authControllerChangeRequiredPassword: $e\n");
+    print("Exception when calling AdminOperatorApplicationsApi->operatorApplicationReviewControllerApprove: $e\n");
 }
 
 ```
@@ -67,6 +67,13 @@ All URIs are relative to *http://localhost*
 
 Class | Method | HTTP request | Description
 ------------ | ------------- | ------------- | -------------
+[*AdminOperatorApplicationsApi*](doc/AdminOperatorApplicationsApi.md) | [**operatorApplicationReviewControllerApprove**](doc/AdminOperatorApplicationsApi.md#operatorapplicationreviewcontrollerapprove) | **POST** /v1/admin/operator-applications/{applicationId}/approve | 
+[*AdminOperatorApplicationsApi*](doc/AdminOperatorApplicationsApi.md) | [**operatorApplicationReviewControllerCreateDocumentDownload**](doc/AdminOperatorApplicationsApi.md#operatorapplicationreviewcontrollercreatedocumentdownload) | **POST** /v1/admin/operator-applications/{applicationId}/documents/{type}/download-url | 
+[*AdminOperatorApplicationsApi*](doc/AdminOperatorApplicationsApi.md) | [**operatorApplicationReviewControllerGet**](doc/AdminOperatorApplicationsApi.md#operatorapplicationreviewcontrollerget) | **GET** /v1/admin/operator-applications/{applicationId} | 
+[*AdminOperatorApplicationsApi*](doc/AdminOperatorApplicationsApi.md) | [**operatorApplicationReviewControllerList**](doc/AdminOperatorApplicationsApi.md#operatorapplicationreviewcontrollerlist) | **GET** /v1/admin/operator-applications | 
+[*AdminOperatorApplicationsApi*](doc/AdminOperatorApplicationsApi.md) | [**operatorApplicationReviewControllerReject**](doc/AdminOperatorApplicationsApi.md#operatorapplicationreviewcontrollerreject) | **POST** /v1/admin/operator-applications/{applicationId}/reject | 
+[*AdminOperatorApplicationsApi*](doc/AdminOperatorApplicationsApi.md) | [**operatorApplicationReviewControllerRequestInfo**](doc/AdminOperatorApplicationsApi.md#operatorapplicationreviewcontrollerrequestinfo) | **POST** /v1/admin/operator-applications/{applicationId}/request-info | 
+[*AdminOperatorApplicationsApi*](doc/AdminOperatorApplicationsApi.md) | [**operatorApplicationReviewControllerResendOwnerCredentials**](doc/AdminOperatorApplicationsApi.md#operatorapplicationreviewcontrollerresendownercredentials) | **POST** /v1/admin/operator-applications/{applicationId}/resend-owner-credentials | 
 [*AuthApi*](doc/AuthApi.md) | [**authControllerChangeRequiredPassword**](doc/AuthApi.md#authcontrollerchangerequiredpassword) | **POST** /v1/auth/password/change-required | 
 [*AuthApi*](doc/AuthApi.md) | [**authControllerCsrf**](doc/AuthApi.md#authcontrollercsrf) | **GET** /v1/auth/csrf | 
 [*AuthApi*](doc/AuthApi.md) | [**authControllerEmployeeLogin**](doc/AuthApi.md#authcontrolleremployeelogin) | **POST** /v1/auth/employee/login | 
@@ -94,6 +101,13 @@ Class | Method | HTTP request | Description
 [*HealthApi*](doc/HealthApi.md) | [**appControllerPostgres**](doc/HealthApi.md#appcontrollerpostgres) | **GET** /v1/health/postgres | 
 [*HealthApi*](doc/HealthApi.md) | [**appControllerQueues**](doc/HealthApi.md#appcontrollerqueues) | **GET** /v1/health/queues | 
 [*HealthApi*](doc/HealthApi.md) | [**appControllerRedis**](doc/HealthApi.md#appcontrollerredis) | **GET** /v1/health/redis | 
+[*OperatorApplicationsApi*](doc/OperatorApplicationsApi.md) | [**operatorApplicationControllerCreate**](doc/OperatorApplicationsApi.md#operatorapplicationcontrollercreate) | **POST** /v1/operator-applications | 
+[*OperatorApplicationsApi*](doc/OperatorApplicationsApi.md) | [**operatorApplicationControllerCreateDocumentDownload**](doc/OperatorApplicationsApi.md#operatorapplicationcontrollercreatedocumentdownload) | **POST** /v1/operator-applications/current/documents/{type}/download-url | 
+[*OperatorApplicationsApi*](doc/OperatorApplicationsApi.md) | [**operatorApplicationControllerCreateDocumentUpload**](doc/OperatorApplicationsApi.md#operatorapplicationcontrollercreatedocumentupload) | **POST** /v1/operator-applications/current/documents | 
+[*OperatorApplicationsApi*](doc/OperatorApplicationsApi.md) | [**operatorApplicationControllerGet**](doc/OperatorApplicationsApi.md#operatorapplicationcontrollerget) | **GET** /v1/operator-applications/current | 
+[*OperatorApplicationsApi*](doc/OperatorApplicationsApi.md) | [**operatorApplicationControllerRequestAccessLink**](doc/OperatorApplicationsApi.md#operatorapplicationcontrollerrequestaccesslink) | **POST** /v1/operator-applications/access-link | 
+[*OperatorApplicationsApi*](doc/OperatorApplicationsApi.md) | [**operatorApplicationControllerSubmit**](doc/OperatorApplicationsApi.md#operatorapplicationcontrollersubmit) | **POST** /v1/operator-applications/current/submit | 
+[*OperatorApplicationsApi*](doc/OperatorApplicationsApi.md) | [**operatorApplicationControllerUpdate**](doc/OperatorApplicationsApi.md#operatorapplicationcontrollerupdate) | **PUT** /v1/operator-applications/current | 
 [*OperatorEmployeesApi*](doc/OperatorEmployeesApi.md) | [**employeeAccountControllerCreate**](doc/OperatorEmployeesApi.md#employeeaccountcontrollercreate) | **POST** /v1/operator/employees | 
 [*OperatorEmployeesApi*](doc/OperatorEmployeesApi.md) | [**employeeAccountControllerList**](doc/OperatorEmployeesApi.md#employeeaccountcontrollerlist) | **GET** /v1/operator/employees | 
 [*OperatorEmployeesApi*](doc/OperatorEmployeesApi.md) | [**employeeAccountControllerResetPassword**](doc/OperatorEmployeesApi.md#employeeaccountcontrollerresetpassword) | **POST** /v1/operator/employees/{employeeId}/password-reset | 
@@ -135,7 +149,23 @@ Class | Method | HTTP request | Description
 ## Documentation For Models
 
  - [AccountMutationResponseDtoOutput](doc/AccountMutationResponseDtoOutput.md)
+ - [AdminApplicationDetailDtoOutput](doc/AdminApplicationDetailDtoOutput.md)
+ - [AdminApplicationDetailDtoOutputDocumentsInner](doc/AdminApplicationDetailDtoOutputDocumentsInner.md)
+ - [AdminApplicationDetailDtoOutputDuplicates](doc/AdminApplicationDetailDtoOutputDuplicates.md)
+ - [AdminApplicationDetailDtoOutputDuplicatesContactEmailInner](doc/AdminApplicationDetailDtoOutputDuplicatesContactEmailInner.md)
+ - [AdminApplicationDetailDtoOutputHistoryInner](doc/AdminApplicationDetailDtoOutputHistoryInner.md)
+ - [AdminApplicationDetailDtoOutputOperator](doc/AdminApplicationDetailDtoOutputOperator.md)
+ - [AdminApplicationListResponseDtoOutput](doc/AdminApplicationListResponseDtoOutput.md)
+ - [AdminApplicationListResponseDtoOutputItemsInner](doc/AdminApplicationListResponseDtoOutputItemsInner.md)
  - [AmenityListResponseDtoOutput](doc/AmenityListResponseDtoOutput.md)
+ - [ApplicationAccessLinkInputDto](doc/ApplicationAccessLinkInputDto.md)
+ - [ApplicationCreateInputDto](doc/ApplicationCreateInputDto.md)
+ - [ApplicationResponseDtoOutput](doc/ApplicationResponseDtoOutput.md)
+ - [ApplicationResponseDtoOutputDocumentsInner](doc/ApplicationResponseDtoOutputDocumentsInner.md)
+ - [ApplicationUpdateInputDto](doc/ApplicationUpdateInputDto.md)
+ - [ApplicationUpdateInputDtoDocumentsInner](doc/ApplicationUpdateInputDtoDocumentsInner.md)
+ - [ApprovalInputDto](doc/ApprovalInputDto.md)
+ - [ApprovalResponseDtoOutput](doc/ApprovalResponseDtoOutput.md)
  - [AuthMeResponseDtoOutput](doc/AuthMeResponseDtoOutput.md)
  - [AuthTokenResponseDtoOutput](doc/AuthTokenResponseDtoOutput.md)
  - [CredentialLoginDto](doc/CredentialLoginDto.md)
@@ -143,6 +173,11 @@ Class | Method | HTTP request | Description
  - [CredentialTokenResponse](doc/CredentialTokenResponse.md)
  - [CredentialWebSessionResponse](doc/CredentialWebSessionResponse.md)
  - [CsrfTokenResponseDtoOutput](doc/CsrfTokenResponseDtoOutput.md)
+ - [DecisionInputDto](doc/DecisionInputDto.md)
+ - [DecisionResponseDtoOutput](doc/DecisionResponseDtoOutput.md)
+ - [DocumentDownloadResponseDtoOutput](doc/DocumentDownloadResponseDtoOutput.md)
+ - [DocumentUploadInputDto](doc/DocumentUploadInputDto.md)
+ - [DocumentUploadResponseDtoOutput](doc/DocumentUploadResponseDtoOutput.md)
  - [EmployeeAccountResponseDtoOutput](doc/EmployeeAccountResponseDtoOutput.md)
  - [EmployeeCreateDto](doc/EmployeeCreateDto.md)
  - [EmployeeListResponseDtoOutput](doc/EmployeeListResponseDtoOutput.md)

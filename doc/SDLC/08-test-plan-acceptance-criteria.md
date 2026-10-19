@@ -13,7 +13,7 @@
 | Người viết    | Nguyễn Hồng Khanh, AI Agent        |
 | Người duyệt   | Nguyễn Hồng Khanh                |
 | Ngày tạo      | 11/05/2026                       |
-| Ngày cập nhật | 14/10/2026                       |
+| Ngày cập nhật | 15/10/2026                       |
 
 ### 1.2. Lịch sử thay đổi
 
@@ -38,6 +38,8 @@
 | v0.17     | 14/10/2026 | AI Agent       | **Đưa `TASK-TRN-006` về repo chính:** §9 thêm `TC-TRN-022` (E2E màn Chuyến xe — mở bán, khóa chỗ, tạm dừng, thu hồi về nháp, hủy). `TC-TRN-004..007` giữ nguyên. Giữ trạng thái Draft. |
 | v0.18     | 14/10/2026 | AI Agent       | **Màn Nhân viên và màn Tài khoản của Operator OS:** §9 thêm `TC-SEC-012` (E2E quản lý nhân viên có xác nhận lại danh tính + thu hồi phiên). Giữ trạng thái Draft. |
 | v0.19     | 14/10/2026 | AI Agent       | **`TASK-TRN-009` (ảnh phương tiện):** `TC-TRN-008..010` có test tự động (`vehicle-image.int.spec.ts` trên Postgres thật, role app); §9 thêm `TC-TRN-023` (E2E khối ảnh của form xe). Giữ trạng thái Draft. |
+| v0.20     | 14/10/2026 | AI Agent       | **`TASK-OPR-001` (đăng ký nhà xe):** `TC-OPR-001`, `TC-OPR-003` có test tự động (`operator-application.int.spec.ts` + `.http.spec.ts`); §9 thêm `TC-OPR-004` (E2E trang đăng ký công khai). Giữ trạng thái Draft. |
+| v0.21     | 15/10/2026 | AI Agent       | **`TASK-ADM-001` (duyệt hồ sơ nhà xe):** `TC-OPR-002` có test tự động (`operator-application-review.int.spec.ts` trên Postgres thật, role app: gửi lặp cùng khóa / đồng thời / hai Admin khác slug → một Operator + một Owner; slug trùng không tạo gì) — **trừ** vế giấy tờ và tài khoản nhận tiền sang tenant (chưa làm, `ADM-001-todo.md` G1); §9 thêm `TC-OPR-005` (E2E màn duyệt hồ sơ của Admin). Giữ trạng thái Draft. |
 
 ---
 
@@ -218,6 +220,8 @@ Mandatory (rủi ro cao, ADR-025): money math, idempotency, tenant RLS, seat-hol
 | TC-OPR-001 | Link hồ sơ nhà xe: token sai / hết hạn / đã thu hồi → `OPERATOR_APPLICATION_LINK_INVALID`; token hồ sơ A không đọc được hồ sơ B; sửa hồ sơ `SUBMITTED` bị chặn; link hết hiệu lực sau `APPROVED` / `REJECTED` | Security | Rất cao |
 | TC-OPR-002 | Duyệt hồ sơ gửi lặp (cùng `Idempotency-Key` và khác key) chỉ tạo một Operator + một Owner; slug trùng → `OPERATOR_SLUG_CONFLICT`, không tạo gì; giấy tờ và tài khoản nhận tiền sang đúng tenant (RLS) | Integration | Rất cao |
 | TC-OPR-003 | `POST /operator-applications` và gửi lại link trả cùng `202` cho email có / chưa có hồ sơ; vượt rate limit bị chặn | Security | Cao |
+| TC-OPR-004 | Operator OS — đăng ký nhà xe công khai: màn đăng nhập có lối "Đăng ký"; form bước 1 báo lỗi tại ô, gửi xong chỉ nhắc kiểm tra hộp thư; mở link → token rời thanh địa chỉ, thiếu giấy tờ thì khóa Gửi duyệt, tệp sai loại báo tại chỗ, lưu nháp kèm ba giấy tờ, số tài khoản chỉ hiện 4 số cuối, xem giấy tờ mở URL có hạn; gửi duyệt → trang Chờ duyệt; link sai → trang gửi lại link; gửi lại link thu hồi link cũ | Security | Cao |
+| TC-OPR-005 | Admin — duyệt hồ sơ nhà xe: hàng đợi hiện hồ sơ vừa gửi duyệt kèm cảnh báo trùng mã số thuế / tài khoản nhận tiền, lọc trạng thái rỗng thì "Bỏ lọc"; chi tiết che số tài khoản, nêu hồ sơ trùng, có lịch sử, "Mở tệp" mở URL có hạn ở tab mới; yêu cầu bổ sung không hỏi TOTP → Cần bổ sung, người nộp gửi lại → từ chối kèm TOTP → Bị từ chối kèm lý do; duyệt: tên đăng nhập `nv.` và slug đã dùng báo tại ô, duyệt xong hiện tài khoản `slug/username` + mật khẩu tạm chờ gửi lại | E2E (Playwright) | Cao |
 
 ---
 

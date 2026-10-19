@@ -1,4 +1,6 @@
+import { execSync } from "node:child_process";
 import { createHmac } from "node:crypto";
+import { resolve } from "node:path";
 
 import { expect, type Page } from "@playwright/test";
 
@@ -74,4 +76,17 @@ export async function signInWithEnrollment(page: Page, identifier: string, passw
   await page.getByRole("button", { name: "Tôi đã lưu mã, vào trang quản lý" }).click();
   await expect(page.getByRole("navigation", { name: "Điều hướng chính" })).toBeVisible();
   return secret;
+}
+
+/**
+ * Giả lập mở email đăng ký nhà xe (TASK-OPR-001): cấp link bảo mật mới cho hồ sơ mới nhất của email này ngay trong DB
+ * test và trả token. E2E không gửi email thật nên không có cách nào khác lấy được link.
+ */
+export function issueApplicationLink(email: string): string {
+  const output = execSync(`pnpm --filter @vexenhanh/api exec tsx prisma/e2e-application-link.ts ${email}`, {
+    cwd: resolve(__dirname, "../../.."),
+    encoding: "utf8",
+    stdio: ["ignore", "pipe", "inherit"]
+  });
+  return output.trim().split(/\r?\n/).at(-1) ?? "";
 }

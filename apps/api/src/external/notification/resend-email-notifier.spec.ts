@@ -52,3 +52,34 @@ describe("ResendEmailNotifier temporary password", () => {
   });
 });
 
+
+describe("ResendEmailNotifier operator application decision (NTF-15)", () => {
+  afterEach(() => vi.unstubAllGlobals());
+
+  it("needs-info: escapes the Admin's reason and carries the new link; rejected: reason only, no link", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({ ok: true, status: 200 });
+    vi.stubGlobal("fetch", fetchMock);
+    const notifier = new ResendEmailNotifier("api-key", "noreply@example.com");
+    const base = { email: "lienhe@example.com", applicationCode: "OA-2026-043152", operatorName: "Sao <Việt>" };
+
+    await notifier.sendOperatorApplicationDecision({
+      ...base,
+      decision: "NEEDS_INFO",
+      reason: "Bổ sung <b>giấy phép</b>",
+      link: "https://operator.example/register/application#token=abc",
+      expiresAt: new Date("2026-10-18T00:00:00.000Z"),
+    });
+    await notifier.sendOperatorApplicationDecision({ ...base, decision: "REJECTED", reason: "Giấy tờ giả" });
+
+    const [needsInfo, rejected] = fetchMock.mock.calls.map(
+      (call) => JSON.parse(call[1].body as string) as { subject: string; html: string },
+    );
+    expect(needsInfo!.subject).toContain("cần bổ sung");
+    expect(needsInfo!.html).toContain("Bổ sung &lt;b&gt;giấy phép&lt;/b&gt;");
+    expect(needsInfo!.html).toContain("Sao &lt;Việt&gt;");
+    expect(needsInfo!.html).toContain('href="https://operator.example/register/application#token=abc"');
+    expect(rejected!.subject).toContain("không được duyệt");
+    expect(rejected!.html).toContain("Giấy tờ giả");
+    expect(rejected!.html).not.toContain("href=");
+  });
+});

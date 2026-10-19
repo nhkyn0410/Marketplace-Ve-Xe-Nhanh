@@ -13,7 +13,7 @@
 | Người viết    | Nguyễn Hồng Khanh, AI Agent |
 | Người duyệt   | Nguyễn Hồng Khanh           |
 | Ngày tạo      | 11/05/2026                  |
-| Ngày cập nhật | 14/10/2026                  |
+| Ngày cập nhật | 15/10/2026                  |
 
 ### 1.2. Lịch sử thay đổi
 
@@ -48,6 +48,8 @@
 | v0.27     | 14/10/2026 | AI Agent       | **`TASK-TRN-005` — Khanh chốt 14/10/2026:** duyệt ba trường `minPrice`, `maxPrice`, `hasDoubleSeatPrice` của `GET /operator/fares`; §7.3 ghi rõ khoảng giá tính trên **mọi** rule của bảng giá, kể cả rule có khung giờ đã qua (không lọc theo thời điểm). Khung giờ của rule giữ là khoảng ngày giờ khởi hành `[validFrom, validTo)` — không có giá lặp theo giờ trong ngày. Không đổi contract. Giữ trạng thái Review. |
 | v0.28     | 14/10/2026 | AI Agent       | **Màn Nhân viên của Operator OS (phần giao diện của `TASK-IAM-005`):** §7.3 — tài khoản nhân viên trả thêm `passwordChangeRequired` và `temporaryPasswordExpiresAt` (chỉ đọc) để màn hình biết ai còn dùng mật khẩu tạm và mật khẩu tạm nào đã hết hạn. **Bổ sung của AI, chờ Khanh duyệt.** Không đổi route, quyền hay lỗi. Giữ trạng thái Review. |
 | v0.29     | 14/10/2026 | AI Agent       | **`TASK-TRN-009` (ảnh phương tiện):** §7.3 — mỗi ảnh trả thêm `objectKey` (client gửi lại khi giữ ảnh ở `PUT …/images`; chờ Khanh duyệt); `upload-url` giới hạn 120 lần / 10 phút / tài khoản → 429 `VEHICLE_IMAGE_UPLOAD_RATE_LIMITED` (mã mới, chờ Khanh duyệt); kho lưu ảnh hoặc bộ đếm không phản hồi → 503; `PUT …/images` trả `{ images }`, object tải lên quá 23 giờ chưa gắn → 422 `VEHICLE_IMAGE_INVALID`. Giữ trạng thái Review. |
+| v0.30     | 14/10/2026 | AI Agent       | **`TASK-OPR-001` (đăng ký nhà xe, chờ Khanh duyệt):** §7.3 ghi body / response của các route `/operator-applications*`; giấy tờ gắn vào hồ sơ qua `PUT …/current`; route mới `POST …/current/documents/{type}/download-url`; giới hạn tần suất và mã lỗi `OPERATOR_APPLICATION_INCOMPLETE`, `…_DOCUMENT_INVALID`, `…_DOCUMENT_NOT_FOUND`, `…_RATE_LIMITED`; kho giấy tờ chưa cấu hình → 503. Giữ trạng thái Review. |
+| v0.31     | 15/10/2026 | AI Agent       | **`TASK-ADM-001` (duyệt hồ sơ nhà xe, chờ Khanh duyệt):** §7.5 ghi query / body / response của `/admin/operator-applications*`; thêm `POST …/{applicationId}/documents/{type}/download-url` và `POST …/{applicationId}/resend-owner-credentials`; lỗi `OPERATOR_APPLICATION_NOT_FOUND`; §8 cách lưu và đối chiếu `Idempotency-Key` của duyệt. Giữ trạng thái Review. |
 
 ---
 
@@ -254,6 +256,9 @@ Tìm chuyến theo vị trí (TASK-TRN-004, BR-80): điểm đi và điểm đ�
 | PUT    | `/operator-applications/current`               | Người nộp hồ sơ        | Cập nhật thông tin doanh nghiệp, tài khoản nhận tiền (`DRAFT` / `NEEDS_INFO`) |
 | POST   | `/operator-applications/current/documents`     | Người nộp hồ sơ        | Presigned upload giấy tờ KYC (R2 private)                                |
 | POST   | `/operator-applications/current/submit`        | Người nộp hồ sơ        | Gửi duyệt → `SUBMITTED`                                                  |
+| POST   | `/operator-applications/current/documents/{type}/download-url` | Người nộp hồ sơ | URL xem một giấy tờ đã gắn (presigned 5 phút, audit) — `TASK-OPR-001`, chờ duyệt |
+
+Chi tiết (`TASK-OPR-001`, chờ Khanh duyệt): tạo hồ sơ `{ operatorName, contactName, contactEmail, acceptTerms: true }`; gửi lại link `{ contactEmail, applicationCode }` (mã dạng `OA-2026-043152`) — cả hai giới hạn 3 lần / email / giờ và 10 lần / IP / giờ, vượt → 429 `OPERATOR_APPLICATION_RATE_LIMITED`. `GET …/current` trả hồ sơ kèm `documents`, `missing` (mục còn thiếu để gửi duyệt), `linkExpiresAt`; số tài khoản chỉ trả bản che `bankAccountNumberMasked`. `PUT …/current` lưu nháp (mọi trường cho phép `null`; mã số thuế 10 / 13 số, hotline 8–15 số, số tài khoản 6–20 số; bỏ `bankAccountNumber` = giữ số cũ) và thay toàn bộ `documents: [{ type, objectKey, fileName }]` — giấy tờ mới phải là object đã tải lên hợp lệ dưới khóa của chính hồ sơ (PDF / JPEG / PNG ≤ 10 MB, kiểm chữ ký file), sai → 422 `OPERATOR_APPLICATION_DOCUMENT_INVALID`. `POST …/current/documents` `{ type, contentType, sizeBytes, fileName }` → `{ uploadUrl, objectKey, expiresAt }`, tối đa 30 lần / hồ sơ / giờ. Sửa / tải / gửi duyệt khi hồ sơ không ở `DRAFT` / `NEEDS_INFO` → 409 `OPERATOR_APPLICATION_INVALID_STATE`; gửi duyệt còn thiếu → 422 `OPERATOR_APPLICATION_INCOMPLETE` kèm `reasons` (mọi mục thiếu). Kho giấy tờ chưa cấu hình (production, OQ-21) / Redis / audit lỗi → 503.
 
 Sau khi được duyệt (Owner đã đăng nhập):
 
@@ -327,11 +332,13 @@ Thao tác phức tạp dùng `POST` + sub-resource (ADR-012).
 | Method       | Path                                        | Actor | Mục đích                                 |
 | ------------ | ------------------------------------------- | ----- | ---------------------------------------- |
 | GET          | `/admin/dashboard`                          | Admin | Dashboard tổng quan                      |
-| GET          | `/admin/operator-applications`              | Admin | Danh sách hồ sơ đăng ký nhà xe (lọc trạng thái) |
-| GET          | `/admin/operator-applications/{applicationId}` | Admin | Xem hồ sơ + giấy tờ KYC (presigned, audit)  |
-| POST         | `/admin/operator-applications/{applicationId}/approve` | Admin | Duyệt: nhập slug + username Owner → tạo Operator + Owner mật khẩu tạm (`Idempotency-Key`, TOTP, audited) |
-| POST         | `/admin/operator-applications/{applicationId}/request-info` | Admin | Yêu cầu bổ sung (lý do) → `NEEDS_INFO` + link mới |
-| POST         | `/admin/operator-applications/{applicationId}/reject` | Admin | Từ chối (lý do) → `REJECTED`, thu hồi link |
+| GET          | `/admin/operator-applications`              | Admin | Danh sách hồ sơ đăng ký nhà xe (lọc trạng thái). `TASK-ADM-001`: chỉ hồ sơ đã gửi duyệt, mới gửi trước, cursor `{submittedAt}_{id}`; query `status`, `q` (mã / tên / email / mã số thuế), `submittedSince`, `duplicatesOnly`, `limit` ≤ 50; mỗi dòng kèm `duplicates` (`CONTACT_EMAIL` / `TAX_CODE` / `BANK_ACCOUNT`) |
+| GET          | `/admin/operator-applications/{applicationId}` | Admin | Xem hồ sơ + giấy tờ KYC (presigned, audit). `TASK-ADM-001`: giấy tờ chỉ metadata, số tài khoản che 4 số cuối, hồ sơ trùng (≤ 10 / loại), `operator` (khi đã duyệt), `history` (`null` khi audit không đọc được); nháp / id lạ → 404 `OPERATOR_APPLICATION_NOT_FOUND` |
+| POST         | `/admin/operator-applications/{applicationId}/documents/{type}/download-url` | Admin | `TASK-ADM-001` (chờ duyệt): URL xem một giấy tờ, hạn 5 phút, mỗi lần cấp ghi audit — thay cho ký URL mọi giấy tờ ở `GET` chi tiết |
+| POST         | `/admin/operator-applications/{applicationId}/approve` | Admin | Duyệt: nhập slug + username Owner → tạo Operator + Owner mật khẩu tạm (`Idempotency-Key`, TOTP, audited). `TASK-ADM-001`: body `{ operatorSlug, ownerUsername }`; response `{ applicationCode, status, operatorId, operatorSlug, ownerUsername, credentialDeliveryPending }`; 409 `OPERATOR_SLUG_CONFLICT` / `OPERATOR_APPLICATION_INVALID_STATE` |
+| POST         | `/admin/operator-applications/{applicationId}/request-info` | Admin | Yêu cầu bổ sung (lý do) → `NEEDS_INFO` + link mới. `TASK-ADM-001`: body `{ reason }` 3–500 ký tự, không cần xác nhận lại danh tính; response `{ applicationCode, status, emailDelivered }` |
+| POST         | `/admin/operator-applications/{applicationId}/reject` | Admin | Từ chối (lý do) → `REJECTED`, thu hồi link. `TASK-ADM-001`: như `request-info` + cần xác nhận lại danh tính |
+| POST         | `/admin/operator-applications/{applicationId}/resend-owner-credentials` | Admin | `TASK-ADM-001` (chờ duyệt): gửi lại mật khẩu tạm khi lần gửi lúc duyệt lỗi (UC-23 A4), hạn mức IAM-005, cần xác nhận lại danh tính |
 | GET/POST/PUT | `/admin/catalog/*`                          | Admin | Catalog chuẩn (tỉnh, phường, loại xe, tiện ích); điểm dừng ở `/admin/stop-points` |
 | GET/POST/PUT | `/admin/policies`                           | Admin | Policy hủy/giữ ghế/dữ liệu               |
 | GET/POST/PUT | `/admin/commission-rules`                   | Admin | Commission rule (5% + override)          |
@@ -386,7 +393,7 @@ Dữ liệu chuẩn Platform (DB §5.2 nhóm Catalog) cho Marketplace search và
 | Refund request                     | Có                   | booking/payment/refund id + reason                   |
 | Ticket issuance                    | Có                   | booking item id                                      |
 | `POST /admin/payouts/{id}/confirm` | Có                   | `(operator_id, period)`                              |
-| `POST /admin/operator-applications/{applicationId}/approve` | Có | `Idempotency-Key` + mỗi hồ sơ tối đa một Operator (unique `operator_applications.operator_id`) |
+| `POST /admin/operator-applications/{applicationId}/approve` | Có | `Idempotency-Key` + mỗi hồ sơ tối đa một Operator (unique `operator_applications.operator_id`). `TASK-ADM-001`: khóa 8–128 ký tự `[A-Za-z0-9_-]` (thiếu / sai → 400 `VALIDATION_FAILED`), lưu ở `approval_idempotency_key`; lặp cùng khóa → trả lại kết quả, khác khóa sau khi đã duyệt → 409 |
 | `POST /me/loyalty/redemptions`     | Có                   | `Idempotency-Key` bắt buộc → unique trong sổ điểm   |
 | `POST /admin/loyalty/accounts/{userId}/adjustments` | Có  | `Idempotency-Key` bắt buộc                          |
 | Loyalty earn / reversal (job)      | Có                   | `earn:{bookingId}` / `reversal:{refundId}`           |
