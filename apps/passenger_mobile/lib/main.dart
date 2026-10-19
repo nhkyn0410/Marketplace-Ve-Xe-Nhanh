@@ -1,7 +1,9 @@
 import 'package:api_client_dart/api_client_dart.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:mobile_shared/mobile_shared.dart';
+import 'package:passenger_mobile/features/auth/auth_screen.dart';
 
 /// Origin của API — KHÔNG kèm `/v1`.
 ///
@@ -21,7 +23,24 @@ const apiBaseUrl = String.fromEnvironment(
   defaultValue: 'http://localhost:3000',
 );
 
-void main() => runApp(const PassengerApp());
+String describePassengerAuthFailure(ApiFailure failure) {
+  if (failure.isNetworkError) {
+    return 'Không thể kết nối máy chủ. Vui lòng kiểm tra mạng và thử lại.';
+  }
+  if (failure.status == 429 || failure.code == 'AUTH_OTP_RATE_LIMITED') {
+    return 'Bạn đã yêu cầu hoặc thử quá nhiều lần. Vui lòng thử lại sau.';
+  }
+  if (failure.code == 'AUTH_INVALID_CREDENTIALS') {
+    return 'Mã OTP không đúng hoặc đã hết hạn.';
+  }
+  return failure.detail;
+}
+
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+  runApp(const PassengerApp());
+}
 
 class PassengerApp extends StatelessWidget {
   const PassengerApp({super.key});
@@ -30,19 +49,23 @@ class PassengerApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Vé Xe Nhanh',
+      debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.indigo),
+        useMaterial3: true,
+        fontFamily: 'Be Vietnam Pro',
+        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF2B7EAD)),
       ),
       home: const OtpLoginPage(),
     );
   }
 }
 
-/// Ba trạng thái của đường dọc mỏng: nhập email → nhập OTP → đã đăng nhập.
-enum _Step { email, otp, signedIn }
+enum _AuthStep { email, otp, signedIn }
 
 class OtpLoginPage extends StatefulWidget {
-  const OtpLoginPage({super.key});
+  const OtpLoginPage({this.requestOtpOverride, super.key});
+
+  final Future<void> Function(String email)? requestOtpOverride;
 
   @override
   State<OtpLoginPage> createState() => _OtpLoginPageState();
@@ -51,44 +74,32 @@ class OtpLoginPage extends StatefulWidget {
 class _OtpLoginPageState extends State<OtpLoginPage> {
   final _tokens = const TokenStorage();
   late final _api = createApiClient(baseUrl: apiBaseUrl, tokens: _tokens);
-  final _emailController = TextEditingController();
-  final _otpController = TextEditingController();
 
-  _Step _step = _Step.email;
+  _AuthStep _step = _AuthStep.email;
   bool _busy = false;
   String? _error;
+  String? _email;
+  DateTime? _otpIssuedAt;
   AuthTokenResponseDtoOutput? _session;
 
-  @override
-  void dispose() {
-    _emailController.dispose();
-    _otpController.dispose();
-    super.dispose();
-  }
-
   /// Bọc mọi lời gọi API: bật cờ bận, dịch lỗi thành câu tiếng Việt, hiện lên UI.
-  ///
-  /// Việc dịch lỗi nằm ở [_describeDioError] chứ **không** nằm trong thân `catch`.
-  /// Lý do: lỗi ném ra từ trong một nhánh `catch` KHÔNG được nhánh `catch` anh em
-  /// bắt — nó thoát thẳng ra ngoài `_run`, `finally` vẫn tắt `_busy`, và người
-  /// dùng nhận được một màn hình im lặng. (Đã đo: `caughtBySibling=false,
-  /// escaped=true, finallyRan=true`.)
-  Future<void> _run(Future<void> Function() action) async {
+  Future<bool> _run(Future<void> Function() action) async {
+    if (_busy) return false;
     setState(() {
       _busy = true;
       _error = null;
     });
+
     String? message;
+    var succeeded = false;
     try {
       await action();
+      succeeded = true;
     } on DioException catch (error) {
       message = _describeDioError(error);
-    } catch (error) {
-      // Không chỉ Dio mới ném. `flutter_secure_storage` ném `PlatformException`
-      // khi Keystore hỏng, và `response.data!` ném `TypeError` nếu server trả 2xx
-      // với body rỗng. Thiếu nhánh này thì nút chỉ nhấp nháy rồi im — người dùng
-      // không biết chuyện gì xảy ra, mà OTP thì đã bị tiêu thụ ở server.
-      message = 'Lỗi không mong đợi: $error';
+    } catch (_) {
+      // Không đưa exception/request body ra UI vì có thể chứa OTP hoặc token.
+      message = 'Đã xảy ra lỗi không mong đợi. Vui lòng thử lại.';
     } finally {
       if (mounted) {
         setState(() {
@@ -97,116 +108,150 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
         });
       }
     }
+    return succeeded;
   }
 
-  /// Dịch [DioException] sang câu hiển thị được. **Không bao giờ được ném.**
+  /// Dịch [DioException] sang câu hiển thị được. Hàm này không được ném lỗi.
   String _describeDioError(DioException error) {
     try {
-      return toApiFailure(error, _api.serializers).toString();
+      final failure = toApiFailure(error, _api.serializers);
+      return describePassengerAuthFailure(failure);
     } catch (_) {
-      // Bộ dịch lỗi mà hỏng thì vẫn phải hiện được cái gì đó, không thể để màn
-      // hình trống.
       return 'Máy chủ trả lỗi ${error.response?.statusCode ?? 0}.';
     }
   }
 
-  Future<void> _requestOtp() => _run(() async {
-    await _api.getAuthApi().authControllerRequestOtp(
-      otpRequestDto: OtpRequestDto(
-        (b) => b..email = _emailController.text.trim(),
-      ),
-    );
-    if (mounted) setState(() => _step = _Step.otp);
-  });
+  Future<void> _requestOtp(String email) async {
+    final accepted = await _run(() async {
+      final override = widget.requestOtpOverride;
+      if (override != null) {
+        await override(email);
+        return;
+      }
+      await _api.getAuthApi().authControllerRequestOtp(
+        otpRequestDto: OtpRequestDto((builder) => builder..email = email),
+      );
+    });
+    if (!accepted || !mounted) return;
 
-  Future<void> _verifyOtp() => _run(() async {
-    final response = await _api.getAuthApi().authControllerVerifyOtp(
-      otpVerifyDto: OtpVerifyDto(
-        (b) => b
-          ..email = _emailController.text.trim()
-          ..otp = _otpController.text.trim(),
-      ),
-    );
-    final session = response.data!;
-    await _tokens.saveAccessToken(session.accessToken);
-    // OTP dùng một lần rồi thôi — đừng để nó nằm lại trong heap. Text của
-    // `TextEditingController` bị in nguyên văn trong mọi widget-tree dump.
-    _otpController.clear();
-    if (mounted) {
+    setState(() {
+      _email = email;
+      _otpIssuedAt = DateTime.now();
+      _step = _AuthStep.otp;
+    });
+  }
+
+  Future<bool> _resendOtp() async {
+    final email = _email;
+    if (email == null) return false;
+    return _run(() async {
+      await _api.getAuthApi().authControllerRequestOtp(
+        otpRequestDto: OtpRequestDto((builder) => builder..email = email),
+      );
+    });
+  }
+
+  Future<bool> _verifyOtp(String otp) async {
+    final email = _email;
+    if (email == null) return false;
+
+    AuthTokenResponseDtoOutput? session;
+    final verified = await _run(() async {
+      final response = await _api.getAuthApi().authControllerVerifyOtp(
+        otpVerifyDto: OtpVerifyDto(
+          (builder) => builder
+            ..email = email
+            ..otp = otp,
+        ),
+      );
+      session = response.data;
+      if (session == null) {
+        throw StateError('OTP verify response did not contain a session.');
+      }
+      await _tokens.saveAccessToken(session!.accessToken);
+    });
+
+    if (verified && mounted) {
       setState(() {
         _session = session;
-        _step = _Step.signedIn;
+        _step = _AuthStep.signedIn;
+        _error = null;
       });
     }
-  });
+    return verified;
+  }
+
+  void _clearFeedback() {
+    if (_error == null) return;
+    setState(() => _error = null);
+  }
+
+  void _editEmail() {
+    if (_busy) return;
+    setState(() {
+      _step = _AuthStep.email;
+      _error = null;
+      _otpIssuedAt = null;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
+    if (_step == _AuthStep.signedIn) return _signedIn();
+
+    return IndexedStack(
+      index: _step == _AuthStep.email ? 0 : 1,
+      children: [
+        AuthEntryScreen(
+          busy: _busy,
+          errorMessage: _step == _AuthStep.email ? _error : null,
+          onEmailChanged: _clearFeedback,
+          onRequestOtp: _requestOtp,
+        ),
+        if (_email != null && _otpIssuedAt != null)
+          EmailVerificationScreen(
+            key: ValueKey(_otpIssuedAt),
+            email: _email!,
+            issuedAt: _otpIssuedAt!,
+            busy: _busy,
+            errorMessage: _step == _AuthStep.otp ? _error : null,
+            onOtpChanged: _clearFeedback,
+            onVerify: _verifyOtp,
+            onResend: _resendOtp,
+            onEditEmail: _editEmail,
+          )
+        else
+          const SizedBox.shrink(),
+      ],
+    );
+  }
+
+  Widget _signedIn() {
+    final session = _session!;
+    final scope = _api.serializers.serializeWith(
+      AuthTokenResponseDtoOutputScopeEnum.serializer,
+      session.scope,
+    );
     return Scaffold(
-      appBar: AppBar(title: const Text('Đăng nhập')),
+      appBar: AppBar(title: const Text('Vé Xe Nhanh')),
       body: Padding(
         padding: const EdgeInsets.all(24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            if (_step == _Step.signedIn) ..._signedIn() else ..._loginForm(),
-            if (_error != null) ...[
-              const SizedBox(height: 16),
-              Text(_error!, style: const TextStyle(color: Colors.red)),
-            ],
-            if (_busy) ...[
-              const SizedBox(height: 16),
-              const LinearProgressIndicator(),
-            ],
+            const Text(
+              'Đăng nhập thành công',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
+            ),
+            const SizedBox(height: 12),
+            Text('scope: $scope'),
+            Text('role: ${session.role}'),
+            Text('hết hạn sau: ${session.expiresIn}s'),
+            const SizedBox(height: 12),
+            const Text('Token đã lưu bằng flutter_secure_storage.'),
           ],
         ),
       ),
     );
-  }
-
-  List<Widget> _loginForm() => [
-    TextField(
-      controller: _emailController,
-      enabled: _step == _Step.email,
-      keyboardType: TextInputType.emailAddress,
-      decoration: const InputDecoration(labelText: 'Email'),
-    ),
-    const SizedBox(height: 12),
-    if (_step == _Step.email)
-      FilledButton(
-        onPressed: _busy ? null : _requestOtp,
-        child: const Text('Gửi mã OTP'),
-      )
-    else ...[
-      TextField(
-        controller: _otpController,
-        keyboardType: TextInputType.number,
-        decoration: const InputDecoration(labelText: 'Mã OTP (6 chữ số)'),
-      ),
-      const SizedBox(height: 12),
-      FilledButton(
-        onPressed: _busy ? null : _verifyOtp,
-        child: const Text('Xác minh'),
-      ),
-    ],
-  ];
-
-  List<Widget> _signedIn() {
-    final session = _session!;
-    // Dùng serializer để in ra giá trị **trên dây** (`operator`), không phải tên
-    // member Dart (`operator_`) — cùng loại bẫy với `Bearer` ↔ `bearer`.
-    final scope = _api.serializers.serializeWith(
-      AuthTokenResponseDtoOutputScopeEnum.serializer,
-      session.scope,
-    );
-    return [
-      const Text('Đăng nhập thành công', style: TextStyle(fontSize: 20)),
-      const SizedBox(height: 12),
-      Text('scope: $scope'),
-      Text('role: ${session.role}'),
-      Text('hết hạn sau: ${session.expiresIn}s'),
-      const SizedBox(height: 12),
-      const Text('Token đã lưu bằng flutter_secure_storage.'),
-    ];
   }
 }
