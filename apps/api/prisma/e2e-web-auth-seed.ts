@@ -69,6 +69,11 @@ async function main(): Promise<void> {
     tripOwner: { username: `trip-${tag}`, password: password() },
     // `null` khi catalog chưa seed (thiếu phường / loại xe) — spec Chuyến xe sẽ báo cần chạy `db:seed:catalog`.
     tripFixtures: null as { routeName: string; plateNumber: string; seatMapName: string } | null,
+    // Owner cho E2E màn Phân công chuyến (TASK-EMP-001), ở một nhà xe RIÊNG có hai tài xế + một nhân viên vé và các chuyến
+    // dựng sẵn (`assignmentFixtures`) — không lẫn vào danh sách chuyến của spec Chuyến xe.
+    assignOperatorSlug: `e2e-asg-${tag}`,
+    assignOwner: { username: `asg-${tag}`, password: password() },
+    assignmentFixtures: null as AssignmentFixtures | null,
     // E2E màn Điểm dừng của Admin (TASK-ADM-004): một đề xuất chờ duyệt + một điểm riêng để khóa, ở nhà xe chuyến.
     // `null` khi catalog chưa seed (thiếu phường).
     adminStopPoints: null as AdminStopPointFixtures | null,
@@ -107,6 +112,7 @@ async function main(): Promise<void> {
     staffOwnerHash,
     tripOwnerHash,
     kycOwnerHash,
+    assignOwnerHash,
     employeeHash,
     platformHash,
     reviewerHash,
@@ -123,6 +129,7 @@ async function main(): Promise<void> {
     credentials.hash(accounts.staffOwner.password),
     credentials.hash(accounts.tripOwner.password),
     credentials.hash(accounts.kycOwner.password),
+    credentials.hash(accounts.assignOwner.password),
     credentials.hash(accounts.employee.password),
     credentials.hash(accounts.platform.password),
     credentials.hash(accounts.platformReviewer.password),
@@ -225,6 +232,7 @@ async function main(): Promise<void> {
         }
       });
       accounts.tripFixtures = await seedTripFixtures(tx, tripOperator.id);
+      accounts.assignmentFixtures = await seedAssignmentFixtures(tx, accounts.assignOperatorSlug, accounts.assignOwner.username, assignOwnerHash, tag);
       accounts.adminStopPoints = await seedAdminStopPointFixtures(tx, tripOperator.id, tag);
       moderationImages = await seedModerationFixtures(tx, tag);
       const lockable = await tx.operatorProfile.create({
@@ -445,6 +453,68 @@ async function seedAdminStopPointFixtures(
  * Tuyến ba điểm (văn phòng → trạm dừng nghỉ → văn phòng, hai chặng 2 giờ 45 phút) và một xe gắn sơ đồ bốn
  * giường, ghi thẳng DB để E2E màn Chuyến xe không phải dựng lại qua giao diện (các luồng đó đã có spec riêng).
  */
+type AssignmentFixtures = { routeName: string; date: string; soonDate: string };
+
+/**
+ * Nhà xe riêng cho E2E màn Phân công chuyến: hai tài xế (`nv.tai.minh`, `nv.tai.hung`) + một nhân viên vé; ba chuyến ngày
+ * `date` (06:00–11:30, 08:30–14:00 chồng chuyến đầu, 13:00–21:15) chưa phân công; một chuyến còn 1 giờ là khởi hành đã
+ * giao `nv.tai.hung` (đổi phải có lý do). Tuyến ghi thẳng, không cần điểm dừng / xe cho màn này.
+ */
+async function seedAssignmentFixtures(
+  tx: Parameters<Parameters<PrismaClient["$transaction"]>[0]>[0],
+  operatorSlug: string,
+  ownerUsername: string,
+  ownerHash: string,
+  tag: string
+): Promise<AssignmentFixtures> {
+  const HOUR = 3_600_000;
+  const VN = 7 * HOUR;
+  const vnDate = (at: number) => new Date(at + VN).toISOString().slice(0, 10);
+  const operator = await tx.operatorProfile.create({
+    data: { operatorSlug, displayName: `E2E phân công ${tag}`, status: "ACTIVE" }
+  });
+  await tx.operatorAccount.create({
+    data: { operatorId: operator.id, operatorSlug, username: ownerUsername, contactEmail: `asg-${tag}@example.com`, passwordHash: ownerHash }
+  });
+  const staff = [
+    { username: "nv.tai.minh", role: "DRIVER" as const },
+    { username: "nv.tai.hung", role: "DRIVER" as const },
+    { username: "nv.ve.lan", role: "TICKET_STAFF" as const }
+  ];
+  const employees = [];
+  for (const member of staff) {
+    employees.push(
+      await tx.employeeAccount.create({
+        data: { operatorId: operator.id, username: member.username, passwordHash: "e2e-not-for-login", role: member.role },
+        select: { id: true }
+      })
+    );
+  }
+  const routeName = "E2E Sài Gòn – Nha Trang";
+  const route = await tx.route.create({
+    data: { operatorId: operator.id, name: routeName, totalDistanceMeters: 430_000, totalDurationSeconds: 29_700, metricsSource: "ESTIMATE" }
+  });
+  const now = Date.now();
+  const date = vnDate(now + 45 * 24 * HOUR);
+  const midnight = Date.parse(`${date}T00:00:00Z`) - VN;
+  const at = (hours: number) => new Date(midnight + hours * HOUR);
+  await tx.trip.createMany({
+    data: [
+      [6, 11.5],
+      [8.5, 14],
+      [13, 21.25]
+    ].map(([start, end]) => ({ operatorId: operator.id, routeId: route.id, departureAt: at(start!), arrivalAt: at(end!) }))
+  });
+  const soon = await tx.trip.create({
+    data: { operatorId: operator.id, routeId: route.id, departureAt: new Date(now + HOUR), arrivalAt: new Date(now + 5 * HOUR) },
+    select: { id: true }
+  });
+  await tx.employeeAssignment.create({
+    data: { operatorId: operator.id, tripId: soon.id, employeeId: employees[1]!.id, role: "DRIVER" }
+  });
+  return { routeName, date, soonDate: vnDate(now + HOUR) };
+}
+
 async function seedTripFixtures(
   tx: Parameters<Parameters<PrismaClient["$transaction"]>[0]>[0],
   operatorId: string

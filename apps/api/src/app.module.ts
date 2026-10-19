@@ -14,6 +14,7 @@ import { OperatorModule } from "./operator/operator.module";
 import { PolicyModule } from "./policy/policy.module";
 import { CommissionModule } from "./commission/commission.module";
 import { AdminSystemModule } from "./admin/admin-system.module";
+import { EmployeeModule } from "./employee/employee.module";
 import { IamModule } from "./iam/iam.module";
 import { QueueModule } from "./queue/queue.module";
 import { CatalogModule } from "./catalog/catalog.module";
@@ -45,6 +46,7 @@ import { VehicleModule } from "./vehicle/vehicle.module";
     PolicyModule,
     CommissionModule,
     AdminSystemModule,
+    EmployeeModule,
   ],
   controllers: [AppController],
   providers: [{ provide: APP_INTERCEPTOR, useClass: ZodSerializerInterceptor }],

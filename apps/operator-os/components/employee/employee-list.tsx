@@ -4,7 +4,20 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Badge } from "@vexenhanh/ui/components/badge";
 import { Button } from "@vexenhanh/ui/components/button";
 import { cn } from "@vexenhanh/ui/lib/utils";
-import { CircleAlert, CircleCheck, FileX2, KeyRound, Lock, LockOpen, Pencil, Plus, RefreshCw, Users } from "lucide-react";
+import {
+  CalendarCheck,
+  CircleAlert,
+  CircleCheck,
+  FileX2,
+  KeyRound,
+  Lock,
+  LockOpen,
+  Pencil,
+  Plus,
+  RefreshCw,
+  Users
+} from "lucide-react";
+import Link from "next/link";
 import { useMemo, useState, type ReactNode } from "react";
 
 import { useAuth } from "../../lib/auth/auth-context";
@@ -184,7 +197,18 @@ export function EmployeeList() {
       <PageHeader
         title="Nhân viên"
         description="Chủ nhà xe cấp và quản lý tài khoản. Nhân viên đăng nhập ứng dụng Nhân viên, không đăng nhập trang quản lý này."
-        actions={addButton}
+        actions={
+          <>
+            {/* Figma "05 · Nhân viên / Phân công chuyến" (TASK-EMP-001). */}
+            <Button asChild variant="outline" className={`${BUTTON} bg-card`}>
+              <Link href="/employees/assignments">
+                <CalendarCheck className="size-[18px]" />
+                Phân công chuyến
+              </Link>
+            </Button>
+            {addButton}
+          </>
+        }
       />
 
       {notice && (

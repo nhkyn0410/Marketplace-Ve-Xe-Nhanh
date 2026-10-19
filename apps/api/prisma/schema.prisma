@@ -160,21 +160,23 @@ model OperatorProfile {
   createdAt       DateTime       @default(now()) @map("created_at")
   updatedAt       DateTime       @updatedAt @map("updated_at")
 
-  operatorAccounts   OperatorAccount[]
-  employeeAccounts   EmployeeAccount[]
-  operatorLoginNames OperatorLoginName[]
-  seatMaps           SeatMap[]
-  stopPoints         StopPoint[]
-  stopPointProposals StopPointProposal[]
-  routes             Route[]
-  vehicles           Vehicle[]
-  trips              Trip[]
-  fares              Fare[]
-  application        OperatorApplication?
-  kycDocuments       KycDocument[]
-  bankAccounts       BankAccount[]
-  policyVersions     PolicyVersion[]
-  commissionRules    CommissionRule[]
+  operatorAccounts    OperatorAccount[]
+  employeeAccounts    EmployeeAccount[]
+  operatorLoginNames  OperatorLoginName[]
+  seatMaps            SeatMap[]
+  stopPoints          StopPoint[]
+  stopPointProposals  StopPointProposal[]
+  routes              Route[]
+  vehicles            Vehicle[]
+  trips               Trip[]
+  tripSchedules       TripSchedule[]
+  employeeAssignments EmployeeAssignment[]
+  fares               Fare[]
+  application         OperatorApplication?
+  kycDocuments        KycDocument[]
+  bankAccounts        BankAccount[]
+  policyVersions      PolicyVersion[]
+  commissionRules     CommissionRule[]
 
   @@unique([id, operatorSlug])
   @@map("operator_profiles")
@@ -248,10 +250,12 @@ model EmployeeAccount {
 
   // RESTRICT, không CASCADE (TASK-IAM-003): hành động cascade của FK chạy với quyền owner và BỎ QUA
   // RLS (kể cả FORCE) — xoá/đổi id một operator_profiles sẽ quét luôn account của tenant đó.
-  operator  OperatorProfile   @relation(fields: [operatorId], references: [id], onDelete: Restrict, onUpdate: Restrict)
-  loginName OperatorLoginName @relation(fields: [operatorId, username], references: [operatorId, username], onDelete: NoAction, onUpdate: NoAction)
+  operator    OperatorProfile      @relation(fields: [operatorId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  loginName   OperatorLoginName    @relation(fields: [operatorId, username], references: [operatorId, username], onDelete: NoAction, onUpdate: NoAction)
+  assignments EmployeeAssignment[]
 
   @@unique([operatorId, username])
+  @@unique([id, operatorId])
   @@map("employee_accounts")
 }
 
@@ -582,6 +586,7 @@ model Vehicle {
   amenities   VehicleAmenity[]
   images      VehicleImage[]
   trips       Trip[]
+  schedules   TripSchedule[]
 
   @@unique([operatorId, plateNumber])
   @@unique([id, operatorId])
@@ -736,10 +741,11 @@ model Route {
   createdAt            DateTime             @default(now()) @map("created_at")
   updatedAt            DateTime             @updatedAt @map("updated_at")
 
-  operator OperatorProfile @relation(fields: [operatorId], references: [id], onDelete: Restrict, onUpdate: Restrict)
-  stops    RouteStop[]
-  trips    Trip[]
-  fare     Fare?
+  operator  OperatorProfile @relation(fields: [operatorId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  stops     RouteStop[]
+  trips     Trip[]
+  schedules TripSchedule[]
+  fare      Fare?
 
   @@unique([operatorId, name])
   @@unique([id, operatorId])
@@ -822,21 +828,83 @@ model Trip {
   /// Lý do lần đổi trạng thái gần nhất (hủy bắt buộc — CHECK ở migration).
   statusReason            String?    @map("status_reason")
   note                    String?
+  /// Chuyến sinh từ lịch lặp lại (TRN-007) + ngày chạy theo giờ Việt Nam; cả hai cùng có hoặc cùng `null` (CHECK).
+  scheduleId              String?    @map("schedule_id")
+  serviceDate             DateTime?  @map("service_date") @db.Date
   createdAt               DateTime   @default(now()) @map("created_at")
   updatedAt               DateTime   @updatedAt @map("updated_at")
 
-  operator OperatorProfile @relation(fields: [operatorId], references: [id], onDelete: Restrict, onUpdate: Restrict)
-  route    Route           @relation(fields: [routeId, operatorId], references: [id, operatorId], onDelete: Restrict, onUpdate: Restrict)
-  vehicle  Vehicle?        @relation(fields: [vehicleId, operatorId], references: [id, operatorId], onDelete: Restrict, onUpdate: Restrict)
-  stops    TripStop[]
-  seats    TripSeat[]
+  operator    OperatorProfile      @relation(fields: [operatorId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  route       Route                @relation(fields: [routeId, operatorId], references: [id, operatorId], onDelete: Restrict, onUpdate: Restrict)
+  vehicle     Vehicle?             @relation(fields: [vehicleId, operatorId], references: [id, operatorId], onDelete: Restrict, onUpdate: Restrict)
+  schedule    TripSchedule?        @relation(fields: [scheduleId, operatorId], references: [id, operatorId], onDelete: Restrict, onUpdate: Restrict)
+  stops       TripStop[]
+  seats       TripSeat[]
+  assignments EmployeeAssignment[]
 
   @@unique([id, operatorId])
+  /// Chạy lại lịch không sinh trùng ngày (TRN-007).
+  @@unique([scheduleId, serviceDate])
   @@index([operatorId, departureAt])
   @@index([routeId])
   // Không có btree riêng cho `vehicle_id`: index GiST của EXCLUDE (partial, bắt đầu bằng `operator_id`) chỉ
   // phục vụ một phần; truy vấn theo xe hiện lọc thêm `operator_id` + giờ đi. Thêm index khi đo được tải.
   @@map("trips")
+}
+
+/// Lịch chuyến lặp lại (TASK-TRN-007, FR-OPS-07 — chờ Khanh duyệt): quy tắc ngày chạy + giờ chạy + khoảng áp dụng.
+/// Owner bấm "Sinh chuyến" để tạo chuyến nháp cho từng ngày khớp; sửa lịch chỉ áp cho ngày chưa sinh. CHECK ở migration.
+model TripSchedule {
+  id                      String    @id @default(uuid())
+  operatorId              String    @map("operator_id")
+  routeId                 String    @map("route_id")
+  vehicleId               String?   @map("vehicle_id")
+  /// Giờ khởi hành theo giờ Việt Nam (UTC+7), phút trong ngày 0–1439.
+  departureMinute         Int       @map("departure_minute")
+  /// Giờ đến = giờ khởi hành + số phút này (1–10080).
+  durationMinutes         Int       @map("duration_minutes")
+  /// Bit 0 = thứ Hai … bit 6 = Chủ nhật.
+  daysOfWeek              Int       @map("days_of_week") @db.SmallInt
+  startDate               DateTime  @map("start_date") @db.Date
+  /// Gồm; tối đa 92 ngày sau `startDate`.
+  endDate                 DateTime  @map("end_date") @db.Date
+  onlineSaleCutoffMinutes Int       @map("online_sale_cutoff_minutes")
+  note                    String?
+  createdBy               String?   @map("created_by")
+  lastGeneratedAt         DateTime? @map("last_generated_at")
+  createdAt               DateTime  @default(now()) @map("created_at")
+  updatedAt               DateTime  @updatedAt @map("updated_at")
+
+  operator OperatorProfile @relation(fields: [operatorId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  route    Route           @relation(fields: [routeId, operatorId], references: [id, operatorId], onDelete: Restrict, onUpdate: Restrict)
+  vehicle  Vehicle?        @relation(fields: [vehicleId, operatorId], references: [id, operatorId], onDelete: Restrict, onUpdate: Restrict)
+  trips    Trip[]
+
+  @@unique([id, operatorId])
+  @@index([operatorId, endDate])
+  @@map("trip_schedules")
+}
+
+/// Phân công nhân viên cho chuyến (TASK-EMP-001, UC-16 bước 4–6 — chờ Khanh duyệt). v1 chỉ tài xế (`DRIVER`); mỗi chuyến
+/// tối đa một người mỗi vai trò. Không cho một tài xế chạy hai chuyến chồng giờ: service khoá dòng nhân viên rồi kiểm.
+model EmployeeAssignment {
+  id         String       @id @default(uuid())
+  operatorId String       @map("operator_id")
+  tripId     String       @map("trip_id")
+  employeeId String       @map("employee_id")
+  role       EmployeeRole
+  /// Tài khoản chủ nhà xe phân công lần cuối.
+  assignedBy String?      @map("assigned_by")
+  createdAt  DateTime     @default(now()) @map("created_at")
+  updatedAt  DateTime     @updatedAt @map("updated_at")
+
+  operator OperatorProfile @relation(fields: [operatorId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  trip     Trip            @relation(fields: [tripId, operatorId], references: [id, operatorId], onDelete: Restrict, onUpdate: Restrict)
+  employee EmployeeAccount @relation(fields: [employeeId, operatorId], references: [id, operatorId], onDelete: Restrict, onUpdate: Restrict)
+
+  @@unique([tripId, role])
+  @@index([employeeId])
+  @@map("employee_assignments")
 }
 
 /// Điểm dừng của chuyến: chép từ RouteStop lúc tạo/sửa chuyến, kèm giờ dự kiến tại điểm.
@@ -1227,4 +1295,54 @@ model FareBand {
 
   @@index([status, effectiveTo])
   @@map("fare_bands")
+}
+
+// ════════════════════════════ Nội dung công khai (TASK-ADM-003 — chờ Khanh duyệt) ════════════════════════════
+// `ContentPage` ở `catalog/` (DOMAIN-MAP): banner trang chủ, câu hỏi thường gặp, trang tĩnh chân trang. Dữ liệu cấp
+// Platform, KHÔNG `operator_id`. RLS: ai cũng đọc, chỉ platform / system ghi. CHECK theo loại ở migration.
+
+enum ContentPageType {
+  FAQ
+  BANNER
+  PAGE
+}
+
+/// Vị trí hiển thị: banner → HOME; trang tĩnh → FOOTER; FAQ → nhóm BOOKING / TICKET / ACCOUNT.
+enum ContentPlacement {
+  HOME
+  FOOTER
+  BOOKING
+  TICKET
+  ACCOUNT
+}
+
+enum ContentPageStatus {
+  DRAFT
+  PUBLISHED
+}
+
+model ContentPage {
+  id           String            @id @default(uuid())
+  type         ContentPageType
+  placement    ContentPlacement
+  title        String
+  /// Chỉ trang tĩnh: đường dẫn công khai `/trang/{slug}`.
+  slug         String?           @unique
+  /// FAQ: câu trả lời; trang tĩnh: nội dung; banner: dòng phụ (tuỳ chọn). Markdown, nơi hiển thị không render HTML thô.
+  bodyMarkdown String            @default("") @map("body_markdown")
+  /// Chỉ banner: khóa object ở kho công khai.
+  imageKey     String?           @map("image_key")
+  /// Chỉ banner: liên kết khi bấm (đường dẫn nội bộ `/…` hoặc `https://`).
+  linkUrl      String?           @map("link_url")
+  displayOrder Int               @default(0) @map("display_order")
+  status       ContentPageStatus @default(DRAFT)
+  publishedAt  DateTime?         @map("published_at")
+  createdBy    String            @map("created_by")
+  updatedBy    String            @map("updated_by")
+  createdAt    DateTime          @default(now()) @map("created_at")
+  updatedAt    DateTime          @updatedAt @map("updated_at")
+
+  @@index([type, status, placement, displayOrder])
+  @@index([updatedAt(sort: Desc)])
+  @@map("content_pages")
 }

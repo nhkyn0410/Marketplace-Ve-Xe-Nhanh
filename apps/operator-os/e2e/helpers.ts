@@ -23,6 +23,10 @@ export type E2eAccounts = {
   tripOwner: { username: string; password: string };
   /** Tuyến và xe dựng sẵn cho `tripOwner`; `null` khi catalog chưa seed. */
   tripFixtures: { routeName: string; plateNumber: string; seatMapName: string } | null;
+  /** Nhà xe riêng của E2E màn Phân công chuyến: hai tài xế + một nhân viên vé, chuyến dựng sẵn ngày `date` và `soonDate`. */
+  assignOperatorSlug: string;
+  assignOwner: { username: string; password: string };
+  assignmentFixtures: { routeName: string; date: string; soonDate: string } | null;
   employee: { username: string; password: string };
   platform: { username: string; password: string };
 };

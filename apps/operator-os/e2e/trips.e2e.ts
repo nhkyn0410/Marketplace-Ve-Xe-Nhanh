@@ -459,3 +459,74 @@ test("hủy chuyến chưa có vé: bắt buộc lý do; hủy xong không còn 
   await choose("Trạng thái", "Đã hủy");
   await expect(page.getByRole("row").filter({ hasText: routeName })).toHaveCount(1);
 });
+
+// TASK-TRN-007 (lịch chạy lặp lại) — hai ca cuối file, dùng tuyến + xe ở trên, khoảng ngày cách xa các chuyến lẻ (60 ngày
+// sau hôm nay) để không trùng giờ xe. 14 ngày luôn chứa đúng hai thứ Hai / Tư / Sáu → 6 chuyến; kéo dài 7 ngày → thêm 3.
+const SCHEDULE_START = new Date(Date.now() + 7 * 3_600_000 + 60 * 24 * 3_600_000).toISOString().slice(0, 10);
+const shiftDate = (date: string, days: number) =>
+  new Date(Date.parse(`${date}T00:00:00Z`) + days * 24 * 3_600_000).toISOString().slice(0, 10);
+
+test("lịch chạy lặp lại: tạo lịch T2 / T4 / T6 → sinh 6 chuyến nháp; sinh lại không tạo trùng; danh sách lịch hiện số chuyến", async () => {
+  await page.getByRole("link", { name: "Chuyến xe", exact: true }).click();
+  await page.getByRole("link", { name: "Lịch chạy lặp lại" }).click();
+  await expect(page.getByRole("heading", { name: "Lịch chạy lặp lại", level: 1 })).toBeVisible(FIRST_VISIT);
+  await expect(page.getByText("Chưa có lịch chạy lặp lại")).toBeVisible();
+  await page.getByRole("link", { name: "Tạo lịch" }).first().click();
+  await expect(page.getByRole("heading", { name: "Tạo lịch chạy lặp lại", level: 1 })).toBeVisible(FIRST_VISIT);
+
+  await page.getByLabel("Áp dụng từ ngày *").fill("");
+  await page.getByRole("button", { name: "Lưu lịch" }).click();
+  await expect(page.getByText("Chọn tuyến.")).toBeVisible();
+  await expect(page.getByText("Nhập giờ khởi hành.")).toBeVisible();
+
+  await choose("Tuyến *", routeName);
+  // Thời gian chạy gợi ý theo tuyến (5 giờ 30 phút).
+  await expect(page.getByLabel("Thời gian chạy *")).toHaveValue("5");
+  await expect(page.getByLabel("Số phút của thời gian chạy")).toHaveValue("30");
+  await page.getByLabel("Giờ khởi hành *").fill("07:00");
+  for (const day of ["Thứ Ba", "Thứ Năm", "Thứ Bảy", "Chủ nhật"]) {
+    await page.getByRole("button", { name: day, exact: true }).click();
+  }
+  await expect(page.getByText("Đang chọn: T2, T4, T6")).toBeVisible();
+  await page.getByLabel("Áp dụng từ ngày *").fill(SCHEDULE_START);
+  await page.getByLabel("Đến ngày *").fill(shiftDate(SCHEDULE_START, 13));
+  await choose("Xe", new RegExp(plate.replace(".", "\.")));
+  await expect(page.getByRole("region", { name: "Ngày có chuyến" })).toContainText("6 ngày");
+
+  await page.getByRole("button", { name: "Lưu lịch" }).click();
+  await expect(page.getByText("Đã lưu lịch.")).toBeVisible(FIRST_VISIT);
+  await expect(page.getByRole("heading", { name: `${routeName} · 07:00`, level: 1 })).toBeVisible();
+  const panel = page.getByRole("region", { name: "Sinh chuyến" });
+  await panel.getByRole("button", { name: "Sinh chuyến" }).click();
+  await expect(panel.getByText("Đã tạo 6 chuyến · bỏ qua 0 ngày")).toBeVisible();
+  await expect(panel.getByRole("link", { name: "Xem chuyến" })).toHaveCount(6);
+
+  await panel.getByRole("button", { name: "Sinh chuyến" }).click();
+  await expect(panel.getByText("Đã tạo 0 chuyến · bỏ qua 6 ngày")).toBeVisible();
+  await expect(panel.getByText("Đã có chuyến của lịch")).toHaveCount(6);
+
+  await page.getByRole("link", { name: "Về danh sách lịch" }).click();
+  const row = page.getByRole("row").filter({ hasText: routeName });
+  await expect(row).toContainText("T2, T4, T6");
+  await expect(row).toContainText("6 chuyến");
+  await expect(row).toContainText("Sắp áp dụng");
+});
+
+test("sửa lịch: chưa lưu thì không sinh được; kéo dài 7 ngày + mở bán ngay → 3 chuyến mới đang mở bán, chuyến cũ giữ nguyên", async () => {
+  await page.getByRole("row").filter({ hasText: routeName }).getByRole("link", { name: /Xem lịch/ }).click();
+  const panel = page.getByRole("region", { name: "Sinh chuyến" });
+  await expect(panel).toContainText("Đã sinh 6 chuyến", FIRST_VISIT);
+  await page.getByLabel("Đến ngày *").fill(shiftDate(SCHEDULE_START, 20));
+  await expect(panel.getByText("Có thay đổi chưa lưu.")).toBeVisible();
+  await expect(panel.getByRole("button", { name: "Sinh chuyến" })).toBeDisabled();
+
+  await page.getByRole("button", { name: "Lưu lịch" }).click();
+  await expect(panel.getByRole("button", { name: "Sinh chuyến" })).toBeEnabled();
+  await panel.getByRole("switch", { name: "Mở bán ngay chuyến đủ điều kiện" }).click();
+  await panel.getByRole("button", { name: "Sinh chuyến" }).click();
+  await expect(panel.getByText("Đã tạo 3 chuyến (3 đang mở bán) · bỏ qua 6 ngày")).toBeVisible();
+  await expect(panel.getByText("Đang mở bán", { exact: true })).toHaveCount(3);
+
+  await panel.getByRole("link", { name: "Xem chuyến" }).first().click();
+  await expect(page.getByText("Đang mở bán", { exact: true }).first()).toBeVisible(FIRST_VISIT);
+});

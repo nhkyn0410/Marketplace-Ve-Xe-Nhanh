@@ -82,6 +82,12 @@ export const RLS_TABLES = [
   "policy_versions",
   "commission_rules",
   "fare_bands",
+  // Lịch chuyến lặp lại (TASK-TRN-007): tenant_isolation.
+  "trip_schedules",
+  // Phân công nhân viên cho chuyến (TASK-EMP-001): tenant_isolation.
+  "employee_assignments",
+  // Nội dung công khai (TASK-ADM-003): ai cũng đọc, chỉ platform / system ghi.
+  "content_pages",
 ] as const;
 
 @Injectable()

@@ -187,6 +187,23 @@ Serializers _$serializers = (Serializers().toBuilder()
       ..add(CommissionRuleDtoOutputStateEnum.serializer)
       ..add(CommissionRuleDtoOutputStatusEnum.serializer)
       ..add(CommissionRuleUpdateDto.serializer)
+      ..add(ContentImageUploadInputDto.serializer)
+      ..add(ContentImageUploadInputDtoContentTypeEnum.serializer)
+      ..add(ContentImageUploadResponseDtoOutput.serializer)
+      ..add(ContentPageDetailDtoOutput.serializer)
+      ..add(ContentPageDetailDtoOutputPlacementEnum.serializer)
+      ..add(ContentPageDetailDtoOutputStatusEnum.serializer)
+      ..add(ContentPageDetailDtoOutputTypeEnum.serializer)
+      ..add(ContentPageInputDto.serializer)
+      ..add(ContentPageInputDtoPlacementEnum.serializer)
+      ..add(ContentPageInputDtoTypeEnum.serializer)
+      ..add(ContentPagePageDtoOutput.serializer)
+      ..add(ContentPagePageDtoOutputItemsInner.serializer)
+      ..add(ContentPagePageDtoOutputItemsInnerPlacementEnum.serializer)
+      ..add(ContentPagePageDtoOutputItemsInnerStatusEnum.serializer)
+      ..add(ContentPagePageDtoOutputItemsInnerTypeEnum.serializer)
+      ..add(ContentPageStatusInputDto.serializer)
+      ..add(ContentPageStatusInputDtoStatusEnum.serializer)
       ..add(CredentialLoginDto.serializer)
       ..add(CredentialLoginResponseDtoOutput.serializer)
       ..add(CredentialTokenResponse.serializer)
@@ -205,6 +222,7 @@ Serializers _$serializers = (Serializers().toBuilder()
       ..add(DocumentUploadInputDtoContentTypeEnum.serializer)
       ..add(DocumentUploadInputDtoTypeEnum.serializer)
       ..add(DocumentUploadResponseDtoOutput.serializer)
+      ..add(DriverAssignmentInputDto.serializer)
       ..add(EmployeeAccountResponseDtoOutput.serializer)
       ..add(EmployeeAccountResponseDtoOutputRoleEnum.serializer)
       ..add(EmployeeAccountResponseDtoOutputStatusEnum.serializer)
@@ -329,6 +347,13 @@ Serializers _$serializers = (Serializers().toBuilder()
       ..add(ProblemDetailsDto.serializer)
       ..add(ProvinceListResponseDtoOutput.serializer)
       ..add(ProvinceListResponseDtoOutputItemsInner.serializer)
+      ..add(PublicContentItemDtoOutput.serializer)
+      ..add(PublicContentItemDtoOutputPlacementEnum.serializer)
+      ..add(PublicContentItemDtoOutputTypeEnum.serializer)
+      ..add(PublicContentListDtoOutput.serializer)
+      ..add(PublicContentListDtoOutputItemsInner.serializer)
+      ..add(PublicContentListDtoOutputItemsInnerPlacementEnum.serializer)
+      ..add(PublicContentListDtoOutputItemsInnerTypeEnum.serializer)
       ..add(QueueHealthResponseDtoOutput.serializer)
       ..add(QueueHealthResponseDtoOutputQueuesInner.serializer)
       ..add(QueueHealthResponseDtoOutputStatusEnum.serializer)
@@ -389,6 +414,14 @@ Serializers _$serializers = (Serializers().toBuilder()
       ..add(SystemIntegrationsDtoOutput.serializer)
       ..add(SystemIntegrationsDtoOutputItemsInner.serializer)
       ..add(SystemIntegrationsDtoOutputItemsInnerStatusEnum.serializer)
+      ..add(TripAssignmentDtoOutput.serializer)
+      ..add(TripAssignmentDtoOutputStatusEnum.serializer)
+      ..add(TripAssignmentPageDtoOutput.serializer)
+      ..add(TripAssignmentPageDtoOutputItemsInner.serializer)
+      ..add(TripAssignmentPageDtoOutputItemsInnerConflict.serializer)
+      ..add(TripAssignmentPageDtoOutputItemsInnerDriver.serializer)
+      ..add(TripAssignmentPageDtoOutputItemsInnerDriverStatusEnum.serializer)
+      ..add(TripAssignmentPageDtoOutputItemsInnerStatusEnum.serializer)
       ..add(TripInputDto.serializer)
       ..add(TripListResponseDtoOutput.serializer)
       ..add(TripListResponseDtoOutputItemsInner.serializer)
@@ -401,6 +434,18 @@ Serializers _$serializers = (Serializers().toBuilder()
       ..add(TripResponseDtoOutputStopsInner.serializer)
       ..add(TripResponseDtoOutputStopsInnerRoleEnum.serializer)
       ..add(TripResponseDtoOutputStopsInnerTypeEnum.serializer)
+      ..add(TripScheduleGenerateInputDto.serializer)
+      ..add(TripScheduleGenerateResponseDtoOutput.serializer)
+      ..add(TripScheduleGenerateResponseDtoOutputCreatedInner.serializer)
+      ..add(TripScheduleGenerateResponseDtoOutputCreatedInnerStatusEnum
+          .serializer)
+      ..add(TripScheduleGenerateResponseDtoOutputSkippedInner.serializer)
+      ..add(TripScheduleGenerateResponseDtoOutputSkippedInnerReasonEnum
+          .serializer)
+      ..add(TripScheduleInputDto.serializer)
+      ..add(TripScheduleListResponseDtoOutput.serializer)
+      ..add(TripScheduleListResponseDtoOutputItemsInner.serializer)
+      ..add(TripScheduleResponseDtoOutput.serializer)
       ..add(TripSeatStatusInputDto.serializer)
       ..add(TripSeatStatusInputDtoStatusEnum.serializer)
       ..add(TripStatusInputDto.serializer)
@@ -597,6 +642,10 @@ Serializers _$serializers = (Serializers().toBuilder()
           ]),
           () => ListBuilder<CommissionOverviewDtoOutputOverridesInner>())
       ..addBuilderFactory(
+          const FullType(BuiltList,
+              const [const FullType(ContentPagePageDtoOutputItemsInner)]),
+          () => ListBuilder<ContentPagePageDtoOutputItemsInner>())
+      ..addBuilderFactory(
           const FullType(BuiltList, const [const FullType(DateTime)]),
           () => ListBuilder<DateTime>())
       ..addBuilderFactory(
@@ -670,6 +719,10 @@ Serializers _$serializers = (Serializers().toBuilder()
           () => ListBuilder<ProvinceListResponseDtoOutputItemsInner>())
       ..addBuilderFactory(
           const FullType(BuiltList,
+              const [const FullType(PublicContentListDtoOutputItemsInner)]),
+          () => ListBuilder<PublicContentListDtoOutputItemsInner>())
+      ..addBuilderFactory(
+          const FullType(BuiltList,
               const [const FullType(QueueHealthResponseDtoOutputQueuesInner)]),
           () => ListBuilder<QueueHealthResponseDtoOutputQueuesInner>())
       ..addBuilderFactory(
@@ -739,6 +792,9 @@ Serializers _$serializers = (Serializers().toBuilder()
           const FullType(BuiltList, const [const FullType(String)]),
           () => ListBuilder<String>())
       ..addBuilderFactory(
+          const FullType(BuiltList, const [const FullType(String)]),
+          () => ListBuilder<String>())
+      ..addBuilderFactory(
           const FullType(BuiltList, const [
             const FullType(VehicleListResponseDtoOutputItemsInnerImagesInner)
           ]),
@@ -759,6 +815,10 @@ Serializers _$serializers = (Serializers().toBuilder()
           () => ListBuilder<SystemIntegrationsDtoOutputItemsInner>())
       ..addBuilderFactory(
           const FullType(BuiltList,
+              const [const FullType(TripAssignmentPageDtoOutputItemsInner)]),
+          () => ListBuilder<TripAssignmentPageDtoOutputItemsInner>())
+      ..addBuilderFactory(
+          const FullType(BuiltList,
               const [const FullType(TripListResponseDtoOutputItemsInner)]),
           () => ListBuilder<TripListResponseDtoOutputItemsInner>())
       ..addBuilderFactory(
@@ -769,6 +829,23 @@ Serializers _$serializers = (Serializers().toBuilder()
           const FullType(BuiltList,
               const [const FullType(TripResponseDtoOutputSeatsInner)]),
           () => ListBuilder<TripResponseDtoOutputSeatsInner>())
+      ..addBuilderFactory(
+          const FullType(BuiltList, const [
+            const FullType(TripScheduleGenerateResponseDtoOutputCreatedInner)
+          ]),
+          () =>
+              ListBuilder<TripScheduleGenerateResponseDtoOutputCreatedInner>())
+      ..addBuilderFactory(
+          const FullType(BuiltList, const [
+            const FullType(TripScheduleGenerateResponseDtoOutputSkippedInner)
+          ]),
+          () =>
+              ListBuilder<TripScheduleGenerateResponseDtoOutputSkippedInner>())
+      ..addBuilderFactory(
+          const FullType(BuiltList, const [
+            const FullType(TripScheduleListResponseDtoOutputItemsInner)
+          ]),
+          () => ListBuilder<TripScheduleListResponseDtoOutputItemsInner>())
       ..addBuilderFactory(
           const FullType(BuiltList,
               const [const FullType(VehicleImagesInputDtoImagesInner)]),
@@ -792,6 +869,15 @@ Serializers _$serializers = (Serializers().toBuilder()
           const FullType(BuiltList,
               const [const FullType(WardListResponseDtoOutputItemsInner)]),
           () => ListBuilder<WardListResponseDtoOutputItemsInner>())
+      ..addBuilderFactory(
+          const FullType(BuiltList, const [const FullType(int)]),
+          () => ListBuilder<int>())
+      ..addBuilderFactory(
+          const FullType(BuiltList, const [const FullType(int)]),
+          () => ListBuilder<int>())
+      ..addBuilderFactory(
+          const FullType(BuiltList, const [const FullType(int)]),
+          () => ListBuilder<int>())
       ..addBuilderFactory(
           const FullType(
               BuiltMap, const [const FullType(String), const FullType(int)]),
