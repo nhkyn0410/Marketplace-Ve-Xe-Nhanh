@@ -3,10 +3,11 @@
 //
 
 // ignore_for_file: unused_element
+import 'package:api_client_dart/src/model/policy_overview_dto_output_versions_inner_rules_any_of3.dart';
 import 'package:api_client_dart/src/model/policy_overview_dto_output_versions_inner_rules_any_of.dart';
 import 'package:built_collection/built_collection.dart';
-import 'package:api_client_dart/src/model/policy_overview_dto_output_versions_inner_rules_any_of_tiers_inner.dart';
 import 'package:api_client_dart/src/model/policy_overview_dto_output_versions_inner_rules_any_of1.dart';
+import 'package:api_client_dart/src/model/policy_overview_dto_output_versions_inner_rules_any_of3_tiers_inner.dart';
 import 'package:api_client_dart/src/model/policy_overview_dto_output_versions_inner_rules_any_of2.dart';
 import 'package:built_value/built_value.dart';
 import 'package:built_value/serializer.dart';
@@ -23,9 +24,14 @@ part 'policy_overview_dto_output_versions_inner_rules.g.dart';
 /// * [channel] 
 /// * [manualConfirmation] 
 /// * [minimumAmount] 
+/// * [earnUnit] 
+/// * [pointValue] 
+/// * [minRedeemPoints] 
+/// * [pointExpiryMonths] 
+/// * [voucherValidityDays] 
 @BuiltValue()
 abstract class PolicyOverviewDtoOutputVersionsInnerRules implements Built<PolicyOverviewDtoOutputVersionsInnerRules, PolicyOverviewDtoOutputVersionsInnerRulesBuilder> {
-  /// Any Of [PolicyOverviewDtoOutputVersionsInnerRulesAnyOf], [PolicyOverviewDtoOutputVersionsInnerRulesAnyOf1], [PolicyOverviewDtoOutputVersionsInnerRulesAnyOf2]
+  /// Any Of [PolicyOverviewDtoOutputVersionsInnerRulesAnyOf], [PolicyOverviewDtoOutputVersionsInnerRulesAnyOf1], [PolicyOverviewDtoOutputVersionsInnerRulesAnyOf2], [PolicyOverviewDtoOutputVersionsInnerRulesAnyOf3]
   AnyOf get anyOf;
 
   PolicyOverviewDtoOutputVersionsInnerRules._();
@@ -71,7 +77,7 @@ class _$PolicyOverviewDtoOutputVersionsInnerRulesSerializer implements Primitive
   }) {
     final result = PolicyOverviewDtoOutputVersionsInnerRulesBuilder();
     Object? anyOfDataSrc;
-    final targetType = const FullType(AnyOf, [FullType(PolicyOverviewDtoOutputVersionsInnerRulesAnyOf), FullType(PolicyOverviewDtoOutputVersionsInnerRulesAnyOf1), FullType(PolicyOverviewDtoOutputVersionsInnerRulesAnyOf2), ]);
+    final targetType = const FullType(AnyOf, [FullType(PolicyOverviewDtoOutputVersionsInnerRulesAnyOf), FullType(PolicyOverviewDtoOutputVersionsInnerRulesAnyOf1), FullType(PolicyOverviewDtoOutputVersionsInnerRulesAnyOf2), FullType(PolicyOverviewDtoOutputVersionsInnerRulesAnyOf3), ]);
     anyOfDataSrc = serialized;
     result.anyOf = serializers.deserialize(anyOfDataSrc, specifiedType: targetType) as AnyOf;
     return result.build();

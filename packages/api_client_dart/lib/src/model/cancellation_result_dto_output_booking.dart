@@ -10,6 +10,7 @@ import 'package:api_client_dart/src/model/created_booking_dto_output_tickets_inn
 import 'package:built_collection/built_collection.dart';
 import 'package:api_client_dart/src/model/created_booking_dto_output_passengers_inner.dart';
 import 'package:api_client_dart/src/model/created_booking_dto_output_trip.dart';
+import 'package:api_client_dart/src/model/created_booking_dto_output_trip_changes_inner.dart';
 import 'package:api_client_dart/src/model/public_trip_dto_output_cancellation_policy.dart';
 import 'package:api_client_dart/src/model/trip_search_response_dto_output_items_inner_pickup.dart';
 import 'package:built_value/built_value.dart';
@@ -39,6 +40,7 @@ part 'cancellation_result_dto_output_booking.g.dart';
 /// * [payment] 
 /// * [tickets] 
 /// * [refunds] 
+/// * [tripChanges] 
 /// * [createdAt] 
 @BuiltValue()
 abstract class CancellationResultDtoOutputBooking implements Built<CancellationResultDtoOutputBooking, CancellationResultDtoOutputBookingBuilder> {
@@ -99,6 +101,9 @@ abstract class CancellationResultDtoOutputBooking implements Built<CancellationR
 
   @BuiltValueField(wireName: r'refunds')
   BuiltList<CreatedBookingDtoOutputRefundsInner> get refunds;
+
+  @BuiltValueField(wireName: r'tripChanges')
+  BuiltList<CreatedBookingDtoOutputTripChangesInner> get tripChanges;
 
   @BuiltValueField(wireName: r'createdAt')
   DateTime get createdAt;
@@ -220,6 +225,11 @@ class _$CancellationResultDtoOutputBookingSerializer implements PrimitiveSeriali
     yield serializers.serialize(
       object.refunds,
       specifiedType: const FullType(BuiltList, [FullType(CreatedBookingDtoOutputRefundsInner)]),
+    );
+    yield r'tripChanges';
+    yield serializers.serialize(
+      object.tripChanges,
+      specifiedType: const FullType(BuiltList, [FullType(CreatedBookingDtoOutputTripChangesInner)]),
     );
     yield r'createdAt';
     yield serializers.serialize(
@@ -383,6 +393,13 @@ class _$CancellationResultDtoOutputBookingSerializer implements PrimitiveSeriali
             specifiedType: const FullType(BuiltList, [FullType(CreatedBookingDtoOutputRefundsInner)]),
           ) as BuiltList<CreatedBookingDtoOutputRefundsInner>;
           result.refunds.replace(valueDes);
+          break;
+        case r'tripChanges':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(BuiltList, [FullType(CreatedBookingDtoOutputTripChangesInner)]),
+          ) as BuiltList<CreatedBookingDtoOutputTripChangesInner>;
+          result.tripChanges.replace(valueDes);
           break;
         case r'createdAt':
           final valueDes = serializers.deserialize(

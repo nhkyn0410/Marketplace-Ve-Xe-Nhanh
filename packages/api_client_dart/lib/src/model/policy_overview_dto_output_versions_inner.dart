@@ -35,7 +35,7 @@ abstract class PolicyOverviewDtoOutputVersionsInner implements Built<PolicyOverv
 
   @BuiltValueField(wireName: r'type')
   PolicyOverviewDtoOutputVersionsInnerTypeEnum get type;
-  // enum typeEnum {  CANCELLATION,  SEAT_HOLD,  PAYOUT,  };
+  // enum typeEnum {  CANCELLATION,  SEAT_HOLD,  PAYOUT,  LOYALTY,  };
 
   @BuiltValueField(wireName: r'operatorId')
   String? get operatorId;
@@ -349,6 +349,8 @@ class PolicyOverviewDtoOutputVersionsInnerTypeEnum extends EnumClass {
   static const PolicyOverviewDtoOutputVersionsInnerTypeEnum SEAT_HOLD = _$policyOverviewDtoOutputVersionsInnerTypeEnum_SEAT_HOLD;
   @BuiltValueEnumConst(wireName: r'PAYOUT')
   static const PolicyOverviewDtoOutputVersionsInnerTypeEnum PAYOUT = _$policyOverviewDtoOutputVersionsInnerTypeEnum_PAYOUT;
+  @BuiltValueEnumConst(wireName: r'LOYALTY')
+  static const PolicyOverviewDtoOutputVersionsInnerTypeEnum LOYALTY = _$policyOverviewDtoOutputVersionsInnerTypeEnum_LOYALTY;
 
   static Serializer<PolicyOverviewDtoOutputVersionsInnerTypeEnum> get serializer => _$policyOverviewDtoOutputVersionsInnerTypeEnumSerializer;
 

@@ -27,6 +27,8 @@ part 'trip_response_dto_output.g.dart';
 /// * [updatedAt] 
 /// * [onlineSaleCutoffMinutes] 
 /// * [statusReason] 
+/// * [departedAt] 
+/// * [completedAt] 
 /// * [note] 
 /// * [stops] 
 /// * [seats] 
@@ -71,6 +73,12 @@ abstract class TripResponseDtoOutput implements Built<TripResponseDtoOutput, Tri
 
   @BuiltValueField(wireName: r'statusReason')
   String? get statusReason;
+
+  @BuiltValueField(wireName: r'departedAt')
+  DateTime? get departedAt;
+
+  @BuiltValueField(wireName: r'completedAt')
+  DateTime? get completedAt;
 
   @BuiltValueField(wireName: r'note')
   String? get note;
@@ -168,6 +176,16 @@ class _$TripResponseDtoOutputSerializer implements PrimitiveSerializer<TripRespo
     yield object.statusReason == null ? null : serializers.serialize(
       object.statusReason,
       specifiedType: const FullType.nullable(String),
+    );
+    yield r'departedAt';
+    yield object.departedAt == null ? null : serializers.serialize(
+      object.departedAt,
+      specifiedType: const FullType.nullable(DateTime),
+    );
+    yield r'completedAt';
+    yield object.completedAt == null ? null : serializers.serialize(
+      object.completedAt,
+      specifiedType: const FullType.nullable(DateTime),
     );
     yield r'note';
     yield object.note == null ? null : serializers.serialize(
@@ -300,6 +318,22 @@ class _$TripResponseDtoOutputSerializer implements PrimitiveSerializer<TripRespo
           ) as String?;
           if (valueDes == null) continue;
           result.statusReason = valueDes;
+          break;
+        case r'departedAt':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType.nullable(DateTime),
+          ) as DateTime?;
+          if (valueDes == null) continue;
+          result.departedAt = valueDes;
+          break;
+        case r'completedAt':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType.nullable(DateTime),
+          ) as DateTime?;
+          if (valueDes == null) continue;
+          result.completedAt = valueDes;
           break;
         case r'note':
           final valueDes = serializers.deserialize(

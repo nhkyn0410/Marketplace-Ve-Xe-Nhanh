@@ -175,6 +175,8 @@ class _$CancellationResultDtoOutputBooking
   @override
   final BuiltList<CreatedBookingDtoOutputRefundsInner> refunds;
   @override
+  final BuiltList<CreatedBookingDtoOutputTripChangesInner> tripChanges;
+  @override
   final DateTime createdAt;
 
   factory _$CancellationResultDtoOutputBooking(
@@ -202,6 +204,7 @@ class _$CancellationResultDtoOutputBooking
       this.payment,
       required this.tickets,
       required this.refunds,
+      required this.tripChanges,
       required this.createdAt})
       : super._();
   @override
@@ -236,6 +239,7 @@ class _$CancellationResultDtoOutputBooking
         payment == other.payment &&
         tickets == other.tickets &&
         refunds == other.refunds &&
+        tripChanges == other.tripChanges &&
         createdAt == other.createdAt;
   }
 
@@ -261,6 +265,7 @@ class _$CancellationResultDtoOutputBooking
     _$hash = $jc(_$hash, payment.hashCode);
     _$hash = $jc(_$hash, tickets.hashCode);
     _$hash = $jc(_$hash, refunds.hashCode);
+    _$hash = $jc(_$hash, tripChanges.hashCode);
     _$hash = $jc(_$hash, createdAt.hashCode);
     _$hash = $jf(_$hash);
     return _$hash;
@@ -288,6 +293,7 @@ class _$CancellationResultDtoOutputBooking
           ..add('payment', payment)
           ..add('tickets', tickets)
           ..add('refunds', refunds)
+          ..add('tripChanges', tripChanges)
           ..add('createdAt', createdAt))
         .toString();
   }
@@ -397,6 +403,14 @@ class CancellationResultDtoOutputBookingBuilder
   set refunds(ListBuilder<CreatedBookingDtoOutputRefundsInner>? refunds) =>
       _$this._refunds = refunds;
 
+  ListBuilder<CreatedBookingDtoOutputTripChangesInner>? _tripChanges;
+  ListBuilder<CreatedBookingDtoOutputTripChangesInner> get tripChanges =>
+      _$this._tripChanges ??=
+          ListBuilder<CreatedBookingDtoOutputTripChangesInner>();
+  set tripChanges(
+          ListBuilder<CreatedBookingDtoOutputTripChangesInner>? tripChanges) =>
+      _$this._tripChanges = tripChanges;
+
   DateTime? _createdAt;
   DateTime? get createdAt => _$this._createdAt;
   set createdAt(DateTime? createdAt) => _$this._createdAt = createdAt;
@@ -427,6 +441,7 @@ class CancellationResultDtoOutputBookingBuilder
       _payment = $v.payment?.toBuilder();
       _tickets = $v.tickets.toBuilder();
       _refunds = $v.refunds.toBuilder();
+      _tripChanges = $v.tripChanges.toBuilder();
       _createdAt = $v.createdAt;
       _$v = null;
     }
@@ -480,6 +495,7 @@ class CancellationResultDtoOutputBookingBuilder
             payment: _payment?.build(),
             tickets: tickets.build(),
             refunds: refunds.build(),
+            tripChanges: tripChanges.build(),
             createdAt: BuiltValueNullFieldError.checkNotNull(
                 createdAt, r'CancellationResultDtoOutputBooking', 'createdAt'),
           );
@@ -506,6 +522,8 @@ class CancellationResultDtoOutputBookingBuilder
         tickets.build();
         _$failedField = 'refunds';
         refunds.build();
+        _$failedField = 'tripChanges';
+        tripChanges.build();
       } catch (e) {
         throw BuiltValueNestedFieldError(
             r'CancellationResultDtoOutputBooking', _$failedField, e.toString());

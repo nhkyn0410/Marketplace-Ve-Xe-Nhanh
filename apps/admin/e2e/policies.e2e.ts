@@ -155,7 +155,7 @@ test("khung giá vé: thiết lập khung (sàn > trần báo lỗi) → đã l�
   await expect(row).toContainText("Đã hủy");
 });
 
-test("tổng quan + tích hợp & hệ thống (chỉ đọc) + màn chờ đặt vé chỉ có khung, không số liệu mẫu", async () => {
+test("tổng quan + tích hợp & hệ thống (chỉ đọc) + thanh toán & hoàn tiền", async () => {
   await page.getByRole("link", { name: "Tổng quan", exact: true }).click();
   await expect(page.getByRole("heading", { name: "Tổng quan nền tảng", level: 1 })).toBeVisible({ timeout: 20_000 });
   const queue = page.getByRole("region", { name: "Việc cần xử lý" });
@@ -173,7 +173,6 @@ test("tổng quan + tích hợp & hệ thống (chỉ đọc) + màn chờ đặ
   await page.getByRole("link", { name: "Thanh toán & hoàn tiền", exact: true }).click();
   await expect(page.getByRole("heading", { name: "Thanh toán & hoàn tiền", level: 1 })).toBeVisible({ timeout: 20_000 });
   await expect(page.getByRole("columnheader", { name: "Mã thanh toán" })).toBeVisible();
-  await expect(page.getByText("Chưa có dữ liệu", { exact: true })).toBeVisible();
   await page.getByRole("tab", { name: "Hoàn tiền" }).click();
   await expect(page.getByRole("columnheader", { name: "Mã hoàn tiền" })).toBeVisible();
 });

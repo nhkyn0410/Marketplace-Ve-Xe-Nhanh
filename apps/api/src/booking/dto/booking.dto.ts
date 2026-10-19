@@ -34,6 +34,14 @@ export const BookingInputSchema = z
      * giá mới (`GET /seat-holds/{holdId}`) rồi gửi lại — không tự thu khác số khách đã đồng ý.
      */
     expectedTotal: z.int().min(0),
+    /** Mã khuyến mãi (FR-MKT-10, TASK-PROM-001) — tối đa một mã mỗi đơn; `expectedTotal` là tổng SAU giảm. */
+    promotionCode: z
+      .string()
+      .trim()
+      .toUpperCase()
+      .regex(/^[A-Z0-9]{3,20}$/, "Mã khuyến mãi gồm 3–20 chữ / số.")
+      .nullish()
+      .transform((value) => value ?? null),
   })
   .superRefine((input, ctx) => {
     const codes = input.passengers.map((passenger) => passenger.seatCode);

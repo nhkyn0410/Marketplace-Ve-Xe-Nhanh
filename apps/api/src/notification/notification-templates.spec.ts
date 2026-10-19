@@ -61,4 +61,12 @@ describe("notification-templates (TASK-NSR-001)", () => {
       "Mã tham chiếu: FT1. Lý do: Chuyển tay",
     );
   });
+
+  it("cập nhật khiếu nại / tranh chấp (TRUST-001): tiêu đề theo mã hồ sơ; khách được hướng dẫn tra cứu, nhà xe vào mục Hỗ trợ", () => {
+    const customer = renderNotification({ kind: "CASE_UPDATED", audience: "CUSTOMER", bookingCode: "VXN1", caseCode: "KN-20261019-001", title: "Nhà xe đã phản hồi", message: "Đã kiểm tra." });
+    expect(customer.subject).toBe("KN-20261019-001 — Nhà xe đã phản hồi");
+    expect(customer.lines).toEqual(["Đơn VXN1, hồ sơ KN-20261019-001.", "Đã kiểm tra.", expect.stringContaining("Tra cứu đơn")]);
+    const operator = renderNotification({ kind: "CASE_UPDATED", audience: "OPERATOR", bookingCode: "VXN1", caseCode: "DC-000001", title: "Cần minh chứng", message: "Gửi nhật trình." });
+    expect(operator.lines[2]).toContain("mục Hỗ trợ");
+  });
 });

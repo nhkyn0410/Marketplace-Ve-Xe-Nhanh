@@ -43,6 +43,7 @@ import {
   vehicleScheduleConflict,
 } from "./trip.errors";
 import { findDetail, loadRouteStops, lockVehicleSeats, planStopTimes, toResponse, type TripActor } from "./trip.service";
+import { releaseRedemption } from "../promotion/promotion-apply";
 
 const AUDIT_TIMEOUT_MS = 2_000;
 /** Chuyến đang bán / tạm khóa bán / hết chỗ — đổi lịch chạy được (nháp sửa thẳng bằng PUT chuyến). */
@@ -386,6 +387,8 @@ async function cancelPendingBooking(tx: DbTransaction, operatorId: string, booki
   if (updated.count === 0) {
     return;
   }
+  // Mã khuyến mãi đang giữ cho đơn → trả lượt dùng (BR-72).
+  await releaseRedemption(tx, operatorId, bookingId);
   await tx.bookingStatusHistory.create({
     data: { bookingId, operatorId, fromStatus: BookingStatus.PENDING_PAYMENT, toStatus: BookingStatus.CANCELLED, reason: `Nhà xe hủy chuyến: ${reason}`, actor, createdAt: now },
   });

@@ -12,7 +12,7 @@ class _$TripPassengerListDtoOutput extends TripPassengerListDtoOutput {
   @override
   final TripPassengerListDtoOutputSummary summary;
   @override
-  final BuiltList<TripPassengerListDtoOutputPickupsInner> pickups;
+  final BuiltList<TripSalesDtoOutputChangesInnerBeforeStopsInner> pickups;
   @override
   final BuiltList<TripPassengerListDtoOutputItemsInner> items;
 
@@ -83,10 +83,13 @@ class TripPassengerListDtoOutputBuilder
   set summary(TripPassengerListDtoOutputSummaryBuilder? summary) =>
       _$this._summary = summary;
 
-  ListBuilder<TripPassengerListDtoOutputPickupsInner>? _pickups;
-  ListBuilder<TripPassengerListDtoOutputPickupsInner> get pickups =>
-      _$this._pickups ??= ListBuilder<TripPassengerListDtoOutputPickupsInner>();
-  set pickups(ListBuilder<TripPassengerListDtoOutputPickupsInner>? pickups) =>
+  ListBuilder<TripSalesDtoOutputChangesInnerBeforeStopsInner>? _pickups;
+  ListBuilder<TripSalesDtoOutputChangesInnerBeforeStopsInner> get pickups =>
+      _$this._pickups ??=
+          ListBuilder<TripSalesDtoOutputChangesInnerBeforeStopsInner>();
+  set pickups(
+          ListBuilder<TripSalesDtoOutputChangesInnerBeforeStopsInner>?
+              pickups) =>
       _$this._pickups = pickups;
 
   ListBuilder<TripPassengerListDtoOutputItemsInner>? _items;

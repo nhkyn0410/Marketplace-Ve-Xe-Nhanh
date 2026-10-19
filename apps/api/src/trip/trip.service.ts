@@ -618,6 +618,8 @@ export function findDetail(tx: DbTransaction, operatorId: string, tripId: string
       status: true,
       onlineSaleCutoffMinutes: true,
       statusReason: true,
+      departedAt: true,
+      completedAt: true,
       note: true,
       createdAt: true,
       updatedAt: true,
@@ -676,6 +678,8 @@ export function toResponse(row: NonNullable<Awaited<ReturnType<typeof findDetail
     seatCount: seats.length,
     departureAt: trip.departureAt.toISOString(),
     arrivalAt: trip.arrivalAt.toISOString(),
+    departedAt: trip.departedAt?.toISOString() ?? null,
+    completedAt: trip.completedAt?.toISOString() ?? null,
     createdAt: trip.createdAt.toISOString(),
     updatedAt: trip.updatedAt.toISOString(),
     stops: stops.map(({ catalogStopPoint, stopPoint, plannedAt, ...stop }) => {

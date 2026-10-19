@@ -118,9 +118,9 @@ class _$TripPassengerListDtoOutputItemsInner
   @override
   final bool guest;
   @override
-  final TripPassengerListDtoOutputPickupsInner pickup;
+  final TripSalesDtoOutputChangesInnerBeforeStopsInner pickup;
   @override
-  final TripPassengerListDtoOutputPickupsInner dropoff;
+  final TripSalesDtoOutputChangesInnerBeforeStopsInner dropoff;
   @override
   final String ticketCode;
   @override
@@ -233,16 +233,18 @@ class TripPassengerListDtoOutputItemsInnerBuilder
   bool? get guest => _$this._guest;
   set guest(bool? guest) => _$this._guest = guest;
 
-  TripPassengerListDtoOutputPickupsInnerBuilder? _pickup;
-  TripPassengerListDtoOutputPickupsInnerBuilder get pickup =>
-      _$this._pickup ??= TripPassengerListDtoOutputPickupsInnerBuilder();
-  set pickup(TripPassengerListDtoOutputPickupsInnerBuilder? pickup) =>
+  TripSalesDtoOutputChangesInnerBeforeStopsInnerBuilder? _pickup;
+  TripSalesDtoOutputChangesInnerBeforeStopsInnerBuilder get pickup =>
+      _$this._pickup ??=
+          TripSalesDtoOutputChangesInnerBeforeStopsInnerBuilder();
+  set pickup(TripSalesDtoOutputChangesInnerBeforeStopsInnerBuilder? pickup) =>
       _$this._pickup = pickup;
 
-  TripPassengerListDtoOutputPickupsInnerBuilder? _dropoff;
-  TripPassengerListDtoOutputPickupsInnerBuilder get dropoff =>
-      _$this._dropoff ??= TripPassengerListDtoOutputPickupsInnerBuilder();
-  set dropoff(TripPassengerListDtoOutputPickupsInnerBuilder? dropoff) =>
+  TripSalesDtoOutputChangesInnerBeforeStopsInnerBuilder? _dropoff;
+  TripSalesDtoOutputChangesInnerBeforeStopsInnerBuilder get dropoff =>
+      _$this._dropoff ??=
+          TripSalesDtoOutputChangesInnerBeforeStopsInnerBuilder();
+  set dropoff(TripSalesDtoOutputChangesInnerBeforeStopsInnerBuilder? dropoff) =>
       _$this._dropoff = dropoff;
 
   String? _ticketCode;

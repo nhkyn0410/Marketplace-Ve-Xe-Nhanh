@@ -18,6 +18,7 @@ export const PERMISSIONS = [
   "trip:manage", // §7 Trip/fare/inventory (TASK-TRN-003) — tạo/sửa chuyến của nhà xe
   "checkin:perform", // §7 Check-in
   "checkin:read", // §7 Check-in — "xem kết quả" / "giám sát"
+  "trip:operate", // §7 Trip cột Employee — "cập nhật trạng thái chuyến được phân công" (FR-EMP-09, TASK-EMP-002), chỉ tài xế
   "kyc:submit", // §7 KYC — "hồ sơ của mình"
   "kyc:review", // §7 KYC — "duyệt/quản lý"
   "catalog:manage", // §7 Route/StopPoint cột Admin (TASK-ADM-004) — điểm dùng chung, duyệt đề xuất, khóa điểm riêng
@@ -30,6 +31,14 @@ export const PERMISSIONS = [
   "audit:read", // §7 Audit log
   "employee:manage", // API §7.3 /operator/employees, FR-IAM-05
   "account:lock", // FR-IAM-08 (Admin, Nhà xe)
+  "support:create", // FR-NSR-06, FR-DSP-04 — khách gửi / theo dõi khiếu nại + phản hồi tranh chấp của đơn mình (TASK-TRUST-001)
+  "review:create", // FR-NSR-10, BR-18 — hành khách đánh giá chuyến đã hoàn thành (Guest không, v1)
+  "support:respond", // FR-NSR-07, FR-DSP-04 — nhà xe phản hồi khiếu nại / tranh chấp / đánh giá của tenant
+  "support:manage", // FR-NSR-08, FR-DSP-03 — Admin phân loại, phân công, trả lời, yêu cầu minh chứng, chuyển tranh chấp
+  "dispute:decide", // FR-DSP-06, FR-ADM-11, BR-51 — ra quyết định tranh chấp (gồm hoàn tiền), chỉ PlatformAdmin
+  "promotion:manage", // FR-PROM-04, BR-46 — Owner: khuyến mãi của nhà xe trong giới hạn, tham gia khuyến mãi nền tảng (TASK-PROM-001)
+  "promotion:configure", // FR-PROM-01..03, FR-ADM-12 — PlatformAdmin: khuyến mãi nền tảng, quyền / giới hạn của nhà xe, tạm dừng khuyến mãi nhà xe
+  "loyalty:manage", // FR-LOY-11/12, UC-39 — PlatformAdmin: tra cứu tài khoản VXN Plus, điều chỉnh điểm, báo cáo (TASK-LOY-001)
 ] as const;
 
 export type Permission = (typeof PERMISSIONS)[number];
@@ -45,11 +54,14 @@ export type GrantScope = "any" | "tenant" | "assigned" | "own";
 
 type Grants = Readonly<Partial<Record<Permission, GrantScope>>>;
 
-/** 3 role Employee dùng chung tới khi task EMP tách quyền theo từng role (BR-43). */
+/** Quyền chung của 3 role Employee (BR-43): xem xe, soát vé chuyến được phân công. */
 const EMPLOYEE: Grants = {
   "vehicle:read": "assigned",
   "checkin:perform": "assigned",
 };
+
+/** Tài xế còn cập nhật trạng thái chuyến được phân công (FR-EMP-09). */
+const DRIVER: Grants = { ...EMPLOYEE, "trip:operate": "assigned" };
 
 /**
  * Bảng role → quyền. `Record<Role, …>`: thêm role mà quên dòng ở đây thì TypeScript báo lỗi.
@@ -62,12 +74,15 @@ export const ROLE_GRANTS: Readonly<Record<Role, Grants>> = {
     "booking:create": "own", // guest session
     "payment:create": "own",
     "refund:request": "own", // sau khi xác minh mã booking + contact (Security §8)
+    "support:create": "own", // đơn đã xác minh bằng mã truy cập (UC-35)
   },
   [Role.PASSENGER]: {
     "trip:search": "any",
     "booking:create": "own",
     "payment:create": "own",
     "refund:request": "own",
+    "support:create": "own",
+    "review:create": "own",
   },
   [Role.OPERATOR_OWNER]: {
     "trip:search": "tenant",
@@ -82,8 +97,10 @@ export const ROLE_GRANTS: Readonly<Record<Role, Grants>> = {
     "employee:manage": "tenant",
     "booking:read": "tenant",
     "account:lock": "tenant",
+    "support:respond": "tenant",
+    "promotion:manage": "tenant",
   },
-  [Role.DRIVER]: EMPLOYEE,
+  [Role.DRIVER]: DRIVER,
   [Role.TICKET_STAFF]: EMPLOYEE,
   [Role.SUPPORT_STAFF]: EMPLOYEE,
   [Role.PLATFORM_ADMIN]: {
@@ -102,6 +119,10 @@ export const ROLE_GRANTS: Readonly<Record<Role, Grants>> = {
     "finance:configure": "any",
     "audit:read": "any",
     "account:lock": "any",
+    "support:manage": "any",
+    "dispute:decide": "any",
+    "promotion:configure": "any",
+    "loyalty:manage": "any",
   },
   // GIẢ ĐỊNH (Security §7 chỉ có một cột "Admin"): tối thiểu quyền — chỉ đọc/giám sát, không duyệt,
   // cấu hình hay hoàn tiền. Khanh đổi thì chỉ sửa dòng này.
@@ -111,5 +132,6 @@ export const ROLE_GRANTS: Readonly<Record<Role, Grants>> = {
     "vehicle:read": "any",
     "checkin:read": "any",
     "finance:read": "any",
+    "support:manage": "any",
   },
 };

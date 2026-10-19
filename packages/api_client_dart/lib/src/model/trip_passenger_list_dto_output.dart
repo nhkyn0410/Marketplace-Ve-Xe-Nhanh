@@ -6,7 +6,7 @@
 import 'package:api_client_dart/src/model/trip_passenger_list_dto_output_summary.dart';
 import 'package:built_collection/built_collection.dart';
 import 'package:api_client_dart/src/model/trip_passenger_list_dto_output_items_inner.dart';
-import 'package:api_client_dart/src/model/trip_passenger_list_dto_output_pickups_inner.dart';
+import 'package:api_client_dart/src/model/trip_sales_dto_output_changes_inner_before_stops_inner.dart';
 import 'package:api_client_dart/src/model/trip_passenger_list_dto_output_trip.dart';
 import 'package:built_value/built_value.dart';
 import 'package:built_value/serializer.dart';
@@ -29,7 +29,7 @@ abstract class TripPassengerListDtoOutput implements Built<TripPassengerListDtoO
   TripPassengerListDtoOutputSummary get summary;
 
   @BuiltValueField(wireName: r'pickups')
-  BuiltList<TripPassengerListDtoOutputPickupsInner> get pickups;
+  BuiltList<TripSalesDtoOutputChangesInnerBeforeStopsInner> get pickups;
 
   @BuiltValueField(wireName: r'items')
   BuiltList<TripPassengerListDtoOutputItemsInner> get items;
@@ -70,7 +70,7 @@ class _$TripPassengerListDtoOutputSerializer implements PrimitiveSerializer<Trip
     yield r'pickups';
     yield serializers.serialize(
       object.pickups,
-      specifiedType: const FullType(BuiltList, [FullType(TripPassengerListDtoOutputPickupsInner)]),
+      specifiedType: const FullType(BuiltList, [FullType(TripSalesDtoOutputChangesInnerBeforeStopsInner)]),
     );
     yield r'items';
     yield serializers.serialize(
@@ -117,8 +117,8 @@ class _$TripPassengerListDtoOutputSerializer implements PrimitiveSerializer<Trip
         case r'pickups':
           final valueDes = serializers.deserialize(
             value,
-            specifiedType: const FullType(BuiltList, [FullType(TripPassengerListDtoOutputPickupsInner)]),
-          ) as BuiltList<TripPassengerListDtoOutputPickupsInner>;
+            specifiedType: const FullType(BuiltList, [FullType(TripSalesDtoOutputChangesInnerBeforeStopsInner)]),
+          ) as BuiltList<TripSalesDtoOutputChangesInnerBeforeStopsInner>;
           result.pickups.replace(valueDes);
           break;
         case r'items':

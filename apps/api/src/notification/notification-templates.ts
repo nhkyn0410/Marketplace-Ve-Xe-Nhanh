@@ -24,7 +24,8 @@ export type NotificationContent =
   | { kind: "REFUND_SUCCEEDED"; bookingCode: string; refundCode: string; amount: number; provider: string }
   | { kind: "TRIP_CHANGED"; bookingCode: string; routeName: string; before: TripScheduleSnapshot; after: TripScheduleSnapshot; reason: string }
   | { kind: "TRIP_CANCELLED"; bookingCode: string; routeName: string; departureAt: string; reason: string; refundAmount: number | null }
-  | { kind: "MANUAL_REFUND"; operatorName: string; bookingCode: string; refundCode: string; amount: number; reference: string; reason: string };
+  | { kind: "MANUAL_REFUND"; operatorName: string; bookingCode: string; refundCode: string; amount: number; reference: string; reason: string }
+  | { kind: "CASE_UPDATED"; audience: "CUSTOMER" | "OPERATOR"; bookingCode: string; caseCode: string; title: string; message: string };
 
 export type RenderedNotification = { subject: string; title: string; lines: string[] };
 
@@ -127,6 +128,16 @@ export function renderNotification(content: NotificationContent): RenderedNotifi
           `Vé Xe Nhanh đã ghi nhận hoàn ${money(content.amount)} cho đơn ${content.bookingCode} (mã hoàn ${content.refundCode}) của ${content.operatorName}.`,
           `Mã tham chiếu: ${content.reference}. Lý do: ${content.reason}`,
           "Khoản hoàn được trừ khỏi số tiền chi trả cho nhà xe ở kỳ liên quan (xem mục Tài chính).",
+        ],
+      };
+    case "CASE_UPDATED":
+      return {
+        subject: `${content.caseCode} — ${content.title}`,
+        title: content.title,
+        lines: [
+          `Đơn ${content.bookingCode}, hồ sơ ${content.caseCode}.`,
+          content.message,
+          content.audience === "OPERATOR" ? "Xem và phản hồi ở mục Hỗ trợ trên Trang quản lý nhà xe." : LOOKUP,
         ],
       };
   }

@@ -151,6 +151,9 @@ export const TripResponseSchema = z.object({
   onlineSaleCutoffMinutes: z.int(),
   /** Lý do lần đổi trạng thái gần nhất (chuyến hủy luôn có). */
   statusReason: z.string().nullable(),
+  /** Giờ khởi hành / hoàn thành thực tế do tài xế cập nhật (TASK-EMP-002). */
+  departedAt: z.iso.datetime().nullable(),
+  completedAt: z.iso.datetime().nullable(),
   note: z.string().nullable(),
   stops: z.array(
     z.object({

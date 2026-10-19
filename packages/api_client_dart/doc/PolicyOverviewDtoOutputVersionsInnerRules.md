@@ -8,12 +8,17 @@ import 'package:api_client_dart/api.dart';
 ## Properties
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**tiers** | [**BuiltList&lt;PolicyOverviewDtoOutputVersionsInnerRulesAnyOfTiersInner&gt;**](PolicyOverviewDtoOutputVersionsInnerRulesAnyOfTiersInner.md) |  | 
+**tiers** | [**BuiltList&lt;PolicyOverviewDtoOutputVersionsInnerRulesAnyOf3TiersInner&gt;**](PolicyOverviewDtoOutputVersionsInnerRulesAnyOf3TiersInner.md) |  | 
 **holdMinutes** | **int** |  | 
 **delayDays** | **int** |  | 
 **channel** | **String** |  | 
 **manualConfirmation** | **bool** |  | 
 **minimumAmount** | **int** |  | 
+**earnUnit** | **int** |  | 
+**pointValue** | **int** |  | 
+**minRedeemPoints** | **int** |  | 
+**pointExpiryMonths** | **int** |  | 
+**voucherValidityDays** | **int** |  | 
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)
 

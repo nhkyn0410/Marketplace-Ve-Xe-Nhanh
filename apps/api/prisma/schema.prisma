@@ -82,9 +82,10 @@ model User {
   createdAt     DateTime      @default(now()) @map("created_at")
   updatedAt     DateTime      @updatedAt @map("updated_at")
 
-  sessions Session[]
-  accounts Account[]
-  bookings Booking[]
+  sessions       Session[]
+  accounts       Account[]
+  bookings       Booking[]
+  loyaltyAccount LoyaltyAccount?
 
   @@index([status, createdAt(sort: Desc)])
   @@map("users")
@@ -182,6 +183,14 @@ model OperatorProfile {
   escrowEntries       EscrowLedger[]
   payouts             Payout[]
   notifications       Notification[]
+
+  supportTickets SupportTicket[]
+  disputeCases   DisputeCase[]
+  reviews        Review[]
+
+  promotionPermission     PromotionPermission?
+  promotions              Promotion[]
+  promotionParticipations PromotionParticipation[]
 
   @@unique([id, operatorSlug])
   @@map("operator_profiles")
@@ -832,6 +841,11 @@ model Trip {
   onlineSaleCutoffMinutes Int        @default(60) @map("online_sale_cutoff_minutes")
   /// Lý do lần đổi trạng thái gần nhất (hủy bắt buộc — CHECK ở migration).
   statusReason            String?    @map("status_reason")
+  /// Giờ khởi hành / hoàn thành thực tế do tài xế cập nhật (TASK-EMP-002).
+  departedAt              DateTime?  @map("departed_at")
+  completedAt             DateTime?  @map("completed_at")
+  /// Hoàn thành thực tế + chu kỳ chi trả (BR-32) — thay mốc dự kiến trên sổ giữ hộ khi có.
+  payoutEligibleAt        DateTime?  @map("payout_eligible_at")
   note                    String?
   /// Chuyến sinh từ lịch lặp lại (TRN-007) + ngày chạy theo giờ Việt Nam; cả hai cùng có hoặc cùng `null` (CHECK).
   scheduleId              String?    @map("schedule_id")
@@ -848,6 +862,8 @@ model Trip {
   assignments EmployeeAssignment[]
   bookings    Booking[]
   changes     TripChange[]
+
+  reviews Review[]
 
   @@unique([id, operatorId])
   /// Chạy lại lịch không sinh trùng ngày (TRN-007).
@@ -1218,6 +1234,8 @@ enum PolicyType {
   CANCELLATION
   SEAT_HOLD
   PAYOUT
+  /// Tham số VXN Plus (TASK-LOY-001).
+  LOYALTY
 }
 
 enum PolicyVersionStatus {
@@ -1421,6 +1439,14 @@ model Booking {
   refunds    Refund[]
   ledger     EscrowLedger[]
 
+  supportTickets SupportTicket[]
+  disputeCases   DisputeCase[]
+  /// Tối đa một (unique `booking_id`).
+  reviews        Review[]
+
+  /// Tối đa một (unique `booking_id`).
+  promotionRedemptions PromotionRedemption[]
+
   @@unique([id, operatorId])
   @@index([userId, createdAt(sort: Desc)])
   @@index([operatorId, status])
@@ -1441,7 +1467,7 @@ model PassengerInfo {
   fullName   String   @map("full_name")
   phone      String?
 
-  booking Booking @relation(fields: [bookingId, operatorId], references: [id, operatorId], onDelete: Restrict, onUpdate: Restrict)
+  booking Booking  @relation(fields: [bookingId, operatorId], references: [id, operatorId], onDelete: Restrict, onUpdate: Restrict)
   /// Đúng một vé (unique `passenger_info_id`); khai mảng vì FK ghép với `operator_id`.
   tickets Ticket[]
 
@@ -1491,29 +1517,31 @@ enum PaymentStatus {
 
 /// Một lần thanh toán booking qua cổng (FR-BTP-07..09). `paymentCode` = mã gửi cổng (`vnp_TxnRef` / `orderId`).
 model Payment {
-  id              String          @id @default(uuid())
+  id                String          @id @default(uuid())
   /// `PAY` + 12 ký tự (CHECK).
-  paymentCode     String          @unique @map("payment_code")
-  operatorId      String          @map("operator_id")
-  bookingId       String          @map("booking_id")
-  provider        PaymentProvider
-  status          PaymentStatus   @default(INITIATED)
+  paymentCode       String          @unique @map("payment_code")
+  operatorId        String          @map("operator_id")
+  bookingId         String          @map("booking_id")
+  provider          PaymentProvider
+  status            PaymentStatus   @default(INITIATED)
   /// VND, = tổng booking lúc tạo.
-  amount          BigInt
+  amount            BigInt
   /// Link trang thanh toán của cổng (VNPay ký sẵn / MoMo `payUrl`).
-  paymentUrl      String?         @map("payment_url")
+  paymentUrl        String?         @map("payment_url")
   /// Mã giao dịch của cổng (`vnp_TransactionNo` / `transId`) — dedup callback.
-  providerTxnId   String?         @map("provider_txn_id")
+  providerTxnId     String?         @map("provider_txn_id")
   /// Mã lỗi cổng trả khi thất bại.
-  failureCode     String?         @map("failure_code")
+  failureCode       String?         @map("failure_code")
   /// Lý do cần đối soát (`AMOUNT_MISMATCH`, `BOOKING_EXPIRED`, `DUPLICATE_PAYMENT`…).
-  reconcileReason String?         @map("reconcile_reason")
+  reconcileReason   String?         @map("reconcile_reason")
   /// Callback đã xác thực gần nhất (không gồm chữ ký) — phục vụ đối soát.
-  callback        Json?
-  expiresAt       DateTime        @map("expires_at")
-  paidAt          DateTime?       @map("paid_at")
-  createdAt       DateTime        @default(now()) @map("created_at")
-  updatedAt       DateTime        @updatedAt @map("updated_at")
+  callback          Json?
+  /// Lần job đối soát tra cứu cổng gần nhất (FR-BTP-17).
+  providerCheckedAt DateTime?       @map("provider_checked_at")
+  expiresAt         DateTime        @map("expires_at")
+  paidAt            DateTime?       @map("paid_at")
+  createdAt         DateTime        @default(now()) @map("created_at")
+  updatedAt         DateTime        @updatedAt @map("updated_at")
 
   booking   Booking                @relation(fields: [bookingId, operatorId], references: [id, operatorId], onDelete: Restrict, onUpdate: Restrict)
   histories PaymentStatusHistory[]
@@ -1525,6 +1553,7 @@ model Payment {
   @@index([bookingId, createdAt(sort: Desc)])
   @@index([operatorId, status])
   @@index([createdAt])
+  @@index([status, expiresAt])
   @@map("payments")
 }
 
@@ -1656,6 +1685,8 @@ model Refund {
   tickets   Ticket[]
   histories RefundStatusHistory[]
   ledger    EscrowLedger[]
+
+  disputeCases DisputeCase[]
 
   @@unique([id, operatorId])
   @@index([paymentId, status])
@@ -1844,6 +1875,8 @@ enum NotificationKind {
   TRIP_CANCELLED
   /// Admin hoàn tiền thủ công — báo chủ nhà xe (Security §8).
   MANUAL_REFUND
+  /// Khiếu nại / tranh chấp có cập nhật cần bên nhận biết (FR-DSP-07, TASK-TRUST-001).
+  CASE_UPDATED
 }
 
 enum NotificationChannel {
@@ -1929,4 +1962,465 @@ model TripChange {
   @@unique([id, operatorId])
   @@index([tripId, createdAt])
   @@map("trip_changes")
+}
+
+// ============================================================================
+// Support & Trust (TASK-TRUST-001, FR-NSR-06..11, FR-DSP-*, BR-18/49/50/51/55, UC-09, UC-27, UC-28). Thiết kế cột AI tự đề
+// xuất theo Figma ADM-09a–e, ADM-10a, "Nhà xe · Hỗ trợ" — chờ Khanh duyệt (`doc/task-propreties/TRUST-001-todo.md`).
+// ============================================================================
+
+/// Danh mục khiếu nại (Figma ADM-09b "Danh mục").
+enum SupportCategory {
+  PAYMENT_REFUND
+  SCHEDULE
+  SERVICE_QUALITY
+  TICKET_CHANGE
+  OTHER
+}
+
+enum SupportPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+/// Bên xử lý chính của khiếu nại.
+enum SupportHandler {
+  PLATFORM
+  OPERATOR
+}
+
+enum SupportStatus {
+  NEW
+  IN_PROGRESS
+  WAITING_OPERATOR
+  WAITING_CUSTOMER
+  /// Đã chuyển thành tranh chấp.
+  ESCALATED
+  RESOLVED
+  CLOSED
+}
+
+/// Bên viết / bên liên quan trong khiếu nại, tranh chấp.
+enum CaseParty {
+  PASSENGER
+  GUEST
+  OPERATOR
+  PLATFORM
+  SYSTEM
+}
+
+/// FR-DSP-02.
+enum DisputeStatus {
+  OPEN
+  WAITING_USER_EVIDENCE
+  WAITING_OPERATOR_RESPONSE
+  UNDER_REVIEW
+  ESCALATED
+  RESOLVED_REFUND
+  RESOLVED_NO_REFUND
+  CLOSED
+}
+
+/// FR-DSP-06: hoàn tiền / không hoàn / phương án khác (đổi vé, điều chỉnh…).
+enum DisputeDecision {
+  REFUND
+  NO_REFUND
+  OTHER
+}
+
+enum DisputeEventKind {
+  /// Đổi trạng thái (FR-DSP-08).
+  STATUS
+  /// Một bên gửi phản hồi / minh chứng.
+  EVIDENCE
+  /// Admin yêu cầu minh chứng + hạn phản hồi (FR-DSP-03).
+  REQUEST
+}
+
+/// BR-55: chỉ đánh giá `VISIBLE` được tính vào điểm nhà xe.
+enum ReviewStatus {
+  VISIBLE
+  HELD
+  HIDDEN
+}
+
+/// Khiếu nại / yêu cầu hỗ trợ gắn với một đơn (BR-49). Mã `KN-YYYYMMDD-NNN`.
+model SupportTicket {
+  id                   String          @id @default(uuid())
+  ticketCode           String          @unique @map("ticket_code")
+  operatorId           String          @map("operator_id")
+  bookingId            String          @map("booking_id")
+  /// Hành khách đã đăng nhập; `null` = khách vãng lai đã xác minh bằng mã truy cập đơn.
+  userId               String?         @map("user_id")
+  reporterParty        CaseParty       @map("reporter_party")
+  reporterName         String          @map("reporter_name")
+  subject              String
+  category             SupportCategory
+  /// Mức ưu tiên khách chọn lúc gửi.
+  requestedPriority    SupportPriority @map("requested_priority")
+  priority             SupportPriority
+  handler              SupportHandler  @default(PLATFORM)
+  /// `platform_accounts.id` người phụ trách.
+  assigneeId           String?         @map("assignee_id")
+  status               SupportStatus   @default(NEW)
+  /// Lần đầu chuyển nhà xe phản hồi — từ đó nhà xe thấy khiếu nại.
+  sharedWithOperatorAt DateTime?       @map("shared_with_operator_at")
+  classifiedAt         DateTime?       @map("classified_at")
+  resolvedAt           DateTime?       @map("resolved_at")
+  lastMessageAt        DateTime        @map("last_message_at")
+  createdAt            DateTime        @default(now()) @map("created_at")
+  updatedAt            DateTime        @updatedAt @map("updated_at")
+
+  operator OperatorProfile  @relation(fields: [operatorId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  booking  Booking          @relation(fields: [bookingId, operatorId], references: [id, operatorId], onDelete: Restrict, onUpdate: Restrict)
+  messages SupportMessage[]
+  /// Tối đa một (unique `support_ticket_id`); khai mảng vì FK ghép với `operator_id`.
+  disputes DisputeCase[]
+
+  @@unique([id, operatorId])
+  @@index([status, lastMessageAt])
+  @@index([operatorId, sharedWithOperatorAt])
+  @@index([bookingId])
+  @@map("support_tickets")
+}
+
+/// Một lượt trao đổi trong khiếu nại (FR-NSR-09).
+model SupportMessage {
+  id         String    @id @default(uuid())
+  ticketId   String    @map("ticket_id")
+  operatorId String    @map("operator_id")
+  party      CaseParty
+  /// `users.id` / `operator_accounts.id` / `platform_accounts.id`; `null` = khách vãng lai / hệ thống.
+  authorId   String?   @map("author_id")
+  authorName String    @map("author_name")
+  body       String
+  createdAt  DateTime  @default(now()) @map("created_at")
+
+  ticket      SupportTicket       @relation(fields: [ticketId, operatorId], references: [id, operatorId], onDelete: Restrict, onUpdate: Restrict)
+  attachments SupportAttachment[]
+
+  @@unique([id, operatorId])
+  @@index([ticketId, createdAt])
+  @@map("support_messages")
+}
+
+/// Tranh chấp (FR-DSP-*), Platform là bên phân xử cuối (MQ-03). Mã `DC-NNNNNN`.
+model DisputeCase {
+  id              String           @id @default(uuid())
+  disputeCode     String           @unique @map("dispute_code")
+  operatorId      String           @map("operator_id")
+  bookingId       String           @map("booking_id")
+  supportTicketId String?          @unique @map("support_ticket_id")
+  title           String
+  /// Yêu cầu của khách (vd "Hoàn một phần tiền vé").
+  customerRequest String?          @map("customer_request")
+  status          DisputeStatus    @default(OPEN)
+  /// Hạn phản hồi của bên đang được yêu cầu (FR-DSP-03 / 05).
+  responseDueAt   DateTime?        @map("response_due_at")
+  assigneeId      String?          @map("assignee_id")
+  decision        DisputeDecision?
+  /// VND hoàn cho khách khi quyết định hoàn tiền.
+  decisionAmount  BigInt?          @map("decision_amount")
+  decisionReason  String?          @map("decision_reason")
+  decidedBy       String?          @map("decided_by")
+  decidedAt       DateTime?        @map("decided_at")
+  refundId        String?          @map("refund_id")
+  createdBy       String           @map("created_by")
+  createdAt       DateTime         @default(now()) @map("created_at")
+  updatedAt       DateTime         @updatedAt @map("updated_at")
+
+  operator      OperatorProfile @relation(fields: [operatorId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  booking       Booking         @relation(fields: [bookingId, operatorId], references: [id, operatorId], onDelete: Restrict, onUpdate: Restrict)
+  supportTicket SupportTicket?  @relation(fields: [supportTicketId, operatorId], references: [id, operatorId], onDelete: Restrict, onUpdate: Restrict)
+  refund        Refund?         @relation(fields: [refundId, operatorId], references: [id, operatorId], onDelete: Restrict, onUpdate: Restrict)
+  events        DisputeEvent[]
+
+  @@unique([id, operatorId])
+  @@index([status, responseDueAt])
+  @@index([operatorId, status])
+  @@map("dispute_cases")
+}
+
+/// Lịch sử tranh chấp: đổi trạng thái, yêu cầu minh chứng, phản hồi của các bên (FR-DSP-08).
+model DisputeEvent {
+  id         String           @id @default(uuid())
+  disputeId  String           @map("dispute_id")
+  operatorId String           @map("operator_id")
+  kind       DisputeEventKind
+  party      CaseParty
+  /// `platform:{id}` / `operator:{id}` / `user:{id}` / `guest` / `system`.
+  actor      String
+  actorName  String           @map("actor_name")
+  fromStatus DisputeStatus?   @map("from_status")
+  toStatus   DisputeStatus?   @map("to_status")
+  body       String?
+  /// Bên được yêu cầu (sự kiện `REQUEST`).
+  target     CaseParty?
+  dueAt      DateTime?        @map("due_at")
+  createdAt  DateTime         @default(now()) @map("created_at")
+
+  dispute     DisputeCase         @relation(fields: [disputeId, operatorId], references: [id, operatorId], onDelete: Restrict, onUpdate: Restrict)
+  attachments SupportAttachment[]
+
+  @@unique([id, operatorId])
+  @@index([disputeId, createdAt])
+  @@map("dispute_events")
+}
+
+/// Tệp minh chứng (kho riêng tư, ADR-018) của một lượt trao đổi khiếu nại hoặc một sự kiện tranh chấp.
+model SupportAttachment {
+  id             String   @id @default(uuid())
+  operatorId     String   @map("operator_id")
+  messageId      String?  @map("message_id")
+  disputeEventId String?  @map("dispute_event_id")
+  objectKey      String   @unique @map("object_key")
+  fileName       String   @map("file_name")
+  contentType    String   @map("content_type")
+  sizeBytes      Int      @map("size_bytes")
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  message      SupportMessage? @relation(fields: [messageId, operatorId], references: [id, operatorId], onDelete: Restrict, onUpdate: Restrict)
+  disputeEvent DisputeEvent?   @relation(fields: [disputeEventId, operatorId], references: [id, operatorId], onDelete: Restrict, onUpdate: Restrict)
+
+  @@index([messageId])
+  @@index([disputeEventId])
+  @@map("support_attachments")
+}
+
+/// Đánh giá chuyến đi của hành khách (FR-NSR-10, BR-18): một đánh giá mỗi đơn, chỉ sau khi chuyến hoàn thành.
+model Review {
+  id                   String       @id @default(uuid())
+  operatorId           String       @map("operator_id")
+  bookingId            String       @unique @map("booking_id")
+  tripId               String       @map("trip_id")
+  userId               String       @map("user_id")
+  /// Tên hiển thị đã che lúc gửi (`Nguyễn Văn K***`).
+  authorName           String       @map("author_name")
+  rating               Int
+  comment              String?
+  status               ReviewStatus @default(VISIBLE)
+  operatorReply        String?      @map("operator_reply")
+  operatorRepliedAt    DateTime?    @map("operator_replied_at")
+  /// Nhà xe báo đánh giá vi phạm (Figma ADM-10a "Nhà xe báo cáo").
+  operatorReportedAt   DateTime?    @map("operator_reported_at")
+  operatorReportReason String?      @map("operator_report_reason")
+  moderationReason     String?      @map("moderation_reason")
+  moderatedBy          String?      @map("moderated_by")
+  moderatedAt          DateTime?    @map("moderated_at")
+  createdAt            DateTime     @default(now()) @map("created_at")
+  updatedAt            DateTime     @updatedAt @map("updated_at")
+
+  operator OperatorProfile @relation(fields: [operatorId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  booking  Booking         @relation(fields: [bookingId, operatorId], references: [id, operatorId], onDelete: Restrict, onUpdate: Restrict)
+  trip     Trip            @relation(fields: [tripId, operatorId], references: [id, operatorId], onDelete: Restrict, onUpdate: Restrict)
+
+  @@unique([id, operatorId])
+  @@index([operatorId, status, createdAt])
+  @@index([status, createdAt])
+  @@map("reviews")
+}
+
+// ============================================================================
+// Khuyến mãi (TASK-PROM-001, FR-PROM-01..07, FR-MKT-10, BR-46/47/48, UC-33). Khanh 18/10/2026 (LLD-OQ-07): khuyến mãi cấp nền
+// tảng do NHÀ XE chịu phần giảm và nhà xe phải tham gia chương trình. Cột AI tự đề xuất theo Figma ADM-11a/b, "Nhà xe · Khuyến mãi"
+// — chờ Khanh duyệt (`doc/task-propreties/PROM-001-todo.md`).
+// ============================================================================
+
+enum PromotionScope {
+  PLATFORM
+  OPERATOR
+}
+
+enum DiscountType {
+  /// `discount_value` = % (1–100), có thể giới hạn `max_discount`.
+  PERCENT
+  /// `discount_value` = số tiền VND giảm mỗi đơn.
+  AMOUNT
+}
+
+enum PromotionStatus {
+  DRAFT
+  ACTIVE
+  PAUSED
+  ENDED
+}
+
+enum RedemptionStatus {
+  /// Đơn đã tạo, chờ thanh toán.
+  RESERVED
+  /// Đơn đã thanh toán.
+  USED
+  /// Đơn hết hạn / hủy trước khi thanh toán — trả lượt dùng.
+  RELEASED
+}
+
+/// Bên chịu phần giảm (LLD §6.2 bước 3 `fundedBy`).
+enum DiscountFunding {
+  OPERATOR
+  PLATFORM
+}
+
+/// Quyền tự tạo khuyến mãi của nhà xe + giới hạn (FR-PROM-03, BR-46; Figma ADM-11b "Quyền của nhà xe").
+model PromotionPermission {
+  operatorId      String   @id @map("operator_id")
+  enabled         Boolean  @default(false)
+  /// Mức giảm tối đa: % (giảm theo phần trăm) và / hoặc số tiền mỗi đơn.
+  maxPercent      Int?     @map("max_percent")
+  maxAmount       BigInt?  @map("max_amount")
+  /// Rỗng = mọi tuyến của nhà xe.
+  routeIds        String[] @map("route_ids")
+  maxDurationDays Int      @default(30) @map("max_duration_days")
+  /// Tổng giá trị giảm tối đa mỗi tháng (giờ VN); `null` = không giới hạn.
+  monthlyBudget   BigInt?  @map("monthly_budget")
+  updatedBy       String?  @map("updated_by")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  operator OperatorProfile @relation(fields: [operatorId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+
+  @@map("promotion_permissions")
+}
+
+/// Chương trình khuyến mãi — cấp nền tảng (`operator_id` null) hoặc của một nhà xe. Mã nhập khi đặt vé, duy nhất toàn hệ thống.
+model Promotion {
+  id            String          @id @default(uuid())
+  code          String          @unique
+  name          String
+  scope         PromotionScope
+  operatorId    String?         @map("operator_id")
+  discountType  DiscountType    @map("discount_type")
+  discountValue BigInt          @map("discount_value")
+  maxDiscount   BigInt?         @map("max_discount")
+  minOrder      BigInt          @default(0) @map("min_order")
+  /// Chỉ khuyến mãi của nhà xe: một tuyến / một chuyến của chính nhà xe; `null` = mọi tuyến / mọi chuyến.
+  routeId       String?         @map("route_id")
+  tripId        String?         @map("trip_id")
+  startsAt      DateTime        @map("starts_at")
+  endsAt        DateTime        @map("ends_at")
+  usageLimit    Int             @map("usage_limit")
+  /// Số đơn đang giữ / đã dùng mã (tăng qua hàm `promotion_claim`, trả qua `promotion_release`).
+  usedCount     Int             @default(0) @map("used_count")
+  status        PromotionStatus @default(DRAFT)
+  createdBy     String          @map("created_by")
+  createdAt     DateTime        @default(now()) @map("created_at")
+  updatedAt     DateTime        @updatedAt @map("updated_at")
+
+  operator       OperatorProfile?         @relation(fields: [operatorId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  participations PromotionParticipation[]
+  redemptions    PromotionRedemption[]
+
+  @@index([scope, status])
+  @@index([operatorId, status])
+  @@map("promotions")
+}
+
+/// Nhà xe tham gia một khuyến mãi cấp nền tảng (Khanh 18/10/2026: nhà xe phải tham gia, chịu phần giảm).
+model PromotionParticipation {
+  promotionId String   @map("promotion_id")
+  operatorId  String   @map("operator_id")
+  joinedBy    String   @map("joined_by")
+  joinedAt    DateTime @default(now()) @map("joined_at")
+
+  promotion Promotion       @relation(fields: [promotionId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  operator  OperatorProfile @relation(fields: [operatorId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+
+  @@id([promotionId, operatorId])
+  @@index([operatorId])
+  @@map("promotion_participations")
+}
+
+/// Lượt áp dụng mã vào một đơn (FR-PROM-06, BR-47): số tiền giảm + bên chịu, theo vòng đời đơn.
+model PromotionRedemption {
+  id          String           @id @default(uuid())
+  promotionId String           @map("promotion_id")
+  operatorId  String           @map("operator_id")
+  bookingId   String           @unique @map("booking_id")
+  code        String
+  discount    BigInt
+  fundedBy    DiscountFunding  @map("funded_by")
+  status      RedemptionStatus @default(RESERVED)
+  createdAt   DateTime         @default(now()) @map("created_at")
+  updatedAt   DateTime         @updatedAt @map("updated_at")
+
+  promotion Promotion @relation(fields: [promotionId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  booking   Booking   @relation(fields: [bookingId, operatorId], references: [id, operatorId], onDelete: Restrict, onUpdate: Restrict)
+
+  @@index([promotionId, status])
+  @@index([operatorId, createdAt])
+  @@map("promotion_redemptions")
+}
+
+// ============================================================================
+// VXN Plus — chương trình thành viên (TASK-LOY-001 phần Admin, FR-LOY-01..03/10..12, BR-65..71). Cấp nền tảng, KHÔNG operator_id
+// (DB §5.2). Tham số = `policy_versions` loại `LOYALTY`. Khanh 18/10/2026 (LLD-OQ-06): số liệu Figma + tích 1 điểm / 10.000 ₫. Cột AI
+// tự đề xuất — chờ Khanh duyệt (`doc/task-propreties/LOY-001-admin-todo.md`).
+// ============================================================================
+
+/// BR-69.
+enum LoyaltyPointType {
+  EARN
+  REDEEM
+  EXPIRE
+  ADJUST
+  REVERSAL
+}
+
+/// Mã hạng cố định v1 (FR-LOY-03, Figma ADM-12a); mốc + hệ số nằm trong chính sách `LOYALTY`.
+enum LoyaltyTier {
+  BRONZE
+  SILVER
+  GOLD
+  PLATINUM
+}
+
+/// Một tài khoản thành viên mỗi hành khách (FR-LOY-01). `available_points` = tổng sổ điểm, cập nhật cùng transaction.
+model LoyaltyAccount {
+  id              String    @id @default(uuid())
+  userId          String    @unique @map("user_id")
+  availablePoints Int       @default(0) @map("available_points")
+  version         Int       @default(0)
+  /// Job hết hạn đã xử lý mọi điểm có hạn tới mốc này (chỉ quét lô điểm hết hạn sau mốc — BR-70).
+  expiredThrough  DateTime? @map("expired_through")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+
+  user         User                      @relation(fields: [userId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  transactions LoyaltyPointTransaction[]
+
+  @@map("loyalty_accounts")
+}
+
+/// Sổ điểm CHỈ GHI THÊM (BR-69): tích / đổi / hết hạn / điều chỉnh / thu hồi, kèm nguồn + phiên bản chính sách.
+model LoyaltyPointTransaction {
+  id              String           @id @default(uuid())
+  accountId       String           @map("account_id")
+  type            LoyaltyPointType
+  /// Có dấu: tích > 0; đổi / hết hạn < 0; thu hồi ≤ 0 (0 = số dư không đủ, chỉ ghi nhận phần thiếu — BR-67); điều chỉnh ≠ 0 (CHECK).
+  points          Int
+  /// Hạng của thành viên lúc ghi giao dịch (lọc báo cáo theo hạng — Figma ADM-12d).
+  tier            LoyaltyTier
+  /// VND căn cứ: tiền vé khách thực trả (tích) / số tiền đã hoàn (thu hồi).
+  basisAmount     BigInt?          @map("basis_amount")
+  /// Đơn nguồn (tích / thu hồi) — tham chiếu mềm, đơn thuộc tenant của nhà xe.
+  bookingId       String?          @map("booking_id")
+  /// Mô tả nguồn hiển thị (vd "Đơn VXN-7Q2L5B · hệ số ×1,2").
+  sourceLabel     String           @map("source_label")
+  policyVersionId String?          @map("policy_version_id")
+  policyVersion   Int?             @map("policy_version")
+  /// Chống ghi trùng (vd `EARN:{bookingId}`).
+  idempotencyKey  String           @unique @map("idempotency_key")
+  reason          String?
+  /// `system` / `platform:{id}`.
+  actor           String
+  /// Hạn của điểm tích (BR-70).
+  expiresAt       DateTime?        @map("expires_at")
+  createdAt       DateTime         @default(now()) @map("created_at")
+
+  account LoyaltyAccount @relation(fields: [accountId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+
+  @@index([accountId, createdAt])
+  @@index([type, createdAt])
+  @@map("loyalty_point_transactions")
 }

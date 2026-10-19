@@ -31,6 +31,8 @@ describe("Trip routes — HTTP", () => {
     seatCount: 0,
     onlineSaleCutoffMinutes: 60,
     statusReason: null,
+    departedAt: null,
+    completedAt: null,
     note: null,
     stops: [],
     seats: [],

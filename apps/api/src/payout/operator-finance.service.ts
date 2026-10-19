@@ -47,7 +47,7 @@ export class OperatorFinanceService {
         SELECT
           SUM(e.amount)::bigint AS held,
           (SUM(e.amount) FILTER (
-            WHERE e.eligible_at <= ${now} AND e.entry_type <> 'PAYOUT'
+            WHERE COALESCE(t.payout_eligible_at, e.eligible_at) <= ${now} AND e.entry_type <> 'PAYOUT'
               AND NOT EXISTS (SELECT 1 FROM payout_items i WHERE i.ledger_entry_id = e.id)
               AND NOT EXISTS (
                 SELECT 1 FROM refunds r JOIN payments pm ON pm.id = r.payment_id AND pm.operator_id = r.operator_id
@@ -55,8 +55,11 @@ export class OperatorFinanceService {
                   AND pm.status <> 'RECONCILING'
               )
           ))::bigint AS eligible,
-          (SUM(e.amount) FILTER (WHERE e.eligible_at > ${now} AND e.entry_type <> 'PAYOUT'))::bigint AS pending
-        FROM escrow_ledgers e WHERE e.operator_id = ${operatorId}`;
+          (SUM(e.amount) FILTER (WHERE COALESCE(t.payout_eligible_at, e.eligible_at) > ${now} AND e.entry_type <> 'PAYOUT'))::bigint AS pending
+        FROM escrow_ledgers e
+        -- BR-32: chuyến đã hoàn thành thực tế (TASK-EMP-002) → mốc = giờ hoàn thành + chu kỳ.
+        LEFT JOIN trips t ON t.id = e.trip_id AND t.operator_id = e.operator_id
+        WHERE e.operator_id = ${operatorId}`;
       const last = await tx.payout.findFirst({
         where: { operatorId, status: PayoutStatus.PAID },
         orderBy: { paidAt: "desc" },
@@ -113,7 +116,7 @@ export class OperatorFinanceService {
               (-COALESCE(SUM(e.amount) FILTER (WHERE e.entry_type IN ('COMMISSION', 'COMMISSION_REVERSAL')), 0))::bigint AS commission,
               COALESCE(SUM(e.amount) FILTER (WHERE e.entry_type IN ('REFUND', 'ADJUSTMENT')), 0)::bigint AS other,
               COALESCE(SUM(e.amount) FILTER (WHERE e.entry_type = 'REFUND'), 0)::bigint AS refunded,
-              MIN(e.eligible_at) AS eligible_at,
+              COALESCE(t.payout_eligible_at, MIN(e.eligible_at)) AS eligible_at,
               COUNT(*) FILTER (WHERE i.id IS NULL) AS unassigned,
               COUNT(*) FILTER (WHERE i.id IS NOT NULL AND p.status <> 'PAID') AS unpaid,
               EXISTS (

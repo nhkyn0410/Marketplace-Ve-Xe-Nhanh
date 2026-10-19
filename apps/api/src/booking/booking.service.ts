@@ -19,6 +19,7 @@ import {
 import { canAccessBooking, hashBookingToken } from "./booking-access";
 import { expireBooking } from "./booking-expiry";
 import type { BookingInput, BookingResponse, CreatedBooking } from "./dto/booking.dto";
+import { claimPromotion } from "../promotion/promotion-apply";
 
 const MINUTE = 60_000;
 /** Mã booking `VXN` + 6 ký tự, bỏ 0/O/1/I cho dễ đọc qua điện thoại (32^6 ≈ 1 tỷ mã). */
@@ -34,6 +35,8 @@ type BookingSnapshot = {
   pickup: SnapshotStop;
   dropoff: SnapshotStop;
   cancellationPolicy: { tiers: Tier[] };
+  /** Mã khuyến mãi đã áp (BR-47) — phần giảm do nhà xe chịu (Khanh 18/10/2026, LLD-OQ-07). */
+  promotion?: { code: string; name: string; discount: number; fundedBy: "OPERATOR" | "PLATFORM" };
 };
 
 type BookingRow = {
@@ -254,7 +257,11 @@ export class BookingService {
     }
     const subtotal = priced.reduce((sum, seat) => sum + seat.price!, 0n);
     const serviceFee = 0n;
-    const discount = 0n;
+    // Giữ một lượt dùng của mã ngay trong transaction này: đơn không tạo được thì rollback trả luôn lượt (TASK-PROM-001).
+    const promotion = input.promotionCode
+      ? await claimPromotion(tx, { operatorId, routeId: trip.routeId, tripId: hold.tripId, subtotal, code: input.promotionCode, now })
+      : null;
+    const discount = promotion?.discount ?? 0n;
     const total = subtotal + serviceFee - discount;
     if (vndToJson(total) !== input.expectedTotal) {
       throw snapshotChanged(vndToJson(total));
@@ -285,6 +292,7 @@ export class BookingService {
       pickup: point(pickup),
       dropoff: point(dropoff),
       cancellationPolicy: { tiers },
+      ...(promotion ? { promotion: { code: promotion.code, name: promotion.name, discount: vndToJson(promotion.discount), fundedBy: promotion.fundedBy } } : {}),
     };
     const booking = await tx.booking.create({
       data: {
@@ -331,6 +339,11 @@ export class BookingService {
       where: { tripId: hold.tripId, operatorId, seatCode: { in: hold.seatCodes }, status: "AVAILABLE" },
       data: { status: "HOLDING", bookingId: booking.id },
     });
+    if (promotion) {
+      await tx.promotionRedemption.create({
+        data: { promotionId: promotion.promotionId, operatorId, bookingId: booking.id, code: promotion.code, discount: promotion.discount, fundedBy: promotion.fundedBy },
+      });
+    }
     return toResponse(booking, this.qr);
   }
 

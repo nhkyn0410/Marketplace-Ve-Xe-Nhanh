@@ -3,7 +3,16 @@ import { Body, Controller, Get, Header, HttpCode, Inject, Logger, NotFoundExcept
 import { ApiExcludeController } from "@nestjs/swagger";
 import type { Response } from "express";
 import { type MomoConfig, sign as momoSign } from "../momo/momo-gateway";
-import { refundResponseSignData, refundSignData, type VnpayConfig, sign as vnpaySign, signedQuery, vnTimestamp } from "../vnpay/vnpay-gateway";
+import {
+  queryDrResponseSignData,
+  queryDrSignData,
+  refundResponseSignData,
+  refundSignData,
+  type VnpayConfig,
+  sign as vnpaySign,
+  signedQuery,
+  vnTimestamp,
+} from "../vnpay/vnpay-gateway";
 
 export const PAYMENT_SIMULATOR_PATH = "dev/payment-gateway";
 export const PAYMENT_SIMULATOR = Symbol("PAYMENT_SIMULATOR");
@@ -24,6 +33,8 @@ const CALLBACK_TIMEOUT_MS = 10_000;
 @Controller(PAYMENT_SIMULATOR_PATH)
 export class PaymentSimulatorController {
   private readonly logger = new Logger(PaymentSimulatorController.name);
+  /** Kết quả các lần bấm trên trang giả lập (mã payment → kết quả) — để trả lời tra cứu đối soát. Mất khi API khởi động lại. */
+  private readonly outcomes = new Map<string, { success: boolean; transactionNo: string; amount: string }>();
 
   constructor(@Inject(PAYMENT_SIMULATOR) private readonly simulator: PaymentSimulator) {}
 
@@ -59,19 +70,23 @@ export class PaymentSimulatorController {
       vnp_TransactionStatus: success ? "00" : "02",
       vnp_TxnRef: params.vnp_TxnRef!,
     };
+    this.outcomes.set(params.vnp_TxnRef!, { success, transactionNo: callback.vnp_TransactionNo!, amount: params.vnp_Amount! });
     const query = `${signedQuery(callback)}&vnp_SecureHash=${vnpaySign(signedQuery(callback), config.hashSecret)}`;
     // IPN VNPay là GET tới URL khai ở cổng quản trị — ở bản giả lập là webhook của chính API.
     await this.deliver(`${config.paymentUrl.replace(/\/v1\/.*$/, "")}/v1/webhooks/payment/vnpay?${query}`, { method: "GET" });
     res.redirect(302, `${params.vnp_ReturnUrl}${params.vnp_ReturnUrl!.includes("?") ? "&" : "?"}${query}`);
   }
 
-  /** Thay cho API hoàn tiền `merchant_webapi` của VNPay: kiểm chữ ký, hoàn thành công ngay, phản hồi có ký. */
+  /** Thay cho API `merchant_webapi` của VNPay: hoàn tiền (hoàn thành công ngay) hoặc tra cứu `querydr`, phản hồi có ký. */
   @Post("vnpay/merchant_webapi/api/transaction")
   @HttpCode(200)
   vnpayRefund(@Body() body: Record<string, string>): Record<string, string> {
     const config = this.simulator.vnpay;
     if (!config) {
       throw new NotFoundException();
+    }
+    if (body.vnp_Command === "querydr") {
+      return this.vnpayQuery(config, body);
     }
     const valid = safeEqual(vnpaySign(refundSignData(body), config.hashSecret), String(body.vnp_SecureHash ?? "")) && body.vnp_Command === "refund";
     const response: Record<string, string> = {
@@ -90,6 +105,24 @@ export class PaymentSimulatorController {
       vnp_OrderInfo: body.vnp_OrderInfo ?? "",
     };
     return { ...response, vnp_SecureHash: vnpaySign(refundResponseSignData(response), config.hashSecret) };
+  }
+
+  /** Thay cho `POST /v2/gateway/api/query` của MoMo: trả kết quả lần bấm trên trang giả lập (không có → 42). */
+  @Post("momo/v2/gateway/api/query")
+  @HttpCode(200)
+  momoQuery(@Body() body: Record<string, unknown>): { resultCode: number; message: string; transId?: number; amount?: number } {
+    const config = this.momo();
+    const raw = ["accessKey", "orderId", "partnerCode", "requestId"].map((key) => `${key}=${key === "accessKey" ? config.accessKey : String(body[key] ?? "")}`).join("&");
+    if (!safeEqual(momoSign(raw, config.secretKey), String(body.signature ?? ""))) {
+      return { resultCode: 11007, message: "Sai chữ ký." };
+    }
+    const outcome = this.outcomes.get(String(body.orderId));
+    if (!outcome) {
+      return { resultCode: 42, message: "Không tìm thấy đơn." };
+    }
+    return outcome.success
+      ? { resultCode: 0, message: "Thành công.", transId: Number(outcome.transactionNo), amount: Number(outcome.amount) }
+      : { resultCode: 1006, message: "Người dùng từ chối giao dịch." };
   }
 
   /** Thay cho `POST /v2/gateway/api/refund` của MoMo: kiểm chữ ký, hoàn thành công ngay. */
@@ -164,10 +197,35 @@ export class PaymentSimulatorController {
     const raw = ["accessKey", "amount", "extraData", "message", "orderId", "orderInfo", "orderType", "partnerCode", "payType", "requestId", "responseTime", "resultCode", "transId"]
       .map((key) => `${key}=${key === "accessKey" ? config.accessKey : String(callback[key])}`)
       .join("&");
+    this.outcomes.set(order.orderId, { success, transactionNo: String(callback.transId), amount: order.amount });
     const signed = { ...callback, signature: momoSign(raw, config.secretKey) };
     await this.deliver(order.ipnUrl, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(signed) });
     const query = new URLSearchParams(Object.entries(signed).map(([key, value]) => [key, String(value)]));
     res.redirect(302, `${order.redirectUrl}${order.redirectUrl.includes("?") ? "&" : "?"}${query}`);
+  }
+
+  /** querydr giả lập: kiểm chữ ký, trả kết quả lần bấm trên trang giả lập (không có → mã 91). */
+  private vnpayQuery(config: VnpayConfig, body: Record<string, string>): Record<string, string> {
+    const valid = safeEqual(vnpaySign(queryDrSignData(body), config.hashSecret), String(body.vnp_SecureHash ?? ""));
+    const outcome = valid ? this.outcomes.get(body.vnp_TxnRef ?? "") : undefined;
+    const response: Record<string, string> = {
+      vnp_ResponseId: randomInt(100_000_000, 999_999_999).toString(),
+      vnp_Command: "querydr",
+      vnp_ResponseCode: !valid ? "97" : outcome ? "00" : "91",
+      vnp_Message: !valid ? "Invalid checksum" : outcome ? "Query success" : "Transaction not found",
+      vnp_TmnCode: config.tmnCode,
+      vnp_TxnRef: body.vnp_TxnRef ?? "",
+      vnp_Amount: outcome?.amount ?? "",
+      vnp_BankCode: "NCB",
+      vnp_PayDate: vnTimestamp(new Date()),
+      vnp_TransactionNo: outcome?.transactionNo ?? "0",
+      vnp_TransactionType: "01",
+      vnp_TransactionStatus: outcome ? (outcome.success ? "00" : "02") : "",
+      vnp_OrderInfo: body.vnp_OrderInfo ?? "",
+      vnp_PromotionCode: "",
+      vnp_PromotionAmount: "",
+    };
+    return { ...response, vnp_SecureHash: vnpaySign(queryDrResponseSignData(response), config.hashSecret) };
   }
 
   private verifiedVnpayRequest(query: Record<string, string>): Record<string, string> {

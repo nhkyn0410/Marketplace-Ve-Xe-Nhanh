@@ -1,5 +1,6 @@
 import { execSync } from "node:child_process";
 import { createHmac } from "node:crypto";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 import { expect, type Page } from "@playwright/test";
@@ -43,6 +44,15 @@ export type E2eAccounts = {
     changeTripId: string;
     changeBookingCode: string;
     spareVehiclePlate: string;
+    /** Khiếu nại / tranh chấp / đánh giá (TASK-TRUST-001). */
+    newTicketCode: string;
+    newTicketSubject: string;
+    forwardedTicketCode: string;
+    forwardedTicketSubject: string;
+    disputeCode: string;
+    disputeTitle: string;
+    reviewComment: string;
+    platformPromotionCode: string;
   } | null;
   employee: { username: string; password: string };
   platform: { username: string; password: string };
@@ -101,6 +111,37 @@ export async function signInWithEnrollment(page: Page, identifier: string, passw
   await page.getByRole("button", { name: "Tôi đã lưu mã, vào trang quản lý" }).click();
   await expect(page.getByRole("navigation", { name: "Điều hướng chính" })).toBeVisible();
   return secret;
+}
+
+/**
+ * Đăng nhập chủ nhà xe dùng chung giữa nhiều spec (vd chủ nhà xe đặt vé): lần đầu bật TOTP và lưu khóa vào `test-results/` (dọn
+ * mỗi lần chạy), các lần sau nhập mã từ khóa đã lưu. Mỗi mã chỉ dùng một lần → chờ sang khung 30 giây mới nếu khung kế đã dùng.
+ */
+export async function signInSharedOwner(page: Page, identifier: string, password: string): Promise<string> {
+  const dir = resolve(__dirname, "../test-results");
+  const file = resolve(dir, `.totp-${identifier.replace(/[^a-z0-9-]/gi, "_")}.json`);
+  if (!existsSync(file)) {
+    const secret = await signInWithEnrollment(page, identifier, password);
+    mkdirSync(dir, { recursive: true });
+    writeFileSync(file, JSON.stringify({ secret, lastStep: Math.floor(Date.now() / 30_000) }));
+    return secret;
+  }
+  const saved = JSON.parse(readFileSync(file, "utf8")) as { secret: string; lastStep: number };
+  // Mã của khung kế tiếp (máy chủ chấp nhận lệch một khung); khung đó đã dùng thì đợi.
+  while (Math.floor((Date.now() + 30_000) / 30_000) <= saved.lastStep) {
+    await page.waitForTimeout(1_000);
+  }
+  const at = Date.now() + 30_000;
+  await page.goto("/");
+  await expect(page.getByRole("heading", { name: "Đăng nhập" })).toBeVisible();
+  await page.locator('input[name="identifier"]').fill(identifier);
+  await page.locator('input[name="password"]').fill(password);
+  await page.getByRole("button", { name: "Đăng nhập", exact: true }).click();
+  await page.locator('input[name="code"]').fill(totp(saved.secret, at));
+  await page.getByRole("button", { name: "Xác nhận" }).click();
+  await expect(page.getByRole("navigation", { name: "Điều hướng chính" })).toBeVisible();
+  writeFileSync(file, JSON.stringify({ secret: saved.secret, lastStep: Math.floor(at / 30_000) }));
+  return saved.secret;
 }
 
 /**

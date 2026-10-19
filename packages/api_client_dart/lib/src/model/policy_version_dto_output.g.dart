@@ -14,6 +14,8 @@ const PolicyVersionDtoOutputTypeEnum
     const PolicyVersionDtoOutputTypeEnum._('SEAT_HOLD');
 const PolicyVersionDtoOutputTypeEnum _$policyVersionDtoOutputTypeEnum_PAYOUT =
     const PolicyVersionDtoOutputTypeEnum._('PAYOUT');
+const PolicyVersionDtoOutputTypeEnum _$policyVersionDtoOutputTypeEnum_LOYALTY =
+    const PolicyVersionDtoOutputTypeEnum._('LOYALTY');
 
 PolicyVersionDtoOutputTypeEnum _$policyVersionDtoOutputTypeEnumValueOf(
     String name) {
@@ -24,6 +26,8 @@ PolicyVersionDtoOutputTypeEnum _$policyVersionDtoOutputTypeEnumValueOf(
       return _$policyVersionDtoOutputTypeEnum_SEAT_HOLD;
     case 'PAYOUT':
       return _$policyVersionDtoOutputTypeEnum_PAYOUT;
+    case 'LOYALTY':
+      return _$policyVersionDtoOutputTypeEnum_LOYALTY;
     default:
       throw ArgumentError(name);
   }
@@ -35,6 +39,7 @@ final BuiltSet<PolicyVersionDtoOutputTypeEnum>
   _$policyVersionDtoOutputTypeEnum_CANCELLATION,
   _$policyVersionDtoOutputTypeEnum_SEAT_HOLD,
   _$policyVersionDtoOutputTypeEnum_PAYOUT,
+  _$policyVersionDtoOutputTypeEnum_LOYALTY,
 ]);
 
 const PolicyVersionDtoOutputStatusEnum
@@ -127,11 +132,13 @@ class _$PolicyVersionDtoOutputTypeEnumSerializer
     'CANCELLATION': 'CANCELLATION',
     'SEAT_HOLD': 'SEAT_HOLD',
     'PAYOUT': 'PAYOUT',
+    'LOYALTY': 'LOYALTY',
   };
   static const Map<Object, String> _fromWire = const <Object, String>{
     'CANCELLATION': 'CANCELLATION',
     'SEAT_HOLD': 'SEAT_HOLD',
     'PAYOUT': 'PAYOUT',
+    'LOYALTY': 'LOYALTY',
   };
 
   @override

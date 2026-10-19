@@ -19,6 +19,7 @@ part 'booking_input_dto.g.dart';
 /// * [passengers] 
 /// * [note] 
 /// * [expectedTotal] 
+/// * [promotionCode] 
 @BuiltValue()
 abstract class BookingInputDto implements Built<BookingInputDto, BookingInputDtoBuilder> {
   @BuiltValueField(wireName: r'holdId')
@@ -35,6 +36,9 @@ abstract class BookingInputDto implements Built<BookingInputDto, BookingInputDto
 
   @BuiltValueField(wireName: r'expectedTotal')
   int get expectedTotal;
+
+  @BuiltValueField(wireName: r'promotionCode')
+  String? get promotionCode;
 
   BookingInputDto._();
 
@@ -84,6 +88,13 @@ class _$BookingInputDtoSerializer implements PrimitiveSerializer<BookingInputDto
       object.expectedTotal,
       specifiedType: const FullType(int),
     );
+    if (object.promotionCode != null) {
+      yield r'promotionCode';
+      yield serializers.serialize(
+        object.promotionCode,
+        specifiedType: const FullType.nullable(String),
+      );
+    }
   }
 
   @override
@@ -142,6 +153,14 @@ class _$BookingInputDtoSerializer implements PrimitiveSerializer<BookingInputDto
             specifiedType: const FullType(int),
           ) as int;
           result.expectedTotal = valueDes;
+          break;
+        case r'promotionCode':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType.nullable(String),
+          ) as String?;
+          if (valueDes == null) continue;
+          result.promotionCode = valueDes;
           break;
         default:
           unhandled.add(key);

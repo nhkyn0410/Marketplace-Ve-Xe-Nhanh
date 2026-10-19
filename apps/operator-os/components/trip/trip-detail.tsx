@@ -531,6 +531,8 @@ function TripDetailBody({ trip, saved, changed, onDismissSaved }: { trip: Trip; 
               {/* Chuyến đang mở bán đã có thẻ Bán online ghi mục này. */}
               {!showOnlineSale && <InfoRow label="Ngừng bán online" value={cutoffLabel(trip.onlineSaleCutoffMinutes)} />}
               {trip.status === "CANCELLED" && trip.statusReason && <InfoRow label="Lý do hủy" value={trip.statusReason} />}
+              {trip.departedAt && <InfoRow label="Khởi hành thực tế" value={formatDateTime(trip.departedAt)} />}
+              {trip.completedAt && <InfoRow label="Hoàn thành lúc" value={formatDateTime(trip.completedAt)} />}
               <InfoRow label="Ghi chú" value={trip.note ?? "Không có"} />
               <InfoRow label="Cập nhật lần cuối" value={formatDateTime(trip.updatedAt)} />
             </dl>

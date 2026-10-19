@@ -4,7 +4,7 @@ import { expect, test, type Page } from "@playwright/test";
 
 import { formatPlateNumber } from "../lib/vehicle/vehicle-format";
 
-import { accounts, signInWithEnrollment } from "./helpers";
+import { accounts, signInSharedOwner } from "./helpers";
 
 // TASK-OPR-003 (màn Đặt vé, Figma "Nhà xe · Đặt vé" 01–03) — nhà xe riêng do global-setup seed: chuyến 22:30 ngày `date`,
 // đơn đã xác nhận (A01, A02 có vé) + đơn chờ thanh toán của khách vãng lai (A03). TASK-OPR-002 (màn Tài chính, Figma "Nhà xe ·
@@ -24,7 +24,7 @@ test.beforeAll(async ({ browser }) => {
   }
   fixtures = bookingFixtures;
   page = await browser.newPage();
-  await signInWithEnrollment(page, `${bookingOperatorSlug}/${bookingOwner.username}`, bookingOwner.password);
+  await signInSharedOwner(page, `${bookingOperatorSlug}/${bookingOwner.username}`, bookingOwner.password);
 });
 
 test.afterAll(async () => {

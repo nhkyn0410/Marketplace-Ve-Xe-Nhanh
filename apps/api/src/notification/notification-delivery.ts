@@ -180,6 +180,30 @@ async function loadTarget(
               }
             : null,
       };
+    case NotificationKind.CASE_UPDATED: {
+      // Khiếu nại / tranh chấp (TASK-TRUST-001): báo khách theo email liên hệ của đơn, hoặc chủ nhà xe.
+      const operatorAudience = payload.audience === "OPERATOR";
+      const owner = operatorAudience
+        ? await tx.operatorAccount.findFirst({
+            where: { operatorId, role: OperatorRole.OPERATOR_OWNER, status: AccountStatus.ACTIVE, contactEmail: { not: null } },
+            orderBy: { createdAt: "asc" },
+            select: { contactEmail: true },
+          })
+        : null;
+      return {
+        email: operatorAudience ? (owner?.contactEmail ?? null) : (booking?.contactEmail ?? null),
+        content: booking
+          ? {
+              kind: "CASE_UPDATED",
+              audience: operatorAudience ? "OPERATOR" : "CUSTOMER",
+              bookingCode: booking.bookingCode,
+              caseCode: String(payload.caseCode ?? ""),
+              title: String(payload.title ?? ""),
+              message: String(payload.message ?? ""),
+            }
+          : null,
+      };
+    }
     case NotificationKind.MANUAL_REFUND: {
       const owner = await tx.operatorAccount.findFirst({
         where: { operatorId, role: OperatorRole.OPERATOR_OWNER, status: AccountStatus.ACTIVE, contactEmail: { not: null } },

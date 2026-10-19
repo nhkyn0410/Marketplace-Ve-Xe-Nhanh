@@ -54,6 +54,26 @@ export type RefundRequest = {
   requestedAt: Date;
 };
 
+/** Tra cứu một giao dịch thanh toán ở cổng (đối soát — FR-BTP-17, UC-32, LLD §6.3 bước 4). */
+export type TransactionQuery = {
+  /** Mã payment đã gửi cổng lúc thanh toán (`vnp_TxnRef` / `orderId`). */
+  paymentCode: string;
+  /** Mã yêu cầu tra cứu, mỗi lần một khác (`vnp_RequestId` / `requestId`). */
+  requestCode: string;
+  /** Lúc tạo yêu cầu thanh toán (VNPay `vnp_TransactionDate`). */
+  paymentCreatedAt: Date;
+  requestedAt: Date;
+};
+
+/** Trạng thái giao dịch theo cổng: đã trả / thất bại / còn chờ / cổng không có giao dịch này. */
+export type TransactionStatus = {
+  status: "SUCCESS" | "FAILED" | "PENDING" | "NOT_FOUND";
+  providerTxnId: string | null;
+  /** VND cổng ghi nhận (thành công). */
+  amount: bigint | null;
+  resultCode: string;
+};
+
 export interface PaymentGateway {
   readonly provider: GatewayProvider;
   /** Giới hạn số tiền một giao dịch của cổng (VND). */
@@ -68,6 +88,8 @@ export interface PaymentGateway {
    * chối / lỗi → `PaymentGatewayError` (`retryable` = nên thử lại sau).
    */
   refund(request: RefundRequest): Promise<{ providerRefundId: string | null }>;
+  /** Tra cứu trạng thái giao dịch thanh toán (querydr / query). Lỗi kết nối / phản hồi sai → `PaymentGatewayError`. */
+  queryTransaction(request: TransactionQuery): Promise<TransactionStatus>;
 }
 
 /** Cổng không trả được kết quả hợp lệ (timeout, HTTP lỗi, từ chối). Message không chứa khóa / chữ ký. */

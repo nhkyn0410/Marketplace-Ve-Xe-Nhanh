@@ -113,4 +113,20 @@ describe("MomoGateway", () => {
     expect(await outcome(1080)).toMatchObject({ retryable: false, resultCode: "1080" });
     expect(await outcome(7000)).toMatchObject({ retryable: true, resultCode: "7000" });
   });
+
+  it("tra cứu (đối soát FR-BTP-17): POST /v2/gateway/api/query ký đúng chuỗi; 0 → SUCCESS kèm transId + số tiền; 1000 → PENDING; 42 → NOT_FOUND; khác → FAILED", async () => {
+    const query = { paymentCode: "PAYABCDEFGH2345", requestCode: "RQABCDEFGH234567", paymentCreatedAt: new Date(), requestedAt: new Date() };
+    const reply = (body: object) => vi.fn(async () => new Response(JSON.stringify(body)));
+    const ok = reply({ resultCode: 0, transId: 4123456789, amount: 320000 });
+    expect(await new MomoGateway(config, ok as unknown as typeof fetch).queryTransaction(query)).toEqual({ status: "SUCCESS", providerTxnId: "4123456789", amount: 320_000n, resultCode: "0" });
+    const [url, init] = ok.mock.calls[0] as unknown as [string, RequestInit];
+    expect(url).toBe("https://test-payment.momo.vn/v2/gateway/api/query");
+    const sent = JSON.parse(String(init.body)) as Record<string, string>;
+    expect(sent.signature).toBe(hmac("accessKey=khoa-truy-cap&orderId=PAYABCDEFGH2345&partnerCode=MOMOTEST01&requestId=RQABCDEFGH234567"));
+    const status = async (body: object) => (await new MomoGateway(config, reply(body) as unknown as typeof fetch).queryTransaction(query)).status;
+    expect(await status({ resultCode: 1000 })).toBe("PENDING");
+    expect(await status({ resultCode: 42 })).toBe("NOT_FOUND");
+    expect(await status({ resultCode: 1006 })).toBe("FAILED");
+    await expect(new MomoGateway(config, reply({ nope: true }) as unknown as typeof fetch).queryTransaction(query)).rejects.toBeInstanceOf(PaymentGatewayError);
+  });
 });

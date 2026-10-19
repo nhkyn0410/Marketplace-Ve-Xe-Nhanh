@@ -24,7 +24,7 @@ part 'policy_overview_dto_output.g.dart';
 abstract class PolicyOverviewDtoOutput implements Built<PolicyOverviewDtoOutput, PolicyOverviewDtoOutputBuilder> {
   @BuiltValueField(wireName: r'type')
   PolicyOverviewDtoOutputTypeEnum get type;
-  // enum typeEnum {  CANCELLATION,  SEAT_HOLD,  PAYOUT,  };
+  // enum typeEnum {  CANCELLATION,  SEAT_HOLD,  PAYOUT,  LOYALTY,  };
 
   @BuiltValueField(wireName: r'operatorId')
   String? get operatorId;
@@ -199,6 +199,8 @@ class PolicyOverviewDtoOutputTypeEnum extends EnumClass {
   static const PolicyOverviewDtoOutputTypeEnum SEAT_HOLD = _$policyOverviewDtoOutputTypeEnum_SEAT_HOLD;
   @BuiltValueEnumConst(wireName: r'PAYOUT')
   static const PolicyOverviewDtoOutputTypeEnum PAYOUT = _$policyOverviewDtoOutputTypeEnum_PAYOUT;
+  @BuiltValueEnumConst(wireName: r'LOYALTY')
+  static const PolicyOverviewDtoOutputTypeEnum LOYALTY = _$policyOverviewDtoOutputTypeEnum_LOYALTY;
 
   static Serializer<PolicyOverviewDtoOutputTypeEnum> get serializer => _$policyOverviewDtoOutputTypeEnumSerializer;
 

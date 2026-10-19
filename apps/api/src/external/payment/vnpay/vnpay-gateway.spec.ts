@@ -1,7 +1,7 @@
 import { createHmac } from "node:crypto";
 import { describe, expect, it, vi } from "vitest";
 import { PaymentGatewayError } from "../payment-gateway";
-import { refundResponseSignData, refundSignData, signedQuery, VnpayGateway } from "./vnpay-gateway";
+import { queryDrResponseSignData, queryDrSignData, refundResponseSignData, refundSignData, signedQuery, VnpayGateway } from "./vnpay-gateway";
 
 /** Adapter VNPay (ADR-019): ký HMAC-SHA512 đúng cách code mẫu của VNPay; IPN sai chữ ký / sai trường bị từ chối. */
 describe("VnpayGateway", () => {
@@ -133,6 +133,49 @@ describe("VnpayGateway", () => {
           throw new TypeError("fetch failed");
         }),
       ).toBeInstanceOf(PaymentGatewayError);
+    });
+  });
+
+  describe("tra cứu giao dịch — querydr (đối soát FR-BTP-17)", () => {
+    const query = { paymentCode: "PAYABCDEFGH2345", requestCode: "RQABCDEFGH234567", paymentCreatedAt: new Date("2031-08-01T01:02:03Z"), requestedAt: new Date("2031-08-01T03:00:00Z") };
+    const reply = (code: string, status: string, tamper = false) => {
+      const fields: Record<string, string> = {
+        vnp_ResponseId: "r2",
+        vnp_Command: "querydr",
+        vnp_ResponseCode: code,
+        vnp_Message: "msg",
+        vnp_TmnCode: config.tmnCode,
+        vnp_TxnRef: query.paymentCode,
+        vnp_Amount: "32000000",
+        vnp_BankCode: "NCB",
+        vnp_PayDate: "20310801081000",
+        vnp_TransactionNo: "14000001",
+        vnp_TransactionType: "01",
+        vnp_TransactionStatus: status,
+        vnp_OrderInfo: "Doi soat",
+        vnp_PromotionCode: "",
+        vnp_PromotionAmount: "",
+      };
+      const hash = hmac(queryDrResponseSignData(fields));
+      return vi.fn(async () => new Response(JSON.stringify({ ...fields, vnp_SecureHash: tamper ? hash.replace(/^./, "0") : hash })));
+    };
+
+    it("gửi querydr ký HMAC-SHA512 chuỗi nối | đúng thứ tự (giờ GMT+7); đã trả → SUCCESS kèm mã giao dịch + số tiền đồng", async () => {
+      const fetchImpl = reply("00", "00");
+      expect(await new VnpayGateway(config, fetchImpl as unknown as typeof fetch).queryTransaction(query)).toEqual({ status: "SUCCESS", providerTxnId: "14000001", amount: 320_000n, resultCode: "00" });
+      const body = JSON.parse(String((fetchImpl.mock.calls[0] as unknown as [string, RequestInit])[1].body)) as Record<string, string>;
+      expect(queryDrSignData(body)).toBe("RQABCDEFGH234567|2.1.0|querydr|TESTTMN1|PAYABCDEFGH2345|20310801080203|20310801100000|127.0.0.1|Doi soat PAYABCDEFGH2345");
+      expect(body.vnp_SecureHash).toBe(hmac(queryDrSignData(body)));
+    });
+
+    it("trạng thái: 01 → PENDING, 02 → FAILED, đã hoàn sau đó (06) vẫn là đã trả; mã 91 → NOT_FOUND; 94 → lỗi thử lại; chữ ký phản hồi sai → lỗi", async () => {
+      const run = (fetchImpl: unknown) => new VnpayGateway(config, fetchImpl as typeof fetch).queryTransaction(query);
+      expect((await run(reply("00", "01"))).status).toBe("PENDING");
+      expect((await run(reply("00", "02"))).status).toBe("FAILED");
+      expect((await run(reply("00", "06"))).status).toBe("SUCCESS");
+      expect((await run(reply("91", ""))).status).toBe("NOT_FOUND");
+      expect(await run(reply("94", "")).catch((error: unknown) => error)).toMatchObject({ retryable: true, resultCode: "94" });
+      expect(await run(reply("00", "00", true)).catch((error: unknown) => error)).toBeInstanceOf(PaymentGatewayError);
     });
   });
 });

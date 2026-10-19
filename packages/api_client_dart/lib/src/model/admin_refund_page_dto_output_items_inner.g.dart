@@ -36,6 +36,9 @@ const AdminRefundPageDtoOutputItemsInnerSource_Enum
     _$adminRefundPageDtoOutputItemsInnerSourceEnum_CUSTOMER =
     const AdminRefundPageDtoOutputItemsInnerSource_Enum._('CUSTOMER');
 const AdminRefundPageDtoOutputItemsInnerSource_Enum
+    _$adminRefundPageDtoOutputItemsInnerSourceEnum_OPERATOR =
+    const AdminRefundPageDtoOutputItemsInnerSource_Enum._('OPERATOR');
+const AdminRefundPageDtoOutputItemsInnerSource_Enum
     _$adminRefundPageDtoOutputItemsInnerSourceEnum_PLATFORM =
     const AdminRefundPageDtoOutputItemsInnerSource_Enum._('PLATFORM');
 
@@ -44,6 +47,8 @@ AdminRefundPageDtoOutputItemsInnerSource_Enum
   switch (name) {
     case 'CUSTOMER':
       return _$adminRefundPageDtoOutputItemsInnerSourceEnum_CUSTOMER;
+    case 'OPERATOR':
+      return _$adminRefundPageDtoOutputItemsInnerSourceEnum_OPERATOR;
     case 'PLATFORM':
       return _$adminRefundPageDtoOutputItemsInnerSourceEnum_PLATFORM;
     default:
@@ -55,6 +60,7 @@ final BuiltSet<AdminRefundPageDtoOutputItemsInnerSource_Enum>
     _$adminRefundPageDtoOutputItemsInnerSourceEnumValues = BuiltSet<
         AdminRefundPageDtoOutputItemsInnerSource_Enum>(const <AdminRefundPageDtoOutputItemsInnerSource_Enum>[
   _$adminRefundPageDtoOutputItemsInnerSourceEnum_CUSTOMER,
+  _$adminRefundPageDtoOutputItemsInnerSourceEnum_OPERATOR,
   _$adminRefundPageDtoOutputItemsInnerSourceEnum_PLATFORM,
 ]);
 
@@ -156,10 +162,12 @@ class _$AdminRefundPageDtoOutputItemsInnerSource_EnumSerializer
         PrimitiveSerializer<AdminRefundPageDtoOutputItemsInnerSource_Enum> {
   static const Map<String, Object> _toWire = const <String, Object>{
     'CUSTOMER': 'CUSTOMER',
+    'OPERATOR': 'OPERATOR',
     'PLATFORM': 'PLATFORM',
   };
   static const Map<Object, String> _fromWire = const <Object, String>{
     'CUSTOMER': 'CUSTOMER',
+    'OPERATOR': 'OPERATOR',
     'PLATFORM': 'PLATFORM',
   };
 

@@ -73,7 +73,7 @@ abstract class AdminRefundDetailDtoOutput implements Built<AdminRefundDetailDtoO
 
   @BuiltValueField(wireName: r'source')
   AdminRefundDetailDtoOutputSource_Enum get source_;
-  // enum source_Enum {  CUSTOMER,  PLATFORM,  };
+  // enum source_Enum {  CUSTOMER,  OPERATOR,  PLATFORM,  };
 
   @BuiltValueField(wireName: r'amount')
   int get amount;
@@ -551,6 +551,8 @@ class AdminRefundDetailDtoOutputSource_Enum extends EnumClass {
 
   @BuiltValueEnumConst(wireName: r'CUSTOMER')
   static const AdminRefundDetailDtoOutputSource_Enum CUSTOMER = _$adminRefundDetailDtoOutputSourceEnum_CUSTOMER;
+  @BuiltValueEnumConst(wireName: r'OPERATOR')
+  static const AdminRefundDetailDtoOutputSource_Enum OPERATOR = _$adminRefundDetailDtoOutputSourceEnum_OPERATOR;
   @BuiltValueEnumConst(wireName: r'PLATFORM')
   static const AdminRefundDetailDtoOutputSource_Enum PLATFORM = _$adminRefundDetailDtoOutputSourceEnum_PLATFORM;
 

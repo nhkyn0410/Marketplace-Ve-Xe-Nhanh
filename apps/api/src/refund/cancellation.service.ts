@@ -16,7 +16,7 @@ import { QUEUE_NAMES } from "../queue/queue.constants";
 import { settleBookingStatus } from "./booking-settlement";
 import type { CancellationInput, CancellationQuote, CancellationResult } from "./dto/cancellation.dto";
 import { REFUND_JOB, REFUND_JOB_OPTIONS } from "./refund-processing";
-import { applicableTier, type CancellationTier, refundOf } from "./refund-policy";
+import { applicableTier, type CancellationTier, paidPrice, refundOf } from "./refund-policy";
 import { cancellationNotAllowed, refundAmountChanged, ticketsNotInBooking } from "./refund.errors";
 
 /** Mã gửi cổng `RFD` + 12 ký tự (CHECK `refunds_code_format`). */
@@ -173,6 +173,8 @@ async function load(tx: DbTransaction, operatorId: string, bookingId: string) {
       accessTokenHash: true,
       contactEmail: true,
       snapshot: true,
+      subtotal: true,
+      discount: true,
       trip: { select: { status: true, departureAt: true } },
       tickets: {
         orderBy: { ticketCode: "asc" },
@@ -211,8 +213,10 @@ function buildQuote(data: Loaded, ticketIds: string[], now: Date): CancellationQ
     };
   });
   const selected = data.tickets.filter((ticket) => ticketIds.includes(ticket.id));
-  const total = selected.reduce((sum, ticket) => sum + ticket.passenger.price, 0n);
-  const refund = selected.reduce((sum, ticket) => sum + refundOf(ticket.passenger.price, percent), 0n);
+  // Đơn có mã giảm giá: hoàn trên phần khách thực trả của từng vé (không hoàn quá số đã trả).
+  const paid = (price: bigint) => paidPrice(price, data.subtotal, data.discount);
+  const total = selected.reduce((sum, ticket) => sum + paid(ticket.passenger.price), 0n);
+  const refund = selected.reduce((sum, ticket) => sum + refundOf(paid(ticket.passenger.price), percent), 0n);
   return {
     tickets,
     tier: tier ? { minHoursBefore: tier.minHoursBefore, refundPercent: tier.refundPercent } : null,

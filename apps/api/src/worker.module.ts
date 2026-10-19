@@ -9,6 +9,9 @@ import { createPrivateStorage, createPublicStorage } from "./external/storage/st
 import { PRIVATE_STORAGE, PUBLIC_STORAGE } from "./external/storage/storage-provider";
 import { BookingExpiryProcessor } from "./booking/booking-expiry.processor";
 import { PaymentCallbackProcessor } from "./payment/payment-callback.processor";
+import { PaymentReconciliationProcessor } from "./payment/payment-reconciliation.processor";
+import { DisputeOverdueProcessor } from "./dispute/dispute-overdue.processor";
+import { LoyaltyMaintenanceProcessor } from "./loyalty/loyalty-maintenance.processor";
 import { RefundProcessor } from "./refund/refund.processor";
 import { PayoutGenerationProcessor } from "./payout/payout-generation.processor";
 import { PAYMENT_GATEWAYS } from "./external/payment/payment-gateway";
@@ -39,7 +42,13 @@ import { NotificationProcessor } from "./notification/notification.processor";
     PayoutGenerationProcessor,
     // Gửi email thông báo (TASK-NSR-001); dispatcher cho các processor ghi thông báo (vé điện tử, hoàn tiền).
     NotificationDispatcher,
-    NotificationProcessor
+    NotificationProcessor,
+    // Đối soát với cổng mỗi 10 phút + xếp hàng lại refund đứng yên (FR-BTP-17).
+    PaymentReconciliationProcessor,
+    // Leo thang tranh chấp quá hạn phản hồi mỗi 15 phút (FR-DSP-05).
+    DisputeOverdueProcessor,
+    // VXN Plus: tích / thu hồi / hết hạn điểm mỗi 10 phút (FR-LOY-02/08).
+    LoyaltyMaintenanceProcessor
   ]
 })
 export class WorkerModule {}

@@ -321,8 +321,10 @@ describe.skipIf(!url && !requireDb)("Lịch chuyến lặp lại — Postgres th
       expect.objectContaining({ action: "trip_schedule.update", before: expect.objectContaining({ departureTime: "00:00" }) }),
     );
     const rerun = await schedules.generate(actor, authzA, created.id, { openForSale: false });
-    expect(rerun.created.map((trip) => trip.serviceDate)).toEqual([dayFromToday(2)]);
-    expect(rerun.created[0]!.departureAt).toBe(departureOf(dayFromToday(2), 3 * 60).toISOString());
+    // Chạy test trước 03:00 giờ VN thì 03:00 hôm nay chưa qua → ngày hôm nay cũng được sinh.
+    const todayStillAhead = departureOf(dayFromToday(0), 3 * 60).getTime() > Date.now();
+    expect(rerun.created.map((trip) => trip.serviceDate)).toEqual([...(todayStillAhead ? [dayFromToday(0)] : []), dayFromToday(2)]);
+    expect(rerun.created.at(-1)!.departureAt).toBe(departureOf(dayFromToday(2), 3 * 60).toISOString());
     const rows = await tripsOf(created.id);
     expect(rows.find((row) => row.serviceDate!.toISOString().startsWith(dayFromToday(1)))!.departureAt.toISOString()).toBe(
       departureOf(dayFromToday(1), 0).toISOString(),

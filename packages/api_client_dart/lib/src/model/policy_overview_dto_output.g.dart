@@ -14,6 +14,9 @@ const PolicyOverviewDtoOutputTypeEnum
     const PolicyOverviewDtoOutputTypeEnum._('SEAT_HOLD');
 const PolicyOverviewDtoOutputTypeEnum _$policyOverviewDtoOutputTypeEnum_PAYOUT =
     const PolicyOverviewDtoOutputTypeEnum._('PAYOUT');
+const PolicyOverviewDtoOutputTypeEnum
+    _$policyOverviewDtoOutputTypeEnum_LOYALTY =
+    const PolicyOverviewDtoOutputTypeEnum._('LOYALTY');
 
 PolicyOverviewDtoOutputTypeEnum _$policyOverviewDtoOutputTypeEnumValueOf(
     String name) {
@@ -24,6 +27,8 @@ PolicyOverviewDtoOutputTypeEnum _$policyOverviewDtoOutputTypeEnumValueOf(
       return _$policyOverviewDtoOutputTypeEnum_SEAT_HOLD;
     case 'PAYOUT':
       return _$policyOverviewDtoOutputTypeEnum_PAYOUT;
+    case 'LOYALTY':
+      return _$policyOverviewDtoOutputTypeEnum_LOYALTY;
     default:
       throw ArgumentError(name);
   }
@@ -35,6 +40,7 @@ final BuiltSet<PolicyOverviewDtoOutputTypeEnum>
   _$policyOverviewDtoOutputTypeEnum_CANCELLATION,
   _$policyOverviewDtoOutputTypeEnum_SEAT_HOLD,
   _$policyOverviewDtoOutputTypeEnum_PAYOUT,
+  _$policyOverviewDtoOutputTypeEnum_LOYALTY,
 ]);
 
 Serializer<PolicyOverviewDtoOutputTypeEnum>
@@ -47,11 +53,13 @@ class _$PolicyOverviewDtoOutputTypeEnumSerializer
     'CANCELLATION': 'CANCELLATION',
     'SEAT_HOLD': 'SEAT_HOLD',
     'PAYOUT': 'PAYOUT',
+    'LOYALTY': 'LOYALTY',
   };
   static const Map<Object, String> _fromWire = const <Object, String>{
     'CANCELLATION': 'CANCELLATION',
     'SEAT_HOLD': 'SEAT_HOLD',
     'PAYOUT': 'PAYOUT',
+    'LOYALTY': 'LOYALTY',
   };
 
   @override

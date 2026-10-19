@@ -4,7 +4,7 @@
 
 // ignore_for_file: unused_element
 import 'package:built_collection/built_collection.dart';
-import 'package:api_client_dart/src/model/trip_passenger_list_dto_output_pickups_inner.dart';
+import 'package:api_client_dart/src/model/trip_sales_dto_output_changes_inner_before_stops_inner.dart';
 import 'package:built_value/built_value.dart';
 import 'package:built_value/serializer.dart';
 
@@ -44,10 +44,10 @@ abstract class TripPassengerListDtoOutputItemsInner implements Built<TripPasseng
   bool get guest;
 
   @BuiltValueField(wireName: r'pickup')
-  TripPassengerListDtoOutputPickupsInner get pickup;
+  TripSalesDtoOutputChangesInnerBeforeStopsInner get pickup;
 
   @BuiltValueField(wireName: r'dropoff')
-  TripPassengerListDtoOutputPickupsInner get dropoff;
+  TripSalesDtoOutputChangesInnerBeforeStopsInner get dropoff;
 
   @BuiltValueField(wireName: r'ticketCode')
   String get ticketCode;
@@ -112,12 +112,12 @@ class _$TripPassengerListDtoOutputItemsInnerSerializer implements PrimitiveSeria
     yield r'pickup';
     yield serializers.serialize(
       object.pickup,
-      specifiedType: const FullType(TripPassengerListDtoOutputPickupsInner),
+      specifiedType: const FullType(TripSalesDtoOutputChangesInnerBeforeStopsInner),
     );
     yield r'dropoff';
     yield serializers.serialize(
       object.dropoff,
-      specifiedType: const FullType(TripPassengerListDtoOutputPickupsInner),
+      specifiedType: const FullType(TripSalesDtoOutputChangesInnerBeforeStopsInner),
     );
     yield r'ticketCode';
     yield serializers.serialize(
@@ -198,15 +198,15 @@ class _$TripPassengerListDtoOutputItemsInnerSerializer implements PrimitiveSeria
         case r'pickup':
           final valueDes = serializers.deserialize(
             value,
-            specifiedType: const FullType(TripPassengerListDtoOutputPickupsInner),
-          ) as TripPassengerListDtoOutputPickupsInner;
+            specifiedType: const FullType(TripSalesDtoOutputChangesInnerBeforeStopsInner),
+          ) as TripSalesDtoOutputChangesInnerBeforeStopsInner;
           result.pickup.replace(valueDes);
           break;
         case r'dropoff':
           final valueDes = serializers.deserialize(
             value,
-            specifiedType: const FullType(TripPassengerListDtoOutputPickupsInner),
-          ) as TripPassengerListDtoOutputPickupsInner;
+            specifiedType: const FullType(TripSalesDtoOutputChangesInnerBeforeStopsInner),
+          ) as TripSalesDtoOutputChangesInnerBeforeStopsInner;
           result.dropoff.replace(valueDes);
           break;
         case r'ticketCode':

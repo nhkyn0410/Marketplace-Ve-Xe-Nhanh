@@ -9,7 +9,8 @@ export async function listOperatorsWithEligibleEntries(prisma: Pick<PrismaServic
   const rows = await prisma.withSystem((tx) =>
     tx.$queryRaw<{ operatorId: string }[]>`
       SELECT DISTINCT e.operator_id AS "operatorId" FROM escrow_ledgers e
-      WHERE e.eligible_at <= ${now} AND e.entry_type <> 'PAYOUT'
+      LEFT JOIN trips t ON t.id = e.trip_id AND t.operator_id = e.operator_id
+      WHERE COALESCE(t.payout_eligible_at, e.eligible_at) <= ${now} AND e.entry_type <> 'PAYOUT'
         AND NOT EXISTS (SELECT 1 FROM payout_items i WHERE i.ledger_entry_id = e.id)
       ORDER BY 1`,
   );
