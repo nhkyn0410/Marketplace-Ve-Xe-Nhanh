@@ -64,6 +64,7 @@ import { CancelTripDialog, SeatLockDialog } from "./trip-sale-dialogs";
 import { OnlineSaleCard, ReadinessCard, SeatSummaryCard } from "./trip-sale-panels";
 import { TripSeatMap } from "./trip-seat-map";
 import { StopTimeText, TripStopRow } from "./trip-stop-row";
+import { PickupWindowPanel } from "./pickup-window-panel";
 
 const CARD = "flex flex-col gap-5 rounded-xl border bg-card p-6";
 const CARD_TITLE = "text-base leading-6 font-semibold text-vxn-ink";
@@ -514,6 +515,7 @@ function TripDetailBody({ trip, saved, changed, onDismissSaved }: { trip: Trip; 
 
           {sales.data && sales.data.changes.length > 0 && <ChangeHistoryCard changes={sales.data.changes} />}
 
+          <PickupWindowPanel trip={trip} />
           <section aria-labelledby="trip-info-heading" className={`${CARD} gap-3.5`}>
             <h2 id="trip-info-heading" className={CARD_TITLE}>
               Thông tin chuyến

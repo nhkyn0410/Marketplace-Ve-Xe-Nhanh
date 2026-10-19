@@ -1,6 +1,7 @@
 import type { DbTransaction } from "../database/prisma.service";
 import { DiscountFunding, DiscountType, PromotionScope, PromotionStatus, RedemptionStatus } from "../database/prisma.types";
 import { promotionExhausted, promotionInvalid } from "./promotion.errors";
+import { transitionVoucher } from "./voucher-apply";
 
 /** Số tiền tối thiểu khách phải trả sau giảm (BR-72 "không thấp hơn mức tối thiểu của cổng" — VNPay / MoMo nhận từ vài nghìn đồng). */
 export const MIN_PAYABLE = 10_000n;
@@ -26,7 +27,7 @@ export function vnMonthStart(at: Date): Date {
   return new Date(Date.UTC(local.getUTCFullYear(), local.getUTCMonth(), 1) - VN_OFFSET_MS);
 }
 
-export type AppliedPromotion = { promotionId: string; code: string; name: string; discount: bigint; fundedBy: DiscountFunding };
+export type AppliedPromotion = { promotionId: string | null; userVoucherId?: string; code: string; name: string; discount: bigint; fundedBy: DiscountFunding };
 
 type Context = { operatorId: string; routeId: string; tripId: string; subtotal: bigint; code: string; now: Date };
 
@@ -47,6 +48,7 @@ export async function evaluatePromotion(tx: DbTransaction, context: Context): Pr
       maxDiscount: true,
       minOrder: true,
       routeId: true,
+      routeIds: true,
       tripId: true,
       startsAt: true,
       endsAt: true,
@@ -58,6 +60,7 @@ export async function evaluatePromotion(tx: DbTransaction, context: Context): Pr
     throw promotionInvalid("Mã khuyến mãi không tồn tại hoặc chưa / hết hiệu lực.");
   }
   if (promotion.scope === PromotionScope.PLATFORM) {
+    if (promotion.routeIds.length > 0 && !promotion.routeIds.includes(context.routeId)) throw promotionInvalid("Mã khuyến mãi không áp dụng cho tuyến này.");
     // Khanh 18/10/2026: khuyến mãi nền tảng chỉ áp cho chuyến của nhà xe đã tham gia (nhà xe chịu phần giảm).
     const joined = await tx.promotionParticipation.findUnique({
       where: { promotionId_operatorId: { promotionId: promotion.id, operatorId: context.operatorId } },
@@ -110,16 +113,18 @@ export async function claimPromotion(tx: DbTransaction, context: Context): Promi
 /** Đơn thanh toán thành công → lượt áp dụng "đã dùng" (FR-PROM-06). */
 export async function useRedemption(tx: DbTransaction, operatorId: string, bookingId: string): Promise<void> {
   await tx.promotionRedemption.updateMany({ where: { bookingId, operatorId, status: RedemptionStatus.RESERVED }, data: { status: RedemptionStatus.USED } });
+  await transitionVoucher(tx, operatorId, bookingId, "USE");
 }
 
 /** Đơn hết hạn / hủy trước khi thanh toán → trả lượt dùng của mã (BR-72). Gọi lặp an toàn. */
 export async function releaseRedemption(tx: DbTransaction, operatorId: string, bookingId: string): Promise<void> {
+  await transitionVoucher(tx, operatorId, bookingId, "RELEASE");
   const redemption = await tx.promotionRedemption.findFirst({ where: { bookingId, operatorId, status: RedemptionStatus.RESERVED }, select: { id: true, promotionId: true } });
   if (!redemption) {
     return;
   }
   const updated = await tx.promotionRedemption.updateMany({ where: { id: redemption.id, status: RedemptionStatus.RESERVED }, data: { status: RedemptionStatus.RELEASED } });
-  if (updated.count > 0) {
+  if (updated.count > 0 && redemption.promotionId) {
     await tx.$executeRaw`SELECT promotion_release(${redemption.promotionId})`;
   }
 }

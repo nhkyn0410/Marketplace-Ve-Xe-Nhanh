@@ -27,6 +27,10 @@ import { VehicleService } from "../vehicle/vehicle.service";
 import { AdminLoyaltyService } from "./admin-loyalty.service";
 import { earnForBooking, expireForAccount, reverseForRefund } from "./loyalty-maintenance";
 import { appendEntry, lockAccount } from "./loyalty-rules";
+import { PassengerLoyaltyService } from "./passenger-loyalty.service";
+import { expireBooking } from "../booking/booking-expiry";
+import { recordRefund } from "../escrow/escrow-entries";
+import { transitionVoucher } from "../promotion/voucher-apply";
 
 /**
  * TASK-LOY-001 trên Postgres + Redis THẬT (role app), chính sách VXN Plus v1 do migration seed (1 điểm / 10.000 ₫, hạng Bạc từ 2.000
@@ -73,7 +77,7 @@ describe.skipIf(!ready && !requireDb)("VXN Plus — Postgres + Redis thật (LOY
   const ward = randomUUID();
   const points = [randomUUID(), randomUUID(), randomUUID()];
   const vehicleType = randomUUID();
-  const users = { rider: randomUUID(), silver: randomUUID(), expiring: randomUUID() };
+  const users = { rider: randomUUID(), silver: randomUUID(), expiring: randomUUID(), wallet: randomUUID(), otherWallet: randomUUID() };
   const admin = { sub: randomUUID(), role: "PLATFORM_ADMIN" } as VerifiedAccessToken;
   const ownerAuthz: Authorization = { permission: "trip:manage", scope: "tenant", db: tenantScope(operatorId) };
   const platformAuthz: Authorization = { permission: "loyalty:manage", scope: "any", db: platformScope() };
@@ -193,6 +197,9 @@ describe.skipIf(!ready && !requireDb)("VXN Plus — Postgres + Redis thật (LOY
     const userIds = Object.values(users);
     await prisma.withSystem(async (tx) => {
       await tx.$executeRaw`SELECT set_config('app.allow_ledger_delete', 'on', true)`;
+      await tx.promotionRedemption.deleteMany({ where: { operatorId } });
+      await tx.userVoucher.deleteMany({ where: { userId: { in: userIds } } });
+      await tx.promotion.deleteMany({ where: { operatorId } });
       await tx.loyaltyPointTransaction.deleteMany({ where: { account: { userId: { in: userIds } } } });
       await tx.loyaltyAccount.deleteMany({ where: { userId: { in: userIds } } });
       await tx.notificationDelivery.deleteMany({ where: { operatorId } });
@@ -358,5 +365,99 @@ describe.skipIf(!ready && !requireDb)("VXN Plus — Postgres + Redis thật (LOY
     await expect(prisma.withSystem((tx) => tx.loyaltyPointTransaction.delete({ where: { id: row!.id } }))).rejects.toThrow(/append-only/);
     // Số dư âm bị CHECK chặn kể cả khi ghi thẳng.
     await expect(prisma.withSystem((tx) => tx.loyaltyAccount.update({ where: { userId: users.silver }, data: { availablePoints: -1 } }))).rejects.toThrow();
+  }, 60_000);
+
+  it("ví voucher: đổi điểm song song không trùng / không âm, giữ một lần, trả khi hết hạn; thanh toán lỗi không làm tiêu trùng trợ giá", async () => {
+    const wallet = new PassengerLoyaltyService(prisma);
+    await loyalty.adjust(platformAuthz, admin, users.wallet, { direction: "CREDIT", points: 300, reason: "Dữ liệu thử ví voucher" }, randomUUID());
+    const key = randomUUID();
+    const redeemed = await Promise.all([wallet.redeem(users.wallet, 100, key), wallet.redeem(users.wallet, 100, key)]);
+    const voucher = redeemed[0]!;
+    expect(redeemed[1]!.userVoucherId).toBe(voucher.userVoucherId);
+    expect(voucher).toMatchObject({ source: "LOYALTY_REDEMPTION", status: "AVAILABLE", discountAmount: "100000" });
+    expect(await balance(users.wallet)).toBe(200);
+    expect(await rejectionOf(wallet.redeem(users.wallet, 101, key))).toMatchObject({ code: "LOYALTY_REQUEST_CONFLICT" });
+    const spending = await Promise.allSettled([wallet.redeem(users.wallet, 200, randomUUID()), wallet.redeem(users.wallet, 200, randomUUID())]);
+    expect(spending.filter((result) => result.status === "fulfilled")).toHaveLength(1);
+    expect(await balance(users.wallet)).toBe(0);
+    expect((await ledger(users.wallet)).filter((entry) => entry.type === "REDEEM")).toHaveLength(2);
+    expect((await wallet.vouchers(users.otherWallet, { offset: 0, limit: 20 })).items).toEqual([]);
+    expect(await prisma.withTenant(operatorId, (tx) => tx.userVoucher.count({ where: { userId: users.wallet } }))).toBe(0);
+
+    const tripId = await openTrip();
+    const user = { sub: users.wallet, sid: randomUUID(), scope: "passenger", role: "PASSENGER" } as VerifiedAccessToken;
+    const create = async (seatCode: string, actor = user) => {
+      const hold = await holds.create(actor, undefined, SeatHoldInputSchema.parse({ tripId, seatCodes: [seatCode], pickupSequence: 1, dropoffSequence: 3 }));
+      return bookings.create(actor, BookingInputSchema.parse({ holdId: hold.holdId, contact: { fullName: "Khách ví", phone: "0901234567", email: "wallet@example.com" }, passengers: [{ seatCode, fullName: "Khách ví", phone: null }], note: null, expectedTotal: 200_000, userVoucherId: voucher.userVoucherId }));
+    };
+    expect(await rejectionOf(create("A1", { ...user, sub: users.otherWallet }))).toMatchObject({ code: "VOUCHER_NOT_AVAILABLE" });
+    const claimed = await Promise.allSettled([create("A2"), create("A3")]);
+    expect(claimed.filter((result) => result.status === "fulfilled")).toHaveLength(1);
+    const reserved = claimed.find((result) => result.status === "fulfilled")!.value;
+    expect(reserved.discountFunding).toBe("PLATFORM");
+    await prisma.withTenant(operatorId, (tx) => expireBooking(tx, operatorId, reserved.bookingId, new Date(Date.parse(reserved.expiresAt) + 1)));
+    expect((await wallet.vouchers(users.wallet, { status: "AVAILABLE", offset: 0, limit: 20 })).items.some((item) => item.userVoucherId === voucher.userVoucherId)).toBe(true);
+
+    const first = await create("A4");
+    const paymentCode = `PAY${randomUUID().replace(/-/g, "").slice(0, 12).toUpperCase()}`;
+    await prisma.withTenant(operatorId, (tx) => tx.payment.create({ data: { paymentCode, operatorId, bookingId: first.bookingId, provider: "VNPAY", status: "PROCESSING", amount: 200_000n, expiresAt: new Date(first.expiresAt) } }));
+    const callback = { provider: "VNPAY" as const, paymentCode, providerTxnId: `T${randomUUID()}`, amount: "200000", success: false, resultCode: "99", fields: {} };
+    expect(await applyPaymentCallback(prisma, callback, qr)).toBe("FAILED");
+    expect((await wallet.vouchers(users.wallet, { status: "AVAILABLE", offset: 0, limit: 20 })).items.some((item) => item.userVoucherId === voucher.userVoucherId)).toBe(true);
+    // Voucher đã dành cho đơn khác: callback trả tiền muộn của đơn cũ phải vào đối soát.
+    const nextTrip = await openTrip();
+    const hold = await holds.create(user, undefined, SeatHoldInputSchema.parse({ tripId: nextTrip, seatCodes: ["A1"], pickupSequence: 1, dropoffSequence: 3 }));
+    const next = await bookings.create(user, BookingInputSchema.parse({ holdId: hold.holdId, contact: { fullName: "Khách ví", phone: "0901234567", email: "wallet@example.com" }, passengers: [{ seatCode: "A1", fullName: "Khách ví", phone: null }], note: null, expectedTotal: 200_000, userVoucherId: voucher.userVoucherId }));
+    expect(await applyPaymentCallback(prisma, { ...callback, success: true, resultCode: "00" }, qr)).toBe("RECONCILING");
+    const nextCode = `PAY${randomUUID().replace(/-/g, "").slice(0, 12).toUpperCase()}`;
+    const payment = await prisma.withTenant(operatorId, (tx) => tx.payment.create({ data: { paymentCode: nextCode, operatorId, bookingId: next.bookingId, provider: "VNPAY", status: "PROCESSING", amount: 200_000n, expiresAt: new Date(next.expiresAt) } }));
+    const successful = { ...callback, paymentCode: nextCode, providerTxnId: `T${randomUUID()}`, success: true, resultCode: "00" };
+    expect(await applyPaymentCallback(prisma, successful, qr)).toBe("SUCCESS");
+    expect(await applyPaymentCallback(prisma, successful, qr)).toBe("DUPLICATE");
+    const entries = () => prisma.withTenant(operatorId, (tx) => tx.escrowLedger.findMany({ where: { bookingId: next.bookingId }, select: { entryType: true, amount: true } }));
+    expect(await entries()).toEqual(expect.arrayContaining([{ entryType: "PAYMENT_CAPTURED", amount: 200_000n }, { entryType: "PLATFORM_FUNDED_DISCOUNT", amount: 100_000n }, { entryType: "COMMISSION", amount: -15_000n }]));
+    const local = new Date(Date.now() + 7 * HOUR);
+    const report = await loyalty.report(platformAuthz, { year: local.getUTCFullYear(), quarter: Math.floor(local.getUTCMonth() / 3) + 1, tier: "BRONZE" });
+    expect(report.totals.vouchersUsed).toBeGreaterThanOrEqual(1);
+    expect(report.totals.platformDiscount).toBeGreaterThanOrEqual(100_000);
+    for (let index = 0; index < 2; index++) await prisma.withTenant(operatorId, async (tx) => {
+      const refund = await tx.refund.create({ data: { refundCode: `RFD${randomUUID().replace(/-/g, "").slice(0, 12).toUpperCase()}`, operatorId, bookingId: next.bookingId, paymentId: payment.id, status: "SUCCESS", amount: 100_000n, refundPercent: 50, reason: "Thử hoàn theo tỷ lệ", requestedBy: "system" } });
+      await recordRefund(tx, operatorId, { refundId: refund.id, bookingId: next.bookingId, amount: 100_000n }, new Date());
+    });
+    expect((await entries()).reduce((sum, entry) => sum + entry.amount, 0n)).toBe(0n);
+    expect((await wallet.vouchers(users.wallet, { status: "USED", offset: 0, limit: 20 })).items).toHaveLength(1);
+    await prisma.withTenant(operatorId, (tx) => transitionVoucher(tx, operatorId, next.bookingId, "TRIP_CANCELLED"));
+    expect((await wallet.vouchers(users.wallet, { status: "AVAILABLE", offset: 0, limit: 20 })).items.some((item) => item.userVoucherId === voucher.userVoucherId)).toBe(true);
+  }, 120_000);
+
+  it("lưu mã công khai không giữ lượt, chống lưu trùng, dùng theo điều kiện mã gốc và chỉ một ưu đãi mỗi đơn", async () => {
+    const wallet = new PassengerLoyaltyService(prisma);
+    const code = `SAVE${tag}`;
+    const promotion = await prisma.withSystem((tx) => tx.promotion.create({ data: { code, name: "Mã lưu thử", scope: "OPERATOR", operatorId, discountType: "AMOUNT", discountValue: 30_000n, minOrder: 200_000n, routeId, startsAt: new Date(Date.now() - HOUR), endsAt: new Date(Date.now() + 24 * HOUR), usageLimit: 1, status: "ACTIVE", createdBy: "system" } }));
+    const saved = await Promise.allSettled([wallet.save(users.otherWallet, code), wallet.save(users.otherWallet, code)]);
+    expect(saved.filter((result) => result.status === "fulfilled")).toHaveLength(1);
+    const voucher = saved.find((result) => result.status === "fulfilled")!.value;
+    expect(await prisma.withSystem((tx) => tx.promotion.findUnique({ where: { id: promotion.id }, select: { usedCount: true } }))).toEqual({ usedCount: 0 });
+    const user = { sub: users.otherWallet, sid: randomUUID(), scope: "passenger", role: "PASSENGER" } as VerifiedAccessToken;
+    const tripId = await openTrip();
+    const hold = await holds.create(user, undefined, SeatHoldInputSchema.parse({ tripId, seatCodes: ["A1"], pickupSequence: 1, dropoffSequence: 3 }));
+    const input = BookingInputSchema.parse({ holdId: hold.holdId, contact: { fullName: "Khách mã lưu", phone: "0901234567", email: "save@example.com" }, passengers: [{ seatCode: "A1", fullName: "Khách mã lưu", phone: null }], note: null, expectedTotal: 270_000, userVoucherId: voucher.userVoucherId });
+    expect(await rejectionOf(bookings.create(user, { ...input, promotionCode: code }))).toEqual({ status: 422, code: "VOUCHER_ONE_PER_BOOKING" });
+    const booking = await bookings.create(user, input);
+    expect(booking).toMatchObject({ total: 270_000, discount: 30_000, discountFunding: "OPERATOR" });
+    expect(await prisma.withTenant(operatorId, (tx) => tx.promotionRedemption.findUnique({ where: { bookingId: booking.bookingId }, select: { userVoucherId: true, promotionId: true } }))).toEqual({ userVoucherId: voucher.userVoucherId, promotionId: promotion.id });
+    await prisma.withTenant(operatorId, (tx) => expireBooking(tx, operatorId, booking.bookingId, new Date(Date.parse(booking.expiresAt) + 1)));
+    const retryHold = await holds.create(user, undefined, SeatHoldInputSchema.parse({ tripId, seatCodes: ["A2"], pickupSequence: 1, dropoffSequence: 3 }));
+    const retry = await bookings.create(user, { ...input, holdId: retryHold.holdId, passengers: [{ seatCode: "A2", fullName: "Khách mã lưu", phone: null }] });
+    const paymentCode = `PAY${randomUUID().replace(/-/g, "").slice(0, 12).toUpperCase()}`;
+    await prisma.withTenant(operatorId, (tx) => tx.payment.create({ data: { paymentCode, operatorId, bookingId: retry.bookingId, provider: "VNPAY", status: "PROCESSING", amount: 270_000n, expiresAt: new Date(retry.expiresAt) } }));
+    const callback = { provider: "VNPAY" as const, paymentCode, providerTxnId: `T${randomUUID()}`, amount: "270000", success: false, resultCode: "99", fields: {} };
+    expect(await applyPaymentCallback(prisma, callback, qr)).toBe("FAILED");
+    expect(await prisma.withSystem((tx) => tx.promotion.findUnique({ where: { id: promotion.id }, select: { usedCount: true } }))).toEqual({ usedCount: 0 });
+    expect(await applyPaymentCallback(prisma, { ...callback, success: true, resultCode: "00" }, qr)).toBe("SUCCESS");
+    expect(await prisma.withSystem((tx) => tx.promotion.findUnique({ where: { id: promotion.id }, select: { usedCount: true } }))).toEqual({ usedCount: 1 });
+    await prisma.withTenant(operatorId, (tx) => transitionVoucher(tx, operatorId, retry.bookingId, "TRIP_CANCELLED"));
+    await prisma.withSystem((tx) => tx.promotion.update({ where: { id: promotion.id }, data: { status: "PAUSED" } }));
+    expect((await wallet.vouchers(users.otherWallet, { offset: 0, limit: 20, status: "EXPIRED" })).items.map((item) => item.userVoucherId)).toContain(voucher.userVoucherId);
   }, 60_000);
 });

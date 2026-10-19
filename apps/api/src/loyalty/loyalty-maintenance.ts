@@ -1,7 +1,8 @@
 import { Logger } from "@nestjs/common";
 import { listEarnCandidates, listExpiryCandidates, listReversalCandidates, withLoyaltySystem } from "../database/loyalty-scope";
 import type { DbTransaction, PrismaService } from "../database/prisma.service";
-import { LoyaltyPointType, LoyaltyTier, RefundStatus, TicketStatus, TripStatus } from "../database/prisma.types";
+import { LoyaltyPointType, LoyaltyTier, NotificationKind, RefundStatus, SubjectType, TicketStatus, TripStatus } from "../database/prisma.types";
+import { queueNotification } from "../notification/notification-outbox";
 import { paidPrice } from "../refund/refund-policy";
 import { addMonths, appendEntry, earnedWithinWindow, earnPoints, expiringPoints, lockAccount, loyaltyPolicyAt, reversalPoints, tierFor } from "./loyalty-rules";
 
@@ -14,6 +15,7 @@ const EARN_LOOKBACK_MS = 30 * 86_400_000;
 /** Vé không tính điểm (BR-66). */
 const EXCLUDED_TICKETS: TicketStatus[] = [TicketStatus.CANCELLED, TicketStatus.REFUNDED, TicketStatus.NO_SHOW];
 const VN_DATE = new Intl.DateTimeFormat("vi-VN", { timeZone: "Asia/Ho_Chi_Minh", day: "2-digit", month: "2-digit", year: "numeric" });
+const TIER_LABELS = { BRONZE: "Đồng", SILVER: "Bạc", GOLD: "Vàng", PLATINUM: "Bạch kim" };
 
 const logger = new Logger("LoyaltyMaintenance");
 
@@ -43,6 +45,11 @@ export async function runLoyaltyMaintenance(prisma: Pick<PrismaService, "withSys
   for (const accountId of await listExpiryCandidates(prisma, now, BATCH)) {
     await step("expired", accountId, (tx) => expireForAccount(tx, accountId, now));
   }
+  await withLoyaltySystem(prisma, (tx) => tx.$executeRaw`
+    UPDATE user_vouchers v SET status = 'EXPIRED', updated_at = ${now}
+    WHERE v.status = 'AVAILABLE' AND (v.expires_at <= ${now} OR EXISTS (
+      SELECT 1 FROM promotions p WHERE p.id = v.promotion_id AND (p.status IN ('PAUSED', 'ENDED') OR p.ends_at <= ${now})
+    ))`);
   return result;
 }
 
@@ -52,6 +59,7 @@ export async function earnForBooking(tx: DbTransaction, bookingId: string, now: 
     where: { id: bookingId },
     select: {
       bookingCode: true,
+      operatorId: true,
       userId: true,
       paidAt: true,
       subtotal: true,
@@ -101,6 +109,9 @@ export async function earnForBooking(tx: DbTransaction, bookingId: string, now: 
     },
     now,
   );
+  const recipient = await tx.user.findUnique({ where: { id: booking.userId }, select: { email: true } });
+  const nextTier = tierFor(policy.rules, await earnedWithinWindow(tx, account.id, now)).tier;
+  await queueNotification(tx, booking.operatorId, { kind: NotificationKind.LOYALTY_UPDATED, dedupKey: `LOYALTY_UPDATED:${key}`, bookingId, recipientEmail: recipient?.email ?? null, recipientType: SubjectType.PASSENGER, recipientId: booking.userId, payload: { title: "Điểm VXN Plus đã được cộng", message: `Bạn vừa nhận ${points} điểm từ đơn ${booking.bookingCode}.${nextTier !== tier.tier ? ` Hạng thành viên mới: ${TIER_LABELS[nextTier]}.` : ""}` } });
   return true;
 }
 
@@ -110,7 +121,7 @@ export async function reverseForRefund(tx: DbTransaction, refundId: string, book
     where: { idempotencyKey: `EARN:${bookingId}` },
     select: { points: true, basisAmount: true, policyVersionId: true, policyVersion: true, account: { select: { userId: true } } },
   });
-  const refund = await tx.refund.findUnique({ where: { id: refundId }, select: { amount: true, status: true, booking: { select: { bookingCode: true } } } });
+  const refund = await tx.refund.findUnique({ where: { id: refundId }, select: { operatorId: true, amount: true, status: true, booking: { select: { bookingCode: true } } } });
   if (!earn || !refund || refund.status !== RefundStatus.SUCCESS) {
     return false;
   }
@@ -140,6 +151,8 @@ export async function reverseForRefund(tx: DbTransaction, refundId: string, book
     },
     now,
   );
+  const recipient = await tx.user.findUnique({ where: { id: earn.account.userId }, select: { email: true } });
+  await queueNotification(tx, refund.operatorId, { kind: NotificationKind.LOYALTY_UPDATED, dedupKey: `LOYALTY_UPDATED:${key}`, bookingId, recipientEmail: recipient?.email ?? null, recipientType: SubjectType.PASSENGER, recipientId: earn.account.userId, payload: { title: "Điểm VXN Plus đã điều chỉnh sau hoàn tiền", message: `Đơn ${refund.booking.bookingCode} đã được hoàn tiền; số điểm đã thu hồi: ${taken}.` } });
   return true;
 }
 

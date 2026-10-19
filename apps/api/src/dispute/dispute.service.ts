@@ -1,6 +1,8 @@
 import { InjectQueue } from "@nestjs/bullmq";
 import { Inject, Injectable, Logger } from "@nestjs/common";
 import type { Queue } from "bullmq";
+import type { DirectDisputeInput } from "@vexenhanh/types";
+import { AuthException } from "../iam/auth/auth.errors";
 import { AuditService, AuditWriteError } from "../audit/audit.service";
 import { canAccessBooking } from "../booking/booking-access";
 import type { DbScope } from "../database/db-scope";
@@ -84,6 +86,37 @@ export class DisputeService {
   ) {}
 
   // ------------------------------------------------------------------ Admin
+
+  /** Mở tranh chấp từ đơn hoặc thanh toán; khóa đơn để gửi lặp không tạo hai vụ đang mở. */
+  async openFromBooking(authz: Authorization, actor: Actor, input: DirectDisputeInput): Promise<DisputeDetail> {
+    const { disputeId, keys } = await this.write(platformDb(authz), async (tx, deadline) => {
+      const [booking] = await tx.$queryRaw<{ id: string; operatorId: string; bookingCode: string }[]>`SELECT id, operator_id AS "operatorId", booking_code AS "bookingCode" FROM bookings WHERE id = ${input.bookingId} FOR UPDATE`;
+      if (!booking) throw new AuthException(404, "BOOKING_NOT_FOUND", "Không tìm thấy đơn đặt vé.");
+      if (await tx.disputeCase.findFirst({ where: { bookingId: booking.id, operatorId: booking.operatorId, supportTicketId: null, status: { in: OPEN } }, select: { id: true } })) {
+        throw disputeStateInvalid("Đơn đã có tranh chấp trực tiếp đang mở.");
+      }
+      const now = new Date();
+      const [{ seq }] = await tx.$queryRaw<{ seq: bigint }[]>`SELECT nextval('dispute_code_seq') AS seq`;
+      const dispute = await tx.disputeCase.create({ data: {
+        disputeCode: `DC-${String(seq).padStart(6, "0")}`, operatorId: booking.operatorId, bookingId: booking.id,
+        title: input.title, customerRequest: input.customerRequest, assigneeId: actor.sub,
+        createdBy: `platform:${actor.sub}`, createdAt: now,
+      }, select: { id: true, disputeCode: true } });
+      await tx.disputeEvent.create({ data: {
+        disputeId: dispute.id, operatorId: booking.operatorId, kind: DisputeEventKind.STATUS, party: CaseParty.PLATFORM,
+        actor: `platform:${actor.sub}`, actorName: await platformName(tx, actor.sub), toStatus: DisputeStatus.OPEN,
+        body: `Từ đơn ${booking.bookingCode}. ${input.reason}`, createdAt: now,
+      } });
+      await this.record(actor, "dispute.open", dispute.id, booking.operatorId, {}, { disputeCode: dispute.disputeCode, bookingId: booking.id }, deadline, input.reason);
+      const keys = await notices(tx, booking.operatorId, [
+        { audience: "OPERATOR", bookingId: booking.id, dedupKey: `CASE_UPDATED:${dispute.id}:open:OPERATOR`, caseCode: dispute.disputeCode, title: "Vé Xe Nhanh mở tranh chấp", message: `Đơn ${booking.bookingCode} phát sinh tranh chấp "${input.title}".` },
+        { audience: "CUSTOMER", bookingId: booking.id, dedupKey: `CASE_UPDATED:${dispute.id}:open:CUSTOMER`, caseCode: dispute.disputeCode, title: "Đơn của bạn được mở tranh chấp", message: "Vé Xe Nhanh sẽ xem xét minh chứng của các bên và ra quyết định cuối cùng." },
+      ]);
+      return { disputeId: dispute.id, keys };
+    });
+    await this.notifications.dispatch(keys);
+    return this.adminGet(authz, disputeId);
+  }
 
   /** Chuyển khiếu nại thành tranh chấp (FR-DSP-01): khiếu nại → "Đã chuyển tranh chấp"; nhà xe + khách nhận email. */
   async escalate(authz: Authorization, actor: Actor, ticketId: string, input: EscalateInput): Promise<DisputeDetail> {

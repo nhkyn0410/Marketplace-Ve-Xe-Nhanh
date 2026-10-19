@@ -67,3 +67,10 @@ test("đánh giá: điểm trung bình, viết phản hồi → Đã phản hồ
   await expect(item).toContainText("Đã phản hồi", FIRST_VISIT);
   await expect(item).toContainText("Cảm ơn chị đã tin tưởng nhà xe.");
 });
+
+test("sự cố và nhật trình: nhà xe chưa có báo cáo thấy trạng thái trống cùng quy tắc báo Admin", async () => {
+  await page.getByRole("tab", { name: "Sự cố và nhật trình" }).click();
+  await expect(page.getByRole("region", { name: "Sự cố đã báo" })).toContainText("Chưa có sự cố", FIRST_VISIT);
+  await expect(page.getByRole("region", { name: "Sự cố đã báo" })).toContainText("Sự cố nghiêm trọng và khẩn cấp tự động báo");
+  await expect(page.getByRole("region", { name: "Nhật trình chuyến" })).toContainText("Chưa có nhật trình", FIRST_VISIT);
+});

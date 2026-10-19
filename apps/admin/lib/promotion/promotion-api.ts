@@ -31,6 +31,11 @@ export function getPromotion(promotionId: string): Promise<Promotion> {
   return apiRequest<Promotion>(`/admin/promotions/${promotionId}`);
 }
 
+/** Tuyến của các nhà xe để chọn phạm vi khuyến mãi nền tảng. */
+export function listPromotionRoutes(): Promise<{ items: { routeId: string; routeName: string; operatorName: string }[] }> {
+  return apiRequest("/admin/promotion-routes");
+}
+
 export function createPromotion(input: PromotionFormValues): Promise<Promotion> {
   return apiRequest<Promotion>("/admin/promotions", { method: "POST", body: { ...input, routeId: null, tripId: null } });
 }

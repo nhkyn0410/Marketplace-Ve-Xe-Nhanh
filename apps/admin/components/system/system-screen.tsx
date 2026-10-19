@@ -1,6 +1,6 @@
 "use client";
 
-import { useQuery, type UseQueryResult } from "@tanstack/react-query";
+import { useIsFetching, useQuery, useQueryClient, type UseQueryResult } from "@tanstack/react-query";
 import { Badge } from "@vexenhanh/ui/components/badge";
 import { Button } from "@vexenhanh/ui/components/button";
 import { TAB_TRIGGER, TABLE, TABLE_CELL, TABLE_HEAD_CELL, TABLE_HEAD_ROW, TableSkeleton } from "@vexenhanh/ui/components/list-controls";
@@ -38,6 +38,9 @@ import {
 } from "../../lib/system/system-format";
 import { formatDateTime } from "../../lib/user/user-format";
 import { PageHeader } from "../page-header";
+import { ReconciliationPanel } from "./reconciliation-panel";
+import { NotificationLogPanel } from "./notification-log";
+import { NOTIFICATION_LOG_KEY } from "../../lib/notification/notification-api";
 
 const ICONS: Record<string, ReactNode> = {
   postgres: <Database className="size-5" />,
@@ -55,33 +58,35 @@ const ICONS: Record<string, ReactNode> = {
 };
 
 /**
- * Màn Tích hợp & hệ thống (Figma ADM-16a / 16b) — CHỈ ĐỌC (Khanh 16/10/2026): trạng thái dịch vụ nền / bên ngoài và tác
- * vụ nền. Không có chế độ bảo trì, không chạy lại tác vụ ở phiên bản này.
+ * Màn Tích hợp & hệ thống (Figma ADM-16a / 16b): trạng thái dịch vụ, tác vụ nền và chạy lại đối soát (UC-32).
  */
 export function SystemScreen() {
   const router = useRouter();
   const pathname = usePathname();
   const params = useSearchParams();
-  const tab = params.get("tab") === "jobs" ? "jobs" : "integrations";
+  const queryClient = useQueryClient();
+  const tab = params.get("tab") === "notifications" ? "notifications" : params.get("tab") === "jobs" ? "jobs" : "integrations";
   const integrations = useQuery({ queryKey: ["admin-system", "integrations"], queryFn: getIntegrations, enabled: tab === "integrations" });
   const jobs = useQuery({ queryKey: ["admin-system", "jobs"], queryFn: getBackgroundJobs, enabled: tab === "jobs" });
   const active = tab === "jobs" ? jobs : integrations;
+  const logFetching = useIsFetching({ queryKey: NOTIFICATION_LOG_KEY }) > 0;
+  const fetching = tab === "notifications" ? logFetching : active.isFetching;
 
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
         title="Tích hợp & hệ thống"
-        description="Trạng thái vận hành của dịch vụ bên ngoài và các tác vụ chạy nền. Trang chỉ đọc."
+        description="Trạng thái dịch vụ bên ngoài, tác vụ chạy nền và kết quả đối soát."
         actions={
-          <Button variant="outline" className={`${BUTTON} bg-card`} disabled={active.isFetching} onClick={() => void active.refetch()}>
-            <RefreshCw className={`size-[18px] ${active.isFetching ? "animate-spin" : ""}`} />
+          <Button variant="outline" className={`${BUTTON} bg-card`} disabled={fetching} onClick={() => { if (tab === "notifications") void queryClient.invalidateQueries({ queryKey: NOTIFICATION_LOG_KEY }); else void active.refetch(); }}>
+            <RefreshCw className={`size-[18px] ${fetching ? "animate-spin" : ""}`} />
             Kiểm tra lại
           </Button>
         }
       />
       <Tabs
         value={tab}
-        onValueChange={(next) => router.replace(next === "jobs" ? `${pathname}?tab=jobs` : pathname, { scroll: false })}
+        onValueChange={(next) => router.replace(next === "integrations" ? pathname : `${pathname}?tab=${next}`, { scroll: false })}
         className="flex flex-col gap-6"
       >
         <TabsList className="h-10 w-fit max-w-full overflow-x-auto" aria-label="Nhóm thông tin">
@@ -91,6 +96,7 @@ export function SystemScreen() {
           <TabsTrigger value="jobs" className={TAB_TRIGGER}>
             Tác vụ nền
           </TabsTrigger>
+          <TabsTrigger value="notifications" className={TAB_TRIGGER}>Nhật ký thông báo</TabsTrigger>
         </TabsList>
         <TabsContent value="integrations" className="flex flex-col gap-6">
           <IntegrationsTab query={integrations} />
@@ -98,6 +104,7 @@ export function SystemScreen() {
         <TabsContent value="jobs" className="flex flex-col gap-6">
           <JobsTab query={jobs} />
         </TabsContent>
+        <TabsContent value="notifications"><NotificationLogPanel /></TabsContent>
       </Tabs>
     </div>
   );
@@ -274,11 +281,11 @@ function JobsTab({ query }: { query: UseQueryResult<BackgroundJobs> }) {
           </p>
         )}
       </section>
+      <ReconciliationPanel />
       <div role="note" className="flex gap-3 rounded-lg bg-accent px-5 py-4 text-sm leading-5 text-accent-foreground">
         <Activity className="mt-px size-5 shrink-0" />
         <p>
-          Trang chỉ đọc. Tác vụ lỗi được thử lại tự động theo cấu hình hàng đợi; lần chạy thành công lưu 24 giờ, lần lỗi lưu 7 ngày. Các tác vụ đối soát,
-          chi trả, thông báo, xuất báo cáo sẽ hiện ở đây khi các phần đó được xây.
+          Tác vụ lỗi được thử lại tự động theo cấu hình hàng đợi; lần chạy thành công lưu 24 giờ, lần lỗi lưu 7 ngày. Kết quả đối soát sổ giữ hộ và kỳ chi trả được lưu riêng để theo dõi sai lệch.
         </p>
       </div>
     </>

@@ -6,6 +6,12 @@ import { Role } from "./role";
  * task sở hữu quyết (TASK-IAM-003 todo). Tên = `resource:action`.
  */
 export const PERMISSIONS = [
+  "profile:manage",
+  "loyalty:use",
+  "notification:manage",
+  "incident:create",
+  "journey-log:create",
+  "system:run",
   "trip:search", // §7 Search trip
   "booking:create", // §7 Create booking
   "booking:read", // API §7.3 /operator/bookings, FR-OPS-14/15 (TASK-OPR-003) — booking / vé / hành khách của nhà xe
@@ -56,12 +62,13 @@ type Grants = Readonly<Partial<Record<Permission, GrantScope>>>;
 
 /** Quyền chung của 3 role Employee (BR-43): xem xe, soát vé chuyến được phân công. */
 const EMPLOYEE: Grants = {
+  "notification:manage": "own",
   "vehicle:read": "assigned",
   "checkin:perform": "assigned",
 };
 
 /** Tài xế còn cập nhật trạng thái chuyến được phân công (FR-EMP-09). */
-const DRIVER: Grants = { ...EMPLOYEE, "trip:operate": "assigned" };
+const DRIVER: Grants = { ...EMPLOYEE, "trip:operate": "assigned", "incident:create": "assigned", "journey-log:create": "assigned" };
 
 /**
  * Bảng role → quyền. `Record<Role, …>`: thêm role mà quên dòng ở đây thì TypeScript báo lỗi.
@@ -77,6 +84,9 @@ export const ROLE_GRANTS: Readonly<Record<Role, Grants>> = {
     "support:create": "own", // đơn đã xác minh bằng mã truy cập (UC-35)
   },
   [Role.PASSENGER]: {
+    "profile:manage": "own",
+    "loyalty:use": "own",
+    "notification:manage": "own",
     "trip:search": "any",
     "booking:create": "own",
     "payment:create": "own",
@@ -85,6 +95,7 @@ export const ROLE_GRANTS: Readonly<Record<Role, Grants>> = {
     "review:create": "own",
   },
   [Role.OPERATOR_OWNER]: {
+    "notification:manage": "own",
     "trip:search": "tenant",
     "refund:request": "tenant",
     "vehicle:manage": "tenant",
@@ -102,8 +113,10 @@ export const ROLE_GRANTS: Readonly<Record<Role, Grants>> = {
   },
   [Role.DRIVER]: DRIVER,
   [Role.TICKET_STAFF]: EMPLOYEE,
-  [Role.SUPPORT_STAFF]: EMPLOYEE,
+  [Role.SUPPORT_STAFF]: { ...EMPLOYEE, "incident:create": "assigned" },
   [Role.PLATFORM_ADMIN]: {
+    "notification:manage": "own",
+    "system:run": "any",
     "trip:search": "any",
     "payment:monitor": "any",
     "refund:request": "any",
@@ -127,6 +140,7 @@ export const ROLE_GRANTS: Readonly<Record<Role, Grants>> = {
   // GIẢ ĐỊNH (Security §7 chỉ có một cột "Admin"): tối thiểu quyền — chỉ đọc/giám sát, không duyệt,
   // cấu hình hay hoàn tiền. Khanh đổi thì chỉ sửa dòng này.
   [Role.PLATFORM_SUPPORT]: {
+    "notification:manage": "own",
     "trip:search": "any",
     "payment:monitor": "any",
     "vehicle:read": "any",

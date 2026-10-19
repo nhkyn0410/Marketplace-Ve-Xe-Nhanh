@@ -4,6 +4,10 @@ import type { Job, Queue } from "bullmq";
 import { AuditService } from "../audit/audit.service";
 import { stalePendingDeliveryIds } from "../database/notification-scope";
 import { PrismaService } from "../database/prisma.service";
+import { withNotificationSubject } from "../database/preference-scope";
+import { PUSH_NOTIFIER, type PushNotifier } from "../external/notification/push/push-notifier";
+import { deliverPushNotification } from "./push-delivery";
+import { prepareNotificationChannels } from "./notification-outbox";
 import { EMAIL_NOTIFIER, type EmailNotifier } from "../external/notification/email-notifier";
 import { QUEUE_NAMES } from "../queue/queue.constants";
 import {
@@ -29,6 +33,7 @@ export class NotificationProcessor extends WorkerHost implements OnModuleInit {
     @Inject(EMAIL_NOTIFIER) private readonly notifier: EmailNotifier,
     @Inject(AuditService) private readonly audit: AuditService,
     @InjectQueue(QUEUE_NAMES.notifications) private readonly queue: Queue,
+    @Inject(PUSH_NOTIFIER) private readonly push: PushNotifier,
   ) {
     super();
   }
@@ -40,6 +45,7 @@ export class NotificationProcessor extends WorkerHost implements OnModuleInit {
 
   async process(job: Job<{ deliveryId?: string }>): Promise<{ outcome?: DeliveryOutcome; requeued?: number }> {
     if (job.name === NOTIFICATION_SWEEP_JOB) {
+      await prepareNotificationChannels(this.prisma);
       const ids = await stalePendingDeliveryIds(this.prisma, new Date(Date.now() - STALE_AFTER_MS), SWEEP_LIMIT);
       for (const deliveryId of ids) {
         // Cùng jobId với lần xếp hàng đầu: job còn trong hàng đợi thì BullMQ bỏ qua, không gửi trùng.
@@ -51,7 +57,8 @@ export class NotificationProcessor extends WorkerHost implements OnModuleInit {
       throw new Error(`Unsupported notification job: ${job.name}`);
     }
     const finalAttempt = job.attemptsMade + 1 >= (job.opts.attempts ?? 1);
-    const outcome = await deliverNotification(this.prisma, this.notifier, this.audit, job.data.deliveryId, { finalAttempt });
+    const delivery = await withNotificationSubject(this.prisma, (tx) => tx.notificationDelivery.findUnique({ where: { id: job.data.deliveryId! }, select: { channel: true } }));
+    const outcome = delivery?.channel === "PUSH" ? await deliverPushNotification(this.prisma, this.push, this.audit, job.data.deliveryId, finalAttempt) : await deliverNotification(this.prisma, this.notifier, this.audit, job.data.deliveryId, { finalAttempt });
     this.logger.log({ event: "notification.delivered", deliveryId: job.data.deliveryId, outcome });
     return { outcome };
   }

@@ -264,6 +264,19 @@ describe.skipIf(!ready && !requireDb)("Soát vé + vận hành chuyến của nh
     expect(await rejectionOf(operations.checkIn(authz, driver, { tripId: other.tripId, code: other.tickets[0]!.ticketCode, status: "NO_SHOW" }))).toMatchObject({ status: 409, code: "CHECK_IN_REJECTED" });
   }, 30_000);
 
+  it("vắng mặt chỉ sau cửa sổ đón tại đúng điểm của hành khách", async () => {
+    const trip = await assignedTrip(44);
+    await operations.operate(authz, driver, trip.tripId, { status: "BOARDING", note: null });
+    const start = new Date(Date.now() - HOUR).toISOString();
+    const futureEnd = new Date(Date.now() + HOUR).toISOString();
+    await trips.setPickupWindow(ownerAuthz, trip.tripId, 1, { start, end: futureEnd });
+    const manifest = await operations.manifest(authz, driver, trip.tripId);
+    expect(manifest.passengers[0]!.pickup.pickupWindowEnd).toBe(futureEnd);
+    expect(await rejectionOf(operations.checkIn(authz, driver, { tripId: trip.tripId, code: trip.tickets[0]!.ticketCode, status: "NO_SHOW" }))).toMatchObject({ status: 409, code: "CHECK_IN_REJECTED", detail: "Chưa hết cửa sổ đón tại điểm của hành khách." });
+    await trips.setPickupWindow(ownerAuthz, trip.tripId, 1, { start, end: new Date(Date.now() - 60_000).toISOString() });
+    expect((await operations.checkIn(authz, driver, { tripId: trip.tripId, code: trip.tickets[0]!.ticketCode, status: "NO_SHOW" })).ticket.status).toBe("NO_SHOW");
+  }, 30_000);
+
   it("tài xế đổi trạng thái theo thứ tự; nhân viên vé không đổi được; hoàn thành → vé đã dùng / vắng mặt, mốc chi trả theo giờ hoàn thành; hết soát vé sau hoàn thành", async () => {
     const trip = await assignedTrip(36);
     await prisma.withSystem((tx) => tx.employeeAssignment.create({ data: { operatorId, tripId: trip.tripId, employeeId: staffId, role: "TICKET_STAFF" } }));

@@ -51,7 +51,7 @@ const TRIP_SELECT = {
   status: true,
   route: { select: { name: true } },
   vehicle: { select: { plateNumber: true } },
-  stops: { orderBy: { sequence: "asc" }, select: { sequence: true, catalogStopPoint: { select: { name: true } }, stopPoint: { select: { name: true } } } },
+  stops: { orderBy: { sequence: "asc" }, select: { sequence: true, pickupWindowStart: true, pickupWindowEnd: true, catalogStopPoint: { select: { name: true } }, stopPoint: { select: { name: true } } } },
 } as const;
 
 type TripRow = {
@@ -61,7 +61,7 @@ type TripRow = {
   status: TripStatus;
   route: { name: string };
   vehicle: { plateNumber: string } | null;
-  stops: { sequence: number; catalogStopPoint: { name: string } | null; stopPoint: { name: string } | null }[];
+  stops: { sequence: number; pickupWindowStart: Date | null; pickupWindowEnd: Date | null; catalogStopPoint: { name: string } | null; stopPoint: { name: string } | null }[];
 };
 
 /**
@@ -143,6 +143,12 @@ export class EmployeeOperationsService {
         throw checkInRejected("Vé thuộc chuyến khác.");
       }
       const now = new Date();
+      if (input.status === TicketStatus.NO_SHOW) {
+        const pickup = assignment.trip.stops.find((stop) => stop.sequence === found.booking.pickupSequence);
+        if (pickup?.pickupWindowEnd && now.getTime() <= pickup.pickupWindowEnd.getTime()) {
+          throw checkInRejected("Chưa hết cửa sổ đón tại điểm của hành khách.");
+        }
+      }
       const updated = await tx.ticket.updateMany({
         where: { id: found.id, operatorId, status: TicketStatus.VALID },
         data: { status: input.status, ...(input.status === TicketStatus.CHECKED_IN ? { checkedInAt: now } : {}) },
@@ -231,7 +237,7 @@ async function findTicket(tx: DbTransaction, operatorId: string, code: string) {
   const ticketCode = /^VXN[A-Z0-9-]+-\d{2}$/i.test(code) ? code.toUpperCase() : null;
   const ticket = await tx.ticket.findFirst({
     where: { operatorId, ...(ticketCode ? { ticketCode } : { qrTokenHash: TicketQrSigner.hash(code) }) },
-    select: { id: true, tripId: true, ticketCode: true, seatCode: true, status: true },
+    select: { id: true, tripId: true, ticketCode: true, seatCode: true, status: true, booking: { select: { pickupSequence: true } } },
   });
   if (!ticket) {
     throw ticketNotFound();
@@ -255,7 +261,7 @@ async function loadTickets(tx: DbTransaction, operatorId: string, where: object,
   });
   const point = (sequence: number) => {
     const stop = trip.stops.find((item) => item.sequence === sequence);
-    return { sequence, name: (stop?.catalogStopPoint ?? stop?.stopPoint)?.name ?? `Điểm ${sequence}` };
+    return { sequence, name: (stop?.catalogStopPoint ?? stop?.stopPoint)?.name ?? `Điểm ${sequence}`, pickupWindowStart: stop?.pickupWindowStart?.toISOString() ?? null, pickupWindowEnd: stop?.pickupWindowEnd?.toISOString() ?? null };
   };
   return rows.map((row) => ({
     ticketId: row.id,

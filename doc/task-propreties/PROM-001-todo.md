@@ -17,15 +17,15 @@
 
 | # | Điểm | Đã làm theo |
 |---|------|-------------|
-| G1 | Khuyến mãi nền tảng giới hạn tuyến (Figma "Tuyến Hà Nội – Sapa") | Chưa — tuyến thuộc từng nhà xe; khuyến mãi nền tảng áp mọi chuyến của nhà xe đã tham gia |
+| G1 | Khuyến mãi nền tảng giới hạn tuyến (Figma "Tuyến Hà Nội – Sapa") | Đã thêm danh sách tuyến cụ thể của nhiều nhà xe (`routeIds`); rỗng = mọi tuyến của nhà xe tham gia. Admin chọn tuyến đang hoạt động, bước áp mã vẫn bắt buộc nhà xe đã tham gia |
 | G2 | Giới hạn lượt dùng của khuyến mãi nền tảng | Một tổng lượt chung mọi nhà xe (không chia theo nhà xe) |
 | G3 | Hoa hồng khi có giảm giá | Tính trên tiền vé sau giảm (nhà xe chịu phần giảm) |
 | G4 | Mức tối thiểu khách phải trả sau giảm | 10.000 ₫ (`MIN_PAYABLE`) — cần đối chiếu mức tối thiểu thật của VNPay / MoMo |
 | G5 | Chỉ một mã duy nhất toàn hệ thống | Có — mã không trùng cả giữa các nhà xe |
-| G6 | Ví voucher (FR-PROM-08..10), voucher đổi điểm VXN Plus khi đặt vé | Chưa — phần hành khách; LOY-001 chỉ làm phía Admin |
+| G6 | Ví voucher (FR-PROM-08..10), voucher đổi điểm VXN Plus khi đặt vé | Backend đã làm cùng PROM-002: lưu mã, đổi điểm, giữ / dùng / trả voucher; UI hành khách thuộc phần web / mobile |
 | G7 | Rời khuyến mãi nền tảng | Được bất cứ lúc nào; đơn đã giữ mã không bị ảnh hưởng |
 | G8 | "Doanh thu có áp mã" | Tổng tiền đơn (sau giảm) của đơn đã thanh toán có mã, 30 ngày |
-| G9 | Hủy chuyến của nhà xe — số tiền hoàn hiển thị trước khi hủy | Hoàn theo số đã trả (đã đúng ở luồng hủy); số "dự kiến hoàn" ở màn chi tiết chuyến vẫn tính theo giá vé |
+| G9 | Hủy chuyến của nhà xe — số tiền hoàn hiển thị trước khi hủy | Đã dùng chung phép tính dự kiến / tạo refund: phần thực trả của từng vé còn hiệu lực sau phân bổ giảm giá, không vượt tiền còn lại sau các lần hoàn trước |
 
 ## Kiểm tra
 

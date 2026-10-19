@@ -180,7 +180,7 @@ function PromotionList({ scope }: { scope: "OPERATOR" | "PLATFORM" }) {
                   <p className="font-semibold text-vxn-ink">{discountLabel(promotion)}</p>
                   <p className="text-xs leading-[18px] text-muted-foreground">{minOrderLabel(promotion.minOrder)}</p>
                 </td>
-                <td className={TABLE_CELL}>{own ? (promotion.routeName ?? "Mọi tuyến của nhà xe") : promotion.joined ? <Badge tone="success">Đã tham gia</Badge> : <Badge>Chưa tham gia</Badge>}</td>
+                <td className={TABLE_CELL}>{own ? (promotion.routeName ?? "Mọi tuyến của nhà xe") : <>{promotion.joined ? <Badge tone="success">Đã tham gia</Badge> : <Badge>Chưa tham gia</Badge>}<p className="mt-1 text-xs text-muted-foreground">{promotion.routeIds.length > 0 ? promotion.routeNames.join(", ") : "Mọi tuyến của nhà xe tham gia"}</p></>}</td>
                 <td className={`${TABLE_CELL} tabular-nums`}>{windowLabel(promotion.startsAt, promotion.endsAt)}</td>
                 <td className={`${TABLE_CELL} text-right font-semibold tabular-nums`}>{usageLabel(promotion.usedCount, promotion.usageLimit)}</td>
                 <td className={TABLE_CELL}>

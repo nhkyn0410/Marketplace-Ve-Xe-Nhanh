@@ -25,6 +25,8 @@ export const PromotionInputSchema = z
     minOrder: z.int().min(0).max(MAX_VND).default(0),
     /** Chỉ khuyến mãi của nhà xe: tuyến / chuyến của chính nhà xe; `null` = mọi tuyến / mọi chuyến. */
     routeId: z.uuid().nullable().default(null),
+    /** Nền tảng chọn nhiều tuyến của các nhà xe; rỗng = mọi tuyến của nhà xe tham gia. */
+    routeIds: z.array(z.uuid()).max(200).default([]),
     tripId: z.uuid().nullable().default(null),
     startsAt: z.iso.datetime({ offset: true }),
     endsAt: z.iso.datetime({ offset: true }),
@@ -57,6 +59,8 @@ export const PromotionSchema = z.object({
   maxDiscount: z.int().nullable(),
   minOrder: z.int(),
   routeId: z.uuid().nullable(),
+  routeIds: z.array(z.uuid()),
+  routeNames: z.array(z.string()),
   routeName: z.string().nullable(),
   tripId: z.uuid().nullable(),
   startsAt: z.iso.datetime(),
@@ -75,6 +79,9 @@ export const PromotionSchema = z.object({
 });
 export type Promotion = z.infer<typeof PromotionSchema>;
 export class PromotionDto extends createZodDto(PromotionSchema) {}
+
+/** Tuyến để Admin chọn phạm vi khuyến mãi nền tảng. */
+export class PromotionRouteOptionsDto extends createZodDto(z.object({ items: z.array(z.object({ routeId: z.uuid(), routeName: z.string(), operatorName: z.string() })) })) {}
 
 export const PromotionStatsSchema = z.object({
   running: z.int(),

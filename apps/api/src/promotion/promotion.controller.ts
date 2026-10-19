@@ -22,6 +22,7 @@ import {
   PromotionListQueryDto,
   PromotionPageDto,
   PromotionStatusInputDto,
+  PromotionRouteOptionsDto,
   type Permission,
   type PermissionPage,
   type Promotion,
@@ -55,6 +56,12 @@ function listQueries(): MethodDecorator {
 /** Khuyến mãi nền tảng, khuyến mãi của các nhà xe, quyền tự tạo khuyến mãi của nhà xe (Figma ADM-11a/b; TASK-PROM-001). */
 export class AdminPromotionController {
   constructor(@Inject(PromotionService) private readonly promotions: PromotionService) {}
+
+  /** Các tuyến đang hoạt động để chọn phạm vi khuyến mãi nền tảng. */
+  @Get("promotion-routes")
+  @Authorize("promotion:configure")
+  @ZodResponse({ status: 200, type: PromotionRouteOptionsDto })
+  routeOptions(@Authz() authz: Authorization) { return this.promotions.routeOptions(authz); }
 
   @Get("promotions")
   @Authorize("promotion:configure")

@@ -10,10 +10,11 @@ type ScopedPrisma = Pick<PrismaService, "withSystem" | "withTenant">;
 export async function withDeliveryOperator<T>(
   prisma: ScopedPrisma,
   deliveryId: string,
-  work: (tx: DbTransaction, operatorId: string) => Promise<T>,
+  work: (tx: DbTransaction, operatorId: string | null) => Promise<T>,
 ): Promise<T | null> {
   const delivery = await prisma.withSystem((tx) => tx.notificationDelivery.findUnique({ where: { id: deliveryId }, select: { operatorId: true } }));
-  return delivery ? prisma.withTenant(delivery.operatorId, (tx) => work(tx, delivery.operatorId)) : null;
+  if (!delivery) return null;
+  return delivery.operatorId ? prisma.withTenant(delivery.operatorId, (tx) => work(tx, delivery.operatorId)) : prisma.withSystem((tx) => work(tx, null));
 }
 
 /** Bản gửi còn `PENDING` của các thông báo theo khoá chống trùng (gửi ngay sau commit). */
@@ -23,7 +24,7 @@ export async function pendingDeliveryIds(prisma: ScopedPrisma, dedupKeys: string
   }
   const rows = await prisma.withSystem((tx) =>
     tx.notificationDelivery.findMany({
-      where: { status: NotificationDeliveryStatus.PENDING, notification: { dedupKey: { in: dedupKeys } } },
+      where: { status: NotificationDeliveryStatus.PENDING, notification: { dedupKey: { in: dedupKeys }, channelsPreparedAt: { not: null } } },
       select: { id: true },
     }),
   );
@@ -34,7 +35,7 @@ export async function pendingDeliveryIds(prisma: ScopedPrisma, dedupKeys: string
 export async function stalePendingDeliveryIds(prisma: ScopedPrisma, before: Date, limit: number): Promise<string[]> {
   const rows = await prisma.withSystem((tx) =>
     tx.notificationDelivery.findMany({
-      where: { status: NotificationDeliveryStatus.PENDING, createdAt: { lt: before } },
+      where: { status: NotificationDeliveryStatus.PENDING, createdAt: { lt: before }, notification: { channelsPreparedAt: { not: null } } },
       orderBy: { createdAt: "asc" },
       take: limit,
       select: { id: true },

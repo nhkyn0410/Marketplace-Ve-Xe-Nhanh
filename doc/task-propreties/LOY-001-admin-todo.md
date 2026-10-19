@@ -20,7 +20,7 @@
 | # | Điểm | Đã làm theo |
 |---|------|-------------|
 | L1 | Hạn dùng điểm (Figma chưa có số) | 12 tháng kể từ ngày tích — Admin đổi được bằng phiên bản mới |
-| L2 | Tạo `LoyaltyAccount` "khi đăng ký" (FR-LOY-01) | Tạo khi có giao dịch điểm đầu tiên; tra cứu hành khách chưa có giao dịch → hạng Đồng, 0 điểm, "thành viên từ" = ngày đăng ký |
+| L2 | Tạo `LoyaltyAccount` "khi đăng ký" (FR-LOY-01) | Đã tạo sau xác minh OTP / OAuth thành công (19/10/2026), chống trùng theo userId; dữ liệu hành khách cũ vẫn được tạo bổ sung khi có giao dịch đầu tiên |
 | L3 | Điểm tích 12 tháng để xếp hạng | Tích − thu hồi (không trừ điểm đã đổi / hết hạn — BR-68) |
 | L4 | Điểm Admin cộng tay có hạn không | Có, cùng hạn điểm tích; điểm cộng tay **không** tính vào xếp hạng |
 | L5 | Thu hồi khi hoàn tiền theo quyết định tranh chấp (không gắn vé) | Theo tỷ lệ số tiền hoàn / số tiền căn cứ lúc tích |
@@ -32,9 +32,9 @@
 
 ## Chưa làm (ngoài phạm vi "phía Admin")
 
-- Đổi điểm lấy voucher, ví voucher, phần giảm Vé Xe Nhanh chịu vào sổ giữ hộ (FR-LOY-06/07/09, FR-PROM-08..10, BR-71/73 — TASK-PROM-002 + màn hành khách): báo cáo hiện "voucher đã dùng" và "giảm do Vé Xe Nhanh chịu" = 0.
+- Backend đổi điểm, ví voucher và phần giảm Vé Xe Nhanh chịu đã làm cùng TASK-PROM-002 (19/10/2026). Báo cáo đọc số voucher đã thanh toán và chi phí trợ giá ròng từ sổ giữ hộ, bao gồm bút toán đảo khi hoàn tiền; còn UI hành khách.
 - Màn VXN Plus của hành khách (web + `passenger_mobile`, FR-LOY-04/05).
-- Nhắc hành khách trước khi điểm hết hạn, thông báo khi tích điểm / đổi hạng / được điều chỉnh (thông báo không bắt buộc — FR-LOY-08, UC-39 bước 5).
+- Đã nối thông báo tùy chọn khi tích điểm / đổi hạng, thu hồi, đổi điểm, lưu voucher và điều chỉnh Admin. Nhắc điểm / voucher sắp hết hạn trước **7 ngày** theo lựa chọn của Khanh ngày 19/10/2026; thông báo cá nhân không phụ thuộc nhà xe, chống trùng và áp dụng tùy chọn nhận (FR-LOY-08, UC-39 bước 5).
 
 ## Kiểm tra
 

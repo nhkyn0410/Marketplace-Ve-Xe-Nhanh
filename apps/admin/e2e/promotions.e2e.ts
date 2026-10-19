@@ -40,11 +40,17 @@ test("khuyến mãi nền tảng: tạo (mã sai báo tại ô) → lưu nháp �
   await page.getByText("Giảm số tiền cố định", { exact: true }).click();
   await page.getByLabel("Số tiền giảm (₫) *").fill("30000");
   await page.getByLabel("Giá trị đơn tối thiểu (₫)").fill("200000");
+  const route = page.getByRole("checkbox", { name: new RegExp(fixtures.operatorName) }).first();
+  await expect(route).toBeVisible(FIRST_VISIT);
+  const routeLabel = await route.locator("..").innerText();
+  await route.check();
   await expect(page.getByRole("region", { name: "Hành khách sẽ thấy" })).toContainText(`${code} · 30.000 ₫`);
   await page.getByRole("button", { name: "Lưu nháp" }).click();
   await expect(page).toHaveURL(/\/promotions\/[0-9a-f-]{36}/, FIRST_VISIT);
   await expect(page.getByRole("heading", { name: code, level: 1 })).toBeVisible();
   await expect(page.getByText("Nháp", { exact: true })).toBeVisible();
+  await page.reload();
+  await expect(page.getByRole("checkbox", { name: routeLabel.trim(), exact: true })).toBeChecked(FIRST_VISIT);
 
   await page.getByRole("button", { name: "Kích hoạt" }).click();
   await expect(page.getByRole("status")).toContainText("kích hoạt", FIRST_VISIT);

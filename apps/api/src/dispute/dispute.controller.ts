@@ -18,6 +18,7 @@ import {
   DisputeDetailDto,
   DisputePageDto,
   DisputeStatusInputDto,
+  DirectDisputeInputDto,
   EvidenceInputDto,
   OperatorDisputeListQueryDto,
   RequestEvidenceInputDto,
@@ -41,6 +42,18 @@ export class AdminDisputeController {
     @Inject(DisputeService) private readonly disputes: DisputeService,
     @Inject(SupportService) private readonly support: SupportService,
   ) {}
+
+  /** Mở tranh chấp trực tiếp từ đơn hoặc thanh toán của đơn (FR-DSP-01). */
+  @Post("disputes")
+  @HttpCode(201)
+  @Authorize("support:manage")
+  @ApiBody({ type: DirectDisputeInputDto })
+  @ZodResponse({ status: 201, description: "Đã mở tranh chấp trực tiếp từ đơn.", type: DisputeDetailDto })
+  @ApiResponse({ status: 404, description: "`BOOKING_NOT_FOUND`.", content: problemContent })
+  @ApiResponse({ status: 409, description: "`DISPUTE_STATE_INVALID` — đã có tranh chấp trực tiếp đang mở.", content: problemContent })
+  open(@CurrentUser() actor: VerifiedAccessToken, @Authz() authz: Authorization, @Body() input: DirectDisputeInputDto): Promise<DisputeDetail> {
+    return this.disputes.openFromBooking(authz, actor, input);
+  }
 
   @Post("support-tickets/:ticketId/escalate")
   @HttpCode(201)

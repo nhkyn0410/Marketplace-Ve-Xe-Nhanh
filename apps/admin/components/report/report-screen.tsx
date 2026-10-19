@@ -18,7 +18,7 @@ import { ReportFilters, toParams, type ReportFilterState } from "./report-filter
 /**
  * Báo cáo toàn hệ thống (Figma ADM-14a; TASK-RPT-002, FR-NSR-13, FR-ADM-17, UC-29): giá trị giao dịch, doanh thu sau hoàn (tạm
  * tính khi còn giao dịch cần đối soát), lấp đầy, chuyến bị nhà xe hủy, bảng theo nhà xe, phương thức thanh toán; xuất CSV (có
- * nhật ký audit). Chưa có: lọc tuyến / khu vực, cột đánh giá, thẻ khiếu nại, hàng đợi xuất nền — xem `RPT-todo.md`.
+ * nhật ký audit). Điểm đánh giá chỉ tính đánh giá công khai của chuyến khởi hành trong kỳ.
  */
 export function ReportScreen() {
   const [filters, setFilters] = useState<ReportFilterState>({ ...lastDays(7), operatorId: ALL, provider: ALL });
@@ -71,6 +71,9 @@ export function ReportScreen() {
             {!data ? <Skeleton className="h-16 w-full" /> : <Methods methods={data.paymentMethods} />}
           </Panel>
         </div>
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          <Stat label="Khiếu nại và tranh chấp" value={totals && countLabel(totals.supportTickets)} note={totals && `${countLabel(totals.disputesOpened)} tranh chấp được mở trong kỳ`} />
+        </div>
       </>
     );
   }
@@ -115,7 +118,8 @@ function OperatorTable({ rows }: { rows: AdminReport["byOperator"] }) {
               ["Vé", "w-[10%]"],
               ["Lấp đầy", "w-[12%]"],
               ["Giá trị giao dịch", "w-[22%]"],
-              ["Hoàn tiền", "w-[16%]"]
+              ["Hoàn tiền", "w-[16%]"],
+              ["Đánh giá", "w-[14%]"]
             ].map(([heading, width]) => (
               <th key={heading} scope="col" className={`${TABLE_HEAD_CELL} ${width} text-right`}>
                 {heading}
@@ -134,6 +138,7 @@ function OperatorTable({ rows }: { rows: AdminReport["byOperator"] }) {
               <td className={`${TABLE_CELL} text-right tabular-nums`} title={formatVnd(row.refunded)}>
                 {percentLabel(row.refunded, row.gmv)}
               </td>
+              <td className={`${TABLE_CELL} text-right tabular-nums`}>{row.averageRating === null ? "—" : `${row.averageRating.toFixed(1)} / 5`} <span className="text-xs text-muted-foreground">({countLabel(row.reviewCount)})</span></td>
             </tr>
           ))}
         </tbody>

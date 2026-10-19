@@ -51,3 +51,13 @@ test("báo cáo theo ngày khởi hành: doanh thu gộp, lấp đầy, dòng tu
   const csv = await readFile((await file.path())!, "utf8");
   expect(csv).toContain(`"${fixtures.routeName}","1","0","4","2","50.0","600000"`);
 });
+
+test("đánh giá công khai: thẻ báo cáo tính điểm chuyến trong kỳ", async () => {
+  const from = new Date(Date.now() + 7 * 3_600_000 - 15 * 86_400_000).toISOString().slice(0, 10);
+  const to = new Date(Date.now() + 7 * 3_600_000).toISOString().slice(0, 10);
+  await page.getByLabel("Khởi hành từ").fill(from);
+  await page.getByLabel("Đến ngày").fill(to);
+  const rating = page.getByText("Đánh giá của hành khách", { exact: true }).locator("..");
+  await expect(rating).toContainText("4.0 / 5", FIRST_VISIT);
+  await expect(rating).toContainText("1 đánh giá công khai");
+});

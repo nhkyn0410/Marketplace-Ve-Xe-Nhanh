@@ -66,6 +66,15 @@ test("thanh toán: tìm theo mã đặt vé → thành công + 2 khoản cần �
   await expect(page.getByRole("region", { name: "Cổng thanh toán" })).toContainText("Khớp");
   await expect(page.getByRole("region", { name: "Hoàn tiền" })).toContainText("Chưa có yêu cầu hoàn tiền");
   await expect(page.getByRole("button", { name: "Hoàn toàn bộ cho khách" })).toHaveCount(0);
+  await page.getByRole("button", { name: "Mở tranh chấp từ đơn" }).click();
+  const dispute = page.getByRole("dialog");
+  await expect(dispute.getByRole("heading", { name: `Mở tranh chấp · ${fixtures.confirmedCode}` })).toBeVisible();
+  await dispute.getByLabel("Tiêu đề", { exact: true }).fill("ab");
+  await dispute.getByLabel("Lý do mở tranh chấp", { exact: true }).fill("ab");
+  await dispute.getByRole("button", { name: "Mở tranh chấp", exact: true }).click();
+  await expect(dispute.getByRole("alert")).toBeVisible();
+  await dispute.getByRole("button", { name: "Hủy", exact: true }).click();
+  await expect(dispute).toBeHidden();
 });
 
 test("cần đối soát: khoản trả trùng → hoàn toàn bộ cho khách (lý do + TOTP) → yêu cầu hoàn đã tạo, khoản rời tab", async () => {

@@ -166,6 +166,8 @@ export const TripResponseSchema = z.object({
       // Loại điểm hiện tại (như route detail): giao diện ghi "Bến xe", "Trạm dừng nghỉ"… cạnh từng điểm.
       type: z.enum(StopPointType),
       plannedAt: z.iso.datetime(),
+      pickupWindowStart: z.iso.datetime().nullable(),
+      pickupWindowEnd: z.iso.datetime().nullable(),
       // BR-79: chép từ route lúc tạo/sửa chuyến.
       allowPickup: z.boolean(),
       allowDropoff: z.boolean(),

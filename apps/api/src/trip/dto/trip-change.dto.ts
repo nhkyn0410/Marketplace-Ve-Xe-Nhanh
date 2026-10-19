@@ -82,7 +82,7 @@ export const TripSalesSchema = z.object({
   activeBookings: z.int(),
   /** Đơn chờ thanh toán — hủy chuyến thì đơn bị hủy, không trừ tiền. */
   pendingBookings: z.int(),
-  /** VND — tổng giá vé còn hiệu lực (số hoàn nếu hủy chuyến). */
+  /** VND — phần khách thực trả của vé còn hiệu lực, trừ các khoản hoàn trước (số hoàn nếu hủy chuyến). */
   refundOnCancel: z.int(),
   /** Lịch sử đổi / hủy chuyến, mới trước. `actor`: tên đăng nhập người đổi. */
   changes: z.array(

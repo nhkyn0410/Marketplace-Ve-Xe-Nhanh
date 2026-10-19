@@ -22,6 +22,8 @@ export {
   EmployeeRole,
   LoyaltyPointType,
   LoyaltyTier,
+  UserVoucherSource,
+  UserVoucherStatus,
   FareStatus,
   NotificationChannel,
   NotificationDeliveryStatus,

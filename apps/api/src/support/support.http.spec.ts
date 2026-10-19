@@ -31,7 +31,7 @@ describe("Khiếu nại, tranh chấp, đánh giá — HTTP", () => {
     adminList: vi.fn(async () => page),
     classify: vi.fn(),
   };
-  const disputes = { decide: vi.fn(), requestEvidence: vi.fn(), adminList: vi.fn(async () => page) };
+  const disputes = { decide: vi.fn(), requestEvidence: vi.fn(), openFromBooking: vi.fn(), adminList: vi.fn(async () => page) };
   const reviews = { customerGet: vi.fn(async () => ({ review: null, canReview: false })), moderate: vi.fn(), adminList: vi.fn(async () => page) };
   const reauth = { value: false };
   let app: INestApplication;
@@ -135,6 +135,8 @@ describe("Khiếu nại, tranh chấp, đánh giá — HTTP", () => {
     expect((await call("GET", "/admin/support-tickets", await token("OPERATOR_OWNER"))).status).toBe(403);
     expect((await call("PATCH", `/admin/support-tickets/${id}`, await token("PLATFORM_SUPPORT"), { category: "OTHER", priority: "LOW", handler: "BOTH", assigneeId: null })).status).toBe(400);
     expect((await call("POST", `/admin/disputes/${id}/evidence-requests`, await token("PLATFORM_SUPPORT"), { party: "GUEST", message: "Gửi minh chứng", dueAt: new Date().toISOString() })).status).toBe(400);
+    expect((await call("POST", "/admin/disputes", await token("OPERATOR_OWNER"), { bookingId, title: "Mở tranh chấp", reason: "Cần kiểm tra" })).status).toBe(403);
+    expect((await call("POST", "/admin/disputes", await token("PLATFORM_SUPPORT"), { bookingId, title: "a", reason: "Cần kiểm tra" })).status).toBe(400);
 
     const decision = { decision: "REFUND", amount: 270_000, reason: "Xe trễ không thông báo" };
     expect((await call("POST", `/admin/disputes/${id}/decision`, await token("PLATFORM_SUPPORT"), decision)).status).toBe(403);

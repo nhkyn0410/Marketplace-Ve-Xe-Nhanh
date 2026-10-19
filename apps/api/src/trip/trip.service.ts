@@ -1,4 +1,5 @@
 import { Inject, Injectable, Logger } from "@nestjs/common";
+import type { PickupWindowInput } from "@vexenhanh/types";
 import { AuditService, AuditWriteError } from "../audit/audit.service";
 import { PrismaService, transactionDeadline, type DbTransaction } from "../database/prisma.service";
 import {
@@ -87,6 +88,20 @@ export class TripService {
     @Inject(PrismaService) private readonly prisma: PrismaService,
     @Inject(AuditService) private readonly audit: AuditService,
   ) {}
+
+  /** Đặt cửa sổ đón riêng tại điểm, dùng để xác định lúc được ghi nhận khách vắng mặt. */
+  async setPickupWindow(authz: Authorization, tripId: string, sequence: number, input: PickupWindowInput): Promise<TripResponse> {
+    const { db, operatorId } = requireTenant(authz);
+    return this.prisma.withScope(db, async (tx) => {
+      const [trip] = await tx.$queryRaw<{ status: TripStatus }[]>`SELECT status::text AS status FROM trips WHERE id = ${tripId} AND operator_id = ${operatorId} FOR NO KEY UPDATE`;
+      if (!trip) throw tripNotFound();
+      if ([TripStatus.COMPLETED, TripStatus.CANCELLED].includes(trip.status as "COMPLETED" | "CANCELLED")) throw tripNotEditable();
+      const stop = await tx.tripStop.findFirst({ where: { operatorId, tripId, sequence }, select: { id: true, allowPickup: true } });
+      if (!stop?.allowPickup) throw tripStopTimesInvalid();
+      await tx.tripStop.updateMany({ where: { operatorId, tripId, sequence }, data: { pickupWindowStart: input.start ? new Date(input.start) : null, pickupWindowEnd: input.end ? new Date(input.end) : null } });
+      return toResponse((await findDetail(tx, operatorId, tripId))!);
+    });
+  }
 
   /** Liệt kê chuyến của nhà xe theo giờ đi tăng dần, lọc route/xe/trạng thái/khoảng giờ đi. */
   async list(authz: Authorization, query: ListQuery): Promise<TripListResponse> {
@@ -648,6 +663,8 @@ export function findDetail(tx: DbTransaction, operatorId: string, tripId: string
           allowPickup: true,
           allowDropoff: true,
           plannedAt: true,
+          pickupWindowStart: true,
+          pickupWindowEnd: true,
           catalogStopPoint: { select: POINT_SELECT },
           stopPoint: { select: POINT_SELECT },
         },
@@ -682,9 +699,9 @@ export function toResponse(row: NonNullable<Awaited<ReturnType<typeof findDetail
     completedAt: trip.completedAt?.toISOString() ?? null,
     createdAt: trip.createdAt.toISOString(),
     updatedAt: trip.updatedAt.toISOString(),
-    stops: stops.map(({ catalogStopPoint, stopPoint, plannedAt, ...stop }) => {
+    stops: stops.map(({ catalogStopPoint, stopPoint, plannedAt, pickupWindowStart, pickupWindowEnd, ...stop }) => {
       const point = catalogStopPoint ?? stopPoint!;
-      return { ...stop, name: point.name, address: point.address, type: point.type, plannedAt: plannedAt.toISOString() };
+      return { ...stop, name: point.name, address: point.address, type: point.type, plannedAt: plannedAt.toISOString(), pickupWindowStart: pickupWindowStart?.toISOString() ?? null, pickupWindowEnd: pickupWindowEnd?.toISOString() ?? null };
     }),
     seats: seats.map(({ seatCode, ...seat }) => ({ code: seatCode, ...seat, price: priceOf(seat.type) })),
   };

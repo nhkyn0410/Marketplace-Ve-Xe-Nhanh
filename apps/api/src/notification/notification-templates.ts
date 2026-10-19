@@ -10,6 +10,7 @@ export type TripScheduleSnapshot = {
 };
 
 export type NotificationContent =
+  | { kind: "OPERATIONS_ALERT" | "LOYALTY_UPDATED" | "PROMOTION"; title: string; message: string }
   | {
       kind: "BOOKING_CONFIRMED";
       bookingCode: string;
@@ -63,6 +64,10 @@ export function describeTripChange(before: TripScheduleSnapshot, after: TripSche
 
 export function renderNotification(content: NotificationContent): RenderedNotification {
   switch (content.kind) {
+    case "OPERATIONS_ALERT":
+    case "LOYALTY_UPDATED":
+    case "PROMOTION":
+      return { subject: content.title, title: content.title, lines: [content.message] };
     case "BOOKING_CONFIRMED":
       return {
         subject: `Vé xe ${content.bookingCode} — ${content.routeName}`,

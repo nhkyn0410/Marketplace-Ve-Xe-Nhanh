@@ -42,6 +42,8 @@ export const OperatorReportSchema = z.object({
     /** Vé đã hủy (gồm đã hoàn) / (vé bán + vé hủy). */
     cancelledTickets: z.int(),
     refundedTickets: z.int(),
+    averageRating: z.number().nullable(),
+    reviewCount: z.int(),
   }),
   byRoute: z.array(RouteRowSchema),
   employees: z.array(
@@ -54,6 +56,7 @@ export const OperatorReportSchema = z.object({
       completedTrips: z.int(),
       /** Vé đã soát lên xe trong kỳ. */
       ticketsChecked: z.int(),
+      incidentsReported: z.int(),
     }),
   ),
 });
@@ -114,6 +117,8 @@ export const AdminReportSchema = z.object({
     /** Chuyến có vé bị nhà xe hủy (theo giờ khởi hành trong kỳ). */
     operatorCancelledTrips: z.int(),
     tripsWithSales: z.int(),
+    supportTickets: z.int(),
+    disputesOpened: z.int(),
   }),
   byOperator: z.array(
     z.object({
@@ -124,6 +129,8 @@ export const AdminReportSchema = z.object({
       seats: z.int(),
       gmv: z.int(),
       refunded: z.int(),
+      averageRating: z.number().nullable(),
+      reviewCount: z.int(),
     }),
   ),
   paymentMethods: z.array(z.object({ provider: z.enum(PaymentProvider), amount: z.int(), count: z.int() })),

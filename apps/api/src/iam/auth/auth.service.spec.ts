@@ -16,6 +16,7 @@ function setup() {
     }
   };
   const prisma = {
+    $executeRaw: vi.fn().mockResolvedValue(1),
     session: { deleteMany: vi.fn().mockResolvedValue({ count: 1 }) },
     user: { findUnique: vi.fn().mockResolvedValue({ id: "user-1", email: "rider@example.com", status: "ACTIVE" }) },
     operatorProfile: { findUnique: vi.fn() },
@@ -671,6 +672,8 @@ describe("AuthService passenger OTP", () => {
     const result = await ctx.service.verifyOtp("a@b.com", "123456", {});
     expect(result).toMatchObject({ scope: "passenger", role: "PASSENGER", refreshToken: "refresh-raw" });
     expect(ctx.sessions.create).toHaveBeenCalledWith({ type: "PASSENGER", id: "user-9" }, {});
+    expect(ctx.prisma.$executeRaw).toHaveBeenCalledOnce();
+    expect(ctx.prisma.$executeRaw.mock.calls[0]!.slice(1)).toContain("user-9");
   });
 
   it("hành khách bị Admin khóa: OTP đúng vẫn 403 AUTH_ACCOUNT_LOCKED, không tạo phiên (FR-IAM-08)", async () => {
@@ -681,6 +684,7 @@ describe("AuthService passenger OTP", () => {
       code: "AUTH_ACCOUNT_LOCKED"
     });
     expect(ctx.sessions.create).not.toHaveBeenCalled();
+    expect(ctx.prisma.$executeRaw).not.toHaveBeenCalled();
   });
 
   it("xoá phiên Better Auth vừa sinh ra — phiên thật là auth_sessions, phiên cầu nối không được sống", async () => {

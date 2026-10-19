@@ -44,6 +44,7 @@ const SELECT = {
   maxDiscount: true,
   minOrder: true,
   routeId: true,
+  routeIds: true,
   tripId: true,
   startsAt: true,
   endsAt: true,
@@ -103,6 +104,11 @@ export class PromotionService {
 
   // ------------------------------------------------------------------ Danh sách / chi tiết
 
+  /** Các tuyến đang hoạt động để Admin chọn phạm vi chiến dịch giữa nhiều nhà xe. */
+  async routeOptions(authz: Authorization) {
+    return this.prisma.withScope(platformDb(authz), async (tx) => ({ items: (await tx.route.findMany({ where: { status: "ACTIVE", operator: { status: "ACTIVE" } }, orderBy: [{ operatorId: "asc" }, { name: "asc" }], select: { id: true, name: true, operator: { select: { displayName: true } } } })).map((route) => ({ routeId: route.id, routeName: route.name, operatorName: route.operator.displayName })) }));
+  }
+
   /** Admin: `scope` PLATFORM = khuyến mãi nền tảng, OPERATOR = khuyến mãi của các nhà xe. */
   async adminList(authz: Authorization, scope: PromotionScope, query: ListQuery, now: Date = new Date()): Promise<PromotionPage> {
     return this.prisma.withScope(platformDb(authz), async (tx) => {
@@ -141,8 +147,10 @@ export class PromotionService {
         throw promotionGuardrail("Khuyến mãi nền tảng áp dụng toàn hệ thống — không chọn tuyến / chuyến.");
       }
       if (view.kind === "operator") {
+        if (input.routeIds.length > 0) throw promotionGuardrail("Danh sách tuyến này dành cho khuyến mãi nền tảng.");
         await guardrail(tx, view.operatorId, input);
       }
+      if (view.kind === "admin") await validatePlatformRoutes(tx, input.routeIds);
       if (await tx.promotion.findUnique({ where: { code: input.code }, select: { id: true } })) {
         throw promotionCodeTaken();
       }
@@ -177,8 +185,10 @@ export class PromotionService {
         throw promotionGuardrail("Khuyến mãi nền tảng áp dụng toàn hệ thống — không chọn tuyến / chuyến.");
       }
       if (view.kind === "operator") {
+        if (input.routeIds.length > 0) throw promotionGuardrail("Danh sách tuyến này dành cho khuyến mãi nền tảng.");
         await guardrail(tx, view.operatorId, input);
       }
+      if (view.kind === "admin") await validatePlatformRoutes(tx, input.routeIds);
       if (input.code !== current.code && (await tx.promotion.findUnique({ where: { code: input.code }, select: { id: true } }))) {
         throw promotionCodeTaken();
       }
@@ -384,6 +394,7 @@ function fields(input: PromotionInput) {
     maxDiscount: input.maxDiscount === null ? null : BigInt(input.maxDiscount),
     minOrder: BigInt(input.minOrder),
     routeId: input.routeId,
+    routeIds: [...new Set(input.routeIds)],
     tripId: input.tripId,
     startsAt: new Date(input.startsAt),
     endsAt: new Date(input.endsAt),
@@ -469,6 +480,13 @@ async function routeNameMap(tx: DbTransaction, ids: (string | null)[]): Promise<
   return new Map(rows.map((row) => [row.id, row.name]));
 }
 
+async function validatePlatformRoutes(tx: DbTransaction, routeIds: string[]): Promise<void> {
+  const unique = [...new Set(routeIds)];
+  if (unique.length > 0 && await tx.route.count({ where: { id: { in: unique }, status: "ACTIVE", operator: { status: "ACTIVE" } } }) !== unique.length) {
+    throw promotionGuardrail("Danh sách có tuyến không còn hoạt động.");
+  }
+}
+
 function toPermission(
   row: { id: string; displayName: string; operatorSlug: string; promotionPermission: { enabled: boolean; maxPercent: number | null; maxAmount: bigint | null; routeIds: string[]; maxDurationDays: number; monthlyBudget: bigint | null } | null },
   routeNames: Map<string, string>,
@@ -489,7 +507,7 @@ function toPermission(
 }
 
 async function present(tx: DbTransaction, rows: Row[], view: View, now: Date): Promise<Promotion[]> {
-  const routeNames = await routeNameMap(tx, rows.map((row) => row.routeId));
+  const routeNames = await routeNameMap(tx, rows.flatMap((row) => [row.routeId, ...row.routeIds]));
   const joined =
     view.kind === "operator"
       ? new Set(
@@ -510,6 +528,8 @@ async function present(tx: DbTransaction, rows: Row[], view: View, now: Date): P
     maxDiscount: row.maxDiscount === null ? null : Number(row.maxDiscount),
     minOrder: Number(row.minOrder),
     routeId: row.routeId,
+    routeIds: row.routeIds,
+    routeNames: row.routeIds.map((id) => routeNames.get(id) ?? "Tuyến khác nhà xe"),
     routeName: row.routeId ? (routeNames.get(row.routeId) ?? null) : null,
     tripId: row.tripId,
     startsAt: row.startsAt.toISOString(),
@@ -532,7 +552,7 @@ async function page(tx: DbTransaction, base: PromotionWhere, query: ListQuery, v
       base,
       ...(query.display ? [displayWhere(query.display, now)] : []),
       ...(q ? [{ OR: [{ code: { contains: q.toUpperCase() } }, { name: { contains: q, mode: "insensitive" as const } }] }] : []),
-      ...(query.routeId ? [{ routeId: query.routeId }] : []),
+      ...(query.routeId ? [{ OR: [{ routeId: query.routeId }, { routeIds: { has: query.routeId } }] }] : []),
     ],
   };
   const rows = await tx.promotion.findMany({

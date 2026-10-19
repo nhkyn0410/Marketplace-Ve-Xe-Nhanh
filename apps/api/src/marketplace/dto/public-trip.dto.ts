@@ -119,6 +119,8 @@ export const PublicTripSchema = z.object({
       latitude: z.number(),
       longitude: z.number(),
       plannedAt: z.iso.datetime(),
+      pickupWindowStart: z.iso.datetime().nullable(),
+      pickupWindowEnd: z.iso.datetime().nullable(),
       allowPickup: z.boolean(),
       allowDropoff: z.boolean(),
       note: z.string().nullable(),

@@ -38,13 +38,19 @@ export class ReportingService {
       const rows = await routeAggregates(tx, operatorId, from, to, query);
       const sum = (key: keyof RouteAgg) => rows.reduce((total, row) => total + Number(row[key]), 0);
       const slug = (await tx.operatorProfile.findUnique({ where: { id: operatorId }, select: { operatorSlug: true } }))?.operatorSlug ?? "";
-      const employees = await tx.$queryRaw<{ employeeId: string; username: string; role: EmployeeRole; assigned: bigint; completed: bigint; checked: bigint }[]>`
+      const reviews = await tx.review.aggregate({
+        where: { operatorId, status: "VISIBLE", trip: { departureAt: { gte: from, lt: to }, ...(query.routeId ? { routeId: query.routeId } : {}), ...(query.vehicleId ? { vehicleId: query.vehicleId } : {}), ...(query.status ? { status: query.status } : {}) } },
+        _avg: { rating: true }, _count: { _all: true },
+      });
+      const employees = await tx.$queryRaw<{ employeeId: string; username: string; role: EmployeeRole; assigned: bigint; completed: bigint; checked: bigint; incidents: bigint }[]>`
         SELECT e.id AS "employeeId", e.username, e.role::text AS "role",
           COUNT(DISTINCT t.id) AS assigned,
           COUNT(DISTINCT t.id) FILTER (WHERE t.status = 'COMPLETED') AS completed,
           (SELECT COUNT(*) FROM ticket_status_histories h
             WHERE h.operator_id = e.operator_id AND h.actor = 'employee:' || e.id AND h.to_status = 'CHECKED_IN'
-              AND h.created_at >= ${from} AND h.created_at < ${to}) AS checked
+              AND h.created_at >= ${from} AND h.created_at < ${to}) AS checked,
+          (SELECT COUNT(*) FROM incident_reports i WHERE i.operator_id = e.operator_id AND i.employee_id = e.id
+            AND i.created_at >= ${from} AND i.created_at < ${to}) AS incidents
         FROM employee_accounts e
         LEFT JOIN employee_assignments a ON a.employee_id = e.id AND a.operator_id = e.operator_id
         LEFT JOIN trips t ON t.id = a.trip_id AND t.operator_id = a.operator_id AND t.departure_at >= ${from} AND t.departure_at < ${to}
@@ -61,6 +67,8 @@ export class ReportingService {
           seats: sum("seats"),
           cancelledTickets: sum("cancelled"),
           refundedTickets: sum("refunded"),
+          averageRating: reviews._avg.rating,
+          reviewCount: reviews._count._all,
         },
         byRoute: rows.map((row) => ({
           routeId: row.routeId,
@@ -78,6 +86,7 @@ export class ReportingService {
           assignedTrips: Number(row.assigned),
           completedTrips: Number(row.completed),
           ticketsChecked: Number(row.checked),
+          incidentsReported: Number(row.incidents),
         })),
       };
     });
@@ -225,6 +234,7 @@ export class ReportingService {
       const reconcileOpen = await tx.payment.count({
         where: { status: "RECONCILING", refunds: { none: { status: { in: ["REQUESTED", "APPROVED", "PROCESSING", "SUCCESS"] } } }, ...(operator ? { operatorId: operator } : {}) },
       });
+      const reviews = await tx.review.groupBy({ by: ["operatorId"], where: { status: "VISIBLE", ...(operator ? { operatorId: operator } : {}), trip: { departureAt: { gte: from, lt: to } } }, _avg: { rating: true }, _count: { _all: true } });
       return {
         totals: {
           gmv: Number(money!.gmv),
@@ -238,6 +248,8 @@ export class ReportingService {
           ticketsSold: Number(tripTotals!.sold),
           operatorCancelledTrips: Number(tripTotals!.cancelledWithSales),
           tripsWithSales: Number(tripTotals!.withSales),
+          supportTickets: await tx.supportTicket.count({ where: { createdAt: { gte: from, lt: to }, ...(operator ? { operatorId: operator } : {}) } }),
+          disputesOpened: await tx.disputeCase.count({ where: { createdAt: { gte: from, lt: to }, ...(operator ? { operatorId: operator } : {}) } }),
         },
         byOperator: operators.map((row) => ({
           operatorId: row.operatorId,
@@ -247,6 +259,8 @@ export class ReportingService {
           seats: Number(row.seats),
           gmv: Number(row.gmv),
           refunded: Number(row.refunded),
+          averageRating: reviews.find((review) => review.operatorId === row.operatorId)?._avg.rating ?? null,
+          reviewCount: reviews.find((review) => review.operatorId === row.operatorId)?._count._all ?? 0,
         })),
         paymentMethods: methods.map((row) => ({ provider: row.provider, amount: Number(row.amount), count: Number(row.count) })),
       };
@@ -260,8 +274,8 @@ export class ReportingService {
     return {
       filename: `bao-cao-he-thong-${query.from}-${query.to}.csv`,
       csv: csv(
-      ["Nhà xe", "Chuyến", "Vé bán", "Lấp đầy (%)", "Giá trị giao dịch (VND)", "Đã hoàn (VND)"],
-        report.byOperator.map((row) => [row.operatorName, row.trips, row.ticketsSold, percent(row.ticketsSold, row.seats), row.gmv, row.refunded]),
+      ["Nhà xe", "Chuyến", "Vé bán", "Lấp đầy (%)", "Giá trị giao dịch (VND)", "Đã hoàn (VND)", "Điểm đánh giá", "Lượt đánh giá"],
+        report.byOperator.map((row) => [row.operatorName, row.trips, row.ticketsSold, percent(row.ticketsSold, row.seats), row.gmv, row.refunded, row.averageRating ?? "", row.reviewCount]),
       ),
     };
   }

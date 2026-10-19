@@ -96,9 +96,9 @@ export class TripSearchService {
       vehicleType: { name: trip.vehicle.vehicleType.name, form: trip.vehicle.vehicleType.form, class: trip.vehicle.vehicleType.class },
       amenities: trip.vehicle.amenities.map(({ amenity }) => amenity),
       vehicleImages: trip.vehicle.images.map((image) => ({ url: this.storage.publicUrl(image.objectKey), caption: image.caption })),
-      stops: trip.stops.map(({ catalogStopPoint, stopPoint, plannedAt, ...stop }) => {
+      stops: trip.stops.map(({ catalogStopPoint, stopPoint, plannedAt, pickupWindowStart, pickupWindowEnd, ...stop }) => {
         const point = (catalogStopPoint ?? stopPoint)!;
-        return { ...stop, ...point, plannedAt: plannedAt.toISOString() };
+        return { ...stop, ...point, plannedAt: plannedAt.toISOString(), pickupWindowStart: pickupWindowStart?.toISOString() ?? null, pickupWindowEnd: pickupWindowEnd?.toISOString() ?? null };
       }),
       seats: [...trip.seats]
         .sort((a, b) => a.deck - b.deck || a.row - b.row || a.column - b.column)

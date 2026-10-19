@@ -161,6 +161,14 @@ export const envSchema = z
     ),
     // Email OTP delivery (Resend required for delivery; dev fallback never prints OTP).
     RESEND_API_KEY: optionalString,
+    FCM_PROJECT_ID: optionalString,
+    FCM_CLIENT_EMAIL: z.preprocess(emptyToUndefined, z.email().optional()),
+    FCM_PRIVATE_KEY: optionalString,
+    APNS_TEAM_ID: optionalString,
+    APNS_KEY_ID: optionalString,
+    APNS_PRIVATE_KEY: optionalString,
+    APNS_TOPIC: optionalString,
+    APNS_SANDBOX: z.enum(["true", "false"]).default("true"),
     RESEND_FROM_EMAIL: z.preprocess(
       emptyToUndefined,
       z.email().default("no-reply@vexenhanh.com"),
@@ -241,6 +249,8 @@ export const envSchema = z
     for (const keys of [
       ["VNPAY_TMN_CODE", "VNPAY_HASH_SECRET"],
       ["MOMO_PARTNER_CODE", "MOMO_ACCESS_KEY", "MOMO_SECRET_KEY"],
+      ["FCM_PROJECT_ID", "FCM_CLIENT_EMAIL", "FCM_PRIVATE_KEY"],
+      ["APNS_TEAM_ID", "APNS_KEY_ID", "APNS_PRIVATE_KEY", "APNS_TOPIC"],
     ] as const) {
       if (keys.some((key) => env[key]) && !keys.every((key) => env[key])) {
         for (const key of keys.filter((name) => !env[name])) {

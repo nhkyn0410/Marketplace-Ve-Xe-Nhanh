@@ -54,8 +54,8 @@ describe("Tích hợp & hệ thống — chỉ đọc", () => {
     expect(byKey.mongo).toMatchObject({ status: "UP" });
     expect(byKey.queues).toMatchObject({ status: "UP" });
     expect(byKey["storage-public"]).toMatchObject({ status: "LOCAL", name: "Kho công khai (ổ đĩa)" });
-    expect(byKey.vnpay?.status).toBe("NOT_INTEGRATED");
-    expect(byKey.push?.status).toBe("NOT_INTEGRATED");
+    expect(byKey.vnpay?.status).toBe("LOCAL");
+    expect(byKey.push?.status).toBe("NOT_CONFIGURED");
     expect(byKey.sms?.status).toBe("DISABLED");
     expect(byKey.email).toMatchObject({ status: "LOCAL" });
   });

@@ -4,11 +4,13 @@ import { DatabaseModule } from "../database/database.module";
 import { IamModule } from "../iam/iam.module";
 import { AdminLoyaltyController } from "./admin-loyalty.controller";
 import { AdminLoyaltyService } from "./admin-loyalty.service";
+import { PassengerLoyaltyController } from "./passenger-loyalty.controller";
+import { PassengerLoyaltyService } from "./passenger-loyalty.service";
 
-/** Loyalty (DOMAIN-MAP `loyalty/`) — TASK-LOY-001 phía Admin: VXN Plus; tích / thu hồi / hết hạn điểm chạy ở worker. */
+/** VXN Plus cho Admin và hành khách; tích / thu hồi / hết hạn điểm và voucher chạy ở worker. */
 @Module({
   imports: [DatabaseModule, IamModule, AuditModule],
-  controllers: [AdminLoyaltyController],
-  providers: [AdminLoyaltyService],
+  controllers: [AdminLoyaltyController, PassengerLoyaltyController],
+  providers: [AdminLoyaltyService, PassengerLoyaltyService],
 })
 export class LoyaltyModule {}
