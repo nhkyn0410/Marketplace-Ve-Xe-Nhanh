@@ -55,6 +55,7 @@ describe("Vé — HTTP", () => {
     payment: null,
     tickets: [{ ticketId, ticketCode: "VXNAB2CD3-01", seatCode: "A1", passengerName: "A", status: "VALID", qrToken: "qr" }],
     refunds: [],
+    tripChanges: [],
     createdAt: now,
   };
   const service = { get: vi.fn(async () => ticket), lookup: vi.fn(async () => booking) };

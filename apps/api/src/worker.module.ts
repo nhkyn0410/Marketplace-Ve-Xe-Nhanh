@@ -4,10 +4,14 @@ import { AuditModule } from "./audit/audit.module";
 import { AppConfigModule } from "./config/app-config.module";
 import { APP_CONFIG, type AppConfig } from "./config/env.config";
 import { DatabaseModule } from "./database/database.module";
+import { NotificationModule } from "./external/notification/notification.module";
 import { createPrivateStorage, createPublicStorage } from "./external/storage/storage.module";
 import { PRIVATE_STORAGE, PUBLIC_STORAGE } from "./external/storage/storage-provider";
 import { BookingExpiryProcessor } from "./booking/booking-expiry.processor";
 import { PaymentCallbackProcessor } from "./payment/payment-callback.processor";
+import { PaymentReconciliationProcessor } from "./payment/payment-reconciliation.processor";
+import { DisputeOverdueProcessor } from "./dispute/dispute-overdue.processor";
+import { LoyaltyMaintenanceProcessor } from "./loyalty/loyalty-maintenance.processor";
 import { RefundProcessor } from "./refund/refund.processor";
 import { PayoutGenerationProcessor } from "./payout/payout-generation.processor";
 import { PAYMENT_GATEWAYS } from "./external/payment/payment-gateway";
@@ -17,9 +21,11 @@ import { SessionCleanupProcessor } from "./iam/session/session-cleanup.processor
 import { FoundationQueueProcessor } from "./queue/processors/foundation.processor";
 import { QueueModule } from "./queue/queue.module";
 import { VehicleImageCleanupProcessor } from "./vehicle/vehicle-image-cleanup.processor";
+import { NotificationDispatcher } from "./notification/notification-dispatcher";
+import { NotificationProcessor } from "./notification/notification.processor";
 
 @Module({
-  imports: [SentryModule.forRoot(), AppConfigModule, DatabaseModule, AuditModule, QueueModule],
+  imports: [SentryModule.forRoot(), AppConfigModule, DatabaseModule, AuditModule, QueueModule, NotificationModule],
   providers: [
     FoundationQueueProcessor,
     SessionCleanupProcessor,
@@ -33,7 +39,16 @@ import { VehicleImageCleanupProcessor } from "./vehicle/vehicle-image-cleanup.pr
     // Chỉ lấy các cổng, không import `PaymentGatewayModule`: worker không phục vụ route cổng giả lập.
     { provide: PAYMENT_GATEWAYS, inject: [APP_CONFIG], useFactory: (config: AppConfig) => createPaymentGateways(config).gateways },
     RefundProcessor,
-    PayoutGenerationProcessor
+    PayoutGenerationProcessor,
+    // Gửi email thông báo (TASK-NSR-001); dispatcher cho các processor ghi thông báo (vé điện tử, hoàn tiền).
+    NotificationDispatcher,
+    NotificationProcessor,
+    // Đối soát với cổng mỗi 10 phút + xếp hàng lại refund đứng yên (FR-BTP-17).
+    PaymentReconciliationProcessor,
+    // Leo thang tranh chấp quá hạn phản hồi mỗi 15 phút (FR-DSP-05).
+    DisputeOverdueProcessor,
+    // VXN Plus: tích / thu hồi / hết hạn điểm mỗi 10 phút (FR-LOY-02/08).
+    LoyaltyMaintenanceProcessor
   ]
 })
 export class WorkerModule {}

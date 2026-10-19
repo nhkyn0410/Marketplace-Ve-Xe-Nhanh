@@ -2,7 +2,9 @@ import { readFile } from "node:fs/promises";
 
 import { expect, test, type Page } from "@playwright/test";
 
-import { accounts, signInWithEnrollment } from "./helpers";
+import { formatPlateNumber } from "../lib/vehicle/vehicle-format";
+
+import { accounts, signInSharedOwner } from "./helpers";
 
 // TASK-OPR-003 (màn Đặt vé, Figma "Nhà xe · Đặt vé" 01–03) — nhà xe riêng do global-setup seed: chuyến 22:30 ngày `date`,
 // đơn đã xác nhận (A01, A02 có vé) + đơn chờ thanh toán của khách vãng lai (A03). TASK-OPR-002 (màn Tài chính, Figma "Nhà xe ·
@@ -22,7 +24,7 @@ test.beforeAll(async ({ browser }) => {
   }
   fixtures = bookingFixtures;
   page = await browser.newPage();
-  await signInWithEnrollment(page, `${bookingOperatorSlug}/${bookingOwner.username}`, bookingOwner.password);
+  await signInSharedOwner(page, `${bookingOperatorSlug}/${bookingOwner.username}`, bookingOwner.password);
 });
 
 test.afterAll(async () => {
@@ -136,4 +138,36 @@ test("chi trả: kỳ hôm nay chờ rà soát; chi tiết có chuyến, cách t
   await expect(bank).not.toContainText("0071000124521");
   await expect(page.getByRole("region", { name: "Chuyến trong kỳ" })).toContainText("1 chuyến · 1 đơn");
   await expect(page.getByRole("region", { name: "Tiến trình" })).toContainText("Tạo kỳ chi trả");
+});
+
+// TASK-TRN-008 — chuyến thứ hai của cùng nhà xe (ngày khác) có một đơn đã thanh toán: đổi giờ + xe rồi hủy chuyến.
+test("đổi lịch chạy chuyến đã bán: giờ + xe, bắt buộc lý do → lịch sử thay đổi, báo 1 đơn", async () => {
+  await page.goto(`/trips/${fixtures.changeTripId}`);
+  await expect(page.getByRole("note").filter({ hasText: "Chuyến đã có 1 vé" })).toBeVisible(FIRST_VISIT);
+  await page.getByRole("link", { name: "Đổi lịch chạy" }).click();
+  await expect(page.getByRole("heading", { name: "Đổi lịch chạy", level: 1 })).toBeVisible(FIRST_VISIT);
+  await expect(page.getByRole("region", { name: "Ảnh hưởng" })).toContainText("1 đơn (1 vé)", FIRST_VISIT);
+  await page.getByLabel("Giờ khởi hành").fill("23:00");
+  await page.getByLabel("Xe chạy chuyến").click();
+  await page.getByRole("option", { name: new RegExp(formatPlateNumber(fixtures.spareVehiclePlate).replace(/\./g, "\.")) }).click();
+  await page.getByRole("button", { name: "Lưu và báo khách" }).click();
+  await expect(page.getByText("Nhập lý do thay đổi")).toBeVisible();
+  await page.getByLabel("Lý do *").fill("Xe cũ hỏng điều hoà (E2E)");
+  await page.getByRole("button", { name: "Lưu và báo khách" }).click();
+  await expect(page.getByText("Đã đổi lịch chạy")).toBeVisible(FIRST_VISIT);
+  const history = page.getByRole("region", { name: "Lịch sử thay đổi" });
+  await expect(history).toContainText("Đổi giờ · Đổi xe", FIRST_VISIT);
+  await expect(history).toContainText("Đã báo 1 đơn");
+  await expect(history).toContainText("Lý do: Xe cũ hỏng điều hoà (E2E)");
+});
+
+test("hủy chuyến đã bán: hộp thoại nêu hoàn toàn bộ giá vé → lý do → đã hủy, lịch sử có Hủy chuyến", async () => {
+  await page.getByRole("button", { name: "Hủy chuyến" }).click();
+  const dialog = page.getByRole("dialog");
+  await expect(dialog).toContainText("hoàn toàn bộ 300.000", FIRST_VISIT);
+  await dialog.getByLabel("Lý do hủy *").fill("Xe hỏng nặng (E2E)");
+  await dialog.getByRole("button", { name: "Hủy chuyến" }).click();
+  await expect(dialog).toBeHidden(FIRST_VISIT);
+  await expect(page.getByText("Đã hủy chuyến")).toBeVisible();
+  await expect(page.getByRole("region", { name: "Lịch sử thay đổi" })).toContainText("Hủy chuyến", FIRST_VISIT);
 });

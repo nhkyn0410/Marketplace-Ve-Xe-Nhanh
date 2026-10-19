@@ -38,6 +38,7 @@ describe("Đặt vé — HTTP", () => {
     payment: null,
     tickets: [],
     refunds: [],
+    tripChanges: [],
     createdAt: now,
   };
   const service = {

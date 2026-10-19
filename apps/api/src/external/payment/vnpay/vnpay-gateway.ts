@@ -1,6 +1,6 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { z } from "zod";
-import { type CheckoutRequest, type PaymentGateway, PaymentGatewayError, type RefundRequest, type VerifiedCallback } from "../payment-gateway";
+import { type CheckoutRequest, type PaymentGateway, PaymentGatewayError, type RefundRequest, type TransactionQuery, type TransactionStatus, type VerifiedCallback } from "../payment-gateway";
 
 export type VnpayConfig = {
   tmnCode: string;
@@ -16,6 +16,10 @@ const REQUEST_TIMEOUT_MS = 15_000;
 /** Mã phản hồi hoàn tiền nên thử lại: trùng yêu cầu trong thời gian giới hạn (94), lỗi chưa xác định (99). */
 const RETRYABLE_REFUND_CODES = new Set(["94", "99"]);
 
+/** `vnp_TransactionStatus` của querydr: giao dịch đã trả (kể cả đã / đang hoàn sau đó) / còn chờ; còn lại = không thành công. */
+const PAID_STATUSES = new Set(["00", "04", "05", "06", "09"]);
+const PENDING_STATUSES = new Set(["01", "07"]);
+
 const RefundResponseSchema = z.object({
   vnp_ResponseId: z.string(),
   vnp_Command: z.string(),
@@ -30,6 +34,8 @@ const RefundResponseSchema = z.object({
   vnp_TransactionType: z.string().optional(),
   vnp_TransactionStatus: z.string().optional(),
   vnp_OrderInfo: z.string().optional(),
+  vnp_PromotionCode: z.string().optional(),
+  vnp_PromotionAmount: z.string().optional(),
   vnp_SecureHash: z.string(),
 });
 
@@ -148,6 +154,82 @@ export class VnpayGateway implements PaymentGateway {
     }
     return { providerRefundId: body.vnp_TransactionNo && body.vnp_TransactionNo !== "0" ? body.vnp_TransactionNo : null };
   }
+
+  /** querydr (merchant_webapi): ký chuỗi nối `|`, kiểm chữ ký phản hồi. Mã 91 = không có giao dịch; 94 / 99 = thử lại sau. */
+  async queryTransaction(request: TransactionQuery): Promise<TransactionStatus> {
+    const fields: Record<string, string> = {
+      vnp_RequestId: request.requestCode,
+      vnp_Version: "2.1.0",
+      vnp_Command: "querydr",
+      vnp_TmnCode: this.config.tmnCode,
+      vnp_TxnRef: request.paymentCode,
+      vnp_TransactionDate: vnTimestamp(request.paymentCreatedAt),
+      vnp_CreateDate: vnTimestamp(request.requestedAt),
+      vnp_IpAddr: "127.0.0.1",
+      vnp_OrderInfo: `Doi soat ${request.paymentCode}`,
+    };
+    let response: Response;
+    try {
+      response = await this.fetchImpl(this.config.apiUrl, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ ...fields, vnp_SecureHash: sign(queryDrSignData(fields), this.config.hashSecret) }),
+        signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+      });
+    } catch {
+      throw new PaymentGatewayError("Không kết nối được VNPay.");
+    }
+    const parsed = RefundResponseSchema.safeParse(await response.json().catch(() => null));
+    if (!response.ok || !parsed.success) {
+      throw new PaymentGatewayError(`VNPay trả phản hồi tra cứu không hợp lệ (HTTP ${response.status}).`);
+    }
+    const body = parsed.data;
+    if (!safeEqualHex(sign(queryDrResponseSignData(body), this.config.hashSecret), body.vnp_SecureHash)) {
+      throw new PaymentGatewayError("Chữ ký phản hồi tra cứu của VNPay không khớp.");
+    }
+    if (body.vnp_ResponseCode === "91") {
+      return { status: "NOT_FOUND", providerTxnId: null, amount: null, resultCode: "91" };
+    }
+    if (body.vnp_ResponseCode !== "00") {
+      throw new PaymentGatewayError(`VNPay từ chối tra cứu (mã ${body.vnp_ResponseCode}).`, RETRYABLE_REFUND_CODES.has(body.vnp_ResponseCode), body.vnp_ResponseCode);
+    }
+    const state = body.vnp_TransactionStatus ?? "";
+    const status = PAID_STATUSES.has(state) ? "SUCCESS" : PENDING_STATUSES.has(state) ? "PENDING" : "FAILED";
+    return {
+      status,
+      providerTxnId: body.vnp_TransactionNo && body.vnp_TransactionNo !== "0" ? body.vnp_TransactionNo : null,
+      amount: body.vnp_Amount ? BigInt(body.vnp_Amount) / 100n : null,
+      resultCode: state,
+    };
+  }
+}
+
+export function queryDrSignData(fields: Record<string, string>): string {
+  return ["vnp_RequestId", "vnp_Version", "vnp_Command", "vnp_TmnCode", "vnp_TxnRef", "vnp_TransactionDate", "vnp_CreateDate", "vnp_IpAddr", "vnp_OrderInfo"]
+    .map((key) => fields[key] ?? "")
+    .join("|");
+}
+
+export function queryDrResponseSignData(fields: Record<string, string | undefined>): string {
+  return [
+    "vnp_ResponseId",
+    "vnp_Command",
+    "vnp_ResponseCode",
+    "vnp_Message",
+    "vnp_TmnCode",
+    "vnp_TxnRef",
+    "vnp_Amount",
+    "vnp_BankCode",
+    "vnp_PayDate",
+    "vnp_TransactionNo",
+    "vnp_TransactionType",
+    "vnp_TransactionStatus",
+    "vnp_OrderInfo",
+    "vnp_PromotionCode",
+    "vnp_PromotionAmount",
+  ]
+    .map((key) => fields[key] ?? "")
+    .join("|");
 }
 
 export function refundSignData(fields: Record<string, string>): string {

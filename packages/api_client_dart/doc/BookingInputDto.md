@@ -13,6 +13,7 @@ Name | Type | Description | Notes
 **passengers** | [**BuiltList&lt;BookingInputDtoPassengersInner&gt;**](BookingInputDtoPassengersInner.md) |  | 
 **note** | **String** |  | 
 **expectedTotal** | **int** |  | 
+**promotionCode** | **String** |  | [optional] 
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)
 

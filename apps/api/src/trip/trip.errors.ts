@@ -130,3 +130,28 @@ export function isVehicleOverlapViolation(error: unknown): boolean {
 export function isDeadlock(error: unknown): boolean {
   return dbCause(error)?.originalCode === "40P01";
 }
+
+/** Đổi / hủy chuyến đã bán vé không làm được ở trạng thái hiện tại (đã khởi hành, đang có khách thanh toán…) — TRN-008. */
+export function tripChangeNotAllowed(detail: string): HttpException {
+  return problem(HttpStatus.CONFLICT, "TRIP_CHANGE_NOT_ALLOWED", detail);
+}
+
+/** Lịch chạy gửi lên giống hệt hiện tại — không có gì để đổi (TRN-008). */
+export function tripChangeEmpty(): HttpException {
+  return problem(HttpStatus.UNPROCESSABLE_ENTITY, "TRIP_CHANGE_EMPTY", "Không có thay đổi nào so với lịch chạy hiện tại.");
+}
+
+/** BR-20: sơ đồ ghế của xe mới không có (cùng loại) chỗ đã bán / đã khóa — `reasons` = mã chỗ. */
+export function tripSeatsUnmappable(seatCodes: string[]): HttpException {
+  return problem(
+    HttpStatus.CONFLICT,
+    "TRIP_SEATS_UNMAPPABLE",
+    `Xe mới không có đúng chỗ (cùng mã, cùng loại) cho ${seatCodes.join(", ")}. Chọn xe khác hoặc xử lý các vé này trước.`,
+    seatCodes,
+  );
+}
+
+/** Danh sách điểm dừng không khớp chuyến hoặc điểm mới không dùng được (ngừng dùng / sai loại cho đón trả) — TRN-008. */
+export function tripStopsInvalid(detail = "Điểm dừng không hợp lệ: phải giữ đủ các thứ tự dừng của chuyến và chọn điểm đang hoạt động."): HttpException {
+  return problem(HttpStatus.UNPROCESSABLE_ENTITY, "TRIP_STOPS_INVALID", detail);
+}

@@ -28,6 +28,15 @@ export type E2eAccounts = {
   platformFinance: { username: string; password: string };
   /** Quản trị viên riêng cho E2E màn Thanh toán & hoàn tiền (TASK-ADM-002). */
   platformPayments: { username: string; password: string };
+  /** Quản trị viên riêng cho E2E Tổng quan + Báo cáo (TASK-RPT-002). */
+  platformReports: { username: string; password: string };
+  /** Quản trị viên riêng cho E2E Khiếu nại & tranh chấp + kiểm duyệt đánh giá (TASK-TRUST-001). */
+  platformTrust: { username: string; password: string };
+  /** Quản trị viên riêng cho E2E Khuyến mãi (TASK-PROM-001). */
+  platformPromo: { username: string; password: string };
+  /** Quản trị viên riêng cho E2E VXN Plus + hành khách có sổ điểm 350 (TASK-LOY-001). */
+  platformLoyalty: { username: string; password: string };
+  loyalty: { passengerEmail: string; passengerName: string };
   bookingFixtures: {
     operatorName: string;
     payoutCode: string;
@@ -36,6 +45,15 @@ export type E2eAccounts = {
     reconcilePaymentCode: string;
     /** Hoàn tiền thất bại chờ Admin xử lý. */
     failedRefundCode: string;
+    /** Khiếu nại / tranh chấp / đánh giá (TASK-TRUST-001). */
+    newTicketCode: string;
+    newTicketSubject: string;
+    forwardedTicketCode: string;
+    forwardedTicketSubject: string;
+    disputeCode: string;
+    disputeTitle: string;
+    reviewComment: string;
+    platformPromotionCode: string;
   } | null;
   /** Nhà xe riêng có một xe hai ảnh; `null` khi chưa có loại xe. */
   moderation: { operatorName: string; plateNumber: string; captions: string[] } | null;

@@ -11,6 +11,7 @@ import { useParams, useSearchParams } from "next/navigation";
 import { useState } from "react";
 
 import { cancelPolicyVersion, getPolicyVersion, type PolicyType, type PolicyVersion } from "../../lib/policy/policy-api";
+import { loyaltyRuleRows, type LoyaltyRules } from "../../lib/loyalty/loyalty-format";
 import { describePolicyError, POLICY_TYPE_LABEL, STATE, tierLabels, type Tier } from "../../lib/policy/policy-format";
 import { formatDate, formatDateTime } from "../../lib/user/user-format";
 import { AccountActionDialog, type AccountAction } from "../user/account-dialogs";
@@ -18,7 +19,7 @@ import { CARD, CARD_TITLE } from "./cancellation-tab";
 import { PolicyEditor } from "./policy-editor";
 import { ruleRows } from "./simple-policy-tab";
 
-const TAB_OF: Record<PolicyType, string> = { CANCELLATION: "", SEAT_HOLD: "?tab=seat-hold", PAYOUT: "?tab=payout" };
+const TAB_OF: Record<PolicyType, string> = { CANCELLATION: "", SEAT_HOLD: "?tab=seat-hold", PAYOUT: "?tab=payout", LOYALTY: "" };
 const NOTICE: Record<string, string> = {
   published: "Đã kích hoạt phiên bản. Phiên bản có hiệu lực từ thời điểm đã chọn.",
   draft: "Đã lưu nháp."
@@ -56,7 +57,18 @@ export function PolicyVersionPage() {
           {notice}
         </div>
       )}
-      {version.data.status === "DRAFT" ? (
+      {version.data.status === "DRAFT" && version.data.type === "LOYALTY" ? (
+        <div role="note" className="flex items-center gap-3 rounded-lg bg-accent px-5 py-3 text-sm leading-5 text-accent-foreground">
+          <CircleAlert className="size-5 shrink-0" />
+          <p>
+            Nháp phiên bản {version.data.version} của VXN Plus soạn tiếp ở màn{" "}
+            <Link href="/loyalty" className="font-semibold underline">
+              VXN Plus
+            </Link>
+            .
+          </p>
+        </div>
+      ) : version.data.status === "DRAFT" ? (
         <PolicyEditor key={version.data.updatedAt} type={version.data.type} operatorId={version.data.operatorId} draft={version.data} />
       ) : (
         <VersionView version={version.data} />
@@ -70,7 +82,8 @@ function VersionView({ version }: { version: PolicyVersion }) {
   const [action, setAction] = useState<AccountAction | null>(null);
   const [done, setDone] = useState<string | null>(null);
   const state = STATE[version.state];
-  const tiers = "tiers" in version.rules ? (version.rules.tiers as Tier[]) : null;
+  const loyalty = version.type === "LOYALTY" ? (version.rules as LoyaltyRules) : null;
+  const tiers = !loyalty && "tiers" in version.rules ? (version.rules.tiers as Tier[]) : null;
   const sorted = tiers ? [...tiers].sort((a, b) => b.minHoursBefore - a.minHoursBefore) : [];
   const labels = tiers ? tierLabels(tiers) : [];
   const refresh = () => {
@@ -80,7 +93,7 @@ function VersionView({ version }: { version: PolicyVersion }) {
   return (
     <>
       <Link
-        href={`/policies${TAB_OF[version.type]}${version.operatorId && !TAB_OF[version.type] ? `?operatorId=${version.operatorId}` : ""}`}
+        href={loyalty ? "/loyalty" : `/policies${TAB_OF[version.type]}${version.operatorId && !TAB_OF[version.type] ? `?operatorId=${version.operatorId}` : ""}`}
         className="inline-flex w-fit items-center gap-2 text-sm font-semibold text-primary hover:underline"
       >
         <ArrowLeft className="size-4" />
@@ -134,7 +147,9 @@ function VersionView({ version }: { version: PolicyVersion }) {
             Nội dung chính sách
           </h2>
           <dl className="flex flex-col gap-3 text-[15px] leading-[22px]">
-            {tiers
+            {loyalty
+              ? loyaltyRuleRows(loyalty).map(([label, value]) => <Row key={label} label={label} value={value} />)
+              : tiers
               ? sorted.map((tier, index) => (
                   <Row key={tier.minHoursBefore} label={`Hủy ${labels[index]!.charAt(0).toLowerCase()}${labels[index]!.slice(1)}`} value={tier.refundPercent === 0 ? "Không hoàn" : `Hoàn ${tier.refundPercent}%`} />
                 ))

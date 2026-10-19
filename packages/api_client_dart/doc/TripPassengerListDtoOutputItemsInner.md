@@ -14,8 +14,8 @@ Name | Type | Description | Notes
 **bookingId** | **String** |  | 
 **bookingCode** | **String** |  | 
 **guest** | **bool** |  | 
-**pickup** | [**TripPassengerListDtoOutputPickupsInner**](TripPassengerListDtoOutputPickupsInner.md) |  | 
-**dropoff** | [**TripPassengerListDtoOutputPickupsInner**](TripPassengerListDtoOutputPickupsInner.md) |  | 
+**pickup** | [**TripSalesDtoOutputChangesInnerBeforeStopsInner**](TripSalesDtoOutputChangesInnerBeforeStopsInner.md) |  | 
+**dropoff** | [**TripSalesDtoOutputChangesInnerBeforeStopsInner**](TripSalesDtoOutputChangesInnerBeforeStopsInner.md) |  | 
 **ticketCode** | **String** |  | 
 **ticketStatus** | **String** |  | 
 

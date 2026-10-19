@@ -8,6 +8,7 @@ import { BookingInputSchema } from "../booking/dto/booking.dto";
 import { parseAppConfig } from "../config/env.config";
 import { platformScope, tenantScope } from "../database/db-scope";
 import { PrismaService } from "../database/prisma.service";
+import type { NotificationDispatcher } from "../notification/notification-dispatcher";
 import { PaymentGatewayError, type PaymentGateway, type PaymentGateways, type RefundRequest } from "../external/payment/payment-gateway";
 import type { Coordinates, RouteLeg, RoutingProvider } from "../external/routing/routing-provider";
 import type { VerifiedAccessToken } from "../iam/auth/token.service";
@@ -69,6 +70,8 @@ describe.skipIf(!ready && !requireDb)("Thanh toán & hoàn tiền phía Admin �
   let refunds: AdminRefundService;
   const events: AuditEventInput[] = [];
   const recordAuditEvent = vi.fn(async (event: AuditEventInput) => void events.push(event));
+  const dispatch = vi.fn(async (_keys: string[]) => undefined);
+  const dispatcher = { dispatch } as unknown as NotificationDispatcher;
   const add = vi.fn(async (_name: string, _data: { refundId: string }, _options: { jobId: string }) => undefined);
   const queue = { add } as unknown as Queue;
   const refund = vi.fn(async (_request: RefundRequest) => ({ providerRefundId: `RF${Math.floor(Math.random() * 1e8)}` }));
@@ -179,10 +182,10 @@ describe.skipIf(!ready && !requireDb)("Thanh toán & hoàn tiền phía Admin �
     redis = new Redis(getRedisUrl(), createRequestRedisClientOptions("admin-refund-test"));
     holds = new SeatHoldService(prisma, redis);
     bookings = new BookingService(prisma, holds, qr);
-    cancellations = new CancellationService(prisma, bookings, { add: vi.fn(async () => undefined) } as unknown as Queue);
+    cancellations = new CancellationService(prisma, bookings, { add: vi.fn(async () => undefined) } as unknown as Queue, { dispatch: vi.fn(async () => undefined) } as unknown as NotificationDispatcher);
     trips = new TripService(prisma, {} as AuditService);
     payments = new AdminPaymentService(prisma);
-    refunds = new AdminRefundService(prisma, { recordAuditEvent } as unknown as AuditService, queue);
+    refunds = new AdminRefundService(prisma, { recordAuditEvent } as unknown as AuditService, queue, dispatcher);
     await prisma.withSystem(async (tx) => {
       await tx.operatorProfile.create({ data: { id: operatorId, operatorSlug: `ar-${tag}`, displayName: `Nhà xe ${tag}` } });
       // Mức riêng 4% để không phụ thuộc mức mặc định đang có trong DB dev.
@@ -242,6 +245,9 @@ describe.skipIf(!ready && !requireDb)("Thanh toán & hoàn tiền phía Admin �
       await tx.escrowLedger.deleteMany({ where: { operatorId } });
       await tx.payoutStatusHistory.deleteMany({ where: { operatorId } });
       await tx.payout.deleteMany({ where: { operatorId } });
+      await tx.notificationDelivery.deleteMany({ where: { operatorId } });
+      await tx.notification.deleteMany({ where: { operatorId } });
+      await tx.tripChange.deleteMany({ where: { operatorId } });
       await tx.ticketStatusHistory.deleteMany({ where: { operatorId } });
       await tx.ticket.deleteMany({ where: { operatorId } });
       await tx.refundStatusHistory.deleteMany({ where: { operatorId } });

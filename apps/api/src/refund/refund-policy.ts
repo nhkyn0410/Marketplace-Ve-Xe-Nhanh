@@ -17,6 +17,18 @@ export function applicableTier(tiers: readonly CancellationTier[], departureAt: 
 }
 
 /** Tiền hoàn của một vé: `price × percent / 100`, làm tròn xuống (không bao giờ hoàn quá giá vé). */
+/**
+ * Phần khách thực trả cho một vé khi đơn có giảm giá (TASK-PROM-001): giá vé trừ phần giảm chia theo tỷ lệ giá, phần giảm làm tròn
+ * LÊN — tổng các vé không vượt số khách đã trả. Không giảm giá → đúng giá vé.
+ */
+export function paidPrice(price: bigint, subtotal: bigint, discount: bigint): bigint {
+  if (discount <= 0n || subtotal <= 0n) {
+    return price;
+  }
+  const share = (price * discount + subtotal - 1n) / subtotal;
+  return price > share ? price - share : 0n;
+}
+
 export function refundOf(price: bigint, percent: number): bigint {
   if (!Number.isInteger(percent) || percent < 0 || percent > 100) {
     throw new Error(`Phần trăm hoàn không hợp lệ: ${percent}`);

@@ -34,7 +34,7 @@ async function fillTotp(scope: Locator | Page) {
 }
 
 test("danh sách: kỳ của nhà xe chờ rà soát, tài khoản che số; mở rà soát", async () => {
-  await page.getByRole("link", { name: "Chi trả nhà xe" }).click();
+  await page.getByRole("link", { name: "Chi trả nhà xe", exact: true }).click();
   await expect(page.getByRole("heading", { name: "Chi trả nhà xe", level: 1 })).toBeVisible(FIRST_VISIT);
   await page.getByLabel("Tìm kiếm").fill(fixtures.payoutCode);
   const row = page.getByRole("row").filter({ hasText: fixtures.payoutCode });

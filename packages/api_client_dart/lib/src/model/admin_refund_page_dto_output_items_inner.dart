@@ -61,7 +61,7 @@ abstract class AdminRefundPageDtoOutputItemsInner implements Built<AdminRefundPa
 
   @BuiltValueField(wireName: r'source')
   AdminRefundPageDtoOutputItemsInnerSource_Enum get source_;
-  // enum source_Enum {  CUSTOMER,  PLATFORM,  };
+  // enum source_Enum {  CUSTOMER,  OPERATOR,  PLATFORM,  };
 
   @BuiltValueField(wireName: r'amount')
   int get amount;
@@ -385,6 +385,8 @@ class AdminRefundPageDtoOutputItemsInnerSource_Enum extends EnumClass {
 
   @BuiltValueEnumConst(wireName: r'CUSTOMER')
   static const AdminRefundPageDtoOutputItemsInnerSource_Enum CUSTOMER = _$adminRefundPageDtoOutputItemsInnerSourceEnum_CUSTOMER;
+  @BuiltValueEnumConst(wireName: r'OPERATOR')
+  static const AdminRefundPageDtoOutputItemsInnerSource_Enum OPERATOR = _$adminRefundPageDtoOutputItemsInnerSourceEnum_OPERATOR;
   @BuiltValueEnumConst(wireName: r'PLATFORM')
   static const AdminRefundPageDtoOutputItemsInnerSource_Enum PLATFORM = _$adminRefundPageDtoOutputItemsInnerSourceEnum_PLATFORM;
 

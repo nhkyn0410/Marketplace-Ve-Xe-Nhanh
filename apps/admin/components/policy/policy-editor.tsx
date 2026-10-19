@@ -39,7 +39,8 @@ import { formatDate, LOCK_REASON_MAX, lockReasonError } from "../../lib/user/use
 import { CARD, CARD_TITLE } from "./cancellation-tab";
 import { OperatorPicker } from "./operator-picker";
 
-const TAB_OF: Record<PolicyType, string> = { CANCELLATION: "", SEAT_HOLD: "?tab=seat-hold", PAYOUT: "?tab=payout" };
+// VXN Plus soạn ở màn riêng (`/loyalty`) — editor này không mở cho LOYALTY.
+const TAB_OF: Record<PolicyType, string> = { CANCELLATION: "", SEAT_HOLD: "?tab=seat-hold", PAYOUT: "?tab=payout", LOYALTY: "" };
 
 type Errors = Partial<Record<"rules" | "effectiveFrom" | "reason" | "scope" | "form", string>>;
 

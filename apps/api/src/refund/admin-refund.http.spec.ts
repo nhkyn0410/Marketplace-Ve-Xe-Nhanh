@@ -98,7 +98,8 @@ describe("Thanh toán & hoàn tiền phía Admin — HTTP", () => {
     expect((await call("GET", "/admin/payments?reconcile=open&provider=MOMO&from=2031-01-01&to=2031-01-31", admin)).status).toBe(200);
     expect((await call("GET", "/admin/payments?from=2031-02-01&to=2031-01-01", admin)).status).toBe(400);
     expect((await call("GET", "/admin/payments?provider=STRIPE", admin)).status).toBe(400);
-    expect((await call("GET", "/admin/refunds?source=OPERATOR", admin)).status).toBe(400);
+    expect((await call("GET", "/admin/refunds?source=EMPLOYEE", admin)).status).toBe(400);
+    expect((await call("GET", "/admin/refunds?source=OPERATOR", admin)).status).toBe(200);
     expect((await call("GET", "/admin/refunds/khong-phai-uuid", admin)).status).toBe(400);
   });
 

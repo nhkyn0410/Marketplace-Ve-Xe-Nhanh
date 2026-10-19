@@ -42,7 +42,9 @@ async function generateFor(tx: DbTransaction, operatorId: string, period: string
     SELECT e.id, e.entry_type::text AS "entryType", e.amount, e.booking_id AS "bookingId", e.trip_id AS "tripId",
       e.commission_rate_bps AS "rate"
     FROM escrow_ledgers e
-    WHERE e.operator_id = ${operatorId} AND e.eligible_at <= ${now} AND e.entry_type <> 'PAYOUT'
+    -- BR-32: chuyến đã hoàn thành thực tế (TASK-EMP-002) → mốc = giờ hoàn thành + chu kỳ; chưa có → mốc trên sổ.
+    LEFT JOIN trips t ON t.id = e.trip_id AND t.operator_id = e.operator_id
+    WHERE e.operator_id = ${operatorId} AND COALESCE(t.payout_eligible_at, e.eligible_at) <= ${now} AND e.entry_type <> 'PAYOUT'
       AND NOT EXISTS (SELECT 1 FROM payout_items i WHERE i.ledger_entry_id = e.id)
       AND NOT EXISTS (
         SELECT 1 FROM refunds r JOIN payments pm ON pm.id = r.payment_id AND pm.operator_id = r.operator_id

@@ -87,6 +87,29 @@ export type BankAccountChangeEmailMessage = {
   reason?: string;
 };
 
+/**
+ * Email giao dịch đã dựng nội dung (thông báo đặt vé / hủy vé / hoàn tiền / đổi chuyến — TASK-NSR-001). Văn bản thuần,
+ * adapter tự escape; nội dung do `notification/notification-templates.ts` dựng.
+ */
+export type TransactionalEmailMessage = {
+  email: string;
+  subject: string;
+  /** Dòng tiêu đề trong thân email. */
+  title: string;
+  /** Các đoạn văn, theo thứ tự. */
+  lines: string[];
+  /** Nhãn ngắn cho log — không chứa dữ liệu cá nhân. */
+  logLabel: string;
+};
+
+/** Chưa cấu hình kênh gửi (dev không có `RESEND_API_KEY`) — người gọi ghi `SKIPPED`, không thử lại. */
+export class EmailUnavailableError extends Error {
+  constructor(message = "Chưa cấu hình kênh gửi email (RESEND_API_KEY).") {
+    super(message);
+    this.name = "EmailUnavailableError";
+  }
+}
+
 export interface EmailNotifier {
   sendOtp(message: OtpEmailMessage): Promise<void>;
   /** Optional trong port để adapter/mocks OTP legacy không giả vờ hỗ trợ enrollment. */
@@ -97,6 +120,7 @@ export interface EmailNotifier {
   sendVehicleImageRemoved?(message: VehicleImageRemovedEmailMessage): Promise<void>;
   sendOperatorStatusChanged?(message: OperatorStatusEmailMessage): Promise<void>;
   sendBankAccountChangeDecision?(message: BankAccountChangeEmailMessage): Promise<void>;
+  sendTransactional?(message: TransactionalEmailMessage): Promise<void>;
 }
 
 /** Mask email cho log/audit — không lộ địa chỉ đầy đủ (Security §9). */

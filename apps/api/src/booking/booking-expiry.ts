@@ -1,6 +1,7 @@
 import { listOverduePendingBookings, withBookingOperator } from "../database/marketplace-scope";
 import type { DbTransaction, PrismaService } from "../database/prisma.service";
 import { BookingStatus } from "../database/prisma.types";
+import { releaseRedemption } from "../promotion/promotion-apply";
 
 // Hết hạn thanh toán (TASK-BTP-002, FR-BTP-05, SRS §17.6 `PENDING_PAYMENT → EXPIRED`): job nền mỗi phút quét booking chờ
 // thanh toán đã quá hạn, chuyển `EXPIRED` + trả ghế. `GET /bookings/{id}` cũng gọi `expireBooking` khi job chưa kịp quét.
@@ -27,6 +28,8 @@ export async function expireBooking(tx: DbTransaction, operatorId: string, booki
     where: { bookingId, operatorId, status: "HOLDING" },
     data: { status: "AVAILABLE", bookingId: null },
   });
+  // Mã khuyến mãi đang giữ cho đơn → trả lượt dùng (BR-72).
+  await releaseRedemption(tx, operatorId, bookingId);
   // Payment đang mở của booking hết hiệu lực theo (SRS §17.8); callback thành công đến sau → đối soát (BTP-003).
   const open = await tx.payment.findMany({
     where: { bookingId, operatorId, status: { in: ["INITIATED", "PROCESSING"] } },

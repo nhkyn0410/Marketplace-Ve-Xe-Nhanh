@@ -161,7 +161,7 @@ describe("Chính sách + hoa hồng — HTTP", () => {
     reauth.granted = true;
     const admin = await token("platform", "PLATFORM_ADMIN");
     for (const [method, path, body] of [
-      ["GET", "/policies/LOYALTY", undefined],
+      ["GET", "/policies/VOUCHER", undefined],
       ["POST", "/policies/CANCELLATION/versions", { ...draft, rules: { tiers: [{ minHoursBefore: 0, refundPercent: 120 }] } }],
       ["POST", "/policies/CANCELLATION/versions", { ...draft, effectiveFrom: "01/11/2026" }],
       ["POST", `/policy-versions/${id}/publish`, { changeReason: "ab" }],

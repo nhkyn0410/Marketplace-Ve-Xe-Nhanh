@@ -54,10 +54,54 @@ export const PayoutRulesSchema = z.strictObject({
     .refine((amount) => amount === null, { message: "v1 không đặt ngưỡng tối thiểu chi trả." }),
 });
 
+/** Mã hạng VXN Plus theo thứ tự (FR-LOY-03); mốc + hệ số do Admin cấu hình. */
+export const LOYALTY_TIERS = ["BRONZE", "SILVER", "GOLD", "PLATINUM"] as const;
+
+/** Một hạng: từ `minPoints` điểm tích trong 12 tháng, hệ số tích `multiplierPercent`% (BR-66, BR-68). */
+const LoyaltyTierRuleSchema = z.strictObject({
+  tier: z.enum(LOYALTY_TIERS),
+  minPoints: z.int().min(0).max(10_000_000),
+  multiplierPercent: z.int().min(100).max(500),
+});
+
+/**
+ * VXN Plus (FR-LOY-10, Figma ADM-12a): đơn vị tích (₫ cho 1 điểm), giá trị quy đổi (₫ mỗi điểm khi đổi voucher), số điểm đổi
+ * tối thiểu, hạn điểm (tháng từ ngày tích), hạn voucher (ngày); đủ 4 hạng theo thứ tự, hạng đầu từ 0 điểm, mốc tăng dần và hệ
+ * số không giảm.
+ */
+const LoyaltyRulesObjectSchema = z.strictObject({
+  earnUnit: z.int().min(1_000).max(1_000_000),
+  pointValue: z.int().min(1).max(100_000),
+  minRedeemPoints: z.int().min(1).max(1_000_000),
+  pointExpiryMonths: z.int().min(1).max(60),
+  voucherValidityDays: z.int().min(1).max(365),
+  tiers: z.array(LoyaltyTierRuleSchema).length(LOYALTY_TIERS.length),
+});
+export const LoyaltyRulesSchema = LoyaltyRulesObjectSchema.superRefine((rules, ctx) => {
+  rules.tiers.forEach((tier, index) => {
+    if (tier.tier !== LOYALTY_TIERS[index]) {
+      ctx.addIssue({ code: "custom", path: ["tiers", index, "tier"], message: "Các hạng phải theo thứ tự Đồng, Bạc, Vàng, Bạch kim." });
+      return;
+    }
+    const lower = rules.tiers[index - 1];
+    if (!lower && tier.minPoints !== 0) {
+      ctx.addIssue({ code: "custom", path: ["tiers", index, "minPoints"], message: "Hạng Đồng bắt đầu từ 0 điểm." });
+    }
+    if (lower && tier.minPoints <= lower.minPoints) {
+      ctx.addIssue({ code: "custom", path: ["tiers", index, "minPoints"], message: "Mốc điểm của hạng cao hơn phải lớn hơn hạng dưới." });
+    }
+    if (lower && tier.multiplierPercent < lower.multiplierPercent) {
+      ctx.addIssue({ code: "custom", path: ["tiers", index, "multiplierPercent"], message: "Hệ số của hạng cao hơn không được thấp hơn hạng dưới." });
+    }
+  });
+});
+export type LoyaltyRules = z.infer<typeof LoyaltyRulesSchema>;
+
 export const RULE_SCHEMAS = {
   [PolicyType.CANCELLATION]: CancellationRulesSchema,
   [PolicyType.SEAT_HOLD]: SeatHoldRulesSchema,
   [PolicyType.PAYOUT]: PayoutRulesSchema,
+  [PolicyType.LOYALTY]: LoyaltyRulesSchema,
 } as const;
 
 export type CancellationRules = z.infer<typeof CancellationRulesSchema>;
@@ -66,6 +110,7 @@ const PolicyRulesSchema = z.union([
   z.strictObject({ tiers: z.array(CancellationTierSchema) }),
   SeatHoldRulesSchema,
   PayoutRulesSchema,
+  LoyaltyRulesObjectSchema,
 ]);
 
 export class PolicyTypeParamDto extends createZodDto(z.object({ type: z.enum(PolicyType) })) {}

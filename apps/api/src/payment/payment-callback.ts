@@ -1,10 +1,12 @@
 import { withPaymentOperator } from "../database/marketplace-scope";
 import type { DbTransaction, PrismaService } from "../database/prisma.service";
-import { BookingStatus, PaymentStatus } from "../database/prisma.types";
+import { BookingStatus, NotificationKind, PaymentStatus } from "../database/prisma.types";
 import type { GatewayProvider } from "../external/payment/payment-gateway";
 import { recordCapture } from "../escrow/escrow-entries";
+import { queueNotification } from "../notification/notification-outbox";
 import { issueTickets } from "../ticket/ticket-issuer";
 import type { TicketQrSigner } from "../ticket/ticket-qr";
+import { useRedemption } from "../promotion/promotion-apply";
 
 // Xử lý callback ĐÃ xác thực chữ ký (TASK-BTP-003, LLD §6.3, FR-BTP-08/09, BR-27/28): chạy trong worker (job
 // `payment-callback`). Một transaction ở tenant của nhà xe: khoá payment rồi booking, quyết theo trạng thái hiện tại —
@@ -89,7 +91,7 @@ async function apply(tx: DbTransaction, operatorId: string, callback: PaymentCal
   await tx.$queryRaw`SELECT id FROM bookings WHERE id = ${payment.bookingId} AND operator_id = ${operatorId} FOR UPDATE`;
   const booking = await tx.booking.findFirstOrThrow({
     where: { id: payment.bookingId, operatorId },
-    select: { status: true, tripId: true, total: true, subtotal: true, trip: { select: { arrivalAt: true } }, _count: { select: { passengers: true } } },
+    select: { status: true, tripId: true, total: true, subtotal: true, discount: true, contactEmail: true, trip: { select: { arrivalAt: true } }, _count: { select: { passengers: true } } },
   });
   if (booking.status !== BookingStatus.PENDING_PAYMENT) {
     return reconcile(booking.status === BookingStatus.EXPIRED ? "BOOKING_EXPIRED" : booking.status === BookingStatus.CANCELLED ? "BOOKING_CANCELLED" : "DUPLICATE_PAYMENT");
@@ -109,11 +111,13 @@ async function apply(tx: DbTransaction, operatorId: string, callback: PaymentCal
     data: { bookingId: payment.bookingId, operatorId, fromStatus: BookingStatus.PENDING_PAYMENT, toStatus: BookingStatus.PAID, reason: `Thanh toán ${callback.provider}.`, actor, createdAt: now },
   });
   await tx.tripSeat.updateMany({ where: { bookingId: payment.bookingId, operatorId, status: "HOLDING" }, data: { status: "BOOKED" } });
+  await useRedemption(tx, operatorId, payment.bookingId);
   // Ghi sổ escrow + hoa hồng (BR-30/31), phát hành vé cùng transaction (BR-28) rồi `PAID → CONFIRMED` (SRS §17.6).
   await recordCapture(
     tx,
     operatorId,
-    { bookingId: payment.bookingId, tripId: booking.tripId, paymentId: payment.id, total: booking.total, ticketRevenue: booking.subtotal, arrivalAt: booking.trip.arrivalAt },
+    // Khuyến mãi do nhà xe chịu (TASK-PROM-001): hoa hồng tính trên tiền vé sau giảm — số khách thực trả.
+    { bookingId: payment.bookingId, tripId: booking.tripId, paymentId: payment.id, total: booking.total, ticketRevenue: booking.subtotal - booking.discount, arrivalAt: booking.trip.arrivalAt },
     now,
   );
   await issueTickets(tx, operatorId, payment.bookingId, qr, now, "system");
@@ -133,5 +137,17 @@ async function apply(tx: DbTransaction, operatorId: string, callback: PaymentCal
       data: { paymentId: other.id, operatorId, fromStatus: other.status, toStatus: PaymentStatus.CANCELLED, reason: "Booking đã thanh toán qua cổng khác.", actor: "system" },
     });
   }
+  // Vé điện tử qua email (DP-06, TASK-NSR-001) — ghi cùng transaction, worker gửi sau commit.
+  await queueNotification(tx, operatorId, {
+    kind: NotificationKind.BOOKING_CONFIRMED,
+    dedupKey: bookingConfirmedKey(callback.paymentCode),
+    recipientEmail: booking.contactEmail,
+    bookingId: payment.bookingId,
+  });
   return "SUCCESS";
+}
+
+/** Khoá chống trùng thông báo vé điện tử — một booking chỉ được xác nhận bởi một payment. */
+export function bookingConfirmedKey(paymentCode: string): string {
+  return `BOOKING_CONFIRMED:${paymentCode}`;
 }

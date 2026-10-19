@@ -30,7 +30,7 @@ export const REFUND_STATUS_ORDER: RefundStatus[] = ["FAILED", "REQUESTED", "APPR
 
 export const PROVIDER_LABEL: Record<PaymentProvider, string> = { VNPAY: "VNPay", MOMO: "MoMo" };
 
-export const REFUND_SOURCE: Record<RefundSource, string> = { CUSTOMER: "Khách hủy vé", PLATFORM: "Vé Xe Nhanh (đối soát)" };
+export const REFUND_SOURCE: Record<RefundSource, string> = { CUSTOMER: "Khách hủy vé", OPERATOR: "Nhà xe hủy chuyến", PLATFORM: "Vé Xe Nhanh (đối soát)" };
 
 /** Lý do cần đối soát (máy chủ ghi lúc nhận callback). */
 const RECONCILE_REASON: Record<string, string> = {

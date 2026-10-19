@@ -1,6 +1,6 @@
 import { createHmac, randomUUID, timingSafeEqual } from "node:crypto";
 import { z } from "zod";
-import { type CheckoutRequest, type PaymentGateway, PaymentGatewayError, type RefundRequest, type VerifiedCallback } from "../payment-gateway";
+import { type CheckoutRequest, type PaymentGateway, PaymentGatewayError, type RefundRequest, type TransactionQuery, type TransactionStatus, type VerifiedCallback } from "../payment-gateway";
 
 export type MomoConfig = {
   partnerCode: string;
@@ -18,6 +18,16 @@ const REQUEST_TIMEOUT_MS = 10_000;
 const RETRYABLE_REFUND_CODES = new Set([7000, 7002, 99]);
 
 const RefundResponseSchema = z.object({ resultCode: z.number(), message: z.string().optional(), transId: z.union([z.number(), z.string()]).optional() });
+
+const QueryResponseSchema = z.object({
+  resultCode: z.number(),
+  message: z.string().optional(),
+  transId: z.union([z.number(), z.string()]).optional(),
+  amount: z.union([z.number(), z.string()]).optional(),
+});
+/** `resultCode` của query: đang chờ khách / đang xử lý; 42 = không có đơn. */
+const PENDING_QUERY_CODES = new Set([1000, 7000, 7002, 9000]);
+const NOT_FOUND_QUERY_CODES = new Set([42]);
 
 const CreateResponseSchema = z.object({
   resultCode: z.number(),
@@ -142,6 +152,34 @@ export class MomoGateway implements PaymentGateway {
       );
     }
     return { providerRefundId: parsed.data.transId === undefined ? null : String(parsed.data.transId) };
+  }
+
+  /** `POST /v2/gateway/api/query` (ký HMAC-SHA256 accessKey, orderId, partnerCode, requestId). */
+  async queryTransaction(request: TransactionQuery): Promise<TransactionStatus> {
+    const raw = [`accessKey=${this.config.accessKey}`, `orderId=${request.paymentCode}`, `partnerCode=${this.config.partnerCode}`, `requestId=${request.requestCode}`].join("&");
+    let response: Response;
+    try {
+      response = await this.fetchImpl(`${this.config.endpoint}/v2/gateway/api/query`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ partnerCode: this.config.partnerCode, requestId: request.requestCode, orderId: request.paymentCode, lang: "vi", signature: sign(raw, this.config.secretKey) }),
+        signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+      });
+    } catch {
+      throw new PaymentGatewayError("Không kết nối được MoMo.");
+    }
+    const parsed = QueryResponseSchema.safeParse(await response.json().catch(() => null));
+    if (!response.ok || !parsed.success) {
+      throw new PaymentGatewayError(`MoMo trả phản hồi tra cứu không hợp lệ (HTTP ${response.status}).`);
+    }
+    const { resultCode, transId, amount } = parsed.data;
+    const status = resultCode === 0 ? "SUCCESS" : PENDING_QUERY_CODES.has(resultCode) ? "PENDING" : NOT_FOUND_QUERY_CODES.has(resultCode) ? "NOT_FOUND" : "FAILED";
+    return {
+      status,
+      providerTxnId: status === "SUCCESS" && transId !== undefined ? String(transId) : null,
+      amount: status === "SUCCESS" && amount !== undefined ? BigInt(amount) : null,
+      resultCode: String(resultCode),
+    };
   }
 
   verifyCallback(input: Record<string, unknown>): VerifiedCallback | null {

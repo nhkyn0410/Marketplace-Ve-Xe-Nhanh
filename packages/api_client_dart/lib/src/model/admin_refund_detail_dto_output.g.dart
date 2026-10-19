@@ -36,6 +36,9 @@ const AdminRefundDetailDtoOutputSource_Enum
     _$adminRefundDetailDtoOutputSourceEnum_CUSTOMER =
     const AdminRefundDetailDtoOutputSource_Enum._('CUSTOMER');
 const AdminRefundDetailDtoOutputSource_Enum
+    _$adminRefundDetailDtoOutputSourceEnum_OPERATOR =
+    const AdminRefundDetailDtoOutputSource_Enum._('OPERATOR');
+const AdminRefundDetailDtoOutputSource_Enum
     _$adminRefundDetailDtoOutputSourceEnum_PLATFORM =
     const AdminRefundDetailDtoOutputSource_Enum._('PLATFORM');
 
@@ -44,6 +47,8 @@ AdminRefundDetailDtoOutputSource_Enum
   switch (name) {
     case 'CUSTOMER':
       return _$adminRefundDetailDtoOutputSourceEnum_CUSTOMER;
+    case 'OPERATOR':
+      return _$adminRefundDetailDtoOutputSourceEnum_OPERATOR;
     case 'PLATFORM':
       return _$adminRefundDetailDtoOutputSourceEnum_PLATFORM;
     default:
@@ -55,6 +60,7 @@ final BuiltSet<AdminRefundDetailDtoOutputSource_Enum>
     _$adminRefundDetailDtoOutputSourceEnumValues = BuiltSet<
         AdminRefundDetailDtoOutputSource_Enum>(const <AdminRefundDetailDtoOutputSource_Enum>[
   _$adminRefundDetailDtoOutputSourceEnum_CUSTOMER,
+  _$adminRefundDetailDtoOutputSourceEnum_OPERATOR,
   _$adminRefundDetailDtoOutputSourceEnum_PLATFORM,
 ]);
 
@@ -213,10 +219,12 @@ class _$AdminRefundDetailDtoOutputSource_EnumSerializer
     implements PrimitiveSerializer<AdminRefundDetailDtoOutputSource_Enum> {
   static const Map<String, Object> _toWire = const <String, Object>{
     'CUSTOMER': 'CUSTOMER',
+    'OPERATOR': 'OPERATOR',
     'PLATFORM': 'PLATFORM',
   };
   static const Map<Object, String> _fromWire = const <Object, String>{
     'CUSTOMER': 'CUSTOMER',
+    'OPERATOR': 'OPERATOR',
     'PLATFORM': 'PLATFORM',
   };
 

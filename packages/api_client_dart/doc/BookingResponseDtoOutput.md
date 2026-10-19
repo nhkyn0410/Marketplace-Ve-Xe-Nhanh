@@ -27,6 +27,7 @@ Name | Type | Description | Notes
 **payment** | [**CreatedBookingDtoOutputPayment**](CreatedBookingDtoOutputPayment.md) |  | 
 **tickets** | [**BuiltList&lt;CreatedBookingDtoOutputTicketsInner&gt;**](CreatedBookingDtoOutputTicketsInner.md) |  | 
 **refunds** | [**BuiltList&lt;CreatedBookingDtoOutputRefundsInner&gt;**](CreatedBookingDtoOutputRefundsInner.md) |  | 
+**tripChanges** | [**BuiltList&lt;CreatedBookingDtoOutputTripChangesInner&gt;**](CreatedBookingDtoOutputTripChangesInner.md) |  | 
 **createdAt** | [**DateTime**](DateTime.md) |  | 
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)

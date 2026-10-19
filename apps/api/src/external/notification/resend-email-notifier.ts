@@ -9,6 +9,7 @@ import {
   type OtpEmailMessage,
   type StopPointDecisionEmailMessage,
   type TemporaryPasswordEmailMessage,
+  type TransactionalEmailMessage,
   type VehicleImageRemovedEmailMessage,
 } from "./email-notifier";
 
@@ -180,6 +181,15 @@ export class ResendEmailNotifier implements EmailNotifier {
         `${account} chưa được duyệt. Tài khoản cũ vẫn được dùng để chi trả.</p>` +
         `<p>Lý do:</p><blockquote>${escapeHtml(message.reason ?? "")}</blockquote>`,
       "bank account rejected",
+    );
+  }
+
+  async sendTransactional(message: TransactionalEmailMessage): Promise<void> {
+    await this.send(
+      message.email,
+      message.subject,
+      `<h2>${escapeHtml(message.title)}</h2>` + message.lines.map((line) => `<p>${escapeHtml(line)}</p>`).join(""),
+      message.logLabel,
     );
   }
 

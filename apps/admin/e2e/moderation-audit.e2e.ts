@@ -29,8 +29,10 @@ test("kiểm duyệt: lọc theo nhà xe, gỡ ảnh thiếu lý do báo tại �
   await signInPlatform(page, accounts().platformModeration);
   await page.getByRole("link", { name: "Kiểm duyệt", exact: true }).click();
   await expect(page.getByRole("heading", { name: "Kiểm duyệt" })).toBeVisible({ timeout: 20_000 });
+  // Tab mặc định là Đánh giá (TASK-TRUST-001); chuyển sang Ảnh phương tiện.
+  await expect(page.getByRole("tab", { name: "Đánh giá" })).toHaveAttribute("aria-selected", "true");
+  await page.getByRole("tab", { name: "Ảnh phương tiện" }).click();
   await expect(page.getByRole("tab", { name: "Ảnh phương tiện" })).toHaveAttribute("aria-selected", "true");
-  await expect(page.getByRole("tab", { name: "Đánh giá" })).toBeDisabled();
 
   await page.getByRole("combobox", { name: "Nhà xe" }).click();
   await page.getByRole("option", { name: operatorName, exact: true }).click();

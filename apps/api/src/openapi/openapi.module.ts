@@ -39,6 +39,7 @@ import { FareController } from "../fare/fare.controller";
 import { FareService } from "../fare/fare.service";
 import { TripController } from "../trip/trip.controller";
 import { TripService } from "../trip/trip.service";
+import { TripChangeService } from "../trip/trip-change.service";
 import { TripScheduleController } from "../trip/trip-schedule.controller";
 import { EmployeeAssignmentController } from "../employee/employee-assignment.controller";
 import { AdminContentPageController, ContentPageController } from "../catalog/content-page.controller";
@@ -64,6 +65,22 @@ import { AdminRefundService } from "../refund/admin-refund.service";
 import { AdminPayoutController } from "../payout/admin-payout.controller";
 import { AdminPayoutService } from "../payout/admin-payout.service";
 import { OperatorFinanceController } from "../payout/operator-finance.controller";
+import { EmployeeOperationsController } from "../check-in/employee-operations.controller";
+import { EmployeeOperationsService } from "../check-in/employee-operations.service";
+import { AdminReportingController, OperatorReportingController } from "../reporting/reporting.controller";
+import { ReportingService } from "../reporting/reporting.service";
+import { AdminSupportController } from "../support/admin-support.controller";
+import { CustomerSupportController } from "../support/customer-support.controller";
+import { OperatorSupportController } from "../support/operator-support.controller";
+import { SupportService } from "../support/support.service";
+import { AdminDisputeController, CustomerDisputeController, OperatorDisputeController } from "../dispute/dispute.controller";
+import { DisputeService } from "../dispute/dispute.service";
+import { AdminReviewController, CustomerReviewController, OperatorReviewController } from "../review/review.controller";
+import { ReviewService } from "../review/review.service";
+import { AdminPromotionController, OperatorPromotionController, PublicPromotionController } from "../promotion/promotion.controller";
+import { PromotionService } from "../promotion/promotion.service";
+import { AdminLoyaltyController } from "../loyalty/admin-loyalty.controller";
+import { AdminLoyaltyService } from "../loyalty/admin-loyalty.service";
 import { OperatorFinanceService } from "../payout/operator-finance.service";
 import { EmployeeAssignmentService } from "../employee/employee-assignment.service";
 import { TripScheduleService } from "../trip/trip-schedule.service";
@@ -138,6 +155,22 @@ import { VehicleService } from "../vehicle/vehicle.service";
     AdminRefundController,
     AdminPayoutController,
     OperatorFinanceController,
+    EmployeeOperationsController,
+    OperatorReportingController,
+    AdminReportingController,
+    CustomerSupportController,
+    OperatorSupportController,
+    AdminSupportController,
+    AdminDisputeController,
+    OperatorDisputeController,
+    CustomerDisputeController,
+    CustomerReviewController,
+    OperatorReviewController,
+    AdminReviewController,
+    AdminPromotionController,
+    OperatorPromotionController,
+    PublicPromotionController,
+    AdminLoyaltyController,
     FareController,
     OperatorApplicationController,
     OperatorApplicationReviewController,
@@ -182,6 +215,7 @@ import { VehicleService } from "../vehicle/vehicle.service";
     { provide: AdminStopPointService, useValue: {} },
     { provide: RouteService, useValue: {} },
     { provide: TripService, useValue: {} },
+    { provide: TripChangeService, useValue: {} },
     { provide: TripScheduleService, useValue: {} },
     { provide: EmployeeAssignmentService, useValue: {} },
     { provide: ContentPageService, useValue: {} },
@@ -196,6 +230,13 @@ import { VehicleService } from "../vehicle/vehicle.service";
     { provide: AdminRefundService, useValue: {} },
     { provide: AdminPayoutService, useValue: {} },
     { provide: OperatorFinanceService, useValue: {} },
+    { provide: EmployeeOperationsService, useValue: {} },
+    { provide: ReportingService, useValue: {} },
+    { provide: SupportService, useValue: {} },
+    { provide: DisputeService, useValue: {} },
+    { provide: ReviewService, useValue: {} },
+    { provide: PromotionService, useValue: {} },
+    { provide: AdminLoyaltyService, useValue: {} },
     { provide: FareService, useValue: {} },
     // Dependency của AccessTokenGuard (logout, re-auth) — Nest dựng guard lúc khởi tạo module.
     { provide: TokenService, useValue: {} },

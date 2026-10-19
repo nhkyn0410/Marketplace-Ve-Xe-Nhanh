@@ -22,6 +22,7 @@ import { PaymentModule } from "./payment/payment.module";
 import { TicketModule } from "./ticket/ticket.module";
 import { RefundModule } from "./refund/refund.module";
 import { PayoutModule } from "./payout/payout.module";
+import { CheckInModule } from "./check-in/check-in.module";
 import { IamModule } from "./iam/iam.module";
 import { QueueModule } from "./queue/queue.module";
 import { CatalogModule } from "./catalog/catalog.module";
@@ -30,6 +31,12 @@ import { RouteModule } from "./route/route.module";
 import { StopPointModule } from "./stop-point/stop-point.module";
 import { TripModule } from "./trip/trip.module";
 import { VehicleModule } from "./vehicle/vehicle.module";
+import { ReportingModule } from "./reporting/reporting.module";
+import { SupportModule } from "./support/support.module";
+import { DisputeModule } from "./dispute/dispute.module";
+import { ReviewModule } from "./review/review.module";
+import { PromotionModule } from "./promotion/promotion.module";
+import { LoyaltyModule } from "./loyalty/loyalty.module";
 
 @Module({
   imports: [
@@ -61,6 +68,13 @@ import { VehicleModule } from "./vehicle/vehicle.module";
     TicketModule,
     RefundModule,
     PayoutModule,
+    CheckInModule,
+    ReportingModule,
+    SupportModule,
+    DisputeModule,
+    ReviewModule,
+    PromotionModule,
+    LoyaltyModule,
   ],
   controllers: [AppController],
   providers: [{ provide: APP_INTERCEPTOR, useClass: ZodSerializerInterceptor }],

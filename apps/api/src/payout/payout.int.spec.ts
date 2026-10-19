@@ -8,6 +8,7 @@ import { BookingInputSchema } from "../booking/dto/booking.dto";
 import { parseAppConfig } from "../config/env.config";
 import { platformScope, tenantScope } from "../database/db-scope";
 import { PrismaService } from "../database/prisma.service";
+import type { NotificationDispatcher } from "../notification/notification-dispatcher";
 import { payoutDelayDays } from "../escrow/escrow-entries";
 import type { PaymentGateway, PaymentGateways } from "../external/payment/payment-gateway";
 import type { Coordinates, RouteLeg, RoutingProvider } from "../external/routing/routing-provider";
@@ -184,7 +185,7 @@ describe.skipIf(!ready && !requireDb)("Escrow + chi trả — Postgres + Redis t
     redis = new Redis(getRedisUrl(), createRequestRedisClientOptions("payout-test"));
     holds = new SeatHoldService(prisma, redis);
     bookings = new BookingService(prisma, holds, qr);
-    cancellations = new CancellationService(prisma, bookings, queue);
+    cancellations = new CancellationService(prisma, bookings, queue, { dispatch: vi.fn(async () => undefined) } as unknown as NotificationDispatcher);
     trips = new TripService(prisma, {} as AuditService);
     admin = new AdminPayoutService(prisma, { recordAuditEvent } as unknown as AuditService);
     finance = new OperatorFinanceService(prisma);
@@ -222,6 +223,9 @@ describe.skipIf(!ready && !requireDb)("Escrow + chi trả — Postgres + Redis t
       await tx.escrowLedger.deleteMany({ where: { operatorId: { in: ids } } });
       await tx.payoutStatusHistory.deleteMany({ where: { operatorId: { in: ids } } });
       await tx.payout.deleteMany({ where: { operatorId: { in: ids } } });
+      await tx.notificationDelivery.deleteMany({ where: { operatorId: { in: ids } } });
+      await tx.notification.deleteMany({ where: { operatorId: { in: ids } } });
+      await tx.tripChange.deleteMany({ where: { operatorId: { in: ids } } });
       await tx.ticketStatusHistory.deleteMany({ where: { operatorId: { in: ids } } });
       await tx.ticket.deleteMany({ where: { operatorId: { in: ids } } });
       await tx.refundStatusHistory.deleteMany({ where: { operatorId: { in: ids } } });

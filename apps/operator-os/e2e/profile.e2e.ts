@@ -98,14 +98,15 @@ test("đổi tài khoản nhận tiền: lỗi tại ô, sai mật khẩu báo t
   await expect(bank.getByRole("button", { name: "Đổi tài khoản nhận tiền" })).toBeDisabled();
 });
 
-test("mục Khuyến mãi / Đặt vé / Tài chính: khung giao diện, chưa có dữ liệu (không số liệu mẫu)", async () => {
+test("mục Khuyến mãi (nhà xe chưa được cấp quyền) / Tài chính: không số liệu mẫu", async () => {
   await page.getByRole("link", { name: "Khuyến mãi", exact: true }).click();
   await expect(page.getByRole("heading", { name: "Khuyến mãi", level: 1 })).toBeVisible({ timeout: 30_000 });
-  await expect(page.getByRole("columnheader", { name: "Mã và tên" })).toBeVisible();
-  await expect(page.getByText("Chưa có dữ liệu", { exact: true })).toBeVisible();
+  // TASK-PROM-001: nhà xe này chưa được Vé Xe Nhanh cấp quyền tự tạo khuyến mãi (Figma "Nhà xe · Khuyến mãi" 03).
+  await expect(page.getByText("Nhà xe chưa được cấp quyền tạo khuyến mãi")).toBeVisible({ timeout: 30_000 });
   await page.getByRole("link", { name: "Tài chính", exact: true }).click();
   await expect(page.getByRole("heading", { name: "Tài chính", level: 1 })).toBeVisible({ timeout: 30_000 });
   await expect(page.getByText("Số dư đang giữ")).toBeVisible();
-  await page.getByRole("tab", { name: "Chi trả" }).click();
-  await expect(page.getByRole("columnheader", { name: "Thực nhận" })).toBeVisible();
+  await page.getByRole("navigation", { name: "Tài chính" }).getByRole("link", { name: "Chi trả" }).click();
+  // Nhà xe chưa có chuyến nào hoàn thành → chưa có kỳ chi trả (không số liệu mẫu).
+  await expect(page.getByText("Chưa có kỳ chi trả", { exact: true })).toBeVisible({ timeout: 30_000 });
 });

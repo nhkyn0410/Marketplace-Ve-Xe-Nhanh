@@ -62,6 +62,8 @@ export function periodStart(days: number, now: number = Date.now()): string {
 
 const ACTIONS: Record<string, string> = {
   "auth.login.success": "Đăng nhập",
+  "report.export": "Xuất báo cáo",
+  "loyalty.adjust": "Điều chỉnh điểm VXN Plus",
   "auth.login.failure": "Đăng nhập thất bại",
   "auth.login.rate_limited": "Đăng nhập bị chặn vì thử quá nhiều",
   "auth.logout": "Đăng xuất",
@@ -160,7 +162,10 @@ const TARGETS: Record<string, string> = {
   vehicle_image: "Ảnh phương tiện",
   trip: "Chuyến",
   fare: "Bảng giá",
-  audit_event: "Bản ghi nhật ký"
+  audit_event: "Bản ghi nhật ký",
+  operator_report: "Báo cáo nhà xe",
+  platform_report: "Báo cáo hệ thống",
+  loyalty_account: "Tài khoản VXN Plus"
 };
 
 export function targetLabel(targetType: string): string {

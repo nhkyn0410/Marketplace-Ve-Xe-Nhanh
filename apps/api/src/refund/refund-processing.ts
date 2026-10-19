@@ -1,8 +1,9 @@
 import { withRefundOperator } from "../database/marketplace-scope";
 import type { DbTransaction, PrismaService } from "../database/prisma.service";
-import { PaymentStatus, RefundStatus, TicketStatus } from "../database/prisma.types";
+import { NotificationKind, PaymentStatus, RefundStatus, TicketStatus } from "../database/prisma.types";
 import { PaymentGatewayError, type PaymentGateways } from "../external/payment/payment-gateway";
 import { recordRefund } from "../escrow/escrow-entries";
+import { queueNotification } from "../notification/notification-outbox";
 import { settleBookingStatus } from "./booking-settlement";
 
 // Hoàn tiền qua cổng (TASK-BTP-005, UC-08 bước 9, OQ-13, ADR-019): job BullMQ ở worker. Ba bước để KHÔNG gọi cổng khi đang
@@ -108,6 +109,11 @@ export async function processRefund(
   return done ?? "NOT_FOUND";
 }
 
+/** Khoá chống trùng thông báo hoàn tiền xong. */
+export function refundSucceededKey(refundId: string): string {
+  return `REFUND_SUCCEEDED:${refundId}`;
+}
+
 /** Mã yêu cầu gửi cổng của một lần gửi: lần 1 = mã refund; Admin gửi lại thì thêm `R{lần}` (cổng không nhận mã trùng). */
 export function gatewayRequestCode(refundCode: string, attempt: number): string {
   return attempt > 1 ? `${refundCode}R${attempt}` : refundCode;
@@ -130,7 +136,15 @@ export async function completeRefund(
   }
   const refund = await tx.refund.findFirstOrThrow({
     where: { id: refundId, operatorId },
-    select: { bookingId: true, amount: true, payment: { select: { status: true } } },
+    select: { bookingId: true, amount: true, payment: { select: { status: true } }, booking: { select: { contactEmail: true } } },
+  });
+  // Báo khách đã hoàn tiền (TASK-NSR-001) — người gọi xếp hàng gửi sau commit theo `refundSucceededKey`.
+  await queueNotification(tx, operatorId, {
+    kind: NotificationKind.REFUND_SUCCEEDED,
+    dedupKey: refundSucceededKey(refundId),
+    recipientEmail: refund.booking.contactEmail,
+    bookingId: refund.bookingId,
+    refundId,
   });
   if (refund.payment.status === PaymentStatus.RECONCILING) {
     return true;

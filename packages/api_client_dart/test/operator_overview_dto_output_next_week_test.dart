@@ -1,0 +1,26 @@
+import 'package:test/test.dart';
+import 'package:api_client_dart/api_client_dart.dart';
+
+// tests for OperatorOverviewDtoOutputNextWeek
+void main() {
+  final instance = OperatorOverviewDtoOutputNextWeekBuilder();
+  // TODO add properties to the builder and call build()
+
+  group(OperatorOverviewDtoOutputNextWeek, () {
+    // int trips
+    test('to test the property `trips`', () async {
+      // TODO
+    });
+
+    // int ticketsSold
+    test('to test the property `ticketsSold`', () async {
+      // TODO
+    });
+
+    // int seats
+    test('to test the property `seats`', () async {
+      // TODO
+    });
+
+  });
+}

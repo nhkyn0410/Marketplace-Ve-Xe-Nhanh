@@ -170,6 +170,8 @@ class _$CreatedBookingDtoOutput extends CreatedBookingDtoOutput {
   @override
   final BuiltList<CreatedBookingDtoOutputRefundsInner> refunds;
   @override
+  final BuiltList<CreatedBookingDtoOutputTripChangesInner> tripChanges;
+  @override
   final DateTime createdAt;
   @override
   final String accessToken;
@@ -198,6 +200,7 @@ class _$CreatedBookingDtoOutput extends CreatedBookingDtoOutput {
       this.payment,
       required this.tickets,
       required this.refunds,
+      required this.tripChanges,
       required this.createdAt,
       required this.accessToken})
       : super._();
@@ -233,6 +236,7 @@ class _$CreatedBookingDtoOutput extends CreatedBookingDtoOutput {
         payment == other.payment &&
         tickets == other.tickets &&
         refunds == other.refunds &&
+        tripChanges == other.tripChanges &&
         createdAt == other.createdAt &&
         accessToken == other.accessToken;
   }
@@ -259,6 +263,7 @@ class _$CreatedBookingDtoOutput extends CreatedBookingDtoOutput {
     _$hash = $jc(_$hash, payment.hashCode);
     _$hash = $jc(_$hash, tickets.hashCode);
     _$hash = $jc(_$hash, refunds.hashCode);
+    _$hash = $jc(_$hash, tripChanges.hashCode);
     _$hash = $jc(_$hash, createdAt.hashCode);
     _$hash = $jc(_$hash, accessToken.hashCode);
     _$hash = $jf(_$hash);
@@ -287,6 +292,7 @@ class _$CreatedBookingDtoOutput extends CreatedBookingDtoOutput {
           ..add('payment', payment)
           ..add('tickets', tickets)
           ..add('refunds', refunds)
+          ..add('tripChanges', tripChanges)
           ..add('createdAt', createdAt)
           ..add('accessToken', accessToken))
         .toString();
@@ -396,6 +402,14 @@ class CreatedBookingDtoOutputBuilder
   set refunds(ListBuilder<CreatedBookingDtoOutputRefundsInner>? refunds) =>
       _$this._refunds = refunds;
 
+  ListBuilder<CreatedBookingDtoOutputTripChangesInner>? _tripChanges;
+  ListBuilder<CreatedBookingDtoOutputTripChangesInner> get tripChanges =>
+      _$this._tripChanges ??=
+          ListBuilder<CreatedBookingDtoOutputTripChangesInner>();
+  set tripChanges(
+          ListBuilder<CreatedBookingDtoOutputTripChangesInner>? tripChanges) =>
+      _$this._tripChanges = tripChanges;
+
   DateTime? _createdAt;
   DateTime? get createdAt => _$this._createdAt;
   set createdAt(DateTime? createdAt) => _$this._createdAt = createdAt;
@@ -430,6 +444,7 @@ class CreatedBookingDtoOutputBuilder
       _payment = $v.payment?.toBuilder();
       _tickets = $v.tickets.toBuilder();
       _refunds = $v.refunds.toBuilder();
+      _tripChanges = $v.tripChanges.toBuilder();
       _createdAt = $v.createdAt;
       _accessToken = $v.accessToken;
       _$v = null;
@@ -483,6 +498,7 @@ class CreatedBookingDtoOutputBuilder
             payment: _payment?.build(),
             tickets: tickets.build(),
             refunds: refunds.build(),
+            tripChanges: tripChanges.build(),
             createdAt: BuiltValueNullFieldError.checkNotNull(
                 createdAt, r'CreatedBookingDtoOutput', 'createdAt'),
             accessToken: BuiltValueNullFieldError.checkNotNull(
@@ -511,6 +527,8 @@ class CreatedBookingDtoOutputBuilder
         tickets.build();
         _$failedField = 'refunds';
         refunds.build();
+        _$failedField = 'tripChanges';
+        tripChanges.build();
       } catch (e) {
         throw BuiltValueNestedFieldError(
             r'CreatedBookingDtoOutput', _$failedField, e.toString());

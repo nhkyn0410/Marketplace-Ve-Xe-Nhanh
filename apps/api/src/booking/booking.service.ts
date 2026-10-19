@@ -2,7 +2,7 @@ import { randomBytes, randomInt } from "node:crypto";
 import { HttpException, HttpStatus, Inject, Injectable } from "@nestjs/common";
 import { bookingIdOfCode, bookingIdOfHold, withBookingOperator, withTripOperator } from "../database/marketplace-scope";
 import { PrismaService, type DbTransaction } from "../database/prisma.service";
-import { BookingStatus, type PaymentProvider, type PaymentStatus, type RefundStatus, type SeatType, type TicketStatus } from "../database/prisma.types";
+import { BookingStatus, type PaymentProvider, type PaymentStatus, type RefundStatus, type SeatType, type TicketStatus, type TripChangeKind } from "../database/prisma.types";
 import { resolveSeatPrice, vndToJson } from "../fare/fare-pricing";
 import type { VerifiedAccessToken } from "../iam/auth/token.service";
 import { seatNotAvailable, stopsInvalid } from "../seat-hold/seat-hold.errors";
@@ -19,6 +19,7 @@ import {
 import { canAccessBooking, hashBookingToken } from "./booking-access";
 import { expireBooking } from "./booking-expiry";
 import type { BookingInput, BookingResponse, CreatedBooking } from "./dto/booking.dto";
+import { claimPromotion } from "../promotion/promotion-apply";
 
 const MINUTE = 60_000;
 /** Mã booking `VXN` + 6 ký tự, bỏ 0/O/1/I cho dễ đọc qua điện thoại (32^6 ≈ 1 tỷ mã). */
@@ -34,6 +35,8 @@ type BookingSnapshot = {
   pickup: SnapshotStop;
   dropoff: SnapshotStop;
   cancellationPolicy: { tiers: Tier[] };
+  /** Mã khuyến mãi đã áp (BR-47) — phần giảm do nhà xe chịu (Khanh 18/10/2026, LLD-OQ-07). */
+  promotion?: { code: string; name: string; discount: number; fundedBy: "OPERATOR" | "PLATFORM" };
 };
 
 type BookingRow = {
@@ -56,6 +59,7 @@ type BookingRow = {
   payments: { paymentCode: string; provider: PaymentProvider; status: PaymentStatus; amount: bigint; paidAt: Date | null }[];
   tickets: { id: string; ticketCode: string; seatCode: string; status: TicketStatus; passenger: { fullName: string } }[];
   refunds: { refundCode: string; amount: bigint; status: RefundStatus; createdAt: Date }[];
+  trip: { changes: { kinds: TripChangeKind[]; before: unknown; after: unknown; reason: string; createdAt: Date }[] };
 };
 
 const BOOKING_SELECT = {
@@ -89,6 +93,7 @@ const BOOKING_SELECT = {
     select: { id: true, ticketCode: true, seatCode: true, status: true, passenger: { select: { fullName: true } } },
   },
   refunds: { orderBy: { createdAt: "asc" }, select: { refundCode: true, amount: true, status: true, createdAt: true } },
+  trip: { select: { changes: { orderBy: { createdAt: "asc" }, select: { kinds: true, before: true, after: true, reason: true, createdAt: true } } } },
 } as const;
 
 /**
@@ -252,7 +257,11 @@ export class BookingService {
     }
     const subtotal = priced.reduce((sum, seat) => sum + seat.price!, 0n);
     const serviceFee = 0n;
-    const discount = 0n;
+    // Giữ một lượt dùng của mã ngay trong transaction này: đơn không tạo được thì rollback trả luôn lượt (TASK-PROM-001).
+    const promotion = input.promotionCode
+      ? await claimPromotion(tx, { operatorId, routeId: trip.routeId, tripId: hold.tripId, subtotal, code: input.promotionCode, now })
+      : null;
+    const discount = promotion?.discount ?? 0n;
     const total = subtotal + serviceFee - discount;
     if (vndToJson(total) !== input.expectedTotal) {
       throw snapshotChanged(vndToJson(total));
@@ -283,6 +292,7 @@ export class BookingService {
       pickup: point(pickup),
       dropoff: point(dropoff),
       cancellationPolicy: { tiers },
+      ...(promotion ? { promotion: { code: promotion.code, name: promotion.name, discount: vndToJson(promotion.discount), fundedBy: promotion.fundedBy } } : {}),
     };
     const booking = await tx.booking.create({
       data: {
@@ -329,6 +339,11 @@ export class BookingService {
       where: { tripId: hold.tripId, operatorId, seatCode: { in: hold.seatCodes }, status: "AVAILABLE" },
       data: { status: "HOLDING", bookingId: booking.id },
     });
+    if (promotion) {
+      await tx.promotionRedemption.create({
+        data: { promotionId: promotion.promotionId, operatorId, bookingId: booking.id, code: promotion.code, discount: promotion.discount, fundedBy: promotion.fundedBy },
+      });
+    }
     return toResponse(booking, this.qr);
   }
 
@@ -393,6 +408,15 @@ function toResponse(row: BookingRow, qr: TicketQrSigner): BookingResponse {
       qrToken: qr.token(ticket.id),
     })),
     refunds: row.refunds.map((refund) => ({ ...refund, amount: vndToJson(refund.amount), createdAt: refund.createdAt.toISOString() })),
+    tripChanges: row.trip.changes
+      .filter((change) => change.createdAt >= row.createdAt)
+      .map((change) => ({
+        kinds: change.kinds,
+        before: change.before as BookingResponse["tripChanges"][number]["before"],
+        after: change.after as BookingResponse["tripChanges"][number]["after"],
+        reason: change.reason,
+        createdAt: change.createdAt.toISOString(),
+      })),
     createdAt: row.createdAt.toISOString(),
   };
 }

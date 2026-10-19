@@ -1,4 +1,4 @@
-import { randomInt } from "node:crypto";
+import { createHash, randomInt } from "node:crypto";
 import { InjectQueue } from "@nestjs/bullmq";
 import { HttpException, HttpStatus, Inject, Injectable, Logger } from "@nestjs/common";
 import type { Queue } from "bullmq";
@@ -7,14 +7,16 @@ import { bookingNotFound } from "../booking/booking.errors";
 import { BookingService } from "../booking/booking.service";
 import { withBookingOperator } from "../database/marketplace-scope";
 import { PrismaService, type DbTransaction } from "../database/prisma.service";
-import { PaymentStatus, RefundStatus, TicketStatus, TripStatus } from "../database/prisma.types";
+import { NotificationKind, PaymentStatus, RefundStatus, TicketStatus, TripStatus } from "../database/prisma.types";
 import { vndToJson } from "../fare/fare-pricing";
 import type { VerifiedAccessToken } from "../iam/auth/token.service";
+import { NotificationDispatcher } from "../notification/notification-dispatcher";
+import { queueNotification } from "../notification/notification-outbox";
 import { QUEUE_NAMES } from "../queue/queue.constants";
 import { settleBookingStatus } from "./booking-settlement";
 import type { CancellationInput, CancellationQuote, CancellationResult } from "./dto/cancellation.dto";
 import { REFUND_JOB, REFUND_JOB_OPTIONS } from "./refund-processing";
-import { applicableTier, type CancellationTier, refundOf } from "./refund-policy";
+import { applicableTier, type CancellationTier, paidPrice, refundOf } from "./refund-policy";
 import { cancellationNotAllowed, refundAmountChanged, ticketsNotInBooking } from "./refund.errors";
 
 /** Mã gửi cổng `RFD` + 12 ký tự (CHECK `refunds_code_format`). */
@@ -46,6 +48,7 @@ export class CancellationService {
     @Inject(PrismaService) private readonly prisma: PrismaService,
     @Inject(BookingService) private readonly bookings: BookingService,
     @InjectQueue(QUEUE_NAMES.refundProcessing) private readonly queue: Queue,
+    @Inject(NotificationDispatcher) private readonly notifications: NotificationDispatcher,
   ) {}
 
   async quote(user: VerifiedAccessToken | null, bookingId: string, accessToken: string | undefined, ticketIds: string[]): Promise<CancellationQuote> {
@@ -117,12 +120,23 @@ export class CancellationService {
         const seatCodes = data.tickets.filter((ticket) => input.ticketIds.includes(ticket.id)).map((ticket) => ticket.seatCode);
         await tx.tripSeat.updateMany({ where: { tripId: data.tripId, operatorId, bookingId, seatCode: { in: seatCodes }, status: "BOOKED" }, data: { status: "AVAILABLE", bookingId: null } });
         await settleBookingStatus(tx, operatorId, bookingId, actor, `Hủy ${input.ticketIds.length} vé.`, new Date(now.getTime() + 2));
-        return { refund };
+        // Báo khách đã hủy vé (TASK-NSR-001) — ghi cùng transaction, gửi sau commit.
+        const notificationKey = ticketsCancelledKey(bookingId, input.ticketIds);
+        await queueNotification(tx, operatorId, {
+          kind: NotificationKind.TICKETS_CANCELLED,
+          dedupKey: notificationKey,
+          recipientEmail: data.contactEmail,
+          bookingId,
+          refundId: refund?.id,
+          payload: { ticketCodes: data.tickets.filter((ticket) => input.ticketIds.includes(ticket.id)).map((ticket) => ticket.ticketCode), refundAmount: Number(amount) },
+        });
+        return { refund, notificationKey };
       }),
     );
     if (!outcome) {
       throw bookingNotFound();
     }
+    await this.notifications.dispatch([outcome.notificationKey]);
     if (outcome.refund) {
       await this.queue.add(REFUND_JOB, { refundId: outcome.refund.id }, { ...REFUND_JOB_OPTIONS, jobId: outcome.refund.id }).catch((error: unknown) => {
         // Refund vẫn `APPROVED` trong DB — Admin chạy lại được (ADM-002); không làm hỏng việc hủy đã ghi.
@@ -157,7 +171,10 @@ async function load(tx: DbTransaction, operatorId: string, bookingId: string) {
       tripId: true,
       userId: true,
       accessTokenHash: true,
+      contactEmail: true,
       snapshot: true,
+      subtotal: true,
+      discount: true,
       trip: { select: { status: true, departureAt: true } },
       tickets: {
         orderBy: { ticketCode: "asc" },
@@ -196,8 +213,10 @@ function buildQuote(data: Loaded, ticketIds: string[], now: Date): CancellationQ
     };
   });
   const selected = data.tickets.filter((ticket) => ticketIds.includes(ticket.id));
-  const total = selected.reduce((sum, ticket) => sum + ticket.passenger.price, 0n);
-  const refund = selected.reduce((sum, ticket) => sum + refundOf(ticket.passenger.price, percent), 0n);
+  // Đơn có mã giảm giá: hoàn trên phần khách thực trả của từng vé (không hoàn quá số đã trả).
+  const paid = (price: bigint) => paidPrice(price, data.subtotal, data.discount);
+  const total = selected.reduce((sum, ticket) => sum + paid(ticket.passenger.price), 0n);
+  const refund = selected.reduce((sum, ticket) => sum + refundOf(paid(ticket.passenger.price), percent), 0n);
   return {
     tickets,
     tier: tier ? { minHoursBefore: tier.minHoursBefore, refundPercent: tier.refundPercent } : null,
@@ -206,6 +225,12 @@ function buildQuote(data: Loaded, ticketIds: string[], now: Date): CancellationQ
     refundAmount: vndToJson(refund),
     nonRefundable: vndToJson(total - refund),
   };
+}
+
+/** Khoá chống trùng thông báo hủy vé — mỗi vé chỉ hủy được một lần nên tập vé định danh lần hủy. */
+function ticketsCancelledKey(bookingId: string, ticketIds: string[]): string {
+  const digest = createHash("sha256").update([...ticketIds].sort().join(",")).digest("hex").slice(0, 16);
+  return `TICKETS_CANCELLED:${bookingId}:${digest}`;
 }
 
 export function newRefundCode(): string {

@@ -106,6 +106,25 @@ export const RLS_TABLES = [
   "payouts",
   "payout_items",
   "payout_status_histories",
+  // Thông báo (TASK-NSR-001) + lịch sử đổi chuyến đã bán vé (TASK-TRN-008): tenant_isolation.
+  "notifications",
+  "notification_deliveries",
+  "trip_changes",
+  // Khiếu nại / tranh chấp / đánh giá (TASK-TRUST-001): tenant_isolation.
+  "support_tickets",
+  "support_messages",
+  "dispute_cases",
+  "dispute_events",
+  "support_attachments",
+  "reviews",
+  // Khuyến mãi (TASK-PROM-001): nhà xe đọc khuyến mãi nền tảng, ghi của mình; quyền + lượt dùng theo tenant.
+  "promotion_permissions",
+  "promotions",
+  "promotion_participations",
+  "promotion_redemptions",
+  // VXN Plus (TASK-LOY-001): chỉ platform / system.
+  "loyalty_accounts",
+  "loyalty_point_transactions",
 ] as const;
 
 @Injectable()

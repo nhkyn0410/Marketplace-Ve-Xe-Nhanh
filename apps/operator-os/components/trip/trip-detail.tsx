@@ -6,6 +6,7 @@ import { Button } from "@vexenhanh/ui/components/button";
 import { Skeleton } from "@vexenhanh/ui/components/skeleton";
 import {
   ArrowLeft,
+  CalendarClock,
   CircleAlert,
   CircleCheck,
   FileX2,
@@ -24,11 +25,14 @@ import { formatDateTime } from "../../lib/route/route-format";
 import {
   changeTripStatus,
   getTrip,
+  getTripSales,
   setTripSeatStatus,
   type Trip,
+  type TripSales,
   type TripStatus,
   type TripStatusInput
 } from "../../lib/trip/trip-api";
+import { cancelSummary, changeKindLabel, changeLines } from "../../lib/trip/trip-change";
 import {
   arrivalDayNote,
   formatTime,
@@ -67,12 +71,14 @@ const HELPER = "text-xs leading-[18px] text-muted-foreground";
 
 /**
  * Trang chi tiết một chuyến (Figma "03"–"06 · Chuyến xe"; FR-OPS-06, FR-OPS-10, FR-OPS-13, UC-14): sơ đồ ghế theo
- * chuyến, lịch trình và thông tin chuyến. Từ đây nhà xe mở bán, tạm dừng bán, thu hồi về nháp, hủy chuyến chưa
- * có vé và khóa / mở khóa chỗ bán ngoài hệ thống (TASK-TRN-006).
+ * chuyến, lịch trình và thông tin chuyến. Từ đây nhà xe mở bán, tạm dừng bán, thu hồi về nháp, khóa / mở khóa chỗ bán ngoài
+ * hệ thống (TASK-TRN-006); đổi lịch chạy và hủy chuyến kể cả khi đã có vé — khách được báo, hủy thì hoàn 100% (TASK-TRN-008).
  */
 export function TripDetail({ tripId }: { tripId: string }) {
   const trip = useQuery({ queryKey: ["trip", tripId], queryFn: () => getTrip(tripId) });
-  const [saved, setSaved] = useState(useSearchParams().get("saved") === "1");
+  const params = useSearchParams();
+  const [saved, setSaved] = useState(params.get("saved") === "1");
+  const [changed, setChanged] = useState(params.get("changed") === "1");
 
   if (trip.error instanceof ApiError && trip.error.status === 404) {
     return (
@@ -122,10 +128,20 @@ export function TripDetail({ tripId }: { tripId: string }) {
       </Shell>
     );
   }
-  return <TripDetailBody trip={trip.data} saved={saved} onDismissSaved={() => setSaved(false)} />;
+  return (
+    <TripDetailBody
+      trip={trip.data}
+      saved={saved}
+      changed={changed}
+      onDismissSaved={() => {
+        setSaved(false);
+        setChanged(false);
+      }}
+    />
+  );
 }
 
-const ACTION_LABEL: Record<Exclude<TripAction, "edit">, string> = {
+const ACTION_LABEL: Record<Exclude<TripAction, "edit" | "change">, string> = {
   cancel: "Hủy chuyến",
   withdraw: "Thu hồi về nháp",
   lock: "Tạm dừng bán",
@@ -141,8 +157,10 @@ const ACTION_TARGET: Record<"withdraw" | "lock" | "open" | "reopen", TripStatusI
   reopen: "OPEN_FOR_SALE"
 };
 
-function TripDetailBody({ trip, saved, onDismissSaved }: { trip: Trip; saved: boolean; onDismissSaved: () => void }) {
+function TripDetailBody({ trip, saved, changed, onDismissSaved }: { trip: Trip; saved: boolean; changed: boolean; onDismissSaved: () => void }) {
   const queryClient = useQueryClient();
+  // Tình hình bán + lịch sử đổi / hủy (TRN-008) — chuyến nháp chưa bán nên không cần.
+  const sales = useQuery({ queryKey: ["trip-sales", trip.id], queryFn: () => getTripSales(trip.id), enabled: trip.status !== "DRAFT" });
   const state = TRIP_STATUS[trip.status];
   const plate = trip.vehiclePlateNumber && formatPlateNumber(trip.vehiclePlateNumber);
   const arrivalNote = arrivalDayNote(trip.departureAt, trip.arrivalAt);
@@ -178,7 +196,10 @@ function TripDetailBody({ trip, saved, onDismissSaved }: { trip: Trip; saved: bo
     onSuccess: (result, { from }) => {
       queryClient.setQueryData(["trip", trip.id], result);
       void queryClient.invalidateQueries({ queryKey: ["trips"] });
+      void queryClient.invalidateQueries({ queryKey: ["trip-sales", trip.id] });
       if (result.status === "CANCELLED") {
+        // Hủy chuyến có vé: đơn / vé / hoàn tiền đổi theo (TRN-008).
+        void queryClient.invalidateQueries({ queryKey: ["operator-bookings"] });
         // Chuyến hủy nhả xe: cờ "đang có chuyến" ở màn Phương tiện / Sơ đồ ghế đổi theo (UC-12 A3).
         for (const key of ["vehicles", "vehicle", "seat-maps", "seat-map"]) {
           void queryClient.invalidateQueries({ queryKey: [key] });
@@ -252,6 +273,16 @@ function TripDetailBody({ trip, saved, onDismissSaved }: { trip: Trip; saved: bo
   }
 
   function renderAction({ action, disabled }: { action: TripAction; disabled: boolean }) {
+    if (action === "change") {
+      return (
+        <Button key={action} asChild variant="outline" className={`${BUTTON} bg-card`}>
+          <Link href={`/trips/${trip.id}/change`}>
+            <CalendarClock className="size-[18px]" />
+            Đổi lịch chạy
+          </Link>
+        </Button>
+      );
+    }
     if (action === "edit") {
       return (
         <Button key={action} asChild variant="outline" className={`${BUTTON} bg-card`}>
@@ -323,6 +354,19 @@ function TripDetailBody({ trip, saved, onDismissSaved }: { trip: Trip; saved: bo
         </div>
       )}
 
+      {changed && (
+        <div role="status" className="flex flex-wrap items-center gap-3 rounded-lg bg-success-50 px-5 py-3.5">
+          <CircleCheck className="size-5 shrink-0 text-success-600" />
+          <div className="min-w-0 flex-1">
+            <p className="text-sm leading-5 font-semibold text-success-600">Đã đổi lịch chạy</p>
+            <p className="text-sm leading-5 text-success-600">Khách bị ảnh hưởng nhận email kèm lý do; thay đổi được ghi ở mục Lịch sử thay đổi.</p>
+          </div>
+          <Button type="button" variant="outline" className={`${BUTTON} w-[100px] bg-card`} onClick={onDismissSaved}>
+            Đóng
+          </Button>
+        </div>
+      )}
+
       {notice && (
         <div role="status" className="flex flex-wrap items-center gap-3 rounded-lg bg-success-50 px-5 py-3.5">
           <CircleCheck className="size-5 shrink-0 text-success-600" />
@@ -365,9 +409,8 @@ function TripDetailBody({ trip, saved, onDismissSaved }: { trip: Trip; saved: bo
         <div role="note" className="flex gap-3 rounded-lg bg-accent px-5 py-3.5 text-vxn-teal-700">
           <Lock className="mt-px size-5 shrink-0" />
           <p className="min-w-0 flex-1 text-sm leading-5">
-            Chuyến đã có {tickets} vé nên chưa thu hồi về nháp hoặc hủy tại đây được.{" "}
-            {trip.status === "LOCKED" ? "Mở bán lại" : "Tạm dừng bán"} vẫn dùng được. Đổi hoặc hủy chuyến đã bán vé
-            chưa làm được ở màn này.
+            Chuyến đã có {tickets} vé nên không thu hồi về nháp được. Đổi lịch chạy hoặc hủy chuyến cần lý do và gửi email cho
+            từng khách; hủy chuyến hoàn toàn bộ giá vé.
           </p>
         </div>
       )}
@@ -469,6 +512,8 @@ function TripDetailBody({ trip, saved, onDismissSaved }: { trip: Trip; saved: bo
           {trip.status !== "DRAFT" && <SeatSummaryCard seats={trip.seats} />}
           {showOnlineSale && <OnlineSaleCard trip={trip} nowMs={nowMs} />}
 
+          {sales.data && sales.data.changes.length > 0 && <ChangeHistoryCard changes={sales.data.changes} />}
+
           <section aria-labelledby="trip-info-heading" className={`${CARD} gap-3.5`}>
             <h2 id="trip-info-heading" className={CARD_TITLE}>
               Thông tin chuyến
@@ -486,6 +531,8 @@ function TripDetailBody({ trip, saved, onDismissSaved }: { trip: Trip; saved: bo
               {/* Chuyến đang mở bán đã có thẻ Bán online ghi mục này. */}
               {!showOnlineSale && <InfoRow label="Ngừng bán online" value={cutoffLabel(trip.onlineSaleCutoffMinutes)} />}
               {trip.status === "CANCELLED" && trip.statusReason && <InfoRow label="Lý do hủy" value={trip.statusReason} />}
+              {trip.departedAt && <InfoRow label="Khởi hành thực tế" value={formatDateTime(trip.departedAt)} />}
+              {trip.completedAt && <InfoRow label="Hoàn thành lúc" value={formatDateTime(trip.completedAt)} />}
               <InfoRow label="Ghi chú" value={trip.note ?? "Không có"} />
               <InfoRow label="Cập nhật lần cuối" value={formatDateTime(trip.updatedAt)} />
             </dl>
@@ -496,7 +543,7 @@ function TripDetailBody({ trip, saved, onDismissSaved }: { trip: Trip; saved: bo
       <CancelTripDialog
         open={cancelOpen}
         routeName={trip.routeName}
-        summary={`Chuyến khởi hành ${formatTime(trip.departureAt)} ${formatWeekdayDate(trip.departureAt)}, chưa có vé. Hủy xong chuyến không mở bán lại được${plate ? ` và xe ${plate} nhận được chuyến khác` : ""}.`}
+        summary={cancelDialogSummary(trip, sales.data, plate)}
         pending={changeStatus.isPending}
         error={cancelError}
         onClose={() => setCancelOpen(false)}
@@ -516,6 +563,47 @@ function TripDetailBody({ trip, saved, onDismissSaved }: { trip: Trip; saved: bo
         }}
       />
     </Shell>
+  );
+}
+
+/** Câu mô tả trong hộp thoại hủy: có vé thì nêu số hoàn 100% + đơn chờ thanh toán bị hủy (TRN-008). */
+function cancelDialogSummary(trip: Trip, sales: TripSales | undefined, plate: string | null): string {
+  const when = `Chuyến khởi hành ${formatTime(trip.departureAt)} ${formatWeekdayDate(trip.departureAt)}`;
+  const tail = `Hủy xong chuyến không mở bán lại được${plate ? ` và xe ${plate} nhận được chuyến khác` : ""}.`;
+  const impact = sales ? cancelSummary(sales) : null;
+  return impact ? `${when}: ${impact} ${tail}` : `${when}, chưa có vé. ${tail}`;
+}
+
+/** Lịch sử đổi / hủy chuyến đã bán vé (TRN-008): loại thay đổi, trước → sau, lý do, số đơn được báo. */
+function ChangeHistoryCard({ changes }: { changes: TripSales["changes"] }) {
+  return (
+    <section aria-labelledby="trip-changes-heading" className={`${CARD} gap-3.5`}>
+      <h2 id="trip-changes-heading" className={CARD_TITLE}>
+        Lịch sử thay đổi
+      </h2>
+      <ol className="flex flex-col gap-4">
+        {changes.map((change) => (
+          <li key={change.id} className="flex flex-col gap-1 border-b pb-4 last:border-b-0 last:pb-0">
+            <div className="flex items-baseline justify-between gap-3">
+              <p className="text-sm leading-5 font-semibold text-vxn-ink">{changeKindLabel(change.kinds)}</p>
+              <time className={HELPER} dateTime={change.createdAt}>
+                {formatDateTime(change.createdAt)}
+              </time>
+            </div>
+            {changeLines(change).map((line) => (
+              <p key={line} className="text-sm leading-5 text-vxn-fg-1">
+                {line}
+              </p>
+            ))}
+            <p className="text-sm leading-5 text-muted-foreground">Lý do: {change.reason}</p>
+            <p className={HELPER}>
+              {change.affectedBookings > 0 ? `Đã báo ${change.affectedBookings} đơn` : "Không có đơn bị ảnh hưởng"}
+              {change.actor ? ` · ${change.actor}` : ""}
+            </p>
+          </li>
+        ))}
+      </ol>
+    </section>
   );
 }
 

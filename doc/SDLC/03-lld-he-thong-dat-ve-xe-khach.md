@@ -44,6 +44,7 @@
 | v0.23     | 16/10/2026 | AI Agent       | **A5 Admin đã làm, chờ Khanh duyệt — `ADM-003-vehicle-images-todo.md`, `ADM-002-audit-log-todo.md`:** §6.12 bước 7 ghi phần đã hiện thực (khóa dòng xe như lần nhà xe thay bộ ảnh, audit trong transaction, xóa object + email sau commit); §9 ghi phần đọc audit của Admin (che theo tên trường, ghi lượt xem, quy ước tên hành động thất bại) và dòng "Admin xem chi tiết một bản ghi audit"; §7 thêm `AUDIT_LOG_NOT_FOUND`. Giữ trạng thái Review. |
 | v0.24     | 17/10/2026 | AI Agent       | **Đợt hoàn thiện Admin + Operator OS (Khanh 16/10/2026, chờ duyệt):** §6.10 ghi phần bài viết đã làm (`TASK-CNT-001`); §6.11 bước 4 ghi chép thông tin pháp lý / giấy tờ / tài khoản nhận tiền khi duyệt (`TASK-OPR-001b`); thêm §6.14 Hồ sơ nhà xe + đổi tài khoản nhận tiền, §6.15 Chính sách có phiên bản + hoa hồng + khung giá (`TASK-ADM-001`), §6.16 Lịch xe (`TASK-TRN-015`, chỉ giao diện); §9 thêm các hành động audit mới. Điểm chờ Khanh ở các file `doc/task-propreties/*-todo.md` cùng ngày. Giữ trạng thái Review. |
 | v0.25     | 17/10/2026 | AI Agent       | **Phần không cần đặt vé (Khanh 17/10/2026, chờ duyệt):** thêm §6.17 Lịch chuyến lặp lại (`TASK-TRN-007`), §6.18 Phân công tài xế cho chuyến (`TASK-EMP-001` phía Operator OS), §6.19 Nội dung công khai (`TASK-ADM-003`); §7 thêm lỗi lịch / phân công / nội dung; §9 thêm sự kiện audit. Điểm chờ Khanh: `TRN-007-todo.md`, `EMP-001-todo.md`, `ADM-003-content-todo.md`. Giữ trạng thái Review. |
+| v0.26     | 19/10/2026 | AI Agent       | **Sáu phần tiếp theo (Khanh 19/10/2026, chờ duyệt):** thêm §6.20 Soát vé + vận hành chuyến (`TASK-EMP-002` backend), §6.21 Đối soát tự động với cổng (FR-BTP-17), §6.22 Báo cáo + Tổng quan (`TASK-RPT-001/002`), §6.23 Khiếu nại / tranh chấp / đánh giá (`TASK-TRUST-001`), §6.24 Khuyến mãi (`TASK-PROM-001`), §6.25 VXN Plus phía Admin (`TASK-LOY-001`). Chi tiết + điểm chờ Khanh ở `doc/task-propreties/*-todo.md`. Giữ trạng thái Review. |
 
 ---
 
@@ -331,6 +332,55 @@ Tên module / folder dưới đây dùng **target state** theo `context/DOMAIN-M
 | 1    | `ContentPageService` (module `catalog/` theo DOMAIN-MAP, quyền `content:moderate`): `content_pages` cấp Platform; vị trí theo loại (banner → trang chủ, trang tĩnh → chân trang, FAQ → nhóm); trang tĩnh có đường dẫn duy nhất; banner có ảnh (kho công khai, kiểm object + chữ ký định dạng như ảnh bài viết) + liên kết `/…` hoặc `https://`. |
 | 2    | Tạo = bản nháp; sửa không đổi loại; hiển thị / ẩn khoá dòng (lặp → 409). Audit trong transaction (lỗi → 503). |
 | 3    | API công khai chỉ trả mục đang hiển thị theo thứ tự; trang tĩnh nháp → 404. Nơi hiển thị không render HTML thô. |
+
+### 6.20. Soát vé + vận hành chuyến của nhân viên (FR-EMP-07..09/13, UC-20/21 — TASK-EMP-002 backend, chờ duyệt)
+
+| Bước | Xử lý |
+| ---- | ----- |
+| 1    | `EmployeeOperationsService` (module `check-in/`): chỉ chuyến được phân công cho chính nhân viên (`requireAssignedTenant`); soát vé `checkin:perform` (mọi role Employee), đổi trạng thái chuyến `trip:operate` (chỉ tài xế). |
+| 2    | Soát vé bằng QR (so hash) hoặc mã vé: `OK` / `WRONG_TRIP` (không lộ thông tin khách) / `ALREADY_CHECKED_IN` / `CANCELLED` / `REFUNDED` / `NO_SHOW` / `USED`. Check-in có điều kiện `VALID →` (hai máy quét cùng vé chỉ một lần); vắng mặt chỉ sau khi bắt đầu đón; lịch sử vé ghi `employee:{id}` (BR-44). |
+| 3    | Trạng thái chuyến (đang bán / tạm khóa / hết chỗ) → `BOARDING` → `DEPARTED` → `IN_PROGRESS` → `COMPLETED` (được bỏ qua `BOARDING` / `IN_PROGRESS`). Hoàn thành: vé đã lên → `USED`, chưa lên → `NO_SHOW`; `payout_eligible_at` = giờ hoàn thành thực tế + chu kỳ chi trả (BR-32) — kỳ chi trả dùng mốc này nếu có. Audit đổi trạng thái ghi sau commit. |
+
+### 6.21. Đối soát tự động với cổng thanh toán (FR-BTP-17, UC-32 bước 1 — chờ duyệt)
+
+| Bước | Xử lý |
+| ---- | ----- |
+| 1    | Port `PaymentGateway.queryTransaction` (ADR-006): VNPay `querydr` (ký HMAC-SHA512, kiểm chữ ký phản hồi), MoMo `/v2/gateway/api/query` (HMAC-SHA256); kết quả `PAID` / `PENDING` / `FAILED` / `NOT_FOUND` / lỗi. |
+| 2    | Job `payment-reconciliation` (worker, 10 phút, concurrency 1): thanh toán chưa xong đã quá hạn, tạo trong 48 giờ, chưa tra trong 30 phút (`provider_checked_at`) → tra cổng; đã trả → áp như callback thành công (đơn còn chờ → xác nhận + vé; không → "Cần đối soát"); thất bại → payment thất bại; không có / lỗi → giữ nguyên. |
+| 3    | Refund `APPROVED` đứng yên > 30 phút → xếp hàng lại cùng `jobId` (không gọi cổng hai lần). Chưa đối soát sổ giữ hộ / kỳ chi trả (UC-32 bước 2) và chưa chạy lại thủ công. |
+
+### 6.22. Báo cáo nhà xe + Admin, trang Tổng quan (FR-NSR-12/13, FR-ADM-17, UC-29 — TASK-RPT-001/002, chờ duyệt)
+
+| Bước | Xử lý |
+| ---- | ----- |
+| 1    | `ReportingService` (module `reporting/`) tính trực tiếp từ Postgres theo kỳ (ngày giờ VN, tối đa 366 ngày), không bảng tổng hợp v1. Nhà xe: `finance:read` (tenant + RLS); Admin: `payment:monitor` (không dùng `finance:read` vì Owner cũng có). |
+| 2    | Chỉ số chuyến theo chuyến **khởi hành** trong kỳ (trừ nháp); vé bán = `VALID` / `CHECKED_IN` / `NO_SHOW` / `USED`; lấp đầy = vé bán / số chỗ; Admin: GMV = thanh toán thành công theo giờ trả, doanh thu sau hoàn = GMV − hoàn thành công trong kỳ (tạm tính khi còn cần đối soát). |
+| 3    | Xuất CSV (UTF-8 BOM, chặn công thức) ghi audit `report.export` trước khi trả tệp (BR-56); audit lỗi → 503. |
+
+### 6.23. Khiếu nại, tranh chấp, đánh giá (FR-NSR-06..11, FR-DSP-01..08, BR-18/49/50/51/55, UC-09/27/28 — TASK-TRUST-001, chờ duyệt)
+
+| Bước | Xử lý |
+| ---- | ----- |
+| 1    | Khiếu nại (`support/`) gắn một đơn; khách (vãng lai qua `X-Booking-Token`) tạo / trả lời; Admin phân loại (danh mục, ưu tiên, bên xử lý chính, người phụ trách) — chọn nhà xe → nhà xe mới thấy khiếu nại (`support:respond`) và nhận email; trạng thái `NEW` → … → `RESOLVED` / `CLOSED`. |
+| 2    | Tranh chấp (`dispute/`): Admin chuyển từ khiếu nại (mỗi khiếu nại tối đa một), yêu cầu minh chứng (bên + hạn ≤ 30 ngày), quá hạn → `ESCALATED` (job 15 phút); quyết định chỉ PlatformAdmin + xác nhận lại danh tính: hoàn tiền → refund `APPROVED` tối đa phần khách đã trả còn lại, hoàn xong trừ sổ giữ hộ nhà xe + trả lại hoa hồng tương ứng (MQ-03). Mỗi bên chỉ thấy minh chứng của mình + của Vé Xe Nhanh. |
+| 3    | Đánh giá (`review/`): hành khách (không phải khách vãng lai) một lần / đơn khi chuyến hoàn thành và có vé đã đi (BR-18); nhà xe phản hồi / báo vi phạm; Admin ẩn (lý do) / hiển thị lại; chỉ đánh giá đang hiển thị tính điểm (BR-55). |
+| 4    | Tệp minh chứng ở kho riêng tư (ADR-018): khóa server sinh theo nhà xe + nơi tải, kiểm kích thước / loại / chữ ký định dạng; xem = URL 5 phút + audit mỗi lần. Email qua outbox thông báo (`CASE_UPDATED`). |
+
+### 6.24. Khuyến mãi (FR-PROM-01..07, FR-MKT-10, BR-46/47/48/72 — TASK-PROM-001, chờ duyệt)
+
+| Bước | Xử lý |
+| ---- | ----- |
+| 1    | Khuyến mãi nền tảng (Admin, `promotion:configure`) chỉ áp cho nhà xe **đã tham gia**; phần giảm do nhà xe chịu (LLD-OQ-07, Khanh 18/10/2026). Khuyến mãi nhà xe (Owner, `promotion:manage`) trong giới hạn Admin cấp (% / số tiền / thời hạn / ngân sách tháng — BR-46). |
+| 2    | `POST /bookings` nhận `promotionCode`: kiểm hiệu lực / nhà xe / tuyến / chuyến / đơn tối thiểu / lượt / ngân sách; giữ lượt nguyên tử (`promotion_claim`) trong transaction đơn; snapshot vào đơn (BR-47); đơn hết hạn / bị hủy khi chưa trả → trả lượt; thanh toán → "đã dùng". Khách trả tối thiểu 10.000 ₫. |
+| 3    | Tiền: sổ giữ hộ nhận số khách thực trả, hoa hồng tính trên tiền vé sau giảm; hủy vé hoàn trên phần đã trả của từng vé (phần giảm chia theo tỷ lệ giá, làm tròn lên). |
+
+### 6.25. VXN Plus phía Admin (FR-LOY-01..03/08/10..12, BR-65..70, UC-36/39 — TASK-LOY-001, chờ duyệt)
+
+| Bước | Xử lý |
+| ---- | ----- |
+| 1    | Tham số = `policy_versions` loại `LOYALTY` (phiên bản 1 seed theo LLD-OQ-06: 10.000 ₫ / điểm, 1 điểm = 1.000 ₫, đổi tối thiểu 100, voucher 30 ngày, hạng 0 / 2.000 / 5.000 / 10.000 với ×1 / ×1,2 / ×1,5 / ×2, hạn điểm 12 tháng — số cuối do AI đề xuất). Sửa qua API chính sách chung, không áp ngược. |
+| 2    | Job `loyalty-maintenance` (worker, 10 phút): **tích** một lần / đơn của hành khách có tài khoản khi chuyến `COMPLETED` — căn cứ = tiền khách thực trả của vé không `CANCELLED` / `REFUNDED` / `NO_SHOW` − tiền hoàn theo số tiền, điểm = làm tròn xuống (căn cứ × hệ số hạng ÷ đơn vị), BIGINT; **thu hồi** theo tỷ lệ tiền hoàn (thiếu số dư → ghi phần thiếu, không thu lại); **hết hạn** lô sắp hết hạn dùng trước. Khóa tài khoản + khóa chống trùng (`EARN:{bookingId}`, `REVERSAL:{refundId}`, `EXPIRE:{accountId}:{lô}`). |
+| 3    | Admin (`loyalty:manage`): tra cứu theo email, lịch sử điểm, điều chỉnh (xác nhận lại danh tính, `Idempotency-Key`, không âm, audit `loyalty.adjust`), báo cáo quý theo hạng lúc ghi. Đổi điểm / ví voucher / phần giảm Vé Xe Nhanh chịu chưa làm (TASK-PROM-002). |
 
 ---
 

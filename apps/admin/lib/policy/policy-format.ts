@@ -7,7 +7,8 @@ import type { PolicyState, PolicyType } from "./policy-api";
 export const POLICY_TYPE_LABEL: Record<PolicyType, string> = {
   CANCELLATION: "Hủy và hoàn tiền",
   SEAT_HOLD: "Giữ chỗ",
-  PAYOUT: "Chi trả"
+  PAYOUT: "Chi trả",
+  LOYALTY: "VXN Plus"
 };
 
 export const STATE: Record<PolicyState, { label: string; tone: "success" | "warning" | "neutral" | "danger" }> = {

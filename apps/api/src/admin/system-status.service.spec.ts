@@ -38,6 +38,10 @@ function service(overrides: { config?: Partial<AppConfig>; postgres?: () => Prom
     queue("payment-callbacks"),
     queue("refund-processing"),
     queue("payout-maintenance"),
+    queue("notifications"),
+    queue("payment-reconciliation"),
+    queue("dispute-maintenance"),
+    queue("loyalty-maintenance"),
   );
 }
 

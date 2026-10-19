@@ -439,7 +439,7 @@ export async function insertDraftTrip(
  * Điểm dừng của route theo thứ tự. Route MỚI chọn phải `ACTIVE`; route đang gắn (`keep`) được giữ dù đã
  * ngừng dùng. Không phân biệt "không có" / "tenant khác" / "ngừng dùng" để không lộ dữ liệu tenant khác.
  */
-async function loadRouteStops(
+export async function loadRouteStops(
   tx: DbTransaction,
   operatorId: string,
   routeId: string,
@@ -474,7 +474,7 @@ async function loadRouteStops(
  * không gửi thì chia khoảng [giờ đi, giờ đến] theo tỉ lệ thời gian chặng đã lưu của route (ADR-027: không
  * gọi Goong lại) — giữ đúng giờ đi/đến Operator chọn dù xe khách chạy chậm hơn số liệu định tuyến.
  */
-function planStopTimes(input: TripInput, stops: RouteStopRow[]): Date[] {
+export function planStopTimes(input: Pick<TripInput, "stopTimes" | "departureAt" | "arrivalAt">, stops: RouteStopRow[]): Date[] {
   if (input.stopTimes) {
     if (input.stopTimes.length !== stops.length) {
       throw tripStopTimesInvalid();
@@ -500,7 +500,7 @@ function planStopTimes(input: TripInput, stops: RouteStopRow[]): Date[] {
  * sơ đồ ghế / đổi sơ đồ của xe (UC-12 A3): bên nào ghi sau sẽ thấy chuyến vừa tạo và bị từ chối, nên ghế của
  * chuyến không bao giờ lấy từ bố cục đang bị sửa dở. Xe phải `ACTIVE` và có sơ đồ ghế (UC-14 A2).
  */
-async function lockVehicleSeats(tx: DbTransaction, operatorId: string, vehicleId: string) {
+export async function lockVehicleSeats(tx: DbTransaction, operatorId: string, vehicleId: string) {
   // Hai câu riêng, KHÔNG `FOR SHARE` trên JOIN: nếu phải chờ một PUT xe vừa đổi sơ đồ, Postgres kiểm lại dòng
   // xe mới nhưng giữ dòng sơ đồ CŨ của phép JOIN → điều kiện nối sai → báo nhầm "xe không dùng được".
   const [vehicle] = await tx.$queryRaw<{ seatMapId: string }[]>`
@@ -606,7 +606,7 @@ async function assertReadyForSale(tx: DbTransaction, operatorId: string, tripId:
   }
 }
 
-function findDetail(tx: DbTransaction, operatorId: string, tripId: string) {
+export function findDetail(tx: DbTransaction, operatorId: string, tripId: string) {
   return tx.trip.findFirst({
     where: { id: tripId, operatorId },
     select: {
@@ -618,6 +618,8 @@ function findDetail(tx: DbTransaction, operatorId: string, tripId: string) {
       status: true,
       onlineSaleCutoffMinutes: true,
       statusReason: true,
+      departedAt: true,
+      completedAt: true,
       note: true,
       createdAt: true,
       updatedAt: true,
@@ -658,7 +660,7 @@ function findDetail(tx: DbTransaction, operatorId: string, tripId: string) {
   });
 }
 
-function toResponse(row: NonNullable<Awaited<ReturnType<typeof findDetail>>>): TripResponse {
+export function toResponse(row: NonNullable<Awaited<ReturnType<typeof findDetail>>>): TripResponse {
   const { route, vehicle, stops, seats, ...trip } = row;
   // Không gắn xe / tuyến chưa có bảng giá / bảng giá INACTIVE / không có rule khớp → giá `null` (TRN-006 chặn mở bán).
   const rules = route.fare?.status === FareStatus.ACTIVE ? route.fare.rules : [];
@@ -676,6 +678,8 @@ function toResponse(row: NonNullable<Awaited<ReturnType<typeof findDetail>>>): T
     seatCount: seats.length,
     departureAt: trip.departureAt.toISOString(),
     arrivalAt: trip.arrivalAt.toISOString(),
+    departedAt: trip.departedAt?.toISOString() ?? null,
+    completedAt: trip.completedAt?.toISOString() ?? null,
     createdAt: trip.createdAt.toISOString(),
     updatedAt: trip.updatedAt.toISOString(),
     stops: stops.map(({ catalogStopPoint, stopPoint, plannedAt, ...stop }) => {

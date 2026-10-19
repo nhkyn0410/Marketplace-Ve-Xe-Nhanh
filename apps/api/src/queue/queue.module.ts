@@ -39,7 +39,11 @@ import { QueueHealthService } from "./queue-health.service";
       { name: QUEUE_NAMES.bookingMaintenance },
       { name: QUEUE_NAMES.paymentCallbacks },
       { name: QUEUE_NAMES.refundProcessing },
-      { name: QUEUE_NAMES.payoutMaintenance }
+      { name: QUEUE_NAMES.payoutMaintenance },
+      { name: QUEUE_NAMES.notifications },
+      { name: QUEUE_NAMES.paymentReconciliation },
+      { name: QUEUE_NAMES.disputeMaintenance },
+      { name: QUEUE_NAMES.loyaltyMaintenance }
     )
   ],
   providers: [BullBoardService, QueueHealthService],

@@ -95,3 +95,30 @@ export async function withRefundOperator<T>(
   const refund = await prisma.withSystem((tx) => tx.refund.findUnique({ where: { id: refundId }, select: { operatorId: true } }));
   return refund ? prisma.withTenant(refund.operatorId, (tx) => work(tx, refund.operatorId)) : null;
 }
+
+/** Thanh toán cần tra cứu cổng (job đối soát — FR-BTP-17): chưa có kết quả cuối, đã quá hạn, tạo trong `since`, chưa tra gần đây. */
+export async function listPaymentsToReconcile(
+  prisma: Pick<PrismaService, "withSystem">,
+  filter: { expiredBefore: Date; createdAfter: Date; checkedBefore: Date; limit: number },
+): Promise<{ id: string; operatorId: string; paymentCode: string; provider: PaymentProvider; status: PaymentStatus; amount: bigint; createdAt: Date }[]> {
+  return prisma.withSystem((tx) =>
+    tx.payment.findMany({
+      where: {
+        status: { in: ["INITIATED", "PROCESSING", "EXPIRED", "CANCELLED"] },
+        expiresAt: { lt: filter.expiredBefore },
+        createdAt: { gt: filter.createdAfter },
+        OR: [{ providerCheckedAt: null }, { providerCheckedAt: { lt: filter.checkedBefore } }],
+      },
+      orderBy: { createdAt: "asc" },
+      take: filter.limit,
+      select: { id: true, operatorId: true, paymentCode: true, provider: true, status: true, amount: true, createdAt: true },
+    }),
+  );
+}
+
+/** Refund `APPROVED` quá lâu chưa được worker nhận (xếp hàng lỗi / mất job) — job đối soát xếp hàng lại. */
+export async function listStuckRefunds(prisma: Pick<PrismaService, "withSystem">, updatedBefore: Date, limit: number): Promise<{ id: string; attempt: number }[]> {
+  return prisma.withSystem((tx) =>
+    tx.refund.findMany({ where: { status: "APPROVED", updatedAt: { lt: updatedBefore } }, orderBy: { updatedAt: "asc" }, take: limit, select: { id: true, attempt: true } }),
+  );
+}

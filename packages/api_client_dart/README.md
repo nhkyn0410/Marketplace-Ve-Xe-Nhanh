@@ -101,6 +101,17 @@ Class | Method | HTTP request | Description
 [*AdminContentPagesApi*](doc/AdminContentPagesApi.md) | [**adminContentPageControllerList**](doc/AdminContentPagesApi.md#admincontentpagecontrollerlist) | **GET** /v1/admin/content-pages | 
 [*AdminContentPagesApi*](doc/AdminContentPagesApi.md) | [**adminContentPageControllerSetStatus**](doc/AdminContentPagesApi.md#admincontentpagecontrollersetstatus) | **PUT** /v1/admin/content-pages/{id}/status | 
 [*AdminContentPagesApi*](doc/AdminContentPagesApi.md) | [**adminContentPageControllerUpdate**](doc/AdminContentPagesApi.md#admincontentpagecontrollerupdate) | **PUT** /v1/admin/content-pages/{id} | 
+[*AdminDisputesApi*](doc/AdminDisputesApi.md) | [**adminDisputeControllerDecide**](doc/AdminDisputesApi.md#admindisputecontrollerdecide) | **POST** /v1/admin/disputes/{disputeId}/decision | 
+[*AdminDisputesApi*](doc/AdminDisputesApi.md) | [**adminDisputeControllerEscalate**](doc/AdminDisputesApi.md#admindisputecontrollerescalate) | **POST** /v1/admin/support-tickets/{ticketId}/escalate | 
+[*AdminDisputesApi*](doc/AdminDisputesApi.md) | [**adminDisputeControllerGet**](doc/AdminDisputesApi.md#admindisputecontrollerget) | **GET** /v1/admin/disputes/{disputeId} | 
+[*AdminDisputesApi*](doc/AdminDisputesApi.md) | [**adminDisputeControllerList**](doc/AdminDisputesApi.md#admindisputecontrollerlist) | **GET** /v1/admin/disputes | 
+[*AdminDisputesApi*](doc/AdminDisputesApi.md) | [**adminDisputeControllerRequestEvidence**](doc/AdminDisputesApi.md#admindisputecontrollerrequestevidence) | **POST** /v1/admin/disputes/{disputeId}/evidence-requests | 
+[*AdminDisputesApi*](doc/AdminDisputesApi.md) | [**adminDisputeControllerSetStatus**](doc/AdminDisputesApi.md#admindisputecontrollersetstatus) | **POST** /v1/admin/disputes/{disputeId}/status | 
+[*AdminDisputesApi*](doc/AdminDisputesApi.md) | [**adminDisputeControllerUpload**](doc/AdminDisputesApi.md#admindisputecontrollerupload) | **POST** /v1/admin/disputes/{disputeId}/attachments/upload-url | 
+[*AdminLoyaltyApi*](doc/AdminLoyaltyApi.md) | [**adminLoyaltyControllerAdjust**](doc/AdminLoyaltyApi.md#adminloyaltycontrolleradjust) | **POST** /v1/admin/loyalty/accounts/{userId}/adjustments | 
+[*AdminLoyaltyApi*](doc/AdminLoyaltyApi.md) | [**adminLoyaltyControllerMember**](doc/AdminLoyaltyApi.md#adminloyaltycontrollermember) | **GET** /v1/admin/loyalty/accounts | 
+[*AdminLoyaltyApi*](doc/AdminLoyaltyApi.md) | [**adminLoyaltyControllerReport**](doc/AdminLoyaltyApi.md#adminloyaltycontrollerreport) | **GET** /v1/admin/loyalty/reports | 
+[*AdminLoyaltyApi*](doc/AdminLoyaltyApi.md) | [**adminLoyaltyControllerTransactions**](doc/AdminLoyaltyApi.md#adminloyaltycontrollertransactions) | **GET** /v1/admin/loyalty/accounts/{userId}/transactions | 
 [*AdminOperatorApplicationsApi*](doc/AdminOperatorApplicationsApi.md) | [**operatorApplicationReviewControllerApprove**](doc/AdminOperatorApplicationsApi.md#operatorapplicationreviewcontrollerapprove) | **POST** /v1/admin/operator-applications/{applicationId}/approve | 
 [*AdminOperatorApplicationsApi*](doc/AdminOperatorApplicationsApi.md) | [**operatorApplicationReviewControllerCreateDocumentDownload**](doc/AdminOperatorApplicationsApi.md#operatorapplicationreviewcontrollercreatedocumentdownload) | **POST** /v1/admin/operator-applications/{applicationId}/documents/{type}/download-url | 
 [*AdminOperatorApplicationsApi*](doc/AdminOperatorApplicationsApi.md) | [**operatorApplicationReviewControllerGet**](doc/AdminOperatorApplicationsApi.md#operatorapplicationreviewcontrollerget) | **GET** /v1/admin/operator-applications/{applicationId} | 
@@ -134,11 +145,23 @@ Class | Method | HTTP request | Description
 [*AdminPoliciesApi*](doc/AdminPoliciesApi.md) | [**adminPolicyControllerOverview**](doc/AdminPoliciesApi.md#adminpolicycontrolleroverview) | **GET** /v1/admin/policies/{type} | 
 [*AdminPoliciesApi*](doc/AdminPoliciesApi.md) | [**adminPolicyControllerPublish**](doc/AdminPoliciesApi.md#adminpolicycontrollerpublish) | **POST** /v1/admin/policy-versions/{id}/publish | 
 [*AdminPoliciesApi*](doc/AdminPoliciesApi.md) | [**adminPolicyControllerUpdateDraft**](doc/AdminPoliciesApi.md#adminpolicycontrollerupdatedraft) | **PUT** /v1/admin/policy-versions/{id} | 
+[*AdminPromotionsApi*](doc/AdminPromotionsApi.md) | [**adminPromotionControllerCreate**](doc/AdminPromotionsApi.md#adminpromotioncontrollercreate) | **POST** /v1/admin/promotions | 
+[*AdminPromotionsApi*](doc/AdminPromotionsApi.md) | [**adminPromotionControllerGet**](doc/AdminPromotionsApi.md#adminpromotioncontrollerget) | **GET** /v1/admin/promotions/{promotionId} | 
+[*AdminPromotionsApi*](doc/AdminPromotionsApi.md) | [**adminPromotionControllerList**](doc/AdminPromotionsApi.md#adminpromotioncontrollerlist) | **GET** /v1/admin/promotions | 
+[*AdminPromotionsApi*](doc/AdminPromotionsApi.md) | [**adminPromotionControllerPermissions**](doc/AdminPromotionsApi.md#adminpromotioncontrollerpermissions) | **GET** /v1/admin/promotion-permissions | 
+[*AdminPromotionsApi*](doc/AdminPromotionsApi.md) | [**adminPromotionControllerSetPermission**](doc/AdminPromotionsApi.md#adminpromotioncontrollersetpermission) | **PUT** /v1/admin/promotion-permissions/{operatorId} | 
+[*AdminPromotionsApi*](doc/AdminPromotionsApi.md) | [**adminPromotionControllerSetStatus**](doc/AdminPromotionsApi.md#adminpromotioncontrollersetstatus) | **POST** /v1/admin/promotions/{promotionId}/status | 
+[*AdminPromotionsApi*](doc/AdminPromotionsApi.md) | [**adminPromotionControllerUpdate**](doc/AdminPromotionsApi.md#adminpromotioncontrollerupdate) | **PUT** /v1/admin/promotions/{promotionId} | 
 [*AdminRefundsApi*](doc/AdminRefundsApi.md) | [**adminRefundControllerGet**](doc/AdminRefundsApi.md#adminrefundcontrollerget) | **GET** /v1/admin/refunds/{refundId} | 
 [*AdminRefundsApi*](doc/AdminRefundsApi.md) | [**adminRefundControllerList**](doc/AdminRefundsApi.md#adminrefundcontrollerlist) | **GET** /v1/admin/refunds | 
 [*AdminRefundsApi*](doc/AdminRefundsApi.md) | [**adminRefundControllerRefundPayment**](doc/AdminRefundsApi.md#adminrefundcontrollerrefundpayment) | **POST** /v1/admin/payments/{paymentId}/refunds | 
 [*AdminRefundsApi*](doc/AdminRefundsApi.md) | [**adminRefundControllerResolve**](doc/AdminRefundsApi.md#adminrefundcontrollerresolve) | **POST** /v1/admin/refunds/{refundId}/resolve | 
 [*AdminRefundsApi*](doc/AdminRefundsApi.md) | [**adminRefundControllerRetry**](doc/AdminRefundsApi.md#adminrefundcontrollerretry) | **POST** /v1/admin/refunds/{refundId}/retry | 
+[*AdminReportsApi*](doc/AdminReportsApi.md) | [**adminReportingControllerExport**](doc/AdminReportsApi.md#adminreportingcontrollerexport) | **GET** /v1/admin/reports/export | 
+[*AdminReportsApi*](doc/AdminReportsApi.md) | [**adminReportingControllerOverview**](doc/AdminReportsApi.md#adminreportingcontrolleroverview) | **GET** /v1/admin/overview | 
+[*AdminReportsApi*](doc/AdminReportsApi.md) | [**adminReportingControllerSummary**](doc/AdminReportsApi.md#adminreportingcontrollersummary) | **GET** /v1/admin/reports/summary | 
+[*AdminReviewsApi*](doc/AdminReviewsApi.md) | [**adminReviewControllerList**](doc/AdminReviewsApi.md#adminreviewcontrollerlist) | **GET** /v1/admin/reviews | 
+[*AdminReviewsApi*](doc/AdminReviewsApi.md) | [**adminReviewControllerModerate**](doc/AdminReviewsApi.md#adminreviewcontrollermoderate) | **POST** /v1/admin/reviews/{reviewId}/moderation | 
 [*AdminStopPointsApi*](doc/AdminStopPointsApi.md) | [**adminOperatorStopPointControllerList**](doc/AdminStopPointsApi.md#adminoperatorstoppointcontrollerlist) | **GET** /v1/admin/operator-stop-points | 
 [*AdminStopPointsApi*](doc/AdminStopPointsApi.md) | [**adminOperatorStopPointControllerSuspend**](doc/AdminStopPointsApi.md#adminoperatorstoppointcontrollersuspend) | **POST** /v1/admin/operator-stop-points/{id}/suspend | 
 [*AdminStopPointsApi*](doc/AdminStopPointsApi.md) | [**adminOperatorStopPointControllerUnsuspend**](doc/AdminStopPointsApi.md#adminoperatorstoppointcontrollerunsuspend) | **POST** /v1/admin/operator-stop-points/{id}/unsuspend | 
@@ -150,6 +173,14 @@ Class | Method | HTTP request | Description
 [*AdminStopPointsApi*](doc/AdminStopPointsApi.md) | [**adminStopPointProposalControllerGet**](doc/AdminStopPointsApi.md#adminstoppointproposalcontrollerget) | **GET** /v1/admin/stop-point-proposals/{id} | 
 [*AdminStopPointsApi*](doc/AdminStopPointsApi.md) | [**adminStopPointProposalControllerList**](doc/AdminStopPointsApi.md#adminstoppointproposalcontrollerlist) | **GET** /v1/admin/stop-point-proposals | 
 [*AdminStopPointsApi*](doc/AdminStopPointsApi.md) | [**adminStopPointProposalControllerReject**](doc/AdminStopPointsApi.md#adminstoppointproposalcontrollerreject) | **POST** /v1/admin/stop-point-proposals/{id}/reject | 
+[*AdminSupportApi*](doc/AdminSupportApi.md) | [**adminSupportControllerAssignees**](doc/AdminSupportApi.md#adminsupportcontrollerassignees) | **GET** /v1/admin/support-assignees | 
+[*AdminSupportApi*](doc/AdminSupportApi.md) | [**adminSupportControllerClassify**](doc/AdminSupportApi.md#adminsupportcontrollerclassify) | **PATCH** /v1/admin/support-tickets/{ticketId} | 
+[*AdminSupportApi*](doc/AdminSupportApi.md) | [**adminSupportControllerDownload**](doc/AdminSupportApi.md#adminsupportcontrollerdownload) | **POST** /v1/admin/support-attachments/{attachmentId}/download-url | 
+[*AdminSupportApi*](doc/AdminSupportApi.md) | [**adminSupportControllerGet**](doc/AdminSupportApi.md#adminsupportcontrollerget) | **GET** /v1/admin/support-tickets/{ticketId} | 
+[*AdminSupportApi*](doc/AdminSupportApi.md) | [**adminSupportControllerList**](doc/AdminSupportApi.md#adminsupportcontrollerlist) | **GET** /v1/admin/support-tickets | 
+[*AdminSupportApi*](doc/AdminSupportApi.md) | [**adminSupportControllerReply**](doc/AdminSupportApi.md#adminsupportcontrollerreply) | **POST** /v1/admin/support-tickets/{ticketId}/messages | 
+[*AdminSupportApi*](doc/AdminSupportApi.md) | [**adminSupportControllerSetStatus**](doc/AdminSupportApi.md#adminsupportcontrollersetstatus) | **POST** /v1/admin/support-tickets/{ticketId}/status | 
+[*AdminSupportApi*](doc/AdminSupportApi.md) | [**adminSupportControllerUpload**](doc/AdminSupportApi.md#adminsupportcontrollerupload) | **POST** /v1/admin/support-tickets/{ticketId}/attachments/upload-url | 
 [*AdminSystemApi*](doc/AdminSystemApi.md) | [**systemStatusControllerIntegrations**](doc/AdminSystemApi.md#systemstatuscontrollerintegrations) | **GET** /v1/admin/system/integrations | 
 [*AdminSystemApi*](doc/AdminSystemApi.md) | [**systemStatusControllerJobs**](doc/AdminSystemApi.md#systemstatuscontrollerjobs) | **GET** /v1/admin/system/jobs | 
 [*AdminUsersApi*](doc/AdminUsersApi.md) | [**adminEmployeeControllerList**](doc/AdminUsersApi.md#adminemployeecontrollerlist) | **GET** /v1/admin/employees | 
@@ -196,6 +227,14 @@ Class | Method | HTTP request | Description
 [*CatalogApi*](doc/CatalogApi.md) | [**catalogControllerListWards**](doc/CatalogApi.md#catalogcontrollerlistwards) | **GET** /v1/catalog/wards | 
 [*ContentPagesApi*](doc/ContentPagesApi.md) | [**contentPageControllerGet**](doc/ContentPagesApi.md#contentpagecontrollerget) | **GET** /v1/content-pages/{slug} | 
 [*ContentPagesApi*](doc/ContentPagesApi.md) | [**contentPageControllerList**](doc/ContentPagesApi.md#contentpagecontrollerlist) | **GET** /v1/content-pages | 
+[*DisputesApi*](doc/DisputesApi.md) | [**customerDisputeControllerGet**](doc/DisputesApi.md#customerdisputecontrollerget) | **GET** /v1/bookings/{bookingId}/disputes/{disputeId} | 
+[*DisputesApi*](doc/DisputesApi.md) | [**customerDisputeControllerList**](doc/DisputesApi.md#customerdisputecontrollerlist) | **GET** /v1/bookings/{bookingId}/disputes | 
+[*DisputesApi*](doc/DisputesApi.md) | [**customerDisputeControllerRespond**](doc/DisputesApi.md#customerdisputecontrollerrespond) | **POST** /v1/bookings/{bookingId}/disputes/{disputeId}/responses | 
+[*EmployeeOperationsApi*](doc/EmployeeOperationsApi.md) | [**employeeOperationsControllerAssignments**](doc/EmployeeOperationsApi.md#employeeoperationscontrollerassignments) | **GET** /v1/employee/assignments | 
+[*EmployeeOperationsApi*](doc/EmployeeOperationsApi.md) | [**employeeOperationsControllerCheckIn**](doc/EmployeeOperationsApi.md#employeeoperationscontrollercheckin) | **POST** /v1/employee/check-ins | 
+[*EmployeeOperationsApi*](doc/EmployeeOperationsApi.md) | [**employeeOperationsControllerOperate**](doc/EmployeeOperationsApi.md#employeeoperationscontrolleroperate) | **POST** /v1/employee/trips/{tripId}/status | 
+[*EmployeeOperationsApi*](doc/EmployeeOperationsApi.md) | [**employeeOperationsControllerPassengers**](doc/EmployeeOperationsApi.md#employeeoperationscontrollerpassengers) | **GET** /v1/employee/trips/{tripId}/passengers | 
+[*EmployeeOperationsApi*](doc/EmployeeOperationsApi.md) | [**employeeOperationsControllerVerify**](doc/EmployeeOperationsApi.md#employeeoperationscontrollerverify) | **POST** /v1/employee/tickets/verify | 
 [*HealthApi*](doc/HealthApi.md) | [**appControllerHealth**](doc/HealthApi.md#appcontrollerhealth) | **GET** /v1/health | 
 [*HealthApi*](doc/HealthApi.md) | [**appControllerMongo**](doc/HealthApi.md#appcontrollermongo) | **GET** /v1/health/mongo | 
 [*HealthApi*](doc/HealthApi.md) | [**appControllerPostgres**](doc/HealthApi.md#appcontrollerpostgres) | **GET** /v1/health/postgres | 
@@ -213,6 +252,9 @@ Class | Method | HTTP request | Description
 [*OperatorBookingsApi*](doc/OperatorBookingsApi.md) | [**operatorBookingControllerList**](doc/OperatorBookingsApi.md#operatorbookingcontrollerlist) | **GET** /v1/operator/bookings | 
 [*OperatorBookingsApi*](doc/OperatorBookingsApi.md) | [**operatorBookingControllerPassengers**](doc/OperatorBookingsApi.md#operatorbookingcontrollerpassengers) | **GET** /v1/operator/trips/{tripId}/passengers | 
 [*OperatorBookingsApi*](doc/OperatorBookingsApi.md) | [**operatorBookingControllerRevealContact**](doc/OperatorBookingsApi.md#operatorbookingcontrollerrevealcontact) | **POST** /v1/operator/bookings/{bookingId}/contact-reveal | 
+[*OperatorDisputesApi*](doc/OperatorDisputesApi.md) | [**operatorDisputeControllerGet**](doc/OperatorDisputesApi.md#operatordisputecontrollerget) | **GET** /v1/operator/disputes/{disputeId} | 
+[*OperatorDisputesApi*](doc/OperatorDisputesApi.md) | [**operatorDisputeControllerList**](doc/OperatorDisputesApi.md#operatordisputecontrollerlist) | **GET** /v1/operator/disputes | 
+[*OperatorDisputesApi*](doc/OperatorDisputesApi.md) | [**operatorDisputeControllerRespond**](doc/OperatorDisputesApi.md#operatordisputecontrollerrespond) | **POST** /v1/operator/disputes/{disputeId}/responses | 
 [*OperatorEmployeesApi*](doc/OperatorEmployeesApi.md) | [**employeeAccountControllerCreate**](doc/OperatorEmployeesApi.md#employeeaccountcontrollercreate) | **POST** /v1/operator/employees | 
 [*OperatorEmployeesApi*](doc/OperatorEmployeesApi.md) | [**employeeAccountControllerList**](doc/OperatorEmployeesApi.md#employeeaccountcontrollerlist) | **GET** /v1/operator/employees | 
 [*OperatorEmployeesApi*](doc/OperatorEmployeesApi.md) | [**employeeAccountControllerResetPassword**](doc/OperatorEmployeesApi.md#employeeaccountcontrollerresetpassword) | **POST** /v1/operator/employees/{employeeId}/password-reset | 
@@ -232,6 +274,19 @@ Class | Method | HTTP request | Description
 [*OperatorProfileApi*](doc/OperatorProfileApi.md) | [**operatorProfileControllerReplaceDocument**](doc/OperatorProfileApi.md#operatorprofilecontrollerreplacedocument) | **PUT** /v1/operator/profile/documents/{type} | 
 [*OperatorProfileApi*](doc/OperatorProfileApi.md) | [**operatorProfileControllerRequestBankChange**](doc/OperatorProfileApi.md#operatorprofilecontrollerrequestbankchange) | **POST** /v1/operator/profile/bank-account-change | 
 [*OperatorProfileApi*](doc/OperatorProfileApi.md) | [**operatorProfileControllerUpdate**](doc/OperatorProfileApi.md#operatorprofilecontrollerupdate) | **PUT** /v1/operator/profile | 
+[*OperatorPromotionsApi*](doc/OperatorPromotionsApi.md) | [**operatorPromotionControllerCreate**](doc/OperatorPromotionsApi.md#operatorpromotioncontrollercreate) | **POST** /v1/operator/promotions | 
+[*OperatorPromotionsApi*](doc/OperatorPromotionsApi.md) | [**operatorPromotionControllerGet**](doc/OperatorPromotionsApi.md#operatorpromotioncontrollerget) | **GET** /v1/operator/promotions/{promotionId} | 
+[*OperatorPromotionsApi*](doc/OperatorPromotionsApi.md) | [**operatorPromotionControllerList**](doc/OperatorPromotionsApi.md#operatorpromotioncontrollerlist) | **GET** /v1/operator/promotions | 
+[*OperatorPromotionsApi*](doc/OperatorPromotionsApi.md) | [**operatorPromotionControllerParticipate**](doc/OperatorPromotionsApi.md#operatorpromotioncontrollerparticipate) | **PUT** /v1/operator/promotions/{promotionId}/participation | 
+[*OperatorPromotionsApi*](doc/OperatorPromotionsApi.md) | [**operatorPromotionControllerPermission**](doc/OperatorPromotionsApi.md#operatorpromotioncontrollerpermission) | **GET** /v1/operator/promotion-permission | 
+[*OperatorPromotionsApi*](doc/OperatorPromotionsApi.md) | [**operatorPromotionControllerSetStatus**](doc/OperatorPromotionsApi.md#operatorpromotioncontrollersetstatus) | **POST** /v1/operator/promotions/{promotionId}/status | 
+[*OperatorPromotionsApi*](doc/OperatorPromotionsApi.md) | [**operatorPromotionControllerUpdate**](doc/OperatorPromotionsApi.md#operatorpromotioncontrollerupdate) | **PUT** /v1/operator/promotions/{promotionId} | 
+[*OperatorReportsApi*](doc/OperatorReportsApi.md) | [**operatorReportingControllerExport**](doc/OperatorReportsApi.md#operatorreportingcontrollerexport) | **GET** /v1/operator/reports/export | 
+[*OperatorReportsApi*](doc/OperatorReportsApi.md) | [**operatorReportingControllerOverview**](doc/OperatorReportsApi.md#operatorreportingcontrolleroverview) | **GET** /v1/operator/overview | 
+[*OperatorReportsApi*](doc/OperatorReportsApi.md) | [**operatorReportingControllerSummary**](doc/OperatorReportsApi.md#operatorreportingcontrollersummary) | **GET** /v1/operator/reports/summary | 
+[*OperatorReviewsApi*](doc/OperatorReviewsApi.md) | [**operatorReviewControllerList**](doc/OperatorReviewsApi.md#operatorreviewcontrollerlist) | **GET** /v1/operator/reviews | 
+[*OperatorReviewsApi*](doc/OperatorReviewsApi.md) | [**operatorReviewControllerReply**](doc/OperatorReviewsApi.md#operatorreviewcontrollerreply) | **PUT** /v1/operator/reviews/{reviewId}/reply | 
+[*OperatorReviewsApi*](doc/OperatorReviewsApi.md) | [**operatorReviewControllerReport**](doc/OperatorReviewsApi.md#operatorreviewcontrollerreport) | **POST** /v1/operator/reviews/{reviewId}/report | 
 [*OperatorRoutesApi*](doc/OperatorRoutesApi.md) | [**routeControllerCreate**](doc/OperatorRoutesApi.md#routecontrollercreate) | **POST** /v1/operator/routes | 
 [*OperatorRoutesApi*](doc/OperatorRoutesApi.md) | [**routeControllerGet**](doc/OperatorRoutesApi.md#routecontrollerget) | **GET** /v1/operator/routes/{routeId} | 
 [*OperatorRoutesApi*](doc/OperatorRoutesApi.md) | [**routeControllerList**](doc/OperatorRoutesApi.md#routecontrollerlist) | **GET** /v1/operator/routes | 
@@ -247,6 +302,11 @@ Class | Method | HTTP request | Description
 [*OperatorStopPointsApi*](doc/OperatorStopPointsApi.md) | [**stopPointControllerGet**](doc/OperatorStopPointsApi.md#stoppointcontrollerget) | **GET** /v1/operator/stop-points/{stopPointId} | 
 [*OperatorStopPointsApi*](doc/OperatorStopPointsApi.md) | [**stopPointControllerList**](doc/OperatorStopPointsApi.md#stoppointcontrollerlist) | **GET** /v1/operator/stop-points | 
 [*OperatorStopPointsApi*](doc/OperatorStopPointsApi.md) | [**stopPointControllerUpdate**](doc/OperatorStopPointsApi.md#stoppointcontrollerupdate) | **PUT** /v1/operator/stop-points/{stopPointId} | 
+[*OperatorSupportApi*](doc/OperatorSupportApi.md) | [**operatorSupportControllerDownload**](doc/OperatorSupportApi.md#operatorsupportcontrollerdownload) | **POST** /v1/operator/support-attachments/{attachmentId}/download-url | 
+[*OperatorSupportApi*](doc/OperatorSupportApi.md) | [**operatorSupportControllerGet**](doc/OperatorSupportApi.md#operatorsupportcontrollerget) | **GET** /v1/operator/support-tickets/{ticketId} | 
+[*OperatorSupportApi*](doc/OperatorSupportApi.md) | [**operatorSupportControllerList**](doc/OperatorSupportApi.md#operatorsupportcontrollerlist) | **GET** /v1/operator/support-tickets | 
+[*OperatorSupportApi*](doc/OperatorSupportApi.md) | [**operatorSupportControllerReply**](doc/OperatorSupportApi.md#operatorsupportcontrollerreply) | **POST** /v1/operator/support-tickets/{ticketId}/messages | 
+[*OperatorSupportApi*](doc/OperatorSupportApi.md) | [**operatorSupportControllerUpload**](doc/OperatorSupportApi.md#operatorsupportcontrollerupload) | **POST** /v1/operator/support-attachments/upload-url | 
 [*OperatorTripAssignmentsApi*](doc/OperatorTripAssignmentsApi.md) | [**employeeAssignmentControllerAssignDriver**](doc/OperatorTripAssignmentsApi.md#employeeassignmentcontrollerassigndriver) | **PUT** /v1/operator/trips/{tripId}/driver | 
 [*OperatorTripAssignmentsApi*](doc/OperatorTripAssignmentsApi.md) | [**employeeAssignmentControllerList**](doc/OperatorTripAssignmentsApi.md#employeeassignmentcontrollerlist) | **GET** /v1/operator/trip-assignments | 
 [*OperatorTripSchedulesApi*](doc/OperatorTripSchedulesApi.md) | [**tripScheduleControllerCreate**](doc/OperatorTripSchedulesApi.md#tripschedulecontrollercreate) | **POST** /v1/operator/trip-schedules | 
@@ -254,10 +314,12 @@ Class | Method | HTTP request | Description
 [*OperatorTripSchedulesApi*](doc/OperatorTripSchedulesApi.md) | [**tripScheduleControllerGet**](doc/OperatorTripSchedulesApi.md#tripschedulecontrollerget) | **GET** /v1/operator/trip-schedules/{scheduleId} | 
 [*OperatorTripSchedulesApi*](doc/OperatorTripSchedulesApi.md) | [**tripScheduleControllerList**](doc/OperatorTripSchedulesApi.md#tripschedulecontrollerlist) | **GET** /v1/operator/trip-schedules | 
 [*OperatorTripSchedulesApi*](doc/OperatorTripSchedulesApi.md) | [**tripScheduleControllerUpdate**](doc/OperatorTripSchedulesApi.md#tripschedulecontrollerupdate) | **PUT** /v1/operator/trip-schedules/{scheduleId} | 
+[*OperatorTripsApi*](doc/OperatorTripsApi.md) | [**tripControllerChange**](doc/OperatorTripsApi.md#tripcontrollerchange) | **POST** /v1/operator/trips/{tripId}/changes | 
 [*OperatorTripsApi*](doc/OperatorTripsApi.md) | [**tripControllerChangeStatus**](doc/OperatorTripsApi.md#tripcontrollerchangestatus) | **PUT** /v1/operator/trips/{tripId}/status | 
 [*OperatorTripsApi*](doc/OperatorTripsApi.md) | [**tripControllerCreate**](doc/OperatorTripsApi.md#tripcontrollercreate) | **POST** /v1/operator/trips | 
 [*OperatorTripsApi*](doc/OperatorTripsApi.md) | [**tripControllerGet**](doc/OperatorTripsApi.md#tripcontrollerget) | **GET** /v1/operator/trips/{tripId} | 
 [*OperatorTripsApi*](doc/OperatorTripsApi.md) | [**tripControllerList**](doc/OperatorTripsApi.md#tripcontrollerlist) | **GET** /v1/operator/trips | 
+[*OperatorTripsApi*](doc/OperatorTripsApi.md) | [**tripControllerSales**](doc/OperatorTripsApi.md#tripcontrollersales) | **GET** /v1/operator/trips/{tripId}/sales | 
 [*OperatorTripsApi*](doc/OperatorTripsApi.md) | [**tripControllerSetSeatStatus**](doc/OperatorTripsApi.md#tripcontrollersetseatstatus) | **PUT** /v1/operator/trips/{tripId}/seats/status | 
 [*OperatorTripsApi*](doc/OperatorTripsApi.md) | [**tripControllerUpdate**](doc/OperatorTripsApi.md#tripcontrollerupdate) | **PUT** /v1/operator/trips/{tripId} | 
 [*OperatorVehiclesApi*](doc/OperatorVehiclesApi.md) | [**vehicleControllerCreate**](doc/OperatorVehiclesApi.md#vehiclecontrollercreate) | **POST** /v1/operator/vehicles | 
@@ -267,9 +329,18 @@ Class | Method | HTTP request | Description
 [*OperatorVehiclesApi*](doc/OperatorVehiclesApi.md) | [**vehicleImageControllerCreateUploadUrl**](doc/OperatorVehiclesApi.md#vehicleimagecontrollercreateuploadurl) | **POST** /v1/operator/vehicles/{vehicleId}/images/upload-url | 
 [*OperatorVehiclesApi*](doc/OperatorVehiclesApi.md) | [**vehicleImageControllerReplace**](doc/OperatorVehiclesApi.md#vehicleimagecontrollerreplace) | **PUT** /v1/operator/vehicles/{vehicleId}/images | 
 [*PaymentsApi*](doc/PaymentsApi.md) | [**paymentControllerCreate**](doc/PaymentsApi.md#paymentcontrollercreate) | **POST** /v1/bookings/{bookingId}/payments | 
+[*PromotionsApi*](doc/PromotionsApi.md) | [**publicPromotionControllerCheck**](doc/PromotionsApi.md#publicpromotioncontrollercheck) | **POST** /v1/promotions/check | 
+[*ReviewsApi*](doc/ReviewsApi.md) | [**customerReviewControllerCreate**](doc/ReviewsApi.md#customerreviewcontrollercreate) | **POST** /v1/bookings/{bookingId}/review | 
+[*ReviewsApi*](doc/ReviewsApi.md) | [**customerReviewControllerGet**](doc/ReviewsApi.md#customerreviewcontrollerget) | **GET** /v1/bookings/{bookingId}/review | 
 [*SeatHoldsApi*](doc/SeatHoldsApi.md) | [**seatHoldControllerCreate**](doc/SeatHoldsApi.md#seatholdcontrollercreate) | **POST** /v1/seat-holds | 
 [*SeatHoldsApi*](doc/SeatHoldsApi.md) | [**seatHoldControllerGet**](doc/SeatHoldsApi.md#seatholdcontrollerget) | **GET** /v1/seat-holds/{holdId} | 
 [*SeatHoldsApi*](doc/SeatHoldsApi.md) | [**seatHoldControllerRelease**](doc/SeatHoldsApi.md#seatholdcontrollerrelease) | **DELETE** /v1/seat-holds/{holdId} | 
+[*SupportApi*](doc/SupportApi.md) | [**customerSupportControllerCreate**](doc/SupportApi.md#customersupportcontrollercreate) | **POST** /v1/bookings/{bookingId}/support-tickets | 
+[*SupportApi*](doc/SupportApi.md) | [**customerSupportControllerDownload**](doc/SupportApi.md#customersupportcontrollerdownload) | **POST** /v1/bookings/{bookingId}/support-attachments/{attachmentId}/download-url | 
+[*SupportApi*](doc/SupportApi.md) | [**customerSupportControllerGet**](doc/SupportApi.md#customersupportcontrollerget) | **GET** /v1/bookings/{bookingId}/support-tickets/{ticketId} | 
+[*SupportApi*](doc/SupportApi.md) | [**customerSupportControllerList**](doc/SupportApi.md#customersupportcontrollerlist) | **GET** /v1/bookings/{bookingId}/support-tickets | 
+[*SupportApi*](doc/SupportApi.md) | [**customerSupportControllerReply**](doc/SupportApi.md#customersupportcontrollerreply) | **POST** /v1/bookings/{bookingId}/support-tickets/{ticketId}/messages | 
+[*SupportApi*](doc/SupportApi.md) | [**customerSupportControllerUpload**](doc/SupportApi.md#customersupportcontrollerupload) | **POST** /v1/bookings/{bookingId}/support-attachments/upload-url | 
 [*TicketsApi*](doc/TicketsApi.md) | [**ticketControllerGet**](doc/TicketsApi.md#ticketcontrollerget) | **GET** /v1/tickets/{ticketId} | 
 [*TicketsApi*](doc/TicketsApi.md) | [**ticketControllerLookup**](doc/TicketsApi.md#ticketcontrollerlookup) | **POST** /v1/guest/ticket-lookup | 
 [*TripsApi*](doc/TripsApi.md) | [**publicTripControllerGet**](doc/TripsApi.md#publictripcontrollerget) | **GET** /v1/trips/{tripId} | 
@@ -316,6 +387,7 @@ Class | Method | HTTP request | Description
  - [AdminCatalogRenameDto](doc/AdminCatalogRenameDto.md)
  - [AdminEmployeePageDtoOutput](doc/AdminEmployeePageDtoOutput.md)
  - [AdminEmployeePageDtoOutputItemsInner](doc/AdminEmployeePageDtoOutputItemsInner.md)
+ - [AdminMessageInputDto](doc/AdminMessageInputDto.md)
  - [AdminOperatorPageDtoOutput](doc/AdminOperatorPageDtoOutput.md)
  - [AdminOperatorPageDtoOutputItemsInner](doc/AdminOperatorPageDtoOutputItemsInner.md)
  - [AdminOperatorPageDtoOutputItemsInnerOwner](doc/AdminOperatorPageDtoOutputItemsInnerOwner.md)
@@ -323,6 +395,12 @@ Class | Method | HTTP request | Description
  - [AdminOperatorStopPointListDtoOutput](doc/AdminOperatorStopPointListDtoOutput.md)
  - [AdminOperatorStopPointListDtoOutputItemsInner](doc/AdminOperatorStopPointListDtoOutputItemsInner.md)
  - [AdminOperatorSuspendDto](doc/AdminOperatorSuspendDto.md)
+ - [AdminOverviewDtoOutput](doc/AdminOverviewDtoOutput.md)
+ - [AdminOverviewDtoOutputBookings](doc/AdminOverviewDtoOutputBookings.md)
+ - [AdminOverviewDtoOutputDailyInner](doc/AdminOverviewDtoOutputDailyInner.md)
+ - [AdminOverviewDtoOutputEscrow](doc/AdminOverviewDtoOutputEscrow.md)
+ - [AdminOverviewDtoOutputQueues](doc/AdminOverviewDtoOutputQueues.md)
+ - [AdminOverviewDtoOutputTickets](doc/AdminOverviewDtoOutputTickets.md)
  - [AdminPassengerPageDtoOutput](doc/AdminPassengerPageDtoOutput.md)
  - [AdminPassengerPageDtoOutputItemsInner](doc/AdminPassengerPageDtoOutputItemsInner.md)
  - [AdminPaymentDetailDtoOutput](doc/AdminPaymentDetailDtoOutput.md)
@@ -350,6 +428,10 @@ Class | Method | HTTP request | Description
  - [AdminRefundPageDtoOutput](doc/AdminRefundPageDtoOutput.md)
  - [AdminRefundPageDtoOutputItemsInner](doc/AdminRefundPageDtoOutputItemsInner.md)
  - [AdminRemoveVehicleImageInputDto](doc/AdminRemoveVehicleImageInputDto.md)
+ - [AdminReportDtoOutput](doc/AdminReportDtoOutput.md)
+ - [AdminReportDtoOutputByOperatorInner](doc/AdminReportDtoOutputByOperatorInner.md)
+ - [AdminReportDtoOutputPaymentMethodsInner](doc/AdminReportDtoOutputPaymentMethodsInner.md)
+ - [AdminReportDtoOutputTotals](doc/AdminReportDtoOutputTotals.md)
  - [AdminSharedStopPointDtoOutput](doc/AdminSharedStopPointDtoOutput.md)
  - [AdminSharedStopPointInputDto](doc/AdminSharedStopPointInputDto.md)
  - [AdminSharedStopPointListDtoOutput](doc/AdminSharedStopPointListDtoOutput.md)
@@ -386,6 +468,10 @@ Class | Method | HTTP request | Description
  - [ArticlePageDtoOutput](doc/ArticlePageDtoOutput.md)
  - [ArticlePageDtoOutputItemsInner](doc/ArticlePageDtoOutputItemsInner.md)
  - [ArticlePageDtoOutputItemsInnerCategory](doc/ArticlePageDtoOutputItemsInnerCategory.md)
+ - [AssigneeListDtoOutput](doc/AssigneeListDtoOutput.md)
+ - [AssigneeListDtoOutputItemsInner](doc/AssigneeListDtoOutputItemsInner.md)
+ - [AttachmentUploadInputDto](doc/AttachmentUploadInputDto.md)
+ - [AttachmentUploadResponseDtoOutput](doc/AttachmentUploadResponseDtoOutput.md)
  - [AuthMeResponseDtoOutput](doc/AuthMeResponseDtoOutput.md)
  - [AuthTokenResponseDtoOutput](doc/AuthTokenResponseDtoOutput.md)
  - [BackgroundJobsDtoOutput](doc/BackgroundJobsDtoOutput.md)
@@ -406,6 +492,9 @@ Class | Method | HTTP request | Description
  - [CancellationResultDtoOutput](doc/CancellationResultDtoOutput.md)
  - [CancellationResultDtoOutputBooking](doc/CancellationResultDtoOutputBooking.md)
  - [CancellationResultDtoOutputRefund](doc/CancellationResultDtoOutputRefund.md)
+ - [CheckInInputDto](doc/CheckInInputDto.md)
+ - [CheckInResultDtoOutput](doc/CheckInResultDtoOutput.md)
+ - [ClassifyInputDto](doc/ClassifyInputDto.md)
  - [CommissionOverviewDtoOutput](doc/CommissionOverviewDtoOutput.md)
  - [CommissionOverviewDtoOutputDefault](doc/CommissionOverviewDtoOutputDefault.md)
  - [CommissionOverviewDtoOutputOverridesInner](doc/CommissionOverviewDtoOutputOverridesInner.md)
@@ -427,23 +516,48 @@ Class | Method | HTTP request | Description
  - [CreatedBookingDtoOutputRefundsInner](doc/CreatedBookingDtoOutputRefundsInner.md)
  - [CreatedBookingDtoOutputTicketsInner](doc/CreatedBookingDtoOutputTicketsInner.md)
  - [CreatedBookingDtoOutputTrip](doc/CreatedBookingDtoOutputTrip.md)
+ - [CreatedBookingDtoOutputTripChangesInner](doc/CreatedBookingDtoOutputTripChangesInner.md)
  - [CredentialLoginDto](doc/CredentialLoginDto.md)
  - [CredentialLoginResponseDtoOutput](doc/CredentialLoginResponseDtoOutput.md)
  - [CredentialTokenResponse](doc/CredentialTokenResponse.md)
  - [CredentialWebSessionResponse](doc/CredentialWebSessionResponse.md)
  - [CsrfTokenResponseDtoOutput](doc/CsrfTokenResponseDtoOutput.md)
+ - [CustomerDisputeListDtoOutput](doc/CustomerDisputeListDtoOutput.md)
+ - [CustomerReviewDtoOutput](doc/CustomerReviewDtoOutput.md)
+ - [CustomerReviewDtoOutputReview](doc/CustomerReviewDtoOutputReview.md)
+ - [CustomerTicketInputDto](doc/CustomerTicketInputDto.md)
+ - [CustomerTicketInputDtoAttachmentsInner](doc/CustomerTicketInputDtoAttachmentsInner.md)
+ - [CustomerTicketListDtoOutput](doc/CustomerTicketListDtoOutput.md)
+ - [CustomerTicketListDtoOutputItemsInner](doc/CustomerTicketListDtoOutputItemsInner.md)
+ - [CustomerTicketListDtoOutputItemsInnerAssignee](doc/CustomerTicketListDtoOutputItemsInnerAssignee.md)
  - [DecisionInputDto](doc/DecisionInputDto.md)
  - [DecisionResponseDtoOutput](doc/DecisionResponseDtoOutput.md)
+ - [DisputeDecisionInputDto](doc/DisputeDecisionInputDto.md)
+ - [DisputeDetailDtoOutput](doc/DisputeDetailDtoOutput.md)
+ - [DisputeDetailDtoOutputCancellationTiersInner](doc/DisputeDetailDtoOutputCancellationTiersInner.md)
+ - [DisputeDetailDtoOutputDecision](doc/DisputeDetailDtoOutputDecision.md)
+ - [DisputeDetailDtoOutputDecisionRefund](doc/DisputeDetailDtoOutputDecisionRefund.md)
+ - [DisputeDetailDtoOutputEventsInner](doc/DisputeDetailDtoOutputEventsInner.md)
+ - [DisputeDetailDtoOutputTrip](doc/DisputeDetailDtoOutputTrip.md)
+ - [DisputePageDtoOutput](doc/DisputePageDtoOutput.md)
+ - [DisputePageDtoOutputItemsInner](doc/DisputePageDtoOutputItemsInner.md)
+ - [DisputeStatusInputDto](doc/DisputeStatusInputDto.md)
  - [DocumentDownloadResponseDtoOutput](doc/DocumentDownloadResponseDtoOutput.md)
  - [DocumentUploadInputDto](doc/DocumentUploadInputDto.md)
  - [DocumentUploadResponseDtoOutput](doc/DocumentUploadResponseDtoOutput.md)
+ - [DownloadUrlResponseDtoOutput](doc/DownloadUrlResponseDtoOutput.md)
  - [DriverAssignmentInputDto](doc/DriverAssignmentInputDto.md)
  - [EmployeeAccountResponseDtoOutput](doc/EmployeeAccountResponseDtoOutput.md)
+ - [EmployeeAssignmentDtoOutput](doc/EmployeeAssignmentDtoOutput.md)
+ - [EmployeeAssignmentListDtoOutput](doc/EmployeeAssignmentListDtoOutput.md)
+ - [EmployeeAssignmentListDtoOutputItemsInner](doc/EmployeeAssignmentListDtoOutputItemsInner.md)
  - [EmployeeCreateDto](doc/EmployeeCreateDto.md)
  - [EmployeeListResponseDtoOutput](doc/EmployeeListResponseDtoOutput.md)
  - [EmployeeListResponseDtoOutputItemsInner](doc/EmployeeListResponseDtoOutputItemsInner.md)
  - [EmployeePasswordResetDto](doc/EmployeePasswordResetDto.md)
  - [EmployeeUpdateDto](doc/EmployeeUpdateDto.md)
+ - [EscalateInputDto](doc/EscalateInputDto.md)
+ - [EvidenceInputDto](doc/EvidenceInputDto.md)
  - [FareBandCreateDto](doc/FareBandCreateDto.md)
  - [FareBandDtoOutput](doc/FareBandDtoOutput.md)
  - [FareBandListDtoOutput](doc/FareBandListDtoOutput.md)
@@ -470,12 +584,21 @@ Class | Method | HTTP request | Description
  - [KycReplaceInputDto](doc/KycReplaceInputDto.md)
  - [KycUploadInputDto](doc/KycUploadInputDto.md)
  - [KycUploadResponseDtoOutput](doc/KycUploadResponseDtoOutput.md)
+ - [LoyaltyMemberDtoOutput](doc/LoyaltyMemberDtoOutput.md)
+ - [LoyaltyMemberDtoOutputNextTier](doc/LoyaltyMemberDtoOutputNextTier.md)
+ - [LoyaltyReportDtoOutput](doc/LoyaltyReportDtoOutput.md)
+ - [LoyaltyReportDtoOutputMonthsInner](doc/LoyaltyReportDtoOutputMonthsInner.md)
+ - [LoyaltyReportDtoOutputTotals](doc/LoyaltyReportDtoOutputTotals.md)
+ - [LoyaltyTransactionPageDtoOutput](doc/LoyaltyTransactionPageDtoOutput.md)
+ - [LoyaltyTransactionPageDtoOutputItemsInner](doc/LoyaltyTransactionPageDtoOutputItemsInner.md)
+ - [MessageInputDto](doc/MessageInputDto.md)
  - [MessageResponseDtoOutput](doc/MessageResponseDtoOutput.md)
  - [MfaChallengeResponse](doc/MfaChallengeResponse.md)
  - [MfaVerifyDto](doc/MfaVerifyDto.md)
  - [MfaVerifyResponseDtoOutput](doc/MfaVerifyResponseDtoOutput.md)
  - [MfaVerifyTokenResponse](doc/MfaVerifyTokenResponse.md)
  - [MfaVerifyWebSessionResponse](doc/MfaVerifyWebSessionResponse.md)
+ - [ModerationInputDto](doc/ModerationInputDto.md)
  - [MongoHealthResponseDtoOutput](doc/MongoHealthResponseDtoOutput.md)
  - [OAuthInitDto](doc/OAuthInitDto.md)
  - [OAuthRedirectResponseDtoOutput](doc/OAuthRedirectResponseDtoOutput.md)
@@ -486,16 +609,27 @@ Class | Method | HTTP request | Description
  - [OperatorBookingPageDtoOutputItemsInner](doc/OperatorBookingPageDtoOutputItemsInner.md)
  - [OperatorBookingPageDtoOutputItemsInnerPayment](doc/OperatorBookingPageDtoOutputItemsInnerPayment.md)
  - [OperatorBookingPageDtoOutputItemsInnerTrip](doc/OperatorBookingPageDtoOutputItemsInnerTrip.md)
+ - [OperatorOverviewDtoOutput](doc/OperatorOverviewDtoOutput.md)
+ - [OperatorOverviewDtoOutputAttention](doc/OperatorOverviewDtoOutputAttention.md)
+ - [OperatorOverviewDtoOutputMonth](doc/OperatorOverviewDtoOutputMonth.md)
+ - [OperatorOverviewDtoOutputNextWeek](doc/OperatorOverviewDtoOutputNextWeek.md)
+ - [OperatorOverviewDtoOutputToday](doc/OperatorOverviewDtoOutputToday.md)
+ - [OperatorOverviewDtoOutputUpcomingInner](doc/OperatorOverviewDtoOutputUpcomingInner.md)
  - [OperatorProfileResponseDtoOutput](doc/OperatorProfileResponseDtoOutput.md)
  - [OperatorProfileResponseDtoOutputBankAccount](doc/OperatorProfileResponseDtoOutputBankAccount.md)
  - [OperatorProfileResponseDtoOutputBankChange](doc/OperatorProfileResponseDtoOutputBankChange.md)
  - [OperatorProfileUpdateDto](doc/OperatorProfileUpdateDto.md)
+ - [OperatorReportDtoOutput](doc/OperatorReportDtoOutput.md)
+ - [OperatorReportDtoOutputByRouteInner](doc/OperatorReportDtoOutputByRouteInner.md)
+ - [OperatorReportDtoOutputEmployeesInner](doc/OperatorReportDtoOutputEmployeesInner.md)
+ - [OperatorReportDtoOutputTotals](doc/OperatorReportDtoOutputTotals.md)
  - [OperatorStopPointInputDto](doc/OperatorStopPointInputDto.md)
  - [OperatorStopPointListResponseDtoOutput](doc/OperatorStopPointListResponseDtoOutput.md)
  - [OperatorStopPointListResponseDtoOutputItemsInner](doc/OperatorStopPointListResponseDtoOutputItemsInner.md)
  - [OperatorStopPointResponseDtoOutput](doc/OperatorStopPointResponseDtoOutput.md)
  - [OtpRequestDto](doc/OtpRequestDto.md)
  - [OtpVerifyDto](doc/OtpVerifyDto.md)
+ - [ParticipationInputDto](doc/ParticipationInputDto.md)
  - [PasswordChangeChallengeResponse](doc/PasswordChangeChallengeResponse.md)
  - [PasswordChangeRequiredDto](doc/PasswordChangeRequiredDto.md)
  - [PaymentInputDto](doc/PaymentInputDto.md)
@@ -510,6 +644,11 @@ Class | Method | HTTP request | Description
  - [PayoutPageDtoOutputItemsInner](doc/PayoutPageDtoOutputItemsInner.md)
  - [PayoutPageDtoOutputItemsInnerBank](doc/PayoutPageDtoOutputItemsInnerBank.md)
  - [PayoutReasonInputDto](doc/PayoutReasonInputDto.md)
+ - [PermissionDtoOutput](doc/PermissionDtoOutput.md)
+ - [PermissionInputDto](doc/PermissionInputDto.md)
+ - [PermissionPageDtoOutput](doc/PermissionPageDtoOutput.md)
+ - [PermissionPageDtoOutputItemsInner](doc/PermissionPageDtoOutputItemsInner.md)
+ - [PointAdjustInputDto](doc/PointAdjustInputDto.md)
  - [PolicyCancelDto](doc/PolicyCancelDto.md)
  - [PolicyDraftCreateDto](doc/PolicyDraftCreateDto.md)
  - [PolicyDraftUpdateDto](doc/PolicyDraftUpdateDto.md)
@@ -520,11 +659,21 @@ Class | Method | HTTP request | Description
  - [PolicyOverviewDtoOutputVersionsInnerRulesAnyOf](doc/PolicyOverviewDtoOutputVersionsInnerRulesAnyOf.md)
  - [PolicyOverviewDtoOutputVersionsInnerRulesAnyOf1](doc/PolicyOverviewDtoOutputVersionsInnerRulesAnyOf1.md)
  - [PolicyOverviewDtoOutputVersionsInnerRulesAnyOf2](doc/PolicyOverviewDtoOutputVersionsInnerRulesAnyOf2.md)
+ - [PolicyOverviewDtoOutputVersionsInnerRulesAnyOf3](doc/PolicyOverviewDtoOutputVersionsInnerRulesAnyOf3.md)
+ - [PolicyOverviewDtoOutputVersionsInnerRulesAnyOf3TiersInner](doc/PolicyOverviewDtoOutputVersionsInnerRulesAnyOf3TiersInner.md)
  - [PolicyOverviewDtoOutputVersionsInnerRulesAnyOfTiersInner](doc/PolicyOverviewDtoOutputVersionsInnerRulesAnyOfTiersInner.md)
  - [PolicyPublishDto](doc/PolicyPublishDto.md)
  - [PolicyVersionDtoOutput](doc/PolicyVersionDtoOutput.md)
  - [PostgresHealthResponseDtoOutput](doc/PostgresHealthResponseDtoOutput.md)
  - [ProblemDetailsDto](doc/ProblemDetailsDto.md)
+ - [PromotionCheckDtoOutput](doc/PromotionCheckDtoOutput.md)
+ - [PromotionCheckInputDto](doc/PromotionCheckInputDto.md)
+ - [PromotionDtoOutput](doc/PromotionDtoOutput.md)
+ - [PromotionInputDto](doc/PromotionInputDto.md)
+ - [PromotionPageDtoOutput](doc/PromotionPageDtoOutput.md)
+ - [PromotionPageDtoOutputItemsInner](doc/PromotionPageDtoOutputItemsInner.md)
+ - [PromotionPageDtoOutputStats](doc/PromotionPageDtoOutputStats.md)
+ - [PromotionStatusInputDto](doc/PromotionStatusInputDto.md)
  - [ProvinceListResponseDtoOutput](doc/ProvinceListResponseDtoOutput.md)
  - [ProvinceListResponseDtoOutputItemsInner](doc/ProvinceListResponseDtoOutputItemsInner.md)
  - [PublicContentItemDtoOutput](doc/PublicContentItemDtoOutput.md)
@@ -548,6 +697,13 @@ Class | Method | HTTP request | Description
  - [RefundReasonInputDto](doc/RefundReasonInputDto.md)
  - [RefundResolveInputDto](doc/RefundResolveInputDto.md)
  - [RegisterDto](doc/RegisterDto.md)
+ - [ReplyInputDto](doc/ReplyInputDto.md)
+ - [ReportInputDto](doc/ReportInputDto.md)
+ - [RequestEvidenceInputDto](doc/RequestEvidenceInputDto.md)
+ - [ReviewDtoOutput](doc/ReviewDtoOutput.md)
+ - [ReviewInputDto](doc/ReviewInputDto.md)
+ - [ReviewPageDtoOutput](doc/ReviewPageDtoOutput.md)
+ - [ReviewPageDtoOutputItemsInner](doc/ReviewPageDtoOutputItemsInner.md)
  - [RouteInputDto](doc/RouteInputDto.md)
  - [RouteInputDtoStopsInner](doc/RouteInputDtoStopsInner.md)
  - [RouteListResponseDtoOutput](doc/RouteListResponseDtoOutput.md)
@@ -579,24 +735,43 @@ Class | Method | HTTP request | Description
  - [StopPointReasonInputDto](doc/StopPointReasonInputDto.md)
  - [SystemIntegrationsDtoOutput](doc/SystemIntegrationsDtoOutput.md)
  - [SystemIntegrationsDtoOutputItemsInner](doc/SystemIntegrationsDtoOutputItemsInner.md)
+ - [TicketDetailDtoOutput](doc/TicketDetailDtoOutput.md)
+ - [TicketDetailDtoOutputDispute](doc/TicketDetailDtoOutputDispute.md)
+ - [TicketDetailDtoOutputMessagesInner](doc/TicketDetailDtoOutputMessagesInner.md)
+ - [TicketDetailDtoOutputMessagesInnerAttachmentsInner](doc/TicketDetailDtoOutputMessagesInnerAttachmentsInner.md)
+ - [TicketDetailDtoOutputPaymentsInner](doc/TicketDetailDtoOutputPaymentsInner.md)
  - [TicketLookupInputDto](doc/TicketLookupInputDto.md)
+ - [TicketPageDtoOutput](doc/TicketPageDtoOutput.md)
  - [TicketResponseDtoOutput](doc/TicketResponseDtoOutput.md)
+ - [TicketStatusInputDto](doc/TicketStatusInputDto.md)
+ - [TicketVerifyInputDto](doc/TicketVerifyInputDto.md)
+ - [TicketVerifyResultDtoOutput](doc/TicketVerifyResultDtoOutput.md)
+ - [TicketVerifyResultDtoOutputTicket](doc/TicketVerifyResultDtoOutputTicket.md)
+ - [TicketVerifyResultDtoOutputTicketTrip](doc/TicketVerifyResultDtoOutputTicketTrip.md)
  - [TripAssignmentDtoOutput](doc/TripAssignmentDtoOutput.md)
  - [TripAssignmentPageDtoOutput](doc/TripAssignmentPageDtoOutput.md)
  - [TripAssignmentPageDtoOutputItemsInner](doc/TripAssignmentPageDtoOutputItemsInner.md)
  - [TripAssignmentPageDtoOutputItemsInnerConflict](doc/TripAssignmentPageDtoOutputItemsInnerConflict.md)
  - [TripAssignmentPageDtoOutputItemsInnerDriver](doc/TripAssignmentPageDtoOutputItemsInnerDriver.md)
+ - [TripChangeInputDto](doc/TripChangeInputDto.md)
+ - [TripChangeInputDtoStopsInner](doc/TripChangeInputDtoStopsInner.md)
  - [TripInputDto](doc/TripInputDto.md)
  - [TripListResponseDtoOutput](doc/TripListResponseDtoOutput.md)
  - [TripListResponseDtoOutputItemsInner](doc/TripListResponseDtoOutputItemsInner.md)
+ - [TripManifestDtoOutput](doc/TripManifestDtoOutput.md)
+ - [TripManifestDtoOutputPassengersInner](doc/TripManifestDtoOutputPassengersInner.md)
+ - [TripOperationInputDto](doc/TripOperationInputDto.md)
  - [TripPassengerListDtoOutput](doc/TripPassengerListDtoOutput.md)
  - [TripPassengerListDtoOutputItemsInner](doc/TripPassengerListDtoOutputItemsInner.md)
- - [TripPassengerListDtoOutputPickupsInner](doc/TripPassengerListDtoOutputPickupsInner.md)
  - [TripPassengerListDtoOutputSummary](doc/TripPassengerListDtoOutputSummary.md)
  - [TripPassengerListDtoOutputTrip](doc/TripPassengerListDtoOutputTrip.md)
  - [TripResponseDtoOutput](doc/TripResponseDtoOutput.md)
  - [TripResponseDtoOutputSeatsInner](doc/TripResponseDtoOutputSeatsInner.md)
  - [TripResponseDtoOutputStopsInner](doc/TripResponseDtoOutputStopsInner.md)
+ - [TripSalesDtoOutput](doc/TripSalesDtoOutput.md)
+ - [TripSalesDtoOutputChangesInner](doc/TripSalesDtoOutputChangesInner.md)
+ - [TripSalesDtoOutputChangesInnerBefore](doc/TripSalesDtoOutputChangesInnerBefore.md)
+ - [TripSalesDtoOutputChangesInnerBeforeStopsInner](doc/TripSalesDtoOutputChangesInnerBeforeStopsInner.md)
  - [TripScheduleGenerateInputDto](doc/TripScheduleGenerateInputDto.md)
  - [TripScheduleGenerateResponseDtoOutput](doc/TripScheduleGenerateResponseDtoOutput.md)
  - [TripScheduleGenerateResponseDtoOutputCreatedInner](doc/TripScheduleGenerateResponseDtoOutputCreatedInner.md)

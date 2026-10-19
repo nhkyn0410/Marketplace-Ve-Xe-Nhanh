@@ -442,7 +442,7 @@ test("hủy chuyến chưa có vé: bắt buộc lý do; hủy xong không còn 
   await expect(dialog).toContainText("Hủy xong chuyến không mở bán lại được");
 
   await dialog.getByRole("button", { name: "Hủy chuyến" }).click();
-  await expect(dialog.getByRole("alert")).toHaveText("Nhập lý do hủy chuyến.");
+  await expect(dialog.getByRole("alert")).toHaveText("Nhập lý do hủy chuyến (tối thiểu 3 ký tự).");
   await dialog.getByLabel("Lý do hủy *").fill("Xe vào xưởng bảo dưỡng đột xuất.");
   await dialog.getByRole("button", { name: "Hủy chuyến" }).click();
 
