@@ -150,6 +150,7 @@ describe.skipIf(!url && !requireDb)("Route / StopPoint / Proposal — Postgres t
         id,
         name: `${name} ${tag}`,
         type: "BUS_STATION" as const,
+        legalBasis: "QĐ công bố (test)",
         address: "x",
         provinceId: province,
         wardId: ward,
@@ -733,7 +734,7 @@ describe.skipIf(!url && !requireDb)("Route / StopPoint / Proposal — Postgres t
       const lateCatalog = randomUUID();
       await prisma.withSystem((tx) =>
         tx.stopPointCatalog.create({
-          data: { id: lateCatalog, name: `Bến sắp ngừng ${tag}`, type: "BUS_STATION", address: "x", provinceId: province, wardId: ward, latitude: 12, longitude: 107 },
+          data: { id: lateCatalog, name: `Bến sắp ngừng ${tag}`, type: "BUS_STATION", legalBasis: "QĐ công bố (test)", address: "x", provinceId: province, wardId: ward, latitude: 12, longitude: 107 },
         }),
       );
       const own = await stopPoints.create(authzA, stopPointInput({ latitude: 11.1, longitude: 107.3 }));

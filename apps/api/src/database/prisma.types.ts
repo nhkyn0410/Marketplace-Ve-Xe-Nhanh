@@ -4,6 +4,9 @@
  * `src/database/` — kể cả `import type` — để Prisma không rò khắp domain.
  */
 export {
+  AccountStatus,
+  ArticleStatus,
+  BankAccountStatus,
   CatalogStatus,
   EmployeeRole,
   FareStatus,
@@ -11,6 +14,9 @@ export {
   OperatorApplicationStatus,
   OperatorRole,
   OperatorStatus,
+  PolicyRuleStatus,
+  PolicyType,
+  PolicyVersionStatus,
   PlatformRole,
   RouteStatus,
   RouteStopRole,

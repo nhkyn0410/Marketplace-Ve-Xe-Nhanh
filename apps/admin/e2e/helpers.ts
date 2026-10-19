@@ -8,9 +8,33 @@ import { expect, type Page } from "@playwright/test";
 export type E2eAccounts = {
   operatorSlug: string;
   fleetOwner: { username: string; password: string };
+  /** Tài xế của nhà xe E2E (màn Người dùng → Nhân viên nhà xe). */
+  employee: { username: string; password: string };
   platform: { username: string; password: string };
   /** Quản trị viên riêng cho E2E duyệt hồ sơ nhà xe. */
   platformReviewer: { username: string; password: string };
+  /** Quản trị viên riêng cho E2E màn Điểm dừng. */
+  platformCatalog: { username: string; password: string };
+  /** Quản trị viên riêng cho E2E màn Danh mục chuẩn. */
+  platformData: { username: string; password: string };
+  platformModeration: { username: string; password: string };
+  platformContent: { username: string; password: string };
+  platformUsers: { username: string; password: string };
+  adminUsers: { operatorName: string; operatorSlug: string; passengerEmail: string };
+  /** Quản trị viên riêng cho E2E màn Chính sách + nhà xe làm phạm vi riêng / mức hoa hồng riêng. */
+  platformPolicy: { username: string; password: string };
+  adminPolicy: { operatorName: string; operatorSlug: string };
+  /** Nhà xe riêng có một xe hai ảnh; `null` khi chưa có loại xe. */
+  moderation: { operatorName: string; plateNumber: string; captions: string[] } | null;
+  /** `null` khi catalog chưa seed. */
+  adminStopPoints: {
+    proposalName: string;
+    rejectProposalName: string;
+    privatePointName: string;
+    operatorName: string;
+    provinceName: string;
+    wardName: string;
+  } | null;
 };
 
 type Credentials = { username: string; password: string };

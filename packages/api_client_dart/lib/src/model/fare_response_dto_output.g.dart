@@ -82,6 +82,8 @@ class _$FareResponseDtoOutput extends FareResponseDtoOutput {
   final String? note;
   @override
   final BuiltList<FareResponseDtoOutputRulesInner> rules;
+  @override
+  final BuiltList<FareResponseDtoOutputBandWarningsInner> bandWarnings;
 
   factory _$FareResponseDtoOutput(
           [void Function(FareResponseDtoOutputBuilder)? updates]) =>
@@ -95,7 +97,8 @@ class _$FareResponseDtoOutput extends FareResponseDtoOutput {
       required this.createdAt,
       required this.updatedAt,
       this.note,
-      required this.rules})
+      required this.rules,
+      required this.bandWarnings})
       : super._();
   @override
   FareResponseDtoOutput rebuild(
@@ -117,7 +120,8 @@ class _$FareResponseDtoOutput extends FareResponseDtoOutput {
         createdAt == other.createdAt &&
         updatedAt == other.updatedAt &&
         note == other.note &&
-        rules == other.rules;
+        rules == other.rules &&
+        bandWarnings == other.bandWarnings;
   }
 
   @override
@@ -131,6 +135,7 @@ class _$FareResponseDtoOutput extends FareResponseDtoOutput {
     _$hash = $jc(_$hash, updatedAt.hashCode);
     _$hash = $jc(_$hash, note.hashCode);
     _$hash = $jc(_$hash, rules.hashCode);
+    _$hash = $jc(_$hash, bandWarnings.hashCode);
     _$hash = $jf(_$hash);
     return _$hash;
   }
@@ -145,7 +150,8 @@ class _$FareResponseDtoOutput extends FareResponseDtoOutput {
           ..add('createdAt', createdAt)
           ..add('updatedAt', updatedAt)
           ..add('note', note)
-          ..add('rules', rules))
+          ..add('rules', rules)
+          ..add('bandWarnings', bandWarnings))
         .toString();
   }
 }
@@ -189,6 +195,14 @@ class FareResponseDtoOutputBuilder
   set rules(ListBuilder<FareResponseDtoOutputRulesInner>? rules) =>
       _$this._rules = rules;
 
+  ListBuilder<FareResponseDtoOutputBandWarningsInner>? _bandWarnings;
+  ListBuilder<FareResponseDtoOutputBandWarningsInner> get bandWarnings =>
+      _$this._bandWarnings ??=
+          ListBuilder<FareResponseDtoOutputBandWarningsInner>();
+  set bandWarnings(
+          ListBuilder<FareResponseDtoOutputBandWarningsInner>? bandWarnings) =>
+      _$this._bandWarnings = bandWarnings;
+
   FareResponseDtoOutputBuilder() {
     FareResponseDtoOutput._defaults(this);
   }
@@ -204,6 +218,7 @@ class FareResponseDtoOutputBuilder
       _updatedAt = $v.updatedAt;
       _note = $v.note;
       _rules = $v.rules.toBuilder();
+      _bandWarnings = $v.bandWarnings.toBuilder();
       _$v = null;
     }
     return this;
@@ -241,12 +256,15 @@ class FareResponseDtoOutputBuilder
                 updatedAt, r'FareResponseDtoOutput', 'updatedAt'),
             note: note,
             rules: rules.build(),
+            bandWarnings: bandWarnings.build(),
           );
     } catch (_) {
       late String _$failedField;
       try {
         _$failedField = 'rules';
         rules.build();
+        _$failedField = 'bandWarnings';
+        bandWarnings.build();
       } catch (e) {
         throw BuiltValueNestedFieldError(
             r'FareResponseDtoOutput', _$failedField, e.toString());

@@ -15,6 +15,11 @@ import 'package:api_client_dart/src/date_serializer.dart';
 import 'package:api_client_dart/src/model/date.dart';
 
 import 'package:api_client_dart/src/model/account_mutation_response_dto_output.dart';
+import 'package:api_client_dart/src/model/admin_account_lock_dto.dart';
+import 'package:api_client_dart/src/model/admin_amenity_dto_output.dart';
+import 'package:api_client_dart/src/model/admin_amenity_input_dto.dart';
+import 'package:api_client_dart/src/model/admin_amenity_list_dto_output.dart';
+import 'package:api_client_dart/src/model/admin_amenity_list_dto_output_items_inner.dart';
 import 'package:api_client_dart/src/model/admin_application_detail_dto_output.dart';
 import 'package:api_client_dart/src/model/admin_application_detail_dto_output_documents_inner.dart';
 import 'package:api_client_dart/src/model/admin_application_detail_dto_output_duplicates.dart';
@@ -23,6 +28,69 @@ import 'package:api_client_dart/src/model/admin_application_detail_dto_output_hi
 import 'package:api_client_dart/src/model/admin_application_detail_dto_output_operator.dart';
 import 'package:api_client_dart/src/model/admin_application_list_response_dto_output.dart';
 import 'package:api_client_dart/src/model/admin_application_list_response_dto_output_items_inner.dart';
+import 'package:api_client_dart/src/model/admin_article_category_dto_output.dart';
+import 'package:api_client_dart/src/model/admin_article_category_input_dto.dart';
+import 'package:api_client_dart/src/model/admin_article_category_list_dto_output.dart';
+import 'package:api_client_dart/src/model/admin_article_category_list_dto_output_items_inner.dart';
+import 'package:api_client_dart/src/model/admin_article_dto_output.dart';
+import 'package:api_client_dart/src/model/admin_article_image_upload_input_dto.dart';
+import 'package:api_client_dart/src/model/admin_article_image_upload_response_dto_output.dart';
+import 'package:api_client_dart/src/model/admin_article_input_dto.dart';
+import 'package:api_client_dart/src/model/admin_article_page_dto_output.dart';
+import 'package:api_client_dart/src/model/admin_article_page_dto_output_items_inner.dart';
+import 'package:api_client_dart/src/model/admin_article_publish_dto.dart';
+import 'package:api_client_dart/src/model/admin_audit_log_detail_dto_output.dart';
+import 'package:api_client_dart/src/model/admin_audit_log_list_dto_output.dart';
+import 'package:api_client_dart/src/model/admin_audit_log_list_dto_output_items_inner.dart';
+import 'package:api_client_dart/src/model/admin_audit_log_list_dto_output_items_inner_operator.dart';
+import 'package:api_client_dart/src/model/admin_bank_change_approve_dto.dart';
+import 'package:api_client_dart/src/model/admin_bank_change_dto_output.dart';
+import 'package:api_client_dart/src/model/admin_bank_change_dto_output_current.dart';
+import 'package:api_client_dart/src/model/admin_bank_change_dto_output_requested.dart';
+import 'package:api_client_dart/src/model/admin_bank_change_reject_dto.dart';
+import 'package:api_client_dart/src/model/admin_catalog_deactivate_dto.dart';
+import 'package:api_client_dart/src/model/admin_catalog_rename_dto.dart';
+import 'package:api_client_dart/src/model/admin_employee_page_dto_output.dart';
+import 'package:api_client_dart/src/model/admin_employee_page_dto_output_items_inner.dart';
+import 'package:api_client_dart/src/model/admin_operator_page_dto_output.dart';
+import 'package:api_client_dart/src/model/admin_operator_page_dto_output_items_inner.dart';
+import 'package:api_client_dart/src/model/admin_operator_page_dto_output_items_inner_owner.dart';
+import 'package:api_client_dart/src/model/admin_operator_stop_point_dto_output.dart';
+import 'package:api_client_dart/src/model/admin_operator_stop_point_list_dto_output.dart';
+import 'package:api_client_dart/src/model/admin_operator_stop_point_list_dto_output_items_inner.dart';
+import 'package:api_client_dart/src/model/admin_operator_suspend_dto.dart';
+import 'package:api_client_dart/src/model/admin_passenger_page_dto_output.dart';
+import 'package:api_client_dart/src/model/admin_passenger_page_dto_output_items_inner.dart';
+import 'package:api_client_dart/src/model/admin_platform_account_create_dto.dart';
+import 'package:api_client_dart/src/model/admin_platform_account_dto_output.dart';
+import 'package:api_client_dart/src/model/admin_platform_account_list_dto_output.dart';
+import 'package:api_client_dart/src/model/admin_platform_account_list_dto_output_items_inner.dart';
+import 'package:api_client_dart/src/model/admin_province_dto_output.dart';
+import 'package:api_client_dart/src/model/admin_province_input_dto.dart';
+import 'package:api_client_dart/src/model/admin_province_page_dto_output.dart';
+import 'package:api_client_dart/src/model/admin_province_page_dto_output_items_inner.dart';
+import 'package:api_client_dart/src/model/admin_remove_vehicle_image_input_dto.dart';
+import 'package:api_client_dart/src/model/admin_shared_stop_point_dto_output.dart';
+import 'package:api_client_dart/src/model/admin_shared_stop_point_input_dto.dart';
+import 'package:api_client_dart/src/model/admin_shared_stop_point_list_dto_output.dart';
+import 'package:api_client_dart/src/model/admin_shared_stop_point_list_dto_output_items_inner.dart';
+import 'package:api_client_dart/src/model/admin_stop_point_proposal_approval_dto.dart';
+import 'package:api_client_dart/src/model/admin_stop_point_proposal_dto_output.dart';
+import 'package:api_client_dart/src/model/admin_stop_point_proposal_list_dto_output.dart';
+import 'package:api_client_dart/src/model/admin_stop_point_proposal_list_dto_output_items_inner.dart';
+import 'package:api_client_dart/src/model/admin_stop_point_proposal_list_dto_output_items_inner_nearby_inner.dart';
+import 'package:api_client_dart/src/model/admin_vehicle_image_list_dto_output.dart';
+import 'package:api_client_dart/src/model/admin_vehicle_image_list_dto_output_items_inner.dart';
+import 'package:api_client_dart/src/model/admin_vehicle_image_list_dto_output_operators_inner.dart';
+import 'package:api_client_dart/src/model/admin_vehicle_type_dto_output.dart';
+import 'package:api_client_dart/src/model/admin_vehicle_type_input_dto.dart';
+import 'package:api_client_dart/src/model/admin_vehicle_type_list_dto_output.dart';
+import 'package:api_client_dart/src/model/admin_vehicle_type_list_dto_output_items_inner.dart';
+import 'package:api_client_dart/src/model/admin_vehicle_type_update_dto.dart';
+import 'package:api_client_dart/src/model/admin_ward_dto_output.dart';
+import 'package:api_client_dart/src/model/admin_ward_input_dto.dart';
+import 'package:api_client_dart/src/model/admin_ward_page_dto_output.dart';
+import 'package:api_client_dart/src/model/admin_ward_page_dto_output_items_inner.dart';
 import 'package:api_client_dart/src/model/amenity_list_response_dto_output.dart';
 import 'package:api_client_dart/src/model/application_access_link_input_dto.dart';
 import 'package:api_client_dart/src/model/application_create_input_dto.dart';
@@ -32,8 +100,26 @@ import 'package:api_client_dart/src/model/application_update_input_dto.dart';
 import 'package:api_client_dart/src/model/application_update_input_dto_documents_inner.dart';
 import 'package:api_client_dart/src/model/approval_input_dto.dart';
 import 'package:api_client_dart/src/model/approval_response_dto_output.dart';
+import 'package:api_client_dart/src/model/article_category_list_dto_output.dart';
+import 'package:api_client_dart/src/model/article_category_list_dto_output_items_inner.dart';
+import 'package:api_client_dart/src/model/article_dto_output.dart';
+import 'package:api_client_dart/src/model/article_page_dto_output.dart';
+import 'package:api_client_dart/src/model/article_page_dto_output_items_inner.dart';
+import 'package:api_client_dart/src/model/article_page_dto_output_items_inner_category.dart';
 import 'package:api_client_dart/src/model/auth_me_response_dto_output.dart';
 import 'package:api_client_dart/src/model/auth_token_response_dto_output.dart';
+import 'package:api_client_dart/src/model/background_jobs_dto_output.dart';
+import 'package:api_client_dart/src/model/background_jobs_dto_output_jobs_inner.dart';
+import 'package:api_client_dart/src/model/background_jobs_dto_output_jobs_inner_last_run.dart';
+import 'package:api_client_dart/src/model/background_jobs_dto_output_queues_inner.dart';
+import 'package:api_client_dart/src/model/bank_change_input_dto.dart';
+import 'package:api_client_dart/src/model/commission_overview_dto_output.dart';
+import 'package:api_client_dart/src/model/commission_overview_dto_output_default.dart';
+import 'package:api_client_dart/src/model/commission_overview_dto_output_overrides_inner.dart';
+import 'package:api_client_dart/src/model/commission_rule_cancel_dto.dart';
+import 'package:api_client_dart/src/model/commission_rule_create_dto.dart';
+import 'package:api_client_dart/src/model/commission_rule_dto_output.dart';
+import 'package:api_client_dart/src/model/commission_rule_update_dto.dart';
 import 'package:api_client_dart/src/model/credential_login_dto.dart';
 import 'package:api_client_dart/src/model/credential_login_response_dto_output.dart';
 import 'package:api_client_dart/src/model/credential_token_response.dart';
@@ -50,11 +136,16 @@ import 'package:api_client_dart/src/model/employee_list_response_dto_output.dart
 import 'package:api_client_dart/src/model/employee_list_response_dto_output_items_inner.dart';
 import 'package:api_client_dart/src/model/employee_password_reset_dto.dart';
 import 'package:api_client_dart/src/model/employee_update_dto.dart';
+import 'package:api_client_dart/src/model/fare_band_create_dto.dart';
+import 'package:api_client_dart/src/model/fare_band_dto_output.dart';
+import 'package:api_client_dart/src/model/fare_band_list_dto_output.dart';
+import 'package:api_client_dart/src/model/fare_band_list_dto_output_items_inner.dart';
 import 'package:api_client_dart/src/model/fare_create_input_dto.dart';
 import 'package:api_client_dart/src/model/fare_create_input_dto_rules_inner.dart';
 import 'package:api_client_dart/src/model/fare_list_response_dto_output.dart';
 import 'package:api_client_dart/src/model/fare_list_response_dto_output_items_inner.dart';
 import 'package:api_client_dart/src/model/fare_response_dto_output.dart';
+import 'package:api_client_dart/src/model/fare_response_dto_output_band_warnings_inner.dart';
 import 'package:api_client_dart/src/model/fare_response_dto_output_rules_inner.dart';
 import 'package:api_client_dart/src/model/fare_revision_list_response_dto_output.dart';
 import 'package:api_client_dart/src/model/fare_revision_list_response_dto_output_items_inner.dart';
@@ -62,6 +153,10 @@ import 'package:api_client_dart/src/model/fare_revision_list_response_dto_output
 import 'package:api_client_dart/src/model/fare_revision_list_response_dto_output_items_inner_before.dart';
 import 'package:api_client_dart/src/model/fare_update_input_dto.dart';
 import 'package:api_client_dart/src/model/health_response_dto_output.dart';
+import 'package:api_client_dart/src/model/kyc_download_response_dto_output.dart';
+import 'package:api_client_dart/src/model/kyc_replace_input_dto.dart';
+import 'package:api_client_dart/src/model/kyc_upload_input_dto.dart';
+import 'package:api_client_dart/src/model/kyc_upload_response_dto_output.dart';
 import 'package:api_client_dart/src/model/message_response_dto_output.dart';
 import 'package:api_client_dart/src/model/mfa_challenge_response.dart';
 import 'package:api_client_dart/src/model/mfa_verify_dto.dart';
@@ -71,6 +166,10 @@ import 'package:api_client_dart/src/model/mfa_verify_web_session_response.dart';
 import 'package:api_client_dart/src/model/mongo_health_response_dto_output.dart';
 import 'package:api_client_dart/src/model/o_auth_init_dto.dart';
 import 'package:api_client_dart/src/model/o_auth_redirect_response_dto_output.dart';
+import 'package:api_client_dart/src/model/operator_profile_response_dto_output.dart';
+import 'package:api_client_dart/src/model/operator_profile_response_dto_output_bank_account.dart';
+import 'package:api_client_dart/src/model/operator_profile_response_dto_output_bank_change.dart';
+import 'package:api_client_dart/src/model/operator_profile_update_dto.dart';
 import 'package:api_client_dart/src/model/operator_stop_point_input_dto.dart';
 import 'package:api_client_dart/src/model/operator_stop_point_list_response_dto_output.dart';
 import 'package:api_client_dart/src/model/operator_stop_point_list_response_dto_output_items_inner.dart';
@@ -79,6 +178,19 @@ import 'package:api_client_dart/src/model/otp_request_dto.dart';
 import 'package:api_client_dart/src/model/otp_verify_dto.dart';
 import 'package:api_client_dart/src/model/password_change_challenge_response.dart';
 import 'package:api_client_dart/src/model/password_change_required_dto.dart';
+import 'package:api_client_dart/src/model/policy_cancel_dto.dart';
+import 'package:api_client_dart/src/model/policy_draft_create_dto.dart';
+import 'package:api_client_dart/src/model/policy_draft_update_dto.dart';
+import 'package:api_client_dart/src/model/policy_overview_dto_output.dart';
+import 'package:api_client_dart/src/model/policy_overview_dto_output_overrides_inner.dart';
+import 'package:api_client_dart/src/model/policy_overview_dto_output_versions_inner.dart';
+import 'package:api_client_dart/src/model/policy_overview_dto_output_versions_inner_rules.dart';
+import 'package:api_client_dart/src/model/policy_overview_dto_output_versions_inner_rules_any_of.dart';
+import 'package:api_client_dart/src/model/policy_overview_dto_output_versions_inner_rules_any_of1.dart';
+import 'package:api_client_dart/src/model/policy_overview_dto_output_versions_inner_rules_any_of2.dart';
+import 'package:api_client_dart/src/model/policy_overview_dto_output_versions_inner_rules_any_of_tiers_inner.dart';
+import 'package:api_client_dart/src/model/policy_publish_dto.dart';
+import 'package:api_client_dart/src/model/policy_version_dto_output.dart';
 import 'package:api_client_dart/src/model/postgres_health_response_dto_output.dart';
 import 'package:api_client_dart/src/model/problem_details_dto.dart';
 import 'package:api_client_dart/src/model/province_list_response_dto_output.dart';
@@ -116,6 +228,9 @@ import 'package:api_client_dart/src/model/stop_point_proposal_input_dto.dart';
 import 'package:api_client_dart/src/model/stop_point_proposal_list_response_dto_output.dart';
 import 'package:api_client_dart/src/model/stop_point_proposal_list_response_dto_output_items_inner.dart';
 import 'package:api_client_dart/src/model/stop_point_proposal_response_dto_output.dart';
+import 'package:api_client_dart/src/model/stop_point_reason_input_dto.dart';
+import 'package:api_client_dart/src/model/system_integrations_dto_output.dart';
+import 'package:api_client_dart/src/model/system_integrations_dto_output_items_inner.dart';
 import 'package:api_client_dart/src/model/trip_input_dto.dart';
 import 'package:api_client_dart/src/model/trip_list_response_dto_output.dart';
 import 'package:api_client_dart/src/model/trip_list_response_dto_output_items_inner.dart';
@@ -144,6 +259,11 @@ part 'serializers.g.dart';
 
 @SerializersFor([
   AccountMutationResponseDtoOutput,
+  AdminAccountLockDto,
+  AdminAmenityDtoOutput,
+  AdminAmenityInputDto,
+  AdminAmenityListDtoOutput,
+  AdminAmenityListDtoOutputItemsInner,
   AdminApplicationDetailDtoOutput,
   AdminApplicationDetailDtoOutputDocumentsInner,
   AdminApplicationDetailDtoOutputDuplicates,
@@ -152,6 +272,69 @@ part 'serializers.g.dart';
   AdminApplicationDetailDtoOutputOperator,
   AdminApplicationListResponseDtoOutput,
   AdminApplicationListResponseDtoOutputItemsInner,
+  AdminArticleCategoryDtoOutput,
+  AdminArticleCategoryInputDto,
+  AdminArticleCategoryListDtoOutput,
+  AdminArticleCategoryListDtoOutputItemsInner,
+  AdminArticleDtoOutput,
+  AdminArticleImageUploadInputDto,
+  AdminArticleImageUploadResponseDtoOutput,
+  AdminArticleInputDto,
+  AdminArticlePageDtoOutput,
+  AdminArticlePageDtoOutputItemsInner,
+  AdminArticlePublishDto,
+  AdminAuditLogDetailDtoOutput,
+  AdminAuditLogListDtoOutput,
+  AdminAuditLogListDtoOutputItemsInner,
+  AdminAuditLogListDtoOutputItemsInnerOperator,
+  AdminBankChangeApproveDto,
+  AdminBankChangeDtoOutput,
+  AdminBankChangeDtoOutputCurrent,
+  AdminBankChangeDtoOutputRequested,
+  AdminBankChangeRejectDto,
+  AdminCatalogDeactivateDto,
+  AdminCatalogRenameDto,
+  AdminEmployeePageDtoOutput,
+  AdminEmployeePageDtoOutputItemsInner,
+  AdminOperatorPageDtoOutput,
+  AdminOperatorPageDtoOutputItemsInner,
+  AdminOperatorPageDtoOutputItemsInnerOwner,
+  AdminOperatorStopPointDtoOutput,
+  AdminOperatorStopPointListDtoOutput,
+  AdminOperatorStopPointListDtoOutputItemsInner,
+  AdminOperatorSuspendDto,
+  AdminPassengerPageDtoOutput,
+  AdminPassengerPageDtoOutputItemsInner,
+  AdminPlatformAccountCreateDto,
+  AdminPlatformAccountDtoOutput,
+  AdminPlatformAccountListDtoOutput,
+  AdminPlatformAccountListDtoOutputItemsInner,
+  AdminProvinceDtoOutput,
+  AdminProvinceInputDto,
+  AdminProvincePageDtoOutput,
+  AdminProvincePageDtoOutputItemsInner,
+  AdminRemoveVehicleImageInputDto,
+  AdminSharedStopPointDtoOutput,
+  AdminSharedStopPointInputDto,
+  AdminSharedStopPointListDtoOutput,
+  AdminSharedStopPointListDtoOutputItemsInner,
+  AdminStopPointProposalApprovalDto,
+  AdminStopPointProposalDtoOutput,
+  AdminStopPointProposalListDtoOutput,
+  AdminStopPointProposalListDtoOutputItemsInner,
+  AdminStopPointProposalListDtoOutputItemsInnerNearbyInner,
+  AdminVehicleImageListDtoOutput,
+  AdminVehicleImageListDtoOutputItemsInner,
+  AdminVehicleImageListDtoOutputOperatorsInner,
+  AdminVehicleTypeDtoOutput,
+  AdminVehicleTypeInputDto,
+  AdminVehicleTypeListDtoOutput,
+  AdminVehicleTypeListDtoOutputItemsInner,
+  AdminVehicleTypeUpdateDto,
+  AdminWardDtoOutput,
+  AdminWardInputDto,
+  AdminWardPageDtoOutput,
+  AdminWardPageDtoOutputItemsInner,
   AmenityListResponseDtoOutput,
   ApplicationAccessLinkInputDto,
   ApplicationCreateInputDto,
@@ -161,8 +344,26 @@ part 'serializers.g.dart';
   ApplicationUpdateInputDtoDocumentsInner,
   ApprovalInputDto,
   ApprovalResponseDtoOutput,
+  ArticleCategoryListDtoOutput,
+  ArticleCategoryListDtoOutputItemsInner,
+  ArticleDtoOutput,
+  ArticlePageDtoOutput,
+  ArticlePageDtoOutputItemsInner,
+  ArticlePageDtoOutputItemsInnerCategory,
   AuthMeResponseDtoOutput,
   AuthTokenResponseDtoOutput,
+  BackgroundJobsDtoOutput,
+  BackgroundJobsDtoOutputJobsInner,
+  BackgroundJobsDtoOutputJobsInnerLastRun,
+  BackgroundJobsDtoOutputQueuesInner,
+  BankChangeInputDto,
+  CommissionOverviewDtoOutput,
+  CommissionOverviewDtoOutputDefault,
+  CommissionOverviewDtoOutputOverridesInner,
+  CommissionRuleCancelDto,
+  CommissionRuleCreateDto,
+  CommissionRuleDtoOutput,
+  CommissionRuleUpdateDto,
   CredentialLoginDto,
   CredentialLoginResponseDtoOutput,
   CredentialTokenResponse,
@@ -179,11 +380,16 @@ part 'serializers.g.dart';
   EmployeeListResponseDtoOutputItemsInner,
   EmployeePasswordResetDto,
   EmployeeUpdateDto,
+  FareBandCreateDto,
+  FareBandDtoOutput,
+  FareBandListDtoOutput,
+  FareBandListDtoOutputItemsInner,
   FareCreateInputDto,
   FareCreateInputDtoRulesInner,
   FareListResponseDtoOutput,
   FareListResponseDtoOutputItemsInner,
   FareResponseDtoOutput,
+  FareResponseDtoOutputBandWarningsInner,
   FareResponseDtoOutputRulesInner,
   FareRevisionListResponseDtoOutput,
   FareRevisionListResponseDtoOutputItemsInner,
@@ -191,6 +397,10 @@ part 'serializers.g.dart';
   FareRevisionListResponseDtoOutputItemsInnerBefore,
   FareUpdateInputDto,
   HealthResponseDtoOutput,
+  KycDownloadResponseDtoOutput,
+  KycReplaceInputDto,
+  KycUploadInputDto,
+  KycUploadResponseDtoOutput,
   MessageResponseDtoOutput,
   MfaChallengeResponse,
   MfaVerifyDto,
@@ -200,6 +410,10 @@ part 'serializers.g.dart';
   MongoHealthResponseDtoOutput,
   OAuthInitDto,
   OAuthRedirectResponseDtoOutput,
+  OperatorProfileResponseDtoOutput,
+  OperatorProfileResponseDtoOutputBankAccount,
+  OperatorProfileResponseDtoOutputBankChange,
+  OperatorProfileUpdateDto,
   OperatorStopPointInputDto,
   OperatorStopPointListResponseDtoOutput,
   OperatorStopPointListResponseDtoOutputItemsInner,
@@ -208,6 +422,19 @@ part 'serializers.g.dart';
   OtpVerifyDto,
   PasswordChangeChallengeResponse,
   PasswordChangeRequiredDto,
+  PolicyCancelDto,
+  PolicyDraftCreateDto,
+  PolicyDraftUpdateDto,
+  PolicyOverviewDtoOutput,
+  PolicyOverviewDtoOutputOverridesInner,
+  PolicyOverviewDtoOutputVersionsInner,
+  PolicyOverviewDtoOutputVersionsInnerRules,
+  PolicyOverviewDtoOutputVersionsInnerRulesAnyOf,
+  PolicyOverviewDtoOutputVersionsInnerRulesAnyOf1,
+  PolicyOverviewDtoOutputVersionsInnerRulesAnyOf2,
+  PolicyOverviewDtoOutputVersionsInnerRulesAnyOfTiersInner,
+  PolicyPublishDto,
+  PolicyVersionDtoOutput,
   PostgresHealthResponseDtoOutput,
   ProblemDetailsDto,
   ProvinceListResponseDtoOutput,
@@ -245,6 +472,9 @@ part 'serializers.g.dart';
   StopPointProposalListResponseDtoOutput,
   StopPointProposalListResponseDtoOutputItemsInner,
   StopPointProposalResponseDtoOutput,
+  StopPointReasonInputDto,
+  SystemIntegrationsDtoOutput,
+  SystemIntegrationsDtoOutputItemsInner,
   TripInputDto,
   TripListResponseDtoOutput,
   TripListResponseDtoOutputItemsInner,
@@ -271,8 +501,12 @@ part 'serializers.g.dart';
 ])
 Serializers serializers = (_$serializers.toBuilder()
       ..addBuilderFactory(
-        const FullType(BuiltList, [FullType(RouteInputDtoStopsInner)]),
-        () => ListBuilder<RouteInputDtoStopsInner>(),
+        const FullType(BuiltList, [FullType(AdminWardPageDtoOutputItemsInner)]),
+        () => ListBuilder<AdminWardPageDtoOutputItemsInner>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(PolicyOverviewDtoOutputVersionsInner)]),
+        () => ListBuilder<PolicyOverviewDtoOutputVersionsInner>(),
       )
       ..addBuilderFactory(
         const FullType(BuiltList, [FullType(VehicleImagesInputDtoImagesInner)]),
@@ -283,16 +517,16 @@ Serializers serializers = (_$serializers.toBuilder()
         () => ListBuilder<FareListResponseDtoOutputItemsInner>(),
       )
       ..addBuilderFactory(
-        const FullType(BuiltList, [FullType(EmployeeListResponseDtoOutputItemsInner)]),
-        () => ListBuilder<EmployeeListResponseDtoOutputItemsInner>(),
+        const FullType(BuiltList, [FullType(AdminAuditLogListDtoOutputItemsInner)]),
+        () => ListBuilder<AdminAuditLogListDtoOutputItemsInner>(),
       )
       ..addBuilderFactory(
-        const FullType(BuiltList, [FullType(WardListResponseDtoOutputItemsInner)]),
-        () => ListBuilder<WardListResponseDtoOutputItemsInner>(),
+        const FullType(BuiltList, [FullType(AdminEmployeePageDtoOutputItemsInner)]),
+        () => ListBuilder<AdminEmployeePageDtoOutputItemsInner>(),
       )
       ..addBuilderFactory(
-        const FullType(BuiltList, [FullType(TripListResponseDtoOutputItemsInner)]),
-        () => ListBuilder<TripListResponseDtoOutputItemsInner>(),
+        const FullType(BuiltList, [FullType(AdminPlatformAccountListDtoOutputItemsInner)]),
+        () => ListBuilder<AdminPlatformAccountListDtoOutputItemsInner>(),
       )
       ..addBuilderFactory(
         const FullType(BuiltList, [FullType(AdminApplicationDetailDtoOutputHistoryInner)]),
@@ -307,6 +541,118 @@ Serializers serializers = (_$serializers.toBuilder()
         () => ListBuilder<SeatMapListResponseDtoOutputItemsInner>(),
       )
       ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(ArticlePageDtoOutputItemsInner)]),
+        () => ListBuilder<ArticlePageDtoOutputItemsInner>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(AdminVehicleImageListDtoOutputItemsInner)]),
+        () => ListBuilder<AdminVehicleImageListDtoOutputItemsInner>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(RouteResponseDtoOutputStopsInner)]),
+        () => ListBuilder<RouteResponseDtoOutputStopsInner>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(ApplicationUpdateInputDtoDocumentsInner)]),
+        () => ListBuilder<ApplicationUpdateInputDtoDocumentsInner>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(AdminVehicleTypeListDtoOutputItemsInner)]),
+        () => ListBuilder<AdminVehicleTypeListDtoOutputItemsInner>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(SeatMapResponseDtoOutputSeatsInner)]),
+        () => ListBuilder<SeatMapResponseDtoOutputSeatsInner>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(BackgroundJobsDtoOutputQueuesInner)]),
+        () => ListBuilder<BackgroundJobsDtoOutputQueuesInner>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(StopPointProposalListResponseDtoOutputItemsInner)]),
+        () => ListBuilder<StopPointProposalListResponseDtoOutputItemsInner>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(ApplicationResponseDtoOutputDocumentsInner)]),
+        () => ListBuilder<ApplicationResponseDtoOutputDocumentsInner>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(FareResponseDtoOutputRulesInner)]),
+        () => ListBuilder<FareResponseDtoOutputRulesInner>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(AdminApplicationDetailDtoOutputDuplicatesContactEmailInner)]),
+        () => ListBuilder<AdminApplicationDetailDtoOutputDuplicatesContactEmailInner>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(AdminProvincePageDtoOutputItemsInner)]),
+        () => ListBuilder<AdminProvincePageDtoOutputItemsInner>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(AdminApplicationListResponseDtoOutputItemsInner)]),
+        () => ListBuilder<AdminApplicationListResponseDtoOutputItemsInner>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(TripResponseDtoOutputSeatsInner)]),
+        () => ListBuilder<TripResponseDtoOutputSeatsInner>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(AdminVehicleImageListDtoOutputOperatorsInner)]),
+        () => ListBuilder<AdminVehicleImageListDtoOutputOperatorsInner>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(TripResponseDtoOutputStopsInner)]),
+        () => ListBuilder<TripResponseDtoOutputStopsInner>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(AdminStopPointProposalListDtoOutputItemsInner)]),
+        () => ListBuilder<AdminStopPointProposalListDtoOutputItemsInner>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(CommissionOverviewDtoOutputOverridesInner)]),
+        () => ListBuilder<CommissionOverviewDtoOutputOverridesInner>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(AdminOperatorStopPointListDtoOutputItemsInner)]),
+        () => ListBuilder<AdminOperatorStopPointListDtoOutputItemsInner>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(RouteInputDtoStopsInner)]),
+        () => ListBuilder<RouteInputDtoStopsInner>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(EmployeeListResponseDtoOutputItemsInner)]),
+        () => ListBuilder<EmployeeListResponseDtoOutputItemsInner>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(WardListResponseDtoOutputItemsInner)]),
+        () => ListBuilder<WardListResponseDtoOutputItemsInner>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(TripListResponseDtoOutputItemsInner)]),
+        () => ListBuilder<TripListResponseDtoOutputItemsInner>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(SystemIntegrationsDtoOutputItemsInner)]),
+        () => ListBuilder<SystemIntegrationsDtoOutputItemsInner>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(ArticleCategoryListDtoOutputItemsInner)]),
+        () => ListBuilder<ArticleCategoryListDtoOutputItemsInner>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(AdminSharedStopPointListDtoOutputItemsInner)]),
+        () => ListBuilder<AdminSharedStopPointListDtoOutputItemsInner>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(AdminArticlePageDtoOutputItemsInner)]),
+        () => ListBuilder<AdminArticlePageDtoOutputItemsInner>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(AdminAmenityListDtoOutputItemsInner)]),
+        () => ListBuilder<AdminAmenityListDtoOutputItemsInner>(),
+      )
+      ..addBuilderFactory(
         const FullType(BuiltMap, [FullType(String), FullType(int)]),
         () => MapBuilder<String, int>(),
       )
@@ -315,8 +661,16 @@ Serializers serializers = (_$serializers.toBuilder()
         () => ListBuilder<QueueHealthResponseDtoOutputQueuesInner>(),
       )
       ..addBuilderFactory(
-        const FullType(BuiltList, [FullType(RouteResponseDtoOutputStopsInner)]),
-        () => ListBuilder<RouteResponseDtoOutputStopsInner>(),
+        const FullType(BuiltList, [FullType(FareBandListDtoOutputItemsInner)]),
+        () => ListBuilder<FareBandListDtoOutputItemsInner>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(AdminStopPointProposalListDtoOutputItemsInnerNearbyInner)]),
+        () => ListBuilder<AdminStopPointProposalListDtoOutputItemsInnerNearbyInner>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(AdminArticleCategoryListDtoOutputItemsInner)]),
+        () => ListBuilder<AdminArticleCategoryListDtoOutputItemsInner>(),
       )
       ..addBuilderFactory(
         const FullType(BuiltList, [FullType(ProvinceListResponseDtoOutputItemsInner)]),
@@ -331,12 +685,8 @@ Serializers serializers = (_$serializers.toBuilder()
         () => ListBuilder<RouteListResponseDtoOutputItemsInner>(),
       )
       ..addBuilderFactory(
-        const FullType(BuiltList, [FullType(ApplicationUpdateInputDtoDocumentsInner)]),
-        () => ListBuilder<ApplicationUpdateInputDtoDocumentsInner>(),
-      )
-      ..addBuilderFactory(
-        const FullType(BuiltList, [FullType(SeatMapResponseDtoOutputSeatsInner)]),
-        () => ListBuilder<SeatMapResponseDtoOutputSeatsInner>(),
+        const FullType(BuiltList, [FullType(AdminOperatorPageDtoOutputItemsInner)]),
+        () => ListBuilder<AdminOperatorPageDtoOutputItemsInner>(),
       )
       ..addBuilderFactory(
         const FullType(BuiltList, [FullType(DateTime)]),
@@ -347,12 +697,8 @@ Serializers serializers = (_$serializers.toBuilder()
         () => ListBuilder<FareCreateInputDtoRulesInner>(),
       )
       ..addBuilderFactory(
-        const FullType(BuiltList, [FullType(StopPointProposalListResponseDtoOutputItemsInner)]),
-        () => ListBuilder<StopPointProposalListResponseDtoOutputItemsInner>(),
-      )
-      ..addBuilderFactory(
-        const FullType(BuiltList, [FullType(ApplicationResponseDtoOutputDocumentsInner)]),
-        () => ListBuilder<ApplicationResponseDtoOutputDocumentsInner>(),
+        const FullType(BuiltList, [FullType(AdminPassengerPageDtoOutputItemsInner)]),
+        () => ListBuilder<AdminPassengerPageDtoOutputItemsInner>(),
       )
       ..addBuilderFactory(
         const FullType(BuiltList, [FullType(AdminApplicationDetailDtoOutputDocumentsInner)]),
@@ -363,32 +709,24 @@ Serializers serializers = (_$serializers.toBuilder()
         () => ListBuilder<SeatMapResponseDtoOutputLayoutDecksInner>(),
       )
       ..addBuilderFactory(
-        const FullType(BuiltList, [FullType(FareResponseDtoOutputRulesInner)]),
-        () => ListBuilder<FareResponseDtoOutputRulesInner>(),
+        const FullType(BuiltList, [FullType(PolicyOverviewDtoOutputOverridesInner)]),
+        () => ListBuilder<PolicyOverviewDtoOutputOverridesInner>(),
       )
       ..addBuilderFactory(
-        const FullType(BuiltList, [FullType(AdminApplicationDetailDtoOutputDuplicatesContactEmailInner)]),
-        () => ListBuilder<AdminApplicationDetailDtoOutputDuplicatesContactEmailInner>(),
-      )
-      ..addBuilderFactory(
-        const FullType(BuiltList, [FullType(AdminApplicationListResponseDtoOutputItemsInner)]),
-        () => ListBuilder<AdminApplicationListResponseDtoOutputItemsInner>(),
-      )
-      ..addBuilderFactory(
-        const FullType(BuiltList, [FullType(TripResponseDtoOutputSeatsInner)]),
-        () => ListBuilder<TripResponseDtoOutputSeatsInner>(),
+        const FullType(BuiltList, [FullType(PolicyOverviewDtoOutputVersionsInnerRulesAnyOfTiersInner)]),
+        () => ListBuilder<PolicyOverviewDtoOutputVersionsInnerRulesAnyOfTiersInner>(),
       )
       ..addBuilderFactory(
         const FullType(BuiltList, [FullType(SessionListResponseDtoOutputItemsInner)]),
         () => ListBuilder<SessionListResponseDtoOutputItemsInner>(),
       )
       ..addBuilderFactory(
-        const FullType(BuiltList, [FullType(VehicleTypeListResponseDtoOutputItemsInner)]),
-        () => ListBuilder<VehicleTypeListResponseDtoOutputItemsInner>(),
+        const FullType(BuiltList, [FullType(FareResponseDtoOutputBandWarningsInner)]),
+        () => ListBuilder<FareResponseDtoOutputBandWarningsInner>(),
       )
       ..addBuilderFactory(
-        const FullType(BuiltList, [FullType(TripResponseDtoOutputStopsInner)]),
-        () => ListBuilder<TripResponseDtoOutputStopsInner>(),
+        const FullType(BuiltList, [FullType(VehicleTypeListResponseDtoOutputItemsInner)]),
+        () => ListBuilder<VehicleTypeListResponseDtoOutputItemsInner>(),
       )
       ..addBuilderFactory(
         const FullType(BuiltList, [FullType(OperatorStopPointListResponseDtoOutputItemsInner)]),
@@ -397,6 +735,10 @@ Serializers serializers = (_$serializers.toBuilder()
       ..addBuilderFactory(
         const FullType(BuiltList, [FullType(SeatMapInputDtoSeatsInner)]),
         () => ListBuilder<SeatMapInputDtoSeatsInner>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltMap, [FullType(String), FullType.nullable(JsonObject)]),
+        () => MapBuilder<String, JsonObject?>(),
       )
       ..addBuilderFactory(
         const FullType(BuiltList, [FullType(VehicleListResponseDtoOutputItemsInner)]),
@@ -413,6 +755,10 @@ Serializers serializers = (_$serializers.toBuilder()
       ..addBuilderFactory(
         const FullType(BuiltList, [FullType(FareRevisionListResponseDtoOutputItemsInner)]),
         () => ListBuilder<FareRevisionListResponseDtoOutputItemsInner>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(BackgroundJobsDtoOutputJobsInner)]),
+        () => ListBuilder<BackgroundJobsDtoOutputJobsInner>(),
       )
       ..add(const OneOfSerializer())
       ..add(const AnyOfSerializer())

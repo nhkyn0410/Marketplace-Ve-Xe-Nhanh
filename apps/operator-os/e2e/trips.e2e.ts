@@ -113,19 +113,33 @@ test("tạo chuyến nháp: thiếu ô báo tại ô, giờ đến tự gợi ý
   await expect(info).toContainText("4 chỗ");
 });
 
-test("xe trùng giờ báo ngay tại ô Xe (BR-14); khởi hành đúng lúc chuyến trước đến thì lưu được", async () => {
+test("xe trùng giờ nằm ở nhóm Trùng giờ, không chọn được (BR-14, Lịch xe); khởi hành đúng lúc chuyến trước đến thì xe rảnh, lưu được", async () => {
   await page.getByRole("link", { name: "Danh sách chuyến" }).click();
   await page.getByRole("link", { name: "Tạo chuyến" }).first().click();
-  await fillTrip("08:00");
+  await choose("Tuyến *", routeName);
+  await page.getByLabel("Ngày khởi hành *").fill(DAY);
+  await page.getByLabel("Giờ khởi hành *").fill("08:00");
   await expect(page.getByLabel("Giờ đến *")).toHaveValue("13:30");
-  await page.getByRole("button", { name: "Lưu chuyến nháp" }).click();
-  await expect(page.getByText("Xe đã có chuyến khác trùng khoảng giờ này. Chọn xe khác hoặc đổi giờ của chuyến.")).toBeVisible();
-  // Dữ liệu đang nhập còn nguyên.
-  await expect(page.getByLabel("Giờ khởi hành *")).toHaveValue("08:00");
+  // TASK-TRN-015: ô Xe chia nhóm Rảnh / Trùng giờ theo giờ chuyến đang nhập; xe trùng giờ không chọn được.
+  await page.getByLabel("Xe", { exact: true }).click();
+  const busy = page.getByRole("option", { name: new RegExp(plate.replace(".", "\\.")) });
+  await expect(page.getByText(/Trùng giờ — không chọn được · 1 xe/i)).toBeVisible();
+  await expect(busy).toBeDisabled();
+  await expect(busy).toContainText("Bận tới 11:30");
+  await page.keyboard.press("Escape");
 
   // Không có thời gian đệm quay đầu: chuyến sau khởi hành đúng 11:30 là hợp lệ; giờ đến gợi ý lại theo giờ đi mới.
   await page.getByLabel("Giờ khởi hành *").fill("11:30");
   await expect(page.getByLabel("Giờ đến *")).toHaveValue("17:00");
+  await page.getByLabel("Xe", { exact: true }).click();
+  const free = page.getByRole("option", { name: new RegExp(plate.replace(".", "\\.")) });
+  await expect(free).toContainText("Rảnh từ 11:30");
+  await free.click();
+  // Thẻ "Lịch xe trong ngày": chuyến trước, khoảng nghỉ 0 phút, rảnh lại lúc 17:00.
+  const day = page.getByRole("region", { name: "Lịch xe trong ngày" });
+  await expect(day).toContainText(`· đến 11:30`);
+  await expect(day).toContainText("0 phút");
+  await expect(day).toContainText("Rảnh từ 17:00");
   await page.getByRole("button", { name: "Lưu chuyến nháp" }).click();
   await expect(page).toHaveURL(/\/trips\/[0-9a-f-]{36}\?saved=1$/);
   await expect(page.getByText(new RegExp(`Khởi hành 11:30 .* đến 17:00 cùng ngày`))).toBeVisible();
@@ -160,8 +174,24 @@ test("sửa chuyến nháp: tắt Tự chia để nhập giờ điểm giữa; g
   await expect(page.getByRole("link", { name: "Sửa chuyến" })).toBeVisible();
 });
 
+test("lịch xe: xe có hai chuyến nối sát giờ trong ngày, rảnh từ giờ đến chuyến cuối; bấm khoảng trống → tạo chuyến điền sẵn xe + giờ", async () => {
+  await page.getByRole("link", { name: "Chuyến xe", exact: true }).click();
+  await page.getByRole("tab", { name: "Lịch xe" }).click();
+  await expect(page).toHaveURL(/view=schedule/);
+  await page.getByLabel("Ngày", { exact: true }).fill(DAY);
+  const row = page.getByRole("row").filter({ hasText: plate });
+  await expect(row.getByRole("link", { name: /06:00 – 11:30/ })).toBeVisible(FIRST_VISIT);
+  await expect(row.getByRole("link", { name: /11:30 – 17:00/ })).toBeVisible();
+  await expect(row).toContainText("17:00");
+  await row.getByRole("button", { name: `Tạo chuyến cho xe ${plate}` }).click({ position: { x: 5, y: 10 } });
+  await expect(page).toHaveURL(new RegExp(`/trips/new\\?vehicleId=[0-9a-f-]{36}&date=${DAY}&time=00:00`), FIRST_VISIT);
+  await expect(page.getByLabel("Ngày khởi hành *")).toHaveValue(DAY);
+  await expect(page.getByLabel("Giờ khởi hành *")).toHaveValue("00:00");
+  await expect(page.getByRole("region", { name: "Xe và sơ đồ ghế" })).toContainText(plate);
+});
+
 test("danh sách: sắp theo giờ khởi hành, lọc theo trạng thái, bấm dòng mở chi tiết", async () => {
-  await page.getByRole("link", { name: "Danh sách chuyến" }).click();
+  await page.getByRole("link", { name: "Chuyến xe", exact: true }).click();
   const rows = page.getByRole("row").filter({ hasText: routeName });
   await expect(rows).toHaveCount(2);
   await expect(rows.nth(0)).toContainText("06:00");

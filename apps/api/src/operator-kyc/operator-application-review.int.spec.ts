@@ -236,6 +236,8 @@ describe.skipIf(!url && !requireDb)("Admin duyệt hồ sơ đăng ký nhà xe �
       await tx.operatorApplicationAccessToken.deleteMany({ where: { application: mine } });
       await tx.operatorApplication.deleteMany({ where: mine });
       const slugs = { operatorSlug: { startsWith: `adm-${tag}-` } };
+      await tx.kycDocument.deleteMany({ where: { operator: slugs } });
+      await tx.bankAccount.deleteMany({ where: { operator: slugs } });
       await tx.operatorAccount.deleteMany({ where: slugs });
       await tx.operatorProfile.deleteMany({ where: slugs });
     });
@@ -387,6 +389,24 @@ describe.skipIf(!url && !requireDb)("Admin duyệt hồ sơ đăng ký nhà xe �
       );
       expect(profile.status).toBe("ACTIVE");
       expect(profile.displayName).toMatch(/^Xe /);
+      // TASK-OPR-001b: thông tin pháp lý, giấy tờ KYC và tài khoản nhận tiền chép sang dữ liệu của nhà xe.
+      const copied = await prisma.withSystem((tx) =>
+        tx.operatorProfile.findUniqueOrThrow({
+          where: { id: result.operatorId },
+          select: {
+            legalName: true,
+            publicEmail: true,
+            approvedAt: true,
+            kycDocuments: { select: { type: true } },
+            bankAccounts: { select: { status: true, reviewedBy: true } },
+          },
+        }),
+      );
+      expect(copied.legalName).toBeTruthy();
+      expect(copied.publicEmail).toBe(application.email);
+      expect(copied.approvedAt).not.toBeNull();
+      expect(copied.kycDocuments.length).toBeGreaterThan(0);
+      expect(copied.bankAccounts).toEqual([{ status: "VERIFIED", reviewedBy: admin.sub }]);
       expect(await rejectionOf(open(application.token))).toMatchObject({ status: 401 });
       expect(recordAuditEvent).toHaveBeenCalledWith(
         expect.objectContaining({

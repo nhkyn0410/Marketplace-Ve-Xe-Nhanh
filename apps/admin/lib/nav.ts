@@ -1,4 +1,4 @@
-import type { NavGroup, NavItem } from "@vexenhanh/ui/lib/nav";
+import type { NavGroup } from "@vexenhanh/ui/lib/nav";
 import {
   Banknote,
   BookOpen,
@@ -62,10 +62,3 @@ export const NAV_GROUPS: NavGroup[] = [
     ]
   }
 ];
-
-/** Mục thanh bên ứng với một đường dẫn (mục dài nhất khớp tiền tố). */
-export function navItemOf(pathname: string): NavItem | undefined {
-  return NAV_GROUPS.flatMap((group) => group.items)
-    .filter((item) => item.href !== "/" && (pathname === item.href || pathname.startsWith(`${item.href}/`)))
-    .sort((a, b) => b.href.length - a.href.length)[0];
-}

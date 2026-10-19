@@ -3,7 +3,7 @@ import { z } from "zod";
 import { SearchQueryField } from "../../common/search-text";
 import { StopPointProposalStatus, StopPointStatus, StopPointType } from "../../database/prisma.types";
 
-const optionalText = (max: number) =>
+export const optionalText = (max: number) =>
   z
     .string()
     .trim()
@@ -12,7 +12,7 @@ const optionalText = (max: number) =>
     .transform((value) => value || null);
 
 // Không `.default()`: cùng schema cho POST và PUT (thay toàn bộ) — thiếu trường là 400 (bài học TRN-001).
-const LocationFields = {
+export const LocationFields = {
   name: z.string().trim().min(1).max(150),
   address: z.string().trim().min(1).max(300),
   provinceId: z.uuid(),
@@ -70,7 +70,7 @@ export class StopPointProposalListQueryDto extends createZodDto(
   z.object({ status: z.enum(StopPointProposalStatus).optional(), ...pageFields }),
 ) {}
 
-const LocationResponseFields = {
+export const LocationResponseFields = {
   id: z.uuid(),
   name: z.string(),
   type: z.enum(StopPointType),

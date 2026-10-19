@@ -34,7 +34,8 @@ import {
   Pencil,
   Plus,
   RefreshCw,
-  Trash2
+  Trash2,
+  TriangleAlert
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -70,6 +71,7 @@ import {
   type RuleFormValues
 } from "../../lib/fare/fare-form";
 import {
+  bandWarningGroups,
   describeRevision,
   FARE_STATUS,
   FARE_STATUS_ORDER,
@@ -169,6 +171,8 @@ function FareEditorBody({ fare }: { fare?: Fare }) {
     fare ? toFareInfo(fare) : { ...EMPTY_FARE_INFO, routeId: searchParams.get("routeId") ?? "" }
   );
   const [rules, setRules] = useState<FareRule[]>(() => fare?.rules ?? []);
+  // Cảnh báo khung giá của bản đã lưu (OQ-17): chỉ cảnh báo, không chặn lưu; vị trí quy tắc theo thứ tự máy chủ trả.
+  const [bandWarnings, setBandWarnings] = useState<Fare["bandWarnings"]>(() => fare?.bandWarnings ?? []);
   // Khối nhập quy tắc: `null` = đang đóng; `index = null` = thêm mới, ngược lại là sửa dòng đó.
   const [editing, setEditing] = useState<{ index: number | null; values: RuleFormValues; errors: RuleFormErrors } | null>(null);
   // Khối nhập vừa đóng: nút "Thêm quy tắc" dựng lại nhận tiêu điểm, để dùng bàn phím không phải Tab lại từ đầu trang.
@@ -198,6 +202,9 @@ function FareEditorBody({ fare }: { fare?: Fare }) {
     [fare]
   );
   const dirty = editing !== null || JSON.stringify({ info: fare ? info : { ...info, routeId: "" }, rules }) !== savedState;
+  const bandGroups = bandWarningGroups(bandWarnings);
+  // Đang sửa dở thì vị trí quy tắc có thể đã khác bản đã lưu: chỉ đánh dấu từng dòng khi khớp bản đã lưu.
+  const flagged = new Set(dirty ? [] : bandWarnings.map((warning) => warning.ruleIndex));
 
   const save = useMutation({
     mutationFn: () => (fare ? updateFare(fare.id, toFareUpdateInput(info, rules)) : createFare(toFareCreateInput(info, rules))),
@@ -213,6 +220,7 @@ function FareEditorBody({ fare }: { fare?: Fare }) {
       }
       setInfo(toFareInfo(result));
       setRules(result.rules);
+      setBandWarnings(result.bandWarnings);
       setSaved(true);
     },
     onError: (error) => {
@@ -312,6 +320,17 @@ function FareEditorBody({ fare }: { fare?: Fare }) {
           {formError}
         </div>
       )}
+      <div role="note" className="flex gap-3 rounded-lg bg-warning-50 px-5 py-3 text-sm leading-5 text-warning-700">
+        <TriangleAlert className="mt-px size-5 shrink-0" />
+        <div className="flex min-w-0 flex-col gap-1">
+          <p>Vé Xe Nhanh có thể cảnh báo khi giá nằm ngoài khung giá đang áp dụng. Cảnh báo không chặn việc lưu bảng giá.</p>
+          {bandGroups.map((group) => (
+            <p key={group.bandId}>
+              <strong>{group.title}</strong> — {group.ruleCount} quy tắc nằm ngoài khung. {group.message}
+            </p>
+          ))}
+        </div>
+      </div>
 
       <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
         <section aria-labelledby="fare-rules-heading" className={CARD}>
@@ -391,6 +410,12 @@ function FareEditorBody({ fare }: { fare?: Fare }) {
                         <td className={TABLE_CELL}>{ruleSeatTypeLabel(rule.seatType)}</td>
                         <td className={TABLE_CELL}>{ruleWindowLabel(rule)}</td>
                         <td className={`${TABLE_CELL} text-right font-semibold whitespace-nowrap text-vxn-ink`}>
+                          {flagged.has(index) && (
+                            <span className="mr-1.5 inline-flex align-middle text-warning-700" title="Giá nằm ngoài khung giá đang áp dụng">
+                              <TriangleAlert className="size-4" aria-hidden />
+                              <span className="sr-only">Ngoài khung giá: </span>
+                            </span>
+                          )}
                           {formatVnd(rule.price)}
                         </td>
                         <td className={TABLE_CELL}>

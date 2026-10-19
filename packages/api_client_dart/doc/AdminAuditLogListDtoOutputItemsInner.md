@@ -1,0 +1,27 @@
+# api_client_dart.model.AdminAuditLogListDtoOutputItemsInner
+
+## Load the model package
+```dart
+import 'package:api_client_dart/api.dart';
+```
+
+## Properties
+Name | Type | Description | Notes
+------------ | ------------- | ------------- | -------------
+**id** | **String** |  | 
+**createdAt** | [**DateTime**](DateTime.md) |  | 
+**actorId** | **String** |  | 
+**actorName** | **String** |  | 
+**actorRole** | **String** |  | 
+**actorType** | **String** |  | 
+**action** | **String** |  | 
+**module** | **String** |  | 
+**result** | **String** |  | 
+**targetType** | **String** |  | 
+**targetId** | **String** |  | 
+**operator_** | [**AdminAuditLogListDtoOutputItemsInnerOperator**](AdminAuditLogListDtoOutputItemsInnerOperator.md) |  | 
+**reason** | **String** |  | 
+
+[[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)
+
+

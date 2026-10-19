@@ -48,6 +48,8 @@ describe.skipIf(!url && !requireDb)("Catalog — Postgres thật, role app", () 
     return {
       name: `Bến ${tag}`,
       type: StopPointType.BUS_STATION,
+      // Bến xe / điểm dừng đón trả bắt buộc căn cứ công bố (CHECK của TASK-ADM-004).
+      legalBasis: "QĐ công bố (test)",
       address: "Địa chỉ test",
       provinceId: provinceA,
       wardId: wardA,
@@ -116,7 +118,6 @@ describe.skipIf(!url && !requireDb)("Catalog — Postgres thật, role app", () 
       const created = await Promise.all(
         [
           stopPoint(),
-          stopPoint({ type: StopPointType.OFFICE }),
           stopPoint({ type: StopPointType.REST_STOP }),
           stopPoint({ type: StopPointType.PICKUP_POINT }),
           stopPoint({ status: "INACTIVE" }),
@@ -396,12 +397,12 @@ describe.skipIf(!url && !requireDb)("Catalog — Postgres thật, role app", () 
       });
       expect(all.items.map((item) => item.id)).toEqual(activeStopIds);
       expect(all.nextCursor).toBeNull();
-      const office = await catalog.listStopPoints({
+      const restStop = await catalog.listStopPoints({
         provinceId: provinceA,
-        type: StopPointType.OFFICE,
+        type: StopPointType.REST_STOP,
         limit: 100,
       });
-      expect(office.items).toHaveLength(1);
+      expect(restStop.items).toHaveLength(1);
       expect(
         (await catalog.listStopPoints({ wardId: wardB, limit: 100 })).items,
       ).toEqual([]);
@@ -430,15 +431,16 @@ describe.skipIf(!url && !requireDb)("Catalog — Postgres thật, role app", () 
       expect(await search("Địa Chỉ")).toEqual(activeStopIds);
       expect(await search(`khong-co-${tag}`)).toEqual([]);
       // Kết hợp với bộ lọc loại: vẫn chỉ ra đúng loại.
-      const office = await catalog.listStopPoints({
+      const restStop = await catalog.listStopPoints({
         provinceId: provinceA,
-        type: StopPointType.OFFICE,
+        type: StopPointType.REST_STOP,
         q: `ben ${tag}`,
         limit: 100,
       });
-      expect(office.items).toHaveLength(1);
-      // Cột sinh không lộ ra response.
-      expect(office.items[0]).not.toHaveProperty("searchText");
+      expect(restStop.items).toHaveLength(1);
+      // Cột sinh và căn cứ công bố không lộ ra response công khai.
+      expect(restStop.items[0]).not.toHaveProperty("searchText");
+      expect(restStop.items[0]).not.toHaveProperty("legalBasis");
     });
 
     it("cursor đi hết các trang không lặp/sót, kể cả khi dòng cursor bị vô hiệu hoá giữa hai trang", async () => {

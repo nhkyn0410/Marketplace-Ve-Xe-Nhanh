@@ -47,16 +47,14 @@ Please follow the [installation procedure](#installation--usage) and then run th
 import 'package:api_client_dart/api_client_dart.dart';
 
 
-final api = ApiClientDart().getAdminOperatorApplicationsApi();
-final String applicationId = 38400000-8cf0-11bd-b23e-10b96e4ef00d; // String | 
-final String idempotencyKey = idempotencyKey_example; // String | 8–128 ký tự `[A-Za-z0-9_-]`; gửi lặp cùng khóa trả lại kết quả lần đầu.
-final ApprovalInputDto approvalInputDto = ; // ApprovalInputDto | 
+final api = ApiClientDart().getAdminArticlesApi();
+final AdminArticleCategoryInputDto adminArticleCategoryInputDto = ; // AdminArticleCategoryInputDto | 
 
 try {
-    final response = await api.operatorApplicationReviewControllerApprove(applicationId, idempotencyKey, approvalInputDto);
+    final response = await api.adminArticleCategoryControllerCreate(adminArticleCategoryInputDto);
     print(response);
 } on DioException catch (e) {
-    print("Exception when calling AdminOperatorApplicationsApi->operatorApplicationReviewControllerApprove: $e\n");
+    print("Exception when calling AdminArticlesApi->adminArticleCategoryControllerCreate: $e\n");
 }
 
 ```
@@ -67,6 +65,36 @@ All URIs are relative to *http://localhost*
 
 Class | Method | HTTP request | Description
 ------------ | ------------- | ------------- | -------------
+[*AdminArticlesApi*](doc/AdminArticlesApi.md) | [**adminArticleCategoryControllerCreate**](doc/AdminArticlesApi.md#adminarticlecategorycontrollercreate) | **POST** /v1/admin/article-categories | 
+[*AdminArticlesApi*](doc/AdminArticlesApi.md) | [**adminArticleCategoryControllerList**](doc/AdminArticlesApi.md#adminarticlecategorycontrollerlist) | **GET** /v1/admin/article-categories | 
+[*AdminArticlesApi*](doc/AdminArticlesApi.md) | [**adminArticleCategoryControllerUpdate**](doc/AdminArticlesApi.md#adminarticlecategorycontrollerupdate) | **PUT** /v1/admin/article-categories/{id} | 
+[*AdminArticlesApi*](doc/AdminArticlesApi.md) | [**adminArticleControllerArchive**](doc/AdminArticlesApi.md#adminarticlecontrollerarchive) | **POST** /v1/admin/articles/{id}/archive | 
+[*AdminArticlesApi*](doc/AdminArticlesApi.md) | [**adminArticleControllerCreate**](doc/AdminArticlesApi.md#adminarticlecontrollercreate) | **POST** /v1/admin/articles | 
+[*AdminArticlesApi*](doc/AdminArticlesApi.md) | [**adminArticleControllerCreateImageUploadUrl**](doc/AdminArticlesApi.md#adminarticlecontrollercreateimageuploadurl) | **POST** /v1/admin/articles/images | 
+[*AdminArticlesApi*](doc/AdminArticlesApi.md) | [**adminArticleControllerGet**](doc/AdminArticlesApi.md#adminarticlecontrollerget) | **GET** /v1/admin/articles/{id} | 
+[*AdminArticlesApi*](doc/AdminArticlesApi.md) | [**adminArticleControllerList**](doc/AdminArticlesApi.md#adminarticlecontrollerlist) | **GET** /v1/admin/articles | 
+[*AdminArticlesApi*](doc/AdminArticlesApi.md) | [**adminArticleControllerPublish**](doc/AdminArticlesApi.md#adminarticlecontrollerpublish) | **POST** /v1/admin/articles/{id}/publish | 
+[*AdminArticlesApi*](doc/AdminArticlesApi.md) | [**adminArticleControllerUpdate**](doc/AdminArticlesApi.md#adminarticlecontrollerupdate) | **PUT** /v1/admin/articles/{id} | 
+[*AdminAuditLogsApi*](doc/AdminAuditLogsApi.md) | [**adminAuditLogControllerGet**](doc/AdminAuditLogsApi.md#adminauditlogcontrollerget) | **GET** /v1/admin/audit-logs/{id} | 
+[*AdminAuditLogsApi*](doc/AdminAuditLogsApi.md) | [**adminAuditLogControllerList**](doc/AdminAuditLogsApi.md#adminauditlogcontrollerlist) | **GET** /v1/admin/audit-logs | 
+[*AdminCatalogApi*](doc/AdminCatalogApi.md) | [**adminCatalogControllerActivate**](doc/AdminCatalogApi.md#admincatalogcontrolleractivate) | **POST** /v1/admin/catalog/{kind}/{id}/activate | 
+[*AdminCatalogApi*](doc/AdminCatalogApi.md) | [**adminCatalogControllerCreateAmenity**](doc/AdminCatalogApi.md#admincatalogcontrollercreateamenity) | **POST** /v1/admin/catalog/amenities | 
+[*AdminCatalogApi*](doc/AdminCatalogApi.md) | [**adminCatalogControllerCreateProvince**](doc/AdminCatalogApi.md#admincatalogcontrollercreateprovince) | **POST** /v1/admin/catalog/provinces | 
+[*AdminCatalogApi*](doc/AdminCatalogApi.md) | [**adminCatalogControllerCreateVehicleType**](doc/AdminCatalogApi.md#admincatalogcontrollercreatevehicletype) | **POST** /v1/admin/catalog/vehicle-types | 
+[*AdminCatalogApi*](doc/AdminCatalogApi.md) | [**adminCatalogControllerCreateWard**](doc/AdminCatalogApi.md#admincatalogcontrollercreateward) | **POST** /v1/admin/catalog/wards | 
+[*AdminCatalogApi*](doc/AdminCatalogApi.md) | [**adminCatalogControllerDeactivate**](doc/AdminCatalogApi.md#admincatalogcontrollerdeactivate) | **POST** /v1/admin/catalog/{kind}/{id}/deactivate | 
+[*AdminCatalogApi*](doc/AdminCatalogApi.md) | [**adminCatalogControllerListAmenities**](doc/AdminCatalogApi.md#admincatalogcontrollerlistamenities) | **GET** /v1/admin/catalog/amenities | 
+[*AdminCatalogApi*](doc/AdminCatalogApi.md) | [**adminCatalogControllerListProvinces**](doc/AdminCatalogApi.md#admincatalogcontrollerlistprovinces) | **GET** /v1/admin/catalog/provinces | 
+[*AdminCatalogApi*](doc/AdminCatalogApi.md) | [**adminCatalogControllerListVehicleTypes**](doc/AdminCatalogApi.md#admincatalogcontrollerlistvehicletypes) | **GET** /v1/admin/catalog/vehicle-types | 
+[*AdminCatalogApi*](doc/AdminCatalogApi.md) | [**adminCatalogControllerListWards**](doc/AdminCatalogApi.md#admincatalogcontrollerlistwards) | **GET** /v1/admin/catalog/wards | 
+[*AdminCatalogApi*](doc/AdminCatalogApi.md) | [**adminCatalogControllerRenameAmenity**](doc/AdminCatalogApi.md#admincatalogcontrollerrenameamenity) | **PUT** /v1/admin/catalog/amenities/{id} | 
+[*AdminCatalogApi*](doc/AdminCatalogApi.md) | [**adminCatalogControllerRenameProvince**](doc/AdminCatalogApi.md#admincatalogcontrollerrenameprovince) | **PUT** /v1/admin/catalog/provinces/{id} | 
+[*AdminCatalogApi*](doc/AdminCatalogApi.md) | [**adminCatalogControllerRenameWard**](doc/AdminCatalogApi.md#admincatalogcontrollerrenameward) | **PUT** /v1/admin/catalog/wards/{id} | 
+[*AdminCatalogApi*](doc/AdminCatalogApi.md) | [**adminCatalogControllerUpdateVehicleType**](doc/AdminCatalogApi.md#admincatalogcontrollerupdatevehicletype) | **PUT** /v1/admin/catalog/vehicle-types/{id} | 
+[*AdminCommissionApi*](doc/AdminCommissionApi.md) | [**adminCommissionControllerCancel**](doc/AdminCommissionApi.md#admincommissioncontrollercancel) | **POST** /v1/admin/commission-rules/{id}/cancel | 
+[*AdminCommissionApi*](doc/AdminCommissionApi.md) | [**adminCommissionControllerCreate**](doc/AdminCommissionApi.md#admincommissioncontrollercreate) | **POST** /v1/admin/commission-rules | 
+[*AdminCommissionApi*](doc/AdminCommissionApi.md) | [**adminCommissionControllerOverview**](doc/AdminCommissionApi.md#admincommissioncontrolleroverview) | **GET** /v1/admin/commission-rules | 
+[*AdminCommissionApi*](doc/AdminCommissionApi.md) | [**adminCommissionControllerUpdate**](doc/AdminCommissionApi.md#admincommissioncontrollerupdate) | **PUT** /v1/admin/commission-rules/{id} | 
 [*AdminOperatorApplicationsApi*](doc/AdminOperatorApplicationsApi.md) | [**operatorApplicationReviewControllerApprove**](doc/AdminOperatorApplicationsApi.md#operatorapplicationreviewcontrollerapprove) | **POST** /v1/admin/operator-applications/{applicationId}/approve | 
 [*AdminOperatorApplicationsApi*](doc/AdminOperatorApplicationsApi.md) | [**operatorApplicationReviewControllerCreateDocumentDownload**](doc/AdminOperatorApplicationsApi.md#operatorapplicationreviewcontrollercreatedocumentdownload) | **POST** /v1/admin/operator-applications/{applicationId}/documents/{type}/download-url | 
 [*AdminOperatorApplicationsApi*](doc/AdminOperatorApplicationsApi.md) | [**operatorApplicationReviewControllerGet**](doc/AdminOperatorApplicationsApi.md#operatorapplicationreviewcontrollerget) | **GET** /v1/admin/operator-applications/{applicationId} | 
@@ -74,6 +102,50 @@ Class | Method | HTTP request | Description
 [*AdminOperatorApplicationsApi*](doc/AdminOperatorApplicationsApi.md) | [**operatorApplicationReviewControllerReject**](doc/AdminOperatorApplicationsApi.md#operatorapplicationreviewcontrollerreject) | **POST** /v1/admin/operator-applications/{applicationId}/reject | 
 [*AdminOperatorApplicationsApi*](doc/AdminOperatorApplicationsApi.md) | [**operatorApplicationReviewControllerRequestInfo**](doc/AdminOperatorApplicationsApi.md#operatorapplicationreviewcontrollerrequestinfo) | **POST** /v1/admin/operator-applications/{applicationId}/request-info | 
 [*AdminOperatorApplicationsApi*](doc/AdminOperatorApplicationsApi.md) | [**operatorApplicationReviewControllerResendOwnerCredentials**](doc/AdminOperatorApplicationsApi.md#operatorapplicationreviewcontrollerresendownercredentials) | **POST** /v1/admin/operator-applications/{applicationId}/resend-owner-credentials | 
+[*AdminOperatorsApi*](doc/AdminOperatorsApi.md) | [**adminOperatorControllerApproveBankChange**](doc/AdminOperatorsApi.md#adminoperatorcontrollerapprovebankchange) | **POST** /v1/admin/operators/{id}/bank-account-change/approve | 
+[*AdminOperatorsApi*](doc/AdminOperatorsApi.md) | [**adminOperatorControllerGetBankChange**](doc/AdminOperatorsApi.md#adminoperatorcontrollergetbankchange) | **GET** /v1/admin/operators/{id}/bank-account-change | 
+[*AdminOperatorsApi*](doc/AdminOperatorsApi.md) | [**adminOperatorControllerList**](doc/AdminOperatorsApi.md#adminoperatorcontrollerlist) | **GET** /v1/admin/operators | 
+[*AdminOperatorsApi*](doc/AdminOperatorsApi.md) | [**adminOperatorControllerRejectBankChange**](doc/AdminOperatorsApi.md#adminoperatorcontrollerrejectbankchange) | **POST** /v1/admin/operators/{id}/bank-account-change/reject | 
+[*AdminOperatorsApi*](doc/AdminOperatorsApi.md) | [**adminOperatorControllerSuspend**](doc/AdminOperatorsApi.md#adminoperatorcontrollersuspend) | **POST** /v1/admin/operators/{id}/suspend | 
+[*AdminOperatorsApi*](doc/AdminOperatorsApi.md) | [**adminOperatorControllerUnsuspend**](doc/AdminOperatorsApi.md#adminoperatorcontrollerunsuspend) | **POST** /v1/admin/operators/{id}/unsuspend | 
+[*AdminPoliciesApi*](doc/AdminPoliciesApi.md) | [**adminPolicyControllerCancel**](doc/AdminPoliciesApi.md#adminpolicycontrollercancel) | **POST** /v1/admin/policy-versions/{id}/cancel | 
+[*AdminPoliciesApi*](doc/AdminPoliciesApi.md) | [**adminPolicyControllerCancelFareBand**](doc/AdminPoliciesApi.md#adminpolicycontrollercancelfareband) | **POST** /v1/admin/fare-bands/{id}/cancel | 
+[*AdminPoliciesApi*](doc/AdminPoliciesApi.md) | [**adminPolicyControllerCreateDraft**](doc/AdminPoliciesApi.md#adminpolicycontrollercreatedraft) | **POST** /v1/admin/policies/{type}/versions | 
+[*AdminPoliciesApi*](doc/AdminPoliciesApi.md) | [**adminPolicyControllerCreateFareBand**](doc/AdminPoliciesApi.md#adminpolicycontrollercreatefareband) | **POST** /v1/admin/fare-bands | 
+[*AdminPoliciesApi*](doc/AdminPoliciesApi.md) | [**adminPolicyControllerGet**](doc/AdminPoliciesApi.md#adminpolicycontrollerget) | **GET** /v1/admin/policy-versions/{id} | 
+[*AdminPoliciesApi*](doc/AdminPoliciesApi.md) | [**adminPolicyControllerListFareBands**](doc/AdminPoliciesApi.md#adminpolicycontrollerlistfarebands) | **GET** /v1/admin/fare-bands | 
+[*AdminPoliciesApi*](doc/AdminPoliciesApi.md) | [**adminPolicyControllerOverview**](doc/AdminPoliciesApi.md#adminpolicycontrolleroverview) | **GET** /v1/admin/policies/{type} | 
+[*AdminPoliciesApi*](doc/AdminPoliciesApi.md) | [**adminPolicyControllerPublish**](doc/AdminPoliciesApi.md#adminpolicycontrollerpublish) | **POST** /v1/admin/policy-versions/{id}/publish | 
+[*AdminPoliciesApi*](doc/AdminPoliciesApi.md) | [**adminPolicyControllerUpdateDraft**](doc/AdminPoliciesApi.md#adminpolicycontrollerupdatedraft) | **PUT** /v1/admin/policy-versions/{id} | 
+[*AdminStopPointsApi*](doc/AdminStopPointsApi.md) | [**adminOperatorStopPointControllerList**](doc/AdminStopPointsApi.md#adminoperatorstoppointcontrollerlist) | **GET** /v1/admin/operator-stop-points | 
+[*AdminStopPointsApi*](doc/AdminStopPointsApi.md) | [**adminOperatorStopPointControllerSuspend**](doc/AdminStopPointsApi.md#adminoperatorstoppointcontrollersuspend) | **POST** /v1/admin/operator-stop-points/{id}/suspend | 
+[*AdminStopPointsApi*](doc/AdminStopPointsApi.md) | [**adminOperatorStopPointControllerUnsuspend**](doc/AdminStopPointsApi.md#adminoperatorstoppointcontrollerunsuspend) | **POST** /v1/admin/operator-stop-points/{id}/unsuspend | 
+[*AdminStopPointsApi*](doc/AdminStopPointsApi.md) | [**adminSharedStopPointControllerCreate**](doc/AdminStopPointsApi.md#adminsharedstoppointcontrollercreate) | **POST** /v1/admin/stop-points | 
+[*AdminStopPointsApi*](doc/AdminStopPointsApi.md) | [**adminSharedStopPointControllerGet**](doc/AdminStopPointsApi.md#adminsharedstoppointcontrollerget) | **GET** /v1/admin/stop-points/{id} | 
+[*AdminStopPointsApi*](doc/AdminStopPointsApi.md) | [**adminSharedStopPointControllerList**](doc/AdminStopPointsApi.md#adminsharedstoppointcontrollerlist) | **GET** /v1/admin/stop-points | 
+[*AdminStopPointsApi*](doc/AdminStopPointsApi.md) | [**adminSharedStopPointControllerUpdate**](doc/AdminStopPointsApi.md#adminsharedstoppointcontrollerupdate) | **PUT** /v1/admin/stop-points/{id} | 
+[*AdminStopPointsApi*](doc/AdminStopPointsApi.md) | [**adminStopPointProposalControllerApprove**](doc/AdminStopPointsApi.md#adminstoppointproposalcontrollerapprove) | **POST** /v1/admin/stop-point-proposals/{id}/approve | 
+[*AdminStopPointsApi*](doc/AdminStopPointsApi.md) | [**adminStopPointProposalControllerGet**](doc/AdminStopPointsApi.md#adminstoppointproposalcontrollerget) | **GET** /v1/admin/stop-point-proposals/{id} | 
+[*AdminStopPointsApi*](doc/AdminStopPointsApi.md) | [**adminStopPointProposalControllerList**](doc/AdminStopPointsApi.md#adminstoppointproposalcontrollerlist) | **GET** /v1/admin/stop-point-proposals | 
+[*AdminStopPointsApi*](doc/AdminStopPointsApi.md) | [**adminStopPointProposalControllerReject**](doc/AdminStopPointsApi.md#adminstoppointproposalcontrollerreject) | **POST** /v1/admin/stop-point-proposals/{id}/reject | 
+[*AdminSystemApi*](doc/AdminSystemApi.md) | [**systemStatusControllerIntegrations**](doc/AdminSystemApi.md#systemstatuscontrollerintegrations) | **GET** /v1/admin/system/integrations | 
+[*AdminSystemApi*](doc/AdminSystemApi.md) | [**systemStatusControllerJobs**](doc/AdminSystemApi.md#systemstatuscontrollerjobs) | **GET** /v1/admin/system/jobs | 
+[*AdminUsersApi*](doc/AdminUsersApi.md) | [**adminEmployeeControllerList**](doc/AdminUsersApi.md#adminemployeecontrollerlist) | **GET** /v1/admin/employees | 
+[*AdminUsersApi*](doc/AdminUsersApi.md) | [**adminPassengerControllerList**](doc/AdminUsersApi.md#adminpassengercontrollerlist) | **GET** /v1/admin/passengers | 
+[*AdminUsersApi*](doc/AdminUsersApi.md) | [**adminPassengerControllerLock**](doc/AdminUsersApi.md#adminpassengercontrollerlock) | **POST** /v1/admin/passengers/{id}/lock | 
+[*AdminUsersApi*](doc/AdminUsersApi.md) | [**adminPassengerControllerUnlock**](doc/AdminUsersApi.md#adminpassengercontrollerunlock) | **POST** /v1/admin/passengers/{id}/unlock | 
+[*AdminUsersApi*](doc/AdminUsersApi.md) | [**adminPlatformAccountControllerCreate**](doc/AdminUsersApi.md#adminplatformaccountcontrollercreate) | **POST** /v1/admin/platform-accounts | 
+[*AdminUsersApi*](doc/AdminUsersApi.md) | [**adminPlatformAccountControllerList**](doc/AdminUsersApi.md#adminplatformaccountcontrollerlist) | **GET** /v1/admin/platform-accounts | 
+[*AdminUsersApi*](doc/AdminUsersApi.md) | [**adminPlatformAccountControllerLock**](doc/AdminUsersApi.md#adminplatformaccountcontrollerlock) | **POST** /v1/admin/platform-accounts/{id}/lock | 
+[*AdminUsersApi*](doc/AdminUsersApi.md) | [**adminPlatformAccountControllerResetMfa**](doc/AdminUsersApi.md#adminplatformaccountcontrollerresetmfa) | **POST** /v1/admin/platform-accounts/{id}/reset-mfa | 
+[*AdminUsersApi*](doc/AdminUsersApi.md) | [**adminPlatformAccountControllerResetPassword**](doc/AdminUsersApi.md#adminplatformaccountcontrollerresetpassword) | **POST** /v1/admin/platform-accounts/{id}/reset-password | 
+[*AdminUsersApi*](doc/AdminUsersApi.md) | [**adminPlatformAccountControllerUnlock**](doc/AdminUsersApi.md#adminplatformaccountcontrollerunlock) | **POST** /v1/admin/platform-accounts/{id}/unlock | 
+[*AdminVehicleImagesApi*](doc/AdminVehicleImagesApi.md) | [**adminVehicleImageControllerList**](doc/AdminVehicleImagesApi.md#adminvehicleimagecontrollerlist) | **GET** /v1/admin/vehicle-images | 
+[*AdminVehicleImagesApi*](doc/AdminVehicleImagesApi.md) | [**adminVehicleImageControllerRemove**](doc/AdminVehicleImagesApi.md#adminvehicleimagecontrollerremove) | **POST** /v1/admin/vehicle-images/{imageId}/remove | 
+[*ArticlesApi*](doc/ArticlesApi.md) | [**articleControllerGet**](doc/ArticlesApi.md#articlecontrollerget) | **GET** /v1/articles/{slug} | 
+[*ArticlesApi*](doc/ArticlesApi.md) | [**articleControllerList**](doc/ArticlesApi.md#articlecontrollerlist) | **GET** /v1/articles | 
+[*ArticlesApi*](doc/ArticlesApi.md) | [**articleControllerListCategories**](doc/ArticlesApi.md#articlecontrollerlistcategories) | **GET** /v1/article-categories | 
+[*ArticlesApi*](doc/ArticlesApi.md) | [**articleControllerRecordView**](doc/ArticlesApi.md#articlecontrollerrecordview) | **POST** /v1/articles/{slug}/views | 
 [*AuthApi*](doc/AuthApi.md) | [**authControllerChangeRequiredPassword**](doc/AuthApi.md#authcontrollerchangerequiredpassword) | **POST** /v1/auth/password/change-required | 
 [*AuthApi*](doc/AuthApi.md) | [**authControllerCsrf**](doc/AuthApi.md#authcontrollercsrf) | **GET** /v1/auth/csrf | 
 [*AuthApi*](doc/AuthApi.md) | [**authControllerEmployeeLogin**](doc/AuthApi.md#authcontrolleremployeelogin) | **POST** /v1/auth/employee/login | 
@@ -117,6 +189,12 @@ Class | Method | HTTP request | Description
 [*OperatorFaresApi*](doc/OperatorFaresApi.md) | [**fareControllerList**](doc/OperatorFaresApi.md#farecontrollerlist) | **GET** /v1/operator/fares | 
 [*OperatorFaresApi*](doc/OperatorFaresApi.md) | [**fareControllerRevisions**](doc/OperatorFaresApi.md#farecontrollerrevisions) | **GET** /v1/operator/fares/{fareId}/revisions | 
 [*OperatorFaresApi*](doc/OperatorFaresApi.md) | [**fareControllerUpdate**](doc/OperatorFaresApi.md#farecontrollerupdate) | **PUT** /v1/operator/fares/{fareId} | 
+[*OperatorProfileApi*](doc/OperatorProfileApi.md) | [**operatorProfileControllerCreateDownloadUrl**](doc/OperatorProfileApi.md#operatorprofilecontrollercreatedownloadurl) | **POST** /v1/operator/profile/documents/{type}/download-url | 
+[*OperatorProfileApi*](doc/OperatorProfileApi.md) | [**operatorProfileControllerCreateUploadUrl**](doc/OperatorProfileApi.md#operatorprofilecontrollercreateuploadurl) | **POST** /v1/operator/profile/documents/upload-url | 
+[*OperatorProfileApi*](doc/OperatorProfileApi.md) | [**operatorProfileControllerGet**](doc/OperatorProfileApi.md#operatorprofilecontrollerget) | **GET** /v1/operator/profile | 
+[*OperatorProfileApi*](doc/OperatorProfileApi.md) | [**operatorProfileControllerReplaceDocument**](doc/OperatorProfileApi.md#operatorprofilecontrollerreplacedocument) | **PUT** /v1/operator/profile/documents/{type} | 
+[*OperatorProfileApi*](doc/OperatorProfileApi.md) | [**operatorProfileControllerRequestBankChange**](doc/OperatorProfileApi.md#operatorprofilecontrollerrequestbankchange) | **POST** /v1/operator/profile/bank-account-change | 
+[*OperatorProfileApi*](doc/OperatorProfileApi.md) | [**operatorProfileControllerUpdate**](doc/OperatorProfileApi.md#operatorprofilecontrollerupdate) | **PUT** /v1/operator/profile | 
 [*OperatorRoutesApi*](doc/OperatorRoutesApi.md) | [**routeControllerCreate**](doc/OperatorRoutesApi.md#routecontrollercreate) | **POST** /v1/operator/routes | 
 [*OperatorRoutesApi*](doc/OperatorRoutesApi.md) | [**routeControllerGet**](doc/OperatorRoutesApi.md#routecontrollerget) | **GET** /v1/operator/routes/{routeId} | 
 [*OperatorRoutesApi*](doc/OperatorRoutesApi.md) | [**routeControllerList**](doc/OperatorRoutesApi.md#routecontrollerlist) | **GET** /v1/operator/routes | 
@@ -149,6 +227,11 @@ Class | Method | HTTP request | Description
 ## Documentation For Models
 
  - [AccountMutationResponseDtoOutput](doc/AccountMutationResponseDtoOutput.md)
+ - [AdminAccountLockDto](doc/AdminAccountLockDto.md)
+ - [AdminAmenityDtoOutput](doc/AdminAmenityDtoOutput.md)
+ - [AdminAmenityInputDto](doc/AdminAmenityInputDto.md)
+ - [AdminAmenityListDtoOutput](doc/AdminAmenityListDtoOutput.md)
+ - [AdminAmenityListDtoOutputItemsInner](doc/AdminAmenityListDtoOutputItemsInner.md)
  - [AdminApplicationDetailDtoOutput](doc/AdminApplicationDetailDtoOutput.md)
  - [AdminApplicationDetailDtoOutputDocumentsInner](doc/AdminApplicationDetailDtoOutputDocumentsInner.md)
  - [AdminApplicationDetailDtoOutputDuplicates](doc/AdminApplicationDetailDtoOutputDuplicates.md)
@@ -157,6 +240,69 @@ Class | Method | HTTP request | Description
  - [AdminApplicationDetailDtoOutputOperator](doc/AdminApplicationDetailDtoOutputOperator.md)
  - [AdminApplicationListResponseDtoOutput](doc/AdminApplicationListResponseDtoOutput.md)
  - [AdminApplicationListResponseDtoOutputItemsInner](doc/AdminApplicationListResponseDtoOutputItemsInner.md)
+ - [AdminArticleCategoryDtoOutput](doc/AdminArticleCategoryDtoOutput.md)
+ - [AdminArticleCategoryInputDto](doc/AdminArticleCategoryInputDto.md)
+ - [AdminArticleCategoryListDtoOutput](doc/AdminArticleCategoryListDtoOutput.md)
+ - [AdminArticleCategoryListDtoOutputItemsInner](doc/AdminArticleCategoryListDtoOutputItemsInner.md)
+ - [AdminArticleDtoOutput](doc/AdminArticleDtoOutput.md)
+ - [AdminArticleImageUploadInputDto](doc/AdminArticleImageUploadInputDto.md)
+ - [AdminArticleImageUploadResponseDtoOutput](doc/AdminArticleImageUploadResponseDtoOutput.md)
+ - [AdminArticleInputDto](doc/AdminArticleInputDto.md)
+ - [AdminArticlePageDtoOutput](doc/AdminArticlePageDtoOutput.md)
+ - [AdminArticlePageDtoOutputItemsInner](doc/AdminArticlePageDtoOutputItemsInner.md)
+ - [AdminArticlePublishDto](doc/AdminArticlePublishDto.md)
+ - [AdminAuditLogDetailDtoOutput](doc/AdminAuditLogDetailDtoOutput.md)
+ - [AdminAuditLogListDtoOutput](doc/AdminAuditLogListDtoOutput.md)
+ - [AdminAuditLogListDtoOutputItemsInner](doc/AdminAuditLogListDtoOutputItemsInner.md)
+ - [AdminAuditLogListDtoOutputItemsInnerOperator](doc/AdminAuditLogListDtoOutputItemsInnerOperator.md)
+ - [AdminBankChangeApproveDto](doc/AdminBankChangeApproveDto.md)
+ - [AdminBankChangeDtoOutput](doc/AdminBankChangeDtoOutput.md)
+ - [AdminBankChangeDtoOutputCurrent](doc/AdminBankChangeDtoOutputCurrent.md)
+ - [AdminBankChangeDtoOutputRequested](doc/AdminBankChangeDtoOutputRequested.md)
+ - [AdminBankChangeRejectDto](doc/AdminBankChangeRejectDto.md)
+ - [AdminCatalogDeactivateDto](doc/AdminCatalogDeactivateDto.md)
+ - [AdminCatalogRenameDto](doc/AdminCatalogRenameDto.md)
+ - [AdminEmployeePageDtoOutput](doc/AdminEmployeePageDtoOutput.md)
+ - [AdminEmployeePageDtoOutputItemsInner](doc/AdminEmployeePageDtoOutputItemsInner.md)
+ - [AdminOperatorPageDtoOutput](doc/AdminOperatorPageDtoOutput.md)
+ - [AdminOperatorPageDtoOutputItemsInner](doc/AdminOperatorPageDtoOutputItemsInner.md)
+ - [AdminOperatorPageDtoOutputItemsInnerOwner](doc/AdminOperatorPageDtoOutputItemsInnerOwner.md)
+ - [AdminOperatorStopPointDtoOutput](doc/AdminOperatorStopPointDtoOutput.md)
+ - [AdminOperatorStopPointListDtoOutput](doc/AdminOperatorStopPointListDtoOutput.md)
+ - [AdminOperatorStopPointListDtoOutputItemsInner](doc/AdminOperatorStopPointListDtoOutputItemsInner.md)
+ - [AdminOperatorSuspendDto](doc/AdminOperatorSuspendDto.md)
+ - [AdminPassengerPageDtoOutput](doc/AdminPassengerPageDtoOutput.md)
+ - [AdminPassengerPageDtoOutputItemsInner](doc/AdminPassengerPageDtoOutputItemsInner.md)
+ - [AdminPlatformAccountCreateDto](doc/AdminPlatformAccountCreateDto.md)
+ - [AdminPlatformAccountDtoOutput](doc/AdminPlatformAccountDtoOutput.md)
+ - [AdminPlatformAccountListDtoOutput](doc/AdminPlatformAccountListDtoOutput.md)
+ - [AdminPlatformAccountListDtoOutputItemsInner](doc/AdminPlatformAccountListDtoOutputItemsInner.md)
+ - [AdminProvinceDtoOutput](doc/AdminProvinceDtoOutput.md)
+ - [AdminProvinceInputDto](doc/AdminProvinceInputDto.md)
+ - [AdminProvincePageDtoOutput](doc/AdminProvincePageDtoOutput.md)
+ - [AdminProvincePageDtoOutputItemsInner](doc/AdminProvincePageDtoOutputItemsInner.md)
+ - [AdminRemoveVehicleImageInputDto](doc/AdminRemoveVehicleImageInputDto.md)
+ - [AdminSharedStopPointDtoOutput](doc/AdminSharedStopPointDtoOutput.md)
+ - [AdminSharedStopPointInputDto](doc/AdminSharedStopPointInputDto.md)
+ - [AdminSharedStopPointListDtoOutput](doc/AdminSharedStopPointListDtoOutput.md)
+ - [AdminSharedStopPointListDtoOutputItemsInner](doc/AdminSharedStopPointListDtoOutputItemsInner.md)
+ - [AdminStopPointProposalApprovalDto](doc/AdminStopPointProposalApprovalDto.md)
+ - [AdminStopPointProposalDtoOutput](doc/AdminStopPointProposalDtoOutput.md)
+ - [AdminStopPointProposalListDtoOutput](doc/AdminStopPointProposalListDtoOutput.md)
+ - [AdminStopPointProposalListDtoOutputItemsInner](doc/AdminStopPointProposalListDtoOutputItemsInner.md)
+ - [AdminStopPointProposalListDtoOutputItemsInnerNearbyInner](doc/AdminStopPointProposalListDtoOutputItemsInnerNearbyInner.md)
+ - [AdminVehicleImageListDtoOutput](doc/AdminVehicleImageListDtoOutput.md)
+ - [AdminVehicleImageListDtoOutputItemsInner](doc/AdminVehicleImageListDtoOutputItemsInner.md)
+ - [AdminVehicleImageListDtoOutputOperatorsInner](doc/AdminVehicleImageListDtoOutputOperatorsInner.md)
+ - [AdminVehicleTypeDtoOutput](doc/AdminVehicleTypeDtoOutput.md)
+ - [AdminVehicleTypeInputDto](doc/AdminVehicleTypeInputDto.md)
+ - [AdminVehicleTypeListDtoOutput](doc/AdminVehicleTypeListDtoOutput.md)
+ - [AdminVehicleTypeListDtoOutputItemsInner](doc/AdminVehicleTypeListDtoOutputItemsInner.md)
+ - [AdminVehicleTypeUpdateDto](doc/AdminVehicleTypeUpdateDto.md)
+ - [AdminWardDtoOutput](doc/AdminWardDtoOutput.md)
+ - [AdminWardInputDto](doc/AdminWardInputDto.md)
+ - [AdminWardPageDtoOutput](doc/AdminWardPageDtoOutput.md)
+ - [AdminWardPageDtoOutputItemsInner](doc/AdminWardPageDtoOutputItemsInner.md)
  - [AmenityListResponseDtoOutput](doc/AmenityListResponseDtoOutput.md)
  - [ApplicationAccessLinkInputDto](doc/ApplicationAccessLinkInputDto.md)
  - [ApplicationCreateInputDto](doc/ApplicationCreateInputDto.md)
@@ -166,8 +312,26 @@ Class | Method | HTTP request | Description
  - [ApplicationUpdateInputDtoDocumentsInner](doc/ApplicationUpdateInputDtoDocumentsInner.md)
  - [ApprovalInputDto](doc/ApprovalInputDto.md)
  - [ApprovalResponseDtoOutput](doc/ApprovalResponseDtoOutput.md)
+ - [ArticleCategoryListDtoOutput](doc/ArticleCategoryListDtoOutput.md)
+ - [ArticleCategoryListDtoOutputItemsInner](doc/ArticleCategoryListDtoOutputItemsInner.md)
+ - [ArticleDtoOutput](doc/ArticleDtoOutput.md)
+ - [ArticlePageDtoOutput](doc/ArticlePageDtoOutput.md)
+ - [ArticlePageDtoOutputItemsInner](doc/ArticlePageDtoOutputItemsInner.md)
+ - [ArticlePageDtoOutputItemsInnerCategory](doc/ArticlePageDtoOutputItemsInnerCategory.md)
  - [AuthMeResponseDtoOutput](doc/AuthMeResponseDtoOutput.md)
  - [AuthTokenResponseDtoOutput](doc/AuthTokenResponseDtoOutput.md)
+ - [BackgroundJobsDtoOutput](doc/BackgroundJobsDtoOutput.md)
+ - [BackgroundJobsDtoOutputJobsInner](doc/BackgroundJobsDtoOutputJobsInner.md)
+ - [BackgroundJobsDtoOutputJobsInnerLastRun](doc/BackgroundJobsDtoOutputJobsInnerLastRun.md)
+ - [BackgroundJobsDtoOutputQueuesInner](doc/BackgroundJobsDtoOutputQueuesInner.md)
+ - [BankChangeInputDto](doc/BankChangeInputDto.md)
+ - [CommissionOverviewDtoOutput](doc/CommissionOverviewDtoOutput.md)
+ - [CommissionOverviewDtoOutputDefault](doc/CommissionOverviewDtoOutputDefault.md)
+ - [CommissionOverviewDtoOutputOverridesInner](doc/CommissionOverviewDtoOutputOverridesInner.md)
+ - [CommissionRuleCancelDto](doc/CommissionRuleCancelDto.md)
+ - [CommissionRuleCreateDto](doc/CommissionRuleCreateDto.md)
+ - [CommissionRuleDtoOutput](doc/CommissionRuleDtoOutput.md)
+ - [CommissionRuleUpdateDto](doc/CommissionRuleUpdateDto.md)
  - [CredentialLoginDto](doc/CredentialLoginDto.md)
  - [CredentialLoginResponseDtoOutput](doc/CredentialLoginResponseDtoOutput.md)
  - [CredentialTokenResponse](doc/CredentialTokenResponse.md)
@@ -184,11 +348,16 @@ Class | Method | HTTP request | Description
  - [EmployeeListResponseDtoOutputItemsInner](doc/EmployeeListResponseDtoOutputItemsInner.md)
  - [EmployeePasswordResetDto](doc/EmployeePasswordResetDto.md)
  - [EmployeeUpdateDto](doc/EmployeeUpdateDto.md)
+ - [FareBandCreateDto](doc/FareBandCreateDto.md)
+ - [FareBandDtoOutput](doc/FareBandDtoOutput.md)
+ - [FareBandListDtoOutput](doc/FareBandListDtoOutput.md)
+ - [FareBandListDtoOutputItemsInner](doc/FareBandListDtoOutputItemsInner.md)
  - [FareCreateInputDto](doc/FareCreateInputDto.md)
  - [FareCreateInputDtoRulesInner](doc/FareCreateInputDtoRulesInner.md)
  - [FareListResponseDtoOutput](doc/FareListResponseDtoOutput.md)
  - [FareListResponseDtoOutputItemsInner](doc/FareListResponseDtoOutputItemsInner.md)
  - [FareResponseDtoOutput](doc/FareResponseDtoOutput.md)
+ - [FareResponseDtoOutputBandWarningsInner](doc/FareResponseDtoOutputBandWarningsInner.md)
  - [FareResponseDtoOutputRulesInner](doc/FareResponseDtoOutputRulesInner.md)
  - [FareRevisionListResponseDtoOutput](doc/FareRevisionListResponseDtoOutput.md)
  - [FareRevisionListResponseDtoOutputItemsInner](doc/FareRevisionListResponseDtoOutputItemsInner.md)
@@ -196,6 +365,10 @@ Class | Method | HTTP request | Description
  - [FareRevisionListResponseDtoOutputItemsInnerBefore](doc/FareRevisionListResponseDtoOutputItemsInnerBefore.md)
  - [FareUpdateInputDto](doc/FareUpdateInputDto.md)
  - [HealthResponseDtoOutput](doc/HealthResponseDtoOutput.md)
+ - [KycDownloadResponseDtoOutput](doc/KycDownloadResponseDtoOutput.md)
+ - [KycReplaceInputDto](doc/KycReplaceInputDto.md)
+ - [KycUploadInputDto](doc/KycUploadInputDto.md)
+ - [KycUploadResponseDtoOutput](doc/KycUploadResponseDtoOutput.md)
  - [MessageResponseDtoOutput](doc/MessageResponseDtoOutput.md)
  - [MfaChallengeResponse](doc/MfaChallengeResponse.md)
  - [MfaVerifyDto](doc/MfaVerifyDto.md)
@@ -205,6 +378,10 @@ Class | Method | HTTP request | Description
  - [MongoHealthResponseDtoOutput](doc/MongoHealthResponseDtoOutput.md)
  - [OAuthInitDto](doc/OAuthInitDto.md)
  - [OAuthRedirectResponseDtoOutput](doc/OAuthRedirectResponseDtoOutput.md)
+ - [OperatorProfileResponseDtoOutput](doc/OperatorProfileResponseDtoOutput.md)
+ - [OperatorProfileResponseDtoOutputBankAccount](doc/OperatorProfileResponseDtoOutputBankAccount.md)
+ - [OperatorProfileResponseDtoOutputBankChange](doc/OperatorProfileResponseDtoOutputBankChange.md)
+ - [OperatorProfileUpdateDto](doc/OperatorProfileUpdateDto.md)
  - [OperatorStopPointInputDto](doc/OperatorStopPointInputDto.md)
  - [OperatorStopPointListResponseDtoOutput](doc/OperatorStopPointListResponseDtoOutput.md)
  - [OperatorStopPointListResponseDtoOutputItemsInner](doc/OperatorStopPointListResponseDtoOutputItemsInner.md)
@@ -213,6 +390,19 @@ Class | Method | HTTP request | Description
  - [OtpVerifyDto](doc/OtpVerifyDto.md)
  - [PasswordChangeChallengeResponse](doc/PasswordChangeChallengeResponse.md)
  - [PasswordChangeRequiredDto](doc/PasswordChangeRequiredDto.md)
+ - [PolicyCancelDto](doc/PolicyCancelDto.md)
+ - [PolicyDraftCreateDto](doc/PolicyDraftCreateDto.md)
+ - [PolicyDraftUpdateDto](doc/PolicyDraftUpdateDto.md)
+ - [PolicyOverviewDtoOutput](doc/PolicyOverviewDtoOutput.md)
+ - [PolicyOverviewDtoOutputOverridesInner](doc/PolicyOverviewDtoOutputOverridesInner.md)
+ - [PolicyOverviewDtoOutputVersionsInner](doc/PolicyOverviewDtoOutputVersionsInner.md)
+ - [PolicyOverviewDtoOutputVersionsInnerRules](doc/PolicyOverviewDtoOutputVersionsInnerRules.md)
+ - [PolicyOverviewDtoOutputVersionsInnerRulesAnyOf](doc/PolicyOverviewDtoOutputVersionsInnerRulesAnyOf.md)
+ - [PolicyOverviewDtoOutputVersionsInnerRulesAnyOf1](doc/PolicyOverviewDtoOutputVersionsInnerRulesAnyOf1.md)
+ - [PolicyOverviewDtoOutputVersionsInnerRulesAnyOf2](doc/PolicyOverviewDtoOutputVersionsInnerRulesAnyOf2.md)
+ - [PolicyOverviewDtoOutputVersionsInnerRulesAnyOfTiersInner](doc/PolicyOverviewDtoOutputVersionsInnerRulesAnyOfTiersInner.md)
+ - [PolicyPublishDto](doc/PolicyPublishDto.md)
+ - [PolicyVersionDtoOutput](doc/PolicyVersionDtoOutput.md)
  - [PostgresHealthResponseDtoOutput](doc/PostgresHealthResponseDtoOutput.md)
  - [ProblemDetailsDto](doc/ProblemDetailsDto.md)
  - [ProvinceListResponseDtoOutput](doc/ProvinceListResponseDtoOutput.md)
@@ -250,6 +440,9 @@ Class | Method | HTTP request | Description
  - [StopPointProposalListResponseDtoOutput](doc/StopPointProposalListResponseDtoOutput.md)
  - [StopPointProposalListResponseDtoOutputItemsInner](doc/StopPointProposalListResponseDtoOutputItemsInner.md)
  - [StopPointProposalResponseDtoOutput](doc/StopPointProposalResponseDtoOutput.md)
+ - [StopPointReasonInputDto](doc/StopPointReasonInputDto.md)
+ - [SystemIntegrationsDtoOutput](doc/SystemIntegrationsDtoOutput.md)
+ - [SystemIntegrationsDtoOutputItemsInner](doc/SystemIntegrationsDtoOutputItemsInner.md)
  - [TripInputDto](doc/TripInputDto.md)
  - [TripListResponseDtoOutput](doc/TripListResponseDtoOutput.md)
  - [TripListResponseDtoOutputItemsInner](doc/TripListResponseDtoOutputItemsInner.md)

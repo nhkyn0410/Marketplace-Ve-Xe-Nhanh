@@ -41,9 +41,10 @@ test("quản trị viên lần đầu: bật xác thực hai lớp (bắt buộc
   await expect(page.getByText("Quản trị viên nền tảng")).toBeVisible();
   await expect(page.getByText("Platform · Nội bộ")).toBeVisible();
 
-  // Mục chưa làm có trang giữ chỗ.
+  // Mục chờ đặt vé / thanh toán có khung giao diện, không số liệu mẫu.
   await page.getByRole("link", { name: "Chi trả nhà xe" }).click();
-  await expect(page.getByText("Chưa có trong phiên bản này")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Chi trả nhà xe", level: 1 })).toBeVisible({ timeout: 20_000 });
+  await expect(page.getByText("Chưa có dữ liệu", { exact: true })).toBeVisible();
 
   // Tải lại trang vẫn giữ phiên.
   await page.goto("/");
