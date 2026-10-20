@@ -13,6 +13,7 @@ Method | HTTP request | Description
 [**adminPromotionControllerGet**](AdminPromotionsApi.md#adminpromotioncontrollerget) | **GET** /v1/admin/promotions/{promotionId} | 
 [**adminPromotionControllerList**](AdminPromotionsApi.md#adminpromotioncontrollerlist) | **GET** /v1/admin/promotions | 
 [**adminPromotionControllerPermissions**](AdminPromotionsApi.md#adminpromotioncontrollerpermissions) | **GET** /v1/admin/promotion-permissions | 
+[**adminPromotionControllerRouteOptions**](AdminPromotionsApi.md#adminpromotioncontrollerrouteoptions) | **GET** /v1/admin/promotion-routes | 
 [**adminPromotionControllerSetPermission**](AdminPromotionsApi.md#adminpromotioncontrollersetpermission) | **PUT** /v1/admin/promotion-permissions/{operatorId} | 
 [**adminPromotionControllerSetStatus**](AdminPromotionsApi.md#adminpromotioncontrollersetstatus) | **POST** /v1/admin/promotions/{promotionId}/status | 
 [**adminPromotionControllerUpdate**](AdminPromotionsApi.md#adminpromotioncontrollerupdate) | **PUT** /v1/admin/promotions/{promotionId} | 
@@ -188,6 +189,43 @@ Name | Type | Description  | Notes
 ### Return type
 
 [**PermissionPageDtoOutput**](PermissionPageDtoOutput.md)
+
+### Authorization
+
+[bearer](../README.md#bearer)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json, application/problem+json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **adminPromotionControllerRouteOptions**
+> PromotionRouteOptionsDtoOutput adminPromotionControllerRouteOptions()
+
+
+
+### Example
+```dart
+import 'package:api_client_dart/api.dart';
+
+final api = ApiClientDart().getAdminPromotionsApi();
+
+try {
+    final response = api.adminPromotionControllerRouteOptions();
+    print(response);
+} on DioException catch (e) {
+    print('Exception when calling AdminPromotionsApi->adminPromotionControllerRouteOptions: $e\n');
+}
+```
+
+### Parameters
+This endpoint does not need any parameter.
+
+### Return type
+
+[**PromotionRouteOptionsDtoOutput**](PromotionRouteOptionsDtoOutput.md)
 
 ### Authorization
 

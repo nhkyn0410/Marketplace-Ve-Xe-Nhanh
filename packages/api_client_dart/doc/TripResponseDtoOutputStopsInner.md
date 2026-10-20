@@ -16,6 +16,8 @@ Name | Type | Description | Notes
 **address** | **String** |  | 
 **type** | **String** |  | 
 **plannedAt** | [**DateTime**](DateTime.md) |  | 
+**pickupWindowStart** | [**DateTime**](DateTime.md) |  | 
+**pickupWindowEnd** | [**DateTime**](DateTime.md) |  | 
 **allowPickup** | **bool** |  | 
 **allowDropoff** | **bool** |  | 
 **note** | **String** |  | 

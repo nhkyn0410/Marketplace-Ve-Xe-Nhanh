@@ -18,6 +18,8 @@ class _$BookingInputDto extends BookingInputDto {
   @override
   final int expectedTotal;
   @override
+  final String? userVoucherId;
+  @override
   final String? promotionCode;
 
   factory _$BookingInputDto([void Function(BookingInputDtoBuilder)? updates]) =>
@@ -29,6 +31,7 @@ class _$BookingInputDto extends BookingInputDto {
       required this.passengers,
       this.note,
       required this.expectedTotal,
+      this.userVoucherId,
       this.promotionCode})
       : super._();
   @override
@@ -47,6 +50,7 @@ class _$BookingInputDto extends BookingInputDto {
         passengers == other.passengers &&
         note == other.note &&
         expectedTotal == other.expectedTotal &&
+        userVoucherId == other.userVoucherId &&
         promotionCode == other.promotionCode;
   }
 
@@ -58,6 +62,7 @@ class _$BookingInputDto extends BookingInputDto {
     _$hash = $jc(_$hash, passengers.hashCode);
     _$hash = $jc(_$hash, note.hashCode);
     _$hash = $jc(_$hash, expectedTotal.hashCode);
+    _$hash = $jc(_$hash, userVoucherId.hashCode);
     _$hash = $jc(_$hash, promotionCode.hashCode);
     _$hash = $jf(_$hash);
     return _$hash;
@@ -71,6 +76,7 @@ class _$BookingInputDto extends BookingInputDto {
           ..add('passengers', passengers)
           ..add('note', note)
           ..add('expectedTotal', expectedTotal)
+          ..add('userVoucherId', userVoucherId)
           ..add('promotionCode', promotionCode))
         .toString();
   }
@@ -105,6 +111,11 @@ class BookingInputDtoBuilder
   set expectedTotal(int? expectedTotal) =>
       _$this._expectedTotal = expectedTotal;
 
+  String? _userVoucherId;
+  String? get userVoucherId => _$this._userVoucherId;
+  set userVoucherId(String? userVoucherId) =>
+      _$this._userVoucherId = userVoucherId;
+
   String? _promotionCode;
   String? get promotionCode => _$this._promotionCode;
   set promotionCode(String? promotionCode) =>
@@ -122,6 +133,7 @@ class BookingInputDtoBuilder
       _passengers = $v.passengers.toBuilder();
       _note = $v.note;
       _expectedTotal = $v.expectedTotal;
+      _userVoucherId = $v.userVoucherId;
       _promotionCode = $v.promotionCode;
       _$v = null;
     }
@@ -153,6 +165,7 @@ class BookingInputDtoBuilder
             note: note,
             expectedTotal: BuiltValueNullFieldError.checkNotNull(
                 expectedTotal, r'BookingInputDto', 'expectedTotal'),
+            userVoucherId: userVoucherId,
             promotionCode: promotionCode,
           );
     } catch (_) {

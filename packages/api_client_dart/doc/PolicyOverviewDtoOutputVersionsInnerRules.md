@@ -8,7 +8,7 @@ import 'package:api_client_dart/api.dart';
 ## Properties
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**tiers** | [**BuiltList&lt;PolicyOverviewDtoOutputVersionsInnerRulesAnyOf3TiersInner&gt;**](PolicyOverviewDtoOutputVersionsInnerRulesAnyOf3TiersInner.md) |  | 
+**tiers** | [**BuiltList&lt;PassengerLoyaltyDtoOutputRulesTiersInner&gt;**](PassengerLoyaltyDtoOutputRulesTiersInner.md) |  | 
 **holdMinutes** | **int** |  | 
 **delayDays** | **int** |  | 
 **channel** | **String** |  | 

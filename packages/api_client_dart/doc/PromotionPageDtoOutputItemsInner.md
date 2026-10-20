@@ -19,6 +19,8 @@ Name | Type | Description | Notes
 **maxDiscount** | **int** |  | 
 **minOrder** | **int** |  | 
 **routeId** | **String** |  | 
+**routeIds** | **BuiltList&lt;String&gt;** |  | 
+**routeNames** | **BuiltList&lt;String&gt;** |  | 
 **routeName** | **String** |  | 
 **tripId** | **String** |  | 
 **startsAt** | [**DateTime**](DateTime.md) |  | 

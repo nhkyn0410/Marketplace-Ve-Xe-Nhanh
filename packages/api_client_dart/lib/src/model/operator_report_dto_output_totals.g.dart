@@ -23,6 +23,10 @@ class _$OperatorReportDtoOutputTotals extends OperatorReportDtoOutputTotals {
   final int cancelledTickets;
   @override
   final int refundedTickets;
+  @override
+  final num? averageRating;
+  @override
+  final int reviewCount;
 
   factory _$OperatorReportDtoOutputTotals(
           [void Function(OperatorReportDtoOutputTotalsBuilder)? updates]) =>
@@ -36,7 +40,9 @@ class _$OperatorReportDtoOutputTotals extends OperatorReportDtoOutputTotals {
       required this.bookings,
       required this.seats,
       required this.cancelledTickets,
-      required this.refundedTickets})
+      required this.refundedTickets,
+      this.averageRating,
+      required this.reviewCount})
       : super._();
   @override
   OperatorReportDtoOutputTotals rebuild(
@@ -58,7 +64,9 @@ class _$OperatorReportDtoOutputTotals extends OperatorReportDtoOutputTotals {
         bookings == other.bookings &&
         seats == other.seats &&
         cancelledTickets == other.cancelledTickets &&
-        refundedTickets == other.refundedTickets;
+        refundedTickets == other.refundedTickets &&
+        averageRating == other.averageRating &&
+        reviewCount == other.reviewCount;
   }
 
   @override
@@ -72,6 +80,8 @@ class _$OperatorReportDtoOutputTotals extends OperatorReportDtoOutputTotals {
     _$hash = $jc(_$hash, seats.hashCode);
     _$hash = $jc(_$hash, cancelledTickets.hashCode);
     _$hash = $jc(_$hash, refundedTickets.hashCode);
+    _$hash = $jc(_$hash, averageRating.hashCode);
+    _$hash = $jc(_$hash, reviewCount.hashCode);
     _$hash = $jf(_$hash);
     return _$hash;
   }
@@ -86,7 +96,9 @@ class _$OperatorReportDtoOutputTotals extends OperatorReportDtoOutputTotals {
           ..add('bookings', bookings)
           ..add('seats', seats)
           ..add('cancelledTickets', cancelledTickets)
-          ..add('refundedTickets', refundedTickets))
+          ..add('refundedTickets', refundedTickets)
+          ..add('averageRating', averageRating)
+          ..add('reviewCount', reviewCount))
         .toString();
   }
 }
@@ -132,6 +144,15 @@ class OperatorReportDtoOutputTotalsBuilder
   set refundedTickets(int? refundedTickets) =>
       _$this._refundedTickets = refundedTickets;
 
+  num? _averageRating;
+  num? get averageRating => _$this._averageRating;
+  set averageRating(num? averageRating) =>
+      _$this._averageRating = averageRating;
+
+  int? _reviewCount;
+  int? get reviewCount => _$this._reviewCount;
+  set reviewCount(int? reviewCount) => _$this._reviewCount = reviewCount;
+
   OperatorReportDtoOutputTotalsBuilder() {
     OperatorReportDtoOutputTotals._defaults(this);
   }
@@ -147,6 +168,8 @@ class OperatorReportDtoOutputTotalsBuilder
       _seats = $v.seats;
       _cancelledTickets = $v.cancelledTickets;
       _refundedTickets = $v.refundedTickets;
+      _averageRating = $v.averageRating;
+      _reviewCount = $v.reviewCount;
       _$v = null;
     }
     return this;
@@ -188,6 +211,9 @@ class OperatorReportDtoOutputTotalsBuilder
               refundedTickets,
               r'OperatorReportDtoOutputTotals',
               'refundedTickets'),
+          averageRating: averageRating,
+          reviewCount: BuiltValueNullFieldError.checkNotNull(
+              reviewCount, r'OperatorReportDtoOutputTotals', 'reviewCount'),
         );
     replace(_$result);
     return _$result;

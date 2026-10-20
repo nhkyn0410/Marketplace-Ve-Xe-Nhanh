@@ -21,6 +21,14 @@ const AdminPaymentDetailDtoOutputLedgerInnerEntryTypeEnum
     const AdminPaymentDetailDtoOutputLedgerInnerEntryTypeEnum._(
         'COMMISSION_REVERSAL');
 const AdminPaymentDetailDtoOutputLedgerInnerEntryTypeEnum
+    _$adminPaymentDetailDtoOutputLedgerInnerEntryTypeEnum_PLATFORM_FUNDED_DISCOUNT =
+    const AdminPaymentDetailDtoOutputLedgerInnerEntryTypeEnum._(
+        'PLATFORM_FUNDED_DISCOUNT');
+const AdminPaymentDetailDtoOutputLedgerInnerEntryTypeEnum
+    _$adminPaymentDetailDtoOutputLedgerInnerEntryTypeEnum_PLATFORM_FUNDED_DISCOUNT_REVERSAL =
+    const AdminPaymentDetailDtoOutputLedgerInnerEntryTypeEnum._(
+        'PLATFORM_FUNDED_DISCOUNT_REVERSAL');
+const AdminPaymentDetailDtoOutputLedgerInnerEntryTypeEnum
     _$adminPaymentDetailDtoOutputLedgerInnerEntryTypeEnum_PAYOUT =
     const AdminPaymentDetailDtoOutputLedgerInnerEntryTypeEnum._('PAYOUT');
 const AdminPaymentDetailDtoOutputLedgerInnerEntryTypeEnum
@@ -38,6 +46,10 @@ AdminPaymentDetailDtoOutputLedgerInnerEntryTypeEnum
       return _$adminPaymentDetailDtoOutputLedgerInnerEntryTypeEnum_REFUND;
     case 'COMMISSION_REVERSAL':
       return _$adminPaymentDetailDtoOutputLedgerInnerEntryTypeEnum_COMMISSION_REVERSAL;
+    case 'PLATFORM_FUNDED_DISCOUNT':
+      return _$adminPaymentDetailDtoOutputLedgerInnerEntryTypeEnum_PLATFORM_FUNDED_DISCOUNT;
+    case 'PLATFORM_FUNDED_DISCOUNT_REVERSAL':
+      return _$adminPaymentDetailDtoOutputLedgerInnerEntryTypeEnum_PLATFORM_FUNDED_DISCOUNT_REVERSAL;
     case 'PAYOUT':
       return _$adminPaymentDetailDtoOutputLedgerInnerEntryTypeEnum_PAYOUT;
     case 'ADJUSTMENT':
@@ -54,6 +66,8 @@ final BuiltSet<AdminPaymentDetailDtoOutputLedgerInnerEntryTypeEnum>
   _$adminPaymentDetailDtoOutputLedgerInnerEntryTypeEnum_COMMISSION,
   _$adminPaymentDetailDtoOutputLedgerInnerEntryTypeEnum_REFUND,
   _$adminPaymentDetailDtoOutputLedgerInnerEntryTypeEnum_COMMISSION_REVERSAL,
+  _$adminPaymentDetailDtoOutputLedgerInnerEntryTypeEnum_PLATFORM_FUNDED_DISCOUNT,
+  _$adminPaymentDetailDtoOutputLedgerInnerEntryTypeEnum_PLATFORM_FUNDED_DISCOUNT_REVERSAL,
   _$adminPaymentDetailDtoOutputLedgerInnerEntryTypeEnum_PAYOUT,
   _$adminPaymentDetailDtoOutputLedgerInnerEntryTypeEnum_ADJUSTMENT,
 ]);
@@ -71,6 +85,8 @@ class _$AdminPaymentDetailDtoOutputLedgerInnerEntryTypeEnumSerializer
     'COMMISSION': 'COMMISSION',
     'REFUND': 'REFUND',
     'COMMISSION_REVERSAL': 'COMMISSION_REVERSAL',
+    'PLATFORM_FUNDED_DISCOUNT': 'PLATFORM_FUNDED_DISCOUNT',
+    'PLATFORM_FUNDED_DISCOUNT_REVERSAL': 'PLATFORM_FUNDED_DISCOUNT_REVERSAL',
     'PAYOUT': 'PAYOUT',
     'ADJUSTMENT': 'ADJUSTMENT',
   };
@@ -79,6 +95,8 @@ class _$AdminPaymentDetailDtoOutputLedgerInnerEntryTypeEnumSerializer
     'COMMISSION': 'COMMISSION',
     'REFUND': 'REFUND',
     'COMMISSION_REVERSAL': 'COMMISSION_REVERSAL',
+    'PLATFORM_FUNDED_DISCOUNT': 'PLATFORM_FUNDED_DISCOUNT',
+    'PLATFORM_FUNDED_DISCOUNT_REVERSAL': 'PLATFORM_FUNDED_DISCOUNT_REVERSAL',
     'PAYOUT': 'PAYOUT',
     'ADJUSTMENT': 'ADJUSTMENT',
   };

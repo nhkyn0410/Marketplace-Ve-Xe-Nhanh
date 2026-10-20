@@ -29,6 +29,10 @@ class _$AdminReportDtoOutputTotals extends AdminReportDtoOutputTotals {
   final int operatorCancelledTrips;
   @override
   final int tripsWithSales;
+  @override
+  final int supportTickets;
+  @override
+  final int disputesOpened;
 
   factory _$AdminReportDtoOutputTotals(
           [void Function(AdminReportDtoOutputTotalsBuilder)? updates]) =>
@@ -45,7 +49,9 @@ class _$AdminReportDtoOutputTotals extends AdminReportDtoOutputTotals {
       required this.seats,
       required this.ticketsSold,
       required this.operatorCancelledTrips,
-      required this.tripsWithSales})
+      required this.tripsWithSales,
+      required this.supportTickets,
+      required this.disputesOpened})
       : super._();
   @override
   AdminReportDtoOutputTotals rebuild(
@@ -70,7 +76,9 @@ class _$AdminReportDtoOutputTotals extends AdminReportDtoOutputTotals {
         seats == other.seats &&
         ticketsSold == other.ticketsSold &&
         operatorCancelledTrips == other.operatorCancelledTrips &&
-        tripsWithSales == other.tripsWithSales;
+        tripsWithSales == other.tripsWithSales &&
+        supportTickets == other.supportTickets &&
+        disputesOpened == other.disputesOpened;
   }
 
   @override
@@ -87,6 +95,8 @@ class _$AdminReportDtoOutputTotals extends AdminReportDtoOutputTotals {
     _$hash = $jc(_$hash, ticketsSold.hashCode);
     _$hash = $jc(_$hash, operatorCancelledTrips.hashCode);
     _$hash = $jc(_$hash, tripsWithSales.hashCode);
+    _$hash = $jc(_$hash, supportTickets.hashCode);
+    _$hash = $jc(_$hash, disputesOpened.hashCode);
     _$hash = $jf(_$hash);
     return _$hash;
   }
@@ -104,7 +114,9 @@ class _$AdminReportDtoOutputTotals extends AdminReportDtoOutputTotals {
           ..add('seats', seats)
           ..add('ticketsSold', ticketsSold)
           ..add('operatorCancelledTrips', operatorCancelledTrips)
-          ..add('tripsWithSales', tripsWithSales))
+          ..add('tripsWithSales', tripsWithSales)
+          ..add('supportTickets', supportTickets)
+          ..add('disputesOpened', disputesOpened))
         .toString();
   }
 }
@@ -162,6 +174,16 @@ class AdminReportDtoOutputTotalsBuilder
   set tripsWithSales(int? tripsWithSales) =>
       _$this._tripsWithSales = tripsWithSales;
 
+  int? _supportTickets;
+  int? get supportTickets => _$this._supportTickets;
+  set supportTickets(int? supportTickets) =>
+      _$this._supportTickets = supportTickets;
+
+  int? _disputesOpened;
+  int? get disputesOpened => _$this._disputesOpened;
+  set disputesOpened(int? disputesOpened) =>
+      _$this._disputesOpened = disputesOpened;
+
   AdminReportDtoOutputTotalsBuilder() {
     AdminReportDtoOutputTotals._defaults(this);
   }
@@ -180,6 +202,8 @@ class AdminReportDtoOutputTotalsBuilder
       _ticketsSold = $v.ticketsSold;
       _operatorCancelledTrips = $v.operatorCancelledTrips;
       _tripsWithSales = $v.tripsWithSales;
+      _supportTickets = $v.supportTickets;
+      _disputesOpened = $v.disputesOpened;
       _$v = null;
     }
     return this;
@@ -225,6 +249,10 @@ class AdminReportDtoOutputTotalsBuilder
               'operatorCancelledTrips'),
           tripsWithSales: BuiltValueNullFieldError.checkNotNull(
               tripsWithSales, r'AdminReportDtoOutputTotals', 'tripsWithSales'),
+          supportTickets: BuiltValueNullFieldError.checkNotNull(
+              supportTickets, r'AdminReportDtoOutputTotals', 'supportTickets'),
+          disputesOpened: BuiltValueNullFieldError.checkNotNull(
+              disputesOpened, r'AdminReportDtoOutputTotals', 'disputesOpened'),
         );
     replace(_$result);
     return _$result;

@@ -318,6 +318,10 @@ class _$PromotionPageDtoOutputItemsInner
   @override
   final String? routeId;
   @override
+  final BuiltList<String> routeIds;
+  @override
+  final BuiltList<String> routeNames;
+  @override
   final String? routeName;
   @override
   final String? tripId;
@@ -358,6 +362,8 @@ class _$PromotionPageDtoOutputItemsInner
       this.maxDiscount,
       required this.minOrder,
       this.routeId,
+      required this.routeIds,
+      required this.routeNames,
       this.routeName,
       this.tripId,
       required this.startsAt,
@@ -395,6 +401,8 @@ class _$PromotionPageDtoOutputItemsInner
         maxDiscount == other.maxDiscount &&
         minOrder == other.minOrder &&
         routeId == other.routeId &&
+        routeIds == other.routeIds &&
+        routeNames == other.routeNames &&
         routeName == other.routeName &&
         tripId == other.tripId &&
         startsAt == other.startsAt &&
@@ -423,6 +431,8 @@ class _$PromotionPageDtoOutputItemsInner
     _$hash = $jc(_$hash, maxDiscount.hashCode);
     _$hash = $jc(_$hash, minOrder.hashCode);
     _$hash = $jc(_$hash, routeId.hashCode);
+    _$hash = $jc(_$hash, routeIds.hashCode);
+    _$hash = $jc(_$hash, routeNames.hashCode);
     _$hash = $jc(_$hash, routeName.hashCode);
     _$hash = $jc(_$hash, tripId.hashCode);
     _$hash = $jc(_$hash, startsAt.hashCode);
@@ -453,6 +463,8 @@ class _$PromotionPageDtoOutputItemsInner
           ..add('maxDiscount', maxDiscount)
           ..add('minOrder', minOrder)
           ..add('routeId', routeId)
+          ..add('routeIds', routeIds)
+          ..add('routeNames', routeNames)
           ..add('routeName', routeName)
           ..add('tripId', tripId)
           ..add('startsAt', startsAt)
@@ -524,6 +536,17 @@ class PromotionPageDtoOutputItemsInnerBuilder
   String? get routeId => _$this._routeId;
   set routeId(String? routeId) => _$this._routeId = routeId;
 
+  ListBuilder<String>? _routeIds;
+  ListBuilder<String> get routeIds =>
+      _$this._routeIds ??= ListBuilder<String>();
+  set routeIds(ListBuilder<String>? routeIds) => _$this._routeIds = routeIds;
+
+  ListBuilder<String>? _routeNames;
+  ListBuilder<String> get routeNames =>
+      _$this._routeNames ??= ListBuilder<String>();
+  set routeNames(ListBuilder<String>? routeNames) =>
+      _$this._routeNames = routeNames;
+
   String? _routeName;
   String? get routeName => _$this._routeName;
   set routeName(String? routeName) => _$this._routeName = routeName;
@@ -592,6 +615,8 @@ class PromotionPageDtoOutputItemsInnerBuilder
       _maxDiscount = $v.maxDiscount;
       _minOrder = $v.minOrder;
       _routeId = $v.routeId;
+      _routeIds = $v.routeIds.toBuilder();
+      _routeNames = $v.routeNames.toBuilder();
       _routeName = $v.routeName;
       _tripId = $v.tripId;
       _startsAt = $v.startsAt;
@@ -623,47 +648,64 @@ class PromotionPageDtoOutputItemsInnerBuilder
   PromotionPageDtoOutputItemsInner build() => _build();
 
   _$PromotionPageDtoOutputItemsInner _build() {
-    final _$result = _$v ??
-        _$PromotionPageDtoOutputItemsInner._(
-          promotionId: BuiltValueNullFieldError.checkNotNull(
-              promotionId, r'PromotionPageDtoOutputItemsInner', 'promotionId'),
-          code: BuiltValueNullFieldError.checkNotNull(
-              code, r'PromotionPageDtoOutputItemsInner', 'code'),
-          name: BuiltValueNullFieldError.checkNotNull(
-              name, r'PromotionPageDtoOutputItemsInner', 'name'),
-          scope: BuiltValueNullFieldError.checkNotNull(
-              scope, r'PromotionPageDtoOutputItemsInner', 'scope'),
-          operatorId: operatorId,
-          operatorName: operatorName,
-          discountType: BuiltValueNullFieldError.checkNotNull(discountType,
-              r'PromotionPageDtoOutputItemsInner', 'discountType'),
-          discountValue: BuiltValueNullFieldError.checkNotNull(discountValue,
-              r'PromotionPageDtoOutputItemsInner', 'discountValue'),
-          maxDiscount: maxDiscount,
-          minOrder: BuiltValueNullFieldError.checkNotNull(
-              minOrder, r'PromotionPageDtoOutputItemsInner', 'minOrder'),
-          routeId: routeId,
-          routeName: routeName,
-          tripId: tripId,
-          startsAt: BuiltValueNullFieldError.checkNotNull(
-              startsAt, r'PromotionPageDtoOutputItemsInner', 'startsAt'),
-          endsAt: BuiltValueNullFieldError.checkNotNull(
-              endsAt, r'PromotionPageDtoOutputItemsInner', 'endsAt'),
-          usageLimit: BuiltValueNullFieldError.checkNotNull(
-              usageLimit, r'PromotionPageDtoOutputItemsInner', 'usageLimit'),
-          usedCount: BuiltValueNullFieldError.checkNotNull(
-              usedCount, r'PromotionPageDtoOutputItemsInner', 'usedCount'),
-          status: BuiltValueNullFieldError.checkNotNull(
-              status, r'PromotionPageDtoOutputItemsInner', 'status'),
-          display: BuiltValueNullFieldError.checkNotNull(
-              display, r'PromotionPageDtoOutputItemsInner', 'display'),
-          editable: BuiltValueNullFieldError.checkNotNull(
-              editable, r'PromotionPageDtoOutputItemsInner', 'editable'),
-          joined: joined,
-          participants: participants,
-          createdAt: BuiltValueNullFieldError.checkNotNull(
-              createdAt, r'PromotionPageDtoOutputItemsInner', 'createdAt'),
-        );
+    _$PromotionPageDtoOutputItemsInner _$result;
+    try {
+      _$result = _$v ??
+          _$PromotionPageDtoOutputItemsInner._(
+            promotionId: BuiltValueNullFieldError.checkNotNull(promotionId,
+                r'PromotionPageDtoOutputItemsInner', 'promotionId'),
+            code: BuiltValueNullFieldError.checkNotNull(
+                code, r'PromotionPageDtoOutputItemsInner', 'code'),
+            name: BuiltValueNullFieldError.checkNotNull(
+                name, r'PromotionPageDtoOutputItemsInner', 'name'),
+            scope: BuiltValueNullFieldError.checkNotNull(
+                scope, r'PromotionPageDtoOutputItemsInner', 'scope'),
+            operatorId: operatorId,
+            operatorName: operatorName,
+            discountType: BuiltValueNullFieldError.checkNotNull(discountType,
+                r'PromotionPageDtoOutputItemsInner', 'discountType'),
+            discountValue: BuiltValueNullFieldError.checkNotNull(discountValue,
+                r'PromotionPageDtoOutputItemsInner', 'discountValue'),
+            maxDiscount: maxDiscount,
+            minOrder: BuiltValueNullFieldError.checkNotNull(
+                minOrder, r'PromotionPageDtoOutputItemsInner', 'minOrder'),
+            routeId: routeId,
+            routeIds: routeIds.build(),
+            routeNames: routeNames.build(),
+            routeName: routeName,
+            tripId: tripId,
+            startsAt: BuiltValueNullFieldError.checkNotNull(
+                startsAt, r'PromotionPageDtoOutputItemsInner', 'startsAt'),
+            endsAt: BuiltValueNullFieldError.checkNotNull(
+                endsAt, r'PromotionPageDtoOutputItemsInner', 'endsAt'),
+            usageLimit: BuiltValueNullFieldError.checkNotNull(
+                usageLimit, r'PromotionPageDtoOutputItemsInner', 'usageLimit'),
+            usedCount: BuiltValueNullFieldError.checkNotNull(
+                usedCount, r'PromotionPageDtoOutputItemsInner', 'usedCount'),
+            status: BuiltValueNullFieldError.checkNotNull(
+                status, r'PromotionPageDtoOutputItemsInner', 'status'),
+            display: BuiltValueNullFieldError.checkNotNull(
+                display, r'PromotionPageDtoOutputItemsInner', 'display'),
+            editable: BuiltValueNullFieldError.checkNotNull(
+                editable, r'PromotionPageDtoOutputItemsInner', 'editable'),
+            joined: joined,
+            participants: participants,
+            createdAt: BuiltValueNullFieldError.checkNotNull(
+                createdAt, r'PromotionPageDtoOutputItemsInner', 'createdAt'),
+          );
+    } catch (_) {
+      late String _$failedField;
+      try {
+        _$failedField = 'routeIds';
+        routeIds.build();
+        _$failedField = 'routeNames';
+        routeNames.build();
+      } catch (e) {
+        throw BuiltValueNestedFieldError(
+            r'PromotionPageDtoOutputItemsInner', _$failedField, e.toString());
+      }
+      rethrow;
+    }
     replace(_$result);
     return _$result;
   }

@@ -16,6 +16,7 @@ import 'package:api_client_dart/src/api/admin_commission_api.dart';
 import 'package:api_client_dart/src/api/admin_content_pages_api.dart';
 import 'package:api_client_dart/src/api/admin_disputes_api.dart';
 import 'package:api_client_dart/src/api/admin_loyalty_api.dart';
+import 'package:api_client_dart/src/api/admin_notification_api.dart';
 import 'package:api_client_dart/src/api/admin_operator_applications_api.dart';
 import 'package:api_client_dart/src/api/admin_operators_api.dart';
 import 'package:api_client_dart/src/api/admin_payments_api.dart';
@@ -39,6 +40,9 @@ import 'package:api_client_dart/src/api/content_pages_api.dart';
 import 'package:api_client_dart/src/api/disputes_api.dart';
 import 'package:api_client_dart/src/api/employee_operations_api.dart';
 import 'package:api_client_dart/src/api/health_api.dart';
+import 'package:api_client_dart/src/api/incidents_api.dart';
+import 'package:api_client_dart/src/api/journey_logs_api.dart';
+import 'package:api_client_dart/src/api/notification_api.dart';
 import 'package:api_client_dart/src/api/operator_applications_api.dart';
 import 'package:api_client_dart/src/api/operator_bookings_api.dart';
 import 'package:api_client_dart/src/api/operator_disputes_api.dart';
@@ -58,8 +62,11 @@ import 'package:api_client_dart/src/api/operator_trip_assignments_api.dart';
 import 'package:api_client_dart/src/api/operator_trip_schedules_api.dart';
 import 'package:api_client_dart/src/api/operator_trips_api.dart';
 import 'package:api_client_dart/src/api/operator_vehicles_api.dart';
+import 'package:api_client_dart/src/api/passenger_loyalty_api.dart';
+import 'package:api_client_dart/src/api/passenger_profile_api.dart';
 import 'package:api_client_dart/src/api/payments_api.dart';
 import 'package:api_client_dart/src/api/promotions_api.dart';
+import 'package:api_client_dart/src/api/public_operators_api.dart';
 import 'package:api_client_dart/src/api/reviews_api.dart';
 import 'package:api_client_dart/src/api/seat_holds_api.dart';
 import 'package:api_client_dart/src/api/support_api.dart';
@@ -98,7 +105,9 @@ class ApiClientDart {
 
   void setOAuthToken(String name, String token) {
     if (this.dio.interceptors.any((i) => i is OAuthInterceptor)) {
-      (this.dio.interceptors.firstWhere((i) => i is OAuthInterceptor) as OAuthInterceptor).tokens[name] = token;
+      (this.dio.interceptors.firstWhere((i) => i is OAuthInterceptor)
+              as OAuthInterceptor)
+          .tokens[name] = token;
     }
   }
 
@@ -108,13 +117,18 @@ class ApiClientDart {
   /// [name], this method has no effect.
   void removeOAuthToken(String name) {
     if (this.dio.interceptors.any((i) => i is OAuthInterceptor)) {
-      (this.dio.interceptors.firstWhere((i) => i is OAuthInterceptor) as OAuthInterceptor).tokens.remove(name);
+      (this.dio.interceptors.firstWhere((i) => i is OAuthInterceptor)
+              as OAuthInterceptor)
+          .tokens
+          .remove(name);
     }
   }
 
   void setBearerAuth(String name, String token) {
     if (this.dio.interceptors.any((i) => i is BearerAuthInterceptor)) {
-      (this.dio.interceptors.firstWhere((i) => i is BearerAuthInterceptor) as BearerAuthInterceptor).tokens[name] = token;
+      (this.dio.interceptors.firstWhere((i) => i is BearerAuthInterceptor)
+              as BearerAuthInterceptor)
+          .tokens[name] = token;
     }
   }
 
@@ -124,13 +138,18 @@ class ApiClientDart {
   /// given [name], this method has no effect.
   void removeBearerAuth(String name) {
     if (this.dio.interceptors.any((i) => i is BearerAuthInterceptor)) {
-      (this.dio.interceptors.firstWhere((i) => i is BearerAuthInterceptor) as BearerAuthInterceptor).tokens.remove(name);
+      (this.dio.interceptors.firstWhere((i) => i is BearerAuthInterceptor)
+              as BearerAuthInterceptor)
+          .tokens
+          .remove(name);
     }
   }
 
   void setBasicAuth(String name, String username, String password) {
     if (this.dio.interceptors.any((i) => i is BasicAuthInterceptor)) {
-      (this.dio.interceptors.firstWhere((i) => i is BasicAuthInterceptor) as BasicAuthInterceptor).authInfo[name] = BasicAuthInfo(username, password);
+      (this.dio.interceptors.firstWhere((i) => i is BasicAuthInterceptor)
+              as BasicAuthInterceptor)
+          .authInfo[name] = BasicAuthInfo(username, password);
     }
   }
 
@@ -140,13 +159,21 @@ class ApiClientDart {
   /// given [name], this method has no effect.
   void removeBasicAuth(String name) {
     if (this.dio.interceptors.any((i) => i is BasicAuthInterceptor)) {
-      (this.dio.interceptors.firstWhere((i) => i is BasicAuthInterceptor) as BasicAuthInterceptor).authInfo.remove(name);
+      (this.dio.interceptors.firstWhere((i) => i is BasicAuthInterceptor)
+              as BasicAuthInterceptor)
+          .authInfo
+          .remove(name);
     }
   }
 
   void setApiKey(String name, String apiKey) {
     if (this.dio.interceptors.any((i) => i is ApiKeyAuthInterceptor)) {
-      (this.dio.interceptors.firstWhere((element) => element is ApiKeyAuthInterceptor) as ApiKeyAuthInterceptor).apiKeys[name] = apiKey;
+      (this
+                  .dio
+                  .interceptors
+                  .firstWhere((element) => element is ApiKeyAuthInterceptor)
+              as ApiKeyAuthInterceptor)
+          .apiKeys[name] = apiKey;
     }
   }
 
@@ -156,7 +183,13 @@ class ApiClientDart {
   /// given [name], this method has no effect.
   void removeApiKey(String name) {
     if (this.dio.interceptors.any((i) => i is ApiKeyAuthInterceptor)) {
-      (this.dio.interceptors.firstWhere((element) => element is ApiKeyAuthInterceptor) as ApiKeyAuthInterceptor).apiKeys.remove(name);
+      (this
+                  .dio
+                  .interceptors
+                  .firstWhere((element) => element is ApiKeyAuthInterceptor)
+              as ApiKeyAuthInterceptor)
+          .apiKeys
+          .remove(name);
     }
   }
 
@@ -200,6 +233,12 @@ class ApiClientDart {
   /// by doing that all interceptors will not be executed
   AdminLoyaltyApi getAdminLoyaltyApi() {
     return AdminLoyaltyApi(dio, serializers);
+  }
+
+  /// Get AdminNotificationApi instance, base route and serializer can be overridden by a given but be careful,
+  /// by doing that all interceptors will not be executed
+  AdminNotificationApi getAdminNotificationApi() {
+    return AdminNotificationApi(dio, serializers);
   }
 
   /// Get AdminOperatorApplicationsApi instance, base route and serializer can be overridden by a given but be careful,
@@ -340,6 +379,24 @@ class ApiClientDart {
     return HealthApi(dio, serializers);
   }
 
+  /// Get IncidentsApi instance, base route and serializer can be overridden by a given but be careful,
+  /// by doing that all interceptors will not be executed
+  IncidentsApi getIncidentsApi() {
+    return IncidentsApi(dio, serializers);
+  }
+
+  /// Get JourneyLogsApi instance, base route and serializer can be overridden by a given but be careful,
+  /// by doing that all interceptors will not be executed
+  JourneyLogsApi getJourneyLogsApi() {
+    return JourneyLogsApi(dio, serializers);
+  }
+
+  /// Get NotificationApi instance, base route and serializer can be overridden by a given but be careful,
+  /// by doing that all interceptors will not be executed
+  NotificationApi getNotificationApi() {
+    return NotificationApi(dio, serializers);
+  }
+
   /// Get OperatorApplicationsApi instance, base route and serializer can be overridden by a given but be careful,
   /// by doing that all interceptors will not be executed
   OperatorApplicationsApi getOperatorApplicationsApi() {
@@ -454,6 +511,18 @@ class ApiClientDart {
     return OperatorVehiclesApi(dio, serializers);
   }
 
+  /// Get PassengerLoyaltyApi instance, base route and serializer can be overridden by a given but be careful,
+  /// by doing that all interceptors will not be executed
+  PassengerLoyaltyApi getPassengerLoyaltyApi() {
+    return PassengerLoyaltyApi(dio, serializers);
+  }
+
+  /// Get PassengerProfileApi instance, base route and serializer can be overridden by a given but be careful,
+  /// by doing that all interceptors will not be executed
+  PassengerProfileApi getPassengerProfileApi() {
+    return PassengerProfileApi(dio, serializers);
+  }
+
   /// Get PaymentsApi instance, base route and serializer can be overridden by a given but be careful,
   /// by doing that all interceptors will not be executed
   PaymentsApi getPaymentsApi() {
@@ -464,6 +533,12 @@ class ApiClientDart {
   /// by doing that all interceptors will not be executed
   PromotionsApi getPromotionsApi() {
     return PromotionsApi(dio, serializers);
+  }
+
+  /// Get PublicOperatorsApi instance, base route and serializer can be overridden by a given but be careful,
+  /// by doing that all interceptors will not be executed
+  PublicOperatorsApi getPublicOperatorsApi() {
+    return PublicOperatorsApi(dio, serializers);
   }
 
   /// Get ReviewsApi instance, base route and serializer can be overridden by a given but be careful,

@@ -19,8 +19,7 @@ class _$PolicyOverviewDtoOutputVersionsInnerRulesAnyOf3
   @override
   final int voucherValidityDays;
   @override
-  final BuiltList<PolicyOverviewDtoOutputVersionsInnerRulesAnyOf3TiersInner>
-      tiers;
+  final BuiltList<PassengerLoyaltyDtoOutputRulesTiersInner> tiers;
 
   factory _$PolicyOverviewDtoOutputVersionsInnerRulesAnyOf3(
           [void Function(
@@ -116,15 +115,10 @@ class PolicyOverviewDtoOutputVersionsInnerRulesAnyOf3Builder
   set voucherValidityDays(int? voucherValidityDays) =>
       _$this._voucherValidityDays = voucherValidityDays;
 
-  ListBuilder<PolicyOverviewDtoOutputVersionsInnerRulesAnyOf3TiersInner>?
-      _tiers;
-  ListBuilder<PolicyOverviewDtoOutputVersionsInnerRulesAnyOf3TiersInner>
-      get tiers => _$this._tiers ??= ListBuilder<
-          PolicyOverviewDtoOutputVersionsInnerRulesAnyOf3TiersInner>();
-  set tiers(
-          ListBuilder<
-                  PolicyOverviewDtoOutputVersionsInnerRulesAnyOf3TiersInner>?
-              tiers) =>
+  ListBuilder<PassengerLoyaltyDtoOutputRulesTiersInner>? _tiers;
+  ListBuilder<PassengerLoyaltyDtoOutputRulesTiersInner> get tiers =>
+      _$this._tiers ??= ListBuilder<PassengerLoyaltyDtoOutputRulesTiersInner>();
+  set tiers(ListBuilder<PassengerLoyaltyDtoOutputRulesTiersInner>? tiers) =>
       _$this._tiers = tiers;
 
   PolicyOverviewDtoOutputVersionsInnerRulesAnyOf3Builder() {

@@ -81,9 +81,39 @@ final BuiltSet<CancellationResultDtoOutputBookingStatusEnum>
   _$cancellationResultDtoOutputBookingStatusEnum_REFUND_FAILED,
 ]);
 
+const CancellationResultDtoOutputBookingDiscountFundingEnum
+    _$cancellationResultDtoOutputBookingDiscountFundingEnum_OPERATOR =
+    const CancellationResultDtoOutputBookingDiscountFundingEnum._('OPERATOR');
+const CancellationResultDtoOutputBookingDiscountFundingEnum
+    _$cancellationResultDtoOutputBookingDiscountFundingEnum_PLATFORM =
+    const CancellationResultDtoOutputBookingDiscountFundingEnum._('PLATFORM');
+
+CancellationResultDtoOutputBookingDiscountFundingEnum
+    _$cancellationResultDtoOutputBookingDiscountFundingEnumValueOf(
+        String name) {
+  switch (name) {
+    case 'OPERATOR':
+      return _$cancellationResultDtoOutputBookingDiscountFundingEnum_OPERATOR;
+    case 'PLATFORM':
+      return _$cancellationResultDtoOutputBookingDiscountFundingEnum_PLATFORM;
+    default:
+      throw ArgumentError(name);
+  }
+}
+
+final BuiltSet<CancellationResultDtoOutputBookingDiscountFundingEnum>
+    _$cancellationResultDtoOutputBookingDiscountFundingEnumValues = BuiltSet<
+        CancellationResultDtoOutputBookingDiscountFundingEnum>(const <CancellationResultDtoOutputBookingDiscountFundingEnum>[
+  _$cancellationResultDtoOutputBookingDiscountFundingEnum_OPERATOR,
+  _$cancellationResultDtoOutputBookingDiscountFundingEnum_PLATFORM,
+]);
+
 Serializer<CancellationResultDtoOutputBookingStatusEnum>
     _$cancellationResultDtoOutputBookingStatusEnumSerializer =
     _$CancellationResultDtoOutputBookingStatusEnumSerializer();
+Serializer<CancellationResultDtoOutputBookingDiscountFundingEnum>
+    _$cancellationResultDtoOutputBookingDiscountFundingEnumSerializer =
+    _$CancellationResultDtoOutputBookingDiscountFundingEnumSerializer();
 
 class _$CancellationResultDtoOutputBookingStatusEnumSerializer
     implements
@@ -134,6 +164,41 @@ class _$CancellationResultDtoOutputBookingStatusEnumSerializer
           _fromWire[serialized] ?? (serialized is String ? serialized : ''));
 }
 
+class _$CancellationResultDtoOutputBookingDiscountFundingEnumSerializer
+    implements
+        PrimitiveSerializer<
+            CancellationResultDtoOutputBookingDiscountFundingEnum> {
+  static const Map<String, Object> _toWire = const <String, Object>{
+    'OPERATOR': 'OPERATOR',
+    'PLATFORM': 'PLATFORM',
+  };
+  static const Map<Object, String> _fromWire = const <Object, String>{
+    'OPERATOR': 'OPERATOR',
+    'PLATFORM': 'PLATFORM',
+  };
+
+  @override
+  final Iterable<Type> types = const <Type>[
+    CancellationResultDtoOutputBookingDiscountFundingEnum
+  ];
+  @override
+  final String wireName =
+      'CancellationResultDtoOutputBookingDiscountFundingEnum';
+
+  @override
+  Object serialize(Serializers serializers,
+          CancellationResultDtoOutputBookingDiscountFundingEnum object,
+          {FullType specifiedType = FullType.unspecified}) =>
+      _toWire[object.name] ?? object.name;
+
+  @override
+  CancellationResultDtoOutputBookingDiscountFundingEnum deserialize(
+          Serializers serializers, Object serialized,
+          {FullType specifiedType = FullType.unspecified}) =>
+      CancellationResultDtoOutputBookingDiscountFundingEnum.valueOf(
+          _fromWire[serialized] ?? (serialized is String ? serialized : ''));
+}
+
 class _$CancellationResultDtoOutputBooking
     extends CancellationResultDtoOutputBooking {
   @override
@@ -162,6 +227,8 @@ class _$CancellationResultDtoOutputBooking
   final int serviceFee;
   @override
   final int discount;
+  @override
+  final CancellationResultDtoOutputBookingDiscountFundingEnum? discountFunding;
   @override
   final int total;
   @override
@@ -198,6 +265,7 @@ class _$CancellationResultDtoOutputBooking
       required this.subtotal,
       required this.serviceFee,
       required this.discount,
+      this.discountFunding,
       required this.total,
       required this.cancellationPolicy,
       required this.expiresAt,
@@ -233,6 +301,7 @@ class _$CancellationResultDtoOutputBooking
         subtotal == other.subtotal &&
         serviceFee == other.serviceFee &&
         discount == other.discount &&
+        discountFunding == other.discountFunding &&
         total == other.total &&
         cancellationPolicy == other.cancellationPolicy &&
         expiresAt == other.expiresAt &&
@@ -259,6 +328,7 @@ class _$CancellationResultDtoOutputBooking
     _$hash = $jc(_$hash, subtotal.hashCode);
     _$hash = $jc(_$hash, serviceFee.hashCode);
     _$hash = $jc(_$hash, discount.hashCode);
+    _$hash = $jc(_$hash, discountFunding.hashCode);
     _$hash = $jc(_$hash, total.hashCode);
     _$hash = $jc(_$hash, cancellationPolicy.hashCode);
     _$hash = $jc(_$hash, expiresAt.hashCode);
@@ -287,6 +357,7 @@ class _$CancellationResultDtoOutputBooking
           ..add('subtotal', subtotal)
           ..add('serviceFee', serviceFee)
           ..add('discount', discount)
+          ..add('discountFunding', discountFunding)
           ..add('total', total)
           ..add('cancellationPolicy', cancellationPolicy)
           ..add('expiresAt', expiresAt)
@@ -369,6 +440,14 @@ class CancellationResultDtoOutputBookingBuilder
   int? get discount => _$this._discount;
   set discount(int? discount) => _$this._discount = discount;
 
+  CancellationResultDtoOutputBookingDiscountFundingEnum? _discountFunding;
+  CancellationResultDtoOutputBookingDiscountFundingEnum? get discountFunding =>
+      _$this._discountFunding;
+  set discountFunding(
+          CancellationResultDtoOutputBookingDiscountFundingEnum?
+              discountFunding) =>
+      _$this._discountFunding = discountFunding;
+
   int? _total;
   int? get total => _$this._total;
   set total(int? total) => _$this._total = total;
@@ -435,6 +514,7 @@ class CancellationResultDtoOutputBookingBuilder
       _subtotal = $v.subtotal;
       _serviceFee = $v.serviceFee;
       _discount = $v.discount;
+      _discountFunding = $v.discountFunding;
       _total = $v.total;
       _cancellationPolicy = $v.cancellationPolicy.toBuilder();
       _expiresAt = $v.expiresAt;
@@ -487,6 +567,7 @@ class CancellationResultDtoOutputBookingBuilder
                 r'CancellationResultDtoOutputBooking', 'serviceFee'),
             discount: BuiltValueNullFieldError.checkNotNull(
                 discount, r'CancellationResultDtoOutputBooking', 'discount'),
+            discountFunding: discountFunding,
             total: BuiltValueNullFieldError.checkNotNull(
                 total, r'CancellationResultDtoOutputBooking', 'total'),
             cancellationPolicy: cancellationPolicy.build(),

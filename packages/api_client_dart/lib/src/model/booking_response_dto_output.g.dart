@@ -80,9 +80,38 @@ final BuiltSet<BookingResponseDtoOutputStatusEnum>
   _$bookingResponseDtoOutputStatusEnum_REFUND_FAILED,
 ]);
 
+const BookingResponseDtoOutputDiscountFundingEnum
+    _$bookingResponseDtoOutputDiscountFundingEnum_OPERATOR =
+    const BookingResponseDtoOutputDiscountFundingEnum._('OPERATOR');
+const BookingResponseDtoOutputDiscountFundingEnum
+    _$bookingResponseDtoOutputDiscountFundingEnum_PLATFORM =
+    const BookingResponseDtoOutputDiscountFundingEnum._('PLATFORM');
+
+BookingResponseDtoOutputDiscountFundingEnum
+    _$bookingResponseDtoOutputDiscountFundingEnumValueOf(String name) {
+  switch (name) {
+    case 'OPERATOR':
+      return _$bookingResponseDtoOutputDiscountFundingEnum_OPERATOR;
+    case 'PLATFORM':
+      return _$bookingResponseDtoOutputDiscountFundingEnum_PLATFORM;
+    default:
+      throw ArgumentError(name);
+  }
+}
+
+final BuiltSet<BookingResponseDtoOutputDiscountFundingEnum>
+    _$bookingResponseDtoOutputDiscountFundingEnumValues = BuiltSet<
+        BookingResponseDtoOutputDiscountFundingEnum>(const <BookingResponseDtoOutputDiscountFundingEnum>[
+  _$bookingResponseDtoOutputDiscountFundingEnum_OPERATOR,
+  _$bookingResponseDtoOutputDiscountFundingEnum_PLATFORM,
+]);
+
 Serializer<BookingResponseDtoOutputStatusEnum>
     _$bookingResponseDtoOutputStatusEnumSerializer =
     _$BookingResponseDtoOutputStatusEnumSerializer();
+Serializer<BookingResponseDtoOutputDiscountFundingEnum>
+    _$bookingResponseDtoOutputDiscountFundingEnumSerializer =
+    _$BookingResponseDtoOutputDiscountFundingEnumSerializer();
 
 class _$BookingResponseDtoOutputStatusEnumSerializer
     implements PrimitiveSerializer<BookingResponseDtoOutputStatusEnum> {
@@ -130,6 +159,39 @@ class _$BookingResponseDtoOutputStatusEnumSerializer
           _fromWire[serialized] ?? (serialized is String ? serialized : ''));
 }
 
+class _$BookingResponseDtoOutputDiscountFundingEnumSerializer
+    implements
+        PrimitiveSerializer<BookingResponseDtoOutputDiscountFundingEnum> {
+  static const Map<String, Object> _toWire = const <String, Object>{
+    'OPERATOR': 'OPERATOR',
+    'PLATFORM': 'PLATFORM',
+  };
+  static const Map<Object, String> _fromWire = const <Object, String>{
+    'OPERATOR': 'OPERATOR',
+    'PLATFORM': 'PLATFORM',
+  };
+
+  @override
+  final Iterable<Type> types = const <Type>[
+    BookingResponseDtoOutputDiscountFundingEnum
+  ];
+  @override
+  final String wireName = 'BookingResponseDtoOutputDiscountFundingEnum';
+
+  @override
+  Object serialize(Serializers serializers,
+          BookingResponseDtoOutputDiscountFundingEnum object,
+          {FullType specifiedType = FullType.unspecified}) =>
+      _toWire[object.name] ?? object.name;
+
+  @override
+  BookingResponseDtoOutputDiscountFundingEnum deserialize(
+          Serializers serializers, Object serialized,
+          {FullType specifiedType = FullType.unspecified}) =>
+      BookingResponseDtoOutputDiscountFundingEnum.valueOf(
+          _fromWire[serialized] ?? (serialized is String ? serialized : ''));
+}
+
 class _$BookingResponseDtoOutput extends BookingResponseDtoOutput {
   @override
   final String bookingId;
@@ -157,6 +219,8 @@ class _$BookingResponseDtoOutput extends BookingResponseDtoOutput {
   final int serviceFee;
   @override
   final int discount;
+  @override
+  final BookingResponseDtoOutputDiscountFundingEnum? discountFunding;
   @override
   final int total;
   @override
@@ -192,6 +256,7 @@ class _$BookingResponseDtoOutput extends BookingResponseDtoOutput {
       required this.subtotal,
       required this.serviceFee,
       required this.discount,
+      this.discountFunding,
       required this.total,
       required this.cancellationPolicy,
       required this.expiresAt,
@@ -227,6 +292,7 @@ class _$BookingResponseDtoOutput extends BookingResponseDtoOutput {
         subtotal == other.subtotal &&
         serviceFee == other.serviceFee &&
         discount == other.discount &&
+        discountFunding == other.discountFunding &&
         total == other.total &&
         cancellationPolicy == other.cancellationPolicy &&
         expiresAt == other.expiresAt &&
@@ -253,6 +319,7 @@ class _$BookingResponseDtoOutput extends BookingResponseDtoOutput {
     _$hash = $jc(_$hash, subtotal.hashCode);
     _$hash = $jc(_$hash, serviceFee.hashCode);
     _$hash = $jc(_$hash, discount.hashCode);
+    _$hash = $jc(_$hash, discountFunding.hashCode);
     _$hash = $jc(_$hash, total.hashCode);
     _$hash = $jc(_$hash, cancellationPolicy.hashCode);
     _$hash = $jc(_$hash, expiresAt.hashCode);
@@ -281,6 +348,7 @@ class _$BookingResponseDtoOutput extends BookingResponseDtoOutput {
           ..add('subtotal', subtotal)
           ..add('serviceFee', serviceFee)
           ..add('discount', discount)
+          ..add('discountFunding', discountFunding)
           ..add('total', total)
           ..add('cancellationPolicy', cancellationPolicy)
           ..add('expiresAt', expiresAt)
@@ -362,6 +430,13 @@ class BookingResponseDtoOutputBuilder
   int? get discount => _$this._discount;
   set discount(int? discount) => _$this._discount = discount;
 
+  BookingResponseDtoOutputDiscountFundingEnum? _discountFunding;
+  BookingResponseDtoOutputDiscountFundingEnum? get discountFunding =>
+      _$this._discountFunding;
+  set discountFunding(
+          BookingResponseDtoOutputDiscountFundingEnum? discountFunding) =>
+      _$this._discountFunding = discountFunding;
+
   int? _total;
   int? get total => _$this._total;
   set total(int? total) => _$this._total = total;
@@ -428,6 +503,7 @@ class BookingResponseDtoOutputBuilder
       _subtotal = $v.subtotal;
       _serviceFee = $v.serviceFee;
       _discount = $v.discount;
+      _discountFunding = $v.discountFunding;
       _total = $v.total;
       _cancellationPolicy = $v.cancellationPolicy.toBuilder();
       _expiresAt = $v.expiresAt;
@@ -479,6 +555,7 @@ class BookingResponseDtoOutputBuilder
                 serviceFee, r'BookingResponseDtoOutput', 'serviceFee'),
             discount: BuiltValueNullFieldError.checkNotNull(
                 discount, r'BookingResponseDtoOutput', 'discount'),
+            discountFunding: discountFunding,
             total: BuiltValueNullFieldError.checkNotNull(
                 total, r'BookingResponseDtoOutput', 'total'),
             cancellationPolicy: cancellationPolicy.build(),

@@ -21,6 +21,7 @@ Name | Type | Description | Notes
 **subtotal** | **int** |  | 
 **serviceFee** | **int** |  | 
 **discount** | **int** |  | 
+**discountFunding** | **String** |  | 
 **total** | **int** |  | 
 **cancellationPolicy** | [**PublicTripDtoOutputCancellationPolicy**](PublicTripDtoOutputCancellationPolicy.md) |  | 
 **expiresAt** | [**DateTime**](DateTime.md) |  | 

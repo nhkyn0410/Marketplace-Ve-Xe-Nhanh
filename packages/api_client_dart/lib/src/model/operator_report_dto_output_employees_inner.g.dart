@@ -91,6 +91,8 @@ class _$OperatorReportDtoOutputEmployeesInner
   final int completedTrips;
   @override
   final int ticketsChecked;
+  @override
+  final int incidentsReported;
 
   factory _$OperatorReportDtoOutputEmployeesInner(
           [void Function(OperatorReportDtoOutputEmployeesInnerBuilder)?
@@ -104,7 +106,8 @@ class _$OperatorReportDtoOutputEmployeesInner
       required this.role,
       required this.assignedTrips,
       required this.completedTrips,
-      required this.ticketsChecked})
+      required this.ticketsChecked,
+      required this.incidentsReported})
       : super._();
   @override
   OperatorReportDtoOutputEmployeesInner rebuild(
@@ -125,7 +128,8 @@ class _$OperatorReportDtoOutputEmployeesInner
         role == other.role &&
         assignedTrips == other.assignedTrips &&
         completedTrips == other.completedTrips &&
-        ticketsChecked == other.ticketsChecked;
+        ticketsChecked == other.ticketsChecked &&
+        incidentsReported == other.incidentsReported;
   }
 
   @override
@@ -137,6 +141,7 @@ class _$OperatorReportDtoOutputEmployeesInner
     _$hash = $jc(_$hash, assignedTrips.hashCode);
     _$hash = $jc(_$hash, completedTrips.hashCode);
     _$hash = $jc(_$hash, ticketsChecked.hashCode);
+    _$hash = $jc(_$hash, incidentsReported.hashCode);
     _$hash = $jf(_$hash);
     return _$hash;
   }
@@ -150,7 +155,8 @@ class _$OperatorReportDtoOutputEmployeesInner
           ..add('role', role)
           ..add('assignedTrips', assignedTrips)
           ..add('completedTrips', completedTrips)
-          ..add('ticketsChecked', ticketsChecked))
+          ..add('ticketsChecked', ticketsChecked)
+          ..add('incidentsReported', incidentsReported))
         .toString();
   }
 }
@@ -189,6 +195,11 @@ class OperatorReportDtoOutputEmployeesInnerBuilder
   set ticketsChecked(int? ticketsChecked) =>
       _$this._ticketsChecked = ticketsChecked;
 
+  int? _incidentsReported;
+  int? get incidentsReported => _$this._incidentsReported;
+  set incidentsReported(int? incidentsReported) =>
+      _$this._incidentsReported = incidentsReported;
+
   OperatorReportDtoOutputEmployeesInnerBuilder() {
     OperatorReportDtoOutputEmployeesInner._defaults(this);
   }
@@ -202,6 +213,7 @@ class OperatorReportDtoOutputEmployeesInnerBuilder
       _assignedTrips = $v.assignedTrips;
       _completedTrips = $v.completedTrips;
       _ticketsChecked = $v.ticketsChecked;
+      _incidentsReported = $v.incidentsReported;
       _$v = null;
     }
     return this;
@@ -236,6 +248,10 @@ class OperatorReportDtoOutputEmployeesInnerBuilder
               r'OperatorReportDtoOutputEmployeesInner', 'completedTrips'),
           ticketsChecked: BuiltValueNullFieldError.checkNotNull(ticketsChecked,
               r'OperatorReportDtoOutputEmployeesInner', 'ticketsChecked'),
+          incidentsReported: BuiltValueNullFieldError.checkNotNull(
+              incidentsReported,
+              r'OperatorReportDtoOutputEmployeesInner',
+              'incidentsReported'),
         );
     replace(_$result);
     return _$result;

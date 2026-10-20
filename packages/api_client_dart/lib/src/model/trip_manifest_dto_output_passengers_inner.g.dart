@@ -114,9 +114,9 @@ class _$TripManifestDtoOutputPassengersInner
   @override
   final String phoneMasked;
   @override
-  final TripSalesDtoOutputChangesInnerBeforeStopsInner pickup;
+  final TripManifestDtoOutputPassengersInnerPickup pickup;
   @override
-  final TripSalesDtoOutputChangesInnerBeforeStopsInner dropoff;
+  final TripManifestDtoOutputPassengersInnerPickup dropoff;
   @override
   final TripManifestDtoOutputPassengersInnerStatusEnum status;
   @override
@@ -221,18 +221,16 @@ class TripManifestDtoOutputPassengersInnerBuilder
   String? get phoneMasked => _$this._phoneMasked;
   set phoneMasked(String? phoneMasked) => _$this._phoneMasked = phoneMasked;
 
-  TripSalesDtoOutputChangesInnerBeforeStopsInnerBuilder? _pickup;
-  TripSalesDtoOutputChangesInnerBeforeStopsInnerBuilder get pickup =>
-      _$this._pickup ??=
-          TripSalesDtoOutputChangesInnerBeforeStopsInnerBuilder();
-  set pickup(TripSalesDtoOutputChangesInnerBeforeStopsInnerBuilder? pickup) =>
+  TripManifestDtoOutputPassengersInnerPickupBuilder? _pickup;
+  TripManifestDtoOutputPassengersInnerPickupBuilder get pickup =>
+      _$this._pickup ??= TripManifestDtoOutputPassengersInnerPickupBuilder();
+  set pickup(TripManifestDtoOutputPassengersInnerPickupBuilder? pickup) =>
       _$this._pickup = pickup;
 
-  TripSalesDtoOutputChangesInnerBeforeStopsInnerBuilder? _dropoff;
-  TripSalesDtoOutputChangesInnerBeforeStopsInnerBuilder get dropoff =>
-      _$this._dropoff ??=
-          TripSalesDtoOutputChangesInnerBeforeStopsInnerBuilder();
-  set dropoff(TripSalesDtoOutputChangesInnerBeforeStopsInnerBuilder? dropoff) =>
+  TripManifestDtoOutputPassengersInnerPickupBuilder? _dropoff;
+  TripManifestDtoOutputPassengersInnerPickupBuilder get dropoff =>
+      _$this._dropoff ??= TripManifestDtoOutputPassengersInnerPickupBuilder();
+  set dropoff(TripManifestDtoOutputPassengersInnerPickupBuilder? dropoff) =>
       _$this._dropoff = dropoff;
 
   TripManifestDtoOutputPassengersInnerStatusEnum? _status;

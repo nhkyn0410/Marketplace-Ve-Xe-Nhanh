@@ -3,8 +3,8 @@
 //
 
 // ignore_for_file: unused_element
+import 'package:api_client_dart/src/model/trip_manifest_dto_output_passengers_inner_pickup.dart';
 import 'package:built_collection/built_collection.dart';
-import 'package:api_client_dart/src/model/trip_sales_dto_output_changes_inner_before_stops_inner.dart';
 import 'package:built_value/built_value.dart';
 import 'package:built_value/serializer.dart';
 
@@ -13,17 +13,20 @@ part 'ticket_verify_result_dto_output_ticket.g.dart';
 /// TicketVerifyResultDtoOutputTicket
 ///
 /// Properties:
-/// * [ticketId] 
-/// * [ticketCode] 
-/// * [seatCode] 
-/// * [passengerName] 
-/// * [phoneMasked] 
-/// * [pickup] 
-/// * [dropoff] 
-/// * [status] 
-/// * [checkedInAt] 
+/// * [ticketId]
+/// * [ticketCode]
+/// * [seatCode]
+/// * [passengerName]
+/// * [phoneMasked]
+/// * [pickup]
+/// * [dropoff]
+/// * [status]
+/// * [checkedInAt]
 @BuiltValue()
-abstract class TicketVerifyResultDtoOutputTicket implements Built<TicketVerifyResultDtoOutputTicket, TicketVerifyResultDtoOutputTicketBuilder> {
+abstract class TicketVerifyResultDtoOutputTicket
+    implements
+        Built<TicketVerifyResultDtoOutputTicket,
+            TicketVerifyResultDtoOutputTicketBuilder> {
   @BuiltValueField(wireName: r'ticketId')
   String get ticketId;
 
@@ -40,10 +43,10 @@ abstract class TicketVerifyResultDtoOutputTicket implements Built<TicketVerifyRe
   String get phoneMasked;
 
   @BuiltValueField(wireName: r'pickup')
-  TripSalesDtoOutputChangesInnerBeforeStopsInner get pickup;
+  TripManifestDtoOutputPassengersInnerPickup get pickup;
 
   @BuiltValueField(wireName: r'dropoff')
-  TripSalesDtoOutputChangesInnerBeforeStopsInner get dropoff;
+  TripManifestDtoOutputPassengersInnerPickup get dropoff;
 
   @BuiltValueField(wireName: r'status')
   TicketVerifyResultDtoOutputTicketStatusEnum get status;
@@ -54,18 +57,25 @@ abstract class TicketVerifyResultDtoOutputTicket implements Built<TicketVerifyRe
 
   TicketVerifyResultDtoOutputTicket._();
 
-  factory TicketVerifyResultDtoOutputTicket([void updates(TicketVerifyResultDtoOutputTicketBuilder b)]) = _$TicketVerifyResultDtoOutputTicket;
+  factory TicketVerifyResultDtoOutputTicket(
+          [void updates(TicketVerifyResultDtoOutputTicketBuilder b)]) =
+      _$TicketVerifyResultDtoOutputTicket;
 
   @BuiltValueHook(initializeBuilder: true)
   static void _defaults(TicketVerifyResultDtoOutputTicketBuilder b) => b;
 
   @BuiltValueSerializer(custom: true)
-  static Serializer<TicketVerifyResultDtoOutputTicket> get serializer => _$TicketVerifyResultDtoOutputTicketSerializer();
+  static Serializer<TicketVerifyResultDtoOutputTicket> get serializer =>
+      _$TicketVerifyResultDtoOutputTicketSerializer();
 }
 
-class _$TicketVerifyResultDtoOutputTicketSerializer implements PrimitiveSerializer<TicketVerifyResultDtoOutputTicket> {
+class _$TicketVerifyResultDtoOutputTicketSerializer
+    implements PrimitiveSerializer<TicketVerifyResultDtoOutputTicket> {
   @override
-  final Iterable<Type> types = const [TicketVerifyResultDtoOutputTicket, _$TicketVerifyResultDtoOutputTicket];
+  final Iterable<Type> types = const [
+    TicketVerifyResultDtoOutputTicket,
+    _$TicketVerifyResultDtoOutputTicket
+  ];
 
   @override
   final String wireName = r'TicketVerifyResultDtoOutputTicket';
@@ -103,23 +113,26 @@ class _$TicketVerifyResultDtoOutputTicketSerializer implements PrimitiveSerializ
     yield r'pickup';
     yield serializers.serialize(
       object.pickup,
-      specifiedType: const FullType(TripSalesDtoOutputChangesInnerBeforeStopsInner),
+      specifiedType: const FullType(TripManifestDtoOutputPassengersInnerPickup),
     );
     yield r'dropoff';
     yield serializers.serialize(
       object.dropoff,
-      specifiedType: const FullType(TripSalesDtoOutputChangesInnerBeforeStopsInner),
+      specifiedType: const FullType(TripManifestDtoOutputPassengersInnerPickup),
     );
     yield r'status';
     yield serializers.serialize(
       object.status,
-      specifiedType: const FullType(TicketVerifyResultDtoOutputTicketStatusEnum),
+      specifiedType:
+          const FullType(TicketVerifyResultDtoOutputTicketStatusEnum),
     );
     yield r'checkedInAt';
-    yield object.checkedInAt == null ? null : serializers.serialize(
-      object.checkedInAt,
-      specifiedType: const FullType.nullable(DateTime),
-    );
+    yield object.checkedInAt == null
+        ? null
+        : serializers.serialize(
+            object.checkedInAt,
+            specifiedType: const FullType.nullable(DateTime),
+          );
   }
 
   @override
@@ -128,7 +141,9 @@ class _$TicketVerifyResultDtoOutputTicketSerializer implements PrimitiveSerializ
     TicketVerifyResultDtoOutputTicket object, {
     FullType specifiedType = FullType.unspecified,
   }) {
-    return _serializeProperties(serializers, object, specifiedType: specifiedType).toList();
+    return _serializeProperties(serializers, object,
+            specifiedType: specifiedType)
+        .toList();
   }
 
   void _deserializeProperties(
@@ -181,21 +196,24 @@ class _$TicketVerifyResultDtoOutputTicketSerializer implements PrimitiveSerializ
         case r'pickup':
           final valueDes = serializers.deserialize(
             value,
-            specifiedType: const FullType(TripSalesDtoOutputChangesInnerBeforeStopsInner),
-          ) as TripSalesDtoOutputChangesInnerBeforeStopsInner;
+            specifiedType:
+                const FullType(TripManifestDtoOutputPassengersInnerPickup),
+          ) as TripManifestDtoOutputPassengersInnerPickup;
           result.pickup.replace(valueDes);
           break;
         case r'dropoff':
           final valueDes = serializers.deserialize(
             value,
-            specifiedType: const FullType(TripSalesDtoOutputChangesInnerBeforeStopsInner),
-          ) as TripSalesDtoOutputChangesInnerBeforeStopsInner;
+            specifiedType:
+                const FullType(TripManifestDtoOutputPassengersInnerPickup),
+          ) as TripManifestDtoOutputPassengersInnerPickup;
           result.dropoff.replace(valueDes);
           break;
         case r'status':
           final valueDes = serializers.deserialize(
             value,
-            specifiedType: const FullType(TicketVerifyResultDtoOutputTicketStatusEnum),
+            specifiedType:
+                const FullType(TicketVerifyResultDtoOutputTicketStatusEnum),
           ) as TicketVerifyResultDtoOutputTicketStatusEnum;
           result.status = valueDes;
           break;
@@ -236,27 +254,34 @@ class _$TicketVerifyResultDtoOutputTicketSerializer implements PrimitiveSerializ
   }
 }
 
-
 class TicketVerifyResultDtoOutputTicketStatusEnum extends EnumClass {
-
   @BuiltValueEnumConst(wireName: r'VALID')
-  static const TicketVerifyResultDtoOutputTicketStatusEnum VALID = _$ticketVerifyResultDtoOutputTicketStatusEnum_VALID;
+  static const TicketVerifyResultDtoOutputTicketStatusEnum VALID =
+      _$ticketVerifyResultDtoOutputTicketStatusEnum_VALID;
   @BuiltValueEnumConst(wireName: r'CANCELLED')
-  static const TicketVerifyResultDtoOutputTicketStatusEnum CANCELLED = _$ticketVerifyResultDtoOutputTicketStatusEnum_CANCELLED;
+  static const TicketVerifyResultDtoOutputTicketStatusEnum CANCELLED =
+      _$ticketVerifyResultDtoOutputTicketStatusEnum_CANCELLED;
   @BuiltValueEnumConst(wireName: r'CHECKED_IN')
-  static const TicketVerifyResultDtoOutputTicketStatusEnum CHECKED_IN = _$ticketVerifyResultDtoOutputTicketStatusEnum_CHECKED_IN;
+  static const TicketVerifyResultDtoOutputTicketStatusEnum CHECKED_IN =
+      _$ticketVerifyResultDtoOutputTicketStatusEnum_CHECKED_IN;
   @BuiltValueEnumConst(wireName: r'NO_SHOW')
-  static const TicketVerifyResultDtoOutputTicketStatusEnum NO_SHOW = _$ticketVerifyResultDtoOutputTicketStatusEnum_NO_SHOW;
+  static const TicketVerifyResultDtoOutputTicketStatusEnum NO_SHOW =
+      _$ticketVerifyResultDtoOutputTicketStatusEnum_NO_SHOW;
   @BuiltValueEnumConst(wireName: r'USED')
-  static const TicketVerifyResultDtoOutputTicketStatusEnum USED = _$ticketVerifyResultDtoOutputTicketStatusEnum_USED;
+  static const TicketVerifyResultDtoOutputTicketStatusEnum USED =
+      _$ticketVerifyResultDtoOutputTicketStatusEnum_USED;
   @BuiltValueEnumConst(wireName: r'REFUNDED')
-  static const TicketVerifyResultDtoOutputTicketStatusEnum REFUNDED = _$ticketVerifyResultDtoOutputTicketStatusEnum_REFUNDED;
+  static const TicketVerifyResultDtoOutputTicketStatusEnum REFUNDED =
+      _$ticketVerifyResultDtoOutputTicketStatusEnum_REFUNDED;
 
-  static Serializer<TicketVerifyResultDtoOutputTicketStatusEnum> get serializer => _$ticketVerifyResultDtoOutputTicketStatusEnumSerializer;
+  static Serializer<TicketVerifyResultDtoOutputTicketStatusEnum>
+      get serializer => _$ticketVerifyResultDtoOutputTicketStatusEnumSerializer;
 
-  const TicketVerifyResultDtoOutputTicketStatusEnum._(String name): super(name);
+  const TicketVerifyResultDtoOutputTicketStatusEnum._(String name)
+      : super(name);
 
-  static BuiltSet<TicketVerifyResultDtoOutputTicketStatusEnum> get values => _$ticketVerifyResultDtoOutputTicketStatusEnumValues;
-  static TicketVerifyResultDtoOutputTicketStatusEnum valueOf(String name) => _$ticketVerifyResultDtoOutputTicketStatusEnumValueOf(name);
+  static BuiltSet<TicketVerifyResultDtoOutputTicketStatusEnum> get values =>
+      _$ticketVerifyResultDtoOutputTicketStatusEnumValues;
+  static TicketVerifyResultDtoOutputTicketStatusEnum valueOf(String name) =>
+      _$ticketVerifyResultDtoOutputTicketStatusEnumValueOf(name);
 }
-

@@ -28,6 +28,7 @@ Name | Type | Description | Notes
 **subtotal** | **int** |  | 
 **serviceFee** | **int** |  | 
 **discount** | **int** |  | 
+**discountFunding** | **String** |  | 
 **cancellationPolicy** | [**PublicTripDtoOutputCancellationPolicy**](PublicTripDtoOutputCancellationPolicy.md) |  | 
 **histories** | [**BuiltList&lt;OperatorBookingDetailDtoOutputHistoriesInner&gt;**](OperatorBookingDetailDtoOutputHistoriesInner.md) |  | 
 

@@ -14,6 +14,7 @@ Name | Type | Description | Notes
 **assignedTrips** | **int** |  | 
 **completedTrips** | **int** |  | 
 **ticketsChecked** | **int** |  | 
+**incidentsReported** | **int** |  | 
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)
 

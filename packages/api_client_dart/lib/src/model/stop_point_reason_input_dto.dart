@@ -11,26 +11,34 @@ part 'stop_point_reason_input_dto.g.dart';
 /// StopPointReasonInputDto
 ///
 /// Properties:
-/// * [reason] 
+/// * [reason]
 @BuiltValue()
-abstract class StopPointReasonInputDto implements Built<StopPointReasonInputDto, StopPointReasonInputDtoBuilder> {
+abstract class StopPointReasonInputDto
+    implements Built<StopPointReasonInputDto, StopPointReasonInputDtoBuilder> {
   @BuiltValueField(wireName: r'reason')
-  String get reason;
+  String? get reason;
 
   StopPointReasonInputDto._();
 
-  factory StopPointReasonInputDto([void updates(StopPointReasonInputDtoBuilder b)]) = _$StopPointReasonInputDto;
+  factory StopPointReasonInputDto(
+          [void updates(StopPointReasonInputDtoBuilder b)]) =
+      _$StopPointReasonInputDto;
 
   @BuiltValueHook(initializeBuilder: true)
   static void _defaults(StopPointReasonInputDtoBuilder b) => b;
 
   @BuiltValueSerializer(custom: true)
-  static Serializer<StopPointReasonInputDto> get serializer => _$StopPointReasonInputDtoSerializer();
+  static Serializer<StopPointReasonInputDto> get serializer =>
+      _$StopPointReasonInputDtoSerializer();
 }
 
-class _$StopPointReasonInputDtoSerializer implements PrimitiveSerializer<StopPointReasonInputDto> {
+class _$StopPointReasonInputDtoSerializer
+    implements PrimitiveSerializer<StopPointReasonInputDto> {
   @override
-  final Iterable<Type> types = const [StopPointReasonInputDto, _$StopPointReasonInputDto];
+  final Iterable<Type> types = const [
+    StopPointReasonInputDto,
+    _$StopPointReasonInputDto
+  ];
 
   @override
   final String wireName = r'StopPointReasonInputDto';
@@ -41,10 +49,12 @@ class _$StopPointReasonInputDtoSerializer implements PrimitiveSerializer<StopPoi
     FullType specifiedType = FullType.unspecified,
   }) sync* {
     yield r'reason';
-    yield serializers.serialize(
-      object.reason,
-      specifiedType: const FullType(String),
-    );
+    yield object.reason == null
+        ? null
+        : serializers.serialize(
+            object.reason,
+            specifiedType: const FullType.nullable(String),
+          );
   }
 
   @override
@@ -53,7 +63,9 @@ class _$StopPointReasonInputDtoSerializer implements PrimitiveSerializer<StopPoi
     StopPointReasonInputDto object, {
     FullType specifiedType = FullType.unspecified,
   }) {
-    return _serializeProperties(serializers, object, specifiedType: specifiedType).toList();
+    return _serializeProperties(serializers, object,
+            specifiedType: specifiedType)
+        .toList();
   }
 
   void _deserializeProperties(
@@ -71,8 +83,9 @@ class _$StopPointReasonInputDtoSerializer implements PrimitiveSerializer<StopPoi
         case r'reason':
           final valueDes = serializers.deserialize(
             value,
-            specifiedType: const FullType(String),
-          ) as String;
+            specifiedType: const FullType.nullable(String),
+          ) as String?;
+          if (valueDes == null) continue;
           result.reason = valueDes;
           break;
         default:
@@ -103,5 +116,3 @@ class _$StopPointReasonInputDtoSerializer implements PrimitiveSerializer<StopPoi
     return result.build();
   }
 }
-
-

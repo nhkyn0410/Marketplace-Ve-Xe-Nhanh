@@ -12,14 +12,16 @@ part 'mfa_verify_web_session_response.g.dart';
 /// MfaVerifyWebSessionResponse
 ///
 /// Properties:
-/// * [authenticated] 
-/// * [scope] 
-/// * [role] 
-/// * [expiresIn] 
-/// * [refreshExpiresIn] 
-/// * [backupCodes] 
+/// * [authenticated]
+/// * [scope]
+/// * [role]
+/// * [expiresIn]
+/// * [refreshExpiresIn]
+/// * [backupCodes]
 @BuiltValue()
-abstract class MfaVerifyWebSessionResponse implements Built<MfaVerifyWebSessionResponse, MfaVerifyWebSessionResponseBuilder> {
+abstract class MfaVerifyWebSessionResponse
+    implements
+        Built<MfaVerifyWebSessionResponse, MfaVerifyWebSessionResponseBuilder> {
   @BuiltValueField(wireName: r'authenticated')
   MfaVerifyWebSessionResponseAuthenticatedEnum get authenticated;
   // enum authenticatedEnum {  true,  };
@@ -32,28 +34,35 @@ abstract class MfaVerifyWebSessionResponse implements Built<MfaVerifyWebSessionR
   String get role;
 
   @BuiltValueField(wireName: r'expiresIn')
-  int get expiresIn;
+  int? get expiresIn;
 
   @BuiltValueField(wireName: r'refreshExpiresIn')
-  int get refreshExpiresIn;
+  int? get refreshExpiresIn;
 
   @BuiltValueField(wireName: r'backupCodes')
   BuiltList<String>? get backupCodes;
 
   MfaVerifyWebSessionResponse._();
 
-  factory MfaVerifyWebSessionResponse([void updates(MfaVerifyWebSessionResponseBuilder b)]) = _$MfaVerifyWebSessionResponse;
+  factory MfaVerifyWebSessionResponse(
+          [void updates(MfaVerifyWebSessionResponseBuilder b)]) =
+      _$MfaVerifyWebSessionResponse;
 
   @BuiltValueHook(initializeBuilder: true)
   static void _defaults(MfaVerifyWebSessionResponseBuilder b) => b;
 
   @BuiltValueSerializer(custom: true)
-  static Serializer<MfaVerifyWebSessionResponse> get serializer => _$MfaVerifyWebSessionResponseSerializer();
+  static Serializer<MfaVerifyWebSessionResponse> get serializer =>
+      _$MfaVerifyWebSessionResponseSerializer();
 }
 
-class _$MfaVerifyWebSessionResponseSerializer implements PrimitiveSerializer<MfaVerifyWebSessionResponse> {
+class _$MfaVerifyWebSessionResponseSerializer
+    implements PrimitiveSerializer<MfaVerifyWebSessionResponse> {
   @override
-  final Iterable<Type> types = const [MfaVerifyWebSessionResponse, _$MfaVerifyWebSessionResponse];
+  final Iterable<Type> types = const [
+    MfaVerifyWebSessionResponse,
+    _$MfaVerifyWebSessionResponse
+  ];
 
   @override
   final String wireName = r'MfaVerifyWebSessionResponse';
@@ -66,7 +75,8 @@ class _$MfaVerifyWebSessionResponseSerializer implements PrimitiveSerializer<Mfa
     yield r'authenticated';
     yield serializers.serialize(
       object.authenticated,
-      specifiedType: const FullType(MfaVerifyWebSessionResponseAuthenticatedEnum),
+      specifiedType:
+          const FullType(MfaVerifyWebSessionResponseAuthenticatedEnum),
     );
     yield r'scope';
     yield serializers.serialize(
@@ -79,15 +89,19 @@ class _$MfaVerifyWebSessionResponseSerializer implements PrimitiveSerializer<Mfa
       specifiedType: const FullType(String),
     );
     yield r'expiresIn';
-    yield serializers.serialize(
-      object.expiresIn,
-      specifiedType: const FullType(int),
-    );
+    yield object.expiresIn == null
+        ? null
+        : serializers.serialize(
+            object.expiresIn,
+            specifiedType: const FullType.nullable(int),
+          );
     yield r'refreshExpiresIn';
-    yield serializers.serialize(
-      object.refreshExpiresIn,
-      specifiedType: const FullType(int),
-    );
+    yield object.refreshExpiresIn == null
+        ? null
+        : serializers.serialize(
+            object.refreshExpiresIn,
+            specifiedType: const FullType.nullable(int),
+          );
     if (object.backupCodes != null) {
       yield r'backupCodes';
       yield serializers.serialize(
@@ -103,7 +117,9 @@ class _$MfaVerifyWebSessionResponseSerializer implements PrimitiveSerializer<Mfa
     MfaVerifyWebSessionResponse object, {
     FullType specifiedType = FullType.unspecified,
   }) {
-    return _serializeProperties(serializers, object, specifiedType: specifiedType).toList();
+    return _serializeProperties(serializers, object,
+            specifiedType: specifiedType)
+        .toList();
   }
 
   void _deserializeProperties(
@@ -121,7 +137,8 @@ class _$MfaVerifyWebSessionResponseSerializer implements PrimitiveSerializer<Mfa
         case r'authenticated':
           final valueDes = serializers.deserialize(
             value,
-            specifiedType: const FullType(MfaVerifyWebSessionResponseAuthenticatedEnum),
+            specifiedType:
+                const FullType(MfaVerifyWebSessionResponseAuthenticatedEnum),
           ) as MfaVerifyWebSessionResponseAuthenticatedEnum;
           result.authenticated = valueDes;
           break;
@@ -142,21 +159,24 @@ class _$MfaVerifyWebSessionResponseSerializer implements PrimitiveSerializer<Mfa
         case r'expiresIn':
           final valueDes = serializers.deserialize(
             value,
-            specifiedType: const FullType(int),
-          ) as int;
+            specifiedType: const FullType.nullable(int),
+          ) as int?;
+          if (valueDes == null) continue;
           result.expiresIn = valueDes;
           break;
         case r'refreshExpiresIn':
           final valueDes = serializers.deserialize(
             value,
-            specifiedType: const FullType(int),
-          ) as int;
+            specifiedType: const FullType.nullable(int),
+          ) as int?;
+          if (valueDes == null) continue;
           result.refreshExpiresIn = valueDes;
           break;
         case r'backupCodes':
           final valueDes = serializers.deserialize(
             value,
-            specifiedType: const FullType.nullable(BuiltList, [FullType(String)]),
+            specifiedType:
+                const FullType.nullable(BuiltList, [FullType(String)]),
           ) as BuiltList<String>?;
           if (valueDes == null) continue;
           result.backupCodes.replace(valueDes);
@@ -190,34 +210,42 @@ class _$MfaVerifyWebSessionResponseSerializer implements PrimitiveSerializer<Mfa
   }
 }
 
-
 class MfaVerifyWebSessionResponseAuthenticatedEnum extends EnumClass {
-
   @BuiltValueEnumConst(wireName: r'true')
-  static const MfaVerifyWebSessionResponseAuthenticatedEnum true_ = _$mfaVerifyWebSessionResponseAuthenticatedEnum_true_;
+  static const MfaVerifyWebSessionResponseAuthenticatedEnum true_ =
+      _$mfaVerifyWebSessionResponseAuthenticatedEnum_true_;
 
-  static Serializer<MfaVerifyWebSessionResponseAuthenticatedEnum> get serializer => _$mfaVerifyWebSessionResponseAuthenticatedEnumSerializer;
+  static Serializer<MfaVerifyWebSessionResponseAuthenticatedEnum>
+      get serializer =>
+          _$mfaVerifyWebSessionResponseAuthenticatedEnumSerializer;
 
-  const MfaVerifyWebSessionResponseAuthenticatedEnum._(String name): super(name);
+  const MfaVerifyWebSessionResponseAuthenticatedEnum._(String name)
+      : super(name);
 
-  static BuiltSet<MfaVerifyWebSessionResponseAuthenticatedEnum> get values => _$mfaVerifyWebSessionResponseAuthenticatedEnumValues;
-  static MfaVerifyWebSessionResponseAuthenticatedEnum valueOf(String name) => _$mfaVerifyWebSessionResponseAuthenticatedEnumValueOf(name);
+  static BuiltSet<MfaVerifyWebSessionResponseAuthenticatedEnum> get values =>
+      _$mfaVerifyWebSessionResponseAuthenticatedEnumValues;
+  static MfaVerifyWebSessionResponseAuthenticatedEnum valueOf(String name) =>
+      _$mfaVerifyWebSessionResponseAuthenticatedEnumValueOf(name);
 }
 
 class MfaVerifyWebSessionResponseScopeEnum extends EnumClass {
-
   @BuiltValueEnumConst(wireName: r'passenger')
-  static const MfaVerifyWebSessionResponseScopeEnum passenger = _$mfaVerifyWebSessionResponseScopeEnum_passenger;
+  static const MfaVerifyWebSessionResponseScopeEnum passenger =
+      _$mfaVerifyWebSessionResponseScopeEnum_passenger;
   @BuiltValueEnumConst(wireName: r'operator')
-  static const MfaVerifyWebSessionResponseScopeEnum operator_ = _$mfaVerifyWebSessionResponseScopeEnum_operator_;
+  static const MfaVerifyWebSessionResponseScopeEnum operator_ =
+      _$mfaVerifyWebSessionResponseScopeEnum_operator_;
   @BuiltValueEnumConst(wireName: r'platform')
-  static const MfaVerifyWebSessionResponseScopeEnum platform = _$mfaVerifyWebSessionResponseScopeEnum_platform;
+  static const MfaVerifyWebSessionResponseScopeEnum platform =
+      _$mfaVerifyWebSessionResponseScopeEnum_platform;
 
-  static Serializer<MfaVerifyWebSessionResponseScopeEnum> get serializer => _$mfaVerifyWebSessionResponseScopeEnumSerializer;
+  static Serializer<MfaVerifyWebSessionResponseScopeEnum> get serializer =>
+      _$mfaVerifyWebSessionResponseScopeEnumSerializer;
 
-  const MfaVerifyWebSessionResponseScopeEnum._(String name): super(name);
+  const MfaVerifyWebSessionResponseScopeEnum._(String name) : super(name);
 
-  static BuiltSet<MfaVerifyWebSessionResponseScopeEnum> get values => _$mfaVerifyWebSessionResponseScopeEnumValues;
-  static MfaVerifyWebSessionResponseScopeEnum valueOf(String name) => _$mfaVerifyWebSessionResponseScopeEnumValueOf(name);
+  static BuiltSet<MfaVerifyWebSessionResponseScopeEnum> get values =>
+      _$mfaVerifyWebSessionResponseScopeEnumValues;
+  static MfaVerifyWebSessionResponseScopeEnum valueOf(String name) =>
+      _$mfaVerifyWebSessionResponseScopeEnumValueOf(name);
 }
-

@@ -12,17 +12,18 @@ part 'mfa_verify_token_response.g.dart';
 /// MfaVerifyTokenResponse
 ///
 /// Properties:
-/// * [accessToken] 
-/// * [tokenType] 
-/// * [expiresIn] 
-/// * [scope] 
-/// * [role] 
-/// * [refreshToken] 
-/// * [refreshExpiresIn] 
-/// * [mfaRequired] 
-/// * [backupCodes] 
+/// * [accessToken]
+/// * [tokenType]
+/// * [expiresIn]
+/// * [scope]
+/// * [role]
+/// * [refreshToken]
+/// * [refreshExpiresIn]
+/// * [mfaRequired]
+/// * [backupCodes]
 @BuiltValue()
-abstract class MfaVerifyTokenResponse implements Built<MfaVerifyTokenResponse, MfaVerifyTokenResponseBuilder> {
+abstract class MfaVerifyTokenResponse
+    implements Built<MfaVerifyTokenResponse, MfaVerifyTokenResponseBuilder> {
   @BuiltValueField(wireName: r'accessToken')
   String get accessToken;
 
@@ -31,7 +32,7 @@ abstract class MfaVerifyTokenResponse implements Built<MfaVerifyTokenResponse, M
   // enum tokenTypeEnum {  Bearer,  };
 
   @BuiltValueField(wireName: r'expiresIn')
-  int get expiresIn;
+  int? get expiresIn;
 
   @BuiltValueField(wireName: r'scope')
   MfaVerifyTokenResponseScopeEnum get scope;
@@ -44,7 +45,7 @@ abstract class MfaVerifyTokenResponse implements Built<MfaVerifyTokenResponse, M
   String get refreshToken;
 
   @BuiltValueField(wireName: r'refreshExpiresIn')
-  int get refreshExpiresIn;
+  int? get refreshExpiresIn;
 
   @BuiltValueField(wireName: r'mfaRequired')
   MfaVerifyTokenResponseMfaRequiredEnum get mfaRequired;
@@ -55,18 +56,25 @@ abstract class MfaVerifyTokenResponse implements Built<MfaVerifyTokenResponse, M
 
   MfaVerifyTokenResponse._();
 
-  factory MfaVerifyTokenResponse([void updates(MfaVerifyTokenResponseBuilder b)]) = _$MfaVerifyTokenResponse;
+  factory MfaVerifyTokenResponse(
+          [void updates(MfaVerifyTokenResponseBuilder b)]) =
+      _$MfaVerifyTokenResponse;
 
   @BuiltValueHook(initializeBuilder: true)
   static void _defaults(MfaVerifyTokenResponseBuilder b) => b;
 
   @BuiltValueSerializer(custom: true)
-  static Serializer<MfaVerifyTokenResponse> get serializer => _$MfaVerifyTokenResponseSerializer();
+  static Serializer<MfaVerifyTokenResponse> get serializer =>
+      _$MfaVerifyTokenResponseSerializer();
 }
 
-class _$MfaVerifyTokenResponseSerializer implements PrimitiveSerializer<MfaVerifyTokenResponse> {
+class _$MfaVerifyTokenResponseSerializer
+    implements PrimitiveSerializer<MfaVerifyTokenResponse> {
   @override
-  final Iterable<Type> types = const [MfaVerifyTokenResponse, _$MfaVerifyTokenResponse];
+  final Iterable<Type> types = const [
+    MfaVerifyTokenResponse,
+    _$MfaVerifyTokenResponse
+  ];
 
   @override
   final String wireName = r'MfaVerifyTokenResponse';
@@ -87,10 +95,12 @@ class _$MfaVerifyTokenResponseSerializer implements PrimitiveSerializer<MfaVerif
       specifiedType: const FullType(MfaVerifyTokenResponseTokenTypeEnum),
     );
     yield r'expiresIn';
-    yield serializers.serialize(
-      object.expiresIn,
-      specifiedType: const FullType(int),
-    );
+    yield object.expiresIn == null
+        ? null
+        : serializers.serialize(
+            object.expiresIn,
+            specifiedType: const FullType.nullable(int),
+          );
     yield r'scope';
     yield serializers.serialize(
       object.scope,
@@ -107,10 +117,12 @@ class _$MfaVerifyTokenResponseSerializer implements PrimitiveSerializer<MfaVerif
       specifiedType: const FullType(String),
     );
     yield r'refreshExpiresIn';
-    yield serializers.serialize(
-      object.refreshExpiresIn,
-      specifiedType: const FullType(int),
-    );
+    yield object.refreshExpiresIn == null
+        ? null
+        : serializers.serialize(
+            object.refreshExpiresIn,
+            specifiedType: const FullType.nullable(int),
+          );
     yield r'mfaRequired';
     yield serializers.serialize(
       object.mfaRequired,
@@ -131,7 +143,9 @@ class _$MfaVerifyTokenResponseSerializer implements PrimitiveSerializer<MfaVerif
     MfaVerifyTokenResponse object, {
     FullType specifiedType = FullType.unspecified,
   }) {
-    return _serializeProperties(serializers, object, specifiedType: specifiedType).toList();
+    return _serializeProperties(serializers, object,
+            specifiedType: specifiedType)
+        .toList();
   }
 
   void _deserializeProperties(
@@ -163,8 +177,9 @@ class _$MfaVerifyTokenResponseSerializer implements PrimitiveSerializer<MfaVerif
         case r'expiresIn':
           final valueDes = serializers.deserialize(
             value,
-            specifiedType: const FullType(int),
-          ) as int;
+            specifiedType: const FullType.nullable(int),
+          ) as int?;
+          if (valueDes == null) continue;
           result.expiresIn = valueDes;
           break;
         case r'scope':
@@ -191,21 +206,24 @@ class _$MfaVerifyTokenResponseSerializer implements PrimitiveSerializer<MfaVerif
         case r'refreshExpiresIn':
           final valueDes = serializers.deserialize(
             value,
-            specifiedType: const FullType(int),
-          ) as int;
+            specifiedType: const FullType.nullable(int),
+          ) as int?;
+          if (valueDes == null) continue;
           result.refreshExpiresIn = valueDes;
           break;
         case r'mfaRequired':
           final valueDes = serializers.deserialize(
             value,
-            specifiedType: const FullType(MfaVerifyTokenResponseMfaRequiredEnum),
+            specifiedType:
+                const FullType(MfaVerifyTokenResponseMfaRequiredEnum),
           ) as MfaVerifyTokenResponseMfaRequiredEnum;
           result.mfaRequired = valueDes;
           break;
         case r'backupCodes':
           final valueDes = serializers.deserialize(
             value,
-            specifiedType: const FullType.nullable(BuiltList, [FullType(String)]),
+            specifiedType:
+                const FullType.nullable(BuiltList, [FullType(String)]),
           ) as BuiltList<String>?;
           if (valueDes == null) continue;
           result.backupCodes.replace(valueDes);
@@ -239,47 +257,56 @@ class _$MfaVerifyTokenResponseSerializer implements PrimitiveSerializer<MfaVerif
   }
 }
 
-
 class MfaVerifyTokenResponseTokenTypeEnum extends EnumClass {
-
   @BuiltValueEnumConst(wireName: r'Bearer')
-  static const MfaVerifyTokenResponseTokenTypeEnum bearer = _$mfaVerifyTokenResponseTokenTypeEnum_bearer;
+  static const MfaVerifyTokenResponseTokenTypeEnum bearer =
+      _$mfaVerifyTokenResponseTokenTypeEnum_bearer;
 
-  static Serializer<MfaVerifyTokenResponseTokenTypeEnum> get serializer => _$mfaVerifyTokenResponseTokenTypeEnumSerializer;
+  static Serializer<MfaVerifyTokenResponseTokenTypeEnum> get serializer =>
+      _$mfaVerifyTokenResponseTokenTypeEnumSerializer;
 
-  const MfaVerifyTokenResponseTokenTypeEnum._(String name): super(name);
+  const MfaVerifyTokenResponseTokenTypeEnum._(String name) : super(name);
 
-  static BuiltSet<MfaVerifyTokenResponseTokenTypeEnum> get values => _$mfaVerifyTokenResponseTokenTypeEnumValues;
-  static MfaVerifyTokenResponseTokenTypeEnum valueOf(String name) => _$mfaVerifyTokenResponseTokenTypeEnumValueOf(name);
+  static BuiltSet<MfaVerifyTokenResponseTokenTypeEnum> get values =>
+      _$mfaVerifyTokenResponseTokenTypeEnumValues;
+  static MfaVerifyTokenResponseTokenTypeEnum valueOf(String name) =>
+      _$mfaVerifyTokenResponseTokenTypeEnumValueOf(name);
 }
 
 class MfaVerifyTokenResponseScopeEnum extends EnumClass {
-
   @BuiltValueEnumConst(wireName: r'passenger')
-  static const MfaVerifyTokenResponseScopeEnum passenger = _$mfaVerifyTokenResponseScopeEnum_passenger;
+  static const MfaVerifyTokenResponseScopeEnum passenger =
+      _$mfaVerifyTokenResponseScopeEnum_passenger;
   @BuiltValueEnumConst(wireName: r'operator')
-  static const MfaVerifyTokenResponseScopeEnum operator_ = _$mfaVerifyTokenResponseScopeEnum_operator_;
+  static const MfaVerifyTokenResponseScopeEnum operator_ =
+      _$mfaVerifyTokenResponseScopeEnum_operator_;
   @BuiltValueEnumConst(wireName: r'platform')
-  static const MfaVerifyTokenResponseScopeEnum platform = _$mfaVerifyTokenResponseScopeEnum_platform;
+  static const MfaVerifyTokenResponseScopeEnum platform =
+      _$mfaVerifyTokenResponseScopeEnum_platform;
 
-  static Serializer<MfaVerifyTokenResponseScopeEnum> get serializer => _$mfaVerifyTokenResponseScopeEnumSerializer;
+  static Serializer<MfaVerifyTokenResponseScopeEnum> get serializer =>
+      _$mfaVerifyTokenResponseScopeEnumSerializer;
 
-  const MfaVerifyTokenResponseScopeEnum._(String name): super(name);
+  const MfaVerifyTokenResponseScopeEnum._(String name) : super(name);
 
-  static BuiltSet<MfaVerifyTokenResponseScopeEnum> get values => _$mfaVerifyTokenResponseScopeEnumValues;
-  static MfaVerifyTokenResponseScopeEnum valueOf(String name) => _$mfaVerifyTokenResponseScopeEnumValueOf(name);
+  static BuiltSet<MfaVerifyTokenResponseScopeEnum> get values =>
+      _$mfaVerifyTokenResponseScopeEnumValues;
+  static MfaVerifyTokenResponseScopeEnum valueOf(String name) =>
+      _$mfaVerifyTokenResponseScopeEnumValueOf(name);
 }
 
 class MfaVerifyTokenResponseMfaRequiredEnum extends EnumClass {
-
   @BuiltValueEnumConst(wireName: r'false')
-  static const MfaVerifyTokenResponseMfaRequiredEnum false_ = _$mfaVerifyTokenResponseMfaRequiredEnum_false_;
+  static const MfaVerifyTokenResponseMfaRequiredEnum false_ =
+      _$mfaVerifyTokenResponseMfaRequiredEnum_false_;
 
-  static Serializer<MfaVerifyTokenResponseMfaRequiredEnum> get serializer => _$mfaVerifyTokenResponseMfaRequiredEnumSerializer;
+  static Serializer<MfaVerifyTokenResponseMfaRequiredEnum> get serializer =>
+      _$mfaVerifyTokenResponseMfaRequiredEnumSerializer;
 
-  const MfaVerifyTokenResponseMfaRequiredEnum._(String name): super(name);
+  const MfaVerifyTokenResponseMfaRequiredEnum._(String name) : super(name);
 
-  static BuiltSet<MfaVerifyTokenResponseMfaRequiredEnum> get values => _$mfaVerifyTokenResponseMfaRequiredEnumValues;
-  static MfaVerifyTokenResponseMfaRequiredEnum valueOf(String name) => _$mfaVerifyTokenResponseMfaRequiredEnumValueOf(name);
+  static BuiltSet<MfaVerifyTokenResponseMfaRequiredEnum> get values =>
+      _$mfaVerifyTokenResponseMfaRequiredEnumValues;
+  static MfaVerifyTokenResponseMfaRequiredEnum valueOf(String name) =>
+      _$mfaVerifyTokenResponseMfaRequiredEnumValueOf(name);
 }
-
