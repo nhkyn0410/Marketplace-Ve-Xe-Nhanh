@@ -3,6 +3,8 @@
 import { FileText, LoaderCircle, Paperclip, X } from "lucide-react";
 import { useRef, useState } from "react";
 
+import { DemoDataNotice } from "./demo-data-notice";
+
 // Tệp minh chứng của khiếu nại / tranh chấp (TASK-TRUST-001) — dùng chung Admin + Operator OS. Mỗi app truyền hàm lấy URL xem
 // (có hạn, server ghi nhật ký) và hàm tải tệp lên kho riêng tư của nó.
 
@@ -135,6 +137,7 @@ export function AttachmentPicker({
           </span>
         ))}
       </div>
+      <DemoDataNotice />
       {error && (
         <p role="alert" className="text-xs leading-[18px] text-error-600">
           {error}

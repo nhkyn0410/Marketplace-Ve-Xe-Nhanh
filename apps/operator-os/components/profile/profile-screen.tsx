@@ -3,6 +3,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Badge } from "@vexenhanh/ui/components/badge";
 import { Button } from "@vexenhanh/ui/components/button";
+import { DemoDataNotice } from "@vexenhanh/ui/components/demo-data-notice";
 import { Skeleton } from "@vexenhanh/ui/components/skeleton";
 import { CircleAlert, CircleCheck, Clock, ExternalLink, Eye, Info, LoaderCircle, Pencil, RefreshCw, Upload } from "lucide-react";
 import { useRef, useState, type ReactNode } from "react";
@@ -213,6 +214,7 @@ function DocumentsCard({
         </h2>
         <p className={HELPER}>Tệp được lưu riêng tư; mỗi lần mở tệp được ghi nhật ký.</p>
       </div>
+      <DemoDataNotice />
       {/* `relative`: ô chọn tệp ẩn (định vị tuyệt đối) nằm trong vùng cuộn, không làm trang tràn ngang. */}
       <div className="relative overflow-x-auto">
         <table className={`${TABLE} min-w-[640px]`}>

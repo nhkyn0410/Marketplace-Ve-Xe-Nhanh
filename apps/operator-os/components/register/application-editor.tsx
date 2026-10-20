@@ -3,6 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Badge } from "@vexenhanh/ui/components/badge";
 import { Button } from "@vexenhanh/ui/components/button";
+import { DemoDataNotice } from "@vexenhanh/ui/components/demo-data-notice";
 import { Input } from "@vexenhanh/ui/components/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@vexenhanh/ui/components/select";
 import { Textarea } from "@vexenhanh/ui/components/textarea";
@@ -212,6 +213,7 @@ export function ApplicationEditor({
             </h2>
             <p className={HELPER}>Tệp được lưu riêng tư và chỉ nhân sự duyệt hồ sơ của Vé Xe Nhanh xem được.</p>
           </div>
+          <DemoDataNotice />
           <ul className="flex flex-col gap-3">
             {DOCUMENT_TYPES.map(({ type, label }) => (
               <DocumentRow
