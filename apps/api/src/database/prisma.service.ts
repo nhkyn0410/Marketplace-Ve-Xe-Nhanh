@@ -18,9 +18,13 @@ export type { DbScope } from "./db-scope";
 
 export type DbTransaction = Prisma.TransactionClient;
 
-// Giới hạn transaction tương tác (bằng mặc định của Prisma, ghi tường minh để hạn chót ghi audit bên dưới tính đúng).
-const TRANSACTION_MAX_WAIT_MS = 2_000;
+// Giới hạn transaction tương tác (ghi tường minh để hạn chót ghi audit bên dưới tính đúng). Chờ lấy kết nối ≤10s (mặc
+// định Prisma 2s): instance Render free vừa thức dậy nhận cả loạt request của một trang Admin trong khi pool còn phải mở
+// kết nối mới qua Supabase pooler — 2s không đủ, request lỗi P2028 (Sentry NODE-NESTJS-4/5, 20/10/2026).
+const TRANSACTION_MAX_WAIT_MS = 10_000;
 const TRANSACTION_TIMEOUT_MS = 5_000;
+// pg mặc định đóng kết nối rảnh sau 10s (Prisma 6 giữ 300s) → mỗi lần chuyển trang sau 10s lại mở kết nối TLS mới.
+const POOL_IDLE_TIMEOUT_MS = 300_000;
 // Chừa cho phần còn lại sau lệnh ghi audit (đọc lại + COMMIT) — ghi audit phải xong trước mốc này.
 const TRANSACTION_COMMIT_MARGIN_MS = 500;
 
@@ -147,7 +151,7 @@ export class PrismaService
     }
 
     // Prisma 7: dùng driver adapter (pg) thay query-engine binary → hợp distroless (không libssl).
-    super({ adapter: new PrismaPg({ connectionString }) });
+    super({ adapter: new PrismaPg({ connectionString, idleTimeoutMillis: POOL_IDLE_TIMEOUT_MS }) });
   }
 
   async onModuleInit(): Promise<void> {
@@ -221,7 +225,7 @@ export class PrismaService
    * RLS là lớp chặn cuối, KHÔNG thay bộ lọc: policy không dùng được index, query vẫn phải lọc
    * `operator_id` tường minh. Module nghiệp vụ chỉ gọi `withScope(authz.db, ...)` với scope guard trao.
    * Chi phí: mỗi lần gọi là BEGIN + set_config + query + COMMIT, và chịu giới hạn transaction tương
-   * tác của Prisma (chờ ≤2s, chạy ≤5s) — gom query vào một lần gọi thay vì gọi lẻ từng câu.
+   * tác của Prisma (chờ ≤10s, chạy ≤5s) — gom query vào một lần gọi thay vì gọi lẻ từng câu.
    */
   async withScope<T>(
     scope: DbScope,
