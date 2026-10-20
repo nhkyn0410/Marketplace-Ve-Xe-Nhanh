@@ -22,6 +22,7 @@
     "db:seed": "tsx prisma/seed.ts",
     "db:app-role": "node scripts/db-app-role.mjs",
     "db:seed:catalog": "tsx prisma/catalog-seed.ts",
+    "db:create-first-admin": "tsx prisma/create-first-admin.ts",
     "postinstall": "prisma generate"
   },
   "dependencies": {
