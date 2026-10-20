@@ -73,7 +73,7 @@ export function scrubBreadcrumb<T extends Scrubbable>(breadcrumb: T): T {
  */
 export function scrubSentryEvent<
   T extends {
-    request?: { data?: unknown; headers?: Record<string, string>; url?: string; query_string?: unknown };
+    request?: { data?: unknown; cookies?: unknown; headers?: Record<string, string>; url?: string; query_string?: unknown };
     breadcrumbs?: Scrubbable[];
     spans?: Scrubbable[];
     contexts?: { trace?: Scrubbable };
@@ -81,6 +81,8 @@ export function scrubSentryEvent<
 >(event: T): T {
   if (event.request) {
     delete event.request.data;
+    // SDK tách sẵn header Cookie thành `request.cookies` (access token, CSRF của web) — xoá header không đủ.
+    delete event.request.cookies;
     for (const name of Object.keys(event.request.headers ?? {})) {
       if (SENSITIVE_HEADERS.includes(name.toLowerCase())) {
         delete event.request.headers![name];
