@@ -80,9 +80,38 @@ final BuiltSet<OperatorBookingDetailDtoOutputStatusEnum>
   _$operatorBookingDetailDtoOutputStatusEnum_REFUND_FAILED,
 ]);
 
+const OperatorBookingDetailDtoOutputDiscountFundingEnum
+    _$operatorBookingDetailDtoOutputDiscountFundingEnum_OPERATOR =
+    const OperatorBookingDetailDtoOutputDiscountFundingEnum._('OPERATOR');
+const OperatorBookingDetailDtoOutputDiscountFundingEnum
+    _$operatorBookingDetailDtoOutputDiscountFundingEnum_PLATFORM =
+    const OperatorBookingDetailDtoOutputDiscountFundingEnum._('PLATFORM');
+
+OperatorBookingDetailDtoOutputDiscountFundingEnum
+    _$operatorBookingDetailDtoOutputDiscountFundingEnumValueOf(String name) {
+  switch (name) {
+    case 'OPERATOR':
+      return _$operatorBookingDetailDtoOutputDiscountFundingEnum_OPERATOR;
+    case 'PLATFORM':
+      return _$operatorBookingDetailDtoOutputDiscountFundingEnum_PLATFORM;
+    default:
+      throw ArgumentError(name);
+  }
+}
+
+final BuiltSet<OperatorBookingDetailDtoOutputDiscountFundingEnum>
+    _$operatorBookingDetailDtoOutputDiscountFundingEnumValues = BuiltSet<
+        OperatorBookingDetailDtoOutputDiscountFundingEnum>(const <OperatorBookingDetailDtoOutputDiscountFundingEnum>[
+  _$operatorBookingDetailDtoOutputDiscountFundingEnum_OPERATOR,
+  _$operatorBookingDetailDtoOutputDiscountFundingEnum_PLATFORM,
+]);
+
 Serializer<OperatorBookingDetailDtoOutputStatusEnum>
     _$operatorBookingDetailDtoOutputStatusEnumSerializer =
     _$OperatorBookingDetailDtoOutputStatusEnumSerializer();
+Serializer<OperatorBookingDetailDtoOutputDiscountFundingEnum>
+    _$operatorBookingDetailDtoOutputDiscountFundingEnumSerializer =
+    _$OperatorBookingDetailDtoOutputDiscountFundingEnumSerializer();
 
 class _$OperatorBookingDetailDtoOutputStatusEnumSerializer
     implements PrimitiveSerializer<OperatorBookingDetailDtoOutputStatusEnum> {
@@ -132,6 +161,39 @@ class _$OperatorBookingDetailDtoOutputStatusEnumSerializer
           _fromWire[serialized] ?? (serialized is String ? serialized : ''));
 }
 
+class _$OperatorBookingDetailDtoOutputDiscountFundingEnumSerializer
+    implements
+        PrimitiveSerializer<OperatorBookingDetailDtoOutputDiscountFundingEnum> {
+  static const Map<String, Object> _toWire = const <String, Object>{
+    'OPERATOR': 'OPERATOR',
+    'PLATFORM': 'PLATFORM',
+  };
+  static const Map<Object, String> _fromWire = const <Object, String>{
+    'OPERATOR': 'OPERATOR',
+    'PLATFORM': 'PLATFORM',
+  };
+
+  @override
+  final Iterable<Type> types = const <Type>[
+    OperatorBookingDetailDtoOutputDiscountFundingEnum
+  ];
+  @override
+  final String wireName = 'OperatorBookingDetailDtoOutputDiscountFundingEnum';
+
+  @override
+  Object serialize(Serializers serializers,
+          OperatorBookingDetailDtoOutputDiscountFundingEnum object,
+          {FullType specifiedType = FullType.unspecified}) =>
+      _toWire[object.name] ?? object.name;
+
+  @override
+  OperatorBookingDetailDtoOutputDiscountFundingEnum deserialize(
+          Serializers serializers, Object serialized,
+          {FullType specifiedType = FullType.unspecified}) =>
+      OperatorBookingDetailDtoOutputDiscountFundingEnum.valueOf(
+          _fromWire[serialized] ?? (serialized is String ? serialized : ''));
+}
+
 class _$OperatorBookingDetailDtoOutput extends OperatorBookingDetailDtoOutput {
   @override
   final String bookingId;
@@ -174,6 +236,8 @@ class _$OperatorBookingDetailDtoOutput extends OperatorBookingDetailDtoOutput {
   @override
   final int discount;
   @override
+  final OperatorBookingDetailDtoOutputDiscountFundingEnum? discountFunding;
+  @override
   final PublicTripDtoOutputCancellationPolicy cancellationPolicy;
   @override
   final BuiltList<OperatorBookingDetailDtoOutputHistoriesInner> histories;
@@ -203,6 +267,7 @@ class _$OperatorBookingDetailDtoOutput extends OperatorBookingDetailDtoOutput {
       required this.subtotal,
       required this.serviceFee,
       required this.discount,
+      this.discountFunding,
       required this.cancellationPolicy,
       required this.histories})
       : super._();
@@ -239,6 +304,7 @@ class _$OperatorBookingDetailDtoOutput extends OperatorBookingDetailDtoOutput {
         subtotal == other.subtotal &&
         serviceFee == other.serviceFee &&
         discount == other.discount &&
+        discountFunding == other.discountFunding &&
         cancellationPolicy == other.cancellationPolicy &&
         histories == other.histories;
   }
@@ -266,6 +332,7 @@ class _$OperatorBookingDetailDtoOutput extends OperatorBookingDetailDtoOutput {
     _$hash = $jc(_$hash, subtotal.hashCode);
     _$hash = $jc(_$hash, serviceFee.hashCode);
     _$hash = $jc(_$hash, discount.hashCode);
+    _$hash = $jc(_$hash, discountFunding.hashCode);
     _$hash = $jc(_$hash, cancellationPolicy.hashCode);
     _$hash = $jc(_$hash, histories.hashCode);
     _$hash = $jf(_$hash);
@@ -295,6 +362,7 @@ class _$OperatorBookingDetailDtoOutput extends OperatorBookingDetailDtoOutput {
           ..add('subtotal', subtotal)
           ..add('serviceFee', serviceFee)
           ..add('discount', discount)
+          ..add('discountFunding', discountFunding)
           ..add('cancellationPolicy', cancellationPolicy)
           ..add('histories', histories))
         .toString();
@@ -404,6 +472,13 @@ class OperatorBookingDetailDtoOutputBuilder
   int? get discount => _$this._discount;
   set discount(int? discount) => _$this._discount = discount;
 
+  OperatorBookingDetailDtoOutputDiscountFundingEnum? _discountFunding;
+  OperatorBookingDetailDtoOutputDiscountFundingEnum? get discountFunding =>
+      _$this._discountFunding;
+  set discountFunding(
+          OperatorBookingDetailDtoOutputDiscountFundingEnum? discountFunding) =>
+      _$this._discountFunding = discountFunding;
+
   PublicTripDtoOutputCancellationPolicyBuilder? _cancellationPolicy;
   PublicTripDtoOutputCancellationPolicyBuilder get cancellationPolicy =>
       _$this._cancellationPolicy ??=
@@ -448,6 +523,7 @@ class OperatorBookingDetailDtoOutputBuilder
       _subtotal = $v.subtotal;
       _serviceFee = $v.serviceFee;
       _discount = $v.discount;
+      _discountFunding = $v.discountFunding;
       _cancellationPolicy = $v.cancellationPolicy.toBuilder();
       _histories = $v.histories.toBuilder();
       _$v = null;
@@ -512,6 +588,7 @@ class OperatorBookingDetailDtoOutputBuilder
                 serviceFee, r'OperatorBookingDetailDtoOutput', 'serviceFee'),
             discount: BuiltValueNullFieldError.checkNotNull(
                 discount, r'OperatorBookingDetailDtoOutput', 'discount'),
+            discountFunding: discountFunding,
             cancellationPolicy: cancellationPolicy.build(),
             histories: histories.build(),
           );

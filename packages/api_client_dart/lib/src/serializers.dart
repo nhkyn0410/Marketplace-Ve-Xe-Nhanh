@@ -197,6 +197,9 @@ import 'package:api_client_dart/src/model/customer_ticket_list_dto_output_items_
 import 'package:api_client_dart/src/model/customer_ticket_list_dto_output_items_inner_assignee.dart';
 import 'package:api_client_dart/src/model/decision_input_dto.dart';
 import 'package:api_client_dart/src/model/decision_response_dto_output.dart';
+import 'package:api_client_dart/src/model/device_dto_output.dart';
+import 'package:api_client_dart/src/model/device_input_dto.dart';
+import 'package:api_client_dart/src/model/direct_dispute_input_dto.dart';
 import 'package:api_client_dart/src/model/dispute_decision_input_dto.dart';
 import 'package:api_client_dart/src/model/dispute_detail_dto_output.dart';
 import 'package:api_client_dart/src/model/dispute_detail_dto_output_cancellation_tiers_inner.dart';
@@ -245,17 +248,27 @@ import 'package:api_client_dart/src/model/finance_booking_page_dto_output_items_
 import 'package:api_client_dart/src/model/finance_summary_dto_output.dart';
 import 'package:api_client_dart/src/model/finance_summary_dto_output_last_payout.dart';
 import 'package:api_client_dart/src/model/health_response_dto_output.dart';
+import 'package:api_client_dart/src/model/incident_dto_output.dart';
+import 'package:api_client_dart/src/model/incident_dto_output_evidence_inner.dart';
+import 'package:api_client_dart/src/model/incident_input_dto.dart';
+import 'package:api_client_dart/src/model/incident_input_dto_evidence_inner.dart';
+import 'package:api_client_dart/src/model/incident_page_dto_output.dart';
+import 'package:api_client_dart/src/model/incident_page_dto_output_items_inner.dart';
+import 'package:api_client_dart/src/model/incident_resolution_dto.dart';
+import 'package:api_client_dart/src/model/journey_log_dto_output.dart';
+import 'package:api_client_dart/src/model/journey_log_input_dto.dart';
+import 'package:api_client_dart/src/model/journey_log_page_dto_output.dart';
+import 'package:api_client_dart/src/model/journey_log_page_dto_output_items_inner.dart';
 import 'package:api_client_dart/src/model/kyc_download_response_dto_output.dart';
 import 'package:api_client_dart/src/model/kyc_replace_input_dto.dart';
 import 'package:api_client_dart/src/model/kyc_upload_input_dto.dart';
 import 'package:api_client_dart/src/model/kyc_upload_response_dto_output.dart';
 import 'package:api_client_dart/src/model/loyalty_member_dto_output.dart';
-import 'package:api_client_dart/src/model/loyalty_member_dto_output_next_tier.dart';
+import 'package:api_client_dart/src/model/loyalty_redemption_input_dto.dart';
 import 'package:api_client_dart/src/model/loyalty_report_dto_output.dart';
 import 'package:api_client_dart/src/model/loyalty_report_dto_output_months_inner.dart';
 import 'package:api_client_dart/src/model/loyalty_report_dto_output_totals.dart';
 import 'package:api_client_dart/src/model/loyalty_transaction_page_dto_output.dart';
-import 'package:api_client_dart/src/model/loyalty_transaction_page_dto_output_items_inner.dart';
 import 'package:api_client_dart/src/model/message_input_dto.dart';
 import 'package:api_client_dart/src/model/message_response_dto_output.dart';
 import 'package:api_client_dart/src/model/mfa_challenge_response.dart';
@@ -265,6 +278,8 @@ import 'package:api_client_dart/src/model/mfa_verify_token_response.dart';
 import 'package:api_client_dart/src/model/mfa_verify_web_session_response.dart';
 import 'package:api_client_dart/src/model/moderation_input_dto.dart';
 import 'package:api_client_dart/src/model/mongo_health_response_dto_output.dart';
+import 'package:api_client_dart/src/model/notification_log_dto_output.dart';
+import 'package:api_client_dart/src/model/notification_log_dto_output_items_inner.dart';
 import 'package:api_client_dart/src/model/o_auth_init_dto.dart';
 import 'package:api_client_dart/src/model/o_auth_redirect_response_dto_output.dart';
 import 'package:api_client_dart/src/model/operator_booking_detail_dto_output.dart';
@@ -295,6 +310,23 @@ import 'package:api_client_dart/src/model/operator_stop_point_response_dto_outpu
 import 'package:api_client_dart/src/model/otp_request_dto.dart';
 import 'package:api_client_dart/src/model/otp_verify_dto.dart';
 import 'package:api_client_dart/src/model/participation_input_dto.dart';
+import 'package:api_client_dart/src/model/passenger_booking_page_dto_output.dart';
+import 'package:api_client_dart/src/model/passenger_booking_page_dto_output_items_inner.dart';
+import 'package:api_client_dart/src/model/passenger_dispute_page_dto_output.dart';
+import 'package:api_client_dart/src/model/passenger_dispute_page_dto_output_items_inner.dart';
+import 'package:api_client_dart/src/model/passenger_loyalty_dto_output.dart';
+import 'package:api_client_dart/src/model/passenger_loyalty_dto_output_next_tier.dart';
+import 'package:api_client_dart/src/model/passenger_loyalty_dto_output_rules.dart';
+import 'package:api_client_dart/src/model/passenger_loyalty_dto_output_rules_tiers_inner.dart';
+import 'package:api_client_dart/src/model/passenger_loyalty_transactions_dto_output.dart';
+import 'package:api_client_dart/src/model/passenger_loyalty_transactions_dto_output_items_inner.dart';
+import 'package:api_client_dart/src/model/passenger_loyalty_transactions_dto_output_totals.dart';
+import 'package:api_client_dart/src/model/passenger_profile_dto_output.dart';
+import 'package:api_client_dart/src/model/passenger_profile_update_dto.dart';
+import 'package:api_client_dart/src/model/passenger_support_page_dto_output.dart';
+import 'package:api_client_dart/src/model/passenger_support_page_dto_output_items_inner.dart';
+import 'package:api_client_dart/src/model/passenger_ticket_page_dto_output.dart';
+import 'package:api_client_dart/src/model/passenger_ticket_page_dto_output_items_inner.dart';
 import 'package:api_client_dart/src/model/password_change_challenge_response.dart';
 import 'package:api_client_dart/src/model/password_change_required_dto.dart';
 import 'package:api_client_dart/src/model/payment_input_dto.dart';
@@ -313,6 +345,7 @@ import 'package:api_client_dart/src/model/permission_dto_output.dart';
 import 'package:api_client_dart/src/model/permission_input_dto.dart';
 import 'package:api_client_dart/src/model/permission_page_dto_output.dart';
 import 'package:api_client_dart/src/model/permission_page_dto_output_items_inner.dart';
+import 'package:api_client_dart/src/model/pickup_window_input_dto.dart';
 import 'package:api_client_dart/src/model/point_adjust_input_dto.dart';
 import 'package:api_client_dart/src/model/policy_cancel_dto.dart';
 import 'package:api_client_dart/src/model/policy_draft_create_dto.dart';
@@ -325,11 +358,13 @@ import 'package:api_client_dart/src/model/policy_overview_dto_output_versions_in
 import 'package:api_client_dart/src/model/policy_overview_dto_output_versions_inner_rules_any_of1.dart';
 import 'package:api_client_dart/src/model/policy_overview_dto_output_versions_inner_rules_any_of2.dart';
 import 'package:api_client_dart/src/model/policy_overview_dto_output_versions_inner_rules_any_of3.dart';
-import 'package:api_client_dart/src/model/policy_overview_dto_output_versions_inner_rules_any_of3_tiers_inner.dart';
 import 'package:api_client_dart/src/model/policy_overview_dto_output_versions_inner_rules_any_of_tiers_inner.dart';
 import 'package:api_client_dart/src/model/policy_publish_dto.dart';
 import 'package:api_client_dart/src/model/policy_version_dto_output.dart';
 import 'package:api_client_dart/src/model/postgres_health_response_dto_output.dart';
+import 'package:api_client_dart/src/model/preference_input_dto.dart';
+import 'package:api_client_dart/src/model/preferences_dto_output.dart';
+import 'package:api_client_dart/src/model/preferences_dto_output_items_inner.dart';
 import 'package:api_client_dart/src/model/problem_details_dto.dart';
 import 'package:api_client_dart/src/model/promotion_check_dto_output.dart';
 import 'package:api_client_dart/src/model/promotion_check_input_dto.dart';
@@ -338,12 +373,19 @@ import 'package:api_client_dart/src/model/promotion_input_dto.dart';
 import 'package:api_client_dart/src/model/promotion_page_dto_output.dart';
 import 'package:api_client_dart/src/model/promotion_page_dto_output_items_inner.dart';
 import 'package:api_client_dart/src/model/promotion_page_dto_output_stats.dart';
+import 'package:api_client_dart/src/model/promotion_route_options_dto_output.dart';
+import 'package:api_client_dart/src/model/promotion_route_options_dto_output_items_inner.dart';
 import 'package:api_client_dart/src/model/promotion_status_input_dto.dart';
 import 'package:api_client_dart/src/model/province_list_response_dto_output.dart';
 import 'package:api_client_dart/src/model/province_list_response_dto_output_items_inner.dart';
 import 'package:api_client_dart/src/model/public_content_item_dto_output.dart';
 import 'package:api_client_dart/src/model/public_content_list_dto_output.dart';
 import 'package:api_client_dart/src/model/public_content_list_dto_output_items_inner.dart';
+import 'package:api_client_dart/src/model/public_operator_profile_dto_output.dart';
+import 'package:api_client_dart/src/model/public_operator_profile_dto_output_reviews_inner.dart';
+import 'package:api_client_dart/src/model/public_operator_profile_dto_output_routes_inner.dart';
+import 'package:api_client_dart/src/model/public_operator_profile_dto_output_scorecard.dart';
+import 'package:api_client_dart/src/model/public_operator_profile_dto_output_service_terms.dart';
 import 'package:api_client_dart/src/model/public_trip_dto_output.dart';
 import 'package:api_client_dart/src/model/public_trip_dto_output_cancellation_policy.dart';
 import 'package:api_client_dart/src/model/public_trip_dto_output_cancellation_policy_tiers_inner.dart';
@@ -354,6 +396,11 @@ import 'package:api_client_dart/src/model/public_trip_dto_output_vehicle_images_
 import 'package:api_client_dart/src/model/queue_health_response_dto_output.dart';
 import 'package:api_client_dart/src/model/queue_health_response_dto_output_queues_inner.dart';
 import 'package:api_client_dart/src/model/reauth_dto.dart';
+import 'package:api_client_dart/src/model/reconciliation_page_dto_output.dart';
+import 'package:api_client_dart/src/model/reconciliation_page_dto_output_items_inner.dart';
+import 'package:api_client_dart/src/model/reconciliation_page_dto_output_items_inner_issues_inner.dart';
+import 'package:api_client_dart/src/model/reconciliation_record_dto_output.dart';
+import 'package:api_client_dart/src/model/reconciliation_request_dto.dart';
 import 'package:api_client_dart/src/model/redis_health_response_dto_output.dart';
 import 'package:api_client_dart/src/model/refresh_response_dto_output.dart';
 import 'package:api_client_dart/src/model/refresh_token_dto.dart';
@@ -375,6 +422,11 @@ import 'package:api_client_dart/src/model/route_list_response_dto_output.dart';
 import 'package:api_client_dart/src/model/route_list_response_dto_output_items_inner.dart';
 import 'package:api_client_dart/src/model/route_response_dto_output.dart';
 import 'package:api_client_dart/src/model/route_response_dto_output_stops_inner.dart';
+import 'package:api_client_dart/src/model/save_voucher_input_dto.dart';
+import 'package:api_client_dart/src/model/saved_passenger_dto_output.dart';
+import 'package:api_client_dart/src/model/saved_passenger_input_dto.dart';
+import 'package:api_client_dart/src/model/saved_passenger_list_dto_output.dart';
+import 'package:api_client_dart/src/model/saved_passenger_list_dto_output_items_inner.dart';
 import 'package:api_client_dart/src/model/seat_hold_input_dto.dart';
 import 'package:api_client_dart/src/model/seat_hold_response_dto_output.dart';
 import 'package:api_client_dart/src/model/seat_hold_response_dto_output_pickup.dart';
@@ -425,6 +477,7 @@ import 'package:api_client_dart/src/model/trip_list_response_dto_output.dart';
 import 'package:api_client_dart/src/model/trip_list_response_dto_output_items_inner.dart';
 import 'package:api_client_dart/src/model/trip_manifest_dto_output.dart';
 import 'package:api_client_dart/src/model/trip_manifest_dto_output_passengers_inner.dart';
+import 'package:api_client_dart/src/model/trip_manifest_dto_output_passengers_inner_pickup.dart';
 import 'package:api_client_dart/src/model/trip_operation_input_dto.dart';
 import 'package:api_client_dart/src/model/trip_passenger_list_dto_output.dart';
 import 'package:api_client_dart/src/model/trip_passenger_list_dto_output_items_inner.dart';
@@ -455,6 +508,9 @@ import 'package:api_client_dart/src/model/trip_search_response_dto_output_items_
 import 'package:api_client_dart/src/model/trip_search_response_dto_output_items_inner_vehicle_type.dart';
 import 'package:api_client_dart/src/model/trip_seat_status_input_dto.dart';
 import 'package:api_client_dart/src/model/trip_status_input_dto.dart';
+import 'package:api_client_dart/src/model/user_voucher_dto_output.dart';
+import 'package:api_client_dart/src/model/user_voucher_page_dto_output.dart';
+import 'package:api_client_dart/src/model/user_voucher_page_dto_output_items_inner.dart';
 import 'package:api_client_dart/src/model/vehicle_image_upload_input_dto.dart';
 import 'package:api_client_dart/src/model/vehicle_image_upload_response_dto_output.dart';
 import 'package:api_client_dart/src/model/vehicle_images_input_dto.dart';
@@ -657,6 +713,9 @@ part 'serializers.g.dart';
   CustomerTicketListDtoOutputItemsInnerAssignee,
   DecisionInputDto,
   DecisionResponseDtoOutput,
+  DeviceDtoOutput,
+  DeviceInputDto,
+  DirectDisputeInputDto,
   DisputeDecisionInputDto,
   DisputeDetailDtoOutput,
   DisputeDetailDtoOutputCancellationTiersInner,
@@ -705,17 +764,27 @@ part 'serializers.g.dart';
   FinanceSummaryDtoOutput,
   FinanceSummaryDtoOutputLastPayout,
   HealthResponseDtoOutput,
+  IncidentDtoOutput,
+  IncidentDtoOutputEvidenceInner,
+  IncidentInputDto,
+  IncidentInputDtoEvidenceInner,
+  IncidentPageDtoOutput,
+  IncidentPageDtoOutputItemsInner,
+  IncidentResolutionDto,
+  JourneyLogDtoOutput,
+  JourneyLogInputDto,
+  JourneyLogPageDtoOutput,
+  JourneyLogPageDtoOutputItemsInner,
   KycDownloadResponseDtoOutput,
   KycReplaceInputDto,
   KycUploadInputDto,
   KycUploadResponseDtoOutput,
   LoyaltyMemberDtoOutput,
-  LoyaltyMemberDtoOutputNextTier,
+  LoyaltyRedemptionInputDto,
   LoyaltyReportDtoOutput,
   LoyaltyReportDtoOutputMonthsInner,
   LoyaltyReportDtoOutputTotals,
   LoyaltyTransactionPageDtoOutput,
-  LoyaltyTransactionPageDtoOutputItemsInner,
   MessageInputDto,
   MessageResponseDtoOutput,
   MfaChallengeResponse,
@@ -725,6 +794,8 @@ part 'serializers.g.dart';
   MfaVerifyWebSessionResponse,
   ModerationInputDto,
   MongoHealthResponseDtoOutput,
+  NotificationLogDtoOutput,
+  NotificationLogDtoOutputItemsInner,
   OAuthInitDto,
   OAuthRedirectResponseDtoOutput,
   OperatorBookingDetailDtoOutput,
@@ -755,6 +826,23 @@ part 'serializers.g.dart';
   OtpRequestDto,
   OtpVerifyDto,
   ParticipationInputDto,
+  PassengerBookingPageDtoOutput,
+  PassengerBookingPageDtoOutputItemsInner,
+  PassengerDisputePageDtoOutput,
+  PassengerDisputePageDtoOutputItemsInner,
+  PassengerLoyaltyDtoOutput,
+  PassengerLoyaltyDtoOutputNextTier,
+  PassengerLoyaltyDtoOutputRules,
+  PassengerLoyaltyDtoOutputRulesTiersInner,
+  PassengerLoyaltyTransactionsDtoOutput,
+  PassengerLoyaltyTransactionsDtoOutputItemsInner,
+  PassengerLoyaltyTransactionsDtoOutputTotals,
+  PassengerProfileDtoOutput,
+  PassengerProfileUpdateDto,
+  PassengerSupportPageDtoOutput,
+  PassengerSupportPageDtoOutputItemsInner,
+  PassengerTicketPageDtoOutput,
+  PassengerTicketPageDtoOutputItemsInner,
   PasswordChangeChallengeResponse,
   PasswordChangeRequiredDto,
   PaymentInputDto,
@@ -773,6 +861,7 @@ part 'serializers.g.dart';
   PermissionInputDto,
   PermissionPageDtoOutput,
   PermissionPageDtoOutputItemsInner,
+  PickupWindowInputDto,
   PointAdjustInputDto,
   PolicyCancelDto,
   PolicyDraftCreateDto,
@@ -785,11 +874,13 @@ part 'serializers.g.dart';
   PolicyOverviewDtoOutputVersionsInnerRulesAnyOf1,
   PolicyOverviewDtoOutputVersionsInnerRulesAnyOf2,
   PolicyOverviewDtoOutputVersionsInnerRulesAnyOf3,
-  PolicyOverviewDtoOutputVersionsInnerRulesAnyOf3TiersInner,
   PolicyOverviewDtoOutputVersionsInnerRulesAnyOfTiersInner,
   PolicyPublishDto,
   PolicyVersionDtoOutput,
   PostgresHealthResponseDtoOutput,
+  PreferenceInputDto,
+  PreferencesDtoOutput,
+  PreferencesDtoOutputItemsInner,
   ProblemDetailsDto,
   PromotionCheckDtoOutput,
   PromotionCheckInputDto,
@@ -798,12 +889,19 @@ part 'serializers.g.dart';
   PromotionPageDtoOutput,
   PromotionPageDtoOutputItemsInner,
   PromotionPageDtoOutputStats,
+  PromotionRouteOptionsDtoOutput,
+  PromotionRouteOptionsDtoOutputItemsInner,
   PromotionStatusInputDto,
   ProvinceListResponseDtoOutput,
   ProvinceListResponseDtoOutputItemsInner,
   PublicContentItemDtoOutput,
   PublicContentListDtoOutput,
   PublicContentListDtoOutputItemsInner,
+  PublicOperatorProfileDtoOutput,
+  PublicOperatorProfileDtoOutputReviewsInner,
+  PublicOperatorProfileDtoOutputRoutesInner,
+  PublicOperatorProfileDtoOutputScorecard,
+  PublicOperatorProfileDtoOutputServiceTerms,
   PublicTripDtoOutput,
   PublicTripDtoOutputCancellationPolicy,
   PublicTripDtoOutputCancellationPolicyTiersInner,
@@ -814,6 +912,11 @@ part 'serializers.g.dart';
   QueueHealthResponseDtoOutput,
   QueueHealthResponseDtoOutputQueuesInner,
   ReauthDto,
+  ReconciliationPageDtoOutput,
+  ReconciliationPageDtoOutputItemsInner,
+  ReconciliationPageDtoOutputItemsInnerIssuesInner,
+  ReconciliationRecordDtoOutput,
+  ReconciliationRequestDto,
   RedisHealthResponseDtoOutput,
   RefreshResponseDtoOutput,
   RefreshTokenDto,
@@ -835,6 +938,11 @@ part 'serializers.g.dart';
   RouteListResponseDtoOutputItemsInner,
   RouteResponseDtoOutput,
   RouteResponseDtoOutputStopsInner,
+  SaveVoucherInputDto,
+  SavedPassengerDtoOutput,
+  SavedPassengerInputDto,
+  SavedPassengerListDtoOutput,
+  SavedPassengerListDtoOutputItemsInner,
   SeatHoldInputDto,
   SeatHoldResponseDtoOutput,
   SeatHoldResponseDtoOutputPickup,
@@ -885,6 +993,7 @@ part 'serializers.g.dart';
   TripListResponseDtoOutputItemsInner,
   TripManifestDtoOutput,
   TripManifestDtoOutputPassengersInner,
+  TripManifestDtoOutputPassengersInnerPickup,
   TripOperationInputDto,
   TripPassengerListDtoOutput,
   TripPassengerListDtoOutputItemsInner,
@@ -915,6 +1024,9 @@ part 'serializers.g.dart';
   TripSearchResponseDtoOutputItemsInnerVehicleType,
   TripSeatStatusInputDto,
   TripStatusInputDto,
+  UserVoucherDtoOutput,
+  UserVoucherPageDtoOutput,
+  UserVoucherPageDtoOutputItemsInner,
   VehicleImageUploadInputDto,
   VehicleImageUploadResponseDtoOutput,
   VehicleImagesInputDto,
@@ -933,20 +1045,29 @@ part 'serializers.g.dart';
 ])
 Serializers serializers = (_$serializers.toBuilder()
       ..addBuilderFactory(
-        const FullType(BuiltList, [FullType(AdminPaymentDetailDtoOutputRefundsInner)]),
+        const FullType(
+            BuiltList, [FullType(PublicOperatorProfileDtoOutputRoutesInner)]),
+        () => ListBuilder<PublicOperatorProfileDtoOutputRoutesInner>(),
+      )
+      ..addBuilderFactory(
+        const FullType(
+            BuiltList, [FullType(AdminPaymentDetailDtoOutputRefundsInner)]),
         () => ListBuilder<AdminPaymentDetailDtoOutputRefundsInner>(),
       )
       ..addBuilderFactory(
-        const FullType(BuiltList, [FullType(AdminRefundDetailDtoOutputTicketsInner)]),
+        const FullType(
+            BuiltList, [FullType(AdminRefundDetailDtoOutputTicketsInner)]),
         () => ListBuilder<AdminRefundDetailDtoOutputTicketsInner>(),
       )
       ..addBuilderFactory(
-        const FullType(BuiltList, [FullType(LoyaltyTransactionPageDtoOutputItemsInner)]),
-        () => ListBuilder<LoyaltyTransactionPageDtoOutputItemsInner>(),
+        const FullType(
+            BuiltList, [FullType(CancellationQuoteDtoOutputTicketsInner)]),
+        () => ListBuilder<CancellationQuoteDtoOutputTicketsInner>(),
       )
       ..addBuilderFactory(
-        const FullType(BuiltList, [FullType(CancellationQuoteDtoOutputTicketsInner)]),
-        () => ListBuilder<CancellationQuoteDtoOutputTicketsInner>(),
+        const FullType(
+            BuiltList, [FullType(PassengerLoyaltyDtoOutputRulesTiersInner)]),
+        () => ListBuilder<PassengerLoyaltyDtoOutputRulesTiersInner>(),
       )
       ..addBuilderFactory(
         const FullType(BuiltList, [FullType(DisputePageDtoOutputItemsInner)]),
@@ -957,7 +1078,8 @@ Serializers serializers = (_$serializers.toBuilder()
         () => ListBuilder<AdminWardPageDtoOutputItemsInner>(),
       )
       ..addBuilderFactory(
-        const FullType(BuiltList, [FullType(AdminRefundPageDtoOutputItemsInner)]),
+        const FullType(
+            BuiltList, [FullType(AdminRefundPageDtoOutputItemsInner)]),
         () => ListBuilder<AdminRefundPageDtoOutputItemsInner>(),
       )
       ..addBuilderFactory(
@@ -965,31 +1087,46 @@ Serializers serializers = (_$serializers.toBuilder()
         () => ListBuilder<VehicleImagesInputDtoImagesInner>(),
       )
       ..addBuilderFactory(
+        const FullType(BuiltList,
+            [FullType(ReconciliationPageDtoOutputItemsInnerIssuesInner)]),
+        () => ListBuilder<ReconciliationPageDtoOutputItemsInnerIssuesInner>(),
+      )
+      ..addBuilderFactory(
         const FullType(BuiltList, [FullType(TripChangeInputDtoStopsInner)]),
         () => ListBuilder<TripChangeInputDtoStopsInner>(),
       )
       ..addBuilderFactory(
-        const FullType(BuiltList, [FullType(AdminEmployeePageDtoOutputItemsInner)]),
+        const FullType(
+            BuiltList, [FullType(AdminEmployeePageDtoOutputItemsInner)]),
         () => ListBuilder<AdminEmployeePageDtoOutputItemsInner>(),
       )
       ..addBuilderFactory(
-        const FullType(BuiltList, [FullType(AdminPlatformAccountListDtoOutputItemsInner)]),
+        const FullType(
+            BuiltList, [FullType(AdminPlatformAccountListDtoOutputItemsInner)]),
         () => ListBuilder<AdminPlatformAccountListDtoOutputItemsInner>(),
       )
       ..addBuilderFactory(
-        const FullType(BuiltList, [FullType(OperatorReportDtoOutputEmployeesInner)]),
+        const FullType(
+            BuiltList, [FullType(OperatorReportDtoOutputEmployeesInner)]),
         () => ListBuilder<OperatorReportDtoOutputEmployeesInner>(),
       )
       ..addBuilderFactory(
-        const FullType(BuiltList, [FullType(AdminReportDtoOutputByOperatorInner)]),
+        const FullType(BuiltList, [FullType(IncidentDtoOutputEvidenceInner)]),
+        () => ListBuilder<IncidentDtoOutputEvidenceInner>(),
+      )
+      ..addBuilderFactory(
+        const FullType(
+            BuiltList, [FullType(AdminReportDtoOutputByOperatorInner)]),
         () => ListBuilder<AdminReportDtoOutputByOperatorInner>(),
       )
       ..addBuilderFactory(
-        const FullType(BuiltList, [FullType(AdminApplicationDetailDtoOutputHistoryInner)]),
+        const FullType(
+            BuiltList, [FullType(AdminApplicationDetailDtoOutputHistoryInner)]),
         () => ListBuilder<AdminApplicationDetailDtoOutputHistoryInner>(),
       )
       ..addBuilderFactory(
-        const FullType(BuiltList, [FullType(StopPointListResponseDtoOutputItemsInner)]),
+        const FullType(
+            BuiltList, [FullType(StopPointListResponseDtoOutputItemsInner)]),
         () => ListBuilder<StopPointListResponseDtoOutputItemsInner>(),
       )
       ..addBuilderFactory(
@@ -997,19 +1134,27 @@ Serializers serializers = (_$serializers.toBuilder()
         () => ListBuilder<TripSalesDtoOutputChangesInner>(),
       )
       ..addBuilderFactory(
+        const FullType(
+            BuiltList, [FullType(PromotionRouteOptionsDtoOutputItemsInner)]),
+        () => ListBuilder<PromotionRouteOptionsDtoOutputItemsInner>(),
+      )
+      ..addBuilderFactory(
         const FullType(BuiltList, [FullType(ArticlePageDtoOutputItemsInner)]),
         () => ListBuilder<ArticlePageDtoOutputItemsInner>(),
       )
       ..addBuilderFactory(
-        const FullType(BuiltList, [FullType(AdminVehicleTypeListDtoOutputItemsInner)]),
+        const FullType(
+            BuiltList, [FullType(AdminVehicleTypeListDtoOutputItemsInner)]),
         () => ListBuilder<AdminVehicleTypeListDtoOutputItemsInner>(),
       )
       ..addBuilderFactory(
-        const FullType(BuiltList, [FullType(AdminRefundDetailDtoOutputHistoriesInner)]),
+        const FullType(
+            BuiltList, [FullType(AdminRefundDetailDtoOutputHistoriesInner)]),
         () => ListBuilder<AdminRefundDetailDtoOutputHistoriesInner>(),
       )
       ..addBuilderFactory(
-        const FullType(BuiltList, [FullType(StopPointProposalListResponseDtoOutputItemsInner)]),
+        const FullType(BuiltList,
+            [FullType(StopPointProposalListResponseDtoOutputItemsInner)]),
         () => ListBuilder<StopPointProposalListResponseDtoOutputItemsInner>(),
       )
       ..addBuilderFactory(
@@ -1021,23 +1166,38 @@ Serializers serializers = (_$serializers.toBuilder()
         () => ListBuilder<TripResponseDtoOutputSeatsInner>(),
       )
       ..addBuilderFactory(
-        const FullType(BuiltList, [FullType(CustomerTicketInputDtoAttachmentsInner)]),
+        const FullType(
+            BuiltList, [FullType(CustomerTicketInputDtoAttachmentsInner)]),
         () => ListBuilder<CustomerTicketInputDtoAttachmentsInner>(),
       )
       ..addBuilderFactory(
-        const FullType(BuiltList, [FullType(TripSalesDtoOutputChangesInnerBeforeStopsInner)]),
+        const FullType(
+            BuiltList, [FullType(PassengerDisputePageDtoOutputItemsInner)]),
+        () => ListBuilder<PassengerDisputePageDtoOutputItemsInner>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList,
+            [FullType(TripSalesDtoOutputChangesInnerBeforeStopsInner)]),
         () => ListBuilder<TripSalesDtoOutputChangesInnerBeforeStopsInner>(),
       )
       ..addBuilderFactory(
-        const FullType(BuiltList, [FullType(AdminReportDtoOutputPaymentMethodsInner)]),
+        const FullType(
+            BuiltList, [FullType(AdminReportDtoOutputPaymentMethodsInner)]),
         () => ListBuilder<AdminReportDtoOutputPaymentMethodsInner>(),
       )
       ..addBuilderFactory(
-        const FullType(BuiltList, [FullType(AdminOperatorStopPointListDtoOutputItemsInner)]),
+        const FullType(
+            BuiltList, [FullType(JourneyLogPageDtoOutputItemsInner)]),
+        () => ListBuilder<JourneyLogPageDtoOutputItemsInner>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList,
+            [FullType(AdminOperatorStopPointListDtoOutputItemsInner)]),
         () => ListBuilder<AdminOperatorStopPointListDtoOutputItemsInner>(),
       )
       ..addBuilderFactory(
-        const FullType(BuiltList, [FullType(TicketDetailDtoOutputMessagesInner)]),
+        const FullType(
+            BuiltList, [FullType(TicketDetailDtoOutputMessagesInner)]),
         () => ListBuilder<TicketDetailDtoOutputMessagesInner>(),
       )
       ..addBuilderFactory(
@@ -1045,35 +1205,53 @@ Serializers serializers = (_$serializers.toBuilder()
         () => ListBuilder<RouteInputDtoStopsInner>(),
       )
       ..addBuilderFactory(
-        const FullType(BuiltList, [FullType(EmployeeListResponseDtoOutputItemsInner)]),
+        const FullType(
+            BuiltList, [FullType(EmployeeListResponseDtoOutputItemsInner)]),
         () => ListBuilder<EmployeeListResponseDtoOutputItemsInner>(),
       )
       ..addBuilderFactory(
-        const FullType(BuiltList, [FullType(CreatedBookingDtoOutputRefundsInner)]),
+        const FullType(
+            BuiltList, [FullType(CreatedBookingDtoOutputRefundsInner)]),
         () => ListBuilder<CreatedBookingDtoOutputRefundsInner>(),
       )
       ..addBuilderFactory(
-        const FullType(BuiltList, [FullType(OperatorBookingDetailDtoOutputSeatsInner)]),
+        const FullType(
+            BuiltList, [FullType(OperatorBookingDetailDtoOutputSeatsInner)]),
         () => ListBuilder<OperatorBookingDetailDtoOutputSeatsInner>(),
       )
       ..addBuilderFactory(
-        const FullType(BuiltList, [FullType(WardListResponseDtoOutputItemsInner)]),
+        const FullType(
+            BuiltList, [FullType(WardListResponseDtoOutputItemsInner)]),
         () => ListBuilder<WardListResponseDtoOutputItemsInner>(),
       )
       ..addBuilderFactory(
-        const FullType(BuiltList, [FullType(PermissionPageDtoOutputItemsInner)]),
+        const FullType(
+            BuiltList, [FullType(PermissionPageDtoOutputItemsInner)]),
         () => ListBuilder<PermissionPageDtoOutputItemsInner>(),
       )
       ..addBuilderFactory(
-        const FullType(BuiltList, [FullType(CreatedBookingDtoOutputTripChangesInner)]),
+        const FullType(BuiltList,
+            [FullType(PassengerLoyaltyTransactionsDtoOutputItemsInner)]),
+        () => ListBuilder<PassengerLoyaltyTransactionsDtoOutputItemsInner>(),
+      )
+      ..addBuilderFactory(
+        const FullType(
+            BuiltList, [FullType(CreatedBookingDtoOutputTripChangesInner)]),
         () => ListBuilder<CreatedBookingDtoOutputTripChangesInner>(),
       )
       ..addBuilderFactory(
-        const FullType(BuiltList, [FullType(TripSearchResponseDtoOutputItemsInner)]),
+        const FullType(
+            BuiltList, [FullType(TripSearchResponseDtoOutputItemsInner)]),
         () => ListBuilder<TripSearchResponseDtoOutputItemsInner>(),
       )
       ..addBuilderFactory(
-        const FullType(BuiltList, [FullType(BookingContactDtoOutputPassengersInner)]),
+        const FullType(
+            BuiltList, [FullType(SavedPassengerListDtoOutputItemsInner)]),
+        () => ListBuilder<SavedPassengerListDtoOutputItemsInner>(),
+      )
+      ..addBuilderFactory(
+        const FullType(
+            BuiltList, [FullType(BookingContactDtoOutputPassengersInner)]),
         () => ListBuilder<BookingContactDtoOutputPassengersInner>(),
       )
       ..addBuilderFactory(
@@ -1081,32 +1259,46 @@ Serializers serializers = (_$serializers.toBuilder()
         () => ListBuilder<FareBandListDtoOutputItemsInner>(),
       )
       ..addBuilderFactory(
-        const FullType(BuiltList, [FullType(AdminStopPointProposalListDtoOutputItemsInnerNearbyInner)]),
-        () => ListBuilder<AdminStopPointProposalListDtoOutputItemsInnerNearbyInner>(),
+        const FullType(BuiltList, [
+          FullType(AdminStopPointProposalListDtoOutputItemsInnerNearbyInner)
+        ]),
+        () => ListBuilder<
+            AdminStopPointProposalListDtoOutputItemsInnerNearbyInner>(),
       )
       ..addBuilderFactory(
-        const FullType(BuiltList, [FullType(TripAssignmentPageDtoOutputItemsInner)]),
+        const FullType(
+            BuiltList, [FullType(TripAssignmentPageDtoOutputItemsInner)]),
         () => ListBuilder<TripAssignmentPageDtoOutputItemsInner>(),
       )
       ..addBuilderFactory(
-        const FullType(BuiltList, [FullType(OperatorOverviewDtoOutputUpcomingInner)]),
+        const FullType(
+            BuiltList, [FullType(OperatorOverviewDtoOutputUpcomingInner)]),
         () => ListBuilder<OperatorOverviewDtoOutputUpcomingInner>(),
       )
       ..addBuilderFactory(
-        const FullType(BuiltList, [FullType(TicketDetailDtoOutputPaymentsInner)]),
+        const FullType(
+            BuiltList, [FullType(TicketDetailDtoOutputPaymentsInner)]),
         () => ListBuilder<TicketDetailDtoOutputPaymentsInner>(),
       )
       ..addBuilderFactory(
-        const FullType(BuiltList, [FullType(VehicleListResponseDtoOutputItemsInnerImagesInner)]),
+        const FullType(BuiltList,
+            [FullType(VehicleListResponseDtoOutputItemsInnerImagesInner)]),
         () => ListBuilder<VehicleListResponseDtoOutputItemsInnerImagesInner>(),
       )
       ..addBuilderFactory(
-        const FullType(BuiltList, [FullType(RouteListResponseDtoOutputItemsInner)]),
+        const FullType(
+            BuiltList, [FullType(RouteListResponseDtoOutputItemsInner)]),
         () => ListBuilder<RouteListResponseDtoOutputItemsInner>(),
       )
       ..addBuilderFactory(
-        const FullType(BuiltList, [FullType(OperatorBookingDetailDtoOutputHistoriesInner)]),
+        const FullType(BuiltList,
+            [FullType(OperatorBookingDetailDtoOutputHistoriesInner)]),
         () => ListBuilder<OperatorBookingDetailDtoOutputHistoriesInner>(),
+      )
+      ..addBuilderFactory(
+        const FullType(
+            BuiltList, [FullType(PassengerTicketPageDtoOutputItemsInner)]),
+        () => ListBuilder<PassengerTicketPageDtoOutputItemsInner>(),
       )
       ..addBuilderFactory(
         const FullType(BuiltList, [FullType(PublicTripDtoOutputStopsInner)]),
@@ -1117,11 +1309,13 @@ Serializers serializers = (_$serializers.toBuilder()
         () => ListBuilder<DateTime>(),
       )
       ..addBuilderFactory(
-        const FullType(BuiltList, [FullType(CreatedBookingDtoOutputPassengersInner)]),
+        const FullType(
+            BuiltList, [FullType(CreatedBookingDtoOutputPassengersInner)]),
         () => ListBuilder<CreatedBookingDtoOutputPassengersInner>(),
       )
       ..addBuilderFactory(
-        const FullType(BuiltList, [FullType(PublicTripDtoOutputVehicleImagesInner)]),
+        const FullType(
+            BuiltList, [FullType(PublicTripDtoOutputVehicleImagesInner)]),
         () => ListBuilder<PublicTripDtoOutputVehicleImagesInner>(),
       )
       ..addBuilderFactory(
@@ -1133,15 +1327,18 @@ Serializers serializers = (_$serializers.toBuilder()
         () => ListBuilder<PayoutDetailDtoOutputTripsInner>(),
       )
       ..addBuilderFactory(
-        const FullType(BuiltList, [FullType(OperatorStopPointListResponseDtoOutputItemsInner)]),
+        const FullType(BuiltList,
+            [FullType(OperatorStopPointListResponseDtoOutputItemsInner)]),
         () => ListBuilder<OperatorStopPointListResponseDtoOutputItemsInner>(),
       )
       ..addBuilderFactory(
-        const FullType(BuiltMap, [FullType(String), FullType.nullable(JsonObject)]),
+        const FullType(
+            BuiltMap, [FullType(String), FullType.nullable(JsonObject)]),
         () => MapBuilder<String, JsonObject?>(),
       )
       ..addBuilderFactory(
-        const FullType(BuiltList, [FullType(VehicleListResponseDtoOutputItemsInner)]),
+        const FullType(
+            BuiltList, [FullType(VehicleListResponseDtoOutputItemsInner)]),
         () => ListBuilder<VehicleListResponseDtoOutputItemsInner>(),
       )
       ..addBuilderFactory(
@@ -1157,55 +1354,77 @@ Serializers serializers = (_$serializers.toBuilder()
         () => ListBuilder<BackgroundJobsDtoOutputJobsInner>(),
       )
       ..addBuilderFactory(
-        const FullType(BuiltList, [FullType(TripScheduleGenerateResponseDtoOutputSkippedInner)]),
+        const FullType(BuiltList,
+            [FullType(TripScheduleGenerateResponseDtoOutputSkippedInner)]),
         () => ListBuilder<TripScheduleGenerateResponseDtoOutputSkippedInner>(),
       )
       ..addBuilderFactory(
-        const FullType(BuiltList, [FullType(TripScheduleListResponseDtoOutputItemsInner)]),
+        const FullType(BuiltList, [FullType(PreferencesDtoOutputItemsInner)]),
+        () => ListBuilder<PreferencesDtoOutputItemsInner>(),
+      )
+      ..addBuilderFactory(
+        const FullType(
+            BuiltList, [FullType(TripScheduleListResponseDtoOutputItemsInner)]),
         () => ListBuilder<TripScheduleListResponseDtoOutputItemsInner>(),
       )
       ..addBuilderFactory(
-        const FullType(BuiltList, [FullType(ContentPagePageDtoOutputItemsInner)]),
+        const FullType(
+            BuiltList, [FullType(ContentPagePageDtoOutputItemsInner)]),
         () => ListBuilder<ContentPagePageDtoOutputItemsInner>(),
       )
       ..addBuilderFactory(
-        const FullType(BuiltList, [FullType(FinanceBookingPageDtoOutputItemsInner)]),
+        const FullType(
+            BuiltList, [FullType(FinanceBookingPageDtoOutputItemsInner)]),
         () => ListBuilder<FinanceBookingPageDtoOutputItemsInner>(),
       )
       ..addBuilderFactory(
-        const FullType(BuiltList, [FullType(PolicyOverviewDtoOutputVersionsInner)]),
+        const FullType(
+            BuiltList, [FullType(PolicyOverviewDtoOutputVersionsInner)]),
         () => ListBuilder<PolicyOverviewDtoOutputVersionsInner>(),
       )
       ..addBuilderFactory(
-        const FullType(BuiltList, [FullType(FareListResponseDtoOutputItemsInner)]),
+        const FullType(
+            BuiltList, [FullType(FareListResponseDtoOutputItemsInner)]),
         () => ListBuilder<FareListResponseDtoOutputItemsInner>(),
       )
       ..addBuilderFactory(
-        const FullType(BuiltList, [FullType(EmployeeAssignmentListDtoOutputItemsInner)]),
+        const FullType(
+            BuiltList, [FullType(EmployeeAssignmentListDtoOutputItemsInner)]),
         () => ListBuilder<EmployeeAssignmentListDtoOutputItemsInner>(),
       )
       ..addBuilderFactory(
-        const FullType(BuiltList, [FullType(AdminAuditLogListDtoOutputItemsInner)]),
+        const FullType(
+            BuiltList, [FullType(AdminAuditLogListDtoOutputItemsInner)]),
         () => ListBuilder<AdminAuditLogListDtoOutputItemsInner>(),
       )
       ..addBuilderFactory(
-        const FullType(BuiltList, [FullType(OperatorBookingPageDtoOutputItemsInner)]),
+        const FullType(
+            BuiltList, [FullType(OperatorBookingPageDtoOutputItemsInner)]),
         () => ListBuilder<OperatorBookingPageDtoOutputItemsInner>(),
       )
       ..addBuilderFactory(
-        const FullType(BuiltList, [FullType(SeatMapListResponseDtoOutputItemsInner)]),
+        const FullType(
+            BuiltList, [FullType(SeatMapListResponseDtoOutputItemsInner)]),
         () => ListBuilder<SeatMapListResponseDtoOutputItemsInner>(),
       )
       ..addBuilderFactory(
-        const FullType(BuiltList, [FullType(PublicContentListDtoOutputItemsInner)]),
+        const FullType(
+            BuiltList, [FullType(PublicContentListDtoOutputItemsInner)]),
         () => ListBuilder<PublicContentListDtoOutputItemsInner>(),
       )
       ..addBuilderFactory(
-        const FullType(BuiltList, [FullType(AdminVehicleImageListDtoOutputItemsInner)]),
+        const FullType(
+            BuiltList, [FullType(AdminVehicleImageListDtoOutputItemsInner)]),
         () => ListBuilder<AdminVehicleImageListDtoOutputItemsInner>(),
       )
       ..addBuilderFactory(
-        const FullType(BuiltList, [FullType(TicketDetailDtoOutputMessagesInnerAttachmentsInner)]),
+        const FullType(
+            BuiltList, [FullType(PassengerSupportPageDtoOutputItemsInner)]),
+        () => ListBuilder<PassengerSupportPageDtoOutputItemsInner>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList,
+            [FullType(TicketDetailDtoOutputMessagesInnerAttachmentsInner)]),
         () => ListBuilder<TicketDetailDtoOutputMessagesInnerAttachmentsInner>(),
       )
       ..addBuilderFactory(
@@ -1213,75 +1432,100 @@ Serializers serializers = (_$serializers.toBuilder()
         () => ListBuilder<RouteResponseDtoOutputStopsInner>(),
       )
       ..addBuilderFactory(
-        const FullType(BuiltList, [FullType(ApplicationUpdateInputDtoDocumentsInner)]),
+        const FullType(
+            BuiltList, [FullType(ApplicationUpdateInputDtoDocumentsInner)]),
         () => ListBuilder<ApplicationUpdateInputDtoDocumentsInner>(),
       )
       ..addBuilderFactory(
-        const FullType(BuiltList, [FullType(SeatMapResponseDtoOutputSeatsInner)]),
+        const FullType(
+            BuiltList, [FullType(SeatMapResponseDtoOutputSeatsInner)]),
         () => ListBuilder<SeatMapResponseDtoOutputSeatsInner>(),
       )
       ..addBuilderFactory(
-        const FullType(BuiltList, [FullType(BackgroundJobsDtoOutputQueuesInner)]),
+        const FullType(
+            BuiltList, [FullType(BackgroundJobsDtoOutputQueuesInner)]),
         () => ListBuilder<BackgroundJobsDtoOutputQueuesInner>(),
       )
       ..addBuilderFactory(
-        const FullType(BuiltList, [FullType(ApplicationResponseDtoOutputDocumentsInner)]),
+        const FullType(
+            BuiltList, [FullType(ApplicationResponseDtoOutputDocumentsInner)]),
         () => ListBuilder<ApplicationResponseDtoOutputDocumentsInner>(),
       )
       ..addBuilderFactory(
-        const FullType(BuiltList, [FullType(AdminApplicationDetailDtoOutputDuplicatesContactEmailInner)]),
-        () => ListBuilder<AdminApplicationDetailDtoOutputDuplicatesContactEmailInner>(),
+        const FullType(BuiltList, [
+          FullType(AdminApplicationDetailDtoOutputDuplicatesContactEmailInner)
+        ]),
+        () => ListBuilder<
+            AdminApplicationDetailDtoOutputDuplicatesContactEmailInner>(),
       )
       ..addBuilderFactory(
-        const FullType(BuiltList, [FullType(AdminProvincePageDtoOutputItemsInner)]),
+        const FullType(
+            BuiltList, [FullType(AdminProvincePageDtoOutputItemsInner)]),
         () => ListBuilder<AdminProvincePageDtoOutputItemsInner>(),
       )
       ..addBuilderFactory(
-        const FullType(BuiltList, [FullType(AdminPaymentPageDtoOutputItemsInner)]),
+        const FullType(
+            BuiltList, [FullType(AdminPaymentPageDtoOutputItemsInner)]),
         () => ListBuilder<AdminPaymentPageDtoOutputItemsInner>(),
       )
       ..addBuilderFactory(
-        const FullType(BuiltList, [FullType(AdminApplicationListResponseDtoOutputItemsInner)]),
+        const FullType(BuiltList,
+            [FullType(AdminApplicationListResponseDtoOutputItemsInner)]),
         () => ListBuilder<AdminApplicationListResponseDtoOutputItemsInner>(),
       )
       ..addBuilderFactory(
-        const FullType(BuiltList, [FullType(SeatHoldResponseDtoOutputSeatsInner)]),
+        const FullType(
+            BuiltList, [FullType(SeatHoldResponseDtoOutputSeatsInner)]),
         () => ListBuilder<SeatHoldResponseDtoOutputSeatsInner>(),
       )
       ..addBuilderFactory(
-        const FullType(BuiltList, [FullType(AdminVehicleImageListDtoOutputOperatorsInner)]),
+        const FullType(BuiltList,
+            [FullType(AdminVehicleImageListDtoOutputOperatorsInner)]),
         () => ListBuilder<AdminVehicleImageListDtoOutputOperatorsInner>(),
-      )
-      ..addBuilderFactory(
-        const FullType(BuiltList, [FullType(PolicyOverviewDtoOutputVersionsInnerRulesAnyOf3TiersInner)]),
-        () => ListBuilder<PolicyOverviewDtoOutputVersionsInnerRulesAnyOf3TiersInner>(),
       )
       ..addBuilderFactory(
         const FullType(BuiltList, [FullType(TripResponseDtoOutputStopsInner)]),
         () => ListBuilder<TripResponseDtoOutputStopsInner>(),
       )
       ..addBuilderFactory(
-        const FullType(BuiltList, [FullType(TripSearchResponseDtoOutputItemsInnerAmenitiesInner)]),
-        () => ListBuilder<TripSearchResponseDtoOutputItemsInnerAmenitiesInner>(),
+        const FullType(
+            BuiltList, [FullType(NotificationLogDtoOutputItemsInner)]),
+        () => ListBuilder<NotificationLogDtoOutputItemsInner>(),
       )
       ..addBuilderFactory(
-        const FullType(BuiltList, [FullType(TripSearchResponseDtoOutputFacetsOperatorsInner)]),
+        const FullType(BuiltList,
+            [FullType(TripSearchResponseDtoOutputItemsInnerAmenitiesInner)]),
+        () =>
+            ListBuilder<TripSearchResponseDtoOutputItemsInnerAmenitiesInner>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList,
+            [FullType(TripSearchResponseDtoOutputFacetsOperatorsInner)]),
         () => ListBuilder<TripSearchResponseDtoOutputFacetsOperatorsInner>(),
       )
       ..addBuilderFactory(
-        const FullType(BuiltList, [FullType(AdminStopPointProposalListDtoOutputItemsInner)]),
+        const FullType(
+            BuiltList, [FullType(PublicOperatorProfileDtoOutputReviewsInner)]),
+        () => ListBuilder<PublicOperatorProfileDtoOutputReviewsInner>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList,
+            [FullType(AdminStopPointProposalListDtoOutputItemsInner)]),
         () => ListBuilder<AdminStopPointProposalListDtoOutputItemsInner>(),
       )
       ..addBuilderFactory(
-        const FullType(BuiltList, [FullType(LoyaltyReportDtoOutputMonthsInner)]),
+        const FullType(
+            BuiltList, [FullType(LoyaltyReportDtoOutputMonthsInner)]),
         () => ListBuilder<LoyaltyReportDtoOutputMonthsInner>(),
       )
       ..addBuilderFactory(
-        const FullType(BuiltList, [FullType(CommissionOverviewDtoOutputOverridesInner)]),
+        const FullType(
+            BuiltList, [FullType(CommissionOverviewDtoOutputOverridesInner)]),
         () => ListBuilder<CommissionOverviewDtoOutputOverridesInner>(),
       )
       ..addBuilderFactory(
-        const FullType(BuiltList, [FullType(TripScheduleGenerateResponseDtoOutputCreatedInner)]),
+        const FullType(BuiltList,
+            [FullType(TripScheduleGenerateResponseDtoOutputCreatedInner)]),
         () => ListBuilder<TripScheduleGenerateResponseDtoOutputCreatedInner>(),
       )
       ..addBuilderFactory(
@@ -1289,27 +1533,37 @@ Serializers serializers = (_$serializers.toBuilder()
         () => ListBuilder<AssigneeListDtoOutputItemsInner>(),
       )
       ..addBuilderFactory(
-        const FullType(BuiltList, [FullType(TripListResponseDtoOutputItemsInner)]),
+        const FullType(
+            BuiltList, [FullType(TripListResponseDtoOutputItemsInner)]),
         () => ListBuilder<TripListResponseDtoOutputItemsInner>(),
       )
       ..addBuilderFactory(
-        const FullType(BuiltList, [FullType(AdminPaymentDetailDtoOutputLedgerInner)]),
+        const FullType(
+            BuiltList, [FullType(AdminPaymentDetailDtoOutputLedgerInner)]),
         () => ListBuilder<AdminPaymentDetailDtoOutputLedgerInner>(),
       )
       ..addBuilderFactory(
-        const FullType(BuiltList, [FullType(SystemIntegrationsDtoOutputItemsInner)]),
+        const FullType(
+            BuiltList, [FullType(SystemIntegrationsDtoOutputItemsInner)]),
         () => ListBuilder<SystemIntegrationsDtoOutputItemsInner>(),
       )
       ..addBuilderFactory(
-        const FullType(BuiltList, [FullType(AdminPaymentDetailDtoOutputTicketsInner)]),
+        const FullType(
+            BuiltList, [FullType(AdminPaymentDetailDtoOutputTicketsInner)]),
         () => ListBuilder<AdminPaymentDetailDtoOutputTicketsInner>(),
       )
       ..addBuilderFactory(
-        const FullType(BuiltList, [FullType(ArticleCategoryListDtoOutputItemsInner)]),
+        const FullType(
+            BuiltList, [FullType(ArticleCategoryListDtoOutputItemsInner)]),
         () => ListBuilder<ArticleCategoryListDtoOutputItemsInner>(),
       )
       ..addBuilderFactory(
-        const FullType(BuiltList, [FullType(DisputeDetailDtoOutputCancellationTiersInner)]),
+        const FullType(BuiltList, [FullType(IncidentPageDtoOutputItemsInner)]),
+        () => ListBuilder<IncidentPageDtoOutputItemsInner>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList,
+            [FullType(DisputeDetailDtoOutputCancellationTiersInner)]),
         () => ListBuilder<DisputeDetailDtoOutputCancellationTiersInner>(),
       )
       ..addBuilderFactory(
@@ -1317,11 +1571,13 @@ Serializers serializers = (_$serializers.toBuilder()
         () => ListBuilder<ReviewPageDtoOutputItemsInner>(),
       )
       ..addBuilderFactory(
-        const FullType(BuiltList, [FullType(PublicTripDtoOutputCancellationPolicyTiersInner)]),
+        const FullType(BuiltList,
+            [FullType(PublicTripDtoOutputCancellationPolicyTiersInner)]),
         () => ListBuilder<PublicTripDtoOutputCancellationPolicyTiersInner>(),
       )
       ..addBuilderFactory(
-        const FullType(BuiltList, [FullType(AdminSharedStopPointListDtoOutputItemsInner)]),
+        const FullType(
+            BuiltList, [FullType(AdminSharedStopPointListDtoOutputItemsInner)]),
         () => ListBuilder<AdminSharedStopPointListDtoOutputItemsInner>(),
       )
       ..addBuilderFactory(
@@ -1329,7 +1585,8 @@ Serializers serializers = (_$serializers.toBuilder()
         () => ListBuilder<BookingInputDtoPassengersInner>(),
       )
       ..addBuilderFactory(
-        const FullType(BuiltList, [FullType(AdminArticlePageDtoOutputItemsInner)]),
+        const FullType(
+            BuiltList, [FullType(AdminArticlePageDtoOutputItemsInner)]),
         () => ListBuilder<AdminArticlePageDtoOutputItemsInner>(),
       )
       ..addBuilderFactory(
@@ -1337,7 +1594,8 @@ Serializers serializers = (_$serializers.toBuilder()
         () => ListBuilder<PromotionPageDtoOutputItemsInner>(),
       )
       ..addBuilderFactory(
-        const FullType(BuiltList, [FullType(AdminAmenityListDtoOutputItemsInner)]),
+        const FullType(
+            BuiltList, [FullType(AdminAmenityListDtoOutputItemsInner)]),
         () => ListBuilder<AdminAmenityListDtoOutputItemsInner>(),
       )
       ..addBuilderFactory(
@@ -1345,7 +1603,8 @@ Serializers serializers = (_$serializers.toBuilder()
         () => MapBuilder<String, int>(),
       )
       ..addBuilderFactory(
-        const FullType(BuiltList, [FullType(QueueHealthResponseDtoOutputQueuesInner)]),
+        const FullType(
+            BuiltList, [FullType(QueueHealthResponseDtoOutputQueuesInner)]),
         () => ListBuilder<QueueHealthResponseDtoOutputQueuesInner>(),
       )
       ..addBuilderFactory(
@@ -1353,27 +1612,47 @@ Serializers serializers = (_$serializers.toBuilder()
         () => ListBuilder<AdminOverviewDtoOutputDailyInner>(),
       )
       ..addBuilderFactory(
-        const FullType(BuiltList, [FullType(DisputeDetailDtoOutputEventsInner)]),
+        const FullType(
+            BuiltList, [FullType(DisputeDetailDtoOutputEventsInner)]),
         () => ListBuilder<DisputeDetailDtoOutputEventsInner>(),
       )
       ..addBuilderFactory(
-        const FullType(BuiltList, [FullType(AdminArticleCategoryListDtoOutputItemsInner)]),
+        const FullType(
+            BuiltList, [FullType(AdminArticleCategoryListDtoOutputItemsInner)]),
         () => ListBuilder<AdminArticleCategoryListDtoOutputItemsInner>(),
       )
       ..addBuilderFactory(
-        const FullType(BuiltList, [FullType(ProvinceListResponseDtoOutputItemsInner)]),
+        const FullType(
+            BuiltList, [FullType(ProvinceListResponseDtoOutputItemsInner)]),
         () => ListBuilder<ProvinceListResponseDtoOutputItemsInner>(),
       )
       ..addBuilderFactory(
-        const FullType(BuiltList, [FullType(TripPassengerListDtoOutputItemsInner)]),
+        const FullType(
+            BuiltList, [FullType(TripPassengerListDtoOutputItemsInner)]),
         () => ListBuilder<TripPassengerListDtoOutputItemsInner>(),
       )
       ..addBuilderFactory(
-        const FullType(BuiltList, [FullType(AdminOperatorPageDtoOutputItemsInner)]),
+        const FullType(BuiltList, [FullType(IncidentInputDtoEvidenceInner)]),
+        () => ListBuilder<IncidentInputDtoEvidenceInner>(),
+      )
+      ..addBuilderFactory(
+        const FullType(
+            BuiltList, [FullType(AdminOperatorPageDtoOutputItemsInner)]),
         () => ListBuilder<AdminOperatorPageDtoOutputItemsInner>(),
       )
       ..addBuilderFactory(
-        const FullType(BuiltList, [FullType(CreatedBookingDtoOutputTicketsInner)]),
+        const FullType(
+            BuiltList, [FullType(UserVoucherPageDtoOutputItemsInner)]),
+        () => ListBuilder<UserVoucherPageDtoOutputItemsInner>(),
+      )
+      ..addBuilderFactory(
+        const FullType(
+            BuiltList, [FullType(PassengerBookingPageDtoOutputItemsInner)]),
+        () => ListBuilder<PassengerBookingPageDtoOutputItemsInner>(),
+      )
+      ..addBuilderFactory(
+        const FullType(
+            BuiltList, [FullType(CreatedBookingDtoOutputTicketsInner)]),
         () => ListBuilder<CreatedBookingDtoOutputTicketsInner>(),
       )
       ..addBuilderFactory(
@@ -1381,39 +1660,55 @@ Serializers serializers = (_$serializers.toBuilder()
         () => ListBuilder<FareCreateInputDtoRulesInner>(),
       )
       ..addBuilderFactory(
-        const FullType(BuiltList, [FullType(AdminPassengerPageDtoOutputItemsInner)]),
+        const FullType(
+            BuiltList, [FullType(AdminPassengerPageDtoOutputItemsInner)]),
         () => ListBuilder<AdminPassengerPageDtoOutputItemsInner>(),
       )
       ..addBuilderFactory(
-        const FullType(BuiltList, [FullType(AdminApplicationDetailDtoOutputDocumentsInner)]),
+        const FullType(BuiltList,
+            [FullType(AdminApplicationDetailDtoOutputDocumentsInner)]),
         () => ListBuilder<AdminApplicationDetailDtoOutputDocumentsInner>(),
       )
       ..addBuilderFactory(
-        const FullType(BuiltList, [FullType(SeatMapResponseDtoOutputLayoutDecksInner)]),
+        const FullType(
+            BuiltList, [FullType(SeatMapResponseDtoOutputLayoutDecksInner)]),
         () => ListBuilder<SeatMapResponseDtoOutputLayoutDecksInner>(),
       )
       ..addBuilderFactory(
-        const FullType(BuiltList, [FullType(PolicyOverviewDtoOutputOverridesInner)]),
+        const FullType(
+            BuiltList, [FullType(PolicyOverviewDtoOutputOverridesInner)]),
         () => ListBuilder<PolicyOverviewDtoOutputOverridesInner>(),
       )
       ..addBuilderFactory(
-        const FullType(BuiltList, [FullType(AdminPaymentDetailDtoOutputHistoriesInner)]),
+        const FullType(
+            BuiltList, [FullType(ReconciliationPageDtoOutputItemsInner)]),
+        () => ListBuilder<ReconciliationPageDtoOutputItemsInner>(),
+      )
+      ..addBuilderFactory(
+        const FullType(
+            BuiltList, [FullType(AdminPaymentDetailDtoOutputHistoriesInner)]),
         () => ListBuilder<AdminPaymentDetailDtoOutputHistoriesInner>(),
       )
       ..addBuilderFactory(
-        const FullType(BuiltList, [FullType(PolicyOverviewDtoOutputVersionsInnerRulesAnyOfTiersInner)]),
-        () => ListBuilder<PolicyOverviewDtoOutputVersionsInnerRulesAnyOfTiersInner>(),
+        const FullType(BuiltList, [
+          FullType(PolicyOverviewDtoOutputVersionsInnerRulesAnyOfTiersInner)
+        ]),
+        () => ListBuilder<
+            PolicyOverviewDtoOutputVersionsInnerRulesAnyOfTiersInner>(),
       )
       ..addBuilderFactory(
-        const FullType(BuiltList, [FullType(SessionListResponseDtoOutputItemsInner)]),
+        const FullType(
+            BuiltList, [FullType(SessionListResponseDtoOutputItemsInner)]),
         () => ListBuilder<SessionListResponseDtoOutputItemsInner>(),
       )
       ..addBuilderFactory(
-        const FullType(BuiltList, [FullType(FareResponseDtoOutputBandWarningsInner)]),
+        const FullType(
+            BuiltList, [FullType(FareResponseDtoOutputBandWarningsInner)]),
         () => ListBuilder<FareResponseDtoOutputBandWarningsInner>(),
       )
       ..addBuilderFactory(
-        const FullType(BuiltList, [FullType(VehicleTypeListResponseDtoOutputItemsInner)]),
+        const FullType(
+            BuiltList, [FullType(VehicleTypeListResponseDtoOutputItemsInner)]),
         () => ListBuilder<VehicleTypeListResponseDtoOutputItemsInner>(),
       )
       ..addBuilderFactory(
@@ -1421,15 +1716,18 @@ Serializers serializers = (_$serializers.toBuilder()
         () => ListBuilder<int>(),
       )
       ..addBuilderFactory(
-        const FullType(BuiltList, [FullType(OperatorReportDtoOutputByRouteInner)]),
+        const FullType(
+            BuiltList, [FullType(OperatorReportDtoOutputByRouteInner)]),
         () => ListBuilder<OperatorReportDtoOutputByRouteInner>(),
       )
       ..addBuilderFactory(
-        const FullType(BuiltList, [FullType(PayoutDetailDtoOutputHistoriesInner)]),
+        const FullType(
+            BuiltList, [FullType(PayoutDetailDtoOutputHistoriesInner)]),
         () => ListBuilder<PayoutDetailDtoOutputHistoriesInner>(),
       )
       ..addBuilderFactory(
-        const FullType(BuiltList, [FullType(CustomerTicketListDtoOutputItemsInner)]),
+        const FullType(
+            BuiltList, [FullType(CustomerTicketListDtoOutputItemsInner)]),
         () => ListBuilder<CustomerTicketListDtoOutputItemsInner>(),
       )
       ..addBuilderFactory(
@@ -1437,11 +1735,13 @@ Serializers serializers = (_$serializers.toBuilder()
         () => ListBuilder<SeatMapInputDtoSeatsInner>(),
       )
       ..addBuilderFactory(
-        const FullType(BuiltList, [FullType(TripManifestDtoOutputPassengersInner)]),
+        const FullType(
+            BuiltList, [FullType(TripManifestDtoOutputPassengersInner)]),
         () => ListBuilder<TripManifestDtoOutputPassengersInner>(),
       )
       ..addBuilderFactory(
-        const FullType(BuiltList, [FullType(FareRevisionListResponseDtoOutputItemsInner)]),
+        const FullType(
+            BuiltList, [FullType(FareRevisionListResponseDtoOutputItemsInner)]),
         () => ListBuilder<FareRevisionListResponseDtoOutputItemsInner>(),
       )
       ..addBuilderFactory(
@@ -1451,8 +1751,8 @@ Serializers serializers = (_$serializers.toBuilder()
       ..add(const OneOfSerializer())
       ..add(const AnyOfSerializer())
       ..add(const DateSerializer())
-      ..add(Iso8601DateTimeSerializer())
-    ).build();
+      ..add(Iso8601DateTimeSerializer()))
+    .build();
 
 Serializers standardSerializers =
     (serializers.toBuilder()..addPlugin(StandardJsonPlugin())).build();

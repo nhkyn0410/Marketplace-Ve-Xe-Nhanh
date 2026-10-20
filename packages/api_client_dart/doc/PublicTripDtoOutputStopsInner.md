@@ -16,6 +16,8 @@ Name | Type | Description | Notes
 **latitude** | **num** |  | 
 **longitude** | **num** |  | 
 **plannedAt** | [**DateTime**](DateTime.md) |  | 
+**pickupWindowStart** | [**DateTime**](DateTime.md) |  | 
+**pickupWindowEnd** | [**DateTime**](DateTime.md) |  | 
 **allowPickup** | **bool** |  | 
 **allowDropoff** | **bool** |  | 
 **note** | **String** |  | 

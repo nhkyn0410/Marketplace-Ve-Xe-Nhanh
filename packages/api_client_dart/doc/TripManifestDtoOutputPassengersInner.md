@@ -13,8 +13,8 @@ Name | Type | Description | Notes
 **seatCode** | **String** |  | 
 **passengerName** | **String** |  | 
 **phoneMasked** | **String** |  | 
-**pickup** | [**TripSalesDtoOutputChangesInnerBeforeStopsInner**](TripSalesDtoOutputChangesInnerBeforeStopsInner.md) |  | 
-**dropoff** | [**TripSalesDtoOutputChangesInnerBeforeStopsInner**](TripSalesDtoOutputChangesInnerBeforeStopsInner.md) |  | 
+**pickup** | [**TripManifestDtoOutputPassengersInnerPickup**](TripManifestDtoOutputPassengersInnerPickup.md) |  | 
+**dropoff** | [**TripManifestDtoOutputPassengersInnerPickup**](TripManifestDtoOutputPassengersInnerPickup.md) |  | 
 **status** | **String** |  | 
 **checkedInAt** | [**DateTime**](DateTime.md) |  | 
 

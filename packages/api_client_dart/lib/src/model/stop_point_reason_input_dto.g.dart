@@ -8,13 +8,13 @@ part of 'stop_point_reason_input_dto.dart';
 
 class _$StopPointReasonInputDto extends StopPointReasonInputDto {
   @override
-  final String reason;
+  final String? reason;
 
   factory _$StopPointReasonInputDto(
           [void Function(StopPointReasonInputDtoBuilder)? updates]) =>
       (StopPointReasonInputDtoBuilder()..update(updates))._build();
 
-  _$StopPointReasonInputDto._({required this.reason}) : super._();
+  _$StopPointReasonInputDto._({this.reason}) : super._();
   @override
   StopPointReasonInputDto rebuild(
           void Function(StopPointReasonInputDtoBuilder) updates) =>
@@ -84,8 +84,7 @@ class StopPointReasonInputDtoBuilder
   _$StopPointReasonInputDto _build() {
     final _$result = _$v ??
         _$StopPointReasonInputDto._(
-          reason: BuiltValueNullFieldError.checkNotNull(
-              reason, r'StopPointReasonInputDto', 'reason'),
+          reason: reason,
         );
     replace(_$result);
     return _$result;

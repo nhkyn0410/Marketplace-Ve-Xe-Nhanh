@@ -9,7 +9,7 @@ part of 'loyalty_transaction_page_dto_output.dart';
 class _$LoyaltyTransactionPageDtoOutput
     extends LoyaltyTransactionPageDtoOutput {
   @override
-  final BuiltList<LoyaltyTransactionPageDtoOutputItemsInner> items;
+  final BuiltList<PassengerLoyaltyTransactionsDtoOutputItemsInner> items;
   @override
   final int total;
 
@@ -61,11 +61,13 @@ class LoyaltyTransactionPageDtoOutputBuilder
             LoyaltyTransactionPageDtoOutputBuilder> {
   _$LoyaltyTransactionPageDtoOutput? _$v;
 
-  ListBuilder<LoyaltyTransactionPageDtoOutputItemsInner>? _items;
-  ListBuilder<LoyaltyTransactionPageDtoOutputItemsInner> get items =>
+  ListBuilder<PassengerLoyaltyTransactionsDtoOutputItemsInner>? _items;
+  ListBuilder<PassengerLoyaltyTransactionsDtoOutputItemsInner> get items =>
       _$this._items ??=
-          ListBuilder<LoyaltyTransactionPageDtoOutputItemsInner>();
-  set items(ListBuilder<LoyaltyTransactionPageDtoOutputItemsInner>? items) =>
+          ListBuilder<PassengerLoyaltyTransactionsDtoOutputItemsInner>();
+  set items(
+          ListBuilder<PassengerLoyaltyTransactionsDtoOutputItemsInner>?
+              items) =>
       _$this._items = items;
 
   int? _total;

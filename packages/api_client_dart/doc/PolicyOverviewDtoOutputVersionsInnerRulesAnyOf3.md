@@ -13,7 +13,7 @@ Name | Type | Description | Notes
 **minRedeemPoints** | **int** |  | 
 **pointExpiryMonths** | **int** |  | 
 **voucherValidityDays** | **int** |  | 
-**tiers** | [**BuiltList&lt;PolicyOverviewDtoOutputVersionsInnerRulesAnyOf3TiersInner&gt;**](PolicyOverviewDtoOutputVersionsInnerRulesAnyOf3TiersInner.md) |  | 
+**tiers** | [**BuiltList&lt;PassengerLoyaltyDtoOutputRulesTiersInner&gt;**](PassengerLoyaltyDtoOutputRulesTiersInner.md) |  | 
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)
 

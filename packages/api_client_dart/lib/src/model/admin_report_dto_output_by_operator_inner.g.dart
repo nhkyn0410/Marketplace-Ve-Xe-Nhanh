@@ -22,6 +22,10 @@ class _$AdminReportDtoOutputByOperatorInner
   final int gmv;
   @override
   final int refunded;
+  @override
+  final num? averageRating;
+  @override
+  final int reviewCount;
 
   factory _$AdminReportDtoOutputByOperatorInner(
           [void Function(AdminReportDtoOutputByOperatorInnerBuilder)?
@@ -35,7 +39,9 @@ class _$AdminReportDtoOutputByOperatorInner
       required this.ticketsSold,
       required this.seats,
       required this.gmv,
-      required this.refunded})
+      required this.refunded,
+      this.averageRating,
+      required this.reviewCount})
       : super._();
   @override
   AdminReportDtoOutputByOperatorInner rebuild(
@@ -56,7 +62,9 @@ class _$AdminReportDtoOutputByOperatorInner
         ticketsSold == other.ticketsSold &&
         seats == other.seats &&
         gmv == other.gmv &&
-        refunded == other.refunded;
+        refunded == other.refunded &&
+        averageRating == other.averageRating &&
+        reviewCount == other.reviewCount;
   }
 
   @override
@@ -69,6 +77,8 @@ class _$AdminReportDtoOutputByOperatorInner
     _$hash = $jc(_$hash, seats.hashCode);
     _$hash = $jc(_$hash, gmv.hashCode);
     _$hash = $jc(_$hash, refunded.hashCode);
+    _$hash = $jc(_$hash, averageRating.hashCode);
+    _$hash = $jc(_$hash, reviewCount.hashCode);
     _$hash = $jf(_$hash);
     return _$hash;
   }
@@ -82,7 +92,9 @@ class _$AdminReportDtoOutputByOperatorInner
           ..add('ticketsSold', ticketsSold)
           ..add('seats', seats)
           ..add('gmv', gmv)
-          ..add('refunded', refunded))
+          ..add('refunded', refunded)
+          ..add('averageRating', averageRating)
+          ..add('reviewCount', reviewCount))
         .toString();
   }
 }
@@ -121,6 +133,15 @@ class AdminReportDtoOutputByOperatorInnerBuilder
   int? get refunded => _$this._refunded;
   set refunded(int? refunded) => _$this._refunded = refunded;
 
+  num? _averageRating;
+  num? get averageRating => _$this._averageRating;
+  set averageRating(num? averageRating) =>
+      _$this._averageRating = averageRating;
+
+  int? _reviewCount;
+  int? get reviewCount => _$this._reviewCount;
+  set reviewCount(int? reviewCount) => _$this._reviewCount = reviewCount;
+
   AdminReportDtoOutputByOperatorInnerBuilder() {
     AdminReportDtoOutputByOperatorInner._defaults(this);
   }
@@ -135,6 +156,8 @@ class AdminReportDtoOutputByOperatorInnerBuilder
       _seats = $v.seats;
       _gmv = $v.gmv;
       _refunded = $v.refunded;
+      _averageRating = $v.averageRating;
+      _reviewCount = $v.reviewCount;
       _$v = null;
     }
     return this;
@@ -171,6 +194,9 @@ class AdminReportDtoOutputByOperatorInnerBuilder
               gmv, r'AdminReportDtoOutputByOperatorInner', 'gmv'),
           refunded: BuiltValueNullFieldError.checkNotNull(
               refunded, r'AdminReportDtoOutputByOperatorInner', 'refunded'),
+          averageRating: averageRating,
+          reviewCount: BuiltValueNullFieldError.checkNotNull(reviewCount,
+              r'AdminReportDtoOutputByOperatorInner', 'reviewCount'),
         );
     replace(_$result);
     return _$result;

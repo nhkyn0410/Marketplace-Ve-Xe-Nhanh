@@ -11,16 +11,21 @@ part 'operator_report_dto_output_totals.g.dart';
 /// OperatorReportDtoOutputTotals
 ///
 /// Properties:
-/// * [grossRevenue] 
-/// * [trips] 
-/// * [completedTrips] 
-/// * [ticketsSold] 
-/// * [bookings] 
-/// * [seats] 
-/// * [cancelledTickets] 
-/// * [refundedTickets] 
+/// * [grossRevenue]
+/// * [trips]
+/// * [completedTrips]
+/// * [ticketsSold]
+/// * [bookings]
+/// * [seats]
+/// * [cancelledTickets]
+/// * [refundedTickets]
+/// * [averageRating]
+/// * [reviewCount]
 @BuiltValue()
-abstract class OperatorReportDtoOutputTotals implements Built<OperatorReportDtoOutputTotals, OperatorReportDtoOutputTotalsBuilder> {
+abstract class OperatorReportDtoOutputTotals
+    implements
+        Built<OperatorReportDtoOutputTotals,
+            OperatorReportDtoOutputTotalsBuilder> {
   @BuiltValueField(wireName: r'grossRevenue')
   int get grossRevenue;
 
@@ -45,20 +50,33 @@ abstract class OperatorReportDtoOutputTotals implements Built<OperatorReportDtoO
   @BuiltValueField(wireName: r'refundedTickets')
   int get refundedTickets;
 
+  @BuiltValueField(wireName: r'averageRating')
+  num? get averageRating;
+
+  @BuiltValueField(wireName: r'reviewCount')
+  int get reviewCount;
+
   OperatorReportDtoOutputTotals._();
 
-  factory OperatorReportDtoOutputTotals([void updates(OperatorReportDtoOutputTotalsBuilder b)]) = _$OperatorReportDtoOutputTotals;
+  factory OperatorReportDtoOutputTotals(
+          [void updates(OperatorReportDtoOutputTotalsBuilder b)]) =
+      _$OperatorReportDtoOutputTotals;
 
   @BuiltValueHook(initializeBuilder: true)
   static void _defaults(OperatorReportDtoOutputTotalsBuilder b) => b;
 
   @BuiltValueSerializer(custom: true)
-  static Serializer<OperatorReportDtoOutputTotals> get serializer => _$OperatorReportDtoOutputTotalsSerializer();
+  static Serializer<OperatorReportDtoOutputTotals> get serializer =>
+      _$OperatorReportDtoOutputTotalsSerializer();
 }
 
-class _$OperatorReportDtoOutputTotalsSerializer implements PrimitiveSerializer<OperatorReportDtoOutputTotals> {
+class _$OperatorReportDtoOutputTotalsSerializer
+    implements PrimitiveSerializer<OperatorReportDtoOutputTotals> {
   @override
-  final Iterable<Type> types = const [OperatorReportDtoOutputTotals, _$OperatorReportDtoOutputTotals];
+  final Iterable<Type> types = const [
+    OperatorReportDtoOutputTotals,
+    _$OperatorReportDtoOutputTotals
+  ];
 
   @override
   final String wireName = r'OperatorReportDtoOutputTotals';
@@ -108,6 +126,18 @@ class _$OperatorReportDtoOutputTotalsSerializer implements PrimitiveSerializer<O
       object.refundedTickets,
       specifiedType: const FullType(int),
     );
+    yield r'averageRating';
+    yield object.averageRating == null
+        ? null
+        : serializers.serialize(
+            object.averageRating,
+            specifiedType: const FullType.nullable(num),
+          );
+    yield r'reviewCount';
+    yield serializers.serialize(
+      object.reviewCount,
+      specifiedType: const FullType(int),
+    );
   }
 
   @override
@@ -116,7 +146,9 @@ class _$OperatorReportDtoOutputTotalsSerializer implements PrimitiveSerializer<O
     OperatorReportDtoOutputTotals object, {
     FullType specifiedType = FullType.unspecified,
   }) {
-    return _serializeProperties(serializers, object, specifiedType: specifiedType).toList();
+    return _serializeProperties(serializers, object,
+            specifiedType: specifiedType)
+        .toList();
   }
 
   void _deserializeProperties(
@@ -187,6 +219,21 @@ class _$OperatorReportDtoOutputTotalsSerializer implements PrimitiveSerializer<O
           ) as int;
           result.refundedTickets = valueDes;
           break;
+        case r'averageRating':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType.nullable(num),
+          ) as num?;
+          if (valueDes == null) continue;
+          result.averageRating = valueDes;
+          break;
+        case r'reviewCount':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(int),
+          ) as int;
+          result.reviewCount = valueDes;
+          break;
         default:
           unhandled.add(key);
           unhandled.add(value);
@@ -215,5 +262,3 @@ class _$OperatorReportDtoOutputTotalsSerializer implements PrimitiveSerializer<O
     return result.build();
   }
 }
-
-

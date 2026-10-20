@@ -12,15 +12,17 @@ part 'refresh_token_pair_response.g.dart';
 /// RefreshTokenPairResponse
 ///
 /// Properties:
-/// * [accessToken] 
-/// * [tokenType] 
-/// * [expiresIn] 
-/// * [scope] 
-/// * [role] 
-/// * [refreshToken] 
-/// * [refreshExpiresIn] 
+/// * [accessToken]
+/// * [tokenType]
+/// * [expiresIn]
+/// * [scope]
+/// * [role]
+/// * [refreshToken]
+/// * [refreshExpiresIn]
 @BuiltValue()
-abstract class RefreshTokenPairResponse implements Built<RefreshTokenPairResponse, RefreshTokenPairResponseBuilder> {
+abstract class RefreshTokenPairResponse
+    implements
+        Built<RefreshTokenPairResponse, RefreshTokenPairResponseBuilder> {
   @BuiltValueField(wireName: r'accessToken')
   String get accessToken;
 
@@ -29,7 +31,7 @@ abstract class RefreshTokenPairResponse implements Built<RefreshTokenPairRespons
   // enum tokenTypeEnum {  Bearer,  };
 
   @BuiltValueField(wireName: r'expiresIn')
-  int get expiresIn;
+  int? get expiresIn;
 
   @BuiltValueField(wireName: r'scope')
   RefreshTokenPairResponseScopeEnum get scope;
@@ -42,22 +44,29 @@ abstract class RefreshTokenPairResponse implements Built<RefreshTokenPairRespons
   String get refreshToken;
 
   @BuiltValueField(wireName: r'refreshExpiresIn')
-  int get refreshExpiresIn;
+  int? get refreshExpiresIn;
 
   RefreshTokenPairResponse._();
 
-  factory RefreshTokenPairResponse([void updates(RefreshTokenPairResponseBuilder b)]) = _$RefreshTokenPairResponse;
+  factory RefreshTokenPairResponse(
+          [void updates(RefreshTokenPairResponseBuilder b)]) =
+      _$RefreshTokenPairResponse;
 
   @BuiltValueHook(initializeBuilder: true)
   static void _defaults(RefreshTokenPairResponseBuilder b) => b;
 
   @BuiltValueSerializer(custom: true)
-  static Serializer<RefreshTokenPairResponse> get serializer => _$RefreshTokenPairResponseSerializer();
+  static Serializer<RefreshTokenPairResponse> get serializer =>
+      _$RefreshTokenPairResponseSerializer();
 }
 
-class _$RefreshTokenPairResponseSerializer implements PrimitiveSerializer<RefreshTokenPairResponse> {
+class _$RefreshTokenPairResponseSerializer
+    implements PrimitiveSerializer<RefreshTokenPairResponse> {
   @override
-  final Iterable<Type> types = const [RefreshTokenPairResponse, _$RefreshTokenPairResponse];
+  final Iterable<Type> types = const [
+    RefreshTokenPairResponse,
+    _$RefreshTokenPairResponse
+  ];
 
   @override
   final String wireName = r'RefreshTokenPairResponse';
@@ -78,10 +87,12 @@ class _$RefreshTokenPairResponseSerializer implements PrimitiveSerializer<Refres
       specifiedType: const FullType(RefreshTokenPairResponseTokenTypeEnum),
     );
     yield r'expiresIn';
-    yield serializers.serialize(
-      object.expiresIn,
-      specifiedType: const FullType(int),
-    );
+    yield object.expiresIn == null
+        ? null
+        : serializers.serialize(
+            object.expiresIn,
+            specifiedType: const FullType.nullable(int),
+          );
     yield r'scope';
     yield serializers.serialize(
       object.scope,
@@ -98,10 +109,12 @@ class _$RefreshTokenPairResponseSerializer implements PrimitiveSerializer<Refres
       specifiedType: const FullType(String),
     );
     yield r'refreshExpiresIn';
-    yield serializers.serialize(
-      object.refreshExpiresIn,
-      specifiedType: const FullType(int),
-    );
+    yield object.refreshExpiresIn == null
+        ? null
+        : serializers.serialize(
+            object.refreshExpiresIn,
+            specifiedType: const FullType.nullable(int),
+          );
   }
 
   @override
@@ -110,7 +123,9 @@ class _$RefreshTokenPairResponseSerializer implements PrimitiveSerializer<Refres
     RefreshTokenPairResponse object, {
     FullType specifiedType = FullType.unspecified,
   }) {
-    return _serializeProperties(serializers, object, specifiedType: specifiedType).toList();
+    return _serializeProperties(serializers, object,
+            specifiedType: specifiedType)
+        .toList();
   }
 
   void _deserializeProperties(
@@ -135,15 +150,17 @@ class _$RefreshTokenPairResponseSerializer implements PrimitiveSerializer<Refres
         case r'tokenType':
           final valueDes = serializers.deserialize(
             value,
-            specifiedType: const FullType(RefreshTokenPairResponseTokenTypeEnum),
+            specifiedType:
+                const FullType(RefreshTokenPairResponseTokenTypeEnum),
           ) as RefreshTokenPairResponseTokenTypeEnum;
           result.tokenType = valueDes;
           break;
         case r'expiresIn':
           final valueDes = serializers.deserialize(
             value,
-            specifiedType: const FullType(int),
-          ) as int;
+            specifiedType: const FullType.nullable(int),
+          ) as int?;
+          if (valueDes == null) continue;
           result.expiresIn = valueDes;
           break;
         case r'scope':
@@ -170,8 +187,9 @@ class _$RefreshTokenPairResponseSerializer implements PrimitiveSerializer<Refres
         case r'refreshExpiresIn':
           final valueDes = serializers.deserialize(
             value,
-            specifiedType: const FullType(int),
-          ) as int;
+            specifiedType: const FullType.nullable(int),
+          ) as int?;
+          if (valueDes == null) continue;
           result.refreshExpiresIn = valueDes;
           break;
         default:
@@ -203,34 +221,40 @@ class _$RefreshTokenPairResponseSerializer implements PrimitiveSerializer<Refres
   }
 }
 
-
 class RefreshTokenPairResponseTokenTypeEnum extends EnumClass {
-
   @BuiltValueEnumConst(wireName: r'Bearer')
-  static const RefreshTokenPairResponseTokenTypeEnum bearer = _$refreshTokenPairResponseTokenTypeEnum_bearer;
+  static const RefreshTokenPairResponseTokenTypeEnum bearer =
+      _$refreshTokenPairResponseTokenTypeEnum_bearer;
 
-  static Serializer<RefreshTokenPairResponseTokenTypeEnum> get serializer => _$refreshTokenPairResponseTokenTypeEnumSerializer;
+  static Serializer<RefreshTokenPairResponseTokenTypeEnum> get serializer =>
+      _$refreshTokenPairResponseTokenTypeEnumSerializer;
 
-  const RefreshTokenPairResponseTokenTypeEnum._(String name): super(name);
+  const RefreshTokenPairResponseTokenTypeEnum._(String name) : super(name);
 
-  static BuiltSet<RefreshTokenPairResponseTokenTypeEnum> get values => _$refreshTokenPairResponseTokenTypeEnumValues;
-  static RefreshTokenPairResponseTokenTypeEnum valueOf(String name) => _$refreshTokenPairResponseTokenTypeEnumValueOf(name);
+  static BuiltSet<RefreshTokenPairResponseTokenTypeEnum> get values =>
+      _$refreshTokenPairResponseTokenTypeEnumValues;
+  static RefreshTokenPairResponseTokenTypeEnum valueOf(String name) =>
+      _$refreshTokenPairResponseTokenTypeEnumValueOf(name);
 }
 
 class RefreshTokenPairResponseScopeEnum extends EnumClass {
-
   @BuiltValueEnumConst(wireName: r'passenger')
-  static const RefreshTokenPairResponseScopeEnum passenger = _$refreshTokenPairResponseScopeEnum_passenger;
+  static const RefreshTokenPairResponseScopeEnum passenger =
+      _$refreshTokenPairResponseScopeEnum_passenger;
   @BuiltValueEnumConst(wireName: r'operator')
-  static const RefreshTokenPairResponseScopeEnum operator_ = _$refreshTokenPairResponseScopeEnum_operator_;
+  static const RefreshTokenPairResponseScopeEnum operator_ =
+      _$refreshTokenPairResponseScopeEnum_operator_;
   @BuiltValueEnumConst(wireName: r'platform')
-  static const RefreshTokenPairResponseScopeEnum platform = _$refreshTokenPairResponseScopeEnum_platform;
+  static const RefreshTokenPairResponseScopeEnum platform =
+      _$refreshTokenPairResponseScopeEnum_platform;
 
-  static Serializer<RefreshTokenPairResponseScopeEnum> get serializer => _$refreshTokenPairResponseScopeEnumSerializer;
+  static Serializer<RefreshTokenPairResponseScopeEnum> get serializer =>
+      _$refreshTokenPairResponseScopeEnumSerializer;
 
-  const RefreshTokenPairResponseScopeEnum._(String name): super(name);
+  const RefreshTokenPairResponseScopeEnum._(String name) : super(name);
 
-  static BuiltSet<RefreshTokenPairResponseScopeEnum> get values => _$refreshTokenPairResponseScopeEnumValues;
-  static RefreshTokenPairResponseScopeEnum valueOf(String name) => _$refreshTokenPairResponseScopeEnumValueOf(name);
+  static BuiltSet<RefreshTokenPairResponseScopeEnum> get values =>
+      _$refreshTokenPairResponseScopeEnumValues;
+  static RefreshTokenPairResponseScopeEnum valueOf(String name) =>
+      _$refreshTokenPairResponseScopeEnumValueOf(name);
 }
-

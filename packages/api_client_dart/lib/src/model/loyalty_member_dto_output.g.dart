@@ -163,7 +163,7 @@ class _$LoyaltyMemberDtoOutput extends LoyaltyMemberDtoOutput {
   @override
   final LoyaltyMemberDtoOutputTierEnum tier;
   @override
-  final LoyaltyMemberDtoOutputNextTier? nextTier;
+  final PassengerLoyaltyDtoOutputNextTier? nextTier;
   @override
   final int? policyVersion;
 
@@ -280,10 +280,10 @@ class LoyaltyMemberDtoOutputBuilder
   LoyaltyMemberDtoOutputTierEnum? get tier => _$this._tier;
   set tier(LoyaltyMemberDtoOutputTierEnum? tier) => _$this._tier = tier;
 
-  LoyaltyMemberDtoOutputNextTierBuilder? _nextTier;
-  LoyaltyMemberDtoOutputNextTierBuilder get nextTier =>
-      _$this._nextTier ??= LoyaltyMemberDtoOutputNextTierBuilder();
-  set nextTier(LoyaltyMemberDtoOutputNextTierBuilder? nextTier) =>
+  PassengerLoyaltyDtoOutputNextTierBuilder? _nextTier;
+  PassengerLoyaltyDtoOutputNextTierBuilder get nextTier =>
+      _$this._nextTier ??= PassengerLoyaltyDtoOutputNextTierBuilder();
+  set nextTier(PassengerLoyaltyDtoOutputNextTierBuilder? nextTier) =>
       _$this._nextTier = nextTier;
 
   int? _policyVersion;

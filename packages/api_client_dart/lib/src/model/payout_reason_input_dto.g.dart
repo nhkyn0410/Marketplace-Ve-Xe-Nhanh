@@ -8,13 +8,13 @@ part of 'payout_reason_input_dto.dart';
 
 class _$PayoutReasonInputDto extends PayoutReasonInputDto {
   @override
-  final String reason;
+  final String? reason;
 
   factory _$PayoutReasonInputDto(
           [void Function(PayoutReasonInputDtoBuilder)? updates]) =>
       (PayoutReasonInputDtoBuilder()..update(updates))._build();
 
-  _$PayoutReasonInputDto._({required this.reason}) : super._();
+  _$PayoutReasonInputDto._({this.reason}) : super._();
   @override
   PayoutReasonInputDto rebuild(
           void Function(PayoutReasonInputDtoBuilder) updates) =>
@@ -83,8 +83,7 @@ class PayoutReasonInputDtoBuilder
   _$PayoutReasonInputDto _build() {
     final _$result = _$v ??
         _$PayoutReasonInputDto._(
-          reason: BuiltValueNullFieldError.checkNotNull(
-              reason, r'PayoutReasonInputDto', 'reason'),
+          reason: reason,
         );
     replace(_$result);
     return _$result;

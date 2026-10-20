@@ -11,19 +11,23 @@ part 'admin_report_dto_output_totals.g.dart';
 /// AdminReportDtoOutputTotals
 ///
 /// Properties:
-/// * [gmv] 
-/// * [bookings] 
-/// * [tickets] 
-/// * [netRevenue] 
-/// * [reconcileOpen] 
-/// * [trips] 
-/// * [completedTrips] 
-/// * [seats] 
-/// * [ticketsSold] 
-/// * [operatorCancelledTrips] 
-/// * [tripsWithSales] 
+/// * [gmv]
+/// * [bookings]
+/// * [tickets]
+/// * [netRevenue]
+/// * [reconcileOpen]
+/// * [trips]
+/// * [completedTrips]
+/// * [seats]
+/// * [ticketsSold]
+/// * [operatorCancelledTrips]
+/// * [tripsWithSales]
+/// * [supportTickets]
+/// * [disputesOpened]
 @BuiltValue()
-abstract class AdminReportDtoOutputTotals implements Built<AdminReportDtoOutputTotals, AdminReportDtoOutputTotalsBuilder> {
+abstract class AdminReportDtoOutputTotals
+    implements
+        Built<AdminReportDtoOutputTotals, AdminReportDtoOutputTotalsBuilder> {
   @BuiltValueField(wireName: r'gmv')
   int get gmv;
 
@@ -57,20 +61,33 @@ abstract class AdminReportDtoOutputTotals implements Built<AdminReportDtoOutputT
   @BuiltValueField(wireName: r'tripsWithSales')
   int get tripsWithSales;
 
+  @BuiltValueField(wireName: r'supportTickets')
+  int get supportTickets;
+
+  @BuiltValueField(wireName: r'disputesOpened')
+  int get disputesOpened;
+
   AdminReportDtoOutputTotals._();
 
-  factory AdminReportDtoOutputTotals([void updates(AdminReportDtoOutputTotalsBuilder b)]) = _$AdminReportDtoOutputTotals;
+  factory AdminReportDtoOutputTotals(
+          [void updates(AdminReportDtoOutputTotalsBuilder b)]) =
+      _$AdminReportDtoOutputTotals;
 
   @BuiltValueHook(initializeBuilder: true)
   static void _defaults(AdminReportDtoOutputTotalsBuilder b) => b;
 
   @BuiltValueSerializer(custom: true)
-  static Serializer<AdminReportDtoOutputTotals> get serializer => _$AdminReportDtoOutputTotalsSerializer();
+  static Serializer<AdminReportDtoOutputTotals> get serializer =>
+      _$AdminReportDtoOutputTotalsSerializer();
 }
 
-class _$AdminReportDtoOutputTotalsSerializer implements PrimitiveSerializer<AdminReportDtoOutputTotals> {
+class _$AdminReportDtoOutputTotalsSerializer
+    implements PrimitiveSerializer<AdminReportDtoOutputTotals> {
   @override
-  final Iterable<Type> types = const [AdminReportDtoOutputTotals, _$AdminReportDtoOutputTotals];
+  final Iterable<Type> types = const [
+    AdminReportDtoOutputTotals,
+    _$AdminReportDtoOutputTotals
+  ];
 
   @override
   final String wireName = r'AdminReportDtoOutputTotals';
@@ -135,6 +152,16 @@ class _$AdminReportDtoOutputTotalsSerializer implements PrimitiveSerializer<Admi
       object.tripsWithSales,
       specifiedType: const FullType(int),
     );
+    yield r'supportTickets';
+    yield serializers.serialize(
+      object.supportTickets,
+      specifiedType: const FullType(int),
+    );
+    yield r'disputesOpened';
+    yield serializers.serialize(
+      object.disputesOpened,
+      specifiedType: const FullType(int),
+    );
   }
 
   @override
@@ -143,7 +170,9 @@ class _$AdminReportDtoOutputTotalsSerializer implements PrimitiveSerializer<Admi
     AdminReportDtoOutputTotals object, {
     FullType specifiedType = FullType.unspecified,
   }) {
-    return _serializeProperties(serializers, object, specifiedType: specifiedType).toList();
+    return _serializeProperties(serializers, object,
+            specifiedType: specifiedType)
+        .toList();
   }
 
   void _deserializeProperties(
@@ -235,6 +264,20 @@ class _$AdminReportDtoOutputTotalsSerializer implements PrimitiveSerializer<Admi
           ) as int;
           result.tripsWithSales = valueDes;
           break;
+        case r'supportTickets':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(int),
+          ) as int;
+          result.supportTickets = valueDes;
+          break;
+        case r'disputesOpened':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(int),
+          ) as int;
+          result.disputesOpened = valueDes;
+          break;
         default:
           unhandled.add(key);
           unhandled.add(value);
@@ -263,5 +306,3 @@ class _$AdminReportDtoOutputTotalsSerializer implements PrimitiveSerializer<Admi
     return result.build();
   }
 }
-
-

@@ -9,6 +9,7 @@ All URIs are relative to *http://localhost*
 
 Method | HTTP request | Description
 ------------- | ------------- | -------------
+[**pickupWindowControllerUpdate**](OperatorTripsApi.md#pickupwindowcontrollerupdate) | **PUT** /v1/operator/trips/{tripId}/stops/{sequence}/pickup-window | 
 [**tripControllerChange**](OperatorTripsApi.md#tripcontrollerchange) | **POST** /v1/operator/trips/{tripId}/changes | 
 [**tripControllerChangeStatus**](OperatorTripsApi.md#tripcontrollerchangestatus) | **PUT** /v1/operator/trips/{tripId}/status | 
 [**tripControllerCreate**](OperatorTripsApi.md#tripcontrollercreate) | **POST** /v1/operator/trips | 
@@ -18,6 +19,51 @@ Method | HTTP request | Description
 [**tripControllerSetSeatStatus**](OperatorTripsApi.md#tripcontrollersetseatstatus) | **PUT** /v1/operator/trips/{tripId}/seats/status | 
 [**tripControllerUpdate**](OperatorTripsApi.md#tripcontrollerupdate) | **PUT** /v1/operator/trips/{tripId} | 
 
+
+# **pickupWindowControllerUpdate**
+> TripResponseDtoOutput pickupWindowControllerUpdate(tripId, sequence, pickupWindowInputDto)
+
+
+
+### Example
+```dart
+import 'package:api_client_dart/api.dart';
+
+final api = ApiClientDart().getOperatorTripsApi();
+final String tripId = tripId_example; // String | 
+final num sequence = 8.14; // num | 
+final PickupWindowInputDto pickupWindowInputDto = ; // PickupWindowInputDto | 
+
+try {
+    final response = api.pickupWindowControllerUpdate(tripId, sequence, pickupWindowInputDto);
+    print(response);
+} on DioException catch (e) {
+    print('Exception when calling OperatorTripsApi->pickupWindowControllerUpdate: $e\n');
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **tripId** | **String**|  | 
+ **sequence** | **num**|  | 
+ **pickupWindowInputDto** | [**PickupWindowInputDto**](PickupWindowInputDto.md)|  | 
+
+### Return type
+
+[**TripResponseDtoOutput**](TripResponseDtoOutput.md)
+
+### Authorization
+
+[bearer](../README.md#bearer)
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
+ - **Accept**: application/json, application/problem+json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **tripControllerChange**
 > TripResponseDtoOutput tripControllerChange(tripId, tripChangeInputDto)

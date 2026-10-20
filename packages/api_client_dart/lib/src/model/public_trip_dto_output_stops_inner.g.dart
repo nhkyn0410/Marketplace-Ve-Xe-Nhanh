@@ -171,6 +171,10 @@ class _$PublicTripDtoOutputStopsInner extends PublicTripDtoOutputStopsInner {
   @override
   final DateTime plannedAt;
   @override
+  final DateTime? pickupWindowStart;
+  @override
+  final DateTime? pickupWindowEnd;
+  @override
   final bool allowPickup;
   @override
   final bool allowDropoff;
@@ -190,6 +194,8 @@ class _$PublicTripDtoOutputStopsInner extends PublicTripDtoOutputStopsInner {
       required this.latitude,
       required this.longitude,
       required this.plannedAt,
+      this.pickupWindowStart,
+      this.pickupWindowEnd,
       required this.allowPickup,
       required this.allowDropoff,
       this.note})
@@ -215,6 +221,8 @@ class _$PublicTripDtoOutputStopsInner extends PublicTripDtoOutputStopsInner {
         latitude == other.latitude &&
         longitude == other.longitude &&
         plannedAt == other.plannedAt &&
+        pickupWindowStart == other.pickupWindowStart &&
+        pickupWindowEnd == other.pickupWindowEnd &&
         allowPickup == other.allowPickup &&
         allowDropoff == other.allowDropoff &&
         note == other.note;
@@ -231,6 +239,8 @@ class _$PublicTripDtoOutputStopsInner extends PublicTripDtoOutputStopsInner {
     _$hash = $jc(_$hash, latitude.hashCode);
     _$hash = $jc(_$hash, longitude.hashCode);
     _$hash = $jc(_$hash, plannedAt.hashCode);
+    _$hash = $jc(_$hash, pickupWindowStart.hashCode);
+    _$hash = $jc(_$hash, pickupWindowEnd.hashCode);
     _$hash = $jc(_$hash, allowPickup.hashCode);
     _$hash = $jc(_$hash, allowDropoff.hashCode);
     _$hash = $jc(_$hash, note.hashCode);
@@ -249,6 +259,8 @@ class _$PublicTripDtoOutputStopsInner extends PublicTripDtoOutputStopsInner {
           ..add('latitude', latitude)
           ..add('longitude', longitude)
           ..add('plannedAt', plannedAt)
+          ..add('pickupWindowStart', pickupWindowStart)
+          ..add('pickupWindowEnd', pickupWindowEnd)
           ..add('allowPickup', allowPickup)
           ..add('allowDropoff', allowDropoff)
           ..add('note', note))
@@ -294,6 +306,16 @@ class PublicTripDtoOutputStopsInnerBuilder
   DateTime? get plannedAt => _$this._plannedAt;
   set plannedAt(DateTime? plannedAt) => _$this._plannedAt = plannedAt;
 
+  DateTime? _pickupWindowStart;
+  DateTime? get pickupWindowStart => _$this._pickupWindowStart;
+  set pickupWindowStart(DateTime? pickupWindowStart) =>
+      _$this._pickupWindowStart = pickupWindowStart;
+
+  DateTime? _pickupWindowEnd;
+  DateTime? get pickupWindowEnd => _$this._pickupWindowEnd;
+  set pickupWindowEnd(DateTime? pickupWindowEnd) =>
+      _$this._pickupWindowEnd = pickupWindowEnd;
+
   bool? _allowPickup;
   bool? get allowPickup => _$this._allowPickup;
   set allowPickup(bool? allowPickup) => _$this._allowPickup = allowPickup;
@@ -321,6 +343,8 @@ class PublicTripDtoOutputStopsInnerBuilder
       _latitude = $v.latitude;
       _longitude = $v.longitude;
       _plannedAt = $v.plannedAt;
+      _pickupWindowStart = $v.pickupWindowStart;
+      _pickupWindowEnd = $v.pickupWindowEnd;
       _allowPickup = $v.allowPickup;
       _allowDropoff = $v.allowDropoff;
       _note = $v.note;
@@ -361,6 +385,8 @@ class PublicTripDtoOutputStopsInnerBuilder
               longitude, r'PublicTripDtoOutputStopsInner', 'longitude'),
           plannedAt: BuiltValueNullFieldError.checkNotNull(
               plannedAt, r'PublicTripDtoOutputStopsInner', 'plannedAt'),
+          pickupWindowStart: pickupWindowStart,
+          pickupWindowEnd: pickupWindowEnd,
           allowPickup: BuiltValueNullFieldError.checkNotNull(
               allowPickup, r'PublicTripDtoOutputStopsInner', 'allowPickup'),
           allowDropoff: BuiltValueNullFieldError.checkNotNull(

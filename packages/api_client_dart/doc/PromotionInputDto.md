@@ -15,6 +15,7 @@ Name | Type | Description | Notes
 **maxDiscount** | **int** |  | [optional] 
 **minOrder** | **int** |  | [optional] [default to 0]
 **routeId** | **String** |  | [optional] 
+**routeIds** | **BuiltList&lt;String&gt;** |  | [optional] [default to ListBuilder()]
 **tripId** | **String** |  | [optional] 
 **startsAt** | [**DateTime**](DateTime.md) |  | 
 **endsAt** | [**DateTime**](DateTime.md) |  | 

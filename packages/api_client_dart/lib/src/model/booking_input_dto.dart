@@ -14,14 +14,16 @@ part 'booking_input_dto.g.dart';
 /// BookingInputDto
 ///
 /// Properties:
-/// * [holdId] 
-/// * [contact] 
-/// * [passengers] 
-/// * [note] 
-/// * [expectedTotal] 
-/// * [promotionCode] 
+/// * [holdId]
+/// * [contact]
+/// * [passengers]
+/// * [note]
+/// * [expectedTotal]
+/// * [userVoucherId]
+/// * [promotionCode]
 @BuiltValue()
-abstract class BookingInputDto implements Built<BookingInputDto, BookingInputDtoBuilder> {
+abstract class BookingInputDto
+    implements Built<BookingInputDto, BookingInputDtoBuilder> {
   @BuiltValueField(wireName: r'holdId')
   String get holdId;
 
@@ -37,21 +39,27 @@ abstract class BookingInputDto implements Built<BookingInputDto, BookingInputDto
   @BuiltValueField(wireName: r'expectedTotal')
   int get expectedTotal;
 
+  @BuiltValueField(wireName: r'userVoucherId')
+  String? get userVoucherId;
+
   @BuiltValueField(wireName: r'promotionCode')
   String? get promotionCode;
 
   BookingInputDto._();
 
-  factory BookingInputDto([void updates(BookingInputDtoBuilder b)]) = _$BookingInputDto;
+  factory BookingInputDto([void updates(BookingInputDtoBuilder b)]) =
+      _$BookingInputDto;
 
   @BuiltValueHook(initializeBuilder: true)
   static void _defaults(BookingInputDtoBuilder b) => b;
 
   @BuiltValueSerializer(custom: true)
-  static Serializer<BookingInputDto> get serializer => _$BookingInputDtoSerializer();
+  static Serializer<BookingInputDto> get serializer =>
+      _$BookingInputDtoSerializer();
 }
 
-class _$BookingInputDtoSerializer implements PrimitiveSerializer<BookingInputDto> {
+class _$BookingInputDtoSerializer
+    implements PrimitiveSerializer<BookingInputDto> {
   @override
   final Iterable<Type> types = const [BookingInputDto, _$BookingInputDto];
 
@@ -76,18 +84,28 @@ class _$BookingInputDtoSerializer implements PrimitiveSerializer<BookingInputDto
     yield r'passengers';
     yield serializers.serialize(
       object.passengers,
-      specifiedType: const FullType(BuiltList, [FullType(BookingInputDtoPassengersInner)]),
+      specifiedType:
+          const FullType(BuiltList, [FullType(BookingInputDtoPassengersInner)]),
     );
     yield r'note';
-    yield object.note == null ? null : serializers.serialize(
-      object.note,
-      specifiedType: const FullType.nullable(String),
-    );
+    yield object.note == null
+        ? null
+        : serializers.serialize(
+            object.note,
+            specifiedType: const FullType.nullable(String),
+          );
     yield r'expectedTotal';
     yield serializers.serialize(
       object.expectedTotal,
       specifiedType: const FullType(int),
     );
+    if (object.userVoucherId != null) {
+      yield r'userVoucherId';
+      yield serializers.serialize(
+        object.userVoucherId,
+        specifiedType: const FullType.nullable(String),
+      );
+    }
     if (object.promotionCode != null) {
       yield r'promotionCode';
       yield serializers.serialize(
@@ -103,7 +121,9 @@ class _$BookingInputDtoSerializer implements PrimitiveSerializer<BookingInputDto
     BookingInputDto object, {
     FullType specifiedType = FullType.unspecified,
   }) {
-    return _serializeProperties(serializers, object, specifiedType: specifiedType).toList();
+    return _serializeProperties(serializers, object,
+            specifiedType: specifiedType)
+        .toList();
   }
 
   void _deserializeProperties(
@@ -135,7 +155,8 @@ class _$BookingInputDtoSerializer implements PrimitiveSerializer<BookingInputDto
         case r'passengers':
           final valueDes = serializers.deserialize(
             value,
-            specifiedType: const FullType(BuiltList, [FullType(BookingInputDtoPassengersInner)]),
+            specifiedType: const FullType(
+                BuiltList, [FullType(BookingInputDtoPassengersInner)]),
           ) as BuiltList<BookingInputDtoPassengersInner>;
           result.passengers.replace(valueDes);
           break;
@@ -153,6 +174,14 @@ class _$BookingInputDtoSerializer implements PrimitiveSerializer<BookingInputDto
             specifiedType: const FullType(int),
           ) as int;
           result.expectedTotal = valueDes;
+          break;
+        case r'userVoucherId':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType.nullable(String),
+          ) as String?;
+          if (valueDes == null) continue;
+          result.userVoucherId = valueDes;
           break;
         case r'promotionCode':
           final valueDes = serializers.deserialize(
@@ -190,5 +219,3 @@ class _$BookingInputDtoSerializer implements PrimitiveSerializer<BookingInputDto
     return result.build();
   }
 }
-
-

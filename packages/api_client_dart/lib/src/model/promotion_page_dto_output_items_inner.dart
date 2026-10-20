@@ -12,31 +12,36 @@ part 'promotion_page_dto_output_items_inner.g.dart';
 /// PromotionPageDtoOutputItemsInner
 ///
 /// Properties:
-/// * [promotionId] 
-/// * [code] 
-/// * [name] 
-/// * [scope] 
-/// * [operatorId] 
-/// * [operatorName] 
-/// * [discountType] 
-/// * [discountValue] 
-/// * [maxDiscount] 
-/// * [minOrder] 
-/// * [routeId] 
-/// * [routeName] 
-/// * [tripId] 
-/// * [startsAt] 
-/// * [endsAt] 
-/// * [usageLimit] 
-/// * [usedCount] 
-/// * [status] 
-/// * [display] 
-/// * [editable] 
-/// * [joined] 
-/// * [participants] 
-/// * [createdAt] 
+/// * [promotionId]
+/// * [code]
+/// * [name]
+/// * [scope]
+/// * [operatorId]
+/// * [operatorName]
+/// * [discountType]
+/// * [discountValue]
+/// * [maxDiscount]
+/// * [minOrder]
+/// * [routeId]
+/// * [routeIds]
+/// * [routeNames]
+/// * [routeName]
+/// * [tripId]
+/// * [startsAt]
+/// * [endsAt]
+/// * [usageLimit]
+/// * [usedCount]
+/// * [status]
+/// * [display]
+/// * [editable]
+/// * [joined]
+/// * [participants]
+/// * [createdAt]
 @BuiltValue()
-abstract class PromotionPageDtoOutputItemsInner implements Built<PromotionPageDtoOutputItemsInner, PromotionPageDtoOutputItemsInnerBuilder> {
+abstract class PromotionPageDtoOutputItemsInner
+    implements
+        Built<PromotionPageDtoOutputItemsInner,
+            PromotionPageDtoOutputItemsInnerBuilder> {
   @BuiltValueField(wireName: r'promotionId')
   String get promotionId;
 
@@ -71,6 +76,12 @@ abstract class PromotionPageDtoOutputItemsInner implements Built<PromotionPageDt
 
   @BuiltValueField(wireName: r'routeId')
   String? get routeId;
+
+  @BuiltValueField(wireName: r'routeIds')
+  BuiltList<String> get routeIds;
+
+  @BuiltValueField(wireName: r'routeNames')
+  BuiltList<String> get routeNames;
 
   @BuiltValueField(wireName: r'routeName')
   String? get routeName;
@@ -112,18 +123,25 @@ abstract class PromotionPageDtoOutputItemsInner implements Built<PromotionPageDt
 
   PromotionPageDtoOutputItemsInner._();
 
-  factory PromotionPageDtoOutputItemsInner([void updates(PromotionPageDtoOutputItemsInnerBuilder b)]) = _$PromotionPageDtoOutputItemsInner;
+  factory PromotionPageDtoOutputItemsInner(
+          [void updates(PromotionPageDtoOutputItemsInnerBuilder b)]) =
+      _$PromotionPageDtoOutputItemsInner;
 
   @BuiltValueHook(initializeBuilder: true)
   static void _defaults(PromotionPageDtoOutputItemsInnerBuilder b) => b;
 
   @BuiltValueSerializer(custom: true)
-  static Serializer<PromotionPageDtoOutputItemsInner> get serializer => _$PromotionPageDtoOutputItemsInnerSerializer();
+  static Serializer<PromotionPageDtoOutputItemsInner> get serializer =>
+      _$PromotionPageDtoOutputItemsInnerSerializer();
 }
 
-class _$PromotionPageDtoOutputItemsInnerSerializer implements PrimitiveSerializer<PromotionPageDtoOutputItemsInner> {
+class _$PromotionPageDtoOutputItemsInnerSerializer
+    implements PrimitiveSerializer<PromotionPageDtoOutputItemsInner> {
   @override
-  final Iterable<Type> types = const [PromotionPageDtoOutputItemsInner, _$PromotionPageDtoOutputItemsInner];
+  final Iterable<Type> types = const [
+    PromotionPageDtoOutputItemsInner,
+    _$PromotionPageDtoOutputItemsInner
+  ];
 
   @override
   final String wireName = r'PromotionPageDtoOutputItemsInner';
@@ -154,19 +172,24 @@ class _$PromotionPageDtoOutputItemsInnerSerializer implements PrimitiveSerialize
       specifiedType: const FullType(PromotionPageDtoOutputItemsInnerScopeEnum),
     );
     yield r'operatorId';
-    yield object.operatorId == null ? null : serializers.serialize(
-      object.operatorId,
-      specifiedType: const FullType.nullable(String),
-    );
+    yield object.operatorId == null
+        ? null
+        : serializers.serialize(
+            object.operatorId,
+            specifiedType: const FullType.nullable(String),
+          );
     yield r'operatorName';
-    yield object.operatorName == null ? null : serializers.serialize(
-      object.operatorName,
-      specifiedType: const FullType.nullable(String),
-    );
+    yield object.operatorName == null
+        ? null
+        : serializers.serialize(
+            object.operatorName,
+            specifiedType: const FullType.nullable(String),
+          );
     yield r'discountType';
     yield serializers.serialize(
       object.discountType,
-      specifiedType: const FullType(PromotionPageDtoOutputItemsInnerDiscountTypeEnum),
+      specifiedType:
+          const FullType(PromotionPageDtoOutputItemsInnerDiscountTypeEnum),
     );
     yield r'discountValue';
     yield serializers.serialize(
@@ -174,30 +197,48 @@ class _$PromotionPageDtoOutputItemsInnerSerializer implements PrimitiveSerialize
       specifiedType: const FullType(int),
     );
     yield r'maxDiscount';
-    yield object.maxDiscount == null ? null : serializers.serialize(
-      object.maxDiscount,
-      specifiedType: const FullType.nullable(int),
-    );
+    yield object.maxDiscount == null
+        ? null
+        : serializers.serialize(
+            object.maxDiscount,
+            specifiedType: const FullType.nullable(int),
+          );
     yield r'minOrder';
     yield serializers.serialize(
       object.minOrder,
       specifiedType: const FullType(int),
     );
     yield r'routeId';
-    yield object.routeId == null ? null : serializers.serialize(
-      object.routeId,
-      specifiedType: const FullType.nullable(String),
+    yield object.routeId == null
+        ? null
+        : serializers.serialize(
+            object.routeId,
+            specifiedType: const FullType.nullable(String),
+          );
+    yield r'routeIds';
+    yield serializers.serialize(
+      object.routeIds,
+      specifiedType: const FullType(BuiltList, [FullType(String)]),
+    );
+    yield r'routeNames';
+    yield serializers.serialize(
+      object.routeNames,
+      specifiedType: const FullType(BuiltList, [FullType(String)]),
     );
     yield r'routeName';
-    yield object.routeName == null ? null : serializers.serialize(
-      object.routeName,
-      specifiedType: const FullType.nullable(String),
-    );
+    yield object.routeName == null
+        ? null
+        : serializers.serialize(
+            object.routeName,
+            specifiedType: const FullType.nullable(String),
+          );
     yield r'tripId';
-    yield object.tripId == null ? null : serializers.serialize(
-      object.tripId,
-      specifiedType: const FullType.nullable(String),
-    );
+    yield object.tripId == null
+        ? null
+        : serializers.serialize(
+            object.tripId,
+            specifiedType: const FullType.nullable(String),
+          );
     yield r'startsAt';
     yield serializers.serialize(
       object.startsAt,
@@ -226,7 +267,8 @@ class _$PromotionPageDtoOutputItemsInnerSerializer implements PrimitiveSerialize
     yield r'display';
     yield serializers.serialize(
       object.display,
-      specifiedType: const FullType(PromotionPageDtoOutputItemsInnerDisplayEnum),
+      specifiedType:
+          const FullType(PromotionPageDtoOutputItemsInnerDisplayEnum),
     );
     yield r'editable';
     yield serializers.serialize(
@@ -234,15 +276,19 @@ class _$PromotionPageDtoOutputItemsInnerSerializer implements PrimitiveSerialize
       specifiedType: const FullType(bool),
     );
     yield r'joined';
-    yield object.joined == null ? null : serializers.serialize(
-      object.joined,
-      specifiedType: const FullType.nullable(bool),
-    );
+    yield object.joined == null
+        ? null
+        : serializers.serialize(
+            object.joined,
+            specifiedType: const FullType.nullable(bool),
+          );
     yield r'participants';
-    yield object.participants == null ? null : serializers.serialize(
-      object.participants,
-      specifiedType: const FullType.nullable(int),
-    );
+    yield object.participants == null
+        ? null
+        : serializers.serialize(
+            object.participants,
+            specifiedType: const FullType.nullable(int),
+          );
     yield r'createdAt';
     yield serializers.serialize(
       object.createdAt,
@@ -256,7 +302,9 @@ class _$PromotionPageDtoOutputItemsInnerSerializer implements PrimitiveSerialize
     PromotionPageDtoOutputItemsInner object, {
     FullType specifiedType = FullType.unspecified,
   }) {
-    return _serializeProperties(serializers, object, specifiedType: specifiedType).toList();
+    return _serializeProperties(serializers, object,
+            specifiedType: specifiedType)
+        .toList();
   }
 
   void _deserializeProperties(
@@ -295,7 +343,8 @@ class _$PromotionPageDtoOutputItemsInnerSerializer implements PrimitiveSerialize
         case r'scope':
           final valueDes = serializers.deserialize(
             value,
-            specifiedType: const FullType(PromotionPageDtoOutputItemsInnerScopeEnum),
+            specifiedType:
+                const FullType(PromotionPageDtoOutputItemsInnerScopeEnum),
           ) as PromotionPageDtoOutputItemsInnerScopeEnum;
           result.scope = valueDes;
           break;
@@ -318,7 +367,8 @@ class _$PromotionPageDtoOutputItemsInnerSerializer implements PrimitiveSerialize
         case r'discountType':
           final valueDes = serializers.deserialize(
             value,
-            specifiedType: const FullType(PromotionPageDtoOutputItemsInnerDiscountTypeEnum),
+            specifiedType: const FullType(
+                PromotionPageDtoOutputItemsInnerDiscountTypeEnum),
           ) as PromotionPageDtoOutputItemsInnerDiscountTypeEnum;
           result.discountType = valueDes;
           break;
@@ -351,6 +401,20 @@ class _$PromotionPageDtoOutputItemsInnerSerializer implements PrimitiveSerialize
           ) as String?;
           if (valueDes == null) continue;
           result.routeId = valueDes;
+          break;
+        case r'routeIds':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(BuiltList, [FullType(String)]),
+          ) as BuiltList<String>;
+          result.routeIds.replace(valueDes);
+          break;
+        case r'routeNames':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(BuiltList, [FullType(String)]),
+          ) as BuiltList<String>;
+          result.routeNames.replace(valueDes);
           break;
         case r'routeName':
           final valueDes = serializers.deserialize(
@@ -399,14 +463,16 @@ class _$PromotionPageDtoOutputItemsInnerSerializer implements PrimitiveSerialize
         case r'status':
           final valueDes = serializers.deserialize(
             value,
-            specifiedType: const FullType(PromotionPageDtoOutputItemsInnerStatusEnum),
+            specifiedType:
+                const FullType(PromotionPageDtoOutputItemsInnerStatusEnum),
           ) as PromotionPageDtoOutputItemsInnerStatusEnum;
           result.status = valueDes;
           break;
         case r'display':
           final valueDes = serializers.deserialize(
             value,
-            specifiedType: const FullType(PromotionPageDtoOutputItemsInnerDisplayEnum),
+            specifiedType:
+                const FullType(PromotionPageDtoOutputItemsInnerDisplayEnum),
           ) as PromotionPageDtoOutputItemsInnerDisplayEnum;
           result.display = valueDes;
           break;
@@ -469,74 +535,97 @@ class _$PromotionPageDtoOutputItemsInnerSerializer implements PrimitiveSerialize
   }
 }
 
-
 class PromotionPageDtoOutputItemsInnerScopeEnum extends EnumClass {
-
   @BuiltValueEnumConst(wireName: r'PLATFORM')
-  static const PromotionPageDtoOutputItemsInnerScopeEnum PLATFORM = _$promotionPageDtoOutputItemsInnerScopeEnum_PLATFORM;
+  static const PromotionPageDtoOutputItemsInnerScopeEnum PLATFORM =
+      _$promotionPageDtoOutputItemsInnerScopeEnum_PLATFORM;
   @BuiltValueEnumConst(wireName: r'OPERATOR')
-  static const PromotionPageDtoOutputItemsInnerScopeEnum OPERATOR = _$promotionPageDtoOutputItemsInnerScopeEnum_OPERATOR;
+  static const PromotionPageDtoOutputItemsInnerScopeEnum OPERATOR =
+      _$promotionPageDtoOutputItemsInnerScopeEnum_OPERATOR;
 
-  static Serializer<PromotionPageDtoOutputItemsInnerScopeEnum> get serializer => _$promotionPageDtoOutputItemsInnerScopeEnumSerializer;
+  static Serializer<PromotionPageDtoOutputItemsInnerScopeEnum> get serializer =>
+      _$promotionPageDtoOutputItemsInnerScopeEnumSerializer;
 
-  const PromotionPageDtoOutputItemsInnerScopeEnum._(String name): super(name);
+  const PromotionPageDtoOutputItemsInnerScopeEnum._(String name) : super(name);
 
-  static BuiltSet<PromotionPageDtoOutputItemsInnerScopeEnum> get values => _$promotionPageDtoOutputItemsInnerScopeEnumValues;
-  static PromotionPageDtoOutputItemsInnerScopeEnum valueOf(String name) => _$promotionPageDtoOutputItemsInnerScopeEnumValueOf(name);
+  static BuiltSet<PromotionPageDtoOutputItemsInnerScopeEnum> get values =>
+      _$promotionPageDtoOutputItemsInnerScopeEnumValues;
+  static PromotionPageDtoOutputItemsInnerScopeEnum valueOf(String name) =>
+      _$promotionPageDtoOutputItemsInnerScopeEnumValueOf(name);
 }
 
 class PromotionPageDtoOutputItemsInnerDiscountTypeEnum extends EnumClass {
-
   @BuiltValueEnumConst(wireName: r'PERCENT')
-  static const PromotionPageDtoOutputItemsInnerDiscountTypeEnum PERCENT = _$promotionPageDtoOutputItemsInnerDiscountTypeEnum_PERCENT;
+  static const PromotionPageDtoOutputItemsInnerDiscountTypeEnum PERCENT =
+      _$promotionPageDtoOutputItemsInnerDiscountTypeEnum_PERCENT;
   @BuiltValueEnumConst(wireName: r'AMOUNT')
-  static const PromotionPageDtoOutputItemsInnerDiscountTypeEnum AMOUNT = _$promotionPageDtoOutputItemsInnerDiscountTypeEnum_AMOUNT;
+  static const PromotionPageDtoOutputItemsInnerDiscountTypeEnum AMOUNT =
+      _$promotionPageDtoOutputItemsInnerDiscountTypeEnum_AMOUNT;
 
-  static Serializer<PromotionPageDtoOutputItemsInnerDiscountTypeEnum> get serializer => _$promotionPageDtoOutputItemsInnerDiscountTypeEnumSerializer;
+  static Serializer<PromotionPageDtoOutputItemsInnerDiscountTypeEnum>
+      get serializer =>
+          _$promotionPageDtoOutputItemsInnerDiscountTypeEnumSerializer;
 
-  const PromotionPageDtoOutputItemsInnerDiscountTypeEnum._(String name): super(name);
+  const PromotionPageDtoOutputItemsInnerDiscountTypeEnum._(String name)
+      : super(name);
 
-  static BuiltSet<PromotionPageDtoOutputItemsInnerDiscountTypeEnum> get values => _$promotionPageDtoOutputItemsInnerDiscountTypeEnumValues;
-  static PromotionPageDtoOutputItemsInnerDiscountTypeEnum valueOf(String name) => _$promotionPageDtoOutputItemsInnerDiscountTypeEnumValueOf(name);
+  static BuiltSet<PromotionPageDtoOutputItemsInnerDiscountTypeEnum>
+      get values => _$promotionPageDtoOutputItemsInnerDiscountTypeEnumValues;
+  static PromotionPageDtoOutputItemsInnerDiscountTypeEnum valueOf(
+          String name) =>
+      _$promotionPageDtoOutputItemsInnerDiscountTypeEnumValueOf(name);
 }
 
 class PromotionPageDtoOutputItemsInnerStatusEnum extends EnumClass {
-
   @BuiltValueEnumConst(wireName: r'DRAFT')
-  static const PromotionPageDtoOutputItemsInnerStatusEnum DRAFT = _$promotionPageDtoOutputItemsInnerStatusEnum_DRAFT;
+  static const PromotionPageDtoOutputItemsInnerStatusEnum DRAFT =
+      _$promotionPageDtoOutputItemsInnerStatusEnum_DRAFT;
   @BuiltValueEnumConst(wireName: r'ACTIVE')
-  static const PromotionPageDtoOutputItemsInnerStatusEnum ACTIVE = _$promotionPageDtoOutputItemsInnerStatusEnum_ACTIVE;
+  static const PromotionPageDtoOutputItemsInnerStatusEnum ACTIVE =
+      _$promotionPageDtoOutputItemsInnerStatusEnum_ACTIVE;
   @BuiltValueEnumConst(wireName: r'PAUSED')
-  static const PromotionPageDtoOutputItemsInnerStatusEnum PAUSED = _$promotionPageDtoOutputItemsInnerStatusEnum_PAUSED;
+  static const PromotionPageDtoOutputItemsInnerStatusEnum PAUSED =
+      _$promotionPageDtoOutputItemsInnerStatusEnum_PAUSED;
   @BuiltValueEnumConst(wireName: r'ENDED')
-  static const PromotionPageDtoOutputItemsInnerStatusEnum ENDED = _$promotionPageDtoOutputItemsInnerStatusEnum_ENDED;
+  static const PromotionPageDtoOutputItemsInnerStatusEnum ENDED =
+      _$promotionPageDtoOutputItemsInnerStatusEnum_ENDED;
 
-  static Serializer<PromotionPageDtoOutputItemsInnerStatusEnum> get serializer => _$promotionPageDtoOutputItemsInnerStatusEnumSerializer;
+  static Serializer<PromotionPageDtoOutputItemsInnerStatusEnum>
+      get serializer => _$promotionPageDtoOutputItemsInnerStatusEnumSerializer;
 
-  const PromotionPageDtoOutputItemsInnerStatusEnum._(String name): super(name);
+  const PromotionPageDtoOutputItemsInnerStatusEnum._(String name) : super(name);
 
-  static BuiltSet<PromotionPageDtoOutputItemsInnerStatusEnum> get values => _$promotionPageDtoOutputItemsInnerStatusEnumValues;
-  static PromotionPageDtoOutputItemsInnerStatusEnum valueOf(String name) => _$promotionPageDtoOutputItemsInnerStatusEnumValueOf(name);
+  static BuiltSet<PromotionPageDtoOutputItemsInnerStatusEnum> get values =>
+      _$promotionPageDtoOutputItemsInnerStatusEnumValues;
+  static PromotionPageDtoOutputItemsInnerStatusEnum valueOf(String name) =>
+      _$promotionPageDtoOutputItemsInnerStatusEnumValueOf(name);
 }
 
 class PromotionPageDtoOutputItemsInnerDisplayEnum extends EnumClass {
-
   @BuiltValueEnumConst(wireName: r'DRAFT')
-  static const PromotionPageDtoOutputItemsInnerDisplayEnum DRAFT = _$promotionPageDtoOutputItemsInnerDisplayEnum_DRAFT;
+  static const PromotionPageDtoOutputItemsInnerDisplayEnum DRAFT =
+      _$promotionPageDtoOutputItemsInnerDisplayEnum_DRAFT;
   @BuiltValueEnumConst(wireName: r'SCHEDULED')
-  static const PromotionPageDtoOutputItemsInnerDisplayEnum SCHEDULED = _$promotionPageDtoOutputItemsInnerDisplayEnum_SCHEDULED;
+  static const PromotionPageDtoOutputItemsInnerDisplayEnum SCHEDULED =
+      _$promotionPageDtoOutputItemsInnerDisplayEnum_SCHEDULED;
   @BuiltValueEnumConst(wireName: r'RUNNING')
-  static const PromotionPageDtoOutputItemsInnerDisplayEnum RUNNING = _$promotionPageDtoOutputItemsInnerDisplayEnum_RUNNING;
+  static const PromotionPageDtoOutputItemsInnerDisplayEnum RUNNING =
+      _$promotionPageDtoOutputItemsInnerDisplayEnum_RUNNING;
   @BuiltValueEnumConst(wireName: r'PAUSED')
-  static const PromotionPageDtoOutputItemsInnerDisplayEnum PAUSED = _$promotionPageDtoOutputItemsInnerDisplayEnum_PAUSED;
+  static const PromotionPageDtoOutputItemsInnerDisplayEnum PAUSED =
+      _$promotionPageDtoOutputItemsInnerDisplayEnum_PAUSED;
   @BuiltValueEnumConst(wireName: r'ENDED')
-  static const PromotionPageDtoOutputItemsInnerDisplayEnum ENDED = _$promotionPageDtoOutputItemsInnerDisplayEnum_ENDED;
+  static const PromotionPageDtoOutputItemsInnerDisplayEnum ENDED =
+      _$promotionPageDtoOutputItemsInnerDisplayEnum_ENDED;
 
-  static Serializer<PromotionPageDtoOutputItemsInnerDisplayEnum> get serializer => _$promotionPageDtoOutputItemsInnerDisplayEnumSerializer;
+  static Serializer<PromotionPageDtoOutputItemsInnerDisplayEnum>
+      get serializer => _$promotionPageDtoOutputItemsInnerDisplayEnumSerializer;
 
-  const PromotionPageDtoOutputItemsInnerDisplayEnum._(String name): super(name);
+  const PromotionPageDtoOutputItemsInnerDisplayEnum._(String name)
+      : super(name);
 
-  static BuiltSet<PromotionPageDtoOutputItemsInnerDisplayEnum> get values => _$promotionPageDtoOutputItemsInnerDisplayEnumValues;
-  static PromotionPageDtoOutputItemsInnerDisplayEnum valueOf(String name) => _$promotionPageDtoOutputItemsInnerDisplayEnumValueOf(name);
+  static BuiltSet<PromotionPageDtoOutputItemsInnerDisplayEnum> get values =>
+      _$promotionPageDtoOutputItemsInnerDisplayEnumValues;
+  static PromotionPageDtoOutputItemsInnerDisplayEnum valueOf(String name) =>
+      _$promotionPageDtoOutputItemsInnerDisplayEnumValueOf(name);
 }
-

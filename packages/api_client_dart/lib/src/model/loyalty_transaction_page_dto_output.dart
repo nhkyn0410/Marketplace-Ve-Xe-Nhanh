@@ -4,7 +4,7 @@
 
 // ignore_for_file: unused_element
 import 'package:built_collection/built_collection.dart';
-import 'package:api_client_dart/src/model/loyalty_transaction_page_dto_output_items_inner.dart';
+import 'package:api_client_dart/src/model/passenger_loyalty_transactions_dto_output_items_inner.dart';
 import 'package:built_value/built_value.dart';
 import 'package:built_value/serializer.dart';
 
@@ -13,30 +13,40 @@ part 'loyalty_transaction_page_dto_output.g.dart';
 /// LoyaltyTransactionPageDtoOutput
 ///
 /// Properties:
-/// * [items] 
-/// * [total] 
+/// * [items]
+/// * [total]
 @BuiltValue()
-abstract class LoyaltyTransactionPageDtoOutput implements Built<LoyaltyTransactionPageDtoOutput, LoyaltyTransactionPageDtoOutputBuilder> {
+abstract class LoyaltyTransactionPageDtoOutput
+    implements
+        Built<LoyaltyTransactionPageDtoOutput,
+            LoyaltyTransactionPageDtoOutputBuilder> {
   @BuiltValueField(wireName: r'items')
-  BuiltList<LoyaltyTransactionPageDtoOutputItemsInner> get items;
+  BuiltList<PassengerLoyaltyTransactionsDtoOutputItemsInner> get items;
 
   @BuiltValueField(wireName: r'total')
   int get total;
 
   LoyaltyTransactionPageDtoOutput._();
 
-  factory LoyaltyTransactionPageDtoOutput([void updates(LoyaltyTransactionPageDtoOutputBuilder b)]) = _$LoyaltyTransactionPageDtoOutput;
+  factory LoyaltyTransactionPageDtoOutput(
+          [void updates(LoyaltyTransactionPageDtoOutputBuilder b)]) =
+      _$LoyaltyTransactionPageDtoOutput;
 
   @BuiltValueHook(initializeBuilder: true)
   static void _defaults(LoyaltyTransactionPageDtoOutputBuilder b) => b;
 
   @BuiltValueSerializer(custom: true)
-  static Serializer<LoyaltyTransactionPageDtoOutput> get serializer => _$LoyaltyTransactionPageDtoOutputSerializer();
+  static Serializer<LoyaltyTransactionPageDtoOutput> get serializer =>
+      _$LoyaltyTransactionPageDtoOutputSerializer();
 }
 
-class _$LoyaltyTransactionPageDtoOutputSerializer implements PrimitiveSerializer<LoyaltyTransactionPageDtoOutput> {
+class _$LoyaltyTransactionPageDtoOutputSerializer
+    implements PrimitiveSerializer<LoyaltyTransactionPageDtoOutput> {
   @override
-  final Iterable<Type> types = const [LoyaltyTransactionPageDtoOutput, _$LoyaltyTransactionPageDtoOutput];
+  final Iterable<Type> types = const [
+    LoyaltyTransactionPageDtoOutput,
+    _$LoyaltyTransactionPageDtoOutput
+  ];
 
   @override
   final String wireName = r'LoyaltyTransactionPageDtoOutput';
@@ -49,7 +59,8 @@ class _$LoyaltyTransactionPageDtoOutputSerializer implements PrimitiveSerializer
     yield r'items';
     yield serializers.serialize(
       object.items,
-      specifiedType: const FullType(BuiltList, [FullType(LoyaltyTransactionPageDtoOutputItemsInner)]),
+      specifiedType: const FullType(BuiltList,
+          [FullType(PassengerLoyaltyTransactionsDtoOutputItemsInner)]),
     );
     yield r'total';
     yield serializers.serialize(
@@ -64,7 +75,9 @@ class _$LoyaltyTransactionPageDtoOutputSerializer implements PrimitiveSerializer
     LoyaltyTransactionPageDtoOutput object, {
     FullType specifiedType = FullType.unspecified,
   }) {
-    return _serializeProperties(serializers, object, specifiedType: specifiedType).toList();
+    return _serializeProperties(serializers, object,
+            specifiedType: specifiedType)
+        .toList();
   }
 
   void _deserializeProperties(
@@ -82,8 +95,9 @@ class _$LoyaltyTransactionPageDtoOutputSerializer implements PrimitiveSerializer
         case r'items':
           final valueDes = serializers.deserialize(
             value,
-            specifiedType: const FullType(BuiltList, [FullType(LoyaltyTransactionPageDtoOutputItemsInner)]),
-          ) as BuiltList<LoyaltyTransactionPageDtoOutputItemsInner>;
+            specifiedType: const FullType(BuiltList,
+                [FullType(PassengerLoyaltyTransactionsDtoOutputItemsInner)]),
+          ) as BuiltList<PassengerLoyaltyTransactionsDtoOutputItemsInner>;
           result.items.replace(valueDes);
           break;
         case r'total':
@@ -121,5 +135,3 @@ class _$LoyaltyTransactionPageDtoOutputSerializer implements PrimitiveSerializer
     return result.build();
   }
 }
-
-

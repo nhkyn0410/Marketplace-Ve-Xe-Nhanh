@@ -13,6 +13,7 @@ Method | HTTP request | Description
 [**adminDisputeControllerEscalate**](AdminDisputesApi.md#admindisputecontrollerescalate) | **POST** /v1/admin/support-tickets/{ticketId}/escalate | 
 [**adminDisputeControllerGet**](AdminDisputesApi.md#admindisputecontrollerget) | **GET** /v1/admin/disputes/{disputeId} | 
 [**adminDisputeControllerList**](AdminDisputesApi.md#admindisputecontrollerlist) | **GET** /v1/admin/disputes | 
+[**adminDisputeControllerOpen**](AdminDisputesApi.md#admindisputecontrolleropen) | **POST** /v1/admin/disputes | 
 [**adminDisputeControllerRequestEvidence**](AdminDisputesApi.md#admindisputecontrollerrequestevidence) | **POST** /v1/admin/disputes/{disputeId}/evidence-requests | 
 [**adminDisputeControllerSetStatus**](AdminDisputesApi.md#admindisputecontrollersetstatus) | **POST** /v1/admin/disputes/{disputeId}/status | 
 [**adminDisputeControllerUpload**](AdminDisputesApi.md#admindisputecontrollerupload) | **POST** /v1/admin/disputes/{disputeId}/attachments/upload-url | 
@@ -194,6 +195,47 @@ Name | Type | Description  | Notes
 ### HTTP request headers
 
  - **Content-Type**: Not defined
+ - **Accept**: application/json, application/problem+json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **adminDisputeControllerOpen**
+> DisputeDetailDtoOutput adminDisputeControllerOpen(directDisputeInputDto)
+
+
+
+### Example
+```dart
+import 'package:api_client_dart/api.dart';
+
+final api = ApiClientDart().getAdminDisputesApi();
+final DirectDisputeInputDto directDisputeInputDto = ; // DirectDisputeInputDto | 
+
+try {
+    final response = api.adminDisputeControllerOpen(directDisputeInputDto);
+    print(response);
+} on DioException catch (e) {
+    print('Exception when calling AdminDisputesApi->adminDisputeControllerOpen: $e\n');
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **directDisputeInputDto** | [**DirectDisputeInputDto**](DirectDisputeInputDto.md)|  | 
+
+### Return type
+
+[**DisputeDetailDtoOutput**](DisputeDetailDtoOutput.md)
+
+### Authorization
+
+[bearer](../README.md#bearer)
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
  - **Accept**: application/json, application/problem+json
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)

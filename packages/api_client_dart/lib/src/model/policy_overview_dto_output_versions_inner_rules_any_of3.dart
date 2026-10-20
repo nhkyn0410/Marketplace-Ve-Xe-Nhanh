@@ -4,7 +4,7 @@
 
 // ignore_for_file: unused_element
 import 'package:built_collection/built_collection.dart';
-import 'package:api_client_dart/src/model/policy_overview_dto_output_versions_inner_rules_any_of3_tiers_inner.dart';
+import 'package:api_client_dart/src/model/passenger_loyalty_dto_output_rules_tiers_inner.dart';
 import 'package:built_value/built_value.dart';
 import 'package:built_value/serializer.dart';
 
@@ -13,14 +13,17 @@ part 'policy_overview_dto_output_versions_inner_rules_any_of3.g.dart';
 /// PolicyOverviewDtoOutputVersionsInnerRulesAnyOf3
 ///
 /// Properties:
-/// * [earnUnit] 
-/// * [pointValue] 
-/// * [minRedeemPoints] 
-/// * [pointExpiryMonths] 
-/// * [voucherValidityDays] 
-/// * [tiers] 
+/// * [earnUnit]
+/// * [pointValue]
+/// * [minRedeemPoints]
+/// * [pointExpiryMonths]
+/// * [voucherValidityDays]
+/// * [tiers]
 @BuiltValue()
-abstract class PolicyOverviewDtoOutputVersionsInnerRulesAnyOf3 implements Built<PolicyOverviewDtoOutputVersionsInnerRulesAnyOf3, PolicyOverviewDtoOutputVersionsInnerRulesAnyOf3Builder> {
+abstract class PolicyOverviewDtoOutputVersionsInnerRulesAnyOf3
+    implements
+        Built<PolicyOverviewDtoOutputVersionsInnerRulesAnyOf3,
+            PolicyOverviewDtoOutputVersionsInnerRulesAnyOf3Builder> {
   @BuiltValueField(wireName: r'earnUnit')
   int get earnUnit;
 
@@ -37,22 +40,34 @@ abstract class PolicyOverviewDtoOutputVersionsInnerRulesAnyOf3 implements Built<
   int get voucherValidityDays;
 
   @BuiltValueField(wireName: r'tiers')
-  BuiltList<PolicyOverviewDtoOutputVersionsInnerRulesAnyOf3TiersInner> get tiers;
+  BuiltList<PassengerLoyaltyDtoOutputRulesTiersInner> get tiers;
 
   PolicyOverviewDtoOutputVersionsInnerRulesAnyOf3._();
 
-  factory PolicyOverviewDtoOutputVersionsInnerRulesAnyOf3([void updates(PolicyOverviewDtoOutputVersionsInnerRulesAnyOf3Builder b)]) = _$PolicyOverviewDtoOutputVersionsInnerRulesAnyOf3;
+  factory PolicyOverviewDtoOutputVersionsInnerRulesAnyOf3(
+          [void updates(
+              PolicyOverviewDtoOutputVersionsInnerRulesAnyOf3Builder b)]) =
+      _$PolicyOverviewDtoOutputVersionsInnerRulesAnyOf3;
 
   @BuiltValueHook(initializeBuilder: true)
-  static void _defaults(PolicyOverviewDtoOutputVersionsInnerRulesAnyOf3Builder b) => b;
+  static void _defaults(
+          PolicyOverviewDtoOutputVersionsInnerRulesAnyOf3Builder b) =>
+      b;
 
   @BuiltValueSerializer(custom: true)
-  static Serializer<PolicyOverviewDtoOutputVersionsInnerRulesAnyOf3> get serializer => _$PolicyOverviewDtoOutputVersionsInnerRulesAnyOf3Serializer();
+  static Serializer<PolicyOverviewDtoOutputVersionsInnerRulesAnyOf3>
+      get serializer =>
+          _$PolicyOverviewDtoOutputVersionsInnerRulesAnyOf3Serializer();
 }
 
-class _$PolicyOverviewDtoOutputVersionsInnerRulesAnyOf3Serializer implements PrimitiveSerializer<PolicyOverviewDtoOutputVersionsInnerRulesAnyOf3> {
+class _$PolicyOverviewDtoOutputVersionsInnerRulesAnyOf3Serializer
+    implements
+        PrimitiveSerializer<PolicyOverviewDtoOutputVersionsInnerRulesAnyOf3> {
   @override
-  final Iterable<Type> types = const [PolicyOverviewDtoOutputVersionsInnerRulesAnyOf3, _$PolicyOverviewDtoOutputVersionsInnerRulesAnyOf3];
+  final Iterable<Type> types = const [
+    PolicyOverviewDtoOutputVersionsInnerRulesAnyOf3,
+    _$PolicyOverviewDtoOutputVersionsInnerRulesAnyOf3
+  ];
 
   @override
   final String wireName = r'PolicyOverviewDtoOutputVersionsInnerRulesAnyOf3';
@@ -90,7 +105,8 @@ class _$PolicyOverviewDtoOutputVersionsInnerRulesAnyOf3Serializer implements Pri
     yield r'tiers';
     yield serializers.serialize(
       object.tiers,
-      specifiedType: const FullType(BuiltList, [FullType(PolicyOverviewDtoOutputVersionsInnerRulesAnyOf3TiersInner)]),
+      specifiedType: const FullType(
+          BuiltList, [FullType(PassengerLoyaltyDtoOutputRulesTiersInner)]),
     );
   }
 
@@ -100,7 +116,9 @@ class _$PolicyOverviewDtoOutputVersionsInnerRulesAnyOf3Serializer implements Pri
     PolicyOverviewDtoOutputVersionsInnerRulesAnyOf3 object, {
     FullType specifiedType = FullType.unspecified,
   }) {
-    return _serializeProperties(serializers, object, specifiedType: specifiedType).toList();
+    return _serializeProperties(serializers, object,
+            specifiedType: specifiedType)
+        .toList();
   }
 
   void _deserializeProperties(
@@ -153,8 +171,9 @@ class _$PolicyOverviewDtoOutputVersionsInnerRulesAnyOf3Serializer implements Pri
         case r'tiers':
           final valueDes = serializers.deserialize(
             value,
-            specifiedType: const FullType(BuiltList, [FullType(PolicyOverviewDtoOutputVersionsInnerRulesAnyOf3TiersInner)]),
-          ) as BuiltList<PolicyOverviewDtoOutputVersionsInnerRulesAnyOf3TiersInner>;
+            specifiedType: const FullType(BuiltList,
+                [FullType(PassengerLoyaltyDtoOutputRulesTiersInner)]),
+          ) as BuiltList<PassengerLoyaltyDtoOutputRulesTiersInner>;
           result.tiers.replace(valueDes);
           break;
         default:
@@ -185,5 +204,3 @@ class _$PolicyOverviewDtoOutputVersionsInnerRulesAnyOf3Serializer implements Pri
     return result.build();
   }
 }
-
-

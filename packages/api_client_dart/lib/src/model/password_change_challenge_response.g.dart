@@ -73,7 +73,7 @@ class _$PasswordChangeChallengeResponse
   @override
   final String passwordChangeToken;
   @override
-  final int passwordChangeExpiresIn;
+  final int? passwordChangeExpiresIn;
 
   factory _$PasswordChangeChallengeResponse(
           [void Function(PasswordChangeChallengeResponseBuilder)? updates]) =>
@@ -82,7 +82,7 @@ class _$PasswordChangeChallengeResponse
   _$PasswordChangeChallengeResponse._(
       {required this.passwordChangeRequired,
       required this.passwordChangeToken,
-      required this.passwordChangeExpiresIn})
+      this.passwordChangeExpiresIn})
       : super._();
   @override
   PasswordChangeChallengeResponse rebuild(
@@ -186,10 +186,7 @@ class PasswordChangeChallengeResponseBuilder
               passwordChangeToken,
               r'PasswordChangeChallengeResponse',
               'passwordChangeToken'),
-          passwordChangeExpiresIn: BuiltValueNullFieldError.checkNotNull(
-              passwordChangeExpiresIn,
-              r'PasswordChangeChallengeResponse',
-              'passwordChangeExpiresIn'),
+          passwordChangeExpiresIn: passwordChangeExpiresIn,
         );
     replace(_$result);
     return _$result;
