@@ -3,7 +3,16 @@ export const BULL_BOARD_PATH = "/admin/queues";
 export const QUEUE_NAMES = {
   foundation: "foundation",
   sessionMaintenance: "session-maintenance",
-  storageMaintenance: "storage-maintenance"
+  storageMaintenance: "storage-maintenance",
+  kycMaintenance: "kyc-maintenance",
+  bookingMaintenance: "booking-maintenance",
+  paymentCallbacks: "payment-callbacks",
+  refundProcessing: "refund-processing",
+  payoutMaintenance: "payout-maintenance",
+  notifications: "notifications",
+  paymentReconciliation: "payment-reconciliation",
+  disputeMaintenance: "dispute-maintenance",
+  loyaltyMaintenance: "loyalty-maintenance"
 } as const;
 
 export type QueueName = (typeof QUEUE_NAMES)[keyof typeof QUEUE_NAMES];

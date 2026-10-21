@@ -72,6 +72,10 @@ services:
       # Gốc địa chỉ công khai của bucket (custom domain / CDN), vd https://cdn.vexenhanh.vn
       - key: R2_PUBLIC_BASE_URL
         sync: false
+      # OQ-21 (Khanh 20/10/2026): production là môi trường DEMO, chỉ dữ liệu mẫu → bucket riêng tư cho giấy tờ KYC / minh
+      # chứng (presigned 5 phút + audit). Bỏ trống → API giấy tờ trả 503. Mở lại OQ-21 trước khi nhận dữ liệu thật.
+      - key: R2_PRIVATE_BUCKET
+        sync: false
       - key: GOOGLE_CLIENT_ID
         sync: false
       - key: GOOGLE_CLIENT_SECRET
@@ -120,6 +124,8 @@ services:
 #      - key: R2_PUBLIC_BUCKET
 #        sync: false
 #      - key: R2_PUBLIC_BASE_URL
+#        sync: false
+#      - key: R2_PRIVATE_BUCKET
 #        sync: false
 #      - key: OTEL_SERVICE_NAME
 #        value: vexenhanh-worker

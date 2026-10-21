@@ -12,35 +12,46 @@ part 'password_change_challenge_response.g.dart';
 /// PasswordChangeChallengeResponse
 ///
 /// Properties:
-/// * [passwordChangeRequired] 
-/// * [passwordChangeToken] 
-/// * [passwordChangeExpiresIn] 
+/// * [passwordChangeRequired]
+/// * [passwordChangeToken]
+/// * [passwordChangeExpiresIn]
 @BuiltValue()
-abstract class PasswordChangeChallengeResponse implements Built<PasswordChangeChallengeResponse, PasswordChangeChallengeResponseBuilder> {
+abstract class PasswordChangeChallengeResponse
+    implements
+        Built<PasswordChangeChallengeResponse,
+            PasswordChangeChallengeResponseBuilder> {
   @BuiltValueField(wireName: r'passwordChangeRequired')
-  PasswordChangeChallengeResponsePasswordChangeRequiredEnum get passwordChangeRequired;
+  PasswordChangeChallengeResponsePasswordChangeRequiredEnum
+      get passwordChangeRequired;
   // enum passwordChangeRequiredEnum {  true,  };
 
   @BuiltValueField(wireName: r'passwordChangeToken')
   String get passwordChangeToken;
 
   @BuiltValueField(wireName: r'passwordChangeExpiresIn')
-  int get passwordChangeExpiresIn;
+  int? get passwordChangeExpiresIn;
 
   PasswordChangeChallengeResponse._();
 
-  factory PasswordChangeChallengeResponse([void updates(PasswordChangeChallengeResponseBuilder b)]) = _$PasswordChangeChallengeResponse;
+  factory PasswordChangeChallengeResponse(
+          [void updates(PasswordChangeChallengeResponseBuilder b)]) =
+      _$PasswordChangeChallengeResponse;
 
   @BuiltValueHook(initializeBuilder: true)
   static void _defaults(PasswordChangeChallengeResponseBuilder b) => b;
 
   @BuiltValueSerializer(custom: true)
-  static Serializer<PasswordChangeChallengeResponse> get serializer => _$PasswordChangeChallengeResponseSerializer();
+  static Serializer<PasswordChangeChallengeResponse> get serializer =>
+      _$PasswordChangeChallengeResponseSerializer();
 }
 
-class _$PasswordChangeChallengeResponseSerializer implements PrimitiveSerializer<PasswordChangeChallengeResponse> {
+class _$PasswordChangeChallengeResponseSerializer
+    implements PrimitiveSerializer<PasswordChangeChallengeResponse> {
   @override
-  final Iterable<Type> types = const [PasswordChangeChallengeResponse, _$PasswordChangeChallengeResponse];
+  final Iterable<Type> types = const [
+    PasswordChangeChallengeResponse,
+    _$PasswordChangeChallengeResponse
+  ];
 
   @override
   final String wireName = r'PasswordChangeChallengeResponse';
@@ -53,7 +64,8 @@ class _$PasswordChangeChallengeResponseSerializer implements PrimitiveSerializer
     yield r'passwordChangeRequired';
     yield serializers.serialize(
       object.passwordChangeRequired,
-      specifiedType: const FullType(PasswordChangeChallengeResponsePasswordChangeRequiredEnum),
+      specifiedType: const FullType(
+          PasswordChangeChallengeResponsePasswordChangeRequiredEnum),
     );
     yield r'passwordChangeToken';
     yield serializers.serialize(
@@ -61,10 +73,12 @@ class _$PasswordChangeChallengeResponseSerializer implements PrimitiveSerializer
       specifiedType: const FullType(String),
     );
     yield r'passwordChangeExpiresIn';
-    yield serializers.serialize(
-      object.passwordChangeExpiresIn,
-      specifiedType: const FullType(int),
-    );
+    yield object.passwordChangeExpiresIn == null
+        ? null
+        : serializers.serialize(
+            object.passwordChangeExpiresIn,
+            specifiedType: const FullType.nullable(int),
+          );
   }
 
   @override
@@ -73,7 +87,9 @@ class _$PasswordChangeChallengeResponseSerializer implements PrimitiveSerializer
     PasswordChangeChallengeResponse object, {
     FullType specifiedType = FullType.unspecified,
   }) {
-    return _serializeProperties(serializers, object, specifiedType: specifiedType).toList();
+    return _serializeProperties(serializers, object,
+            specifiedType: specifiedType)
+        .toList();
   }
 
   void _deserializeProperties(
@@ -91,7 +107,8 @@ class _$PasswordChangeChallengeResponseSerializer implements PrimitiveSerializer
         case r'passwordChangeRequired':
           final valueDes = serializers.deserialize(
             value,
-            specifiedType: const FullType(PasswordChangeChallengeResponsePasswordChangeRequiredEnum),
+            specifiedType: const FullType(
+                PasswordChangeChallengeResponsePasswordChangeRequiredEnum),
           ) as PasswordChangeChallengeResponsePasswordChangeRequiredEnum;
           result.passwordChangeRequired = valueDes;
           break;
@@ -105,8 +122,9 @@ class _$PasswordChangeChallengeResponseSerializer implements PrimitiveSerializer
         case r'passwordChangeExpiresIn':
           final valueDes = serializers.deserialize(
             value,
-            specifiedType: const FullType(int),
-          ) as int;
+            specifiedType: const FullType.nullable(int),
+          ) as int?;
+          if (valueDes == null) continue;
           result.passwordChangeExpiresIn = valueDes;
           break;
         default:
@@ -138,17 +156,23 @@ class _$PasswordChangeChallengeResponseSerializer implements PrimitiveSerializer
   }
 }
 
-
-class PasswordChangeChallengeResponsePasswordChangeRequiredEnum extends EnumClass {
-
+class PasswordChangeChallengeResponsePasswordChangeRequiredEnum
+    extends EnumClass {
   @BuiltValueEnumConst(wireName: r'true')
-  static const PasswordChangeChallengeResponsePasswordChangeRequiredEnum true_ = _$passwordChangeChallengeResponsePasswordChangeRequiredEnum_true_;
+  static const PasswordChangeChallengeResponsePasswordChangeRequiredEnum true_ =
+      _$passwordChangeChallengeResponsePasswordChangeRequiredEnum_true_;
 
-  static Serializer<PasswordChangeChallengeResponsePasswordChangeRequiredEnum> get serializer => _$passwordChangeChallengeResponsePasswordChangeRequiredEnumSerializer;
+  static Serializer<PasswordChangeChallengeResponsePasswordChangeRequiredEnum>
+      get serializer =>
+          _$passwordChangeChallengeResponsePasswordChangeRequiredEnumSerializer;
 
-  const PasswordChangeChallengeResponsePasswordChangeRequiredEnum._(String name): super(name);
+  const PasswordChangeChallengeResponsePasswordChangeRequiredEnum._(String name)
+      : super(name);
 
-  static BuiltSet<PasswordChangeChallengeResponsePasswordChangeRequiredEnum> get values => _$passwordChangeChallengeResponsePasswordChangeRequiredEnumValues;
-  static PasswordChangeChallengeResponsePasswordChangeRequiredEnum valueOf(String name) => _$passwordChangeChallengeResponsePasswordChangeRequiredEnumValueOf(name);
+  static BuiltSet<PasswordChangeChallengeResponsePasswordChangeRequiredEnum>
+      get values =>
+          _$passwordChangeChallengeResponsePasswordChangeRequiredEnumValues;
+  static PasswordChangeChallengeResponsePasswordChangeRequiredEnum valueOf(
+          String name) =>
+      _$passwordChangeChallengeResponsePasswordChangeRequiredEnumValueOf(name);
 }
-

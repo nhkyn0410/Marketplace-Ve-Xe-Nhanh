@@ -17,7 +17,9 @@ import { Input } from "@vexenhanh/ui/components/input";
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
+  SelectLabel,
   SelectTrigger,
   SelectValue
 } from "@vexenhanh/ui/components/select";
@@ -26,24 +28,26 @@ import { Switch } from "@vexenhanh/ui/components/switch";
 import { Textarea } from "@vexenhanh/ui/components/textarea";
 import { Bus, CircleAlert, FileX2, LoaderCircle, RefreshCw } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useId, useMemo, useState, type ReactNode } from "react";
 import { Controller, useForm } from "react-hook-form";
 
 import { ApiError } from "../../lib/auth/api-client";
 import { getRoute, listAllRoutes, type Route } from "../../lib/route/route-api";
 import { formatDuration, stopCountLabel } from "../../lib/route/route-format";
+import { choiceNote, listTripsBetween, previousLocalDate, vehicleChoices } from "../../lib/trip/vehicle-schedule";
+import { VehicleDayCard } from "./vehicle-day-card";
 import { createTrip, getTrip, updateTrip, type Trip } from "../../lib/trip/trip-api";
 import {
   arrivalIso,
   autoSplitTimes,
   departureIso,
   describeTripSaveError,
-  EMPTY_TRIP_VALUES,
   hasCompleteTimes,
   MAX_ONLINE_SALE_CUTOFF_MINUTES,
   NO_VEHICLE,
   parseCutoffMinutes,
+  prefillTripValues,
   resolveManualTimes,
   suggestArrival,
   toTripFormValues,
@@ -57,6 +61,8 @@ import {
   arrivalDayNote,
   formatTime,
   formatWeekdayDate,
+  fromLocalParts,
+  nextLocalDate,
   stopMetaLabel,
   TRIP_STATUS,
   tripDurationLabel
@@ -165,6 +171,7 @@ export function TripForm({ tripId }: { tripId?: string }) {
 
 function TripFormBody({ trip, tripRoute }: { trip?: Trip; tripRoute?: Route }) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const queryClient = useQueryClient();
   const backHref = trip ? `/trips/${trip.id}` : "/trips";
   const [formError, setFormError] = useState<string | null>(null);
@@ -182,7 +189,8 @@ function TripFormBody({ trip, tripRoute }: { trip?: Trip; tripRoute?: Route }) {
 
   const form = useForm<TripFormValues>({
     resolver: zodResolver(tripInfoSchema),
-    defaultValues: trip ? toTripFormValues(trip) : EMPTY_TRIP_VALUES
+    // Mở từ Lịch xe (bấm khoảng trống của một xe): xe + ngày giờ khởi hành điền sẵn (TASK-TRN-015).
+    defaultValues: trip ? toTripFormValues(trip) : prefillTripValues(searchParams)
   });
   const { errors } = form.formState;
   const values = form.watch();
@@ -212,6 +220,19 @@ function TripFormBody({ trip, tripRoute }: { trip?: Trip; tripRoute?: Route }) {
     [vehicles.data, trip]
   );
   const selectedRoute = activeRoutes.data?.find((item) => item.id === values.routeId);
+  // Chuyến quanh giờ chuyến này (từ đầu hôm trước tới hết ngày đến) để biết xe nào rảnh / trùng giờ (TASK-TRN-015).
+  const scheduleDate = /^\d{4}-\d{2}-\d{2}$/.test(values.departureDate) && values.departureDate >= "1971-01-01" ? values.departureDate : null;
+  const scheduleEnd = /^\d{4}-\d{2}-\d{2}$/.test(values.arrivalDate) && values.arrivalDate >= (scheduleDate ?? "") ? values.arrivalDate : scheduleDate;
+  const nearbyTrips = useQuery({
+    queryKey: ["trips", "around", scheduleDate, scheduleEnd],
+    queryFn: () =>
+      listTripsBetween(fromLocalParts(previousLocalDate(scheduleDate!), "00:00"), fromLocalParts(nextLocalDate(scheduleEnd!), "00:00")),
+    enabled: scheduleDate !== null && scheduleEnd !== null
+  });
+  const routeDestinations = useMemo(
+    () => new Map((activeRoutes.data ?? []).map((item) => [item.id, item.destinationName])),
+    [activeRoutes.data]
+  );
   const selectedVehicle = vehicles.data?.find((vehicle) => vehicle.id === values.vehicleId);
   const vehicleType = vehicleTypes.data?.find((type) => type.id === selectedVehicle?.vehicleTypeId);
 
@@ -228,6 +249,10 @@ function TripFormBody({ trip, tripRoute }: { trip?: Trip; tripRoute?: Route }) {
       : onlineSaleCloseLabel(departureIso(values), cutoffMinutes);
   const clockTimes = stops.map((_stop, index) => manualTimes[index] ?? "");
   // Giờ tại từng điểm để hiển thị: tự chia thì đủ cả dãy; tự nhập thì có tới đâu ghi ngày tới đó.
+  const choices =
+    validSpan && nearbyTrips.data
+      ? vehicleChoices(vehicleOptions, nearbyTrips.data, departureMs!, arrivalMs!, trip?.id)
+      : null;
   let stopTimes: (number | undefined)[] = [];
   if (route.data && validSpan) {
     stopTimes = autoSplit
@@ -455,16 +480,62 @@ function TripFormBody({ trip, tripRoute }: { trip?: Trip; tripRoute?: Route }) {
                     render={({ field }) => (
                       <Select value={field.value} onValueChange={field.onChange}>
                         <SelectTrigger {...control} onBlur={field.onBlur}>
-                          <SelectValue />
+                          {/* Ô đã chọn chỉ hiện biển số + sơ đồ ghế, không kèm dòng tình trạng của danh sách. */}
+                          <SelectValue>{vehicleLabel(vehicleOptions.find((vehicle) => vehicle.id === field.value))}</SelectValue>
                         </SelectTrigger>
                         <SelectContent>
+                          {choices && (
+                            <p className="px-3 pt-2 pb-1 text-xs leading-[18px] text-muted-foreground">
+                              Tình trạng xe trong giờ chuyến này: {formatTime(departureIso(values))} {formatWeekdayDate(departureIso(values))} →{" "}
+                              {formatTime(arrivalIso(values))} {formatWeekdayDate(arrivalIso(values))}
+                            </p>
+                          )}
                           <SelectItem value={NO_VEHICLE}>Chưa gắn xe</SelectItem>
-                          {vehicleOptions.map((vehicle) => (
-                            <SelectItem key={vehicle.id} value={vehicle.id}>
-                              {formatPlateNumber(vehicle.plateNumber)}
-                              {vehicle.seatMap ? ` · ${vehicle.seatMap.name}` : ""}
-                            </SelectItem>
-                          ))}
+                          {choices ? (
+                            <>
+                              <SelectGroup>
+                                <SelectLabel className="font-semibold uppercase">Rảnh trong giờ chuyến · {choices.free.length} xe</SelectLabel>
+                                {choices.free.map((choice) => (
+                                  <SelectItem key={choice.vehicle.id} value={choice.vehicle.id}>
+                                    <span className="flex flex-col">
+                                      <span>{vehicleLabel(choice.vehicle)}</span>
+                                      <span className="text-xs leading-[18px] text-success-700">
+                                        {choiceNote(choice, values.departureDate, (id) => routeDestinations.get(id))}
+                                      </span>
+                                    </span>
+                                  </SelectItem>
+                                ))}
+                              </SelectGroup>
+                              {choices.busy.length > 0 && (
+                                <SelectGroup>
+                                  <SelectLabel className="font-semibold uppercase">
+                                    Trùng giờ — không chọn được · {choices.busy.length} xe
+                                  </SelectLabel>
+                                  {choices.busy.map((choice) => (
+                                    <SelectItem key={choice.vehicle.id} value={choice.vehicle.id} disabled>
+                                      <span className="flex min-w-0 flex-1 items-center gap-3">
+                                        <span className="flex min-w-0 flex-col">
+                                          <span>{vehicleLabel(choice.vehicle)}</span>
+                                          <span className="text-xs leading-[18px]">
+                                            {choiceNote(choice, values.departureDate, (id) => routeDestinations.get(id))}
+                                          </span>
+                                        </span>
+                                        <span className="ml-auto shrink-0 rounded-md bg-error-50 px-2 py-0.5 text-xs font-semibold text-error-600">
+                                          Trùng giờ
+                                        </span>
+                                      </span>
+                                    </SelectItem>
+                                  ))}
+                                </SelectGroup>
+                              )}
+                            </>
+                          ) : (
+                            vehicleOptions.map((vehicle) => (
+                              <SelectItem key={vehicle.id} value={vehicle.id}>
+                                {vehicleLabel(vehicle)}
+                              </SelectItem>
+                            ))
+                          )}
                         </SelectContent>
                       </Select>
                     )}
@@ -602,6 +673,19 @@ function TripFormBody({ trip, tripRoute }: { trip?: Trip; tripRoute?: Route }) {
             </p>
           </section>
 
+          {selectedVehicle && scheduleDate && nearbyTrips.data && (
+            <VehicleDayCard
+              plate={formatPlateNumber(selectedVehicle.plateNumber)}
+              vehicleId={selectedVehicle.id}
+              date={scheduleDate}
+              trips={nearbyTrips.data}
+              draft={validSpan ? { departureAt: departureIso(values), arrivalAt: arrivalIso(values) } : null}
+              destinationOf={(id) => routeDestinations.get(id)}
+              draftDestination={selectedRoute?.destinationName}
+              exceptTripId={trip?.id}
+            />
+          )}
+
           <section aria-labelledby="trip-summary-heading" className={`${CARD} gap-3.5`}>
             <h2 id="trip-summary-heading" className={CARD_TITLE}>
               Tổng quan
@@ -682,6 +766,14 @@ function AutoSplitSwitch({ checked, onChange }: { checked: boolean; onChange: (c
       </div>
     </div>
   );
+}
+
+/** Nhãn một xe trong ô chọn: `51B-289.12 · Giường nằm 34 chỗ`. */
+function vehicleLabel(vehicle: { plateNumber: string; seatMap: { name: string } | null } | undefined): string {
+  if (!vehicle) {
+    return "Chưa gắn xe";
+  }
+  return `${formatPlateNumber(vehicle.plateNumber)}${vehicle.seatMap ? ` · ${vehicle.seatMap.name}` : ""}`;
 }
 
 function SummaryRow({ label, value }: { label: string; value: string }) {

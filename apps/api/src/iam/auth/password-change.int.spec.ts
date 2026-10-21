@@ -21,6 +21,7 @@ describe.skipIf((!databaseUrl || !redisUrl) && !requireInfrastructure)(
     const operatorId = randomUUID();
     const accountId = randomUUID();
     const operatorSlug = `iam005-password-${operatorId.slice(0, 8)}`;
+    const platformId = randomUUID();
     const temporaryPassword = "temporary-password-for-integration";
     const newPassword = "new-password-for-integration";
 
@@ -51,6 +52,18 @@ describe.skipIf((!databaseUrl || !redisUrl) && !requireInfrastructure)(
             temporaryPasswordExpiresAt: new Date(Date.now() + 60_000),
           },
         });
+        // Tài khoản quản trị do Admin cấp (màn Người dùng): cùng luồng mật khẩu tạm, không thuộc nhà xe nào.
+        await tx.platformAccount.create({
+          data: {
+            id: platformId,
+            username: `pw-${platformId.slice(0, 8)}`,
+            contactEmail: `pw-${platformId.slice(0, 8)}@example.com`,
+            passwordHash,
+            role: "PLATFORM_SUPPORT",
+            passwordChangeRequired: true,
+            temporaryPasswordExpiresAt: new Date(Date.now() + 60_000),
+          },
+        });
       });
       service = new PasswordChangeService(
         { NODE_ENV: "test", BETTER_AUTH_SECRET: "integration-test-secret" } as never,
@@ -67,6 +80,7 @@ describe.skipIf((!databaseUrl || !redisUrl) && !requireInfrastructure)(
       if (prisma) {
         await prisma.withSystem(async (tx) => {
           await tx.operatorAccount.deleteMany({ where: { id: accountId } });
+          await tx.platformAccount.deleteMany({ where: { id: platformId } });
           await tx.operatorProfile.deleteMany({ where: { id: operatorId } });
         });
         await prisma.$disconnect();
@@ -83,7 +97,7 @@ describe.skipIf((!databaseUrl || !redisUrl) && !requireInfrastructure)(
       });
       await prisma.withSystem((tx) => tx.operatorProfile.update({
         where: { id: operatorId },
-        data: { status: "SUSPENDED" },
+        data: { status: "SUSPENDED", suspendedReason: "Kiểm thử", suspendedAt: new Date() },
       }));
 
       await expect(service.changeRequiredPassword(
@@ -94,7 +108,7 @@ describe.skipIf((!databaseUrl || !redisUrl) && !requireInfrastructure)(
 
       await prisma.withSystem((tx) => tx.operatorProfile.update({
         where: { id: operatorId },
-        data: { status: "ACTIVE" },
+        data: { status: "ACTIVE", suspendedReason: null, suspendedAt: null },
       }));
       const challenge = await service.begin({
         subjectType: SubjectType.OPERATOR,
@@ -127,6 +141,21 @@ describe.skipIf((!databaseUrl || !redisUrl) && !requireInfrastructure)(
         : "another-new-password-for-integration";
       expect(await credentials.verify(winningPassword, stored.passwordHash)).toBe(true);
       // Nhiều lần scrypt (cố ý chậm): chạy riêng ~3 s nhưng vượt mặc định 5 s khi cả suite DB chạy song song.
+    }, 20_000);
+
+    it("tài khoản quản trị: challenge PLATFORM (không nhà xe) đổi được mật khẩu tạm đúng một lần, tăng epoch", async () => {
+      const challenge = await service.begin({
+        subjectType: SubjectType.PLATFORM,
+        subjectId: platformId,
+        operatorId: null,
+        authEpoch: 0,
+      });
+      await service.changeRequiredPassword(challenge.passwordChangeToken, newPassword, {});
+      await expect(service.changeRequiredPassword(challenge.passwordChangeToken, newPassword, {})).rejects.toThrow();
+
+      const stored = await prisma.withSystem((tx) => tx.platformAccount.findUniqueOrThrow({ where: { id: platformId } }));
+      expect(stored).toMatchObject({ authEpoch: 1, passwordChangeRequired: false, temporaryPasswordExpiresAt: null });
+      expect(await credentials.verify(newPassword, stored.passwordHash)).toBe(true);
     }, 20_000);
   },
 );

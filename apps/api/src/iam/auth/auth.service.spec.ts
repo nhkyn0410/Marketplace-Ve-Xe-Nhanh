@@ -16,8 +16,9 @@ function setup() {
     }
   };
   const prisma = {
+    $executeRaw: vi.fn().mockResolvedValue(1),
     session: { deleteMany: vi.fn().mockResolvedValue({ count: 1 }) },
-    user: { findUnique: vi.fn() },
+    user: { findUnique: vi.fn().mockResolvedValue({ id: "user-1", email: "rider@example.com", status: "ACTIVE" }) },
     operatorProfile: { findUnique: vi.fn() },
     operatorAccount: { findUnique: vi.fn() },
     employeeAccount: { findUnique: vi.fn() },
@@ -453,6 +454,30 @@ describe("AuthService.platformLogin", () => {
     expect(await statusOf(ctx.service.platformLogin("phuongtrang/owner01", "p", {}))).toBe(401);
   });
 
+  it("tài khoản quản trị có mật khẩu tạm: chỉ nhận challenge đổi mật khẩu (PLATFORM, không nhà xe), chưa MFA", async () => {
+    ctx.prisma.platformAccount.findUnique.mockResolvedValue({
+      id: "padm-2",
+      username: "ngoc.finance",
+      passwordHash: "scrypt$x$y",
+      role: "PLATFORM_ADMIN",
+      status: "ACTIVE",
+      authEpoch: 3,
+      credentialDeliveryPending: false,
+      passwordChangeRequired: true,
+      temporaryPasswordExpiresAt: new Date(Date.now() + 60_000)
+    });
+    ctx.credentials.verify.mockResolvedValue(true);
+
+    await ctx.service.platformLogin("platform/ngoc.finance", "temp", {});
+    expect(ctx.passwordChanges.begin).toHaveBeenCalledWith({
+      subjectType: "PLATFORM",
+      subjectId: "padm-2",
+      operatorId: null,
+      authEpoch: 3
+    });
+    expect(ctx.mfa.begin).not.toHaveBeenCalled();
+  });
+
   it("platform password đúng chỉ nhận MFA challenge", async () => {
     ctx.prisma.platformAccount.findUnique.mockResolvedValue({
       id: "padm-1",
@@ -647,6 +672,19 @@ describe("AuthService passenger OTP", () => {
     const result = await ctx.service.verifyOtp("a@b.com", "123456", {});
     expect(result).toMatchObject({ scope: "passenger", role: "PASSENGER", refreshToken: "refresh-raw" });
     expect(ctx.sessions.create).toHaveBeenCalledWith({ type: "PASSENGER", id: "user-9" }, {});
+    expect(ctx.prisma.$executeRaw).toHaveBeenCalledOnce();
+    expect(ctx.prisma.$executeRaw.mock.calls[0]!.slice(1)).toContain("user-9");
+  });
+
+  it("hành khách bị Admin khóa: OTP đúng vẫn 403 AUTH_ACCOUNT_LOCKED, không tạo phiên (FR-IAM-08)", async () => {
+    ctx.auth.api.signInEmailOTP.mockResolvedValue({ user: { id: "user-9" } });
+    ctx.prisma.user.findUnique.mockResolvedValue({ id: "user-9", email: "a@b.com", status: "LOCKED" });
+    expect(await problemOf(ctx.service.verifyOtp("a@b.com", "123456", {}))).toMatchObject({
+      status: 403,
+      code: "AUTH_ACCOUNT_LOCKED"
+    });
+    expect(ctx.sessions.create).not.toHaveBeenCalled();
+    expect(ctx.prisma.$executeRaw).not.toHaveBeenCalled();
   });
 
   it("xoá phiên Better Auth vừa sinh ra — phiên thật là auth_sessions, phiên cầu nối không được sống", async () => {
@@ -810,6 +848,7 @@ describe("AuthService.refresh (IAM-002)", () => {
       id: "padm-1",
       role: "PLATFORM_ADMIN",
       status: "ACTIVE",
+      authEpoch: 0,
       passwordHash: "x"
     });
 
@@ -830,6 +869,7 @@ describe("AuthService.refresh (IAM-002)", () => {
       id: "padm-1",
       role: "PLATFORM_ADMIN",
       status: "ACTIVE",
+      authEpoch: 0,
       passwordHash: "x"
     });
 
@@ -991,7 +1031,7 @@ describe("AuthService.reauth (IAM-002, FR-IAM-10)", () => {
 
   it("passenger re-auth bằng OTP gửi tới email của CHÍNH account trong phiên", async () => {
     ctx.sessions.findById.mockResolvedValue(sessionRow());
-    ctx.prisma.user.findUnique.mockResolvedValue({ id: "user-9", email: "rider@example.com" });
+    ctx.prisma.user.findUnique.mockResolvedValue({ id: "user-9", email: "rider@example.com", status: "ACTIVE" });
     ctx.auth.api.signInEmailOTP.mockResolvedValue({ user: { id: "user-9" } });
 
     await ctx.service.reauth(
@@ -1007,7 +1047,7 @@ describe("AuthService.reauth (IAM-002, FR-IAM-10)", () => {
 
   it("passenger sai OTP → 401", async () => {
     ctx.sessions.findById.mockResolvedValue(sessionRow());
-    ctx.prisma.user.findUnique.mockResolvedValue({ id: "user-9", email: "rider@example.com" });
+    ctx.prisma.user.findUnique.mockResolvedValue({ id: "user-9", email: "rider@example.com", status: "ACTIVE" });
     ctx.auth.api.signInEmailOTP.mockRejectedValue(Object.assign(new Error("bad"), { status: 401 }));
 
     expect(
@@ -1157,6 +1197,7 @@ function setupAuthController() {
     RESEND_API_KEY: "test-resend-key",
     GOONG_API_KEY: "test-goong-key",
     WEB_CSRF_SECRET: Buffer.alloc(32, 2).toString("base64"),
+    TICKET_QR_SECRET: Buffer.alloc(32, 3).toString("base64"),
     OPERATOR_WEB_ORIGINS: "https://operator.example.com",
     ADMIN_WEB_ORIGINS: "https://admin.example.com",
     R2_ACCOUNT_ID: "account",

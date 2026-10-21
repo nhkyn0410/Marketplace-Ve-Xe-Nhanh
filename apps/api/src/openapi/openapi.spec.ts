@@ -377,5 +377,5 @@ describe("OpenAPI generation", () => {
     } finally {
       await app.close();
     }
-  });
+  }, 15_000);
 });

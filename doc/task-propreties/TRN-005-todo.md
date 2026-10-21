@@ -4,7 +4,7 @@
 > **Dependency:** TASK-TRN-003 (chuyến) — nhánh `TASK-TRN-005` tách từ nhánh TRN-003 (`claude/admiring-thompson-38d7s8`), chưa merge `develop`. Merge TRN-003 trước rồi đưa `develop` vào nhánh này.
 > **Mở khóa:** TASK-TRN-006 (mở bán cần fare hợp lệ — BR-39), TASK-TRN-004 (search hiển thị giá), TASK-BTP-002 (booking snapshot giá).
 
-## Trạng thái (14/10/2026) — 🔨 **ĐÃ ĐƯA VỀ REPO CHÍNH (BE + màn Operator OS), Khanh đã commit + chốt các điểm còn mở; chờ CI + merge**
+## Trạng thái (14/10/2026) — ✅ **Đã merge `develop` (PR #33, CI xanh); Khanh đã chốt mọi điểm còn mở**
 
 - ✅ 14/10/2026: Khanh chốt bốn điểm còn mở **theo đề xuất** — (1) khung giờ của quy tắc giữ là khoảng ngày giờ khởi hành, không làm giá theo giờ trong ngày như khung Figma; (2) duyệt ba trường `minPrice` / `maxPrice` / `hasDoubleSeatPrice` của danh sách bảng giá; (3) khoảng giá tính trên mọi quy tắc, kể cả quy tắc có khung giờ đã qua; (4) dải cảnh báo "giá ngoài khung giá" để `TASK-ADM-001`. Không đổi code; tài liệu đồng bộ: API v0.27, UI v0.23, file 11 v0.43.
 - ✅ 13/10/2026: port sang repo chính trên nhánh `TASK-TRN-005` (từ `develop` sau khi TRN-003 merge PR #31) — chi tiết ở mục "Đưa về repo chính" cuối file.

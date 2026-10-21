@@ -8,6 +8,7 @@ import {
   departureIso,
   describeTripSaveError,
   EMPTY_TRIP_VALUES,
+  prefillTripValues,
   hasCompleteTimes,
   NO_VEHICLE,
   parseCutoffMinutes,
@@ -280,5 +281,19 @@ describe("describeTripSaveError", () => {
       message: "Chưa lưu được chuyến. Vui lòng kiểm tra kết nối và thử lại."
     });
     expect(describeTripSaveError(new ApiError(500, "INTERNAL", "x")).field).toBeNull();
+  });
+});
+
+describe("điền sẵn từ Lịch xe (TASK-TRN-015)", () => {
+  it("lấy xe / ngày / giờ hợp lệ, bỏ qua tham số sai dạng", () => {
+    const params = (entries: Record<string, string>) => new URLSearchParams(entries);
+    const vehicleId = "6f6ec808-1f91-4689-aff7-b4c6b5ea12b3";
+    expect(prefillTripValues(params({ vehicleId, date: "2026-10-10", time: "20:00" }))).toMatchObject({
+      vehicleId,
+      departureDate: "2026-10-10",
+      departureTime: "20:00",
+      routeId: ""
+    });
+    expect(prefillTripValues(params({ vehicleId: "x", date: "10/10/2026", time: "25:00" }))).toEqual(EMPTY_TRIP_VALUES);
   });
 });

@@ -1,0 +1,33 @@
+# api_client_dart.model.AdminStopPointProposalListDtoOutputItemsInner
+
+## Load the model package
+```dart
+import 'package:api_client_dart/api.dart';
+```
+
+## Properties
+Name | Type | Description | Notes
+------------ | ------------- | ------------- | -------------
+**id** | **String** |  | 
+**name** | **String** |  | 
+**type** | **String** |  | 
+**address** | **String** |  | 
+**provinceId** | **String** |  | 
+**wardId** | **String** |  | 
+**latitude** | **num** |  | 
+**longitude** | **num** |  | 
+**description** | **String** |  | 
+**createdAt** | [**DateTime**](DateTime.md) |  | 
+**updatedAt** | [**DateTime**](DateTime.md) |  | 
+**provinceName** | **String** |  | 
+**legalBasis** | **String** |  | 
+**status** | **String** |  | 
+**rejectionReason** | **String** |  | 
+**catalogStopPointId** | **String** |  | 
+**operatorId** | **String** |  | 
+**operatorName** | **String** |  | 
+**nearby** | [**BuiltList&lt;AdminStopPointProposalListDtoOutputItemsInnerNearbyInner&gt;**](AdminStopPointProposalListDtoOutputItemsInnerNearbyInner.md) |  | 
+
+[[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)
+
+

@@ -269,3 +269,21 @@ export function describeTripSaveError(error: unknown): { field: TripSaveErrorFie
   }
   return { field: null, message: "Chưa lưu được chuyến. Vui lòng kiểm tra kết nối và thử lại." };
 }
+
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/**
+ * Giá trị đầu của form tạo chuyến khi mở từ Lịch xe (`?vehicleId=…&date=2026-10-10&time=20:00` — TASK-TRN-015); tham số
+ * sai dạng thì bỏ qua.
+ */
+export function prefillTripValues(params: { get(name: string): string | null }): TripFormValues {
+  const vehicleId = params.get("vehicleId");
+  const date = params.get("date");
+  const time = params.get("time");
+  return {
+    ...EMPTY_TRIP_VALUES,
+    ...(vehicleId && UUID_PATTERN.test(vehicleId) ? { vehicleId } : {}),
+    ...(date && /^\d{4}-\d{2}-\d{2}$/.test(date) ? { departureDate: date } : {}),
+    ...(time && /^([01]\d|2[0-3]):[0-5]\d$/.test(time) ? { departureTime: time } : {})
+  };
+}

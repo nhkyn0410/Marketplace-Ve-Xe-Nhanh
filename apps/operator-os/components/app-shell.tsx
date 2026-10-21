@@ -13,6 +13,7 @@ import {
   LifeBuoy,
   LogOut,
   MapPin,
+  Megaphone,
   Route,
   Tag,
   Ticket,
@@ -20,9 +21,11 @@ import {
   Wallet
 } from "lucide-react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 
 import { useAuth } from "../lib/auth/auth-context";
+import { isPublicPath } from "../lib/public-routes";
 
 // Theo 06 UI/UX §5 (Information architecture — Operator OS).
 const NAV_GROUPS: NavGroup[] = [
@@ -42,6 +45,8 @@ const NAV_GROUPS: NavGroup[] = [
     label: "Kinh doanh",
     items: [
       { href: "/bookings", label: "Đặt vé", icon: Ticket },
+      // Figma "VXN / Operator sidebar" (Khanh duyệt thêm mục 13/10/2026).
+      { href: "/promotions", label: "Khuyến mãi", icon: Megaphone },
       { href: "/finance", label: "Tài chính", icon: Wallet },
       { href: "/reports", label: "Báo cáo", icon: ChartColumn }
     ]
@@ -62,6 +67,10 @@ const NAV_GROUPS: NavGroup[] = [
  */
 export function AppShell({ children }: { children: ReactNode }) {
   const { state, logout } = useAuth();
+  // Trang đăng ký nhà xe công khai có khung riêng (`RegisterShell`), không có thanh quản trị.
+  if (isPublicPath(usePathname())) {
+    return children;
+  }
   // `AuthGate` chỉ dựng khung này khi đã đăng nhập; kiểm lại để kiểu dữ liệu chặt.
   const me = state.status === "authenticated" ? state.me : null;
   // `/auth/me` chưa trả tên hiển thị của nhà xe nên tạm dùng mã nhà xe (slug).

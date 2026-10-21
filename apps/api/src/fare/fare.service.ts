@@ -6,6 +6,7 @@ import { CatalogStatus, RouteStatus, type FareStatus, type SeatType } from "../d
 import type { Authorization } from "../iam/role/authorization";
 import { requireTenant } from "../iam/role/require-tenant";
 import { isPrismaUniqueConflict } from "../iam/user/account.errors";
+import { type FareBandRow, type FareBandWarning, fareBandWarnings, loadOpenFareBands } from "../policy/policy-state";
 import { routeUnavailable } from "../trip/trip.errors";
 import { DOUBLE_SEAT_TYPES } from "../vehicle/dto/seat-map.dto";
 import type {
@@ -109,18 +110,21 @@ export class FareService {
   /** Chi tiết bảng giá kèm rule; khác tenant trả 404 như không tồn tại. */
   async get(authz: Authorization, fareId: string): Promise<FareResponse> {
     const { db, operatorId } = requireTenant(authz);
-    const row = await this.prisma.withScope(db, (tx) => findDetail(tx, operatorId, fareId));
+    const [row, bands] = await this.prisma.withScope(db, async (tx) => [
+      await findDetail(tx, operatorId, fareId),
+      await loadOpenFareBands(tx, new Date()),
+    ] as const);
     if (!row) {
       throw fareNotFound();
     }
-    return toResponse(row);
+    return toResponse(row, bands);
   }
 
   /** Tạo bảng giá cho một tuyến `ACTIVE` của tenant (mỗi tuyến một bảng giá) + ghi lịch sử. */
   async create(actor: FareActor, authz: Authorization, input: FareCreateInput): Promise<FareResponse> {
     const { db, operatorId } = requireTenant(authz);
     assertRulesDisjoint(input.rules);
-    const row = await this.withDbConflicts(() =>
+    return this.withDbConflicts(() =>
       this.prisma.withScope(db, async (tx) => {
         const deadline = transactionDeadline(Date.now());
         const route = await tx.route.findFirst({
@@ -142,12 +146,11 @@ export class FareService {
         await tx.fareRule.createMany({ data: ruleRows(operatorId, fare.id, input.rules) });
         const created = (await findDetail(tx, operatorId, fare.id))!;
         await this.recordRevision(actor, operatorId, fare.id, "fare.create", null, created, deadline);
-        return created;
+        return this.withBandWarnings(tx, actor, operatorId, created, deadline);
       }),
       // Chỉ còn unique `(route_id, operator_id)`: hai request tạo bảng giá cho một tuyến cùng lúc.
       fareRouteConflict,
     );
-    return toResponse(row);
   }
 
   /**
@@ -158,7 +161,7 @@ export class FareService {
   async update(actor: FareActor, authz: Authorization, fareId: string, input: FareUpdateInput): Promise<FareResponse> {
     const { db, operatorId } = requireTenant(authz);
     assertRulesDisjoint(input.rules);
-    const row = await this.withDbConflicts(() =>
+    return this.withDbConflicts(() =>
       this.prisma.withScope(db, async (tx) => {
         const deadline = transactionDeadline(Date.now());
         const [locked] = await tx.$queryRaw<{ id: string }[]>`
@@ -169,7 +172,7 @@ export class FareService {
         const before = (await findDetail(tx, operatorId, fareId))!;
         if (sameContent(before, input)) {
           // Không đổi gì → không ghi DB, không thêm dòng lịch sử trùng (before = after).
-          return before;
+          return toResponse(before, await loadOpenFareBands(tx, new Date()));
         }
         await assertVehicleTypes(
           tx,
@@ -184,10 +187,39 @@ export class FareService {
         await tx.fareRule.createMany({ data: ruleRows(operatorId, fareId, input.rules) });
         const after = (await findDetail(tx, operatorId, fareId))!;
         await this.recordRevision(actor, operatorId, fareId, "fare.update", before, after, deadline);
-        return after;
+        return this.withBandWarnings(tx, actor, operatorId, after, deadline);
       }),
     );
-    return toResponse(row);
+  }
+
+  /**
+   * Gắn cảnh báo khung giá vào phản hồi; có quy tắc ngoài khung thì ghi audit `fare.band_warning` (OQ-17: chỉ cảnh báo
+   * và ghi nhận dữ liệu phục vụ kiểm tra — không chặn lưu). Không thuộc lịch sử giá (`AUDIT_ACTIONS`).
+   */
+  private async withBandWarnings(
+    tx: DbTransaction,
+    actor: FareActor,
+    operatorId: string,
+    row: FareDetailRow,
+    deadline: number,
+  ): Promise<FareResponse> {
+    const response = toResponse(row, await loadOpenFareBands(tx, new Date()));
+    if (response.bandWarnings.length > 0) {
+      await this.audit.recordAuditEvent(
+        {
+          actorId: actor.sub,
+          actorRole: actor.role,
+          action: "fare.band_warning",
+          targetType: AUDIT_TARGET,
+          targetId: row.id,
+          operatorId,
+          before: null,
+          after: { warnings: response.bandWarnings.map(warningSummary) },
+        },
+        { timeoutMs: AUDIT_TIMEOUT_MS, deadline },
+      );
+    }
+    return response;
   }
 
   /** Lịch sử thay đổi bảng giá (mới nhất trước) — đọc từ audit Mongo sau khi kiểm bảng giá thuộc tenant. */
@@ -386,13 +418,19 @@ function toSnapshot(row: FareDetailRow): FareSnapshot {
   return { routeId: row.routeId, status: row.status, note: row.note, rules: row.rules.map(toRuleResponse) };
 }
 
-function toResponse(row: FareDetailRow): FareResponse {
+function toResponse(row: FareDetailRow, bands: readonly FareBandRow[]): FareResponse {
   const { route, rules, ...fare } = row;
+  const ruleResponses = rules.map(toRuleResponse);
   return {
     ...fare,
     routeName: route.name,
     createdAt: fare.createdAt.toISOString(),
     updatedAt: fare.updatedAt.toISOString(),
-    rules: rules.map(toRuleResponse),
+    rules: ruleResponses,
+    bandWarnings: fareBandWarnings(ruleResponses, bands),
   };
+}
+
+function warningSummary(warning: FareBandWarning): Record<string, unknown> {
+  return { bandId: warning.bandId, ruleIndex: warning.ruleIndex, price: warning.price };
 }

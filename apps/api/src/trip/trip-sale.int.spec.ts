@@ -227,6 +227,7 @@ describe.skipIf(!(url && mongoUrl) && !requireDb)("Trip sale lifecycle — Postg
           id,
           name: `Bến ${index + 1} ${tag}`,
           type: "BUS_STATION" as const,
+          legalBasis: "QĐ công bố (test)",
           address: "x",
           provinceId: province,
           wardId: ward,
@@ -364,11 +365,11 @@ describe.skipIf(!(url && mongoUrl) && !requireDb)("Trip sale lifecycle — Postg
       expect(await reasonsOf(routeGone.trip.id)).toEqual(["ROUTE_INACTIVE"]);
 
       const suspended = await readyTrip();
-      await prisma.withSystem((tx) => tx.operatorProfile.update({ where: { id: tenantA }, data: { status: "SUSPENDED" } }));
+      await prisma.withSystem((tx) => tx.operatorProfile.update({ where: { id: tenantA }, data: { status: "SUSPENDED", suspendedReason: "Kiểm thử", suspendedAt: new Date() } }));
       try {
         expect(await reasonsOf(suspended.trip.id)).toEqual(["OPERATOR_INACTIVE"]);
       } finally {
-        await prisma.withSystem((tx) => tx.operatorProfile.update({ where: { id: tenantA }, data: { status: "ACTIVE" } }));
+        await prisma.withSystem((tx) => tx.operatorProfile.update({ where: { id: tenantA }, data: { status: "ACTIVE", suspendedReason: null, suspendedAt: null } }));
       }
     });
 

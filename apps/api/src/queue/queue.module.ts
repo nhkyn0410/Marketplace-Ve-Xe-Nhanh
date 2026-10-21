@@ -34,7 +34,16 @@ import { QueueHealthService } from "./queue-health.service";
     BullModule.registerQueue(
       { name: QUEUE_NAMES.foundation },
       { name: QUEUE_NAMES.sessionMaintenance },
-      { name: QUEUE_NAMES.storageMaintenance }
+      { name: QUEUE_NAMES.storageMaintenance },
+      { name: QUEUE_NAMES.kycMaintenance },
+      { name: QUEUE_NAMES.bookingMaintenance },
+      { name: QUEUE_NAMES.paymentCallbacks },
+      { name: QUEUE_NAMES.refundProcessing },
+      { name: QUEUE_NAMES.payoutMaintenance },
+      { name: QUEUE_NAMES.notifications },
+      { name: QUEUE_NAMES.paymentReconciliation },
+      { name: QUEUE_NAMES.disputeMaintenance },
+      { name: QUEUE_NAMES.loyaltyMaintenance }
     )
   ],
   providers: [BullBoardService, QueueHealthService],

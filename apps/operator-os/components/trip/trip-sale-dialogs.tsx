@@ -89,7 +89,8 @@ function CancelTripForm({
   function submit(event: FormEvent) {
     event.preventDefault();
     const text = reason.trim();
-    if (!text) {
+    // Lý do gửi cho khách bị ảnh hưởng (TRN-008) — tối thiểu 3 ký tự như máy chủ.
+    if (text.length < 3) {
       setMissing(true);
       return;
     }
@@ -106,7 +107,7 @@ function CancelTripForm({
         <FormField
           label="Lý do hủy *"
           helper={`Bắt buộc · tối đa ${TEXT_MAX_LENGTH} ký tự · lưu vào lịch sử thay đổi của chuyến`}
-          error={missing ? "Nhập lý do hủy chuyến." : undefined}
+          error={missing ? "Nhập lý do hủy chuyến (tối thiểu 3 ký tự)." : undefined}
         >
           {(control) => (
             <Textarea

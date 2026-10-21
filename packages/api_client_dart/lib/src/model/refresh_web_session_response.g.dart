@@ -135,9 +135,9 @@ class _$RefreshWebSessionResponse extends RefreshWebSessionResponse {
   @override
   final String role;
   @override
-  final int expiresIn;
+  final int? expiresIn;
   @override
-  final int refreshExpiresIn;
+  final int? refreshExpiresIn;
 
   factory _$RefreshWebSessionResponse(
           [void Function(RefreshWebSessionResponseBuilder)? updates]) =>
@@ -147,8 +147,8 @@ class _$RefreshWebSessionResponse extends RefreshWebSessionResponse {
       {required this.authenticated,
       required this.scope,
       required this.role,
-      required this.expiresIn,
-      required this.refreshExpiresIn})
+      this.expiresIn,
+      this.refreshExpiresIn})
       : super._();
   @override
   RefreshWebSessionResponse rebuild(
@@ -262,12 +262,8 @@ class RefreshWebSessionResponseBuilder
               scope, r'RefreshWebSessionResponse', 'scope'),
           role: BuiltValueNullFieldError.checkNotNull(
               role, r'RefreshWebSessionResponse', 'role'),
-          expiresIn: BuiltValueNullFieldError.checkNotNull(
-              expiresIn, r'RefreshWebSessionResponse', 'expiresIn'),
-          refreshExpiresIn: BuiltValueNullFieldError.checkNotNull(
-              refreshExpiresIn,
-              r'RefreshWebSessionResponse',
-              'refreshExpiresIn'),
+          expiresIn: expiresIn,
+          refreshExpiresIn: refreshExpiresIn,
         );
     replace(_$result);
     return _$result;

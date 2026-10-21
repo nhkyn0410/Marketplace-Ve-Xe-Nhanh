@@ -161,6 +161,14 @@ export const envSchema = z
     ),
     // Email OTP delivery (Resend required for delivery; dev fallback never prints OTP).
     RESEND_API_KEY: optionalString,
+    FCM_PROJECT_ID: optionalString,
+    FCM_CLIENT_EMAIL: z.preprocess(emptyToUndefined, z.email().optional()),
+    FCM_PRIVATE_KEY: optionalString,
+    APNS_TEAM_ID: optionalString,
+    APNS_KEY_ID: optionalString,
+    APNS_PRIVATE_KEY: optionalString,
+    APNS_TOPIC: optionalString,
+    APNS_SANDBOX: z.enum(["true", "false"]).default("true"),
     RESEND_FROM_EMAIL: z.preprocess(
       emptyToUndefined,
       z.email().default("no-reply@vexenhanh.com"),
@@ -185,6 +193,32 @@ export const envSchema = z
     // Gốc địa chỉ công khai của bucket (CDN / custom domain), vd `https://cdn.vexenhanh.com`.
     R2_PUBLIC_BASE_URL: z.preprocess(emptyToUndefined, z.url().optional()),
     STORAGE_LOCAL_DIR: optionalString,
+    // Bucket private cho giấy tờ KYC (ADR-018, TASK-OPR-001), dùng chung tài khoản R2 ở trên. Production chưa khai
+    // thì API tải / xem giấy tờ trả 503 — nơi lưu KYC production chờ OQ-21; dev / test bỏ trống thì lưu ổ đĩa.
+    R2_PRIVATE_BUCKET: optionalString,
+    // Hạn dùng link bảo mật của hồ sơ đăng ký nhà xe (Security §5: mặc định 72 giờ; DB chặn quá 30 ngày).
+    OPERATOR_APPLICATION_LINK_TTL_HOURS: z.preprocess(
+      emptyToUndefined,
+      z.coerce.number().int().positive().max(720).default(72),
+    ),
+    // Cổng thanh toán (ADR-019, TASK-BTP-003). Tới khi có giấy phép trung gian thanh toán (OQ-22) chỉ dùng sandbox:
+    // URL mặc định là sandbox. Thiếu khóa một cổng → cổng đó tắt (tạo payment trả 503); riêng dev / test thiếu khóa thì
+    // dùng cổng giả lập trong API (`/v1/dev/payment-gateway/*`) — KHÔNG bao giờ ở production. IPN của MoMo gửi về
+    // `BETTER_AUTH_URL` (origin công khai của API); IPN VNPay khai ở cổng quản trị merchant.
+    VNPAY_TMN_CODE: optionalString,
+    VNPAY_HASH_SECRET: optionalString,
+    VNPAY_PAYMENT_URL: z.preprocess(emptyToUndefined, z.url().default("https://sandbox.vnpayment.vn/paymentv2/vpcpay.html")),
+    // API truy vấn / hoàn tiền của VNPay (TASK-BTP-005).
+    VNPAY_API_URL: z.preprocess(emptyToUndefined, z.url().default("https://sandbox.vnpayment.vn/merchant_webapi/api/transaction")),
+    MOMO_PARTNER_CODE: optionalString,
+    MOMO_ACCESS_KEY: optionalString,
+    MOMO_SECRET_KEY: optionalString,
+    MOMO_ENDPOINT: z.preprocess(emptyToUndefined, z.url().default("https://test-payment.momo.vn")),
+    // Gốc web Marketplace: cổng đưa khách về `{gốc}/bookings/{bookingId}/payment/result` (chỉ hiển thị kết quả).
+    PAYMENT_RETURN_BASE_URL: z.preprocess(emptyToUndefined, z.url().default("http://localhost:3001")),
+    // Khóa HMAC sinh QR vé (TASK-BTP-004, BR-29; base64 32 byte, tách khỏi mọi khóa khác). Đổi khóa = mọi QR cũ mất hiệu
+    // lực. Thiếu ở dev / test → khóa cố định chỉ cho dev (QR vẫn đúng sau khi khởi động lại); production bắt buộc.
+    TICKET_QR_SECRET: optionalBase64Key32,
   })
   .superRefine((env, ctx) => {
     // Một origin thuộc cả hai app thì không biết ràng phiên với scope nào → từ chối ở mọi môi trường.
@@ -211,6 +245,19 @@ export const envSchema = z
         ctx.addIssue({ code: "custom", path: [key], message: `${key} is required when any R2_* variable is set.` });
       }
     }
+    // Khai dở khóa một cổng thanh toán → từ chối (không lặng lẽ tắt cổng / rơi về cổng giả lập).
+    for (const keys of [
+      ["VNPAY_TMN_CODE", "VNPAY_HASH_SECRET"],
+      ["MOMO_PARTNER_CODE", "MOMO_ACCESS_KEY", "MOMO_SECRET_KEY"],
+      ["FCM_PROJECT_ID", "FCM_CLIENT_EMAIL", "FCM_PRIVATE_KEY"],
+      ["APNS_TEAM_ID", "APNS_KEY_ID", "APNS_PRIVATE_KEY", "APNS_TOPIC"],
+    ] as const) {
+      if (keys.some((key) => env[key]) && !keys.every((key) => env[key])) {
+        for (const key of keys.filter((name) => !env[name])) {
+          ctx.addIssue({ code: "custom", path: [key], message: `${key} is required when the gateway is configured.` });
+        }
+      }
+    }
     // Production fail-fast: secret/key bắt buộc, base URL phải https non-localhost (sec H1/M4).
     if (env.NODE_ENV !== "production") {
       return;
@@ -230,6 +277,7 @@ export const envSchema = z
       "WEB_CSRF_SECRET",
       "OPERATOR_WEB_ORIGINS",
       "ADMIN_WEB_ORIGINS",
+      "TICKET_QR_SECRET",
     ] as const) {
       if (!env[key]) {
         ctx.addIssue({

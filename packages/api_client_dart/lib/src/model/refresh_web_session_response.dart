@@ -12,13 +12,15 @@ part 'refresh_web_session_response.g.dart';
 /// RefreshWebSessionResponse
 ///
 /// Properties:
-/// * [authenticated] 
-/// * [scope] 
-/// * [role] 
-/// * [expiresIn] 
-/// * [refreshExpiresIn] 
+/// * [authenticated]
+/// * [scope]
+/// * [role]
+/// * [expiresIn]
+/// * [refreshExpiresIn]
 @BuiltValue()
-abstract class RefreshWebSessionResponse implements Built<RefreshWebSessionResponse, RefreshWebSessionResponseBuilder> {
+abstract class RefreshWebSessionResponse
+    implements
+        Built<RefreshWebSessionResponse, RefreshWebSessionResponseBuilder> {
   @BuiltValueField(wireName: r'authenticated')
   RefreshWebSessionResponseAuthenticatedEnum get authenticated;
   // enum authenticatedEnum {  true,  };
@@ -31,25 +33,32 @@ abstract class RefreshWebSessionResponse implements Built<RefreshWebSessionRespo
   String get role;
 
   @BuiltValueField(wireName: r'expiresIn')
-  int get expiresIn;
+  int? get expiresIn;
 
   @BuiltValueField(wireName: r'refreshExpiresIn')
-  int get refreshExpiresIn;
+  int? get refreshExpiresIn;
 
   RefreshWebSessionResponse._();
 
-  factory RefreshWebSessionResponse([void updates(RefreshWebSessionResponseBuilder b)]) = _$RefreshWebSessionResponse;
+  factory RefreshWebSessionResponse(
+          [void updates(RefreshWebSessionResponseBuilder b)]) =
+      _$RefreshWebSessionResponse;
 
   @BuiltValueHook(initializeBuilder: true)
   static void _defaults(RefreshWebSessionResponseBuilder b) => b;
 
   @BuiltValueSerializer(custom: true)
-  static Serializer<RefreshWebSessionResponse> get serializer => _$RefreshWebSessionResponseSerializer();
+  static Serializer<RefreshWebSessionResponse> get serializer =>
+      _$RefreshWebSessionResponseSerializer();
 }
 
-class _$RefreshWebSessionResponseSerializer implements PrimitiveSerializer<RefreshWebSessionResponse> {
+class _$RefreshWebSessionResponseSerializer
+    implements PrimitiveSerializer<RefreshWebSessionResponse> {
   @override
-  final Iterable<Type> types = const [RefreshWebSessionResponse, _$RefreshWebSessionResponse];
+  final Iterable<Type> types = const [
+    RefreshWebSessionResponse,
+    _$RefreshWebSessionResponse
+  ];
 
   @override
   final String wireName = r'RefreshWebSessionResponse';
@@ -75,15 +84,19 @@ class _$RefreshWebSessionResponseSerializer implements PrimitiveSerializer<Refre
       specifiedType: const FullType(String),
     );
     yield r'expiresIn';
-    yield serializers.serialize(
-      object.expiresIn,
-      specifiedType: const FullType(int),
-    );
+    yield object.expiresIn == null
+        ? null
+        : serializers.serialize(
+            object.expiresIn,
+            specifiedType: const FullType.nullable(int),
+          );
     yield r'refreshExpiresIn';
-    yield serializers.serialize(
-      object.refreshExpiresIn,
-      specifiedType: const FullType(int),
-    );
+    yield object.refreshExpiresIn == null
+        ? null
+        : serializers.serialize(
+            object.refreshExpiresIn,
+            specifiedType: const FullType.nullable(int),
+          );
   }
 
   @override
@@ -92,7 +105,9 @@ class _$RefreshWebSessionResponseSerializer implements PrimitiveSerializer<Refre
     RefreshWebSessionResponse object, {
     FullType specifiedType = FullType.unspecified,
   }) {
-    return _serializeProperties(serializers, object, specifiedType: specifiedType).toList();
+    return _serializeProperties(serializers, object,
+            specifiedType: specifiedType)
+        .toList();
   }
 
   void _deserializeProperties(
@@ -110,7 +125,8 @@ class _$RefreshWebSessionResponseSerializer implements PrimitiveSerializer<Refre
         case r'authenticated':
           final valueDes = serializers.deserialize(
             value,
-            specifiedType: const FullType(RefreshWebSessionResponseAuthenticatedEnum),
+            specifiedType:
+                const FullType(RefreshWebSessionResponseAuthenticatedEnum),
           ) as RefreshWebSessionResponseAuthenticatedEnum;
           result.authenticated = valueDes;
           break;
@@ -131,15 +147,17 @@ class _$RefreshWebSessionResponseSerializer implements PrimitiveSerializer<Refre
         case r'expiresIn':
           final valueDes = serializers.deserialize(
             value,
-            specifiedType: const FullType(int),
-          ) as int;
+            specifiedType: const FullType.nullable(int),
+          ) as int?;
+          if (valueDes == null) continue;
           result.expiresIn = valueDes;
           break;
         case r'refreshExpiresIn':
           final valueDes = serializers.deserialize(
             value,
-            specifiedType: const FullType(int),
-          ) as int;
+            specifiedType: const FullType.nullable(int),
+          ) as int?;
+          if (valueDes == null) continue;
           result.refreshExpiresIn = valueDes;
           break;
         default:
@@ -171,34 +189,40 @@ class _$RefreshWebSessionResponseSerializer implements PrimitiveSerializer<Refre
   }
 }
 
-
 class RefreshWebSessionResponseAuthenticatedEnum extends EnumClass {
-
   @BuiltValueEnumConst(wireName: r'true')
-  static const RefreshWebSessionResponseAuthenticatedEnum true_ = _$refreshWebSessionResponseAuthenticatedEnum_true_;
+  static const RefreshWebSessionResponseAuthenticatedEnum true_ =
+      _$refreshWebSessionResponseAuthenticatedEnum_true_;
 
-  static Serializer<RefreshWebSessionResponseAuthenticatedEnum> get serializer => _$refreshWebSessionResponseAuthenticatedEnumSerializer;
+  static Serializer<RefreshWebSessionResponseAuthenticatedEnum>
+      get serializer => _$refreshWebSessionResponseAuthenticatedEnumSerializer;
 
-  const RefreshWebSessionResponseAuthenticatedEnum._(String name): super(name);
+  const RefreshWebSessionResponseAuthenticatedEnum._(String name) : super(name);
 
-  static BuiltSet<RefreshWebSessionResponseAuthenticatedEnum> get values => _$refreshWebSessionResponseAuthenticatedEnumValues;
-  static RefreshWebSessionResponseAuthenticatedEnum valueOf(String name) => _$refreshWebSessionResponseAuthenticatedEnumValueOf(name);
+  static BuiltSet<RefreshWebSessionResponseAuthenticatedEnum> get values =>
+      _$refreshWebSessionResponseAuthenticatedEnumValues;
+  static RefreshWebSessionResponseAuthenticatedEnum valueOf(String name) =>
+      _$refreshWebSessionResponseAuthenticatedEnumValueOf(name);
 }
 
 class RefreshWebSessionResponseScopeEnum extends EnumClass {
-
   @BuiltValueEnumConst(wireName: r'passenger')
-  static const RefreshWebSessionResponseScopeEnum passenger = _$refreshWebSessionResponseScopeEnum_passenger;
+  static const RefreshWebSessionResponseScopeEnum passenger =
+      _$refreshWebSessionResponseScopeEnum_passenger;
   @BuiltValueEnumConst(wireName: r'operator')
-  static const RefreshWebSessionResponseScopeEnum operator_ = _$refreshWebSessionResponseScopeEnum_operator_;
+  static const RefreshWebSessionResponseScopeEnum operator_ =
+      _$refreshWebSessionResponseScopeEnum_operator_;
   @BuiltValueEnumConst(wireName: r'platform')
-  static const RefreshWebSessionResponseScopeEnum platform = _$refreshWebSessionResponseScopeEnum_platform;
+  static const RefreshWebSessionResponseScopeEnum platform =
+      _$refreshWebSessionResponseScopeEnum_platform;
 
-  static Serializer<RefreshWebSessionResponseScopeEnum> get serializer => _$refreshWebSessionResponseScopeEnumSerializer;
+  static Serializer<RefreshWebSessionResponseScopeEnum> get serializer =>
+      _$refreshWebSessionResponseScopeEnumSerializer;
 
-  const RefreshWebSessionResponseScopeEnum._(String name): super(name);
+  const RefreshWebSessionResponseScopeEnum._(String name) : super(name);
 
-  static BuiltSet<RefreshWebSessionResponseScopeEnum> get values => _$refreshWebSessionResponseScopeEnumValues;
-  static RefreshWebSessionResponseScopeEnum valueOf(String name) => _$refreshWebSessionResponseScopeEnumValueOf(name);
+  static BuiltSet<RefreshWebSessionResponseScopeEnum> get values =>
+      _$refreshWebSessionResponseScopeEnumValues;
+  static RefreshWebSessionResponseScopeEnum valueOf(String name) =>
+      _$refreshWebSessionResponseScopeEnumValueOf(name);
 }
-
