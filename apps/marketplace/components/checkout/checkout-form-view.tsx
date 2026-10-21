@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { createBooking } from "../../lib/data/booking";
+import { checkCheckoutPromotion, createBooking } from "../../lib/data/booking";
 import { CheckoutStepper } from "../booking/checkout-stepper";
 import { ContactInfoForm } from "./contact-info-form";
 import { PassengerListForm } from "./passenger-list-form";
@@ -15,6 +15,7 @@ import {
   CheckoutHoldData,
   CheckoutContactInfo,
   CheckoutPassengerItem,
+  CheckoutPromotionQuote,
   SavedPassenger
 } from "../../lib/data/types";
 
@@ -23,14 +24,16 @@ import {
  */
 export interface CheckoutFormViewProps {
   readonly initialData: CheckoutHoldData;
+  readonly isPreview?: boolean;
 }
 
 /**
  * View tổng hợp toàn bộ màn hình B2 Nhập thông tin hành khách (SCR-PSG-19).
  */
-export function CheckoutFormView({ initialData }: CheckoutFormViewProps) {
+export function CheckoutFormView({ initialData, isPreview = false }: CheckoutFormViewProps) {
   const router = useRouter();
   const submitting = useRef(false);
+  const checkingPromotion = useRef(false);
   const [contactInfo, setContactInfo] = useState<CheckoutContactInfo>(
     initialData.contactInfo
   );
@@ -48,6 +51,42 @@ export function CheckoutFormView({ initialData }: CheckoutFormViewProps) {
     Boolean(initialData.stalePrice)
   );
   const [actionError, setActionError] = useState<string | null>(null);
+  const [promotionCode, setPromotionCode] = useState("");
+  const [promotionQuote, setPromotionQuote] = useState<CheckoutPromotionQuote | null>(null);
+  const [promotionError, setPromotionError] = useState<string | null>(null);
+  const [isCheckingPromotion, setIsCheckingPromotion] = useState(false);
+  const priceSummary = promotionQuote
+    ? { ...initialData.priceSummary, discountVnd: promotionQuote.discountVnd, discountLabel: `Mã ${promotionQuote.code}`, finalTotalVnd: promotionQuote.totalVnd }
+    : initialData.priceSummary;
+
+  // Sửa hoặc bỏ mã phải bỏ cả báo giá cũ trước khi khách xác nhận.
+  const handleChangePromotion = (code: string): void => {
+    if (checkingPromotion.current || submitting.current || isPreview || expired) return;
+    setPromotionCode(code);
+    setPromotionQuote(null);
+    setPromotionError(null);
+    setActionError(null);
+  };
+
+  // Chỉ hiển thị số tiền API báo; việc kiểm mã chưa giữ lượt sử dụng.
+  const handleApplyPromotion = async (): Promise<void> => {
+    if (checkingPromotion.current || submitting.current || isPreview || expired || !promotionCode.trim()) return;
+    checkingPromotion.current = true;
+    setIsCheckingPromotion(true);
+    setPromotionQuote(null);
+    setPromotionError(null);
+    setActionError(null);
+    try {
+      const result = await checkCheckoutPromotion(initialData.holdId, promotionCode);
+      if (result.status === "ok") {
+        setPromotionCode(result.data.code);
+        setPromotionQuote(result.data);
+      } else {
+        setPromotionError(result.status === "error" ? result.message ?? "Không thể áp dụng mã. Vui lòng thử lại." : "Chức năng kiểm mã tạm thời chưa khả dụng.");
+      }
+    } catch { setPromotionError("Không thể kiểm tra mã lúc này. Vui lòng thử lại."); }
+    finally { checkingPromotion.current = false; setIsCheckingPromotion(false); }
+  };
 
   // Cập nhật thông tin liên hệ
   const handleUpdateContact = (
@@ -89,13 +128,20 @@ export function CheckoutFormView({ initialData }: CheckoutFormViewProps) {
 
   // Xử lý nút Tiếp tục thanh toán (B3)
   const handleProceedToPayment = async (): Promise<void> => {
-    if (submitting.current) return;
+    if (submitting.current || checkingPromotion.current || isPreview) return;
     if (expired) { setActionError("Phiên giữ chỗ đã hết hạn. Vui lòng quay lại chọn chỗ."); return; }
+    if (promotionCode.trim() && !promotionQuote) {
+      setPromotionError("Vui lòng áp dụng mã hoặc xóa mã trước khi tiếp tục.");
+      return;
+    }
     submitting.current = true;
     setIsSubmitting(true);
     setActionError(null);
     try {
-      const result = await createBooking(initialData.holdId, { contactInfo, passengers, note });
+      const result = await createBooking(initialData.holdId, {
+        contactInfo, passengers, note,
+        ...(promotionQuote ? { promotion: { code: promotionQuote.code, expectedTotalVnd: promotionQuote.totalVnd } } : {})
+      });
       if (result.status === "ok") router.push(`/bookings/${result.data.bookingId}/payment`);
       else setActionError(result.status === "error" ? result.message ?? "Không thể tạo đơn. Vui lòng kiểm tra thông tin và giá vé." : "Chức năng đặt vé tạm thời chưa khả dụng.");
     } catch { setActionError("Không thể kết nối hệ thống đặt vé. Vui lòng thử lại."); }
@@ -112,7 +158,7 @@ export function CheckoutFormView({ initialData }: CheckoutFormViewProps) {
 
       {/* Thông báo lỗi thao tác (khi bấm tiếp tục) */}
       {actionError && (
-        <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-3.5 text-xs font-semibold text-amber-800">
+        <div role="alert" className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-3.5 text-xs font-semibold text-amber-800">
           ⚠️ {actionError}
         </div>
       )}
@@ -148,7 +194,17 @@ export function CheckoutFormView({ initialData }: CheckoutFormViewProps) {
           <OperatorNoteBox note={note} onChange={setNote} />
 
           {/* Khối 5: Ưu đãi voucher */}
-          <CheckoutVoucherSelector />
+          <CheckoutVoucherSelector
+            code={promotionCode}
+            quote={promotionQuote}
+            error={promotionError}
+            isChecking={isCheckingPromotion}
+            isDisabled={isPreview || isSubmitting || isCheckingPromotion || expired}
+            isPreview={isPreview}
+            onChange={handleChangePromotion}
+            onApply={handleApplyPromotion}
+            onRemove={() => handleChangePromotion("")}
+          />
         </div>
 
         {/* Cột phải: Tóm tắt thanh toán */}
@@ -160,10 +216,11 @@ export function CheckoutFormView({ initialData }: CheckoutFormViewProps) {
           pickupPoint={initialData.pickupPoint}
           dropoffPoint={initialData.dropoffPoint}
           passengers={passengers}
-          priceSummary={initialData.priceSummary}
+          priceSummary={priceSummary}
           onProceedToPayment={handleProceedToPayment}
           isSubmitting={isSubmitting}
           isExpired={expired}
+          isDisabled={isPreview || isCheckingPromotion}
         />
       </div>
 

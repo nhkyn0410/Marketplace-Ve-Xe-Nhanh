@@ -7,7 +7,7 @@ Ngày: 21/10/2026. Branch: `marketplace-api-integration`.
 - Tạo branch từ `origin/develop` (`99151f8`), gộp `origin/MKT-WEB-ui` (`10f26ef`); merge commit `3125a28`, không xung đột.
 - Tên branch nguồn thực tế là `MKT-WEB-ui`, khác thứ tự chữ `MTK-WEB-ui` trong yêu cầu.
 - Chỉ sửa web `apps/marketplace`, dependency/lockfile và báo cáo này. Không sửa backend, Prisma, Zod hợp đồng hoặc client được sinh.
-- Phần nối API đang ở working tree, chưa commit/push. Merge commit được tạo bởi thao tác gộp branch đã yêu cầu.
+- Đợt nối API trước hiện nằm ở commit `bc2eeb0`. Phần bổ sung áp mã/checklist bên dưới đang ở working tree, chưa commit/push trong lượt này. Merge commit được tạo bởi thao tác gộp branch đã yêu cầu.
 
 ## Các luồng đã nối
 
@@ -33,7 +33,7 @@ Ngày: 21/10/2026. Branch: `marketplace-api-integration`.
 | Hộp thư thông báo | `/me/notifications` là nhật ký gửi; thiếu title/content/read-state của hộp thư UI. Chỉ nối cài đặt kênh thông báo. |
 | Trang chủ | Chưa có danh sách tuyến phổ biến và nhà xe nổi bật (`/catalog/popular-routes`, `/catalog/featured-operators`). Nhánh thật chỉ hiển thị tìm chuyến, bài viết và hướng dẫn có thể sử dụng; bỏ khối placeholder và bộ chọn nhà xe không có danh mục. |
 | Tiền trong hợp đồng | Một số DTO trip/hold/booking/payment/cancellation dùng JSON integer `number`, khác quy ước chuỗi/BIGINT phía web. Web kiểm tra safe integer rồi chuyển BigInt/chuỗi; không tính tiền bằng float. Không đổi API. |
-| Voucher ở checkout | Hold trả subtotal; chưa có API báo giá tổng tiền/voucher trước khi tạo booking. Booking kiểm tra `expectedTotal` và tính giảm giá trong transaction. Chưa bật áp voucher tại checkout để tránh tự tính hoặc tự chấp nhận số tiền mới. |
+| Voucher ở checkout | Hold trả subtotal. Đối chiếu lại khi lập kế hoạch E2E: **đã có** `POST /promotions/check` nhận `tripId`, `code`, `subtotal`, trả `discount` và `total`; API kiểm mã nhưng không giữ lượt dùng. **Đã bổ sung** kiểm/áp/bỏ mã công khai vào checkout và gửi `promotionCode` + `expectedTotal` khách đã thấy. Riêng voucher ví qua `userVoucherId` chưa có bước quote tương ứng được xác định nên chưa bật áp voucher ví. Booking kiểm tra tổng và claim ưu đãi trong transaction. Không sửa API. |
 | Thanh toán | Backend nhận provider `VNPAY`/`MOMO`, không nhận lựa chọn ngân hàng con; web chỉ gửi provider. Chưa có endpoint gửi lại email vé. |
 | Tra cứu khách | API trực tiếp `/guest/ticket-lookup`, không có OTP request/verify hoặc token phiên lookup như UI cũ. Web thích ứng bằng phiên tra cứu riêng 15 phút. API không cấp booking capability từ lookup nên không thể dùng kết quả lookup đơn thuần để hủy vé hoặc gửi hỗ trợ. |
 | Hồ sơ | API chưa có giới tính/CCCD, đổi email hay liên kết OAuth. Các trường/thao tác đó không được giả lưu thành công. |
@@ -48,7 +48,7 @@ Nguồn đối chiếu thực tế: `packages/api-client/src/generated/openapi.j
 
 - Đăng nhập/đăng ký dùng email OTP; bỏ thời hạn OTP và số lượt thử tự đoán. Hồ sơ chỉ cho sửa trường được hỗ trợ, không biến email thành họ tên khi tên đang trống.
 - Cài đặt thông báo chỉ hiển thị tùy chọn Email/Push; bỏ hộp thư/read-state giả. Review theo booking, nhận xét tùy chọn và không có nút lưu tạm/chỉnh sửa giả.
-- Checkout phân biệt giá giữ chỗ với tổng tiền booking; không có ô áp voucher hoặc chọn ngân hàng khi API chưa hỗ trợ. Trạng thái vé/thanh toán và nút quản lý đơn theo dữ liệu/quyền thực tế.
+- Checkout phân biệt giá giữ chỗ với tổng tiền booking; đã có ô áp mã công khai qua API kiểm mã. Chưa áp voucher ví hoặc chọn ngân hàng con khi hợp đồng tương ứng chưa đủ. Trạng thái vé/thanh toán và nút quản lý đơn theo dữ liệu/quyền thực tế.
 - Ví voucher tách bốn trạng thái; voucher đang giữ không tính là khả dụng. Hiển thị mức giảm phần trăm/số tiền, mã công khai và hạn dùng thật; không hứa tự áp mã khi chuyển tới tìm chuyến.
 - VXN Plus xử lý riêng hạng cao nhất, thiếu chính sách, tài khoản chưa hoạt động và thiếu điểm. Sau đổi điểm, hiển thị số dư API trả về; preview không thể gửi yêu cầu đổi/lưu thật.
 - Không hiển thị endpoint hoặc nhãn kỹ thuật trong trạng thái chưa khả dụng. Footer chỉ dẫn tới các luồng khách hàng đang có; bỏ cổng localhost, đăng ký nhà xe chưa có trang và địa chỉ liên hệ mẫu.
@@ -64,3 +64,12 @@ Nguồn đối chiếu thực tế: `packages/api-client/src/generated/openapi.j
 - Sau chỉnh UI, đã kiểm tra trực tiếp form đăng ký chỉ còn email và tra cứu mã booking + email không có bước OTP; sửa liên kết điều khoản/bảo mật về đường dẫn pháp lý hiện có.
 - API local port 3000 không chạy trong phiên này: chưa xác minh hành trình mua vé/OTP/thanh toán sandbox với backend thật.
 - Chưa chạy review độc lập hoặc security audit, theo quy tắc chỉ chạy khi Khanh yêu cầu.
+
+## Bổ sung sau khi đối chiếu kế hoạch E2E — 21/10/2026
+
+- Sửa nhận định trước đây về API mã khuyến mãi: endpoint kiểm mã đã có, thiếu phần nối frontend. Đã bổ sung ô nhập/Áp dụng/Xóa mã cho Guest và Passenger; subtotal lấy từ hold trên server, mức giảm/tổng lấy từ API, kiểm số tiền an toàn bằng BigInt/chuỗi.
+- Tạo booking gửi đúng mã và tổng sau giảm khách đã thấy. Sửa mã làm mất hiệu lực quote cũ; đang kiểm mã thì chặn tạo đơn; mã chưa kiểm phải áp hoặc xóa trước khi tiếp tục. Lỗi hết lượt/giá thay đổi giữ biểu mẫu, không tự bỏ mã hoặc chấp nhận tổng mới. Nếu giá ghế đổi cần quay lại chọn chỗ vì đọc lại hold vẫn là snapshot.
+- Nhãn giảm giá ở checkout/payment lấy từ dữ liệu; preview tắt thao tác áp mã/tạo đơn. Khi kiểm trình duyệt, phát hiện và gỡ liên kết sửa đơn trỏ cố định tới hold mẫu `/checkout/hold-pn-789` tại màn payment, vì API chưa có luồng sửa thông tin booking này.
+- Không sửa OTP, không xây inbox/harness hoặc lấy OTP từ log. Theo yêu cầu, [40 ca OTP thủ công](marketplace-otp-manual-test-checklist.md) để Khanh tự test; tất cả đang `Chưa chạy`. [Kế hoạch E2E khách hàng](marketplace-e2e-test-plan.md) bao quát 29 route và tách OTP khỏi runner tự động.
+- Kiểm chứng bổ sung: Vitest **78/78 (14 suites) PASS**, lint/typecheck/production build PASS. Kiểm trình duyệt với API fixture tạm: mã được chuẩn hóa, giảm 10.000đ từ 100.001đ còn 90.001đ; sửa mã xóa quote, mã chưa kiểm chặn submit, mã không hợp lệ báo lỗi, xóa mã trả giá gốc, lỗi create không mất thông tin/mã, tổng 90.001đ được giữ sang payment. Đây là kiểm giao diện/hợp đồng bằng fixture, chưa phải E2E backend thật.
+- Chưa chạy full E2E hoặc review độc lập; chưa commit/push phần bổ sung.

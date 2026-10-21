@@ -415,6 +415,14 @@ export interface CheckoutPriceSummary {
   readonly finalTotalVnd: string;
 }
 
+/** Báo giá mã khuyến mãi công khai do API tính từ tiền giữ chỗ. */
+export interface CheckoutPromotionQuote {
+  readonly code: string;
+  readonly name: string;
+  readonly discountVnd: string;
+  readonly totalVnd: string;
+}
+
 /**
  * Dữ liệu cảnh báo giá vé vừa thay đổi (node 1450:22911).
  */

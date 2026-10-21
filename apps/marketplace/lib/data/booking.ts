@@ -9,7 +9,7 @@ import { refreshSessionIfNeeded } from "./session";
 import { bookingHeaders, rememberBooking, rememberedBooking } from "./booking-access";
 import { apiMoney, mapPayment, mapPaymentResult, mapPoint, mapSeatSelection, moneyString, remainingSeconds, seatTypeLabel, type ApiBooking, type ApiHold, type ApiTrip } from "./booking-mappers";
 import { type DataResult, failed, ok } from "./result";
-import type { BookingPaymentData, BookingPaymentResultData, CheckoutContactInfo, CheckoutHoldData, CheckoutPassengerItem, TripSeatSelectionData } from "./types";
+import type { BookingPaymentData, BookingPaymentResultData, CheckoutContactInfo, CheckoutHoldData, CheckoutPassengerItem, CheckoutPromotionQuote, TripSeatSelectionData } from "./types";
 
 /** Lấy điểm dừng và trạng thái chỗ từ chi tiết chuyến công khai. */
 export async function getTripSeatSelection(tripId: string): Promise<DataResult<TripSeatSelectionData>> {
@@ -48,8 +48,32 @@ export async function getCheckoutHoldData(holdId: string): Promise<DataResult<Ch
   } catch { return failed("GET /seat-holds/{holdId}", "Dữ liệu giá giữ chỗ không hợp lệ."); }
 }
 
-/** Tạo booking bằng giá giữ chỗ đọc lại ở máy chủ; lưu token khách trong cookie httpOnly. */
-export async function createBooking(holdId: string, payload: { readonly contactInfo: CheckoutContactInfo; readonly passengers: readonly CheckoutPassengerItem[]; readonly note: string }): Promise<DataResult<{ readonly bookingId: string }>> {
+/** Kiểm mã theo chuyến và subtotal giữ chỗ trên máy chủ, không tự tính mức giảm. */
+export async function checkCheckoutPromotion(holdId: string, rawCode: string): Promise<DataResult<CheckoutPromotionQuote>> {
+  const code = rawCode.trim().toUpperCase();
+  if (!/^[A-Z0-9]{3,20}$/.test(code)) return failed("POST /promotions/check", "Mã khuyến mãi phải gồm 3–20 chữ cái hoặc chữ số.");
+  const session = await refreshSessionIfNeeded();
+  if (session.status !== "ok") return session;
+  const hold = await apiRequest<ApiHold>(`/seat-holds/${encodeURIComponent(holdId)}`);
+  if (hold.status !== "ok") return hold;
+  if (remainingSeconds(hold.data.expiresAt) <= 0) return failed("POST /promotions/check", "Phiên giữ chỗ đã hết hạn. Vui lòng quay lại chọn chỗ.");
+  try {
+    const subtotalVnd = moneyString(hold.data.subtotal);
+    if (subtotalVnd === "0") return failed("POST /promotions/check", "Giá vé này chưa hỗ trợ áp mã khuyến mãi.");
+    const input: components["schemas"]["PromotionCheckInputDto"] = { tripId: hold.data.tripId, code, subtotal: apiMoney(subtotalVnd) };
+    const result = await apiRequest<components["schemas"]["PromotionCheckDto_Output"]>("/promotions/check", { method: "POST", body: JSON.stringify(input) });
+    if (result.status !== "ok") return result;
+    const discountVnd = moneyString(result.data.discount);
+    const totalVnd = moneyString(result.data.total);
+    if (result.data.code !== code || typeof result.data.name !== "string" || BigInt(discountVnd) + BigInt(totalVnd) !== BigInt(subtotalVnd)) {
+      return failed("POST /promotions/check", "Báo giá khuyến mãi không hợp lệ. Vui lòng kiểm tra lại mã.");
+    }
+    return ok({ code: result.data.code, name: result.data.name, discountVnd, totalVnd });
+  } catch { return failed("POST /promotions/check", "Dữ liệu giá khuyến mãi không hợp lệ. Vui lòng thử lại."); }
+}
+
+/** Tạo booking bằng tổng khách đã thấy; API kiểm lại mã/giá và token khách được giữ trong cookie httpOnly. */
+export async function createBooking(holdId: string, payload: { readonly contactInfo: CheckoutContactInfo; readonly passengers: readonly CheckoutPassengerItem[]; readonly note: string; readonly promotion?: { readonly code: string; readonly expectedTotalVnd: string } }): Promise<DataResult<{ readonly bookingId: string }>> {
   const session = await refreshSessionIfNeeded();
   if (session.status !== "ok") return session;
   const existingId = await rememberedBooking(holdId);
@@ -57,10 +81,14 @@ export async function createBooking(holdId: string, payload: { readonly contactI
   if (!payload.contactInfo.fullName.trim() || !payload.contactInfo.email.trim() || !payload.contactInfo.phoneNumber.trim() || payload.passengers.some((passenger) => !passenger.fullName.trim())) {
     return failed("POST /bookings", "Vui lòng nhập thông tin liên hệ và tên từng hành khách.");
   }
+  const promotionCode = payload.promotion?.code.trim().toUpperCase();
+  if (payload.promotion && (!promotionCode || !/^[A-Z0-9]{3,20}$/.test(promotionCode))) {
+    return failed("POST /bookings", "Mã khuyến mãi không hợp lệ. Vui lòng kiểm tra lại mã trước khi đặt vé.");
+  }
   const hold = await apiRequest<ApiHold>(`/seat-holds/${encodeURIComponent(holdId)}`);
   if (hold.status !== "ok") return hold;
   try {
-    const input: components["schemas"]["BookingInputDto"] = { holdId, contact: { fullName: payload.contactInfo.fullName.trim(), phone: payload.contactInfo.phoneNumber.trim(), email: payload.contactInfo.email.trim() }, passengers: payload.passengers.map((passenger) => ({ seatCode: passenger.seatCode, fullName: passenger.fullName.trim(), phone: passenger.phoneNumber.trim() || null })), note: payload.note.trim() || null, expectedTotal: apiMoney(moneyString(hold.data.subtotal)) };
+    const input: components["schemas"]["BookingInputDto"] = { holdId, contact: { fullName: payload.contactInfo.fullName.trim(), phone: payload.contactInfo.phoneNumber.trim(), email: payload.contactInfo.email.trim() }, passengers: payload.passengers.map((passenger) => ({ seatCode: passenger.seatCode, fullName: passenger.fullName.trim(), phone: passenger.phoneNumber.trim() || null })), note: payload.note.trim() || null, expectedTotal: apiMoney(payload.promotion ? payload.promotion.expectedTotalVnd : moneyString(hold.data.subtotal)), ...(promotionCode ? { promotionCode } : {}) };
     const result = await apiRequest<components["schemas"]["CreatedBookingDto_Output"]>("/bookings", { method: "POST", body: JSON.stringify(input) });
     if (result.status !== "ok") return result;
     await rememberBooking(holdId, result.data.bookingId, result.data.accessToken);

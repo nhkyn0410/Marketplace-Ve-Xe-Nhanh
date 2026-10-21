@@ -10,7 +10,7 @@ vi.mock("./api", () => ({ apiRequest: request, ACCESS_COOKIE: "vxn_marketplace_a
 vi.mock("./auth", () => ({ getAccountProfile: profile }));
 vi.mock("./session", () => ({ refreshSessionIfNeeded: vi.fn(async () => ({ status: "ok", data: { rotated: false } })) }));
 vi.mock("next/headers", () => ({ cookies: vi.fn(async () => jar) }));
-import { createBooking, createPayment, getCheckoutHoldData, holdSeats } from "./booking";
+import { checkCheckoutPromotion, createBooking, createPayment, getCheckoutHoldData, holdSeats } from "./booking";
 
 describe("booking API integration", () => {
   beforeEach(() => { vi.clearAllMocks(); values.clear(); request.mockReset(); });
@@ -70,11 +70,80 @@ describe("booking API integration", () => {
     const result = await createBooking(hold.holdId, payload);
     const sent = JSON.parse(request.mock.calls[1]![1].body);
     expect(sent.expectedTotal).toBe(100001);
+    expect(sent).not.toHaveProperty("promotionCode");
     expect(sent.passengers[0]).not.toHaveProperty("priceVnd");
     expect(result).toEqual({ status: "ok", data: { bookingId: booking.bookingId } });
     expect(jar.set).toHaveBeenCalledWith(`vxn_booking_${booking.bookingId}`, "private-guest-token", expect.objectContaining({ httpOnly: true, sameSite: "lax" }));
     expect(await createBooking(hold.holdId, payload)).toEqual(result);
     expect(request).toHaveBeenCalledTimes(2);
+  });
+
+  it("kiểm mã đã chuẩn hóa bằng trip và subtotal giữ chỗ, giữ nguyên báo giá API", async () => {
+    const hold = holdFixture();
+    request.mockResolvedValueOnce({ status: "ok", data: hold }).mockResolvedValueOnce({ status: "ok", data: { code: "THU10", name: "Ưu đãi mùa thu", discount: 10000, total: 90001 } });
+    expect(await checkCheckoutPromotion(hold.holdId, "  thu10  ")).toEqual({ status: "ok", data: { code: "THU10", name: "Ưu đãi mùa thu", discountVnd: "10000", totalVnd: "90001" } });
+    expect(request.mock.calls[0]![0]).toBe(`/seat-holds/${hold.holdId}`);
+    expect(request.mock.calls[1]![0]).toBe("/promotions/check");
+    expect(JSON.parse(request.mock.calls[1]![1].body)).toEqual({ tripId: hold.tripId, code: "THU10", subtotal: 100001 });
+  });
+
+  it("không kiểm mã sai định dạng hoặc giữ chỗ đã hết hạn", async () => {
+    expect((await checkCheckoutPromotion(holdFixture().holdId, "a!")).status).toBe("error");
+    expect(request).not.toHaveBeenCalled();
+    request.mockResolvedValueOnce({ status: "ok", data: { ...holdFixture(), expiresAt: "2000-01-01T00:00:00Z" } });
+    expect((await checkCheckoutPromotion(holdFixture().holdId, "THU10")).status).toBe("error");
+    expect(request).toHaveBeenCalledTimes(1);
+  });
+
+  it.each([
+    { code: "THU10", discount: -1, total: 100002 },
+    { code: "THU10", discount: 0.5, total: 100000.5 },
+    { code: "THU10", discount: 1, total: Number.MAX_SAFE_INTEGER + 1 },
+    { code: "THU10", discount: 10000, total: 100001 },
+    { code: "KHAC10", discount: 10000, total: 90001 }
+  ])("từ chối báo giá mã không khớp hoặc tiền không hợp lệ: %j", async (quote) => {
+    request.mockResolvedValueOnce({ status: "ok", data: holdFixture() }).mockResolvedValueOnce({ status: "ok", data: { name: "Ưu đãi", ...quote } });
+    expect((await checkCheckoutPromotion(holdFixture().holdId, "THU10")).status).toBe("error");
+  });
+
+  it("trả lỗi mã không hợp lệ/hết lượt cho giao diện thay vì dựng mức giảm", async () => {
+    const exhausted = { status: "error", endpoint: "POST /promotions/check", message: "Mã khuyến mãi đã hết lượt.", httpStatus: 409 };
+    request.mockResolvedValueOnce({ status: "ok", data: holdFixture() }).mockResolvedValueOnce(exhausted);
+    expect(await checkCheckoutPromotion(holdFixture().holdId, "THU10")).toEqual(exhausted);
+    expect(request).toHaveBeenCalledTimes(2);
+  });
+
+  it("gửi mã và tổng sau giảm khách đã thấy, không âm thầm kiểm lại rồi thay tổng", async () => {
+    const hold = holdFixture();
+    const booking = bookingFixture();
+    request.mockResolvedValueOnce({ status: "ok", data: hold }).mockResolvedValueOnce({ status: "ok", data: { ...booking, accessToken: "private-guest-token" } });
+    const payload = { contactInfo: { fullName: "Khách", phoneNumber: "0900000000", email: "guest@example.test" }, passengers: [{ ...bookingFixture().passengers[0]!, seatTypeLabel: "", floorLabel: "", priceVnd: "1", phoneNumber: "", idNumber: "", shouldSaveForLater: false }], note: "", promotion: { code: "  thu10  ", expectedTotalVnd: "90001" } };
+    expect((await createBooking(hold.holdId, payload)).status).toBe("ok");
+    expect(JSON.parse(request.mock.calls[1]![1].body)).toMatchObject({ promotionCode: "THU10", expectedTotal: 90001 });
+    expect(request.mock.calls.map((call) => call[0])).toEqual([`/seat-holds/${hold.holdId}`, "/bookings"]);
+    expect(JSON.parse(request.mock.calls[1]![1].body)).not.toHaveProperty("userVoucherId");
+  });
+
+  it("giữ lỗi tạo đơn khi mã hết lượt hoặc tổng thay đổi, không tự tạo lại đơn bỏ mã", async () => {
+    const hold = holdFixture();
+    const changed = { status: "error", endpoint: "POST /bookings", message: "Giá vé đã thay đổi. Vui lòng chọn chỗ lại.", httpStatus: 409 };
+    request.mockResolvedValueOnce({ status: "ok", data: hold }).mockResolvedValueOnce(changed);
+    const payload = { contactInfo: { fullName: "Khách", phoneNumber: "0900000000", email: "guest@example.test" }, passengers: [{ ...bookingFixture().passengers[0]!, seatTypeLabel: "", floorLabel: "", priceVnd: "1", phoneNumber: "", idNumber: "", shouldSaveForLater: false }], note: "", promotion: { code: "THU10", expectedTotalVnd: "90001" } };
+    expect(await createBooking(hold.holdId, payload)).toEqual(changed);
+    expect(JSON.parse(request.mock.calls[1]![1].body)).toMatchObject({ promotionCode: "THU10", expectedTotal: 90001 });
+    expect(request).toHaveBeenCalledTimes(2);
+    expect(jar.set).not.toHaveBeenCalled();
+  });
+
+  it("không gửi booking khi tổng giảm mất độ chính xác hoặc mã không hợp lệ", async () => {
+    const hold = holdFixture();
+    const payload = { contactInfo: { fullName: "Khách", phoneNumber: "0900000000", email: "guest@example.test" }, passengers: [{ ...bookingFixture().passengers[0]!, seatTypeLabel: "", floorLabel: "", priceVnd: "1", phoneNumber: "", idNumber: "", shouldSaveForLater: false }], note: "", promotion: { code: "THU10", expectedTotalVnd: "9007199254740992" } };
+    request.mockResolvedValueOnce({ status: "ok", data: hold });
+    expect((await createBooking(hold.holdId, payload)).status).toBe("error");
+    expect(request).toHaveBeenCalledTimes(1);
+    request.mockClear();
+    expect((await createBooking(hold.holdId, { ...payload, promotion: { code: "a!", expectedTotalVnd: "90001" } })).status).toBe("error");
+    expect(request).not.toHaveBeenCalled();
   });
 
   it("điền thông tin liên hệ, cho chọn hành khách đã lưu và vẫn cho khách vãng lai đặt vé", async () => {

@@ -42,7 +42,7 @@ export default async function CheckoutPage({
     return (
       <div className="flex-1 bg-neutral-50/40 pb-16">
         <PassengerTopBar breadcrumbs={breadcrumbs} />
-        <CheckoutFormView initialData={checkoutHoldIdealFixture} />
+        <CheckoutFormView initialData={checkoutHoldIdealFixture} isPreview />
       </div>
     );
   }
@@ -51,7 +51,7 @@ export default async function CheckoutPage({
     return (
       <div className="flex-1 bg-neutral-50/40 pb-16">
         <PassengerTopBar breadcrumbs={breadcrumbs} />
-        <CheckoutFormView initialData={checkoutHoldStaleFixture} />
+        <CheckoutFormView initialData={checkoutHoldStaleFixture} isPreview />
       </div>
     );
   }
