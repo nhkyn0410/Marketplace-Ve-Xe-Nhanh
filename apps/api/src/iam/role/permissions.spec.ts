@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { EmployeeRole, OperatorRole, PlatformRole } from "../../database/prisma.types";
-import { can } from "./access-policy";
-import { type GrantScope, PERMISSIONS, ROLE_GRANTS } from "./permissions";
+import { can, grantedPermissions } from "./access-policy";
+import { ACCOUNT_PERMISSIONS, type GrantScope, PERMISSIONS, ROLE_GRANTS, storedPermissions } from "./permissions";
 import { isRole, requiresMfa, Role } from "./role";
 
 /**
@@ -58,10 +58,11 @@ describe("ROLE_GRANTS — bất biến", () => {
 });
 
 describe("ROLE_REQUIRES_MFA — Security §5.2 (TASK-IAM-004)", () => {
-  it("đúng 3 role bắt buộc TOTP; Employee optional (defer) và Passenger không bị ép", () => {
+  it("role dùng Operator OS / Admin bắt buộc TOTP; Employee optional (defer) và Passenger không bị ép", () => {
     const mandatory = Object.values(Role).filter((role) => requiresMfa(role));
+    // OPERATOR_MANAGER (TASK-IAM-007) dùng Operator OS như Owner.
     expect(mandatory.sort()).toEqual(
-      [Role.OPERATOR_OWNER, Role.PLATFORM_ADMIN, Role.PLATFORM_SUPPORT].sort(),
+      [Role.OPERATOR_OWNER, Role.OPERATOR_MANAGER, Role.PLATFORM_ADMIN, Role.PLATFORM_SUPPORT].sort(),
     );
   });
 
@@ -119,5 +120,71 @@ describe("can() — các ô quan trọng của Security §7", () => {
     for (const permission of PERMISSIONS) {
       expect(can(as("SUPER_HACKER"), permission)).toEqual({ allowed: false, reason: "unknown_role" });
     }
+  });
+});
+
+describe("phân quyền theo từng tài khoản — TASK-IAM-007", () => {
+  const OWNER_ONLY = ["kyc:submit", "manager:manage"] as const;
+
+  it("quyền tick được ⊆ grant của role, không gồm tùy chọn thông báo của chính mình", () => {
+    for (const [role, account] of Object.entries(ACCOUNT_PERMISSIONS)) {
+      for (const permission of account.assignable) {
+        expect(ROLE_GRANTS[role as Role][permission], `${role} → ${permission}`).toBeDefined();
+      }
+      expect(account.assignable, role).not.toContain("notification:manage");
+    }
+  });
+
+  it("tài khoản quản lý: trần ⊆ quyền Owner (cùng phạm vi), không bao giờ có hồ sơ / tài khoản nhận tiền / tài khoản quản lý", () => {
+    for (const [permission, scope] of grantsOf(Role.OPERATOR_MANAGER)) {
+      expect(ROLE_GRANTS[Role.OPERATOR_OWNER][permission as keyof (typeof ROLE_GRANTS)[Role]], permission).toBe(scope);
+    }
+    for (const permission of OWNER_ONLY) {
+      expect(can({ role: Role.OPERATOR_MANAGER, perms: [...PERMISSIONS] }, permission).allowed, permission).toBe(false);
+    }
+    expect(ACCOUNT_PERMISSIONS[Role.OPERATOR_MANAGER]?.required).toBe(true);
+  });
+
+  it("quyền quản trị tài khoản / phân quyền: `access:manage` chỉ phía Platform, `manager:manage` chỉ Owner", () => {
+    const holders = (permission: (typeof PERMISSIONS)[number]) =>
+      Object.values(Role).filter((role) => ROLE_GRANTS[role][permission]).sort();
+    expect(holders("access:manage")).toEqual([Role.PLATFORM_ADMIN]);
+    expect(holders("manager:manage")).toEqual([Role.OPERATOR_OWNER]);
+  });
+
+  it("tài khoản mang danh sách: chỉ có quyền tick được trong danh sách; quyền không tick được vẫn theo role", () => {
+    const accountant = { role: Role.PLATFORM_ADMIN, perms: ["payout:manage", "payment:monitor"] };
+    expect(can(accountant, "payout:manage")).toEqual({ allowed: true, scope: "any" });
+    expect(can(accountant, "finance:configure")).toEqual({ allowed: false, reason: "not_granted" });
+    expect(can(accountant, "access:manage").allowed).toBe(false);
+    expect(can(accountant, "notification:manage")).toEqual({ allowed: true, scope: "own" });
+    // Danh sách không thêm được quyền ngoài trần của role.
+    expect(can({ role: Role.PLATFORM_SUPPORT, perms: ["audit:read"] }, "audit:read").allowed).toBe(false);
+  });
+
+  it("tài khoản chưa có danh sách (seed) → đủ quyền tick được; tài khoản quản lý thiếu danh sách → không có quyền tick được nào", () => {
+    expect(can({ role: Role.PLATFORM_ADMIN }, "access:manage").allowed).toBe(true);
+    expect(can({ role: Role.OPERATOR_MANAGER }, "trip:manage").allowed).toBe(false);
+    expect(can({ role: Role.OPERATOR_MANAGER }, "notification:manage").allowed).toBe(true);
+    expect(can({ role: Role.OPERATOR_MANAGER, perms: ["trip:manage"] }, "trip:manage")).toEqual({ allowed: true, scope: "tenant" });
+  });
+
+  it("danh sách rỗng ≠ không có danh sách; Owner bỏ qua danh sách (luôn đủ quyền)", () => {
+    expect(can({ role: Role.PLATFORM_ADMIN, perms: [] }, "audit:read").allowed).toBe(false);
+    expect(can({ role: Role.OPERATOR_OWNER, perms: [] }, "trip:manage").allowed).toBe(true);
+  });
+
+  it("grantedPermissions trả đúng quyền hiệu lực", () => {
+    expect(grantedPermissions({ role: Role.OPERATOR_MANAGER, perms: ["booking:read"] })).toEqual(
+      expect.arrayContaining(["booking:read", "notification:manage", "trip:search", "vehicle:read", "checkin:read"]),
+    );
+    expect(grantedPermissions({ role: Role.OPERATOR_MANAGER, perms: ["booking:read"] })).not.toContain("trip:manage");
+    expect(grantedPermissions(null)).toEqual(expect.arrayContaining(["trip:search", "booking:create"]));
+  });
+
+  it("storedPermissions: NULL → theo role; mã lạ / sai kiểu bị bỏ (chỉ làm mất quyền, không thêm)", () => {
+    expect(storedPermissions(null)).toBeNull();
+    expect(storedPermissions(["trip:manage", "trip:manage", "god:mode", 1, "booking:read"])).toEqual(["booking:read", "trip:manage"]);
+    expect(storedPermissions({ "trip:manage": true })).toEqual([]);
   });
 });

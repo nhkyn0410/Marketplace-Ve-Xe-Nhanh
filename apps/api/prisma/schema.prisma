@@ -39,9 +39,10 @@ enum OperatorStatus {
   SUSPENDED
 }
 
-/// Role account Operator-side (v1 chỉ owner; mở rộng sau nếu cần).
+/// Role account dùng Operator OS: chủ nhà xe + tài khoản quản lý do chủ nhà xe cấp (TASK-IAM-007).
 enum OperatorRole {
   OPERATOR_OWNER
+  OPERATOR_MANAGER
 }
 
 /// Employee role đã chốt v1 (FR-IAM-05, GLOSSARY).
@@ -249,6 +250,8 @@ model OperatorAccount {
   passwordChangeRequired     Boolean       @default(false) @map("password_change_required")
   temporaryPasswordExpiresAt DateTime?     @map("temporary_password_expires_at")
   role                       OperatorRole  @default(OPERATOR_OWNER)
+  /// Mảng mã quyền của tài khoản quản lý (TASK-IAM-007) — bắt buộc với OPERATOR_MANAGER, `NULL` với Owner (CHECK).
+  permissions                Json?
   status                     AccountStatus @default(ACTIVE)
   createdAt                  DateTime      @default(now()) @map("created_at")
   updatedAt                  DateTime      @updatedAt @map("updated_at")
@@ -299,6 +302,8 @@ model PlatformAccount {
   username                   String        @unique
   passwordHash               String        @map("password_hash")
   role                       PlatformRole
+  /// Mảng mã quyền riêng (TASK-IAM-007, FR-IAM-07); `NULL` = đủ quyền tick được của role (tài khoản cũ / seed).
+  permissions                Json?
   status                     AccountStatus @default(ACTIVE)
   /// Email nội bộ nhận mật khẩu tạm (tài khoản do Admin cấp — ADM-03d).
   contactEmail               String?       @unique @map("contact_email")

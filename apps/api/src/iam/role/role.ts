@@ -1,5 +1,5 @@
 /**
- * 8 role RBAC v1 (ADR-017: hardcoded enum, ABAC defer). MỘT nguồn duy nhất.
+ * Role RBAC v1 (ADR-017: hardcoded enum, ABAC defer; TASK-IAM-007 thêm OPERATOR_MANAGER). MỘT nguồn duy nhất.
  *
  * Guard và controller KHÔNG BAO GIỜ so sánh tên role — chỉ hỏi quyền qua `can()`. Nhờ vậy thêm role
  * chỉ là: giá trị enum Postgres (nếu là role tài khoản) + một dòng ở đây + một dòng `ROLE_GRANTS`.
@@ -10,6 +10,8 @@ export const Role = {
   ANONYMOUS: "ANONYMOUS",
   PASSENGER: "PASSENGER",
   OPERATOR_OWNER: "OPERATOR_OWNER",
+  /** Tài khoản quản lý dùng Operator OS do Owner cấp, quyền tick theo từng tài khoản (TASK-IAM-007). */
+  OPERATOR_MANAGER: "OPERATOR_MANAGER",
   DRIVER: "DRIVER",
   TICKET_STAFF: "TICKET_STAFF",
   SUPPORT_STAFF: "SUPPORT_STAFF",
@@ -28,6 +30,7 @@ export const ROLE_SCOPE: Readonly<Record<Role, "passenger" | "operator" | "platf
   [Role.ANONYMOUS]: null,
   [Role.PASSENGER]: "passenger",
   [Role.OPERATOR_OWNER]: "operator",
+  [Role.OPERATOR_MANAGER]: "operator",
   [Role.DRIVER]: "operator",
   [Role.TICKET_STAFF]: "operator",
   [Role.SUPPORT_STAFF]: "operator",
@@ -44,6 +47,8 @@ export const ROLE_REQUIRES_MFA: Readonly<Record<Role, boolean>> = {
   [Role.ANONYMOUS]: false,
   [Role.PASSENGER]: false,
   [Role.OPERATOR_OWNER]: true,
+  // Operator OS có dữ liệu tài chính, booking, hành khách — như Owner (TASK-IAM-007 P3).
+  [Role.OPERATOR_MANAGER]: true,
   [Role.DRIVER]: false,
   [Role.TICKET_STAFF]: false,
   [Role.SUPPORT_STAFF]: false,
@@ -70,4 +75,9 @@ export function isPlatformAdminRole(role: string): boolean {
 
 export function isOperatorOwnerRole(role: string): boolean {
   return role === Role.OPERATOR_OWNER;
+}
+
+/** Role lưu ở `operator_accounts` (dùng Operator OS) — ngược với tài khoản Employee của app nhân viên. */
+export function isOperatorAccountRole(role: string): boolean {
+  return role === Role.OPERATOR_OWNER || role === Role.OPERATOR_MANAGER;
 }
