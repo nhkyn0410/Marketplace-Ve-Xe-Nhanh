@@ -3965,6 +3965,447 @@
         ]
       }
     },
+    "/v1/operator/managers": {
+      "get": {
+        "operationId": "OperatorManagerController_list",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Tài khoản quản lý của nhà xe.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ManagerListDto_Output"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Thiếu hoặc sai access token.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "`PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "operator-managers"
+        ]
+      },
+      "post": {
+        "operationId": "OperatorManagerController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ManagerCreateDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Tài khoản đã tạo; `credentialDeliveryPending` = chưa gửi được email.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ManagerAccountDto_Output"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Thiếu hoặc sai access token.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "`PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "`ACCOUNT_USERNAME_CONFLICT` — tên đăng nhập đã dùng trong nhà xe.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Vượt giới hạn email mật khẩu tạm.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Audit hoặc thu hồi phiên không khả dụng — không đổi gì.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "operator-managers"
+        ]
+      }
+    },
+    "/v1/operator/managers/{managerId}": {
+      "patch": {
+        "operationId": "OperatorManagerController_update",
+        "parameters": [
+          {
+            "name": "managerId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ManagerUpdateDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Tài khoản sau khi cập nhật.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ManagerAccountDto_Output"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Thiếu hoặc sai access token.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "`PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "`ACCOUNT_NOT_FOUND` — không có tài khoản quản lý này trong nhà xe.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "`ACCOUNT_STATE_CONFLICT` — trạng thái vừa đổi hoặc không cho phép.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Audit hoặc thu hồi phiên không khả dụng — không đổi gì.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "operator-managers"
+        ]
+      }
+    },
+    "/v1/operator/managers/{managerId}/password-reset": {
+      "post": {
+        "operationId": "OperatorManagerController_resetPassword",
+        "parameters": [
+          {
+            "name": "managerId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ManagerReasonDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Tài khoản sau khi cấp lại.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ManagerAccountDto_Output"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Thiếu hoặc sai access token.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "`PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "`ACCOUNT_NOT_FOUND` — không có tài khoản quản lý này trong nhà xe.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "`ACCOUNT_STATE_CONFLICT` — trạng thái vừa đổi hoặc không cho phép.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Vượt giới hạn email mật khẩu tạm.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Audit hoặc thu hồi phiên không khả dụng — không đổi gì.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "operator-managers"
+        ]
+      }
+    },
+    "/v1/operator/managers/{managerId}/mfa-reset": {
+      "post": {
+        "operationId": "OperatorManagerController_resetMfa",
+        "parameters": [
+          {
+            "name": "managerId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ManagerReasonDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Tài khoản sau khi đặt lại.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ManagerAccountDto_Output"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Thiếu hoặc sai access token.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "`PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "`ACCOUNT_NOT_FOUND` — không có tài khoản quản lý này trong nhà xe.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "`ACCOUNT_STATE_CONFLICT` — trạng thái vừa đổi hoặc không cho phép.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Vượt giới hạn email mật khẩu tạm.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Audit hoặc thu hồi phiên không khả dụng — không đổi gì.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "operator-managers"
+        ]
+      }
+    },
     "/v1/catalog/provinces": {
       "get": {
         "operationId": "CatalogController_listProvinces",
@@ -24755,6 +25196,16 @@
               }
             }
           },
+          "400": {
+            "description": "`PERMISSION_NOT_ASSIGNABLE` — có quyền không áp dụng cho vai trò của tài khoản.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
           "401": {
             "description": "Thiếu hoặc sai access token.",
             "content": {
@@ -24766,7 +25217,7 @@
             }
           },
           "403": {
-            "description": "`PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`.",
+            "description": "`PERMISSION_DENIED` / `PERMISSION_GRANT_FORBIDDEN` — cấp hoặc gỡ quyền mình không có (TASK-IAM-007).\n\n`PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -25131,6 +25582,113 @@
           },
           "409": {
             "description": "`ACCOUNT_STATE_CONFLICT` — trạng thái không cho phép.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Chưa ghi được audit — không đổi gì.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin-users"
+        ]
+      }
+    },
+    "/v1/admin/platform-accounts/{id}/permissions": {
+      "put": {
+        "operationId": "AdminPlatformAccountController_updatePermissions",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AdminPlatformPermissionsUpdateDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Tài khoản sau khi phân quyền.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminPlatformAccountDto_Output"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "`PERMISSION_NOT_ASSIGNABLE` — có quyền không áp dụng cho vai trò của tài khoản.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Thiếu hoặc sai access token.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "`PERMISSION_DENIED` / `PERMISSION_GRANT_FORBIDDEN` — cấp hoặc gỡ quyền mình không có (TASK-IAM-007).\n\n`PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "`ACCOUNT_NOT_FOUND`.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "`PLATFORM_ACCOUNT_SELF_ACTION` / `PLATFORM_ACCOUNT_LAST_ADMIN`.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -28884,6 +29442,12 @@
           "mfaVerified": {
             "type": "boolean"
           },
+          "permissions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
           "operatorId": {
             "type": "string"
           },
@@ -28898,7 +29462,8 @@
           "username",
           "sessionId",
           "accessExpiresAt",
-          "mfaVerified"
+          "mfaVerified",
+          "permissions"
         ],
         "additionalProperties": false
       },
@@ -29380,6 +29945,315 @@
           "status"
         ],
         "additionalProperties": false
+      },
+      "ManagerListDto_Output": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                },
+                "username": {
+                  "type": "string"
+                },
+                "contactEmail": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "format": "email",
+                      "pattern": "^(?!\\.)(?!.*\\.\\.)([A-Za-z0-9_'+\\-\\.]*)[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "permissions": {
+                  "maxItems": 8,
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "enum": [
+                      "vehicle:manage",
+                      "route:manage",
+                      "trip:manage",
+                      "booking:read",
+                      "finance:read",
+                      "employee:manage",
+                      "support:respond",
+                      "promotion:manage"
+                    ]
+                  }
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "ACTIVE",
+                    "LOCKED",
+                    "DISABLED"
+                  ]
+                },
+                "mfaEnabled": {
+                  "type": "boolean"
+                },
+                "passwordChangeRequired": {
+                  "type": "boolean"
+                },
+                "credentialDeliveryPending": {
+                  "type": "boolean"
+                },
+                "temporaryPasswordExpiresAt": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "format": "date-time",
+                      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "lastLoginAt": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "format": "date-time",
+                      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "createdAt": {
+                  "type": "string",
+                  "format": "date-time",
+                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$"
+                }
+              },
+              "required": [
+                "id",
+                "username",
+                "contactEmail",
+                "permissions",
+                "status",
+                "mfaEnabled",
+                "passwordChangeRequired",
+                "credentialDeliveryPending",
+                "temporaryPasswordExpiresAt",
+                "lastLoginAt",
+                "createdAt"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "items"
+        ],
+        "additionalProperties": false
+      },
+      "ManagerCreateDto": {
+        "type": "object",
+        "properties": {
+          "username": {
+            "type": "string",
+            "pattern": "^[a-z0-9][a-z0-9._-]{2,39}$"
+          },
+          "contactEmail": {
+            "type": "string",
+            "maxLength": 254,
+            "format": "email",
+            "pattern": "^(?!\\.)(?!.*\\.\\.)([A-Za-z0-9_'+\\-\\.]*)[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
+          },
+          "permissions": {
+            "maxItems": 8,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "vehicle:manage",
+                "route:manage",
+                "trip:manage",
+                "booking:read",
+                "finance:read",
+                "employee:manage",
+                "support:respond",
+                "promotion:manage"
+              ]
+            }
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 500
+          }
+        },
+        "required": [
+          "username",
+          "contactEmail",
+          "permissions",
+          "reason"
+        ]
+      },
+      "ManagerAccountDto_Output": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "username": {
+            "type": "string"
+          },
+          "contactEmail": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "email",
+                "pattern": "^(?!\\.)(?!.*\\.\\.)([A-Za-z0-9_'+\\-\\.]*)[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "permissions": {
+            "type": "array",
+            "maxItems": 8,
+            "items": {
+              "type": "string",
+              "enum": [
+                "vehicle:manage",
+                "route:manage",
+                "trip:manage",
+                "booking:read",
+                "finance:read",
+                "employee:manage",
+                "support:respond",
+                "promotion:manage"
+              ]
+            }
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "ACTIVE",
+              "LOCKED",
+              "DISABLED"
+            ]
+          },
+          "mfaEnabled": {
+            "type": "boolean"
+          },
+          "passwordChangeRequired": {
+            "type": "boolean"
+          },
+          "credentialDeliveryPending": {
+            "type": "boolean"
+          },
+          "temporaryPasswordExpiresAt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "lastLoginAt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$"
+          }
+        },
+        "required": [
+          "id",
+          "username",
+          "contactEmail",
+          "permissions",
+          "status",
+          "mfaEnabled",
+          "passwordChangeRequired",
+          "credentialDeliveryPending",
+          "temporaryPasswordExpiresAt",
+          "lastLoginAt",
+          "createdAt"
+        ],
+        "additionalProperties": false
+      },
+      "ManagerUpdateDto": {
+        "type": "object",
+        "properties": {
+          "permissions": {
+            "maxItems": 8,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "vehicle:manage",
+                "route:manage",
+                "trip:manage",
+                "booking:read",
+                "finance:read",
+                "employee:manage",
+                "support:respond",
+                "promotion:manage"
+              ]
+            }
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "ACTIVE",
+              "LOCKED"
+            ]
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 500
+          }
+        },
+        "required": [
+          "reason"
+        ]
+      },
+      "ManagerReasonDto": {
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 500
+          }
+        },
+        "required": [
+          "reason"
+        ]
       },
       "ProvinceListResponseDto_Output": {
         "type": "object",
@@ -53173,6 +54047,59 @@
                     "PLATFORM_SUPPORT"
                   ]
                 },
+                "permissions": {
+                  "maxItems": 44,
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "enum": [
+                      "profile:manage",
+                      "loyalty:use",
+                      "notification:manage",
+                      "incident:create",
+                      "journey-log:create",
+                      "system:run",
+                      "trip:search",
+                      "booking:create",
+                      "booking:read",
+                      "payment:create",
+                      "payment:monitor",
+                      "refund:request",
+                      "vehicle:manage",
+                      "vehicle:read",
+                      "route:manage",
+                      "trip:manage",
+                      "checkin:perform",
+                      "checkin:read",
+                      "trip:operate",
+                      "kyc:submit",
+                      "kyc:review",
+                      "catalog:manage",
+                      "content:moderate",
+                      "content:manage",
+                      "user:manage",
+                      "system:read",
+                      "finance:read",
+                      "finance:configure",
+                      "audit:read",
+                      "employee:manage",
+                      "account:lock",
+                      "support:create",
+                      "review:create",
+                      "support:respond",
+                      "support:manage",
+                      "dispute:decide",
+                      "promotion:manage",
+                      "promotion:configure",
+                      "loyalty:manage",
+                      "access:manage",
+                      "transport:read",
+                      "manager:manage",
+                      "payout:manage",
+                      "refund:manage"
+                    ]
+                  }
+                },
                 "status": {
                   "type": "string",
                   "enum": [
@@ -53233,6 +54160,7 @@
                 "username",
                 "email",
                 "role",
+                "permissions",
                 "status",
                 "mfaEnabled",
                 "passwordChangeRequired",
@@ -53244,10 +54172,127 @@
               ],
               "additionalProperties": false
             }
+          },
+          "grantable": {
+            "type": "object",
+            "properties": {
+              "PLATFORM_ADMIN": {
+                "maxItems": 44,
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "profile:manage",
+                    "loyalty:use",
+                    "notification:manage",
+                    "incident:create",
+                    "journey-log:create",
+                    "system:run",
+                    "trip:search",
+                    "booking:create",
+                    "booking:read",
+                    "payment:create",
+                    "payment:monitor",
+                    "refund:request",
+                    "vehicle:manage",
+                    "vehicle:read",
+                    "route:manage",
+                    "trip:manage",
+                    "checkin:perform",
+                    "checkin:read",
+                    "trip:operate",
+                    "kyc:submit",
+                    "kyc:review",
+                    "catalog:manage",
+                    "content:moderate",
+                    "content:manage",
+                    "user:manage",
+                    "system:read",
+                    "finance:read",
+                    "finance:configure",
+                    "audit:read",
+                    "employee:manage",
+                    "account:lock",
+                    "support:create",
+                    "review:create",
+                    "support:respond",
+                    "support:manage",
+                    "dispute:decide",
+                    "promotion:manage",
+                    "promotion:configure",
+                    "loyalty:manage",
+                    "access:manage",
+                    "transport:read",
+                    "manager:manage",
+                    "payout:manage",
+                    "refund:manage"
+                  ]
+                }
+              },
+              "PLATFORM_SUPPORT": {
+                "maxItems": 44,
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "profile:manage",
+                    "loyalty:use",
+                    "notification:manage",
+                    "incident:create",
+                    "journey-log:create",
+                    "system:run",
+                    "trip:search",
+                    "booking:create",
+                    "booking:read",
+                    "payment:create",
+                    "payment:monitor",
+                    "refund:request",
+                    "vehicle:manage",
+                    "vehicle:read",
+                    "route:manage",
+                    "trip:manage",
+                    "checkin:perform",
+                    "checkin:read",
+                    "trip:operate",
+                    "kyc:submit",
+                    "kyc:review",
+                    "catalog:manage",
+                    "content:moderate",
+                    "content:manage",
+                    "user:manage",
+                    "system:read",
+                    "finance:read",
+                    "finance:configure",
+                    "audit:read",
+                    "employee:manage",
+                    "account:lock",
+                    "support:create",
+                    "review:create",
+                    "support:respond",
+                    "support:manage",
+                    "dispute:decide",
+                    "promotion:manage",
+                    "promotion:configure",
+                    "loyalty:manage",
+                    "access:manage",
+                    "transport:read",
+                    "manager:manage",
+                    "payout:manage",
+                    "refund:manage"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "PLATFORM_ADMIN",
+              "PLATFORM_SUPPORT"
+            ],
+            "additionalProperties": false
           }
         },
         "required": [
-          "items"
+          "items",
+          "grantable"
         ],
         "additionalProperties": false
       },
@@ -53270,12 +54315,66 @@
               "PLATFORM_ADMIN",
               "PLATFORM_SUPPORT"
             ]
+          },
+          "permissions": {
+            "maxItems": 44,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "profile:manage",
+                "loyalty:use",
+                "notification:manage",
+                "incident:create",
+                "journey-log:create",
+                "system:run",
+                "trip:search",
+                "booking:create",
+                "booking:read",
+                "payment:create",
+                "payment:monitor",
+                "refund:request",
+                "vehicle:manage",
+                "vehicle:read",
+                "route:manage",
+                "trip:manage",
+                "checkin:perform",
+                "checkin:read",
+                "trip:operate",
+                "kyc:submit",
+                "kyc:review",
+                "catalog:manage",
+                "content:moderate",
+                "content:manage",
+                "user:manage",
+                "system:read",
+                "finance:read",
+                "finance:configure",
+                "audit:read",
+                "employee:manage",
+                "account:lock",
+                "support:create",
+                "review:create",
+                "support:respond",
+                "support:manage",
+                "dispute:decide",
+                "promotion:manage",
+                "promotion:configure",
+                "loyalty:manage",
+                "access:manage",
+                "transport:read",
+                "manager:manage",
+                "payout:manage",
+                "refund:manage"
+              ]
+            }
           }
         },
         "required": [
           "username",
           "email",
-          "role"
+          "role",
+          "permissions"
         ]
       },
       "AdminPlatformAccountDto_Output": {
@@ -53305,6 +54404,59 @@
               "PLATFORM_ADMIN",
               "PLATFORM_SUPPORT"
             ]
+          },
+          "permissions": {
+            "type": "array",
+            "maxItems": 44,
+            "items": {
+              "type": "string",
+              "enum": [
+                "profile:manage",
+                "loyalty:use",
+                "notification:manage",
+                "incident:create",
+                "journey-log:create",
+                "system:run",
+                "trip:search",
+                "booking:create",
+                "booking:read",
+                "payment:create",
+                "payment:monitor",
+                "refund:request",
+                "vehicle:manage",
+                "vehicle:read",
+                "route:manage",
+                "trip:manage",
+                "checkin:perform",
+                "checkin:read",
+                "trip:operate",
+                "kyc:submit",
+                "kyc:review",
+                "catalog:manage",
+                "content:moderate",
+                "content:manage",
+                "user:manage",
+                "system:read",
+                "finance:read",
+                "finance:configure",
+                "audit:read",
+                "employee:manage",
+                "account:lock",
+                "support:create",
+                "review:create",
+                "support:respond",
+                "support:manage",
+                "dispute:decide",
+                "promotion:manage",
+                "promotion:configure",
+                "loyalty:manage",
+                "access:manage",
+                "transport:read",
+                "manager:manage",
+                "payout:manage",
+                "refund:manage"
+              ]
+            }
           },
           "status": {
             "type": "string",
@@ -53366,6 +54518,7 @@
           "username",
           "email",
           "role",
+          "permissions",
           "status",
           "mfaEnabled",
           "passwordChangeRequired",
@@ -53376,6 +54529,73 @@
           "isSelf"
         ],
         "additionalProperties": false
+      },
+      "AdminPlatformPermissionsUpdateDto": {
+        "type": "object",
+        "properties": {
+          "permissions": {
+            "maxItems": 44,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "profile:manage",
+                "loyalty:use",
+                "notification:manage",
+                "incident:create",
+                "journey-log:create",
+                "system:run",
+                "trip:search",
+                "booking:create",
+                "booking:read",
+                "payment:create",
+                "payment:monitor",
+                "refund:request",
+                "vehicle:manage",
+                "vehicle:read",
+                "route:manage",
+                "trip:manage",
+                "checkin:perform",
+                "checkin:read",
+                "trip:operate",
+                "kyc:submit",
+                "kyc:review",
+                "catalog:manage",
+                "content:moderate",
+                "content:manage",
+                "user:manage",
+                "system:read",
+                "finance:read",
+                "finance:configure",
+                "audit:read",
+                "employee:manage",
+                "account:lock",
+                "support:create",
+                "review:create",
+                "support:respond",
+                "support:manage",
+                "dispute:decide",
+                "promotion:manage",
+                "promotion:configure",
+                "loyalty:manage",
+                "access:manage",
+                "transport:read",
+                "manager:manage",
+                "payout:manage",
+                "refund:manage"
+              ]
+            }
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 500
+          }
+        },
+        "required": [
+          "permissions",
+          "reason"
+        ]
       }
     }
   }
