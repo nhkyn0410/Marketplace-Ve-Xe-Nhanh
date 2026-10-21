@@ -1,5 +1,6 @@
 import { Inject, Injectable } from "@nestjs/common";
 import { AuditService, AuditWriteError } from "../audit/audit.service";
+import { searchTextContains } from "../common/search-text";
 import type { DbScope } from "../database/db-scope";
 import { PrismaService, transactionDeadline, type DbTransaction } from "../database/prisma.service";
 import { CatalogStatus } from "../database/prisma.types";
@@ -80,7 +81,7 @@ export class AdminCatalogService {
     return this.prisma.withScope(platformDb(authz), async (tx) => {
       const where = {
         status: query.status,
-        ...searchWhere(query.q),
+        ...(await searchWhere(tx, query.q)),
       };
       const rows = await tx.province.findMany({
         where: { ...where, ...(query.cursor ? { code: { gt: query.cursor } } : {}) },
@@ -126,7 +127,7 @@ export class AdminCatalogService {
       const where = {
         provinceId: query.provinceId,
         status: query.status,
-        ...searchWhere(query.q),
+        ...(await searchWhere(tx, query.q)),
       };
       const rows = await tx.ward.findMany({
         where: { ...where, ...(query.cursor ? { code: { gt: query.cursor } } : {}) },
@@ -341,13 +342,30 @@ export class AdminCatalogService {
   }
 }
 
-/** Tìm theo mã (bắt đầu bằng) hoặc tên (chứa, không phân biệt hoa thường); `%`, `_`, `\` được tìm đúng ký tự. */
-function searchWhere(q: string | undefined) {
+/** Tìm theo mã (bắt đầu bằng) hoặc tên (chứa, hỗ trợ gõ không dấu qua `search_text`); `%`, `_`, `\` được tìm đúng ký tự. */
+async function searchWhere(
+  tx: DbTransaction,
+  q: string | undefined,
+): Promise<
+  | Record<string, never>
+  | {
+      OR: [
+        { code: { startsWith: string } },
+        { searchText: { contains: string } },
+      ];
+    }
+> {
   if (!q) {
     return {};
   }
   const literal = q.replace(/[\\%_]/g, "\\$&");
-  return { OR: [{ code: { startsWith: literal } }, { name: { contains: literal, mode: "insensitive" as const } }] };
+  const normalized = await searchTextContains(tx, q);
+  return {
+    OR: [
+      { code: { startsWith: literal } },
+      { searchText: { contains: normalized } },
+    ],
+  };
 }
 
 function platformDb(authz: Authorization): DbScope {
