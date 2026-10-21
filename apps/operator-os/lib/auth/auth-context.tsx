@@ -12,14 +12,14 @@ import type { ReactNode } from "react";
 export type { AuthMe, AuthNotice, AuthState } from "@vexenhanh/ui/components/auth/auth-context";
 export { useAuth } from "@vexenhanh/ui/components/auth/auth-context";
 
-// v1 Operator OS chỉ dành cho Owner (06 UI §4/§7, TASK-IAM-006 Q4).
-const OPERATOR_OWNER = "OPERATOR_OWNER";
+// Operator OS: chủ nhà xe + tài khoản quản lý do chủ nhà xe cấp (06 UI §4/§7, TASK-IAM-006 Q4; TASK-IAM-007).
+const OPERATOR_OS_ROLES: readonly string[] = ["OPERATOR_OWNER", "OPERATOR_MANAGER"];
 
-/** Cổng nhà xe: đăng nhập Owner, chữ và màu theo Figma "Giao diện nhà xe" (section 830:1977). */
+/** Cổng nhà xe: đăng nhập chủ nhà xe / tài khoản quản lý, chữ và màu theo Figma "Giao diện nhà xe" (section 830:1977). */
 export const OPERATOR_PORTAL: AuthPortal = {
   id: "operator",
   loginPath: "/auth/operator/login",
-  accept: (me: AuthMe) => me.scope === "operator" && me.role === OPERATOR_OWNER,
+  accept: (me: AuthMe) => me.scope === "operator" && OPERATOR_OS_ROLES.includes(me.role),
   texts: {
     footer: "Cổng quản lý dành cho chủ nhà xe",
     loginTitle: "Đăng nhập nhà xe",

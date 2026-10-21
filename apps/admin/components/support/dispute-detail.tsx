@@ -1,6 +1,7 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useCan } from "@vexenhanh/ui/components/auth/auth-context";
 import { IdentityField, useIdentityField } from "@vexenhanh/ui/components/auth/identity-field";
 import { Badge } from "@vexenhanh/ui/components/badge";
 import { Button } from "@vexenhanh/ui/components/button";
@@ -72,6 +73,7 @@ function useApply(disputeId: string) {
 
 function DisputeBody({ detail }: { detail: DisputeDetail }) {
   const apply = useApply(detail.disputeId);
+  const canDecide = useCan()("dispute:decide");
   const [dialog, setDialog] = useState<"request" | "decide" | "status" | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const status = DISPUTE_STATUS[detail.status];
@@ -112,10 +114,12 @@ function DisputeBody({ detail }: { detail: DisputeDetail }) {
                 <Paperclip className="size-[18px]" />
                 Yêu cầu minh chứng
               </Button>
-              <Button className={BUTTON} onClick={() => setDialog("decide")}>
-                <Scale className="size-[18px]" />
-                Ra quyết định
-              </Button>
+              {canDecide && (
+                <Button className={BUTTON} onClick={() => setDialog("decide")}>
+                  <Scale className="size-[18px]" />
+                  Ra quyết định
+                </Button>
+              )}
             </>
           )}
           {resolved && (

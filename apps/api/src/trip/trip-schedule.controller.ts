@@ -32,7 +32,7 @@ export class TripScheduleController {
 
   /** Các lịch của nhà xe. */
   @Get()
-  @Authorize("trip:manage")
+  @Authorize("transport:read")
   @ZodResponse({ status: 200, description: "Lịch còn hiệu lực trước.", type: TripScheduleListResponseDto })
   list(@Authz() authz: Authorization): Promise<TripScheduleListResponse> {
     return this.schedules.list(authz);
@@ -40,7 +40,7 @@ export class TripScheduleController {
 
   /** Chi tiết một lịch. */
   @Get(":scheduleId")
-  @Authorize("trip:manage")
+  @Authorize("transport:read")
   @ApiParam(ID_PARAM)
   @ZodResponse({ status: 200, description: "Lịch chuyến lặp lại.", type: TripScheduleResponseDto })
   @ApiResponse({ status: 404, description: "`TRIP_SCHEDULE_NOT_FOUND` (kể cả khác tenant).", content: problemContent })

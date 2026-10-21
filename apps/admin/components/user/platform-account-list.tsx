@@ -15,7 +15,7 @@ import {
   useDebouncedValue
 } from "@vexenhanh/ui/components/list-controls";
 import { ListFooterNote, ListStatePanel } from "@vexenhanh/ui/components/list-parts";
-import { KeyRound, Lock, LockOpen, RotateCcw, ShieldCheck, Users } from "lucide-react";
+import { KeyRound, ListChecks, Lock, LockOpen, RotateCcw, ShieldCheck, Users } from "lucide-react";
 import { useState } from "react";
 
 import {
@@ -28,6 +28,9 @@ import {
   type PlatformAccount,
   type PlatformRole
 } from "../../lib/user/user-api";
+import { permissionLabel } from "@vexenhanh/ui/lib/permission-matrix";
+
+import { PERMISSION_GROUPS, permissionSummary, type Permission } from "../../lib/user/permission-catalog";
 import { ACCOUNT_STATUS, formatDateTime, PLATFORM_ROLE } from "../../lib/user/user-format";
 import type { AccountAction } from "./account-dialogs";
 import { ErrorPanel, StatusCell } from "./passenger-list";
@@ -36,7 +39,14 @@ import { ErrorPanel, StatusCell } from "./passenger-list";
  * Tab "Tài khoản quản trị" (Figma ADM-03c): tài khoản `platform/…` chỉ được cấp ở đây. Mỗi dòng: cấp lại mật khẩu,
  * đặt lại xác thực hai lớp, khóa / mở khóa — đều cần lý do (khóa) và mã TOTP; không thao tác trên chính mình.
  */
-export function PlatformAccountList({ onAction }: { onAction: (action: AccountAction) => void }) {
+export function PlatformAccountList({
+  onAction,
+  onEditPermissions
+}: {
+  onAction: (action: AccountAction) => void;
+  /** Mở hộp thoại phân quyền (TASK-IAM-007) với quyền người xem được tick cho vai trò của tài khoản. */
+  onEditPermissions: (account: PlatformAccount, grantable: Permission[]) => void;
+}) {
   const [search, setSearch] = useState("");
   const [role, setRole] = useState<string>(ALL);
   const [status, setStatus] = useState<string>(ALL);
@@ -100,7 +110,7 @@ export function PlatformAccountList({ onAction }: { onAction: (action: AccountAc
     body = <ErrorPanel onRetry={() => void accounts.refetch()} />;
   } else if (accounts.isPending) {
     body = <TableSkeleton label="Đang tải tài khoản quản trị" rows={4} />;
-  } else if (accounts.data.length === 0) {
+  } else if (accounts.data.items.length === 0) {
     body = (
       <ListStatePanel
         icon={<Users className="size-6 text-vxn-fg-3" />}
@@ -111,18 +121,19 @@ export function PlatformAccountList({ onAction }: { onAction: (action: AccountAc
   } else {
     body = (
       <div className="relative overflow-x-auto">
-        <table className={`${TABLE} min-w-[920px]`}>
+        <table className={`${TABLE} min-w-[1040px]`}>
           <colgroup>
             <col />
-            <col className="w-[18%]" />
-            <col className="w-[13%]" />
-            <col className="w-[17%]" />
             <col className="w-[16%]" />
+            <col className="w-[11%]" />
             <col className="w-[12%]" />
+            <col className="w-[15%]" />
+            <col className="w-[14%]" />
+            <col className="w-[13%]" />
           </colgroup>
           <thead>
             <tr className={TABLE_HEAD_ROW}>
-              {["Tài khoản", "Vai trò", "Xác thực hai lớp", "Trạng thái", "Đăng nhập gần nhất", "Thao tác"].map((heading) => (
+              {["Tài khoản", "Vai trò", "Quyền", "Xác thực hai lớp", "Trạng thái", "Đăng nhập gần nhất", "Thao tác"].map((heading) => (
                 <th key={heading} scope="col" className={TABLE_HEAD_CELL}>
                   {heading}
                 </th>
@@ -130,7 +141,7 @@ export function PlatformAccountList({ onAction }: { onAction: (action: AccountAc
             </tr>
           </thead>
           <tbody>
-            {accounts.data.map((account) => (
+            {accounts.data.items.map((account) => (
               <tr key={account.id} className="h-[64px] border-b">
                 <td className={TABLE_CELL}>
                   <div className="flex min-w-0 flex-col">
@@ -142,6 +153,11 @@ export function PlatformAccountList({ onAction }: { onAction: (action: AccountAc
                   </div>
                 </td>
                 <td className={TABLE_CELL}>{PLATFORM_ROLE[account.role].label}</td>
+                <td className={TABLE_CELL}>
+                  <span title={account.permissions.map((permission) => permissionLabel(PERMISSION_GROUPS, permission)).join("\n")}>
+                    {permissionSummary(account)}
+                  </span>
+                </td>
                 <td className={TABLE_CELL}>
                   <Badge tone={account.mfaEnabled ? "success" : "warning"}>{account.mfaEnabled ? "Đang bật" : "Chưa thiết lập"}</Badge>
                 </td>
@@ -159,6 +175,15 @@ export function PlatformAccountList({ onAction }: { onAction: (action: AccountAc
                     <span className="text-xs text-muted-foreground">—</span>
                   ) : (
                     <div className="flex items-center gap-1">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        aria-label={`Phân quyền ${account.username}`}
+                        title="Phân quyền"
+                        onClick={() => onEditPermissions(account, accounts.data.grantable[account.role])}
+                      >
+                        <ListChecks className="size-4" />
+                      </Button>
                       <Button
                         variant="ghost"
                         size="icon"
@@ -222,17 +247,17 @@ export function PlatformAccountList({ onAction }: { onAction: (action: AccountAc
           />
         </div>
         <div className="min-h-[240px]">{body}</div>
-        {accounts.data && accounts.data.length > 0 && (
+        {accounts.data && accounts.data.items.length > 0 && (
           <div className="flex min-h-14 items-center pt-5">
-            <ListFooterNote>Đã tải {accounts.data.length} tài khoản</ListFooterNote>
+            <ListFooterNote>Đã tải {accounts.data.items.length} tài khoản</ListFooterNote>
           </div>
         )}
       </section>
       <div className="flex items-center gap-4 rounded-lg bg-accent px-5 py-4">
         <ShieldCheck className="size-5 shrink-0 text-accent-foreground" />
         <p className="min-w-0 flex-1 text-sm leading-5 text-accent-foreground">
-          Tài khoản quản trị chỉ được tạo tại đây, không có đăng ký công khai. Cấp lại mật khẩu, đặt lại xác thực hai lớp và khóa
-          tài khoản đều cần xác nhận danh tính và được ghi nhật ký audit.
+          Tài khoản quản trị chỉ được tạo tại đây, không có đăng ký công khai. Phân quyền, cấp lại mật khẩu, đặt lại xác thực hai
+          lớp và khóa tài khoản đều cần xác nhận danh tính và được ghi nhật ký audit; chỉ cấp được quyền bạn đang có.
         </p>
       </div>
     </>

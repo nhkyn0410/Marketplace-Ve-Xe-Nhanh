@@ -868,6 +868,70 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/operator/managers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["OperatorManagerController_list"];
+        put?: never;
+        post: operations["OperatorManagerController_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operator/managers/{managerId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: operations["OperatorManagerController_update"];
+        trace?: never;
+    };
+    "/v1/operator/managers/{managerId}/password-reset": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["OperatorManagerController_resetPassword"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operator/managers/{managerId}/mfa-reset": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["OperatorManagerController_resetMfa"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/catalog/provinces": {
         parameters: {
             query?: never;
@@ -4308,6 +4372,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/admin/platform-accounts/{id}/permissions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["AdminPlatformAccountController_updatePermissions"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -5051,6 +5131,7 @@ export interface components {
             /** Format: date-time */
             accessExpiresAt: string;
             mfaVerified: boolean;
+            permissions: string[];
             operatorId?: string;
             operatorSlug?: string;
         };
@@ -5158,6 +5239,56 @@ export interface components {
         AccountMutationResponseDto_Output: {
             /** @constant */
             status: "ok";
+        };
+        ManagerListDto_Output: {
+            items: {
+                /** Format: uuid */
+                id: string;
+                username: string;
+                contactEmail: string | null;
+                permissions: ("vehicle:manage" | "route:manage" | "trip:manage" | "booking:read" | "finance:read" | "employee:manage" | "support:respond" | "promotion:manage")[];
+                /** @enum {string} */
+                status: "ACTIVE" | "LOCKED" | "DISABLED";
+                mfaEnabled: boolean;
+                passwordChangeRequired: boolean;
+                credentialDeliveryPending: boolean;
+                temporaryPasswordExpiresAt: string | null;
+                lastLoginAt: string | null;
+                /** Format: date-time */
+                createdAt: string;
+            }[];
+        };
+        ManagerCreateDto: {
+            username: string;
+            /** Format: email */
+            contactEmail: string;
+            permissions: ("vehicle:manage" | "route:manage" | "trip:manage" | "booking:read" | "finance:read" | "employee:manage" | "support:respond" | "promotion:manage")[];
+            reason: string;
+        };
+        ManagerAccountDto_Output: {
+            /** Format: uuid */
+            id: string;
+            username: string;
+            contactEmail: string | null;
+            permissions: ("vehicle:manage" | "route:manage" | "trip:manage" | "booking:read" | "finance:read" | "employee:manage" | "support:respond" | "promotion:manage")[];
+            /** @enum {string} */
+            status: "ACTIVE" | "LOCKED" | "DISABLED";
+            mfaEnabled: boolean;
+            passwordChangeRequired: boolean;
+            credentialDeliveryPending: boolean;
+            temporaryPasswordExpiresAt: string | null;
+            lastLoginAt: string | null;
+            /** Format: date-time */
+            createdAt: string;
+        };
+        ManagerUpdateDto: {
+            permissions?: ("vehicle:manage" | "route:manage" | "trip:manage" | "booking:read" | "finance:read" | "employee:manage" | "support:respond" | "promotion:manage")[];
+            /** @enum {string} */
+            status?: "ACTIVE" | "LOCKED";
+            reason: string;
+        };
+        ManagerReasonDto: {
+            reason: string;
         };
         ProvinceListResponseDto_Output: {
             items: {
@@ -9641,6 +9772,7 @@ export interface components {
                 email: string | null;
                 /** @enum {string} */
                 role: "PLATFORM_ADMIN" | "PLATFORM_SUPPORT";
+                permissions: ("profile:manage" | "loyalty:use" | "notification:manage" | "incident:create" | "journey-log:create" | "system:run" | "trip:search" | "booking:create" | "booking:read" | "payment:create" | "payment:monitor" | "refund:request" | "vehicle:manage" | "vehicle:read" | "route:manage" | "trip:manage" | "checkin:perform" | "checkin:read" | "trip:operate" | "kyc:submit" | "kyc:review" | "catalog:manage" | "content:moderate" | "content:manage" | "user:manage" | "system:read" | "finance:read" | "finance:configure" | "audit:read" | "employee:manage" | "account:lock" | "support:create" | "review:create" | "support:respond" | "support:manage" | "dispute:decide" | "promotion:manage" | "promotion:configure" | "loyalty:manage" | "access:manage" | "transport:read" | "manager:manage" | "payout:manage" | "refund:manage")[];
                 /** @enum {string} */
                 status: "ACTIVE" | "LOCKED" | "DISABLED";
                 mfaEnabled: boolean;
@@ -9651,6 +9783,10 @@ export interface components {
                 lastLoginAt: string | null;
                 isSelf: boolean;
             }[];
+            grantable: {
+                PLATFORM_ADMIN: ("profile:manage" | "loyalty:use" | "notification:manage" | "incident:create" | "journey-log:create" | "system:run" | "trip:search" | "booking:create" | "booking:read" | "payment:create" | "payment:monitor" | "refund:request" | "vehicle:manage" | "vehicle:read" | "route:manage" | "trip:manage" | "checkin:perform" | "checkin:read" | "trip:operate" | "kyc:submit" | "kyc:review" | "catalog:manage" | "content:moderate" | "content:manage" | "user:manage" | "system:read" | "finance:read" | "finance:configure" | "audit:read" | "employee:manage" | "account:lock" | "support:create" | "review:create" | "support:respond" | "support:manage" | "dispute:decide" | "promotion:manage" | "promotion:configure" | "loyalty:manage" | "access:manage" | "transport:read" | "manager:manage" | "payout:manage" | "refund:manage")[];
+                PLATFORM_SUPPORT: ("profile:manage" | "loyalty:use" | "notification:manage" | "incident:create" | "journey-log:create" | "system:run" | "trip:search" | "booking:create" | "booking:read" | "payment:create" | "payment:monitor" | "refund:request" | "vehicle:manage" | "vehicle:read" | "route:manage" | "trip:manage" | "checkin:perform" | "checkin:read" | "trip:operate" | "kyc:submit" | "kyc:review" | "catalog:manage" | "content:moderate" | "content:manage" | "user:manage" | "system:read" | "finance:read" | "finance:configure" | "audit:read" | "employee:manage" | "account:lock" | "support:create" | "review:create" | "support:respond" | "support:manage" | "dispute:decide" | "promotion:manage" | "promotion:configure" | "loyalty:manage" | "access:manage" | "transport:read" | "manager:manage" | "payout:manage" | "refund:manage")[];
+            };
         };
         AdminPlatformAccountCreateDto: {
             username: string;
@@ -9658,6 +9794,7 @@ export interface components {
             email: string;
             /** @enum {string} */
             role: "PLATFORM_ADMIN" | "PLATFORM_SUPPORT";
+            permissions: ("profile:manage" | "loyalty:use" | "notification:manage" | "incident:create" | "journey-log:create" | "system:run" | "trip:search" | "booking:create" | "booking:read" | "payment:create" | "payment:monitor" | "refund:request" | "vehicle:manage" | "vehicle:read" | "route:manage" | "trip:manage" | "checkin:perform" | "checkin:read" | "trip:operate" | "kyc:submit" | "kyc:review" | "catalog:manage" | "content:moderate" | "content:manage" | "user:manage" | "system:read" | "finance:read" | "finance:configure" | "audit:read" | "employee:manage" | "account:lock" | "support:create" | "review:create" | "support:respond" | "support:manage" | "dispute:decide" | "promotion:manage" | "promotion:configure" | "loyalty:manage" | "access:manage" | "transport:read" | "manager:manage" | "payout:manage" | "refund:manage")[];
         };
         AdminPlatformAccountDto_Output: {
             /** Format: uuid */
@@ -9666,6 +9803,7 @@ export interface components {
             email: string | null;
             /** @enum {string} */
             role: "PLATFORM_ADMIN" | "PLATFORM_SUPPORT";
+            permissions: ("profile:manage" | "loyalty:use" | "notification:manage" | "incident:create" | "journey-log:create" | "system:run" | "trip:search" | "booking:create" | "booking:read" | "payment:create" | "payment:monitor" | "refund:request" | "vehicle:manage" | "vehicle:read" | "route:manage" | "trip:manage" | "checkin:perform" | "checkin:read" | "trip:operate" | "kyc:submit" | "kyc:review" | "catalog:manage" | "content:moderate" | "content:manage" | "user:manage" | "system:read" | "finance:read" | "finance:configure" | "audit:read" | "employee:manage" | "account:lock" | "support:create" | "review:create" | "support:respond" | "support:manage" | "dispute:decide" | "promotion:manage" | "promotion:configure" | "loyalty:manage" | "access:manage" | "transport:read" | "manager:manage" | "payout:manage" | "refund:manage")[];
             /** @enum {string} */
             status: "ACTIVE" | "LOCKED" | "DISABLED";
             mfaEnabled: boolean;
@@ -9675,6 +9813,10 @@ export interface components {
             lockedAt: string | null;
             lastLoginAt: string | null;
             isSelf: boolean;
+        };
+        AdminPlatformPermissionsUpdateDto: {
+            permissions: ("profile:manage" | "loyalty:use" | "notification:manage" | "incident:create" | "journey-log:create" | "system:run" | "trip:search" | "booking:create" | "booking:read" | "payment:create" | "payment:monitor" | "refund:request" | "vehicle:manage" | "vehicle:read" | "route:manage" | "trip:manage" | "checkin:perform" | "checkin:read" | "trip:operate" | "kyc:submit" | "kyc:review" | "catalog:manage" | "content:moderate" | "content:manage" | "user:manage" | "system:read" | "finance:read" | "finance:configure" | "audit:read" | "employee:manage" | "account:lock" | "support:create" | "review:create" | "support:respond" | "support:manage" | "dispute:decide" | "promotion:manage" | "promotion:configure" | "loyalty:manage" | "access:manage" | "transport:read" | "manager:manage" | "payout:manage" | "refund:manage")[];
+            reason: string;
         };
     };
     responses: never;
@@ -12365,6 +12507,344 @@ export interface operations {
                 };
             };
             /** @description Không thể gửi mật khẩu tạm hoặc thu hồi session. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    OperatorManagerController_list: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Tài khoản quản lý của nhà xe. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ManagerListDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    OperatorManagerController_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ManagerCreateDto"];
+            };
+        };
+        responses: {
+            /** @description Tài khoản đã tạo; `credentialDeliveryPending` = chưa gửi được email. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ManagerAccountDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `ACCOUNT_USERNAME_CONFLICT` — tên đăng nhập đã dùng trong nhà xe. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Vượt giới hạn email mật khẩu tạm. */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Audit hoặc thu hồi phiên không khả dụng — không đổi gì. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    OperatorManagerController_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                managerId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ManagerUpdateDto"];
+            };
+        };
+        responses: {
+            /** @description Tài khoản sau khi cập nhật. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ManagerAccountDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `ACCOUNT_NOT_FOUND` — không có tài khoản quản lý này trong nhà xe. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `ACCOUNT_STATE_CONFLICT` — trạng thái vừa đổi hoặc không cho phép. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Audit hoặc thu hồi phiên không khả dụng — không đổi gì. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    OperatorManagerController_resetPassword: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                managerId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ManagerReasonDto"];
+            };
+        };
+        responses: {
+            /** @description Tài khoản sau khi cấp lại. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ManagerAccountDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `ACCOUNT_NOT_FOUND` — không có tài khoản quản lý này trong nhà xe. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `ACCOUNT_STATE_CONFLICT` — trạng thái vừa đổi hoặc không cho phép. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Vượt giới hạn email mật khẩu tạm. */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Audit hoặc thu hồi phiên không khả dụng — không đổi gì. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    OperatorManagerController_resetMfa: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                managerId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ManagerReasonDto"];
+            };
+        };
+        responses: {
+            /** @description Tài khoản sau khi đặt lại. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ManagerAccountDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `ACCOUNT_NOT_FOUND` — không có tài khoản quản lý này trong nhà xe. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `ACCOUNT_STATE_CONFLICT` — trạng thái vừa đổi hoặc không cho phép. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Vượt giới hạn email mật khẩu tạm. */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Audit hoặc thu hồi phiên không khả dụng — không đổi gì. */
             503: {
                 headers: {
                     [name: string]: unknown;
@@ -26382,6 +26862,15 @@ export interface operations {
                     "application/json": components["schemas"]["AdminPlatformAccountDto_Output"];
                 };
             };
+            /** @description `PERMISSION_NOT_ASSIGNABLE` — có quyền không áp dụng cho vai trò của tài khoản. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
             /** @description Thiếu hoặc sai access token. */
             401: {
                 headers: {
@@ -26391,7 +26880,11 @@ export interface operations {
                     "application/problem+json": components["schemas"]["ProblemDetailsDto"];
                 };
             };
-            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            /**
+             * @description `PERMISSION_DENIED` / `PERMISSION_GRANT_FORBIDDEN` — cấp hoặc gỡ quyền mình không có (TASK-IAM-007).
+             *
+             *     `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`.
+             */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -26678,6 +27171,90 @@ export interface operations {
                 };
             };
             /** @description `ACCOUNT_STATE_CONFLICT` — trạng thái không cho phép. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Chưa ghi được audit — không đổi gì. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminPlatformAccountController_updatePermissions: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AdminPlatformPermissionsUpdateDto"];
+            };
+        };
+        responses: {
+            /** @description Tài khoản sau khi phân quyền. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminPlatformAccountDto_Output"];
+                };
+            };
+            /** @description `PERMISSION_NOT_ASSIGNABLE` — có quyền không áp dụng cho vai trò của tài khoản. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /**
+             * @description `PERMISSION_DENIED` / `PERMISSION_GRANT_FORBIDDEN` — cấp hoặc gỡ quyền mình không có (TASK-IAM-007).
+             *
+             *     `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`.
+             */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `ACCOUNT_NOT_FOUND`. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PLATFORM_ACCOUNT_SELF_ACTION` / `PLATFORM_ACCOUNT_LAST_ADMIN`. */
             409: {
                 headers: {
                     [name: string]: unknown;

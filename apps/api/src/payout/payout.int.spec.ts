@@ -84,7 +84,7 @@ describe.skipIf(!ready && !requireDb)("Escrow + chi trả — Postgres + Redis t
   const points = [randomUUID(), randomUUID(), randomUUID()];
   const vehicleType = randomUUID();
   const adminActor = { sub: randomUUID(), role: "PLATFORM_ADMIN" } as VerifiedAccessToken;
-  const platformAuthz: Authorization = { permission: "finance:configure", scope: "any", db: platformScope() };
+  const platformAuthz: Authorization = { permission: "payout:manage", scope: "any", db: platformScope() };
   const tenantAuthz = (id: string): Authorization => ({ permission: "finance:read", scope: "tenant", db: tenantScope(id) });
   let delayDays: number;
   const fixtures = new Map<string, { routeId: string; seatMapId: string }>();

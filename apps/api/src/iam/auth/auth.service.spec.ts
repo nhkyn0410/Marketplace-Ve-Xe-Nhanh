@@ -623,6 +623,40 @@ describe("AuthService.verifyMfa", () => {
     );
   });
 
+  it("TASK-IAM-007: tài khoản quản lý / quản trị phân quyền riêng → token mang `perms` đọc từ DB; Owner không mang", async () => {
+    proofAccepted({ subjectType: "OPERATOR", subjectId: "acc-1", operatorId: "op-1" });
+    ctx.prisma.operatorAccount.findUnique.mockResolvedValue({
+      ...OWNER,
+      role: "OPERATOR_MANAGER",
+      permissions: ["trip:manage", "god:mode", "booking:read"],
+      operator: ACTIVE_OPERATOR
+    });
+    await ctx.service.verifyMfa("challenge", "123456", {});
+    expect(ctx.tokens.mintAccessToken).toHaveBeenLastCalledWith(
+      expect.objectContaining({ role: "OPERATOR_MANAGER", perms: ["booking:read", "trip:manage"], mfa: true })
+    );
+
+    proofAccepted({ subjectType: "PLATFORM", subjectId: "padm-1" });
+    ctx.prisma.platformAccount.findUnique.mockResolvedValue({
+      id: "padm-1",
+      username: "ketoan",
+      passwordHash: "x",
+      role: "PLATFORM_ADMIN",
+      status: "ACTIVE",
+      authEpoch: 0,
+      credentialDeliveryPending: false,
+      passwordChangeRequired: false,
+      permissions: ["payout:manage"]
+    });
+    await ctx.service.verifyMfa("challenge", "123456", {});
+    expect(ctx.tokens.mintAccessToken).toHaveBeenLastCalledWith(expect.objectContaining({ role: "PLATFORM_ADMIN", perms: ["payout:manage"] }));
+
+    proofAccepted({ subjectType: "OPERATOR", subjectId: "acc-1", operatorId: "op-1" });
+    ctx.prisma.operatorAccount.findUnique.mockResolvedValue({ ...OWNER, permissions: null, operator: ACTIVE_OPERATOR });
+    await ctx.service.verifyMfa("challenge", "123456", {});
+    expect(ctx.tokens.mintAccessToken.mock.lastCall?.[0]).not.toHaveProperty("perms");
+  });
+
   it("account đã bị xoá trong lúc challenge sống → 401 generic, không phát token", async () => {
     proofAccepted({ subjectType: "PLATFORM", subjectId: "padm-1" });
     ctx.prisma.platformAccount.findUnique.mockResolvedValue(null);
@@ -1097,6 +1131,25 @@ describe("AuthService.me (TASK-IAM-006)", () => {
         expect(ctx.prisma[other].findUnique).not.toHaveBeenCalled();
       }
     }
+  });
+
+  it("TASK-IAM-007: tài khoản quản lý đọc tên từ operator_accounts; `permissions` = quyền hiệu lực theo claim", async () => {
+    ctx.prisma.operatorAccount.findUnique.mockResolvedValue({ username: "ketoan" });
+    const me = await ctx.service.me({
+      sub: "subj-1",
+      sid: "sid-1",
+      exp,
+      scope: "operator",
+      role: "OPERATOR_MANAGER",
+      mfa: true,
+      operatorId: "op-1",
+      operatorSlug: "phuongtrang",
+      perms: ["finance:read"]
+    } as never);
+    expect(me).toMatchObject({ username: "ketoan", role: "OPERATOR_MANAGER" });
+    expect(me.permissions).toEqual(expect.arrayContaining(["finance:read", "notification:manage"]));
+    expect(me.permissions).not.toContain("trip:manage");
+    expect(ctx.prisma.employeeAccount.findUnique).not.toHaveBeenCalled();
   });
 
   it("account hoặc session không còn → 401 AUTH_SESSION_EXPIRED", async () => {

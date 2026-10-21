@@ -2,6 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ReconciliationRequestSchema, type ReconciliationRecord, type ReconciliationRequest } from "@vexenhanh/types";
+import { useCan } from "@vexenhanh/ui/components/auth/auth-context";
 import { IdentityField, useIdentityField } from "@vexenhanh/ui/components/auth/identity-field";
 import { Badge } from "@vexenhanh/ui/components/badge";
 import { Button } from "@vexenhanh/ui/components/button";
@@ -27,11 +28,13 @@ const CHECKPOINTS: Record<string, string> = {
 
 /** Lịch sử đối soát sổ giữ hộ, kỳ chi trả và nút chủ động chạy lại có xác nhận danh tính. */
 export function ReconciliationPanel() {
+  // Xem lịch sử: `system:read`; chạy lại: `system:run` (TASK-IAM-007).
+  const canRun = useCan()("system:run");
   const [open, setOpen] = useState(false);
   const history = useQuery({ queryKey: KEY, queryFn: () => apiRequest<{ items: ReconciliationRecord[] }>("/admin/system/reconciliation"), refetchInterval: (query) => query.state.data?.items.some((item) => item.status === "QUEUED" || item.status === "RUNNING") ? 5000 : false });
   const recent = history.data?.items[0];
   return <section aria-label="Đối soát thanh toán và sổ giữ hộ" className="flex flex-col gap-4 rounded-xl border bg-card p-6">
-    <div className="flex flex-wrap items-start justify-between gap-3"><div><h2 className="text-lg font-semibold">Đối soát thanh toán và sổ giữ hộ</h2><p className="text-sm text-muted-foreground">So khớp cổng thanh toán, hoàn tiền, sổ giữ hộ và các kỳ chi trả.</p></div><Button variant="outline" onClick={() => setOpen(true)} disabled={recent?.status === "QUEUED" || recent?.status === "RUNNING"}><RefreshCw className="size-4" />Chạy lại đối soát</Button></div>
+    <div className="flex flex-wrap items-start justify-between gap-3"><div><h2 className="text-lg font-semibold">Đối soát thanh toán và sổ giữ hộ</h2><p className="text-sm text-muted-foreground">So khớp cổng thanh toán, hoàn tiền, sổ giữ hộ và các kỳ chi trả.</p></div>{canRun && <Button variant="outline" onClick={() => setOpen(true)} disabled={recent?.status === "QUEUED" || recent?.status === "RUNNING"}><RefreshCw className="size-4" />Chạy lại đối soát</Button>}</div>
     {history.isPending ? <p role="status">Đang tải lịch sử đối soát…</p> : history.isError ? <p role="alert">Chưa tải được lịch sử. <button type="button" className="underline" onClick={() => void history.refetch()}>Thử lại</button></p> : history.data.items.length === 0 ? <p className="text-sm text-muted-foreground">Chưa có lần đối soát nào được lưu.</p> : <ul className="flex flex-col gap-3">{history.data.items.map((run) => <li key={run.runId} className="rounded-lg border p-3">
       <div className="flex flex-wrap items-center gap-2"><span className="text-sm font-semibold">{formatDateTime(run.createdAt)} · {run.source === "MANUAL" ? "Thủ công" : "Theo lịch"}</span><Badge tone={run.status === "FAILED" || run.issueCount || run.paymentErrors ? "warning" : run.status === "COMPLETED" ? "success" : "neutral"}>{STATES[run.status]}{run.issueCount > 0 ? ` · ${run.issueCount} sai lệch` : ""}</Badge></div>
       <p className="mt-1 text-sm text-muted-foreground">{run.paymentsChecked} thanh toán · {run.ledgerEntriesChecked} bút toán · {run.payoutsChecked} kỳ chi trả{run.paymentErrors ? ` · ${run.paymentErrors} lỗi tra cổng cần thử lại` : ""}{run.error ? ` · ${run.error}` : ""}</p>

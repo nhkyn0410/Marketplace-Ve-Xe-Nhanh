@@ -31,7 +31,7 @@ const WriteErrors = () =>
     ApiResponse({ status: 503, description: "Chưa ghi được audit — không đổi gì.", content: problemContent }),
   );
 
-// API §7.5 — hoàn tiền phía Admin (FR-ADM-10, UC-27 A4, UC-32 bước 8). Xem: `payment:monitor`. Thao tác: `finance:configure`
+// API §7.5 — hoàn tiền phía Admin (FR-ADM-10, UC-27 A4, UC-32 bước 8). Xem: `payment:monitor`. Thao tác: `refund:manage` (TASK-IAM-007, tách từ `finance:configure`)
 // (PLATFORM_ADMIN) + xác nhận lại danh tính + lý do (Security §8 "Refund thủ công"). `refund:request` không dùng ở đây vì chủ
 // nhà xe có quyền đó theo tenant.
 @ApiTags("admin-refunds")
@@ -67,7 +67,7 @@ export class AdminRefundController {
   /** Gửi lại cổng một yêu cầu hoàn tiền thất bại (lần gửi mới). */
   @Post("refunds/:refundId/retry")
   @HttpCode(200)
-  @Authorize("finance:configure", { requireReauth: true })
+  @Authorize("refund:manage", { requireReauth: true })
   @WriteErrors()
   @ApiParam(REFUND_PARAM)
   @ApiBody({ type: RefundReasonInputDto })
@@ -84,7 +84,7 @@ export class AdminRefundController {
   /** Ghi nhận đã hoàn ngoài luồng tự động (chuyển khoản tay / đã hoàn trên trang quản trị cổng) kèm mã tham chiếu. */
   @Post("refunds/:refundId/resolve")
   @HttpCode(200)
-  @Authorize("finance:configure", { requireReauth: true })
+  @Authorize("refund:manage", { requireReauth: true })
   @WriteErrors()
   @ApiParam(REFUND_PARAM)
   @ApiBody({ type: RefundResolveInputDto })
@@ -101,7 +101,7 @@ export class AdminRefundController {
   /** Hoàn toàn bộ cho thanh toán cần đối soát (khách trả muộn / trùng). */
   @Post("payments/:paymentId/refunds")
   @HttpCode(201)
-  @Authorize("finance:configure", { requireReauth: true })
+  @Authorize("refund:manage", { requireReauth: true })
   @WriteErrors()
   @ApiParam({ name: "paymentId", type: String, format: "uuid" })
   @ApiBody({ type: RefundReasonInputDto })

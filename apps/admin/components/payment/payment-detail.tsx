@@ -1,6 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
+import { useCan } from "@vexenhanh/ui/components/auth/auth-context";
 import { Badge } from "@vexenhanh/ui/components/badge";
 import { Button } from "@vexenhanh/ui/components/button";
 import { TABLE, TABLE_CELL, TABLE_HEAD_CELL, TABLE_HEAD_ROW } from "@vexenhanh/ui/components/list-controls";
@@ -75,6 +76,7 @@ export function PaymentDetailScreen({ paymentId }: { paymentId: string }) {
 }
 
 function DetailBody({ payment }: { payment: PaymentDetail }) {
+  const canRefund = useCan()("refund:manage") && payment.canRefund;
   const [refunding, setRefunding] = useState(false);
   const [openRefund, setOpenRefund] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
@@ -187,7 +189,7 @@ function DetailBody({ payment }: { payment: PaymentDetail }) {
                 ))}
               </ul>
             )}
-            {payment.canRefund && (
+            {canRefund && (
               <Button variant="outline" className={`${BUTTON} mt-4 w-full bg-card`} onClick={() => setRefunding(true)}>
                 <ReceiptText className="size-[18px]" />
                 Hoàn toàn bộ cho khách

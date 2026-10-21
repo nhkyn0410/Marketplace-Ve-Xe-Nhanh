@@ -85,7 +85,7 @@ describe.skipIf(!ready && !requireDb)("Thanh toán & hoàn tiền phía Admin �
   const points = [randomUUID(), randomUUID(), randomUUID()];
   const vehicleType = randomUUID();
   const adminActor = { sub: randomUUID(), role: "PLATFORM_ADMIN" } as VerifiedAccessToken;
-  const platformAuthz: Authorization = { permission: "finance:configure", scope: "any", db: platformScope() };
+  const platformAuthz: Authorization = { permission: "refund:manage", scope: "any", db: platformScope() };
   const tenantAuthz: Authorization = { permission: "trip:manage", scope: "tenant", db: tenantScope(operatorId) };
   let routeId: string;
   let seatMapId: string;

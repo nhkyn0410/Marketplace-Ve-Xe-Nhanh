@@ -2,8 +2,10 @@ import { createZodDto } from "nestjs-zod";
 import { z } from "zod";
 import { TimeCursorField } from "../../../common/time-cursor";
 import { AccountStatus, EmployeeRole, PlatformRole } from "../../../database/prisma.types";
+import { PERMISSIONS } from "../../role/permissions";
 
-// API §7.5 — Admin quản lý người dùng (FR-ADM-02/03, FR-IAM-08; Figma ADM-03a…03d). Quyền `user:manage`.
+// API §7.5 — Admin quản lý người dùng (FR-ADM-02/03, FR-IAM-08; Figma ADM-03a…03d). Quyền `user:manage`; tài khoản quản
+// trị + phân quyền: `access:manage` (FR-IAM-07, TASK-IAM-007).
 
 const search = z
   .string()
@@ -86,6 +88,9 @@ export class AdminEmployeePageDto extends createZodDto(EmployeePageSchema) {}
 
 // ── Tài khoản quản trị ──────────────────────────────────────────────────────────────────────────────────
 
+/** Mã quyền `resource:action` (TASK-IAM-007). Quyền tick được theo vai trò: `grantable` của danh sách. */
+export const PermissionListSchema = z.array(z.enum(PERMISSIONS)).max(PERMISSIONS.length);
+
 export const PlatformAccountListQuerySchema = z.object({
   q: search,
   role: z.enum(PlatformRole).optional(),
@@ -100,6 +105,8 @@ const PlatformAccountSchema = z.object({
   username: z.string(),
   email: z.string().nullable(),
   role: z.enum(PlatformRole),
+  /** Quyền tick được đang có; tài khoản chưa phân quyền riêng (seed) = đủ quyền tick được của vai trò. */
+  permissions: PermissionListSchema,
   status: z.enum(AccountStatus),
   mfaEnabled: z.boolean(),
   passwordChangeRequired: z.boolean(),
@@ -114,7 +121,11 @@ const PlatformAccountSchema = z.object({
 export type AdminPlatformAccount = z.infer<typeof PlatformAccountSchema>;
 export class AdminPlatformAccountDto extends createZodDto(PlatformAccountSchema) {}
 
-export const PlatformAccountListSchema = z.object({ items: z.array(PlatformAccountSchema) });
+export const PlatformAccountListSchema = z.object({
+  items: z.array(PlatformAccountSchema),
+  /** Quyền người xem được tick / bỏ tick, theo vai trò của tài khoản đích (chỉ cấp / gỡ quyền mình đang có). */
+  grantable: z.object({ PLATFORM_ADMIN: PermissionListSchema, PLATFORM_SUPPORT: PermissionListSchema }),
+});
 export type PlatformAccountList = z.infer<typeof PlatformAccountListSchema>;
 export class AdminPlatformAccountListDto extends createZodDto(PlatformAccountListSchema) {}
 
@@ -127,9 +138,19 @@ export const PlatformAccountCreateSchema = z.object({
     .regex(/^[a-z0-9][a-z0-9._-]{2,39}$/, "Tên đăng nhập gồm 3–40 ký tự chữ thường, số, dấu chấm, gạch dưới, gạch ngang."),
   email: z.email().trim().toLowerCase().max(254),
   role: z.enum(PlatformRole),
+  /** Quyền tick được của vai trò; chỉ gồm quyền người cấp đang có (TASK-IAM-007). */
+  permissions: PermissionListSchema,
 });
 export type PlatformAccountCreate = z.infer<typeof PlatformAccountCreateSchema>;
 export class AdminPlatformAccountCreateDto extends createZodDto(PlatformAccountCreateSchema) {}
+
+export const PlatformPermissionsUpdateSchema = z.object({
+  permissions: PermissionListSchema,
+  /** Lý do: 3–500 ký tự, lưu vào audit. */
+  reason: z.string().trim().min(3).max(500),
+});
+export type PlatformPermissionsUpdate = z.infer<typeof PlatformPermissionsUpdateSchema>;
+export class AdminPlatformPermissionsUpdateDto extends createZodDto(PlatformPermissionsUpdateSchema) {}
 
 export class AdminUserIdParamDto extends createZodDto(z.object({ id: z.string().trim().min(1).max(64) })) {}
 export class AdminAccountIdParamDto extends createZodDto(z.object({ id: z.uuid() })) {}

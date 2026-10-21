@@ -1,6 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
+import { useCan } from "@vexenhanh/ui/components/auth/auth-context";
 import { Badge } from "@vexenhanh/ui/components/badge";
 import { Button } from "@vexenhanh/ui/components/button";
 import { Skeleton } from "@vexenhanh/ui/components/skeleton";
@@ -23,8 +24,25 @@ import { TABLE, TABLE_CELL, TABLE_HEAD_CELL, TABLE_HEAD_ROW, TableSkeleton } fro
  * 7 ngày tới, doanh thu tháng này, việc cần chú ý (chuyến sắp chạy chưa có tài xế, chuyến nháp, đơn chờ hoàn) và chuyến sắp chạy.
  */
 export function OperatorOverview() {
-  const overview = useQuery({ queryKey: ["operator-overview"], queryFn: getOperatorOverview });
+  // Số liệu là `/operator/overview` (`finance:read`); tài khoản quản lý không được cấp thì chỉ thấy lời chào (TASK-IAM-007).
+  const can = useCan();
+  const canSee = can("finance:read");
+  const canTrips = can("trip:manage");
+  const overview = useQuery({ queryKey: ["operator-overview"], queryFn: getOperatorOverview, enabled: canSee });
   const data = overview.data;
+
+  if (!canSee) {
+    return (
+      <div className="flex flex-col gap-6">
+        <Header />
+        <ListStatePanel
+          icon={<BusFront className="size-6 text-vxn-fg-3" />}
+          title="Chọn một mục ở thanh bên để bắt đầu"
+          description="Tổng quan doanh thu chỉ hiện với tài khoản được cấp quyền Tài chính & báo cáo."
+        />
+      </div>
+    );
+  }
 
   if (overview.isError && !data) {
     return (
@@ -55,8 +73,8 @@ export function OperatorOverview() {
         <Stat label="Doanh thu gộp tháng này" value={data && formatVnd(data.month.grossRevenue)} note={data && `${countLabel(data.month.ticketsSold)} vé · ${countLabel(data.month.completedTrips)} chuyến đã chạy`} />
       </div>
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
-        <Panel title="Chuyến sắp chạy" action={<PanelLink href="/trips">Xem tất cả chuyến</PanelLink>}>
-          {!data ? <TableSkeleton label="Đang tải chuyến sắp chạy" rows={4} /> : <UpcomingTable trips={data.upcoming} />}
+        <Panel title="Chuyến sắp chạy" action={canTrips ? <PanelLink href="/trips">Xem tất cả chuyến</PanelLink> : undefined}>
+          {!data ? <TableSkeleton label="Đang tải chuyến sắp chạy" rows={4} /> : <UpcomingTable trips={data.upcoming} linkTrips={canTrips} />}
         </Panel>
         <Panel title="Cần chú ý">
           {!data ? (
@@ -66,7 +84,7 @@ export function OperatorOverview() {
               ))}
             </div>
           ) : (
-            <Attention attention={data.attention} />
+            <Attention attention={data.attention} canOpen={(href) => can(href === "/bookings" ? "booking:read" : "trip:manage")} />
           )}
         </Panel>
       </div>
@@ -78,7 +96,7 @@ function Header() {
   return <PageHeader title="Tổng quan" description="Tình hình vận hành và bán vé của nhà xe hôm nay và những ngày tới." />;
 }
 
-function UpcomingTable({ trips }: { trips: Overview["upcoming"] }) {
+function UpcomingTable({ trips, linkTrips }: { trips: Overview["upcoming"]; linkTrips: boolean }) {
   if (trips.length === 0) {
     return <ListStatePanel icon={<BusFront className="size-6 text-vxn-fg-3" />} title="Chưa có chuyến sắp chạy" description="Chuyến đã mở bán hoặc đang chạy hiện ở đây theo giờ khởi hành." compact />;
   }
@@ -109,9 +127,13 @@ function UpcomingTable({ trips }: { trips: Overview["upcoming"] }) {
             <tr key={trip.tripId} className="border-b last:border-b-0">
               <td className={`${TABLE_CELL} tabular-nums`}>{shortMoment(trip.departureAt)}</td>
               <td className={TABLE_CELL}>
-                <Link href={`/trips/${trip.tripId}`} className="block truncate font-semibold text-vxn-ink hover:underline">
-                  {trip.routeName}
-                </Link>
+                {linkTrips ? (
+                  <Link href={`/trips/${trip.tripId}`} className="block truncate font-semibold text-vxn-ink hover:underline">
+                    {trip.routeName}
+                  </Link>
+                ) : (
+                  <span className="block truncate font-semibold text-vxn-ink">{trip.routeName}</span>
+                )}
                 <p className="text-xs leading-[18px] text-muted-foreground">{trip.vehiclePlateNumber ? formatPlateNumber(trip.vehiclePlateNumber) : "Chưa gắn xe"}</p>
               </td>
               <td className={`${TABLE_CELL} truncate`}>{trip.driverName ?? <span className="text-warning-700">Chưa phân công</span>}</td>
@@ -129,7 +151,8 @@ function UpcomingTable({ trips }: { trips: Overview["upcoming"] }) {
   );
 }
 
-function Attention({ attention }: { attention: Overview["attention"] }) {
+/** `canOpen`: tài khoản quản lý chỉ có link tới trang được cấp quyền (TASK-IAM-007). */
+function Attention({ attention, canOpen }: { attention: Overview["attention"]; canOpen: (href: string) => boolean }) {
   const items = [
     { count: attention.tripsWithoutDriver, label: "chuyến trong 48 giờ tới chưa có tài xế", href: "/trips" },
     { count: attention.draftTrips, label: "chuyến nháp khởi hành trong 7 ngày tới", href: "/trips" },
@@ -144,11 +167,18 @@ function Attention({ attention }: { attention: Overview["attention"] }) {
         .filter((item) => item.count > 0)
         .map((item) => (
           <li key={item.label}>
-            <Link href={item.href} className="flex items-center gap-3 rounded-lg border px-4 py-3 text-sm leading-5 hover:bg-muted">
-              <span className="text-lg leading-7 font-semibold text-warning-700 tabular-nums">{item.count}</span>
-              <span className="flex-1 text-vxn-fg-1">{item.label}</span>
-              <ChevronRight className="size-4 text-muted-foreground" aria-hidden />
-            </Link>
+            {canOpen(item.href) ? (
+              <Link href={item.href} className="flex items-center gap-3 rounded-lg border px-4 py-3 text-sm leading-5 hover:bg-muted">
+                <span className="text-lg leading-7 font-semibold text-warning-700 tabular-nums">{item.count}</span>
+                <span className="flex-1 text-vxn-fg-1">{item.label}</span>
+                <ChevronRight className="size-4 text-muted-foreground" aria-hidden />
+              </Link>
+            ) : (
+              <div className="flex items-center gap-3 rounded-lg border px-4 py-3 text-sm leading-5">
+                <span className="text-lg leading-7 font-semibold text-warning-700 tabular-nums">{item.count}</span>
+                <span className="flex-1 text-vxn-fg-1">{item.label}</span>
+              </div>
+            )}
           </li>
         ))}
     </ul>

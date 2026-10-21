@@ -16,6 +16,7 @@ Rules:
 | Guest    | Khách vãng lai    | Passenger who has not logged in or has no account; uses guest session for browsing, holding seats, booking, paying and lookup.    |
 | Operator | Nhà xe            | Transport business onboarded onto the platform; owns and runs vehicles, routes, trips, fares and employees within its own tenant. |
 | Employee | Nhân viên nhà xe  | Operator-internal staff with role `TICKET_STAFF`, `DRIVER` or `SUPPORT_STAFF`; logs in via operator-issued credentials `{operatorSlug}/nv.{…}` only through the Employee app (`/auth/employee/login`, Bearer); never enters Operator OS (ADR-017 amend 28/09/2026). |
+| Operator manager | Quản lý nhà xe | (Chờ duyệt — `TASK-IAM-007`) Operator-side account with role `OPERATOR_MANAGER`, issued by the Owner, logs in to Operator OS as `{operatorSlug}/{username}` with mandatory TOTP; can only use the permissions the Owner ticked (never KYC / payout bank account / manager accounts). |
 | Admin    | Admin toàn hệ thống | Platform administrator running the marketplace; final arbiter for disputes; manages KYC, policy, commission, payout.            |
 | Platform | Nền tảng          | The marketplace operator itself; not a transport company; provides Marketplace / Operator OS / Platform admin layers.             |
 

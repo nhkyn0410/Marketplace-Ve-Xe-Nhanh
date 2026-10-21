@@ -9,8 +9,11 @@ import { CredentialService } from "../auth/credential.service";
 import { MfaService } from "../auth/mfa.service";
 import type { VerifiedAccessToken } from "../auth/token.service";
 import type { Authorization } from "../role/authorization";
+import { permissionDenied } from "../role/authorization.errors";
 import { SessionService } from "../session/session.service";
+import { Role } from "../role/role";
 import { accountNotFound, accountStateConflict, isPrismaUniqueConflict } from "./account.errors";
+import { accountGrants, checkPermissionChange, effectiveAssignable, grantableFor, holds } from "./account-permissions";
 import { generateTemporaryPassword, TEMPORARY_PASSWORD_TTL_MS } from "./account-provisioning.service";
 import type {
   AdminEmployee,
@@ -23,10 +26,11 @@ import type {
   PlatformAccountCreate,
   PlatformAccountList,
   PlatformAccountListQuery,
+  PlatformPermissionsUpdate,
 } from "./dto/admin-user.dto";
 import { TemporaryCredentialEmailLimiter } from "./temporary-credential-email-limiter";
 
-type Actor = Pick<VerifiedAccessToken, "sub" | "role" | "scope">;
+type Actor = Pick<VerifiedAccessToken, "sub" | "role" | "scope" | "perms">;
 
 const AUDIT_TIMEOUT_MS = 2_000;
 const TITLE = "Account management error";
@@ -39,7 +43,11 @@ function problem(status: HttpStatus, code: string, detail: string): HttpExceptio
 const selfAction = () =>
   problem(HttpStatus.CONFLICT, "PLATFORM_ACCOUNT_SELF_ACTION", "Không tự khóa hoặc đặt lại tài khoản đang đăng nhập.");
 const lastAdmin = () =>
-  problem(HttpStatus.CONFLICT, "PLATFORM_ACCOUNT_LAST_ADMIN", "Phải còn ít nhất một quản trị viên nền tảng đang hoạt động.");
+  problem(
+    HttpStatus.CONFLICT,
+    "PLATFORM_ACCOUNT_LAST_ADMIN",
+    "Phải còn ít nhất một tài khoản quản trị đang hoạt động có quyền quản lý tài khoản và phân quyền.",
+  );
 const accountConflict = () =>
   problem(HttpStatus.CONFLICT, "PLATFORM_ACCOUNT_CONFLICT", "Tên đăng nhập hoặc email đã được dùng.");
 const auditUnavailable = () =>
@@ -50,6 +58,7 @@ const PLATFORM_SELECT = {
   username: true,
   contactEmail: true,
   role: true,
+  permissions: true,
   status: true,
   passwordChangeRequired: true,
   credentialDeliveryPending: true,
@@ -61,6 +70,8 @@ type PlatformRow = {
   username: string;
   contactEmail: string | null;
   role: PlatformRole;
+  /** JSONB mảng mã quyền; `NULL` = theo vai trò (TASK-IAM-007). */
+  permissions: unknown;
   status: AccountStatus;
   passwordChangeRequired: boolean;
   credentialDeliveryPending: boolean;
@@ -241,7 +252,15 @@ export class AdminAccountService {
       this.mfa.enabledSubjects(SubjectType.PLATFORM, ids),
       this.sessions.lastLoginAt(SubjectType.PLATFORM, ids),
     ]);
-    return { items: rows.map((row) => toPlatformAccount(row, actor, mfa.has(row.id), lastLogin.get(row.id) ?? null)) };
+    // Chỉ để web khóa ô — thao tác ghi kiểm lại theo DB (`actorGrants`).
+    const grants = accountGrants({ role: actor.role, permissions: actor.perms ?? null });
+    return {
+      items: rows.map((row) => toPlatformAccount(row, actor, mfa.has(row.id), lastLogin.get(row.id) ?? null)),
+      grantable: {
+        PLATFORM_ADMIN: grantableFor(Role.PLATFORM_ADMIN, grants),
+        PLATFORM_SUPPORT: grantableFor(Role.PLATFORM_SUPPORT, grants),
+      },
+    };
   }
 
   /** Cấp tài khoản quản trị: mật khẩu tạm gửi tới email nội bộ; lần đăng nhập đầu phải đổi mật khẩu + bật TOTP. */
@@ -253,11 +272,14 @@ export class AdminAccountService {
     let created: PlatformRow;
     try {
       created = await this.write(authz, async (tx, deadline) => {
+        // Tài khoản mới luôn mang danh sách riêng, chỉ gồm quyền người cấp đang có (TASK-IAM-007 P5).
+        const permissions = checkPermissionChange(input.role, input.permissions, [], await this.actorGrants(tx, actor));
         const row = await tx.platformAccount.create({
           data: {
             username: input.username,
             contactEmail: input.email,
             role: input.role,
+            permissions,
             passwordHash,
             passwordChangeRequired: true,
             credentialDeliveryPending: true,
@@ -270,6 +292,7 @@ export class AdminAccountService {
           username: row.username,
           email: maskEmail(input.email),
           role: row.role,
+          permissions,
         });
         return row;
       });
@@ -299,25 +322,19 @@ export class AdminAccountService {
   async lockPlatformAccount(authz: Authorization, actor: Actor, id: string, reason: string): Promise<void> {
     assertNotSelf(actor, id);
     await this.write(authz, async (tx, deadline) => {
-      // Khóa dòng mọi Admin đang hoạt động: hai Admin khóa nhau cùng lúc không làm hệ thống hết Admin.
-      await tx.$queryRaw`SELECT 1 FROM platform_accounts WHERE role = 'PLATFORM_ADMIN' AND status = 'ACTIVE' FOR UPDATE`;
-      const target = await tx.platformAccount.findUnique({ where: { id }, select: { role: true, status: true } });
+      await lockActiveAccounts(tx);
+      const target = await tx.platformAccount.findUnique({ where: { id }, select: { status: true } });
       if (!target) {
         throw accountNotFound();
       }
       if (target.status !== AccountStatus.ACTIVE) {
         throw accountStateConflict();
       }
-      if (target.role === PlatformRole.PLATFORM_ADMIN) {
-        const admins = await tx.platformAccount.count({ where: { role: PlatformRole.PLATFORM_ADMIN, status: AccountStatus.ACTIVE } });
-        if (admins <= 1) {
-          throw lastAdmin();
-        }
-      }
       await tx.platformAccount.update({
         where: { id },
         data: { status: AccountStatus.LOCKED, lockedReason: reason, lockedAt: new Date(), authEpoch: { increment: 1 } },
       });
+      await assertAccessManagerRemains(tx);
       await this.record(deadline, actor, "iam.platform_account.lock", "platform_account", id, { status: "ACTIVE" }, { status: "LOCKED" }, reason);
     });
     await this.revoke(SubjectType.PLATFORM, id);
@@ -337,7 +354,76 @@ export class AdminAccountService {
     });
   }
 
+  /**
+   * Phân quyền tài khoản quản trị (FR-IAM-07, TASK-IAM-007): không tự sửa mình; chỉ thêm / bớt quyền mình đang có; luôn
+   * còn ≥ 1 tài khoản hoạt động có `access:manage`. Có hiệu lực ngay: tăng `auth_epoch` + thu hồi mọi phiên (trước và sau
+   * khi ghi, như cấp lại mật khẩu) — người bị đổi đăng nhập lại.
+   */
+  async updatePlatformPermissions(
+    authz: Authorization,
+    actor: Actor,
+    id: string,
+    input: PlatformPermissionsUpdate,
+  ): Promise<AdminPlatformAccount> {
+    assertNotSelf(actor, id);
+    // Kiểm trước khi đụng phiên: yêu cầu sai (404 / 400 / 403) không được đá người khác ra.
+    await this.prisma.withScope(platformDb(authz), (tx) => this.planPermissions(tx, actor, id, input.permissions));
+    await this.revoke(SubjectType.PLATFORM, id);
+    const updated = await this.write(authz, async (tx, deadline) => {
+      await lockActiveAccounts(tx);
+      const { before, permissions } = await this.planPermissions(tx, actor, id, input.permissions);
+      const row = await tx.platformAccount.update({
+        where: { id },
+        data: { permissions, authEpoch: { increment: 1 } },
+        select: PLATFORM_SELECT,
+      });
+      await assertAccessManagerRemains(tx);
+      await this.record(
+        deadline,
+        actor,
+        "iam.platform_account.permissions_update",
+        "platform_account",
+        id,
+        { permissions: before },
+        { permissions },
+        input.reason,
+      );
+      return row;
+    });
+    await this.revoke(SubjectType.PLATFORM, id);
+    const [mfa, lastLogin] = await Promise.all([
+      this.mfa.enabledSubjects(SubjectType.PLATFORM, [id]),
+      this.sessions.lastLoginAt(SubjectType.PLATFORM, [id]),
+    ]);
+    return toPlatformAccount(updated, actor, mfa.has(id), lastLogin.get(id) ?? null);
+  }
+
   // ── Nội bộ ────────────────────────────────────────────────────────────────────────────────────────────
+
+  private async planPermissions(tx: DbTransaction, actor: Actor, id: string, requested: readonly string[]) {
+    const grants = await this.actorGrants(tx, actor);
+    const target = await tx.platformAccount.findUnique({ where: { id }, select: { role: true, permissions: true } });
+    if (!target) {
+      throw accountNotFound();
+    }
+    const before = effectiveAssignable(target);
+    return { before, permissions: checkPermissionChange(target.role, requested, before, grants) };
+  }
+
+  /**
+   * Quyền của người thao tác đọc lại từ DB, không tin claim: quyền vừa bị gỡ (phiên đã thu hồi nhưng request đang chạy)
+   * không được dùng để cấp tiếp. Không còn hoạt động / mất `access:manage` → 403.
+   */
+  private async actorGrants(tx: DbTransaction, actor: Actor) {
+    const row = await tx.platformAccount.findUnique({
+      where: { id: actor.sub },
+      select: { role: true, permissions: true, status: true },
+    });
+    if (!row || row.status !== AccountStatus.ACTIVE || !holds(row, "access:manage")) {
+      throw permissionDenied();
+    }
+    return accountGrants(row);
+  }
 
   private async rotateCredentials(authz: Authorization, actor: Actor, id: string, resetMfa: boolean): Promise<AdminPlatformAccount> {
     assertNotSelf(actor, id);
@@ -449,12 +535,31 @@ export class AdminAccountService {
   }
 }
 
+/**
+ * Khóa dòng mọi tài khoản đang hoạt động trước khi khóa / phân quyền: hai Admin bỏ quyền (hoặc khóa) nhau cùng lúc chạy
+ * tuần tự, người sau thấy trạng thái mới — hệ thống không bao giờ hết người quản lý tài khoản.
+ */
+async function lockActiveAccounts(tx: DbTransaction): Promise<void> {
+  await tx.$queryRaw`SELECT 1 FROM platform_accounts WHERE status = 'ACTIVE' FOR UPDATE`;
+}
+
+async function assertAccessManagerRemains(tx: DbTransaction): Promise<void> {
+  const active = await tx.platformAccount.findMany({
+    where: { status: AccountStatus.ACTIVE },
+    select: { role: true, permissions: true },
+  });
+  if (!active.some((row) => holds(row, "access:manage"))) {
+    throw lastAdmin();
+  }
+}
+
 function toPlatformAccount(row: PlatformRow, actor: Actor, mfaEnabled: boolean, lastLoginAt: Date | null): AdminPlatformAccount {
   return {
     id: row.id,
     username: `platform/${row.username}`,
     email: row.contactEmail,
     role: row.role,
+    permissions: effectiveAssignable(row),
     status: row.status,
     mfaEnabled,
     passwordChangeRequired: row.passwordChangeRequired,

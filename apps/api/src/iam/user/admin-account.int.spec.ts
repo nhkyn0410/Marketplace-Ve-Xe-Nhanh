@@ -15,6 +15,7 @@ import {
   PassengerListQuerySchema,
   PlatformAccountCreateSchema,
   PlatformAccountListQuerySchema,
+  PlatformPermissionsUpdateSchema,
 } from "./dto/admin-user.dto";
 import type { TemporaryCredentialEmailLimiter } from "./temporary-credential-email-limiter";
 
@@ -136,13 +137,19 @@ describe.skipIf(!url && !requireDb)("Admin người dùng — Postgres thật, r
   });
 
   it("cấp tài khoản quản trị: mật khẩu tạm gửi email, phải đổi lần đầu; trùng tên → 409; gửi lỗi → chờ giao, cấp lại để gửi lại", async () => {
-    const input = PlatformAccountCreateSchema.parse({ username: `Ngoc.${tag}`, email: `ngoc-${tag}@vexenhanh.test`, role: "PLATFORM_SUPPORT" });
+    const input = PlatformAccountCreateSchema.parse({
+      username: `Ngoc.${tag}`,
+      email: `ngoc-${tag}@vexenhanh.test`,
+      role: "PLATFORM_SUPPORT",
+      permissions: ["payment:monitor", "support:manage"],
+    });
     const created = await accounts.createPlatformAccount(authz, actor, input);
     createdPlatform.push(created.id);
     expect(created).toMatchObject({
       username: `platform/ngoc.${tag}`,
       email: `ngoc-${tag}@vexenhanh.test`,
       role: "PLATFORM_SUPPORT",
+      permissions: ["payment:monitor", "support:manage"],
       passwordChangeRequired: true,
       credentialDeliveryPending: false,
       mfaEnabled: false,
@@ -162,7 +169,12 @@ describe.skipIf(!url && !requireDb)("Admin người dùng — Postgres thật, r
     const pending = await accounts.createPlatformAccount(
       authz,
       actor,
-      PlatformAccountCreateSchema.parse({ username: `minh.${tag}`, email: `minh-${tag}@vexenhanh.test`, role: "PLATFORM_ADMIN" }),
+      PlatformAccountCreateSchema.parse({
+        username: `minh.${tag}`,
+        email: `minh-${tag}@vexenhanh.test`,
+        role: "PLATFORM_ADMIN",
+        permissions: ["audit:read"],
+      }),
     );
     createdPlatform.push(pending.id);
     expect(pending.credentialDeliveryPending).toBe(true);
@@ -173,14 +185,24 @@ describe.skipIf(!url && !requireDb)("Admin người dùng — Postgres thật, r
     expect(list.items.map((item) => item.username)).toEqual(
       expect.arrayContaining([`platform/adm-u-${tag}`, `platform/ngoc.${tag}`, `platform/minh.${tag}`]),
     );
-    expect(list.items.find((item) => item.id === adminId)?.isSelf).toBe(true);
+    expect(list.items.find((item) => item.id === adminId)).toMatchObject({
+      isSelf: true,
+      // Tài khoản seed (permissions NULL) = đủ quyền tick được của vai trò.
+      permissions: expect.arrayContaining(["access:manage", "payout:manage"]),
+    });
+    expect(list.grantable.PLATFORM_SUPPORT).toEqual(["payment:monitor", "support:manage"]);
   });
 
   it("cấp lại mật khẩu / đặt lại 2FA: mật khẩu tạm mới, epoch tăng, phiên bị thu hồi; 2FA xóa credential; không tự thao tác trên mình", async () => {
     const created = await accounts.createPlatformAccount(
       authz,
       actor,
-      PlatformAccountCreateSchema.parse({ username: `lan.${tag}`, email: `lan-${tag}@vexenhanh.test`, role: "PLATFORM_SUPPORT" }),
+      PlatformAccountCreateSchema.parse({
+        username: `lan.${tag}`,
+        email: `lan-${tag}@vexenhanh.test`,
+        role: "PLATFORM_SUPPORT",
+        permissions: ["payment:monitor", "support:manage"],
+      }),
     );
     createdPlatform.push(created.id);
     const before = await prisma.platformAccount.findUniqueOrThrow({ where: { id: created.id } });
@@ -208,7 +230,12 @@ describe.skipIf(!url && !requireDb)("Admin người dùng — Postgres thật, r
     const created = await accounts.createPlatformAccount(
       authz,
       actor,
-      PlatformAccountCreateSchema.parse({ username: `hung.${tag}`, email: `hung-${tag}@vexenhanh.test`, role: "PLATFORM_ADMIN" }),
+      PlatformAccountCreateSchema.parse({
+        username: `hung.${tag}`,
+        email: `hung-${tag}@vexenhanh.test`,
+        role: "PLATFORM_ADMIN",
+        permissions: ["catalog:manage"],
+      }),
     );
     createdPlatform.push(created.id);
 
@@ -232,4 +259,116 @@ describe.skipIf(!url && !requireDb)("Admin người dùng — Postgres thật, r
     await accounts.unlockPlatformAccount(authz, actor, created.id);
     expect((await prisma.platformAccount.findUniqueOrThrow({ where: { id: created.id } })).status).toBe("ACTIVE");
   });
+
+  it("phân quyền (TASK-IAM-007): epoch tăng + thu hồi phiên trước / sau + audit trước / sau; trần theo vai trò; không tự sửa mình", async () => {
+    const created = await accounts.createPlatformAccount(
+      authz,
+      actor,
+      PlatformAccountCreateSchema.parse({
+        username: `ke-toan.${tag}`,
+        email: `ke-toan-${tag}@vexenhanh.test`,
+        role: "PLATFORM_ADMIN",
+        permissions: ["payment:monitor"],
+      }),
+    );
+    createdPlatform.push(created.id);
+    const before = await prisma.platformAccount.findUniqueOrThrow({ where: { id: created.id } });
+    revokeAllForSubject.mockClear();
+
+    const updated = await accounts.updatePlatformPermissions(
+      authz,
+      actor,
+      created.id,
+      PlatformPermissionsUpdateSchema.parse({ permissions: ["refund:manage", "payout:manage", "payment:monitor"], reason: "Kế toán" }),
+    );
+    expect(updated.permissions).toEqual(["payment:monitor", "payout:manage", "refund:manage"]);
+    const after = await prisma.platformAccount.findUniqueOrThrow({ where: { id: created.id } });
+    expect(after.authEpoch).toBe(before.authEpoch + 1);
+    expect(after.permissions).toEqual(["payment:monitor", "payout:manage", "refund:manage"]);
+    expect(revokeAllForSubject).toHaveBeenCalledTimes(2);
+    expect(recordAuditEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        action: "iam.platform_account.permissions_update",
+        before: { permissions: ["payment:monitor"] },
+        after: { permissions: ["payment:monitor", "payout:manage", "refund:manage"] },
+        reason: "Kế toán",
+      }),
+      expect.anything(),
+    );
+
+    // Trần theo vai trò: hỗ trợ nền tảng không nhận được quyền đọc audit → 400, không thu hồi phiên ai.
+    const support = list(await accounts.listPlatformAccounts(authz, actor, PlatformAccountListQuerySchema.parse({ q: `ngoc.${tag}` })));
+    revokeAllForSubject.mockClear();
+    expect(
+      await rejectionOf(
+        accounts.updatePlatformPermissions(authz, actor, support, PlatformPermissionsUpdateSchema.parse({ permissions: ["audit:read"], reason: "thử" })),
+      ),
+    ).toEqual({ status: 400, code: "PERMISSION_NOT_ASSIGNABLE" });
+    expect(revokeAllForSubject).not.toHaveBeenCalled();
+
+    expect(
+      await rejectionOf(
+        accounts.updatePlatformPermissions(authz, actor, adminId, PlatformPermissionsUpdateSchema.parse({ permissions: [], reason: "tự sửa" })),
+      ),
+    ).toEqual({ status: 409, code: "PLATFORM_ACCOUNT_SELF_ACTION" });
+  });
+
+  it("không leo thang (TASK-IAM-007): người thao tác chỉ cấp / gỡ quyền mình có, đọc lại từ DB; mất `access:manage` → 403", async () => {
+    const limited = await accounts.createPlatformAccount(
+      authz,
+      actor,
+      PlatformAccountCreateSchema.parse({
+        username: `nhan-su.${tag}`,
+        email: `nhan-su-${tag}@vexenhanh.test`,
+        role: "PLATFORM_ADMIN",
+        permissions: ["access:manage", "content:manage"],
+      }),
+    );
+    const target = await accounts.createPlatformAccount(
+      authz,
+      actor,
+      PlatformAccountCreateSchema.parse({
+        username: `bien-tap.${tag}`,
+        email: `bien-tap-${tag}@vexenhanh.test`,
+        role: "PLATFORM_ADMIN",
+        permissions: ["content:manage", "audit:read"],
+      }),
+    );
+    createdPlatform.push(limited.id, target.id);
+    const limitedActor = { sub: limited.id, role: "PLATFORM_ADMIN", scope: "platform" as const, perms: ["access:manage", "content:manage"] };
+    const update = (permissions: string[]) =>
+      accounts.updatePlatformPermissions(authz, limitedActor, target.id, PlatformPermissionsUpdateSchema.parse({ permissions, reason: "đổi" }));
+
+    // Thêm quyền mình không có, hoặc gỡ quyền mình không có → 403; tạo tài khoản đủ quyền → 403.
+    expect(await rejectionOf(update(["content:manage", "audit:read", "payout:manage"]))).toEqual({ status: 403, code: "PERMISSION_GRANT_FORBIDDEN" });
+    expect(await rejectionOf(update(["content:manage"]))).toEqual({ status: 403, code: "PERMISSION_GRANT_FORBIDDEN" });
+    expect(
+      await rejectionOf(
+        accounts.createPlatformAccount(
+          authz,
+          limitedActor,
+          PlatformAccountCreateSchema.parse({
+            username: `leo-thang.${tag}`,
+            email: `leo-thang-${tag}@vexenhanh.test`,
+            role: "PLATFORM_ADMIN",
+            permissions: ["access:manage", "finance:configure"],
+          }),
+        ),
+      ),
+    ).toEqual({ status: 403, code: "PERMISSION_GRANT_FORBIDDEN" });
+    // Gỡ quyền mình có, giữ nguyên quyền mình không có → được.
+    expect((await update(["audit:read"])).permissions).toEqual(["audit:read"]);
+
+    // Quyền đọc lại từ DB: claim còn `access:manage` nhưng DB đã gỡ → 403.
+    await prisma.withSystem((tx) => tx.platformAccount.update({ where: { id: limited.id }, data: { permissions: ["content:manage"] } }));
+    expect(await rejectionOf(update(["audit:read", "content:manage"]))).toEqual({ status: 403, code: "PERMISSION_DENIED" });
+  });
 });
+
+function list(page: { items: { id: string; username: string }[] }): string {
+  const item = page.items[0];
+  if (!item) {
+    throw new Error("Không thấy tài khoản cần thử.");
+  }
+  return item.id;
+}

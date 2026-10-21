@@ -17,6 +17,8 @@ import { SessionController } from "../iam/session/session.controller";
 import { SessionService } from "../iam/session/session.service";
 import { EmployeeAccountController } from "../iam/user/employee-account.controller";
 import { EmployeeAccountService } from "../iam/user/employee-account.service";
+import { OperatorManagerController } from "../iam/user/operator-manager.controller";
+import { OperatorManagerService } from "../iam/user/operator-manager.service";
 import { QueueHealthService } from "../queue/queue-health.service";
 import { RedisHealthService } from "../redis/redis-health.service";
 import { CatalogController } from "../catalog/catalog.controller";
@@ -155,6 +157,7 @@ import { AdminReconciliationService } from "../payment/admin-reconciliation.serv
     AuthController,
     SessionController,
     EmployeeAccountController,
+    OperatorManagerController,
     CatalogController,
     AdminCatalogController,
     VehicleController,
@@ -217,6 +220,7 @@ import { AdminReconciliationService } from "../payment/admin-reconciliation.serv
   ],
   providers: [
     { provide: AdminReconciliationService, useValue: {} },
+    { provide: OperatorManagerService, useValue: {} },
     { provide: PreferenceService, useValue: {} },
     { provide: IncidentService, useValue: {} },
     { provide: JourneyLogService, useValue: {} },
