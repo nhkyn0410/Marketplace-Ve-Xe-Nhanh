@@ -1,6 +1,7 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useCan } from "@vexenhanh/ui/components/auth/auth-context";
 import { IdentityField, useIdentityField } from "@vexenhanh/ui/components/auth/identity-field";
 import { Badge } from "@vexenhanh/ui/components/badge";
 import { Button } from "@vexenhanh/ui/components/button";
@@ -71,6 +72,8 @@ export function PayoutDetailScreen({ payoutId }: { payoutId: string }) {
 
 function DetailBody({ payout }: { payout: PayoutDetail }) {
   const queryClient = useQueryClient();
+  // Xem: `payment:monitor`; giữ / mở / rà soát / xác nhận / hủy / xem đủ số tài khoản: `payout:manage` (TASK-IAM-007).
+  const manage = useCan()("payout:manage");
   const [dialog, setDialog] = useState<"hold" | "cancel" | "confirm" | null>(null);
   const [notice, setNotice] = useState<{ tone: "success" | "error"; text: string } | null>(null);
   const status = PAYOUT_STATUS[payout.status];
@@ -106,25 +109,25 @@ function DetailBody({ payout }: { payout: PayoutDetail }) {
         </div>
         <div className="flex flex-wrap items-center gap-3">
           <Badge tone={status.tone}>{status.label}</Badge>
-          {(payout.status === "PENDING_REVIEW" || payout.status === "READY_TO_TRANSFER") && (
+          {manage && (payout.status === "PENDING_REVIEW" || payout.status === "READY_TO_TRANSFER") && (
             <Button variant="outline" className={`${BUTTON} bg-card`} onClick={() => setDialog("hold")}>
               <Hourglass className="size-[18px]" />
               Giữ lại
             </Button>
           )}
-          {payout.status === "ON_HOLD" && (
+          {manage && payout.status === "ON_HOLD" && (
             <Button variant="outline" className={`${BUTTON} bg-card`} disabled={quick.isPending} onClick={() => quick.mutate("release")}>
               <RotateCcw className="size-[18px]" />
               Mở lại
             </Button>
           )}
-          {payout.status === "PENDING_REVIEW" && (
+          {manage && payout.status === "PENDING_REVIEW" && (
             <Button className={BUTTON} disabled={quick.isPending} onClick={() => quick.mutate("review")}>
               {quick.isPending ? <LoaderCircle className="size-[18px] animate-spin" /> : <Check className="size-[18px]" />}
               Rà soát xong
             </Button>
           )}
-          {(payout.status === "READY_TO_TRANSFER" || payout.status === "TRANSFERRING") && (
+          {manage && (payout.status === "READY_TO_TRANSFER" || payout.status === "TRANSFERRING") && (
             <Button className={BUTTON} onClick={() => setDialog("confirm")}>
               <Check className="size-[18px]" />
               Xác nhận đã chuyển khoản
@@ -187,7 +190,7 @@ function DetailBody({ payout }: { payout: PayoutDetail }) {
               ))}
             </ul>
           </Card>
-          {open && (
+          {manage && open && (
             <div className="flex justify-end">
               <Button variant="ghost" className="text-error-700 hover:text-error-700" onClick={() => setDialog("cancel")}>
                 Hủy kỳ chi trả
@@ -236,6 +239,7 @@ function DetailBody({ payout }: { payout: PayoutDetail }) {
 
 /** Tài khoản nhận tiền: số đã che; "Hiện đầy đủ số tài khoản" cần TOTP và máy chủ ghi nhật ký mỗi lần xem. */
 function BankCard({ payout }: { payout: PayoutDetail }) {
+  const manage = useCan()("payout:manage");
   const identity = useIdentityField();
   const [asking, setAsking] = useState(false);
   const [full, setFull] = useState<PayoutBankAccount | null>(null);
@@ -265,7 +269,7 @@ function BankCard({ payout }: { payout: PayoutDetail }) {
             <Row label="Số tài khoản" value={full?.accountNumber ?? payout.bank.accountNumberMasked} />
             <Row label="Chủ tài khoản" value={payout.bank.accountHolder} />
           </dl>
-          {!full && (
+          {manage && !full && (
             <div className="mt-4 flex flex-col gap-3">
               {asking && <IdentityField totp value={identity.value} error={identity.error} disabled={reveal.isPending} onChange={identity.change} />}
               <Button

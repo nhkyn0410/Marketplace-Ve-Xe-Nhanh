@@ -18,6 +18,8 @@ export type EmployeeRole = Employee["role"];
 export type PlatformAccount = Schemas["AdminPlatformAccountDto_Output"];
 export type PlatformRole = PlatformAccount["role"];
 export type PlatformAccountInput = Schemas["AdminPlatformAccountCreateDto"];
+export type PlatformAccountList = Schemas["AdminPlatformAccountListDto_Output"];
+export type PlatformGrantable = PlatformAccountList["grantable"];
 
 const PAGE_SIZE = "20";
 
@@ -78,14 +80,15 @@ export function listEmployees(
   return apiRequest<EmployeePage>(`/admin/employees?${query({ ...filters, cursor })}`);
 }
 
-export async function listPlatformAccounts(filters: { q?: string; role?: string; status?: string }): Promise<PlatformAccount[]> {
+/** Danh sách + `grantable` = quyền người đang xem được tick cho từng vai trò (TASK-IAM-007). */
+export function listPlatformAccounts(filters: { q?: string; role?: string; status?: string }): Promise<PlatformAccountList> {
   const search = new URLSearchParams();
   for (const [key, value] of Object.entries(filters)) {
     if (value) {
       search.set(key, value);
     }
   }
-  return (await apiRequest<{ items: PlatformAccount[] }>(`/admin/platform-accounts?${search.toString()}`)).items;
+  return apiRequest<PlatformAccountList>(`/admin/platform-accounts?${search.toString()}`);
 }
 
 export function createPlatformAccount(input: PlatformAccountInput): Promise<PlatformAccount> {
@@ -106,4 +109,9 @@ export function lockPlatformAccount(id: string, reason: string): Promise<void> {
 
 export function unlockPlatformAccount(id: string): Promise<void> {
   return apiRequest<void>(`/admin/platform-accounts/${id}/unlock`, { method: "POST" });
+}
+
+/** Phân quyền (TASK-IAM-007): có hiệu lực ngay — tài khoản bị đăng xuất khỏi mọi thiết bị. */
+export function updatePlatformPermissions(id: string, permissions: PlatformAccount["permissions"], reason: string): Promise<PlatformAccount> {
+  return apiRequest<PlatformAccount>(`/admin/platform-accounts/${id}/permissions`, { method: "PUT", body: { permissions, reason } });
 }

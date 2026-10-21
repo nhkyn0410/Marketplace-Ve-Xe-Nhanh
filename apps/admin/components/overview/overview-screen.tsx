@@ -1,6 +1,7 @@
 "use client";
 
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
+import { useCan } from "@vexenhanh/ui/components/auth/auth-context";
 import { Badge } from "@vexenhanh/ui/components/badge";
 import { Button } from "@vexenhanh/ui/components/button";
 import { ALL } from "@vexenhanh/ui/components/list-controls";
@@ -26,24 +27,29 @@ import { ReportFilters, toParams, type ReportFilterState } from "../report/repor
 
 const CARD = "flex min-w-0 flex-col gap-4 rounded-xl border bg-card p-6";
 
-/** Số của một hàng đợi; `null` khi đang tải / lỗi. Hồ sơ đăng ký chưa có `total` nên đếm tối đa một trang (20+). */
-function useCounts() {
+/**
+ * Số của một hàng đợi; `null` khi đang tải / lỗi. Hồ sơ đăng ký chưa có `total` nên đếm tối đa một trang (20+). Chỉ gọi API
+ * tài khoản có quyền (TASK-IAM-007) — khối không có quyền bị ẩn, không phải lỗi 403.
+ */
+function useCounts(can: (...permissions: string[]) => boolean) {
   const applications = useQuery({
     queryKey: ["admin-overview", "applications"],
     queryFn: async () => {
       const page = await listApplications({ status: "SUBMITTED" }, null);
       return { count: page.items.length, more: page.nextCursor !== null };
-    }
+    },
+    enabled: can("kyc:review")
   });
-  const proposals = useQuery({ queryKey: ["admin-overview", "proposals"], queryFn: () => listProposals({ status: "PENDING" }, null) });
-  const bankChanges = useQuery({ queryKey: ["admin-overview", "bank"], queryFn: () => listOperators({ bankChange: "PENDING" }, null) });
-  const operators = useQuery({ queryKey: ["admin-overview", "operators"], queryFn: () => listOperators({}, null) });
-  const active = useQuery({ queryKey: ["admin-overview", "operators-active"], queryFn: () => listOperators({ status: "ACTIVE" }, null) });
-  const integrations = useQuery({ queryKey: ["admin-system", "integrations"], queryFn: getIntegrations });
-  // Chỉ Quản trị viên có `audit:read`; Hỗ trợ nền tảng nhận 403 → ẩn khối.
-  const audit = useQuery({ queryKey: ["admin-overview", "audit"], queryFn: () => listAuditLogs({ actorType: "PLATFORM" }, null), retry: false });
-  const disputes = useQuery({ queryKey: ["admin-disputes", "count"], queryFn: () => listDisputes({ status: "open" }) });
-  const tickets = useQuery({ queryKey: ["admin-tickets", "count"], queryFn: () => listTickets({ status: "NEW" }) });
+  const proposals = useQuery({ queryKey: ["admin-overview", "proposals"], queryFn: () => listProposals({ status: "PENDING" }, null), enabled: can("catalog:manage") });
+  const users = can("user:manage");
+  const bankChanges = useQuery({ queryKey: ["admin-overview", "bank"], queryFn: () => listOperators({ bankChange: "PENDING" }, null), enabled: users });
+  const operators = useQuery({ queryKey: ["admin-overview", "operators"], queryFn: () => listOperators({}, null), enabled: users });
+  const active = useQuery({ queryKey: ["admin-overview", "operators-active"], queryFn: () => listOperators({ status: "ACTIVE" }, null), enabled: users });
+  const integrations = useQuery({ queryKey: ["admin-system", "integrations"], queryFn: getIntegrations, enabled: can("system:read") });
+  const audit = useQuery({ queryKey: ["admin-overview", "audit"], queryFn: () => listAuditLogs({ actorType: "PLATFORM" }, null), retry: false, enabled: can("audit:read") });
+  const support = can("support:manage");
+  const disputes = useQuery({ queryKey: ["admin-disputes", "count"], queryFn: () => listDisputes({ status: "open" }), enabled: support });
+  const tickets = useQuery({ queryKey: ["admin-tickets", "count"], queryFn: () => listTickets({ status: "NEW" }), enabled: support });
   return { applications, proposals, bankChanges, operators, active, integrations, audit, disputes, tickets };
 }
 
@@ -53,38 +59,49 @@ function useCounts() {
  * audit); khiếu nại chưa phân loại + tranh chấp đang mở (TASK-TRUST-001).
  */
 export function OverviewScreen() {
+  const can = useCan();
+  const money = can("payment:monitor");
   const [filters, setFilters] = useState<ReportFilterState>({ ...lastDays(7), operatorId: ALL, provider: ALL });
   const ok = validRange(filters.from, filters.to);
   const params = toParams(filters);
-  const overview = useQuery({ queryKey: ["admin-overview", "numbers", params], queryFn: () => getAdminOverview(params), enabled: ok, placeholderData: keepPreviousData });
-  const { applications, proposals, bankChanges, operators, active, integrations, audit, disputes, tickets } = useCounts();
+  const overview = useQuery({
+    queryKey: ["admin-overview", "numbers", params],
+    queryFn: () => getAdminOverview(params),
+    enabled: ok && money,
+    placeholderData: keepPreviousData
+  });
+  const { applications, proposals, bankChanges, operators, active, integrations, audit, disputes, tickets } = useCounts(can);
   const data = overview.data;
   const days = ok ? rangeDays(filters.from, filters.to) : 0;
-  const queue: { label: string; hint: string; href: string | null; value: string | null }[] = [
+  const allQueue: { label: string; hint: string; href: string | null; value: string | null; permission: string }[] = [
     {
+      permission: "kyc:review",
       label: "Hồ sơ nhà xe chờ duyệt",
       hint: "Hồ sơ đã gửi, chưa có quyết định",
       href: "/operators",
       value: applications.data ? `${applications.data.count}${applications.data.more ? "+" : ""}` : null
     },
-    { label: "Chi trả chờ rà soát", hint: "Kỳ chi trả đã tạo, chờ Admin duyệt", href: "/payouts", value: data ? String(data.queues.payoutsPendingReview) : null },
-    { label: "Tranh chấp đang mở", hint: "Chưa có quyết định của Vé Xe Nhanh", href: "/disputes?tab=disputes", value: disputes.data ? String(disputes.data.open) : null },
-    { label: "Hoàn tiền lỗi cần xử lý", hint: "Cổng thanh toán trả lỗi khi hoàn", href: "/payments?tab=refunds", value: data ? String(data.queues.refundsFailed) : null },
-    { label: "Thanh toán cần đối soát", hint: "Cổng đã trừ tiền nhưng đơn không nhận", href: "/payments?tab=reconcile", value: data ? String(data.queues.reconcileOpen) : null },
-    { label: "Khiếu nại chưa phân loại", hint: "Khách vừa gửi, chưa phân loại / phân công", href: "/disputes", value: tickets.data ? String(tickets.data.unclassified) : null },
+    { permission: "payment:monitor", label: "Chi trả chờ rà soát", hint: "Kỳ chi trả đã tạo, chờ Admin duyệt", href: "/payouts", value: data ? String(data.queues.payoutsPendingReview) : null },
+    { permission: "support:manage", label: "Tranh chấp đang mở", hint: "Chưa có quyết định của Vé Xe Nhanh", href: "/disputes?tab=disputes", value: disputes.data ? String(disputes.data.open) : null },
+    { permission: "payment:monitor", label: "Hoàn tiền lỗi cần xử lý", hint: "Cổng thanh toán trả lỗi khi hoàn", href: "/payments?tab=refunds", value: data ? String(data.queues.refundsFailed) : null },
+    { permission: "payment:monitor", label: "Thanh toán cần đối soát", hint: "Cổng đã trừ tiền nhưng đơn không nhận", href: "/payments?tab=reconcile", value: data ? String(data.queues.reconcileOpen) : null },
+    { permission: "support:manage", label: "Khiếu nại chưa phân loại", hint: "Khách vừa gửi, chưa phân loại / phân công", href: "/disputes", value: tickets.data ? String(tickets.data.unclassified) : null },
     {
+      permission: "catalog:manage",
       label: "Đề xuất điểm dừng chờ duyệt",
       hint: "Nhà xe đề xuất bến / điểm đón trả mới",
       href: "/stop-points?tab=proposals",
       value: proposals.data ? String(proposals.data.total) : null
     },
     {
+      permission: "user:manage",
       label: "Yêu cầu đổi tài khoản nhận tiền",
       hint: "Chờ Admin xác minh trước khi dùng để chi trả",
       href: "/operators?tab=operators",
       value: bankChanges.data ? String(bankChanges.data.total) : null
     }
   ];
+  const queue = allQueue.filter((item) => can(item.permission));
 
   return (
     <div className="flex flex-col gap-6">
@@ -92,102 +109,124 @@ export function OverviewScreen() {
         title="Tổng quan nền tảng"
         description="Số liệu toàn hệ thống trong khoảng thời gian đã chọn."
         actions={
-          <Button asChild variant="outline" className={`${BUTTON} bg-card`}>
-            <Link href="/reports">
-              <Download className="size-[18px]" />
-              Xuất báo cáo
-            </Link>
-          </Button>
-        }
-      />
-      <ReportFilters value={filters} onChange={setFilters} />
-      {!ok && <p className="text-sm leading-5 text-error-600">Ngày bắt đầu phải trước ngày kết thúc, tối đa 366 ngày.</p>}
-      {overview.isError && !data && ok && <p className="text-sm leading-5 text-error-600">Không tải được số liệu giao dịch. Vui lòng tải lại trang.</p>}
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <Stat label="Giá trị giao dịch" value={data ? formatVnd(data.gmv) : null} hint={data ? compareLabel(data.gmv, data.previousGmv, days) : ""} />
-        <Stat
-          label="Đơn đặt vé"
-          value={data ? countLabel(data.bookings.total) : null}
-          hint={data ? `${countLabel(data.bookings.confirmed)} đã thanh toán · ${countLabel(data.bookings.cancelledOrExpired)} hủy / hết hạn` : ""}
-        />
-        <Stat label="Vé đã phát hành" value={data ? countLabel(data.tickets.issued) : null} hint={data ? `Tỷ lệ hoàn tiền ${percentLabel(data.tickets.refunded, data.tickets.issued)}` : ""} />
-        <Stat
-          label="Nhà xe đang hoạt động"
-          value={active.data && operators.data ? `${active.data.total} / ${operators.data.total}` : null}
-          hint={operators.data && active.data ? `${operators.data.total - active.data.total} bị khóa` : ""}
-        />
-      </div>
-      <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_380px]">
-        <div className="flex min-w-0 flex-col gap-6">
-          <section aria-labelledby="overview-queue" className={CARD}>
-            <div className="flex flex-col gap-1">
-              <h2 id="overview-queue" className="text-lg leading-7 font-semibold text-vxn-ink">
-                Việc cần xử lý
-              </h2>
-              <p className="text-sm leading-5 text-muted-foreground">Các hàng đợi đang chờ Admin.</p>
-            </div>
-            <ul className="flex flex-col divide-y">
-              {queue.map((item) => (
-                <QueueItem key={item.label} {...item} />
-              ))}
-            </ul>
-          </section>
-          <section aria-labelledby="overview-daily" className={CARD}>
-            <div className="flex flex-col gap-1">
-              <h2 id="overview-daily" className="text-lg leading-7 font-semibold text-vxn-ink">
-                Giá trị giao dịch theo ngày
-              </h2>
-              <p className="text-sm leading-5 text-muted-foreground">Thanh toán thành công · đơn vị: triệu đồng · tối đa 31 ngày cuối của khoảng.</p>
-            </div>
-            {data ? <DailyChart daily={data.daily} /> : <Skeleton className="h-48 w-full" />}
-          </section>
-        </div>
-        <div className="flex min-w-0 flex-col gap-6">
-          <section aria-labelledby="overview-escrow" className={CARD}>
-            <div className="flex flex-col gap-1">
-              <h2 id="overview-escrow" className="text-lg leading-7 font-semibold text-vxn-ink">
-                Tiền đang giữ (escrow)
-              </h2>
-              <p className="text-sm leading-5 text-muted-foreground">Tiền hành khách đã thanh toán, Platform giữ đến khi đủ điều kiện chi trả.</p>
-            </div>
-            {data ? <Escrow escrow={data.escrow} /> : <Skeleton className="h-40 w-full" />}
+          money ? (
             <Button asChild variant="outline" className={`${BUTTON} bg-card`}>
-              <Link href="/payouts">
-                <ArrowUpRight className="size-[18px]" />
-                Xem chi trả nhà xe
+              <Link href="/reports">
+                <Download className="size-[18px]" />
+                Xuất báo cáo
               </Link>
             </Button>
-          </section>
-          <section aria-labelledby="overview-integrations" className={CARD}>
-            <div className="flex flex-col gap-1">
-              <h2 id="overview-integrations" className="text-lg leading-7 font-semibold text-vxn-ink">
-                Trạng thái tích hợp
-              </h2>
-              {integrations.data && <p className="text-sm leading-5 text-muted-foreground">Kiểm tra lúc {formatDateTime(integrations.data.checkedAt)}</p>}
-            </div>
-            {integrations.data ? (
-              <ul className="flex flex-col gap-3">
-                {integrations.data.items.map((item) => (
-                  <li key={item.key} className="flex items-center justify-between gap-3 text-sm leading-5">
-                    <span className="flex min-w-0 flex-col">
-                      <span className="font-semibold text-vxn-ink">{item.name}</span>
-                      <span className="truncate text-xs leading-[18px] text-muted-foreground">{item.category}</span>
-                    </span>
-                    <Badge tone={INTEGRATION_STATUS[item.status].tone}>{INTEGRATION_STATUS[item.status].label}</Badge>
-                  </li>
+          ) : undefined
+        }
+      />
+      {money && (
+        <>
+          <ReportFilters value={filters} onChange={setFilters} />
+          {!ok && <p className="text-sm leading-5 text-error-600">Ngày bắt đầu phải trước ngày kết thúc, tối đa 366 ngày.</p>}
+          {overview.isError && !data && ok && <p className="text-sm leading-5 text-error-600">Không tải được số liệu giao dịch. Vui lòng tải lại trang.</p>}
+        </>
+      )}
+      {(money || can("user:manage")) && (
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          {money && (
+            <>
+              <Stat label="Giá trị giao dịch" value={data ? formatVnd(data.gmv) : null} hint={data ? compareLabel(data.gmv, data.previousGmv, days) : ""} />
+              <Stat
+                label="Đơn đặt vé"
+                value={data ? countLabel(data.bookings.total) : null}
+                hint={data ? `${countLabel(data.bookings.confirmed)} đã thanh toán · ${countLabel(data.bookings.cancelledOrExpired)} hủy / hết hạn` : ""}
+              />
+              <Stat label="Vé đã phát hành" value={data ? countLabel(data.tickets.issued) : null} hint={data ? `Tỷ lệ hoàn tiền ${percentLabel(data.tickets.refunded, data.tickets.issued)}` : ""} />
+            </>
+          )}
+          {can("user:manage") && (
+            <Stat
+              label="Nhà xe đang hoạt động"
+              value={active.data && operators.data ? `${active.data.total} / ${operators.data.total}` : null}
+              hint={operators.data && active.data ? `${operators.data.total - active.data.total} bị khóa` : ""}
+            />
+          )}
+        </div>
+      )}
+      <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_380px]">
+        <div className="flex min-w-0 flex-col gap-6">
+          {queue.length > 0 && (
+            <section aria-labelledby="overview-queue" className={CARD}>
+              <div className="flex flex-col gap-1">
+                <h2 id="overview-queue" className="text-lg leading-7 font-semibold text-vxn-ink">
+                  Việc cần xử lý
+                </h2>
+                <p className="text-sm leading-5 text-muted-foreground">Các hàng đợi đang chờ Admin.</p>
+              </div>
+              <ul className="flex flex-col divide-y">
+                {queue.map((item) => (
+                  <QueueItem key={item.label} label={item.label} hint={item.hint} href={item.href} value={item.value} />
                 ))}
               </ul>
-            ) : (
-              <Skeleton className="h-24 w-full" />
-            )}
-            <Link href="/system" className="inline-flex items-center gap-1 text-sm font-semibold text-primary hover:underline">
-              Xem tích hợp & hệ thống
-              <ChevronRight className="size-4" />
-            </Link>
-          </section>
+            </section>
+          )}
+          {money && (
+            <section aria-labelledby="overview-daily" className={CARD}>
+              <div className="flex flex-col gap-1">
+                <h2 id="overview-daily" className="text-lg leading-7 font-semibold text-vxn-ink">
+                  Giá trị giao dịch theo ngày
+                </h2>
+                <p className="text-sm leading-5 text-muted-foreground">Thanh toán thành công · đơn vị: triệu đồng · tối đa 31 ngày cuối của khoảng.</p>
+              </div>
+              {data ? <DailyChart daily={data.daily} /> : <Skeleton className="h-48 w-full" />}
+            </section>
+          )}
+        </div>
+        <div className="flex min-w-0 flex-col gap-6">
+          {money && (
+            <section aria-labelledby="overview-escrow" className={CARD}>
+              <div className="flex flex-col gap-1">
+                <h2 id="overview-escrow" className="text-lg leading-7 font-semibold text-vxn-ink">
+                  Tiền đang giữ (escrow)
+                </h2>
+                <p className="text-sm leading-5 text-muted-foreground">Tiền hành khách đã thanh toán, Platform giữ đến khi đủ điều kiện chi trả.</p>
+              </div>
+              {data ? <Escrow escrow={data.escrow} /> : <Skeleton className="h-40 w-full" />}
+              <Button asChild variant="outline" className={`${BUTTON} bg-card`}>
+                <Link href="/payouts">
+                  <ArrowUpRight className="size-[18px]" />
+                  Xem chi trả nhà xe
+                </Link>
+              </Button>
+            </section>
+          )}
+          {can("system:read") && (
+            <section aria-labelledby="overview-integrations" className={CARD}>
+              <div className="flex flex-col gap-1">
+                <h2 id="overview-integrations" className="text-lg leading-7 font-semibold text-vxn-ink">
+                  Trạng thái tích hợp
+                </h2>
+                {integrations.data && <p className="text-sm leading-5 text-muted-foreground">Kiểm tra lúc {formatDateTime(integrations.data.checkedAt)}</p>}
+              </div>
+              {integrations.data ? (
+                <ul className="flex flex-col gap-3">
+                  {integrations.data.items.map((item) => (
+                    <li key={item.key} className="flex items-center justify-between gap-3 text-sm leading-5">
+                      <span className="flex min-w-0 flex-col">
+                        <span className="font-semibold text-vxn-ink">{item.name}</span>
+                        <span className="truncate text-xs leading-[18px] text-muted-foreground">{item.category}</span>
+                      </span>
+                      <Badge tone={INTEGRATION_STATUS[item.status].tone}>{INTEGRATION_STATUS[item.status].label}</Badge>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <Skeleton className="h-24 w-full" />
+              )}
+              <Link href="/system" className="inline-flex items-center gap-1 text-sm font-semibold text-primary hover:underline">
+                Xem tích hợp & hệ thống
+                <ChevronRight className="size-4" />
+              </Link>
+            </section>
+          )}
         </div>
       </div>
-      {!audit.isError && (
+      {can("audit:read") && !audit.isError && (
         <section aria-labelledby="overview-audit" className={CARD}>
           <div className="flex items-center justify-between gap-3">
             <div className="flex flex-col gap-1">

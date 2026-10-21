@@ -14,6 +14,8 @@ export type AuthMe = {
   sessionId: string;
   accessExpiresAt: string;
   mfaVerified: boolean;
+  /** Quyền hiệu lực `resource:action` (TASK-IAM-007) — ẩn menu / nút; server vẫn kiểm từng request. */
+  permissions: string[];
   operatorId?: string;
   operatorSlug?: string;
 };
@@ -146,6 +148,16 @@ export function useAuth(): AuthContextValue {
     throw new Error("useAuth phải nằm trong <AuthProvider>.");
   }
   return value;
+}
+
+/**
+ * Hỏi quyền của phiên hiện tại (TASK-IAM-007): `can("payout:manage")` hoặc "có một trong các quyền". Chỉ để ẩn / khóa
+ * giao diện — API vẫn trả 403 nếu thiếu quyền.
+ */
+export function useCan(): (...permissions: string[]) => boolean {
+  const { state } = useAuth();
+  const granted = state.status === "authenticated" ? state.me.permissions : [];
+  return useCallback((...permissions: string[]) => permissions.some((permission) => granted.includes(permission)), [granted]);
 }
 
 /** Cấu hình cổng hiện tại (chữ, bảng màu) cho các màn xác thực. */

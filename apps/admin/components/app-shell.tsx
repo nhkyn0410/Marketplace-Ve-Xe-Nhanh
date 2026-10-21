@@ -2,9 +2,12 @@
 
 import { useAuth } from "@vexenhanh/ui/components/auth/auth-context";
 import { DashboardShell } from "@vexenhanh/ui/components/dashboard-shell";
+import { ListStatePanel } from "@vexenhanh/ui/components/list-parts";
 import { LogoMark } from "@vexenhanh/ui/components/logo";
-import { LogOut } from "lucide-react";
+import { isNavPathAllowed, visibleNavGroups } from "@vexenhanh/ui/lib/nav";
+import { LogOut, ShieldOff } from "lucide-react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 
 import { ROLE_LABELS } from "../lib/auth/portal";
@@ -19,12 +22,15 @@ export function AppShell({ children }: { children: ReactNode }) {
   // `AuthGate` chỉ dựng khung này khi đã đăng nhập; kiểm lại để kiểu dữ liệu chặt.
   const me = state.status === "authenticated" ? state.me : null;
   const username = me ? `platform/${me.username}` : "";
+  const pathname = usePathname();
+  // Phân quyền theo tài khoản (TASK-IAM-007): chỉ hiện mục được cấp; vào thẳng URL mục khác thì báo không có quyền.
+  const granted = me?.permissions ?? [];
 
   return (
     <DashboardShell
       title="Quản trị nền tảng"
       tone="dark"
-      navGroups={NAV_GROUPS}
+      navGroups={visibleNavGroups(NAV_GROUPS, granted)}
       brand={
         <Link href="/" className="flex shrink-0 items-center gap-3 px-5 pt-5 pb-4">
           <LogoMark className="size-9 shrink-0 text-white" />
@@ -66,7 +72,15 @@ export function AppShell({ children }: { children: ReactNode }) {
         </div>
       }
     >
-      {children}
+      {isNavPathAllowed(NAV_GROUPS, pathname, granted) ? (
+        children
+      ) : (
+        <ListStatePanel
+          icon={<ShieldOff className="size-6 text-vxn-fg-3" />}
+          title="Bạn chưa được cấp quyền dùng trang này"
+          description="Liên hệ quản trị viên có quyền phân quyền nếu công việc của bạn cần trang này."
+        />
+      )}
     </DashboardShell>
   );
 }

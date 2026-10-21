@@ -1,6 +1,7 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useCan } from "@vexenhanh/ui/components/auth/auth-context";
 import { IdentityField, useIdentityField } from "@vexenhanh/ui/components/auth/identity-field";
 import { Badge } from "@vexenhanh/ui/components/badge";
 import { Button } from "@vexenhanh/ui/components/button";
@@ -35,6 +36,8 @@ function useRefresh() {
  * lại cổng (lần gửi mới) hoặc ghi nhận đã hoàn ngoài cổng (mã tham chiếu); cần lý do + mã TOTP. Trạng thái khác: chỉ xem.
  */
 export function RefundDialog({ refundId, onClose }: { refundId: string | null; onClose: () => void }) {
+  // Xem: `payment:monitor`; gửi lại cổng / ghi nhận đã hoàn: `refund:manage` (TASK-IAM-007).
+  const manage = useCan()("refund:manage");
   const refund = useQuery({ queryKey: ["admin-refund", refundId], queryFn: () => getRefund(refundId!), enabled: refundId !== null });
   const detail = refund.data;
   // Câu báo sau khi xử lý: refund đổi trạng thái thì hộp thoại chuyển sang chế độ xem, câu báo vẫn giữ.
@@ -59,7 +62,7 @@ export function RefundDialog({ refundId, onClose }: { refundId: string | null; o
             <Skeleton className="h-28 rounded-lg" />
             <Skeleton className="h-20 rounded-lg" />
           </div>
-        ) : detail.status === "FAILED" ? (
+        ) : manage && detail.status === "FAILED" ? (
           <RefundActionForm key={detail.refundId} detail={detail} onClose={close} onDone={setNotice} />
         ) : (
           <>
