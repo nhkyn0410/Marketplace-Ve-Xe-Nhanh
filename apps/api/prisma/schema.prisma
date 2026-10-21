@@ -436,25 +436,37 @@ enum StopPointType {
 
 /// Tỉnh / thành phố - 'code' theo danh mục hành chính chình thức.
 model Province {
-  id        String        @id @default(uuid())
-  code      String        @unique
-  name      String
-  status    CatalogStatus @default(ACTIVE)
-  createdAt DateTime      @default(now()) @map("created_at")
-  updatedAt DateTime      @updatedAt @map("updated_at")
+  id         String        @id @default(uuid())
+  code       String        @unique
+  name       String
+  /// Cấp hành chính (vd "Thành phố Trung ương", "Tỉnh").
+  level      String?
+  /// Văn bản pháp lý sáp nhập / công bố (vd "202/2025/QH15 - 12/06/2025").
+  decree     String?
+  status     CatalogStatus @default(ACTIVE)
+  /// Cột DO DATABASE SINH (tên, chữ thường, bỏ dấu) để tìm không dấu — KHÔNG ghi từ code.
+  searchText String?       @map("search_text")
+  createdAt  DateTime      @default(now()) @map("created_at")
+  updatedAt  DateTime      @updatedAt @map("updated_at")
 
   wards Ward[]
 
   @@map("provinces")
 }
 
-/// Phường / xã thuộc một tỉnh — `code` theo danh mục hành chính chính thức.
+/// Phường / xã / đặc khu thuộc một tỉnh — `code` theo danh mục hành chính chính thức.
 model Ward {
   id         String        @id @default(uuid())
   provinceId String        @map("province_id")
   code       String        @unique
   name       String
+  /// Cấp hành chính (vd "Phường", "Xã", "Đặc khu").
+  level      String?
+  /// Nghị quyết / văn bản công bố (vd "Số: 1656/NQ-UBTVQH15; Ngày: 16/06/2025").
+  decree     String?
   status     CatalogStatus @default(ACTIVE)
+  /// Cột DO DATABASE SINH (tên, chữ thường, bỏ dấu) để tìm không dấu — KHÔNG ghi từ code.
+  searchText String?       @map("search_text")
   createdAt  DateTime      @default(now()) @map("created_at")
   updatedAt  DateTime      @updatedAt @map("updated_at")
 

@@ -5,6 +5,7 @@ import {
   VehicleForm,
 } from "../database/prisma.types";
 import {
+  ADMINISTRATIVE_UNITS_EXTENDED_CSV_HEADER,
   AMENITIES,
   catalogSeedData,
   parseAdministrativeUnitsCsv,
@@ -13,12 +14,17 @@ import {
 } from "./catalog-seed";
 
 const HEADER = "province_code,province_name,ward_code,ward_name";
+const EXTENDED_HEADER = ADMINISTRATIVE_UNITS_EXTENDED_CSV_HEADER.join(",");
 const BOM = String.fromCharCode(0xfeff);
 /** Ký tự Node chèn khi đọc file không phải UTF-8 bằng `readFileSync(path, "utf8")`. */
 const REPLACEMENT_CHARACTER = String.fromCharCode(0xfffd);
 
 function csv(...rows: string[]): string {
   return [HEADER, ...rows].join("\n");
+}
+
+function extendedCsv(...rows: string[]): string {
+  return [EXTENDED_HEADER, ...rows].join("\n");
 }
 
 describe("parseAdministrativeUnitsCsv — file danh mục chính thức (Q4)", () => {
@@ -34,6 +40,46 @@ describe("parseAdministrativeUnitsCsv — file danh mục chính thức (Q4)", (
         { code: "00004", name: "Phường Ba Đình", provinceCode: "01" },
         { code: "00008", name: 'Phường "Mẫu", có phẩy', provinceCode: "01" },
         { code: "26734", name: "Phường Sài Gòn", provinceCode: "79" },
+      ],
+    });
+  });
+
+  it("hỗ trợ định dạng 8 cột mở rộng có cấp hành chính (level) và nghị định (decree)", () => {
+    const text = extendedCsv(
+      "01,Thành phố Hà Nội,Thành phố Trung ương,,00004,Phường Ba Đình,Phường,Nghị quyết 1656/NQ-UBTVQH15",
+      '96,Tỉnh Cà Mau,Tỉnh,"Nghị quyết 202/2025/QH15",32248,Xã Đất Mũi,Xã,',
+    );
+
+    expect(parseAdministrativeUnitsCsv(text)).toEqual({
+      provinces: [
+        {
+          code: "01",
+          name: "Thành phố Hà Nội",
+          level: "Thành phố Trung ương",
+          decree: null,
+        },
+        {
+          code: "96",
+          name: "Tỉnh Cà Mau",
+          level: "Tỉnh",
+          decree: "Nghị quyết 202/2025/QH15",
+        },
+      ],
+      wards: [
+        {
+          code: "00004",
+          name: "Phường Ba Đình",
+          provinceCode: "01",
+          level: "Phường",
+          decree: "Nghị quyết 1656/NQ-UBTVQH15",
+        },
+        {
+          code: "32248",
+          name: "Xã Đất Mũi",
+          provinceCode: "96",
+          level: "Xã",
+          decree: null,
+        },
       ],
     });
   });
@@ -59,6 +105,11 @@ describe("parseAdministrativeUnitsCsv — file danh mục chính thức (Q4)", (
     ["Excel xoá số 0 đầu mã tỉnh", csv("1,A,00004,B"), /Dòng 2: mã tỉnh "1"/],
     ["Excel xoá số 0 đầu mã xã", csv("01,A,4,B"), /Dòng 2: mã xã "4"/],
     ["thiếu cột", csv("01,A,00004"), /Dòng 2: cần đúng 4 cột/],
+    [
+      "thiếu cột ở định dạng 8 cột",
+      extendedCsv("01,A,Tỉnh,,00004,B,Xã"),
+      /Dòng 2: cần đúng 8 cột/,
+    ],
     ["dấu nháy chưa đóng", csv('01,"A,00004,B'), /Dòng 2: cần đúng 4 cột/],
     [
       "dòng trống giữa file",
@@ -70,6 +121,14 @@ describe("parseAdministrativeUnitsCsv — file danh mục chính thức (Q4)", (
       "một mã tỉnh hai tên",
       csv("01,A,00004,B", "01,A2,00008,C"),
       /Dòng 3: mã tỉnh 01 mang hai tên/,
+    ],
+    [
+      "một mã tỉnh hai cấp hành chính ở định dạng 8 cột",
+      extendedCsv(
+        "01,A,Thành phố Trung ương,,00004,B,Phường,",
+        "01,A,Tỉnh,,00008,C,Phường,",
+      ),
+      /Dòng 3: mã tỉnh 01 có cấp hành chính hoặc nghị định không nhất quán/,
     ],
     [
       "trùng mã xã",
