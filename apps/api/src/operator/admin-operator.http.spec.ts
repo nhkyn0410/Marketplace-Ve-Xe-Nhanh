@@ -47,7 +47,7 @@ describe("Admin nhà xe + người dùng — HTTP", () => {
     approveBankChange: vi.fn(async () => undefined),
     rejectBankChange: vi.fn(async () => undefined),
   };
-  const account = { username: "platform/a", email: null, role: "PLATFORM_SUPPORT", status: "ACTIVE", mfaEnabled: false };
+  const account = { username: "platform/a", email: null, role: "PLATFORM_SUPPORT", permissions: ["payment:monitor"], status: "ACTIVE", mfaEnabled: false };
   const accounts = {
     listPassengers: vi.fn(async () => ({ items: [], nextCursor: null, total: 0 })),
     lockPassenger: vi.fn(async () => undefined),
@@ -68,6 +68,7 @@ describe("Admin nhà xe + người dùng — HTTP", () => {
     resetPlatformMfa: vi.fn(async () => ({})),
     lockPlatformAccount: vi.fn(async () => undefined),
     unlockPlatformAccount: vi.fn(async () => undefined),
+    updatePlatformPermissions: vi.fn(async () => ({})),
   };
   const reauth = { granted: false };
   let app: INestApplication;
@@ -152,11 +153,12 @@ describe("Admin nhà xe + người dùng — HTTP", () => {
     ["POST", "/passengers/user-abc/unlock", undefined, 204, true],
     ["GET", "/employees", undefined, 200, false],
     ["GET", "/platform-accounts", undefined, 200, false],
-    ["POST", "/platform-accounts", { username: "ngoc.finance", email: "ngoc@vexenhanh.vn", role: "PLATFORM_SUPPORT" }, 201, true],
+    ["POST", "/platform-accounts", { username: "ngoc.finance", email: "ngoc@vexenhanh.vn", role: "PLATFORM_SUPPORT", permissions: ["payment:monitor"] }, 201, true],
     ["POST", `/platform-accounts/${id}/reset-password`, undefined, 200, true],
     ["POST", `/platform-accounts/${id}/reset-mfa`, undefined, 200, true],
     ["POST", `/platform-accounts/${id}/lock`, lock, 204, true],
     ["POST", `/platform-accounts/${id}/unlock`, undefined, 204, true],
+    ["PUT", `/platform-accounts/${id}/permissions`, { permissions: ["audit:read"], reason: "Phân quyền kiểm toán" }, 200, true],
   ];
 
   it.each(routes)(
@@ -194,15 +196,21 @@ describe("Admin nhà xe + người dùng — HTTP", () => {
       ["POST", "/platform-accounts", { username: "ngoc", email: "khong-phai-email", role: "PLATFORM_SUPPORT" }],
       ["POST", "/platform-accounts", { username: "ngoc", email: "ngoc@vexenhanh.vn", role: "OPERATOR_OWNER" }],
       ["POST", "/platform-accounts/not-uuid/lock", lock],
+      ["POST", "/platform-accounts", { username: "ngoc", email: "ngoc@vexenhanh.vn", role: "PLATFORM_SUPPORT" }],
+      ["POST", "/platform-accounts", { username: "ngoc", email: "ngoc@vexenhanh.vn", role: "PLATFORM_SUPPORT", permissions: ["god:mode"] }],
+      ["PUT", `/platform-accounts/${id}/permissions`, { permissions: ["audit:read"], reason: "ab" }],
+      ["PUT", `/platform-accounts/${id}/permissions`, { permissions: "audit:read", reason: "Phân quyền" }],
     ] as const) {
       expect((await call(method, path, admin, body)).status, path).toBe(400);
     }
     expect(calls()).toHaveLength(0);
-    expect((await call("POST", "/platform-accounts", admin, { username: " Ngoc.Finance ", email: "NGOC@vexenhanh.vn", role: "PLATFORM_ADMIN" })).status).toBe(201);
+    expect(
+      (await call("POST", "/platform-accounts", admin, { username: " Ngoc.Finance ", email: "NGOC@vexenhanh.vn", role: "PLATFORM_ADMIN", permissions: [] })).status,
+    ).toBe(201);
     expect(accounts.createPlatformAccount).toHaveBeenCalledWith(
       expect.anything(),
       expect.anything(),
-      { username: "ngoc.finance", email: "ngoc@vexenhanh.vn", role: "PLATFORM_ADMIN" },
+      { username: "ngoc.finance", email: "ngoc@vexenhanh.vn", role: "PLATFORM_ADMIN", permissions: [] },
     );
   });
 });

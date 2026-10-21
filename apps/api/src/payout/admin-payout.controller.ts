@@ -35,7 +35,7 @@ const WriteErrors = () =>
   );
 
 // API §7.5 — chi trả nhà xe (FR-ADM-10, FR-BTP-17, ADR-022, UC-26). Xem: `payment:monitor` (giám sát / đối soát — chỉ
-// phía nền tảng); thao tác: `finance:configure`
+// phía nền tảng); thao tác: `payout:manage` (TASK-IAM-007, tách từ `finance:configure`)
 // (PLATFORM_ADMIN); xác nhận đã chi + xem đầy đủ số tài khoản cần xác nhận lại danh tính.
 @ApiTags("admin-payouts")
 @Controller("admin/payouts")
@@ -75,7 +75,7 @@ export class AdminPayoutController {
   /** Rà soát xong → sẵn sàng chuyển khoản (phải qua kiểm tra trước khi chi). */
   @Post(":payoutId/review")
   @HttpCode(200)
-  @Authorize("finance:configure")
+  @Authorize("payout:manage")
   @WriteErrors()
   @ApiParam(ID_PARAM)
   @ZodResponse({ status: 200, description: "Kỳ sau khi rà soát.", type: PayoutDetailDto })
@@ -85,7 +85,7 @@ export class AdminPayoutController {
 
   @Post(":payoutId/hold")
   @HttpCode(200)
-  @Authorize("finance:configure")
+  @Authorize("payout:manage")
   @WriteErrors()
   @ApiParam(ID_PARAM)
   @ApiBody({ type: PayoutReasonInputDto })
@@ -102,7 +102,7 @@ export class AdminPayoutController {
   /** Mở lại kỳ đang giữ → chờ rà soát (chụp lại tài khoản nhận tiền đã xác minh). */
   @Post(":payoutId/release")
   @HttpCode(200)
-  @Authorize("finance:configure")
+  @Authorize("payout:manage")
   @WriteErrors()
   @ApiParam(ID_PARAM)
   @ZodResponse({ status: 200, description: "Kỳ chờ rà soát.", type: PayoutDetailDto })
@@ -113,7 +113,7 @@ export class AdminPayoutController {
   /** Đã chuyển khoản: mã giao dịch ngân hàng + thời điểm + ghi chú → đã chi, ghi sổ escrow. */
   @Post(":payoutId/confirm")
   @HttpCode(200)
-  @Authorize("finance:configure", { requireReauth: true })
+  @Authorize("payout:manage", { requireReauth: true })
   @WriteErrors()
   @ApiParam(ID_PARAM)
   @ApiBody({ type: PayoutConfirmInputDto })
@@ -131,7 +131,7 @@ export class AdminPayoutController {
   /** Hủy kỳ chưa chi — bút toán trả về kỳ sau. */
   @Post(":payoutId/cancel")
   @HttpCode(200)
-  @Authorize("finance:configure")
+  @Authorize("payout:manage")
   @WriteErrors()
   @ApiParam(ID_PARAM)
   @ApiBody({ type: PayoutReasonInputDto })
@@ -148,7 +148,7 @@ export class AdminPayoutController {
   /** Số tài khoản đầy đủ (ghi audit mỗi lần). */
   @Post(":payoutId/bank-reveal")
   @HttpCode(200)
-  @Authorize("finance:configure", { requireReauth: true })
+  @Authorize("payout:manage", { requireReauth: true })
   @WriteErrors()
   @ApiParam(ID_PARAM)
   @ZodResponse({ status: 200, description: "Tài khoản nhận tiền đầy đủ.", type: PayoutBankAccountDto })
