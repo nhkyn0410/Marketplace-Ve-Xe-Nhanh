@@ -34,7 +34,7 @@ export class FareController {
 
   /** Trả một trang bảng giá của nhà xe. */
   @Get()
-  @Authorize("trip:manage")
+  @Authorize("transport:read")
   @ApiQuery({ name: "routeId", required: false, type: String, format: "uuid" })
   @ApiQuery({ name: "status", required: false, enum: Object.values(FareStatus) })
   @ApiQuery({ name: "cursor", required: false, type: String, format: "uuid" })
@@ -47,7 +47,7 @@ export class FareController {
 
   /** Trả chi tiết bảng giá kèm rule. */
   @Get(":fareId")
-  @Authorize("trip:manage")
+  @Authorize("transport:read")
   @ApiParam({ name: "fareId", type: String, format: "uuid" })
   @ZodResponse({ status: 200, description: "Chi tiết bảng giá kèm rule.", type: FareResponseDto })
   @ApiResponse({ status: 404, description: "`FARE_NOT_FOUND` (kể cả khác tenant).", content: problemContent })
@@ -98,7 +98,7 @@ export class FareController {
 
   /** Trả lịch sử thay đổi bảng giá (mới nhất trước). */
   @Get(":fareId/revisions")
-  @Authorize("trip:manage")
+  @Authorize("transport:read")
   @ApiParam({ name: "fareId", type: String, format: "uuid" })
   @ApiQuery({ name: "cursor", required: false, type: String, format: "date-time" })
   @ApiQuery({ name: "limit", required: false, type: Number, minimum: 1, maximum: 20 })

@@ -34,6 +34,8 @@ import {
 } from "./user/admin-user.controller";
 import { EmployeeAccountController } from "./user/employee-account.controller";
 import { EmployeeAccountService } from "./user/employee-account.service";
+import { OperatorManagerController } from "./user/operator-manager.controller";
+import { OperatorManagerService } from "./user/operator-manager.service";
 import { TemporaryCredentialEmailLimiter } from "./user/temporary-credential-email-limiter";
 import { WebAuthService } from "./auth/web/web-auth.service";
 import { WebCsrfGuard } from "./auth/web/web-csrf.guard";
@@ -45,6 +47,7 @@ import { WebCsrfGuard } from "./auth/web/web-csrf.guard";
     AuthController,
     SessionController,
     EmployeeAccountController,
+    OperatorManagerController,
     AdminPassengerController,
     AdminEmployeeController,
     AdminPlatformAccountController,
@@ -68,6 +71,7 @@ import { WebCsrfGuard } from "./auth/web/web-csrf.guard";
     RecentReauthGuard,
     AccountProvisioningService,
     EmployeeAccountService,
+    OperatorManagerService,
     AdminAccountService,
     TemporaryCredentialEmailLimiter,
     AuthService,

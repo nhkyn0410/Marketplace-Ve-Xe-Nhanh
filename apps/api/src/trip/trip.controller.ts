@@ -37,7 +37,7 @@ export class TripController {
 
   /** Trả một trang chuyến của nhà xe, sắp theo giờ đi. */
   @Get()
-  @Authorize("trip:manage")
+  @Authorize("transport:read")
   @ApiQuery({ name: "routeId", required: false, type: String, format: "uuid" })
   @ApiQuery({ name: "vehicleId", required: false, type: String, format: "uuid" })
   @ApiQuery({ name: "status", required: false, enum: Object.values(TripStatus) })
@@ -53,7 +53,7 @@ export class TripController {
 
   /** Trả chi tiết chuyến kèm điểm dừng và ghế. */
   @Get(":tripId")
-  @Authorize("trip:manage")
+  @Authorize("transport:read")
   @ApiParam({ name: "tripId", type: String, format: "uuid" })
   @ZodResponse({ status: 200, description: "Chi tiết chuyến kèm điểm dừng và ghế.", type: TripResponseDto })
   @ApiResponse({ status: 404, description: "`TRIP_NOT_FOUND` (kể cả khác tenant).", content: problemContent })
