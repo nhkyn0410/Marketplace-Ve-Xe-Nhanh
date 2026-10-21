@@ -17,6 +17,7 @@ export interface TicketPaymentSidebarProps {
   readonly payment: TicketPaymentDetail;
   readonly refundPolicy: TicketRefundPolicy;
   readonly operatorHotline: string;
+  readonly supportHref?: string;
 }
 
 /**
@@ -25,7 +26,8 @@ export interface TicketPaymentSidebarProps {
 export const TicketPaymentSidebar: React.FC<TicketPaymentSidebarProps> = ({
   payment,
   refundPolicy,
-  operatorHotline
+  operatorHotline,
+  supportHref = "/support"
 }) => {
   return (
     <div className="space-y-5">
@@ -49,7 +51,7 @@ export const TicketPaymentSidebar: React.FC<TicketPaymentSidebarProps> = ({
 
             {payment.discountVnd !== "0" && (
               <div className="flex items-center justify-between text-emerald-600 dark:text-emerald-400">
-                <span>Voucher đổi điểm</span>
+                <span>Ưu đãi</span>
                 <span className="font-semibold">-{formatVnd(payment.discountVnd)}</span>
               </div>
             )}
@@ -75,7 +77,7 @@ export const TicketPaymentSidebar: React.FC<TicketPaymentSidebarProps> = ({
 
             <div className="flex items-center justify-between">
               <span>Trạng thái</span>
-              <Badge className="bg-emerald-500/15 text-emerald-800 dark:text-emerald-300 border-emerald-500/30 text-[11px] font-semibold py-0">
+              <Badge tone={payment.statusLabel === "Đã thanh toán" ? "success" : "neutral"} className="text-[11px] font-semibold py-0">
                 {payment.statusLabel}
               </Badge>
             </div>
@@ -131,24 +133,16 @@ export const TicketPaymentSidebar: React.FC<TicketPaymentSidebarProps> = ({
         </h3>
 
         <div className="space-y-2 text-xs">
-          <div className="flex items-center gap-2 text-muted-foreground">
+          {operatorHotline && <div className="flex items-center gap-2 text-muted-foreground">
             <Phone className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-            <span>Phương Nam Travel · </span>
+            <span>Nhà xe · </span>
             <a href={`tel:${operatorHotline.replace(/\s+/g, "")}`} className="font-semibold text-foreground hover:underline">
               {operatorHotline}
             </a>
-          </div>
-
-          <div className="flex items-center gap-2 text-muted-foreground">
-            <Phone className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-            <span>CSKH Vé Xe Nhanh · </span>
-            <a href="tel:19006067" className="font-semibold text-foreground hover:underline">
-              1900 6067
-            </a>
-          </div>
+          </div>}
         </div>
 
-        <Link href="/support/complaints" className="block pt-1">
+        <Link href={supportHref} className="block pt-1">
           <Button
             type="button"
             variant="outline"

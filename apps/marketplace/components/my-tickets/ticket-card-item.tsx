@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Clock, QrCode, CreditCard } from "lucide-react";
 import { formatVnd } from "../../lib/format";
 import { MyTicketItem } from "../../lib/data/types";
@@ -23,11 +24,12 @@ function formatCountdown(totalSeconds: number): string {
  * Thẻ vé đơn lẻ trong danh sách Hành trình của tôi theo Figma 1445:14030.
  */
 export function TicketCardItem({ ticket, onCancelClick }: TicketCardItemProps) {
+  const router = useRouter();
   const isPending = ticket.status === "pending_payment";
 
   const handleCancel = () => {
-    console.warn(`[marketplace] chưa có API: POST /bookings/${ticket.bookingCode}/cancel`);
-    onCancelClick?.(ticket);
+    if (onCancelClick) onCancelClick(ticket);
+    else router.push(`/my-tickets/${ticket.id}?cancel=true`);
   };
 
   return (
@@ -68,7 +70,7 @@ export function TicketCardItem({ ticket, onCancelClick }: TicketCardItemProps) {
               </div>
             ) : (
               <span className="inline-flex items-center rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-bold text-emerald-700 border border-emerald-200">
-                Hợp lệ
+                {ticket.status === "cancelled" ? "Đã hủy / hết hạn" : ticket.status === "completed" ? "Đã sử dụng" : ticket.hasIssuedTickets === false ? "Chưa phát hành vé" : "Hợp lệ"}
               </span>
             )}
           </div>
@@ -94,13 +96,13 @@ export function TicketCardItem({ ticket, onCancelClick }: TicketCardItemProps) {
         </span>
 
         <div className="flex items-center gap-2.5">
-          <button
+          {ticket.status === "valid" && ticket.hasIssuedTickets !== false && <button
             type="button"
             onClick={handleCancel}
             className="rounded-xl px-3 py-2 text-xs sm:text-sm font-semibold text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900 transition cursor-pointer"
           >
             {isPending ? "Hủy đơn" : "Hủy vé"}
-          </button>
+          </button>}
 
           {isPending ? (
             <Link
@@ -110,7 +112,7 @@ export function TicketCardItem({ ticket, onCancelClick }: TicketCardItemProps) {
               <CreditCard className="h-4 w-4" />
               <span>Tiếp tục thanh toán</span>
             </Link>
-          ) : (
+          ) : ticket.hasIssuedTickets !== false ? (
             <Link
               href={`/my-tickets/${ticket.id}`}
               className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-[#00506a] px-4 py-2 text-xs sm:text-sm font-bold text-white shadow-xs transition hover:bg-[#00476b] active:scale-[0.99]"
@@ -118,7 +120,7 @@ export function TicketCardItem({ ticket, onCancelClick }: TicketCardItemProps) {
               <QrCode className="h-4 w-4" />
               <span>Xem vé</span>
             </Link>
-          )}
+          ) : <span className="text-xs text-neutral-500">Chưa phát hành vé</span>}
         </div>
       </div>
     </div>

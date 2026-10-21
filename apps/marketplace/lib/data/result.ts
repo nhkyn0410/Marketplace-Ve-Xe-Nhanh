@@ -4,7 +4,7 @@
 export type DataResult<T> =
   | { readonly status: "ok"; readonly data: T }
   | { readonly status: "unavailable"; readonly endpoint: string }
-  | { readonly status: "error"; readonly endpoint: string; readonly message?: string };
+  | { readonly status: "error"; readonly endpoint: string; readonly message?: string; readonly httpStatus?: number };
 
 /**
  * Tạo kết quả thành công chứa dữ liệu trả về.
@@ -30,11 +30,12 @@ export function unavailable(endpoint: string): DataResult<never> {
 /**
  * Tạo kết quả lỗi khi gọi API thất bại và ghi lỗi ra console.
  */
-export function failed(endpoint: string, message?: string): DataResult<never> {
+export function failed(endpoint: string, message?: string, httpStatus?: number): DataResult<never> {
   console.error(`[marketplace] lỗi gọi API: ${endpoint}`, message ?? "");
   return {
     status: "error",
     endpoint,
-    ...(message !== undefined ? { message } : {})
+    ...(message !== undefined ? { message } : {}),
+    ...(httpStatus !== undefined ? { httpStatus } : {})
   };
 }

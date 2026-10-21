@@ -14,6 +14,7 @@ export interface TicketDetailHeaderProps {
   readonly onOpenCancelDialog: () => void;
   readonly onPrint: () => void;
   readonly onShare: () => void;
+  readonly canCancel?: boolean;
 }
 
 /**
@@ -25,7 +26,8 @@ export const TicketDetailHeader: React.FC<TicketDetailHeaderProps> = ({
   statusLabel,
   onOpenCancelDialog,
   onPrint,
-  onShare
+  onShare,
+  canCancel = true
 }) => {
   return (
     <div className="space-y-3">
@@ -49,7 +51,7 @@ export const TicketDetailHeader: React.FC<TicketDetailHeaderProps> = ({
             <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
               Đơn {bookingCode}
             </h1>
-            <Badge className="bg-emerald-500/15 text-emerald-800 dark:text-emerald-300 hover:bg-emerald-500/20 border-emerald-500/30 font-semibold px-2.5 py-0.5 text-xs">
+            <Badge tone={statusLabel === "Đã xác nhận" ? "success" : "neutral"} className="font-semibold px-2.5 py-0.5 text-xs">
               {statusLabel}
             </Badge>
           </div>
@@ -79,7 +81,7 @@ export const TicketDetailHeader: React.FC<TicketDetailHeaderProps> = ({
             <span>Chia sẻ</span>
           </Button>
 
-          <Button
+          {canCancel && <Button
             type="button"
             variant="outline"
             size="sm"
@@ -88,7 +90,7 @@ export const TicketDetailHeader: React.FC<TicketDetailHeaderProps> = ({
           >
             <AlertCircle className="h-3.5 w-3.5" />
             <span>Hủy vé</span>
-          </Button>
+          </Button>}
         </div>
       </div>
     </div>

@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import Image from "next/image";
 import {
   Dialog,
   DialogContent,
@@ -51,47 +52,7 @@ export const LookupQrModal: React.FC<LookupQrModalProps> = ({
         <div className="flex flex-col items-center justify-center p-6 bg-slate-50 rounded-2xl border border-dashed border-border gap-4 my-2">
           {/* Mã QR phóng to */}
           <div className="p-4 bg-white rounded-2xl shadow-sm border border-border">
-            <svg
-              viewBox="0 0 100 100"
-              className="w-48 h-48 text-slate-900"
-              fill="currentColor"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <rect x="0" y="0" width="30" height="30" rx="3" />
-              <rect x="5" y="5" width="20" height="20" fill="white" rx="1.5" />
-              <rect x="10" y="10" width="10" height="10" />
-
-              <rect x="70" y="0" width="30" height="30" rx="3" />
-              <rect x="75" y="5" width="20" height="20" fill="white" rx="1.5" />
-              <rect x="80" y="10" width="10" height="10" />
-
-              <rect x="0" y="70" width="30" height="30" rx="3" />
-              <rect x="5" y="75" width="20" height="20" fill="white" rx="1.5" />
-              <rect x="10" y="80" width="10" height="10" />
-
-              <rect x="36" y="8" width="8" height="6" />
-              <rect x="50" y="4" width="12" height="6" />
-              <rect x="36" y="20" width="6" height="8" />
-              <rect x="48" y="16" width="14" height="6" />
-              <rect x="40" y="32" width="6" height="6" />
-              <rect x="52" y="30" width="8" height="8" />
-              <rect x="66" y="36" width="8" height="6" />
-              <rect x="34" y="44" width="10" height="6" />
-              <rect x="48" y="42" width="6" height="10" />
-              <rect x="60" y="46" width="8" height="8" />
-              <rect x="76" y="44" width="14" height="6" />
-              <rect x="38" y="58" width="12" height="6" />
-              <rect x="56" y="56" width="6" height="12" />
-              <rect x="68" y="60" width="12" height="6" />
-              <rect x="84" y="58" width="8" height="8" />
-              <rect x="36" y="72" width="8" height="10" />
-              <rect x="48" y="76" width="12" height="6" />
-              <rect x="64" y="74" width="6" height="8" />
-              <rect x="76" y="78" width="12" height="6" />
-              <rect x="42" y="88" width="10" height="6" />
-              <rect x="58" y="86" width="14" height="6" />
-              <rect x="78" y="88" width="8" height="6" />
-            </svg>
+            {ticket.qrCodeDataUrl ? <Image src={ticket.qrCodeDataUrl} alt={`Mã QR vé ${ticket.ticketCode}`} width={240} height={240} unoptimized /> : <p>Mã QR chưa khả dụng</p>}
           </div>
 
           {/* Chi tiết vé */}

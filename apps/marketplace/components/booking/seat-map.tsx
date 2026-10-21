@@ -59,6 +59,7 @@ function SeatTile({
       <button
         type="button"
         disabled={!isClickable}
+        style={{ gridRowStart: seat.row, gridColumnStart: seat.column }}
         onClick={() => isClickable && onToggle?.(seat.code)}
         className={`col-start-2 col-span-1 flex h-12 w-20 sm:w-22 flex-col items-center justify-center rounded-xl border p-1 transition active:scale-[0.99] ${statusClasses}`}
         aria-label={`Ghế ${seat.code} (${seat.capacityText ?? "giường đôi"})`}
@@ -81,6 +82,7 @@ function SeatTile({
     <button
       type="button"
       disabled={!isClickable}
+      style={{ gridRowStart: seat.row, gridColumnStart: seat.column }}
       onClick={() => isClickable && onToggle?.(seat.code)}
       className={`flex h-11 w-11 sm:h-12 sm:w-12 items-center justify-center rounded-xl border text-xs font-bold transition active:scale-95 ${statusClasses}`}
       aria-label={`Ghế ${seat.code}`}
@@ -160,7 +162,7 @@ export function SeatMap({
             </span>
           </div>
 
-          <div className="mt-5 grid grid-cols-3 gap-2.5 sm:gap-3 place-items-center">
+          <div className="mt-5 grid gap-2.5 sm:gap-3 place-items-center" style={{ gridTemplateColumns: `repeat(${Math.max(1, ...floor1Seats.map((seat) => seat.column ?? 3))}, minmax(0, 1fr))` }}>
             {floor1Seats.map((seat) => (
               <SeatTile
                 key={seat.id}
@@ -173,7 +175,7 @@ export function SeatMap({
         </div>
 
         {/* Tầng trên */}
-        <div className="rounded-2xl border border-vxn-border bg-neutral-50/30 p-4 sm:p-5">
+        {floor2Seats.length > 0 && <div className="rounded-2xl border border-vxn-border bg-neutral-50/30 p-4 sm:p-5">
           <div className="text-center font-bold text-sm text-vxn-ink">
             Tầng trên
           </div>
@@ -184,7 +186,7 @@ export function SeatMap({
             </span>
           </div>
 
-          <div className="mt-5 grid grid-cols-3 gap-2.5 sm:gap-3 place-items-center">
+          <div className="mt-5 grid gap-2.5 sm:gap-3 place-items-center" style={{ gridTemplateColumns: `repeat(${Math.max(1, ...floor2Seats.map((seat) => seat.column ?? 3))}, minmax(0, 1fr))` }}>
             {floor2Seats.map((seat) => (
               <SeatTile
                 key={seat.id}
@@ -194,7 +196,7 @@ export function SeatMap({
               />
             ))}
           </div>
-        </div>
+        </div>}
       </div>
     </section>
   );

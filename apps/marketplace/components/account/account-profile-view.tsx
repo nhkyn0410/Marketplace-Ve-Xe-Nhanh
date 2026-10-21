@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   Pencil,
   Trash2,
@@ -11,13 +12,13 @@ import {
   Tag,
   ArrowRight,
   Mail,
-  Globe,
   Monitor,
   ChevronRight
 } from "lucide-react";
 import { Button } from "@vexenhanh/ui/components/button";
 import type { UserProfileData } from "../../lib/data/types";
 import { AccountSidebar } from "./account-sidebar";
+import { updateAccountProfile, saveAccountPassenger, deleteAccountPassenger } from "../../lib/data/auth";
 
 export interface AccountProfileViewProps {
   readonly user?: UserProfileData;
@@ -76,7 +77,47 @@ export const AccountProfileView: React.FC<AccountProfileViewProps> = ({
   },
   isPreview = false
 }) => {
+  const router = useRouter();
   const [actionNotice, setActionNotice] = useState<string | null>(null);
+  const [editor, setEditor] = useState<"profile" | "passenger" | null>(null);
+  const [passengerId, setPassengerId] = useState<string | undefined>();
+  const [draftName, setDraftName] = useState("");
+  const [draftPhone, setDraftPhone] = useState("");
+  const [draftBirth, setDraftBirth] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
+
+  const openEditor = (kind: "profile" | "passenger", passenger?: NonNullable<UserProfileData["savedPassengers"]>[number]) => {
+    setEditor(kind);
+    setPassengerId(passenger?.id);
+    setDraftName(kind === "profile" ? user.fullName : passenger?.name ?? "");
+    setDraftPhone(kind === "profile" ? user.phone : passenger?.phone ?? "");
+    setDraftBirth(kind === "profile" ? user.dateOfBirth ?? "" : "");
+    setActionNotice(null);
+  };
+
+  const handleSave = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (isPreview) { setEditor(null); handleAction("Đây là chế độ xem trước."); return; }
+    setIsSaving(true);
+    try {
+      const phone = draftPhone.replace(/\s/g, "") || null;
+      const result = editor === "profile"
+        ? await updateAccountProfile({ name: draftName, phone, dateOfBirth: draftBirth || null })
+        : await saveAccountPassenger({ fullName: draftName, phone }, passengerId);
+      if (result.status === "ok") { setEditor(null); handleAction("Đã lưu thông tin."); router.refresh(); }
+      else handleAction(result.status === "error" ? result.message ?? "Không thể lưu thông tin." : "Chức năng chưa khả dụng.");
+    } finally { setIsSaving(false); }
+  };
+
+  const handleDeletePassenger = async (id: string) => {
+    if (isPreview) { handleAction("Đây là chế độ xem trước."); return; }
+    setIsSaving(true);
+    try {
+      const result = await deleteAccountPassenger(id);
+      if (result.status === "ok") { handleAction("Đã xóa hành khách đã lưu."); router.refresh(); }
+      else handleAction(result.status === "error" ? result.message ?? "Không thể xóa hành khách." : "Chức năng chưa khả dụng.");
+    } finally { setIsSaving(false); }
+  };
 
   const handleAction = (msg: string) => {
     setActionNotice(msg);
@@ -105,6 +146,16 @@ export const AccountProfileView: React.FC<AccountProfileViewProps> = ({
         </div>
       )}
 
+      {editor && <form onSubmit={handleSave} className="rounded-2xl border border-border bg-white p-5 space-y-4">
+        <h2 className="font-semibold">{editor === "profile" ? "Cập nhật hồ sơ" : "Thông tin hành khách"}</h2>
+        <div className="grid gap-4 sm:grid-cols-3">
+          <label className="text-sm">Họ tên<input required maxLength={100} value={draftName} onChange={(event) => setDraftName(event.target.value)} className="mt-1 w-full rounded-lg border p-2" /></label>
+          <label className="text-sm">Số điện thoại<input type="tel" value={draftPhone} onChange={(event) => setDraftPhone(event.target.value)} className="mt-1 w-full rounded-lg border p-2" /></label>
+          {editor === "profile" && <label className="text-sm">Ngày sinh<input type="date" value={draftBirth} onChange={(event) => setDraftBirth(event.target.value)} className="mt-1 w-full rounded-lg border p-2" /></label>}
+        </div>
+        <div className="flex gap-2"><Button disabled={isSaving} type="submit">{isSaving ? "Đang lưu…" : "Lưu"}</Button><Button type="button" variant="outline" onClick={() => setEditor(null)}>Đóng</Button></div>
+      </form>}
+
       {/* Bố cục 2 cột: Sidebar và Nội dung */}
       <div className="flex flex-col lg:flex-row gap-6 items-start">
         {/* Cột trái: Menu tài khoản */}
@@ -132,7 +183,7 @@ export const AccountProfileView: React.FC<AccountProfileViewProps> = ({
                 type="button"
                 variant="outline"
                 size="sm"
-                onClick={() => handleAction("Chức năng chỉnh sửa thông tin cá nhân đang được hoàn thiện.")}
+                onClick={() => openEditor("profile")}
                 className="h-8 px-3 rounded-xl text-xs gap-1.5"
               >
                 <Pencil className="w-3.5 h-3.5" />
@@ -146,7 +197,7 @@ export const AccountProfileView: React.FC<AccountProfileViewProps> = ({
               <div className="space-y-1">
                 <span className="text-muted-foreground">Họ và tên</span>
                 <p className="font-semibold text-foreground text-sm">
-                  {user.fullName}
+                  {user.fullName || "Chưa cập nhật"}
                 </p>
               </div>
 
@@ -154,15 +205,7 @@ export const AccountProfileView: React.FC<AccountProfileViewProps> = ({
               <div className="space-y-1">
                 <span className="text-muted-foreground">Ngày sinh</span>
                 <p className="font-semibold text-foreground text-sm">
-                  {user.dateOfBirth ?? "12/03/1994"}
-                </p>
-              </div>
-
-              {/* Giới tính */}
-              <div className="space-y-1">
-                <span className="text-muted-foreground">Giới tính</span>
-                <p className="font-semibold text-foreground text-sm">
-                  {user.gender ?? "Nam"}
+                  {user.dateOfBirth ? (/^\d{4}-\d{2}-\d{2}$/.test(user.dateOfBirth) ? new Date(`${user.dateOfBirth}T00:00:00+07:00`).toLocaleDateString("vi-VN", { timeZone: "Asia/Ho_Chi_Minh" }) : user.dateOfBirth) : "Chưa cập nhật"}
                 </p>
               </div>
 
@@ -174,7 +217,7 @@ export const AccountProfileView: React.FC<AccountProfileViewProps> = ({
                     {user.email}
                   </span>
                   <span className="px-2 py-0.5 rounded-md bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 font-medium text-[11px] border border-emerald-200/50">
-                    Đã xác minh
+                    {user.emailVerified || isPreview ? "Đã xác minh" : "Chưa xác minh"}
                   </span>
                 </div>
               </div>
@@ -183,23 +226,16 @@ export const AccountProfileView: React.FC<AccountProfileViewProps> = ({
               <div className="space-y-1">
                 <span className="text-muted-foreground">Số điện thoại</span>
                 <p className="font-semibold text-foreground text-sm">
-                  {user.phone}
+                  {user.phone || "Chưa cập nhật"}
                 </p>
               </div>
 
-              {/* CCCD / hộ chiếu */}
-              <div className="space-y-1">
-                <span className="text-muted-foreground">CCCD / hộ chiếu</span>
-                <p className="font-semibold text-foreground text-sm">
-                  {user.idNumber ?? "079 *** *** 234"}
-                </p>
-              </div>
             </div>
 
             {/* Dải thông báo nhỏ */}
             <div className="bg-[#EEF8FA] dark:bg-teal-950/30 rounded-xl p-3 flex items-center gap-2.5 text-xs text-[#0F5B60] dark:text-teal-300">
               <Info className="w-4 h-4 shrink-0" />
-              <span>Đổi email cần xác minh bằng mã OTP gửi tới email mới.</span>
+              <span>Đăng nhập bằng mã OTP được gửi tới email của bạn.</span>
             </div>
           </div>
 
@@ -211,10 +247,10 @@ export const AccountProfileView: React.FC<AccountProfileViewProps> = ({
               </div>
               <div className="space-y-0.5">
                 <h3 className="text-sm font-bold text-foreground">
-                  {user.tierName} · {user.points.toLocaleString("vi-VN")} điểm khả dụng
+                  {user.tierName ?? "VXN Plus"}{user.points !== undefined ? ` · ${user.points.toLocaleString("vi-VN")} điểm khả dụng` : ""}
                 </h3>
                 <p className="text-xs text-muted-foreground">
-                  Đã tích {user.periodPoints?.toLocaleString("vi-VN") ?? "2.450"} điểm trong 12 tháng · cần thêm {user.pointsNeededNextTier?.toLocaleString("vi-VN") ?? "2.550"} điểm để lên hạng {user.nextTierName ?? "Vàng"}
+                  {user.periodPoints !== undefined ? `Đã tích ${user.periodPoints.toLocaleString("vi-VN")} điểm trong 12 tháng` : "Xem điểm và quyền lợi tại trang VXN Plus."}
                 </p>
               </div>
             </div>
@@ -224,16 +260,16 @@ export const AccountProfileView: React.FC<AccountProfileViewProps> = ({
                 type="button"
                 variant="outline"
                 size="sm"
-                onClick={() => handleAction("Mở ví voucher.")}
+                onClick={() => router.push(isPreview ? "/account/vouchers?preview=ideal" : "/account/vouchers")}
                 className="h-9 px-3.5 rounded-xl text-xs gap-1.5 bg-white dark:bg-card border-border"
               >
                 <Tag className="w-3.5 h-3.5 text-amber-600" />
-                <span>Ví voucher ({user.voucherCount})</span>
+                <span>Ví voucher{user.voucherCount !== undefined ? ` (${user.voucherCount})` : ""}</span>
               </Button>
               <Button
                 type="button"
                 size="sm"
-                onClick={() => handleAction("Xem chi tiết quyền lợi VXN Plus.")}
+                onClick={() => router.push(isPreview ? "/plus?preview=ideal" : "/plus")}
                 className="h-9 px-3.5 rounded-xl text-xs gap-1.5 bg-[#0F5B60] hover:bg-[#0c474b] text-white"
               >
                 <span>Xem VXN Plus</span>
@@ -242,12 +278,12 @@ export const AccountProfileView: React.FC<AccountProfileViewProps> = ({
             </div>
           </div>
 
-          {/* Khối 3: Hành khách đã lưu (3 / 5) */}
-          <div className="bg-white dark:bg-card rounded-2xl border border-border p-6 space-y-4 shadow-2xs">
+          {/* Khối 3: Hành khách đã lưu */}
+          <div id="saved-passengers" className="scroll-mt-24 bg-white dark:bg-card rounded-2xl border border-border p-6 space-y-4 shadow-2xs">
             <div className="flex items-center justify-between">
               <div>
                 <h2 className="text-base font-bold text-foreground">
-                  Hành khách đã lưu ({savedPassengers.length} / 5)
+                  Hành khách đã lưu{user.savedPassengers ? ` (${savedPassengers.length})` : ""}
                 </h2>
                 <p className="text-xs text-muted-foreground">
                   Dùng để điền nhanh thông tin khi đặt vé.
@@ -257,7 +293,7 @@ export const AccountProfileView: React.FC<AccountProfileViewProps> = ({
                 type="button"
                 variant="outline"
                 size="sm"
-                onClick={() => handleAction("Chức năng thêm hành khách đang được kết nối.")}
+                onClick={() => openEditor("passenger")}
                 className="h-8 px-3 rounded-xl text-xs gap-1.5"
               >
                 <Plus className="w-3.5 h-3.5" />
@@ -267,6 +303,7 @@ export const AccountProfileView: React.FC<AccountProfileViewProps> = ({
 
             {/* Danh sách hành khách */}
             <div className="divide-y divide-border">
+              {!user.savedPassengers && <p className="py-3 text-sm text-muted-foreground">Chưa tải được hành khách đã lưu. Vui lòng tải lại trang.</p>}
               {savedPassengers.map((passenger) => {
                 const initial = passenger.name.charAt(0).toUpperCase();
                 return (
@@ -283,7 +320,7 @@ export const AccountProfileView: React.FC<AccountProfileViewProps> = ({
                           {passenger.name}
                         </p>
                         <p className="text-[11px] text-muted-foreground">
-                          {passenger.phone} · {passenger.idNumber}
+                          {passenger.phone || "Chưa có số điện thoại"}
                         </p>
                       </div>
                     </div>
@@ -291,7 +328,7 @@ export const AccountProfileView: React.FC<AccountProfileViewProps> = ({
                     <div className="flex items-center gap-1">
                       <button
                         type="button"
-                        onClick={() => handleAction(`Sửa thông tin hành khách ${passenger.name}`)}
+                        onClick={() => openEditor("passenger", passenger)}
                         aria-label="Sửa"
                         className="p-1.5 text-muted-foreground hover:text-foreground rounded-lg hover:bg-muted transition-colors"
                       >
@@ -299,7 +336,8 @@ export const AccountProfileView: React.FC<AccountProfileViewProps> = ({
                       </button>
                       <button
                         type="button"
-                        onClick={() => handleAction(`Xóa hành khách ${passenger.name}`)}
+                        disabled={isSaving}
+                        onClick={() => { void handleDeletePassenger(passenger.id); }}
                         aria-label="Xóa"
                         className="p-1.5 text-muted-foreground hover:text-destructive rounded-lg hover:bg-destructive/10 transition-colors"
                       >
@@ -343,97 +381,10 @@ export const AccountProfileView: React.FC<AccountProfileViewProps> = ({
                   <span className="px-2 py-0.5 rounded-md bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 font-medium text-[11px] border border-emerald-200/50">
                     Đang dùng
                   </span>
-                  <Link
-                    href={isPreview ? "/verify-email?preview=ideal" : "/verify-email"}
-                    className="text-xs font-medium text-[#0F5B60] hover:underline"
-                  >
-                    Đổi email
-                  </Link>
                 </div>
               </div>
 
-              {/* 2. Google */}
-              <div className="py-3.5 flex items-center justify-between gap-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-full bg-slate-100 dark:bg-muted text-slate-600 dark:text-muted-foreground flex items-center justify-center shrink-0">
-                    <Globe className="w-4 h-4" />
-                  </div>
-                  <div>
-                    <p className="text-xs font-semibold text-foreground">
-                      Google
-                    </p>
-                    <p className="text-[11px] text-muted-foreground">
-                      Đã liên kết ngày {user.securityMethods?.googleLinkedDate ?? "02/09/2026"}
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <span className="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-muted text-muted-foreground font-medium text-[11px]">
-                    Đã liên kết
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => handleAction("Hủy liên kết tài khoản Google.")}
-                    className="text-xs font-medium text-muted-foreground hover:text-destructive hover:underline"
-                  >
-                    Hủy liên kết
-                  </button>
-                </div>
-              </div>
-
-              {/* 3. Facebook */}
-              <div className="py-3.5 flex items-center justify-between gap-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-full bg-slate-100 dark:bg-muted text-slate-600 dark:text-muted-foreground flex items-center justify-center shrink-0">
-                    <Globe className="w-4 h-4" />
-                  </div>
-                  <div>
-                    <p className="text-xs font-semibold text-foreground">
-                      Facebook
-                    </p>
-                    <p className="text-[11px] text-muted-foreground">
-                      Chưa liên kết
-                    </p>
-                  </div>
-                </div>
-                <div>
-                  <button
-                    type="button"
-                    onClick={() => handleAction("Liên kết tài khoản Facebook.")}
-                    className="text-xs font-medium text-[#0F5B60] hover:underline"
-                  >
-                    Liên kết
-                  </button>
-                </div>
-              </div>
-
-              {/* 4. Apple */}
-              <div className="py-3.5 flex items-center justify-between gap-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-full bg-slate-100 dark:bg-muted text-slate-600 dark:text-muted-foreground flex items-center justify-center shrink-0">
-                    <Globe className="w-4 h-4" />
-                  </div>
-                  <div>
-                    <p className="text-xs font-semibold text-foreground">
-                      Apple
-                    </p>
-                    <p className="text-[11px] text-muted-foreground">
-                      Chưa liên kết
-                    </p>
-                  </div>
-                </div>
-                <div>
-                  <button
-                    type="button"
-                    onClick={() => handleAction("Liên kết tài khoản Apple.")}
-                    className="text-xs font-medium text-[#0F5B60] hover:underline"
-                  >
-                    Liên kết
-                  </button>
-                </div>
-              </div>
-
-              {/* 5. Phiên đăng nhập */}
+              {/* Phiên đăng nhập */}
               <div className="py-3.5 flex items-center justify-between gap-4 last:pb-1">
                 <div className="flex items-center gap-3">
                   <div className="w-9 h-9 rounded-full bg-slate-100 dark:bg-muted text-slate-600 dark:text-muted-foreground flex items-center justify-center shrink-0">
@@ -444,7 +395,7 @@ export const AccountProfileView: React.FC<AccountProfileViewProps> = ({
                       Phiên đăng nhập
                     </p>
                     <p className="text-[11px] text-muted-foreground">
-                      {user.securityMethods?.activeSessionsCount ?? 3} thiết bị đang đăng nhập
+                      {user.securityMethods?.activeSessionsCount !== undefined ? `${user.securityMethods.activeSessionsCount} thiết bị đang đăng nhập` : "Xem các thiết bị đang đăng nhập."}
                     </p>
                   </div>
                 </div>

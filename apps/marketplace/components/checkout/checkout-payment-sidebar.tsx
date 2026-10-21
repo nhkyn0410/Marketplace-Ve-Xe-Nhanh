@@ -22,6 +22,8 @@ export interface CheckoutPaymentSidebarProps {
   readonly passengers: readonly CheckoutPassengerItem[];
   readonly priceSummary: CheckoutPriceSummary;
   readonly onProceedToPayment?: () => void;
+  readonly isSubmitting?: boolean;
+  readonly isExpired?: boolean;
 }
 
 /**
@@ -36,7 +38,9 @@ export function CheckoutPaymentSidebar({
   dropoffPoint,
   passengers,
   priceSummary,
-  onProceedToPayment
+  onProceedToPayment,
+  isSubmitting,
+  isExpired
 }: CheckoutPaymentSidebarProps) {
   return (
     <aside className="w-full lg:w-[360px] xl:w-[380px] shrink-0 sticky top-6">
@@ -87,7 +91,7 @@ export function CheckoutPaymentSidebar({
                       {p.fullName || `Hành khách chỗ ${p.seatCode}`}
                     </div>
                     <div className="text-[11px] text-vxn-fg-4">
-                      {p.seatTypeLabel} • {p.floorLabel}
+                      {p.seatTypeLabel}{p.floorLabel ? ` • ${p.floorLabel}` : ""}
                     </div>
                   </div>
                 </div>
@@ -110,12 +114,12 @@ export function CheckoutPaymentSidebar({
             </div>
 
             {/* Phí dịch vụ */}
-            <div className="flex items-center justify-between">
+            {!priceSummary.isEstimate && <div className="flex items-center justify-between">
               <span className="text-vxn-fg-3">Phí dịch vụ</span>
               <span className="font-semibold text-vxn-ink">
                 {formatVnd(priceSummary.serviceFeeVnd)}
               </span>
-            </div>
+            </div>}
 
             {/* Giảm giá voucher (nếu có) */}
             {priceSummary.discountVnd !== "0" && (
@@ -131,7 +135,7 @@ export function CheckoutPaymentSidebar({
           {/* Tổng thanh toán */}
           <div className="flex items-baseline justify-between pt-4 pb-5">
             <span className="text-sm font-medium text-vxn-fg-3">
-              Tổng thanh toán
+              {priceSummary.isEstimate ? "Tiền vé đang giữ" : "Tổng thanh toán"}
             </span>
             <span className="text-xl sm:text-2xl font-black text-vxn-teal-800">
               {formatVnd(priceSummary.finalTotalVnd)}
@@ -139,13 +143,15 @@ export function CheckoutPaymentSidebar({
           </div>
 
           {/* Hành động */}
+          {priceSummary.isEstimate && <p className="mb-4 text-xs leading-relaxed text-vxn-fg-4">Tổng thanh toán được xác nhận khi tạo đơn và hiển thị trước khi bạn chuyển sang cổng thanh toán.</p>}
           <div className="space-y-2.5">
             <button
               type="button"
               onClick={onProceedToPayment}
-              className="w-full rounded-xl bg-[#00506a] py-3 text-sm font-bold text-white shadow-xs transition hover:bg-[#00476b] active:scale-[0.99] text-center cursor-pointer"
+              disabled={isSubmitting || isExpired}
+              className="w-full rounded-xl bg-[#00506a] py-3 text-sm font-bold text-white shadow-xs transition hover:bg-[#00476b] active:scale-[0.99] text-center cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
             >
-              Tiếp tục thanh toán
+              {isSubmitting ? "Đang tạo đơn…" : isExpired ? "Phiên giữ chỗ đã hết hạn" : "Tiếp tục thanh toán"}
             </button>
 
             <Link

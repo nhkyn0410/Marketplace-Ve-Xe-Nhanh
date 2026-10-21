@@ -8,6 +8,7 @@ import {
 import { getAccountSessions, getAccountProfile } from "../../../lib/data/auth";
 import { AccountSessionsView } from "../../../components/account/account-sessions-view";
 import { FeatureUnavailable } from "../../../components/states/feature-unavailable";
+import { AccountSignInRequired } from "../../../components/account/account-sign-in-required";
 
 export const metadata: Metadata = {
   title: "Phiên đăng nhập & Thiết bị | Vé Xe Nhanh",
@@ -51,14 +52,14 @@ export default async function AccountSessionsPage({
       <div className="container mx-auto px-4 sm:px-6 py-10 max-w-7xl">
         <FeatureUnavailable
           title="Phiên đăng nhập & Thiết bị"
-          endpoint="GET /me/sessions"
-          description="Hệ thống quản lý phiên đăng nhập thiết bị đang chờ kết nối cổng API backend. Bạn có thể sử dụng chế độ xem trước để duyệt giao diện."
+          description="Danh sách phiên đăng nhập hiện chưa khả dụng. Vui lòng thử lại sau."
         />
       </div>
     );
   }
 
   if (sessionsRes.status === "error") {
+    if (sessionsRes.httpStatus === 401) return <AccountSignInRequired />;
     return (
       <div className="container mx-auto px-4 sm:px-6 py-10 max-w-7xl">
         <FeatureUnavailable

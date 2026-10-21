@@ -17,7 +17,7 @@ export function OperatorMetrics({ metrics }: OperatorMetricsProps) {
           Chỉ số chất lượng
         </h2>
         <p className="text-xs text-neutral-500 mt-0.5">
-          Tính từ đánh giá và dữ liệu vận hành hợp lệ trên Vé Xe Nhanh. Chỉ số thiếu dữ liệu hiển thị &quot;Chưa đủ dữ liệu&quot;.
+          Tính từ đánh giá và dữ liệu vận hành trên Vé Xe Nhanh. Chỉ số thiếu dữ liệu được ghi rõ.
         </p>
       </div>
 

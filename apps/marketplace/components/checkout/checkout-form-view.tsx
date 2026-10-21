@@ -1,6 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
+import { createBooking } from "../../lib/data/booking";
 import { CheckoutStepper } from "../booking/checkout-stepper";
 import { ContactInfoForm } from "./contact-info-form";
 import { PassengerListForm } from "./passenger-list-form";
@@ -27,6 +29,8 @@ export interface CheckoutFormViewProps {
  * View tổng hợp toàn bộ màn hình B2 Nhập thông tin hành khách (SCR-PSG-19).
  */
 export function CheckoutFormView({ initialData }: CheckoutFormViewProps) {
+  const router = useRouter();
+  const submitting = useRef(false);
   const [contactInfo, setContactInfo] = useState<CheckoutContactInfo>(
     initialData.contactInfo
   );
@@ -34,9 +38,12 @@ export function CheckoutFormView({ initialData }: CheckoutFormViewProps) {
     initialData.passengers
   );
   const [note, setNote] = useState<string>(initialData.noteForOperator ?? "");
-  const [selectedVoucherId, setSelectedVoucherId] = useState<string | undefined>(
-    initialData.selectedVoucherId
-  );
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [expired, setExpired] = useState(initialData.holdCountdownSeconds <= 0);
+  useEffect(() => {
+    const timer = setTimeout(() => setExpired(true), Math.max(0, initialData.holdCountdownSeconds) * 1000);
+    return () => clearTimeout(timer);
+  }, [initialData.holdCountdownSeconds]);
   const [showStaleModal, setShowStaleModal] = useState<boolean>(
     Boolean(initialData.stalePrice)
   );
@@ -81,12 +88,18 @@ export function CheckoutFormView({ initialData }: CheckoutFormViewProps) {
   };
 
   // Xử lý nút Tiếp tục thanh toán (B3)
-  const handleProceedToPayment = (): void => {
-    // Tuân thủ A5 #3: Không gọi mạng giả mạo, báo lỗi tại chỗ và console.warn
-    console.warn("[marketplace] chưa có API: POST /bookings");
-    setActionError(
-      "Chưa thực hiện được — chức năng đặt vé chưa sẵn sàng (POST /bookings)."
-    );
+  const handleProceedToPayment = async (): Promise<void> => {
+    if (submitting.current) return;
+    if (expired) { setActionError("Phiên giữ chỗ đã hết hạn. Vui lòng quay lại chọn chỗ."); return; }
+    submitting.current = true;
+    setIsSubmitting(true);
+    setActionError(null);
+    try {
+      const result = await createBooking(initialData.holdId, { contactInfo, passengers, note });
+      if (result.status === "ok") router.push(`/bookings/${result.data.bookingId}/payment`);
+      else setActionError(result.status === "error" ? result.message ?? "Không thể tạo đơn. Vui lòng kiểm tra thông tin và giá vé." : "Chức năng đặt vé tạm thời chưa khả dụng.");
+    } catch { setActionError("Không thể kết nối hệ thống đặt vé. Vui lòng thử lại."); }
+    finally { submitting.current = false; setIsSubmitting(false); }
   };
 
   return (
@@ -135,11 +148,7 @@ export function CheckoutFormView({ initialData }: CheckoutFormViewProps) {
           <OperatorNoteBox note={note} onChange={setNote} />
 
           {/* Khối 5: Ưu đãi voucher */}
-          <CheckoutVoucherSelector
-            vouchers={initialData.vouchers}
-            selectedVoucherId={selectedVoucherId}
-            onSelectVoucher={setSelectedVoucherId}
-          />
+          <CheckoutVoucherSelector />
         </div>
 
         {/* Cột phải: Tóm tắt thanh toán */}
@@ -153,6 +162,8 @@ export function CheckoutFormView({ initialData }: CheckoutFormViewProps) {
           passengers={passengers}
           priceSummary={initialData.priceSummary}
           onProceedToPayment={handleProceedToPayment}
+          isSubmitting={isSubmitting}
+          isExpired={expired}
         />
       </div>
 

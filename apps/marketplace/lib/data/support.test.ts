@@ -1,106 +1,61 @@
-import { describe, expect, it, vi } from "vitest";
-import {
-  getMyComplaints,
-  getComplaintDetail,
-  submitComplaint,
-  replyComplaint,
-  getGuestComplaints,
-  submitGuestComplaint
-} from "./support";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { getComplaintDetail, getGuestComplaints, getMyComplaints, replyComplaint, submitComplaint, submitGuestComplaint, getSupportUploadUrl } from "./support";
 
-describe("support data service", () => {
-  it("getMyComplaints trả về unavailable và ghi log cảnh báo", async () => {
-    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+const { request, bookingHeaders, refresh } = vi.hoisted(() => ({ request: vi.fn(), bookingHeaders: vi.fn(), refresh: vi.fn() }));
+vi.mock("./api", () => ({ apiRequest: request }));
+vi.mock("./booking-access", () => ({ bookingHeaders }));
+vi.mock("./session", () => ({ refreshSessionIfNeeded: refresh }));
+const bookingId = "00000000-0000-4000-8000-000000000001";
+const ticketId = "00000000-0000-4000-8000-000000000002";
+const summary = { ticketId, ticketCode: "SUP-1", bookingId, bookingCode: "BOOK-1", subject: "Hoàn tiền", status: "WAITING_CUSTOMER", updatedAt: "2026-10-20T00:00:00Z" };
+const detail = { ...summary, createdAt: summary.updatedAt, trip: { routeName: "HCM → Đà Lạt" }, category: "PAYMENT_REFUND", messages: [{ messageId: "m1", party: "PASSENGER", authorName: "Khách", createdAt: summary.updatedAt, body: "Kiểm tra giúp tôi", attachments: [] }] };
 
-    const result = await getMyComplaints();
+describe("support API integration", () => {
+  beforeEach(() => { vi.clearAllMocks(); bookingHeaders.mockResolvedValue({}); refresh.mockResolvedValue({ status: "ok", data: { rotated: false } }); });
 
-    expect(result.status).toBe("unavailable");
-    if (result.status === "unavailable") {
-      expect(result.endpoint).toBe("GET /me/complaints");
-    }
-    expect(warnSpy).toHaveBeenCalledWith("[marketplace] chưa có API: GET /me/complaints");
-
-    warnSpy.mockRestore();
+  it("handles a genuinely empty list without a fabricated selected complaint", async () => {
+    request.mockResolvedValueOnce({ status: "ok", data: { items: [], nextCursor: null } });
+    expect(await getMyComplaints()).toEqual({ status: "ok", data: { activeComplaints: [], closedComplaints: [], selectedComplaint: null } });
+    expect(request).toHaveBeenCalledWith("/me/support-tickets?limit=100");
   });
 
-  it("getComplaintDetail trả về unavailable với id được truyền vào", async () => {
-    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
-
-    const result = await getComplaintDetail("kn-01");
-
-    expect(result.status).toBe("unavailable");
-    if (result.status === "unavailable") {
-      expect(result.endpoint).toBe("GET /me/complaints/kn-01");
-    }
-    expect(warnSpy).toHaveBeenCalledWith("[marketplace] chưa có API: GET /me/complaints/kn-01");
-
-    warnSpy.mockRestore();
+  it("looks up bookingId through paginated account support before loading detail", async () => {
+    request.mockResolvedValueOnce({ status: "ok", data: { items: [], nextCursor: bookingId } })
+      .mockResolvedValueOnce({ status: "ok", data: { items: [summary], nextCursor: null } })
+      .mockResolvedValueOnce({ status: "ok", data: detail });
+    const result = await getComplaintDetail(ticketId);
+    expect(result.status).toBe("ok");
+    expect(request).toHaveBeenLastCalledWith(`/bookings/${bookingId}/support-tickets/${ticketId}`, { headers: {} });
+    if (result.status === "ok") expect(result.data.statusLabel).toBe("Chờ bạn bổ sung");
   });
 
-  it("submitComplaint trả về unavailable cho POST /me/complaints", async () => {
-    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
-
-    const result = await submitComplaint({
-      bookingCode: "VXN-8F3K2Q",
-      category: "Thanh toán",
-      title: "Trừ tiền thừa",
-      content: "Nhờ kiểm tra hoàn tiền"
-    });
-
-    expect(result.status).toBe("unavailable");
-    if (result.status === "unavailable") {
-      expect(result.endpoint).toBe("POST /me/complaints");
-    }
-    expect(warnSpy).toHaveBeenCalledWith("[marketplace] chưa có API: POST /me/complaints");
-
-    warnSpy.mockRestore();
+  it("creates with real category/priority/attachment contract", async () => {
+    request.mockResolvedValueOnce({ status: "ok", data: { items: [{ bookingId, bookingCode: "BOOK-1" }], nextCursor: null } })
+      .mockResolvedValueOnce({ status: "ok", data: detail });
+    const result = await submitComplaint({ bookingCode: "BOOK-1", category: "Thanh toán / hoàn tiền", suggestedSeverity: "Cao", title: "Hoàn tiền", content: "Kiểm tra giúp tôi" });
+    expect(result.status).toBe("ok");
+    expect(request).toHaveBeenLastCalledWith(`/bookings/${bookingId}/support-tickets`, { method: "POST", headers: {}, body: JSON.stringify({ category: "PAYMENT_REFUND", priority: "HIGH", subject: "Hoàn tiền", body: "Kiểm tra giúp tôi", attachments: [] }) });
+    expect(refresh).toHaveBeenCalled();
   });
 
-  it("replyComplaint trả về unavailable cho POST /me/complaints/{id}/messages", async () => {
-    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
-
-    const result = await replyComplaint("kn-01", "Tôi gửi thêm thông tin");
-
-    expect(result.status).toBe("unavailable");
-    if (result.status === "unavailable") {
-      expect(result.endpoint).toBe("POST /me/complaints/kn-01/messages");
-    }
-    expect(warnSpy).toHaveBeenCalledWith("[marketplace] chưa có API: POST /me/complaints/kn-01/messages");
-
-    warnSpy.mockRestore();
+  it("requires cookie capability for guests, never treats email as authorization", async () => {
+    expect((await getGuestComplaints(bookingId)).status).toBe("error");
+    expect((await submitGuestComplaint({ bookingCode: "BOOK-1", email: "a@example.com", category: "Khác", title: "Hỗ trợ", content: "Giúp tôi" })).status).toBe("error");
+    expect(request).not.toHaveBeenCalled();
   });
 
-  it("getGuestComplaints trả về unavailable cho GET /guest/complaints", async () => {
-    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
-
-    const result = await getGuestComplaints("token-123");
-
-    expect(result.status).toBe("unavailable");
-    if (result.status === "unavailable") {
-      expect(result.endpoint).toBe("GET /guest/complaints");
-    }
-    expect(warnSpy).toHaveBeenCalledWith("[marketplace] chưa có API: GET /guest/complaints");
-
-    warnSpy.mockRestore();
+  it("replies using body/attachments with guest booking capability", async () => {
+    bookingHeaders.mockResolvedValue({ "X-Booking-Token": "private-token" });
+    request.mockResolvedValueOnce({ status: "ok", data: detail });
+    const attachments = [{ objectKey: "private/proof", fileName: "proof.pdf" }];
+    expect((await replyComplaint(ticketId, " Bổ sung ", attachments, bookingId)).status).toBe("ok");
+    expect(request).toHaveBeenCalledWith(`/bookings/${bookingId}/support-tickets/${ticketId}/messages`, { method: "POST", headers: { "X-Booking-Token": "private-token" }, body: JSON.stringify({ body: "Bổ sung", attachments }) });
   });
 
-  it("submitGuestComplaint trả về unavailable cho POST /guest/complaints", async () => {
-    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
-
-    const result = await submitGuestComplaint({
-      bookingCode: "VXN-4H9P6C",
-      email: "hoa.le@gmail.com",
-      category: "Dịch vụ",
-      title: "Xe trễ",
-      content: "Xe đến muộn"
-    });
-
-    expect(result.status).toBe("unavailable");
-    if (result.status === "unavailable") {
-      expect(result.endpoint).toBe("POST /guest/complaints");
-    }
-    expect(warnSpy).toHaveBeenCalledWith("[marketplace] chưa có API: POST /guest/complaints");
-
-    warnSpy.mockRestore();
+  it("does not send invalid attachments or mutate after refresh failure", async () => {
+    expect((await getSupportUploadUrl("BOOK-1", "application/msword", 100)).status).toBe("error");
+    refresh.mockResolvedValueOnce({ status: "error", endpoint: "POST /auth/refresh", message: "Login required" });
+    expect((await replyComplaint(ticketId, "Bổ sung")).status).toBe("error");
+    expect(request).not.toHaveBeenCalled();
   });
 });

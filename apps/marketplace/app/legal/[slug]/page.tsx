@@ -1,7 +1,7 @@
 import React from "react";
 import { FeatureUnavailable } from "../../../components/states";
 import { LegalView } from "../../../components/legal/legal-view";
-import { getLegalDocument } from "../../../lib/data/content";
+import { getLegalDocument, getPublishedPageLinks } from "../../../lib/data/content";
 import { getPreview } from "../../../lib/preview";
 import { legalTermsDocumentFixture } from "../../../lib/preview/fixtures/content";
 
@@ -40,7 +40,7 @@ export default async function LegalDocumentPage(
   }
 
   // Nhánh Thật: gọi API backend
-  const result = await getLegalDocument(slug);
+  const [result, pageLinks] = await Promise.all([getLegalDocument(slug), getPublishedPageLinks()]);
 
   if (result.status === "unavailable") {
     return (
@@ -74,6 +74,7 @@ export default async function LegalDocumentPage(
       document={result.data}
       currentSlug={slug}
       isPreview={false}
+      pageLinks={pageLinks}
     />
   );
 }

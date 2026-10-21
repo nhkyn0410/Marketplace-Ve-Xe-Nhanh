@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
-import { ShieldCheck, QrCode, Headphones, Clock, AlertCircle } from "lucide-react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { ShieldCheck, QrCode, Headphones, Clock } from "lucide-react";
 import { formatVnd } from "../../../lib/format";
 
 import { TripDetailData } from "../../../lib/data/types";
@@ -20,17 +21,15 @@ interface TripBookingSidebarProps {
  */
 export function TripBookingSidebar({
   trip,
-  passengerCount = 2
+  passengerCount = 1
 }: TripBookingSidebarProps) {
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const router = useRouter();
 
   // Tính tạm tính: giá đơn * số hành khách (dùng BigInt)
-  const singlePrice = BigInt(trip.priceSingleVnd);
-  const estimatedTotalVnd = (singlePrice * BigInt(passengerCount)).toString();
+  const estimatedTotalVnd = trip.priceSingleVnd ? (BigInt(trip.priceSingleVnd) * BigInt(passengerCount)).toString() : "";
 
   const handleSelectSeat = () => {
-    // Thông báo lỗi tại chỗ theo luật: không chuyển trang khi thiếu endpoint hoặc chưa sẵn sàng
-    setErrorMessage("Tính năng chọn ghế đang được đồng bộ hóa với hệ thống quản lý chỗ nhà xe.");
+    router.push(`/trips/${encodeURIComponent(trip.id)}/seats`);
   };
 
   return (
@@ -41,7 +40,7 @@ export function TripBookingSidebar({
           <div className="flex items-baseline gap-1">
             <span className="text-xs text-neutral-500">Từ</span>
             <span className="text-2xl font-extrabold text-[#00506a] tracking-tight">
-              {formatVnd(trip.priceSingleVnd)}
+              {trip.priceSingleVnd ? formatVnd(trip.priceSingleVnd) : "Chưa có giá"}
             </span>
             <span className="text-xs text-neutral-500">/ chỗ</span>
           </div>
@@ -56,7 +55,7 @@ export function TripBookingSidebar({
           <div className="flex items-center justify-between">
             <span className="text-neutral-500">Ngày đi</span>
             <span className="font-semibold text-neutral-900">
-              T6, 16/10/2026
+              {trip.routeMeta}
             </span>
           </div>
           <div className="flex items-center justify-between">
@@ -68,7 +67,7 @@ export function TripBookingSidebar({
           <div className="flex items-center justify-between pt-1 border-t border-neutral-50">
             <span className="text-neutral-600 font-medium">Tạm tính từ</span>
             <span className="text-base font-extrabold text-neutral-900">
-              {formatVnd(estimatedTotalVnd)}
+              {estimatedTotalVnd ? formatVnd(estimatedTotalVnd) : "Chưa có giá"}
             </span>
           </div>
         </div>
@@ -78,21 +77,15 @@ export function TripBookingSidebar({
           <button
             type="button"
             onClick={handleSelectSeat}
-            className="w-full py-3 rounded-xl bg-[#00506a] hover:bg-[#003d52] active:bg-[#002e3e] text-white font-bold text-sm shadow-xs transition-colors flex items-center justify-center cursor-pointer"
+            disabled={trip.availableSeats === 0 || !trip.priceSingleVnd}
+            className="w-full py-3 rounded-xl bg-[#00506a] hover:bg-[#003d52] active:bg-[#002e3e] text-white font-bold text-sm shadow-xs transition-colors flex items-center justify-center cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
           >
             Chọn ghế
           </button>
 
-          {errorMessage && (
-            <div className="flex items-start gap-2 p-3 rounded-lg bg-amber-50 border border-amber-200 text-xs text-amber-900">
-              <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
-              <span>{errorMessage}</span>
-            </div>
-          )}
-
           <div className="flex items-center gap-1.5 justify-center text-[11px] text-neutral-500">
             <Clock className="w-3.5 h-3.5 text-neutral-400" />
-            <span>Chỗ được giữ 10 phút kể từ khi bạn chọn xong.</span>
+            <span>Thời hạn giữ chỗ được hiển thị sau khi xác nhận chọn ghế.</span>
           </div>
         </div>
       </div>
@@ -102,21 +95,21 @@ export function TripBookingSidebar({
         <div className="flex items-start gap-2.5">
           <ShieldCheck className="w-4 h-4 text-[#00506a] shrink-0 mt-0.5" />
           <p className="leading-relaxed">
-            Thanh toán qua VNPay hoặc MoMo; tiền được Vé Xe Nhanh giữ đến khi chuyến hoàn thành.
+            Chọn VNPay hoặc MoMo khi thanh toán và kiểm tra trạng thái đơn sau khi hoàn tất.
           </p>
         </div>
 
         <div className="flex items-start gap-2.5">
           <QrCode className="w-4 h-4 text-[#00506a] shrink-0 mt-0.5" />
           <p className="leading-relaxed">
-            Vé điện tử có mã QR, gửi qua email ngay sau khi thanh toán.
+            Xem vé điện tử và mã QR khi đơn được xác nhận.
           </p>
         </div>
 
         <div className="flex items-start gap-2.5">
           <Headphones className="w-4 h-4 text-[#00506a] shrink-0 mt-0.5" />
           <p className="leading-relaxed">
-            Cần hỗ trợ? Gọi CSKH 1900 6067.
+            <Link href="/support" className="text-vxn-teal-800 underline">Trung tâm hỗ trợ</Link>
           </p>
         </div>
       </div>

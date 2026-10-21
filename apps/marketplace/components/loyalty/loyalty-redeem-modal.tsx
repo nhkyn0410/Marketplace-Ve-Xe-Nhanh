@@ -1,9 +1,12 @@
 "use client";
 
-import { useId, useMemo, useState } from "react";
+import { useId, useMemo, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { AlertCircle, CheckCircle2, Gift, X } from "lucide-react";
 import { formatVnd } from "../../lib/format";
-import type { LoyaltyProfile, LoyaltyRedemptionQuote } from "../../lib/data/types";
+import type { LoyaltyRedemptionQuote } from "../../lib/data/types";
+import { loyaltyVoucherValue, type LoyaltyProfileData } from "../../lib/data/loyalty-mappers";
+import { redeemLoyaltyPoints } from "../../lib/data/loyalty";
 
 /**
  * Thuộc tính của modal Đổi điểm lấy voucher (SCR-PSG-35).
@@ -11,9 +14,9 @@ import type { LoyaltyProfile, LoyaltyRedemptionQuote } from "../../lib/data/type
 export interface LoyaltyRedemptionModalProps {
   readonly isOpen: boolean;
   readonly onClose: () => void;
-  readonly profile: LoyaltyProfile;
+  readonly profile: LoyaltyProfileData;
   readonly defaultQuote?: LoyaltyRedemptionQuote;
-  readonly onConfirmRedeem?: (points: number) => Promise<boolean>;
+  readonly isPreview?: boolean;
 }
 
 /**
@@ -23,9 +26,12 @@ export function LoyaltyRedemptionModal({
   isOpen,
   onClose,
   profile,
-  onConfirmRedeem
+  isPreview = false
 }: LoyaltyRedemptionModalProps) {
-  const [pointsInput, setPointsInput] = useState<number>(100);
+  const router = useRouter();
+  const [pointsInput, setPointsInput] = useState<number>(profile.rules?.minRedeemPoints ?? 0);
+  const request = useRef<{ points: number; key: string } | null>(null);
+  const [redemption, setRedemption] = useState<LoyaltyRedemptionQuote | null>(null);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
@@ -33,13 +39,15 @@ export function LoyaltyRedemptionModal({
   const titleId = useId();
   const descId = useId();
 
-  const minPoints = 100;
-  const maxPoints = profile.availablePoints;
+  const minPoints = profile.rules?.minRedeemPoints ?? 1;
+  const maxPoints = Math.min(profile.availablePoints, 1_000_000);
+  const disabled = isPreview || isSubmitting || !!redemption || !profile.rules || (profile.memberStatus !== undefined && profile.memberStatus !== "ACTIVE") || maxPoints < minPoints;
+  const quickPoints = [...new Set([minPoints, Math.floor(maxPoints / 2), maxPoints])].filter((points) => points >= minPoints && points <= maxPoints);
 
-  // Tính toán quy đổi theo thời gian thực (1 điểm = 1.000đ)
+  // Giá trị quy đổi theo chính sách hiện hành, không dùng số thực cho phép tính tiền.
   const voucherValueVnd = useMemo(() => {
-    return (BigInt(pointsInput) * 1000n).toString();
-  }, [pointsInput]);
+    return profile.rules && Number.isSafeInteger(pointsInput) && pointsInput >= 0 ? loyaltyVoucherValue(pointsInput, profile.rules.pointValue) : "0";
+  }, [pointsInput, profile.rules]);
 
   const remainingPoints = useMemo(() => {
     return Math.max(0, profile.availablePoints - pointsInput);
@@ -66,7 +74,9 @@ export function LoyaltyRedemptionModal({
   };
 
   const handleConfirm = async () => {
-    if (pointsInput < minPoints) {
+    if (disabled) return;
+    if (!profile.rules) { setErrorMessage("Chưa có chính sách đổi điểm đang áp dụng."); return; }
+    if (!Number.isSafeInteger(pointsInput) || pointsInput < minPoints) {
       setErrorMessage(`Số điểm đổi tối thiểu là ${minPoints} điểm.`);
       return;
     }
@@ -79,21 +89,13 @@ export function LoyaltyRedemptionModal({
     setErrorMessage(null);
 
     try {
-      if (onConfirmRedeem) {
-        const ok = await onConfirmRedeem(pointsInput);
-        if (ok) {
-          setSuccessMessage(`Đã đổi thành công voucher giảm ${formatVnd(voucherValueVnd)}!`);
-        } else {
-          setErrorMessage(
-            "Tính năng đổi điểm hiện đang bảo trì hoặc chưa sẵn sàng trên hệ thống (POST /me/loyalty/redemptions)."
-          );
-        }
-      } else {
-        setErrorMessage(
-          "Tính năng đổi điểm hiện chưa sẵn sàng (endpoint POST /me/loyalty/redemptions chưa khả dụng)."
-        );
-        console.warn("[Redemption] Gọi POST /me/loyalty/redemptions bị từ chối do thiếu endpoint");
-      }
+      if (!request.current || request.current.points !== pointsInput) request.current = { points: pointsInput, key: crypto.randomUUID() };
+      const result = await redeemLoyaltyPoints(pointsInput, request.current.key);
+      if (result.status === "ok") {
+        setRedemption(result.data);
+        setSuccessMessage(`Đã đổi thành công voucher giảm ${formatVnd(result.data.voucherValueVnd)}, hạn dùng ${result.data.expiryDateText}.${result.data.remainingPoints < 0 ? " Vui lòng tải lại trang để cập nhật số dư." : ""}`);
+        router.refresh();
+      } else setErrorMessage(result.status === "error" ? result.message ?? "Không thể đổi điểm." : "Đổi điểm chưa khả dụng.");
     } catch {
       setErrorMessage("Đã xảy ra lỗi kết nối khi thực hiện đổi điểm.");
     } finally {
@@ -114,6 +116,7 @@ export function LoyaltyRedemptionModal({
         <button
           type="button"
           onClick={onClose}
+          disabled={isSubmitting}
           className="absolute top-4 right-4 rounded-lg p-1.5 text-vxn-fg-4 transition hover:bg-vxn-bg-soft hover:text-vxn-ink"
           aria-label="Đóng hộp thoại"
         >
@@ -146,7 +149,7 @@ export function LoyaltyRedemptionModal({
           <div>
             <div className="text-2xs text-vxn-fg-4">Giá trị quy đổi</div>
             <div className="mt-0.5 text-xs font-bold text-vxn-teal-700 sm:text-sm">
-              1 điểm = 1.000đ
+              {profile.rules ? `1 điểm = ${formatVnd(String(profile.rules.pointValue))}` : "Chưa có chính sách"}
             </div>
           </div>
           <div>
@@ -168,7 +171,8 @@ export function LoyaltyRedemptionModal({
               type="number"
               min={minPoints}
               max={maxPoints}
-              step={10}
+              step={1}
+              disabled={disabled}
               value={pointsInput}
               onChange={handleInputChange}
               className="w-full rounded-xl border border-vxn-border bg-white px-4 py-2.5 pr-14 text-sm font-bold text-vxn-ink focus:border-vxn-teal-600 focus:outline-hidden focus:ring-2 focus:ring-vxn-teal-500/20"
@@ -180,10 +184,11 @@ export function LoyaltyRedemptionModal({
 
           {/* Nút chọn nhanh */}
           <div className="flex flex-wrap items-center gap-2">
-            {[100, 200, 500].map((pts) => (
+            {quickPoints.map((pts) => (
               <button
                 key={pts}
                 type="button"
+                disabled={disabled}
                 onClick={() => handleQuickSelect(pts)}
                 className={`rounded-lg border px-3 py-1 text-xs font-semibold transition ${
                   pointsInput === pts
@@ -194,17 +199,6 @@ export function LoyaltyRedemptionModal({
                 {pts}
               </button>
             ))}
-            <button
-              type="button"
-              onClick={() => handleQuickSelect(maxPoints)}
-              className={`rounded-lg border px-3 py-1 text-xs font-semibold transition ${
-                pointsInput === maxPoints
-                  ? "border-vxn-teal-600 bg-teal-50 text-vxn-teal-800"
-                  : "border-vxn-border bg-white text-vxn-fg-3 hover:bg-vxn-bg-soft"
-              }`}
-            >
-              Tất cả ({maxPoints.toLocaleString("vi-VN")})
-            </button>
           </div>
 
           {/* Slider */}
@@ -212,8 +206,9 @@ export function LoyaltyRedemptionModal({
             <input
               type="range"
               min={minPoints}
-              max={maxPoints}
-              step={50}
+              max={Math.max(minPoints, maxPoints)}
+              step={1}
+              disabled={disabled}
               value={pointsInput}
               onChange={handleSliderChange}
               className="h-2 w-full cursor-pointer appearance-none rounded-lg bg-slate-200 accent-[#00506a]"
@@ -230,18 +225,18 @@ export function LoyaltyRedemptionModal({
           <div className="flex items-center justify-between">
             <span className="text-vxn-fg-3">Voucher nhận được:</span>
             <span className="text-sm font-black text-vxn-teal-800">
-              Giảm {formatVnd(voucherValueVnd)}
+              {profile.rules ? `Giảm ${formatVnd(redemption?.voucherValueVnd ?? voucherValueVnd)}` : "Chưa có chính sách"}
             </span>
           </div>
           <div className="flex items-center justify-between">
             <span className="text-vxn-fg-3">Điểm còn lại sau khi đổi:</span>
             <span className="font-bold text-vxn-ink">
-              {remainingPoints.toLocaleString("vi-VN")} điểm
+              {redemption ? redemption.remainingPoints < 0 ? "Đang cập nhật số dư" : `${redemption.remainingPoints.toLocaleString("vi-VN")} điểm` : `${remainingPoints.toLocaleString("vi-VN")} điểm (dự kiến)`}
             </span>
           </div>
           <div className="flex items-center justify-between">
             <span className="text-vxn-fg-3">Hạn dùng voucher:</span>
-            <span className="font-medium text-vxn-fg-2">30 ngày · đến 07/11/2026</span>
+            <span className="font-medium text-vxn-fg-2">{redemption?.expiryDateText ?? (profile.rules ? `${profile.rules.voucherValidityDays} ngày kể từ khi đổi` : "Chưa có chính sách")}</span>
           </div>
         </div>
 
@@ -263,8 +258,7 @@ export function LoyaltyRedemptionModal({
 
         {/* Chú thích điều khoản */}
         <p className="mt-4 text-2xs leading-relaxed text-vxn-fg-4">
-          Điểm đã đổi không hoàn lại. Voucher dùng cho mọi tuyến, mọi nhà xe; mỗi đơn áp dụng tối đa
-          một voucher hoặc một mã.
+          Điểm đã đổi không hoàn lại. Voucher được lưu vào ví của bạn. Áp dụng voucher khi đặt vé trên web hiện chưa khả dụng.
         </p>
 
         {/* Nút hành động */}
@@ -272,13 +266,14 @@ export function LoyaltyRedemptionModal({
           <button
             type="button"
             onClick={onClose}
+            disabled={isSubmitting}
             className="rounded-xl border border-vxn-border bg-white px-4 py-2.5 text-xs font-bold text-vxn-fg-3 transition hover:bg-vxn-bg-soft"
           >
-            Hủy
+            {redemption ? "Đóng" : "Hủy"}
           </button>
           <button
             type="button"
-            disabled={isSubmitting || pointsInput < minPoints || pointsInput > maxPoints}
+            disabled={disabled || !Number.isSafeInteger(pointsInput) || pointsInput < minPoints || pointsInput > maxPoints}
             onClick={handleConfirm}
             className="rounded-xl bg-[#00506a] px-5 py-2.5 text-xs font-bold text-white shadow-xs transition hover:bg-[#00476b] disabled:opacity-50"
           >

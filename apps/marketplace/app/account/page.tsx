@@ -5,6 +5,7 @@ import { userProfileFixture } from "../../lib/preview/fixtures/auth";
 import { getAccountProfile } from "../../lib/data/auth";
 import { AccountProfileView } from "../../components/account/account-profile-view";
 import { FeatureUnavailable } from "../../components/states/feature-unavailable";
+import { AccountSignInRequired } from "../../components/account/account-sign-in-required";
 
 export const metadata: Metadata = {
   title: "Tài khoản của tôi | Vé Xe Nhanh",
@@ -39,14 +40,14 @@ export default async function AccountPage({
       <div className="container mx-auto px-4 sm:px-6 py-10 max-w-7xl">
         <FeatureUnavailable
           title="Thông tin tài khoản cá nhân"
-          endpoint="GET /me/profile"
-          description="Hệ thống quản lý tài khoản người dùng đang chờ kết nối cổng API backend. Bạn có thể sử dụng chế độ xem trước để duyệt giao diện."
+          description="Thông tin tài khoản hiện chưa khả dụng. Vui lòng thử lại sau."
         />
       </div>
     );
   }
 
   if (res.status === "error") {
+    if (res.httpStatus === 401) return <AccountSignInRequired />;
     return (
       <div className="container mx-auto px-4 sm:px-6 py-10 max-w-7xl">
         <FeatureUnavailable

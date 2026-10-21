@@ -8,6 +8,7 @@ import {
 import { getAccountReviews, getAccountProfile } from "../../../lib/data/auth";
 import { AccountReviewsView } from "../../../components/account/account-reviews-view";
 import { FeatureUnavailable } from "../../../components/states/feature-unavailable";
+import { AccountSignInRequired } from "../../../components/account/account-sign-in-required";
 
 export const metadata: Metadata = {
   title: "Đánh giá của tôi | Vé Xe Nhanh",
@@ -51,14 +52,14 @@ export default async function AccountReviewsPage({
       <div className="container mx-auto px-4 sm:px-6 py-10 max-w-7xl">
         <FeatureUnavailable
           title="Đánh giá của tôi"
-          endpoint="GET /me/reviews"
-          description="Hệ thống đánh giá chuyến xe của người dùng đang chờ kết nối cổng API backend. Bạn có thể sử dụng chế độ xem trước để duyệt giao diện."
+          description="Danh sách đánh giá hiện chưa khả dụng. Vui lòng thử lại sau."
         />
       </div>
     );
   }
 
   if (reviewsRes.status === "error") {
+    if (reviewsRes.httpStatus === 401) return <AccountSignInRequired />;
     return (
       <div className="container mx-auto px-4 sm:px-6 py-10 max-w-7xl">
         <FeatureUnavailable
@@ -71,6 +72,7 @@ export default async function AccountReviewsPage({
 
   return (
     <AccountReviewsView
+      key={reviewsRes.data.pendingTrips[0]?.bookingId ?? "no-pending-review"}
       user={profileRes.status === "ok" ? profileRes.data : undefined}
       initialData={reviewsRes.data}
       isPreview={false}

@@ -48,7 +48,8 @@ export default async function TicketDetailPage({
   }
 
   // Nhánh Thật kết nối hệ thống
-  const result = await getTicketDetail(resolvedParams.ticketId);
+  const bookingId = resolvedSearchParams["bookingId"];
+  const result = await getTicketDetail(resolvedParams.ticketId, typeof bookingId === "string" ? bookingId : undefined);
 
   if (result.status === "unavailable") {
     return (
@@ -75,7 +76,7 @@ export default async function TicketDetailPage({
   return (
     <TicketDetailView
       ticketDetail={result.data}
-      defaultOpenCancelDialog={false}
+      defaultOpenCancelDialog={resolvedSearchParams["cancel"] === "true"}
     />
   );
 }

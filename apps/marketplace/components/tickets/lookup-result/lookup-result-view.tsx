@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
+import { endTicketLookup } from "../../../lib/data/tickets";
 import { Badge } from "@vexenhanh/ui/components/badge";
 import type { TicketLookupResultData, TicketLookupResultItem } from "../../../lib/data/types";
 import { LookupSessionBanner } from "./lookup-session-banner";
@@ -23,14 +24,16 @@ export interface LookupResultViewProps {
 export const LookupResultView: React.FC<LookupResultViewProps> = ({ data }) => {
   const [selectedTicketForQr, setSelectedTicketForQr] = useState<TicketLookupResultItem | null>(null);
 
-  const handleEndSession = () => {
-    // Kết thúc phiên, chuyển hướng về trang tra cứu
-    window.location.href = "/tickets/lookup";
-  };
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      void endTicketLookup().finally(() => window.location.replace("/tickets/lookup"));
+    }, Math.max(0, data.session.expiresInSeconds) * 1000);
+    return () => clearTimeout(timer);
+  }, [data.session.expiresInSeconds]);
 
-  const handleCancelTicket = (ticket: TicketLookupResultItem) => {
-    // Điều hướng sang khiếu nại hoặc hủy vé
-    alert(`Yêu cầu hủy vé ${ticket.ticketCode} (${ticket.passengerName}). Vui lòng liên hệ hỗ trợ hoặc gửi yêu cầu khiếu nại.`);
+  const handleEndSession = async () => {
+    await endTicketLookup();
+    window.location.href = "/tickets/lookup";
   };
 
   return (
@@ -60,7 +63,7 @@ export const LookupResultView: React.FC<LookupResultViewProps> = ({ data }) => {
               <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
                 Đơn {data.bookingCode}
               </h1>
-              <Badge tone="success" className="font-semibold px-2.5 py-0.5">
+              <Badge tone={data.statusLabel === "Đã xác nhận" ? "success" : "neutral"} className="font-semibold px-2.5 py-0.5">
                 {data.statusLabel}
               </Badge>
             </div>
@@ -76,12 +79,12 @@ export const LookupResultView: React.FC<LookupResultViewProps> = ({ data }) => {
           <div className="lg:col-span-7 space-y-6">
             {/* Danh sách vé xe trong đơn */}
             <div className="space-y-4">
+              {data.tickets.length === 0 && <p className="rounded-xl border bg-white p-5 text-sm text-muted-foreground">Đơn chưa có vé được phát hành. Kiểm tra trạng thái thanh toán của đơn.</p>}
               {data.tickets.map((ticket) => (
                 <LookupTicketCard
                   key={ticket.ticketId}
                   ticket={ticket}
                   onOpenQrModal={(t) => setSelectedTicketForQr(t)}
-                  onCancelClick={handleCancelTicket}
                 />
               ))}
             </div>
@@ -97,8 +100,10 @@ export const LookupResultView: React.FC<LookupResultViewProps> = ({ data }) => {
           <div className="lg:col-span-5">
             <LookupActionsSidebar
               bookingCode={data.bookingCode}
+              bookingId={data.bookingId}
+              canManageBooking={data.canManageBooking}
+              ticketId={data.tickets[0]?.ticketId}
               payment={data.payment}
-              onCancelOrder={() => alert("Chức năng hủy đơn đang được chuẩn bị")}
               onPrintOrder={() => window.print()}
             />
           </div>

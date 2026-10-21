@@ -1,3 +1,6 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import { Check, Clock } from "lucide-react";
 
 /**
@@ -34,6 +37,14 @@ function formatCountdown(totalSeconds: number): string {
  * Thanh tiến trình các bước đặt vé kèm đồng hồ đếm ngược giữ chỗ theo Figma 1443:12719.
  */
 export function CheckoutStepper({ currentStep, holdCountdownSeconds }: CheckoutStepperProps) {
+  const [remaining, setRemaining] = useState(holdCountdownSeconds ?? 0);
+  useEffect(() => {
+    if (holdCountdownSeconds === undefined) return;
+    const deadline = Date.now() + holdCountdownSeconds * 1000;
+    setRemaining(holdCountdownSeconds);
+    const timer = setInterval(() => setRemaining(Math.max(0, Math.ceil((deadline - Date.now()) / 1000))), 1000);
+    return () => clearInterval(timer);
+  }, [holdCountdownSeconds]);
   return (
     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-b border-vxn-border/60 pb-4">
       {/* Các bước */}
@@ -81,12 +92,12 @@ export function CheckoutStepper({ currentStep, holdCountdownSeconds }: CheckoutS
       </nav>
 
       {/* Đồng hồ đếm ngược giữ chỗ */}
-      {typeof holdCountdownSeconds === "number" && (
+      {currentStep > 1 && typeof holdCountdownSeconds === "number" && (
         <div className="flex items-center gap-1.5 self-start sm:self-auto rounded-lg bg-neutral-100/80 px-2.5 py-1 text-xs text-neutral-600 shrink-0">
           <Clock className="h-3.5 w-3.5 text-neutral-500" />
           <span>Giữ ghế còn</span>
           <span className="font-bold text-vxn-teal-800">
-            {formatCountdown(holdCountdownSeconds)}
+            {formatCountdown(remaining)}
           </span>
         </div>
       )}

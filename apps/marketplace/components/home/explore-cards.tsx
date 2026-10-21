@@ -20,11 +20,11 @@ export function ExploreCardsSection() {
             KHÁM PHÁ
           </span>
           <h2 className="mt-1 text-2xl font-black text-vxn-ink sm:text-3xl">
-            Hành trình • Văn hóa • Ẩm thực
+            Chuẩn bị cho hành trình của bạn
           </h2>
         </div>
         <Link
-          href="/handbook"
+            href="/explore"
           className="inline-flex items-center gap-1 text-sm font-semibold text-vxn-teal-700 hover:text-vxn-teal-800"
         >
           <span>Khám phá thêm</span>
@@ -45,14 +45,14 @@ export function ExploreCardsSection() {
           />
           <div className="flex flex-col justify-between p-6">
             <div>
-              <h3 className="text-xl font-bold text-vxn-ink">Khám phá miền Bắc</h3>
+              <h3 className="text-xl font-bold text-vxn-ink">Cẩm nang xe khách</h3>
               <p className="mt-2 text-xs leading-relaxed text-vxn-fg-4">
-                Tìm chuyến theo lịch trình của bạn. Từ Tây Bắc hùng vĩ đến vịnh biển di sản.
+                Đọc bài viết và kinh nghiệm để chuẩn bị cho chuyến đi.
               </p>
             </div>
             <div className="mt-4">
               <Link
-                href="/routes?region=north"
+              href="/explore"
                 className="text-xs font-bold text-vxn-teal-700 hover:underline"
               >
                 Khám phá &rarr;
@@ -74,15 +74,15 @@ export function ExploreCardsSection() {
             <div>
               <h3 className="text-xl font-bold text-vxn-ink">Chuyến đi đầu tiên?</h3>
               <p className="mt-2 text-xs leading-relaxed text-vxn-fg-4">
-                Chọn tuyến và ngày đi để tìm chuyến phù hợp. Đặt vé nhanh trong 3 phút.
+                Tìm hiểu cách đặt vé, thanh toán và các câu hỏi thường gặp.
               </p>
             </div>
             <div className="mt-4">
               <Link
-                href="/guide/getting-started"
+              href="/faq"
                 className="text-xs font-bold text-vxn-teal-700 hover:underline"
               >
-                Tìm chuyến phù hợp &rarr;
+                Xem hướng dẫn &rarr;
               </Link>
             </div>
           </div>
@@ -111,12 +111,6 @@ export function ExploreCardsSection() {
           <p className="mt-1 text-xs leading-relaxed text-vxn-fg-4">
             Xem điều kiện hủy và hoàn tiền trước khi đặt.
           </p>
-          <Link
-            href="/refund-policy"
-            className="mt-2 inline-block text-xs font-medium text-vxn-teal-700 hover:underline"
-          >
-            Chính sách hoàn vé &rarr;
-          </Link>
         </div>
 
         {/* Lợi ích 3 */}
@@ -143,8 +137,9 @@ export function ExploreCardsSection() {
           </div>
           <h4 className="mt-3 text-sm font-bold text-vxn-ink">Hỗ trợ khách hàng</h4>
           <p className="mt-1 text-xs leading-relaxed text-vxn-fg-4">
-            Liên hệ hỗ trợ qua ứng dụng và hotline.
+            Gửi yêu cầu hỗ trợ theo vé đã đặt.
           </p>
+          <Link href="/support" className="mt-2 inline-block text-xs font-medium text-vxn-teal-700 hover:underline">Trung tâm hỗ trợ &rarr;</Link>
         </div>
       </div>
     </section>

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { AlertCircle, CheckCircle2, Gift, ArrowRight } from "lucide-react";
 import type { UserVouchersData, UserVoucherStatus } from "../../lib/data/types";
 import { AccountSidebar } from "../account/account-sidebar";
@@ -19,23 +20,18 @@ export interface VouchersViewProps {
  * Component hiển thị trang Ví voucher (SCR-PSG-36 - Figma 1448:20565).
  */
 export function VouchersView({ vouchersData, isPreview = false }: VouchersViewProps) {
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState<UserVoucherStatus>("available");
   const [voucherCodeInput, setVoucherCodeInput] = useState<string>("");
   const [isSaving, setIsSaving] = useState<boolean>(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [saveSuccess, setSaveSuccess] = useState<string | null>(null);
 
-  // Lọc voucher theo trạng thái tab (available bao gồm cả holding)
-  const filteredVouchers = vouchersData.vouchers.filter((v) => {
-    if (activeTab === "available") {
-      return v.status === "available" || v.status === "holding";
-    }
-    return v.status === activeTab;
-  });
+  const filteredVouchers = vouchersData.vouchers.filter((v) => v.status === activeTab);
 
   const handleSaveCode = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!voucherCodeInput.trim()) return;
+    if (isPreview || isSaving || !voucherCodeInput.trim()) return;
 
     setIsSaving(true);
     setSaveError(null);
@@ -46,11 +42,9 @@ export function VouchersView({ vouchersData, isPreview = false }: VouchersViewPr
       if (res.status === "ok") {
         setSaveSuccess(`Đã lưu thành công mã ${voucherCodeInput.trim().toUpperCase()} vào ví!`);
         setVoucherCodeInput("");
+        router.refresh();
       } else {
-        setSaveError(
-          "Tính năng lưu mã khuyến mãi hiện chưa sẵn sàng (endpoint POST /me/vouchers chưa khả dụng)."
-        );
-        console.warn("[Voucher] Gọi POST /me/vouchers bị từ chối do thiếu endpoint");
+        setSaveError(res.status === "error" ? res.message ?? "Không thể lưu mã khuyến mãi." : "Lưu mã chưa khả dụng.");
       }
     } catch {
       setSaveError("Đã xảy ra lỗi kết nối khi lưu mã khuyến mãi.");
@@ -78,7 +72,7 @@ export function VouchersView({ vouchersData, isPreview = false }: VouchersViewPr
           </div>
 
           <Link
-            href="/plus?preview=redeem"
+            href={isPreview ? "/plus?preview=redeem" : "/plus?redeem=1"}
             className="inline-flex items-center gap-2 rounded-xl bg-[#00506a] px-4 py-2.5 text-xs font-bold text-white shadow-xs transition hover:bg-[#00476b]"
           >
             <Gift className="h-4 w-4" />
@@ -96,13 +90,15 @@ export function VouchersView({ vouchersData, isPreview = false }: VouchersViewPr
                 type="text"
                 placeholder="Nhập mã khuyến mãi, ví dụ THU10"
                 value={voucherCodeInput}
+                maxLength={20}
+                disabled={isSaving || isPreview}
                 onChange={(e) => setVoucherCodeInput(e.target.value)}
                 className="w-full rounded-xl border border-vxn-border bg-white px-4 py-2.5 text-xs font-bold uppercase placeholder:normal-case placeholder:font-normal text-vxn-ink focus:border-vxn-teal-600 focus:outline-hidden focus:ring-2 focus:ring-vxn-teal-500/20"
               />
             </div>
             <button
               type="submit"
-              disabled={isSaving || !voucherCodeInput.trim()}
+              disabled={isSaving || !voucherCodeInput.trim() || isPreview}
               className="rounded-xl bg-[#00506a] px-5 py-2.5 text-xs font-bold text-white shadow-xs transition hover:bg-[#00476b] disabled:opacity-50"
             >
               {isSaving ? "Đang lưu..." : "Lưu vào ví"}
@@ -126,10 +122,11 @@ export function VouchersView({ vouchersData, isPreview = false }: VouchersViewPr
           <p className="mt-3 text-2xs text-vxn-fg-4">
             Mỗi mã chỉ lưu một lần. Lưu mã không giữ chỗ lượt dùng của chương trình.
           </p>
+          <p className="mt-2 text-xs text-vxn-fg-3">Bạn có thể lưu và theo dõi voucher tại đây. Áp dụng voucher khi đặt vé trên web hiện chưa khả dụng.</p>
         </div>
 
         {/* Tabs trạng thái voucher */}
-        <div className="flex items-center gap-2 border-b border-vxn-border/60 pb-1">
+        <div className="flex flex-wrap items-center gap-2 border-b border-vxn-border/60 pb-1">
           <button
             type="button"
             onClick={() => setActiveTab("available")}
@@ -140,6 +137,10 @@ export function VouchersView({ vouchersData, isPreview = false }: VouchersViewPr
             }`}
           >
             Khả dụng ({vouchersData.availableCount})
+          </button>
+          <button type="button" onClick={() => setActiveTab("holding")}
+            className={`border-b-2 px-4 py-2.5 text-xs font-bold transition ${activeTab === "holding" ? "border-vxn-teal-700 text-vxn-teal-800" : "border-transparent text-vxn-fg-4 hover:text-vxn-fg-2"}`}>
+            Đang giữ ({vouchersData.holdingCount ?? vouchersData.vouchers.filter((v) => v.status === "holding").length})
           </button>
           <button
             type="button"
@@ -167,6 +168,7 @@ export function VouchersView({ vouchersData, isPreview = false }: VouchersViewPr
 
         {/* Danh sách thẻ voucher */}
         <div className="space-y-4">
+          {filteredVouchers.length === 0 && <p className="rounded-xl border bg-white p-5 text-sm text-vxn-fg-4">Chưa có voucher ở trạng thái này.</p>}
           {filteredVouchers.map((v) => {
             const isHolding = v.status === "holding";
             const isExpiringSoon = v.statusLabel === "Sắp hết hạn";
@@ -196,6 +198,10 @@ export function VouchersView({ vouchersData, isPreview = false }: VouchersViewPr
                       className={`rounded-md px-2 py-0.5 text-2xs font-bold ${
                         isHolding
                           ? "bg-slate-100 text-slate-700"
+                          : v.status === "expired"
+                            ? "bg-red-50 text-red-700"
+                            : v.status === "used"
+                              ? "bg-slate-100 text-slate-700"
                           : isExpiringSoon
                             ? "bg-amber-50 text-amber-700"
                             : "bg-emerald-50 text-emerald-700"
@@ -206,6 +212,8 @@ export function VouchersView({ vouchersData, isPreview = false }: VouchersViewPr
                   </div>
 
                   <h3 className="text-base font-black text-vxn-ink">{v.title}</h3>
+                  {v.discountLabel && <p className="text-sm font-bold text-vxn-teal-800">{v.discountLabel}</p>}
+                  {v.code && <p className="text-xs text-vxn-fg-3">Mã: <span className="font-mono font-semibold">{v.code}</span></p>}
 
                   <p className="text-xs text-vxn-fg-3">{v.scopeText}</p>
 
@@ -214,17 +222,17 @@ export function VouchersView({ vouchersData, isPreview = false }: VouchersViewPr
 
                 {/* Nút Dùng ngay */}
                 <div className="mt-4 shrink-0 sm:mt-0 sm:pl-4">
-                  {!isHolding ? (
+                  {v.status === "available" ? (
                     <Link
                       href="/trips"
                       className="inline-flex items-center gap-1.5 text-xs font-bold text-vxn-teal-700 hover:text-vxn-teal-800 hover:underline"
                     >
-                      <span>Dùng ngay</span>
+                      <span>Tìm chuyến</span>
                       <ArrowRight className="h-3.5 w-3.5" />
                     </Link>
                   ) : (
                     <span className="text-xs font-semibold text-vxn-fg-4 italic">
-                      Đang được áp dụng
+                      {isHolding ? "Đang được áp dụng" : v.statusLabel}
                     </span>
                   )}
                 </div>
@@ -235,8 +243,7 @@ export function VouchersView({ vouchersData, isPreview = false }: VouchersViewPr
 
         {/* Chú thích phía dưới danh sách */}
         <div className="rounded-xl bg-vxn-bg-soft/70 p-4 text-2xs leading-relaxed text-vxn-fg-4">
-          Voucher đang giữ sẽ chuyển thành &quot;Đã dùng&quot; khi thanh toán thành công, hoặc trở về ví
-          nếu đơn hết hạn hay thanh toán thất bại.
+          Voucher đang giữ chưa thể dùng cho đơn khác. Trạng thái ví được cập nhật theo đơn vé.
         </div>
       </div>
     </div>

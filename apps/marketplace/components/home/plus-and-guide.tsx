@@ -1,7 +1,6 @@
 import { ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { HandbookArticleItem } from "../../lib/data/types";
-import { FeatureUnavailableCompact } from "../states";
 
 /**
  * Thuộc tính của khối VXN Plus & Cẩm nang xe khách.
@@ -10,15 +9,6 @@ export interface PlusAndGuideSectionProps {
   readonly articles?: readonly HandbookArticleItem[];
   readonly isUnavailable?: boolean;
 }
-
-/**
- * Thumbnail ảnh mẫu cho từng bài viết cẩm nang.
- */
-const ARTICLE_THUMBNAILS: readonly string[] = [
-  "https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&w=200&q=80",
-  "https://images.unsplash.com/photo-1582878826629-29b7ad1cdc43?auto=format&fit=crop&w=200&q=80",
-  "https://images.unsplash.com/photo-1557223562-6c77ef16210f?auto=format&fit=crop&w=200&q=80"
-];
 
 /**
  * Khối Banner Vé Xe Nhanh Plus & Cẩm nang xe khách chuẩn theo Figma 776:791.
@@ -34,7 +24,7 @@ export function PlusAndGuideSection({
         <div className="relative flex flex-col justify-between overflow-hidden rounded-2xl border border-teal-100 bg-gradient-to-br from-[#e6f7f2] via-[#f0fbf7] to-[#fdf7e7] p-8 shadow-2xs lg:col-span-5">
           <div>
             <span className="text-xs font-bold tracking-wider text-vxn-fg-4 uppercase">
-              HẠNG THÀNH VIÊN
+              VXN PLUS
             </span>
 
             <h3 className="mt-4 text-2xl font-black text-vxn-ink sm:text-3xl">
@@ -64,7 +54,7 @@ export function PlusAndGuideSection({
             <div className="flex items-center justify-between border-b border-vxn-border/60 pb-4">
               <h3 className="text-lg font-bold text-vxn-ink">Cẩm nang xe khách</h3>
               <Link
-                href="/handbook"
+              href="/explore"
                 className="inline-flex items-center text-xs font-semibold text-vxn-teal-700 hover:underline"
               >
                 <span>Tin tức</span>
@@ -74,25 +64,16 @@ export function PlusAndGuideSection({
 
             {isUnavailable || !articles || articles.length === 0 ? (
               <div className="pt-4">
-                <FeatureUnavailableCompact
-                  endpoint="GET /content/articles?tag=handbook"
-                  title="Bài viết cẩm nang xe khách chưa sẵn sàng"
-                />
+                <p className="text-sm text-vxn-fg-4">{isUnavailable ? "Chưa tải được bài viết. Bạn có thể thử lại tại mục Khám phá." : "Chưa có bài viết được xuất bản."}</p>
               </div>
             ) : (
               <div className="mt-2 divide-y divide-vxn-border/60">
-                {articles.map((article, idx) => (
+                {articles.slice(0, 4).map((article) => (
                   <Link
                     key={article.id}
-                    href={`/handbook/${article.slug}`}
+                    href={`/explore/${article.slug}`}
                     className="group flex items-center gap-4 py-3.5 transition hover:bg-vxn-bg-soft/60 rounded-xl px-2"
                   >
-                    <div
-                      className="h-14 w-14 shrink-0 rounded-xl bg-cover bg-center shadow-2xs"
-                      style={{
-                        backgroundImage: `url('${ARTICLE_THUMBNAILS[idx % ARTICLE_THUMBNAILS.length]}')`
-                      }}
-                    />
                     <div className="flex-1 overflow-hidden">
                       <h4 className="truncate text-sm font-bold text-vxn-ink group-hover:text-vxn-teal-700">
                         {article.title}

@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
-import { Star, ChevronDown, Check, ChevronRight } from "lucide-react";
+import { Star, ChevronDown } from "lucide-react";
 import { OperatorReviewItem } from "../../lib/data/types";
+import { MarkdownContent } from "../explore/markdown-content";
 
 interface OperatorReviewsAndTermsProps {
   readonly reviews: readonly OperatorReviewItem[];
@@ -19,11 +19,12 @@ export function OperatorReviewsAndTerms({
 }: OperatorReviewsAndTermsProps) {
   const [activeTab, setActiveTab] = useState<"newest" | "highest" | "lowest">("newest");
   const [expanded, setExpanded] = useState(false);
+  const sortedReviews = activeTab === "newest" ? reviews : [...reviews].sort((a, b) => activeTab === "highest" ? b.rating - a.rating : a.rating - b.rating);
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
       {/* Cột trái: Đánh giá hành khách */}
-      <div className="lg:col-span-8 bg-white rounded-2xl border border-neutral-200 p-6 shadow-xs space-y-5">
+      <div id="reviews" className="lg:col-span-8 scroll-mt-24 bg-white rounded-2xl border border-neutral-200 p-6 shadow-xs space-y-5">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <h2 className="text-base font-semibold text-neutral-900">
             Đánh giá từ hành khách
@@ -51,7 +52,7 @@ export function OperatorReviewsAndTerms({
                   : "hover:text-neutral-900"
               }`}
             >
-              Cao nhất
+              Cao nhất trang
             </button>
             <button
               type="button"
@@ -62,14 +63,15 @@ export function OperatorReviewsAndTerms({
                   : "hover:text-neutral-900"
               }`}
             >
-              Thấp nhất
+              Thấp nhất trang
             </button>
           </div>
         </div>
 
         {/* Danh sách bình luận */}
         <div className="space-y-4 pt-2 border-t border-neutral-100">
-          {reviews.map((rev) => (
+          {!reviews.length && <p className="text-sm text-neutral-500">Chưa có đánh giá để hiển thị.</p>}
+          {sortedReviews.slice(0, expanded ? sortedReviews.length : 5).map((rev) => (
             <div
               key={rev.id}
               className="space-y-2 pb-4 border-b border-neutral-100 last:border-0 last:pb-0"
@@ -103,16 +105,16 @@ export function OperatorReviewsAndTerms({
         </div>
 
         {/* Nút xem thêm */}
-        <div className="pt-2 flex justify-center">
+        {reviews.length > 5 && <div className="pt-2 flex justify-center">
           <button
             type="button"
             onClick={() => setExpanded(!expanded)}
             className="inline-flex items-center gap-1 text-xs text-neutral-700 hover:text-neutral-900 font-medium px-4 py-2 rounded-xl border border-neutral-200 bg-neutral-50 hover:bg-neutral-100 transition-colors"
           >
-            <span>Xem thêm đánh giá</span>
+            <span>{expanded ? "Thu gọn" : "Xem thêm đánh giá"}</span>
             <ChevronDown className="w-3.5 h-3.5" />
           </button>
-        </div>
+        </div>}
       </div>
 
       {/* Cột phải: Điều khoản dịch vụ */}
@@ -123,22 +125,13 @@ export function OperatorReviewsAndTerms({
 
         <div className="space-y-3.5 text-xs text-neutral-600">
           {terms.map((term) => (
-            <div key={term} className="flex items-start gap-2.5">
-              <Check className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-              <p className="leading-relaxed">{term}</p>
+            <div key={term}>
+              <MarkdownContent>{term}</MarkdownContent>
             </div>
           ))}
         </div>
 
-        <div className="pt-2 border-t border-neutral-100">
-          <Link
-            href="/terms-of-service"
-            className="text-xs font-semibold text-[#00506a] hover:underline flex items-center gap-0.5"
-          >
-            <span>Xem đầy đủ điều khoản</span>
-            <ChevronRight className="w-3.5 h-3.5" />
-          </Link>
-        </div>
+        {!terms.length && <p className="text-sm text-neutral-500">Nhà xe chưa công bố điều khoản dịch vụ.</p>}
       </div>
     </div>
   );

@@ -1,59 +1,20 @@
-import { DataResult, failed, ok } from "./result";
-import { ProvinceItem, StopPointItem } from "./types";
+"use server";
 
-const API_BASE_URL = process.env.API_BASE_URL ?? "http://localhost:3000/v1";
+import type { components } from "@vexenhanh/api-client";
+import { apiRequest } from "./api";
+import { ok, type DataResult } from "./result";
+import type { ProvinceItem, StopPointItem } from "./types";
 
-/**
- * Lấy danh sách tỉnh/thành phố phục vụ tìm kiếm chuyến xe từ server API.
- * Endpoint: GET /catalog/provinces (đã có trong hợp đồng API).
- */
+/** Lấy tỉnh thành từ trường items trong phản hồi danh mục. */
 export async function getProvinces(): Promise<DataResult<readonly ProvinceItem[]>> {
-  try {
-    const res = await fetch(`${API_BASE_URL}/catalog/provinces`, {
-      next: { revalidate: 3600 }
-    });
-
-    if (!res.ok) {
-      return failed(
-        "GET /catalog/provinces",
-        `Lỗi tải danh mục tỉnh thành: ${res.status} ${res.statusText}`
-      );
-    }
-
-    const data = (await res.json()) as readonly ProvinceItem[];
-    return ok(data);
-  } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
-    return failed("GET /catalog/provinces", message);
-  }
+  const result = await apiRequest<components["schemas"]["ProvinceListResponseDto_Output"]>("/catalog/provinces");
+  return result.status === "ok" ? ok(result.data.items) : result;
 }
 
-/**
- * Tìm kiếm điểm đón/trả theo từ khóa từ server API.
- * Endpoint: GET /catalog/stop-points?q= (đã có trong hợp đồng API).
- */
+/** Tìm điểm đón trả công khai theo tên hoặc địa chỉ. */
 export async function getStopPoints(query?: string): Promise<DataResult<readonly StopPointItem[]>> {
-  try {
-    const params = new URLSearchParams();
-    if (query && query.trim().length > 0) {
-      params.set("q", query.trim());
-    }
-
-    const res = await fetch(`${API_BASE_URL}/catalog/stop-points?${params.toString()}`, {
-      next: { revalidate: 300 }
-    });
-
-    if (!res.ok) {
-      return failed(
-        "GET /catalog/stop-points",
-        `Lỗi tải điểm dừng: ${res.status} ${res.statusText}`
-      );
-    }
-
-    const data = (await res.json()) as readonly StopPointItem[];
-    return ok(data);
-  } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
-    return failed("GET /catalog/stop-points", message);
-  }
+  const params = new URLSearchParams({ limit: "100" });
+  if (query?.trim()) params.set("q", query.trim());
+  const result = await apiRequest<components["schemas"]["StopPointListResponseDto_Output"]>(`/catalog/stop-points?${params}`);
+  return result.status === "ok" ? ok(result.data.items) : result;
 }

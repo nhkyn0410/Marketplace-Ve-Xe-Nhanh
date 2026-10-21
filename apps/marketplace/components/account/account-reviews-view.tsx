@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Star, Send, Check, AlertCircle } from "lucide-react";
 import { Button } from "@vexenhanh/ui/components/button";
 import type {
@@ -68,13 +69,14 @@ export const AccountReviewsView: React.FC<AccountReviewsViewProps> = ({
   },
   isPreview = false
 }) => {
-  const pendingTrip: PendingReviewTrip | undefined = initialData.pendingTrips[0];
+  const router = useRouter();
+  const [pendingTrips, setPendingTrips] = useState<PendingReviewTrip[]>([...initialData.pendingTrips]);
+  const pendingTrip = pendingTrips[0];
   const [rating, setRating] = useState<number>(pendingTrip?.initialRating ?? 4);
   const [comment, setComment] = useState<string>(pendingTrip?.initialComment ?? "");
   const [completedReviews, setCompletedReviews] = useState<UserReviewItem[]>([
     ...initialData.completedReviews
   ]);
-  const [isPendingSubmitted, setIsPendingSubmitted] = useState<boolean>(false);
   const [statusMessage, setStatusMessage] = useState<{
     readonly type: "success" | "error";
     readonly text: string;
@@ -88,7 +90,9 @@ export const AccountReviewsView: React.FC<AccountReviewsViewProps> = ({
     setStatusMessage(null);
 
     if (isPreview) {
-      setIsPendingSubmitted(true);
+      setPendingTrips((items) => items.slice(1));
+      setRating(pendingTrips[1]?.initialRating ?? 4);
+      setComment(pendingTrips[1]?.initialComment ?? "");
       setCompletedReviews((prev) => [
         {
           id: `rev-new-${Date.now()}`,
@@ -112,14 +116,30 @@ export const AccountReviewsView: React.FC<AccountReviewsViewProps> = ({
     setIsSubmitting(true);
     try {
       const res = await submitTripReview({
+        bookingId: pendingTrip.bookingId,
         tripId: pendingTrip.tripId,
         rating,
         content: comment
       });
-      if (res.status === "unavailable") {
+      if (res.status === "ok") {
+        setPendingTrips((items) => items.slice(1));
+        setCompletedReviews((items) => [{
+          id: res.data.reviewId,
+          operatorName: pendingTrip.operatorName,
+          routeName: pendingTrip.routeName,
+          reviewedDateText: "Vừa gửi",
+          rating,
+          content: comment.trim(),
+          statusLabel: res.data.status === "VISIBLE" ? "Đang hiển thị" : res.data.status === "HIDDEN" ? "Đã ẩn" : "Đang kiểm duyệt"
+        }, ...items]);
+        setRating(pendingTrips[1]?.initialRating ?? 4);
+        setComment(pendingTrips[1]?.initialComment ?? "");
+        setStatusMessage({ type: "success", text: "Đã gửi đánh giá của bạn." });
+        router.refresh();
+      } else if (res.status === "unavailable") {
         setStatusMessage({
           type: "error",
-          text: "Chức năng gửi đánh giá đang chờ kết nối cổng API backend (POST /me/reviews)."
+          text: "Chưa thể gửi đánh giá. Vui lòng thử lại sau."
         });
       } else if (res.status === "error") {
         setStatusMessage({
@@ -188,17 +208,17 @@ export const AccountReviewsView: React.FC<AccountReviewsViewProps> = ({
           </div>
 
           {/* Khối 1: Chờ đánh giá (chuẩn Figma node 1448:19507) */}
-          {!isPendingSubmitted && pendingTrip && (
+          {pendingTrip && (
             <div className="bg-white dark:bg-card rounded-2xl border border-border p-6 space-y-5 shadow-2xs">
               <h2 className="text-base font-bold text-foreground">
-                Chờ đánh giá (1)
+                Chờ đánh giá ({pendingTrips.length})
               </h2>
 
               {/* Thẻ tóm tắt chuyến đi chờ đánh giá */}
               <div className="bg-slate-50 dark:bg-muted/40 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-xl bg-[#0F5B60] text-white font-bold text-xs flex items-center justify-center shrink-0">
-                    PN
+                    {pendingTrip.operatorName.split(" ").filter(Boolean).slice(0, 2).map((word) => word[0]).join("")}
                   </div>
                   <div className="space-y-0.5">
                     <p className="text-sm font-bold text-foreground">
@@ -228,6 +248,9 @@ export const AccountReviewsView: React.FC<AccountReviewsViewProps> = ({
                         <button
                           key={starVal}
                           type="button"
+                          aria-label={`${starVal} sao`}
+                          aria-pressed={starVal === rating}
+                          disabled={isSubmitting}
                           onClick={() => setRating(starVal)}
                           className="p-1 text-amber-400 hover:scale-110 transition-transform"
                         >
@@ -250,9 +273,10 @@ export const AccountReviewsView: React.FC<AccountReviewsViewProps> = ({
                 {/* Nhận xét text */}
                 <div className="space-y-1.5">
                   <label className="text-xs font-semibold text-foreground">
-                    Nhận xét của bạn
+                    Nhận xét của bạn (không bắt buộc)
                   </label>
                   <textarea
+                    maxLength={1000}
                     rows={3}
                     value={comment}
                     onChange={(e) => setComment(e.target.value)}
@@ -260,30 +284,22 @@ export const AccountReviewsView: React.FC<AccountReviewsViewProps> = ({
                     className="w-full p-3.5 rounded-xl border border-input bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-[#0F5B60] transition-all resize-y"
                   />
                   <p className="text-[11px] text-muted-foreground">
-                    Nhận xét được kiểm duyệt trước khi hiển thị công khai.
+                    Tối đa 1.000 ký tự. Trạng thái hiển thị được cập nhật sau khi gửi.
                   </p>
                 </div>
 
                 {/* Nút thao tác form */}
                 <div className="flex items-center justify-end gap-3 pt-2">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => {
-                      setStatusMessage({
-                        type: "success",
-                        text: "Đã lưu tạm đánh giá để thực hiện sau."
-                      });
-                      setTimeout(() => setStatusMessage(null), 3000);
-                    }}
-                    className="h-10 px-4 rounded-xl text-xs border-border bg-white dark:bg-card"
+                  <Link
+                    href={isPreview ? "/tickets?preview=ideal" : "/tickets"}
+                    className="text-xs text-muted-foreground hover:underline"
                   >
-                    Để sau
-                  </Button>
+                    Quay lại vé của tôi
+                  </Link>
 
                   <Button
                     type="submit"
-                    disabled={isSubmitting || !comment.trim()}
+                    disabled={isSubmitting}
                     className="h-10 px-5 rounded-xl text-xs gap-1.5 bg-[#0F5B60] hover:bg-[#0c474b] text-white font-medium"
                   >
                     <Send className="w-3.5 h-3.5" />
@@ -294,6 +310,8 @@ export const AccountReviewsView: React.FC<AccountReviewsViewProps> = ({
             </div>
           )}
 
+          {!pendingTrip && <p className="text-sm text-muted-foreground">Không có chuyến đủ điều kiện đang chờ đánh giá.</p>}
+
           {/* Khối 2: Đã đánh giá (chuẩn Figma node 1448:19559) */}
           <div className="bg-white dark:bg-card rounded-2xl border border-border p-6 space-y-4 shadow-2xs">
             <h2 className="text-base font-bold text-foreground">
@@ -301,6 +319,7 @@ export const AccountReviewsView: React.FC<AccountReviewsViewProps> = ({
             </h2>
 
             <div className="divide-y divide-border">
+              {completedReviews.length === 0 && <p className="py-3 text-sm text-muted-foreground">Bạn chưa gửi đánh giá nào.</p>}
               {completedReviews.map((review) => {
                 const isApproved = review.statusLabel === "Đang hiển thị" || review.statusLabel === "Đã duyệt";
                 return (
@@ -308,7 +327,7 @@ export const AccountReviewsView: React.FC<AccountReviewsViewProps> = ({
                     <div className="flex items-center justify-between gap-3">
                       <div className="flex items-center gap-3">
                         <div className="w-9 h-9 rounded-xl bg-[#0F5B60] text-white font-bold text-xs flex items-center justify-center shrink-0">
-                          PN
+                          {review.operatorName.split(" ").filter(Boolean).slice(0, 2).map((word) => word[0]).join("")}
                         </div>
                         <div className="space-y-0.5">
                           <p className="text-xs font-bold text-foreground">
@@ -330,19 +349,6 @@ export const AccountReviewsView: React.FC<AccountReviewsViewProps> = ({
                         >
                           {review.statusLabel}
                         </span>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setStatusMessage({
-                              type: "success",
-                              text: `Mở chế độ chỉnh sửa đánh giá cho ${review.routeName}.`
-                            });
-                            setTimeout(() => setStatusMessage(null), 3000);
-                          }}
-                          className="text-xs font-medium text-[#0F5B60] hover:underline"
-                        >
-                          Sửa
-                        </button>
                       </div>
                     </div>
 

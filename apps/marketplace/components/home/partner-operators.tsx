@@ -27,7 +27,7 @@ export function PartnerOperatorsSection({
               NHÀ XE ĐỐI TÁC
             </span>
             <h2 className="text-2xl font-black text-vxn-ink">
-              Đồng hành cùng hơn 50+ hãng xe uy tín trên toàn quốc
+          Nhà xe đồng hành cùng bạn
             </h2>
           </div>
         </div>
@@ -49,7 +49,7 @@ export function PartnerOperatorsSection({
           </h2>
         </div>
         <Link
-          href="/operators"
+          href="/trips"
           className="inline-flex items-center gap-1 text-sm font-semibold text-vxn-teal-700 hover:text-vxn-teal-800"
         >
           <span>Xem các nhà xe</span>
@@ -62,7 +62,7 @@ export function PartnerOperatorsSection({
         {operators.map((operator) => (
           <Link
             key={operator.id}
-            href={`/operators/${operator.slug}`}
+            href={`/operators/${operator.id}`}
             className="group flex flex-col justify-between rounded-xl border border-vxn-border bg-white p-5 shadow-2xs transition hover:border-vxn-teal-500 hover:shadow-md"
           >
             <div>

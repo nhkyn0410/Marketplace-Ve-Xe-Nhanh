@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import Image from "next/image";
 import { Badge } from "@vexenhanh/ui/components/badge";
 import { ArrowRight, Info } from "lucide-react";
 import type { TicketPassengerDetail, TicketTripInfo } from "../../lib/data/types";
@@ -82,8 +83,8 @@ export const BoardingPassCard: React.FC<BoardingPassCardProps> = ({
                 </div>
               </div>
 
-              <Badge className="bg-emerald-600 text-white hover:bg-emerald-700 font-bold text-[11px] tracking-wider px-2 py-0.5 rounded">
-                HỢP LỆ
+              <Badge tone={currentTicket?.status === "valid" ? "success" : "neutral"} className="font-bold text-[11px] tracking-wider px-2 py-0.5 rounded">
+                {currentTicket?.statusLabel ?? (currentTicket?.status === "cancelled" ? "ĐÃ HỦY" : "HỢP LỆ")}
               </Badge>
             </div>
 
@@ -172,50 +173,7 @@ export const BoardingPassCard: React.FC<BoardingPassCardProps> = ({
             <div className="w-full max-w-[200px] space-y-3">
               {/* QR Code vector hiển thị rõ ràng */}
               <div className="p-3 bg-white rounded-xl shadow-xs border border-amber-200 inline-block">
-                <svg
-                  viewBox="0 0 100 100"
-                  className="w-32 h-32 text-slate-900"
-                  fill="currentColor"
-                  xmlns="http://www.w3.org/2000/svg"
-                  aria-label={`QR Code cho vé ${currentTicket?.ticketCode}`}
-                >
-                  <rect x="0" y="0" width="30" height="30" rx="3" />
-                  <rect x="5" y="5" width="20" height="20" fill="white" rx="1.5" />
-                  <rect x="10" y="10" width="10" height="10" />
-
-                  <rect x="70" y="0" width="30" height="30" rx="3" />
-                  <rect x="75" y="5" width="20" height="20" fill="white" rx="1.5" />
-                  <rect x="80" y="10" width="10" height="10" />
-
-                  <rect x="0" y="70" width="30" height="30" rx="3" />
-                  <rect x="5" y="75" width="20" height="20" fill="white" rx="1.5" />
-                  <rect x="10" y="80" width="10" height="10" />
-
-                  <rect x="36" y="8" width="8" height="6" />
-                  <rect x="50" y="4" width="12" height="6" />
-                  <rect x="36" y="20" width="6" height="8" />
-                  <rect x="48" y="16" width="14" height="6" />
-                  <rect x="40" y="32" width="6" height="6" />
-                  <rect x="52" y="30" width="8" height="8" />
-                  <rect x="66" y="36" width="8" height="6" />
-
-                  <rect x="8" y="38" width="6" height="12" />
-                  <rect x="20" y="42" width="8" height="6" />
-                  <rect x="8" y="56" width="8" height="6" />
-                  <rect x="22" y="54" width="6" height="10" />
-
-                  <rect x="36" y="46" width="12" height="12" />
-                  <rect x="54" y="44" width="6" height="14" />
-                  <rect x="66" y="48" width="14" height="6" />
-                  <rect x="42" y="64" width="8" height="6" />
-                  <rect x="56" y="64" width="6" height="12" />
-
-                  <rect x="36" y="76" width="10" height="6" />
-                  <rect x="50" y="82" width="14" height="6" />
-                  <rect x="70" y="70" width="6" height="8" />
-                  <rect x="82" y="70" width="8" height="6" />
-                  <rect x="74" y="84" width="16" height="6" />
-                </svg>
+                {currentTicket?.qrCodeDataUrl ? <Image src={currentTicket.qrCodeDataUrl} alt={`Mã QR vé ${currentTicket.ticketCode}`} width={160} height={160} unoptimized /> : <p className="text-xs text-muted-foreground">Mã QR chưa khả dụng</p>}
               </div>
 
               <div className="space-y-1">

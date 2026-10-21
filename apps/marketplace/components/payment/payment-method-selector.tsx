@@ -1,36 +1,21 @@
 "use client";
 
-import { SupportedPaymentMethod, VNPayBankOption } from "../../lib/data/types";
+import { SupportedPaymentMethod } from "../../lib/data/types";
 
 /**
  * Thuộc tính của component chọn phương thức thanh toán.
  */
 export interface PaymentMethodSelectorProps {
   readonly selectedMethod: SupportedPaymentMethod;
-  readonly selectedBank: VNPayBankOption;
   readonly onSelectMethod?: (method: SupportedPaymentMethod) => void;
-  readonly onSelectBank?: (bank: VNPayBankOption) => void;
 }
-
-const VNPAY_BANKS: readonly { readonly id: VNPayBankOption; readonly label: string }[] = [
-  { id: "vnpay_qr", label: "VNPay QR" },
-  { id: "vietcombank", label: "Vietcombank" },
-  { id: "vietinbank", label: "VietinBank" },
-  { id: "bidv", label: "BIDV" },
-  { id: "techcombank", label: "Techcombank" },
-  { id: "mbbank", label: "MB Bank" },
-  { id: "acb", label: "ACB" },
-  { id: "international_card", label: "Thẻ quốc tế" }
-];
 
 /**
  * Khối chọn phương thức thanh toán VNPay và MoMo theo Figma 1444:13055.
  */
 export function PaymentMethodSelector({
   selectedMethod,
-  selectedBank,
-  onSelectMethod,
-  onSelectBank
+  onSelectMethod
 }: PaymentMethodSelectorProps) {
   return (
     <section className="rounded-2xl border border-vxn-border bg-white p-5 sm:p-6 shadow-2xs">
@@ -76,41 +61,11 @@ export function PaymentMethodSelector({
             <div className="flex-1 min-w-0">
               <h4 className="text-sm font-bold text-vxn-ink">VNPay</h4>
               <p className="mt-0.5 text-xs text-vxn-fg-4">
-                Quét mã QR, thẻ ATM nội địa hoặc thẻ quốc tế
+                Chọn ngân hàng hoặc cách thanh toán trên cổng VNPay.
               </p>
             </div>
           </div>
 
-          {/* Danh sách ngân hàng chọn nhanh (khi chọn VNPay) */}
-          {selectedMethod === "vnpay" && (
-            <div className="mt-4 pt-3.5 border-t border-neutral-200/70 animate-in fade-in-50 duration-200">
-              <p className="text-[11px] font-medium text-vxn-fg-4">
-                Chọn nhanh ngân hàng (có thể chọn lại trên cổng VNPay)
-              </p>
-              <div className="mt-2.5 flex flex-wrap gap-2">
-                {VNPAY_BANKS.map((b) => {
-                  const isBankSelected = selectedBank === b.id;
-                  return (
-                    <button
-                      key={b.id}
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onSelectBank?.(b.id);
-                      }}
-                      className={`rounded-xl px-3 py-1.5 text-xs font-semibold transition cursor-pointer ${
-                        isBankSelected
-                          ? "border-2 border-vxn-teal-800 bg-white text-vxn-teal-900 shadow-2xs"
-                          : "border border-neutral-200 bg-white text-neutral-700 hover:border-neutral-300 hover:bg-neutral-50"
-                      }`}
-                    >
-                      {b.label}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          )}
         </div>
 
         {/* 2. Lựa chọn Ví MoMo */}

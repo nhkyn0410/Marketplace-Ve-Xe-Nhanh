@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, X, Clock, AlertCircle } from "lucide-react";
 import { Button } from "@vexenhanh/ui/components/button";
-import { verifyOtp } from "../../lib/data/auth";
+import { requestLoginOtp, verifyOtp } from "../../lib/data/auth";
 
 /**
  * Dữ liệu cấu hình cho VerifyEmailView (SCR-PSG-09)
@@ -37,7 +37,7 @@ export const VerifyEmailView: React.FC<VerifyEmailViewProps> = ({
   isPreview = false
 }) => {
   const router = useRouter();
-  const email = initialData.email ?? "khach.nguyen@gmail.com";
+  const email = initialData.email ?? "";
   const [digits, setDigits] = useState<string[]>(() => {
     if (initialData.otpDigits && initialData.otpDigits.length === 6) {
       return [...initialData.otpDigits];
@@ -45,22 +45,11 @@ export const VerifyEmailView: React.FC<VerifyEmailViewProps> = ({
     return ["", "", "", "", "", ""];
   });
 
-  const [timeLeft, setTimeLeft] = useState<number>(initialData.expiresInSeconds ?? 272);
-  const [resendCooldown, setResendCooldown] = useState<number>(initialData.resendCountdownSeconds ?? 28);
-  const [remainingAttempts, setRemainingAttempts] = useState<number>(initialData.remainingAttempts ?? 5);
+  const [resendCooldown, setResendCooldown] = useState<number>(initialData.resendCountdownSeconds ?? 60);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
   const inputRefs = useRef<Array<HTMLInputElement | null>>([]);
-
-  // Đếm ngược thời gian hết hạn OTP
-  useEffect(() => {
-    if (timeLeft <= 0) return;
-    const timer = setInterval(() => {
-      setTimeLeft((prev) => (prev > 0 ? prev - 1 : 0));
-    }, 1000);
-    return () => clearInterval(timer);
-  }, [timeLeft]);
 
   // Đếm ngược gửi lại mã
   useEffect(() => {
@@ -70,12 +59,6 @@ export const VerifyEmailView: React.FC<VerifyEmailViewProps> = ({
     }, 1000);
     return () => clearInterval(timer);
   }, [resendCooldown]);
-
-  const formatCountdown = (seconds: number): string => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
-  };
 
   const handleDigitChange = (index: number, val: string) => {
     // Chỉ nhận chữ số
@@ -136,11 +119,13 @@ export const VerifyEmailView: React.FC<VerifyEmailViewProps> = ({
         email,
         otp: digits.join("")
       });
-      if (res.status === "unavailable") {
-        setErrorMessage("Chức năng xác minh OTP đang chờ kết nối cổng API backend (POST /auth/otp/verify).");
+      if (res.status === "ok") {
+        router.push("/account");
+        router.refresh();
+      } else if (res.status === "unavailable") {
+        setErrorMessage("Chưa thể xác minh mã. Vui lòng thử lại sau.");
       } else if (res.status === "error") {
         setErrorMessage(res.message ?? "Mã xác minh không chính xác hoặc đã hết hạn.");
-        setRemainingAttempts((prev) => Math.max(0, prev - 1));
       }
     } catch {
       setErrorMessage("Đã xảy ra lỗi khi xác minh mã OTP. Vui lòng thử lại.");
@@ -149,14 +134,25 @@ export const VerifyEmailView: React.FC<VerifyEmailViewProps> = ({
     }
   };
 
-  const handleResend = () => {
-    if (resendCooldown > 0) return;
+  const handleResend = async () => {
+    if (resendCooldown > 0 || isSubmitting) return;
     if (isPreview) {
-      setResendCooldown(30);
+      setResendCooldown(60);
       return;
     }
-    setErrorMessage("Chức năng gửi lại OTP đang chờ kết nối cổng API backend.");
-    console.warn("[marketplace] chưa có API gửi lại OTP");
+    setIsSubmitting(true);
+    setErrorMessage(null);
+    try {
+      const result = await requestLoginOtp({ email });
+      if (result.status === "ok") {
+        setResendCooldown(60);
+        setDigits(["", "", "", "", "", ""]);
+      } else {
+        setErrorMessage(result.status === "error" ? result.message ?? "Không thể gửi lại mã OTP." : "Chức năng gửi mã chưa khả dụng.");
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -241,6 +237,8 @@ export const VerifyEmailView: React.FC<VerifyEmailViewProps> = ({
                   inputRefs.current[index] = el;
                 }}
                 type="text"
+                aria-label={`Chữ số xác minh ${index + 1}`}
+                autoComplete={index === 0 ? "one-time-code" : "off"}
                 inputMode="numeric"
                 maxLength={1}
                 value={digit}
@@ -251,17 +249,10 @@ export const VerifyEmailView: React.FC<VerifyEmailViewProps> = ({
             ))}
           </div>
 
-          {/* Hàng thông tin thời gian & số lần thử */}
-          <div className="flex items-center justify-between text-xs text-muted-foreground px-1">
-            <div className="flex items-center gap-1.5">
-              <Clock className="w-3.5 h-3.5 text-muted-foreground" />
-              <span>Mã hết hạn sau</span>
-              <span className="font-semibold text-foreground">
-                {formatCountdown(timeLeft)}
-              </span>
-            </div>
-            <span>Còn {remainingAttempts} lần thử</span>
-          </div>
+          <p className="flex items-center gap-1.5 text-xs text-muted-foreground px-1">
+            <Clock className="w-3.5 h-3.5 shrink-0" />
+            Mã có hiệu lực trong 5 phút kể từ khi được gửi. Vui lòng dùng mã mới nhất.
+          </p>
 
           {/* Thông báo lỗi khi có */}
           {errorMessage && (
@@ -274,7 +265,7 @@ export const VerifyEmailView: React.FC<VerifyEmailViewProps> = ({
           {/* Nút chính Xác minh */}
           <Button
             type="submit"
-            disabled={isSubmitting || !isOtpComplete || timeLeft <= 0}
+            disabled={isSubmitting || !isOtpComplete}
             className="w-full h-11 rounded-xl bg-[#2B7EAD] hover:bg-[#236a92] text-white font-medium text-sm transition-all shadow-xs"
           >
             {isSubmitting ? "Đang xác minh..." : "Xác minh"}
@@ -289,6 +280,7 @@ export const VerifyEmailView: React.FC<VerifyEmailViewProps> = ({
             ) : (
               <button
                 type="button"
+                disabled={isSubmitting}
                 onClick={handleResend}
                 className="text-xs text-[#2B7EAD] font-medium hover:underline"
               >

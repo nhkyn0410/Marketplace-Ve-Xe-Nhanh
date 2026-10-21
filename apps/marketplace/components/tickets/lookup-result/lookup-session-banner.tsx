@@ -57,7 +57,7 @@ export const LookupSessionBanner: React.FC<LookupSessionBannerProps> = ({
       <div className="flex items-center gap-2.5 text-emerald-950 dark:text-emerald-200 font-medium">
         <ShieldCheck className="h-4 w-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
         <span>
-          Đã xác minh email <strong className="font-bold">{maskedEmail}</strong> · chỉ hiển thị đơn <strong className="font-bold">{bookingCode}</strong>
+          Tra cứu bằng email <strong className="font-bold">{maskedEmail}</strong> · chỉ hiển thị đơn <strong className="font-bold">{bookingCode}</strong>
         </span>
       </div>
 

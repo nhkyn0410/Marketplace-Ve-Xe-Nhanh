@@ -49,6 +49,7 @@ export default async function ExplorePage(props: ExplorePageProps) {
             categories={articleCategoriesFixture}
             featuredArticle={featuredArticleFixture}
             articles={articlesListFixture}
+            isPreview
           />
         </main>
       </div>
@@ -56,7 +57,8 @@ export default async function ExplorePage(props: ExplorePageProps) {
   }
 
   // Nhánh Thật: gọi API backend
-  const result = await getArticles();
+  const category = typeof resolvedParams?.category === "string" ? resolvedParams.category : "all";
+  const result = await getArticles(category, typeof resolvedParams?.cursor === "string" ? resolvedParams.cursor : undefined);
 
   if (result.status === "unavailable") {
     return (
@@ -92,9 +94,12 @@ export default async function ExplorePage(props: ExplorePageProps) {
       {topBarHeader}
       <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <ExploreView
+          key={`${category}:${typeof resolvedParams?.cursor === "string" ? resolvedParams.cursor : ""}`}
+          initialCategory={category}
           categories={result.data.categories}
-          featuredArticle={result.data.articles[0] ?? featuredArticleFixture}
+          featuredArticle={result.data.articles.find((article) => article.isFeatured)}
           articles={result.data.articles}
+          nextCursor={result.data.nextCursor}
         />
       </main>
     </div>

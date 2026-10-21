@@ -154,7 +154,7 @@ export interface TripSeatPreviewItem {
   readonly floor: 1 | 2;
   readonly row: number;
   readonly col: number;
-  readonly status: "available" | "holding" | "booked";
+  readonly status: "available" | "holding" | "booked" | "unavailable";
   readonly isDouble?: boolean;
 }
 
@@ -243,7 +243,7 @@ export interface OperatorFeaturedRoute {
   readonly id: string;
   readonly routeName: string;
   readonly metaText: string;
-  readonly minPriceVnd: string;
+  readonly minPriceVnd?: string;
   readonly imageUrl: string;
   readonly searchUrl: string;
 }
@@ -264,6 +264,7 @@ export interface OperatorReviewItem {
  * Hồ sơ nhà xe chi tiết theo SCR-PSG-17 (node 1443:12312).
  */
 export interface OperatorProfileData {
+  readonly nextReviewCursor?: string | null;
   readonly id: string;
   readonly name: string;
   readonly code: string;
@@ -298,6 +299,8 @@ export type SeatSelectionStatus = "available" | "selected" | "holding" | "booked
  * Ghế chi tiết trong sơ đồ chọn chỗ SCR-PSG-18.
  */
 export interface SeatSelectionItem {
+  readonly row?: number;
+  readonly column?: number;
   readonly id: string;
   readonly code: string;
   readonly label: string;
@@ -403,6 +406,7 @@ export interface CheckoutVoucherItem {
  * Bảng giá tổng hợp theo quy tắc A3 #8 (không tự tính, lấy từ dữ liệu).
  */
 export interface CheckoutPriceSummary {
+  readonly isEstimate?: boolean;
   readonly ticketPriceTotalVnd: string;
   readonly ticketCount: number;
   readonly serviceFeeVnd: string;
@@ -467,6 +471,7 @@ export type VNPayBankOption =
  * Dữ liệu màn hình B3 Thanh toán (SCR-PSG-20 - node 1444:13055).
  */
 export interface BookingPaymentData {
+  readonly bookingStatus?: string;
   readonly bookingId: string;
   readonly bookingCode: string;
   readonly status: "pending_payment" | "expired";
@@ -494,7 +499,7 @@ export interface IssuedTicketItem {
   readonly passengerName: string;
   readonly seatCode: string;
   readonly seatType: string;
-  readonly status: "valid" | "used" | "cancelled";
+  readonly status: "valid" | "used" | "checked_in" | "no_show" | "cancelled";
   readonly qrCodeDataUrl?: string;
 }
 
@@ -502,6 +507,8 @@ export interface IssuedTicketItem {
  * Chi tiết kết quả giao dịch thanh toán (SCR-PSG-21, 22, 23).
  */
 export interface BookingPaymentResultData {
+  readonly canRetryPayment?: boolean;
+  readonly processingMessage?: string;
   readonly bookingId: string;
   readonly bookingCode: string;
   readonly status: "processing" | "success" | "failed";
@@ -537,6 +544,7 @@ export interface BookingPaymentResultData {
  * Mục vé / đơn đặt vé trong danh sách Hành trình của tôi (SCR-PSG-24).
  */
 export interface MyTicketItem {
+  readonly hasIssuedTickets?: boolean;
   readonly id: string;
   readonly bookingCode: string;
   readonly routeName: string;
@@ -592,13 +600,15 @@ export interface TicketRefundPolicyMilestone {
  * Chi tiết hành khách và vé trong đơn (SCR-PSG-25 & 26).
  */
 export interface TicketPassengerDetail {
+  readonly statusLabel?: string;
+  readonly qrCodeDataUrl?: string;
   readonly ticketId: string;
   readonly ticketCode: string;
   readonly passengerName: string;
   readonly seatCode: string;
   readonly seatType: string;
   readonly pricePaidVnd: string;
-  readonly status: "valid" | "cancelled";
+  readonly status: "valid" | "used" | "checked_in" | "no_show" | "cancelled";
 }
 
 /**
@@ -620,6 +630,8 @@ export type TicketRefundPolicy = TicketDetailData["refundPolicy"];
  * Dữ liệu chi tiết vé xe điện tử (SCR-PSG-25 & SCR-PSG-26).
  */
 export interface TicketDetailData {
+  readonly supportHref?: string;
+  readonly bookingId?: string;
   readonly bookingCode: string;
   readonly bookingTimeText: string;
   readonly status: "confirmed" | "completed" | "cancelled";
@@ -683,12 +695,13 @@ export interface TicketLookupOtpState {
  * Vé đơn lẻ trong kết quả tra cứu (SCR-PSG-29).
  */
 export interface TicketLookupResultItem {
+  readonly qrCodeDataUrl?: string;
   readonly ticketId: string;
   readonly ticketCode: string;
   readonly passengerName: string;
   readonly seatCode: string;
   readonly seatType: string;
-  readonly status: "valid" | "cancelled";
+  readonly status: "valid" | "used" | "checked_in" | "no_show" | "cancelled";
   readonly statusLabel: string;
 }
 
@@ -696,6 +709,8 @@ export interface TicketLookupResultItem {
  * Toàn bộ dữ liệu kết quả tra cứu vé cho khách vãng lai (SCR-PSG-29 - node 1446:15578).
  */
 export interface TicketLookupResultData {
+  readonly canManageBooking?: boolean;
+  readonly bookingId?: string;
   readonly bookingCode: string;
   readonly routeName: string;
   readonly departureTimeText: string;
@@ -844,17 +859,18 @@ export interface UserProfileData {
   readonly id: string;
   readonly fullName: string;
   readonly email: string;
+  readonly emailVerified?: boolean;
   readonly phone: string;
   readonly dateOfBirth?: string;
   readonly gender?: string;
   readonly idNumber?: string;
   readonly avatarUrl?: string;
-  readonly tierName: string;
-  readonly points: number;
+  readonly tierName?: string;
+  readonly points?: number;
   readonly periodPoints?: number;
   readonly pointsNeededNextTier?: number;
   readonly nextTierName?: string;
-  readonly voucherCount: number;
+  readonly voucherCount?: number;
   readonly ticketsCount?: number;
   readonly savedPassengers?: readonly {
     readonly id: string;
@@ -929,13 +945,14 @@ export interface UserReviewItem {
   readonly reviewedDateText: string;
   readonly rating: number;
   readonly content: string;
-  readonly statusLabel: "Đang hiển thị" | "Đang kiểm duyệt" | "Đã duyệt";
+  readonly statusLabel: "Đang hiển thị" | "Đang kiểm duyệt" | "Đã duyệt" | "Đã ẩn";
 }
 
 /**
  * Mục chuyến xe đang chờ đánh giá (SCR-PSG-14).
  */
 export interface PendingReviewTrip {
+  readonly bookingId?: string;
   readonly tripId: string;
   readonly operatorName: string;
   readonly routeName: string;
@@ -1042,6 +1059,7 @@ export type UserVoucherStatus = "available" | "holding" | "used" | "expired";
  * Một voucher trong ví (SCR-PSG-36 - node 1448:20565).
  */
 export interface UserVoucherItem {
+  readonly discountLabel?: string;
   readonly id: string;
   readonly code: string;
   readonly title: string;
@@ -1059,6 +1077,7 @@ export interface UserVoucherItem {
  * Dữ liệu trang Ví voucher (SCR-PSG-36).
  */
 export interface UserVouchersData {
+  readonly holdingCount?: number;
   readonly availableCount: number;
   readonly usedCount: number;
   readonly expiredCount: number;

@@ -1,4 +1,5 @@
 import { Metadata } from "next";
+import Link from "next/link";
 import { getPreview, SearchParamsInput } from "../../../lib/preview";
 import { operatorProfileFixture } from "../../../lib/preview/fixtures/operators";
 import { getOperatorProfile } from "../../../lib/data/operators";
@@ -46,15 +47,13 @@ export default async function OperatorDetailPage(props: PageProps) {
   }
 
   // Nhánh dữ liệu thật (Gọi API qua lib/data/operators.ts)
-  const result = await getOperatorProfile(params.operatorId);
+  const cursor = searchParams instanceof URLSearchParams ? searchParams.get("cursor") : searchParams?.cursor;
+  const result = await getOperatorProfile(params.operatorId, typeof cursor === "string" ? cursor : undefined);
 
   if (result.status !== "ok") {
     return (
       <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <FeatureUnavailable
-          title="Hồ sơ nhà xe"
-          endpoint={result.endpoint}
-        />
+        <FeatureUnavailable title="Không thể tải hồ sơ nhà xe" description={result.status === "error" ? result.message : undefined} />
       </div>
     );
   }
@@ -70,6 +69,7 @@ export default async function OperatorDetailPage(props: PageProps) {
         reviews={operator.reviews}
         terms={operator.terms}
       />
+      {operator.nextReviewCursor && <Link className="text-vxn-teal-800 underline" href={`/operators/${encodeURIComponent(params.operatorId)}?cursor=${encodeURIComponent(operator.nextReviewCursor)}#reviews`}>Trang đánh giá tiếp theo</Link>}
     </div>
   );
 }

@@ -7,11 +7,10 @@ import {
   Plus,
   Minus,
   Headphones,
-  Phone,
   MessageSquare,
   ChevronRight
 } from "lucide-react";
-import { Button } from "@vexenhanh/ui/components/button";
+import { MarkdownContent } from "../explore/markdown-content";
 import type { FaqGroup } from "../../lib/data/types";
 
 export interface FaqViewProps {
@@ -32,8 +31,9 @@ export function FaqView({
     faqGroups[0]?.id ?? "booking-payment"
   );
   // Quản lý các câu hỏi đang mở accordion (mặc định mở câu đầu tiên)
-  const [openQuestionIds, setOpenQuestionIds] = useState<Record<string, boolean>>({
-    "q-01": true
+  const [openQuestionIds, setOpenQuestionIds] = useState<Record<string, boolean>>(() => {
+    const first = faqGroups[0]?.questions[0];
+    return first ? { [first.id]: true } : {};
   });
 
   const toggleQuestion = (questionId: string): void => {
@@ -149,7 +149,7 @@ export function FaqView({
               <div className="py-8 text-center text-sm text-[#64748b] space-y-2">
                 <p>Không tìm thấy câu trả lời phù hợp với từ khóa.</p>
                 <p className="text-xs">
-                  Bạn có thể chọn chuyên mục bên dưới hoặc liên hệ tổng đài để được hỗ trợ trực tiếp.
+                  Bạn có thể thử từ khóa khác hoặc gửi yêu cầu tại trung tâm hỗ trợ.
                 </p>
               </div>
             ) : (
@@ -177,7 +177,7 @@ export function FaqView({
                       </button>
                       {isOpen && (
                         <div className="mt-2 text-xs sm:text-sm text-[#475569] leading-relaxed pb-2">
-                          {item.answer}
+                          <MarkdownContent>{item.answer}</MarkdownContent>
                         </div>
                       )}
                     </div>
@@ -232,6 +232,7 @@ export function FaqView({
                     </p>
                   </div>
 
+                  {!currentGroup.questions.length && <p className="py-4 text-sm text-[#64748b]">Chưa có câu hỏi được xuất bản. Bạn có thể gửi yêu cầu hỗ trợ bên dưới.</p>}
                   <div className="space-y-1 divide-y divide-[#f1f5f9]">
                     {currentGroup.questions.map((q, qIdx) => {
                       const isOpen = !!openQuestionIds[q.id];
@@ -253,7 +254,7 @@ export function FaqView({
                           </button>
                           {isOpen && (
                             <div className="mt-2 text-xs sm:text-sm text-[#475569] leading-relaxed pb-3">
-                              {q.answer}
+                              <MarkdownContent>{q.answer}</MarkdownContent>
                             </div>
                           )}
                         </div>
@@ -277,36 +278,15 @@ export function FaqView({
                 Chưa tìm thấy câu trả lời?
               </h3>
               <p className="text-xs text-[#64748b]">
-                CSKH 1900 6067 · support@vexenhanh.vn
+                Xem và gửi yêu cầu hỗ trợ cho vé đã đặt.
               </p>
             </div>
           </div>
 
           <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
-            <Button
-              variant="outline"
-              size="sm"
-              className="gap-1.5 text-xs h-9 border-[#cbd5e1] font-medium"
-              onClick={() => {
-                if (typeof window !== "undefined") {
-                  window.location.href = "/support";
-                }
-              }}
-            >
-              <MessageSquare className="h-3.5 w-3.5" />
-              <span>Gửi khiếu nại</span>
-            </Button>
-            <Button
-              className="gap-1.5 text-xs h-9 bg-[#005963] hover:bg-[#00474f] text-white font-medium"
-              onClick={() => {
-                if (typeof window !== "undefined") {
-                  window.location.href = "tel:19006067";
-                }
-              }}
-            >
-              <Phone className="h-3.5 w-3.5" />
-              <span>Gọi 1900 6067</span>
-            </Button>
+            <Link href="/support" className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-[#005963] px-4 text-xs font-medium text-white hover:bg-[#00474f]">
+              <MessageSquare className="h-3.5 w-3.5" /><span>Trung tâm hỗ trợ</span>
+            </Link>
           </div>
         </div>
       </main>

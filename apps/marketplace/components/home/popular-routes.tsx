@@ -67,7 +67,7 @@ export function PopularRoutesSection({
           </h2>
         </div>
         <Link
-          href="/routes"
+          href="/trips"
           className="inline-flex items-center gap-1 text-sm font-semibold text-vxn-teal-700 hover:text-vxn-teal-800"
         >
           <span>Xem tất cả tuyến</span>

@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Check, Copy, Printer, Mail, Clock, Bookmark, QrCode } from "lucide-react";
+import Image from "next/image";
+import { Check, Copy, Printer, Clock, QrCode } from "lucide-react";
 import { formatVnd } from "../../lib/format";
 import { BookingPaymentResultData } from "../../lib/data/types";
 
@@ -18,7 +19,6 @@ export interface PaymentSuccessViewProps {
  */
 export function PaymentSuccessView({ result }: PaymentSuccessViewProps) {
   const [isCopied, setIsCopied] = useState(false);
-  const [resendStatus, setResendStatus] = useState<string | null>(null);
 
   const handleCopyCode = async () => {
     try {
@@ -34,12 +34,6 @@ export function PaymentSuccessView({ result }: PaymentSuccessViewProps) {
     if (typeof window !== "undefined") {
       window.print();
     }
-  };
-
-  const handleResendEmail = () => {
-    console.warn(`[marketplace] chưa có API: POST /bookings/${result.bookingId}/resend-email`);
-    setResendStatus("Đã gửi lại yêu cầu gửi vé qua email (giả lập thử nghiệm).");
-    setTimeout(() => setResendStatus(null), 3500);
   };
 
   const tickets = result.tickets ?? [];
@@ -76,11 +70,11 @@ export function PaymentSuccessView({ result }: PaymentSuccessViewProps) {
                 )}
               </div>
               <p className="text-xs sm:text-sm text-vxn-fg-4 leading-relaxed">
-                Vé điện tử đã gửi tới{" "}
+                Email liên hệ: {" "}
                 <strong className="text-vxn-ink font-semibold">
-                  {result.customerEmail ?? "khach.nguyen@gmail.com"}
+                  {result.customerEmail ?? ""}
                 </strong>
-                . Bạn cũng xem được vé trong mục Hành trình.
+                . Bạn có thể mở hoặc in vé bên dưới. Khách đặt không đăng nhập nên giữ mã đặt vé để tra cứu lại.
               </p>
             </div>
           </div>
@@ -88,7 +82,7 @@ export function PaymentSuccessView({ result }: PaymentSuccessViewProps) {
           {/* Cụm 3 nút hành động bên phải */}
           <div className="flex flex-wrap items-center gap-2.5 shrink-0">
             <Link
-              href="/my-tickets"
+              href={result.tickets?.[0] ? `/my-tickets/${result.tickets[0].ticketId}?bookingId=${result.bookingId}` : "/my-tickets"}
               className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-[#00506a] px-5 py-2.5 text-xs sm:text-sm font-bold text-white shadow-xs transition hover:bg-[#00476b] active:scale-[0.99]"
             >
               <QrCode className="h-4 w-4" />
@@ -102,23 +96,9 @@ export function PaymentSuccessView({ result }: PaymentSuccessViewProps) {
               <Printer className="h-4 w-4 text-neutral-500" />
               <span>In vé</span>
             </button>
-            <button
-              type="button"
-              onClick={handleResendEmail}
-              className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-neutral-300 bg-white px-4 py-2.5 text-xs sm:text-sm font-semibold text-neutral-700 transition hover:bg-neutral-50 active:scale-[0.99] cursor-pointer"
-            >
-              <Mail className="h-4 w-4 text-neutral-500" />
-              <span>Gửi lại</span>
-            </button>
           </div>
         </div>
 
-        {/* Thông báo gửi lại email nếu có */}
-        {resendStatus && (
-          <div className="mt-4 rounded-xl bg-emerald-50 border border-emerald-200 p-3 text-xs sm:text-sm text-emerald-800">
-            {resendStatus}
-          </div>
-        )}
       </div>
 
       {/* 2. Lưới 2 cột bên dưới */}
@@ -144,26 +124,8 @@ export function PaymentSuccessView({ result }: PaymentSuccessViewProps) {
                 >
                   <div className="flex items-center gap-4">
                     {/* Minh họa mã QR */}
-                    <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-xl bg-neutral-900 p-2 text-white shadow-2xs">
-                      {/* Minh họa hoa văn QR Code tinh xảo */}
-                      <div className="grid grid-cols-4 gap-1 w-full h-full p-0.5">
-                        <div className="bg-white rounded-xs" />
-                        <div className="bg-white rounded-xs" />
-                        <div className="bg-neutral-900" />
-                        <div className="bg-white rounded-xs" />
-                        <div className="bg-white rounded-xs" />
-                        <div className="bg-neutral-900" />
-                        <div className="bg-white rounded-xs" />
-                        <div className="bg-white rounded-xs" />
-                        <div className="bg-neutral-900" />
-                        <div className="bg-white rounded-xs" />
-                        <div className="bg-white rounded-xs" />
-                        <div className="bg-neutral-900" />
-                        <div className="bg-white rounded-xs" />
-                        <div className="bg-white rounded-xs" />
-                        <div className="bg-neutral-900" />
-                        <div className="bg-white rounded-xs" />
-                      </div>
+                    <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-xl border bg-white">
+                      {ticket.qrCodeDataUrl ? <Image src={ticket.qrCodeDataUrl} alt={`Mã QR vé ${ticket.ticketCode}`} width={80} height={80} unoptimized /> : <span className="text-xs text-neutral-500">Chưa có QR</span>}
                     </div>
 
                     {/* Thông tin vé */}
@@ -182,8 +144,8 @@ export function PaymentSuccessView({ result }: PaymentSuccessViewProps) {
 
                   {/* Badge trạng thái */}
                   <div className="self-start sm:self-center shrink-0">
-                    <span className="inline-flex items-center rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700 border border-emerald-200">
-                      Hợp lệ
+                    <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-bold border ${ticket.status === "valid" ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-neutral-100 text-neutral-600 border-neutral-200"}`}>
+                      {({ cancelled: "Đã hủy", used: "Đã sử dụng", checked_in: "Đã lên xe", no_show: "Vắng mặt", valid: "Hợp lệ" })[ticket.status]}
                     </span>
                   </div>
                 </div>
@@ -260,12 +222,12 @@ export function PaymentSuccessView({ result }: PaymentSuccessViewProps) {
                     {formatVnd(paymentDetails.serviceFeeVnd)}
                   </span>
                 </div>
-                <div className="flex items-center justify-between text-emerald-700">
-                  <span>Voucher đổi điểm</span>
+                {paymentDetails.discountVnd !== "0" && <div className="flex items-center justify-between text-emerald-700">
+                  <span>Ưu đãi</span>
                   <span className="font-bold">
                     -{formatVnd(paymentDetails.discountVnd)}
                   </span>
-                </div>
+                </div>}
 
                 <div className="flex items-baseline justify-between border-t border-vxn-border/60 pt-3">
                   <span className="font-bold text-vxn-ink text-sm sm:text-base">
@@ -300,13 +262,6 @@ export function PaymentSuccessView({ result }: PaymentSuccessViewProps) {
             </div>
           )}
 
-          {/* Thẻ thưởng điểm VXN Plus */}
-          <div className="flex items-center gap-3 rounded-2xl bg-amber-50/70 p-4 border border-amber-200/60 text-xs sm:text-sm text-amber-900">
-            <Bookmark className="h-5 w-5 text-amber-600 shrink-0" />
-            <p className="font-medium leading-relaxed">
-              Bạn sẽ nhận điểm VXN Plus sau khi chuyến hoàn thành.
-            </p>
-          </div>
         </div>
       </div>
     </div>

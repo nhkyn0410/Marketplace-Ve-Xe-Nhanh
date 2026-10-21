@@ -54,12 +54,14 @@ export const AccountSessionsView: React.FC<AccountSessionsViewProps> = ({
   isPreview = false
 }) => {
   const [sessions, setSessions] = useState<UserSessionItem[]>([...initialSessions]);
+  const [isRevoking, setIsRevoking] = useState(false);
   const [statusMessage, setStatusMessage] = useState<{
     readonly type: "success" | "error";
     readonly text: string;
   } | null>(null);
 
   const handleRevokeOne = async (session: UserSessionItem) => {
+    if (isRevoking) return;
     setStatusMessage(null);
 
     if (isPreview) {
@@ -72,12 +74,16 @@ export const AccountSessionsView: React.FC<AccountSessionsViewProps> = ({
       return;
     }
 
+    setIsRevoking(true);
     try {
       const res = await revokeSession(session.id);
-      if (res.status === "unavailable") {
+      if (res.status === "ok") {
+        setSessions((prev) => prev.filter((item) => item.id !== session.id));
+        setStatusMessage({ type: "success", text: `Đã thu hồi phiên trên ${session.deviceName}.` });
+      } else if (res.status === "unavailable") {
         setStatusMessage({
           type: "error",
-          text: `Chức năng thu hồi phiên đang chờ kết nối cổng API backend (DELETE /me/sessions/${session.id}).`
+          text: "Chưa thể thu hồi phiên. Vui lòng thử lại sau."
         });
       } else if (res.status === "error") {
         setStatusMessage({
@@ -90,10 +96,13 @@ export const AccountSessionsView: React.FC<AccountSessionsViewProps> = ({
         type: "error",
         text: "Đã xảy ra lỗi khi thu hồi phiên đăng nhập."
       });
+    } finally {
+      setIsRevoking(false);
     }
   };
 
   const handleRevokeOthers = async () => {
+    if (isRevoking) return;
     setStatusMessage(null);
 
     if (isPreview) {
@@ -106,12 +115,16 @@ export const AccountSessionsView: React.FC<AccountSessionsViewProps> = ({
       return;
     }
 
+    setIsRevoking(true);
     try {
       const res = await revokeAllOtherSessions();
-      if (res.status === "unavailable") {
+      if (res.status === "ok") {
+        setSessions((prev) => prev.filter((item) => item.isCurrent));
+        setStatusMessage({ type: "success", text: `Đã đăng xuất ${res.data.revokedCount} phiên khác.` });
+      } else if (res.status === "unavailable") {
         setStatusMessage({
           type: "error",
-          text: "Chức năng đăng xuất các phiên khác đang chờ kết nối cổng API backend (POST /me/sessions/revoke-others)."
+          text: "Chưa thể đăng xuất các phiên khác. Vui lòng thử lại sau."
         });
       } else if (res.status === "error") {
         setStatusMessage({
@@ -124,6 +137,8 @@ export const AccountSessionsView: React.FC<AccountSessionsViewProps> = ({
         type: "error",
         text: "Đã xảy ra lỗi khi đăng xuất các phiên khác."
       });
+    } finally {
+      setIsRevoking(false);
     }
   };
 
@@ -186,6 +201,7 @@ export const AccountSessionsView: React.FC<AccountSessionsViewProps> = ({
               type="button"
               variant="outline"
               size="sm"
+              disabled={isRevoking || !sessions.some((session) => !session.isCurrent)}
               onClick={handleRevokeOthers}
               className="h-9 px-3.5 rounded-xl text-xs gap-1.5 text-destructive border-destructive/30 hover:bg-destructive/10 hover:border-destructive/50 shrink-0"
             >
@@ -196,9 +212,9 @@ export const AccountSessionsView: React.FC<AccountSessionsViewProps> = ({
 
           {/* Danh sách phiên (chuẩn Figma node 1448:19133) */}
           <div className="bg-white dark:bg-card rounded-2xl border border-border shadow-2xs divide-y divide-border overflow-hidden">
+            {sessions.length === 0 && <p className="p-5 text-sm text-muted-foreground">Không có phiên đăng nhập đang hoạt động.</p>}
             {sessions.map((session) => {
-              const isDesktop = session.deviceType === "desktop";
-              const Icon = isDesktop ? Monitor : Smartphone;
+              const Icon = session.deviceType === "mobile" ? Smartphone : Monitor;
 
               return (
                 <div
@@ -224,7 +240,7 @@ export const AccountSessionsView: React.FC<AccountSessionsViewProps> = ({
                       </div>
 
                       <p className="text-xs text-muted-foreground">
-                        {session.locationText} · IP {session.ipAddress} · Đăng nhập {session.loginDateText ?? "08/10/2026"} · {session.lastActiveText}
+                        IP {session.ipAddress} · Đăng nhập {session.loginDateText ?? "Không có dữ liệu"} · Hoạt động lần cuối {session.lastActiveText}
                       </p>
                     </div>
                   </div>
@@ -235,6 +251,7 @@ export const AccountSessionsView: React.FC<AccountSessionsViewProps> = ({
                       type="button"
                       variant="outline"
                       size="sm"
+                      disabled={isRevoking}
                       onClick={() => handleRevokeOne(session)}
                       className="h-8 px-3 rounded-xl text-xs gap-1.5 border-border hover:bg-muted text-foreground shrink-0"
                     >
@@ -251,7 +268,7 @@ export const AccountSessionsView: React.FC<AccountSessionsViewProps> = ({
           <div className="bg-[#EEF8FA] dark:bg-teal-950/30 rounded-2xl p-4 flex items-start gap-3 text-left shadow-2xs">
             <ShieldCheck className="w-4 h-4 text-[#0F5B60] shrink-0 mt-0.5" />
             <p className="text-xs text-[#0F5B60] dark:text-teal-200 leading-relaxed">
-              Số thiết bị đăng nhập cùng lúc có giới hạn theo chính sách bảo mật. Phiên bị thu hồi sẽ phải đăng nhập lại bằng mã OTP.
+              Phiên bị thu hồi sẽ phải đăng nhập lại. Bạn có thể đăng xuất tài khoản trên trình duyệt hiện tại từ menu tài khoản.
             </p>
           </div>
         </div>

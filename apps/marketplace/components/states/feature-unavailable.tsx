@@ -20,8 +20,7 @@ export interface FeatureUnavailableProps {
  */
 export function FeatureUnavailable({
   title = "Chức năng chưa sẵn sàng",
-  endpoint,
-  description = "Tính năng này đang trong quá trình phát triển và kết nối dịch vụ. Vui lòng quay lại sau.",
+  description = "Chức năng này hiện chưa khả dụng. Vui lòng quay lại sau.",
   action,
   className
 }: FeatureUnavailableProps) {
@@ -37,11 +36,6 @@ export function FeatureUnavailable({
       </div>
       <h2 className="text-xl font-bold text-vxn-ink sm:text-2xl">{title}</h2>
       <p className="mt-2 max-w-md text-sm text-vxn-fg-3">{description}</p>
-      {endpoint && (
-        <code className="mt-3 rounded bg-white px-2.5 py-1 text-xs font-mono text-vxn-fg-4 border border-vxn-teal-100">
-          Chưa có API: {endpoint}
-        </code>
-      )}
       <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
         {action ?? (
           <Button asChild className="rounded bg-vxn-teal-600 text-white hover:bg-vxn-teal-700">
@@ -70,7 +64,6 @@ export interface FeatureUnavailableCompactProps {
  */
 export function FeatureUnavailableCompact({
   title = "Dữ liệu chưa sẵn sàng",
-  endpoint,
   className
 }: FeatureUnavailableCompactProps) {
   return (
@@ -82,9 +75,6 @@ export function FeatureUnavailableCompact({
     >
       <AlertCircle className="size-4 shrink-0 text-vxn-saffron-500" />
       <span>{title}</span>
-      {endpoint && (
-        <code className="text-xs font-mono text-vxn-fg-5">({endpoint})</code>
-      )}
     </div>
   );
 }

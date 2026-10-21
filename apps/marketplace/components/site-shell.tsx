@@ -21,6 +21,8 @@ import { usePathname, useSearchParams } from "next/navigation";
 import { Suspense, useState, type ReactNode } from "react";
 
 import { SiteFooter } from "./site-footer";
+import { MarketplaceSessionProvider, useMarketplaceSession } from "./auth/marketplace-session";
+import { getPreview } from "../lib/preview";
 
 /**
  * Danh sách mục điều hướng chính theo Figma (kit 1436:12785).
@@ -50,6 +52,7 @@ export function SiteShell({ children }: { readonly children: ReactNode }) {
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
   return (
+    <MarketplaceSessionProvider>
     <div className="min-h-screen lg:flex">
       {/* Sidebar cố định trên desktop */}
       <aside className="sticky top-0 hidden h-screen w-[240px] shrink-0 lg:flex">
@@ -91,6 +94,7 @@ export function SiteShell({ children }: { readonly children: ReactNode }) {
         </Suspense>
       </div>
     </div>
+    </MarketplaceSessionProvider>
   );
 }
 
@@ -122,7 +126,11 @@ function SidebarSkeleton() {
 function SidebarContent({ onNavigate }: { readonly onNavigate?: () => void }) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const isUser = searchParams.get("as") === "user";
+  const { user, error, logout } = useMarketplaceSession();
+  const previewUser = getPreview(searchParams) !== null && searchParams.get("as") === "user";
+  const isUser = Boolean(user) || previewUser;
+  const fullName = user?.fullName?.trim() || user?.email || (previewUser ? "Nguyễn Văn Khách" : "");
+  const initials = fullName.split(" ").filter(Boolean).slice(-2).map((word) => word[0]).join("").toUpperCase();
 
   return (
     <div className="flex h-full w-full flex-col justify-between bg-vxn-teal-700 text-white">
@@ -172,22 +180,20 @@ function SidebarContent({ onNavigate }: { readonly onNavigate?: () => void }) {
           <>
             <div className="flex items-center gap-3">
               <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-vxn-saffron-500 font-bold text-white text-sm">
-                NK
+                {initials}
               </div>
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-semibold text-white leading-tight">
-                  Nguyễn Văn Khách
+                  <Link href="/account" onClick={onNavigate}>{fullName}</Link>
                 </p>
                 <p className="truncate text-xs text-white/70 leading-tight mt-0.5">
-                  VXN Plus · Hạng Bạc
+                  {user?.email ?? "VXN Plus · Hạng Bạc"}
                 </p>
               </div>
             </div>
             <Button
               variant="outline"
-              onClick={() => {
-                console.warn("[marketplace] thao tác đăng xuất");
-              }}
+              onClick={() => { void logout(); }}
               className="h-[42px] rounded-lg border-white/25 bg-white/5 text-sm text-white hover:bg-white/15 hover:text-white"
             >
               Đăng xuất
@@ -203,6 +209,7 @@ function SidebarContent({ onNavigate }: { readonly onNavigate?: () => void }) {
             </Link>
           </Button>
         )}
+        {error && <p role="alert" className="text-xs text-amber-100">{error}</p>}
         <p className="text-center text-[12px] text-white/50">
           v.1.1 · vexenhanh.vn
         </p>

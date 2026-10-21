@@ -53,7 +53,7 @@ export function TripVehicleInfo({ trip }: TripVehicleInfoProps) {
       </div>
 
       {/* Lưới hình ảnh xe */}
-      <div className="space-y-2">
+      {mainPhoto && <div className="space-y-2">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-2 h-72 rounded-xl overflow-hidden">
           {/* Ảnh lớn bên trái */}
           <div className="relative h-full w-full bg-neutral-100 overflow-hidden">
@@ -91,14 +91,15 @@ export function TripVehicleInfo({ trip }: TripVehicleInfoProps) {
         <p className="text-[11px] text-neutral-400 italic">
           {trip.photosCaption}
         </p>
-      </div>
-
+      </div>}
+      {!mainPhoto && <p className="text-xs text-neutral-500">Nhà xe chưa cung cấp ảnh cho chuyến này.</p>}
 
       {/* Tiện nghi */}
       <div className="pt-2 border-t border-neutral-100">
         <span className="text-xs font-medium text-neutral-700 block mb-2.5">
           Tiện nghi
         </span>
+        {!trip.amenities.length && <p className="text-xs text-neutral-500">Chưa có thông tin tiện nghi.</p>}
         <div className="flex flex-wrap gap-2">
           {trip.amenities.map((amenity) => (
             <div

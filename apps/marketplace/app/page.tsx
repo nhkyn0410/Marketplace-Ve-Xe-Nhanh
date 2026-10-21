@@ -6,7 +6,7 @@ import { SearchHero } from "../components/home/search-hero";
 import { PassengerTopBar } from "../components/passenger-topbar";
 import { ForbiddenState, ServiceUnavailableState } from "../components/states";
 import { getProvinces } from "../lib/data/catalog";
-import { getFeaturedOperators, getHandbookArticles, getPopularRoutes } from "../lib/data/home";
+import { getHandbookArticles } from "../lib/data/home";
 import { getPreview } from "../lib/preview";
 import {
   featuredOperatorsFixture,
@@ -27,10 +27,8 @@ export interface MarketplacePageProps {
 /**
  * Trang chủ Marketplace (SCR-PSG-01) — hỗ trợ preview các trạng thái:
  * - ideal: Giao diện đầy đủ theo Figma 776:791
- * - operator-tab: Tab Theo nhà xe (836:113)
- * - operator-picker: Popover chọn nhà xe (837:131)
  * - 404, 500, 403, 503: Các trang lỗi nền tảng Lô 0
- * - Không có preview: Nhánh dữ liệu thật với endpoint hiện có và khối chưa sẵn sàng
+ * - Không có preview: Tìm chuyến và bài viết đã xuất bản
  */
 export default async function MarketplacePage(props: MarketplacePageProps) {
   const resolvedParams = props.searchParams ? await props.searchParams : undefined;
@@ -75,16 +73,10 @@ export default async function MarketplacePage(props: MarketplacePageProps) {
 
   // Nhánh PREVIEW của SCR-PSG-01 (Lô 1)
   if (preview === "ideal" || preview === "operator-tab" || preview === "operator-picker") {
-    const isOperatorTab = preview === "operator-tab" || preview === "operator-picker";
-    const isPickerOpen = preview === "operator-picker";
-
     return (
       <div className="flex flex-col bg-[#f9f9ff]">
         <SearchHero
           provinces={provincesFixture}
-          featuredOperators={featuredOperatorsFixture}
-          initialTab={isOperatorTab ? "operator" : "trip"}
-          initialPickerOpen={isPickerOpen}
         />
         <PopularRoutesSection routes={popularRoutesFixture} />
         <ExploreCardsSection />
@@ -95,40 +87,23 @@ export default async function MarketplacePage(props: MarketplacePageProps) {
   }
 
   // Nhánh DỮ LIỆU THẬT (không có ?preview)
-  const [provincesResult, popularRoutesResult, featuredOperatorsResult, articlesResult] =
-    await Promise.all([
-      getProvinces(),
-      getPopularRoutes(),
-      getFeaturedOperators(),
-      getHandbookArticles()
-    ]);
+  const [provincesResult, articlesResult] = await Promise.all([
+    getProvinces(), getHandbookArticles()
+  ]);
 
   const provinces =
-    provincesResult.status === "ok" ? provincesResult.data : provincesFixture;
+    provincesResult.status === "ok" ? provincesResult.data : [];
 
   return (
     <div className="flex flex-col bg-[#f9f9ff]">
       <SearchHero
         provinces={provinces}
-        featuredOperators={
-          featuredOperatorsResult.status === "ok" ? featuredOperatorsResult.data : []
-        }
-        initialTab="trip"
-      />
-      <PopularRoutesSection
-        routes={popularRoutesResult.status === "ok" ? popularRoutesResult.data : undefined}
-        isUnavailable={popularRoutesResult.status === "unavailable"}
+        catalogError={provincesResult.status !== "ok" ? "Chưa tải được danh sách tỉnh thành. Vui lòng tải lại trang để tìm chuyến." : undefined}
       />
       <ExploreCardsSection />
-      <PartnerOperatorsSection
-        operators={
-          featuredOperatorsResult.status === "ok" ? featuredOperatorsResult.data : undefined
-        }
-        isUnavailable={featuredOperatorsResult.status === "unavailable"}
-      />
       <PlusAndGuideSection
         articles={articlesResult.status === "ok" ? articlesResult.data : undefined}
-        isUnavailable={articlesResult.status === "unavailable"}
+        isUnavailable={articlesResult.status !== "ok"}
       />
     </div>
   );
