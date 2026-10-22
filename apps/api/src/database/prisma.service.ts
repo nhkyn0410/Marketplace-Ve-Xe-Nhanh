@@ -58,6 +58,7 @@ export const RLS_TABLES = [
   // Catalog Platform (TASK-CAT-001): không tenant, nhưng RLS chặn ghi ngoài platform/system.
   "provinces",
   "wards",
+  "legacy_administrative_mappings",
   "stop_points_catalog",
   "vehicle_types",
   "amenities",

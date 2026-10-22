@@ -469,11 +469,43 @@ model Ward {
   stopPoints         StopPointCatalog[]
   privateStopPoints  StopPoint[]
   stopPointProposals StopPointProposal[]
+  legacyMappings     LegacyAdministrativeMapping[]
 
   // Đích của FK ghép từ stop point: DB tự chặn phường không thuộc tỉnh (UC-24 A2).
   @@unique([id, provinceId])
   @@index([provinceId])
   @@map("wards")
+}
+
+/// Bảng đối chiếu địa giới hành chính trước sáp nhập 2025 (63 tỉnh/thành cũ, quận/huyện/TX/TP thuộc tỉnh cũ, phường/xã cũ)
+/// sang đơn vị hành chính mới (`provinces`, `wards`). Phục vụ chuẩn hóa điểm dừng, tuyến đường và tra cứu địa danh cũ.
+model LegacyAdministrativeMapping {
+  id                 String   @id @default(uuid())
+  /// Mã GSO 2 chữ số của 63 tỉnh/thành cũ trước sáp nhập (01..96).
+  legacyProvinceCode String   @map("legacy_province_code")
+  /// Tên chính thức của 63 tỉnh/thành cũ (vd "Tỉnh Bà Rịa - Vũng Tàu", "Tỉnh Bình Dương").
+  legacyProvinceName String   @map("legacy_province_name")
+  /// Tên Quận / Huyện / Thị xã / Thành phố thuộc tỉnh cũ (vd "Thành phố Vũng Tàu", "Thành phố Đà Lạt"). Chuỗi rỗng "" nếu ánh xạ cấp tỉnh.
+  legacyDistrictName String   @default("") @map("legacy_district_name")
+  /// Tên Phường / Xã / Thị trấn cũ trước sáp nhập (vd "Phường Thắng Tam", "Phường Phạm Ngũ Lão"). Chuỗi rỗng "" nếu ánh xạ cấp quận/huyện/tỉnh.
+  legacyWardName     String   @default("") @map("legacy_ward_name")
+  /// ID tỉnh/thành mới trong bảng `provinces`.
+  provinceId         String   @map("province_id")
+  /// ID phường/xã/đặc khu mới đại diện trong bảng `wards`.
+  wardId             String   @map("ward_id")
+  /// Ghi chú / căn cứ Nghị quyết sáp nhập.
+  notes              String?
+  /// Cột DO DATABASE SINH (tên tỉnh cũ + quận/huyện cũ + phường/xã cũ, chữ thường, bỏ dấu) — KHÔNG ghi từ code.
+  searchText         String?  @map("search_text")
+  createdAt          DateTime @default(now()) @map("created_at")
+  updatedAt          DateTime @updatedAt @map("updated_at")
+
+  ward Ward @relation(fields: [wardId, provinceId], references: [id, provinceId], onDelete: Restrict, onUpdate: Restrict)
+
+  @@unique([legacyProvinceCode, legacyDistrictName, legacyWardName])
+  @@index([provinceId])
+  @@index([wardId])
+  @@map("legacy_administrative_mappings")
 }
 
 /// Điểm đón / trả chuẩn Platform; tách khỏi `stop_points` riêng của Operator (TRN-002).
