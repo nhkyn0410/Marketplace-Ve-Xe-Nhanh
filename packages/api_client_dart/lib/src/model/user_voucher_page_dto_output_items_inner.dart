@@ -12,23 +12,20 @@ part 'user_voucher_page_dto_output_items_inner.g.dart';
 /// UserVoucherPageDtoOutputItemsInner
 ///
 /// Properties:
-/// * [userVoucherId]
-/// * [source_]
-/// * [status]
-/// * [promotionCode]
-/// * [name]
-/// * [discountAmount]
-/// * [discountType]
-/// * [discountValue]
-/// * [maxDiscount]
-/// * [minOrder]
-/// * [expiresAt]
-/// * [createdAt]
+/// * [userVoucherId] 
+/// * [source_] 
+/// * [status] 
+/// * [promotionCode] 
+/// * [name] 
+/// * [discountAmount] 
+/// * [discountType] 
+/// * [discountValue] 
+/// * [maxDiscount] 
+/// * [minOrder] 
+/// * [expiresAt] 
+/// * [createdAt] 
 @BuiltValue()
-abstract class UserVoucherPageDtoOutputItemsInner
-    implements
-        Built<UserVoucherPageDtoOutputItemsInner,
-            UserVoucherPageDtoOutputItemsInnerBuilder> {
+abstract class UserVoucherPageDtoOutputItemsInner implements Built<UserVoucherPageDtoOutputItemsInner, UserVoucherPageDtoOutputItemsInnerBuilder> {
   @BuiltValueField(wireName: r'userVoucherId')
   String get userVoucherId;
 
@@ -70,25 +67,18 @@ abstract class UserVoucherPageDtoOutputItemsInner
 
   UserVoucherPageDtoOutputItemsInner._();
 
-  factory UserVoucherPageDtoOutputItemsInner(
-          [void updates(UserVoucherPageDtoOutputItemsInnerBuilder b)]) =
-      _$UserVoucherPageDtoOutputItemsInner;
+  factory UserVoucherPageDtoOutputItemsInner([void updates(UserVoucherPageDtoOutputItemsInnerBuilder b)]) = _$UserVoucherPageDtoOutputItemsInner;
 
   @BuiltValueHook(initializeBuilder: true)
   static void _defaults(UserVoucherPageDtoOutputItemsInnerBuilder b) => b;
 
   @BuiltValueSerializer(custom: true)
-  static Serializer<UserVoucherPageDtoOutputItemsInner> get serializer =>
-      _$UserVoucherPageDtoOutputItemsInnerSerializer();
+  static Serializer<UserVoucherPageDtoOutputItemsInner> get serializer => _$UserVoucherPageDtoOutputItemsInnerSerializer();
 }
 
-class _$UserVoucherPageDtoOutputItemsInnerSerializer
-    implements PrimitiveSerializer<UserVoucherPageDtoOutputItemsInner> {
+class _$UserVoucherPageDtoOutputItemsInnerSerializer implements PrimitiveSerializer<UserVoucherPageDtoOutputItemsInner> {
   @override
-  final Iterable<Type> types = const [
-    UserVoucherPageDtoOutputItemsInner,
-    _$UserVoucherPageDtoOutputItemsInner
-  ];
+  final Iterable<Type> types = const [UserVoucherPageDtoOutputItemsInner, _$UserVoucherPageDtoOutputItemsInner];
 
   @override
   final String wireName = r'UserVoucherPageDtoOutputItemsInner';
@@ -106,39 +96,32 @@ class _$UserVoucherPageDtoOutputItemsInnerSerializer
     yield r'source';
     yield serializers.serialize(
       object.source_,
-      specifiedType:
-          const FullType(UserVoucherPageDtoOutputItemsInnerSource_Enum),
+      specifiedType: const FullType(UserVoucherPageDtoOutputItemsInnerSource_Enum),
     );
     yield r'status';
     yield serializers.serialize(
       object.status,
-      specifiedType:
-          const FullType(UserVoucherPageDtoOutputItemsInnerStatusEnum),
+      specifiedType: const FullType(UserVoucherPageDtoOutputItemsInnerStatusEnum),
     );
     yield r'promotionCode';
-    yield object.promotionCode == null
-        ? null
-        : serializers.serialize(
-            object.promotionCode,
-            specifiedType: const FullType.nullable(String),
-          );
+    yield object.promotionCode == null ? null : serializers.serialize(
+      object.promotionCode,
+      specifiedType: const FullType.nullable(String),
+    );
     yield r'name';
     yield serializers.serialize(
       object.name,
       specifiedType: const FullType(String),
     );
     yield r'discountAmount';
-    yield object.discountAmount == null
-        ? null
-        : serializers.serialize(
-            object.discountAmount,
-            specifiedType: const FullType.nullable(String),
-          );
+    yield object.discountAmount == null ? null : serializers.serialize(
+      object.discountAmount,
+      specifiedType: const FullType.nullable(String),
+    );
     yield r'discountType';
     yield serializers.serialize(
       object.discountType,
-      specifiedType:
-          const FullType(UserVoucherPageDtoOutputItemsInnerDiscountTypeEnum),
+      specifiedType: const FullType(UserVoucherPageDtoOutputItemsInnerDiscountTypeEnum),
     );
     yield r'discountValue';
     yield serializers.serialize(
@@ -146,12 +129,10 @@ class _$UserVoucherPageDtoOutputItemsInnerSerializer
       specifiedType: const FullType(String),
     );
     yield r'maxDiscount';
-    yield object.maxDiscount == null
-        ? null
-        : serializers.serialize(
-            object.maxDiscount,
-            specifiedType: const FullType.nullable(String),
-          );
+    yield object.maxDiscount == null ? null : serializers.serialize(
+      object.maxDiscount,
+      specifiedType: const FullType.nullable(String),
+    );
     yield r'minOrder';
     yield serializers.serialize(
       object.minOrder,
@@ -175,9 +156,7 @@ class _$UserVoucherPageDtoOutputItemsInnerSerializer
     UserVoucherPageDtoOutputItemsInner object, {
     FullType specifiedType = FullType.unspecified,
   }) {
-    return _serializeProperties(serializers, object,
-            specifiedType: specifiedType)
-        .toList();
+    return _serializeProperties(serializers, object, specifiedType: specifiedType).toList();
   }
 
   void _deserializeProperties(
@@ -202,16 +181,14 @@ class _$UserVoucherPageDtoOutputItemsInnerSerializer
         case r'source':
           final valueDes = serializers.deserialize(
             value,
-            specifiedType:
-                const FullType(UserVoucherPageDtoOutputItemsInnerSource_Enum),
+            specifiedType: const FullType(UserVoucherPageDtoOutputItemsInnerSource_Enum),
           ) as UserVoucherPageDtoOutputItemsInnerSource_Enum;
           result.source_ = valueDes;
           break;
         case r'status':
           final valueDes = serializers.deserialize(
             value,
-            specifiedType:
-                const FullType(UserVoucherPageDtoOutputItemsInnerStatusEnum),
+            specifiedType: const FullType(UserVoucherPageDtoOutputItemsInnerStatusEnum),
           ) as UserVoucherPageDtoOutputItemsInnerStatusEnum;
           result.status = valueDes;
           break;
@@ -241,8 +218,7 @@ class _$UserVoucherPageDtoOutputItemsInnerSerializer
         case r'discountType':
           final valueDes = serializers.deserialize(
             value,
-            specifiedType: const FullType(
-                UserVoucherPageDtoOutputItemsInnerDiscountTypeEnum),
+            specifiedType: const FullType(UserVoucherPageDtoOutputItemsInnerDiscountTypeEnum),
           ) as UserVoucherPageDtoOutputItemsInnerDiscountTypeEnum;
           result.discountType = valueDes;
           break;
@@ -311,73 +287,53 @@ class _$UserVoucherPageDtoOutputItemsInnerSerializer
   }
 }
 
+
 class UserVoucherPageDtoOutputItemsInnerSource_Enum extends EnumClass {
+
   @BuiltValueEnumConst(wireName: r'LOYALTY_REDEMPTION')
-  static const UserVoucherPageDtoOutputItemsInnerSource_Enum
-      LOYALTY_REDEMPTION =
-      _$userVoucherPageDtoOutputItemsInnerSourceEnum_LOYALTY_REDEMPTION;
+  static const UserVoucherPageDtoOutputItemsInnerSource_Enum LOYALTY_REDEMPTION = _$userVoucherPageDtoOutputItemsInnerSourceEnum_LOYALTY_REDEMPTION;
   @BuiltValueEnumConst(wireName: r'SAVED_PROMOTION')
-  static const UserVoucherPageDtoOutputItemsInnerSource_Enum SAVED_PROMOTION =
-      _$userVoucherPageDtoOutputItemsInnerSourceEnum_SAVED_PROMOTION;
+  static const UserVoucherPageDtoOutputItemsInnerSource_Enum SAVED_PROMOTION = _$userVoucherPageDtoOutputItemsInnerSourceEnum_SAVED_PROMOTION;
 
-  static Serializer<UserVoucherPageDtoOutputItemsInnerSource_Enum>
-      get serializer =>
-          _$userVoucherPageDtoOutputItemsInnerSourceEnumSerializer;
+  static Serializer<UserVoucherPageDtoOutputItemsInnerSource_Enum> get serializer => _$userVoucherPageDtoOutputItemsInnerSourceEnumSerializer;
 
-  const UserVoucherPageDtoOutputItemsInnerSource_Enum._(String name)
-      : super(name);
+  const UserVoucherPageDtoOutputItemsInnerSource_Enum._(String name): super(name);
 
-  static BuiltSet<UserVoucherPageDtoOutputItemsInnerSource_Enum> get values =>
-      _$userVoucherPageDtoOutputItemsInnerSourceEnumValues;
-  static UserVoucherPageDtoOutputItemsInnerSource_Enum valueOf(String name) =>
-      _$userVoucherPageDtoOutputItemsInnerSourceEnumValueOf(name);
+  static BuiltSet<UserVoucherPageDtoOutputItemsInnerSource_Enum> get values => _$userVoucherPageDtoOutputItemsInnerSourceEnumValues;
+  static UserVoucherPageDtoOutputItemsInnerSource_Enum valueOf(String name) => _$userVoucherPageDtoOutputItemsInnerSourceEnumValueOf(name);
 }
 
 class UserVoucherPageDtoOutputItemsInnerStatusEnum extends EnumClass {
+
   @BuiltValueEnumConst(wireName: r'AVAILABLE')
-  static const UserVoucherPageDtoOutputItemsInnerStatusEnum AVAILABLE =
-      _$userVoucherPageDtoOutputItemsInnerStatusEnum_AVAILABLE;
+  static const UserVoucherPageDtoOutputItemsInnerStatusEnum AVAILABLE = _$userVoucherPageDtoOutputItemsInnerStatusEnum_AVAILABLE;
   @BuiltValueEnumConst(wireName: r'RESERVED')
-  static const UserVoucherPageDtoOutputItemsInnerStatusEnum RESERVED =
-      _$userVoucherPageDtoOutputItemsInnerStatusEnum_RESERVED;
+  static const UserVoucherPageDtoOutputItemsInnerStatusEnum RESERVED = _$userVoucherPageDtoOutputItemsInnerStatusEnum_RESERVED;
   @BuiltValueEnumConst(wireName: r'USED')
-  static const UserVoucherPageDtoOutputItemsInnerStatusEnum USED =
-      _$userVoucherPageDtoOutputItemsInnerStatusEnum_USED;
+  static const UserVoucherPageDtoOutputItemsInnerStatusEnum USED = _$userVoucherPageDtoOutputItemsInnerStatusEnum_USED;
   @BuiltValueEnumConst(wireName: r'EXPIRED')
-  static const UserVoucherPageDtoOutputItemsInnerStatusEnum EXPIRED =
-      _$userVoucherPageDtoOutputItemsInnerStatusEnum_EXPIRED;
+  static const UserVoucherPageDtoOutputItemsInnerStatusEnum EXPIRED = _$userVoucherPageDtoOutputItemsInnerStatusEnum_EXPIRED;
 
-  static Serializer<UserVoucherPageDtoOutputItemsInnerStatusEnum>
-      get serializer =>
-          _$userVoucherPageDtoOutputItemsInnerStatusEnumSerializer;
+  static Serializer<UserVoucherPageDtoOutputItemsInnerStatusEnum> get serializer => _$userVoucherPageDtoOutputItemsInnerStatusEnumSerializer;
 
-  const UserVoucherPageDtoOutputItemsInnerStatusEnum._(String name)
-      : super(name);
+  const UserVoucherPageDtoOutputItemsInnerStatusEnum._(String name): super(name);
 
-  static BuiltSet<UserVoucherPageDtoOutputItemsInnerStatusEnum> get values =>
-      _$userVoucherPageDtoOutputItemsInnerStatusEnumValues;
-  static UserVoucherPageDtoOutputItemsInnerStatusEnum valueOf(String name) =>
-      _$userVoucherPageDtoOutputItemsInnerStatusEnumValueOf(name);
+  static BuiltSet<UserVoucherPageDtoOutputItemsInnerStatusEnum> get values => _$userVoucherPageDtoOutputItemsInnerStatusEnumValues;
+  static UserVoucherPageDtoOutputItemsInnerStatusEnum valueOf(String name) => _$userVoucherPageDtoOutputItemsInnerStatusEnumValueOf(name);
 }
 
 class UserVoucherPageDtoOutputItemsInnerDiscountTypeEnum extends EnumClass {
+
   @BuiltValueEnumConst(wireName: r'PERCENT')
-  static const UserVoucherPageDtoOutputItemsInnerDiscountTypeEnum PERCENT =
-      _$userVoucherPageDtoOutputItemsInnerDiscountTypeEnum_PERCENT;
+  static const UserVoucherPageDtoOutputItemsInnerDiscountTypeEnum PERCENT = _$userVoucherPageDtoOutputItemsInnerDiscountTypeEnum_PERCENT;
   @BuiltValueEnumConst(wireName: r'AMOUNT')
-  static const UserVoucherPageDtoOutputItemsInnerDiscountTypeEnum AMOUNT =
-      _$userVoucherPageDtoOutputItemsInnerDiscountTypeEnum_AMOUNT;
+  static const UserVoucherPageDtoOutputItemsInnerDiscountTypeEnum AMOUNT = _$userVoucherPageDtoOutputItemsInnerDiscountTypeEnum_AMOUNT;
 
-  static Serializer<UserVoucherPageDtoOutputItemsInnerDiscountTypeEnum>
-      get serializer =>
-          _$userVoucherPageDtoOutputItemsInnerDiscountTypeEnumSerializer;
+  static Serializer<UserVoucherPageDtoOutputItemsInnerDiscountTypeEnum> get serializer => _$userVoucherPageDtoOutputItemsInnerDiscountTypeEnumSerializer;
 
-  const UserVoucherPageDtoOutputItemsInnerDiscountTypeEnum._(String name)
-      : super(name);
+  const UserVoucherPageDtoOutputItemsInnerDiscountTypeEnum._(String name): super(name);
 
-  static BuiltSet<UserVoucherPageDtoOutputItemsInnerDiscountTypeEnum>
-      get values => _$userVoucherPageDtoOutputItemsInnerDiscountTypeEnumValues;
-  static UserVoucherPageDtoOutputItemsInnerDiscountTypeEnum valueOf(
-          String name) =>
-      _$userVoucherPageDtoOutputItemsInnerDiscountTypeEnumValueOf(name);
+  static BuiltSet<UserVoucherPageDtoOutputItemsInnerDiscountTypeEnum> get values => _$userVoucherPageDtoOutputItemsInnerDiscountTypeEnumValues;
+  static UserVoucherPageDtoOutputItemsInnerDiscountTypeEnum valueOf(String name) => _$userVoucherPageDtoOutputItemsInnerDiscountTypeEnumValueOf(name);
 }
+

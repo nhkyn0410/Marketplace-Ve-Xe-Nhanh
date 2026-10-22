@@ -11,12 +11,11 @@ part 'device_dto_output.g.dart';
 /// DeviceDtoOutput
 ///
 /// Properties:
-/// * [id]
-/// * [provider]
-/// * [active]
+/// * [id] 
+/// * [provider] 
+/// * [active] 
 @BuiltValue()
-abstract class DeviceDtoOutput
-    implements Built<DeviceDtoOutput, DeviceDtoOutputBuilder> {
+abstract class DeviceDtoOutput implements Built<DeviceDtoOutput, DeviceDtoOutputBuilder> {
   @BuiltValueField(wireName: r'id')
   String get id;
 
@@ -28,19 +27,16 @@ abstract class DeviceDtoOutput
 
   DeviceDtoOutput._();
 
-  factory DeviceDtoOutput([void updates(DeviceDtoOutputBuilder b)]) =
-      _$DeviceDtoOutput;
+  factory DeviceDtoOutput([void updates(DeviceDtoOutputBuilder b)]) = _$DeviceDtoOutput;
 
   @BuiltValueHook(initializeBuilder: true)
   static void _defaults(DeviceDtoOutputBuilder b) => b;
 
   @BuiltValueSerializer(custom: true)
-  static Serializer<DeviceDtoOutput> get serializer =>
-      _$DeviceDtoOutputSerializer();
+  static Serializer<DeviceDtoOutput> get serializer => _$DeviceDtoOutputSerializer();
 }
 
-class _$DeviceDtoOutputSerializer
-    implements PrimitiveSerializer<DeviceDtoOutput> {
+class _$DeviceDtoOutputSerializer implements PrimitiveSerializer<DeviceDtoOutput> {
   @override
   final Iterable<Type> types = const [DeviceDtoOutput, _$DeviceDtoOutput];
 
@@ -75,9 +71,7 @@ class _$DeviceDtoOutputSerializer
     DeviceDtoOutput object, {
     FullType specifiedType = FullType.unspecified,
   }) {
-    return _serializeProperties(serializers, object,
-            specifiedType: specifiedType)
-        .toList();
+    return _serializeProperties(serializers, object, specifiedType: specifiedType).toList();
   }
 
   void _deserializeProperties(
@@ -141,3 +135,5 @@ class _$DeviceDtoOutputSerializer
     return result.build();
   }
 }
+
+

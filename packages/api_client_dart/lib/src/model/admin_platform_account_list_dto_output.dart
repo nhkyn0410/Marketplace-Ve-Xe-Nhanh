@@ -4,6 +4,7 @@
 
 // ignore_for_file: unused_element
 import 'package:built_collection/built_collection.dart';
+import 'package:api_client_dart/src/model/admin_platform_account_list_dto_output_grantable.dart';
 import 'package:api_client_dart/src/model/admin_platform_account_list_dto_output_items_inner.dart';
 import 'package:built_value/built_value.dart';
 import 'package:built_value/serializer.dart';
@@ -14,10 +15,14 @@ part 'admin_platform_account_list_dto_output.g.dart';
 ///
 /// Properties:
 /// * [items] 
+/// * [grantable] 
 @BuiltValue()
 abstract class AdminPlatformAccountListDtoOutput implements Built<AdminPlatformAccountListDtoOutput, AdminPlatformAccountListDtoOutputBuilder> {
   @BuiltValueField(wireName: r'items')
   BuiltList<AdminPlatformAccountListDtoOutputItemsInner> get items;
+
+  @BuiltValueField(wireName: r'grantable')
+  AdminPlatformAccountListDtoOutputGrantable get grantable;
 
   AdminPlatformAccountListDtoOutput._();
 
@@ -46,6 +51,11 @@ class _$AdminPlatformAccountListDtoOutputSerializer implements PrimitiveSerializ
     yield serializers.serialize(
       object.items,
       specifiedType: const FullType(BuiltList, [FullType(AdminPlatformAccountListDtoOutputItemsInner)]),
+    );
+    yield r'grantable';
+    yield serializers.serialize(
+      object.grantable,
+      specifiedType: const FullType(AdminPlatformAccountListDtoOutputGrantable),
     );
   }
 
@@ -76,6 +86,13 @@ class _$AdminPlatformAccountListDtoOutputSerializer implements PrimitiveSerializ
             specifiedType: const FullType(BuiltList, [FullType(AdminPlatformAccountListDtoOutputItemsInner)]),
           ) as BuiltList<AdminPlatformAccountListDtoOutputItemsInner>;
           result.items.replace(valueDes);
+          break;
+        case r'grantable':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(AdminPlatformAccountListDtoOutputGrantable),
+          ) as AdminPlatformAccountListDtoOutputGrantable;
+          result.grantable.replace(valueDes);
           break;
         default:
           unhandled.add(key);

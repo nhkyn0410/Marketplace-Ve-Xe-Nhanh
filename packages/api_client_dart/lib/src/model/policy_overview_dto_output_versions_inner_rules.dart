@@ -18,47 +18,36 @@ part 'policy_overview_dto_output_versions_inner_rules.g.dart';
 /// PolicyOverviewDtoOutputVersionsInnerRules
 ///
 /// Properties:
-/// * [tiers]
-/// * [holdMinutes]
-/// * [delayDays]
-/// * [channel]
-/// * [manualConfirmation]
-/// * [minimumAmount]
-/// * [earnUnit]
-/// * [pointValue]
-/// * [minRedeemPoints]
-/// * [pointExpiryMonths]
-/// * [voucherValidityDays]
+/// * [tiers] 
+/// * [holdMinutes] 
+/// * [delayDays] 
+/// * [channel] 
+/// * [manualConfirmation] 
+/// * [minimumAmount] 
+/// * [earnUnit] 
+/// * [pointValue] 
+/// * [minRedeemPoints] 
+/// * [pointExpiryMonths] 
+/// * [voucherValidityDays] 
 @BuiltValue()
-abstract class PolicyOverviewDtoOutputVersionsInnerRules
-    implements
-        Built<PolicyOverviewDtoOutputVersionsInnerRules,
-            PolicyOverviewDtoOutputVersionsInnerRulesBuilder> {
+abstract class PolicyOverviewDtoOutputVersionsInnerRules implements Built<PolicyOverviewDtoOutputVersionsInnerRules, PolicyOverviewDtoOutputVersionsInnerRulesBuilder> {
   /// Any Of [PolicyOverviewDtoOutputVersionsInnerRulesAnyOf], [PolicyOverviewDtoOutputVersionsInnerRulesAnyOf1], [PolicyOverviewDtoOutputVersionsInnerRulesAnyOf2], [PolicyOverviewDtoOutputVersionsInnerRulesAnyOf3]
   AnyOf get anyOf;
 
   PolicyOverviewDtoOutputVersionsInnerRules._();
 
-  factory PolicyOverviewDtoOutputVersionsInnerRules(
-          [void updates(PolicyOverviewDtoOutputVersionsInnerRulesBuilder b)]) =
-      _$PolicyOverviewDtoOutputVersionsInnerRules;
+  factory PolicyOverviewDtoOutputVersionsInnerRules([void updates(PolicyOverviewDtoOutputVersionsInnerRulesBuilder b)]) = _$PolicyOverviewDtoOutputVersionsInnerRules;
 
   @BuiltValueHook(initializeBuilder: true)
-  static void _defaults(PolicyOverviewDtoOutputVersionsInnerRulesBuilder b) =>
-      b;
+  static void _defaults(PolicyOverviewDtoOutputVersionsInnerRulesBuilder b) => b;
 
   @BuiltValueSerializer(custom: true)
-  static Serializer<PolicyOverviewDtoOutputVersionsInnerRules> get serializer =>
-      _$PolicyOverviewDtoOutputVersionsInnerRulesSerializer();
+  static Serializer<PolicyOverviewDtoOutputVersionsInnerRules> get serializer => _$PolicyOverviewDtoOutputVersionsInnerRulesSerializer();
 }
 
-class _$PolicyOverviewDtoOutputVersionsInnerRulesSerializer
-    implements PrimitiveSerializer<PolicyOverviewDtoOutputVersionsInnerRules> {
+class _$PolicyOverviewDtoOutputVersionsInnerRulesSerializer implements PrimitiveSerializer<PolicyOverviewDtoOutputVersionsInnerRules> {
   @override
-  final Iterable<Type> types = const [
-    PolicyOverviewDtoOutputVersionsInnerRules,
-    _$PolicyOverviewDtoOutputVersionsInnerRules
-  ];
+  final Iterable<Type> types = const [PolicyOverviewDtoOutputVersionsInnerRules, _$PolicyOverviewDtoOutputVersionsInnerRules];
 
   @override
   final String wireName = r'PolicyOverviewDtoOutputVersionsInnerRules';
@@ -67,7 +56,8 @@ class _$PolicyOverviewDtoOutputVersionsInnerRulesSerializer
     Serializers serializers,
     PolicyOverviewDtoOutputVersionsInnerRules object, {
     FullType specifiedType = FullType.unspecified,
-  }) sync* {}
+  }) sync* {
+  }
 
   @override
   Object serialize(
@@ -76,9 +66,7 @@ class _$PolicyOverviewDtoOutputVersionsInnerRulesSerializer
     FullType specifiedType = FullType.unspecified,
   }) {
     final anyOf = object.anyOf;
-    return serializers.serialize(anyOf,
-        specifiedType: FullType(
-            AnyOf, anyOf.types.map((type) => FullType(type)).toList()))!;
+    return serializers.serialize(anyOf, specifiedType: FullType(AnyOf, anyOf.types.map((type) => FullType(type)).toList()))!;
   }
 
   @override
@@ -89,62 +77,37 @@ class _$PolicyOverviewDtoOutputVersionsInnerRulesSerializer
   }) {
     final result = PolicyOverviewDtoOutputVersionsInnerRulesBuilder();
     Object? anyOfDataSrc;
-    final targetType = const FullType(AnyOf, [
-      FullType(PolicyOverviewDtoOutputVersionsInnerRulesAnyOf),
-      FullType(PolicyOverviewDtoOutputVersionsInnerRulesAnyOf1),
-      FullType(PolicyOverviewDtoOutputVersionsInnerRulesAnyOf2),
-      FullType(PolicyOverviewDtoOutputVersionsInnerRulesAnyOf3),
-    ]);
+    final targetType = const FullType(AnyOf, [FullType(PolicyOverviewDtoOutputVersionsInnerRulesAnyOf), FullType(PolicyOverviewDtoOutputVersionsInnerRulesAnyOf1), FullType(PolicyOverviewDtoOutputVersionsInnerRulesAnyOf2), FullType(PolicyOverviewDtoOutputVersionsInnerRulesAnyOf3), ]);
     anyOfDataSrc = serialized;
-    result.anyOf = serializers.deserialize(anyOfDataSrc,
-        specifiedType: targetType) as AnyOf;
+    result.anyOf = serializers.deserialize(anyOfDataSrc, specifiedType: targetType) as AnyOf;
     return result.build();
   }
 }
 
+
 class PolicyOverviewDtoOutputVersionsInnerRulesChannelEnum extends EnumClass {
+
   @BuiltValueEnumConst(wireName: r'BANK_TRANSFER')
-  static const PolicyOverviewDtoOutputVersionsInnerRulesChannelEnum
-      BANK_TRANSFER =
-      _$policyOverviewDtoOutputVersionsInnerRulesChannelEnum_BANK_TRANSFER;
+  static const PolicyOverviewDtoOutputVersionsInnerRulesChannelEnum BANK_TRANSFER = _$policyOverviewDtoOutputVersionsInnerRulesChannelEnum_BANK_TRANSFER;
 
-  static Serializer<PolicyOverviewDtoOutputVersionsInnerRulesChannelEnum>
-      get serializer =>
-          _$policyOverviewDtoOutputVersionsInnerRulesChannelEnumSerializer;
+  static Serializer<PolicyOverviewDtoOutputVersionsInnerRulesChannelEnum> get serializer => _$policyOverviewDtoOutputVersionsInnerRulesChannelEnumSerializer;
 
-  const PolicyOverviewDtoOutputVersionsInnerRulesChannelEnum._(String name)
-      : super(name);
+  const PolicyOverviewDtoOutputVersionsInnerRulesChannelEnum._(String name): super(name);
 
-  static BuiltSet<PolicyOverviewDtoOutputVersionsInnerRulesChannelEnum>
-      get values =>
-          _$policyOverviewDtoOutputVersionsInnerRulesChannelEnumValues;
-  static PolicyOverviewDtoOutputVersionsInnerRulesChannelEnum valueOf(
-          String name) =>
-      _$policyOverviewDtoOutputVersionsInnerRulesChannelEnumValueOf(name);
+  static BuiltSet<PolicyOverviewDtoOutputVersionsInnerRulesChannelEnum> get values => _$policyOverviewDtoOutputVersionsInnerRulesChannelEnumValues;
+  static PolicyOverviewDtoOutputVersionsInnerRulesChannelEnum valueOf(String name) => _$policyOverviewDtoOutputVersionsInnerRulesChannelEnumValueOf(name);
 }
 
-class PolicyOverviewDtoOutputVersionsInnerRulesManualConfirmationEnum
-    extends EnumClass {
+class PolicyOverviewDtoOutputVersionsInnerRulesManualConfirmationEnum extends EnumClass {
+
   @BuiltValueEnumConst(wireName: r'true')
-  static const PolicyOverviewDtoOutputVersionsInnerRulesManualConfirmationEnum
-      true_ =
-      _$policyOverviewDtoOutputVersionsInnerRulesManualConfirmationEnum_true_;
+  static const PolicyOverviewDtoOutputVersionsInnerRulesManualConfirmationEnum true_ = _$policyOverviewDtoOutputVersionsInnerRulesManualConfirmationEnum_true_;
 
-  static Serializer<
-          PolicyOverviewDtoOutputVersionsInnerRulesManualConfirmationEnum>
-      get serializer =>
-          _$policyOverviewDtoOutputVersionsInnerRulesManualConfirmationEnumSerializer;
+  static Serializer<PolicyOverviewDtoOutputVersionsInnerRulesManualConfirmationEnum> get serializer => _$policyOverviewDtoOutputVersionsInnerRulesManualConfirmationEnumSerializer;
 
-  const PolicyOverviewDtoOutputVersionsInnerRulesManualConfirmationEnum._(
-      String name)
-      : super(name);
+  const PolicyOverviewDtoOutputVersionsInnerRulesManualConfirmationEnum._(String name): super(name);
 
-  static BuiltSet<
-          PolicyOverviewDtoOutputVersionsInnerRulesManualConfirmationEnum>
-      get values =>
-          _$policyOverviewDtoOutputVersionsInnerRulesManualConfirmationEnumValues;
-  static PolicyOverviewDtoOutputVersionsInnerRulesManualConfirmationEnum valueOf(
-          String name) =>
-      _$policyOverviewDtoOutputVersionsInnerRulesManualConfirmationEnumValueOf(
-          name);
+  static BuiltSet<PolicyOverviewDtoOutputVersionsInnerRulesManualConfirmationEnum> get values => _$policyOverviewDtoOutputVersionsInnerRulesManualConfirmationEnumValues;
+  static PolicyOverviewDtoOutputVersionsInnerRulesManualConfirmationEnum valueOf(String name) => _$policyOverviewDtoOutputVersionsInnerRulesManualConfirmationEnumValueOf(name);
 }
+

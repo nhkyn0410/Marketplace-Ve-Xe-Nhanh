@@ -11,12 +11,11 @@ part 'saved_passenger_dto_output.g.dart';
 /// SavedPassengerDtoOutput
 ///
 /// Properties:
-/// * [passengerId]
-/// * [fullName]
-/// * [phone]
+/// * [passengerId] 
+/// * [fullName] 
+/// * [phone] 
 @BuiltValue()
-abstract class SavedPassengerDtoOutput
-    implements Built<SavedPassengerDtoOutput, SavedPassengerDtoOutputBuilder> {
+abstract class SavedPassengerDtoOutput implements Built<SavedPassengerDtoOutput, SavedPassengerDtoOutputBuilder> {
   @BuiltValueField(wireName: r'passengerId')
   String get passengerId;
 
@@ -28,25 +27,18 @@ abstract class SavedPassengerDtoOutput
 
   SavedPassengerDtoOutput._();
 
-  factory SavedPassengerDtoOutput(
-          [void updates(SavedPassengerDtoOutputBuilder b)]) =
-      _$SavedPassengerDtoOutput;
+  factory SavedPassengerDtoOutput([void updates(SavedPassengerDtoOutputBuilder b)]) = _$SavedPassengerDtoOutput;
 
   @BuiltValueHook(initializeBuilder: true)
   static void _defaults(SavedPassengerDtoOutputBuilder b) => b;
 
   @BuiltValueSerializer(custom: true)
-  static Serializer<SavedPassengerDtoOutput> get serializer =>
-      _$SavedPassengerDtoOutputSerializer();
+  static Serializer<SavedPassengerDtoOutput> get serializer => _$SavedPassengerDtoOutputSerializer();
 }
 
-class _$SavedPassengerDtoOutputSerializer
-    implements PrimitiveSerializer<SavedPassengerDtoOutput> {
+class _$SavedPassengerDtoOutputSerializer implements PrimitiveSerializer<SavedPassengerDtoOutput> {
   @override
-  final Iterable<Type> types = const [
-    SavedPassengerDtoOutput,
-    _$SavedPassengerDtoOutput
-  ];
+  final Iterable<Type> types = const [SavedPassengerDtoOutput, _$SavedPassengerDtoOutput];
 
   @override
   final String wireName = r'SavedPassengerDtoOutput';
@@ -67,12 +59,10 @@ class _$SavedPassengerDtoOutputSerializer
       specifiedType: const FullType(String),
     );
     yield r'phone';
-    yield object.phone == null
-        ? null
-        : serializers.serialize(
-            object.phone,
-            specifiedType: const FullType.nullable(String),
-          );
+    yield object.phone == null ? null : serializers.serialize(
+      object.phone,
+      specifiedType: const FullType.nullable(String),
+    );
   }
 
   @override
@@ -81,9 +71,7 @@ class _$SavedPassengerDtoOutputSerializer
     SavedPassengerDtoOutput object, {
     FullType specifiedType = FullType.unspecified,
   }) {
-    return _serializeProperties(serializers, object,
-            specifiedType: specifiedType)
-        .toList();
+    return _serializeProperties(serializers, object, specifiedType: specifiedType).toList();
   }
 
   void _deserializeProperties(
@@ -148,3 +136,5 @@ class _$SavedPassengerDtoOutputSerializer
     return result.build();
   }
 }
+
+

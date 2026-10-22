@@ -11,11 +11,10 @@ part 'saved_passenger_input_dto.g.dart';
 /// SavedPassengerInputDto
 ///
 /// Properties:
-/// * [fullName]
-/// * [phone]
+/// * [fullName] 
+/// * [phone] 
 @BuiltValue()
-abstract class SavedPassengerInputDto
-    implements Built<SavedPassengerInputDto, SavedPassengerInputDtoBuilder> {
+abstract class SavedPassengerInputDto implements Built<SavedPassengerInputDto, SavedPassengerInputDtoBuilder> {
   @BuiltValueField(wireName: r'fullName')
   String get fullName;
 
@@ -24,25 +23,18 @@ abstract class SavedPassengerInputDto
 
   SavedPassengerInputDto._();
 
-  factory SavedPassengerInputDto(
-          [void updates(SavedPassengerInputDtoBuilder b)]) =
-      _$SavedPassengerInputDto;
+  factory SavedPassengerInputDto([void updates(SavedPassengerInputDtoBuilder b)]) = _$SavedPassengerInputDto;
 
   @BuiltValueHook(initializeBuilder: true)
   static void _defaults(SavedPassengerInputDtoBuilder b) => b;
 
   @BuiltValueSerializer(custom: true)
-  static Serializer<SavedPassengerInputDto> get serializer =>
-      _$SavedPassengerInputDtoSerializer();
+  static Serializer<SavedPassengerInputDto> get serializer => _$SavedPassengerInputDtoSerializer();
 }
 
-class _$SavedPassengerInputDtoSerializer
-    implements PrimitiveSerializer<SavedPassengerInputDto> {
+class _$SavedPassengerInputDtoSerializer implements PrimitiveSerializer<SavedPassengerInputDto> {
   @override
-  final Iterable<Type> types = const [
-    SavedPassengerInputDto,
-    _$SavedPassengerInputDto
-  ];
+  final Iterable<Type> types = const [SavedPassengerInputDto, _$SavedPassengerInputDto];
 
   @override
   final String wireName = r'SavedPassengerInputDto';
@@ -72,9 +64,7 @@ class _$SavedPassengerInputDtoSerializer
     SavedPassengerInputDto object, {
     FullType specifiedType = FullType.unspecified,
   }) {
-    return _serializeProperties(serializers, object,
-            specifiedType: specifiedType)
-        .toList();
+    return _serializeProperties(serializers, object, specifiedType: specifiedType).toList();
   }
 
   void _deserializeProperties(
@@ -132,3 +122,5 @@ class _$SavedPassengerInputDtoSerializer
     return result.build();
   }
 }
+
+

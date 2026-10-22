@@ -11,18 +11,15 @@ part 'public_operator_profile_dto_output_scorecard.g.dart';
 /// PublicOperatorProfileDtoOutputScorecard
 ///
 /// Properties:
-/// * [averageRating]
-/// * [reviewCount]
-/// * [operatorCancellationRate]
-/// * [refundBookingRate]
-/// * [disputeBookingRate]
-/// * [checkInRate]
-/// * [noShowRate]
+/// * [averageRating] 
+/// * [reviewCount] 
+/// * [operatorCancellationRate] 
+/// * [refundBookingRate] 
+/// * [disputeBookingRate] 
+/// * [checkInRate] 
+/// * [noShowRate] 
 @BuiltValue()
-abstract class PublicOperatorProfileDtoOutputScorecard
-    implements
-        Built<PublicOperatorProfileDtoOutputScorecard,
-            PublicOperatorProfileDtoOutputScorecardBuilder> {
+abstract class PublicOperatorProfileDtoOutputScorecard implements Built<PublicOperatorProfileDtoOutputScorecard, PublicOperatorProfileDtoOutputScorecardBuilder> {
   @BuiltValueField(wireName: r'averageRating')
   num? get averageRating;
 
@@ -46,25 +43,18 @@ abstract class PublicOperatorProfileDtoOutputScorecard
 
   PublicOperatorProfileDtoOutputScorecard._();
 
-  factory PublicOperatorProfileDtoOutputScorecard(
-          [void updates(PublicOperatorProfileDtoOutputScorecardBuilder b)]) =
-      _$PublicOperatorProfileDtoOutputScorecard;
+  factory PublicOperatorProfileDtoOutputScorecard([void updates(PublicOperatorProfileDtoOutputScorecardBuilder b)]) = _$PublicOperatorProfileDtoOutputScorecard;
 
   @BuiltValueHook(initializeBuilder: true)
   static void _defaults(PublicOperatorProfileDtoOutputScorecardBuilder b) => b;
 
   @BuiltValueSerializer(custom: true)
-  static Serializer<PublicOperatorProfileDtoOutputScorecard> get serializer =>
-      _$PublicOperatorProfileDtoOutputScorecardSerializer();
+  static Serializer<PublicOperatorProfileDtoOutputScorecard> get serializer => _$PublicOperatorProfileDtoOutputScorecardSerializer();
 }
 
-class _$PublicOperatorProfileDtoOutputScorecardSerializer
-    implements PrimitiveSerializer<PublicOperatorProfileDtoOutputScorecard> {
+class _$PublicOperatorProfileDtoOutputScorecardSerializer implements PrimitiveSerializer<PublicOperatorProfileDtoOutputScorecard> {
   @override
-  final Iterable<Type> types = const [
-    PublicOperatorProfileDtoOutputScorecard,
-    _$PublicOperatorProfileDtoOutputScorecard
-  ];
+  final Iterable<Type> types = const [PublicOperatorProfileDtoOutputScorecard, _$PublicOperatorProfileDtoOutputScorecard];
 
   @override
   final String wireName = r'PublicOperatorProfileDtoOutputScorecard';
@@ -75,52 +65,40 @@ class _$PublicOperatorProfileDtoOutputScorecardSerializer
     FullType specifiedType = FullType.unspecified,
   }) sync* {
     yield r'averageRating';
-    yield object.averageRating == null
-        ? null
-        : serializers.serialize(
-            object.averageRating,
-            specifiedType: const FullType.nullable(num),
-          );
+    yield object.averageRating == null ? null : serializers.serialize(
+      object.averageRating,
+      specifiedType: const FullType.nullable(num),
+    );
     yield r'reviewCount';
     yield serializers.serialize(
       object.reviewCount,
       specifiedType: const FullType(int),
     );
     yield r'operatorCancellationRate';
-    yield object.operatorCancellationRate == null
-        ? null
-        : serializers.serialize(
-            object.operatorCancellationRate,
-            specifiedType: const FullType.nullable(num),
-          );
+    yield object.operatorCancellationRate == null ? null : serializers.serialize(
+      object.operatorCancellationRate,
+      specifiedType: const FullType.nullable(num),
+    );
     yield r'refundBookingRate';
-    yield object.refundBookingRate == null
-        ? null
-        : serializers.serialize(
-            object.refundBookingRate,
-            specifiedType: const FullType.nullable(num),
-          );
+    yield object.refundBookingRate == null ? null : serializers.serialize(
+      object.refundBookingRate,
+      specifiedType: const FullType.nullable(num),
+    );
     yield r'disputeBookingRate';
-    yield object.disputeBookingRate == null
-        ? null
-        : serializers.serialize(
-            object.disputeBookingRate,
-            specifiedType: const FullType.nullable(num),
-          );
+    yield object.disputeBookingRate == null ? null : serializers.serialize(
+      object.disputeBookingRate,
+      specifiedType: const FullType.nullable(num),
+    );
     yield r'checkInRate';
-    yield object.checkInRate == null
-        ? null
-        : serializers.serialize(
-            object.checkInRate,
-            specifiedType: const FullType.nullable(num),
-          );
+    yield object.checkInRate == null ? null : serializers.serialize(
+      object.checkInRate,
+      specifiedType: const FullType.nullable(num),
+    );
     yield r'noShowRate';
-    yield object.noShowRate == null
-        ? null
-        : serializers.serialize(
-            object.noShowRate,
-            specifiedType: const FullType.nullable(num),
-          );
+    yield object.noShowRate == null ? null : serializers.serialize(
+      object.noShowRate,
+      specifiedType: const FullType.nullable(num),
+    );
   }
 
   @override
@@ -129,9 +107,7 @@ class _$PublicOperatorProfileDtoOutputScorecardSerializer
     PublicOperatorProfileDtoOutputScorecard object, {
     FullType specifiedType = FullType.unspecified,
   }) {
-    return _serializeProperties(serializers, object,
-            specifiedType: specifiedType)
-        .toList();
+    return _serializeProperties(serializers, object, specifiedType: specifiedType).toList();
   }
 
   void _deserializeProperties(
@@ -229,3 +205,5 @@ class _$PublicOperatorProfileDtoOutputScorecardSerializer
     return result.build();
   }
 }
+
+

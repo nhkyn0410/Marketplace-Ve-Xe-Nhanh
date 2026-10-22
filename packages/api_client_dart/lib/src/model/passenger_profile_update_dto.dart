@@ -12,13 +12,11 @@ part 'passenger_profile_update_dto.g.dart';
 /// PassengerProfileUpdateDto
 ///
 /// Properties:
-/// * [name]
-/// * [phone]
-/// * [dateOfBirth]
+/// * [name] 
+/// * [phone] 
+/// * [dateOfBirth] 
 @BuiltValue()
-abstract class PassengerProfileUpdateDto
-    implements
-        Built<PassengerProfileUpdateDto, PassengerProfileUpdateDtoBuilder> {
+abstract class PassengerProfileUpdateDto implements Built<PassengerProfileUpdateDto, PassengerProfileUpdateDtoBuilder> {
   @BuiltValueField(wireName: r'name')
   String? get name;
 
@@ -30,25 +28,18 @@ abstract class PassengerProfileUpdateDto
 
   PassengerProfileUpdateDto._();
 
-  factory PassengerProfileUpdateDto(
-          [void updates(PassengerProfileUpdateDtoBuilder b)]) =
-      _$PassengerProfileUpdateDto;
+  factory PassengerProfileUpdateDto([void updates(PassengerProfileUpdateDtoBuilder b)]) = _$PassengerProfileUpdateDto;
 
   @BuiltValueHook(initializeBuilder: true)
   static void _defaults(PassengerProfileUpdateDtoBuilder b) => b;
 
   @BuiltValueSerializer(custom: true)
-  static Serializer<PassengerProfileUpdateDto> get serializer =>
-      _$PassengerProfileUpdateDtoSerializer();
+  static Serializer<PassengerProfileUpdateDto> get serializer => _$PassengerProfileUpdateDtoSerializer();
 }
 
-class _$PassengerProfileUpdateDtoSerializer
-    implements PrimitiveSerializer<PassengerProfileUpdateDto> {
+class _$PassengerProfileUpdateDtoSerializer implements PrimitiveSerializer<PassengerProfileUpdateDto> {
   @override
-  final Iterable<Type> types = const [
-    PassengerProfileUpdateDto,
-    _$PassengerProfileUpdateDto
-  ];
+  final Iterable<Type> types = const [PassengerProfileUpdateDto, _$PassengerProfileUpdateDto];
 
   @override
   final String wireName = r'PassengerProfileUpdateDto';
@@ -87,9 +78,7 @@ class _$PassengerProfileUpdateDtoSerializer
     PassengerProfileUpdateDto object, {
     FullType specifiedType = FullType.unspecified,
   }) {
-    return _serializeProperties(serializers, object,
-            specifiedType: specifiedType)
-        .toList();
+    return _serializeProperties(serializers, object, specifiedType: specifiedType).toList();
   }
 
   void _deserializeProperties(
@@ -156,3 +145,5 @@ class _$PassengerProfileUpdateDtoSerializer
     return result.build();
   }
 }
+
+

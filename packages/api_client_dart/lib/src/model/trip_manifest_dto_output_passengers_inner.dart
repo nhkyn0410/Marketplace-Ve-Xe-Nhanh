@@ -13,20 +13,17 @@ part 'trip_manifest_dto_output_passengers_inner.g.dart';
 /// TripManifestDtoOutputPassengersInner
 ///
 /// Properties:
-/// * [ticketId]
-/// * [ticketCode]
-/// * [seatCode]
-/// * [passengerName]
-/// * [phoneMasked]
-/// * [pickup]
-/// * [dropoff]
-/// * [status]
-/// * [checkedInAt]
+/// * [ticketId] 
+/// * [ticketCode] 
+/// * [seatCode] 
+/// * [passengerName] 
+/// * [phoneMasked] 
+/// * [pickup] 
+/// * [dropoff] 
+/// * [status] 
+/// * [checkedInAt] 
 @BuiltValue()
-abstract class TripManifestDtoOutputPassengersInner
-    implements
-        Built<TripManifestDtoOutputPassengersInner,
-            TripManifestDtoOutputPassengersInnerBuilder> {
+abstract class TripManifestDtoOutputPassengersInner implements Built<TripManifestDtoOutputPassengersInner, TripManifestDtoOutputPassengersInnerBuilder> {
   @BuiltValueField(wireName: r'ticketId')
   String get ticketId;
 
@@ -57,25 +54,18 @@ abstract class TripManifestDtoOutputPassengersInner
 
   TripManifestDtoOutputPassengersInner._();
 
-  factory TripManifestDtoOutputPassengersInner(
-          [void updates(TripManifestDtoOutputPassengersInnerBuilder b)]) =
-      _$TripManifestDtoOutputPassengersInner;
+  factory TripManifestDtoOutputPassengersInner([void updates(TripManifestDtoOutputPassengersInnerBuilder b)]) = _$TripManifestDtoOutputPassengersInner;
 
   @BuiltValueHook(initializeBuilder: true)
   static void _defaults(TripManifestDtoOutputPassengersInnerBuilder b) => b;
 
   @BuiltValueSerializer(custom: true)
-  static Serializer<TripManifestDtoOutputPassengersInner> get serializer =>
-      _$TripManifestDtoOutputPassengersInnerSerializer();
+  static Serializer<TripManifestDtoOutputPassengersInner> get serializer => _$TripManifestDtoOutputPassengersInnerSerializer();
 }
 
-class _$TripManifestDtoOutputPassengersInnerSerializer
-    implements PrimitiveSerializer<TripManifestDtoOutputPassengersInner> {
+class _$TripManifestDtoOutputPassengersInnerSerializer implements PrimitiveSerializer<TripManifestDtoOutputPassengersInner> {
   @override
-  final Iterable<Type> types = const [
-    TripManifestDtoOutputPassengersInner,
-    _$TripManifestDtoOutputPassengersInner
-  ];
+  final Iterable<Type> types = const [TripManifestDtoOutputPassengersInner, _$TripManifestDtoOutputPassengersInner];
 
   @override
   final String wireName = r'TripManifestDtoOutputPassengersInner';
@@ -123,16 +113,13 @@ class _$TripManifestDtoOutputPassengersInnerSerializer
     yield r'status';
     yield serializers.serialize(
       object.status,
-      specifiedType:
-          const FullType(TripManifestDtoOutputPassengersInnerStatusEnum),
+      specifiedType: const FullType(TripManifestDtoOutputPassengersInnerStatusEnum),
     );
     yield r'checkedInAt';
-    yield object.checkedInAt == null
-        ? null
-        : serializers.serialize(
-            object.checkedInAt,
-            specifiedType: const FullType.nullable(DateTime),
-          );
+    yield object.checkedInAt == null ? null : serializers.serialize(
+      object.checkedInAt,
+      specifiedType: const FullType.nullable(DateTime),
+    );
   }
 
   @override
@@ -141,9 +128,7 @@ class _$TripManifestDtoOutputPassengersInnerSerializer
     TripManifestDtoOutputPassengersInner object, {
     FullType specifiedType = FullType.unspecified,
   }) {
-    return _serializeProperties(serializers, object,
-            specifiedType: specifiedType)
-        .toList();
+    return _serializeProperties(serializers, object, specifiedType: specifiedType).toList();
   }
 
   void _deserializeProperties(
@@ -196,24 +181,21 @@ class _$TripManifestDtoOutputPassengersInnerSerializer
         case r'pickup':
           final valueDes = serializers.deserialize(
             value,
-            specifiedType:
-                const FullType(TripManifestDtoOutputPassengersInnerPickup),
+            specifiedType: const FullType(TripManifestDtoOutputPassengersInnerPickup),
           ) as TripManifestDtoOutputPassengersInnerPickup;
           result.pickup.replace(valueDes);
           break;
         case r'dropoff':
           final valueDes = serializers.deserialize(
             value,
-            specifiedType:
-                const FullType(TripManifestDtoOutputPassengersInnerPickup),
+            specifiedType: const FullType(TripManifestDtoOutputPassengersInnerPickup),
           ) as TripManifestDtoOutputPassengersInnerPickup;
           result.dropoff.replace(valueDes);
           break;
         case r'status':
           final valueDes = serializers.deserialize(
             value,
-            specifiedType:
-                const FullType(TripManifestDtoOutputPassengersInnerStatusEnum),
+            specifiedType: const FullType(TripManifestDtoOutputPassengersInnerStatusEnum),
           ) as TripManifestDtoOutputPassengersInnerStatusEnum;
           result.status = valueDes;
           break;
@@ -254,35 +236,27 @@ class _$TripManifestDtoOutputPassengersInnerSerializer
   }
 }
 
+
 class TripManifestDtoOutputPassengersInnerStatusEnum extends EnumClass {
+
   @BuiltValueEnumConst(wireName: r'VALID')
-  static const TripManifestDtoOutputPassengersInnerStatusEnum VALID =
-      _$tripManifestDtoOutputPassengersInnerStatusEnum_VALID;
+  static const TripManifestDtoOutputPassengersInnerStatusEnum VALID = _$tripManifestDtoOutputPassengersInnerStatusEnum_VALID;
   @BuiltValueEnumConst(wireName: r'CANCELLED')
-  static const TripManifestDtoOutputPassengersInnerStatusEnum CANCELLED =
-      _$tripManifestDtoOutputPassengersInnerStatusEnum_CANCELLED;
+  static const TripManifestDtoOutputPassengersInnerStatusEnum CANCELLED = _$tripManifestDtoOutputPassengersInnerStatusEnum_CANCELLED;
   @BuiltValueEnumConst(wireName: r'CHECKED_IN')
-  static const TripManifestDtoOutputPassengersInnerStatusEnum CHECKED_IN =
-      _$tripManifestDtoOutputPassengersInnerStatusEnum_CHECKED_IN;
+  static const TripManifestDtoOutputPassengersInnerStatusEnum CHECKED_IN = _$tripManifestDtoOutputPassengersInnerStatusEnum_CHECKED_IN;
   @BuiltValueEnumConst(wireName: r'NO_SHOW')
-  static const TripManifestDtoOutputPassengersInnerStatusEnum NO_SHOW =
-      _$tripManifestDtoOutputPassengersInnerStatusEnum_NO_SHOW;
+  static const TripManifestDtoOutputPassengersInnerStatusEnum NO_SHOW = _$tripManifestDtoOutputPassengersInnerStatusEnum_NO_SHOW;
   @BuiltValueEnumConst(wireName: r'USED')
-  static const TripManifestDtoOutputPassengersInnerStatusEnum USED =
-      _$tripManifestDtoOutputPassengersInnerStatusEnum_USED;
+  static const TripManifestDtoOutputPassengersInnerStatusEnum USED = _$tripManifestDtoOutputPassengersInnerStatusEnum_USED;
   @BuiltValueEnumConst(wireName: r'REFUNDED')
-  static const TripManifestDtoOutputPassengersInnerStatusEnum REFUNDED =
-      _$tripManifestDtoOutputPassengersInnerStatusEnum_REFUNDED;
+  static const TripManifestDtoOutputPassengersInnerStatusEnum REFUNDED = _$tripManifestDtoOutputPassengersInnerStatusEnum_REFUNDED;
 
-  static Serializer<TripManifestDtoOutputPassengersInnerStatusEnum>
-      get serializer =>
-          _$tripManifestDtoOutputPassengersInnerStatusEnumSerializer;
+  static Serializer<TripManifestDtoOutputPassengersInnerStatusEnum> get serializer => _$tripManifestDtoOutputPassengersInnerStatusEnumSerializer;
 
-  const TripManifestDtoOutputPassengersInnerStatusEnum._(String name)
-      : super(name);
+  const TripManifestDtoOutputPassengersInnerStatusEnum._(String name): super(name);
 
-  static BuiltSet<TripManifestDtoOutputPassengersInnerStatusEnum> get values =>
-      _$tripManifestDtoOutputPassengersInnerStatusEnumValues;
-  static TripManifestDtoOutputPassengersInnerStatusEnum valueOf(String name) =>
-      _$tripManifestDtoOutputPassengersInnerStatusEnumValueOf(name);
+  static BuiltSet<TripManifestDtoOutputPassengersInnerStatusEnum> get values => _$tripManifestDtoOutputPassengersInnerStatusEnumValues;
+  static TripManifestDtoOutputPassengersInnerStatusEnum valueOf(String name) => _$tripManifestDtoOutputPassengersInnerStatusEnumValueOf(name);
 }
+

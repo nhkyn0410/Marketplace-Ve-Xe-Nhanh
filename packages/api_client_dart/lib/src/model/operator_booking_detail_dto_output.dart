@@ -18,34 +18,31 @@ part 'operator_booking_detail_dto_output.g.dart';
 /// OperatorBookingDetailDtoOutput
 ///
 /// Properties:
-/// * [bookingId]
-/// * [bookingCode]
-/// * [status]
-/// * [createdAt]
-/// * [contactName]
-/// * [contactPhoneMasked]
-/// * [guest]
-/// * [trip]
-/// * [seatCodes]
-/// * [cancelledTicketCount]
-/// * [total]
-/// * [payment]
-/// * [contactEmailMasked]
-/// * [note]
-/// * [pickup]
-/// * [dropoff]
-/// * [seats]
-/// * [subtotal]
-/// * [serviceFee]
-/// * [discount]
-/// * [discountFunding]
-/// * [cancellationPolicy]
-/// * [histories]
+/// * [bookingId] 
+/// * [bookingCode] 
+/// * [status] 
+/// * [createdAt] 
+/// * [contactName] 
+/// * [contactPhoneMasked] 
+/// * [guest] 
+/// * [trip] 
+/// * [seatCodes] 
+/// * [cancelledTicketCount] 
+/// * [total] 
+/// * [payment] 
+/// * [contactEmailMasked] 
+/// * [note] 
+/// * [pickup] 
+/// * [dropoff] 
+/// * [seats] 
+/// * [subtotal] 
+/// * [serviceFee] 
+/// * [discount] 
+/// * [discountFunding] 
+/// * [cancellationPolicy] 
+/// * [histories] 
 @BuiltValue()
-abstract class OperatorBookingDetailDtoOutput
-    implements
-        Built<OperatorBookingDetailDtoOutput,
-            OperatorBookingDetailDtoOutputBuilder> {
+abstract class OperatorBookingDetailDtoOutput implements Built<OperatorBookingDetailDtoOutput, OperatorBookingDetailDtoOutputBuilder> {
   @BuiltValueField(wireName: r'bookingId')
   String get bookingId;
 
@@ -119,25 +116,18 @@ abstract class OperatorBookingDetailDtoOutput
 
   OperatorBookingDetailDtoOutput._();
 
-  factory OperatorBookingDetailDtoOutput(
-          [void updates(OperatorBookingDetailDtoOutputBuilder b)]) =
-      _$OperatorBookingDetailDtoOutput;
+  factory OperatorBookingDetailDtoOutput([void updates(OperatorBookingDetailDtoOutputBuilder b)]) = _$OperatorBookingDetailDtoOutput;
 
   @BuiltValueHook(initializeBuilder: true)
   static void _defaults(OperatorBookingDetailDtoOutputBuilder b) => b;
 
   @BuiltValueSerializer(custom: true)
-  static Serializer<OperatorBookingDetailDtoOutput> get serializer =>
-      _$OperatorBookingDetailDtoOutputSerializer();
+  static Serializer<OperatorBookingDetailDtoOutput> get serializer => _$OperatorBookingDetailDtoOutputSerializer();
 }
 
-class _$OperatorBookingDetailDtoOutputSerializer
-    implements PrimitiveSerializer<OperatorBookingDetailDtoOutput> {
+class _$OperatorBookingDetailDtoOutputSerializer implements PrimitiveSerializer<OperatorBookingDetailDtoOutput> {
   @override
-  final Iterable<Type> types = const [
-    OperatorBookingDetailDtoOutput,
-    _$OperatorBookingDetailDtoOutput
-  ];
+  final Iterable<Type> types = const [OperatorBookingDetailDtoOutput, _$OperatorBookingDetailDtoOutput];
 
   @override
   final String wireName = r'OperatorBookingDetailDtoOutput';
@@ -203,42 +193,34 @@ class _$OperatorBookingDetailDtoOutputSerializer
       specifiedType: const FullType(int),
     );
     yield r'payment';
-    yield object.payment == null
-        ? null
-        : serializers.serialize(
-            object.payment,
-            specifiedType: const FullType.nullable(
-                OperatorBookingPageDtoOutputItemsInnerPayment),
-          );
+    yield object.payment == null ? null : serializers.serialize(
+      object.payment,
+      specifiedType: const FullType.nullable(OperatorBookingPageDtoOutputItemsInnerPayment),
+    );
     yield r'contactEmailMasked';
     yield serializers.serialize(
       object.contactEmailMasked,
       specifiedType: const FullType(String),
     );
     yield r'note';
-    yield object.note == null
-        ? null
-        : serializers.serialize(
-            object.note,
-            specifiedType: const FullType.nullable(String),
-          );
+    yield object.note == null ? null : serializers.serialize(
+      object.note,
+      specifiedType: const FullType.nullable(String),
+    );
     yield r'pickup';
     yield serializers.serialize(
       object.pickup,
-      specifiedType:
-          const FullType(TripSearchResponseDtoOutputItemsInnerPickup),
+      specifiedType: const FullType(TripSearchResponseDtoOutputItemsInnerPickup),
     );
     yield r'dropoff';
     yield serializers.serialize(
       object.dropoff,
-      specifiedType:
-          const FullType(TripSearchResponseDtoOutputItemsInnerPickup),
+      specifiedType: const FullType(TripSearchResponseDtoOutputItemsInnerPickup),
     );
     yield r'seats';
     yield serializers.serialize(
       object.seats,
-      specifiedType: const FullType(
-          BuiltList, [FullType(OperatorBookingDetailDtoOutputSeatsInner)]),
+      specifiedType: const FullType(BuiltList, [FullType(OperatorBookingDetailDtoOutputSeatsInner)]),
     );
     yield r'subtotal';
     yield serializers.serialize(
@@ -256,13 +238,10 @@ class _$OperatorBookingDetailDtoOutputSerializer
       specifiedType: const FullType(int),
     );
     yield r'discountFunding';
-    yield object.discountFunding == null
-        ? null
-        : serializers.serialize(
-            object.discountFunding,
-            specifiedType: const FullType.nullable(
-                OperatorBookingDetailDtoOutputDiscountFundingEnum),
-          );
+    yield object.discountFunding == null ? null : serializers.serialize(
+      object.discountFunding,
+      specifiedType: const FullType.nullable(OperatorBookingDetailDtoOutputDiscountFundingEnum),
+    );
     yield r'cancellationPolicy';
     yield serializers.serialize(
       object.cancellationPolicy,
@@ -271,8 +250,7 @@ class _$OperatorBookingDetailDtoOutputSerializer
     yield r'histories';
     yield serializers.serialize(
       object.histories,
-      specifiedType: const FullType(
-          BuiltList, [FullType(OperatorBookingDetailDtoOutputHistoriesInner)]),
+      specifiedType: const FullType(BuiltList, [FullType(OperatorBookingDetailDtoOutputHistoriesInner)]),
     );
   }
 
@@ -282,9 +260,7 @@ class _$OperatorBookingDetailDtoOutputSerializer
     OperatorBookingDetailDtoOutput object, {
     FullType specifiedType = FullType.unspecified,
   }) {
-    return _serializeProperties(serializers, object,
-            specifiedType: specifiedType)
-        .toList();
+    return _serializeProperties(serializers, object, specifiedType: specifiedType).toList();
   }
 
   void _deserializeProperties(
@@ -316,8 +292,7 @@ class _$OperatorBookingDetailDtoOutputSerializer
         case r'status':
           final valueDes = serializers.deserialize(
             value,
-            specifiedType:
-                const FullType(OperatorBookingDetailDtoOutputStatusEnum),
+            specifiedType: const FullType(OperatorBookingDetailDtoOutputStatusEnum),
           ) as OperatorBookingDetailDtoOutputStatusEnum;
           result.status = valueDes;
           break;
@@ -352,8 +327,7 @@ class _$OperatorBookingDetailDtoOutputSerializer
         case r'trip':
           final valueDes = serializers.deserialize(
             value,
-            specifiedType:
-                const FullType(OperatorBookingPageDtoOutputItemsInnerTrip),
+            specifiedType: const FullType(OperatorBookingPageDtoOutputItemsInnerTrip),
           ) as OperatorBookingPageDtoOutputItemsInnerTrip;
           result.trip.replace(valueDes);
           break;
@@ -381,8 +355,7 @@ class _$OperatorBookingDetailDtoOutputSerializer
         case r'payment':
           final valueDes = serializers.deserialize(
             value,
-            specifiedType: const FullType.nullable(
-                OperatorBookingPageDtoOutputItemsInnerPayment),
+            specifiedType: const FullType.nullable(OperatorBookingPageDtoOutputItemsInnerPayment),
           ) as OperatorBookingPageDtoOutputItemsInnerPayment?;
           if (valueDes == null) continue;
           result.payment.replace(valueDes);
@@ -405,24 +378,21 @@ class _$OperatorBookingDetailDtoOutputSerializer
         case r'pickup':
           final valueDes = serializers.deserialize(
             value,
-            specifiedType:
-                const FullType(TripSearchResponseDtoOutputItemsInnerPickup),
+            specifiedType: const FullType(TripSearchResponseDtoOutputItemsInnerPickup),
           ) as TripSearchResponseDtoOutputItemsInnerPickup;
           result.pickup.replace(valueDes);
           break;
         case r'dropoff':
           final valueDes = serializers.deserialize(
             value,
-            specifiedType:
-                const FullType(TripSearchResponseDtoOutputItemsInnerPickup),
+            specifiedType: const FullType(TripSearchResponseDtoOutputItemsInnerPickup),
           ) as TripSearchResponseDtoOutputItemsInnerPickup;
           result.dropoff.replace(valueDes);
           break;
         case r'seats':
           final valueDes = serializers.deserialize(
             value,
-            specifiedType: const FullType(BuiltList,
-                [FullType(OperatorBookingDetailDtoOutputSeatsInner)]),
+            specifiedType: const FullType(BuiltList, [FullType(OperatorBookingDetailDtoOutputSeatsInner)]),
           ) as BuiltList<OperatorBookingDetailDtoOutputSeatsInner>;
           result.seats.replace(valueDes);
           break;
@@ -450,8 +420,7 @@ class _$OperatorBookingDetailDtoOutputSerializer
         case r'discountFunding':
           final valueDes = serializers.deserialize(
             value,
-            specifiedType: const FullType.nullable(
-                OperatorBookingDetailDtoOutputDiscountFundingEnum),
+            specifiedType: const FullType.nullable(OperatorBookingDetailDtoOutputDiscountFundingEnum),
           ) as OperatorBookingDetailDtoOutputDiscountFundingEnum?;
           if (valueDes == null) continue;
           result.discountFunding = valueDes;
@@ -459,16 +428,14 @@ class _$OperatorBookingDetailDtoOutputSerializer
         case r'cancellationPolicy':
           final valueDes = serializers.deserialize(
             value,
-            specifiedType:
-                const FullType(PublicTripDtoOutputCancellationPolicy),
+            specifiedType: const FullType(PublicTripDtoOutputCancellationPolicy),
           ) as PublicTripDtoOutputCancellationPolicy;
           result.cancellationPolicy.replace(valueDes);
           break;
         case r'histories':
           final valueDes = serializers.deserialize(
             value,
-            specifiedType: const FullType(BuiltList,
-                [FullType(OperatorBookingDetailDtoOutputHistoriesInner)]),
+            specifiedType: const FullType(BuiltList, [FullType(OperatorBookingDetailDtoOutputHistoriesInner)]),
           ) as BuiltList<OperatorBookingDetailDtoOutputHistoriesInner>;
           result.histories.replace(valueDes);
           break;
@@ -501,67 +468,50 @@ class _$OperatorBookingDetailDtoOutputSerializer
   }
 }
 
+
 class OperatorBookingDetailDtoOutputStatusEnum extends EnumClass {
+
   @BuiltValueEnumConst(wireName: r'PENDING_PAYMENT')
-  static const OperatorBookingDetailDtoOutputStatusEnum PENDING_PAYMENT =
-      _$operatorBookingDetailDtoOutputStatusEnum_PENDING_PAYMENT;
+  static const OperatorBookingDetailDtoOutputStatusEnum PENDING_PAYMENT = _$operatorBookingDetailDtoOutputStatusEnum_PENDING_PAYMENT;
   @BuiltValueEnumConst(wireName: r'PENDING_CONFIRMATION')
-  static const OperatorBookingDetailDtoOutputStatusEnum PENDING_CONFIRMATION =
-      _$operatorBookingDetailDtoOutputStatusEnum_PENDING_CONFIRMATION;
+  static const OperatorBookingDetailDtoOutputStatusEnum PENDING_CONFIRMATION = _$operatorBookingDetailDtoOutputStatusEnum_PENDING_CONFIRMATION;
   @BuiltValueEnumConst(wireName: r'PAID')
-  static const OperatorBookingDetailDtoOutputStatusEnum PAID =
-      _$operatorBookingDetailDtoOutputStatusEnum_PAID;
+  static const OperatorBookingDetailDtoOutputStatusEnum PAID = _$operatorBookingDetailDtoOutputStatusEnum_PAID;
   @BuiltValueEnumConst(wireName: r'CONFIRMED')
-  static const OperatorBookingDetailDtoOutputStatusEnum CONFIRMED =
-      _$operatorBookingDetailDtoOutputStatusEnum_CONFIRMED;
+  static const OperatorBookingDetailDtoOutputStatusEnum CONFIRMED = _$operatorBookingDetailDtoOutputStatusEnum_CONFIRMED;
   @BuiltValueEnumConst(wireName: r'PARTIALLY_CANCELLED')
-  static const OperatorBookingDetailDtoOutputStatusEnum PARTIALLY_CANCELLED =
-      _$operatorBookingDetailDtoOutputStatusEnum_PARTIALLY_CANCELLED;
+  static const OperatorBookingDetailDtoOutputStatusEnum PARTIALLY_CANCELLED = _$operatorBookingDetailDtoOutputStatusEnum_PARTIALLY_CANCELLED;
   @BuiltValueEnumConst(wireName: r'CANCELLED')
-  static const OperatorBookingDetailDtoOutputStatusEnum CANCELLED =
-      _$operatorBookingDetailDtoOutputStatusEnum_CANCELLED;
+  static const OperatorBookingDetailDtoOutputStatusEnum CANCELLED = _$operatorBookingDetailDtoOutputStatusEnum_CANCELLED;
   @BuiltValueEnumConst(wireName: r'EXPIRED')
-  static const OperatorBookingDetailDtoOutputStatusEnum EXPIRED =
-      _$operatorBookingDetailDtoOutputStatusEnum_EXPIRED;
+  static const OperatorBookingDetailDtoOutputStatusEnum EXPIRED = _$operatorBookingDetailDtoOutputStatusEnum_EXPIRED;
   @BuiltValueEnumConst(wireName: r'REFUND_PENDING')
-  static const OperatorBookingDetailDtoOutputStatusEnum REFUND_PENDING =
-      _$operatorBookingDetailDtoOutputStatusEnum_REFUND_PENDING;
+  static const OperatorBookingDetailDtoOutputStatusEnum REFUND_PENDING = _$operatorBookingDetailDtoOutputStatusEnum_REFUND_PENDING;
   @BuiltValueEnumConst(wireName: r'REFUNDED')
-  static const OperatorBookingDetailDtoOutputStatusEnum REFUNDED =
-      _$operatorBookingDetailDtoOutputStatusEnum_REFUNDED;
+  static const OperatorBookingDetailDtoOutputStatusEnum REFUNDED = _$operatorBookingDetailDtoOutputStatusEnum_REFUNDED;
   @BuiltValueEnumConst(wireName: r'REFUND_FAILED')
-  static const OperatorBookingDetailDtoOutputStatusEnum REFUND_FAILED =
-      _$operatorBookingDetailDtoOutputStatusEnum_REFUND_FAILED;
+  static const OperatorBookingDetailDtoOutputStatusEnum REFUND_FAILED = _$operatorBookingDetailDtoOutputStatusEnum_REFUND_FAILED;
 
-  static Serializer<OperatorBookingDetailDtoOutputStatusEnum> get serializer =>
-      _$operatorBookingDetailDtoOutputStatusEnumSerializer;
+  static Serializer<OperatorBookingDetailDtoOutputStatusEnum> get serializer => _$operatorBookingDetailDtoOutputStatusEnumSerializer;
 
-  const OperatorBookingDetailDtoOutputStatusEnum._(String name) : super(name);
+  const OperatorBookingDetailDtoOutputStatusEnum._(String name): super(name);
 
-  static BuiltSet<OperatorBookingDetailDtoOutputStatusEnum> get values =>
-      _$operatorBookingDetailDtoOutputStatusEnumValues;
-  static OperatorBookingDetailDtoOutputStatusEnum valueOf(String name) =>
-      _$operatorBookingDetailDtoOutputStatusEnumValueOf(name);
+  static BuiltSet<OperatorBookingDetailDtoOutputStatusEnum> get values => _$operatorBookingDetailDtoOutputStatusEnumValues;
+  static OperatorBookingDetailDtoOutputStatusEnum valueOf(String name) => _$operatorBookingDetailDtoOutputStatusEnumValueOf(name);
 }
 
 class OperatorBookingDetailDtoOutputDiscountFundingEnum extends EnumClass {
+
   @BuiltValueEnumConst(wireName: r'OPERATOR')
-  static const OperatorBookingDetailDtoOutputDiscountFundingEnum OPERATOR =
-      _$operatorBookingDetailDtoOutputDiscountFundingEnum_OPERATOR;
+  static const OperatorBookingDetailDtoOutputDiscountFundingEnum OPERATOR = _$operatorBookingDetailDtoOutputDiscountFundingEnum_OPERATOR;
   @BuiltValueEnumConst(wireName: r'PLATFORM')
-  static const OperatorBookingDetailDtoOutputDiscountFundingEnum PLATFORM =
-      _$operatorBookingDetailDtoOutputDiscountFundingEnum_PLATFORM;
+  static const OperatorBookingDetailDtoOutputDiscountFundingEnum PLATFORM = _$operatorBookingDetailDtoOutputDiscountFundingEnum_PLATFORM;
 
-  static Serializer<OperatorBookingDetailDtoOutputDiscountFundingEnum>
-      get serializer =>
-          _$operatorBookingDetailDtoOutputDiscountFundingEnumSerializer;
+  static Serializer<OperatorBookingDetailDtoOutputDiscountFundingEnum> get serializer => _$operatorBookingDetailDtoOutputDiscountFundingEnumSerializer;
 
-  const OperatorBookingDetailDtoOutputDiscountFundingEnum._(String name)
-      : super(name);
+  const OperatorBookingDetailDtoOutputDiscountFundingEnum._(String name): super(name);
 
-  static BuiltSet<OperatorBookingDetailDtoOutputDiscountFundingEnum>
-      get values => _$operatorBookingDetailDtoOutputDiscountFundingEnumValues;
-  static OperatorBookingDetailDtoOutputDiscountFundingEnum valueOf(
-          String name) =>
-      _$operatorBookingDetailDtoOutputDiscountFundingEnumValueOf(name);
+  static BuiltSet<OperatorBookingDetailDtoOutputDiscountFundingEnum> get values => _$operatorBookingDetailDtoOutputDiscountFundingEnumValues;
+  static OperatorBookingDetailDtoOutputDiscountFundingEnum valueOf(String name) => _$operatorBookingDetailDtoOutputDiscountFundingEnumValueOf(name);
 }
+

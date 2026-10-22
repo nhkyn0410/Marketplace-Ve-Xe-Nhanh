@@ -11,33 +11,26 @@ part 'save_voucher_input_dto.g.dart';
 /// SaveVoucherInputDto
 ///
 /// Properties:
-/// * [promotionCode]
+/// * [promotionCode] 
 @BuiltValue()
-abstract class SaveVoucherInputDto
-    implements Built<SaveVoucherInputDto, SaveVoucherInputDtoBuilder> {
+abstract class SaveVoucherInputDto implements Built<SaveVoucherInputDto, SaveVoucherInputDtoBuilder> {
   @BuiltValueField(wireName: r'promotionCode')
   String get promotionCode;
 
   SaveVoucherInputDto._();
 
-  factory SaveVoucherInputDto([void updates(SaveVoucherInputDtoBuilder b)]) =
-      _$SaveVoucherInputDto;
+  factory SaveVoucherInputDto([void updates(SaveVoucherInputDtoBuilder b)]) = _$SaveVoucherInputDto;
 
   @BuiltValueHook(initializeBuilder: true)
   static void _defaults(SaveVoucherInputDtoBuilder b) => b;
 
   @BuiltValueSerializer(custom: true)
-  static Serializer<SaveVoucherInputDto> get serializer =>
-      _$SaveVoucherInputDtoSerializer();
+  static Serializer<SaveVoucherInputDto> get serializer => _$SaveVoucherInputDtoSerializer();
 }
 
-class _$SaveVoucherInputDtoSerializer
-    implements PrimitiveSerializer<SaveVoucherInputDto> {
+class _$SaveVoucherInputDtoSerializer implements PrimitiveSerializer<SaveVoucherInputDto> {
   @override
-  final Iterable<Type> types = const [
-    SaveVoucherInputDto,
-    _$SaveVoucherInputDto
-  ];
+  final Iterable<Type> types = const [SaveVoucherInputDto, _$SaveVoucherInputDto];
 
   @override
   final String wireName = r'SaveVoucherInputDto';
@@ -60,9 +53,7 @@ class _$SaveVoucherInputDtoSerializer
     SaveVoucherInputDto object, {
     FullType specifiedType = FullType.unspecified,
   }) {
-    return _serializeProperties(serializers, object,
-            specifiedType: specifiedType)
-        .toList();
+    return _serializeProperties(serializers, object, specifiedType: specifiedType).toList();
   }
 
   void _deserializeProperties(
@@ -112,3 +103,5 @@ class _$SaveVoucherInputDtoSerializer
     return result.build();
   }
 }
+
+

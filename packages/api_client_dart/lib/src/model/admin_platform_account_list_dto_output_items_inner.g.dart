@@ -34,6 +34,330 @@ final BuiltSet<AdminPlatformAccountListDtoOutputItemsInnerRoleEnum>
   _$adminPlatformAccountListDtoOutputItemsInnerRoleEnum_PLATFORM_SUPPORT,
 ]);
 
+const AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum
+    _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_profileColonManage =
+    const AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum._(
+        'profileColonManage');
+const AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum
+    _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_loyaltyColonUse =
+    const AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum._(
+        'loyaltyColonUse');
+const AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum
+    _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_notificationColonManage =
+    const AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum._(
+        'notificationColonManage');
+const AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum
+    _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_incidentColonCreate =
+    const AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum._(
+        'incidentColonCreate');
+const AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum
+    _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_journeyLogColonCreate =
+    const AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum._(
+        'journeyLogColonCreate');
+const AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum
+    _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_systemColonRun =
+    const AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum._(
+        'systemColonRun');
+const AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum
+    _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_tripColonSearch =
+    const AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum._(
+        'tripColonSearch');
+const AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum
+    _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_bookingColonCreate =
+    const AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum._(
+        'bookingColonCreate');
+const AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum
+    _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_bookingColonRead =
+    const AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum._(
+        'bookingColonRead');
+const AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum
+    _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_paymentColonCreate =
+    const AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum._(
+        'paymentColonCreate');
+const AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum
+    _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_paymentColonMonitor =
+    const AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum._(
+        'paymentColonMonitor');
+const AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum
+    _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_refundColonRequest =
+    const AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum._(
+        'refundColonRequest');
+const AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum
+    _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_vehicleColonManage =
+    const AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum._(
+        'vehicleColonManage');
+const AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum
+    _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_vehicleColonRead =
+    const AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum._(
+        'vehicleColonRead');
+const AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum
+    _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_routeColonManage =
+    const AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum._(
+        'routeColonManage');
+const AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum
+    _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_tripColonManage =
+    const AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum._(
+        'tripColonManage');
+const AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum
+    _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_checkinColonPerform =
+    const AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum._(
+        'checkinColonPerform');
+const AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum
+    _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_checkinColonRead =
+    const AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum._(
+        'checkinColonRead');
+const AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum
+    _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_tripColonOperate =
+    const AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum._(
+        'tripColonOperate');
+const AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum
+    _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_kycColonSubmit =
+    const AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum._(
+        'kycColonSubmit');
+const AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum
+    _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_kycColonReview =
+    const AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum._(
+        'kycColonReview');
+const AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum
+    _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_catalogColonManage =
+    const AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum._(
+        'catalogColonManage');
+const AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum
+    _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_contentColonModerate =
+    const AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum._(
+        'contentColonModerate');
+const AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum
+    _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_contentColonManage =
+    const AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum._(
+        'contentColonManage');
+const AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum
+    _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_userColonManage =
+    const AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum._(
+        'userColonManage');
+const AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum
+    _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_systemColonRead =
+    const AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum._(
+        'systemColonRead');
+const AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum
+    _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_financeColonRead =
+    const AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum._(
+        'financeColonRead');
+const AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum
+    _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_financeColonConfigure =
+    const AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum._(
+        'financeColonConfigure');
+const AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum
+    _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_auditColonRead =
+    const AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum._(
+        'auditColonRead');
+const AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum
+    _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_employeeColonManage =
+    const AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum._(
+        'employeeColonManage');
+const AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum
+    _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_accountColonLock =
+    const AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum._(
+        'accountColonLock');
+const AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum
+    _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_supportColonCreate =
+    const AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum._(
+        'supportColonCreate');
+const AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum
+    _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_reviewColonCreate =
+    const AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum._(
+        'reviewColonCreate');
+const AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum
+    _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_supportColonRespond =
+    const AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum._(
+        'supportColonRespond');
+const AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum
+    _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_supportColonManage =
+    const AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum._(
+        'supportColonManage');
+const AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum
+    _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_disputeColonDecide =
+    const AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum._(
+        'disputeColonDecide');
+const AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum
+    _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_promotionColonManage =
+    const AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum._(
+        'promotionColonManage');
+const AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum
+    _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_promotionColonConfigure =
+    const AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum._(
+        'promotionColonConfigure');
+const AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum
+    _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_loyaltyColonManage =
+    const AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum._(
+        'loyaltyColonManage');
+const AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum
+    _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_accessColonManage =
+    const AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum._(
+        'accessColonManage');
+const AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum
+    _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_transportColonRead =
+    const AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum._(
+        'transportColonRead');
+const AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum
+    _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_managerColonManage =
+    const AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum._(
+        'managerColonManage');
+const AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum
+    _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_payoutColonManage =
+    const AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum._(
+        'payoutColonManage');
+const AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum
+    _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_refundColonManage =
+    const AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum._(
+        'refundColonManage');
+
+AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum
+    _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnumValueOf(
+        String name) {
+  switch (name) {
+    case 'profileColonManage':
+      return _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_profileColonManage;
+    case 'loyaltyColonUse':
+      return _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_loyaltyColonUse;
+    case 'notificationColonManage':
+      return _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_notificationColonManage;
+    case 'incidentColonCreate':
+      return _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_incidentColonCreate;
+    case 'journeyLogColonCreate':
+      return _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_journeyLogColonCreate;
+    case 'systemColonRun':
+      return _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_systemColonRun;
+    case 'tripColonSearch':
+      return _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_tripColonSearch;
+    case 'bookingColonCreate':
+      return _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_bookingColonCreate;
+    case 'bookingColonRead':
+      return _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_bookingColonRead;
+    case 'paymentColonCreate':
+      return _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_paymentColonCreate;
+    case 'paymentColonMonitor':
+      return _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_paymentColonMonitor;
+    case 'refundColonRequest':
+      return _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_refundColonRequest;
+    case 'vehicleColonManage':
+      return _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_vehicleColonManage;
+    case 'vehicleColonRead':
+      return _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_vehicleColonRead;
+    case 'routeColonManage':
+      return _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_routeColonManage;
+    case 'tripColonManage':
+      return _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_tripColonManage;
+    case 'checkinColonPerform':
+      return _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_checkinColonPerform;
+    case 'checkinColonRead':
+      return _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_checkinColonRead;
+    case 'tripColonOperate':
+      return _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_tripColonOperate;
+    case 'kycColonSubmit':
+      return _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_kycColonSubmit;
+    case 'kycColonReview':
+      return _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_kycColonReview;
+    case 'catalogColonManage':
+      return _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_catalogColonManage;
+    case 'contentColonModerate':
+      return _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_contentColonModerate;
+    case 'contentColonManage':
+      return _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_contentColonManage;
+    case 'userColonManage':
+      return _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_userColonManage;
+    case 'systemColonRead':
+      return _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_systemColonRead;
+    case 'financeColonRead':
+      return _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_financeColonRead;
+    case 'financeColonConfigure':
+      return _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_financeColonConfigure;
+    case 'auditColonRead':
+      return _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_auditColonRead;
+    case 'employeeColonManage':
+      return _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_employeeColonManage;
+    case 'accountColonLock':
+      return _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_accountColonLock;
+    case 'supportColonCreate':
+      return _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_supportColonCreate;
+    case 'reviewColonCreate':
+      return _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_reviewColonCreate;
+    case 'supportColonRespond':
+      return _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_supportColonRespond;
+    case 'supportColonManage':
+      return _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_supportColonManage;
+    case 'disputeColonDecide':
+      return _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_disputeColonDecide;
+    case 'promotionColonManage':
+      return _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_promotionColonManage;
+    case 'promotionColonConfigure':
+      return _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_promotionColonConfigure;
+    case 'loyaltyColonManage':
+      return _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_loyaltyColonManage;
+    case 'accessColonManage':
+      return _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_accessColonManage;
+    case 'transportColonRead':
+      return _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_transportColonRead;
+    case 'managerColonManage':
+      return _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_managerColonManage;
+    case 'payoutColonManage':
+      return _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_payoutColonManage;
+    case 'refundColonManage':
+      return _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_refundColonManage;
+    default:
+      throw ArgumentError(name);
+  }
+}
+
+final BuiltSet<AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum>
+    _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnumValues =
+    BuiltSet<
+        AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum>(const <AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum>[
+  _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_profileColonManage,
+  _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_loyaltyColonUse,
+  _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_notificationColonManage,
+  _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_incidentColonCreate,
+  _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_journeyLogColonCreate,
+  _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_systemColonRun,
+  _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_tripColonSearch,
+  _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_bookingColonCreate,
+  _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_bookingColonRead,
+  _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_paymentColonCreate,
+  _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_paymentColonMonitor,
+  _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_refundColonRequest,
+  _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_vehicleColonManage,
+  _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_vehicleColonRead,
+  _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_routeColonManage,
+  _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_tripColonManage,
+  _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_checkinColonPerform,
+  _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_checkinColonRead,
+  _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_tripColonOperate,
+  _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_kycColonSubmit,
+  _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_kycColonReview,
+  _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_catalogColonManage,
+  _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_contentColonModerate,
+  _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_contentColonManage,
+  _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_userColonManage,
+  _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_systemColonRead,
+  _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_financeColonRead,
+  _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_financeColonConfigure,
+  _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_auditColonRead,
+  _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_employeeColonManage,
+  _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_accountColonLock,
+  _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_supportColonCreate,
+  _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_reviewColonCreate,
+  _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_supportColonRespond,
+  _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_supportColonManage,
+  _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_disputeColonDecide,
+  _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_promotionColonManage,
+  _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_promotionColonConfigure,
+  _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_loyaltyColonManage,
+  _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_accessColonManage,
+  _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_transportColonRead,
+  _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_managerColonManage,
+  _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_payoutColonManage,
+  _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_refundColonManage,
+]);
+
 const AdminPlatformAccountListDtoOutputItemsInnerStatusEnum
     _$adminPlatformAccountListDtoOutputItemsInnerStatusEnum_ACTIVE =
     const AdminPlatformAccountListDtoOutputItemsInnerStatusEnum._('ACTIVE');
@@ -70,6 +394,9 @@ final BuiltSet<AdminPlatformAccountListDtoOutputItemsInnerStatusEnum>
 Serializer<AdminPlatformAccountListDtoOutputItemsInnerRoleEnum>
     _$adminPlatformAccountListDtoOutputItemsInnerRoleEnumSerializer =
     _$AdminPlatformAccountListDtoOutputItemsInnerRoleEnumSerializer();
+Serializer<AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum>
+    _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnumSerializer =
+    _$AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnumSerializer();
 Serializer<AdminPlatformAccountListDtoOutputItemsInnerStatusEnum>
     _$adminPlatformAccountListDtoOutputItemsInnerStatusEnumSerializer =
     _$AdminPlatformAccountListDtoOutputItemsInnerStatusEnumSerializer();
@@ -105,6 +432,125 @@ class _$AdminPlatformAccountListDtoOutputItemsInnerRoleEnumSerializer
           Serializers serializers, Object serialized,
           {FullType specifiedType = FullType.unspecified}) =>
       AdminPlatformAccountListDtoOutputItemsInnerRoleEnum.valueOf(
+          _fromWire[serialized] ?? (serialized is String ? serialized : ''));
+}
+
+class _$AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnumSerializer
+    implements
+        PrimitiveSerializer<
+            AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum> {
+  static const Map<String, Object> _toWire = const <String, Object>{
+    'profileColonManage': 'profile:manage',
+    'loyaltyColonUse': 'loyalty:use',
+    'notificationColonManage': 'notification:manage',
+    'incidentColonCreate': 'incident:create',
+    'journeyLogColonCreate': 'journey-log:create',
+    'systemColonRun': 'system:run',
+    'tripColonSearch': 'trip:search',
+    'bookingColonCreate': 'booking:create',
+    'bookingColonRead': 'booking:read',
+    'paymentColonCreate': 'payment:create',
+    'paymentColonMonitor': 'payment:monitor',
+    'refundColonRequest': 'refund:request',
+    'vehicleColonManage': 'vehicle:manage',
+    'vehicleColonRead': 'vehicle:read',
+    'routeColonManage': 'route:manage',
+    'tripColonManage': 'trip:manage',
+    'checkinColonPerform': 'checkin:perform',
+    'checkinColonRead': 'checkin:read',
+    'tripColonOperate': 'trip:operate',
+    'kycColonSubmit': 'kyc:submit',
+    'kycColonReview': 'kyc:review',
+    'catalogColonManage': 'catalog:manage',
+    'contentColonModerate': 'content:moderate',
+    'contentColonManage': 'content:manage',
+    'userColonManage': 'user:manage',
+    'systemColonRead': 'system:read',
+    'financeColonRead': 'finance:read',
+    'financeColonConfigure': 'finance:configure',
+    'auditColonRead': 'audit:read',
+    'employeeColonManage': 'employee:manage',
+    'accountColonLock': 'account:lock',
+    'supportColonCreate': 'support:create',
+    'reviewColonCreate': 'review:create',
+    'supportColonRespond': 'support:respond',
+    'supportColonManage': 'support:manage',
+    'disputeColonDecide': 'dispute:decide',
+    'promotionColonManage': 'promotion:manage',
+    'promotionColonConfigure': 'promotion:configure',
+    'loyaltyColonManage': 'loyalty:manage',
+    'accessColonManage': 'access:manage',
+    'transportColonRead': 'transport:read',
+    'managerColonManage': 'manager:manage',
+    'payoutColonManage': 'payout:manage',
+    'refundColonManage': 'refund:manage',
+  };
+  static const Map<Object, String> _fromWire = const <Object, String>{
+    'profile:manage': 'profileColonManage',
+    'loyalty:use': 'loyaltyColonUse',
+    'notification:manage': 'notificationColonManage',
+    'incident:create': 'incidentColonCreate',
+    'journey-log:create': 'journeyLogColonCreate',
+    'system:run': 'systemColonRun',
+    'trip:search': 'tripColonSearch',
+    'booking:create': 'bookingColonCreate',
+    'booking:read': 'bookingColonRead',
+    'payment:create': 'paymentColonCreate',
+    'payment:monitor': 'paymentColonMonitor',
+    'refund:request': 'refundColonRequest',
+    'vehicle:manage': 'vehicleColonManage',
+    'vehicle:read': 'vehicleColonRead',
+    'route:manage': 'routeColonManage',
+    'trip:manage': 'tripColonManage',
+    'checkin:perform': 'checkinColonPerform',
+    'checkin:read': 'checkinColonRead',
+    'trip:operate': 'tripColonOperate',
+    'kyc:submit': 'kycColonSubmit',
+    'kyc:review': 'kycColonReview',
+    'catalog:manage': 'catalogColonManage',
+    'content:moderate': 'contentColonModerate',
+    'content:manage': 'contentColonManage',
+    'user:manage': 'userColonManage',
+    'system:read': 'systemColonRead',
+    'finance:read': 'financeColonRead',
+    'finance:configure': 'financeColonConfigure',
+    'audit:read': 'auditColonRead',
+    'employee:manage': 'employeeColonManage',
+    'account:lock': 'accountColonLock',
+    'support:create': 'supportColonCreate',
+    'review:create': 'reviewColonCreate',
+    'support:respond': 'supportColonRespond',
+    'support:manage': 'supportColonManage',
+    'dispute:decide': 'disputeColonDecide',
+    'promotion:manage': 'promotionColonManage',
+    'promotion:configure': 'promotionColonConfigure',
+    'loyalty:manage': 'loyaltyColonManage',
+    'access:manage': 'accessColonManage',
+    'transport:read': 'transportColonRead',
+    'manager:manage': 'managerColonManage',
+    'payout:manage': 'payoutColonManage',
+    'refund:manage': 'refundColonManage',
+  };
+
+  @override
+  final Iterable<Type> types = const <Type>[
+    AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum
+  ];
+  @override
+  final String wireName =
+      'AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum';
+
+  @override
+  Object serialize(Serializers serializers,
+          AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum object,
+          {FullType specifiedType = FullType.unspecified}) =>
+      _toWire[object.name] ?? object.name;
+
+  @override
+  AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum deserialize(
+          Serializers serializers, Object serialized,
+          {FullType specifiedType = FullType.unspecified}) =>
+      AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum.valueOf(
           _fromWire[serialized] ?? (serialized is String ? serialized : ''));
 }
 
@@ -156,6 +602,9 @@ class _$AdminPlatformAccountListDtoOutputItemsInner
   @override
   final AdminPlatformAccountListDtoOutputItemsInnerRoleEnum role;
   @override
+  final BuiltList<AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum>
+      permissions;
+  @override
   final AdminPlatformAccountListDtoOutputItemsInnerStatusEnum status;
   @override
   final bool mfaEnabled;
@@ -183,6 +632,7 @@ class _$AdminPlatformAccountListDtoOutputItemsInner
       required this.username,
       this.email,
       required this.role,
+      required this.permissions,
       required this.status,
       required this.mfaEnabled,
       required this.passwordChangeRequired,
@@ -210,6 +660,7 @@ class _$AdminPlatformAccountListDtoOutputItemsInner
         username == other.username &&
         email == other.email &&
         role == other.role &&
+        permissions == other.permissions &&
         status == other.status &&
         mfaEnabled == other.mfaEnabled &&
         passwordChangeRequired == other.passwordChangeRequired &&
@@ -227,6 +678,7 @@ class _$AdminPlatformAccountListDtoOutputItemsInner
     _$hash = $jc(_$hash, username.hashCode);
     _$hash = $jc(_$hash, email.hashCode);
     _$hash = $jc(_$hash, role.hashCode);
+    _$hash = $jc(_$hash, permissions.hashCode);
     _$hash = $jc(_$hash, status.hashCode);
     _$hash = $jc(_$hash, mfaEnabled.hashCode);
     _$hash = $jc(_$hash, passwordChangeRequired.hashCode);
@@ -247,6 +699,7 @@ class _$AdminPlatformAccountListDtoOutputItemsInner
           ..add('username', username)
           ..add('email', email)
           ..add('role', role)
+          ..add('permissions', permissions)
           ..add('status', status)
           ..add('mfaEnabled', mfaEnabled)
           ..add('passwordChangeRequired', passwordChangeRequired)
@@ -281,6 +734,17 @@ class AdminPlatformAccountListDtoOutputItemsInnerBuilder
   AdminPlatformAccountListDtoOutputItemsInnerRoleEnum? get role => _$this._role;
   set role(AdminPlatformAccountListDtoOutputItemsInnerRoleEnum? role) =>
       _$this._role = role;
+
+  ListBuilder<AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum>?
+      _permissions;
+  ListBuilder<AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum>
+      get permissions => _$this._permissions ??= ListBuilder<
+          AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum>();
+  set permissions(
+          ListBuilder<
+                  AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum>?
+              permissions) =>
+      _$this._permissions = permissions;
 
   AdminPlatformAccountListDtoOutputItemsInnerStatusEnum? _status;
   AdminPlatformAccountListDtoOutputItemsInnerStatusEnum? get status =>
@@ -329,6 +793,7 @@ class AdminPlatformAccountListDtoOutputItemsInnerBuilder
       _username = $v.username;
       _email = $v.email;
       _role = $v.role;
+      _permissions = $v.permissions.toBuilder();
       _status = $v.status;
       _mfaEnabled = $v.mfaEnabled;
       _passwordChangeRequired = $v.passwordChangeRequired;
@@ -358,33 +823,49 @@ class AdminPlatformAccountListDtoOutputItemsInnerBuilder
   AdminPlatformAccountListDtoOutputItemsInner build() => _build();
 
   _$AdminPlatformAccountListDtoOutputItemsInner _build() {
-    final _$result = _$v ??
-        _$AdminPlatformAccountListDtoOutputItemsInner._(
-          id: BuiltValueNullFieldError.checkNotNull(
-              id, r'AdminPlatformAccountListDtoOutputItemsInner', 'id'),
-          username: BuiltValueNullFieldError.checkNotNull(username,
-              r'AdminPlatformAccountListDtoOutputItemsInner', 'username'),
-          email: email,
-          role: BuiltValueNullFieldError.checkNotNull(
-              role, r'AdminPlatformAccountListDtoOutputItemsInner', 'role'),
-          status: BuiltValueNullFieldError.checkNotNull(
-              status, r'AdminPlatformAccountListDtoOutputItemsInner', 'status'),
-          mfaEnabled: BuiltValueNullFieldError.checkNotNull(mfaEnabled,
-              r'AdminPlatformAccountListDtoOutputItemsInner', 'mfaEnabled'),
-          passwordChangeRequired: BuiltValueNullFieldError.checkNotNull(
-              passwordChangeRequired,
-              r'AdminPlatformAccountListDtoOutputItemsInner',
-              'passwordChangeRequired'),
-          credentialDeliveryPending: BuiltValueNullFieldError.checkNotNull(
-              credentialDeliveryPending,
-              r'AdminPlatformAccountListDtoOutputItemsInner',
-              'credentialDeliveryPending'),
-          lockedReason: lockedReason,
-          lockedAt: lockedAt,
-          lastLoginAt: lastLoginAt,
-          isSelf: BuiltValueNullFieldError.checkNotNull(
-              isSelf, r'AdminPlatformAccountListDtoOutputItemsInner', 'isSelf'),
-        );
+    _$AdminPlatformAccountListDtoOutputItemsInner _$result;
+    try {
+      _$result = _$v ??
+          _$AdminPlatformAccountListDtoOutputItemsInner._(
+            id: BuiltValueNullFieldError.checkNotNull(
+                id, r'AdminPlatformAccountListDtoOutputItemsInner', 'id'),
+            username: BuiltValueNullFieldError.checkNotNull(username,
+                r'AdminPlatformAccountListDtoOutputItemsInner', 'username'),
+            email: email,
+            role: BuiltValueNullFieldError.checkNotNull(
+                role, r'AdminPlatformAccountListDtoOutputItemsInner', 'role'),
+            permissions: permissions.build(),
+            status: BuiltValueNullFieldError.checkNotNull(status,
+                r'AdminPlatformAccountListDtoOutputItemsInner', 'status'),
+            mfaEnabled: BuiltValueNullFieldError.checkNotNull(mfaEnabled,
+                r'AdminPlatformAccountListDtoOutputItemsInner', 'mfaEnabled'),
+            passwordChangeRequired: BuiltValueNullFieldError.checkNotNull(
+                passwordChangeRequired,
+                r'AdminPlatformAccountListDtoOutputItemsInner',
+                'passwordChangeRequired'),
+            credentialDeliveryPending: BuiltValueNullFieldError.checkNotNull(
+                credentialDeliveryPending,
+                r'AdminPlatformAccountListDtoOutputItemsInner',
+                'credentialDeliveryPending'),
+            lockedReason: lockedReason,
+            lockedAt: lockedAt,
+            lastLoginAt: lastLoginAt,
+            isSelf: BuiltValueNullFieldError.checkNotNull(isSelf,
+                r'AdminPlatformAccountListDtoOutputItemsInner', 'isSelf'),
+          );
+    } catch (_) {
+      late String _$failedField;
+      try {
+        _$failedField = 'permissions';
+        permissions.build();
+      } catch (e) {
+        throw BuiltValueNestedFieldError(
+            r'AdminPlatformAccountListDtoOutputItemsInner',
+            _$failedField,
+            e.toString());
+      }
+      rethrow;
+    }
     replace(_$result);
     return _$result;
   }

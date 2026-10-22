@@ -12,14 +12,11 @@ part 'passenger_loyalty_dto_output_rules_tiers_inner.g.dart';
 /// PassengerLoyaltyDtoOutputRulesTiersInner
 ///
 /// Properties:
-/// * [tier]
-/// * [minPoints]
-/// * [multiplierPercent]
+/// * [tier] 
+/// * [minPoints] 
+/// * [multiplierPercent] 
 @BuiltValue()
-abstract class PassengerLoyaltyDtoOutputRulesTiersInner
-    implements
-        Built<PassengerLoyaltyDtoOutputRulesTiersInner,
-            PassengerLoyaltyDtoOutputRulesTiersInnerBuilder> {
+abstract class PassengerLoyaltyDtoOutputRulesTiersInner implements Built<PassengerLoyaltyDtoOutputRulesTiersInner, PassengerLoyaltyDtoOutputRulesTiersInnerBuilder> {
   @BuiltValueField(wireName: r'tier')
   PassengerLoyaltyDtoOutputRulesTiersInnerTierEnum get tier;
   // enum tierEnum {  BRONZE,  SILVER,  GOLD,  PLATINUM,  };
@@ -32,25 +29,18 @@ abstract class PassengerLoyaltyDtoOutputRulesTiersInner
 
   PassengerLoyaltyDtoOutputRulesTiersInner._();
 
-  factory PassengerLoyaltyDtoOutputRulesTiersInner(
-          [void updates(PassengerLoyaltyDtoOutputRulesTiersInnerBuilder b)]) =
-      _$PassengerLoyaltyDtoOutputRulesTiersInner;
+  factory PassengerLoyaltyDtoOutputRulesTiersInner([void updates(PassengerLoyaltyDtoOutputRulesTiersInnerBuilder b)]) = _$PassengerLoyaltyDtoOutputRulesTiersInner;
 
   @BuiltValueHook(initializeBuilder: true)
   static void _defaults(PassengerLoyaltyDtoOutputRulesTiersInnerBuilder b) => b;
 
   @BuiltValueSerializer(custom: true)
-  static Serializer<PassengerLoyaltyDtoOutputRulesTiersInner> get serializer =>
-      _$PassengerLoyaltyDtoOutputRulesTiersInnerSerializer();
+  static Serializer<PassengerLoyaltyDtoOutputRulesTiersInner> get serializer => _$PassengerLoyaltyDtoOutputRulesTiersInnerSerializer();
 }
 
-class _$PassengerLoyaltyDtoOutputRulesTiersInnerSerializer
-    implements PrimitiveSerializer<PassengerLoyaltyDtoOutputRulesTiersInner> {
+class _$PassengerLoyaltyDtoOutputRulesTiersInnerSerializer implements PrimitiveSerializer<PassengerLoyaltyDtoOutputRulesTiersInner> {
   @override
-  final Iterable<Type> types = const [
-    PassengerLoyaltyDtoOutputRulesTiersInner,
-    _$PassengerLoyaltyDtoOutputRulesTiersInner
-  ];
+  final Iterable<Type> types = const [PassengerLoyaltyDtoOutputRulesTiersInner, _$PassengerLoyaltyDtoOutputRulesTiersInner];
 
   @override
   final String wireName = r'PassengerLoyaltyDtoOutputRulesTiersInner';
@@ -63,8 +53,7 @@ class _$PassengerLoyaltyDtoOutputRulesTiersInnerSerializer
     yield r'tier';
     yield serializers.serialize(
       object.tier,
-      specifiedType:
-          const FullType(PassengerLoyaltyDtoOutputRulesTiersInnerTierEnum),
+      specifiedType: const FullType(PassengerLoyaltyDtoOutputRulesTiersInnerTierEnum),
     );
     yield r'minPoints';
     yield serializers.serialize(
@@ -84,9 +73,7 @@ class _$PassengerLoyaltyDtoOutputRulesTiersInnerSerializer
     PassengerLoyaltyDtoOutputRulesTiersInner object, {
     FullType specifiedType = FullType.unspecified,
   }) {
-    return _serializeProperties(serializers, object,
-            specifiedType: specifiedType)
-        .toList();
+    return _serializeProperties(serializers, object, specifiedType: specifiedType).toList();
   }
 
   void _deserializeProperties(
@@ -104,8 +91,7 @@ class _$PassengerLoyaltyDtoOutputRulesTiersInnerSerializer
         case r'tier':
           final valueDes = serializers.deserialize(
             value,
-            specifiedType: const FullType(
-                PassengerLoyaltyDtoOutputRulesTiersInnerTierEnum),
+            specifiedType: const FullType(PassengerLoyaltyDtoOutputRulesTiersInnerTierEnum),
           ) as PassengerLoyaltyDtoOutputRulesTiersInnerTierEnum;
           result.tier = valueDes;
           break;
@@ -152,30 +138,23 @@ class _$PassengerLoyaltyDtoOutputRulesTiersInnerSerializer
   }
 }
 
+
 class PassengerLoyaltyDtoOutputRulesTiersInnerTierEnum extends EnumClass {
+
   @BuiltValueEnumConst(wireName: r'BRONZE')
-  static const PassengerLoyaltyDtoOutputRulesTiersInnerTierEnum BRONZE =
-      _$passengerLoyaltyDtoOutputRulesTiersInnerTierEnum_BRONZE;
+  static const PassengerLoyaltyDtoOutputRulesTiersInnerTierEnum BRONZE = _$passengerLoyaltyDtoOutputRulesTiersInnerTierEnum_BRONZE;
   @BuiltValueEnumConst(wireName: r'SILVER')
-  static const PassengerLoyaltyDtoOutputRulesTiersInnerTierEnum SILVER =
-      _$passengerLoyaltyDtoOutputRulesTiersInnerTierEnum_SILVER;
+  static const PassengerLoyaltyDtoOutputRulesTiersInnerTierEnum SILVER = _$passengerLoyaltyDtoOutputRulesTiersInnerTierEnum_SILVER;
   @BuiltValueEnumConst(wireName: r'GOLD')
-  static const PassengerLoyaltyDtoOutputRulesTiersInnerTierEnum GOLD =
-      _$passengerLoyaltyDtoOutputRulesTiersInnerTierEnum_GOLD;
+  static const PassengerLoyaltyDtoOutputRulesTiersInnerTierEnum GOLD = _$passengerLoyaltyDtoOutputRulesTiersInnerTierEnum_GOLD;
   @BuiltValueEnumConst(wireName: r'PLATINUM')
-  static const PassengerLoyaltyDtoOutputRulesTiersInnerTierEnum PLATINUM =
-      _$passengerLoyaltyDtoOutputRulesTiersInnerTierEnum_PLATINUM;
+  static const PassengerLoyaltyDtoOutputRulesTiersInnerTierEnum PLATINUM = _$passengerLoyaltyDtoOutputRulesTiersInnerTierEnum_PLATINUM;
 
-  static Serializer<PassengerLoyaltyDtoOutputRulesTiersInnerTierEnum>
-      get serializer =>
-          _$passengerLoyaltyDtoOutputRulesTiersInnerTierEnumSerializer;
+  static Serializer<PassengerLoyaltyDtoOutputRulesTiersInnerTierEnum> get serializer => _$passengerLoyaltyDtoOutputRulesTiersInnerTierEnumSerializer;
 
-  const PassengerLoyaltyDtoOutputRulesTiersInnerTierEnum._(String name)
-      : super(name);
+  const PassengerLoyaltyDtoOutputRulesTiersInnerTierEnum._(String name): super(name);
 
-  static BuiltSet<PassengerLoyaltyDtoOutputRulesTiersInnerTierEnum>
-      get values => _$passengerLoyaltyDtoOutputRulesTiersInnerTierEnumValues;
-  static PassengerLoyaltyDtoOutputRulesTiersInnerTierEnum valueOf(
-          String name) =>
-      _$passengerLoyaltyDtoOutputRulesTiersInnerTierEnumValueOf(name);
+  static BuiltSet<PassengerLoyaltyDtoOutputRulesTiersInnerTierEnum> get values => _$passengerLoyaltyDtoOutputRulesTiersInnerTierEnumValues;
+  static PassengerLoyaltyDtoOutputRulesTiersInnerTierEnum valueOf(String name) => _$passengerLoyaltyDtoOutputRulesTiersInnerTierEnumValueOf(name);
 }
+

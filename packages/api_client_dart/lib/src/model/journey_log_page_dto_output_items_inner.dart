@@ -11,21 +11,18 @@ part 'journey_log_page_dto_output_items_inner.g.dart';
 /// JourneyLogPageDtoOutputItemsInner
 ///
 /// Properties:
-/// * [id]
-/// * [operatorId]
-/// * [tripId]
-/// * [employeeId]
-/// * [stopSequence]
-/// * [actualAt]
-/// * [createdAt]
-/// * [vehicleStatus]
-/// * [note]
-/// * [delayMinutes]
+/// * [id] 
+/// * [operatorId] 
+/// * [tripId] 
+/// * [employeeId] 
+/// * [stopSequence] 
+/// * [actualAt] 
+/// * [createdAt] 
+/// * [vehicleStatus] 
+/// * [note] 
+/// * [delayMinutes] 
 @BuiltValue()
-abstract class JourneyLogPageDtoOutputItemsInner
-    implements
-        Built<JourneyLogPageDtoOutputItemsInner,
-            JourneyLogPageDtoOutputItemsInnerBuilder> {
+abstract class JourneyLogPageDtoOutputItemsInner implements Built<JourneyLogPageDtoOutputItemsInner, JourneyLogPageDtoOutputItemsInnerBuilder> {
   @BuiltValueField(wireName: r'id')
   String get id;
 
@@ -58,25 +55,18 @@ abstract class JourneyLogPageDtoOutputItemsInner
 
   JourneyLogPageDtoOutputItemsInner._();
 
-  factory JourneyLogPageDtoOutputItemsInner(
-          [void updates(JourneyLogPageDtoOutputItemsInnerBuilder b)]) =
-      _$JourneyLogPageDtoOutputItemsInner;
+  factory JourneyLogPageDtoOutputItemsInner([void updates(JourneyLogPageDtoOutputItemsInnerBuilder b)]) = _$JourneyLogPageDtoOutputItemsInner;
 
   @BuiltValueHook(initializeBuilder: true)
   static void _defaults(JourneyLogPageDtoOutputItemsInnerBuilder b) => b;
 
   @BuiltValueSerializer(custom: true)
-  static Serializer<JourneyLogPageDtoOutputItemsInner> get serializer =>
-      _$JourneyLogPageDtoOutputItemsInnerSerializer();
+  static Serializer<JourneyLogPageDtoOutputItemsInner> get serializer => _$JourneyLogPageDtoOutputItemsInnerSerializer();
 }
 
-class _$JourneyLogPageDtoOutputItemsInnerSerializer
-    implements PrimitiveSerializer<JourneyLogPageDtoOutputItemsInner> {
+class _$JourneyLogPageDtoOutputItemsInnerSerializer implements PrimitiveSerializer<JourneyLogPageDtoOutputItemsInner> {
   @override
-  final Iterable<Type> types = const [
-    JourneyLogPageDtoOutputItemsInner,
-    _$JourneyLogPageDtoOutputItemsInner
-  ];
+  final Iterable<Type> types = const [JourneyLogPageDtoOutputItemsInner, _$JourneyLogPageDtoOutputItemsInner];
 
   @override
   final String wireName = r'JourneyLogPageDtoOutputItemsInner';
@@ -107,12 +97,10 @@ class _$JourneyLogPageDtoOutputItemsInnerSerializer
       specifiedType: const FullType(String),
     );
     yield r'stopSequence';
-    yield object.stopSequence == null
-        ? null
-        : serializers.serialize(
-            object.stopSequence,
-            specifiedType: const FullType.nullable(int),
-          );
+    yield object.stopSequence == null ? null : serializers.serialize(
+      object.stopSequence,
+      specifiedType: const FullType.nullable(int),
+    );
     yield r'actualAt';
     yield serializers.serialize(
       object.actualAt,
@@ -124,19 +112,15 @@ class _$JourneyLogPageDtoOutputItemsInnerSerializer
       specifiedType: const FullType(DateTime),
     );
     yield r'vehicleStatus';
-    yield object.vehicleStatus == null
-        ? null
-        : serializers.serialize(
-            object.vehicleStatus,
-            specifiedType: const FullType.nullable(String),
-          );
+    yield object.vehicleStatus == null ? null : serializers.serialize(
+      object.vehicleStatus,
+      specifiedType: const FullType.nullable(String),
+    );
     yield r'note';
-    yield object.note == null
-        ? null
-        : serializers.serialize(
-            object.note,
-            specifiedType: const FullType.nullable(String),
-          );
+    yield object.note == null ? null : serializers.serialize(
+      object.note,
+      specifiedType: const FullType.nullable(String),
+    );
     yield r'delayMinutes';
     yield serializers.serialize(
       object.delayMinutes,
@@ -150,9 +134,7 @@ class _$JourneyLogPageDtoOutputItemsInnerSerializer
     JourneyLogPageDtoOutputItemsInner object, {
     FullType specifiedType = FullType.unspecified,
   }) {
-    return _serializeProperties(serializers, object,
-            specifiedType: specifiedType)
-        .toList();
+    return _serializeProperties(serializers, object, specifiedType: specifiedType).toList();
   }
 
   void _deserializeProperties(
@@ -268,3 +250,5 @@ class _$JourneyLogPageDtoOutputItemsInnerSerializer
     return result.build();
   }
 }
+
+

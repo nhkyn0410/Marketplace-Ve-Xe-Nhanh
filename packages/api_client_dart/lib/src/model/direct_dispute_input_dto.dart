@@ -11,13 +11,12 @@ part 'direct_dispute_input_dto.g.dart';
 /// DirectDisputeInputDto
 ///
 /// Properties:
-/// * [bookingId]
-/// * [title]
-/// * [customerRequest]
-/// * [reason]
+/// * [bookingId] 
+/// * [title] 
+/// * [customerRequest] 
+/// * [reason] 
 @BuiltValue()
-abstract class DirectDisputeInputDto
-    implements Built<DirectDisputeInputDto, DirectDisputeInputDtoBuilder> {
+abstract class DirectDisputeInputDto implements Built<DirectDisputeInputDto, DirectDisputeInputDtoBuilder> {
   @BuiltValueField(wireName: r'bookingId')
   String get bookingId;
 
@@ -32,24 +31,18 @@ abstract class DirectDisputeInputDto
 
   DirectDisputeInputDto._();
 
-  factory DirectDisputeInputDto(
-      [void updates(DirectDisputeInputDtoBuilder b)]) = _$DirectDisputeInputDto;
+  factory DirectDisputeInputDto([void updates(DirectDisputeInputDtoBuilder b)]) = _$DirectDisputeInputDto;
 
   @BuiltValueHook(initializeBuilder: true)
   static void _defaults(DirectDisputeInputDtoBuilder b) => b;
 
   @BuiltValueSerializer(custom: true)
-  static Serializer<DirectDisputeInputDto> get serializer =>
-      _$DirectDisputeInputDtoSerializer();
+  static Serializer<DirectDisputeInputDto> get serializer => _$DirectDisputeInputDtoSerializer();
 }
 
-class _$DirectDisputeInputDtoSerializer
-    implements PrimitiveSerializer<DirectDisputeInputDto> {
+class _$DirectDisputeInputDtoSerializer implements PrimitiveSerializer<DirectDisputeInputDto> {
   @override
-  final Iterable<Type> types = const [
-    DirectDisputeInputDto,
-    _$DirectDisputeInputDto
-  ];
+  final Iterable<Type> types = const [DirectDisputeInputDto, _$DirectDisputeInputDto];
 
   @override
   final String wireName = r'DirectDisputeInputDto';
@@ -65,12 +58,10 @@ class _$DirectDisputeInputDtoSerializer
       specifiedType: const FullType(String),
     );
     yield r'title';
-    yield object.title == null
-        ? null
-        : serializers.serialize(
-            object.title,
-            specifiedType: const FullType.nullable(String),
-          );
+    yield object.title == null ? null : serializers.serialize(
+      object.title,
+      specifiedType: const FullType.nullable(String),
+    );
     if (object.customerRequest != null) {
       yield r'customerRequest';
       yield serializers.serialize(
@@ -91,9 +82,7 @@ class _$DirectDisputeInputDtoSerializer
     DirectDisputeInputDto object, {
     FullType specifiedType = FullType.unspecified,
   }) {
-    return _serializeProperties(serializers, object,
-            specifiedType: specifiedType)
-        .toList();
+    return _serializeProperties(serializers, object, specifiedType: specifiedType).toList();
   }
 
   void _deserializeProperties(
@@ -166,3 +155,5 @@ class _$DirectDisputeInputDtoSerializer
     return result.build();
   }
 }
+
+

@@ -11,13 +11,10 @@ part 'incident_input_dto_evidence_inner.g.dart';
 /// IncidentInputDtoEvidenceInner
 ///
 /// Properties:
-/// * [objectKey]
-/// * [fileName]
+/// * [objectKey] 
+/// * [fileName] 
 @BuiltValue()
-abstract class IncidentInputDtoEvidenceInner
-    implements
-        Built<IncidentInputDtoEvidenceInner,
-            IncidentInputDtoEvidenceInnerBuilder> {
+abstract class IncidentInputDtoEvidenceInner implements Built<IncidentInputDtoEvidenceInner, IncidentInputDtoEvidenceInnerBuilder> {
   @BuiltValueField(wireName: r'objectKey')
   String get objectKey;
 
@@ -26,25 +23,18 @@ abstract class IncidentInputDtoEvidenceInner
 
   IncidentInputDtoEvidenceInner._();
 
-  factory IncidentInputDtoEvidenceInner(
-          [void updates(IncidentInputDtoEvidenceInnerBuilder b)]) =
-      _$IncidentInputDtoEvidenceInner;
+  factory IncidentInputDtoEvidenceInner([void updates(IncidentInputDtoEvidenceInnerBuilder b)]) = _$IncidentInputDtoEvidenceInner;
 
   @BuiltValueHook(initializeBuilder: true)
   static void _defaults(IncidentInputDtoEvidenceInnerBuilder b) => b;
 
   @BuiltValueSerializer(custom: true)
-  static Serializer<IncidentInputDtoEvidenceInner> get serializer =>
-      _$IncidentInputDtoEvidenceInnerSerializer();
+  static Serializer<IncidentInputDtoEvidenceInner> get serializer => _$IncidentInputDtoEvidenceInnerSerializer();
 }
 
-class _$IncidentInputDtoEvidenceInnerSerializer
-    implements PrimitiveSerializer<IncidentInputDtoEvidenceInner> {
+class _$IncidentInputDtoEvidenceInnerSerializer implements PrimitiveSerializer<IncidentInputDtoEvidenceInner> {
   @override
-  final Iterable<Type> types = const [
-    IncidentInputDtoEvidenceInner,
-    _$IncidentInputDtoEvidenceInner
-  ];
+  final Iterable<Type> types = const [IncidentInputDtoEvidenceInner, _$IncidentInputDtoEvidenceInner];
 
   @override
   final String wireName = r'IncidentInputDtoEvidenceInner';
@@ -72,9 +62,7 @@ class _$IncidentInputDtoEvidenceInnerSerializer
     IncidentInputDtoEvidenceInner object, {
     FullType specifiedType = FullType.unspecified,
   }) {
-    return _serializeProperties(serializers, object,
-            specifiedType: specifiedType)
-        .toList();
+    return _serializeProperties(serializers, object, specifiedType: specifiedType).toList();
   }
 
   void _deserializeProperties(
@@ -131,3 +119,5 @@ class _$IncidentInputDtoEvidenceInnerSerializer
     return result.build();
   }
 }
+
+

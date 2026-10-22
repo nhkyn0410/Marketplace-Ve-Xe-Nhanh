@@ -11,20 +11,17 @@ part 'admin_report_dto_output_by_operator_inner.g.dart';
 /// AdminReportDtoOutputByOperatorInner
 ///
 /// Properties:
-/// * [operatorId]
-/// * [operatorName]
-/// * [trips]
-/// * [ticketsSold]
-/// * [seats]
-/// * [gmv]
-/// * [refunded]
-/// * [averageRating]
-/// * [reviewCount]
+/// * [operatorId] 
+/// * [operatorName] 
+/// * [trips] 
+/// * [ticketsSold] 
+/// * [seats] 
+/// * [gmv] 
+/// * [refunded] 
+/// * [averageRating] 
+/// * [reviewCount] 
 @BuiltValue()
-abstract class AdminReportDtoOutputByOperatorInner
-    implements
-        Built<AdminReportDtoOutputByOperatorInner,
-            AdminReportDtoOutputByOperatorInnerBuilder> {
+abstract class AdminReportDtoOutputByOperatorInner implements Built<AdminReportDtoOutputByOperatorInner, AdminReportDtoOutputByOperatorInnerBuilder> {
   @BuiltValueField(wireName: r'operatorId')
   String get operatorId;
 
@@ -54,25 +51,18 @@ abstract class AdminReportDtoOutputByOperatorInner
 
   AdminReportDtoOutputByOperatorInner._();
 
-  factory AdminReportDtoOutputByOperatorInner(
-          [void updates(AdminReportDtoOutputByOperatorInnerBuilder b)]) =
-      _$AdminReportDtoOutputByOperatorInner;
+  factory AdminReportDtoOutputByOperatorInner([void updates(AdminReportDtoOutputByOperatorInnerBuilder b)]) = _$AdminReportDtoOutputByOperatorInner;
 
   @BuiltValueHook(initializeBuilder: true)
   static void _defaults(AdminReportDtoOutputByOperatorInnerBuilder b) => b;
 
   @BuiltValueSerializer(custom: true)
-  static Serializer<AdminReportDtoOutputByOperatorInner> get serializer =>
-      _$AdminReportDtoOutputByOperatorInnerSerializer();
+  static Serializer<AdminReportDtoOutputByOperatorInner> get serializer => _$AdminReportDtoOutputByOperatorInnerSerializer();
 }
 
-class _$AdminReportDtoOutputByOperatorInnerSerializer
-    implements PrimitiveSerializer<AdminReportDtoOutputByOperatorInner> {
+class _$AdminReportDtoOutputByOperatorInnerSerializer implements PrimitiveSerializer<AdminReportDtoOutputByOperatorInner> {
   @override
-  final Iterable<Type> types = const [
-    AdminReportDtoOutputByOperatorInner,
-    _$AdminReportDtoOutputByOperatorInner
-  ];
+  final Iterable<Type> types = const [AdminReportDtoOutputByOperatorInner, _$AdminReportDtoOutputByOperatorInner];
 
   @override
   final String wireName = r'AdminReportDtoOutputByOperatorInner';
@@ -118,12 +108,10 @@ class _$AdminReportDtoOutputByOperatorInnerSerializer
       specifiedType: const FullType(int),
     );
     yield r'averageRating';
-    yield object.averageRating == null
-        ? null
-        : serializers.serialize(
-            object.averageRating,
-            specifiedType: const FullType.nullable(num),
-          );
+    yield object.averageRating == null ? null : serializers.serialize(
+      object.averageRating,
+      specifiedType: const FullType.nullable(num),
+    );
     yield r'reviewCount';
     yield serializers.serialize(
       object.reviewCount,
@@ -137,9 +125,7 @@ class _$AdminReportDtoOutputByOperatorInnerSerializer
     AdminReportDtoOutputByOperatorInner object, {
     FullType specifiedType = FullType.unspecified,
   }) {
-    return _serializeProperties(serializers, object,
-            specifiedType: specifiedType)
-        .toList();
+    return _serializeProperties(serializers, object, specifiedType: specifiedType).toList();
   }
 
   void _deserializeProperties(
@@ -246,3 +232,5 @@ class _$AdminReportDtoOutputByOperatorInnerSerializer
     return result.build();
   }
 }
+
+

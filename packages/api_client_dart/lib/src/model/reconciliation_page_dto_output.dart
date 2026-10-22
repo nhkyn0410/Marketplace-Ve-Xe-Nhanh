@@ -13,35 +13,26 @@ part 'reconciliation_page_dto_output.g.dart';
 /// ReconciliationPageDtoOutput
 ///
 /// Properties:
-/// * [items]
+/// * [items] 
 @BuiltValue()
-abstract class ReconciliationPageDtoOutput
-    implements
-        Built<ReconciliationPageDtoOutput, ReconciliationPageDtoOutputBuilder> {
+abstract class ReconciliationPageDtoOutput implements Built<ReconciliationPageDtoOutput, ReconciliationPageDtoOutputBuilder> {
   @BuiltValueField(wireName: r'items')
   BuiltList<ReconciliationPageDtoOutputItemsInner> get items;
 
   ReconciliationPageDtoOutput._();
 
-  factory ReconciliationPageDtoOutput(
-          [void updates(ReconciliationPageDtoOutputBuilder b)]) =
-      _$ReconciliationPageDtoOutput;
+  factory ReconciliationPageDtoOutput([void updates(ReconciliationPageDtoOutputBuilder b)]) = _$ReconciliationPageDtoOutput;
 
   @BuiltValueHook(initializeBuilder: true)
   static void _defaults(ReconciliationPageDtoOutputBuilder b) => b;
 
   @BuiltValueSerializer(custom: true)
-  static Serializer<ReconciliationPageDtoOutput> get serializer =>
-      _$ReconciliationPageDtoOutputSerializer();
+  static Serializer<ReconciliationPageDtoOutput> get serializer => _$ReconciliationPageDtoOutputSerializer();
 }
 
-class _$ReconciliationPageDtoOutputSerializer
-    implements PrimitiveSerializer<ReconciliationPageDtoOutput> {
+class _$ReconciliationPageDtoOutputSerializer implements PrimitiveSerializer<ReconciliationPageDtoOutput> {
   @override
-  final Iterable<Type> types = const [
-    ReconciliationPageDtoOutput,
-    _$ReconciliationPageDtoOutput
-  ];
+  final Iterable<Type> types = const [ReconciliationPageDtoOutput, _$ReconciliationPageDtoOutput];
 
   @override
   final String wireName = r'ReconciliationPageDtoOutput';
@@ -54,8 +45,7 @@ class _$ReconciliationPageDtoOutputSerializer
     yield r'items';
     yield serializers.serialize(
       object.items,
-      specifiedType: const FullType(
-          BuiltList, [FullType(ReconciliationPageDtoOutputItemsInner)]),
+      specifiedType: const FullType(BuiltList, [FullType(ReconciliationPageDtoOutputItemsInner)]),
     );
   }
 
@@ -65,9 +55,7 @@ class _$ReconciliationPageDtoOutputSerializer
     ReconciliationPageDtoOutput object, {
     FullType specifiedType = FullType.unspecified,
   }) {
-    return _serializeProperties(serializers, object,
-            specifiedType: specifiedType)
-        .toList();
+    return _serializeProperties(serializers, object, specifiedType: specifiedType).toList();
   }
 
   void _deserializeProperties(
@@ -85,8 +73,7 @@ class _$ReconciliationPageDtoOutputSerializer
         case r'items':
           final valueDes = serializers.deserialize(
             value,
-            specifiedType: const FullType(
-                BuiltList, [FullType(ReconciliationPageDtoOutputItemsInner)]),
+            specifiedType: const FullType(BuiltList, [FullType(ReconciliationPageDtoOutputItemsInner)]),
           ) as BuiltList<ReconciliationPageDtoOutputItemsInner>;
           result.items.replace(valueDes);
           break;
@@ -118,3 +105,5 @@ class _$ReconciliationPageDtoOutputSerializer
     return result.build();
   }
 }
+
+

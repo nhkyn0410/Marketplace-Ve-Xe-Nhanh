@@ -12,24 +12,21 @@ part 'public_trip_dto_output_stops_inner.g.dart';
 /// PublicTripDtoOutputStopsInner
 ///
 /// Properties:
-/// * [sequence]
-/// * [role]
-/// * [name]
-/// * [address]
-/// * [type]
-/// * [latitude]
-/// * [longitude]
-/// * [plannedAt]
-/// * [pickupWindowStart]
-/// * [pickupWindowEnd]
-/// * [allowPickup]
-/// * [allowDropoff]
-/// * [note]
+/// * [sequence] 
+/// * [role] 
+/// * [name] 
+/// * [address] 
+/// * [type] 
+/// * [latitude] 
+/// * [longitude] 
+/// * [plannedAt] 
+/// * [pickupWindowStart] 
+/// * [pickupWindowEnd] 
+/// * [allowPickup] 
+/// * [allowDropoff] 
+/// * [note] 
 @BuiltValue()
-abstract class PublicTripDtoOutputStopsInner
-    implements
-        Built<PublicTripDtoOutputStopsInner,
-            PublicTripDtoOutputStopsInnerBuilder> {
+abstract class PublicTripDtoOutputStopsInner implements Built<PublicTripDtoOutputStopsInner, PublicTripDtoOutputStopsInnerBuilder> {
   @BuiltValueField(wireName: r'sequence')
   int get sequence;
 
@@ -73,25 +70,18 @@ abstract class PublicTripDtoOutputStopsInner
 
   PublicTripDtoOutputStopsInner._();
 
-  factory PublicTripDtoOutputStopsInner(
-          [void updates(PublicTripDtoOutputStopsInnerBuilder b)]) =
-      _$PublicTripDtoOutputStopsInner;
+  factory PublicTripDtoOutputStopsInner([void updates(PublicTripDtoOutputStopsInnerBuilder b)]) = _$PublicTripDtoOutputStopsInner;
 
   @BuiltValueHook(initializeBuilder: true)
   static void _defaults(PublicTripDtoOutputStopsInnerBuilder b) => b;
 
   @BuiltValueSerializer(custom: true)
-  static Serializer<PublicTripDtoOutputStopsInner> get serializer =>
-      _$PublicTripDtoOutputStopsInnerSerializer();
+  static Serializer<PublicTripDtoOutputStopsInner> get serializer => _$PublicTripDtoOutputStopsInnerSerializer();
 }
 
-class _$PublicTripDtoOutputStopsInnerSerializer
-    implements PrimitiveSerializer<PublicTripDtoOutputStopsInner> {
+class _$PublicTripDtoOutputStopsInnerSerializer implements PrimitiveSerializer<PublicTripDtoOutputStopsInner> {
   @override
-  final Iterable<Type> types = const [
-    PublicTripDtoOutputStopsInner,
-    _$PublicTripDtoOutputStopsInner
-  ];
+  final Iterable<Type> types = const [PublicTripDtoOutputStopsInner, _$PublicTripDtoOutputStopsInner];
 
   @override
   final String wireName = r'PublicTripDtoOutputStopsInner';
@@ -142,19 +132,15 @@ class _$PublicTripDtoOutputStopsInnerSerializer
       specifiedType: const FullType(DateTime),
     );
     yield r'pickupWindowStart';
-    yield object.pickupWindowStart == null
-        ? null
-        : serializers.serialize(
-            object.pickupWindowStart,
-            specifiedType: const FullType.nullable(DateTime),
-          );
+    yield object.pickupWindowStart == null ? null : serializers.serialize(
+      object.pickupWindowStart,
+      specifiedType: const FullType.nullable(DateTime),
+    );
     yield r'pickupWindowEnd';
-    yield object.pickupWindowEnd == null
-        ? null
-        : serializers.serialize(
-            object.pickupWindowEnd,
-            specifiedType: const FullType.nullable(DateTime),
-          );
+    yield object.pickupWindowEnd == null ? null : serializers.serialize(
+      object.pickupWindowEnd,
+      specifiedType: const FullType.nullable(DateTime),
+    );
     yield r'allowPickup';
     yield serializers.serialize(
       object.allowPickup,
@@ -166,12 +152,10 @@ class _$PublicTripDtoOutputStopsInnerSerializer
       specifiedType: const FullType(bool),
     );
     yield r'note';
-    yield object.note == null
-        ? null
-        : serializers.serialize(
-            object.note,
-            specifiedType: const FullType.nullable(String),
-          );
+    yield object.note == null ? null : serializers.serialize(
+      object.note,
+      specifiedType: const FullType.nullable(String),
+    );
   }
 
   @override
@@ -180,9 +164,7 @@ class _$PublicTripDtoOutputStopsInnerSerializer
     PublicTripDtoOutputStopsInner object, {
     FullType specifiedType = FullType.unspecified,
   }) {
-    return _serializeProperties(serializers, object,
-            specifiedType: specifiedType)
-        .toList();
+    return _serializeProperties(serializers, object, specifiedType: specifiedType).toList();
   }
 
   void _deserializeProperties(
@@ -207,8 +189,7 @@ class _$PublicTripDtoOutputStopsInnerSerializer
         case r'role':
           final valueDes = serializers.deserialize(
             value,
-            specifiedType:
-                const FullType(PublicTripDtoOutputStopsInnerRoleEnum),
+            specifiedType: const FullType(PublicTripDtoOutputStopsInnerRoleEnum),
           ) as PublicTripDtoOutputStopsInnerRoleEnum;
           result.role = valueDes;
           break;
@@ -229,8 +210,7 @@ class _$PublicTripDtoOutputStopsInnerSerializer
         case r'type':
           final valueDes = serializers.deserialize(
             value,
-            specifiedType:
-                const FullType(PublicTripDtoOutputStopsInnerTypeEnum),
+            specifiedType: const FullType(PublicTripDtoOutputStopsInnerTypeEnum),
           ) as PublicTripDtoOutputStopsInnerTypeEnum;
           result.type = valueDes;
           break;
@@ -322,49 +302,40 @@ class _$PublicTripDtoOutputStopsInnerSerializer
   }
 }
 
+
 class PublicTripDtoOutputStopsInnerRoleEnum extends EnumClass {
+
   @BuiltValueEnumConst(wireName: r'ORIGIN')
-  static const PublicTripDtoOutputStopsInnerRoleEnum ORIGIN =
-      _$publicTripDtoOutputStopsInnerRoleEnum_ORIGIN;
+  static const PublicTripDtoOutputStopsInnerRoleEnum ORIGIN = _$publicTripDtoOutputStopsInnerRoleEnum_ORIGIN;
   @BuiltValueEnumConst(wireName: r'INTERMEDIATE')
-  static const PublicTripDtoOutputStopsInnerRoleEnum INTERMEDIATE =
-      _$publicTripDtoOutputStopsInnerRoleEnum_INTERMEDIATE;
+  static const PublicTripDtoOutputStopsInnerRoleEnum INTERMEDIATE = _$publicTripDtoOutputStopsInnerRoleEnum_INTERMEDIATE;
   @BuiltValueEnumConst(wireName: r'DESTINATION')
-  static const PublicTripDtoOutputStopsInnerRoleEnum DESTINATION =
-      _$publicTripDtoOutputStopsInnerRoleEnum_DESTINATION;
+  static const PublicTripDtoOutputStopsInnerRoleEnum DESTINATION = _$publicTripDtoOutputStopsInnerRoleEnum_DESTINATION;
 
-  static Serializer<PublicTripDtoOutputStopsInnerRoleEnum> get serializer =>
-      _$publicTripDtoOutputStopsInnerRoleEnumSerializer;
+  static Serializer<PublicTripDtoOutputStopsInnerRoleEnum> get serializer => _$publicTripDtoOutputStopsInnerRoleEnumSerializer;
 
-  const PublicTripDtoOutputStopsInnerRoleEnum._(String name) : super(name);
+  const PublicTripDtoOutputStopsInnerRoleEnum._(String name): super(name);
 
-  static BuiltSet<PublicTripDtoOutputStopsInnerRoleEnum> get values =>
-      _$publicTripDtoOutputStopsInnerRoleEnumValues;
-  static PublicTripDtoOutputStopsInnerRoleEnum valueOf(String name) =>
-      _$publicTripDtoOutputStopsInnerRoleEnumValueOf(name);
+  static BuiltSet<PublicTripDtoOutputStopsInnerRoleEnum> get values => _$publicTripDtoOutputStopsInnerRoleEnumValues;
+  static PublicTripDtoOutputStopsInnerRoleEnum valueOf(String name) => _$publicTripDtoOutputStopsInnerRoleEnumValueOf(name);
 }
 
 class PublicTripDtoOutputStopsInnerTypeEnum extends EnumClass {
+
   @BuiltValueEnumConst(wireName: r'BUS_STATION')
-  static const PublicTripDtoOutputStopsInnerTypeEnum BUS_STATION =
-      _$publicTripDtoOutputStopsInnerTypeEnum_BUS_STATION;
+  static const PublicTripDtoOutputStopsInnerTypeEnum BUS_STATION = _$publicTripDtoOutputStopsInnerTypeEnum_BUS_STATION;
   @BuiltValueEnumConst(wireName: r'OFFICE')
-  static const PublicTripDtoOutputStopsInnerTypeEnum OFFICE =
-      _$publicTripDtoOutputStopsInnerTypeEnum_OFFICE;
+  static const PublicTripDtoOutputStopsInnerTypeEnum OFFICE = _$publicTripDtoOutputStopsInnerTypeEnum_OFFICE;
   @BuiltValueEnumConst(wireName: r'REST_STOP')
-  static const PublicTripDtoOutputStopsInnerTypeEnum REST_STOP =
-      _$publicTripDtoOutputStopsInnerTypeEnum_REST_STOP;
+  static const PublicTripDtoOutputStopsInnerTypeEnum REST_STOP = _$publicTripDtoOutputStopsInnerTypeEnum_REST_STOP;
   @BuiltValueEnumConst(wireName: r'PICKUP_POINT')
-  static const PublicTripDtoOutputStopsInnerTypeEnum PICKUP_POINT =
-      _$publicTripDtoOutputStopsInnerTypeEnum_PICKUP_POINT;
+  static const PublicTripDtoOutputStopsInnerTypeEnum PICKUP_POINT = _$publicTripDtoOutputStopsInnerTypeEnum_PICKUP_POINT;
 
-  static Serializer<PublicTripDtoOutputStopsInnerTypeEnum> get serializer =>
-      _$publicTripDtoOutputStopsInnerTypeEnumSerializer;
+  static Serializer<PublicTripDtoOutputStopsInnerTypeEnum> get serializer => _$publicTripDtoOutputStopsInnerTypeEnumSerializer;
 
-  const PublicTripDtoOutputStopsInnerTypeEnum._(String name) : super(name);
+  const PublicTripDtoOutputStopsInnerTypeEnum._(String name): super(name);
 
-  static BuiltSet<PublicTripDtoOutputStopsInnerTypeEnum> get values =>
-      _$publicTripDtoOutputStopsInnerTypeEnumValues;
-  static PublicTripDtoOutputStopsInnerTypeEnum valueOf(String name) =>
-      _$publicTripDtoOutputStopsInnerTypeEnumValueOf(name);
+  static BuiltSet<PublicTripDtoOutputStopsInnerTypeEnum> get values => _$publicTripDtoOutputStopsInnerTypeEnumValues;
+  static PublicTripDtoOutputStopsInnerTypeEnum valueOf(String name) => _$publicTripDtoOutputStopsInnerTypeEnumValueOf(name);
 }
+

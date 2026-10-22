@@ -14,21 +14,19 @@ part 'passenger_loyalty_dto_output.g.dart';
 /// PassengerLoyaltyDtoOutput
 ///
 /// Properties:
-/// * [userId]
-/// * [name]
-/// * [email]
-/// * [status]
-/// * [memberSince]
-/// * [availablePoints]
-/// * [earned12m]
-/// * [tier]
-/// * [nextTier]
-/// * [policyVersion]
-/// * [rules]
+/// * [userId] 
+/// * [name] 
+/// * [email] 
+/// * [status] 
+/// * [memberSince] 
+/// * [availablePoints] 
+/// * [earned12m] 
+/// * [tier] 
+/// * [nextTier] 
+/// * [policyVersion] 
+/// * [rules] 
 @BuiltValue()
-abstract class PassengerLoyaltyDtoOutput
-    implements
-        Built<PassengerLoyaltyDtoOutput, PassengerLoyaltyDtoOutputBuilder> {
+abstract class PassengerLoyaltyDtoOutput implements Built<PassengerLoyaltyDtoOutput, PassengerLoyaltyDtoOutputBuilder> {
   @BuiltValueField(wireName: r'userId')
   String get userId;
 
@@ -66,25 +64,18 @@ abstract class PassengerLoyaltyDtoOutput
 
   PassengerLoyaltyDtoOutput._();
 
-  factory PassengerLoyaltyDtoOutput(
-          [void updates(PassengerLoyaltyDtoOutputBuilder b)]) =
-      _$PassengerLoyaltyDtoOutput;
+  factory PassengerLoyaltyDtoOutput([void updates(PassengerLoyaltyDtoOutputBuilder b)]) = _$PassengerLoyaltyDtoOutput;
 
   @BuiltValueHook(initializeBuilder: true)
   static void _defaults(PassengerLoyaltyDtoOutputBuilder b) => b;
 
   @BuiltValueSerializer(custom: true)
-  static Serializer<PassengerLoyaltyDtoOutput> get serializer =>
-      _$PassengerLoyaltyDtoOutputSerializer();
+  static Serializer<PassengerLoyaltyDtoOutput> get serializer => _$PassengerLoyaltyDtoOutputSerializer();
 }
 
-class _$PassengerLoyaltyDtoOutputSerializer
-    implements PrimitiveSerializer<PassengerLoyaltyDtoOutput> {
+class _$PassengerLoyaltyDtoOutputSerializer implements PrimitiveSerializer<PassengerLoyaltyDtoOutput> {
   @override
-  final Iterable<Type> types = const [
-    PassengerLoyaltyDtoOutput,
-    _$PassengerLoyaltyDtoOutput
-  ];
+  final Iterable<Type> types = const [PassengerLoyaltyDtoOutput, _$PassengerLoyaltyDtoOutput];
 
   @override
   final String wireName = r'PassengerLoyaltyDtoOutput';
@@ -100,12 +91,10 @@ class _$PassengerLoyaltyDtoOutputSerializer
       specifiedType: const FullType(String),
     );
     yield r'name';
-    yield object.name == null
-        ? null
-        : serializers.serialize(
-            object.name,
-            specifiedType: const FullType.nullable(String),
-          );
+    yield object.name == null ? null : serializers.serialize(
+      object.name,
+      specifiedType: const FullType.nullable(String),
+    );
     yield r'email';
     yield serializers.serialize(
       object.email,
@@ -137,28 +126,20 @@ class _$PassengerLoyaltyDtoOutputSerializer
       specifiedType: const FullType(PassengerLoyaltyDtoOutputTierEnum),
     );
     yield r'nextTier';
-    yield object.nextTier == null
-        ? null
-        : serializers.serialize(
-            object.nextTier,
-            specifiedType:
-                const FullType.nullable(PassengerLoyaltyDtoOutputNextTier),
-          );
+    yield object.nextTier == null ? null : serializers.serialize(
+      object.nextTier,
+      specifiedType: const FullType.nullable(PassengerLoyaltyDtoOutputNextTier),
+    );
     yield r'policyVersion';
-    yield object.policyVersion == null
-        ? null
-        : serializers.serialize(
-            object.policyVersion,
-            specifiedType: const FullType.nullable(int),
-          );
+    yield object.policyVersion == null ? null : serializers.serialize(
+      object.policyVersion,
+      specifiedType: const FullType.nullable(int),
+    );
     yield r'rules';
-    yield object.rules == null
-        ? null
-        : serializers.serialize(
-            object.rules,
-            specifiedType:
-                const FullType.nullable(PassengerLoyaltyDtoOutputRules),
-          );
+    yield object.rules == null ? null : serializers.serialize(
+      object.rules,
+      specifiedType: const FullType.nullable(PassengerLoyaltyDtoOutputRules),
+    );
   }
 
   @override
@@ -167,9 +148,7 @@ class _$PassengerLoyaltyDtoOutputSerializer
     PassengerLoyaltyDtoOutput object, {
     FullType specifiedType = FullType.unspecified,
   }) {
-    return _serializeProperties(serializers, object,
-            specifiedType: specifiedType)
-        .toList();
+    return _serializeProperties(serializers, object, specifiedType: specifiedType).toList();
   }
 
   void _deserializeProperties(
@@ -244,8 +223,7 @@ class _$PassengerLoyaltyDtoOutputSerializer
         case r'nextTier':
           final valueDes = serializers.deserialize(
             value,
-            specifiedType:
-                const FullType.nullable(PassengerLoyaltyDtoOutputNextTier),
+            specifiedType: const FullType.nullable(PassengerLoyaltyDtoOutputNextTier),
           ) as PassengerLoyaltyDtoOutputNextTier?;
           if (valueDes == null) continue;
           result.nextTier.replace(valueDes);
@@ -261,8 +239,7 @@ class _$PassengerLoyaltyDtoOutputSerializer
         case r'rules':
           final valueDes = serializers.deserialize(
             value,
-            specifiedType:
-                const FullType.nullable(PassengerLoyaltyDtoOutputRules),
+            specifiedType: const FullType.nullable(PassengerLoyaltyDtoOutputRules),
           ) as PassengerLoyaltyDtoOutputRules?;
           if (valueDes == null) continue;
           result.rules.replace(valueDes);
@@ -296,49 +273,40 @@ class _$PassengerLoyaltyDtoOutputSerializer
   }
 }
 
+
 class PassengerLoyaltyDtoOutputStatusEnum extends EnumClass {
+
   @BuiltValueEnumConst(wireName: r'ACTIVE')
-  static const PassengerLoyaltyDtoOutputStatusEnum ACTIVE =
-      _$passengerLoyaltyDtoOutputStatusEnum_ACTIVE;
+  static const PassengerLoyaltyDtoOutputStatusEnum ACTIVE = _$passengerLoyaltyDtoOutputStatusEnum_ACTIVE;
   @BuiltValueEnumConst(wireName: r'LOCKED')
-  static const PassengerLoyaltyDtoOutputStatusEnum LOCKED =
-      _$passengerLoyaltyDtoOutputStatusEnum_LOCKED;
+  static const PassengerLoyaltyDtoOutputStatusEnum LOCKED = _$passengerLoyaltyDtoOutputStatusEnum_LOCKED;
   @BuiltValueEnumConst(wireName: r'DISABLED')
-  static const PassengerLoyaltyDtoOutputStatusEnum DISABLED =
-      _$passengerLoyaltyDtoOutputStatusEnum_DISABLED;
+  static const PassengerLoyaltyDtoOutputStatusEnum DISABLED = _$passengerLoyaltyDtoOutputStatusEnum_DISABLED;
 
-  static Serializer<PassengerLoyaltyDtoOutputStatusEnum> get serializer =>
-      _$passengerLoyaltyDtoOutputStatusEnumSerializer;
+  static Serializer<PassengerLoyaltyDtoOutputStatusEnum> get serializer => _$passengerLoyaltyDtoOutputStatusEnumSerializer;
 
-  const PassengerLoyaltyDtoOutputStatusEnum._(String name) : super(name);
+  const PassengerLoyaltyDtoOutputStatusEnum._(String name): super(name);
 
-  static BuiltSet<PassengerLoyaltyDtoOutputStatusEnum> get values =>
-      _$passengerLoyaltyDtoOutputStatusEnumValues;
-  static PassengerLoyaltyDtoOutputStatusEnum valueOf(String name) =>
-      _$passengerLoyaltyDtoOutputStatusEnumValueOf(name);
+  static BuiltSet<PassengerLoyaltyDtoOutputStatusEnum> get values => _$passengerLoyaltyDtoOutputStatusEnumValues;
+  static PassengerLoyaltyDtoOutputStatusEnum valueOf(String name) => _$passengerLoyaltyDtoOutputStatusEnumValueOf(name);
 }
 
 class PassengerLoyaltyDtoOutputTierEnum extends EnumClass {
+
   @BuiltValueEnumConst(wireName: r'BRONZE')
-  static const PassengerLoyaltyDtoOutputTierEnum BRONZE =
-      _$passengerLoyaltyDtoOutputTierEnum_BRONZE;
+  static const PassengerLoyaltyDtoOutputTierEnum BRONZE = _$passengerLoyaltyDtoOutputTierEnum_BRONZE;
   @BuiltValueEnumConst(wireName: r'SILVER')
-  static const PassengerLoyaltyDtoOutputTierEnum SILVER =
-      _$passengerLoyaltyDtoOutputTierEnum_SILVER;
+  static const PassengerLoyaltyDtoOutputTierEnum SILVER = _$passengerLoyaltyDtoOutputTierEnum_SILVER;
   @BuiltValueEnumConst(wireName: r'GOLD')
-  static const PassengerLoyaltyDtoOutputTierEnum GOLD =
-      _$passengerLoyaltyDtoOutputTierEnum_GOLD;
+  static const PassengerLoyaltyDtoOutputTierEnum GOLD = _$passengerLoyaltyDtoOutputTierEnum_GOLD;
   @BuiltValueEnumConst(wireName: r'PLATINUM')
-  static const PassengerLoyaltyDtoOutputTierEnum PLATINUM =
-      _$passengerLoyaltyDtoOutputTierEnum_PLATINUM;
+  static const PassengerLoyaltyDtoOutputTierEnum PLATINUM = _$passengerLoyaltyDtoOutputTierEnum_PLATINUM;
 
-  static Serializer<PassengerLoyaltyDtoOutputTierEnum> get serializer =>
-      _$passengerLoyaltyDtoOutputTierEnumSerializer;
+  static Serializer<PassengerLoyaltyDtoOutputTierEnum> get serializer => _$passengerLoyaltyDtoOutputTierEnumSerializer;
 
-  const PassengerLoyaltyDtoOutputTierEnum._(String name) : super(name);
+  const PassengerLoyaltyDtoOutputTierEnum._(String name): super(name);
 
-  static BuiltSet<PassengerLoyaltyDtoOutputTierEnum> get values =>
-      _$passengerLoyaltyDtoOutputTierEnumValues;
-  static PassengerLoyaltyDtoOutputTierEnum valueOf(String name) =>
-      _$passengerLoyaltyDtoOutputTierEnumValueOf(name);
+  static BuiltSet<PassengerLoyaltyDtoOutputTierEnum> get values => _$passengerLoyaltyDtoOutputTierEnumValues;
+  static PassengerLoyaltyDtoOutputTierEnum valueOf(String name) => _$passengerLoyaltyDtoOutputTierEnumValueOf(name);
 }
+

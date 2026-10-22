@@ -12,21 +12,20 @@ part 'user_voucher_dto_output.g.dart';
 /// UserVoucherDtoOutput
 ///
 /// Properties:
-/// * [userVoucherId]
-/// * [source_]
-/// * [status]
-/// * [promotionCode]
-/// * [name]
-/// * [discountAmount]
-/// * [discountType]
-/// * [discountValue]
-/// * [maxDiscount]
-/// * [minOrder]
-/// * [expiresAt]
-/// * [createdAt]
+/// * [userVoucherId] 
+/// * [source_] 
+/// * [status] 
+/// * [promotionCode] 
+/// * [name] 
+/// * [discountAmount] 
+/// * [discountType] 
+/// * [discountValue] 
+/// * [maxDiscount] 
+/// * [minOrder] 
+/// * [expiresAt] 
+/// * [createdAt] 
 @BuiltValue()
-abstract class UserVoucherDtoOutput
-    implements Built<UserVoucherDtoOutput, UserVoucherDtoOutputBuilder> {
+abstract class UserVoucherDtoOutput implements Built<UserVoucherDtoOutput, UserVoucherDtoOutputBuilder> {
   @BuiltValueField(wireName: r'userVoucherId')
   String get userVoucherId;
 
@@ -68,24 +67,18 @@ abstract class UserVoucherDtoOutput
 
   UserVoucherDtoOutput._();
 
-  factory UserVoucherDtoOutput([void updates(UserVoucherDtoOutputBuilder b)]) =
-      _$UserVoucherDtoOutput;
+  factory UserVoucherDtoOutput([void updates(UserVoucherDtoOutputBuilder b)]) = _$UserVoucherDtoOutput;
 
   @BuiltValueHook(initializeBuilder: true)
   static void _defaults(UserVoucherDtoOutputBuilder b) => b;
 
   @BuiltValueSerializer(custom: true)
-  static Serializer<UserVoucherDtoOutput> get serializer =>
-      _$UserVoucherDtoOutputSerializer();
+  static Serializer<UserVoucherDtoOutput> get serializer => _$UserVoucherDtoOutputSerializer();
 }
 
-class _$UserVoucherDtoOutputSerializer
-    implements PrimitiveSerializer<UserVoucherDtoOutput> {
+class _$UserVoucherDtoOutputSerializer implements PrimitiveSerializer<UserVoucherDtoOutput> {
   @override
-  final Iterable<Type> types = const [
-    UserVoucherDtoOutput,
-    _$UserVoucherDtoOutput
-  ];
+  final Iterable<Type> types = const [UserVoucherDtoOutput, _$UserVoucherDtoOutput];
 
   @override
   final String wireName = r'UserVoucherDtoOutput';
@@ -111,24 +104,20 @@ class _$UserVoucherDtoOutputSerializer
       specifiedType: const FullType(UserVoucherDtoOutputStatusEnum),
     );
     yield r'promotionCode';
-    yield object.promotionCode == null
-        ? null
-        : serializers.serialize(
-            object.promotionCode,
-            specifiedType: const FullType.nullable(String),
-          );
+    yield object.promotionCode == null ? null : serializers.serialize(
+      object.promotionCode,
+      specifiedType: const FullType.nullable(String),
+    );
     yield r'name';
     yield serializers.serialize(
       object.name,
       specifiedType: const FullType(String),
     );
     yield r'discountAmount';
-    yield object.discountAmount == null
-        ? null
-        : serializers.serialize(
-            object.discountAmount,
-            specifiedType: const FullType.nullable(String),
-          );
+    yield object.discountAmount == null ? null : serializers.serialize(
+      object.discountAmount,
+      specifiedType: const FullType.nullable(String),
+    );
     yield r'discountType';
     yield serializers.serialize(
       object.discountType,
@@ -140,12 +129,10 @@ class _$UserVoucherDtoOutputSerializer
       specifiedType: const FullType(String),
     );
     yield r'maxDiscount';
-    yield object.maxDiscount == null
-        ? null
-        : serializers.serialize(
-            object.maxDiscount,
-            specifiedType: const FullType.nullable(String),
-          );
+    yield object.maxDiscount == null ? null : serializers.serialize(
+      object.maxDiscount,
+      specifiedType: const FullType.nullable(String),
+    );
     yield r'minOrder';
     yield serializers.serialize(
       object.minOrder,
@@ -169,9 +156,7 @@ class _$UserVoucherDtoOutputSerializer
     UserVoucherDtoOutput object, {
     FullType specifiedType = FullType.unspecified,
   }) {
-    return _serializeProperties(serializers, object,
-            specifiedType: specifiedType)
-        .toList();
+    return _serializeProperties(serializers, object, specifiedType: specifiedType).toList();
   }
 
   void _deserializeProperties(
@@ -302,65 +287,53 @@ class _$UserVoucherDtoOutputSerializer
   }
 }
 
+
 class UserVoucherDtoOutputSource_Enum extends EnumClass {
+
   @BuiltValueEnumConst(wireName: r'LOYALTY_REDEMPTION')
-  static const UserVoucherDtoOutputSource_Enum LOYALTY_REDEMPTION =
-      _$userVoucherDtoOutputSourceEnum_LOYALTY_REDEMPTION;
+  static const UserVoucherDtoOutputSource_Enum LOYALTY_REDEMPTION = _$userVoucherDtoOutputSourceEnum_LOYALTY_REDEMPTION;
   @BuiltValueEnumConst(wireName: r'SAVED_PROMOTION')
-  static const UserVoucherDtoOutputSource_Enum SAVED_PROMOTION =
-      _$userVoucherDtoOutputSourceEnum_SAVED_PROMOTION;
+  static const UserVoucherDtoOutputSource_Enum SAVED_PROMOTION = _$userVoucherDtoOutputSourceEnum_SAVED_PROMOTION;
 
-  static Serializer<UserVoucherDtoOutputSource_Enum> get serializer =>
-      _$userVoucherDtoOutputSourceEnumSerializer;
+  static Serializer<UserVoucherDtoOutputSource_Enum> get serializer => _$userVoucherDtoOutputSourceEnumSerializer;
 
-  const UserVoucherDtoOutputSource_Enum._(String name) : super(name);
+  const UserVoucherDtoOutputSource_Enum._(String name): super(name);
 
-  static BuiltSet<UserVoucherDtoOutputSource_Enum> get values =>
-      _$userVoucherDtoOutputSourceEnumValues;
-  static UserVoucherDtoOutputSource_Enum valueOf(String name) =>
-      _$userVoucherDtoOutputSourceEnumValueOf(name);
+  static BuiltSet<UserVoucherDtoOutputSource_Enum> get values => _$userVoucherDtoOutputSourceEnumValues;
+  static UserVoucherDtoOutputSource_Enum valueOf(String name) => _$userVoucherDtoOutputSourceEnumValueOf(name);
 }
 
 class UserVoucherDtoOutputStatusEnum extends EnumClass {
+
   @BuiltValueEnumConst(wireName: r'AVAILABLE')
-  static const UserVoucherDtoOutputStatusEnum AVAILABLE =
-      _$userVoucherDtoOutputStatusEnum_AVAILABLE;
+  static const UserVoucherDtoOutputStatusEnum AVAILABLE = _$userVoucherDtoOutputStatusEnum_AVAILABLE;
   @BuiltValueEnumConst(wireName: r'RESERVED')
-  static const UserVoucherDtoOutputStatusEnum RESERVED =
-      _$userVoucherDtoOutputStatusEnum_RESERVED;
+  static const UserVoucherDtoOutputStatusEnum RESERVED = _$userVoucherDtoOutputStatusEnum_RESERVED;
   @BuiltValueEnumConst(wireName: r'USED')
-  static const UserVoucherDtoOutputStatusEnum USED =
-      _$userVoucherDtoOutputStatusEnum_USED;
+  static const UserVoucherDtoOutputStatusEnum USED = _$userVoucherDtoOutputStatusEnum_USED;
   @BuiltValueEnumConst(wireName: r'EXPIRED')
-  static const UserVoucherDtoOutputStatusEnum EXPIRED =
-      _$userVoucherDtoOutputStatusEnum_EXPIRED;
+  static const UserVoucherDtoOutputStatusEnum EXPIRED = _$userVoucherDtoOutputStatusEnum_EXPIRED;
 
-  static Serializer<UserVoucherDtoOutputStatusEnum> get serializer =>
-      _$userVoucherDtoOutputStatusEnumSerializer;
+  static Serializer<UserVoucherDtoOutputStatusEnum> get serializer => _$userVoucherDtoOutputStatusEnumSerializer;
 
-  const UserVoucherDtoOutputStatusEnum._(String name) : super(name);
+  const UserVoucherDtoOutputStatusEnum._(String name): super(name);
 
-  static BuiltSet<UserVoucherDtoOutputStatusEnum> get values =>
-      _$userVoucherDtoOutputStatusEnumValues;
-  static UserVoucherDtoOutputStatusEnum valueOf(String name) =>
-      _$userVoucherDtoOutputStatusEnumValueOf(name);
+  static BuiltSet<UserVoucherDtoOutputStatusEnum> get values => _$userVoucherDtoOutputStatusEnumValues;
+  static UserVoucherDtoOutputStatusEnum valueOf(String name) => _$userVoucherDtoOutputStatusEnumValueOf(name);
 }
 
 class UserVoucherDtoOutputDiscountTypeEnum extends EnumClass {
+
   @BuiltValueEnumConst(wireName: r'PERCENT')
-  static const UserVoucherDtoOutputDiscountTypeEnum PERCENT =
-      _$userVoucherDtoOutputDiscountTypeEnum_PERCENT;
+  static const UserVoucherDtoOutputDiscountTypeEnum PERCENT = _$userVoucherDtoOutputDiscountTypeEnum_PERCENT;
   @BuiltValueEnumConst(wireName: r'AMOUNT')
-  static const UserVoucherDtoOutputDiscountTypeEnum AMOUNT =
-      _$userVoucherDtoOutputDiscountTypeEnum_AMOUNT;
+  static const UserVoucherDtoOutputDiscountTypeEnum AMOUNT = _$userVoucherDtoOutputDiscountTypeEnum_AMOUNT;
 
-  static Serializer<UserVoucherDtoOutputDiscountTypeEnum> get serializer =>
-      _$userVoucherDtoOutputDiscountTypeEnumSerializer;
+  static Serializer<UserVoucherDtoOutputDiscountTypeEnum> get serializer => _$userVoucherDtoOutputDiscountTypeEnumSerializer;
 
-  const UserVoucherDtoOutputDiscountTypeEnum._(String name) : super(name);
+  const UserVoucherDtoOutputDiscountTypeEnum._(String name): super(name);
 
-  static BuiltSet<UserVoucherDtoOutputDiscountTypeEnum> get values =>
-      _$userVoucherDtoOutputDiscountTypeEnumValues;
-  static UserVoucherDtoOutputDiscountTypeEnum valueOf(String name) =>
-      _$userVoucherDtoOutputDiscountTypeEnumValueOf(name);
+  static BuiltSet<UserVoucherDtoOutputDiscountTypeEnum> get values => _$userVoucherDtoOutputDiscountTypeEnumValues;
+  static UserVoucherDtoOutputDiscountTypeEnum valueOf(String name) => _$userVoucherDtoOutputDiscountTypeEnumValueOf(name);
 }
+

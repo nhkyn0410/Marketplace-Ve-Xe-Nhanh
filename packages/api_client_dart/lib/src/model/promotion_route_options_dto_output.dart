@@ -13,36 +13,26 @@ part 'promotion_route_options_dto_output.g.dart';
 /// PromotionRouteOptionsDtoOutput
 ///
 /// Properties:
-/// * [items]
+/// * [items] 
 @BuiltValue()
-abstract class PromotionRouteOptionsDtoOutput
-    implements
-        Built<PromotionRouteOptionsDtoOutput,
-            PromotionRouteOptionsDtoOutputBuilder> {
+abstract class PromotionRouteOptionsDtoOutput implements Built<PromotionRouteOptionsDtoOutput, PromotionRouteOptionsDtoOutputBuilder> {
   @BuiltValueField(wireName: r'items')
   BuiltList<PromotionRouteOptionsDtoOutputItemsInner> get items;
 
   PromotionRouteOptionsDtoOutput._();
 
-  factory PromotionRouteOptionsDtoOutput(
-          [void updates(PromotionRouteOptionsDtoOutputBuilder b)]) =
-      _$PromotionRouteOptionsDtoOutput;
+  factory PromotionRouteOptionsDtoOutput([void updates(PromotionRouteOptionsDtoOutputBuilder b)]) = _$PromotionRouteOptionsDtoOutput;
 
   @BuiltValueHook(initializeBuilder: true)
   static void _defaults(PromotionRouteOptionsDtoOutputBuilder b) => b;
 
   @BuiltValueSerializer(custom: true)
-  static Serializer<PromotionRouteOptionsDtoOutput> get serializer =>
-      _$PromotionRouteOptionsDtoOutputSerializer();
+  static Serializer<PromotionRouteOptionsDtoOutput> get serializer => _$PromotionRouteOptionsDtoOutputSerializer();
 }
 
-class _$PromotionRouteOptionsDtoOutputSerializer
-    implements PrimitiveSerializer<PromotionRouteOptionsDtoOutput> {
+class _$PromotionRouteOptionsDtoOutputSerializer implements PrimitiveSerializer<PromotionRouteOptionsDtoOutput> {
   @override
-  final Iterable<Type> types = const [
-    PromotionRouteOptionsDtoOutput,
-    _$PromotionRouteOptionsDtoOutput
-  ];
+  final Iterable<Type> types = const [PromotionRouteOptionsDtoOutput, _$PromotionRouteOptionsDtoOutput];
 
   @override
   final String wireName = r'PromotionRouteOptionsDtoOutput';
@@ -55,8 +45,7 @@ class _$PromotionRouteOptionsDtoOutputSerializer
     yield r'items';
     yield serializers.serialize(
       object.items,
-      specifiedType: const FullType(
-          BuiltList, [FullType(PromotionRouteOptionsDtoOutputItemsInner)]),
+      specifiedType: const FullType(BuiltList, [FullType(PromotionRouteOptionsDtoOutputItemsInner)]),
     );
   }
 
@@ -66,9 +55,7 @@ class _$PromotionRouteOptionsDtoOutputSerializer
     PromotionRouteOptionsDtoOutput object, {
     FullType specifiedType = FullType.unspecified,
   }) {
-    return _serializeProperties(serializers, object,
-            specifiedType: specifiedType)
-        .toList();
+    return _serializeProperties(serializers, object, specifiedType: specifiedType).toList();
   }
 
   void _deserializeProperties(
@@ -86,8 +73,7 @@ class _$PromotionRouteOptionsDtoOutputSerializer
         case r'items':
           final valueDes = serializers.deserialize(
             value,
-            specifiedType: const FullType(BuiltList,
-                [FullType(PromotionRouteOptionsDtoOutputItemsInner)]),
+            specifiedType: const FullType(BuiltList, [FullType(PromotionRouteOptionsDtoOutputItemsInner)]),
           ) as BuiltList<PromotionRouteOptionsDtoOutputItemsInner>;
           result.items.replace(valueDes);
           break;
@@ -119,3 +105,5 @@ class _$PromotionRouteOptionsDtoOutputSerializer
     return result.build();
   }
 }
+
+

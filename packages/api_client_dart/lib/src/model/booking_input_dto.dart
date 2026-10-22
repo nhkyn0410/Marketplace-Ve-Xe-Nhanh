@@ -14,16 +14,15 @@ part 'booking_input_dto.g.dart';
 /// BookingInputDto
 ///
 /// Properties:
-/// * [holdId]
-/// * [contact]
-/// * [passengers]
-/// * [note]
-/// * [expectedTotal]
-/// * [userVoucherId]
-/// * [promotionCode]
+/// * [holdId] 
+/// * [contact] 
+/// * [passengers] 
+/// * [note] 
+/// * [expectedTotal] 
+/// * [userVoucherId] 
+/// * [promotionCode] 
 @BuiltValue()
-abstract class BookingInputDto
-    implements Built<BookingInputDto, BookingInputDtoBuilder> {
+abstract class BookingInputDto implements Built<BookingInputDto, BookingInputDtoBuilder> {
   @BuiltValueField(wireName: r'holdId')
   String get holdId;
 
@@ -47,19 +46,16 @@ abstract class BookingInputDto
 
   BookingInputDto._();
 
-  factory BookingInputDto([void updates(BookingInputDtoBuilder b)]) =
-      _$BookingInputDto;
+  factory BookingInputDto([void updates(BookingInputDtoBuilder b)]) = _$BookingInputDto;
 
   @BuiltValueHook(initializeBuilder: true)
   static void _defaults(BookingInputDtoBuilder b) => b;
 
   @BuiltValueSerializer(custom: true)
-  static Serializer<BookingInputDto> get serializer =>
-      _$BookingInputDtoSerializer();
+  static Serializer<BookingInputDto> get serializer => _$BookingInputDtoSerializer();
 }
 
-class _$BookingInputDtoSerializer
-    implements PrimitiveSerializer<BookingInputDto> {
+class _$BookingInputDtoSerializer implements PrimitiveSerializer<BookingInputDto> {
   @override
   final Iterable<Type> types = const [BookingInputDto, _$BookingInputDto];
 
@@ -84,16 +80,13 @@ class _$BookingInputDtoSerializer
     yield r'passengers';
     yield serializers.serialize(
       object.passengers,
-      specifiedType:
-          const FullType(BuiltList, [FullType(BookingInputDtoPassengersInner)]),
+      specifiedType: const FullType(BuiltList, [FullType(BookingInputDtoPassengersInner)]),
     );
     yield r'note';
-    yield object.note == null
-        ? null
-        : serializers.serialize(
-            object.note,
-            specifiedType: const FullType.nullable(String),
-          );
+    yield object.note == null ? null : serializers.serialize(
+      object.note,
+      specifiedType: const FullType.nullable(String),
+    );
     yield r'expectedTotal';
     yield serializers.serialize(
       object.expectedTotal,
@@ -121,9 +114,7 @@ class _$BookingInputDtoSerializer
     BookingInputDto object, {
     FullType specifiedType = FullType.unspecified,
   }) {
-    return _serializeProperties(serializers, object,
-            specifiedType: specifiedType)
-        .toList();
+    return _serializeProperties(serializers, object, specifiedType: specifiedType).toList();
   }
 
   void _deserializeProperties(
@@ -155,8 +146,7 @@ class _$BookingInputDtoSerializer
         case r'passengers':
           final valueDes = serializers.deserialize(
             value,
-            specifiedType: const FullType(
-                BuiltList, [FullType(BookingInputDtoPassengersInner)]),
+            specifiedType: const FullType(BuiltList, [FullType(BookingInputDtoPassengersInner)]),
           ) as BuiltList<BookingInputDtoPassengersInner>;
           result.passengers.replace(valueDes);
           break;
@@ -219,3 +209,5 @@ class _$BookingInputDtoSerializer
     return result.build();
   }
 }
+
+

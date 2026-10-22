@@ -13,25 +13,22 @@ part 'incident_page_dto_output_items_inner.g.dart';
 /// IncidentPageDtoOutputItemsInner
 ///
 /// Properties:
-/// * [id]
-/// * [operatorId]
-/// * [tripId]
-/// * [employeeId]
-/// * [type]
-/// * [severity]
-/// * [description]
-/// * [location]
-/// * [occurredAt]
-/// * [createdAt]
-/// * [resolvedAt]
-/// * [resolvedBy]
-/// * [resolution]
-/// * [evidence]
+/// * [id] 
+/// * [operatorId] 
+/// * [tripId] 
+/// * [employeeId] 
+/// * [type] 
+/// * [severity] 
+/// * [description] 
+/// * [location] 
+/// * [occurredAt] 
+/// * [createdAt] 
+/// * [resolvedAt] 
+/// * [resolvedBy] 
+/// * [resolution] 
+/// * [evidence] 
 @BuiltValue()
-abstract class IncidentPageDtoOutputItemsInner
-    implements
-        Built<IncidentPageDtoOutputItemsInner,
-            IncidentPageDtoOutputItemsInnerBuilder> {
+abstract class IncidentPageDtoOutputItemsInner implements Built<IncidentPageDtoOutputItemsInner, IncidentPageDtoOutputItemsInnerBuilder> {
   @BuiltValueField(wireName: r'id')
   String get id;
 
@@ -78,25 +75,18 @@ abstract class IncidentPageDtoOutputItemsInner
 
   IncidentPageDtoOutputItemsInner._();
 
-  factory IncidentPageDtoOutputItemsInner(
-          [void updates(IncidentPageDtoOutputItemsInnerBuilder b)]) =
-      _$IncidentPageDtoOutputItemsInner;
+  factory IncidentPageDtoOutputItemsInner([void updates(IncidentPageDtoOutputItemsInnerBuilder b)]) = _$IncidentPageDtoOutputItemsInner;
 
   @BuiltValueHook(initializeBuilder: true)
   static void _defaults(IncidentPageDtoOutputItemsInnerBuilder b) => b;
 
   @BuiltValueSerializer(custom: true)
-  static Serializer<IncidentPageDtoOutputItemsInner> get serializer =>
-      _$IncidentPageDtoOutputItemsInnerSerializer();
+  static Serializer<IncidentPageDtoOutputItemsInner> get serializer => _$IncidentPageDtoOutputItemsInnerSerializer();
 }
 
-class _$IncidentPageDtoOutputItemsInnerSerializer
-    implements PrimitiveSerializer<IncidentPageDtoOutputItemsInner> {
+class _$IncidentPageDtoOutputItemsInnerSerializer implements PrimitiveSerializer<IncidentPageDtoOutputItemsInner> {
   @override
-  final Iterable<Type> types = const [
-    IncidentPageDtoOutputItemsInner,
-    _$IncidentPageDtoOutputItemsInner
-  ];
+  final Iterable<Type> types = const [IncidentPageDtoOutputItemsInner, _$IncidentPageDtoOutputItemsInner];
 
   @override
   final String wireName = r'IncidentPageDtoOutputItemsInner';
@@ -134,8 +124,7 @@ class _$IncidentPageDtoOutputItemsInnerSerializer
     yield r'severity';
     yield serializers.serialize(
       object.severity,
-      specifiedType:
-          const FullType(IncidentPageDtoOutputItemsInnerSeverityEnum),
+      specifiedType: const FullType(IncidentPageDtoOutputItemsInnerSeverityEnum),
     );
     yield r'description';
     yield serializers.serialize(
@@ -143,12 +132,10 @@ class _$IncidentPageDtoOutputItemsInnerSerializer
       specifiedType: const FullType(String),
     );
     yield r'location';
-    yield object.location == null
-        ? null
-        : serializers.serialize(
-            object.location,
-            specifiedType: const FullType.nullable(String),
-          );
+    yield object.location == null ? null : serializers.serialize(
+      object.location,
+      specifiedType: const FullType.nullable(String),
+    );
     yield r'occurredAt';
     yield serializers.serialize(
       object.occurredAt,
@@ -160,31 +147,24 @@ class _$IncidentPageDtoOutputItemsInnerSerializer
       specifiedType: const FullType(DateTime),
     );
     yield r'resolvedAt';
-    yield object.resolvedAt == null
-        ? null
-        : serializers.serialize(
-            object.resolvedAt,
-            specifiedType: const FullType.nullable(DateTime),
-          );
+    yield object.resolvedAt == null ? null : serializers.serialize(
+      object.resolvedAt,
+      specifiedType: const FullType.nullable(DateTime),
+    );
     yield r'resolvedBy';
-    yield object.resolvedBy == null
-        ? null
-        : serializers.serialize(
-            object.resolvedBy,
-            specifiedType: const FullType.nullable(String),
-          );
+    yield object.resolvedBy == null ? null : serializers.serialize(
+      object.resolvedBy,
+      specifiedType: const FullType.nullable(String),
+    );
     yield r'resolution';
-    yield object.resolution == null
-        ? null
-        : serializers.serialize(
-            object.resolution,
-            specifiedType: const FullType.nullable(String),
-          );
+    yield object.resolution == null ? null : serializers.serialize(
+      object.resolution,
+      specifiedType: const FullType.nullable(String),
+    );
     yield r'evidence';
     yield serializers.serialize(
       object.evidence,
-      specifiedType:
-          const FullType(BuiltList, [FullType(IncidentDtoOutputEvidenceInner)]),
+      specifiedType: const FullType(BuiltList, [FullType(IncidentDtoOutputEvidenceInner)]),
     );
   }
 
@@ -194,9 +174,7 @@ class _$IncidentPageDtoOutputItemsInnerSerializer
     IncidentPageDtoOutputItemsInner object, {
     FullType specifiedType = FullType.unspecified,
   }) {
-    return _serializeProperties(serializers, object,
-            specifiedType: specifiedType)
-        .toList();
+    return _serializeProperties(serializers, object, specifiedType: specifiedType).toList();
   }
 
   void _deserializeProperties(
@@ -242,16 +220,14 @@ class _$IncidentPageDtoOutputItemsInnerSerializer
         case r'type':
           final valueDes = serializers.deserialize(
             value,
-            specifiedType:
-                const FullType(IncidentPageDtoOutputItemsInnerTypeEnum),
+            specifiedType: const FullType(IncidentPageDtoOutputItemsInnerTypeEnum),
           ) as IncidentPageDtoOutputItemsInnerTypeEnum;
           result.type = valueDes;
           break;
         case r'severity':
           final valueDes = serializers.deserialize(
             value,
-            specifiedType:
-                const FullType(IncidentPageDtoOutputItemsInnerSeverityEnum),
+            specifiedType: const FullType(IncidentPageDtoOutputItemsInnerSeverityEnum),
           ) as IncidentPageDtoOutputItemsInnerSeverityEnum;
           result.severity = valueDes;
           break;
@@ -311,8 +287,7 @@ class _$IncidentPageDtoOutputItemsInnerSerializer
         case r'evidence':
           final valueDes = serializers.deserialize(
             value,
-            specifiedType: const FullType(
-                BuiltList, [FullType(IncidentDtoOutputEvidenceInner)]),
+            specifiedType: const FullType(BuiltList, [FullType(IncidentDtoOutputEvidenceInner)]),
           ) as BuiltList<IncidentDtoOutputEvidenceInner>;
           result.evidence.replace(valueDes);
           break;
@@ -345,56 +320,44 @@ class _$IncidentPageDtoOutputItemsInnerSerializer
   }
 }
 
+
 class IncidentPageDtoOutputItemsInnerTypeEnum extends EnumClass {
+
   @BuiltValueEnumConst(wireName: r'VEHICLE')
-  static const IncidentPageDtoOutputItemsInnerTypeEnum VEHICLE =
-      _$incidentPageDtoOutputItemsInnerTypeEnum_VEHICLE;
+  static const IncidentPageDtoOutputItemsInnerTypeEnum VEHICLE = _$incidentPageDtoOutputItemsInnerTypeEnum_VEHICLE;
   @BuiltValueEnumConst(wireName: r'TRAFFIC')
-  static const IncidentPageDtoOutputItemsInnerTypeEnum TRAFFIC =
-      _$incidentPageDtoOutputItemsInnerTypeEnum_TRAFFIC;
+  static const IncidentPageDtoOutputItemsInnerTypeEnum TRAFFIC = _$incidentPageDtoOutputItemsInnerTypeEnum_TRAFFIC;
   @BuiltValueEnumConst(wireName: r'PASSENGER')
-  static const IncidentPageDtoOutputItemsInnerTypeEnum PASSENGER =
-      _$incidentPageDtoOutputItemsInnerTypeEnum_PASSENGER;
+  static const IncidentPageDtoOutputItemsInnerTypeEnum PASSENGER = _$incidentPageDtoOutputItemsInnerTypeEnum_PASSENGER;
   @BuiltValueEnumConst(wireName: r'SAFETY')
-  static const IncidentPageDtoOutputItemsInnerTypeEnum SAFETY =
-      _$incidentPageDtoOutputItemsInnerTypeEnum_SAFETY;
+  static const IncidentPageDtoOutputItemsInnerTypeEnum SAFETY = _$incidentPageDtoOutputItemsInnerTypeEnum_SAFETY;
   @BuiltValueEnumConst(wireName: r'OTHER')
-  static const IncidentPageDtoOutputItemsInnerTypeEnum OTHER =
-      _$incidentPageDtoOutputItemsInnerTypeEnum_OTHER;
+  static const IncidentPageDtoOutputItemsInnerTypeEnum OTHER = _$incidentPageDtoOutputItemsInnerTypeEnum_OTHER;
 
-  static Serializer<IncidentPageDtoOutputItemsInnerTypeEnum> get serializer =>
-      _$incidentPageDtoOutputItemsInnerTypeEnumSerializer;
+  static Serializer<IncidentPageDtoOutputItemsInnerTypeEnum> get serializer => _$incidentPageDtoOutputItemsInnerTypeEnumSerializer;
 
-  const IncidentPageDtoOutputItemsInnerTypeEnum._(String name) : super(name);
+  const IncidentPageDtoOutputItemsInnerTypeEnum._(String name): super(name);
 
-  static BuiltSet<IncidentPageDtoOutputItemsInnerTypeEnum> get values =>
-      _$incidentPageDtoOutputItemsInnerTypeEnumValues;
-  static IncidentPageDtoOutputItemsInnerTypeEnum valueOf(String name) =>
-      _$incidentPageDtoOutputItemsInnerTypeEnumValueOf(name);
+  static BuiltSet<IncidentPageDtoOutputItemsInnerTypeEnum> get values => _$incidentPageDtoOutputItemsInnerTypeEnumValues;
+  static IncidentPageDtoOutputItemsInnerTypeEnum valueOf(String name) => _$incidentPageDtoOutputItemsInnerTypeEnumValueOf(name);
 }
 
 class IncidentPageDtoOutputItemsInnerSeverityEnum extends EnumClass {
+
   @BuiltValueEnumConst(wireName: r'LOW')
-  static const IncidentPageDtoOutputItemsInnerSeverityEnum LOW =
-      _$incidentPageDtoOutputItemsInnerSeverityEnum_LOW;
+  static const IncidentPageDtoOutputItemsInnerSeverityEnum LOW = _$incidentPageDtoOutputItemsInnerSeverityEnum_LOW;
   @BuiltValueEnumConst(wireName: r'MEDIUM')
-  static const IncidentPageDtoOutputItemsInnerSeverityEnum MEDIUM =
-      _$incidentPageDtoOutputItemsInnerSeverityEnum_MEDIUM;
+  static const IncidentPageDtoOutputItemsInnerSeverityEnum MEDIUM = _$incidentPageDtoOutputItemsInnerSeverityEnum_MEDIUM;
   @BuiltValueEnumConst(wireName: r'HIGH')
-  static const IncidentPageDtoOutputItemsInnerSeverityEnum HIGH =
-      _$incidentPageDtoOutputItemsInnerSeverityEnum_HIGH;
+  static const IncidentPageDtoOutputItemsInnerSeverityEnum HIGH = _$incidentPageDtoOutputItemsInnerSeverityEnum_HIGH;
   @BuiltValueEnumConst(wireName: r'CRITICAL')
-  static const IncidentPageDtoOutputItemsInnerSeverityEnum CRITICAL =
-      _$incidentPageDtoOutputItemsInnerSeverityEnum_CRITICAL;
+  static const IncidentPageDtoOutputItemsInnerSeverityEnum CRITICAL = _$incidentPageDtoOutputItemsInnerSeverityEnum_CRITICAL;
 
-  static Serializer<IncidentPageDtoOutputItemsInnerSeverityEnum>
-      get serializer => _$incidentPageDtoOutputItemsInnerSeverityEnumSerializer;
+  static Serializer<IncidentPageDtoOutputItemsInnerSeverityEnum> get serializer => _$incidentPageDtoOutputItemsInnerSeverityEnumSerializer;
 
-  const IncidentPageDtoOutputItemsInnerSeverityEnum._(String name)
-      : super(name);
+  const IncidentPageDtoOutputItemsInnerSeverityEnum._(String name): super(name);
 
-  static BuiltSet<IncidentPageDtoOutputItemsInnerSeverityEnum> get values =>
-      _$incidentPageDtoOutputItemsInnerSeverityEnumValues;
-  static IncidentPageDtoOutputItemsInnerSeverityEnum valueOf(String name) =>
-      _$incidentPageDtoOutputItemsInnerSeverityEnumValueOf(name);
+  static BuiltSet<IncidentPageDtoOutputItemsInnerSeverityEnum> get values => _$incidentPageDtoOutputItemsInnerSeverityEnumValues;
+  static IncidentPageDtoOutputItemsInnerSeverityEnum valueOf(String name) => _$incidentPageDtoOutputItemsInnerSeverityEnumValueOf(name);
 }
+

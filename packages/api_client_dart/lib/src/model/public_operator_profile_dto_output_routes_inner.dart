@@ -11,13 +11,10 @@ part 'public_operator_profile_dto_output_routes_inner.g.dart';
 /// PublicOperatorProfileDtoOutputRoutesInner
 ///
 /// Properties:
-/// * [routeId]
-/// * [name]
+/// * [routeId] 
+/// * [name] 
 @BuiltValue()
-abstract class PublicOperatorProfileDtoOutputRoutesInner
-    implements
-        Built<PublicOperatorProfileDtoOutputRoutesInner,
-            PublicOperatorProfileDtoOutputRoutesInnerBuilder> {
+abstract class PublicOperatorProfileDtoOutputRoutesInner implements Built<PublicOperatorProfileDtoOutputRoutesInner, PublicOperatorProfileDtoOutputRoutesInnerBuilder> {
   @BuiltValueField(wireName: r'routeId')
   String get routeId;
 
@@ -26,26 +23,18 @@ abstract class PublicOperatorProfileDtoOutputRoutesInner
 
   PublicOperatorProfileDtoOutputRoutesInner._();
 
-  factory PublicOperatorProfileDtoOutputRoutesInner(
-          [void updates(PublicOperatorProfileDtoOutputRoutesInnerBuilder b)]) =
-      _$PublicOperatorProfileDtoOutputRoutesInner;
+  factory PublicOperatorProfileDtoOutputRoutesInner([void updates(PublicOperatorProfileDtoOutputRoutesInnerBuilder b)]) = _$PublicOperatorProfileDtoOutputRoutesInner;
 
   @BuiltValueHook(initializeBuilder: true)
-  static void _defaults(PublicOperatorProfileDtoOutputRoutesInnerBuilder b) =>
-      b;
+  static void _defaults(PublicOperatorProfileDtoOutputRoutesInnerBuilder b) => b;
 
   @BuiltValueSerializer(custom: true)
-  static Serializer<PublicOperatorProfileDtoOutputRoutesInner> get serializer =>
-      _$PublicOperatorProfileDtoOutputRoutesInnerSerializer();
+  static Serializer<PublicOperatorProfileDtoOutputRoutesInner> get serializer => _$PublicOperatorProfileDtoOutputRoutesInnerSerializer();
 }
 
-class _$PublicOperatorProfileDtoOutputRoutesInnerSerializer
-    implements PrimitiveSerializer<PublicOperatorProfileDtoOutputRoutesInner> {
+class _$PublicOperatorProfileDtoOutputRoutesInnerSerializer implements PrimitiveSerializer<PublicOperatorProfileDtoOutputRoutesInner> {
   @override
-  final Iterable<Type> types = const [
-    PublicOperatorProfileDtoOutputRoutesInner,
-    _$PublicOperatorProfileDtoOutputRoutesInner
-  ];
+  final Iterable<Type> types = const [PublicOperatorProfileDtoOutputRoutesInner, _$PublicOperatorProfileDtoOutputRoutesInner];
 
   @override
   final String wireName = r'PublicOperatorProfileDtoOutputRoutesInner';
@@ -73,9 +62,7 @@ class _$PublicOperatorProfileDtoOutputRoutesInnerSerializer
     PublicOperatorProfileDtoOutputRoutesInner object, {
     FullType specifiedType = FullType.unspecified,
   }) {
-    return _serializeProperties(serializers, object,
-            specifiedType: specifiedType)
-        .toList();
+    return _serializeProperties(serializers, object, specifiedType: specifiedType).toList();
   }
 
   void _deserializeProperties(
@@ -132,3 +119,5 @@ class _$PublicOperatorProfileDtoOutputRoutesInnerSerializer
     return result.build();
   }
 }
+
+

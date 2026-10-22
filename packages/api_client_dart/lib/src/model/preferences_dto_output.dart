@@ -13,33 +13,26 @@ part 'preferences_dto_output.g.dart';
 /// PreferencesDtoOutput
 ///
 /// Properties:
-/// * [items]
+/// * [items] 
 @BuiltValue()
-abstract class PreferencesDtoOutput
-    implements Built<PreferencesDtoOutput, PreferencesDtoOutputBuilder> {
+abstract class PreferencesDtoOutput implements Built<PreferencesDtoOutput, PreferencesDtoOutputBuilder> {
   @BuiltValueField(wireName: r'items')
   BuiltList<PreferencesDtoOutputItemsInner> get items;
 
   PreferencesDtoOutput._();
 
-  factory PreferencesDtoOutput([void updates(PreferencesDtoOutputBuilder b)]) =
-      _$PreferencesDtoOutput;
+  factory PreferencesDtoOutput([void updates(PreferencesDtoOutputBuilder b)]) = _$PreferencesDtoOutput;
 
   @BuiltValueHook(initializeBuilder: true)
   static void _defaults(PreferencesDtoOutputBuilder b) => b;
 
   @BuiltValueSerializer(custom: true)
-  static Serializer<PreferencesDtoOutput> get serializer =>
-      _$PreferencesDtoOutputSerializer();
+  static Serializer<PreferencesDtoOutput> get serializer => _$PreferencesDtoOutputSerializer();
 }
 
-class _$PreferencesDtoOutputSerializer
-    implements PrimitiveSerializer<PreferencesDtoOutput> {
+class _$PreferencesDtoOutputSerializer implements PrimitiveSerializer<PreferencesDtoOutput> {
   @override
-  final Iterable<Type> types = const [
-    PreferencesDtoOutput,
-    _$PreferencesDtoOutput
-  ];
+  final Iterable<Type> types = const [PreferencesDtoOutput, _$PreferencesDtoOutput];
 
   @override
   final String wireName = r'PreferencesDtoOutput';
@@ -52,8 +45,7 @@ class _$PreferencesDtoOutputSerializer
     yield r'items';
     yield serializers.serialize(
       object.items,
-      specifiedType:
-          const FullType(BuiltList, [FullType(PreferencesDtoOutputItemsInner)]),
+      specifiedType: const FullType(BuiltList, [FullType(PreferencesDtoOutputItemsInner)]),
     );
   }
 
@@ -63,9 +55,7 @@ class _$PreferencesDtoOutputSerializer
     PreferencesDtoOutput object, {
     FullType specifiedType = FullType.unspecified,
   }) {
-    return _serializeProperties(serializers, object,
-            specifiedType: specifiedType)
-        .toList();
+    return _serializeProperties(serializers, object, specifiedType: specifiedType).toList();
   }
 
   void _deserializeProperties(
@@ -83,8 +73,7 @@ class _$PreferencesDtoOutputSerializer
         case r'items':
           final valueDes = serializers.deserialize(
             value,
-            specifiedType: const FullType(
-                BuiltList, [FullType(PreferencesDtoOutputItemsInner)]),
+            specifiedType: const FullType(BuiltList, [FullType(PreferencesDtoOutputItemsInner)]),
           ) as BuiltList<PreferencesDtoOutputItemsInner>;
           result.items.replace(valueDes);
           break;
@@ -116,3 +105,5 @@ class _$PreferencesDtoOutputSerializer
     return result.build();
   }
 }
+
+

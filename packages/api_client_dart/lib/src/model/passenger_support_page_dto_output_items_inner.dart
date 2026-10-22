@@ -11,18 +11,15 @@ part 'passenger_support_page_dto_output_items_inner.g.dart';
 /// PassengerSupportPageDtoOutputItemsInner
 ///
 /// Properties:
-/// * [ticketId]
-/// * [ticketCode]
-/// * [bookingId]
-/// * [bookingCode]
-/// * [subject]
-/// * [status]
-/// * [updatedAt]
+/// * [ticketId] 
+/// * [ticketCode] 
+/// * [bookingId] 
+/// * [bookingCode] 
+/// * [subject] 
+/// * [status] 
+/// * [updatedAt] 
 @BuiltValue()
-abstract class PassengerSupportPageDtoOutputItemsInner
-    implements
-        Built<PassengerSupportPageDtoOutputItemsInner,
-            PassengerSupportPageDtoOutputItemsInnerBuilder> {
+abstract class PassengerSupportPageDtoOutputItemsInner implements Built<PassengerSupportPageDtoOutputItemsInner, PassengerSupportPageDtoOutputItemsInnerBuilder> {
   @BuiltValueField(wireName: r'ticketId')
   String get ticketId;
 
@@ -46,25 +43,18 @@ abstract class PassengerSupportPageDtoOutputItemsInner
 
   PassengerSupportPageDtoOutputItemsInner._();
 
-  factory PassengerSupportPageDtoOutputItemsInner(
-          [void updates(PassengerSupportPageDtoOutputItemsInnerBuilder b)]) =
-      _$PassengerSupportPageDtoOutputItemsInner;
+  factory PassengerSupportPageDtoOutputItemsInner([void updates(PassengerSupportPageDtoOutputItemsInnerBuilder b)]) = _$PassengerSupportPageDtoOutputItemsInner;
 
   @BuiltValueHook(initializeBuilder: true)
   static void _defaults(PassengerSupportPageDtoOutputItemsInnerBuilder b) => b;
 
   @BuiltValueSerializer(custom: true)
-  static Serializer<PassengerSupportPageDtoOutputItemsInner> get serializer =>
-      _$PassengerSupportPageDtoOutputItemsInnerSerializer();
+  static Serializer<PassengerSupportPageDtoOutputItemsInner> get serializer => _$PassengerSupportPageDtoOutputItemsInnerSerializer();
 }
 
-class _$PassengerSupportPageDtoOutputItemsInnerSerializer
-    implements PrimitiveSerializer<PassengerSupportPageDtoOutputItemsInner> {
+class _$PassengerSupportPageDtoOutputItemsInnerSerializer implements PrimitiveSerializer<PassengerSupportPageDtoOutputItemsInner> {
   @override
-  final Iterable<Type> types = const [
-    PassengerSupportPageDtoOutputItemsInner,
-    _$PassengerSupportPageDtoOutputItemsInner
-  ];
+  final Iterable<Type> types = const [PassengerSupportPageDtoOutputItemsInner, _$PassengerSupportPageDtoOutputItemsInner];
 
   @override
   final String wireName = r'PassengerSupportPageDtoOutputItemsInner';
@@ -117,9 +107,7 @@ class _$PassengerSupportPageDtoOutputItemsInnerSerializer
     PassengerSupportPageDtoOutputItemsInner object, {
     FullType specifiedType = FullType.unspecified,
   }) {
-    return _serializeProperties(serializers, object,
-            specifiedType: specifiedType)
-        .toList();
+    return _serializeProperties(serializers, object, specifiedType: specifiedType).toList();
   }
 
   void _deserializeProperties(
@@ -211,3 +199,5 @@ class _$PassengerSupportPageDtoOutputItemsInnerSerializer
     return result.build();
   }
 }
+
+

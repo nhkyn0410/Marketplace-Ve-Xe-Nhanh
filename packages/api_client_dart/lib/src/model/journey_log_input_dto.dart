@@ -11,14 +11,13 @@ part 'journey_log_input_dto.g.dart';
 /// JourneyLogInputDto
 ///
 /// Properties:
-/// * [tripId]
-/// * [stopSequence]
-/// * [actualAt]
-/// * [vehicleStatus]
-/// * [note]
+/// * [tripId] 
+/// * [stopSequence] 
+/// * [actualAt] 
+/// * [vehicleStatus] 
+/// * [note] 
 @BuiltValue()
-abstract class JourneyLogInputDto
-    implements Built<JourneyLogInputDto, JourneyLogInputDtoBuilder> {
+abstract class JourneyLogInputDto implements Built<JourneyLogInputDto, JourneyLogInputDtoBuilder> {
   @BuiltValueField(wireName: r'tripId')
   String get tripId;
 
@@ -36,19 +35,16 @@ abstract class JourneyLogInputDto
 
   JourneyLogInputDto._();
 
-  factory JourneyLogInputDto([void updates(JourneyLogInputDtoBuilder b)]) =
-      _$JourneyLogInputDto;
+  factory JourneyLogInputDto([void updates(JourneyLogInputDtoBuilder b)]) = _$JourneyLogInputDto;
 
   @BuiltValueHook(initializeBuilder: true)
   static void _defaults(JourneyLogInputDtoBuilder b) => b;
 
   @BuiltValueSerializer(custom: true)
-  static Serializer<JourneyLogInputDto> get serializer =>
-      _$JourneyLogInputDtoSerializer();
+  static Serializer<JourneyLogInputDto> get serializer => _$JourneyLogInputDtoSerializer();
 }
 
-class _$JourneyLogInputDtoSerializer
-    implements PrimitiveSerializer<JourneyLogInputDto> {
+class _$JourneyLogInputDtoSerializer implements PrimitiveSerializer<JourneyLogInputDto> {
   @override
   final Iterable<Type> types = const [JourneyLogInputDto, _$JourneyLogInputDto];
 
@@ -99,9 +95,7 @@ class _$JourneyLogInputDtoSerializer
     JourneyLogInputDto object, {
     FullType specifiedType = FullType.unspecified,
   }) {
-    return _serializeProperties(serializers, object,
-            specifiedType: specifiedType)
-        .toList();
+    return _serializeProperties(serializers, object, specifiedType: specifiedType).toList();
   }
 
   void _deserializeProperties(
@@ -182,3 +176,5 @@ class _$JourneyLogInputDtoSerializer
     return result.build();
   }
 }
+
+

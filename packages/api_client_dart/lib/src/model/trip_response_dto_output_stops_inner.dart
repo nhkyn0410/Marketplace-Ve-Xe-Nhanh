@@ -12,24 +12,21 @@ part 'trip_response_dto_output_stops_inner.g.dart';
 /// TripResponseDtoOutputStopsInner
 ///
 /// Properties:
-/// * [sequence]
-/// * [role]
-/// * [catalogStopPointId]
-/// * [stopPointId]
-/// * [name]
-/// * [address]
-/// * [type]
-/// * [plannedAt]
-/// * [pickupWindowStart]
-/// * [pickupWindowEnd]
-/// * [allowPickup]
-/// * [allowDropoff]
-/// * [note]
+/// * [sequence] 
+/// * [role] 
+/// * [catalogStopPointId] 
+/// * [stopPointId] 
+/// * [name] 
+/// * [address] 
+/// * [type] 
+/// * [plannedAt] 
+/// * [pickupWindowStart] 
+/// * [pickupWindowEnd] 
+/// * [allowPickup] 
+/// * [allowDropoff] 
+/// * [note] 
 @BuiltValue()
-abstract class TripResponseDtoOutputStopsInner
-    implements
-        Built<TripResponseDtoOutputStopsInner,
-            TripResponseDtoOutputStopsInnerBuilder> {
+abstract class TripResponseDtoOutputStopsInner implements Built<TripResponseDtoOutputStopsInner, TripResponseDtoOutputStopsInnerBuilder> {
   @BuiltValueField(wireName: r'sequence')
   int get sequence;
 
@@ -73,25 +70,18 @@ abstract class TripResponseDtoOutputStopsInner
 
   TripResponseDtoOutputStopsInner._();
 
-  factory TripResponseDtoOutputStopsInner(
-          [void updates(TripResponseDtoOutputStopsInnerBuilder b)]) =
-      _$TripResponseDtoOutputStopsInner;
+  factory TripResponseDtoOutputStopsInner([void updates(TripResponseDtoOutputStopsInnerBuilder b)]) = _$TripResponseDtoOutputStopsInner;
 
   @BuiltValueHook(initializeBuilder: true)
   static void _defaults(TripResponseDtoOutputStopsInnerBuilder b) => b;
 
   @BuiltValueSerializer(custom: true)
-  static Serializer<TripResponseDtoOutputStopsInner> get serializer =>
-      _$TripResponseDtoOutputStopsInnerSerializer();
+  static Serializer<TripResponseDtoOutputStopsInner> get serializer => _$TripResponseDtoOutputStopsInnerSerializer();
 }
 
-class _$TripResponseDtoOutputStopsInnerSerializer
-    implements PrimitiveSerializer<TripResponseDtoOutputStopsInner> {
+class _$TripResponseDtoOutputStopsInnerSerializer implements PrimitiveSerializer<TripResponseDtoOutputStopsInner> {
   @override
-  final Iterable<Type> types = const [
-    TripResponseDtoOutputStopsInner,
-    _$TripResponseDtoOutputStopsInner
-  ];
+  final Iterable<Type> types = const [TripResponseDtoOutputStopsInner, _$TripResponseDtoOutputStopsInner];
 
   @override
   final String wireName = r'TripResponseDtoOutputStopsInner';
@@ -112,19 +102,15 @@ class _$TripResponseDtoOutputStopsInnerSerializer
       specifiedType: const FullType(TripResponseDtoOutputStopsInnerRoleEnum),
     );
     yield r'catalogStopPointId';
-    yield object.catalogStopPointId == null
-        ? null
-        : serializers.serialize(
-            object.catalogStopPointId,
-            specifiedType: const FullType.nullable(String),
-          );
+    yield object.catalogStopPointId == null ? null : serializers.serialize(
+      object.catalogStopPointId,
+      specifiedType: const FullType.nullable(String),
+    );
     yield r'stopPointId';
-    yield object.stopPointId == null
-        ? null
-        : serializers.serialize(
-            object.stopPointId,
-            specifiedType: const FullType.nullable(String),
-          );
+    yield object.stopPointId == null ? null : serializers.serialize(
+      object.stopPointId,
+      specifiedType: const FullType.nullable(String),
+    );
     yield r'name';
     yield serializers.serialize(
       object.name,
@@ -146,19 +132,15 @@ class _$TripResponseDtoOutputStopsInnerSerializer
       specifiedType: const FullType(DateTime),
     );
     yield r'pickupWindowStart';
-    yield object.pickupWindowStart == null
-        ? null
-        : serializers.serialize(
-            object.pickupWindowStart,
-            specifiedType: const FullType.nullable(DateTime),
-          );
+    yield object.pickupWindowStart == null ? null : serializers.serialize(
+      object.pickupWindowStart,
+      specifiedType: const FullType.nullable(DateTime),
+    );
     yield r'pickupWindowEnd';
-    yield object.pickupWindowEnd == null
-        ? null
-        : serializers.serialize(
-            object.pickupWindowEnd,
-            specifiedType: const FullType.nullable(DateTime),
-          );
+    yield object.pickupWindowEnd == null ? null : serializers.serialize(
+      object.pickupWindowEnd,
+      specifiedType: const FullType.nullable(DateTime),
+    );
     yield r'allowPickup';
     yield serializers.serialize(
       object.allowPickup,
@@ -170,12 +152,10 @@ class _$TripResponseDtoOutputStopsInnerSerializer
       specifiedType: const FullType(bool),
     );
     yield r'note';
-    yield object.note == null
-        ? null
-        : serializers.serialize(
-            object.note,
-            specifiedType: const FullType.nullable(String),
-          );
+    yield object.note == null ? null : serializers.serialize(
+      object.note,
+      specifiedType: const FullType.nullable(String),
+    );
   }
 
   @override
@@ -184,9 +164,7 @@ class _$TripResponseDtoOutputStopsInnerSerializer
     TripResponseDtoOutputStopsInner object, {
     FullType specifiedType = FullType.unspecified,
   }) {
-    return _serializeProperties(serializers, object,
-            specifiedType: specifiedType)
-        .toList();
+    return _serializeProperties(serializers, object, specifiedType: specifiedType).toList();
   }
 
   void _deserializeProperties(
@@ -211,8 +189,7 @@ class _$TripResponseDtoOutputStopsInnerSerializer
         case r'role':
           final valueDes = serializers.deserialize(
             value,
-            specifiedType:
-                const FullType(TripResponseDtoOutputStopsInnerRoleEnum),
+            specifiedType: const FullType(TripResponseDtoOutputStopsInnerRoleEnum),
           ) as TripResponseDtoOutputStopsInnerRoleEnum;
           result.role = valueDes;
           break;
@@ -249,8 +226,7 @@ class _$TripResponseDtoOutputStopsInnerSerializer
         case r'type':
           final valueDes = serializers.deserialize(
             value,
-            specifiedType:
-                const FullType(TripResponseDtoOutputStopsInnerTypeEnum),
+            specifiedType: const FullType(TripResponseDtoOutputStopsInnerTypeEnum),
           ) as TripResponseDtoOutputStopsInnerTypeEnum;
           result.type = valueDes;
           break;
@@ -328,49 +304,40 @@ class _$TripResponseDtoOutputStopsInnerSerializer
   }
 }
 
+
 class TripResponseDtoOutputStopsInnerRoleEnum extends EnumClass {
+
   @BuiltValueEnumConst(wireName: r'ORIGIN')
-  static const TripResponseDtoOutputStopsInnerRoleEnum ORIGIN =
-      _$tripResponseDtoOutputStopsInnerRoleEnum_ORIGIN;
+  static const TripResponseDtoOutputStopsInnerRoleEnum ORIGIN = _$tripResponseDtoOutputStopsInnerRoleEnum_ORIGIN;
   @BuiltValueEnumConst(wireName: r'INTERMEDIATE')
-  static const TripResponseDtoOutputStopsInnerRoleEnum INTERMEDIATE =
-      _$tripResponseDtoOutputStopsInnerRoleEnum_INTERMEDIATE;
+  static const TripResponseDtoOutputStopsInnerRoleEnum INTERMEDIATE = _$tripResponseDtoOutputStopsInnerRoleEnum_INTERMEDIATE;
   @BuiltValueEnumConst(wireName: r'DESTINATION')
-  static const TripResponseDtoOutputStopsInnerRoleEnum DESTINATION =
-      _$tripResponseDtoOutputStopsInnerRoleEnum_DESTINATION;
+  static const TripResponseDtoOutputStopsInnerRoleEnum DESTINATION = _$tripResponseDtoOutputStopsInnerRoleEnum_DESTINATION;
 
-  static Serializer<TripResponseDtoOutputStopsInnerRoleEnum> get serializer =>
-      _$tripResponseDtoOutputStopsInnerRoleEnumSerializer;
+  static Serializer<TripResponseDtoOutputStopsInnerRoleEnum> get serializer => _$tripResponseDtoOutputStopsInnerRoleEnumSerializer;
 
-  const TripResponseDtoOutputStopsInnerRoleEnum._(String name) : super(name);
+  const TripResponseDtoOutputStopsInnerRoleEnum._(String name): super(name);
 
-  static BuiltSet<TripResponseDtoOutputStopsInnerRoleEnum> get values =>
-      _$tripResponseDtoOutputStopsInnerRoleEnumValues;
-  static TripResponseDtoOutputStopsInnerRoleEnum valueOf(String name) =>
-      _$tripResponseDtoOutputStopsInnerRoleEnumValueOf(name);
+  static BuiltSet<TripResponseDtoOutputStopsInnerRoleEnum> get values => _$tripResponseDtoOutputStopsInnerRoleEnumValues;
+  static TripResponseDtoOutputStopsInnerRoleEnum valueOf(String name) => _$tripResponseDtoOutputStopsInnerRoleEnumValueOf(name);
 }
 
 class TripResponseDtoOutputStopsInnerTypeEnum extends EnumClass {
+
   @BuiltValueEnumConst(wireName: r'BUS_STATION')
-  static const TripResponseDtoOutputStopsInnerTypeEnum BUS_STATION =
-      _$tripResponseDtoOutputStopsInnerTypeEnum_BUS_STATION;
+  static const TripResponseDtoOutputStopsInnerTypeEnum BUS_STATION = _$tripResponseDtoOutputStopsInnerTypeEnum_BUS_STATION;
   @BuiltValueEnumConst(wireName: r'OFFICE')
-  static const TripResponseDtoOutputStopsInnerTypeEnum OFFICE =
-      _$tripResponseDtoOutputStopsInnerTypeEnum_OFFICE;
+  static const TripResponseDtoOutputStopsInnerTypeEnum OFFICE = _$tripResponseDtoOutputStopsInnerTypeEnum_OFFICE;
   @BuiltValueEnumConst(wireName: r'REST_STOP')
-  static const TripResponseDtoOutputStopsInnerTypeEnum REST_STOP =
-      _$tripResponseDtoOutputStopsInnerTypeEnum_REST_STOP;
+  static const TripResponseDtoOutputStopsInnerTypeEnum REST_STOP = _$tripResponseDtoOutputStopsInnerTypeEnum_REST_STOP;
   @BuiltValueEnumConst(wireName: r'PICKUP_POINT')
-  static const TripResponseDtoOutputStopsInnerTypeEnum PICKUP_POINT =
-      _$tripResponseDtoOutputStopsInnerTypeEnum_PICKUP_POINT;
+  static const TripResponseDtoOutputStopsInnerTypeEnum PICKUP_POINT = _$tripResponseDtoOutputStopsInnerTypeEnum_PICKUP_POINT;
 
-  static Serializer<TripResponseDtoOutputStopsInnerTypeEnum> get serializer =>
-      _$tripResponseDtoOutputStopsInnerTypeEnumSerializer;
+  static Serializer<TripResponseDtoOutputStopsInnerTypeEnum> get serializer => _$tripResponseDtoOutputStopsInnerTypeEnumSerializer;
 
-  const TripResponseDtoOutputStopsInnerTypeEnum._(String name) : super(name);
+  const TripResponseDtoOutputStopsInnerTypeEnum._(String name): super(name);
 
-  static BuiltSet<TripResponseDtoOutputStopsInnerTypeEnum> get values =>
-      _$tripResponseDtoOutputStopsInnerTypeEnumValues;
-  static TripResponseDtoOutputStopsInnerTypeEnum valueOf(String name) =>
-      _$tripResponseDtoOutputStopsInnerTypeEnumValueOf(name);
+  static BuiltSet<TripResponseDtoOutputStopsInnerTypeEnum> get values => _$tripResponseDtoOutputStopsInnerTypeEnumValues;
+  static TripResponseDtoOutputStopsInnerTypeEnum valueOf(String name) => _$tripResponseDtoOutputStopsInnerTypeEnumValueOf(name);
 }
+

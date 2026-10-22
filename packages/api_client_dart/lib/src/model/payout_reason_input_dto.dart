@@ -11,33 +11,26 @@ part 'payout_reason_input_dto.g.dart';
 /// PayoutReasonInputDto
 ///
 /// Properties:
-/// * [reason]
+/// * [reason] 
 @BuiltValue()
-abstract class PayoutReasonInputDto
-    implements Built<PayoutReasonInputDto, PayoutReasonInputDtoBuilder> {
+abstract class PayoutReasonInputDto implements Built<PayoutReasonInputDto, PayoutReasonInputDtoBuilder> {
   @BuiltValueField(wireName: r'reason')
   String? get reason;
 
   PayoutReasonInputDto._();
 
-  factory PayoutReasonInputDto([void updates(PayoutReasonInputDtoBuilder b)]) =
-      _$PayoutReasonInputDto;
+  factory PayoutReasonInputDto([void updates(PayoutReasonInputDtoBuilder b)]) = _$PayoutReasonInputDto;
 
   @BuiltValueHook(initializeBuilder: true)
   static void _defaults(PayoutReasonInputDtoBuilder b) => b;
 
   @BuiltValueSerializer(custom: true)
-  static Serializer<PayoutReasonInputDto> get serializer =>
-      _$PayoutReasonInputDtoSerializer();
+  static Serializer<PayoutReasonInputDto> get serializer => _$PayoutReasonInputDtoSerializer();
 }
 
-class _$PayoutReasonInputDtoSerializer
-    implements PrimitiveSerializer<PayoutReasonInputDto> {
+class _$PayoutReasonInputDtoSerializer implements PrimitiveSerializer<PayoutReasonInputDto> {
   @override
-  final Iterable<Type> types = const [
-    PayoutReasonInputDto,
-    _$PayoutReasonInputDto
-  ];
+  final Iterable<Type> types = const [PayoutReasonInputDto, _$PayoutReasonInputDto];
 
   @override
   final String wireName = r'PayoutReasonInputDto';
@@ -48,12 +41,10 @@ class _$PayoutReasonInputDtoSerializer
     FullType specifiedType = FullType.unspecified,
   }) sync* {
     yield r'reason';
-    yield object.reason == null
-        ? null
-        : serializers.serialize(
-            object.reason,
-            specifiedType: const FullType.nullable(String),
-          );
+    yield object.reason == null ? null : serializers.serialize(
+      object.reason,
+      specifiedType: const FullType.nullable(String),
+    );
   }
 
   @override
@@ -62,9 +53,7 @@ class _$PayoutReasonInputDtoSerializer
     PayoutReasonInputDto object, {
     FullType specifiedType = FullType.unspecified,
   }) {
-    return _serializeProperties(serializers, object,
-            specifiedType: specifiedType)
-        .toList();
+    return _serializeProperties(serializers, object, specifiedType: specifiedType).toList();
   }
 
   void _deserializeProperties(
@@ -115,3 +104,5 @@ class _$PayoutReasonInputDtoSerializer
     return result.build();
   }
 }
+
+

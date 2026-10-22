@@ -11,22 +11,19 @@ part 'passenger_ticket_page_dto_output_items_inner.g.dart';
 /// PassengerTicketPageDtoOutputItemsInner
 ///
 /// Properties:
-/// * [ticketId]
-/// * [ticketCode]
-/// * [bookingId]
-/// * [bookingCode]
-/// * [operatorName]
-/// * [routeName]
-/// * [departureAt]
-/// * [seatCode]
-/// * [passengerName]
-/// * [status]
-/// * [issuedAt]
+/// * [ticketId] 
+/// * [ticketCode] 
+/// * [bookingId] 
+/// * [bookingCode] 
+/// * [operatorName] 
+/// * [routeName] 
+/// * [departureAt] 
+/// * [seatCode] 
+/// * [passengerName] 
+/// * [status] 
+/// * [issuedAt] 
 @BuiltValue()
-abstract class PassengerTicketPageDtoOutputItemsInner
-    implements
-        Built<PassengerTicketPageDtoOutputItemsInner,
-            PassengerTicketPageDtoOutputItemsInnerBuilder> {
+abstract class PassengerTicketPageDtoOutputItemsInner implements Built<PassengerTicketPageDtoOutputItemsInner, PassengerTicketPageDtoOutputItemsInnerBuilder> {
   @BuiltValueField(wireName: r'ticketId')
   String get ticketId;
 
@@ -62,25 +59,18 @@ abstract class PassengerTicketPageDtoOutputItemsInner
 
   PassengerTicketPageDtoOutputItemsInner._();
 
-  factory PassengerTicketPageDtoOutputItemsInner(
-          [void updates(PassengerTicketPageDtoOutputItemsInnerBuilder b)]) =
-      _$PassengerTicketPageDtoOutputItemsInner;
+  factory PassengerTicketPageDtoOutputItemsInner([void updates(PassengerTicketPageDtoOutputItemsInnerBuilder b)]) = _$PassengerTicketPageDtoOutputItemsInner;
 
   @BuiltValueHook(initializeBuilder: true)
   static void _defaults(PassengerTicketPageDtoOutputItemsInnerBuilder b) => b;
 
   @BuiltValueSerializer(custom: true)
-  static Serializer<PassengerTicketPageDtoOutputItemsInner> get serializer =>
-      _$PassengerTicketPageDtoOutputItemsInnerSerializer();
+  static Serializer<PassengerTicketPageDtoOutputItemsInner> get serializer => _$PassengerTicketPageDtoOutputItemsInnerSerializer();
 }
 
-class _$PassengerTicketPageDtoOutputItemsInnerSerializer
-    implements PrimitiveSerializer<PassengerTicketPageDtoOutputItemsInner> {
+class _$PassengerTicketPageDtoOutputItemsInnerSerializer implements PrimitiveSerializer<PassengerTicketPageDtoOutputItemsInner> {
   @override
-  final Iterable<Type> types = const [
-    PassengerTicketPageDtoOutputItemsInner,
-    _$PassengerTicketPageDtoOutputItemsInner
-  ];
+  final Iterable<Type> types = const [PassengerTicketPageDtoOutputItemsInner, _$PassengerTicketPageDtoOutputItemsInner];
 
   @override
   final String wireName = r'PassengerTicketPageDtoOutputItemsInner';
@@ -153,9 +143,7 @@ class _$PassengerTicketPageDtoOutputItemsInnerSerializer
     PassengerTicketPageDtoOutputItemsInner object, {
     FullType specifiedType = FullType.unspecified,
   }) {
-    return _serializeProperties(serializers, object,
-            specifiedType: specifiedType)
-        .toList();
+    return _serializeProperties(serializers, object, specifiedType: specifiedType).toList();
   }
 
   void _deserializeProperties(
@@ -275,3 +263,5 @@ class _$PassengerTicketPageDtoOutputItemsInnerSerializer
     return result.build();
   }
 }
+
+

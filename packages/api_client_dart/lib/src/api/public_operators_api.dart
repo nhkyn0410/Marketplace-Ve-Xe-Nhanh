@@ -12,6 +12,7 @@ import 'package:api_client_dart/src/api_util.dart';
 import 'package:api_client_dart/src/model/public_operator_profile_dto_output.dart';
 
 class PublicOperatorsApi {
+
   final Dio _dio;
 
   final Serializers _serializers;
@@ -19,12 +20,12 @@ class PublicOperatorsApi {
   const PublicOperatorsApi(this._dio, this._serializers);
 
   /// publicOperatorProfileControllerGet
-  ///
+  /// 
   ///
   /// Parameters:
-  /// * [operatorId]
-  /// * [cursor]
-  /// * [limit]
+  /// * [operatorId] 
+  /// * [cursor] 
+  /// * [limit] 
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
   /// * [extras] - Can be used to add flags to the request
@@ -34,8 +35,7 @@ class PublicOperatorsApi {
   ///
   /// Returns a [Future] containing a [Response] with a [PublicOperatorProfileDtoOutput] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<PublicOperatorProfileDtoOutput>>
-      publicOperatorProfileControllerGet({
+  Future<Response<PublicOperatorProfileDtoOutput>> publicOperatorProfileControllerGet({ 
     required String operatorId,
     String? cursor,
     num? limit = 20,
@@ -46,10 +46,7 @@ class PublicOperatorsApi {
     ProgressCallback? onSendProgress,
     ProgressCallback? onReceiveProgress,
   }) async {
-    final _path = r'/v1/operators/{operatorId}/public-profile'.replaceAll(
-        '{' r'operatorId' '}',
-        encodeQueryParameter(_serializers, operatorId, const FullType(String))
-            .toString());
+    final _path = r'/v1/operators/{operatorId}/public-profile'.replaceAll('{' r'operatorId' '}', encodeQueryParameter(_serializers, operatorId, const FullType(String)).toString());
     final _options = Options(
       method: r'GET',
       headers: <String, dynamic>{
@@ -63,12 +60,8 @@ class PublicOperatorsApi {
     );
 
     final _queryParameters = <String, dynamic>{
-      if (cursor != null)
-        r'cursor':
-            encodeQueryParameter(_serializers, cursor, const FullType(String)),
-      if (limit != null)
-        r'limit':
-            encodeQueryParameter(_serializers, limit, const FullType(num)),
+      if (cursor != null) r'cursor': encodeQueryParameter(_serializers, cursor, const FullType(String)),
+      if (limit != null) r'limit': encodeQueryParameter(_serializers, limit, const FullType(num)),
     };
 
     final _response = await _dio.request<Object>(
@@ -84,12 +77,11 @@ class PublicOperatorsApi {
 
     try {
       final rawResponse = _response.data;
-      _responseData = rawResponse == null
-          ? null
-          : _serializers.deserialize(
-              rawResponse,
-              specifiedType: const FullType(PublicOperatorProfileDtoOutput),
-            ) as PublicOperatorProfileDtoOutput;
+      _responseData = rawResponse == null ? null : _serializers.deserialize(
+        rawResponse,
+        specifiedType: const FullType(PublicOperatorProfileDtoOutput),
+      ) as PublicOperatorProfileDtoOutput;
+
     } catch (error, stackTrace) {
       throw DioException(
         requestOptions: _response.requestOptions,
@@ -111,4 +103,5 @@ class PublicOperatorsApi {
       extra: _response.extra,
     );
   }
+
 }

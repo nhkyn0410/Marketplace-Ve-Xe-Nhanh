@@ -12,18 +12,15 @@ part 'operator_report_dto_output_employees_inner.g.dart';
 /// OperatorReportDtoOutputEmployeesInner
 ///
 /// Properties:
-/// * [employeeId]
-/// * [loginName]
-/// * [role]
-/// * [assignedTrips]
-/// * [completedTrips]
-/// * [ticketsChecked]
-/// * [incidentsReported]
+/// * [employeeId] 
+/// * [loginName] 
+/// * [role] 
+/// * [assignedTrips] 
+/// * [completedTrips] 
+/// * [ticketsChecked] 
+/// * [incidentsReported] 
 @BuiltValue()
-abstract class OperatorReportDtoOutputEmployeesInner
-    implements
-        Built<OperatorReportDtoOutputEmployeesInner,
-            OperatorReportDtoOutputEmployeesInnerBuilder> {
+abstract class OperatorReportDtoOutputEmployeesInner implements Built<OperatorReportDtoOutputEmployeesInner, OperatorReportDtoOutputEmployeesInnerBuilder> {
   @BuiltValueField(wireName: r'employeeId')
   String get employeeId;
 
@@ -48,25 +45,18 @@ abstract class OperatorReportDtoOutputEmployeesInner
 
   OperatorReportDtoOutputEmployeesInner._();
 
-  factory OperatorReportDtoOutputEmployeesInner(
-          [void updates(OperatorReportDtoOutputEmployeesInnerBuilder b)]) =
-      _$OperatorReportDtoOutputEmployeesInner;
+  factory OperatorReportDtoOutputEmployeesInner([void updates(OperatorReportDtoOutputEmployeesInnerBuilder b)]) = _$OperatorReportDtoOutputEmployeesInner;
 
   @BuiltValueHook(initializeBuilder: true)
   static void _defaults(OperatorReportDtoOutputEmployeesInnerBuilder b) => b;
 
   @BuiltValueSerializer(custom: true)
-  static Serializer<OperatorReportDtoOutputEmployeesInner> get serializer =>
-      _$OperatorReportDtoOutputEmployeesInnerSerializer();
+  static Serializer<OperatorReportDtoOutputEmployeesInner> get serializer => _$OperatorReportDtoOutputEmployeesInnerSerializer();
 }
 
-class _$OperatorReportDtoOutputEmployeesInnerSerializer
-    implements PrimitiveSerializer<OperatorReportDtoOutputEmployeesInner> {
+class _$OperatorReportDtoOutputEmployeesInnerSerializer implements PrimitiveSerializer<OperatorReportDtoOutputEmployeesInner> {
   @override
-  final Iterable<Type> types = const [
-    OperatorReportDtoOutputEmployeesInner,
-    _$OperatorReportDtoOutputEmployeesInner
-  ];
+  final Iterable<Type> types = const [OperatorReportDtoOutputEmployeesInner, _$OperatorReportDtoOutputEmployeesInner];
 
   @override
   final String wireName = r'OperatorReportDtoOutputEmployeesInner';
@@ -89,8 +79,7 @@ class _$OperatorReportDtoOutputEmployeesInnerSerializer
     yield r'role';
     yield serializers.serialize(
       object.role,
-      specifiedType:
-          const FullType(OperatorReportDtoOutputEmployeesInnerRoleEnum),
+      specifiedType: const FullType(OperatorReportDtoOutputEmployeesInnerRoleEnum),
     );
     yield r'assignedTrips';
     yield serializers.serialize(
@@ -120,9 +109,7 @@ class _$OperatorReportDtoOutputEmployeesInnerSerializer
     OperatorReportDtoOutputEmployeesInner object, {
     FullType specifiedType = FullType.unspecified,
   }) {
-    return _serializeProperties(serializers, object,
-            specifiedType: specifiedType)
-        .toList();
+    return _serializeProperties(serializers, object, specifiedType: specifiedType).toList();
   }
 
   void _deserializeProperties(
@@ -154,8 +141,7 @@ class _$OperatorReportDtoOutputEmployeesInnerSerializer
         case r'role':
           final valueDes = serializers.deserialize(
             value,
-            specifiedType:
-                const FullType(OperatorReportDtoOutputEmployeesInnerRoleEnum),
+            specifiedType: const FullType(OperatorReportDtoOutputEmployeesInnerRoleEnum),
           ) as OperatorReportDtoOutputEmployeesInnerRoleEnum;
           result.role = valueDes;
           break;
@@ -216,26 +202,21 @@ class _$OperatorReportDtoOutputEmployeesInnerSerializer
   }
 }
 
+
 class OperatorReportDtoOutputEmployeesInnerRoleEnum extends EnumClass {
+
   @BuiltValueEnumConst(wireName: r'DRIVER')
-  static const OperatorReportDtoOutputEmployeesInnerRoleEnum DRIVER =
-      _$operatorReportDtoOutputEmployeesInnerRoleEnum_DRIVER;
+  static const OperatorReportDtoOutputEmployeesInnerRoleEnum DRIVER = _$operatorReportDtoOutputEmployeesInnerRoleEnum_DRIVER;
   @BuiltValueEnumConst(wireName: r'TICKET_STAFF')
-  static const OperatorReportDtoOutputEmployeesInnerRoleEnum TICKET_STAFF =
-      _$operatorReportDtoOutputEmployeesInnerRoleEnum_TICKET_STAFF;
+  static const OperatorReportDtoOutputEmployeesInnerRoleEnum TICKET_STAFF = _$operatorReportDtoOutputEmployeesInnerRoleEnum_TICKET_STAFF;
   @BuiltValueEnumConst(wireName: r'SUPPORT_STAFF')
-  static const OperatorReportDtoOutputEmployeesInnerRoleEnum SUPPORT_STAFF =
-      _$operatorReportDtoOutputEmployeesInnerRoleEnum_SUPPORT_STAFF;
+  static const OperatorReportDtoOutputEmployeesInnerRoleEnum SUPPORT_STAFF = _$operatorReportDtoOutputEmployeesInnerRoleEnum_SUPPORT_STAFF;
 
-  static Serializer<OperatorReportDtoOutputEmployeesInnerRoleEnum>
-      get serializer =>
-          _$operatorReportDtoOutputEmployeesInnerRoleEnumSerializer;
+  static Serializer<OperatorReportDtoOutputEmployeesInnerRoleEnum> get serializer => _$operatorReportDtoOutputEmployeesInnerRoleEnumSerializer;
 
-  const OperatorReportDtoOutputEmployeesInnerRoleEnum._(String name)
-      : super(name);
+  const OperatorReportDtoOutputEmployeesInnerRoleEnum._(String name): super(name);
 
-  static BuiltSet<OperatorReportDtoOutputEmployeesInnerRoleEnum> get values =>
-      _$operatorReportDtoOutputEmployeesInnerRoleEnumValues;
-  static OperatorReportDtoOutputEmployeesInnerRoleEnum valueOf(String name) =>
-      _$operatorReportDtoOutputEmployeesInnerRoleEnumValueOf(name);
+  static BuiltSet<OperatorReportDtoOutputEmployeesInnerRoleEnum> get values => _$operatorReportDtoOutputEmployeesInnerRoleEnumValues;
+  static OperatorReportDtoOutputEmployeesInnerRoleEnum valueOf(String name) => _$operatorReportDtoOutputEmployeesInnerRoleEnumValueOf(name);
 }
+

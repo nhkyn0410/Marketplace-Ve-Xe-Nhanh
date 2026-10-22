@@ -12,21 +12,20 @@ part 'promotion_input_dto.g.dart';
 /// PromotionInputDto
 ///
 /// Properties:
-/// * [code]
-/// * [name]
-/// * [discountType]
-/// * [discountValue]
-/// * [maxDiscount]
-/// * [minOrder]
-/// * [routeId]
-/// * [routeIds]
-/// * [tripId]
-/// * [startsAt]
-/// * [endsAt]
-/// * [usageLimit]
+/// * [code] 
+/// * [name] 
+/// * [discountType] 
+/// * [discountValue] 
+/// * [maxDiscount] 
+/// * [minOrder] 
+/// * [routeId] 
+/// * [routeIds] 
+/// * [tripId] 
+/// * [startsAt] 
+/// * [endsAt] 
+/// * [usageLimit] 
 @BuiltValue()
-abstract class PromotionInputDto
-    implements Built<PromotionInputDto, PromotionInputDtoBuilder> {
+abstract class PromotionInputDto implements Built<PromotionInputDto, PromotionInputDtoBuilder> {
   @BuiltValueField(wireName: r'code')
   String get code;
 
@@ -66,21 +65,18 @@ abstract class PromotionInputDto
 
   PromotionInputDto._();
 
-  factory PromotionInputDto([void updates(PromotionInputDtoBuilder b)]) =
-      _$PromotionInputDto;
+  factory PromotionInputDto([void updates(PromotionInputDtoBuilder b)]) = _$PromotionInputDto;
 
   @BuiltValueHook(initializeBuilder: true)
   static void _defaults(PromotionInputDtoBuilder b) => b
-    ..minOrder = 0
-    ..routeIds = ListBuilder();
+      ..minOrder = 0
+      ..routeIds = ListBuilder();
 
   @BuiltValueSerializer(custom: true)
-  static Serializer<PromotionInputDto> get serializer =>
-      _$PromotionInputDtoSerializer();
+  static Serializer<PromotionInputDto> get serializer => _$PromotionInputDtoSerializer();
 }
 
-class _$PromotionInputDtoSerializer
-    implements PrimitiveSerializer<PromotionInputDto> {
+class _$PromotionInputDtoSerializer implements PrimitiveSerializer<PromotionInputDto> {
   @override
   final Iterable<Type> types = const [PromotionInputDto, _$PromotionInputDto];
 
@@ -170,9 +166,7 @@ class _$PromotionInputDtoSerializer
     PromotionInputDto object, {
     FullType specifiedType = FullType.unspecified,
   }) {
-    return _serializeProperties(serializers, object,
-            specifiedType: specifiedType)
-        .toList();
+    return _serializeProperties(serializers, object, specifiedType: specifiedType).toList();
   }
 
   void _deserializeProperties(
@@ -242,8 +236,7 @@ class _$PromotionInputDtoSerializer
         case r'routeIds':
           final valueDes = serializers.deserialize(
             value,
-            specifiedType:
-                const FullType.nullable(BuiltList, [FullType(String)]),
+            specifiedType: const FullType.nullable(BuiltList, [FullType(String)]),
           ) as BuiltList<String>?;
           if (valueDes == null) continue;
           result.routeIds.replace(valueDes);
@@ -306,21 +299,19 @@ class _$PromotionInputDtoSerializer
   }
 }
 
+
 class PromotionInputDtoDiscountTypeEnum extends EnumClass {
+
   @BuiltValueEnumConst(wireName: r'PERCENT')
-  static const PromotionInputDtoDiscountTypeEnum PERCENT =
-      _$promotionInputDtoDiscountTypeEnum_PERCENT;
+  static const PromotionInputDtoDiscountTypeEnum PERCENT = _$promotionInputDtoDiscountTypeEnum_PERCENT;
   @BuiltValueEnumConst(wireName: r'AMOUNT')
-  static const PromotionInputDtoDiscountTypeEnum AMOUNT =
-      _$promotionInputDtoDiscountTypeEnum_AMOUNT;
+  static const PromotionInputDtoDiscountTypeEnum AMOUNT = _$promotionInputDtoDiscountTypeEnum_AMOUNT;
 
-  static Serializer<PromotionInputDtoDiscountTypeEnum> get serializer =>
-      _$promotionInputDtoDiscountTypeEnumSerializer;
+  static Serializer<PromotionInputDtoDiscountTypeEnum> get serializer => _$promotionInputDtoDiscountTypeEnumSerializer;
 
-  const PromotionInputDtoDiscountTypeEnum._(String name) : super(name);
+  const PromotionInputDtoDiscountTypeEnum._(String name): super(name);
 
-  static BuiltSet<PromotionInputDtoDiscountTypeEnum> get values =>
-      _$promotionInputDtoDiscountTypeEnumValues;
-  static PromotionInputDtoDiscountTypeEnum valueOf(String name) =>
-      _$promotionInputDtoDiscountTypeEnumValueOf(name);
+  static BuiltSet<PromotionInputDtoDiscountTypeEnum> get values => _$promotionInputDtoDiscountTypeEnumValues;
+  static PromotionInputDtoDiscountTypeEnum valueOf(String name) => _$promotionInputDtoDiscountTypeEnumValueOf(name);
 }
+

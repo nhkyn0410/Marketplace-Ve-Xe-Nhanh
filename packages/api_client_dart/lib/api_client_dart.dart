@@ -50,6 +50,7 @@ export 'package:api_client_dart/src/api/operator_disputes_api.dart';
 export 'package:api_client_dart/src/api/operator_employees_api.dart';
 export 'package:api_client_dart/src/api/operator_fares_api.dart';
 export 'package:api_client_dart/src/api/operator_finance_api.dart';
+export 'package:api_client_dart/src/api/operator_managers_api.dart';
 export 'package:api_client_dart/src/api/operator_profile_api.dart';
 export 'package:api_client_dart/src/api/operator_promotions_api.dart';
 export 'package:api_client_dart/src/api/operator_reports_api.dart';
@@ -142,7 +143,9 @@ export 'package:api_client_dart/src/model/admin_payout_stats_dto_output_pending_
 export 'package:api_client_dart/src/model/admin_platform_account_create_dto.dart';
 export 'package:api_client_dart/src/model/admin_platform_account_dto_output.dart';
 export 'package:api_client_dart/src/model/admin_platform_account_list_dto_output.dart';
+export 'package:api_client_dart/src/model/admin_platform_account_list_dto_output_grantable.dart';
 export 'package:api_client_dart/src/model/admin_platform_account_list_dto_output_items_inner.dart';
+export 'package:api_client_dart/src/model/admin_platform_permissions_update_dto.dart';
 export 'package:api_client_dart/src/model/admin_province_dto_output.dart';
 export 'package:api_client_dart/src/model/admin_province_input_dto.dart';
 export 'package:api_client_dart/src/model/admin_province_page_dto_output.dart';
@@ -329,6 +332,12 @@ export 'package:api_client_dart/src/model/loyalty_report_dto_output.dart';
 export 'package:api_client_dart/src/model/loyalty_report_dto_output_months_inner.dart';
 export 'package:api_client_dart/src/model/loyalty_report_dto_output_totals.dart';
 export 'package:api_client_dart/src/model/loyalty_transaction_page_dto_output.dart';
+export 'package:api_client_dart/src/model/manager_account_dto_output.dart';
+export 'package:api_client_dart/src/model/manager_create_dto.dart';
+export 'package:api_client_dart/src/model/manager_list_dto_output.dart';
+export 'package:api_client_dart/src/model/manager_list_dto_output_items_inner.dart';
+export 'package:api_client_dart/src/model/manager_reason_dto.dart';
+export 'package:api_client_dart/src/model/manager_update_dto.dart';
 export 'package:api_client_dart/src/model/message_input_dto.dart';
 export 'package:api_client_dart/src/model/message_response_dto_output.dart';
 export 'package:api_client_dart/src/model/mfa_challenge_response.dart';
@@ -586,3 +595,4 @@ export 'package:api_client_dart/src/model/vehicle_type_list_response_dto_output.
 export 'package:api_client_dart/src/model/vehicle_type_list_response_dto_output_items_inner.dart';
 export 'package:api_client_dart/src/model/ward_list_response_dto_output.dart';
 export 'package:api_client_dart/src/model/ward_list_response_dto_output_items_inner.dart';
+

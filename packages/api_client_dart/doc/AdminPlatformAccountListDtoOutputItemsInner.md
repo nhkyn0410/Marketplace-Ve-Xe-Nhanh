@@ -12,6 +12,7 @@ Name | Type | Description | Notes
 **username** | **String** |  | 
 **email** | **String** |  | 
 **role** | **String** |  | 
+**permissions** | **BuiltList&lt;String&gt;** |  | 
 **status** | **String** |  | 
 **mfaEnabled** | **bool** |  | 
 **passwordChangeRequired** | **bool** |  | 

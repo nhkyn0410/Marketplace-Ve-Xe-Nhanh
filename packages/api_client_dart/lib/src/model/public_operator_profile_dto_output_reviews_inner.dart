@@ -11,18 +11,15 @@ part 'public_operator_profile_dto_output_reviews_inner.g.dart';
 /// PublicOperatorProfileDtoOutputReviewsInner
 ///
 /// Properties:
-/// * [reviewId]
-/// * [authorName]
-/// * [rating]
-/// * [comment]
-/// * [operatorReply]
-/// * [operatorRepliedAt]
-/// * [createdAt]
+/// * [reviewId] 
+/// * [authorName] 
+/// * [rating] 
+/// * [comment] 
+/// * [operatorReply] 
+/// * [operatorRepliedAt] 
+/// * [createdAt] 
 @BuiltValue()
-abstract class PublicOperatorProfileDtoOutputReviewsInner
-    implements
-        Built<PublicOperatorProfileDtoOutputReviewsInner,
-            PublicOperatorProfileDtoOutputReviewsInnerBuilder> {
+abstract class PublicOperatorProfileDtoOutputReviewsInner implements Built<PublicOperatorProfileDtoOutputReviewsInner, PublicOperatorProfileDtoOutputReviewsInnerBuilder> {
   @BuiltValueField(wireName: r'reviewId')
   String get reviewId;
 
@@ -46,27 +43,18 @@ abstract class PublicOperatorProfileDtoOutputReviewsInner
 
   PublicOperatorProfileDtoOutputReviewsInner._();
 
-  factory PublicOperatorProfileDtoOutputReviewsInner(
-          [void updates(PublicOperatorProfileDtoOutputReviewsInnerBuilder b)]) =
-      _$PublicOperatorProfileDtoOutputReviewsInner;
+  factory PublicOperatorProfileDtoOutputReviewsInner([void updates(PublicOperatorProfileDtoOutputReviewsInnerBuilder b)]) = _$PublicOperatorProfileDtoOutputReviewsInner;
 
   @BuiltValueHook(initializeBuilder: true)
-  static void _defaults(PublicOperatorProfileDtoOutputReviewsInnerBuilder b) =>
-      b;
+  static void _defaults(PublicOperatorProfileDtoOutputReviewsInnerBuilder b) => b;
 
   @BuiltValueSerializer(custom: true)
-  static Serializer<PublicOperatorProfileDtoOutputReviewsInner>
-      get serializer =>
-          _$PublicOperatorProfileDtoOutputReviewsInnerSerializer();
+  static Serializer<PublicOperatorProfileDtoOutputReviewsInner> get serializer => _$PublicOperatorProfileDtoOutputReviewsInnerSerializer();
 }
 
-class _$PublicOperatorProfileDtoOutputReviewsInnerSerializer
-    implements PrimitiveSerializer<PublicOperatorProfileDtoOutputReviewsInner> {
+class _$PublicOperatorProfileDtoOutputReviewsInnerSerializer implements PrimitiveSerializer<PublicOperatorProfileDtoOutputReviewsInner> {
   @override
-  final Iterable<Type> types = const [
-    PublicOperatorProfileDtoOutputReviewsInner,
-    _$PublicOperatorProfileDtoOutputReviewsInner
-  ];
+  final Iterable<Type> types = const [PublicOperatorProfileDtoOutputReviewsInner, _$PublicOperatorProfileDtoOutputReviewsInner];
 
   @override
   final String wireName = r'PublicOperatorProfileDtoOutputReviewsInner';
@@ -92,26 +80,20 @@ class _$PublicOperatorProfileDtoOutputReviewsInnerSerializer
       specifiedType: const FullType(int),
     );
     yield r'comment';
-    yield object.comment == null
-        ? null
-        : serializers.serialize(
-            object.comment,
-            specifiedType: const FullType.nullable(String),
-          );
+    yield object.comment == null ? null : serializers.serialize(
+      object.comment,
+      specifiedType: const FullType.nullable(String),
+    );
     yield r'operatorReply';
-    yield object.operatorReply == null
-        ? null
-        : serializers.serialize(
-            object.operatorReply,
-            specifiedType: const FullType.nullable(String),
-          );
+    yield object.operatorReply == null ? null : serializers.serialize(
+      object.operatorReply,
+      specifiedType: const FullType.nullable(String),
+    );
     yield r'operatorRepliedAt';
-    yield object.operatorRepliedAt == null
-        ? null
-        : serializers.serialize(
-            object.operatorRepliedAt,
-            specifiedType: const FullType.nullable(DateTime),
-          );
+    yield object.operatorRepliedAt == null ? null : serializers.serialize(
+      object.operatorRepliedAt,
+      specifiedType: const FullType.nullable(DateTime),
+    );
     yield r'createdAt';
     yield serializers.serialize(
       object.createdAt,
@@ -125,9 +107,7 @@ class _$PublicOperatorProfileDtoOutputReviewsInnerSerializer
     PublicOperatorProfileDtoOutputReviewsInner object, {
     FullType specifiedType = FullType.unspecified,
   }) {
-    return _serializeProperties(serializers, object,
-            specifiedType: specifiedType)
-        .toList();
+    return _serializeProperties(serializers, object, specifiedType: specifiedType).toList();
   }
 
   void _deserializeProperties(
@@ -222,3 +202,5 @@ class _$PublicOperatorProfileDtoOutputReviewsInnerSerializer
     return result.build();
   }
 }
+
+
