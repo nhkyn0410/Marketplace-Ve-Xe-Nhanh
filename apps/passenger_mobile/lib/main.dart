@@ -1,5 +1,6 @@
 import 'package:api_client_dart/api_client_dart.dart';
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:mobile_shared/mobile_shared.dart';
@@ -7,21 +8,37 @@ import 'package:passenger_mobile/features/auth/auth_screen.dart';
 
 /// Origin của API — KHÔNG kèm `/v1`.
 ///
-/// Mặc định `localhost` dùng được cho **cả** emulator lẫn máy thật, với điều kiện
-/// mở đường hầm một lần mỗi phiên cắm máy:
+/// Android Emulator mặc định đi qua alias chính thức `10.0.2.2`. Khi caller chủ
+/// động dùng `localhost` cùng `adb reverse`, đổi hostname sang loopback dạng số
+/// để tránh DNS của emulator trả `Failed host lookup: localhost` trước khi ADB
+/// có thể chuyển tiếp cổng. Thiết bị thật không cáp vẫn truyền IP LAN bằng
+/// `--dart-define=API_BASE_URL=http://192.168.x.x:3000`.
 ///
-/// ```
-/// adb reverse tcp:3000 tcp:3000
-/// ```
-///
-/// Chạy không cáp thì ghi đè bằng IP LAN:
-/// `--dart-define=API_BASE_URL=http://192.168.x.x:3000` (nhớ mở firewall cổng 3000).
-/// Lưu ý `String.fromEnvironment` là hằng compile-time: đổi giá trị phải dừng hẳn
-/// `flutter run` rồi chạy lại, hot restart không ăn.
-const apiBaseUrl = String.fromEnvironment(
-  'API_BASE_URL',
-  defaultValue: 'http://localhost:3000',
-);
+/// `String.fromEnvironment` là compile-time: đổi giá trị phải dừng hẳn
+/// `flutter run` rồi chạy lại, hot restart không áp dụng giá trị mới.
+const _configuredApiBaseUrl = String.fromEnvironment('API_BASE_URL');
+
+String resolveApiBaseUrl({
+  String configured = _configuredApiBaseUrl,
+  TargetPlatform? platform,
+}) {
+  final currentPlatform = platform ?? defaultTargetPlatform;
+  final value = configured.trim();
+
+  if (value.isEmpty) {
+    return currentPlatform == TargetPlatform.android
+        ? 'http://10.0.2.2:3000'
+        : 'http://localhost:3000';
+  }
+
+  if (currentPlatform != TargetPlatform.android) return value;
+
+  final uri = Uri.tryParse(value);
+  if (uri?.host != 'localhost') return value;
+  return uri!.replace(host: '127.0.0.1').toString();
+}
+
+final apiBaseUrl = resolveApiBaseUrl();
 
 String describePassengerAuthFailure(ApiFailure failure) {
   if (failure.isNetworkError) {
