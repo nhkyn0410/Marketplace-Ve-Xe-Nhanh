@@ -165,6 +165,9 @@ describe.skipIf(!url && !requireDb)("Catalog — Postgres thật, role app", () 
       await tx.stopPointCatalog.deleteMany({
         where: { provinceId: { in: provinceIds } },
       });
+      await tx.legacyAdministrativeMapping.deleteMany({
+        where: { provinceId: { in: provinceIds } },
+      });
       await tx.ward.deleteMany({ where: { provinceId: { in: provinceIds } } });
       await tx.province.deleteMany({ where: { id: { in: provinceIds } } });
       await tx.vehicleType.deleteMany({ where: { code: { endsWith: tag } } });
@@ -614,6 +617,58 @@ describe.skipIf(!url && !requireDb)("Catalog — Postgres thật, role app", () 
         ),
       );
       expect(text).toMatch(/row-level security|42501/);
+    });
+
+    it("seed bảng legacy_administrative_mappings, tự sinh search_text và hỗ trợ đối chiếu điểm dừng từ tên phường cũ", async () => {
+      const res = await prisma.withSystem((tx) =>
+        seedCatalog(tx, {
+          provinces: [{ code: seedProvinceCodes[0]!, name: "Tỉnh Seed 1" }],
+          wards: [
+            {
+              code: `sw1-${tag}`,
+              name: "Phường Seed",
+              provinceCode: seedProvinceCodes[0]!,
+            },
+          ],
+          vehicleTypes: [],
+          amenities: [],
+          legacyMappings: [
+            {
+              legacyProvinceCode: `L-${tag}`,
+              legacyProvinceName: "Tỉnh Cũ Test",
+              legacyDistrictName: "Thành phố Cũ Test",
+              legacyWardName: "Phường Cũ Đổi Tên",
+              provinceCode: seedProvinceCodes[0]!,
+              wardCode: `sw1-${tag}`,
+              notes: "Sáp nhập test",
+            },
+          ],
+          sampleStopPoints: [
+            {
+              name: `Bến theo tên phường cũ ${tag}`,
+              type: StopPointType.BUS_STATION,
+              address: "Số 1 Đường Test",
+              provinceCode: seedProvinceCodes[0]!,
+              wardName: "Phường Cũ Đổi Tên",
+              latitude: 10.5,
+              longitude: 106.5,
+              legalBasis: "QĐ công bố test",
+            },
+          ],
+        }),
+      );
+
+      expect(res.legacyMappings).toBe(1);
+      expect(res.stopPoints).toBe(1);
+      expect(res.skippedStopPoints).toEqual([]);
+
+      const mappingRow = await prisma.legacyAdministrativeMapping.findFirst({
+        where: { legacyProvinceCode: `L-${tag}` },
+        select: { searchText: true, notes: true },
+      });
+      expect(mappingRow?.notes).toBe("Sáp nhập test");
+      expect(mappingRow?.searchText).toContain("tinh cu test");
+      expect(mappingRow?.searchText).toContain("phuong cu doi ten");
     });
   });
 });
