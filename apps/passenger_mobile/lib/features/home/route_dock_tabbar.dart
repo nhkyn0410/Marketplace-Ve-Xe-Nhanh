@@ -4,6 +4,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 const _dockAssetRoot = 'assets/home/tabbar';
 const _primary = Color(0xFF2B7EAD);
 const _inactive = Color(0xFF74777B);
+const _dockBackground = Color(0xFFEBF5FB);
 
 class RouteDockTabBar extends StatelessWidget {
   const RouteDockTabBar({
@@ -54,7 +55,7 @@ class RouteDockTabBar extends StatelessWidget {
               right: 0,
               bottom: 0,
               height: bottomInset,
-              child: const ColoredBox(color: Colors.white),
+              child: const ColoredBox(color: _dockBackground),
             ),
         ],
       ),
@@ -89,7 +90,7 @@ class _DockCanvas extends StatelessWidget {
               bottom: 0,
               child: DecoratedBox(
                 decoration: BoxDecoration(
-                  color: const Color(0xFFEBF5FB),
+                  color: _dockBackground,
                   borderRadius: const BorderRadius.vertical(
                     top: Radius.circular(30),
                   ),
@@ -137,22 +138,24 @@ class _DockCanvas extends StatelessWidget {
               ),
             ),
             Positioned(
-              left: 0,
-              right: 0,
+              left: 4,
+              right: 4,
               top: 32,
-              height: 76,
-              child: SvgPicture.asset(
-                '$_dockAssetRoot/capsule_notch.svg',
-                fit: BoxFit.fill,
-                excludeFromSemantics: true,
+              height: 80,
+              child: DecoratedBox(
+                key: const Key('route-dock-surface'),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.all(Radius.circular(26)),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Color(0x242B7EAD),
+                      offset: Offset(0, 5),
+                      blurRadius: 10,
+                    ),
+                  ],
+                ),
               ),
-            ),
-            const Positioned(
-              left: 0,
-              right: 0,
-              top: 104,
-              bottom: 0,
-              child: ColoredBox(color: Colors.white),
             ),
             Positioned(
               left: activeCenter - bubbleSize / 2,

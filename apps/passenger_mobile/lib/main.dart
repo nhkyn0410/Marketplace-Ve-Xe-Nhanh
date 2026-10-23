@@ -4,10 +4,12 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:mobile_shared/mobile_shared.dart';
+import 'package:passenger_mobile/features/account/account_screen.dart';
 import 'package:passenger_mobile/features/auth/auth_screen.dart';
 import 'package:passenger_mobile/features/auth/google_auth_service.dart';
 import 'package:passenger_mobile/features/home/home_models.dart';
 import 'package:passenger_mobile/features/home/home_screen.dart';
+import 'package:passenger_mobile/features/home/route_dock_tabbar.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 /// Origin của API — KHÔNG kèm `/v1`.
@@ -155,6 +157,7 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
   String? _profileEmail;
   String? _displayName;
   DateTime? _otpIssuedAt;
+  int _currentTab = 2;
 
   /// Bọc mọi lời gọi API: bật cờ bận, dịch lỗi thành câu tiếng Việt, hiện lên UI.
   Future<bool> _run(Future<void> Function() action) async {
@@ -311,6 +314,7 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
       _email = profile.email;
       _profileEmail = profile.email;
       _displayName = name;
+      _currentTab = 2;
       _step = name == null || name.isEmpty
           ? _AuthStep.profile
           : _AuthStep.signedIn;
@@ -338,6 +342,7 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
     if (completed && mounted) {
       setState(() {
         _displayName = profile!.name?.trim() ?? fullName;
+        _currentTab = 2;
         _step = _AuthStep.signedIn;
         _error = null;
       });
@@ -370,8 +375,96 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
   void _returnToLogin() {
     setState(() {
       _step = _AuthStep.email;
+      _currentTab = 2;
       _error = null;
     });
+  }
+
+  Future<int?> _loadSavedPassengerCount() async {
+    try {
+      final response = await _api
+          .getPassengerProfileApi()
+          .passengerProfileControllerSaved();
+      return response.data?.items.length;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<PassengerLoyaltyDtoOutput?> _loadLoyalty() async {
+    try {
+      final response = await _api
+          .getPassengerLoyaltyApi()
+          .passengerLoyaltyControllerMember();
+      return response.data;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<AccountOverview> _loadAccountOverview() async {
+    final response = await _api
+        .getPassengerProfileApi()
+        .passengerProfileControllerGet();
+    final profile = response.data;
+    if (profile == null) {
+      throw StateError('Profile response did not contain data.');
+    }
+
+    final summaries = await Future.wait<Object?>([
+      _loadSavedPassengerCount(),
+      _loadLoyalty(),
+    ]);
+    final loyalty = summaries[1] as PassengerLoyaltyDtoOutput?;
+    return AccountOverview(
+      name: profile.name?.trim().isNotEmpty == true
+          ? profile.name!.trim()
+          : profile.email.split('@').first,
+      email: profile.email,
+      emailVerified: profile.emailVerified,
+      imageUrl: profile.image,
+      availablePoints: loyalty?.availablePoints,
+      loyaltyTier: loyalty?.tier.name,
+      savedPassengerCount: summaries[0] as int?,
+    );
+  }
+
+  Future<bool> _logout() async {
+    final succeeded = await _run(() async {
+      await _api.getAuthApi().authControllerLogout(xAuthTransport: 'bearer');
+      await _tokens.clear();
+    });
+    if (!succeeded || !mounted) return false;
+
+    setState(() {
+      _step = _AuthStep.email;
+      _email = null;
+      _profileEmail = null;
+      _displayName = null;
+      _otpIssuedAt = null;
+      _currentTab = 2;
+      _error = null;
+    });
+    return true;
+  }
+
+  void _selectMainTab(int index) {
+    if (index == 2 || index == 4) {
+      setState(() {
+        _currentTab = index;
+        _error = null;
+      });
+      return;
+    }
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(
+            '${RouteDockTabBar.labels[index]} sẽ được triển khai ở bước tiếp theo.',
+          ),
+        ),
+      );
   }
 
   Future<List<HomeLocation>> _loadHomeLocations() async {
@@ -502,7 +595,17 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
 
   @override
   Widget build(BuildContext context) {
-    if (_step == _AuthStep.signedIn) return _home(isLoggedIn: true);
+    if (_step == _AuthStep.signedIn) {
+      if (_currentTab == 4) {
+        return AccountScreen(
+          loadOverview: _loadAccountOverview,
+          onLogout: _logout,
+          onTabSelected: _selectMainTab,
+          logoutErrorMessage: _error,
+        );
+      }
+      return _home(isLoggedIn: true);
+    }
     if (_step == _AuthStep.guest) return _home(isLoggedIn: false);
     if (_step == _AuthStep.profile) {
       return ProfileCompletionScreen(
@@ -553,6 +656,7 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
       onSearch: _searchHomeTrips,
       onCallHotline: _launchSupportHotline,
       onLoginRequested: isLoggedIn ? null : _returnToLogin,
+      onTabSelected: isLoggedIn ? _selectMainTab : null,
     );
   }
 }

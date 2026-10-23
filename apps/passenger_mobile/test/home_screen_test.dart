@@ -242,6 +242,26 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('hai tab tìm kiếm chia đều và giữ chiều cao ở mọi viewport', (
+    tester,
+  ) async {
+    for (final width in <double>[320, 430]) {
+      await _pumpHome(tester, width: width);
+
+      final routeSize = tester.getSize(
+        find.byKey(const Key('search-mode-route')),
+      );
+      final operatorSize = tester.getSize(
+        find.byKey(const Key('search-mode-operator')),
+      );
+
+      expect(routeSize.width, closeTo(operatorSize.width, 0.01));
+      expect(routeSize.height, 40);
+      expect(operatorSize.height, 40);
+      expect(tester.takeException(), isNull, reason: 'viewport $width dp');
+    }
+  });
+
   testWidgets('route search chỉ gọi callback sau khi chọn dữ liệu Catalog', (
     tester,
   ) async {

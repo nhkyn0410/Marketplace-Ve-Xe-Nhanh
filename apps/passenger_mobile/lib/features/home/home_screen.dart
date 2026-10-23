@@ -1010,6 +1010,7 @@ class _SearchModeControl extends StatelessWidget {
         borderRadius: BorderRadius.circular(18),
       ),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Expanded(
             child: _SearchModeButton(
@@ -1064,6 +1065,7 @@ class _SearchModeButton extends StatelessWidget {
         onTap: onTap,
         borderRadius: BorderRadius.circular(14),
         child: Ink(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
           decoration: BoxDecoration(
             gradient: selected
                 ? const LinearGradient(

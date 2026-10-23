@@ -6,6 +6,7 @@ Future<void> _pumpDock(
   WidgetTester tester, {
   required double width,
   double bottomInset = 0,
+  int currentIndex = 2,
   ValueChanged<int>? onTap,
 }) async {
   tester.view.devicePixelRatio = 1;
@@ -22,7 +23,7 @@ Future<void> _pumpDock(
             data: media.copyWith(padding: EdgeInsets.only(bottom: bottomInset)),
             child: Scaffold(
               bottomNavigationBar: RouteDockTabBar(
-                currentIndex: 2,
+                currentIndex: currentIndex,
                 onTap: onTap ?? (_) {},
               ),
             ),
@@ -67,5 +68,26 @@ void main() {
 
     await tester.tap(find.byKey(const Key('route-dock-tab-4')));
     expect(tappedIndex, 4);
+  });
+
+  testWidgets('khung trắng luôn là capsule liền mạch khi đổi tab active', (
+    tester,
+  ) async {
+    for (final currentIndex in <int>[2, 4]) {
+      await _pumpDock(tester, width: 390, currentIndex: currentIndex);
+
+      final surfaceFinder = find.byKey(const Key('route-dock-surface'));
+      final surface = tester.widget<DecoratedBox>(surfaceFinder);
+      final decoration = surface.decoration as BoxDecoration;
+      final rect = tester.getRect(surfaceFinder);
+
+      expect(rect, const Rect.fromLTWH(4, 712, 382, 80));
+      expect(
+        decoration.borderRadius,
+        const BorderRadius.all(Radius.circular(26)),
+      );
+      expect(decoration.color, Colors.white);
+      expect(tester.takeException(), isNull);
+    }
   });
 }
