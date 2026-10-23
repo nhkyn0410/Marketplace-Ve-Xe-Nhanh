@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowRightLeft, Calendar, MapPin, Search, Users } from "lucide-react";
+import { ArrowRightLeft } from "lucide-react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { ProvinceItem } from "../../lib/data/types";
@@ -17,7 +17,7 @@ export interface TripSearchBarProps {
 }
 
 /**
- * Thanh tìm kiếm chuyến xe nhỏ gọn trên đầu trang /trips.
+ * Thanh tìm kiếm chuyến xe nhỏ gọn trên đầu trang /trips chuẩn theo Figma 1440:11297.
  */
 export function TripSearchBar({
   initialOrigin = "",
@@ -49,82 +49,87 @@ export function TripSearchBar({
   };
 
   return (
-    <div className="rounded-2xl border border-vxn-border bg-white p-4 shadow-2xs sm:p-5">
-      <form onSubmit={handleSearch} className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-12 lg:items-center">
-        {/* Điểm đi */}
-        <div className="relative lg:col-span-3">
-          <label className="block text-xs font-semibold text-vxn-fg-4">Điểm đi</label>
-          <div className="mt-1 flex items-center rounded-xl border border-vxn-border bg-vxn-bg-soft px-3 py-2 text-sm">
-            <MapPin className="mr-2 h-4 w-4 shrink-0 text-vxn-teal-600" />
+    <div className="rounded-2xl border border-slate-200 bg-white p-3.5 shadow-2xs">
+      <form onSubmit={handleSearch} className="flex flex-col gap-3 lg:flex-row lg:items-center">
+        {/* Cụm Điểm đi & Điểm đến */}
+        <div className="flex flex-1 flex-col gap-2 sm:flex-row sm:items-center">
+          {/* Điểm đi */}
+          <div className="flex-1 rounded-xl border border-slate-200 bg-white px-3.5 py-1.5 focus-within:border-[#00506a]">
+            <label className="block text-[11px] font-semibold text-slate-400">Điểm đi</label>
             <select
               required disabled={!provinces.length}
               value={origin}
               onChange={(e) => setOrigin(e.target.value)}
-              className="w-full bg-transparent font-bold text-vxn-ink outline-none"
-            ><option value="">Chọn điểm đi</option>{provinces.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}</select>
+              className="w-full bg-transparent text-sm font-bold text-slate-900 outline-none"
+            >
+              <option value="">Chọn điểm đi</option>
+              {provinces.map((province) => <option key={province.id} value={province.id}>{province.name}</option>)}
+            </select>
           </div>
-        </div>
 
-        {/* Nút hoán đổi */}
-        <div className="flex items-center justify-center lg:col-span-1">
-          <button
-            type="button"
-            onClick={handleSwap}
-            title="Đổi chiều điểm đi / đến"
-            className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-vxn-border bg-white text-vxn-fg-3 shadow-xs hover:border-vxn-teal-500 hover:text-vxn-teal-700"
-          >
-            <ArrowRightLeft className="h-4 w-4" />
-          </button>
-        </div>
+          {/* Nút hoán đổi */}
+          <div className="flex items-center justify-center shrink-0">
+            <button
+              type="button"
+              onClick={handleSwap}
+              title="Đổi chiều điểm đi / đến"
+              className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 shadow-xs hover:border-[#00506a] hover:text-[#00506a] transition cursor-pointer"
+            >
+              <ArrowRightLeft className="h-4 w-4" />
+            </button>
+          </div>
 
-        {/* Điểm đến */}
-        <div className="relative lg:col-span-3">
-          <label className="block text-xs font-semibold text-vxn-fg-4">Điểm đến</label>
-          <div className="mt-1 flex items-center rounded-xl border border-vxn-border bg-vxn-bg-soft px-3 py-2 text-sm">
-            <MapPin className="mr-2 h-4 w-4 shrink-0 text-[#e89b26]" />
+          {/* Điểm đến */}
+          <div className="flex-1 rounded-xl border border-slate-200 bg-white px-3.5 py-1.5 focus-within:border-[#00506a]">
+            <label className="block text-[11px] font-semibold text-slate-400">Điểm đến</label>
             <select
               required disabled={!provinces.length}
               value={destination}
               onChange={(e) => setDestination(e.target.value)}
-              className="w-full bg-transparent font-bold text-vxn-ink outline-none"
-            ><option value="">Chọn điểm đến</option>{provinces.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}</select>
+              className="w-full bg-transparent text-sm font-bold text-slate-900 outline-none"
+            >
+              <option value="">Chọn điểm đến</option>
+              {provinces.map((province) => <option key={province.id} value={province.id}>{province.name}</option>)}
+            </select>
           </div>
         </div>
 
         {/* Ngày đi */}
-        <div className="relative lg:col-span-2">
-          <label className="block text-xs font-semibold text-vxn-fg-4">Ngày đi</label>
-          <div className="mt-1 flex items-center rounded-xl border border-vxn-border bg-vxn-bg-soft px-3 py-2 text-sm">
-            <Calendar className="mr-2 h-4 w-4 shrink-0 text-vxn-fg-3" />
-            <input
-              type="date"
-              required
-              value={date}
-              onChange={(e) => setDate(e.target.value)}
-              className="w-full bg-transparent font-bold text-vxn-ink outline-none cursor-default"
-            />
-          </div>
+        <div className="w-full sm:w-48 lg:w-44 rounded-xl border border-slate-200 bg-white px-3.5 py-1.5 focus-within:border-[#00506a]">
+          <label className="block text-[11px] font-semibold text-slate-400">Ngày đi</label>
+          <input
+            type="date"
+            required
+            value={date}
+            onChange={(e) => setDate(e.target.value)}
+            className="w-full bg-transparent text-sm font-bold text-slate-900 outline-none cursor-default"
+          />
         </div>
 
         {/* Hành khách */}
-        <div className="relative lg:col-span-1">
-          <label className="block text-xs font-semibold text-vxn-fg-4">Hành khách</label>
-          <div className="mt-1 flex items-center rounded-xl border border-vxn-border bg-vxn-bg-soft px-2.5 py-2 text-sm">
-            <Users className="mr-1.5 h-4 w-4 shrink-0 text-vxn-fg-3" />
-            <input aria-label="Số hành khách" type="number" required min={1} max={10} step={1} value={passengers} onChange={(e) => setPassengers(Number(e.target.value))} className="w-12 bg-transparent font-bold text-vxn-ink" />
+        <div className="w-full sm:w-44 lg:w-36 rounded-xl border border-slate-200 bg-white px-3.5 py-1.5 focus-within:border-[#00506a]">
+          <label className="block text-[11px] font-semibold text-slate-400">Hành khách</label>
+          <div className="text-sm font-bold text-slate-900">
+            <input
+              aria-label="Số hành khách"
+              type="number"
+              required min={1} max={10} step={1}
+              value={passengers}
+              onChange={(e) => setPassengers(Number(e.target.value))}
+              className="w-12 bg-transparent font-bold text-slate-900"
+            />
+            hành khách
           </div>
         </div>
 
         {/* Nút Tìm chuyến */}
-        <div className="mt-2 sm:mt-0 lg:col-span-2">
-          <label className="hidden text-xs font-semibold text-transparent lg:block">Tìm</label>
+        <div className="shrink-0">
           <button
             type="submit"
             disabled={!provinces.length}
-            className="mt-1 flex w-full items-center justify-center gap-2 rounded-xl bg-[#00506a] py-2.5 px-4 text-sm font-bold text-white shadow-xs transition hover:bg-[#00476b] active:scale-[0.99]"
+            className="flex w-full items-center justify-center rounded-xl bg-[#00506a] px-6 py-3 text-sm font-bold text-white shadow-xs transition hover:bg-[#00476b] active:scale-[0.99] cursor-pointer"
           >
-            <Search className="h-4 w-4" />
-            <span>Tìm chuyến</span>
+            Tìm chuyến
           </button>
         </div>
       </form>

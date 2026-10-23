@@ -21,7 +21,9 @@ export async function searchTrips(params: SearchTripsParams = {}): Promise<DataR
     return ok({ summary: {
       originCity: result.data.items[0]?.pickup.name ?? "Điểm đi",
       destinationCity: result.data.items[0]?.dropoff.name ?? "Điểm đến",
-      departureDateText: query.get("date") ?? "", passengerCount: params.passengers ?? 1,
+      departureDateText: query.get("date") ?? "",
+      departureDateShortText: (query.get("date") ?? "").split("-").reverse().join("/"),
+      passengerCount: params.passengers ?? 1,
       totalTrips: result.data.total
     }, trips: result.data.items.map(mapTripSearchItem), pagination: { page: result.data.page, limit: result.data.limit } });
   } catch {

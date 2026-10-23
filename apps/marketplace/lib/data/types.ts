@@ -106,7 +106,10 @@ export interface TripSearchResultItem {
   readonly availableSeats: number;
   readonly isUrgent?: boolean;
   readonly amenities: readonly string[];
-  readonly imageUrl: string;
+  /** Số tiện ích còn lại chưa hiển thị (chip "+1"); không có thì ẩn chip. */
+  readonly moreAmenitiesCount?: number;
+  /** Ảnh xe — chưa có nguồn ảnh thật, view hiện khối bg-muted khi thiếu (A5). */
+  readonly imageUrl?: string;
 }
 
 /**
@@ -125,8 +128,25 @@ export interface TripSearchSummary {
   readonly originCity: string;
   readonly destinationCity: string;
   readonly departureDateText: string;
+  /** Ngày đi dạng ngắn hiển thị trong ô tìm kiếm, ví dụ "T6, 16/10/2026". */
+  readonly departureDateShortText: string;
   readonly passengerCount: number;
   readonly totalTrips: number;
+}
+
+/**
+ * Các nhóm lọc (kèm số chuyến) trả về cùng kết quả tìm chuyến (SCR-PSG-15, node 1440:11297).
+ */
+export interface TripSearchFacets {
+  /** Giá thấp nhất của thanh trượt — chuỗi số nguyên VND. */
+  readonly priceMinVnd: string;
+  /** Giá cao nhất của thanh trượt — chuỗi số nguyên VND. */
+  readonly priceMaxVnd: string;
+  readonly seatTypes: readonly TripFilterOptionItem[];
+  readonly vehicleClasses: readonly TripFilterOptionItem[];
+  readonly operators: readonly TripFilterOptionItem[];
+  readonly pickupPoints: readonly TripFilterOptionItem[];
+  readonly dropoffPoints: readonly TripFilterOptionItem[];
 }
 
 /**
