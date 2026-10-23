@@ -1,5 +1,3 @@
-import 'dart:math' as math;
-
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
@@ -38,22 +36,27 @@ class RouteDockTabBar extends StatelessWidget {
     final bottomInset = MediaQuery.paddingOf(context).bottom;
     return SizedBox(
       height: 120 + bottomInset,
-      child: Padding(
-        padding: EdgeInsets.only(bottom: bottomInset),
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            final width = math.min(390.0, constraints.maxWidth);
-            return Align(
-              alignment: Alignment.bottomCenter,
-              child: SizedBox(
-                key: const Key('route-dock-tabbar'),
-                width: width,
-                height: 120,
-                child: _DockCanvas(currentIndex: currentIndex, onTap: onTap),
-              ),
-            );
-          },
-        ),
+      child: Stack(
+        children: [
+          Positioned(
+            left: 0,
+            right: 0,
+            top: 0,
+            height: 120,
+            child: SizedBox(
+              key: const Key('route-dock-tabbar'),
+              child: _DockCanvas(currentIndex: currentIndex, onTap: onTap),
+            ),
+          ),
+          if (bottomInset > 0)
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 0,
+              height: bottomInset,
+              child: const ColoredBox(color: Colors.white),
+            ),
+        ],
       ),
     );
   }
@@ -83,11 +86,13 @@ class _DockCanvas extends StatelessWidget {
               left: 0,
               right: 0,
               top: 16,
-              height: 92,
+              bottom: 0,
               child: DecoratedBox(
                 decoration: BoxDecoration(
                   color: const Color(0xFFEBF5FB),
-                  borderRadius: BorderRadius.circular(30),
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(30),
+                  ),
                   boxShadow: const [
                     BoxShadow(
                       color: Color(0x292B7EAD),
@@ -141,6 +146,13 @@ class _DockCanvas extends StatelessWidget {
                 fit: BoxFit.fill,
                 excludeFromSemantics: true,
               ),
+            ),
+            const Positioned(
+              left: 0,
+              right: 0,
+              top: 104,
+              bottom: 0,
+              child: ColoredBox(color: Colors.white),
             ),
             Positioned(
               left: activeCenter - bubbleSize / 2,

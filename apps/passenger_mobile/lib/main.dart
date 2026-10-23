@@ -8,6 +8,7 @@ import 'package:passenger_mobile/features/auth/auth_screen.dart';
 import 'package:passenger_mobile/features/auth/google_auth_service.dart';
 import 'package:passenger_mobile/features/home/home_models.dart';
 import 'package:passenger_mobile/features/home/home_screen.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 /// Origin của API — KHÔNG kèm `/v1`.
 ///
@@ -81,6 +82,53 @@ class PassengerApp extends StatelessWidget {
 }
 
 enum _AuthStep { email, otp, profile, guest, signedIn }
+
+class _PopularRouteSpec {
+  const _PopularRouteSpec({
+    required this.fromProvinceNames,
+    required this.toProvinceNames,
+    required this.fromLabel,
+    required this.toLabel,
+    required this.fallbackAsset,
+  });
+
+  final List<String> fromProvinceNames;
+  final List<String> toProvinceNames;
+  final String fromLabel;
+  final String toLabel;
+  final String fallbackAsset;
+}
+
+const _popularRouteSpecs = <_PopularRouteSpec>[
+  _PopularRouteSpec(
+    fromProvinceNames: ['Hồ Chí Minh'],
+    toProvinceNames: ['Lâm Đồng'],
+    fromLabel: 'TP.HCM',
+    toLabel: 'Đà Lạt',
+    fallbackAsset: 'assets/home/destinations/da_lat.png',
+  ),
+  _PopularRouteSpec(
+    fromProvinceNames: ['Hồ Chí Minh'],
+    toProvinceNames: ['Khánh Hòa'],
+    fromLabel: 'TP.HCM',
+    toLabel: 'Nha Trang',
+    fallbackAsset: 'assets/home/destinations/nha_trang.jpg',
+  ),
+  _PopularRouteSpec(
+    fromProvinceNames: ['Hà Nội'],
+    toProvinceNames: ['Đà Nẵng'],
+    fromLabel: 'Hà Nội',
+    toLabel: 'Đà Nẵng',
+    fallbackAsset: 'assets/home/destinations/da_nang.jpg',
+  ),
+  _PopularRouteSpec(
+    fromProvinceNames: ['Hồ Chí Minh'],
+    toProvinceNames: ['Bình Thuận'],
+    fromLabel: 'TP.HCM',
+    toLabel: 'Phan Thiết',
+    fallbackAsset: 'assets/home/destinations/phan_thiet.jpg',
+  ),
+];
 
 class OtpLoginPage extends StatefulWidget {
   const OtpLoginPage({
@@ -371,6 +419,87 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
     return data.total;
   }
 
+  Future<List<HomePopularRoute>> _loadPopularRoutes(DateTime date) async {
+    final provinces = await _loadHomeLocations();
+    final routes = await Future.wait(
+      _popularRouteSpecs.map(
+        (spec) => _loadPopularRoute(spec, provinces, date),
+      ),
+    );
+    return routes.whereType<HomePopularRoute>().toList(growable: false);
+  }
+
+  Future<HomePopularRoute?> _loadPopularRoute(
+    _PopularRouteSpec spec,
+    List<HomeLocation> provinces,
+    DateTime date,
+  ) async {
+    final from = _findProvince(provinces, spec.fromProvinceNames);
+    final to = _findProvince(provinces, spec.toProvinceNames);
+    if (from == null || to == null) return null;
+    try {
+      final response = await _api.getTripsApi().publicTripControllerSearch(
+        date: Date(date.year, date.month, date.day),
+        fromProvinceId: from.id,
+        toProvinceId: to.id,
+        passengers: 1,
+        sort: 'price',
+        page: 1,
+        limit: 1,
+      );
+      final items = response.data?.items;
+      if (items == null || items.isEmpty) return null;
+      final item = items.first;
+      return HomePopularRoute(
+        tripId: item.tripId,
+        from: from,
+        to: to,
+        fromLabel: spec.fromLabel,
+        toLabel: spec.toLabel,
+        minPriceVnd: item.minPrice,
+        imageUrl: item.vehicleCoverImageUrl,
+        fallbackAsset: spec.fallbackAsset,
+      );
+    } catch (_) {
+      // Một tuyến lỗi không được làm hỏng form tìm chuyến hay các tuyến còn lại.
+      return null;
+    }
+  }
+
+  HomeLocation? _findProvince(
+    List<HomeLocation> provinces,
+    List<String> acceptedNames,
+  ) {
+    for (final province in provinces) {
+      final name = province.name.toLowerCase();
+      if (acceptedNames.any((value) => name.contains(value.toLowerCase()))) {
+        return province;
+      }
+    }
+    return null;
+  }
+
+  Future<List<HomeFaqItem>> _loadHomeFaqs() async {
+    final response = await _api.getContentPagesApi().contentPageControllerList(
+      type: 'FAQ',
+    );
+    final items = response.data?.items;
+    if (items == null) {
+      throw StateError('FAQ response did not contain data.');
+    }
+    return items
+        .map((item) => HomeFaqItem(title: item.title, body: item.bodyMarkdown))
+        .toList(growable: false);
+  }
+
+  Future<bool> _launchSupportHotline(String hotline) {
+    final digits = hotline.replaceAll(RegExp(r'\D'), '');
+    return launchUrl(
+      Uri(scheme: 'tel', path: digits),
+      mode: LaunchMode.externalApplication,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_step == _AuthStep.signedIn) return _home(isLoggedIn: true);
@@ -419,7 +548,10 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
       isLoggedIn: isLoggedIn,
       userName: _displayName ?? emailName,
       loadLocations: _loadHomeLocations,
+      loadPopularRoutes: _loadPopularRoutes,
+      loadFaqs: _loadHomeFaqs,
       onSearch: _searchHomeTrips,
+      onCallHotline: _launchSupportHotline,
       onLoginRequested: isLoggedIn ? null : _returnToLogin,
     );
   }

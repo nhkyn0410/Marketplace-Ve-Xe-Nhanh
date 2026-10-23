@@ -16,6 +16,10 @@ Future<void> _pumpHome(
   bool isLoggedIn = false,
   HomeSearchMode initialMode = HomeSearchMode.route,
   HomeTripSearch? onSearch,
+  HomePopularRoutesLoader? loadPopularRoutes,
+  HomeFaqLoader? loadFaqs,
+  HomeHotlineLauncher? onCallHotline,
+  VoidCallback? onFeedbackRequested,
   VoidCallback? onLoginRequested,
 }) async {
   tester.view.devicePixelRatio = 1;
@@ -38,12 +42,17 @@ Future<void> _pumpHome(
         );
       },
       home: HomeScreen(
+        key: ValueKey('home-$isLoggedIn'),
         isLoggedIn: isLoggedIn,
         userName: isLoggedIn ? 'Khanh' : null,
         initialMode: initialMode,
         initialDate: DateTime(2026, 10, 22),
         loadLocations: () async => _locations,
+        loadPopularRoutes: loadPopularRoutes,
+        loadFaqs: loadFaqs,
         onSearch: onSearch,
+        onCallHotline: onCallHotline,
+        onFeedbackRequested: onFeedbackRequested,
         onLoginRequested: onLoginRequested,
       ),
     ),
@@ -93,6 +102,125 @@ void main() {
     await _pumpHome(tester, width: 412, isLoggedIn: true);
     expect(find.text('Xin chào, Khanh!'), findsOneWidget);
     expect(find.byKey(const Key('guest-login-banner')), findsNothing);
+    expect(
+      find.byWidgetPredicate(
+        (widget) =>
+            widget is Image &&
+            widget.image is AssetImage &&
+            (widget.image as AssetImage).assetName.endsWith('user_avatar.png'),
+      ),
+      findsNothing,
+    );
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('tuyến phổ biến dùng dữ liệu động và điền lại form tìm kiếm', (
+    tester,
+  ) async {
+    const route = HomePopularRoute(
+      tripId: 'trip-1',
+      from: HomeLocation(id: 'hn', name: 'Hà Nội'),
+      to: HomeLocation(id: 'dn', name: 'Đà Nẵng'),
+      fromLabel: 'Hà Nội',
+      toLabel: 'Đà Nẵng',
+      minPriceVnd: 450000,
+      fallbackAsset: 'assets/home/destinations/da_nang.jpg',
+    );
+    await _pumpHome(
+      tester,
+      width: 390,
+      loadPopularRoutes: (_) async => const [route],
+    );
+
+    expect(find.text('450.000đ'), findsOneWidget);
+    await tester.ensureVisible(find.byKey(const Key('popular-route-card-0')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('popular-route-card-0')));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.descendant(
+        of: find.byKey(const Key('origin-input')),
+        matching: find.text('Hà Nội'),
+      ),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(
+        of: find.byKey(const Key('destination-input')),
+        matching: find.text('Đà Nẵng'),
+      ),
+      findsOneWidget,
+    );
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('trung tâm trợ giúp tải FAQ và nút tổng đài gọi callback', (
+    tester,
+  ) async {
+    String? calledNumber;
+    await _pumpHome(
+      tester,
+      width: 390,
+      loadFaqs: () async => const [
+        HomeFaqItem(
+          title: 'Làm sao đổi vé?',
+          body: 'Vui lòng mở chi tiết vé để kiểm tra điều kiện.',
+        ),
+      ],
+      onCallHotline: (number) async {
+        calledNumber = number;
+        return true;
+      },
+    );
+
+    await tester.drag(
+      find.byKey(const Key('home-content-scroll')),
+      const Offset(0, -3000),
+    );
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull, reason: 'khối hỗ trợ bị overflow');
+    final helpCenter = find.byKey(const Key('support-help-center'));
+    await tester.tap(helpCenter);
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull, reason: 'FAQ sheet bị overflow');
+    expect(find.text('Làm sao đổi vé?'), findsOneWidget);
+
+    await tester.tapAt(const Offset(10, 10));
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull, reason: 'đóng FAQ sheet bị lỗi');
+    final callHotline = find.byKey(
+      const Key('support-call-hotline'),
+      skipOffstage: false,
+    );
+    await tester.ensureVisible(callHotline);
+    await tester.pumpAndSettle();
+    await tester.tap(callHotline);
+    await tester.pump();
+    expect(calledNumber, '1900 636 707');
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('dock trượt ẩn khi cuộn xuống và hiện khi cuộn lên', (
+    tester,
+  ) async {
+    await _pumpHome(tester, width: 390, height: 760);
+    final dock = find.byKey(const Key('home-bottom-dock-animation'));
+    expect(tester.widget<AnimatedSlide>(dock).offset, Offset.zero);
+
+    await tester.drag(
+      find.byKey(const Key('home-content-scroll')),
+      const Offset(0, -500),
+    );
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(tester.widget<AnimatedSlide>(dock).offset, const Offset(0, 1));
+
+    await tester.drag(
+      find.byKey(const Key('home-content-scroll')),
+      const Offset(0, 250),
+    );
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(tester.widget<AnimatedSlide>(dock).offset, Offset.zero);
     expect(tester.takeException(), isNull);
   });
 
@@ -105,7 +233,7 @@ void main() {
     await tester.tap(find.byKey(const Key('search-mode-operator')));
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('operator-input')), findsOneWidget);
-    expect(find.text('Phương Trang'), findsOneWidget);
+    expect(find.text('Phương Trang'), findsWidgets);
 
     await tester.tap(find.byKey(const Key('search-mode-route')));
     await tester.pumpAndSettle();

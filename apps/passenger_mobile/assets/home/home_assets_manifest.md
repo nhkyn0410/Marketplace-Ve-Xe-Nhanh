@@ -5,26 +5,26 @@ Nguồn thiết kế:
 - Home: Figma `2274:1837`, gồm các trạng thái `1599:1858`, `1599:2154`, `1744:2286`, `1744:2022`.
 - Route Dock Tabbar: Figma `1749:4247` (`Passenger / Route Dock Tabbar`).
 
-Các file bên dưới được lưu cục bộ và ứng dụng không phụ thuộc URL export tạm thời của Figma. Đã kiểm tra đủ 94 asset: 0 file rỗng, 0 PNG sai header và 0 SVG lỗi XML. SVG `illustrations/planner_surface.svg` vẫn được giữ nguyên; Flutter loại riêng filter không được hỗ trợ khi render và tái tạo shadow bằng `BoxShadow`.
+Các file bên dưới được lưu cục bộ và ứng dụng không phụ thuộc URL export tạm thời của Figma. Đã kiểm tra đủ 95 asset: 0 file rỗng, 0 PNG sai header và 0 SVG lỗi XML. SVG `illustrations/planner_surface.svg` vẫn được giữ nguyên; Flutter loại riêng filter không được hỗ trợ khi render và tái tạo shadow bằng `BoxShadow`.
 
 | Nhóm | Số lượng | Mục đích |
 | --- | ---: | --- |
 | `hero/` | 9 | Hero landscape, logo, chuông, avatar và điểm nhấn |
 | `icons/` | 56 | Planner, section, card và support actions |
 | `illustrations/` | 6 | Planner surface, wave/route decorations, member banner |
-| `destinations/` | 3 | Ảnh điểm đến |
+| `destinations/` | 4 | Ảnh điểm đến |
 | `vouchers/` | 2 | Voucher artwork |
 | `operators/` | 3 | Ảnh nhà xe |
 | `articles/` | 3 | Ảnh bài viết/cẩm nang |
 | `support/` | 1 | Robot pixel Support Station |
 | `tabbar/` | 11 | Route line, stop, bus marker, notch và năm tab icons |
-| **Tổng** | **94** | |
+| **Tổng** | **95** | |
 
 ## Danh sách file
 
 - `hero/`: `accent_underline.svg`, `bell_frame.svg`, `bell.svg`, `landscape_bus.png`, `logo_frame.svg`, `logo_mark.svg`, `logo_wordmark.svg`, `notification_unread.svg`, `user_avatar.png`.
 - `illustrations/`: `journey_wave_lines_operator.svg`, `journey_wave_lines_route.svg`, `journey_wave.svg`, `member_banner.png`, `planner_surface.svg`, `route_connecting_line.svg`.
-- `destinations/`: `da_nang.jpg`, `nha_trang.jpg`, `phan_thiet.jpg`.
+- `destinations/`: `da_lat.png`, `da_nang.jpg`, `nha_trang.jpg`, `phan_thiet.jpg`.
 - `vouchers/`: `discount_20.png`, `discount_50k.jpg`.
 - `operators/`: `dien_linh.png`, `phuong_trang.png`, `thanh_buoi.png`.
 - `articles/`: `coastal_routes.jpg`, `da_lat_checkin.png`, `da_lat_coach_guide.jpg`.

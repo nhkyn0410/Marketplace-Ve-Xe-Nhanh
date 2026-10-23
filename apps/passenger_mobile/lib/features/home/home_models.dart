@@ -31,3 +31,32 @@ class HomeSearchQuery {
   final int passengers;
   final String? operatorId;
 }
+
+class HomePopularRoute {
+  const HomePopularRoute({
+    required this.tripId,
+    required this.from,
+    required this.to,
+    required this.fromLabel,
+    required this.toLabel,
+    required this.minPriceVnd,
+    required this.fallbackAsset,
+    this.imageUrl,
+  });
+
+  final String tripId;
+  final HomeLocation from;
+  final HomeLocation to;
+  final String fromLabel;
+  final String toLabel;
+  final int minPriceVnd;
+  final String fallbackAsset;
+  final String? imageUrl;
+}
+
+class HomeFaqItem {
+  const HomeFaqItem({required this.title, required this.body});
+
+  final String title;
+  final String body;
+}

@@ -3,6 +3,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:passenger_mobile/features/home/home_models.dart';
@@ -20,6 +21,11 @@ const _plannerSurfaceLoader = _FilterlessSvgAssetLoader(
 
 typedef HomeLocationsLoader = Future<List<HomeLocation>> Function();
 typedef HomeTripSearch = Future<int> Function(HomeSearchQuery query);
+typedef HomePopularRoutesLoader = Future<List<HomePopularRoute>> Function(
+  DateTime date,
+);
+typedef HomeFaqLoader = Future<List<HomeFaqItem>> Function();
+typedef HomeHotlineLauncher = Future<bool> Function(String hotline);
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({
@@ -28,7 +34,11 @@ class HomeScreen extends StatefulWidget {
     this.initialMode = HomeSearchMode.route,
     this.initialDate,
     this.loadLocations,
+    this.loadPopularRoutes,
+    this.loadFaqs,
     this.onSearch,
+    this.onCallHotline,
+    this.onFeedbackRequested,
     this.onLoginRequested,
     this.onTabSelected,
     super.key,
@@ -39,7 +49,11 @@ class HomeScreen extends StatefulWidget {
   final HomeSearchMode initialMode;
   final DateTime? initialDate;
   final HomeLocationsLoader? loadLocations;
+  final HomePopularRoutesLoader? loadPopularRoutes;
+  final HomeFaqLoader? loadFaqs;
   final HomeTripSearch? onSearch;
+  final HomeHotlineLauncher? onCallHotline;
+  final VoidCallback? onFeedbackRequested;
   final VoidCallback? onLoginRequested;
   final ValueChanged<int>? onTabSelected;
 
@@ -48,6 +62,9 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  static const _supportHotline = '1900 636 707';
+
+  final _scrollController = ScrollController();
   late HomeSearchMode _mode = widget.initialMode;
   late DateTime _date =
       widget.initialDate ?? DateTime.now().add(const Duration(days: 1));
@@ -55,9 +72,31 @@ class _HomeScreenState extends State<HomeScreen> {
   HomeLocation? _to;
   int _passengers = 1;
   bool _searching = false;
+  bool _dockVisible = true;
+  Future<List<HomePopularRoute>>? _popularRoutesFuture;
 
   String get _fromLabel => _from?.name ?? 'TP. Hồ Chí Minh';
   String get _toLabel => _to?.name ?? 'Đà Lạt';
+
+  @override
+  void initState() {
+    super.initState();
+    _popularRoutesFuture = widget.loadPopularRoutes?.call(_date);
+  }
+
+  @override
+  void didUpdateWidget(covariant HomeScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.loadPopularRoutes != widget.loadPopularRoutes) {
+      _popularRoutesFuture = widget.loadPopularRoutes?.call(_date);
+    }
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -66,65 +105,96 @@ class _HomeScreenState extends State<HomeScreen> {
       backgroundColor: _pageBackground,
       extendBody: true,
       resizeToAvoidBottomInset: true,
-      bottomNavigationBar: RouteDockTabBar(
-        currentIndex: 2,
-        onTap: _handleTabTap,
+      bottomNavigationBar: IgnorePointer(
+        ignoring: !_dockVisible,
+        child: AnimatedSlide(
+          key: const Key('home-bottom-dock-animation'),
+          duration: const Duration(milliseconds: 250),
+          curve: Curves.easeOutCubic,
+          offset: _dockVisible ? Offset.zero : const Offset(0, 1),
+          child: RouteDockTabBar(currentIndex: 2, onTap: _handleTabTap),
+        ),
       ),
       body: SafeArea(
         bottom: false,
-        child: CustomScrollView(
-          key: const Key('home-content-scroll'),
-          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-          slivers: [
-            SliverToBoxAdapter(
-              child: _HomeTopArea(
-                isLoggedIn: widget.isLoggedIn,
-                userName: widget.userName,
-                mode: _mode,
-                fromLabel: _fromLabel,
-                toLabel: _toLabel,
-                date: _date,
-                passengers: _passengers,
-                searching: _searching,
-                onModeChanged: (mode) => setState(() => _mode = mode),
-                onPickFrom: () => _pickLocation(isOrigin: true),
-                onPickTo: () => _pickLocation(isOrigin: false),
-                onSwap: _swapLocations,
-                onPickDate: _pickDate,
-                onPickPassengers: _pickPassengers,
-                onSearch: _search,
-                onOperatorTap: _showOperatorApiGap,
+        child: NotificationListener<UserScrollNotification>(
+          onNotification: _handleUserScroll,
+          child: CustomScrollView(
+            key: const Key('home-content-scroll'),
+            controller: _scrollController,
+            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+            slivers: [
+              SliverToBoxAdapter(
+                child: _HomeTopArea(
+                  isLoggedIn: widget.isLoggedIn,
+                  userName: widget.userName,
+                  mode: _mode,
+                  fromLabel: _fromLabel,
+                  toLabel: _toLabel,
+                  date: _date,
+                  passengers: _passengers,
+                  searching: _searching,
+                  onModeChanged: (mode) => setState(() => _mode = mode),
+                  onPickFrom: () => _pickLocation(isOrigin: true),
+                  onPickTo: () => _pickLocation(isOrigin: false),
+                  onSwap: _swapLocations,
+                  onPickDate: _pickDate,
+                  onPickPassengers: _pickPassengers,
+                  onSearch: _search,
+                  onOperatorTap: _showOperatorApiGap,
+                ),
               ),
-            ),
-            SliverPadding(
-              padding: const EdgeInsets.symmetric(horizontal: 9),
-              sliver: SliverList.list(
-                children: [
-                  if (!widget.isLoggedIn) ...[
-                    _GuestInvitation(onLogin: widget.onLoginRequested),
+              SliverPadding(
+                padding: const EdgeInsets.symmetric(horizontal: 9),
+                sliver: SliverList.list(
+                  children: [
+                    if (!widget.isLoggedIn) ...[
+                      _GuestInvitation(onLogin: widget.onLoginRequested),
+                      const SizedBox(height: 12),
+                    ],
+                    _RecentSearches(
+                      operatorMode: _mode == HomeSearchMode.operator,
+                    ),
                     const SizedBox(height: 12),
+                    const _VoucherSection(),
+                    const SizedBox(height: 12),
+                    _PopularRoutesSection(
+                      routes: _popularRoutesFuture,
+                      onSelected: _selectPopularRoute,
+                    ),
+                    const SizedBox(height: 12),
+                    const _OperatorsSection(),
+                    const SizedBox(height: 12),
+                    const _ArticlesSection(),
+                    const SizedBox(height: 14),
+                    _SupportSection(
+                      onHelpCenter: _openHelpCenter,
+                      onCallHotline: _callHotline,
+                      onFeedback: _requestFeedback,
+                    ),
+                    const SizedBox(height: 150),
                   ],
-                  _RecentSearches(
-                    operatorMode: _mode == HomeSearchMode.operator,
-                  ),
-                  const SizedBox(height: 12),
-                  const _VoucherSection(),
-                  const SizedBox(height: 12),
-                  const _PopularRoutesSection(),
-                  const SizedBox(height: 12),
-                  const _OperatorsSection(),
-                  const SizedBox(height: 12),
-                  const _ArticlesSection(),
-                  const SizedBox(height: 14),
-                  const _SupportSection(),
-                  const SizedBox(height: 150),
-                ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
+  }
+
+  bool _handleUserScroll(UserScrollNotification notification) {
+    if (notification.metrics.axis != Axis.vertical) return false;
+    final shouldShow = switch (notification.direction) {
+      ScrollDirection.forward => true,
+      ScrollDirection.reverse => false,
+      ScrollDirection.idle =>
+        notification.metrics.pixels <= 0 ? true : _dockVisible,
+    };
+    if (shouldShow != _dockVisible && mounted) {
+      setState(() => _dockVisible = shouldShow);
+    }
+    return false;
   }
 
   void _showMessage(String message) {
@@ -146,6 +216,54 @@ class _HomeScreenState extends State<HomeScreen> {
       return;
     }
     _showMessage('${RouteDockTabBar.labels[index]} chưa được triển khai.');
+  }
+
+  void _selectPopularRoute(HomePopularRoute route) {
+    setState(() {
+      _mode = HomeSearchMode.route;
+      _from = route.from;
+      _to = route.to;
+    });
+    _scrollController.animateTo(
+      0,
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeOutCubic,
+    );
+  }
+
+  Future<void> _openHelpCenter() async {
+    final loader = widget.loadFaqs;
+    if (loader == null) {
+      _showMessage('Trung tâm trợ giúp hiện chưa khả dụng.');
+      return;
+    }
+    await showModalBottomSheet<void>(
+      context: context,
+      useSafeArea: true,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (context) => _FaqSheet(loader: loader),
+    );
+  }
+
+  Future<void> _callHotline() async {
+    final launcher = widget.onCallHotline;
+    final launched = launcher != null && await launcher(_supportHotline);
+    if (!launched) {
+      _showMessage('Không thể mở ứng dụng gọi điện trên thiết bị này.');
+    }
+  }
+
+  void _requestFeedback() {
+    final callback = widget.onFeedbackRequested;
+    if (callback != null) {
+      callback();
+      return;
+    }
+    _showMessage('Bạn có thể góp ý từ chuyến đi đã hoàn thành.');
   }
 
   Future<void> _pickLocation({required bool isOrigin}) async {
@@ -196,7 +314,12 @@ class _HomeScreenState extends State<HomeScreen> {
       lastDate: firstDate.add(const Duration(days: 365)),
       helpText: 'Chọn ngày đi',
     );
-    if (selected != null && mounted) setState(() => _date = selected);
+    if (selected != null && mounted) {
+      setState(() {
+        _date = selected;
+        _popularRoutesFuture = widget.loadPopularRoutes?.call(selected);
+      });
+    }
   }
 
   Future<void> _pickPassengers() async {
@@ -545,17 +668,6 @@ class _HomeHero extends StatelessWidget {
                   ],
                 ),
               ),
-              if (isLoggedIn) ...[
-                const SizedBox(width: 7),
-                ClipOval(
-                  child: Image.asset(
-                    '$_assetRoot/hero/user_avatar.png',
-                    width: 29,
-                    height: 29,
-                    fit: BoxFit.cover,
-                  ),
-                ),
-              ],
             ],
           ),
         ),
@@ -1521,41 +1633,67 @@ class _VoucherCard extends StatelessWidget {
 }
 
 class _PopularRoutesSection extends StatelessWidget {
-  const _PopularRoutesSection();
+  const _PopularRoutesSection({required this.routes, required this.onSelected});
+
+  final Future<List<HomePopularRoute>>? routes;
+  final ValueChanged<HomePopularRoute> onSelected;
 
   @override
   Widget build(BuildContext context) {
-    const routes = [
-      ('TP.HCM', 'Đà Lạt', '250.000đ', '$_assetRoot/vouchers/discount_50k.jpg'),
-      (
-        'TP.HCM',
-        'Nha Trang',
-        '320.000đ',
-        '$_assetRoot/destinations/nha_trang.jpg',
-      ),
-      ('Hà Nội', 'Đà Nẵng', '450.000đ', '$_assetRoot/destinations/da_nang.jpg'),
-      (
-        'TP.HCM',
-        'Phan Thiết',
-        '180.000đ',
-        '$_assetRoot/destinations/phan_thiet.jpg',
-      ),
-    ];
+    final future = routes;
+    if (future == null) return const SizedBox.shrink();
+    return FutureBuilder<List<HomePopularRoute>>(
+      future: future,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState != ConnectionState.done) {
+          return const _PopularRoutesSkeleton();
+        }
+        final items = snapshot.hasError
+            ? const <HomePopularRoute>[]
+            : snapshot.data ?? const <HomePopularRoute>[];
+        if (items.isEmpty) return const SizedBox.shrink();
+        return _HomeSection(
+          title: 'Tuyến phổ biến',
+          iconAsset: '$_assetRoot/icons/popular_route_pin.svg',
+          child: _HorizontalStrip(
+            gap: 7,
+            children: [
+              for (var index = 0; index < items.length; index++)
+                _PopularRouteCard(
+                  key: Key('popular-route-card-$index'),
+                  route: items[index],
+                  onTap: () => onSelected(items[index]),
+                ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _PopularRoutesSkeleton extends StatelessWidget {
+  const _PopularRoutesSkeleton();
+
+  @override
+  Widget build(BuildContext context) {
     return _HomeSection(
       title: 'Tuyến phổ biến',
       iconAsset: '$_assetRoot/icons/popular_route_pin.svg',
       child: _HorizontalStrip(
         gap: 7,
-        children: routes
-            .map(
-              (route) => _PopularRouteCard(
-                from: route.$1,
-                to: route.$2,
-                price: route.$3,
-                asset: route.$4,
-              ),
-            )
-            .toList(),
+        children: List.generate(
+          4,
+          (index) => Container(
+            key: Key('popular-route-skeleton-$index'),
+            width: 94,
+            height: 74,
+            decoration: BoxDecoration(
+              color: const Color(0xFFEAF4FB),
+              borderRadius: BorderRadius.circular(7),
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -1563,25 +1701,27 @@ class _PopularRoutesSection extends StatelessWidget {
 
 class _PopularRouteCard extends StatelessWidget {
   const _PopularRouteCard({
-    required this.from,
-    required this.to,
-    required this.price,
-    required this.asset,
+    required this.route,
+    required this.onTap,
+    super.key,
   });
 
-  final String from;
-  final String to;
-  final String price;
-  final String asset;
+  final HomePopularRoute route;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
+    final remoteImage = route.imageUrl?.trim();
+    final image = remoteImage == null || remoteImage.isEmpty
+        ? Image.asset(route.fallbackAsset, fit: BoxFit.cover)
+        : Image.network(
+            remoteImage,
+            fit: BoxFit.cover,
+            errorBuilder: (_, _, _) =>
+                Image.asset(route.fallbackAsset, fit: BoxFit.cover),
+          );
     return Container(
-      width: 94,
-      height: 74,
-      clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
-        color: Colors.white,
         borderRadius: BorderRadius.circular(7),
         boxShadow: const [
           BoxShadow(
@@ -1591,82 +1731,107 @@ class _PopularRouteCard extends StatelessWidget {
           ),
         ],
       ),
-      child: Stack(
-        children: [
-          Positioned.fill(child: Image.asset(asset, fit: BoxFit.cover)),
-          const Positioned.fill(
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [Colors.white, Color(0xE6FFFFFF), Color(0x1FFFFFFF)],
-                  stops: [0, .5, 1],
+      child: Material(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(7),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: onTap,
+          child: SizedBox(
+            width: 94,
+            height: 74,
+            child: Stack(
+              children: [
+                Positioned.fill(child: image),
+                const Positioned.fill(
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          Colors.white,
+                          Color(0xE6FFFFFF),
+                          Color(0x1FFFFFFF),
+                        ],
+                        stops: [0, .5, 1],
+                      ),
+                    ),
+                  ),
                 ),
-              ),
+                Positioned(
+                  left: 7,
+                  top: 5,
+                  right: 4,
+                  child: Text(
+                    route.fromLabel,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      color: _primaryDark,
+                      fontSize: 7.3,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+                Positioned(
+                  left: 7,
+                  top: 16,
+                  right: 4,
+                  child: Text(
+                    route.toLabel,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      color: _primaryDark,
+                      fontSize: 11.3,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+                const Positioned(
+                  left: 7,
+                  bottom: 13,
+                  child: Text(
+                    'Chỉ từ',
+                    style: TextStyle(color: _secondary, fontSize: 6.2),
+                  ),
+                ),
+                Positioned(
+                  left: 7,
+                  bottom: 2,
+                  child: Text(
+                    _formatVnd(route.minPriceVnd),
+                    style: const TextStyle(
+                      color: Color(0xFFE68114),
+                      fontSize: 9,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+                Positioned(
+                  right: 6,
+                  bottom: 5,
+                  child: SvgPicture.asset(
+                    '$_assetRoot/icons/route_action.svg',
+                    width: 15,
+                    height: 15,
+                    excludeFromSemantics: true,
+                  ),
+                ),
+              ],
             ),
           ),
-          Positioned(
-            left: 7,
-            top: 5,
-            right: 4,
-            child: Text(
-              from,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                color: _primaryDark,
-                fontSize: 7.3,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-          Positioned(
-            left: 7,
-            top: 16,
-            right: 4,
-            child: Text(
-              to,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                color: _primaryDark,
-                fontSize: 11.3,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-          const Positioned(
-            left: 7,
-            bottom: 13,
-            child: Text(
-              'Chỉ từ',
-              style: TextStyle(color: _secondary, fontSize: 6.2),
-            ),
-          ),
-          Positioned(
-            left: 7,
-            bottom: 2,
-            child: Text(
-              price,
-              style: const TextStyle(
-                color: Color(0xFFE68114),
-                fontSize: 9,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-          Positioned(
-            right: 6,
-            bottom: 5,
-            child: SvgPicture.asset(
-              '$_assetRoot/icons/route_action.svg',
-              width: 15,
-              height: 15,
-              excludeFromSemantics: true,
-            ),
-          ),
-        ],
+        ),
       ),
     );
+  }
+
+  String _formatVnd(int value) {
+    final digits = value.toString();
+    final chunks = <String>[];
+    for (var end = digits.length; end > 0; end -= 3) {
+      chunks.add(digits.substring(math.max(0, end - 3), end));
+    }
+    return '${chunks.reversed.join('.')}đ';
   }
 }
 
@@ -1885,8 +2050,124 @@ class _ArticleCard extends StatelessWidget {
   }
 }
 
+class _FaqSheet extends StatefulWidget {
+  const _FaqSheet({required this.loader});
+
+  final HomeFaqLoader loader;
+
+  @override
+  State<_FaqSheet> createState() => _FaqSheetState();
+}
+
+class _FaqSheetState extends State<_FaqSheet> {
+  late final Future<List<HomeFaqItem>> _items = widget.loader();
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: MediaQuery.sizeOf(context).height * .72,
+      child: Column(
+        children: [
+          const SizedBox(height: 10),
+          Container(
+            width: 42,
+            height: 4,
+            decoration: BoxDecoration(
+              color: const Color(0xFFD4E4ED),
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+          const Padding(
+            padding: EdgeInsets.fromLTRB(20, 16, 20, 10),
+            child: Row(
+              children: [
+                Icon(Icons.help_outline_rounded, color: _primary),
+                SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    'Trung tâm trợ giúp',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: _primaryDark,
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Expanded(
+            child: FutureBuilder<List<HomeFaqItem>>(
+              future: _items,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState != ConnectionState.done) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                if (snapshot.hasError) {
+                  return const Center(
+                    child: Padding(
+                      padding: EdgeInsets.all(24),
+                      child: Text(
+                        'Không tải được câu hỏi thường gặp. Vui lòng thử lại.',
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  );
+                }
+                final items = snapshot.data ?? const <HomeFaqItem>[];
+                if (items.isEmpty) {
+                  return const Center(
+                    child: Text('Chưa có câu hỏi thường gặp.'),
+                  );
+                }
+                return ListView.separated(
+                  padding: const EdgeInsets.fromLTRB(12, 0, 12, 24),
+                  itemCount: items.length,
+                  separatorBuilder: (_, _) => const Divider(height: 1),
+                  itemBuilder: (context, index) {
+                    final item = items[index];
+                    return ExpansionTile(
+                      title: Text(
+                        item.title,
+                        style: const TextStyle(
+                          color: _primaryDark,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                      expandedCrossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        SelectionArea(
+                          child: Text(
+                            item.body,
+                            style: const TextStyle(color: _secondary),
+                          ),
+                        ),
+                      ],
+                    );
+                  },
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _SupportSection extends StatelessWidget {
-  const _SupportSection();
+  const _SupportSection({
+    required this.onHelpCenter,
+    required this.onCallHotline,
+    required this.onFeedback,
+  });
+
+  final VoidCallback onHelpCenter;
+  final VoidCallback onCallHotline;
+  final VoidCallback onFeedback;
 
   @override
   Widget build(BuildContext context) {
@@ -1920,20 +2201,25 @@ class _SupportSection extends StatelessWidget {
           builder: (context, constraints) {
             final textScale = MediaQuery.textScalerOf(context).scale(1);
             final compact = constraints.maxWidth < 350 || textScale > 1.25;
-            return _SupportHero(compact: compact);
+            return _SupportHero(compact: compact, onContact: onHelpCenter);
           },
         ),
         const SizedBox(height: 10),
-        const _SupportActions(),
+        _SupportActions(
+          onHelpCenter: onHelpCenter,
+          onCallHotline: onCallHotline,
+          onFeedback: onFeedback,
+        ),
       ],
     );
   }
 }
 
 class _SupportHero extends StatelessWidget {
-  const _SupportHero({required this.compact});
+  const _SupportHero({required this.compact, required this.onContact});
 
   final bool compact;
+  final VoidCallback onContact;
 
   @override
   Widget build(BuildContext context) {
@@ -2057,13 +2343,7 @@ class _SupportHero extends StatelessWidget {
               child: SizedBox(
                 height: 44,
                 child: TextButton.icon(
-                  onPressed: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Trung tâm hỗ trợ chưa được triển khai.'),
-                      ),
-                    );
-                  },
+                  onPressed: onContact,
                   style: TextButton.styleFrom(
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(horizontal: 15),
@@ -2104,42 +2384,54 @@ class _SupportHero extends StatelessWidget {
 }
 
 class _SupportActions extends StatelessWidget {
-  const _SupportActions();
+  const _SupportActions({
+    required this.onHelpCenter,
+    required this.onCallHotline,
+    required this.onFeedback,
+  });
+
+  final VoidCallback onHelpCenter;
+  final VoidCallback onCallHotline;
+  final VoidCallback onFeedback;
 
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final textScale = MediaQuery.textScalerOf(context).scale(1);
-        final twoColumns = constraints.maxWidth < 350 || textScale > 1.25;
-        final gap = 8.0;
-        final width = twoColumns
-            ? (constraints.maxWidth - gap) / 2
-            : (constraints.maxWidth - gap * 2) / 3;
+        const gap = 10.0;
+        final width = (constraints.maxWidth - gap * 2) / 3;
         return Wrap(
           spacing: gap,
           runSpacing: gap,
           children: [
             _SupportActionCard(
+              key: const Key('support-help-center'),
               width: width,
               circleAsset: '$_assetRoot/icons/support_center_circle.svg',
               iconAsset: '$_assetRoot/icons/chat.svg',
               title: 'Trung tâm trợ giúp',
               subtitle: 'Câu hỏi thường gặp',
+              onTap: onHelpCenter,
             ),
             _SupportActionCard(
+              key: const Key('support-call-hotline'),
               width: width,
-              circleAsset: '$_assetRoot/icons/support_phone_circle.svg',
+              circleAsset: '$_assetRoot/icons/support_feedback_circle.svg',
               iconAsset: '$_assetRoot/icons/phone.svg',
               title: 'Gọi tổng đài',
               subtitle: '1900 636 707',
+              subtitleColor: const Color(0xFFEB932B),
+              subtitleFontSize: 12,
+              onTap: onCallHotline,
             ),
             _SupportActionCard(
+              key: const Key('support-feedback'),
               width: width,
-              circleAsset: '$_assetRoot/icons/support_feedback_circle.svg',
+              circleAsset: '$_assetRoot/icons/support_pen_circle.svg',
               iconAsset: '$_assetRoot/icons/pen.svg',
               title: 'Góp ý',
               subtitle: 'Chia sẻ trải nghiệm',
+              onTap: onFeedback,
             ),
           ],
         );
@@ -2155,6 +2447,10 @@ class _SupportActionCard extends StatelessWidget {
     required this.iconAsset,
     required this.title,
     required this.subtitle,
+    required this.onTap,
+    this.subtitleColor = _secondary,
+    this.subtitleFontSize = 10,
+    super.key,
   });
 
   final double width;
@@ -2162,53 +2458,121 @@ class _SupportActionCard extends StatelessWidget {
   final String iconAsset;
   final String title;
   final String subtitle;
+  final VoidCallback onTap;
+  final Color subtitleColor;
+  final double subtitleFontSize;
 
   @override
   Widget build(BuildContext context) {
     return Container(
       width: width,
-      constraints: const BoxConstraints(minHeight: 103),
-      padding: const EdgeInsets.all(10),
-      decoration: _smallCardDecoration(radius: 14),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(
-            width: 30,
-            height: 30,
-            child: Stack(
-              alignment: Alignment.center,
-              children: [
-                SvgPicture.asset(
-                  circleAsset,
-                  width: 30,
-                  height: 30,
-                  excludeFromSemantics: true,
-                ),
-                SvgPicture.asset(
-                  iconAsset,
-                  width: 16,
-                  height: 16,
-                  excludeFromSemantics: true,
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 7),
-          Text(
-            title,
-            style: const TextStyle(
-              color: _primaryDark,
-              fontSize: 10,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          const SizedBox(height: 5),
-          Text(
-            subtitle,
-            style: const TextStyle(color: _secondary, fontSize: 8.2),
+      height: 134,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(18),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x171F80B2),
+            offset: Offset(0, 7),
+            blurRadius: 18,
           ),
         ],
+      ),
+      child: Material(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: onTap,
+          child: Stack(
+            children: [
+              Positioned(
+                left: 12,
+                top: 13,
+                width: 35,
+                height: 35,
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    SvgPicture.asset(
+                      circleAsset,
+                      width: 35,
+                      height: 35,
+                      excludeFromSemantics: true,
+                    ),
+                    SvgPicture.asset(
+                      iconAsset,
+                      width: 18,
+                      height: 18,
+                      excludeFromSemantics: true,
+                    ),
+                  ],
+                ),
+              ),
+              Positioned(
+                right: 12,
+                top: 17,
+                width: 24,
+                height: 24,
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    SvgPicture.asset(
+                      '$_assetRoot/icons/support_phone_circle.svg',
+                      width: 24,
+                      height: 24,
+                      excludeFromSemantics: true,
+                    ),
+                    SvgPicture.asset(
+                      '$_assetRoot/icons/support_chevron.svg',
+                      width: 12,
+                      height: 12,
+                      excludeFromSemantics: true,
+                    ),
+                  ],
+                ),
+              ),
+              Positioned(
+                left: 12,
+                right: 12,
+                top: 61,
+                height: 34,
+                child: Align(
+                  alignment: Alignment.topLeft,
+                  child: Text(
+                    title,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      color: _primaryDark,
+                      fontSize: 12,
+                      height: 16 / 12,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ),
+              Positioned(
+                left: 12,
+                right: 8,
+                top: 101,
+                height: 18,
+                child: FittedBox(
+                  alignment: Alignment.centerLeft,
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    subtitle,
+                    maxLines: 1,
+                    style: TextStyle(
+                      color: subtitleColor,
+                      fontSize: subtitleFontSize,
+                      height: 1.4,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
