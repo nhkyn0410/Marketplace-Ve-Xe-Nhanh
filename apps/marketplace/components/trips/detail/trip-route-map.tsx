@@ -26,11 +26,6 @@ export function TripRouteMap({ timeline: _timeline }: TripRouteMapProps) {
         <h3 className="text-base font-semibold text-neutral-900">
           Bản đồ lộ trình
         </h3>
-        {!goongKey && (
-          <span className="text-[11px] text-neutral-500 bg-neutral-100 px-2 py-0.5 rounded border border-neutral-200">
-            Bản đồ tạm thời không khả dụng
-          </span>
-        )}
       </div>
 
       {/* Khung bản đồ lộ trình minh họa khớp chuẩn Figma 1443:11643 */}

@@ -1,5 +1,10 @@
 import { DataResult, unavailable } from "./result";
-import { TripDetailData, TripSearchResultItem, TripSearchSummary } from "./types";
+import {
+  TripDetailData,
+  TripSearchFacets,
+  TripSearchResultItem,
+  TripSearchSummary
+} from "./types";
 
 /**
  * Tham số tìm kiếm chuyến xe.
@@ -24,7 +29,13 @@ export interface SearchTripsParams {
  */
 export async function searchTrips(
   _params?: SearchTripsParams
-): Promise<DataResult<{ readonly summary: TripSearchSummary; readonly trips: readonly TripSearchResultItem[] }>> {
+): Promise<
+  DataResult<{
+    readonly summary: TripSearchSummary;
+    readonly facets: TripSearchFacets;
+    readonly trips: readonly TripSearchResultItem[];
+  }>
+> {
   return Promise.resolve(unavailable("GET /trips/search"));
 }
 
