@@ -11,19 +11,16 @@ part 'passenger_dispute_page_dto_output_items_inner.g.dart';
 /// PassengerDisputePageDtoOutputItemsInner
 ///
 /// Properties:
-/// * [disputeId]
-/// * [disputeCode]
-/// * [bookingId]
-/// * [bookingCode]
-/// * [title]
-/// * [status]
-/// * [responseDueAt]
-/// * [updatedAt]
+/// * [disputeId] 
+/// * [disputeCode] 
+/// * [bookingId] 
+/// * [bookingCode] 
+/// * [title] 
+/// * [status] 
+/// * [responseDueAt] 
+/// * [updatedAt] 
 @BuiltValue()
-abstract class PassengerDisputePageDtoOutputItemsInner
-    implements
-        Built<PassengerDisputePageDtoOutputItemsInner,
-            PassengerDisputePageDtoOutputItemsInnerBuilder> {
+abstract class PassengerDisputePageDtoOutputItemsInner implements Built<PassengerDisputePageDtoOutputItemsInner, PassengerDisputePageDtoOutputItemsInnerBuilder> {
   @BuiltValueField(wireName: r'disputeId')
   String get disputeId;
 
@@ -50,25 +47,18 @@ abstract class PassengerDisputePageDtoOutputItemsInner
 
   PassengerDisputePageDtoOutputItemsInner._();
 
-  factory PassengerDisputePageDtoOutputItemsInner(
-          [void updates(PassengerDisputePageDtoOutputItemsInnerBuilder b)]) =
-      _$PassengerDisputePageDtoOutputItemsInner;
+  factory PassengerDisputePageDtoOutputItemsInner([void updates(PassengerDisputePageDtoOutputItemsInnerBuilder b)]) = _$PassengerDisputePageDtoOutputItemsInner;
 
   @BuiltValueHook(initializeBuilder: true)
   static void _defaults(PassengerDisputePageDtoOutputItemsInnerBuilder b) => b;
 
   @BuiltValueSerializer(custom: true)
-  static Serializer<PassengerDisputePageDtoOutputItemsInner> get serializer =>
-      _$PassengerDisputePageDtoOutputItemsInnerSerializer();
+  static Serializer<PassengerDisputePageDtoOutputItemsInner> get serializer => _$PassengerDisputePageDtoOutputItemsInnerSerializer();
 }
 
-class _$PassengerDisputePageDtoOutputItemsInnerSerializer
-    implements PrimitiveSerializer<PassengerDisputePageDtoOutputItemsInner> {
+class _$PassengerDisputePageDtoOutputItemsInnerSerializer implements PrimitiveSerializer<PassengerDisputePageDtoOutputItemsInner> {
   @override
-  final Iterable<Type> types = const [
-    PassengerDisputePageDtoOutputItemsInner,
-    _$PassengerDisputePageDtoOutputItemsInner
-  ];
+  final Iterable<Type> types = const [PassengerDisputePageDtoOutputItemsInner, _$PassengerDisputePageDtoOutputItemsInner];
 
   @override
   final String wireName = r'PassengerDisputePageDtoOutputItemsInner';
@@ -109,12 +99,10 @@ class _$PassengerDisputePageDtoOutputItemsInnerSerializer
       specifiedType: const FullType(String),
     );
     yield r'responseDueAt';
-    yield object.responseDueAt == null
-        ? null
-        : serializers.serialize(
-            object.responseDueAt,
-            specifiedType: const FullType.nullable(DateTime),
-          );
+    yield object.responseDueAt == null ? null : serializers.serialize(
+      object.responseDueAt,
+      specifiedType: const FullType.nullable(DateTime),
+    );
     yield r'updatedAt';
     yield serializers.serialize(
       object.updatedAt,
@@ -128,9 +116,7 @@ class _$PassengerDisputePageDtoOutputItemsInnerSerializer
     PassengerDisputePageDtoOutputItemsInner object, {
     FullType specifiedType = FullType.unspecified,
   }) {
-    return _serializeProperties(serializers, object,
-            specifiedType: specifiedType)
-        .toList();
+    return _serializeProperties(serializers, object, specifiedType: specifiedType).toList();
   }
 
   void _deserializeProperties(
@@ -230,3 +216,5 @@ class _$PassengerDisputePageDtoOutputItemsInnerSerializer
     return result.build();
   }
 }
+
+

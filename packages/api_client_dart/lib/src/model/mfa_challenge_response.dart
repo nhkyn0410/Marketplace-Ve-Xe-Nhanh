@@ -12,14 +12,13 @@ part 'mfa_challenge_response.g.dart';
 /// MfaChallengeResponse
 ///
 /// Properties:
-/// * [mfaRequired]
-/// * [challengeToken]
-/// * [enrollmentRequired]
-/// * [challengeExpiresIn]
-/// * [otpAuthUri]
+/// * [mfaRequired] 
+/// * [challengeToken] 
+/// * [enrollmentRequired] 
+/// * [challengeExpiresIn] 
+/// * [otpAuthUri] 
 @BuiltValue()
-abstract class MfaChallengeResponse
-    implements Built<MfaChallengeResponse, MfaChallengeResponseBuilder> {
+abstract class MfaChallengeResponse implements Built<MfaChallengeResponse, MfaChallengeResponseBuilder> {
   @BuiltValueField(wireName: r'mfaRequired')
   MfaChallengeResponseMfaRequiredEnum get mfaRequired;
   // enum mfaRequiredEnum {  true,  };
@@ -38,24 +37,18 @@ abstract class MfaChallengeResponse
 
   MfaChallengeResponse._();
 
-  factory MfaChallengeResponse([void updates(MfaChallengeResponseBuilder b)]) =
-      _$MfaChallengeResponse;
+  factory MfaChallengeResponse([void updates(MfaChallengeResponseBuilder b)]) = _$MfaChallengeResponse;
 
   @BuiltValueHook(initializeBuilder: true)
   static void _defaults(MfaChallengeResponseBuilder b) => b;
 
   @BuiltValueSerializer(custom: true)
-  static Serializer<MfaChallengeResponse> get serializer =>
-      _$MfaChallengeResponseSerializer();
+  static Serializer<MfaChallengeResponse> get serializer => _$MfaChallengeResponseSerializer();
 }
 
-class _$MfaChallengeResponseSerializer
-    implements PrimitiveSerializer<MfaChallengeResponse> {
+class _$MfaChallengeResponseSerializer implements PrimitiveSerializer<MfaChallengeResponse> {
   @override
-  final Iterable<Type> types = const [
-    MfaChallengeResponse,
-    _$MfaChallengeResponse
-  ];
+  final Iterable<Type> types = const [MfaChallengeResponse, _$MfaChallengeResponse];
 
   @override
   final String wireName = r'MfaChallengeResponse';
@@ -81,12 +74,10 @@ class _$MfaChallengeResponseSerializer
       specifiedType: const FullType(bool),
     );
     yield r'challengeExpiresIn';
-    yield object.challengeExpiresIn == null
-        ? null
-        : serializers.serialize(
-            object.challengeExpiresIn,
-            specifiedType: const FullType.nullable(int),
-          );
+    yield object.challengeExpiresIn == null ? null : serializers.serialize(
+      object.challengeExpiresIn,
+      specifiedType: const FullType.nullable(int),
+    );
     if (object.otpAuthUri != null) {
       yield r'otpAuthUri';
       yield serializers.serialize(
@@ -102,9 +93,7 @@ class _$MfaChallengeResponseSerializer
     MfaChallengeResponse object, {
     FullType specifiedType = FullType.unspecified,
   }) {
-    return _serializeProperties(serializers, object,
-            specifiedType: specifiedType)
-        .toList();
+    return _serializeProperties(serializers, object, specifiedType: specifiedType).toList();
   }
 
   void _deserializeProperties(
@@ -185,18 +174,17 @@ class _$MfaChallengeResponseSerializer
   }
 }
 
+
 class MfaChallengeResponseMfaRequiredEnum extends EnumClass {
+
   @BuiltValueEnumConst(wireName: r'true')
-  static const MfaChallengeResponseMfaRequiredEnum true_ =
-      _$mfaChallengeResponseMfaRequiredEnum_true_;
+  static const MfaChallengeResponseMfaRequiredEnum true_ = _$mfaChallengeResponseMfaRequiredEnum_true_;
 
-  static Serializer<MfaChallengeResponseMfaRequiredEnum> get serializer =>
-      _$mfaChallengeResponseMfaRequiredEnumSerializer;
+  static Serializer<MfaChallengeResponseMfaRequiredEnum> get serializer => _$mfaChallengeResponseMfaRequiredEnumSerializer;
 
-  const MfaChallengeResponseMfaRequiredEnum._(String name) : super(name);
+  const MfaChallengeResponseMfaRequiredEnum._(String name): super(name);
 
-  static BuiltSet<MfaChallengeResponseMfaRequiredEnum> get values =>
-      _$mfaChallengeResponseMfaRequiredEnumValues;
-  static MfaChallengeResponseMfaRequiredEnum valueOf(String name) =>
-      _$mfaChallengeResponseMfaRequiredEnumValueOf(name);
+  static BuiltSet<MfaChallengeResponseMfaRequiredEnum> get values => _$mfaChallengeResponseMfaRequiredEnumValues;
+  static MfaChallengeResponseMfaRequiredEnum valueOf(String name) => _$mfaChallengeResponseMfaRequiredEnumValueOf(name);
 }
+

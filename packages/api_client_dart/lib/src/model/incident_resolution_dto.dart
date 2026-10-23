@@ -11,33 +11,26 @@ part 'incident_resolution_dto.g.dart';
 /// IncidentResolutionDto
 ///
 /// Properties:
-/// * [resolution]
+/// * [resolution] 
 @BuiltValue()
-abstract class IncidentResolutionDto
-    implements Built<IncidentResolutionDto, IncidentResolutionDtoBuilder> {
+abstract class IncidentResolutionDto implements Built<IncidentResolutionDto, IncidentResolutionDtoBuilder> {
   @BuiltValueField(wireName: r'resolution')
   String get resolution;
 
   IncidentResolutionDto._();
 
-  factory IncidentResolutionDto(
-      [void updates(IncidentResolutionDtoBuilder b)]) = _$IncidentResolutionDto;
+  factory IncidentResolutionDto([void updates(IncidentResolutionDtoBuilder b)]) = _$IncidentResolutionDto;
 
   @BuiltValueHook(initializeBuilder: true)
   static void _defaults(IncidentResolutionDtoBuilder b) => b;
 
   @BuiltValueSerializer(custom: true)
-  static Serializer<IncidentResolutionDto> get serializer =>
-      _$IncidentResolutionDtoSerializer();
+  static Serializer<IncidentResolutionDto> get serializer => _$IncidentResolutionDtoSerializer();
 }
 
-class _$IncidentResolutionDtoSerializer
-    implements PrimitiveSerializer<IncidentResolutionDto> {
+class _$IncidentResolutionDtoSerializer implements PrimitiveSerializer<IncidentResolutionDto> {
   @override
-  final Iterable<Type> types = const [
-    IncidentResolutionDto,
-    _$IncidentResolutionDto
-  ];
+  final Iterable<Type> types = const [IncidentResolutionDto, _$IncidentResolutionDto];
 
   @override
   final String wireName = r'IncidentResolutionDto';
@@ -60,9 +53,7 @@ class _$IncidentResolutionDtoSerializer
     IncidentResolutionDto object, {
     FullType specifiedType = FullType.unspecified,
   }) {
-    return _serializeProperties(serializers, object,
-            specifiedType: specifiedType)
-        .toList();
+    return _serializeProperties(serializers, object, specifiedType: specifiedType).toList();
   }
 
   void _deserializeProperties(
@@ -112,3 +103,5 @@ class _$IncidentResolutionDtoSerializer
     return result.build();
   }
 }
+
+

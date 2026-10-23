@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpCode, Inject, Param, Post, Query } from "@nestjs/common";
+import { Body, Controller, Get, HttpCode, Inject, Param, Post, Put, Query } from "@nestjs/common";
 import { ApiBody, ApiParam, ApiResponse, ApiTags, getSchemaPath } from "@nestjs/swagger";
 import { ZodResponse } from "nestjs-zod";
 import { ProblemDetailsDto } from "../../openapi/openapi.dto";
@@ -22,6 +22,7 @@ import {
   AdminPlatformAccountListDto,
   type PlatformAccountList,
   AdminPlatformAccountListQueryDto,
+  AdminPlatformPermissionsUpdateDto,
   AdminUserIdParamDto,
 } from "./dto/admin-user.dto";
 
@@ -31,6 +32,16 @@ const problemContent = {
 const NOT_FOUND = { status: 404, description: "`ACCOUNT_NOT_FOUND`.", content: problemContent };
 const STATE = { status: 409, description: "`ACCOUNT_STATE_CONFLICT` — trạng thái không cho phép.", content: problemContent };
 const UNAVAILABLE = { status: 503, description: "Chưa ghi được audit — không đổi gì.", content: problemContent };
+const NOT_ASSIGNABLE = {
+  status: 400,
+  description: "`PERMISSION_NOT_ASSIGNABLE` — có quyền không áp dụng cho vai trò của tài khoản.",
+  content: problemContent,
+};
+const GRANT_FORBIDDEN = {
+  status: 403,
+  description: "`PERMISSION_DENIED` / `PERMISSION_GRANT_FORBIDDEN` — cấp hoặc gỡ quyền mình không có (TASK-IAM-007).",
+  content: problemContent,
+};
 
 // API §7.5 — Admin quản lý người dùng (FR-ADM-02/03, FR-IAM-08; Figma ADM-03a…03d). Quyền `user:manage`
 // (PLATFORM_ADMIN); thao tác thay đổi cần xác nhận lại danh tính (Figma có ô TOTP).
@@ -97,12 +108,12 @@ export class AdminEmployeeController {
 
 @ApiTags("admin-users")
 @Controller("admin/platform-accounts")
-/** Tài khoản quản trị nội bộ (`platform/…`) — chỉ được cấp ở đây, không có đăng ký công khai. */
+/** Tài khoản quản trị nội bộ (`platform/…`) — chỉ được cấp ở đây, không có đăng ký công khai. Quyền `access:manage` (TASK-IAM-007). */
 export class AdminPlatformAccountController {
   constructor(@Inject(AdminAccountService) private readonly accounts: AdminAccountService) {}
 
   @Get()
-  @Authorize("user:manage")
+  @Authorize("access:manage")
   @ZodResponse({ status: 200, description: "Mọi tài khoản quản trị.", type: AdminPlatformAccountListDto })
   list(
     @Authz() authz: Authorization,
@@ -114,10 +125,12 @@ export class AdminPlatformAccountController {
 
   /** Cấp tài khoản: mật khẩu tạm gửi email nội bộ; lần đầu đăng nhập phải đổi mật khẩu + bật TOTP. */
   @Post()
-  @Authorize("user:manage", { requireReauth: true })
+  @Authorize("access:manage", { requireReauth: true })
   @ApiBody({ type: AdminPlatformAccountCreateDto })
   @ZodResponse({ status: 201, description: "Tài khoản đã tạo; `credentialDeliveryPending` = chưa gửi được email.", type: AdminPlatformAccountDto })
   @ApiResponse({ status: 409, description: "`PLATFORM_ACCOUNT_CONFLICT` — trùng tên đăng nhập / email.", content: problemContent })
+  @ApiResponse(NOT_ASSIGNABLE)
+  @ApiResponse(GRANT_FORBIDDEN)
   @ApiResponse({ status: 429, description: "`ACCOUNT_TEMP_EMAIL_RATE_LIMITED`.", content: problemContent })
   @ApiResponse(UNAVAILABLE)
   create(
@@ -131,7 +144,7 @@ export class AdminPlatformAccountController {
   /** Cấp lại mật khẩu tạm (cũng để gửi lại khi lần gửi trước lỗi); thu hồi mọi phiên. */
   @Post(":id/reset-password")
   @HttpCode(200)
-  @Authorize("user:manage", { requireReauth: true })
+  @Authorize("access:manage", { requireReauth: true })
   @ApiParam({ name: "id", type: String, format: "uuid" })
   @ZodResponse({ status: 200, description: "Tài khoản sau khi cấp lại.", type: AdminPlatformAccountDto })
   @ApiResponse(NOT_FOUND)
@@ -148,7 +161,7 @@ export class AdminPlatformAccountController {
   /** Đặt lại xác thực hai lớp — kèm mật khẩu tạm mới gửi tới email của tài khoản. */
   @Post(":id/reset-mfa")
   @HttpCode(200)
-  @Authorize("user:manage", { requireReauth: true })
+  @Authorize("access:manage", { requireReauth: true })
   @ApiParam({ name: "id", type: String, format: "uuid" })
   @ZodResponse({ status: 200, description: "Tài khoản sau khi đặt lại.", type: AdminPlatformAccountDto })
   @ApiResponse(NOT_FOUND)
@@ -164,7 +177,7 @@ export class AdminPlatformAccountController {
 
   @Post(":id/lock")
   @HttpCode(204)
-  @Authorize("user:manage", { requireReauth: true })
+  @Authorize("access:manage", { requireReauth: true })
   @ApiParam({ name: "id", type: String, format: "uuid" })
   @ApiBody({ type: AdminAccountLockDto })
   @ApiResponse({ status: 204, description: "Đã khóa." })
@@ -186,7 +199,7 @@ export class AdminPlatformAccountController {
 
   @Post(":id/unlock")
   @HttpCode(204)
-  @Authorize("user:manage", { requireReauth: true })
+  @Authorize("access:manage", { requireReauth: true })
   @ApiParam({ name: "id", type: String, format: "uuid" })
   @ApiResponse({ status: 204, description: "Đã mở khóa." })
   @ApiResponse(NOT_FOUND)
@@ -194,5 +207,29 @@ export class AdminPlatformAccountController {
   @ApiResponse(UNAVAILABLE)
   unlock(@Authz() authz: Authorization, @CurrentUser() actor: VerifiedAccessToken, @Param() params: AdminAccountIdParamDto): Promise<void> {
     return this.accounts.unlockPlatformAccount(authz, actor, params.id);
+  }
+
+  /** Phân quyền (FR-IAM-07, TASK-IAM-007): có hiệu lực ngay — mọi phiên của tài khoản bị thu hồi, phải đăng nhập lại. */
+  @Put(":id/permissions")
+  @Authorize("access:manage", { requireReauth: true })
+  @ApiParam({ name: "id", type: String, format: "uuid" })
+  @ApiBody({ type: AdminPlatformPermissionsUpdateDto })
+  @ZodResponse({ status: 200, description: "Tài khoản sau khi phân quyền.", type: AdminPlatformAccountDto })
+  @ApiResponse(NOT_ASSIGNABLE)
+  @ApiResponse(GRANT_FORBIDDEN)
+  @ApiResponse(NOT_FOUND)
+  @ApiResponse({
+    status: 409,
+    description: "`PLATFORM_ACCOUNT_SELF_ACTION` / `PLATFORM_ACCOUNT_LAST_ADMIN`.",
+    content: problemContent,
+  })
+  @ApiResponse(UNAVAILABLE)
+  updatePermissions(
+    @Authz() authz: Authorization,
+    @CurrentUser() actor: VerifiedAccessToken,
+    @Param() params: AdminAccountIdParamDto,
+    @Body() input: AdminPlatformPermissionsUpdateDto,
+  ): Promise<AdminPlatformAccount> {
+    return this.accounts.updatePlatformPermissions(authz, actor, params.id, input);
   }
 }

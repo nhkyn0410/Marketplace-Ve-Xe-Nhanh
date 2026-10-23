@@ -13,23 +13,22 @@ part 'incident_dto_output.g.dart';
 /// IncidentDtoOutput
 ///
 /// Properties:
-/// * [id]
-/// * [operatorId]
-/// * [tripId]
-/// * [employeeId]
-/// * [type]
-/// * [severity]
-/// * [description]
-/// * [location]
-/// * [occurredAt]
-/// * [createdAt]
-/// * [resolvedAt]
-/// * [resolvedBy]
-/// * [resolution]
-/// * [evidence]
+/// * [id] 
+/// * [operatorId] 
+/// * [tripId] 
+/// * [employeeId] 
+/// * [type] 
+/// * [severity] 
+/// * [description] 
+/// * [location] 
+/// * [occurredAt] 
+/// * [createdAt] 
+/// * [resolvedAt] 
+/// * [resolvedBy] 
+/// * [resolution] 
+/// * [evidence] 
 @BuiltValue()
-abstract class IncidentDtoOutput
-    implements Built<IncidentDtoOutput, IncidentDtoOutputBuilder> {
+abstract class IncidentDtoOutput implements Built<IncidentDtoOutput, IncidentDtoOutputBuilder> {
   @BuiltValueField(wireName: r'id')
   String get id;
 
@@ -76,19 +75,16 @@ abstract class IncidentDtoOutput
 
   IncidentDtoOutput._();
 
-  factory IncidentDtoOutput([void updates(IncidentDtoOutputBuilder b)]) =
-      _$IncidentDtoOutput;
+  factory IncidentDtoOutput([void updates(IncidentDtoOutputBuilder b)]) = _$IncidentDtoOutput;
 
   @BuiltValueHook(initializeBuilder: true)
   static void _defaults(IncidentDtoOutputBuilder b) => b;
 
   @BuiltValueSerializer(custom: true)
-  static Serializer<IncidentDtoOutput> get serializer =>
-      _$IncidentDtoOutputSerializer();
+  static Serializer<IncidentDtoOutput> get serializer => _$IncidentDtoOutputSerializer();
 }
 
-class _$IncidentDtoOutputSerializer
-    implements PrimitiveSerializer<IncidentDtoOutput> {
+class _$IncidentDtoOutputSerializer implements PrimitiveSerializer<IncidentDtoOutput> {
   @override
   final Iterable<Type> types = const [IncidentDtoOutput, _$IncidentDtoOutput];
 
@@ -136,12 +132,10 @@ class _$IncidentDtoOutputSerializer
       specifiedType: const FullType(String),
     );
     yield r'location';
-    yield object.location == null
-        ? null
-        : serializers.serialize(
-            object.location,
-            specifiedType: const FullType.nullable(String),
-          );
+    yield object.location == null ? null : serializers.serialize(
+      object.location,
+      specifiedType: const FullType.nullable(String),
+    );
     yield r'occurredAt';
     yield serializers.serialize(
       object.occurredAt,
@@ -153,31 +147,24 @@ class _$IncidentDtoOutputSerializer
       specifiedType: const FullType(DateTime),
     );
     yield r'resolvedAt';
-    yield object.resolvedAt == null
-        ? null
-        : serializers.serialize(
-            object.resolvedAt,
-            specifiedType: const FullType.nullable(DateTime),
-          );
+    yield object.resolvedAt == null ? null : serializers.serialize(
+      object.resolvedAt,
+      specifiedType: const FullType.nullable(DateTime),
+    );
     yield r'resolvedBy';
-    yield object.resolvedBy == null
-        ? null
-        : serializers.serialize(
-            object.resolvedBy,
-            specifiedType: const FullType.nullable(String),
-          );
+    yield object.resolvedBy == null ? null : serializers.serialize(
+      object.resolvedBy,
+      specifiedType: const FullType.nullable(String),
+    );
     yield r'resolution';
-    yield object.resolution == null
-        ? null
-        : serializers.serialize(
-            object.resolution,
-            specifiedType: const FullType.nullable(String),
-          );
+    yield object.resolution == null ? null : serializers.serialize(
+      object.resolution,
+      specifiedType: const FullType.nullable(String),
+    );
     yield r'evidence';
     yield serializers.serialize(
       object.evidence,
-      specifiedType:
-          const FullType(BuiltList, [FullType(IncidentDtoOutputEvidenceInner)]),
+      specifiedType: const FullType(BuiltList, [FullType(IncidentDtoOutputEvidenceInner)]),
     );
   }
 
@@ -187,9 +174,7 @@ class _$IncidentDtoOutputSerializer
     IncidentDtoOutput object, {
     FullType specifiedType = FullType.unspecified,
   }) {
-    return _serializeProperties(serializers, object,
-            specifiedType: specifiedType)
-        .toList();
+    return _serializeProperties(serializers, object, specifiedType: specifiedType).toList();
   }
 
   void _deserializeProperties(
@@ -302,8 +287,7 @@ class _$IncidentDtoOutputSerializer
         case r'evidence':
           final valueDes = serializers.deserialize(
             value,
-            specifiedType: const FullType(
-                BuiltList, [FullType(IncidentDtoOutputEvidenceInner)]),
+            specifiedType: const FullType(BuiltList, [FullType(IncidentDtoOutputEvidenceInner)]),
           ) as BuiltList<IncidentDtoOutputEvidenceInner>;
           result.evidence.replace(valueDes);
           break;
@@ -336,55 +320,44 @@ class _$IncidentDtoOutputSerializer
   }
 }
 
+
 class IncidentDtoOutputTypeEnum extends EnumClass {
+
   @BuiltValueEnumConst(wireName: r'VEHICLE')
-  static const IncidentDtoOutputTypeEnum VEHICLE =
-      _$incidentDtoOutputTypeEnum_VEHICLE;
+  static const IncidentDtoOutputTypeEnum VEHICLE = _$incidentDtoOutputTypeEnum_VEHICLE;
   @BuiltValueEnumConst(wireName: r'TRAFFIC')
-  static const IncidentDtoOutputTypeEnum TRAFFIC =
-      _$incidentDtoOutputTypeEnum_TRAFFIC;
+  static const IncidentDtoOutputTypeEnum TRAFFIC = _$incidentDtoOutputTypeEnum_TRAFFIC;
   @BuiltValueEnumConst(wireName: r'PASSENGER')
-  static const IncidentDtoOutputTypeEnum PASSENGER =
-      _$incidentDtoOutputTypeEnum_PASSENGER;
+  static const IncidentDtoOutputTypeEnum PASSENGER = _$incidentDtoOutputTypeEnum_PASSENGER;
   @BuiltValueEnumConst(wireName: r'SAFETY')
-  static const IncidentDtoOutputTypeEnum SAFETY =
-      _$incidentDtoOutputTypeEnum_SAFETY;
+  static const IncidentDtoOutputTypeEnum SAFETY = _$incidentDtoOutputTypeEnum_SAFETY;
   @BuiltValueEnumConst(wireName: r'OTHER')
-  static const IncidentDtoOutputTypeEnum OTHER =
-      _$incidentDtoOutputTypeEnum_OTHER;
+  static const IncidentDtoOutputTypeEnum OTHER = _$incidentDtoOutputTypeEnum_OTHER;
 
-  static Serializer<IncidentDtoOutputTypeEnum> get serializer =>
-      _$incidentDtoOutputTypeEnumSerializer;
+  static Serializer<IncidentDtoOutputTypeEnum> get serializer => _$incidentDtoOutputTypeEnumSerializer;
 
-  const IncidentDtoOutputTypeEnum._(String name) : super(name);
+  const IncidentDtoOutputTypeEnum._(String name): super(name);
 
-  static BuiltSet<IncidentDtoOutputTypeEnum> get values =>
-      _$incidentDtoOutputTypeEnumValues;
-  static IncidentDtoOutputTypeEnum valueOf(String name) =>
-      _$incidentDtoOutputTypeEnumValueOf(name);
+  static BuiltSet<IncidentDtoOutputTypeEnum> get values => _$incidentDtoOutputTypeEnumValues;
+  static IncidentDtoOutputTypeEnum valueOf(String name) => _$incidentDtoOutputTypeEnumValueOf(name);
 }
 
 class IncidentDtoOutputSeverityEnum extends EnumClass {
+
   @BuiltValueEnumConst(wireName: r'LOW')
-  static const IncidentDtoOutputSeverityEnum LOW =
-      _$incidentDtoOutputSeverityEnum_LOW;
+  static const IncidentDtoOutputSeverityEnum LOW = _$incidentDtoOutputSeverityEnum_LOW;
   @BuiltValueEnumConst(wireName: r'MEDIUM')
-  static const IncidentDtoOutputSeverityEnum MEDIUM =
-      _$incidentDtoOutputSeverityEnum_MEDIUM;
+  static const IncidentDtoOutputSeverityEnum MEDIUM = _$incidentDtoOutputSeverityEnum_MEDIUM;
   @BuiltValueEnumConst(wireName: r'HIGH')
-  static const IncidentDtoOutputSeverityEnum HIGH =
-      _$incidentDtoOutputSeverityEnum_HIGH;
+  static const IncidentDtoOutputSeverityEnum HIGH = _$incidentDtoOutputSeverityEnum_HIGH;
   @BuiltValueEnumConst(wireName: r'CRITICAL')
-  static const IncidentDtoOutputSeverityEnum CRITICAL =
-      _$incidentDtoOutputSeverityEnum_CRITICAL;
+  static const IncidentDtoOutputSeverityEnum CRITICAL = _$incidentDtoOutputSeverityEnum_CRITICAL;
 
-  static Serializer<IncidentDtoOutputSeverityEnum> get serializer =>
-      _$incidentDtoOutputSeverityEnumSerializer;
+  static Serializer<IncidentDtoOutputSeverityEnum> get serializer => _$incidentDtoOutputSeverityEnumSerializer;
 
-  const IncidentDtoOutputSeverityEnum._(String name) : super(name);
+  const IncidentDtoOutputSeverityEnum._(String name): super(name);
 
-  static BuiltSet<IncidentDtoOutputSeverityEnum> get values =>
-      _$incidentDtoOutputSeverityEnumValues;
-  static IncidentDtoOutputSeverityEnum valueOf(String name) =>
-      _$incidentDtoOutputSeverityEnumValueOf(name);
+  static BuiltSet<IncidentDtoOutputSeverityEnum> get values => _$incidentDtoOutputSeverityEnumValues;
+  static IncidentDtoOutputSeverityEnum valueOf(String name) => _$incidentDtoOutputSeverityEnumValueOf(name);
 }
+

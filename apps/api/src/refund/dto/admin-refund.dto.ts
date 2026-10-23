@@ -3,7 +3,7 @@ import { z } from "zod";
 import { PaymentProvider, PaymentStatus, RefundStatus, TicketStatus } from "../../database/prisma.types";
 
 // Hoàn tiền phía Admin (TASK-ADM-002, FR-ADM-10, UC-27 A4, UC-32 bước 8, Security §8 "Refund thủ công"; Figma ADM-07c–d).
-// Xem: `payment:monitor`. Thao tác (gửi lại cổng / ghi nhận đã hoàn / hoàn thanh toán cần đối soát): `finance:configure`
+// Xem: `payment:monitor`. Thao tác (gửi lại cổng / ghi nhận đã hoàn / hoàn thanh toán cần đối soát): `refund:manage`
 // + xác nhận lại danh tính + lý do + audit.
 
 /**

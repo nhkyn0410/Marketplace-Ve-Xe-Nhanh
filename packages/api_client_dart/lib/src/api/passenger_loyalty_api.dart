@@ -18,6 +18,7 @@ import 'package:api_client_dart/src/model/user_voucher_dto_output.dart';
 import 'package:api_client_dart/src/model/user_voucher_page_dto_output.dart';
 
 class PassengerLoyaltyApi {
+
   final Dio _dio;
 
   final Serializers _serializers;
@@ -25,7 +26,7 @@ class PassengerLoyaltyApi {
   const PassengerLoyaltyApi(this._dio, this._serializers);
 
   /// passengerLoyaltyControllerMember
-  ///
+  /// 
   ///
   /// Parameters:
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
@@ -37,7 +38,7 @@ class PassengerLoyaltyApi {
   ///
   /// Returns a [Future] containing a [Response] with a [PassengerLoyaltyDtoOutput] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<PassengerLoyaltyDtoOutput>> passengerLoyaltyControllerMember({
+  Future<Response<PassengerLoyaltyDtoOutput>> passengerLoyaltyControllerMember({ 
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
     Map<String, dynamic>? extra,
@@ -76,12 +77,11 @@ class PassengerLoyaltyApi {
 
     try {
       final rawResponse = _response.data;
-      _responseData = rawResponse == null
-          ? null
-          : _serializers.deserialize(
-              rawResponse,
-              specifiedType: const FullType(PassengerLoyaltyDtoOutput),
-            ) as PassengerLoyaltyDtoOutput;
+      _responseData = rawResponse == null ? null : _serializers.deserialize(
+        rawResponse,
+        specifiedType: const FullType(PassengerLoyaltyDtoOutput),
+      ) as PassengerLoyaltyDtoOutput;
+
     } catch (error, stackTrace) {
       throw DioException(
         requestOptions: _response.requestOptions,
@@ -105,11 +105,11 @@ class PassengerLoyaltyApi {
   }
 
   /// passengerLoyaltyControllerRedeem
-  ///
+  /// 
   ///
   /// Parameters:
   /// * [idempotencyKey] - 8–128 ký tự chữ, số, gạch ngang hoặc gạch dưới.
-  /// * [loyaltyRedemptionInputDto]
+  /// * [loyaltyRedemptionInputDto] 
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
   /// * [extras] - Can be used to add flags to the request
@@ -119,7 +119,7 @@ class PassengerLoyaltyApi {
   ///
   /// Returns a [Future] containing a [Response] with a [UserVoucherDtoOutput] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<UserVoucherDtoOutput>> passengerLoyaltyControllerRedeem({
+  Future<Response<UserVoucherDtoOutput>> passengerLoyaltyControllerRedeem({ 
     required String idempotencyKey,
     required LoyaltyRedemptionInputDto loyaltyRedemptionInputDto,
     CancelToken? cancelToken,
@@ -154,11 +154,11 @@ class PassengerLoyaltyApi {
 
     try {
       const _type = FullType(LoyaltyRedemptionInputDto);
-      _bodyData = _serializers.serialize(loyaltyRedemptionInputDto,
-          specifiedType: _type);
-    } catch (error, stackTrace) {
+      _bodyData = _serializers.serialize(loyaltyRedemptionInputDto, specifiedType: _type);
+
+    } catch(error, stackTrace) {
       throw DioException(
-        requestOptions: _options.compose(
+         requestOptions: _options.compose(
           _dio.options,
           _path,
         ),
@@ -181,12 +181,11 @@ class PassengerLoyaltyApi {
 
     try {
       final rawResponse = _response.data;
-      _responseData = rawResponse == null
-          ? null
-          : _serializers.deserialize(
-              rawResponse,
-              specifiedType: const FullType(UserVoucherDtoOutput),
-            ) as UserVoucherDtoOutput;
+      _responseData = rawResponse == null ? null : _serializers.deserialize(
+        rawResponse,
+        specifiedType: const FullType(UserVoucherDtoOutput),
+      ) as UserVoucherDtoOutput;
+
     } catch (error, stackTrace) {
       throw DioException(
         requestOptions: _response.requestOptions,
@@ -210,10 +209,10 @@ class PassengerLoyaltyApi {
   }
 
   /// passengerLoyaltyControllerSave
-  ///
+  /// 
   ///
   /// Parameters:
-  /// * [saveVoucherInputDto]
+  /// * [saveVoucherInputDto] 
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
   /// * [extras] - Can be used to add flags to the request
@@ -223,7 +222,7 @@ class PassengerLoyaltyApi {
   ///
   /// Returns a [Future] containing a [Response] with a [UserVoucherDtoOutput] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<UserVoucherDtoOutput>> passengerLoyaltyControllerSave({
+  Future<Response<UserVoucherDtoOutput>> passengerLoyaltyControllerSave({ 
     required SaveVoucherInputDto saveVoucherInputDto,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -256,11 +255,11 @@ class PassengerLoyaltyApi {
 
     try {
       const _type = FullType(SaveVoucherInputDto);
-      _bodyData =
-          _serializers.serialize(saveVoucherInputDto, specifiedType: _type);
-    } catch (error, stackTrace) {
+      _bodyData = _serializers.serialize(saveVoucherInputDto, specifiedType: _type);
+
+    } catch(error, stackTrace) {
       throw DioException(
-        requestOptions: _options.compose(
+         requestOptions: _options.compose(
           _dio.options,
           _path,
         ),
@@ -283,12 +282,11 @@ class PassengerLoyaltyApi {
 
     try {
       final rawResponse = _response.data;
-      _responseData = rawResponse == null
-          ? null
-          : _serializers.deserialize(
-              rawResponse,
-              specifiedType: const FullType(UserVoucherDtoOutput),
-            ) as UserVoucherDtoOutput;
+      _responseData = rawResponse == null ? null : _serializers.deserialize(
+        rawResponse,
+        specifiedType: const FullType(UserVoucherDtoOutput),
+      ) as UserVoucherDtoOutput;
+
     } catch (error, stackTrace) {
       throw DioException(
         requestOptions: _response.requestOptions,
@@ -312,14 +310,14 @@ class PassengerLoyaltyApi {
   }
 
   /// passengerLoyaltyControllerTransactions
-  ///
+  /// 
   ///
   /// Parameters:
-  /// * [offset]
-  /// * [limit]
-  /// * [type]
-  /// * [from]
-  /// * [to]
+  /// * [offset] 
+  /// * [limit] 
+  /// * [type] 
+  /// * [from] 
+  /// * [to] 
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
   /// * [extras] - Can be used to add flags to the request
@@ -329,8 +327,7 @@ class PassengerLoyaltyApi {
   ///
   /// Returns a [Future] containing a [Response] with a [PassengerLoyaltyTransactionsDtoOutput] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<PassengerLoyaltyTransactionsDtoOutput>>
-      passengerLoyaltyControllerTransactions({
+  Future<Response<PassengerLoyaltyTransactionsDtoOutput>> passengerLoyaltyControllerTransactions({ 
     int? offset = 0,
     int? limit = 20,
     String? type,
@@ -363,20 +360,11 @@ class PassengerLoyaltyApi {
     );
 
     final _queryParameters = <String, dynamic>{
-      if (offset != null)
-        r'offset':
-            encodeQueryParameter(_serializers, offset, const FullType(int)),
-      if (limit != null)
-        r'limit':
-            encodeQueryParameter(_serializers, limit, const FullType(int)),
-      if (type != null)
-        r'type':
-            encodeQueryParameter(_serializers, type, const FullType(String)),
-      if (from != null)
-        r'from':
-            encodeQueryParameter(_serializers, from, const FullType(DateTime)),
-      if (to != null)
-        r'to': encodeQueryParameter(_serializers, to, const FullType(DateTime)),
+      if (offset != null) r'offset': encodeQueryParameter(_serializers, offset, const FullType(int)),
+      if (limit != null) r'limit': encodeQueryParameter(_serializers, limit, const FullType(int)),
+      if (type != null) r'type': encodeQueryParameter(_serializers, type, const FullType(String)),
+      if (from != null) r'from': encodeQueryParameter(_serializers, from, const FullType(DateTime)),
+      if (to != null) r'to': encodeQueryParameter(_serializers, to, const FullType(DateTime)),
     };
 
     final _response = await _dio.request<Object>(
@@ -392,13 +380,11 @@ class PassengerLoyaltyApi {
 
     try {
       final rawResponse = _response.data;
-      _responseData = rawResponse == null
-          ? null
-          : _serializers.deserialize(
-              rawResponse,
-              specifiedType:
-                  const FullType(PassengerLoyaltyTransactionsDtoOutput),
-            ) as PassengerLoyaltyTransactionsDtoOutput;
+      _responseData = rawResponse == null ? null : _serializers.deserialize(
+        rawResponse,
+        specifiedType: const FullType(PassengerLoyaltyTransactionsDtoOutput),
+      ) as PassengerLoyaltyTransactionsDtoOutput;
+
     } catch (error, stackTrace) {
       throw DioException(
         requestOptions: _response.requestOptions,
@@ -422,12 +408,12 @@ class PassengerLoyaltyApi {
   }
 
   /// passengerLoyaltyControllerVouchers
-  ///
+  /// 
   ///
   /// Parameters:
-  /// * [status]
-  /// * [offset]
-  /// * [limit]
+  /// * [status] 
+  /// * [offset] 
+  /// * [limit] 
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
   /// * [extras] - Can be used to add flags to the request
@@ -437,8 +423,7 @@ class PassengerLoyaltyApi {
   ///
   /// Returns a [Future] containing a [Response] with a [UserVoucherPageDtoOutput] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<UserVoucherPageDtoOutput>>
-      passengerLoyaltyControllerVouchers({
+  Future<Response<UserVoucherPageDtoOutput>> passengerLoyaltyControllerVouchers({ 
     String? status,
     int? offset = 0,
     int? limit = 20,
@@ -469,15 +454,9 @@ class PassengerLoyaltyApi {
     );
 
     final _queryParameters = <String, dynamic>{
-      if (status != null)
-        r'status':
-            encodeQueryParameter(_serializers, status, const FullType(String)),
-      if (offset != null)
-        r'offset':
-            encodeQueryParameter(_serializers, offset, const FullType(int)),
-      if (limit != null)
-        r'limit':
-            encodeQueryParameter(_serializers, limit, const FullType(int)),
+      if (status != null) r'status': encodeQueryParameter(_serializers, status, const FullType(String)),
+      if (offset != null) r'offset': encodeQueryParameter(_serializers, offset, const FullType(int)),
+      if (limit != null) r'limit': encodeQueryParameter(_serializers, limit, const FullType(int)),
     };
 
     final _response = await _dio.request<Object>(
@@ -493,12 +472,11 @@ class PassengerLoyaltyApi {
 
     try {
       final rawResponse = _response.data;
-      _responseData = rawResponse == null
-          ? null
-          : _serializers.deserialize(
-              rawResponse,
-              specifiedType: const FullType(UserVoucherPageDtoOutput),
-            ) as UserVoucherPageDtoOutput;
+      _responseData = rawResponse == null ? null : _serializers.deserialize(
+        rawResponse,
+        specifiedType: const FullType(UserVoucherPageDtoOutput),
+      ) as UserVoucherPageDtoOutput;
+
     } catch (error, stackTrace) {
       throw DioException(
         requestOptions: _response.requestOptions,
@@ -520,4 +498,5 @@ class PassengerLoyaltyApi {
       extra: _response.extra,
     );
   }
+
 }

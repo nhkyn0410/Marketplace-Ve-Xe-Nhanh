@@ -11,35 +11,26 @@ part 'loyalty_redemption_input_dto.g.dart';
 /// LoyaltyRedemptionInputDto
 ///
 /// Properties:
-/// * [points]
+/// * [points] 
 @BuiltValue()
-abstract class LoyaltyRedemptionInputDto
-    implements
-        Built<LoyaltyRedemptionInputDto, LoyaltyRedemptionInputDtoBuilder> {
+abstract class LoyaltyRedemptionInputDto implements Built<LoyaltyRedemptionInputDto, LoyaltyRedemptionInputDtoBuilder> {
   @BuiltValueField(wireName: r'points')
   int get points;
 
   LoyaltyRedemptionInputDto._();
 
-  factory LoyaltyRedemptionInputDto(
-          [void updates(LoyaltyRedemptionInputDtoBuilder b)]) =
-      _$LoyaltyRedemptionInputDto;
+  factory LoyaltyRedemptionInputDto([void updates(LoyaltyRedemptionInputDtoBuilder b)]) = _$LoyaltyRedemptionInputDto;
 
   @BuiltValueHook(initializeBuilder: true)
   static void _defaults(LoyaltyRedemptionInputDtoBuilder b) => b;
 
   @BuiltValueSerializer(custom: true)
-  static Serializer<LoyaltyRedemptionInputDto> get serializer =>
-      _$LoyaltyRedemptionInputDtoSerializer();
+  static Serializer<LoyaltyRedemptionInputDto> get serializer => _$LoyaltyRedemptionInputDtoSerializer();
 }
 
-class _$LoyaltyRedemptionInputDtoSerializer
-    implements PrimitiveSerializer<LoyaltyRedemptionInputDto> {
+class _$LoyaltyRedemptionInputDtoSerializer implements PrimitiveSerializer<LoyaltyRedemptionInputDto> {
   @override
-  final Iterable<Type> types = const [
-    LoyaltyRedemptionInputDto,
-    _$LoyaltyRedemptionInputDto
-  ];
+  final Iterable<Type> types = const [LoyaltyRedemptionInputDto, _$LoyaltyRedemptionInputDto];
 
   @override
   final String wireName = r'LoyaltyRedemptionInputDto';
@@ -62,9 +53,7 @@ class _$LoyaltyRedemptionInputDtoSerializer
     LoyaltyRedemptionInputDto object, {
     FullType specifiedType = FullType.unspecified,
   }) {
-    return _serializeProperties(serializers, object,
-            specifiedType: specifiedType)
-        .toList();
+    return _serializeProperties(serializers, object, specifiedType: specifiedType).toList();
   }
 
   void _deserializeProperties(
@@ -114,3 +103,5 @@ class _$LoyaltyRedemptionInputDtoSerializer
     return result.build();
   }
 }
+
+

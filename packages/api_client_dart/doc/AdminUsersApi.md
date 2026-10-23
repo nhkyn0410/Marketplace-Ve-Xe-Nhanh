@@ -19,6 +19,7 @@ Method | HTTP request | Description
 [**adminPlatformAccountControllerResetMfa**](AdminUsersApi.md#adminplatformaccountcontrollerresetmfa) | **POST** /v1/admin/platform-accounts/{id}/reset-mfa | 
 [**adminPlatformAccountControllerResetPassword**](AdminUsersApi.md#adminplatformaccountcontrollerresetpassword) | **POST** /v1/admin/platform-accounts/{id}/reset-password | 
 [**adminPlatformAccountControllerUnlock**](AdminUsersApi.md#adminplatformaccountcontrollerunlock) | **POST** /v1/admin/platform-accounts/{id}/unlock | 
+[**adminPlatformAccountControllerUpdatePermissions**](AdminUsersApi.md#adminplatformaccountcontrollerupdatepermissions) | **PUT** /v1/admin/platform-accounts/{id}/permissions | 
 
 
 # **adminEmployeeControllerList**
@@ -448,6 +449,49 @@ void (empty response body)
 
  - **Content-Type**: Not defined
  - **Accept**: application/problem+json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **adminPlatformAccountControllerUpdatePermissions**
+> AdminPlatformAccountDtoOutput adminPlatformAccountControllerUpdatePermissions(id, adminPlatformPermissionsUpdateDto)
+
+
+
+### Example
+```dart
+import 'package:api_client_dart/api.dart';
+
+final api = ApiClientDart().getAdminUsersApi();
+final String id = 38400000-8cf0-11bd-b23e-10b96e4ef00d; // String | 
+final AdminPlatformPermissionsUpdateDto adminPlatformPermissionsUpdateDto = ; // AdminPlatformPermissionsUpdateDto | 
+
+try {
+    final response = api.adminPlatformAccountControllerUpdatePermissions(id, adminPlatformPermissionsUpdateDto);
+    print(response);
+} on DioException catch (e) {
+    print('Exception when calling AdminUsersApi->adminPlatformAccountControllerUpdatePermissions: $e\n');
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **id** | **String**|  | 
+ **adminPlatformPermissionsUpdateDto** | [**AdminPlatformPermissionsUpdateDto**](AdminPlatformPermissionsUpdateDto.md)|  | 
+
+### Return type
+
+[**AdminPlatformAccountDtoOutput**](AdminPlatformAccountDtoOutput.md)
+
+### Authorization
+
+[bearer](../README.md#bearer)
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
+ - **Accept**: application/json, application/problem+json
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 

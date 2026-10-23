@@ -109,7 +109,13 @@ export function describeAccountError(error: unknown): {
     case "PLATFORM_ACCOUNT_SELF_ACTION":
       return { field: "form", message: "Không tự khóa hoặc đặt lại tài khoản đang đăng nhập." };
     case "PLATFORM_ACCOUNT_LAST_ADMIN":
-      return { field: "form", message: "Phải còn ít nhất một quản trị viên nền tảng đang hoạt động." };
+      return { field: "form", message: "Phải còn ít nhất một tài khoản quản trị đang hoạt động có quyền quản lý tài khoản và phân quyền." };
+    case "PERMISSION_GRANT_FORBIDDEN":
+      return { field: "form", message: "Chỉ được cấp hoặc gỡ những quyền bạn đang có." };
+    case "PERMISSION_NOT_ASSIGNABLE":
+      return { field: "form", message: "Có quyền không áp dụng được cho vai trò này. Đã tải lại danh sách.", refresh: true };
+    case "PERMISSION_DENIED":
+      return { field: "form", message: "Bạn không còn quyền thực hiện thao tác này." };
     case "OPERATOR_STATE_INVALID":
     case "ACCOUNT_STATE_CONFLICT":
       return { field: "form", message: "Trạng thái vừa thay đổi. Đã tải lại danh sách.", refresh: true };

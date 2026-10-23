@@ -28,7 +28,7 @@ export const MODULE_ORDER: AuditModule[] = [
 
 export const ACTOR_TYPE_LABELS: Record<Exclude<AuditActorType, "UNKNOWN">, string> = {
   PLATFORM: "Nền tảng",
-  OPERATOR: "Chủ nhà xe",
+  OPERATOR: "Nhà xe (chủ / quản lý)",
   EMPLOYEE: "Nhân viên nhà xe",
   PASSENGER: "Hành khách",
   SYSTEM: "Hệ thống"
@@ -39,7 +39,8 @@ const ROLE_LABELS: Record<string, string> = {
   PLATFORM_SUPPORT: "Hỗ trợ nền tảng",
   PLATFORM: "Tài khoản nền tảng",
   OPERATOR_OWNER: "Chủ nhà xe",
-  OPERATOR: "Chủ nhà xe",
+  OPERATOR_MANAGER: "Quản lý nhà xe",
+  OPERATOR: "Tài khoản nhà xe",
   DRIVER: "Tài xế",
   TICKET_STAFF: "Nhân viên bán vé",
   SUPPORT_STAFF: "Nhân viên hỗ trợ",

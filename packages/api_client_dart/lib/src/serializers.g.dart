@@ -116,14 +116,25 @@ Serializers _$serializers = (Serializers().toBuilder()
       ..add(AdminPayoutStatsDtoOutput.serializer)
       ..add(AdminPayoutStatsDtoOutputPendingReview.serializer)
       ..add(AdminPlatformAccountCreateDto.serializer)
+      ..add(AdminPlatformAccountCreateDtoPermissionsEnum.serializer)
       ..add(AdminPlatformAccountCreateDtoRoleEnum.serializer)
       ..add(AdminPlatformAccountDtoOutput.serializer)
+      ..add(AdminPlatformAccountDtoOutputPermissionsEnum.serializer)
       ..add(AdminPlatformAccountDtoOutputRoleEnum.serializer)
       ..add(AdminPlatformAccountDtoOutputStatusEnum.serializer)
       ..add(AdminPlatformAccountListDtoOutput.serializer)
+      ..add(AdminPlatformAccountListDtoOutputGrantable.serializer)
+      ..add(AdminPlatformAccountListDtoOutputGrantablePLATFORM_ADMINEnum
+          .serializer)
+      ..add(AdminPlatformAccountListDtoOutputGrantablePLATFORM_SUPPORTEnum
+          .serializer)
       ..add(AdminPlatformAccountListDtoOutputItemsInner.serializer)
+      ..add(
+          AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum.serializer)
       ..add(AdminPlatformAccountListDtoOutputItemsInnerRoleEnum.serializer)
       ..add(AdminPlatformAccountListDtoOutputItemsInnerStatusEnum.serializer)
+      ..add(AdminPlatformPermissionsUpdateDto.serializer)
+      ..add(AdminPlatformPermissionsUpdateDtoPermissionsEnum.serializer)
       ..add(AdminProvinceDtoOutput.serializer)
       ..add(AdminProvinceDtoOutputStatusEnum.serializer)
       ..add(AdminProvinceInputDto.serializer)
@@ -453,6 +464,19 @@ Serializers _$serializers = (Serializers().toBuilder()
       ..add(LoyaltyReportDtoOutputTierEnum.serializer)
       ..add(LoyaltyReportDtoOutputTotals.serializer)
       ..add(LoyaltyTransactionPageDtoOutput.serializer)
+      ..add(ManagerAccountDtoOutput.serializer)
+      ..add(ManagerAccountDtoOutputPermissionsEnum.serializer)
+      ..add(ManagerAccountDtoOutputStatusEnum.serializer)
+      ..add(ManagerCreateDto.serializer)
+      ..add(ManagerCreateDtoPermissionsEnum.serializer)
+      ..add(ManagerListDtoOutput.serializer)
+      ..add(ManagerListDtoOutputItemsInner.serializer)
+      ..add(ManagerListDtoOutputItemsInnerPermissionsEnum.serializer)
+      ..add(ManagerListDtoOutputItemsInnerStatusEnum.serializer)
+      ..add(ManagerReasonDto.serializer)
+      ..add(ManagerUpdateDto.serializer)
+      ..add(ManagerUpdateDtoPermissionsEnum.serializer)
+      ..add(ManagerUpdateDtoStatusEnum.serializer)
       ..add(MessageInputDto.serializer)
       ..add(MessageResponseDtoOutput.serializer)
       ..add(MessageResponseDtoOutputStatusEnum.serializer)
@@ -994,9 +1018,45 @@ Serializers _$serializers = (Serializers().toBuilder()
           () => ListBuilder<AdminPaymentPageDtoOutputItemsInner>())
       ..addBuilderFactory(
           const FullType(BuiltList, const [
+            const FullType(AdminPlatformAccountCreateDtoPermissionsEnum)
+          ]),
+          () => ListBuilder<AdminPlatformAccountCreateDtoPermissionsEnum>())
+      ..addBuilderFactory(
+          const FullType(BuiltList, const [
+            const FullType(AdminPlatformAccountDtoOutputPermissionsEnum)
+          ]),
+          () => ListBuilder<AdminPlatformAccountDtoOutputPermissionsEnum>())
+      ..addBuilderFactory(
+          const FullType(BuiltList, const [
+            const FullType(
+                AdminPlatformAccountListDtoOutputGrantablePLATFORM_ADMINEnum)
+          ]),
+          () => ListBuilder<
+              AdminPlatformAccountListDtoOutputGrantablePLATFORM_ADMINEnum>())
+      ..addBuilderFactory(
+          const FullType(BuiltList, const [
+            const FullType(
+                AdminPlatformAccountListDtoOutputGrantablePLATFORM_SUPPORTEnum)
+          ]),
+          () => ListBuilder<
+              AdminPlatformAccountListDtoOutputGrantablePLATFORM_SUPPORTEnum>())
+      ..addBuilderFactory(
+          const FullType(BuiltList, const [
             const FullType(AdminPlatformAccountListDtoOutputItemsInner)
           ]),
           () => ListBuilder<AdminPlatformAccountListDtoOutputItemsInner>())
+      ..addBuilderFactory(
+          const FullType(BuiltList, const [
+            const FullType(
+                AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum)
+          ]),
+          () => ListBuilder<
+              AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum>())
+      ..addBuilderFactory(
+          const FullType(BuiltList, const [
+            const FullType(AdminPlatformPermissionsUpdateDtoPermissionsEnum)
+          ]),
+          () => ListBuilder<AdminPlatformPermissionsUpdateDtoPermissionsEnum>())
       ..addBuilderFactory(
           const FullType(BuiltList,
               const [const FullType(AdminProvincePageDtoOutputItemsInner)]),
@@ -1299,6 +1359,27 @@ Serializers _$serializers = (Serializers().toBuilder()
           () => ListBuilder<LoyaltyReportDtoOutputMonthsInner>())
       ..addBuilderFactory(
           const FullType(BuiltList,
+              const [const FullType(ManagerAccountDtoOutputPermissionsEnum)]),
+          () => ListBuilder<ManagerAccountDtoOutputPermissionsEnum>())
+      ..addBuilderFactory(
+          const FullType(BuiltList,
+              const [const FullType(ManagerCreateDtoPermissionsEnum)]),
+          () => ListBuilder<ManagerCreateDtoPermissionsEnum>())
+      ..addBuilderFactory(
+          const FullType(BuiltList,
+              const [const FullType(ManagerListDtoOutputItemsInner)]),
+          () => ListBuilder<ManagerListDtoOutputItemsInner>())
+      ..addBuilderFactory(
+          const FullType(BuiltList, const [
+            const FullType(ManagerListDtoOutputItemsInnerPermissionsEnum)
+          ]),
+          () => ListBuilder<ManagerListDtoOutputItemsInnerPermissionsEnum>())
+      ..addBuilderFactory(
+          const FullType(BuiltList,
+              const [const FullType(ManagerUpdateDtoPermissionsEnum)]),
+          () => ListBuilder<ManagerUpdateDtoPermissionsEnum>())
+      ..addBuilderFactory(
+          const FullType(BuiltList,
               const [const FullType(NotificationLogDtoOutputItemsInner)]),
           () => ListBuilder<NotificationLogDtoOutputItemsInner>())
       ..addBuilderFactory(
@@ -1509,6 +1590,9 @@ Serializers _$serializers = (Serializers().toBuilder()
             const FullType(StopPointProposalListResponseDtoOutputItemsInner)
           ]),
           () => ListBuilder<StopPointProposalListResponseDtoOutputItemsInner>())
+      ..addBuilderFactory(
+          const FullType(BuiltList, const [const FullType(String)]),
+          () => ListBuilder<String>())
       ..addBuilderFactory(
           const FullType(BuiltList, const [const FullType(String)]),
           () => ListBuilder<String>())

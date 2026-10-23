@@ -11,14 +11,11 @@ part 'saved_passenger_list_dto_output_items_inner.g.dart';
 /// SavedPassengerListDtoOutputItemsInner
 ///
 /// Properties:
-/// * [passengerId]
-/// * [fullName]
-/// * [phone]
+/// * [passengerId] 
+/// * [fullName] 
+/// * [phone] 
 @BuiltValue()
-abstract class SavedPassengerListDtoOutputItemsInner
-    implements
-        Built<SavedPassengerListDtoOutputItemsInner,
-            SavedPassengerListDtoOutputItemsInnerBuilder> {
+abstract class SavedPassengerListDtoOutputItemsInner implements Built<SavedPassengerListDtoOutputItemsInner, SavedPassengerListDtoOutputItemsInnerBuilder> {
   @BuiltValueField(wireName: r'passengerId')
   String get passengerId;
 
@@ -30,25 +27,18 @@ abstract class SavedPassengerListDtoOutputItemsInner
 
   SavedPassengerListDtoOutputItemsInner._();
 
-  factory SavedPassengerListDtoOutputItemsInner(
-          [void updates(SavedPassengerListDtoOutputItemsInnerBuilder b)]) =
-      _$SavedPassengerListDtoOutputItemsInner;
+  factory SavedPassengerListDtoOutputItemsInner([void updates(SavedPassengerListDtoOutputItemsInnerBuilder b)]) = _$SavedPassengerListDtoOutputItemsInner;
 
   @BuiltValueHook(initializeBuilder: true)
   static void _defaults(SavedPassengerListDtoOutputItemsInnerBuilder b) => b;
 
   @BuiltValueSerializer(custom: true)
-  static Serializer<SavedPassengerListDtoOutputItemsInner> get serializer =>
-      _$SavedPassengerListDtoOutputItemsInnerSerializer();
+  static Serializer<SavedPassengerListDtoOutputItemsInner> get serializer => _$SavedPassengerListDtoOutputItemsInnerSerializer();
 }
 
-class _$SavedPassengerListDtoOutputItemsInnerSerializer
-    implements PrimitiveSerializer<SavedPassengerListDtoOutputItemsInner> {
+class _$SavedPassengerListDtoOutputItemsInnerSerializer implements PrimitiveSerializer<SavedPassengerListDtoOutputItemsInner> {
   @override
-  final Iterable<Type> types = const [
-    SavedPassengerListDtoOutputItemsInner,
-    _$SavedPassengerListDtoOutputItemsInner
-  ];
+  final Iterable<Type> types = const [SavedPassengerListDtoOutputItemsInner, _$SavedPassengerListDtoOutputItemsInner];
 
   @override
   final String wireName = r'SavedPassengerListDtoOutputItemsInner';
@@ -69,12 +59,10 @@ class _$SavedPassengerListDtoOutputItemsInnerSerializer
       specifiedType: const FullType(String),
     );
     yield r'phone';
-    yield object.phone == null
-        ? null
-        : serializers.serialize(
-            object.phone,
-            specifiedType: const FullType.nullable(String),
-          );
+    yield object.phone == null ? null : serializers.serialize(
+      object.phone,
+      specifiedType: const FullType.nullable(String),
+    );
   }
 
   @override
@@ -83,9 +71,7 @@ class _$SavedPassengerListDtoOutputItemsInnerSerializer
     SavedPassengerListDtoOutputItemsInner object, {
     FullType specifiedType = FullType.unspecified,
   }) {
-    return _serializeProperties(serializers, object,
-            specifiedType: specifiedType)
-        .toList();
+    return _serializeProperties(serializers, object, specifiedType: specifiedType).toList();
   }
 
   void _deserializeProperties(
@@ -150,3 +136,5 @@ class _$SavedPassengerListDtoOutputItemsInnerSerializer
     return result.build();
   }
 }
+
+

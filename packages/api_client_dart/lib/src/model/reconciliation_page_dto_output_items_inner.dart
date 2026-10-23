@@ -13,25 +13,22 @@ part 'reconciliation_page_dto_output_items_inner.g.dart';
 /// ReconciliationPageDtoOutputItemsInner
 ///
 /// Properties:
-/// * [runId]
-/// * [source_]
-/// * [status]
-/// * [checkpoint]
-/// * [paymentsChecked]
-/// * [paymentErrors]
-/// * [ledgerEntriesChecked]
-/// * [payoutsChecked]
-/// * [issueCount]
-/// * [issues]
-/// * [error]
-/// * [startedAt]
-/// * [finishedAt]
-/// * [createdAt]
+/// * [runId] 
+/// * [source_] 
+/// * [status] 
+/// * [checkpoint] 
+/// * [paymentsChecked] 
+/// * [paymentErrors] 
+/// * [ledgerEntriesChecked] 
+/// * [payoutsChecked] 
+/// * [issueCount] 
+/// * [issues] 
+/// * [error] 
+/// * [startedAt] 
+/// * [finishedAt] 
+/// * [createdAt] 
 @BuiltValue()
-abstract class ReconciliationPageDtoOutputItemsInner
-    implements
-        Built<ReconciliationPageDtoOutputItemsInner,
-            ReconciliationPageDtoOutputItemsInnerBuilder> {
+abstract class ReconciliationPageDtoOutputItemsInner implements Built<ReconciliationPageDtoOutputItemsInner, ReconciliationPageDtoOutputItemsInnerBuilder> {
   @BuiltValueField(wireName: r'runId')
   String get runId;
 
@@ -78,25 +75,18 @@ abstract class ReconciliationPageDtoOutputItemsInner
 
   ReconciliationPageDtoOutputItemsInner._();
 
-  factory ReconciliationPageDtoOutputItemsInner(
-          [void updates(ReconciliationPageDtoOutputItemsInnerBuilder b)]) =
-      _$ReconciliationPageDtoOutputItemsInner;
+  factory ReconciliationPageDtoOutputItemsInner([void updates(ReconciliationPageDtoOutputItemsInnerBuilder b)]) = _$ReconciliationPageDtoOutputItemsInner;
 
   @BuiltValueHook(initializeBuilder: true)
   static void _defaults(ReconciliationPageDtoOutputItemsInnerBuilder b) => b;
 
   @BuiltValueSerializer(custom: true)
-  static Serializer<ReconciliationPageDtoOutputItemsInner> get serializer =>
-      _$ReconciliationPageDtoOutputItemsInnerSerializer();
+  static Serializer<ReconciliationPageDtoOutputItemsInner> get serializer => _$ReconciliationPageDtoOutputItemsInnerSerializer();
 }
 
-class _$ReconciliationPageDtoOutputItemsInnerSerializer
-    implements PrimitiveSerializer<ReconciliationPageDtoOutputItemsInner> {
+class _$ReconciliationPageDtoOutputItemsInnerSerializer implements PrimitiveSerializer<ReconciliationPageDtoOutputItemsInner> {
   @override
-  final Iterable<Type> types = const [
-    ReconciliationPageDtoOutputItemsInner,
-    _$ReconciliationPageDtoOutputItemsInner
-  ];
+  final Iterable<Type> types = const [ReconciliationPageDtoOutputItemsInner, _$ReconciliationPageDtoOutputItemsInner];
 
   @override
   final String wireName = r'ReconciliationPageDtoOutputItemsInner';
@@ -114,14 +104,12 @@ class _$ReconciliationPageDtoOutputItemsInnerSerializer
     yield r'source';
     yield serializers.serialize(
       object.source_,
-      specifiedType:
-          const FullType(ReconciliationPageDtoOutputItemsInnerSource_Enum),
+      specifiedType: const FullType(ReconciliationPageDtoOutputItemsInnerSource_Enum),
     );
     yield r'status';
     yield serializers.serialize(
       object.status,
-      specifiedType:
-          const FullType(ReconciliationPageDtoOutputItemsInnerStatusEnum),
+      specifiedType: const FullType(ReconciliationPageDtoOutputItemsInnerStatusEnum),
     );
     yield r'checkpoint';
     yield serializers.serialize(
@@ -156,30 +144,23 @@ class _$ReconciliationPageDtoOutputItemsInnerSerializer
     yield r'issues';
     yield serializers.serialize(
       object.issues,
-      specifiedType: const FullType(BuiltList,
-          [FullType(ReconciliationPageDtoOutputItemsInnerIssuesInner)]),
+      specifiedType: const FullType(BuiltList, [FullType(ReconciliationPageDtoOutputItemsInnerIssuesInner)]),
     );
     yield r'error';
-    yield object.error == null
-        ? null
-        : serializers.serialize(
-            object.error,
-            specifiedType: const FullType.nullable(String),
-          );
+    yield object.error == null ? null : serializers.serialize(
+      object.error,
+      specifiedType: const FullType.nullable(String),
+    );
     yield r'startedAt';
-    yield object.startedAt == null
-        ? null
-        : serializers.serialize(
-            object.startedAt,
-            specifiedType: const FullType.nullable(DateTime),
-          );
+    yield object.startedAt == null ? null : serializers.serialize(
+      object.startedAt,
+      specifiedType: const FullType.nullable(DateTime),
+    );
     yield r'finishedAt';
-    yield object.finishedAt == null
-        ? null
-        : serializers.serialize(
-            object.finishedAt,
-            specifiedType: const FullType.nullable(DateTime),
-          );
+    yield object.finishedAt == null ? null : serializers.serialize(
+      object.finishedAt,
+      specifiedType: const FullType.nullable(DateTime),
+    );
     yield r'createdAt';
     yield serializers.serialize(
       object.createdAt,
@@ -193,9 +174,7 @@ class _$ReconciliationPageDtoOutputItemsInnerSerializer
     ReconciliationPageDtoOutputItemsInner object, {
     FullType specifiedType = FullType.unspecified,
   }) {
-    return _serializeProperties(serializers, object,
-            specifiedType: specifiedType)
-        .toList();
+    return _serializeProperties(serializers, object, specifiedType: specifiedType).toList();
   }
 
   void _deserializeProperties(
@@ -220,16 +199,14 @@ class _$ReconciliationPageDtoOutputItemsInnerSerializer
         case r'source':
           final valueDes = serializers.deserialize(
             value,
-            specifiedType: const FullType(
-                ReconciliationPageDtoOutputItemsInnerSource_Enum),
+            specifiedType: const FullType(ReconciliationPageDtoOutputItemsInnerSource_Enum),
           ) as ReconciliationPageDtoOutputItemsInnerSource_Enum;
           result.source_ = valueDes;
           break;
         case r'status':
           final valueDes = serializers.deserialize(
             value,
-            specifiedType:
-                const FullType(ReconciliationPageDtoOutputItemsInnerStatusEnum),
+            specifiedType: const FullType(ReconciliationPageDtoOutputItemsInnerStatusEnum),
           ) as ReconciliationPageDtoOutputItemsInnerStatusEnum;
           result.status = valueDes;
           break;
@@ -278,8 +255,7 @@ class _$ReconciliationPageDtoOutputItemsInnerSerializer
         case r'issues':
           final valueDes = serializers.deserialize(
             value,
-            specifiedType: const FullType(BuiltList,
-                [FullType(ReconciliationPageDtoOutputItemsInnerIssuesInner)]),
+            specifiedType: const FullType(BuiltList, [FullType(ReconciliationPageDtoOutputItemsInnerIssuesInner)]),
           ) as BuiltList<ReconciliationPageDtoOutputItemsInnerIssuesInner>;
           result.issues.replace(valueDes);
           break;
@@ -343,51 +319,38 @@ class _$ReconciliationPageDtoOutputItemsInnerSerializer
   }
 }
 
+
 class ReconciliationPageDtoOutputItemsInnerSource_Enum extends EnumClass {
+
   @BuiltValueEnumConst(wireName: r'MANUAL')
-  static const ReconciliationPageDtoOutputItemsInnerSource_Enum MANUAL =
-      _$reconciliationPageDtoOutputItemsInnerSourceEnum_MANUAL;
+  static const ReconciliationPageDtoOutputItemsInnerSource_Enum MANUAL = _$reconciliationPageDtoOutputItemsInnerSourceEnum_MANUAL;
   @BuiltValueEnumConst(wireName: r'SCHEDULED')
-  static const ReconciliationPageDtoOutputItemsInnerSource_Enum SCHEDULED =
-      _$reconciliationPageDtoOutputItemsInnerSourceEnum_SCHEDULED;
+  static const ReconciliationPageDtoOutputItemsInnerSource_Enum SCHEDULED = _$reconciliationPageDtoOutputItemsInnerSourceEnum_SCHEDULED;
 
-  static Serializer<ReconciliationPageDtoOutputItemsInnerSource_Enum>
-      get serializer =>
-          _$reconciliationPageDtoOutputItemsInnerSourceEnumSerializer;
+  static Serializer<ReconciliationPageDtoOutputItemsInnerSource_Enum> get serializer => _$reconciliationPageDtoOutputItemsInnerSourceEnumSerializer;
 
-  const ReconciliationPageDtoOutputItemsInnerSource_Enum._(String name)
-      : super(name);
+  const ReconciliationPageDtoOutputItemsInnerSource_Enum._(String name): super(name);
 
-  static BuiltSet<ReconciliationPageDtoOutputItemsInnerSource_Enum>
-      get values => _$reconciliationPageDtoOutputItemsInnerSourceEnumValues;
-  static ReconciliationPageDtoOutputItemsInnerSource_Enum valueOf(
-          String name) =>
-      _$reconciliationPageDtoOutputItemsInnerSourceEnumValueOf(name);
+  static BuiltSet<ReconciliationPageDtoOutputItemsInnerSource_Enum> get values => _$reconciliationPageDtoOutputItemsInnerSourceEnumValues;
+  static ReconciliationPageDtoOutputItemsInnerSource_Enum valueOf(String name) => _$reconciliationPageDtoOutputItemsInnerSourceEnumValueOf(name);
 }
 
 class ReconciliationPageDtoOutputItemsInnerStatusEnum extends EnumClass {
+
   @BuiltValueEnumConst(wireName: r'QUEUED')
-  static const ReconciliationPageDtoOutputItemsInnerStatusEnum QUEUED =
-      _$reconciliationPageDtoOutputItemsInnerStatusEnum_QUEUED;
+  static const ReconciliationPageDtoOutputItemsInnerStatusEnum QUEUED = _$reconciliationPageDtoOutputItemsInnerStatusEnum_QUEUED;
   @BuiltValueEnumConst(wireName: r'RUNNING')
-  static const ReconciliationPageDtoOutputItemsInnerStatusEnum RUNNING =
-      _$reconciliationPageDtoOutputItemsInnerStatusEnum_RUNNING;
+  static const ReconciliationPageDtoOutputItemsInnerStatusEnum RUNNING = _$reconciliationPageDtoOutputItemsInnerStatusEnum_RUNNING;
   @BuiltValueEnumConst(wireName: r'COMPLETED')
-  static const ReconciliationPageDtoOutputItemsInnerStatusEnum COMPLETED =
-      _$reconciliationPageDtoOutputItemsInnerStatusEnum_COMPLETED;
+  static const ReconciliationPageDtoOutputItemsInnerStatusEnum COMPLETED = _$reconciliationPageDtoOutputItemsInnerStatusEnum_COMPLETED;
   @BuiltValueEnumConst(wireName: r'FAILED')
-  static const ReconciliationPageDtoOutputItemsInnerStatusEnum FAILED =
-      _$reconciliationPageDtoOutputItemsInnerStatusEnum_FAILED;
+  static const ReconciliationPageDtoOutputItemsInnerStatusEnum FAILED = _$reconciliationPageDtoOutputItemsInnerStatusEnum_FAILED;
 
-  static Serializer<ReconciliationPageDtoOutputItemsInnerStatusEnum>
-      get serializer =>
-          _$reconciliationPageDtoOutputItemsInnerStatusEnumSerializer;
+  static Serializer<ReconciliationPageDtoOutputItemsInnerStatusEnum> get serializer => _$reconciliationPageDtoOutputItemsInnerStatusEnumSerializer;
 
-  const ReconciliationPageDtoOutputItemsInnerStatusEnum._(String name)
-      : super(name);
+  const ReconciliationPageDtoOutputItemsInnerStatusEnum._(String name): super(name);
 
-  static BuiltSet<ReconciliationPageDtoOutputItemsInnerStatusEnum> get values =>
-      _$reconciliationPageDtoOutputItemsInnerStatusEnumValues;
-  static ReconciliationPageDtoOutputItemsInnerStatusEnum valueOf(String name) =>
-      _$reconciliationPageDtoOutputItemsInnerStatusEnumValueOf(name);
+  static BuiltSet<ReconciliationPageDtoOutputItemsInnerStatusEnum> get values => _$reconciliationPageDtoOutputItemsInnerStatusEnumValues;
+  static ReconciliationPageDtoOutputItemsInnerStatusEnum valueOf(String name) => _$reconciliationPageDtoOutputItemsInnerStatusEnumValueOf(name);
 }
+

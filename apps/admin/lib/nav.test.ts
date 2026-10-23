@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 
+import { visibleNavGroups } from "@vexenhanh/ui/lib/nav";
+
 import { NAV_GROUPS } from "./nav";
 
 describe("thanh bên Admin", () => {
@@ -17,4 +19,10 @@ describe("thanh bên Admin", () => {
     ]);
   });
 
+  it("TASK-IAM-007: mọi mục trừ Tổng quan khai quyền; tài khoản kế toán chỉ thấy mục tài chính", () => {
+    const items = NAV_GROUPS.flatMap((group) => group.items);
+    expect(items.filter((item) => !item.permissions).map((item) => item.href)).toEqual(["/"]);
+    const accountant = visibleNavGroups(NAV_GROUPS, ["payment:monitor", "payout:manage", "refund:manage"]);
+    expect(accountant.flatMap((group) => group.items.map((item) => item.href))).toEqual(["/", "/payments", "/payouts", "/reports"]);
+  });
 });

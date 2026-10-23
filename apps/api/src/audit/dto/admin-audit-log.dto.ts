@@ -21,7 +21,7 @@ const MODULE_CODES = [...(Object.keys(AUDIT_MODULES) as (keyof typeof AUDIT_MODU
 /** Loại người thực hiện = nhóm `actorRole` (sự kiện đăng nhập ghi `SubjectType`, thao tác nghiệp vụ ghi `Role`). */
 export const AUDIT_ACTOR_ROLES = {
   PLATFORM: ["PLATFORM_ADMIN", "PLATFORM_SUPPORT", "PLATFORM"],
-  OPERATOR: ["OPERATOR_OWNER", "OPERATOR"],
+  OPERATOR: ["OPERATOR_OWNER", "OPERATOR_MANAGER", "OPERATOR"],
   EMPLOYEE: ["DRIVER", "TICKET_STAFF", "SUPPORT_STAFF", "EMPLOYEE"],
   PASSENGER: ["PASSENGER"],
 } as const satisfies Record<string, readonly string[]>;

@@ -6,7 +6,7 @@ import { withNotificationSubject } from "../database/preference-scope";
 import { PrismaService } from "../database/prisma.service";
 import { SubjectType } from "../database/prisma.types";
 import type { VerifiedAccessToken } from "../iam/auth/token.service";
-import { Role } from "../iam/role/role";
+import { isOperatorAccountRole } from "../iam/role/role";
 import type { Authorization } from "../iam/role/authorization";
 import { permissionDenied } from "../iam/role/authorization.errors";
 
@@ -15,7 +15,7 @@ export function mandatoryNotification(kind: string): boolean { return kind !== "
 
 /** Xác định chủ thể nhận thông báo từ phiên đã xác thực. */
 export function notificationSubject(user: VerifiedAccessToken): { subjectType: SubjectType; subjectId: string; operatorId: string | null } {
-  const subjectType = user.scope === "passenger" ? SubjectType.PASSENGER : user.scope === "platform" ? SubjectType.PLATFORM : user.role === Role.OPERATOR_OWNER ? SubjectType.OPERATOR : SubjectType.EMPLOYEE;
+  const subjectType = user.scope === "passenger" ? SubjectType.PASSENGER : user.scope === "platform" ? SubjectType.PLATFORM : isOperatorAccountRole(user.role) ? SubjectType.OPERATOR : SubjectType.EMPLOYEE;
   return { subjectType, subjectId: user.sub, operatorId: user.operatorId ?? null };
 }
 

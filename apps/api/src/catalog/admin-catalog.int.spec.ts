@@ -81,7 +81,7 @@ describe.skipIf(!url && !requireDb)("Admin danh mục chuẩn — Postgres thậ
     recordAuditEvent.mockResolvedValue(undefined);
   });
 
-  it("tỉnh / thành + phường / xã: thêm, trùng mã → 409, đổi tên (audit trước–sau), đếm phường, lọc / tìm", async () => {
+  it("tỉnh / thành + phường / xã: thêm, trùng mã → 409, đổi tên (audit trước–sau), đếm phường, lọc / tìm (có dấu & không dấu)", async () => {
     const [code] = freeProvinceCodes;
     const province = await admin.createProvince(authz, actor, ProvinceInputSchema.parse({ code, name: `Tỉnh thử ${tag}` }));
     created.provinces.push(province.id);
@@ -116,12 +116,14 @@ describe.skipIf(!url && !requireDb)("Admin danh mục chuẩn — Postgres thậ
 
     const byName = await admin.listProvinces(authz, ProvinceListQuerySchema.parse({ q: `đổi tên ${tag}`.toLowerCase() }));
     expect(byName.items.map((item) => item.id)).toEqual([province.id]);
+    const byUnaccentedName = await admin.listProvinces(authz, ProvinceListQuerySchema.parse({ q: `doi ten ${tag}`.toLowerCase() }));
+    expect(byUnaccentedName.items.map((item) => item.id)).toEqual([province.id]);
     const byCode = await admin.listProvinces(authz, ProvinceListQuerySchema.parse({ q: code }));
     expect(byCode.items.map((item) => item.id)).toContain(province.id);
     // `%` / `_` là ký tự thường, không phải ký tự đại diện của LIKE.
     expect((await admin.listProvinces(authz, ProvinceListQuerySchema.parse({ q: "%" }))).total).toBe(0);
     expect((await admin.listWards(authz, WardListQuerySchema.parse({ q: "_" }))).total).toBe(0);
-    const wards = await admin.listWards(authz, WardListQuerySchema.parse({ provinceId: province.id }));
+    const wards = await admin.listWards(authz, WardListQuerySchema.parse({ provinceId: province.id, q: `phuong thu ${tag}`.toLowerCase() }));
     expect(wards).toMatchObject({ total: 1, items: [expect.objectContaining({ id: ward.id })] });
 
     expect(await rejectionOf(admin.createWard(authz, actor, { provinceId: randomUUID(), code: "99999", name: "x" }))).toMatchObject({

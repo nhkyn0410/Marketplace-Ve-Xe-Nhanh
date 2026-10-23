@@ -11,14 +11,11 @@ part 'promotion_route_options_dto_output_items_inner.g.dart';
 /// PromotionRouteOptionsDtoOutputItemsInner
 ///
 /// Properties:
-/// * [routeId]
-/// * [routeName]
-/// * [operatorName]
+/// * [routeId] 
+/// * [routeName] 
+/// * [operatorName] 
 @BuiltValue()
-abstract class PromotionRouteOptionsDtoOutputItemsInner
-    implements
-        Built<PromotionRouteOptionsDtoOutputItemsInner,
-            PromotionRouteOptionsDtoOutputItemsInnerBuilder> {
+abstract class PromotionRouteOptionsDtoOutputItemsInner implements Built<PromotionRouteOptionsDtoOutputItemsInner, PromotionRouteOptionsDtoOutputItemsInnerBuilder> {
   @BuiltValueField(wireName: r'routeId')
   String get routeId;
 
@@ -30,25 +27,18 @@ abstract class PromotionRouteOptionsDtoOutputItemsInner
 
   PromotionRouteOptionsDtoOutputItemsInner._();
 
-  factory PromotionRouteOptionsDtoOutputItemsInner(
-          [void updates(PromotionRouteOptionsDtoOutputItemsInnerBuilder b)]) =
-      _$PromotionRouteOptionsDtoOutputItemsInner;
+  factory PromotionRouteOptionsDtoOutputItemsInner([void updates(PromotionRouteOptionsDtoOutputItemsInnerBuilder b)]) = _$PromotionRouteOptionsDtoOutputItemsInner;
 
   @BuiltValueHook(initializeBuilder: true)
   static void _defaults(PromotionRouteOptionsDtoOutputItemsInnerBuilder b) => b;
 
   @BuiltValueSerializer(custom: true)
-  static Serializer<PromotionRouteOptionsDtoOutputItemsInner> get serializer =>
-      _$PromotionRouteOptionsDtoOutputItemsInnerSerializer();
+  static Serializer<PromotionRouteOptionsDtoOutputItemsInner> get serializer => _$PromotionRouteOptionsDtoOutputItemsInnerSerializer();
 }
 
-class _$PromotionRouteOptionsDtoOutputItemsInnerSerializer
-    implements PrimitiveSerializer<PromotionRouteOptionsDtoOutputItemsInner> {
+class _$PromotionRouteOptionsDtoOutputItemsInnerSerializer implements PrimitiveSerializer<PromotionRouteOptionsDtoOutputItemsInner> {
   @override
-  final Iterable<Type> types = const [
-    PromotionRouteOptionsDtoOutputItemsInner,
-    _$PromotionRouteOptionsDtoOutputItemsInner
-  ];
+  final Iterable<Type> types = const [PromotionRouteOptionsDtoOutputItemsInner, _$PromotionRouteOptionsDtoOutputItemsInner];
 
   @override
   final String wireName = r'PromotionRouteOptionsDtoOutputItemsInner';
@@ -81,9 +71,7 @@ class _$PromotionRouteOptionsDtoOutputItemsInnerSerializer
     PromotionRouteOptionsDtoOutputItemsInner object, {
     FullType specifiedType = FullType.unspecified,
   }) {
-    return _serializeProperties(serializers, object,
-            specifiedType: specifiedType)
-        .toList();
+    return _serializeProperties(serializers, object, specifiedType: specifiedType).toList();
   }
 
   void _deserializeProperties(
@@ -147,3 +135,5 @@ class _$PromotionRouteOptionsDtoOutputItemsInnerSerializer
     return result.build();
   }
 }
+
+

@@ -12,17 +12,15 @@ part 'passenger_profile_dto_output.g.dart';
 /// PassengerProfileDtoOutput
 ///
 /// Properties:
-/// * [userId]
-/// * [name]
-/// * [email]
-/// * [emailVerified]
-/// * [phone]
-/// * [dateOfBirth]
-/// * [image]
+/// * [userId] 
+/// * [name] 
+/// * [email] 
+/// * [emailVerified] 
+/// * [phone] 
+/// * [dateOfBirth] 
+/// * [image] 
 @BuiltValue()
-abstract class PassengerProfileDtoOutput
-    implements
-        Built<PassengerProfileDtoOutput, PassengerProfileDtoOutputBuilder> {
+abstract class PassengerProfileDtoOutput implements Built<PassengerProfileDtoOutput, PassengerProfileDtoOutputBuilder> {
   @BuiltValueField(wireName: r'userId')
   String get userId;
 
@@ -46,25 +44,18 @@ abstract class PassengerProfileDtoOutput
 
   PassengerProfileDtoOutput._();
 
-  factory PassengerProfileDtoOutput(
-          [void updates(PassengerProfileDtoOutputBuilder b)]) =
-      _$PassengerProfileDtoOutput;
+  factory PassengerProfileDtoOutput([void updates(PassengerProfileDtoOutputBuilder b)]) = _$PassengerProfileDtoOutput;
 
   @BuiltValueHook(initializeBuilder: true)
   static void _defaults(PassengerProfileDtoOutputBuilder b) => b;
 
   @BuiltValueSerializer(custom: true)
-  static Serializer<PassengerProfileDtoOutput> get serializer =>
-      _$PassengerProfileDtoOutputSerializer();
+  static Serializer<PassengerProfileDtoOutput> get serializer => _$PassengerProfileDtoOutputSerializer();
 }
 
-class _$PassengerProfileDtoOutputSerializer
-    implements PrimitiveSerializer<PassengerProfileDtoOutput> {
+class _$PassengerProfileDtoOutputSerializer implements PrimitiveSerializer<PassengerProfileDtoOutput> {
   @override
-  final Iterable<Type> types = const [
-    PassengerProfileDtoOutput,
-    _$PassengerProfileDtoOutput
-  ];
+  final Iterable<Type> types = const [PassengerProfileDtoOutput, _$PassengerProfileDtoOutput];
 
   @override
   final String wireName = r'PassengerProfileDtoOutput';
@@ -80,12 +71,10 @@ class _$PassengerProfileDtoOutputSerializer
       specifiedType: const FullType(String),
     );
     yield r'name';
-    yield object.name == null
-        ? null
-        : serializers.serialize(
-            object.name,
-            specifiedType: const FullType.nullable(String),
-          );
+    yield object.name == null ? null : serializers.serialize(
+      object.name,
+      specifiedType: const FullType.nullable(String),
+    );
     yield r'email';
     yield serializers.serialize(
       object.email,
@@ -97,26 +86,20 @@ class _$PassengerProfileDtoOutputSerializer
       specifiedType: const FullType(bool),
     );
     yield r'phone';
-    yield object.phone == null
-        ? null
-        : serializers.serialize(
-            object.phone,
-            specifiedType: const FullType.nullable(String),
-          );
+    yield object.phone == null ? null : serializers.serialize(
+      object.phone,
+      specifiedType: const FullType.nullable(String),
+    );
     yield r'dateOfBirth';
-    yield object.dateOfBirth == null
-        ? null
-        : serializers.serialize(
-            object.dateOfBirth,
-            specifiedType: const FullType.nullable(Date),
-          );
+    yield object.dateOfBirth == null ? null : serializers.serialize(
+      object.dateOfBirth,
+      specifiedType: const FullType.nullable(Date),
+    );
     yield r'image';
-    yield object.image == null
-        ? null
-        : serializers.serialize(
-            object.image,
-            specifiedType: const FullType.nullable(String),
-          );
+    yield object.image == null ? null : serializers.serialize(
+      object.image,
+      specifiedType: const FullType.nullable(String),
+    );
   }
 
   @override
@@ -125,9 +108,7 @@ class _$PassengerProfileDtoOutputSerializer
     PassengerProfileDtoOutput object, {
     FullType specifiedType = FullType.unspecified,
   }) {
-    return _serializeProperties(serializers, object,
-            specifiedType: specifiedType)
-        .toList();
+    return _serializeProperties(serializers, object, specifiedType: specifiedType).toList();
   }
 
   void _deserializeProperties(
@@ -223,3 +204,5 @@ class _$PassengerProfileDtoOutputSerializer
     return result.build();
   }
 }
+
+

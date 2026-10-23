@@ -11,13 +11,10 @@ part 'public_operator_profile_dto_output_service_terms.g.dart';
 /// PublicOperatorProfileDtoOutputServiceTerms
 ///
 /// Properties:
-/// * [title]
-/// * [contentMarkdown]
+/// * [title] 
+/// * [contentMarkdown] 
 @BuiltValue()
-abstract class PublicOperatorProfileDtoOutputServiceTerms
-    implements
-        Built<PublicOperatorProfileDtoOutputServiceTerms,
-            PublicOperatorProfileDtoOutputServiceTermsBuilder> {
+abstract class PublicOperatorProfileDtoOutputServiceTerms implements Built<PublicOperatorProfileDtoOutputServiceTerms, PublicOperatorProfileDtoOutputServiceTermsBuilder> {
   @BuiltValueField(wireName: r'title')
   String get title;
 
@@ -26,27 +23,18 @@ abstract class PublicOperatorProfileDtoOutputServiceTerms
 
   PublicOperatorProfileDtoOutputServiceTerms._();
 
-  factory PublicOperatorProfileDtoOutputServiceTerms(
-          [void updates(PublicOperatorProfileDtoOutputServiceTermsBuilder b)]) =
-      _$PublicOperatorProfileDtoOutputServiceTerms;
+  factory PublicOperatorProfileDtoOutputServiceTerms([void updates(PublicOperatorProfileDtoOutputServiceTermsBuilder b)]) = _$PublicOperatorProfileDtoOutputServiceTerms;
 
   @BuiltValueHook(initializeBuilder: true)
-  static void _defaults(PublicOperatorProfileDtoOutputServiceTermsBuilder b) =>
-      b;
+  static void _defaults(PublicOperatorProfileDtoOutputServiceTermsBuilder b) => b;
 
   @BuiltValueSerializer(custom: true)
-  static Serializer<PublicOperatorProfileDtoOutputServiceTerms>
-      get serializer =>
-          _$PublicOperatorProfileDtoOutputServiceTermsSerializer();
+  static Serializer<PublicOperatorProfileDtoOutputServiceTerms> get serializer => _$PublicOperatorProfileDtoOutputServiceTermsSerializer();
 }
 
-class _$PublicOperatorProfileDtoOutputServiceTermsSerializer
-    implements PrimitiveSerializer<PublicOperatorProfileDtoOutputServiceTerms> {
+class _$PublicOperatorProfileDtoOutputServiceTermsSerializer implements PrimitiveSerializer<PublicOperatorProfileDtoOutputServiceTerms> {
   @override
-  final Iterable<Type> types = const [
-    PublicOperatorProfileDtoOutputServiceTerms,
-    _$PublicOperatorProfileDtoOutputServiceTerms
-  ];
+  final Iterable<Type> types = const [PublicOperatorProfileDtoOutputServiceTerms, _$PublicOperatorProfileDtoOutputServiceTerms];
 
   @override
   final String wireName = r'PublicOperatorProfileDtoOutputServiceTerms';
@@ -74,9 +62,7 @@ class _$PublicOperatorProfileDtoOutputServiceTermsSerializer
     PublicOperatorProfileDtoOutputServiceTerms object, {
     FullType specifiedType = FullType.unspecified,
   }) {
-    return _serializeProperties(serializers, object,
-            specifiedType: specifiedType)
-        .toList();
+    return _serializeProperties(serializers, object, specifiedType: specifiedType).toList();
   }
 
   void _deserializeProperties(
@@ -133,3 +119,5 @@ class _$PublicOperatorProfileDtoOutputServiceTermsSerializer
     return result.build();
   }
 }
+
+

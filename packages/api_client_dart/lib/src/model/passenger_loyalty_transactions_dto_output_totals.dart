@@ -11,14 +11,11 @@ part 'passenger_loyalty_transactions_dto_output_totals.g.dart';
 /// PassengerLoyaltyTransactionsDtoOutputTotals
 ///
 /// Properties:
-/// * [earned]
-/// * [redeemed]
-/// * [expired]
+/// * [earned] 
+/// * [redeemed] 
+/// * [expired] 
 @BuiltValue()
-abstract class PassengerLoyaltyTransactionsDtoOutputTotals
-    implements
-        Built<PassengerLoyaltyTransactionsDtoOutputTotals,
-            PassengerLoyaltyTransactionsDtoOutputTotalsBuilder> {
+abstract class PassengerLoyaltyTransactionsDtoOutputTotals implements Built<PassengerLoyaltyTransactionsDtoOutputTotals, PassengerLoyaltyTransactionsDtoOutputTotalsBuilder> {
   @BuiltValueField(wireName: r'earned')
   int get earned;
 
@@ -30,29 +27,18 @@ abstract class PassengerLoyaltyTransactionsDtoOutputTotals
 
   PassengerLoyaltyTransactionsDtoOutputTotals._();
 
-  factory PassengerLoyaltyTransactionsDtoOutputTotals(
-          [void updates(
-              PassengerLoyaltyTransactionsDtoOutputTotalsBuilder b)]) =
-      _$PassengerLoyaltyTransactionsDtoOutputTotals;
+  factory PassengerLoyaltyTransactionsDtoOutputTotals([void updates(PassengerLoyaltyTransactionsDtoOutputTotalsBuilder b)]) = _$PassengerLoyaltyTransactionsDtoOutputTotals;
 
   @BuiltValueHook(initializeBuilder: true)
-  static void _defaults(PassengerLoyaltyTransactionsDtoOutputTotalsBuilder b) =>
-      b;
+  static void _defaults(PassengerLoyaltyTransactionsDtoOutputTotalsBuilder b) => b;
 
   @BuiltValueSerializer(custom: true)
-  static Serializer<PassengerLoyaltyTransactionsDtoOutputTotals>
-      get serializer =>
-          _$PassengerLoyaltyTransactionsDtoOutputTotalsSerializer();
+  static Serializer<PassengerLoyaltyTransactionsDtoOutputTotals> get serializer => _$PassengerLoyaltyTransactionsDtoOutputTotalsSerializer();
 }
 
-class _$PassengerLoyaltyTransactionsDtoOutputTotalsSerializer
-    implements
-        PrimitiveSerializer<PassengerLoyaltyTransactionsDtoOutputTotals> {
+class _$PassengerLoyaltyTransactionsDtoOutputTotalsSerializer implements PrimitiveSerializer<PassengerLoyaltyTransactionsDtoOutputTotals> {
   @override
-  final Iterable<Type> types = const [
-    PassengerLoyaltyTransactionsDtoOutputTotals,
-    _$PassengerLoyaltyTransactionsDtoOutputTotals
-  ];
+  final Iterable<Type> types = const [PassengerLoyaltyTransactionsDtoOutputTotals, _$PassengerLoyaltyTransactionsDtoOutputTotals];
 
   @override
   final String wireName = r'PassengerLoyaltyTransactionsDtoOutputTotals';
@@ -85,9 +71,7 @@ class _$PassengerLoyaltyTransactionsDtoOutputTotalsSerializer
     PassengerLoyaltyTransactionsDtoOutputTotals object, {
     FullType specifiedType = FullType.unspecified,
   }) {
-    return _serializeProperties(serializers, object,
-            specifiedType: specifiedType)
-        .toList();
+    return _serializeProperties(serializers, object, specifiedType: specifiedType).toList();
   }
 
   void _deserializeProperties(
@@ -151,3 +135,5 @@ class _$PassengerLoyaltyTransactionsDtoOutputTotalsSerializer
     return result.build();
   }
 }
+
+

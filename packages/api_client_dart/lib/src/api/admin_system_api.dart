@@ -16,6 +16,7 @@ import 'package:api_client_dart/src/model/reconciliation_request_dto.dart';
 import 'package:api_client_dart/src/model/system_integrations_dto_output.dart';
 
 class AdminSystemApi {
+
   final Dio _dio;
 
   final Serializers _serializers;
@@ -23,7 +24,7 @@ class AdminSystemApi {
   const AdminSystemApi(this._dio, this._serializers);
 
   /// adminReconciliationControllerList
-  ///
+  /// 
   ///
   /// Parameters:
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
@@ -35,8 +36,7 @@ class AdminSystemApi {
   ///
   /// Returns a [Future] containing a [Response] with a [ReconciliationPageDtoOutput] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<ReconciliationPageDtoOutput>>
-      adminReconciliationControllerList({
+  Future<Response<ReconciliationPageDtoOutput>> adminReconciliationControllerList({ 
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
     Map<String, dynamic>? extra,
@@ -75,12 +75,11 @@ class AdminSystemApi {
 
     try {
       final rawResponse = _response.data;
-      _responseData = rawResponse == null
-          ? null
-          : _serializers.deserialize(
-              rawResponse,
-              specifiedType: const FullType(ReconciliationPageDtoOutput),
-            ) as ReconciliationPageDtoOutput;
+      _responseData = rawResponse == null ? null : _serializers.deserialize(
+        rawResponse,
+        specifiedType: const FullType(ReconciliationPageDtoOutput),
+      ) as ReconciliationPageDtoOutput;
+
     } catch (error, stackTrace) {
       throw DioException(
         requestOptions: _response.requestOptions,
@@ -104,10 +103,10 @@ class AdminSystemApi {
   }
 
   /// adminReconciliationControllerRun
-  ///
+  /// 
   ///
   /// Parameters:
-  /// * [reconciliationRequestDto]
+  /// * [reconciliationRequestDto] 
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
   /// * [extras] - Can be used to add flags to the request
@@ -117,8 +116,7 @@ class AdminSystemApi {
   ///
   /// Returns a [Future] containing a [Response] with a [ReconciliationRecordDtoOutput] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<ReconciliationRecordDtoOutput>>
-      adminReconciliationControllerRun({
+  Future<Response<ReconciliationRecordDtoOutput>> adminReconciliationControllerRun({ 
     required ReconciliationRequestDto reconciliationRequestDto,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -151,11 +149,11 @@ class AdminSystemApi {
 
     try {
       const _type = FullType(ReconciliationRequestDto);
-      _bodyData = _serializers.serialize(reconciliationRequestDto,
-          specifiedType: _type);
-    } catch (error, stackTrace) {
+      _bodyData = _serializers.serialize(reconciliationRequestDto, specifiedType: _type);
+
+    } catch(error, stackTrace) {
       throw DioException(
-        requestOptions: _options.compose(
+         requestOptions: _options.compose(
           _dio.options,
           _path,
         ),
@@ -178,12 +176,11 @@ class AdminSystemApi {
 
     try {
       final rawResponse = _response.data;
-      _responseData = rawResponse == null
-          ? null
-          : _serializers.deserialize(
-              rawResponse,
-              specifiedType: const FullType(ReconciliationRecordDtoOutput),
-            ) as ReconciliationRecordDtoOutput;
+      _responseData = rawResponse == null ? null : _serializers.deserialize(
+        rawResponse,
+        specifiedType: const FullType(ReconciliationRecordDtoOutput),
+      ) as ReconciliationRecordDtoOutput;
+
     } catch (error, stackTrace) {
       throw DioException(
         requestOptions: _response.requestOptions,
@@ -207,7 +204,7 @@ class AdminSystemApi {
   }
 
   /// systemStatusControllerIntegrations
-  ///
+  /// 
   ///
   /// Parameters:
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
@@ -219,8 +216,7 @@ class AdminSystemApi {
   ///
   /// Returns a [Future] containing a [Response] with a [SystemIntegrationsDtoOutput] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<SystemIntegrationsDtoOutput>>
-      systemStatusControllerIntegrations({
+  Future<Response<SystemIntegrationsDtoOutput>> systemStatusControllerIntegrations({ 
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
     Map<String, dynamic>? extra,
@@ -259,12 +255,11 @@ class AdminSystemApi {
 
     try {
       final rawResponse = _response.data;
-      _responseData = rawResponse == null
-          ? null
-          : _serializers.deserialize(
-              rawResponse,
-              specifiedType: const FullType(SystemIntegrationsDtoOutput),
-            ) as SystemIntegrationsDtoOutput;
+      _responseData = rawResponse == null ? null : _serializers.deserialize(
+        rawResponse,
+        specifiedType: const FullType(SystemIntegrationsDtoOutput),
+      ) as SystemIntegrationsDtoOutput;
+
     } catch (error, stackTrace) {
       throw DioException(
         requestOptions: _response.requestOptions,
@@ -288,7 +283,7 @@ class AdminSystemApi {
   }
 
   /// systemStatusControllerJobs
-  ///
+  /// 
   ///
   /// Parameters:
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
@@ -300,7 +295,7 @@ class AdminSystemApi {
   ///
   /// Returns a [Future] containing a [Response] with a [BackgroundJobsDtoOutput] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<BackgroundJobsDtoOutput>> systemStatusControllerJobs({
+  Future<Response<BackgroundJobsDtoOutput>> systemStatusControllerJobs({ 
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
     Map<String, dynamic>? extra,
@@ -339,12 +334,11 @@ class AdminSystemApi {
 
     try {
       final rawResponse = _response.data;
-      _responseData = rawResponse == null
-          ? null
-          : _serializers.deserialize(
-              rawResponse,
-              specifiedType: const FullType(BackgroundJobsDtoOutput),
-            ) as BackgroundJobsDtoOutput;
+      _responseData = rawResponse == null ? null : _serializers.deserialize(
+        rawResponse,
+        specifiedType: const FullType(BackgroundJobsDtoOutput),
+      ) as BackgroundJobsDtoOutput;
+
     } catch (error, stackTrace) {
       throw DioException(
         requestOptions: _response.requestOptions,
@@ -366,4 +360,5 @@ class AdminSystemApi {
       extra: _response.extra,
     );
   }
+
 }

@@ -13,14 +13,12 @@ part 'notification_log_dto_output.g.dart';
 /// NotificationLogDtoOutput
 ///
 /// Properties:
-/// * [items]
-/// * [total]
-/// * [offset]
-/// * [limit]
+/// * [items] 
+/// * [total] 
+/// * [offset] 
+/// * [limit] 
 @BuiltValue()
-abstract class NotificationLogDtoOutput
-    implements
-        Built<NotificationLogDtoOutput, NotificationLogDtoOutputBuilder> {
+abstract class NotificationLogDtoOutput implements Built<NotificationLogDtoOutput, NotificationLogDtoOutputBuilder> {
   @BuiltValueField(wireName: r'items')
   BuiltList<NotificationLogDtoOutputItemsInner> get items;
 
@@ -35,25 +33,18 @@ abstract class NotificationLogDtoOutput
 
   NotificationLogDtoOutput._();
 
-  factory NotificationLogDtoOutput(
-          [void updates(NotificationLogDtoOutputBuilder b)]) =
-      _$NotificationLogDtoOutput;
+  factory NotificationLogDtoOutput([void updates(NotificationLogDtoOutputBuilder b)]) = _$NotificationLogDtoOutput;
 
   @BuiltValueHook(initializeBuilder: true)
   static void _defaults(NotificationLogDtoOutputBuilder b) => b;
 
   @BuiltValueSerializer(custom: true)
-  static Serializer<NotificationLogDtoOutput> get serializer =>
-      _$NotificationLogDtoOutputSerializer();
+  static Serializer<NotificationLogDtoOutput> get serializer => _$NotificationLogDtoOutputSerializer();
 }
 
-class _$NotificationLogDtoOutputSerializer
-    implements PrimitiveSerializer<NotificationLogDtoOutput> {
+class _$NotificationLogDtoOutputSerializer implements PrimitiveSerializer<NotificationLogDtoOutput> {
   @override
-  final Iterable<Type> types = const [
-    NotificationLogDtoOutput,
-    _$NotificationLogDtoOutput
-  ];
+  final Iterable<Type> types = const [NotificationLogDtoOutput, _$NotificationLogDtoOutput];
 
   @override
   final String wireName = r'NotificationLogDtoOutput';
@@ -66,8 +57,7 @@ class _$NotificationLogDtoOutputSerializer
     yield r'items';
     yield serializers.serialize(
       object.items,
-      specifiedType: const FullType(
-          BuiltList, [FullType(NotificationLogDtoOutputItemsInner)]),
+      specifiedType: const FullType(BuiltList, [FullType(NotificationLogDtoOutputItemsInner)]),
     );
     yield r'total';
     yield serializers.serialize(
@@ -92,9 +82,7 @@ class _$NotificationLogDtoOutputSerializer
     NotificationLogDtoOutput object, {
     FullType specifiedType = FullType.unspecified,
   }) {
-    return _serializeProperties(serializers, object,
-            specifiedType: specifiedType)
-        .toList();
+    return _serializeProperties(serializers, object, specifiedType: specifiedType).toList();
   }
 
   void _deserializeProperties(
@@ -112,8 +100,7 @@ class _$NotificationLogDtoOutputSerializer
         case r'items':
           final valueDes = serializers.deserialize(
             value,
-            specifiedType: const FullType(
-                BuiltList, [FullType(NotificationLogDtoOutputItemsInner)]),
+            specifiedType: const FullType(BuiltList, [FullType(NotificationLogDtoOutputItemsInner)]),
           ) as BuiltList<NotificationLogDtoOutputItemsInner>;
           result.items.replace(valueDes);
           break;
@@ -166,3 +153,5 @@ class _$NotificationLogDtoOutputSerializer
     return result.build();
   }
 }
+
+

@@ -45,6 +45,11 @@ export const PERMISSIONS = [
   "promotion:manage", // FR-PROM-04, BR-46 — Owner: khuyến mãi của nhà xe trong giới hạn, tham gia khuyến mãi nền tảng (TASK-PROM-001)
   "promotion:configure", // FR-PROM-01..03, FR-ADM-12 — PlatformAdmin: khuyến mãi nền tảng, quyền / giới hạn của nhà xe, tạm dừng khuyến mãi nhà xe
   "loyalty:manage", // FR-LOY-11/12, UC-39 — PlatformAdmin: tra cứu tài khoản VXN Plus, điều chỉnh điểm, báo cáo (TASK-LOY-001)
+  "access:manage", // FR-IAM-07 (TASK-IAM-007) — PlatformAdmin: tài khoản quản trị + phân quyền (tách khỏi `user:manage`)
+  "transport:read", // TASK-IAM-007 — xem xe / sơ đồ ghế / tuyến / điểm dừng / chuyến / lịch / bảng giá của tenant (GET). Tách khỏi `*:manage` để màn đặt vé, chuyến, phân công... của tài khoản quản lý đọc được dữ liệu cấu hình mà không phải được cấp quyền sửa
+  "manager:manage", // TASK-IAM-007 — Owner: tài khoản quản lý dùng Operator OS + phân quyền. Tên riêng, KHÔNG dùng chung `access:manage`: route Admin chỉ khai quyền, grant `tenant` của Owner sẽ lọt qua
+  "payout:manage", // TASK-IAM-007 tách từ `finance:configure` — Admin lập / xác nhận chi trả nhà xe (FR-ADM-09)
+  "refund:manage", // TASK-IAM-007 tách từ `finance:configure` — Admin thử lại / ghi nhận hoàn tiền thủ công (FR-ADM-10)
 ] as const;
 
 export type Permission = (typeof PERMISSIONS)[number];
@@ -110,6 +115,26 @@ export const ROLE_GRANTS: Readonly<Record<Role, Grants>> = {
     "account:lock": "tenant",
     "support:respond": "tenant",
     "promotion:manage": "tenant",
+    "manager:manage": "tenant",
+    "transport:read": "tenant",
+  },
+  // Trần của tài khoản quản lý = quyền Owner trừ hồ sơ / giấy tờ / tài khoản nhận tiền (`kyc:submit`) và quản lý tài
+  // khoản quản lý (`manager:manage`) — chỉ Owner (TASK-IAM-007 P2). Quyền thật do Owner tick (`ACCOUNT_PERMISSIONS`).
+  [Role.OPERATOR_MANAGER]: {
+    "notification:manage": "own",
+    "trip:search": "tenant",
+    "vehicle:manage": "tenant",
+    "vehicle:read": "tenant",
+    "route:manage": "tenant",
+    "trip:manage": "tenant",
+    "checkin:read": "tenant",
+    "finance:read": "tenant",
+    "employee:manage": "tenant",
+    "booking:read": "tenant",
+    "support:respond": "tenant",
+    "promotion:manage": "tenant",
+    // Không tick — luôn có: đọc cấu hình vận tải là nền của mọi màn Operator OS.
+    "transport:read": "tenant",
   },
   [Role.DRIVER]: DRIVER,
   [Role.TICKET_STAFF]: EMPLOYEE,
@@ -136,6 +161,9 @@ export const ROLE_GRANTS: Readonly<Record<Role, Grants>> = {
     "dispute:decide": "any",
     "promotion:configure": "any",
     "loyalty:manage": "any",
+    "access:manage": "any",
+    "payout:manage": "any",
+    "refund:manage": "any",
   },
   // GIẢ ĐỊNH (Security §7 chỉ có một cột "Admin"): tối thiểu quyền — chỉ đọc/giám sát, không duyệt,
   // cấu hình hay hoàn tiền. Khanh đổi thì chỉ sửa dòng này.
@@ -149,3 +177,72 @@ export const ROLE_GRANTS: Readonly<Record<Role, Grants>> = {
     "support:manage": "any",
   },
 };
+
+/** Quyền chủ nhà xe tick được cho tài khoản quản lý (TASK-IAM-007 P2) — tách hằng để DTO dựng enum đúng kiểu. */
+export const OPERATOR_MANAGER_PERMISSIONS = [
+  "vehicle:manage",
+  "route:manage",
+  "trip:manage",
+  "booking:read",
+  "finance:read",
+  "employee:manage",
+  "support:respond",
+  "promotion:manage",
+] as const satisfies readonly Permission[];
+
+/**
+ * Phân quyền theo từng tài khoản (FR-IAM-07, TASK-IAM-007): quyền **tick được** của role — tài khoản mang danh sách
+ * `permissions` chỉ có những quyền tick được nằm trong danh sách; quyền khác của role luôn đi theo role. Role không có ở
+ * đây không tick được (Owner, Employee, hành khách). `required`: tài khoản luôn mang danh sách riêng (thiếu = không có
+ * quyền tick được nào); không bắt buộc thì tài khoản chưa có danh sách (`NULL`, vd seed) có đủ bộ tick được.
+ */
+export const ACCOUNT_PERMISSIONS: Readonly<
+  Partial<Record<Role, { readonly assignable: readonly Permission[]; readonly required: boolean }>>
+> = {
+  [Role.PLATFORM_ADMIN]: {
+    assignable: [
+      "kyc:review",
+      "user:manage",
+      "access:manage",
+      "catalog:manage",
+      "finance:configure",
+      "payout:manage",
+      "refund:manage",
+      "payment:monitor",
+      "system:run",
+      "system:read",
+      "audit:read",
+      "promotion:configure",
+      "loyalty:manage",
+      "content:manage",
+      "content:moderate",
+      "support:manage",
+      "dispute:decide",
+    ],
+    required: false,
+  },
+  [Role.PLATFORM_SUPPORT]: { assignable: ["payment:monitor", "support:manage"], required: false },
+  [Role.OPERATOR_MANAGER]: { assignable: OPERATOR_MANAGER_PERMISSIONS, required: true },
+};
+
+/** Quyền tick được của role (rỗng = role không phân quyền theo tài khoản). */
+export function assignablePermissions(role: string): readonly Permission[] {
+  return (ACCOUNT_PERMISSIONS as Partial<Record<string, { assignable: readonly Permission[] }>>)[role]?.assignable ?? [];
+}
+
+/** Danh sách lưu DB / gửi lên: bỏ trùng, xếp theo thứ tự danh mục — so sánh và audit ổn định. */
+export function normalizePermissions(permissions: readonly string[]): Permission[] {
+  const wanted = new Set(permissions);
+  return PERMISSIONS.filter((permission) => wanted.has(permission));
+}
+
+/**
+ * Đọc cột `permissions` (JSONB) của tài khoản: `NULL` → `null` (theo role); mảng → danh sách đã chuẩn hoá. Mã lạ / sai
+ * kiểu bị bỏ — chỉ có thể làm mất quyền, không thể thêm quyền (fail-closed).
+ */
+export function storedPermissions(value: unknown): Permission[] | null {
+  if (value === null || value === undefined) {
+    return null;
+  }
+  return Array.isArray(value) ? normalizePermissions(value.filter((item): item is string => typeof item === "string")) : [];
+}

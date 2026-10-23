@@ -13,17 +13,14 @@ part 'passenger_loyalty_dto_output_rules.g.dart';
 /// PassengerLoyaltyDtoOutputRules
 ///
 /// Properties:
-/// * [earnUnit]
-/// * [pointValue]
-/// * [minRedeemPoints]
-/// * [pointExpiryMonths]
-/// * [voucherValidityDays]
-/// * [tiers]
+/// * [earnUnit] 
+/// * [pointValue] 
+/// * [minRedeemPoints] 
+/// * [pointExpiryMonths] 
+/// * [voucherValidityDays] 
+/// * [tiers] 
 @BuiltValue()
-abstract class PassengerLoyaltyDtoOutputRules
-    implements
-        Built<PassengerLoyaltyDtoOutputRules,
-            PassengerLoyaltyDtoOutputRulesBuilder> {
+abstract class PassengerLoyaltyDtoOutputRules implements Built<PassengerLoyaltyDtoOutputRules, PassengerLoyaltyDtoOutputRulesBuilder> {
   @BuiltValueField(wireName: r'earnUnit')
   int get earnUnit;
 
@@ -44,25 +41,18 @@ abstract class PassengerLoyaltyDtoOutputRules
 
   PassengerLoyaltyDtoOutputRules._();
 
-  factory PassengerLoyaltyDtoOutputRules(
-          [void updates(PassengerLoyaltyDtoOutputRulesBuilder b)]) =
-      _$PassengerLoyaltyDtoOutputRules;
+  factory PassengerLoyaltyDtoOutputRules([void updates(PassengerLoyaltyDtoOutputRulesBuilder b)]) = _$PassengerLoyaltyDtoOutputRules;
 
   @BuiltValueHook(initializeBuilder: true)
   static void _defaults(PassengerLoyaltyDtoOutputRulesBuilder b) => b;
 
   @BuiltValueSerializer(custom: true)
-  static Serializer<PassengerLoyaltyDtoOutputRules> get serializer =>
-      _$PassengerLoyaltyDtoOutputRulesSerializer();
+  static Serializer<PassengerLoyaltyDtoOutputRules> get serializer => _$PassengerLoyaltyDtoOutputRulesSerializer();
 }
 
-class _$PassengerLoyaltyDtoOutputRulesSerializer
-    implements PrimitiveSerializer<PassengerLoyaltyDtoOutputRules> {
+class _$PassengerLoyaltyDtoOutputRulesSerializer implements PrimitiveSerializer<PassengerLoyaltyDtoOutputRules> {
   @override
-  final Iterable<Type> types = const [
-    PassengerLoyaltyDtoOutputRules,
-    _$PassengerLoyaltyDtoOutputRules
-  ];
+  final Iterable<Type> types = const [PassengerLoyaltyDtoOutputRules, _$PassengerLoyaltyDtoOutputRules];
 
   @override
   final String wireName = r'PassengerLoyaltyDtoOutputRules';
@@ -100,8 +90,7 @@ class _$PassengerLoyaltyDtoOutputRulesSerializer
     yield r'tiers';
     yield serializers.serialize(
       object.tiers,
-      specifiedType: const FullType(
-          BuiltList, [FullType(PassengerLoyaltyDtoOutputRulesTiersInner)]),
+      specifiedType: const FullType(BuiltList, [FullType(PassengerLoyaltyDtoOutputRulesTiersInner)]),
     );
   }
 
@@ -111,9 +100,7 @@ class _$PassengerLoyaltyDtoOutputRulesSerializer
     PassengerLoyaltyDtoOutputRules object, {
     FullType specifiedType = FullType.unspecified,
   }) {
-    return _serializeProperties(serializers, object,
-            specifiedType: specifiedType)
-        .toList();
+    return _serializeProperties(serializers, object, specifiedType: specifiedType).toList();
   }
 
   void _deserializeProperties(
@@ -166,8 +153,7 @@ class _$PassengerLoyaltyDtoOutputRulesSerializer
         case r'tiers':
           final valueDes = serializers.deserialize(
             value,
-            specifiedType: const FullType(BuiltList,
-                [FullType(PassengerLoyaltyDtoOutputRulesTiersInner)]),
+            specifiedType: const FullType(BuiltList, [FullType(PassengerLoyaltyDtoOutputRulesTiersInner)]),
           ) as BuiltList<PassengerLoyaltyDtoOutputRulesTiersInner>;
           result.tiers.replace(valueDes);
           break;
@@ -199,3 +185,5 @@ class _$PassengerLoyaltyDtoOutputRulesSerializer
     return result.build();
   }
 }
+
+

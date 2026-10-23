@@ -13,13 +13,10 @@ part 'passenger_booking_page_dto_output.g.dart';
 /// PassengerBookingPageDtoOutput
 ///
 /// Properties:
-/// * [items]
-/// * [nextCursor]
+/// * [items] 
+/// * [nextCursor] 
 @BuiltValue()
-abstract class PassengerBookingPageDtoOutput
-    implements
-        Built<PassengerBookingPageDtoOutput,
-            PassengerBookingPageDtoOutputBuilder> {
+abstract class PassengerBookingPageDtoOutput implements Built<PassengerBookingPageDtoOutput, PassengerBookingPageDtoOutputBuilder> {
   @BuiltValueField(wireName: r'items')
   BuiltList<PassengerBookingPageDtoOutputItemsInner> get items;
 
@@ -28,25 +25,18 @@ abstract class PassengerBookingPageDtoOutput
 
   PassengerBookingPageDtoOutput._();
 
-  factory PassengerBookingPageDtoOutput(
-          [void updates(PassengerBookingPageDtoOutputBuilder b)]) =
-      _$PassengerBookingPageDtoOutput;
+  factory PassengerBookingPageDtoOutput([void updates(PassengerBookingPageDtoOutputBuilder b)]) = _$PassengerBookingPageDtoOutput;
 
   @BuiltValueHook(initializeBuilder: true)
   static void _defaults(PassengerBookingPageDtoOutputBuilder b) => b;
 
   @BuiltValueSerializer(custom: true)
-  static Serializer<PassengerBookingPageDtoOutput> get serializer =>
-      _$PassengerBookingPageDtoOutputSerializer();
+  static Serializer<PassengerBookingPageDtoOutput> get serializer => _$PassengerBookingPageDtoOutputSerializer();
 }
 
-class _$PassengerBookingPageDtoOutputSerializer
-    implements PrimitiveSerializer<PassengerBookingPageDtoOutput> {
+class _$PassengerBookingPageDtoOutputSerializer implements PrimitiveSerializer<PassengerBookingPageDtoOutput> {
   @override
-  final Iterable<Type> types = const [
-    PassengerBookingPageDtoOutput,
-    _$PassengerBookingPageDtoOutput
-  ];
+  final Iterable<Type> types = const [PassengerBookingPageDtoOutput, _$PassengerBookingPageDtoOutput];
 
   @override
   final String wireName = r'PassengerBookingPageDtoOutput';
@@ -59,16 +49,13 @@ class _$PassengerBookingPageDtoOutputSerializer
     yield r'items';
     yield serializers.serialize(
       object.items,
-      specifiedType: const FullType(
-          BuiltList, [FullType(PassengerBookingPageDtoOutputItemsInner)]),
+      specifiedType: const FullType(BuiltList, [FullType(PassengerBookingPageDtoOutputItemsInner)]),
     );
     yield r'nextCursor';
-    yield object.nextCursor == null
-        ? null
-        : serializers.serialize(
-            object.nextCursor,
-            specifiedType: const FullType.nullable(String),
-          );
+    yield object.nextCursor == null ? null : serializers.serialize(
+      object.nextCursor,
+      specifiedType: const FullType.nullable(String),
+    );
   }
 
   @override
@@ -77,9 +64,7 @@ class _$PassengerBookingPageDtoOutputSerializer
     PassengerBookingPageDtoOutput object, {
     FullType specifiedType = FullType.unspecified,
   }) {
-    return _serializeProperties(serializers, object,
-            specifiedType: specifiedType)
-        .toList();
+    return _serializeProperties(serializers, object, specifiedType: specifiedType).toList();
   }
 
   void _deserializeProperties(
@@ -97,8 +82,7 @@ class _$PassengerBookingPageDtoOutputSerializer
         case r'items':
           final valueDes = serializers.deserialize(
             value,
-            specifiedType: const FullType(
-                BuiltList, [FullType(PassengerBookingPageDtoOutputItemsInner)]),
+            specifiedType: const FullType(BuiltList, [FullType(PassengerBookingPageDtoOutputItemsInner)]),
           ) as BuiltList<PassengerBookingPageDtoOutputItemsInner>;
           result.items.replace(valueDes);
           break;
@@ -138,3 +122,5 @@ class _$PassengerBookingPageDtoOutputSerializer
     return result.build();
   }
 }
+
+

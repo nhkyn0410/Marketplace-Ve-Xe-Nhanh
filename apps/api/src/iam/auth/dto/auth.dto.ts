@@ -175,6 +175,8 @@ export const AuthMeResponseSchema = z.object({
   sessionId: z.uuid(),
   accessExpiresAt: z.iso.datetime(),
   mfaVerified: z.boolean(),
+  /** Quyền hiệu lực (`resource:action`, TASK-IAM-007) — web ẩn menu / nút theo đó; server vẫn kiểm từng request. */
+  permissions: z.array(z.string()),
   operatorId: z.string().optional(),
   operatorSlug: z.string().optional()
 });

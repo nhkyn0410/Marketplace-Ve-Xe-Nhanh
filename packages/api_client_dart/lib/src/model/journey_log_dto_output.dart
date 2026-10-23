@@ -11,19 +11,18 @@ part 'journey_log_dto_output.g.dart';
 /// JourneyLogDtoOutput
 ///
 /// Properties:
-/// * [id]
-/// * [operatorId]
-/// * [tripId]
-/// * [employeeId]
-/// * [stopSequence]
-/// * [actualAt]
-/// * [createdAt]
-/// * [vehicleStatus]
-/// * [note]
-/// * [delayMinutes]
+/// * [id] 
+/// * [operatorId] 
+/// * [tripId] 
+/// * [employeeId] 
+/// * [stopSequence] 
+/// * [actualAt] 
+/// * [createdAt] 
+/// * [vehicleStatus] 
+/// * [note] 
+/// * [delayMinutes] 
 @BuiltValue()
-abstract class JourneyLogDtoOutput
-    implements Built<JourneyLogDtoOutput, JourneyLogDtoOutputBuilder> {
+abstract class JourneyLogDtoOutput implements Built<JourneyLogDtoOutput, JourneyLogDtoOutputBuilder> {
   @BuiltValueField(wireName: r'id')
   String get id;
 
@@ -56,24 +55,18 @@ abstract class JourneyLogDtoOutput
 
   JourneyLogDtoOutput._();
 
-  factory JourneyLogDtoOutput([void updates(JourneyLogDtoOutputBuilder b)]) =
-      _$JourneyLogDtoOutput;
+  factory JourneyLogDtoOutput([void updates(JourneyLogDtoOutputBuilder b)]) = _$JourneyLogDtoOutput;
 
   @BuiltValueHook(initializeBuilder: true)
   static void _defaults(JourneyLogDtoOutputBuilder b) => b;
 
   @BuiltValueSerializer(custom: true)
-  static Serializer<JourneyLogDtoOutput> get serializer =>
-      _$JourneyLogDtoOutputSerializer();
+  static Serializer<JourneyLogDtoOutput> get serializer => _$JourneyLogDtoOutputSerializer();
 }
 
-class _$JourneyLogDtoOutputSerializer
-    implements PrimitiveSerializer<JourneyLogDtoOutput> {
+class _$JourneyLogDtoOutputSerializer implements PrimitiveSerializer<JourneyLogDtoOutput> {
   @override
-  final Iterable<Type> types = const [
-    JourneyLogDtoOutput,
-    _$JourneyLogDtoOutput
-  ];
+  final Iterable<Type> types = const [JourneyLogDtoOutput, _$JourneyLogDtoOutput];
 
   @override
   final String wireName = r'JourneyLogDtoOutput';
@@ -104,12 +97,10 @@ class _$JourneyLogDtoOutputSerializer
       specifiedType: const FullType(String),
     );
     yield r'stopSequence';
-    yield object.stopSequence == null
-        ? null
-        : serializers.serialize(
-            object.stopSequence,
-            specifiedType: const FullType.nullable(int),
-          );
+    yield object.stopSequence == null ? null : serializers.serialize(
+      object.stopSequence,
+      specifiedType: const FullType.nullable(int),
+    );
     yield r'actualAt';
     yield serializers.serialize(
       object.actualAt,
@@ -121,19 +112,15 @@ class _$JourneyLogDtoOutputSerializer
       specifiedType: const FullType(DateTime),
     );
     yield r'vehicleStatus';
-    yield object.vehicleStatus == null
-        ? null
-        : serializers.serialize(
-            object.vehicleStatus,
-            specifiedType: const FullType.nullable(String),
-          );
+    yield object.vehicleStatus == null ? null : serializers.serialize(
+      object.vehicleStatus,
+      specifiedType: const FullType.nullable(String),
+    );
     yield r'note';
-    yield object.note == null
-        ? null
-        : serializers.serialize(
-            object.note,
-            specifiedType: const FullType.nullable(String),
-          );
+    yield object.note == null ? null : serializers.serialize(
+      object.note,
+      specifiedType: const FullType.nullable(String),
+    );
     yield r'delayMinutes';
     yield serializers.serialize(
       object.delayMinutes,
@@ -147,9 +134,7 @@ class _$JourneyLogDtoOutputSerializer
     JourneyLogDtoOutput object, {
     FullType specifiedType = FullType.unspecified,
   }) {
-    return _serializeProperties(serializers, object,
-            specifiedType: specifiedType)
-        .toList();
+    return _serializeProperties(serializers, object, specifiedType: specifiedType).toList();
   }
 
   void _deserializeProperties(
@@ -265,3 +250,5 @@ class _$JourneyLogDtoOutputSerializer
     return result.build();
   }
 }
+
+

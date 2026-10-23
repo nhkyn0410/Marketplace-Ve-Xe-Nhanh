@@ -13,12 +13,10 @@ part 'user_voucher_page_dto_output.g.dart';
 /// UserVoucherPageDtoOutput
 ///
 /// Properties:
-/// * [items]
-/// * [total]
+/// * [items] 
+/// * [total] 
 @BuiltValue()
-abstract class UserVoucherPageDtoOutput
-    implements
-        Built<UserVoucherPageDtoOutput, UserVoucherPageDtoOutputBuilder> {
+abstract class UserVoucherPageDtoOutput implements Built<UserVoucherPageDtoOutput, UserVoucherPageDtoOutputBuilder> {
   @BuiltValueField(wireName: r'items')
   BuiltList<UserVoucherPageDtoOutputItemsInner> get items;
 
@@ -27,25 +25,18 @@ abstract class UserVoucherPageDtoOutput
 
   UserVoucherPageDtoOutput._();
 
-  factory UserVoucherPageDtoOutput(
-          [void updates(UserVoucherPageDtoOutputBuilder b)]) =
-      _$UserVoucherPageDtoOutput;
+  factory UserVoucherPageDtoOutput([void updates(UserVoucherPageDtoOutputBuilder b)]) = _$UserVoucherPageDtoOutput;
 
   @BuiltValueHook(initializeBuilder: true)
   static void _defaults(UserVoucherPageDtoOutputBuilder b) => b;
 
   @BuiltValueSerializer(custom: true)
-  static Serializer<UserVoucherPageDtoOutput> get serializer =>
-      _$UserVoucherPageDtoOutputSerializer();
+  static Serializer<UserVoucherPageDtoOutput> get serializer => _$UserVoucherPageDtoOutputSerializer();
 }
 
-class _$UserVoucherPageDtoOutputSerializer
-    implements PrimitiveSerializer<UserVoucherPageDtoOutput> {
+class _$UserVoucherPageDtoOutputSerializer implements PrimitiveSerializer<UserVoucherPageDtoOutput> {
   @override
-  final Iterable<Type> types = const [
-    UserVoucherPageDtoOutput,
-    _$UserVoucherPageDtoOutput
-  ];
+  final Iterable<Type> types = const [UserVoucherPageDtoOutput, _$UserVoucherPageDtoOutput];
 
   @override
   final String wireName = r'UserVoucherPageDtoOutput';
@@ -58,8 +49,7 @@ class _$UserVoucherPageDtoOutputSerializer
     yield r'items';
     yield serializers.serialize(
       object.items,
-      specifiedType: const FullType(
-          BuiltList, [FullType(UserVoucherPageDtoOutputItemsInner)]),
+      specifiedType: const FullType(BuiltList, [FullType(UserVoucherPageDtoOutputItemsInner)]),
     );
     yield r'total';
     yield serializers.serialize(
@@ -74,9 +64,7 @@ class _$UserVoucherPageDtoOutputSerializer
     UserVoucherPageDtoOutput object, {
     FullType specifiedType = FullType.unspecified,
   }) {
-    return _serializeProperties(serializers, object,
-            specifiedType: specifiedType)
-        .toList();
+    return _serializeProperties(serializers, object, specifiedType: specifiedType).toList();
   }
 
   void _deserializeProperties(
@@ -94,8 +82,7 @@ class _$UserVoucherPageDtoOutputSerializer
         case r'items':
           final valueDes = serializers.deserialize(
             value,
-            specifiedType: const FullType(
-                BuiltList, [FullType(UserVoucherPageDtoOutputItemsInner)]),
+            specifiedType: const FullType(BuiltList, [FullType(UserVoucherPageDtoOutputItemsInner)]),
           ) as BuiltList<UserVoucherPageDtoOutputItemsInner>;
           result.items.replace(valueDes);
           break;
@@ -134,3 +121,5 @@ class _$UserVoucherPageDtoOutputSerializer
     return result.build();
   }
 }
+
+

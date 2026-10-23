@@ -5,16 +5,23 @@ import { PrismaClient } from "../src/generated/prisma/client";
 import {
   catalogSeedData,
   parseAdministrativeUnitsCsv,
+  parseLegacyAdministrativeMappingsCsv,
+  parseStopPointsCatalogCsv,
   seedCatalog,
 } from "../src/catalog/catalog-seed";
 
 /**
  * Seed catalog TASK-CAT-001 (DB-MIG-04). Khác `seed.ts`: KHÔNG động vào tài khoản, chỉ create-only
- * dữ liệu chuẩn → chạy được ở production. File danh mục hành chính chính thức:
- * `prisma/seed-data/administrative-units.csv` (định dạng: doc/task-propreties/CAT-001-guide.md §2A).
- * Chạy: pnpm --filter @vexenhanh/api db:seed:catalog [-- --with-samples]  (bến xe mẫu chỉ cho dev)
+ * dữ liệu chuẩn → chạy được ở production.
+ * Các file dữ liệu chuẩn:
+ * - `prisma/seed-data/administrative-units.csv`
+ * - `prisma/seed-data/legacy-administrative-mappings.csv`
+ * - `prisma/seed-data/stop-points-catalog.csv`
+ * Chạy: pnpm --filter @vexenhanh/api db:seed:catalog [-- --with-samples]
  */
 const CSV_PATH = "prisma/seed-data/administrative-units.csv";
+const LEGACY_CSV_PATH = "prisma/seed-data/legacy-administrative-mappings.csv";
+const STOP_POINTS_CSV_PATH = "prisma/seed-data/stop-points-catalog.csv";
 
 function loadEnv(): void {
   const nodeEnv = process.env.NODE_ENV?.trim() || "development";
@@ -35,12 +42,26 @@ async function main(): Promise<void> {
       `Thiếu ${CSV_PATH} — xem doc/task-propreties/CAT-001-guide.md §2A.`,
     );
   }
+  const legacyCsvPath = resolve(process.cwd(), LEGACY_CSV_PATH);
+  const stopPointsCsvPath = resolve(process.cwd(), STOP_POINTS_CSV_PATH);
+
+  const legacyMappings = existsSync(legacyCsvPath)
+    ? parseLegacyAdministrativeMappingsCsv(readFileSync(legacyCsvPath, "utf8"))
+    : undefined;
+  const catalogStopPoints = existsSync(stopPointsCsvPath)
+    ? parseStopPointsCatalogCsv(readFileSync(stopPointsCsvPath, "utf8"))
+    : undefined;
+
+  const withSamples = process.argv.includes("--with-samples");
+
   // Kiểm toàn bộ file TRƯỚC khi mở kết nối: sai định dạng thì không ghi dòng nào.
   const data = catalogSeedData(
     parseAdministrativeUnitsCsv(readFileSync(csvPath, "utf8")),
     {
       nodeEnv: process.env.NODE_ENV,
-      withSamples: process.argv.includes("--with-samples"),
+      withSamples,
+      ...(legacyMappings !== undefined ? { legacyMappings } : {}),
+      ...(catalogStopPoints !== undefined ? { catalogStopPoints } : {}),
     },
   );
 
@@ -55,7 +76,7 @@ async function main(): Promise<void> {
   // Chỉ in host/DB (không user/mật khẩu) để người chạy thấy ngay nếu đang trỏ nhầm môi trường.
   const target = new URL(connectionString);
   console.log(
-    `Seed catalog → ${target.host}${target.pathname} (bến xe mẫu: ${data.sampleStopPoints.length > 0 ? "có" : "không"})`,
+    `Seed catalog → ${target.host}${target.pathname} (ánh xạ hành chính cũ: ${data.legacyMappings?.length ?? 0}, điểm dừng chuẩn: ${data.sampleStopPoints.length})`,
   );
 
   const prisma = new PrismaClient({
@@ -70,13 +91,13 @@ async function main(): Promise<void> {
       { timeout: 60_000 },
     );
     console.log(
-      `Đọc file: ${data.provinces.length} tỉnh, ${data.wards.length} xã. Tạo mới: ` +
-        `${result.provinces} tỉnh, ${result.wards} xã, ${result.vehicleTypes} loại xe, ` +
-        `${result.amenities} tiện ích, ${result.stopPoints} bến xe mẫu.`,
+      `Đọc file: ${data.provinces.length} tỉnh, ${data.wards.length} xã, ${data.legacyMappings?.length ?? 0} ánh xạ cũ, ${data.sampleStopPoints.length} điểm dừng. ` +
+        `Tạo mới: ${result.provinces} tỉnh, ${result.wards} xã, ${result.legacyMappings ?? 0} ánh xạ cũ, ` +
+        `${result.vehicleTypes} loại xe, ${result.amenities} tiện ích, ${result.stopPoints} điểm dừng chuẩn.`,
     );
     if (result.skippedStopPoints.length > 0) {
       console.warn(
-        `Bỏ qua bến mẫu (không tìm thấy phường theo tên): ${result.skippedStopPoints.join(", ")}`,
+        `Bỏ qua điểm dừng (không tìm thấy phường): ${result.skippedStopPoints.join(", ")}`,
       );
     }
   } finally {

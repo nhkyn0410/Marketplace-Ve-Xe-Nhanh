@@ -1,6 +1,7 @@
 "use client";
 
 import { useQueryClient } from "@tanstack/react-query";
+import { useCan } from "@vexenhanh/ui/components/auth/auth-context";
 import { Button } from "@vexenhanh/ui/components/button";
 import { TAB_TRIGGER } from "@vexenhanh/ui/components/list-controls";
 import { BUTTON } from "@vexenhanh/ui/components/list-parts";
@@ -15,19 +16,28 @@ import { EmployeeList } from "./employee-list";
 import { PassengerList } from "./passenger-list";
 import { PlatformAccountDialog } from "./platform-account-dialog";
 import { PlatformAccountList } from "./platform-account-list";
+import { PlatformPermissionsDialog } from "./platform-permissions-dialog";
+import type { Permission } from "../../lib/user/permission-catalog";
+import type { PlatformAccount } from "../../lib/user/user-api";
 
 const TABS = ["passengers", "employees", "admins"] as const;
 type Tab = (typeof TABS)[number];
 
-/** Màn Người dùng (Figma ADM-03a…03d): tab Hành khách / Nhân viên nhà xe / Tài khoản quản trị (`?tab=`). */
+/**
+ * Màn Người dùng (Figma ADM-03a…03d): tab Hành khách / Nhân viên nhà xe / Tài khoản quản trị (`?tab=`). Hai tab đầu cần
+ * `user:manage`, tab cuối cần `access:manage` (TASK-IAM-007) — chỉ hiện tab được cấp.
+ */
 export function UserScreen() {
   const router = useRouter();
   const pathname = usePathname();
   const params = useSearchParams();
   const queryClient = useQueryClient();
+  const can = useCan();
+  const tabs = TABS.filter((value) => can(value === "admins" ? "access:manage" : "user:manage"));
   const requested = params.get("tab") ?? "";
-  const tab: Tab = (TABS as readonly string[]).includes(requested) ? (requested as Tab) : "passengers";
+  const tab: Tab = (tabs as readonly string[]).includes(requested) ? (requested as Tab) : (tabs[0] ?? "passengers");
   const [action, setAction] = useState<AccountAction | null>(null);
+  const [editing, setEditing] = useState<{ account: PlatformAccount; grantable: Permission[] } | null>(null);
   const [creating, setCreating] = useState(false);
   const [notice, setNotice] = useState<{ tone: "success" | "warning"; text: string } | null>(null);
   const refresh = () => {
@@ -64,20 +74,26 @@ export function UserScreen() {
         value={tab}
         onValueChange={(next) => {
           setNotice(null);
-          router.replace(next === "passengers" ? pathname : `${pathname}?tab=${next}`, { scroll: false });
+          router.replace(next === tabs[0] ? pathname : `${pathname}?tab=${next}`, { scroll: false });
         }}
         className="flex flex-col gap-6"
       >
         <TabsList className="h-10 w-fit max-w-full overflow-x-auto" aria-label="Loại tài khoản">
-          <TabsTrigger value="passengers" className={TAB_TRIGGER}>
-            Hành khách
-          </TabsTrigger>
-          <TabsTrigger value="employees" className={TAB_TRIGGER}>
-            Nhân viên nhà xe
-          </TabsTrigger>
-          <TabsTrigger value="admins" className={TAB_TRIGGER}>
-            Tài khoản quản trị
-          </TabsTrigger>
+          {tabs.includes("passengers") && (
+            <TabsTrigger value="passengers" className={TAB_TRIGGER}>
+              Hành khách
+            </TabsTrigger>
+          )}
+          {tabs.includes("employees") && (
+            <TabsTrigger value="employees" className={TAB_TRIGGER}>
+              Nhân viên nhà xe
+            </TabsTrigger>
+          )}
+          {tabs.includes("admins") && (
+            <TabsTrigger value="admins" className={TAB_TRIGGER}>
+              Tài khoản quản trị
+            </TabsTrigger>
+          )}
         </TabsList>
         <TabsContent value="passengers" className="flex flex-col gap-6">
           <PassengerList onAction={setAction} />
@@ -86,12 +102,21 @@ export function UserScreen() {
           <EmployeeList />
         </TabsContent>
         <TabsContent value="admins" className="flex flex-col gap-6">
-          <PlatformAccountList onAction={setAction} />
+          <PlatformAccountList onAction={setAction} onEditPermissions={(account, grantable) => setEditing({ account, grantable })} />
         </TabsContent>
       </Tabs>
       <AccountActionDialog
         action={action}
         onClose={() => setAction(null)}
+        onDone={(text) => {
+          setNotice({ tone: "success", text });
+          refresh();
+        }}
+        onStale={refresh}
+      />
+      <PlatformPermissionsDialog
+        target={editing}
+        onClose={() => setEditing(null)}
         onDone={(text) => {
           setNotice({ tone: "success", text });
           refresh();

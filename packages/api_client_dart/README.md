@@ -198,6 +198,7 @@ Class | Method | HTTP request | Description
 [*AdminUsersApi*](doc/AdminUsersApi.md) | [**adminPlatformAccountControllerResetMfa**](doc/AdminUsersApi.md#adminplatformaccountcontrollerresetmfa) | **POST** /v1/admin/platform-accounts/{id}/reset-mfa | 
 [*AdminUsersApi*](doc/AdminUsersApi.md) | [**adminPlatformAccountControllerResetPassword**](doc/AdminUsersApi.md#adminplatformaccountcontrollerresetpassword) | **POST** /v1/admin/platform-accounts/{id}/reset-password | 
 [*AdminUsersApi*](doc/AdminUsersApi.md) | [**adminPlatformAccountControllerUnlock**](doc/AdminUsersApi.md#adminplatformaccountcontrollerunlock) | **POST** /v1/admin/platform-accounts/{id}/unlock | 
+[*AdminUsersApi*](doc/AdminUsersApi.md) | [**adminPlatformAccountControllerUpdatePermissions**](doc/AdminUsersApi.md#adminplatformaccountcontrollerupdatepermissions) | **PUT** /v1/admin/platform-accounts/{id}/permissions | 
 [*AdminVehicleImagesApi*](doc/AdminVehicleImagesApi.md) | [**adminVehicleImageControllerList**](doc/AdminVehicleImagesApi.md#adminvehicleimagecontrollerlist) | **GET** /v1/admin/vehicle-images | 
 [*AdminVehicleImagesApi*](doc/AdminVehicleImagesApi.md) | [**adminVehicleImageControllerRemove**](doc/AdminVehicleImagesApi.md#adminvehicleimagecontrollerremove) | **POST** /v1/admin/vehicle-images/{imageId}/remove | 
 [*ArticlesApi*](doc/ArticlesApi.md) | [**articleControllerGet**](doc/ArticlesApi.md#articlecontrollerget) | **GET** /v1/articles/{slug} | 
@@ -290,6 +291,11 @@ Class | Method | HTTP request | Description
 [*OperatorFinanceApi*](doc/OperatorFinanceApi.md) | [**operatorFinanceControllerPayout**](doc/OperatorFinanceApi.md#operatorfinancecontrollerpayout) | **GET** /v1/operator/payouts/{payoutId} | 
 [*OperatorFinanceApi*](doc/OperatorFinanceApi.md) | [**operatorFinanceControllerPayouts**](doc/OperatorFinanceApi.md#operatorfinancecontrollerpayouts) | **GET** /v1/operator/payouts | 
 [*OperatorFinanceApi*](doc/OperatorFinanceApi.md) | [**operatorFinanceControllerSummary**](doc/OperatorFinanceApi.md#operatorfinancecontrollersummary) | **GET** /v1/operator/finance/summary | 
+[*OperatorManagersApi*](doc/OperatorManagersApi.md) | [**operatorManagerControllerCreate**](doc/OperatorManagersApi.md#operatormanagercontrollercreate) | **POST** /v1/operator/managers | 
+[*OperatorManagersApi*](doc/OperatorManagersApi.md) | [**operatorManagerControllerList**](doc/OperatorManagersApi.md#operatormanagercontrollerlist) | **GET** /v1/operator/managers | 
+[*OperatorManagersApi*](doc/OperatorManagersApi.md) | [**operatorManagerControllerResetMfa**](doc/OperatorManagersApi.md#operatormanagercontrollerresetmfa) | **POST** /v1/operator/managers/{managerId}/mfa-reset | 
+[*OperatorManagersApi*](doc/OperatorManagersApi.md) | [**operatorManagerControllerResetPassword**](doc/OperatorManagersApi.md#operatormanagercontrollerresetpassword) | **POST** /v1/operator/managers/{managerId}/password-reset | 
+[*OperatorManagersApi*](doc/OperatorManagersApi.md) | [**operatorManagerControllerUpdate**](doc/OperatorManagersApi.md#operatormanagercontrollerupdate) | **PATCH** /v1/operator/managers/{managerId} | 
 [*OperatorProfileApi*](doc/OperatorProfileApi.md) | [**operatorProfileControllerCreateDownloadUrl**](doc/OperatorProfileApi.md#operatorprofilecontrollercreatedownloadurl) | **POST** /v1/operator/profile/documents/{type}/download-url | 
 [*OperatorProfileApi*](doc/OperatorProfileApi.md) | [**operatorProfileControllerCreateUploadUrl**](doc/OperatorProfileApi.md#operatorprofilecontrollercreateuploadurl) | **POST** /v1/operator/profile/documents/upload-url | 
 [*OperatorProfileApi*](doc/OperatorProfileApi.md) | [**operatorProfileControllerGet**](doc/OperatorProfileApi.md#operatorprofilecontrollerget) | **GET** /v1/operator/profile | 
@@ -456,7 +462,9 @@ Class | Method | HTTP request | Description
  - [AdminPlatformAccountCreateDto](doc/AdminPlatformAccountCreateDto.md)
  - [AdminPlatformAccountDtoOutput](doc/AdminPlatformAccountDtoOutput.md)
  - [AdminPlatformAccountListDtoOutput](doc/AdminPlatformAccountListDtoOutput.md)
+ - [AdminPlatformAccountListDtoOutputGrantable](doc/AdminPlatformAccountListDtoOutputGrantable.md)
  - [AdminPlatformAccountListDtoOutputItemsInner](doc/AdminPlatformAccountListDtoOutputItemsInner.md)
+ - [AdminPlatformPermissionsUpdateDto](doc/AdminPlatformPermissionsUpdateDto.md)
  - [AdminProvinceDtoOutput](doc/AdminProvinceDtoOutput.md)
  - [AdminProvinceInputDto](doc/AdminProvinceInputDto.md)
  - [AdminProvincePageDtoOutput](doc/AdminProvincePageDtoOutput.md)
@@ -643,6 +651,12 @@ Class | Method | HTTP request | Description
  - [LoyaltyReportDtoOutputMonthsInner](doc/LoyaltyReportDtoOutputMonthsInner.md)
  - [LoyaltyReportDtoOutputTotals](doc/LoyaltyReportDtoOutputTotals.md)
  - [LoyaltyTransactionPageDtoOutput](doc/LoyaltyTransactionPageDtoOutput.md)
+ - [ManagerAccountDtoOutput](doc/ManagerAccountDtoOutput.md)
+ - [ManagerCreateDto](doc/ManagerCreateDto.md)
+ - [ManagerListDtoOutput](doc/ManagerListDtoOutput.md)
+ - [ManagerListDtoOutputItemsInner](doc/ManagerListDtoOutputItemsInner.md)
+ - [ManagerReasonDto](doc/ManagerReasonDto.md)
+ - [ManagerUpdateDto](doc/ManagerUpdateDto.md)
  - [MessageInputDto](doc/MessageInputDto.md)
  - [MessageResponseDtoOutput](doc/MessageResponseDtoOutput.md)
  - [MfaChallengeResponse](doc/MfaChallengeResponse.md)

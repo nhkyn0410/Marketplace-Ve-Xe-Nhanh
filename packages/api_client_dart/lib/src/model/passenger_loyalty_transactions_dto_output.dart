@@ -14,14 +14,11 @@ part 'passenger_loyalty_transactions_dto_output.g.dart';
 /// PassengerLoyaltyTransactionsDtoOutput
 ///
 /// Properties:
-/// * [items]
-/// * [total]
-/// * [totals]
+/// * [items] 
+/// * [total] 
+/// * [totals] 
 @BuiltValue()
-abstract class PassengerLoyaltyTransactionsDtoOutput
-    implements
-        Built<PassengerLoyaltyTransactionsDtoOutput,
-            PassengerLoyaltyTransactionsDtoOutputBuilder> {
+abstract class PassengerLoyaltyTransactionsDtoOutput implements Built<PassengerLoyaltyTransactionsDtoOutput, PassengerLoyaltyTransactionsDtoOutputBuilder> {
   @BuiltValueField(wireName: r'items')
   BuiltList<PassengerLoyaltyTransactionsDtoOutputItemsInner> get items;
 
@@ -33,25 +30,18 @@ abstract class PassengerLoyaltyTransactionsDtoOutput
 
   PassengerLoyaltyTransactionsDtoOutput._();
 
-  factory PassengerLoyaltyTransactionsDtoOutput(
-          [void updates(PassengerLoyaltyTransactionsDtoOutputBuilder b)]) =
-      _$PassengerLoyaltyTransactionsDtoOutput;
+  factory PassengerLoyaltyTransactionsDtoOutput([void updates(PassengerLoyaltyTransactionsDtoOutputBuilder b)]) = _$PassengerLoyaltyTransactionsDtoOutput;
 
   @BuiltValueHook(initializeBuilder: true)
   static void _defaults(PassengerLoyaltyTransactionsDtoOutputBuilder b) => b;
 
   @BuiltValueSerializer(custom: true)
-  static Serializer<PassengerLoyaltyTransactionsDtoOutput> get serializer =>
-      _$PassengerLoyaltyTransactionsDtoOutputSerializer();
+  static Serializer<PassengerLoyaltyTransactionsDtoOutput> get serializer => _$PassengerLoyaltyTransactionsDtoOutputSerializer();
 }
 
-class _$PassengerLoyaltyTransactionsDtoOutputSerializer
-    implements PrimitiveSerializer<PassengerLoyaltyTransactionsDtoOutput> {
+class _$PassengerLoyaltyTransactionsDtoOutputSerializer implements PrimitiveSerializer<PassengerLoyaltyTransactionsDtoOutput> {
   @override
-  final Iterable<Type> types = const [
-    PassengerLoyaltyTransactionsDtoOutput,
-    _$PassengerLoyaltyTransactionsDtoOutput
-  ];
+  final Iterable<Type> types = const [PassengerLoyaltyTransactionsDtoOutput, _$PassengerLoyaltyTransactionsDtoOutput];
 
   @override
   final String wireName = r'PassengerLoyaltyTransactionsDtoOutput';
@@ -64,8 +54,7 @@ class _$PassengerLoyaltyTransactionsDtoOutputSerializer
     yield r'items';
     yield serializers.serialize(
       object.items,
-      specifiedType: const FullType(BuiltList,
-          [FullType(PassengerLoyaltyTransactionsDtoOutputItemsInner)]),
+      specifiedType: const FullType(BuiltList, [FullType(PassengerLoyaltyTransactionsDtoOutputItemsInner)]),
     );
     yield r'total';
     yield serializers.serialize(
@@ -75,8 +64,7 @@ class _$PassengerLoyaltyTransactionsDtoOutputSerializer
     yield r'totals';
     yield serializers.serialize(
       object.totals,
-      specifiedType:
-          const FullType(PassengerLoyaltyTransactionsDtoOutputTotals),
+      specifiedType: const FullType(PassengerLoyaltyTransactionsDtoOutputTotals),
     );
   }
 
@@ -86,9 +74,7 @@ class _$PassengerLoyaltyTransactionsDtoOutputSerializer
     PassengerLoyaltyTransactionsDtoOutput object, {
     FullType specifiedType = FullType.unspecified,
   }) {
-    return _serializeProperties(serializers, object,
-            specifiedType: specifiedType)
-        .toList();
+    return _serializeProperties(serializers, object, specifiedType: specifiedType).toList();
   }
 
   void _deserializeProperties(
@@ -106,8 +92,7 @@ class _$PassengerLoyaltyTransactionsDtoOutputSerializer
         case r'items':
           final valueDes = serializers.deserialize(
             value,
-            specifiedType: const FullType(BuiltList,
-                [FullType(PassengerLoyaltyTransactionsDtoOutputItemsInner)]),
+            specifiedType: const FullType(BuiltList, [FullType(PassengerLoyaltyTransactionsDtoOutputItemsInner)]),
           ) as BuiltList<PassengerLoyaltyTransactionsDtoOutputItemsInner>;
           result.items.replace(valueDes);
           break;
@@ -121,8 +106,7 @@ class _$PassengerLoyaltyTransactionsDtoOutputSerializer
         case r'totals':
           final valueDes = serializers.deserialize(
             value,
-            specifiedType:
-                const FullType(PassengerLoyaltyTransactionsDtoOutputTotals),
+            specifiedType: const FullType(PassengerLoyaltyTransactionsDtoOutputTotals),
           ) as PassengerLoyaltyTransactionsDtoOutputTotals;
           result.totals.replace(valueDes);
           break;
@@ -154,3 +138,5 @@ class _$PassengerLoyaltyTransactionsDtoOutputSerializer
     return result.build();
   }
 }
+
+

@@ -12,16 +12,13 @@ part 'credential_web_session_response.g.dart';
 /// CredentialWebSessionResponse
 ///
 /// Properties:
-/// * [authenticated]
-/// * [scope]
-/// * [role]
-/// * [expiresIn]
-/// * [refreshExpiresIn]
+/// * [authenticated] 
+/// * [scope] 
+/// * [role] 
+/// * [expiresIn] 
+/// * [refreshExpiresIn] 
 @BuiltValue()
-abstract class CredentialWebSessionResponse
-    implements
-        Built<CredentialWebSessionResponse,
-            CredentialWebSessionResponseBuilder> {
+abstract class CredentialWebSessionResponse implements Built<CredentialWebSessionResponse, CredentialWebSessionResponseBuilder> {
   @BuiltValueField(wireName: r'authenticated')
   CredentialWebSessionResponseAuthenticatedEnum get authenticated;
   // enum authenticatedEnum {  true,  };
@@ -41,25 +38,18 @@ abstract class CredentialWebSessionResponse
 
   CredentialWebSessionResponse._();
 
-  factory CredentialWebSessionResponse(
-          [void updates(CredentialWebSessionResponseBuilder b)]) =
-      _$CredentialWebSessionResponse;
+  factory CredentialWebSessionResponse([void updates(CredentialWebSessionResponseBuilder b)]) = _$CredentialWebSessionResponse;
 
   @BuiltValueHook(initializeBuilder: true)
   static void _defaults(CredentialWebSessionResponseBuilder b) => b;
 
   @BuiltValueSerializer(custom: true)
-  static Serializer<CredentialWebSessionResponse> get serializer =>
-      _$CredentialWebSessionResponseSerializer();
+  static Serializer<CredentialWebSessionResponse> get serializer => _$CredentialWebSessionResponseSerializer();
 }
 
-class _$CredentialWebSessionResponseSerializer
-    implements PrimitiveSerializer<CredentialWebSessionResponse> {
+class _$CredentialWebSessionResponseSerializer implements PrimitiveSerializer<CredentialWebSessionResponse> {
   @override
-  final Iterable<Type> types = const [
-    CredentialWebSessionResponse,
-    _$CredentialWebSessionResponse
-  ];
+  final Iterable<Type> types = const [CredentialWebSessionResponse, _$CredentialWebSessionResponse];
 
   @override
   final String wireName = r'CredentialWebSessionResponse';
@@ -72,8 +62,7 @@ class _$CredentialWebSessionResponseSerializer
     yield r'authenticated';
     yield serializers.serialize(
       object.authenticated,
-      specifiedType:
-          const FullType(CredentialWebSessionResponseAuthenticatedEnum),
+      specifiedType: const FullType(CredentialWebSessionResponseAuthenticatedEnum),
     );
     yield r'scope';
     yield serializers.serialize(
@@ -86,19 +75,15 @@ class _$CredentialWebSessionResponseSerializer
       specifiedType: const FullType(String),
     );
     yield r'expiresIn';
-    yield object.expiresIn == null
-        ? null
-        : serializers.serialize(
-            object.expiresIn,
-            specifiedType: const FullType.nullable(int),
-          );
+    yield object.expiresIn == null ? null : serializers.serialize(
+      object.expiresIn,
+      specifiedType: const FullType.nullable(int),
+    );
     yield r'refreshExpiresIn';
-    yield object.refreshExpiresIn == null
-        ? null
-        : serializers.serialize(
-            object.refreshExpiresIn,
-            specifiedType: const FullType.nullable(int),
-          );
+    yield object.refreshExpiresIn == null ? null : serializers.serialize(
+      object.refreshExpiresIn,
+      specifiedType: const FullType.nullable(int),
+    );
   }
 
   @override
@@ -107,9 +92,7 @@ class _$CredentialWebSessionResponseSerializer
     CredentialWebSessionResponse object, {
     FullType specifiedType = FullType.unspecified,
   }) {
-    return _serializeProperties(serializers, object,
-            specifiedType: specifiedType)
-        .toList();
+    return _serializeProperties(serializers, object, specifiedType: specifiedType).toList();
   }
 
   void _deserializeProperties(
@@ -127,16 +110,14 @@ class _$CredentialWebSessionResponseSerializer
         case r'authenticated':
           final valueDes = serializers.deserialize(
             value,
-            specifiedType:
-                const FullType(CredentialWebSessionResponseAuthenticatedEnum),
+            specifiedType: const FullType(CredentialWebSessionResponseAuthenticatedEnum),
           ) as CredentialWebSessionResponseAuthenticatedEnum;
           result.authenticated = valueDes;
           break;
         case r'scope':
           final valueDes = serializers.deserialize(
             value,
-            specifiedType:
-                const FullType(CredentialWebSessionResponseScopeEnum),
+            specifiedType: const FullType(CredentialWebSessionResponseScopeEnum),
           ) as CredentialWebSessionResponseScopeEnum;
           result.scope = valueDes;
           break;
@@ -192,42 +173,34 @@ class _$CredentialWebSessionResponseSerializer
   }
 }
 
+
 class CredentialWebSessionResponseAuthenticatedEnum extends EnumClass {
+
   @BuiltValueEnumConst(wireName: r'true')
-  static const CredentialWebSessionResponseAuthenticatedEnum true_ =
-      _$credentialWebSessionResponseAuthenticatedEnum_true_;
+  static const CredentialWebSessionResponseAuthenticatedEnum true_ = _$credentialWebSessionResponseAuthenticatedEnum_true_;
 
-  static Serializer<CredentialWebSessionResponseAuthenticatedEnum>
-      get serializer =>
-          _$credentialWebSessionResponseAuthenticatedEnumSerializer;
+  static Serializer<CredentialWebSessionResponseAuthenticatedEnum> get serializer => _$credentialWebSessionResponseAuthenticatedEnumSerializer;
 
-  const CredentialWebSessionResponseAuthenticatedEnum._(String name)
-      : super(name);
+  const CredentialWebSessionResponseAuthenticatedEnum._(String name): super(name);
 
-  static BuiltSet<CredentialWebSessionResponseAuthenticatedEnum> get values =>
-      _$credentialWebSessionResponseAuthenticatedEnumValues;
-  static CredentialWebSessionResponseAuthenticatedEnum valueOf(String name) =>
-      _$credentialWebSessionResponseAuthenticatedEnumValueOf(name);
+  static BuiltSet<CredentialWebSessionResponseAuthenticatedEnum> get values => _$credentialWebSessionResponseAuthenticatedEnumValues;
+  static CredentialWebSessionResponseAuthenticatedEnum valueOf(String name) => _$credentialWebSessionResponseAuthenticatedEnumValueOf(name);
 }
 
 class CredentialWebSessionResponseScopeEnum extends EnumClass {
+
   @BuiltValueEnumConst(wireName: r'passenger')
-  static const CredentialWebSessionResponseScopeEnum passenger =
-      _$credentialWebSessionResponseScopeEnum_passenger;
+  static const CredentialWebSessionResponseScopeEnum passenger = _$credentialWebSessionResponseScopeEnum_passenger;
   @BuiltValueEnumConst(wireName: r'operator')
-  static const CredentialWebSessionResponseScopeEnum operator_ =
-      _$credentialWebSessionResponseScopeEnum_operator_;
+  static const CredentialWebSessionResponseScopeEnum operator_ = _$credentialWebSessionResponseScopeEnum_operator_;
   @BuiltValueEnumConst(wireName: r'platform')
-  static const CredentialWebSessionResponseScopeEnum platform =
-      _$credentialWebSessionResponseScopeEnum_platform;
+  static const CredentialWebSessionResponseScopeEnum platform = _$credentialWebSessionResponseScopeEnum_platform;
 
-  static Serializer<CredentialWebSessionResponseScopeEnum> get serializer =>
-      _$credentialWebSessionResponseScopeEnumSerializer;
+  static Serializer<CredentialWebSessionResponseScopeEnum> get serializer => _$credentialWebSessionResponseScopeEnumSerializer;
 
-  const CredentialWebSessionResponseScopeEnum._(String name) : super(name);
+  const CredentialWebSessionResponseScopeEnum._(String name): super(name);
 
-  static BuiltSet<CredentialWebSessionResponseScopeEnum> get values =>
-      _$credentialWebSessionResponseScopeEnumValues;
-  static CredentialWebSessionResponseScopeEnum valueOf(String name) =>
-      _$credentialWebSessionResponseScopeEnumValueOf(name);
+  static BuiltSet<CredentialWebSessionResponseScopeEnum> get values => _$credentialWebSessionResponseScopeEnumValues;
+  static CredentialWebSessionResponseScopeEnum valueOf(String name) => _$credentialWebSessionResponseScopeEnumValueOf(name);
 }
+

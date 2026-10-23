@@ -13,13 +13,10 @@ part 'loyalty_transaction_page_dto_output.g.dart';
 /// LoyaltyTransactionPageDtoOutput
 ///
 /// Properties:
-/// * [items]
-/// * [total]
+/// * [items] 
+/// * [total] 
 @BuiltValue()
-abstract class LoyaltyTransactionPageDtoOutput
-    implements
-        Built<LoyaltyTransactionPageDtoOutput,
-            LoyaltyTransactionPageDtoOutputBuilder> {
+abstract class LoyaltyTransactionPageDtoOutput implements Built<LoyaltyTransactionPageDtoOutput, LoyaltyTransactionPageDtoOutputBuilder> {
   @BuiltValueField(wireName: r'items')
   BuiltList<PassengerLoyaltyTransactionsDtoOutputItemsInner> get items;
 
@@ -28,25 +25,18 @@ abstract class LoyaltyTransactionPageDtoOutput
 
   LoyaltyTransactionPageDtoOutput._();
 
-  factory LoyaltyTransactionPageDtoOutput(
-          [void updates(LoyaltyTransactionPageDtoOutputBuilder b)]) =
-      _$LoyaltyTransactionPageDtoOutput;
+  factory LoyaltyTransactionPageDtoOutput([void updates(LoyaltyTransactionPageDtoOutputBuilder b)]) = _$LoyaltyTransactionPageDtoOutput;
 
   @BuiltValueHook(initializeBuilder: true)
   static void _defaults(LoyaltyTransactionPageDtoOutputBuilder b) => b;
 
   @BuiltValueSerializer(custom: true)
-  static Serializer<LoyaltyTransactionPageDtoOutput> get serializer =>
-      _$LoyaltyTransactionPageDtoOutputSerializer();
+  static Serializer<LoyaltyTransactionPageDtoOutput> get serializer => _$LoyaltyTransactionPageDtoOutputSerializer();
 }
 
-class _$LoyaltyTransactionPageDtoOutputSerializer
-    implements PrimitiveSerializer<LoyaltyTransactionPageDtoOutput> {
+class _$LoyaltyTransactionPageDtoOutputSerializer implements PrimitiveSerializer<LoyaltyTransactionPageDtoOutput> {
   @override
-  final Iterable<Type> types = const [
-    LoyaltyTransactionPageDtoOutput,
-    _$LoyaltyTransactionPageDtoOutput
-  ];
+  final Iterable<Type> types = const [LoyaltyTransactionPageDtoOutput, _$LoyaltyTransactionPageDtoOutput];
 
   @override
   final String wireName = r'LoyaltyTransactionPageDtoOutput';
@@ -59,8 +49,7 @@ class _$LoyaltyTransactionPageDtoOutputSerializer
     yield r'items';
     yield serializers.serialize(
       object.items,
-      specifiedType: const FullType(BuiltList,
-          [FullType(PassengerLoyaltyTransactionsDtoOutputItemsInner)]),
+      specifiedType: const FullType(BuiltList, [FullType(PassengerLoyaltyTransactionsDtoOutputItemsInner)]),
     );
     yield r'total';
     yield serializers.serialize(
@@ -75,9 +64,7 @@ class _$LoyaltyTransactionPageDtoOutputSerializer
     LoyaltyTransactionPageDtoOutput object, {
     FullType specifiedType = FullType.unspecified,
   }) {
-    return _serializeProperties(serializers, object,
-            specifiedType: specifiedType)
-        .toList();
+    return _serializeProperties(serializers, object, specifiedType: specifiedType).toList();
   }
 
   void _deserializeProperties(
@@ -95,8 +82,7 @@ class _$LoyaltyTransactionPageDtoOutputSerializer
         case r'items':
           final valueDes = serializers.deserialize(
             value,
-            specifiedType: const FullType(BuiltList,
-                [FullType(PassengerLoyaltyTransactionsDtoOutputItemsInner)]),
+            specifiedType: const FullType(BuiltList, [FullType(PassengerLoyaltyTransactionsDtoOutputItemsInner)]),
           ) as BuiltList<PassengerLoyaltyTransactionsDtoOutputItemsInner>;
           result.items.replace(valueDes);
           break;
@@ -135,3 +121,5 @@ class _$LoyaltyTransactionPageDtoOutputSerializer
     return result.build();
   }
 }
+
+

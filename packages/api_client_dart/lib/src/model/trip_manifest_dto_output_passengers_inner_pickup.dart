@@ -11,15 +11,12 @@ part 'trip_manifest_dto_output_passengers_inner_pickup.g.dart';
 /// TripManifestDtoOutputPassengersInnerPickup
 ///
 /// Properties:
-/// * [sequence]
-/// * [name]
-/// * [pickupWindowStart]
-/// * [pickupWindowEnd]
+/// * [sequence] 
+/// * [name] 
+/// * [pickupWindowStart] 
+/// * [pickupWindowEnd] 
 @BuiltValue()
-abstract class TripManifestDtoOutputPassengersInnerPickup
-    implements
-        Built<TripManifestDtoOutputPassengersInnerPickup,
-            TripManifestDtoOutputPassengersInnerPickupBuilder> {
+abstract class TripManifestDtoOutputPassengersInnerPickup implements Built<TripManifestDtoOutputPassengersInnerPickup, TripManifestDtoOutputPassengersInnerPickupBuilder> {
   @BuiltValueField(wireName: r'sequence')
   int get sequence;
 
@@ -34,27 +31,18 @@ abstract class TripManifestDtoOutputPassengersInnerPickup
 
   TripManifestDtoOutputPassengersInnerPickup._();
 
-  factory TripManifestDtoOutputPassengersInnerPickup(
-          [void updates(TripManifestDtoOutputPassengersInnerPickupBuilder b)]) =
-      _$TripManifestDtoOutputPassengersInnerPickup;
+  factory TripManifestDtoOutputPassengersInnerPickup([void updates(TripManifestDtoOutputPassengersInnerPickupBuilder b)]) = _$TripManifestDtoOutputPassengersInnerPickup;
 
   @BuiltValueHook(initializeBuilder: true)
-  static void _defaults(TripManifestDtoOutputPassengersInnerPickupBuilder b) =>
-      b;
+  static void _defaults(TripManifestDtoOutputPassengersInnerPickupBuilder b) => b;
 
   @BuiltValueSerializer(custom: true)
-  static Serializer<TripManifestDtoOutputPassengersInnerPickup>
-      get serializer =>
-          _$TripManifestDtoOutputPassengersInnerPickupSerializer();
+  static Serializer<TripManifestDtoOutputPassengersInnerPickup> get serializer => _$TripManifestDtoOutputPassengersInnerPickupSerializer();
 }
 
-class _$TripManifestDtoOutputPassengersInnerPickupSerializer
-    implements PrimitiveSerializer<TripManifestDtoOutputPassengersInnerPickup> {
+class _$TripManifestDtoOutputPassengersInnerPickupSerializer implements PrimitiveSerializer<TripManifestDtoOutputPassengersInnerPickup> {
   @override
-  final Iterable<Type> types = const [
-    TripManifestDtoOutputPassengersInnerPickup,
-    _$TripManifestDtoOutputPassengersInnerPickup
-  ];
+  final Iterable<Type> types = const [TripManifestDtoOutputPassengersInnerPickup, _$TripManifestDtoOutputPassengersInnerPickup];
 
   @override
   final String wireName = r'TripManifestDtoOutputPassengersInnerPickup';
@@ -75,19 +63,15 @@ class _$TripManifestDtoOutputPassengersInnerPickupSerializer
       specifiedType: const FullType(String),
     );
     yield r'pickupWindowStart';
-    yield object.pickupWindowStart == null
-        ? null
-        : serializers.serialize(
-            object.pickupWindowStart,
-            specifiedType: const FullType.nullable(DateTime),
-          );
+    yield object.pickupWindowStart == null ? null : serializers.serialize(
+      object.pickupWindowStart,
+      specifiedType: const FullType.nullable(DateTime),
+    );
     yield r'pickupWindowEnd';
-    yield object.pickupWindowEnd == null
-        ? null
-        : serializers.serialize(
-            object.pickupWindowEnd,
-            specifiedType: const FullType.nullable(DateTime),
-          );
+    yield object.pickupWindowEnd == null ? null : serializers.serialize(
+      object.pickupWindowEnd,
+      specifiedType: const FullType.nullable(DateTime),
+    );
   }
 
   @override
@@ -96,9 +80,7 @@ class _$TripManifestDtoOutputPassengersInnerPickupSerializer
     TripManifestDtoOutputPassengersInnerPickup object, {
     FullType specifiedType = FullType.unspecified,
   }) {
-    return _serializeProperties(serializers, object,
-            specifiedType: specifiedType)
-        .toList();
+    return _serializeProperties(serializers, object, specifiedType: specifiedType).toList();
   }
 
   void _deserializeProperties(
@@ -171,3 +153,5 @@ class _$TripManifestDtoOutputPassengersInnerPickupSerializer
     return result.build();
   }
 }
+
+

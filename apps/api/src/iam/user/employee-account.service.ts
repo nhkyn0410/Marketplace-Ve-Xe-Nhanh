@@ -535,7 +535,7 @@ function sanitizeUpdate(data: Record<string, unknown>): Record<string, unknown> 
   };
 }
 
-function auditSnapshot(
+export function auditSnapshot(
   context: AccountRequestContext,
   data: Record<string, unknown>,
 ): Record<string, unknown> {

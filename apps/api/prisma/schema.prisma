@@ -39,9 +39,10 @@ enum OperatorStatus {
   SUSPENDED
 }
 
-/// Role account Operator-side (v1 chỉ owner; mở rộng sau nếu cần).
+/// Role account dùng Operator OS: chủ nhà xe + tài khoản quản lý do chủ nhà xe cấp (TASK-IAM-007).
 enum OperatorRole {
   OPERATOR_OWNER
+  OPERATOR_MANAGER
 }
 
 /// Employee role đã chốt v1 (FR-IAM-05, GLOSSARY).
@@ -249,6 +250,8 @@ model OperatorAccount {
   passwordChangeRequired     Boolean       @default(false) @map("password_change_required")
   temporaryPasswordExpiresAt DateTime?     @map("temporary_password_expires_at")
   role                       OperatorRole  @default(OPERATOR_OWNER)
+  /// Mảng mã quyền của tài khoản quản lý (TASK-IAM-007) — bắt buộc với OPERATOR_MANAGER, `NULL` với Owner (CHECK).
+  permissions                Json?
   status                     AccountStatus @default(ACTIVE)
   createdAt                  DateTime      @default(now()) @map("created_at")
   updatedAt                  DateTime      @updatedAt @map("updated_at")
@@ -299,6 +302,8 @@ model PlatformAccount {
   username                   String        @unique
   passwordHash               String        @map("password_hash")
   role                       PlatformRole
+  /// Mảng mã quyền riêng (TASK-IAM-007, FR-IAM-07); `NULL` = đủ quyền tick được của role (tài khoản cũ / seed).
+  permissions                Json?
   status                     AccountStatus @default(ACTIVE)
   /// Email nội bộ nhận mật khẩu tạm (tài khoản do Admin cấp — ADM-03d).
   contactEmail               String?       @unique @map("contact_email")
@@ -431,25 +436,37 @@ enum StopPointType {
 
 /// Tỉnh / thành phố - 'code' theo danh mục hành chính chình thức.
 model Province {
-  id        String        @id @default(uuid())
-  code      String        @unique
-  name      String
-  status    CatalogStatus @default(ACTIVE)
-  createdAt DateTime      @default(now()) @map("created_at")
-  updatedAt DateTime      @updatedAt @map("updated_at")
+  id         String        @id @default(uuid())
+  code       String        @unique
+  name       String
+  /// Cấp hành chính (vd "Thành phố Trung ương", "Tỉnh").
+  level      String?
+  /// Văn bản pháp lý sáp nhập / công bố (vd "202/2025/QH15 - 12/06/2025").
+  decree     String?
+  status     CatalogStatus @default(ACTIVE)
+  /// Cột DO DATABASE SINH (tên, chữ thường, bỏ dấu) để tìm không dấu — KHÔNG ghi từ code.
+  searchText String?       @map("search_text")
+  createdAt  DateTime      @default(now()) @map("created_at")
+  updatedAt  DateTime      @updatedAt @map("updated_at")
 
   wards Ward[]
 
   @@map("provinces")
 }
 
-/// Phường / xã thuộc một tỉnh — `code` theo danh mục hành chính chính thức.
+/// Phường / xã / đặc khu thuộc một tỉnh — `code` theo danh mục hành chính chính thức.
 model Ward {
   id         String        @id @default(uuid())
   provinceId String        @map("province_id")
   code       String        @unique
   name       String
+  /// Cấp hành chính (vd "Phường", "Xã", "Đặc khu").
+  level      String?
+  /// Nghị quyết / văn bản công bố (vd "Số: 1656/NQ-UBTVQH15; Ngày: 16/06/2025").
+  decree     String?
   status     CatalogStatus @default(ACTIVE)
+  /// Cột DO DATABASE SINH (tên, chữ thường, bỏ dấu) để tìm không dấu — KHÔNG ghi từ code.
+  searchText String?       @map("search_text")
   createdAt  DateTime      @default(now()) @map("created_at")
   updatedAt  DateTime      @updatedAt @map("updated_at")
 
@@ -457,11 +474,43 @@ model Ward {
   stopPoints         StopPointCatalog[]
   privateStopPoints  StopPoint[]
   stopPointProposals StopPointProposal[]
+  legacyMappings     LegacyAdministrativeMapping[]
 
   // Đích của FK ghép từ stop point: DB tự chặn phường không thuộc tỉnh (UC-24 A2).
   @@unique([id, provinceId])
   @@index([provinceId])
   @@map("wards")
+}
+
+/// Bảng đối chiếu địa giới hành chính trước sáp nhập 2025 (63 tỉnh/thành cũ, quận/huyện/TX/TP thuộc tỉnh cũ, phường/xã cũ)
+/// sang đơn vị hành chính mới (`provinces`, `wards`). Phục vụ chuẩn hóa điểm dừng, tuyến đường và tra cứu địa danh cũ.
+model LegacyAdministrativeMapping {
+  id                 String   @id @default(uuid())
+  /// Mã GSO 2 chữ số của 63 tỉnh/thành cũ trước sáp nhập (01..96).
+  legacyProvinceCode String   @map("legacy_province_code")
+  /// Tên chính thức của 63 tỉnh/thành cũ (vd "Tỉnh Bà Rịa - Vũng Tàu", "Tỉnh Bình Dương").
+  legacyProvinceName String   @map("legacy_province_name")
+  /// Tên Quận / Huyện / Thị xã / Thành phố thuộc tỉnh cũ (vd "Thành phố Vũng Tàu", "Thành phố Đà Lạt"). Chuỗi rỗng "" nếu ánh xạ cấp tỉnh.
+  legacyDistrictName String   @default("") @map("legacy_district_name")
+  /// Tên Phường / Xã / Thị trấn cũ trước sáp nhập (vd "Phường Thắng Tam", "Phường Phạm Ngũ Lão"). Chuỗi rỗng "" nếu ánh xạ cấp quận/huyện/tỉnh.
+  legacyWardName     String   @default("") @map("legacy_ward_name")
+  /// ID tỉnh/thành mới trong bảng `provinces`.
+  provinceId         String   @map("province_id")
+  /// ID phường/xã/đặc khu mới đại diện trong bảng `wards`.
+  wardId             String   @map("ward_id")
+  /// Ghi chú / căn cứ Nghị quyết sáp nhập.
+  notes              String?
+  /// Cột DO DATABASE SINH (tên tỉnh cũ + quận/huyện cũ + phường/xã cũ, chữ thường, bỏ dấu) — KHÔNG ghi từ code.
+  searchText         String?  @map("search_text")
+  createdAt          DateTime @default(now()) @map("created_at")
+  updatedAt          DateTime @updatedAt @map("updated_at")
+
+  ward Ward @relation(fields: [wardId, provinceId], references: [id, provinceId], onDelete: Restrict, onUpdate: Restrict)
+
+  @@unique([legacyProvinceCode, legacyDistrictName, legacyWardName])
+  @@index([provinceId])
+  @@index([wardId])
+  @@map("legacy_administrative_mappings")
 }
 
 /// Điểm đón / trả chuẩn Platform; tách khỏi `stop_points` riêng của Operator (TRN-002).

@@ -11,16 +11,13 @@ part 'reconciliation_page_dto_output_items_inner_issues_inner.g.dart';
 /// ReconciliationPageDtoOutputItemsInnerIssuesInner
 ///
 /// Properties:
-/// * [checkpoint]
-/// * [entityId]
-/// * [operatorId]
-/// * [expected]
-/// * [actual]
+/// * [checkpoint] 
+/// * [entityId] 
+/// * [operatorId] 
+/// * [expected] 
+/// * [actual] 
 @BuiltValue()
-abstract class ReconciliationPageDtoOutputItemsInnerIssuesInner
-    implements
-        Built<ReconciliationPageDtoOutputItemsInnerIssuesInner,
-            ReconciliationPageDtoOutputItemsInnerIssuesInnerBuilder> {
+abstract class ReconciliationPageDtoOutputItemsInnerIssuesInner implements Built<ReconciliationPageDtoOutputItemsInnerIssuesInner, ReconciliationPageDtoOutputItemsInnerIssuesInnerBuilder> {
   @BuiltValueField(wireName: r'checkpoint')
   String get checkpoint;
 
@@ -38,30 +35,18 @@ abstract class ReconciliationPageDtoOutputItemsInnerIssuesInner
 
   ReconciliationPageDtoOutputItemsInnerIssuesInner._();
 
-  factory ReconciliationPageDtoOutputItemsInnerIssuesInner(
-          [void updates(
-              ReconciliationPageDtoOutputItemsInnerIssuesInnerBuilder b)]) =
-      _$ReconciliationPageDtoOutputItemsInnerIssuesInner;
+  factory ReconciliationPageDtoOutputItemsInnerIssuesInner([void updates(ReconciliationPageDtoOutputItemsInnerIssuesInnerBuilder b)]) = _$ReconciliationPageDtoOutputItemsInnerIssuesInner;
 
   @BuiltValueHook(initializeBuilder: true)
-  static void _defaults(
-          ReconciliationPageDtoOutputItemsInnerIssuesInnerBuilder b) =>
-      b;
+  static void _defaults(ReconciliationPageDtoOutputItemsInnerIssuesInnerBuilder b) => b;
 
   @BuiltValueSerializer(custom: true)
-  static Serializer<ReconciliationPageDtoOutputItemsInnerIssuesInner>
-      get serializer =>
-          _$ReconciliationPageDtoOutputItemsInnerIssuesInnerSerializer();
+  static Serializer<ReconciliationPageDtoOutputItemsInnerIssuesInner> get serializer => _$ReconciliationPageDtoOutputItemsInnerIssuesInnerSerializer();
 }
 
-class _$ReconciliationPageDtoOutputItemsInnerIssuesInnerSerializer
-    implements
-        PrimitiveSerializer<ReconciliationPageDtoOutputItemsInnerIssuesInner> {
+class _$ReconciliationPageDtoOutputItemsInnerIssuesInnerSerializer implements PrimitiveSerializer<ReconciliationPageDtoOutputItemsInnerIssuesInner> {
   @override
-  final Iterable<Type> types = const [
-    ReconciliationPageDtoOutputItemsInnerIssuesInner,
-    _$ReconciliationPageDtoOutputItemsInnerIssuesInner
-  ];
+  final Iterable<Type> types = const [ReconciliationPageDtoOutputItemsInnerIssuesInner, _$ReconciliationPageDtoOutputItemsInnerIssuesInner];
 
   @override
   final String wireName = r'ReconciliationPageDtoOutputItemsInnerIssuesInner';
@@ -104,9 +89,7 @@ class _$ReconciliationPageDtoOutputItemsInnerIssuesInnerSerializer
     ReconciliationPageDtoOutputItemsInnerIssuesInner object, {
     FullType specifiedType = FullType.unspecified,
   }) {
-    return _serializeProperties(serializers, object,
-            specifiedType: specifiedType)
-        .toList();
+    return _serializeProperties(serializers, object, specifiedType: specifiedType).toList();
   }
 
   void _deserializeProperties(
@@ -184,3 +167,5 @@ class _$ReconciliationPageDtoOutputItemsInnerIssuesInnerSerializer
     return result.build();
   }
 }
+
+

@@ -13,11 +13,10 @@ part 'incident_page_dto_output.g.dart';
 /// IncidentPageDtoOutput
 ///
 /// Properties:
-/// * [items]
-/// * [nextCursor]
+/// * [items] 
+/// * [nextCursor] 
 @BuiltValue()
-abstract class IncidentPageDtoOutput
-    implements Built<IncidentPageDtoOutput, IncidentPageDtoOutputBuilder> {
+abstract class IncidentPageDtoOutput implements Built<IncidentPageDtoOutput, IncidentPageDtoOutputBuilder> {
   @BuiltValueField(wireName: r'items')
   BuiltList<IncidentPageDtoOutputItemsInner> get items;
 
@@ -26,24 +25,18 @@ abstract class IncidentPageDtoOutput
 
   IncidentPageDtoOutput._();
 
-  factory IncidentPageDtoOutput(
-      [void updates(IncidentPageDtoOutputBuilder b)]) = _$IncidentPageDtoOutput;
+  factory IncidentPageDtoOutput([void updates(IncidentPageDtoOutputBuilder b)]) = _$IncidentPageDtoOutput;
 
   @BuiltValueHook(initializeBuilder: true)
   static void _defaults(IncidentPageDtoOutputBuilder b) => b;
 
   @BuiltValueSerializer(custom: true)
-  static Serializer<IncidentPageDtoOutput> get serializer =>
-      _$IncidentPageDtoOutputSerializer();
+  static Serializer<IncidentPageDtoOutput> get serializer => _$IncidentPageDtoOutputSerializer();
 }
 
-class _$IncidentPageDtoOutputSerializer
-    implements PrimitiveSerializer<IncidentPageDtoOutput> {
+class _$IncidentPageDtoOutputSerializer implements PrimitiveSerializer<IncidentPageDtoOutput> {
   @override
-  final Iterable<Type> types = const [
-    IncidentPageDtoOutput,
-    _$IncidentPageDtoOutput
-  ];
+  final Iterable<Type> types = const [IncidentPageDtoOutput, _$IncidentPageDtoOutput];
 
   @override
   final String wireName = r'IncidentPageDtoOutput';
@@ -56,16 +49,13 @@ class _$IncidentPageDtoOutputSerializer
     yield r'items';
     yield serializers.serialize(
       object.items,
-      specifiedType: const FullType(
-          BuiltList, [FullType(IncidentPageDtoOutputItemsInner)]),
+      specifiedType: const FullType(BuiltList, [FullType(IncidentPageDtoOutputItemsInner)]),
     );
     yield r'nextCursor';
-    yield object.nextCursor == null
-        ? null
-        : serializers.serialize(
-            object.nextCursor,
-            specifiedType: const FullType.nullable(String),
-          );
+    yield object.nextCursor == null ? null : serializers.serialize(
+      object.nextCursor,
+      specifiedType: const FullType.nullable(String),
+    );
   }
 
   @override
@@ -74,9 +64,7 @@ class _$IncidentPageDtoOutputSerializer
     IncidentPageDtoOutput object, {
     FullType specifiedType = FullType.unspecified,
   }) {
-    return _serializeProperties(serializers, object,
-            specifiedType: specifiedType)
-        .toList();
+    return _serializeProperties(serializers, object, specifiedType: specifiedType).toList();
   }
 
   void _deserializeProperties(
@@ -94,8 +82,7 @@ class _$IncidentPageDtoOutputSerializer
         case r'items':
           final valueDes = serializers.deserialize(
             value,
-            specifiedType: const FullType(
-                BuiltList, [FullType(IncidentPageDtoOutputItemsInner)]),
+            specifiedType: const FullType(BuiltList, [FullType(IncidentPageDtoOutputItemsInner)]),
           ) as BuiltList<IncidentPageDtoOutputItemsInner>;
           result.items.replace(valueDes);
           break;
@@ -135,3 +122,5 @@ class _$IncidentPageDtoOutputSerializer
     return result.build();
   }
 }
+
+

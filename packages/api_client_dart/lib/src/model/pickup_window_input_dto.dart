@@ -11,11 +11,10 @@ part 'pickup_window_input_dto.g.dart';
 /// PickupWindowInputDto
 ///
 /// Properties:
-/// * [start]
-/// * [end]
+/// * [start] 
+/// * [end] 
 @BuiltValue()
-abstract class PickupWindowInputDto
-    implements Built<PickupWindowInputDto, PickupWindowInputDtoBuilder> {
+abstract class PickupWindowInputDto implements Built<PickupWindowInputDto, PickupWindowInputDtoBuilder> {
   @BuiltValueField(wireName: r'start')
   DateTime? get start;
 
@@ -24,24 +23,18 @@ abstract class PickupWindowInputDto
 
   PickupWindowInputDto._();
 
-  factory PickupWindowInputDto([void updates(PickupWindowInputDtoBuilder b)]) =
-      _$PickupWindowInputDto;
+  factory PickupWindowInputDto([void updates(PickupWindowInputDtoBuilder b)]) = _$PickupWindowInputDto;
 
   @BuiltValueHook(initializeBuilder: true)
   static void _defaults(PickupWindowInputDtoBuilder b) => b;
 
   @BuiltValueSerializer(custom: true)
-  static Serializer<PickupWindowInputDto> get serializer =>
-      _$PickupWindowInputDtoSerializer();
+  static Serializer<PickupWindowInputDto> get serializer => _$PickupWindowInputDtoSerializer();
 }
 
-class _$PickupWindowInputDtoSerializer
-    implements PrimitiveSerializer<PickupWindowInputDto> {
+class _$PickupWindowInputDtoSerializer implements PrimitiveSerializer<PickupWindowInputDto> {
   @override
-  final Iterable<Type> types = const [
-    PickupWindowInputDto,
-    _$PickupWindowInputDto
-  ];
+  final Iterable<Type> types = const [PickupWindowInputDto, _$PickupWindowInputDto];
 
   @override
   final String wireName = r'PickupWindowInputDto';
@@ -52,19 +45,15 @@ class _$PickupWindowInputDtoSerializer
     FullType specifiedType = FullType.unspecified,
   }) sync* {
     yield r'start';
-    yield object.start == null
-        ? null
-        : serializers.serialize(
-            object.start,
-            specifiedType: const FullType.nullable(DateTime),
-          );
+    yield object.start == null ? null : serializers.serialize(
+      object.start,
+      specifiedType: const FullType.nullable(DateTime),
+    );
     yield r'end';
-    yield object.end == null
-        ? null
-        : serializers.serialize(
-            object.end,
-            specifiedType: const FullType.nullable(DateTime),
-          );
+    yield object.end == null ? null : serializers.serialize(
+      object.end,
+      specifiedType: const FullType.nullable(DateTime),
+    );
   }
 
   @override
@@ -73,9 +62,7 @@ class _$PickupWindowInputDtoSerializer
     PickupWindowInputDto object, {
     FullType specifiedType = FullType.unspecified,
   }) {
-    return _serializeProperties(serializers, object,
-            specifiedType: specifiedType)
-        .toList();
+    return _serializeProperties(serializers, object, specifiedType: specifiedType).toList();
   }
 
   void _deserializeProperties(
@@ -134,3 +121,5 @@ class _$PickupWindowInputDtoSerializer
     return result.build();
   }
 }
+
+

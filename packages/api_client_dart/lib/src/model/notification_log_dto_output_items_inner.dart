@@ -12,21 +12,18 @@ part 'notification_log_dto_output_items_inner.g.dart';
 /// NotificationLogDtoOutputItemsInner
 ///
 /// Properties:
-/// * [id]
-/// * [notificationId]
-/// * [kind]
-/// * [channel]
-/// * [recipientMasked]
-/// * [status]
-/// * [attempts]
-/// * [lastError]
-/// * [createdAt]
-/// * [sentAt]
+/// * [id] 
+/// * [notificationId] 
+/// * [kind] 
+/// * [channel] 
+/// * [recipientMasked] 
+/// * [status] 
+/// * [attempts] 
+/// * [lastError] 
+/// * [createdAt] 
+/// * [sentAt] 
 @BuiltValue()
-abstract class NotificationLogDtoOutputItemsInner
-    implements
-        Built<NotificationLogDtoOutputItemsInner,
-            NotificationLogDtoOutputItemsInnerBuilder> {
+abstract class NotificationLogDtoOutputItemsInner implements Built<NotificationLogDtoOutputItemsInner, NotificationLogDtoOutputItemsInnerBuilder> {
   @BuiltValueField(wireName: r'id')
   String get id;
 
@@ -62,25 +59,18 @@ abstract class NotificationLogDtoOutputItemsInner
 
   NotificationLogDtoOutputItemsInner._();
 
-  factory NotificationLogDtoOutputItemsInner(
-          [void updates(NotificationLogDtoOutputItemsInnerBuilder b)]) =
-      _$NotificationLogDtoOutputItemsInner;
+  factory NotificationLogDtoOutputItemsInner([void updates(NotificationLogDtoOutputItemsInnerBuilder b)]) = _$NotificationLogDtoOutputItemsInner;
 
   @BuiltValueHook(initializeBuilder: true)
   static void _defaults(NotificationLogDtoOutputItemsInnerBuilder b) => b;
 
   @BuiltValueSerializer(custom: true)
-  static Serializer<NotificationLogDtoOutputItemsInner> get serializer =>
-      _$NotificationLogDtoOutputItemsInnerSerializer();
+  static Serializer<NotificationLogDtoOutputItemsInner> get serializer => _$NotificationLogDtoOutputItemsInnerSerializer();
 }
 
-class _$NotificationLogDtoOutputItemsInnerSerializer
-    implements PrimitiveSerializer<NotificationLogDtoOutputItemsInner> {
+class _$NotificationLogDtoOutputItemsInnerSerializer implements PrimitiveSerializer<NotificationLogDtoOutputItemsInner> {
   @override
-  final Iterable<Type> types = const [
-    NotificationLogDtoOutputItemsInner,
-    _$NotificationLogDtoOutputItemsInner
-  ];
+  final Iterable<Type> types = const [NotificationLogDtoOutputItemsInner, _$NotificationLogDtoOutputItemsInner];
 
   @override
   final String wireName = r'NotificationLogDtoOutputItemsInner';
@@ -108,8 +98,7 @@ class _$NotificationLogDtoOutputItemsInnerSerializer
     yield r'channel';
     yield serializers.serialize(
       object.channel,
-      specifiedType:
-          const FullType(NotificationLogDtoOutputItemsInnerChannelEnum),
+      specifiedType: const FullType(NotificationLogDtoOutputItemsInnerChannelEnum),
     );
     yield r'recipientMasked';
     yield serializers.serialize(
@@ -119,8 +108,7 @@ class _$NotificationLogDtoOutputItemsInnerSerializer
     yield r'status';
     yield serializers.serialize(
       object.status,
-      specifiedType:
-          const FullType(NotificationLogDtoOutputItemsInnerStatusEnum),
+      specifiedType: const FullType(NotificationLogDtoOutputItemsInnerStatusEnum),
     );
     yield r'attempts';
     yield serializers.serialize(
@@ -128,24 +116,20 @@ class _$NotificationLogDtoOutputItemsInnerSerializer
       specifiedType: const FullType(int),
     );
     yield r'lastError';
-    yield object.lastError == null
-        ? null
-        : serializers.serialize(
-            object.lastError,
-            specifiedType: const FullType.nullable(String),
-          );
+    yield object.lastError == null ? null : serializers.serialize(
+      object.lastError,
+      specifiedType: const FullType.nullable(String),
+    );
     yield r'createdAt';
     yield serializers.serialize(
       object.createdAt,
       specifiedType: const FullType(DateTime),
     );
     yield r'sentAt';
-    yield object.sentAt == null
-        ? null
-        : serializers.serialize(
-            object.sentAt,
-            specifiedType: const FullType.nullable(DateTime),
-          );
+    yield object.sentAt == null ? null : serializers.serialize(
+      object.sentAt,
+      specifiedType: const FullType.nullable(DateTime),
+    );
   }
 
   @override
@@ -154,9 +138,7 @@ class _$NotificationLogDtoOutputItemsInnerSerializer
     NotificationLogDtoOutputItemsInner object, {
     FullType specifiedType = FullType.unspecified,
   }) {
-    return _serializeProperties(serializers, object,
-            specifiedType: specifiedType)
-        .toList();
+    return _serializeProperties(serializers, object, specifiedType: specifiedType).toList();
   }
 
   void _deserializeProperties(
@@ -188,16 +170,14 @@ class _$NotificationLogDtoOutputItemsInnerSerializer
         case r'kind':
           final valueDes = serializers.deserialize(
             value,
-            specifiedType:
-                const FullType(NotificationLogDtoOutputItemsInnerKindEnum),
+            specifiedType: const FullType(NotificationLogDtoOutputItemsInnerKindEnum),
           ) as NotificationLogDtoOutputItemsInnerKindEnum;
           result.kind = valueDes;
           break;
         case r'channel':
           final valueDes = serializers.deserialize(
             value,
-            specifiedType:
-                const FullType(NotificationLogDtoOutputItemsInnerChannelEnum),
+            specifiedType: const FullType(NotificationLogDtoOutputItemsInnerChannelEnum),
           ) as NotificationLogDtoOutputItemsInnerChannelEnum;
           result.channel = valueDes;
           break;
@@ -211,8 +191,7 @@ class _$NotificationLogDtoOutputItemsInnerSerializer
         case r'status':
           final valueDes = serializers.deserialize(
             value,
-            specifiedType:
-                const FullType(NotificationLogDtoOutputItemsInnerStatusEnum),
+            specifiedType: const FullType(NotificationLogDtoOutputItemsInnerStatusEnum),
           ) as NotificationLogDtoOutputItemsInnerStatusEnum;
           result.status = valueDes;
           break;
@@ -275,96 +254,71 @@ class _$NotificationLogDtoOutputItemsInnerSerializer
   }
 }
 
+
 class NotificationLogDtoOutputItemsInnerKindEnum extends EnumClass {
+
   @BuiltValueEnumConst(wireName: r'BOOKING_CONFIRMED')
-  static const NotificationLogDtoOutputItemsInnerKindEnum BOOKING_CONFIRMED =
-      _$notificationLogDtoOutputItemsInnerKindEnum_BOOKING_CONFIRMED;
+  static const NotificationLogDtoOutputItemsInnerKindEnum BOOKING_CONFIRMED = _$notificationLogDtoOutputItemsInnerKindEnum_BOOKING_CONFIRMED;
   @BuiltValueEnumConst(wireName: r'TICKETS_CANCELLED')
-  static const NotificationLogDtoOutputItemsInnerKindEnum TICKETS_CANCELLED =
-      _$notificationLogDtoOutputItemsInnerKindEnum_TICKETS_CANCELLED;
+  static const NotificationLogDtoOutputItemsInnerKindEnum TICKETS_CANCELLED = _$notificationLogDtoOutputItemsInnerKindEnum_TICKETS_CANCELLED;
   @BuiltValueEnumConst(wireName: r'REFUND_SUCCEEDED')
-  static const NotificationLogDtoOutputItemsInnerKindEnum REFUND_SUCCEEDED =
-      _$notificationLogDtoOutputItemsInnerKindEnum_REFUND_SUCCEEDED;
+  static const NotificationLogDtoOutputItemsInnerKindEnum REFUND_SUCCEEDED = _$notificationLogDtoOutputItemsInnerKindEnum_REFUND_SUCCEEDED;
   @BuiltValueEnumConst(wireName: r'TRIP_CHANGED')
-  static const NotificationLogDtoOutputItemsInnerKindEnum TRIP_CHANGED =
-      _$notificationLogDtoOutputItemsInnerKindEnum_TRIP_CHANGED;
+  static const NotificationLogDtoOutputItemsInnerKindEnum TRIP_CHANGED = _$notificationLogDtoOutputItemsInnerKindEnum_TRIP_CHANGED;
   @BuiltValueEnumConst(wireName: r'TRIP_CANCELLED')
-  static const NotificationLogDtoOutputItemsInnerKindEnum TRIP_CANCELLED =
-      _$notificationLogDtoOutputItemsInnerKindEnum_TRIP_CANCELLED;
+  static const NotificationLogDtoOutputItemsInnerKindEnum TRIP_CANCELLED = _$notificationLogDtoOutputItemsInnerKindEnum_TRIP_CANCELLED;
   @BuiltValueEnumConst(wireName: r'MANUAL_REFUND')
-  static const NotificationLogDtoOutputItemsInnerKindEnum MANUAL_REFUND =
-      _$notificationLogDtoOutputItemsInnerKindEnum_MANUAL_REFUND;
+  static const NotificationLogDtoOutputItemsInnerKindEnum MANUAL_REFUND = _$notificationLogDtoOutputItemsInnerKindEnum_MANUAL_REFUND;
   @BuiltValueEnumConst(wireName: r'CASE_UPDATED')
-  static const NotificationLogDtoOutputItemsInnerKindEnum CASE_UPDATED =
-      _$notificationLogDtoOutputItemsInnerKindEnum_CASE_UPDATED;
+  static const NotificationLogDtoOutputItemsInnerKindEnum CASE_UPDATED = _$notificationLogDtoOutputItemsInnerKindEnum_CASE_UPDATED;
   @BuiltValueEnumConst(wireName: r'OPERATIONS_ALERT')
-  static const NotificationLogDtoOutputItemsInnerKindEnum OPERATIONS_ALERT =
-      _$notificationLogDtoOutputItemsInnerKindEnum_OPERATIONS_ALERT;
+  static const NotificationLogDtoOutputItemsInnerKindEnum OPERATIONS_ALERT = _$notificationLogDtoOutputItemsInnerKindEnum_OPERATIONS_ALERT;
   @BuiltValueEnumConst(wireName: r'LOYALTY_UPDATED')
-  static const NotificationLogDtoOutputItemsInnerKindEnum LOYALTY_UPDATED =
-      _$notificationLogDtoOutputItemsInnerKindEnum_LOYALTY_UPDATED;
+  static const NotificationLogDtoOutputItemsInnerKindEnum LOYALTY_UPDATED = _$notificationLogDtoOutputItemsInnerKindEnum_LOYALTY_UPDATED;
   @BuiltValueEnumConst(wireName: r'PROMOTION')
-  static const NotificationLogDtoOutputItemsInnerKindEnum PROMOTION =
-      _$notificationLogDtoOutputItemsInnerKindEnum_PROMOTION;
+  static const NotificationLogDtoOutputItemsInnerKindEnum PROMOTION = _$notificationLogDtoOutputItemsInnerKindEnum_PROMOTION;
 
-  static Serializer<NotificationLogDtoOutputItemsInnerKindEnum>
-      get serializer => _$notificationLogDtoOutputItemsInnerKindEnumSerializer;
+  static Serializer<NotificationLogDtoOutputItemsInnerKindEnum> get serializer => _$notificationLogDtoOutputItemsInnerKindEnumSerializer;
 
-  const NotificationLogDtoOutputItemsInnerKindEnum._(String name) : super(name);
+  const NotificationLogDtoOutputItemsInnerKindEnum._(String name): super(name);
 
-  static BuiltSet<NotificationLogDtoOutputItemsInnerKindEnum> get values =>
-      _$notificationLogDtoOutputItemsInnerKindEnumValues;
-  static NotificationLogDtoOutputItemsInnerKindEnum valueOf(String name) =>
-      _$notificationLogDtoOutputItemsInnerKindEnumValueOf(name);
+  static BuiltSet<NotificationLogDtoOutputItemsInnerKindEnum> get values => _$notificationLogDtoOutputItemsInnerKindEnumValues;
+  static NotificationLogDtoOutputItemsInnerKindEnum valueOf(String name) => _$notificationLogDtoOutputItemsInnerKindEnumValueOf(name);
 }
 
 class NotificationLogDtoOutputItemsInnerChannelEnum extends EnumClass {
+
   @BuiltValueEnumConst(wireName: r'EMAIL')
-  static const NotificationLogDtoOutputItemsInnerChannelEnum EMAIL =
-      _$notificationLogDtoOutputItemsInnerChannelEnum_EMAIL;
+  static const NotificationLogDtoOutputItemsInnerChannelEnum EMAIL = _$notificationLogDtoOutputItemsInnerChannelEnum_EMAIL;
   @BuiltValueEnumConst(wireName: r'PUSH')
-  static const NotificationLogDtoOutputItemsInnerChannelEnum PUSH =
-      _$notificationLogDtoOutputItemsInnerChannelEnum_PUSH;
+  static const NotificationLogDtoOutputItemsInnerChannelEnum PUSH = _$notificationLogDtoOutputItemsInnerChannelEnum_PUSH;
   @BuiltValueEnumConst(wireName: r'SMS')
-  static const NotificationLogDtoOutputItemsInnerChannelEnum SMS =
-      _$notificationLogDtoOutputItemsInnerChannelEnum_SMS;
+  static const NotificationLogDtoOutputItemsInnerChannelEnum SMS = _$notificationLogDtoOutputItemsInnerChannelEnum_SMS;
 
-  static Serializer<NotificationLogDtoOutputItemsInnerChannelEnum>
-      get serializer =>
-          _$notificationLogDtoOutputItemsInnerChannelEnumSerializer;
+  static Serializer<NotificationLogDtoOutputItemsInnerChannelEnum> get serializer => _$notificationLogDtoOutputItemsInnerChannelEnumSerializer;
 
-  const NotificationLogDtoOutputItemsInnerChannelEnum._(String name)
-      : super(name);
+  const NotificationLogDtoOutputItemsInnerChannelEnum._(String name): super(name);
 
-  static BuiltSet<NotificationLogDtoOutputItemsInnerChannelEnum> get values =>
-      _$notificationLogDtoOutputItemsInnerChannelEnumValues;
-  static NotificationLogDtoOutputItemsInnerChannelEnum valueOf(String name) =>
-      _$notificationLogDtoOutputItemsInnerChannelEnumValueOf(name);
+  static BuiltSet<NotificationLogDtoOutputItemsInnerChannelEnum> get values => _$notificationLogDtoOutputItemsInnerChannelEnumValues;
+  static NotificationLogDtoOutputItemsInnerChannelEnum valueOf(String name) => _$notificationLogDtoOutputItemsInnerChannelEnumValueOf(name);
 }
 
 class NotificationLogDtoOutputItemsInnerStatusEnum extends EnumClass {
+
   @BuiltValueEnumConst(wireName: r'PENDING')
-  static const NotificationLogDtoOutputItemsInnerStatusEnum PENDING =
-      _$notificationLogDtoOutputItemsInnerStatusEnum_PENDING;
+  static const NotificationLogDtoOutputItemsInnerStatusEnum PENDING = _$notificationLogDtoOutputItemsInnerStatusEnum_PENDING;
   @BuiltValueEnumConst(wireName: r'SENT')
-  static const NotificationLogDtoOutputItemsInnerStatusEnum SENT =
-      _$notificationLogDtoOutputItemsInnerStatusEnum_SENT;
+  static const NotificationLogDtoOutputItemsInnerStatusEnum SENT = _$notificationLogDtoOutputItemsInnerStatusEnum_SENT;
   @BuiltValueEnumConst(wireName: r'FAILED')
-  static const NotificationLogDtoOutputItemsInnerStatusEnum FAILED =
-      _$notificationLogDtoOutputItemsInnerStatusEnum_FAILED;
+  static const NotificationLogDtoOutputItemsInnerStatusEnum FAILED = _$notificationLogDtoOutputItemsInnerStatusEnum_FAILED;
   @BuiltValueEnumConst(wireName: r'SKIPPED')
-  static const NotificationLogDtoOutputItemsInnerStatusEnum SKIPPED =
-      _$notificationLogDtoOutputItemsInnerStatusEnum_SKIPPED;
+  static const NotificationLogDtoOutputItemsInnerStatusEnum SKIPPED = _$notificationLogDtoOutputItemsInnerStatusEnum_SKIPPED;
 
-  static Serializer<NotificationLogDtoOutputItemsInnerStatusEnum>
-      get serializer =>
-          _$notificationLogDtoOutputItemsInnerStatusEnumSerializer;
+  static Serializer<NotificationLogDtoOutputItemsInnerStatusEnum> get serializer => _$notificationLogDtoOutputItemsInnerStatusEnumSerializer;
 
-  const NotificationLogDtoOutputItemsInnerStatusEnum._(String name)
-      : super(name);
+  const NotificationLogDtoOutputItemsInnerStatusEnum._(String name): super(name);
 
-  static BuiltSet<NotificationLogDtoOutputItemsInnerStatusEnum> get values =>
-      _$notificationLogDtoOutputItemsInnerStatusEnumValues;
-  static NotificationLogDtoOutputItemsInnerStatusEnum valueOf(String name) =>
-      _$notificationLogDtoOutputItemsInnerStatusEnumValueOf(name);
+  static BuiltSet<NotificationLogDtoOutputItemsInnerStatusEnum> get values => _$notificationLogDtoOutputItemsInnerStatusEnumValues;
+  static NotificationLogDtoOutputItemsInnerStatusEnum valueOf(String name) => _$notificationLogDtoOutputItemsInnerStatusEnumValueOf(name);
 }
+

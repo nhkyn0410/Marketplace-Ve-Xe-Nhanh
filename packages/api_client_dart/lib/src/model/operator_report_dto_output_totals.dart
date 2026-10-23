@@ -11,21 +11,18 @@ part 'operator_report_dto_output_totals.g.dart';
 /// OperatorReportDtoOutputTotals
 ///
 /// Properties:
-/// * [grossRevenue]
-/// * [trips]
-/// * [completedTrips]
-/// * [ticketsSold]
-/// * [bookings]
-/// * [seats]
-/// * [cancelledTickets]
-/// * [refundedTickets]
-/// * [averageRating]
-/// * [reviewCount]
+/// * [grossRevenue] 
+/// * [trips] 
+/// * [completedTrips] 
+/// * [ticketsSold] 
+/// * [bookings] 
+/// * [seats] 
+/// * [cancelledTickets] 
+/// * [refundedTickets] 
+/// * [averageRating] 
+/// * [reviewCount] 
 @BuiltValue()
-abstract class OperatorReportDtoOutputTotals
-    implements
-        Built<OperatorReportDtoOutputTotals,
-            OperatorReportDtoOutputTotalsBuilder> {
+abstract class OperatorReportDtoOutputTotals implements Built<OperatorReportDtoOutputTotals, OperatorReportDtoOutputTotalsBuilder> {
   @BuiltValueField(wireName: r'grossRevenue')
   int get grossRevenue;
 
@@ -58,25 +55,18 @@ abstract class OperatorReportDtoOutputTotals
 
   OperatorReportDtoOutputTotals._();
 
-  factory OperatorReportDtoOutputTotals(
-          [void updates(OperatorReportDtoOutputTotalsBuilder b)]) =
-      _$OperatorReportDtoOutputTotals;
+  factory OperatorReportDtoOutputTotals([void updates(OperatorReportDtoOutputTotalsBuilder b)]) = _$OperatorReportDtoOutputTotals;
 
   @BuiltValueHook(initializeBuilder: true)
   static void _defaults(OperatorReportDtoOutputTotalsBuilder b) => b;
 
   @BuiltValueSerializer(custom: true)
-  static Serializer<OperatorReportDtoOutputTotals> get serializer =>
-      _$OperatorReportDtoOutputTotalsSerializer();
+  static Serializer<OperatorReportDtoOutputTotals> get serializer => _$OperatorReportDtoOutputTotalsSerializer();
 }
 
-class _$OperatorReportDtoOutputTotalsSerializer
-    implements PrimitiveSerializer<OperatorReportDtoOutputTotals> {
+class _$OperatorReportDtoOutputTotalsSerializer implements PrimitiveSerializer<OperatorReportDtoOutputTotals> {
   @override
-  final Iterable<Type> types = const [
-    OperatorReportDtoOutputTotals,
-    _$OperatorReportDtoOutputTotals
-  ];
+  final Iterable<Type> types = const [OperatorReportDtoOutputTotals, _$OperatorReportDtoOutputTotals];
 
   @override
   final String wireName = r'OperatorReportDtoOutputTotals';
@@ -127,12 +117,10 @@ class _$OperatorReportDtoOutputTotalsSerializer
       specifiedType: const FullType(int),
     );
     yield r'averageRating';
-    yield object.averageRating == null
-        ? null
-        : serializers.serialize(
-            object.averageRating,
-            specifiedType: const FullType.nullable(num),
-          );
+    yield object.averageRating == null ? null : serializers.serialize(
+      object.averageRating,
+      specifiedType: const FullType.nullable(num),
+    );
     yield r'reviewCount';
     yield serializers.serialize(
       object.reviewCount,
@@ -146,9 +134,7 @@ class _$OperatorReportDtoOutputTotalsSerializer
     OperatorReportDtoOutputTotals object, {
     FullType specifiedType = FullType.unspecified,
   }) {
-    return _serializeProperties(serializers, object,
-            specifiedType: specifiedType)
-        .toList();
+    return _serializeProperties(serializers, object, specifiedType: specifiedType).toList();
   }
 
   void _deserializeProperties(
@@ -262,3 +248,5 @@ class _$OperatorReportDtoOutputTotalsSerializer
     return result.build();
   }
 }
+
+

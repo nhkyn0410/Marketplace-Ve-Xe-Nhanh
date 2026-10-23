@@ -12,12 +12,11 @@ part 'preference_input_dto.g.dart';
 /// PreferenceInputDto
 ///
 /// Properties:
-/// * [kind]
-/// * [email]
-/// * [push]
+/// * [kind] 
+/// * [email] 
+/// * [push] 
 @BuiltValue()
-abstract class PreferenceInputDto
-    implements Built<PreferenceInputDto, PreferenceInputDtoBuilder> {
+abstract class PreferenceInputDto implements Built<PreferenceInputDto, PreferenceInputDtoBuilder> {
   @BuiltValueField(wireName: r'kind')
   PreferenceInputDtoKindEnum get kind;
   // enum kindEnum {  BOOKING_CONFIRMED,  TICKETS_CANCELLED,  REFUND_SUCCEEDED,  TRIP_CHANGED,  TRIP_CANCELLED,  MANUAL_REFUND,  CASE_UPDATED,  OPERATIONS_ALERT,  LOYALTY_UPDATED,  PROMOTION,  };
@@ -30,19 +29,16 @@ abstract class PreferenceInputDto
 
   PreferenceInputDto._();
 
-  factory PreferenceInputDto([void updates(PreferenceInputDtoBuilder b)]) =
-      _$PreferenceInputDto;
+  factory PreferenceInputDto([void updates(PreferenceInputDtoBuilder b)]) = _$PreferenceInputDto;
 
   @BuiltValueHook(initializeBuilder: true)
   static void _defaults(PreferenceInputDtoBuilder b) => b;
 
   @BuiltValueSerializer(custom: true)
-  static Serializer<PreferenceInputDto> get serializer =>
-      _$PreferenceInputDtoSerializer();
+  static Serializer<PreferenceInputDto> get serializer => _$PreferenceInputDtoSerializer();
 }
 
-class _$PreferenceInputDtoSerializer
-    implements PrimitiveSerializer<PreferenceInputDto> {
+class _$PreferenceInputDtoSerializer implements PrimitiveSerializer<PreferenceInputDto> {
   @override
   final Iterable<Type> types = const [PreferenceInputDto, _$PreferenceInputDto];
 
@@ -77,9 +73,7 @@ class _$PreferenceInputDtoSerializer
     PreferenceInputDto object, {
     FullType specifiedType = FullType.unspecified,
   }) {
-    return _serializeProperties(serializers, object,
-            specifiedType: specifiedType)
-        .toList();
+    return _serializeProperties(serializers, object, specifiedType: specifiedType).toList();
   }
 
   void _deserializeProperties(
@@ -144,45 +138,35 @@ class _$PreferenceInputDtoSerializer
   }
 }
 
+
 class PreferenceInputDtoKindEnum extends EnumClass {
+
   @BuiltValueEnumConst(wireName: r'BOOKING_CONFIRMED')
-  static const PreferenceInputDtoKindEnum BOOKING_CONFIRMED =
-      _$preferenceInputDtoKindEnum_BOOKING_CONFIRMED;
+  static const PreferenceInputDtoKindEnum BOOKING_CONFIRMED = _$preferenceInputDtoKindEnum_BOOKING_CONFIRMED;
   @BuiltValueEnumConst(wireName: r'TICKETS_CANCELLED')
-  static const PreferenceInputDtoKindEnum TICKETS_CANCELLED =
-      _$preferenceInputDtoKindEnum_TICKETS_CANCELLED;
+  static const PreferenceInputDtoKindEnum TICKETS_CANCELLED = _$preferenceInputDtoKindEnum_TICKETS_CANCELLED;
   @BuiltValueEnumConst(wireName: r'REFUND_SUCCEEDED')
-  static const PreferenceInputDtoKindEnum REFUND_SUCCEEDED =
-      _$preferenceInputDtoKindEnum_REFUND_SUCCEEDED;
+  static const PreferenceInputDtoKindEnum REFUND_SUCCEEDED = _$preferenceInputDtoKindEnum_REFUND_SUCCEEDED;
   @BuiltValueEnumConst(wireName: r'TRIP_CHANGED')
-  static const PreferenceInputDtoKindEnum TRIP_CHANGED =
-      _$preferenceInputDtoKindEnum_TRIP_CHANGED;
+  static const PreferenceInputDtoKindEnum TRIP_CHANGED = _$preferenceInputDtoKindEnum_TRIP_CHANGED;
   @BuiltValueEnumConst(wireName: r'TRIP_CANCELLED')
-  static const PreferenceInputDtoKindEnum TRIP_CANCELLED =
-      _$preferenceInputDtoKindEnum_TRIP_CANCELLED;
+  static const PreferenceInputDtoKindEnum TRIP_CANCELLED = _$preferenceInputDtoKindEnum_TRIP_CANCELLED;
   @BuiltValueEnumConst(wireName: r'MANUAL_REFUND')
-  static const PreferenceInputDtoKindEnum MANUAL_REFUND =
-      _$preferenceInputDtoKindEnum_MANUAL_REFUND;
+  static const PreferenceInputDtoKindEnum MANUAL_REFUND = _$preferenceInputDtoKindEnum_MANUAL_REFUND;
   @BuiltValueEnumConst(wireName: r'CASE_UPDATED')
-  static const PreferenceInputDtoKindEnum CASE_UPDATED =
-      _$preferenceInputDtoKindEnum_CASE_UPDATED;
+  static const PreferenceInputDtoKindEnum CASE_UPDATED = _$preferenceInputDtoKindEnum_CASE_UPDATED;
   @BuiltValueEnumConst(wireName: r'OPERATIONS_ALERT')
-  static const PreferenceInputDtoKindEnum OPERATIONS_ALERT =
-      _$preferenceInputDtoKindEnum_OPERATIONS_ALERT;
+  static const PreferenceInputDtoKindEnum OPERATIONS_ALERT = _$preferenceInputDtoKindEnum_OPERATIONS_ALERT;
   @BuiltValueEnumConst(wireName: r'LOYALTY_UPDATED')
-  static const PreferenceInputDtoKindEnum LOYALTY_UPDATED =
-      _$preferenceInputDtoKindEnum_LOYALTY_UPDATED;
+  static const PreferenceInputDtoKindEnum LOYALTY_UPDATED = _$preferenceInputDtoKindEnum_LOYALTY_UPDATED;
   @BuiltValueEnumConst(wireName: r'PROMOTION')
-  static const PreferenceInputDtoKindEnum PROMOTION =
-      _$preferenceInputDtoKindEnum_PROMOTION;
+  static const PreferenceInputDtoKindEnum PROMOTION = _$preferenceInputDtoKindEnum_PROMOTION;
 
-  static Serializer<PreferenceInputDtoKindEnum> get serializer =>
-      _$preferenceInputDtoKindEnumSerializer;
+  static Serializer<PreferenceInputDtoKindEnum> get serializer => _$preferenceInputDtoKindEnumSerializer;
 
-  const PreferenceInputDtoKindEnum._(String name) : super(name);
+  const PreferenceInputDtoKindEnum._(String name): super(name);
 
-  static BuiltSet<PreferenceInputDtoKindEnum> get values =>
-      _$preferenceInputDtoKindEnumValues;
-  static PreferenceInputDtoKindEnum valueOf(String name) =>
-      _$preferenceInputDtoKindEnumValueOf(name);
+  static BuiltSet<PreferenceInputDtoKindEnum> get values => _$preferenceInputDtoKindEnumValues;
+  static PreferenceInputDtoKindEnum valueOf(String name) => _$preferenceInputDtoKindEnumValueOf(name);
 }
+

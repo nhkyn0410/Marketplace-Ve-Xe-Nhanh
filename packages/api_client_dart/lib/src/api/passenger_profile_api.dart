@@ -21,6 +21,7 @@ import 'package:api_client_dart/src/model/saved_passenger_input_dto.dart';
 import 'package:api_client_dart/src/model/saved_passenger_list_dto_output.dart';
 
 class PassengerProfileApi {
+
   final Dio _dio;
 
   final Serializers _serializers;
@@ -28,11 +29,11 @@ class PassengerProfileApi {
   const PassengerProfileApi(this._dio, this._serializers);
 
   /// passengerProfileControllerBookings
-  ///
+  /// 
   ///
   /// Parameters:
-  /// * [cursor]
-  /// * [limit]
+  /// * [cursor] 
+  /// * [limit] 
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
   /// * [extras] - Can be used to add flags to the request
@@ -42,8 +43,7 @@ class PassengerProfileApi {
   ///
   /// Returns a [Future] containing a [Response] with a [PassengerBookingPageDtoOutput] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<PassengerBookingPageDtoOutput>>
-      passengerProfileControllerBookings({
+  Future<Response<PassengerBookingPageDtoOutput>> passengerProfileControllerBookings({ 
     String? cursor,
     num? limit = 20,
     CancelToken? cancelToken,
@@ -73,12 +73,8 @@ class PassengerProfileApi {
     );
 
     final _queryParameters = <String, dynamic>{
-      if (cursor != null)
-        r'cursor':
-            encodeQueryParameter(_serializers, cursor, const FullType(String)),
-      if (limit != null)
-        r'limit':
-            encodeQueryParameter(_serializers, limit, const FullType(num)),
+      if (cursor != null) r'cursor': encodeQueryParameter(_serializers, cursor, const FullType(String)),
+      if (limit != null) r'limit': encodeQueryParameter(_serializers, limit, const FullType(num)),
     };
 
     final _response = await _dio.request<Object>(
@@ -94,12 +90,11 @@ class PassengerProfileApi {
 
     try {
       final rawResponse = _response.data;
-      _responseData = rawResponse == null
-          ? null
-          : _serializers.deserialize(
-              rawResponse,
-              specifiedType: const FullType(PassengerBookingPageDtoOutput),
-            ) as PassengerBookingPageDtoOutput;
+      _responseData = rawResponse == null ? null : _serializers.deserialize(
+        rawResponse,
+        specifiedType: const FullType(PassengerBookingPageDtoOutput),
+      ) as PassengerBookingPageDtoOutput;
+
     } catch (error, stackTrace) {
       throw DioException(
         requestOptions: _response.requestOptions,
@@ -123,10 +118,10 @@ class PassengerProfileApi {
   }
 
   /// passengerProfileControllerCreateSaved
-  ///
+  /// 
   ///
   /// Parameters:
-  /// * [savedPassengerInputDto]
+  /// * [savedPassengerInputDto] 
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
   /// * [extras] - Can be used to add flags to the request
@@ -136,8 +131,7 @@ class PassengerProfileApi {
   ///
   /// Returns a [Future] containing a [Response] with a [SavedPassengerDtoOutput] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<SavedPassengerDtoOutput>>
-      passengerProfileControllerCreateSaved({
+  Future<Response<SavedPassengerDtoOutput>> passengerProfileControllerCreateSaved({ 
     required SavedPassengerInputDto savedPassengerInputDto,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -170,11 +164,11 @@ class PassengerProfileApi {
 
     try {
       const _type = FullType(SavedPassengerInputDto);
-      _bodyData =
-          _serializers.serialize(savedPassengerInputDto, specifiedType: _type);
-    } catch (error, stackTrace) {
+      _bodyData = _serializers.serialize(savedPassengerInputDto, specifiedType: _type);
+
+    } catch(error, stackTrace) {
       throw DioException(
-        requestOptions: _options.compose(
+         requestOptions: _options.compose(
           _dio.options,
           _path,
         ),
@@ -197,12 +191,11 @@ class PassengerProfileApi {
 
     try {
       final rawResponse = _response.data;
-      _responseData = rawResponse == null
-          ? null
-          : _serializers.deserialize(
-              rawResponse,
-              specifiedType: const FullType(SavedPassengerDtoOutput),
-            ) as SavedPassengerDtoOutput;
+      _responseData = rawResponse == null ? null : _serializers.deserialize(
+        rawResponse,
+        specifiedType: const FullType(SavedPassengerDtoOutput),
+      ) as SavedPassengerDtoOutput;
+
     } catch (error, stackTrace) {
       throw DioException(
         requestOptions: _response.requestOptions,
@@ -226,10 +219,10 @@ class PassengerProfileApi {
   }
 
   /// passengerProfileControllerDeleteSaved
-  ///
+  /// 
   ///
   /// Parameters:
-  /// * [passengerId]
+  /// * [passengerId] 
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
   /// * [extras] - Can be used to add flags to the request
@@ -239,7 +232,7 @@ class PassengerProfileApi {
   ///
   /// Returns a [Future]
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<void>> passengerProfileControllerDeleteSaved({
+  Future<Response<void>> passengerProfileControllerDeleteSaved({ 
     required String passengerId,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -248,10 +241,7 @@ class PassengerProfileApi {
     ProgressCallback? onSendProgress,
     ProgressCallback? onReceiveProgress,
   }) async {
-    final _path = r'/v1/me/saved-passengers/{passengerId}'.replaceAll(
-        '{' r'passengerId' '}',
-        encodeQueryParameter(_serializers, passengerId, const FullType(String))
-            .toString());
+    final _path = r'/v1/me/saved-passengers/{passengerId}'.replaceAll('{' r'passengerId' '}', encodeQueryParameter(_serializers, passengerId, const FullType(String)).toString());
     final _options = Options(
       method: r'DELETE',
       headers: <String, dynamic>{
@@ -282,11 +272,11 @@ class PassengerProfileApi {
   }
 
   /// passengerProfileControllerDisputes
-  ///
+  /// 
   ///
   /// Parameters:
-  /// * [cursor]
-  /// * [limit]
+  /// * [cursor] 
+  /// * [limit] 
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
   /// * [extras] - Can be used to add flags to the request
@@ -296,8 +286,7 @@ class PassengerProfileApi {
   ///
   /// Returns a [Future] containing a [Response] with a [PassengerDisputePageDtoOutput] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<PassengerDisputePageDtoOutput>>
-      passengerProfileControllerDisputes({
+  Future<Response<PassengerDisputePageDtoOutput>> passengerProfileControllerDisputes({ 
     String? cursor,
     num? limit = 20,
     CancelToken? cancelToken,
@@ -327,12 +316,8 @@ class PassengerProfileApi {
     );
 
     final _queryParameters = <String, dynamic>{
-      if (cursor != null)
-        r'cursor':
-            encodeQueryParameter(_serializers, cursor, const FullType(String)),
-      if (limit != null)
-        r'limit':
-            encodeQueryParameter(_serializers, limit, const FullType(num)),
+      if (cursor != null) r'cursor': encodeQueryParameter(_serializers, cursor, const FullType(String)),
+      if (limit != null) r'limit': encodeQueryParameter(_serializers, limit, const FullType(num)),
     };
 
     final _response = await _dio.request<Object>(
@@ -348,12 +333,11 @@ class PassengerProfileApi {
 
     try {
       final rawResponse = _response.data;
-      _responseData = rawResponse == null
-          ? null
-          : _serializers.deserialize(
-              rawResponse,
-              specifiedType: const FullType(PassengerDisputePageDtoOutput),
-            ) as PassengerDisputePageDtoOutput;
+      _responseData = rawResponse == null ? null : _serializers.deserialize(
+        rawResponse,
+        specifiedType: const FullType(PassengerDisputePageDtoOutput),
+      ) as PassengerDisputePageDtoOutput;
+
     } catch (error, stackTrace) {
       throw DioException(
         requestOptions: _response.requestOptions,
@@ -377,7 +361,7 @@ class PassengerProfileApi {
   }
 
   /// passengerProfileControllerGet
-  ///
+  /// 
   ///
   /// Parameters:
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
@@ -389,7 +373,7 @@ class PassengerProfileApi {
   ///
   /// Returns a [Future] containing a [Response] with a [PassengerProfileDtoOutput] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<PassengerProfileDtoOutput>> passengerProfileControllerGet({
+  Future<Response<PassengerProfileDtoOutput>> passengerProfileControllerGet({ 
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
     Map<String, dynamic>? extra,
@@ -428,12 +412,11 @@ class PassengerProfileApi {
 
     try {
       final rawResponse = _response.data;
-      _responseData = rawResponse == null
-          ? null
-          : _serializers.deserialize(
-              rawResponse,
-              specifiedType: const FullType(PassengerProfileDtoOutput),
-            ) as PassengerProfileDtoOutput;
+      _responseData = rawResponse == null ? null : _serializers.deserialize(
+        rawResponse,
+        specifiedType: const FullType(PassengerProfileDtoOutput),
+      ) as PassengerProfileDtoOutput;
+
     } catch (error, stackTrace) {
       throw DioException(
         requestOptions: _response.requestOptions,
@@ -457,7 +440,7 @@ class PassengerProfileApi {
   }
 
   /// passengerProfileControllerSaved
-  ///
+  /// 
   ///
   /// Parameters:
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
@@ -469,8 +452,7 @@ class PassengerProfileApi {
   ///
   /// Returns a [Future] containing a [Response] with a [SavedPassengerListDtoOutput] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<SavedPassengerListDtoOutput>>
-      passengerProfileControllerSaved({
+  Future<Response<SavedPassengerListDtoOutput>> passengerProfileControllerSaved({ 
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
     Map<String, dynamic>? extra,
@@ -509,12 +491,11 @@ class PassengerProfileApi {
 
     try {
       final rawResponse = _response.data;
-      _responseData = rawResponse == null
-          ? null
-          : _serializers.deserialize(
-              rawResponse,
-              specifiedType: const FullType(SavedPassengerListDtoOutput),
-            ) as SavedPassengerListDtoOutput;
+      _responseData = rawResponse == null ? null : _serializers.deserialize(
+        rawResponse,
+        specifiedType: const FullType(SavedPassengerListDtoOutput),
+      ) as SavedPassengerListDtoOutput;
+
     } catch (error, stackTrace) {
       throw DioException(
         requestOptions: _response.requestOptions,
@@ -538,11 +519,11 @@ class PassengerProfileApi {
   }
 
   /// passengerProfileControllerSupportTickets
-  ///
+  /// 
   ///
   /// Parameters:
-  /// * [cursor]
-  /// * [limit]
+  /// * [cursor] 
+  /// * [limit] 
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
   /// * [extras] - Can be used to add flags to the request
@@ -552,8 +533,7 @@ class PassengerProfileApi {
   ///
   /// Returns a [Future] containing a [Response] with a [PassengerSupportPageDtoOutput] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<PassengerSupportPageDtoOutput>>
-      passengerProfileControllerSupportTickets({
+  Future<Response<PassengerSupportPageDtoOutput>> passengerProfileControllerSupportTickets({ 
     String? cursor,
     num? limit = 20,
     CancelToken? cancelToken,
@@ -583,12 +563,8 @@ class PassengerProfileApi {
     );
 
     final _queryParameters = <String, dynamic>{
-      if (cursor != null)
-        r'cursor':
-            encodeQueryParameter(_serializers, cursor, const FullType(String)),
-      if (limit != null)
-        r'limit':
-            encodeQueryParameter(_serializers, limit, const FullType(num)),
+      if (cursor != null) r'cursor': encodeQueryParameter(_serializers, cursor, const FullType(String)),
+      if (limit != null) r'limit': encodeQueryParameter(_serializers, limit, const FullType(num)),
     };
 
     final _response = await _dio.request<Object>(
@@ -604,12 +580,11 @@ class PassengerProfileApi {
 
     try {
       final rawResponse = _response.data;
-      _responseData = rawResponse == null
-          ? null
-          : _serializers.deserialize(
-              rawResponse,
-              specifiedType: const FullType(PassengerSupportPageDtoOutput),
-            ) as PassengerSupportPageDtoOutput;
+      _responseData = rawResponse == null ? null : _serializers.deserialize(
+        rawResponse,
+        specifiedType: const FullType(PassengerSupportPageDtoOutput),
+      ) as PassengerSupportPageDtoOutput;
+
     } catch (error, stackTrace) {
       throw DioException(
         requestOptions: _response.requestOptions,
@@ -633,11 +608,11 @@ class PassengerProfileApi {
   }
 
   /// passengerProfileControllerTickets
-  ///
+  /// 
   ///
   /// Parameters:
-  /// * [cursor]
-  /// * [limit]
+  /// * [cursor] 
+  /// * [limit] 
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
   /// * [extras] - Can be used to add flags to the request
@@ -647,8 +622,7 @@ class PassengerProfileApi {
   ///
   /// Returns a [Future] containing a [Response] with a [PassengerTicketPageDtoOutput] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<PassengerTicketPageDtoOutput>>
-      passengerProfileControllerTickets({
+  Future<Response<PassengerTicketPageDtoOutput>> passengerProfileControllerTickets({ 
     String? cursor,
     num? limit = 20,
     CancelToken? cancelToken,
@@ -678,12 +652,8 @@ class PassengerProfileApi {
     );
 
     final _queryParameters = <String, dynamic>{
-      if (cursor != null)
-        r'cursor':
-            encodeQueryParameter(_serializers, cursor, const FullType(String)),
-      if (limit != null)
-        r'limit':
-            encodeQueryParameter(_serializers, limit, const FullType(num)),
+      if (cursor != null) r'cursor': encodeQueryParameter(_serializers, cursor, const FullType(String)),
+      if (limit != null) r'limit': encodeQueryParameter(_serializers, limit, const FullType(num)),
     };
 
     final _response = await _dio.request<Object>(
@@ -699,12 +669,11 @@ class PassengerProfileApi {
 
     try {
       final rawResponse = _response.data;
-      _responseData = rawResponse == null
-          ? null
-          : _serializers.deserialize(
-              rawResponse,
-              specifiedType: const FullType(PassengerTicketPageDtoOutput),
-            ) as PassengerTicketPageDtoOutput;
+      _responseData = rawResponse == null ? null : _serializers.deserialize(
+        rawResponse,
+        specifiedType: const FullType(PassengerTicketPageDtoOutput),
+      ) as PassengerTicketPageDtoOutput;
+
     } catch (error, stackTrace) {
       throw DioException(
         requestOptions: _response.requestOptions,
@@ -728,10 +697,10 @@ class PassengerProfileApi {
   }
 
   /// passengerProfileControllerUpdate
-  ///
+  /// 
   ///
   /// Parameters:
-  /// * [passengerProfileUpdateDto]
+  /// * [passengerProfileUpdateDto] 
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
   /// * [extras] - Can be used to add flags to the request
@@ -741,7 +710,7 @@ class PassengerProfileApi {
   ///
   /// Returns a [Future] containing a [Response] with a [PassengerProfileDtoOutput] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<PassengerProfileDtoOutput>> passengerProfileControllerUpdate({
+  Future<Response<PassengerProfileDtoOutput>> passengerProfileControllerUpdate({ 
     required PassengerProfileUpdateDto passengerProfileUpdateDto,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -774,11 +743,11 @@ class PassengerProfileApi {
 
     try {
       const _type = FullType(PassengerProfileUpdateDto);
-      _bodyData = _serializers.serialize(passengerProfileUpdateDto,
-          specifiedType: _type);
-    } catch (error, stackTrace) {
+      _bodyData = _serializers.serialize(passengerProfileUpdateDto, specifiedType: _type);
+
+    } catch(error, stackTrace) {
       throw DioException(
-        requestOptions: _options.compose(
+         requestOptions: _options.compose(
           _dio.options,
           _path,
         ),
@@ -801,12 +770,11 @@ class PassengerProfileApi {
 
     try {
       final rawResponse = _response.data;
-      _responseData = rawResponse == null
-          ? null
-          : _serializers.deserialize(
-              rawResponse,
-              specifiedType: const FullType(PassengerProfileDtoOutput),
-            ) as PassengerProfileDtoOutput;
+      _responseData = rawResponse == null ? null : _serializers.deserialize(
+        rawResponse,
+        specifiedType: const FullType(PassengerProfileDtoOutput),
+      ) as PassengerProfileDtoOutput;
+
     } catch (error, stackTrace) {
       throw DioException(
         requestOptions: _response.requestOptions,
@@ -830,11 +798,11 @@ class PassengerProfileApi {
   }
 
   /// passengerProfileControllerUpdateSaved
-  ///
+  /// 
   ///
   /// Parameters:
-  /// * [passengerId]
-  /// * [savedPassengerInputDto]
+  /// * [passengerId] 
+  /// * [savedPassengerInputDto] 
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
   /// * [extras] - Can be used to add flags to the request
@@ -844,8 +812,7 @@ class PassengerProfileApi {
   ///
   /// Returns a [Future] containing a [Response] with a [SavedPassengerDtoOutput] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<SavedPassengerDtoOutput>>
-      passengerProfileControllerUpdateSaved({
+  Future<Response<SavedPassengerDtoOutput>> passengerProfileControllerUpdateSaved({ 
     required String passengerId,
     required SavedPassengerInputDto savedPassengerInputDto,
     CancelToken? cancelToken,
@@ -855,10 +822,7 @@ class PassengerProfileApi {
     ProgressCallback? onSendProgress,
     ProgressCallback? onReceiveProgress,
   }) async {
-    final _path = r'/v1/me/saved-passengers/{passengerId}'.replaceAll(
-        '{' r'passengerId' '}',
-        encodeQueryParameter(_serializers, passengerId, const FullType(String))
-            .toString());
+    final _path = r'/v1/me/saved-passengers/{passengerId}'.replaceAll('{' r'passengerId' '}', encodeQueryParameter(_serializers, passengerId, const FullType(String)).toString());
     final _options = Options(
       method: r'PUT',
       headers: <String, dynamic>{
@@ -882,11 +846,11 @@ class PassengerProfileApi {
 
     try {
       const _type = FullType(SavedPassengerInputDto);
-      _bodyData =
-          _serializers.serialize(savedPassengerInputDto, specifiedType: _type);
-    } catch (error, stackTrace) {
+      _bodyData = _serializers.serialize(savedPassengerInputDto, specifiedType: _type);
+
+    } catch(error, stackTrace) {
       throw DioException(
-        requestOptions: _options.compose(
+         requestOptions: _options.compose(
           _dio.options,
           _path,
         ),
@@ -909,12 +873,11 @@ class PassengerProfileApi {
 
     try {
       final rawResponse = _response.data;
-      _responseData = rawResponse == null
-          ? null
-          : _serializers.deserialize(
-              rawResponse,
-              specifiedType: const FullType(SavedPassengerDtoOutput),
-            ) as SavedPassengerDtoOutput;
+      _responseData = rawResponse == null ? null : _serializers.deserialize(
+        rawResponse,
+        specifiedType: const FullType(SavedPassengerDtoOutput),
+      ) as SavedPassengerDtoOutput;
+
     } catch (error, stackTrace) {
       throw DioException(
         requestOptions: _response.requestOptions,
@@ -936,4 +899,5 @@ class PassengerProfileApi {
       extra: _response.extra,
     );
   }
+
 }

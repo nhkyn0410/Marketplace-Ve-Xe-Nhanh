@@ -16,6 +16,7 @@ part 'admin_platform_account_list_dto_output_items_inner.g.dart';
 /// * [username] 
 /// * [email] 
 /// * [role] 
+/// * [permissions] 
 /// * [status] 
 /// * [mfaEnabled] 
 /// * [passwordChangeRequired] 
@@ -38,6 +39,10 @@ abstract class AdminPlatformAccountListDtoOutputItemsInner implements Built<Admi
   @BuiltValueField(wireName: r'role')
   AdminPlatformAccountListDtoOutputItemsInnerRoleEnum get role;
   // enum roleEnum {  PLATFORM_ADMIN,  PLATFORM_SUPPORT,  };
+
+  @BuiltValueField(wireName: r'permissions')
+  BuiltList<AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum> get permissions;
+  // enum permissionsEnum {  profile:manage,  loyalty:use,  notification:manage,  incident:create,  journey-log:create,  system:run,  trip:search,  booking:create,  booking:read,  payment:create,  payment:monitor,  refund:request,  vehicle:manage,  vehicle:read,  route:manage,  trip:manage,  checkin:perform,  checkin:read,  trip:operate,  kyc:submit,  kyc:review,  catalog:manage,  content:moderate,  content:manage,  user:manage,  system:read,  finance:read,  finance:configure,  audit:read,  employee:manage,  account:lock,  support:create,  review:create,  support:respond,  support:manage,  dispute:decide,  promotion:manage,  promotion:configure,  loyalty:manage,  access:manage,  transport:read,  manager:manage,  payout:manage,  refund:manage,  };
 
   @BuiltValueField(wireName: r'status')
   AdminPlatformAccountListDtoOutputItemsInnerStatusEnum get status;
@@ -106,6 +111,11 @@ class _$AdminPlatformAccountListDtoOutputItemsInnerSerializer implements Primiti
     yield serializers.serialize(
       object.role,
       specifiedType: const FullType(AdminPlatformAccountListDtoOutputItemsInnerRoleEnum),
+    );
+    yield r'permissions';
+    yield serializers.serialize(
+      object.permissions,
+      specifiedType: const FullType(BuiltList, [FullType(AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum)]),
     );
     yield r'status';
     yield serializers.serialize(
@@ -198,6 +208,13 @@ class _$AdminPlatformAccountListDtoOutputItemsInnerSerializer implements Primiti
             specifiedType: const FullType(AdminPlatformAccountListDtoOutputItemsInnerRoleEnum),
           ) as AdminPlatformAccountListDtoOutputItemsInnerRoleEnum;
           result.role = valueDes;
+          break;
+        case r'permissions':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(BuiltList, [FullType(AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum)]),
+          ) as BuiltList<AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum>;
+          result.permissions.replace(valueDes);
           break;
         case r'status':
           final valueDes = serializers.deserialize(
@@ -301,6 +318,105 @@ class AdminPlatformAccountListDtoOutputItemsInnerRoleEnum extends EnumClass {
 
   static BuiltSet<AdminPlatformAccountListDtoOutputItemsInnerRoleEnum> get values => _$adminPlatformAccountListDtoOutputItemsInnerRoleEnumValues;
   static AdminPlatformAccountListDtoOutputItemsInnerRoleEnum valueOf(String name) => _$adminPlatformAccountListDtoOutputItemsInnerRoleEnumValueOf(name);
+}
+
+class AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum extends EnumClass {
+
+  @BuiltValueEnumConst(wireName: r'profile:manage')
+  static const AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum profileColonManage = _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_profileColonManage;
+  @BuiltValueEnumConst(wireName: r'loyalty:use')
+  static const AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum loyaltyColonUse = _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_loyaltyColonUse;
+  @BuiltValueEnumConst(wireName: r'notification:manage')
+  static const AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum notificationColonManage = _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_notificationColonManage;
+  @BuiltValueEnumConst(wireName: r'incident:create')
+  static const AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum incidentColonCreate = _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_incidentColonCreate;
+  @BuiltValueEnumConst(wireName: r'journey-log:create')
+  static const AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum journeyLogColonCreate = _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_journeyLogColonCreate;
+  @BuiltValueEnumConst(wireName: r'system:run')
+  static const AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum systemColonRun = _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_systemColonRun;
+  @BuiltValueEnumConst(wireName: r'trip:search')
+  static const AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum tripColonSearch = _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_tripColonSearch;
+  @BuiltValueEnumConst(wireName: r'booking:create')
+  static const AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum bookingColonCreate = _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_bookingColonCreate;
+  @BuiltValueEnumConst(wireName: r'booking:read')
+  static const AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum bookingColonRead = _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_bookingColonRead;
+  @BuiltValueEnumConst(wireName: r'payment:create')
+  static const AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum paymentColonCreate = _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_paymentColonCreate;
+  @BuiltValueEnumConst(wireName: r'payment:monitor')
+  static const AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum paymentColonMonitor = _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_paymentColonMonitor;
+  @BuiltValueEnumConst(wireName: r'refund:request')
+  static const AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum refundColonRequest = _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_refundColonRequest;
+  @BuiltValueEnumConst(wireName: r'vehicle:manage')
+  static const AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum vehicleColonManage = _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_vehicleColonManage;
+  @BuiltValueEnumConst(wireName: r'vehicle:read')
+  static const AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum vehicleColonRead = _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_vehicleColonRead;
+  @BuiltValueEnumConst(wireName: r'route:manage')
+  static const AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum routeColonManage = _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_routeColonManage;
+  @BuiltValueEnumConst(wireName: r'trip:manage')
+  static const AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum tripColonManage = _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_tripColonManage;
+  @BuiltValueEnumConst(wireName: r'checkin:perform')
+  static const AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum checkinColonPerform = _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_checkinColonPerform;
+  @BuiltValueEnumConst(wireName: r'checkin:read')
+  static const AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum checkinColonRead = _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_checkinColonRead;
+  @BuiltValueEnumConst(wireName: r'trip:operate')
+  static const AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum tripColonOperate = _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_tripColonOperate;
+  @BuiltValueEnumConst(wireName: r'kyc:submit')
+  static const AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum kycColonSubmit = _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_kycColonSubmit;
+  @BuiltValueEnumConst(wireName: r'kyc:review')
+  static const AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum kycColonReview = _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_kycColonReview;
+  @BuiltValueEnumConst(wireName: r'catalog:manage')
+  static const AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum catalogColonManage = _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_catalogColonManage;
+  @BuiltValueEnumConst(wireName: r'content:moderate')
+  static const AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum contentColonModerate = _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_contentColonModerate;
+  @BuiltValueEnumConst(wireName: r'content:manage')
+  static const AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum contentColonManage = _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_contentColonManage;
+  @BuiltValueEnumConst(wireName: r'user:manage')
+  static const AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum userColonManage = _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_userColonManage;
+  @BuiltValueEnumConst(wireName: r'system:read')
+  static const AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum systemColonRead = _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_systemColonRead;
+  @BuiltValueEnumConst(wireName: r'finance:read')
+  static const AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum financeColonRead = _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_financeColonRead;
+  @BuiltValueEnumConst(wireName: r'finance:configure')
+  static const AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum financeColonConfigure = _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_financeColonConfigure;
+  @BuiltValueEnumConst(wireName: r'audit:read')
+  static const AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum auditColonRead = _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_auditColonRead;
+  @BuiltValueEnumConst(wireName: r'employee:manage')
+  static const AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum employeeColonManage = _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_employeeColonManage;
+  @BuiltValueEnumConst(wireName: r'account:lock')
+  static const AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum accountColonLock = _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_accountColonLock;
+  @BuiltValueEnumConst(wireName: r'support:create')
+  static const AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum supportColonCreate = _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_supportColonCreate;
+  @BuiltValueEnumConst(wireName: r'review:create')
+  static const AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum reviewColonCreate = _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_reviewColonCreate;
+  @BuiltValueEnumConst(wireName: r'support:respond')
+  static const AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum supportColonRespond = _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_supportColonRespond;
+  @BuiltValueEnumConst(wireName: r'support:manage')
+  static const AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum supportColonManage = _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_supportColonManage;
+  @BuiltValueEnumConst(wireName: r'dispute:decide')
+  static const AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum disputeColonDecide = _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_disputeColonDecide;
+  @BuiltValueEnumConst(wireName: r'promotion:manage')
+  static const AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum promotionColonManage = _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_promotionColonManage;
+  @BuiltValueEnumConst(wireName: r'promotion:configure')
+  static const AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum promotionColonConfigure = _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_promotionColonConfigure;
+  @BuiltValueEnumConst(wireName: r'loyalty:manage')
+  static const AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum loyaltyColonManage = _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_loyaltyColonManage;
+  @BuiltValueEnumConst(wireName: r'access:manage')
+  static const AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum accessColonManage = _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_accessColonManage;
+  @BuiltValueEnumConst(wireName: r'transport:read')
+  static const AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum transportColonRead = _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_transportColonRead;
+  @BuiltValueEnumConst(wireName: r'manager:manage')
+  static const AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum managerColonManage = _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_managerColonManage;
+  @BuiltValueEnumConst(wireName: r'payout:manage')
+  static const AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum payoutColonManage = _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_payoutColonManage;
+  @BuiltValueEnumConst(wireName: r'refund:manage')
+  static const AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum refundColonManage = _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_refundColonManage;
+
+  static Serializer<AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum> get serializer => _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnumSerializer;
+
+  const AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum._(String name): super(name);
+
+  static BuiltSet<AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum> get values => _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnumValues;
+  static AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum valueOf(String name) => _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnumValueOf(name);
 }
 
 class AdminPlatformAccountListDtoOutputItemsInnerStatusEnum extends EnumClass {

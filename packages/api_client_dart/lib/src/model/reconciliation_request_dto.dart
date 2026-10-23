@@ -11,12 +11,10 @@ part 'reconciliation_request_dto.g.dart';
 /// ReconciliationRequestDto
 ///
 /// Properties:
-/// * [requestId]
-/// * [reason]
+/// * [requestId] 
+/// * [reason] 
 @BuiltValue()
-abstract class ReconciliationRequestDto
-    implements
-        Built<ReconciliationRequestDto, ReconciliationRequestDtoBuilder> {
+abstract class ReconciliationRequestDto implements Built<ReconciliationRequestDto, ReconciliationRequestDtoBuilder> {
   @BuiltValueField(wireName: r'requestId')
   String get requestId;
 
@@ -25,25 +23,18 @@ abstract class ReconciliationRequestDto
 
   ReconciliationRequestDto._();
 
-  factory ReconciliationRequestDto(
-          [void updates(ReconciliationRequestDtoBuilder b)]) =
-      _$ReconciliationRequestDto;
+  factory ReconciliationRequestDto([void updates(ReconciliationRequestDtoBuilder b)]) = _$ReconciliationRequestDto;
 
   @BuiltValueHook(initializeBuilder: true)
   static void _defaults(ReconciliationRequestDtoBuilder b) => b;
 
   @BuiltValueSerializer(custom: true)
-  static Serializer<ReconciliationRequestDto> get serializer =>
-      _$ReconciliationRequestDtoSerializer();
+  static Serializer<ReconciliationRequestDto> get serializer => _$ReconciliationRequestDtoSerializer();
 }
 
-class _$ReconciliationRequestDtoSerializer
-    implements PrimitiveSerializer<ReconciliationRequestDto> {
+class _$ReconciliationRequestDtoSerializer implements PrimitiveSerializer<ReconciliationRequestDto> {
   @override
-  final Iterable<Type> types = const [
-    ReconciliationRequestDto,
-    _$ReconciliationRequestDto
-  ];
+  final Iterable<Type> types = const [ReconciliationRequestDto, _$ReconciliationRequestDto];
 
   @override
   final String wireName = r'ReconciliationRequestDto';
@@ -71,9 +62,7 @@ class _$ReconciliationRequestDtoSerializer
     ReconciliationRequestDto object, {
     FullType specifiedType = FullType.unspecified,
   }) {
-    return _serializeProperties(serializers, object,
-            specifiedType: specifiedType)
-        .toList();
+    return _serializeProperties(serializers, object, specifiedType: specifiedType).toList();
   }
 
   void _deserializeProperties(
@@ -130,3 +119,5 @@ class _$ReconciliationRequestDtoSerializer
     return result.build();
   }
 }
+
+

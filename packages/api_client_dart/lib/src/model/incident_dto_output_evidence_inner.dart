@@ -11,15 +11,12 @@ part 'incident_dto_output_evidence_inner.g.dart';
 /// IncidentDtoOutputEvidenceInner
 ///
 /// Properties:
-/// * [objectKey]
-/// * [fileName]
-/// * [contentType]
-/// * [sizeBytes]
+/// * [objectKey] 
+/// * [fileName] 
+/// * [contentType] 
+/// * [sizeBytes] 
 @BuiltValue()
-abstract class IncidentDtoOutputEvidenceInner
-    implements
-        Built<IncidentDtoOutputEvidenceInner,
-            IncidentDtoOutputEvidenceInnerBuilder> {
+abstract class IncidentDtoOutputEvidenceInner implements Built<IncidentDtoOutputEvidenceInner, IncidentDtoOutputEvidenceInnerBuilder> {
   @BuiltValueField(wireName: r'objectKey')
   String get objectKey;
 
@@ -34,25 +31,18 @@ abstract class IncidentDtoOutputEvidenceInner
 
   IncidentDtoOutputEvidenceInner._();
 
-  factory IncidentDtoOutputEvidenceInner(
-          [void updates(IncidentDtoOutputEvidenceInnerBuilder b)]) =
-      _$IncidentDtoOutputEvidenceInner;
+  factory IncidentDtoOutputEvidenceInner([void updates(IncidentDtoOutputEvidenceInnerBuilder b)]) = _$IncidentDtoOutputEvidenceInner;
 
   @BuiltValueHook(initializeBuilder: true)
   static void _defaults(IncidentDtoOutputEvidenceInnerBuilder b) => b;
 
   @BuiltValueSerializer(custom: true)
-  static Serializer<IncidentDtoOutputEvidenceInner> get serializer =>
-      _$IncidentDtoOutputEvidenceInnerSerializer();
+  static Serializer<IncidentDtoOutputEvidenceInner> get serializer => _$IncidentDtoOutputEvidenceInnerSerializer();
 }
 
-class _$IncidentDtoOutputEvidenceInnerSerializer
-    implements PrimitiveSerializer<IncidentDtoOutputEvidenceInner> {
+class _$IncidentDtoOutputEvidenceInnerSerializer implements PrimitiveSerializer<IncidentDtoOutputEvidenceInner> {
   @override
-  final Iterable<Type> types = const [
-    IncidentDtoOutputEvidenceInner,
-    _$IncidentDtoOutputEvidenceInner
-  ];
+  final Iterable<Type> types = const [IncidentDtoOutputEvidenceInner, _$IncidentDtoOutputEvidenceInner];
 
   @override
   final String wireName = r'IncidentDtoOutputEvidenceInner';
@@ -90,9 +80,7 @@ class _$IncidentDtoOutputEvidenceInnerSerializer
     IncidentDtoOutputEvidenceInner object, {
     FullType specifiedType = FullType.unspecified,
   }) {
-    return _serializeProperties(serializers, object,
-            specifiedType: specifiedType)
-        .toList();
+    return _serializeProperties(serializers, object, specifiedType: specifiedType).toList();
   }
 
   void _deserializeProperties(
@@ -163,3 +151,5 @@ class _$IncidentDtoOutputEvidenceInnerSerializer
     return result.build();
   }
 }
+
+

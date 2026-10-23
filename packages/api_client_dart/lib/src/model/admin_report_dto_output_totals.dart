@@ -11,23 +11,21 @@ part 'admin_report_dto_output_totals.g.dart';
 /// AdminReportDtoOutputTotals
 ///
 /// Properties:
-/// * [gmv]
-/// * [bookings]
-/// * [tickets]
-/// * [netRevenue]
-/// * [reconcileOpen]
-/// * [trips]
-/// * [completedTrips]
-/// * [seats]
-/// * [ticketsSold]
-/// * [operatorCancelledTrips]
-/// * [tripsWithSales]
-/// * [supportTickets]
-/// * [disputesOpened]
+/// * [gmv] 
+/// * [bookings] 
+/// * [tickets] 
+/// * [netRevenue] 
+/// * [reconcileOpen] 
+/// * [trips] 
+/// * [completedTrips] 
+/// * [seats] 
+/// * [ticketsSold] 
+/// * [operatorCancelledTrips] 
+/// * [tripsWithSales] 
+/// * [supportTickets] 
+/// * [disputesOpened] 
 @BuiltValue()
-abstract class AdminReportDtoOutputTotals
-    implements
-        Built<AdminReportDtoOutputTotals, AdminReportDtoOutputTotalsBuilder> {
+abstract class AdminReportDtoOutputTotals implements Built<AdminReportDtoOutputTotals, AdminReportDtoOutputTotalsBuilder> {
   @BuiltValueField(wireName: r'gmv')
   int get gmv;
 
@@ -69,25 +67,18 @@ abstract class AdminReportDtoOutputTotals
 
   AdminReportDtoOutputTotals._();
 
-  factory AdminReportDtoOutputTotals(
-          [void updates(AdminReportDtoOutputTotalsBuilder b)]) =
-      _$AdminReportDtoOutputTotals;
+  factory AdminReportDtoOutputTotals([void updates(AdminReportDtoOutputTotalsBuilder b)]) = _$AdminReportDtoOutputTotals;
 
   @BuiltValueHook(initializeBuilder: true)
   static void _defaults(AdminReportDtoOutputTotalsBuilder b) => b;
 
   @BuiltValueSerializer(custom: true)
-  static Serializer<AdminReportDtoOutputTotals> get serializer =>
-      _$AdminReportDtoOutputTotalsSerializer();
+  static Serializer<AdminReportDtoOutputTotals> get serializer => _$AdminReportDtoOutputTotalsSerializer();
 }
 
-class _$AdminReportDtoOutputTotalsSerializer
-    implements PrimitiveSerializer<AdminReportDtoOutputTotals> {
+class _$AdminReportDtoOutputTotalsSerializer implements PrimitiveSerializer<AdminReportDtoOutputTotals> {
   @override
-  final Iterable<Type> types = const [
-    AdminReportDtoOutputTotals,
-    _$AdminReportDtoOutputTotals
-  ];
+  final Iterable<Type> types = const [AdminReportDtoOutputTotals, _$AdminReportDtoOutputTotals];
 
   @override
   final String wireName = r'AdminReportDtoOutputTotals';
@@ -170,9 +161,7 @@ class _$AdminReportDtoOutputTotalsSerializer
     AdminReportDtoOutputTotals object, {
     FullType specifiedType = FullType.unspecified,
   }) {
-    return _serializeProperties(serializers, object,
-            specifiedType: specifiedType)
-        .toList();
+    return _serializeProperties(serializers, object, specifiedType: specifiedType).toList();
   }
 
   void _deserializeProperties(
@@ -306,3 +295,5 @@ class _$AdminReportDtoOutputTotalsSerializer
     return result.build();
   }
 }
+
+
