@@ -12,9 +12,9 @@
 | 0 | SCR-PSG-05 | `1449:21863` | `app/error.tsx` (`/?preview=500`) | Lỗi 500 | ✅ | ✅ | Có mã tham chiếu & nút sao chép |
 | 0 | SCR-PSG-05 | `1449:21736` | Component `ForbiddenState` (`/?preview=403`) | Lỗi 403 | ✅ | ✅ | Khớp Figma 100% |
 | 0 | SCR-PSG-05 | `1449:21999` | Component `ServiceUnavailableState` (`/?preview=503`) | Lỗi 503 | ✅ | ✅ | Có đồng hồ đếm ngược tự thử lại |
-| 1 | SCR-PSG-01 | `776:791`, `830:592` | `app/page.tsx` (`/?preview=ideal`) | Trang chủ đầy đủ (ideal) | ✅ | ✅ | Khớp 100% Figma (Hero, Tuyến phổ biến, Khám phá, Nhà xe, Plus & Cẩm nang, Footer) |
-| 1 | SCR-PSG-01 | `836:113` | `app/page.tsx` (`/?preview=operator-tab`) | Tab Theo nhà xe (operator-tab) | ✅ | ✅ | Khớp 100% Figma (Tab Theo nhà xe: Nhà xe, Tuyến đường, Ngày đi, Hành khách) |
-| 1 | SCR-PSG-01 | `837:131` | `app/page.tsx` (`/?preview=operator-picker`) | Popover chọn nhà xe (operator-picker) | ✅ | ✅ | Khớp 100% Figma (Popover NHÀ XE NỔI BẬT nổi phía trên ô Nhà xe với 3 hãng xe) |
+| 1 | SCR-PSG-01 | `776:791` | `app/page.tsx` (`/?preview=ideal`) | Trang chủ đầy đủ (ideal) | ✅ | ✅ | Hero banner, Tuyến phổ biến, Khám phá, Nhà xe, Plus & Cẩm nang |
+| 1 | SCR-PSG-01 | `836:113` | `app/page.tsx` (`/?preview=operator-tab`) | Tab Theo nhà xe (operator-tab) | ✅ | ✅ | Chuyển tab tìm kiếm Theo nhà xe |
+| 1 | SCR-PSG-01 | `837:131` | `app/page.tsx` (`/?preview=operator-picker`) | Popover chọn nhà xe (operator-picker) | ✅ | ✅ | Card danh sách 5 nhà xe nổi bật kèm đánh giá & số chuyến |
 | 2 | SCR-PSG-15 | `1440:11297` | `app/trips/page.tsx` (`/trips?preview=ideal`) | Kết quả tìm chuyến (ideal) | ✅ | ✅ | Đủ 4 chuyến, 9 bộ lọc, sort tabs, responsive 7 viewport |
 | 2 | SCR-PSG-15 | `1450:22017` | `app/trips/page.tsx` (`/trips?preview=empty`) | Không tìm thấy chuyến (empty) | ✅ | ✅ | Gợi ý 2 ngày gần nhất & 3 tuyến thay thế |
 | 2 | SCR-PSG-15 | `1450:22373` | `app/trips/page.tsx` (`/trips?preview=loading`) | Đang tải danh sách (loading) | ✅ | ✅ | Skeleton loading khớp Figma |
@@ -55,7 +55,7 @@
 | # | Khung (node) | Figma | Đã làm | Lý do (dòng A3 / kỹ thuật) |
 | --- | --- | --- | --- | --- |
 | 1 | Khung trang (`1436:12785`) | Có mục "Dịch vụ bổ trợ" | Bỏ hoàn toàn khỏi thanh điều hướng chính | Dòng A3 #7: SRS không có, UX-OQ-07 còn mở |
-| 2 | Khung trang (`1434:11609`, `776:791`) | Link "Đổi và hủy vé" ở footer | Giữ nhãn "Đổi và hủy vé" như Figma `776:791`, trỏ về `/legal/refund-policy` | Dòng A3 #6: Chưa có đổi vé tự phục vụ |
+| 2 | Khung trang (`1434:11609`) | Link "Hủy vé và hoàn tiền" | Trỏ về `/refund-policy` | Dòng A3 #6: Chưa có đổi vé tự phục vụ |
 | 3 | Khung trang (`1436:12785`) | Đăng nhập trên thanh bên | Trỏ về `/login` thay vì mở popup số điện thoại `830:1321` | Dòng A3 #1: Hành khách đăng nhập email OTP hoặc OAuth |
 | 4 | Khung trang (`1434:11609`) | Link footer "Quản trị hệ thống", "Đăng nhập nhà xe" | Trỏ về cổng dev tương ứng (`:3002`, `:3003`) | Phục vụ điều hướng môi trường phát triển monorepo |
 | 5 | SCR-PSG-01 (`776:791`) | Dữ liệu tuyến xe, nhà xe, cẩm nang | Dùng fixture khi `?preview=`; hiện `FeatureUnavailableCompact` kèm log cảnh báo khi không có preview | Dòng A5 & Bảng A2: Chưa có API backend cho các mục này |
@@ -358,19 +358,6 @@
 - `apps/marketplace/app/faq/page.tsx`
 - `apps/marketplace/components/legal/legal-view.tsx`
 - `apps/marketplace/app/legal/[slug]/page.tsx`
-- `apps/marketplace/public/images/hero-bg.jpg` *(xuất từ Figma `830:592` / `776:791` — cần kiểm bản quyền theo A5)*
-- `apps/marketplace/public/images/route-sg-dalat.jpg` *(xuất từ Figma `776:791` — cần kiểm bản quyền theo A5)*
-- `apps/marketplace/public/images/route-hn-sapa.jpg` *(xuất từ Figma `776:791` — cần kiểm bản quyền theo A5)*
-- `apps/marketplace/public/images/route-sg-vungtau.jpg` *(xuất từ Figma `776:791` — cần kiểm bản quyền theo A5)*
-- `apps/marketplace/public/images/route-hn-halong.jpg` *(xuất từ Figma `776:791` — cần kiểm bản quyền theo A5)*
-- `apps/marketplace/public/images/route-dn-hue.jpg` *(xuất từ Figma `776:791` — cần kiểm bản quyền theo A5)*
-- `apps/marketplace/public/images/route-sg-nhatrang.jpg` *(xuất từ Figma `776:791` — cần kiểm bản quyền theo A5)*
-- `apps/marketplace/public/images/route-hn-ninhbinh.jpg` *(xuất từ Figma `776:791` — cần kiểm bản quyền theo A5)*
-- `apps/marketplace/public/images/explore-north.png` *(xuất từ Figma `776:791` — cần kiểm bản quyền theo A5)*
-- `apps/marketplace/public/images/explore-first-trip.png` *(xuất từ Figma `776:791` — cần kiểm bản quyền theo A5)*
-- `apps/marketplace/public/images/article-1.png` *(xuất từ Figma `776:791` — cần kiểm bản quyền theo A5)*
-- `apps/marketplace/public/images/article-2.png` *(xuất từ Figma `776:791` — cần kiểm bản quyền theo A5)*
-- `apps/marketplace/public/images/article-3.png` *(xuất từ Figma `776:791` — cần kiểm bản quyền theo A5)*
 - `doc/task-propreties/MKT-WEB-ui-todo.md`
 
 
