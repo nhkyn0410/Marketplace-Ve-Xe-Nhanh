@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:passenger_mobile/features/account/passenger_avatar.dart';
 import 'package:passenger_mobile/features/home/route_dock_tabbar.dart';
 
 const _primary = Color(0xFF2B7EAD);
@@ -34,6 +35,11 @@ class AccountScreen extends StatefulWidget {
     required this.loadOverview,
     required this.onLogout,
     required this.onTabSelected,
+    required this.onEditProfile,
+    required this.onSavedPassengers,
+    required this.onVoucherWallet,
+    required this.onPointHistory,
+    required this.onMyReviews,
     this.logoutErrorMessage,
     super.key,
   });
@@ -41,6 +47,11 @@ class AccountScreen extends StatefulWidget {
   final AccountOverviewLoader loadOverview;
   final AccountLogout onLogout;
   final ValueChanged<int> onTabSelected;
+  final VoidCallback onEditProfile;
+  final VoidCallback onSavedPassengers;
+  final VoidCallback onVoucherWallet;
+  final VoidCallback onPointHistory;
+  final VoidCallback onMyReviews;
   final String? logoutErrorMessage;
 
   @override
@@ -102,6 +113,11 @@ class _AccountScreenState extends State<AccountScreen> {
               logoutErrorMessage: widget.logoutErrorMessage,
               onRefresh: _reload,
               onLogout: _logout,
+              onEditProfile: widget.onEditProfile,
+              onSavedPassengers: widget.onSavedPassengers,
+              onVoucherWallet: widget.onVoucherWallet,
+              onPointHistory: widget.onPointHistory,
+              onMyReviews: widget.onMyReviews,
               onComingSoon: _showComingSoon,
             );
           },
@@ -118,6 +134,11 @@ class _AccountContent extends StatelessWidget {
     required this.logoutErrorMessage,
     required this.onRefresh,
     required this.onLogout,
+    required this.onEditProfile,
+    required this.onSavedPassengers,
+    required this.onVoucherWallet,
+    required this.onPointHistory,
+    required this.onMyReviews,
     required this.onComingSoon,
   });
 
@@ -126,6 +147,11 @@ class _AccountContent extends StatelessWidget {
   final String? logoutErrorMessage;
   final Future<void> Function() onRefresh;
   final VoidCallback onLogout;
+  final VoidCallback onEditProfile;
+  final VoidCallback onSavedPassengers;
+  final VoidCallback onVoucherWallet;
+  final VoidCallback onPointHistory;
+  final VoidCallback onMyReviews;
   final ValueChanged<String> onComingSoon;
 
   @override
@@ -153,10 +179,7 @@ class _AccountContent extends StatelessWidget {
             style: TextStyle(color: _muted, fontSize: 13, height: 1.5),
           ),
           const SizedBox(height: 18),
-          _ProfileCard(
-            overview: overview,
-            onEdit: () => onComingSoon('Chỉnh sửa hồ sơ'),
-          ),
+          _ProfileCard(overview: overview, onEdit: onEditProfile),
           const SizedBox(height: 14),
           _LoyaltyCard(
             overview: overview,
@@ -175,7 +198,7 @@ class _AccountContent extends StatelessWidget {
                 subtitle: overview.savedPassengerCount == null
                     ? 'Quản lý hành khách thường dùng'
                     : '${overview.savedPassengerCount}/5 hành khách',
-                onTap: () => onComingSoon('Hành khách đã lưu'),
+                onTap: onSavedPassengers,
               ),
               _AccountMenuItem(
                 icon: Icons.confirmation_number_rounded,
@@ -183,7 +206,7 @@ class _AccountContent extends StatelessWidget {
                 background: const Color(0xFFFFF3DE),
                 title: 'Ví voucher',
                 subtitle: 'Voucher ưu đãi của bạn',
-                onTap: () => onComingSoon('Ví voucher'),
+                onTap: onVoucherWallet,
               ),
               _AccountMenuItem(
                 icon: Icons.stacked_bar_chart_rounded,
@@ -191,7 +214,7 @@ class _AccountContent extends StatelessWidget {
                 background: const Color(0xFFE4F6FE),
                 title: 'Lịch sử điểm',
                 subtitle: 'Xem chi tiết điểm tích lũy',
-                onTap: () => onComingSoon('Lịch sử điểm'),
+                onTap: onPointHistory,
               ),
               _AccountMenuItem(
                 icon: Icons.star_rounded,
@@ -199,7 +222,7 @@ class _AccountContent extends StatelessWidget {
                 background: const Color(0xFFFFF3DE),
                 title: 'Đánh giá của tôi',
                 subtitle: 'Các chuyến đi đã đánh giá',
-                onTap: () => onComingSoon('Đánh giá của tôi'),
+                onTap: onMyReviews,
               ),
             ],
           ),
@@ -305,7 +328,7 @@ class _ProfileCard extends StatelessWidget {
       decoration: _cardDecoration(),
       child: Row(
         children: [
-          _AccountAvatar(imageUrl: overview.imageUrl),
+          PassengerAvatar(size: 58, imageUrl: overview.imageUrl),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
@@ -366,42 +389,6 @@ class _ProfileCard extends StatelessWidget {
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _AccountAvatar extends StatelessWidget {
-  const _AccountAvatar({this.imageUrl});
-
-  final String? imageUrl;
-
-  @override
-  Widget build(BuildContext context) {
-    final fallback = Image.asset(
-      'assets/home/hero/user_avatar.png',
-      width: 52,
-      height: 52,
-      fit: BoxFit.cover,
-    );
-    return Container(
-      width: 58,
-      height: 58,
-      padding: const EdgeInsets.all(3),
-      decoration: const BoxDecoration(
-        color: Color(0xFFEAF7FC),
-        shape: BoxShape.circle,
-      ),
-      child: ClipOval(
-        child: imageUrl == null || imageUrl!.trim().isEmpty
-            ? fallback
-            : Image.network(
-                imageUrl!,
-                width: 52,
-                height: 52,
-                fit: BoxFit.cover,
-                errorBuilder: (_, _, _) => fallback,
-              ),
       ),
     );
   }

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:passenger_mobile/features/account/account_screen.dart';
+import 'package:passenger_mobile/features/account/passenger_avatar.dart';
 
 const _overview = AccountOverview(
   name: 'Nguyễn Văn Khanh',
@@ -18,6 +19,11 @@ Future<void> _pumpAccount(
   required AccountOverviewLoader loader,
   AccountLogout? onLogout,
   ValueChanged<int>? onTabSelected,
+  VoidCallback? onEditProfile,
+  VoidCallback? onSavedPassengers,
+  VoidCallback? onVoucherWallet,
+  VoidCallback? onPointHistory,
+  VoidCallback? onMyReviews,
   String? logoutErrorMessage,
   double width = 390,
 }) async {
@@ -33,6 +39,11 @@ Future<void> _pumpAccount(
         loadOverview: loader,
         onLogout: onLogout ?? () async => true,
         onTabSelected: onTabSelected ?? (_) {},
+        onEditProfile: onEditProfile ?? () {},
+        onSavedPassengers: onSavedPassengers ?? () {},
+        onVoucherWallet: onVoucherWallet ?? () {},
+        onPointHistory: onPointHistory ?? () {},
+        onMyReviews: onMyReviews ?? () {},
         logoutErrorMessage: logoutErrorMessage,
       ),
     ),
@@ -57,6 +68,82 @@ void main() {
     expect(find.text('2/5 hành khách'), findsOneWidget);
     expect(find.byKey(const Key('route-dock-tab-4')), findsOneWidget);
     expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('tài khoản chưa có ảnh dùng đúng avatar mặc định', (
+    tester,
+  ) async {
+    await _pumpAccount(tester, loader: () async => _overview);
+    await tester.pumpAndSettle();
+
+    final image = tester.widget<Image>(
+      find.byKey(const Key('passenger-default-avatar')),
+    );
+    expect((image.image as AssetImage).assetName, passengerDefaultAvatarAsset);
+  });
+
+  testWidgets('nút chỉnh sửa mở luồng hồ sơ thay vì thông báo sắp có', (
+    tester,
+  ) async {
+    var opened = false;
+    await _pumpAccount(
+      tester,
+      loader: () async => _overview,
+      onEditProfile: () => opened = true,
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const Key('account-edit-button')));
+    expect(opened, isTrue);
+    expect(find.byType(SnackBar), findsNothing);
+  });
+
+  testWidgets('mục hành khách đã lưu mở màn quản lý', (tester) async {
+    var opened = false;
+    await _pumpAccount(
+      tester,
+      loader: () async => _overview,
+      onSavedPassengers: () => opened = true,
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Hành khách đã lưu'));
+    expect(opened, isTrue);
+    expect(find.byType(SnackBar), findsNothing);
+  });
+
+  testWidgets('mục voucher và lịch sử điểm mở đúng màn hình', (tester) async {
+    var voucherOpened = false;
+    var pointsOpened = false;
+    await _pumpAccount(
+      tester,
+      loader: () async => _overview,
+      onVoucherWallet: () => voucherOpened = true,
+      onPointHistory: () => pointsOpened = true,
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Ví voucher'));
+    await tester.tap(find.text('Lịch sử điểm'));
+
+    expect(voucherOpened, isTrue);
+    expect(pointsOpened, isTrue);
+    expect(find.byType(SnackBar), findsNothing);
+  });
+
+  testWidgets('mục đánh giá của tôi mở màn quản lý đánh giá', (tester) async {
+    var opened = false;
+    await _pumpAccount(
+      tester,
+      loader: () async => _overview,
+      onMyReviews: () => opened = true,
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Đánh giá của tôi'));
+
+    expect(opened, isTrue);
+    expect(find.byType(SnackBar), findsNothing);
   });
 
   testWidgets('dock điều hướng về Home và nút đăng xuất không gửi lặp', (

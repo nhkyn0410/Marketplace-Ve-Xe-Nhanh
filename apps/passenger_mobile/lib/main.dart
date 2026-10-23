@@ -5,6 +5,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:mobile_shared/mobile_shared.dart';
 import 'package:passenger_mobile/features/account/account_screen.dart';
+import 'package:passenger_mobile/features/account/edit_profile_screen.dart';
+import 'package:passenger_mobile/features/account/my_reviews_screen.dart';
+import 'package:passenger_mobile/features/account/point_history_screen.dart';
+import 'package:passenger_mobile/features/account/saved_passengers_screen.dart';
+import 'package:passenger_mobile/features/account/voucher_wallet_screen.dart';
 import 'package:passenger_mobile/features/auth/auth_screen.dart';
 import 'package:passenger_mobile/features/auth/google_auth_service.dart';
 import 'package:passenger_mobile/features/home/home_models.dart';
@@ -85,6 +90,15 @@ class PassengerApp extends StatelessWidget {
 
 enum _AuthStep { email, otp, profile, guest, signedIn }
 
+enum _AccountView {
+  overview,
+  editProfile,
+  savedPassengers,
+  vouchers,
+  points,
+  reviews,
+}
+
 class _PopularRouteSpec {
   const _PopularRouteSpec({
     required this.fromProvinceNames,
@@ -158,6 +172,7 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
   String? _displayName;
   DateTime? _otpIssuedAt;
   int _currentTab = 2;
+  _AccountView _accountView = _AccountView.overview;
 
   /// Bọc mọi lời gọi API: bật cờ bận, dịch lỗi thành câu tiếng Việt, hiện lên UI.
   Future<bool> _run(Future<void> Function() action) async {
@@ -315,6 +330,7 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
       _profileEmail = profile.email;
       _displayName = name;
       _currentTab = 2;
+      _accountView = _AccountView.overview;
       _step = name == null || name.isEmpty
           ? _AuthStep.profile
           : _AuthStep.signedIn;
@@ -343,6 +359,7 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
       setState(() {
         _displayName = profile!.name?.trim() ?? fullName;
         _currentTab = 2;
+        _accountView = _AccountView.overview;
         _step = _AuthStep.signedIn;
         _error = null;
       });
@@ -376,6 +393,7 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
     setState(() {
       _step = _AuthStep.email;
       _currentTab = 2;
+      _accountView = _AccountView.overview;
       _error = null;
     });
   }
@@ -391,6 +409,75 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
     }
   }
 
+  Future<List<SavedPassengerData>> _loadSavedPassengers() async {
+    final response = await _api
+        .getPassengerProfileApi()
+        .passengerProfileControllerSaved();
+    final data = response.data;
+    if (data == null) {
+      throw StateError('Saved passenger response did not contain data.');
+    }
+    return data.items
+        .map(
+          (item) => SavedPassengerData(
+            passengerId: item.passengerId,
+            fullName: item.fullName,
+            phone: item.phone,
+          ),
+        )
+        .toList(growable: false);
+  }
+
+  Future<bool> _createSavedPassenger(SavedPassengerFormInput input) {
+    return _run(() async {
+      final response = await _api
+          .getPassengerProfileApi()
+          .passengerProfileControllerCreateSaved(
+            savedPassengerInputDto: _savedPassengerInput(input),
+          );
+      if (response.data == null) {
+        throw StateError(
+          'Create saved passenger response did not contain data.',
+        );
+      }
+    });
+  }
+
+  Future<bool> _updateSavedPassenger(
+    String passengerId,
+    SavedPassengerFormInput input,
+  ) {
+    return _run(() async {
+      final response = await _api
+          .getPassengerProfileApi()
+          .passengerProfileControllerUpdateSaved(
+            passengerId: passengerId,
+            savedPassengerInputDto: _savedPassengerInput(input),
+          );
+      if (response.data == null) {
+        throw StateError(
+          'Update saved passenger response did not contain data.',
+        );
+      }
+    });
+  }
+
+  Future<bool> _deleteSavedPassenger(String passengerId) {
+    return _run(() async {
+      await _api.getPassengerProfileApi().passengerProfileControllerDeleteSaved(
+        passengerId: passengerId,
+      );
+    });
+  }
+
+  SavedPassengerInputDto _savedPassengerInput(SavedPassengerFormInput input) {
+    return SavedPassengerInputDto((builder) {
+      builder.fullName = input.fullName;
+      final phone = input.phone;
+      if (phone != null) builder.phone = phone;
+    });
+  }
+
   Future<PassengerLoyaltyDtoOutput?> _loadLoyalty() async {
     try {
       final response = await _api
@@ -400,6 +487,155 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
     } catch (_) {
       return null;
     }
+  }
+
+  Future<List<VoucherWalletItem>> _loadVoucherWallet() async {
+    final response = await _api
+        .getPassengerLoyaltyApi()
+        .passengerLoyaltyControllerVouchers(
+          status: 'AVAILABLE',
+          offset: 0,
+          limit: 50,
+        );
+    final page = response.data;
+    if (page == null) {
+      throw StateError('Voucher response did not contain data.');
+    }
+    return page.items
+        .map(
+          (item) => VoucherWalletItem(
+            id: item.userVoucherId,
+            name: item.name,
+            discountType: item.discountType.name == 'PERCENT'
+                ? VoucherDiscountType.percent
+                : VoucherDiscountType.amount,
+            discountValue: item.discountValue,
+            minOrder: item.minOrder,
+            maxDiscount: item.maxDiscount,
+            expiresAt: item.expiresAt,
+            source: item.source_.name == 'LOYALTY_REDEMPTION'
+                ? VoucherSource.loyaltyRedemption
+                : VoucherSource.savedPromotion,
+            promotionCode: item.promotionCode,
+          ),
+        )
+        .toList(growable: false);
+  }
+
+  Future<MyReviewsData> _loadMyReviews() async {
+    // API hiện chỉ hỗ trợ GET/POST đánh giá theo từng bookingId. Không gọi
+    // N+1 qua lịch sử booking; trả trạng thái rỗng cho đến khi có endpoint
+    // danh sách dành riêng cho Passenger.
+    return const MyReviewsData(pending: [], reviewed: []);
+  }
+
+  Future<bool> _submitReview(String bookingId, ReviewSubmission input) {
+    return _run(() async {
+      final response = await _api
+          .getReviewsApi()
+          .customerReviewControllerCreate(
+            bookingId: bookingId,
+            reviewInputDto: ReviewInputDto((builder) {
+              builder.rating = input.rating;
+              final comment = input.comment;
+              if (comment != null) builder.comment = comment;
+            }),
+          );
+      if (response.data == null) {
+        throw StateError('Create review response did not contain data.');
+      }
+    });
+  }
+
+  Future<bool> _saveVoucherCode(String promotionCode) {
+    return _run(() async {
+      final response = await _api
+          .getPassengerLoyaltyApi()
+          .passengerLoyaltyControllerSave(
+            saveVoucherInputDto: SaveVoucherInputDto(
+              (builder) => builder.promotionCode = promotionCode,
+            ),
+          );
+      if (response.data == null) {
+        throw StateError('Save voucher response did not contain data.');
+      }
+    });
+  }
+
+  Future<PointHistoryData> _loadPointHistory(PointHistoryQuery query) async {
+    final range = _pointDateRange(query.date);
+    final memberRequest = _api
+        .getPassengerLoyaltyApi()
+        .passengerLoyaltyControllerMember();
+    final transactionRequest = _api
+        .getPassengerLoyaltyApi()
+        .passengerLoyaltyControllerTransactions(
+          offset: 0,
+          limit: 50,
+          type: _pointType(query.type),
+          from: range.$1,
+          to: range.$2,
+        );
+    final member = (await memberRequest).data;
+    final transactions = (await transactionRequest).data;
+    if (member == null || transactions == null) {
+      throw StateError('Point history response did not contain data.');
+    }
+    return PointHistoryData(
+      availablePoints: member.availablePoints,
+      earnedPoints: transactions.totals.earned,
+      redeemedPoints: transactions.totals.redeemed,
+      expiredPoints: transactions.totals.expired,
+      transactions: transactions.items
+          .map(
+            (item) => PointTransactionItem(
+              id: item.id,
+              kind: _pointKind(item.type.name),
+              points: item.points,
+              title: item.sourceLabel,
+              detail: item.reason,
+              createdAt: item.createdAt,
+            ),
+          )
+          .toList(growable: false),
+    );
+  }
+
+  String? _pointType(PointTypeFilter filter) => switch (filter) {
+    PointTypeFilter.all => null,
+    PointTypeFilter.earn => 'EARN',
+    PointTypeFilter.redeem => 'REDEEM',
+    PointTypeFilter.expire => 'EXPIRE',
+  };
+
+  PointTransactionKind _pointKind(String type) => switch (type) {
+    'EARN' => PointTransactionKind.earn,
+    'REDEEM' => PointTransactionKind.redeem,
+    'EXPIRE' => PointTransactionKind.expire,
+    'ADJUST' => PointTransactionKind.adjust,
+    _ => PointTransactionKind.reversal,
+  };
+
+  (DateTime?, DateTime?) _pointDateRange(PointDateFilter filter) {
+    if (filter == PointDateFilter.all) return (null, null);
+    final now = DateTime.now();
+    final currentMonth = DateTime.utc(now.year, now.month);
+    return switch (filter) {
+      PointDateFilter.currentMonth => (currentMonth, DateTime.now().toUtc()),
+      PointDateFilter.previousMonth => (
+        DateTime.utc(now.year, now.month - 1),
+        currentMonth.subtract(const Duration(microseconds: 1)),
+      ),
+      PointDateFilter.threeMonths => (
+        DateTime.utc(now.year, now.month - 2),
+        DateTime.now().toUtc(),
+      ),
+      PointDateFilter.sixMonths => (
+        DateTime.utc(now.year, now.month - 5),
+        DateTime.now().toUtc(),
+      ),
+      PointDateFilter.all => (null, null),
+    };
   }
 
   Future<AccountOverview> _loadAccountOverview() async {
@@ -429,6 +665,54 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
     );
   }
 
+  Future<PassengerProfileFormData> _loadEditableProfile() async {
+    final response = await _api
+        .getPassengerProfileApi()
+        .passengerProfileControllerGet();
+    final profile = response.data;
+    if (profile == null) {
+      throw StateError('Profile response did not contain data.');
+    }
+    return PassengerProfileFormData(
+      name: profile.name?.trim() ?? '',
+      email: profile.email,
+      emailVerified: profile.emailVerified,
+      phone: profile.phone,
+      dateOfBirth: profile.dateOfBirth?.toDateTime(),
+      imageUrl: profile.image,
+    );
+  }
+
+  Future<bool> _saveEditableProfile(PassengerProfileFormUpdate update) async {
+    PassengerProfileDtoOutput? profile;
+    final saved = await _run(() async {
+      final response = await _api
+          .getPassengerProfileApi()
+          .passengerProfileControllerUpdate(
+            passengerProfileUpdateDto: PassengerProfileUpdateDto((builder) {
+              builder.name = update.name;
+              if (update.phone != null) builder.phone = update.phone;
+              final dateOfBirth = update.dateOfBirth;
+              if (dateOfBirth != null) {
+                builder.dateOfBirth = Date(
+                  dateOfBirth.year,
+                  dateOfBirth.month,
+                  dateOfBirth.day,
+                );
+              }
+            }),
+          );
+      profile = response.data;
+      if (profile == null) {
+        throw StateError('Profile update response did not contain data.');
+      }
+    });
+    if (saved && mounted) {
+      setState(() => _displayName = profile!.name?.trim());
+    }
+    return saved;
+  }
+
   Future<bool> _logout() async {
     final succeeded = await _run(() async {
       await _api.getAuthApi().authControllerLogout(xAuthTransport: 'bearer');
@@ -443,6 +727,7 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
       _displayName = null;
       _otpIssuedAt = null;
       _currentTab = 2;
+      _accountView = _AccountView.overview;
       _error = null;
     });
     return true;
@@ -452,6 +737,7 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
     if (index == 2 || index == 4) {
       setState(() {
         _currentTab = index;
+        _accountView = _AccountView.overview;
         _error = null;
       });
       return;
@@ -597,10 +883,95 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
   Widget build(BuildContext context) {
     if (_step == _AuthStep.signedIn) {
       if (_currentTab == 4) {
+        if (_accountView == _AccountView.savedPassengers) {
+          return SavedPassengersScreen(
+            loadPassengers: _loadSavedPassengers,
+            createPassenger: _createSavedPassenger,
+            updatePassenger: _updateSavedPassenger,
+            deletePassenger: _deleteSavedPassenger,
+            onBack: () => setState(() {
+              _accountView = _AccountView.overview;
+              _error = null;
+            }),
+          );
+        }
+        if (_accountView == _AccountView.editProfile) {
+          return EditProfileScreen(
+            loadProfile: _loadEditableProfile,
+            saveProfile: _saveEditableProfile,
+            errorMessage: _error,
+            onFieldChanged: _clearFeedback,
+            onBack: () => setState(() {
+              _accountView = _AccountView.overview;
+              _error = null;
+            }),
+            onSaved: () => setState(() {
+              _accountView = _AccountView.overview;
+              _error = null;
+            }),
+          );
+        }
+        if (_accountView == _AccountView.vouchers) {
+          return VoucherWalletScreen(
+            loadVouchers: _loadVoucherWallet,
+            saveVoucherCode: _saveVoucherCode,
+            errorMessage: _error,
+            onCodeChanged: _clearFeedback,
+            onBack: () => setState(() {
+              _accountView = _AccountView.overview;
+              _error = null;
+            }),
+          );
+        }
+        if (_accountView == _AccountView.points) {
+          return PointHistoryScreen(
+            loadHistory: _loadPointHistory,
+            onLearnMore: () => setState(() {
+              _accountView = _AccountView.overview;
+              _error = null;
+            }),
+            onBack: () => setState(() {
+              _accountView = _AccountView.overview;
+              _error = null;
+            }),
+          );
+        }
+        if (_accountView == _AccountView.reviews) {
+          return MyReviewsScreen(
+            loadReviews: _loadMyReviews,
+            submitReview: _submitReview,
+            errorMessage: _error,
+            onInputChanged: _clearFeedback,
+            onBack: () => setState(() {
+              _accountView = _AccountView.overview;
+              _error = null;
+            }),
+          );
+        }
         return AccountScreen(
           loadOverview: _loadAccountOverview,
           onLogout: _logout,
           onTabSelected: _selectMainTab,
+          onEditProfile: () => setState(() {
+            _accountView = _AccountView.editProfile;
+            _error = null;
+          }),
+          onSavedPassengers: () => setState(() {
+            _accountView = _AccountView.savedPassengers;
+            _error = null;
+          }),
+          onVoucherWallet: () => setState(() {
+            _accountView = _AccountView.vouchers;
+            _error = null;
+          }),
+          onPointHistory: () => setState(() {
+            _accountView = _AccountView.points;
+            _error = null;
+          }),
+          onMyReviews: () => setState(() {
+            _accountView = _AccountView.reviews;
+            _error = null;
+          }),
           logoutErrorMessage: _error,
         );
       }
