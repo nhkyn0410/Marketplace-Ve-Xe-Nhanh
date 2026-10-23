@@ -19,7 +19,6 @@ export function TripCard({ trip }: TripCardProps) {
       {/* Ảnh xe bên trái (w-[176px]) */}
       <div className="relative h-44 w-full shrink-0 overflow-hidden bg-slate-100 md:h-auto md:w-[176px]">
         {trip.imageUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
           <img
             src={trip.imageUrl}
             alt={trip.operatorName}

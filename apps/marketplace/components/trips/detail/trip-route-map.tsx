@@ -18,8 +18,6 @@ interface TripRouteMapProps {
  * Khi chưa cấu hình khóa Goong, hiển thị đồ họa lộ trình minh họa chuẩn Figma kèm thông báo.
  */
 export function TripRouteMap({ timeline: _timeline }: TripRouteMapProps) {
-  const goongKey = process.env.NEXT_PUBLIC_GOONG_MAPTILES_KEY;
-
   return (
     <div className="bg-white rounded-2xl border border-neutral-200 p-6 shadow-xs space-y-4">
       <div className="flex items-center justify-between">
