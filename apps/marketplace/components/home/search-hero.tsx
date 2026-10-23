@@ -1,17 +1,14 @@
 "use client";
 
+import { Button } from "@vexenhanh/ui/components/button";
 import {
-  ArrowRightLeft,
-  Calendar,
+  ArrowLeftRight,
+  BusFront,
   ChevronDown,
-  ChevronRight,
-  Globe,
-  MapPin,
-  PhoneCall,
-  Search,
+  FileText,
+  Phone,
   Star,
-  Tag,
-  Users
+  Tag
 } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
@@ -28,7 +25,7 @@ export interface SearchHeroProps {
 }
 
 /**
- * Khối Banner Hero & Form tìm kiếm chuyến xe 2 tab (Theo chuyến & Theo nhà xe).
+ * Khối Banner Hero & Form tìm kiếm chuyến xe 2 tab (Mua vé & Theo nhà xe) chuẩn Figma 776:791, 830:592, 836:113, 837:131.
  */
 export function SearchHero({
   provinces,
@@ -61,330 +58,358 @@ export function SearchHero({
    */
   const handleSearch = (e: React.FormEvent): void => {
     e.preventDefault();
-    console.warn("[Marketplace] Tìm kiếm chuyến xe: API tìm chuyến (GET /catalog/trips) chưa sẵn sàng.");
-    setActionError("Dịch vụ tìm chuyến đang được đồng bộ dữ liệu. Vui lòng thử lại sau.");
+    console.warn("[marketplace] chưa có API: GET /trips/search");
+    setActionError("Chưa thực hiện được — chức năng tìm chuyến chưa sẵn sàng.");
   };
 
+  const pickerOperators = featuredOperators.slice(0, 3);
+
   return (
-    <section className="relative overflow-hidden bg-[#00476b] text-white">
-      {/* Background Ảnh phong cảnh Việt Nam và xe khách */}
+    <section className="relative flex min-h-[750px] flex-col justify-between overflow-hidden bg-[#0b3b49] text-white">
+      {/* Ảnh nền phong cảnh Việt Nam và xe khách chuẩn Figma */}
       <div
-        className="absolute inset-0 bg-cover bg-center opacity-40 mix-blend-overlay"
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
         style={{
-          backgroundImage:
-            "url('https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&w=2000&q=80')"
+          backgroundImage: "url('/images/hero-bg.jpg')"
         }}
       />
-      {/* Lớp phủ gradient mượt */}
-      <div className="absolute inset-0 bg-gradient-to-b from-[#003b57]/90 via-[#00476b]/80 to-[#07364c]" />
+      {/* Lớp phủ gradient tinh tế để nổi bật chữ bên trái và đáy trang như Figma */}
+      <div className="absolute inset-0 bg-gradient-to-r from-[#023347]/70 via-[#023347]/25 to-transparent" />
+      <div className="absolute inset-0 bg-gradient-to-b from-[#04354a]/35 via-transparent to-[#13251b]/75" />
 
       {/* Top action: CSKH & Ngôn ngữ (góc trên bên phải) */}
-      <div className="relative mx-auto flex max-w-7xl items-center justify-end gap-3 px-4 pt-4 sm:px-6 lg:px-8">
+      <div className="relative z-10 mx-auto flex w-full max-w-[1120px] items-center justify-end gap-2.5 px-4 pt-5 sm:px-6 lg:px-8">
         <a
           href="tel:19006067"
-          className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3.5 py-1 text-xs font-medium text-white backdrop-blur-xs transition hover:bg-white/20"
+          className="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-xs font-bold text-[#0f172a] shadow-sm transition hover:bg-slate-50"
         >
-          <PhoneCall className="h-3 w-3 text-[#f3b132]" />
+          <Phone className="h-3.5 w-3.5 text-[#00506a]" />
           <span>CSKH 1900 6067</span>
         </a>
-        <div className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1 text-xs font-medium text-white backdrop-blur-xs">
-          <Globe className="h-3 w-3" />
+        <button
+          type="button"
+          className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-[#0c2636]/75 px-3.5 py-2 text-xs font-semibold text-white backdrop-blur-xs"
+        >
+          <span
+            aria-hidden="true"
+            className="inline-flex h-3.5 w-5 items-center justify-center rounded-[2px] bg-[#da251d] text-[8px] leading-none text-[#ffff00]"
+          >
+            ★
+          </span>
           <span>VI</span>
-          <ChevronDown className="h-3 w-3 opacity-70" />
-        </div>
+          <ChevronDown className="h-3.5 w-3.5 opacity-80" />
+        </button>
       </div>
 
-      <div className="relative mx-auto max-w-7xl px-4 pt-6 pb-16 sm:px-6 lg:px-8 lg:pt-8 lg:pb-20">
-        {/* Tagline & Header */}
-        <div className="text-center">
-          <div className="inline-flex items-center gap-2 rounded-full border border-teal-300/30 bg-teal-500/20 px-3.5 py-1 text-xs font-medium text-teal-100 backdrop-blur-xs">
-            <Tag className="h-3.5 w-3.5" />
+      {/* Nội dung trung tâm: Tiêu đề căn trái & Khung tìm kiếm */}
+      <div className="relative z-10 mx-auto w-full max-w-[1120px] px-4 pt-8 pb-6 sm:px-6 lg:px-8">
+        {/* Khối tiêu đề căn trái chuẩn Figma */}
+        <div className="max-w-2xl text-left">
+          <div className="inline-flex items-center gap-2 rounded-full bg-[#005975]/90 px-4 py-1.5 text-xs font-bold tracking-wider text-white uppercase shadow-xs backdrop-blur-xs">
+            <Tag className="h-3.5 w-3.5 text-teal-200" />
             <span>ĐẶT VÉ XE KHÁCH TRỰC TUYẾN</span>
           </div>
 
-          <h1 className="mt-4 text-3xl font-black tracking-tight sm:text-5xl lg:text-6xl">
+          <h1 className="mt-4 text-4xl font-extrabold tracking-tight text-white drop-shadow-xs sm:text-5xl lg:text-[56px] lg:leading-[1.12]">
             Đi Việt Nam.
-            <span className="block text-[#f3b132]">Nhanh hơn, gọn hơn.</span>
+            <span className="mt-1 block text-[#f3a826]">Nhanh hơn, gọn hơn.</span>
           </h1>
 
-          <p className="mx-auto mt-4 max-w-2xl text-sm text-teal-100/90 sm:text-base">
+          <p className="mt-4 text-sm leading-relaxed text-white/95 drop-shadow-xs sm:text-[15px]">
             Tìm chuyến phù hợp, đặt vé thuận tiện.
-            <br className="hidden sm:inline" />
+            <br />
             Vé điện tử QR và chính sách rõ ràng trước khi đặt.
           </p>
         </div>
 
-        {/* Khung Form Tìm kiếm */}
-        <div className="relative mx-auto mt-10 max-w-5xl">
-          {/* Tab switcher */}
-          <div className="flex items-center gap-1 px-4">
+        {/* Khung Form Tìm kiếm trắng bo góc */}
+        <div className="relative mt-12 rounded-2xl bg-white px-5 pt-4 pb-6 text-vxn-ink shadow-2xl sm:px-7">
+          {/* Thanh chuyển Tab nằm trong khung trắng */}
+          <div className="flex items-center gap-6 border-b border-transparent">
             <button
               type="button"
               onClick={() => {
                 setActiveTab("trip");
                 setIsPickerOpen(false);
               }}
-              className={`rounded-t-xl px-6 py-3 text-sm font-bold transition-colors ${
+              className={`inline-flex items-center gap-2 border-b-2 px-2 pb-2.5 text-sm transition-colors ${
                 activeTab === "trip"
-                  ? "bg-white text-vxn-ink shadow-md"
-                  : "bg-white/10 text-white/85 hover:bg-white/20 hover:text-white"
+                  ? "border-[#00506a] font-bold text-[#00506a]"
+                  : "border-transparent font-medium text-slate-500 hover:text-vxn-ink"
               }`}
             >
-              Mua vé
+              <FileText className="h-4 w-4" />
+              <span>Mua vé</span>
             </button>
             <button
               type="button"
               onClick={() => {
                 setActiveTab("operator");
               }}
-              className={`rounded-t-xl px-6 py-3 text-sm font-bold transition-colors ${
+              className={`inline-flex items-center gap-2 border-b-2 px-2 pb-2.5 text-sm transition-colors ${
                 activeTab === "operator"
-                  ? "bg-white text-vxn-ink shadow-md"
-                  : "bg-white/10 text-white/85 hover:bg-white/20 hover:text-white"
+                  ? "border-[#00506a] font-bold text-[#00506a]"
+                  : "border-transparent font-medium text-slate-500 hover:text-vxn-ink"
               }`}
             >
-              Theo nhà xe
+              <BusFront className="h-4 w-4" />
+              <span>Theo nhà xe</span>
             </button>
           </div>
 
-          {/* Form nội dung */}
-          <div className="rounded-2xl rounded-tl-none bg-white p-5 shadow-2xl text-vxn-ink sm:p-7">
-            <form onSubmit={handleSearch}>
-              {activeTab === "trip" ? (
-                /* TAB 1: THEO CHUYẾN */
-                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-12 lg:items-center">
-                  {/* Điểm đi */}
-                  <div className="relative lg:col-span-3">
-                    <label className="block text-xs font-semibold text-vxn-fg-4">Điểm đi</label>
-                    <div className="mt-1 flex items-center rounded-xl border border-vxn-border bg-vxn-bg-soft px-3 py-2.5 text-sm focus-within:border-vxn-teal-600 focus-within:bg-white">
-                      <MapPin className="mr-2 h-4 w-4 shrink-0 text-vxn-teal-600" />
-                      <select
-                        value={origin}
-                        onChange={(e) => setOrigin(e.target.value)}
-                        className="w-full bg-transparent font-medium text-vxn-ink outline-none"
-                      >
-                        <option value="">Chọn điểm đi</option>
-                        {provinces.map((p) => (
-                          <option key={p.id} value={p.id}>
-                            {p.name}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                  </div>
-
-                  {/* Nút hoán đổi */}
-                  <div className="flex items-center justify-center lg:col-span-1">
-                    <button
-                      type="button"
-                      onClick={handleSwapLocations}
-                      title="Đảo chiều điểm đi - điểm đến"
-                      className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-vxn-border bg-white text-vxn-fg-3 shadow-xs transition hover:border-vxn-teal-500 hover:text-vxn-teal-700"
-                    >
-                      <ArrowRightLeft className="h-4 w-4" />
-                    </button>
-                  </div>
-
-                  {/* Điểm đến */}
-                  <div className="relative lg:col-span-3">
-                    <label className="block text-xs font-semibold text-vxn-fg-4">Điểm đến</label>
-                    <div className="mt-1 flex items-center rounded-xl border border-vxn-border bg-vxn-bg-soft px-3 py-2.5 text-sm focus-within:border-vxn-teal-600 focus-within:bg-white">
-                      <MapPin className="mr-2 h-4 w-4 shrink-0 text-[#e89b26]" />
-                      <select
-                        value={destination}
-                        onChange={(e) => setDestination(e.target.value)}
-                        className="w-full bg-transparent font-medium text-vxn-ink outline-none"
-                      >
-                        <option value="">Chọn điểm đến</option>
-                        {provinces.map((p) => (
-                          <option key={p.id} value={p.id}>
-                            {p.name}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                  </div>
-
-                  {/* Ngày đi */}
-                  <div className="relative lg:col-span-2">
-                    <label className="block text-xs font-semibold text-vxn-fg-4">Ngày đi</label>
-                    <div className="mt-1 flex items-center rounded-xl border border-vxn-border bg-vxn-bg-soft px-3 py-2.5 text-sm focus-within:border-vxn-teal-600 focus-within:bg-white">
-                      <Calendar className="mr-2 h-4 w-4 shrink-0 text-vxn-fg-3" />
-                      <input
-                        type="date"
-                        value={departureDate}
-                        onChange={(e) => setDepartureDate(e.target.value)}
-                        className="w-full bg-transparent font-medium text-vxn-ink outline-none"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Hành khách */}
-                  <div className="relative lg:col-span-1">
-                    <label className="block text-xs font-semibold text-vxn-fg-4">Hành khách</label>
-                    <div className="mt-1 flex items-center rounded-xl border border-vxn-border bg-vxn-bg-soft px-2.5 py-2.5 text-sm">
-                      <Users className="mr-1.5 h-4 w-4 shrink-0 text-vxn-fg-3" />
-                      <span className="font-semibold text-vxn-ink">{passengerCount}</span>
-                    </div>
-                  </div>
-
-                  {/* Nút Tìm chuyến */}
-                  <div className="mt-2 sm:mt-0 lg:col-span-2">
-                    <label className="hidden text-xs font-semibold text-transparent lg:block">Tìm</label>
-                    <button
-                      type="submit"
-                      className="mt-1 flex w-full items-center justify-center gap-2 rounded-xl bg-[#00506a] py-3 px-4 text-sm font-bold text-white shadow-sm transition hover:bg-[#00476b] active:scale-[0.99]"
-                    >
-                      <Search className="h-4 w-4" />
-                      <span>Tìm chuyến</span>
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                /* TAB 2: THEO NHÀ XE (836:113) */
-                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-12 lg:items-center">
-                  {/* Ô Chọn nhà xe */}
-                  <div className="relative lg:col-span-4">
-                    <label className="block text-xs font-semibold text-vxn-fg-4">Nhà xe</label>
-                    <button
-                      type="button"
-                      onClick={() => setIsPickerOpen(!isPickerOpen)}
-                      className="mt-1 flex w-full items-center justify-between rounded-xl border border-vxn-border bg-vxn-bg-soft px-3 py-2.5 text-left text-sm font-medium text-vxn-ink hover:border-vxn-teal-600 focus:bg-white"
-                    >
-                      <span className="truncate">
-                        {selectedOperator ? selectedOperator.name : "Chọn nhà xe"}
-                      </span>
-                      <ChevronDown className="h-4 w-4 text-vxn-fg-4" />
-                    </button>
-                  </div>
-
-                  {/* Tuyến đường */}
-                  <div className="relative lg:col-span-3">
-                    <label className="block text-xs font-semibold text-vxn-fg-4">Tuyến đường</label>
-                    <select
-                      value={selectedRoute}
-                      onChange={(e) => setSelectedRoute(e.target.value)}
-                      className="mt-1 flex w-full rounded-xl border border-vxn-border bg-vxn-bg-soft px-3 py-2.5 text-sm font-medium text-vxn-ink outline-none"
-                    >
-                      <option value="">Tất cả tuyến</option>
-                      <option value="sg-dl">Sài Gòn ↔ Đà Lạt</option>
-                      <option value="sg-nt">Sài Gòn ↔ Nha Trang</option>
-                      <option value="hn-sp">Hà Nội ↔ Sapa</option>
-                    </select>
-                  </div>
-
-                  {/* Ngày đi */}
-                  <div className="relative lg:col-span-2">
-                    <label className="block text-xs font-semibold text-vxn-fg-4">Ngày đi</label>
-                    <div className="mt-1 flex items-center rounded-xl border border-vxn-border bg-vxn-bg-soft px-3 py-2.5 text-sm">
-                      <Calendar className="mr-2 h-4 w-4 shrink-0 text-vxn-fg-3" />
-                      <input
-                        type="date"
-                        value={departureDate}
-                        onChange={(e) => setDepartureDate(e.target.value)}
-                        className="w-full bg-transparent font-medium text-vxn-ink outline-none"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Hành khách */}
-                  <div className="relative lg:col-span-1">
-                    <label className="block text-xs font-semibold text-vxn-fg-4">Hành khách</label>
-                    <div className="mt-1 flex items-center rounded-xl border border-vxn-border bg-vxn-bg-soft px-2.5 py-2.5 text-sm">
-                      <Users className="mr-1.5 h-4 w-4 shrink-0 text-vxn-fg-3" />
-                      <span className="font-semibold text-vxn-ink">{passengerCount}</span>
-                    </div>
-                  </div>
-
-                  {/* Nút Tìm chuyến */}
-                  <div className="mt-2 sm:mt-0 lg:col-span-2">
-                    <label className="hidden text-xs font-semibold text-transparent lg:block">Tìm</label>
-                    <button
-                      type="submit"
-                      className="mt-1 flex w-full items-center justify-center gap-2 rounded-xl bg-[#00506a] py-3 px-4 text-sm font-bold text-white shadow-sm transition hover:bg-[#00476b] active:scale-[0.99]"
-                    >
-                      <Search className="h-4 w-4" />
-                      <span>Tìm chuyến</span>
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {/* Lỗi hành động tại chỗ nếu có */}
-              {actionError && (
-                <div className="mt-3 rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs font-medium text-amber-800">
-                  {actionError}
-                </div>
-              )}
-            </form>
-
-            {/* POPUP / POPOVER OPERATOR PICKER (837:131) */}
-            {activeTab === "operator" && isPickerOpen && (
-              <div className="relative z-20 mt-4 rounded-xl border border-vxn-border bg-white p-4 shadow-xl">
-                <div className="flex items-center justify-between border-b border-vxn-border pb-3">
-                  <h3 className="text-sm font-bold text-vxn-ink">Nhà xe nổi bật</h3>
-                  <Link
-                    href="/operators"
-                    className="inline-flex items-center text-xs font-semibold text-vxn-teal-700 hover:underline"
+          {/* Form nhập liệu */}
+          <form onSubmit={handleSearch} className="mt-4">
+            {activeTab === "trip" ? (
+              /* TAB 1: MUA VÉ / THEO CHUYẾN (830:592) */
+              <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
+                {/* Điểm đi */}
+                <div className="flex-1 rounded-xl border border-slate-200 bg-white px-4 py-2.5 transition focus-within:border-[#00506a]">
+                  <label htmlFor="trip-origin" className="block text-xs font-medium text-slate-500">
+                    Điểm đi
+                  </label>
+                  <select
+                    id="trip-origin"
+                    value={origin}
+                    onChange={(e) => setOrigin(e.target.value)}
+                    className="mt-0.5 w-full appearance-none bg-transparent text-[15px] font-bold text-[#0f172a] outline-none"
                   >
-                    <span>Xem tất cả nhà xe</span>
-                    <ChevronRight className="h-3 w-3" />
-                  </Link>
+                    <option value="">Chọn điểm đi</option>
+                    {provinces.map((p) => (
+                      <option key={p.id} value={p.id}>
+                        {p.name}
+                      </option>
+                    ))}
+                  </select>
                 </div>
 
-                <div className="mt-2 divide-y divide-vxn-border/60">
-                  {featuredOperators.map((operator) => (
-                    <button
-                      key={operator.id}
-                      type="button"
-                      onClick={() => {
-                        setSelectedOperator(operator);
-                        setIsPickerOpen(false);
-                      }}
-                      className="flex w-full items-center justify-between py-2.5 px-2 text-left transition hover:bg-vxn-bg-soft rounded-lg"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div
-                          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-xs font-bold text-white shadow-xs"
-                          style={{ backgroundColor: operator.accentColor ?? "#00506a" }}
+                {/* Nút hoán đổi */}
+                <div className="flex items-center justify-center">
+                  <button
+                    type="button"
+                    onClick={handleSwapLocations}
+                    title="Đảo chiều điểm đi - điểm đến"
+                    aria-label="Đảo chiều điểm đi - điểm đến"
+                    className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 transition hover:border-[#00506a] hover:text-[#00506a]"
+                  >
+                    <ArrowLeftRight className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+
+                {/* Điểm đến */}
+                <div className="flex-1 rounded-xl border border-slate-200 bg-white px-4 py-2.5 transition focus-within:border-[#00506a]">
+                  <label htmlFor="trip-dest" className="block text-xs font-medium text-slate-500">
+                    Điểm đến
+                  </label>
+                  <select
+                    id="trip-dest"
+                    value={destination}
+                    onChange={(e) => setDestination(e.target.value)}
+                    className="mt-0.5 w-full appearance-none bg-transparent text-[15px] font-bold text-[#0f172a] outline-none"
+                  >
+                    <option value="">Chọn điểm đến</option>
+                    {provinces.map((p) => (
+                      <option key={p.id} value={p.id}>
+                        {p.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Ngày đi */}
+                <div className="relative rounded-xl border border-slate-200 bg-white px-4 py-2.5 transition focus-within:border-[#00506a] lg:w-[155px] lg:shrink-0">
+                  <label htmlFor="trip-date" className="block text-xs font-medium text-slate-500">
+                    Ngày đi
+                  </label>
+                  <div className="mt-0.5 text-[15px] font-bold text-[#0f172a]">
+                    {departureDate || "Chọn ngày"}
+                  </div>
+                  <input
+                    id="trip-date"
+                    type="date"
+                    value={departureDate}
+                    onChange={(e) => setDepartureDate(e.target.value)}
+                    aria-label="Ngày đi"
+                    className="absolute inset-0 cursor-pointer opacity-0"
+                  />
+                </div>
+
+                {/* Hành khách */}
+                <div className="rounded-xl border border-slate-200 bg-white px-4 py-2.5 lg:w-[155px] lg:shrink-0">
+                  <span className="block text-xs font-medium text-slate-500">Hành khách</span>
+                  <div className="mt-0.5 text-[15px] font-bold text-[#0f172a]">
+                    {passengerCount} hành khách
+                  </div>
+                </div>
+
+                {/* Nút Tìm chuyến */}
+                <Button
+                  type="submit"
+                  className="h-[54px] w-full rounded-xl bg-[#00506a] px-6 text-sm font-bold text-white shadow-xs transition hover:bg-[#003f54] lg:w-[165px] lg:shrink-0"
+                >
+                  Tìm chuyến
+                </Button>
+              </div>
+            ) : (
+              /* TAB 2: THEO NHÀ XE (836:113 & 837:131) */
+              <div className="flex flex-col gap-3.5 lg:flex-row lg:items-center">
+                {/* Ô Chọn nhà xe + Popover nổi phía trên */}
+                <div className="relative flex-[1.15]">
+                  {/* POPOVER NHÀ XE NỔI BẬT (837:131) */}
+                  {isPickerOpen && (
+                    <div className="absolute bottom-[calc(100%+10px)] left-0 z-30 w-full rounded-2xl border border-slate-200 bg-white p-3 shadow-2xl sm:w-[350px]">
+                      <div className="px-2.5 pt-1 pb-2 text-[11px] font-bold tracking-wider text-slate-400 uppercase">
+                        NHÀ XE NỔI BẬT
+                      </div>
+                      <div className="space-y-1">
+                        {pickerOperators.map((operator, idx) => (
+                          <button
+                            key={operator.id}
+                            type="button"
+                            onClick={() => {
+                              setSelectedOperator(operator);
+                              setIsPickerOpen(false);
+                            }}
+                            className={`flex w-full items-center gap-3 rounded-xl px-2.5 py-2 text-left transition ${
+                              idx === 0 ? "bg-[#eef6f9]" : "hover:bg-[#eef6f9]"
+                            }`}
+                          >
+                            <div
+                              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-xs font-bold text-white"
+                              style={{ backgroundColor: operator.accentColor ?? "#00506a" }}
+                            >
+                              {operator.shortCode}
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <div className="truncate text-sm font-bold text-[#0f172a]">
+                                {operator.name}
+                              </div>
+                              <div className="mt-0.5 flex items-center gap-1 text-xs text-slate-500">
+                                <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
+                                <span className="font-semibold text-slate-700">
+                                  {operator.rating.toFixed(1)}
+                                </span>
+                                <span>·</span>
+                                <span>{operator.ratingCountText}</span>
+                              </div>
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                      <div className="mt-2 border-t border-slate-100 pt-2">
+                        <Link
+                          href="/operators/opr-phuongnam"
+                          className="block px-2.5 py-1 text-xs font-bold text-[#00506a] hover:underline"
                         >
-                          {operator.shortCode}
-                        </div>
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <span className="text-sm font-semibold text-vxn-ink">
-                              {operator.name}
-                            </span>
-                            <span className="flex items-center text-xs font-semibold text-amber-600">
-                              <Star className="mr-0.5 h-3 w-3 fill-amber-400 text-amber-500" />
-                              {operator.rating.toFixed(1)}
-                            </span>
-                          </div>
-                          <div className="text-xs text-vxn-fg-4">
-                            {operator.vehicleTypesText}
-                          </div>
-                        </div>
+                          Xem tất cả nhà xe
+                        </Link>
                       </div>
+                    </div>
+                  )}
 
-                      <div className="text-right text-xs text-vxn-fg-3">
-                        <span className="rounded bg-vxn-bg-mist px-2.5 py-1 font-semibold text-vxn-teal-800">
-                          {operator.dailyTripsText}
-                        </span>
-                      </div>
-                    </button>
-                  ))}
+                  <button
+                    type="button"
+                    onClick={() => setIsPickerOpen(!isPickerOpen)}
+                    className={`w-full rounded-xl bg-white px-4 py-2.5 text-left transition ${
+                      isPickerOpen
+                        ? "border-[1.5px] border-[#00506a]"
+                        : "border border-slate-200 hover:border-[#00506a]"
+                    }`}
+                  >
+                    <span
+                      className={`block text-xs ${
+                        isPickerOpen ? "font-semibold text-[#00506a]" : "font-medium text-slate-500"
+                      }`}
+                    >
+                      Nhà xe
+                    </span>
+                    <span
+                      className={`mt-0.5 block truncate text-[15px] ${
+                        isPickerOpen && !selectedOperator
+                          ? "font-medium text-slate-400"
+                          : "font-bold text-[#0f172a]"
+                      }`}
+                    >
+                      {selectedOperator
+                        ? selectedOperator.name
+                        : isPickerOpen
+                          ? "Nhập tên nhà xe..."
+                          : "Chọn nhà xe"}
+                    </span>
+                  </button>
                 </div>
+
+                {/* Tuyến đường */}
+                <div className="flex-[1.15] rounded-xl border border-slate-200 bg-white px-4 py-2.5 transition focus-within:border-[#00506a]">
+                  <label htmlFor="operator-route" className="block text-xs font-medium text-slate-500">
+                    Tuyến đường
+                  </label>
+                  <select
+                    id="operator-route"
+                    value={selectedRoute}
+                    onChange={(e) => setSelectedRoute(e.target.value)}
+                    className="mt-0.5 w-full appearance-none bg-transparent text-[15px] font-bold text-[#0f172a] outline-none"
+                  >
+                    <option value="">Tất cả tuyến</option>
+                    <option value="sg-dl">TP. Hồ Chí Minh ↔ Đà Lạt</option>
+                    <option value="sg-nt">TP. Hồ Chí Minh ↔ Nha Trang</option>
+                    <option value="hn-sp">Hà Nội ↔ Sapa</option>
+                  </select>
+                </div>
+
+                {/* Ngày đi */}
+                <div className="relative rounded-xl border border-slate-200 bg-white px-4 py-2.5 transition focus-within:border-[#00506a] lg:w-[175px] lg:shrink-0">
+                  <label htmlFor="operator-date" className="block text-xs font-medium text-slate-500">
+                    Ngày đi
+                  </label>
+                  <div className="mt-0.5 text-[15px] font-bold text-[#0f172a]">
+                    {departureDate || "Chọn ngày"}
+                  </div>
+                  <input
+                    id="operator-date"
+                    type="date"
+                    value={departureDate}
+                    onChange={(e) => setDepartureDate(e.target.value)}
+                    aria-label="Ngày đi"
+                    className="absolute inset-0 cursor-pointer opacity-0"
+                  />
+                </div>
+
+                {/* Hành khách */}
+                <div className="rounded-xl border border-slate-200 bg-white px-4 py-2.5 lg:w-[175px] lg:shrink-0">
+                  <span className="block text-xs font-medium text-slate-500">Hành khách</span>
+                  <div className="mt-0.5 text-[15px] font-bold text-[#0f172a]">
+                    {passengerCount} hành khách
+                  </div>
+                </div>
+
+                {/* Nút Tìm chuyến */}
+                <Button
+                  type="submit"
+                  className="h-[54px] w-full rounded-xl bg-[#00506a] px-6 text-sm font-bold text-white shadow-xs transition hover:bg-[#003f54] lg:w-[175px] lg:shrink-0"
+                >
+                  Tìm chuyến
+                </Button>
               </div>
             )}
-          </div>
-        </div>
 
-        {/* Scroll hint (icon mouse chuẩn Figma) */}
-        <div className="mt-12 flex flex-col items-center justify-center gap-1.5 text-xs text-teal-100/80">
-          <span>Lướt xuống để xem tuyến phổ biến</span>
-          <div className="flex h-7 w-4.5 justify-center rounded-full border-2 border-teal-200/60 pt-1">
-            <div className="h-1.5 w-1 rounded-full bg-teal-200 animate-pulse" />
-          </div>
+            {/* Lỗi hành động tại chỗ nếu có */}
+            {actionError && (
+              <div
+                role="alert"
+                className="mt-3 rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs font-medium text-amber-800"
+              >
+                {actionError}
+              </div>
+            )}
+          </form>
+        </div>
+      </div>
+
+      {/* Scroll hint (icon mouse chuẩn Figma) */}
+      <div className="relative z-10 flex flex-col items-center justify-center gap-2 pb-5 text-xs font-medium text-white/90">
+        <span>Lướt xuống để xem tuyến phổ biến</span>
+        <div className="flex h-7 w-4.5 justify-center rounded-full border-[1.5px] border-white/80 pt-1">
+          <div className="h-1.5 w-0.5 rounded-full bg-white" />
         </div>
       </div>
     </section>

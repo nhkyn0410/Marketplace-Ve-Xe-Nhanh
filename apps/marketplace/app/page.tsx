@@ -26,7 +26,7 @@ export interface MarketplacePageProps {
 
 /**
  * Trang chủ Marketplace (SCR-PSG-01) — hỗ trợ preview các trạng thái:
- * - ideal: Giao diện đầy đủ theo Figma 776:791
+ * - ideal: Giao diện đầy đủ theo Figma 776:791 & 830:592
  * - operator-tab: Tab Theo nhà xe (836:113)
  * - operator-picker: Popover chọn nhà xe (837:131)
  * - 404, 500, 403, 503: Các trang lỗi nền tảng Lô 0
@@ -79,7 +79,7 @@ export default async function MarketplacePage(props: MarketplacePageProps) {
     const isPickerOpen = preview === "operator-picker";
 
     return (
-      <div className="flex flex-col bg-[#f9f9ff]">
+      <div className="flex flex-col bg-white">
         <SearchHero
           provinces={provincesFixture}
           featuredOperators={featuredOperatorsFixture}
@@ -104,10 +104,10 @@ export default async function MarketplacePage(props: MarketplacePageProps) {
     ]);
 
   const provinces =
-    provincesResult.status === "ok" ? provincesResult.data : provincesFixture;
+    provincesResult.status === "ok" ? provincesResult.data : [];
 
   return (
-    <div className="flex flex-col bg-[#f9f9ff]">
+    <div className="flex flex-col bg-white">
       <SearchHero
         provinces={provinces}
         featuredOperators={
