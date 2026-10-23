@@ -24,19 +24,19 @@ export function TripListHeader({
   );
 
   return (
-    <div className="flex flex-col justify-between gap-4 border-b border-vxn-border/60 pb-4 sm:flex-row sm:items-center">
+    <div className="flex flex-col justify-between gap-4 border-b border-slate-100 pb-4 sm:flex-row sm:items-center">
       {/* Tiêu đề & Thông tin ngày/khách */}
       <div>
-        <h2 className="text-xl font-black text-vxn-ink sm:text-2xl">
+        <h2 className="text-xl font-black text-slate-900 sm:text-2xl">
           {totalTrips} chuyến đang mở bán
         </h2>
-        <p className="mt-0.5 text-xs text-vxn-fg-4">
+        <p className="mt-0.5 text-xs text-slate-500">
           {dateText} • {passengerCount} hành khách
         </p>
       </div>
 
       {/* Tabs sắp xếp */}
-      <div className="flex items-center rounded-xl border border-vxn-border bg-white p-1 shadow-2xs text-xs">
+      <div className="flex items-center rounded-xl bg-[#f1f3fc] p-1 text-xs font-medium">
         {[
           { id: "earliest", label: "Giờ đi sớm" },
           { id: "price_asc", label: "Giá thấp" },
@@ -46,10 +46,10 @@ export function TripListHeader({
             key={tab.id}
             type="button"
             onClick={() => setActiveSort(tab.id as typeof activeSort)}
-            className={`rounded-lg py-1.5 px-3 font-semibold transition ${
+            className={`rounded-lg py-1.5 px-3 transition cursor-pointer ${
               activeSort === tab.id
-                ? "bg-vxn-bg-mist text-vxn-teal-800 shadow-2xs font-bold"
-                : "text-vxn-fg-3 hover:text-vxn-ink"
+                ? "bg-white text-[#00506a] shadow-xs font-bold"
+                : "text-slate-600 hover:text-slate-900"
             }`}
           >
             {tab.label}

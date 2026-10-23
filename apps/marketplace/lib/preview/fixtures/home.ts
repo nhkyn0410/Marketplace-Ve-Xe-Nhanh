@@ -57,7 +57,7 @@ export const popularRoutesFixture: readonly PopularRouteItem[] = [
     durationText: "2 tiếng",
     vehicleTypeText: "Limousine",
     minPriceVnd: "120000",
-    rating: 4.7
+    rating: 4.6
   },
   {
     id: "route-hn-halong",
@@ -67,7 +67,7 @@ export const popularRoutesFixture: readonly PopularRouteItem[] = [
     durationText: "2.5 tiếng",
     vehicleTypeText: "Limousine",
     minPriceVnd: "180000",
-    rating: 4.6
+    rating: 4.7
   },
   {
     id: "route-dn-hue",
@@ -77,11 +77,11 @@ export const popularRoutesFixture: readonly PopularRouteItem[] = [
     durationText: "2 tiếng",
     vehicleTypeText: "Ghế ngồi cao cấp",
     minPriceVnd: "110000",
-    rating: 4.5
+    rating: 4.6
   },
   {
     id: "route-sg-nhatrang",
-    fromCity: "TP. Hồ Chí Minh",
+    fromCity: "TP. HCM",
     toCity: "Nha Trang",
     distanceKm: 430,
     durationText: "8.5 tiếng",
@@ -97,7 +97,7 @@ export const popularRoutesFixture: readonly PopularRouteItem[] = [
     durationText: "1.5 tiếng",
     vehicleTypeText: "Limousine",
     minPriceVnd: "130000",
-    rating: 4.6
+    rating: 4.7
   }
 ];
 
@@ -115,7 +115,7 @@ export const featuredOperatorsFixture: readonly FeaturedOperatorItem[] = [
     vehicleTypesText: "Giường nằm & Limousine",
     popularRoutesText: "Sài Gòn ↔ Đà Lạt, Nha Trang",
     slug: "ha-linh-express",
-    accentColor: "#E07A5F"
+    accentColor: "#E89B26"
   },
   {
     id: "opr-phuongnam",
@@ -127,7 +127,7 @@ export const featuredOperatorsFixture: readonly FeaturedOperatorItem[] = [
     vehicleTypesText: "Limousine VIP 34 phòng",
     popularRoutesText: "Sài Gòn ↔ Mũi Né, Phan Thiết",
     slug: "phuong-nam-travel",
-    accentColor: "#2563EB"
+    accentColor: "#00506A"
   },
   {
     id: "opr-tamhanh",
@@ -139,7 +139,7 @@ export const featuredOperatorsFixture: readonly FeaturedOperatorItem[] = [
     vehicleTypesText: "Limousine 22 cabin",
     popularRoutesText: "Sài Gòn ↔ Nha Trang, Cam Ranh",
     slug: "tam-hanh-limousine",
-    accentColor: "#4338CA"
+    accentColor: "#1D4ED8"
   },
   {
     id: "opr-hoanglong",
@@ -151,7 +151,7 @@ export const featuredOperatorsFixture: readonly FeaturedOperatorItem[] = [
     vehicleTypesText: "Giường nằm cao cấp",
     popularRoutesText: "Hà Nội ↔ Hải Phòng, Quảng Ninh",
     slug: "hoang-long-coach",
-    accentColor: "#15803D"
+    accentColor: "#047857"
   },
   {
     id: "opr-maihuong",
@@ -180,7 +180,7 @@ export const handbookArticlesFixture: readonly HandbookArticleItem[] = [
   },
   {
     id: "art-2",
-    title: "Top 8 quán phở bò trứ danh dọc QL1 Bắc — Trung",
+    title: "Top 8 quán phở bò trứ danh dọc QL1 Bắc – Trung",
     category: "Du lịch",
     readTimeText: "4 phút đọc",
     slug: "top-8-quan-pho-bo-doc-ql1"

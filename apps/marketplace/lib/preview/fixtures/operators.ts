@@ -29,7 +29,7 @@ export const operatorProfileFixture: OperatorProfileData = {
       routeName: "TP. Hồ Chí Minh → Đà Lạt",
       metaText: "7 giờ • Giường nằm, Cabin",
       minPriceVnd: "280000",
-      imageUrl: "https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&w=600&q=80",
+      imageUrl: "/images/route-sg-dalat.jpg",
       searchUrl: "/trips?origin=TP.+Hồ+Chí+Minh&destination=Đà+Lạt&operator=opr-phuongnam"
     },
     {
@@ -37,7 +37,7 @@ export const operatorProfileFixture: OperatorProfileData = {
       routeName: "TP. Hồ Chí Minh → Nha Trang",
       metaText: "8 giờ 30 phút • Giường nằm",
       minPriceVnd: "320000",
-      imageUrl: "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=600&q=80",
+      imageUrl: "/images/route-sg-nhatrang.jpg",
       searchUrl: "/trips?origin=TP.+Hồ+Chí+Minh&destination=Nha+Trang&operator=opr-phuongnam"
     },
     {
@@ -45,7 +45,7 @@ export const operatorProfileFixture: OperatorProfileData = {
       routeName: "TP. Hồ Chí Minh → Vũng Tàu",
       metaText: "2 giờ 15 phút • Ghế ngồi",
       minPriceVnd: "120000",
-      imageUrl: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=600&q=80",
+      imageUrl: "/images/route-sg-vungtau.jpg",
       searchUrl: "/trips?origin=TP.+Hồ+Chí+Minh&destination=Vũng+Tàu&operator=opr-phuongnam"
     }
   ],

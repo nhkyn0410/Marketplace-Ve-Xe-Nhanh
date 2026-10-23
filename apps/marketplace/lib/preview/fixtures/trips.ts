@@ -7,6 +7,7 @@ export const tripSearchSummaryFixture: TripSearchSummary = {
   originCity: "TP. Hồ Chí Minh",
   destinationCity: "Đà Lạt",
   departureDateText: "Thứ Sáu, 16/10/2026",
+  departureDateShortText: "T6, 16/10/2026",
   passengerCount: 2,
   totalTrips: 12
 };
@@ -20,7 +21,7 @@ export const searchTripsFixture: readonly TripSearchResultItem[] = [
     operatorId: "opr-phuongnam",
     operatorName: "Phương Nam Travel",
     operatorCode: "PN",
-    operatorAccentColor: "#2563EB",
+    operatorAccentColor: "#006481",
     operatorRating: 4.6,
     operatorRatingCountText: "8.930 đánh giá",
     vehicleType: "Limousine",
@@ -37,15 +38,16 @@ export const searchTripsFixture: readonly TripSearchResultItem[] = [
     priceVnd: "280000",
     availableSeats: 12,
     isUrgent: false,
-    amenities: ["WiFi", "Điều hòa", "Nước uống", "+1"],
-    imageUrl: "https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&w=600&q=80"
+    amenities: ["WiFi", "Điều hòa", "Nước uống"],
+    moreAmenitiesCount: 1,
+    imageUrl: "/images/trip-card-1.png"
   },
   {
     id: "trip-hl-02",
     operatorId: "opr-halinh",
     operatorName: "Hà Linh Express",
     operatorCode: "HL",
-    operatorAccentColor: "#E07A5F",
+    operatorAccentColor: "#e89b26",
     operatorRating: 4.8,
     operatorRatingCountText: "12.840 đánh giá",
     vehicleType: "Tiêu chuẩn",
@@ -63,14 +65,14 @@ export const searchTripsFixture: readonly TripSearchResultItem[] = [
     availableSeats: 2,
     isUrgent: true,
     amenities: ["WiFi", "Điều hòa", "Nước uống"],
-    imageUrl: "https://images.unsplash.com/photo-1570125909232-eb263c188f7e?auto=format&fit=crop&w=600&q=80"
+    imageUrl: "/images/trip-card-2.png"
   },
   {
     id: "trip-th-03",
     operatorId: "opr-tamhanh",
     operatorName: "Tâm Hạnh Limousine",
     operatorCode: "TH",
-    operatorAccentColor: "#4338CA",
+    operatorAccentColor: "#00506a",
     operatorRating: 4.7,
     operatorRatingCountText: "5.210 đánh giá",
     vehicleType: "Limousine",
@@ -87,15 +89,16 @@ export const searchTripsFixture: readonly TripSearchResultItem[] = [
     priceVnd: "420000",
     availableSeats: 6,
     isUrgent: false,
-    amenities: ["WiFi", "Điều hòa", "Nước uống", "+1"],
-    imageUrl: "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=600&q=80"
+    amenities: ["WiFi", "Điều hòa", "Nước uống"],
+    moreAmenitiesCount: 1,
+    imageUrl: "/images/trip-card-3.png"
   },
   {
     id: "trip-mh-04",
     operatorId: "opr-maihuong",
     operatorName: "Mai Hương Sleeper",
     operatorCode: "MH",
-    operatorAccentColor: "#D97706",
+    operatorAccentColor: "#b45309",
     operatorRating: 4.4,
     operatorRatingCountText: "3.204 đánh giá",
     vehicleType: "Tiêu chuẩn",
@@ -113,7 +116,7 @@ export const searchTripsFixture: readonly TripSearchResultItem[] = [
     availableSeats: 21,
     isUrgent: false,
     amenities: ["Điều hòa", "Nước uống"],
-    imageUrl: "https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=600&q=80"
+    imageUrl: "/images/trip-card-4.png"
   }
 ];
 
@@ -186,23 +189,23 @@ export const tripDetailFixture = {
   isNextDay: true,
   photos: [
     {
-      url: "https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&w=800&q=80",
+      url: "/images/hero-bg.jpg",
       caption: "Ngoại thất xe • chụp tại bến"
     },
     {
-      url: "https://images.unsplash.com/photo-1570125909232-eb263c188f7e?auto=format&fit=crop&w=400&q=80",
+      url: "/images/trip-card-1.png",
       caption: "Khoang ghế hành khách"
     },
     {
-      url: "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=400&q=80",
+      url: "/images/trip-card-3.png",
       caption: "Ngoại cảnh xe trên cung đường đèo"
     },
     {
-      url: "https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=400&q=80",
+      url: "/images/trip-card-2.png",
       caption: "Hoàng hôn trên xe"
     },
     {
-      url: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=400&q=80",
+      url: "/images/trip-card-4.png",
       caption: "Nội thất khoang nằm"
     }
   ],
