@@ -13,16 +13,16 @@ export interface PopularRoutesSectionProps {
 }
 
 /**
- * Ảnh nền minh họa cho từng tuyến xe đặc trưng.
+ * Ảnh nền cho từng tuyến xe phổ biến theo thiết kế Figma 776:791.
  */
 const ROUTE_BACKGROUND_IMAGES: Record<string, string> = {
-  "route-sg-dalat": "https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=1000&q=80",
-  "route-hn-sapa": "https://images.unsplash.com/photo-1528127269322-539801943592?auto=format&fit=crop&w=600&q=80",
-  "route-sg-vungtau": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=600&q=80",
-  "route-hn-halong": "https://images.unsplash.com/photo-1528181304800-259b08848526?auto=format&fit=crop&w=600&q=80",
-  "route-dn-hue": "https://images.unsplash.com/photo-1559592413-7cec4d0cae2b?auto=format&fit=crop&w=600&q=80",
-  "route-sg-nhatrang": "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=600&q=80",
-  "route-hn-ninhbinh": "https://images.unsplash.com/photo-1509316975850-ff9c5deb0cd9?auto=format&fit=crop&w=600&q=80"
+  "route-sg-dalat": "/images/route-sg-dalat.jpg",
+  "route-hn-sapa": "/images/route-hn-sapa.jpg",
+  "route-sg-vungtau": "/images/route-sg-vungtau.jpg",
+  "route-hn-halong": "/images/route-hn-halong.jpg",
+  "route-dn-hue": "/images/route-dn-hue.jpg",
+  "route-sg-nhatrang": "/images/route-sg-nhatrang.jpg",
+  "route-hn-ninhbinh": "/images/route-hn-ninhbinh.jpg"
 };
 
 /**
@@ -34,13 +34,15 @@ export function PopularRoutesSection({
 }: PopularRoutesSectionProps) {
   if (isUnavailable || !routes || routes.length === 0) {
     return (
-      <section className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between pb-4">
+      <section className="mx-auto w-full max-w-[1120px] px-4 pt-12 pb-6 sm:px-6 lg:px-8">
+        <div className="flex items-end justify-between pb-5">
           <div>
-            <span className="text-xs font-semibold tracking-wider text-vxn-teal-700 uppercase">
-              Tuyến phổ biến
+            <span className="text-xs font-bold tracking-wider text-[#d9881c] uppercase">
+              TUYẾN PHỔ BIẾN
             </span>
-            <h2 className="text-2xl font-bold text-vxn-ink">Việt Nam, mọi cung đường</h2>
+            <h2 className="mt-1 text-2xl font-extrabold text-[#0f172a] sm:text-[28px]">
+              Việt Nam, mọi cung đường
+            </h2>
           </div>
         </div>
         <FeatureUnavailableCompact
@@ -55,119 +57,125 @@ export function PopularRoutesSection({
   const standardRoutes = routes.filter((r) => r.id !== featuredRoute?.id);
 
   return (
-    <section className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+    <section className="mx-auto w-full max-w-[1120px] px-4 pt-12 pb-6 sm:px-6 lg:px-8">
       {/* Tiêu đề mục */}
-      <div className="flex items-end justify-between pb-6">
+      <div className="flex items-end justify-between pb-5">
         <div>
-          <span className="text-xs font-bold tracking-wider text-vxn-teal-700 uppercase">
+          <span className="text-xs font-bold tracking-wider text-[#d9881c] uppercase">
             TUYẾN PHỔ BIẾN
           </span>
-          <h2 className="mt-1 text-2xl font-black text-vxn-ink sm:text-3xl">
+          <h2 className="mt-1 text-2xl font-extrabold text-[#0f172a] sm:text-[28px]">
             Việt Nam, mọi cung đường
           </h2>
         </div>
         <Link
           href="/trips"
-          className="inline-flex items-center gap-1 text-sm font-semibold text-vxn-teal-700 hover:text-vxn-teal-800"
+          className="text-xs font-bold text-[#00506a] hover:underline"
         >
-          <span>Xem tất cả tuyến</span>
-          <ArrowRight className="h-4 w-4" />
+          Xem tất cả tuyến
         </Link>
       </div>
 
-      {/* Lưới các tuyến xe */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
-        {/* Thẻ lớn Nổi bật bên trái (5 cột) */}
+      {/* Lưới 4 cột x 2 hàng chuẩn Figma */}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {/* Thẻ lớn Nổi bật ở Hàng 1 (chiếm 2 cột) */}
         {featuredRoute && (
           <div
-            className="group relative flex min-h-[380px] flex-col justify-between overflow-hidden rounded-2xl bg-cover bg-center p-6 text-white shadow-md transition hover:shadow-xl lg:col-span-5"
+            className="group relative flex min-h-[245px] flex-col justify-between overflow-hidden rounded-2xl bg-cover bg-center p-5 text-white shadow-xs transition hover:shadow-lg sm:col-span-2 lg:col-span-2"
             style={{
               backgroundImage: `url('${ROUTE_BACKGROUND_IMAGES[featuredRoute.id] ?? ROUTE_BACKGROUND_IMAGES["route-sg-dalat"]}')`
             }}
           >
-            {/* Lớp gradient overlay */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/40 to-black/20" />
+            {/* Lớp gradient overlay nửa dưới */}
+            <div className="absolute inset-0 bg-gradient-to-t from-[#061824]/90 via-[#061824]/30 to-transparent" />
 
-            <div className="relative z-10">
-              <div className="flex items-center gap-2">
-                <span className="rounded-full bg-[#f3b132] px-3 py-1 text-xs font-black text-vxn-ink">
-                  NỔI BẬT
-                </span>
-                <div className="flex items-center gap-1 rounded-full bg-black/40 px-2.5 py-0.5 text-xs font-bold text-white backdrop-blur-xs">
-                  <Star className="h-3.5 w-3.5 fill-amber-300 text-amber-300" />
-                  <span>{featuredRoute.rating.toFixed(1)}</span>
-                </div>
+            <div className="relative z-10 flex items-center gap-2">
+              <span className="rounded-full bg-[#fde8c4] px-3 py-1 text-[10px] font-extrabold tracking-wide text-[#9a5806] uppercase">
+                NỔI BẬT
+              </span>
+              <div className="inline-flex items-center gap-1 rounded-full bg-black/45 px-2.5 py-1 text-xs font-bold text-white backdrop-blur-xs">
+                <Star className="h-3 w-3 fill-[#f3a826] text-[#f3a826]" />
+                <span>{featuredRoute.rating.toFixed(1)}</span>
               </div>
             </div>
 
             <div className="relative z-10">
-              <p className="text-xs font-medium text-white/85">
+              <p className="text-xs font-medium text-white/90">
                 {featuredRoute.distanceKm} km • {featuredRoute.durationText} • {featuredRoute.vehicleTypeText}
               </p>
-              <h3 className="mt-1 text-2xl font-black tracking-tight sm:text-3xl">
-                {featuredRoute.fromCity} &gt; {featuredRoute.toCity}
+              <h3 className="mt-0.5 flex items-center gap-2 text-2xl font-extrabold tracking-tight text-white sm:text-[26px]">
+                <span>{featuredRoute.fromCity}</span>
+                <ChevronRight className="h-5 w-5 text-white/80" />
+                <span>{featuredRoute.toCity}</span>
               </h3>
 
-              <div className="mt-6 flex items-center justify-between border-t border-white/20 pt-4">
+              <div className="mt-2 flex items-end justify-between">
                 <div>
-                  <span className="text-xs text-white/80">Từ </span>
-                  <span className="text-2xl font-black text-[#f3b132]">
+                  <span className="text-xs text-white/85">Từ </span>
+                  <span className="text-xl font-extrabold text-[#f3a826]">
                     {formatVnd(featuredRoute.minPriceVnd)}
                   </span>
                 </div>
                 <Link
                   href={`/trips?from=${encodeURIComponent(featuredRoute.fromCity)}&to=${encodeURIComponent(featuredRoute.toCity)}`}
-                  className="inline-flex items-center gap-1.5 rounded-xl bg-white/20 px-4 py-2 text-sm font-bold text-white backdrop-blur-sm transition hover:bg-white hover:text-vxn-ink"
+                  className="inline-flex items-center gap-1.5 rounded-lg bg-[#00506a]/90 px-3.5 py-2 text-xs font-bold text-white backdrop-blur-xs transition hover:bg-[#00506a]"
                 >
                   <span>Đặt vé ngay</span>
-                  <ChevronRight className="h-4 w-4" />
+                  <ArrowRight className="h-3.5 w-3.5" />
                 </Link>
               </div>
             </div>
           </div>
         )}
 
-        {/* 6 Thẻ nhỏ bên phải (7 cột - grid 2 hoặc 3 cột con) */}
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:col-span-7">
-          {standardRoutes.map((route) => (
+        {/* 6 Thẻ còn lại: 2 thẻ ở Hàng 1 (cao 245px, có "Xem chuyến") và 4 thẻ ở Hàng 2 (cao 175px) */}
+        {standardRoutes.map((route, idx) => {
+          const isTopRow = idx < 2;
+          return (
             <Link
               key={route.id}
               href={`/trips?from=${encodeURIComponent(route.fromCity)}&to=${encodeURIComponent(route.toCity)}`}
-              className="group relative flex min-h-[175px] flex-col justify-between overflow-hidden rounded-2xl bg-cover bg-center p-4 text-white shadow-xs transition hover:scale-[1.01] hover:shadow-lg"
+              className={`group relative flex flex-col justify-between overflow-hidden rounded-2xl bg-cover bg-center p-4 text-white shadow-xs transition hover:shadow-lg ${
+                isTopRow ? "min-h-[245px]" : "min-h-[175px]"
+              }`}
               style={{
                 backgroundImage: `url('${ROUTE_BACKGROUND_IMAGES[route.id] ?? ROUTE_BACKGROUND_IMAGES["route-hn-sapa"]}')`
               }}
             >
-              {/* Lớp gradient overlay tối */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/40 to-black/25" />
+              {/* Lớp gradient overlay nửa dưới */}
+              <div className="absolute inset-0 bg-gradient-to-t from-[#061824]/90 via-[#061824]/25 to-transparent" />
 
-              <div className="relative z-10 flex items-center justify-between">
-                <div className="flex items-center gap-1 rounded-full bg-black/40 px-2 py-0.5 text-xs font-bold text-white backdrop-blur-xs">
-                  <Star className="h-3 w-3 fill-amber-300 text-amber-300" />
+              <div className="relative z-10 flex items-center">
+                <div className="inline-flex items-center gap-1 rounded-full bg-black/45 px-2.5 py-0.5 text-[11px] font-bold text-white backdrop-blur-xs">
+                  <Star className="h-3 w-3 fill-[#f3a826] text-[#f3a826]" />
                   <span>{route.rating.toFixed(1)}</span>
                 </div>
               </div>
 
               <div className="relative z-10">
-                <h4 className="text-base font-bold text-white drop-shadow-xs group-hover:text-amber-200">
-                  {route.fromCity} &rarr; {route.toCity}
+                <h4 className="text-[15px] font-extrabold text-white">
+                  <span>{route.fromCity}</span>
+                  <span className="mx-1.5 font-normal text-[#f3a826]">&rarr;</span>
+                  <span>{route.toCity}</span>
                 </h4>
 
-                <div className="mt-2 flex items-center justify-between border-t border-white/20 pt-2 text-xs">
+                <div className="mt-1 flex items-center justify-between text-xs">
                   <div>
                     <span className="text-white/80">Từ </span>
-                    <span className="font-extrabold text-[#f3b132]">
+                    <span className="text-sm font-extrabold text-[#f3a826]">
                       {formatVnd(route.minPriceVnd)}
                     </span>
                   </div>
-                  <span className="font-medium text-white/80 group-hover:text-white">
-                    Xem chuyến
-                  </span>
+                  {isTopRow && (
+                    <span className="text-[11px] font-medium text-white/90 group-hover:underline">
+                      Xem chuyến
+                    </span>
+                  )}
                 </div>
               </div>
             </Link>
-          ))}
-        </div>
+          );
+        })}
       </div>
     </section>
   );

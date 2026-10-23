@@ -1,4 +1,3 @@
-import { ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { HandbookArticleItem } from "../../lib/data/types";
 
@@ -11,6 +10,15 @@ export interface PlusAndGuideSectionProps {
 }
 
 /**
+ * Thumbnail ảnh cho từng bài viết cẩm nang chuẩn Figma 776:791.
+ */
+const ARTICLE_THUMBNAILS: readonly string[] = [
+  "/images/article-1.png",
+  "/images/article-2.png",
+  "/images/article-3.png"
+];
+
+/**
  * Khối Banner Vé Xe Nhanh Plus & Cẩm nang xe khách chuẩn theo Figma 776:791.
  */
 export function PlusAndGuideSection({
@@ -18,67 +26,77 @@ export function PlusAndGuideSection({
   isUnavailable = false
 }: PlusAndGuideSectionProps) {
   return (
-    <section className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-      <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
-        {/* Banner VXN Plus bên trái (5 cột) */}
-        <div className="relative flex flex-col justify-between overflow-hidden rounded-2xl border border-teal-100 bg-gradient-to-br from-[#e6f7f2] via-[#f0fbf7] to-[#fdf7e7] p-8 shadow-2xs lg:col-span-5">
+    <section className="mx-auto w-full max-w-[1120px] px-4 pt-4 pb-14 sm:px-6 lg:px-8">
+      <div className="grid grid-cols-1 gap-8 lg:grid-cols-12 lg:items-center">
+        {/* Banner VXN Plus bên trái (7 cột) */}
+        <div className="flex flex-col justify-between rounded-2xl bg-gradient-to-br from-[#dff3fa] via-[#e4f9eb] to-[#f8f5d7] p-7 sm:p-8 lg:col-span-7">
           <div>
-            <span className="text-xs font-bold tracking-wider text-vxn-fg-4 uppercase">
-              VXN PLUS
+            <span className="text-xs font-bold tracking-widest text-[#0f172a] uppercase">
+              HẠNG THÀNH VIÊN
             </span>
 
-            <h3 className="mt-4 text-2xl font-black text-vxn-ink sm:text-3xl">
+            <h3 className="mt-4 text-2xl font-extrabold text-[#0f172a] sm:text-[28px]">
               Tích điểm cùng Vé xe nhanh
             </h3>
 
-            <p className="mt-4 text-sm leading-relaxed text-vxn-fg-2">
+            <p className="mt-3 text-sm leading-relaxed text-slate-700">
               Tích điểm sau chuyến đi hoàn thành.
               <br />
               Đổi điểm lấy voucher giảm giá.
             </p>
           </div>
 
-          <div className="mt-8">
+          <div className="mt-6 flex justify-end">
             <Link
               href="/plus"
-              className="inline-flex items-center justify-center rounded-xl bg-[#00506a] px-6 py-2.5 text-sm font-bold text-white shadow-xs transition hover:bg-[#00476b]"
+              className="inline-flex h-11 items-center justify-center rounded-xl bg-[#00506a] px-8 text-xs font-bold text-white shadow-xs transition hover:bg-[#003f54]"
             >
-              <span>Khám phá ngay</span>
+              Khám phá ngay
             </Link>
           </div>
         </div>
 
-        {/* Danh sách Cẩm nang xe khách bên phải (7 cột) */}
-        <div className="flex flex-col justify-between rounded-2xl border border-vxn-border bg-white p-6 shadow-2xs lg:col-span-7">
+        {/* Danh sách Cẩm nang xe khách bên phải (5 cột) */}
+        <div className="flex flex-col justify-between lg:col-span-5">
           <div>
-            <div className="flex items-center justify-between border-b border-vxn-border/60 pb-4">
-              <h3 className="text-lg font-bold text-vxn-ink">Cẩm nang xe khách</h3>
+            <div className="flex items-center justify-between pb-3">
+              <h3 className="text-base font-extrabold text-[#0f172a]">
+                Cẩm nang xe khách
+              </h3>
               <Link
-              href="/explore"
-                className="inline-flex items-center text-xs font-semibold text-vxn-teal-700 hover:underline"
+                href="/explore"
+                className="text-xs font-bold text-[#00506a] hover:underline"
               >
-                <span>Tin tức</span>
-                <ArrowRight className="ml-1 h-3 w-3" />
+                Tin tức &rarr;
               </Link>
             </div>
 
             {isUnavailable || !articles || articles.length === 0 ? (
-              <div className="pt-4">
-                <p className="text-sm text-vxn-fg-4">{isUnavailable ? "Chưa tải được bài viết. Bạn có thể thử lại tại mục Khám phá." : "Chưa có bài viết được xuất bản."}</p>
+              <div className="pt-2">
+                <FeatureUnavailableCompact
+                  endpoint="GET /content/articles?tag=handbook"
+                  title="Bài viết cẩm nang xe khách chưa sẵn sàng"
+                />
               </div>
             ) : (
-              <div className="mt-2 divide-y divide-vxn-border/60">
-                {articles.slice(0, 4).map((article) => (
+              <div className="divide-y divide-slate-100">
+                {articles.map((article, idx) => (
                   <Link
                     key={article.id}
                     href={`/explore/${article.slug}`}
-                    className="group flex items-center gap-4 py-3.5 transition hover:bg-vxn-bg-soft/60 rounded-xl px-2"
+                    className="group flex items-center gap-3.5 py-3 transition hover:opacity-85"
                   >
-                    <div className="flex-1 overflow-hidden">
-                      <h4 className="truncate text-sm font-bold text-vxn-ink group-hover:text-vxn-teal-700">
+                    <div
+                      className="h-14 w-16 shrink-0 rounded-xl bg-cover bg-center shadow-2xs"
+                      style={{
+                        backgroundImage: `url('${ARTICLE_THUMBNAILS[idx % ARTICLE_THUMBNAILS.length]}')`
+                      }}
+                    />
+                    <div className="min-w-0 flex-1">
+                      <h4 className="line-clamp-2 text-xs font-bold leading-snug text-[#0f172a] group-hover:text-[#00506a]">
                         {article.title}
                       </h4>
-                      <p className="mt-0.5 text-xs text-vxn-fg-4">
+                      <p className="mt-1 text-[11px] text-slate-500">
                         {article.category}
                       </p>
                     </div>
