@@ -29,7 +29,7 @@ export class VehicleController {
 
   /** Trả một trang xe của nhà xe. */
   @Get()
-  @Authorize("vehicle:manage")
+  @Authorize("transport:read")
   @ApiQuery({ name: "status", required: false, enum: Object.values(VehicleStatus) })
   @ApiQuery({ name: "cursor", required: false, type: String, format: "uuid" })
   @ApiQuery({ name: "limit", required: false, type: Number, minimum: 1, maximum: 100 })
@@ -41,7 +41,7 @@ export class VehicleController {
 
   /** Trả chi tiết một xe. */
   @Get(":vehicleId")
-  @Authorize("vehicle:manage")
+  @Authorize("transport:read")
   @ApiParam({ name: "vehicleId", type: String, format: "uuid" })
   @ZodResponse({ status: 200, description: "Chi tiết xe.", type: VehicleResponseDto })
   @ApiResponse({ status: 404, description: "`VEHICLE_NOT_FOUND` (kể cả khác tenant).", content: problemContent })

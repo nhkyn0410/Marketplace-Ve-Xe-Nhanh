@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import Image from "next/image";
 import { Badge } from "@vexenhanh/ui/components/badge";
 import { Button } from "@vexenhanh/ui/components/button";
 import { QrCode } from "lucide-react";
@@ -33,49 +34,7 @@ export const LookupTicketCard: React.FC<LookupTicketCardProps> = ({
           className="p-1.5 bg-white rounded-xl border border-border shadow-2xs shrink-0 cursor-pointer hover:border-teal-700 transition-colors"
           title="Bấm để phóng to mã QR"
         >
-          <svg
-            viewBox="0 0 100 100"
-            className="w-14 h-14 text-slate-900"
-            fill="currentColor"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <rect x="0" y="0" width="30" height="30" rx="3" />
-            <rect x="5" y="5" width="20" height="20" fill="white" rx="1.5" />
-            <rect x="10" y="10" width="10" height="10" />
-
-            <rect x="70" y="0" width="30" height="30" rx="3" />
-            <rect x="75" y="5" width="20" height="20" fill="white" rx="1.5" />
-            <rect x="80" y="10" width="10" height="10" />
-
-            <rect x="0" y="70" width="30" height="30" rx="3" />
-            <rect x="5" y="75" width="20" height="20" fill="white" rx="1.5" />
-            <rect x="10" y="80" width="10" height="10" />
-
-            <rect x="36" y="8" width="8" height="6" />
-            <rect x="50" y="4" width="12" height="6" />
-            <rect x="36" y="20" width="6" height="8" />
-            <rect x="48" y="16" width="14" height="6" />
-            <rect x="40" y="32" width="6" height="6" />
-            <rect x="52" y="30" width="8" height="8" />
-            <rect x="66" y="36" width="8" height="6" />
-
-            <rect x="8" y="38" width="6" height="12" />
-            <rect x="20" y="42" width="8" height="6" />
-            <rect x="8" y="56" width="8" height="6" />
-            <rect x="22" y="54" width="6" height="10" />
-
-            <rect x="36" y="46" width="12" height="12" />
-            <rect x="54" y="44" width="6" height="14" />
-            <rect x="66" y="48" width="14" height="6" />
-            <rect x="42" y="64" width="8" height="6" />
-            <rect x="56" y="64" width="6" height="12" />
-
-            <rect x="36" y="76" width="10" height="6" />
-            <rect x="50" y="82" width="14" height="6" />
-            <rect x="70" y="70" width="6" height="8" />
-            <rect x="82" y="70" width="8" height="6" />
-            <rect x="74" y="84" width="16" height="6" />
-          </svg>
+          {ticket.qrCodeDataUrl ? <Image src={ticket.qrCodeDataUrl} alt={`Mã QR vé ${ticket.ticketCode}`} width={64} height={64} unoptimized /> : <QrCode className="h-14 w-14 text-muted-foreground" />}
         </div>
 
         {/* Thông tin hành khách */}
@@ -84,7 +43,7 @@ export const LookupTicketCard: React.FC<LookupTicketCardProps> = ({
             <h4 className="font-bold text-foreground text-sm sm:text-base">
               {ticket.passengerName}
             </h4>
-            <Badge className="bg-emerald-500/15 text-emerald-800 dark:text-emerald-300 border-emerald-500/30 text-[10px] font-semibold py-0">
+            <Badge tone={ticket.status === "valid" ? "success" : "neutral"} className="text-[10px] font-semibold py-0">
               {ticket.statusLabel}
             </Badge>
           </div>
@@ -101,13 +60,13 @@ export const LookupTicketCard: React.FC<LookupTicketCardProps> = ({
 
       {/* Cụm nút hành động */}
       <div className="flex items-center gap-3 self-end sm:self-auto">
-        <button
+        {onCancelClick && <button
           type="button"
           onClick={() => onCancelClick?.(ticket)}
           className="text-xs text-muted-foreground hover:text-foreground font-medium underline-offset-4 hover:underline"
         >
           Hủy vé
-        </button>
+        </button>}
 
         <Button
           type="button"

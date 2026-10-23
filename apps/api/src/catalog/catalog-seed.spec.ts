@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import {
   StopPointType,
@@ -5,20 +7,32 @@ import {
   VehicleForm,
 } from "../database/prisma.types";
 import {
+  ADMINISTRATIVE_UNITS_EXTENDED_CSV_HEADER,
   AMENITIES,
   catalogSeedData,
+  LEGACY_ADMINISTRATIVE_MAPPINGS_CSV_HEADER,
   parseAdministrativeUnitsCsv,
+  parseLegacyAdministrativeMappingsCsv,
+  parseStopPointsCatalogCsv,
   SAMPLE_STOP_POINTS,
+  STOP_POINTS_CATALOG_CSV_HEADER,
   VEHICLE_TYPES,
 } from "./catalog-seed";
 
 const HEADER = "province_code,province_name,ward_code,ward_name";
+const EXTENDED_HEADER = ADMINISTRATIVE_UNITS_EXTENDED_CSV_HEADER.join(",");
+const LEGACY_HEADER = LEGACY_ADMINISTRATIVE_MAPPINGS_CSV_HEADER.join(",");
+const STOP_POINTS_HEADER = STOP_POINTS_CATALOG_CSV_HEADER.join(",");
 const BOM = String.fromCharCode(0xfeff);
 /** Ký tự Node chèn khi đọc file không phải UTF-8 bằng `readFileSync(path, "utf8")`. */
 const REPLACEMENT_CHARACTER = String.fromCharCode(0xfffd);
 
 function csv(...rows: string[]): string {
   return [HEADER, ...rows].join("\n");
+}
+
+function extendedCsv(...rows: string[]): string {
+  return [EXTENDED_HEADER, ...rows].join("\n");
 }
 
 describe("parseAdministrativeUnitsCsv — file danh mục chính thức (Q4)", () => {
@@ -34,6 +48,46 @@ describe("parseAdministrativeUnitsCsv — file danh mục chính thức (Q4)", (
         { code: "00004", name: "Phường Ba Đình", provinceCode: "01" },
         { code: "00008", name: 'Phường "Mẫu", có phẩy', provinceCode: "01" },
         { code: "26734", name: "Phường Sài Gòn", provinceCode: "79" },
+      ],
+    });
+  });
+
+  it("hỗ trợ định dạng 8 cột mở rộng có cấp hành chính (level) và nghị định (decree)", () => {
+    const text = extendedCsv(
+      "01,Thành phố Hà Nội,Thành phố Trung ương,,00004,Phường Ba Đình,Phường,Nghị quyết 1656/NQ-UBTVQH15",
+      '96,Tỉnh Cà Mau,Tỉnh,"Nghị quyết 202/2025/QH15",32248,Xã Đất Mũi,Xã,',
+    );
+
+    expect(parseAdministrativeUnitsCsv(text)).toEqual({
+      provinces: [
+        {
+          code: "01",
+          name: "Thành phố Hà Nội",
+          level: "Thành phố Trung ương",
+          decree: null,
+        },
+        {
+          code: "96",
+          name: "Tỉnh Cà Mau",
+          level: "Tỉnh",
+          decree: "Nghị quyết 202/2025/QH15",
+        },
+      ],
+      wards: [
+        {
+          code: "00004",
+          name: "Phường Ba Đình",
+          provinceCode: "01",
+          level: "Phường",
+          decree: "Nghị quyết 1656/NQ-UBTVQH15",
+        },
+        {
+          code: "32248",
+          name: "Xã Đất Mũi",
+          provinceCode: "96",
+          level: "Xã",
+          decree: null,
+        },
       ],
     });
   });
@@ -59,6 +113,11 @@ describe("parseAdministrativeUnitsCsv — file danh mục chính thức (Q4)", (
     ["Excel xoá số 0 đầu mã tỉnh", csv("1,A,00004,B"), /Dòng 2: mã tỉnh "1"/],
     ["Excel xoá số 0 đầu mã xã", csv("01,A,4,B"), /Dòng 2: mã xã "4"/],
     ["thiếu cột", csv("01,A,00004"), /Dòng 2: cần đúng 4 cột/],
+    [
+      "thiếu cột ở định dạng 8 cột",
+      extendedCsv("01,A,Tỉnh,,00004,B,Xã"),
+      /Dòng 2: cần đúng 8 cột/,
+    ],
     ["dấu nháy chưa đóng", csv('01,"A,00004,B'), /Dòng 2: cần đúng 4 cột/],
     [
       "dòng trống giữa file",
@@ -70,6 +129,14 @@ describe("parseAdministrativeUnitsCsv — file danh mục chính thức (Q4)", (
       "một mã tỉnh hai tên",
       csv("01,A,00004,B", "01,A2,00008,C"),
       /Dòng 3: mã tỉnh 01 mang hai tên/,
+    ],
+    [
+      "một mã tỉnh hai cấp hành chính ở định dạng 8 cột",
+      extendedCsv(
+        "01,A,Thành phố Trung ương,,00004,B,Phường,",
+        "01,A,Tỉnh,,00008,C,Phường,",
+      ),
+      /Dòng 3: mã tỉnh 01 có cấp hành chính hoặc nghị định không nhất quán/,
     ],
     [
       "trùng mã xã",
@@ -88,6 +155,74 @@ describe("parseAdministrativeUnitsCsv — file danh mục chính thức (Q4)", (
     expect(parsed.provinces).toEqual([
       { code: "01", name: "Thành phố Hà Nội".normalize("NFC") },
     ]);
+  });
+});
+
+describe("parseLegacyAdministrativeMappingsCsv & parseStopPointsCatalogCsv — đối chiếu 3 file CSV chuẩn", () => {
+  it("đọc hợp lệ file legacy-administrative-mappings.csv và stop-points-catalog.csv, khớp 100% với administrative-units.csv", () => {
+    const seedDir = resolve(process.cwd(), "prisma/seed-data");
+    const units = parseAdministrativeUnitsCsv(
+      readFileSync(resolve(seedDir, "administrative-units.csv"), "utf8"),
+    );
+    const mappings = parseLegacyAdministrativeMappingsCsv(
+      readFileSync(
+        resolve(seedDir, "legacy-administrative-mappings.csv"),
+        "utf8",
+      ),
+    );
+    const stopPoints = parseStopPointsCatalogCsv(
+      readFileSync(resolve(seedDir, "stop-points-catalog.csv"), "utf8"),
+    );
+
+    expect(units.provinces.length).toBe(34);
+    expect(units.wards.length).toBe(3321);
+
+    // Đủ 63 mã tỉnh/thành cũ
+    const legacyProvinceCodes = new Set(
+      mappings.map((item) => item.legacyProvinceCode),
+    );
+    expect(legacyProvinceCodes.size).toBe(63);
+
+    const wardByCode = new Map(units.wards.map((ward) => [ward.code, ward]));
+    for (const item of mappings) {
+      const targetWard = wardByCode.get(item.wardCode);
+      expect(targetWard).toBeDefined();
+      expect(targetWard?.provinceCode).toBe(item.provinceCode);
+    }
+
+    // Điểm dừng phủ kín 34/34 tỉnh mới
+    const stopPointProvinces = new Set(
+      stopPoints.map((item) => item.provinceCode),
+    );
+    expect(stopPointProvinces.size).toBe(34);
+    expect(stopPoints.length).toBeGreaterThanOrEqual(150);
+
+    for (const point of stopPoints) {
+      expect(point.wardCode).toBeDefined();
+      const targetWard = wardByCode.get(point.wardCode ?? "");
+      expect(targetWard).toBeDefined();
+      expect(targetWard?.provinceCode).toBe(point.provinceCode);
+    }
+  });
+
+  it("từ chối dữ liệu lỗi trong parseLegacyAdministrativeMappingsCsv và parseStopPointsCatalogCsv", () => {
+    expect(() =>
+      parseLegacyAdministrativeMappingsCsv(
+        `${LEGACY_HEADER}\n77,Tỉnh Bà Rịa - Vũng Tàu,TP. Vũng Tàu,,79,2656,Ghi chú`,
+      ),
+    ).toThrow(/mã xã mới "2656"/);
+
+    expect(() =>
+      parseStopPointsCatalogCsv(
+        `${STOP_POINTS_HEADER}\nBến xe A,OFFICE,Địa chỉ,79,26560,10.5,107.1,Mô tả,Căn cứ`,
+      ),
+    ).toThrow(/loại điểm dừng "OFFICE"/);
+
+    expect(() =>
+      parseStopPointsCatalogCsv(
+        `${STOP_POINTS_HEADER}\nBến xe A,BUS_STATION,Địa chỉ,79,26560,10.5,107.1,Mô tả,`,
+      ),
+    ).toThrow(/bắt buộc có căn cứ công bố/);
   });
 });
 

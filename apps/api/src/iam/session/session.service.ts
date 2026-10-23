@@ -480,6 +480,23 @@ export class SessionService {
     return count;
   }
 
+  /** Lần hoạt động gần nhất (phiên / lần làm mới phiên mới nhất) của từng chủ thể — màn Người dùng của Admin. */
+  async lastLoginAt(type: SubjectType, ids: readonly string[]): Promise<Map<string, Date>> {
+    if (ids.length === 0) {
+      return new Map();
+    }
+    const groups = await this.system((sessions) =>
+      sessions.groupBy({
+        by: ["subjectId"],
+        where: { subjectType: type, subjectId: { in: [...ids] } },
+        _max: { issuedAt: true },
+      }),
+    );
+    return new Map(
+      groups.flatMap((group) => (group._max?.issuedAt ? [[group.subjectId, group._max.issuedAt] as const] : [])),
+    );
+  }
+
   async grantReauth(sid: string): Promise<void> {
     await this.cache.grantReauth(sid);
   }

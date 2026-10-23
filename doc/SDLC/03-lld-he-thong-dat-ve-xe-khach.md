@@ -13,7 +13,7 @@
 | Người viết    | Nguyễn Hồng Khanh, AI Agent                 |
 | Người duyệt   | Nguyễn Hồng Khanh                           |
 | Ngày tạo      | 11/05/2026                                  |
-| Ngày cập nhật | 14/10/2026                                  |
+| Ngày cập nhật | 17/10/2026                                  |
 
 ### 1.2. Lịch sử thay đổi
 
@@ -37,6 +37,14 @@
 | v0.16     | 04/10/2026 | AI Agent       | **Đối chiếu Figma nhà xe (Khanh chốt 04/10/2026):** §6.12 bước 4 — bộ ảnh gửi kèm chú thích từng ảnh (BR-76). Cờ `inUse` / `seatMapLocked` dùng lại đúng điều kiện của lỗi `SEAT_MAP_IN_USE` (API §7.3, `TASK-TRN-011`). Giữ trạng thái Review. |
 | v0.17     | 04/10/2026 | AI Agent       | **Thiết kế lại điểm dừng (Khanh chốt 04/10/2026, SRS v1.35):** §5.2 — search khớp theo vị trí, điểm riêng chỉ văn phòng trung chuyển + trạm dừng nghỉ, RouteStop có cho đón / cho trả; §6.13 luồng điểm dừng (loại điểm, đề xuất kèm căn cứ, Admin duyệt / khóa, quy tắc đón trả, tìm theo vị trí); §7 mã lỗi; §9 audit. Giữ trạng thái Review. |
 | v0.18     | 14/10/2026 | AI Agent       | **`TASK-TRN-009` (ảnh phương tiện) đã làm:** §6.12 ghi rõ phần đã hiện thực — nén ở trình duyệt luôn xuất lại JPEG (bỏ EXIF), chỉ gắn object tải lên chưa quá 23 giờ, job dọn chạy 03:30 hằng ngày trên hàng đợi `storage-maintenance`; `LLD-OQ-08` ghi mặc định đã áp dụng, chờ Khanh chốt. Giữ trạng thái Review. |
+| v0.19     | 14/10/2026 | AI Agent       | **`TASK-OPR-001` phần đăng ký công khai (001a) đã làm:** §6.11 ghi phần đã hiện thực — email link gửi sau commit, không chờ (worker chưa chạy trên production); guard của link trao scope `system`; giấy tờ gắn vào hồ sơ qua `PUT …/current`, xem bằng URL có hạn + audit; job dọn giấy tờ mồ côi; §7 thêm `OPERATOR_APPLICATION_INCOMPLETE`, `…_DOCUMENT_INVALID`, `…_DOCUMENT_NOT_FOUND`, `…_RATE_LIMITED` (chờ Khanh duyệt — `OPR-001-todo.md`). Giữ trạng thái Review. |
+| v0.20     | 15/10/2026 | AI Agent       | **`TASK-ADM-001` phần duyệt hồ sơ nhà xe đã làm (chờ Khanh duyệt — `ADM-001-todo.md`):** §6.11 bước 4–5 ghi phần đã hiện thực (bước `inTransaction` của `provisionOperatorOwner`, idempotency bằng cột, gửi lại mật khẩu tạm, email kết quả sau commit, cảnh báo trùng, lịch sử từ audit); chưa chép giấy tờ / tài khoản nhận tiền sang tenant; §7 thêm `OPERATOR_APPLICATION_NOT_FOUND`. Giữ trạng thái Review. |
+| v0.21     | 15/10/2026 | AI Agent       | **`TASK-ADM-004` (Admin quản lý điểm dừng) đã làm, chờ Khanh duyệt — `ADM-004-todo.md`:** §6.13 bước 3, 6 ghi phần đã hiện thực (khóa dòng, body duyệt theo Figma, bán kính cảnh báo 200 m, audit trong transaction, email báo chủ nhà xe (Khanh 15/10/2026: có tên miền, sẽ cấu hình Resend)); §7 thêm `STOP_POINT_STATE_INVALID`. Giữ trạng thái Review. |
+| v0.22     | 16/10/2026 | AI Agent       | **`TASK-ADM-001` phần danh mục đã làm, chờ Khanh duyệt — `ADM-001-catalog-todo.md`:** §5.2 Catalog ghi phần ghi của Admin (`AdminCatalogService`: thêm / sửa tên / ngừng dùng / dùng lại, audit trong transaction, đổi trạng thái so-rồi-đặt); §7 thêm nhóm lỗi Danh mục. Giữ trạng thái Review. |
+| v0.23     | 16/10/2026 | AI Agent       | **A5 Admin đã làm, chờ Khanh duyệt — `ADM-003-vehicle-images-todo.md`, `ADM-002-audit-log-todo.md`:** §6.12 bước 7 ghi phần đã hiện thực (khóa dòng xe như lần nhà xe thay bộ ảnh, audit trong transaction, xóa object + email sau commit); §9 ghi phần đọc audit của Admin (che theo tên trường, ghi lượt xem, quy ước tên hành động thất bại) và dòng "Admin xem chi tiết một bản ghi audit"; §7 thêm `AUDIT_LOG_NOT_FOUND`. Giữ trạng thái Review. |
+| v0.24     | 17/10/2026 | AI Agent       | **Đợt hoàn thiện Admin + Operator OS (Khanh 16/10/2026, chờ duyệt):** §6.10 ghi phần bài viết đã làm (`TASK-CNT-001`); §6.11 bước 4 ghi chép thông tin pháp lý / giấy tờ / tài khoản nhận tiền khi duyệt (`TASK-OPR-001b`); thêm §6.14 Hồ sơ nhà xe + đổi tài khoản nhận tiền, §6.15 Chính sách có phiên bản + hoa hồng + khung giá (`TASK-ADM-001`), §6.16 Lịch xe (`TASK-TRN-015`, chỉ giao diện); §9 thêm các hành động audit mới. Điểm chờ Khanh ở các file `doc/task-propreties/*-todo.md` cùng ngày. Giữ trạng thái Review. |
+| v0.25     | 17/10/2026 | AI Agent       | **Phần không cần đặt vé (Khanh 17/10/2026, chờ duyệt):** thêm §6.17 Lịch chuyến lặp lại (`TASK-TRN-007`), §6.18 Phân công tài xế cho chuyến (`TASK-EMP-001` phía Operator OS), §6.19 Nội dung công khai (`TASK-ADM-003`); §7 thêm lỗi lịch / phân công / nội dung; §9 thêm sự kiện audit. Điểm chờ Khanh: `TRN-007-todo.md`, `EMP-001-todo.md`, `ADM-003-content-todo.md`. Giữ trạng thái Review. |
+| v0.26     | 19/10/2026 | AI Agent       | **Sáu phần tiếp theo (Khanh 19/10/2026, chờ duyệt):** thêm §6.20 Soát vé + vận hành chuyến (`TASK-EMP-002` backend), §6.21 Đối soát tự động với cổng (FR-BTP-17), §6.22 Báo cáo + Tổng quan (`TASK-RPT-001/002`), §6.23 Khiếu nại / tranh chấp / đánh giá (`TASK-TRUST-001`), §6.24 Khuyến mãi (`TASK-PROM-001`), §6.25 VXN Plus phía Admin (`TASK-LOY-001`). Chi tiết + điểm chờ Khanh ở `doc/task-propreties/*-todo.md`. Giữ trạng thái Review. |
 
 ---
 
@@ -113,7 +121,7 @@ Tên module / folder dưới đây dùng **target state** theo `context/DOMAIN-M
 | ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
 | Identity & Access            | `iam/auth/`, `iam/user/`, `iam/session/`, `iam/role/`                                                                                                                                                        | `AuthService`, `SessionService`, `UserProfileService`, `RoleService`                                                       | **Better Auth** login 3-namespace; Hybrid token; closed enrollment; RBAC/TOTP (ADR-017). TASK-IAM-006 thêm dual transport, cookie writer/reader, CSRF + Origin/CORS guard và bootstrap `/auth/csrf`, `/auth/me`; Mobile JSON/Bearer không đổi; tách cổng login Owner/Employee (§6.5) | brute force, token leak/reuse, CSRF, credential ambiguity, sai namespace, sai cổng Owner/Employee, IDOR |
 | Operator Profile & KYC       | `operator/`, `operator-kyc/`                                                                                                                                                                                 | `OperatorProfileService`, `OperatorApplicationService`, `KycService`, `BankAccountService`                                                               | KYC submission (file → R2 private bucket, metadata Postgres), admin approval, profile, bank account, OperatorStatusHistory                                                                                                                                                                                                  | KYC giả, đổi tài khoản nhận tiền không audit                              |
-| Catalog & Search             | `catalog/`, `search/`                                                                                                                                                                                        | `ProvinceService`, `WardService`, `StopPointCatalogService`, `VehicleTypeService`, `AmenityService`, `SearchService`       | Catalog Platform sở hữu; loại xe mang `form` + `class` (BR-77) và search lọc theo hai thuộc tính này; search public trip availability khớp theo vị trí — tỉnh / thành hoặc bán kính quanh địa danh dùng chung (BR-80, cache Redis TTL 60s)                                                                                  | search lệch tải, catalog cập nhật không đồng bộ                           |
+| Catalog & Search             | `catalog/`, `search/`                                                                                                                                                                                        | `ProvinceService`, `WardService`, `StopPointCatalogService`, `VehicleTypeService`, `AmenityService`, `SearchService` (+ `AdminCatalogService` — `TASK-ADM-001`) | Catalog Platform sở hữu; loại xe mang `form` + `class` (BR-77) và search lọc theo hai thuộc tính này; search public trip availability khớp theo vị trí — tỉnh / thành hoặc bán kính quanh địa danh dùng chung (BR-80, cache Redis TTL 60s). Admin ghi catalog (`/admin/catalog/*`): không xóa, chỉ ngừng dùng / dùng lại kèm lý do; mã, tỉnh của phường, dạng chỗ / hạng xe không đổi sau khi tạo; audit trong transaction | search lệch tải, catalog cập nhật không đồng bộ                           |
 | Transport Resource           | `vehicle/`, `route/`, `stop-point/`                                                                                                                                                                          | `VehicleService`, `VehicleImageService`, `SeatMapService`, `RouteService`, `RouteStopService`                              | Vehicle, VehicleImage (ảnh công khai ở R2 public, tối đa 8 / xe), SeatMap (layout `JSONB`), Seat (5 loại chỗ, chỗ đôi sức chứa 2 — BR-78), Route, RouteStop (cho đón / cho trả — BR-79), StopPoint riêng của nhà xe (chỉ văn phòng trung chuyển + trạm dừng nghỉ — BR-38); cache distance/duration Goong                    | đổi xe/sơ đồ ghế sau khi đã có vé; tải file không phải ảnh, gắn ảnh của tenant khác |
 | Trip & Inventory             | `trip/` (gồm TripSeat), `seat-hold/`, `fare/`                                                                                                                                                                | `TripService` (Trip, TripStop, TripSeat), `SeatHoldService`, `FareService`                                                         | Trip, TripStop, TripSeat, SeatHold (Redis `SET NX EX 600`, ADR-015), Fare riêng                                                                                                                                                                                                                                             | bán trùng ghế, fare snapshot sai                                          |
 | Booking & Ticket             | `booking/`, `ticket/`                                                                                                                                                                                        | `BookingService`, `TicketService`, `QrTokenService`, `BookingStatusHistoryService`                                         | Booking snapshot bắt buộc (fare, policy, promotion), ticket, QR token hash                                                                                                                                                                                                                                                  | snapshot drift, ticket giả, hold consume sai                              |
@@ -237,16 +245,17 @@ Tên module / folder dưới đây dùng **target state** theo `context/DOMAIN-M
 | 2    | Nội dung lưu Markdown; khi render (web + Flutter) chỉ cho phép tập thẻ allowlist, không render HTML thô. |
 | 3    | `publish` → `PUBLISHED`, set `published_at`, audit; gọi revalidate ISR Marketplace (tag bài viết). `archive` → `ARCHIVED`, revalidate. |
 | 4    | Lượt xem: `POST /articles/{slug}/views` best-effort, rate limit theo IP / session; không chặn render trang. |
+| 5    | `TASK-CNT-001` (17/10/2026, chờ duyệt — `CNT-001-todo.md`): module `content/` (`AdminArticleService`, `ArticleService`), quyền `content:manage`; hẹn giờ = `PUBLISHED` + `published_at` tương lai, trang công khai lọc `published_at ≤ now` (không job); chưa có nội dung → 422; lượt xem mỗi IP / bài / 30 phút (Redis `SET NX EX`), cộng ở ngữ cảnh `system`; **chưa revalidate ISR** (Marketplace chưa dựng). |
 
 ### 6.11. Đăng ký và duyệt hồ sơ nhà xe (BR-75, ADR-017 closed enrollment)
 
 | Bước | Xử lý |
 | ---- | ----- |
-| 1    | `POST /operator-applications` (public, rate limit IP + email): tạo `operator_applications` `DRAFT` + `application_code`; sinh token 32 byte, lưu SHA-256 + `expires_at`; enqueue email link (BullMQ). Luôn trả `202`. |
-| 2    | Link → client gửi token qua `X-Application-Token`; guard tra hash, kiểm hạn, chưa thu hồi, hồ sơ chưa `APPROVED` / `REJECTED`; lần dùng đầu ghi `contact_email_verified_at`. |
-| 3    | `PUT …/current`, `POST …/current/documents` (presigned R2 private) chỉ khi `DRAFT` / `NEEDS_INFO`; `POST …/current/submit` → `SUBMITTED`, báo Admin. |
-| 4    | Admin `approve` (TOTP + re-auth, `Idempotency-Key`): 1 transaction gọi `provisionOperatorOwner` (tạo `operator_profiles` + Owner mật khẩu tạm), chép giấy tờ → `kyc_documents`, tạo `bank_accounts`, set `operator_id` + `APPROVED`, thu hồi mọi token, audit. Sau commit enqueue email thông tin đăng nhập; gửi lỗi → `credentialDeliveryPending`, gửi lại theo quota IAM-005. |
-| 5    | `request-info` → `NEEDS_INFO` + lý do + token mới (thu hồi token cũ); `reject` → `REJECTED` + lý do + thu hồi token; cả hai gửi NTF-15 và ghi audit. |
+| 1    | `POST /operator-applications` (public, rate limit IP + email): tạo `operator_applications` `DRAFT` + `application_code`; sinh token 32 byte, lưu SHA-256 + `expires_at`; enqueue email link (BullMQ). Luôn trả `202`. `TASK-OPR-001`: email gửi thẳng sau commit, không chờ (worker chưa chạy trên production), gửi lỗi chỉ ghi log — người nộp dùng gửi lại link. |
+| 2    | Link → client gửi token qua `X-Application-Token`; guard tra hash, kiểm hạn, chưa thu hồi, hồ sơ chưa `APPROVED` / `REJECTED`; lần dùng đầu ghi `contact_email_verified_at`. `TASK-OPR-001`: guard ở `iam/role` trao scope `system` (RLS của hồ sơ chỉ cho platform / system — DB §7); service chỉ đọc / ghi đúng hồ sơ lấy từ token. |
+| 3    | `PUT …/current`, `POST …/current/documents` (presigned R2 private) chỉ khi `DRAFT` / `NEEDS_INFO`; `POST …/current/submit` → `SUBMITTED`, báo Admin. `TASK-OPR-001`: giấy tờ tải thẳng lên kho riêng tư rồi gắn vào hồ sơ qua `PUT …/current` (kiểm object như ảnh xe — LLD §6.12 bước 4); xem bằng `POST …/current/documents/{type}/download-url` (presigned 5 phút + audit); gửi duyệt kiểm đủ trường + ba giấy tờ + tài khoản nhận tiền, chuyển trạng thái và audit trong một transaction; giấy tờ không được gắn quá 24 giờ do job `kyc-maintenance` dọn. "Báo Admin" để ADM-001. |
+| 4    | Admin `approve` (TOTP + re-auth, `Idempotency-Key`): 1 transaction gọi `provisionOperatorOwner` (tạo `operator_profiles` + Owner mật khẩu tạm), chép giấy tờ → `kyc_documents`, tạo `bank_accounts`, set `operator_id` + `APPROVED`, thu hồi mọi token, audit. Sau commit enqueue email thông tin đăng nhập; gửi lỗi → `credentialDeliveryPending`, gửi lại theo quota IAM-005. `TASK-ADM-001` (chờ duyệt — `ADM-001-todo.md`): `provisionOperatorOwner` nhận bước `inTransaction` chạy trong cùng transaction — khóa dòng hồ sơ, còn `SUBMITTED` mới đổi `APPROVED` + `operator_id` + người / thời điểm duyệt + khóa idempotency (cột `approval_idempotency_key`), thu hồi token, audit; gửi lặp cùng khóa trả kết quả cũ, khác khóa → `OPERATOR_APPLICATION_INVALID_STATE`; slug đã dùng → `OPERATOR_SLUG_CONFLICT` trước khi tạo gì; email mật khẩu tạm gửi thẳng sau commit (không qua hàng đợi), lỗi → vẫn trả thành công kèm `credentialDeliveryPending`, Admin gửi lại qua `…/resend-owner-credentials` (`retryOwnerDelivery`). **Chưa** chép giấy tờ sang `kyc_documents` / tạo `bank_accounts` (DB chưa có cột) — dữ liệu ở lại hồ sơ, gắn nhà xe qua `operator_id`. |
+| 5    | `request-info` → `NEEDS_INFO` + lý do + token mới (thu hồi token cũ); `reject` → `REJECTED` + lý do + thu hồi token; cả hai gửi NTF-15 và ghi audit. `TASK-ADM-001`: chỉ nhận hồ sơ `SUBMITTED`; đổi trạng thái + token + audit một transaction (audit lỗi → 503, không đổi gì); email gửi sau commit, lỗi không hoàn tác quyết định (phản hồi `emailDelivered: false`); từ chối cần xác nhận lại danh tính, yêu cầu bổ sung thì không. Hàng đợi chỉ gồm hồ sơ đã gửi duyệt; cảnh báo trùng email liên hệ / mã số thuế / số tài khoản nhận tiền với mọi hồ sơ khác (UC-10 A2); lịch sử đọc audit cấp Platform. |
 
 ### 6.12. Ảnh phương tiện (BR-76, ADR-018)
 
@@ -258,7 +267,7 @@ Tên module / folder dưới đây dùng **target state** theo `context/DOMAIN-M
 | 4    | `PUT /operator/vehicles/{vehicleId}/images` nhận danh sách `images` (mỗi phần tử gồm `objectKey` và `caption` tùy chọn, tối đa 60 ký tự) theo thứ tự hiển thị (0–8 phần tử, thay toàn bộ). Mỗi key phải nằm dưới prefix của chính xe đó; key mới thì `HEAD` object để kiểm tồn tại, dung lượng, content-type và đọc các byte đầu để kiểm chữ ký định dạng; sai → 422 `VEHICLE_IMAGE_INVALID`, quá 8 → 422 `VEHICLE_IMAGE_LIMIT_EXCEEDED`. Một transaction khóa dòng xe rồi xóa + ghi lại `vehicle_images` (cùng cách `PUT` xe thay tiện ích); phần tử đầu là ảnh đại diện. |
 | 5    | Sau commit xóa object của ảnh vừa bị bỏ (best-effort). Object đã tải lên nhưng không được gắn, hoặc xóa lỗi, do job BullMQ định kỳ dọn: object dưới `vehicles/` không có dòng tham chiếu và cũ hơn 24 giờ (`TASK-TRN-009`: hàng đợi `storage-maintenance`, 03:30 giờ VN mỗi ngày, trong worker). Bước 4 chỉ gắn object tải lên chưa quá 23 giờ, nên job không xóa nhầm object vừa được gắn. |
 | 6    | Marketplace: search trả `vehicleCoverImageUrl`, chi tiết chuyến trả `vehicleImages` của xe đang gắn (URL CDN của R2 public). Xe chưa có ảnh trả `null` / mảng rỗng, client hiển thị hình thay thế. Cache search 60 giây nên ảnh mới hoặc vừa bị gỡ có thể hiện chậm tối đa 60 giây. |
-| 7    | Admin gỡ ảnh vi phạm: `POST /admin/vehicle-images/{imageId}/remove` + lý do bắt buộc → scope `platform` xóa dòng + object, ghi audit, thông báo Operator (UC-28 bước 7). Không có bước duyệt trước. |
+| 7    | Admin gỡ ảnh vi phạm: `POST /admin/vehicle-images/{imageId}/remove` + lý do bắt buộc → scope `platform` xóa dòng + object, ghi audit, thông báo Operator (UC-28 bước 7). Không có bước duyệt trước. `TASK-ADM-003` (chờ duyệt): một transaction khóa dòng xe (`FOR NO KEY UPDATE`, như bước 4) rồi xóa dòng ảnh + ghi audit trong transaction (lỗi → 503, ảnh còn nguyên); nhà xe đang giữ ảnh đó trong danh sách gửi lên nhận 422 `VEHICLE_IMAGE_INVALID`. Sau commit xóa object (lỗi để job bước 5 dọn) và email chủ nhà xe (lỗi chỉ ghi log). Không đánh số lại vị trí — ảnh kế tiếp thành ảnh đại diện |
 
 ### 6.13. Điểm dừng: phạm vi, đề xuất, quyền đón trả, khóa, tìm theo vị trí (BR-38, BR-79..81)
 
@@ -266,11 +275,112 @@ Tên module / folder dưới đây dùng **target state** theo `context/DOMAIN-M
 | ---- | ----- |
 | 1    | Điểm riêng (`/operator/stop-points`): chỉ nhận loại `OFFICE`, `REST_STOP`; loại khác → 422 `STOP_POINT_TYPE_NOT_ALLOWED`. Dùng được ngay trong tenant. |
 | 2    | Đề xuất (`/operator/stop-point-proposals`): chỉ loại `BUS_STATION`, `PICKUP_POINT`, bắt buộc `legalBasis` (căn cứ công bố). RLS giữ nguyên: tenant chỉ tạo `PENDING` và chỉ sửa bản `REJECTED`. |
-| 3    | Admin duyệt (`POST /admin/stop-point-proposals/{id}/approve`, scope `platform`): được chỉnh tên, địa chỉ, tọa độ; một transaction tạo dòng `stop_points_catalog` (chép `legal_basis`) + đặt đề xuất `APPROVED` + `catalog_stop_point_id`, compare-and-set trên `PENDING`; audit; thông báo nhà xe. Danh sách chờ duyệt kèm cảnh báo khi có điểm dùng chung cùng loại ở rất gần (mặc định 200 m). Từ chối: lý do bắt buộc → `REJECTED`. |
+| 3    | Admin duyệt (`POST /admin/stop-point-proposals/{id}/approve`, scope `platform`): được chỉnh tên, địa chỉ, tọa độ; một transaction tạo dòng `stop_points_catalog` (chép `legal_basis`) + đặt đề xuất `APPROVED` + `catalog_stop_point_id`, compare-and-set trên `PENDING`; audit; thông báo nhà xe. Danh sách chờ duyệt kèm cảnh báo khi có điểm dùng chung cùng loại ở rất gần (mặc định 200 m). Từ chối: lý do bắt buộc → `REJECTED`. `TASK-ADM-004` (chờ duyệt — `ADM-004-todo.md`): khóa dòng đề xuất (`FOR NO KEY UPDATE`) rồi mới kiểm `PENDING` — Admin thứ hai chờ khóa, thấy đã duyệt → 409; body duyệt = thông tin Admin chỉnh (tên, loại bến xe / điểm đón trả, địa chỉ, tỉnh / phường, tọa độ, căn cứ); cảnh báo trùng = điểm dùng chung cùng loại, đang hoạt động, trong 200 m (tối đa 5, gần nhất trước); Khanh chốt 15/10/2026 làm theo Figma (chỉnh được cả loại, tỉnh / phường, căn cứ); audit ghi trong transaction (lỗi → 503, không tạo gì); thông báo nhà xe = email tới chủ nhà xe (Owner đang hoạt động, có email liên hệ) gửi SAU commit, lỗi chỉ ghi log. |
 | 4    | Route (`POST` / `PUT /operator/routes`): mỗi điểm gửi `allowPickup`, `allowDropoff`. Service kiểm theo loại điểm (`REST_STOP` phải cả hai `false` và không ở đầu / cuối) và theo vị trí (đầu: đón, không trả; cuối: trả, không đón; giữa không phải trạm dừng nghỉ: ít nhất một quyền); sai → 422 `ROUTE_STOP_PICKUP_DROPOFF_INVALID`. Hai đầu không phải bến xe: API không chặn, giao diện tự cảnh báo từ loại điểm (`OQ-24`). |
 | 5    | Trip chép `allow_pickup`, `allow_dropoff` từ route stop sang `trip_stops` (TRN-003). Booking chỉ nhận điểm đón có `allow_pickup`, điểm trả có `allow_dropoff`, điểm đón đứng trước điểm trả (BR-23). |
-| 6    | Admin khóa điểm riêng (`POST /admin/operator-stop-points/{id}/suspend`): lý do bắt buộc → `SUSPENDED`, audit, thông báo nhà xe. Điểm `SUSPENDED` không gắn mới vào route; mở bán chuyến có điểm này → 422 `TRIP_NOT_READY_FOR_SALE` (lý do điểm dừng không dùng được); nhà xe sửa điểm đang khóa → 409 `STOP_POINT_SUSPENDED`. Mở khóa (`…/unsuspend`) trả về `ACTIVE`. |
+| 6    | Admin khóa điểm riêng (`POST /admin/operator-stop-points/{id}/suspend`): lý do bắt buộc → `SUSPENDED`, audit, thông báo nhà xe. Điểm `SUSPENDED` không gắn mới vào route; mở bán chuyến có điểm này → 422 `TRIP_NOT_READY_FOR_SALE` (lý do điểm dừng không dùng được); nhà xe sửa điểm đang khóa → 409 `STOP_POINT_SUSPENDED`. Mở khóa (`…/unsuspend`) trả về `ACTIVE`. `TASK-ADM-004`: khóa dòng rồi kiểm trạng thái — khóa điểm đang khóa / mở khóa điểm không khóa → 409 `STOP_POINT_STATE_INVALID`; mở khóa xóa lý do; audit trong transaction; email báo chủ nhà xe sau commit (khóa kèm lý do / mở khóa). |
 | 7    | Tìm chuyến (TRN-004, BR-80): mỗi phía là `provinceId` hoặc `stopPointId` (điểm dùng chung). Theo tỉnh: so tỉnh của điểm dừng chuyến. Theo địa danh: khoảng cách từ tọa độ địa danh tới tọa độ điểm dừng chuyến ≤ bán kính cấu hình (mặc định 5 km). Chỉ xét điểm có `allow_pickup` (phía đi) / `allow_dropoff` (phía đến), điểm đón có thứ tự nhỏ hơn điểm trả. Không gọi Goong lúc tìm. |
+
+
+### 6.14. Hồ sơ nhà xe và đổi tài khoản nhận tiền (UC-11 bước 1–4, BR-37, TASK-OPR-001b — chờ duyệt)
+
+| Bước | Xử lý |
+| ---- | ----- |
+| 1    | Lúc Admin duyệt hồ sơ (§6.11 bước 4), cùng transaction chép tên pháp lý, MST, hotline, email, địa chỉ, mô tả sang `operator_profiles`, giấy tờ sang `kyc_documents` (cùng khóa object), tài khoản nhận tiền thành `bank_accounts` `VERIFIED` (người duyệt = Admin). |
+| 2    | `OperatorProfileService` (module `operator/`, quyền `kyc:submit` — chỉ chủ nhà xe, scope tenant): `PUT /operator/profile` sửa tên hiển thị / hotline / email / địa chỉ / mô tả; RLS `tenant_update_public` + trigger chặn tenant đổi cột khác. Audit `operator.profile.update` chỉ ghi trường đổi. |
+| 3    | Thay giấy tờ: xin URL tải lên (khóa `operator-kyc/{operatorId}/{uuid}`) → `PUT …/documents/{type}` kiểm object trước transaction (tồn tại, < 23 giờ, ≤ 10 MB, đúng loại + chữ ký file) → upsert + audit; bản cũ tự tải lên xóa sau commit, bản chép từ hồ sơ đăng ký giữ nguyên; job 03:45 dọn mồ côi cả `operator-kyc/`. Xem giấy tờ: URL 5 phút, mỗi lần cấp ghi audit. |
+| 4    | Đổi tài khoản nhận tiền: guard xác nhận lại danh tính → tạo `bank_accounts` `PENDING` (tối đa một / nhà xe — unique một phần; trùng tài khoản đang dùng → 422); tài khoản cũ vẫn dùng để chi trả. Audit `operator.bank_account.request` (số tài khoản che 4 số cuối). |
+| 5    | Admin (`kyc:review`): xem yêu cầu (số đầy đủ, audit `operator.bank_account.view`) → duyệt / từ chối kèm `changeId` (khóa dòng `FOR UPDATE`; đã xử lý → 404). Duyệt: bản `VERIFIED` cũ → `REPLACED` trước rồi yêu cầu → `VERIFIED` (unique một tài khoản đã xác minh). Từ chối: `REJECTED` + `review_note`. Audit trong transaction; email chủ nhà xe sau commit. |
+
+### 6.15. Chính sách có phiên bản, hoa hồng, khung giá (UC-25, AS-23, OQ-13/16/17/18 — TASK-ADM-001, chờ duyệt)
+
+| Bước | Xử lý |
+| ---- | ----- |
+| 1    | `AdminPolicyService` (module `policy/`, quyền `finance:configure`): `policy_versions` theo (loại, phạm vi) — hủy / hoàn tiền có phạm vi riêng nhà xe (OQ-13), giữ chỗ / chi trả chỉ cấp nền tảng (BR-02). Nháp sửa tự do; `rules` kiểm bằng Zod theo loại. |
+| 2    | Kích hoạt (xác nhận lại danh tính, lý do bắt buộc): khóa dòng; hiệu lực phải ở tương lai (UC-25 A5); phạm vi đã có bản chờ hiệu lực → 409 (A2 — hủy lịch trước); trạng thái hiển thị suy ra: bản kích hoạt muộn nhất đã tới hiệu lực = "Đang áp dụng", trước nó "Hết hiệu lực", tương lai "Đã lên lịch". Bản đã có hiệu lực không sửa / hủy. |
+| 3    | Hoa hồng (`AdminCommissionService`, module `commission/`): `rate_bps` phần vạn; mức riêng bắt đầu ở tương lai, không chồng mức khác của nhà xe (khóa dòng `operator_profiles` rồi đếm chồng); đã bắt đầu chỉ đổi ngày kết thúc; ngừng = hủy (chưa bắt đầu) / kết thúc ngay. Mức mặc định 5% từ dữ liệu nền. |
+| 4    | Khung giá: `fare_bands` (mọi tuyến, giá tuyệt đối mỗi chỗ). `FareService` tính `bandWarnings` (hàm thuần `policy/policy-state.ts`) khi xem / lưu bảng giá; quy tắc có khung giờ chỉ xét khi giao thời gian; lưu giá ngoài khung → audit `fare.band_warning`, không chặn (OQ-17). |
+| 5    | Chưa có: đọc chính sách khi giữ chỗ / đặt vé / hoàn tiền / chi trả và `policy_snapshots` — làm cùng `TASK-BTP-*`. |
+
+### 6.16. Lịch xe (TASK-TRN-015 — chỉ giao diện, chờ duyệt)
+
+| Bước | Xử lý |
+| ---- | ----- |
+| 1    | Operator OS tải chuyến khởi hành từ đầu ngày hôm trước tới hết ngày đang xem (`GET /operator/trips`, mọi trang) để thấy chuyến qua đêm; xe bận trong [giờ khởi hành, giờ đến) của mọi chuyến chưa hủy (khớp ràng buộc EXCLUDE `trips_vehicle_no_overlap`). |
+| 2    | Dòng thời gian theo xe, "Rảnh từ (dự kiến)" = giờ đến của chuyến chưa hủy cuối cùng + điểm cuối tuyến (chỉ hiển thị); form chuyến chia xe Rảnh / Trùng giờ cho khoảng giờ đang nhập (bỏ qua chính chuyến đang sửa). Máy chủ vẫn chặn trùng xe khi lưu. |
+
+### 6.17. Lịch chuyến lặp lại (FR-OPS-07, UC-14 bước 7 — TASK-TRN-007, chờ duyệt)
+
+| Bước | Xử lý |
+| ---- | ----- |
+| 1    | `TripScheduleService` (module `trip/`, quyền `trip:manage`): `trip_schedules` = quy tắc (tuyến, xe tuỳ chọn, giờ khởi hành theo giờ VN, thời gian chạy, thứ chạy bitmask, khoảng ngày ≤ 93 ngày, ngừng bán online, ghi chú). Tuyến phải đang dùng, xe (nếu có) đang hoạt động + có sơ đồ ghế (kiểm khi tạo / sửa / trước khi sinh). |
+| 2    | "Sinh chuyến" (thủ công): mỗi ngày khớp quy tắc một transaction — khoá dòng lịch `FOR UPDATE`, đọc quy tắc hiện tại, ngày đã có chuyến của lịch → `EXISTS`, giờ khởi hành đã qua → `PAST`, còn lại chèn chuyến `DRAFT` qua `insertDraftTrip` (chung với tạo chuyến lẻ: chép điểm dừng + ghế); xe chồng giờ (EXCLUDE) → `VEHICLE_CONFLICT`, bỏ qua ngày đó. UNIQUE `trips(schedule_id, service_date)` là chốt cuối khi chạy đồng thời. |
+| 3    | `openForSale`: mở bán từng chuyến vừa sinh qua `TripService.changeStatus` (BR-39 + audit từng chuyến); chưa đủ điều kiện → giữ nháp, trả lý do. Sửa lịch chỉ áp cho ngày chưa sinh. Audit lịch ghi sau commit, không chặn. |
+
+### 6.18. Phân công tài xế cho chuyến (UC-16 bước 4–6 — TASK-EMP-001 phía Operator OS, chờ duyệt)
+
+| Bước | Xử lý |
+| ---- | ----- |
+| 1    | `EmployeeAssignmentService` (module `employee/`, quyền `employee:manage`): danh sách chuyến chưa hủy khởi hành trong một ngày (giờ VN) kèm tài xế, chồng giờ (khi giờ chuyến bị sửa sau khi phân công), cần lý do hay không. |
+| 2    | `PUT /operator/trips/{tripId}/driver`: khoá dòng chuyến (`FOR NO KEY UPDATE`); chuyến hủy / hoàn thành → 409; gửi lại đúng người → trả nguyên. Chuyến đang chạy hoặc còn < 2 giờ là khởi hành → bắt buộc lý do (UC-16 A4). |
+| 3    | Phân công: khoá dòng nhân viên (`FOR NO KEY UPDATE`) — hai lần phân công cùng tài xế xếp hàng; nhân viên phải là tài xế đang hoạt động của nhà xe (A1, A2); không chồng giờ chuyến chưa hủy khác (A3 — chặn, 409 nêu giờ chuyến kia). Upsert `employee_assignments` (UNIQUE `(trip_id, role)`). Audit trong transaction (Mongo lỗi → 503). Thông báo nhân viên (bước 7) chờ `TASK-NSR-001`. |
+
+### 6.19. Nội dung công khai — banner, câu hỏi thường gặp, trang tĩnh (FR-ADM-13, UC-28 — TASK-ADM-003, chờ duyệt)
+
+| Bước | Xử lý |
+| ---- | ----- |
+| 1    | `ContentPageService` (module `catalog/` theo DOMAIN-MAP, quyền `content:moderate`): `content_pages` cấp Platform; vị trí theo loại (banner → trang chủ, trang tĩnh → chân trang, FAQ → nhóm); trang tĩnh có đường dẫn duy nhất; banner có ảnh (kho công khai, kiểm object + chữ ký định dạng như ảnh bài viết) + liên kết `/…` hoặc `https://`. |
+| 2    | Tạo = bản nháp; sửa không đổi loại; hiển thị / ẩn khoá dòng (lặp → 409). Audit trong transaction (lỗi → 503). |
+| 3    | API công khai chỉ trả mục đang hiển thị theo thứ tự; trang tĩnh nháp → 404. Nơi hiển thị không render HTML thô. |
+
+### 6.20. Soát vé + vận hành chuyến của nhân viên (FR-EMP-07..09/13, UC-20/21 — TASK-EMP-002 backend, chờ duyệt)
+
+| Bước | Xử lý |
+| ---- | ----- |
+| 1    | `EmployeeOperationsService` (module `check-in/`): chỉ chuyến được phân công cho chính nhân viên (`requireAssignedTenant`); soát vé `checkin:perform` (mọi role Employee), đổi trạng thái chuyến `trip:operate` (chỉ tài xế). |
+| 2    | Soát vé bằng QR (so hash) hoặc mã vé: `OK` / `WRONG_TRIP` (không lộ thông tin khách) / `ALREADY_CHECKED_IN` / `CANCELLED` / `REFUNDED` / `NO_SHOW` / `USED`. Check-in có điều kiện `VALID →` (hai máy quét cùng vé chỉ một lần); vắng mặt chỉ sau khi bắt đầu đón; lịch sử vé ghi `employee:{id}` (BR-44). |
+| 3    | Trạng thái chuyến (đang bán / tạm khóa / hết chỗ) → `BOARDING` → `DEPARTED` → `IN_PROGRESS` → `COMPLETED` (được bỏ qua `BOARDING` / `IN_PROGRESS`). Hoàn thành: vé đã lên → `USED`, chưa lên → `NO_SHOW`; `payout_eligible_at` = giờ hoàn thành thực tế + chu kỳ chi trả (BR-32) — kỳ chi trả dùng mốc này nếu có. Audit đổi trạng thái ghi sau commit. |
+
+### 6.21. Đối soát tự động với cổng thanh toán (FR-BTP-17, UC-32 bước 1 — chờ duyệt)
+
+| Bước | Xử lý |
+| ---- | ----- |
+| 1    | Port `PaymentGateway.queryTransaction` (ADR-006): VNPay `querydr` (ký HMAC-SHA512, kiểm chữ ký phản hồi), MoMo `/v2/gateway/api/query` (HMAC-SHA256); kết quả `PAID` / `PENDING` / `FAILED` / `NOT_FOUND` / lỗi. |
+| 2    | Job `payment-reconciliation` (worker, 10 phút, concurrency 1): thanh toán chưa xong đã quá hạn, tạo trong 48 giờ, chưa tra trong 30 phút (`provider_checked_at`) → tra cổng; đã trả → áp như callback thành công (đơn còn chờ → xác nhận + vé; không → "Cần đối soát"); thất bại → payment thất bại; không có / lỗi → giữ nguyên. |
+| 3    | Refund `APPROVED` đứng yên > 30 phút → xếp hàng lại cùng `jobId` (không gọi cổng hai lần). Chưa đối soát sổ giữ hộ / kỳ chi trả (UC-32 bước 2) và chưa chạy lại thủ công. |
+
+### 6.22. Báo cáo nhà xe + Admin, trang Tổng quan (FR-NSR-12/13, FR-ADM-17, UC-29 — TASK-RPT-001/002, chờ duyệt)
+
+| Bước | Xử lý |
+| ---- | ----- |
+| 1    | `ReportingService` (module `reporting/`) tính trực tiếp từ Postgres theo kỳ (ngày giờ VN, tối đa 366 ngày), không bảng tổng hợp v1. Nhà xe: `finance:read` (tenant + RLS); Admin: `payment:monitor` (không dùng `finance:read` vì Owner cũng có). |
+| 2    | Chỉ số chuyến theo chuyến **khởi hành** trong kỳ (trừ nháp); vé bán = `VALID` / `CHECKED_IN` / `NO_SHOW` / `USED`; lấp đầy = vé bán / số chỗ; Admin: GMV = thanh toán thành công theo giờ trả, doanh thu sau hoàn = GMV − hoàn thành công trong kỳ (tạm tính khi còn cần đối soát). |
+| 3    | Xuất CSV (UTF-8 BOM, chặn công thức) ghi audit `report.export` trước khi trả tệp (BR-56); audit lỗi → 503. |
+
+### 6.23. Khiếu nại, tranh chấp, đánh giá (FR-NSR-06..11, FR-DSP-01..08, BR-18/49/50/51/55, UC-09/27/28 — TASK-TRUST-001, chờ duyệt)
+
+| Bước | Xử lý |
+| ---- | ----- |
+| 1    | Khiếu nại (`support/`) gắn một đơn; khách (vãng lai qua `X-Booking-Token`) tạo / trả lời; Admin phân loại (danh mục, ưu tiên, bên xử lý chính, người phụ trách) — chọn nhà xe → nhà xe mới thấy khiếu nại (`support:respond`) và nhận email; trạng thái `NEW` → … → `RESOLVED` / `CLOSED`. |
+| 2    | Tranh chấp (`dispute/`): Admin chuyển từ khiếu nại (mỗi khiếu nại tối đa một), yêu cầu minh chứng (bên + hạn ≤ 30 ngày), quá hạn → `ESCALATED` (job 15 phút); quyết định chỉ PlatformAdmin + xác nhận lại danh tính: hoàn tiền → refund `APPROVED` tối đa phần khách đã trả còn lại, hoàn xong trừ sổ giữ hộ nhà xe + trả lại hoa hồng tương ứng (MQ-03). Mỗi bên chỉ thấy minh chứng của mình + của Vé Xe Nhanh. |
+| 3    | Đánh giá (`review/`): hành khách (không phải khách vãng lai) một lần / đơn khi chuyến hoàn thành và có vé đã đi (BR-18); nhà xe phản hồi / báo vi phạm; Admin ẩn (lý do) / hiển thị lại; chỉ đánh giá đang hiển thị tính điểm (BR-55). |
+| 4    | Tệp minh chứng ở kho riêng tư (ADR-018): khóa server sinh theo nhà xe + nơi tải, kiểm kích thước / loại / chữ ký định dạng; xem = URL 5 phút + audit mỗi lần. Email qua outbox thông báo (`CASE_UPDATED`). |
+
+### 6.24. Khuyến mãi (FR-PROM-01..07, FR-MKT-10, BR-46/47/48/72 — TASK-PROM-001, chờ duyệt)
+
+| Bước | Xử lý |
+| ---- | ----- |
+| 1    | Khuyến mãi nền tảng (Admin, `promotion:configure`) chỉ áp cho nhà xe **đã tham gia**; phần giảm do nhà xe chịu (LLD-OQ-07, Khanh 18/10/2026). Khuyến mãi nhà xe (Owner, `promotion:manage`) trong giới hạn Admin cấp (% / số tiền / thời hạn / ngân sách tháng — BR-46). |
+| 2    | `POST /bookings` nhận `promotionCode`: kiểm hiệu lực / nhà xe / tuyến / chuyến / đơn tối thiểu / lượt / ngân sách; giữ lượt nguyên tử (`promotion_claim`) trong transaction đơn; snapshot vào đơn (BR-47); đơn hết hạn / bị hủy khi chưa trả → trả lượt; thanh toán → "đã dùng". Khách trả tối thiểu 10.000 ₫. |
+| 3    | Tiền: sổ giữ hộ nhận số khách thực trả, hoa hồng tính trên tiền vé sau giảm; hủy vé hoàn trên phần đã trả của từng vé (phần giảm chia theo tỷ lệ giá, làm tròn lên). |
+
+### 6.25. VXN Plus phía Admin (FR-LOY-01..03/08/10..12, BR-65..70, UC-36/39 — TASK-LOY-001, chờ duyệt)
+
+| Bước | Xử lý |
+| ---- | ----- |
+| 1    | Tham số = `policy_versions` loại `LOYALTY` (phiên bản 1 seed theo LLD-OQ-06: 10.000 ₫ / điểm, 1 điểm = 1.000 ₫, đổi tối thiểu 100, voucher 30 ngày, hạng 0 / 2.000 / 5.000 / 10.000 với ×1 / ×1,2 / ×1,5 / ×2, hạn điểm 12 tháng — số cuối do AI đề xuất). Sửa qua API chính sách chung, không áp ngược. |
+| 2    | Job `loyalty-maintenance` (worker, 10 phút): **tích** một lần / đơn của hành khách có tài khoản khi chuyến `COMPLETED` — căn cứ = tiền khách thực trả của vé không `CANCELLED` / `REFUNDED` / `NO_SHOW` − tiền hoàn theo số tiền, điểm = làm tròn xuống (căn cứ × hệ số hạng ÷ đơn vị), BIGINT; **thu hồi** theo tỷ lệ tiền hoàn (thiếu số dư → ghi phần thiếu, không thu lại); **hết hạn** lô sắp hết hạn dùng trước. Khóa tài khoản + khóa chống trùng (`EARN:{bookingId}`, `REVERSAL:{refundId}`, `EXPIRE:{accountId}:{lô}`). |
+| 3    | Admin (`loyalty:manage`): tra cứu theo email, lịch sử điểm, điều chỉnh (xác nhận lại danh tính, `Idempotency-Key`, không âm, audit `loyalty.adjust`), báo cáo quý theo hạng lúc ghi. Đổi điểm / ví voucher / phần giảm Vé Xe Nhanh chịu chưa làm (TASK-PROM-002). |
 
 ---
 
@@ -291,8 +401,17 @@ Error response theo RFC 7807 Problem Details (`application/problem+json`) với 
 | Voucher    | `VOUCHER_NOT_AVAILABLE`, `VOUCHER_EXPIRED`, `VOUCHER_NOT_APPLICABLE`, `VOUCHER_ALREADY_SAVED`, `VOUCHER_ONE_PER_BOOKING` | Kiểm lại tại create booking |
 | Content    | `ARTICLE_NOT_FOUND`, `ARTICLE_SLUG_CONFLICT`                                                   | Bài không `PUBLISHED` trả 404 cho public |
 | Ảnh phương tiện | `VEHICLE_IMAGE_INVALID` (422), `VEHICLE_IMAGE_LIMIT_EXCEEDED` (422), `VEHICLE_IMAGE_NOT_FOUND` (404) | Sai loại / dung lượng / object không tồn tại / key của xe khác dùng chung một mã, không lộ lý do; `NOT_FOUND` chỉ cho Admin gỡ ảnh |
-| Điểm dừng | `STOP_POINT_TYPE_NOT_ALLOWED` (422), `STOP_POINT_SUSPENDED` (409), `ROUTE_STOP_PICKUP_DROPOFF_INVALID` (422) | Loại điểm riêng ngoài văn phòng trung chuyển / trạm dừng nghỉ; nhà xe sửa điểm đang bị Admin khóa; cho đón / cho trả sai BR-79 |
-| Operator onboarding | `OPERATOR_APPLICATION_LINK_INVALID` (401), `OPERATOR_APPLICATION_INVALID_STATE` (409), `OPERATOR_SLUG_CONFLICT` (409) | Link sai / hết hạn / đã thu hồi dùng chung một mã, không lộ lý do |
+| Điểm dừng | `STOP_POINT_TYPE_NOT_ALLOWED` (422), `STOP_POINT_SUSPENDED` (409), `ROUTE_STOP_PICKUP_DROPOFF_INVALID` (422) | Loại điểm riêng ngoài văn phòng trung chuyển / trạm dừng nghỉ; nhà xe sửa điểm đang bị Admin khóa; cho đón / cho trả sai BR-79 `TASK-ADM-004` thêm (chờ duyệt): `STOP_POINT_STATE_INVALID` (409); duyệt / từ chối đề xuất không còn `PENDING` dùng `STOP_POINT_PROPOSAL_STATE_INVALID` (409). |
+| Danh mục | `CATALOG_CODE_CONFLICT` (409), `CATALOG_ITEM_NOT_FOUND` (404), `CATALOG_STATE_INVALID` (409) | `TASK-ADM-001` (chờ duyệt): trùng mã; id lạ / tỉnh của phường mới không tồn tại; ngừng dùng mục đã ngừng (hoặc ngược lại). `CATALOG_ITEM_UNAVAILABLE` (422) có từ `TASK-CAT-001` cho nhà xe chọn mục đã ngừng |
+| Lịch chuyến lặp lại | `TRIP_SCHEDULE_NOT_FOUND` (404), `ROUTE_UNAVAILABLE` / `VEHICLE_UNAVAILABLE` (422) | `TASK-TRN-007` (chờ duyệt): lịch khác tenant = không có; ngày không sinh trả trong kết quả (`EXISTS` / `PAST` / `VEHICLE_CONFLICT`), không phải lỗi |
+| Phân công | `EMPLOYEE_NOT_ASSIGNABLE` (422), `DRIVER_SCHEDULE_CONFLICT` (409), `TRIP_NOT_ASSIGNABLE` (409), `ASSIGNMENT_REASON_REQUIRED` (422) | `TASK-EMP-001` (chờ duyệt) |
+| Nội dung công khai | `CONTENT_PAGE_NOT_FOUND` (404), `CONTENT_PAGE_SLUG_CONFLICT` (409), `CONTENT_PAGE_TYPE_IMMUTABLE` (422), `CONTENT_PAGE_STATE_INVALID` (409), `CONTENT_IMAGE_INVALID` (422) | `TASK-ADM-003` (chờ duyệt) |
+| Audit log | `AUDIT_LOG_NOT_FOUND` (404) | `TASK-ADM-002` (chờ duyệt): id bản ghi không có; kho audit không phản hồi khi đọc → 503 `SERVICE_UNAVAILABLE` |
+| Operator onboarding | `OPERATOR_APPLICATION_LINK_INVALID` (401), `OPERATOR_APPLICATION_INVALID_STATE` (409), `OPERATOR_SLUG_CONFLICT` (409); `TASK-OPR-001` thêm (chờ duyệt): `OPERATOR_APPLICATION_INCOMPLETE` (422 + `reasons`), `OPERATOR_APPLICATION_DOCUMENT_INVALID` (422, một thông báo chung), `OPERATOR_APPLICATION_DOCUMENT_NOT_FOUND` (404), `OPERATOR_APPLICATION_RATE_LIMITED` (429); `TASK-ADM-001` thêm (chờ duyệt): `OPERATOR_APPLICATION_NOT_FOUND` (404 — id lạ hoặc hồ sơ nháp, Admin không thấy nháp) | Link sai / hết hạn / đã thu hồi dùng chung một mã, không lộ lý do |
+| Bài viết | `ARTICLE_NOT_FOUND` / `ARTICLE_CATEGORY_NOT_FOUND` (404), `ARTICLE_SLUG_CONFLICT` / `ARTICLE_CATEGORY_SLUG_CONFLICT` / `ARTICLE_STATE_INVALID` (409), `ARTICLE_INCOMPLETE` / `ARTICLE_CATEGORY_UNAVAILABLE` / `ARTICLE_IMAGE_INVALID` (422) | `TASK-CNT-001` (chờ duyệt) |
+| Nhà xe + người dùng | `OPERATOR_NOT_FOUND` (404), `OPERATOR_STATE_INVALID` / `ACCOUNT_STATE_CONFLICT` / `PLATFORM_ACCOUNT_CONFLICT` / `PLATFORM_ACCOUNT_SELF_ACTION` / `PLATFORM_ACCOUNT_LAST_ADMIN` (409), `AUTH_ACCOUNT_LOCKED` (403 — hành khách bị khóa đăng nhập) | `TASK-ADM-001` phần tài khoản (chờ duyệt) |
+| Hồ sơ nhà xe | `KYC_DOCUMENT_NOT_FOUND` / `BANK_ACCOUNT_CHANGE_NOT_FOUND` (404), `BANK_ACCOUNT_CHANGE_PENDING` (409), `KYC_DOCUMENT_INVALID` / `BANK_ACCOUNT_UNCHANGED` (422); kho private chưa cấu hình → 503 (OQ-21) | `TASK-OPR-001b` (chờ duyệt) |
+| Chính sách | `POLICY_RULES_INVALID` (400), `POLICY_VERSION_NOT_FOUND` / `COMMISSION_RULE_NOT_FOUND` / `FARE_BAND_NOT_FOUND` (404), `POLICY_VERSION_LOCKED` / `POLICY_SCHEDULE_CONFLICT` / `POLICY_VERSION_CONFLICT` / `COMMISSION_RULE_OVERLAP` / `FARE_BAND_CLOSED` (409), `POLICY_EFFECTIVE_INVALID` / `COMMISSION_RULE_LOCKED` / `COMMISSION_PERIOD_INVALID` (422) | `TASK-ADM-001` phần chính sách (chờ duyệt) |
 | Infra      | `SERVICE_UNAVAILABLE` (Redis down → 503)                                                       | Không in-memory fallback lock (ADR-015)        |
 
 ---
@@ -318,21 +437,31 @@ Error response theo RFC 7807 Problem Details (`application/problem+json`) với 
 
 Sự kiện nhạy cảm ghi vào Mongo `audit_event` (cluster RIÊNG, append-only, ADR-011); snapshot sẵn `operator_id`, `actor_role`, `target_type` tại write-time (no cross-DB join).
 
+`TASK-ADM-002` phần audit (chờ duyệt) — màn Nhật ký audit của Admin (UC-30) đọc toàn hệ thống qua `AuditService` (chỉ route `audit:read` phạm vi `any`); tên đăng nhập người thực hiện và tên nhà xe tra từ Postgres lúc đọc (scope `platform`). Trước / sau che ở server theo tên trường (email, điện thoại, số tài khoản giữ 4 số cuối, IP, user-agent → nhãn thiết bị, trường `password` / `secret` / `token` / `otp` / `hash` → ẩn). "Kết quả" suy từ tên hành động: kết thúc bằng `.failure`, `…failed`, `.rate_limited`, `.reuse_detected`, `.locked` là thất bại — hành động mới đặt tên theo quy ước này.
+
 | Sự kiện                        | Bắt buộc audit | Dữ liệu cần lưu                                    |
 | ------------------------------ | -------------- | -------------------------------------------------- |
 | Đổi bank account Operator      | Có             | actor, operatorId, before/after masked, reason     |
 | Refund thủ công                | Có             | adminId, booking/payment/refund id, amount, reason |
 | Đổi policy/commission/payout   | Có             | before/after, effective date, actor                |
+| Bài viết / chuyên mục (`article.*`, `article_category.*`) | Có | before/after, actor — `TASK-CNT-001` |
+| Tạm khóa / mở nhà xe, khóa hành khách / tài khoản quản trị, cấp / đặt lại tài khoản quản trị | Có | lý do, trạng thái trước/sau, actor — `TASK-ADM-001` phần tài khoản |
+| Hồ sơ nhà xe: sửa thông tin công khai, thay / xem giấy tờ KYC, gửi / xem / duyệt / từ chối đổi tài khoản nhận tiền (`operator.profile.update`, `operator.kyc_document.*`, `operator.bank_account.*`) | Có | trường đổi; số tài khoản che 4 số cuối; lý do — `TASK-OPR-001b` |
+| Chính sách / hoa hồng / khung giá (`policy.*`, `commission_rule.*`, `fare_band.*`), bảng giá ngoài khung (`fare.band_warning`) | Có | nội dung + hiệu lực trước/sau, lý do — `TASK-ADM-001` phần chính sách |
 | Đổi trip đã có vé bán          | Có             | tripId, affected bookings, reason                  |
 | Tạo/sửa bảng giá (fare)        | Có — `audit_event` ghi **trong** transaction Postgres, trước commit, giới hạn 2 giây ở driver Mongo và không vượt phần còn lại của hạn transaction (lỗi / chậm / chưa kết nối / hết giờ → không đổi giá, 503; server Mongo tự huỷ lệnh quá hạn nên không có dòng lịch sử "ma"); cũng là lịch sử giá BR-40 | fareId, operatorId, actor, before/after toàn bộ rule |
 | Đổi trạng thái chuyến (mở bán / khóa / mở lại / thu hồi nháp / hủy) | Có — `audit_event` ghi **trong** transaction, giới hạn 2 giây như bảng giá (lỗi → không đổi, 503) | tripId, operatorId, actor, trạng thái trước / sau, reason (hủy bắt buộc) |
 | Khóa / mở ghế thủ công (đa kênh, BR-42) | Có — ghi **sau commit, best-effort**: Mongo lỗi không được chặn khóa ghế (khóa ghế là để chống overbooking) | tripId, operatorId, actor, seatCodes, trạng thái đích, ghi chú |
+| Lịch chuyến lặp lại (`trip_schedule.create` / `.update` / `.generate`) | Có — ghi sau commit, không chặn | trước / sau quy tắc; kết quả sinh (số chuyến tạo / mở bán / bỏ qua, ngày trùng xe) — `TASK-TRN-007` |
+| Phân công tài xế (`trip.driver.assign` / `.unassign`) | Có — **trong** transaction | tài xế trước / sau, lý do (bắt buộc khi chuyến sắp chạy / đang chạy) — `TASK-EMP-001` |
+| Nội dung công khai (`content_page.create` / `.update` / `.publish` / `.unpublish`) | Có — **trong** transaction | trước / sau (nội dung dài chỉ ghi độ dài) — `TASK-ADM-003` |
 | Khóa/mở khóa tài khoản         | Có             | target actor, actor thực hiện, reason              |
 | Confirm payout / nhập bank ref | Có             | adminId, payoutId, operatorId, amount, bank ref    |
 | Điều chỉnh điểm loyalty        | Có             | adminId, userId, points (+/−), reason, số dư trước / sau |
 | Đổi tham số loyalty            | Có             | before/after, effective date, actor (PolicyVersion) |
 | Xuất bản / gỡ bài viết         | Có             | adminId, articleId, action, slug                   |
 | Admin gỡ ảnh phương tiện       | Có             | adminId, operatorId, vehicleId, imageId, objectKey, reason |
+| Admin xem chi tiết một bản ghi audit | Có — best-effort sau khi đọc (lỗi ghi không chặn việc xem) | adminId, `audit.event.view`, id bản ghi được xem |
 | Tạo / sửa / ngừng dùng điểm dừng dùng chung | Có   | adminId, stopPointId, before/after, legalBasis      |
 | Duyệt / từ chối đề xuất điểm dừng | Có          | adminId, proposalId, operatorId, catalogStopPointId (khi duyệt), legalBasis, reason (khi từ chối) |
 | Khóa / mở khóa điểm dừng riêng | Có             | adminId, operatorId, stopPointId, reason           |

@@ -48,6 +48,8 @@ describe.skipIf(!url && !requireDb)("Catalog — Postgres thật, role app", () 
     return {
       name: `Bến ${tag}`,
       type: StopPointType.BUS_STATION,
+      // Bến xe / điểm dừng đón trả bắt buộc căn cứ công bố (CHECK của TASK-ADM-004).
+      legalBasis: "QĐ công bố (test)",
       address: "Địa chỉ test",
       provinceId: provinceA,
       wardId: wardA,
@@ -116,7 +118,6 @@ describe.skipIf(!url && !requireDb)("Catalog — Postgres thật, role app", () 
       const created = await Promise.all(
         [
           stopPoint(),
-          stopPoint({ type: StopPointType.OFFICE }),
           stopPoint({ type: StopPointType.REST_STOP }),
           stopPoint({ type: StopPointType.PICKUP_POINT }),
           stopPoint({ status: "INACTIVE" }),
@@ -162,6 +163,9 @@ describe.skipIf(!url && !requireDb)("Catalog — Postgres thật, role app", () 
         })
       ).map((row) => row.id);
       await tx.stopPointCatalog.deleteMany({
+        where: { provinceId: { in: provinceIds } },
+      });
+      await tx.legacyAdministrativeMapping.deleteMany({
         where: { provinceId: { in: provinceIds } },
       });
       await tx.ward.deleteMany({ where: { provinceId: { in: provinceIds } } });
@@ -396,12 +400,12 @@ describe.skipIf(!url && !requireDb)("Catalog — Postgres thật, role app", () 
       });
       expect(all.items.map((item) => item.id)).toEqual(activeStopIds);
       expect(all.nextCursor).toBeNull();
-      const office = await catalog.listStopPoints({
+      const restStop = await catalog.listStopPoints({
         provinceId: provinceA,
-        type: StopPointType.OFFICE,
+        type: StopPointType.REST_STOP,
         limit: 100,
       });
-      expect(office.items).toHaveLength(1);
+      expect(restStop.items).toHaveLength(1);
       expect(
         (await catalog.listStopPoints({ wardId: wardB, limit: 100 })).items,
       ).toEqual([]);
@@ -430,15 +434,16 @@ describe.skipIf(!url && !requireDb)("Catalog — Postgres thật, role app", () 
       expect(await search("Địa Chỉ")).toEqual(activeStopIds);
       expect(await search(`khong-co-${tag}`)).toEqual([]);
       // Kết hợp với bộ lọc loại: vẫn chỉ ra đúng loại.
-      const office = await catalog.listStopPoints({
+      const restStop = await catalog.listStopPoints({
         provinceId: provinceA,
-        type: StopPointType.OFFICE,
+        type: StopPointType.REST_STOP,
         q: `ben ${tag}`,
         limit: 100,
       });
-      expect(office.items).toHaveLength(1);
-      // Cột sinh không lộ ra response.
-      expect(office.items[0]).not.toHaveProperty("searchText");
+      expect(restStop.items).toHaveLength(1);
+      // Cột sinh và căn cứ công bố không lộ ra response công khai.
+      expect(restStop.items[0]).not.toHaveProperty("searchText");
+      expect(restStop.items[0]).not.toHaveProperty("legalBasis");
     });
 
     it("cursor đi hết các trang không lặp/sót, kể cả khi dòng cursor bị vô hiệu hoá giữa hai trang", async () => {
@@ -612,6 +617,58 @@ describe.skipIf(!url && !requireDb)("Catalog — Postgres thật, role app", () 
         ),
       );
       expect(text).toMatch(/row-level security|42501/);
+    });
+
+    it("seed bảng legacy_administrative_mappings, tự sinh search_text và hỗ trợ đối chiếu điểm dừng từ tên phường cũ", async () => {
+      const res = await prisma.withSystem((tx) =>
+        seedCatalog(tx, {
+          provinces: [{ code: seedProvinceCodes[0]!, name: "Tỉnh Seed 1" }],
+          wards: [
+            {
+              code: `sw1-${tag}`,
+              name: "Phường Seed",
+              provinceCode: seedProvinceCodes[0]!,
+            },
+          ],
+          vehicleTypes: [],
+          amenities: [],
+          legacyMappings: [
+            {
+              legacyProvinceCode: `L-${tag}`,
+              legacyProvinceName: "Tỉnh Cũ Test",
+              legacyDistrictName: "Thành phố Cũ Test",
+              legacyWardName: "Phường Cũ Đổi Tên",
+              provinceCode: seedProvinceCodes[0]!,
+              wardCode: `sw1-${tag}`,
+              notes: "Sáp nhập test",
+            },
+          ],
+          sampleStopPoints: [
+            {
+              name: `Bến theo tên phường cũ ${tag}`,
+              type: StopPointType.BUS_STATION,
+              address: "Số 1 Đường Test",
+              provinceCode: seedProvinceCodes[0]!,
+              wardName: "Phường Cũ Đổi Tên",
+              latitude: 10.5,
+              longitude: 106.5,
+              legalBasis: "QĐ công bố test",
+            },
+          ],
+        }),
+      );
+
+      expect(res.legacyMappings).toBe(1);
+      expect(res.stopPoints).toBe(1);
+      expect(res.skippedStopPoints).toEqual([]);
+
+      const mappingRow = await prisma.legacyAdministrativeMapping.findFirst({
+        where: { legacyProvinceCode: `L-${tag}` },
+        select: { searchText: true, notes: true },
+      });
+      expect(mappingRow?.notes).toBe("Sáp nhập test");
+      expect(mappingRow?.searchText).toContain("tinh cu test");
+      expect(mappingRow?.searchText).toContain("phuong cu doi ten");
     });
   });
 });

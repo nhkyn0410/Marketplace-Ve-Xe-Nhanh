@@ -1,9 +1,12 @@
 "use client";
 
 import React, { useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@vexenhanh/ui/components/button";
-import type { MyComplaintsData, NewComplaintPayload } from "../../lib/data/types";
+import type { NewComplaintPayload } from "../../lib/data/types";
+import type { SupportData, SupportDetailData } from "../../lib/data/support-mappers";
+import { getComplaintDetail } from "../../lib/data/support";
 import { ComplaintListSidebar } from "./complaint-list-sidebar";
 import { ComplaintDetailPanel } from "./complaint-detail-panel";
 import { ComplaintNewModal } from "./complaint-new-modal";
@@ -12,7 +15,8 @@ import { ComplaintNewModal } from "./complaint-new-modal";
  * Thuộc tính của SupportView
  */
 export interface SupportViewProps {
-  readonly data: MyComplaintsData;
+  readonly data: SupportData;
+  readonly guestBookingId?: string;
   readonly initialOpenNewModal?: boolean;
   readonly defaultDraft?: NewComplaintPayload;
 }
@@ -23,24 +27,15 @@ export interface SupportViewProps {
 export const SupportView: React.FC<SupportViewProps> = ({
   data,
   initialOpenNewModal = false,
-  defaultDraft
+  defaultDraft,
+  guestBookingId
 }) => {
-  const [selectedId, setSelectedId] = useState<string>(data.selectedComplaint.id);
+  const router = useRouter();
+  const [currentDetail, setCurrentDetail] = useState<SupportDetailData | null>(data.selectedComplaint);
+  const [detailError, setDetailError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const selectedId = currentDetail?.id ?? "";
   const [isModalOpen, setIsModalOpen] = useState<boolean>(initialOpenNewModal);
-
-  // Tìm chi tiết khiếu nại đang chọn (nếu có trong dữ liệu)
-  const currentDetail =
-    data.selectedComplaint.id === selectedId
-      ? data.selectedComplaint
-      : {
-          ...data.selectedComplaint,
-          id: selectedId,
-          code: selectedId === "kn-02" ? "KN-20260928-007" : data.selectedComplaint.code,
-          title:
-            selectedId === "kn-02"
-              ? "Chưa nhận được tiền hoàn sau khi hủy vé"
-              : data.selectedComplaint.title
-        };
 
   return (
     <div className="min-h-screen bg-slate-50/50 pb-16">
@@ -61,7 +56,7 @@ export const SupportView: React.FC<SupportViewProps> = ({
               Khiếu nại và hỗ trợ
             </h1>
             <p className="text-sm text-muted-foreground mt-1">
-              Theo dõi yêu cầu hỗ trợ và khiếu nại gắn với vé, chuyến, thanh toán hoặc hoàn tiền.
+              {guestBookingId ? "Bạn đang dùng quyền truy cập đơn được lưu trên trình duyệt đã đặt vé để xem và gửi hỗ trợ." : "Theo dõi yêu cầu hỗ trợ và khiếu nại gắn với vé, chuyến, thanh toán hoặc hoàn tiền."}
             </p>
           </div>
 
@@ -82,13 +77,25 @@ export const SupportView: React.FC<SupportViewProps> = ({
               activeComplaints={data.activeComplaints}
               closedComplaints={data.closedComplaints}
               selectedId={selectedId}
-              onSelectComplaint={(id) => setSelectedId(id)}
+              onSelectComplaint={async (id) => {
+                if (isLoading) return;
+                setIsLoading(true); setDetailError(null);
+                try {
+                  const result = await getComplaintDetail(id, guestBookingId);
+                  if (result.status === "ok") setCurrentDetail(result.data);
+                  else setDetailError(result.status === "error" ? result.message ?? "Không thể tải yêu cầu." : "Yêu cầu chưa khả dụng.");
+                } catch { setDetailError("Không thể tải yêu cầu. Vui lòng thử lại."); }
+                finally { setIsLoading(false); }
+              }}
             />
           </div>
 
           {/* Cột phải: 8 cột */}
           <div className="lg:col-span-8">
-            <ComplaintDetailPanel complaint={currentDetail} />
+            {isLoading && <p role="status" className="mb-3 text-sm">Đang tải yêu cầu…</p>}
+            {detailError && <p role="alert" className="mb-3 text-sm text-rose-700">{detailError}</p>}
+            {currentDetail ? <ComplaintDetailPanel key={currentDetail.id} complaint={currentDetail} guestBookingId={guestBookingId} onUpdated={setCurrentDetail} /> :
+              <div className="rounded-2xl border bg-white p-6 text-sm">Bạn chưa có yêu cầu hỗ trợ. Bấm “Gửi khiếu nại” để tạo yêu cầu gắn với đơn vé.</div>}
           </div>
         </div>
       </div>
@@ -98,6 +105,12 @@ export const SupportView: React.FC<SupportViewProps> = ({
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         defaultDraft={defaultDraft}
+        guestBookingId={guestBookingId}
+        onSubmitted={async (id) => {
+          const result = await getComplaintDetail(id, guestBookingId);
+          if (result.status === "ok") setCurrentDetail(result.data);
+          router.refresh();
+        }}
       />
     </div>
   );

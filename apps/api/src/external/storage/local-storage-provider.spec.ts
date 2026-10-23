@@ -92,6 +92,17 @@ describe("LocalStorageProvider", () => {
     expect(listed).toEqual([]);
   });
 
+  it("URL tải về (kho riêng tư): token có hạn, ràng đúng khóa + tên file, không dùng thay token tải lên", async () => {
+    const target = await storage.createDownloadUrl({ key: "operator-applications/a/doc.pdf", expiresInSeconds: 300, fileName: "doc.pdf" });
+    expect(target.url.startsWith("http://localhost:3000/v1/dev-storage/download?token=")).toBe(true);
+    const token = tokenOf(target.url);
+    expect(storage.verifyDownloadToken(token)).toEqual({ key: "operator-applications/a/doc.pdf", fileName: "doc.pdf" });
+    expect(storage.verifyDownloadToken(token, Date.now() + 301_000)).toBeNull();
+    // Token đọc và token ghi không đổi chỗ cho nhau được.
+    expect(storage.verifyUploadToken(token)).toBeNull();
+    expect(storage.verifyDownloadToken(tokenOf((await storage.createUploadUrl(grant)).uploadUrl))).toBeNull();
+  });
+
   it("địa chỉ công khai trỏ về route đọc của API", () => {
     expect(storage.publicUrl("vehicles/op/veh/a.jpg")).toBe(
       "http://localhost:3000/v1/dev-storage/public/vehicles/op/veh/a.jpg",

@@ -32,10 +32,10 @@ abstract class MfaVerifyWebSessionResponse implements Built<MfaVerifyWebSessionR
   String get role;
 
   @BuiltValueField(wireName: r'expiresIn')
-  int get expiresIn;
+  int? get expiresIn;
 
   @BuiltValueField(wireName: r'refreshExpiresIn')
-  int get refreshExpiresIn;
+  int? get refreshExpiresIn;
 
   @BuiltValueField(wireName: r'backupCodes')
   BuiltList<String>? get backupCodes;
@@ -79,14 +79,14 @@ class _$MfaVerifyWebSessionResponseSerializer implements PrimitiveSerializer<Mfa
       specifiedType: const FullType(String),
     );
     yield r'expiresIn';
-    yield serializers.serialize(
+    yield object.expiresIn == null ? null : serializers.serialize(
       object.expiresIn,
-      specifiedType: const FullType(int),
+      specifiedType: const FullType.nullable(int),
     );
     yield r'refreshExpiresIn';
-    yield serializers.serialize(
+    yield object.refreshExpiresIn == null ? null : serializers.serialize(
       object.refreshExpiresIn,
-      specifiedType: const FullType(int),
+      specifiedType: const FullType.nullable(int),
     );
     if (object.backupCodes != null) {
       yield r'backupCodes';
@@ -142,15 +142,17 @@ class _$MfaVerifyWebSessionResponseSerializer implements PrimitiveSerializer<Mfa
         case r'expiresIn':
           final valueDes = serializers.deserialize(
             value,
-            specifiedType: const FullType(int),
-          ) as int;
+            specifiedType: const FullType.nullable(int),
+          ) as int?;
+          if (valueDes == null) continue;
           result.expiresIn = valueDes;
           break;
         case r'refreshExpiresIn':
           final valueDes = serializers.deserialize(
             value,
-            specifiedType: const FullType(int),
-          ) as int;
+            specifiedType: const FullType.nullable(int),
+          ) as int?;
+          if (valueDes == null) continue;
           result.refreshExpiresIn = valueDes;
           break;
         case r'backupCodes':

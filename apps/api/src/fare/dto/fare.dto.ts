@@ -114,10 +114,25 @@ export type FareListResponse = z.infer<typeof FareListResponseSchema>;
 /** Một trang bảng giá (không kèm rule). */
 export class FareListResponseDto extends createZodDto(FareListResponseSchema) {}
 
+/** Quy tắc giá nằm ngoài khung giá trần / sàn còn hiệu lực hoặc sắp tới (FR-OPS-09, OQ-17 — chỉ cảnh báo). */
+const FareBandWarningSchema = z.object({
+  /** Vị trí quy tắc trong `rules`. */
+  ruleIndex: z.int(),
+  price: z.int(),
+  bandId: z.uuid(),
+  bandName: z.string(),
+  minPrice: z.int().nullable(),
+  maxPrice: z.int().nullable(),
+  effectiveFrom: z.iso.datetime(),
+  effectiveTo: z.iso.datetime(),
+  message: z.string(),
+});
+
 export const FareResponseSchema = z.object({
   ...FareSummaryFields,
   note: z.string().nullable(),
   rules: z.array(FareRuleResponseSchema),
+  bandWarnings: z.array(FareBandWarningSchema),
 });
 export type FareResponse = z.infer<typeof FareResponseSchema>;
 /** Chi tiết bảng giá kèm toàn bộ rule. */

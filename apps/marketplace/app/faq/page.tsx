@@ -40,7 +40,7 @@ export default async function FaqPage(
         <main className="mx-auto max-w-5xl px-4 py-16 sm:px-6 lg:px-8">
           <FeatureUnavailable
             title="Trung tâm trợ giúp FAQ chưa sẵn sàng"
-            description="Hệ thống câu hỏi thường gặp đang được bảo trì và cập nhật dữ liệu. Vui lòng liên hệ tổng đài 1900 6067 để được hỗ trợ trực tiếp."
+            description="Hệ thống câu hỏi thường gặp đang được bảo trì và cập nhật dữ liệu. Bạn có thể gửi yêu cầu tại trung tâm hỗ trợ."
             endpoint={result.endpoint}
           />
         </main>

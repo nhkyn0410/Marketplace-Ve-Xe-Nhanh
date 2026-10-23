@@ -34,7 +34,6 @@ export default async function CheckoutPage({
   const breadcrumbs = [
     { label: "Trang chủ", href: "/" },
     { label: "Mua vé", href: "/trips" },
-    { label: "TP. Hồ Chí Minh → Đà Lạt", href: "/trips/trip-pn-01" },
     { label: "Thông tin hành khách" }
   ];
 
@@ -43,7 +42,7 @@ export default async function CheckoutPage({
     return (
       <div className="flex-1 bg-neutral-50/40 pb-16">
         <PassengerTopBar breadcrumbs={breadcrumbs} />
-        <CheckoutFormView initialData={checkoutHoldIdealFixture} />
+        <CheckoutFormView initialData={checkoutHoldIdealFixture} isPreview />
       </div>
     );
   }
@@ -52,7 +51,7 @@ export default async function CheckoutPage({
     return (
       <div className="flex-1 bg-neutral-50/40 pb-16">
         <PassengerTopBar breadcrumbs={breadcrumbs} />
-        <CheckoutFormView initialData={checkoutHoldStaleFixture} />
+        <CheckoutFormView initialData={checkoutHoldStaleFixture} isPreview />
       </div>
     );
   }

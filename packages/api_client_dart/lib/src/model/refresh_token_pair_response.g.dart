@@ -133,7 +133,7 @@ class _$RefreshTokenPairResponse extends RefreshTokenPairResponse {
   @override
   final RefreshTokenPairResponseTokenTypeEnum tokenType;
   @override
-  final int expiresIn;
+  final int? expiresIn;
   @override
   final RefreshTokenPairResponseScopeEnum scope;
   @override
@@ -141,7 +141,7 @@ class _$RefreshTokenPairResponse extends RefreshTokenPairResponse {
   @override
   final String refreshToken;
   @override
-  final int refreshExpiresIn;
+  final int? refreshExpiresIn;
 
   factory _$RefreshTokenPairResponse(
           [void Function(RefreshTokenPairResponseBuilder)? updates]) =>
@@ -150,11 +150,11 @@ class _$RefreshTokenPairResponse extends RefreshTokenPairResponse {
   _$RefreshTokenPairResponse._(
       {required this.accessToken,
       required this.tokenType,
-      required this.expiresIn,
+      this.expiresIn,
       required this.scope,
       required this.role,
       required this.refreshToken,
-      required this.refreshExpiresIn})
+      this.refreshExpiresIn})
       : super._();
   @override
   RefreshTokenPairResponse rebuild(
@@ -280,18 +280,14 @@ class RefreshTokenPairResponseBuilder
               accessToken, r'RefreshTokenPairResponse', 'accessToken'),
           tokenType: BuiltValueNullFieldError.checkNotNull(
               tokenType, r'RefreshTokenPairResponse', 'tokenType'),
-          expiresIn: BuiltValueNullFieldError.checkNotNull(
-              expiresIn, r'RefreshTokenPairResponse', 'expiresIn'),
+          expiresIn: expiresIn,
           scope: BuiltValueNullFieldError.checkNotNull(
               scope, r'RefreshTokenPairResponse', 'scope'),
           role: BuiltValueNullFieldError.checkNotNull(
               role, r'RefreshTokenPairResponse', 'role'),
           refreshToken: BuiltValueNullFieldError.checkNotNull(
               refreshToken, r'RefreshTokenPairResponse', 'refreshToken'),
-          refreshExpiresIn: BuiltValueNullFieldError.checkNotNull(
-              refreshExpiresIn,
-              r'RefreshTokenPairResponse',
-              'refreshExpiresIn'),
+          refreshExpiresIn: refreshExpiresIn,
         );
     replace(_$result);
     return _$result;

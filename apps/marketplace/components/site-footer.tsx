@@ -1,16 +1,5 @@
 import { LogoWordmark } from "@vexenhanh/ui/components/logo";
-import {
-  CircleHelp,
-  FileText,
-  Headphones,
-  LayoutDashboard,
-  LogIn,
-  Mail,
-  MapPin,
-  Phone,
-  ShieldCheck,
-  UserPlus
-} from "lucide-react";
+import { CircleHelp, FileText, Headphones, LogIn, ShieldCheck, Ticket, UserPlus } from "lucide-react";
 import Link from "next/link";
 
 /**
@@ -195,6 +184,22 @@ export function SiteFooter() {
               </div>
             </div>
           </section>
+          {footerGroups.map((group) => (
+            <section key={group.title}>
+              <h2 className="mb-4 flex items-center text-xs font-bold tracking-wider text-vxn-ink uppercase">
+                <span className="mr-2 h-3.5 w-1 rounded-full bg-vxn-saffron-500" />{group.title}
+              </h2>
+              <ul className="space-y-3">
+                {group.links.map(({ href, label, icon: Icon }) => (
+                  <li key={href}>
+                    <Link href={href} className="group flex items-center gap-2.5 text-sm text-vxn-fg-3 transition-colors hover:text-vxn-teal-700">
+                      <Icon className="size-4 shrink-0 text-vxn-fg-4 transition-colors group-hover:text-vxn-teal-700" />{label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ))}
         </div>
 
         {/* Thanh cuối trang */}

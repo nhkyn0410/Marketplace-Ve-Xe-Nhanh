@@ -25,6 +25,7 @@ describe("Fare routes — HTTP", () => {
     status: "ACTIVE",
     note: null,
     rules: [{ vehicleTypeId: null, seatType: null, validFrom: null, validTo: null, price: 300_000 }],
+    bandWarnings: [],
     createdAt: now,
     updatedAt: now,
   };

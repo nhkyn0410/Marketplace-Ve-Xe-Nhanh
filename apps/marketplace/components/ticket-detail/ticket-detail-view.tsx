@@ -55,6 +55,7 @@ export const TicketDetailView: React.FC<TicketDetailViewProps> = ({
         onOpenCancelDialog={() => setIsCancelDialogOpen(true)}
         onPrint={handlePrint}
         onShare={handleShare}
+        canCancel={ticketDetail.tickets.some((ticket) => ticket.status === "valid")}
       />
 
       {/* Boarding Pass thẻ vé xe */}
@@ -84,6 +85,7 @@ export const TicketDetailView: React.FC<TicketDetailViewProps> = ({
             payment={ticketDetail.payment}
             refundPolicy={ticketDetail.refundPolicy}
             operatorHotline={ticketDetail.trip.operatorHotline}
+            supportHref={ticketDetail.supportHref}
           />
         </div>
       </div>
@@ -93,6 +95,7 @@ export const TicketDetailView: React.FC<TicketDetailViewProps> = ({
         isOpen={isCancelDialogOpen}
         onClose={() => setIsCancelDialogOpen(false)}
         bookingCode={ticketDetail.bookingCode}
+        bookingId={ticketDetail.bookingId}
         trip={ticketDetail.trip}
         tickets={ticketDetail.tickets}
       />

@@ -1,7 +1,14 @@
 import { createHmac, randomBytes, timingSafeEqual } from "node:crypto";
 import { mkdir, open, readdir, readFile, rm, stat, writeFile } from "node:fs/promises";
 import { dirname, resolve, sep } from "node:path";
-import type { StorageProvider, StoredObject, UploadTarget, UploadUrlInput } from "./storage-provider";
+import type {
+  DownloadTarget,
+  DownloadUrlInput,
+  StorageProvider,
+  StoredObject,
+  UploadTarget,
+  UploadUrlInput,
+} from "./storage-provider";
 
 /** Đường dẫn (sau prefix `/v1`) của hai route dev phục vụ adapter này — xem `LocalStorageController`. */
 export const LOCAL_STORAGE_ROUTE = "dev-storage";
@@ -11,6 +18,7 @@ const SAFE_KEY = /^[A-Za-z0-9_-]+(?:[./][A-Za-z0-9_-]+)*$/;
 const META_SUFFIX = ".meta.json";
 
 export type UploadGrant = { key: string; contentType: string; sizeBytes: number };
+export type DownloadGrant = { key: string; fileName: string };
 
 export type LocalStorageOptions = {
   /** Thư mục gốc chứa object. */
@@ -37,44 +45,32 @@ export class LocalStorageProvider implements StorageProvider {
 
   async createUploadUrl(input: UploadUrlInput): Promise<UploadTarget> {
     const expiresAt = new Date(Date.now() + input.expiresInSeconds * 1000);
-    const payload = Buffer.from(
-      JSON.stringify({ k: input.key, t: input.contentType, s: input.sizeBytes, e: expiresAt.getTime() }),
-    ).toString("base64url");
-    const token = `${payload}.${this.sign(payload)}`;
+    const token = this.signToken({ a: "put", k: input.key, t: input.contentType, s: input.sizeBytes, e: expiresAt.getTime() });
     return { uploadUrl: `${this.options.apiBaseUrl}/v1/${LOCAL_STORAGE_ROUTE}/upload?token=${token}`, expiresAt };
   }
 
-  /** Quyền tải lên ghi trong token; `null` nếu token sai chữ ký, sai dạng hoặc hết hạn. */
+  /** Quyền tải lên ghi trong token; `null` nếu token sai chữ ký, sai dạng, sai loại hoặc hết hạn. */
   verifyUploadToken(token: string, nowMs: number = Date.now()): UploadGrant | null {
-    const [payload, signature, ...rest] = token.split(".");
-    if (!payload || !signature || rest.length > 0) {
+    const data = this.readToken(token, nowMs);
+    if (!data || data.a !== "put" || typeof data.k !== "string" || typeof data.t !== "string" || typeof data.s !== "number") {
       return null;
     }
-    const expected = Buffer.from(this.sign(payload));
-    const given = Buffer.from(signature);
-    if (expected.length !== given.length || !timingSafeEqual(expected, given)) {
+    return { key: data.k, contentType: data.t, sizeBytes: data.s };
+  }
+
+  async createDownloadUrl(input: DownloadUrlInput): Promise<DownloadTarget> {
+    const expiresAt = new Date(Date.now() + input.expiresInSeconds * 1000);
+    const token = this.signToken({ a: "get", k: input.key, n: input.fileName, e: expiresAt.getTime() });
+    return { url: `${this.options.apiBaseUrl}/v1/${LOCAL_STORAGE_ROUTE}/download?token=${token}`, expiresAt };
+  }
+
+  /** Quyền đọc ghi trong token của URL tải về; `null` nếu token sai hoặc hết hạn. */
+  verifyDownloadToken(token: string, nowMs: number = Date.now()): DownloadGrant | null {
+    const data = this.readToken(token, nowMs);
+    if (!data || data.a !== "get" || typeof data.k !== "string" || typeof data.n !== "string") {
       return null;
     }
-    try {
-      const data = JSON.parse(Buffer.from(payload, "base64url").toString("utf8")) as {
-        k?: unknown;
-        t?: unknown;
-        s?: unknown;
-        e?: unknown;
-      };
-      if (
-        typeof data.k !== "string" ||
-        typeof data.t !== "string" ||
-        typeof data.s !== "number" ||
-        typeof data.e !== "number" ||
-        data.e <= nowMs
-      ) {
-        return null;
-      }
-      return { key: data.k, contentType: data.t, sizeBytes: data.s };
-    } catch {
-      return null;
-    }
+    return { key: data.k, fileName: data.n };
   }
 
   /** Ghi một object (route tải lên của dev và test dùng). */
@@ -165,6 +161,31 @@ export class LocalStorageProvider implements StorageProvider {
 
   private sign(payload: string): string {
     return createHmac("sha256", this.secret).update(payload).digest("base64url");
+  }
+
+  // Token = base64url(JSON) + "." + HMAC. Trường `a` phân biệt quyền ghi (`put`) với quyền đọc (`get`): URL tải
+  // về không dùng được để ghi đè file và ngược lại.
+  private signToken(data: Record<string, unknown>): string {
+    const payload = Buffer.from(JSON.stringify(data)).toString("base64url");
+    return `${payload}.${this.sign(payload)}`;
+  }
+
+  private readToken(token: string, nowMs: number): Record<string, unknown> | null {
+    const [payload, signature, ...rest] = token.split(".");
+    if (!payload || !signature || rest.length > 0) {
+      return null;
+    }
+    const expected = Buffer.from(this.sign(payload));
+    const given = Buffer.from(signature);
+    if (expected.length !== given.length || !timingSafeEqual(expected, given)) {
+      return null;
+    }
+    try {
+      const data = JSON.parse(Buffer.from(payload, "base64url").toString("utf8")) as Record<string, unknown>;
+      return typeof data.e === "number" && data.e > nowMs ? data : null;
+    } catch {
+      return null;
+    }
   }
 
   private pathOf(key: string): string {

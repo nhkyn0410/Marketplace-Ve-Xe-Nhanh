@@ -31,10 +31,7 @@ export function formatDateVi(isoString: string): string {
   if (Number.isNaN(date.getTime())) {
     return isoString;
   }
-  const day = String(date.getDate()).padStart(2, "0");
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const year = date.getFullYear();
-  return `${day}/${month}/${year}`;
+  return new Intl.DateTimeFormat("en-GB", { timeZone: "Asia/Ho_Chi_Minh", day: "2-digit", month: "2-digit", year: "numeric" }).format(date);
 }
 
 /**
@@ -45,9 +42,7 @@ export function formatTimeVi(isoString: string): string {
   if (Number.isNaN(date.getTime())) {
     return isoString;
   }
-  const hours = String(date.getHours()).padStart(2, "0");
-  const minutes = String(date.getMinutes()).padStart(2, "0");
-  return `${hours}:${minutes}`;
+  return new Intl.DateTimeFormat("en-GB", { timeZone: "Asia/Ho_Chi_Minh", hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).format(date);
 }
 
 /**

@@ -3,7 +3,7 @@
 import { seatTypeInfo } from "../seat-map/seat-map-editor";
 import { formatDay, formatTime } from "../trip/trip-format";
 import type { SeatType } from "../vehicle/vehicle-api";
-import type { FareRevision, FareRule, FareStatus } from "./fare-api";
+import type { Fare, FareRevision, FareRule, FareStatus } from "./fare-api";
 
 /** Nhãn + màu trạng thái bảng giá. */
 export const FARE_STATUS: Record<FareStatus, { label: string; tone: "success" | "neutral" }> = {
@@ -134,4 +134,37 @@ export function describeRevision(
     repriced.length > 0 ? `đổi giá ${repriced.length}` : ""
   ].filter(Boolean);
   return { title: "Sửa quy tắc giá", detail: withStatus(`${parts.join(" · ")} quy tắc`) };
+}
+
+type BandWarning = Fare["bandWarnings"][number];
+
+/** Khoảng giá của một khung: "trần 900.000 ₫" / "sàn 200.000 ₫" / "200.000 ₫ – 900.000 ₫". */
+function bandRangeLabel(warning: Pick<BandWarning, "minPrice" | "maxPrice">): string {
+  if (warning.minPrice !== null && warning.maxPrice !== null) {
+    return `${formatVnd(warning.minPrice)} – ${formatVnd(warning.maxPrice)}`;
+  }
+  return warning.maxPrice !== null ? `trần ${formatVnd(warning.maxPrice)}` : `sàn ${formatVnd(warning.minPrice ?? 0)}`;
+}
+
+/**
+ * Gom cảnh báo khung giá (FR-OPS-09, OQ-17) theo khung: tên, thời gian, khoảng giá, nội dung Admin đặt, số quy tắc nằm
+ * ngoài khung. Cảnh báo không chặn lưu.
+ */
+export function bandWarningGroups(warnings: readonly BandWarning[]): { bandId: string; title: string; message: string; ruleCount: number }[] {
+  const groups = new Map<string, { bandId: string; title: string; message: string; ruleCount: number }>();
+  for (const warning of warnings) {
+    const group = groups.get(warning.bandId);
+    if (group) {
+      group.ruleCount += 1;
+      continue;
+    }
+    const until = new Date(new Date(warning.effectiveTo).getTime() - 1).toISOString();
+    groups.set(warning.bandId, {
+      bandId: warning.bandId,
+      title: `${warning.bandName} (${formatDay(warning.effectiveFrom)} – ${formatDay(until)}): ${bandRangeLabel(warning)}`,
+      message: warning.message,
+      ruleCount: 1
+    });
+  }
+  return [...groups.values()];
 }

@@ -1,9 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { Loader2, RefreshCw, Info } from "lucide-react";
 import { formatVnd } from "../../lib/format";
 import { BookingPaymentResultData } from "../../lib/data/types";
+import Link from "next/link";
 
 /**
  * Thuộc tính của component thẻ trạng thái chờ xác nhận thanh toán (SCR-PSG-21).
@@ -20,11 +22,13 @@ export function PaymentProcessingCard({
   result,
   onRefreshCheck
 }: PaymentProcessingCardProps) {
+  const router = useRouter();
   const [countdown, setCountdown] = useState(5);
   const [isChecking, setIsChecking] = useState(false);
 
   useEffect(() => {
     if (countdown <= 0) {
+      router.refresh();
       setCountdown(5);
       return;
     }
@@ -32,11 +36,11 @@ export function PaymentProcessingCard({
       setCountdown((prev) => (prev > 0 ? prev - 1 : 5));
     }, 1000);
     return () => clearInterval(timer);
-  }, [countdown]);
+  }, [countdown, router]);
 
   const handleManualCheck = () => {
     setIsChecking(true);
-    console.warn(`[marketplace] chưa có API: GET /bookings/${result.bookingId}/payment-status`);
+    router.refresh();
     setTimeout(() => {
       setIsChecking(false);
       setCountdown(5);
@@ -53,10 +57,10 @@ export function PaymentProcessingCard({
 
       {/* Tiêu đề & mô tả */}
       <h2 className="mt-5 text-xl sm:text-2xl font-black text-vxn-ink">
-        Đang chờ cổng thanh toán xác nhận
+        Đang kiểm tra đơn đặt vé
       </h2>
       <p className="mt-2.5 text-xs sm:text-sm text-vxn-fg-4 max-w-lg mx-auto leading-relaxed">
-        Vui lòng không đóng trang này. Hệ thống tự kiểm tra kết quả và sẽ chuyển sang trang vé ngay khi có xác nhận.
+        {result.processingMessage ?? "Hệ thống tự kiểm tra kết quả và hiển thị vé khi thanh toán được xác nhận, vé được phát hành."}
       </p>
 
       {/* Bảng chi tiết đơn hàng */}
@@ -80,6 +84,7 @@ export function PaymentProcessingCard({
           </span>
         </div>
       </div>
+      {result.canRetryPayment && <Link href={`/bookings/${result.bookingId}/payment`} className="mt-5 inline-block rounded-xl bg-teal-900 px-5 py-2.5 text-sm font-semibold text-white">Tiếp tục thanh toán</Link>}
 
       {/* Hàng đếm ngược và nút kiểm tra */}
       <div className="mt-6 flex flex-col sm:flex-row items-center justify-center gap-3">

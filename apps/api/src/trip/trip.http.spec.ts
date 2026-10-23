@@ -11,6 +11,7 @@ import { SessionService } from "../iam/session/session.service";
 import { configureApiRoutes } from "../openapi/openapi";
 import { TripController } from "./trip.controller";
 import { tripNotReadyForSale } from "./trip.errors";
+import { TripChangeService } from "./trip-change.service";
 import { TripService } from "./trip.service";
 
 /** Route thật + chuỗi guard `@Authorize("trip:manage")` thật; nghiệp vụ kiểm ở test DB. */
@@ -30,6 +31,8 @@ describe("Trip routes — HTTP", () => {
     seatCount: 0,
     onlineSaleCutoffMinutes: 60,
     statusReason: null,
+    departedAt: null,
+    completedAt: null,
     note: null,
     stops: [],
     seats: [],
@@ -44,6 +47,11 @@ describe("Trip routes — HTTP", () => {
     changeStatus: vi.fn(async () => trip),
     setSeatStatus: vi.fn(async () => trip),
   };
+  const changes = {
+    sales: vi.fn(async () => ({ soldSeats: 0, holdingSeats: 0, activeBookings: 0, pendingBookings: 0, refundOnCancel: 0, changes: [] })),
+    change: vi.fn(async () => trip),
+    cancel: vi.fn(async () => trip),
+  };
   let app: INestApplication;
   let base: string;
   let tokens: TokenService;
@@ -55,6 +63,7 @@ describe("Trip routes — HTTP", () => {
       { provide: APP_CONFIG, useValue: { NODE_ENV: "test", JWT_ACCESS_TTL_SECONDS: 900, JWT_ISSUER: "vexenhanh-test" } as AppConfig },
       TokenService,
       { provide: TripService, useValue: service },
+      { provide: TripChangeService, useValue: changes },
       {
         provide: SessionService,
         useValue: { assertActive: async () => undefined, assertOperatorAccountCurrent: async () => undefined },
@@ -151,7 +160,7 @@ describe("Trip routes — HTTP", () => {
 
   it("đổi trạng thái / khóa ghế: người thực hiện lấy từ token, tenant từ JWT, mã ghế chuẩn hoá", async () => {
     const owner = await token("OPERATOR_OWNER");
-    await call("PUT", `/trips/${id}/status`, owner, { status: "CANCELLED", reason: " Xe hỏng ", operatorId: randomUUID() });
+    await call("PUT", `/trips/${id}/status`, owner, { status: "LOCKED", reason: " Tạm dừng ", operatorId: randomUUID() });
     const [actor, authz, tripId, input] = service.changeStatus.mock.calls[0] as unknown as [
       { sub: string; role: string },
       { db: { operatorId: string } },
@@ -161,10 +170,42 @@ describe("Trip routes — HTTP", () => {
     expect(actor.role).toBe("OPERATOR_OWNER");
     expect(authz.db.operatorId).toBe(operatorId);
     expect(tripId).toBe(id);
-    expect(input).toEqual({ status: "CANCELLED", reason: "Xe hỏng" });
+    expect(input).toEqual({ status: "LOCKED", reason: "Tạm dừng" });
+    // Hủy chuyến (có hoặc chưa có vé) đi luồng TRN-008: hủy đơn chờ thanh toán, hủy vé + hoàn tiền, báo khách.
+    await call("PUT", `/trips/${id}/status`, owner, { status: "CANCELLED", reason: " Xe hỏng " });
+    expect(service.changeStatus).toHaveBeenCalledTimes(1);
+    const [, cancelAuthz, cancelTrip, reason] = changes.cancel.mock.calls[0] as unknown as [unknown, { db: { operatorId: string } }, string, string];
+    expect(cancelAuthz.db.operatorId).toBe(operatorId);
+    expect([cancelTrip, reason]).toEqual([id, "Xe hỏng"]);
     await call("PUT", `/trips/${id}/seats/status`, owner, { seatCodes: ["a1"], status: "AVAILABLE", note: "" });
     const [, , , seatInput] = service.setSeatStatus.mock.calls[0] as unknown as [unknown, unknown, string, object];
     expect(seatInput).toEqual({ seatCodes: ["A1"], status: "AVAILABLE", note: null });
+  });
+
+  it("đổi chuyến đã bán (TRN-008): chỉ chủ nhà xe; body chuẩn hoá; thiếu lý do / điểm sai → 400; xem tình hình bán", async () => {
+    const owner = await token("OPERATOR_OWNER");
+    const body = {
+      departureAt: "2031-01-01T23:00:00+07:00",
+      arrivalAt: "2031-01-02T06:00:00+07:00",
+      stopTimes: null,
+      vehicleId: randomUUID(),
+      stops: [
+        { sequence: 1, catalogStopPointId: randomUUID(), stopPointId: null },
+        { sequence: 2, catalogStopPointId: null, stopPointId: randomUUID() },
+      ],
+      reason: " Đổi giờ do tắc đường ",
+    };
+    expect((await call("POST", `/trips/${id}/changes`, owner, body)).status).toBe(200);
+    const [, , changedTrip, input] = changes.change.mock.calls[0] as unknown as [unknown, unknown, string, { reason: string; departureAt: Date }];
+    expect(changedTrip).toBe(id);
+    expect(input.reason).toBe("Đổi giờ do tắc đường");
+    expect(input.departureAt.toISOString()).toBe("2031-01-01T16:00:00.000Z");
+    expect((await call("POST", `/trips/${id}/changes`, owner, { ...body, reason: "" })).status).toBe(400);
+    expect((await call("POST", `/trips/${id}/changes`, owner, { ...body, stops: [{ sequence: 1, catalogStopPointId: randomUUID(), stopPointId: randomUUID() }, body.stops[1]] })).status).toBe(400);
+    expect((await call("POST", `/trips/${id}/changes`, await token("DRIVER"), body)).status).toBe(403);
+    expect(changes.change).toHaveBeenCalledTimes(1);
+    expect((await call("GET", `/trips/${id}/sales`, owner)).status).toBe(200);
+    expect((await call("GET", `/trips/${id}/sales`, await token("DRIVER"))).status).toBe(403);
   });
 
   it("422 TRIP_NOT_READY_FOR_SALE trả `reasons` theo RFC 7807 (API §6.2)", async () => {
@@ -201,7 +242,7 @@ describe("Trip routes — HTTP", () => {
   ])("%s %s dữ liệu sai → 400, service không bị gọi", async (method, path, body) => {
     const response = await call(method, path, await token("OPERATOR_OWNER"), body);
     expect(response.status).toBe(400);
-    for (const fn of Object.values(service)) {
+    for (const fn of [...Object.values(service), ...Object.values(changes)]) {
       expect(fn).not.toHaveBeenCalled();
     }
   });

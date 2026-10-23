@@ -1,5 +1,5 @@
 import React from "react";
-import { Headphones } from "lucide-react";
+import Link from "next/link";
 
 /**
  * Khối hướng dẫn "Tra cứu vé trong 3 bước" chuẩn Figma node 1446:14982 & 1446:15277
@@ -34,10 +34,10 @@ export const LookupInstructionsCard: React.FC = () => {
           </div>
           <div className="space-y-0.5">
             <h4 className="font-bold text-foreground text-sm">
-              Nhập mã xác minh (OTP)
+              Kiểm tra thông tin liên hệ
             </h4>
             <p className="text-muted-foreground leading-relaxed">
-              Mã 6 số gửi tới email liên hệ của đơn, hiệu lực 5 phút.
+              Email phải trùng với email liên hệ khi đặt vé.
             </p>
           </div>
         </div>
@@ -49,10 +49,10 @@ export const LookupInstructionsCard: React.FC = () => {
           </div>
           <div className="space-y-0.5">
             <h4 className="font-bold text-foreground text-sm">
-              Xem vé và thao tác
+              Xem thông tin vé
             </h4>
             <p className="text-muted-foreground leading-relaxed">
-              Xem mã QR, hủy vé / yêu cầu hoàn tiền hoặc gửi khiếu nại cho đơn đã xác minh.
+              Xem thông tin chuyến và mã QR vé trong phiên tra cứu.
             </p>
           </div>
         </div>
@@ -60,16 +60,9 @@ export const LookupInstructionsCard: React.FC = () => {
 
       {/* Đường phân cách & hotline hỗ trợ */}
       <div className="pt-4 border-t border-teal-200/60 dark:border-teal-900/40 flex items-center gap-2.5 text-xs text-muted-foreground">
-        <Headphones className="h-4 w-4 text-teal-700 dark:text-teal-400 shrink-0" />
         <span>
-          Không tìm thấy email xác nhận? Gọi CSKH{" "}
-          <a
-            href="tel:19006067"
-            className="font-bold text-foreground hover:text-teal-700 underline"
-          >
-            1900 6067
-          </a>
-          .
+          Hủy vé và gửi hỗ trợ cần trình duyệt đã đặt vé hoặc{" "}
+          <Link href="/login?next=%2Fmy-tickets" className="font-bold text-foreground hover:text-teal-700 underline">đăng nhập tài khoản đặt vé</Link>.
         </span>
       </div>
     </div>

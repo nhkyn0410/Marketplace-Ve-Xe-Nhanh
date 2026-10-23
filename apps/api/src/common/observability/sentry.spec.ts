@@ -40,6 +40,7 @@ describe("scrubSentryEvent", () => {
         url: "https://api.example.com/v1/auth/mfa/verify",
         method: "POST",
         data: { challengeToken: "challenge-secret", code: "123456" },
+        cookies: { vxn_access: "access-secret", vxn_csrf: "csrf-cookie-secret" },
         headers: {
           Authorization: "Bearer jwt-secret",
           cookie: "sid=secret",

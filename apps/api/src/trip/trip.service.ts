@@ -1,4 +1,5 @@
 import { Inject, Injectable, Logger } from "@nestjs/common";
+import type { PickupWindowInput } from "@vexenhanh/types";
 import { AuditService, AuditWriteError } from "../audit/audit.service";
 import { PrismaService, transactionDeadline, type DbTransaction } from "../database/prisma.service";
 import {
@@ -88,6 +89,20 @@ export class TripService {
     @Inject(AuditService) private readonly audit: AuditService,
   ) {}
 
+  /** Đặt cửa sổ đón riêng tại điểm, dùng để xác định lúc được ghi nhận khách vắng mặt. */
+  async setPickupWindow(authz: Authorization, tripId: string, sequence: number, input: PickupWindowInput): Promise<TripResponse> {
+    const { db, operatorId } = requireTenant(authz);
+    return this.prisma.withScope(db, async (tx) => {
+      const [trip] = await tx.$queryRaw<{ status: TripStatus }[]>`SELECT status::text AS status FROM trips WHERE id = ${tripId} AND operator_id = ${operatorId} FOR NO KEY UPDATE`;
+      if (!trip) throw tripNotFound();
+      if ([TripStatus.COMPLETED, TripStatus.CANCELLED].includes(trip.status as "COMPLETED" | "CANCELLED")) throw tripNotEditable();
+      const stop = await tx.tripStop.findFirst({ where: { operatorId, tripId, sequence }, select: { id: true, allowPickup: true } });
+      if (!stop?.allowPickup) throw tripStopTimesInvalid();
+      await tx.tripStop.updateMany({ where: { operatorId, tripId, sequence }, data: { pickupWindowStart: input.start ? new Date(input.start) : null, pickupWindowEnd: input.end ? new Date(input.end) : null } });
+      return toResponse((await findDetail(tx, operatorId, tripId))!);
+    });
+  }
+
   /** Liệt kê chuyến của nhà xe theo giờ đi tăng dần, lọc route/xe/trạng thái/khoảng giờ đi. */
   async list(authz: Authorization, query: ListQuery): Promise<TripListResponse> {
     const { db, operatorId } = requireTenant(authz);
@@ -165,26 +180,7 @@ export class TripService {
   async create(authz: Authorization, input: TripInput): Promise<TripResponse> {
     const { db, operatorId } = requireTenant(authz);
     const row = await this.withOverlapConflict(() =>
-      this.prisma.withScope(db, async (tx) => {
-        const routeStops = await loadRouteStops(tx, operatorId, input.routeId, false);
-        const stopTimes = planStopTimes(input, routeStops);
-        const seats = input.vehicleId ? await lockVehicleSeats(tx, operatorId, input.vehicleId) : [];
-        const trip = await tx.trip.create({
-          data: {
-            operatorId,
-            routeId: input.routeId,
-            vehicleId: input.vehicleId,
-            departureAt: input.departureAt,
-            arrivalAt: input.arrivalAt,
-            onlineSaleCutoffMinutes: input.onlineSaleCutoffMinutes,
-            note: input.note,
-          },
-          select: { id: true },
-        });
-        await tx.tripStop.createMany({ data: stopRows(operatorId, trip.id, routeStops, stopTimes) });
-        await tx.tripSeat.createMany({ data: seatRows(operatorId, trip.id, seats) });
-        return findDetail(tx, operatorId, trip.id);
-      }),
+      this.prisma.withScope(db, async (tx) => findDetail(tx, operatorId, await insertDraftTrip(tx, operatorId, input))),
     );
     return toResponse(row!);
   }
@@ -285,6 +281,10 @@ export class TripService {
             FOR SHARE`;
           if (seats.some((seat) => SOLD_SEAT_STATUSES.includes(seat.status))) {
             throw tripStatusTransitionInvalid("Chuyến đã có vé — đổi / hủy chuyến đã bán vé theo luồng riêng.");
+          }
+          // Ghế `HOLDING` = booking đang chờ thanh toán (BTP-002): hủy / thu hồi lúc này thì tiền về sau cho chuyến đã hủy.
+          if (seats.some((seat) => seat.status === TripSeatStatus.HOLDING)) {
+            throw tripStatusTransitionInvalid("Có khách đang thanh toán vé của chuyến — thử lại sau khi hết hạn thanh toán.");
           }
         }
         if (input.status === TripStatus.OPEN_FOR_SALE) {
@@ -419,10 +419,42 @@ export class TripService {
 }
 
 /**
+ * Chèn chuyến `DRAFT` trong transaction đang mở: chép điểm dừng từ route, ghế từ SeatMap của xe (nếu gắn xe). Dùng chung
+ * cho tạo chuyến lẻ và sinh chuyến từ lịch lặp lại (`origin`, TRN-007). Xe chồng giờ → lỗi EXCLUDE, người gọi đổi sang 409.
+ */
+export async function insertDraftTrip(
+  tx: DbTransaction,
+  operatorId: string,
+  input: TripInput,
+  origin?: { scheduleId: string; serviceDate: Date },
+): Promise<string> {
+  const routeStops = await loadRouteStops(tx, operatorId, input.routeId, false);
+  const stopTimes = planStopTimes(input, routeStops);
+  const seats = input.vehicleId ? await lockVehicleSeats(tx, operatorId, input.vehicleId) : [];
+  const trip = await tx.trip.create({
+    data: {
+      operatorId,
+      routeId: input.routeId,
+      vehicleId: input.vehicleId,
+      departureAt: input.departureAt,
+      arrivalAt: input.arrivalAt,
+      onlineSaleCutoffMinutes: input.onlineSaleCutoffMinutes,
+      note: input.note,
+      scheduleId: origin?.scheduleId,
+      serviceDate: origin?.serviceDate,
+    },
+    select: { id: true },
+  });
+  await tx.tripStop.createMany({ data: stopRows(operatorId, trip.id, routeStops, stopTimes) });
+  await tx.tripSeat.createMany({ data: seatRows(operatorId, trip.id, seats) });
+  return trip.id;
+}
+
+/**
  * Điểm dừng của route theo thứ tự. Route MỚI chọn phải `ACTIVE`; route đang gắn (`keep`) được giữ dù đã
  * ngừng dùng. Không phân biệt "không có" / "tenant khác" / "ngừng dùng" để không lộ dữ liệu tenant khác.
  */
-async function loadRouteStops(
+export async function loadRouteStops(
   tx: DbTransaction,
   operatorId: string,
   routeId: string,
@@ -457,7 +489,7 @@ async function loadRouteStops(
  * không gửi thì chia khoảng [giờ đi, giờ đến] theo tỉ lệ thời gian chặng đã lưu của route (ADR-027: không
  * gọi Goong lại) — giữ đúng giờ đi/đến Operator chọn dù xe khách chạy chậm hơn số liệu định tuyến.
  */
-function planStopTimes(input: TripInput, stops: RouteStopRow[]): Date[] {
+export function planStopTimes(input: Pick<TripInput, "stopTimes" | "departureAt" | "arrivalAt">, stops: RouteStopRow[]): Date[] {
   if (input.stopTimes) {
     if (input.stopTimes.length !== stops.length) {
       throw tripStopTimesInvalid();
@@ -483,7 +515,7 @@ function planStopTimes(input: TripInput, stops: RouteStopRow[]): Date[] {
  * sơ đồ ghế / đổi sơ đồ của xe (UC-12 A3): bên nào ghi sau sẽ thấy chuyến vừa tạo và bị từ chối, nên ghế của
  * chuyến không bao giờ lấy từ bố cục đang bị sửa dở. Xe phải `ACTIVE` và có sơ đồ ghế (UC-14 A2).
  */
-async function lockVehicleSeats(tx: DbTransaction, operatorId: string, vehicleId: string) {
+export async function lockVehicleSeats(tx: DbTransaction, operatorId: string, vehicleId: string) {
   // Hai câu riêng, KHÔNG `FOR SHARE` trên JOIN: nếu phải chờ một PUT xe vừa đổi sơ đồ, Postgres kiểm lại dòng
   // xe mới nhưng giữ dòng sơ đồ CŨ của phép JOIN → điều kiện nối sai → báo nhầm "xe không dùng được".
   const [vehicle] = await tx.$queryRaw<{ seatMapId: string }[]>`
@@ -589,7 +621,7 @@ async function assertReadyForSale(tx: DbTransaction, operatorId: string, tripId:
   }
 }
 
-function findDetail(tx: DbTransaction, operatorId: string, tripId: string) {
+export function findDetail(tx: DbTransaction, operatorId: string, tripId: string) {
   return tx.trip.findFirst({
     where: { id: tripId, operatorId },
     select: {
@@ -601,6 +633,8 @@ function findDetail(tx: DbTransaction, operatorId: string, tripId: string) {
       status: true,
       onlineSaleCutoffMinutes: true,
       statusReason: true,
+      departedAt: true,
+      completedAt: true,
       note: true,
       createdAt: true,
       updatedAt: true,
@@ -629,6 +663,8 @@ function findDetail(tx: DbTransaction, operatorId: string, tripId: string) {
           allowPickup: true,
           allowDropoff: true,
           plannedAt: true,
+          pickupWindowStart: true,
+          pickupWindowEnd: true,
           catalogStopPoint: { select: POINT_SELECT },
           stopPoint: { select: POINT_SELECT },
         },
@@ -641,7 +677,7 @@ function findDetail(tx: DbTransaction, operatorId: string, tripId: string) {
   });
 }
 
-function toResponse(row: NonNullable<Awaited<ReturnType<typeof findDetail>>>): TripResponse {
+export function toResponse(row: NonNullable<Awaited<ReturnType<typeof findDetail>>>): TripResponse {
   const { route, vehicle, stops, seats, ...trip } = row;
   // Không gắn xe / tuyến chưa có bảng giá / bảng giá INACTIVE / không có rule khớp → giá `null` (TRN-006 chặn mở bán).
   const rules = route.fare?.status === FareStatus.ACTIVE ? route.fare.rules : [];
@@ -659,11 +695,13 @@ function toResponse(row: NonNullable<Awaited<ReturnType<typeof findDetail>>>): T
     seatCount: seats.length,
     departureAt: trip.departureAt.toISOString(),
     arrivalAt: trip.arrivalAt.toISOString(),
+    departedAt: trip.departedAt?.toISOString() ?? null,
+    completedAt: trip.completedAt?.toISOString() ?? null,
     createdAt: trip.createdAt.toISOString(),
     updatedAt: trip.updatedAt.toISOString(),
-    stops: stops.map(({ catalogStopPoint, stopPoint, plannedAt, ...stop }) => {
+    stops: stops.map(({ catalogStopPoint, stopPoint, plannedAt, pickupWindowStart, pickupWindowEnd, ...stop }) => {
       const point = catalogStopPoint ?? stopPoint!;
-      return { ...stop, name: point.name, address: point.address, type: point.type, plannedAt: plannedAt.toISOString() };
+      return { ...stop, name: point.name, address: point.address, type: point.type, plannedAt: plannedAt.toISOString(), pickupWindowStart: pickupWindowStart?.toISOString() ?? null, pickupWindowEnd: pickupWindowEnd?.toISOString() ?? null };
     }),
     seats: seats.map(({ seatCode, ...seat }) => ({ code: seatCode, ...seat, price: priceOf(seat.type) })),
   };

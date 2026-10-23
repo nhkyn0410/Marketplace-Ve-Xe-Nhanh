@@ -8,6 +8,7 @@ import {
 import { getNotificationSettings, getAccountProfile } from "../../../lib/data/auth";
 import { AccountNotificationsView } from "../../../components/account/account-notifications-view";
 import { FeatureUnavailable } from "../../../components/states/feature-unavailable";
+import { AccountSignInRequired } from "../../../components/account/account-sign-in-required";
 
 export const metadata: Metadata = {
   title: "Cài đặt thông báo | Vé Xe Nhanh",
@@ -51,14 +52,14 @@ export default async function AccountNotificationsPage({
       <div className="container mx-auto px-4 sm:px-6 py-10 max-w-7xl">
         <FeatureUnavailable
           title="Cài đặt thông báo"
-          endpoint="GET /me/notification-preferences"
-          description="Hệ thống tùy chỉnh kênh nhận thông báo đang chờ kết nối cổng API backend. Bạn có thể sử dụng chế độ xem trước để duyệt giao diện."
+          description="Cài đặt thông báo hiện chưa khả dụng. Vui lòng thử lại sau."
         />
       </div>
     );
   }
 
   if (settingsRes.status === "error") {
+    if (settingsRes.httpStatus === 401) return <AccountSignInRequired />;
     return (
       <div className="container mx-auto px-4 sm:px-6 py-10 max-w-7xl">
         <FeatureUnavailable

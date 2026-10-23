@@ -1,0 +1,240 @@
+legacy_province_code,legacy_province_name,legacy_district_name,legacy_ward_name,province_code,ward_code,notes
+01,Thành phố Hà Nội,,,01,00004,Giữ nguyên đơn vị hành chính cấp tỉnh
+02,Tỉnh Hà Giang,,,08,00694,Sáp nhập Tỉnh Hà Giang vào Tỉnh Tuyên Quang (NQ 202/2025/QH15)
+04,Tỉnh Cao Bằng,,,04,01273,Giữ nguyên đơn vị hành chính cấp tỉnh
+06,Tỉnh Bắc Kạn,,,19,01843,Sáp nhập Tỉnh Bắc Kạn vào Tỉnh Thái Nguyên (NQ 202/2025/QH15)
+08,Tỉnh Tuyên Quang,,,08,02215,Hợp nhất Tỉnh Tuyên Quang và Tỉnh Hà Giang
+10,Tỉnh Lào Cai,,,15,02647,Hợp nhất Tỉnh Lào Cai và Tỉnh Yên Bái (mã tỉnh mới 15)
+11,Tỉnh Điện Biên,,,11,03127,Giữ nguyên đơn vị hành chính cấp tỉnh
+12,Tỉnh Lai Châu,,,12,03408,Giữ nguyên đơn vị hành chính cấp tỉnh
+14,Tỉnh Sơn La,,,14,03646,Giữ nguyên đơn vị hành chính cấp tỉnh
+15,Tỉnh Yên Bái,,,15,04252,Sáp nhập Tỉnh Yên Bái và Tỉnh Lào Cai thành Tỉnh Lào Cai mới (mã 15)
+17,Tỉnh Hòa Bình,,,25,04795,Sáp nhập Tỉnh Hòa Bình vào Tỉnh Phú Thọ (NQ 202/2025/QH15)
+19,Tỉnh Thái Nguyên,,,19,05443,Hợp nhất Tỉnh Thái Nguyên và Tỉnh Bắc Kạn
+20,Tỉnh Lạng Sơn,,,20,05983,Giữ nguyên đơn vị hành chính cấp tỉnh
+22,Tỉnh Quảng Ninh,,,22,06688,Giữ nguyên đơn vị hành chính cấp tỉnh
+24,Tỉnh Bắc Giang,,,24,07210,Sáp nhập Tỉnh Bắc Giang và Tỉnh Bắc Ninh thành Tỉnh Bắc Ninh mới (mã 24)
+25,Tỉnh Phú Thọ,,,25,07900,"Hợp nhất Tỉnh Phú Thọ, Tỉnh Vĩnh Phúc và Tỉnh Hòa Bình"
+26,Tỉnh Vĩnh Phúc,,,25,08716,Sáp nhập Tỉnh Vĩnh Phúc vào Tỉnh Phú Thọ (NQ 202/2025/QH15)
+27,Tỉnh Bắc Ninh,,,24,09187,Hợp nhất Tỉnh Bắc Ninh và Tỉnh Bắc Giang (mã tỉnh mới 24)
+30,Tỉnh Hải Dương,,,31,10525,Sáp nhập Tỉnh Hải Dương vào Thành phố Hải Phòng (NQ 202/2025/QH15)
+31,Thành phố Hải Phòng,,,31,11311,Hợp nhất Thành phố Hải Phòng và Tỉnh Hải Dương
+33,Tỉnh Hưng Yên,,,33,11953,Hợp nhất Tỉnh Hưng Yên và Tỉnh Thái Bình
+34,Tỉnh Thái Bình,,,33,13225,Sáp nhập Tỉnh Thái Bình vào Tỉnh Hưng Yên (NQ 202/2025/QH15)
+35,Tỉnh Hà Nam,,,37,13285,Sáp nhập Tỉnh Hà Nam vào Tỉnh Ninh Bình (NQ 202/2025/QH15)
+36,Tỉnh Nam Định,,,37,13669,Sáp nhập Tỉnh Nam Định vào Tỉnh Ninh Bình (NQ 202/2025/QH15)
+37,Tỉnh Ninh Bình,,,37,14329,"Hợp nhất Tỉnh Ninh Bình, Tỉnh Hà Nam và Tỉnh Nam Định"
+38,Tỉnh Thanh Hóa,,,38,14797,Giữ nguyên đơn vị hành chính cấp tỉnh
+40,Tỉnh Nghệ An,,,40,16681,Giữ nguyên đơn vị hành chính cấp tỉnh
+42,Tỉnh Hà Tĩnh,,,42,18073,Giữ nguyên đơn vị hành chính cấp tỉnh
+44,Tỉnh Quảng Bình,,,44,18880,Sáp nhập Tỉnh Quảng Bình và Tỉnh Quảng Trị thành Tỉnh Quảng Trị mới (mã 44)
+45,Tỉnh Quảng Trị,,,44,19333,Hợp nhất Tỉnh Quảng Trị và Tỉnh Quảng Bình (mã tỉnh mới 44)
+46,Thành phố Huế,,,46,19789,Thành phố Huế trực thuộc Trung ương
+48,Thành phố Đà Nẵng,,,48,20242,Hợp nhất Thành phố Đà Nẵng và Tỉnh Quảng Nam
+49,Tỉnh Quảng Nam,,,48,20341,Sáp nhập Tỉnh Quảng Nam vào Thành phố Đà Nẵng (NQ 202/2025/QH15)
+51,Tỉnh Quảng Ngãi,,,51,21025,Hợp nhất Tỉnh Quảng Ngãi và Tỉnh Kon Tum
+52,Tỉnh Bình Định,,,52,21583,Sáp nhập Tỉnh Bình Định và Tỉnh Gia Lai thành Tỉnh Gia Lai mới (mã 52)
+54,Tỉnh Phú Yên,,,66,22015,Sáp nhập Tỉnh Phú Yên vào Tỉnh Đắk Lắk (NQ 202/2025/QH15)
+56,Tỉnh Khánh Hòa,,,56,22366,Hợp nhất Tỉnh Khánh Hòa và Tỉnh Ninh Thuận
+58,Tỉnh Ninh Thuận,,,56,22759,Sáp nhập Tỉnh Ninh Thuận vào Tỉnh Khánh Hòa (NQ 202/2025/QH15)
+60,Tỉnh Bình Thuận,,,68,22945,Sáp nhập Tỉnh Bình Thuận vào Tỉnh Lâm Đồng (NQ 202/2025/QH15)
+62,Tỉnh Kon Tum,,,51,23293,Sáp nhập Tỉnh Kon Tum vào Tỉnh Quảng Ngãi (NQ 202/2025/QH15)
+64,Tỉnh Gia Lai,,,52,23575,Hợp nhất Tỉnh Gia Lai và Tỉnh Bình Định (mã tỉnh mới 52)
+66,Tỉnh Đắk Lắk,,,66,24133,Hợp nhất Tỉnh Đắk Lắk và Tỉnh Phú Yên
+67,Tỉnh Đắk Nông,,,68,24611,Sáp nhập Tỉnh Đắk Nông vào Tỉnh Lâm Đồng (NQ 202/2025/QH15)
+68,Tỉnh Lâm Đồng,,,68,24781,"Hợp nhất Tỉnh Lâm Đồng, Tỉnh Bình Thuận và Tỉnh Đắk Nông"
+70,Tỉnh Bình Phước,,,75,25195,Sáp nhập Tỉnh Bình Phước vào Tỉnh Đồng Nai (NQ 202/2025/QH15)
+72,Tỉnh Tây Ninh,,,80,25459,Hợp nhất Tỉnh Tây Ninh và Tỉnh Long An (mã tỉnh mới 80)
+74,Tỉnh Bình Dương,,,79,25747,Sáp nhập Tỉnh Bình Dương vào Thành phố Hồ Chí Minh (NQ 202/2025/QH15)
+75,Tỉnh Đồng Nai,,,75,26068,Hợp nhất Tỉnh Đồng Nai và Tỉnh Bình Phước
+77,Tỉnh Bà Rịa - Vũng Tàu,,,79,26560,Sáp nhập Tỉnh Bà Rịa - Vũng Tàu vào Thành phố Hồ Chí Minh (NQ 202/2025/QH15)
+79,Thành phố Hồ Chí Minh,,,79,26740,"Hợp nhất TP. Hồ Chí Minh, Tỉnh Bình Dương và Tỉnh Bà Rịa - Vũng Tàu"
+80,Tỉnh Long An,,,80,27694,Sáp nhập Tỉnh Long An và Tỉnh Tây Ninh thành Tỉnh Tây Ninh mới (mã 80)
+82,Tỉnh Tiền Giang,,,82,28261,Sáp nhập Tỉnh Tiền Giang và Tỉnh Đồng Tháp thành Tỉnh Đồng Tháp mới (mã 82)
+83,Tỉnh Bến Tre,,,86,28789,Sáp nhập Tỉnh Bến Tre vào Tỉnh Vĩnh Long (NQ 202/2025/QH15)
+84,Tỉnh Trà Vinh,,,86,29242,Sáp nhập Tỉnh Trà Vinh vào Tỉnh Vĩnh Long (NQ 202/2025/QH15)
+86,Tỉnh Vĩnh Long,,,86,29551,"Hợp nhất Tỉnh Vĩnh Long, Tỉnh Bến Tre và Tỉnh Trà Vinh"
+87,Tỉnh Đồng Tháp,,,82,29869,Hợp nhất Tỉnh Đồng Tháp và Tỉnh Tiền Giang (mã tỉnh mới 82)
+89,Tỉnh An Giang,,,91,30307,Sáp nhập Tỉnh An Giang và Tỉnh Kiên Giang thành Tỉnh An Giang mới (mã 91)
+91,Tỉnh Kiên Giang,,,91,30742,Hợp nhất Tỉnh Kiên Giang và Tỉnh An Giang thành Tỉnh An Giang mới (mã 91)
+92,Thành phố Cần Thơ,,,92,31135,"Hợp nhất Thành phố Cần Thơ, Tỉnh Sóc Trăng và Tỉnh Hậu Giang"
+93,Tỉnh Hậu Giang,,,92,31321,Sáp nhập Tỉnh Hậu Giang vào Thành phố Cần Thơ (NQ 202/2025/QH15)
+94,Tỉnh Sóc Trăng,,,92,31507,Sáp nhập Tỉnh Sóc Trăng vào Thành phố Cần Thơ (NQ 202/2025/QH15)
+95,Tỉnh Bạc Liêu,,,96,31825,Sáp nhập Tỉnh Bạc Liêu vào Tỉnh Cà Mau (NQ 202/2025/QH15)
+96,Tỉnh Cà Mau,,,96,32025,Hợp nhất Tỉnh Cà Mau và Tỉnh Bạc Liêu
+01,Thành phố Hà Nội,Quận Ba Đình,,01,00004,Đơn vị hành chính cấp quận cũ tại Hà Nội
+01,Thành phố Hà Nội,Quận Hoàn Kiếm,,01,00070,Đơn vị hành chính cấp quận cũ tại Hà Nội
+01,Thành phố Hà Nội,Quận Đống Đa,,01,00235,Đơn vị hành chính cấp quận cũ tại Hà Nội
+01,Thành phố Hà Nội,Quận Hai Bà Trưng,,01,00256,Đơn vị hành chính cấp quận cũ tại Hà Nội
+01,Thành phố Hà Nội,Quận Hoàng Mai,,01,00331,Đơn vị hành chính cấp quận cũ tại Hà Nội
+01,Thành phố Hà Nội,Quận Hoàng Mai,Phường Giáp Bát,01,00331,Khu vực Bến xe Giáp Bát
+01,Thành phố Hà Nội,Quận Hoàng Mai,Phường Hoàng Liệt,01,00337,Khu vực Bến xe Nước Ngầm
+01,Thành phố Hà Nội,Quận Nam Từ Liêm,,01,00592,Đơn vị hành chính cấp quận cũ tại Hà Nội
+01,Thành phố Hà Nội,Quận Nam Từ Liêm,Phường Mỹ Đình 2,01,00592,Khu vực Bến xe Mỹ Đình
+01,Thành phố Hà Nội,Quận Bắc Từ Liêm,,01,00611,Đơn vị hành chính cấp quận cũ tại Hà Nội
+01,Thành phố Hà Nội,Quận Cầu Giấy,,01,00166,Đơn vị hành chính cấp quận cũ tại Hà Nội
+01,Thành phố Hà Nội,Quận Thanh Xuân,,01,00367,Đơn vị hành chính cấp quận cũ tại Hà Nội
+01,Thành phố Hà Nội,Quận Long Biên,,01,00145,Đơn vị hành chính cấp quận cũ tại Hà Nội
+01,Thành phố Hà Nội,Quận Long Biên,Phường Gia Thụy,01,00118,Khu vực Bến xe Gia Lâm
+01,Thành phố Hà Nội,Quận Hà Đông,,01,09556,Đơn vị hành chính cấp quận cũ tại Hà Nội
+01,Thành phố Hà Nội,Quận Hà Đông,Phường Yên Nghĩa,01,09562,Khu vực Bến xe Yên Nghĩa
+01,Thành phố Hà Nội,Quận Tây Hồ,,01,00103,Đơn vị hành chính cấp quận cũ tại Hà Nội
+01,Thành phố Hà Nội,Thị xã Sơn Tây,,01,09574,Đơn vị hành chính cấp thị xã cũ tại Hà Nội
+01,Thành phố Hà Nội,Huyện Gia Lâm,,01,00565,Đơn vị hành chính cấp huyện cũ tại Hà Nội
+01,Thành phố Hà Nội,Huyện Đông Anh,,01,00454,Đơn vị hành chính cấp huyện cũ tại Hà Nội
+01,Thành phố Hà Nội,Huyện Sóc Sơn,,01,00376,Khu vực Sân bay Nội Bài
+79,Thành phố Hồ Chí Minh,Quận 1,,79,26740,Đơn vị hành chính cấp quận cũ tại TP.HCM
+79,Thành phố Hồ Chí Minh,Quận 1,Phường Phạm Ngũ Lão,79,26743,Phố nhà xe Phạm Ngũ Lão - Bến Thành
+79,Thành phố Hồ Chí Minh,Quận 3,,79,27139,Đơn vị hành chính cấp quận cũ tại TP.HCM
+79,Thành phố Hồ Chí Minh,Quận 4,,79,27259,Đơn vị hành chính cấp quận cũ tại TP.HCM
+79,Thành phố Hồ Chí Minh,Quận 5,,79,27343,Khu vực phố nhà xe Lê Hồng Phong - Chợ Lớn
+79,Thành phố Hồ Chí Minh,Quận 6,,79,27367,Khu vực Bến xe Chợ Lớn
+79,Thành phố Hồ Chí Minh,Quận 7,,79,27487,Đơn vị hành chính cấp quận cũ tại TP.HCM
+79,Thành phố Hồ Chí Minh,Quận 8,,79,27418,Khu vực Bến xe Quận 8
+79,Thành phố Hồ Chí Minh,Quận 10,,79,27163,Đơn vị hành chính cấp quận cũ tại TP.HCM
+79,Thành phố Hồ Chí Minh,Quận 11,,79,27211,Đơn vị hành chính cấp quận cũ tại TP.HCM
+79,Thành phố Hồ Chí Minh,Quận 12,,79,26767,Khu vực Bến xe Ngã Tư Ga
+79,Thành phố Hồ Chí Minh,Quận 12,Phường Thạnh Lộc,79,26767,Bến xe Ngã Tư Ga (720 Quốc lộ 1A)
+79,Thành phố Hồ Chí Minh,Quận Bình Thạnh,,79,26929,Khu vực Bến xe Miền Đông cũ
+79,Thành phố Hồ Chí Minh,Quận Bình Thạnh,Phường 26,79,26929,Bến xe Miền Đông cũ (Đinh Bộ Lĩnh)
+79,Thành phố Hồ Chí Minh,Quận Bình Tân,,79,27460,Khu vực Bến xe Miền Tây
+79,Thành phố Hồ Chí Minh,Quận Bình Tân,Phường An Lạc,79,27460,Bến xe Miền Tây (395 Kinh Dương Vương)
+79,Thành phố Hồ Chí Minh,Quận Tân Bình,,79,26977,Khu vực Sân bay Tân Sơn Nhất
+79,Thành phố Hồ Chí Minh,Quận Tân Phú,,79,27031,Đơn vị hành chính cấp quận cũ tại TP.HCM
+79,Thành phố Hồ Chí Minh,Quận Gò Vấp,,79,26884,Đơn vị hành chính cấp quận cũ tại TP.HCM
+79,Thành phố Hồ Chí Minh,Quận Phú Nhuận,,79,27073,Đơn vị hành chính cấp quận cũ tại TP.HCM
+79,Thành phố Hồ Chí Minh,Thành phố Thủ Đức,,79,26824,Thành phố Thủ Đức cũ thuộc TP.HCM
+79,Thành phố Hồ Chí Minh,Thành phố Thủ Đức,Phường Long Bình,79,26833,Bến xe Miền Đông mới
+79,Thành phố Hồ Chí Minh,Huyện Hóc Môn,,79,27592,Khu vực Bến xe An Sương
+79,Thành phố Hồ Chí Minh,Huyện Củ Chi,,79,27496,Khu vực Bến xe Củ Chi
+79,Thành phố Hồ Chí Minh,Huyện Bình Chánh,,79,27595,Cửa ngõ phía Tây TP.HCM
+74,Tỉnh Bình Dương,Thành phố Thủ Dầu Một,,79,25747,Khu vực Bến xe Bình Dương
+74,Tỉnh Bình Dương,Thành phố Dĩ An,,79,25942,Cửa ngõ Bình Dương - Thủ Đức
+74,Tỉnh Bình Dương,Thành phố Thuận An,,79,25978,Trục Quốc lộ 13 qua Bình Dương
+74,Tỉnh Bình Dương,Thành phố Bến Cát,,79,25813,Khu vực Bến xe Bến Cát
+74,Tỉnh Bình Dương,Thành phố Tân Uyên,,79,25888,Khu vực Tân Uyên
+77,Tỉnh Bà Rịa - Vũng Tàu,Thành phố Vũng Tàu,,79,26506,Khu vực Bến xe Vũng Tàu
+77,Tỉnh Bà Rịa - Vũng Tàu,Thành phố Vũng Tàu,Phường Thắng Tam,79,26506,Bến xe Vũng Tàu (192 Nam Kỳ Khởi Nghĩa)
+77,Tỉnh Bà Rịa - Vũng Tàu,Thành phố Bà Rịa,,79,26560,Khu vực Bến xe Bà Rịa
+77,Tỉnh Bà Rịa - Vũng Tàu,Thị xã Phú Mỹ,,79,26704,Cảng Cái Mép - Phú Mỹ QL51
+77,Tỉnh Bà Rịa - Vũng Tàu,Huyện Xuyên Mộc,,79,26620,Khu du lịch Hồ Tràm - Xuyên Mộc
+77,Tỉnh Bà Rịa - Vũng Tàu,Huyện Côn Đảo,,79,26732,Đặc khu Côn Đảo
+48,Thành phố Đà Nẵng,Quận Liên Chiểu,,48,20197,Khu vực Bến xe Trung tâm Đà Nẵng
+48,Thành phố Đà Nẵng,Quận Liên Chiểu,Phường Hòa Minh,48,20197,Bến xe Trung tâm Đà Nẵng (Tôn Đức Thắng)
+48,Thành phố Đà Nẵng,Quận Hải Châu,,48,20242,Trung tâm Thành phố Đà Nẵng
+48,Thành phố Đà Nẵng,Quận Thanh Khê,,48,20209,Đơn vị hành chính cấp quận cũ tại Đà Nẵng
+48,Thành phố Đà Nẵng,Quận Sơn Trà,,48,20263,Đơn vị hành chính cấp quận cũ tại Đà Nẵng
+48,Thành phố Đà Nẵng,Quận Ngũ Hành Sơn,,48,20285,Đơn vị hành chính cấp quận cũ tại Đà Nẵng
+48,Thành phố Đà Nẵng,Quận Cẩm Lệ,,48,20260,Đơn vị hành chính cấp quận cũ tại Đà Nẵng
+49,Tỉnh Quảng Nam,Thành phố Tam Kỳ,,48,20341,Khu vực Bến xe Tam Kỳ
+49,Tỉnh Quảng Nam,Thành phố Hội An,,48,20410,Khu vực Bến xe Hội An
+49,Tỉnh Quảng Nam,Thị xã Điện Bàn,,48,20551,Khu vực Điện Bàn
+49,Tỉnh Quảng Nam,Huyện Núi Thành,,48,20965,Khu kinh tế mở Chu Lai - Núi Thành
+31,Thành phố Hải Phòng,Quận Lê Chân,,31,11383,Khu vực Bến xe Vĩnh Niệm
+31,Thành phố Hải Phòng,Quận Hồng Bàng,,31,11311,Khu vực Bến xe Thượng Lý
+31,Thành phố Hải Phòng,Quận Ngô Quyền,,31,11329,Trung tâm Hải Phòng
+31,Thành phố Hải Phòng,Quận Hải An,,31,11413,Khu vực Cảng Đình Vũ - Cát Bi
+31,Thành phố Hải Phòng,Quận Kiến An,,31,11443,Đơn vị hành chính cấp quận cũ tại Hải Phòng
+31,Thành phố Hải Phòng,Quận Đồ Sơn,,31,11455,Khu du lịch Đồ Sơn
+31,Thành phố Hải Phòng,Huyện Cát Hải,,31,11914,Đảo Cát Bà - Cát Hải
+30,Tỉnh Hải Dương,Thành phố Hải Dương,,31,10525,Khu vực Bến xe Hải Dương & Bến xe Hải Tân
+30,Tỉnh Hải Dương,Thành phố Chí Linh,,31,10546,Khu vực Bến xe Chí Linh
+68,Tỉnh Lâm Đồng,Thành phố Đà Lạt,,68,24781,Khu vực Bến xe liên tỉnh Đà Lạt
+68,Tỉnh Lâm Đồng,Thành phố Đà Lạt,Phường 3,68,24781,Bến xe liên tỉnh Đà Lạt (01 Tô Hiến Thành)
+68,Tỉnh Lâm Đồng,Thành phố Bảo Lộc,,68,24823,Khu vực Bến xe Đức Long Bảo Lộc
+68,Tỉnh Lâm Đồng,Huyện Đức Trọng,,68,24958,Khu vực Sân bay Liên Khương - Đức Trọng
+60,Tỉnh Bình Thuận,Thành phố Phan Thiết,,68,22945,Khu vực Bến xe Bắc/Nam Phan Thiết
+60,Tỉnh Bình Thuận,Thành phố Phan Thiết,Phường Mũi Né,68,22918,Khu du lịch Mũi Né
+60,Tỉnh Bình Thuận,Thị xã La Gi,,68,23235,Khu vực Bến xe La Gi
+60,Tỉnh Bình Thuận,Huyện Tuy Phong,,68,22969,Trục Quốc lộ 1A qua Tuy Phong
+67,Tỉnh Đắk Nông,Thành phố Gia Nghĩa,,68,24611,Khu vực Bến xe Gia Nghĩa
+56,Tỉnh Khánh Hòa,Thành phố Nha Trang,,56,22366,Khu vực Bến xe Phía Nam / Phía Bắc Nha Trang
+56,Tỉnh Khánh Hòa,Thành phố Cam Ranh,,56,22420,Khu vực Bến xe Cam Ranh
+56,Tỉnh Khánh Hòa,Thị xã Ninh Hòa,,56,22528,Khu vực Bến xe Ninh Hòa
+58,Tỉnh Ninh Thuận,Thành phố Phan Rang - Tháp Chàm,,56,22759,Khu vực Bến xe Tỉnh Ninh Thuận (Phan Rang)
+52,Tỉnh Bình Định,Thành phố Quy Nhơn,,52,21583,Khu vực Bến xe Trung tâm Quy Nhơn
+52,Tỉnh Bình Định,Thị xã An Nhơn,,52,21907,Khu vực Bến xe An Nhơn
+52,Tỉnh Bình Định,Thị xã Hoài Nhơn,,52,21640,Khu vực Bồng Sơn - Hoài Nhơn
+64,Tỉnh Gia Lai,Thành phố Pleiku,,52,23575,Khu vực Bến xe Đức Long Gia Lai
+64,Tỉnh Gia Lai,Thị xã An Khê,,52,23617,Khu vực Bến xe An Khê
+64,Tỉnh Gia Lai,Thị xã Ayun Pa,,52,24044,Khu vực Ayun Pa
+66,Tỉnh Đắk Lắk,Thành phố Buôn Ma Thuột,,66,24133,Khu vực Bến xe Phía Bắc / Phía Nam Buôn Ma Thuột
+66,Tỉnh Đắk Lắk,Thị xã Buôn Hồ,,66,24305,Khu vực Bến xe Buôn Hồ
+54,Tỉnh Phú Yên,Thành phố Tuy Hòa,,66,22015,Khu vực Bến xe Liên tỉnh Phú Yên (Tuy Hòa)
+54,Tỉnh Phú Yên,Thị xã Sông Cầu,,66,22051,Khu vực Sông Cầu QL1A
+51,Tỉnh Quảng Ngãi,Thành phố Quảng Ngãi,,51,21025,Khu vực Bến xe Quảng Ngãi
+51,Tỉnh Quảng Ngãi,Huyện Lý Sơn,,51,21548,Đặc khu Lý Sơn
+62,Tỉnh Kon Tum,Thành phố Kon Tum,,51,23293,Khu vực Bến xe Kon Tum
+62,Tỉnh Kon Tum,Huyện Ngọc Hồi,,51,23377,Cửa khẩu Quốc tế Bờ Y - Ngọc Hồi
+75,Tỉnh Đồng Nai,Thành phố Biên Hòa,,75,26068,Khu vực Bến xe Biên Hòa & Bến xe Đồng Nai
+75,Tỉnh Đồng Nai,Thành phố Long Khánh,,75,26080,Khu vực Bến xe Long Khánh
+75,Tỉnh Đồng Nai,Huyện Long Thành,,75,26368,Khu vực Sân bay Quốc tế Long Thành
+70,Tỉnh Bình Phước,Thành phố Đồng Xoài,,75,25195,Khu vực Bến xe Trường Hải Bình Phước (Đồng Xoài)
+70,Tỉnh Bình Phước,Thị xã Phước Long,,75,25217,Khu vực Bến xe Phước Long
+70,Tỉnh Bình Phước,Thị xã Bình Long,,75,25326,Khu vực Bình Long QL13
+92,Thành phố Cần Thơ,Quận Ninh Kiều,,92,31135,Trung tâm Thành phố Cần Thơ
+92,Thành phố Cần Thơ,Quận Cái Răng,,92,31186,Khu vực Bến xe Trung tâm Cần Thơ
+92,Thành phố Cần Thơ,Quận Cái Răng,Phường Hưng Thạnh,92,31186,Bến xe Trung tâm Cần Thơ (KDC Hưng Phú)
+92,Thành phố Cần Thơ,Quận Bình Thủy,,92,31168,Khu vực Sân bay Cần Thơ
+92,Thành phố Cần Thơ,Quận Ô Môn,,92,31153,Khu vực Ô Môn
+92,Thành phố Cần Thơ,Quận Thốt Nốt,,92,31207,Khu vực Bến xe Thốt Nốt
+94,Tỉnh Sóc Trăng,Thành phố Sóc Trăng,,92,31507,Khu vực Bến xe Sóc Trăng
+93,Tỉnh Hậu Giang,Thành phố Vị Thanh,,92,31321,Khu vực Bến xe Vị Thanh
+93,Tỉnh Hậu Giang,Thành phố Ngã Bảy,,92,31340,Khu vực Bến xe Ngã Bảy
+91,Tỉnh Kiên Giang,Thành phố Rạch Giá,,91,30742,Khu vực Bến xe Rạch Giá & Bến xe Rạch Sỏi
+91,Tỉnh Kiên Giang,Thành phố Hà Tiên,,91,30769,Khu vực Bến xe Hà Tiên
+91,Tỉnh Kiên Giang,Thành phố Phú Quốc,,91,31078,Đặc khu Phú Quốc
+89,Tỉnh An Giang,Thành phố Long Xuyên,,91,30307,Khu vực Bến xe Long Xuyên
+89,Tỉnh An Giang,Thành phố Châu Đốc,,91,30316,Khu vực Bến xe Châu Đốc
+82,Tỉnh Tiền Giang,Thành phố Mỹ Tho,,82,28261,Khu vực Bến xe Tiền Giang (Mỹ Tho)
+82,Tỉnh Tiền Giang,Thành phố Gò Công,,82,28306,Khu vực Bến xe Gò Công
+82,Tỉnh Tiền Giang,Thị xã Cai Lậy,,82,28439,Khu vực Cai Lậy
+87,Tỉnh Đồng Tháp,Thành phố Cao Lãnh,,82,29869,Khu vực Bến xe Cao Lãnh
+87,Tỉnh Đồng Tháp,Thành phố Sa Đéc,,82,29905,Khu vực Bến xe Sa Đéc
+87,Tỉnh Đồng Tháp,Thành phố Hồng Ngự,,82,29955,Khu vực Bến xe Hồng Ngự
+86,Tỉnh Vĩnh Long,Thành phố Vĩnh Long,,86,29551,Khu vực Bến xe Vĩnh Long
+83,Tỉnh Bến Tre,Thành phố Bến Tre,,86,28789,Khu vực Bến xe Bến Tre
+84,Tỉnh Trà Vinh,Thành phố Trà Vinh,,86,29242,Khu vực Bến xe Trà Vinh
+80,Tỉnh Long An,Thành phố Tân An,,80,27694,Khu vực Bến xe Long An (Tân An)
+72,Tỉnh Tây Ninh,Thành phố Tây Ninh,,80,25459,Khu vực Bến xe Tây Ninh
+72,Tỉnh Tây Ninh,Thị xã Hòa Thành,,80,25630,Khu vực Bến xe Đồng Phước - Hòa Thành
+96,Tỉnh Cà Mau,Thành phố Cà Mau,,96,32025,Khu vực Bến xe Cà Mau
+95,Tỉnh Bạc Liêu,Thành phố Bạc Liêu,,96,31825,Khu vực Bến xe Bạc Liêu
+37,Tỉnh Ninh Bình,Thành phố Hoa Lư,,37,14329,Khu vực Bến xe Ninh Bình
+37,Tỉnh Ninh Bình,Thành phố Tam Điệp,,37,14362,Khu vực Bến xe Tam Điệp
+36,Tỉnh Nam Định,Thành phố Nam Định,,37,13669,Khu vực Bến xe Nam Định
+35,Tỉnh Hà Nam,Thành phố Phủ Lý,,37,13285,Khu vực Bến xe Trung tâm Hà Nam (Phủ Lý)
+33,Tỉnh Hưng Yên,Thành phố Hưng Yên,,33,11953,Khu vực Bến xe Hưng Yên
+34,Tỉnh Thái Bình,Thành phố Thái Bình,,33,13225,Khu vực Bến xe Thái Bình
+22,Tỉnh Quảng Ninh,Thành phố Hạ Long,,22,06688,Khu vực Bến xe Bãi Cháy - Hạ Long
+22,Tỉnh Quảng Ninh,Thành phố Móng Cái,,22,06712,Khu vực Bến xe Móng Cái
+22,Tỉnh Quảng Ninh,Thành phố Cẩm Phả,,22,06793,Khu vực Bến xe Cẩm Phả - Cửa Ông
+22,Tỉnh Quảng Ninh,Thành phố Uông Bí,,22,06811,Khu vực Bến xe Uông Bí
+24,Tỉnh Bắc Ninh,Thành phố Bắc Ninh,,24,09187,Khu vực Bến xe Bắc Ninh
+24,Tỉnh Bắc Giang,Thành phố Bắc Giang,,24,07210,Khu vực Bến xe Bắc Giang
+25,Tỉnh Phú Thọ,Thành phố Việt Trì,,25,07900,Khu vực Bến xe Việt Trì
+26,Tỉnh Vĩnh Phúc,Thành phố Vĩnh Yên,,25,08716,Khu vực Bến xe Vĩnh Yên
+17,Tỉnh Hòa Bình,Thành phố Hòa Bình,,25,04795,Khu vực Bến xe Trung tâm Hòa Bình
+19,Tỉnh Thái Nguyên,Thành phố Thái Nguyên,,19,05443,Khu vực Bến xe Trung tâm Thái Nguyên
+06,Tỉnh Bắc Kạn,Thành phố Bắc Kạn,,19,01843,Khu vực Bến xe Bắc Kạn
+08,Tỉnh Tuyên Quang,Thành phố Tuyên Quang,,08,02215,Khu vực Bến xe Tuyên Quang
+02,Tỉnh Hà Giang,Thành phố Hà Giang,,08,00694,Khu vực Bến xe Hà Giang
+10,Tỉnh Lào Cai,Thành phố Lào Cai,,15,02647,Khu vực Bến xe Trung tâm Lào Cai
+10,Tỉnh Lào Cai,Thị xã Sa Pa,,15,03006,Khu vực Bến xe Sa Pa
+15,Tỉnh Yên Bái,Thành phố Yên Bái,,15,04252,Khu vực Bến xe Yên Bái
+14,Tỉnh Sơn La,Thành phố Sơn La,,14,03646,Khu vực Bến xe Sơn La
+14,Tỉnh Sơn La,Thị xã Mộc Châu,,14,03980,Khu vực Bến xe Mộc Châu
+11,Tỉnh Điện Biên,Thành phố Điện Biên Phủ,,11,03127,Khu vực Bến xe Điện Biên Phủ
+12,Tỉnh Lai Châu,Thành phố Lai Châu,,12,03408,Khu vực Bến xe Lai Châu
+04,Tỉnh Cao Bằng,Thành phố Cao Bằng,,04,01273,Khu vực Bến xe Khách liên tỉnh Cao Bằng
+20,Tỉnh Lạng Sơn,Thành phố Lạng Sơn,,20,05983,Khu vực Bến xe Phía Bắc Lạng Sơn
+38,Tỉnh Thanh Hóa,Thành phố Thanh Hóa,,38,14797,Khu vực Bến xe Phía Bắc / Phía Nam / Phía Tây Thanh Hóa
+38,Tỉnh Thanh Hóa,Thành phố Sầm Sơn,,38,16531,Khu du lịch Sầm Sơn
+38,Tỉnh Thanh Hóa,Thị xã Nghi Sơn,,38,16654,Khu kinh tế Nghi Sơn
+40,Tỉnh Nghệ An,Thành phố Vinh,,40,16681,Khu vực Bến xe Bắc Vinh & Bến xe Phía Đông Vinh
+42,Tỉnh Hà Tĩnh,Thành phố Hà Tĩnh,,42,18073,Khu vực Bến xe Hà Tĩnh
+42,Tỉnh Hà Tĩnh,Thị xã Kỳ Anh,,42,18754,Khu vực Bến xe Kỳ Anh - Vũng Áng
+44,Tỉnh Quảng Bình,Thành phố Đồng Hới,,44,18880,Khu vực Bến xe Đồng Hới
+45,Tỉnh Quảng Trị,Thành phố Đông Hà,,44,19333,Khu vực Bến xe Đông Hà
+46,Thành phố Huế,Quận Thuận Hóa,,46,19789,Khu vực Bến xe Phía Nam Huế
+46,Thành phố Huế,Quận Phú Xuân,,46,19753,Khu vực Bến xe Phía Bắc Huế

@@ -22,13 +22,13 @@ export function TripItinerary({ timeline }: TripItineraryProps) {
           Lịch trình và điểm dừng
         </h3>
         <p className="text-xs text-neutral-500 mt-0.5">
-          Chỉ chọn được điểm đón / trả có nhãn tương ứng. Trạm dừng nghỉ không đón, không trả khách.
+          Chọn điểm đón và trả có nhãn tương ứng ở bước chọn ghế.
         </p>
       </div>
 
       <div className="pt-2">
         <div className="relative pl-6 space-y-6 before:absolute before:left-[11px] before:top-2 before:bottom-2 before:w-[2px] before:bg-neutral-200">
-          {timeline.map((stop, _index) => {
+          {timeline.map((stop) => {
 
             const isRest = stop.isRestStop;
             return (

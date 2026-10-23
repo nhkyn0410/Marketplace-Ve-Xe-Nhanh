@@ -12,16 +12,12 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
-import { FeaturedOperatorItem, ProvinceItem } from "../../lib/data/types";
+import type { ProvinceItem } from "../../lib/data/types";
 
-/**
- * Thuộc tính của khối SearchHero trên trang chủ.
- */
+/** Thuộc tính của form tìm chuyến trên trang chủ. */
 export interface SearchHeroProps {
   readonly provinces: readonly ProvinceItem[];
-  readonly featuredOperators: readonly FeaturedOperatorItem[];
-  readonly initialTab?: "trip" | "operator";
-  readonly initialPickerOpen?: boolean;
+  readonly catalogError?: string;
 }
 
 /**

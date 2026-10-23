@@ -157,6 +157,7 @@ describe.skipIf(!(url && mongoUrl) && !requireDb)("Fare — Postgres + Mongo th�
           id,
           name: `Bến ${index + 1} ${tag}`,
           type: "BUS_STATION" as const,
+          legalBasis: "QĐ công bố (test)",
           address: "x",
           provinceId: province,
           wardId: ward,
@@ -383,6 +384,44 @@ describe.skipIf(!(url && mongoUrl) && !requireDb)("Fare — Postgres + Mongo th�
       expect(page2.nextCursor).toBeNull();
       expect((await fares.revisions(authzA, fare.id, { limit: 3 })).nextCursor).toBeNull(); // trang vừa đủ: không còn trang rỗng
       expect((await rejectionOf(fares.revisions(authzB, fare.id, { limit: 10 })))).toMatchObject({ code: "FARE_NOT_FOUND" });
+    });
+
+    it("khung giá (OQ-17): giá ngoài khung → cảnh báo kèm vị trí quy tắc + audit `fare.band_warning`, vẫn lưu; khung giờ không giao → không cảnh báo", async () => {
+      // Khung giá là dữ liệu toàn nền tảng: chọn trần rất cao để không ảnh hưởng test khác chạy song song.
+      const band = await prisma.withSystem((tx) =>
+        tx.fareBand.create({
+          data: {
+            name: `Tết test ${tag}`,
+            maxPrice: 99_000_000n,
+            effectiveFrom: new Date(Date.UTC(2031, 0, 20)),
+            effectiveTo: new Date(Date.UTC(2031, 1, 5)),
+            message: "Giá vượt trần dịp Tết.",
+            reason: "test",
+          },
+        }),
+      );
+      try {
+        const record = vi.spyOn(audit, "recordAuditEvent");
+        const insideTet = rule({ validFrom: "2031-01-25T00:00:00Z", validTo: "2031-01-26T00:00:00Z", price: 99_500_000 });
+        const afterTet = rule({ validFrom: "2031-03-01T00:00:00Z", validTo: "2031-03-02T00:00:00Z", price: 99_500_000 });
+        const fare = await fares.create(actor, authzA, createInput(await newRoute(authzA), [rule({ price: 99_500_000 }), insideTet, afterTet]));
+        expect(fare.rules).toHaveLength(3);
+        const flagged = fare.bandWarnings.map((warning) => fare.rules[warning.ruleIndex]!.validFrom);
+        expect(flagged.sort()).toEqual([null, "2031-01-25T00:00:00.000Z"].sort());
+        expect(fare.bandWarnings[0]).toMatchObject({ bandId: band.id, maxPrice: 99_000_000, minPrice: null, message: "Giá vượt trần dịp Tết." });
+        expect(record).toHaveBeenCalledWith(
+          expect.objectContaining({ action: "fare.band_warning", targetId: fare.id, operatorId: tenantA }),
+          expect.objectContaining({ deadline: expect.any(Number) }),
+        );
+        record.mockRestore();
+        expect((await fares.get(authzA, fare.id)).bandWarnings).toHaveLength(2);
+        // Lịch sử giá chỉ gồm tạo / sửa.
+        expect((await fares.revisions(authzA, fare.id, { limit: 10 })).items.map((item) => item.action)).toEqual(["fare.create"]);
+        const fixed = await fares.update(actor, authzA, fare.id, updateInput([rule({ price: 500_000 }), afterTet]));
+        expect(fixed.bandWarnings).toEqual([]);
+      } finally {
+        await prisma.withSystem((tx) => tx.fareBand.delete({ where: { id: band.id } }));
+      }
     });
 
     it("PUT không đổi gì (kể cả đảo thứ tự rule) → không ghi DB, không thêm dòng lịch sử", async () => {

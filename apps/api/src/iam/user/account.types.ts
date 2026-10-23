@@ -2,7 +2,7 @@ import type { VerifiedAccessToken } from "../auth/token.service";
 
 export type AccountActor = Pick<
   VerifiedAccessToken,
-  "sub" | "sid" | "scope" | "role" | "operatorId" | "operatorSlug"
+  "sub" | "sid" | "scope" | "role" | "operatorId" | "operatorSlug" | "perms"
 >;
 
 export type AccountRequestContext = {

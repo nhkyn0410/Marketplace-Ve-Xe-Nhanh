@@ -33,16 +33,14 @@ export default async function TicketLookupResultPage({
   }
 
   // 2. Nhánh thật: gọi API lấy dữ liệu kết quả tra cứu
-  const tokenParam = params["token"];
-  const lookupToken = typeof tokenParam === "string" ? tokenParam : "mock-guest-token";
-  const result = await getTicketLookupResult(lookupToken);
+  const result = await getTicketLookupResult();
 
   if (result.status === "unavailable") {
     return (
       <div className="max-w-4xl mx-auto px-4 py-12">
         <FeatureUnavailable
           endpoint={result.endpoint}
-          description="Chức năng trả về kết quả tra cứu vé khách vãng lai đang chờ hoàn tất kết nối cổng API backend."
+          description="Tra cứu vé tạm thời chưa khả dụng. Vui lòng quay lại sau."
         />
       </div>
     );

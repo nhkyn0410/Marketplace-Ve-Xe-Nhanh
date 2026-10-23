@@ -2,7 +2,7 @@
 
 import { DashboardShell } from "@vexenhanh/ui/components/dashboard-shell";
 import { LogoMark } from "@vexenhanh/ui/components/logo";
-import type { NavGroup } from "@vexenhanh/ui/lib/nav";
+import { isNavPathAllowed, type NavGroup, visibleNavGroups } from "@vexenhanh/ui/lib/nav";
 import {
   Armchair,
   Building2,
@@ -13,45 +13,55 @@ import {
   LifeBuoy,
   LogOut,
   MapPin,
+  Megaphone,
   Route,
+  ShieldOff,
   Tag,
   Ticket,
+  UserCog,
   Users,
   Wallet
 } from "lucide-react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 
+import { ListStatePanel } from "./list-parts";
 import { useAuth } from "../lib/auth/auth-context";
+import { isPublicPath } from "../lib/public-routes";
 
-// Theo 06 UI/UX §5 (Information architecture — Operator OS).
-const NAV_GROUPS: NavGroup[] = [
+// Theo 06 UI/UX §5 (Information architecture — Operator OS). `permissions` = quyền của API trang gọi để ghi (TASK-IAM-007):
+// tài khoản quản lý chỉ thấy mục được tick; chủ nhà xe có đủ.
+export const NAV_GROUPS: NavGroup[] = [
   { items: [{ href: "/", label: "Tổng quan", icon: LayoutDashboard }] },
   {
     label: "Vận tải",
     items: [
-      { href: "/vehicles", label: "Phương tiện", icon: Bus },
-      { href: "/seat-maps", label: "Sơ đồ ghế", icon: Armchair },
-      { href: "/stop-points", label: "Điểm dừng", icon: MapPin },
-      { href: "/routes", label: "Tuyến đường", icon: Route },
-      { href: "/fares", label: "Bảng giá", icon: Tag },
-      { href: "/trips", label: "Chuyến xe", icon: CalendarClock }
+      { href: "/vehicles", label: "Phương tiện", icon: Bus, permissions: ["vehicle:manage"] },
+      { href: "/seat-maps", label: "Sơ đồ ghế", icon: Armchair, permissions: ["vehicle:manage"] },
+      { href: "/stop-points", label: "Điểm dừng", icon: MapPin, permissions: ["route:manage"] },
+      { href: "/routes", label: "Tuyến đường", icon: Route, permissions: ["route:manage"] },
+      { href: "/fares", label: "Bảng giá", icon: Tag, permissions: ["trip:manage"] },
+      { href: "/trips", label: "Chuyến xe", icon: CalendarClock, permissions: ["trip:manage"] }
     ]
   },
   {
     label: "Kinh doanh",
     items: [
-      { href: "/bookings", label: "Đặt vé", icon: Ticket },
-      { href: "/finance", label: "Tài chính", icon: Wallet },
-      { href: "/reports", label: "Báo cáo", icon: ChartColumn }
+      { href: "/bookings", label: "Đặt vé", icon: Ticket, permissions: ["booking:read"] },
+      // Figma "VXN / Operator sidebar" (Khanh duyệt thêm mục 13/10/2026).
+      { href: "/promotions", label: "Khuyến mãi", icon: Megaphone, permissions: ["promotion:manage"] },
+      { href: "/finance", label: "Tài chính", icon: Wallet, permissions: ["finance:read"] },
+      { href: "/reports", label: "Báo cáo", icon: ChartColumn, permissions: ["finance:read"] }
     ]
   },
   {
     label: "Nhà xe",
     items: [
-      { href: "/profile", label: "Hồ sơ & KYC", icon: Building2 },
-      { href: "/employees", label: "Nhân viên", icon: Users },
-      { href: "/support", label: "Hỗ trợ", icon: LifeBuoy }
+      { href: "/profile", label: "Hồ sơ & KYC", icon: Building2, permissions: ["kyc:submit"] },
+      { href: "/employees", label: "Nhân viên", icon: Users, permissions: ["employee:manage"] },
+      { href: "/managers", label: "Tài khoản quản lý", icon: UserCog, permissions: ["manager:manage"] },
+      { href: "/support", label: "Hỗ trợ", icon: LifeBuoy, permissions: ["support:respond"] }
     ]
   }
 ];
@@ -62,16 +72,23 @@ const NAV_GROUPS: NavGroup[] = [
  */
 export function AppShell({ children }: { children: ReactNode }) {
   const { state, logout } = useAuth();
+  const pathname = usePathname();
+  // Trang đăng ký nhà xe công khai có khung riêng (`RegisterShell`), không có thanh quản trị.
+  if (isPublicPath(pathname)) {
+    return children;
+  }
   // `AuthGate` chỉ dựng khung này khi đã đăng nhập; kiểm lại để kiểu dữ liệu chặt.
   const me = state.status === "authenticated" ? state.me : null;
   // `/auth/me` chưa trả tên hiển thị của nhà xe nên tạm dùng mã nhà xe (slug).
   const operator = me?.operatorSlug ?? "";
   const username = me?.username ?? "";
+  const granted = me?.permissions ?? [];
+  const accountLabel = me?.role === "OPERATOR_MANAGER" ? "Tài khoản quản lý" : "Chủ nhà xe";
 
   return (
     <DashboardShell
       title="Trang quản lý nhà xe"
-      navGroups={NAV_GROUPS}
+      navGroups={visibleNavGroups(NAV_GROUPS, granted)}
       brand={
         <Link href="/" className="flex h-[88px] shrink-0 items-center gap-3 p-5">
           <LogoMark className="size-9 shrink-0 text-vxn-teal-500" />
@@ -85,7 +102,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       sidebarTop={
         <div className="mx-4 flex flex-col gap-1 rounded-lg bg-muted p-3">
           <p className="truncate text-sm leading-5 font-semibold text-vxn-fg-1">{operator}</p>
-          <p className="text-xs leading-[18px] text-muted-foreground">Tài khoản chủ nhà xe</p>
+          <p className="text-xs leading-[18px] text-muted-foreground">{me?.role === "OPERATOR_MANAGER" ? "Tài khoản quản lý" : "Tài khoản chủ nhà xe"}</p>
         </div>
       }
       sidebarBottom={
@@ -109,7 +126,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                 {username.slice(0, 2).toUpperCase()}
               </span>
               <span className="min-w-0 flex-1">
-                <span className="block truncate text-sm leading-5 font-semibold text-vxn-fg-1">Chủ nhà xe</span>
+                <span className="block truncate text-sm leading-5 font-semibold text-vxn-fg-1">{accountLabel}</span>
                 <span className="block truncate text-xs leading-[18px] text-muted-foreground">{username}</span>
               </span>
             </Link>
@@ -126,7 +143,15 @@ export function AppShell({ children }: { children: ReactNode }) {
         </>
       }
     >
-      {children}
+      {isNavPathAllowed(NAV_GROUPS, pathname, granted) ? (
+        children
+      ) : (
+        <ListStatePanel
+          icon={<ShieldOff className="size-6 text-vxn-fg-3" />}
+          title="Bạn chưa được cấp quyền dùng trang này"
+          description="Liên hệ chủ nhà xe nếu công việc của bạn cần trang này."
+        />
+      )}
     </DashboardShell>
   );
 }

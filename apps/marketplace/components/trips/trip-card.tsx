@@ -19,7 +19,7 @@ export function TripCard({ trip }: TripCardProps) {
       {/* Ảnh xe bên trái (w-48 đến w-52) */}
       <div
         className="h-44 w-full shrink-0 bg-cover bg-center md:h-auto md:w-48 lg:w-52"
-        style={{ backgroundImage: `url('${trip.imageUrl}')` }}
+        style={trip.imageUrl ? { backgroundImage: `url('${trip.imageUrl}')` } : undefined}
       />
 
       {/* Vùng nội dung chi tiết bên phải */}
@@ -35,12 +35,12 @@ export function TripCard({ trip }: TripCardProps) {
                 {trip.operatorCode}
               </div>
               <div className="min-w-0">
-                <h4 className="text-sm font-bold text-vxn-ink truncate">
+                <Link href={`/operators/${encodeURIComponent(trip.operatorId)}`} className="block text-sm font-bold text-vxn-ink truncate hover:text-vxn-teal-700">
                   {trip.operatorName}
-                </h4>
+                </Link>
                 <div className="flex items-center gap-1 text-xs text-vxn-fg-4">
-                  <Star className="h-3 w-3 fill-amber-400 text-amber-500 shrink-0" />
-                  <span className="font-bold text-vxn-ink">{trip.operatorRating.toFixed(1)}</span>
+                  {trip.operatorRating > 0 && <Star className="h-3 w-3 fill-amber-400 text-amber-500 shrink-0" />}
+                  {trip.operatorRating > 0 && <span className="font-bold text-vxn-ink">{trip.operatorRating.toFixed(1)}</span>}
                   <span className="truncate">({trip.operatorRatingCountText})</span>
                 </div>
               </div>
@@ -90,7 +90,7 @@ export function TripCard({ trip }: TripCardProps) {
                   </span>
                   {trip.isNextDay && (
                     <span className="rounded bg-amber-100 px-1 py-0.5 text-[10px] font-bold text-amber-800 whitespace-nowrap">
-                      +1 ngày
+                      Ngày sau
                     </span>
                   )}
                 </div>
@@ -100,12 +100,12 @@ export function TripCard({ trip }: TripCardProps) {
 
             {/* Cột Giá vé */}
             <div className="flex items-baseline justify-between sm:block sm:text-right shrink-0 pt-2 sm:pt-0 border-t border-dashed border-vxn-border/50 sm:border-0">
-              <span className="text-xs text-vxn-fg-4 sm:hidden">Giá vé mỗi chỗ</span>
+              <span className="text-xs text-vxn-fg-4 sm:hidden">Giá vé từ</span>
               <div className="text-right">
                 <div className="text-xl font-black text-vxn-teal-800 sm:text-2xl lg:text-3xl whitespace-nowrap leading-tight">
                   {formatVnd(trip.priceVnd)}
                 </div>
-                <div className="text-[11px] text-vxn-fg-4">/ chỗ</div>
+                <div className="text-[11px] text-vxn-fg-4">từ / chỗ</div>
               </div>
             </div>
           </div>

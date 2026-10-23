@@ -1,5 +1,6 @@
 import { PassengerTopBar } from "../../../components/passenger-topbar";
-import { FeatureUnavailable } from "../../../components/states";
+import { ErrorState, FeatureUnavailable } from "../../../components/states";
+import { AccountSignInRequired } from "../../../components/account/account-sign-in-required";
 import { VouchersView } from "../../../components/vouchers/vouchers-view";
 import { getUserVouchers } from "../../../lib/data/loyalty";
 import { getPreview } from "../../../lib/preview";
@@ -58,7 +59,7 @@ export default async function AccountVouchersPage(props: AccountVouchersPageProp
         <main className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
           <FeatureUnavailable
             title="Ví voucher chưa sẵn sàng"
-            description="Dịch vụ quản lý ví voucher đang được kết nối với hệ thống backend. Vui lòng quay lại sau."
+            description="Ví voucher hiện chưa khả dụng. Vui lòng quay lại sau."
             endpoint={result.endpoint}
           />
         </main>
@@ -67,11 +68,12 @@ export default async function AccountVouchersPage(props: AccountVouchersPageProp
   }
 
   if (result.status === "error") {
+    if (result.httpStatus === 401) return <AccountSignInRequired />;
     return (
       <div className="min-h-screen bg-[#f9f9ff]">
         {topBarHeader}
         <main className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-          <FeatureUnavailable
+          <ErrorState
             title="Không thể tải ví voucher"
             description={result.message}
           />

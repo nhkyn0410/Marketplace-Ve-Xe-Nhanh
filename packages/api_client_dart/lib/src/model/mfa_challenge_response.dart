@@ -30,7 +30,7 @@ abstract class MfaChallengeResponse implements Built<MfaChallengeResponse, MfaCh
   bool get enrollmentRequired;
 
   @BuiltValueField(wireName: r'challengeExpiresIn')
-  int get challengeExpiresIn;
+  int? get challengeExpiresIn;
 
   @BuiltValueField(wireName: r'otpAuthUri')
   String? get otpAuthUri;
@@ -74,9 +74,9 @@ class _$MfaChallengeResponseSerializer implements PrimitiveSerializer<MfaChallen
       specifiedType: const FullType(bool),
     );
     yield r'challengeExpiresIn';
-    yield serializers.serialize(
+    yield object.challengeExpiresIn == null ? null : serializers.serialize(
       object.challengeExpiresIn,
-      specifiedType: const FullType(int),
+      specifiedType: const FullType.nullable(int),
     );
     if (object.otpAuthUri != null) {
       yield r'otpAuthUri';
@@ -132,8 +132,9 @@ class _$MfaChallengeResponseSerializer implements PrimitiveSerializer<MfaChallen
         case r'challengeExpiresIn':
           final valueDes = serializers.deserialize(
             value,
-            specifiedType: const FullType(int),
-          ) as int;
+            specifiedType: const FullType.nullable(int),
+          ) as int?;
+          if (valueDes == null) continue;
           result.challengeExpiresIn = valueDes;
           break;
         case r'otpAuthUri':

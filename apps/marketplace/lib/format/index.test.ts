@@ -37,9 +37,9 @@ describe("formatVnd", () => {
 describe("datetime helpers", () => {
   it("định dạng ngày tháng và giờ theo định dạng Việt Nam", () => {
     const iso = "2026-10-14T14:30:00.000Z";
-    // formatDateVi và formatTimeVi dựa theo múi giờ local, kiểm tra không bị ném lỗi
-    expect(formatDateVi(iso)).toMatch(/^\d{2}\/\d{2}\/\d{4}$/);
-    expect(formatTimeVi(iso)).toMatch(/^\d{2}:\d{2}$/);
-    expect(formatDateTimeVi(iso)).toContain("/");
+    expect(formatDateVi(iso)).toBe("14/10/2026");
+    expect(formatTimeVi(iso)).toBe("21:30");
+    expect(formatDateTimeVi(iso)).toBe("21:30 14/10/2026");
+    expect(formatDateVi("2026-10-14T18:00:00Z")).toBe("15/10/2026");
   });
 });

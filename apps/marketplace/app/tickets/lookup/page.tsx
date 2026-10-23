@@ -1,15 +1,12 @@
 import React from "react";
 import type { Metadata } from "next";
 import { getPreview } from "../../../lib/preview";
-import {
-  ticketLookupIdealFixture,
-  ticketLookupOtpFixture
-} from "../../../lib/preview/fixtures/tickets";
+import { ticketLookupIdealFixture } from "../../../lib/preview/fixtures/tickets";
 import { LookupView } from "../../../components/tickets/lookup/lookup-view";
 
 export const metadata: Metadata = {
   title: "Tra cứu vé | VeXeNhanh",
-  description: "Tra cứu thông tin vé xe đã đặt bằng mã vé và email mà không cần đăng nhập."
+  description: "Tra cứu thông tin vé xe đã đặt bằng mã đặt vé và email mà không cần đăng nhập."
 };
 
 interface TicketLookupPageProps {
@@ -17,7 +14,7 @@ interface TicketLookupPageProps {
 }
 
 /**
- * Trang Tra cứu vé không đăng nhập B1 & B2 OTP (SCR-PSG-27 & SCR-PSG-28).
+ * Trang tra cứu vé trực tiếp bằng mã đặt vé và email liên hệ.
  * Route: /tickets/lookup
  */
 export default async function TicketLookupPage({
@@ -28,31 +25,9 @@ export default async function TicketLookupPage({
 
   // Nhánh Preview phục vụ kiểm thử thiết kế Figma
   if (previewState) {
-    if (previewState === "otp") {
-      return (
-        <LookupView
-          initialStep="otp"
-          formData={ticketLookupIdealFixture}
-          otpData={ticketLookupOtpFixture}
-        />
-      );
-    }
-
-    // Mặc định preview=ideal (B1)
-    return (
-      <LookupView
-        initialStep="form"
-        formData={ticketLookupIdealFixture}
-        otpData={ticketLookupOtpFixture}
-      />
-    );
+    return <LookupView formData={ticketLookupIdealFixture} />;
   }
 
   // Nhánh thật
-  return (
-    <LookupView
-      initialStep="form"
-      otpData={ticketLookupOtpFixture}
-    />
-  );
+  return <LookupView />;
 }

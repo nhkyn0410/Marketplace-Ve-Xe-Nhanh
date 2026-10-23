@@ -139,7 +139,7 @@ export function PaymentSummarySidebar({
             {/* Giảm giá voucher */}
             {priceSummary.discountVnd !== "0" && (
               <div className="flex items-center justify-between text-emerald-700">
-                <span>Voucher đổi điểm</span>
+                <span>{priceSummary.discountLabel}</span>
                 <span className="font-bold">
                   -{formatVnd(priceSummary.discountVnd)}
                 </span>

@@ -28,8 +28,7 @@ export function OperatorHeader({ operator }: OperatorHeaderProps) {
 
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-1.5 text-xs text-neutral-600 bg-neutral-100 px-2.5 py-1 rounded-full border border-neutral-200">
-            <Phone className="w-3 h-3 text-[#00506a]" />
-            <span>CSKH 1900 6067</span>
+            <Link href="/support" className="hover:underline">Trung tâm hỗ trợ</Link>
           </div>
           <div className="flex items-center gap-1 text-xs text-neutral-700 bg-neutral-100 px-2 py-1 rounded border border-neutral-200">
             <span>VI 🇻🇳</span>
@@ -64,25 +63,25 @@ export function OperatorHeader({ operator }: OperatorHeaderProps) {
 
             {/* Thông tin liên hệ */}
             <div className="flex flex-wrap items-center gap-4 text-xs text-neutral-600 pt-1">
-              <div className="flex items-center gap-1.5">
+              {operator.hotline && <div className="flex items-center gap-1.5">
                 <Phone className="w-3.5 h-3.5 text-neutral-400" />
                 <span>{operator.hotline}</span>
-              </div>
-              <div className="flex items-center gap-1.5">
+              </div>}
+              {operator.email && <div className="flex items-center gap-1.5">
                 <Mail className="w-3.5 h-3.5 text-neutral-400" />
                 <span>{operator.email}</span>
-              </div>
-              <div className="flex items-center gap-1.5">
+              </div>}
+              {operator.headquarters && <div className="flex items-center gap-1.5">
                 <MapPin className="w-3.5 h-3.5 text-neutral-400" />
                 <span>{operator.headquarters}</span>
-              </div>
+              </div>}
             </div>
           </div>
         </div>
 
         {/* Nút tìm chuyến */}
         <Link
-          href={`/trips?operator=${operator.id}`}
+          href={`/trips?operatorId=${encodeURIComponent(operator.id)}`}
           className="w-full md:w-auto px-5 py-3 rounded-xl bg-[#00506a] hover:bg-[#003d52] active:bg-[#002e3e] text-white font-bold text-sm shadow-xs transition-colors text-center shrink-0"
         >
           Tìm chuyến của nhà xe

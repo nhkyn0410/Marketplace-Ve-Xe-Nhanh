@@ -28,7 +28,7 @@ export class RouteController {
 
   /** Trả một trang route của nhà xe. */
   @Get()
-  @Authorize("route:manage")
+  @Authorize("transport:read")
   @ApiQuery({ name: "status", required: false, enum: Object.values(RouteStatus) })
   @ApiQuery({ name: "cursor", required: false, type: String, format: "uuid" })
   @ApiQuery({ name: "limit", required: false, type: Number, minimum: 1, maximum: 100 })
@@ -40,7 +40,7 @@ export class RouteController {
 
   /** Trả chi tiết route kèm điểm dừng. */
   @Get(":routeId")
-  @Authorize("route:manage")
+  @Authorize("transport:read")
   @ApiParam({ name: "routeId", type: String, format: "uuid" })
   @ZodResponse({ status: 200, description: "Chi tiết route kèm điểm dừng.", type: RouteResponseDto })
   @ApiResponse({ status: 404, description: "`ROUTE_NOT_FOUND` (kể cả khác tenant).", content: problemContent })

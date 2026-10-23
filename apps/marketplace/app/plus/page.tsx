@@ -1,5 +1,6 @@
 import { PassengerTopBar } from "../../components/passenger-topbar";
-import { FeatureUnavailable } from "../../components/states";
+import { ErrorState, FeatureUnavailable } from "../../components/states";
+import { AccountSignInRequired } from "../../components/account/account-sign-in-required";
 import { LoyaltyView } from "../../components/loyalty/loyalty-view";
 import { getLoyaltyProfile } from "../../lib/data/loyalty";
 import { getPreview } from "../../lib/preview";
@@ -49,6 +50,7 @@ export default async function PlusPage(props: PlusPageProps) {
             profile={loyaltyProfileFixture}
             defaultQuote={loyaltyRedemptionQuoteFixture}
             initialOpenRedeemModal={preview === "redeem"}
+            isPreview
           />
         </main>
       </div>
@@ -65,7 +67,7 @@ export default async function PlusPage(props: PlusPageProps) {
         <main className="mx-auto max-w-5xl px-4 py-12 sm:px-6 lg:px-8">
           <FeatureUnavailable
             title="Tính năng VXN Plus chưa sẵn sàng"
-            description="Hệ thống tích điểm và thành viên VXN Plus đang được kết nối với dịch vụ backend. Vui lòng quay lại sau."
+            description="Thông tin thành viên hiện chưa khả dụng. Vui lòng quay lại sau."
             endpoint={result.endpoint}
           />
         </main>
@@ -74,11 +76,12 @@ export default async function PlusPage(props: PlusPageProps) {
   }
 
   if (result.status === "error") {
+    if (result.httpStatus === 401) return <AccountSignInRequired />;
     return (
       <div className="min-h-screen bg-[#f9f9ff]">
         {topBarHeader}
         <main className="mx-auto max-w-5xl px-4 py-12 sm:px-6 lg:px-8">
-          <FeatureUnavailable
+          <ErrorState
             title="Không thể tải dữ liệu thành viên"
             description={result.message}
           />
@@ -91,7 +94,7 @@ export default async function PlusPage(props: PlusPageProps) {
     <div className="min-h-screen bg-[#f9f9ff]">
       {topBarHeader}
       <main className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
-        <LoyaltyView profile={result.data} />
+        <LoyaltyView profile={result.data} initialOpenRedeemModal={resolvedParams?.["redeem"] === "1" && !!result.data.rules && result.data.memberStatus === "ACTIVE" && result.data.availablePoints >= result.data.rules.minRedeemPoints} />
       </main>
     </div>
   );

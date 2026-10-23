@@ -1,6 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
+import { useRouter } from "next/navigation";
+import { holdSeats } from "../../lib/data/booking";
 import { CheckoutStepper } from "./checkout-stepper";
 import { SeatPointSelector } from "./seat-point-selector";
 import { SeatMap } from "./seat-map";
@@ -19,6 +21,8 @@ export interface SeatSelectionViewProps {
  * View tổng hợp toàn bộ màn hình B1 Chọn điểm & Chỗ (SCR-PSG-18).
  */
 export function SeatSelectionView({ initialData }: SeatSelectionViewProps) {
+  const router = useRouter();
+  const submitting = useRef(false);
   // Điểm đón và điểm trả
   const [selectedPickupId, setSelectedPickupId] = useState<string>(
     initialData.selectedPickupPointId
@@ -57,7 +61,7 @@ export function SeatSelectionView({ initialData }: SeatSelectionViewProps) {
         code,
         seatTypeLabel: seat?.type === "double" ? "Giường đôi" : "Giường đơn",
         floorLabel: seat?.floor === 1 ? "Tầng dưới" : "Tầng trên",
-        priceVnd: seat?.priceVnd ?? "280000"
+        priceVnd: seat?.priceVnd ?? "0"
       };
     }
   );
@@ -89,12 +93,16 @@ export function SeatSelectionView({ initialData }: SeatSelectionViewProps) {
   };
 
   // Xử lý nút Tiếp tục (B2)
-  const handleContinue = (): void => {
-    // Tuân thủ quy tắc A5 #3: Không gọi mạng giả mạo, hiện lỗi tại chỗ và console.warn
-    console.warn("[marketplace] chưa có API: POST /seat-holds");
-    setActionError(
-      "Chưa thực hiện được — chức năng giữ chỗ chưa sẵn sàng (POST /seat-holds)."
-    );
+  const handleContinue = async (): Promise<void> => {
+    if (submitting.current) return;
+    submitting.current = true;
+    setActionError(null);
+    try {
+      const result = await holdSeats(initialData.tripId, selectedSeatCodes, Number(selectedPickupId), Number(selectedDropoffId));
+      if (result.status === "ok") router.push(`/checkout/${result.data.holdId}`);
+      else setActionError(result.status === "error" ? result.message ?? "Không thể giữ chỗ. Vui lòng chọn lại ghế." : "Chức năng giữ chỗ tạm thời chưa khả dụng.");
+    } catch { setActionError("Không thể kết nối hệ thống giữ chỗ. Vui lòng thử lại."); }
+    finally { submitting.current = false; }
   };
 
   return (

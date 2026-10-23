@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { X, CreditCard, RefreshCw, Hourglass, Search } from "lucide-react";
 import { formatVnd } from "../../lib/format";
@@ -21,13 +22,16 @@ export function PaymentFailedCard({
   result,
   onRetryPayment
 }: PaymentFailedCardProps) {
+  const router = useRouter();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const expired = (result.holdCountdownSeconds ?? 0) <= 0;
+  const canRetry = !expired && result.canRetryPayment !== false;
 
   const handleRetry = () => {
     setErrorMessage(null);
-    console.warn(`[marketplace] chưa có API: POST /bookings/${result.bookingId}/payments`);
-    setErrorMessage("Cổng thanh toán chưa sẵn sàng trong môi trường thử nghiệm (chưa có API: POST /bookings/{bookingId}/payments).");
-    onRetryPayment?.();
+    if (!canRetry) { setErrorMessage("Đơn không thể tiếp tục thanh toán. Vui lòng kiểm tra trạng thái hoặc chọn chuyến khác."); return; }
+    if (onRetryPayment) onRetryPayment();
+    else router.push(`/bookings/${result.bookingId}/payment`);
   };
 
   return (
@@ -45,7 +49,7 @@ export function PaymentFailedCard({
           Thanh toán chưa thành công
         </h2>
         <p className="mt-2.5 text-xs sm:text-sm text-vxn-fg-4 max-w-lg mx-auto leading-relaxed">
-          Cổng {result.paymentMethodLabel} báo giao dịch không hoàn tất nên đơn chưa được thanh toán. Chỗ của bạn vẫn đang được giữ trong thời gian còn lại.
+          {expired ? "Đơn đã hết hạn thanh toán. Vui lòng tìm chuyến và chọn lại chỗ." : result.failureReason ?? "Giao dịch chưa hoàn tất. Vui lòng kiểm tra trạng thái đơn trước khi thanh toán lại."}
         </p>
       </div>
 
@@ -82,20 +86,21 @@ export function PaymentFailedCard({
 
       {/* 2 nút hành động chính */}
       <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
-        <Link
+        {canRetry && <Link
           href={`/bookings/${result.bookingId}/payment`}
           className="inline-flex w-full sm:w-auto items-center justify-center gap-2 rounded-xl border border-neutral-300 bg-white px-5 py-2.5 text-xs sm:text-sm font-semibold text-neutral-800 transition hover:bg-neutral-50 active:scale-[0.99]"
         >
           <CreditCard className="h-4 w-4" />
           <span>Đổi phương thức</span>
-        </Link>
+        </Link>}
         <button
           type="button"
           onClick={handleRetry}
+          disabled={!canRetry}
           className="inline-flex w-full sm:w-auto items-center justify-center gap-2 rounded-xl bg-[#00506a] px-6 py-2.5 text-xs sm:text-sm font-bold text-white shadow-xs transition hover:bg-[#00476b] active:scale-[0.99] cursor-pointer"
         >
           <RefreshCw className="h-4 w-4" />
-          <span>Thanh toán lại</span>
+          <span>{canRetry ? "Thanh toán lại" : "Không thể tiếp tục thanh toán"}</span>
         </button>
       </div>
 

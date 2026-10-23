@@ -30,14 +30,10 @@ export default async function RegisterPage({
   }
 
   // 2. Nhánh thật
-  const nameParam = params["name"];
   const emailParam = params["email"];
-  const phoneParam = params["phone"];
 
   const initialData = {
-    fullName: typeof nameParam === "string" ? nameParam : "",
-    email: typeof emailParam === "string" ? emailParam : "",
-    phone: typeof phoneParam === "string" ? phoneParam : ""
+    email: typeof emailParam === "string" ? emailParam : ""
   };
 
   return <RegisterView initialData={initialData} isPreview={false} />;

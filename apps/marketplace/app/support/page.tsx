@@ -1,4 +1,5 @@
 import React from "react";
+import Link from "next/link";
 import type { Metadata } from "next";
 import { getPreview } from "../../lib/preview";
 import {
@@ -53,7 +54,7 @@ export default async function SupportPage({
       <div className="max-w-4xl mx-auto px-4 py-12">
         <FeatureUnavailable
           endpoint={result.endpoint}
-          description="Chức năng quản lý khiếu nại của tài khoản đang chờ hoàn tất kết nối cổng API backend."
+          description="Hỗ trợ tài khoản tạm thời chưa khả dụng. Vui lòng quay lại sau."
         />
       </div>
     );
@@ -66,9 +67,11 @@ export default async function SupportPage({
           title="Không thể tải danh sách khiếu nại"
           description={result.message ?? "Đã xảy ra sự cố khi tải dữ liệu khiếu nại của bạn. Vui lòng thử lại sau."}
         />
+        {result.httpStatus === 401 && <Link href="/login?next=%2Fsupport" className="mt-4 inline-block rounded-xl bg-teal-900 px-4 py-2 text-sm font-semibold text-white">Đăng nhập để xem hỗ trợ</Link>}
       </div>
     );
   }
 
-  return <SupportView data={result.data} />;
+  const bookingCode = typeof params["bookingCode"] === "string" ? params["bookingCode"].trim().slice(0, 100) : "";
+  return <SupportView data={result.data} initialOpenNewModal={Boolean(bookingCode)} defaultDraft={bookingCode ? { bookingCode, category: "Khác", title: "", content: "" } : undefined} />;
 }

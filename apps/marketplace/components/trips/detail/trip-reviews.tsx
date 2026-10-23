@@ -22,7 +22,7 @@ export function TripReviews({ trip }: TripReviewsProps) {
       <div className="bg-white rounded-2xl border border-neutral-200 p-6 shadow-xs space-y-5">
         <div className="flex items-center justify-between">
           <h3 className="text-base font-semibold text-neutral-900">
-            Đánh giá từ hành khách
+            Đánh giá nhà xe
           </h3>
           <Link
             href={`/operators/${trip.operatorId}#reviews`}
@@ -36,14 +36,14 @@ export function TripReviews({ trip }: TripReviewsProps) {
         {/* Điểm trung bình và số lượng */}
         <div className="flex items-center gap-3">
           <span className="text-3xl font-extrabold text-neutral-900 tracking-tight">
-            {trip.reviewsAverage.toFixed(1).replace(".", ",")}
+            {trip.reviewsAverage > 0 ? trip.reviewsAverage.toFixed(1).replace(".", ",") : "—"}
           </span>
           <div className="space-y-0.5">
             <div className="flex items-center gap-1">
-              {[1, 2, 3, 4, 5].map((star) => (
+              {(trip.reviewsAverage > 0 ? [1, 2, 3, 4, 5] : []).map((star) => (
                 <Star
                   key={star}
-                  className="w-4 h-4 fill-amber-400 text-amber-400"
+                  className={`w-4 h-4 ${star <= Math.round(trip.reviewsAverage) ? "fill-amber-400 text-amber-400" : "text-neutral-300"}`}
                 />
               ))}
             </div>
@@ -55,6 +55,7 @@ export function TripReviews({ trip }: TripReviewsProps) {
 
         {/* Danh sách bình luận */}
         <div className="space-y-4 pt-2 border-t border-neutral-100">
+          {!trip.reviews.length && <p className="text-sm text-neutral-500">Chưa có đánh giá để hiển thị.</p>}
           {trip.reviews.map((rev) => (
             <div
               key={rev.id}

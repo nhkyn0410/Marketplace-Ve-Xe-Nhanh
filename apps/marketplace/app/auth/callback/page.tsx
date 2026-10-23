@@ -1,5 +1,6 @@
 import React from "react";
 import type { Metadata } from "next";
+import Link from "next/link";
 import { getPreview } from "../../../lib/preview";
 import { oauthCallbackFixture } from "../../../lib/preview/fixtures/auth";
 import { OAuthCallbackView } from "../../../components/auth/oauth-callback-view";
@@ -29,27 +30,11 @@ export default async function OAuthCallbackPage({
     return <OAuthCallbackView data={oauthCallbackFixture} isPreview={true} />;
   }
 
-  // 2. Nhánh thật
-  const providerParam = params["provider"];
-  const emailParam = params["email"];
-  const redirectParam = params["redirect"];
-
-  const provider = typeof providerParam === "string" ? providerParam : "Google";
-  const email = typeof emailParam === "string" ? emailParam : "khach.nguyen@gmail.com";
-  const redirectUrl = typeof redirectParam === "string" ? redirectParam : "/";
-
-  // In log cảnh báo chưa có backend hoàn chỉnh luồng OAuth
-  console.warn(`[marketplace] OAuth callback nhận provider=${provider}, chưa có API session exchange`);
-
   return (
-    <OAuthCallbackView
-      data={{
-        provider,
-        email,
-        isExistingLinked: true,
-        redirectUrl
-      }}
-      isPreview={false}
-    />
+    <div className="mx-auto max-w-xl space-y-4 px-6 py-16 text-center">
+      <h1 className="text-2xl font-semibold">Đăng nhập mạng xã hội chưa khả dụng</h1>
+      <p className="text-muted-foreground">Vui lòng đăng nhập bằng mã xác minh gửi tới email của bạn.</p>
+      <Link href="/login" className="inline-block rounded-lg bg-vxn-teal-700 px-5 py-3 text-white">Đăng nhập bằng email</Link>
+    </div>
   );
 }

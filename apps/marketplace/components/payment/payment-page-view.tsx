@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
-import { BookingPaymentData, SupportedPaymentMethod, VNPayBankOption } from "../../lib/data/types";
+import { useEffect, useRef, useState } from "react";
+import { createPayment } from "../../lib/data/booking";
+import { BookingPaymentData, SupportedPaymentMethod } from "../../lib/data/types";
 import { CheckoutStepper } from "../booking/checkout-stepper";
 import { PaymentMethodSelector } from "./payment-method-selector";
 import { PaymentOrderSummaryCard } from "./payment-order-summary-card";
@@ -22,11 +23,15 @@ export interface PaymentPageViewProps {
  * Client component quản lý luồng tương tác màn hình thanh toán B3 (Figma 1444:13055 & 1450:23099).
  */
 export function PaymentPageView({ paymentData, isExpired = false }: PaymentPageViewProps) {
+  const submitting = useRef(false);
+  const [expired, setExpired] = useState(isExpired || Boolean(paymentData.isExpired));
+  useEffect(() => {
+    if (isExpired || paymentData.isExpired) { setExpired(true); return; }
+    const timer = setTimeout(() => setExpired(true), paymentData.holdCountdownSeconds * 1000);
+    return () => clearTimeout(timer);
+  }, [isExpired, paymentData.isExpired, paymentData.holdCountdownSeconds]);
   const [selectedMethod, setSelectedMethod] = useState<SupportedPaymentMethod>(
     paymentData.selectedPaymentMethod ?? "vnpay"
-  );
-  const [selectedBank, setSelectedBank] = useState<VNPayBankOption>(
-    paymentData.selectedBankOption ?? "vnpay_qr"
   );
   const [isTermsAccepted, setIsTermsAccepted] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -34,7 +39,7 @@ export function PaymentPageView({ paymentData, isExpired = false }: PaymentPageV
   /**
    * Xử lý khi nhấn nút thanh toán.
    */
-  const handlePaymentSubmit = () => {
+  const handlePaymentSubmit = async () => {
     setErrorMessage(null);
 
     if (!isTermsAccepted) {
@@ -42,14 +47,15 @@ export function PaymentPageView({ paymentData, isExpired = false }: PaymentPageV
       return;
     }
 
-    // Báo warn do chưa có API theo quy tắc A5
-    console.warn(
-      `[marketplace] chưa có API: POST /bookings/${paymentData.bookingId}/payments (phương thức: ${selectedMethod})`
-    );
-
-    setErrorMessage(
-      "Cổng thanh toán chưa sẵn sàng trong môi trường thử nghiệm (chưa có API backend: POST /bookings/{bookingId}/payments)."
-    );
+    if (submitting.current) return;
+    if (expired) { setErrorMessage("Đơn đã hết hạn thanh toán. Vui lòng chọn lại chuyến."); return; }
+    submitting.current = true;
+    try {
+      const result = await createPayment(paymentData.bookingId, selectedMethod);
+      if (result.status === "ok") window.location.assign(result.data.paymentUrl);
+      else setErrorMessage(result.status === "error" ? result.message ?? "Không thể khởi tạo thanh toán. Vui lòng thử lại." : "Cổng thanh toán tạm thời chưa khả dụng.");
+    } catch { setErrorMessage("Không thể kết nối cổng thanh toán. Vui lòng thử lại."); }
+    finally { submitting.current = false; }
   };
 
   return (
@@ -79,8 +85,6 @@ export function PaymentPageView({ paymentData, isExpired = false }: PaymentPageV
           <PaymentMethodSelector
             selectedMethod={selectedMethod}
             onSelectMethod={setSelectedMethod}
-            selectedBank={selectedBank}
-            onSelectBank={setSelectedBank}
           />
 
           {/* Tóm tắt thông tin đơn hàng & hành khách */}
@@ -117,7 +121,7 @@ export function PaymentPageView({ paymentData, isExpired = false }: PaymentPageV
 
       {/* Modal hết thời gian giữ chỗ nếu preview=expired */}
       <PaymentExpiredModal
-        isOpen={isExpired}
+        isOpen={expired}
         bookingCode={paymentData.bookingCode}
         seats={paymentData.passengers.map((p) => p.seatCode)}
         tripId={paymentData.tripId}

@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import type { FareRevision, FareRule } from "./fare-api";
 import {
+  bandWarningGroups,
   describeRevision,
   FARE_STATUS,
   FARE_STATUS_ORDER,
@@ -122,5 +123,27 @@ describe("describeRevision", () => {
     expect(update([rule()], [rule({ price: 300_000 })], { status: "INACTIVE" }).detail).toBe(
       "250.000 ₫ → 300.000 ₫ · Đang áp dụng → Ngừng áp dụng"
     );
+  });
+});
+
+describe("cảnh báo khung giá (OQ-17)", () => {
+  const warning = {
+    ruleIndex: 0,
+    price: 950_000,
+    bandId: "b1",
+    bandName: "Tết 2027",
+    minPrice: null,
+    maxPrice: 900_000,
+    effectiveFrom: "2027-01-24T17:00:00.000Z",
+    effectiveTo: "2027-02-08T17:00:00.000Z",
+    message: "Giá vượt trần dịp Tết."
+  };
+
+  it("gom theo khung: thời gian theo giờ VN (ngày cuối còn hiệu lực), khoảng giá, số quy tắc ngoài khung", () => {
+    expect(bandWarningGroups([warning, { ...warning, ruleIndex: 2 }, { ...warning, bandId: "b2", bandName: "Lễ 30/4", minPrice: 200_000, maxPrice: 600_000 }])).toEqual([
+      { bandId: "b1", title: "Tết 2027 (25/01/2027 – 08/02/2027): trần 900.000 ₫", message: "Giá vượt trần dịp Tết.", ruleCount: 2 },
+      { bandId: "b2", title: "Lễ 30/4 (25/01/2027 – 08/02/2027): 200.000 ₫ – 600.000 ₫", message: "Giá vượt trần dịp Tết.", ruleCount: 1 }
+    ]);
+    expect(bandWarningGroups([])).toEqual([]);
   });
 });

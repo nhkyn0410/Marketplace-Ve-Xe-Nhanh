@@ -2,6 +2,7 @@
 
 import { ArrowRightLeft, Calendar, MapPin, Search, Users } from "lucide-react";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { ProvinceItem } from "../../lib/data/types";
 
 /**
@@ -19,15 +20,17 @@ export interface TripSearchBarProps {
  * Thanh tìm kiếm chuyến xe nhỏ gọn trên đầu trang /trips.
  */
 export function TripSearchBar({
-  initialOrigin = "TP. Hồ Chí Minh",
-  initialDestination = "Đà Lạt",
-  initialDate = "2026-10-16",
-  initialPassengers = 2
+  initialOrigin = "",
+  initialDestination = "",
+  initialDate = "",
+  initialPassengers = 1,
+  provinces = []
 }: TripSearchBarProps) {
+  const router = useRouter();
   const [origin, setOrigin] = useState<string>(initialOrigin);
   const [destination, setDestination] = useState<string>(initialDestination);
-  const [date] = useState<string>(initialDate);
-  const [passengers] = useState<number>(initialPassengers);
+  const [date, setDate] = useState<string>(initialDate);
+  const [passengers, setPassengers] = useState<number>(initialPassengers);
   const [actionError, setActionError] = useState<string | null>(null);
 
   const handleSwap = (): void => {
@@ -38,8 +41,11 @@ export function TripSearchBar({
 
   const handleSearch = (e: React.FormEvent): void => {
     e.preventDefault();
-    console.warn("[Marketplace] Tìm kiếm chuyến xe: API GET /trips/search chưa sẵn sàng.");
-    setActionError("Chức năng tìm kiếm chuyến đang được hoàn thiện. Vui lòng thử lại sau.");
+    if (!date || !origin || !destination || origin === destination) {
+      setActionError("Chọn ngày đi và hai tỉnh thành khác nhau.");
+      return;
+    }
+    router.push(`/trips?${new URLSearchParams({ origin, destination, date, passengers: String(passengers) })}`);
   };
 
   return (
@@ -50,13 +56,12 @@ export function TripSearchBar({
           <label className="block text-xs font-semibold text-vxn-fg-4">Điểm đi</label>
           <div className="mt-1 flex items-center rounded-xl border border-vxn-border bg-vxn-bg-soft px-3 py-2 text-sm">
             <MapPin className="mr-2 h-4 w-4 shrink-0 text-vxn-teal-600" />
-            <input
-              type="text"
+            <select
+              required disabled={!provinces.length}
               value={origin}
               onChange={(e) => setOrigin(e.target.value)}
-              placeholder="Chọn điểm đi"
               className="w-full bg-transparent font-bold text-vxn-ink outline-none"
-            />
+            ><option value="">Chọn điểm đi</option>{provinces.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}</select>
           </div>
         </div>
 
@@ -77,13 +82,12 @@ export function TripSearchBar({
           <label className="block text-xs font-semibold text-vxn-fg-4">Điểm đến</label>
           <div className="mt-1 flex items-center rounded-xl border border-vxn-border bg-vxn-bg-soft px-3 py-2 text-sm">
             <MapPin className="mr-2 h-4 w-4 shrink-0 text-[#e89b26]" />
-            <input
-              type="text"
+            <select
+              required disabled={!provinces.length}
               value={destination}
               onChange={(e) => setDestination(e.target.value)}
-              placeholder="Chọn điểm đến"
               className="w-full bg-transparent font-bold text-vxn-ink outline-none"
-            />
+            ><option value="">Chọn điểm đến</option>{provinces.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}</select>
           </div>
         </div>
 
@@ -93,9 +97,10 @@ export function TripSearchBar({
           <div className="mt-1 flex items-center rounded-xl border border-vxn-border bg-vxn-bg-soft px-3 py-2 text-sm">
             <Calendar className="mr-2 h-4 w-4 shrink-0 text-vxn-fg-3" />
             <input
-              type="text"
-              value={`T6, ${date.split("-").reverse().join("/")}`}
-              readOnly
+              type="date"
+              required
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
               className="w-full bg-transparent font-bold text-vxn-ink outline-none cursor-default"
             />
           </div>
@@ -106,7 +111,7 @@ export function TripSearchBar({
           <label className="block text-xs font-semibold text-vxn-fg-4">Hành khách</label>
           <div className="mt-1 flex items-center rounded-xl border border-vxn-border bg-vxn-bg-soft px-2.5 py-2 text-sm">
             <Users className="mr-1.5 h-4 w-4 shrink-0 text-vxn-fg-3" />
-            <span className="font-bold text-vxn-ink">{passengers} khách</span>
+            <input aria-label="Số hành khách" type="number" required min={1} max={10} step={1} value={passengers} onChange={(e) => setPassengers(Number(e.target.value))} className="w-12 bg-transparent font-bold text-vxn-ink" />
           </div>
         </div>
 
@@ -115,6 +120,7 @@ export function TripSearchBar({
           <label className="hidden text-xs font-semibold text-transparent lg:block">Tìm</label>
           <button
             type="submit"
+            disabled={!provinces.length}
             className="mt-1 flex w-full items-center justify-center gap-2 rounded-xl bg-[#00506a] py-2.5 px-4 text-sm font-bold text-white shadow-xs transition hover:bg-[#00476b] active:scale-[0.99]"
           >
             <Search className="h-4 w-4" />
@@ -123,6 +129,7 @@ export function TripSearchBar({
         </div>
       </form>
 
+      {!provinces.length && <p className="mt-3 text-xs text-amber-800">Chưa tải được danh sách tỉnh thành. Vui lòng tải lại trang để thay đổi tìm kiếm.</p>}
       {actionError && (
         <div className="mt-3 rounded-lg border border-amber-200 bg-amber-50 p-2.5 text-xs font-medium text-amber-800">
           {actionError}

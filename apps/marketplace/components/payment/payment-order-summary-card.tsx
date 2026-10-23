@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { CheckoutContactInfo, CheckoutPassengerItem } from "../../lib/data/types";
 
 /**
@@ -26,12 +25,6 @@ export function PaymentOrderSummaryCard({
         <h3 className="text-base font-bold text-vxn-ink sm:text-lg">
           Thông tin đơn
         </h3>
-        <Link
-          href="/checkout/hold-pn-789"
-          className="text-xs font-semibold text-vxn-teal-800 hover:underline"
-        >
-          Sửa ở bước 2 &gt;
-        </Link>
       </div>
 
       <div className="mt-4 space-y-3 text-xs sm:text-sm">

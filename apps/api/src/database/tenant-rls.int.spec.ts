@@ -171,7 +171,7 @@ describe.skipIf(!url && !requireDb)("Tenant RLS — Postgres thật, role app", 
     expect(text).toMatch(/auth_sessions_operator_matches_subject/);
   });
 
-  it("operator_profiles: ai cũng ĐỌC được, nhưng tenant/không ngữ cảnh không sửa/xoá được tenant nào", async () => {
+  it("operator_profiles: ai cũng ĐỌC được; tenant chỉ sửa thông tin công khai của chính mình, không xoá / sửa tenant khác", async () => {
     expect(await prisma.operatorProfile.count({ where: { id: { in: [tenantA, tenantB] } } })).toBe(2);
 
     const [renamed, removed] = await prisma.withTenant(tenantA, async (tx) => [
@@ -180,11 +180,18 @@ describe.skipIf(!url && !requireDb)("Tenant RLS — Postgres thật, role app", 
     ]);
     expect(renamed.count).toBe(0);
     expect(removed.count).toBe(0);
-    // Không tự "mở khoá" được chính mình (status là việc của Platform).
+    // OPR-001b: tự sửa thông tin công khai được (policy `tenant_update_public`)…
     const selfUpdate = await prisma.withTenant(tenantA, (tx) =>
-      tx.operatorProfile.updateMany({ where: { id: tenantA }, data: { status: "ACTIVE" } }),
+      tx.operatorProfile.updateMany({ where: { id: tenantA }, data: { hotline: "0900000000" } }),
     );
-    expect(selfUpdate.count).toBe(0);
+    expect(selfUpdate.count).toBe(1);
+    // …nhưng không tự đổi trạng thái (việc của Platform) — trigger `operator_profiles_tenant_columns` chặn.
+    const text = await rejectionText(
+      prisma.withTenant(tenantA, (tx) =>
+        tx.operatorProfile.updateMany({ where: { id: tenantA }, data: { status: "SUSPENDED", suspendedReason: "Tự khoá" } }),
+      ),
+    );
+    expect(text).toMatch(/chỉ được sửa thông tin công khai/);
   });
 
   it("xoá operator_profiles còn account → bị chặn (FK RESTRICT; CASCADE sẽ vượt RLS)", async () => {

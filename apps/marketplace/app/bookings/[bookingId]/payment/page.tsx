@@ -1,4 +1,5 @@
 import { Metadata } from "next";
+import { redirect } from "next/navigation";
 import { getBookingPaymentData } from "../../../../lib/data/booking";
 import { getPreview } from "../../../../lib/preview";
 import {
@@ -34,7 +35,6 @@ export default async function BookingPaymentPage({
   const breadcrumbs = [
     { label: "Trang chủ", href: "/" },
     { label: "Mua vé", href: "/trips" },
-    { label: "TP. Hồ Chí Minh → Đà Lạt", href: "/trips/trip-pn-01" },
     { label: "Thanh toán" }
   ];
 
@@ -62,6 +62,9 @@ export default async function BookingPaymentPage({
 
   // Nhánh dữ liệu thật (gọi hàm data)
   const result = await getBookingPaymentData(bookingId);
+  if (result.status === "ok" && result.data.bookingStatus && !["PENDING_PAYMENT", "EXPIRED"].includes(result.data.bookingStatus)) {
+    redirect(`/bookings/${bookingId}/payment/result`);
+  }
 
   if (result.status === "unavailable") {
     return (

@@ -55,7 +55,7 @@ export const GuestSupportView: React.FC<GuestSupportViewProps> = ({
           </Link>
           <span>›</span>
           <Link
-            href={`/tickets/lookup/result?token=demo`}
+            href="/tickets/lookup/result"
             className="hover:text-foreground transition-colors"
           >
             {data.session.bookingCode}

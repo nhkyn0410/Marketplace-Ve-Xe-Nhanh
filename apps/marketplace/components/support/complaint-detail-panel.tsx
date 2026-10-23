@@ -5,32 +5,38 @@ import { Badge } from "@vexenhanh/ui/components/badge";
 import { Button } from "@vexenhanh/ui/components/button";
 import {
   AlertTriangle,
-  Paperclip,
   Send,
   FileText,
   Check,
   AlertCircle
 } from "lucide-react";
 import { cn } from "@vexenhanh/ui/lib/utils";
-import { replyComplaint } from "../../lib/data/support";
-import type { ComplaintDetailData } from "../../lib/data/types";
+import { getSupportDownloadUrl, replyComplaint } from "../../lib/data/support";
+import type { SupportAttachment, SupportDetailData } from "../../lib/data/support-mappers";
+import { SupportAttachments } from "./support-attachments";
 
 /**
  * Thuộc tính của ComplaintDetailPanel
  */
 export interface ComplaintDetailPanelProps {
-  readonly complaint: ComplaintDetailData;
+  readonly complaint: SupportDetailData;
+  readonly guestBookingId?: string;
+  readonly onUpdated?: (detail: SupportDetailData) => void;
 }
 
 /**
  * Khung chi tiết khiếu nại và hộp trao đổi chuẩn Figma node 1446:16033
  */
 export const ComplaintDetailPanel: React.FC<ComplaintDetailPanelProps> = ({
-  complaint
+  complaint,
+  guestBookingId,
+  onUpdated
 }) => {
   const [replyText, setReplyText] = useState("");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [attachments, setAttachments] = useState<readonly SupportAttachment[]>([]);
+  const [uploading, setUploading] = useState(false);
 
   const handleSendReply = async () => {
     if (!replyText.trim()) {
@@ -42,13 +48,15 @@ export const ComplaintDetailPanel: React.FC<ComplaintDetailPanelProps> = ({
     setErrorMessage(null);
 
     try {
-      const res = await replyComplaint(complaint.id, replyText);
+      const res = await replyComplaint(complaint.id, replyText, attachments, guestBookingId);
       if (res.status === "unavailable") {
-        setErrorMessage("Chức năng gửi phản hồi đang chờ kết nối cổng API backend.");
+        setErrorMessage("Gửi phản hồi tạm thời chưa khả dụng. Vui lòng thử lại sau.");
       } else if (res.status === "error") {
         setErrorMessage(res.message ?? "Không thể gửi phản hồi. Vui lòng thử lại.");
       } else {
         setReplyText("");
+        setAttachments([]);
+        onUpdated?.(res.data);
       }
     } catch {
       setErrorMessage("Đã xảy ra lỗi khi gửi phản hồi. Vui lòng thử lại.");
@@ -152,13 +160,21 @@ export const ComplaintDetailPanel: React.FC<ComplaintDetailPanelProps> = ({
                 {msg.attachments && msg.attachments.length > 0 && (
                   <div className="flex flex-wrap gap-2 pt-1">
                     {msg.attachments.map((file, fIdx) => (
-                      <div
+                      <button
+                        type="button"
+                        disabled={!file.attachmentId}
+                        onClick={async () => {
+                          if (!file.attachmentId) return;
+                          const result = await getSupportDownloadUrl(complaint.id, file.attachmentId, guestBookingId);
+                          if (result.status === "ok") window.open(result.data.url, "_blank", "noopener,noreferrer");
+                          else setErrorMessage(result.status === "error" ? result.message ?? "Không thể xem tệp." : "Tệp chưa khả dụng.");
+                        }}
                         key={fIdx}
                         className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-background rounded-lg border border-border text-[11px] font-medium text-muted-foreground"
                       >
                         <FileText className="w-3.5 h-3.5 text-teal-700" />
                         <span>{file.fileName} · {file.fileSizeText}</span>
-                      </div>
+                      </button>
                     ))}
                   </div>
                 )}
@@ -171,6 +187,8 @@ export const ComplaintDetailPanel: React.FC<ComplaintDetailPanelProps> = ({
         <div className="rounded-2xl border border-border/80 bg-background p-3.5 space-y-3 mt-4 focus-within:border-teal-700 transition-colors">
           <textarea
             rows={3}
+            disabled={complaint.closed}
+            maxLength={2000}
             value={replyText}
             onChange={(e) => {
               setReplyText(e.target.value);
@@ -188,19 +206,12 @@ export const ComplaintDetailPanel: React.FC<ComplaintDetailPanelProps> = ({
           )}
 
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-2 border-t border-border/50">
-            <button
-              type="button"
-              onClick={() => alert("Tính năng đính kèm tệp đang được chuẩn bị")}
-              className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground font-medium self-start sm:self-auto"
-            >
-              <Paperclip className="w-3.5 h-3.5" />
-              <span>Đính kèm tệp (ảnh, PDF, Word · tối đa 5 MB)</span>
-            </button>
+            {!complaint.closed && <SupportAttachments bookingCode={complaint.bookingCode} guestBookingId={guestBookingId} files={attachments} onChange={setAttachments} onBusyChange={setUploading} />}
 
             <Button
               type="button"
               size="sm"
-              disabled={isSubmitting}
+              disabled={isSubmitting || uploading || complaint.closed}
               onClick={handleSendReply}
               className="gap-1.5 text-xs font-bold bg-teal-900 hover:bg-teal-950 text-white rounded-xl shadow-xs self-end sm:self-auto"
             >

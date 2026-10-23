@@ -1,5 +1,6 @@
 import { PassengerTopBar } from "../../../components/passenger-topbar";
-import { FeatureUnavailable } from "../../../components/states";
+import { ErrorState, FeatureUnavailable } from "../../../components/states";
+import { AccountSignInRequired } from "../../../components/account/account-sign-in-required";
 import { LoyaltyHistoryView } from "../../../components/loyalty/loyalty-history-view";
 import { getLoyaltyHistory } from "../../../lib/data/loyalty";
 import { getPreview } from "../../../lib/preview";
@@ -16,7 +17,7 @@ export interface PlusHistoryPageProps {
  * Trang Lịch sử điểm thưởng VXN Plus (SCR-PSG-34 - Figma 1448:19985).
  * URL hỗ trợ preview:
  * - ?preview=ideal: Xem bảng lịch sử điểm đầy đủ dữ liệu
- * - Không có preview: Gọi API GET /me/loyalty/transactions thật (hiện FeatureUnavailable)
+ * - Không có preview: Gọi API GET /me/loyalty/transactions thật.
  */
 export default async function PlusHistoryPage(props: PlusHistoryPageProps) {
   const resolvedParams = props.searchParams ? await props.searchParams : undefined;
@@ -58,7 +59,7 @@ export default async function PlusHistoryPage(props: PlusHistoryPageProps) {
         <main className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
           <FeatureUnavailable
             title="Lịch sử điểm chưa sẵn sàng"
-            description="Dịch vụ tra cứu lịch sử điểm thưởng đang được kết nối với hệ thống backend. Vui lòng quay lại sau."
+            description="Lịch sử điểm hiện chưa khả dụng. Vui lòng quay lại sau."
             endpoint={result.endpoint}
           />
         </main>
@@ -67,11 +68,12 @@ export default async function PlusHistoryPage(props: PlusHistoryPageProps) {
   }
 
   if (result.status === "error") {
+    if (result.httpStatus === 401) return <AccountSignInRequired />;
     return (
       <div className="min-h-screen bg-[#f9f9ff]">
         {topBarHeader}
         <main className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-          <FeatureUnavailable
+          <ErrorState
             title="Không thể tải lịch sử điểm"
             description={result.message}
           />

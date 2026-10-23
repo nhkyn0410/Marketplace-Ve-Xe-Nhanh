@@ -1,4 +1,9 @@
-import { DataResult, unavailable } from "./result";
+"use server";
+
+import type { components } from "@vexenhanh/api-client";
+import { DataResult, unavailable, ok } from "./result";
+import { apiRequest } from "./api";
+import { getArticles } from "./content";
 import {
   FeaturedOperatorItem,
   HandbookArticleItem,
@@ -26,7 +31,9 @@ export async function getFeaturedOperators(): Promise<DataResult<readonly Featur
  * Endpoint: GET /content/articles?tag=handbook (chưa có trong hợp đồng API).
  */
 export async function getHandbookArticles(): Promise<DataResult<readonly HandbookArticleItem[]>> {
-  return Promise.resolve(unavailable("GET /content/articles?tag=handbook"));
+  const result = await getArticles();
+  return result.status === "ok" ? ok(result.data.articles.map((a) => ({ id: a.id, title: a.title,
+    category: a.category, readTimeText: "", slug: a.slug }))) : result;
 }
 
 /**
@@ -34,5 +41,8 @@ export async function getHandbookArticles(): Promise<DataResult<readonly Handboo
  * Endpoint: GET /content/banners?placement=home_plus (chưa có trong hợp đồng API).
  */
 export async function getHomePlusBanner(): Promise<DataResult<{ readonly title: string; readonly description: string; readonly ctaUrl: string }>> {
-  return Promise.resolve(unavailable("GET /content/banners?placement=home_plus"));
+  const result = await apiRequest<components["schemas"]["PublicContentListDto_Output"]>("/content-pages?type=BANNER&placement=HOME");
+  if (result.status !== "ok") return result;
+  const item = result.data.items[0];
+  return item ? ok({ title: item.title, description: item.bodyMarkdown, ctaUrl: item.linkUrl ?? "/plus" }) : unavailable("GET /content-pages?type=BANNER&placement=HOME");
 }

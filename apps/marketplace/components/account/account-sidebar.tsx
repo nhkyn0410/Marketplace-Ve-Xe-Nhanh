@@ -14,6 +14,7 @@ import {
   Award
 } from "lucide-react";
 import type { UserProfileData } from "../../lib/data/types";
+import { useMarketplaceSession } from "../auth/marketplace-session";
 
 export type AccountTabKey =
   | "profile"
@@ -40,11 +41,11 @@ interface NavItem {
 
 const navItems: readonly NavItem[] = [
   { key: "profile", label: "Hồ sơ", href: "/account", icon: User },
-  { key: "passengers", label: "Hành khách đã lưu", href: "/account", icon: Users },
+  { key: "passengers", label: "Hành khách đã lưu", href: "/account#saved-passengers", icon: Users },
   { key: "vouchers", label: "Ví voucher", href: "/account/vouchers", icon: Tag },
   { key: "points", label: "Lịch sử điểm", href: "/plus/history", icon: History },
-  { key: "security", label: "Bảo mật", href: "/account", icon: ShieldCheck },
-  { key: "notifications", label: "Thông báo", href: "/account/notifications", icon: Bell },
+  { key: "security", label: "Phiên đăng nhập", href: "/account/sessions", icon: ShieldCheck },
+  { key: "notifications", label: "Cài đặt thông báo", href: "/account/notifications", icon: Bell },
   { key: "reviews", label: "Đánh giá của tôi", href: "/account/reviews", icon: Star },
   { key: "support", label: "Hỗ trợ", href: "/support", icon: LifeBuoy }
 ];
@@ -57,9 +58,10 @@ export const AccountSidebar: React.FC<AccountSidebarProps> = ({
   user,
   isPreview = false
 }) => {
-  const fullName = user?.fullName ?? "Nguyễn Văn Khách";
-  const email = user?.email ?? "khach.nguyen@gmail.com";
-  const tierName = user?.tierName ?? "Hạng Bạc";
+  const session = useMarketplaceSession();
+  const fullName = user?.fullName || session.user?.fullName || (isPreview ? "Nguyễn Văn Khách" : "Tài khoản hành khách");
+  const email = user?.email ?? session.user?.email ?? "";
+  const tierName = user?.tierName;
 
   // Lấy 2 chữ cái đầu cho Avatar
   const initials = fullName
@@ -86,7 +88,7 @@ export const AccountSidebar: React.FC<AccountSidebarProps> = ({
         {/* Huy hiệu Hạng thành viên */}
         <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 dark:bg-amber-950/40 border border-amber-200/60 dark:border-amber-900/60 text-amber-700 dark:text-amber-400 text-xs font-medium">
           <Award className="w-3.5 h-3.5" />
-          <span>VXN Plus · {tierName}</span>
+          <span>{tierName ? `VXN Plus · ${tierName}` : "VXN Plus"}</span>
         </div>
       </div>
 
@@ -95,7 +97,8 @@ export const AccountSidebar: React.FC<AccountSidebarProps> = ({
         {navItems.map((item) => {
           const isActive = activeTab === item.key;
           const Icon = item.icon;
-          const hrefWithPreview = isPreview ? `${item.href}?preview=ideal` : item.href;
+          const [pagePath, anchor] = item.href.split("#");
+          const hrefWithPreview = isPreview ? `${pagePath}?preview=ideal${anchor ? `#${anchor}` : ""}` : item.href;
 
           return (
             <Link

@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { HandbookArticleItem } from "../../lib/data/types";
-import { FeatureUnavailableCompact } from "../states";
 
 /**
  * Thuộc tính của khối VXN Plus & Cẩm nang xe khách.

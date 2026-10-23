@@ -42,6 +42,26 @@ export function temporaryPasswordDeliveryFailed(employeeId?: string): AuthExcept
   );
 }
 
+/** Danh sách có quyền không tick được cho vai trò của tài khoản (TASK-IAM-007 P4). */
+export function permissionNotAssignable(): AuthException {
+  return new AuthException(
+    HttpStatus.BAD_REQUEST,
+    "PERMISSION_NOT_ASSIGNABLE",
+    "Có quyền không áp dụng được cho vai trò của tài khoản này.",
+    TITLE,
+  );
+}
+
+/** Thêm / bớt quyền mà chính người thao tác không có (TASK-IAM-007 P5 — không leo thang). */
+export function permissionGrantForbidden(): AuthException {
+  return new AuthException(
+    HttpStatus.FORBIDDEN,
+    "PERMISSION_GRANT_FORBIDDEN",
+    "Chỉ được cấp hoặc gỡ những quyền bạn đang có.",
+    TITLE,
+  );
+}
+
 export function isPrismaUniqueConflict(error: unknown): boolean {
   return (
     typeof error === "object" &&

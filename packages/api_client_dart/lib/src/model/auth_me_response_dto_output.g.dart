@@ -90,6 +90,8 @@ class _$AuthMeResponseDtoOutput extends AuthMeResponseDtoOutput {
   @override
   final bool mfaVerified;
   @override
+  final BuiltList<String> permissions;
+  @override
   final String? operatorId;
   @override
   final String? operatorSlug;
@@ -106,6 +108,7 @@ class _$AuthMeResponseDtoOutput extends AuthMeResponseDtoOutput {
       required this.sessionId,
       required this.accessExpiresAt,
       required this.mfaVerified,
+      required this.permissions,
       this.operatorId,
       this.operatorSlug})
       : super._();
@@ -129,6 +132,7 @@ class _$AuthMeResponseDtoOutput extends AuthMeResponseDtoOutput {
         sessionId == other.sessionId &&
         accessExpiresAt == other.accessExpiresAt &&
         mfaVerified == other.mfaVerified &&
+        permissions == other.permissions &&
         operatorId == other.operatorId &&
         operatorSlug == other.operatorSlug;
   }
@@ -143,6 +147,7 @@ class _$AuthMeResponseDtoOutput extends AuthMeResponseDtoOutput {
     _$hash = $jc(_$hash, sessionId.hashCode);
     _$hash = $jc(_$hash, accessExpiresAt.hashCode);
     _$hash = $jc(_$hash, mfaVerified.hashCode);
+    _$hash = $jc(_$hash, permissions.hashCode);
     _$hash = $jc(_$hash, operatorId.hashCode);
     _$hash = $jc(_$hash, operatorSlug.hashCode);
     _$hash = $jf(_$hash);
@@ -159,6 +164,7 @@ class _$AuthMeResponseDtoOutput extends AuthMeResponseDtoOutput {
           ..add('sessionId', sessionId)
           ..add('accessExpiresAt', accessExpiresAt)
           ..add('mfaVerified', mfaVerified)
+          ..add('permissions', permissions)
           ..add('operatorId', operatorId)
           ..add('operatorSlug', operatorSlug))
         .toString();
@@ -199,6 +205,12 @@ class AuthMeResponseDtoOutputBuilder
   bool? get mfaVerified => _$this._mfaVerified;
   set mfaVerified(bool? mfaVerified) => _$this._mfaVerified = mfaVerified;
 
+  ListBuilder<String>? _permissions;
+  ListBuilder<String> get permissions =>
+      _$this._permissions ??= ListBuilder<String>();
+  set permissions(ListBuilder<String>? permissions) =>
+      _$this._permissions = permissions;
+
   String? _operatorId;
   String? get operatorId => _$this._operatorId;
   set operatorId(String? operatorId) => _$this._operatorId = operatorId;
@@ -221,6 +233,7 @@ class AuthMeResponseDtoOutputBuilder
       _sessionId = $v.sessionId;
       _accessExpiresAt = $v.accessExpiresAt;
       _mfaVerified = $v.mfaVerified;
+      _permissions = $v.permissions.toBuilder();
       _operatorId = $v.operatorId;
       _operatorSlug = $v.operatorSlug;
       _$v = null;
@@ -242,25 +255,39 @@ class AuthMeResponseDtoOutputBuilder
   AuthMeResponseDtoOutput build() => _build();
 
   _$AuthMeResponseDtoOutput _build() {
-    final _$result = _$v ??
-        _$AuthMeResponseDtoOutput._(
-          subjectId: BuiltValueNullFieldError.checkNotNull(
-              subjectId, r'AuthMeResponseDtoOutput', 'subjectId'),
-          scope: BuiltValueNullFieldError.checkNotNull(
-              scope, r'AuthMeResponseDtoOutput', 'scope'),
-          role: BuiltValueNullFieldError.checkNotNull(
-              role, r'AuthMeResponseDtoOutput', 'role'),
-          username: BuiltValueNullFieldError.checkNotNull(
-              username, r'AuthMeResponseDtoOutput', 'username'),
-          sessionId: BuiltValueNullFieldError.checkNotNull(
-              sessionId, r'AuthMeResponseDtoOutput', 'sessionId'),
-          accessExpiresAt: BuiltValueNullFieldError.checkNotNull(
-              accessExpiresAt, r'AuthMeResponseDtoOutput', 'accessExpiresAt'),
-          mfaVerified: BuiltValueNullFieldError.checkNotNull(
-              mfaVerified, r'AuthMeResponseDtoOutput', 'mfaVerified'),
-          operatorId: operatorId,
-          operatorSlug: operatorSlug,
-        );
+    _$AuthMeResponseDtoOutput _$result;
+    try {
+      _$result = _$v ??
+          _$AuthMeResponseDtoOutput._(
+            subjectId: BuiltValueNullFieldError.checkNotNull(
+                subjectId, r'AuthMeResponseDtoOutput', 'subjectId'),
+            scope: BuiltValueNullFieldError.checkNotNull(
+                scope, r'AuthMeResponseDtoOutput', 'scope'),
+            role: BuiltValueNullFieldError.checkNotNull(
+                role, r'AuthMeResponseDtoOutput', 'role'),
+            username: BuiltValueNullFieldError.checkNotNull(
+                username, r'AuthMeResponseDtoOutput', 'username'),
+            sessionId: BuiltValueNullFieldError.checkNotNull(
+                sessionId, r'AuthMeResponseDtoOutput', 'sessionId'),
+            accessExpiresAt: BuiltValueNullFieldError.checkNotNull(
+                accessExpiresAt, r'AuthMeResponseDtoOutput', 'accessExpiresAt'),
+            mfaVerified: BuiltValueNullFieldError.checkNotNull(
+                mfaVerified, r'AuthMeResponseDtoOutput', 'mfaVerified'),
+            permissions: permissions.build(),
+            operatorId: operatorId,
+            operatorSlug: operatorSlug,
+          );
+    } catch (_) {
+      late String _$failedField;
+      try {
+        _$failedField = 'permissions';
+        permissions.build();
+      } catch (e) {
+        throw BuiltValueNestedFieldError(
+            r'AuthMeResponseDtoOutput', _$failedField, e.toString());
+      }
+      rethrow;
+    }
     replace(_$result);
     return _$result;
   }

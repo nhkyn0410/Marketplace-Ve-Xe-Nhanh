@@ -37,7 +37,6 @@ export default async function BookingPaymentResultPage({
   const breadcrumbs = [
     { label: "Trang chủ", href: "/" },
     { label: "Mua vé", href: "/trips" },
-    { label: "TP. Hồ Chí Minh → Đà Lạt", href: "/trips/trip-pn-01" },
     { label: isSuccess ? "Hoàn tất" : "Thanh toán" }
   ];
 

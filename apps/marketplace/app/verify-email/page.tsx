@@ -1,5 +1,7 @@
 import React from "react";
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
+import { z } from "zod";
 import { getPreview } from "../../lib/preview";
 import { verifyEmailFixture } from "../../lib/preview/fixtures/auth";
 import { VerifyEmailView } from "../../components/auth/verify-email-view";
@@ -31,16 +33,15 @@ export default async function VerifyEmailPage({
 
   // 2. Nhánh thật
   const emailParam = params["email"];
-  const email = typeof emailParam === "string" ? emailParam : "khach.nguyen@gmail.com";
+  const email = typeof emailParam === "string" ? emailParam : "";
+  if (!z.email().safeParse(email).success) redirect("/login");
 
   return (
     <VerifyEmailView
       initialData={{
         email,
         otpDigits: ["", "", "", "", "", ""],
-        expiresInSeconds: 300,
-        resendCountdownSeconds: 30,
-        remainingAttempts: 5
+        resendCountdownSeconds: 60
       }}
       isPreview={false}
     />

@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Lock, Check, AlertCircle, RotateCcw } from "lucide-react";
 import { Button } from "@vexenhanh/ui/components/button";
 import type {
@@ -111,6 +112,7 @@ export const AccountNotificationsView: React.FC<AccountNotificationsViewProps> =
   },
   isPreview = false
 }) => {
+  const router = useRouter();
   const [optionalSettings, setOptionalSettings] = useState<NotificationSettingItem[]>(() => [
     ...initialSettings.optionalItems
   ]);
@@ -139,7 +141,7 @@ export const AccountNotificationsView: React.FC<AccountNotificationsViewProps> =
     setOptionalSettings([...initialSettings.optionalItems]);
     setStatusMessage({
       type: "success",
-      text: "Đã khôi phục cài đặt thông báo về mặc định."
+      text: "Đã hủy các thay đổi chưa lưu."
     });
     setTimeout(() => setStatusMessage(null), 3000);
   };
@@ -150,7 +152,7 @@ export const AccountNotificationsView: React.FC<AccountNotificationsViewProps> =
     if (isPreview) {
       setStatusMessage({
         type: "success",
-        text: "Đã lưu cài đặt thông báo thành công."
+        text: "Đây là chế độ xem trước; cài đặt chưa được lưu."
       });
       setTimeout(() => setStatusMessage(null), 3000);
       return;
@@ -162,10 +164,13 @@ export const AccountNotificationsView: React.FC<AccountNotificationsViewProps> =
         mandatoryItems: initialSettings.mandatoryItems,
         optionalItems: optionalSettings
       });
-      if (res.status === "unavailable") {
+      if (res.status === "ok") {
+        setStatusMessage({ type: "success", text: "Đã lưu cài đặt thông báo." });
+        router.refresh();
+      } else if (res.status === "unavailable") {
         setStatusMessage({
           type: "error",
-          text: "Chức năng lưu cài đặt thông báo đang chờ kết nối cổng API backend (PUT /me/notification-preferences)."
+          text: "Chưa thể lưu cài đặt thông báo. Vui lòng thử lại sau."
         });
       } else if (res.status === "error") {
         setStatusMessage({
@@ -229,7 +234,7 @@ export const AccountNotificationsView: React.FC<AccountNotificationsViewProps> =
               Cài đặt thông báo
             </h1>
             <p className="text-xs text-muted-foreground">
-              Chọn kênh nhận cho từng loại thông báo. Thông báo bắt buộc luôn được gửi và không thể tắt.
+              Chọn Email hoặc Push trên ứng dụng cho từng loại thông báo. Các loại bắt buộc được quản lý theo chính sách dịch vụ.
             </p>
           </div>
 
@@ -265,15 +270,11 @@ export const AccountNotificationsView: React.FC<AccountNotificationsViewProps> =
                   <div className="flex items-center gap-8 sm:gap-14 pr-2 shrink-0">
                     {/* Toggle Email bắt buộc (disabled, luôn bật) */}
                     <div className="w-12 flex justify-center">
-                      <div className="w-10 h-5 rounded-full bg-slate-300 dark:bg-slate-700 p-0.5 cursor-not-allowed opacity-80 flex items-center">
-                        <div className="w-4 h-4 rounded-full bg-white shadow-xs ml-auto" />
-                      </div>
+                      <span className="text-xs text-muted-foreground">{item.emailEnabled ? "Bật" : "Tắt"}</span>
                     </div>
                     {/* Toggle Push bắt buộc (disabled, luôn bật) */}
                     <div className="w-16 flex justify-center">
-                      <div className="w-10 h-5 rounded-full bg-slate-300 dark:bg-slate-700 p-0.5 cursor-not-allowed opacity-80 flex items-center">
-                        <div className="w-4 h-4 rounded-full bg-white shadow-xs ml-auto" />
-                      </div>
+                      <span className="text-xs text-muted-foreground">{item.pushEnabled ? "Bật" : "Tắt"}</span>
                     </div>
                   </div>
                 </div>
@@ -310,6 +311,8 @@ export const AccountNotificationsView: React.FC<AccountNotificationsViewProps> =
                       <button
                         type="button"
                         role="switch"
+                        disabled={isSaving}
+                        aria-label={`Email: ${item.title}`}
                         aria-checked={item.emailEnabled}
                         onClick={() => handleToggle(item.id, "email")}
                         className={`w-10 h-5 rounded-full p-0.5 transition-colors focus:outline-none focus:ring-2 focus:ring-[#0F5B60] flex items-center ${
@@ -331,6 +334,8 @@ export const AccountNotificationsView: React.FC<AccountNotificationsViewProps> =
                       <button
                         type="button"
                         role="switch"
+                        disabled={isSaving}
+                        aria-label={`Push trên ứng dụng: ${item.title}`}
                         aria-checked={item.pushEnabled}
                         onClick={() => handleToggle(item.id, "push")}
                         className={`w-10 h-5 rounded-full p-0.5 transition-colors focus:outline-none focus:ring-2 focus:ring-[#0F5B60] flex items-center ${
@@ -352,16 +357,21 @@ export const AccountNotificationsView: React.FC<AccountNotificationsViewProps> =
             </div>
           </div>
 
+          <p className="text-xs text-muted-foreground">
+            Push chỉ được gửi tới thiết bị đã đăng ký trên ứng dụng Vé Xe Nhanh. Nội dung thông báo được nhận qua Email hoặc ứng dụng.
+          </p>
+
           {/* Hàng nút bấm thao tác */}
           <div className="flex items-center justify-end gap-3 pt-2">
             <Button
               type="button"
               variant="outline"
+              disabled={isSaving}
               onClick={handleReset}
               className="h-10 px-4 rounded-xl text-xs gap-1.5 border-border bg-white dark:bg-card"
             >
               <RotateCcw className="w-3.5 h-3.5" />
-              <span>Khôi phục mặc định</span>
+              <span>Hủy thay đổi</span>
             </Button>
 
             <Button

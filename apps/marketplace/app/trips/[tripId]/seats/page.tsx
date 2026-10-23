@@ -31,7 +31,6 @@ export default async function SeatsPage({ params, searchParams }: SeatsPageProps
   const breadcrumbs = [
     { label: "Trang chủ", href: "/" },
     { label: "Mua vé", href: "/trips" },
-    { label: "TP. Hồ Chí Minh → Đà Lạt", href: `/trips/${tripId}` },
     { label: "Chọn chỗ" }
   ];
 

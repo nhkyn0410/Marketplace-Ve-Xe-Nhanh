@@ -68,3 +68,17 @@ export function changeTripStatus(tripId: string, input: TripStatusInput): Promis
 export function setTripSeatStatus(tripId: string, input: TripSeatStatusInput): Promise<Trip> {
   return apiRequest<Trip>(`/operator/trips/${tripId}/seats/status`, { method: "PUT", body: input });
 }
+
+export type TripSales = Schemas["TripSalesDto_Output"];
+export type TripChange = TripSales["changes"][number];
+export type TripChangeInput = Schemas["TripChangeInputDto"];
+
+/** Tình hình bán (chỗ đã bán / đang giữ, đơn bị ảnh hưởng, số hoàn nếu hủy) + lịch sử đổi / hủy chuyến (TRN-008). */
+export function getTripSales(tripId: string): Promise<TripSales> {
+  return apiRequest<TripSales>(`/operator/trips/${tripId}/sales`);
+}
+
+/** Đổi giờ / xe / điểm đón trả của chuyến đang bán — bắt buộc lý do; khách bị ảnh hưởng nhận thông báo (TRN-008). */
+export function changeTrip(tripId: string, input: TripChangeInput): Promise<Trip> {
+  return apiRequest<Trip>(`/operator/trips/${tripId}/changes`, { method: "POST", body: input });
+}

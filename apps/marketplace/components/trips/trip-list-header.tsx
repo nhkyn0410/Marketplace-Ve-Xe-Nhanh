@@ -19,7 +19,7 @@ export function TripListHeader({
   dateText,
   passengerCount
 }: TripListHeaderProps) {
-  const [activeSort, setActiveSort] = useState<"earliest" | "price_asc" | "rating_desc" | "fastest">(
+  const [activeSort, setActiveSort] = useState<"earliest" | "price_asc" | "fastest">(
     "earliest"
   );
 
@@ -40,7 +40,6 @@ export function TripListHeader({
         {[
           { id: "earliest", label: "Giờ đi sớm" },
           { id: "price_asc", label: "Giá thấp" },
-          { id: "rating_desc", label: "Đánh giá cao" },
           { id: "fastest", label: "Đi nhanh nhất" }
         ].map((tab) => (
           <button

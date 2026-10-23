@@ -37,20 +37,20 @@ export function TripPricingPolicy({
         {/* Bảng giá các loại chỗ */}
         <div className="space-y-2.5 text-xs">
           <div className="flex items-center justify-between py-1.5 border-b border-neutral-100">
-            <span className="text-neutral-600">Giường đơn</span>
+            <span className="text-neutral-600">Giá từ</span>
             <span className="font-bold text-neutral-900 text-sm">
-              {formatVnd(priceSingleVnd)} / chỗ
+              {priceSingleVnd ? `${formatVnd(priceSingleVnd)} / chỗ` : "Chưa có giá"}
             </span>
           </div>
 
-          <div className="flex items-center justify-between py-1.5 border-b border-neutral-100">
+          {priceDoubleVnd && <div className="flex items-center justify-between py-1.5 border-b border-neutral-100">
             <span className="text-neutral-600">
               Giường đôi (1–2 người, bán nguyên chỗ)
             </span>
             <span className="font-bold text-neutral-900 text-sm">
               {formatVnd(priceDoubleVnd)} / chỗ
             </span>
-          </div>
+          </div>}
 
           <div className="flex items-center justify-between py-1.5 text-neutral-500">
             <span>Ngừng bán online</span>

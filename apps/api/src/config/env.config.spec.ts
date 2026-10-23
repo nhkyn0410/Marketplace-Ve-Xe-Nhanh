@@ -97,6 +97,7 @@ describe("parseAppConfig", () => {
       MFA_ENCRYPTION_KEY: Buffer.alloc(32, 1).toString("base64"),
       RESEND_API_KEY: "test-resend-key",
       WEB_CSRF_SECRET: Buffer.alloc(32, 2).toString("base64"),
+      TICKET_QR_SECRET: Buffer.alloc(32, 3).toString("base64"),
       OPERATOR_WEB_ORIGINS: "https://operator.example.com",
       ADMIN_WEB_ORIGINS: "https://admin.example.com",
       ...R2,
@@ -116,10 +117,21 @@ describe("parseAppConfig", () => {
       RESEND_API_KEY: "test-resend-key",
       GOONG_API_KEY: "k",
       WEB_CSRF_SECRET: Buffer.alloc(32, 2).toString("base64"),
+      TICKET_QR_SECRET: Buffer.alloc(32, 3).toString("base64"),
       OPERATOR_WEB_ORIGINS: "https://operator.vexenhanh.vn",
       ADMIN_WEB_ORIGINS: "https://admin.vexenhanh.vn, https://admin2.vexenhanh.vn",
       ...R2,
     };
+
+    it("hồ sơ đăng ký nhà xe (TASK-OPR-001): link mặc định 72 giờ, tối đa 30 ngày; bucket private tùy chọn", () => {
+      expect(parseAppConfig({}).OPERATOR_APPLICATION_LINK_TTL_HOURS).toBe(72);
+      expect(parseAppConfig({ OPERATOR_APPLICATION_LINK_TTL_HOURS: "24" }).OPERATOR_APPLICATION_LINK_TTL_HOURS).toBe(24);
+      expect(() => parseAppConfig({ OPERATOR_APPLICATION_LINK_TTL_HOURS: "721" })).toThrow(/OPERATOR_APPLICATION_LINK_TTL_HOURS/);
+      expect(() => parseAppConfig({ OPERATOR_APPLICATION_LINK_TTL_HOURS: "0" })).toThrow(/OPERATOR_APPLICATION_LINK_TTL_HOURS/);
+      // Production không bắt buộc bucket private: chưa chốt nơi lưu KYC (OQ-21) thì API giấy tờ trả 503.
+      expect(parseAppConfig(production).R2_PRIVATE_BUCKET).toBeUndefined();
+      expect(parseAppConfig({ ...production, R2_PRIVATE_BUCKET: "vexenhanh-private" }).R2_PRIVATE_BUCKET).toBe("vexenhanh-private");
+    });
 
     it("kho object (TASK-TRN-009): production bắt buộc R2; dev bỏ trống thì dùng ổ đĩa; khai dở bị từ chối", () => {
       const withoutR2 = Object.fromEntries(Object.entries(production).filter(([key]) => !key.startsWith("R2_")));
@@ -139,6 +151,15 @@ describe("parseAppConfig", () => {
       ]);
     });
 
+    it("cổng thanh toán (TASK-BTP-003): mặc định sandbox, production không bắt buộc khóa (OQ-22), khai dở khóa bị từ chối", () => {
+      expect(parseAppConfig({}).VNPAY_PAYMENT_URL).toBe("https://sandbox.vnpayment.vn/paymentv2/vpcpay.html");
+      expect(parseAppConfig({}).MOMO_ENDPOINT).toBe("https://test-payment.momo.vn");
+      expect(parseAppConfig(production).VNPAY_TMN_CODE).toBeUndefined();
+      expect(() => parseAppConfig({ VNPAY_TMN_CODE: "TMN" })).toThrow(/VNPAY_HASH_SECRET/);
+      expect(() => parseAppConfig({ MOMO_PARTNER_CODE: "P", MOMO_ACCESS_KEY: "A" })).toThrow(/MOMO_SECRET_KEY/);
+      expect(parseAppConfig({ VNPAY_TMN_CODE: "TMN", VNPAY_HASH_SECRET: "s" }).VNPAY_TMN_CODE).toBe("TMN");
+    });
+
     it("defaults to local Operator/Admin origins outside production", () => {
       const config = parseAppConfig({});
       expect(config.OPERATOR_WEB_ORIGINS).toBeUndefined();
@@ -153,6 +174,7 @@ describe("parseAppConfig", () => {
       ["OPERATOR_WEB_ORIGINS", { OPERATOR_WEB_ORIGINS: "http://operator.vexenhanh.vn" }],
       ["ADMIN_WEB_ORIGINS", { ADMIN_WEB_ORIGINS: "https://localhost:3003" }],
       ["WEB_CSRF_SECRET", { WEB_CSRF_SECRET: Buffer.alloc(32, 1).toString("base64") }],
+      ["TICKET_QR_SECRET", { TICKET_QR_SECRET: undefined }],
     ])("production fails fast on %s %o", (key, override) => {
       expect(() => parseAppConfig({ ...production, ...override })).toThrow(new RegExp(key));
     });

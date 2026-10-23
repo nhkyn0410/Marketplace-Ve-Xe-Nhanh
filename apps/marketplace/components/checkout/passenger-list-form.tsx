@@ -71,7 +71,7 @@ export function PassengerListForm({
                   <select
                     aria-label="Chọn từ hành khách đã lưu"
                     value={
-                      savedPassengers.find((s) => s.fullName.includes(passenger.fullName))
+                      savedPassengers.find((s) => s.fullName === passenger.fullName && s.phoneNumber === passenger.phoneNumber)
                         ?.id ?? ""
                     }
                     onChange={(e) => {
@@ -127,7 +127,7 @@ export function PassengerListForm({
                 />
               </div>
 
-              <div>
+              {maxSavedCount > 0 && <div>
                 <label className="block text-[11px] font-semibold text-vxn-ink">
                   CCCD / hộ chiếu
                 </label>
@@ -140,11 +140,11 @@ export function PassengerListForm({
                   placeholder="Nhập số giấy tờ"
                   className="mt-1 w-full rounded-xl border border-neutral-300 bg-white px-3 py-2 text-xs sm:text-sm text-vxn-ink shadow-2xs focus:border-vxn-teal-700 focus:outline-hidden"
                 />
-              </div>
+              </div>}
             </div>
 
             {/* Checkbox lưu hành khách */}
-            <div className="mt-3.5 flex items-center justify-between pt-2">
+            {maxSavedCount > 0 && <div className="mt-3.5 flex items-center justify-between pt-2">
               <label className="flex items-center gap-2 cursor-pointer text-xs text-vxn-ink font-medium select-none">
                 <input
                   type="checkbox"
@@ -160,7 +160,7 @@ export function PassengerListForm({
               <span className="text-[11px] text-neutral-400">
                 Đã lưu {currentSavedCount} / {maxSavedCount}
               </span>
-            </div>
+            </div>}
           </div>
         ))}
       </div>

@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { ArrowRight, Clock, Eye, Search, Sparkles } from "lucide-react";
 import type { ArticleCategory, ArticleSummary } from "../../lib/data/types";
 
@@ -10,7 +11,10 @@ import type { ArticleCategory, ArticleSummary } from "../../lib/data/types";
  */
 export interface ExploreViewProps {
   readonly categories: readonly ArticleCategory[];
-  readonly featuredArticle: ArticleSummary;
+  readonly featuredArticle?: ArticleSummary;
+  readonly nextCursor?: string | null;
+  readonly initialCategory?: string;
+  readonly isPreview?: boolean;
   readonly articles: readonly ArticleSummary[];
 }
 
@@ -20,9 +24,13 @@ export interface ExploreViewProps {
 export function ExploreView({
   categories,
   featuredArticle,
-  articles
+  articles,
+  nextCursor,
+  initialCategory = "all",
+  isPreview = false
 }: ExploreViewProps) {
-  const [activeCategorySlug, setActiveCategorySlug] = useState<string>("all");
+  const router = useRouter();
+  const [activeCategorySlug, setActiveCategorySlug] = useState<string>(initialCategory);
   const [searchKeyword, setSearchKeyword] = useState<string>("");
 
   // Lọc bài viết theo category và search keyword
@@ -47,7 +55,7 @@ export function ExploreView({
             Khám phá
           </h1>
           <p className="mt-2 text-xs text-vxn-fg-4 sm:text-sm">
-            Cẩm nang, tin tức và kinh nghiệm đi xe khách do Vé Xe Nhanh biên soạn.
+            Cẩm nang, tin tức và kinh nghiệm đi xe khách.
           </p>
         </div>
 
@@ -55,7 +63,7 @@ export function ExploreView({
         <div className="relative w-full md:w-80">
           <input
             type="text"
-            placeholder="Tìm bài viết theo từ khóa"
+            placeholder="Tìm bài viết trong trang này"
             value={searchKeyword}
             onChange={(e) => setSearchKeyword(e.target.value)}
             className="w-full rounded-xl border border-vxn-border bg-white px-4 py-2.5 pl-10 text-xs font-semibold text-vxn-ink placeholder:font-normal placeholder:text-vxn-fg-4 focus:border-vxn-teal-600 focus:outline-hidden focus:ring-2 focus:ring-vxn-teal-500/20"
@@ -70,7 +78,7 @@ export function ExploreView({
           <button
             key={cat.id}
             type="button"
-            onClick={() => setActiveCategorySlug(cat.slug)}
+            onClick={() => { setActiveCategorySlug(cat.slug); if (!isPreview) router.push(`/explore?category=${encodeURIComponent(cat.slug)}`); }}
             className={`rounded-xl px-4 py-2 text-xs font-bold transition ${
               activeCategorySlug === cat.slug
                 ? "bg-[#00506a] text-white shadow-xs"
@@ -83,12 +91,12 @@ export function ExploreView({
       </div>
 
       {/* 3. Bài viết Nổi bật (Featured Article Hero Card) */}
-      {activeCategorySlug === "all" && !searchKeyword && (
+      {featuredArticle?.isFeatured && activeCategorySlug === "all" && !searchKeyword && (
         <div className="group relative overflow-hidden rounded-3xl border border-vxn-border bg-white shadow-md transition hover:shadow-xl lg:flex">
           {/* Ảnh bìa */}
           <div
             className="h-64 w-full bg-cover bg-center transition duration-500 group-hover:scale-102 lg:h-auto lg:w-1/2"
-            style={{ backgroundImage: `url('${featuredArticle.coverImageUrl}')` }}
+            style={featuredArticle.coverImageUrl ? { backgroundImage: `url('${featuredArticle.coverImageUrl}')` } : undefined}
           />
 
           {/* Nội dung bên phải */}
@@ -118,16 +126,8 @@ export function ExploreView({
             <div className="mt-6 flex flex-wrap items-center justify-between gap-4 border-t border-vxn-border/60 pt-4 text-xs text-vxn-fg-4">
               <div className="flex items-center gap-3">
                 <span>{featuredArticle.publishedDateText}</span>
-                <span>•</span>
-                <span className="flex items-center gap-1">
-                  <Clock className="h-3.5 w-3.5" />
-                  {featuredArticle.readingTimeMinutes} phút đọc
-                </span>
-                <span>•</span>
-                <span className="flex items-center gap-1">
-                  <Eye className="h-3.5 w-3.5" />
-                  {featuredArticle.viewsCountText}
-                </span>
+                {featuredArticle.readingTimeMinutes && <span className="flex items-center gap-1"><Clock className="h-3.5 w-3.5" />{featuredArticle.readingTimeMinutes} phút đọc</span>}
+                {featuredArticle.viewsCountText && <span className="flex items-center gap-1"><Eye className="h-3.5 w-3.5" />{featuredArticle.viewsCountText}</span>}
               </div>
 
               <Link
@@ -142,6 +142,7 @@ export function ExploreView({
         </div>
       )}
 
+      {!filteredArticles.length && <p className="rounded-2xl border border-vxn-border bg-white p-6 text-sm text-vxn-fg-4">{searchKeyword ? "Không tìm thấy bài viết trong trang này. Hãy thử từ khóa khác hoặc chuyển trang." : "Chưa có bài viết trong chuyên mục này."}</p>}
       {/* 4. Lưới danh sách bài viết */}
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {filteredArticles.map((art) => (
@@ -153,7 +154,7 @@ export function ExploreView({
             <Link href={`/explore/${art.slug}`} className="block overflow-hidden">
               <div
                 className="h-48 w-full bg-cover bg-center transition duration-500 group-hover:scale-105"
-                style={{ backgroundImage: `url('${art.coverImageUrl}')` }}
+                style={art.coverImageUrl ? { backgroundImage: `url('${art.coverImageUrl}')` } : undefined}
               />
             </Link>
 
@@ -175,10 +176,7 @@ export function ExploreView({
 
               <div className="mt-4 flex items-center justify-between border-t border-vxn-border/60 pt-3 text-2xs text-vxn-fg-4">
                 <span>{art.publishedDateText}</span>
-                <span className="flex items-center gap-1">
-                  <Eye className="h-3 w-3" />
-                  {art.viewsCountText}
-                </span>
+                {art.viewsCountText && <span className="flex items-center gap-1"><Eye className="h-3 w-3" />{art.viewsCountText}</span>}
               </div>
             </div>
           </div>
@@ -186,14 +184,14 @@ export function ExploreView({
       </div>
 
       {/* Nút Xem thêm */}
-      <div className="flex justify-center pt-4">
-        <button
-          type="button"
+      {nextCursor && <div className="flex justify-center pt-4">
+        <Link
+          href={`/explore?category=${encodeURIComponent(activeCategorySlug)}&cursor=${encodeURIComponent(nextCursor)}`}
           className="rounded-xl border border-vxn-border bg-white px-6 py-3 text-xs font-bold text-vxn-fg-2 shadow-2xs transition hover:bg-vxn-bg-soft"
         >
-          Xem thêm bài viết
-        </button>
-      </div>
+          Trang tiếp theo
+        </Link>
+      </div>}
     </div>
   );
 }

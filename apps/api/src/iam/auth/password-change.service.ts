@@ -21,12 +21,10 @@ import { openMfaValue, sealMfaValue } from "./totp";
 
 export const PASSWORD_CHANGE_CHALLENGE_TTL_SECONDS = 5 * 60;
 
-export type PasswordChangePrincipal = {
-  subjectType: Extract<SubjectType, "OPERATOR" | "EMPLOYEE">;
-  subjectId: string;
-  operatorId: string;
-  authEpoch: number;
-};
+/** `operatorId` có với Operator / Employee, `null` với tài khoản quản trị (PLATFORM). */
+export type PasswordChangePrincipal =
+  | { subjectType: Extract<SubjectType, "OPERATOR" | "EMPLOYEE">; subjectId: string; operatorId: string; authEpoch: number }
+  | { subjectType: Extract<SubjectType, "PLATFORM">; subjectId: string; operatorId: null; authEpoch: number };
 
 export type PasswordChangeChallenge = {
   passwordChangeRequired: true;
@@ -38,13 +36,13 @@ type StoredChallenge = PasswordChangePrincipal & { version: 2 };
 
 type PasswordAccount = {
   id: string;
-  operatorId: string;
   status: string;
   passwordHash: string;
   authEpoch: number;
   credentialDeliveryPending: boolean;
   passwordChangeRequired: boolean;
   temporaryPasswordExpiresAt: Date | null;
+  /** Trạng thái nhà xe; tài khoản quản trị không thuộc nhà xe nào → luôn `ACTIVE`. */
   operator: { status: string };
 };
 
@@ -133,7 +131,7 @@ export class PasswordChangeService {
       action: "auth.password_change.intent",
       targetType: subjectTarget(challenge.subjectType),
       targetId: challenge.subjectId,
-      operatorId: challenge.operatorId,
+      operatorId: challenge.operatorId ?? undefined,
       reason: "first_login",
       after: auditContext(ctx)
     });
@@ -144,29 +142,7 @@ export class PasswordChangeService {
       SessionRevokeReason.PASSWORD_RESET
     );
 
-    const count = await this.prisma.withTenant(challenge.operatorId, (tx) => {
-      const where = {
-        id: challenge.subjectId,
-        operatorId: challenge.operatorId,
-        authEpoch: challenge.authEpoch,
-        status: "ACTIVE" as const,
-        operator: { status: "ACTIVE" as const },
-        credentialDeliveryPending: false,
-        passwordHash: account.passwordHash,
-        passwordChangeRequired: true,
-        temporaryPasswordExpiresAt: { gt: new Date() }
-      };
-      const data = {
-        passwordHash,
-        authEpoch: { increment: 1 },
-        version: { increment: 1 },
-        passwordChangeRequired: false,
-        temporaryPasswordExpiresAt: null
-      };
-      return challenge.subjectType === SubjectType.OPERATOR
-        ? tx.operatorAccount.updateMany({ where, data })
-        : tx.employeeAccount.updateMany({ where, data });
-    });
+    const count = await this.updatePassword(challenge, account.passwordHash, passwordHash);
     if (count.count !== 1) {
       throw invalidPasswordChangeToken();
     }
@@ -186,13 +162,48 @@ export class PasswordChangeService {
         action: "auth.password_changed",
         targetType: subjectTarget(challenge.subjectType),
         targetId: challenge.subjectId,
-        operatorId: challenge.operatorId,
+        operatorId: challenge.operatorId ?? undefined,
         reason: "first_login",
         after: { passwordChangeRequired: false, ...auditContext(ctx) }
       })
       .catch((error: unknown) =>
         this.logger.error({ event: "audit.write_failed", action: "auth.password_changed", error })
       );
+  }
+
+  /** Đổi hash có điều kiện (đúng epoch / hash cũ / còn hạn mật khẩu tạm) — 0 dòng = trạng thái đã đổi. */
+  private updatePassword(
+    challenge: StoredChallenge,
+    oldHash: string,
+    passwordHash: string
+  ): Promise<{ count: number }> {
+    const guard = {
+      id: challenge.subjectId,
+      authEpoch: challenge.authEpoch,
+      status: "ACTIVE" as const,
+      credentialDeliveryPending: false,
+      passwordHash: oldHash,
+      passwordChangeRequired: true,
+      temporaryPasswordExpiresAt: { gt: new Date() }
+    };
+    const data = {
+      passwordHash,
+      authEpoch: { increment: 1 },
+      passwordChangeRequired: false,
+      temporaryPasswordExpiresAt: null
+    };
+    if (challenge.subjectType === SubjectType.PLATFORM) {
+      // `platform_accounts` không có RLS / tenant — ngữ cảnh system của IAM.
+      return this.prisma.withSystem((tx) => tx.platformAccount.updateMany({ where: guard, data }));
+    }
+    const operatorId = challenge.operatorId;
+    return this.prisma.withTenant(operatorId, (tx) => {
+      const where = { ...guard, operatorId, operator: { status: "ACTIVE" as const } };
+      const tenantData = { ...data, version: { increment: 1 } };
+      return challenge.subjectType === SubjectType.OPERATOR
+        ? tx.operatorAccount.updateMany({ where, data: tenantData })
+        : tx.employeeAccount.updateMany({ where, data: tenantData });
+    });
   }
 
   private async consume(token: string): Promise<StoredChallenge> {
@@ -212,9 +223,12 @@ export class PasswordChangeService {
       ) as Partial<StoredChallenge>;
       if (
         parsed.version !== 2 ||
-        (parsed.subjectType !== SubjectType.OPERATOR && parsed.subjectType !== SubjectType.EMPLOYEE) ||
         typeof parsed.subjectId !== "string" ||
-        typeof parsed.operatorId !== "string" ||
+        !(
+          ((parsed.subjectType === SubjectType.OPERATOR || parsed.subjectType === SubjectType.EMPLOYEE) &&
+            typeof parsed.operatorId === "string") ||
+          (parsed.subjectType === SubjectType.PLATFORM && parsed.operatorId === null)
+        ) ||
         !Number.isSafeInteger(parsed.authEpoch) ||
         parsed.authEpoch! < 0
       ) {
@@ -226,10 +240,27 @@ export class PasswordChangeService {
     }
   }
 
-  private loadAccount(challenge: StoredChallenge): Promise<PasswordAccount | null> {
+  private async loadAccount(challenge: StoredChallenge): Promise<PasswordAccount | null> {
+    if (challenge.subjectType === SubjectType.PLATFORM) {
+      const account = await this.prisma.withSystem((tx) =>
+        tx.platformAccount.findUnique({
+          where: { id: challenge.subjectId },
+          select: {
+            id: true,
+            status: true,
+            passwordHash: true,
+            authEpoch: true,
+            credentialDeliveryPending: true,
+            passwordChangeRequired: true,
+            temporaryPasswordExpiresAt: true
+          }
+        })
+      );
+      return account ? { ...account, status: String(account.status), operator: { status: "ACTIVE" } } : null;
+    }
+    const operatorId = challenge.operatorId;
     const select = {
       id: true,
-      operatorId: true,
       status: true,
       passwordHash: true,
       authEpoch: true,
@@ -238,17 +269,11 @@ export class PasswordChangeService {
       temporaryPasswordExpiresAt: true,
       operator: { select: { status: true } }
     } as const;
-    return this.prisma.withTenant<PasswordAccount | null>(challenge.operatorId, async (tx) => {
+    return this.prisma.withTenant<PasswordAccount | null>(operatorId, async (tx) => {
       if (challenge.subjectType === SubjectType.OPERATOR) {
-        return tx.operatorAccount.findFirst({
-          where: { id: challenge.subjectId, operatorId: challenge.operatorId },
-          select
-        });
+        return tx.operatorAccount.findFirst({ where: { id: challenge.subjectId, operatorId }, select });
       }
-      return tx.employeeAccount.findFirst({
-        where: { id: challenge.subjectId, operatorId: challenge.operatorId },
-        select
-      });
+      return tx.employeeAccount.findFirst({ where: { id: challenge.subjectId, operatorId }, select });
     });
   }
 }
@@ -266,6 +291,9 @@ function challengeContext(tokenHash: string): string {
 }
 
 function subjectTarget(subjectType: SubjectType): string {
+  if (subjectType === SubjectType.PLATFORM) {
+    return "platform_account";
+  }
   return subjectType === SubjectType.OPERATOR ? "operator_account" : "employee_account";
 }
 

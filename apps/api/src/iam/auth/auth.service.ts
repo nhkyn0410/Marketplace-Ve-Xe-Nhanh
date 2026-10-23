@@ -1,9 +1,12 @@
 import { HttpStatus, Inject, Injectable, Logger } from "@nestjs/common";
+import { randomUUID } from "node:crypto";
 import { APP_CONFIG, type AppConfig } from "../../config/env.config";
 import { PrismaService } from "../../database/prisma.service";
 import { type AuthSession, SessionRevokeReason, SubjectType } from "../../database/prisma.types";
 import { maskEmail } from "../../external/notification/email-notifier";
-import { isOperatorOwnerRole, requiresMfa } from "../role/role";
+import { grantedPermissions } from "../role/access-policy";
+import { storedPermissions } from "../role/permissions";
+import { isOperatorAccountRole, requiresMfa } from "../role/role";
 import { sessionExpired } from "../session/session.errors";
 import { SessionService, type SessionSubject } from "../session/session.service";
 import { type Auth } from "./auth.config";
@@ -69,6 +72,8 @@ type CredentialAccount = {
   subjectType: SubjectType;
   operatorId?: string;
   operatorSlug?: string;
+  /** Quyền riêng của tài khoản (TASK-IAM-007); `undefined` = theo role. */
+  perms?: string[];
   credentialDeliveryPending: boolean;
   passwordChangeRequired: boolean;
   temporaryPasswordExpiresAt?: Date | null;
@@ -238,15 +243,16 @@ export class AuthService {
       ? {
           id: row.id,
           passwordHash: row.passwordHash,
-          authEpoch: 0,
+          authEpoch: row.authEpoch,
           role: String(row.role),
           status: String(row.status),
           subjectType: SubjectType.PLATFORM,
-          // Provisioning Platform employee được defer khỏi IAM-005; account seed hiện hữu không
-          // tham gia luồng mật khẩu tạm của Operator/Employee.
-          credentialDeliveryPending: false,
-          passwordChangeRequired: false,
-          temporaryPasswordExpiresAt: null
+          ...permsClaim(row.permissions),
+          // Tài khoản do Admin cấp (màn Người dùng → Tài khoản quản trị) đi cùng luồng mật khẩu tạm như
+          // Operator/Employee; tài khoản seed không có mật khẩu tạm.
+          credentialDeliveryPending: row.credentialDeliveryPending,
+          passwordChangeRequired: row.passwordChangeRequired,
+          temporaryPasswordExpiresAt: row.temporaryPasswordExpiresAt
         }
       : null;
 
@@ -257,6 +263,19 @@ export class AuthService {
     }
 
     await this.verifyOrThrow(password, account, "platform", ctx, false);
+
+    // Như Operator/Employee: mật khẩu tạm chỉ cho đổi mật khẩu, chưa tạo phiên, chưa đi MFA.
+    if (account.passwordChangeRequired) {
+      if (!account.temporaryPasswordExpiresAt || account.temporaryPasswordExpiresAt.getTime() <= Date.now()) {
+        throw passwordChangeRequired("Mật khẩu tạm đã hết hạn. Vui lòng liên hệ quản trị viên để cấp lại.");
+      }
+      return this.passwordChanges.begin({
+        subjectType: SubjectType.PLATFORM,
+        subjectId: account.id,
+        operatorId: null,
+        authEpoch: account.authEpoch
+      });
+    }
 
     if (requiresMfa(account.role)) {
       return this.mfa.begin(
@@ -406,7 +425,7 @@ export class AuthService {
       } else if (user.scope === "platform") {
         username = (await tx.platformAccount.findUnique({ where: { id: user.sub }, select: { username: true } }))
           ?.username;
-      } else if (isOperatorOwnerRole(user.role)) {
+      } else if (isOperatorAccountRole(user.role)) {
         username = (await tx.operatorAccount.findUnique({ where: { id: user.sub }, select: { username: true } }))
           ?.username;
       } else {
@@ -426,6 +445,7 @@ export class AuthService {
       sessionId: found.familyId,
       accessExpiresAt: new Date(user.exp * 1000).toISOString(),
       mfaVerified: user.mfa === true,
+      permissions: grantedPermissions(user),
       ...(user.scope === "operator" ? { operatorId: user.operatorId, operatorSlug: user.operatorSlug } : {})
     };
   }
@@ -499,6 +519,24 @@ export class AuthService {
   }
 
   private async issuePassengerToken(userId: string, ctx: RequestContext): Promise<LoginResult> {
+    // Hành khách bị Admin khóa: OTP / OAuth đúng vẫn không được phiên (FR-IAM-08).
+    const user = await this.prisma.user.findUnique({ where: { id: userId }, select: { status: true } });
+    if (!user || !isActive(String(user.status))) {
+      await this.loginHistory.record({
+        scope: "passenger",
+        result: "failure",
+        targetId: userId,
+        accountId: userId,
+        role: PASSENGER_ROLE,
+        reason: "account_inactive",
+        ...ctx
+      });
+      throw accountLocked();
+    }
+    // FR-LOY-01: đăng ký chỉ hoàn tất sau OTP/OAuth; đăng nhập lại không tạo thêm sổ thành viên.
+    await this.prisma.withSystem((tx) => tx.$executeRaw`
+      INSERT INTO loyalty_accounts (id, user_id, updated_at) VALUES (${randomUUID()}, ${userId}, CURRENT_TIMESTAMP)
+      ON CONFLICT (user_id) DO NOTHING`);
     const result = await this.issueSession(
       { type: SubjectType.PASSENGER, id: userId },
       { scope: "passenger", role: PASSENGER_ROLE },
@@ -598,7 +636,13 @@ export class AuthService {
       case SubjectType.PASSENGER: {
         const user = await this.prisma.user.findUnique({ where: { id } });
         return user
-          ? { claims: { scope: "passenger", role: PASSENGER_ROLE }, active: true, authEpoch: 0, email: user.email }
+          ? {
+              claims: { scope: "passenger", role: PASSENGER_ROLE },
+              // Admin khóa hành khách (FR-IAM-08) → refresh dừng, phiên bị thu hồi.
+              active: isActive(String(user.status)),
+              authEpoch: 0,
+              email: user.email
+            }
           : null;
       }
       case SubjectType.OPERATOR: {
@@ -615,7 +659,8 @@ export class AuthService {
                 scope: "operator",
                 role: String(account.role),
                 operatorId: account.operatorId,
-                operatorSlug: account.operator.operatorSlug
+                operatorSlug: account.operator.operatorSlug,
+                ...permsClaim(account.permissions)
               },
               active: !account.credentialDeliveryPending && !account.passwordChangeRequired && isActive(String(account.status)) && isActive(String(account.operator.status)),
               authEpoch: account.authEpoch,
@@ -648,9 +693,10 @@ export class AuthService {
         const account = await this.prisma.platformAccount.findUnique({ where: { id } });
         return account
           ? {
-              claims: { scope: "platform", role: String(account.role) },
-              active: isActive(String(account.status)),
-              authEpoch: 0,
+              claims: { scope: "platform", role: String(account.role), ...permsClaim(account.permissions) },
+              active:
+                isActive(String(account.status)) && !account.credentialDeliveryPending && !account.passwordChangeRequired,
+              authEpoch: account.authEpoch,
               passwordHash: account.passwordHash
             }
           : null;
@@ -747,6 +793,7 @@ export class AuthService {
         subjectType: SubjectType.OPERATOR,
         operatorId: owner.operatorId,
         operatorSlug: owner.operatorSlug,
+        ...permsClaim(owner.permissions),
         credentialDeliveryPending: owner.credentialDeliveryPending,
         passwordChangeRequired: owner.passwordChangeRequired,
         temporaryPasswordExpiresAt: owner.temporaryPasswordExpiresAt
@@ -817,7 +864,7 @@ export class AuthService {
   ): Promise<LoginResult> {
     const result = await this.issueSession(
       { type: account.subjectType, id: account.id, operatorId: account.operatorId, authEpoch: account.authEpoch },
-      { scope, role: account.role, operatorId: account.operatorId, operatorSlug },
+      { scope, role: account.role, operatorId: account.operatorId, operatorSlug, ...(account.perms ? { perms: account.perms } : {}) },
       ctx,
       (session) => this.assertCredentialSessionStillValid(session, account.role, account.passwordHash)
     );
@@ -836,6 +883,12 @@ export class AuthService {
 
 function isActive(status: string): boolean {
   return status === "ACTIVE";
+}
+
+/** Cột `permissions` → claim `perms` (TASK-IAM-007); `NULL` (theo role) → không có claim. */
+function permsClaim(value: unknown): { perms?: string[] } {
+  const perms = storedPermissions(value);
+  return perms ? { perms } : {};
 }
 
 /** Better Auth ném `APIError` có `status` cho lỗi phía client; lỗi hạ tầng thì không. */

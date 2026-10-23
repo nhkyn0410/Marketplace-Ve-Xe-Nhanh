@@ -1,17 +1,13 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import Link from "next/link";
 import { Badge } from "@vexenhanh/ui/components/badge";
 import { Button } from "@vexenhanh/ui/components/button";
 import {
-  XCircle,
   MessageSquare,
-  Mail,
   UserPlus,
   ArrowRight,
-  AlertCircle,
-  CheckCircle2,
   Printer
 } from "lucide-react";
 import { formatVnd } from "../../../lib/format";
@@ -23,9 +19,9 @@ import type { TicketLookupResultData } from "../../../lib/data/types";
 export interface LookupActionsSidebarProps {
   readonly payment: TicketLookupResultData["payment"];
   readonly bookingCode: string;
-  readonly onCancelOrder?: () => void;
-  readonly onComplaintOrder?: () => void;
-  readonly onResendEmail?: () => void;
+  readonly bookingId?: string;
+  readonly canManageBooking?: boolean;
+  readonly ticketId?: string;
   readonly onPrintOrder?: () => void;
 }
 
@@ -34,38 +30,13 @@ export interface LookupActionsSidebarProps {
  */
 export const LookupActionsSidebar: React.FC<LookupActionsSidebarProps> = ({
   payment,
-  bookingCode,
-  onCancelOrder,
-  onComplaintOrder,
-  onResendEmail,
+  bookingId,
+  canManageBooking,
+  ticketId,
   onPrintOrder
 }) => {
-  const [actionNotice, setActionNotice] = useState<string | null>(null);
-
-  const handleAction = (type: "cancel" | "complaint" | "resend"): void => {
-    if (type === "cancel") {
-      console.warn(`[marketplace] chưa có API: POST /guest/ticket-lookup/${bookingCode}/cancel`);
-      setActionNotice("Chức năng hủy vé trực tuyến tạm thời chưa khả dụng. Quý khách vui lòng gọi CSKH 1900 6067 để được hỗ trợ.");
-      onCancelOrder?.();
-    } else if (type === "complaint") {
-      console.warn(`[marketplace] chưa có API: POST /guest/complaints for ${bookingCode}`);
-      onComplaintOrder?.();
-    } else {
-      console.warn(`[marketplace] chưa có API: POST /guest/ticket-lookup/${bookingCode}/resend-email`);
-      setActionNotice("Đã ghi nhận yêu cầu gửi lại email vé. Chức năng đang được tích hợp dịch vụ gửi thư.");
-      onResendEmail?.();
-    }
-  };
-
   return (
     <div className="space-y-5">
-      {/* Thông báo thao tác nếu có */}
-      {actionNotice && (
-        <div className="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-start gap-2 text-xs text-amber-950 dark:text-amber-200 animate-in fade-in">
-          <AlertCircle className="h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400 mt-0.5" />
-          <div className="leading-relaxed font-medium">{actionNotice}</div>
-        </div>
-      )}
 
       {/* Khối 1: Thanh toán */}
       <div className="rounded-2xl border border-border/80 bg-card p-5 sm:p-6 shadow-xs space-y-4">
@@ -101,8 +72,7 @@ export const LookupActionsSidebar: React.FC<LookupActionsSidebarProps> = ({
 
             <div className="flex items-center justify-between">
               <span>Trạng thái</span>
-              <Badge className="bg-emerald-500/15 text-emerald-800 dark:text-emerald-300 border-emerald-500/30 text-[11px] font-semibold py-0 flex items-center gap-1">
-                <CheckCircle2 className="h-3 w-3" />
+              <Badge tone={payment.statusLabel === "Đã thanh toán" ? "success" : "neutral"} className="text-[11px] font-semibold py-0">
                 <span>{payment.statusLabel}</span>
               </Badge>
             </div>
@@ -117,22 +87,14 @@ export const LookupActionsSidebar: React.FC<LookupActionsSidebarProps> = ({
             Thao tác với đơn
           </h3>
           <p className="text-[11px] text-muted-foreground mt-0.5">
-            Hủy vé và gửi khiếu nại cần xác minh lại bằng OTP.
+            {canManageBooking ? "Trình duyệt này còn quyền quản lý đơn đã đặt." : "Tra cứu cho phép xem vé. Để hủy vé hoặc gửi hỗ trợ, mở trình duyệt đã đặt vé hoặc đăng nhập tài khoản đặt vé."}
           </p>
         </div>
 
         <div className="space-y-2">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => handleAction("cancel")}
-            className="w-full h-10 justify-start gap-2 text-xs font-semibold border-border/80 text-foreground hover:bg-muted/50"
-          >
-            <XCircle className="h-4 w-4 text-muted-foreground" />
-            <span>Hủy vé / yêu cầu hoàn tiền</span>
-          </Button>
+          {canManageBooking && bookingId && ticketId && <Link href={`/my-tickets/${ticketId}?bookingId=${encodeURIComponent(bookingId)}`} className="block rounded-xl border border-border/80 px-4 py-3 text-xs font-semibold hover:bg-muted/50">Quản lý vé / yêu cầu hoàn tiền</Link>}
 
-          <Link href={`/support/guest?bookingCode=${bookingCode}`} className="block">
+          {canManageBooking && bookingId && <Link href={`/support/guest?bookingId=${encodeURIComponent(bookingId)}`} className="block">
             <Button
               type="button"
               variant="outline"
@@ -141,17 +103,8 @@ export const LookupActionsSidebar: React.FC<LookupActionsSidebarProps> = ({
               <MessageSquare className="h-4 w-4 text-muted-foreground" />
               <span>Gửi khiếu nại về đơn này</span>
             </Button>
-          </Link>
-
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => handleAction("resend")}
-            className="w-full h-10 justify-start gap-2 text-xs font-semibold border-border/80 text-foreground hover:bg-muted/50"
-          >
-            <Mail className="h-4 w-4 text-muted-foreground" />
-            <span>Gửi lại vé qua email</span>
-          </Button>
+          </Link>}
+          {!canManageBooking && <Link href="/login?next=%2Fmy-tickets" className="block rounded-xl border border-border/80 px-4 py-3 text-xs font-semibold hover:bg-muted/50">Đăng nhập để quản lý vé</Link>}
 
           {onPrintOrder && (
             <Button

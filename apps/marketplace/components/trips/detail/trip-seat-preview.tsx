@@ -33,6 +33,7 @@ export function TripSeatPreview({
       case "holding":
         return "bg-amber-50 border-amber-400 text-amber-800";
       case "booked":
+      case "unavailable":
         return "bg-neutral-100 border-neutral-200 text-neutral-400 cursor-not-allowed";
     }
   };
@@ -59,12 +60,13 @@ export function TripSeatPreview({
           <span className="text-xs font-semibold text-neutral-600 mb-3">
             Tầng dưới
           </span>
-          <div className="grid grid-cols-3 gap-2 w-full max-w-[150px]">
+          <div className="grid gap-2 w-full max-w-[220px]" style={{ gridTemplateColumns: `repeat(${Math.max(1, ...floor1Seats.map((s) => s.col))}, minmax(0, 1fr))` }}>
             {floor1Seats.map((seat) => (
               <div
                 key={seat.id}
+                style={{ gridRowStart: seat.row, gridColumnStart: seat.col }}
                 className={`h-7 rounded border text-[11px] font-medium flex items-center justify-center transition-colors ${
-                  seat.isDouble ? "col-span-3 h-8" : ""
+                  seat.isDouble ? "h-8" : ""
                 } ${getSeatClass(seat.status)}`}
               >
                 {seat.label}
@@ -74,23 +76,24 @@ export function TripSeatPreview({
         </div>
 
         {/* Tầng trên */}
-        <div className="bg-neutral-50/70 p-4 rounded-xl border border-neutral-100 flex flex-col items-center">
+        {floor2Seats.length > 0 && <div className="bg-neutral-50/70 p-4 rounded-xl border border-neutral-100 flex flex-col items-center">
           <span className="text-xs font-semibold text-neutral-600 mb-3">
             Tầng trên
           </span>
-          <div className="grid grid-cols-3 gap-2 w-full max-w-[150px]">
+          <div className="grid gap-2 w-full max-w-[220px]" style={{ gridTemplateColumns: `repeat(${Math.max(1, ...floor2Seats.map((s) => s.col))}, minmax(0, 1fr))` }}>
             {floor2Seats.map((seat) => (
               <div
                 key={seat.id}
+                style={{ gridRowStart: seat.row, gridColumnStart: seat.col }}
                 className={`h-7 rounded border text-[11px] font-medium flex items-center justify-center transition-colors ${
-                  seat.isDouble ? "col-span-3 h-8" : ""
+                  seat.isDouble ? "h-8" : ""
                 } ${getSeatClass(seat.status)}`}
               >
                 {seat.label}
               </div>
             ))}
           </div>
-        </div>
+        </div>}
 
         {/* Chú thích màu sắc */}
         <div className="flex flex-col justify-center space-y-3 pl-2 sm:border-l sm:border-neutral-100 text-xs text-neutral-600">
@@ -104,7 +107,7 @@ export function TripSeatPreview({
           </div>
           <div className="flex items-center gap-2">
             <div className="w-4 h-4 rounded border border-neutral-200 bg-neutral-100" />
-            <span>Đã đặt</span>
+            <span>Không khả dụng</span>
           </div>
           <div className="pt-2 border-t border-neutral-100 flex items-center gap-2 text-neutral-500">
             <div className="w-7 h-4 rounded border border-neutral-300 bg-white" />
