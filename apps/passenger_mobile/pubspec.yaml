@@ -77,6 +77,20 @@ flutter:
     - assets/auth/waves/
     - assets/auth/logo/
     - assets/auth/icons/
+    - assets/home/hero/
+    - assets/home/icons/
+    - assets/home/illustrations/
+    - assets/home/destinations/da_nang.jpg
+    - assets/home/destinations/nha_trang.jpg
+    - assets/home/destinations/phan_thiet.jpg
+    - assets/home/vouchers/discount_20.png
+    - assets/home/vouchers/discount_50k.jpg
+    - assets/home/operators/
+    - assets/home/articles/coastal_routes.jpg
+    - assets/home/articles/da_lat_checkin.png
+    - assets/home/articles/da_lat_coach_guide.jpg
+    - assets/home/support/
+    - assets/home/tabbar/
 
   fonts:
     - family: Be Vietnam Pro

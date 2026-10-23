@@ -85,6 +85,7 @@ class AuthEntryScreen extends StatefulWidget {
   const AuthEntryScreen({
     required this.onRequestOtp,
     this.onEmailChanged,
+    this.onContinueAsGuest,
     this.busy = false,
     this.errorMessage,
     this.otpRequested = false,
@@ -94,6 +95,7 @@ class AuthEntryScreen extends StatefulWidget {
 
   final Future<void> Function(String email) onRequestOtp;
   final VoidCallback? onEmailChanged;
+  final VoidCallback? onContinueAsGuest;
   final bool busy;
   final String? errorMessage;
   final bool otpRequested;
@@ -195,6 +197,7 @@ class _AuthEntryScreenState extends State<AuthEntryScreen>
           otpRequested: widget.otpRequested,
           onEmailChanged: _handleEmailChanged,
           onSubmit: _submit,
+          onContinueAsGuest: widget.onContinueAsGuest,
         ),
       ),
     );
@@ -892,6 +895,7 @@ class _ResponsiveAuthCanvas extends StatelessWidget {
     required this.otpRequested,
     required this.onEmailChanged,
     required this.onSubmit,
+    this.onContinueAsGuest,
   });
 
   final Animation<double> motion;
@@ -903,6 +907,7 @@ class _ResponsiveAuthCanvas extends StatelessWidget {
   final bool otpRequested;
   final ValueChanged<String> onEmailChanged;
   final VoidCallback onSubmit;
+  final VoidCallback? onContinueAsGuest;
 
   @override
   Widget build(BuildContext context) {
@@ -957,6 +962,7 @@ class _ResponsiveAuthCanvas extends StatelessWidget {
                     otpRequested: otpRequested,
                     onEmailChanged: onEmailChanged,
                     onSubmit: onSubmit,
+                    onContinueAsGuest: onContinueAsGuest,
                   ),
                 ),
               ),
@@ -1045,6 +1051,7 @@ class _AuthCanvas extends StatelessWidget {
     this.otpRequested = false,
     this.onEmailChanged,
     this.onSubmit,
+    this.onContinueAsGuest,
     this.foreground,
     this.showSplashOverlay = true,
   }) : assert(
@@ -1069,6 +1076,7 @@ class _AuthCanvas extends StatelessWidget {
   final bool otpRequested;
   final ValueChanged<String>? onEmailChanged;
   final VoidCallback? onSubmit;
+  final VoidCallback? onContinueAsGuest;
   final Widget? foreground;
   final bool showSplashOverlay;
 
@@ -1712,7 +1720,9 @@ class _AuthCanvas extends StatelessWidget {
             height: 44,
             child: TextButton(
               key: const Key('guest-button'),
-              onPressed: () => _showUnavailable(context, 'Chế độ khách'),
+              onPressed:
+                  onContinueAsGuest ??
+                  () => _showUnavailable(context, 'Chế độ khách'),
               style: TextButton.styleFrom(
                 foregroundColor: _primary500,
                 shape: RoundedRectangleBorder(

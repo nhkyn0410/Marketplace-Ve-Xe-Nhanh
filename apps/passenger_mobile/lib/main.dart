@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:mobile_shared/mobile_shared.dart';
 import 'package:passenger_mobile/features/auth/auth_screen.dart';
+import 'package:passenger_mobile/features/home/home_models.dart';
+import 'package:passenger_mobile/features/home/home_screen.dart';
 
 /// Origin của API — KHÔNG kèm `/v1`.
 ///
@@ -77,7 +79,7 @@ class PassengerApp extends StatelessWidget {
   }
 }
 
-enum _AuthStep { email, otp, signedIn }
+enum _AuthStep { email, otp, guest, signedIn }
 
 class OtpLoginPage extends StatefulWidget {
   const OtpLoginPage({this.requestOtpOverride, super.key});
@@ -97,7 +99,6 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
   String? _error;
   String? _email;
   DateTime? _otpIssuedAt;
-  AuthTokenResponseDtoOutput? _session;
 
   /// Bọc mọi lời gọi API: bật cờ bận, dịch lỗi thành câu tiếng Việt, hiện lên UI.
   Future<bool> _run(Future<void> Function() action) async {
@@ -190,7 +191,6 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
 
     if (verified && mounted) {
       setState(() {
-        _session = session;
         _step = _AuthStep.signedIn;
         _error = null;
       });
@@ -212,9 +212,70 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
     });
   }
 
+  void _continueAsGuest() {
+    if (_busy) return;
+    setState(() {
+      _step = _AuthStep.guest;
+      _error = null;
+    });
+  }
+
+  void _returnToLogin() {
+    setState(() {
+      _step = _AuthStep.email;
+      _error = null;
+    });
+  }
+
+  Future<List<HomeLocation>> _loadHomeLocations() async {
+    final response = await _api
+        .getCatalogApi()
+        .catalogControllerListProvinces();
+    final data = response.data;
+    if (data == null) {
+      throw StateError('Province response did not contain data.');
+    }
+    return data.items
+        .map((item) => HomeLocation(id: item.id, name: item.name))
+        .toList(growable: false);
+  }
+
+  Future<int> _searchHomeTrips(HomeSearchQuery query) async {
+    String? fromProvinceId;
+    String? fromStopPointId;
+    String? toProvinceId;
+    String? toStopPointId;
+    if (query.from.kind == HomeLocationKind.province) {
+      fromProvinceId = query.from.id;
+    } else {
+      fromStopPointId = query.from.id;
+    }
+    if (query.to.kind == HomeLocationKind.province) {
+      toProvinceId = query.to.id;
+    } else {
+      toStopPointId = query.to.id;
+    }
+
+    final response = await _api.getTripsApi().publicTripControllerSearch(
+      date: Date(query.date.year, query.date.month, query.date.day),
+      fromProvinceId: fromProvinceId,
+      fromStopPointId: fromStopPointId,
+      toProvinceId: toProvinceId,
+      toStopPointId: toStopPointId,
+      passengers: query.passengers,
+      operatorId: query.operatorId,
+    );
+    final data = response.data;
+    if (data == null) {
+      throw StateError('Trip search response did not contain data.');
+    }
+    return data.total;
+  }
+
   @override
   Widget build(BuildContext context) {
-    if (_step == _AuthStep.signedIn) return _signedIn();
+    if (_step == _AuthStep.signedIn) return _home(isLoggedIn: true);
+    if (_step == _AuthStep.guest) return _home(isLoggedIn: false);
 
     return IndexedStack(
       index: _step == _AuthStep.email ? 0 : 1,
@@ -224,6 +285,7 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
           errorMessage: _step == _AuthStep.email ? _error : null,
           onEmailChanged: _clearFeedback,
           onRequestOtp: _requestOtp,
+          onContinueAsGuest: _continueAsGuest,
         ),
         if (_email != null && _otpIssuedAt != null)
           EmailVerificationScreen(
@@ -243,32 +305,14 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
     );
   }
 
-  Widget _signedIn() {
-    final session = _session!;
-    final scope = _api.serializers.serializeWith(
-      AuthTokenResponseDtoOutputScopeEnum.serializer,
-      session.scope,
-    );
-    return Scaffold(
-      appBar: AppBar(title: const Text('Vé Xe Nhanh')),
-      body: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            const Text(
-              'Đăng nhập thành công',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
-            ),
-            const SizedBox(height: 12),
-            Text('scope: $scope'),
-            Text('role: ${session.role}'),
-            Text('hết hạn sau: ${session.expiresIn}s'),
-            const SizedBox(height: 12),
-            const Text('Token đã lưu bằng flutter_secure_storage.'),
-          ],
-        ),
-      ),
+  Widget _home({required bool isLoggedIn}) {
+    final emailName = _email?.split('@').first;
+    return HomeScreen(
+      isLoggedIn: isLoggedIn,
+      userName: emailName,
+      loadLocations: _loadHomeLocations,
+      onSearch: _searchHomeTrips,
+      onLoginRequested: isLoggedIn ? null : _returnToLogin,
     );
   }
 }

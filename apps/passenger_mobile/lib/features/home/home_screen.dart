@@ -1,0 +1,2356 @@
+import 'dart:convert';
+import 'dart:math' as math;
+
+import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:passenger_mobile/features/home/home_models.dart';
+import 'package:passenger_mobile/features/home/route_dock_tabbar.dart';
+
+const _assetRoot = 'assets/home';
+const _primary = Color(0xFF2B7EAD);
+const _primaryDark = Color(0xFF102E58);
+const _secondary = Color(0xFF607A8E);
+const _pageBackground = Color(0xFFF7FCFF);
+const _surfaceBorder = Color(0xFFE0EFF8);
+const _plannerSurfaceLoader = _FilterlessSvgAssetLoader(
+  '$_assetRoot/illustrations/planner_surface.svg',
+);
+
+typedef HomeLocationsLoader = Future<List<HomeLocation>> Function();
+typedef HomeTripSearch = Future<int> Function(HomeSearchQuery query);
+
+class HomeScreen extends StatefulWidget {
+  const HomeScreen({
+    required this.isLoggedIn,
+    this.userName,
+    this.initialMode = HomeSearchMode.route,
+    this.initialDate,
+    this.loadLocations,
+    this.onSearch,
+    this.onLoginRequested,
+    this.onTabSelected,
+    super.key,
+  });
+
+  final bool isLoggedIn;
+  final String? userName;
+  final HomeSearchMode initialMode;
+  final DateTime? initialDate;
+  final HomeLocationsLoader? loadLocations;
+  final HomeTripSearch? onSearch;
+  final VoidCallback? onLoginRequested;
+  final ValueChanged<int>? onTabSelected;
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  late HomeSearchMode _mode = widget.initialMode;
+  late DateTime _date =
+      widget.initialDate ?? DateTime.now().add(const Duration(days: 1));
+  HomeLocation? _from;
+  HomeLocation? _to;
+  int _passengers = 1;
+  bool _searching = false;
+
+  String get _fromLabel => _from?.name ?? 'TP. Hồ Chí Minh';
+  String get _toLabel => _to?.name ?? 'Đà Lạt';
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      key: const Key('home-screen'),
+      backgroundColor: _pageBackground,
+      extendBody: true,
+      resizeToAvoidBottomInset: true,
+      bottomNavigationBar: RouteDockTabBar(
+        currentIndex: 2,
+        onTap: _handleTabTap,
+      ),
+      body: SafeArea(
+        bottom: false,
+        child: CustomScrollView(
+          key: const Key('home-content-scroll'),
+          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+          slivers: [
+            SliverToBoxAdapter(
+              child: _HomeTopArea(
+                isLoggedIn: widget.isLoggedIn,
+                userName: widget.userName,
+                mode: _mode,
+                fromLabel: _fromLabel,
+                toLabel: _toLabel,
+                date: _date,
+                passengers: _passengers,
+                searching: _searching,
+                onModeChanged: (mode) => setState(() => _mode = mode),
+                onPickFrom: () => _pickLocation(isOrigin: true),
+                onPickTo: () => _pickLocation(isOrigin: false),
+                onSwap: _swapLocations,
+                onPickDate: _pickDate,
+                onPickPassengers: _pickPassengers,
+                onSearch: _search,
+                onOperatorTap: _showOperatorApiGap,
+              ),
+            ),
+            SliverPadding(
+              padding: const EdgeInsets.symmetric(horizontal: 9),
+              sliver: SliverList.list(
+                children: [
+                  if (!widget.isLoggedIn) ...[
+                    _GuestInvitation(onLogin: widget.onLoginRequested),
+                    const SizedBox(height: 12),
+                  ],
+                  _RecentSearches(
+                    operatorMode: _mode == HomeSearchMode.operator,
+                  ),
+                  const SizedBox(height: 12),
+                  const _VoucherSection(),
+                  const SizedBox(height: 12),
+                  const _PopularRoutesSection(),
+                  const SizedBox(height: 12),
+                  const _OperatorsSection(),
+                  const SizedBox(height: 12),
+                  const _ArticlesSection(),
+                  const SizedBox(height: 14),
+                  const _SupportSection(),
+                  const SizedBox(height: 150),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showMessage(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  void _handleTabTap(int index) {
+    if (index == 2) return;
+    if (index == 4 && !widget.isLoggedIn && widget.onLoginRequested != null) {
+      widget.onLoginRequested!();
+      return;
+    }
+    final callback = widget.onTabSelected;
+    if (callback != null) {
+      callback(index);
+      return;
+    }
+    _showMessage('${RouteDockTabBar.labels[index]} chưa được triển khai.');
+  }
+
+  Future<void> _pickLocation({required bool isOrigin}) async {
+    final loader = widget.loadLocations;
+    if (loader == null) {
+      _showMessage('Danh mục địa điểm hiện chưa khả dụng.');
+      return;
+    }
+
+    final selected = await showModalBottomSheet<HomeLocation>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (context) => _LocationPicker(
+        title: isOrigin ? 'Chọn điểm đi' : 'Chọn điểm đến',
+        loader: loader,
+      ),
+    );
+    if (selected == null || !mounted) return;
+    setState(() {
+      if (isOrigin) {
+        _from = selected;
+      } else {
+        _to = selected;
+      }
+    });
+  }
+
+  void _swapLocations() {
+    setState(() {
+      final previous = _from;
+      _from = _to;
+      _to = previous;
+    });
+  }
+
+  Future<void> _pickDate() async {
+    final now = DateTime.now();
+    final firstDate = DateTime(now.year, now.month, now.day);
+    final selected = await showDatePicker(
+      context: context,
+      initialDate: _date.isBefore(firstDate) ? firstDate : _date,
+      firstDate: firstDate,
+      lastDate: firstDate.add(const Duration(days: 365)),
+      helpText: 'Chọn ngày đi',
+    );
+    if (selected != null && mounted) setState(() => _date = selected);
+  }
+
+  Future<void> _pickPassengers() async {
+    var value = _passengers;
+    final selected = await showModalBottomSheet<int>(
+      context: context,
+      useSafeArea: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (context) => StatefulBuilder(
+        builder: (context, setSheetState) => Padding(
+          padding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                'Số hành khách',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  color: _primaryDark,
+                ),
+              ),
+              const SizedBox(height: 18),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  IconButton.outlined(
+                    onPressed: value > 1
+                        ? () => setSheetState(() => value--)
+                        : null,
+                    icon: const Icon(Icons.remove),
+                  ),
+                  SizedBox(
+                    width: 90,
+                    child: Text(
+                      '$value khách',
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                  IconButton.outlined(
+                    onPressed: value < 10
+                        ? () => setSheetState(() => value++)
+                        : null,
+                    icon: const Icon(Icons.add),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 18),
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton(
+                  onPressed: () => Navigator.pop(context, value),
+                  child: const Text('Xác nhận'),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+    if (selected != null && mounted) {
+      setState(() => _passengers = selected);
+    }
+  }
+
+  void _showOperatorApiGap() {
+    _showMessage(
+      'Danh sách nhà xe chưa có API công khai; chưa thể chọn nhà xe khác.',
+    );
+  }
+
+  Future<void> _search() async {
+    if (_searching) return;
+    if (_mode == HomeSearchMode.operator) {
+      _showOperatorApiGap();
+      return;
+    }
+    final from = _from;
+    final to = _to;
+    if (from == null || to == null) {
+      _showMessage('Vui lòng chọn điểm đi và điểm đến từ danh mục.');
+      return;
+    }
+    if (from.id == to.id && from.kind == to.kind) {
+      _showMessage('Điểm đi và điểm đến phải khác nhau.');
+      return;
+    }
+    final search = widget.onSearch;
+    if (search == null) {
+      _showMessage('Tìm chuyến hiện chưa khả dụng.');
+      return;
+    }
+
+    setState(() => _searching = true);
+    try {
+      final total = await search(
+        HomeSearchQuery(
+          mode: _mode,
+          from: from,
+          to: to,
+          date: _date,
+          passengers: _passengers,
+        ),
+      );
+      if (!mounted) return;
+      _showMessage(
+        total == 0
+            ? 'Chưa có chuyến phù hợp. Hãy thử ngày hoặc địa điểm khác.'
+            : 'Tìm thấy $total chuyến phù hợp.',
+      );
+    } catch (_) {
+      _showMessage('Không thể tìm chuyến. Vui lòng kiểm tra mạng và thử lại.');
+    } finally {
+      if (mounted) setState(() => _searching = false);
+    }
+  }
+}
+
+class _HomeTopArea extends StatelessWidget {
+  const _HomeTopArea({
+    required this.isLoggedIn,
+    required this.userName,
+    required this.mode,
+    required this.fromLabel,
+    required this.toLabel,
+    required this.date,
+    required this.passengers,
+    required this.searching,
+    required this.onModeChanged,
+    required this.onPickFrom,
+    required this.onPickTo,
+    required this.onSwap,
+    required this.onPickDate,
+    required this.onPickPassengers,
+    required this.onSearch,
+    required this.onOperatorTap,
+  });
+
+  final bool isLoggedIn;
+  final String? userName;
+  final HomeSearchMode mode;
+  final String fromLabel;
+  final String toLabel;
+  final DateTime date;
+  final int passengers;
+  final bool searching;
+  final ValueChanged<HomeSearchMode> onModeChanged;
+  final VoidCallback onPickFrom;
+  final VoidCallback onPickTo;
+  final VoidCallback onSwap;
+  final VoidCallback onPickDate;
+  final VoidCallback onPickPassengers;
+  final VoidCallback onSearch;
+  final VoidCallback onOperatorTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final width = constraints.maxWidth;
+        final textScale = MediaQuery.textScalerOf(context).scale(1);
+        final narrow = width < 350 || textScale > 1.25;
+        final heroHeight = (width * .411).clamp(154.0, 188.0);
+        final plannerHeight = narrow ? 506.0 : 426.0;
+        final plannerTop = heroHeight - 26;
+        final totalHeight = plannerTop + plannerHeight + 44;
+
+        return SizedBox(
+          height: totalHeight,
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              Positioned(
+                left: 0,
+                right: 0,
+                top: 0,
+                height: heroHeight,
+                child: _HomeHero(isLoggedIn: isLoggedIn, userName: userName),
+              ),
+              Positioned(
+                left: width < 340 ? 6 : 8,
+                right: width < 340 ? 6 : 8,
+                top: plannerTop,
+                height: plannerHeight,
+                child: _JourneyPlanner(
+                  narrow: narrow,
+                  mode: mode,
+                  fromLabel: fromLabel,
+                  toLabel: toLabel,
+                  date: date,
+                  passengers: passengers,
+                  searching: searching,
+                  onModeChanged: onModeChanged,
+                  onPickFrom: onPickFrom,
+                  onPickTo: onPickTo,
+                  onSwap: onSwap,
+                  onPickDate: onPickDate,
+                  onPickPassengers: onPickPassengers,
+                  onSearch: onSearch,
+                  onOperatorTap: onOperatorTap,
+                ),
+              ),
+              Positioned(
+                left: 0,
+                right: 0,
+                bottom: 0,
+                height: 62,
+                child: SvgPicture.asset(
+                  '$_assetRoot/illustrations/journey_wave.svg',
+                  fit: BoxFit.fill,
+                  excludeFromSemantics: true,
+                ),
+              ),
+              Positioned(
+                left: 0,
+                right: 0,
+                bottom: 16,
+                height: 43,
+                child: SvgPicture.asset(
+                  mode == HomeSearchMode.route
+                      ? '$_assetRoot/illustrations/journey_wave_lines_route.svg'
+                      : '$_assetRoot/illustrations/journey_wave_lines_operator.svg',
+                  fit: BoxFit.fill,
+                  excludeFromSemantics: true,
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _HomeHero extends StatelessWidget {
+  const _HomeHero({required this.isLoggedIn, required this.userName});
+
+  final bool isLoggedIn;
+  final String? userName;
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        ClipRect(
+          child: FractionallySizedBox(
+            alignment: Alignment.topLeft,
+            widthFactor: 2,
+            heightFactor: 3,
+            child: Image.asset(
+              '$_assetRoot/hero/landscape_bus.png',
+              fit: BoxFit.cover,
+              alignment: Alignment.topLeft,
+              excludeFromSemantics: true,
+            ),
+          ),
+        ),
+        const DecoratedBox(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.bottomLeft,
+              end: Alignment.centerRight,
+              colors: [Color(0x66033857), Color(0x00033857)],
+            ),
+          ),
+        ),
+        Positioned(
+          left: 17,
+          top: 8,
+          child: Container(
+            height: 35,
+            padding: const EdgeInsets.symmetric(horizontal: 10),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(color: _surfaceBorder, width: .6),
+              boxShadow: const [
+                BoxShadow(
+                  color: Color(0x121F6EA6),
+                  offset: Offset(0, 3),
+                  blurRadius: 6,
+                ),
+              ],
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                SvgPicture.asset(
+                  '$_assetRoot/hero/logo_mark.svg',
+                  width: 27,
+                  height: 27,
+                  excludeFromSemantics: true,
+                ),
+                const SizedBox(width: 2),
+                SvgPicture.asset(
+                  '$_assetRoot/hero/logo_wordmark.svg',
+                  width: 76,
+                  excludeFromSemantics: true,
+                ),
+              ],
+            ),
+          ),
+        ),
+        Positioned(
+          right: 15,
+          top: 10,
+          child: Row(
+            children: [
+              SizedBox(
+                width: 29,
+                height: 29,
+                child: Stack(
+                  children: [
+                    SvgPicture.asset(
+                      '$_assetRoot/hero/bell_frame.svg',
+                      width: 29,
+                      height: 29,
+                      excludeFromSemantics: true,
+                    ),
+                    Center(
+                      child: SvgPicture.asset(
+                        '$_assetRoot/hero/bell.svg',
+                        width: 15,
+                        height: 15,
+                        excludeFromSemantics: true,
+                      ),
+                    ),
+                    Positioned(
+                      right: 0,
+                      top: 3,
+                      child: SvgPicture.asset(
+                        '$_assetRoot/hero/notification_unread.svg',
+                        width: 6,
+                        height: 6,
+                        excludeFromSemantics: true,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              if (isLoggedIn) ...[
+                const SizedBox(width: 7),
+                ClipOval(
+                  child: Image.asset(
+                    '$_assetRoot/hero/user_avatar.png',
+                    width: 29,
+                    height: 29,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+        Positioned(
+          left: 19,
+          right: 12,
+          top: 54,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                isLoggedIn
+                    ? 'Xin chào, ${userName?.trim().isNotEmpty == true ? userName!.trim() : 'bạn'}!'
+                    : 'Xin chào!',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 14,
+                  height: 18.6 / 14,
+                  fontWeight: FontWeight.w400,
+                ),
+              ),
+              const Text(
+                'Bạn muốn đi đâu?',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 21,
+                  height: 28 / 21,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.only(left: 53),
+                child: SvgPicture.asset(
+                  '$_assetRoot/hero/accent_underline.svg',
+                  width: 47,
+                  height: 8,
+                  excludeFromSemantics: true,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _JourneyPlanner extends StatelessWidget {
+  const _JourneyPlanner({
+    required this.narrow,
+    required this.mode,
+    required this.fromLabel,
+    required this.toLabel,
+    required this.date,
+    required this.passengers,
+    required this.searching,
+    required this.onModeChanged,
+    required this.onPickFrom,
+    required this.onPickTo,
+    required this.onSwap,
+    required this.onPickDate,
+    required this.onPickPassengers,
+    required this.onSearch,
+    required this.onOperatorTap,
+  });
+
+  final bool narrow;
+  final HomeSearchMode mode;
+  final String fromLabel;
+  final String toLabel;
+  final DateTime date;
+  final int passengers;
+  final bool searching;
+  final ValueChanged<HomeSearchMode> onModeChanged;
+  final VoidCallback onPickFrom;
+  final VoidCallback onPickTo;
+  final VoidCallback onSwap;
+  final VoidCallback onPickDate;
+  final VoidCallback onPickPassengers;
+  final VoidCallback onSearch;
+  final VoidCallback onOperatorTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final routeMode = mode == HomeSearchMode.route;
+    return Stack(
+      key: const Key('journey-planner'),
+      clipBehavior: Clip.none,
+      children: [
+        Positioned.fill(
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(26),
+              boxShadow: const [
+                BoxShadow(
+                  color: Color(0x1A14527D),
+                  offset: Offset(0, 6),
+                  blurRadius: 18,
+                ),
+              ],
+            ),
+          ),
+        ),
+        Positioned(
+          left: -18,
+          right: -18,
+          top: -12,
+          bottom: -24,
+          child: SvgPicture(
+            _plannerSurfaceLoader,
+            fit: BoxFit.fill,
+            excludeFromSemantics: true,
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            children: [
+              _SearchModeControl(mode: mode, onChanged: onModeChanged),
+              const SizedBox(height: 12),
+              if (routeMode)
+                SizedBox(
+                  height: 156,
+                  child: Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      Column(
+                        children: [
+                          _PlannerInput(
+                            key: const Key('origin-input'),
+                            label: 'Điểm đi',
+                            value: fromLabel,
+                            asset: '$_assetRoot/icons/origin_pin.svg',
+                            onTap: onPickFrom,
+                          ),
+                          const SizedBox(height: 12),
+                          _PlannerInput(
+                            key: const Key('destination-input'),
+                            label: 'Điểm đến',
+                            value: toLabel,
+                            asset: '$_assetRoot/icons/destination_pin.svg',
+                            onTap: onPickTo,
+                          ),
+                        ],
+                      ),
+                      Positioned(
+                        left: 31,
+                        top: 70,
+                        width: 2,
+                        height: 16,
+                        child: SvgPicture.asset(
+                          '$_assetRoot/illustrations/route_connecting_line.svg',
+                          fit: BoxFit.fill,
+                          excludeFromSemantics: true,
+                        ),
+                      ),
+                      Positioned(
+                        right: -18,
+                        top: 56,
+                        child: Material(
+                          color: Colors.white,
+                          shape: const CircleBorder(
+                            side: BorderSide(color: Color(0xFFE1EDF6)),
+                          ),
+                          elevation: 4,
+                          shadowColor: const Color(0x1A14527D),
+                          child: InkResponse(
+                            key: const Key('swap-locations'),
+                            onTap: onSwap,
+                            radius: 22,
+                            child: SizedBox(
+                              width: 44,
+                              height: 44,
+                              child: Center(
+                                child: SvgPicture.asset(
+                                  '$_assetRoot/icons/swap.svg',
+                                  width: 24,
+                                  height: 24,
+                                  excludeFromSemantics: true,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                )
+              else
+                Column(
+                  children: [
+                    _PlannerInput(
+                      key: const Key('operator-input'),
+                      label: 'Nhà xe',
+                      value: 'Phương Trang',
+                      asset: '$_assetRoot/operators/phuong_trang.png',
+                      raster: true,
+                      onTap: onOperatorTap,
+                    ),
+                    const SizedBox(height: 12),
+                    _PlannerInput(
+                      key: const Key('operator-route-input'),
+                      label: 'Tuyến',
+                      value: '$fromLabel → $toLabel',
+                      asset: '$_assetRoot/icons/operator_route.svg',
+                      onTap: onPickFrom,
+                    ),
+                  ],
+                ),
+              const SizedBox(height: 12),
+              if (narrow)
+                Column(
+                  children: [
+                    _CompactPlannerInput(
+                      label: _formatDate(date),
+                      asset: '$_assetRoot/icons/calendar.svg',
+                      onTap: onPickDate,
+                    ),
+                    const SizedBox(height: 10),
+                    _CompactPlannerInput(
+                      label: '$passengers khách',
+                      asset: '$_assetRoot/icons/passenger.svg',
+                      onTap: onPickPassengers,
+                    ),
+                  ],
+                )
+              else
+                Row(
+                  children: [
+                    Expanded(
+                      child: _CompactPlannerInput(
+                        label: _formatDate(date),
+                        asset: '$_assetRoot/icons/calendar.svg',
+                        onTap: onPickDate,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: _CompactPlannerInput(
+                        label: '$passengers khách',
+                        asset: '$_assetRoot/icons/passenger.svg',
+                        onTap: onPickPassengers,
+                      ),
+                    ),
+                  ],
+                ),
+              const SizedBox(height: 12),
+              SizedBox(
+                width: double.infinity,
+                height: 60,
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFFF4B028), Color(0xFFEA831D)],
+                    ),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: FilledButton(
+                    key: const Key('home-search-button'),
+                    onPressed: searching ? null : onSearch,
+                    style: FilledButton.styleFrom(
+                      backgroundColor: Colors.transparent,
+                      disabledBackgroundColor: Colors.transparent,
+                      shadowColor: Colors.transparent,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                    ),
+                    child: searching
+                        ? const SizedBox(
+                            width: 22,
+                            height: 22,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2.5,
+                              color: Colors.white,
+                            ),
+                          )
+                        : FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                SvgPicture.asset(
+                                  '$_assetRoot/icons/search.svg',
+                                  width: 20,
+                                  height: 20,
+                                  excludeFromSemantics: true,
+                                ),
+                                const SizedBox(width: 12),
+                                const Text(
+                                  'Tìm chuyến',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                SvgPicture.asset(
+                                  '$_assetRoot/icons/arrow_right.svg',
+                                  width: 20,
+                                  height: 20,
+                                  excludeFromSemantics: true,
+                                ),
+                              ],
+                            ),
+                          ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  String _formatDate(DateTime value) {
+    String two(int value) => value.toString().padLeft(2, '0');
+    return '${two(value.day)}/${two(value.month)}/${value.year}';
+  }
+}
+
+class _SearchModeControl extends StatelessWidget {
+  const _SearchModeControl({required this.mode, required this.onChanged});
+
+  final HomeSearchMode mode;
+  final ValueChanged<HomeSearchMode> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 48,
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: const Color(0xFFEAF4FB),
+        borderRadius: BorderRadius.circular(18),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: _SearchModeButton(
+              key: const Key('search-mode-route'),
+              selected: mode == HomeSearchMode.route,
+              label: 'Theo tuyến',
+              selectedAsset: '$_assetRoot/icons/search_mode_route_active.svg',
+              unselectedAsset:
+                  '$_assetRoot/icons/search_mode_route_inactive.svg',
+              onTap: () => onChanged(HomeSearchMode.route),
+            ),
+          ),
+          Expanded(
+            child: _SearchModeButton(
+              key: const Key('search-mode-operator'),
+              selected: mode == HomeSearchMode.operator,
+              label: 'Theo nhà xe',
+              selectedAsset:
+                  '$_assetRoot/icons/search_mode_operator_active.svg',
+              unselectedAsset:
+                  '$_assetRoot/icons/search_mode_operator_inactive.svg',
+              onTap: () => onChanged(HomeSearchMode.operator),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SearchModeButton extends StatelessWidget {
+  const _SearchModeButton({
+    required this.selected,
+    required this.label,
+    required this.selectedAsset,
+    required this.unselectedAsset,
+    required this.onTap,
+    super.key,
+  });
+
+  final bool selected;
+  final String label;
+  final String selectedAsset;
+  final String unselectedAsset;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(14),
+        child: Ink(
+          decoration: BoxDecoration(
+            gradient: selected
+                ? const LinearGradient(
+                    colors: [Color(0xFF137FB7), Color(0xFF59ABD7)],
+                  )
+                : null,
+            borderRadius: BorderRadius.circular(14),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              SvgPicture.asset(
+                selected ? selectedAsset : unselectedAsset,
+                width: 20,
+                height: 20,
+                excludeFromSemantics: true,
+              ),
+              const SizedBox(width: 8),
+              Flexible(
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    label,
+                    maxLines: 1,
+                    style: TextStyle(
+                      fontSize: 14,
+                      height: 18 / 14,
+                      fontWeight: FontWeight.w600,
+                      color: selected ? Colors.white : _secondary,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _PlannerInput extends StatelessWidget {
+  const _PlannerInput({
+    required this.label,
+    required this.value,
+    required this.asset,
+    required this.onTap,
+    this.raster = false,
+    super.key,
+  });
+
+  final String label;
+  final String value;
+  final String asset;
+  final VoidCallback onTap;
+  final bool raster;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 72,
+      child: Material(
+        color: Colors.white,
+        shape: RoundedRectangleBorder(
+          side: const BorderSide(color: Color(0xFFE1EDF6)),
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(16),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Row(
+              children: [
+                raster
+                    ? ClipRRect(
+                        borderRadius: BorderRadius.circular(5),
+                        child: Image.asset(
+                          asset,
+                          width: 24,
+                          height: 24,
+                          fit: BoxFit.cover,
+                        ),
+                      )
+                    : SvgPicture.asset(
+                        asset,
+                        width: 24,
+                        height: 24,
+                        excludeFromSemantics: true,
+                      ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        label,
+                        style: const TextStyle(
+                          color: _secondary,
+                          fontSize: 13,
+                          height: 18 / 13,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      Text(
+                        value,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          color: _primaryDark,
+                          fontSize: 18,
+                          height: 24 / 18,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                SvgPicture.asset(
+                  '$_assetRoot/icons/chevron_small.svg',
+                  width: 20,
+                  height: 20,
+                  excludeFromSemantics: true,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _CompactPlannerInput extends StatelessWidget {
+  const _CompactPlannerInput({
+    required this.label,
+    required this.asset,
+    required this.onTap,
+  });
+
+  final String label;
+  final String asset;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 58,
+      child: Material(
+        color: Colors.white,
+        shape: RoundedRectangleBorder(
+          side: const BorderSide(color: Color(0xFFE1EDF6)),
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(16),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            child: Row(
+              children: [
+                SvgPicture.asset(
+                  asset,
+                  width: 20,
+                  height: 20,
+                  excludeFromSemantics: true,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      color: _primaryDark,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+                SvgPicture.asset(
+                  '$_assetRoot/icons/chevron_right.svg',
+                  width: 16,
+                  height: 16,
+                  excludeFromSemantics: true,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _LocationPicker extends StatelessWidget {
+  const _LocationPicker({required this.title, required this.loader});
+
+  final String title;
+  final HomeLocationsLoader loader;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: MediaQuery.sizeOf(context).height * .72,
+      child: Column(
+        children: [
+          const SizedBox(height: 10),
+          Container(
+            width: 42,
+            height: 4,
+            decoration: BoxDecoration(
+              color: const Color(0xFFD5E2EA),
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(18),
+            child: Text(
+              title,
+              style: const TextStyle(
+                color: _primaryDark,
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+          Expanded(
+            child: FutureBuilder<List<HomeLocation>>(
+              future: loader(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState != ConnectionState.done) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                if (snapshot.hasError) {
+                  return const Center(
+                    child: Padding(
+                      padding: EdgeInsets.all(24),
+                      child: Text(
+                        'Không tải được danh mục địa điểm. Vui lòng thử lại.',
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  );
+                }
+                final items = snapshot.data ?? const <HomeLocation>[];
+                if (items.isEmpty) {
+                  return const Center(child: Text('Chưa có địa điểm phù hợp.'));
+                }
+                return ListView.separated(
+                  itemCount: items.length,
+                  separatorBuilder: (_, _) => const Divider(height: 1),
+                  itemBuilder: (context, index) {
+                    final item = items[index];
+                    return ListTile(
+                      leading: SvgPicture.asset(
+                        '$_assetRoot/icons/origin_pin.svg',
+                        width: 22,
+                        height: 22,
+                      ),
+                      title: Text(item.name),
+                      onTap: () => Navigator.pop(context, item),
+                    );
+                  },
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _GuestInvitation extends StatelessWidget {
+  const _GuestInvitation({required this.onLogin});
+
+  final VoidCallback? onLogin;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      key: const Key('guest-login-banner'),
+      constraints: const BoxConstraints(minHeight: 49),
+      padding: const EdgeInsets.fromLTRB(7, 5, 8, 5),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Color(0xFFE5F5FF), Color(0xFFBFE3FF)],
+        ),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: _surfaceBorder, width: .6),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x121F6EA6),
+            offset: Offset(0, 3),
+            blurRadius: 6,
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: Image.asset(
+              '$_assetRoot/illustrations/member_banner.png',
+              width: 78,
+              height: 40,
+              fit: BoxFit.cover,
+              alignment: Alignment.center,
+              excludeFromSemantics: true,
+            ),
+          ),
+          const SizedBox(width: 7),
+          const Expanded(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Đăng nhập để lưu hành trình,',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: Color(0xFF155D9B),
+                    fontSize: 10.7,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                Text(
+                  'xem vé của bạn và nhận ưu đãi.',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(color: Color(0xFF155D9B), fontSize: 10),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 4),
+          OutlinedButton(
+            onPressed: onLogin,
+            style: OutlinedButton.styleFrom(
+              minimumSize: const Size(72, 28),
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              foregroundColor: _primary,
+              side: const BorderSide(color: _primary, width: .7),
+              textStyle: const TextStyle(
+                fontSize: 9.6,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            child: const Text('Đăng nhập  →'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _RecentSearches extends StatelessWidget {
+  const _RecentSearches({required this.operatorMode});
+
+  final bool operatorMode;
+
+  @override
+  Widget build(BuildContext context) {
+    const items = [
+      ('TP.HCM → Đà Lạt', '10/10/2026'),
+      ('Hà Nội → Đà Nẵng', '15/11/2026'),
+      ('TP.HCM → Nha Trang', '28/11/2026'),
+      ('Cần Thơ → Đà Lạt', '02/12/2026'),
+    ];
+    return _HomeSection(
+      title: 'Tìm kiếm gần đây',
+      iconAsset: operatorMode
+          ? '$_assetRoot/icons/clock_operator.svg'
+          : '$_assetRoot/icons/clock_route.svg',
+      child: _HorizontalStrip(
+        children: List.generate(items.length, (index) {
+          final item = items[index];
+          return Container(
+            width: 105,
+            height: 36,
+            padding: const EdgeInsets.symmetric(horizontal: 7),
+            decoration: _smallCardDecoration(),
+            child: Row(
+              children: [
+                SvgPicture.asset(
+                  operatorMode
+                      ? '$_assetRoot/icons/operator_recent_${index + 1}.svg'
+                      : '$_assetRoot/icons/recent_origin_${index + 1}.svg',
+                  width: 18,
+                  height: 18,
+                  excludeFromSemantics: true,
+                ),
+                const SizedBox(width: 4),
+                Expanded(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        item.$1,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          color: _primaryDark,
+                          fontSize: 7.3,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      Text(
+                        item.$2,
+                        style: const TextStyle(
+                          color: _secondary,
+                          fontSize: 7.3,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          );
+        }),
+      ),
+    );
+  }
+}
+
+class _VoucherSection extends StatelessWidget {
+  const _VoucherSection();
+
+  @override
+  Widget build(BuildContext context) {
+    return _HomeSection(
+      title: 'Ưu đãi nổi bật',
+      iconAsset: '$_assetRoot/icons/gift_route.svg',
+      child: _HorizontalStrip(
+        gap: 8,
+        children: const [
+          _VoucherCard(
+            asset: '$_assetRoot/vouchers/discount_20.png',
+            title: 'Giảm 20%',
+            subtitle: 'Cho mọi tuyến đường',
+            code: 'Mã: VXN20',
+            color: Color(0xFFA74711),
+          ),
+          _VoucherCard(
+            asset: '$_assetRoot/vouchers/discount_50k.jpg',
+            title: 'Giảm 50K',
+            subtitle: 'Cho đơn từ 300K',
+            code: 'Mã: DALAT50',
+            color: Color(0xFF155D9B),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _VoucherCard extends StatelessWidget {
+  const _VoucherCard({
+    required this.asset,
+    required this.title,
+    required this.subtitle,
+    required this.code,
+    required this.color,
+  });
+
+  final String asset;
+  final String title;
+  final String subtitle;
+  final String code;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    final viewportWidth = MediaQuery.sizeOf(context).width;
+    final width = math.min(192.0, math.max(156.0, (viewportWidth - 26) / 2));
+    return Container(
+      width: width,
+      height: 66,
+      clipBehavior: Clip.antiAlias,
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: .5),
+        borderRadius: BorderRadius.circular(8),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x121F6EA6),
+            offset: Offset(0, 3),
+            blurRadius: 10,
+          ),
+        ],
+      ),
+      child: Stack(
+        children: [
+          Positioned.fill(
+            left: width * .33,
+            child: Opacity(
+              opacity: .6,
+              child: Image.asset(asset, fit: BoxFit.cover),
+            ),
+          ),
+          Positioned.fill(
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    const Color(0xFFFFFAE5).withValues(alpha: .98),
+                    Colors.white.withValues(alpha: 0),
+                  ],
+                  stops: const [.35, .78],
+                ),
+              ),
+            ),
+          ),
+          Positioned(
+            left: 13,
+            top: 5,
+            child: Text(
+              title,
+              style: TextStyle(
+                color: color,
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+          Positioned(
+            left: 13,
+            top: 28,
+            child: Text(
+              subtitle,
+              style: TextStyle(
+                color: color,
+                fontSize: 9,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+          Positioned(
+            left: 13,
+            top: 45,
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(4),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                child: Text(
+                  code,
+                  style: TextStyle(
+                    color: color,
+                    fontSize: 7.3,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _PopularRoutesSection extends StatelessWidget {
+  const _PopularRoutesSection();
+
+  @override
+  Widget build(BuildContext context) {
+    const routes = [
+      ('TP.HCM', 'Đà Lạt', '250.000đ', '$_assetRoot/vouchers/discount_50k.jpg'),
+      (
+        'TP.HCM',
+        'Nha Trang',
+        '320.000đ',
+        '$_assetRoot/destinations/nha_trang.jpg',
+      ),
+      ('Hà Nội', 'Đà Nẵng', '450.000đ', '$_assetRoot/destinations/da_nang.jpg'),
+      (
+        'TP.HCM',
+        'Phan Thiết',
+        '180.000đ',
+        '$_assetRoot/destinations/phan_thiet.jpg',
+      ),
+    ];
+    return _HomeSection(
+      title: 'Tuyến phổ biến',
+      iconAsset: '$_assetRoot/icons/popular_route_pin.svg',
+      child: _HorizontalStrip(
+        gap: 7,
+        children: routes
+            .map(
+              (route) => _PopularRouteCard(
+                from: route.$1,
+                to: route.$2,
+                price: route.$3,
+                asset: route.$4,
+              ),
+            )
+            .toList(),
+      ),
+    );
+  }
+}
+
+class _PopularRouteCard extends StatelessWidget {
+  const _PopularRouteCard({
+    required this.from,
+    required this.to,
+    required this.price,
+    required this.asset,
+  });
+
+  final String from;
+  final String to;
+  final String price;
+  final String asset;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 94,
+      height: 74,
+      clipBehavior: Clip.antiAlias,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(7),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x121F6EA6),
+            offset: Offset(0, 3),
+            blurRadius: 10,
+          ),
+        ],
+      ),
+      child: Stack(
+        children: [
+          Positioned.fill(child: Image.asset(asset, fit: BoxFit.cover)),
+          const Positioned.fill(
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [Colors.white, Color(0xE6FFFFFF), Color(0x1FFFFFFF)],
+                  stops: [0, .5, 1],
+                ),
+              ),
+            ),
+          ),
+          Positioned(
+            left: 7,
+            top: 5,
+            right: 4,
+            child: Text(
+              from,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                color: _primaryDark,
+                fontSize: 7.3,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+          Positioned(
+            left: 7,
+            top: 16,
+            right: 4,
+            child: Text(
+              to,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                color: _primaryDark,
+                fontSize: 11.3,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+          const Positioned(
+            left: 7,
+            bottom: 13,
+            child: Text(
+              'Chỉ từ',
+              style: TextStyle(color: _secondary, fontSize: 6.2),
+            ),
+          ),
+          Positioned(
+            left: 7,
+            bottom: 2,
+            child: Text(
+              price,
+              style: const TextStyle(
+                color: Color(0xFFE68114),
+                fontSize: 9,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+          Positioned(
+            right: 6,
+            bottom: 5,
+            child: SvgPicture.asset(
+              '$_assetRoot/icons/route_action.svg',
+              width: 15,
+              height: 15,
+              excludeFromSemantics: true,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _OperatorsSection extends StatelessWidget {
+  const _OperatorsSection();
+
+  @override
+  Widget build(BuildContext context) {
+    const operators = [
+      ('Phương Trang', '4.8', '$_assetRoot/operators/phuong_trang.png'),
+      ('Điền Linh', '4.7', '$_assetRoot/operators/dien_linh.png'),
+      ('Thành Bưởi', '4.6', '$_assetRoot/operators/thanh_buoi.png'),
+    ];
+    return _HomeSection(
+      title: 'Nhà xe nổi bật',
+      iconAsset: '$_assetRoot/icons/section_bus_route.svg',
+      child: _HorizontalStrip(
+        gap: 7,
+        children: operators
+            .map(
+              (item) =>
+                  _OperatorCard(name: item.$1, rating: item.$2, asset: item.$3),
+            )
+            .toList(),
+      ),
+    );
+  }
+}
+
+class _OperatorCard extends StatelessWidget {
+  const _OperatorCard({
+    required this.name,
+    required this.rating,
+    required this.asset,
+  });
+
+  final String name;
+  final String rating;
+  final String asset;
+
+  @override
+  Widget build(BuildContext context) {
+    final textScale = MediaQuery.textScalerOf(context).scale(1);
+    final cardHeight = textScale > 1.25 ? 92.0 : 65.0;
+    return Container(
+      width: 127,
+      height: cardHeight,
+      padding: const EdgeInsets.all(7),
+      decoration: _smallCardDecoration(radius: 7),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: Image.asset(asset, width: 30, height: 34, fit: BoxFit.cover),
+          ),
+          const SizedBox(width: 5),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  name,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: _primaryDark,
+                    fontSize: 8.5,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                Text(
+                  '★ $rating  (12.5K)',
+                  style: const TextStyle(
+                    color: Color(0xFFE89B26),
+                    fontSize: 6.5,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const Spacer(),
+                const Text(
+                  'TP.HCM → Đà Lạt',
+                  maxLines: 1,
+                  style: TextStyle(color: _secondary, fontSize: 6.6),
+                ),
+                const Text(
+                  'TP.HCM → Nha Trang',
+                  maxLines: 1,
+                  style: TextStyle(color: _secondary, fontSize: 6.6),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ArticlesSection extends StatelessWidget {
+  const _ArticlesSection();
+
+  @override
+  Widget build(BuildContext context) {
+    const articles = [
+      (
+        'CẨM NANG',
+        'Kinh nghiệm đi Đà Lạt\nbằng xe khách',
+        '$_assetRoot/articles/da_lat_coach_guide.jpg',
+      ),
+      (
+        'CẨM NANG',
+        'Top 7 điểm check-in\nkhông thể bỏ lỡ ở Đà Lạt',
+        '$_assetRoot/articles/da_lat_checkin.png',
+      ),
+      (
+        'LIFESTYLE',
+        'Những cung đường biển\nđẹp nhất Việt Nam',
+        '$_assetRoot/articles/coastal_routes.jpg',
+      ),
+    ];
+    return _HomeSection(
+      title: 'Khám phá & cẩm nang',
+      iconAsset: '$_assetRoot/icons/section_book_route.svg',
+      child: _HorizontalStrip(
+        gap: 7,
+        children: articles
+            .map(
+              (item) => _ArticleCard(
+                category: item.$1,
+                title: item.$2,
+                asset: item.$3,
+              ),
+            )
+            .toList(),
+      ),
+    );
+  }
+}
+
+class _ArticleCard extends StatelessWidget {
+  const _ArticleCard({
+    required this.category,
+    required this.title,
+    required this.asset,
+  });
+
+  final String category;
+  final String title;
+  final String asset;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 127,
+      height: 64,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(7),
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            Image.asset(asset, fit: BoxFit.cover),
+            const DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [Colors.transparent, Color(0xD1001A29)],
+                ),
+              ),
+            ),
+            Positioned(
+              left: 7,
+              top: 5,
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(7),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 5,
+                    vertical: 2,
+                  ),
+                  child: Text(
+                    category,
+                    style: const TextStyle(
+                      color: _primaryDark,
+                      fontSize: 5.7,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            Positioned(
+              left: 7,
+              right: 5,
+              bottom: 5,
+              child: Text(
+                title,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 8.5,
+                  height: 1.3,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _SupportSection extends StatelessWidget {
+  const _SupportSection();
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            SvgPicture.asset(
+              '$_assetRoot/icons/headset.svg',
+              width: 24,
+              height: 24,
+              excludeFromSemantics: true,
+            ),
+            const SizedBox(width: 11),
+            const Expanded(
+              child: Text(
+                'Luôn sẵn sàng hỗ trợ',
+                style: TextStyle(
+                  color: _primaryDark,
+                  fontSize: 18,
+                  height: 24 / 18,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        LayoutBuilder(
+          builder: (context, constraints) {
+            final textScale = MediaQuery.textScalerOf(context).scale(1);
+            final compact = constraints.maxWidth < 350 || textScale > 1.25;
+            return _SupportHero(compact: compact);
+          },
+        ),
+        const SizedBox(height: 10),
+        const _SupportActions(),
+      ],
+    );
+  }
+}
+
+class _SupportHero extends StatelessWidget {
+  const _SupportHero({required this.compact});
+
+  final bool compact;
+
+  @override
+  Widget build(BuildContext context) {
+    final height = compact ? 326.0 : 268.0;
+    return Container(
+      key: const Key('support-station'),
+      height: height,
+      width: double.infinity,
+      clipBehavior: Clip.antiAlias,
+      decoration: BoxDecoration(
+        color: const Color(0xFFEEF9FF),
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: Colors.white),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x171F80B2),
+            offset: Offset(0, 7),
+            blurRadius: 18,
+          ),
+        ],
+      ),
+      child: Stack(
+        children: [
+          Positioned(
+            right: compact ? -8 : -7,
+            bottom: compact ? -18 : 63,
+            width: compact ? 168 : 205,
+            height: compact ? 168 : 205,
+            child: Image.asset(
+              '$_assetRoot/support/robot_agent.png',
+              fit: BoxFit.contain,
+              excludeFromSemantics: true,
+            ),
+          ),
+          Positioned(
+            left: 15,
+            top: 14,
+            child: Container(
+              constraints: const BoxConstraints(maxWidth: 237),
+              height: 25,
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              decoration: BoxDecoration(
+                color: const Color(0xFFDFF2FF),
+                borderRadius: BorderRadius.circular(13),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  SvgPicture.asset(
+                    '$_assetRoot/icons/support_pin.svg',
+                    width: 14,
+                    height: 14,
+                    excludeFromSemantics: true,
+                  ),
+                  const SizedBox(width: 6),
+                  const Flexible(
+                    child: Text(
+                      'Support Station — Trạm hỗ trợ hành trình',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: _primary,
+                        fontSize: 10,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const Positioned(
+            left: 16,
+            top: 55,
+            child: Text(
+              'Có chúng tôi',
+              style: TextStyle(
+                color: _primaryDark,
+                fontSize: 25,
+                height: 34 / 25,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+          const Positioned(
+            left: 16,
+            top: 88,
+            child: Text(
+              'đồng hành!',
+              style: TextStyle(
+                color: Color(0xFFEE9225),
+                fontSize: 25,
+                height: 34 / 25,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+          Positioned(
+            left: 17,
+            top: 132,
+            width: compact ? 210 : 195,
+            child: const Text(
+              'Mọi thắc mắc, vấn đề trong chuyến đi đều được chúng tôi hỗ trợ nhanh chóng và tận tâm.',
+              style: TextStyle(
+                color: _secondary,
+                fontSize: 11,
+                height: 15 / 11,
+              ),
+            ),
+          ),
+          Positioned(
+            left: 16,
+            top: 205,
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFFFFA82E), Color(0xFFFF7A14)],
+                ),
+                borderRadius: BorderRadius.circular(22),
+              ),
+              child: SizedBox(
+                height: 44,
+                child: TextButton.icon(
+                  onPressed: () {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Trung tâm hỗ trợ chưa được triển khai.'),
+                      ),
+                    );
+                  },
+                  style: TextButton.styleFrom(
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(horizontal: 15),
+                  ),
+                  icon: SvgPicture.asset(
+                    '$_assetRoot/icons/support_headset.svg',
+                    width: 21,
+                    height: 21,
+                    excludeFromSemantics: true,
+                  ),
+                  label: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Text(
+                        'Liên hệ hỗ trợ',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      SvgPicture.asset(
+                        '$_assetRoot/icons/support_arrow.svg',
+                        width: 18,
+                        height: 18,
+                        excludeFromSemantics: true,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SupportActions extends StatelessWidget {
+  const _SupportActions();
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final textScale = MediaQuery.textScalerOf(context).scale(1);
+        final twoColumns = constraints.maxWidth < 350 || textScale > 1.25;
+        final gap = 8.0;
+        final width = twoColumns
+            ? (constraints.maxWidth - gap) / 2
+            : (constraints.maxWidth - gap * 2) / 3;
+        return Wrap(
+          spacing: gap,
+          runSpacing: gap,
+          children: [
+            _SupportActionCard(
+              width: width,
+              circleAsset: '$_assetRoot/icons/support_center_circle.svg',
+              iconAsset: '$_assetRoot/icons/chat.svg',
+              title: 'Trung tâm trợ giúp',
+              subtitle: 'Câu hỏi thường gặp',
+            ),
+            _SupportActionCard(
+              width: width,
+              circleAsset: '$_assetRoot/icons/support_phone_circle.svg',
+              iconAsset: '$_assetRoot/icons/phone.svg',
+              title: 'Gọi tổng đài',
+              subtitle: '1900 636 707',
+            ),
+            _SupportActionCard(
+              width: width,
+              circleAsset: '$_assetRoot/icons/support_feedback_circle.svg',
+              iconAsset: '$_assetRoot/icons/pen.svg',
+              title: 'Góp ý',
+              subtitle: 'Chia sẻ trải nghiệm',
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _SupportActionCard extends StatelessWidget {
+  const _SupportActionCard({
+    required this.width,
+    required this.circleAsset,
+    required this.iconAsset,
+    required this.title,
+    required this.subtitle,
+  });
+
+  final double width;
+  final String circleAsset;
+  final String iconAsset;
+  final String title;
+  final String subtitle;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: width,
+      constraints: const BoxConstraints(minHeight: 103),
+      padding: const EdgeInsets.all(10),
+      decoration: _smallCardDecoration(radius: 14),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 30,
+            height: 30,
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                SvgPicture.asset(
+                  circleAsset,
+                  width: 30,
+                  height: 30,
+                  excludeFromSemantics: true,
+                ),
+                SvgPicture.asset(
+                  iconAsset,
+                  width: 16,
+                  height: 16,
+                  excludeFromSemantics: true,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 7),
+          Text(
+            title,
+            style: const TextStyle(
+              color: _primaryDark,
+              fontSize: 10,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 5),
+          Text(
+            subtitle,
+            style: const TextStyle(color: _secondary, fontSize: 8.2),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _HomeSection extends StatelessWidget {
+  const _HomeSection({
+    required this.title,
+    required this.iconAsset,
+    required this.child,
+  });
+
+  final String title;
+  final String iconAsset;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            SvgPicture.asset(
+              iconAsset,
+              width: 15,
+              height: 15,
+              excludeFromSemantics: true,
+            ),
+            const SizedBox(width: 7),
+            Expanded(
+              child: Text(
+                title,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  color: _primaryDark,
+                  fontSize: 12,
+                  height: 16 / 12,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+            TextButton(
+              onPressed: () {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      '$title: danh sách đầy đủ chưa được triển khai.',
+                    ),
+                  ),
+                );
+              },
+              style: TextButton.styleFrom(
+                minimumSize: const Size(0, 24),
+                padding: const EdgeInsets.symmetric(horizontal: 5),
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
+              child: const Text(
+                'Xem tất cả  ›',
+                style: TextStyle(fontSize: 10, fontWeight: FontWeight.w500),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 5),
+        child,
+      ],
+    );
+  }
+}
+
+class _HorizontalStrip extends StatelessWidget {
+  const _HorizontalStrip({required this.children, this.gap = 6});
+
+  final List<Widget> children;
+  final double gap;
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      physics: const BouncingScrollPhysics(),
+      child: Row(
+        children: [
+          for (var index = 0; index < children.length; index++) ...[
+            if (index > 0) SizedBox(width: gap),
+            children[index],
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+BoxDecoration _smallCardDecoration({double radius = 8.5}) {
+  return BoxDecoration(
+    color: Colors.white,
+    borderRadius: BorderRadius.circular(radius),
+    border: Border.all(color: _surfaceBorder, width: .6),
+    boxShadow: const [
+      BoxShadow(color: Color(0x121F6EA6), offset: Offset(0, 3), blurRadius: 6),
+    ],
+  );
+}
+
+@immutable
+class _FilterlessSvgAssetLoader extends SvgLoader<ByteData> {
+  const _FilterlessSvgAssetLoader(this.assetName);
+
+  static final _filterAttribute = RegExp(r'\sfilter="url\(#[^"]+\)"');
+  static final _filterDefinition = RegExp(
+    r'<filter\b[^>]*>.*?</filter>',
+    dotAll: true,
+  );
+
+  final String assetName;
+
+  @override
+  Future<ByteData?> prepareMessage(BuildContext? context) {
+    final bundle = context == null
+        ? rootBundle
+        : DefaultAssetBundle.of(context);
+    return bundle.load(assetName);
+  }
+
+  @override
+  String provideSvg(ByteData? message) {
+    final source = utf8.decode(
+      Uint8List.sublistView(message!),
+      allowMalformed: true,
+    );
+    return source
+        .replaceFirst(_filterAttribute, '')
+        .replaceFirst(_filterDefinition, '');
+  }
+
+  @override
+  int get hashCode => Object.hash(runtimeType, assetName);
+
+  @override
+  bool operator ==(Object other) {
+    return other is _FilterlessSvgAssetLoader && other.assetName == assetName;
+  }
+}
