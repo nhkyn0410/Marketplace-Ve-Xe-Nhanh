@@ -23,26 +23,26 @@ void main() {
 
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(_channel, (call) async {
-      calls.add(call);
-      final args = (call.arguments as Map?) ?? const <Object?, Object?>{};
-      switch (call.method) {
-        case 'write':
-          native[args['key'] as String] = args['value'] as String;
-          return null;
-        case 'read':
-          return native[args['key'] as String];
-        case 'delete':
-          native.remove(args['key'] as String);
-          return null;
-        case 'deleteAll':
-          native.clear();
-          return null;
-        case 'containsKey':
-          return native.containsKey(args['key'] as String);
-        default:
-          return null;
-      }
-    });
+          calls.add(call);
+          final args = (call.arguments as Map?) ?? const <Object?, Object?>{};
+          switch (call.method) {
+            case 'write':
+              native[args['key'] as String] = args['value'] as String;
+              return null;
+            case 'read':
+              return native[args['key'] as String];
+            case 'delete':
+              native.remove(args['key'] as String);
+              return null;
+            case 'deleteAll':
+              native.clear();
+              return null;
+            case 'containsKey':
+              return native.containsKey(args['key'] as String);
+            default:
+              return null;
+          }
+        });
   });
 
   tearDown(() {
@@ -51,12 +51,16 @@ void main() {
         .setMockMethodCallHandler(_channel, null);
   });
 
-  test('lưu rồi đọc lại đúng token', () async {
+  test('lưu rồi đọc lại đúng cặp token', () async {
     const storage = TokenStorage();
 
-    await storage.saveAccessToken('token-abc');
+    await storage.saveSession(
+      accessToken: 'token-abc',
+      refreshToken: 'refresh-xyz',
+    );
 
     expect(await storage.readAccessToken(), 'token-abc');
+    expect(await storage.readRefreshToken(), 'refresh-xyz');
   });
 
   test('chưa lưu gì thì đọc ra null', () async {
@@ -65,7 +69,10 @@ void main() {
 
   test('clear() xoá token khỏi native store', () async {
     const storage = TokenStorage();
-    await storage.saveAccessToken('token-abc');
+    await storage.saveSession(
+      accessToken: 'token-abc',
+      refreshToken: 'refresh-xyz',
+    );
 
     await storage.clear();
 
@@ -73,7 +80,7 @@ void main() {
     expect(native, isEmpty);
   });
 
-  test('ghi/đọc/xoá đúng ba method native và đúng một key cố định', () async {
+  test('ghi/đọc/xoá đúng hai key token cố định', () async {
     // Khoá đổi tên = mọi người dùng đang đăng nhập bị văng ra sau khi cập nhật
     // app, mà không có lỗi nào hiện ra. Ghim lại bằng test.
     const storage = TokenStorage();
@@ -82,9 +89,17 @@ void main() {
     await storage.readAccessToken();
     await storage.clear();
 
-    expect(calls.map((c) => c.method).toList(), ['write', 'read', 'delete']);
-    for (final call in calls) {
-      expect((call.arguments as Map)['key'], 'access_token');
-    }
+    expect(calls.map((c) => c.method).toList(), [
+      'write',
+      'read',
+      'delete',
+      'delete',
+    ]);
+    expect(calls.map((c) => (c.arguments as Map)['key']).toList(), [
+      'access_token',
+      'access_token',
+      'access_token',
+      'refresh_token',
+    ]);
   });
 }

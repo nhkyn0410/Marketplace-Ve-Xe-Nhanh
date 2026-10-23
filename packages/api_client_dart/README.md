@@ -211,6 +211,7 @@ Class | Method | HTTP request | Description
 [*AuthApi*](doc/AuthApi.md) | [**authControllerLogout**](doc/AuthApi.md#authcontrollerlogout) | **POST** /v1/auth/logout | 
 [*AuthApi*](doc/AuthApi.md) | [**authControllerMe**](doc/AuthApi.md#authcontrollerme) | **GET** /v1/auth/me | 
 [*AuthApi*](doc/AuthApi.md) | [**authControllerOauth**](doc/AuthApi.md#authcontrolleroauth) | **POST** /v1/auth/oauth/{provider} | 
+[*AuthApi*](doc/AuthApi.md) | [**authControllerOauthIdToken**](doc/AuthApi.md#authcontrolleroauthidtoken) | **POST** /v1/auth/oauth/{provider}/id-token | 
 [*AuthApi*](doc/AuthApi.md) | [**authControllerOauthSession**](doc/AuthApi.md#authcontrolleroauthsession) | **POST** /v1/auth/oauth/session | 
 [*AuthApi*](doc/AuthApi.md) | [**authControllerOperatorLogin**](doc/AuthApi.md#authcontrolleroperatorlogin) | **POST** /v1/auth/operator/login | 
 [*AuthApi*](doc/AuthApi.md) | [**authControllerPlatformLogin**](doc/AuthApi.md#authcontrollerplatformlogin) | **POST** /v1/auth/platform/login | 
@@ -668,6 +669,7 @@ Class | Method | HTTP request | Description
  - [MongoHealthResponseDtoOutput](doc/MongoHealthResponseDtoOutput.md)
  - [NotificationLogDtoOutput](doc/NotificationLogDtoOutput.md)
  - [NotificationLogDtoOutputItemsInner](doc/NotificationLogDtoOutputItemsInner.md)
+ - [OAuthIdTokenDto](doc/OAuthIdTokenDto.md)
  - [OAuthInitDto](doc/OAuthInitDto.md)
  - [OAuthRedirectResponseDtoOutput](doc/OAuthRedirectResponseDtoOutput.md)
  - [OperatorBookingDetailDtoOutput](doc/OperatorBookingDetailDtoOutput.md)

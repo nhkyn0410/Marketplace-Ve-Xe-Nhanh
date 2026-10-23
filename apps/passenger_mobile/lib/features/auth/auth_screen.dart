@@ -12,6 +12,7 @@ const _canvasWidth = 412.0;
 const _figmaCanvasHeight = 915.0;
 const _loginFormHeight = 481.0;
 const _otpFormHeight = 481.0;
+const _profileFormHeight = 465.0;
 const _minimumFormTop = 394.0;
 const _minimumSystemBottomInset = 24.0;
 const _formBottomSpacing = 16.0;
@@ -37,6 +38,15 @@ const _otpMuted = Color(0xFF667680);
 const _otpBorder = Color(0xFFD9E1E5);
 const _otpFieldFill = Color(0xFFF7F9FB);
 const _otpFocus = Color(0xFF00506A);
+
+double _responsiveFormHeight(
+  MediaQueryData mediaQuery, {
+  required double baseHeight,
+  required double textScaleGrowth,
+}) {
+  final textScale = (mediaQuery.textScaler.scale(14) / 14).clamp(1.0, 2.0);
+  return baseHeight + (textScale - 1) * textScaleGrowth;
+}
 
 const _assetRoot = 'assets/auth';
 const _waveFormBackgroundAsset = '$_assetRoot/waves/form_background.svg';
@@ -85,6 +95,7 @@ class AuthEntryScreen extends StatefulWidget {
   const AuthEntryScreen({
     required this.onRequestOtp,
     this.onEmailChanged,
+    this.onGoogleSignIn,
     this.onContinueAsGuest,
     this.busy = false,
     this.errorMessage,
@@ -95,6 +106,7 @@ class AuthEntryScreen extends StatefulWidget {
 
   final Future<void> Function(String email) onRequestOtp;
   final VoidCallback? onEmailChanged;
+  final Future<void> Function()? onGoogleSignIn;
   final VoidCallback? onContinueAsGuest;
   final bool busy;
   final String? errorMessage;
@@ -197,6 +209,7 @@ class _AuthEntryScreenState extends State<AuthEntryScreen>
           otpRequested: widget.otpRequested,
           onEmailChanged: _handleEmailChanged,
           onSubmit: _submit,
+          onGoogleSignIn: widget.onGoogleSignIn,
           onContinueAsGuest: widget.onContinueAsGuest,
         ),
       ),
@@ -231,6 +244,495 @@ class _AuthEntryScreenState extends State<AuthEntryScreen>
     );
   }
 }
+
+typedef ProfileCompletionCallback = Future<bool> Function(
+  String fullName,
+  String? phone,
+);
+
+/// Thu thập phần hồ sơ tối thiểu sau lần đăng nhập đầu tiên.
+///
+/// Email đã được OTP xác minh nên chỉ hiển thị để người dùng đối chiếu. Họ tên
+/// là bắt buộc; số điện thoại có thể bỏ trống và được chuẩn hóa về +84 trước
+/// khi gửi API.
+class ProfileCompletionScreen extends StatefulWidget {
+  const ProfileCompletionScreen({
+    required this.email,
+    required this.onComplete,
+    this.busy = false,
+    this.errorMessage,
+    super.key,
+  });
+
+  final String email;
+  final ProfileCompletionCallback onComplete;
+  final bool busy;
+  final String? errorMessage;
+
+  @override
+  State<ProfileCompletionScreen> createState() =>
+      _ProfileCompletionScreenState();
+}
+
+class _ProfileCompletionScreenState extends State<ProfileCompletionScreen> {
+  late final TextEditingController _emailController;
+  final _nameController = TextEditingController();
+  final _phoneController = TextEditingController();
+  final _nameFocusNode = FocusNode();
+  final _phoneFocusNode = FocusNode();
+  String? _localError;
+
+  @override
+  void initState() {
+    super.initState();
+    _emailController = TextEditingController(text: widget.email);
+  }
+
+  @override
+  void didUpdateWidget(covariant ProfileCompletionScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.email != widget.email) _emailController.text = widget.email;
+  }
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _nameController.dispose();
+    _phoneController.dispose();
+    _nameFocusNode.dispose();
+    _phoneFocusNode.dispose();
+    super.dispose();
+  }
+
+  void _clearLocalError(String _) {
+    if (_localError != null) setState(() => _localError = null);
+  }
+
+  String? _normalizePhone(String rawPhone) {
+    final compact = rawPhone.replaceAll(RegExp(r'\s+'), '');
+    if (compact.isEmpty) return null;
+    final digits = compact.replaceAll(RegExp(r'[^0-9]'), '');
+    if (digits.length == 9) return '+84$digits';
+    if (digits.length == 10 && digits.startsWith('0')) {
+      return '+84${digits.substring(1)}';
+    }
+    if (digits.length == 11 && digits.startsWith('84')) return '+$digits';
+    throw const FormatException();
+  }
+
+  Future<void> _submit() async {
+    if (widget.busy) return;
+    final name = _nameController.text.trim();
+    if (name.isEmpty) {
+      setState(() => _localError = 'Vui lòng nhập họ và tên hành khách.');
+      _nameFocusNode.requestFocus();
+      return;
+    }
+
+    String? phone;
+    try {
+      phone = _normalizePhone(_phoneController.text);
+    } on FormatException {
+      setState(
+        () => _localError = 'Số điện thoại phải gồm 9 số sau mã quốc gia +84.',
+      );
+      _phoneFocusNode.requestFocus();
+      return;
+    }
+
+    setState(() => _localError = null);
+    final completed = await widget.onComplete(name, phone);
+    if (!completed && mounted) _nameFocusNode.requestFocus();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: const SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.dark,
+        statusBarBrightness: Brightness.light,
+        systemNavigationBarColor: Colors.transparent,
+        systemNavigationBarDividerColor: Colors.transparent,
+        systemNavigationBarIconBrightness: Brightness.dark,
+        systemStatusBarContrastEnforced: false,
+        systemNavigationBarContrastEnforced: false,
+      ),
+      child: Scaffold(
+        key: const Key('profile-completion-screen'),
+        backgroundColor: _primary50,
+        resizeToAvoidBottomInset: true,
+        body: SafeArea(
+          top: false,
+          bottom: false,
+          child: _ResponsiveStaticAuthCanvas(
+            scrollKey: const Key('profile-scroll-view'),
+            viewportKey: const Key('profile-responsive-viewport'),
+            baseFormHeight: _profileFormHeight,
+            textScaleGrowth: 220,
+            contentBuilder: _profileContent,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _profileContent(BuildContext context, double formHeight) {
+    final feedback = _localError ?? widget.errorMessage;
+    final hasError = feedback != null;
+
+    return SizedBox(
+      height: formHeight,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const Text(
+            'Hoàn thiện hồ sơ',
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              fontFamily: _fontFamily,
+              fontSize: 28,
+              fontWeight: FontWeight.w600,
+              height: 1,
+              color: _primary900,
+            ),
+          ),
+          const SizedBox(height: 4),
+          const Text(
+            'Thêm thông tin để sẵn sàng cho chuyến đi.',
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              fontFamily: _fontFamily,
+              fontSize: 14,
+              fontWeight: FontWeight.w400,
+              height: 1.2,
+              color: _neutral600,
+            ),
+          ),
+          const SizedBox(height: 24),
+          _fieldLabel(
+            'EMAIL ĐĂNG KÝ',
+            badge: 'Đã xác minh',
+            badgeIcon: 'profile_verified.svg',
+          ),
+          const SizedBox(height: 8),
+          SizedBox(
+            height: 56,
+            child: TextField(
+              key: const Key('profile-email'),
+              controller: _emailController,
+              readOnly: true,
+              enableInteractiveSelection: false,
+              style: _profileInputStyle,
+              decoration: _profileInputDecoration(
+                hintText: widget.email,
+                prefixAsset: 'profile_email.svg',
+                suffix: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    SvgPicture.asset(
+                      '$_assetRoot/icons/profile_verified.svg',
+                      width: 18,
+                      height: 18,
+                    ),
+                    const SizedBox(width: 8),
+                    SvgPicture.asset(
+                      '$_assetRoot/icons/profile_lock.svg',
+                      width: 18,
+                      height: 18,
+                    ),
+                    const SizedBox(width: 14),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+          _fieldLabel('HỌ VÀ TÊN HÀNH KHÁCH'),
+          const SizedBox(height: 8),
+          SizedBox(
+            height: 56,
+            child: TextField(
+              key: const Key('profile-name-field'),
+              controller: _nameController,
+              focusNode: _nameFocusNode,
+              enabled: !widget.busy,
+              textCapitalization: TextCapitalization.words,
+              textInputAction: TextInputAction.next,
+              autofillHints: const [AutofillHints.name],
+              inputFormatters: [LengthLimitingTextInputFormatter(100)],
+              onChanged: _clearLocalError,
+              onSubmitted: (_) => _phoneFocusNode.requestFocus(),
+              style: _profileInputStyle,
+              decoration: _profileInputDecoration(
+                hintText: 'VD: Trần Nhật Trường',
+                prefixAsset: 'profile_user.svg',
+                hasError: hasError && _nameController.text.trim().isEmpty,
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+          _fieldLabel(
+            'SỐ ĐIỆN THOẠI LIÊN HỆ',
+            badge: 'Không bắt buộc (Tùy chọn)',
+          ),
+          const SizedBox(height: 8),
+          _phoneField(hasError: hasError),
+          const SizedBox(height: 8),
+          ConstrainedBox(
+            constraints: const BoxConstraints(minHeight: 32),
+            child: feedback == null
+                ? const SizedBox.shrink()
+                : Text(
+                    feedback,
+                    key: const Key('profile-feedback'),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontFamily: _fontFamily,
+                      fontSize: 12,
+                      height: 16 / 12,
+                      color: _error,
+                    ),
+                  ),
+          ),
+          const Spacer(),
+          _completeButton(),
+        ],
+      ),
+    );
+  }
+
+  Widget _fieldLabel(String label, {String? badge, String? badgeIcon}) {
+    return Row(
+      children: [
+        Expanded(
+          child: Text(
+            label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              fontFamily: _fontFamily,
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              height: 16 / 12,
+              letterSpacing: 0.45,
+              color: _otpInk,
+            ),
+          ),
+        ),
+        if (badge != null)
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            decoration: BoxDecoration(
+              color: badgeIcon == null
+                  ? const Color(0xFFF1F4F6)
+                  : const Color(0xFFE8F5EC),
+              borderRadius: BorderRadius.circular(999),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (badgeIcon != null) ...[
+                  SvgPicture.asset(
+                    '$_assetRoot/icons/$badgeIcon',
+                    width: 12,
+                    height: 12,
+                  ),
+                  const SizedBox(width: 4),
+                ],
+                Text(
+                  badge,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontFamily: _fontFamily,
+                    fontSize: 10,
+                    fontWeight: FontWeight.w500,
+                    height: 1.2,
+                    color: badgeIcon == null ? _otpMuted : _success,
+                  ),
+                ),
+              ],
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget _phoneField({required bool hasError}) {
+    return Container(
+      height: 56,
+      decoration: BoxDecoration(
+        color: _neutral0,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: hasError ? _error : _neutral100),
+      ),
+      child: Row(
+        children: [
+          const SizedBox(width: 16),
+          SvgPicture.asset(
+            '$_assetRoot/icons/vietnam_flag.svg',
+            width: 22,
+            height: 16,
+          ),
+          const SizedBox(width: 8),
+          const Text('+84', style: _profileInputStyle),
+          const SizedBox(width: 12),
+          const SizedBox(
+            height: 24,
+            child: VerticalDivider(width: 1, thickness: 1, color: _neutral100),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: TextField(
+              key: const Key('profile-phone-field'),
+              controller: _phoneController,
+              focusNode: _phoneFocusNode,
+              enabled: !widget.busy,
+              keyboardType: TextInputType.phone,
+              textInputAction: TextInputAction.done,
+              autofillHints: const [AutofillHints.telephoneNumberNational],
+              inputFormatters: [LengthLimitingTextInputFormatter(16)],
+              onChanged: _clearLocalError,
+              onSubmitted: (_) => _submit(),
+              style: _profileInputStyle,
+              decoration: const InputDecoration(
+                hintText: '912 345 678',
+                hintStyle: TextStyle(
+                  fontFamily: _fontFamily,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w400,
+                  height: 20 / 14,
+                  color: _textTertiary,
+                ),
+                border: InputBorder.none,
+                enabledBorder: InputBorder.none,
+                focusedBorder: InputBorder.none,
+                disabledBorder: InputBorder.none,
+                isCollapsed: true,
+              ),
+            ),
+          ),
+          const SizedBox(width: 16),
+        ],
+      ),
+    );
+  }
+
+  Widget _completeButton() {
+    return Semantics(
+      button: true,
+      enabled: !widget.busy,
+      child: SizedBox(
+        height: 56,
+        child: Material(
+          color: Colors.transparent,
+          borderRadius: BorderRadius.circular(16),
+          clipBehavior: Clip.antiAlias,
+          child: Ink(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Color(0xFFF4B028), Color(0xFFEA831D)],
+              ),
+            ),
+            child: InkWell(
+              key: const Key('profile-complete-button'),
+              onTap: widget.busy ? null : _submit,
+              child: Center(
+                child: widget.busy
+                    ? const SizedBox(
+                        width: 22,
+                        height: 22,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2.2,
+                          color: _neutral0,
+                        ),
+                      )
+                    : Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Text(
+                            'Hoàn tất',
+                            style: TextStyle(
+                              fontFamily: _fontFamily,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              height: 1.5,
+                              color: _neutral0,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          SvgPicture.asset(
+                            '$_assetRoot/icons/profile_arrow.svg',
+                            width: 20,
+                            height: 20,
+                          ),
+                        ],
+                      ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  InputDecoration _profileInputDecoration({
+    required String hintText,
+    required String prefixAsset,
+    Widget? suffix,
+    bool hasError = false,
+  }) {
+    final border = OutlineInputBorder(
+      borderRadius: BorderRadius.circular(16),
+      borderSide: BorderSide(color: hasError ? _error : _neutral100),
+    );
+    return InputDecoration(
+      hintText: hintText,
+      hintStyle: const TextStyle(
+        fontFamily: _fontFamily,
+        fontSize: 14,
+        fontWeight: FontWeight.w400,
+        height: 20 / 14,
+        color: _textTertiary,
+      ),
+      filled: true,
+      fillColor: _neutral0,
+      isDense: true,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 14),
+      prefixIconConstraints: const BoxConstraints(minWidth: 46),
+      prefixIcon: Center(
+        widthFactor: 1,
+        child: SvgPicture.asset(
+          '$_assetRoot/icons/$prefixAsset',
+          width: 20,
+          height: 20,
+        ),
+      ),
+      suffixIconConstraints: const BoxConstraints(minWidth: 0),
+      suffixIcon: suffix,
+      border: border,
+      enabledBorder: border,
+      disabledBorder: border,
+      focusedBorder: border.copyWith(
+        borderSide: BorderSide(
+          color: hasError ? _error : _primary500,
+          width: 1.5,
+        ),
+      ),
+    );
+  }
+}
+
+const _profileInputStyle = TextStyle(
+  fontFamily: _fontFamily,
+  fontSize: 14,
+  fontWeight: FontWeight.w400,
+  height: 20 / 14,
+  color: _neutral900,
+);
 
 typedef OtpVerifyCallback = Future<bool> Function(String otp);
 typedef OtpResendCallback = Future<bool> Function();
@@ -411,13 +913,19 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen>
         body: SafeArea(
           top: false,
           bottom: false,
-          child: _ResponsiveOtpCanvas(content: _verificationContent(context)),
+          child: _ResponsiveStaticAuthCanvas(
+            scrollKey: const Key('otp-scroll-view'),
+            viewportKey: const Key('otp-responsive-viewport'),
+            baseFormHeight: _otpFormHeight,
+            textScaleGrowth: 220,
+            contentBuilder: _verificationContent,
+          ),
         ),
       ),
     );
   }
 
-  Widget _verificationContent(BuildContext context) {
+  Widget _verificationContent(BuildContext context, double formHeight) {
     final localExpiryError = _expired
         ? 'Mã đã hết hạn. Hãy gửi lại mã mới.'
         : null;
@@ -428,91 +936,76 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen>
 
     return SizedBox(
       key: const Key('otp-content'),
-      height: _otpFormHeight,
-      child: Stack(
-        clipBehavior: Clip.none,
+      height: formHeight,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Positioned(
-            left: 0,
-            top: 0,
-            child: Text(
-              'Xác nhận email',
-              style: TextStyle(
-                fontFamily: _fontFamily,
-                fontSize: 28,
-                fontWeight: FontWeight.w600,
-                height: 1,
-                color: _primary900,
-              ),
+          const Text(
+            'Xác nhận email',
+            style: TextStyle(
+              fontFamily: _fontFamily,
+              fontSize: 28,
+              fontWeight: FontWeight.w600,
+              height: 1,
+              color: _primary900,
             ),
           ),
-          const Positioned(
-            left: 0,
-            top: 34,
-            width: 278,
-            child: Text(
-              'Nếu email hợp lệ, mã xác minh sẽ được gửi đến bạn.',
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                fontFamily: _fontFamily,
-                fontSize: 14,
-                fontWeight: FontWeight.w400,
-                height: 1.2,
-                color: _neutral600,
-              ),
-            ),
-          ),
-          Positioned(
-            right: -8,
-            top: 27,
-            child: TextButton(
-              key: const Key('edit-email-button'),
-              onPressed: widget.busy ? null : widget.onEditEmail,
-              style: TextButton.styleFrom(
-                foregroundColor: _otpFocus,
-                padding: const EdgeInsets.symmetric(horizontal: 8),
-                minimumSize: const Size(0, 32),
-                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-              ),
-              child: const Text(
-                'Sửa email',
-                style: TextStyle(
-                  fontFamily: _fontFamily,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  height: 1.3,
+          const SizedBox(height: 4),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Expanded(
+                child: Text(
+                  'Nếu email hợp lệ, mã xác minh sẽ được gửi đến bạn.',
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontFamily: _fontFamily,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w400,
+                    height: 1.2,
+                    color: _neutral600,
+                  ),
                 ),
               ),
-            ),
-          ),
-          const Positioned(
-            left: 0,
-            top: 82,
-            child: Text(
-              'MÃ OTP (6 CHỮ SỐ)',
-              style: TextStyle(
-                fontFamily: _fontFamily,
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                height: 16 / 12,
-                letterSpacing: 0.6,
-                color: _otpInk,
+              TextButton(
+                key: const Key('edit-email-button'),
+                onPressed: widget.busy ? null : widget.onEditEmail,
+                style: TextButton.styleFrom(
+                  foregroundColor: _otpFocus,
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  minimumSize: const Size(0, 28),
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
+                child: const Text(
+                  'Sửa email',
+                  style: TextStyle(
+                    fontFamily: _fontFamily,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    height: 1.3,
+                  ),
+                ),
               ),
+            ],
+          ),
+          const SizedBox(height: 18),
+          const Text(
+            'MÃ OTP (6 CHỮ SỐ)',
+            style: TextStyle(
+              fontFamily: _fontFamily,
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              height: 16 / 12,
+              letterSpacing: 0.6,
+              color: _otpInk,
             ),
           ),
-          Positioned(
-            left: 0,
-            top: 108,
-            width: 364,
-            height: 60,
-            child: _otpInputs(),
-          ),
-          Positioned(
-            left: 0,
-            top: 178,
-            width: 364,
-            height: 32,
+          const SizedBox(height: 10),
+          SizedBox(height: 60, child: _otpInputs()),
+          const SizedBox(height: 10),
+          ConstrainedBox(
+            constraints: const BoxConstraints(minHeight: 32),
             child: Align(
               alignment: Alignment.topLeft,
               child: Text(
@@ -530,19 +1023,10 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen>
               ),
             ),
           ),
-          Positioned(
-            left: 0,
-            top: 217,
-            width: 364,
-            height: 90,
-            child: _timerAndResend(),
-          ),
-          Positioned(
-            left: 0,
-            top: 385,
-            width: 364,
-            child: _bottomActions(context),
-          ),
+          const SizedBox(height: 7),
+          _timerAndResend(),
+          const Spacer(),
+          _bottomActions(context),
         ],
       ),
     );
@@ -583,13 +1067,16 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen>
                         ]
                       : null,
                 ),
-                child: Text(
-                  digit,
-                  style: const TextStyle(
-                    fontFamily: _fontFamily,
-                    fontSize: 26,
-                    fontWeight: FontWeight.w600,
-                    color: _otpInk,
+                child: MediaQuery.withClampedTextScaling(
+                  maxScaleFactor: 1.15,
+                  child: Text(
+                    digit,
+                    style: const TextStyle(
+                      fontFamily: _fontFamily,
+                      fontSize: 26,
+                      fontWeight: FontWeight.w600,
+                      color: _otpInk,
+                    ),
                   ),
                 ),
               );
@@ -645,76 +1132,73 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen>
         borderRadius: BorderRadius.circular(16),
       ),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          SizedBox(
-            height: 20,
-            child: Row(
-              children: [
-                SvgPicture.asset(
-                  '$_assetRoot/icons/otp_clock.svg',
-                  width: 16,
-                  height: 16,
-                  excludeFromSemantics: true,
-                ),
-                const SizedBox(width: 8),
-                const Expanded(
-                  child: Text(
-                    'Hiệu lực của mã:',
-                    style: TextStyle(
-                      fontFamily: _fontFamily,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w400,
-                      height: 16 / 12,
-                      color: _otpMuted,
-                    ),
-                  ),
-                ),
-                Text(
-                  _formatDuration(_expirySeconds),
-                  key: const Key('otp-expiry'),
-                  style: const TextStyle(
+          Row(
+            children: [
+              SvgPicture.asset(
+                '$_assetRoot/icons/otp_clock.svg',
+                width: 16,
+                height: 16,
+                excludeFromSemantics: true,
+              ),
+              const SizedBox(width: 8),
+              const Expanded(
+                child: Text(
+                  'Hiệu lực của mã:',
+                  style: TextStyle(
                     fontFamily: _fontFamily,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    height: 20 / 14,
-                    letterSpacing: 0.35,
-                    color: _otpInk,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w400,
+                    height: 16 / 12,
+                    color: _otpMuted,
                   ),
                 ),
-              ],
-            ),
+              ),
+              Text(
+                _formatDuration(_expirySeconds),
+                key: const Key('otp-expiry'),
+                style: const TextStyle(
+                  fontFamily: _fontFamily,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  height: 20 / 14,
+                  letterSpacing: 0.35,
+                  color: _otpInk,
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 10),
           const Divider(height: 1, thickness: 1, color: Color(0xFFE2E8F0)),
           const SizedBox(height: 10),
-          SizedBox(
-            height: 17,
-            child: Row(
-              children: [
-                const Expanded(
-                  child: Text(
-                    'Chưa nhận được mã?',
-                    style: TextStyle(
-                      fontFamily: _fontFamily,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w400,
-                      height: 16 / 12,
-                      color: _otpMuted,
-                    ),
+          Row(
+            children: [
+              const Expanded(
+                child: Text(
+                  'Chưa nhận được mã?',
+                  style: TextStyle(
+                    fontFamily: _fontFamily,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w400,
+                    height: 16 / 12,
+                    color: _otpMuted,
                   ),
                 ),
-                if (_resending)
-                  const SizedBox(
-                    key: Key('otp-resend-loading'),
-                    width: 16,
-                    height: 16,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: _otpFocus,
-                    ),
-                  )
-                else if (_cooldownSeconds > 0)
-                  Text.rich(
+              ),
+              if (_resending)
+                const SizedBox(
+                  key: Key('otp-resend-loading'),
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: _otpFocus,
+                  ),
+                )
+              else if (_cooldownSeconds > 0)
+                Flexible(
+                  child: Text.rich(
                     key: const Key('otp-resend-cooldown'),
                     TextSpan(
                       children: [
@@ -735,29 +1219,30 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen>
                       height: 16 / 12,
                       color: _otpMuted,
                     ),
-                  )
-                else
-                  TextButton(
-                    key: const Key('otp-resend-button'),
-                    onPressed: widget.busy ? null : _resend,
-                    style: TextButton.styleFrom(
-                      foregroundColor: _otpFocus,
-                      padding: EdgeInsets.zero,
-                      minimumSize: const Size(0, 20),
-                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    ),
-                    child: const Text(
-                      'Gửi lại mã',
-                      style: TextStyle(
-                        fontFamily: _fontFamily,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        height: 16 / 12,
-                      ),
+                    textAlign: TextAlign.end,
+                  ),
+                )
+              else
+                TextButton(
+                  key: const Key('otp-resend-button'),
+                  onPressed: widget.busy ? null : _resend,
+                  style: TextButton.styleFrom(
+                    foregroundColor: _otpFocus,
+                    padding: EdgeInsets.zero,
+                    minimumSize: const Size(0, 20),
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
+                  child: const Text(
+                    'Gửi lại mã',
+                    style: TextStyle(
+                      fontFamily: _fontFamily,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      height: 16 / 12,
                     ),
                   ),
-              ],
-            ),
+                ),
+            ],
           ),
         ],
       ),
@@ -829,53 +1314,50 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen>
           ),
         ),
         const SizedBox(height: 16),
-        SizedBox(
-          height: 24,
-          child: TextButton(
-            key: const Key('otp-support-button'),
-            onPressed: () {
-              ScaffoldMessenger.of(context)
-                ..hideCurrentSnackBar()
-                ..showSnackBar(
-                  const SnackBar(
-                    content: Text(
-                      'Vui lòng gọi tổng đài 1900 6868 để được hỗ trợ.',
-                    ),
+        TextButton(
+          key: const Key('otp-support-button'),
+          onPressed: () {
+            ScaffoldMessenger.of(context)
+              ..hideCurrentSnackBar()
+              ..showSnackBar(
+                const SnackBar(
+                  content: Text(
+                    'Vui lòng gọi tổng đài 1900 6868 để được hỗ trợ.',
                   ),
-                );
-            },
-            style: TextButton.styleFrom(
-              foregroundColor: _otpFocus,
-              padding: EdgeInsets.zero,
-              minimumSize: const Size(0, 24),
-              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
+              );
+          },
+          style: TextButton.styleFrom(
+            foregroundColor: _otpFocus,
+            padding: EdgeInsets.zero,
+            minimumSize: const Size(0, 24),
+            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          ),
+          child: Text.rich(
+            TextSpan(
+              children: const [
+                TextSpan(
+                  text: 'Cần hỗ trợ? ',
+                  style: TextStyle(
+                    color: _otpMuted,
+                    fontWeight: FontWeight.w400,
+                  ),
+                ),
+                TextSpan(
+                  text: 'Liên hệ tổng đài 1900 6868',
+                  style: TextStyle(
+                    color: _otpFocus,
+                    fontWeight: FontWeight.w600,
+                    decoration: TextDecoration.underline,
+                    decorationThickness: 1,
+                  ),
+                ),
+              ],
             ),
-            child: Text.rich(
-              TextSpan(
-                children: const [
-                  TextSpan(
-                    text: 'Cần hỗ trợ? ',
-                    style: TextStyle(
-                      color: _otpMuted,
-                      fontWeight: FontWeight.w400,
-                    ),
-                  ),
-                  TextSpan(
-                    text: 'Liên hệ tổng đài 1900 6868',
-                    style: TextStyle(
-                      color: _otpFocus,
-                      fontWeight: FontWeight.w600,
-                      decoration: TextDecoration.underline,
-                      decorationThickness: 1,
-                    ),
-                  ),
-                ],
-              ),
-              style: const TextStyle(
-                fontFamily: _fontFamily,
-                fontSize: 12,
-                height: 16 / 12,
-              ),
+            style: const TextStyle(
+              fontFamily: _fontFamily,
+              fontSize: 12,
+              height: 16 / 12,
             ),
           ),
         ),
@@ -895,6 +1377,7 @@ class _ResponsiveAuthCanvas extends StatelessWidget {
     required this.otpRequested,
     required this.onEmailChanged,
     required this.onSubmit,
+    this.onGoogleSignIn,
     this.onContinueAsGuest,
   });
 
@@ -907,6 +1390,7 @@ class _ResponsiveAuthCanvas extends StatelessWidget {
   final bool otpRequested;
   final ValueChanged<String> onEmailChanged;
   final VoidCallback onSubmit;
+  final Future<void> Function()? onGoogleSignIn;
   final VoidCallback? onContinueAsGuest;
 
   @override
@@ -919,16 +1403,18 @@ class _ResponsiveAuthCanvas extends StatelessWidget {
         final safeTop = mediaQuery.padding.top / canvasScale;
         final safeBottom = mediaQuery.padding.bottom / canvasScale;
         final reservedBottom = math.max(safeBottom, _minimumSystemBottomInset);
+        final formHeight = _responsiveFormHeight(
+          mediaQuery,
+          baseHeight: _loginFormHeight,
+          textScaleGrowth: 180,
+        );
         final formTop = math.max(
           _minimumFormTop,
-          viewportHeight -
-              reservedBottom -
-              _formBottomSpacing -
-              _loginFormHeight,
+          viewportHeight - reservedBottom - _formBottomSpacing - formHeight,
         );
         final contentHeight = math.max(
           viewportHeight,
-          formTop + _loginFormHeight + reservedBottom + _formBottomSpacing,
+          formTop + formHeight + reservedBottom + _formBottomSpacing,
         );
 
         return SingleChildScrollView(
@@ -962,6 +1448,7 @@ class _ResponsiveAuthCanvas extends StatelessWidget {
                     otpRequested: otpRequested,
                     onEmailChanged: onEmailChanged,
                     onSubmit: onSubmit,
+                    onGoogleSignIn: onGoogleSignIn,
                     onContinueAsGuest: onContinueAsGuest,
                   ),
                 ),
@@ -974,10 +1461,25 @@ class _ResponsiveAuthCanvas extends StatelessWidget {
   }
 }
 
-class _ResponsiveOtpCanvas extends StatelessWidget {
-  const _ResponsiveOtpCanvas({required this.content});
+typedef _AuthContentBuilder = Widget Function(
+  BuildContext context,
+  double formHeight,
+);
 
-  final Widget content;
+class _ResponsiveStaticAuthCanvas extends StatelessWidget {
+  const _ResponsiveStaticAuthCanvas({
+    required this.scrollKey,
+    required this.viewportKey,
+    required this.baseFormHeight,
+    required this.textScaleGrowth,
+    required this.contentBuilder,
+  });
+
+  final Key scrollKey;
+  final Key viewportKey;
+  final double baseFormHeight;
+  final double textScaleGrowth;
+  final _AuthContentBuilder contentBuilder;
 
   @override
   Widget build(BuildContext context) {
@@ -989,20 +1491,25 @@ class _ResponsiveOtpCanvas extends StatelessWidget {
         final safeTop = mediaQuery.padding.top / canvasScale;
         final safeBottom = mediaQuery.padding.bottom / canvasScale;
         final reservedBottom = math.max(safeBottom, _minimumSystemBottomInset);
+        final formHeight = _responsiveFormHeight(
+          mediaQuery,
+          baseHeight: baseFormHeight,
+          textScaleGrowth: textScaleGrowth,
+        );
         final formTop = math.max(
           _minimumFormTop,
-          viewportHeight - reservedBottom - _formBottomSpacing - _otpFormHeight,
+          viewportHeight - reservedBottom - _formBottomSpacing - formHeight,
         );
         final contentHeight = math.max(
           viewportHeight,
-          formTop + _otpFormHeight + reservedBottom + _formBottomSpacing,
+          formTop + formHeight + reservedBottom + _formBottomSpacing,
         );
 
         return SingleChildScrollView(
-          key: const Key('otp-scroll-view'),
+          key: scrollKey,
           keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
           child: SizedBox(
-            key: const Key('otp-responsive-viewport'),
+            key: viewportKey,
             width: constraints.maxWidth,
             height: contentHeight * canvasScale,
             child: OverflowBox(
@@ -1022,7 +1529,7 @@ class _ResponsiveOtpCanvas extends StatelessWidget {
                     safeBottom: safeBottom,
                     formTop: formTop,
                     motion: const AlwaysStoppedAnimation(1),
-                    foreground: content,
+                    foreground: contentBuilder(context, formHeight),
                     showSplashOverlay: false,
                   ),
                 ),
@@ -1051,6 +1558,7 @@ class _AuthCanvas extends StatelessWidget {
     this.otpRequested = false,
     this.onEmailChanged,
     this.onSubmit,
+    this.onGoogleSignIn,
     this.onContinueAsGuest,
     this.foreground,
     this.showSplashOverlay = true,
@@ -1076,6 +1584,7 @@ class _AuthCanvas extends StatelessWidget {
   final bool otpRequested;
   final ValueChanged<String>? onEmailChanged;
   final VoidCallback? onSubmit;
+  final Future<void> Function()? onGoogleSignIn;
   final VoidCallback? onContinueAsGuest;
   final Widget? foreground;
   final bool showSplashOverlay;
@@ -1558,78 +2067,73 @@ class _AuthCanvas extends StatelessWidget {
         AuthMotionNode(
           nodeId: '1257:223',
           animation: motion,
-          child: SizedBox(
-            height: 88,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Email',
-                  style: TextStyle(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Email',
+                style: TextStyle(
+                  fontFamily: _fontFamily,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  height: 1.5,
+                  color: _neutral900,
+                ),
+              ),
+              const SizedBox(height: 8),
+              SizedBox(
+                height: 56,
+                child: TextField(
+                  key: const Key('email-field'),
+                  controller: emailController!,
+                  focusNode: emailFocusNode!,
+                  enabled: !busy,
+                  keyboardType: TextInputType.emailAddress,
+                  textInputAction: TextInputAction.done,
+                  autofillHints: const [AutofillHints.email],
+                  onChanged: onEmailChanged!,
+                  onSubmitted: busy ? null : (_) => onSubmit!(),
+                  style: const TextStyle(
                     fontFamily: _fontFamily,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w400,
                     height: 1.5,
                     color: _neutral900,
                   ),
-                ),
-                const SizedBox(height: 8),
-                SizedBox(
-                  height: 56,
-                  child: TextField(
-                    key: const Key('email-field'),
-                    controller: emailController!,
-                    focusNode: emailFocusNode!,
-                    enabled: !busy,
-                    keyboardType: TextInputType.emailAddress,
-                    textInputAction: TextInputAction.done,
-                    autofillHints: const [AutofillHints.email],
-                    onChanged: onEmailChanged!,
-                    onSubmitted: busy ? null : (_) => onSubmit!(),
-                    style: const TextStyle(
+                  decoration: InputDecoration(
+                    hintText: 'tenban@email.com',
+                    hintStyle: const TextStyle(
                       fontFamily: _fontFamily,
                       fontSize: 16,
                       fontWeight: FontWeight.w400,
                       height: 1.5,
-                      color: _neutral900,
+                      color: _neutral600,
                     ),
-                    decoration: InputDecoration(
-                      hintText: 'tenban@email.com',
-                      hintStyle: const TextStyle(
-                        fontFamily: _fontFamily,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w400,
-                        height: 1.5,
-                        color: _neutral600,
-                      ),
-                      filled: true,
-                      fillColor: _neutral0,
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(16),
-                        borderSide: BorderSide(
-                          color: hasError ? _error : _neutral100,
-                        ),
-                      ),
-                      disabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(16),
-                        borderSide: const BorderSide(color: _neutral100),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(16),
-                        borderSide: BorderSide(
-                          color: hasError ? _error : _primary500,
-                          width: 1.5,
-                        ),
+                    filled: true,
+                    fillColor: _neutral0,
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      borderSide: BorderSide(
+                        color: hasError ? _error : _neutral100,
                       ),
                     ),
-                    cursorColor: _primary500,
+                    disabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      borderSide: const BorderSide(color: _neutral100),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      borderSide: BorderSide(
+                        color: hasError ? _error : _primary500,
+                        width: 1.5,
+                      ),
+                    ),
                   ),
+                  cursorColor: _primary500,
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
         const SizedBox(height: 16),
@@ -1674,6 +2178,7 @@ class _AuthCanvas extends StatelessWidget {
             label: 'Tiếp tục với Google',
             provider: 'Google',
             icon: _svg('icons/google.svg', width: 20, height: 20),
+            onTap: onGoogleSignIn,
           ),
         ),
         const SizedBox(height: 12),
@@ -1857,10 +2362,13 @@ class _AuthCanvas extends StatelessWidget {
     required String label,
     required String provider,
     required Widget icon,
+    Future<void> Function()? onTap,
   }) {
+    final isAvailable = onTap != null;
     return Semantics(
       button: true,
-      hint: 'Chưa được tích hợp',
+      enabled: !busy && isAvailable,
+      hint: isAvailable ? 'Đăng nhập bằng $provider' : 'Chưa được tích hợp',
       child: SizedBox(
         height: 52,
         child: Material(
@@ -1872,7 +2380,11 @@ class _AuthCanvas extends StatelessWidget {
           clipBehavior: Clip.antiAlias,
           child: InkWell(
             key: Key('oauth-${provider.toLowerCase()}'),
-            onTap: () => _showUnavailable(context, 'Đăng nhập $provider'),
+            onTap: busy
+                ? null
+                : isAvailable
+                ? () => onTap()
+                : () => _showUnavailable(context, 'Đăng nhập $provider'),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [

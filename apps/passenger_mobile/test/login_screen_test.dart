@@ -60,17 +60,40 @@ void main() {
     );
   });
 
-  testWidgets('OAuth chưa tích hợp không điều hướng giả', (tester) async {
+  testWidgets('nút Google gọi đúng luồng OAuth được truyền vào', (
+    tester,
+  ) async {
+    var googleCalls = 0;
     await tester.pumpWidget(
-      _reducedMotionApp(AuthEntryScreen(onRequestOtp: (_) async {})),
+      _reducedMotionApp(
+        AuthEntryScreen(
+          onRequestOtp: (_) async {},
+          onGoogleSignIn: () async => googleCalls++,
+        ),
+      ),
     );
     await tester.pump();
 
     await tester.tap(find.byKey(const Key('oauth-google')));
     await tester.pump();
 
+    expect(googleCalls, 1);
+    expect(find.byType(AuthEntryScreen), findsOneWidget);
+  });
+
+  testWidgets('Apple chưa hỗ trợ vẫn báo rõ và không điều hướng giả', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      _reducedMotionApp(AuthEntryScreen(onRequestOtp: (_) async {})),
+    );
+    await tester.pump();
+
+    await tester.tap(find.byKey(const Key('oauth-apple')));
+    await tester.pump();
+
     expect(
-      find.text('Đăng nhập Google chưa được tích hợp trong giai đoạn này.'),
+      find.text('Đăng nhập Apple chưa được tích hợp trong giai đoạn này.'),
       findsOneWidget,
     );
     expect(find.byType(AuthEntryScreen), findsOneWidget);
@@ -246,6 +269,20 @@ void main() {
       lessThanOrEqualTo(340),
     );
   });
+
+  testWidgets('không tràn 1 px khi Android tăng cỡ chữ', (tester) async {
+    await tester.pumpWidget(
+      _reducedMotionApp(
+        AuthEntryScreen(onRequestOtp: (_) async {}),
+        textScaler: const TextScaler.linear(1.3),
+      ),
+    );
+    await tester.pump();
+
+    expect(tester.takeException(), isNull);
+    expect(find.byKey(const Key('email-field')), findsOneWidget);
+    expect(find.byKey(const Key('continue-button')), findsOneWidget);
+  });
 }
 
 AuthMotionNode _node(WidgetTester tester, String nodeId) {
@@ -256,12 +293,19 @@ AuthMotionNode _node(WidgetTester tester, String nodeId) {
   );
 }
 
-Widget _reducedMotionApp(Widget home, {EdgeInsets padding = EdgeInsets.zero}) {
+Widget _reducedMotionApp(
+  Widget home, {
+  EdgeInsets padding = EdgeInsets.zero,
+  TextScaler textScaler = TextScaler.noScaling,
+}) {
   return MaterialApp(
     builder: (context, child) {
       return MediaQuery(
-        data: MediaQuery.of(context)
-            .copyWith(disableAnimations: true, padding: padding),
+        data: MediaQuery.of(context).copyWith(
+          disableAnimations: true,
+          padding: padding,
+          textScaler: textScaler,
+        ),
         child: child!,
       );
     },

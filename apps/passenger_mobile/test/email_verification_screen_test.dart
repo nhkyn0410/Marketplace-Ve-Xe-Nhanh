@@ -34,10 +34,12 @@ void main() {
     String? errorMessage,
     bool busy = false,
     EdgeInsets padding = EdgeInsets.zero,
+    TextScaler textScaler = TextScaler.noScaling,
   }) {
     return MaterialApp(
       builder: (context, child) => MediaQuery(
-        data: MediaQuery.of(context).copyWith(padding: padding),
+        data: MediaQuery.of(context)
+            .copyWith(padding: padding, textScaler: textScaler),
         child: child!,
       ),
       home: EmailVerificationScreen(
@@ -138,9 +140,7 @@ void main() {
     expect(_text(tester, const Key('otp-expiry')), '05:00');
 
     now = issuedAt.add(const Duration(minutes: 5, seconds: 1));
-    tester.binding.handleAppLifecycleStateChanged(
-      AppLifecycleState.resumed,
-    );
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
     await tester.pump();
 
     expect(_text(tester, const Key('otp-expiry')), '00:00');
@@ -249,6 +249,20 @@ void main() {
       tester.getBottomRight(find.byKey(const Key('otp-field'))).dy,
       lessThanOrEqualTo(340),
     );
+  });
+
+  testWidgets('OTP co giãn khi Android tăng cỡ chữ', (tester) async {
+    await tester.pumpWidget(
+      screen(
+        padding: const EdgeInsets.only(top: 48, bottom: 24),
+        textScaler: const TextScaler.linear(1.3),
+      ),
+    );
+    await tester.pump();
+
+    expect(tester.takeException(), isNull);
+    expect(find.byKey(const Key('otp-verify-button')), findsOneWidget);
+    expect(find.byKey(const Key('otp-support-button')), findsOneWidget);
   });
 }
 

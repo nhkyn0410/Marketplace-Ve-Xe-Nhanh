@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:mobile_shared/mobile_shared.dart';
 import 'package:passenger_mobile/features/auth/auth_screen.dart';
+import 'package:passenger_mobile/features/auth/google_auth_service.dart';
 import 'package:passenger_mobile/features/home/home_models.dart';
 import 'package:passenger_mobile/features/home/home_screen.dart';
 
@@ -79,12 +80,17 @@ class PassengerApp extends StatelessWidget {
   }
 }
 
-enum _AuthStep { email, otp, guest, signedIn }
+enum _AuthStep { email, otp, profile, guest, signedIn }
 
 class OtpLoginPage extends StatefulWidget {
-  const OtpLoginPage({this.requestOtpOverride, super.key});
+  const OtpLoginPage({
+    this.requestOtpOverride,
+    this.googleIdTokenOverride,
+    super.key,
+  });
 
   final Future<void> Function(String email)? requestOtpOverride;
+  final Future<String> Function()? googleIdTokenOverride;
 
   @override
   State<OtpLoginPage> createState() => _OtpLoginPageState();
@@ -98,6 +104,8 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
   bool _busy = false;
   String? _error;
   String? _email;
+  String? _profileEmail;
+  String? _displayName;
   DateTime? _otpIssuedAt;
 
   /// Bọc mọi lời gọi API: bật cờ bận, dịch lỗi thành câu tiếng Việt, hiện lên UI.
@@ -113,6 +121,12 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
     try {
       await action();
       succeeded = true;
+    } on GoogleAuthCancelledException {
+      // Người dùng chủ động đóng account picker: trở lại màn hình, không coi là lỗi.
+    } on GoogleAuthConfigurationException catch (error) {
+      message = 'Đăng nhập Google chưa được cấu hình đúng. ${error.message}';
+    } on GoogleAuthUnavailableException {
+      message = 'Không thể mở đăng nhập Google. Vui lòng thử lại.';
     } on DioException catch (error) {
       message = _describeDioError(error);
     } catch (_) {
@@ -174,6 +188,7 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
     if (email == null) return false;
 
     AuthTokenResponseDtoOutput? session;
+    PassengerProfileDtoOutput? profile;
     final verified = await _run(() async {
       final response = await _api.getAuthApi().authControllerVerifyOtp(
         otpVerifyDto: OtpVerifyDto(
@@ -186,16 +201,100 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
       if (session == null) {
         throw StateError('OTP verify response did not contain a session.');
       }
-      await _tokens.saveAccessToken(session!.accessToken);
+      profile = await _saveSessionAndLoadProfile(session!);
     });
 
     if (verified && mounted) {
+      _applyAuthenticatedProfile(profile!);
+    }
+    return verified;
+  }
+
+  Future<void> _signInWithGoogle() async {
+    PassengerProfileDtoOutput? profile;
+    final signedIn = await _run(() async {
+      final idToken =
+          await (widget.googleIdTokenOverride?.call() ??
+              GoogleAuthService.instance.authenticate());
+      final response = await _api.getAuthApi().authControllerOauthIdToken(
+        provider: 'google',
+        oAuthIdTokenDto: OAuthIdTokenDto(
+          (builder) => builder.idToken = idToken,
+        ),
+      );
+      final session = response.data;
+      if (session == null) {
+        throw StateError('Google sign-in response did not contain a session.');
+      }
+      profile = await _saveSessionAndLoadProfile(session);
+    });
+
+    if (signedIn && mounted) {
+      _applyAuthenticatedProfile(profile!);
+    }
+  }
+
+  Future<PassengerProfileDtoOutput> _saveSessionAndLoadProfile(
+    AuthTokenResponseDtoOutput session,
+  ) async {
+    try {
+      await _tokens.saveSession(
+        accessToken: session.accessToken,
+        refreshToken: session.refreshToken,
+      );
+      final profileResponse = await _api
+          .getPassengerProfileApi()
+          .passengerProfileControllerGet();
+      final profile = profileResponse.data;
+      if (profile == null) {
+        throw StateError('Profile response did not contain data.');
+      }
+      return profile;
+    } catch (_) {
+      // Không giữ access token đơn lẻ nếu lưu refresh token hoặc tải hồ sơ thất bại.
+      await _tokens.clear();
+      rethrow;
+    }
+  }
+
+  void _applyAuthenticatedProfile(PassengerProfileDtoOutput profile) {
+    final name = profile.name?.trim();
+    setState(() {
+      _email = profile.email;
+      _profileEmail = profile.email;
+      _displayName = name;
+      _step = name == null || name.isEmpty
+          ? _AuthStep.profile
+          : _AuthStep.signedIn;
+      _error = null;
+    });
+  }
+
+  Future<bool> _completeProfile(String fullName, String? phone) async {
+    PassengerProfileDtoOutput? profile;
+    final completed = await _run(() async {
+      final response = await _api
+          .getPassengerProfileApi()
+          .passengerProfileControllerUpdate(
+            passengerProfileUpdateDto: PassengerProfileUpdateDto((builder) {
+              builder.name = fullName;
+              if (phone != null) builder.phone = phone;
+            }),
+          );
+      profile = response.data;
+      if (profile == null) {
+        throw StateError('Profile update response did not contain data.');
+      }
+    });
+
+    if (completed && mounted) {
       setState(() {
+        _displayName = profile!.name?.trim() ?? fullName;
         _step = _AuthStep.signedIn;
         _error = null;
       });
     }
-    return verified;
+    return completed;
   }
 
   void _clearFeedback() {
@@ -276,6 +375,14 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
   Widget build(BuildContext context) {
     if (_step == _AuthStep.signedIn) return _home(isLoggedIn: true);
     if (_step == _AuthStep.guest) return _home(isLoggedIn: false);
+    if (_step == _AuthStep.profile) {
+      return ProfileCompletionScreen(
+        email: _profileEmail ?? _email!,
+        busy: _busy,
+        errorMessage: _error,
+        onComplete: _completeProfile,
+      );
+    }
 
     return IndexedStack(
       index: _step == _AuthStep.email ? 0 : 1,
@@ -285,6 +392,7 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
           errorMessage: _step == _AuthStep.email ? _error : null,
           onEmailChanged: _clearFeedback,
           onRequestOtp: _requestOtp,
+          onGoogleSignIn: _signInWithGoogle,
           onContinueAsGuest: _continueAsGuest,
         ),
         if (_email != null && _otpIssuedAt != null)
@@ -309,7 +417,7 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
     final emailName = _email?.split('@').first;
     return HomeScreen(
       isLoggedIn: isLoggedIn,
-      userName: emailName,
+      userName: _displayName ?? emailName,
       loadLocations: _loadHomeLocations,
       onSearch: _searchHomeTrips,
       onLoginRequested: isLoggedIn ? null : _returnToLogin,

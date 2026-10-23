@@ -349,6 +349,7 @@ export 'package:api_client_dart/src/model/moderation_input_dto.dart';
 export 'package:api_client_dart/src/model/mongo_health_response_dto_output.dart';
 export 'package:api_client_dart/src/model/notification_log_dto_output.dart';
 export 'package:api_client_dart/src/model/notification_log_dto_output_items_inner.dart';
+export 'package:api_client_dart/src/model/o_auth_id_token_dto.dart';
 export 'package:api_client_dart/src/model/o_auth_init_dto.dart';
 export 'package:api_client_dart/src/model/o_auth_redirect_response_dto_output.dart';
 export 'package:api_client_dart/src/model/operator_booking_detail_dto_output.dart';
