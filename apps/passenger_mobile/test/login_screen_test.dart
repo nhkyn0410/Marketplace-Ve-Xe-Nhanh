@@ -81,6 +81,42 @@ void main() {
     expect(find.byType(AuthEntryScreen), findsOneWidget);
   });
 
+  testWidgets('Google, Facebook và Apple cùng hàng và chia đều chiều rộng', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      _reducedMotionApp(AuthEntryScreen(onRequestOtp: (_) async {})),
+    );
+    await tester.pump();
+
+    final google = find.byKey(const Key('oauth-google'));
+    final facebook = find.byKey(const Key('oauth-facebook'));
+    final apple = find.byKey(const Key('oauth-apple'));
+    final googleSize = tester.getSize(google);
+
+    expect(find.text('Google'), findsOneWidget);
+    expect(find.text('Facebook'), findsOneWidget);
+    expect(find.text('Apple'), findsOneWidget);
+    expect(tester.getSize(facebook).width, closeTo(googleSize.width, 0.01));
+    expect(tester.getSize(apple).width, closeTo(googleSize.width, 0.01));
+    expect(
+      tester.getTopLeft(facebook).dy,
+      closeTo(tester.getTopLeft(google).dy, 0.01),
+    );
+    expect(
+      tester.getTopLeft(apple).dy,
+      closeTo(tester.getTopLeft(google).dy, 0.01),
+    );
+    expect(
+      tester.getTopLeft(google).dx,
+      lessThan(tester.getTopLeft(facebook).dx),
+    );
+    expect(
+      tester.getTopLeft(facebook).dx,
+      lessThan(tester.getTopLeft(apple).dx),
+    );
+  });
+
   testWidgets('Apple chưa hỗ trợ vẫn báo rõ và không điều hướng giả', (
     tester,
   ) async {
@@ -222,6 +258,16 @@ void main() {
         tester.getSize(find.byKey(const Key('auth-responsive-viewport'))).width,
         size.width,
       );
+      expect(
+        tester
+            .getSize(find.byKey(const Key('auth-responsive-viewport')))
+            .height,
+        size.height,
+      );
+      expect(
+        tester.getBottomRight(find.byKey(const Key('guest-button'))).dy,
+        lessThanOrEqualTo(size.height),
+      );
     });
   }
 
@@ -243,7 +289,9 @@ void main() {
     );
   });
 
-  testWidgets('form cuộn lên và không bị bàn phím che', (tester) async {
+  testWidgets('khung đăng nhập không cuộn và thích ứng khi mở bàn phím', (
+    tester,
+  ) async {
     final view =
         TestWidgetsFlutterBinding.instance.platformDispatcher.views.first;
     view.physicalSize = const Size(360, 640);
@@ -256,6 +304,15 @@ void main() {
       ),
     );
     await tester.pump();
+
+    expect(find.byType(SingleChildScrollView), findsNothing);
+    final headingTop = tester.getTopLeft(find.text('Đăng nhập')).dy;
+    await tester.drag(
+      find.byKey(const Key('auth-responsive-viewport')),
+      const Offset(0, -120),
+    );
+    await tester.pump();
+    expect(tester.getTopLeft(find.text('Đăng nhập')).dy, headingTop);
 
     await tester.tap(find.byKey(const Key('email-field')));
     await tester.pump();

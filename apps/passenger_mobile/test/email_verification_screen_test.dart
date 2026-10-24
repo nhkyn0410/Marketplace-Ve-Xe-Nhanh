@@ -225,10 +225,20 @@ void main() {
         tester.getSize(find.byKey(const Key('otp-responsive-viewport'))).width,
         size.width,
       );
+      expect(
+        tester.getSize(find.byKey(const Key('otp-responsive-viewport'))).height,
+        size.height,
+      );
+      expect(
+        tester.getBottomRight(find.byKey(const Key('otp-verify-button'))).dy,
+        lessThanOrEqualTo(size.height),
+      );
     });
   }
 
-  testWidgets('OTP có thể cuộn để không bị bàn phím che', (tester) async {
+  testWidgets('khung OTP không cuộn và thích ứng khi mở bàn phím', (
+    tester,
+  ) async {
     final view =
         TestWidgetsFlutterBinding.instance.platformDispatcher.views.first;
     view.physicalSize = const Size(360, 640);
@@ -238,6 +248,15 @@ void main() {
       screen(padding: const EdgeInsets.only(top: 48, bottom: 24)),
     );
     await tester.pump();
+
+    expect(find.byType(SingleChildScrollView), findsNothing);
+    final headingTop = tester.getTopLeft(find.text('Xác nhận email')).dy;
+    await tester.drag(
+      find.byKey(const Key('otp-responsive-viewport')),
+      const Offset(0, -120),
+    );
+    await tester.pump();
+    expect(tester.getTopLeft(find.text('Xác nhận email')).dy, headingTop);
 
     await tester.tap(find.byKey(const Key('otp-field')));
     tester.view.viewInsets = const FakeViewPadding(bottom: 300);

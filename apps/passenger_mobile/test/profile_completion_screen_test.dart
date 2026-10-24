@@ -159,10 +159,24 @@ void main() {
             .width,
         size.width,
       );
+      expect(
+        tester
+            .getSize(find.byKey(const Key('profile-responsive-viewport')))
+            .height,
+        size.height,
+      );
+      expect(
+        tester
+            .getBottomRight(find.byKey(const Key('profile-complete-button')))
+            .dy,
+        lessThanOrEqualTo(size.height),
+      );
     });
   }
 
-  testWidgets('có thể cuộn trường đang nhập lên trên bàn phím', (tester) async {
+  testWidgets('khung hồ sơ không cuộn và thích ứng khi mở bàn phím', (
+    tester,
+  ) async {
     final view =
         TestWidgetsFlutterBinding.instance.platformDispatcher.views.first;
     view.physicalSize = const Size(360, 640);
@@ -172,6 +186,15 @@ void main() {
       screen(padding: const EdgeInsets.only(top: 48, bottom: 24)),
     );
     await tester.pump();
+
+    expect(find.byType(SingleChildScrollView), findsNothing);
+    final headingTop = tester.getTopLeft(find.text('Hoàn thiện hồ sơ')).dy;
+    await tester.drag(
+      find.byKey(const Key('profile-responsive-viewport')),
+      const Offset(0, -120),
+    );
+    await tester.pump();
+    expect(tester.getTopLeft(find.text('Hoàn thiện hồ sơ')).dy, headingTop);
 
     await tester.tap(find.byKey(const Key('profile-phone-field')));
     tester.view.viewInsets = const FakeViewPadding(bottom: 300);

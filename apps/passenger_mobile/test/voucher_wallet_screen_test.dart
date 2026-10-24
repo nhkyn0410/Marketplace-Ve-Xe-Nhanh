@@ -29,6 +29,13 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byKey(const Key('voucher-wallet-empty')), findsOneWidget);
+    final backRect = tester.getRect(
+      find.byKey(const Key('voucher-wallet-back')),
+    );
+    final titleRect = tester.getRect(find.text('Ví voucher'));
+    expect(backRect.right, lessThan(titleRect.left));
+    expect(titleRect.center.dx, closeTo(206, 1));
+
     await tester.enterText(find.byKey(const Key('voucher-code-input')), 'a');
     await tester.tap(find.byKey(const Key('voucher-code-save')));
     await tester.pump();

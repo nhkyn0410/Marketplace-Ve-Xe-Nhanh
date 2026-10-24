@@ -10,10 +10,9 @@ import 'package:passenger_mobile/features/auth/auth_motion_timeline.dart';
 
 const _canvasWidth = 412.0;
 const _figmaCanvasHeight = 915.0;
-const _loginFormHeight = 481.0;
+const _loginFormHeight = 417.0;
 const _otpFormHeight = 481.0;
 const _profileFormHeight = 465.0;
-const _minimumFormTop = 394.0;
 const _minimumSystemBottomInset = 24.0;
 const _formBottomSpacing = 16.0;
 const _fontFamily = 'Be Vietnam Pro';
@@ -366,7 +365,6 @@ class _ProfileCompletionScreenState extends State<ProfileCompletionScreen> {
           top: false,
           bottom: false,
           child: _ResponsiveStaticAuthCanvas(
-            scrollKey: const Key('profile-scroll-view'),
             viewportKey: const Key('profile-responsive-viewport'),
             baseFormHeight: _profileFormHeight,
             textScaleGrowth: 220,
@@ -914,7 +912,6 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen>
           top: false,
           bottom: false,
           child: _ResponsiveStaticAuthCanvas(
-            scrollKey: const Key('otp-scroll-view'),
             viewportKey: const Key('otp-responsive-viewport'),
             baseFormHeight: _otpFormHeight,
             textScaleGrowth: 220,
@@ -1399,7 +1396,7 @@ class _ResponsiveAuthCanvas extends StatelessWidget {
       builder: (context, constraints) {
         final mediaQuery = MediaQuery.of(context);
         final canvasScale = constraints.maxWidth / _canvasWidth;
-        final viewportHeight = mediaQuery.size.height / canvasScale;
+        final viewportHeight = constraints.maxHeight / canvasScale;
         final safeTop = mediaQuery.padding.top / canvasScale;
         final safeBottom = mediaQuery.padding.bottom / canvasScale;
         final reservedBottom = math.max(safeBottom, _minimumSystemBottomInset);
@@ -1409,48 +1406,41 @@ class _ResponsiveAuthCanvas extends StatelessWidget {
           textScaleGrowth: 180,
         );
         final formTop = math.max(
-          _minimumFormTop,
+          0.0,
           viewportHeight - reservedBottom - _formBottomSpacing - formHeight,
         );
-        final contentHeight = math.max(
-          viewportHeight,
-          formTop + formHeight + reservedBottom + _formBottomSpacing,
-        );
 
-        return SingleChildScrollView(
-          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-          child: SizedBox(
-            key: const Key('auth-responsive-viewport'),
-            width: constraints.maxWidth,
-            height: contentHeight * canvasScale,
-            child: OverflowBox(
+        return SizedBox(
+          key: const Key('auth-responsive-viewport'),
+          width: constraints.maxWidth,
+          height: constraints.maxHeight,
+          child: OverflowBox(
+            alignment: Alignment.topLeft,
+            minWidth: _canvasWidth,
+            maxWidth: _canvasWidth,
+            minHeight: viewportHeight,
+            maxHeight: viewportHeight,
+            child: Transform.scale(
+              scale: canvasScale,
               alignment: Alignment.topLeft,
-              minWidth: _canvasWidth,
-              maxWidth: _canvasWidth,
-              minHeight: contentHeight,
-              maxHeight: contentHeight,
-              child: Transform.scale(
-                scale: canvasScale,
-                alignment: Alignment.topLeft,
-                child: RepaintBoundary(
-                  child: _AuthCanvas(
-                    canvasHeight: contentHeight,
-                    viewportHeight: viewportHeight,
-                    safeTop: safeTop,
-                    safeBottom: safeBottom,
-                    formTop: formTop,
-                    motion: motion,
-                    emailController: emailController,
-                    emailFocusNode: emailFocusNode,
-                    busy: busy,
-                    localError: localError,
-                    apiError: apiError,
-                    otpRequested: otpRequested,
-                    onEmailChanged: onEmailChanged,
-                    onSubmit: onSubmit,
-                    onGoogleSignIn: onGoogleSignIn,
-                    onContinueAsGuest: onContinueAsGuest,
-                  ),
+              child: RepaintBoundary(
+                child: _AuthCanvas(
+                  canvasHeight: viewportHeight,
+                  viewportHeight: viewportHeight,
+                  safeTop: safeTop,
+                  safeBottom: safeBottom,
+                  formTop: formTop,
+                  motion: motion,
+                  emailController: emailController,
+                  emailFocusNode: emailFocusNode,
+                  busy: busy,
+                  localError: localError,
+                  apiError: apiError,
+                  otpRequested: otpRequested,
+                  onEmailChanged: onEmailChanged,
+                  onSubmit: onSubmit,
+                  onGoogleSignIn: onGoogleSignIn,
+                  onContinueAsGuest: onContinueAsGuest,
                 ),
               ),
             ),
@@ -1468,14 +1458,12 @@ typedef _AuthContentBuilder = Widget Function(
 
 class _ResponsiveStaticAuthCanvas extends StatelessWidget {
   const _ResponsiveStaticAuthCanvas({
-    required this.scrollKey,
     required this.viewportKey,
     required this.baseFormHeight,
     required this.textScaleGrowth,
     required this.contentBuilder,
   });
 
-  final Key scrollKey;
   final Key viewportKey;
   final double baseFormHeight;
   final double textScaleGrowth;
@@ -1487,7 +1475,7 @@ class _ResponsiveStaticAuthCanvas extends StatelessWidget {
       builder: (context, constraints) {
         final mediaQuery = MediaQuery.of(context);
         final canvasScale = constraints.maxWidth / _canvasWidth;
-        final viewportHeight = mediaQuery.size.height / canvasScale;
+        final viewportHeight = constraints.maxHeight / canvasScale;
         final safeTop = mediaQuery.padding.top / canvasScale;
         final safeBottom = mediaQuery.padding.bottom / canvasScale;
         final reservedBottom = math.max(safeBottom, _minimumSystemBottomInset);
@@ -1497,41 +1485,33 @@ class _ResponsiveStaticAuthCanvas extends StatelessWidget {
           textScaleGrowth: textScaleGrowth,
         );
         final formTop = math.max(
-          _minimumFormTop,
+          0.0,
           viewportHeight - reservedBottom - _formBottomSpacing - formHeight,
         );
-        final contentHeight = math.max(
-          viewportHeight,
-          formTop + formHeight + reservedBottom + _formBottomSpacing,
-        );
 
-        return SingleChildScrollView(
-          key: scrollKey,
-          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-          child: SizedBox(
-            key: viewportKey,
-            width: constraints.maxWidth,
-            height: contentHeight * canvasScale,
-            child: OverflowBox(
+        return SizedBox(
+          key: viewportKey,
+          width: constraints.maxWidth,
+          height: constraints.maxHeight,
+          child: OverflowBox(
+            alignment: Alignment.topLeft,
+            minWidth: _canvasWidth,
+            maxWidth: _canvasWidth,
+            minHeight: viewportHeight,
+            maxHeight: viewportHeight,
+            child: Transform.scale(
+              scale: canvasScale,
               alignment: Alignment.topLeft,
-              minWidth: _canvasWidth,
-              maxWidth: _canvasWidth,
-              minHeight: contentHeight,
-              maxHeight: contentHeight,
-              child: Transform.scale(
-                scale: canvasScale,
-                alignment: Alignment.topLeft,
-                child: RepaintBoundary(
-                  child: _AuthCanvas(
-                    canvasHeight: contentHeight,
-                    viewportHeight: viewportHeight,
-                    safeTop: safeTop,
-                    safeBottom: safeBottom,
-                    formTop: formTop,
-                    motion: const AlwaysStoppedAnimation(1),
-                    foreground: contentBuilder(context, formHeight),
-                    showSplashOverlay: false,
-                  ),
+              child: RepaintBoundary(
+                child: _AuthCanvas(
+                  canvasHeight: viewportHeight,
+                  viewportHeight: viewportHeight,
+                  safeTop: safeTop,
+                  safeBottom: safeBottom,
+                  formTop: formTop,
+                  motion: const AlwaysStoppedAnimation(1),
+                  foreground: contentBuilder(context, formHeight),
+                  showSplashOverlay: false,
                 ),
               ),
             ),
@@ -2170,20 +2150,35 @@ class _AuthCanvas extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 16),
-        AuthMotionNode(
-          nodeId: '1257:234',
-          animation: motion,
-          child: _oauthButton(
-            context,
-            label: 'Tiếp tục với Google',
-            provider: 'Google',
-            icon: _svg('icons/google.svg', width: 20, height: 20),
-            onTap: onGoogleSignIn,
-          ),
-        ),
-        const SizedBox(height: 12),
         Row(
           children: [
+            Expanded(
+              child: AuthMotionNode(
+                nodeId: '1257:234',
+                animation: motion,
+                child: _oauthButton(
+                  context,
+                  label: 'Google',
+                  provider: 'Google',
+                  icon: _svg('icons/google.svg', width: 20, height: 20),
+                  onTap: onGoogleSignIn,
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: AuthMotionNode(
+                nodeId: '1257:245',
+                animation: motion,
+                child: _oauthButton(
+                  context,
+                  label: 'Facebook',
+                  provider: 'Facebook',
+                  icon: _svg('icons/facebook.svg', width: 20, height: 20),
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
             Expanded(
               child: AuthMotionNode(
                 nodeId: '1257:242',
@@ -2199,19 +2194,6 @@ class _AuthCanvas extends StatelessWidget {
                     fit: BoxFit.cover,
                     excludeFromSemantics: true,
                   ),
-                ),
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: AuthMotionNode(
-                nodeId: '1257:245',
-                animation: motion,
-                child: _oauthButton(
-                  context,
-                  label: 'Facebook',
-                  provider: 'Facebook',
-                  icon: _svg('icons/facebook.svg', width: 20, height: 20),
                 ),
               ),
             ),

@@ -469,6 +469,7 @@ class _SubpageHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
+      width: double.infinity,
       height: 64,
       child: Stack(
         alignment: Alignment.center,
