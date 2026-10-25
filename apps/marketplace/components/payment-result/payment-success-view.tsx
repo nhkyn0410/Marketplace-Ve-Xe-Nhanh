@@ -51,7 +51,7 @@ export function PaymentSuccessView({ result }: PaymentSuccessViewProps) {
               <Check className="h-7 w-7 stroke-[3]" />
             </div>
             <div className="space-y-1.5">
-              <h1 className="text-xl sm:text-2xl font-extrabold text-vxn-ink">
+              <h1 className="text-2xl/9 font-semibold tracking-[-0.24px] text-vxn-ink">
                 Thanh toán thành công
               </h1>
               <div className="flex items-center gap-2 text-xs sm:text-sm text-vxn-fg-4">

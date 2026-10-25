@@ -150,6 +150,7 @@ export function CheckoutFormView({ initialData, isPreview = false }: CheckoutFor
 
   return (
     <div className="mx-auto w-full max-w-[1200px] px-4 py-6 sm:px-6 lg:px-14">
+      <h1 className="sr-only">Thông tin hành khách</h1>
       {/* 1. Thanh tiến trình Stepper (Bước 2) */}
       <CheckoutStepper
         currentStep={2}

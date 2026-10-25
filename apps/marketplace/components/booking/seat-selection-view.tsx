@@ -41,8 +41,9 @@ export function SeatSelectionView({ initialData }: SeatSelectionViewProps) {
     Boolean(initialData.conflictError)
   );
 
-  // Thông báo lỗi thao tác giữ chỗ
+  // Thông báo lỗi thao tác giữ chỗ và trạng thái đang gửi
   const [actionError, setActionError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
   // Thông tin điểm đón & trả hiện tại
   const currentPickup =
@@ -96,29 +97,24 @@ export function SeatSelectionView({ initialData }: SeatSelectionViewProps) {
   const handleContinue = async (): Promise<void> => {
     if (submitting.current) return;
     submitting.current = true;
+    setIsSubmitting(true);
     setActionError(null);
     try {
       const result = await holdSeats(initialData.tripId, selectedSeatCodes, Number(selectedPickupId), Number(selectedDropoffId));
       if (result.status === "ok") router.push(`/checkout/${result.data.holdId}`);
       else setActionError(result.status === "error" ? result.message ?? "Không thể giữ chỗ. Vui lòng chọn lại ghế." : "Chức năng giữ chỗ tạm thời chưa khả dụng.");
     } catch { setActionError("Không thể kết nối hệ thống giữ chỗ. Vui lòng thử lại."); }
-    finally { submitting.current = false; }
+    finally { submitting.current = false; setIsSubmitting(false); }
   };
 
   return (
     <div className="mx-auto w-full max-w-[1200px] px-4 py-6 sm:px-6 lg:px-14">
+      <h1 className="sr-only">Chọn điểm đón, điểm trả và chỗ</h1>
       {/* 1. Thanh tiến trình Stepper */}
       <CheckoutStepper
         currentStep={1}
         holdCountdownSeconds={initialData.holdCountdownSeconds}
       />
-
-      {/* Thông báo lỗi thao tác (nếu người dùng bấm Tiếp tục) */}
-      {actionError && (
-        <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-3.5 text-xs font-semibold text-amber-800">
-          ⚠️ {actionError}
-        </div>
-      )}
 
       {/* 2. Bố cục 2 cột chính */}
       <div className="mt-6 flex flex-col gap-8 lg:flex-row lg:items-start">
@@ -154,6 +150,8 @@ export function SeatSelectionView({ initialData }: SeatSelectionViewProps) {
           subtotalVnd={subtotalVnd}
           onClearSelection={handleClearSelection}
           onContinue={handleContinue}
+          errorMessage={actionError}
+          isSubmitting={isSubmitting}
         />
       </div>
 

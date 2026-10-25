@@ -35,7 +35,7 @@ export function PaymentFailedCard({
   };
 
   return (
-    <div className="mx-auto max-w-2xl rounded-3xl border border-vxn-border bg-white p-6 sm:p-10 shadow-xs text-center space-y-6">
+    <div className="mx-auto max-w-[560px] rounded-2xl border border-vxn-border bg-white p-6 sm:p-8 shadow-xs text-center space-y-6">
       {/* Icon lỗi X đỏ */}
       <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-rose-50 text-rose-600">
         <div className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-rose-600">
@@ -45,9 +45,9 @@ export function PaymentFailedCard({
 
       {/* Tiêu đề & diễn giải */}
       <div>
-        <h2 className="text-xl sm:text-2xl font-extrabold text-vxn-ink">
+        <h1 className="text-[22px]/7 font-semibold text-vxn-ink">
           Thanh toán chưa thành công
-        </h2>
+        </h1>
         <p className="mt-2.5 text-xs sm:text-sm text-vxn-fg-4 max-w-lg mx-auto leading-relaxed">
           {expired ? "Đơn đã hết hạn thanh toán. Vui lòng tìm chuyến và chọn lại chỗ." : result.failureReason ?? "Giao dịch chưa hoàn tất. Vui lòng kiểm tra trạng thái đơn trước khi thanh toán lại."}
         </p>
