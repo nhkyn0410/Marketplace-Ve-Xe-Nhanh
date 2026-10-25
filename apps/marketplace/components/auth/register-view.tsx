@@ -6,7 +6,8 @@ import { useRouter } from "next/navigation";
 import { Check, AlertCircle } from "lucide-react";
 import { Button } from "@vexenhanh/ui/components/button";
 import { registerAccount } from "../../lib/data/auth";
-import { AUTH_INPUT, AUTH_LABEL, AUTH_LINK, AUTH_PRIMARY_BUTTON, AUTH_SUBTITLE, AUTH_TITLE, AuthModalShell } from "./auth-modal-shell";
+import { AUTH_INPUT, AUTH_LABEL, AUTH_LINK, AUTH_PRIMARY_BUTTON, AUTH_SUBTITLE, AUTH_TITLE } from "./auth-styles";
+import { AuthModalShell, type AuthModalVariant } from "./auth-modal-shell";
 
 /**
  * Thuộc tính của RegisterView (SCR-PSG-08)
@@ -18,6 +19,7 @@ export interface RegisterViewProps {
     readonly phone?: string;
   };
   readonly isPreview?: boolean;
+  readonly variant?: AuthModalVariant;
 }
 
 /**
@@ -27,7 +29,8 @@ export const RegisterView: React.FC<RegisterViewProps> = ({
   initialData = {
     email: ""
   },
-  isPreview = false
+  isPreview = false,
+  variant = "page"
 }) => {
   const router = useRouter();
   const [email, setEmail] = useState<string>(initialData.email ?? "");
@@ -73,7 +76,7 @@ export const RegisterView: React.FC<RegisterViewProps> = ({
   };
 
   return (
-    <AuthModalShell>
+    <AuthModalShell variant={variant}>
       {/* Modal Tạo tài khoản — Figma 1447:17057 */}
       <div className="flex w-full flex-col items-center gap-1.5 text-center">
         <h1 className={AUTH_TITLE}>Tạo tài khoản</h1>

@@ -6,7 +6,8 @@ import { useRouter } from "next/navigation";
 import { Check, AlertCircle, Search } from "lucide-react";
 import { Button } from "@vexenhanh/ui/components/button";
 import { requestLoginOtp } from "../../lib/data/auth";
-import { AUTH_INPUT, AUTH_LABEL, AUTH_LINK, AUTH_PRIMARY_BUTTON, AUTH_SUBTITLE, AUTH_TITLE, AuthModalShell } from "./auth-modal-shell";
+import { AUTH_INPUT, AUTH_LABEL, AUTH_LINK, AUTH_PRIMARY_BUTTON, AUTH_SUBTITLE, AUTH_TITLE } from "./auth-styles";
+import { AuthModalShell, type AuthModalVariant } from "./auth-modal-shell";
 
 /**
  * Thuộc tính của LoginView (SCR-PSG-07)
@@ -14,6 +15,7 @@ import { AUTH_INPUT, AUTH_LABEL, AUTH_LINK, AUTH_PRIMARY_BUTTON, AUTH_SUBTITLE, 
 export interface LoginViewProps {
   readonly initialEmail?: string;
   readonly isPreview?: boolean;
+  readonly variant?: AuthModalVariant;
 }
 
 /**
@@ -21,7 +23,8 @@ export interface LoginViewProps {
  */
 export const LoginView: React.FC<LoginViewProps> = ({
   initialEmail = "",
-  isPreview = false
+  isPreview = false,
+  variant = "page"
 }) => {
   const router = useRouter();
   const [email, setEmail] = useState<string>(initialEmail);
@@ -62,7 +65,7 @@ export const LoginView: React.FC<LoginViewProps> = ({
   };
 
   return (
-    <AuthModalShell>
+    <AuthModalShell variant={variant}>
       {/* Modal Chào mừng trở lại — Figma 1447:16997 */}
       <div className="flex w-full flex-col items-center gap-1.5 text-center">
         <h1 className={AUTH_TITLE}>Chào mừng trở lại</h1>

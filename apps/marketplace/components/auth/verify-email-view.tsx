@@ -6,7 +6,8 @@ import { useRouter } from "next/navigation";
 import { ArrowLeft, Clock, AlertCircle } from "lucide-react";
 import { Button } from "@vexenhanh/ui/components/button";
 import { requestLoginOtp, verifyOtp } from "../../lib/data/auth";
-import { AUTH_PRIMARY_BUTTON, AUTH_SUBTITLE, AUTH_TITLE, AuthModalShell } from "./auth-modal-shell";
+import { AUTH_PRIMARY_BUTTON, AUTH_SUBTITLE, AUTH_TITLE } from "./auth-styles";
+import { AuthModalShell, type AuthModalVariant } from "./auth-modal-shell";
 
 /**
  * Dữ liệu cấu hình cho VerifyEmailView (SCR-PSG-09)
@@ -22,6 +23,7 @@ export interface VerifyEmailData {
 export interface VerifyEmailViewProps {
   readonly initialData?: VerifyEmailData;
   readonly isPreview?: boolean;
+  readonly variant?: AuthModalVariant;
 }
 
 /**
@@ -35,7 +37,8 @@ export const VerifyEmailView: React.FC<VerifyEmailViewProps> = ({
     resendCountdownSeconds: 28,
     remainingAttempts: 5
   },
-  isPreview = false
+  isPreview = false,
+  variant = "page"
 }) => {
   const router = useRouter();
   const email = initialData.email ?? "";
@@ -158,6 +161,7 @@ export const VerifyEmailView: React.FC<VerifyEmailViewProps> = ({
 
   return (
     <AuthModalShell
+      variant={variant}
       topLeft={
         <Link
           href={isPreview ? "/login?preview=ideal" : "/login"}

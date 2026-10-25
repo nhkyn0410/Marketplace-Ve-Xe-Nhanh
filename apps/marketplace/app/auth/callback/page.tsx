@@ -4,7 +4,8 @@ import Link from "next/link";
 import { getPreview } from "../../../lib/preview";
 import { oauthCallbackFixture } from "../../../lib/preview/fixtures/auth";
 import { OAuthCallbackView } from "../../../components/auth/oauth-callback-view";
-import { AUTH_PRIMARY_BUTTON, AUTH_SUBTITLE, AUTH_TITLE, AuthModalShell } from "../../../components/auth/auth-modal-shell";
+import { AUTH_PRIMARY_BUTTON, AUTH_SUBTITLE, AUTH_TITLE } from "../../../components/auth/auth-styles";
+import { AuthModalShell } from "../../../components/auth/auth-modal-shell";
 
 export const metadata: Metadata = {
   title: "Đang xác thực OAuth",

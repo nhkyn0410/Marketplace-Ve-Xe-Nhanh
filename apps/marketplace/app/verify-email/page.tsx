@@ -1,49 +1,14 @@
-import React from "react";
 import type { Metadata } from "next";
-import { redirect } from "next/navigation";
-import { z } from "zod";
-import { getPreview } from "../../lib/preview";
-import { verifyEmailFixture } from "../../lib/preview/fixtures/auth";
-import { VerifyEmailView } from "../../components/auth/verify-email-view";
+import { VerifyEmailEntry } from "../../components/auth/auth-entries";
 
 export const metadata: Metadata = {
   title: "Xác minh mã OTP",
   description: "Nhập mã xác minh gồm 6 chữ số gửi qua email để hoàn tất đăng nhập hoặc tạo tài khoản."
 };
 
-interface VerifyEmailPageProps {
-  readonly searchParams: Promise<{
-    readonly [key: string]: string | string[] | undefined;
-  }>;
-}
-
 /**
- * Trang Nhập mã OTP xác minh email (SCR-PSG-09 - node 1447:17487).
+ * Nhập mã OTP (SCR-PSG-09) cho đăng nhập (`flow=login`) và tạo tài khoản (`flow=register`).
  */
-export default async function VerifyEmailPage({
-  searchParams
-}: VerifyEmailPageProps): Promise<React.JSX.Element> {
-  const params = await searchParams;
-  const previewState = getPreview(params);
-
-  // 1. Nhánh Preview phục vụ duyệt giao diện theo Figma
-  if (previewState === "ideal") {
-    return <VerifyEmailView initialData={verifyEmailFixture} isPreview={true} />;
-  }
-
-  // 2. Nhánh thật
-  const emailParam = params["email"];
-  const email = typeof emailParam === "string" ? emailParam : "";
-  if (!z.email().safeParse(email).success) redirect("/login");
-
-  return (
-    <VerifyEmailView
-      initialData={{
-        email,
-        otpDigits: ["", "", "", "", "", ""],
-        resendCountdownSeconds: 60
-      }}
-      isPreview={false}
-    />
-  );
+export default async function Page({ searchParams }: { readonly searchParams: Promise<{ readonly [key: string]: string | string[] | undefined }> }) {
+  return <VerifyEmailEntry params={await searchParams} variant="page" />;
 }

@@ -19,11 +19,15 @@ export const metadata: Metadata = {
   description: "Tìm chuyến, so sánh nhà xe, chọn ghế và nhận vé điện tử QR."
 };
 
-export default function RootLayout({ children }: { children: ReactNode }) {
+/** `modal`: slot `app/@modal` — modal xác thực phủ lên trang đang xem khi mở từ trong web. */
+export default function RootLayout({ children, modal }: { children: ReactNode; modal: ReactNode }) {
   return (
     <html lang="vi" className={`${beVietnamPro.variable} vxn-scale`}>
       <body>
-        <SiteShell>{children}</SiteShell>
+        <SiteShell>
+          {children}
+          {modal}
+        </SiteShell>
       </body>
     </html>
   );
