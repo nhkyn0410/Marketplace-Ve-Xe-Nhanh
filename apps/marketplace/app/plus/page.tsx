@@ -43,7 +43,7 @@ export default async function PlusPage(props: PlusPageProps) {
   // Nhánh Preview: ideal hoặc redeem
   if (preview === "ideal" || preview === "redeem") {
     return (
-      <div className="min-h-screen bg-[#f9f9ff]">
+      <div className="min-h-viewport bg-[#f9f9ff]">
         {topBarHeader}
         <main className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
           <LoyaltyView
@@ -62,7 +62,7 @@ export default async function PlusPage(props: PlusPageProps) {
 
   if (result.status === "unavailable") {
     return (
-      <div className="min-h-screen bg-[#f9f9ff]">
+      <div className="min-h-viewport bg-[#f9f9ff]">
         {topBarHeader}
         <main className="mx-auto max-w-5xl px-4 py-12 sm:px-6 lg:px-8">
           <FeatureUnavailable
@@ -78,7 +78,7 @@ export default async function PlusPage(props: PlusPageProps) {
   if (result.status === "error") {
     if (result.httpStatus === 401) return <AccountSignInRequired />;
     return (
-      <div className="min-h-screen bg-[#f9f9ff]">
+      <div className="min-h-viewport bg-[#f9f9ff]">
         {topBarHeader}
         <main className="mx-auto max-w-5xl px-4 py-12 sm:px-6 lg:px-8">
           <ErrorState
@@ -91,7 +91,7 @@ export default async function PlusPage(props: PlusPageProps) {
   }
 
   return (
-    <div className="min-h-screen bg-[#f9f9ff]">
+    <div className="min-h-viewport bg-[#f9f9ff]">
       {topBarHeader}
       <main className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
         <LoyaltyView profile={result.data} initialOpenRedeemModal={resolvedParams?.["redeem"] === "1" && !!result.data.rules && result.data.memberStatus === "ACTIVE" && result.data.availablePoints >= result.data.rules.minRedeemPoints} />

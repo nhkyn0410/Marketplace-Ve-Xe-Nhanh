@@ -40,7 +40,7 @@ export default async function AccountVouchersPage(props: AccountVouchersPageProp
   // Nhánh Preview: ideal
   if (preview === "ideal") {
     return (
-      <div className="min-h-screen bg-[#f9f9ff]">
+      <div className="min-h-viewport bg-[#f9f9ff]">
         {topBarHeader}
         <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
           <VouchersView vouchersData={userVouchersFixture} isPreview />
@@ -54,7 +54,7 @@ export default async function AccountVouchersPage(props: AccountVouchersPageProp
 
   if (result.status === "unavailable") {
     return (
-      <div className="min-h-screen bg-[#f9f9ff]">
+      <div className="min-h-viewport bg-[#f9f9ff]">
         {topBarHeader}
         <main className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
           <FeatureUnavailable
@@ -70,7 +70,7 @@ export default async function AccountVouchersPage(props: AccountVouchersPageProp
   if (result.status === "error") {
     if (result.httpStatus === 401) return <AccountSignInRequired />;
     return (
-      <div className="min-h-screen bg-[#f9f9ff]">
+      <div className="min-h-viewport bg-[#f9f9ff]">
         {topBarHeader}
         <main className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
           <ErrorState
@@ -83,7 +83,7 @@ export default async function AccountVouchersPage(props: AccountVouchersPageProp
   }
 
   return (
-    <div className="min-h-screen bg-[#f9f9ff]">
+    <div className="min-h-viewport bg-[#f9f9ff]">
       {topBarHeader}
       <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <VouchersView vouchersData={result.data} />

@@ -74,7 +74,7 @@ export function FaqView({
   const quickKeywords = ["Hủy vé", "Hoàn tiền", "Tra cứu vé", "Điểm VXN Plus"];
 
   return (
-    <div className="bg-[#f9f9ff] min-h-screen pb-16">
+    <div className="bg-[#f9f9ff] min-h-viewport pb-16">
       {/* Thanh điều hướng breadcrumb */}
       <div className="border-b border-[#e5e9f0] bg-white">
         <div className="mx-auto max-w-7xl px-4 py-3 sm:px-6 lg:px-8">

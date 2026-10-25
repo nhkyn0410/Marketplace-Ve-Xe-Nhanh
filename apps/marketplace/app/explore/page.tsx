@@ -42,7 +42,7 @@ export default async function ExplorePage(props: ExplorePageProps) {
   // Nhánh Preview: ideal
   if (preview === "ideal") {
     return (
-      <div className="min-h-screen bg-[#f9f9ff]">
+      <div className="min-h-viewport bg-[#f9f9ff]">
         {topBarHeader}
         <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
           <ExploreView
@@ -62,7 +62,7 @@ export default async function ExplorePage(props: ExplorePageProps) {
 
   if (result.status === "unavailable") {
     return (
-      <div className="min-h-screen bg-[#f9f9ff]">
+      <div className="min-h-viewport bg-[#f9f9ff]">
         {topBarHeader}
         <main className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
           <FeatureUnavailable
@@ -77,7 +77,7 @@ export default async function ExplorePage(props: ExplorePageProps) {
 
   if (result.status === "error") {
     return (
-      <div className="min-h-screen bg-[#f9f9ff]">
+      <div className="min-h-viewport bg-[#f9f9ff]">
         {topBarHeader}
         <main className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
           <FeatureUnavailable
@@ -90,7 +90,7 @@ export default async function ExplorePage(props: ExplorePageProps) {
   }
 
   return (
-    <div className="min-h-screen bg-[#f9f9ff]">
+    <div className="min-h-viewport bg-[#f9f9ff]">
       {topBarHeader}
       <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <ExploreView

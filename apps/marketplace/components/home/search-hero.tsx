@@ -64,7 +64,7 @@ export function SearchHero({
   const pickerOperators = featuredOperators.slice(0, 3);
 
   return (
-    <section className="relative flex min-h-[750px] flex-col justify-between overflow-hidden bg-[#0b3b49] text-white">
+    <section className="relative flex min-h-[750px] lg:min-h-[max(750px,var(--vxn-vh))] flex-col justify-between overflow-hidden bg-[#0b3b49] text-white">
       {/* Ảnh nền phong cảnh Việt Nam và xe khách chuẩn Figma */}
       <div
         className="absolute inset-0 bg-cover bg-center bg-no-repeat"

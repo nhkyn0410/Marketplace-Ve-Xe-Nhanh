@@ -38,7 +38,7 @@ export const SupportView: React.FC<SupportViewProps> = ({
   const [isModalOpen, setIsModalOpen] = useState<boolean>(initialOpenNewModal);
 
   return (
-    <div className="min-h-screen bg-slate-50/50 pb-16">
+    <div className="min-h-viewport bg-slate-50/50 pb-16">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-6">
         {/* Breadcrumb theo Figma */}
         <nav className="flex items-center gap-2 text-xs text-muted-foreground mb-4">

@@ -56,7 +56,7 @@ export default async function TripsPage(props: TripsPageProps) {
   // PREVIEW: EMPTY STATE (1450:22017)
   if (preview === "empty") {
     return (
-      <div className="min-h-screen bg-[#f9f9ff]">
+      <div className="min-h-viewport bg-[#f9f9ff]">
         {topBarHeader}
         <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
           <TripSearchBar />
@@ -74,7 +74,7 @@ export default async function TripsPage(props: TripsPageProps) {
   // PREVIEW: LOADING SKELETON (1450:22373)
   if (preview === "loading") {
     return (
-      <div className="min-h-screen bg-[#f9f9ff]">
+      <div className="min-h-viewport bg-[#f9f9ff]">
         {topBarHeader}
         <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
           <TripSearchBar />
@@ -94,7 +94,7 @@ export default async function TripsPage(props: TripsPageProps) {
   // PREVIEW: IDEAL (1440:11297)
   if (preview === "ideal") {
     return (
-      <div className="min-h-screen bg-[#f9f9ff]">
+      <div className="min-h-viewport bg-[#f9f9ff]">
         {topBarHeader}
         <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
           {/* Thanh tìm kiếm tóm tắt */}
@@ -153,7 +153,7 @@ export default async function TripsPage(props: TripsPageProps) {
 
   if (tripsResult.status !== "ok") {
     return (
-      <div className="min-h-screen bg-[#f9f9ff]">
+      <div className="min-h-viewport bg-[#f9f9ff]">
         {topBarHeader}
         <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
           <TripSearchBar key={query.toString()} initialOrigin={params.origin} initialDestination={params.destination}
@@ -170,7 +170,7 @@ export default async function TripsPage(props: TripsPageProps) {
   }
 
   return (
-    <div className="min-h-screen bg-[#f9f9ff]">
+    <div className="min-h-viewport bg-[#f9f9ff]">
       {topBarHeader}
       <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
         <TripSearchBar key={query.toString()} initialOrigin={params.origin} initialDestination={params.destination}

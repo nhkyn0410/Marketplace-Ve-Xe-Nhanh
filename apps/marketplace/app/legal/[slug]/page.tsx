@@ -44,7 +44,7 @@ export default async function LegalDocumentPage(
 
   if (result.status === "unavailable") {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-viewport bg-background">
         <main className="mx-auto max-w-5xl px-4 py-16 sm:px-6 lg:px-8">
           <FeatureUnavailable
             title="Văn bản pháp lý chưa sẵn sàng"
@@ -58,7 +58,7 @@ export default async function LegalDocumentPage(
 
   if (result.status === "error") {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-viewport bg-background">
         <main className="mx-auto max-w-5xl px-4 py-16 sm:px-6 lg:px-8">
           <FeatureUnavailable
             title="Không thể tải văn bản pháp lý"

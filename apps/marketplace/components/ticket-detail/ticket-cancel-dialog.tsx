@@ -65,7 +65,7 @@ export const TicketCancelDialog: React.FC<TicketCancelDialogProps> = ({ isOpen, 
 
   return (
     <div role="dialog" aria-modal="true" aria-labelledby="cancel-dialog-title" className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
-      <div className="flex max-h-[90vh] w-full max-w-lg flex-col overflow-hidden rounded-2xl border border-border bg-background shadow-2xl">
+      <div className="flex max-h-[calc(var(--vxn-vh)*0.9)] w-full max-w-lg flex-col overflow-hidden rounded-2xl border border-border bg-background shadow-2xl">
         <div className="flex items-center justify-between px-6 py-5">
           <h2 id="cancel-dialog-title" className="text-xl font-bold">Hủy vé</h2>
           <button type="button" onClick={onClose} disabled={isSubmitting} aria-label="Đóng hộp thoại"><X className="h-5 w-5" /></button>

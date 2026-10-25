@@ -21,7 +21,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="vi" className={beVietnamPro.variable}>
+    <html lang="vi" className={`${beVietnamPro.variable} vxn-scale`}>
       <body>
         <SiteShell>{children}</SiteShell>
       </body>

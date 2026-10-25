@@ -37,7 +37,7 @@ export const LookupResultView: React.FC<LookupResultViewProps> = ({ data }) => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50/50 pb-16">
+    <div className="min-h-viewport bg-slate-50/50 pb-16">
       {/* Banner thông báo phiên làm việc an toàn 15 phút */}
       <LookupSessionBanner
         maskedEmail={data.session.maskedEmail}

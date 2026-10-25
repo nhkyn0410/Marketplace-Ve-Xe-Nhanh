@@ -15,7 +15,7 @@ export interface ArticleDetailViewProps {
 export function ArticleDetailView({ article, isPreview = false }: ArticleDetailViewProps) {
   const categoryHref = `/explore?category=${encodeURIComponent(article.categorySlug)}`;
   return (
-    <div className="min-h-screen bg-[#f9f9ff] pb-16">
+    <div className="min-h-viewport bg-[#f9f9ff] pb-16">
       <div className="border-b border-[#e5e9f0] bg-white">
         <nav aria-label="Breadcrumb" className="mx-auto flex max-w-7xl flex-wrap items-center gap-1.5 px-4 py-3 text-xs text-[#64748b] sm:px-6 lg:px-8">
           <Link href="/">Trang chủ</Link><ChevronRight className="h-3 w-3" /><Link href="/explore">Khám phá</Link><ChevronRight className="h-3 w-3" /><Link href={categoryHref}>{article.category}</Link><ChevronRight className="h-3 w-3" /><span className="line-clamp-1 max-w-md font-medium text-[#1e293b]">{article.title}</span>

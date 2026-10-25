@@ -36,7 +36,7 @@ export default async function FaqPage(
 
   if (result.status === "unavailable") {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-viewport bg-background">
         <main className="mx-auto max-w-5xl px-4 py-16 sm:px-6 lg:px-8">
           <FeatureUnavailable
             title="Trung tâm trợ giúp FAQ chưa sẵn sàng"
@@ -50,7 +50,7 @@ export default async function FaqPage(
 
   if (result.status === "error") {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-viewport bg-background">
         <main className="mx-auto max-w-5xl px-4 py-16 sm:px-6 lg:px-8">
           <FeatureUnavailable
             title="Không thể tải câu hỏi thường gặp"

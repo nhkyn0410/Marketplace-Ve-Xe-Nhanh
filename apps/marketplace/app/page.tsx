@@ -47,7 +47,7 @@ export default async function MarketplacePage(props: MarketplacePageProps) {
 
   if (preview === "403") {
     return (
-      <div data-no-footer="true" className="flex min-h-[calc(100vh-4rem)] flex-col bg-white">
+      <div data-no-footer="true" className="flex min-h-[calc(var(--vxn-vh)_-_4rem)] flex-col bg-white">
         <PassengerTopBar
           breadcrumbs={[
             { label: "Trang chủ", href: "/" },
@@ -61,7 +61,7 @@ export default async function MarketplacePage(props: MarketplacePageProps) {
 
   if (preview === "503") {
     return (
-      <div data-no-footer="true" className="flex min-h-[calc(100vh-4rem)] flex-col bg-white">
+      <div data-no-footer="true" className="flex min-h-[calc(var(--vxn-vh)_-_4rem)] flex-col bg-white">
         <PassengerTopBar
           breadcrumbs={[
             { label: "Trang chủ", href: "/" },

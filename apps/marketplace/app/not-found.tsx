@@ -14,7 +14,7 @@ export default function NotFound() {
   const router = useRouter();
 
   return (
-    <div data-no-footer="true" className="flex min-h-[calc(100vh-4rem)] flex-col bg-white">
+    <div data-no-footer="true" className="flex min-h-[calc(var(--vxn-vh)_-_4rem)] flex-col bg-white">
       <PassengerTopBar
         breadcrumbs={[
           { label: "Trang chủ", href: "/" },

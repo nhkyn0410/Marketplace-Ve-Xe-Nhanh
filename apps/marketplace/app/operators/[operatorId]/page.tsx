@@ -50,7 +50,7 @@ export default async function OperatorDetailPage(props: PageProps) {
   if (preview === "ideal") {
     const operator = operatorProfileFixture;
     return (
-      <div className="min-h-screen bg-[#f9f9ff]">
+      <div className="min-h-viewport bg-[#f9f9ff]">
         {topBarHeader(operator.name)}
         <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6 space-y-8">
           <OperatorHeader operator={operator} />
@@ -71,7 +71,7 @@ export default async function OperatorDetailPage(props: PageProps) {
 
   if (result.status !== "ok") {
     return (
-      <div className="min-h-screen bg-[#f9f9ff]">
+      <div className="min-h-viewport bg-[#f9f9ff]">
         {topBarHeader("Hồ sơ nhà xe")}
         <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12">
           <FeatureUnavailable
@@ -86,7 +86,7 @@ export default async function OperatorDetailPage(props: PageProps) {
   // Hiển thị hồ sơ nhà xe từ API
   const operator = result.data;
   return (
-    <div className="min-h-screen bg-[#f9f9ff]">
+    <div className="min-h-viewport bg-[#f9f9ff]">
       {topBarHeader(operator.name)}
       <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6 space-y-8">
         <OperatorHeader operator={operator} />

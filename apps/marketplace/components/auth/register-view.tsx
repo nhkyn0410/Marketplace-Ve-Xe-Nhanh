@@ -72,7 +72,7 @@ export const RegisterView: React.FC<RegisterViewProps> = ({
   };
 
   return (
-    <div className="relative min-h-[calc(100vh-4rem)] flex items-center justify-center p-4 sm:p-6 bg-slate-900/40 backdrop-blur-xs">
+    <div className="relative min-h-[calc(var(--vxn-vh)_-_4rem)] flex items-center justify-center p-4 sm:p-6 bg-slate-900/40 backdrop-blur-xs">
       {/* Khung modal Tạo tài khoản chuẩn Figma node 1447:17420 */}
       <div className="relative w-full max-w-[480px] bg-white dark:bg-card rounded-3xl shadow-2xl border border-border p-6 sm:p-8 space-y-6">
         {/* Nút đóng góc phải */}

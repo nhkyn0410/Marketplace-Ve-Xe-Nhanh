@@ -53,9 +53,9 @@ export function SiteShell({ children }: { readonly children: ReactNode }) {
 
   return (
     <MarketplaceSessionProvider>
-    <div className="min-h-screen lg:flex">
+    <div className="min-h-viewport lg:flex">
       {/* Sidebar cố định trên desktop */}
-      <aside className="sticky top-0 hidden h-screen w-[240px] shrink-0 lg:flex">
+      <aside className="sticky top-0 hidden h-viewport w-[240px] shrink-0 lg:flex">
         <Suspense fallback={<SidebarSkeleton />}>
           <SidebarContent />
         </Suspense>

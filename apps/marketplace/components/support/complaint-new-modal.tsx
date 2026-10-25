@@ -32,7 +32,7 @@ export function ComplaintNewModal({ isOpen, onClose, defaultDraft, bookingOption
   const fieldClass = "mt-1.5 w-full rounded-xl border border-border bg-background p-3 text-xs focus:border-teal-700 focus:outline-none";
 
   return <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-    <DialogContent className="sm:max-w-xl max-h-[90vh] overflow-y-auto">
+    <DialogContent className="sm:max-w-xl max-h-[calc(var(--vxn-vh)*0.9)] overflow-y-auto">
       <DialogHeader><DialogTitle className="text-xl font-bold">Gửi khiếu nại</DialogTitle></DialogHeader>
       <form className="space-y-4" onSubmit={async (event) => {
         event.preventDefault(); setBusy(true); setError(null);

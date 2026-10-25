@@ -56,7 +56,7 @@ export default async function TripDetailPage(props: PageProps) {
   if (preview === "ideal") {
     const trip = tripDetailFixture;
     return (
-      <div className="min-h-screen bg-[#f9f9ff]">
+      <div className="min-h-viewport bg-[#f9f9ff]">
         {topBarHeader}
         <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6">
           {/* Lưới 2 cột: Cột nội dung chi tiết (8) & Cột tóm tắt đặt vé (4) */}
@@ -97,7 +97,7 @@ export default async function TripDetailPage(props: PageProps) {
 
   if (result.status !== "ok") {
     return (
-      <div className="min-h-screen bg-[#f9f9ff]">
+      <div className="min-h-viewport bg-[#f9f9ff]">
         {topBarHeader}
         <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12">
           <FeatureUnavailable
@@ -113,7 +113,7 @@ export default async function TripDetailPage(props: PageProps) {
   const trip = result.data;
 
   return (
-    <div className="min-h-screen bg-[#f9f9ff]">
+    <div className="min-h-viewport bg-[#f9f9ff]">
       {topBarHeader}
       <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
