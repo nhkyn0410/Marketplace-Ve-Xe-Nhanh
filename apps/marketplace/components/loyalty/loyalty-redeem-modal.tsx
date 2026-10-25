@@ -141,19 +141,19 @@ export function LoyaltyRedemptionModal({
         {/* Khối tóm tắt 3 chỉ số */}
         <div className="mt-5 grid grid-cols-3 divide-x divide-vxn-border/60 rounded-xl border border-vxn-border bg-vxn-bg-soft p-3 text-center">
           <div>
-            <div className="text-2xs text-vxn-fg-4">Điểm hiện có</div>
+            <div className="text-xs text-vxn-fg-4">Điểm hiện có</div>
             <div className="mt-0.5 text-xs font-bold text-vxn-ink sm:text-sm">
               {profile.availablePoints.toLocaleString("vi-VN")} điểm
             </div>
           </div>
           <div>
-            <div className="text-2xs text-vxn-fg-4">Giá trị quy đổi</div>
+            <div className="text-xs text-vxn-fg-4">Giá trị quy đổi</div>
             <div className="mt-0.5 text-xs font-bold text-vxn-teal-700 sm:text-sm">
               {profile.rules ? `1 điểm = ${formatVnd(String(profile.rules.pointValue))}` : "Chưa có chính sách"}
             </div>
           </div>
           <div>
-            <div className="text-2xs text-vxn-fg-4">Số điểm tối thiểu</div>
+            <div className="text-xs text-vxn-fg-4">Số điểm tối thiểu</div>
             <div className="mt-0.5 text-xs font-bold text-vxn-ink sm:text-sm">
               {minPoints} điểm
             </div>
@@ -213,7 +213,7 @@ export function LoyaltyRedemptionModal({
               onChange={handleSliderChange}
               className="h-2 w-full cursor-pointer appearance-none rounded-lg bg-slate-200 accent-[#00506a]"
             />
-            <div className="mt-1 flex justify-between text-2xs text-vxn-fg-4">
+            <div className="mt-1 flex justify-between text-xs text-vxn-fg-4">
               <span>{minPoints}</span>
               <span>{maxPoints.toLocaleString("vi-VN")}</span>
             </div>
@@ -257,7 +257,7 @@ export function LoyaltyRedemptionModal({
         )}
 
         {/* Chú thích điều khoản */}
-        <p className="mt-4 text-2xs leading-relaxed text-vxn-fg-4">
+        <p className="mt-4 text-xs leading-relaxed text-vxn-fg-4">
           Điểm đã đổi không hoàn lại. Voucher được lưu vào ví của bạn. Áp dụng voucher khi đặt vé trên web hiện chưa khả dụng.
         </p>
 

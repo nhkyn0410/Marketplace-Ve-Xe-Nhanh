@@ -5,6 +5,9 @@ import { VouchersView } from "../../../components/vouchers/vouchers-view";
 import { getUserVouchers } from "../../../lib/data/loyalty";
 import { getPreview } from "../../../lib/preview";
 import { userVouchersFixture } from "../../../lib/preview/fixtures/loyalty";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = { title: "Ví voucher" };
 
 /**
  * Thuộc tính của trang Ví voucher (SCR-PSG-36).
@@ -38,9 +41,9 @@ export default async function AccountVouchersPage(props: AccountVouchersPageProp
     return (
       <div className="min-h-viewport bg-[#f9f9ff]">
         {topBarHeader}
-        <main className="mx-auto w-full max-w-[1200px] px-4 py-8 sm:px-6 lg:px-14">
+        <div className="mx-auto w-full max-w-[1200px] px-4 py-8 sm:px-6 lg:px-14">
           <VouchersView vouchersData={userVouchersFixture} isPreview />
-        </main>
+        </div>
       </div>
     );
   }
@@ -52,13 +55,13 @@ export default async function AccountVouchersPage(props: AccountVouchersPageProp
     return (
       <div className="min-h-viewport bg-[#f9f9ff]">
         {topBarHeader}
-        <main className="mx-auto w-full max-w-[1200px] px-4 py-12 sm:px-6 lg:px-14">
+        <div className="mx-auto w-full max-w-[1200px] px-4 py-12 sm:px-6 lg:px-14">
           <FeatureUnavailable
             title="Ví voucher chưa sẵn sàng"
             description="Ví voucher hiện chưa khả dụng. Vui lòng quay lại sau."
             endpoint={result.endpoint}
           />
-        </main>
+        </div>
       </div>
     );
   }
@@ -68,12 +71,12 @@ export default async function AccountVouchersPage(props: AccountVouchersPageProp
     return (
       <div className="min-h-viewport bg-[#f9f9ff]">
         {topBarHeader}
-        <main className="mx-auto w-full max-w-[1200px] px-4 py-12 sm:px-6 lg:px-14">
+        <div className="mx-auto w-full max-w-[1200px] px-4 py-12 sm:px-6 lg:px-14">
           <ErrorState
             title="Không thể tải ví voucher"
             description={result.message}
           />
-        </main>
+        </div>
       </div>
     );
   }
@@ -81,9 +84,9 @@ export default async function AccountVouchersPage(props: AccountVouchersPageProp
   return (
     <div className="min-h-viewport bg-[#f9f9ff]">
       {topBarHeader}
-      <main className="mx-auto w-full max-w-[1200px] px-4 py-8 sm:px-6 lg:px-14">
+      <div className="mx-auto w-full max-w-[1200px] px-4 py-8 sm:px-6 lg:px-14">
         <VouchersView vouchersData={result.data} />
-      </main>
+      </div>
     </div>
   );
 }

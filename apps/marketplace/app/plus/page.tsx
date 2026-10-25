@@ -8,6 +8,9 @@ import {
   loyaltyProfileFixture,
   loyaltyRedemptionQuoteFixture
 } from "../../lib/preview/fixtures/loyalty";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = { title: "VXN Plus" };
 
 /**
  * Thuộc tính của trang VXN Plus (SCR-PSG-33/35).
@@ -41,14 +44,14 @@ export default async function PlusPage(props: PlusPageProps) {
     return (
       <div className="min-h-viewport bg-[#f9f9ff]">
         {topBarHeader}
-        <main className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
+        <div className="mx-auto w-full max-w-[1200px] px-4 py-8 sm:px-6 lg:px-14">
           <LoyaltyView
             profile={loyaltyProfileFixture}
             defaultQuote={loyaltyRedemptionQuoteFixture}
             initialOpenRedeemModal={preview === "redeem"}
             isPreview
           />
-        </main>
+        </div>
       </div>
     );
   }
@@ -60,13 +63,13 @@ export default async function PlusPage(props: PlusPageProps) {
     return (
       <div className="min-h-viewport bg-[#f9f9ff]">
         {topBarHeader}
-        <main className="mx-auto max-w-5xl px-4 py-12 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-5xl px-4 py-12 sm:px-6 lg:px-8">
           <FeatureUnavailable
             title="Tính năng VXN Plus chưa sẵn sàng"
             description="Thông tin thành viên hiện chưa khả dụng. Vui lòng quay lại sau."
             endpoint={result.endpoint}
           />
-        </main>
+        </div>
       </div>
     );
   }
@@ -76,12 +79,12 @@ export default async function PlusPage(props: PlusPageProps) {
     return (
       <div className="min-h-viewport bg-[#f9f9ff]">
         {topBarHeader}
-        <main className="mx-auto max-w-5xl px-4 py-12 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-5xl px-4 py-12 sm:px-6 lg:px-8">
           <ErrorState
             title="Không thể tải dữ liệu thành viên"
             description={result.message}
           />
-        </main>
+        </div>
       </div>
     );
   }
@@ -89,9 +92,9 @@ export default async function PlusPage(props: PlusPageProps) {
   return (
     <div className="min-h-viewport bg-[#f9f9ff]">
       {topBarHeader}
-      <main className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
+      <div className="mx-auto w-full max-w-[1200px] px-4 py-8 sm:px-6 lg:px-14">
         <LoyaltyView profile={result.data} initialOpenRedeemModal={resolvedParams?.["redeem"] === "1" && !!result.data.rules && result.data.memberStatus === "ACTIVE" && result.data.availablePoints >= result.data.rules.minRedeemPoints} />
-      </main>
+      </div>
     </div>
   );
 }

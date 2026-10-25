@@ -5,6 +5,9 @@ import { LoyaltyHistoryView } from "../../../components/loyalty/loyalty-history-
 import { getLoyaltyHistory } from "../../../lib/data/loyalty";
 import { getPreview } from "../../../lib/preview";
 import { loyaltyHistoryFixture } from "../../../lib/preview/fixtures/loyalty";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = { title: "Lịch sử điểm" };
 
 /**
  * Thuộc tính của trang Lịch sử điểm (SCR-PSG-34).
@@ -38,9 +41,9 @@ export default async function PlusHistoryPage(props: PlusHistoryPageProps) {
     return (
       <div className="min-h-viewport bg-[#f9f9ff]">
         {topBarHeader}
-        <main className="mx-auto w-full max-w-[1200px] px-4 py-8 sm:px-6 lg:px-14">
+        <div className="mx-auto w-full max-w-[1200px] px-4 py-8 sm:px-6 lg:px-14">
           <LoyaltyHistoryView historyData={loyaltyHistoryFixture} isPreview />
-        </main>
+        </div>
       </div>
     );
   }
@@ -52,13 +55,13 @@ export default async function PlusHistoryPage(props: PlusHistoryPageProps) {
     return (
       <div className="min-h-viewport bg-[#f9f9ff]">
         {topBarHeader}
-        <main className="mx-auto w-full max-w-[1200px] px-4 py-12 sm:px-6 lg:px-14">
+        <div className="mx-auto w-full max-w-[1200px] px-4 py-12 sm:px-6 lg:px-14">
           <FeatureUnavailable
             title="Lịch sử điểm chưa sẵn sàng"
             description="Lịch sử điểm hiện chưa khả dụng. Vui lòng quay lại sau."
             endpoint={result.endpoint}
           />
-        </main>
+        </div>
       </div>
     );
   }
@@ -68,12 +71,12 @@ export default async function PlusHistoryPage(props: PlusHistoryPageProps) {
     return (
       <div className="min-h-viewport bg-[#f9f9ff]">
         {topBarHeader}
-        <main className="mx-auto w-full max-w-[1200px] px-4 py-12 sm:px-6 lg:px-14">
+        <div className="mx-auto w-full max-w-[1200px] px-4 py-12 sm:px-6 lg:px-14">
           <ErrorState
             title="Không thể tải lịch sử điểm"
             description={result.message}
           />
-        </main>
+        </div>
       </div>
     );
   }
@@ -81,9 +84,9 @@ export default async function PlusHistoryPage(props: PlusHistoryPageProps) {
   return (
     <div className="min-h-viewport bg-[#f9f9ff]">
       {topBarHeader}
-      <main className="mx-auto w-full max-w-[1200px] px-4 py-8 sm:px-6 lg:px-14">
+      <div className="mx-auto w-full max-w-[1200px] px-4 py-8 sm:px-6 lg:px-14">
         <LoyaltyHistoryView historyData={result.data} />
-      </main>
+      </div>
     </div>
   );
 }
