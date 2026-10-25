@@ -24,17 +24,13 @@ export default async function PlusHistoryPage(props: PlusHistoryPageProps) {
   const preview = getPreview(resolvedParams);
 
   const topBarHeader = (
-    <div className="border-b border-vxn-border/60 bg-white">
-      <div className="mx-auto max-w-7xl px-4 py-2.5 sm:px-6 lg:px-8">
-        <PassengerTopBar
-          breadcrumbs={[
-            { label: "Trang chủ", href: "/" },
-            { label: "Thành viên", href: "/plus" },
-            { label: "Lịch sử điểm" }
-          ]}
-        />
-      </div>
-    </div>
+    <PassengerTopBar
+      breadcrumbs={[
+        { label: "Trang chủ", href: "/" },
+        { label: "Thành viên", href: "/plus" },
+        { label: "Lịch sử điểm" }
+      ]}
+    />
   );
 
   // Nhánh Preview: ideal

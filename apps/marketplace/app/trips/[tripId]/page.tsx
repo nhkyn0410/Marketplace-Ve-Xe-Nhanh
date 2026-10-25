@@ -36,20 +36,16 @@ export default async function TripDetailPage(props: PageProps) {
 
   // Topbar điều hướng theo chuẩn Figma 1443:11643
   const topBarHeader = (
-    <div className="border-b border-vxn-border/60 bg-white">
-      <div className="mx-auto max-w-7xl px-4 py-2.5 sm:px-6 lg:px-8">
-        <PassengerTopBar
-          breadcrumbs={[
-            { label: "Trang chủ", href: "/" },
-            { label: "Mua vé", href: "/trips" },
-            ...(preview === "ideal"
-              ? [{ label: "TP. Hồ Chí Minh → Đà Lạt", href: "/trips?preview=ideal" }]
-              : []),
-            { label: "Chi tiết chuyến" }
-          ]}
-        />
-      </div>
-    </div>
+    <PassengerTopBar
+      breadcrumbs={[
+        { label: "Trang chủ", href: "/" },
+        { label: "Mua vé", href: "/trips" },
+        ...(preview === "ideal"
+          ? [{ label: "TP. Hồ Chí Minh → Đà Lạt", href: "/trips?preview=ideal" }]
+          : []),
+        { label: "Chi tiết chuyến" }
+      ]}
+    />
   );
 
   // Nhánh Preview phục vụ kiểm thử giao diện theo Figma

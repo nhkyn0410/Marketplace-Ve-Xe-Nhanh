@@ -40,17 +40,13 @@ export default async function TripsPage(props: TripsPageProps) {
 
   // TOP BAR HEADER
   const topBarHeader = (
-    <div className="border-b border-vxn-border/60 bg-white">
-      <div className="mx-auto max-w-7xl px-4 py-2.5 sm:px-6 lg:px-8">
-        <PassengerTopBar
-          breadcrumbs={[
-            { label: "Trang chủ", href: "/" },
-            { label: "Mua vé", href: "/trips" },
-            { label: "Tìm chuyến xe" }
-          ]}
-        />
-      </div>
-    </div>
+    <PassengerTopBar
+      breadcrumbs={[
+        { label: "Trang chủ", href: "/" },
+        { label: "Mua vé", href: "/trips" },
+        { label: "Tìm chuyến xe" }
+      ]}
+    />
   );
 
   // PREVIEW: EMPTY STATE (1450:22017)

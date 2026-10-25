@@ -33,17 +33,13 @@ export default async function OperatorDetailPage(props: PageProps) {
 
   // Topbar điều hướng theo Figma 1443:12312
   const topBarHeader = (operatorName: string) => (
-    <div className="border-b border-vxn-border/60 bg-white">
-      <div className="mx-auto max-w-7xl px-4 py-2.5 sm:px-6 lg:px-8">
-        <PassengerTopBar
-          breadcrumbs={[
-            { label: "Trang chủ", href: "/" },
-            { label: "Nhà xe", href: preview === "ideal" ? "/explore?preview=ideal" : "/explore" },
-            { label: operatorName }
-          ]}
-        />
-      </div>
-    </div>
+    <PassengerTopBar
+      breadcrumbs={[
+        { label: "Trang chủ", href: "/" },
+        { label: "Nhà xe", href: preview === "ideal" ? "/explore?preview=ideal" : "/explore" },
+        { label: operatorName }
+      ]}
+    />
   );
 
   // Nhánh Preview phục vụ kiểm thử giao diện theo Figma
