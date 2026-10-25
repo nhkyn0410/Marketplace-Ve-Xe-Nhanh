@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 const _primary = Color(0xFF2088C9);
-const _ink = Color(0xFF0D173B);
-const _muted = Color(0xFF7188A3);
+const _ink = Color(0xFF0C173D);
+const _muted = Color(0xFF506D95);
 const _background = Color(0xFFF7FBFF);
 const _border = Color(0xFFEAF1F8);
-const _star = Color(0xFFFFB31A);
+const _calendarAsset = 'assets/account/reviews/calendar.svg';
+const _bedAsset = 'assets/account/reviews/bed.svg';
+const _filledStarAsset = 'assets/account/reviews/star_filled.svg';
+const _outlineStarAsset = 'assets/account/reviews/star_outline.svg';
 
 /// Ảnh mẫu lấy trực tiếp từ node Figma. Dữ liệu thật có thể truyền ảnh khác
 /// qua [ReviewTripItem.imageAsset] mà không phải thay đổi khung hiển thị.
@@ -15,6 +19,91 @@ const reviewSampleTripAssets = <String>[
   'assets/account/reviews/trip_2.png',
   'assets/account/reviews/trip_3.png',
 ];
+
+/// Fixture đối chiếu node Figma 2381:1840. Chỉ được dùng ở debug khi API
+/// chưa có endpoint danh sách đánh giá dành cho Passenger.
+final figmaMyReviewsSample = MyReviewsData(
+  pending: [
+    ReviewTripItem(
+      bookingId: 'figma-pending-1',
+      routeName: 'TP. Hồ Chí Minh → Đà Lạt',
+      operatorName: 'Phương Nam Travel',
+      departureAt: DateTime(2026, 10, 16),
+      vehicleType: 'Limousine 34 giường',
+      imageAsset: reviewSampleTripAssets[0],
+      draftRating: 4,
+      draftComment: 'Xe sạch sẽ, nhân viên hỗ trợ nhiệt tình. Chuyến đi đúng giờ và khá thoải mái. Sẽ tiếp tục ủng hộ nhà xe trong những chuyến sau.',
+    ),
+    ReviewTripItem(
+      bookingId: 'figma-pending-2',
+      routeName: 'Hà Nội → Thanh Hóa',
+      operatorName: 'Hoàng Long',
+      departureAt: DateTime(2026, 10, 10),
+      vehicleType: 'Giường nằm 40 chỗ',
+      imageAsset: reviewSampleTripAssets[1],
+    ),
+    ReviewTripItem(
+      bookingId: 'figma-pending-3',
+      routeName: 'Đà Nẵng → Huế',
+      operatorName: 'Queen Cafe',
+      departureAt: DateTime(2026, 9, 28),
+      vehicleType: 'Limousine 22 giường',
+      imageAsset: reviewSampleTripAssets[2],
+    ),
+  ],
+  reviewed: [
+    ReviewTripItem(
+      bookingId: 'figma-reviewed-1',
+      routeName: 'TP. Hồ Chí Minh → Đà Lạt',
+      operatorName: 'Phương Nam Travel',
+      departureAt: DateTime(2026, 10, 16),
+      imageAsset: reviewSampleTripAssets[0],
+      rating: 4,
+      comment: 'Xe sạch sẽ, nhân viên hỗ trợ nhiệt tình. Chuyến đi đúng giờ và khá thoải mái.',
+      reviewedAt: DateTime(2026, 10, 17),
+    ),
+    ReviewTripItem(
+      bookingId: 'figma-reviewed-2',
+      routeName: 'Hà Nội → Thanh Hóa',
+      operatorName: 'Hoàng Long',
+      departureAt: DateTime(2026, 10, 10),
+      imageAsset: reviewSampleTripAssets[1],
+      rating: 5,
+      comment: 'Chuyến đi rất tốt, xe chạy êm, không bị trễ giờ. Tài xế thân thiện và hỗ trợ hành khách.',
+      reviewedAt: DateTime(2026, 10, 11),
+    ),
+    ReviewTripItem(
+      bookingId: 'figma-reviewed-3',
+      routeName: 'Đà Nẵng → Huế',
+      operatorName: 'Queen Cafe',
+      departureAt: DateTime(2026, 9, 28),
+      imageAsset: reviewSampleTripAssets[2],
+      rating: 3,
+      comment: 'Chất lượng ổn, ghế nằm thoải mái. Tuy nhiên thời gian dừng trạm hơi lâu.',
+      reviewedAt: DateTime(2026, 9, 29),
+    ),
+    ReviewTripItem(
+      bookingId: 'figma-reviewed-4',
+      routeName: 'TP. Hồ Chí Minh → Đà Lạt',
+      operatorName: 'Phương Nam Travel',
+      departureAt: DateTime(2026, 9, 20),
+      imageAsset: reviewSampleTripAssets[0],
+      rating: 5,
+      comment: 'Chuyến đi thoải mái và đúng giờ.',
+      reviewedAt: DateTime(2026, 9, 21),
+    ),
+    ReviewTripItem(
+      bookingId: 'figma-reviewed-5',
+      routeName: 'Hà Nội → Thanh Hóa',
+      operatorName: 'Hoàng Long',
+      departureAt: DateTime(2026, 9, 12),
+      imageAsset: reviewSampleTripAssets[1],
+      rating: 4,
+      comment: 'Nhân viên hỗ trợ nhiệt tình.',
+      reviewedAt: DateTime(2026, 9, 13),
+    ),
+  ],
+);
 
 typedef MyReviewsLoader = Future<MyReviewsData> Function();
 typedef ReviewSubmitter = Future<bool> Function(
@@ -43,6 +132,8 @@ class ReviewTripItem {
     this.comment,
     this.reviewedAt,
     this.visibility = ReviewVisibility.visible,
+    this.draftRating,
+    this.draftComment,
   });
 
   final String bookingId;
@@ -55,6 +146,8 @@ class ReviewTripItem {
   final String? comment;
   final DateTime? reviewedAt;
   final ReviewVisibility visibility;
+  final int? draftRating;
+  final String? draftComment;
 }
 
 class ReviewSubmission {
@@ -100,7 +193,7 @@ class _MyReviewsScreenState extends State<MyReviewsScreen> {
     final submitted = await showModalBottomSheet<bool>(
       context: context,
       isScrollControlled: true,
-      useSafeArea: true,
+      useSafeArea: false,
       backgroundColor: Colors.transparent,
       builder: (_) => _ReviewFormSheet(
         trip: trip,
@@ -210,34 +303,54 @@ class _ReviewsHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 62,
-      child: Row(
+      height: 67,
+      child: Stack(
+        alignment: Alignment.center,
         children: [
-          const SizedBox(width: 14),
-          Material(
-            color: const Color(0xFFF1F7FD),
-            shape: const CircleBorder(),
-            child: IconButton(
-              key: const Key('my-reviews-back'),
-              onPressed: onBack,
-              icon: const Icon(Icons.chevron_left_rounded, size: 30),
-              color: _ink,
-              tooltip: 'Quay lại',
+          Positioned(
+            left: 14,
+            top: 6,
+            child: Material(
+              color: _background,
+              shape: const CircleBorder(
+                side: BorderSide(color: Color(0xFFDEEBF8)),
+              ),
+              child: InkWell(
+                key: const Key('my-reviews-back'),
+                onTap: onBack,
+                customBorder: const CircleBorder(),
+                child: const SizedBox.square(
+                  dimension: 42,
+                  child: Center(
+                    child: Text(
+                      '‹',
+                      style: TextStyle(
+                        color: _ink,
+                        fontSize: 30,
+                        height: 1,
+                        fontWeight: FontWeight.w400,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
             ),
           ),
-          const SizedBox(width: 18),
-          const Expanded(
+          const Positioned(
+            top: 15,
+            left: 56,
+            right: 56,
             child: Text(
               'Đánh giá của tôi',
+              textAlign: TextAlign.center,
               style: TextStyle(
                 color: _ink,
-                fontSize: 20,
-                height: 1.4,
+                fontSize: 19,
+                height: 1.45,
                 fontWeight: FontWeight.w600,
               ),
             ),
           ),
-          const SizedBox(width: 14),
         ],
       ),
     );
@@ -266,6 +379,7 @@ class _ReviewTabs extends StatelessWidget {
       decoration: BoxDecoration(
         color: const Color(0xFFF1F7FD),
         borderRadius: BorderRadius.circular(13),
+        border: Border.all(color: const Color(0xFFD7E7F7)),
       ),
       child: Row(
         children: [
@@ -316,9 +430,9 @@ class _ReviewTabButton extends StatelessWidget {
           child: Text(
             label,
             style: TextStyle(
-              color: selected ? Colors.white : _muted,
+              color: selected ? Colors.white : const Color(0xFF294774),
               fontSize: 13,
-              fontWeight: FontWeight.w600,
+              fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
             ),
           ),
         ),
@@ -343,68 +457,89 @@ class PendingReviewCard extends StatelessWidget {
     return Container(
       key: Key('pending-review-${trip.bookingId}'),
       height: 200,
-      padding: const EdgeInsets.fromLTRB(10, 15, 10, 13),
       decoration: _cardDecoration(),
-      child: Column(
+      clipBehavior: Clip.antiAlias,
+      child: Stack(
         children: [
-          Expanded(
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _TripImage(asset: trip.imageAsset, size: 110),
-                const SizedBox(width: 16),
-                Expanded(child: _TripDetails(trip: trip, showVehicle: true)),
-              ],
-            ),
+          Positioned(
+            left: 15,
+            top: 14,
+            child: _TripImage(asset: trip.imageAsset, size: 110),
           ),
-          Container(
+          Positioned(
+            left: 141,
+            right: 18,
+            top: 17,
+            height: 100,
+            child: _TripDetails(trip: trip, showVehicle: true),
+          ),
+          Positioned(
+            left: 9,
+            right: 9,
+            top: 140,
             height: 46,
-            padding: const EdgeInsets.only(left: 12),
-            decoration: BoxDecoration(
-              color: const Color(0xFFF4F9FD),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Row(
-              children: [
-                const CircleAvatar(
-                  radius: 11.5,
-                  backgroundColor: Color(0xFFDDF3FC),
-                  child: Icon(Icons.check_rounded, color: _primary, size: 16),
-                ),
-                const SizedBox(width: 10),
-                const Expanded(
-                  child: Text(
-                    'Chuyến đã hoàn thành',
-                    style: TextStyle(
-                      color: _muted,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
+            child: Container(
+              padding: const EdgeInsets.only(left: 12),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF3F9FA),
+                borderRadius: BorderRadius.circular(24),
+              ),
+              child: Row(
+                children: [
+                  const CircleAvatar(
+                    radius: 11.5,
+                    backgroundColor: Color(0xFF138A59),
+                    child: Icon(
+                      Icons.check_rounded,
+                      color: Colors.white,
+                      size: 16,
                     ),
                   ),
-                ),
-                SizedBox(
-                  width: 114,
-                  height: 43,
-                  child: FilledButton(
-                    key: Key('write-review-${trip.bookingId}'),
-                    onPressed: onReview,
-                    style: FilledButton.styleFrom(
-                      backgroundColor: _primary,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      padding: EdgeInsets.zero,
-                    ),
-                    child: const Text(
-                      'Đánh giá',
+                  const SizedBox(width: 10),
+                  const Expanded(
+                    child: Text(
+                      'Chuyến đã hoàn thành',
                       style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF25736C),
+                        fontSize: 12,
+                        fontWeight: FontWeight.w400,
                       ),
                     ),
                   ),
-                ),
-              ],
+                  SizedBox(
+                    width: 114,
+                    height: 43,
+                    child: Material(
+                      color: Colors.transparent,
+                      child: Ink(
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [Color(0xFFD9DCE5), _primary],
+                          ),
+                          borderRadius: BorderRadius.circular(23),
+                        ),
+                        child: InkWell(
+                          key: Key('write-review-${trip.bookingId}'),
+                          onTap: onReview,
+                          borderRadius: BorderRadius.circular(23),
+                          child: const Center(
+                            child: Text(
+                              'Đánh giá',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ],
@@ -424,15 +559,21 @@ class CompletedReviewCard extends StatelessWidget {
     final rating = review.rating?.clamp(1, 5) ?? 1;
     return Container(
       key: Key('completed-review-${review.bookingId}'),
-      constraints: const BoxConstraints(minHeight: 208),
-      padding: const EdgeInsets.fromLTRB(16, 15, 13, 12),
+      height: 208,
       decoration: _cardDecoration(),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      clipBehavior: Clip.antiAlias,
+      child: Stack(
         children: [
-          _TripImage(asset: review.imageAsset, size: 100, height: 110),
-          const SizedBox(width: 14),
-          Expanded(
+          Positioned(
+            left: 15,
+            top: 14,
+            child: _TripImage(asset: review.imageAsset, size: 100, height: 110),
+          ),
+          Positioned(
+            left: 129,
+            right: 14,
+            top: 17,
+            height: 101,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -442,56 +583,86 @@ class CompletedReviewCard extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
                     color: _ink,
-                    fontSize: 14,
+                    fontSize: 13,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
-                const SizedBox(height: 3),
+                const SizedBox(height: 2),
                 Text(
                   review.operatorName,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(color: _muted, fontSize: 12),
+                  style: const TextStyle(color: _muted, fontSize: 13),
                 ),
-                const SizedBox(height: 7),
+                const SizedBox(height: 4),
                 _IconLine(
-                  icon: Icons.calendar_month_outlined,
+                  asset: _calendarAsset,
                   label: _formatDate(review.departureAt),
                 ),
-                const SizedBox(height: 5),
+                const SizedBox(height: 3),
                 Row(
                   children: [
-                    Expanded(child: ReviewStars(rating: rating)),
+                    ReviewStars(rating: rating),
+                    const Spacer(),
                     Text(
                       '$rating/5',
                       style: const TextStyle(color: _muted, fontSize: 12),
                     ),
                   ],
                 ),
-                if ((review.comment ?? '').trim().isNotEmpty) ...[
-                  const SizedBox(height: 8),
-                  Text(
-                    review.comment!.trim(),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      color: Color(0xFF4C6073),
-                      fontSize: 12,
-                      height: 1.45,
-                    ),
-                  ),
-                ],
-                const SizedBox(height: 8),
-                Text(
-                  _reviewFooter(review),
-                  style: TextStyle(
-                    color: review.visibility == ReviewVisibility.visible
-                        ? _muted
-                        : const Color(0xFFB66A10),
-                    fontSize: 10,
-                  ),
-                ),
               ],
+            ),
+          ),
+          if ((review.comment ?? '').trim().isNotEmpty)
+            Positioned(
+              left: 129,
+              right: 14,
+              top: 125,
+              child: Text(
+                review.comment!.trim(),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  color: _muted,
+                  fontSize: 12,
+                  height: 1.45,
+                ),
+              ),
+            ),
+          Positioned(
+            left: 129,
+            right: 14,
+            top: 176,
+            child: Text(
+              _reviewFooter(review),
+              style: TextStyle(
+                color: review.visibility == ReviewVisibility.visible
+                    ? const Color(0xFF849CBD)
+                    : const Color(0xFFB66A10),
+                fontSize: 11,
+              ),
+            ),
+          ),
+          Positioned(
+            right: 14,
+            top: 12,
+            child: Container(
+              width: 27,
+              height: 27,
+              decoration: const BoxDecoration(
+                color: Color(0xFFF5FAFF),
+                shape: BoxShape.circle,
+              ),
+              alignment: const Alignment(0, -0.35),
+              child: const Text(
+                '···',
+                style: TextStyle(
+                  color: Color(0xFF294774),
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  height: 1,
+                ),
+              ),
             ),
           ),
         ],
@@ -508,16 +679,32 @@ class ReviewStars extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final exactAsset = switch (rating) {
+      3 => 'assets/account/reviews/rating_3.svg',
+      4 => 'assets/account/reviews/rating_4.svg',
+      5 => 'assets/account/reviews/rating_5.svg',
+      _ => null,
+    };
+    if (size == 20 && exactAsset != null) {
+      return SizedBox(
+        width: 124,
+        height: 20,
+        child: SvgPicture.asset(exactAsset),
+      );
+    }
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: List.generate(
         5,
         (index) => Padding(
           padding: EdgeInsets.only(right: index == 4 ? 0 : size * .25),
-          child: Icon(
-            index < rating ? Icons.star_rounded : Icons.star_border_rounded,
-            color: _star,
-            size: size,
+          child: SizedBox.square(
+            dimension: size,
+            child: Center(
+              child: SvgPicture.asset(
+                index < rating ? _filledStarAsset : _outlineStarAsset,
+              ),
+            ),
           ),
         ),
       ),
@@ -551,16 +738,13 @@ class _TripDetails extends StatelessWidget {
           trip.operatorName,
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
-          style: const TextStyle(color: _muted, fontSize: 12),
+          style: const TextStyle(color: _muted, fontSize: 13),
         ),
-        const SizedBox(height: 8),
-        _IconLine(
-          icon: Icons.calendar_month_outlined,
-          label: _formatDate(trip.departureAt),
-        ),
+        const SizedBox(height: 5),
+        _IconLine(asset: _calendarAsset, label: _formatDate(trip.departureAt)),
         if (showVehicle && trip.vehicleType != null) ...[
           const SizedBox(height: 5),
-          _IconLine(icon: Icons.airline_seat_flat, label: trip.vehicleType!),
+          _IconLine(asset: _bedAsset, label: trip.vehicleType!),
         ],
       ],
     );
@@ -568,23 +752,26 @@ class _TripDetails extends StatelessWidget {
 }
 
 class _IconLine extends StatelessWidget {
-  const _IconLine({required this.icon, required this.label});
+  const _IconLine({required this.asset, required this.label});
 
-  final IconData icon;
+  final String asset;
   final String label;
 
   @override
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Icon(icon, size: 16, color: _muted),
+        SizedBox.square(
+          dimension: 16,
+          child: Center(child: SvgPicture.asset(asset)),
+        ),
         const SizedBox(width: 8),
         Expanded(
           child: Text(
             label,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: const TextStyle(color: _muted, fontSize: 11),
+            style: const TextStyle(color: _muted, fontSize: 12),
           ),
         ),
       ],
@@ -643,10 +830,17 @@ class _ReviewFormSheet extends StatefulWidget {
 }
 
 class _ReviewFormSheetState extends State<_ReviewFormSheet> {
-  final _comment = TextEditingController();
-  int _rating = 0;
+  late final TextEditingController _comment;
+  late int _rating;
   bool _submitting = false;
   String? _submitError;
+
+  @override
+  void initState() {
+    super.initState();
+    _rating = widget.trip.draftRating ?? 0;
+    _comment = TextEditingController(text: widget.trip.draftComment ?? '');
+  }
 
   @override
   void dispose() {
@@ -678,220 +872,267 @@ class _ReviewFormSheetState extends State<_ReviewFormSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final media = MediaQuery.of(context);
+    final availableHeight =
+        media.size.height - media.padding.top - media.viewInsets.bottom;
+    final sheetHeight = availableHeight.clamp(0.0, 626.0).toDouble();
     return Padding(
-      padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
-      child: Material(
-        key: const Key('review-form-sheet'),
-        color: Colors.white,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(26)),
-        clipBehavior: Clip.antiAlias,
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(20, 12, 20, 26),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Center(
-                child: Container(
-                  width: 72,
-                  height: 5,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFD9E2EA),
-                    borderRadius: BorderRadius.circular(5),
+      padding: EdgeInsets.only(bottom: media.viewInsets.bottom),
+      child: SizedBox(
+        height: sheetHeight,
+        child: Material(
+          key: const Key('review-form-sheet'),
+          color: Colors.white,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(26)),
+          clipBehavior: Clip.antiAlias,
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.fromLTRB(22, 12, 20, 26),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: Container(
+                    width: 72,
+                    height: 5,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFD9E2EA),
+                      borderRadius: BorderRadius.circular(5),
+                    ),
                   ),
                 ),
-              ),
-              const SizedBox(height: 13),
-              Row(
-                children: [
-                  const Expanded(
-                    child: Text(
-                      'Đánh giá chuyến đi',
-                      style: TextStyle(
-                        color: _ink,
-                        fontSize: 20,
-                        fontWeight: FontWeight.w600,
+                const SizedBox(height: 13),
+                SizedBox(
+                  height: 36,
+                  child: Row(
+                    children: [
+                      const Expanded(
+                        child: Text(
+                          'Đánh giá chuyến đi',
+                          style: TextStyle(
+                            color: _ink,
+                            fontSize: 20,
+                            height: 1.45,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                      Material(
+                        color: const Color(0xFFF1F7FC),
+                        shape: const CircleBorder(),
+                        child: InkWell(
+                          key: const Key('close-review-form'),
+                          onTap: () => Navigator.of(context).pop(),
+                          customBorder: const CircleBorder(),
+                          child: const SizedBox.square(
+                            dimension: 36,
+                            child: Icon(
+                              Icons.close_rounded,
+                              color: Color(0xFF38567B),
+                              size: 20,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 19),
+                Row(
+                  children: [
+                    _TripImage(
+                      asset: widget.trip.imageAsset,
+                      size: 94,
+                      height: 91,
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            widget.trip.routeName,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              color: _ink,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          const SizedBox(height: 3),
+                          Text(
+                            widget.trip.operatorName,
+                            style: const TextStyle(color: _muted, fontSize: 13),
+                          ),
+                          const SizedBox(height: 14),
+                          Text(
+                            '${_formatDate(widget.trip.departureAt)}${widget.trip.vehicleType == null ? '' : ' | ${widget.trip.vehicleType}'}',
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(color: _muted, fontSize: 11),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const Padding(
+                  padding: EdgeInsets.only(top: 22, bottom: 17),
+                  child: Divider(height: 1, color: _border),
+                ),
+                const Text(
+                  'Bạn đánh giá chuyến đi này thế nào?',
+                  style: TextStyle(
+                    color: _ink,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                SizedBox(
+                  height: 38,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: List.generate(5, (index) {
+                      final value = index + 1;
+                      return InkResponse(
+                        key: Key('review-rating-$value'),
+                        onTap: () {
+                          widget.onInputChanged?.call();
+                          setState(() {
+                            _rating = value;
+                            _submitError = null;
+                          });
+                        },
+                        radius: 24,
+                        child: SizedBox(
+                          width: 55,
+                          height: 38,
+                          child: Center(
+                            child: SvgPicture.asset(
+                              value <= _rating
+                                  ? _filledStarAsset
+                                  : _outlineStarAsset,
+                            ),
+                          ),
+                        ),
+                      );
+                    }),
+                  ),
+                ),
+                const SizedBox(height: 14),
+                Center(
+                  child: Text(
+                    _ratingLabel(_rating),
+                    style: const TextStyle(
+                      color: _muted,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w400,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 25),
+                const Text(
+                  'Nhận xét của bạn',
+                  style: TextStyle(
+                    color: _ink,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                SizedBox(
+                  height: 120,
+                  child: TextField(
+                    key: const Key('review-comment-input'),
+                    controller: _comment,
+                    expands: true,
+                    minLines: null,
+                    maxLines: null,
+                    maxLength: 500,
+                    textAlignVertical: TextAlignVertical.top,
+                    onChanged: (_) {
+                      widget.onInputChanged?.call();
+                      setState(() => _submitError = null);
+                    },
+                    style: const TextStyle(
+                      color: Color(0xFF38567B),
+                      fontSize: 13,
+                      height: 1.45,
+                    ),
+                    decoration: InputDecoration(
+                      hintText: 'Chia sẻ trải nghiệm chuyến đi của bạn',
+                      hintStyle: const TextStyle(color: Color(0xFFA1B1C1)),
+                      counterText: '${_comment.text.characters.length}/500',
+                      counterStyle: const TextStyle(
+                        color: Color(0xFF788FAB),
+                        fontSize: 11,
+                      ),
+                      filled: true,
+                      fillColor: Colors.white,
+                      contentPadding: const EdgeInsets.fromLTRB(13, 11, 13, 7),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(14),
+                        borderSide: const BorderSide(color: Color(0xFF859AB7)),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(14),
+                        borderSide: const BorderSide(color: Color(0xFF859AB7)),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(14),
+                        borderSide: const BorderSide(
+                          color: _primary,
+                          width: 1.3,
+                        ),
                       ),
                     ),
                   ),
-                  IconButton(
-                    key: const Key('close-review-form'),
-                    onPressed: () => Navigator.of(context).pop(),
-                    icon: const Icon(Icons.close_rounded),
+                ),
+                if ((_submitError ?? widget.errorMessage) != null) ...[
+                  const SizedBox(height: 8),
+                  Text(
+                    _submitError ?? widget.errorMessage!,
+                    key: const Key('review-submit-error'),
+                    style: const TextStyle(
+                      color: Color(0xFFB42318),
+                      fontSize: 12,
+                    ),
                   ),
                 ],
-              ),
-              const SizedBox(height: 10),
-              Row(
-                children: [
-                  _TripImage(
-                    asset: widget.trip.imageAsset,
-                    size: 94,
-                    height: 91,
-                  ),
-                  const SizedBox(width: 14),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          widget.trip.routeName,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            color: _ink,
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
+                const SizedBox(height: 32),
+                SizedBox(
+                  width: double.infinity,
+                  height: 50,
+                  child: FilledButton(
+                    key: const Key('submit-review'),
+                    onPressed: _rating == 0 || _submitting ? null : _submit,
+                    style: FilledButton.styleFrom(
+                      backgroundColor: _primary,
+                      disabledBackgroundColor: const Color(0xFFB8D7E8),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(24),
+                      ),
+                    ),
+                    child: _submitting
+                        ? const SizedBox.square(
+                            dimension: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
+                          )
+                        : const Text(
+                            'Gửi đánh giá',
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
-                        ),
-                        const SizedBox(height: 3),
-                        Text(
-                          widget.trip.operatorName,
-                          style: const TextStyle(color: _muted, fontSize: 12),
-                        ),
-                        const SizedBox(height: 14),
-                        Text(
-                          '${_formatDate(widget.trip.departureAt)}${widget.trip.vehicleType == null ? '' : ' | ${widget.trip.vehicleType}'}',
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(color: _muted, fontSize: 10),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              const Padding(
-                padding: EdgeInsets.symmetric(vertical: 20),
-                child: Divider(height: 1, color: _border),
-              ),
-              const Text(
-                'Bạn đánh giá chuyến đi này thế nào?',
-                style: TextStyle(
-                  color: _ink,
-                  fontSize: 15,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              const SizedBox(height: 10),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: List.generate(5, (index) {
-                  final value = index + 1;
-                  return IconButton(
-                    key: Key('review-rating-$value'),
-                    onPressed: () {
-                      widget.onInputChanged?.call();
-                      setState(() {
-                        _rating = value;
-                        _submitError = null;
-                      });
-                    },
-                    padding: const EdgeInsets.symmetric(horizontal: 8),
-                    icon: Icon(
-                      value <= _rating
-                          ? Icons.star_rounded
-                          : Icons.star_border_rounded,
-                      color: _star,
-                      size: 38,
-                    ),
-                  );
-                }),
-              ),
-              Center(
-                child: Text(
-                  _ratingLabel(_rating),
-                  style: const TextStyle(
-                    color: _ink,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 19),
-              const Text(
-                'Nhận xét của bạn',
-                style: TextStyle(
-                  color: _ink,
-                  fontSize: 15,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              const SizedBox(height: 8),
-              TextField(
-                key: const Key('review-comment-input'),
-                controller: _comment,
-                minLines: 4,
-                maxLines: 4,
-                maxLength: 500,
-                onChanged: (_) {
-                  widget.onInputChanged?.call();
-                  setState(() => _submitError = null);
-                },
-                decoration: InputDecoration(
-                  hintText: 'Chia sẻ trải nghiệm chuyến đi của bạn',
-                  hintStyle: const TextStyle(color: Color(0xFFA1B1C1)),
-                  counterText: '${_comment.text.characters.length}/500',
-                  counterStyle: const TextStyle(color: _muted, fontSize: 10),
-                  filled: true,
-                  fillColor: const Color(0xFFFBFDFF),
-                  contentPadding: const EdgeInsets.all(14),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: Color(0xFFDCE8F3)),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: Color(0xFFDCE8F3)),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: _primary, width: 1.3),
-                  ),
-                ),
-              ),
-              if ((_submitError ?? widget.errorMessage) != null) ...[
-                const SizedBox(height: 8),
-                Text(
-                  _submitError ?? widget.errorMessage!,
-                  key: const Key('review-submit-error'),
-                  style: const TextStyle(
-                    color: Color(0xFFB42318),
-                    fontSize: 12,
                   ),
                 ),
               ],
-              const SizedBox(height: 18),
-              SizedBox(
-                width: double.infinity,
-                height: 50,
-                child: FilledButton(
-                  key: const Key('submit-review'),
-                  onPressed: _rating == 0 || _submitting ? null : _submit,
-                  style: FilledButton.styleFrom(
-                    backgroundColor: _primary,
-                    disabledBackgroundColor: const Color(0xFFB8D7E8),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(13),
-                    ),
-                  ),
-                  child: _submitting
-                      ? const SizedBox.square(
-                          dimension: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: Colors.white,
-                          ),
-                        )
-                      : const Text(
-                          'Gửi đánh giá',
-                          style: TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                ),
-              ),
-            ],
+            ),
           ),
         ),
       ),

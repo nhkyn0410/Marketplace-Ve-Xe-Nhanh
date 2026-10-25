@@ -34,37 +34,42 @@ void main() {
 
     expect(find.byKey(const Key('point-history-empty')), findsOneWidget);
     expect(find.text('Chưa có giao dịch điểm'), findsOneWidget);
+    expect(
+      tester.getSize(find.byKey(const Key('point-history-learn-more'))),
+      const Size(364, 56),
+    );
   });
 
-  testWidgets('khung tổng quan và giao dịch nhận dữ liệu API', (tester) async {
+  testWidgets('fixture Figma hiển thị tổng quan và giao dịch theo tháng', (
+    tester,
+  ) async {
     final requested = <PointHistoryQuery>[];
     await _pumpScreen(
       tester,
       loader: (query) async {
         requested.add(query);
-        return PointHistoryData(
-          availablePoints: 1250,
-          earnedPoints: 2000,
-          redeemedPoints: 500,
-          expiredPoints: 250,
-          transactions: [
-            PointTransactionItem(
-              id: 'transaction-1',
-              kind: PointTransactionKind.earn,
-              points: 120,
-              title: 'Chuyến TP.HCM → Đà Lạt',
-              createdAt: DateTime.utc(2026, 10, 24, 8, 30),
-            ),
-          ],
-        );
+        return figmaPointHistorySample(query);
       },
     );
     await tester.pumpAndSettle();
 
     expect(find.text('1.250'), findsOneWidget);
-    expect(find.text('+120'), findsOneWidget);
-    await tester.tap(find.byKey(const Key('point-filter-redeem')));
+    expect(find.text('+250'), findsOneWidget);
+    expect(find.text('−500'), findsOneWidget);
+    expect(find.text('Tháng 10/2026'), findsOneWidget);
+    expect(find.text('Tháng 09/2026'), findsOneWidget);
+    expect(
+      tester.getSize(find.byKey(const Key('point-history-overview'))).height,
+      145,
+    );
+
+    await tester.tap(find.byKey(const Key('point-date-filter')));
     await tester.pumpAndSettle();
-    expect(requested.last.type, PointTypeFilter.redeem);
+    expect(find.byKey(const Key('point-date-filter-sheet')), findsOneWidget);
+    await tester.tap(find.byKey(const Key('point-date-previousMonth')));
+    expect(requested.length, 1);
+    await tester.tap(find.byKey(const Key('point-date-filter-apply')));
+    await tester.pumpAndSettle();
+    expect(requested.last.date, PointDateFilter.previousMonth);
   });
 }

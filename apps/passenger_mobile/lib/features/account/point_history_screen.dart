@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
-const _primary = Color(0xFF168AC0);
-const _ink = Color(0xFF0D173B);
-const _muted = Color(0xFF7188A3);
+const _primary = Color(0xFF1E91C9);
+const _ink = Color(0xFF0D183C);
+const _muted = Color(0xFF657E9E);
 const _background = Color(0xFFF7FBFF);
 const _assetRoot = 'assets/account/points';
 
@@ -22,6 +22,7 @@ enum PointDateFilter {
   previousMonth,
   threeMonths,
   sixMonths,
+  custom,
 }
 
 class PointHistoryQuery {
@@ -58,6 +59,9 @@ class PointTransactionItem {
     required this.title,
     required this.createdAt,
     this.detail,
+    this.secondaryDetail,
+    this.imageAsset,
+    this.iconAsset,
   });
 
   final String id;
@@ -65,7 +69,105 @@ class PointTransactionItem {
   final int points;
   final String title;
   final String? detail;
+  final String? secondaryDetail;
   final DateTime createdAt;
+  final String? imageAsset;
+  final String? iconAsset;
+}
+
+final _figmaPointTransactions = <PointTransactionItem>[
+  PointTransactionItem(
+    id: 'figma-earn-october-1',
+    kind: PointTransactionKind.earn,
+    points: 250,
+    title: 'Tích điểm chuyến đi',
+    detail: 'TP.HCM → Đà Lạt',
+    secondaryDetail: 'Đơn VXN-8F3K2Q • 16/10/2026',
+    createdAt: DateTime(2026, 10, 16),
+    imageAsset: '$_assetRoot/bus_1.png',
+  ),
+  PointTransactionItem(
+    id: 'figma-redeem-october',
+    kind: PointTransactionKind.redeem,
+    points: -500,
+    title: 'Đổi điểm lấy voucher',
+    detail: 'Voucher giảm 50.000đ',
+    secondaryDetail: '12/10/2026',
+    createdAt: DateTime(2026, 10, 12),
+    iconAsset: '$_assetRoot/redeem_october.svg',
+  ),
+  PointTransactionItem(
+    id: 'figma-earn-october-2',
+    kind: PointTransactionKind.earn,
+    points: 150,
+    title: 'Tích điểm chuyến đi',
+    detail: 'Hà Nội → Thanh Hóa',
+    secondaryDetail: 'Đơn VXN-2M7T9A • 05/10/2026',
+    createdAt: DateTime(2026, 10, 5),
+    imageAsset: '$_assetRoot/bus_2.png',
+  ),
+  PointTransactionItem(
+    id: 'figma-expire-october',
+    kind: PointTransactionKind.expire,
+    points: -100,
+    title: 'Điểm sắp hết hạn',
+    detail: 'Điểm tích từ 03/2025',
+    secondaryDetail: '30/10/2026',
+    createdAt: DateTime(2026, 10, 1),
+    iconAsset: '$_assetRoot/expire.svg',
+  ),
+  PointTransactionItem(
+    id: 'figma-earn-september',
+    kind: PointTransactionKind.earn,
+    points: 200,
+    title: 'Tích điểm chuyến đi',
+    detail: 'Đà Nẵng → Huế',
+    secondaryDetail: 'Đơn VXN-9K4L3P • 20/09/2026',
+    createdAt: DateTime(2026, 9, 20),
+    imageAsset: '$_assetRoot/bus_3.png',
+  ),
+  PointTransactionItem(
+    id: 'figma-adjust-september',
+    kind: PointTransactionKind.adjust,
+    points: -50,
+    title: 'Điều chỉnh điểm',
+    detail: 'Điều chỉnh theo CSKH',
+    secondaryDetail: '18/09/2026',
+    createdAt: DateTime(2026, 9, 18),
+    iconAsset: '$_assetRoot/adjust.svg',
+  ),
+  PointTransactionItem(
+    id: 'figma-redeem-september',
+    kind: PointTransactionKind.redeem,
+    points: -300,
+    title: 'Đổi điểm lấy voucher',
+    detail: 'Voucher giảm 30.000đ',
+    secondaryDetail: '12/09/2026',
+    createdAt: DateTime(2026, 9, 12),
+    iconAsset: '$_assetRoot/redeem_september.svg',
+  ),
+];
+
+PointHistoryData figmaPointHistorySample([PointHistoryQuery? query]) {
+  final selected = query ?? const PointHistoryQuery();
+  final transactions = _figmaPointTransactions
+      .where((item) {
+        final typeMatches = switch (selected.type) {
+          PointTypeFilter.all => true,
+          PointTypeFilter.earn => item.kind == PointTransactionKind.earn,
+          PointTypeFilter.redeem => item.kind == PointTransactionKind.redeem,
+          PointTypeFilter.expire => item.kind == PointTransactionKind.expire,
+        };
+        return typeMatches && _matchesDate(item.createdAt, selected.date);
+      })
+      .toList(growable: false);
+  return PointHistoryData(
+    availablePoints: 1250,
+    earnedPoints: 2000,
+    redeemedPoints: 500,
+    expiredPoints: 250,
+    transactions: transactions,
+  );
 }
 
 class PointHistoryScreen extends StatefulWidget {
@@ -96,15 +198,10 @@ class _PointHistoryScreenState extends State<PointHistoryScreen> {
     await next;
   }
 
-  void _selectType(PointTypeFilter type) {
-    if (_query.type == type) return;
-    _query = PointHistoryQuery(type: type, date: _query.date);
-    _reload();
-  }
-
   Future<void> _selectDate() async {
     final selected = await showModalBottomSheet<PointDateFilter>(
       context: context,
+      isScrollControlled: true,
       useSafeArea: true,
       backgroundColor: Colors.transparent,
       builder: (_) => _DateFilterSheet(selected: _query.date),
@@ -150,82 +247,60 @@ class _PointHistoryScreenState extends State<PointHistoryScreen> {
                       color: _primary,
                       onRefresh: _reload,
                       child: ListView(
+                        key: const Key('point-history-scroll'),
                         physics: const AlwaysScrollableScrollPhysics(),
-                        padding: const EdgeInsets.fromLTRB(16, 10, 16, 28),
+                        padding: const EdgeInsets.fromLTRB(16, 11, 16, 28),
                         children: [
                           _PointOverview(data: data),
-                          const SizedBox(height: 22),
-                          Row(
-                            children: [
-                              const Expanded(
-                                child: Text(
-                                  'Giao dịch điểm',
-                                  style: TextStyle(
-                                    color: _ink,
-                                    fontSize: 17,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              ),
-                              OutlinedButton.icon(
-                                key: const Key('point-date-filter'),
-                                onPressed: _selectDate,
-                                icon: const Icon(
-                                  Icons.calendar_month_outlined,
-                                  size: 16,
-                                ),
-                                label: Text(_dateLabel(_query.date)),
-                                style: OutlinedButton.styleFrom(
-                                  foregroundColor: _ink,
-                                  side: const BorderSide(
-                                    color: Color(0xFFDCE8F3),
-                                  ),
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 11,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 12),
-                          SingleChildScrollView(
-                            scrollDirection: Axis.horizontal,
+                          const SizedBox(height: 13),
+                          SizedBox(
+                            height: 32,
                             child: Row(
-                              children: PointTypeFilter.values
-                                  .map(
-                                    (filter) => Padding(
-                                      padding: const EdgeInsets.only(right: 8),
-                                      child: ChoiceChip(
-                                        key: Key('point-filter-${filter.name}'),
-                                        label: Text(_typeFilterLabel(filter)),
-                                        selected: _query.type == filter,
-                                        showCheckmark: false,
-                                        selectedColor: const Color(0xFFDFF3FC),
-                                        backgroundColor: Colors.white,
-                                        side: BorderSide(
-                                          color: _query.type == filter
-                                              ? _primary
-                                              : const Color(0xFFDCE8F3),
-                                        ),
-                                        labelStyle: TextStyle(
-                                          color: _query.type == filter
-                                              ? _primary
-                                              : _muted,
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.w500,
-                                        ),
-                                        onSelected: (_) => _selectType(filter),
-                                      ),
+                              children: [
+                                const Expanded(
+                                  child: Text(
+                                    'Giao dịch điểm',
+                                    style: TextStyle(
+                                      color: _ink,
+                                      fontSize: 17,
+                                      fontWeight: FontWeight.w600,
                                     ),
-                                  )
-                                  .toList(growable: false),
+                                  ),
+                                ),
+                                OutlinedButton.icon(
+                                  key: const Key('point-date-filter'),
+                                  onPressed: _selectDate,
+                                  icon: SvgPicture.asset(
+                                    '$_assetRoot/calendar.svg',
+                                    width: 16,
+                                    height: 16,
+                                  ),
+                                  label: const Text('Lọc ngày ›'),
+                                  style: OutlinedButton.styleFrom(
+                                    foregroundColor: const Color(0xFF126BB1),
+                                    side: const BorderSide(
+                                      color: Color(0xFFD7E6F7),
+                                    ),
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 9,
+                                    ),
+                                    textStyle: const TextStyle(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(16),
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
-                          const SizedBox(height: 15),
+                          const SizedBox(height: 25),
                           if (data.transactions.isEmpty)
                             const _FilteredEmpty()
                           else
-                            ..._transactionWidgets(data.transactions),
+                            ..._transactionGroups(data.transactions),
                         ],
                       ),
                     );
@@ -240,114 +315,152 @@ class _PointHistoryScreenState extends State<PointHistoryScreen> {
   }
 }
 
-List<Widget> _transactionWidgets(List<PointTransactionItem> items) {
+List<Widget> _transactionGroups(List<PointTransactionItem> items) {
+  final groups = <String, List<PointTransactionItem>>{};
+  for (final item in items) {
+    groups.putIfAbsent(_monthLabel(item.createdAt), () => []).add(item);
+  }
   final widgets = <Widget>[];
-  String? currentMonth;
-  for (var index = 0; index < items.length; index++) {
-    final item = items[index];
-    final month = _monthLabel(item.createdAt);
-    if (month != currentMonth) {
-      if (widgets.isNotEmpty) widgets.add(const SizedBox(height: 14));
-      widgets.add(
-        Padding(
-          padding: const EdgeInsets.only(bottom: 8),
-          child: Text(
-            month,
-            style: const TextStyle(
-              color: _muted,
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-            ),
+  var globalIndex = 0;
+  for (final entry in groups.entries) {
+    if (widgets.isNotEmpty) widgets.add(const SizedBox(height: 16));
+    widgets.add(
+      Padding(
+        padding: const EdgeInsets.only(bottom: 12),
+        child: Text(
+          entry.key,
+          style: const TextStyle(
+            color: Color(0xFF6C83A2),
+            fontSize: 12,
+            fontWeight: FontWeight.w500,
           ),
         ),
-      );
-      currentMonth = month;
-    }
-    widgets.add(_TransactionCard(item: item, imageIndex: index % 3));
-    widgets.add(const SizedBox(height: 8));
+      ),
+    );
+    widgets.add(
+      Container(
+        key: Key('point-month-${entry.key}'),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(15),
+          border: Border.all(color: const Color(0xFFE4EDF7)),
+        ),
+        child: Column(
+          children: [
+            for (var index = 0; index < entry.value.length; index++) ...[
+              _TransactionRow(
+                item: entry.value[index],
+                imageIndex: globalIndex++ % 3,
+              ),
+              if (index != entry.value.length - 1)
+                const Divider(height: .5, color: Color(0xFFE2EAF4)),
+            ],
+          ],
+        ),
+      ),
+    );
   }
   return widgets;
 }
 
 class _PointOverview extends StatelessWidget {
   const _PointOverview({required this.data});
-
   final PointHistoryData data;
 
   @override
   Widget build(BuildContext context) {
     return Container(
       key: const Key('point-history-overview'),
-      padding: const EdgeInsets.fromLTRB(16, 16, 10, 15),
+      height: 145,
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE3EDF6)),
+        border: Border.all(color: const Color(0xFFE2ECF7)),
       ),
-      child: Column(
+      child: Stack(
         children: [
-          Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Điểm khả dụng',
-                      style: TextStyle(color: _muted, fontSize: 12),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      _formatPoints(data.availablePoints),
-                      style: const TextStyle(
-                        color: _ink,
-                        fontSize: 29,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ],
+          const Positioned(
+            left: 15,
+            top: 11,
+            child: Text(
+              'Điểm khả dụng',
+              style: TextStyle(
+                color: Color(0xFF6B7E9B),
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+          Positioned(
+            left: 15,
+            top: 27,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Text(
+                  _formatPoints(data.availablePoints),
+                  style: const TextStyle(
+                    color: _ink,
+                    fontSize: 33,
+                    height: 1.45,
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
-              ),
-              SvgPicture.asset(
-                '$_assetRoot/points_summary.svg',
-                width: 130,
-                height: 79,
-              ),
-            ],
+                const Padding(
+                  padding: EdgeInsets.only(left: 12, bottom: 8),
+                  child: Text(
+                    'điểm',
+                    style: TextStyle(
+                      color: _ink,
+                      fontSize: 17,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
-          const Divider(height: 22, color: Color(0xFFE8EFF6)),
-          Row(
-            children: [
-              _Stat(label: 'Đã tích', value: data.earnedPoints),
-              _Stat(label: 'Đã đổi', value: data.redeemedPoints),
-              _Stat(label: 'Đã hết hạn', value: data.expiredPoints),
-            ],
+          Positioned(
+            right: 16,
+            top: 0,
+            child: SvgPicture.asset(
+              '$_assetRoot/points_summary.svg',
+              width: 140,
+              height: 85,
+            ),
           ),
-        ],
-      ),
-    );
-  }
-}
-
-class _Stat extends StatelessWidget {
-  const _Stat({required this.label, required this.value});
-
-  final String label;
-  final int value;
-
-  @override
-  Widget build(BuildContext context) {
-    return Expanded(
-      child: Column(
-        children: [
-          Text(label, style: const TextStyle(color: _muted, fontSize: 10.5)),
-          const SizedBox(height: 3),
-          Text(
-            _formatPoints(value),
-            style: const TextStyle(
-              color: _ink,
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
+          const Positioned(
+            left: 15,
+            right: 15,
+            top: 74,
+            child: Divider(height: 1, color: Color(0xFFE7EDF5)),
+          ),
+          Positioned(
+            left: 15,
+            right: 15,
+            top: 87,
+            child: Row(
+              children: [
+                _PointStat(
+                  label: 'Đã tích',
+                  value: data.earnedPoints,
+                  asset: '$_assetRoot/stat_earn.svg',
+                  background: Color(0xFFECFAF4),
+                ),
+                _PointStat(
+                  label: 'Đã đổi',
+                  value: data.redeemedPoints,
+                  asset: '$_assetRoot/stat_redeem.svg',
+                  background: Color(0xFFEEF7FF),
+                ),
+                _PointStat(
+                  label: 'Hết hạn',
+                  value: data.expiredPoints,
+                  asset: '$_assetRoot/stat_expire.svg',
+                  background: Color(0xFFFFF5EC),
+                ),
+              ],
             ),
           ),
         ],
@@ -356,46 +469,80 @@ class _Stat extends StatelessWidget {
   }
 }
 
-class _TransactionCard extends StatelessWidget {
-  const _TransactionCard({required this.item, required this.imageIndex});
+class _PointStat extends StatelessWidget {
+  const _PointStat({
+    required this.label,
+    required this.value,
+    required this.asset,
+    required this.background,
+  });
 
+  final String label;
+  final int value;
+  final String asset;
+  final Color background;
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: Row(
+        children: [
+          Container(
+            width: 30,
+            height: 30,
+            padding: const EdgeInsets.all(6),
+            decoration: BoxDecoration(
+              color: background,
+              borderRadius: BorderRadius.circular(15),
+            ),
+            child: SvgPicture.asset(asset),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  maxLines: 1,
+                  style: const TextStyle(
+                    color: Color(0xFF647C9C),
+                    fontSize: 10,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                Text(
+                  _formatPoints(value),
+                  style: const TextStyle(
+                    color: _ink,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _TransactionRow extends StatelessWidget {
+  const _TransactionRow({required this.item, required this.imageIndex});
   final PointTransactionItem item;
   final int imageIndex;
 
   @override
   Widget build(BuildContext context) {
     final positive = item.points >= 0;
-    return Container(
+    return SizedBox(
       key: Key('point-transaction-${item.id}'),
-      height: 72,
-      padding: const EdgeInsets.all(8),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFE4EDF6)),
-      ),
+      height: 66,
       child: Row(
         children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(9),
-            child: item.kind == PointTransactionKind.earn
-                ? Image.asset(
-                    '$_assetRoot/bus_${imageIndex + 1}.png',
-                    width: 54,
-                    height: 54,
-                    fit: BoxFit.cover,
-                  )
-                : Container(
-                    width: 54,
-                    height: 54,
-                    color: _kindBackground(item.kind),
-                    child: Icon(
-                      _kindIcon(item.kind),
-                      color: _kindColor(item.kind),
-                    ),
-                  ),
-          ),
-          const SizedBox(width: 10),
+          _TransactionArtwork(item: item, imageIndex: imageIndex),
+          const SizedBox(width: 12),
           Expanded(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -407,105 +554,148 @@ class _TransactionCard extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
                     color: _ink,
-                    fontSize: 12.5,
+                    fontSize: 12,
+                    height: 1.45,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
-                const SizedBox(height: 3),
                 Text(
                   item.detail?.trim().isNotEmpty == true
                       ? item.detail!
                       : _kindLabel(item.kind),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(color: _muted, fontSize: 10.5),
+                  style: const TextStyle(color: _muted, fontSize: 10),
                 ),
-                const SizedBox(height: 2),
                 Text(
-                  _formatDateTime(item.createdAt),
-                  style: const TextStyle(
-                    color: Color(0xFF90A3B7),
-                    fontSize: 9.5,
-                  ),
+                  item.secondaryDetail ?? _formatDate(item.createdAt),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(color: _muted, fontSize: 10),
                 ),
               ],
             ),
           ),
-          const SizedBox(width: 8),
-          Text(
-            '${positive ? '+' : ''}${_formatPoints(item.points)}',
-            style: TextStyle(
-              color: positive
-                  ? const Color(0xFF008657)
-                  : const Color(0xFFE5484D),
-              fontSize: 13,
-              fontWeight: FontWeight.w700,
+          SizedBox(
+            width: 52,
+            child: Text(
+              '${positive ? '+' : '−'}${_formatPoints(item.points.abs())}',
+              textAlign: TextAlign.right,
+              style: TextStyle(
+                color: positive ? const Color(0xFF008949) : _ink,
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ),
-          const SizedBox(width: 2),
-          const Icon(Icons.chevron_right_rounded, size: 18, color: _muted),
+          const SizedBox(width: 12),
+          SvgPicture.asset('$_assetRoot/chevron.svg', width: 12, height: 12),
         ],
       ),
     );
   }
 }
 
+class _TransactionArtwork extends StatelessWidget {
+  const _TransactionArtwork({required this.item, required this.imageIndex});
+  final PointTransactionItem item;
+  final int imageIndex;
+
+  @override
+  Widget build(BuildContext context) {
+    final image = item.imageAsset;
+    if (item.kind == PointTransactionKind.earn) {
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(11),
+        child: Image.asset(
+          image ?? '$_assetRoot/bus_${imageIndex + 1}.png',
+          width: 58,
+          height: 47,
+          fit: BoxFit.cover,
+        ),
+      );
+    }
+    return Container(
+      width: 58,
+      height: 47,
+      padding: const EdgeInsets.all(11),
+      decoration: BoxDecoration(
+        color: _kindBackground(item.kind),
+        borderRadius: BorderRadius.circular(11),
+      ),
+      child: item.iconAsset == null
+          ? Icon(_kindIcon(item.kind), color: _kindColor(item.kind), size: 25)
+          : SvgPicture.asset(item.iconAsset!),
+    );
+  }
+}
+
 class _PointHistoryEmpty extends StatelessWidget {
   const _PointHistoryEmpty({this.onLearnMore});
-
   final VoidCallback? onLearnMore;
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      physics: const AlwaysScrollableScrollPhysics(),
-      child: SizedBox(
-        key: const Key('point-history-empty'),
-        height: MediaQuery.sizeOf(context).height - 100,
-        child: Column(
-          children: [
-            const SizedBox(height: 124),
-            SvgPicture.asset(
-              '$_assetRoot/empty_history.svg',
-              width: 180,
-              height: 180,
-            ),
-            const SizedBox(height: 18),
-            const Text(
-              'Chưa có giao dịch điểm',
-              style: TextStyle(
-                color: _ink,
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
+    return LayoutBuilder(
+      builder: (context, constraints) => SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        child: SizedBox(
+          key: const Key('point-history-empty'),
+          height: constraints.maxHeight,
+          child: Column(
+            children: [
+              const SizedBox(height: 124),
+              SvgPicture.asset(
+                '$_assetRoot/empty_history.svg',
+                width: 180,
+                height: 180,
               ),
-            ),
-            const SizedBox(height: 8),
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 40),
-              child: Text(
-                'Bạn sẽ thấy lịch sử tích, đổi và hết hạn điểm tại đây.',
-                textAlign: TextAlign.center,
-                style: TextStyle(color: _muted, fontSize: 12, height: 1.55),
-              ),
-            ),
-            const SizedBox(height: 18),
-            TextButton(
-              key: const Key('point-history-learn-more'),
-              onPressed: onLearnMore,
-              style: TextButton.styleFrom(
-                foregroundColor: _primary,
-                backgroundColor: const Color(0xFFE6F5FC),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 20,
-                  vertical: 12,
-                ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
+              const SizedBox(height: 7),
+              const Text(
+                'Chưa có giao dịch điểm',
+                style: TextStyle(
+                  color: _ink,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
-              child: const Text('Tìm hiểu VXN Plus'),
-            ),
-          ],
+              const SizedBox(height: 8),
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 24),
+                child: Text(
+                  'Bạn sẽ thấy lịch sử tích, đổi và hết hạn\nđiểm tại đây.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: _muted, fontSize: 14, height: 1.45),
+                ),
+              ),
+              const SizedBox(height: 38),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: SizedBox(
+                  width: double.infinity,
+                  height: 56,
+                  child: TextButton(
+                    key: const Key('point-history-learn-more'),
+                    onPressed: onLearnMore,
+                    style: TextButton.styleFrom(
+                      foregroundColor: const Color(0xFF006EBE),
+                      backgroundColor: const Color(0xFFEDF7FF),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                    ),
+                    child: const Text(
+                      'Tìm hiểu VXN Plus',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -532,12 +722,12 @@ class _FilteredEmpty extends StatelessWidget {
 
 class _HistoryHeader extends StatelessWidget {
   const _HistoryHeader({required this.onBack});
-
   final VoidCallback onBack;
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
+      width: double.infinity,
       height: 64,
       child: Stack(
         alignment: Alignment.center,
@@ -545,21 +735,21 @@ class _HistoryHeader extends StatelessWidget {
           Positioned(
             left: 16,
             child: Container(
-              width: 38,
-              height: 38,
+              width: 36,
+              height: 36,
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: _background,
                 shape: BoxShape.circle,
                 border: Border.all(color: const Color(0xFFDDE9F5)),
               ),
               child: IconButton(
                 key: const Key('point-history-back'),
-                padding: EdgeInsets.zero,
+                padding: const EdgeInsets.all(7),
                 onPressed: onBack,
-                icon: const Icon(
-                  Icons.arrow_back_rounded,
-                  size: 20,
-                  color: _ink,
+                icon: SvgPicture.asset(
+                  '$_assetRoot/back.svg',
+                  width: 20,
+                  height: 20,
                 ),
               ),
             ),
@@ -578,59 +768,104 @@ class _HistoryHeader extends StatelessWidget {
   }
 }
 
-class _DateFilterSheet extends StatelessWidget {
+class _DateFilterSheet extends StatefulWidget {
   const _DateFilterSheet({required this.selected});
-
   final PointDateFilter selected;
+
+  @override
+  State<_DateFilterSheet> createState() => _DateFilterSheetState();
+}
+
+class _DateFilterSheetState extends State<_DateFilterSheet> {
+  late PointDateFilter _selected = widget.selected;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
+      key: const Key('point-date-filter-sheet'),
+      height: 588,
+      padding: const EdgeInsets.fromLTRB(24, 12, 24, 42),
       decoration: const BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.vertical(top: Radius.circular(22)),
       ),
       child: Column(
-        mainAxisSize: MainAxisSize.min,
         children: [
           Container(
-            width: 42,
-            height: 4,
+            width: 44,
+            height: 5,
             decoration: BoxDecoration(
-              color: const Color(0xFFD5E0EB),
-              borderRadius: BorderRadius.circular(2),
+              color: const Color(0xFFAAB9CC),
+              borderRadius: BorderRadius.circular(3),
             ),
+          ),
+          const SizedBox(height: 18),
+          Row(
+            children: [
+              const Expanded(
+                child: Text(
+                  'Lọc theo thời gian',
+                  style: TextStyle(
+                    color: _ink,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+              IconButton(
+                key: const Key('point-date-filter-close'),
+                onPressed: () => Navigator.pop(context),
+                icon: const Icon(Icons.close_rounded, color: Color(0xFF6B7E9B)),
+              ),
+            ],
           ),
           const SizedBox(height: 16),
-          const Align(
-            alignment: Alignment.centerLeft,
-            child: Text(
-              'Lọc theo thời gian',
-              style: TextStyle(
-                color: _ink,
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
-              ),
+          Container(
+            height: 360,
+            decoration: BoxDecoration(
+              border: Border.all(color: const Color(0xFFE4EDF7)),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Column(
+              children: [
+                for (
+                  var index = 0;
+                  index < PointDateFilter.values.length;
+                  index++
+                ) ...[
+                  _DateOption(
+                    option: PointDateFilter.values[index],
+                    selected: _selected == PointDateFilter.values[index],
+                    onTap: () => setState(
+                      () => _selected = PointDateFilter.values[index],
+                    ),
+                  ),
+                  if (index != PointDateFilter.values.length - 1)
+                    const Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 16),
+                      child: Divider(height: .5, color: Color(0xFFE7EDF5)),
+                    ),
+                ],
+              ],
             ),
           ),
-          const SizedBox(height: 8),
-          RadioGroup<PointDateFilter>(
-            groupValue: selected,
-            onChanged: (value) {
-              if (value != null) Navigator.pop(context, value);
-            },
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                for (final option in PointDateFilter.values)
-                  RadioListTile<PointDateFilter>(
-                    value: option,
-                    activeColor: _primary,
-                    contentPadding: EdgeInsets.zero,
-                    title: Text(_dateLabel(option)),
-                  ),
-              ],
+          const Spacer(),
+          SizedBox(
+            width: double.infinity,
+            height: 56,
+            child: FilledButton(
+              key: const Key('point-date-filter-apply'),
+              onPressed: () => Navigator.pop(context, _selected),
+              style: FilledButton.styleFrom(
+                backgroundColor: _primary,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(17),
+                ),
+              ),
+              child: const Text(
+                'Áp dụng',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+              ),
             ),
           ),
         ],
@@ -639,9 +874,60 @@ class _DateFilterSheet extends StatelessWidget {
   }
 }
 
+class _DateOption extends StatelessWidget {
+  const _DateOption({
+    required this.option,
+    required this.selected,
+    required this.onTap,
+  });
+  final PointDateFilter option;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: InkWell(
+        key: Key('point-date-${option.name}'),
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  _dateLabel(option),
+                  style: const TextStyle(color: _ink, fontSize: 14),
+                ),
+              ),
+              Container(
+                width: 20,
+                height: 20,
+                decoration: BoxDecoration(
+                  color: selected ? _primary : Colors.white,
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: selected ? _primary : const Color(0xFF7E9CB9),
+                  ),
+                ),
+                child: selected
+                    ? const Icon(
+                        Icons.check_rounded,
+                        color: Colors.white,
+                        size: 15,
+                      )
+                    : null,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _LoadError extends StatelessWidget {
   const _LoadError({required this.onRetry});
-
   final Future<void> Function() onRetry;
 
   @override
@@ -659,19 +945,13 @@ class _LoadError extends StatelessWidget {
   }
 }
 
-String _typeFilterLabel(PointTypeFilter filter) => switch (filter) {
-  PointTypeFilter.all => 'Tất cả',
-  PointTypeFilter.earn => 'Tích điểm',
-  PointTypeFilter.redeem => 'Đổi điểm',
-  PointTypeFilter.expire => 'Hết hạn',
-};
-
 String _dateLabel(PointDateFilter filter) => switch (filter) {
-  PointDateFilter.all => 'Tất cả thời gian',
+  PointDateFilter.all => 'Tất cả',
   PointDateFilter.currentMonth => 'Tháng này',
   PointDateFilter.previousMonth => 'Tháng trước',
   PointDateFilter.threeMonths => '3 tháng gần đây',
   PointDateFilter.sixMonths => '6 tháng gần đây',
+  PointDateFilter.custom => 'Tùy chọn khác',
 };
 
 String _kindLabel(PointTransactionKind kind) => switch (kind) {
@@ -684,41 +964,60 @@ String _kindLabel(PointTransactionKind kind) => switch (kind) {
 
 IconData _kindIcon(PointTransactionKind kind) => switch (kind) {
   PointTransactionKind.earn => Icons.directions_bus_filled_rounded,
-  PointTransactionKind.redeem => Icons.card_giftcard_rounded,
+  PointTransactionKind.redeem => Icons.confirmation_number_outlined,
   PointTransactionKind.expire => Icons.schedule_rounded,
-  PointTransactionKind.adjust => Icons.tune_rounded,
+  PointTransactionKind.adjust => Icons.settings_outlined,
   PointTransactionKind.reversal => Icons.undo_rounded,
 };
 
 Color _kindColor(PointTransactionKind kind) => switch (kind) {
   PointTransactionKind.redeem => const Color(0xFF1265F5),
-  PointTransactionKind.expire => const Color(0xFFE5484D),
-  PointTransactionKind.adjust => const Color(0xFFFF9F1C),
+  PointTransactionKind.expire => const Color(0xFFFF4B60),
+  PointTransactionKind.adjust => const Color(0xFF66717D),
   PointTransactionKind.reversal => const Color(0xFF7A5AF8),
   PointTransactionKind.earn => _primary,
 };
 
-Color _kindBackground(PointTransactionKind kind) =>
-    _kindColor(kind).withValues(alpha: 0.1);
+Color _kindBackground(PointTransactionKind kind) => switch (kind) {
+  PointTransactionKind.redeem => const Color(0xFFEBF5FF),
+  PointTransactionKind.expire => const Color(0xFFFFF0F2),
+  PointTransactionKind.adjust => const Color(0xFFF4F4F4),
+  _ => _kindColor(kind).withValues(alpha: .1),
+};
 
 String _formatPoints(int value) {
-  final negative = value < 0;
   final digits = value.abs().toString();
   final parts = <String>[];
   for (var end = digits.length; end > 0; end -= 3) {
     final start = end - 3 < 0 ? 0 : end - 3;
     parts.add(digits.substring(start, end));
   }
-  return '${negative ? '-' : ''}${parts.reversed.join('.')}';
+  return parts.reversed.join('.');
 }
 
-String _formatDateTime(DateTime value) {
+String _formatDate(DateTime value) {
   final local = value.toLocal();
   String two(int number) => number.toString().padLeft(2, '0');
-  return '${two(local.day)}/${two(local.month)}/${local.year} · ${two(local.hour)}:${two(local.minute)}';
+  return '${two(local.day)}/${two(local.month)}/${local.year}';
 }
 
 String _monthLabel(DateTime value) {
   final local = value.toLocal();
-  return 'Tháng ${local.month}/${local.year}';
+  return 'Tháng ${local.month.toString().padLeft(2, '0')}/${local.year}';
+}
+
+bool _matchesDate(DateTime value, PointDateFilter filter) {
+  if (filter == PointDateFilter.all || filter == PointDateFilter.custom) {
+    return true;
+  }
+  final now = DateTime.now();
+  final monthDifference =
+      (now.year - value.year) * 12 + now.month - value.month;
+  return switch (filter) {
+    PointDateFilter.currentMonth => monthDifference == 0,
+    PointDateFilter.previousMonth => monthDifference == 1,
+    PointDateFilter.threeMonths => monthDifference >= 0 && monthDifference < 3,
+    PointDateFilter.sixMonths => monthDifference >= 0 && monthDifference < 6,
+    PointDateFilter.all || PointDateFilter.custom => true,
+  };
 }

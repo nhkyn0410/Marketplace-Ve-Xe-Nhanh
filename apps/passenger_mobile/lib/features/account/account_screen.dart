@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:passenger_mobile/features/account/passenger_avatar.dart';
 import 'package:passenger_mobile/features/home/route_dock_tabbar.dart';
 
 const _primary = Color(0xFF2B7EAD);
-const _ink = Color(0xFF17324D);
-const _muted = Color(0xFF71869A);
-const _pageBackground = Color(0xFFF3FAFE);
+const _ink = Color(0xFF091739);
+const _muted = Color(0xFF607A8E);
+const _pageBackground = Color(0xFFECFAFF);
+const _headerFloralAsset = 'assets/account/header_floral.png';
 
 typedef AccountOverviewLoader = Future<AccountOverview> Function();
 typedef AccountLogout = Future<bool> Function();
@@ -40,6 +44,8 @@ class AccountScreen extends StatefulWidget {
     required this.onVoucherWallet,
     required this.onPointHistory,
     required this.onMyReviews,
+    required this.onNotificationSettings,
+    required this.onLoginSessions,
     this.logoutErrorMessage,
     super.key,
   });
@@ -52,6 +58,8 @@ class AccountScreen extends StatefulWidget {
   final VoidCallback onVoucherWallet;
   final VoidCallback onPointHistory;
   final VoidCallback onMyReviews;
+  final VoidCallback onNotificationSettings;
+  final VoidCallback onLoginSessions;
   final String? logoutErrorMessage;
 
   @override
@@ -61,6 +69,7 @@ class AccountScreen extends StatefulWidget {
 class _AccountScreenState extends State<AccountScreen> {
   late Future<AccountOverview> _overview = widget.loadOverview();
   bool _loggingOut = false;
+  bool _dockVisible = true;
 
   Future<void> _reload() async {
     final next = widget.loadOverview();
@@ -92,38 +101,66 @@ class _AccountScreenState extends State<AccountScreen> {
       key: const Key('account-screen'),
       backgroundColor: _pageBackground,
       extendBody: true,
-      bottomNavigationBar: RouteDockTabBar(
-        currentIndex: 4,
-        onTap: widget.onTabSelected,
+      bottomNavigationBar: IgnorePointer(
+        ignoring: !_dockVisible,
+        child: AnimatedSlide(
+          key: const Key('account-bottom-dock-animation'),
+          duration: const Duration(milliseconds: 250),
+          curve: Curves.easeOutCubic,
+          offset: _dockVisible ? Offset.zero : const Offset(0, 1),
+          child: RouteDockTabBar(currentIndex: 4, onTap: widget.onTabSelected),
+        ),
       ),
-      body: SafeArea(
-        bottom: false,
-        child: FutureBuilder<AccountOverview>(
-          future: _overview,
-          builder: (context, snapshot) {
-            if (snapshot.connectionState != ConnectionState.done) {
-              return const _AccountLoading();
-            }
-            if (snapshot.hasError || !snapshot.hasData) {
-              return _AccountError(onRetry: _reload);
-            }
-            return _AccountContent(
-              overview: snapshot.requireData,
-              loggingOut: _loggingOut,
-              logoutErrorMessage: widget.logoutErrorMessage,
-              onRefresh: _reload,
-              onLogout: _logout,
-              onEditProfile: widget.onEditProfile,
-              onSavedPassengers: widget.onSavedPassengers,
-              onVoucherWallet: widget.onVoucherWallet,
-              onPointHistory: widget.onPointHistory,
-              onMyReviews: widget.onMyReviews,
-              onComingSoon: _showComingSoon,
-            );
-          },
+      body: AnnotatedRegion<SystemUiOverlayStyle>(
+        value: SystemUiOverlayStyle.dark.copyWith(
+          statusBarColor: Colors.transparent,
+          systemNavigationBarColor: _pageBackground,
+        ),
+        child: NotificationListener<UserScrollNotification>(
+          onNotification: _handleUserScroll,
+          child: FutureBuilder<AccountOverview>(
+            future: _overview,
+            builder: (context, snapshot) {
+              if (snapshot.connectionState != ConnectionState.done) {
+                return const _AccountLoading();
+              }
+              if (snapshot.hasError || !snapshot.hasData) {
+                return _AccountError(onRetry: _reload);
+              }
+              return _AccountContent(
+                overview: snapshot.requireData,
+                loggingOut: _loggingOut,
+                logoutErrorMessage: widget.logoutErrorMessage,
+                onRefresh: _reload,
+                onLogout: _logout,
+                onEditProfile: widget.onEditProfile,
+                onSavedPassengers: widget.onSavedPassengers,
+                onVoucherWallet: widget.onVoucherWallet,
+                onPointHistory: widget.onPointHistory,
+                onMyReviews: widget.onMyReviews,
+                onNotificationSettings: widget.onNotificationSettings,
+                onLoginSessions: widget.onLoginSessions,
+                onComingSoon: _showComingSoon,
+              );
+            },
+          ),
         ),
       ),
     );
+  }
+
+  bool _handleUserScroll(UserScrollNotification notification) {
+    if (notification.metrics.axis != Axis.vertical) return false;
+    final shouldShow = switch (notification.direction) {
+      ScrollDirection.forward => true,
+      ScrollDirection.reverse => false,
+      ScrollDirection.idle =>
+        notification.metrics.pixels <= 0 ? true : _dockVisible,
+    };
+    if (shouldShow != _dockVisible && mounted) {
+      setState(() => _dockVisible = shouldShow);
+    }
+    return false;
   }
 }
 
@@ -139,6 +176,8 @@ class _AccountContent extends StatelessWidget {
     required this.onVoucherWallet,
     required this.onPointHistory,
     required this.onMyReviews,
+    required this.onNotificationSettings,
+    required this.onLoginSessions,
     required this.onComingSoon,
   });
 
@@ -152,6 +191,8 @@ class _AccountContent extends StatelessWidget {
   final VoidCallback onVoucherWallet;
   final VoidCallback onPointHistory;
   final VoidCallback onMyReviews;
+  final VoidCallback onNotificationSettings;
+  final VoidCallback onLoginSessions;
   final ValueChanged<String> onComingSoon;
 
   @override
@@ -162,154 +203,291 @@ class _AccountContent extends StatelessWidget {
       child: ListView(
         key: const Key('account-content-scroll'),
         physics: const AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsets.fromLTRB(16, 18, 16, 150),
+        padding: const EdgeInsets.only(bottom: 150),
         children: [
-          const Text(
-            'Tài khoản của tôi',
-            style: TextStyle(
-              color: _ink,
-              fontSize: 24,
-              height: 1.25,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          const SizedBox(height: 4),
-          const Text(
-            'Quản lý thông tin cá nhân và tiện ích của bạn',
-            style: TextStyle(color: _muted, fontSize: 13, height: 1.5),
-          ),
-          const SizedBox(height: 18),
-          _ProfileCard(overview: overview, onEdit: onEditProfile),
-          const SizedBox(height: 14),
-          _LoyaltyCard(
-            overview: overview,
-            onTap: () => onComingSoon('VXN Plus'),
-          ),
-          const SizedBox(height: 18),
-          const _SectionTitle('Tiện ích tài khoản'),
-          const SizedBox(height: 8),
-          _MenuCard(
-            children: [
-              _AccountMenuItem(
-                icon: Icons.groups_rounded,
-                color: const Color(0xFF159DCE),
-                background: const Color(0xFFE2F7FF),
-                title: 'Hành khách đã lưu',
-                subtitle: overview.savedPassengerCount == null
-                    ? 'Quản lý hành khách thường dùng'
-                    : '${overview.savedPassengerCount}/5 hành khách',
-                onTap: onSavedPassengers,
-              ),
-              _AccountMenuItem(
-                icon: Icons.confirmation_number_rounded,
-                color: const Color(0xFFFFA726),
-                background: const Color(0xFFFFF3DE),
-                title: 'Ví voucher',
-                subtitle: 'Voucher ưu đãi của bạn',
-                onTap: onVoucherWallet,
-              ),
-              _AccountMenuItem(
-                icon: Icons.stacked_bar_chart_rounded,
-                color: const Color(0xFF169BD5),
-                background: const Color(0xFFE4F6FE),
-                title: 'Lịch sử điểm',
-                subtitle: 'Xem chi tiết điểm tích lũy',
-                onTap: onPointHistory,
-              ),
-              _AccountMenuItem(
-                icon: Icons.star_rounded,
-                color: const Color(0xFFFFB31A),
-                background: const Color(0xFFFFF3DE),
-                title: 'Đánh giá của tôi',
-                subtitle: 'Các chuyến đi đã đánh giá',
-                onTap: onMyReviews,
-              ),
-            ],
-          ),
-          const SizedBox(height: 18),
-          const _SectionTitle('Cài đặt & bảo mật'),
-          const SizedBox(height: 8),
-          _MenuCard(
-            children: [
-              _AccountMenuItem(
-                icon: Icons.notifications_rounded,
-                color: const Color(0xFF1AA7D8),
-                background: const Color(0xFFE1F7FF),
-                title: 'Cài đặt thông báo',
-                subtitle: 'Quản lý thông báo hệ thống',
-                onTap: () => onComingSoon('Cài đặt thông báo'),
-              ),
-              _AccountMenuItem(
-                icon: Icons.verified_user_rounded,
-                color: const Color(0xFF1985C4),
-                background: const Color(0xFFE2F3FC),
-                title: 'Phiên đăng nhập & thiết bị',
-                subtitle: 'Quản lý thiết bị đang đăng nhập',
-                onTap: () => onComingSoon('Phiên đăng nhập & thiết bị'),
-              ),
-            ],
-          ),
-          const SizedBox(height: 14),
-          Material(
-            color: const Color(0xFFFFEEEE),
-            borderRadius: BorderRadius.circular(16),
-            child: InkWell(
-              key: const Key('account-logout-button'),
-              onTap: loggingOut ? null : onLogout,
-              borderRadius: BorderRadius.circular(16),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 15,
+          _AccountHeader(overview: overview, onEditProfile: onEditProfile),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(12, 12, 12, 0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                _LoyaltyCard(
+                  overview: overview,
+                  onTap: () => onComingSoon('VXN Plus'),
                 ),
-                child: Row(
+                const SizedBox(height: 12),
+                const _SectionTitle('Tiện ích tài khoản'),
+                const SizedBox(height: 8),
+                _MenuCard(
                   children: [
-                    if (loggingOut)
-                      const SizedBox.square(
-                        dimension: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Color(0xFFE5484D),
-                        ),
-                      )
-                    else
-                      const Icon(
-                        Icons.logout_rounded,
-                        color: Color(0xFFE5484D),
-                        size: 21,
+                    _AccountMenuItem(
+                      icon: Icons.groups_rounded,
+                      color: const Color(0xFF159DCE),
+                      background: const Color(0xFFE2F7FF),
+                      title: 'Hành khách đã lưu',
+                      subtitle: overview.savedPassengerCount == null
+                          ? 'Quản lý hành khách thường dùng'
+                          : '${overview.savedPassengerCount}/5 hành khách',
+                      onTap: onSavedPassengers,
+                    ),
+                    _AccountMenuItem(
+                      icon: Icons.confirmation_number_rounded,
+                      color: const Color(0xFFFFA726),
+                      background: const Color(0xFFFFF3DE),
+                      title: 'Ví voucher',
+                      subtitle: 'Voucher ưu đãi của bạn',
+                      onTap: onVoucherWallet,
+                    ),
+                    _AccountMenuItem(
+                      icon: Icons.stacked_bar_chart_rounded,
+                      color: const Color(0xFF169BD5),
+                      background: const Color(0xFFE4F6FE),
+                      title: 'Lịch sử điểm',
+                      subtitle: 'Xem chi tiết điểm tích lũy',
+                      onTap: onPointHistory,
+                    ),
+                    _AccountMenuItem(
+                      icon: Icons.star_rounded,
+                      color: const Color(0xFFFFB31A),
+                      background: const Color(0xFFFFF3DE),
+                      title: 'Đánh giá của tôi',
+                      subtitle: 'Các chuyến đi đã đánh giá',
+                      onTap: onMyReviews,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 18),
+                const _SectionTitle('Cài đặt & bảo mật'),
+                const SizedBox(height: 8),
+                _MenuCard(
+                  children: [
+                    _AccountMenuItem(
+                      icon: Icons.notifications_rounded,
+                      color: const Color(0xFF1AA7D8),
+                      background: const Color(0xFFE1F7FF),
+                      title: 'Cài đặt thông báo',
+                      subtitle: 'Quản lý thông báo hệ thống',
+                      onTap: onNotificationSettings,
+                    ),
+                    _AccountMenuItem(
+                      icon: Icons.verified_user_rounded,
+                      color: const Color(0xFF1985C4),
+                      background: const Color(0xFFE2F3FC),
+                      title: 'Phiên đăng nhập & thiết bị',
+                      subtitle: 'Quản lý thiết bị đang đăng nhập',
+                      onTap: onLoginSessions,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 14),
+                Material(
+                  color: const Color(0xFFFFEEEE),
+                  borderRadius: BorderRadius.circular(16),
+                  child: InkWell(
+                    key: const Key('account-logout-button'),
+                    onTap: loggingOut ? null : onLogout,
+                    borderRadius: BorderRadius.circular(16),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 15,
                       ),
-                    const SizedBox(width: 12),
-                    Text(
-                      loggingOut ? 'Đang đăng xuất...' : 'Đăng xuất',
-                      style: const TextStyle(
-                        color: Color(0xFFE5484D),
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
+                      child: Row(
+                        children: [
+                          if (loggingOut)
+                            const SizedBox.square(
+                              dimension: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Color(0xFFE5484D),
+                              ),
+                            )
+                          else
+                            const Icon(
+                              Icons.logout_rounded,
+                              color: Color(0xFFE5484D),
+                              size: 21,
+                            ),
+                          const SizedBox(width: 12),
+                          Text(
+                            loggingOut ? 'Đang đăng xuất...' : 'Đăng xuất',
+                            style: const TextStyle(
+                              color: Color(0xFFE5484D),
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          const Spacer(),
+                          const Icon(
+                            Icons.chevron_right_rounded,
+                            color: Color(0xFFE5484D),
+                          ),
+                        ],
                       ),
                     ),
-                    const Spacer(),
-                    const Icon(
-                      Icons.chevron_right_rounded,
-                      color: Color(0xFFE5484D),
+                  ),
+                ),
+                if (logoutErrorMessage != null) ...[
+                  const SizedBox(height: 8),
+                  Text(
+                    logoutErrorMessage!,
+                    key: const Key('account-logout-error'),
+                    style: const TextStyle(
+                      color: Color(0xFFB42318),
+                      fontSize: 12,
+                      height: 1.45,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _AccountHeader extends StatelessWidget {
+  const _AccountHeader({required this.overview, required this.onEditProfile});
+
+  final AccountOverview overview;
+  final VoidCallback onEditProfile;
+
+  @override
+  Widget build(BuildContext context) {
+    final viewportWidth = MediaQuery.sizeOf(context).width;
+    final safeTop = MediaQuery.paddingOf(context).top;
+    final statusExtent = safeTop < 30 ? 30.0 : safeTop;
+    final floralHeight = statusExtent + 177;
+    final profileTop = statusExtent + 135;
+    final headerLeft = (viewportWidth * 34 / 412).clamp(24.0, 34.0);
+
+    return SizedBox(
+      key: const Key('account-header'),
+      height: profileTop + 82,
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          Positioned(
+            left: 0,
+            right: 0,
+            top: 0,
+            height: floralHeight,
+            child: ClipRect(
+              child: ColoredBox(
+                color: const Color(0xFFFCFAF4),
+                child: Stack(
+                  children: [
+                    Positioned(
+                      key: const Key('account-header-floral'),
+                      left: 0,
+                      top: -floralHeight * 2.2632,
+                      width: viewportWidth * 1.8519,
+                      height: floralHeight * 5.2632,
+                      child: Image.asset(
+                        _headerFloralAsset,
+                        key: const Key('account-header-floral-image'),
+                        fit: BoxFit.fill,
+                        excludeFromSemantics: true,
+                      ),
+                    ),
+                    const Positioned.fill(
+                      child: DecoratedBox(
+                        key: Key('account-header-overlay'),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [
+                              Color(0xA6FFFCF7),
+                              Color(0xF5FFFCF7),
+                              Color(0xF5FFFCF7),
+                              Color(0x99FFFCF7),
+                            ],
+                            stops: [0, .18, .75, 1],
+                          ),
+                        ),
+                      ),
                     ),
                   ],
                 ),
               ),
             ),
           ),
-          if (logoutErrorMessage != null) ...[
-            const SizedBox(height: 8),
-            Text(
-              logoutErrorMessage!,
-              key: const Key('account-logout-error'),
-              style: const TextStyle(
-                color: Color(0xFFB42318),
-                fontSize: 12,
-                height: 1.45,
+          Positioned(
+            left: headerLeft,
+            top: statusExtent + 13,
+            width: 99,
+            height: 31,
+            child: const _AccountBrandCapsule(),
+          ),
+          Positioned(
+            left: headerLeft,
+            right: 18,
+            top: statusExtent + 47,
+            child: const Text(
+              'Tài khoản của tôi',
+              style: TextStyle(
+                color: _ink,
+                fontSize: 24,
+                height: 1.2,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+          Positioned(
+            left: headerLeft + 1,
+            right: 16,
+            top: statusExtent + 84,
+            child: const Text(
+              'Quản lý thông tin cá nhân và tiện ích của bạn',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(color: _muted, fontSize: 12, height: 1.5),
+            ),
+          ),
+          Positioned(
+            left: 12,
+            right: 12,
+            top: profileTop,
+            height: 82,
+            child: _ProfileCard(overview: overview, onEdit: onEditProfile),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _AccountBrandCapsule extends StatelessWidget {
+  const _AccountBrandCapsule();
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 6),
+        child: Row(
+          children: [
+            SvgPicture.asset(
+              'assets/auth/logo/light_mark.svg',
+              width: 20,
+              height: 16,
+              excludeFromSemantics: true,
+            ),
+            const SizedBox(width: 3),
+            Expanded(
+              child: SvgPicture.asset(
+                'assets/auth/logo/light_wordmark.svg',
+                fit: BoxFit.contain,
+                excludeFromSemantics: true,
               ),
             ),
           ],
-        ],
+        ),
       ),
     );
   }
@@ -323,73 +501,108 @@ class _ProfileCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: _cardDecoration(),
-      child: Row(
-        children: [
-          PassengerAvatar(size: 58, imageUrl: overview.imageUrl),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  overview.name,
-                  key: const Key('account-name'),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    color: _ink,
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(height: 3),
-                Row(
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final compact = constraints.maxWidth < 350;
+        return Container(
+          key: const Key('account-profile-card'),
+          padding: const EdgeInsets.fromLTRB(16, 10, 8, 10),
+          decoration: _cardDecoration(radius: 18),
+          child: Row(
+            children: [
+              PassengerAvatar(
+                size: compact ? 52 : 62,
+                imageUrl: overview.imageUrl,
+              ),
+              SizedBox(width: compact ? 10 : 12),
+              Expanded(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Flexible(
-                      child: Text(
-                        overview.email,
-                        key: const Key('account-email'),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(color: _muted, fontSize: 11.5),
+                    Text(
+                      overview.name,
+                      key: const Key('account-name'),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: _ink,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
-                    if (overview.emailVerified) ...[
-                      const SizedBox(width: 4),
-                      const Icon(
-                        Icons.verified_rounded,
-                        color: Color(0xFF1AA7D8),
-                        size: 15,
-                      ),
-                    ],
+                    const SizedBox(height: 3),
+                    Row(
+                      children: [
+                        Flexible(
+                          child: Text(
+                            overview.email,
+                            key: const Key('account-email'),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              color: Color(0xFF647F9A),
+                              fontSize: 10.5,
+                            ),
+                          ),
+                        ),
+                        if (overview.emailVerified) ...[
+                          const SizedBox(width: 4),
+                          const Icon(
+                            Icons.verified_rounded,
+                            color: Color(0xFF1AA7D8),
+                            size: 14,
+                          ),
+                        ],
+                      ],
+                    ),
                   ],
                 ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 8),
-          TextButton.icon(
-            key: const Key('account-edit-button'),
-            onPressed: onEdit,
-            style: TextButton.styleFrom(
-              foregroundColor: _primary,
-              backgroundColor: const Color(0xFFE1F5FC),
-              padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 9),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
               ),
-            ),
-            icon: const Icon(Icons.edit_rounded, size: 16),
-            label: const Text(
-              'Chỉnh sửa',
-              style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600),
-            ),
+              const SizedBox(width: 8),
+              const SizedBox(
+                width: 1,
+                height: 48,
+                child: ColoredBox(color: Color(0xFFD7E7EF)),
+              ),
+              SizedBox(width: compact ? 7 : 9),
+              SizedBox(
+                width: compact ? 92 : 110,
+                height: 38,
+                child: TextButton.icon(
+                  key: const Key('account-edit-button'),
+                  onPressed: onEdit,
+                  style: TextButton.styleFrom(
+                    foregroundColor: const Color(0xFF087EB4),
+                    backgroundColor: const Color(0xFFE4F7FF),
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    minimumSize: Size.zero,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    shape: RoundedRectangleBorder(
+                      side: const BorderSide(
+                        color: Color(0xFFB2E3FF),
+                        width: .5,
+                      ),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  icon: const Icon(Icons.edit_rounded, size: 15),
+                  label: const FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(
+                      'Chỉnh sửa',
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 }

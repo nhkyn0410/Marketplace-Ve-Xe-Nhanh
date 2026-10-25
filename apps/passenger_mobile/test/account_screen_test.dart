@@ -24,6 +24,8 @@ Future<void> _pumpAccount(
   VoidCallback? onVoucherWallet,
   VoidCallback? onPointHistory,
   VoidCallback? onMyReviews,
+  VoidCallback? onNotificationSettings,
+  VoidCallback? onLoginSessions,
   String? logoutErrorMessage,
   double width = 390,
 }) async {
@@ -44,6 +46,8 @@ Future<void> _pumpAccount(
         onVoucherWallet: onVoucherWallet ?? () {},
         onPointHistory: onPointHistory ?? () {},
         onMyReviews: onMyReviews ?? () {},
+        onNotificationSettings: onNotificationSettings ?? () {},
+        onLoginSessions: onLoginSessions ?? () {},
         logoutErrorMessage: logoutErrorMessage,
       ),
     ),
@@ -80,6 +84,53 @@ void main() {
       find.byKey(const Key('passenger-default-avatar')),
     );
     expect((image.image as AssetImage).assetName, passengerDefaultAvatarAsset);
+  });
+
+  testWidgets('header dùng nền hoa, lớp phủ và vị trí chồng thẻ từ Figma', (
+    tester,
+  ) async {
+    await _pumpAccount(tester, loader: () async => _overview, width: 390);
+    await tester.pumpAndSettle();
+
+    final floral = tester.widget<Image>(
+      find.byKey(const Key('account-header-floral-image')),
+    );
+    expect(
+      (floral.image as AssetImage).assetName,
+      'assets/account/header_floral.png',
+    );
+
+    final overlay = tester.widget<DecoratedBox>(
+      find.byKey(const Key('account-header-overlay')),
+    );
+    final gradient = (overlay.decoration as BoxDecoration).gradient;
+    expect(gradient, isA<LinearGradient>());
+    expect((gradient! as LinearGradient).stops, const [0, .18, .75, 1]);
+
+    final profileRect = tester.getRect(
+      find.byKey(const Key('account-profile-card')),
+    );
+    expect(profileRect.top, 165);
+    expect(profileRect.height, 82);
+    expect(profileRect.left, 12);
+    expect(profileRect.right, 378);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('header và thẻ hồ sơ không tràn trên màn hình hẹp', (
+    tester,
+  ) async {
+    const longOverview = AccountOverview(
+      name: 'Nguyễn Xuân Trường Có Tên Rất Dài',
+      email: 'nguyenxuantruong08032005+rất-dài@example.com',
+      emailVerified: true,
+    );
+    await _pumpAccount(tester, loader: () async => longOverview, width: 320);
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('account-header')), findsOneWidget);
+    expect(find.byKey(const Key('account-edit-button')), findsOneWidget);
+    expect(tester.takeException(), isNull);
   });
 
   testWidgets('nút chỉnh sửa mở luồng hồ sơ thay vì thông báo sắp có', (
@@ -146,6 +197,32 @@ void main() {
     expect(find.byType(SnackBar), findsNothing);
   });
 
+  testWidgets('hai mục cài đặt mở đúng màn hình thay vì báo sắp có', (
+    tester,
+  ) async {
+    var notificationOpened = false;
+    var sessionsOpened = false;
+    await _pumpAccount(
+      tester,
+      loader: () async => _overview,
+      onNotificationSettings: () => notificationOpened = true,
+      onLoginSessions: () => sessionsOpened = true,
+    );
+    await tester.pumpAndSettle();
+    await tester.drag(
+      find.byKey(const Key('account-content-scroll')),
+      const Offset(0, -600),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Cài đặt thông báo'));
+    await tester.tap(find.text('Phiên đăng nhập & thiết bị'));
+
+    expect(notificationOpened, isTrue);
+    expect(sessionsOpened, isTrue);
+    expect(find.byType(SnackBar), findsNothing);
+  });
+
   testWidgets('dock điều hướng về Home và nút đăng xuất không gửi lặp', (
     tester,
   ) async {
@@ -166,14 +243,11 @@ void main() {
     await tester.tap(find.byKey(const Key('route-dock-tab-2')));
     expect(selectedTab, 2);
 
-    await tester.scrollUntilVisible(
-      find.byKey(const Key('account-logout-button')),
-      300,
-      scrollable: find.descendant(
-        of: find.byKey(const Key('account-content-scroll')),
-        matching: find.byType(Scrollable),
-      ),
+    await tester.drag(
+      find.byKey(const Key('account-content-scroll')),
+      const Offset(0, -700),
     );
+    await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('account-logout-button')));
     await tester.pump();
     await tester.tap(find.byKey(const Key('account-logout-button')));
@@ -183,6 +257,31 @@ void main() {
     logoutResult.complete(false);
     await tester.pumpAndSettle();
     expect(find.text('Đăng xuất'), findsOneWidget);
+  });
+
+  testWidgets('dock Tài khoản ẩn khi cuộn xuống và hiện khi cuộn lên', (
+    tester,
+  ) async {
+    await _pumpAccount(tester, loader: () async => _overview, width: 390);
+    await tester.pumpAndSettle();
+
+    final dock = find.byKey(const Key('account-bottom-dock-animation'));
+    expect(tester.widget<AnimatedSlide>(dock).offset, Offset.zero);
+
+    await tester.drag(
+      find.byKey(const Key('account-content-scroll')),
+      const Offset(0, -500),
+    );
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(tester.widget<AnimatedSlide>(dock).offset, const Offset(0, 1));
+
+    await tester.drag(
+      find.byKey(const Key('account-content-scroll')),
+      const Offset(0, 250),
+    );
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(tester.widget<AnimatedSlide>(dock).offset, Offset.zero);
+    expect(tester.takeException(), isNull);
   });
 
   testWidgets('lỗi tải hồ sơ có thể thử lại', (tester) async {

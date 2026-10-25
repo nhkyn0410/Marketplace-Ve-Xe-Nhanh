@@ -114,6 +114,45 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('bỏ tìm kiếm gần đây và thẻ nội dung dùng kích thước mới', (
+    tester,
+  ) async {
+    await _pumpHome(tester, width: 390);
+
+    expect(find.text('Tìm kiếm gần đây'), findsNothing);
+
+    final operator = find.byKey(
+      const ValueKey('featured-operator-Phương Trang'),
+    );
+    expect(operator, findsOneWidget);
+    expect(tester.getSize(operator), const Size(158, 76));
+    expect(
+      find.descendant(of: operator, matching: find.text('Phương Trang')),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(of: operator, matching: find.text('★ 4.8')),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(of: operator, matching: find.text('(12.5K đánh giá)')),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(of: operator, matching: find.text('TP.HCM → Đà Lạt')),
+      findsNothing,
+    );
+
+    final article = find.byKey(
+      const ValueKey(
+        'home-article-assets/home/articles/da_lat_coach_guide.jpg',
+      ),
+    );
+    expect(article, findsOneWidget);
+    expect(tester.getSize(article), const Size(154, 86));
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('tuyến phổ biến dùng dữ liệu động và điền lại form tìm kiếm', (
     tester,
   ) async {
@@ -239,6 +278,32 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('origin-input')), findsOneWidget);
     expect(find.byKey(const Key('route-dock-tab-2')), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('chỉ báo và nội dung tìm kiếm chuyển chế độ mượt', (
+    tester,
+  ) async {
+    await _pumpHome(tester, width: 412);
+    final indicator = find.byKey(const Key('search-mode-indicator'));
+    final operatorTab = find.byKey(const Key('search-mode-operator'));
+    final startX = tester.getCenter(indicator).dx;
+    final endX = tester.getCenter(operatorTab).dx;
+
+    await tester.tap(operatorTab);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
+
+    final movingX = tester.getCenter(indicator).dx;
+    expect(movingX, greaterThan(startX));
+    expect(movingX, lessThan(endX));
+    expect(find.byKey(const Key('origin-input')), findsOneWidget);
+    expect(find.byKey(const Key('operator-input')), findsOneWidget);
+
+    await tester.pumpAndSettle();
+    expect(tester.getCenter(indicator).dx, closeTo(endX, .01));
+    expect(find.byKey(const Key('origin-input')), findsNothing);
+    expect(find.byKey(const Key('operator-input')), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 

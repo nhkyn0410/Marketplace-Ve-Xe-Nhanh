@@ -35,30 +35,35 @@ class RouteDockTabBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bottomInset = MediaQuery.paddingOf(context).bottom;
-    return SizedBox(
-      height: 120 + bottomInset,
-      child: Stack(
-        children: [
-          Positioned(
-            left: 0,
-            right: 0,
-            top: 0,
-            height: 120,
-            child: SizedBox(
-              key: const Key('route-dock-tabbar'),
-              child: _DockCanvas(currentIndex: currentIndex, onTap: onTap),
-            ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final dockWidth = constraints.maxWidth.clamp(0.0, 390.0);
+        return SizedBox(
+          height: 120 + bottomInset,
+          child: Stack(
+            children: [
+              Positioned(
+                left: (constraints.maxWidth - dockWidth) / 2,
+                top: 0,
+                width: dockWidth,
+                height: 120,
+                child: SizedBox(
+                  key: const Key('route-dock-tabbar'),
+                  child: _DockCanvas(currentIndex: currentIndex, onTap: onTap),
+                ),
+              ),
+              if (bottomInset > 0)
+                Positioned(
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  height: bottomInset,
+                  child: const ColoredBox(color: _dockBackground),
+                ),
+            ],
           ),
-          if (bottomInset > 0)
-            Positioned(
-              left: 0,
-              right: 0,
-              bottom: 0,
-              height: bottomInset,
-              child: const ColoredBox(color: _dockBackground),
-            ),
-        ],
-      ),
+        );
+      },
     );
   }
 }
@@ -74,11 +79,11 @@ class _DockCanvas extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         final width = constraints.maxWidth;
-        final slot = width / 5;
-        final bubbleSize = width < 350 ? 58.0 : 64.0;
-        final activeCenter = slot * (currentIndex + .5);
-        final iconSize = width < 350 ? 22.0 : 24.0;
-        final labelFontSize = width < 350 ? 10.5 : 12.0;
+        final tabsInset = width * 5 / 390;
+        final tabsWidth = width - tabsInset * 2;
+        final slot = tabsWidth / 5;
+        final bubbleSize = currentIndex == 2 ? 64.0 : 58.0;
+        final activeCenter = tabsInset + slot * (currentIndex + .5);
 
         return Stack(
           clipBehavior: Clip.none,
@@ -87,7 +92,7 @@ class _DockCanvas extends StatelessWidget {
               left: 0,
               right: 0,
               top: 16,
-              bottom: 0,
+              height: 92,
               child: DecoratedBox(
                 decoration: BoxDecoration(
                   color: _dockBackground,
@@ -117,7 +122,7 @@ class _DockCanvas extends StatelessWidget {
             ),
             ...List.generate(5, (index) {
               return Positioned(
-                left: slot * (index + .5) - 2.5,
+                left: tabsInset + slot * (index + .5) - 2.5,
                 top: 24,
                 width: 5,
                 height: 5,
@@ -138,15 +143,18 @@ class _DockCanvas extends StatelessWidget {
               ),
             ),
             Positioned(
-              left: 4,
-              right: 4,
+              left: 0,
+              right: 0,
               top: 32,
-              height: 80,
+              height: 76,
               child: DecoratedBox(
                 key: const Key('route-dock-surface'),
                 decoration: BoxDecoration(
                   color: Colors.white,
-                  borderRadius: BorderRadius.all(Radius.circular(26)),
+                  borderRadius: BorderRadius.all(Radius.circular(30)),
+                  border: Border.fromBorderSide(
+                    BorderSide(color: _dockBackground, width: 1.5),
+                  ),
                   boxShadow: [
                     BoxShadow(
                       color: Color(0x242B7EAD),
@@ -159,10 +167,11 @@ class _DockCanvas extends StatelessWidget {
             ),
             Positioned(
               left: activeCenter - bubbleSize / 2,
-              top: width < 350 ? 10 : 7,
+              top: currentIndex == 2 ? 7 : 10,
               width: bubbleSize,
               height: bubbleSize,
               child: DecoratedBox(
+                key: const Key('route-dock-active-bubble'),
                 decoration: BoxDecoration(
                   color: Colors.white,
                   shape: BoxShape.circle,
@@ -176,7 +185,7 @@ class _DockCanvas extends StatelessWidget {
                   ],
                 ),
                 child: Padding(
-                  padding: EdgeInsets.all((bubbleSize - iconSize) / 2),
+                  padding: EdgeInsets.all((bubbleSize - 24) / 2),
                   child: SvgPicture.asset(
                     currentIndex == 2
                         ? '$_dockAssetRoot/home_active.svg'
@@ -200,10 +209,10 @@ class _DockCanvas extends StatelessWidget {
               ),
             ),
             Positioned(
-              left: 0,
-              right: 0,
-              top: 51,
-              height: 57,
+              left: tabsInset,
+              top: 6,
+              width: tabsWidth,
+              height: 100,
               child: Row(
                 children: List.generate(5, (index) {
                   final active = index == currentIndex;
@@ -216,38 +225,51 @@ class _DockCanvas extends StatelessWidget {
                         key: Key('route-dock-tab-$index'),
                         onTap: () => onTap(index),
                         radius: 34,
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.end,
+                        child: Stack(
+                          alignment: Alignment.topCenter,
                           children: [
-                            Opacity(
-                              opacity: active ? 0 : 1,
-                              child: SvgPicture.asset(
-                                RouteDockTabBar.iconAssets[index],
-                                width: iconSize,
-                                height: iconSize,
-                                excludeFromSemantics: true,
-                              ),
-                            ),
-                            const SizedBox(height: 5),
-                            Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 2,
-                              ),
-                              child: FittedBox(
-                                fit: BoxFit.scaleDown,
-                                child: Text(
-                                  RouteDockTabBar.labels[index],
-                                  maxLines: 1,
-                                  style: TextStyle(
-                                    fontFamily: 'Be Vietnam Pro',
-                                    fontSize: labelFontSize,
-                                    height: 1.5,
-                                    fontWeight: active
-                                        ? FontWeight.w600
-                                        : FontWeight.w400,
-                                    color: active ? _primary : _inactive,
+                            Positioned(
+                              top: 45,
+                              left: 0,
+                              right: 0,
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Opacity(
+                                    opacity: active ? 0 : 1,
+                                    child: SizedBox.square(
+                                      key: Key('route-dock-icon-$index'),
+                                      dimension: 24,
+                                      child: SvgPicture.asset(
+                                        RouteDockTabBar.iconAssets[index],
+                                        excludeFromSemantics: true,
+                                      ),
+                                    ),
                                   ),
-                                ),
+                                  const SizedBox(height: 7),
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 2,
+                                    ),
+                                    child: FittedBox(
+                                      fit: BoxFit.scaleDown,
+                                      child: Text(
+                                        RouteDockTabBar.labels[index],
+                                        key: Key('route-dock-label-$index'),
+                                        maxLines: 1,
+                                        style: TextStyle(
+                                          fontFamily: 'Be Vietnam Pro',
+                                          fontSize: 12,
+                                          height: 1.5,
+                                          fontWeight: active
+                                              ? FontWeight.w600
+                                              : FontWeight.w400,
+                                          color: active ? _primary : _inactive,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
                           ],

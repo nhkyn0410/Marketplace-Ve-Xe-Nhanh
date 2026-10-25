@@ -6,6 +6,7 @@ Future<void> _pumpScreen(
   WidgetTester tester, {
   required VoucherWalletLoader loader,
   VoucherCodeSaver? saver,
+  VoidCallback? onBack,
 }) async {
   tester.view.devicePixelRatio = 1;
   tester.view.physicalSize = const Size(412, 900);
@@ -17,7 +18,7 @@ Future<void> _pumpScreen(
       home: VoucherWalletScreen(
         loadVouchers: loader,
         saveVoucherCode: saver ?? (_) async => true,
-        onBack: () {},
+        onBack: onBack ?? () {},
       ),
     ),
   );
@@ -25,7 +26,12 @@ Future<void> _pumpScreen(
 
 void main() {
   testWidgets('hiển thị trạng thái ví rỗng và kiểm tra mã', (tester) async {
-    await _pumpScreen(tester, loader: () async => []);
+    var wentBack = false;
+    await _pumpScreen(
+      tester,
+      loader: () async => [],
+      onBack: () => wentBack = true,
+    );
     await tester.pumpAndSettle();
 
     expect(find.byKey(const Key('voucher-wallet-empty')), findsOneWidget);
@@ -35,6 +41,12 @@ void main() {
     final titleRect = tester.getRect(find.text('Ví voucher'));
     expect(backRect.right, lessThan(titleRect.left));
     expect(titleRect.center.dx, closeTo(206, 1));
+    await tester.tap(find.byKey(const Key('voucher-wallet-back')));
+    expect(wentBack, isTrue);
+    expect(
+      tester.getSize(find.byKey(const Key('voucher-code-box'))).height,
+      84,
+    );
 
     await tester.enterText(find.byKey(const Key('voucher-code-input')), 'a');
     await tester.tap(find.byKey(const Key('voucher-code-save')));
@@ -80,5 +92,21 @@ void main() {
     await tester.tap(find.byKey(const Key('voucher-code-save')));
     await tester.pumpAndSettle();
     expect(savedCode, 'SUMMER26');
+  });
+
+  testWidgets('fixture Figma hiển thị đủ ba khung voucher đúng kích thước', (
+    tester,
+  ) async {
+    await _pumpScreen(tester, loader: () async => figmaVoucherSamples);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Đang có 3 voucher khả dụng'), findsOneWidget);
+    expect(find.text('50.000đ'), findsOneWidget);
+    expect(find.text('Giảm 15%'), findsOneWidget);
+    expect(find.text('Miễn phí dịch vụ'), findsOneWidget);
+    expect(
+      tester.getSize(find.byKey(const Key('voucher-card-figma-voucher-50k'))),
+      const Size(380, 166),
+    );
   });
 }

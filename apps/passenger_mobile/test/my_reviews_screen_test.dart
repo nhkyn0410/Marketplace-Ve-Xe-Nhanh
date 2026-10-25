@@ -27,6 +27,57 @@ Future<void> _pumpReviews(
 }
 
 void main() {
+  testWidgets('hiển thị fixture Figma với 3 chuyến chờ và 5 đánh giá', (
+    tester,
+  ) async {
+    await _pumpReviews(tester, loader: () async => figmaMyReviewsSample);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Chờ đánh giá (3)'), findsOneWidget);
+    expect(find.text('TP. Hồ Chí Minh → Đà Lạt'), findsOneWidget);
+    expect(find.text('Phương Nam Travel'), findsOneWidget);
+    expect(
+      tester.getSize(find.byType(PendingReviewCard).first),
+      const Size(388, 200),
+    );
+
+    await tester.tap(find.byKey(const Key('completed-review-tab')));
+    await tester.pump();
+
+    expect(find.text('Đã đánh giá (5)'), findsOneWidget);
+    expect(find.text('4/5'), findsOneWidget);
+    expect(find.text('5/5'), findsAtLeastNWidgets(1));
+    expect(find.text('3/5'), findsOneWidget);
+    expect(
+      tester.getSize(find.byType(CompletedReviewCard).first),
+      const Size(388, 208),
+    );
+  });
+
+  testWidgets('fixture Figma mở form với nội dung mẫu 4 sao', (tester) async {
+    await _pumpReviews(tester, loader: () async => figmaMyReviewsSample);
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const Key('write-review-figma-pending-1')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('4/5 - Khá hài lòng'), findsOneWidget);
+    expect(
+      tester.getSize(find.byKey(const Key('review-form-sheet'))),
+      const Size(412, 626),
+    );
+    expect(
+      find.textContaining('Xe sạch sẽ, nhân viên hỗ trợ nhiệt tình.'),
+      findsOneWidget,
+    );
+    expect(
+      tester
+          .widget<FilledButton>(find.byKey(const Key('submit-review')))
+          .onPressed,
+      isNotNull,
+    );
+  });
+
   testWidgets(
     'hiển thị trạng thái rỗng cho cả hai tab khi API chưa có dữ liệu',
     (tester) async {

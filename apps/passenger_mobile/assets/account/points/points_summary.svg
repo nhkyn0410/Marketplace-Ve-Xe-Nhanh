@@ -1,21 +1,5 @@
-<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="140" height="85" viewBox="0 0 140 85" fill="none" xmlns="http://www.w3.org/2000/svg">
-<g id="Minh h&#225;&#187;&#141;a / &#196;&#144;&#225;&#187;&#147;ng xu" clip-path="url(#clip0_0_21)">
-<path id="Vector" d="M0 78C23.3333 70.6667 45.3333 58 66 40C86.6667 22 111.333 20.3333 140 35V85H0" fill="#FFF3E1"/>
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="15.2" height="15.95" viewBox="0 0 15.2 15.95" fill="none" xmlns="http://www.w3.org/2000/svg">
 <g id="Group">
-<path id="Vector_2" d="M122 22H100C96.134 22 93 25.134 93 29V64C93 67.866 96.134 71 100 71H122C125.866 71 129 67.866 129 64V29C129 25.134 125.866 22 122 22Z" fill="#FFBF42" stroke="#FFE2A0" stroke-width="1.5"/>
-<path id="Vector_3" d="M111 27C120.941 27 129 24.7614 129 22C129 19.2386 120.941 17 111 17C101.059 17 93 19.2386 93 22C93 24.7614 101.059 27 111 27Z" fill="#FFBF42" stroke="#FFE2A0" stroke-width="1.5"/>
-<g id="Vector_4">
-<path d="M94 34C105.333 39.3333 116.667 39.3333 128 34ZM94 46C105.333 51.3333 116.667 51.3333 128 46ZM94 58C105.333 63.3333 116.667 63.3333 128 58Z" fill="#FFBF42"/>
-<path d="M94 34C105.333 39.3333 116.667 39.3333 128 34M94 46C105.333 51.3333 116.667 51.3333 128 46M94 58C105.333 63.3333 116.667 63.3333 128 58" stroke="#FFE2A0" stroke-width="1.5"/>
+<path id="Vector" d="M0.850021 15.1V11.35M6.10002 15.1V6.85M11.35 15.1V4.6M0.850021 7.6L5.35002 3.85L9.10002 6.1L14.35 0.85M14.35 5.35V0.85H9.85002" stroke="#009563" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
 </g>
-<path id="Vector_5" d="M69.0814 80.2511C81.0179 84.5956 95.135 75.9168 100.613 60.8665C106.091 45.8161 100.855 30.0934 88.9186 25.7489C76.9821 21.4044 62.865 30.0832 57.3871 45.1335C51.9092 60.1839 57.1449 75.9066 69.0814 80.2511Z" fill="#FFBF42" stroke="#FFE2A0" stroke-width="1.5"/>
-</g>
-<path id="Vector_6" d="M79 75C88.3888 75 96 65.1503 96 53C96 40.8497 88.3888 31 79 31C69.6112 31 62 40.8497 62 53C62 65.1503 69.6112 75 79 75Z" fill="#FFD475"/>
-<path id="Vector_7" d="M79 37L84 47L95 49L87 56L88 67L79 62L70 67L72 56L64 49L75 47L79 37Z" fill="#FFF0BD" stroke="#EE9D24"/>
-</g>
-<defs>
-<clipPath id="clip0_0_21">
-<rect width="140" height="85" fill="white"/>
-</clipPath>
-</defs>
 </svg>

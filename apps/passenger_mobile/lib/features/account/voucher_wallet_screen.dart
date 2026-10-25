@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:passenger_mobile/features/account/account_settings_header.dart';
 
-const _primary = Color(0xFF1265F5);
-const _ink = Color(0xFF0D173B);
-const _muted = Color(0xFF607A98);
+const _primary = Color(0xFF005EF3);
+const _ink = Color(0xFF0B102A);
+const _muted = Color(0xFF737D96);
 const _background = Color(0xFFF7FBFF);
 const _assetRoot = 'assets/account/vouchers';
 
@@ -14,6 +15,8 @@ typedef VoucherCodeSaver = Future<bool> Function(String promotionCode);
 enum VoucherDiscountType { percent, amount }
 
 enum VoucherSource { loyaltyRedemption, savedPromotion }
+
+enum VoucherArtwork { star, route, gift }
 
 class VoucherWalletItem {
   const VoucherWalletItem({
@@ -26,6 +29,9 @@ class VoucherWalletItem {
     required this.source,
     this.maxDiscount,
     this.promotionCode,
+    this.displayValue,
+    this.conditionLabel,
+    this.artwork,
   });
 
   final String id;
@@ -37,7 +43,46 @@ class VoucherWalletItem {
   final DateTime expiresAt;
   final VoucherSource source;
   final String? promotionCode;
+  final String? displayValue;
+  final String? conditionLabel;
+  final VoucherArtwork? artwork;
 }
+
+final figmaVoucherSamples = <VoucherWalletItem>[
+  VoucherWalletItem(
+    id: 'figma-voucher-50k',
+    name: 'Voucher đổi từ điểm VXN Plus',
+    discountType: VoucherDiscountType.amount,
+    discountValue: '50000',
+    minOrder: '300000',
+    expiresAt: DateTime(2026, 11, 30),
+    source: VoucherSource.loyaltyRedemption,
+    artwork: VoucherArtwork.star,
+  ),
+  VoucherWalletItem(
+    id: 'figma-voucher-15-percent',
+    name: 'Ưu đãi tuyến TP.HCM → Đà Lạt',
+    discountType: VoucherDiscountType.percent,
+    discountValue: '15',
+    minOrder: '0',
+    maxDiscount: '45000',
+    expiresAt: DateTime(2026, 12, 12),
+    source: VoucherSource.savedPromotion,
+    artwork: VoucherArtwork.route,
+  ),
+  VoucherWalletItem(
+    id: 'figma-voucher-service-fee',
+    name: 'Áp dụng cho 1 đơn bất kỳ',
+    discountType: VoucherDiscountType.amount,
+    discountValue: '0',
+    minOrder: '0',
+    expiresAt: DateTime(2027, 1, 5),
+    source: VoucherSource.loyaltyRedemption,
+    displayValue: 'Miễn phí dịch vụ',
+    conditionLabel: '',
+    artwork: VoucherArtwork.gift,
+  ),
+];
 
 class VoucherWalletScreen extends StatefulWidget {
   const VoucherWalletScreen({
@@ -110,7 +155,11 @@ class _VoucherWalletScreenState extends State<VoucherWalletScreen> {
         body: SafeArea(
           child: Column(
             children: [
-              _SubpageHeader(title: 'Ví voucher', onBack: widget.onBack),
+              AccountSettingsHeader(
+                title: 'Ví voucher',
+                onBack: widget.onBack,
+                backKey: const Key('voucher-wallet-back'),
+              ),
               Expanded(
                 child: FutureBuilder<List<VoucherWalletItem>>(
                   future: _vouchers,
@@ -124,12 +173,14 @@ class _VoucherWalletScreenState extends State<VoucherWalletScreen> {
                     if (snapshot.hasError || !snapshot.hasData) {
                       return _LoadError(onRetry: _reload);
                     }
+                    final vouchers = snapshot.requireData;
                     return RefreshIndicator(
                       color: _primary,
                       onRefresh: _reload,
                       child: ListView(
+                        key: const Key('voucher-wallet-scroll'),
                         physics: const AlwaysScrollableScrollPhysics(),
-                        padding: const EdgeInsets.fromLTRB(16, 12, 16, 28),
+                        padding: const EdgeInsets.fromLTRB(14, 12, 14, 24),
                         children: [
                           _VoucherCodeBox(
                             controller: _codeController,
@@ -144,23 +195,48 @@ class _VoucherWalletScreenState extends State<VoucherWalletScreen> {
                             },
                             onSave: _saveCode,
                           ),
-                          const SizedBox(height: 22),
-                          if (snapshot.requireData.isEmpty)
+                          const SizedBox(height: 18),
+                          if (vouchers.isEmpty)
                             const _VoucherEmpty()
                           else ...[
-                            Text(
-                              'Đang có ${snapshot.requireData.length} voucher khả dụng',
-                              key: const Key('voucher-wallet-count'),
-                              style: const TextStyle(
-                                color: _ink,
-                                fontSize: 15,
-                                fontWeight: FontWeight.w600,
+                            Padding(
+                              padding: const EdgeInsets.only(left: 3),
+                              child: Text.rich(
+                                key: const Key('voucher-wallet-count'),
+                                TextSpan(
+                                  style: const TextStyle(
+                                    color: _ink,
+                                    fontSize: 15,
+                                    height: 1.4,
+                                  ),
+                                  children: [
+                                    const TextSpan(text: 'Đang có '),
+                                    TextSpan(
+                                      text: '${vouchers.length} voucher',
+                                      style: const TextStyle(
+                                        color: _primary,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
+                                    const TextSpan(text: ' khả dụng'),
+                                  ],
+                                ),
                               ),
                             ),
                             const SizedBox(height: 12),
-                            for (final voucher in snapshot.requireData) ...[
-                              VoucherCard(voucher: voucher),
-                              const SizedBox(height: 12),
+                            for (
+                              var index = 0;
+                              index < vouchers.length;
+                              index++
+                            ) ...[
+                              Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 2,
+                                ),
+                                child: VoucherCard(voucher: vouchers[index]),
+                              ),
+                              if (index != vouchers.length - 1)
+                                const SizedBox(height: 12),
                             ],
                           ],
                         ],
@@ -184,119 +260,205 @@ class VoucherCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isLoyalty = voucher.source == VoucherSource.loyaltyRedemption;
-    return Container(
+    final artwork =
+        voucher.artwork ??
+        (voucher.source == VoucherSource.loyaltyRedemption
+            ? VoucherArtwork.star
+            : VoucherArtwork.route);
+    return SizedBox(
       key: Key('voucher-card-${voucher.id}'),
       height: 166,
-      clipBehavior: Clip.antiAlias,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFFE4EDF6)),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x0D12395B),
-            blurRadius: 12,
-            offset: Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Row(
+      child: Stack(
+        clipBehavior: Clip.none,
         children: [
-          SizedBox(
-            width: 112,
-            height: double.infinity,
-            child: isLoyalty
-                ? Container(
-                    color: const Color(0xFFEAF3FF),
-                    alignment: Alignment.center,
-                    child: SvgPicture.asset(
-                      '$_assetRoot/voucher_gift.svg',
-                      width: 92,
-                      height: 100,
-                    ),
-                  )
-                : Image.asset('$_assetRoot/route.png', fit: BoxFit.cover),
-          ),
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(14, 13, 12, 12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          _discountLabel(voucher),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            color: _primary,
-                            fontSize: 20,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ),
-                      SvgPicture.asset(
-                        '$_assetRoot/voucher_star.svg',
-                        width: 14,
-                        height: 14,
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 5),
-                  Text(
-                    voucher.name,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      color: _ink,
-                      fontSize: 13,
-                      height: 1.35,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    _conditionLabel(voucher),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(color: _muted, fontSize: 11),
-                  ),
-                  const Spacer(),
-                  const Divider(height: 1, color: Color(0xFFE8EFF6)),
-                  const SizedBox(height: 9),
-                  Row(
-                    children: [
-                      const Icon(
-                        Icons.calendar_today_outlined,
-                        size: 14,
-                        color: _muted,
-                      ),
-                      const SizedBox(width: 6),
-                      Expanded(
-                        child: Text(
-                          'HSD: ${_formatDate(voucher.expiresAt)}',
-                          style: const TextStyle(color: _muted, fontSize: 10.5),
-                        ),
-                      ),
-                      if (voucher.promotionCode != null)
-                        Text(
-                          voucher.promotionCode!,
-                          style: const TextStyle(
-                            color: _primary,
-                            fontSize: 10.5,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                    ],
+          Positioned.fill(
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(14),
+                boxShadow: const [
+                  BoxShadow(
+                    color: Color(0x0D425B7B),
+                    blurRadius: 7,
+                    offset: Offset(0, 3),
                   ),
                 ],
               ),
             ),
           ),
+          Positioned(
+            right: 0,
+            top: 0,
+            width: 132,
+            height: 148,
+            child: ClipRRect(
+              borderRadius: const BorderRadius.only(
+                topRight: Radius.circular(14),
+                bottomLeft: Radius.circular(24),
+              ),
+              child: _VoucherArtwork(artwork: artwork),
+            ),
+          ),
+          Positioned.fill(
+            child: SvgPicture.asset(
+              '$_assetRoot/voucher_surface.svg',
+              fit: BoxFit.fill,
+            ),
+          ),
+          Positioned(
+            left: 16,
+            top: 12,
+            child: Container(
+              height: 23,
+              padding: const EdgeInsets.symmetric(horizontal: 7),
+              decoration: BoxDecoration(
+                color: const Color(0xFFE0FAEB),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  SvgPicture.asset(
+                    '$_assetRoot/check.svg',
+                    width: 14,
+                    height: 14,
+                  ),
+                  const SizedBox(width: 5),
+                  const Text(
+                    'Khả dụng',
+                    style: TextStyle(
+                      color: Color(0xFF007C50),
+                      fontSize: 11,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          Positioned(
+            left: 17,
+            right: 130,
+            top: 43,
+            child: Text(
+              voucher.displayValue ?? _discountLabel(voucher),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                color: _primary,
+                fontSize: voucher.displayValue == null ? 29 : 26,
+                height: 1.35,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+          Positioned(
+            left: 17,
+            right: 130,
+            top: 82,
+            child: Text(
+              voucher.name,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                color: _ink,
+                fontSize: 14,
+                height: 1.4,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+          if (_conditionLabel(voucher).isNotEmpty)
+            Positioned(
+              left: 17,
+              right: 150,
+              top: 105,
+              child: Text(
+                _conditionLabel(voucher),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  color: _muted,
+                  fontSize: 12,
+                  height: 1.4,
+                ),
+              ),
+            ),
+          Positioned(
+            left: 17,
+            right: 19,
+            top: 129,
+            child: SvgPicture.asset(
+              '$_assetRoot/divider.svg',
+              fit: BoxFit.fill,
+            ),
+          ),
+          Positioned(
+            left: 17,
+            right: 17,
+            top: 136,
+            height: 24,
+            child: Row(
+              children: [
+                SvgPicture.asset(
+                  '$_assetRoot/calendar.svg',
+                  width: 16,
+                  height: 18,
+                ),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: Text(
+                    'Hạn dùng: ${_formatDate(voucher.expiresAt)}',
+                    style: const TextStyle(color: _muted, fontSize: 11.5),
+                  ),
+                ),
+                const Text(
+                  'Xem điều kiện ›',
+                  style: TextStyle(
+                    color: _primary,
+                    fontSize: 11.5,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Positioned(
+            left: -10,
+            top: 61,
+            child: SvgPicture.asset('$_assetRoot/notch.svg'),
+          ),
+          Positioned(
+            right: -10,
+            top: 61,
+            child: SvgPicture.asset('$_assetRoot/notch.svg'),
+          ),
         ],
+      ),
+    );
+  }
+}
+
+class _VoucherArtwork extends StatelessWidget {
+  const _VoucherArtwork({required this.artwork});
+  final VoucherArtwork artwork;
+
+  @override
+  Widget build(BuildContext context) {
+    if (artwork == VoucherArtwork.route) {
+      return Image.asset('$_assetRoot/route.png', fit: BoxFit.cover);
+    }
+    return ColoredBox(
+      color: const Color(0xFFEAF3FF),
+      child: Align(
+        alignment: Alignment.topRight,
+        child: SvgPicture.asset(
+          artwork == VoucherArtwork.star
+              ? '$_assetRoot/voucher_star.svg'
+              : '$_assetRoot/voucher_gift.svg',
+          width: 108,
+          height: 113,
+        ),
       ),
     );
   }
@@ -323,95 +485,123 @@ class _VoucherCodeBox extends StatelessWidget {
   Widget build(BuildContext context) {
     final message = validationMessage ?? apiMessage;
     return Container(
-      padding: const EdgeInsets.all(14),
+      key: const Key('voucher-code-box'),
+      padding: EdgeInsets.fromLTRB(9, 15, 9, message == null ? 15 : 8),
       decoration: BoxDecoration(
-        color: const Color(0xFFEAF5FF),
+        color: const Color(0xFFEAF4FF),
+        border: Border.all(color: const Color(0xFFD6E9FF)),
         borderRadius: BorderRadius.circular(14),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              SvgPicture.asset('$_assetRoot/ticket.svg', width: 24, height: 24),
-              const SizedBox(width: 8),
-              const Text(
-                'Lưu mã voucher',
-                style: TextStyle(
-                  color: _ink,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
+          Container(
+            height: 52,
+            padding: const EdgeInsets.only(left: 12),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              children: [
+                SvgPicture.asset(
+                  '$_assetRoot/ticket.svg',
+                  width: 24,
+                  height: 24,
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 11),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: TextField(
-                  key: const Key('voucher-code-input'),
-                  controller: controller,
-                  enabled: !saving,
-                  textCapitalization: TextCapitalization.characters,
-                  inputFormatters: [
-                    FilteringTextInputFormatter.allow(RegExp('[A-Za-z0-9]')),
-                    LengthLimitingTextInputFormatter(20),
-                  ],
-                  onChanged: onChanged,
-                  onSubmitted: (_) => onSave(),
-                  decoration: InputDecoration(
-                    hintText: 'Nhập mã khuyến mãi',
-                    hintStyle: const TextStyle(color: Color(0xFF8DA2B8)),
-                    filled: true,
-                    fillColor: Colors.white,
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 13,
-                      vertical: 12,
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      borderSide: const BorderSide(color: Color(0xFFD8E7F4)),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      borderSide: const BorderSide(color: _primary),
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 9),
-              SizedBox(
-                height: 48,
-                child: FilledButton(
-                  key: const Key('voucher-code-save'),
-                  onPressed: saving ? null : onSave,
-                  style: FilledButton.styleFrom(
-                    backgroundColor: _primary,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                  ),
-                  child: saving
-                      ? const SizedBox.square(
-                          dimension: 18,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: Colors.white,
+                const SizedBox(width: 10),
+                Expanded(
+                  child: SizedBox(
+                    height: 38,
+                    child: TextField(
+                      key: const Key('voucher-code-input'),
+                      controller: controller,
+                      enabled: !saving,
+                      textCapitalization: TextCapitalization.characters,
+                      inputFormatters: [
+                        FilteringTextInputFormatter.allow(
+                          RegExp('[A-Za-z0-9]'),
+                        ),
+                        LengthLimitingTextInputFormatter(20),
+                      ],
+                      onChanged: onChanged,
+                      onSubmitted: (_) => onSave(),
+                      style: const TextStyle(fontSize: 13),
+                      decoration: InputDecoration(
+                        hintText: 'Nhập mã khuyến mãi',
+                        hintStyle: const TextStyle(
+                          color: Color(0xFF9AA1B2),
+                          fontSize: 13,
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 9,
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: const BorderSide(
+                            color: Color(0xFFE0E4ED),
                           ),
-                        )
-                      : const Text('Lưu mã'),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: const BorderSide(
+                            color: Color(0xFFE0E4ED),
+                          ),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: const BorderSide(color: _primary),
+                        ),
+                      ),
+                    ),
+                  ),
                 ),
-              ),
-            ],
+                const SizedBox(width: 10),
+                SizedBox(
+                  width: 98,
+                  height: 50,
+                  child: FilledButton(
+                    key: const Key('voucher-code-save'),
+                    onPressed: saving ? null : onSave,
+                    style: FilledButton.styleFrom(
+                      padding: EdgeInsets.zero,
+                      backgroundColor: const Color(0xFF58B3E9),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(11),
+                      ),
+                    ),
+                    child: saving
+                        ? const SizedBox.square(
+                            dimension: 18,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
+                          )
+                        : const Text(
+                            'Lưu mã',
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                  ),
+                ),
+              ],
+            ),
           ),
           if (message != null) ...[
-            const SizedBox(height: 7),
-            Text(
-              message,
-              key: const Key('voucher-code-error'),
-              style: const TextStyle(color: Color(0xFFB42318), fontSize: 11),
+            const SizedBox(height: 6),
+            Padding(
+              padding: const EdgeInsets.only(left: 12),
+              child: Text(
+                message,
+                key: const Key('voucher-code-error'),
+                style: const TextStyle(
+                  color: Color(0xFFB42318),
+                  fontSize: 10.5,
+                ),
+              ),
             ),
           ],
         ],
@@ -460,45 +650,8 @@ class _VoucherEmpty extends StatelessWidget {
   }
 }
 
-class _SubpageHeader extends StatelessWidget {
-  const _SubpageHeader({required this.title, required this.onBack});
-
-  final String title;
-  final VoidCallback onBack;
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: double.infinity,
-      height: 64,
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          Positioned(
-            left: 16,
-            child: IconButton(
-              key: const Key('voucher-wallet-back'),
-              onPressed: onBack,
-              icon: const Icon(Icons.arrow_back_rounded, color: _ink),
-            ),
-          ),
-          Text(
-            title,
-            style: const TextStyle(
-              color: _ink,
-              fontSize: 22,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 class _LoadError extends StatelessWidget {
   const _LoadError({required this.onRetry});
-
   final Future<void> Function() onRetry;
 
   @override
@@ -524,6 +677,8 @@ String _discountLabel(VoucherWalletItem voucher) {
 }
 
 String _conditionLabel(VoucherWalletItem voucher) {
+  final explicit = voucher.conditionLabel;
+  if (explicit != null) return explicit;
   final minimum = BigInt.tryParse(voucher.minOrder) ?? BigInt.zero;
   if (minimum > BigInt.zero) {
     return 'Đơn tối thiểu ${_formatVnd(voucher.minOrder)}đ';

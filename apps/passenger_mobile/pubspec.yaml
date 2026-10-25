@@ -99,6 +99,7 @@ flutter:
     - assets/account/vouchers/
     - assets/account/points/
     - assets/account/reviews/
+    - assets/account/settings/
 
   fonts:
     - family: Be Vietnam Pro

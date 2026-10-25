@@ -152,10 +152,6 @@ class _HomeScreenState extends State<HomeScreen> {
                       _GuestInvitation(onLogin: widget.onLoginRequested),
                       const SizedBox(height: 12),
                     ],
-                    _RecentSearches(
-                      operatorMode: _mode == HomeSearchMode.operator,
-                    ),
-                    const SizedBox(height: 12),
                     const _VoucherSection(),
                     const SizedBox(height: 12),
                     _PopularRoutesSection(
@@ -545,12 +541,18 @@ class _HomeTopArea extends StatelessWidget {
                 right: 0,
                 bottom: 16,
                 height: 43,
-                child: SvgPicture.asset(
-                  mode == HomeSearchMode.route
-                      ? '$_assetRoot/illustrations/journey_wave_lines_route.svg'
-                      : '$_assetRoot/illustrations/journey_wave_lines_operator.svg',
-                  fit: BoxFit.fill,
-                  excludeFromSemantics: true,
+                child: AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 280),
+                  switchInCurve: Curves.easeOutCubic,
+                  switchOutCurve: Curves.easeInCubic,
+                  child: SvgPicture.asset(
+                    mode == HomeSearchMode.route
+                        ? '$_assetRoot/illustrations/journey_wave_lines_route.svg'
+                        : '$_assetRoot/illustrations/journey_wave_lines_operator.svg',
+                    key: ValueKey(mode),
+                    fit: BoxFit.fill,
+                    excludeFromSemantics: true,
+                  ),
                 ),
               ),
             ],
@@ -790,95 +792,113 @@ class _JourneyPlanner extends StatelessWidget {
             children: [
               _SearchModeControl(mode: mode, onChanged: onModeChanged),
               const SizedBox(height: 12),
-              if (routeMode)
-                SizedBox(
-                  height: 156,
-                  child: Stack(
-                    clipBehavior: Clip.none,
-                    children: [
-                      Column(
-                        children: [
-                          _PlannerInput(
-                            key: const Key('origin-input'),
-                            label: 'Điểm đi',
-                            value: fromLabel,
-                            asset: '$_assetRoot/icons/origin_pin.svg',
-                            onTap: onPickFrom,
-                          ),
-                          const SizedBox(height: 12),
-                          _PlannerInput(
-                            key: const Key('destination-input'),
-                            label: 'Điểm đến',
-                            value: toLabel,
-                            asset: '$_assetRoot/icons/destination_pin.svg',
-                            onTap: onPickTo,
-                          ),
-                        ],
-                      ),
-                      Positioned(
-                        left: 31,
-                        top: 70,
-                        width: 2,
-                        height: 16,
-                        child: SvgPicture.asset(
-                          '$_assetRoot/illustrations/route_connecting_line.svg',
-                          fit: BoxFit.fill,
-                          excludeFromSemantics: true,
-                        ),
-                      ),
-                      Positioned(
-                        right: -18,
-                        top: 56,
-                        child: Material(
-                          color: Colors.white,
-                          shape: const CircleBorder(
-                            side: BorderSide(color: Color(0xFFE1EDF6)),
-                          ),
-                          elevation: 4,
-                          shadowColor: const Color(0x1A14527D),
-                          child: InkResponse(
-                            key: const Key('swap-locations'),
-                            onTap: onSwap,
-                            radius: 22,
-                            child: SizedBox(
-                              width: 44,
-                              height: 44,
-                              child: Center(
-                                child: SvgPicture.asset(
-                                  '$_assetRoot/icons/swap.svg',
-                                  width: 24,
-                                  height: 24,
-                                  excludeFromSemantics: true,
+              SizedBox(
+                height: 156,
+                child: AnimatedSwitcher(
+                  key: const Key('search-mode-content'),
+                  duration: const Duration(milliseconds: 280),
+                  switchInCurve: Curves.easeOutCubic,
+                  switchOutCurve: Curves.easeInCubic,
+                  transitionBuilder: (child, animation) => FadeTransition(
+                    opacity: animation,
+                    child: SlideTransition(
+                      position: Tween<Offset>(
+                        begin: const Offset(.035, 0),
+                        end: Offset.zero,
+                      ).animate(animation),
+                      child: child,
+                    ),
+                  ),
+                  child: routeMode
+                      ? Stack(
+                          key: const ValueKey('route-search-fields'),
+                          clipBehavior: Clip.none,
+                          children: [
+                            Column(
+                              children: [
+                                _PlannerInput(
+                                  key: const Key('origin-input'),
+                                  label: 'Điểm đi',
+                                  value: fromLabel,
+                                  asset: '$_assetRoot/icons/origin_pin.svg',
+                                  onTap: onPickFrom,
+                                ),
+                                const SizedBox(height: 12),
+                                _PlannerInput(
+                                  key: const Key('destination-input'),
+                                  label: 'Điểm đến',
+                                  value: toLabel,
+                                  asset:
+                                      '$_assetRoot/icons/destination_pin.svg',
+                                  onTap: onPickTo,
+                                ),
+                              ],
+                            ),
+                            Positioned(
+                              left: 31,
+                              top: 70,
+                              width: 2,
+                              height: 16,
+                              child: SvgPicture.asset(
+                                '$_assetRoot/illustrations/route_connecting_line.svg',
+                                fit: BoxFit.fill,
+                                excludeFromSemantics: true,
+                              ),
+                            ),
+                            Positioned(
+                              right: -18,
+                              top: 56,
+                              child: Material(
+                                color: Colors.white,
+                                shape: const CircleBorder(
+                                  side: BorderSide(color: Color(0xFFE1EDF6)),
+                                ),
+                                elevation: 4,
+                                shadowColor: const Color(0x1A14527D),
+                                child: InkResponse(
+                                  key: const Key('swap-locations'),
+                                  onTap: onSwap,
+                                  radius: 22,
+                                  child: SizedBox(
+                                    width: 44,
+                                    height: 44,
+                                    child: Center(
+                                      child: SvgPicture.asset(
+                                        '$_assetRoot/icons/swap.svg',
+                                        width: 24,
+                                        height: 24,
+                                        excludeFromSemantics: true,
+                                      ),
+                                    ),
+                                  ),
                                 ),
                               ),
                             ),
-                          ),
+                          ],
+                        )
+                      : Column(
+                          key: const ValueKey('operator-search-fields'),
+                          children: [
+                            _PlannerInput(
+                              key: const Key('operator-input'),
+                              label: 'Nhà xe',
+                              value: 'Phương Trang',
+                              asset: '$_assetRoot/operators/phuong_trang.png',
+                              raster: true,
+                              onTap: onOperatorTap,
+                            ),
+                            const SizedBox(height: 12),
+                            _PlannerInput(
+                              key: const Key('operator-route-input'),
+                              label: 'Tuyến',
+                              value: '$fromLabel → $toLabel',
+                              asset: '$_assetRoot/icons/operator_route.svg',
+                              onTap: onPickFrom,
+                            ),
+                          ],
                         ),
-                      ),
-                    ],
-                  ),
-                )
-              else
-                Column(
-                  children: [
-                    _PlannerInput(
-                      key: const Key('operator-input'),
-                      label: 'Nhà xe',
-                      value: 'Phương Trang',
-                      asset: '$_assetRoot/operators/phuong_trang.png',
-                      raster: true,
-                      onTap: onOperatorTap,
-                    ),
-                    const SizedBox(height: 12),
-                    _PlannerInput(
-                      key: const Key('operator-route-input'),
-                      label: 'Tuyến',
-                      value: '$fromLabel → $toLabel',
-                      asset: '$_assetRoot/icons/operator_route.svg',
-                      onTap: onPickFrom,
-                    ),
-                  ],
                 ),
+              ),
               const SizedBox(height: 12),
               if (narrow)
                 Column(
@@ -1009,31 +1029,58 @@ class _SearchModeControl extends StatelessWidget {
         color: const Color(0xFFEAF4FB),
         borderRadius: BorderRadius.circular(18),
       ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
+      child: Stack(
         children: [
-          Expanded(
-            child: _SearchModeButton(
-              key: const Key('search-mode-route'),
-              selected: mode == HomeSearchMode.route,
-              label: 'Theo tuyến',
-              selectedAsset: '$_assetRoot/icons/search_mode_route_active.svg',
-              unselectedAsset:
-                  '$_assetRoot/icons/search_mode_route_inactive.svg',
-              onTap: () => onChanged(HomeSearchMode.route),
+          Positioned.fill(
+            child: AnimatedAlign(
+              duration: const Duration(milliseconds: 280),
+              curve: Curves.easeOutCubic,
+              alignment: mode == HomeSearchMode.route
+                  ? Alignment.centerLeft
+                  : Alignment.centerRight,
+              child: FractionallySizedBox(
+                widthFactor: .5,
+                heightFactor: 1,
+                child: DecoratedBox(
+                  key: const Key('search-mode-indicator'),
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFF137FB7), Color(0xFF59ABD7)],
+                    ),
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                ),
+              ),
             ),
           ),
-          Expanded(
-            child: _SearchModeButton(
-              key: const Key('search-mode-operator'),
-              selected: mode == HomeSearchMode.operator,
-              label: 'Theo nhà xe',
-              selectedAsset:
-                  '$_assetRoot/icons/search_mode_operator_active.svg',
-              unselectedAsset:
-                  '$_assetRoot/icons/search_mode_operator_inactive.svg',
-              onTap: () => onChanged(HomeSearchMode.operator),
-            ),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(
+                child: _SearchModeButton(
+                  key: const Key('search-mode-route'),
+                  selected: mode == HomeSearchMode.route,
+                  label: 'Theo tuyến',
+                  selectedAsset:
+                      '$_assetRoot/icons/search_mode_route_active.svg',
+                  unselectedAsset:
+                      '$_assetRoot/icons/search_mode_route_inactive.svg',
+                  onTap: () => onChanged(HomeSearchMode.route),
+                ),
+              ),
+              Expanded(
+                child: _SearchModeButton(
+                  key: const Key('search-mode-operator'),
+                  selected: mode == HomeSearchMode.operator,
+                  label: 'Theo nhà xe',
+                  selectedAsset:
+                      '$_assetRoot/icons/search_mode_operator_active.svg',
+                  unselectedAsset:
+                      '$_assetRoot/icons/search_mode_operator_inactive.svg',
+                  onTap: () => onChanged(HomeSearchMode.operator),
+                ),
+              ),
+            ],
           ),
         ],
       ),
@@ -1064,38 +1111,34 @@ class _SearchModeButton extends StatelessWidget {
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(14),
-        child: Ink(
+        child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-          decoration: BoxDecoration(
-            gradient: selected
-                ? const LinearGradient(
-                    colors: [Color(0xFF137FB7), Color(0xFF59ABD7)],
-                  )
-                : null,
-            borderRadius: BorderRadius.circular(14),
-          ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              SvgPicture.asset(
-                selected ? selectedAsset : unselectedAsset,
-                width: 20,
-                height: 20,
-                excludeFromSemantics: true,
+              AnimatedSwitcher(
+                duration: const Duration(milliseconds: 180),
+                child: SvgPicture.asset(
+                  selected ? selectedAsset : unselectedAsset,
+                  key: ValueKey(selected),
+                  width: 20,
+                  height: 20,
+                  excludeFromSemantics: true,
+                ),
               ),
               const SizedBox(width: 8),
               Flexible(
                 child: FittedBox(
                   fit: BoxFit.scaleDown,
-                  child: Text(
-                    label,
-                    maxLines: 1,
+                  child: AnimatedDefaultTextStyle(
+                    duration: const Duration(milliseconds: 180),
                     style: TextStyle(
                       fontSize: 14,
                       height: 18 / 14,
                       fontWeight: FontWeight.w600,
                       color: selected ? Colors.white : _secondary,
                     ),
+                    child: Text(label, maxLines: 1),
                   ),
                 ),
               ),
@@ -1420,77 +1463,6 @@ class _GuestInvitation extends StatelessWidget {
             child: const Text('Đăng nhập  →'),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _RecentSearches extends StatelessWidget {
-  const _RecentSearches({required this.operatorMode});
-
-  final bool operatorMode;
-
-  @override
-  Widget build(BuildContext context) {
-    const items = [
-      ('TP.HCM → Đà Lạt', '10/10/2026'),
-      ('Hà Nội → Đà Nẵng', '15/11/2026'),
-      ('TP.HCM → Nha Trang', '28/11/2026'),
-      ('Cần Thơ → Đà Lạt', '02/12/2026'),
-    ];
-    return _HomeSection(
-      title: 'Tìm kiếm gần đây',
-      iconAsset: operatorMode
-          ? '$_assetRoot/icons/clock_operator.svg'
-          : '$_assetRoot/icons/clock_route.svg',
-      child: _HorizontalStrip(
-        children: List.generate(items.length, (index) {
-          final item = items[index];
-          return Container(
-            width: 105,
-            height: 36,
-            padding: const EdgeInsets.symmetric(horizontal: 7),
-            decoration: _smallCardDecoration(),
-            child: Row(
-              children: [
-                SvgPicture.asset(
-                  operatorMode
-                      ? '$_assetRoot/icons/operator_recent_${index + 1}.svg'
-                      : '$_assetRoot/icons/recent_origin_${index + 1}.svg',
-                  width: 18,
-                  height: 18,
-                  excludeFromSemantics: true,
-                ),
-                const SizedBox(width: 4),
-                Expanded(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        item.$1,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          color: _primaryDark,
-                          fontSize: 7.3,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      Text(
-                        item.$2,
-                        style: const TextStyle(
-                          color: _secondary,
-                          fontSize: 7.3,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          );
-        }),
       ),
     );
   }
@@ -1854,8 +1826,12 @@ class _OperatorsSection extends StatelessWidget {
         gap: 7,
         children: operators
             .map(
-              (item) =>
-                  _OperatorCard(name: item.$1, rating: item.$2, asset: item.$3),
+              (item) => _OperatorCard(
+                key: ValueKey('featured-operator-${item.$1}'),
+                name: item.$1,
+                rating: item.$2,
+                asset: item.$3,
+              ),
             )
             .toList(),
       ),
@@ -1868,6 +1844,7 @@ class _OperatorCard extends StatelessWidget {
     required this.name,
     required this.rating,
     required this.asset,
+    super.key,
   });
 
   final String name;
@@ -1877,22 +1854,28 @@ class _OperatorCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final textScale = MediaQuery.textScalerOf(context).scale(1);
-    final cardHeight = textScale > 1.25 ? 92.0 : 65.0;
+    final cardHeight = textScale > 1.25 ? 98.0 : 76.0;
     return Container(
-      width: 127,
+      width: 158,
       height: cardHeight,
-      padding: const EdgeInsets.all(7),
-      decoration: _smallCardDecoration(radius: 7),
+      padding: const EdgeInsets.all(10),
+      decoration: _smallCardDecoration(radius: 12),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           ClipRRect(
             borderRadius: BorderRadius.circular(8),
-            child: Image.asset(asset, width: 30, height: 34, fit: BoxFit.cover),
+            child: Image.asset(
+              asset,
+              width: 44,
+              height: 44,
+              fit: BoxFit.contain,
+            ),
           ),
-          const SizedBox(width: 5),
+          const SizedBox(width: 8),
           Expanded(
             child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
@@ -1901,28 +1884,31 @@ class _OperatorCard extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
                     color: _primaryDark,
-                    fontSize: 8.5,
+                    fontSize: 11,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
-                Text(
-                  '★ $rating  (12.5K)',
-                  style: const TextStyle(
-                    color: Color(0xFFE89B26),
-                    fontSize: 6.5,
-                    fontWeight: FontWeight.w600,
+                const SizedBox(height: 4),
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerLeft,
+                  child: Row(
+                    children: [
+                      Text(
+                        '★ $rating',
+                        style: const TextStyle(
+                          color: Color(0xFFE89B26),
+                          fontSize: 9,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      const Text(
+                        '(12.5K đánh giá)',
+                        style: TextStyle(color: _secondary, fontSize: 7.5),
+                      ),
+                    ],
                   ),
-                ),
-                const Spacer(),
-                const Text(
-                  'TP.HCM → Đà Lạt',
-                  maxLines: 1,
-                  style: TextStyle(color: _secondary, fontSize: 6.6),
-                ),
-                const Text(
-                  'TP.HCM → Nha Trang',
-                  maxLines: 1,
-                  style: TextStyle(color: _secondary, fontSize: 6.6),
                 ),
               ],
             ),
@@ -1963,6 +1949,7 @@ class _ArticlesSection extends StatelessWidget {
         children: articles
             .map(
               (item) => _ArticleCard(
+                key: ValueKey('home-article-${item.$3}'),
                 category: item.$1,
                 title: item.$2,
                 asset: item.$3,
@@ -1979,6 +1966,7 @@ class _ArticleCard extends StatelessWidget {
     required this.category,
     required this.title,
     required this.asset,
+    super.key,
   });
 
   final String category;
@@ -1988,10 +1976,10 @@ class _ArticleCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: 127,
-      height: 64,
+      width: 154,
+      height: 86,
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(7),
+        borderRadius: BorderRadius.circular(12),
         child: Stack(
           fit: StackFit.expand,
           children: [
@@ -2006,8 +1994,8 @@ class _ArticleCard extends StatelessWidget {
               ),
             ),
             Positioned(
-              left: 7,
-              top: 5,
+              left: 9,
+              top: 7,
               child: DecoratedBox(
                 decoration: BoxDecoration(
                   color: Colors.white,
@@ -2022,7 +2010,7 @@ class _ArticleCard extends StatelessWidget {
                     category,
                     style: const TextStyle(
                       color: _primaryDark,
-                      fontSize: 5.7,
+                      fontSize: 7,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -2030,16 +2018,16 @@ class _ArticleCard extends StatelessWidget {
               ),
             ),
             Positioned(
-              left: 7,
-              right: 5,
-              bottom: 5,
+              left: 9,
+              right: 7,
+              bottom: 7,
               child: Text(
                 title,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
                 style: const TextStyle(
                   color: Colors.white,
-                  fontSize: 8.5,
+                  fontSize: 10,
                   height: 1.3,
                   fontWeight: FontWeight.w600,
                 ),

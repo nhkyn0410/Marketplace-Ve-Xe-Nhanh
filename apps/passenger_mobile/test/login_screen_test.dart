@@ -28,6 +28,10 @@ void main() {
     expect(find.text('Email'), findsOneWidget);
     expect(find.text('Tiếp tục'), findsOneWidget);
     expect(find.byKey(const Key('email-field')), findsOneWidget);
+    final transition = tester.widget<AnimatedSwitcher>(
+      find.byKey(const Key('auth-flow-transition')),
+    );
+    expect(transition.duration, const Duration(milliseconds: 420));
 
     // OTP chỉ xuất hiện sau khi request API thành công.
     expect(find.text('Mã OTP (6 chữ số)'), findsNothing);

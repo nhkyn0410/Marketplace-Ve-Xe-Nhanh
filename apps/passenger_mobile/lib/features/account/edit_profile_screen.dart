@@ -212,7 +212,7 @@ class _EditProfileFormState extends State<_EditProfileForm> {
               child: Column(
                 children: [
                   SizedBox(
-                    height: 226,
+                    height: 269,
                     child: Stack(
                       clipBehavior: Clip.none,
                       children: [
@@ -294,6 +294,7 @@ class _EditProfileFormState extends State<_EditProfileForm> {
                     ),
                   ),
                   Container(
+                    key: const Key('edit-profile-form-card'),
                     margin: const EdgeInsets.symmetric(horizontal: 13),
                     padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
                     decoration: BoxDecoration(

@@ -61,6 +61,11 @@ void main() {
       find.byKey(const Key('passenger-default-avatar')),
     );
     expect((avatar.image as AssetImage).assetName, passengerDefaultAvatarAsset);
+    final avatarRect = tester.getRect(find.byType(PassengerAvatar));
+    final formRect = tester.getRect(
+      find.byKey(const Key('edit-profile-form-card')),
+    );
+    expect(formRect.top - avatarRect.bottom, 12);
     expect(find.text('Giới tính'), findsNothing);
     expect(find.text('Địa chỉ liên hệ'), findsNothing);
     expect(tester.takeException(), isNull);

@@ -7,8 +7,10 @@ import 'package:mobile_shared/mobile_shared.dart';
 import 'package:passenger_mobile/features/account/account_screen.dart';
 import 'package:passenger_mobile/features/account/edit_profile_screen.dart';
 import 'package:passenger_mobile/features/account/my_reviews_screen.dart';
+import 'package:passenger_mobile/features/account/notification_settings_screen.dart';
 import 'package:passenger_mobile/features/account/point_history_screen.dart';
 import 'package:passenger_mobile/features/account/saved_passengers_screen.dart';
+import 'package:passenger_mobile/features/account/login_sessions_screen.dart';
 import 'package:passenger_mobile/features/account/voucher_wallet_screen.dart';
 import 'package:passenger_mobile/features/auth/auth_screen.dart';
 import 'package:passenger_mobile/features/auth/google_auth_service.dart';
@@ -97,6 +99,8 @@ enum _AccountView {
   vouchers,
   points,
   reviews,
+  notificationSettings,
+  loginSessions,
 }
 
 class _PopularRouteSpec {
@@ -501,7 +505,7 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
     if (page == null) {
       throw StateError('Voucher response did not contain data.');
     }
-    return page.items
+    final vouchers = page.items
         .map(
           (item) => VoucherWalletItem(
             id: item.userVoucherId,
@@ -520,13 +524,17 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
           ),
         )
         .toList(growable: false);
+    // Fixture Figma chỉ lấp dữ liệu rỗng khi chạy debug để đối chiếu UI.
+    return vouchers.isEmpty && kDebugMode ? figmaVoucherSamples : vouchers;
   }
 
   Future<MyReviewsData> _loadMyReviews() async {
     // API hiện chỉ hỗ trợ GET/POST đánh giá theo từng bookingId. Không gọi
-    // N+1 qua lịch sử booking; trả trạng thái rỗng cho đến khi có endpoint
-    // danh sách dành riêng cho Passenger.
-    return const MyReviewsData(pending: [], reviewed: []);
+    // N+1 qua lịch sử booking. Fixture Figma chỉ hiển thị ở debug; release
+    // vẫn trả trạng thái rỗng cho đến khi có endpoint danh sách Passenger.
+    return kDebugMode
+        ? figmaMyReviewsSample
+        : const MyReviewsData(pending: [], reviewed: []);
   }
 
   Future<bool> _submitReview(String bookingId, ReviewSubmission input) {
@@ -581,6 +589,10 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
     if (member == null || transactions == null) {
       throw StateError('Point history response did not contain data.');
     }
+    // Release giữ đúng empty state từ API; debug dùng fixture để duyệt giao diện.
+    if (transactions.items.isEmpty && kDebugMode) {
+      return figmaPointHistorySample(query);
+    }
     return PointHistoryData(
       availablePoints: member.availablePoints,
       earnedPoints: transactions.totals.earned,
@@ -617,7 +629,9 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
   };
 
   (DateTime?, DateTime?) _pointDateRange(PointDateFilter filter) {
-    if (filter == PointDateFilter.all) return (null, null);
+    if (filter == PointDateFilter.all || filter == PointDateFilter.custom) {
+      return (null, null);
+    }
     final now = DateTime.now();
     final currentMonth = DateTime.utc(now.year, now.month);
     return switch (filter) {
@@ -634,7 +648,7 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
         DateTime.utc(now.year, now.month - 5),
         DateTime.now().toUtc(),
       ),
-      PointDateFilter.all => (null, null),
+      PointDateFilter.all || PointDateFilter.custom => (null, null),
     };
   }
 
@@ -881,6 +895,35 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
 
   @override
   Widget build(BuildContext context) {
+    final disableAnimations = MediaQuery.disableAnimationsOf(context);
+    return AnimatedSwitcher(
+      key: const Key('auth-flow-transition'),
+      duration: disableAnimations
+          ? Duration.zero
+          : const Duration(milliseconds: 420),
+      reverseDuration: disableAnimations
+          ? Duration.zero
+          : const Duration(milliseconds: 300),
+      switchInCurve: Curves.easeOutCubic,
+      switchOutCurve: Curves.easeInCubic,
+      transitionBuilder: (child, animation) => FadeTransition(
+        opacity: animation,
+        child: SlideTransition(
+          position: Tween<Offset>(
+            begin: const Offset(0, .025),
+            end: Offset.zero,
+          ).animate(animation),
+          child: child,
+        ),
+      ),
+      child: KeyedSubtree(
+        key: ValueKey('auth-step-${_step.name}'),
+        child: _buildCurrentView(context),
+      ),
+    );
+  }
+
+  Widget _buildCurrentView(BuildContext context) {
     if (_step == _AuthStep.signedIn) {
       if (_currentTab == 4) {
         if (_accountView == _AccountView.savedPassengers) {
@@ -948,6 +991,22 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
             }),
           );
         }
+        if (_accountView == _AccountView.notificationSettings) {
+          return NotificationSettingsScreen(
+            onBack: () => setState(() {
+              _accountView = _AccountView.overview;
+              _error = null;
+            }),
+          );
+        }
+        if (_accountView == _AccountView.loginSessions) {
+          return LoginSessionsScreen(
+            onBack: () => setState(() {
+              _accountView = _AccountView.overview;
+              _error = null;
+            }),
+          );
+        }
         return AccountScreen(
           loadOverview: _loadAccountOverview,
           onLogout: _logout,
@@ -970,6 +1029,14 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
           }),
           onMyReviews: () => setState(() {
             _accountView = _AccountView.reviews;
+            _error = null;
+          }),
+          onNotificationSettings: () => setState(() {
+            _accountView = _AccountView.notificationSettings;
+            _error = null;
+          }),
+          onLoginSessions: () => setState(() {
+            _accountView = _AccountView.loginSessions;
             _error = null;
           }),
           logoutErrorMessage: _error,

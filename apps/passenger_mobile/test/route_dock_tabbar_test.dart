@@ -36,15 +36,20 @@ Future<void> _pumpDock(
 }
 
 void main() {
-  testWidgets('dock chiếm toàn bộ chiều rộng trên các màn hình điện thoại', (
+  testWidgets('dock bám kích thước Figma và căn giữa trên màn hình rộng', (
     tester,
   ) async {
     for (final width in <double>[320, 360, 390, 430, 480]) {
       await _pumpDock(tester, width: width);
 
       final rect = tester.getRect(find.byKey(const Key('route-dock-tabbar')));
-      expect(rect.left, 0, reason: 'viewport $width dp');
-      expect(rect.right, width, reason: 'viewport $width dp');
+      final expectedWidth = width > 390 ? 390.0 : width;
+      expect(rect.width, expectedWidth, reason: 'viewport $width dp');
+      expect(
+        rect.left,
+        (width - expectedWidth) / 2,
+        reason: 'viewport $width dp',
+      );
       expect(rect.bottom, 800, reason: 'viewport $width dp');
       expect(tester.takeException(), isNull, reason: 'viewport $width dp');
     }
@@ -81,13 +86,42 @@ void main() {
       final decoration = surface.decoration as BoxDecoration;
       final rect = tester.getRect(surfaceFinder);
 
-      expect(rect, const Rect.fromLTWH(4, 712, 382, 80));
+      expect(rect, const Rect.fromLTWH(0, 712, 390, 76));
       expect(
         decoration.borderRadius,
-        const BorderRadius.all(Radius.circular(26)),
+        const BorderRadius.all(Radius.circular(30)),
       );
       expect(decoration.color, Colors.white);
       expect(tester.takeException(), isNull);
     }
+  });
+
+  testWidgets('icon, nhãn và bubble giữ đúng kích thước Figma', (tester) async {
+    await _pumpDock(tester, width: 320, currentIndex: 4);
+
+    for (var index = 0; index < 5; index++) {
+      expect(
+        tester.getSize(find.byKey(Key('route-dock-icon-$index'))),
+        const Size.square(24),
+      );
+      final iconRect = tester.getRect(
+        find.byKey(Key('route-dock-icon-$index')),
+      );
+      final labelRect = tester.getRect(
+        find.byKey(Key('route-dock-label-$index')),
+      );
+      expect(labelRect.top - iconRect.bottom, closeTo(7, .01));
+    }
+    expect(
+      tester.getSize(find.byKey(const Key('route-dock-active-bubble'))),
+      const Size.square(58),
+    );
+
+    await _pumpDock(tester, width: 390, currentIndex: 2);
+    expect(
+      tester.getSize(find.byKey(const Key('route-dock-active-bubble'))),
+      const Size.square(64),
+    );
+    expect(tester.takeException(), isNull);
   });
 }
