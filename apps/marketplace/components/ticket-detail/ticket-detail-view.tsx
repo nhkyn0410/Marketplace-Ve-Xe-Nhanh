@@ -9,6 +9,7 @@ import { TicketBoardingRules } from "./ticket-boarding-rules";
 import { TicketPaymentSidebar } from "./ticket-payment-sidebar";
 import { TicketCancelDialog } from "./ticket-cancel-dialog";
 import type { TicketDetailData } from "../../lib/data/types";
+import { PassengerTopBar } from "../passenger-topbar";
 
 /**
  * Thuộc tính của TicketDetailView
@@ -46,7 +47,9 @@ export const TicketDetailView: React.FC<TicketDetailViewProps> = ({
   };
 
   return (
-    <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-8 max-w-6xl space-y-6">
+    <>
+      <PassengerTopBar breadcrumbs={[{ label: "Trang chủ", href: "/" }, { label: "Hành trình", href: "/my-tickets" }, { label: ticketDetail.bookingCode }]} />
+      <div className="mx-auto w-full max-w-[1200px] space-y-6 px-4 py-6 sm:px-6 sm:py-8 lg:px-14">
       {/* Tiêu đề & thanh hành động */}
       <TicketDetailHeader
         bookingCode={ticketDetail.bookingCode}
@@ -100,5 +103,6 @@ export const TicketDetailView: React.FC<TicketDetailViewProps> = ({
         tickets={ticketDetail.tickets}
       />
     </div>
+    </>
   );
 };
