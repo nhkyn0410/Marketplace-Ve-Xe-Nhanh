@@ -54,7 +54,7 @@ export const RegisterView: React.FC<RegisterViewProps> = ({
     setErrorMessage(null);
 
     if (isPreview) {
-      router.push(`/verify-email?email=${encodeURIComponent(email)}&preview=ideal`);
+      router.push(`/verify-email?email=${encodeURIComponent(email)}&flow=register&preview=ideal`);
       return;
     }
 
@@ -62,7 +62,7 @@ export const RegisterView: React.FC<RegisterViewProps> = ({
     try {
       const res = await registerAccount({ email });
       if (res.status === "ok") {
-        router.push(`/verify-email?email=${encodeURIComponent(res.data.email)}`);
+        router.push(`/verify-email?email=${encodeURIComponent(res.data.email)}&flow=register`);
       } else if (res.status === "unavailable") {
         setErrorMessage("Chưa thể tạo tài khoản. Vui lòng thử lại sau.");
       } else if (res.status === "error") {

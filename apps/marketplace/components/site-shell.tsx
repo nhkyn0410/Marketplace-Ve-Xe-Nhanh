@@ -99,7 +99,7 @@ export function SiteShell({ children }: { readonly children: ReactNode }) {
 }
 
 /** Các màn xác thực là modal phủ kín màn hình (Figma SCR-PSG-07..10) nên không có footer. */
-const AUTH_ROUTES = ["/login", "/register", "/verify-email", "/auth/callback"];
+const AUTH_ROUTES = ["/login", "/register", "/register/profile", "/verify-email", "/auth/callback"];
 
 /**
  * Điều khiển hiển thị footer: ẩn footer khi ở các màn hình lỗi theo thiết kế Figma SCR-PSG-05 và các màn xác thực.

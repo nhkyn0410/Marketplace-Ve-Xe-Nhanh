@@ -24,6 +24,8 @@ export interface VerifyEmailViewProps {
   readonly initialData?: VerifyEmailData;
   readonly isPreview?: boolean;
   readonly variant?: AuthModalVariant;
+  /** "register": vừa tạo tài khoản → sau OTP chuyển sang bước 2 Hoàn thiện hồ sơ. */
+  readonly flow?: "login" | "register";
 }
 
 /**
@@ -38,7 +40,8 @@ export const VerifyEmailView: React.FC<VerifyEmailViewProps> = ({
     remainingAttempts: 5
   },
   isPreview = false,
-  variant = "page"
+  variant = "page",
+  flow = "login"
 }) => {
   const router = useRouter();
   const email = initialData.email ?? "";
@@ -113,7 +116,7 @@ export const VerifyEmailView: React.FC<VerifyEmailViewProps> = ({
     setErrorMessage(null);
 
     if (isPreview) {
-      router.push("/account?preview=ideal");
+      router.push(flow === "register" ? "/register/profile?preview=ideal" : "/account?preview=ideal");
       return;
     }
 
@@ -124,7 +127,7 @@ export const VerifyEmailView: React.FC<VerifyEmailViewProps> = ({
         otp: digits.join("")
       });
       if (res.status === "ok") {
-        router.push("/account");
+        router.push(flow === "register" ? "/register/profile" : "/account");
         router.refresh();
       } else if (res.status === "unavailable") {
         setErrorMessage("Chưa thể xác minh mã. Vui lòng thử lại sau.");
@@ -164,7 +167,7 @@ export const VerifyEmailView: React.FC<VerifyEmailViewProps> = ({
       variant={variant}
       topLeft={
         <Link
-          href={isPreview ? "/login?preview=ideal" : "/login"}
+          href={`${flow === "register" ? "/register" : "/login"}${isPreview ? "?preview=ideal" : ""}`}
           className="inline-flex items-center gap-1.5 text-[13px] font-medium text-vxn-teal-500 hover:underline"
         >
           <ArrowLeft className="size-4" />
