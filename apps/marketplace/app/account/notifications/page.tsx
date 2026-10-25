@@ -11,7 +11,7 @@ import { FeatureUnavailable } from "../../../components/states/feature-unavailab
 import { AccountSignInRequired } from "../../../components/account/account-sign-in-required";
 
 export const metadata: Metadata = {
-  title: "Cài đặt thông báo | Vé Xe Nhanh",
+  title: "Cài đặt thông báo",
   description: "Tùy chỉnh kênh nhận thông báo chuyến đi, ví voucher và cập nhật hệ thống qua Email hoặc Push."
 };
 

@@ -10,7 +10,7 @@ import { FeatureUnavailable, ErrorState } from "../../../components/states";
 import { CheckoutFormView } from "../../../components/checkout/checkout-form-view";
 
 export const metadata: Metadata = {
-  title: "Thông tin hành khách & Đặt vé | Vé Xe Nhanh",
+  title: "Thông tin hành khách & Đặt vé",
   description: "Xác nhận điểm đón trả, nhập thông tin hành khách và áp dụng mã ưu đãi."
 };
 

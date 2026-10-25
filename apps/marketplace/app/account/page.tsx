@@ -8,7 +8,7 @@ import { FeatureUnavailable } from "../../components/states/feature-unavailable"
 import { AccountSignInRequired } from "../../components/account/account-sign-in-required";
 
 export const metadata: Metadata = {
-  title: "Tài khoản của tôi | Vé Xe Nhanh",
+  title: "Tài khoản của tôi",
   description: "Quản lý thông tin cá nhân, sổ hành khách, điểm thưởng thành viên và phương thức đăng nhập bảo mật."
 };
 

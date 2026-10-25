@@ -7,7 +7,7 @@ import { verifyEmailFixture } from "../../lib/preview/fixtures/auth";
 import { VerifyEmailView } from "../../components/auth/verify-email-view";
 
 export const metadata: Metadata = {
-  title: "Xác minh mã OTP | Vé Xe Nhanh",
+  title: "Xác minh mã OTP",
   description: "Nhập mã xác minh gồm 6 chữ số gửi qua email để hoàn tất đăng nhập hoặc tạo tài khoản."
 };
 

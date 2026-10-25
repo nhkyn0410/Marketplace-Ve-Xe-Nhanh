@@ -5,7 +5,7 @@ import { loginFixture } from "../../lib/preview/fixtures/auth";
 import { LoginView } from "../../components/auth/login-view";
 
 export const metadata: Metadata = {
-  title: "Đăng nhập | Vé Xe Nhanh",
+  title: "Đăng nhập",
   description: "Đăng nhập tài khoản hành khách bằng email để quản lý vé xe, hành trình và ví voucher."
 };
 

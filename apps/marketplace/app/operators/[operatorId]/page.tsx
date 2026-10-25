@@ -11,7 +11,7 @@ import { OperatorFeaturedRoutes } from "../../../components/operators/operator-f
 import { OperatorReviewsAndTerms } from "../../../components/operators/operator-reviews-and-terms";
 
 export const metadata: Metadata = {
-  title: "Thông tin nhà xe | Vé Xe Nhanh",
+  title: "Thông tin nhà xe",
   description: "Xem đánh giá, tuyến đường và chỉ số chất lượng của nhà xe đối tác trên Vé Xe Nhanh."
 };
 

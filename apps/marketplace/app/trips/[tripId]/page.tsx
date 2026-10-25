@@ -14,7 +14,7 @@ import { TripReviews } from "../../../components/trips/detail/trip-reviews";
 import { TripBookingSidebar } from "../../../components/trips/detail/trip-booking-sidebar";
 
 export const metadata: Metadata = {
-  title: "Chi tiết chuyến xe | Vé Xe Nhanh",
+  title: "Chi tiết chuyến xe",
   description: "Xem chi tiết chuyến xe, lịch trình, giá vé và tiện ích trên Vé Xe Nhanh."
 };
 

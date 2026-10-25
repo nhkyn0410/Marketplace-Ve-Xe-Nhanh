@@ -7,7 +7,7 @@ import { TicketDetailView } from "../../../components/ticket-detail/ticket-detai
 import { FeatureUnavailable, ErrorState } from "../../../components/states";
 
 export const metadata: Metadata = {
-  title: "Chi tiết vé | VeXeNhanh",
+  title: "Chi tiết vé",
   description: "Thông tin chi tiết vé xe điện tử, mã QR soát vé và hướng dẫn lên xe."
 };
 

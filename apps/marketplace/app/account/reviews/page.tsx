@@ -11,7 +11,7 @@ import { FeatureUnavailable } from "../../../components/states/feature-unavailab
 import { AccountSignInRequired } from "../../../components/account/account-sign-in-required";
 
 export const metadata: Metadata = {
-  title: "Đánh giá của tôi | Vé Xe Nhanh",
+  title: "Đánh giá của tôi",
   description: "Đánh giá chất lượng các chuyến xe đã hoàn thành và xem lại lịch sử nhận xét của bạn."
 };
 

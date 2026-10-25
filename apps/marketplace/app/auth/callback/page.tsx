@@ -6,7 +6,7 @@ import { oauthCallbackFixture } from "../../../lib/preview/fixtures/auth";
 import { OAuthCallbackView } from "../../../components/auth/oauth-callback-view";
 
 export const metadata: Metadata = {
-  title: "Đang xác thực OAuth | Vé Xe Nhanh",
+  title: "Đang xác thực OAuth",
   description: "Xử lý đăng nhập thông qua tài khoản mạng xã hội liên kết."
 };
 

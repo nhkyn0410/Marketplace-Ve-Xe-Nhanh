@@ -10,7 +10,7 @@ import { FeatureUnavailable, ErrorState } from "../../../../components/states";
 import { SeatSelectionView } from "../../../../components/booking/seat-selection-view";
 
 export const metadata: Metadata = {
-  title: "Chọn ghế & Điểm đón trả | Vé Xe Nhanh",
+  title: "Chọn ghế & Điểm đón trả",
   description: "Chọn điểm đón trả và chỗ ngồi trên chuyến xe khách chất lượng cao."
 };
 

@@ -11,7 +11,7 @@ import { FeatureUnavailable, ErrorState } from "../../../../../components/states
 import { PaymentResultView } from "../../../../../components/payment-result/payment-result-view";
 
 export const metadata: Metadata = {
-  title: "Kết quả thanh toán | Vé Xe Nhanh",
+  title: "Kết quả thanh toán",
   description: "Trạng thái giao dịch thanh toán vé xe trực tuyến và thông tin vé điện tử."
 };
 

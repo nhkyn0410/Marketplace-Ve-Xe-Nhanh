@@ -11,7 +11,7 @@ import { FeatureUnavailable, ErrorState } from "../../../../components/states";
 import { PaymentPageView } from "../../../../components/payment/payment-page-view";
 
 export const metadata: Metadata = {
-  title: "Thanh toán vé xe | Vé Xe Nhanh",
+  title: "Thanh toán vé xe",
   description: "Chọn phương thức thanh toán VNPay, MoMo và hoàn tất mua vé trực tuyến an toàn."
 };
 

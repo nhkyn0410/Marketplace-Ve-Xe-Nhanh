@@ -10,7 +10,7 @@ import { FeatureUnavailable, ErrorState } from "../../components/states";
 import { MyTicketsView } from "../../components/my-tickets/my-tickets-view";
 
 export const metadata: Metadata = {
-  title: "Hành trình của tôi | Vé Xe Nhanh",
+  title: "Hành trình của tôi",
   description: "Xem vé đã đặt, theo dõi hoàn tiền và đánh giá các chuyến xe đã đi."
 };
 

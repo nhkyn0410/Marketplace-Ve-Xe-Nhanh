@@ -5,7 +5,7 @@ import { registerFixture } from "../../lib/preview/fixtures/auth";
 import { RegisterView } from "../../components/auth/register-view";
 
 export const metadata: Metadata = {
-  title: "Tạo tài khoản | Vé Xe Nhanh",
+  title: "Tạo tài khoản",
   description: "Tạo tài khoản hành khách Vé Xe Nhanh để lưu thông tin vé, tích điểm thành viên và nhận ưu đãi độc quyền."
 };
 

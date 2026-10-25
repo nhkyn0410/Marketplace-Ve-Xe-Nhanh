@@ -5,7 +5,7 @@ import { ticketLookupIdealFixture } from "../../../lib/preview/fixtures/tickets"
 import { LookupView } from "../../../components/tickets/lookup/lookup-view";
 
 export const metadata: Metadata = {
-  title: "Tra cứu vé | VeXeNhanh",
+  title: "Tra cứu vé",
   description: "Tra cứu thông tin vé xe đã đặt bằng mã đặt vé và email mà không cần đăng nhập."
 };
 
