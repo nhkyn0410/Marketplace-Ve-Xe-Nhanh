@@ -94,6 +94,7 @@ flutter:
     - assets/home/articles/da_lat_coach_guide.jpg
     - assets/home/support/
     - assets/home/tabbar/
+    - assets/ticket/
     - assets/account/
     - assets/account/saved_passengers/
     - assets/account/vouchers/

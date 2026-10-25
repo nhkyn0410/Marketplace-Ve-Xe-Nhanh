@@ -17,6 +17,7 @@ import 'package:passenger_mobile/features/auth/google_auth_service.dart';
 import 'package:passenger_mobile/features/home/home_models.dart';
 import 'package:passenger_mobile/features/home/home_screen.dart';
 import 'package:passenger_mobile/features/home/route_dock_tabbar.dart';
+import 'package:passenger_mobile/features/ticket/ticket_screen.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 /// Origin của API — KHÔNG kèm `/v1`.
@@ -748,7 +749,9 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
   }
 
   void _selectMainTab(int index) {
-    if (index == 2 || index == 4) {
+    if (index == 1 ||
+        index == 2 ||
+        (index == 4 && _step == _AuthStep.signedIn)) {
       setState(() {
         _currentTab = index;
         _accountView = _AccountView.overview;
@@ -924,6 +927,10 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
   }
 
   Widget _buildCurrentView(BuildContext context) {
+    if ((_step == _AuthStep.signedIn || _step == _AuthStep.guest) &&
+        _currentTab == 1) {
+      return TicketScreen(onTabSelected: _selectMainTab);
+    }
     if (_step == _AuthStep.signedIn) {
       if (_currentTab == 4) {
         if (_accountView == _AccountView.savedPassengers) {
@@ -1094,7 +1101,7 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
       onSearch: _searchHomeTrips,
       onCallHotline: _launchSupportHotline,
       onLoginRequested: isLoggedIn ? null : _returnToLogin,
-      onTabSelected: isLoggedIn ? _selectMainTab : null,
+      onTabSelected: _selectMainTab,
     );
   }
 }
