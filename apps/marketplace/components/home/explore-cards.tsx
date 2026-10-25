@@ -12,7 +12,7 @@ import Link from "next/link";
 export function ExploreCardsSection() {
   return (
     <section className="pt-8 pb-4">
-      <div className="mx-auto w-full max-w-[1120px] px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto w-full max-w-[1200px] px-4 sm:px-6 lg:px-14">
         {/* Tiêu đề & Link */}
         <div className="flex items-end justify-between pb-5">
           <div>
@@ -89,7 +89,7 @@ export function ExploreCardsSection() {
 
       {/* Dải 4 ưu điểm nền tảng trên nền xanh nhạt chuẩn Figma */}
       <div className="mt-8 bg-[#f4f8fb] py-8">
-        <div className="mx-auto grid w-full max-w-[1120px] grid-cols-1 gap-6 px-4 sm:grid-cols-2 sm:px-6 lg:grid-cols-4 lg:px-8">
+        <div className="mx-auto grid w-full max-w-[1200px] grid-cols-1 gap-6 px-4 sm:grid-cols-2 sm:px-6 lg:grid-cols-4 lg:px-14">
           {/* Lợi ích 1 */}
           <div className="flex items-start gap-3.5">
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-slate-200/80 bg-white text-[#00506a] shadow-2xs">

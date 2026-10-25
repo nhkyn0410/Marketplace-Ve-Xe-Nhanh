@@ -27,7 +27,7 @@ export function PlusAndGuideSection({
   isUnavailable = false
 }: PlusAndGuideSectionProps) {
   return (
-    <section className="mx-auto w-full max-w-[1120px] px-4 pt-4 pb-14 sm:px-6 lg:px-8">
+    <section className="mx-auto w-full max-w-[1200px] px-4 pt-4 pb-14 sm:px-6 lg:px-14">
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-12 lg:items-center">
         {/* Banner VXN Plus bên trái (7 cột) */}
         <div className="flex flex-col justify-between rounded-2xl bg-gradient-to-br from-[#dff3fa] via-[#e4f9eb] to-[#f8f5d7] p-7 sm:p-8 lg:col-span-7">

@@ -57,7 +57,7 @@ export default async function MyTicketsPage({ searchParams }: MyTicketsPageProps
     return (
       <div className="flex-1 bg-neutral-50/40 pb-16">
         <PassengerTopBar breadcrumbs={breadcrumbs} />
-        <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+        <div className="mx-auto w-full max-w-[1200px] px-4 py-12 sm:px-6 lg:px-14">
           <FeatureUnavailable
             endpoint={result.endpoint}
             title="Danh sách vé đang được đồng bộ"
@@ -72,7 +72,7 @@ export default async function MyTicketsPage({ searchParams }: MyTicketsPageProps
     return (
       <div className="flex-1 bg-neutral-50/40 pb-16">
         <PassengerTopBar breadcrumbs={breadcrumbs} />
-        <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+        <div className="mx-auto w-full max-w-[1200px] px-4 py-12 sm:px-6 lg:px-14">
           <ErrorState
             title="Không thể tải danh sách vé"
             description="Đã xảy ra lỗi khi kết nối tới máy chủ. Vui lòng thử lại sau."

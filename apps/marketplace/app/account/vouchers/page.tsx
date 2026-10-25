@@ -38,7 +38,7 @@ export default async function AccountVouchersPage(props: AccountVouchersPageProp
     return (
       <div className="min-h-viewport bg-[#f9f9ff]">
         {topBarHeader}
-        <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+        <main className="mx-auto w-full max-w-[1200px] px-4 py-8 sm:px-6 lg:px-14">
           <VouchersView vouchersData={userVouchersFixture} isPreview />
         </main>
       </div>
@@ -52,7 +52,7 @@ export default async function AccountVouchersPage(props: AccountVouchersPageProp
     return (
       <div className="min-h-viewport bg-[#f9f9ff]">
         {topBarHeader}
-        <main className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+        <main className="mx-auto w-full max-w-[1200px] px-4 py-12 sm:px-6 lg:px-14">
           <FeatureUnavailable
             title="Ví voucher chưa sẵn sàng"
             description="Ví voucher hiện chưa khả dụng. Vui lòng quay lại sau."
@@ -68,7 +68,7 @@ export default async function AccountVouchersPage(props: AccountVouchersPageProp
     return (
       <div className="min-h-viewport bg-[#f9f9ff]">
         {topBarHeader}
-        <main className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+        <main className="mx-auto w-full max-w-[1200px] px-4 py-12 sm:px-6 lg:px-14">
           <ErrorState
             title="Không thể tải ví voucher"
             description={result.message}
@@ -81,7 +81,7 @@ export default async function AccountVouchersPage(props: AccountVouchersPageProp
   return (
     <div className="min-h-viewport bg-[#f9f9ff]">
       {topBarHeader}
-      <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+      <main className="mx-auto w-full max-w-[1200px] px-4 py-8 sm:px-6 lg:px-14">
         <VouchersView vouchersData={result.data} />
       </main>
     </div>

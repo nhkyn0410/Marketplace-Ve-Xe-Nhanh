@@ -17,11 +17,11 @@ export function ArticleDetailView({ article, isPreview = false }: ArticleDetailV
   return (
     <div className="min-h-viewport bg-[#f9f9ff] pb-16">
       <div className="border-b border-[#e5e9f0] bg-white">
-        <nav aria-label="Breadcrumb" className="mx-auto flex max-w-7xl flex-wrap items-center gap-1.5 px-4 py-3 text-xs text-[#64748b] sm:px-6 lg:px-8">
+        <nav aria-label="Breadcrumb" className="mx-auto w-full flex max-w-[1200px] flex-wrap items-center gap-1.5 px-4 py-3 text-xs text-[#64748b] sm:px-6 lg:px-14">
           <Link href="/">Trang chủ</Link><ChevronRight className="h-3 w-3" /><Link href="/explore">Khám phá</Link><ChevronRight className="h-3 w-3" /><Link href={categoryHref}>{article.category}</Link><ChevronRight className="h-3 w-3" /><span className="line-clamp-1 max-w-md font-medium text-[#1e293b]">{article.title}</span>
         </nav>
       </div>
-      <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+      <main className="mx-auto w-full max-w-[1200px] px-4 py-6 sm:px-6 lg:px-14">
         <Link href="/explore" className="mb-5 inline-flex items-center gap-1.5 text-sm text-primary hover:underline"><ArrowLeft className="h-4 w-4" />Tất cả bài viết</Link>
         <div className="grid grid-cols-1 items-start gap-8 lg:grid-cols-12">
           <article className="space-y-6 lg:col-span-8">

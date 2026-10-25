@@ -47,7 +47,7 @@ export function LegalView({
     <div className="bg-[#f9f9ff] min-h-viewport pb-16">
       {/* Thanh điều hướng breadcrumb */}
       <div className="border-b border-[#e5e9f0] bg-white">
-        <div className="mx-auto max-w-7xl px-4 py-3 sm:px-6 lg:px-8">
+        <div className="mx-auto w-full max-w-[1200px] px-4 py-3 sm:px-6 lg:px-14">
           <nav aria-label="Breadcrumb" className="flex items-center text-xs text-[#64748b] flex-wrap gap-1.5">
             <Link href="/" className="hover:text-primary transition-colors">
               Trang chủ
@@ -58,7 +58,7 @@ export function LegalView({
         </div>
       </div>
 
-      <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8 space-y-6">
+      <main className="mx-auto w-full max-w-[1200px] px-4 py-6 sm:px-6 lg:px-14 space-y-6">
         {/* Tabs chuyển đổi văn bản pháp lý */}
         {tabs.length > 0 && <div className="inline-flex flex-wrap p-1 bg-[#f1f5f9] rounded-xl gap-1 text-xs sm:text-sm font-medium">
           {tabs.map((tab) => {

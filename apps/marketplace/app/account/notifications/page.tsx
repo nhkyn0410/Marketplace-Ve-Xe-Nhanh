@@ -49,7 +49,7 @@ export default async function AccountNotificationsPage({
 
   if (settingsRes.status === "unavailable") {
     return (
-      <div className="container mx-auto px-4 sm:px-6 py-10 max-w-7xl">
+      <div className="mx-auto w-full px-4 sm:px-6 py-10 max-w-[1200px] lg:px-14">
         <FeatureUnavailable
           title="Cài đặt thông báo"
           description="Cài đặt thông báo hiện chưa khả dụng. Vui lòng thử lại sau."
@@ -61,7 +61,7 @@ export default async function AccountNotificationsPage({
   if (settingsRes.status === "error") {
     if (settingsRes.httpStatus === 401) return <AccountSignInRequired />;
     return (
-      <div className="container mx-auto px-4 sm:px-6 py-10 max-w-7xl">
+      <div className="mx-auto w-full px-4 sm:px-6 py-10 max-w-[1200px] lg:px-14">
         <FeatureUnavailable
           title="Cài đặt thông báo"
           description={settingsRes.message ?? "Không thể tải cài đặt thông báo."}

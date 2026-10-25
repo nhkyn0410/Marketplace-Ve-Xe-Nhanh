@@ -54,7 +54,7 @@ export default async function TripDetailPage(props: PageProps) {
     return (
       <div className="min-h-viewport bg-[#f9f9ff]">
         {topBarHeader}
-        <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6">
+        <main className="mx-auto w-full max-w-[1200px] px-4 sm:px-6 lg:px-14 py-6">
           {/* Lưới 2 cột: Cột nội dung chi tiết (8) & Cột tóm tắt đặt vé (4) */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
             {/* Cột trái */}
@@ -95,7 +95,7 @@ export default async function TripDetailPage(props: PageProps) {
     return (
       <div className="min-h-viewport bg-[#f9f9ff]">
         {topBarHeader}
-        <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12">
+        <main className="mx-auto w-full max-w-[1200px] px-4 sm:px-6 lg:px-14 py-12">
           <FeatureUnavailable
             title="Chi tiết chuyến xe"
             endpoint={result.endpoint}
@@ -111,7 +111,7 @@ export default async function TripDetailPage(props: PageProps) {
   return (
     <div className="min-h-viewport bg-[#f9f9ff]">
       {topBarHeader}
-      <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6">
+      <main className="mx-auto w-full max-w-[1200px] px-4 sm:px-6 lg:px-14 py-6">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           <div className="lg:col-span-8 space-y-6">
             <TripDetailHeader trip={trip} />

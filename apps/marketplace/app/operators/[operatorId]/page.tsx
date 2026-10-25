@@ -48,7 +48,7 @@ export default async function OperatorDetailPage(props: PageProps) {
     return (
       <div className="min-h-viewport bg-[#f9f9ff]">
         {topBarHeader(operator.name)}
-        <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6 space-y-8">
+        <main className="mx-auto w-full max-w-[1200px] px-4 sm:px-6 lg:px-14 py-6 space-y-8">
           <OperatorHeader operator={operator} />
           <OperatorMetrics metrics={operator.metrics} />
           <OperatorFeaturedRoutes routes={operator.featuredRoutes} />
@@ -69,7 +69,7 @@ export default async function OperatorDetailPage(props: PageProps) {
     return (
       <div className="min-h-viewport bg-[#f9f9ff]">
         {topBarHeader("Hồ sơ nhà xe")}
-        <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12">
+        <main className="mx-auto w-full max-w-[1200px] px-4 sm:px-6 lg:px-14 py-12">
           <FeatureUnavailable
             title="Không thể tải hồ sơ nhà xe"
             description={result.status === "error" ? result.message : undefined}
@@ -84,7 +84,7 @@ export default async function OperatorDetailPage(props: PageProps) {
   return (
     <div className="min-h-viewport bg-[#f9f9ff]">
       {topBarHeader(operator.name)}
-      <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6 space-y-8">
+      <main className="mx-auto w-full max-w-[1200px] px-4 sm:px-6 lg:px-14 py-6 space-y-8">
         <OperatorHeader operator={operator} />
         <OperatorMetrics metrics={operator.metrics} />
         <OperatorFeaturedRoutes routes={operator.featuredRoutes} />

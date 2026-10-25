@@ -143,7 +143,7 @@ export const AccountSessionsView: React.FC<AccountSessionsViewProps> = ({
   };
 
   return (
-    <div className="container mx-auto px-4 sm:px-6 py-6 max-w-7xl space-y-6">
+    <div className="mx-auto w-full px-4 sm:px-6 py-6 max-w-[1200px] space-y-6 lg:px-14">
       {/* Breadcrumb điều hướng */}
       <nav className="text-xs text-muted-foreground flex items-center gap-1.5">
         <Link href="/" className="hover:text-foreground">

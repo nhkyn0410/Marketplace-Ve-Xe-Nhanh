@@ -37,7 +37,7 @@ export default async function AccountPage({
 
   if (res.status === "unavailable") {
     return (
-      <div className="container mx-auto px-4 sm:px-6 py-10 max-w-7xl">
+      <div className="mx-auto w-full px-4 sm:px-6 py-10 max-w-[1200px] lg:px-14">
         <FeatureUnavailable
           title="Thông tin tài khoản cá nhân"
           description="Thông tin tài khoản hiện chưa khả dụng. Vui lòng thử lại sau."
@@ -49,7 +49,7 @@ export default async function AccountPage({
   if (res.status === "error") {
     if (res.httpStatus === 401) return <AccountSignInRequired />;
     return (
-      <div className="container mx-auto px-4 sm:px-6 py-10 max-w-7xl">
+      <div className="mx-auto w-full px-4 sm:px-6 py-10 max-w-[1200px] lg:px-14">
         <FeatureUnavailable
           title="Thông tin tài khoản cá nhân"
           description={res.message ?? "Không thể tải thông tin hồ sơ tài khoản."}

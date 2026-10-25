@@ -77,7 +77,7 @@ export function FaqView({
     <div className="bg-[#f9f9ff] min-h-viewport pb-16">
       {/* Thanh điều hướng breadcrumb */}
       <div className="border-b border-[#e5e9f0] bg-white">
-        <div className="mx-auto max-w-7xl px-4 py-3 sm:px-6 lg:px-8">
+        <div className="mx-auto w-full max-w-[1200px] px-4 py-3 sm:px-6 lg:px-14">
           <nav aria-label="Breadcrumb" className="flex items-center text-xs text-[#64748b] flex-wrap gap-1.5">
             <Link href="/" className="hover:text-primary transition-colors">
               Trang chủ
@@ -88,7 +88,7 @@ export function FaqView({
         </div>
       </div>
 
-      <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 space-y-8">
+      <main className="mx-auto w-full max-w-[1200px] px-4 py-8 sm:px-6 lg:px-14 space-y-8">
         {/* Banner Hero tìm kiếm câu hỏi */}
         <div className="rounded-2xl bg-[#edf5ff] p-6 sm:p-10 text-center space-y-5">
           <h1 className="text-2xl sm:text-3xl lg:text-[32px] font-bold text-[#0f172a] tracking-tight">

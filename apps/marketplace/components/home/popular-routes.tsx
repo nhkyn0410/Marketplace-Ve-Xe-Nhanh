@@ -34,7 +34,7 @@ export function PopularRoutesSection({
 }: PopularRoutesSectionProps) {
   if (isUnavailable || !routes || routes.length === 0) {
     return (
-      <section className="mx-auto w-full max-w-[1120px] px-4 pt-12 pb-6 sm:px-6 lg:px-8">
+      <section className="mx-auto w-full max-w-[1200px] px-4 pt-12 pb-6 sm:px-6 lg:px-14">
         <div className="flex items-end justify-between pb-5">
           <div>
             <span className="text-xs font-bold tracking-wider text-[#d9881c] uppercase">
@@ -57,7 +57,7 @@ export function PopularRoutesSection({
   const standardRoutes = routes.filter((r) => r.id !== featuredRoute?.id);
 
   return (
-    <section className="mx-auto w-full max-w-[1120px] px-4 pt-12 pb-6 sm:px-6 lg:px-8">
+    <section className="mx-auto w-full max-w-[1200px] px-4 pt-12 pb-6 sm:px-6 lg:px-14">
       {/* Tiêu đề mục */}
       <div className="flex items-end justify-between pb-5">
         <div>

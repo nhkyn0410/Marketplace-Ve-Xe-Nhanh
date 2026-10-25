@@ -40,7 +40,7 @@ export default async function ExplorePage(props: ExplorePageProps) {
     return (
       <div className="min-h-viewport bg-[#f9f9ff]">
         {topBarHeader}
-        <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+        <main className="mx-auto w-full max-w-[1200px] px-4 py-8 sm:px-6 lg:px-14">
           <ExploreView
             categories={articleCategoriesFixture}
             featuredArticle={featuredArticleFixture}
@@ -60,7 +60,7 @@ export default async function ExplorePage(props: ExplorePageProps) {
     return (
       <div className="min-h-viewport bg-[#f9f9ff]">
         {topBarHeader}
-        <main className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+        <main className="mx-auto w-full max-w-[1200px] px-4 py-12 sm:px-6 lg:px-14">
           <FeatureUnavailable
             title="Mục Khám phá chưa sẵn sàng"
             description="Dịch vụ bài viết cẩm nang đang được cập nhật từ hệ thống quản trị nội dung. Vui lòng quay lại sau."
@@ -75,7 +75,7 @@ export default async function ExplorePage(props: ExplorePageProps) {
     return (
       <div className="min-h-viewport bg-[#f9f9ff]">
         {topBarHeader}
-        <main className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+        <main className="mx-auto w-full max-w-[1200px] px-4 py-12 sm:px-6 lg:px-14">
           <FeatureUnavailable
             title="Không thể tải danh sách bài viết"
             description={result.message}
@@ -88,7 +88,7 @@ export default async function ExplorePage(props: ExplorePageProps) {
   return (
     <div className="min-h-viewport bg-[#f9f9ff]">
       {topBarHeader}
-      <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+      <main className="mx-auto w-full max-w-[1200px] px-4 py-8 sm:px-6 lg:px-14">
         <ExploreView
           key={`${category}:${typeof resolvedParams?.cursor === "string" ? resolvedParams.cursor : ""}`}
           initialCategory={category}

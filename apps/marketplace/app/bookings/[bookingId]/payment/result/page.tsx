@@ -75,7 +75,7 @@ export default async function BookingPaymentResultPage({
     return (
       <div className="flex-1 bg-neutral-50/40 pb-16">
         <PassengerTopBar breadcrumbs={breadcrumbs} />
-        <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+        <div className="mx-auto w-full max-w-[1200px] px-4 py-12 sm:px-6 lg:px-14">
           <FeatureUnavailable
             endpoint={result.endpoint}
             title="Kết quả giao dịch đang được cập nhật"
@@ -90,7 +90,7 @@ export default async function BookingPaymentResultPage({
     return (
       <div className="flex-1 bg-neutral-50/40 pb-16">
         <PassengerTopBar breadcrumbs={breadcrumbs} />
-        <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+        <div className="mx-auto w-full max-w-[1200px] px-4 py-12 sm:px-6 lg:px-14">
           <ErrorState
             title="Không thể tải kết quả thanh toán"
             description="Đơn đặt vé không tồn tại hoặc đã có lỗi phát sinh trong quá trình truy vấn kết quả."

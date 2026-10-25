@@ -54,7 +54,7 @@ export default async function TripsPage(props: TripsPageProps) {
     return (
       <div className="min-h-viewport bg-[#f9f9ff]">
         {topBarHeader}
-        <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+        <main className="mx-auto w-full max-w-[1200px] px-4 py-6 sm:px-6 lg:px-14">
           <TripSearchBar />
           <div className="mt-6">
             <TripEmptyState
@@ -72,7 +72,7 @@ export default async function TripsPage(props: TripsPageProps) {
     return (
       <div className="min-h-viewport bg-[#f9f9ff]">
         {topBarHeader}
-        <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+        <main className="mx-auto w-full max-w-[1200px] px-4 py-6 sm:px-6 lg:px-14">
           <TripSearchBar />
           <div className="mt-6 flex flex-col gap-6 lg:flex-row items-start">
             <div className="w-full lg:w-[280px] shrink-0">
@@ -92,7 +92,7 @@ export default async function TripsPage(props: TripsPageProps) {
     return (
       <div className="min-h-viewport bg-[#f9f9ff]">
         {topBarHeader}
-        <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+        <main className="mx-auto w-full max-w-[1200px] px-4 py-6 sm:px-6 lg:px-14">
           {/* Thanh tìm kiếm tóm tắt */}
           <TripSearchBar />
 
@@ -151,7 +151,7 @@ export default async function TripsPage(props: TripsPageProps) {
     return (
       <div className="min-h-viewport bg-[#f9f9ff]">
         {topBarHeader}
-        <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+        <main className="mx-auto w-full max-w-[1200px] px-4 py-6 sm:px-6 lg:px-14">
           <TripSearchBar key={query.toString()} initialOrigin={params.origin} initialDestination={params.destination}
             initialDate={params.date} initialPassengers={params.passengers} provinces={provinces} />
           <div className="mt-8">
@@ -168,7 +168,7 @@ export default async function TripsPage(props: TripsPageProps) {
   return (
     <div className="min-h-viewport bg-[#f9f9ff]">
       {topBarHeader}
-      <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+      <main className="mx-auto w-full max-w-[1200px] px-4 py-6 sm:px-6 lg:px-14">
         <TripSearchBar key={query.toString()} initialOrigin={params.origin} initialDestination={params.destination}
           initialDate={params.date ?? tripsResult.data.summary.departureDateText} initialPassengers={params.passengers} provinces={provinces} />
         <div className="mt-6 flex flex-col gap-6 lg:flex-row items-start">
