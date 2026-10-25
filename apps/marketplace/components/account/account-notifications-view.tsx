@@ -260,11 +260,15 @@ export const AccountNotificationsView: React.FC<AccountNotificationsViewProps> =
                   <div className="flex items-center gap-8 sm:gap-14 pr-2 shrink-0">
                     {/* Toggle Email bắt buộc (disabled, luôn bật) */}
                     <div className="w-12 flex justify-center">
-                      <span className="text-xs text-muted-foreground">{item.emailEnabled ? "Bật" : "Tắt"}</span>
+                      <span role="switch" aria-checked={item.emailEnabled} aria-disabled="true" aria-label={`Email: ${item.title} (bắt buộc)`} className={`flex h-5 w-10 cursor-not-allowed items-center rounded-full p-0.5 opacity-60 ${item.emailEnabled ? "bg-[#0F5B60]" : "bg-slate-200"}`}>
+                        <span className={`size-4 rounded-full bg-white shadow-xs ${item.emailEnabled ? "ml-auto" : "mr-auto"}`} />
+                      </span>
                     </div>
                     {/* Toggle Push bắt buộc (disabled, luôn bật) */}
                     <div className="w-16 flex justify-center">
-                      <span className="text-xs text-muted-foreground">{item.pushEnabled ? "Bật" : "Tắt"}</span>
+                      <span role="switch" aria-checked={item.pushEnabled} aria-disabled="true" aria-label={`Push: ${item.title} (bắt buộc)`} className={`flex h-5 w-10 cursor-not-allowed items-center rounded-full p-0.5 opacity-60 ${item.pushEnabled ? "bg-[#0F5B60]" : "bg-slate-200"}`}>
+                        <span className={`size-4 rounded-full bg-white shadow-xs ${item.pushEnabled ? "ml-auto" : "mr-auto"}`} />
+                      </span>
                     </div>
                   </div>
                 </div>
