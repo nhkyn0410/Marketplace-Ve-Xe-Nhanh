@@ -3,10 +3,10 @@
 import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, X, Clock, AlertCircle } from "lucide-react";
+import { ArrowLeft, Clock, AlertCircle } from "lucide-react";
 import { Button } from "@vexenhanh/ui/components/button";
 import { requestLoginOtp, verifyOtp } from "../../lib/data/auth";
-import { LogoWordmark } from "@vexenhanh/ui/components/logo";
+import { AUTH_PRIMARY_BUTTON, AUTH_SUBTITLE, AUTH_TITLE, AuthModalShell } from "./auth-modal-shell";
 
 /**
  * Dữ liệu cấu hình cho VerifyEmailView (SCR-PSG-09)
@@ -157,106 +157,80 @@ export const VerifyEmailView: React.FC<VerifyEmailViewProps> = ({
   };
 
   return (
-    <div className="relative min-h-[calc(var(--vxn-vh)_-_4rem)] lg:min-h-viewport flex items-center justify-center p-4 sm:p-6 bg-slate-900/40 backdrop-blur-xs">
-      {/* Khung modal Nhập OTP chuẩn Figma node 1447:17850 */}
-      <div className="relative w-full max-w-[480px] bg-white dark:bg-card rounded-3xl shadow-2xl border border-border p-6 sm:p-8 space-y-6">
-        {/* Hàng điều hướng trên cùng */}
-        <div className="flex items-center justify-between">
-          <Link
-            href={isPreview ? "/login?preview=ideal" : "/login"}
-            className="inline-flex items-center gap-1.5 text-xs font-medium text-[#2B7EAD] hover:underline"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            <span>Đổi email</span>
-          </Link>
-          <button
-            type="button"
-            onClick={() => router.push("/")}
-            aria-label="Đóng"
-            className="p-1 text-muted-foreground hover:text-foreground rounded-full hover:bg-muted/60 transition-colors"
-          >
-            <X className="w-5 h-5" />
-          </button>
-        </div>
-
-        {/* Logo và tiêu đề */}
-        <div className="text-center space-y-2">
-          {/* Logo Vé Xe Nhanh SVG */}
-          <div className="inline-flex items-center gap-2 mb-1">
-            <LogoWordmark className="h-[43px] w-auto text-vxn-teal-500" />
-          </div>
-
-          <h1 className="text-2xl font-bold tracking-tight text-foreground">
-            Nhập mã xác minh
-          </h1>
-          <p className="text-xs text-muted-foreground leading-relaxed">
-            Mã gồm 6 số đã gửi tới <span className="font-medium text-foreground">{email}</span>
-          </p>
-        </div>
-
-        {/* Khung nhập 6 số OTP (hộp 406x64px bo góc viền nhẹ) */}
-        <form onSubmit={handleVerify} className="space-y-4">
-          <div className="mx-auto max-w-[406px] h-16 rounded-2xl border border-input bg-background/50 flex items-center justify-around px-2 transition-all focus-within:ring-2 focus-within:ring-[#2B7EAD] focus-within:border-transparent">
-            {digits.map((digit, index) => (
-              <input
-                key={index}
-                ref={(el) => {
-                  inputRefs.current[index] = el;
-                }}
-                type="text"
-                aria-label={`Chữ số xác minh ${index + 1}`}
-                autoComplete={index === 0 ? "one-time-code" : "off"}
-                inputMode="numeric"
-                maxLength={1}
-                value={digit}
-                onChange={(e) => handleDigitChange(index, e.target.value)}
-                onKeyDown={(e) => handleKeyDown(index, e)}
-                className="w-12 h-12 text-center text-2xl sm:text-[28px] font-bold text-[#2B7EAD] bg-transparent focus:outline-none"
-              />
-            ))}
-          </div>
-
-          <p className="flex items-center gap-1.5 text-xs text-muted-foreground px-1">
-            <Clock className="w-3.5 h-3.5 shrink-0" />
-            Mã có hiệu lực trong 5 phút kể từ khi được gửi. Vui lòng dùng mã mới nhất.
-          </p>
-
-          {/* Thông báo lỗi khi có */}
-          {errorMessage && (
-            <div className="flex items-start gap-2 p-3 rounded-xl bg-destructive/10 text-destructive text-xs leading-relaxed">
-              <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
-              <span>{errorMessage}</span>
-            </div>
-          )}
-
-          {/* Nút chính Xác minh */}
-          <Button
-            type="submit"
-            disabled={isSubmitting || !isOtpComplete}
-            className="w-full h-11 rounded-xl bg-[#2B7EAD] hover:bg-[#236a92] text-white font-medium text-sm transition-all shadow-xs"
-          >
-            {isSubmitting ? "Đang xác minh..." : "Xác minh"}
-          </Button>
-
-          {/* Nút gửi lại mã */}
-          <div className="text-center pt-1">
-            {resendCooldown > 0 ? (
-              <span className="text-xs text-[#2B7EAD] font-medium cursor-not-allowed">
-                Gửi lại mã (sau {resendCooldown} giây)
-              </span>
-            ) : (
-              <button
-                type="button"
-                disabled={isSubmitting}
-                onClick={handleResend}
-                className="text-xs text-[#2B7EAD] font-medium hover:underline"
-              >
-                Gửi lại mã xác minh
-              </button>
-            )}
-          </div>
-        </form>
+    <AuthModalShell
+      topLeft={
+        <Link
+          href={isPreview ? "/login?preview=ideal" : "/login"}
+          className="inline-flex items-center gap-1.5 text-[13px] font-medium text-vxn-teal-500 hover:underline"
+        >
+          <ArrowLeft className="size-4" />
+          <span>Đổi email</span>
+        </Link>
+      }
+    >
+      {/* Modal Nhập mã xác minh — Figma 1447:17487 */}
+      <div className="flex w-full flex-col items-center gap-1.5 text-center">
+        <h1 className={AUTH_TITLE}>Nhập mã xác minh</h1>
+        <p className={AUTH_SUBTITLE}>
+          Mã gồm 6 số đã gửi tới <span className="font-medium text-vxn-ink">{email}</span>
+        </p>
       </div>
-    </div>
+
+      <form onSubmit={handleVerify} className="flex w-full flex-col gap-4">
+        {/* Ô nhập 6 số OTP (hộp 406×64 bo góc) */}
+        <div className="mx-auto flex h-16 w-full max-w-[406px] items-center justify-around rounded-2xl border border-[#e4e5e7] bg-white px-2 transition-all focus-within:border-vxn-teal-500 focus-within:ring-2 focus-within:ring-vxn-teal-500/20">
+          {digits.map((digit, index) => (
+            <input
+              key={index}
+              ref={(el) => {
+                inputRefs.current[index] = el;
+              }}
+              type="text"
+              aria-label={`Chữ số xác minh ${index + 1}`}
+              autoComplete={index === 0 ? "one-time-code" : "off"}
+              inputMode="numeric"
+              maxLength={1}
+              value={digit}
+              onChange={(e) => handleDigitChange(index, e.target.value)}
+              onKeyDown={(e) => handleKeyDown(index, e)}
+              className="h-12 w-12 bg-transparent text-center text-[28px] font-semibold text-vxn-teal-500 focus:outline-none"
+            />
+          ))}
+        </div>
+
+        <p className="flex items-center gap-1.5 text-xs/[18px] text-vxn-fg-5">
+          <Clock className="size-3.5 shrink-0" />
+          Mã có hiệu lực trong 5 phút kể từ khi được gửi. Vui lòng dùng mã mới nhất.
+        </p>
+
+        {errorMessage && (
+          <div role="alert" className="flex items-start gap-2 rounded-xl bg-destructive/10 p-3 text-sm text-destructive">
+            <AlertCircle className="mt-0.5 size-4 shrink-0" />
+            <span>{errorMessage}</span>
+          </div>
+        )}
+
+        <Button type="submit" disabled={isSubmitting || !isOtpComplete} className={AUTH_PRIMARY_BUTTON}>
+          {isSubmitting ? "Đang xác minh..." : "Xác minh"}
+        </Button>
+
+        <div className="text-center">
+          {resendCooldown > 0 ? (
+            <span className="cursor-not-allowed text-[13px] font-medium text-vxn-teal-500">
+              Gửi lại mã (sau {resendCooldown} giây)
+            </span>
+          ) : (
+            <button
+              type="button"
+              disabled={isSubmitting}
+              onClick={handleResend}
+              className="text-[13px] font-medium text-vxn-teal-500 hover:underline"
+            >
+              Gửi lại mã xác minh
+            </button>
+          )}
+        </div>
+      </form>
+    </AuthModalShell>
   );
 };

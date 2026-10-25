@@ -4,6 +4,7 @@ import Link from "next/link";
 import { getPreview } from "../../../lib/preview";
 import { oauthCallbackFixture } from "../../../lib/preview/fixtures/auth";
 import { OAuthCallbackView } from "../../../components/auth/oauth-callback-view";
+import { AUTH_PRIMARY_BUTTON, AUTH_SUBTITLE, AUTH_TITLE, AuthModalShell } from "../../../components/auth/auth-modal-shell";
 
 export const metadata: Metadata = {
   title: "Đang xác thực OAuth",
@@ -31,10 +32,14 @@ export default async function OAuthCallbackPage({
   }
 
   return (
-    <div className="mx-auto max-w-xl space-y-4 px-6 py-16 text-center">
-      <h1 className="text-2xl font-semibold">Đăng nhập mạng xã hội chưa khả dụng</h1>
-      <p className="text-muted-foreground">Vui lòng đăng nhập bằng mã xác minh gửi tới email của bạn.</p>
-      <Link href="/login" className="inline-block rounded-lg bg-vxn-teal-700 px-5 py-3 text-white">Đăng nhập bằng email</Link>
-    </div>
+    <AuthModalShell>
+      <div className="flex w-full flex-col items-center gap-1.5 text-center">
+        <h1 className={AUTH_TITLE}>Đăng nhập mạng xã hội chưa khả dụng</h1>
+        <p className={AUTH_SUBTITLE}>Vui lòng đăng nhập bằng mã xác minh gửi tới email của bạn.</p>
+      </div>
+      <Link href="/login" className={`${AUTH_PRIMARY_BUTTON} flex items-center justify-center`}>
+        Đăng nhập bằng email
+      </Link>
+    </AuthModalShell>
   );
 }

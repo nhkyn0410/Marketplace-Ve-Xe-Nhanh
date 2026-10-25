@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Check, Info, ArrowRight, Loader2 } from "lucide-react";
 import { Button } from "@vexenhanh/ui/components/button";
-import { LogoWordmark } from "@vexenhanh/ui/components/logo";
+import { AuthModalShell } from "./auth-modal-shell";
 
 /**
  * Dữ liệu cấu hình cho OAuthCallbackView (SCR-PSG-10)
@@ -57,55 +57,36 @@ export const OAuthCallbackView: React.FC<OAuthCallbackViewProps> = ({
   };
 
   return (
-    <div className="relative min-h-[calc(var(--vxn-vh)_-_4rem)] lg:min-h-viewport flex items-center justify-center p-4 sm:p-6 bg-slate-900/40 backdrop-blur-xs">
-      {/* Khung modal OAuth Callback chuẩn Figma node 1447:18260 */}
-      <div className="relative w-full max-w-[480px] bg-white dark:bg-card rounded-3xl shadow-2xl border border-border p-6 sm:p-8 space-y-6">
-        {/* Logo Vé Xe Nhanh ở giữa */}
-        <div className="text-center pt-2">
-          <div className="inline-flex items-center gap-2 mb-1">
-            <LogoWordmark className="h-[43px] w-auto text-vxn-teal-500" />
-          </div>
+    <AuthModalShell showClose={false}>
+      {/* Modal OAuth callback — Figma 1447:17897 */}
+      <div className="flex w-full flex-col items-center gap-3 rounded-2xl bg-[#ebf5fa] p-6 text-center">
+        <div className="flex size-12 items-center justify-center rounded-full border-2 border-vxn-teal-500 text-vxn-teal-500">
+          <Check className="size-6 stroke-[2.5]" />
         </div>
-
-        {/* Khối Thông báo xác thực thành công (Auth / Authentication Success) */}
-        <div className="bg-[#EBF5FA] dark:bg-sky-950/40 rounded-2xl p-6 flex flex-col items-center justify-center text-center space-y-3">
-          {/* Icon Verified checkmark tròn to */}
-          <div className="w-12 h-12 rounded-full border-2 border-[#2B7EAD] flex items-center justify-center text-[#2B7EAD]">
-            <Check className="w-6 h-6 stroke-[2.5]" />
-          </div>
-
-          <h1 className="text-lg sm:text-xl font-bold tracking-tight text-foreground">
-            Đăng nhập bằng {provider} thành công
-          </h1>
-        </div>
-
-        {/* Khối Ghi chú liên kết tài khoản */}
-        <div className="bg-[#EEF8FA] dark:bg-teal-950/30 rounded-2xl p-4 flex items-start gap-3 text-left">
-          <Info className="w-4 h-4 text-[#0F5B60] shrink-0 mt-0.5" />
-          <p className="text-xs text-[#0F5B60] dark:text-teal-200 leading-relaxed">
-            Email <span className="font-semibold">{email}</span> đã có tài khoản Vé Xe Nhanh nên tài khoản {provider} này được liên kết vào tài khoản sẵn có.
-          </p>
-        </div>
-
-        {/* Hàng trạng thái loading */}
-        <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground pt-1">
-          <Loader2 className="w-4 h-4 text-[#2B7EAD] animate-spin" />
-          <span>Đang đưa bạn về trang trước…</span>
-        </div>
-
-        {/* Nút Tiếp tục ngay */}
-        <div>
-          <Button
-            type="button"
-            variant="outline"
-            onClick={handleContinue}
-            className="w-full h-11 rounded-xl border border-border bg-white dark:bg-card hover:bg-muted text-foreground font-medium text-sm transition-all flex items-center justify-center gap-2 shadow-2xs"
-          >
-            <ArrowRight className="w-4 h-4" />
-            <span>Tiếp tục ngay</span>
-          </Button>
-        </div>
+        <h1 className="text-lg/6 font-semibold text-vxn-ink">Đăng nhập bằng {provider} thành công</h1>
       </div>
-    </div>
+
+      <div className="flex w-full items-start gap-3 rounded-2xl bg-vxn-teal-50 p-4 text-left">
+        <Info className="mt-0.5 size-4 shrink-0 text-vxn-teal-700" />
+        <p className="text-[13px]/[19.5px] text-vxn-teal-700">
+          Email <span className="font-semibold">{email}</span> đã có tài khoản Vé Xe Nhanh nên tài khoản {provider} này được liên kết vào tài khoản sẵn có.
+        </p>
+      </div>
+
+      <div className="flex items-center justify-center gap-2 text-[13px] text-vxn-fg-5">
+        <Loader2 className="size-4 animate-spin text-vxn-teal-500" />
+        <span>Đang đưa bạn về trang trước…</span>
+      </div>
+
+      <Button
+        type="button"
+        variant="outline"
+        onClick={handleContinue}
+        className="h-11 gap-2 rounded-xl border-border bg-white px-5 text-sm font-medium text-vxn-ink hover:bg-muted"
+      >
+        <ArrowRight className="size-4" />
+        <span>Tiếp tục ngay</span>
+      </Button>
+    </AuthModalShell>
   );
 };
