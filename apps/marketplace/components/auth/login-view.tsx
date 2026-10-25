@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { X, Check, AlertCircle } from "lucide-react";
 import { Button } from "@vexenhanh/ui/components/button";
 import { requestLoginOtp } from "../../lib/data/auth";
+import { LogoWordmark } from "@vexenhanh/ui/components/logo";
 
 /**
  * Thuộc tính của LoginView (SCR-PSG-07)
@@ -78,41 +79,7 @@ export const LoginView: React.FC<LoginViewProps> = ({
         <div className="text-center space-y-2 pt-2">
           {/* Logo Vé Xe Nhanh SVG */}
           <div className="inline-flex items-center gap-2 mb-1">
-            <svg
-              className="h-8 w-auto"
-              viewBox="0 0 160 36"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M10 6L2 20L10 30L22 30L30 16L18 16L22 6H10Z"
-                fill="#F59E0B"
-              />
-              <path
-                d="M18 6L10 20L18 30L30 30L38 16L26 16L30 6H18Z"
-                fill="#0F5B60"
-              />
-              <text
-                x="44"
-                y="24"
-                fontFamily="system-ui, -apple-system, sans-serif"
-                fontWeight="800"
-                fontSize="18"
-                fill="#0F5B60"
-              >
-                Vé Xe
-              </text>
-              <text
-                x="98"
-                y="24"
-                fontFamily="system-ui, -apple-system, sans-serif"
-                fontWeight="800"
-                fontSize="18"
-                fill="#F59E0B"
-              >
-                Nhanh
-              </text>
-            </svg>
+            <LogoWordmark className="h-[43px] w-auto text-vxn-teal-500" />
           </div>
 
           <h1 className="text-2xl font-bold tracking-tight text-foreground">
