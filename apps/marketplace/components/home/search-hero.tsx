@@ -13,6 +13,7 @@ import {
 import Link from "next/link";
 import { useState } from "react";
 import type { FeaturedOperatorItem, ProvinceItem } from "../../lib/data/types";
+import { formatTripDateVi } from "../../lib/format";
 
 /** Thuộc tính của form tìm chuyến trên trang chủ. */
 export interface SearchHeroProps {
@@ -220,7 +221,7 @@ export function SearchHero({
                     Ngày đi
                   </label>
                   <div className="mt-0.5 text-[15px] font-bold text-[#0f172a]">
-                    {departureDate || "Chọn ngày"}
+                    {departureDate ? formatTripDateVi(departureDate) : "Chọn ngày"}
                   </div>
                   <input
                     id="trip-date"
@@ -361,7 +362,7 @@ export function SearchHero({
                     Ngày đi
                   </label>
                   <div className="mt-0.5 text-[15px] font-bold text-[#0f172a]">
-                    {departureDate || "Chọn ngày"}
+                    {departureDate ? formatTripDateVi(departureDate) : "Chọn ngày"}
                   </div>
                   <input
                     id="operator-date"

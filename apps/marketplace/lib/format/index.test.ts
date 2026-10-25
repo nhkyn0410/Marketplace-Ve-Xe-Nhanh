@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { formatDateVi, formatDateTimeVi, formatTimeVi, formatVnd } from "./index";
+import { formatDateVi, formatDateTimeVi, formatTimeVi, formatTripDateVi, formatVnd } from "./index";
 
 describe("formatVnd", () => {
   it("định dạng số 0 thành 0đ", () => {
@@ -41,5 +41,17 @@ describe("datetime helpers", () => {
     expect(formatTimeVi(iso)).toBe("21:30");
     expect(formatDateTimeVi(iso)).toBe("21:30 14/10/2026");
     expect(formatDateVi("2026-10-14T18:00:00Z")).toBe("15/10/2026");
+  });
+});
+
+describe("formatTripDateVi", () => {
+  it("thêm thứ viết tắt và đổi sang dd/mm/yyyy", () => {
+    expect(formatTripDateVi("2026-10-16")).toBe("T6, 16/10/2026");
+    expect(formatTripDateVi("2026-10-18")).toBe("CN, 18/10/2026");
+  });
+
+  it("giữ nguyên chuỗi không đúng dạng YYYY-MM-DD", () => {
+    expect(formatTripDateVi("")).toBe("");
+    expect(formatTripDateVi("16/10/2026")).toBe("16/10/2026");
   });
 });

@@ -116,7 +116,7 @@ export function TripEmptyState({
 
                 <div className="mt-4 flex items-center justify-between border-t border-vxn-border/60 pt-3">
                   <div>
-                    <span className="text-2xs text-vxn-fg-4">Từ </span>
+                    <span className="text-xs text-vxn-fg-4">Từ </span>
                     <span className="text-sm font-extrabold text-vxn-teal-800">
                       {formatVnd(route.minPriceVnd)}
                     </span>

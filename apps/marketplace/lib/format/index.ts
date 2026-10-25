@@ -51,3 +51,18 @@ export function formatTimeVi(isoString: string): string {
 export function formatDateTimeVi(isoString: string): string {
   return `${formatTimeVi(isoString)} ${formatDateVi(isoString)}`;
 }
+
+const WEEKDAYS_SHORT = ["CN", "T2", "T3", "T4", "T5", "T6", "T7"];
+
+/**
+ * Định dạng ngày đi `YYYY-MM-DD` thành "T6, 16/10/2026" như ô Ngày đi trong Figma; chuỗi khác giữ nguyên.
+ */
+export function formatTripDateVi(isoDate: string): string {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(isoDate);
+  if (!match) {
+    return isoDate;
+  }
+  const [, year, month, day] = match;
+  const weekday = new Date(Date.UTC(Number(year), Number(month) - 1, Number(day))).getUTCDay();
+  return `${WEEKDAYS_SHORT[weekday]}, ${day}/${month}/${year}`;
+}
