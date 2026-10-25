@@ -13,6 +13,7 @@ import type {
 } from "../../lib/data/types";
 import { submitTripReview } from "../../lib/data/auth";
 import { AccountSidebar } from "./account-sidebar";
+import { PassengerTopBar } from "../passenger-topbar";
 
 export interface AccountReviewsViewProps {
   readonly user?: UserProfileData;
@@ -158,19 +159,9 @@ export const AccountReviewsView: React.FC<AccountReviewsViewProps> = ({
   };
 
   return (
-    <div className="mx-auto w-full px-4 sm:px-6 py-6 max-w-[1200px] space-y-6 lg:px-14">
-      {/* Breadcrumb điều hướng */}
-      <nav className="text-xs text-muted-foreground flex items-center gap-1.5">
-        <Link href="/" className="hover:text-foreground">
-          Trang chủ
-        </Link>
-        <span>›</span>
-        <Link href={isPreview ? "/account?preview=ideal" : "/account"} className="hover:text-foreground">
-          Tài khoản
-        </Link>
-        <span>›</span>
-        <span className="text-foreground font-medium">Đánh giá của tôi</span>
-      </nav>
+    <>
+      <PassengerTopBar breadcrumbs={[{ label: "Trang chủ", href: "/" }, { label: "Tài khoản", href: isPreview ? "/account?preview=ideal" : "/account" }, { label: "Đánh giá của tôi" }]} />
+      <div className="mx-auto w-full px-4 sm:px-6 py-6 max-w-[1200px] space-y-6 lg:px-14">
 
       {/* Thông báo kết quả thao tác */}
       {statusMessage && (
@@ -199,7 +190,7 @@ export const AccountReviewsView: React.FC<AccountReviewsViewProps> = ({
         <div className="flex-1 w-full space-y-6">
           {/* Đầu trang tiêu đề */}
           <div className="space-y-1">
-            <h1 className="text-2xl font-bold tracking-tight text-foreground">
+            <h1 className="text-2xl/9 font-semibold tracking-[-0.24px] text-vxn-ink">
               Đánh giá của tôi
             </h1>
             <p className="text-xs text-muted-foreground">
@@ -378,5 +369,6 @@ export const AccountReviewsView: React.FC<AccountReviewsViewProps> = ({
         </div>
       </div>
     </div>
+    </>
   );
 };

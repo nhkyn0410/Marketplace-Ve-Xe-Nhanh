@@ -2,9 +2,10 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { ChevronRight, Info } from "lucide-react";
+import { Info } from "lucide-react";
 import type { LegalDocumentData } from "../../lib/data/types";
 import { MarkdownContent } from "../explore/markdown-content";
+import { PassengerTopBar } from "../passenger-topbar";
 
 export interface LegalViewProps {
   readonly document: LegalDocumentData;
@@ -45,20 +46,9 @@ export function LegalView({
 
   return (
     <div className="bg-[#f9f9ff] min-h-viewport pb-16">
-      {/* Thanh điều hướng breadcrumb */}
-      <div className="border-b border-[#e5e9f0] bg-white">
-        <div className="mx-auto w-full max-w-[1200px] px-4 py-3 sm:px-6 lg:px-14">
-          <nav aria-label="Breadcrumb" className="flex items-center text-xs text-[#64748b] flex-wrap gap-1.5">
-            <Link href="/" className="hover:text-primary transition-colors">
-              Trang chủ
-            </Link>
-            <ChevronRight className="h-3 w-3" />
-            <span className="text-[#1e293b] font-medium">{document.title}</span>
-          </nav>
-        </div>
-      </div>
+      <PassengerTopBar breadcrumbs={[{ label: "Trang chủ", href: "/" }, { label: document.title }]} />
 
-      <main className="mx-auto w-full max-w-[1200px] px-4 py-6 sm:px-6 lg:px-14 space-y-6">
+      <div className="mx-auto w-full max-w-[1200px] px-4 py-6 sm:px-6 lg:px-14 space-y-6">
         {/* Tabs chuyển đổi văn bản pháp lý */}
         {tabs.length > 0 && <div className="inline-flex flex-wrap p-1 bg-[#f1f5f9] rounded-xl gap-1 text-xs sm:text-sm font-medium">
           {tabs.map((tab) => {
@@ -116,7 +106,7 @@ export function LegalView({
           <article className={`${document.tableOfContents.length ? "lg:col-span-8" : "lg:col-span-12"} rounded-2xl border border-[#e5e9f0] bg-white p-6 sm:p-8 shadow-xs space-y-6`}>
             {/* Tiêu đề & Thời gian */}
             <div className="space-y-1">
-              <h1 className="text-2xl sm:text-[28px] font-bold text-[#0f172a] tracking-tight">
+              <h1 className="text-2xl/9 font-semibold tracking-[-0.24px] text-vxn-ink">
                 {document.title}
               </h1>
               <p className="text-xs text-[#64748b]">
@@ -151,7 +141,7 @@ export function LegalView({
             </div>
           </article>
         </div>
-      </main>
+      </div>
     </div>
   );
 }

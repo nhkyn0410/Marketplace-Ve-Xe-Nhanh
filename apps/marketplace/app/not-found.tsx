@@ -34,7 +34,7 @@ export default function NotFound() {
         </span>
 
         {/* Tiêu đề lỗi */}
-        <h1 className="mt-3 text-2xl font-bold text-vxn-ink sm:text-3xl">
+        <h1 className="mt-3 text-2xl/9 font-semibold tracking-[-0.24px] text-vxn-ink">
           Không tìm thấy trang
         </h1>
 

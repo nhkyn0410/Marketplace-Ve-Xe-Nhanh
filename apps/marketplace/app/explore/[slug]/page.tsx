@@ -40,13 +40,13 @@ export default async function ArticleDetailPage(
   if (result.status === "unavailable") {
     return (
       <div className="min-h-viewport bg-background">
-        <main className="mx-auto max-w-5xl px-4 py-16 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-5xl px-4 py-16 sm:px-6 lg:px-8">
           <FeatureUnavailable
             title="Nội dung bài viết chưa sẵn sàng"
             description="Bài viết cẩm nang đang được cập nhật từ hệ thống quản trị nội dung. Vui lòng quay lại sau."
             endpoint={result.endpoint}
           />
-        </main>
+        </div>
       </div>
     );
   }
@@ -54,12 +54,12 @@ export default async function ArticleDetailPage(
   if (result.status === "error") {
     return (
       <div className="min-h-viewport bg-background">
-        <main className="mx-auto max-w-5xl px-4 py-16 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-5xl px-4 py-16 sm:px-6 lg:px-8">
           <FeatureUnavailable
             title="Không thể tải bài viết"
             description={result.message}
           />
-        </main>
+        </div>
       </div>
     );
   }

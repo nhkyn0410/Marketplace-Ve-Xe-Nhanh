@@ -4,6 +4,7 @@ import Link from "next/link";
 import { ArrowLeft, ChevronRight } from "lucide-react";
 import type { ArticleDetail } from "../../lib/data/types";
 import { MarkdownContent } from "./markdown-content";
+import { PassengerTopBar } from "../passenger-topbar";
 
 /** Thuộc tính của trang đọc bài viết đã xuất bản. */
 export interface ArticleDetailViewProps {
@@ -16,17 +17,13 @@ export function ArticleDetailView({ article, isPreview = false }: ArticleDetailV
   const categoryHref = `/explore?category=${encodeURIComponent(article.categorySlug)}`;
   return (
     <div className="min-h-viewport bg-[#f9f9ff] pb-16">
-      <div className="border-b border-[#e5e9f0] bg-white">
-        <nav aria-label="Breadcrumb" className="mx-auto w-full flex max-w-[1200px] flex-wrap items-center gap-1.5 px-4 py-3 text-xs text-[#64748b] sm:px-6 lg:px-14">
-          <Link href="/">Trang chủ</Link><ChevronRight className="h-3 w-3" /><Link href="/explore">Khám phá</Link><ChevronRight className="h-3 w-3" /><Link href={categoryHref}>{article.category}</Link><ChevronRight className="h-3 w-3" /><span className="line-clamp-1 max-w-md font-medium text-[#1e293b]">{article.title}</span>
-        </nav>
-      </div>
-      <main className="mx-auto w-full max-w-[1200px] px-4 py-6 sm:px-6 lg:px-14">
+      <PassengerTopBar breadcrumbs={[{ label: "Trang chủ", href: "/" }, { label: "Khám phá", href: "/explore" }, { label: article.category, href: categoryHref }, { label: article.title }]} />
+      <div className="mx-auto w-full max-w-[1200px] px-4 py-6 sm:px-6 lg:px-14">
         <Link href="/explore" className="mb-5 inline-flex items-center gap-1.5 text-sm text-primary hover:underline"><ArrowLeft className="h-4 w-4" />Tất cả bài viết</Link>
         <div className="grid grid-cols-1 items-start gap-8 lg:grid-cols-12">
           <article className="space-y-6 lg:col-span-8">
             <Link href={categoryHref} className="text-xs font-bold uppercase tracking-wider text-[#1068EB]">{article.category}</Link>
-            <h1 className="text-2xl font-bold leading-snug tracking-tight text-[#0f172a] sm:text-3xl lg:text-[34px]">{article.title}</h1>
+            <h1 className="text-2xl font-semibold leading-snug text-vxn-ink sm:text-[30px] sm:leading-[38px]">{article.title}</h1>
             <div className="flex flex-wrap items-center gap-2 text-xs text-[#64748b]">
               {article.authorName && <span className="font-semibold text-[#1e293b]">{article.authorName} ·</span>}
               <span>Xuất bản {article.publishedDateText}</span>
@@ -51,7 +48,7 @@ export function ArticleDetailView({ article, isPreview = false }: ArticleDetailV
             </div>
           </aside>
         </div>
-      </main>
+      </div>
     </div>
   );
 }

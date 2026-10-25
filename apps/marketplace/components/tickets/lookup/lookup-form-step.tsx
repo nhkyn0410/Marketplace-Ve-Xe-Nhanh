@@ -65,9 +65,9 @@ export const LookupFormStep: React.FC<LookupFormStepProps> = ({
   return (
     <div className="rounded-2xl border border-border/80 bg-card p-6 sm:p-8 shadow-xs space-y-6">
       <div className="space-y-1.5">
-        <h2 className="text-2xl font-bold tracking-tight text-foreground">
+        <h1 className="text-2xl/9 font-semibold tracking-[-0.24px] text-vxn-ink">
           Tra cứu vé
-        </h2>
+        </h1>
         <p className="text-xs text-muted-foreground leading-relaxed">
           Dành cho khách đặt vé không đăng nhập. Nhập mã đặt vé và email đã dùng khi đặt.
         </p>

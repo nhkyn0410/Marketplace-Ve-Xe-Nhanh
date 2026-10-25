@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Lock, Check, AlertCircle, RotateCcw } from "lucide-react";
 import { Button } from "@vexenhanh/ui/components/button";
@@ -12,6 +11,7 @@ import type {
 } from "../../lib/data/types";
 import { updateNotificationSettings } from "../../lib/data/auth";
 import { AccountSidebar } from "./account-sidebar";
+import { PassengerTopBar } from "../passenger-topbar";
 
 export interface AccountNotificationsViewProps {
   readonly user?: UserProfileData;
@@ -189,19 +189,9 @@ export const AccountNotificationsView: React.FC<AccountNotificationsViewProps> =
   };
 
   return (
-    <div className="mx-auto w-full px-4 sm:px-6 py-6 max-w-[1200px] space-y-6 lg:px-14">
-      {/* Breadcrumb */}
-      <nav className="text-xs text-muted-foreground flex items-center gap-1.5">
-        <Link href="/" className="hover:text-foreground">
-          Trang chủ
-        </Link>
-        <span>›</span>
-        <Link href={isPreview ? "/account?preview=ideal" : "/account"} className="hover:text-foreground">
-          Tài khoản
-        </Link>
-        <span>›</span>
-        <span className="text-foreground font-medium">Thông báo</span>
-      </nav>
+    <>
+      <PassengerTopBar breadcrumbs={[{ label: "Trang chủ", href: "/" }, { label: "Tài khoản", href: isPreview ? "/account?preview=ideal" : "/account" }, { label: "Thông báo" }]} />
+      <div className="mx-auto w-full px-4 sm:px-6 py-6 max-w-[1200px] space-y-6 lg:px-14">
 
       {/* Thông báo kết quả thao tác */}
       {statusMessage && (
@@ -230,7 +220,7 @@ export const AccountNotificationsView: React.FC<AccountNotificationsViewProps> =
         <div className="flex-1 w-full space-y-6">
           {/* Đầu trang tiêu đề */}
           <div className="space-y-1">
-            <h1 className="text-2xl font-bold tracking-tight text-foreground">
+            <h1 className="text-2xl/9 font-semibold tracking-[-0.24px] text-vxn-ink">
               Cài đặt thông báo
             </h1>
             <p className="text-xs text-muted-foreground">
@@ -387,5 +377,6 @@ export const AccountNotificationsView: React.FC<AccountNotificationsViewProps> =
         </div>
       </div>
     </div>
+    </>
   );
 };

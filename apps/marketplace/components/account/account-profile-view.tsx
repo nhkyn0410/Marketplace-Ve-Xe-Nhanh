@@ -19,6 +19,7 @@ import { Button } from "@vexenhanh/ui/components/button";
 import type { UserProfileData } from "../../lib/data/types";
 import { AccountSidebar } from "./account-sidebar";
 import { updateAccountProfile, saveAccountPassenger, deleteAccountPassenger } from "../../lib/data/auth";
+import { PassengerTopBar } from "../passenger-topbar";
 
 export interface AccountProfileViewProps {
   readonly user?: UserProfileData;
@@ -127,17 +128,9 @@ export const AccountProfileView: React.FC<AccountProfileViewProps> = ({
   const savedPassengers = user.savedPassengers ?? [];
 
   return (
-    <div className="mx-auto w-full px-4 sm:px-6 py-6 max-w-[1200px] space-y-6 lg:px-14">
-      {/* Breadcrumb điều hướng */}
-      <nav className="text-xs text-muted-foreground flex items-center gap-1.5">
-        <Link href="/" className="hover:text-foreground">
-          Trang chủ
-        </Link>
-        <span>›</span>
-        <span className="text-foreground">Tài khoản</span>
-        <span>›</span>
-        <span className="text-foreground font-medium">Hồ sơ</span>
-      </nav>
+    <>
+      <PassengerTopBar breadcrumbs={[{ label: "Trang chủ", href: "/" }, { label: "Tài khoản" }, { label: "Hồ sơ" }]} />
+      <div className="mx-auto w-full px-4 sm:px-6 py-6 max-w-[1200px] space-y-6 lg:px-14">
 
       {/* Thông báo thao tác nhanh nếu có */}
       {actionNotice && (
@@ -165,7 +158,7 @@ export const AccountProfileView: React.FC<AccountProfileViewProps> = ({
         <div className="flex-1 w-full space-y-6">
           {/* Đầu trang tiêu đề */}
           <div className="space-y-1">
-            <h1 className="text-2xl font-bold tracking-tight text-foreground">
+            <h1 className="text-2xl/9 font-semibold tracking-[-0.24px] text-vxn-ink">
               Tài khoản của tôi
             </h1>
             <p className="text-xs text-muted-foreground">
@@ -414,5 +407,6 @@ export const AccountProfileView: React.FC<AccountProfileViewProps> = ({
         </div>
       </div>
     </div>
+    </>
   );
 };

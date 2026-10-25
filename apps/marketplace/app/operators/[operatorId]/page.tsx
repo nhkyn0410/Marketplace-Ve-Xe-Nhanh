@@ -48,7 +48,7 @@ export default async function OperatorDetailPage(props: PageProps) {
     return (
       <div className="min-h-viewport bg-[#f9f9ff]">
         {topBarHeader(operator.name)}
-        <main className="mx-auto w-full max-w-[1200px] px-4 sm:px-6 lg:px-14 py-6 space-y-8">
+        <div className="mx-auto w-full max-w-[1200px] px-4 sm:px-6 lg:px-14 py-6 space-y-8">
           <OperatorHeader operator={operator} />
           <OperatorMetrics metrics={operator.metrics} />
           <OperatorFeaturedRoutes routes={operator.featuredRoutes} />
@@ -56,7 +56,7 @@ export default async function OperatorDetailPage(props: PageProps) {
             reviews={operator.reviews}
             terms={operator.terms}
           />
-        </main>
+        </div>
       </div>
     );
   }
@@ -69,12 +69,12 @@ export default async function OperatorDetailPage(props: PageProps) {
     return (
       <div className="min-h-viewport bg-[#f9f9ff]">
         {topBarHeader("Hồ sơ nhà xe")}
-        <main className="mx-auto w-full max-w-[1200px] px-4 sm:px-6 lg:px-14 py-12">
+        <div className="mx-auto w-full max-w-[1200px] px-4 sm:px-6 lg:px-14 py-12">
           <FeatureUnavailable
             title="Không thể tải hồ sơ nhà xe"
             description={result.status === "error" ? result.message : undefined}
           />
-        </main>
+        </div>
       </div>
     );
   }
@@ -84,7 +84,7 @@ export default async function OperatorDetailPage(props: PageProps) {
   return (
     <div className="min-h-viewport bg-[#f9f9ff]">
       {topBarHeader(operator.name)}
-      <main className="mx-auto w-full max-w-[1200px] px-4 sm:px-6 lg:px-14 py-6 space-y-8">
+      <div className="mx-auto w-full max-w-[1200px] px-4 sm:px-6 lg:px-14 py-6 space-y-8">
         <OperatorHeader operator={operator} />
         <OperatorMetrics metrics={operator.metrics} />
         <OperatorFeaturedRoutes routes={operator.featuredRoutes} />
@@ -93,7 +93,7 @@ export default async function OperatorDetailPage(props: PageProps) {
           terms={operator.terms}
         />
         {operator.nextReviewCursor && <Link className="text-vxn-teal-800 underline" href={`/operators/${encodeURIComponent(params.operatorId)}?cursor=${encodeURIComponent(operator.nextReviewCursor)}#reviews`}>Trang đánh giá tiếp theo</Link>}
-      </main>
+      </div>
     </div>
   );
 }

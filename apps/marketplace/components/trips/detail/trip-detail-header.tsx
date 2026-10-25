@@ -50,7 +50,7 @@ export function TripDetailHeader({ trip }: TripDetailHeaderProps) {
 
       {/* Hàng 2: Tuyến xe */}
       <div>
-        <h1 className="text-2xl font-extrabold text-slate-900">
+        <h1 className="text-2xl/9 font-semibold tracking-[-0.24px] text-vxn-ink">
           {trip.routeName}
         </h1>
         <p className="text-xs text-slate-500 mt-1">

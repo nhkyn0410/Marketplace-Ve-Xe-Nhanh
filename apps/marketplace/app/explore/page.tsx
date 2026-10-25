@@ -8,6 +8,9 @@ import {
   articlesListFixture,
   featuredArticleFixture
 } from "../../lib/preview/fixtures/content";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = { title: "Khám phá" };
 
 /**
  * Thuộc tính của trang Khám phá (SCR-PSG-02).
@@ -40,14 +43,14 @@ export default async function ExplorePage(props: ExplorePageProps) {
     return (
       <div className="min-h-viewport bg-[#f9f9ff]">
         {topBarHeader}
-        <main className="mx-auto w-full max-w-[1200px] px-4 py-8 sm:px-6 lg:px-14">
+        <div className="mx-auto w-full max-w-[1200px] px-4 py-8 sm:px-6 lg:px-14">
           <ExploreView
             categories={articleCategoriesFixture}
             featuredArticle={featuredArticleFixture}
             articles={articlesListFixture}
             isPreview
           />
-        </main>
+        </div>
       </div>
     );
   }
@@ -60,13 +63,13 @@ export default async function ExplorePage(props: ExplorePageProps) {
     return (
       <div className="min-h-viewport bg-[#f9f9ff]">
         {topBarHeader}
-        <main className="mx-auto w-full max-w-[1200px] px-4 py-12 sm:px-6 lg:px-14">
+        <div className="mx-auto w-full max-w-[1200px] px-4 py-12 sm:px-6 lg:px-14">
           <FeatureUnavailable
             title="Mục Khám phá chưa sẵn sàng"
             description="Dịch vụ bài viết cẩm nang đang được cập nhật từ hệ thống quản trị nội dung. Vui lòng quay lại sau."
             endpoint={result.endpoint}
           />
-        </main>
+        </div>
       </div>
     );
   }
@@ -75,12 +78,12 @@ export default async function ExplorePage(props: ExplorePageProps) {
     return (
       <div className="min-h-viewport bg-[#f9f9ff]">
         {topBarHeader}
-        <main className="mx-auto w-full max-w-[1200px] px-4 py-12 sm:px-6 lg:px-14">
+        <div className="mx-auto w-full max-w-[1200px] px-4 py-12 sm:px-6 lg:px-14">
           <FeatureUnavailable
             title="Không thể tải danh sách bài viết"
             description={result.message}
           />
-        </main>
+        </div>
       </div>
     );
   }
@@ -88,7 +91,7 @@ export default async function ExplorePage(props: ExplorePageProps) {
   return (
     <div className="min-h-viewport bg-[#f9f9ff]">
       {topBarHeader}
-      <main className="mx-auto w-full max-w-[1200px] px-4 py-8 sm:px-6 lg:px-14">
+      <div className="mx-auto w-full max-w-[1200px] px-4 py-8 sm:px-6 lg:px-14">
         <ExploreView
           key={`${category}:${typeof resolvedParams?.cursor === "string" ? resolvedParams.cursor : ""}`}
           initialCategory={category}
@@ -97,7 +100,7 @@ export default async function ExplorePage(props: ExplorePageProps) {
           articles={result.data.articles}
           nextCursor={result.data.nextCursor}
         />
-      </main>
+      </div>
     </div>
   );
 }
