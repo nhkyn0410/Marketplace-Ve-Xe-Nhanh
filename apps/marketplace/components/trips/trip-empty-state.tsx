@@ -46,7 +46,7 @@ export function TripEmptyState({
           <Bus className="h-8 w-8" />
         </div>
 
-        <h3 className="mt-5 text-xl font-black text-vxn-ink sm:text-2xl">
+        <h3 className="mt-5 text-xl font-extrabold text-vxn-ink sm:text-2xl">
           Chưa có chuyến phù hợp cho ngày 16/10/2026
         </h3>
 
@@ -90,7 +90,7 @@ export function TripEmptyState({
 
       {/* Tuyến phổ biến từ TP. Hồ Chí Minh */}
       <div>
-        <h3 className="text-lg font-black text-vxn-ink sm:text-xl">
+        <h3 className="text-lg font-extrabold text-vxn-ink sm:text-xl">
           Tuyến phổ biến từ TP. Hồ Chí Minh
         </h3>
 
@@ -117,7 +117,7 @@ export function TripEmptyState({
                 <div className="mt-4 flex items-center justify-between border-t border-vxn-border/60 pt-3">
                   <div>
                     <span className="text-2xs text-vxn-fg-4">Từ </span>
-                    <span className="text-sm font-black text-vxn-teal-800">
+                    <span className="text-sm font-extrabold text-vxn-teal-800">
                       {formatVnd(route.minPriceVnd)}
                     </span>
                   </div>

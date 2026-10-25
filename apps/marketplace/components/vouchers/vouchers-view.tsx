@@ -65,7 +65,7 @@ export function VouchersView({ vouchersData, isPreview = false }: VouchersViewPr
         {/* Header & Nút Đổi điểm */}
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-xl font-black text-vxn-ink sm:text-2xl">Ví voucher</h1>
+            <h1 className="text-xl font-extrabold text-vxn-ink sm:text-2xl">Ví voucher</h1>
             <p className="mt-1 text-xs text-vxn-fg-4">
               Voucher đổi từ điểm và mã khuyến mãi công khai bạn đã lưu.
             </p>
@@ -211,7 +211,7 @@ export function VouchersView({ vouchersData, isPreview = false }: VouchersViewPr
                     </span>
                   </div>
 
-                  <h3 className="text-base font-black text-vxn-ink">{v.title}</h3>
+                  <h3 className="text-base font-extrabold text-vxn-ink">{v.title}</h3>
                   {v.discountLabel && <p className="text-sm font-bold text-vxn-teal-800">{v.discountLabel}</p>}
                   {v.code && <p className="text-xs text-vxn-fg-3">Mã: <span className="font-mono font-semibold">{v.code}</span></p>}
 

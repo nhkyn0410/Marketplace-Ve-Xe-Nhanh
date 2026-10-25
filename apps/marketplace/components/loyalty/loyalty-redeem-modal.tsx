@@ -129,7 +129,7 @@ export function LoyaltyRedemptionModal({
             <Gift className="h-5 w-5" />
           </div>
           <div>
-            <h2 id={titleId} className="text-lg font-black text-vxn-ink sm:text-xl">
+            <h2 id={titleId} className="text-lg font-extrabold text-vxn-ink sm:text-xl">
               Đổi điểm lấy voucher
             </h2>
             <p id={descId} className="text-xs text-vxn-fg-4">
@@ -224,7 +224,7 @@ export function LoyaltyRedemptionModal({
         <div className="mt-5 space-y-2 rounded-xl border border-teal-100 bg-teal-50/60 p-3.5 text-xs">
           <div className="flex items-center justify-between">
             <span className="text-vxn-fg-3">Voucher nhận được:</span>
-            <span className="text-sm font-black text-vxn-teal-800">
+            <span className="text-sm font-extrabold text-vxn-teal-800">
               {profile.rules ? `Giảm ${formatVnd(redemption?.voucherValueVnd ?? voucherValueVnd)}` : "Chưa có chính sách"}
             </span>
           </div>

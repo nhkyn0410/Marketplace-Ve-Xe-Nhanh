@@ -55,7 +55,7 @@ export function LoyaltyView({
                 <Sparkles className="h-3 w-3" />
                 <span>VXN PLUS · THÀNH VIÊN</span>
               </div>
-              <h1 className="mt-3 text-2xl font-black tracking-tight text-white sm:text-3xl lg:text-4xl">
+              <h1 className="mt-3 text-2xl font-extrabold tracking-tight text-white sm:text-3xl lg:text-4xl">
                 {profile.currentTierName}
               </h1>
             </div>
@@ -96,7 +96,7 @@ export function LoyaltyView({
             Điểm khả dụng
           </span>
           <div className="mt-1 flex items-baseline gap-2">
-            <span className="text-3xl font-black text-[#00506a] sm:text-4xl lg:text-5xl">
+            <span className="text-3xl font-extrabold text-[#00506a] sm:text-4xl lg:text-5xl">
               {profile.availablePoints.toLocaleString("vi-VN")}
             </span>
             <span className="text-sm font-bold text-vxn-fg-3">điểm</span>
@@ -143,7 +143,7 @@ export function LoyaltyView({
       {/* 3. Bảng hạng thành viên */}
       <div className="rounded-2xl border border-vxn-border bg-white p-6 shadow-2xs sm:p-8">
         <div>
-          <h2 className="text-base font-black text-vxn-ink sm:text-lg">Bảng hạng thành viên</h2>
+          <h2 className="text-base font-extrabold text-vxn-ink sm:text-lg">Bảng hạng thành viên</h2>
           <p className="mt-1 text-xs text-vxn-fg-4">
             Hạng xét theo tổng điểm tích trong 12 tháng gần nhất (không trừ điểm đã đổi hoặc hết hạn).
           </p>
@@ -177,7 +177,7 @@ export function LoyaltyView({
                   <td className="py-4 text-vxn-fg-3 text-center sm:text-left">
                     {t.minPoints12mText}
                   </td>
-                  <td className="py-4 pr-2 text-right font-black text-vxn-teal-800">
+                  <td className="py-4 pr-2 text-right font-extrabold text-vxn-teal-800">
                     {t.multiplierText}
                   </td>
                 </tr>

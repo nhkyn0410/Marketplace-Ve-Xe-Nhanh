@@ -8,7 +8,7 @@ export function TicketsHeader() {
   return (
     <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
       <div>
-        <h1 className="text-xl sm:text-2xl font-black text-vxn-ink">
+        <h1 className="text-xl sm:text-2xl font-extrabold text-vxn-ink">
           Hành trình của tôi
         </h1>
         <p className="mt-1 text-xs sm:text-sm text-vxn-fg-4">

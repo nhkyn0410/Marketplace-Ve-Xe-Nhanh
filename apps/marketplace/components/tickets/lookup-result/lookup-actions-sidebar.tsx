@@ -59,7 +59,7 @@ export const LookupActionsSidebar: React.FC<LookupActionsSidebarProps> = ({
 
           <div className="pt-3 border-t border-border/50 flex items-center justify-between">
             <span className="text-xs font-bold text-foreground">Đã thanh toán</span>
-            <span className="text-xl font-black text-foreground tracking-tight">
+            <span className="text-xl font-extrabold text-foreground tracking-tight">
               {formatVnd(payment.paidTotalVnd)}
             </span>
           </div>

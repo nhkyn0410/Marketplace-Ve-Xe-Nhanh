@@ -56,7 +56,7 @@ export function PaymentProcessingCard({
       </div>
 
       {/* Tiêu đề & mô tả */}
-      <h2 className="mt-5 text-xl sm:text-2xl font-black text-vxn-ink">
+      <h2 className="mt-5 text-xl sm:text-2xl font-extrabold text-vxn-ink">
         Đang kiểm tra đơn đặt vé
       </h2>
       <p className="mt-2.5 text-xs sm:text-sm text-vxn-fg-4 max-w-lg mx-auto leading-relaxed">

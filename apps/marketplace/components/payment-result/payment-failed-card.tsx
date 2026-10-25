@@ -45,7 +45,7 @@ export function PaymentFailedCard({
 
       {/* Tiêu đề & diễn giải */}
       <div>
-        <h2 className="text-xl sm:text-2xl font-black text-vxn-ink">
+        <h2 className="text-xl sm:text-2xl font-extrabold text-vxn-ink">
           Thanh toán chưa thành công
         </h2>
         <p className="mt-2.5 text-xs sm:text-sm text-vxn-fg-4 max-w-lg mx-auto leading-relaxed">

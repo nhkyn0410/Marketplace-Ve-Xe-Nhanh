@@ -40,7 +40,7 @@ export function CheckoutStalePriceModal({
         </div>
 
         {/* Tiêu đề */}
-        <h3 className="mt-4 text-lg sm:text-xl font-black text-vxn-ink">
+        <h3 className="mt-4 text-lg sm:text-xl font-extrabold text-vxn-ink">
           Giá vé vừa thay đổi
         </h3>
 
@@ -70,7 +70,7 @@ export function CheckoutStalePriceModal({
             <span className="font-bold text-vxn-ink text-sm">
               Tổng thanh toán mới
             </span>
-            <span className="text-xl font-black text-vxn-teal-800">
+            <span className="text-xl font-extrabold text-vxn-teal-800">
               {formatVnd(stalePrice.newTotalVnd)}
             </span>
           </div>

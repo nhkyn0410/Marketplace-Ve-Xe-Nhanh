@@ -27,7 +27,7 @@ export function TripListHeader({
     <div className="flex flex-col justify-between gap-4 border-b border-slate-100 pb-4 sm:flex-row sm:items-center">
       {/* Tiêu đề & Thông tin ngày/khách */}
       <div>
-        <h2 className="text-xl font-black text-slate-900 sm:text-2xl">
+        <h2 className="text-xl font-extrabold text-slate-900 sm:text-2xl">
           {totalTrips} chuyến đang mở bán
         </h2>
         <p className="mt-0.5 text-xs text-slate-500">

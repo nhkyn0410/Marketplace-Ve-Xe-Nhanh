@@ -121,7 +121,7 @@ export function SeatSelectionSidebar({
           {/* Tạm tính */}
           <div className="flex items-baseline justify-between pt-4 pb-5">
             <span className="text-sm font-medium text-vxn-fg-3">Tạm tính</span>
-            <span className="text-xl sm:text-2xl font-black text-vxn-ink">
+            <span className="text-xl sm:text-2xl font-extrabold text-vxn-ink">
               {formatVnd(subtotalVnd)}
             </span>
           </div>

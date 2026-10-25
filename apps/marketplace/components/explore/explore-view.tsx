@@ -51,7 +51,7 @@ export function ExploreView({
       {/* 1. Header Trang & Tìm kiếm */}
       <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
         <div>
-          <h1 className="text-2xl font-black text-vxn-ink sm:text-3xl lg:text-4xl">
+          <h1 className="text-2xl font-extrabold text-vxn-ink sm:text-3xl lg:text-4xl">
             Khám phá
           </h1>
           <p className="mt-2 text-xs text-vxn-fg-4 sm:text-sm">
@@ -107,12 +107,12 @@ export function ExploreView({
                   <Sparkles className="h-3 w-3" />
                   Nổi bật
                 </span>
-                <span className="text-2xs font-black tracking-wider text-vxn-teal-700 uppercase">
+                <span className="text-2xs font-extrabold tracking-wider text-vxn-teal-700 uppercase">
                   {featuredArticle.category}
                 </span>
               </div>
 
-              <h2 className="text-xl font-black text-vxn-ink transition group-hover:text-vxn-teal-800 sm:text-2xl">
+              <h2 className="text-xl font-extrabold text-vxn-ink transition group-hover:text-vxn-teal-800 sm:text-2xl">
                 <Link href={`/explore/${featuredArticle.slug}`}>
                   {featuredArticle.title}
                 </Link>

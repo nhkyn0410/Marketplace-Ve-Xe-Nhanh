@@ -38,7 +38,7 @@ export function SeatHoldConflictModal({
         </div>
 
         {/* Tiêu đề lỗi */}
-        <h3 className="mt-4 text-lg sm:text-xl font-black text-vxn-ink">
+        <h3 className="mt-4 text-lg sm:text-xl font-extrabold text-vxn-ink">
           Chỗ {error.conflictedSeatCode} vừa có người khác giữ
         </h3>
 

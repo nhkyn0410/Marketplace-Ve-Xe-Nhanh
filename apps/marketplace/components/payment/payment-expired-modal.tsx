@@ -47,7 +47,7 @@ export function PaymentExpiredModal({
         </div>
 
         {/* Tiêu đề */}
-        <h3 className="mt-3 text-lg sm:text-xl font-black text-vxn-ink">
+        <h3 className="mt-3 text-lg sm:text-xl font-extrabold text-vxn-ink">
           Đã hết thời gian giữ chỗ
         </h3>
 

@@ -66,7 +66,7 @@ export function LoyaltyHistoryView({ historyData, isPreview = false }: LoyaltyHi
       <div className="flex-1 space-y-6">
         {/* Tiêu đề & mô tả */}
         <div>
-          <h1 className="text-xl font-black text-vxn-ink sm:text-2xl">Lịch sử điểm</h1>
+          <h1 className="text-xl font-extrabold text-vxn-ink sm:text-2xl">Lịch sử điểm</h1>
           <p className="mt-1 text-xs text-vxn-fg-4">
             Mọi thay đổi điểm đều được ghi lại, mới nhất trước.
           </p>
@@ -78,7 +78,7 @@ export function LoyaltyHistoryView({ historyData, isPreview = false }: LoyaltyHi
             <span className="text-2xs font-bold text-vxn-fg-4 uppercase tracking-wider">
               Điểm hiện có
             </span>
-            <div className="mt-1 text-xl font-black text-[#00506a] sm:text-2xl">
+            <div className="mt-1 text-xl font-extrabold text-[#00506a] sm:text-2xl">
               {data.availablePoints.toLocaleString("vi-VN")}
             </div>
           </div>
@@ -87,7 +87,7 @@ export function LoyaltyHistoryView({ historyData, isPreview = false }: LoyaltyHi
             <span className="text-2xs font-bold text-vxn-fg-4 uppercase tracking-wider">
               Đã tích
             </span>
-            <div className="mt-1 text-xl font-black text-emerald-700 sm:text-2xl">
+            <div className="mt-1 text-xl font-extrabold text-emerald-700 sm:text-2xl">
               {data.totalEarnedPoints.toLocaleString("vi-VN")}
             </div>
           </div>
@@ -96,7 +96,7 @@ export function LoyaltyHistoryView({ historyData, isPreview = false }: LoyaltyHi
             <span className="text-2xs font-bold text-vxn-fg-4 uppercase tracking-wider">
               Đã đổi
             </span>
-            <div className="mt-1 text-xl font-black text-slate-700 sm:text-2xl">
+            <div className="mt-1 text-xl font-extrabold text-slate-700 sm:text-2xl">
               {data.totalRedeemedPoints.toLocaleString("vi-VN")}
             </div>
           </div>
@@ -105,7 +105,7 @@ export function LoyaltyHistoryView({ historyData, isPreview = false }: LoyaltyHi
             <span className="text-2xs font-bold text-vxn-fg-4 uppercase tracking-wider">
               Đã hết hạn
             </span>
-            <div className="mt-1 text-xl font-black text-red-600 sm:text-2xl">
+            <div className="mt-1 text-xl font-extrabold text-red-600 sm:text-2xl">
               {data.totalExpiredPoints.toLocaleString("vi-VN")}
             </div>
           </div>
@@ -193,7 +193,7 @@ export function LoyaltyHistoryView({ historyData, isPreview = false }: LoyaltyHi
                         </span>
                       </td>
                       <td className="py-4 text-vxn-ink font-medium">{tx.sourceText}</td>
-                      <td className="py-4 pr-2 text-right font-black whitespace-nowrap">
+                      <td className="py-4 pr-2 text-right font-extrabold whitespace-nowrap">
                         <span className={isPositive ? "text-emerald-600" : "text-red-600"}>
                           {isPositive ? `+${tx.pointsChange}` : tx.pointsChange === 0 ? "0" : `−${Math.abs(tx.pointsChange)}`}
                         </span>

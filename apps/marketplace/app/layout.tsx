@@ -8,7 +8,8 @@ import { SiteShell } from "../components/site-shell";
 
 const beVietnamPro = Be_Vietnam_Pro({
   subsets: ["latin", "vietnamese"],
-  weight: ["400", "500", "600", "700"],
+  // 800 = ExtraBold của tiêu đề Figma; thiếu thì trình duyệt tự làm đậm giả, nét chữ có dấu bị nhòe.
+  weight: ["400", "500", "600", "700", "800"],
   variable: "--font-be-vietnam-pro",
   display: "swap"
 });

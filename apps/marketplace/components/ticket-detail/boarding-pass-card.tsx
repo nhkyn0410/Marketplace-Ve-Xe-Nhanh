@@ -90,7 +90,7 @@ export const BoardingPassCard: React.FC<BoardingPassCardProps> = ({
 
             {/* Tuyến đường & Ngày đi */}
             <div>
-              <div className="text-xl sm:text-2xl font-black tracking-tight text-foreground flex items-center gap-2">
+              <div className="text-xl sm:text-2xl font-extrabold tracking-tight text-foreground flex items-center gap-2">
                 <span>{trip.routeName}</span>
               </div>
               <div className="text-xs text-muted-foreground mt-0.5">
@@ -103,7 +103,7 @@ export const BoardingPassCard: React.FC<BoardingPassCardProps> = ({
               <div className="flex items-center gap-3">
                 {/* Giờ đón */}
                 <div className="bg-white dark:bg-muted/60 p-3 rounded-xl border border-amber-200/80 dark:border-amber-900/50 min-w-[140px]">
-                  <div className="text-xl font-black text-foreground tracking-tight">
+                  <div className="text-xl font-extrabold text-foreground tracking-tight">
                     {trip.departureTime}
                   </div>
                   <div className="text-[11px] text-muted-foreground mt-0.5 line-clamp-1">
@@ -115,7 +115,7 @@ export const BoardingPassCard: React.FC<BoardingPassCardProps> = ({
 
                 {/* Giờ đến */}
                 <div className="bg-white dark:bg-muted/60 p-3 rounded-xl border border-amber-200/80 dark:border-amber-900/50 min-w-[140px]">
-                  <div className="text-xl font-black text-foreground tracking-tight flex items-baseline gap-1.5">
+                  <div className="text-xl font-extrabold text-foreground tracking-tight flex items-baseline gap-1.5">
                     <span>{trip.arrivalTime}</span>
                     <span className="text-[10px] font-bold text-amber-800 dark:text-amber-300 bg-amber-500/20 px-1 py-0.2 rounded">
                       {trip.arrivalNoticeText}
