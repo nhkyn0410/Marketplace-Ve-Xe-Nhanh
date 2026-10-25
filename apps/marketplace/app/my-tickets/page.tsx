@@ -76,6 +76,12 @@ export default async function MyTicketsPage({ searchParams }: MyTicketsPageProps
           <ErrorState
             title="Không thể tải danh sách vé"
             description="Đã xảy ra lỗi khi kết nối tới máy chủ. Vui lòng thử lại sau."
+            action={
+              // Tải lại toàn trang để gọi lại API (link cùng URL không chạy lại server component)
+              <a href="/my-tickets" className="inline-flex items-center rounded-xl bg-vxn-teal-700 px-5 py-2.5 text-sm font-semibold text-white hover:bg-vxn-teal-800">
+                Thử lại
+              </a>
+            }
           />
         </div>
       </div>
