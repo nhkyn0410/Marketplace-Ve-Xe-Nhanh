@@ -21,6 +21,7 @@ export const tripSeatSelectionIdealFixture: TripSeatSelectionData = {
       name: "Bến xe Miền Đông mới",
       time: "22:30",
       address: "501 Hoàng Hữu Nam, TP. Thủ Đức",
+      plannedAt: "2026-10-16T22:30:00+07:00",
       hasFreeShuttle: false
     },
     {
@@ -28,6 +29,7 @@ export const tripSeatSelectionIdealFixture: TripSeatSelectionData = {
       name: "Văn phòng Phương Nam – Hàng Xanh",
       time: "22:50",
       address: "12 Điện Biên Phủ, Q. Bình Thạnh",
+      plannedAt: "2026-10-16T22:50:00+07:00",
       hasFreeShuttle: true
     }
   ],
@@ -37,6 +39,7 @@ export const tripSeatSelectionIdealFixture: TripSeatSelectionData = {
       name: "Văn phòng Phương Nam – Đà Lạt",
       time: "05:10",
       address: "5 Lữ Gia, Phường 9, Đà Lạt",
+      plannedAt: "2026-10-17T05:10:00+07:00",
       hasFreeShuttle: true
     },
     {
@@ -44,6 +47,7 @@ export const tripSeatSelectionIdealFixture: TripSeatSelectionData = {
       name: "Bến xe liên tỉnh Đà Lạt",
       time: "05:30",
       address: "1 Tô Hiến Thành, Phường 3, Đà Lạt",
+      plannedAt: "2026-10-17T05:30:00+07:00",
       hasFreeShuttle: false
     }
   ],

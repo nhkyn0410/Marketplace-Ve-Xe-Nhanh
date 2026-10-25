@@ -308,6 +308,8 @@ export interface SeatLocationPoint {
   readonly address: string;
   readonly time: string;
   readonly hasFreeShuttle: boolean;
+  /** Thời điểm dự kiến (ISO) — dùng tính "+N ngày" của điểm trả so với điểm đón. */
+  readonly plannedAt?: string;
 }
 
 /**

@@ -66,3 +66,24 @@ export function formatTripDateVi(isoDate: string): string {
   const weekday = new Date(Date.UTC(Number(year), Number(month) - 1, Number(day))).getUTCDay();
   return `${WEEKDAYS_SHORT[weekday]}, ${day}/${month}/${year}`;
 }
+
+/**
+ * Số ngày lịch (giờ Việt Nam) từ `fromIso` tới `toIso`, vd đón 22:30 hôm nay, trả 05:30 hôm sau → 1.
+ * Thiếu hoặc sai định dạng thì trả 0 để giao diện không hiện "+N ngày".
+ */
+export function vnDayOffset(fromIso?: string, toIso?: string): number {
+  if (!fromIso || !toIso) {
+    return 0;
+  }
+  const day = (iso: string): number | null => {
+    const date = new Date(iso);
+    if (Number.isNaN(date.getTime())) {
+      return null;
+    }
+    const [year, month, dayOfMonth] = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Ho_Chi_Minh", year: "numeric", month: "2-digit", day: "2-digit" }).format(date).split("-").map(Number);
+    return Date.UTC(year, month - 1, dayOfMonth) / 86_400_000;
+  };
+  const from = day(fromIso);
+  const to = day(toIso);
+  return from === null || to === null ? 0 : Math.max(0, to - from);
+}

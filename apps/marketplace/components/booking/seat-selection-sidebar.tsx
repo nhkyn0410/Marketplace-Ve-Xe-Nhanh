@@ -23,6 +23,8 @@ export interface SeatSelectionSidebarProps {
   /** Lỗi giữ chỗ hiển thị ngay trên nút Tiếp tục (trên mobile nút nằm cuối trang). */
   readonly errorMessage?: string | null;
   readonly isSubmitting?: boolean;
+  /** Số ngày điểm trả lệch so với điểm đón (giờ VN); 0 thì không hiện "+N ngày". */
+  readonly dropoffDayOffset?: number;
 }
 
 /**
@@ -41,7 +43,8 @@ export function SeatSelectionSidebar({
   onClearSelection,
   onContinue,
   errorMessage,
-  isSubmitting = false
+  isSubmitting = false,
+  dropoffDayOffset = 0
 }: SeatSelectionSidebarProps) {
   const hasSeats = selectedSeatsSummary.length > 0;
 
@@ -72,7 +75,7 @@ export function SeatSelectionSidebar({
                 <span className="text-vxn-fg-2">{pickupPointName}</span>
               </div>
               <div>
-                Trả <span className="font-bold text-vxn-ink">{dropoffTime}</span> (+1 ngày) •{" "}
+                Trả <span className="font-bold text-vxn-ink">{dropoffTime}</span>{dropoffDayOffset > 0 && ` (+${dropoffDayOffset} ngày)`} •{" "}
                 <span className="text-vxn-fg-2">{dropoffPointName}</span>
               </div>
             </div>

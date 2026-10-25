@@ -43,7 +43,7 @@ export function seatTypeLabel(type: string): string {
 
 /** Chuyển điểm dừng của API sang dữ liệu hiển thị. */
 export function mapPoint(point: { sequence: number; name: string; plannedAt: string; address?: string }): SeatLocationPoint {
-  return { id: String(point.sequence), name: point.name, address: point.address ?? "", time: dateText(point.plannedAt, { hour: "2-digit", minute: "2-digit" }), hasFreeShuttle: false };
+  return { id: String(point.sequence), name: point.name, address: point.address ?? "", time: dateText(point.plannedAt, { hour: "2-digit", minute: "2-digit" }), hasFreeShuttle: false, plannedAt: point.plannedAt };
 }
 
 /** Giữ nguyên bảng tiền đã chốt của booking. */

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { formatDateVi, formatDateTimeVi, formatTimeVi, formatTripDateVi, formatVnd } from "./index";
+import { formatDateVi, formatDateTimeVi, formatTimeVi, formatTripDateVi, formatVnd, vnDayOffset } from "./index";
 
 describe("formatVnd", () => {
   it("định dạng số 0 thành 0đ", () => {
@@ -53,5 +53,18 @@ describe("formatTripDateVi", () => {
   it("giữ nguyên chuỗi không đúng dạng YYYY-MM-DD", () => {
     expect(formatTripDateVi("")).toBe("");
     expect(formatTripDateVi("16/10/2026")).toBe("16/10/2026");
+  });
+});
+
+describe("vnDayOffset", () => {
+  it("tính chênh ngày theo giờ Việt Nam, kể cả khi giờ UTC cùng ngày", () => {
+    // 22:30 VN ngày 16 = 15:30 UTC ngày 16; 05:30 VN ngày 17 = 22:30 UTC ngày 16
+    expect(vnDayOffset("2026-10-16T15:30:00Z", "2026-10-16T22:30:00Z")).toBe(1);
+    expect(vnDayOffset("2026-10-16T01:00:00Z", "2026-10-16T08:00:00Z")).toBe(0);
+  });
+
+  it("trả 0 khi thiếu hoặc sai dữ liệu", () => {
+    expect(vnDayOffset(undefined, "2026-10-16T22:30:00Z")).toBe(0);
+    expect(vnDayOffset("abc", "2026-10-16T22:30:00Z")).toBe(0);
   });
 });

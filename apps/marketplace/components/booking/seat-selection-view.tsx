@@ -3,6 +3,7 @@
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { holdSeats } from "../../lib/data/booking";
+import { vnDayOffset } from "../../lib/format";
 import { CheckoutStepper } from "./checkout-stepper";
 import { SeatPointSelector } from "./seat-point-selector";
 import { SeatMap } from "./seat-map";
@@ -152,6 +153,7 @@ export function SeatSelectionView({ initialData }: SeatSelectionViewProps) {
           onContinue={handleContinue}
           errorMessage={actionError}
           isSubmitting={isSubmitting}
+          dropoffDayOffset={vnDayOffset(currentPickup?.plannedAt, currentDropoff?.plannedAt)}
         />
       </div>
 
