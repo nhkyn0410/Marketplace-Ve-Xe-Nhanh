@@ -30,7 +30,7 @@ export function AuthModalShell({
     <div className="relative flex min-h-[calc(var(--vxn-vh)_-_4rem)] items-center justify-center overflow-hidden p-4 sm:p-6 lg:min-h-viewport">
       {/* Nền: ảnh trang chủ làm mờ thay cho trang phía sau khi mở thẳng đường dẫn */}
       <div aria-hidden="true" className="absolute inset-0 bg-[url('/images/hero-bg.jpg')] bg-cover bg-center" />
-      <div aria-hidden="true" className="absolute inset-0 bg-[rgb(8_23_33/0.55)] backdrop-blur-[2px]" />
+      <div aria-hidden="true" className="absolute inset-0 bg-[rgb(8_23_33/0.55)]" />
 
       <section className="relative flex w-full max-w-[480px] flex-col items-center gap-4 rounded-3xl border border-border bg-card p-6 shadow-[0_12px_16px_-4px_rgb(16_24_40/0.08),0_4px_6px_-2px_rgb(16_24_40/0.03)] sm:p-9">
         {(topLeft || showClose) && (

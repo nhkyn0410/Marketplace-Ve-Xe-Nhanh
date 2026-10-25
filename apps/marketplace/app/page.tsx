@@ -79,6 +79,9 @@ export default async function MarketplacePage(props: MarketplacePageProps) {
       <div className="flex flex-col bg-white">
         <SearchHero
           provinces={provincesFixture}
+          featuredOperators={featuredOperatorsFixture}
+          initialTab={preview === "ideal" ? "trip" : "operator"}
+          initialPickerOpen={preview === "operator-picker"}
         />
         <PopularRoutesSection routes={popularRoutesFixture} />
         <ExploreCardsSection />

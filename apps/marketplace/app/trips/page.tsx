@@ -60,6 +60,7 @@ export default async function TripsPage(props: TripsPageProps) {
         {topBarHeader}
         <div className="mx-auto w-full max-w-[1200px] px-4 py-6 sm:px-6 lg:px-14">
           <TripSearchBar />
+          <h1 className="sr-only">Chưa có chuyến phù hợp</h1>
           <div className="mt-6">
             <TripEmptyState
               nearestDateSuggestions={nearestDateSuggestionsFixture}
@@ -78,6 +79,7 @@ export default async function TripsPage(props: TripsPageProps) {
         {topBarHeader}
         <div className="mx-auto w-full max-w-[1200px] px-4 py-6 sm:px-6 lg:px-14">
           <TripSearchBar />
+          <h1 className="sr-only">Đang tìm chuyến xe</h1>
           <div className="mt-6 flex flex-col gap-6 lg:flex-row items-start">
             <CollapsibleFilters>
               <TripFilters />
