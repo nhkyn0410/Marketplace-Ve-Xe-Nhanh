@@ -98,15 +98,19 @@ export function SiteShell({ children }: { readonly children: ReactNode }) {
   );
 }
 
+/** Các màn xác thực là modal phủ kín màn hình (Figma SCR-PSG-07..10) nên không có footer. */
+const AUTH_ROUTES = ["/login", "/register", "/verify-email", "/auth/callback"];
+
 /**
- * Điều khiển hiển thị footer: ẩn footer khi ở các màn hình lỗi theo thiết kế Figma SCR-PSG-05.
+ * Điều khiển hiển thị footer: ẩn footer khi ở các màn hình lỗi theo thiết kế Figma SCR-PSG-05 và các màn xác thực.
  */
 function ConditionalFooter() {
+  const pathname = usePathname();
   const searchParams = useSearchParams();
   const preview = searchParams.get("preview");
   const isErrorPreview = preview === "404" || preview === "500" || preview === "403" || preview === "503";
 
-  if (isErrorPreview) {
+  if (isErrorPreview || AUTH_ROUTES.includes(pathname)) {
     return null;
   }
 
@@ -202,7 +206,7 @@ function SidebarContent({ onNavigate }: { readonly onNavigate?: () => void }) {
         ) : (
           <Button
             asChild
-            className="h-[42px] rounded-lg bg-vxn-saffron-500 text-[15px] font-bold text-white shadow-xs hover:bg-vxn-saffron-600"
+            className="h-[42px] rounded-[4px] bg-vxn-saffron-600 text-[15px] font-bold text-white shadow-xs hover:bg-vxn-saffron-700"
           >
             <Link href="/login" onClick={onNavigate}>
               Đăng nhập
@@ -210,7 +214,7 @@ function SidebarContent({ onNavigate }: { readonly onNavigate?: () => void }) {
           </Button>
         )}
         {error && <p role="alert" className="text-xs text-amber-100">{error}</p>}
-        <p className="text-center text-[12px] text-white/50">
+        <p className="text-center text-[12px] text-white/70">
           v.1.1 · vexenhanh.vn
         </p>
       </div>
@@ -251,10 +255,10 @@ function SidebarLink({
       className={cn(
         "flex items-center gap-3 rounded-lg transition-colors hover:bg-white/10 hover:text-white",
         compact ? "h-10 px-3 text-sm" : "h-[42px] px-3.5 text-[15px]",
-        active ? "bg-white/10 font-medium text-white" : "text-white/85"
+        active ? "bg-white/[0.13] font-medium text-white" : compact ? "text-white/[0.78]" : "text-white/[0.86]"
       )}
     >
-      <Icon className="size-[18px] shrink-0" />
+      <Icon className={cn("shrink-0", compact ? "size-[17px]" : "size-[18px]")} />
       <span className="min-w-0 flex-1">{label}</span>
       {active && <span className="size-1.5 shrink-0 rounded-full bg-vxn-saffron-500" />}
     </Link>
