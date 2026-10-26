@@ -2,7 +2,7 @@ import type { components } from "@vexenhanh/api-client";
 import type {
   BookingPaymentData, BookingPaymentResultData, CheckoutPassengerItem,
   CheckoutPriceSummary, MyTicketItem, SeatLocationPoint, TicketDetailData,
-  TicketLookupResultData, TripSeatSelectionData
+  TicketLookupBookingItem, TicketLookupBookingsData, TicketLookupResultData, TripSeatSelectionData
 } from "./types";
 
 /** Kiểu booking theo hợp đồng OpenAPI đã sinh. */
@@ -43,7 +43,7 @@ export function seatTypeLabel(type: string): string {
 
 /** Chuyển điểm dừng của API sang dữ liệu hiển thị. */
 export function mapPoint(point: { sequence: number; name: string; plannedAt: string; address?: string }): SeatLocationPoint {
-  return { id: String(point.sequence), name: point.name, address: point.address ?? "", time: dateText(point.plannedAt, { hour: "2-digit", minute: "2-digit" }), hasFreeShuttle: false };
+  return { id: String(point.sequence), name: point.name, address: point.address ?? "", time: dateText(point.plannedAt, { hour: "2-digit", minute: "2-digit" }), hasFreeShuttle: false, plannedAt: point.plannedAt };
 }
 
 /** Giữ nguyên bảng tiền đã chốt của booking. */
@@ -121,6 +121,24 @@ export function mapTicketDetail(booking: ApiBooking): TicketDetailData {
     payment: { ticketCount: booking.passengers.length, ticketPriceTotalVnd: moneyString(booking.subtotal), serviceFeeVnd: moneyString(booking.serviceFee), discountVnd: moneyString(booking.discount), paidTotalVnd: booking.payment?.status === "SUCCESS" ? moneyString(booking.payment.amount) : "0", methodLabel: booking.payment?.provider ?? "Chưa thanh toán", gatewayTxnId: booking.payment?.paymentCode ?? "", statusLabel: paymentStatusLabel(booking.payment?.status) },
     refundPolicy: { savedAtText: dateText(booking.createdAt, { dateStyle: "short" }), currentRefundNote: "Số tiền hoàn được hệ thống tính lại khi chọn vé hủy.", milestones: booking.cancellationPolicy.tiers.map((tier) => ({ timeframeText: `Trước giờ đi ít nhất ${tier.minHoursBefore} giờ`, refundRateText: `${tier.refundPercent}%`, refundPercent: tier.refundPercent })) }, boardingRules: []
   };
+}
+
+/** Danh sách đơn của phiên tra cứu; nhóm tab theo trạng thái và giờ khởi hành (giờ máy chủ). */
+export function mapLookupBookings(list: components["schemas"]["TicketLookupBookingListDto_Output"], expiresInSeconds: number, now = new Date()): TicketLookupBookingsData {
+  const closed: readonly string[] = ["CANCELLED", "EXPIRED", "REFUND_PENDING", "REFUNDED", "REFUND_FAILED"];
+  const items = list.items.map((item): TicketLookupBookingItem => ({
+    bookingId: item.bookingId,
+    bookingCode: item.bookingCode,
+    statusLabel: bookingStatusLabel(item.status),
+    group: closed.includes(item.status) ? "cancelled" : new Date(item.departureAt) < now ? "completed" : "upcoming",
+    routeName: item.routeName,
+    departureTimeText: dateText(item.departureAt, { dateStyle: "short", timeStyle: "short" }),
+    operatorName: item.operatorName,
+    ticketCountText: `${item.ticketCount} vé`,
+    totalVnd: moneyString(item.total),
+    bookedWithAccount: item.bookedWithAccount
+  }));
+  return { maskedEmail: list.maskedEmail, scope: list.scope, hasAccount: list.hasAccount, accountSuggested: list.hasAccount || items.some((item) => item.bookedWithAccount), expiresInSeconds, items };
 }
 
 /** Chuyển kết quả tra cứu trực tiếp của API sang giao diện khách vãng lai. */

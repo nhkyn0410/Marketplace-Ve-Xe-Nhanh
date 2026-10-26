@@ -10,7 +10,7 @@ import { FeatureUnavailable, ErrorState } from "../../../components/states";
 import { CheckoutFormView } from "../../../components/checkout/checkout-form-view";
 
 export const metadata: Metadata = {
-  title: "Thông tin hành khách & Đặt vé | Vé Xe Nhanh",
+  title: "Thông tin hành khách & Đặt vé",
   description: "Xác nhận điểm đón trả, nhập thông tin hành khách và áp dụng mã ưu đãi."
 };
 
@@ -63,7 +63,7 @@ export default async function CheckoutPage({
     return (
       <div className="flex-1 bg-neutral-50/40 pb-16">
         <PassengerTopBar breadcrumbs={breadcrumbs} />
-        <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+        <div className="mx-auto w-full max-w-[1200px] px-4 py-12 sm:px-6 lg:px-14">
           <FeatureUnavailable
             endpoint={result.endpoint}
             title="Chức năng đặt vé đang được phát triển"
@@ -78,7 +78,7 @@ export default async function CheckoutPage({
     return (
       <div className="flex-1 bg-neutral-50/40 pb-16">
         <PassengerTopBar breadcrumbs={breadcrumbs} />
-        <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+        <div className="mx-auto w-full max-w-[1200px] px-4 py-12 sm:px-6 lg:px-14">
           <ErrorState
             title="Không thể tải thông tin đặt vé"
             description="Lượt giữ chỗ có thể đã hết hạn hoặc đã xảy ra lỗi khi kết nối với máy chủ."

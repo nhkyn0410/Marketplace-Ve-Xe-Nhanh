@@ -3,9 +3,11 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { X, Check, AlertCircle } from "lucide-react";
+import { Check, AlertCircle } from "lucide-react";
 import { Button } from "@vexenhanh/ui/components/button";
 import { registerAccount } from "../../lib/data/auth";
+import { AUTH_INPUT, AUTH_LABEL, AUTH_LINK, AUTH_PRIMARY_BUTTON, AUTH_SUBTITLE, AUTH_TITLE } from "./auth-styles";
+import { AuthModalShell, type AuthModalVariant } from "./auth-modal-shell";
 
 /**
  * Thuộc tính của RegisterView (SCR-PSG-08)
@@ -17,6 +19,7 @@ export interface RegisterViewProps {
     readonly phone?: string;
   };
   readonly isPreview?: boolean;
+  readonly variant?: AuthModalVariant;
 }
 
 /**
@@ -26,7 +29,8 @@ export const RegisterView: React.FC<RegisterViewProps> = ({
   initialData = {
     email: ""
   },
-  isPreview = false
+  isPreview = false,
+  variant = "page"
 }) => {
   const router = useRouter();
   const [email, setEmail] = useState<string>(initialData.email ?? "");
@@ -50,7 +54,7 @@ export const RegisterView: React.FC<RegisterViewProps> = ({
     setErrorMessage(null);
 
     if (isPreview) {
-      router.push(`/verify-email?email=${encodeURIComponent(email)}&preview=ideal`);
+      router.push(`/verify-email?email=${encodeURIComponent(email)}&flow=register&preview=ideal`);
       return;
     }
 
@@ -58,7 +62,7 @@ export const RegisterView: React.FC<RegisterViewProps> = ({
     try {
       const res = await registerAccount({ email });
       if (res.status === "ok") {
-        router.push(`/verify-email?email=${encodeURIComponent(res.data.email)}`);
+        router.push(`/verify-email?email=${encodeURIComponent(res.data.email)}&flow=register`);
       } else if (res.status === "unavailable") {
         setErrorMessage("Chưa thể tạo tài khoản. Vui lòng thử lại sau.");
       } else if (res.status === "error") {
@@ -72,155 +76,84 @@ export const RegisterView: React.FC<RegisterViewProps> = ({
   };
 
   return (
-    <div className="relative min-h-[calc(100vh-4rem)] flex items-center justify-center p-4 sm:p-6 bg-slate-900/40 backdrop-blur-xs">
-      {/* Khung modal Tạo tài khoản chuẩn Figma node 1447:17420 */}
-      <div className="relative w-full max-w-[480px] bg-white dark:bg-card rounded-3xl shadow-2xl border border-border p-6 sm:p-8 space-y-6">
-        {/* Nút đóng góc phải */}
-        <button
-          type="button"
-          onClick={() => router.push("/")}
-          aria-label="Đóng"
-          className="absolute top-5 right-5 p-1 text-muted-foreground hover:text-foreground rounded-full hover:bg-muted/60 transition-colors"
-        >
-          <X className="w-5 h-5" />
-        </button>
+    <AuthModalShell variant={variant}>
+      {/* Modal Tạo tài khoản — Figma 1447:17057 */}
+      <div className="flex w-full flex-col items-center gap-1.5 text-center">
+        <h1 className={AUTH_TITLE}>Tạo tài khoản</h1>
+        <p className={AUTH_SUBTITLE}>Xác minh bằng mã OTP gửi qua email. Không cần mật khẩu.</p>
+      </div>
 
-        {/* Logo và tiêu đề */}
-        <div className="text-center space-y-2 pt-2">
-          {/* Logo Vé Xe Nhanh SVG */}
-          <div className="inline-flex items-center gap-2 mb-1">
-            <svg
-              className="h-8 w-auto"
-              viewBox="0 0 160 36"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M10 6L2 20L10 30L22 30L30 16L18 16L22 6H10Z"
-                fill="#F59E0B"
-              />
-              <path
-                d="M18 6L10 20L18 30L30 30L38 16L26 16L30 6H18Z"
-                fill="#0F5B60"
-              />
-              <text
-                x="44"
-                y="24"
-                fontFamily="system-ui, -apple-system, sans-serif"
-                fontWeight="800"
-                fontSize="18"
-                fill="#0F5B60"
-              >
-                Vé Xe
-              </text>
-              <text
-                x="98"
-                y="24"
-                fontFamily="system-ui, -apple-system, sans-serif"
-                fontWeight="800"
-                fontSize="18"
-                fill="#F59E0B"
-              >
-                Nhanh
-              </text>
-            </svg>
+      <form onSubmit={handleSubmit} className="flex w-full flex-col gap-4">
+        <div className="flex flex-col gap-2 text-left">
+          <label htmlFor="register-email" className={AUTH_LABEL}>
+            Email
+          </label>
+          <div className="relative">
+            <input
+              id="register-email"
+              type="email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="email@example.com"
+              className={`${AUTH_INPUT} pr-11 ${isValidEmail ? "border-vxn-teal-500" : "border-[#e4e5e7]"}`}
+            />
+            {isValidEmail && (
+              <div className="pointer-events-none absolute inset-y-0 right-4 flex items-center text-vxn-teal-500">
+                <Check className="size-5" />
+              </div>
+            )}
           </div>
-
-          <h1 className="text-2xl font-bold tracking-tight text-foreground">
-            Tạo tài khoản
-          </h1>
-          <p className="text-xs text-muted-foreground leading-relaxed">
-            Xác minh bằng mã OTP gửi qua email. Không cần mật khẩu.
-          </p>
-        </div>
-
-        {/* Form nhập thông tin */}
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Email */}
-          <div className="space-y-1.5 text-left">
-            <label className="text-xs font-semibold text-foreground">
-              Email
-            </label>
-            <div className="relative">
-              <input
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="email@example.com"
-                className={`w-full h-11 pl-3.5 pr-10 rounded-xl border bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-[#2B7EAD] transition-all ${
-                  isValidEmail ? "border-[#2B7EAD]" : "border-input"
-                }`}
-              />
-              {isValidEmail && (
-                <div className="absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none text-[#2B7EAD]">
-                  <Check className="w-4 h-4 stroke-[2.5]" />
-                </div>
-              )}
-            </div>
-          </div>
-
-          <p className="text-xs text-muted-foreground leading-relaxed">
+          <p className="text-xs/[18px] text-vxn-fg-5">
             Sau khi xác minh email, bạn có thể bổ sung họ tên, số điện thoại và ngày sinh tại Hồ sơ cá nhân.
           </p>
-
-          {/* Checkbox điều khoản */}
-          <div className="flex items-start gap-2.5 pt-1 text-left">
-            <button
-              type="button"
-              role="checkbox"
-              aria-checked={agreeTerms}
-              onClick={() => setAgreeTerms(!agreeTerms)}
-              className={`mt-0.5 w-4 h-4 rounded-sm flex items-center justify-center transition-colors border ${
-                agreeTerms
-                  ? "bg-[#0F5B60] border-[#0F5B60] text-white"
-                  : "bg-background border-input text-transparent"
-              }`}
-            >
-              <Check className="w-3 h-3 stroke-[3]" />
-            </button>
-            <p className="text-xs text-muted-foreground leading-snug">
-              Tôi đồng ý{" "}
-              <Link href="/legal/terms" className="text-[#0F5B60] font-medium hover:underline">
-                Điều khoản sử dụng
-              </Link>{" "}
-              và{" "}
-              <Link href="/legal/privacy" className="text-[#0F5B60] font-medium hover:underline">
-                Chính sách bảo mật
-              </Link>{" "}
-              của Vé Xe Nhanh.
-            </p>
-          </div>
-
-          {/* Thông báo lỗi khi có */}
-          {errorMessage && (
-            <div className="flex items-start gap-2 p-3 rounded-xl bg-destructive/10 text-destructive text-xs leading-relaxed">
-              <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
-              <span>{errorMessage}</span>
-            </div>
-          )}
-
-          {/* Nút gửi */}
-          <Button
-            type="submit"
-            disabled={isSubmitting || !isValidEmail || !agreeTerms}
-            className="w-full h-11 rounded-xl bg-[#2B7EAD] hover:bg-[#236a92] text-white font-medium text-sm transition-all shadow-xs"
-          >
-            {isSubmitting ? "Đang xử lý..." : "Tạo tài khoản và gửi mã"}
-          </Button>
-        </form>
-
-        {/* Link chuyển sang đăng nhập */}
-        <div className="text-center text-xs text-muted-foreground pt-1">
-          Đã có tài khoản?{" "}
-          <Link
-            href={isPreview ? "/login?preview=ideal" : "/login"}
-            className="text-[#0F5B60] font-semibold hover:underline"
-          >
-            Đăng nhập
-          </Link>
         </div>
-      </div>
-    </div>
+
+        {/* Checkbox điều khoản */}
+        <div className="flex items-start gap-2.5 text-left">
+          <button
+            type="button"
+            role="checkbox"
+            aria-checked={agreeTerms}
+            aria-label="Đồng ý điều khoản"
+            onClick={() => setAgreeTerms(!agreeTerms)}
+            className={`mt-0.5 flex size-4 shrink-0 items-center justify-center rounded-sm border transition-colors ${
+              agreeTerms ? "border-vxn-teal-500 bg-vxn-teal-500 text-white" : "border-input bg-background text-transparent"
+            }`}
+          >
+            <Check className="size-3 stroke-[3]" />
+          </button>
+          <p className="text-[13px]/[19.5px] text-vxn-fg-5">
+            Tôi đồng ý{" "}
+            <Link href="/legal/terms-of-service" className={AUTH_LINK}>
+              Điều khoản sử dụng
+            </Link>{" "}
+            và{" "}
+            <Link href="/legal/privacy-policy" className={AUTH_LINK}>
+              Chính sách bảo mật
+            </Link>{" "}
+            của Vé Xe Nhanh.
+          </p>
+        </div>
+
+        {errorMessage && (
+          <div role="alert" className="flex items-start gap-2 rounded-xl bg-destructive/10 p-3 text-sm text-destructive">
+            <AlertCircle className="mt-0.5 size-4 shrink-0" />
+            <span>{errorMessage}</span>
+          </div>
+        )}
+
+        <Button type="submit" disabled={isSubmitting || !isValidEmail || !agreeTerms} className={AUTH_PRIMARY_BUTTON}>
+          {isSubmitting ? "Đang xử lý..." : "Tạo tài khoản và gửi mã"}
+        </Button>
+      </form>
+
+      <p className="text-[13px]/[19.5px] text-vxn-fg-5">
+        Đã có tài khoản?{" "}
+        <Link href={isPreview ? "/login?preview=ideal" : "/login"} className={AUTH_LINK}>
+          Đăng nhập
+        </Link>
+      </p>
+    </AuthModalShell>
   );
 };

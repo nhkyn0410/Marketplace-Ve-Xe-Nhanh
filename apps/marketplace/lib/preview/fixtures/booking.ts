@@ -17,38 +17,42 @@ export const tripSeatSelectionIdealFixture: TripSeatSelectionData = {
   maxSeats: 10,
   pickupPoints: [
     {
-      id: "pickup-bxmd",
+      id: "1",
       name: "Bến xe Miền Đông mới",
       time: "22:30",
       address: "501 Hoàng Hữu Nam, TP. Thủ Đức",
+      plannedAt: "2026-10-16T22:30:00+07:00",
       hasFreeShuttle: false
     },
     {
-      id: "pickup-hangxanh",
+      id: "2",
       name: "Văn phòng Phương Nam – Hàng Xanh",
       time: "22:50",
       address: "12 Điện Biên Phủ, Q. Bình Thạnh",
+      plannedAt: "2026-10-16T22:50:00+07:00",
       hasFreeShuttle: true
     }
   ],
   dropoffPoints: [
     {
-      id: "dropoff-dalat-office",
+      id: "4",
       name: "Văn phòng Phương Nam – Đà Lạt",
       time: "05:10",
       address: "5 Lữ Gia, Phường 9, Đà Lạt",
+      plannedAt: "2026-10-17T05:10:00+07:00",
       hasFreeShuttle: true
     },
     {
-      id: "dropoff-bxdalat",
+      id: "5",
       name: "Bến xe liên tỉnh Đà Lạt",
       time: "05:30",
       address: "1 Tô Hiến Thành, Phường 3, Đà Lạt",
+      plannedAt: "2026-10-17T05:30:00+07:00",
       hasFreeShuttle: false
     }
   ],
-  selectedPickupPointId: "pickup-bxmd",
-  selectedDropoffPointId: "dropoff-bxdalat",
+  selectedPickupPointId: "1",
+  selectedDropoffPointId: "5",
   seats: [
     // Tầng dưới (Floor 1)
     { id: "s-a1", code: "A1", label: "A1", floor: 1, status: "available", type: "single", priceVnd: "280000" },
@@ -130,14 +134,14 @@ export const checkoutHoldIdealFixture: CheckoutHoldData = {
   operatorName: "Phương Nam Travel",
   holdCountdownSeconds: 438, // 07:18
   pickupPoint: {
-    id: "pickup-bxmd",
+    id: "1",
     name: "Bến xe Miền Đông mới",
     time: "22:30",
     address: "501 Hoàng Hữu Nam, TP. Thủ Đức",
     hasFreeShuttle: false
   },
   dropoffPoint: {
-    id: "dropoff-bxdalat",
+    id: "5",
     name: "Bến xe liên tỉnh Đà Lạt",
     time: "05:30 (+1 ngày)",
     address: "1 Tô Hiến Thành, Phường 3, Đà Lạt",
@@ -186,10 +190,10 @@ export const checkoutHoldIdealFixture: CheckoutHoldData = {
     {
       id: "v-points",
       code: "POINTS100",
-      title: "Voucher đổi điểm • Giảm 100.000đ",
-      description: "Áp dụng mọi tuyến, mọi nhà xe • Hạn dùng 05/11/2026",
+      title: "Voucher đổi điểm · Giảm 100.000đ",
+      description: "Áp dụng mọi tuyến, mọi nhà xe · Hạn dùng 05/11/2026",
       discountVnd: "100000",
-      discountLabel: "-100.000đ",
+      discountLabel: "Voucher đổi điểm",
       tagText: "Đổi từ điểm",
       isApplicable: true,
       isSelected: true
@@ -197,10 +201,10 @@ export const checkoutHoldIdealFixture: CheckoutHoldData = {
     {
       id: "v-thu10",
       code: "THU10",
-      title: "THU10 • Giảm 10%, tối đa 50.000đ",
-      description: "Phương Nam Travel • Đơn từ 300.000đ • Hạn dùng 31/10/2026",
+      title: "THU10 · Giảm 10%, tối đa 50.000đ",
+      description: "Phương Nam Travel · Đơn từ 300.000đ · Hạn dùng 31/10/2026",
       discountVnd: "50000",
-      discountLabel: "-50.000đ",
+      discountLabel: "Mã THU10",
       tagText: "Mã đã lưu",
       isApplicable: true,
       isSelected: false
@@ -208,10 +212,10 @@ export const checkoutHoldIdealFixture: CheckoutHoldData = {
     {
       id: "v-taybac30",
       code: "TAYBAC30",
-      title: "TAYBAC30 • Giảm 30.000đ",
+      title: "TAYBAC30 · Giảm 30.000đ",
       description: "Không áp dụng cho chuyến này (chỉ tuyến Hà Nội – Sapa)",
       discountVnd: "30000",
-      discountLabel: "-30.000đ",
+      discountLabel: "Mã TAYBAC30",
       tagText: "Không phù hợp",
       isApplicable: false,
       unapplicableReason: "Không áp dụng cho chuyến này",
@@ -224,7 +228,7 @@ export const checkoutHoldIdealFixture: CheckoutHoldData = {
     ticketCount: 2,
     serviceFeeVnd: "0",
     discountVnd: "100000",
-    discountLabel: "-100.000đ",
+    discountLabel: "Voucher đổi điểm",
     finalTotalVnd: "460000"
   }
 };
@@ -255,14 +259,14 @@ export const bookingPaymentIdealFixture: BookingPaymentData = {
   operatorName: "Phương Nam Travel",
   holdCountdownSeconds: 336, // 05:36
   pickupPoint: {
-    id: "pickup-bxmd",
+    id: "1",
     name: "Bến xe Miền Đông mới",
     time: "22:30",
     address: "501 Hoàng Hữu Nam, TP. Thủ Đức",
     hasFreeShuttle: false
   },
   dropoffPoint: {
-    id: "dropoff-bxdalat",
+    id: "5",
     name: "Bến xe liên tỉnh Đà Lạt",
     time: "05:30 (+1 ngày)",
     address: "1 Tô Hiến Thành, Phường 3, Đà Lạt",
@@ -302,7 +306,7 @@ export const bookingPaymentIdealFixture: BookingPaymentData = {
     ticketCount: 2,
     serviceFeeVnd: "0",
     discountVnd: "100000",
-    discountLabel: "-100.000đ",
+    discountLabel: "Voucher đổi điểm",
     finalTotalVnd: "460000"
   },
   isExpired: false

@@ -7,11 +7,11 @@ import {
   Plus,
   Minus,
   Headphones,
-  MessageSquare,
-  ChevronRight
+  MessageSquare
 } from "lucide-react";
 import { MarkdownContent } from "../explore/markdown-content";
 import type { FaqGroup } from "../../lib/data/types";
+import { PassengerTopBar } from "../passenger-topbar";
 
 export interface FaqViewProps {
   readonly faqGroups: readonly FaqGroup[];
@@ -74,24 +74,13 @@ export function FaqView({
   const quickKeywords = ["Hủy vé", "Hoàn tiền", "Tra cứu vé", "Điểm VXN Plus"];
 
   return (
-    <div className="bg-[#f9f9ff] min-h-screen pb-16">
-      {/* Thanh điều hướng breadcrumb */}
-      <div className="border-b border-[#e5e9f0] bg-white">
-        <div className="mx-auto max-w-7xl px-4 py-3 sm:px-6 lg:px-8">
-          <nav aria-label="Breadcrumb" className="flex items-center text-xs text-[#64748b] flex-wrap gap-1.5">
-            <Link href="/" className="hover:text-primary transition-colors">
-              Trang chủ
-            </Link>
-            <ChevronRight className="h-3 w-3" />
-            <span className="text-[#1e293b] font-medium">Câu hỏi thường gặp</span>
-          </nav>
-        </div>
-      </div>
+    <div className="bg-[#f9f9ff] min-h-viewport pb-16">
+      <PassengerTopBar breadcrumbs={[{ label: "Trang chủ", href: "/" }, { label: "Câu hỏi thường gặp" }]} />
 
-      <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 space-y-8">
+      <div className="mx-auto w-full max-w-[1200px] px-4 py-8 sm:px-6 lg:px-14 space-y-8">
         {/* Banner Hero tìm kiếm câu hỏi */}
         <div className="rounded-2xl bg-[#edf5ff] p-6 sm:p-10 text-center space-y-5">
-          <h1 className="text-2xl sm:text-3xl lg:text-[32px] font-bold text-[#0f172a] tracking-tight">
+          <h1 className="text-2xl/9 font-semibold tracking-[-0.24px] text-vxn-ink">
             Chúng tôi có thể giúp gì cho bạn?
           </h1>
 
@@ -289,7 +278,7 @@ export function FaqView({
             </Link>
           </div>
         </div>
-      </main>
+      </div>
     </div>
   );
 }

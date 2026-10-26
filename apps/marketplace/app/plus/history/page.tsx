@@ -5,6 +5,9 @@ import { LoyaltyHistoryView } from "../../../components/loyalty/loyalty-history-
 import { getLoyaltyHistory } from "../../../lib/data/loyalty";
 import { getPreview } from "../../../lib/preview";
 import { loyaltyHistoryFixture } from "../../../lib/preview/fixtures/loyalty";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = { title: "Lịch sử điểm" };
 
 /**
  * Thuộc tính của trang Lịch sử điểm (SCR-PSG-34).
@@ -24,27 +27,23 @@ export default async function PlusHistoryPage(props: PlusHistoryPageProps) {
   const preview = getPreview(resolvedParams);
 
   const topBarHeader = (
-    <div className="border-b border-vxn-border/60 bg-white">
-      <div className="mx-auto max-w-7xl px-4 py-2.5 sm:px-6 lg:px-8">
-        <PassengerTopBar
-          breadcrumbs={[
-            { label: "Trang chủ", href: "/" },
-            { label: "Thành viên", href: "/plus" },
-            { label: "Lịch sử điểm" }
-          ]}
-        />
-      </div>
-    </div>
+    <PassengerTopBar
+      breadcrumbs={[
+        { label: "Trang chủ", href: "/" },
+        { label: "Thành viên", href: "/plus" },
+        { label: "Lịch sử điểm" }
+      ]}
+    />
   );
 
   // Nhánh Preview: ideal
   if (preview === "ideal") {
     return (
-      <div className="min-h-screen bg-[#f9f9ff]">
+      <div className="min-h-viewport bg-[#f9f9ff]">
         {topBarHeader}
-        <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+        <div className="mx-auto w-full max-w-[1200px] px-4 py-8 sm:px-6 lg:px-14">
           <LoyaltyHistoryView historyData={loyaltyHistoryFixture} isPreview />
-        </main>
+        </div>
       </div>
     );
   }
@@ -54,15 +53,15 @@ export default async function PlusHistoryPage(props: PlusHistoryPageProps) {
 
   if (result.status === "unavailable") {
     return (
-      <div className="min-h-screen bg-[#f9f9ff]">
+      <div className="min-h-viewport bg-[#f9f9ff]">
         {topBarHeader}
-        <main className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+        <div className="mx-auto w-full max-w-[1200px] px-4 py-12 sm:px-6 lg:px-14">
           <FeatureUnavailable
             title="Lịch sử điểm chưa sẵn sàng"
             description="Lịch sử điểm hiện chưa khả dụng. Vui lòng quay lại sau."
             endpoint={result.endpoint}
           />
-        </main>
+        </div>
       </div>
     );
   }
@@ -70,24 +69,24 @@ export default async function PlusHistoryPage(props: PlusHistoryPageProps) {
   if (result.status === "error") {
     if (result.httpStatus === 401) return <AccountSignInRequired />;
     return (
-      <div className="min-h-screen bg-[#f9f9ff]">
+      <div className="min-h-viewport bg-[#f9f9ff]">
         {topBarHeader}
-        <main className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+        <div className="mx-auto w-full max-w-[1200px] px-4 py-12 sm:px-6 lg:px-14">
           <ErrorState
             title="Không thể tải lịch sử điểm"
             description={result.message}
           />
-        </main>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#f9f9ff]">
+    <div className="min-h-viewport bg-[#f9f9ff]">
       {topBarHeader}
-      <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+      <div className="mx-auto w-full max-w-[1200px] px-4 py-8 sm:px-6 lg:px-14">
         <LoyaltyHistoryView historyData={result.data} />
-      </main>
+      </div>
     </div>
   );
 }

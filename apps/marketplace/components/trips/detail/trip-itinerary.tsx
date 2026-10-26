@@ -54,6 +54,12 @@ export function TripItinerary({ timeline }: TripItineraryProps) {
 
                   {/* Nhãn loại điểm và đón/trả */}
                   <div className="flex items-center gap-1.5 flex-wrap mt-1 sm:mt-0">
+                    {stop.stationTypeLabel && !isRest && (
+                      <span className="text-[11px] font-medium px-2 py-0.5 rounded bg-neutral-100 text-neutral-600 border border-neutral-200">
+                        {stop.stationTypeLabel}
+                      </span>
+                    )}
+
                     {stop.badges?.map((badge) => {
                       const isPickup = badge.includes("Đón");
                       const isDrop = badge.includes("Trả");
@@ -73,12 +79,6 @@ export function TripItinerary({ timeline }: TripItineraryProps) {
                         </span>
                       );
                     })}
-
-                    {stop.stationTypeLabel && !isRest && (
-                      <span className="text-[11px] font-medium px-2 py-0.5 rounded bg-neutral-100 text-neutral-600 border border-neutral-200">
-                        {stop.stationTypeLabel}
-                      </span>
-                    )}
 
                     {isRest && (
                       <span className="text-[11px] font-medium text-amber-700 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">

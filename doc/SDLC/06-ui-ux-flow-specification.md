@@ -54,6 +54,9 @@
 | v0.33     | 17/10/2026 | AI Agent | **Đợt hoàn thiện Admin + Operator OS (Khanh 16/10/2026, chờ duyệt):** §5 Operator OS thêm mục Khuyến mãi (Khanh duyệt trên Figma 13/10/2026); §7 ghi màn Hồ sơ & KYC (Figma 1667:27240 / 27586), Lịch xe (khung 07 / 08 / thẻ khung 02 — `TASK-TRN-015`), dải cảnh báo khung giá ở Bảng giá, khung các màn chờ đặt vé (Đặt vé, Khuyến mãi, Tài chính, Báo cáo, Hỗ trợ); §9 ghi màn Tổng quan (số thật của hàng đợi), Nhà xe (tạm khóa, xác minh đổi tài khoản nhận tiền), Người dùng (ADM-03a…03d), Chính sách (ADM-06a…06d), Bài viết (ADM-13a…13c), Tích hợp & hệ thống chỉ đọc (ADM-16a / 16b) và khung các màn chờ đặt vé. Giữ trạng thái Review. |
 | v0.34     | 17/10/2026 | AI Agent       | **Phần không cần đặt vé (Khanh 17/10/2026, chờ duyệt):** §7 ghi màn Lịch chạy lặp lại (`TASK-TRN-007`, chưa có Figma), Phân công chuyến (Figma "05 · Nhân viên / Phân công chuyến", `TASK-EMP-001`); §9 ghi tab Nội dung công khai (Figma ADM-10d) + trang soạn (chưa có Figma, `TASK-ADM-003`). Giữ trạng thái Review. |
 | v0.35     | 21/10/2026 | AI Agent | **Phân quyền theo từng tài khoản (`TASK-IAM-007`, chờ duyệt):** §5 Operator OS thêm "Tài khoản quản lý"; menu Admin / Operator OS ẩn theo quyền của phiên; hộp thoại tick quyền dùng chung (`packages/ui`). |
+| v0.36     | 26/10/2026 | AI Agent | **Đóng UX-OQ-09 (Khanh 26/10/2026, chờ duyệt):** tra cứu vé Guest bắt buộc OTP qua email — web làm theo Figma 1446:14982 (B1) → 1446:15277 (B2: đếm ngược 5 phút, còn N lần thử, gửi lại sau 60 giây) → kết quả. |
+| v0.37     | 26/10/2026 | AI Agent | **Figma thanh toán đổi sang payOS + cổng demo (Khanh 21/10 chọn, 26/10 "chỉnh thiết kế", chờ duyệt + chờ ADR thay ADR-019):** SCR-PSG-20 (Ideal + hết giờ giữ chỗ) bỏ VNPay / MoMo + chip ngân hàng, thay bằng "Chuyển khoản VietQR qua payOS" và "Cổng thanh toán thử (demo)"; nhãn phương thức / mã giao dịch ở SCR-PSG-16, 21, 22, 23, 25, 26 (hoàn qua chuyển khoản), 29, 31. Màn Admin (ADM-01, 07a–d, 09b, 14a, 16a–b) và Operator OS "02 · Đặt vé / Chi tiết đơn" còn VNPay / MoMo — sửa cùng task hiện thực payOS. |
+| v0.38     | 27/10/2026 | AI Agent | **Tra cứu vé không cần mã đặt vé (Khanh 27/10/2026, chờ duyệt):** SCR-PSG-27 mã đặt vé không bắt buộc + dòng CSKH khi mất email; SCR-PSG-29 thêm danh sách đơn theo email (12 tháng, gồm đơn đặt bằng tài khoản) và hộp thoại hỏi đăng nhập — chưa có khung Figma cho danh sách. |
 
 ---
 
@@ -174,7 +177,7 @@ Quy ước cột **Thiết kế**:
 | Luồng               | Chuỗi màn hình (SCR-PSG-)                                                  | Ghi chú                                                                                                   |
 | ------------------- | -------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
 | Đăng nhập / đăng ký | 07 hoặc 08 → 09 (OTP) hoặc 10 (OAuth) → quay lại trang trước               | Passenger không có mật khẩu (07 Security §5). Guest không cần đăng nhập để search/hold/book/pay/lookup     |
-| Tìm → đặt → vé      | 01 → 15 → 16 → 18 → 19 → 20 → cổng VNPay/MoMo → 21 → 22 hoặc 23 → 25       | Hold 10 phút tính từ 18 (ADR-015, OQ-06); tổng tiền tách dòng vé / phí / giảm giá (CO-12)                  |
+| Tìm → đặt → vé      | 01 → 15 → 16 → 18 → 19 → 20 → cổng thanh toán (Figma 26/10/2026: payOS VietQR hoặc cổng demo — chờ ADR thay ADR-019) → 21 → 22 hoặc 23 → 25 | Hold 10 phút tính từ 18 (ADR-015, OQ-06); tổng tiền tách dòng vé / phí / giảm giá (CO-12)                  |
 | Hủy vé / hoàn tiền  | 24 hoặc 29 → 25 → 26 → 09 (xác minh lại) → 25 (theo dõi refund)            | Chính sách hủy = snapshot lúc đặt (FR-BTP-12)                                                              |
 | Tra cứu vé Guest    | 27 → 28 → 29 → 25 → 26 hoặc 32                                             | Guest session sau OTP có thời hạn                                                                         |
 | Hỗ trợ / đánh giá   | 25 hoặc 30 → 31 → 30; 24 → 14                                              | Đánh giá chỉ khi trip `COMPLETED` và vé hợp lệ                                                             |
@@ -381,7 +384,7 @@ Mỗi màn hình là một bảng đủ 5 trạng thái theo §10.1. Cột **Thi
 
 | Trạng thái     | Nội dung cần có                                                                                                      | Thiết kế          |
 | -------------- | -------------------------------------------------------------------------------------------------------------------- | ----------------- |
-| Ideal          | Chọn phương thức; chọn ngân hàng (VNPay); đồng ý điều khoản; bộ đếm giữ ghế; tóm tắt đơn tách dòng                    | Review ⚠ (#2, #3, #8) |
+| Ideal          | Chọn phương thức (Figma 26/10/2026: chuyển khoản VietQR qua payOS / cổng thanh toán thử chỉ có trên bản demo — chờ ADR thay ADR-019); đồng ý điều khoản; bộ đếm giữ ghế; tóm tắt đơn tách dòng | Review ⚠ (#2, #3, #8) |
 | Empty          | Chưa đồng ý điều khoản → CTA vô hiệu                                                                                  | Draft             |
 | Loading        | Đang tạo payment + chuyển sang cổng                                                                                   | Draft             |
 | Partial / Edge | Phương thức tạm không khả dụng (mẫu "Sắp hỗ trợ" đã có); tổng tiền lớn (nhiều ghế); bộ đếm < 1 phút → cảnh báo        | Review + Draft    |
@@ -451,7 +454,7 @@ Mỗi màn hình là một bảng đủ 5 trạng thái theo §10.1. Cột **Thi
 
 | Trạng thái     | Nội dung cần có                                                              | Thiết kế            |
 | -------------- | ---------------------------------------------------------------------------- | ------------------- |
-| Ideal          | Tab SĐT / Email; nhập SĐT; gửi OTP; khối giới thiệu tra cứu                   | Review ⚠ (#5, UX-OQ-09) |
+| Ideal          | Email (bắt buộc) + mã đặt vé / mã vé (không bắt buộc — chờ duyệt 27/10/2026); gửi OTP; khối giới thiệu tra cứu; dòng "Không còn dùng email đặt vé? Gọi CSKH" | Review ⚠ (#5, UX-OQ-09) |
 | Empty          | Chưa nhập → CTA vô hiệu                                                      | Draft               |
 | Loading        | Đang gửi OTP                                                                 | Draft               |
 | Partial / Edge | Email dài; phản hồi trung tính (không tiết lộ contact có vé hay không)        | Draft               |
@@ -471,7 +474,7 @@ Mỗi màn hình là một bảng đủ 5 trạng thái theo §10.1. Cột **Thi
 
 | Trạng thái     | Nội dung cần có                                                                                                        | Thiết kế       |
 | -------------- | ---------------------------------------------------------------------------------------------------------------------- | -------------- |
-| Ideal          | Xác thực thành công; tab theo trạng thái (đếm số); tìm mã vé; thẻ vé; xem QR / hủy vé                                   | Review         |
+| Ideal          | Xác thực thành công; có mã đặt vé → thẳng một đơn (Figma 1446:15578); không mã → danh sách đơn của email 12 tháng (tab theo trạng thái có đếm số, tìm mã / tuyến, nhãn "Đặt bằng tài khoản" — chưa có Figma, chờ duyệt 27/10/2026) → chọn đơn; email có tài khoản / đơn đặt bằng tài khoản → hộp thoại "Bạn có muốn đăng nhập không?" một lần mỗi phiên trình duyệt; thẻ vé; xem QR / hủy vé | Review         |
 | Empty          | Không có vé gắn với contact → CTA đặt vé                                                                               | Draft          |
 | Loading        | Skeleton                                                                                                               | Draft          |
 | Partial / Edge | Thiếu dữ liệu (giờ đến "--:--", tên nhà xe mặc định — Figma đã có); nhãn trạng thái vé như SCR-PSG-24; header phải ở trạng thái Guest (Figma đang hiện header đã đăng nhập) | Review + Draft |
@@ -755,7 +758,7 @@ Mỗi màn hình ở §6–§9 được viết thành **một bảng đủ 5 tr�
 | UX-OQ-06 | Chương trình thành viên **VXN Plus** (hạng, tích điểm, đổi điểm lấy mã giảm, Ví voucher, giảm theo hạng) có vào v1 không? Không có trong SRS; đụng money (quy đổi điểm → VND), ai chịu phần giảm (Platform hay Operator — ảnh hưởng commission/escrow), cần module mới | SRS, DB, API, booking total | **Đóng 29/09/2026** (SRS v1.21 §21): vào v1 — Platform chịu phần giảm của voucher đổi điểm; hạng chỉ ảnh hưởng hệ số điểm; ví = voucher đổi điểm + mã công khai đã lưu |
 | UX-OQ-07 | **Dịch vụ bổ trợ** (bảo hiểm chuyến đi, hành lý ký gửi, đưa đón — lưu ý trung chuyển giữa văn phòng và bến xe theo luật không thu tiền, `BR-79`) có vào v1 không? Không có trong SRS; đụng price snapshot, tách dòng (CO-12), hoàn tiền, commission; bảo hiểm cần đối tác bên ngoài (vendor mới) | SRS, booking total, refund | Mở. Đề xuất: post-v1; Figma trang này còn skeleton TODO |
 | UX-OQ-08 | Trang **Khám phá** (tin tức / cẩm nang): SRS chỉ có banner, FAQ, content page do Admin kiểm duyệt (FR-ADM-13). Bài viết có tính là content page không, ai soạn (Admin CMS)? | Admin CMS, SEO Marketplace | **Đóng 29/09/2026** (SRS v1.21 §21): module bài viết riêng (`Article`), chỉ Admin soạn |
-| UX-OQ-09 | **Tra cứu vé Guest bằng SĐT**: SMS defer v1 (ADR-020) thì OTP gửi về đâu? (a) chỉ cho tra cứu bằng email; (b) SĐT chỉ dùng để tìm, OTP gửi về email liên hệ của booking | FR-MKT-12, `/guest/ticket-lookup` | Mở |
+| UX-OQ-09 | **Tra cứu vé Guest bằng SĐT**: SMS defer v1 (ADR-020) thì OTP gửi về đâu? (a) chỉ cho tra cứu bằng email; (b) SĐT chỉ dùng để tìm, OTP gửi về email liên hệ của booking | FR-MKT-12, `/guest/ticket-lookup` | **Đóng 26/10/2026** (Khanh: tra cứu vé khách vãng lai bắt buộc OTP): phương án (a) — B1 nhập mã đặt vé (hoặc mã vé) + email, mã 6 số gửi về email liên hệ của đơn, phiên tra cứu 15 phút; không tra bằng SĐT ở v1 |
 
 ---
 

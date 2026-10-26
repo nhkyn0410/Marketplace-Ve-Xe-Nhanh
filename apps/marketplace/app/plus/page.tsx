@@ -8,6 +8,9 @@ import {
   loyaltyProfileFixture,
   loyaltyRedemptionQuoteFixture
 } from "../../lib/preview/fixtures/loyalty";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = { title: "VXN Plus" };
 
 /**
  * Thuộc tính của trang VXN Plus (SCR-PSG-33/35).
@@ -28,31 +31,27 @@ export default async function PlusPage(props: PlusPageProps) {
   const preview = getPreview(resolvedParams);
 
   const topBarHeader = (
-    <div className="border-b border-vxn-border/60 bg-white">
-      <div className="mx-auto max-w-7xl px-4 py-2.5 sm:px-6 lg:px-8">
-        <PassengerTopBar
-          breadcrumbs={[
-            { label: "Trang chủ", href: "/" },
-            { label: "Thành viên" }
-          ]}
-        />
-      </div>
-    </div>
+    <PassengerTopBar
+      breadcrumbs={[
+        { label: "Trang chủ", href: "/" },
+        { label: "Thành viên" }
+      ]}
+    />
   );
 
   // Nhánh Preview: ideal hoặc redeem
   if (preview === "ideal" || preview === "redeem") {
     return (
-      <div className="min-h-screen bg-[#f9f9ff]">
+      <div className="min-h-viewport bg-[#f9f9ff]">
         {topBarHeader}
-        <main className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
+        <div className="mx-auto w-full max-w-[1200px] px-4 py-8 sm:px-6 lg:px-14">
           <LoyaltyView
             profile={loyaltyProfileFixture}
             defaultQuote={loyaltyRedemptionQuoteFixture}
             initialOpenRedeemModal={preview === "redeem"}
             isPreview
           />
-        </main>
+        </div>
       </div>
     );
   }
@@ -62,15 +61,15 @@ export default async function PlusPage(props: PlusPageProps) {
 
   if (result.status === "unavailable") {
     return (
-      <div className="min-h-screen bg-[#f9f9ff]">
+      <div className="min-h-viewport bg-[#f9f9ff]">
         {topBarHeader}
-        <main className="mx-auto max-w-5xl px-4 py-12 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-5xl px-4 py-12 sm:px-6 lg:px-8">
           <FeatureUnavailable
             title="Tính năng VXN Plus chưa sẵn sàng"
             description="Thông tin thành viên hiện chưa khả dụng. Vui lòng quay lại sau."
             endpoint={result.endpoint}
           />
-        </main>
+        </div>
       </div>
     );
   }
@@ -78,24 +77,24 @@ export default async function PlusPage(props: PlusPageProps) {
   if (result.status === "error") {
     if (result.httpStatus === 401) return <AccountSignInRequired />;
     return (
-      <div className="min-h-screen bg-[#f9f9ff]">
+      <div className="min-h-viewport bg-[#f9f9ff]">
         {topBarHeader}
-        <main className="mx-auto max-w-5xl px-4 py-12 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-5xl px-4 py-12 sm:px-6 lg:px-8">
           <ErrorState
             title="Không thể tải dữ liệu thành viên"
             description={result.message}
           />
-        </main>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#f9f9ff]">
+    <div className="min-h-viewport bg-[#f9f9ff]">
       {topBarHeader}
-      <main className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
+      <div className="mx-auto w-full max-w-[1200px] px-4 py-8 sm:px-6 lg:px-14">
         <LoyaltyView profile={result.data} initialOpenRedeemModal={resolvedParams?.["redeem"] === "1" && !!result.data.rules && result.data.memberStatus === "ACTIVE" && result.data.availablePoints >= result.data.rules.minRedeemPoints} />
-      </main>
+      </div>
     </div>
   );
 }

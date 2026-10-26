@@ -2,8 +2,15 @@ import { Inject, Injectable } from "@nestjs/common";
 import { searchTextContains } from "../common/search-text";
 import { PrismaService } from "../database/prisma.service";
 import { CatalogStatus } from "../database/prisma.types";
+import {
+  loadFeaturedOperators,
+  loadPopularRoutes,
+} from "../database/public-highlights";
+import { vndToJson } from "../fare/fare-pricing";
 import type {
   AmenityListResponse,
+  FeaturedOperatorListResponse,
+  PopularRouteListResponse,
   ProvinceListResponse,
   StopPointListQuery,
   StopPointListResponse,
@@ -113,5 +120,28 @@ export class CatalogService {
       select: { id: true, code: true, name: true },
     });
     return { items };
+  }
+
+  /** Tuyến phổ biến (cặp tỉnh) cho trang chủ, bán chạy trước. */
+  async listPopularRoutes(
+    limit: number,
+    now = new Date(),
+  ): Promise<PopularRouteListResponse> {
+    const routes = await loadPopularRoutes(this.prisma, limit, now);
+    return {
+      items: routes.map((route) => ({
+        ...route,
+        minPrice: route.minPrice === null ? null : vndToJson(route.minPrice),
+        nextDepartureAt: route.nextDepartureAt?.toISOString() ?? null,
+      })),
+    };
+  }
+
+  /** Nhà xe tiêu biểu cho trang chủ và tab "Theo nhà xe". */
+  async listFeaturedOperators(
+    limit: number,
+    now = new Date(),
+  ): Promise<FeaturedOperatorListResponse> {
+    return { items: await loadFeaturedOperators(this.prisma, limit, now) };
   }
 }

@@ -12,14 +12,30 @@ export function ticketNotFound(): HttpException {
   return problem(HttpStatus.NOT_FOUND, "TICKET_NOT_FOUND", "Không tìm thấy vé.");
 }
 
-/** Tra cứu sai mã / liên hệ — cùng một câu cho mọi trường hợp (chống dò mã booking). */
-export function lookupNotFound(): HttpException {
-  return problem(HttpStatus.NOT_FOUND, "BOOKING_NOT_FOUND", "Không tìm thấy booking với mã và thông tin liên hệ này.");
+/** Phiên tra cứu không có / hết hạn (15 phút) — khách quay lại bước nhập mã đặt vé. */
+export function lookupExpired(): HttpException {
+  return problem(HttpStatus.NOT_FOUND, "TICKET_LOOKUP_EXPIRED", "Phiên tra cứu đã hết hạn. Vui lòng tra cứu lại.");
 }
 
-/** Chống dò mã: quá số lần tra cứu cho phép của một địa chỉ IP. */
-export function lookupRateLimited(): HttpException {
-  return problem(HttpStatus.TOO_MANY_REQUESTS, "TICKET_LOOKUP_RATE_LIMITED", "Bạn tra cứu quá nhiều lần. Vui lòng thử lại sau ít phút.");
+/** Phiên còn hạn nhưng đơn không thuộc phạm vi phiên (khác email, quá 12 tháng, khác đơn đã nhập mã). */
+export function lookupBookingNotFound(): HttpException {
+  return problem(HttpStatus.NOT_FOUND, "BOOKING_NOT_FOUND", "Không tìm thấy đơn trong phiên tra cứu này.");
+}
+
+/** Sai mã xác minh; hết lượt thử hoặc mã hết hạn thì phải gửi lại mã. */
+export function lookupOtpInvalid(remainingAttempts: number): HttpException {
+  return problem(
+    HttpStatus.UNPROCESSABLE_ENTITY,
+    "TICKET_LOOKUP_OTP_INVALID",
+    remainingAttempts > 0
+      ? `Mã xác minh không đúng. Còn ${remainingAttempts} lần thử.`
+      : "Mã xác minh không đúng hoặc đã hết hạn. Vui lòng gửi lại mã.",
+  );
+}
+
+/** Chống dò mã / gửi mã dồn dập: quá số lần cho phép theo IP hoặc theo email. */
+export function lookupRateLimited(detail = "Bạn tra cứu quá nhiều lần. Vui lòng thử lại sau ít phút."): HttpException {
+  return problem(HttpStatus.TOO_MANY_REQUESTS, "TICKET_LOOKUP_RATE_LIMITED", detail);
 }
 
 export function lookupUnavailable(): HttpException {

@@ -2,7 +2,6 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { Button } from "@vexenhanh/ui/components/button";
 import type { NewComplaintPayload } from "../../lib/data/types";
 import type { SupportData, SupportDetailData } from "../../lib/data/support-mappers";
@@ -10,6 +9,7 @@ import { getComplaintDetail } from "../../lib/data/support";
 import { ComplaintListSidebar } from "./complaint-list-sidebar";
 import { ComplaintDetailPanel } from "./complaint-detail-panel";
 import { ComplaintNewModal } from "./complaint-new-modal";
+import { PassengerTopBar } from "../passenger-topbar";
 
 /**
  * Thuộc tính của SupportView
@@ -38,21 +38,14 @@ export const SupportView: React.FC<SupportViewProps> = ({
   const [isModalOpen, setIsModalOpen] = useState<boolean>(initialOpenNewModal);
 
   return (
-    <div className="min-h-screen bg-slate-50/50 pb-16">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-6">
-        {/* Breadcrumb theo Figma */}
-        <nav className="flex items-center gap-2 text-xs text-muted-foreground mb-4">
-          <Link href="/" className="hover:text-foreground transition-colors">
-            Trang chủ
-          </Link>
-          <span>›</span>
-          <span className="font-semibold text-foreground">Khiếu nại</span>
-        </nav>
+    <div className="min-h-viewport bg-slate-50/50 pb-16">
+      <PassengerTopBar breadcrumbs={[{ label: "Trang chủ", href: "/" }, { label: "Khiếu nại" }]} />
+      <div className="mx-auto w-full max-w-[1200px] px-4 pt-6 sm:px-6 lg:px-14">
 
         {/* Tiêu đề trang & Nút Gửi khiếu nại mới */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-border/80">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
+            <h1 className="text-2xl/9 font-semibold tracking-[-0.24px] text-vxn-ink">
               Khiếu nại và hỗ trợ
             </h1>
             <p className="text-sm text-muted-foreground mt-1">

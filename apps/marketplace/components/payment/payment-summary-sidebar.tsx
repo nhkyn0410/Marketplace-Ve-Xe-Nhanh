@@ -66,7 +66,7 @@ export function PaymentSummarySidebar({
           <div className="flex items-center justify-between border-b border-vxn-border/50 pb-3.5">
             <div>
               <span className="text-[11px] text-vxn-fg-4 block">Mã đặt vé</span>
-              <span className="font-black text-sm text-vxn-ink">
+              <span className="font-extrabold text-sm text-vxn-ink">
                 {bookingCode}
               </span>
             </div>
@@ -152,7 +152,7 @@ export function PaymentSummarySidebar({
             <span className="text-sm font-medium text-vxn-fg-3">
               Tổng thanh toán
             </span>
-            <span className="text-xl sm:text-2xl font-black text-vxn-teal-800">
+            <span className="text-xl sm:text-2xl font-extrabold text-vxn-teal-800">
               {formatVnd(priceSummary.finalTotalVnd)}
             </span>
           </div>

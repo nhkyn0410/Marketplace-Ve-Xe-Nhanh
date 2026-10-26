@@ -11,7 +11,7 @@ import { GuestSupportView } from "../../../components/support/guest-support-view
 import { SupportView } from "../../../components/support/support-view";
 
 export const metadata: Metadata = {
-  title: "Khiếu nại đơn hàng (Khách vãng lai) | Vé Xe Nhanh",
+  title: "Khiếu nại đơn hàng (Khách vãng lai)",
   description: "Theo dõi và gửi hỗ trợ từ trình duyệt đã đặt vé."
 };
 

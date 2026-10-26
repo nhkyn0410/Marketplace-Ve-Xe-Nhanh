@@ -12,7 +12,7 @@ import { ErrorState } from "../../components/states/error-state";
 import { SupportView } from "../../components/support/support-view";
 
 export const metadata: Metadata = {
-  title: "Khiếu nại và hỗ trợ | Vé Xe Nhanh",
+  title: "Khiếu nại và hỗ trợ",
   description: "Theo dõi yêu cầu hỗ trợ và khiếu nại gắn với vé, chuyến xe, thanh toán hoặc hoàn tiền."
 };
 

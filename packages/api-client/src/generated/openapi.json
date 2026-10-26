@@ -4662,6 +4662,92 @@
         ]
       }
     },
+    "/v1/catalog/popular-routes": {
+      "get": {
+        "operationId": "CatalogController_listPopularRoutes",
+        "parameters": [
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 20,
+              "default": 7,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tuyến phổ biến (gộp mọi nhà xe theo cặp tỉnh).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PopularRouteListResponseDto_Output"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Query không hợp lệ.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "catalog"
+        ]
+      }
+    },
+    "/v1/catalog/featured-operators": {
+      "get": {
+        "operationId": "CatalogController_listFeaturedOperators",
+        "parameters": [
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 20,
+              "default": 5,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Nhà xe tiêu biểu kèm tuyến đang mở bán.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FeaturedOperatorListResponseDto_Output"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Query không hợp lệ.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "catalog"
+        ]
+      }
+    },
     "/v1/admin/catalog/provinces": {
       "get": {
         "operationId": "AdminCatalogController_listProvinces",
@@ -12287,6 +12373,189 @@
         ]
       }
     },
+    "/v1/guest/ticket-lookup/otp": {
+      "post": {
+        "operationId": "TicketController_requestOtp",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TicketLookupOtpInputDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Đã nhận yêu cầu (mã chỉ được gửi khi đúng mã đặt vé + email, hoặc email có đơn trong 12 tháng).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TicketLookupOtpResponseDto_Output"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Gửi token nhưng token sai / hết hạn (không gửi token = khách vãng lai).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "`TICKET_LOOKUP_RATE_LIMITED` — quá số lần theo IP, chưa hết 60 giây chờ gửi lại, hoặc quá 5 mã / giờ / email.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Tra cứu tạm gián đoạn.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "tickets"
+        ]
+      }
+    },
+    "/v1/guest/ticket-lookup/verify": {
+      "post": {
+        "operationId": "TicketController_verifyOtp",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TicketLookupVerifyInputDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Phiên tra cứu.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TicketLookupSessionDto_Output"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Gửi token nhưng token sai / hết hạn (không gửi token = khách vãng lai).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "`TICKET_LOOKUP_OTP_INVALID` — sai mã (kèm số lần thử còn lại), hết hạn hoặc hết lượt.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Tra cứu tạm gián đoạn.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "tickets"
+        ]
+      }
+    },
+    "/v1/guest/ticket-lookup/bookings": {
+      "post": {
+        "operationId": "TicketController_listBookings",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TicketLookupSessionInputDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Danh sách đơn + email có tài khoản không.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TicketLookupBookingListDto_Output"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Gửi token nhưng token sai / hết hạn (không gửi token = khách vãng lai).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "`TICKET_LOOKUP_EXPIRED` — phiên tra cứu không có hoặc đã hết hạn.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Tra cứu tạm gián đoạn.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "tickets"
+        ]
+      }
+    },
     "/v1/guest/ticket-lookup": {
       "post": {
         "operationId": "TicketController_lookup",
@@ -12323,17 +12592,7 @@
             }
           },
           "404": {
-            "description": "`BOOKING_NOT_FOUND` — sai mã hoặc liên hệ.",
-            "content": {
-              "application/problem+json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetailsDto"
-                }
-              }
-            }
-          },
-          "429": {
-            "description": "`TICKET_LOOKUP_RATE_LIMITED`.",
+            "description": "`TICKET_LOOKUP_EXPIRED` — phiên không có / hết hạn; `BOOKING_NOT_FOUND` — đơn ngoài phạm vi phiên.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -19437,7 +19696,7 @@
             }
           },
           "409": {
-            "description": "`PROMOTION_EXHAUSTED`.",
+            "description": "`PROMOTION_EXHAUSTED` / `VOUCHER_NOT_AVAILABLE` (voucher đang dùng cho đơn khác).",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -19447,7 +19706,7 @@
             }
           },
           "422": {
-            "description": "`PROMOTION_INVALID`.",
+            "description": "`PROMOTION_INVALID` / `VOUCHER_NOT_AVAILABLE` (chưa đăng nhập) / `VOUCHER_EXPIRED` / `VOUCHER_NOT_APPLICABLE`.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -30580,6 +30839,193 @@
         ],
         "additionalProperties": false
       },
+      "PopularRouteListResponseDto_Output": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "originProvinceId": {
+                  "type": "string",
+                  "format": "uuid",
+                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                },
+                "originName": {
+                  "type": "string"
+                },
+                "destinationProvinceId": {
+                  "type": "string",
+                  "format": "uuid",
+                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                },
+                "destinationName": {
+                  "type": "string"
+                },
+                "distanceMeters": {
+                  "type": "integer",
+                  "minimum": -9007199254740991,
+                  "maximum": 9007199254740991
+                },
+                "durationSeconds": {
+                  "type": "integer",
+                  "minimum": -9007199254740991,
+                  "maximum": 9007199254740991
+                },
+                "minPrice": {
+                  "anyOf": [
+                    {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "vehicleTypeNames": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "nextDepartureAt": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "format": "date-time",
+                      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "operatorCount": {
+                  "type": "integer",
+                  "minimum": -9007199254740991,
+                  "maximum": 9007199254740991
+                },
+                "averageRating": {
+                  "anyOf": [
+                    {
+                      "type": "number"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "reviewCount": {
+                  "type": "integer",
+                  "minimum": -9007199254740991,
+                  "maximum": 9007199254740991
+                }
+              },
+              "required": [
+                "originProvinceId",
+                "originName",
+                "destinationProvinceId",
+                "destinationName",
+                "distanceMeters",
+                "durationSeconds",
+                "minPrice",
+                "vehicleTypeNames",
+                "nextDepartureAt",
+                "operatorCount",
+                "averageRating",
+                "reviewCount"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "items"
+        ],
+        "additionalProperties": false
+      },
+      "FeaturedOperatorListResponseDto_Output": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "operatorId": {
+                  "type": "string",
+                  "format": "uuid",
+                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                },
+                "displayName": {
+                  "type": "string"
+                },
+                "averageRating": {
+                  "anyOf": [
+                    {
+                      "type": "number"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "reviewCount": {
+                  "type": "integer",
+                  "minimum": -9007199254740991,
+                  "maximum": 9007199254740991
+                },
+                "routes": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "originProvinceId": {
+                        "type": "string",
+                        "format": "uuid",
+                        "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                      },
+                      "originName": {
+                        "type": "string"
+                      },
+                      "destinationProvinceId": {
+                        "type": "string",
+                        "format": "uuid",
+                        "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                      },
+                      "destinationName": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "originProvinceId",
+                      "originName",
+                      "destinationProvinceId",
+                      "destinationName"
+                    ],
+                    "additionalProperties": false
+                  }
+                }
+              },
+              "required": [
+                "operatorId",
+                "displayName",
+                "averageRating",
+                "reviewCount",
+                "routes"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "items"
+        ],
+        "additionalProperties": false
+      },
       "AdminProvincePageDto_Output": {
         "type": "object",
         "properties": {
@@ -40144,13 +40590,10 @@
         ],
         "additionalProperties": false
       },
-      "TicketLookupInputDto": {
+      "TicketLookupOtpInputDto": {
         "type": "object",
         "properties": {
           "bookingCode": {
-            "type": "string"
-          },
-          "phone": {
             "type": "string"
           },
           "email": {
@@ -40161,7 +40604,206 @@
           }
         },
         "required": [
-          "bookingCode"
+          "email"
+        ]
+      },
+      "TicketLookupOtpResponseDto_Output": {
+        "type": "object",
+        "properties": {
+          "maskedEmail": {
+            "type": "string"
+          },
+          "expiresInSeconds": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "resendAfterSeconds": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "maxAttempts": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          }
+        },
+        "required": [
+          "maskedEmail",
+          "expiresInSeconds",
+          "resendAfterSeconds",
+          "maxAttempts"
+        ],
+        "additionalProperties": false
+      },
+      "TicketLookupVerifyInputDto": {
+        "type": "object",
+        "properties": {
+          "bookingCode": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string",
+            "maxLength": 254,
+            "format": "email",
+            "pattern": "^(?!\\.)(?!.*\\.\\.)([A-Za-z0-9_'+\\-\\.]*)[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
+          },
+          "otp": {
+            "type": "string",
+            "pattern": "^\\d{6}$"
+          }
+        },
+        "required": [
+          "email",
+          "otp"
+        ]
+      },
+      "TicketLookupSessionDto_Output": {
+        "type": "object",
+        "properties": {
+          "lookupToken": {
+            "type": "string"
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$"
+          }
+        },
+        "required": [
+          "lookupToken",
+          "expiresAt"
+        ],
+        "additionalProperties": false
+      },
+      "TicketLookupSessionInputDto": {
+        "type": "object",
+        "properties": {
+          "lookupToken": {
+            "type": "string",
+            "minLength": 20,
+            "maxLength": 100
+          }
+        },
+        "required": [
+          "lookupToken"
+        ]
+      },
+      "TicketLookupBookingListDto_Output": {
+        "type": "object",
+        "properties": {
+          "maskedEmail": {
+            "type": "string"
+          },
+          "scope": {
+            "type": "string",
+            "enum": [
+              "BOOKING",
+              "EMAIL"
+            ]
+          },
+          "hasAccount": {
+            "type": "boolean"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "bookingId": {
+                  "type": "string",
+                  "format": "uuid",
+                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                },
+                "bookingCode": {
+                  "type": "string"
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "PENDING_PAYMENT",
+                    "PENDING_CONFIRMATION",
+                    "PAID",
+                    "CONFIRMED",
+                    "PARTIALLY_CANCELLED",
+                    "CANCELLED",
+                    "EXPIRED",
+                    "REFUND_PENDING",
+                    "REFUNDED",
+                    "REFUND_FAILED"
+                  ]
+                },
+                "routeName": {
+                  "type": "string"
+                },
+                "operatorName": {
+                  "type": "string"
+                },
+                "departureAt": {
+                  "type": "string",
+                  "format": "date-time",
+                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$"
+                },
+                "ticketCount": {
+                  "type": "integer",
+                  "minimum": -9007199254740991,
+                  "maximum": 9007199254740991
+                },
+                "total": {
+                  "type": "integer",
+                  "minimum": -9007199254740991,
+                  "maximum": 9007199254740991
+                },
+                "bookedWithAccount": {
+                  "type": "boolean"
+                },
+                "createdAt": {
+                  "type": "string",
+                  "format": "date-time",
+                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$"
+                }
+              },
+              "required": [
+                "bookingId",
+                "bookingCode",
+                "status",
+                "routeName",
+                "operatorName",
+                "departureAt",
+                "ticketCount",
+                "total",
+                "bookedWithAccount",
+                "createdAt"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "maskedEmail",
+          "scope",
+          "hasAccount",
+          "items"
+        ],
+        "additionalProperties": false
+      },
+      "TicketLookupInputDto": {
+        "type": "object",
+        "properties": {
+          "lookupToken": {
+            "type": "string",
+            "minLength": 20,
+            "maxLength": 100
+          },
+          "bookingId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          }
+        },
+        "required": [
+          "lookupToken"
         ]
       },
       "CancellationQuoteDto_Output": {
@@ -47496,6 +48138,11 @@
             "minLength": 1,
             "maxLength": 20
           },
+          "userVoucherId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
           "subtotal": {
             "type": "integer",
             "minimum": 1,
@@ -47504,7 +48151,6 @@
         },
         "required": [
           "tripId",
-          "code",
           "subtotal"
         ]
       },

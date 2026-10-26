@@ -32,7 +32,7 @@ export function PaymentExpiredModal({
     <div
       role="dialog"
       aria-modal="true"
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs animate-in fade-in-50 duration-200"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-[rgb(8_23_33/0.55)] p-4 animate-in fade-in-50 duration-200"
     >
       <div className="w-full max-w-md rounded-3xl bg-white p-6 sm:p-8 text-center shadow-2xl animate-in zoom-in-95 duration-200">
         {/* Icon cảnh báo / hết giờ */}
@@ -47,7 +47,7 @@ export function PaymentExpiredModal({
         </div>
 
         {/* Tiêu đề */}
-        <h3 className="mt-3 text-lg sm:text-xl font-black text-vxn-ink">
+        <h3 className="mt-3 text-lg sm:text-xl font-extrabold text-vxn-ink">
           Đã hết thời gian giữ chỗ
         </h3>
 

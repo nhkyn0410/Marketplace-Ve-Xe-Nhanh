@@ -8,7 +8,7 @@ export const EMAIL_NOTIFIER = Symbol("EMAIL_NOTIFIER");
 export type OtpEmailMessage = {
   email: string;
   otp: string;
-  /** "sign-in" | "email-verification" | "forget-password" (Better Auth email-OTP type). */
+  /** "sign-in" | "email-verification" | "forget-password" (Better Auth email-OTP type) | "ticket-lookup" (tra cứu vé khách vãng lai). */
   purpose: string;
 };
 

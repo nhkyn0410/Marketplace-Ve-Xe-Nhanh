@@ -13,7 +13,7 @@
 | Người viết    | Nguyễn Hồng Khanh, AI Agent      |
 | Người duyệt   | Nguyễn Hồng Khanh                |
 | Ngày tạo      | 01/06/2026                       |
-| Ngày cập nhật | 09/09/2026                       |
+| Ngày cập nhật | 25/10/2026                       |
 | Loại (15289)  | Release information / Change log |
 
 ### 1.2. Lịch sử thay đổi
@@ -22,6 +22,7 @@
 | --------- | ---------- | -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | v0.1      | 01/06/2026 | AI Agent       | Tạo **skeleton** Release Notes & Change Log theo ISO/IEC/IEEE 15289 + quy ước Keep a Changelog. Định nghĩa SemVer, quy trình release, phân loại thay đổi, template release log (chưa có release — pre-code). Chưa có nội dung release thật. |
 | v0.2      | 09/09/2026 | AI Agent       | **TASK-DOC-008 — kích hoạt khi vào code v1.** §9 bổ sung **ADR-028** vào phạm vi release `1.0.0` (mapping cũ dừng ở ADR-027) + tách dòng riêng cho Mobile. §7 ghi nhận **kênh phát hành Mobile v1 = phân phối trực tiếp, KHÔNG qua store** (ADR-028) nên `Rollback` của Mobile khác Web. §10 đóng **REL-OQ-04** (kênh phát hành Mobile). Bối cảnh: nền tảng xong (TASK-FND-001..008 Done, thêm **TASK-FND-009** setup Flutter), IAM-001 gần đóng → tài liệu này bắt đầu có việc thật. |
+| v0.3      | 25/10/2026 | AI Agent       | **Ghi mốc demo 10/2026** (Khanh 25/10: cập nhật toàn bộ tài liệu). §7 thêm mục **"Mốc demo nội bộ — 25/10/2026"**: ảnh chụp những gì đã có trên `develop` + môi trường demo (Render + Supabase), **không phải release** — chưa gắn tag / version vì REL-OQ-01 còn mở. §8 ghi lần **reset toàn bộ DB** ngày 21/10/2026 (RB-10) và 3 migration ngày 21/10. §3.2 sửa câu "chưa code v1". Giữ Draft. |
 
 ---
 
@@ -54,7 +55,7 @@ Tài liệu này ghi nhận **release của sản phẩm/code** (v1.0.0 trở đ
 | Quyết định kiến trúc                  | `10-architecture-decision-record.md`                                 |
 | Thay đổi **code/sản phẩm** (release)  | **Tài liệu này (12)** — bắt đầu từ release v1.0.0                    |
 
-Hiện dự án ở giai đoạn **SDLC documentation, chưa code v1** → release log (§7) còn trống; release đầu tiên dự kiến **v1.0.0** khi code v1 lên production.
+Dự án đang **code v1** (từ 09/2026). Chưa cắt release nào; §7 chỉ ghi **mốc demo nội bộ** (ảnh chụp tiến độ, không gắn version). Release đầu tiên dự kiến **v1.0.0** khi code v1 lên production (hoặc `0.x` beta — REL-OQ-01).
 
 ### 3.3. Tài liệu tham chiếu
 
@@ -145,11 +146,44 @@ Template entry cho mỗi release (copy khi release thật):
 **Rollback**: (cách rollback nếu cần)
 -->
 
+### Mốc demo nội bộ — 25/10/2026 (không phải release)
+
+**Loại**: ảnh chụp tiến độ — chưa tag, chưa gắn version (REL-OQ-01 còn mở).
+**Môi trường**: `develop` → Render (API) + Supabase Postgres + Mongo Atlas + Upstash Redis + R2; chỉ dữ liệu mẫu (OQ-21 đóng cho giai đoạn demo, 20/10/2026). Trạng thái từng task: 11 Task §7.
+
+#### Added
+
+- Nền tảng: monorepo, Docker API + worker, Prisma + RLS, Mongo audit, BullMQ, Zod env, Pino + Sentry, OpenAPI + client TS / Dart, nền FE web, 2 app Flutter (`TASK-FND-001..010`).
+- Đăng nhập 3 namespace, JWT + refresh xoay vòng, RBAC + `TenantGuard` + RLS, TOTP + mã dự phòng, cấp tài khoản khép kín (`TASK-IAM-001..005`); web đăng nhập Operator OS / Admin (`TASK-IAM-006`, đang làm).
+- **Phân quyền theo từng tài khoản** (`TASK-IAM-007`, PR #44): tài khoản quản trị tick quyền, tài khoản quản lý nhà xe do Owner cấp (`OPERATOR_MANAGER`).
+- Operator OS: xe + sơ đồ ghế + ảnh xe, tuyến, điểm dừng, chuyến + lịch lặp, bảng giá, hỗ trợ / khiếu nại, khuyến mãi, báo cáo; Admin: duyệt nhà xe, danh mục, điểm dừng, kiểm duyệt nội dung, bài viết, báo cáo, nhật ký audit (phần lớn **In Progress — chờ Khanh duyệt**).
+- Danh mục hành chính chính thức sau sáp nhập 2025 (34 tỉnh, 3.321 xã) + ánh xạ địa danh cũ + điểm dừng chuẩn (PR #46, #48).
+- Web Marketplace nối API + giao diện theo Figma (PR #49, #50); `passenger_mobile` giao diện đăng nhập + OTP (PR #47); `employee_mobile` giao diện tài xế bằng dữ liệu mẫu.
+
+#### Security
+
+- Tắt trigger `ensure_rls` của Supabase, thu quyền `anon` / `authenticated` trên bảng của app (sự cố 20/10/2026 — RB-02).
+- Đổi quyền / khóa tài khoản tăng `auth_epoch` + thu hồi phiên; không cấp quyền vượt quyền người thao tác (`TASK-IAM-007`).
+
+#### Chưa có ở mốc này
+
+- Đặt vé lõi: tìm chuyến, giữ chỗ, đặt vé, thanh toán, vé + QR, hủy / hoàn tiền, escrow + payout (`TASK-TRN-004`, `TASK-BTP-001..006` — Draft). Thay VNPay / MoMo bằng payOS + cổng demo (Khanh 21/10/2026) chưa có task.
+- Thông báo (`TASK-NSR-001/002`), deploy staging + build APK (`TASK-OPS-001`).
+- Chưa chạy `code-reviewer` / `security-auditor` cho các phần trên.
+
+**Breaking change / Migration**: reset toàn bộ DB 21/10/2026 — xem §8.
+**Rollback**: không áp dụng (chưa release).
+
 ---
 
 ## 8. Migration & breaking change notes
 
-> Trống — điền khi có release breaking (MAJOR). Mỗi mục cần: nguyên nhân, bước migration (DB Prisma / API client / mobile), thời gian downtime dự kiến, rollback plan. Tham chiếu 04 DB §10 (migration) + 09 Deploy §10 (rollback).
+> Mỗi mục cần: nguyên nhân, bước migration (DB Prisma / API client / mobile), thời gian downtime dự kiến, rollback plan. Tham chiếu 04 DB §10 (migration) + 09 Deploy §10 (rollback).
+
+| Ngày | Nội dung | Bước | Downtime | Rollback |
+| ---- | -------- | ---- | -------- | -------- |
+| 21/10/2026 | **Reset toàn bộ DB** (local + production) vì thêm role `OPERATOR_MANAGER` + cột `permissions` (`TASK-IAM-007`) — Khanh quyết xóa mọi tài khoản cũ. Mất toàn bộ tài khoản / nhà xe / dữ liệu nghiệp vụ; giữ Mongo audit + file R2 | RB-10: SQL xóa đối tượng ứng dụng → `prisma migrate deploy` → `db:app-role` → `db:seed:catalog` → kiểm tra Supabase → flush Upstash → tạo quản trị viên đầu tiên | Suốt lúc reset (Render suspend) | Không — chỉ dữ liệu mẫu |
+| 21/10/2026 | 3 migration: `20261021010000_account_permissions` (enum `OPERATOR_MANAGER`, cột `permissions` JSONB, CHECK Owner ⇔ `NULL`), `20261021010000_administrative_units_metadata` (`level`, `decree`, `search_text`), `20261021020000_legacy_administrative_mappings` (bảng ánh xạ hành chính cũ) | `prisma migrate deploy` + `db:app-role` (RB-02) rồi `db:seed:catalog` (RB-08); client TS / Dart sinh lại (RB-04) | Không | Migration mới đảo ngược (không sửa migration đã áp) |
 
 ---
 

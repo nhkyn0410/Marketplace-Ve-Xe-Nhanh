@@ -9,7 +9,20 @@ import { APP_CONFIG, type AppConfig } from "../config/env.config";
 import type { VerifiedAccessToken } from "../iam/auth/token.service";
 import { GuestOrPassenger, OptionalPassenger } from "../iam/role/guest-or-passenger";
 import { ProblemDetailsDto } from "../openapi/openapi.dto";
-import { TicketLookupInputDto, TicketResponseDto, type TicketResponse } from "./dto/ticket.dto";
+import {
+  TicketLookupBookingListDto,
+  type TicketLookupBookingList,
+  TicketLookupInputDto,
+  TicketLookupOtpInputDto,
+  TicketLookupOtpResponseDto,
+  type TicketLookupOtpResponse,
+  type TicketLookupSession,
+  TicketLookupSessionDto,
+  TicketLookupSessionInputDto,
+  TicketLookupVerifyInputDto,
+  TicketResponseDto,
+  type TicketResponse,
+} from "./dto/ticket.dto";
 import { TicketService } from "./ticket.service";
 
 const problemContent = {
@@ -40,16 +53,51 @@ export class TicketController {
     return this.tickets.get(user, ticketId, accessToken);
   }
 
-  /** Tra cứu booking + vé bằng mã booking và số điện thoại / email liên hệ lúc đặt. */
+  /** Tra cứu vé B1: gửi mã 6 số về email liên hệ nếu email (+ mã đặt vé khi có) có đơn; phản hồi như nhau dù có hay không. */
+  @Post("guest/ticket-lookup/otp")
+  @HttpCode(202)
+  @GuestOrPassenger("booking:create")
+  @ApiBody({ type: TicketLookupOtpInputDto })
+  @ZodResponse({ status: 202, description: "Đã nhận yêu cầu (mã chỉ được gửi khi đúng mã đặt vé + email, hoặc email có đơn trong 12 tháng).", type: TicketLookupOtpResponseDto })
+  @ApiResponse({ status: 429, description: "`TICKET_LOOKUP_RATE_LIMITED` — quá số lần theo IP, chưa hết 60 giây chờ gửi lại, hoặc quá 5 mã / giờ / email.", content: problemContent })
+  @ApiResponse({ status: 503, description: "Tra cứu tạm gián đoạn.", content: problemContent })
+  requestOtp(@Req() request: Request, @Body() input: TicketLookupOtpInputDto): Promise<TicketLookupOtpResponse> {
+    return this.tickets.requestOtp(resolveTrustedClientIp(request, this.config.NODE_ENV), input);
+  }
+
+  /** Tra cứu vé B2: xác minh mã → phiên tra cứu 15 phút. */
+  @Post("guest/ticket-lookup/verify")
+  @HttpCode(200)
+  @GuestOrPassenger("booking:create")
+  @ApiBody({ type: TicketLookupVerifyInputDto })
+  @ZodResponse({ status: 200, description: "Phiên tra cứu.", type: TicketLookupSessionDto })
+  @ApiResponse({ status: 422, description: "`TICKET_LOOKUP_OTP_INVALID` — sai mã (kèm số lần thử còn lại), hết hạn hoặc hết lượt.", content: problemContent })
+  @ApiResponse({ status: 503, description: "Tra cứu tạm gián đoạn.", content: problemContent })
+  verifyOtp(@Body() input: TicketLookupVerifyInputDto): Promise<TicketLookupSession> {
+    return this.tickets.verifyOtp(input);
+  }
+
+  /** Tra cứu vé B3: các đơn của phiên (một đơn khi nhập mã đặt vé, ngược lại các đơn của email trong 12 tháng). */
+  @Post("guest/ticket-lookup/bookings")
+  @HttpCode(200)
+  @GuestOrPassenger("booking:create")
+  @ApiBody({ type: TicketLookupSessionInputDto })
+  @ZodResponse({ status: 200, description: "Danh sách đơn + email có tài khoản không.", type: TicketLookupBookingListDto })
+  @ApiResponse({ status: 404, description: "`TICKET_LOOKUP_EXPIRED` — phiên tra cứu không có hoặc đã hết hạn.", content: problemContent })
+  @ApiResponse({ status: 503, description: "Tra cứu tạm gián đoạn.", content: problemContent })
+  listBookings(@Body() input: TicketLookupSessionInputDto): Promise<TicketLookupBookingList> {
+    return this.tickets.listBookings(input);
+  }
+
+  /** Tra cứu vé B3: booking + vé của một đơn trong phiên tra cứu đã xác minh. */
   @Post("guest/ticket-lookup")
   @HttpCode(200)
   @GuestOrPassenger("booking:create")
   @ApiBody({ type: TicketLookupInputDto })
   @ZodResponse({ status: 200, description: "Booking kèm vé.", type: BookingResponseDto })
-  @ApiResponse({ status: 404, description: "`BOOKING_NOT_FOUND` — sai mã hoặc liên hệ.", content: problemContent })
-  @ApiResponse({ status: 429, description: "`TICKET_LOOKUP_RATE_LIMITED`.", content: problemContent })
+  @ApiResponse({ status: 404, description: "`TICKET_LOOKUP_EXPIRED` — phiên không có / hết hạn; `BOOKING_NOT_FOUND` — đơn ngoài phạm vi phiên.", content: problemContent })
   @ApiResponse({ status: 503, description: "Tra cứu tạm gián đoạn.", content: problemContent })
-  lookup(@Req() request: Request, @Body() input: TicketLookupInputDto): Promise<BookingResponse> {
-    return this.tickets.lookup(resolveTrustedClientIp(request, this.config.NODE_ENV), input);
+  lookup(@Body() input: TicketLookupInputDto): Promise<BookingResponse> {
+    return this.tickets.lookup(input);
   }
 }

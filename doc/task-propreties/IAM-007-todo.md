@@ -4,10 +4,10 @@
 > **Căn cứ:** SRS `FR-IAM-07` ("Admin cấu hình hoặc gán quyền nội bộ cho tài khoản Admin theo phạm vi trách nhiệm" — chưa có task); ADR-017 (RBAC hardcoded enum v1, ABAC defer; `can()` là điểm cắm); Security §5 (TOTP), §7 (ma trận quyền), §8. Phần nhà xe **mở rộng SRS** (SRS chỉ có Owner dùng Operator OS) — tự thiết kế, chờ duyệt.
 > **Nhánh:** `feat/account-permissions` từ `develop` (`99151f8`), worktree riêng `C:\Code\Ve_Xe_Nhanh_IAM` — không đụng nhánh Marketplace đang dở.
 
-## Trạng thái (21/10/2026) — ✅ Code xong, đã commit + push nhánh `feat/account-permissions` (chưa merge) — chờ Khanh duyệt + sinh lại Dart client
+## Trạng thái (25/10/2026) — ✅ Done — merge `develop` qua PR #44 (21/10/2026), Khanh xác nhận 25/10/2026; thiết kế P1–P12 vẫn chờ duyệt
 
 - Chưa qua `code-reviewer` / `security-auditor` (chỉ chạy khi Khanh yêu cầu — `CLAUDE.md` §4.8).
-- **Còn thiếu trước khi push:** sinh lại Dart client (`packages/api_client_dart`, FND-009-guide §3) — cần Docker hoặc tải `openapi-generator-cli-7.25.0.jar`; không sinh lại thì CI `contract.yml` đỏ (DTO `/auth/me`, tài khoản quản trị, `/operator/managers` đã đổi).
+- Dart client (`packages/api_client_dart`) đã sinh lại theo OpenAPI có phân quyền (có trong `develop`).
 
 ## Thiết kế (tự thiết kế — chờ duyệt P1–P12)
 
@@ -101,8 +101,8 @@ Migration `add_account_permissions`: `OperatorRole` thêm `OPERATOR_MANAGER`; `p
 - [x] Admin web: cột Quyền, hộp thoại Phân quyền + tick khi cấp, ẩn menu / tab / nút / khối Tổng quan
 - [x] Operator OS: màn Tài khoản quản lý, cổng nhận tài khoản quản lý, ẩn menu / link
 - [x] Sinh lại OpenAPI + client TS (`OpenApiModule` thêm `OperatorManagerController`)
-- [ ] Sinh lại Dart client — **chờ Docker / tải generator** (xem Trạng thái)
-- [x] Tài liệu: SRS `FR-IAM-19`, ADR-017 bổ sung, DB v0.34, API v0.38, Security v0.25, UI v0.35, Task v0.57 (`TASK-IAM-007`), GLOSSARY, PROJECT-STATE §7 — **chờ duyệt**. LLD chưa sửa.
+- [x] Sinh lại Dart client (đã có trong `develop`)
+- [x] Tài liệu: SRS `FR-IAM-19`, ADR-017 bổ sung, DB v0.34, API v0.38, Security v0.25, UI v0.35, Task v0.57 (`TASK-IAM-007`), GLOSSARY, PROJECT-STATE §7 — **chờ duyệt**. LLD §6.5 bổ sung 25/10/2026 (đồng bộ tài liệu). Test plan thêm `TC-SEC-013..016`.
 
 ## Kiểm tra (21/10/2026)
 

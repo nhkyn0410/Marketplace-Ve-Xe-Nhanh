@@ -1,9 +1,10 @@
 "use client";
 
-import { ArrowRightLeft, Calendar, MapPin, Search, Users } from "lucide-react";
+import { ArrowRightLeft } from "lucide-react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { ProvinceItem } from "../../lib/data/types";
+import { formatTripDateVi } from "../../lib/format";
 
 /**
  * Thuộc tính của thanh tìm kiếm chuyến xe tóm tắt trên trang danh sách chuyến.
@@ -17,7 +18,7 @@ export interface TripSearchBarProps {
 }
 
 /**
- * Thanh tìm kiếm chuyến xe nhỏ gọn trên đầu trang /trips.
+ * Thanh tìm kiếm chuyến xe nhỏ gọn trên đầu trang /trips chuẩn theo Figma 1440:11297.
  */
 export function TripSearchBar({
   initialOrigin = "",
@@ -48,90 +49,98 @@ export function TripSearchBar({
     router.push(`/trips?${new URLSearchParams({ origin, destination, date, passengers: String(passengers) })}`);
   };
 
+  const field = "relative rounded-xl border border-slate-200 bg-white px-4 py-2.5 transition focus-within:border-[#00506a]";
+  const label = "block text-xs font-medium text-slate-500";
+  const value = "mt-0.5 w-full appearance-none truncate bg-transparent text-[15px] font-bold text-vxn-ink outline-none";
+
   return (
-    <div className="rounded-2xl border border-vxn-border bg-white p-4 shadow-2xs sm:p-5">
-      <form onSubmit={handleSearch} className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-12 lg:items-center">
-        {/* Điểm đi */}
-        <div className="relative lg:col-span-3">
-          <label className="block text-xs font-semibold text-vxn-fg-4">Điểm đi</label>
-          <div className="mt-1 flex items-center rounded-xl border border-vxn-border bg-vxn-bg-soft px-3 py-2 text-sm">
-            <MapPin className="mr-2 h-4 w-4 shrink-0 text-vxn-teal-600" />
+    <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-2xs">
+      <form onSubmit={handleSearch} className="flex flex-col gap-3 lg:flex-row lg:items-center">
+        {/* Cụm Điểm đi & Điểm đến */}
+        <div className="flex flex-1 flex-col gap-2 sm:flex-row sm:items-center">
+          <div className={`${field} min-w-0 flex-1`}>
+            <label htmlFor="search-origin" className={label}>Điểm đi</label>
             <select
+              id="search-origin"
               required disabled={!provinces.length}
               value={origin}
               onChange={(e) => setOrigin(e.target.value)}
-              className="w-full bg-transparent font-bold text-vxn-ink outline-none"
-            ><option value="">Chọn điểm đi</option>{provinces.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}</select>
+              className={value}
+            >
+              <option value="">Chọn điểm đi</option>
+              {provinces.map((province) => <option key={province.id} value={province.id}>{province.name}</option>)}
+            </select>
           </div>
-        </div>
 
-        {/* Nút hoán đổi */}
-        <div className="flex items-center justify-center lg:col-span-1">
-          <button
-            type="button"
-            onClick={handleSwap}
-            title="Đổi chiều điểm đi / đến"
-            className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-vxn-border bg-white text-vxn-fg-3 shadow-xs hover:border-vxn-teal-500 hover:text-vxn-teal-700"
-          >
-            <ArrowRightLeft className="h-4 w-4" />
-          </button>
-        </div>
+          {/* Nút hoán đổi */}
+          <div className="flex shrink-0 items-center justify-center">
+            <button
+              type="button"
+              onClick={handleSwap}
+              aria-label="Đổi chiều điểm đi / đến"
+              className="inline-flex h-9 w-9 cursor-pointer items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 transition hover:border-[#00506a] hover:text-[#00506a]"
+            >
+              <ArrowRightLeft className="h-3.5 w-3.5" />
+            </button>
+          </div>
 
-        {/* Điểm đến */}
-        <div className="relative lg:col-span-3">
-          <label className="block text-xs font-semibold text-vxn-fg-4">Điểm đến</label>
-          <div className="mt-1 flex items-center rounded-xl border border-vxn-border bg-vxn-bg-soft px-3 py-2 text-sm">
-            <MapPin className="mr-2 h-4 w-4 shrink-0 text-[#e89b26]" />
+          <div className={`${field} min-w-0 flex-1`}>
+            <label htmlFor="search-destination" className={label}>Điểm đến</label>
             <select
+              id="search-destination"
               required disabled={!provinces.length}
               value={destination}
               onChange={(e) => setDestination(e.target.value)}
-              className="w-full bg-transparent font-bold text-vxn-ink outline-none"
-            ><option value="">Chọn điểm đến</option>{provinces.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}</select>
+              className={value}
+            >
+              <option value="">Chọn điểm đến</option>
+              {provinces.map((province) => <option key={province.id} value={province.id}>{province.name}</option>)}
+            </select>
           </div>
         </div>
 
-        {/* Ngày đi */}
-        <div className="relative lg:col-span-2">
-          <label className="block text-xs font-semibold text-vxn-fg-4">Ngày đi</label>
-          <div className="mt-1 flex items-center rounded-xl border border-vxn-border bg-vxn-bg-soft px-3 py-2 text-sm">
-            <Calendar className="mr-2 h-4 w-4 shrink-0 text-vxn-fg-3" />
-            <input
-              type="date"
-              required
-              value={date}
-              onChange={(e) => setDate(e.target.value)}
-              className="w-full bg-transparent font-bold text-vxn-ink outline-none cursor-default"
-            />
-          </div>
+        {/* Ngày đi: hiển thị "T6, 16/10/2026", ô date gốc phủ trong suốt để mở lịch */}
+        <div className={`${field} w-full sm:w-48 lg:w-[170px]`}>
+          <label htmlFor="search-date" className={label}>Ngày đi</label>
+          <div className="mt-0.5 text-[15px] font-bold text-vxn-ink">{date ? formatTripDateVi(date) : "Chọn ngày"}</div>
+          <input
+            id="search-date"
+            type="date"
+            required
+            value={date}
+            onChange={(e) => setDate(e.target.value)}
+            className="absolute inset-0 cursor-pointer opacity-0"
+          />
         </div>
 
         {/* Hành khách */}
-        <div className="relative lg:col-span-1">
-          <label className="block text-xs font-semibold text-vxn-fg-4">Hành khách</label>
-          <div className="mt-1 flex items-center rounded-xl border border-vxn-border bg-vxn-bg-soft px-2.5 py-2 text-sm">
-            <Users className="mr-1.5 h-4 w-4 shrink-0 text-vxn-fg-3" />
-            <input aria-label="Số hành khách" type="number" required min={1} max={10} step={1} value={passengers} onChange={(e) => setPassengers(Number(e.target.value))} className="w-12 bg-transparent font-bold text-vxn-ink" />
-          </div>
+        <div className={`${field} w-full sm:w-44 lg:w-[150px]`}>
+          <label htmlFor="search-passengers" className={label}>Hành khách</label>
+          <select
+            id="search-passengers"
+            value={passengers}
+            onChange={(e) => setPassengers(Number(e.target.value))}
+            className={value}
+          >
+            {Array.from({ length: 10 }, (_, index) => index + 1).map((count) => (
+              <option key={count} value={count}>{count} hành khách</option>
+            ))}
+          </select>
         </div>
 
         {/* Nút Tìm chuyến */}
-        <div className="mt-2 sm:mt-0 lg:col-span-2">
-          <label className="hidden text-xs font-semibold text-transparent lg:block">Tìm</label>
-          <button
-            type="submit"
-            disabled={!provinces.length}
-            className="mt-1 flex w-full items-center justify-center gap-2 rounded-xl bg-[#00506a] py-2.5 px-4 text-sm font-bold text-white shadow-xs transition hover:bg-[#00476b] active:scale-[0.99]"
-          >
-            <Search className="h-4 w-4" />
-            <span>Tìm chuyến</span>
-          </button>
-        </div>
+        <button
+          type="submit"
+          disabled={!provinces.length}
+          className="h-[54px] w-full shrink-0 cursor-pointer rounded-xl bg-[#00506a] px-6 text-sm font-bold text-white shadow-xs transition hover:bg-[#00476b] disabled:cursor-not-allowed disabled:opacity-60 lg:w-[140px]"
+        >
+          Tìm chuyến
+        </button>
       </form>
 
       {!provinces.length && <p className="mt-3 text-xs text-amber-800">Chưa tải được danh sách tỉnh thành. Vui lòng tải lại trang để thay đổi tìm kiếm.</p>}
       {actionError && (
-        <div className="mt-3 rounded-lg border border-amber-200 bg-amber-50 p-2.5 text-xs font-medium text-amber-800">
+        <div role="alert" className="mt-3 rounded-lg border border-amber-200 bg-amber-50 p-2.5 text-xs font-medium text-amber-800">
           {actionError}
         </div>
       )}

@@ -66,7 +66,7 @@ export function LoyaltyHistoryView({ historyData, isPreview = false }: LoyaltyHi
       <div className="flex-1 space-y-6">
         {/* Tiêu đề & mô tả */}
         <div>
-          <h1 className="text-xl font-black text-vxn-ink sm:text-2xl">Lịch sử điểm</h1>
+          <h1 className="text-2xl/9 font-semibold tracking-[-0.24px] text-vxn-ink">Lịch sử điểm</h1>
           <p className="mt-1 text-xs text-vxn-fg-4">
             Mọi thay đổi điểm đều được ghi lại, mới nhất trước.
           </p>
@@ -75,37 +75,37 @@ export function LoyaltyHistoryView({ historyData, isPreview = false }: LoyaltyHi
         {/* 4 Thẻ thống kê */}
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           <div className="rounded-2xl border border-vxn-border bg-white p-4 shadow-2xs">
-            <span className="text-2xs font-bold text-vxn-fg-4 uppercase tracking-wider">
+            <span className="text-xs font-bold text-vxn-fg-4 uppercase tracking-wider">
               Điểm hiện có
             </span>
-            <div className="mt-1 text-xl font-black text-[#00506a] sm:text-2xl">
+            <div className="mt-1 text-xl font-extrabold text-[#00506a] sm:text-2xl">
               {data.availablePoints.toLocaleString("vi-VN")}
             </div>
           </div>
 
           <div className="rounded-2xl border border-vxn-border bg-white p-4 shadow-2xs">
-            <span className="text-2xs font-bold text-vxn-fg-4 uppercase tracking-wider">
+            <span className="text-xs font-bold text-vxn-fg-4 uppercase tracking-wider">
               Đã tích
             </span>
-            <div className="mt-1 text-xl font-black text-emerald-700 sm:text-2xl">
+            <div className="mt-1 text-xl font-extrabold text-emerald-700 sm:text-2xl">
               {data.totalEarnedPoints.toLocaleString("vi-VN")}
             </div>
           </div>
 
           <div className="rounded-2xl border border-vxn-border bg-white p-4 shadow-2xs">
-            <span className="text-2xs font-bold text-vxn-fg-4 uppercase tracking-wider">
+            <span className="text-xs font-bold text-vxn-fg-4 uppercase tracking-wider">
               Đã đổi
             </span>
-            <div className="mt-1 text-xl font-black text-slate-700 sm:text-2xl">
+            <div className="mt-1 text-xl font-extrabold text-slate-700 sm:text-2xl">
               {data.totalRedeemedPoints.toLocaleString("vi-VN")}
             </div>
           </div>
 
           <div className="rounded-2xl border border-vxn-border bg-white p-4 shadow-2xs">
-            <span className="text-2xs font-bold text-vxn-fg-4 uppercase tracking-wider">
+            <span className="text-xs font-bold text-vxn-fg-4 uppercase tracking-wider">
               Đã hết hạn
             </span>
-            <div className="mt-1 text-xl font-black text-red-600 sm:text-2xl">
+            <div className="mt-1 text-xl font-extrabold text-red-600 sm:text-2xl">
               {data.totalExpiredPoints.toLocaleString("vi-VN")}
             </div>
           </div>
@@ -159,7 +159,7 @@ export function LoyaltyHistoryView({ historyData, isPreview = false }: LoyaltyHi
           <div className="mt-5 overflow-x-auto" aria-busy={loading}>
             <table className="w-full text-left text-xs">
               <thead>
-                <tr className="border-b border-vxn-border text-2xs font-bold text-vxn-fg-4 uppercase">
+                <tr className="border-b border-vxn-border text-xs font-bold text-vxn-fg-4 uppercase">
                   <th className="pb-3 pl-2">Ngày</th>
                   <th className="pb-3 text-center sm:text-left">Loại</th>
                   <th className="pb-3">Nguồn</th>
@@ -177,7 +177,7 @@ export function LoyaltyHistoryView({ historyData, isPreview = false }: LoyaltyHi
                       </td>
                       <td className="py-4 text-center sm:text-left whitespace-nowrap">
                         <span
-                          className={`inline-block rounded-md px-2 py-0.5 text-2xs font-bold ${
+                          className={`inline-block rounded-md px-2 py-0.5 text-xs font-bold ${
                             tx.type === "earn"
                               ? "bg-emerald-50 text-emerald-700"
                               : tx.type === "redeem"
@@ -193,7 +193,7 @@ export function LoyaltyHistoryView({ historyData, isPreview = false }: LoyaltyHi
                         </span>
                       </td>
                       <td className="py-4 text-vxn-ink font-medium">{tx.sourceText}</td>
-                      <td className="py-4 pr-2 text-right font-black whitespace-nowrap">
+                      <td className="py-4 pr-2 text-right font-extrabold whitespace-nowrap">
                         <span className={isPositive ? "text-emerald-600" : "text-red-600"}>
                           {isPositive ? `+${tx.pointsChange}` : tx.pointsChange === 0 ? "0" : `−${Math.abs(tx.pointsChange)}`}
                         </span>

@@ -11,7 +11,7 @@ import { FeatureUnavailable } from "../../../components/states/feature-unavailab
 import { AccountSignInRequired } from "../../../components/account/account-sign-in-required";
 
 export const metadata: Metadata = {
-  title: "Cài đặt thông báo | Vé Xe Nhanh",
+  title: "Cài đặt thông báo",
   description: "Tùy chỉnh kênh nhận thông báo chuyến đi, ví voucher và cập nhật hệ thống qua Email hoặc Push."
 };
 
@@ -49,7 +49,7 @@ export default async function AccountNotificationsPage({
 
   if (settingsRes.status === "unavailable") {
     return (
-      <div className="container mx-auto px-4 sm:px-6 py-10 max-w-7xl">
+      <div className="mx-auto w-full px-4 sm:px-6 py-10 max-w-[1200px] lg:px-14">
         <FeatureUnavailable
           title="Cài đặt thông báo"
           description="Cài đặt thông báo hiện chưa khả dụng. Vui lòng thử lại sau."
@@ -61,7 +61,7 @@ export default async function AccountNotificationsPage({
   if (settingsRes.status === "error") {
     if (settingsRes.httpStatus === 401) return <AccountSignInRequired />;
     return (
-      <div className="container mx-auto px-4 sm:px-6 py-10 max-w-7xl">
+      <div className="mx-auto w-full px-4 sm:px-6 py-10 max-w-[1200px] lg:px-14">
         <FeatureUnavailable
           title="Cài đặt thông báo"
           description={settingsRes.message ?? "Không thể tải cài đặt thông báo."}

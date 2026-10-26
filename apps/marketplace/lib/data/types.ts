@@ -38,9 +38,14 @@ export interface PopularRouteItem {
   readonly distanceKm: number;
   readonly durationText: string;
   readonly vehicleTypeText: string;
-  readonly minPriceVnd: string;
-  readonly rating: number;
+  /** Null khi tuyến chưa có bảng giá đang áp dụng. */
+  readonly minPriceVnd: string | null;
+  /** Null khi chưa có đánh giá. */
+  readonly rating: number | null;
   readonly isFeatured?: boolean;
+  /** Dữ liệu thật: ảnh theo tỉnh đến và link tìm chuyến; bản xem trước dùng ảnh theo `id`. */
+  readonly imageUrl?: string;
+  readonly href?: string;
 }
 
 /**
@@ -50,13 +55,16 @@ export interface FeaturedOperatorItem {
   readonly id: string;
   readonly name: string;
   readonly shortCode: string;
-  readonly rating: number;
+  /** Null khi chưa có đánh giá. */
+  readonly rating: number | null;
   readonly ratingCountText: string;
-  readonly dailyTripsText: string;
-  readonly vehicleTypesText: string;
+  readonly dailyTripsText?: string;
+  readonly vehicleTypesText?: string;
   readonly popularRoutesText: string;
-  readonly slug: string;
+  readonly slug?: string;
   readonly accentColor?: string;
+  /** Tuyến (cặp tỉnh) đang mở bán — ô "Tuyến đường" của tab Theo nhà xe. */
+  readonly routes?: readonly { readonly originProvinceId: string; readonly destinationProvinceId: string; readonly label: string }[];
 }
 
 /**
@@ -106,7 +114,10 @@ export interface TripSearchResultItem {
   readonly availableSeats: number;
   readonly isUrgent?: boolean;
   readonly amenities: readonly string[];
-  readonly imageUrl: string;
+  /** Số tiện ích còn lại chưa hiển thị (chip "+1"); không có thì ẩn chip. */
+  readonly moreAmenitiesCount?: number;
+  /** Ảnh xe — chưa có nguồn ảnh thật, view hiện khối bg-muted khi thiếu (A5). */
+  readonly imageUrl?: string;
 }
 
 /**
@@ -125,8 +136,25 @@ export interface TripSearchSummary {
   readonly originCity: string;
   readonly destinationCity: string;
   readonly departureDateText: string;
+  /** Ngày đi dạng ngắn hiển thị trong ô tìm kiếm, ví dụ "T6, 16/10/2026". */
+  readonly departureDateShortText: string;
   readonly passengerCount: number;
   readonly totalTrips: number;
+}
+
+/**
+ * Các nhóm lọc (kèm số chuyến) trả về cùng kết quả tìm chuyến (SCR-PSG-15, node 1440:11297).
+ */
+export interface TripSearchFacets {
+  /** Giá thấp nhất của thanh trượt — chuỗi số nguyên VND. */
+  readonly priceMinVnd: string;
+  /** Giá cao nhất của thanh trượt — chuỗi số nguyên VND. */
+  readonly priceMaxVnd: string;
+  readonly seatTypes: readonly TripFilterOptionItem[];
+  readonly vehicleClasses: readonly TripFilterOptionItem[];
+  readonly operators: readonly TripFilterOptionItem[];
+  readonly pickupPoints: readonly TripFilterOptionItem[];
+  readonly dropoffPoints: readonly TripFilterOptionItem[];
 }
 
 /**
@@ -288,6 +316,8 @@ export interface SeatLocationPoint {
   readonly address: string;
   readonly time: string;
   readonly hasFreeShuttle: boolean;
+  /** Thời điểm dự kiến (ISO) — dùng tính "+N ngày" của điểm trả so với điểm đón. */
+  readonly plannedAt?: string;
 }
 
 /**
@@ -692,11 +722,55 @@ export interface TicketLookupInitData {
  */
 export interface TicketLookupOtpState {
   readonly bookingCode: string;
+  /** Email khách đã nhập ở B1 (gửi lại khi xác minh / gửi lại mã). */
+  readonly email: string;
   readonly maskedEmail: string;
   readonly otpDigits: readonly string[];
   readonly expiresInSeconds: number;
   readonly remainingAttempts: number;
   readonly resendCountdownSeconds: number;
+  /** Lúc gửi mã (ms) — gửi lại tạo bước nhập mã mới. */
+  readonly sentAt?: number;
+}
+
+/**
+ * Phản hồi bước gửi mã tra cứu vé — như nhau dù mã đặt vé / email có khớp hay không.
+ */
+export interface TicketLookupOtpSent {
+  readonly maskedEmail: string;
+  readonly expiresInSeconds: number;
+  readonly resendAfterSeconds: number;
+  readonly maxAttempts: number;
+}
+
+/**
+ * Một đơn trong danh sách tra cứu theo email (SCR-PSG-29 — nhiều đơn, chưa có Figma).
+ */
+export interface TicketLookupBookingItem {
+  readonly bookingId: string;
+  readonly bookingCode: string;
+  readonly statusLabel: string;
+  /** Nhóm tab: sắp đi / đã đi / đã hủy (gồm hết hạn, hoàn tiền). */
+  readonly group: "upcoming" | "completed" | "cancelled";
+  readonly routeName: string;
+  readonly departureTimeText: string;
+  readonly operatorName: string;
+  readonly ticketCountText: string;
+  readonly totalVnd: string;
+  readonly bookedWithAccount: boolean;
+}
+
+/**
+ * Danh sách đơn của phiên tra cứu: một đơn khi nhập mã đặt vé, ngược lại các đơn của email trong 12 tháng.
+ */
+export interface TicketLookupBookingsData {
+  readonly maskedEmail: string;
+  readonly scope: "BOOKING" | "EMAIL";
+  readonly hasAccount: boolean;
+  /** Gợi ý đăng nhập: email có tài khoản hoặc có đơn đặt khi đã đăng nhập. */
+  readonly accountSuggested: boolean;
+  readonly expiresInSeconds: number;
+  readonly items: readonly TicketLookupBookingItem[];
 }
 
 /**

@@ -1,8 +1,7 @@
 import React from "react";
-import Link from "next/link";
 import { Badge } from "@vexenhanh/ui/components/badge";
 import { Button } from "@vexenhanh/ui/components/button";
-import { Printer, Share2, AlertCircle, ChevronRight } from "lucide-react";
+import { Printer, Share2, AlertCircle } from "lucide-react";
 
 /**
  * Thuộc tính của TicketDetailHeader
@@ -31,24 +30,12 @@ export const TicketDetailHeader: React.FC<TicketDetailHeaderProps> = ({
 }) => {
   return (
     <div className="space-y-3">
-      {/* Breadcrumb điều hướng */}
-      <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-xs text-muted-foreground">
-        <Link href="/" className="hover:text-foreground transition-colors">
-          Trang chủ
-        </Link>
-        <ChevronRight className="h-3 w-3 text-muted-foreground/60" />
-        <Link href="/my-tickets" className="hover:text-foreground transition-colors">
-          Hành trình
-        </Link>
-        <ChevronRight className="h-3 w-3 text-muted-foreground/60" />
-        <span className="font-medium text-foreground">{bookingCode}</span>
-      </nav>
 
       {/* Tiêu đề chính và các nút hành động */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between pb-1">
         <div>
           <div className="flex flex-wrap items-center gap-2.5">
-            <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
+            <h1 className="text-2xl/9 font-semibold tracking-[-0.24px] text-vxn-ink">
               Đơn {bookingCode}
             </h1>
             <Badge tone={statusLabel === "Đã xác nhận" ? "success" : "neutral"} className="font-semibold px-2.5 py-0.5 text-xs">

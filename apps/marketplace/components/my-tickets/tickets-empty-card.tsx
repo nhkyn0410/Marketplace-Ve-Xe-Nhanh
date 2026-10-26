@@ -12,7 +12,7 @@ export function TicketsEmptyCard() {
         <Ticket className="h-8 w-8" />
       </div>
 
-      <h3 className="mt-5 text-lg sm:text-xl font-black text-vxn-ink">
+      <h3 className="mt-5 text-lg sm:text-xl font-extrabold text-vxn-ink">
         Bạn chưa có chuyến sắp tới
       </h3>
 

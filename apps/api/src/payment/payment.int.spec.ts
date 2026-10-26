@@ -1,4 +1,4 @@
-import { randomUUID } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import type { Queue } from "bullmq";
 import Redis from "ioredis";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
@@ -9,6 +9,7 @@ import { BookingInputSchema } from "../booking/dto/booking.dto";
 import { type AppConfig, parseAppConfig } from "../config/env.config";
 import { tenantScope } from "../database/db-scope";
 import { PrismaService } from "../database/prisma.service";
+import type { EmailNotifier, OtpEmailMessage } from "../external/notification/email-notifier";
 import { PaymentGatewayError, type PaymentGateway, type PaymentGateways } from "../external/payment/payment-gateway";
 import type { Coordinates, RouteLeg, RoutingProvider } from "../external/routing/routing-provider";
 import { sign, signedQuery, VnpayGateway } from "../external/payment/vnpay/vnpay-gateway";
@@ -28,7 +29,7 @@ import { VehicleService } from "../vehicle/vehicle.service";
 import { issueTickets } from "../ticket/ticket-issuer";
 import { TicketQrSigner } from "../ticket/ticket-qr";
 import { TicketService } from "../ticket/ticket.service";
-import { TicketLookupInputSchema } from "../ticket/dto/ticket.dto";
+import { TicketLookupInputSchema, TicketLookupOtpInputSchema, TicketLookupVerifyInputSchema } from "../ticket/dto/ticket.dto";
 import { applyPaymentCallback, type PaymentCallbackJob } from "./payment-callback";
 import { PaymentService } from "./payment.service";
 import { PaymentWebhookService } from "./payment-webhook.service";
@@ -165,6 +166,8 @@ describe.skipIf(!ready && !requireDb)("Thanh toán — Postgres + Redis thật (
       }),
     );
 
+  const sentOtps: OtpEmailMessage[] = [];
+
   beforeAll(async () => {
     prisma = new PrismaService(parseAppConfig({ DATABASE_URL: url }));
     redis = new Redis(getRedisUrl(), createRequestRedisClientOptions("payment-test"));
@@ -173,7 +176,7 @@ describe.skipIf(!ready && !requireDb)("Thanh toán — Postgres + Redis thật (
     payments = new PaymentService(prisma, gateways, { PAYMENT_RETURN_BASE_URL: "http://localhost:3001" } as AppConfig);
     webhooks = new PaymentWebhookService(prisma, gateways, queue);
     trips = new TripService(prisma, {} as AuditService);
-    tickets = new TicketService(prisma, bookings, qr, redis);
+    tickets = new TicketService(prisma, bookings, qr, redis, { sendOtp: async (message: OtpEmailMessage) => void sentOtps.push(message) } as unknown as EmailNotifier);
     await prisma.withSystem(async (tx) => {
       await tx.operatorProfile.create({ data: { id: operatorId, operatorSlug: `pay-${tag}`, displayName: `Nhà xe ${tag}` } });
       await tx.operatorProfile.create({ data: { id: otherOperator, operatorSlug: `pay2-${tag}`, displayName: `Nhà xe khác ${tag}` } });
@@ -418,16 +421,51 @@ describe.skipIf(!ready && !requireDb)("Thanh toán — Postgres + Redis thật (
     expect(await rejectionOf(tickets.get(null, first!.ticketId, undefined))).toMatchObject({ status: 404, code: "TICKET_NOT_FOUND" });
     expect(await rejectionOf(tickets.get(rider, first!.ticketId, "sai"))).toMatchObject({ code: "TICKET_NOT_FOUND" });
 
+    // Tra cứu vé khách vãng lai bắt buộc OTP (UX-OQ-09): phản hồi trung tính, mã gửi về email liên hệ, phiên 15 phút;
+    // mã đặt vé không bắt buộc (27/10/2026) — chỉ email thì thấy các đơn của email trong 12 tháng.
     const ip = `10.77.${tag.charCodeAt(1)}.${tag.charCodeAt(2)}`;
-    const lookup = (input: Record<string, string>) => tickets.lookup(ip, TicketLookupInputSchema.parse(input));
-    expect((await lookup({ bookingCode: created.bookingCode.toLowerCase(), phone: "0901 234 567" })).tickets).toHaveLength(2);
-    expect((await lookup({ bookingCode: created.bookingCode, email: "A@Example.com" })).bookingId).toBe(created.bookingId);
-    expect(await rejectionOf(lookup({ bookingCode: created.bookingCode, phone: "0909999999" }))).toMatchObject({ status: 404, code: "BOOKING_NOT_FOUND" });
-    expect(await rejectionOf(lookup({ bookingCode: "VXNZZZZZZ", phone: "0901234567" }))).toMatchObject({ status: 404, code: "BOOKING_NOT_FOUND" });
+    const emailLimits = `ticket-lookup:email:${createHash("sha256").update("a@example.com").digest("hex")}`;
+    // Email liên hệ dùng chung giữa các lần chạy: xóa giới hạn gửi mã còn lại của lần trước.
+    await redis.del(`${emailLimits}:cooldown`, `${emailLimits}:count`);
+    const requestOtp = (email: string, bookingCode: string | undefined = created.bookingCode) =>
+      tickets.requestOtp(ip, TicketLookupOtpInputSchema.parse({ email, ...(bookingCode ? { bookingCode } : {}) }));
+    const verify = (otp: string, bookingCode: string | undefined = created.bookingCode) =>
+      tickets.verifyOtp(TicketLookupVerifyInputSchema.parse({ email: "a@example.com", otp, ...(bookingCode ? { bookingCode } : {}) }));
+    const neutral = { expiresInSeconds: 300, resendAfterSeconds: 60, maxAttempts: 5 };
+    expect(await requestOtp("khac@example.com")).toEqual({ maskedEmail: "k***@example.com", ...neutral });
+    expect(sentOtps).toEqual([]);
+    expect(await requestOtp("A@Example.com", created.bookingCode.toLowerCase())).toEqual({ maskedEmail: "a***@example.com", ...neutral });
+    expect(sentOtps).toEqual([{ email: "a@example.com", otp: expect.stringMatching(/^\d{6}$/), purpose: "ticket-lookup" }]);
+    expect(await rejectionOf(requestOtp("a@example.com", undefined))).toMatchObject({ status: 429, code: "TICKET_LOOKUP_RATE_LIMITED" });
+    const otp = sentOtps[0]!.otp;
+    expect(await rejectionOf(verify(otp === "000000" ? "111111" : "000000"))).toMatchObject({ status: 422, code: "TICKET_LOOKUP_OTP_INVALID" });
+    const session = await verify(otp);
+    expect(await rejectionOf(verify(otp))).toMatchObject({ status: 422, code: "TICKET_LOOKUP_OTP_INVALID" });
+    const single = await tickets.listBookings({ lookupToken: session.lookupToken });
+    expect(single).toMatchObject({ maskedEmail: "a***@example.com", scope: "BOOKING", hasAccount: false });
+    expect(single.items).toEqual([expect.objectContaining({ bookingId: created.bookingId, status: "CONFIRMED", ticketCount: 2, total: 640_000, bookedWithAccount: false })]);
+    const viewed = await tickets.lookup(TicketLookupInputSchema.parse({ lookupToken: session.lookupToken }));
+    expect(viewed.bookingId).toBe(created.bookingId);
+    expect(viewed.tickets).toHaveLength(2);
+    expect(await rejectionOf(tickets.lookup({ lookupToken: "x".repeat(43) }))).toMatchObject({ status: 404, code: "TICKET_LOOKUP_EXPIRED" });
+
+    // Chỉ email: hết thời gian chờ gửi lại → mã mới, phiên thấy đơn vừa đặt trong danh sách và xem được khi chọn đúng đơn.
+    await redis.del(`${emailLimits}:cooldown`);
+    await requestOtp("a@example.com", undefined);
+    expect(sentOtps).toHaveLength(2);
+    const byEmail = await verify(sentOtps[1]!.otp, undefined);
+    const listed = await tickets.listBookings({ lookupToken: byEmail.lookupToken });
+    expect(listed.scope).toBe("EMAIL");
+    expect(listed.items.map((item) => item.bookingId)).toContain(created.bookingId);
+    expect((await tickets.lookup({ lookupToken: byEmail.lookupToken, bookingId: created.bookingId })).tickets).toHaveLength(2);
+    expect(await rejectionOf(tickets.lookup({ lookupToken: byEmail.lookupToken }))).toMatchObject({ status: 404, code: "BOOKING_NOT_FOUND" });
+
+    // Email không có đơn không bao giờ xác minh được; 10 lần gửi mã / 10 phút / IP (đã dùng 4).
     for (let index = 0; index < 6; index++) {
-      await lookup({ bookingCode: created.bookingCode, phone: "0901234567" });
+      await requestOtp(`x${index}-${tag}@example.com`, undefined);
     }
-    expect(await rejectionOf(lookup({ bookingCode: created.bookingCode, phone: "0901234567" }))).toMatchObject({ status: 429, code: "TICKET_LOOKUP_RATE_LIMITED" });
+    expect(await rejectionOf(requestOtp(`y-${tag}@example.com`))).toMatchObject({ status: 429, code: "TICKET_LOOKUP_RATE_LIMITED" });
+    expect(sentOtps).toHaveLength(2);
 
     expect(await prisma.withTenant(otherOperator, (tx) => tx.ticket.count({ where: { bookingId: created.bookingId } }))).toBe(0);
   });

@@ -2,26 +2,30 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { Button } from "@vexenhanh/ui/components/button";
 import { Info, AlertCircle } from "lucide-react";
-import { lookupTickets } from "../../../lib/data/tickets";
-import type { TicketLookupInitData } from "../../../lib/data/types";
+import { requestTicketLookupOtp } from "../../../lib/data/tickets";
+import type { TicketLookupInitData, TicketLookupOtpState } from "../../../lib/data/types";
+import { otpStateFrom } from "./lookup-otp-step";
 
 /**
  * Thuộc tính của LookupFormStep
  */
 export interface LookupFormStepProps {
   readonly initialData?: TicketLookupInitData;
+  readonly isPreview?: boolean;
+  /** Đã gửi yêu cầu mã — sang bước nhập mã. */
+  readonly onSent?: (state: TicketLookupOtpState) => void;
 }
 
 /**
- * Bước 1 form tra cứu vé (SCR-PSG-27 - node 1446:14982)
+ * Bước 1 form tra cứu vé (SCR-PSG-27 - node 1446:14982): gửi mã xác minh về email liên hệ của đơn.
  */
 export const LookupFormStep: React.FC<LookupFormStepProps> = ({
-  initialData
+  initialData,
+  isPreview = false,
+  onSent
 }) => {
-  const router = useRouter();
   const [bookingCode, setBookingCode] = useState(
     initialData?.bookingCodeOrTicketCode ?? ""
   );
@@ -36,24 +40,28 @@ export const LookupFormStep: React.FC<LookupFormStepProps> = ({
     const trimmedCode = bookingCode.trim().toUpperCase();
     const trimmedEmail = email.trim().toLowerCase();
 
-    if (!trimmedCode || !trimmedEmail) {
-      setErrorMessage("Vui lòng nhập đầy đủ mã đặt vé và email liên hệ.");
+    if (!trimmedEmail) {
+      setErrorMessage("Vui lòng nhập email đã dùng khi đặt vé.");
+      return;
+    }
+    if (isPreview) {
+      setErrorMessage("Đây là giao diện xem trước; gửi mã xác minh đã được tắt.");
       return;
     }
 
     setIsSubmitting(true);
     try {
-      const result = await lookupTickets({
+      const result = await requestTicketLookupOtp({
         bookingCodeOrTicketCode: trimmedCode,
         email: trimmedEmail
       });
 
-      if (result.status === "unavailable" || result.status === "error") {
-        setErrorMessage(
-          result.status === "error" ? result.message ?? "Mã đặt vé hoặc email không khớp. Vui lòng kiểm tra lại." : "Chức năng tra cứu tạm thời chưa khả dụng."
-        );
+      if (result.status === "ok") {
+        onSent?.(otpStateFrom(trimmedCode, trimmedEmail, result.data));
       } else {
-        router.push("/tickets/lookup/result");
+        setErrorMessage(
+          result.status === "error" ? result.message ?? "Chưa gửi được mã xác minh. Vui lòng thử lại." : "Chức năng tra cứu tạm thời chưa khả dụng."
+        );
       }
     } catch {
       setErrorMessage("Đã có lỗi xảy ra. Quý khách vui lòng thử lại sau.");
@@ -65,18 +73,18 @@ export const LookupFormStep: React.FC<LookupFormStepProps> = ({
   return (
     <div className="rounded-2xl border border-border/80 bg-card p-6 sm:p-8 shadow-xs space-y-6">
       <div className="space-y-1.5">
-        <h2 className="text-2xl font-bold tracking-tight text-foreground">
+        <h1 className="text-2xl/9 font-semibold tracking-[-0.24px] text-vxn-ink">
           Tra cứu vé
-        </h2>
+        </h1>
         <p className="text-xs text-muted-foreground leading-relaxed">
-          Dành cho khách đặt vé không đăng nhập. Nhập mã đặt vé và email đã dùng khi đặt.
+          Dành cho khách đặt vé không đăng nhập. Nhập email đã dùng khi đặt; có mã đặt vé (hoặc mã vé) thì nhập thêm để xem đúng đơn đó.
         </p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
         {/* Thông báo lỗi tại chỗ nếu có */}
         {errorMessage && (
-          <div className="p-3.5 rounded-xl bg-destructive/10 border border-destructive/30 flex items-start gap-2.5 text-xs text-destructive animate-in fade-in">
+          <div role="alert" className="p-3.5 rounded-xl bg-destructive/10 border border-destructive/30 flex items-start gap-2.5 text-xs text-destructive animate-in fade-in">
             <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
             <div className="leading-relaxed font-medium">
               {errorMessage}
@@ -90,15 +98,15 @@ export const LookupFormStep: React.FC<LookupFormStepProps> = ({
             htmlFor="lookup-booking-code"
             className="text-xs font-semibold text-foreground"
           >
-            Mã đặt vé *
+            Mã đặt vé hoặc mã vé <span className="font-normal text-muted-foreground">(không bắt buộc)</span>
           </label>
           <input
             id="lookup-booking-code"
             type="text"
-            required
             value={bookingCode}
             onChange={(e) => setBookingCode(e.target.value.toUpperCase())}
             placeholder="Ví dụ: VXN-4H9P6C"
+            autoComplete="off"
             className="w-full h-11 px-3.5 rounded-xl border border-border bg-background text-sm font-medium uppercase text-foreground placeholder:normal-case placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-teal-700/20 focus:border-teal-700"
           />
         </div>
@@ -118,6 +126,7 @@ export const LookupFormStep: React.FC<LookupFormStepProps> = ({
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="hoa.le@gmail.com"
+            autoComplete="email"
             className="w-full h-11 px-3.5 rounded-xl border border-border bg-background text-sm font-medium text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-teal-700/20 focus:border-teal-700"
           />
         </div>
@@ -126,22 +135,27 @@ export const LookupFormStep: React.FC<LookupFormStepProps> = ({
         <div className="p-3.5 rounded-xl bg-teal-50/70 dark:bg-teal-950/20 border border-teal-200/60 dark:border-teal-900/40 flex items-start gap-2.5 text-xs text-teal-950 dark:text-teal-200">
           <Info className="h-4 w-4 text-teal-700 dark:text-teal-400 shrink-0 mt-0.5" />
           <div className="leading-relaxed">
-            Chỉ tra cứu khi mã đặt vé và email liên hệ trùng khớp. Thông tin tra cứu được giữ trong phiên 15 phút trên trình duyệt này.
+            Mã xác minh (OTP) được gửi tới email nếu email có đơn đặt vé. Không nhập mã đặt vé thì bạn sẽ thấy các đơn của email trong 12 tháng gần nhất. Để bảo vệ thông tin, hệ thống không cho biết email hoặc mã có khớp hay không trước khi xác minh.
           </div>
         </div>
 
         {/* Nút gửi mã xác minh */}
         <Button
           type="submit"
-          disabled={isSubmitting}
+          disabled={isSubmitting || !email.trim()}
           className="w-full h-11 text-xs font-bold rounded-xl bg-teal-900 hover:bg-teal-950 text-white shadow-xs"
         >
-          {isSubmitting ? "Đang tra cứu..." : "Tra cứu vé"}
+          {isSubmitting ? "Đang gửi mã..." : "Gửi mã xác minh"}
         </Button>
       </form>
 
       {/* Dòng liên kết đăng nhập */}
-      <div className="pt-2 text-center text-xs text-muted-foreground">
+      <div className="space-y-1.5 pt-2 text-center text-xs text-muted-foreground">
+        <p>
+          Không còn dùng email đặt vé? Gọi CSKH{" "}
+          <a href="tel:19006067" className="font-semibold text-teal-700 hover:underline dark:text-teal-400">1900 6067</a> để được hỗ trợ.
+        </p>
+        <p>
         <span>Đã có tài khoản? </span>
         <Link
           href="/login"
@@ -150,6 +164,7 @@ export const LookupFormStep: React.FC<LookupFormStepProps> = ({
           <span>Đăng nhập để xem toàn bộ vé</span>
           <span>›</span>
         </Link>
+        </p>
       </div>
     </div>
   );

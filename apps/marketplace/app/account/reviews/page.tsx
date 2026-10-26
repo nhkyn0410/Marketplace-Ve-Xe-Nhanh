@@ -11,7 +11,7 @@ import { FeatureUnavailable } from "../../../components/states/feature-unavailab
 import { AccountSignInRequired } from "../../../components/account/account-sign-in-required";
 
 export const metadata: Metadata = {
-  title: "Đánh giá của tôi | Vé Xe Nhanh",
+  title: "Đánh giá của tôi",
   description: "Đánh giá chất lượng các chuyến xe đã hoàn thành và xem lại lịch sử nhận xét của bạn."
 };
 
@@ -49,7 +49,7 @@ export default async function AccountReviewsPage({
 
   if (reviewsRes.status === "unavailable") {
     return (
-      <div className="container mx-auto px-4 sm:px-6 py-10 max-w-7xl">
+      <div className="mx-auto w-full px-4 sm:px-6 py-10 max-w-[1200px] lg:px-14">
         <FeatureUnavailable
           title="Đánh giá của tôi"
           description="Danh sách đánh giá hiện chưa khả dụng. Vui lòng thử lại sau."
@@ -61,7 +61,7 @@ export default async function AccountReviewsPage({
   if (reviewsRes.status === "error") {
     if (reviewsRes.httpStatus === 401) return <AccountSignInRequired />;
     return (
-      <div className="container mx-auto px-4 sm:px-6 py-10 max-w-7xl">
+      <div className="mx-auto w-full px-4 sm:px-6 py-10 max-w-[1200px] lg:px-14">
         <FeatureUnavailable
           title="Đánh giá của tôi"
           description={reviewsRes.message ?? "Không thể tải danh sách đánh giá chuyến xe."}

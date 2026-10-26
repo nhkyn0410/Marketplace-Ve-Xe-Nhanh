@@ -13,7 +13,7 @@
 | Người viết    | Nguyễn Hồng Khanh, AI Agent                                    |
 | Người duyệt   | Nguyễn Hồng Khanh                                              |
 | Ngày tạo      | 05/05/2026                                                     |
-| Ngày cập nhật | 04/10/2026                                                     |
+| Ngày cập nhật | 26/10/2026                                                     |
 
 ### 1.2. Lịch sử thay đổi
 
@@ -56,6 +56,7 @@
 | v1.34     | 04/10/2026 | AI Agent, Nguyễn Hồng Khanh | **Chú thích ảnh phương tiện (Khanh chốt 04/10/2026, đối chiếu Figma nhà xe):** `BR-76` + `FR-OPS-16` — mỗi ảnh xe có thể kèm chú thích ngắn (tối đa 60 ký tự), hiển thị công khai cùng ảnh. Giữ trạng thái Review. |
 | v1.35     | 04/10/2026 | AI Agent, Nguyễn Hồng Khanh | **Thiết kế lại điểm dừng (Khanh chốt 04/10/2026):** `BR-38` viết lại — bến xe và điểm dừng đón trả khách chỉ nằm trong danh mục dùng chung do Admin lập hoặc duyệt (đề xuất kèm căn cứ công bố); điểm riêng của nhà xe chỉ gồm văn phòng trung chuyển và trạm dừng nghỉ. `BR-23` + `BR-79` — quyền đón / trả theo loại điểm và theo từng điểm dừng của tuyến; `BR-80` — tìm chuyến khớp theo vị trí (tỉnh / thành, địa danh dùng chung); `BR-81` — Admin giám sát và khóa điểm riêng. Thêm `FR-OPS-17`, `FR-ADM-21`, `AC-42`; sửa `AS-04`, `FR-MKT-01`, `FR-MKT-09`, `FR-OPS-04..05`, `UC-02`, `UC-13`, `UC-24`, §3.5, §6, §9.3, §15.3. Căn cứ: Nghị định 158/2024/NĐ-CP, Thông tư 36/2024/TT-BGTVT. Mở `OQ-24` (loại hình vận tải). Giữ trạng thái Review. |
 | v1.36     | 21/10/2026 | AI Agent | **Phân quyền theo từng tài khoản (Khanh 21/10/2026, chờ duyệt — `TASK-IAM-007`):** thêm `FR-IAM-19` tài khoản quản lý Operator OS do Owner cấp, tick quyền từng tài khoản; `FR-IAM-07` hiện thực bằng danh sách quyền riêng của tài khoản quản trị trong trần vai trò. |
+| v1.37     | 27/10/2026 | AI Agent | **Tra cứu vé khách vãng lai không cần mã đặt vé (Khanh 27/10/2026, chờ duyệt):** `UC-35` bước 1–2 — email bắt buộc, mã vé / mã booking tùy chọn, OTP gửi về email; thêm A1b (danh sách đơn 12 tháng gồm cả đơn đặt bằng tài khoản, hỏi đăng nhập), A1c (mất email → CSKH). Giữ trạng thái Review. |
 
 ---
 
@@ -202,7 +203,7 @@ Hành khách (User)        Nhà xe (Operator) + Nhân viên (Employee)
 
 ### 4.3. Mô hình doanh thu
 
-Platform thu **commission % trên mỗi giao dịch vé bán thành công** (xem MQ-04). Tỷ lệ commission cấu hình được per-Operator hoặc theo tier. Có thể bổ sung service fee phụ thu hành khách ở các phiên bản sau. Subsidy cho promotion (Platform bù tiền) chưa hỗ trợ ở v1, **ngoại trừ voucher đổi điểm của chương trình thành viên VXN Plus**: phần giảm này do Platform chịu, Operator vẫn nhận escrow và bị tính commission theo giá trước giảm (`FR-LOY-09`, `BR-73`).
+Platform thu **commission % trên mỗi giao dịch vé bán thành công** (xem MQ-04). Tỷ lệ commission cấu hình được per-Operator hoặc theo tier. **Bổ sung theo quyết định Khanh ngày 26/10/2026:** cấu hình commission phân biệt kênh online và bán tại quầy; vé quầy dùng mức cấu hình riêng **thấp hơn mức online áp dụng**, chưa chốt giá trị mặc định cho kênh quầy. Có thể bổ sung service fee phụ thu hành khách ở các phiên bản sau. Subsidy cho promotion (Platform bù tiền) chưa hỗ trợ ở v1, **ngoại trừ voucher đổi điểm của chương trình thành viên VXN Plus**: phần giảm này do Platform chịu, Operator vẫn nhận escrow và bị tính commission theo giá trước giảm (`FR-LOY-09`, `BR-73`).
 
 ### 4.4. Ba lớp dịch vụ Platform cung cấp
 
@@ -324,6 +325,15 @@ Backend: modular monolith NestJS 11 (TypeScript) + PostgreSQL 16 / Prisma cho d�
 - Xử lý yêu cầu hủy / đổi vé trong phạm vi quyền được Platform cấu hình.
 - Phản hồi đánh giá và khiếu nại của hành khách.
 - Xem nhật trình xe và báo cáo vận hành mà Employee gửi về (lộ trình thực tế, sự cố, chi phí phát sinh).
+
+**Bán vé tại văn phòng nhà xe — phạm vi Khanh chốt ngày 26/10/2026:**
+
+- Quản lý **nhiều văn phòng bán vé ngay từ đầu**.
+- Hỗ trợ thu tiền vé bằng **tiền mặt và chuyển khoản**.
+- Vé quầy chịu **commission theo mức cấu hình riêng thấp hơn mức online áp dụng**; chưa chốt mức phần trăm cụ thể.
+- Quầy được bán sau giờ ngừng bán online, đến khi **tài xế / điều phối xác nhận xe thực sự khởi hành**, kể cả khi xe trễ lịch. Việc vượt giờ khởi hành dự kiến không tự đóng bán quầy; từ lúc xác nhận khởi hành thực tế (`DEPARTED`) phải dừng bán quầy. Quy tắc này không cho phép bỏ qua trạng thái khóa bán / hủy chuyến hoặc tính khả dụng của ghế.
+
+Đây là phạm vi nghiệp vụ đã chốt, **chưa phải xác nhận đã triển khai**. FR / UC chi tiết và thiết kế DB / API / UI / Security / Test cần đồng bộ ở lượt thiết kế tiếp theo. Cách xác minh chuyển khoản, thu commission, quyền theo văn phòng, ca / quỹ / bàn giao và tài khoản bán vé vẫn là phần thiết kế đề xuất, chưa được chốt tại đây; xem [phân tích bán vé tại văn phòng](../task-propreties/COUNTER-SALES-analysis.md).
 
 **App / Portal cho Employee:**
 
@@ -512,7 +522,7 @@ Các external actor không có quyền truy cập tài khoản nội bộ; mọi
 | CO-15 | Dữ liệu cá nhân phải được bảo vệ theo nguyên tắc tối thiểu hóa truy cập.                                                                | Họ tên, số điện thoại, email, lịch sử chuyến, payment không được lộ qua public API.                          |
 | CO-16 | Website phải hiển thị rõ điều kiện hủy / đổi trước khi khách thanh toán.                                                                | Đây là điều kiện bắt buộc để giảm tranh chấp sau giao dịch.                                                  |
 | CO-17 | Search chỉ hiển thị chuyến đang mở bán, còn ghế phù hợp và chưa hết thời gian bán.                                                      | Không hiển thị chuyến DRAFT, LOCKED, CANCELLED, COMPLETED hoặc đã hết chỗ.                                   |
-| CO-18 | Chuyến đã khởi hành hoặc đã hoàn thành không được bán thêm vé online.                                                                   | Ngoại lệ bán tại quầy nếu có phải là phạm vi khác và cần chính sách riêng.                                   |
+| CO-18 | Chuyến đã khởi hành hoặc đã hoàn thành không được bán thêm vé online.                                                                   | Bán quầy được tiếp tục sau cutoff online đến khi tài xế / điều phối xác nhận khởi hành thực tế, kể cả trễ lịch; từ `DEPARTED` dừng bán quầy (§6.2, `COUNTER-SALES`). |
 | CO-19 | Hệ thống phải hoạt động ổn định vào dịp cao điểm như lễ, Tết.                                                                           | Cần cache search, rate limit, queue callback và giám sát payment / notification.                             |
 | CO-20 | Các chính sách vận tải, giá, hủy vé, hóa đơn và bảo vệ dữ liệu phải tuân thủ pháp luật Việt Nam và hợp đồng giữa Platform với Operator. | SRS không thay thế tư vấn pháp lý; cần rà soát pháp chế trước khi production.                                |
 | CO-21 | Nếu nhà xe bán vé ngoài Platform, mọi ghế đã bán ngoài hệ thống phải được khóa hoặc đồng bộ trước khi mở bán online.                    | Không được coi tồn ghế trên Platform là nguồn sự thật duy nhất nếu nhà xe vẫn vận hành đa kênh.              |
@@ -1855,7 +1865,7 @@ Luồng thay thế / ngoại lệ:
 - A4: Trip đã có vé bán mà Operator đổi xe, giờ hoặc điểm đón / trả → hệ thống yêu cầu ghi lý do và kích hoạt thông báo cho hành khách.
 - A5: Operator bỏ gắn xe khỏi trip đã có booking → hệ thống từ chối thao tác.
 - A6: Operator khóa ghế để xử lý bán đa kênh hoặc ghế kỹ thuật → hệ thống cập nhật inventory ngay và không cho khách online chọn các ghế đó.
-- A7: Đã qua thời gian ngừng bán online → hệ thống không còn hiển thị trip cho luồng đặt vé web / app dù chuyến chưa khởi hành.
+- A7: Đã qua thời gian ngừng bán online → hệ thống không còn hiển thị trip cho luồng đặt vé Marketplace web / app hành khách dù chuyến chưa khởi hành. Kênh bán quầy áp dụng mốc khởi hành thực tế theo §6.2 (`COUNTER-SALES`).
 
 ### UC-15: Quản lý booking / ticket thuộc Operator
 
@@ -2463,8 +2473,8 @@ Luồng thay thế / ngoại lệ:
 
 Luồng chính:
 
-1. Guest nhập mã vé / mã booking hoặc mở liên kết tra cứu được gửi qua kênh liên hệ đã lưu.
-2. Guest nhập thông tin liên hệ như email hoặc số điện thoại theo dữ liệu đã dùng khi tạo booking.
+1. Guest nhập email liên hệ đã dùng khi tạo booking; mã vé / mã booking là tùy chọn (có thì chỉ tra đúng đơn đó). Chờ duyệt (27/10/2026): v1 chỉ tra bằng email vì SMS hoãn (ADR-020).
+2. Hệ thống gửi mã xác minh (OTP) về email đó nếu email có booking (khớp mã khi có nhập, ngược lại có đơn trong 12 tháng gần nhất); phản hồi như nhau dù có hay không. Guest nhập OTP để mở phiên tra cứu có thời hạn.
 3. Hệ thống kiểm tra định dạng mã tra cứu và thông tin liên hệ.
 4. Hệ thống đối chiếu mã tra cứu với booking / ticket và kiểm tra thông tin liên hệ có khớp dữ liệu đã lưu hay không.
 5. Hệ thống xác định mức dữ liệu được phép hiển thị cho Guest: thông tin chuyến, ghế, điểm đón / trả, trạng thái vé, trạng thái thanh toán và hướng dẫn lên xe.
@@ -2474,7 +2484,9 @@ Luồng chính:
 
 Luồng thay thế / ngoại lệ:
 
-- A1: Mã vé / mã booking hoặc thông tin liên hệ không khớp → hệ thống từ chối hiển thị dữ liệu.
+- A1: Mã vé / mã booking hoặc thông tin liên hệ không khớp, hoặc OTP sai / hết hạn → hệ thống từ chối hiển thị dữ liệu.
+- A1b: Guest không nhập mã → sau OTP thấy danh sách các booking dùng email đó trong 12 tháng gần nhất (gồm cả booking đặt khi đã đăng nhập) và chọn đơn để xem; email đã có tài khoản hoặc có booking đặt bằng tài khoản → hệ thống hỏi Guest có muốn đăng nhập không (chờ duyệt, Khanh 27/10/2026).
+- A1c: Guest không còn dùng được email đặt vé → liên hệ CSKH để xác minh thủ công.
 - A2: Thao tác nhạy cảm chưa đủ xác minh → hệ thống yêu cầu xác minh bổ sung.
 - A3: Guest cố xem lịch sử booking dài hạn → hệ thống chỉ hiển thị dữ liệu thuộc vé đã xác minh.
 - A4: Vé không còn hợp lệ hoặc đã bị hủy → hệ thống hiển thị trạng thái hiện tại và hướng dẫn liên hệ hỗ trợ nếu cần.
@@ -2670,7 +2682,7 @@ Mục này chốt các quy tắc nghiệp vụ áp dụng cho v1, được rút 
 | BR-28 | Payment Result           | Khi payment thành công, hệ thống phải cập nhật booking, payment, seat, ticket và escrow ledger nhất quán; khi payment thất bại / hết hạn, hệ thống phải giải phóng ghế theo policy.                      | `FR-BTP-08..10`, `FR-BTP-15`, `UC-06`, `UC-07`                    |
 | BR-29 | Ticket QR                | Mã vé / QR token phải duy nhất, không đoán được và luôn xác thực server-side khi check-in; không được chỉ encode thông tin thô trong QR.                                                                 | `FR-BTP-11`, `FR-EMP-07`, `NFR-SEC-08`, `UC-07`, `UC-20`          |
 | BR-30 | Escrow                   | Tiền thanh toán online thành công được ghi nhận vào escrow ledger của Platform cho đến khi đủ điều kiện refund, adjustment hoặc payout cho Operator.                                                     | `AS-17`, `FR-BTP-15`, `UC-06`, `UC-26`                            |
-| BR-31 | Commission               | Commission mặc định cho Operator mới là 5% trên giá vé bán thành công; override theo Operator / tier chỉ có hiệu lực khi Admin cấu hình rule hợp lệ có ngày hiệu lực.                                    | `FR-BTP-16`, `FR-ADM-07`, `UC-25`, `UC-26`                        |
+| BR-31 | Commission               | Commission online mặc định cho Operator mới là 5% trên giá vé bán thành công; override theo Operator / tier chỉ có hiệu lực khi Admin cấu hình rule hợp lệ có ngày hiệu lực. Vé quầy dùng mức cấu hình riêng thấp hơn mức online áp dụng; không dùng mức mặc định online thay cho mức quầy chưa cấu hình. | `FR-BTP-16`, `FR-ADM-07`, `UC-25`, `UC-26`, §6.2, `COUNTER-SALES` |
 | BR-32 | Payout Eligibility       | Payout v1 được xét theo chu kỳ T+3 sau khi chuyến hoàn thành, dùng kênh chuyển khoản ngân hàng, không đặt ngưỡng tối thiểu và cần Admin xác nhận thủ công trước khi đánh dấu thành công.                 | `§6.3`, `FR-ADM-08`, `UC-25`, `UC-26`                             |
 | BR-33 | Payout Amount            | Số tiền payout phải trừ commission, refund, adjustment và khoản giữ lại nếu có; giao dịch lệch số tiền hoặc trạng thái không được tự động đánh dấu thành công.                                           | `FR-BTP-16..17`, `FR-ADM-10`, `UC-26`, `UC-32`                    |
 | BR-34 | Early Payout             | Payout sớm không phải luồng mặc định của v1; chỉ được xử lý nếu policy nền tảng cho phép, Operator đủ điều kiện và Admin phê duyệt theo quyền.                                                           | `FR-OPR-09`, `UC-11`, `UC-25`                                     |
@@ -3134,7 +3146,7 @@ flowchart TD
 Luồng nghiệp vụ:
 
 1. Khi payment thành công, hệ thống ghi dòng tiền vào escrow ledger của Platform và lưu dữ liệu commission áp dụng cho booking.
-2. Commission mặc định cho Operator mới là 5% trên vé bán thành công, trừ khi có override hợp lệ theo policy hiệu lực.
+2. Commission online mặc định cho Operator mới là 5% trên vé bán thành công, trừ khi có override hợp lệ theo policy hiệu lực. Vé quầy dùng mức cấu hình riêng thấp hơn mức online áp dụng theo `BR-31`; luồng thu commission vé quầy cần thiết kế riêng, không suy ra từ luồng escrow / payout online này.
 3. Trong thời gian trước / sau chuyến, hệ thống cập nhật ledger theo refund, dispute, adjustment hoặc khoản giữ lại nếu có.
 4. Sau khi chuyến hoàn thành, hệ thống xác định phần tiền đủ điều kiện payout theo policy.
 5. V1 dùng payout T+3 sau khi chuyến hoàn thành, kênh chuyển khoản ngân hàng, không đặt ngưỡng tối thiểu và cần Admin xác nhận thủ công trước khi đánh dấu thành công.
@@ -3224,7 +3236,7 @@ Mục này mô tả state model nghiệp vụ tối thiểu dùng để truy v�
 | SOLD_OUT      | Chuyến đã hết ghế bán online.                       | Tất cả ghế bán được đã `BOOKED`, `HOLDING` hoặc `BLOCKED`.        | Có thể quay lại `OPEN_FOR_SALE` nếu ghế được giải phóng hợp lệ.     |
 | LOCKED        | Chuyến bị khóa / tạm dừng bán.                      | Operator hoặc Admin khóa bán do vận hành, kiểm tra hoặc rủi ro.   | Không cho tạo booking / payment mới; mở lại → `OPEN_FOR_SALE` (kiểm lại BR-39).                                |
 | BOARDING      | Chuyến đang đón khách.                              | Employee bắt đầu quy trình đón khách theo phân công.              | Manifest và check-in được ưu tiên.                                  |
-| DEPARTED      | Chuyến đã rời điểm đón / bến xuất phát.             | Employee cập nhật trạng thái khởi hành.                           | Không bán thêm vé online.                                           |
+| DEPARTED      | Chuyến đã rời điểm đón / bến xuất phát.             | Tài xế / điều phối xác nhận xe thực sự khởi hành.                   | Dừng bán quầy từ xác nhận khởi hành thực tế, kể cả trễ lịch; không bán thêm vé online. |
 | IN_PROGRESS   | Chuyến đang chạy.                                   | Chuyến đã khởi hành và chưa hoàn thành.                           | Có thể ghi nhật trình / sự cố.                                      |
 | COMPLETED     | Chuyến đã hoàn thành.                               | Employee / Operator cập nhật hoàn thành hoặc job xác nhận hợp lệ. | Dùng làm mốc xét review, no-show và payout T+3.                     |
 | CANCELLED     | Chuyến đã hủy.                                      | Operator / Admin hủy chuyến có lý do.                             | Dừng bán, chặn payment mới, kích hoạt thông báo / refund / dispute. |
@@ -3608,16 +3620,17 @@ Toàn bộ Open Questions (`OQ-*`) và Marketplace Questions (`MQ-*`) phát sinh
 | ~~MQ-01~~ | **CHỐT (05/05/2026):** Payment flow = **escrow**. Platform giữ tiền trong escrow account và chuyển cho Operator theo chu kỳ T+3 sau khi chuyến hoàn thành. Đã phản ánh trong §4.2, §6.1, §6.2 và chốt chi tiết tại `OQ-16`.                                                                                                                                                                                                                                                         | Chi tiết payout đã chốt tại `OQ-16`                                                        |
 | ~~MQ-02~~ | **CHỐT (05/05/2026):** Operator tự định giá theo những gì đã kê khai với cơ quan nhà nước. Platform có quyền kiểm tra và áp khung giá trần / sàn theo quy định pháp luật vào các dịp quan trọng. Đã phản ánh trong §5.3, §6.2, §6.3.                                                                                                                                                                                                                                                | Quy tắc cảnh báo / chặn đã chốt tại `OQ-17`                                                |
 | ~~MQ-03~~ | **CHỐT (05/05/2026):** Platform là **arbiter cuối cùng** trong tranh chấp. Có quyền refund đơn phương qua đầu Operator, có audit log và thông báo bắt buộc cho Operator. Đã phản ánh trong §4.2, §6.3, `FR-ADM-11`, `FR-DSP-*` và `UC-27`.                                                                                                                                                                                                                                          | Đã chốt                                                                                    |
-| ~~MQ-04~~ | **CHỐT (05/05/2026):** mô hình thu phí = **commission % mặc định** trên mỗi giao dịch vé bán thành công, cấu hình per Operator hoặc theo tier. Service fee phụ thu khách và subsidy promotion chưa hỗ trợ ở v1. Đã phản ánh trong §4.3, §6.3.                                                                                                                                                                                                                                       | Commission mặc định đã chốt tại `OQ-18`                                                    |
+| ~~MQ-04~~ | **CHỐT (05/05/2026):** mô hình thu phí = **commission % mặc định** trên mỗi giao dịch vé bán thành công, cấu hình per Operator hoặc theo tier. Service fee phụ thu khách và subsidy promotion chưa hỗ trợ ở v1. Đã phản ánh trong §4.3, §6.3. **Bổ sung 26/10/2026:** commission phân biệt kênh bán; mức quầy cấu hình thấp hơn mức online áp dụng (`COUNTER-SALES`). | Commission online mặc định đã chốt tại `OQ-18`; mức quầy xem §6.2. |
 | ~~MQ-05~~ | **CHỐT (05/05/2026):** mô hình marketplace = **B (Managed marketplace)**. Platform cung cấp đủ 3 lớp: Marketplace, Operator OS và Platform admin. Pure marketplace và pure SaaS bị loại. Hybrid API integration cho Operator lớn chưa hỗ trợ ở v1, đặt vào §6.4. SRS §4, §5, §6 đã được tái cấu trúc theo MQ-05.                                                                                                                                                                    | Đã chốt                                                                                    |
 | ~~OQ-16~~ | **CHỐT (11/05/2026):** escrow payout dùng chu kỳ **T+3 ngày sau khi chuyến hoàn thành**. V1 không đặt ngưỡng tối thiểu để tạo payout. Kênh chi trả là chuyển khoản ngân hàng trực tiếp, Admin xác nhận thủ công trước khi đánh dấu payout thành công.                                                                                                                                                                                                                               | Ảnh hưởng `04-Database Design` (Payout collection), Operator OS Finance UI, reconciliation |
 | ~~OQ-17~~ | **CHỐT (10/05/2026):** khi giá vé Operator vượt khung trần / sàn pháp luật vào dịp quan trọng, Platform chỉ cảnh báo cho Operator và ghi nhận dữ liệu phục vụ kiểm tra; không tự động chặn mở bán ở v1.                                                                                                                                                                                                                                                                             | Đã phản ánh trong `FR-OPS-09` và `FR-ADM-09`                                               |
-| ~~OQ-18~~ | **CHỐT (11/05/2026):** commission mặc định cho Operator mới là **5% trên giá vé bán thành công**. V1 chưa dùng tier tự động; Admin có thể cấu hình override theo Operator bằng commission rule có ngày hiệu lực.                                                                                                                                                                                                                                                                    | Ảnh hưởng commission engine, báo cáo, Operator dashboard                                   |
+| ~~OQ-18~~ | **CHỐT (11/05/2026):** commission mặc định cho Operator mới là **5% trên giá vé bán thành công**. V1 chưa dùng tier tự động; Admin có thể cấu hình override theo Operator bằng commission rule có ngày hiệu lực. **Bổ sung 26/10/2026:** mức 5% mặc định này áp dụng kênh online; vé quầy dùng mức cấu hình riêng thấp hơn mức online áp dụng, chưa chốt giá trị mặc định (`COUNTER-SALES`). | Ảnh hưởng commission engine, báo cáo, Operator dashboard; không lấy mặc định online làm mặc định quầy. |
 | ~~OQ-19~~ | **CHỐT (11/05/2026):** bộ KYC Operator v1 bắt buộc gồm giấy phép đăng ký kinh doanh / giấy tờ pháp nhân tương đương, giấy phép kinh doanh vận tải, giấy tờ người đại diện hoặc giấy ủy quyền hợp lệ, thông tin tài khoản ngân hàng nhận payout. Hồ sơ xe như đăng ký / đăng kiểm / bảo hiểm được xử lý ở luồng Vehicle nếu cần.                                                                                                                                                     | Ảnh hưởng `FR-OPR-03`, `FR-ADM-03`, UI onboarding nhà xe, FileStorage provider             |
 | ~~OQ-20~~ | **CHỐT (11/05/2026):** Platform dùng định vị **managed marketplace trung lập**: thương hiệu Platform hiển thị để bảo chứng giao dịch / hỗ trợ / tranh chấp, nhưng thông tin nhà xe, tuyến, giờ chạy và điều kiện dịch vụ vẫn là tín hiệu chính với hành khách.                                                                                                                                                                                                                      | Ảnh hưởng UI hành khách, scorecard, review, dispute và nội dung public Operator profile    |
 | ~~UX-OQ-06~~ | **CHỐT (29/09/2026, Khanh):** đưa chương trình thành viên **VXN Plus** và **ví voucher** vào v1: (a) phần giảm từ voucher đổi điểm **do Platform chịu** — Operator nhận escrow và commission tính trên giá trước giảm; đây là ngoại lệ duy nhất của `BR-48`; (b) hạng thành viên v1 **chỉ ảnh hưởng hệ số tích điểm** — không giảm giá tự động theo hạng, không ưu tiên CSKH; (c) ví voucher chứa voucher đổi điểm và mã khuyến mãi công khai User đã lưu. Phản ánh ở §4.3, §6, §10.6, §10.11, `UC-36..37`, `UC-39`, `BR-65..73`. Giá trị mặc định của tham số chương trình (đơn vị tích điểm, giá trị quy đổi, mốc hạng, hạn điểm / voucher) do Admin cấu hình; giá trị seed chốt trước khi triển khai (`TASK-LOY-001`). | `UX-OQ-06` mở ở 06 UI v0.4 (Figma VXN Plus, SCR-PSG-33..35); đóng tại đây, 06 UI §11 cập nhật tương ứng. Mở `LLD-OQ-06` (giá trị seed) và `LLD-OQ-07` (bên chịu giảm của promotion cấp Platform). |
 | ~~UX-OQ-08~~ | **CHỐT (29/09/2026, Khanh):** trang **Khám phá** dùng module bài viết riêng (`Article`, `ArticleCategory`), khác `ContentPage` (trang nội dung tĩnh); chỉ Admin soạn và xuất bản. Phản ánh ở `FR-MKT-14`, `FR-ADM-18..19`, `UC-38`, `UC-40`, `BR-74`. | `UX-OQ-08` mở ở 06 UI v0.4 (Figma Khám phá, SCR-PSG-02); `FR-ADM-13` (banner / FAQ / trang tĩnh) giữ nguyên. |
 | ~~OQ-23~~ | **CHỐT (04/10/2026, Khanh):** chỗ đôi bán nguyên chỗ cho một booking, giá theo chỗ do nhà xe đặt riêng trong bảng giá (không tính theo đầu người); nhận một hoặc hai hành khách; khách đi một mình vẫn mua được và trả đủ giá chỗ; v1 không cho nhà xe tự cấu hình cách bán. Phản ánh ở `BR-78`. | `OQ-23` mở ngày 04/10/2026 khi thêm loại chỗ đôi (giường đôi, cabin đôi). Số vé phát cho chỗ đôi và hủy / hoàn lẻ một người chốt ở thiết kế đặt vé (`LLD-OQ-09`). |
+| COUNTER-SALES | **CHỐT (26/10/2026, Khanh):** bán vé tại văn phòng của nhà xe quản lý **nhiều văn phòng ngay từ đầu**; thu **tiền mặt và chuyển khoản**; vé quầy chịu **commission cấu hình riêng thấp hơn mức online áp dụng**; được bán sau cutoff online đến khi **tài xế / điều phối xác nhận xe thực sự khởi hành**, kể cả trễ lịch. | Phạm vi ghi tại §6.2; `DEPARTED` đóng bán quầy. Chưa chốt mức commission cụ thể hoặc cách thu phí / xác minh tiền; FR / UC và thiết kế chi tiết cần đồng bộ, xem [phân tích](../task-propreties/COUNTER-SALES-analysis.md). |
 
 ---
 

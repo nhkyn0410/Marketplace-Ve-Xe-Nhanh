@@ -6,9 +6,9 @@ import QRCode from "qrcode";
 import { apiRequest } from "./api";
 import { refreshSessionIfNeeded } from "./session";
 import { bookingHeaders } from "./booking-access";
-import { apiMoney, mapLookupResult, mapMyTicket, mapTicketDetail, moneyString, remainingSeconds, type ApiBooking } from "./booking-mappers";
-import { type DataResult, failed, ok, unavailable } from "./result";
-import type { MyTicketsData, TicketDetailData, TicketLookupResultData } from "./types";
+import { apiMoney, mapLookupBookings, mapLookupResult, mapMyTicket, mapTicketDetail, moneyString, remainingSeconds, type ApiBooking } from "./booking-mappers";
+import { type DataResult, failed, ok } from "./result";
+import type { MyTicketsData, TicketDetailData, TicketLookupBookingsData, TicketLookupOtpSent, TicketLookupResultData } from "./types";
 
 const LOOKUP_COOKIE = "vxn_ticket_lookup";
 
@@ -73,38 +73,62 @@ export async function cancelTickets(bookingId: string, ticketIds: readonly strin
   } catch { return failed("POST /bookings/{bookingId}/cancellations", "Số tiền hoàn không hợp lệ. Vui lòng lấy báo giá lại."); }
 }
 
-/** Tra cứu trực tiếp theo mã booking và email, lưu thông tin xác thực trong cookie httpOnly 15 phút. */
-export async function lookupTickets(params: { readonly bookingCodeOrTicketCode: string; readonly email: string }): Promise<DataResult<{ readonly bookingId: string }>> {
+/** Email bắt buộc; mã đặt vé / mã vé không bắt buộc — để trống thì tra mọi đơn của email trong 12 tháng. */
+function lookupIdentity(params: { readonly bookingCodeOrTicketCode?: string; readonly email: string }) {
+  const bookingCode = params.bookingCodeOrTicketCode?.trim().toUpperCase();
+  return { email: params.email.trim().toLowerCase(), ...(bookingCode ? { bookingCode } : {}) };
+}
+
+/** B1 tra cứu vé: gửi mã 6 số về email (API chỉ gửi khi email có đơn, hoặc đúng mã đặt vé + email). */
+export async function requestTicketLookupOtp(params: { readonly bookingCodeOrTicketCode?: string; readonly email: string }): Promise<DataResult<TicketLookupOtpSent>> {
   const session = await refreshSessionIfNeeded();
   if (session.status !== "ok") return session;
-  const input = { bookingCode: params.bookingCodeOrTicketCode.trim().toUpperCase(), email: params.email.trim().toLowerCase() } satisfies components["schemas"]["TicketLookupInputDto"];
-  const result = await apiRequest<ApiBooking>("/guest/ticket-lookup", { method: "POST", body: JSON.stringify(input) });
+  const input = lookupIdentity(params) satisfies components["schemas"]["TicketLookupOtpInputDto"];
+  return apiRequest<components["schemas"]["TicketLookupOtpResponseDto_Output"]>("/guest/ticket-lookup/otp", { method: "POST", body: JSON.stringify(input) });
+}
+
+/** B2: xác minh mã; phiên tra cứu 15 phút chỉ nằm trong cookie httpOnly (không đưa ra trình duyệt hay URL). */
+export async function verifyTicketLookupOtp(params: { readonly bookingCodeOrTicketCode?: string; readonly email: string; readonly otp: string }): Promise<DataResult<{ readonly expiresAt: string }>> {
+  const session = await refreshSessionIfNeeded();
+  if (session.status !== "ok") return session;
+  const input = { ...lookupIdentity(params), otp: params.otp } satisfies components["schemas"]["TicketLookupVerifyInputDto"];
+  const result = await apiRequest<components["schemas"]["TicketLookupSessionDto_Output"]>("/guest/ticket-lookup/verify", { method: "POST", body: JSON.stringify(input) });
   if (result.status !== "ok") return result;
-  (await cookies()).set(LOOKUP_COOKIE, JSON.stringify({ ...input, expiresAt: new Date(Date.now() + 900_000).toISOString() }), { httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "lax", path: "/", maxAge: 900 });
-  return ok({ bookingId: result.data.bookingId });
+  const maxAge = remainingSeconds(result.data.expiresAt);
+  (await cookies()).set(LOOKUP_COOKIE, JSON.stringify({ lookupToken: result.data.lookupToken, expiresAt: result.data.expiresAt }), { httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "lax", path: "/", maxAge });
+  return ok({ expiresAt: result.data.expiresAt });
 }
 
-/** API hiện chưa cung cấp bước gửi OTP tra cứu vé; giữ trạng thái rõ ràng cho màn xem trước. */
-export async function requestTicketLookupOtp(_params: { readonly bookingCodeOrTicketCode: string; readonly email: string }): Promise<DataResult<{ readonly maskedEmail: string }>> {
-  return unavailable("POST /guest/ticket-lookup/otp");
-}
-
-/** API hiện chưa cung cấp bước xác minh OTP tra cứu vé. */
-export async function verifyTicketLookupOtp(_params: { readonly bookingCodeOrTicketCode: string; readonly email: string; readonly otp: string }): Promise<DataResult<{ readonly lookupToken: string }>> {
-  return unavailable("POST /guest/ticket-lookup/verify");
-}
-
-/** Đọc lại kết quả bằng cookie máy chủ, không nhận bí mật qua URL. */
-export async function getTicketLookupResult(): Promise<DataResult<TicketLookupResultData>> {
+/** Phiên tra cứu đang lưu trong cookie máy chủ; hết hạn / không có → `null`. */
+async function lookupSession(): Promise<{ readonly lookupToken: string; readonly expiresInSeconds: number } | null> {
   const saved = (await cookies()).get(LOOKUP_COOKIE)?.value;
-  if (!saved) return failed("POST /guest/ticket-lookup", "Phiên tra cứu đã hết hạn. Vui lòng tra cứu lại.");
+  if (!saved) return null;
+  const credentials = JSON.parse(saved) as { lookupToken?: string; expiresAt?: string };
+  const expiresInSeconds = credentials.expiresAt ? remainingSeconds(credentials.expiresAt) : 0;
+  return credentials.lookupToken && expiresInSeconds > 0 ? { lookupToken: credentials.lookupToken, expiresInSeconds } : null;
+}
+
+const EXPIRED_MESSAGE = "Phiên tra cứu đã hết hạn. Vui lòng tra cứu lại.";
+
+/** Các đơn của phiên tra cứu (một đơn khi đã nhập mã đặt vé) + gợi ý đăng nhập. */
+export async function getTicketLookupBookings(): Promise<DataResult<TicketLookupBookingsData>> {
   try {
-    const credentials = JSON.parse(saved) as { bookingCode: string; email: string; expiresAt: string };
-    const expiresInSeconds = remainingSeconds(credentials.expiresAt);
-    if (expiresInSeconds === 0) return failed("POST /guest/ticket-lookup", "Phiên tra cứu đã hết hạn.");
-    const booking = await apiRequest<ApiBooking>("/guest/ticket-lookup", { method: "POST", body: JSON.stringify({ bookingCode: credentials.bookingCode, email: credentials.email }) });
+    const session = await lookupSession();
+    if (!session) return failed("POST /guest/ticket-lookup/bookings", EXPIRED_MESSAGE);
+    const list = await apiRequest<components["schemas"]["TicketLookupBookingListDto_Output"]>("/guest/ticket-lookup/bookings", { method: "POST", body: JSON.stringify({ lookupToken: session.lookupToken } satisfies components["schemas"]["TicketLookupSessionInputDto"]) });
+    return list.status === "ok" ? ok(mapLookupBookings(list.data, session.expiresInSeconds)) : list;
+  } catch { return failed("POST /guest/ticket-lookup/bookings", "Không thể đọc danh sách đơn. Vui lòng tra cứu lại."); }
+}
+
+/** Đọc một đơn của phiên bằng cookie máy chủ (`bookingId` bắt buộc khi phiên theo email), không nhận bí mật qua URL. */
+export async function getTicketLookupResult(bookingId?: string): Promise<DataResult<TicketLookupResultData>> {
+  try {
+    const session = await lookupSession();
+    if (!session) return failed("POST /guest/ticket-lookup", EXPIRED_MESSAGE);
+    const input = { lookupToken: session.lookupToken, ...(bookingId ? { bookingId } : {}) } satisfies components["schemas"]["TicketLookupInputDto"];
+    const booking = await apiRequest<ApiBooking>("/guest/ticket-lookup", { method: "POST", body: JSON.stringify(input) });
     if (booking.status !== "ok") return booking;
-    const mapped = mapLookupResult(booking.data, expiresInSeconds);
+    const mapped = mapLookupResult(booking.data, session.expiresInSeconds);
     const tickets = await Promise.all(mapped.tickets.map(async (ticket) => ({ ...ticket, qrCodeDataUrl: await QRCode.toDataURL(booking.data.tickets.find((source) => source.ticketId === ticket.ticketId)!.qrToken) })));
     const canManageBooking = Boolean((await bookingHeaders(booking.data.bookingId))["X-Booking-Token"]);
     return ok({ ...mapped, bookingId: booking.data.bookingId, canManageBooking, tickets });
