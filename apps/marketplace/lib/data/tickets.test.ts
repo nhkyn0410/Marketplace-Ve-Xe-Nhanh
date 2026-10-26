@@ -7,7 +7,7 @@ const { request, jar, values } = vi.hoisted(() => {
 vi.mock("./api", () => ({ apiRequest: request }));
 vi.mock("./session", () => ({ refreshSessionIfNeeded: vi.fn(async () => ({ status: "ok", data: { rotated: false } })) }));
 vi.mock("next/headers", () => ({ cookies: vi.fn(async () => jar) }));
-import { cancelTickets, endTicketLookup, getCancellationQuote, getMyTickets, getTicketDetail, getTicketLookupResult, requestTicketLookupOtp, verifyTicketLookupOtp } from "./tickets";
+import { cancelTickets, endTicketLookup, getCancellationQuote, getMyTickets, getTicketDetail, getTicketLookupBookings, getTicketLookupResult, requestTicketLookupOtp, verifyTicketLookupOtp } from "./tickets";
 
 describe("ticket API integration", () => {
   beforeEach(() => { vi.clearAllMocks(); values.clear(); request.mockReset(); });
@@ -75,5 +75,43 @@ describe("ticket API integration", () => {
     request.mockResolvedValueOnce({ status: "error", endpoint: "POST /guest/ticket-lookup/verify", message: "Mã xác minh không đúng. Còn 4 lần thử.", httpStatus: 422 });
     expect(await verifyTicketLookupOtp({ bookingCodeOrTicketCode: "VXN-TEST", email: "guest@example.test", otp: "000000" })).toMatchObject({ status: "error", httpStatus: 422 });
     expect(jar.set).not.toHaveBeenCalled();
+  });
+  it("tra cứu chỉ bằng email: không gửi mã đặt vé; danh sách đơn nhóm theo tab, gợi ý đăng nhập; xem chi tiết gửi kèm id đơn", async () => {
+    const sent = { maskedEmail: "g***@example.test", expiresInSeconds: 300, resendAfterSeconds: 60, maxAttempts: 5 };
+    request.mockResolvedValueOnce({ status: "ok", data: sent });
+    await requestTicketLookupOtp({ bookingCodeOrTicketCode: "  ", email: "Guest@Example.test" });
+    expect(JSON.parse(request.mock.calls[0]![1].body)).toEqual({ email: "guest@example.test" });
+
+    request.mockResolvedValueOnce({ status: "ok", data: { lookupToken: "secret-lookup-token", expiresAt: new Date(Date.now() + 900_000).toISOString() } });
+    await verifyTicketLookupOtp({ email: "guest@example.test", otp: "123456" });
+    expect(JSON.parse(request.mock.calls[1]![1].body)).toEqual({ email: "guest@example.test", otp: "123456" });
+
+    const item = { bookingCode: "VXNAAA111", routeName: "Tuyến", operatorName: "Nhà xe", ticketCount: 2, total: 560000, createdAt: "2026-10-01T00:00:00Z" };
+    request.mockResolvedValueOnce({
+      status: "ok",
+      data: {
+        maskedEmail: "g***@example.test",
+        scope: "EMAIL",
+        hasAccount: false,
+        items: [
+          { ...item, bookingId: "b1", status: "CONFIRMED", departureAt: "2999-01-01T01:00:00Z", bookedWithAccount: false },
+          { ...item, bookingId: "b2", status: "CONFIRMED", departureAt: "2020-01-01T01:00:00Z", bookedWithAccount: true },
+          { ...item, bookingId: "b3", status: "REFUNDED", departureAt: "2999-01-01T01:00:00Z", bookedWithAccount: false }
+        ]
+      }
+    });
+    const list = await getTicketLookupBookings();
+    expect(request.mock.calls[2]![0]).toBe("/guest/ticket-lookup/bookings");
+    expect(JSON.parse(request.mock.calls[2]![1].body)).toEqual({ lookupToken: "secret-lookup-token" });
+    expect(list.status === "ok" && list.data).toMatchObject({ scope: "EMAIL", hasAccount: false, accountSuggested: true });
+    expect(list.status === "ok" && list.data.items.map((entry) => [entry.bookingId, entry.group, entry.ticketCountText, entry.totalVnd])).toEqual([
+      ["b1", "upcoming", "2 vé", "560000"],
+      ["b2", "completed", "2 vé", "560000"],
+      ["b3", "cancelled", "2 vé", "560000"]
+    ]);
+
+    request.mockResolvedValueOnce({ status: "ok", data: bookingFixture() });
+    expect((await getTicketLookupResult("b2")).status).toBe("ok");
+    expect(JSON.parse(request.mock.calls[3]![1].body)).toEqual({ lookupToken: "secret-lookup-token", bookingId: "b2" });
   });
 });
