@@ -13,7 +13,7 @@
 | Người viết    | Nguyễn Hồng Khanh, AI Agent |
 | Người duyệt   | Nguyễn Hồng Khanh           |
 | Ngày tạo      | 11/05/2026                  |
-| Ngày cập nhật | 17/10/2026                  |
+| Ngày cập nhật | 25/10/2026                  |
 
 ### 1.2. Lịch sử thay đổi
 
@@ -57,6 +57,7 @@
 | v0.36     | 17/10/2026 | AI Agent       | **Phần không cần đặt vé (Khanh 17/10/2026, chờ duyệt):** §7.3 thêm `/operator/trip-schedules*` (`TASK-TRN-007`), `/operator/trip-assignments`, `PUT /operator/trips/{tripId}/driver` (`TASK-EMP-001`); §7.5 thêm `/admin/content-pages*`; §7.2 thêm `/content-pages*` công khai (`TASK-ADM-003`). Giữ trạng thái Review. |
 | v0.37     | 19/10/2026 | AI Agent       | **Sáu phần tiếp theo (Khanh 19/10/2026, chờ duyệt):** §7.2 thêm khiếu nại / tranh chấp / đánh giá theo đơn, `POST /promotions/check`; §7.3 thêm Tổng quan + Báo cáo, Hỗ trợ (khiếu nại, tranh chấp, đánh giá), Khuyến mãi; §7.4 ghi hiện thực soát vé + trạng thái chuyến; §7.5 thêm Tổng quan + Báo cáo, Khiếu nại & tranh chấp, đánh giá, Khuyến mãi, ghi hiện thực VXN Plus (đường dẫn tài khoản theo email, tham số qua `/admin/policies/LOYALTY`). Giữ trạng thái Review. |
 | v0.38     | 21/10/2026 | AI Agent       | **Phân quyền theo từng tài khoản (`TASK-IAM-007`, chờ duyệt):** §7.1 `GET /auth/me` trả `permissions`; §7.3 thêm `/operator/managers*`; GET xe / sơ đồ ghế / tuyến / điểm dừng / chuyến / lịch / bảng giá đổi sang `transport:read`; §7.5 thêm `PUT /admin/platform-accounts/{id}/permissions`, route tài khoản quản trị dùng `access:manage`, thao tác chi trả `payout:manage`, hoàn tiền Admin `refund:manage`. |
+| v0.39     | 25/10/2026 | AI Agent       | **Đồng bộ sau PR #46 / #48:** §7.5 `/admin/catalog/provinces` · `/wards` — tìm `q` theo tên so trên cột `search_text` (không dấu); không đổi endpoint / DTO. |
 
 ---
 
@@ -385,7 +386,7 @@ Thao tác phức tạp dùng `POST` + sub-resource (ADR-012).
 | POST         | `/admin/operator-applications/{applicationId}/reject` | Admin | Từ chối (lý do) → `REJECTED`, thu hồi link. `TASK-ADM-001`: như `request-info` + cần xác nhận lại danh tính |
 | POST         | `/admin/operator-applications/{applicationId}/resend-owner-credentials` | Admin | `TASK-ADM-001` (chờ duyệt): gửi lại mật khẩu tạm khi lần gửi lúc duyệt lỗi (UC-23 A4), hạn mức IAM-005, cần xác nhận lại danh tính |
 | GET/POST/PUT | `/admin/catalog/*`                          | Admin | Catalog chuẩn (tỉnh, phường, loại xe, tiện ích); điểm dừng ở `/admin/stop-points`. `TASK-ADM-001` (chờ duyệt): quyền `catalog:manage`; mọi thay đổi audit trong transaction (audit lỗi → 503, không lưu); trùng mã → 409 `CATALOG_CODE_CONFLICT`; id lạ → 404 `CATALOG_ITEM_NOT_FOUND`; không xóa |
-| GET          | `/admin/catalog/provinces` · `/admin/catalog/wards` | Admin | `TASK-ADM-001`: mọi trạng thái, lọc `status` (+ `provinceId` với phường), tìm `q` (mã bắt đầu bằng / tên chứa), xếp theo mã, cursor = mã dòng cuối, `limit` ≤ 100; kèm `wardCount` / `provinceName`, `stopPointCount`, `total` |
+| GET          | `/admin/catalog/provinces` · `/admin/catalog/wards` | Admin | `TASK-ADM-001`: mọi trạng thái, lọc `status` (+ `provinceId` với phường), tìm `q` (mã bắt đầu bằng / tên chứa — từ 21/10/2026 so trên `search_text` nên gõ không dấu cũng tìm được), xếp theo mã, cursor = mã dòng cuối, `limit` ≤ 100; kèm `wardCount` / `provinceName`, `stopPointCount`, `total` |
 | GET          | `/admin/catalog/vehicle-types` · `/admin/catalog/amenities` | Admin | `TASK-ADM-001`: mọi mục (không phân trang), lọc `status`; loại xe kèm `vehicleCount`, `operatorCount`, `fareRuleCount`; tiện ích kèm `vehicleCount` |
 | POST / PUT   | `/admin/catalog/{kind}`, `/admin/catalog/{kind}/{id}` | Admin | `TASK-ADM-001`: thêm — tỉnh `{ code (2 số), name }`, phường `{ provinceId, code (5 số), name }`, loại xe `{ code, name, description, form, class }`, tiện ích `{ code, name }` (mã loại xe / tiện ích chữ hoa không dấu, tự viết hoa); sửa — chỉ `name` (+ `description` với loại xe); mã, tỉnh của phường, dạng chỗ / hạng xe không đổi |
 | POST         | `/admin/catalog/{kind}/{id}/deactivate` · `…/activate` | Admin | `TASK-ADM-001`: ngừng dùng (body `{ reason }` 3–500 ký tự, vào audit) / dùng lại; 204; sai trạng thái → 409 `CATALOG_STATE_INVALID`. Mục ngừng dùng biến mất khỏi `/catalog/*` (§7.6), dữ liệu đang dùng giữ nguyên |

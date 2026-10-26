@@ -1,6 +1,6 @@
 ---
 id: RB-08
-title: Seed catalog chuẩn (tỉnh/xã, loại xe, tiện ích)
+title: Seed catalog chuẩn (tỉnh/xã, địa danh cũ, điểm dừng, loại xe, tiện ích)
 match:
   - db:seed:catalog
   - catalog-seed.ts
@@ -8,27 +8,27 @@ match:
 
 # RB-08 — Seed catalog chuẩn
 
-**Mục đích:** nạp dữ liệu chuẩn Platform (tỉnh/thành, xã/phường, loại xe, tiện ích; dev có thêm bến xe mẫu) cho một môi trường. Chạy lại an toàn: chỉ **tạo mới**, không ghi đè dòng đã có.
-**Điều kiện:** đã migrate + `db:app-role` ([RB-02](RB-02-prisma-migration.md)). Có file `apps/api/prisma/seed-data/administrative-units.csv` (UTF-8, tiêu đề `province_code,province_name,ward_code,ward_name`, mã tỉnh 2 chữ số, mã xã 5 chữ số). `MIGRATION_DATABASE_URL` là owner.
+**Mục đích:** nạp dữ liệu chuẩn Platform cho một môi trường: 34 tỉnh / 3.321 xã sau sáp nhập 2025 (kèm cấp hành chính + văn bản pháp lý), ánh xạ địa danh cũ của 63 tỉnh, điểm dừng chuẩn, loại xe, tiện ích; dev có thêm bến xe mẫu. Chạy lại an toàn: tạo dòng mới, **cập nhật cấp / văn bản pháp lý** của tỉnh / xã đã có, không xóa dòng nào.
+**Điều kiện:** đã migrate (gồm `20261021010000_administrative_units_metadata` + `20261021020000_legacy_administrative_mappings`) + `db:app-role` ([RB-02](RB-02-prisma-migration.md)). Ba file đã có trong repo, thư mục `apps/api/prisma/seed-data/`: `administrative-units.csv`, `legacy-administrative-mappings.csv`, `stop-points-catalog.csv`. `MIGRATION_DATABASE_URL` là owner.
 
 ## Các bước
 
-1. Lấy file danh mục chính thức (Cục Thống kê). Trong Excel đặt cột mã là **Text** trước khi lưu để giữ số 0 đầu → *Save As → CSV UTF-8*.
-2. Dev/local: `pnpm --filter @vexenhanh/api run db:seed:catalog -- --with-samples` (có bến xe mẫu).
-3. Production: đặt `NODE_ENV=production` + `MIGRATION_DATABASE_URL` của production rồi chạy **không** có `--with-samples`.
+1. Dev / local (chạy từ gốc repo): `pnpm --filter @vexenhanh/api run db:seed:catalog -- --with-samples`
+2. Production, trong cửa sổ PowerShell mới tại gốc repo trên nhánh `develop`:
+   `$env:NODE_ENV="production"` → `pnpm --filter @vexenhanh/api run db:seed:catalog` (**không** `--with-samples`) → `Remove-Item Env:NODE_ENV`.
+3. Sửa dữ liệu chuẩn: sửa CSV rồi chạy lại, hoặc sửa qua Admin → Danh mục (`TASK-ADM-001`). Seed không xóa dòng đã bỏ khỏi file — ngừng dùng qua Admin.
 
 ## Kiểm tra
 
-- Dòng đầu in host/DB đích — đúng môi trường mới đọc tiếp.
-- Lần 1 in số tỉnh/xã đọc từ file và số dòng tạo mới; chạy lần 2 báo tạo mới 0.
-- `GET /v1/catalog/provinces` trả đủ số tỉnh trong file.
+- Dòng đầu in `Seed catalog → <host>/<DB>` kèm số ánh xạ cũ và điểm dừng chuẩn — đúng môi trường mới đọc tiếp.
+- Lần đầu: `Đọc file: 34 tỉnh, 3321 xã, 239 ánh xạ cũ, …`; `Tạo mới:` đúng các số đó. Chạy lần hai: `Tạo mới` = 0.
+- `GET /v1/catalog/provinces` trả 34 tỉnh; Admin → Danh mục tìm được tỉnh / xã khi gõ không dấu.
 
 ## Lỗi hay gặp
 
-- `Dòng N: mã tỉnh "1" phải gồm đúng 2 chữ số`: Excel đã xoá số 0 đầu. Làm lại bước 1. Script không ghi dòng nào khi file sai.
-- `Dòng 1: tiêu đề phải đúng …`: sai tên cột hoặc Excel lưu bằng dấu `;`.
-- `ký tự lỗi mã hoá`: file không phải UTF-8. Lưu lại bằng *CSV UTF-8*.
-- `Bỏ qua bến mẫu …`: tên phường mẫu không có trong file chính thức. Chỉ là cảnh báo, chỉ ảnh hưởng dữ liệu mẫu ở dev.
-- Muốn sửa dữ liệu đã seed: sửa qua Admin (TASK-ADM-001), không chạy lại seed (seed không ghi đè).
+- `Dòng N: mã tỉnh … phải gồm đúng 2 chữ số` / mã xã 5 chữ số: file bị Excel xóa số 0 đầu — mở bằng trình soạn văn bản, không lưu lại bằng Excel. Script không ghi dòng nào khi file sai.
+- `Dòng 1: tiêu đề phải đúng …` hoặc `ký tự lỗi mã hoá`: sai tên cột / dấu phân cách, hoặc file không phải UTF-8.
+- `Bỏ qua điểm dừng (không tìm thấy phường): …`: mã phường của điểm dừng không có trong danh mục — sửa `stop-points-catalog.csv`.
+- Lỗi cột `level` / bảng `legacy_administrative_mappings` không tồn tại: DB chưa có 2 migration ngày 21/10 — chạy `prisma:migrate:deploy` trước.
 
-**Liên quan:** DB-MIG-04 · API §7.6 · `doc/task-propreties/CAT-001-guide.md` §2
+**Liên quan:** DB-MIG-04 · 04 DB §7 · API §7.5 / §7.6 · `TASK-CAT-001` · `doc/task-propreties/CAT-001-guide.md`

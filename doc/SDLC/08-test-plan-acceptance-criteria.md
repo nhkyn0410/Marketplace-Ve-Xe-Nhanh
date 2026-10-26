@@ -13,7 +13,7 @@
 | Người viết    | Nguyễn Hồng Khanh, AI Agent        |
 | Người duyệt   | Nguyễn Hồng Khanh                |
 | Ngày tạo      | 11/05/2026                       |
-| Ngày cập nhật | 17/10/2026                       |
+| Ngày cập nhật | 25/10/2026                       |
 
 ### 1.2. Lịch sử thay đổi
 
@@ -46,6 +46,7 @@
 | v0.25     | 17/10/2026 | AI Agent       | **Đợt hoàn thiện Admin + Operator OS (Khanh 16/10/2026, chờ duyệt):** `TC-OPR-002` đủ vế giấy tờ + tài khoản nhận tiền sang tenant (`operator-application-review.int.spec.ts`); §9 thêm `TC-CNT-002` (bài viết), `TC-OPR-006` (hồ sơ & KYC, đổi tài khoản nhận tiền), `TC-ADM-005` (quản lý tài khoản), `TC-ADM-006` (chính sách, hoa hồng, khung giá), `TC-ADM-007` (tích hợp & hệ thống chỉ đọc, khung màn chờ đặt vé), `TC-TRN-025` (lịch xe), `TC-FARE-006` (cảnh báo khung giá). Giữ trạng thái Draft. |
 | v0.26     | 17/10/2026 | AI Agent       | **Phần không cần đặt vé (Khanh 17/10/2026, chờ duyệt):** §9 thêm `TC-TRN-026` (lịch chuyến lặp lại), `TC-EMP-003` (phân công tài xế), `TC-ADM-008` (nội dung công khai). Giữ trạng thái Draft. |
 | v0.27     | 19/10/2026 | AI Agent       | **Sáu phần tiếp theo (Khanh 19/10/2026, chờ duyệt):** §9 thêm `TC-EMP-004/005` (soát vé, vận hành chuyến), `TC-PAY-004` (đối soát tự động), `TC-RPT-001/002`, `TC-DSP-001..003`, `TC-PROM-001..003`; ghi trạng thái hiện thực `TC-LOY-001/005/006/007` (`TC-LOY-002..004` chờ ví voucher). Giữ trạng thái Draft. |
+| v0.28     | 25/10/2026 | AI Agent       | **`TASK-IAM-007` — phân quyền theo từng tài khoản (Done 25/10/2026, thiết kế chờ duyệt):** §8 thêm AC "Phân quyền theo tài khoản"; §9 thêm `TC-SEC-013..016` (`can()` + trần quyền, claim `perms`, Admin phân quyền không leo thang, Owner quản lý tài khoản quản lý) kèm file test đã có; ghi rõ phần **chưa có test tự động** (người cuối cùng có `access:manage`, E2E hai màn). Giữ trạng thái Draft. |
 
 ---
 
@@ -147,6 +148,7 @@ Tài liệu này mô tả chiến lược kiểm thử, tiêu chí nghiệm thu 
 | Refund | User/Admin hủy vé đúng policy snapshot, refund state rõ, audit ghi. |
 | Tenant isolation | Operator chỉ xem/quản lý dữ liệu tenant mình; RLS chặn cả khi app guard miss (ADR-011/017). |
 | Web auth | Operator OS/Admin hoàn tất first-login/TOTP, nhận cookie đúng flags, reload bootstrap được; CSRF/origin sai bị chặn; Mobile JSON/Bearer không đổi. |
+| Phân quyền theo tài khoản | Tài khoản quản trị / quản lý nhà xe chỉ dùng được quyền được tick (trong trần của role); người cấp không cấp được quyền mình không có; đổi quyền / khóa có hiệu lực ngay (thu hồi phiên); menu / nút ẩn theo quyền nhưng server vẫn kiểm từng request. |
 | Employee | Employee chỉ check-in chuyến được phân công, không xem dữ liệu ngoài scope. |
 | Admin | Admin xử lý KYC/refund/dispute/payout có re-auth/TOTP/audit với quyền phù hợp. |
 | Notification | Ticket vẫn xem được dù email/push thất bại; delivery retry ghi nhận (BullMQ DLQ). |
@@ -185,6 +187,10 @@ Mandatory (rủi ro cao, ADR-025): money math, idempotency, tenant RLS, seat-hol
 | TC-SEC-010 | `/auth/employee/login` trả token JSON, không `Set-Cookie`; `X-Auth-Transport: cookie` → `400 AUTH_TRANSPORT_INVALID`; `/auth/me` với token Employee đọc đúng Employee | API/Security | Cao |
 | TC-SEC-011 | DB từ chối Employee thiếu `nv.`/có chữ hoa và Owner dùng `nv.` ở mọi kiểu hoa/thường; migration đổi tên Employee cũ (`Driver01` → `nv.driver01`) + đồng bộ registry, dừng khi có Owner `nv.`, tên quá 64 ký tự hoặc trùng sau khi đổi | Integration | Cao |
 | TC-SEC-012 | Operator OS — Nhân viên và Tài khoản: thêm nhân viên thiếu ô báo tại ô; sai mật khẩu xác nhận lại danh tính báo tại ô và **không** làm mất phiên; trong 5 phút không hỏi lại; trùng tên đăng nhập báo tại ô; khóa / mở khóa / cấp lại mật khẩu bắt buộc lý do, cấp lại lần hai trong giờ bị chặn; gửi mật khẩu tạm lỗi thì tài khoản vẫn có trong danh sách kèm hướng dẫn; thu hồi một phiên ở trình duyệt khác thì trình duyệt đó về màn đăng nhập | E2E (Playwright) | Cao |
+| TC-SEC-013 | Phân quyền theo tài khoản — `can()` (`TASK-IAM-007`): quyền tick được ⊆ grant của role; trần tài khoản quản lý ⊆ quyền Owner, không có hồ sơ / tài khoản nhận tiền / `manager:manage`; `access:manage` chỉ phía Platform, `manager:manage` chỉ Owner; tài khoản có danh sách chỉ có quyền tick được trong danh sách, quyền không tick được vẫn theo role; Platform chưa có danh sách (`NULL`) → đủ quyền tick được; `OPERATOR_MANAGER` thiếu danh sách → không có quyền tick được nào (fail-closed); danh sách rỗng ≠ `NULL`; mã quyền lạ bị bỏ, chỉ làm mất quyền (`permissions.spec.ts`) | Unit/Security | Rất cao |
+| TC-SEC-014 | Claim `perms`: đăng nhập / MFA / làm mới phiên đọc danh sách từ DB; Owner và role không phân quyền không mang `perms`; token `OPERATOR_MANAGER` thiếu `perms` bị từ chối; `/auth/me.permissions` = quyền hiệu lực (`token.service.spec.ts`, `auth.service.spec.ts`) | Unit/Security | Cao |
+| TC-SEC-015 | Admin phân quyền tài khoản quản trị (Postgres thật, role app): đổi quyền → `auth_epoch + 1`, thu hồi phiên trước + sau, audit trước / sau; quyền ngoài trần vai trò → 400 `PERMISSION_NOT_ASSIGNABLE`; thêm / bớt quyền người thao tác không có → 403 `PERMISSION_GRANT_FORBIDDEN`; người thao tác đã mất `access:manage` (đọc lại từ DB) → 403; tự sửa mình → 409 `PLATFORM_ACCOUNT_SELF_ACTION` (`admin-account.int.spec.ts`). **Chưa có test tự động:** gỡ / khóa người cuối cùng có `access:manage` → 409 `PLATFORM_ACCOUNT_LAST_ADMIN` | Integration/Security | Rất cao |
+| TC-SEC-016 | Owner quản lý tài khoản quản lý (Postgres thật, role app + guard thật): tạo → `OPERATOR_MANAGER`, quyền lưu theo thứ tự danh mục, mật khẩu tạm qua email, trùng tên → 409; đổi quyền → epoch tăng + thu hồi phiên + audit, không đổi gì thì không đá phiên; khóa → `LOCKED`; đặt lại 2FA xóa TOTP + mật khẩu tạm mới; Owner nhà xe khác / dòng Owner → 404; tài khoản quản lý (kể cả đủ quyền tick) / nhân viên / Admin → 403, không token → 401, ghi thiếu xác nhận lại danh tính → 401; DB CHECK Owner ⇔ `permissions IS NULL` (`operator-manager.int.spec.ts`, `.http.spec.ts`). **Chưa có E2E** màn Tài khoản quản lý (Operator OS) và màn phân quyền (Admin) | Integration/Security | Rất cao |
 | TC-TRN-001 | Hai request đồng thời gắn cùng xe vào hai chuyến chồng giờ → đúng một thành công, bên kia `409 VEHICLE_SCHEDULE_CONFLICT`; chuyến khởi hành đúng giờ đến chuyến trước được (BR-14, không đệm quay đầu); chuyến `CANCELLED` không giữ xe | Integration/Concurrency | Rất cao |
 | TC-TRN-002 | Nhà xe B không đọc/sửa chuyến, điểm dừng, ghế của A (RLS, kể cả query quên lọc); `routeId`/`vehicleId` của B trong body → 422 như không tồn tại | Security | Rất cao |
 | TC-TRN-003 | Sơ đồ ghế đang được chuyến chưa kết thúc dùng: `PUT` sơ đồ / đổi sơ đồ của xe → `409 SEAT_MAP_IN_USE`; ghế của chuyến là bản chụp, không đổi theo sơ đồ (UC-12 A3) | Integration | Cao |

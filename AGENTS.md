@@ -14,7 +14,7 @@ Managed marketplace bán vé xe khách, 3 bên (Passenger ↔ Platform ↔ Opera
 - **Backend**: NestJS 11 + **nestjs-zod** (KHÔNG class-validator). Modular monolith, 1 module / business domain.
 - **DB**: PostgreSQL 16 + **Prisma 7.8.0** (operational; driver adapter `@prisma/adapter-pg` + `pg`, `prisma.config.ts` cho Migrate/Studio); MongoDB 7 + Mongoose 8 (audit, cluster RIÊNG, chỉ `audit_event` + `system_log`, append-only).
 - **Cache / lock / queue**: Redis 7 (Upstash) + `ioredis`; **BullMQ** (`@nestjs/bullmq`).
-- **Auth**: Better Auth + custom NestJS adapter; JWT RS256 15min + opaque refresh 30d (rotation + family); 3 namespace (Passenger=Email / Operator=`{slug}/{username}` / Platform=`platform/{username}`); RBAC 8-role enum; TenantGuard + Postgres RLS; TOTP.
+- **Auth**: Better Auth + custom NestJS adapter; JWT RS256 15min + opaque refresh 30d (rotation + family); 3 namespace (Passenger=Email / Operator=`{slug}/{username}` / Platform=`platform/{username}`); RBAC 9-role enum (role = trần quyền) + danh sách quyền riêng theo tài khoản cho quản trị / quản lý nhà xe (`can()`, claim `perms`, TASK-IAM-007); TenantGuard + Postgres RLS; TOTP.
 - **API**: REST + OpenAPI 3.1 auto từ Zod; URL `/v1`; error RFC 7807; webhook HMAC.
 - **Frontend**: Next.js 16 App Router; **Turborepo + pnpm** monorepo; UI = **Shadcn/ui + Tailwind CSS 4** trong `packages/ui` (ADR-013).
 - **Mobile**: Flutter 3.x + Dart 3.x (2 app: `passenger_mobile`, `employee_mobile`) — ADR-028. Nằm **ngoài** pnpm workspace / Turborepo; dùng `flutter`/`dart` CLI.
