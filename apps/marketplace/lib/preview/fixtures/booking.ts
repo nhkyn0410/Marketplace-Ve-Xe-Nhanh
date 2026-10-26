@@ -190,10 +190,10 @@ export const checkoutHoldIdealFixture: CheckoutHoldData = {
     {
       id: "v-points",
       code: "POINTS100",
-      title: "Voucher đổi điểm • Giảm 100.000đ",
-      description: "Áp dụng mọi tuyến, mọi nhà xe • Hạn dùng 05/11/2026",
+      title: "Voucher đổi điểm · Giảm 100.000đ",
+      description: "Áp dụng mọi tuyến, mọi nhà xe · Hạn dùng 05/11/2026",
       discountVnd: "100000",
-      discountLabel: "-100.000đ",
+      discountLabel: "Voucher đổi điểm",
       tagText: "Đổi từ điểm",
       isApplicable: true,
       isSelected: true
@@ -201,10 +201,10 @@ export const checkoutHoldIdealFixture: CheckoutHoldData = {
     {
       id: "v-thu10",
       code: "THU10",
-      title: "THU10 • Giảm 10%, tối đa 50.000đ",
-      description: "Phương Nam Travel • Đơn từ 300.000đ • Hạn dùng 31/10/2026",
+      title: "THU10 · Giảm 10%, tối đa 50.000đ",
+      description: "Phương Nam Travel · Đơn từ 300.000đ · Hạn dùng 31/10/2026",
       discountVnd: "50000",
-      discountLabel: "-50.000đ",
+      discountLabel: "Mã THU10",
       tagText: "Mã đã lưu",
       isApplicable: true,
       isSelected: false
@@ -212,10 +212,10 @@ export const checkoutHoldIdealFixture: CheckoutHoldData = {
     {
       id: "v-taybac30",
       code: "TAYBAC30",
-      title: "TAYBAC30 • Giảm 30.000đ",
+      title: "TAYBAC30 · Giảm 30.000đ",
       description: "Không áp dụng cho chuyến này (chỉ tuyến Hà Nội – Sapa)",
       discountVnd: "30000",
-      discountLabel: "-30.000đ",
+      discountLabel: "Mã TAYBAC30",
       tagText: "Không phù hợp",
       isApplicable: false,
       unapplicableReason: "Không áp dụng cho chuyến này",

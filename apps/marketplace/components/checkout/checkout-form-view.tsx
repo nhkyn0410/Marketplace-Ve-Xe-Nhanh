@@ -55,9 +55,25 @@ export function CheckoutFormView({ initialData, isPreview = false }: CheckoutFor
   const [promotionQuote, setPromotionQuote] = useState<CheckoutPromotionQuote | null>(null);
   const [promotionError, setPromotionError] = useState<string | null>(null);
   const [isCheckingPromotion, setIsCheckingPromotion] = useState(false);
-  const priceSummary = promotionQuote
-    ? { ...initialData.priceSummary, discountVnd: promotionQuote.discountVnd, discountLabel: `Mã ${promotionQuote.code}`, finalTotalVnd: promotionQuote.totalVnd }
-    : initialData.priceSummary;
+  // Voucher trong ví đã được máy chủ báo giá sẵn cho chuyến này; mỗi đơn một ưu đãi (voucher HOẶC mã).
+  const [selectedVoucherId, setSelectedVoucherId] = useState<string | null>(initialData.selectedVoucherId ?? null);
+  const selectedVoucher = initialData.vouchers.find((voucher) => voucher.id === selectedVoucherId && voucher.isApplicable) ?? null;
+  const voucherTotalVnd = selectedVoucher ? (BigInt(initialData.priceSummary.ticketPriceTotalVnd) - BigInt(selectedVoucher.discountVnd)).toString() : null;
+  const priceSummary = selectedVoucher && voucherTotalVnd
+    ? { ...initialData.priceSummary, discountVnd: selectedVoucher.discountVnd, discountLabel: selectedVoucher.discountLabel, finalTotalVnd: voucherTotalVnd }
+    : promotionQuote
+      ? { ...initialData.priceSummary, discountVnd: promotionQuote.discountVnd, discountLabel: `Mã ${promotionQuote.code}`, finalTotalVnd: promotionQuote.totalVnd }
+      : initialData.priceSummary;
+
+  // Chọn voucher trong ví thì bỏ mã đang nhập (mỗi đơn một ưu đãi).
+  const handleSelectVoucher = (voucherId: string | null): void => {
+    if (checkingPromotion.current || submitting.current || isPreview || expired) return;
+    setSelectedVoucherId(voucherId);
+    setPromotionCode("");
+    setPromotionQuote(null);
+    setPromotionError(null);
+    setActionError(null);
+  };
 
   // Sửa hoặc bỏ mã phải bỏ cả báo giá cũ trước khi khách xác nhận.
   const handleChangePromotion = (code: string): void => {
@@ -73,6 +89,7 @@ export function CheckoutFormView({ initialData, isPreview = false }: CheckoutFor
     if (checkingPromotion.current || submitting.current || isPreview || expired || !promotionCode.trim()) return;
     checkingPromotion.current = true;
     setIsCheckingPromotion(true);
+    setSelectedVoucherId(null);
     setPromotionQuote(null);
     setPromotionError(null);
     setActionError(null);
@@ -140,7 +157,9 @@ export function CheckoutFormView({ initialData, isPreview = false }: CheckoutFor
     try {
       const result = await createBooking(initialData.holdId, {
         contactInfo, passengers, note,
-        ...(promotionQuote ? { promotion: { code: promotionQuote.code, expectedTotalVnd: promotionQuote.totalVnd } } : {})
+        ...(selectedVoucher && voucherTotalVnd
+          ? { promotion: { userVoucherId: selectedVoucher.id, expectedTotalVnd: voucherTotalVnd } }
+          : promotionQuote ? { promotion: { code: promotionQuote.code, expectedTotalVnd: promotionQuote.totalVnd } } : {})
       });
       if (result.status === "ok") router.push(`/bookings/${result.data.bookingId}/payment`);
       else setActionError(result.status === "error" ? result.message ?? "Không thể tạo đơn. Vui lòng kiểm tra thông tin và giá vé." : "Chức năng đặt vé tạm thời chưa khả dụng.");
@@ -205,6 +224,9 @@ export function CheckoutFormView({ initialData, isPreview = false }: CheckoutFor
             onChange={handleChangePromotion}
             onApply={handleApplyPromotion}
             onRemove={() => handleChangePromotion("")}
+            vouchers={initialData.vouchers}
+            selectedVoucherId={selectedVoucher?.id ?? null}
+            onSelectVoucher={handleSelectVoucher}
           />
         </div>
 
