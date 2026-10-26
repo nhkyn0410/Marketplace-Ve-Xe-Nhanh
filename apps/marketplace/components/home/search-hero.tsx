@@ -11,6 +11,7 @@ import {
   Tag
 } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import type { FeaturedOperatorItem, ProvinceItem } from "../../lib/data/types";
 import { formatTripDateVi } from "../../lib/format";
@@ -22,7 +23,16 @@ export interface SearchHeroProps {
   readonly featuredOperators?: readonly FeaturedOperatorItem[];
   readonly initialTab?: "trip" | "operator";
   readonly initialPickerOpen?: boolean;
+  /** Bản xem trước: dữ liệu mẫu, không điều hướng tìm chuyến. */
+  readonly isPreview?: boolean;
 }
+
+/** Tuyến mẫu của tab Theo nhà xe khi xem trước (nhà xe mẫu không kèm tuyến). */
+const PREVIEW_ROUTE_OPTIONS = [
+  { value: "sg-dl", label: "TP. Hồ Chí Minh ↔ Đà Lạt" },
+  { value: "sg-nt", label: "TP. Hồ Chí Minh ↔ Nha Trang" },
+  { value: "hn-sp", label: "Hà Nội ↔ Sapa" }
+];
 
 /**
  * Khối Banner Hero & Form tìm kiếm chuyến xe 2 tab (Mua vé & Theo nhà xe) chuẩn Figma 776:791, 830:592, 836:113, 837:131.
@@ -31,8 +41,10 @@ export function SearchHero({
   provinces,
   featuredOperators = [],
   initialTab = "trip",
-  initialPickerOpen = false
+  initialPickerOpen = false,
+  isPreview = false
 }: SearchHeroProps) {
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState<"trip" | "operator">(initialTab);
   const [origin, setOrigin] = useState<string>("");
   const [destination, setDestination] = useState<string>("");
@@ -53,13 +65,41 @@ export function SearchHero({
     setDestination(temp);
   };
 
+  const routeOptions = selectedOperator?.routes?.map((route) => ({ value: `${route.originProvinceId}>${route.destinationProvinceId}`, label: route.label }))
+    ?? (isPreview ? PREVIEW_ROUTE_OPTIONS : []);
+
   /**
-   * Xử lý tìm chuyến — hiện thông báo lỗi tại chỗ vì chưa có API tìm kiếm.
+   * Tìm chuyến theo tuyến (tab Mua vé) hoặc theo tuyến của nhà xe; nhà xe không chọn tuyến thì mở trang nhà xe.
    */
   const handleSearch = (e: React.FormEvent): void => {
     e.preventDefault();
-    console.warn("[marketplace] chưa có API: GET /trips/search");
-    setActionError("Chưa thực hiện được — chức năng tìm chuyến chưa sẵn sàng.");
+    if (isPreview) {
+      setActionError("Đây là giao diện xem trước; tìm chuyến đã được tắt.");
+      return;
+    }
+    const passengers = String(passengerCount);
+    if (activeTab === "trip") {
+      if (!departureDate || !origin || !destination || origin === destination) {
+        setActionError("Chọn ngày đi và hai tỉnh thành khác nhau.");
+        return;
+      }
+      router.push(`/trips?${new URLSearchParams({ origin, destination, date: departureDate, passengers })}`);
+      return;
+    }
+    if (!selectedOperator) {
+      setActionError("Chọn nhà xe trước khi tìm chuyến.");
+      return;
+    }
+    if (!selectedRoute) {
+      router.push(`/operators/${selectedOperator.id}`);
+      return;
+    }
+    if (!departureDate) {
+      setActionError("Chọn ngày đi.");
+      return;
+    }
+    const [routeOrigin = "", routeDestination = ""] = selectedRoute.split(">");
+    router.push(`/trips?${new URLSearchParams({ origin: routeOrigin, destination: routeDestination, date: departureDate, passengers, operatorId: selectedOperator.id })}`);
   };
 
   const pickerOperators = featuredOperators.slice(0, 3);
@@ -267,6 +307,8 @@ export function SearchHero({
                             type="button"
                             onClick={() => {
                               setSelectedOperator(operator);
+                              setSelectedRoute("");
+                              setActionError(null);
                               setIsPickerOpen(false);
                             }}
                             className={`flex w-full items-center gap-3 rounded-xl px-2.5 py-2 text-left transition ${
@@ -284,11 +326,15 @@ export function SearchHero({
                                 {operator.name}
                               </div>
                               <div className="mt-0.5 flex items-center gap-1 text-xs text-slate-500">
-                                <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
-                                <span className="font-semibold text-slate-700">
-                                  {operator.rating.toFixed(1)}
-                                </span>
-                                <span>·</span>
+                                {operator.rating !== null && (
+                                  <>
+                                    <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
+                                    <span className="font-semibold text-slate-700">
+                                      {operator.rating.toFixed(1)}
+                                    </span>
+                                    <span>·</span>
+                                  </>
+                                )}
                                 <span>{operator.ratingCountText}</span>
                               </div>
                             </div>
@@ -350,9 +396,11 @@ export function SearchHero({
                     className="mt-0.5 w-full appearance-none bg-transparent text-[15px] font-bold text-[#0f172a] outline-none"
                   >
                     <option value="">Tất cả tuyến</option>
-                    <option value="sg-dl">TP. Hồ Chí Minh ↔ Đà Lạt</option>
-                    <option value="sg-nt">TP. Hồ Chí Minh ↔ Nha Trang</option>
-                    <option value="hn-sp">Hà Nội ↔ Sapa</option>
+                    {routeOptions.map((route) => (
+                      <option key={route.value} value={route.value}>
+                        {route.label}
+                      </option>
+                    ))}
                   </select>
                 </div>
 

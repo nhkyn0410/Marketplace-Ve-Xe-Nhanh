@@ -38,9 +38,14 @@ export interface PopularRouteItem {
   readonly distanceKm: number;
   readonly durationText: string;
   readonly vehicleTypeText: string;
-  readonly minPriceVnd: string;
-  readonly rating: number;
+  /** Null khi tuyến chưa có bảng giá đang áp dụng. */
+  readonly minPriceVnd: string | null;
+  /** Null khi chưa có đánh giá. */
+  readonly rating: number | null;
   readonly isFeatured?: boolean;
+  /** Dữ liệu thật: ảnh theo tỉnh đến và link tìm chuyến; bản xem trước dùng ảnh theo `id`. */
+  readonly imageUrl?: string;
+  readonly href?: string;
 }
 
 /**
@@ -50,13 +55,16 @@ export interface FeaturedOperatorItem {
   readonly id: string;
   readonly name: string;
   readonly shortCode: string;
-  readonly rating: number;
+  /** Null khi chưa có đánh giá. */
+  readonly rating: number | null;
   readonly ratingCountText: string;
-  readonly dailyTripsText: string;
-  readonly vehicleTypesText: string;
+  readonly dailyTripsText?: string;
+  readonly vehicleTypesText?: string;
   readonly popularRoutesText: string;
-  readonly slug: string;
+  readonly slug?: string;
   readonly accentColor?: string;
+  /** Tuyến (cặp tỉnh) đang mở bán — ô "Tuyến đường" của tab Theo nhà xe. */
+  readonly routes?: readonly { readonly originProvinceId: string; readonly destinationProvinceId: string; readonly label: string }[];
 }
 
 /**

@@ -6,7 +6,7 @@ import { SearchHero } from "../components/home/search-hero";
 import { PassengerTopBar } from "../components/passenger-topbar";
 import { ForbiddenState, ServiceUnavailableState } from "../components/states";
 import { getProvinces } from "../lib/data/catalog";
-import { getHandbookArticles } from "../lib/data/home";
+import { getFeaturedOperators, getHandbookArticles, getPopularRoutes } from "../lib/data/home";
 import { getPreview } from "../lib/preview";
 import {
   featuredOperatorsFixture,
@@ -30,7 +30,7 @@ export interface MarketplacePageProps {
  * - operator-tab: Tab Theo nhà xe (836:113)
  * - operator-picker: Popover chọn nhà xe (837:131)
  * - 404, 500, 403, 503: Các trang lỗi nền tảng Lô 0
- * - Không có preview: Tìm chuyến và bài viết đã xuất bản
+ * - Không có preview: tìm chuyến, tuyến phổ biến, nhà xe đối tác và bài viết đã xuất bản
  */
 export default async function MarketplacePage(props: MarketplacePageProps) {
   const resolvedParams = props.searchParams ? await props.searchParams : undefined;
@@ -82,6 +82,7 @@ export default async function MarketplacePage(props: MarketplacePageProps) {
           featuredOperators={featuredOperatorsFixture}
           initialTab={preview === "ideal" ? "trip" : "operator"}
           initialPickerOpen={preview === "operator-picker"}
+          isPreview
         />
         <PopularRoutesSection routes={popularRoutesFixture} />
         <ExploreCardsSection />
@@ -92,20 +93,26 @@ export default async function MarketplacePage(props: MarketplacePageProps) {
   }
 
   // Nhánh DỮ LIỆU THẬT (không có ?preview)
-  const [provincesResult, articlesResult] = await Promise.all([
-    getProvinces(), getHandbookArticles()
+  const [provincesResult, articlesResult, routesResult, operatorsResult] = await Promise.all([
+    getProvinces(), getHandbookArticles(), getPopularRoutes(), getFeaturedOperators()
   ]);
 
   const provinces =
     provincesResult.status === "ok" ? provincesResult.data : [];
+  // UI SCR-PSG-01 Empty: chưa có tuyến phổ biến / nhà xe (hoặc tải lỗi) thì ẩn khối, form tìm chuyến vẫn dùng được.
+  const popularRoutes = routesResult.status === "ok" ? routesResult.data : [];
+  const featuredOperators = operatorsResult.status === "ok" ? operatorsResult.data : [];
 
   return (
     <div className="flex flex-col bg-white">
       <SearchHero
         provinces={provinces}
         catalogError={provincesResult.status !== "ok" ? "Chưa tải được danh sách tỉnh thành. Vui lòng tải lại trang để tìm chuyến." : undefined}
+        featuredOperators={featuredOperators}
       />
+      {popularRoutes.length > 0 && <PopularRoutesSection routes={popularRoutes} />}
       <ExploreCardsSection />
+      {featuredOperators.length > 0 && <PartnerOperatorsSection operators={featuredOperators} />}
       <PlusAndGuideSection
         articles={articlesResult.status === "ok" ? articlesResult.data : undefined}
         isUnavailable={articlesResult.status !== "ok"}

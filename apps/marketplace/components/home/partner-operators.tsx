@@ -70,9 +70,13 @@ export function PartnerOperatorsSection({
               </h4>
 
               <div className="mt-1 flex items-center gap-1 text-[11px] text-slate-500">
-                <Star className="h-3 w-3 fill-[#f3a826] text-[#f3a826]" />
-                <span className="font-bold text-[#0f172a]">{operator.rating.toFixed(1)}</span>
-                <span>·</span>
+                {operator.rating !== null && (
+                  <>
+                    <Star className="h-3 w-3 fill-[#f3a826] text-[#f3a826]" />
+                    <span className="font-bold text-[#0f172a]">{operator.rating.toFixed(1)}</span>
+                    <span>·</span>
+                  </>
+                )}
                 <span>{operator.ratingCountText}</span>
               </div>
             </div>
