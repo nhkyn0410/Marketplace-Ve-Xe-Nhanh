@@ -110,7 +110,7 @@ Checklist này tổng hợp **66 hạng mục** của phần giao diện tài x�
 ## 11. Kiểm thử và bàn giao
 
 - [x] **QA-01** Chạy `flutter analyze` cho phiên bản mã đã kiểm tra; không có lỗi hoặc cảnh báo phân tích mã tại lần chạy gần nhất.
-- [x] **QA-02** Chạy bộ widget test; lần kiểm tra gần nhất có 24 kiểm thử đạt.
+- [x] **QA-02** Chạy bộ widget test; lần kiểm tra gần nhất có 26 kiểm thử đạt.
 - [x] **QA-03** Dựng bản web của ứng dụng chính và trang đối chiếu các trạng thái mới.
 - [ ] **QA-04** Hoàn tất rà soát trực quan toàn bộ màn theo Figma mới và ghi lại các điểm chưa khớp.
 - [ ] **QA-05** Build và kiểm thử trên Android; xác minh iOS khi có môi trường macOS/Xcode phù hợp.
