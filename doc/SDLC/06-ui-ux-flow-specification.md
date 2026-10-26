@@ -55,6 +55,7 @@
 | v0.34     | 17/10/2026 | AI Agent       | **Phần không cần đặt vé (Khanh 17/10/2026, chờ duyệt):** §7 ghi màn Lịch chạy lặp lại (`TASK-TRN-007`, chưa có Figma), Phân công chuyến (Figma "05 · Nhân viên / Phân công chuyến", `TASK-EMP-001`); §9 ghi tab Nội dung công khai (Figma ADM-10d) + trang soạn (chưa có Figma, `TASK-ADM-003`). Giữ trạng thái Review. |
 | v0.35     | 21/10/2026 | AI Agent | **Phân quyền theo từng tài khoản (`TASK-IAM-007`, chờ duyệt):** §5 Operator OS thêm "Tài khoản quản lý"; menu Admin / Operator OS ẩn theo quyền của phiên; hộp thoại tick quyền dùng chung (`packages/ui`). |
 | v0.36     | 26/10/2026 | AI Agent | **Đóng UX-OQ-09 (Khanh 26/10/2026, chờ duyệt):** tra cứu vé Guest bắt buộc OTP qua email — web làm theo Figma 1446:14982 (B1) → 1446:15277 (B2: đếm ngược 5 phút, còn N lần thử, gửi lại sau 60 giây) → kết quả. |
+| v0.37     | 26/10/2026 | AI Agent | **Figma thanh toán đổi sang payOS + cổng demo (Khanh 21/10 chọn, 26/10 "chỉnh thiết kế", chờ duyệt + chờ ADR thay ADR-019):** SCR-PSG-20 (Ideal + hết giờ giữ chỗ) bỏ VNPay / MoMo + chip ngân hàng, thay bằng "Chuyển khoản VietQR qua payOS" và "Cổng thanh toán thử (demo)"; nhãn phương thức / mã giao dịch ở SCR-PSG-16, 21, 22, 23, 25, 26 (hoàn qua chuyển khoản), 29, 31. Màn Admin (ADM-01, 07a–d, 09b, 14a, 16a–b) và Operator OS "02 · Đặt vé / Chi tiết đơn" còn VNPay / MoMo — sửa cùng task hiện thực payOS. |
 
 ---
 
@@ -175,7 +176,7 @@ Quy ước cột **Thiết kế**:
 | Luồng               | Chuỗi màn hình (SCR-PSG-)                                                  | Ghi chú                                                                                                   |
 | ------------------- | -------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
 | Đăng nhập / đăng ký | 07 hoặc 08 → 09 (OTP) hoặc 10 (OAuth) → quay lại trang trước               | Passenger không có mật khẩu (07 Security §5). Guest không cần đăng nhập để search/hold/book/pay/lookup     |
-| Tìm → đặt → vé      | 01 → 15 → 16 → 18 → 19 → 20 → cổng VNPay/MoMo → 21 → 22 hoặc 23 → 25       | Hold 10 phút tính từ 18 (ADR-015, OQ-06); tổng tiền tách dòng vé / phí / giảm giá (CO-12)                  |
+| Tìm → đặt → vé      | 01 → 15 → 16 → 18 → 19 → 20 → cổng thanh toán (Figma 26/10/2026: payOS VietQR hoặc cổng demo — chờ ADR thay ADR-019) → 21 → 22 hoặc 23 → 25 | Hold 10 phút tính từ 18 (ADR-015, OQ-06); tổng tiền tách dòng vé / phí / giảm giá (CO-12)                  |
 | Hủy vé / hoàn tiền  | 24 hoặc 29 → 25 → 26 → 09 (xác minh lại) → 25 (theo dõi refund)            | Chính sách hủy = snapshot lúc đặt (FR-BTP-12)                                                              |
 | Tra cứu vé Guest    | 27 → 28 → 29 → 25 → 26 hoặc 32                                             | Guest session sau OTP có thời hạn                                                                         |
 | Hỗ trợ / đánh giá   | 25 hoặc 30 → 31 → 30; 24 → 14                                              | Đánh giá chỉ khi trip `COMPLETED` và vé hợp lệ                                                             |
@@ -382,7 +383,7 @@ Mỗi màn hình là một bảng đủ 5 trạng thái theo §10.1. Cột **Thi
 
 | Trạng thái     | Nội dung cần có                                                                                                      | Thiết kế          |
 | -------------- | -------------------------------------------------------------------------------------------------------------------- | ----------------- |
-| Ideal          | Chọn phương thức; chọn ngân hàng (VNPay); đồng ý điều khoản; bộ đếm giữ ghế; tóm tắt đơn tách dòng                    | Review ⚠ (#2, #3, #8) |
+| Ideal          | Chọn phương thức (Figma 26/10/2026: chuyển khoản VietQR qua payOS / cổng thanh toán thử chỉ có trên bản demo — chờ ADR thay ADR-019); đồng ý điều khoản; bộ đếm giữ ghế; tóm tắt đơn tách dòng | Review ⚠ (#2, #3, #8) |
 | Empty          | Chưa đồng ý điều khoản → CTA vô hiệu                                                                                  | Draft             |
 | Loading        | Đang tạo payment + chuyển sang cổng                                                                                   | Draft             |
 | Partial / Edge | Phương thức tạm không khả dụng (mẫu "Sắp hỗ trợ" đã có); tổng tiền lớn (nhiều ghế); bộ đếm < 1 phút → cảnh báo        | Review + Draft    |
