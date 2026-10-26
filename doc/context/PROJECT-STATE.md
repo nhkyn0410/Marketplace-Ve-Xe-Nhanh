@@ -2,7 +2,7 @@
 
 Live state of the managed marketplace project `Marketplace-Ve-Xe-Nhanh` (codename renamed 25/05/2026 from `Ve_Xe_Nhanh_NestJS_NextJs_ReactNative`). Agents must consult this file before writing or editing any SDLC document. Update this file after every documentation change that affects status, decisions or blockers.
 
-Last updated: 20/10/2026.
+Last updated: 26/10/2026.
 
 ## 1. SDLC document status
 
@@ -25,6 +25,8 @@ Last updated: 20/10/2026.
 | 12   | Release Notes & Change Log                | `SDLC/12-release-notes-change-log.md`      | Draft    | AI Agent                 |
 
 Status legend per `00a §3.2`: `Writing` / `Draft` / `Review` / `Approved` / `Deprecated` / `Superseded`.
+
+26/10/2026: SRS giữ **Review**, cập nhật phạm vi bán vé tại nhiều văn phòng nhà xe theo quyết định `COUNTER-SALES` (§3 dưới đây). [Phân tích mở rộng](../task-propreties/COUNTER-SALES-analysis.md) tách phần đã chốt và thiết kế đề xuất; HLD / LLD / DB / API / UI / Security / Test / Task chưa đồng bộ phần mở rộng, chưa triển khai code.
 
 ## 2. Strategic decisions
 
@@ -66,6 +68,7 @@ Position: **fresh build under codename `Marketplace-Ve-Xe-Nhanh`** (renamed 25/0
 | UX-OQ-03  | Seat map editor: free grid vs per-vehicle-type template       | Closed 04/10 — free grid (decks, rows and columns per deck, per-cell seat type); no per-vehicle-type templates in v1; a double slot is one wider grid cell (UI v0.15 §7) |
 | STOP-REDESIGN | Stop point redesign (revises TRN-002 Q1 / Q3)             | Closed 04/10 — bus stations and designated pickup/drop-off points exist only in the shared catalog (Admin creates them or approves an Operator proposal with its legal basis); Operator-private points are offices (transfer) and rest stops only; per-route-stop allow-pickup / allow-drop-off; location-based search (province, or shared landmark within a radius); Admin oversight and suspension of private points (SRS v1.35 `BR-38`, `BR-79..81`) |
 | OQ-23     | Double-berth / double-cabin sale rule                         | Closed 04/10 — sold as a whole slot to one booking, priced per slot in the Operator's fare table (not per person); 1–2 passengers; a solo passenger may buy it at the full slot price; no per-Operator configuration in v1 (SRS v1.33 `BR-78`, §21) |
+| COUNTER-SALES | Bán vé tại văn phòng nhà xe | Khanh chốt 26/10: nhiều văn phòng ngay từ đầu; tiền mặt + chuyển khoản; hoa hồng quầy cấu hình thấp hơn online; bán sau cutoff online đến lúc tài xế / điều phối xác nhận khởi hành thực tế, kể cả trễ lịch. SRS §6.2 / §21; thiết kế chi tiết còn đề xuất. |
 
 ## 4. Open Questions (current)
 
@@ -76,6 +79,8 @@ Position: **fresh build under codename `Marketplace-Ve-Xe-Nhanh`** (renamed 25/0
 | OQ-21 | KYC + payment-proof production storage location | Compliance + KYC + storage | **Đóng cho giai đoạn demo (20/10/2026, Khanh):** production = môi trường demo chỉ dữ liệu mẫu; giấy tờ ở R2 private `vexenhanh-private` (APAC, xóa sau 30 ngày) + cảnh báo `NEXT_PUBLIC_DEMO_MODE` (ADR-018 bổ sung). **Mở lại trước khi nhận dữ liệu thật** — Luật BVDLCN 2025 + NĐ 356/2025 (thay NĐ 13/2023), áp cả DB / Mongo / Redis / email ngoài VN |
 | OQ-22 | Giấy phép TGTT NHNN production: Platform giữ escrow + chi Operator = trung gian thanh toán (NĐ 52/2024) → cần license NHNN HOẶC qua cổng licensed. Hướng (a) tự xin TGTT; (b) cổng licensed VNPay/MoMo giữ+settle, escrow = sổ kế toán; (c) thu hộ/chi hộ qua đối tác licensed | Compliance + Payment + Escrow | Open — defer production prep (ADR-019 mục C) |
 | OQ-24 | Loại hình vận tải của nhà xe: nền tảng bán vé lẻ theo ghế với lịch cố định chỉ hợp với **tuyến cố định**; xe hợp đồng không được bán vé hay xác nhận đặt chỗ từng khách (NĐ 158/2024/NĐ-CP Điều 7). Cần quyết: (a) KYC có kiểm loại hình trên giấy phép không; (b) tuyến trên hệ thống có phải khớp tuyến đã đăng ký khai thác không; (c) có chặn tuyến không xuất phát / kết thúc tại bến xe không (v1 mới cảnh báo) | Compliance + KYC + Route      | Open — defer production prep; v1 chỉ cảnh báo ở màn tuyến |
+
+**Bán vé tại văn phòng — chờ thiết kế:** cách xác minh chuyển khoản, thu hoa hồng từ tiền nhà xe tự giữ, mức phí cụ thể / hiệu lực, phân quyền văn phòng, ca / bàn giao và xử lý hoàn / giao dịch đến muộn còn OPEN QUESTION tại [phân tích §9](../task-propreties/COUNTER-SALES-analysis.md#9-open-question--cần-chốt-trước-thiết-kế-dùng-để-code). Phạm vi nhiều văn phòng, hai phương thức thu, việc có hoa hồng và cutoff theo khởi hành thực tế đã chốt, không hỏi lại.
 
 ## 5. Blockers
 
