@@ -133,7 +133,7 @@ class _GuestTicketDetailScreenState extends State<GuestTicketDetailScreen> {
                           onNext: () => _movePassenger(1),
                           onShowAll: _openPassengerPicker,
                         ),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: 9),
                         _BoardingPass(
                           passenger: _passenger,
                           cancelled: _cancelled,
@@ -142,30 +142,29 @@ class _GuestTicketDetailScreenState extends State<GuestTicketDetailScreen> {
                           const SizedBox(height: 7),
                           const _CancelledQrNotice(),
                         ],
-                        const SizedBox(height: 8),
+                        const SizedBox(height: 9),
                         const _JourneyInformationCard(),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: 9),
                         _cancelled
                             ? const _RefundPaymentCard()
                             : const _PaymentCard(),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: 9),
                         const _CancellationPolicyCard(),
-                        const SizedBox(height: 10),
+                        const SizedBox(height: 9),
                         if (_cancelled)
                           Row(
                             children: [
                               Expanded(
-                                child: JourneyOutlineButton(
+                                child: _DetailOutlineAction(
                                   label: 'Quay lại kết quả',
-                                  height: 34,
                                   onPressed: widget.onBack,
                                 ),
                               ),
-                              const SizedBox(width: 9),
+                              const SizedBox(width: 5),
                               Expanded(
-                                child: JourneyPrimaryButton(
+                                child: _DetailFilledAction(
                                   label: 'Liên hệ hỗ trợ',
-                                  height: 34,
+                                  color: journeyButton,
                                   onPressed: () => _showSupport(context),
                                 ),
                               ),
@@ -175,34 +174,31 @@ class _GuestTicketDetailScreenState extends State<GuestTicketDetailScreen> {
                           Row(
                             children: [
                               Expanded(
-                                child: JourneyOutlineButton(
+                                child: _DetailOutlineAction(
                                   label: 'Quay lại kết quả',
-                                  height: 34,
                                   onPressed: widget.onBack,
                                 ),
                               ),
-                              const SizedBox(width: 9),
+                              const SizedBox(width: 5),
                               Expanded(
-                                child: JourneyOutlineButton(
+                                child: _DetailFilledAction(
                                   key: const Key('guest-ticket-cancel-button'),
                                   label: 'Hủy vé',
                                   color: const Color(0xFFF04438),
-                                  height: 34,
                                   onPressed: _startCancellation,
                                 ),
                               ),
                             ],
                           ),
-                        const SizedBox(height: 9),
+                        const SizedBox(height: 12),
                         InkWell(
                           borderRadius: BorderRadius.circular(9),
                           onTap: () => _showSupport(context),
                           child: Container(
                             width: double.infinity,
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 10,
-                              vertical: 7,
-                            ),
+                            height: 36,
+                            alignment: Alignment.centerLeft,
+                            padding: const EdgeInsets.symmetric(horizontal: 5),
                             decoration: BoxDecoration(
                               color: const Color(0xFFE4F5FC),
                               borderRadius: BorderRadius.circular(9),
@@ -241,6 +237,76 @@ class _GuestTicketDetailScreenState extends State<GuestTicketDetailScreen> {
   }
 }
 
+class _DetailOutlineAction extends StatelessWidget {
+  const _DetailOutlineAction({required this.label, required this.onPressed});
+
+  final String label;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 31,
+      child: OutlinedButton(
+        onPressed: onPressed,
+        style: OutlinedButton.styleFrom(
+          foregroundColor: journeyPrimary,
+          side: const BorderSide(color: journeyPrimary),
+          padding: EdgeInsets.zero,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(7)),
+        ),
+        child: Text(
+          label,
+          maxLines: 1,
+          style: const TextStyle(
+            fontSize: 11,
+            height: 15 / 11,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _DetailFilledAction extends StatelessWidget {
+  const _DetailFilledAction({
+    required this.label,
+    required this.color,
+    required this.onPressed,
+    super.key,
+  });
+
+  final String label;
+  final Color color;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 31,
+      child: FilledButton(
+        onPressed: onPressed,
+        style: FilledButton.styleFrom(
+          backgroundColor: color,
+          padding: EdgeInsets.zero,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(7)),
+        ),
+        child: Text(
+          label,
+          maxLines: 1,
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 11,
+            height: 15 / 11,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _PassengerNavigator extends StatelessWidget {
   const _PassengerNavigator({
     required this.passenger,
@@ -258,68 +324,140 @@ class _PassengerNavigator extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return JourneySurface(
-      padding: const EdgeInsets.fromLTRB(10, 8, 8, 8),
-      radius: 10,
+    return SizedBox(
+      height: 59,
       child: Row(
         children: [
-          Container(
-            width: 38,
-            height: 38,
-            decoration: BoxDecoration(
-              color: const Color(0xFFEAF7FE),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Center(
-              child: SvgPicture.asset(
-                '$journeyAssetRoot/passenger.svg',
-                width: 19,
-                height: 19,
+          Expanded(
+            child: Container(
+              height: 59,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Stack(
+                children: [
+                  Positioned(
+                    left: 7,
+                    top: 9,
+                    child: Container(
+                      width: 40,
+                      height: 40,
+                      decoration: const BoxDecoration(
+                        color: Color(0xFF247EAB),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Center(
+                        child: SizedBox.square(
+                          dimension: 24,
+                          child: Center(
+                            child: SvgPicture.asset(
+                              '$journeyAssetRoot/passenger.svg',
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    left: 55,
+                    right: 76,
+                    top: 5,
+                    child: Text(
+                      'Vé ${selectedIndex + 1}/6',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: journeyBody,
+                        fontSize: 10,
+                        height: 14 / 10,
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    left: 55,
+                    right: 76,
+                    top: 19,
+                    child: Text(
+                      'Chỗ ${passenger.seat}',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: journeyInk,
+                        fontSize: 13,
+                        height: 18 / 13,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    left: 55,
+                    right: 60,
+                    top: 37,
+                    child: Text(
+                      passenger.name,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: journeyBody,
+                        fontSize: 11,
+                        height: 15 / 11,
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    right: 41,
+                    top: 15,
+                    child: _SmallIconButton(
+                      asset: 'previous.svg',
+                      backgroundColor: const Color(0xFFECFAFF),
+                      onTap: onPrevious,
+                    ),
+                  ),
+                  Positioned(
+                    right: 7,
+                    top: 15,
+                    child: _SmallIconButton(
+                      asset: 'next.svg',
+                      backgroundColor: const Color(0xFFABE0FF),
+                      onTap: onNext,
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
-          const SizedBox(width: 9),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Vé ${selectedIndex + 1}/6  ·  Chỗ ${passenger.seat}',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    color: journeyBody,
-                    fontSize: 9.5,
-                    fontWeight: FontWeight.w500,
+          const SizedBox(width: 6),
+          Container(
+            width: 118,
+            height: 59,
+            padding: const EdgeInsets.fromLTRB(5, 12, 5, 11),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF5FCFF),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Material(
+              color: const Color(0xFFF0FBFF),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(7),
+                side: const BorderSide(color: Color(0xFFB9E8FF)),
+              ),
+              child: InkWell(
+                borderRadius: BorderRadius.circular(7),
+                onTap: onShowAll,
+                child: const Center(
+                  child: Text(
+                    'Tất cả vé (6) ›',
+                    maxLines: 1,
+                    style: TextStyle(
+                      color: journeyPrimary,
+                      fontSize: 11,
+                      height: 15 / 11,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ),
-                const SizedBox(height: 2),
-                Text(
-                  passenger.name,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    color: journeyInk,
-                    fontSize: 12.5,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          _SmallIconButton(asset: 'previous.svg', onTap: onPrevious),
-          _SmallIconButton(asset: 'next.svg', onTap: onNext),
-          TextButton(
-            onPressed: onShowAll,
-            style: TextButton.styleFrom(
-              foregroundColor: journeyPrimary,
-              padding: const EdgeInsets.symmetric(horizontal: 5),
-              minimumSize: const Size(0, 32),
-              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-            ),
-            child: const Text(
-              'Tất cả vé (6) ›',
-              style: TextStyle(fontSize: 9.5, fontWeight: FontWeight.w600),
+              ),
             ),
           ),
         ],
@@ -329,23 +467,33 @@ class _PassengerNavigator extends StatelessWidget {
 }
 
 class _SmallIconButton extends StatelessWidget {
-  const _SmallIconButton({required this.asset, required this.onTap});
+  const _SmallIconButton({
+    required this.asset,
+    required this.backgroundColor,
+    required this.onTap,
+  });
 
   final String asset;
+  final Color backgroundColor;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      customBorder: const CircleBorder(),
-      onTap: onTap,
-      child: SizedBox.square(
-        dimension: 28,
-        child: Center(
-          child: SvgPicture.asset(
-            '$journeyAssetRoot/$asset',
-            width: 18,
-            height: 18,
+    return Material(
+      color: backgroundColor,
+      shape: const CircleBorder(),
+      child: InkWell(
+        customBorder: const CircleBorder(),
+        onTap: onTap,
+        child: SizedBox.square(
+          dimension: 29,
+          child: Center(
+            child: SizedBox.square(
+              dimension: 20,
+              child: Center(
+                child: SvgPicture.asset('$journeyAssetRoot/$asset'),
+              ),
+            ),
           ),
         ),
       ),
@@ -361,318 +509,478 @@ class _BoardingPass extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final accent = cancelled
-        ? const Color(0xFFF97066)
-        : const Color(0xFFFFA629);
-    return Container(
+    final displayPassenger = passenger.name == 'Nguyễn Văn Minh'
+        ? 'Nguyễn Văn Khách'
+        : passenger.name;
+    return _ScaledDesignBox(
       height: 186,
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: cancelled
-              ? const [Color(0xFFFFF7F6), Color(0xFFFFE8E5)]
-              : const [Color(0xFFFFFCF3), Color(0xFFFFF4D8)],
-        ),
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: accent.withValues(alpha: .72), width: .8),
-      ),
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          const qrWidth = 92.0;
-          return Stack(
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(9),
+        child: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: cancelled
+                  ? const [
+                      Color(0xFFFFF7F6),
+                      Color(0xFFFFE8E5),
+                      Color(0xFFFFE8E5),
+                    ]
+                  : const [
+                      Color(0xFFFFFAED),
+                      Color(0xFFFFF4D9),
+                      Color(0xFFFFF9EF),
+                    ],
+              stops: const [0, .65, 1],
+            ),
+            borderRadius: BorderRadius.circular(9),
+            border: Border.all(
+              color: cancelled
+                  ? const Color(0xFFF97066)
+                  : const Color(0xFFFFC458),
+              width: .7,
+            ),
+          ),
+          child: Stack(
+            clipBehavior: Clip.hardEdge,
             children: [
               Positioned(
-                left: 13,
-                right: qrWidth + 8,
-                top: 10,
-                bottom: 9,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        SvgPicture.asset(
+                left: 7.3,
+                top: 7.3,
+                child: Container(
+                  width: 32,
+                  height: 32,
+                  decoration: const BoxDecoration(
+                    color: Colors.white,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Center(
+                    child: SizedBox.square(
+                      dimension: 20,
+                      child: Center(
+                        child: SvgPicture.asset(
                           '$journeyAssetRoot/ticket_blue.svg',
-                          width: 15,
-                          height: 15,
                         ),
-                        const SizedBox(width: 5),
-                        const Expanded(
-                          child: Text(
-                            'VÉ XE NHANH',
-                            style: TextStyle(
-                              color: Color(0xFF087DCE),
-                              fontSize: 9.5,
-                              fontWeight: FontWeight.w700,
-                              letterSpacing: .3,
-                            ),
-                          ),
-                        ),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 6,
-                            vertical: 3,
-                          ),
-                          decoration: BoxDecoration(
-                            color: cancelled
-                                ? const Color(0xFFFFE4E1)
-                                : const Color(0xFFECFDF3),
-                            borderRadius: BorderRadius.circular(99),
-                          ),
-                          child: Text(
-                            cancelled ? 'Đã hủy' : 'Hợp lệ',
-                            style: TextStyle(
-                              color: cancelled
-                                  ? const Color(0xFFD92D20)
-                                  : const Color(0xFF067647),
-                              fontSize: 8.5,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 2),
-                    const Text(
-                      'Vé chuyến - Phương Nam Travel',
-                      style: TextStyle(color: journeyBody, fontSize: 8.5),
-                    ),
-                    const SizedBox(height: 8),
-                    Row(
-                      children: [
-                        const Expanded(
-                          child: Text(
-                            'TP. Hồ Chí Minh',
-                            style: TextStyle(
-                              color: journeyInk,
-                              fontSize: 13,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 5),
-                          child: SvgPicture.asset(
-                            '$journeyAssetRoot/direction_orange.svg',
-                            width: 15,
-                            height: 12,
-                          ),
-                        ),
-                        const Expanded(
-                          child: Text(
-                            'Đà Lạt',
-                            textAlign: TextAlign.right,
-                            style: TextStyle(
-                              color: journeyInk,
-                              fontSize: 13,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 2),
-                    const Text(
-                      'Thứ Sáu · 16/10/2026',
-                      style: TextStyle(color: journeyBody, fontSize: 8.5),
-                    ),
-                    const SizedBox(height: 6),
-                    const Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(
-                          child: _TimePlace(
-                            time: '22:30',
-                            place: 'Bến xe Miền Đông mới',
-                          ),
-                        ),
-                        SizedBox(width: 12),
-                        Expanded(
-                          child: _TimePlace(
-                            time: '05:30',
-                            note: '+1 ngày',
-                            place: 'Bến xe liên tỉnh Đà Lạt',
-                            alignEnd: true,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const Spacer(),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _TinyValue(
-                            label: 'Hành khách',
-                            value: passenger.name,
-                          ),
-                        ),
-                        const SizedBox(width: 5),
-                        _TinyValue(label: 'Chỗ', value: passenger.seat),
-                        const SizedBox(width: 8),
-                        const Expanded(
-                          child: _TinyValue(
-                            label: 'Loại chỗ',
-                            value: 'Giường đơn - Tầng dưới',
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              Positioned(
-                right: qrWidth,
-                top: 8,
-                bottom: 8,
-                child: SvgPicture.asset(
-                  '$journeyAssetRoot/perforation.svg',
-                  width: 8,
-                  fit: BoxFit.fill,
-                ),
-              ),
-              Positioned(
-                right: 7,
-                top: 40,
-                width: 76,
-                child: Column(
-                  children: [
-                    Stack(
-                      alignment: Alignment.center,
-                      children: [
-                        Opacity(
-                          opacity: cancelled ? .34 : 1,
-                          child: SvgPicture.asset(
-                            '$journeyAssetRoot/ticket_qr.svg',
-                            width: 69,
-                            height: 69,
-                          ),
-                        ),
-                        if (cancelled)
-                          Transform.rotate(
-                            angle: -math.pi / 4,
-                            child: Container(
-                              width: 82,
-                              height: 4,
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFD92D20),
-                                borderRadius: BorderRadius.circular(99),
-                              ),
-                            ),
-                          ),
-                      ],
-                    ),
-                    const SizedBox(height: 5),
-                    Text(
-                      cancelled ? 'QR không còn hiệu lực' : 'Lên xe quét mã',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        color: cancelled
-                            ? const Color(0xFFD92D20)
-                            : journeyBody,
-                        fontSize: 8,
-                        height: 11 / 8,
-                        fontWeight: FontWeight.w600,
                       ),
                     ),
-                  ],
+                  ),
+                ),
+              ),
+              const Positioned(
+                left: 46.3,
+                top: 9.3,
+                width: 140,
+                child: Text(
+                  'VÉ XE NHANH',
+                  maxLines: 1,
+                  style: TextStyle(
+                    color: Color(0xFFE97800),
+                    fontSize: 10,
+                    height: 14 / 10,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+              const Positioned(
+                left: 46.3,
+                top: 23.3,
+                width: 195,
+                child: Text(
+                  'Vé chuyến - Phương Nam Travel',
+                  maxLines: 1,
+                  style: TextStyle(
+                    color: journeyBody,
+                    fontSize: 9,
+                    height: 13 / 9,
+                  ),
                 ),
               ),
               Positioned(
-                left: 13,
-                bottom: 3,
+                left: 212.3,
+                top: 12.3,
+                width: 47,
+                height: 20,
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: cancelled
+                        ? const Color(0xFFD92D20)
+                        : const Color(0xFF009669),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  alignment: Alignment.center,
+                  child: Text(
+                    cancelled ? 'Đã hủy' : 'Hợp lệ',
+                    maxLines: 1,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 9.5,
+                      height: 13 / 9.5,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ),
+              const Positioned(
+                left: 13.3,
+                top: 47.3,
+                width: 146,
+                child: Text(
+                  'TP. Hồ Chí Minh',
+                  maxLines: 1,
+                  style: TextStyle(
+                    color: journeyInk,
+                    fontSize: 16,
+                    height: 22 / 16,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+              Positioned(
+                left: 145.3,
+                top: 52.3,
+                child: SizedBox.square(
+                  dimension: 19,
+                  child: Center(
+                    child: SvgPicture.asset(
+                      '$journeyAssetRoot/direction_orange.svg',
+                    ),
+                  ),
+                ),
+              ),
+              const Positioned(
+                left: 170.3,
+                top: 47.3,
+                width: 88,
+                child: Text(
+                  'Đà Lạt',
+                  maxLines: 1,
+                  style: TextStyle(
+                    color: journeyInk,
+                    fontSize: 16,
+                    height: 22 / 16,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+              const Positioned(
+                left: 13.3,
+                top: 70.3,
+                width: 245,
+                child: Text(
+                  'Thứ Sáu · 16/10/2026',
+                  maxLines: 1,
+                  style: TextStyle(
+                    color: journeyInk,
+                    fontSize: 11,
+                    height: 15 / 11,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+              const Positioned(
+                left: 13.3,
+                top: 91.3,
+                child: _BoardingStation(
+                  width: 113,
+                  time: '22:30',
+                  station: 'Bến xe Miền Đông mới',
+                ),
+              ),
+              Positioned(
+                left: 133.3,
+                top: 103.3,
+                child: SizedBox.square(
+                  dimension: 19,
+                  child: Center(
+                    child: SvgPicture.asset(
+                      '$journeyAssetRoot/direction_orange.svg',
+                    ),
+                  ),
+                ),
+              ),
+              const Positioned(
+                left: 156.3,
+                top: 91.3,
+                child: _BoardingStation(
+                  width: 109,
+                  time: '05:30',
+                  note: '+1 ngày',
+                  station: 'Bến xe liên tỉnh Đà Lạt',
+                ),
+              ),
+              const Positioned(
+                left: 13.3,
+                top: 142.3,
+                width: 110,
+                child: Text(
+                  'Hành khách',
+                  style: TextStyle(
+                    color: journeyBody,
+                    fontSize: 9,
+                    height: 13 / 9,
+                  ),
+                ),
+              ),
+              Positioned(
+                left: 13.3,
+                top: 159.3,
+                width: 110,
+                child: Text(
+                  displayPassenger,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: journeyInk,
+                    fontSize: 9,
+                    height: 13 / 9,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+              const Positioned(
+                left: 125.3,
+                top: 142.3,
+                width: 29,
+                child: Text(
+                  'Chỗ',
+                  style: TextStyle(
+                    color: journeyBody,
+                    fontSize: 9,
+                    height: 13 / 9,
+                  ),
+                ),
+              ),
+              Positioned(
+                left: 125.3,
+                top: 159.3,
+                width: 29,
+                child: Text(
+                  passenger.seat,
+                  maxLines: 1,
+                  style: const TextStyle(
+                    color: journeyInk,
+                    fontSize: 9,
+                    height: 13 / 9,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+              const Positioned(
+                left: 161.3,
+                top: 142.3,
+                width: 107,
+                child: Text(
+                  'Loại chỗ',
+                  style: TextStyle(
+                    color: journeyBody,
+                    fontSize: 9,
+                    height: 13 / 9,
+                  ),
+                ),
+              ),
+              const Positioned(
+                left: 161.3,
+                top: 159.3,
+                width: 107,
+                child: Text(
+                  'Giường đơn - Tầng dưới',
+                  maxLines: 1,
+                  style: TextStyle(
+                    color: journeyInk,
+                    fontSize: 9,
+                    height: 13 / 9,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+              Positioned(
+                left: 272.3,
+                top: 0,
+                child: RotatedBox(
+                  quarterTurns: 1,
+                  child: SvgPicture.asset('$journeyAssetRoot/perforation.svg'),
+                ),
+              ),
+              Positioned(
+                left: 266.8,
+                top: -5.7,
+                child: SvgPicture.asset('$journeyAssetRoot/ticket_notch.svg'),
+              ),
+              Positioned(
+                left: 266.8,
+                top: 180.3,
+                child: SvgPicture.asset('$journeyAssetRoot/ticket_notch.svg'),
+              ),
+              Positioned(
+                left: 279.3,
+                top: 22.3,
+                width: 91,
+                height: 91,
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(7),
+                  ),
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      Opacity(
+                        opacity: cancelled ? .34 : 1,
+                        child: SvgPicture.asset(
+                          '$journeyAssetRoot/ticket_qr.svg',
+                        ),
+                      ),
+                      if (cancelled)
+                        Transform.rotate(
+                          angle: -math.pi / 4,
+                          child: Container(
+                            width: 82,
+                            height: 4,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFD92D20),
+                              borderRadius: BorderRadius.circular(99),
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+              Positioned(
+                left: 278,
+                top: 119.3,
+                width: 98,
                 child: Text(
                   'VXN-8F3K2Q-0${_passengers.indexOf(passenger) + 1}',
-                  style: const TextStyle(color: journeyBody, fontSize: 7.5),
+                  maxLines: 1,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    color: journeyInk,
+                    fontSize: 9.5,
+                    height: 13 / 9.5,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+              Positioned(
+                left: 278,
+                top: 137.3,
+                width: 98,
+                child: Text(
+                  cancelled ? 'QR không còn hiệu lực' : 'Lên xe quét mã',
+                  maxLines: 1,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: cancelled
+                        ? const Color(0xFFD92D20)
+                        : const Color(0xFFC67000),
+                    fontSize: 9,
+                    height: 13 / 9,
+                  ),
                 ),
               ),
             ],
-          );
-        },
+          ),
+        ),
       ),
     );
   }
 }
 
-class _TimePlace extends StatelessWidget {
-  const _TimePlace({
+class _BoardingStation extends StatelessWidget {
+  const _BoardingStation({
+    required this.width,
     required this.time,
-    required this.place,
+    required this.station,
     this.note,
-    this.alignEnd = false,
   });
 
+  final double width;
   final String time;
-  final String place;
+  final String station;
   final String? note;
-  final bool alignEnd;
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: alignEnd
-          ? CrossAxisAlignment.end
-          : CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: alignEnd
-              ? MainAxisAlignment.end
-              : MainAxisAlignment.start,
-          children: [
-            Text(
+    return Container(
+      width: width,
+      height: 43,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Stack(
+        children: [
+          Positioned(
+            left: 8,
+            top: 3,
+            child: Text(
               time,
               style: const TextStyle(
                 color: journeyInk,
-                fontSize: 15,
+                fontSize: 16,
+                height: 22 / 16,
                 fontWeight: FontWeight.w700,
               ),
             ),
-            if (note != null) ...[
-              const SizedBox(width: 3),
-              Text(
+          ),
+          if (note != null)
+            Positioned(
+              left: 72,
+              top: 11,
+              child: Text(
                 note!,
                 style: const TextStyle(
-                  color: Color(0xFFF79009),
+                  color: Color(0xFFF18800),
                   fontSize: 7.5,
-                  fontWeight: FontWeight.w600,
+                  height: 11 / 7.5,
                 ),
               ),
-            ],
-          ],
-        ),
-        Text(
-          place,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          textAlign: alignEnd ? TextAlign.right : TextAlign.left,
-          style: const TextStyle(color: journeyBody, fontSize: 7.5),
-        ),
-      ],
+            ),
+          Positioned(
+            left: 8,
+            top: 26,
+            width: width - 13,
+            child: Text(
+              station,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                color: journeyBody,
+                fontSize: 8.5,
+                height: 12 / 8.5,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
 
-class _TinyValue extends StatelessWidget {
-  const _TinyValue({required this.label, required this.value});
+class _ScaledDesignBox extends StatelessWidget {
+  const _ScaledDesignBox({required this.height, required this.child});
 
-  final String label;
-  final String value;
+  final double height;
+  final Widget child;
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(label, style: const TextStyle(color: journeyBody, fontSize: 7)),
-        Text(
-          value,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: const TextStyle(
-            color: journeyInk,
-            fontSize: 8,
-            fontWeight: FontWeight.w600,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final width = constraints.maxWidth.isFinite
+            ? constraints.maxWidth
+            : 378.0;
+        final scale = width / 378;
+        return SizedBox(
+          width: width,
+          height: height * scale,
+          child: FittedBox(
+            alignment: Alignment.topLeft,
+            fit: BoxFit.fill,
+            child: SizedBox(width: 378, height: height, child: child),
           ),
-        ),
-      ],
+        );
+      },
     );
   }
 }
@@ -708,79 +1016,146 @@ class _JourneyInformationCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return _DetailCard(
-      icon: 'bus_blue.svg',
-      title: 'Hành trình',
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Expanded(
-            child: _StopInfo(
-              title: 'ĐIỂM ĐÓN · 22:30',
-              body: '501 Hoàng Hữu Nam, TP. Thủ Đức,\nTP. Hồ Chí Minh',
+    return _ScaledDesignBox(
+      height: 113,
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(9),
+          border: Border.all(color: const Color(0xFFDFF3FC)),
+        ),
+        child: Stack(
+          children: [
+            Positioned(
+              left: 11,
+              top: 8,
+              child: SizedBox.square(
+                dimension: 19,
+                child: Center(
+                  child: SvgPicture.asset('$journeyAssetRoot/bus_blue.svg'),
+                ),
+              ),
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(8, 10, 8, 0),
-            child: SvgPicture.asset(
-              '$journeyAssetRoot/direction_orange.svg',
-              width: 17,
-              height: 13,
+            const Positioned(
+              left: 40,
+              top: 8,
+              width: 280,
+              child: Text(
+                'Hành trình',
+                style: TextStyle(
+                  color: journeyInk,
+                  fontSize: 13,
+                  height: 18 / 13,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
             ),
-          ),
-          const Expanded(
-            child: _StopInfo(
-              title: 'ĐIỂM TRẢ · 05:30 (+1 NGÀY)',
-              body: '1 Tô Hiến Thành, Phường 3,\nTP. Đà Lạt',
-              alignEnd: true,
+            const Positioned(
+              left: 7,
+              top: 31,
+              child: _JourneyStopPanel(
+                title: 'ĐIỂM ĐÓN · 22:30',
+                station: 'Bến xe Miền Đông mới',
+                address: '501 Hoàng Hữu Nam, TP. Thủ Đức,\nTP. Hồ Chí Minh',
+              ),
             ),
-          ),
-        ],
+            const Positioned(
+              left: 204,
+              top: 31,
+              child: _JourneyStopPanel(
+                title: 'ĐIỂM TRẢ · 05:30 (+1 NGÀY)',
+                station: 'Bến xe liên tỉnh Đà Lạt',
+                address: '1 Tô Hiến Thành, Phường 3,\nĐà Lạt',
+              ),
+            ),
+            Positioned(
+              left: 180,
+              top: 59,
+              child: SizedBox.square(
+                dimension: 20,
+                child: Center(
+                  child: SvgPicture.asset(
+                    '$journeyAssetRoot/direction_orange.svg',
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 }
 
-class _StopInfo extends StatelessWidget {
-  const _StopInfo({
+class _JourneyStopPanel extends StatelessWidget {
+  const _JourneyStopPanel({
     required this.title,
-    required this.body,
-    this.alignEnd = false,
+    required this.station,
+    required this.address,
   });
 
   final String title;
-  final String body;
-  final bool alignEnd;
+  final String station;
+  final String address;
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: alignEnd
-          ? CrossAxisAlignment.end
-          : CrossAxisAlignment.start,
-      children: [
-        Text(
-          title,
-          textAlign: alignEnd ? TextAlign.right : TextAlign.left,
-          style: const TextStyle(
-            color: journeyBody,
-            fontSize: 8.5,
-            fontWeight: FontWeight.w600,
+    return Container(
+      width: 165,
+      height: 73,
+      decoration: BoxDecoration(
+        color: const Color(0xFFF5F7FE),
+        borderRadius: BorderRadius.circular(7),
+      ),
+      child: Stack(
+        children: [
+          Positioned(
+            left: 10,
+            top: 8,
+            width: 151,
+            child: Text(
+              title,
+              maxLines: 1,
+              style: const TextStyle(
+                color: journeyBody,
+                fontSize: 8.8,
+                height: 12 / 8.8,
+              ),
+            ),
           ),
-        ),
-        const SizedBox(height: 3),
-        Text(
-          body,
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
-          textAlign: alignEnd ? TextAlign.right : TextAlign.left,
-          style: const TextStyle(
-            color: journeyInk,
-            fontSize: 9.5,
-            height: 14 / 9.5,
+          Positioned(
+            left: 10,
+            top: 24,
+            width: 151,
+            child: Text(
+              station,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                color: journeyInk,
+                fontSize: 10,
+                height: 14 / 10,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
           ),
-        ),
-      ],
+          Positioned(
+            left: 10,
+            top: 42,
+            width: 151,
+            child: Text(
+              address,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                color: journeyBody,
+                fontSize: 9,
+                height: 13 / 9,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -790,33 +1165,212 @@ class _PaymentCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const _DetailCard(
-      icon: 'card_blue.svg',
-      title: 'Thanh toán',
-      child: Column(
+    return _ScaledDesignBox(
+      height: 111,
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(9),
+          border: Border.all(color: const Color(0xFFDFF3FC)),
+        ),
+        child: Stack(
+          children: [
+            Positioned(
+              left: 11,
+              top: 8,
+              child: SizedBox.square(
+                dimension: 19,
+                child: Center(
+                  child: SvgPicture.asset('$journeyAssetRoot/card_blue.svg'),
+                ),
+              ),
+            ),
+            const Positioned(
+              left: 40,
+              top: 8,
+              width: 280,
+              child: Text(
+                'Thanh toán',
+                style: TextStyle(
+                  color: journeyInk,
+                  fontSize: 13,
+                  height: 18 / 13,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+            const _PaymentLine(
+              top: 31,
+              label: 'Giá vé (2 chỗ)',
+              value: '560.000đ',
+            ),
+            const _PaymentLine(top: 47, label: 'Phí dịch vụ', value: '0đ'),
+            const _PaymentLine(
+              top: 63,
+              label: 'Voucher đổi điểm',
+              value: '-100.000đ',
+              valueColor: Color(0xFF009F4C),
+            ),
+            const Positioned(
+              left: 13,
+              top: 86,
+              width: 114,
+              child: Text(
+                'Đã thanh toán',
+                style: TextStyle(
+                  color: journeyInk,
+                  fontSize: 10,
+                  height: 14 / 10,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+            const Positioned(
+              left: 90,
+              top: 83,
+              width: 100,
+              child: Text(
+                '460.000đ',
+                textAlign: TextAlign.right,
+                style: TextStyle(
+                  color: journeyPrimary,
+                  fontSize: 14,
+                  height: 20 / 14,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+            const Positioned(
+              left: 207,
+              top: 26,
+              child: _PaymentMetadataPanel(),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _PaymentLine extends StatelessWidget {
+  const _PaymentLine({
+    required this.top,
+    required this.label,
+    required this.value,
+    this.valueColor = journeyInk,
+  });
+
+  final double top;
+  final String label;
+  final String value;
+  final Color valueColor;
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      children: [
+        Positioned(
+          left: 13,
+          top: top,
+          width: 124,
+          child: Text(
+            label,
+            style: const TextStyle(
+              color: journeyBody,
+              fontSize: 9.5,
+              height: 13 / 9.5,
+            ),
+          ),
+        ),
+        Positioned(
+          left: 118,
+          top: top,
+          width: 72,
+          child: Text(
+            value,
+            textAlign: TextAlign.right,
+            style: TextStyle(
+              color: valueColor,
+              fontSize: 9.5,
+              height: 13 / 9.5,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _PaymentMetadataPanel extends StatelessWidget {
+  const _PaymentMetadataPanel();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 161,
+      height: 75,
+      decoration: BoxDecoration(
+        color: const Color(0xFFF5F7FE),
+        borderRadius: BorderRadius.circular(7),
+      ),
+      child: const Stack(
         children: [
-          _ValueRow(label: 'Giá vé (2 chỗ)', value: '560.000đ'),
-          _ValueRow(label: 'Phí dịch vụ', value: '0đ'),
-          _ValueRow(label: 'Voucher đổi điểm', value: '-100.000đ'),
-          Padding(
-            padding: EdgeInsets.symmetric(vertical: 5),
-            child: Divider(height: 1, color: Color(0xFFE8EEF4)),
-          ),
-          _ValueRow(
-            label: 'Đã thanh toán',
-            value: '460.000đ',
-            emphasized: true,
-          ),
-          SizedBox(height: 4),
-          _ValueRow(label: 'Phương thức', value: 'VNPay'),
-          _ValueRow(label: 'Mã giao dịch', value: 'VNP14982231'),
-          _ValueRow(
+          _MetadataLine(top: 8, label: 'Phương thức', value: 'VNPay'),
+          _MetadataLine(top: 29, label: 'Mã giao dịch', value: 'VNP14982231'),
+          _MetadataLine(
+            top: 50,
             label: 'Trạng thái',
             value: 'Thành công',
-            valueColor: Color(0xFF067647),
+            valueColor: Color(0xFF009B61),
           ),
         ],
       ),
+    );
+  }
+}
+
+class _MetadataLine extends StatelessWidget {
+  const _MetadataLine({
+    required this.top,
+    required this.label,
+    required this.value,
+    this.valueColor = journeyInk,
+  });
+
+  final double top;
+  final String label;
+  final String value;
+  final Color valueColor;
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      children: [
+        Positioned(
+          left: 9,
+          top: top,
+          width: 76,
+          child: Text(
+            label,
+            style: const TextStyle(
+              color: journeyBody,
+              fontSize: 9,
+              height: 13 / 9,
+            ),
+          ),
+        ),
+        Positioned(
+          left: 75,
+          top: top,
+          width: 78,
+          child: Text(
+            value,
+            maxLines: 1,
+            textAlign: TextAlign.right,
+            style: TextStyle(color: valueColor, fontSize: 9, height: 13 / 9),
+          ),
+        ),
+      ],
     );
   }
 }
@@ -866,104 +1420,148 @@ class _CancellationPolicyCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return _DetailCard(
-      icon: 'policy.svg',
-      title: 'Chính sách hủy / hoàn tiền',
-      child: Column(
-        children: [
-          const Row(
-            children: [
-              Expanded(
-                child: _PolicyColumn(
-                  title: 'Trước 22:30 · 15/10',
-                  value: 'Hoàn 90%',
-                  color: Color(0xFF067647),
+    return _ScaledDesignBox(
+      height: 87,
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(9),
+          border: Border.all(color: const Color(0xFFDFF3FC)),
+        ),
+        child: Stack(
+          children: [
+            Positioned(
+              left: 11,
+              top: 8,
+              child: SizedBox.square(
+                dimension: 19,
+                child: Center(
+                  child: SvgPicture.asset('$journeyAssetRoot/policy.svg'),
                 ),
               ),
-              Expanded(
-                child: _PolicyColumn(
-                  title: 'Đến 18:30 · 16/10',
-                  value: 'Hoàn 50%',
-                  color: Color(0xFFF79009),
-                ),
-              ),
-              Expanded(
-                child: _PolicyColumn(
-                  title: 'Sau 18:30 · 16/10',
-                  value: 'Không hoàn',
-                  color: Color(0xFFD92D20),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-            decoration: BoxDecoration(
-              color: const Color(0xFFEAF7FE),
-              borderRadius: BorderRadius.circular(7),
             ),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                SvgPicture.asset(
-                  '$journeyAssetRoot/info.svg',
-                  width: 13,
-                  height: 13,
+            const Positioned(
+              left: 40,
+              top: 8,
+              width: 280,
+              child: Text(
+                'Chính sách hủy / hoàn tiền',
+                style: TextStyle(
+                  color: journeyInk,
+                  fontSize: 13,
+                  height: 18 / 13,
+                  fontWeight: FontWeight.w700,
                 ),
-                const SizedBox(width: 5),
-                const Expanded(
-                  child: Text(
-                    'Hiện tại: vé này được hoàn 90% số tiền đã trả khi hủy, nếu đáp ứng điều kiện.',
-                    style: TextStyle(
-                      color: Color(0xFF087DCE),
-                      fontSize: 8.5,
-                      height: 12 / 8.5,
+              ),
+            ),
+            const _PolicyLine(
+              top: 33,
+              label: 'Trước 22:30 · 15/10',
+              value: 'Hoàn 90%',
+              valueColor: Color(0xFF009F4C),
+            ),
+            const _PolicyLine(
+              top: 49,
+              label: 'Đến 18:30 · 16/10',
+              value: 'Hoàn 50%',
+              valueColor: Color(0xFFF18800),
+            ),
+            const _PolicyLine(
+              top: 65,
+              label: 'Sau 18:30 · 16/10',
+              value: 'Không hoàn',
+              valueColor: Color(0xFFF04438),
+            ),
+            Positioned(
+              left: 222,
+              top: 17,
+              child: Container(
+                width: 147,
+                height: 58,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFEAF8FF),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Stack(
+                  children: [
+                    Positioned(
+                      left: 8,
+                      top: 19,
+                      child: SizedBox.square(
+                        dimension: 16,
+                        child: Center(
+                          child: SvgPicture.asset('$journeyAssetRoot/info.svg'),
+                        ),
+                      ),
                     ),
-                  ),
+                    const Positioned(
+                      left: 32,
+                      top: 8,
+                      width: 112,
+                      child: Text(
+                        'Hiện tại: vé này được hoàn 90%\nsố tiền đã trả khi hủy, nếu đáp\nứng điều kiện.',
+                        maxLines: 3,
+                        style: TextStyle(
+                          color: journeyBody,
+                          fontSize: 7.5,
+                          height: 11 / 7.5,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-              ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 }
 
-class _PolicyColumn extends StatelessWidget {
-  const _PolicyColumn({
-    required this.title,
+class _PolicyLine extends StatelessWidget {
+  const _PolicyLine({
+    required this.top,
+    required this.label,
     required this.value,
-    required this.color,
+    required this.valueColor,
   });
 
-  final String title;
+  final double top;
+  final String label;
   final String value;
-  final Color color;
+  final Color valueColor;
 
   @override
   Widget build(BuildContext context) {
-    return Column(
+    return Stack(
       children: [
-        Text(
-          title,
-          maxLines: 2,
-          textAlign: TextAlign.center,
-          style: const TextStyle(
-            color: journeyBody,
-            fontSize: 7.5,
-            height: 11 / 7.5,
+        Positioned(
+          left: 13,
+          top: top,
+          width: 137,
+          child: Text(
+            label,
+            style: const TextStyle(
+              color: journeyBody,
+              fontSize: 9.5,
+              height: 13 / 9.5,
+            ),
           ),
         ),
-        const SizedBox(height: 2),
-        Text(
-          value,
-          style: TextStyle(
-            color: color,
-            fontSize: 9.5,
-            fontWeight: FontWeight.w700,
+        Positioned(
+          left: 138,
+          top: top,
+          width: 71,
+          child: Text(
+            value,
+            textAlign: TextAlign.right,
+            style: TextStyle(
+              color: valueColor,
+              fontSize: 9.5,
+              height: 13 / 9.5,
+              fontWeight: FontWeight.w600,
+            ),
           ),
         ),
       ],

@@ -42,10 +42,7 @@ class JourneyHeroHeader extends StatelessWidget {
             top: 44,
             width: 126,
             height: 35,
-            child: SvgPicture.asset(
-              'assets/home/hero/logo_frame.svg',
-              fit: BoxFit.contain,
-            ),
+            child: const JourneyBrandLogo(),
           ),
           Positioned(
             left: 22,
@@ -140,10 +137,7 @@ class JourneyDetailHeader extends StatelessWidget {
               top: 36,
               width: 126,
               height: 35,
-              child: SvgPicture.asset(
-                'assets/home/hero/logo_frame.svg',
-                fit: BoxFit.contain,
-              ),
+              child: const JourneyBrandLogo(),
             ),
           const Positioned(
             left: 26,
@@ -175,6 +169,37 @@ class JourneyDetailHeader extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class JourneyBrandLogo extends StatelessWidget {
+  const JourneyBrandLogo({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(17.5),
+        border: Border.all(color: const Color(0xFFE0EFF8), width: .56),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x121F6EA6),
+            blurRadius: 5.1,
+            offset: Offset(0, 3.4),
+          ),
+        ],
+      ),
+      child: Center(
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            SvgPicture.asset('assets/home/hero/logo_mark.svg'),
+            SvgPicture.asset('assets/home/hero/logo_wordmark.svg'),
+          ],
+        ),
       ),
     );
   }
