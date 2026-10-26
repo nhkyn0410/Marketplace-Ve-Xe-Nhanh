@@ -8619,7 +8619,9 @@ export interface components {
         PromotionCheckInputDto: {
             /** Format: uuid */
             tripId: string;
-            code: string;
+            code?: string;
+            /** Format: uuid */
+            userVoucherId?: string;
             subtotal: number;
         };
         PromotionCheckDto_Output: {
@@ -22753,7 +22755,7 @@ export interface operations {
                     "application/problem+json": components["schemas"]["ProblemDetailsDto"];
                 };
             };
-            /** @description `PROMOTION_EXHAUSTED`. */
+            /** @description `PROMOTION_EXHAUSTED` / `VOUCHER_NOT_AVAILABLE` (voucher đang dùng cho đơn khác). */
             409: {
                 headers: {
                     [name: string]: unknown;
@@ -22762,7 +22764,7 @@ export interface operations {
                     "application/problem+json": components["schemas"]["ProblemDetailsDto"];
                 };
             };
-            /** @description `PROMOTION_INVALID`. */
+            /** @description `PROMOTION_INVALID` / `VOUCHER_NOT_AVAILABLE` (chưa đăng nhập) / `VOUCHER_EXPIRED` / `VOUCHER_NOT_APPLICABLE`. */
             422: {
                 headers: {
                     [name: string]: unknown;

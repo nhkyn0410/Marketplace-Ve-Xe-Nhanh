@@ -19383,7 +19383,7 @@
             }
           },
           "409": {
-            "description": "`PROMOTION_EXHAUSTED`.",
+            "description": "`PROMOTION_EXHAUSTED` / `VOUCHER_NOT_AVAILABLE` (voucher đang dùng cho đơn khác).",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -19393,7 +19393,7 @@
             }
           },
           "422": {
-            "description": "`PROMOTION_INVALID`.",
+            "description": "`PROMOTION_INVALID` / `VOUCHER_NOT_AVAILABLE` (chưa đăng nhập) / `VOUCHER_EXPIRED` / `VOUCHER_NOT_APPLICABLE`.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -47429,6 +47429,11 @@
             "minLength": 1,
             "maxLength": 20
           },
+          "userVoucherId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
           "subtotal": {
             "type": "integer",
             "minimum": 1,
@@ -47437,7 +47442,6 @@
         },
         "required": [
           "tripId",
-          "code",
           "subtotal"
         ]
       },

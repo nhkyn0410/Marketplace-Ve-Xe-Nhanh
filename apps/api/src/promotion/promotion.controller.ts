@@ -7,7 +7,7 @@ import { CurrentUser } from "../iam/auth/current-user.decorator";
 import type { VerifiedAccessToken } from "../iam/auth/token.service";
 import { Authorize, Authz } from "../iam/role/authorize.decorator";
 import type { Authorization } from "../iam/role/authorization";
-import { GuestOrPassenger } from "../iam/role/guest-or-passenger";
+import { GuestOrPassenger, OptionalPassenger } from "../iam/role/guest-or-passenger";
 import { ProblemDetailsDto } from "../openapi/openapi.dto";
 import {
   PermissionDto,
@@ -223,9 +223,13 @@ export class PublicPromotionController {
   @GuestOrPassenger("booking:create")
   @ApiBody({ type: PromotionCheckInputDto })
   @ZodResponse({ status: 200, description: "Số tiền giảm + tổng sau giảm.", type: PromotionCheckDto })
-  @ApiResponse({ status: 409, description: "`PROMOTION_EXHAUSTED`.", content: problemContent })
-  @ApiResponse({ status: 422, description: "`PROMOTION_INVALID`.", content: problemContent })
-  check(@Body() input: PromotionCheckInputDto): Promise<PromotionCheck> {
-    return this.promotions.check(input);
+  @ApiResponse({ status: 409, description: "`PROMOTION_EXHAUSTED` / `VOUCHER_NOT_AVAILABLE` (voucher đang dùng cho đơn khác).", content: problemContent })
+  @ApiResponse({
+    status: 422,
+    description: "`PROMOTION_INVALID` / `VOUCHER_NOT_AVAILABLE` (chưa đăng nhập) / `VOUCHER_EXPIRED` / `VOUCHER_NOT_APPLICABLE`.",
+    content: problemContent,
+  })
+  check(@OptionalPassenger() user: VerifiedAccessToken | null, @Body() input: PromotionCheckInputDto): Promise<PromotionCheck> {
+    return this.promotions.check(input, user?.sub ?? null);
   }
 }
