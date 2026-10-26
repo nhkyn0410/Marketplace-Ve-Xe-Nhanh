@@ -11,19 +11,15 @@ part 'ticket_lookup_input_dto.g.dart';
 /// TicketLookupInputDto
 ///
 /// Properties:
-/// * [bookingCode] 
-/// * [phone] 
-/// * [email] 
+/// * [lookupToken] 
+/// * [bookingId] 
 @BuiltValue()
 abstract class TicketLookupInputDto implements Built<TicketLookupInputDto, TicketLookupInputDtoBuilder> {
-  @BuiltValueField(wireName: r'bookingCode')
-  String get bookingCode;
+  @BuiltValueField(wireName: r'lookupToken')
+  String get lookupToken;
 
-  @BuiltValueField(wireName: r'phone')
-  String? get phone;
-
-  @BuiltValueField(wireName: r'email')
-  String? get email;
+  @BuiltValueField(wireName: r'bookingId')
+  String? get bookingId;
 
   TicketLookupInputDto._();
 
@@ -48,22 +44,15 @@ class _$TicketLookupInputDtoSerializer implements PrimitiveSerializer<TicketLook
     TicketLookupInputDto object, {
     FullType specifiedType = FullType.unspecified,
   }) sync* {
-    yield r'bookingCode';
+    yield r'lookupToken';
     yield serializers.serialize(
-      object.bookingCode,
+      object.lookupToken,
       specifiedType: const FullType(String),
     );
-    if (object.phone != null) {
-      yield r'phone';
+    if (object.bookingId != null) {
+      yield r'bookingId';
       yield serializers.serialize(
-        object.phone,
-        specifiedType: const FullType(String),
-      );
-    }
-    if (object.email != null) {
-      yield r'email';
-      yield serializers.serialize(
-        object.email,
+        object.bookingId,
         specifiedType: const FullType(String),
       );
     }
@@ -90,28 +79,20 @@ class _$TicketLookupInputDtoSerializer implements PrimitiveSerializer<TicketLook
       final key = serializedList[i] as String;
       final value = serializedList[i + 1];
       switch (key) {
-        case r'bookingCode':
+        case r'lookupToken':
           final valueDes = serializers.deserialize(
             value,
             specifiedType: const FullType(String),
           ) as String;
-          result.bookingCode = valueDes;
+          result.lookupToken = valueDes;
           break;
-        case r'phone':
+        case r'bookingId':
           final valueDes = serializers.deserialize(
             value,
             specifiedType: const FullType.nullable(String),
           ) as String?;
           if (valueDes == null) continue;
-          result.phone = valueDes;
-          break;
-        case r'email':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType.nullable(String),
-          ) as String?;
-          if (valueDes == null) continue;
-          result.email = valueDes;
+          result.bookingId = valueDes;
           break;
         default:
           unhandled.add(key);

@@ -305,6 +305,9 @@ export 'package:api_client_dart/src/model/fare_revision_list_response_dto_output
 export 'package:api_client_dart/src/model/fare_revision_list_response_dto_output_items_inner_after.dart';
 export 'package:api_client_dart/src/model/fare_revision_list_response_dto_output_items_inner_before.dart';
 export 'package:api_client_dart/src/model/fare_update_input_dto.dart';
+export 'package:api_client_dart/src/model/featured_operator_list_response_dto_output.dart';
+export 'package:api_client_dart/src/model/featured_operator_list_response_dto_output_items_inner.dart';
+export 'package:api_client_dart/src/model/featured_operator_list_response_dto_output_items_inner_routes_inner.dart';
 export 'package:api_client_dart/src/model/finance_booking_page_dto_output.dart';
 export 'package:api_client_dart/src/model/finance_booking_page_dto_output_items_inner.dart';
 export 'package:api_client_dart/src/model/finance_booking_page_dto_output_items_inner_trip.dart';
@@ -430,6 +433,8 @@ export 'package:api_client_dart/src/model/policy_overview_dto_output_versions_in
 export 'package:api_client_dart/src/model/policy_overview_dto_output_versions_inner_rules_any_of_tiers_inner.dart';
 export 'package:api_client_dart/src/model/policy_publish_dto.dart';
 export 'package:api_client_dart/src/model/policy_version_dto_output.dart';
+export 'package:api_client_dart/src/model/popular_route_list_response_dto_output.dart';
+export 'package:api_client_dart/src/model/popular_route_list_response_dto_output_items_inner.dart';
 export 'package:api_client_dart/src/model/postgres_health_response_dto_output.dart';
 export 'package:api_client_dart/src/model/preference_input_dto.dart';
 export 'package:api_client_dart/src/model/preferences_dto_output.dart';
@@ -526,7 +531,15 @@ export 'package:api_client_dart/src/model/ticket_detail_dto_output_dispute.dart'
 export 'package:api_client_dart/src/model/ticket_detail_dto_output_messages_inner.dart';
 export 'package:api_client_dart/src/model/ticket_detail_dto_output_messages_inner_attachments_inner.dart';
 export 'package:api_client_dart/src/model/ticket_detail_dto_output_payments_inner.dart';
+export 'package:api_client_dart/src/model/ticket_lookup_access_dto_output.dart';
+export 'package:api_client_dart/src/model/ticket_lookup_booking_list_dto_output.dart';
+export 'package:api_client_dart/src/model/ticket_lookup_booking_list_dto_output_items_inner.dart';
 export 'package:api_client_dart/src/model/ticket_lookup_input_dto.dart';
+export 'package:api_client_dart/src/model/ticket_lookup_otp_input_dto.dart';
+export 'package:api_client_dart/src/model/ticket_lookup_otp_response_dto_output.dart';
+export 'package:api_client_dart/src/model/ticket_lookup_session_dto_output.dart';
+export 'package:api_client_dart/src/model/ticket_lookup_session_input_dto.dart';
+export 'package:api_client_dart/src/model/ticket_lookup_verify_input_dto.dart';
 export 'package:api_client_dart/src/model/ticket_page_dto_output.dart';
 export 'package:api_client_dart/src/model/ticket_response_dto_output.dart';
 export 'package:api_client_dart/src/model/ticket_status_input_dto.dart';

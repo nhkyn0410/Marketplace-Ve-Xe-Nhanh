@@ -9,7 +9,8 @@ import 'package:api_client_dart/api.dart';
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **tripId** | **String** |  | 
-**code** | **String** |  | 
+**code** | **String** |  | [optional] 
+**userVoucherId** | **String** |  | [optional] 
 **subtotal** | **int** |  | 
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)
