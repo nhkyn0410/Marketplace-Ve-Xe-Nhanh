@@ -57,6 +57,7 @@
 | v0.36     | 26/10/2026 | AI Agent | **Đóng UX-OQ-09 (Khanh 26/10/2026, chờ duyệt):** tra cứu vé Guest bắt buộc OTP qua email — web làm theo Figma 1446:14982 (B1) → 1446:15277 (B2: đếm ngược 5 phút, còn N lần thử, gửi lại sau 60 giây) → kết quả. |
 | v0.37     | 26/10/2026 | AI Agent | **Figma thanh toán đổi sang payOS + cổng demo (Khanh 21/10 chọn, 26/10 "chỉnh thiết kế", chờ duyệt + chờ ADR thay ADR-019):** SCR-PSG-20 (Ideal + hết giờ giữ chỗ) bỏ VNPay / MoMo + chip ngân hàng, thay bằng "Chuyển khoản VietQR qua payOS" và "Cổng thanh toán thử (demo)"; nhãn phương thức / mã giao dịch ở SCR-PSG-16, 21, 22, 23, 25, 26 (hoàn qua chuyển khoản), 29, 31. Màn Admin (ADM-01, 07a–d, 09b, 14a, 16a–b) và Operator OS "02 · Đặt vé / Chi tiết đơn" còn VNPay / MoMo — sửa cùng task hiện thực payOS. |
 | v0.38     | 27/10/2026 | AI Agent | **Tra cứu vé không cần mã đặt vé (Khanh 27/10/2026, chờ duyệt):** SCR-PSG-27 mã đặt vé không bắt buộc + dòng CSKH khi mất email; SCR-PSG-29 thêm danh sách đơn theo email (12 tháng, gồm đơn đặt bằng tài khoản) và hộp thoại hỏi đăng nhập — chưa có khung Figma cho danh sách. |
+| v0.39     | 27/10/2026 | AI Agent | **Hủy vé và khiếu nại sau OTP (Khanh 27/10/2026, chờ duyệt):** SCR-PSG-29 khối "Thao tác với đơn" (Figma 1446:15578) bật "Hủy vé / yêu cầu hoàn tiền", "Gửi khiếu nại về đơn này" và nút "Hủy vé" ở từng vé cho đơn khách vãng lai — bấm thì mở quyền rồi sang trang quản lý vé / khiếu nại sẵn có; không hỏi OTP lần nữa (khác ghi chú Figma "cần xác minh lại bằng OTP"); đơn đặt bằng tài khoản hiện hướng dẫn đăng nhập. |
 
 ---
 
