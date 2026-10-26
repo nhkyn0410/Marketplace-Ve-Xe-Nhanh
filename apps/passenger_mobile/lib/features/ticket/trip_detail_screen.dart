@@ -15,6 +15,8 @@ class TripDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final useTallHeader = MediaQuery.textScalerOf(context).scale(19) > 28;
+
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.dark.copyWith(
         statusBarColor: Colors.transparent,
@@ -22,8 +24,19 @@ class TripDetailScreen extends StatelessWidget {
       ),
       child: Scaffold(
         key: const Key('trip-detail-screen'),
-        extendBodyBehindAppBar: true,
         backgroundColor: _surface,
+        appBar: AppBar(
+          key: const Key('trip-detail-header'),
+          automaticallyImplyLeading: false,
+          toolbarHeight: useTallHeader ? 80 : 64,
+          titleSpacing: 14,
+          backgroundColor: Colors.white,
+          surfaceTintColor: Colors.white,
+          elevation: 0,
+          scrolledUnderElevation: 1,
+          shadowColor: const Color(0x1A21404F),
+          title: _HeroToolbar(onBack: () => Navigator.maybePop(context)),
+        ),
         bottomNavigationBar: const _BookingBar(),
         body: ListView(
           key: const Key('trip-detail-scroll'),
@@ -49,78 +62,75 @@ class _HeroAndOperator extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final topInset = MediaQuery.paddingOf(context).top;
-    return SizedBox(
-      height: 274,
-      child: Stack(
-        clipBehavior: Clip.none,
-        children: [
-          Positioned.fill(
-            bottom: 42,
-            child: Image.asset(
-              '$_detailAssets/hero_mountain_bus.png',
-              fit: BoxFit.cover,
-              alignment: Alignment.center,
-            ),
-          ),
-          const Positioned.fill(
-            bottom: 42,
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    Color(0x00081C24),
-                    Color(0x17081C24),
-                    Color(0xB0081C24),
-                  ],
-                  stops: [0.32, 0.56, 1],
+    final useTallHero = MediaQuery.textScalerOf(context).scale(16) > 22;
+
+    return Column(
+      children: [
+        SizedBox(
+          height: useTallHero ? 310 : 218,
+          child: Stack(
+            children: [
+              Positioned.fill(
+                child: Image.asset(
+                  '$_detailAssets/hero_mountain_bus.png',
+                  fit: BoxFit.cover,
+                  alignment: Alignment.center,
                 ),
               ),
-            ),
-          ),
-          const Positioned(
-            left: 0,
-            top: 102,
-            width: 253,
-            height: 104,
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.all(Radius.circular(30)),
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    Color(0x00081C24),
-                    Color(0x45081C24),
-                    Color(0x94081C24),
-                  ],
-                  stops: [0.04, 0.55, 0.97],
+              const Positioned.fill(
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        Color(0x00081C24),
+                        Color(0x17081C24),
+                        Color(0xB0081C24),
+                      ],
+                      stops: [0.32, 0.56, 1],
+                    ),
+                  ),
                 ),
               ),
-            ),
+              const Positioned(
+                left: 0,
+                right: 92,
+                top: 100,
+                bottom: 0,
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.all(Radius.circular(30)),
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        Color(0x00081C24),
+                        Color(0x45081C24),
+                        Color(0x94081C24),
+                      ],
+                      stops: [0.04, 0.55, 0.97],
+                    ),
+                  ),
+                ),
+              ),
+              const Positioned(
+                left: 16,
+                right: 16,
+                bottom: 16,
+                child: _HeroRoute(),
+              ),
+            ],
           ),
-          Positioned(
-            left: 14,
-            right: 14,
-            top: topInset + 8,
-            child: _HeroToolbar(onBack: () => Navigator.maybePop(context)),
-          ),
-          const Positioned(
-            left: 16,
-            right: 16,
-            bottom: 59,
-            child: _HeroRoute(),
-          ),
-          const Positioned(
-            left: 7,
-            right: 7,
-            bottom: 0,
+        ),
+        Transform.translate(
+          offset: const Offset(0, -12),
+          child: const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 7),
             child: _OperatorCard(),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
@@ -143,12 +153,13 @@ class _HeroToolbar extends StatelessWidget {
         const Expanded(
           child: Text(
             'Chi tiết chuyến',
-            maxLines: 1,
+            maxLines: 2,
             overflow: TextOverflow.ellipsis,
             style: TextStyle(
               color: Color(0xFF082A55),
-              fontSize: 15,
+              fontSize: 19,
               fontWeight: FontWeight.w600,
+              height: 1.2,
             ),
           ),
         ),
@@ -174,16 +185,16 @@ class _HeaderAction extends StatelessWidget {
         onTap: onTap,
         radius: 22,
         child: SizedBox.square(
-          dimension: 30,
+          dimension: 40,
           child: Stack(
             alignment: Alignment.center,
             children: [
               SvgPicture.asset(
                 '$_detailAssets/header_action.svg',
-                width: 30,
-                height: 30,
+                width: 40,
+                height: 40,
               ),
-              SvgPicture.asset('$_detailAssets/$icon', width: 15, height: 15),
+              SvgPicture.asset('$_detailAssets/$icon', width: 18, height: 18),
             ],
           ),
         ),
@@ -199,39 +210,35 @@ class _HeroRoute extends StatelessWidget {
   Widget build(BuildContext context) {
     return Align(
       alignment: Alignment.centerLeft,
-      child: SizedBox(
-        width: 226,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 300),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            FittedBox(
-              fit: BoxFit.scaleDown,
-              alignment: Alignment.centerLeft,
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const _HeroCity('TP.HCM'),
-                  const SizedBox(width: 13),
-                  SvgPicture.asset(
-                    '$_detailAssets/route_arrow.svg',
-                    width: 17,
-                    height: 17,
-                  ),
-                  const SizedBox(width: 18),
-                  const _HeroCity('Đà Lạt'),
-                ],
-              ),
+            Wrap(
+              spacing: 13,
+              runSpacing: 4,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: [
+                const _HeroCity('TP.HCM'),
+                SvgPicture.asset(
+                  '$_detailAssets/route_arrow.svg',
+                  width: 17,
+                  height: 17,
+                ),
+                const _HeroCity('Đà Lạt'),
+              ],
             ),
             const SizedBox(height: 2),
             SizedBox(
-              width: 197,
+              width: 220,
               height: 18,
               child: Stack(
                 alignment: Alignment.center,
                 children: [
                   SvgPicture.asset(
                     '$_detailAssets/hero_route_line.svg',
-                    width: 188,
+                    width: 210,
                     height: 2,
                   ),
                   Positioned(
@@ -261,15 +268,15 @@ class _HeroRoute extends StatelessWidget {
             Row(
               children: [
                 const SizedBox(
-                  width: 83,
+                  width: 104,
                   child: _HeroTime(time: '07:00', station: 'Bến xe Miền Đông'),
                 ),
                 const SizedBox(
-                  width: 76,
+                  width: 82,
                   child: Center(
                     child: Text(
                       '6h30',
-                      style: TextStyle(color: Colors.white, fontSize: 10),
+                      style: TextStyle(color: Colors.white, fontSize: 13),
                     ),
                   ),
                 ),
@@ -324,9 +331,12 @@ class _HeroTime extends StatelessWidget {
         ),
         Text(
           station,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: const TextStyle(color: Colors.white, fontSize: 9),
+          maxLines: 2,
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 13,
+            height: 1.2,
+          ),
         ),
       ],
     );
@@ -339,74 +349,81 @@ class _OperatorCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return _WhiteCard(
-      height: 68,
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      child: Row(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(18),
-            child: Image.asset(
-              '$_detailAssets/phuong_trang_logo.png',
-              width: 44,
-              height: 44,
-              fit: BoxFit.cover,
-            ),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                LayoutBuilder(
-                  builder: (context, constraints) => Row(
-                    children: [
-                      Flexible(
-                        child: Text(
-                          'Phương Trang',
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            color: Color(0xFF072752),
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
+          Row(
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(18),
+                child: Image.asset(
+                  '$_detailAssets/phuong_trang_logo.png',
+                  width: 48,
+                  height: 48,
+                  fit: BoxFit.cover,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    LayoutBuilder(
+                      builder: (context, constraints) => Row(
+                        children: [
+                          const Flexible(
+                            child: Text(
+                              'Phương Trang',
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                color: Color(0xFF072752),
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
                           ),
-                        ),
+                          if (constraints.maxWidth >= 190) ...[
+                            const SizedBox(width: 8),
+                            const _PopularBadge(),
+                          ],
+                        ],
                       ),
-                      if (constraints.maxWidth >= 125) ...[
-                        SizedBox(width: 8),
-                        _PopularBadge(),
-                      ],
-                    ],
-                  ),
+                    ),
+                    const SizedBox(height: 4),
+                    const _RatingLine(),
+                    const SizedBox(height: 4),
+                    const Text(
+                      'An toàn · Đúng giờ · Chất lượng cao',
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(color: _muted, fontSize: 13),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 2),
-                const _RatingLine(),
-                const SizedBox(height: 2),
-                const Text(
-                  'An toàn · Đúng giờ · Chất lượng cao',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(color: _muted, fontSize: 8.5),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
-          const SizedBox(width: 6),
+          const SizedBox(height: 8),
           Container(
-            height: 32,
-            padding: const EdgeInsets.symmetric(horizontal: 11),
+            key: const Key('trip-detail-operator-link'),
+            constraints: const BoxConstraints(minHeight: 44),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
             decoration: BoxDecoration(
               color: const Color(0xFFEFF7FD),
               borderRadius: BorderRadius.circular(17),
             ),
             child: Row(
+              key: const Key('trip-detail-operator-link-content'),
+              mainAxisSize: MainAxisSize.min,
               children: [
                 const Text(
                   'Xem nhà xe',
                   style: TextStyle(
                     color: Color(0xFF07549D),
-                    fontSize: 10,
+                    fontSize: 14,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -437,13 +454,13 @@ class _PopularBadge extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
         color: const Color(0xFFFFE9CD),
-        borderRadius: BorderRadius.circular(9),
+        borderRadius: BorderRadius.circular(12),
       ),
       child: const Text(
         'Phổ biến',
         style: TextStyle(
           color: Color(0xFFE88422),
-          fontSize: 9,
+          fontSize: 12,
           fontWeight: FontWeight.w600,
         ),
       ),
@@ -458,13 +475,13 @@ class _RatingLine extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        SvgPicture.asset('$_detailAssets/star.svg', width: 11, height: 11),
+        SvgPicture.asset('$_detailAssets/star.svg', width: 14, height: 14),
         const SizedBox(width: 4),
         const Text(
           '4.8',
           style: TextStyle(
             color: Color(0xFF072752),
-            fontSize: 10.5,
+            fontSize: 14,
             fontWeight: FontWeight.w600,
           ),
         ),
@@ -474,7 +491,7 @@ class _RatingLine extends StatelessWidget {
             '(1.2K đánh giá)',
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: TextStyle(color: _muted, fontSize: 8),
+            style: TextStyle(color: _muted, fontSize: 13),
           ),
         ),
       ],
@@ -488,47 +505,46 @@ class _VehicleSummary extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(7, 6, 7, 0),
+      padding: const EdgeInsets.fromLTRB(12, 0, 12, 0),
       child: _WhiteCard(
-        height: 94,
-        padding: const EdgeInsets.all(8),
-        child: Row(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: Image.asset(
-                '$_detailAssets/limousine_interior.png',
-                width: 93,
-                height: 78,
-                fit: BoxFit.cover,
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
+            Row(
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: Image.asset(
+                    '$_detailAssets/limousine_interior.png',
+                    width: 104,
+                    height: 76,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                const Expanded(
+                  child: Text(
                     'Limousine 34 phòng',
                     style: TextStyle(
                       color: Color(0xFF082752),
-                      fontSize: 11,
+                      fontSize: 16,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
-                  const Spacer(),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: const [
-                      _SummaryAmenity(icon: 'wifi.svg', label: 'Wi-Fi'),
-                      _SummaryAmenity(icon: 'snow.svg', label: 'Điều hòa'),
-                      _SummaryAmenity(icon: 'water.svg', label: 'Nước uống'),
-                      _SummaryAmenity(icon: 'usb.svg', label: 'USB'),
-                      _SummaryAmenity(label: 'tiện ích khác', count: '+3'),
-                    ],
-                  ),
-                ],
-              ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            const Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _SummaryAmenity(icon: 'wifi.svg', label: 'Wi-Fi'),
+                _SummaryAmenity(icon: 'snow.svg', label: 'Điều hòa'),
+                _SummaryAmenity(icon: 'water.svg', label: 'Nước uống'),
+                _SummaryAmenity(icon: 'usb.svg', label: 'USB'),
+                _SummaryAmenity(label: 'tiện ích khác', count: '+3'),
+              ],
             ),
           ],
         ),
@@ -548,40 +564,47 @@ class _SummaryAmenity extends StatelessWidget {
   Widget build(BuildContext context) {
     return Expanded(
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
           SizedBox.square(
-            dimension: 34,
+            dimension: 38,
             child: Stack(
               alignment: Alignment.center,
               children: [
                 SvgPicture.asset(
                   '$_detailAssets/amenity_bubble.svg',
-                  width: 34,
-                  height: 34,
+                  width: 38,
+                  height: 38,
                 ),
                 if (icon != null)
                   SvgPicture.asset(
                     '$_detailAssets/$icon',
-                    width: 17,
-                    height: 17,
+                    width: 19,
+                    height: 19,
                   )
                 else
                   Text(
                     count!,
                     style: const TextStyle(
                       color: Color(0xFF006BB5),
-                      fontSize: 12,
+                      fontSize: 13,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
               ],
             ),
           ),
+          const SizedBox(height: 4),
           Text(
             label,
-            maxLines: 1,
+            maxLines: 2,
             overflow: TextOverflow.ellipsis,
-            style: const TextStyle(color: Color(0xFF123862), fontSize: 7.5),
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              color: Color(0xFF123862),
+              fontSize: 12,
+              height: 1.2,
+            ),
           ),
         ],
       ),
@@ -595,16 +618,16 @@ class _RouteMapSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(7, 10, 7, 0),
+      padding: const EdgeInsets.fromLTRB(12, 16, 12, 0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const _SectionTitle(icon: 'map.svg', title: 'Bản đồ tuyến đường'),
-          const SizedBox(height: 6),
+          const SizedBox(height: 10),
           ClipRRect(
             borderRadius: BorderRadius.circular(12),
             child: SizedBox(
-              height: 130,
+              height: 160,
               child: Stack(
                 fit: StackFit.expand,
                 children: [
@@ -700,7 +723,7 @@ class _PlainMapLabel extends StatelessWidget {
         label,
         style: const TextStyle(
           color: _ink,
-          fontSize: 9,
+          fontSize: 12,
           fontWeight: FontWeight.w600,
         ),
       ),
@@ -714,9 +737,8 @@ class _RouteMetrics extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return _WhiteCard(
-      height: 48,
       borderRadius: const BorderRadius.vertical(bottom: Radius.circular(12)),
-      padding: EdgeInsets.zero,
+      padding: const EdgeInsets.symmetric(vertical: 10),
       child: const Row(
         children: [
           Expanded(
@@ -758,11 +780,11 @@ class _Metric extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
       child: Row(
         children: [
           SvgPicture.asset('$_detailAssets/$icon', width: 17, height: 17),
-          const SizedBox(width: 9),
+          const SizedBox(width: 6),
           Expanded(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -770,19 +792,23 @@ class _Metric extends StatelessWidget {
               children: [
                 Text(
                   value,
-                  maxLines: 1,
+                  maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
                     color: Color(0xFF092752),
-                    fontSize: 10,
+                    fontSize: 14,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
                 Text(
                   label,
-                  maxLines: 1,
+                  maxLines: 2,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(color: _muted, fontSize: 7),
+                  style: const TextStyle(
+                    color: _muted,
+                    fontSize: 13,
+                    height: 1.2,
+                  ),
                 ),
               ],
             ),
@@ -798,7 +824,7 @@ class _MetricDivider extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(width: 1, height: 28, color: const Color(0xFFE4EEF2));
+    return Container(width: 1, height: 52, color: const Color(0xFFE4EEF2));
   }
 }
 
@@ -808,19 +834,19 @@ class _PickupDropoffSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const Padding(
-      padding: EdgeInsets.fromLTRB(7, 10, 7, 0),
+      padding: EdgeInsets.fromLTRB(12, 16, 12, 0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _SectionTitle(icon: 'pin.svg', title: 'Điểm đón / Điểm trả'),
-          SizedBox(height: 6),
+          SizedBox(height: 10),
           _LocationCard(
             pickup: true,
             title: 'Bến xe Miền Đông',
             address: '292 Đinh Bộ Lĩnh, Bình Thạnh, TP.HCM',
             photo: 'mien_dong_station.png',
           ),
-          SizedBox(height: 4),
+          SizedBox(height: 8),
           _LocationCard(
             pickup: false,
             title: 'Bến xe Đà Lạt',
@@ -849,8 +875,7 @@ class _LocationCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return _WhiteCard(
-      height: 61,
-      padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
       child: Row(
         children: [
           SizedBox.square(
@@ -881,24 +906,28 @@ class _LocationCard extends StatelessWidget {
                   pickup ? 'Điểm đón' : 'Điểm trả',
                   style: TextStyle(
                     color: pickup ? const Color(0xFF1B9C68) : _muted,
-                    fontSize: 8.5,
+                    fontSize: 13,
                   ),
                 ),
                 Text(
                   title,
-                  maxLines: 1,
+                  maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
                     color: Color(0xFF092752),
-                    fontSize: 10.5,
+                    fontSize: 15,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
                 Text(
                   address,
-                  maxLines: 1,
+                  maxLines: 2,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(color: _muted, fontSize: 7.5),
+                  style: const TextStyle(
+                    color: _muted,
+                    fontSize: 13,
+                    height: 1.25,
+                  ),
                 ),
               ],
             ),
@@ -909,7 +938,7 @@ class _LocationCard extends StatelessWidget {
             child: Image.asset(
               '$_detailAssets/$photo',
               width: 83,
-              height: 48,
+              height: 64,
               fit: BoxFit.cover,
             ),
           ),
@@ -944,23 +973,25 @@ class _AmenitiesSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final useTwoColumns = MediaQuery.textScalerOf(context).scale(12) > 16;
+
     return Padding(
-      padding: const EdgeInsets.fromLTRB(7, 10, 7, 0),
+      padding: const EdgeInsets.fromLTRB(12, 16, 12, 0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const _SectionTitle(icon: 'document.svg', title: 'Tiện ích trên xe'),
-          const SizedBox(height: 6),
+          const SizedBox(height: 10),
           GridView.builder(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             padding: EdgeInsets.zero,
             itemCount: _items.length,
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 4,
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: useTwoColumns ? 2 : 4,
               crossAxisSpacing: 5,
               mainAxisSpacing: 5,
-              mainAxisExtent: 50,
+              mainAxisExtent: useTwoColumns ? 110 : 76,
             ),
             itemBuilder: (context, index) {
               final item = _items[index];
@@ -973,27 +1004,28 @@ class _AmenitiesSection extends StatelessWidget {
                     if (item.$1 != null)
                       SvgPicture.asset(
                         '$_detailAssets/${item.$1}',
-                        width: 18,
-                        height: 18,
+                        width: 22,
+                        height: 22,
                       )
                     else
                       const Text(
                         '+3',
                         style: TextStyle(
                           color: Color(0xFF0078C9),
-                          fontSize: 15,
+                          fontSize: 18,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 6),
                     Text(
                       item.$2,
-                      maxLines: 1,
+                      maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       textAlign: TextAlign.center,
                       style: const TextStyle(
                         color: Color(0xFF123862),
-                        fontSize: 7.5,
+                        fontSize: 12,
+                        height: 1.2,
                       ),
                     ),
                   ],
@@ -1013,61 +1045,72 @@ class _CancellationSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(7, 10, 7, 0),
+      padding: const EdgeInsets.fromLTRB(12, 16, 12, 0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const _SectionTitle(icon: 'shield.svg', title: 'Chính sách hủy'),
-          const SizedBox(height: 6),
+          const SizedBox(height: 10),
           _WhiteCard(
-            height: 38,
-            padding: const EdgeInsets.symmetric(horizontal: 11),
-            child: Row(
+            padding: const EdgeInsets.all(12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                SizedBox.square(
-                  dimension: 29,
-                  child: Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      SvgPicture.asset(
-                        '$_detailAssets/policy_backing.svg',
-                        width: 29,
-                        height: 29,
+                Row(
+                  children: [
+                    SizedBox.square(
+                      dimension: 36,
+                      child: Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          SvgPicture.asset(
+                            '$_detailAssets/policy_backing.svg',
+                            width: 36,
+                            height: 36,
+                          ),
+                          SvgPicture.asset(
+                            '$_detailAssets/policy_document.svg',
+                            width: 19,
+                            height: 19,
+                          ),
+                        ],
                       ),
-                      SvgPicture.asset(
-                        '$_detailAssets/policy_document.svg',
-                        width: 16,
-                        height: 16,
+                    ),
+                    const SizedBox(width: 12),
+                    const Expanded(
+                      child: Text(
+                        'Hoàn tiền tùy theo thời điểm hủy và điều kiện của chuyến.',
+                        style: TextStyle(
+                          color: _ink,
+                          fontSize: 13,
+                          height: 1.3,
+                        ),
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-                const SizedBox(width: 11),
-                const Expanded(
-                  child: Text(
-                    'Hoàn tiền tùy theo thời điểm hủy và điều kiện của chuyến.',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(color: _ink, fontSize: 8),
-                  ),
-                ),
-                const SizedBox(width: 7),
-                const Text(
-                  'Xem chi tiết',
-                  style: TextStyle(
-                    color: Color(0xFF0072BD),
-                    fontSize: 8.5,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(width: 4),
-                RotatedBox(
-                  quarterTurns: 3,
-                  child: SvgPicture.asset(
-                    '$_detailAssets/chevron.svg',
-                    width: 10,
-                    height: 10,
-                  ),
+                const SizedBox(height: 8),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Text(
+                      'Xem chi tiết',
+                      style: TextStyle(
+                        color: Color(0xFF0072BD),
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    RotatedBox(
+                      quarterTurns: 3,
+                      child: SvgPicture.asset(
+                        '$_detailAssets/chevron.svg',
+                        width: 14,
+                        height: 14,
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -1084,7 +1127,7 @@ class _NoticeSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(14, 9, 14, 0),
+      padding: const EdgeInsets.fromLTRB(14, 16, 14, 0),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -1094,17 +1137,17 @@ class _NoticeSection extends StatelessWidget {
             'Lưu ý',
             style: TextStyle(
               color: Color(0xFF082752),
-              fontSize: 12,
+              fontSize: 15,
               fontWeight: FontWeight.w600,
             ),
           ),
-          const SizedBox(width: 18),
+          const SizedBox(width: 14),
           const Expanded(
             child: Text(
               '• Vui lòng có mặt trước giờ khởi hành tối thiểu 30 phút.\n'
               '• Mang theo giấy tờ tùy thân khi lên xe.\n'
               '• Giờ đến có thể thay đổi tùy tình hình giao thông.',
-              style: TextStyle(color: _muted, fontSize: 7.5, height: 1.35),
+              style: TextStyle(color: _muted, fontSize: 13, height: 1.45),
             ),
           ),
         ],
@@ -1123,14 +1166,17 @@ class _SectionTitle extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        SvgPicture.asset('$_detailAssets/$icon', width: 17, height: 17),
-        const SizedBox(width: 11),
-        Text(
-          title,
-          style: const TextStyle(
-            color: Color(0xFF082752),
-            fontSize: 12,
-            fontWeight: FontWeight.w600,
+        SvgPicture.asset('$_detailAssets/$icon', width: 20, height: 20),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Text(
+            title,
+            style: const TextStyle(
+              color: Color(0xFF082752),
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              height: 1.25,
+            ),
           ),
         ),
       ],
@@ -1142,19 +1188,16 @@ class _WhiteCard extends StatelessWidget {
   const _WhiteCard({
     required this.child,
     required this.padding,
-    this.height,
     this.borderRadius = const BorderRadius.all(Radius.circular(13)),
   });
 
   final Widget child;
   final EdgeInsetsGeometry padding;
-  final double? height;
   final BorderRadius borderRadius;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: height,
       padding: padding,
       decoration: BoxDecoration(
         color: Colors.white,
@@ -1170,11 +1213,14 @@ class _BookingBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final useLargeText = MediaQuery.textScalerOf(context).scale(15) > 20;
+    final useNarrowLayout = MediaQuery.sizeOf(context).width < 360;
+
     return SafeArea(
       top: false,
       child: Container(
-        height: 58,
-        padding: const EdgeInsets.fromLTRB(14, 6, 14, 7),
+        height: useLargeText ? 176 : (useNarrowLayout ? 120 : 88),
+        padding: const EdgeInsets.fromLTRB(14, 10, 14, 10),
         decoration: const BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.vertical(top: Radius.circular(14)),
@@ -1193,24 +1239,22 @@ class _BookingBar extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Từ', style: TextStyle(color: _muted, fontSize: 8)),
-                  Row(
+                  Text('Từ', style: TextStyle(color: _muted, fontSize: 13)),
+                  Wrap(
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    spacing: 4,
                     children: [
-                      Flexible(
-                        child: Text(
-                          '280.000 ₫',
-                          maxLines: 1,
-                          style: TextStyle(
-                            color: Color(0xFF0064AF),
-                            fontSize: 15,
-                            fontWeight: FontWeight.w600,
-                          ),
+                      Text(
+                        '280.000 ₫',
+                        style: TextStyle(
+                          color: Color(0xFF0064AF),
+                          fontSize: 19,
+                          fontWeight: FontWeight.w700,
                         ),
                       ),
-                      SizedBox(width: 3),
                       Text(
                         '/ người',
-                        style: TextStyle(color: _muted, fontSize: 8),
+                        style: TextStyle(color: _muted, fontSize: 13),
                       ),
                     ],
                   ),
@@ -1218,8 +1262,7 @@ class _BookingBar extends StatelessWidget {
               ),
             ),
             SizedBox(
-              width: 148,
-              height: 36,
+              width: 164,
               child: FilledButton(
                 key: Key('trip-detail-cta'),
                 onPressed: () {
@@ -1232,7 +1275,11 @@ class _BookingBar extends StatelessWidget {
                 style: FilledButton.styleFrom(
                   backgroundColor: _blue,
                   foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  minimumSize: const Size(0, 48),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 12,
+                  ),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(11),
                   ),
@@ -1240,14 +1287,18 @@ class _BookingBar extends StatelessWidget {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Text(
-                      'Chọn chỗ',
-                      style: TextStyle(
-                        fontSize: 11.5,
-                        fontWeight: FontWeight.w600,
+                    const Flexible(
+                      child: Text(
+                        'Chọn chỗ',
+                        maxLines: 2,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: 8),
                     SvgPicture.asset(
                       '$_detailAssets/forward.svg',
                       width: 17,

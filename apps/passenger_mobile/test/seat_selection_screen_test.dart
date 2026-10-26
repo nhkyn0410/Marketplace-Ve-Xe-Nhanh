@@ -61,7 +61,7 @@ void main() {
 
     expect(
       tester.getSize(find.byKey(const Key('seat-bus-frame'))),
-      const Size(185, 352),
+      const Size(185, 370),
     );
     await tester.ensureVisible(find.byKey(const Key('seat-A02')));
     await tester.tap(find.byKey(const Key('seat-A02')));
@@ -71,7 +71,7 @@ void main() {
       find.byKey(const Key('seat-selection-count')),
     );
     expect(selectedSeatCount.data, '2 ghế');
-    expect(selectedSeatCount.style?.fontSize, 13);
+    expect(selectedSeatCount.style?.fontSize, 14);
     expect(find.text('2 ghế  –  A01, A02'), findsNothing);
     expect(find.text('560.000 đ'), findsOneWidget);
 
@@ -82,12 +82,22 @@ void main() {
       findsOneWidget,
     );
     expect(find.byKey(const Key('passenger-card-A01')), findsOneWidget);
-    expect(find.byKey(const Key('passenger-card-A02')), findsOneWidget);
     expect(find.text('Số ghế\nđã chọn'), findsOneWidget);
     final summarySeatCount = tester.widget<Text>(
       find.byKey(const Key('selected-seat-count')),
     );
     expect(summarySeatCount.data, '2');
+    await tester.scrollUntilVisible(
+      find.byKey(const Key('passenger-card-A02')),
+      200,
+      scrollable: find
+          .descendant(
+            of: find.byKey(const Key('passenger-information-scroll')),
+            matching: find.byType(Scrollable),
+          )
+          .first,
+    );
+    expect(find.byKey(const Key('passenger-card-A02')), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 
@@ -114,9 +124,25 @@ void main() {
   ) async {
     await _pumpApp(tester, width: 320, height: 568);
 
-    await tester.tap(find.byKey(const Key('dropoff-card')));
+    final dropoffCard = tester.widget<InkWell>(
+      find.descendant(
+        of: find.byKey(const Key('dropoff-card')),
+        matching: find.byType(InkWell),
+      ),
+    );
+    dropoffCard.onTap!();
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('dropoff-sheet')), findsOneWidget);
+    await tester.scrollUntilVisible(
+      find.text('Trung tâm Đà Lạt'),
+      100,
+      scrollable: find
+          .descendant(
+            of: find.byKey(const Key('stop-options')),
+            matching: find.byType(Scrollable),
+          )
+          .first,
+    );
     expect(find.text('Trung tâm Đà Lạt'), findsOneWidget);
 
     await tester.tap(find.byKey(const Key('stop-sheet-close')));

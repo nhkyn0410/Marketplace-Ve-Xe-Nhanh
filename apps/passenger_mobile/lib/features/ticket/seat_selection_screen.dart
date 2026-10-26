@@ -3,8 +3,8 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 
+import 'booking_flow_chrome.dart';
 import 'passenger_information_screen.dart';
 
 const _detailAssets = 'assets/ticket/detail';
@@ -130,45 +130,51 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
         ),
         body: SafeArea(
           bottom: false,
-          child: CustomScrollView(
-            key: const Key('seat-selection-scroll'),
-            slivers: [
-              SliverToBoxAdapter(
-                child: _Header(onBack: () => Navigator.maybePop(context)),
+          child: Column(
+            children: [
+              _Header(
+                timerLabel: _timerLabel,
+                expired: expired,
+                urgent: _remaining <= const Duration(minutes: 1),
+                onBack: () => Navigator.maybePop(context),
               ),
-              const SliverToBoxAdapter(child: _StepProgress()),
-              const SliverToBoxAdapter(child: _TripSummary()),
-              SliverToBoxAdapter(
-                child: _StopSummary(
-                  pickup: _pickup,
-                  dropoff: _dropoff,
-                  onPickup: () => _chooseStop(pickup: true),
-                  onDropoff: () => _chooseStop(pickup: false),
+              const _StepProgress(),
+              Expanded(
+                child: CustomScrollView(
+                  key: const Key('seat-selection-scroll'),
+                  slivers: [
+                    const SliverToBoxAdapter(child: _TripSummary()),
+                    SliverToBoxAdapter(
+                      child: _StopSummary(
+                        pickup: _pickup,
+                        dropoff: _dropoff,
+                        onPickup: () => _chooseStop(pickup: true),
+                        onDropoff: () => _chooseStop(pickup: false),
+                      ),
+                    ),
+                    SliverToBoxAdapter(
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(14, 12, 14, 4),
+                        child: _SeatMap(
+                          selectedSeats: expired ? const {} : _selectedSeats,
+                          unavailableSeats: _unavailableSeats,
+                          bookedSeats: _bookedSeats,
+                          onSeatSelected: (seat) {
+                            if (expired) return;
+                            setState(() {
+                              if (!_selectedSeats.remove(seat)) {
+                                _selectedSeats.add(seat);
+                              }
+                            });
+                          },
+                        ),
+                      ),
+                    ),
+                    const SliverToBoxAdapter(child: _SeatLegend()),
+                    const SliverToBoxAdapter(child: SizedBox(height: 14)),
+                  ],
                 ),
               ),
-              SliverToBoxAdapter(
-                child: _HoldBanner(timerLabel: _timerLabel, expired: expired),
-              ),
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(14, 12, 14, 4),
-                  child: _SeatMap(
-                    selectedSeats: expired ? const {} : _selectedSeats,
-                    unavailableSeats: _unavailableSeats,
-                    bookedSeats: _bookedSeats,
-                    onSeatSelected: (seat) {
-                      if (expired) return;
-                      setState(() {
-                        if (!_selectedSeats.remove(seat)) {
-                          _selectedSeats.add(seat);
-                        }
-                      });
-                    },
-                  ),
-                ),
-              ),
-              const SliverToBoxAdapter(child: _SeatLegend()),
-              const SliverToBoxAdapter(child: SizedBox(height: 14)),
             ],
           ),
         ),
@@ -178,52 +184,29 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
 }
 
 class _Header extends StatelessWidget {
-  const _Header({required this.onBack});
+  const _Header({
+    required this.timerLabel,
+    required this.expired,
+    required this.urgent,
+    required this.onBack,
+  });
 
+  final String timerLabel;
+  final bool expired;
+  final bool urgent;
   final VoidCallback onBack;
 
   @override
   Widget build(BuildContext context) {
-    return ColoredBox(
-      color: Colors.white,
-      child: SizedBox(
-        height: 58,
-        child: Stack(
-          alignment: Alignment.center,
-          children: [
-            Positioned(
-              left: 8,
-              child: IconButton(
-                key: const Key('seat-selection-back'),
-                onPressed: onBack,
-                icon: SvgPicture.asset(
-                  '$_detailAssets/back.svg',
-                  width: 20,
-                  height: 20,
-                ),
-              ),
-            ),
-            const Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  'Chọn chỗ',
-                  style: TextStyle(
-                    color: _ink,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                SizedBox(height: 1),
-                Text(
-                  'TP.HCM → Đà Lạt',
-                  style: TextStyle(color: _muted, fontSize: 9),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
+    return BookingFlowHeader(
+      key: const Key('seat-selection-header'),
+      title: 'Chọn chỗ',
+      timerLabel: timerLabel,
+      expired: expired,
+      urgent: urgent,
+      onBack: onBack,
+      backKey: const Key('seat-selection-back'),
+      timerKey: const Key('seat-hold-countdown'),
     );
   }
 }
@@ -231,81 +214,11 @@ class _Header extends StatelessWidget {
 class _StepProgress extends StatelessWidget {
   const _StepProgress();
 
-  static const _steps = [
-    'Chọn ghế',
-    'Thông tin\nhành khách',
-    'Thanh toán',
-    'Hoàn tất',
-  ];
-
   @override
   Widget build(BuildContext context) {
-    return ColoredBox(
-      color: Colors.white,
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(18, 0, 18, 11),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: List.generate(_steps.length, (index) {
-            final active = index == 0;
-            return Expanded(
-              child: Column(
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Divider(
-                          color: index == 0
-                              ? Colors.transparent
-                              : const Color(0xFFDCE8EE),
-                          height: 12,
-                        ),
-                      ),
-                      Container(
-                        width: 20,
-                        height: 20,
-                        alignment: Alignment.center,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: active ? _blue : const Color(0xFFEAF1F5),
-                        ),
-                        child: Text(
-                          '${index + 1}',
-                          style: TextStyle(
-                            color: active ? Colors.white : _muted,
-                            fontSize: 9,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                      Expanded(
-                        child: Divider(
-                          color: index == _steps.length - 1
-                              ? Colors.transparent
-                              : const Color(0xFFDCE8EE),
-                          height: 12,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 3),
-                  Text(
-                    _steps[index],
-                    textAlign: TextAlign.center,
-                    maxLines: 2,
-                    style: TextStyle(
-                      color: active ? _blue : _muted,
-                      fontSize: 8,
-                      height: 1.1,
-                      fontWeight: active ? FontWeight.w600 : FontWeight.w400,
-                    ),
-                  ),
-                ],
-              ),
-            );
-          }),
-        ),
-      ),
+    return const BookingStepProgress(
+      key: Key('seat-selection-progress'),
+      activeStep: 0,
     );
   }
 }
@@ -351,7 +264,7 @@ class _TripSummary extends StatelessWidget {
                       'Phương Trang',
                       style: TextStyle(
                         color: _ink,
-                        fontSize: 11.5,
+                        fontSize: 16,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -365,14 +278,14 @@ class _TripSummary extends StatelessWidget {
                             '4.8 (12.5K đánh giá)',
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: TextStyle(color: _muted, fontSize: 8.5),
+                            style: TextStyle(color: _muted, fontSize: 13),
                           ),
                         ),
                       ],
                     ),
                     Text(
                       'Limousine 34 phòng',
-                      style: TextStyle(color: _muted, fontSize: 8.5),
+                      style: TextStyle(color: _muted, fontSize: 13),
                     ),
                   ],
                 ),
@@ -423,11 +336,11 @@ class _TripTime extends StatelessWidget {
           time,
           style: const TextStyle(
             color: _ink,
-            fontSize: 13.5,
+            fontSize: 16,
             fontWeight: FontWeight.w600,
           ),
         ),
-        Text(place, style: const TextStyle(color: _muted, fontSize: 8)),
+        Text(place, style: const TextStyle(color: _muted, fontSize: 13)),
       ],
     );
   }
@@ -466,7 +379,7 @@ class _TripLine extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 2),
-          const Text('6h30', style: TextStyle(color: _muted, fontSize: 8)),
+          const Text('6h30', style: TextStyle(color: _muted, fontSize: 13)),
         ],
       ),
     );
@@ -488,31 +401,60 @@ class _StopSummary extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final stackCards =
+        MediaQuery.sizeOf(context).width < 390 ||
+        MediaQuery.textScalerOf(context).scale(13) > 16;
     return Padding(
       padding: const EdgeInsets.fromLTRB(10, 7, 10, 0),
-      child: Row(
-        children: [
-          Expanded(
-            child: _StopCard(
-              key: const Key('pickup-card'),
-              title: 'Điểm đón',
-              stop: pickup,
-              color: _blue,
-              onTap: onPickup,
+      child: stackCards
+          ? Column(
+              children: [
+                SizedBox(
+                  width: double.infinity,
+                  child: _StopCard(
+                    key: const Key('pickup-card'),
+                    title: 'Điểm đón',
+                    stop: pickup,
+                    color: _blue,
+                    onTap: onPickup,
+                  ),
+                ),
+                const SizedBox(height: 7),
+                SizedBox(
+                  width: double.infinity,
+                  child: _StopCard(
+                    key: const Key('dropoff-card'),
+                    title: 'Điểm trả',
+                    stop: dropoff,
+                    color: _orange,
+                    onTap: onDropoff,
+                  ),
+                ),
+              ],
+            )
+          : Row(
+              children: [
+                Expanded(
+                  child: _StopCard(
+                    key: const Key('pickup-card'),
+                    title: 'Điểm đón',
+                    stop: pickup,
+                    color: _blue,
+                    onTap: onPickup,
+                  ),
+                ),
+                const SizedBox(width: 7),
+                Expanded(
+                  child: _StopCard(
+                    key: const Key('dropoff-card'),
+                    title: 'Điểm trả',
+                    stop: dropoff,
+                    color: _orange,
+                    onTap: onDropoff,
+                  ),
+                ),
+              ],
             ),
-          ),
-          const SizedBox(width: 7),
-          Expanded(
-            child: _StopCard(
-              key: const Key('dropoff-card'),
-              title: 'Điểm trả',
-              stop: dropoff,
-              color: _orange,
-              onTap: onDropoff,
-            ),
-          ),
-        ],
-      ),
     );
   }
 }
@@ -551,15 +493,13 @@ class _StopCard extends StatelessWidget {
                   children: [
                     Text(
                       title,
-                      style: const TextStyle(color: _muted, fontSize: 7.5),
+                      style: const TextStyle(color: _muted, fontSize: 13),
                     ),
                     Text(
                       stop.name,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
                         color: _ink,
-                        fontSize: 9,
+                        fontSize: 14,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -570,55 +510,6 @@ class _StopCard extends StatelessWidget {
             ],
           ),
         ),
-      ),
-    );
-  }
-}
-
-class _HoldBanner extends StatelessWidget {
-  const _HoldBanner({required this.timerLabel, required this.expired});
-
-  final String timerLabel;
-  final bool expired;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      key: const Key('seat-hold-banner'),
-      margin: const EdgeInsets.fromLTRB(10, 7, 10, 0),
-      padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 7),
-      decoration: BoxDecoration(
-        color: expired ? const Color(0xFFFFEDED) : const Color(0xFFFFF1DD),
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Row(
-        children: [
-          Icon(
-            expired ? Icons.error_outline_rounded : Icons.access_time_rounded,
-            color: expired ? const Color(0xFFE44F4F) : _orange,
-            size: 17,
-          ),
-          const SizedBox(width: 7),
-          Expanded(
-            child: Text(
-              expired ? 'Đã hết thời gian giữ ghế' : 'Đang giữ ghế cho bạn',
-              style: TextStyle(
-                color: expired ? const Color(0xFFE44F4F) : _orange,
-                fontSize: 9.5,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ),
-          Text(
-            timerLabel,
-            key: const Key('seat-hold-countdown'),
-            style: TextStyle(
-              color: expired ? const Color(0xFFE44F4F) : _orange,
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ],
       ),
     );
   }
@@ -646,6 +537,10 @@ class _SeatMap extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final textScale = MediaQuery.textScalerOf(context)
+        .scale(1)
+        .clamp(1.0, 1.5)
+        .toDouble();
     return Container(
       padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
       decoration: BoxDecoration(
@@ -656,7 +551,7 @@ class _SeatMap extends StatelessWidget {
         child: SizedBox(
           key: const Key('seat-bus-frame'),
           width: 185,
-          height: 352,
+          height: 370 + ((textScale - 1) * 110),
           child: CustomPaint(
             painter: _BusOutlinePainter(),
             child: Padding(
@@ -706,6 +601,10 @@ class _SeatButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final textScale = MediaQuery.textScalerOf(context)
+        .scale(1)
+        .clamp(1.0, 1.5)
+        .toDouble();
     final selected = status == _SeatStatus.selected;
     final enabled = status == _SeatStatus.available || selected;
     final background = switch (status) {
@@ -726,7 +625,7 @@ class _SeatButton extends StatelessWidget {
       borderRadius: BorderRadius.circular(7),
       child: Container(
         width: 52,
-        height: 27,
+        height: 30 + ((textScale - 1) * 12),
         alignment: Alignment.center,
         decoration: BoxDecoration(
           color: background,
@@ -752,7 +651,7 @@ class _SeatButton extends StatelessWidget {
                     _SeatStatus.unavailable => const Color(0xFF86A5BB),
                     _SeatStatus.available => const Color(0xFF20538C),
                   },
-                  fontSize: 10,
+                  fontSize: 13,
                   fontWeight: FontWeight.w500,
                 ),
               ),
@@ -982,7 +881,7 @@ class _LegendItem extends StatelessWidget {
           ),
         ),
         const SizedBox(width: 4),
-        Text(label, style: const TextStyle(color: _muted, fontSize: 8)),
+        Text(label, style: const TextStyle(color: _muted, fontSize: 13)),
       ],
     );
   }
@@ -1025,7 +924,7 @@ class _SeatBookingBar extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
                         color: _ink,
-                        fontSize: 13,
+                        fontSize: 14,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -1036,45 +935,46 @@ class _SeatBookingBar extends StatelessWidget {
                           : '${_formatAmount(seats.length * 280000)} đ',
                       style: const TextStyle(
                         color: _orange,
-                        fontSize: 17,
-                        fontWeight: FontWeight.w600,
+                        fontSize: 19,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
                   ],
                 ),
               ),
               ConstrainedBox(
-                constraints: const BoxConstraints(minWidth: 132, maxWidth: 154),
-                child: SizedBox(
-                  height: 42,
-                  child: FilledButton(
-                    key: const Key('seat-selection-continue'),
-                    onPressed: onContinue,
-                    style: FilledButton.styleFrom(
-                      backgroundColor: _blue,
-                      disabledBackgroundColor: const Color(0xFFB9CED9),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
+                constraints: const BoxConstraints(
+                  minWidth: 132,
+                  maxWidth: 170,
+                  minHeight: 50,
+                ),
+                child: FilledButton(
+                  key: const Key('seat-selection-continue'),
+                  onPressed: onContinue,
+                  style: FilledButton.styleFrom(
+                    backgroundColor: _blue,
+                    disabledBackgroundColor: const Color(0xFFB9CED9),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
                     ),
-                    child: const Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Flexible(
-                          child: Text(
-                            'Tiếp tục',
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w600,
-                            ),
+                  ),
+                  child: const Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Flexible(
+                        child: Text(
+                          'Tiếp tục',
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
-                        SizedBox(width: 7),
-                        Icon(Icons.arrow_forward_rounded, size: 16),
-                      ],
-                    ),
+                      ),
+                      SizedBox(width: 7),
+                      Icon(Icons.arrow_forward_rounded, size: 16),
+                    ],
                   ),
                 ),
               ),
@@ -1148,7 +1048,7 @@ class _StopPickerSheetState extends State<_StopPickerSheet> {
                         widget.pickup ? 'Chọn điểm đón' : 'Chọn điểm trả',
                         style: const TextStyle(
                           color: _ink,
-                          fontSize: 15,
+                          fontSize: 19,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -1189,21 +1089,23 @@ class _StopPickerSheetState extends State<_StopPickerSheet> {
                 padding: const EdgeInsets.fromLTRB(11, 4, 11, 11),
                 child: SizedBox(
                   width: double.infinity,
-                  height: 43,
-                  child: FilledButton(
-                    key: const Key('confirm-stop'),
-                    onPressed: () => Navigator.pop(context, _selected),
-                    style: FilledButton.styleFrom(
-                      backgroundColor: _blue,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(minHeight: 50),
+                    child: FilledButton(
+                      key: const Key('confirm-stop'),
+                      onPressed: () => Navigator.pop(context, _selected),
+                      style: FilledButton.styleFrom(
+                        backgroundColor: _blue,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
                       ),
-                    ),
-                    child: const Text(
-                      'Xác nhận',
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
+                      child: const Text(
+                        'Xác nhận',
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ),
                   ),
@@ -1284,23 +1186,21 @@ class _StopOption extends StatelessWidget {
                   children: [
                     Text(
                       stop.time,
-                      style: const TextStyle(color: _muted, fontSize: 10),
+                      style: const TextStyle(color: _muted, fontSize: 13),
                     ),
                     const SizedBox(height: 1),
                     Text(
                       stop.name,
                       style: const TextStyle(
                         color: _ink,
-                        fontSize: 11,
+                        fontSize: 14,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
                     const SizedBox(height: 1),
                     Text(
                       stop.address,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(color: _muted, fontSize: 8),
+                      style: const TextStyle(color: _muted, fontSize: 13),
                     ),
                   ],
                 ),

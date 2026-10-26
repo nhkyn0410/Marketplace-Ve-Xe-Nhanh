@@ -94,6 +94,8 @@ flutter:
     - assets/home/articles/da_lat_coach_guide.jpg
     - assets/home/support/
     - assets/home/tabbar/
+    - assets/explore/
+    - assets/journey/guest_lookup/
     - assets/ticket/
     - assets/ticket/detail/
     - assets/ticket/payment/
@@ -114,6 +116,8 @@ flutter:
           weight: 500
         - asset: assets/fonts/BeVietnamPro-SemiBold.ttf
           weight: 600
+        - asset: assets/fonts/BeVietnamPro-Bold.ttf
+          weight: 700
 
   # To add assets to your application, add an assets section, like this:
   # assets:

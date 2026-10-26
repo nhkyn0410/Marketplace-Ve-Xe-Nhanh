@@ -51,20 +51,30 @@ void main() {
       find.byKey(const Key('selected-seat-count')),
     );
     expect(selectedSeatCount.data, '2');
-    expect(selectedSeatCount.style?.fontSize, 14);
+    expect(selectedSeatCount.style?.fontSize, 16);
     expect(find.byKey(const Key('passenger-card-A01')), findsOneWidget);
+    await tester.scrollUntilVisible(
+      find.byKey(const Key('passenger-card-A02')),
+      200,
+      scrollable: find
+          .descendant(
+            of: find.byKey(const Key('passenger-information-scroll')),
+            matching: find.byType(Scrollable),
+          )
+          .first,
+    );
     expect(find.byKey(const Key('passenger-card-A02')), findsOneWidget);
     final passengerCount = tester.widget<Text>(
       find.byKey(const Key('passenger-count')),
     );
     expect(passengerCount.data, '2 khách hàng');
-    expect(passengerCount.style?.fontSize, 13);
+    expect(passengerCount.style?.fontSize, 14);
     expect(find.text('A01, A02'), findsNothing);
     final totalAmount = tester.widget<Text>(
       find.byKey(const Key('passenger-total-amount')),
     );
     expect(totalAmount.data, '560.000 đ');
-    expect(totalAmount.style?.fontSize, 16.5);
+    expect(totalAmount.style?.fontSize, 19);
     expect(totalAmount.style?.fontWeight, FontWeight.w700);
     expect(find.text('560.000 đ'), findsOneWidget);
     expect(find.text('10:00'), findsOneWidget);
@@ -109,7 +119,16 @@ void main() {
     );
     expect(continueButton.onPressed, isNull);
 
-    await tester.ensureVisible(find.byKey(const Key('saved-passenger-A03')));
+    await tester.scrollUntilVisible(
+      find.byKey(const Key('saved-passenger-A03')),
+      250,
+      scrollable: find
+          .descendant(
+            of: find.byKey(const Key('passenger-information-scroll')),
+            matching: find.byType(Scrollable),
+          )
+          .first,
+    );
     await tester.tap(find.byKey(const Key('saved-passenger-A03')));
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('saved-passenger-sheet')), findsOneWidget);
@@ -144,7 +163,7 @@ void main() {
       find.byKey(const Key('booking-confirmation-screen')),
       findsOneWidget,
     );
-    expect(find.text('Giữ ghế trong 09:30'), findsOneWidget);
+    expect(find.text('09:30'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 

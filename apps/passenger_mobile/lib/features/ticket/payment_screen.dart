@@ -2,8 +2,8 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 
+import 'booking_flow_chrome.dart';
 import 'payment_completion_screen.dart';
 
 const _detailAssets = 'assets/ticket/detail';
@@ -124,52 +124,56 @@ class _PaymentScreenState extends State<PaymentScreen> {
         ),
         body: SafeArea(
           bottom: false,
-          child: CustomScrollView(
-            key: const Key('payment-scroll'),
-            slivers: [
-              SliverToBoxAdapter(
-                child: _PaymentHeader(
-                  timerLabel: _timerLabel,
-                  expired: expired,
-                  urgent: _remaining <= const Duration(minutes: 1),
-                  onBack: () => Navigator.maybePop(context),
+          child: Column(
+            children: [
+              _PaymentHeader(
+                timerLabel: _timerLabel,
+                expired: expired,
+                urgent: _remaining <= const Duration(minutes: 1),
+                onBack: () => Navigator.maybePop(context),
+              ),
+              const _PaymentProgress(),
+              Expanded(
+                child: CustomScrollView(
+                  key: const Key('payment-scroll'),
+                  slivers: [
+                    SliverToBoxAdapter(
+                      child: _OrderCard(
+                        seatCount: widget.selectedSeats.length,
+                        passengerNames: widget.passengerNames,
+                        ticketAmount: _ticketAmount,
+                        totalAmount: _totalAmount,
+                        onEdit: () => Navigator.maybePop(context),
+                      ),
+                    ),
+                    SliverToBoxAdapter(
+                      child: _PaymentMethodCard(
+                        selectedMethod: _selectedMethod,
+                        onChanged: (method) {
+                          setState(() => _selectedMethod = method);
+                        },
+                      ),
+                    ),
+                    if (_selectedMethod == 'vnpay')
+                      SliverToBoxAdapter(
+                        child: _BankSelector(
+                          bankName: _selectedBankName,
+                          onTap: _chooseBank,
+                        ),
+                      ),
+                    const SliverToBoxAdapter(child: _SafePaymentNotice()),
+                    SliverToBoxAdapter(
+                      child: _PaymentTerms(
+                        accepted: _termsAccepted,
+                        onChanged: (value) {
+                          setState(() => _termsAccepted = value ?? false);
+                        },
+                      ),
+                    ),
+                    const SliverToBoxAdapter(child: SizedBox(height: 14)),
+                  ],
                 ),
               ),
-              const SliverToBoxAdapter(child: _PaymentProgress()),
-              SliverToBoxAdapter(
-                child: _OrderCard(
-                  seatCount: widget.selectedSeats.length,
-                  passengerNames: widget.passengerNames,
-                  ticketAmount: _ticketAmount,
-                  totalAmount: _totalAmount,
-                  onEdit: () => Navigator.maybePop(context),
-                ),
-              ),
-              SliverToBoxAdapter(
-                child: _PaymentMethodCard(
-                  selectedMethod: _selectedMethod,
-                  onChanged: (method) {
-                    setState(() => _selectedMethod = method);
-                  },
-                ),
-              ),
-              if (_selectedMethod == 'vnpay')
-                SliverToBoxAdapter(
-                  child: _BankSelector(
-                    bankName: _selectedBankName,
-                    onTap: _chooseBank,
-                  ),
-                ),
-              const SliverToBoxAdapter(child: _SafePaymentNotice()),
-              SliverToBoxAdapter(
-                child: _PaymentTerms(
-                  accepted: _termsAccepted,
-                  onChanged: (value) {
-                    setState(() => _termsAccepted = value ?? false);
-                  },
-                ),
-              ),
-              const SliverToBoxAdapter(child: SizedBox(height: 14)),
             ],
           ),
         ),
@@ -193,70 +197,16 @@ class _PaymentHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final warning = expired || urgent;
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(6, 5, 10, 4),
-      child: Row(
-        children: [
-          IconButton(
-            key: const Key('payment-back'),
-            onPressed: onBack,
-            icon: SvgPicture.asset(
-              '$_detailAssets/back.svg',
-              width: 20,
-              height: 20,
-            ),
-          ),
-          const Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Thanh toán',
-                  style: TextStyle(
-                    color: _ink,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                Text(
-                  'TP.HCM → Đà Lạt',
-                  style: TextStyle(color: _muted, fontSize: 9.5),
-                ),
-              ],
-            ),
-          ),
-          Container(
-            key: const Key('payment-hold-timer'),
-            padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 7),
-            decoration: BoxDecoration(
-              color: warning
-                  ? const Color(0xFFFFE4E4)
-                  : const Color(0xFFFFF1D8),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  Icons.access_time_filled_rounded,
-                  color: warning ? const Color(0xFFD84A4A) : _orange,
-                  size: 15,
-                ),
-                const SizedBox(width: 4),
-                Text(
-                  expired ? 'Đã hết hạn' : 'Giữ ghế trong $timerLabel',
-                  style: TextStyle(
-                    color: warning ? const Color(0xFFD84A4A) : _orange,
-                    fontSize: 9.5,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
+    return BookingFlowHeader(
+      key: const Key('payment-header'),
+      title: 'Thanh toán',
+      timerLabel: timerLabel,
+      expired: expired,
+      urgent: urgent,
+      onBack: onBack,
+      backKey: const Key('payment-back'),
+      timerKey: const Key('payment-hold-timer'),
+      backgroundColor: _page,
     );
   }
 }
@@ -264,90 +214,12 @@ class _PaymentHeader extends StatelessWidget {
 class _PaymentProgress extends StatelessWidget {
   const _PaymentProgress();
 
-  static const _steps = [
-    'Chọn ghế',
-    'Thông tin\nhành khách',
-    'Thanh toán',
-    'Hoàn tất',
-  ];
-
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(18, 2, 18, 11),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: List.generate(_steps.length, (index) {
-          final active = index == 2;
-          final completed = index < 2;
-          final color = active || completed ? _blue : const Color(0xFFE3ECF1);
-          return Expanded(
-            child: Column(
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: Divider(
-                        color: index == 0
-                            ? Colors.transparent
-                            : index <= 2
-                            ? _blue
-                            : const Color(0xFFD7E4EA),
-                        height: 12,
-                      ),
-                    ),
-                    Container(
-                      width: 21,
-                      height: 21,
-                      alignment: Alignment.center,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: color,
-                      ),
-                      child: completed
-                          ? const Icon(
-                              Icons.check_rounded,
-                              color: Colors.white,
-                              size: 14,
-                            )
-                          : Text(
-                              '${index + 1}',
-                              style: TextStyle(
-                                color: active ? Colors.white : _muted,
-                                fontSize: 9,
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                    ),
-                    Expanded(
-                      child: Divider(
-                        color: index == _steps.length - 1
-                            ? Colors.transparent
-                            : index < 2
-                            ? _blue
-                            : const Color(0xFFD7E4EA),
-                        height: 12,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 3),
-                Text(
-                  _steps[index],
-                  textAlign: TextAlign.center,
-                  maxLines: 2,
-                  style: TextStyle(
-                    color: active ? _ink : _muted,
-                    fontSize: 8.5,
-                    height: 1.1,
-                    fontWeight: active ? FontWeight.w700 : FontWeight.w400,
-                  ),
-                ),
-              ],
-            ),
-          );
-        }),
-      ),
+    return const BookingStepProgress(
+      key: Key('payment-progress'),
+      activeStep: 2,
+      backgroundColor: _page,
     );
   }
 }
@@ -399,13 +271,13 @@ class _OrderCard extends StatelessWidget {
                       'Phương Trang',
                       style: TextStyle(
                         color: _ink,
-                        fontSize: 13,
+                        fontSize: 16,
                         fontWeight: FontWeight.w700,
                       ),
                     ),
                     Text(
                       '10/10/2026',
-                      style: TextStyle(color: _muted, fontSize: 9),
+                      style: TextStyle(color: _muted, fontSize: 13),
                     ),
                   ],
                 ),
@@ -469,7 +341,7 @@ class _OrderCard extends StatelessWidget {
                   'Tổng cộng',
                   style: TextStyle(
                     color: _ink,
-                    fontSize: 12.5,
+                    fontSize: 16,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
@@ -479,7 +351,7 @@ class _OrderCard extends StatelessWidget {
                 key: const Key('payment-order-total'),
                 style: const TextStyle(
                   color: _orange,
-                  fontSize: 18,
+                  fontSize: 19,
                   fontWeight: FontWeight.w700,
                 ),
               ),
@@ -505,7 +377,7 @@ class _OrderRoutePoint extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: 64,
+      width: 76,
       child: Column(
         crossAxisAlignment: end
             ? CrossAxisAlignment.end
@@ -519,7 +391,7 @@ class _OrderRoutePoint extends StatelessWidget {
               fontWeight: FontWeight.w700,
             ),
           ),
-          Text(city, style: const TextStyle(color: _muted, fontSize: 8.5)),
+          Text(city, style: const TextStyle(color: _muted, fontSize: 13)),
         ],
       ),
     );
@@ -558,8 +430,11 @@ class _OrderRouteDuration extends StatelessWidget {
               ),
             ],
           ),
-          const Text('6h30', style: TextStyle(color: _muted, fontSize: 8)),
-          const Text('Trực tiếp', style: TextStyle(color: _muted, fontSize: 7)),
+          const Text('6h30', style: TextStyle(color: _muted, fontSize: 13)),
+          const Text(
+            'Trực tiếp',
+            style: TextStyle(color: _muted, fontSize: 13),
+          ),
         ],
       ),
     );
@@ -588,10 +463,10 @@ class _OrderInfoRow extends StatelessWidget {
           Icon(icon, color: iconColor, size: 15),
           const SizedBox(width: 7),
           SizedBox(
-            width: 67,
+            width: 88,
             child: Text(
               label,
-              style: const TextStyle(color: _muted, fontSize: 9),
+              style: const TextStyle(color: _muted, fontSize: 13),
             ),
           ),
           const SizedBox(width: 6),
@@ -599,11 +474,9 @@ class _OrderInfoRow extends StatelessWidget {
             child: Text(
               value,
               textAlign: TextAlign.end,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
               style: const TextStyle(
                 color: _ink,
-                fontSize: 9,
+                fontSize: 14,
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -631,13 +504,13 @@ class _PriceRow extends StatelessWidget {
     return Row(
       children: [
         Expanded(
-          child: Text(label, style: TextStyle(color: color, fontSize: 9.5)),
+          child: Text(label, style: TextStyle(color: color, fontSize: 13)),
         ),
         Text(
           value,
           style: TextStyle(
             color: discount ? const Color(0xFF258A54) : _ink,
-            fontSize: 10,
+            fontSize: 14,
             fontWeight: FontWeight.w600,
           ),
         ),
@@ -721,7 +594,10 @@ class _PaymentMethodCard extends StatelessWidget {
           const SizedBox(height: 10),
           LayoutBuilder(
             builder: (context, constraints) {
-              if (constraints.maxWidth < 300) {
+              final oneColumn =
+                  constraints.maxWidth < 390 ||
+                  MediaQuery.textScalerOf(context).scale(14) > 17;
+              if (oneColumn) {
                 return Column(
                   children: [
                     momo,
@@ -815,8 +691,8 @@ class _PaymentOption extends StatelessWidget {
         child: InkWell(
           onTap: enabled ? onTap : null,
           borderRadius: BorderRadius.circular(9),
-          child: SizedBox(
-            height: fullWidth ? 48 : 60,
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minHeight: fullWidth ? 56 : 72),
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 7),
               child: Row(
@@ -833,11 +709,9 @@ class _PaymentOption extends StatelessWidget {
                             Expanded(
                               child: Text(
                                 title,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
                                 style: const TextStyle(
                                   color: _ink,
-                                  fontSize: 10,
+                                  fontSize: 14,
                                   fontWeight: FontWeight.w700,
                                 ),
                               ),
@@ -857,7 +731,7 @@ class _PaymentOption extends StatelessWidget {
                                   badge!,
                                   style: const TextStyle(
                                     color: _orange,
-                                    fontSize: 6.5,
+                                    fontSize: 12,
                                     fontWeight: FontWeight.w600,
                                   ),
                                 ),
@@ -868,12 +742,10 @@ class _PaymentOption extends StatelessWidget {
                         const SizedBox(height: 2),
                         Text(
                           subtitle,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
                             color: _muted,
-                            fontSize: 7.5,
-                            height: 1.15,
+                            fontSize: 13,
+                            height: 1.25,
                           ),
                         ),
                       ],
@@ -928,7 +800,7 @@ class _BankSelector extends StatelessWidget {
                   'Chọn ngân hàng',
                   style: TextStyle(
                     color: _ink,
-                    fontSize: 12,
+                    fontSize: 16,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
@@ -938,7 +810,7 @@ class _BankSelector extends StatelessWidget {
                 key: const Key('selected-bank-name'),
                 style: const TextStyle(
                   color: _blue,
-                  fontSize: 8.5,
+                  fontSize: 13,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -977,14 +849,14 @@ class _SafePaymentNotice extends StatelessWidget {
                   'Thanh toán an toàn qua VNPAY',
                   style: TextStyle(
                     color: _blue,
-                    fontSize: 11,
+                    fontSize: 15,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
                 SizedBox(height: 3),
                 Text(
                   'Dữ liệu thẻ được mã hóa PCI-DSS, không lưu trên hệ thống của VXN. Sau khi nhấn thanh toán, bạn sẽ được chuyển tiếp tới cổng xác nhận phù hợp.',
-                  style: TextStyle(color: _muted, fontSize: 8.5, height: 1.35),
+                  style: TextStyle(color: _muted, fontSize: 13, height: 1.35),
                 ),
               ],
             ),
@@ -1029,7 +901,7 @@ class _PaymentTerms extends StatelessWidget {
               padding: EdgeInsets.only(top: 5),
               child: Text.rich(
                 TextSpan(
-                  style: TextStyle(color: _muted, fontSize: 8.5, height: 1.3),
+                  style: TextStyle(color: _muted, fontSize: 13, height: 1.3),
                   children: [
                     TextSpan(text: 'Tôi đồng ý với '),
                     TextSpan(
@@ -1087,86 +959,76 @@ class _PaymentBottomBar extends StatelessWidget {
       child: SafeArea(
         top: false,
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(12, 8, 10, 9),
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              final compact = constraints.maxWidth < 360;
-              return Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'Tổng cộng',
-                          style: TextStyle(color: _muted, fontSize: 8.5),
-                        ),
-                        FittedBox(
-                          fit: BoxFit.scaleDown,
-                          alignment: Alignment.centerLeft,
-                          child: Text(
-                            '${_formatAmount(totalAmount)} đ',
-                            key: const Key('payment-bottom-total'),
-                            style: const TextStyle(
-                              color: _orange,
-                              fontSize: 19,
-                              fontWeight: FontWeight.w700,
-                            ),
+          padding: const EdgeInsets.fromLTRB(12, 9, 10, 10),
+          child: Row(
+            children: [
+              Expanded(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Tổng cộng',
+                      style: TextStyle(color: _muted, fontSize: 13),
+                    ),
+                    Text(
+                      '${_formatAmount(totalAmount)} đ',
+                      key: const Key('payment-bottom-total'),
+                      style: const TextStyle(
+                        color: _orange,
+                        fontSize: 19,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              ConstrainedBox(
+                constraints: const BoxConstraints(
+                  minWidth: 180,
+                  maxWidth: 220,
+                  minHeight: 52,
+                ),
+                child: FilledButton(
+                  key: const Key('payment-submit'),
+                  onPressed: onPay,
+                  style: FilledButton.styleFrom(
+                    backgroundColor: _orange,
+                    disabledBackgroundColor: const Color(0xFFD9C8A6),
+                    padding: const EdgeInsets.symmetric(horizontal: 10),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      if (isVnPay) ...[
+                        SizedBox(
+                          width: 31,
+                          height: 31,
+                          child: Image.asset(
+                            '$_paymentAssets/payment_vnpay_figma.png',
+                            fit: BoxFit.cover,
                           ),
                         ),
+                        const SizedBox(width: 7),
                       ],
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  SizedBox(
-                    width: compact ? 177 : 214,
-                    height: 47,
-                    child: FilledButton(
-                      key: const Key('payment-submit'),
-                      onPressed: onPay,
-                      style: FilledButton.styleFrom(
-                        backgroundColor: _orange,
-                        disabledBackgroundColor: const Color(0xFFD9C8A6),
-                        padding: const EdgeInsets.symmetric(horizontal: 10),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
+                      Flexible(
+                        child: Text(
+                          isVnPay ? 'Thanh toán với VNPAY' : 'Thanh toán ngay',
+                          style: const TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w700,
+                          ),
                         ),
                       ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          if (isVnPay) ...[
-                            SizedBox(
-                              width: 31,
-                              height: 31,
-                              child: Image.asset(
-                                '$_paymentAssets/payment_vnpay_figma.png',
-                                fit: BoxFit.cover,
-                              ),
-                            ),
-                            const SizedBox(width: 7),
-                          ],
-                          Flexible(
-                            child: Text(
-                              isVnPay
-                                  ? 'Thanh toán với VNPAY'
-                                  : 'Thanh toán ngay',
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
-                                fontSize: 11,
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
+                    ],
                   ),
-                ],
-              );
-            },
+                ),
+              ),
+            ],
           ),
         ),
       ),
@@ -1204,14 +1066,14 @@ class _SectionHeader extends StatelessWidget {
                 title,
                 style: const TextStyle(
                   color: _ink,
-                  fontSize: 13,
+                  fontSize: 17,
                   fontWeight: FontWeight.w700,
                 ),
               ),
               if (subtitle != null)
                 Text(
                   subtitle!,
-                  style: const TextStyle(color: _muted, fontSize: 8),
+                  style: const TextStyle(color: _muted, fontSize: 13),
                 ),
             ],
           ),
@@ -1230,7 +1092,7 @@ class _SectionHeader extends StatelessWidget {
                     trailing!,
                     style: const TextStyle(
                       color: _blue,
-                      fontSize: 8.5,
+                      fontSize: 13,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -1289,132 +1151,162 @@ class _BankPickerSheetState extends State<_BankPickerSheet> {
       color: Colors.white,
       borderRadius: const BorderRadius.vertical(top: Radius.circular(22)),
       clipBehavior: Clip.antiAlias,
-      child: Column(
-        children: [
-          const SizedBox(height: 8),
-          Container(
-            width: 42,
-            height: 4,
-            decoration: BoxDecoration(
-              color: const Color(0xFFD7E1E6),
-              borderRadius: BorderRadius.circular(3),
+      child: AnimatedPadding(
+        duration: const Duration(milliseconds: 180),
+        curve: Curves.easeOut,
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.viewInsetsOf(context).bottom,
+        ),
+        child: Column(
+          children: [
+            const SizedBox(height: 8),
+            Container(
+              width: 42,
+              height: 4,
+              decoration: BoxDecoration(
+                color: const Color(0xFFD7E1E6),
+                borderRadius: BorderRadius.circular(3),
+              ),
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(14, 8, 8, 8),
-            child: Row(
-              children: [
-                const Icon(
-                  Icons.account_balance_rounded,
-                  color: _blue,
-                  size: 22,
-                ),
-                const SizedBox(width: 8),
-                const Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Chọn ngân hàng',
-                        style: TextStyle(
-                          color: _ink,
-                          fontSize: 15,
-                          fontWeight: FontWeight.w700,
+            Padding(
+              padding: const EdgeInsets.fromLTRB(14, 8, 8, 8),
+              child: Row(
+                children: [
+                  const Icon(
+                    Icons.account_balance_rounded,
+                    color: _blue,
+                    size: 24,
+                  ),
+                  const SizedBox(width: 8),
+                  const Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Chọn ngân hàng',
+                          style: TextStyle(
+                            color: _ink,
+                            fontSize: 19,
+                            fontWeight: FontWeight.w700,
+                          ),
                         ),
-                      ),
-                      Text(
-                        'Chọn ngân hàng để thanh toán qua VNPAY.',
-                        style: TextStyle(color: _muted, fontSize: 8.5),
-                      ),
-                    ],
+                        Text(
+                          'Chọn ngân hàng để thanh toán qua VNPAY.',
+                          style: TextStyle(color: _muted, fontSize: 13),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-                IconButton(
-                  key: const Key('bank-picker-close'),
-                  onPressed: () => Navigator.pop(context),
-                  icon: const Icon(Icons.close_rounded, color: _ink, size: 18),
-                  style: IconButton.styleFrom(
-                    backgroundColor: const Color(0xFFF3F7F9),
+                  IconButton(
+                    key: const Key('bank-picker-close'),
+                    onPressed: () => Navigator.pop(context),
+                    icon: const Icon(
+                      Icons.close_rounded,
+                      color: _ink,
+                      size: 22,
+                    ),
+                    style: IconButton.styleFrom(
+                      backgroundColor: const Color(0xFFF3F7F9),
+                    ),
                   ),
-                ),
-              ],
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 14),
-            child: SizedBox(
-              height: 38,
-              child: TextField(
-                key: const Key('bank-search'),
-                onChanged: (value) => setState(() => _query = value),
-                style: const TextStyle(color: _ink, fontSize: 10),
-                decoration: InputDecoration(
-                  hintText: 'Tìm ngân hàng',
-                  hintStyle: const TextStyle(
-                    color: Color(0xFF9AAEBB),
-                    fontSize: 10,
-                  ),
-                  prefixIcon: const Icon(
-                    Icons.search_rounded,
-                    color: _muted,
-                    size: 18,
-                  ),
-                  filled: true,
-                  fillColor: const Color(0xFFF5F7FA),
-                  contentPadding: EdgeInsets.zero,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(9),
-                    borderSide: BorderSide.none,
-                  ),
-                ),
+                ],
               ),
             ),
-          ),
-          const SizedBox(height: 10),
-          Expanded(
-            child: GridView.builder(
-              key: const Key('bank-grid'),
+            Padding(
               padding: const EdgeInsets.symmetric(horizontal: 14),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                crossAxisSpacing: 7,
-                mainAxisSpacing: 7,
-                mainAxisExtent: 56,
-              ),
-              itemCount: filtered.length,
-              itemBuilder: (context, index) {
-                final bank = filtered[index];
-                final selected = bank.code == _selectedCode;
-                return _BankTile(
-                  bank: bank,
-                  selected: selected,
-                  onTap: () => setState(() => _selectedCode = bank.code),
-                );
-              },
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(14, 9, 14, 10),
-            child: SizedBox(
-              width: double.infinity,
-              height: 44,
-              child: FilledButton(
-                key: const Key('bank-confirm'),
-                onPressed: () => Navigator.pop(context, _selectedCode),
-                style: FilledButton.styleFrom(
-                  backgroundColor: _blue,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(9),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(minHeight: 50),
+                child: TextField(
+                  key: const Key('bank-search'),
+                  onChanged: (value) => setState(() => _query = value),
+                  style: const TextStyle(color: _ink, fontSize: 14),
+                  decoration: InputDecoration(
+                    hintText: 'Tìm ngân hàng',
+                    hintStyle: const TextStyle(
+                      color: Color(0xFF9AAEBB),
+                      fontSize: 13,
+                    ),
+                    prefixIcon: const Icon(
+                      Icons.search_rounded,
+                      color: _muted,
+                      size: 20,
+                    ),
+                    filled: true,
+                    fillColor: const Color(0xFFF5F7FA),
+                    contentPadding: const EdgeInsets.symmetric(vertical: 12),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(9),
+                      borderSide: BorderSide.none,
+                    ),
                   ),
                 ),
-                child: const Text(
-                  'Xác nhận',
-                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
+              ),
+            ),
+            const SizedBox(height: 10),
+            Expanded(
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final useTwoColumns =
+                      constraints.maxWidth >= 400 &&
+                      MediaQuery.textScalerOf(context).scale(13) <= 16;
+                  final columns = useTwoColumns ? 2 : 1;
+                  const spacing = 8.0;
+                  final itemWidth =
+                      (constraints.maxWidth - 28 - spacing * (columns - 1)) /
+                      columns;
+                  return SingleChildScrollView(
+                    key: const Key('bank-grid'),
+                    keyboardDismissBehavior:
+                        ScrollViewKeyboardDismissBehavior.onDrag,
+                    padding: const EdgeInsets.symmetric(horizontal: 14),
+                    child: Wrap(
+                      spacing: spacing,
+                      runSpacing: spacing,
+                      children: [
+                        for (final bank in filtered)
+                          SizedBox(
+                            width: itemWidth,
+                            child: _BankTile(
+                              bank: bank,
+                              selected: bank.code == _selectedCode,
+                              onTap: () =>
+                                  setState(() => _selectedCode = bank.code),
+                            ),
+                          ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(14, 9, 14, 10),
+              child: SizedBox(
+                width: double.infinity,
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(minHeight: 52),
+                  child: FilledButton(
+                    key: const Key('bank-confirm'),
+                    onPressed: () => Navigator.pop(context, _selectedCode),
+                    style: FilledButton.styleFrom(
+                      backgroundColor: _blue,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(9),
+                      ),
+                    ),
+                    child: const Text(
+                      'Xác nhận',
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
                 ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -1446,47 +1338,53 @@ class _BankTile extends StatelessWidget {
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(8),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 6),
-          child: Row(
-            children: [
-              SizedBox(
-                width: 53,
-                height: 28,
-                child: Image.asset(bank.assetPath, fit: BoxFit.contain),
-              ),
-              const SizedBox(width: 6),
-              Expanded(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      bank.shortName,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        color: _ink,
-                        fontSize: 8.5,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    Text(
-                      bank.fullName,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        color: _muted,
-                        fontSize: 5.7,
-                        height: 1.1,
-                      ),
-                    ),
-                  ],
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minHeight: 88),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+            child: Row(
+              children: [
+                SizedBox(
+                  width: 48,
+                  height: 32,
+                  child: Image.asset(bank.assetPath, fit: BoxFit.contain),
                 ),
-              ),
-              if (selected)
-                const Icon(Icons.check_circle_rounded, color: _blue, size: 14),
-            ],
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        bank.shortName,
+                        style: const TextStyle(
+                          color: _ink,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        bank.fullName,
+                        style: const TextStyle(
+                          color: _muted,
+                          fontSize: 13,
+                          height: 1.2,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                if (selected) ...[
+                  const SizedBox(width: 5),
+                  const Icon(
+                    Icons.check_circle_rounded,
+                    color: _blue,
+                    size: 18,
+                  ),
+                ],
+              ],
+            ),
           ),
         ),
       ),

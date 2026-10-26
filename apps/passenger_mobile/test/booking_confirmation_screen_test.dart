@@ -42,13 +42,33 @@ void main() {
       findsOneWidget,
     );
     expect(find.text('Xác nhận booking'), findsOneWidget);
-    expect(find.text('Giữ ghế trong 10:00'), findsOneWidget);
+    expect(find.text('10:00'), findsOneWidget);
     expect(find.text('Phương Trang'), findsOneWidget);
     expect(find.text('Nguyễn Văn Minh'), findsOneWidget);
     expect(find.text('Trần Thị Lan'), findsOneWidget);
     expect(find.text('Bến xe Miền Đông'), findsWidgets);
     expect(find.text('Bến xe Đà Lạt'), findsWidgets);
+    await tester.scrollUntilVisible(
+      find.text('VXN50K'),
+      250,
+      scrollable: find
+          .descendant(
+            of: find.byKey(const Key('booking-confirmation-scroll')),
+            matching: find.byType(Scrollable),
+          )
+          .first,
+    );
     expect(find.text('VXN50K'), findsWidgets);
+    await tester.scrollUntilVisible(
+      find.text('Tiền vé (2 ghế x 280.000 đ)'),
+      200,
+      scrollable: find
+          .descendant(
+            of: find.byKey(const Key('booking-confirmation-scroll')),
+            matching: find.byType(Scrollable),
+          )
+          .first,
+    );
     expect(find.text('Tiền vé (2 ghế x 280.000 đ)'), findsOneWidget);
     expect(find.text('530.000 đ'), findsNWidgets(2));
     expect(find.byKey(const Key('booking-continue-payment')), findsOneWidget);
@@ -86,7 +106,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byKey(const Key('payment-screen')), findsOneWidget);
-    expect(find.text('Giữ ghế trong 09:30'), findsOneWidget);
+    expect(find.text('09:30'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 

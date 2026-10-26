@@ -35,11 +35,12 @@ Future<void> _openBankPicker(WidgetTester tester) async {
   await tester.scrollUntilVisible(
     find.byKey(const Key('payment-bank-selector')),
     300,
-    scrollable: find.byType(Scrollable),
-  );
-  await tester.drag(
-    find.byKey(const Key('payment-scroll')),
-    const Offset(0, -120),
+    scrollable: find
+        .descendant(
+          of: find.byKey(const Key('payment-scroll')),
+          matching: find.byType(Scrollable),
+        )
+        .first,
   );
   await tester.pumpAndSettle();
   await tester.tap(find.byKey(const Key('payment-bank-selector')));
@@ -62,12 +63,32 @@ void main() {
 
     expect(find.byKey(const Key('payment-screen')), findsOneWidget);
     expect(find.text('Thanh toán'), findsWidgets);
-    expect(find.text('Giữ ghế trong 10:00'), findsOneWidget);
+    expect(find.text('10:00'), findsOneWidget);
     expect(find.text('Đơn của bạn'), findsOneWidget);
     expect(find.text('Nguyễn Văn Minh + 1 khách'), findsOneWidget);
+    await tester.scrollUntilVisible(
+      find.text('Chọn phương thức thanh toán'),
+      250,
+      scrollable: find
+          .descendant(
+            of: find.byKey(const Key('payment-scroll')),
+            matching: find.byType(Scrollable),
+          )
+          .first,
+    );
     expect(find.text('Chọn phương thức thanh toán'), findsOneWidget);
     expect(find.text('VNPAY'), findsWidgets);
     expect(find.text('530.000 đ'), findsNWidgets(2));
+    await tester.scrollUntilVisible(
+      find.byKey(const Key('payment-bank-selector')),
+      250,
+      scrollable: find
+          .descendant(
+            of: find.byKey(const Key('payment-scroll')),
+            matching: find.byType(Scrollable),
+          )
+          .first,
+    );
     expect(find.text('Vietcombank'), findsOneWidget);
     expect(find.byKey(const Key('payment-submit')), findsOneWidget);
     expect(

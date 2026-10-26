@@ -2,8 +2,8 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 
+import 'booking_flow_chrome.dart';
 import 'payment_screen.dart';
 
 const _detailAssets = 'assets/ticket/detail';
@@ -105,45 +105,52 @@ class _BookingConfirmationScreenState extends State<BookingConfirmationScreen> {
         ),
         body: SafeArea(
           bottom: false,
-          child: CustomScrollView(
-            key: const Key('booking-confirmation-scroll'),
-            slivers: [
-              SliverToBoxAdapter(
-                child: _ConfirmationHeader(
-                  timerLabel: _timerLabel,
-                  expired: expired,
-                  onBack: () => Navigator.maybePop(context),
+          child: Column(
+            children: [
+              _ConfirmationHeader(
+                timerLabel: _timerLabel,
+                expired: expired,
+                urgent: _remaining <= const Duration(minutes: 1),
+                onBack: () => Navigator.maybePop(context),
+              ),
+              const _ConfirmationProgress(),
+              Expanded(
+                child: CustomScrollView(
+                  key: const Key('booking-confirmation-scroll'),
+                  slivers: [
+                    const SliverToBoxAdapter(child: _TripCard()),
+                    SliverToBoxAdapter(
+                      child: _PassengersCard(
+                        seats: widget.selectedSeats,
+                        passengerNames: widget.passengerNames,
+                        onEdit: () => Navigator.maybePop(context),
+                      ),
+                    ),
+                    SliverToBoxAdapter(
+                      child: _StopsCard(
+                        onEdit: () => Navigator.maybePop(context),
+                      ),
+                    ),
+                    const SliverToBoxAdapter(child: _VoucherCard()),
+                    SliverToBoxAdapter(
+                      child: _PaymentDetailsCard(
+                        seatCount: widget.selectedSeats.length,
+                        ticketAmount: _ticketAmount,
+                        totalAmount: _totalAmount,
+                      ),
+                    ),
+                    SliverToBoxAdapter(
+                      child: _TermsRow(
+                        accepted: _termsAccepted,
+                        onChanged: (value) {
+                          setState(() => _termsAccepted = value ?? false);
+                        },
+                      ),
+                    ),
+                    const SliverToBoxAdapter(child: SizedBox(height: 12)),
+                  ],
                 ),
               ),
-              const SliverToBoxAdapter(child: _ConfirmationProgress()),
-              const SliverToBoxAdapter(child: _TripCard()),
-              SliverToBoxAdapter(
-                child: _PassengersCard(
-                  seats: widget.selectedSeats,
-                  passengerNames: widget.passengerNames,
-                  onEdit: () => Navigator.maybePop(context),
-                ),
-              ),
-              SliverToBoxAdapter(
-                child: _StopsCard(onEdit: () => Navigator.maybePop(context)),
-              ),
-              const SliverToBoxAdapter(child: _VoucherCard()),
-              SliverToBoxAdapter(
-                child: _PaymentDetailsCard(
-                  seatCount: widget.selectedSeats.length,
-                  ticketAmount: _ticketAmount,
-                  totalAmount: _totalAmount,
-                ),
-              ),
-              SliverToBoxAdapter(
-                child: _TermsRow(
-                  accepted: _termsAccepted,
-                  onChanged: (value) {
-                    setState(() => _termsAccepted = value ?? false);
-                  },
-                ),
-              ),
-              const SliverToBoxAdapter(child: SizedBox(height: 12)),
             ],
           ),
         ),
@@ -156,80 +163,27 @@ class _ConfirmationHeader extends StatelessWidget {
   const _ConfirmationHeader({
     required this.timerLabel,
     required this.expired,
+    required this.urgent,
     required this.onBack,
   });
 
   final String timerLabel;
   final bool expired;
+  final bool urgent;
   final VoidCallback onBack;
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(6, 5, 10, 4),
-      child: Row(
-        children: [
-          IconButton(
-            key: const Key('booking-confirmation-back'),
-            onPressed: onBack,
-            icon: SvgPicture.asset(
-              '$_detailAssets/back.svg',
-              width: 20,
-              height: 20,
-            ),
-          ),
-          const Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Xác nhận booking',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    color: _ink,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                Text(
-                  'TP.HCM → Đà Lạt',
-                  style: TextStyle(color: _muted, fontSize: 9.5),
-                ),
-              ],
-            ),
-          ),
-          Container(
-            key: const Key('booking-hold-timer'),
-            padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 7),
-            decoration: BoxDecoration(
-              color: expired
-                  ? const Color(0xFFFFE4E4)
-                  : const Color(0xFFFFF1D8),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  Icons.access_time_filled_rounded,
-                  color: expired ? const Color(0xFFD84A4A) : _orange,
-                  size: 15,
-                ),
-                const SizedBox(width: 4),
-                Text(
-                  expired ? 'Đã hết hạn' : 'Giữ ghế trong $timerLabel',
-                  style: TextStyle(
-                    color: expired ? const Color(0xFFD84A4A) : _orange,
-                    fontSize: 9.5,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
+    return BookingFlowHeader(
+      key: const Key('booking-confirmation-header'),
+      title: 'Xác nhận booking',
+      timerLabel: timerLabel,
+      expired: expired,
+      urgent: urgent,
+      onBack: onBack,
+      backKey: const Key('booking-confirmation-back'),
+      timerKey: const Key('booking-hold-timer'),
+      backgroundColor: _page,
     );
   }
 }
@@ -237,90 +191,12 @@ class _ConfirmationHeader extends StatelessWidget {
 class _ConfirmationProgress extends StatelessWidget {
   const _ConfirmationProgress();
 
-  static const _steps = [
-    'Chọn ghế',
-    'Thông tin\nhành khách',
-    'Thanh toán',
-    'Hoàn tất',
-  ];
-
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(18, 2, 18, 11),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: List.generate(_steps.length, (index) {
-          final active = index == 1;
-          final completed = index == 0;
-          final color = active || completed ? _blue : const Color(0xFFE3ECF1);
-          return Expanded(
-            child: Column(
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: Divider(
-                        color: index == 0
-                            ? Colors.transparent
-                            : active
-                            ? _blue
-                            : const Color(0xFFD7E4EA),
-                        height: 12,
-                      ),
-                    ),
-                    Container(
-                      width: 21,
-                      height: 21,
-                      alignment: Alignment.center,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: color,
-                      ),
-                      child: completed
-                          ? const Icon(
-                              Icons.check_rounded,
-                              color: Colors.white,
-                              size: 14,
-                            )
-                          : Text(
-                              '${index + 1}',
-                              style: TextStyle(
-                                color: active ? Colors.white : _muted,
-                                fontSize: 9,
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                    ),
-                    Expanded(
-                      child: Divider(
-                        color: index == _steps.length - 1
-                            ? Colors.transparent
-                            : completed
-                            ? _blue
-                            : const Color(0xFFD7E4EA),
-                        height: 12,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 3),
-                Text(
-                  _steps[index],
-                  textAlign: TextAlign.center,
-                  maxLines: 2,
-                  style: TextStyle(
-                    color: active ? _ink : _muted,
-                    fontSize: 8.5,
-                    height: 1.1,
-                    fontWeight: active ? FontWeight.w700 : FontWeight.w400,
-                  ),
-                ),
-              ],
-            ),
-          );
-        }),
-      ),
+    return const BookingStepProgress(
+      key: Key('booking-confirmation-progress'),
+      activeStep: 1,
+      backgroundColor: _page,
     );
   }
 }
@@ -346,21 +222,19 @@ class _TripCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
+                    Wrap(
+                      spacing: 7,
+                      runSpacing: 4,
+                      crossAxisAlignment: WrapCrossAlignment.center,
                       children: [
-                        Flexible(
-                          child: Text(
-                            'Phương Trang',
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              color: _ink,
-                              fontSize: 14,
-                              fontWeight: FontWeight.w700,
-                            ),
+                        Text(
+                          'Phương Trang',
+                          style: TextStyle(
+                            color: _ink,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
                           ),
                         ),
-                        SizedBox(width: 7),
                         _PopularBadge(),
                       ],
                     ),
@@ -373,14 +247,16 @@ class _TripCard extends StatelessWidget {
                           '4.8',
                           style: TextStyle(
                             color: _ink,
-                            fontSize: 10,
+                            fontSize: 14,
                             fontWeight: FontWeight.w700,
                           ),
                         ),
                         SizedBox(width: 4),
-                        Text(
-                          '(1.2K đánh giá)',
-                          style: TextStyle(color: _muted, fontSize: 8.5),
+                        Expanded(
+                          child: Text(
+                            '(1.2K đánh giá)',
+                            style: TextStyle(color: _muted, fontSize: 13),
+                          ),
                         ),
                       ],
                     ),
@@ -449,7 +325,7 @@ class _PopularBadge extends StatelessWidget {
         'Phổ biến',
         style: TextStyle(
           color: Color(0xFFE98A24),
-          fontSize: 8,
+          fontSize: 12,
           fontWeight: FontWeight.w600,
         ),
       ),
@@ -473,7 +349,7 @@ class _RoutePoint extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: 78,
+      width: 96,
       child: Column(
         crossAxisAlignment: end
             ? CrossAxisAlignment.end
@@ -487,12 +363,11 @@ class _RoutePoint extends StatelessWidget {
               fontWeight: FontWeight.w700,
             ),
           ),
-          Text(city, style: const TextStyle(color: _muted, fontSize: 8.5)),
+          Text(city, style: const TextStyle(color: _muted, fontSize: 13)),
           Text(
             station,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(color: _muted, fontSize: 7.5),
+            textAlign: end ? TextAlign.end : TextAlign.start,
+            style: const TextStyle(color: _muted, fontSize: 13),
           ),
         ],
       ),
@@ -530,7 +405,7 @@ class _DurationRoute extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 2),
-          const Text('6h30', style: TextStyle(color: _muted, fontSize: 9)),
+          const Text('6h30', style: TextStyle(color: _muted, fontSize: 13)),
         ],
       ),
     );
@@ -552,11 +427,9 @@ class _TripMeta extends StatelessWidget {
         Expanded(
           child: Text(
             label,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
             style: const TextStyle(
               color: _ink,
-              fontSize: 10,
+              fontSize: 14,
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -609,8 +482,8 @@ class _PassengerRow extends StatelessWidget {
     return Row(
       children: [
         Container(
-          width: 42,
-          height: 34,
+          constraints: const BoxConstraints(minWidth: 48, minHeight: 42),
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
           alignment: Alignment.center,
           decoration: BoxDecoration(
             color: _blue,
@@ -620,7 +493,7 @@ class _PassengerRow extends StatelessWidget {
             seat,
             style: const TextStyle(
               color: Colors.white,
-              fontSize: 11,
+              fontSize: 14,
               fontWeight: FontWeight.w700,
             ),
           ),
@@ -628,8 +501,8 @@ class _PassengerRow extends StatelessWidget {
         const SizedBox(width: 8),
         Expanded(
           child: Container(
-            height: 34,
-            padding: const EdgeInsets.symmetric(horizontal: 8),
+            constraints: const BoxConstraints(minHeight: 48),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
             decoration: BoxDecoration(
               color: _field,
               borderRadius: BorderRadius.circular(8),
@@ -654,11 +527,9 @@ class _PassengerRow extends StatelessWidget {
                 Expanded(
                   child: Text(
                     name,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
                       color: _ink,
-                      fontSize: 10.5,
+                      fontSize: 14,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -691,59 +562,44 @@ class _StopsCard extends StatelessWidget {
           const Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              SizedBox(
-                width: 28,
-                height: 130,
-                child: Stack(
-                  alignment: Alignment.topCenter,
-                  children: [
-                    Positioned(
-                      top: 18,
-                      bottom: 18,
-                      child: SizedBox(
-                        width: 2,
-                        child: CustomPaint(
-                          painter: _DashedLinePainter(vertical: true),
-                        ),
-                      ),
-                    ),
-                    Positioned(
-                      top: 0,
-                      child: Icon(
-                        Icons.location_on_rounded,
-                        color: _green,
-                        size: 22,
-                      ),
-                    ),
-                    Positioned(
-                      bottom: 0,
-                      child: Icon(
-                        Icons.location_on_rounded,
-                        color: Color(0xFFF04F56),
-                        size: 22,
-                      ),
-                    ),
-                  ],
+              Icon(Icons.location_on_rounded, color: _green, size: 24),
+              SizedBox(width: 10),
+              Expanded(
+                child: _StopDetails(
+                  label: 'Điểm đón',
+                  title: 'Bến xe Miền Đông',
+                  address: '292 Đinh Bộ Lĩnh, Bình Thạnh, TP.HCM',
+                  time: '07:00',
                 ),
               ),
-              SizedBox(width: 8),
+            ],
+          ),
+          const Padding(
+            padding: EdgeInsets.only(left: 11),
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: SizedBox(
+                width: 2,
+                height: 20,
+                child: CustomPaint(painter: _DashedLinePainter(vertical: true)),
+              ),
+            ),
+          ),
+          const Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(
+                Icons.location_on_rounded,
+                color: Color(0xFFF04F56),
+                size: 24,
+              ),
+              SizedBox(width: 10),
               Expanded(
-                child: Column(
-                  children: [
-                    _StopDetails(
-                      label: 'Điểm đón',
-                      title: 'Bến xe Miền Đông',
-                      address: '292 Đinh Bộ Lĩnh, Bình Thạnh, TP.HCM',
-                      time: '07:00',
-                    ),
-                    SizedBox(height: 10),
-                    _StopDetails(
-                      label: 'Điểm trả',
-                      title: 'Bến xe Đà Lạt',
-                      address: '01 Tô Hiến Thành, Phường 3, Đà Lạt',
-                      time: '13:30',
-                    ),
-                  ],
+                child: _StopDetails(
+                  label: 'Điểm trả',
+                  title: 'Bến xe Đà Lạt',
+                  address: '01 Tô Hiến Thành, Phường 3, Đà Lạt',
+                  time: '13:30',
                 ),
               ),
             ],
@@ -772,21 +628,16 @@ class _StopDetails extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: const TextStyle(color: _muted, fontSize: 9)),
+        Text(label, style: const TextStyle(color: _muted, fontSize: 13)),
         Text(
           title,
           style: const TextStyle(
             color: _ink,
-            fontSize: 12,
+            fontSize: 15,
             fontWeight: FontWeight.w700,
           ),
         ),
-        Text(
-          address,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: const TextStyle(color: _muted, fontSize: 8.5),
-        ),
+        Text(address, style: const TextStyle(color: _muted, fontSize: 13)),
         const SizedBox(height: 3),
         Row(
           children: [
@@ -796,7 +647,7 @@ class _StopDetails extends StatelessWidget {
               time,
               style: const TextStyle(
                 color: _ink,
-                fontSize: 10,
+                fontSize: 14,
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -855,13 +706,13 @@ class _AppliedVoucher extends StatelessWidget {
                   'VXN50K',
                   style: TextStyle(
                     color: Color(0xFF258A54),
-                    fontSize: 12,
+                    fontSize: 15,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
                 Text(
                   'Giảm 50.000 đ cho đơn hàng',
-                  style: TextStyle(color: _muted, fontSize: 8),
+                  style: TextStyle(color: _muted, fontSize: 13),
                 ),
               ],
             ),
@@ -877,7 +728,7 @@ class _AppliedVoucher extends StatelessWidget {
                     'Đã áp dụng',
                     style: TextStyle(
                       color: Color(0xFF258A54),
-                      fontSize: 8.5,
+                      fontSize: 13,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -887,7 +738,7 @@ class _AppliedVoucher extends StatelessWidget {
                 '-50.000 đ',
                 style: TextStyle(
                   color: Color(0xFF258A54),
-                  fontSize: 13,
+                  fontSize: 16,
                   fontWeight: FontWeight.w700,
                 ),
               ),
@@ -943,7 +794,7 @@ class _PaymentDetailsCard extends StatelessWidget {
                   'Tổng thanh toán',
                   style: TextStyle(
                     color: _ink,
-                    fontSize: 13,
+                    fontSize: 16,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
@@ -953,7 +804,7 @@ class _PaymentDetailsCard extends StatelessWidget {
                 key: const Key('booking-total-amount'),
                 style: const TextStyle(
                   color: _blue,
-                  fontSize: 17,
+                  fontSize: 19,
                   fontWeight: FontWeight.w700,
                 ),
               ),
@@ -982,13 +833,13 @@ class _PaymentRow extends StatelessWidget {
     return Row(
       children: [
         Expanded(
-          child: Text(label, style: TextStyle(color: color, fontSize: 9.5)),
+          child: Text(label, style: TextStyle(color: color, fontSize: 13)),
         ),
         Text(
           amount,
           style: TextStyle(
             color: discount ? const Color(0xFF258A54) : _ink,
-            fontSize: 10,
+            fontSize: 14,
             fontWeight: FontWeight.w600,
           ),
         ),
@@ -1032,22 +883,22 @@ class _TermsRow extends StatelessWidget {
               children: const [
                 Text(
                   'Tôi đồng ý với',
-                  style: TextStyle(color: _muted, fontSize: 8.5),
+                  style: TextStyle(color: _muted, fontSize: 13),
                 ),
                 Text(
                   'Điều khoản đặt vé',
                   style: TextStyle(
                     color: _blue,
-                    fontSize: 8.5,
+                    fontSize: 13,
                     decoration: TextDecoration.underline,
                   ),
                 ),
-                Text('và', style: TextStyle(color: _muted, fontSize: 8.5)),
+                Text('và', style: TextStyle(color: _muted, fontSize: 13)),
                 Text(
                   'Chính sách hủy',
                   style: TextStyle(
                     color: _blue,
-                    fontSize: 8.5,
+                    fontSize: 13,
                     decoration: TextDecoration.underline,
                   ),
                 ),
@@ -1078,7 +929,7 @@ class _CardHeader extends StatelessWidget {
             title,
             style: const TextStyle(
               color: _ink,
-              fontSize: 14,
+              fontSize: 17,
               fontWeight: FontWeight.w700,
             ),
           ),
@@ -1097,7 +948,7 @@ class _CardHeader extends StatelessWidget {
                     'Sửa',
                     style: TextStyle(
                       color: _blue,
-                      fontSize: 9.5,
+                      fontSize: 13,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -1154,84 +1005,68 @@ class _ConfirmationBottomBar extends StatelessWidget {
       child: SafeArea(
         top: false,
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(12, 8, 10, 9),
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              final compact = constraints.maxWidth < 360;
-              return Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'Tổng thanh toán',
-                          style: TextStyle(color: _muted, fontSize: 8.5),
-                        ),
-                        FittedBox(
-                          fit: BoxFit.scaleDown,
-                          alignment: Alignment.centerLeft,
-                          child: Text(
-                            '${_formatAmount(totalAmount)} đ',
-                            style: const TextStyle(
-                              color: _blue,
-                              fontSize: 17,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                        ),
-                      ],
+          padding: const EdgeInsets.fromLTRB(12, 9, 10, 10),
+          child: Row(
+            children: [
+              Expanded(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Tổng thanh toán',
+                      style: TextStyle(color: _muted, fontSize: 13),
                     ),
-                  ),
-                  const Icon(
-                    Icons.expand_less_rounded,
-                    color: _muted,
-                    size: 16,
-                  ),
-                  Container(
-                    width: 1,
-                    height: 38,
-                    margin: EdgeInsets.symmetric(horizontal: compact ? 6 : 10),
-                    color: const Color(0xFFE0E9EE),
-                  ),
-                  SizedBox(
-                    width: compact ? 156 : 200,
-                    height: 46,
-                    child: FilledButton(
-                      key: const Key('booking-continue-payment'),
-                      onPressed: onContinue,
-                      style: FilledButton.styleFrom(
-                        backgroundColor: _blue,
-                        disabledBackgroundColor: const Color(0xFFB9CED9),
-                        padding: const EdgeInsets.symmetric(horizontal: 10),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                      ),
-                      child: const Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Flexible(
-                            child: Text(
-                              'Tiếp tục thanh toán',
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                fontSize: 11.5,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ),
-                          SizedBox(width: 8),
-                          Icon(Icons.arrow_forward_rounded, size: 18),
-                        ],
+                    Text(
+                      '${_formatAmount(totalAmount)} đ',
+                      style: const TextStyle(
+                        color: _blue,
+                        fontSize: 19,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              ConstrainedBox(
+                constraints: const BoxConstraints(
+                  minWidth: 168,
+                  maxWidth: 210,
+                  minHeight: 50,
+                ),
+                child: FilledButton(
+                  key: const Key('booking-continue-payment'),
+                  onPressed: onContinue,
+                  style: FilledButton.styleFrom(
+                    backgroundColor: _blue,
+                    disabledBackgroundColor: const Color(0xFFB9CED9),
+                    padding: const EdgeInsets.symmetric(horizontal: 10),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
                   ),
-                ],
-              );
-            },
+                  child: const Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Flexible(
+                        child: Text(
+                          'Tiếp tục thanh toán',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                      SizedBox(width: 8),
+                      Icon(Icons.arrow_forward_rounded, size: 18),
+                    ],
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       ),

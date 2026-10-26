@@ -8,11 +8,14 @@ Future<void> _pumpApp(
   required Widget home,
   double width = 412,
   double height = 900,
+  double textScaleFactor = 1,
 }) async {
   tester.view.devicePixelRatio = 1;
   tester.view.physicalSize = Size(width, height);
+  tester.platformDispatcher.textScaleFactorTestValue = textScaleFactor;
   addTearDown(tester.view.resetDevicePixelRatio);
   addTearDown(tester.view.resetPhysicalSize);
+  addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
 
   await tester.pumpWidget(
     MaterialApp(
@@ -27,6 +30,15 @@ Future<void> _pumpApp(
   await tester.pumpAndSettle();
 }
 
+void _expectNoFlutterException(WidgetTester tester) {
+  final exception = tester.takeException();
+  expect(
+    exception,
+    isNull,
+    reason: exception is FlutterError ? exception.toStringDeep() : '$exception',
+  );
+}
+
 void main() {
   testWidgets('mũi tên Phương Trang mở màn chi tiết chuyến', (tester) async {
     await _pumpApp(tester, home: TicketScreen(onTabSelected: (_) {}));
@@ -39,9 +51,8 @@ void main() {
 
     expect(find.byKey(const Key('trip-detail-screen')), findsOneWidget);
     expect(find.text('Chi tiết chuyến'), findsOneWidget);
-    expect(find.text('Bản đồ tuyến đường'), findsOneWidget);
     expect(find.text('Chọn chỗ'), findsOneWidget);
-    expect(tester.takeException(), isNull);
+    _expectNoFlutterException(tester);
   });
 
   testWidgets('chi tiết chuyến cuộn trên màn hình nhỏ không overflow', (
@@ -55,15 +66,69 @@ void main() {
     );
 
     expect(find.text('Phương Trang'), findsOneWidget);
-    await tester.drag(
+    await tester.dragUntilVisible(
+      find.text('Tiện ích trên xe'),
       find.byKey(const Key('trip-detail-scroll')),
-      const Offset(0, -900),
+      const Offset(0, -500),
     );
     await tester.pumpAndSettle();
 
     expect(find.text('Tiện ích trên xe'), findsOneWidget);
-    expect(tester.takeException(), isNull);
+    _expectNoFlutterException(tester);
   });
+
+  testWidgets('header cố định khi nội dung cuộn', (tester) async {
+    await _pumpApp(tester, home: const TripDetailScreen());
+
+    final header = find.byKey(const Key('trip-detail-header'));
+    final initialTop = tester.getTopLeft(header).dy;
+
+    await tester.dragFrom(const Offset(206, 450), const Offset(0, -900));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Chi tiết chuyến'), findsOneWidget);
+    expect(tester.getTopLeft(header).dy, initialTop);
+    _expectNoFlutterException(tester);
+  });
+
+  testWidgets('nút Xem nhà xe vừa với nội dung', (tester) async {
+    await _pumpApp(tester, home: const TripDetailScreen());
+
+    final operatorLink = find.byKey(const Key('trip-detail-operator-link'));
+    final operatorLinkContent = find.byKey(
+      const Key('trip-detail-operator-link-content'),
+    );
+
+    expect(operatorLink, findsOneWidget);
+    expect(
+      tester.getSize(operatorLink).width,
+      closeTo(tester.getSize(operatorLinkContent).width + 20, 0.1),
+    );
+    _expectNoFlutterException(tester);
+  });
+
+  for (final width in [360.0, 430.0]) {
+    testWidgets('không overflow ở ${width.toInt()}dp với cỡ chữ hệ thống lớn', (
+      tester,
+    ) async {
+      await _pumpApp(
+        tester,
+        home: const TripDetailScreen(),
+        width: width,
+        height: 800,
+        textScaleFactor: 1.6,
+      );
+
+      for (var index = 0; index < 5; index += 1) {
+        await tester.dragFrom(Offset(width / 2, 400), const Offset(0, -600));
+        await tester.pumpAndSettle();
+        _expectNoFlutterException(tester);
+      }
+
+      expect(find.byKey(const Key('trip-detail-header')), findsOneWidget);
+      expect(find.text('Chọn chỗ'), findsOneWidget);
+    });
+  }
 
   testWidgets('nút quay lại trở về danh sách chuyến', (tester) async {
     await _pumpApp(tester, home: TicketScreen(onTabSelected: (_) {}));
@@ -78,6 +143,6 @@ void main() {
 
     expect(find.byKey(const Key('ticket-screen')), findsOneWidget);
     expect(find.byKey(const Key('trip-detail-screen')), findsNothing);
-    expect(tester.takeException(), isNull);
+    _expectNoFlutterException(tester);
   });
 }

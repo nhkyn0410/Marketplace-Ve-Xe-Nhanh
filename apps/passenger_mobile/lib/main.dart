@@ -14,9 +14,11 @@ import 'package:passenger_mobile/features/account/login_sessions_screen.dart';
 import 'package:passenger_mobile/features/account/voucher_wallet_screen.dart';
 import 'package:passenger_mobile/features/auth/auth_screen.dart';
 import 'package:passenger_mobile/features/auth/google_auth_service.dart';
+import 'package:passenger_mobile/features/explore/explore_screen.dart';
 import 'package:passenger_mobile/features/home/home_models.dart';
 import 'package:passenger_mobile/features/home/home_screen.dart';
 import 'package:passenger_mobile/features/home/route_dock_tabbar.dart';
+import 'package:passenger_mobile/features/journey/guest_ticket_lookup_screen.dart';
 import 'package:passenger_mobile/features/ticket/ticket_screen.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -749,8 +751,10 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
   }
 
   void _selectMainTab(int index) {
-    if (index == 1 ||
+    if (index == 0 ||
+        index == 1 ||
         index == 2 ||
+        (index == 3 && _step == _AuthStep.guest) ||
         (index == 4 && _step == _AuthStep.signedIn)) {
       setState(() {
         _currentTab = index;
@@ -928,8 +932,18 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
 
   Widget _buildCurrentView(BuildContext context) {
     if ((_step == _AuthStep.signedIn || _step == _AuthStep.guest) &&
+        _currentTab == 0) {
+      return ExploreScreen(onTabSelected: _selectMainTab);
+    }
+    if ((_step == _AuthStep.signedIn || _step == _AuthStep.guest) &&
         _currentTab == 1) {
       return TicketScreen(onTabSelected: _selectMainTab);
+    }
+    if (_step == _AuthStep.guest && _currentTab == 3) {
+      return GuestTicketLookupScreen(
+        onLoginRequested: _returnToLogin,
+        onTabSelected: _selectMainTab,
+      );
     }
     if (_step == _AuthStep.signedIn) {
       if (_currentTab == 4) {
