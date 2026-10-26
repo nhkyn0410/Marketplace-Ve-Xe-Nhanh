@@ -744,6 +744,36 @@ export interface TicketLookupOtpSent {
 }
 
 /**
+ * Một đơn trong danh sách tra cứu theo email (SCR-PSG-29 — nhiều đơn, chưa có Figma).
+ */
+export interface TicketLookupBookingItem {
+  readonly bookingId: string;
+  readonly bookingCode: string;
+  readonly statusLabel: string;
+  /** Nhóm tab: sắp đi / đã đi / đã hủy (gồm hết hạn, hoàn tiền). */
+  readonly group: "upcoming" | "completed" | "cancelled";
+  readonly routeName: string;
+  readonly departureTimeText: string;
+  readonly operatorName: string;
+  readonly ticketCountText: string;
+  readonly totalVnd: string;
+  readonly bookedWithAccount: boolean;
+}
+
+/**
+ * Danh sách đơn của phiên tra cứu: một đơn khi nhập mã đặt vé, ngược lại các đơn của email trong 12 tháng.
+ */
+export interface TicketLookupBookingsData {
+  readonly maskedEmail: string;
+  readonly scope: "BOOKING" | "EMAIL";
+  readonly hasAccount: boolean;
+  /** Gợi ý đăng nhập: email có tài khoản hoặc có đơn đặt khi đã đăng nhập. */
+  readonly accountSuggested: boolean;
+  readonly expiresInSeconds: number;
+  readonly items: readonly TicketLookupBookingItem[];
+}
+
+/**
  * Vé đơn lẻ trong kết quả tra cứu (SCR-PSG-29).
  */
 export interface TicketLookupResultItem {

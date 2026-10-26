@@ -2116,6 +2116,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/guest/ticket-lookup/bookings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["TicketController_listBookings"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/guest/ticket-lookup": {
         parameters: {
             query?: never;
@@ -7352,7 +7368,7 @@ export interface components {
             checkedInAt: string | null;
         };
         TicketLookupOtpInputDto: {
-            bookingCode: string;
+            bookingCode?: string;
             /** Format: email */
             email: string;
         };
@@ -7363,7 +7379,7 @@ export interface components {
             maxAttempts: number;
         };
         TicketLookupVerifyInputDto: {
-            bookingCode: string;
+            bookingCode?: string;
             /** Format: email */
             email: string;
             otp: string;
@@ -7373,8 +7389,35 @@ export interface components {
             /** Format: date-time */
             expiresAt: string;
         };
+        TicketLookupSessionInputDto: {
+            lookupToken: string;
+        };
+        TicketLookupBookingListDto_Output: {
+            maskedEmail: string;
+            /** @enum {string} */
+            scope: "BOOKING" | "EMAIL";
+            hasAccount: boolean;
+            items: {
+                /** Format: uuid */
+                bookingId: string;
+                bookingCode: string;
+                /** @enum {string} */
+                status: "PENDING_PAYMENT" | "PENDING_CONFIRMATION" | "PAID" | "CONFIRMED" | "PARTIALLY_CANCELLED" | "CANCELLED" | "EXPIRED" | "REFUND_PENDING" | "REFUNDED" | "REFUND_FAILED";
+                routeName: string;
+                operatorName: string;
+                /** Format: date-time */
+                departureAt: string;
+                ticketCount: number;
+                total: number;
+                bookedWithAccount: boolean;
+                /** Format: date-time */
+                createdAt: string;
+            }[];
+        };
         TicketLookupInputDto: {
             lookupToken: string;
+            /** Format: uuid */
+            bookingId?: string;
         };
         CancellationQuoteDto_Output: {
             tickets: {
@@ -18316,7 +18359,7 @@ export interface operations {
             };
         };
         responses: {
-            /** @description Đã nhận yêu cầu (mã chỉ được gửi khi mã booking và email khớp). */
+            /** @description Đã nhận yêu cầu (mã chỉ được gửi khi đúng mã đặt vé + email, hoặc email có đơn trong 12 tháng). */
             202: {
                 headers: {
                     [name: string]: unknown;
@@ -18334,7 +18377,7 @@ export interface operations {
                     "application/problem+json": components["schemas"]["ProblemDetailsDto"];
                 };
             };
-            /** @description `TICKET_LOOKUP_RATE_LIMITED` — quá số lần theo IP, chưa hết 60 giây chờ gửi lại, hoặc quá 5 mã / giờ. */
+            /** @description `TICKET_LOOKUP_RATE_LIMITED` — quá số lần theo IP, chưa hết 60 giây chờ gửi lại, hoặc quá 5 mã / giờ / email. */
             429: {
                 headers: {
                     [name: string]: unknown;
@@ -18405,6 +18448,57 @@ export interface operations {
             };
         };
     };
+    TicketController_listBookings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TicketLookupSessionInputDto"];
+            };
+        };
+        responses: {
+            /** @description Danh sách đơn + email có tài khoản không. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TicketLookupBookingListDto_Output"];
+                };
+            };
+            /** @description Gửi token nhưng token sai / hết hạn (không gửi token = khách vãng lai). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `TICKET_LOOKUP_EXPIRED` — phiên tra cứu không có hoặc đã hết hạn. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Tra cứu tạm gián đoạn. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
     TicketController_lookup: {
         parameters: {
             query?: never;
@@ -18436,7 +18530,7 @@ export interface operations {
                     "application/problem+json": components["schemas"]["ProblemDetailsDto"];
                 };
             };
-            /** @description `TICKET_LOOKUP_EXPIRED` — phiên tra cứu không có hoặc đã hết hạn. */
+            /** @description `TICKET_LOOKUP_EXPIRED` — phiên không có / hết hạn; `BOOKING_NOT_FOUND` — đơn ngoài phạm vi phiên. */
             404: {
                 headers: {
                     [name: string]: unknown;

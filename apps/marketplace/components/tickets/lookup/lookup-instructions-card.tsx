@@ -19,10 +19,10 @@ export const LookupInstructionsCard: React.FC = () => {
           </div>
           <div className="space-y-0.5">
             <h4 className="font-bold text-foreground text-sm">
-              Nhập mã đặt vé và email
+              Nhập email đặt vé
             </h4>
             <p className="text-muted-foreground leading-relaxed">
-              Mã đặt vé có trong email xác nhận, dạng VXN-XXXXXX.
+              Có mã đặt vé (dạng VXN-XXXXXX, trong email xác nhận) thì nhập thêm để xem đúng đơn đó.
             </p>
           </div>
         </div>

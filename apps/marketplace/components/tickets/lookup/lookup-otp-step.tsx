@@ -198,7 +198,7 @@ export const LookupOtpStep: React.FC<LookupOtpStepProps> = ({
           Nhập mã xác minh
         </h1>
         <p className="text-xs text-muted-foreground leading-relaxed">
-          Nếu thông tin khớp với một đơn, mã gồm 6 số đã được gửi tới{" "}
+          Nếu email có đơn đặt vé{initialData.bookingCode ? ` khớp mã ${initialData.bookingCode}` : " trong 12 tháng gần nhất"}, mã gồm 6 số đã được gửi tới{" "}
           <strong className="font-semibold text-foreground">{initialData.maskedEmail}</strong>.
         </p>
       </div>

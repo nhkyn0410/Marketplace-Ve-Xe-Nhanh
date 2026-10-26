@@ -60,10 +60,32 @@ describe("Vé — HTTP", () => {
   };
   const otpResponse = { maskedEmail: "a***@example.com", expiresInSeconds: 300, resendAfterSeconds: 60, maxAttempts: 5 };
   const session = { lookupToken: "t".repeat(43), expiresAt: now };
+  const bookingList = {
+    maskedEmail: "a***@example.com",
+    scope: "EMAIL",
+    hasAccount: true,
+    items: [
+      {
+        bookingId: booking.bookingId,
+        bookingCode: booking.bookingCode,
+        status: "CONFIRMED",
+        routeName: "Tuyến",
+        operatorName: "Nhà xe",
+        departureAt: now,
+        ticketCount: 1,
+        total: 320000,
+        bookedWithAccount: true,
+        createdAt: now,
+        // Field nội bộ mô phỏng service lỡ trả thêm: serializer phải cắt.
+        contactEmail: "a@example.com",
+      },
+    ],
+  };
   const service = {
     get: vi.fn(async () => ticket),
     requestOtp: vi.fn(async () => otpResponse),
     verifyOtp: vi.fn(async () => session),
+    listBookings: vi.fn(async () => bookingList),
     lookup: vi.fn(async () => booking),
   };
   let app: INestApplication;
@@ -127,17 +149,19 @@ describe("Vé — HTTP", () => {
     expect((await fetch(`${base}/tickets/khong-phai`)).status).toBe(400);
   });
 
-  it("gửi mã: mã booking chuẩn hoá (chữ thường, gạch, mã vé -NN), 202 phản hồi trung tính; thiếu email / có SĐT / mã sai dạng → 400", async () => {
+  it("gửi mã: mã đặt vé không bắt buộc, chuẩn hoá (chữ thường, gạch, mã vé -NN), 202 phản hồi trung tính; thiếu email / có SĐT / mã sai dạng → 400", async () => {
     const response = await post("/otp", { bookingCode: "vxn-ab2cd3", email: "a@example.com" });
     expect(response.status).toBe(202);
     expect(await response.json()).toEqual(otpResponse);
     expect((service.requestOtp.mock.calls[0] as unknown as [unknown, object])[1]).toEqual({ bookingCode: "VXNAB2CD3", email: "a@example.com" });
     await post("/otp", { bookingCode: "VXNAB2CD3-02", email: "a@example.com" });
     expect((service.requestOtp.mock.calls[1] as unknown as [unknown, object])[1]).toEqual({ bookingCode: "VXNAB2CD3", email: "a@example.com" });
+    expect((await post("/otp", { email: "a@example.com" })).status).toBe(202);
+    expect((service.requestOtp.mock.calls[2] as unknown as [unknown, object])[1]).toEqual({ email: "a@example.com" });
     for (const body of [{ bookingCode: "VXNAB2CD3" }, { bookingCode: "VXNAB2CD3", phone: "0901234567" }, { bookingCode: "ABC", email: "a@example.com" }]) {
       expect((await post("/otp", body)).status, JSON.stringify(body)).toBe(400);
     }
-    expect(service.requestOtp).toHaveBeenCalledTimes(2);
+    expect(service.requestOtp).toHaveBeenCalledTimes(3);
   });
 
   it("xác minh: 200 trả phiên tra cứu; mã không đủ 6 số → 400", async () => {
@@ -150,14 +174,29 @@ describe("Vé — HTTP", () => {
     expect(service.verifyOtp).toHaveBeenCalledTimes(1);
   });
 
-  it("tra cứu: chỉ nhận phiên tra cứu (không còn mã booking + liên hệ trực tiếp), 200 trả booking + vé", async () => {
+  it("danh sách đơn của phiên: 200, chỉ giữ field công khai; thiếu / sai phiên → 400", async () => {
+    const response = await post("/bookings", { lookupToken: session.lookupToken });
+    expect(response.status).toBe(200);
+    const body = (await response.json()) as typeof bookingList;
+    expect(body).toMatchObject({ scope: "EMAIL", hasAccount: true });
+    expect(body.items[0]).not.toHaveProperty("contactEmail");
+    expect(service.listBookings).toHaveBeenCalledWith({ lookupToken: session.lookupToken });
+    for (const body of [{}, { lookupToken: "ngan" }]) {
+      expect((await post("/bookings", body)).status, JSON.stringify(body)).toBe(400);
+    }
+    expect(service.listBookings).toHaveBeenCalledTimes(1);
+  });
+
+  it("tra cứu: chỉ nhận phiên tra cứu (+ id đơn khi phiên theo email), 200 trả booking + vé", async () => {
     const response = await post("", { lookupToken: session.lookupToken });
     expect(response.status).toBe(200);
     expect(((await response.json()) as { tickets: unknown[] }).tickets).toHaveLength(1);
     expect(service.lookup).toHaveBeenCalledWith({ lookupToken: session.lookupToken });
-    for (const body of [{ bookingCode: "VXNAB2CD3", email: "a@example.com" }, { lookupToken: "ngan" }]) {
+    await post("", { lookupToken: session.lookupToken, bookingId: booking.bookingId });
+    expect(service.lookup).toHaveBeenLastCalledWith({ lookupToken: session.lookupToken, bookingId: booking.bookingId });
+    for (const body of [{ bookingCode: "VXNAB2CD3", email: "a@example.com" }, { lookupToken: "ngan" }, { lookupToken: session.lookupToken, bookingId: "khong-phai-uuid" }]) {
       expect((await post("", body)).status, JSON.stringify(body)).toBe(400);
     }
-    expect(service.lookup).toHaveBeenCalledTimes(1);
+    expect(service.lookup).toHaveBeenCalledTimes(2);
   });
 });

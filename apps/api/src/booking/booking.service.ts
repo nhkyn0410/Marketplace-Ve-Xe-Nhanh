@@ -1,6 +1,6 @@
 import { randomBytes, randomInt } from "node:crypto";
 import { HttpException, HttpStatus, Inject, Injectable } from "@nestjs/common";
-import { bookingIdOfCode, bookingIdOfHold, withBookingOperator, withTripOperator } from "../database/marketplace-scope";
+import { bookingIdOfCode, bookingIdOfHold, guestLookupBookingRows, withBookingOperator, withTripOperator } from "../database/marketplace-scope";
 import { PrismaService, type DbTransaction } from "../database/prisma.service";
 import { BookingStatus, type PaymentProvider, type PaymentStatus, type RefundStatus, type SeatType, type TicketStatus, type TripChangeKind } from "../database/prisma.types";
 import { resolveSeatPrice, vndToJson } from "../fare/fare-pricing";
@@ -30,6 +30,20 @@ const CODE_ATTEMPTS = 3;
 
 type Tier = { minHoursBefore: number; refundPercent: number };
 type SnapshotStop = { sequence: number; name: string; address: string; plannedAt: string };
+
+/** Một dòng trong danh sách tra cứu vé theo email (API §7.2 `POST /guest/ticket-lookup/bookings`). */
+export type GuestLookupBooking = {
+  bookingId: string;
+  bookingCode: string;
+  status: BookingStatus;
+  routeName: string;
+  operatorName: string;
+  departureAt: string;
+  ticketCount: number;
+  total: bigint;
+  bookedWithAccount: boolean;
+  createdAt: Date;
+};
 
 /** Dữ liệu bắt buộc chụp lúc đặt (SRS §9.4, LLD §6.2 bước 3) — booking hiển thị / hủy theo bản chụp này. */
 type BookingSnapshot = {
@@ -185,10 +199,37 @@ export class BookingService {
     return row?.contactEmail === email.toLowerCase() ? bookingId : null;
   }
 
-  /** Booking cho phiên tra cứu đã xác minh OTP (chỉ xem — không cấp mã truy cập booking). */
-  async getForLookup(bookingId: string): Promise<BookingResponse | null> {
+  /**
+   * Đơn tra cứu được bằng email liên hệ đã xác minh OTP (mọi nhà xe, gồm cả đơn đặt khi đã đăng nhập — Khanh 27/10/2026):
+   * đúng một đơn khi phiên mở bằng mã đặt vé, ngược lại các đơn tạo từ `since`, mới nhất trước.
+   */
+  async listForGuestLookup(scope: { email: string; bookingId: string | null }, since: Date, limit: number, now = new Date()): Promise<GuestLookupBooking[]> {
+    const rows = await guestLookupBookingRows(this.prisma, scope, since, limit);
+    return rows.map((row) => {
+      const trip = (row.snapshot as BookingSnapshot).trip;
+      return {
+        bookingId: row.id,
+        bookingCode: row.bookingCode,
+        // Quá hạn thanh toán mà job nền chưa quét: hiện như đã hết hạn (cùng quy tắc `get`), không ghi ở đường đọc này.
+        status: row.status === BookingStatus.PENDING_PAYMENT && row.expiresAt <= now ? BookingStatus.EXPIRED : row.status,
+        routeName: trip.routeName,
+        operatorName: trip.operatorName,
+        departureAt: trip.departureAt,
+        ticketCount: row._count.tickets,
+        total: row.total,
+        bookedWithAccount: row.userId !== null,
+        createdAt: row.createdAt,
+      };
+    });
+  }
+
+  /** Booking cho phiên tra cứu đã xác minh OTP (chỉ xem — không cấp mã truy cập booking); `match` giới hạn theo email. */
+  async getForLookup(bookingId: string, match?: { email: string; since: Date }): Promise<BookingResponse | null> {
     const row = await withBookingOperator(this.prisma, bookingId, (tx, operatorId) =>
-      tx.booking.findFirst({ where: { id: bookingId, operatorId }, select: BOOKING_SELECT }),
+      tx.booking.findFirst({
+        where: { id: bookingId, operatorId, ...(match ? { contactEmail: match.email.toLowerCase(), createdAt: { gte: match.since } } : {}) },
+        select: BOOKING_SELECT,
+      }),
     );
     return row ? toResponse(row, this.qr) : null;
   }

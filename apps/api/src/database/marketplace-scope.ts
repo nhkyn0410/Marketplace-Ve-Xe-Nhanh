@@ -86,6 +86,32 @@ export async function bookingIdOfCode(prisma: Pick<PrismaService, "withSystem">,
   return booking?.id ?? null;
 }
 
+/**
+ * Đơn tra cứu được bằng email liên hệ đã xác minh OTP (mọi nhà xe, gồm cả đơn đặt khi đã đăng nhập): đúng một đơn khi phiên
+ * mở bằng mã đặt vé, ngược lại các đơn tạo từ `since`, mới nhất trước (chỉ mục `bookings_contact_email_created_at_idx`).
+ */
+export async function guestLookupBookingRows(
+  prisma: Pick<PrismaService, "withSystem">,
+  scope: { email: string; bookingId: string | null },
+  since: Date,
+  limit: number,
+) {
+  return prisma.withSystem((tx) =>
+    tx.booking.findMany({
+      where: { contactEmail: scope.email.toLowerCase(), ...(scope.bookingId ? { id: scope.bookingId } : { createdAt: { gte: since } }) },
+      orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+      take: limit,
+      select: { id: true, bookingCode: true, status: true, total: true, userId: true, snapshot: true, expiresAt: true, createdAt: true, _count: { select: { tickets: true } } },
+    }),
+  );
+}
+
+/** Email đã có tài khoản hành khách đang hoạt động — gợi ý đăng nhập sau khi khách vãng lai xác minh email. */
+export async function hasActivePassengerAccount(prisma: Pick<PrismaService, "withSystem">, email: string): Promise<boolean> {
+  const user = await prisma.withSystem((tx) => tx.user.findFirst({ where: { email: email.toLowerCase(), status: "ACTIVE" }, select: { id: true } }));
+  return user !== null;
+}
+
 /** Chạy `work` ở tenant của nhà xe sở hữu refund (job hoàn tiền ở worker); không có → `null`. */
 export async function withRefundOperator<T>(
   prisma: ScopedPrisma,
