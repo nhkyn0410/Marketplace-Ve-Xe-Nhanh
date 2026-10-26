@@ -56,6 +56,7 @@
 | v1.34     | 04/10/2026 | AI Agent, Nguyễn Hồng Khanh | **Chú thích ảnh phương tiện (Khanh chốt 04/10/2026, đối chiếu Figma nhà xe):** `BR-76` + `FR-OPS-16` — mỗi ảnh xe có thể kèm chú thích ngắn (tối đa 60 ký tự), hiển thị công khai cùng ảnh. Giữ trạng thái Review. |
 | v1.35     | 04/10/2026 | AI Agent, Nguyễn Hồng Khanh | **Thiết kế lại điểm dừng (Khanh chốt 04/10/2026):** `BR-38` viết lại — bến xe và điểm dừng đón trả khách chỉ nằm trong danh mục dùng chung do Admin lập hoặc duyệt (đề xuất kèm căn cứ công bố); điểm riêng của nhà xe chỉ gồm văn phòng trung chuyển và trạm dừng nghỉ. `BR-23` + `BR-79` — quyền đón / trả theo loại điểm và theo từng điểm dừng của tuyến; `BR-80` — tìm chuyến khớp theo vị trí (tỉnh / thành, địa danh dùng chung); `BR-81` — Admin giám sát và khóa điểm riêng. Thêm `FR-OPS-17`, `FR-ADM-21`, `AC-42`; sửa `AS-04`, `FR-MKT-01`, `FR-MKT-09`, `FR-OPS-04..05`, `UC-02`, `UC-13`, `UC-24`, §3.5, §6, §9.3, §15.3. Căn cứ: Nghị định 158/2024/NĐ-CP, Thông tư 36/2024/TT-BGTVT. Mở `OQ-24` (loại hình vận tải). Giữ trạng thái Review. |
 | v1.36     | 21/10/2026 | AI Agent | **Phân quyền theo từng tài khoản (Khanh 21/10/2026, chờ duyệt — `TASK-IAM-007`):** thêm `FR-IAM-19` tài khoản quản lý Operator OS do Owner cấp, tick quyền từng tài khoản; `FR-IAM-07` hiện thực bằng danh sách quyền riêng của tài khoản quản trị trong trần vai trò. |
+| v1.37     | 27/10/2026 | AI Agent | **Tra cứu vé khách vãng lai không cần mã đặt vé (Khanh 27/10/2026, chờ duyệt):** `UC-35` bước 1–2 — email bắt buộc, mã vé / mã booking tùy chọn, OTP gửi về email; thêm A1b (danh sách đơn 12 tháng gồm cả đơn đặt bằng tài khoản, hỏi đăng nhập), A1c (mất email → CSKH). Giữ trạng thái Review. |
 
 ---
 
@@ -2472,8 +2473,8 @@ Luồng thay thế / ngoại lệ:
 
 Luồng chính:
 
-1. Guest nhập mã vé / mã booking hoặc mở liên kết tra cứu được gửi qua kênh liên hệ đã lưu.
-2. Guest nhập thông tin liên hệ như email hoặc số điện thoại theo dữ liệu đã dùng khi tạo booking.
+1. Guest nhập email liên hệ đã dùng khi tạo booking; mã vé / mã booking là tùy chọn (có thì chỉ tra đúng đơn đó). Chờ duyệt (27/10/2026): v1 chỉ tra bằng email vì SMS hoãn (ADR-020).
+2. Hệ thống gửi mã xác minh (OTP) về email đó nếu email có booking (khớp mã khi có nhập, ngược lại có đơn trong 12 tháng gần nhất); phản hồi như nhau dù có hay không. Guest nhập OTP để mở phiên tra cứu có thời hạn.
 3. Hệ thống kiểm tra định dạng mã tra cứu và thông tin liên hệ.
 4. Hệ thống đối chiếu mã tra cứu với booking / ticket và kiểm tra thông tin liên hệ có khớp dữ liệu đã lưu hay không.
 5. Hệ thống xác định mức dữ liệu được phép hiển thị cho Guest: thông tin chuyến, ghế, điểm đón / trả, trạng thái vé, trạng thái thanh toán và hướng dẫn lên xe.
@@ -2483,7 +2484,9 @@ Luồng chính:
 
 Luồng thay thế / ngoại lệ:
 
-- A1: Mã vé / mã booking hoặc thông tin liên hệ không khớp → hệ thống từ chối hiển thị dữ liệu.
+- A1: Mã vé / mã booking hoặc thông tin liên hệ không khớp, hoặc OTP sai / hết hạn → hệ thống từ chối hiển thị dữ liệu.
+- A1b: Guest không nhập mã → sau OTP thấy danh sách các booking dùng email đó trong 12 tháng gần nhất (gồm cả booking đặt khi đã đăng nhập) và chọn đơn để xem; email đã có tài khoản hoặc có booking đặt bằng tài khoản → hệ thống hỏi Guest có muốn đăng nhập không (chờ duyệt, Khanh 27/10/2026).
+- A1c: Guest không còn dùng được email đặt vé → liên hệ CSKH để xác minh thủ công.
 - A2: Thao tác nhạy cảm chưa đủ xác minh → hệ thống yêu cầu xác minh bổ sung.
 - A3: Guest cố xem lịch sử booking dài hạn → hệ thống chỉ hiển thị dữ liệu thuộc vé đã xác minh.
 - A4: Vé không còn hợp lệ hoặc đã bị hủy → hệ thống hiển thị trạng thái hiện tại và hướng dẫn liên hệ hỗ trợ nếu cần.

@@ -1560,6 +1560,10 @@ model Booking {
   @@index([operatorId, status])
   @@index([tripId])
   @@index([status, expiresAt])
+  /// Tra cứu vé khách vãng lai theo email liên hệ (12 tháng gần nhất, mới nhất trước) — `TASK-BTP-004`, 27/10/2026.
+  @@index([contactEmail, createdAt(sort: Desc)])
+  /// Tra theo số điện thoại liên hệ (CSKH / tra cứu sau này) — Khanh 27/10/2026.
+  @@index([contactPhone, createdAt(sort: Desc)])
   @@map("bookings")
 }
 

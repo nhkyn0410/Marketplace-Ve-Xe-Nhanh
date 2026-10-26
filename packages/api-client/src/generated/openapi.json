@@ -12335,7 +12335,7 @@
         },
         "responses": {
           "202": {
-            "description": "Đã nhận yêu cầu (mã chỉ được gửi khi mã booking và email khớp).",
+            "description": "Đã nhận yêu cầu (mã chỉ được gửi khi đúng mã đặt vé + email, hoặc email có đơn trong 12 tháng).",
             "content": {
               "application/json": {
                 "schema": {
@@ -12355,7 +12355,7 @@
             }
           },
           "429": {
-            "description": "`TICKET_LOOKUP_RATE_LIMITED` — quá số lần theo IP, chưa hết 60 giây chờ gửi lại, hoặc quá 5 mã / giờ.",
+            "description": "`TICKET_LOOKUP_RATE_LIMITED` — quá số lần theo IP, chưa hết 60 giây chờ gửi lại, hoặc quá 5 mã / giờ / email.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -12441,6 +12441,67 @@
         ]
       }
     },
+    "/v1/guest/ticket-lookup/bookings": {
+      "post": {
+        "operationId": "TicketController_listBookings",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TicketLookupSessionInputDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Danh sách đơn + email có tài khoản không.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TicketLookupBookingListDto_Output"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Gửi token nhưng token sai / hết hạn (không gửi token = khách vãng lai).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "`TICKET_LOOKUP_EXPIRED` — phiên tra cứu không có hoặc đã hết hạn.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Tra cứu tạm gián đoạn.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "tickets"
+        ]
+      }
+    },
     "/v1/guest/ticket-lookup": {
       "post": {
         "operationId": "TicketController_lookup",
@@ -12477,7 +12538,7 @@
             }
           },
           "404": {
-            "description": "`TICKET_LOOKUP_EXPIRED` — phiên tra cứu không có hoặc đã hết hạn.",
+            "description": "`TICKET_LOOKUP_EXPIRED` — phiên không có / hết hạn; `BOOKING_NOT_FOUND` — đơn ngoài phạm vi phiên.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -40476,7 +40537,6 @@
           }
         },
         "required": [
-          "bookingCode",
           "email"
         ]
       },
@@ -40528,7 +40588,6 @@
           }
         },
         "required": [
-          "bookingCode",
           "email",
           "otp"
         ]
@@ -40551,6 +40610,117 @@
         ],
         "additionalProperties": false
       },
+      "TicketLookupSessionInputDto": {
+        "type": "object",
+        "properties": {
+          "lookupToken": {
+            "type": "string",
+            "minLength": 20,
+            "maxLength": 100
+          }
+        },
+        "required": [
+          "lookupToken"
+        ]
+      },
+      "TicketLookupBookingListDto_Output": {
+        "type": "object",
+        "properties": {
+          "maskedEmail": {
+            "type": "string"
+          },
+          "scope": {
+            "type": "string",
+            "enum": [
+              "BOOKING",
+              "EMAIL"
+            ]
+          },
+          "hasAccount": {
+            "type": "boolean"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "bookingId": {
+                  "type": "string",
+                  "format": "uuid",
+                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                },
+                "bookingCode": {
+                  "type": "string"
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "PENDING_PAYMENT",
+                    "PENDING_CONFIRMATION",
+                    "PAID",
+                    "CONFIRMED",
+                    "PARTIALLY_CANCELLED",
+                    "CANCELLED",
+                    "EXPIRED",
+                    "REFUND_PENDING",
+                    "REFUNDED",
+                    "REFUND_FAILED"
+                  ]
+                },
+                "routeName": {
+                  "type": "string"
+                },
+                "operatorName": {
+                  "type": "string"
+                },
+                "departureAt": {
+                  "type": "string",
+                  "format": "date-time",
+                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$"
+                },
+                "ticketCount": {
+                  "type": "integer",
+                  "minimum": -9007199254740991,
+                  "maximum": 9007199254740991
+                },
+                "total": {
+                  "type": "integer",
+                  "minimum": -9007199254740991,
+                  "maximum": 9007199254740991
+                },
+                "bookedWithAccount": {
+                  "type": "boolean"
+                },
+                "createdAt": {
+                  "type": "string",
+                  "format": "date-time",
+                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$"
+                }
+              },
+              "required": [
+                "bookingId",
+                "bookingCode",
+                "status",
+                "routeName",
+                "operatorName",
+                "departureAt",
+                "ticketCount",
+                "total",
+                "bookedWithAccount",
+                "createdAt"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "maskedEmail",
+          "scope",
+          "hasAccount",
+          "items"
+        ],
+        "additionalProperties": false
+      },
       "TicketLookupInputDto": {
         "type": "object",
         "properties": {
@@ -40558,6 +40728,11 @@
             "type": "string",
             "minLength": 20,
             "maxLength": 100
+          },
+          "bookingId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
           }
         },
         "required": [

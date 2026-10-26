@@ -1,6 +1,7 @@
 import {
   MyTicketsData,
   TicketDetailData,
+  TicketLookupBookingsData,
   TicketLookupInitData,
   TicketLookupOtpState,
   TicketLookupResultData
@@ -180,6 +181,22 @@ export const ticketLookupOtpFixture: TicketLookupOtpState = {
   expiresInSeconds: 272,
   remainingAttempts: 5,
   resendCountdownSeconds: 28
+};
+
+/**
+ * Fixture danh sách đơn khi tra cứu chỉ bằng email (SCR-PSG-29 nhiều đơn — chưa có Figma).
+ */
+export const ticketLookupBookingsFixture: TicketLookupBookingsData = {
+  maskedEmail: "h***e@gmail.com",
+  scope: "EMAIL",
+  hasAccount: true,
+  accountSuggested: true,
+  expiresInSeconds: 860,
+  items: [
+    { bookingId: "11111111-1111-4111-8111-111111111111", bookingCode: "VXN-4H9P6C", statusLabel: "Đã xác nhận", group: "upcoming", routeName: "TP. Hồ Chí Minh → Đà Lạt", departureTimeText: "16/10/2026, 22:30", operatorName: "Phương Nam Travel", ticketCountText: "2 vé", totalVnd: "560000", bookedWithAccount: false },
+    { bookingId: "22222222-2222-4222-8222-222222222222", bookingCode: "VXN-7K2M9Q", statusLabel: "Đã xác nhận", group: "completed", routeName: "Đà Lạt → TP. Hồ Chí Minh", departureTimeText: "02/08/2026, 07:00", operatorName: "Phương Nam Travel", ticketCountText: "1 vé", totalVnd: "280000", bookedWithAccount: true },
+    { bookingId: "33333333-3333-4333-8333-333333333333", bookingCode: "VXN-2B8T4N", statusLabel: "Đã hủy", group: "cancelled", routeName: "Hà Nội → Sapa", departureTimeText: "14/05/2026, 21:00", operatorName: "Hà Linh Express", ticketCountText: "1 vé", totalVnd: "350000", bookedWithAccount: false }
+  ]
 };
 
 /**

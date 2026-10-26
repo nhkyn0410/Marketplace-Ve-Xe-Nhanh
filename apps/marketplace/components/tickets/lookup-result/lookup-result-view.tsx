@@ -1,6 +1,8 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 import { endTicketLookup } from "../../../lib/data/tickets";
 import { Badge } from "@vexenhanh/ui/components/badge";
 import type { TicketLookupResultData, TicketLookupResultItem } from "../../../lib/data/types";
@@ -9,6 +11,7 @@ import { LookupTicketCard } from "./lookup-ticket-card";
 import { LookupPickupDropoff } from "./lookup-pickup-dropoff";
 import { LookupActionsSidebar } from "./lookup-actions-sidebar";
 import { LookupQrModal } from "./lookup-qr-modal";
+import { LookupLoginPrompt, type LookupLoginPromptProps } from "./lookup-login-prompt";
 import { PassengerTopBar } from "../../passenger-topbar";
 
 /**
@@ -16,12 +19,16 @@ import { PassengerTopBar } from "../../passenger-topbar";
  */
 export interface LookupResultViewProps {
   readonly data: TicketLookupResultData;
+  /** Phiên theo email: đơn này được chọn từ danh sách — hiện đường quay lại danh sách. */
+  readonly backToList?: boolean;
+  /** Hỏi khách có muốn đăng nhập (email có tài khoản / đơn đặt bằng tài khoản). */
+  readonly loginPrompt?: LookupLoginPromptProps | null;
 }
 
 /**
  * Khung hiển thị chi tiết kết quả tra cứu vé cho khách vãng lai (SCR-PSG-29 - node 1446:15578)
  */
-export const LookupResultView: React.FC<LookupResultViewProps> = ({ data }) => {
+export const LookupResultView: React.FC<LookupResultViewProps> = ({ data, backToList = false, loginPrompt = null }) => {
   const [selectedTicketForQr, setSelectedTicketForQr] = useState<TicketLookupResultItem | null>(null);
 
   useEffect(() => {
@@ -38,17 +45,28 @@ export const LookupResultView: React.FC<LookupResultViewProps> = ({ data }) => {
 
   return (
     <div className="min-h-viewport bg-slate-50/50 pb-16">
-      <PassengerTopBar breadcrumbs={[{ label: "Trang chủ", href: "/" }, { label: "Tra cứu vé", href: "/tickets/lookup" }, { label: data.bookingCode }]} />
+      <PassengerTopBar
+        breadcrumbs={backToList
+          ? [{ label: "Trang chủ", href: "/" }, { label: "Tra cứu vé", href: "/tickets/lookup" }, { label: "Đơn của bạn", href: "/tickets/lookup/result" }, { label: data.bookingCode }]
+          : [{ label: "Trang chủ", href: "/" }, { label: "Tra cứu vé", href: "/tickets/lookup" }, { label: data.bookingCode }]}
+      />
 
       <div className="mx-auto w-full max-w-[1200px] px-4 pt-6 sm:px-6 lg:px-14">
         <div className="mb-6">
           <LookupSessionBanner
           maskedEmail={data.session.maskedEmail}
-          bookingCode={data.bookingCode}
+          {...(backToList ? { summary: `đang xem đơn ${data.bookingCode}` } : { bookingCode: data.bookingCode })}
           expiresInSeconds={data.session.expiresInSeconds}
           onEndSession={handleEndSession}
         />
         </div>
+
+        {backToList && (
+          <Link href="/tickets/lookup/result" className="mb-4 inline-flex items-center gap-1.5 text-xs font-semibold text-teal-800 hover:underline">
+            <ArrowLeft className="h-3.5 w-3.5" />
+            Danh sách đơn của email này
+          </Link>
+        )}
 
         {/* Tiêu đề đơn hàng và trạng thái */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-6">
@@ -103,6 +121,8 @@ export const LookupResultView: React.FC<LookupResultViewProps> = ({ data }) => {
           </div>
         </div>
       </div>
+
+      {loginPrompt && <LookupLoginPrompt {...loginPrompt} />}
 
       {/* Modal phóng to mã QR */}
       <LookupQrModal

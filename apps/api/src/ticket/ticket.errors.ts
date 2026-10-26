@@ -17,6 +17,11 @@ export function lookupExpired(): HttpException {
   return problem(HttpStatus.NOT_FOUND, "TICKET_LOOKUP_EXPIRED", "Phiên tra cứu đã hết hạn. Vui lòng tra cứu lại.");
 }
 
+/** Phiên còn hạn nhưng đơn không thuộc phạm vi phiên (khác email, quá 12 tháng, khác đơn đã nhập mã). */
+export function lookupBookingNotFound(): HttpException {
+  return problem(HttpStatus.NOT_FOUND, "BOOKING_NOT_FOUND", "Không tìm thấy đơn trong phiên tra cứu này.");
+}
+
 /** Sai mã xác minh; hết lượt thử hoặc mã hết hạn thì phải gửi lại mã. */
 export function lookupOtpInvalid(remainingAttempts: number): HttpException {
   return problem(
@@ -28,7 +33,7 @@ export function lookupOtpInvalid(remainingAttempts: number): HttpException {
   );
 }
 
-/** Chống dò mã / gửi mã dồn dập: quá số lần cho phép theo IP hoặc theo mã booking + email. */
+/** Chống dò mã / gửi mã dồn dập: quá số lần cho phép theo IP hoặc theo email. */
 export function lookupRateLimited(detail = "Bạn tra cứu quá nhiều lần. Vui lòng thử lại sau ít phút."): HttpException {
   return problem(HttpStatus.TOO_MANY_REQUESTS, "TICKET_LOOKUP_RATE_LIMITED", detail);
 }

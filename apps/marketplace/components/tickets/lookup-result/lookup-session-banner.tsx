@@ -10,7 +10,10 @@ import { ShieldCheck, Clock, LogOut } from "lucide-react";
  */
 export interface LookupSessionBannerProps {
   readonly maskedEmail: string;
-  readonly bookingCode: string;
+  /** Phiên mở bằng mã đặt vé: "chỉ hiển thị đơn …". */
+  readonly bookingCode?: string;
+  /** Phiên theo email: mô tả thay cho mã đơn (vd "3 đơn trong 12 tháng gần nhất"). */
+  readonly summary?: string;
   readonly expiresInSeconds: number;
   readonly onEndSession?: () => void;
 }
@@ -30,6 +33,7 @@ function formatTimer(totalSeconds: number): string {
 export const LookupSessionBanner: React.FC<LookupSessionBannerProps> = ({
   maskedEmail,
   bookingCode,
+  summary,
   expiresInSeconds,
   onEndSession
 }) => {
@@ -57,7 +61,8 @@ export const LookupSessionBanner: React.FC<LookupSessionBannerProps> = ({
       <div className="flex items-center gap-2.5 text-emerald-950 dark:text-emerald-200 font-medium">
         <ShieldCheck className="h-4 w-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
         <span>
-          Tra cứu bằng email <strong className="font-bold">{maskedEmail}</strong> · chỉ hiển thị đơn <strong className="font-bold">{bookingCode}</strong>
+          Tra cứu bằng email <strong className="font-bold">{maskedEmail}</strong> ·{" "}
+          {bookingCode ? <>chỉ hiển thị đơn <strong className="font-bold">{bookingCode}</strong></> : summary}
         </span>
       </div>
 

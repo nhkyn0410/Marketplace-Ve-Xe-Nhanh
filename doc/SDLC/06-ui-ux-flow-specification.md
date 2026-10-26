@@ -56,6 +56,7 @@
 | v0.35     | 21/10/2026 | AI Agent | **Phân quyền theo từng tài khoản (`TASK-IAM-007`, chờ duyệt):** §5 Operator OS thêm "Tài khoản quản lý"; menu Admin / Operator OS ẩn theo quyền của phiên; hộp thoại tick quyền dùng chung (`packages/ui`). |
 | v0.36     | 26/10/2026 | AI Agent | **Đóng UX-OQ-09 (Khanh 26/10/2026, chờ duyệt):** tra cứu vé Guest bắt buộc OTP qua email — web làm theo Figma 1446:14982 (B1) → 1446:15277 (B2: đếm ngược 5 phút, còn N lần thử, gửi lại sau 60 giây) → kết quả. |
 | v0.37     | 26/10/2026 | AI Agent | **Figma thanh toán đổi sang payOS + cổng demo (Khanh 21/10 chọn, 26/10 "chỉnh thiết kế", chờ duyệt + chờ ADR thay ADR-019):** SCR-PSG-20 (Ideal + hết giờ giữ chỗ) bỏ VNPay / MoMo + chip ngân hàng, thay bằng "Chuyển khoản VietQR qua payOS" và "Cổng thanh toán thử (demo)"; nhãn phương thức / mã giao dịch ở SCR-PSG-16, 21, 22, 23, 25, 26 (hoàn qua chuyển khoản), 29, 31. Màn Admin (ADM-01, 07a–d, 09b, 14a, 16a–b) và Operator OS "02 · Đặt vé / Chi tiết đơn" còn VNPay / MoMo — sửa cùng task hiện thực payOS. |
+| v0.38     | 27/10/2026 | AI Agent | **Tra cứu vé không cần mã đặt vé (Khanh 27/10/2026, chờ duyệt):** SCR-PSG-27 mã đặt vé không bắt buộc + dòng CSKH khi mất email; SCR-PSG-29 thêm danh sách đơn theo email (12 tháng, gồm đơn đặt bằng tài khoản) và hộp thoại hỏi đăng nhập — chưa có khung Figma cho danh sách. |
 
 ---
 
@@ -453,7 +454,7 @@ Mỗi màn hình là một bảng đủ 5 trạng thái theo §10.1. Cột **Thi
 
 | Trạng thái     | Nội dung cần có                                                              | Thiết kế            |
 | -------------- | ---------------------------------------------------------------------------- | ------------------- |
-| Ideal          | Tab SĐT / Email; nhập SĐT; gửi OTP; khối giới thiệu tra cứu                   | Review ⚠ (#5, UX-OQ-09) |
+| Ideal          | Email (bắt buộc) + mã đặt vé / mã vé (không bắt buộc — chờ duyệt 27/10/2026); gửi OTP; khối giới thiệu tra cứu; dòng "Không còn dùng email đặt vé? Gọi CSKH" | Review ⚠ (#5, UX-OQ-09) |
 | Empty          | Chưa nhập → CTA vô hiệu                                                      | Draft               |
 | Loading        | Đang gửi OTP                                                                 | Draft               |
 | Partial / Edge | Email dài; phản hồi trung tính (không tiết lộ contact có vé hay không)        | Draft               |
@@ -473,7 +474,7 @@ Mỗi màn hình là một bảng đủ 5 trạng thái theo §10.1. Cột **Thi
 
 | Trạng thái     | Nội dung cần có                                                                                                        | Thiết kế       |
 | -------------- | ---------------------------------------------------------------------------------------------------------------------- | -------------- |
-| Ideal          | Xác thực thành công; tab theo trạng thái (đếm số); tìm mã vé; thẻ vé; xem QR / hủy vé                                   | Review         |
+| Ideal          | Xác thực thành công; có mã đặt vé → thẳng một đơn (Figma 1446:15578); không mã → danh sách đơn của email 12 tháng (tab theo trạng thái có đếm số, tìm mã / tuyến, nhãn "Đặt bằng tài khoản" — chưa có Figma, chờ duyệt 27/10/2026) → chọn đơn; email có tài khoản / đơn đặt bằng tài khoản → hộp thoại "Bạn có muốn đăng nhập không?" một lần mỗi phiên trình duyệt; thẻ vé; xem QR / hủy vé | Review         |
 | Empty          | Không có vé gắn với contact → CTA đặt vé                                                                               | Draft          |
 | Loading        | Skeleton                                                                                                               | Draft          |
 | Partial / Edge | Thiếu dữ liệu (giờ đến "--:--", tên nhà xe mặc định — Figma đã có); nhãn trạng thái vé như SCR-PSG-24; header phải ở trạng thái Guest (Figma đang hiện header đã đăng nhập) | Review + Draft |

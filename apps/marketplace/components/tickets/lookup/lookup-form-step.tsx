@@ -40,8 +40,8 @@ export const LookupFormStep: React.FC<LookupFormStepProps> = ({
     const trimmedCode = bookingCode.trim().toUpperCase();
     const trimmedEmail = email.trim().toLowerCase();
 
-    if (!trimmedCode || !trimmedEmail) {
-      setErrorMessage("Vui lòng nhập đầy đủ mã đặt vé và email liên hệ.");
+    if (!trimmedEmail) {
+      setErrorMessage("Vui lòng nhập email đã dùng khi đặt vé.");
       return;
     }
     if (isPreview) {
@@ -77,7 +77,7 @@ export const LookupFormStep: React.FC<LookupFormStepProps> = ({
           Tra cứu vé
         </h1>
         <p className="text-xs text-muted-foreground leading-relaxed">
-          Dành cho khách đặt vé không đăng nhập. Nhập mã đặt vé (hoặc mã vé) và email đã dùng khi đặt.
+          Dành cho khách đặt vé không đăng nhập. Nhập email đã dùng khi đặt; có mã đặt vé (hoặc mã vé) thì nhập thêm để xem đúng đơn đó.
         </p>
       </div>
 
@@ -98,12 +98,11 @@ export const LookupFormStep: React.FC<LookupFormStepProps> = ({
             htmlFor="lookup-booking-code"
             className="text-xs font-semibold text-foreground"
           >
-            Mã đặt vé hoặc mã vé *
+            Mã đặt vé hoặc mã vé <span className="font-normal text-muted-foreground">(không bắt buộc)</span>
           </label>
           <input
             id="lookup-booking-code"
             type="text"
-            required
             value={bookingCode}
             onChange={(e) => setBookingCode(e.target.value.toUpperCase())}
             placeholder="Ví dụ: VXN-4H9P6C"
@@ -136,14 +135,14 @@ export const LookupFormStep: React.FC<LookupFormStepProps> = ({
         <div className="p-3.5 rounded-xl bg-teal-50/70 dark:bg-teal-950/20 border border-teal-200/60 dark:border-teal-900/40 flex items-start gap-2.5 text-xs text-teal-950 dark:text-teal-200">
           <Info className="h-4 w-4 text-teal-700 dark:text-teal-400 shrink-0 mt-0.5" />
           <div className="leading-relaxed">
-            Mã xác minh (OTP) được gửi tới email liên hệ của đơn. Để bảo vệ thông tin, hệ thống không cho biết mã hoặc email có khớp hay không trước khi xác minh.
+            Mã xác minh (OTP) được gửi tới email nếu email có đơn đặt vé. Không nhập mã đặt vé thì bạn sẽ thấy các đơn của email trong 12 tháng gần nhất. Để bảo vệ thông tin, hệ thống không cho biết email hoặc mã có khớp hay không trước khi xác minh.
           </div>
         </div>
 
         {/* Nút gửi mã xác minh */}
         <Button
           type="submit"
-          disabled={isSubmitting || !bookingCode.trim() || !email.trim()}
+          disabled={isSubmitting || !email.trim()}
           className="w-full h-11 text-xs font-bold rounded-xl bg-teal-900 hover:bg-teal-950 text-white shadow-xs"
         >
           {isSubmitting ? "Đang gửi mã..." : "Gửi mã xác minh"}
@@ -151,7 +150,12 @@ export const LookupFormStep: React.FC<LookupFormStepProps> = ({
       </form>
 
       {/* Dòng liên kết đăng nhập */}
-      <div className="pt-2 text-center text-xs text-muted-foreground">
+      <div className="space-y-1.5 pt-2 text-center text-xs text-muted-foreground">
+        <p>
+          Không còn dùng email đặt vé? Gọi CSKH{" "}
+          <a href="tel:19006067" className="font-semibold text-teal-700 hover:underline dark:text-teal-400">1900 6067</a> để được hỗ trợ.
+        </p>
+        <p>
         <span>Đã có tài khoản? </span>
         <Link
           href="/login"
@@ -160,6 +164,7 @@ export const LookupFormStep: React.FC<LookupFormStepProps> = ({
           <span>Đăng nhập để xem toàn bộ vé</span>
           <span>›</span>
         </Link>
+        </p>
       </div>
     </div>
   );
