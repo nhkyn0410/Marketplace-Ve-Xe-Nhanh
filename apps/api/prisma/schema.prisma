@@ -1546,6 +1546,8 @@ model Booking {
   tickets    Ticket[]
   refunds    Refund[]
   ledger     EscrowLedger[]
+  /// Mã truy cập phụ cấp sau khi khách vãng lai xác minh OTP tra cứu vé (hủy vé / khiếu nại).
+  accessGrants BookingAccessGrant[]
 
   supportTickets SupportTicket[]
   disputeCases   DisputeCase[]
@@ -1590,6 +1592,23 @@ model PassengerInfo {
 }
 
 /// Lịch sử trạng thái booking (FR-BTP-18).
+/// Mã truy cập phụ của booking khách vãng lai, cấp sau khi xác minh OTP tra cứu vé (Khanh 27/10/2026, chờ duyệt): dùng như
+/// `X-Booking-Token` để xem đơn / vé, hủy vé, gửi khiếu nại tới khi hết phiên tra cứu. Không dùng để thanh toán / tranh chấp.
+model BookingAccessGrant {
+  id         String   @id @default(uuid())
+  bookingId  String   @map("booking_id")
+  operatorId String   @map("operator_id")
+  /// SHA-256 của mã trả MỘT lần.
+  tokenHash  String   @unique @map("token_hash")
+  expiresAt  DateTime @map("expires_at")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  booking Booking @relation(fields: [bookingId, operatorId], references: [id, operatorId], onDelete: Restrict, onUpdate: Restrict)
+
+  @@index([bookingId, expiresAt])
+  @@map("booking_access_grants")
+}
+
 model BookingStatusHistory {
   id         String         @id @default(uuid())
   bookingId  String         @map("booking_id")

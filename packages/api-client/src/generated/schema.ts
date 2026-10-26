@@ -2132,6 +2132,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/guest/ticket-lookup/booking-access": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["TicketController_grantBookingAccess"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/guest/ticket-lookup": {
         parameters: {
             query?: never;
@@ -7418,6 +7434,13 @@ export interface components {
             lookupToken: string;
             /** Format: uuid */
             bookingId?: string;
+        };
+        TicketLookupAccessDto_Output: {
+            /** Format: uuid */
+            bookingId: string;
+            accessToken: string;
+            /** Format: date-time */
+            expiresAt: string;
         };
         CancellationQuoteDto_Output: {
             tickets: {
@@ -18480,6 +18503,66 @@ export interface operations {
                 };
             };
             /** @description `TICKET_LOOKUP_EXPIRED` — phiên tra cứu không có hoặc đã hết hạn. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Tra cứu tạm gián đoạn. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    TicketController_grantBookingAccess: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TicketLookupInputDto"];
+            };
+        };
+        responses: {
+            /** @description Mã truy cập phụ (dùng ở header `X-Booking-Token`). */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TicketLookupAccessDto_Output"];
+                };
+            };
+            /** @description Gửi token nhưng token sai / hết hạn (không gửi token = khách vãng lai). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `BOOKING_REQUIRES_LOGIN` — đơn đặt bằng tài khoản. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `TICKET_LOOKUP_EXPIRED` — phiên hết hạn; `BOOKING_NOT_FOUND` — đơn ngoài phạm vi phiên. */
             404: {
                 headers: {
                     [name: string]: unknown;

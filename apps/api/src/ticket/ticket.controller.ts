@@ -10,6 +10,8 @@ import type { VerifiedAccessToken } from "../iam/auth/token.service";
 import { GuestOrPassenger, OptionalPassenger } from "../iam/role/guest-or-passenger";
 import { ProblemDetailsDto } from "../openapi/openapi.dto";
 import {
+  TicketLookupAccessDto,
+  type TicketLookupAccess,
   TicketLookupBookingListDto,
   type TicketLookupBookingList,
   TicketLookupInputDto,
@@ -87,6 +89,19 @@ export class TicketController {
   @ApiResponse({ status: 503, description: "Tra cứu tạm gián đoạn.", content: problemContent })
   listBookings(@Body() input: TicketLookupSessionInputDto): Promise<TicketLookupBookingList> {
     return this.tickets.listBookings(input);
+  }
+
+  /** Sau OTP: mã truy cập phụ để hủy vé / gửi khiếu nại một đơn khách vãng lai trong phiên (hết hạn cùng phiên). */
+  @Post("guest/ticket-lookup/booking-access")
+  @HttpCode(200)
+  @GuestOrPassenger("booking:create")
+  @ApiBody({ type: TicketLookupInputDto })
+  @ZodResponse({ status: 200, description: "Mã truy cập phụ (dùng ở header `X-Booking-Token`).", type: TicketLookupAccessDto })
+  @ApiResponse({ status: 403, description: "`BOOKING_REQUIRES_LOGIN` — đơn đặt bằng tài khoản.", content: problemContent })
+  @ApiResponse({ status: 404, description: "`TICKET_LOOKUP_EXPIRED` — phiên hết hạn; `BOOKING_NOT_FOUND` — đơn ngoài phạm vi phiên.", content: problemContent })
+  @ApiResponse({ status: 503, description: "Tra cứu tạm gián đoạn.", content: problemContent })
+  grantBookingAccess(@Body() input: TicketLookupInputDto): Promise<TicketLookupAccess> {
+    return this.tickets.grantBookingAccess(input);
   }
 
   /** Tra cứu vé B3: booking + vé của một đơn trong phiên tra cứu đã xác minh. */

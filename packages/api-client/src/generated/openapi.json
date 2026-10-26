@@ -12502,6 +12502,77 @@
         ]
       }
     },
+    "/v1/guest/ticket-lookup/booking-access": {
+      "post": {
+        "operationId": "TicketController_grantBookingAccess",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TicketLookupInputDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Mã truy cập phụ (dùng ở header `X-Booking-Token`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TicketLookupAccessDto_Output"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Gửi token nhưng token sai / hết hạn (không gửi token = khách vãng lai).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "`BOOKING_REQUIRES_LOGIN` — đơn đặt bằng tài khoản.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "`TICKET_LOOKUP_EXPIRED` — phiên hết hạn; `BOOKING_NOT_FOUND` — đơn ngoài phạm vi phiên.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Tra cứu tạm gián đoạn.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "tickets"
+        ]
+      }
+    },
     "/v1/guest/ticket-lookup": {
       "post": {
         "operationId": "TicketController_lookup",
@@ -40738,6 +40809,30 @@
         "required": [
           "lookupToken"
         ]
+      },
+      "TicketLookupAccessDto_Output": {
+        "type": "object",
+        "properties": {
+          "bookingId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "accessToken": {
+            "type": "string"
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$"
+          }
+        },
+        "required": [
+          "bookingId",
+          "accessToken",
+          "expiresAt"
+        ],
+        "additionalProperties": false
       },
       "CancellationQuoteDto_Output": {
         "type": "object",

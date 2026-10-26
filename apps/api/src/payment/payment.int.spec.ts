@@ -250,6 +250,7 @@ describe.skipIf(!ready && !requireDb)("Thanh toán — Postgres + Redis thật (
       await tx.tripSeat.updateMany({ where: { operatorId }, data: { bookingId: null } });
       await tx.bookingStatusHistory.deleteMany({ where: { operatorId } });
       await tx.passengerInfo.deleteMany({ where: { operatorId } });
+      await tx.bookingAccessGrant.deleteMany({ where: { operatorId } });
       await tx.booking.deleteMany({ where: { operatorId } });
       await tx.tripSeat.deleteMany({ where: { operatorId } });
       await tx.tripStop.deleteMany({ where: { operatorId } });
@@ -459,6 +460,10 @@ describe.skipIf(!ready && !requireDb)("Thanh toán — Postgres + Redis thật (
     expect(listed.items.map((item) => item.bookingId)).toContain(created.bookingId);
     expect((await tickets.lookup({ lookupToken: byEmail.lookupToken, bookingId: created.bookingId })).tickets).toHaveLength(2);
     expect(await rejectionOf(tickets.lookup({ lookupToken: byEmail.lookupToken }))).toMatchObject({ status: 404, code: "BOOKING_NOT_FOUND" });
+    // Sau OTP được cấp mã truy cập phụ cho đúng đơn (hủy vé / khiếu nại); không thay mã gốc lúc đặt.
+    const access = await tickets.grantBookingAccess({ lookupToken: byEmail.lookupToken, bookingId: created.bookingId });
+    expect((await bookings.get(null, created.bookingId, access.accessToken)).bookingId).toBe(created.bookingId);
+    expect((await bookings.get(null, created.bookingId, created.accessToken)).bookingId).toBe(created.bookingId);
 
     // Email không có đơn không bao giờ xác minh được; 10 lần gửi mã / 10 phút / IP (đã dùng 4).
     for (let index = 0; index < 6; index++) {

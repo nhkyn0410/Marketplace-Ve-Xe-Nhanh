@@ -22,6 +22,11 @@ export function lookupBookingNotFound(): HttpException {
   return problem(HttpStatus.NOT_FOUND, "BOOKING_NOT_FOUND", "Không tìm thấy đơn trong phiên tra cứu này.");
 }
 
+/** Đơn đặt khi đã đăng nhập: tra cứu chỉ cho xem — hủy vé / khiếu nại qua tài khoản. */
+export function lookupBookingRequiresLogin(): HttpException {
+  return problem(HttpStatus.FORBIDDEN, "BOOKING_REQUIRES_LOGIN", "Đơn này được đặt bằng tài khoản. Vui lòng đăng nhập tài khoản đó để hủy vé hoặc gửi khiếu nại.");
+}
+
 /** Sai mã xác minh; hết lượt thử hoặc mã hết hạn thì phải gửi lại mã. */
 export function lookupOtpInvalid(remainingAttempts: number): HttpException {
   return problem(
