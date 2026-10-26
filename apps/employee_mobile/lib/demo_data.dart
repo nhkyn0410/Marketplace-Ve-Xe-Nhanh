@@ -16,6 +16,11 @@ class DemoTrip {
   final String operatingNote;
   final List<DemoPassenger> passengers;
   String status;
+  bool assigned = true;
+  final List<({String title, DateTime occurredAt})> operationHistory = [];
+  bool demoOperationFailure = false;
+  bool demoJournalFailure = false;
+  bool demoIncidentFailure = false;
   final List<
     ({
       String title,
@@ -44,6 +49,10 @@ class DemoPassenger {
   final String ticket;
   final String maskedPhone;
   bool boarded = false;
+  DateTime? checkedInAt;
+  bool absent = false;
+  bool needsAttention = false;
+  String note = '';
 }
 
 /// Tạo mới bộ dữ liệu Figma mỗi lần vào bản xem thử.

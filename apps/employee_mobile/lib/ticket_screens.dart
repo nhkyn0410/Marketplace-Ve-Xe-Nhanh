@@ -3,10 +3,642 @@ import 'package:flutter/material.dart';
 import 'demo_data.dart';
 import 'design_system.dart';
 
+/// Các kết quả không cho phép xác nhận vé trong phiên minh họa.
+enum TicketResultKind { notFound, wrongTrip, cancelled, refunded }
+
+/// Hiển thị kết quả vé lỗi mà không lộ thông tin hành khách của chuyến khác.
+class TicketResultScreen extends StatelessWidget {
+  const TicketResultScreen({
+    super.key,
+    required this.trip,
+    required this.code,
+    required this.kind,
+  });
+  final DemoTrip trip;
+  final String code;
+  final TicketResultKind kind;
+
+  @override
+  Widget build(BuildContext context) {
+    final (node, emblem, title, message, color) = switch (kind) {
+      TicketResultKind.notFound => (
+        '2080-1135',
+        'imgEmployeeTicketEmblemKhongTimThyVe',
+        'Không tìm thấy vé',
+        'Nhập lại mã hoặc quét lại QR.',
+        DriverColors.teal,
+      ),
+      TicketResultKind.wrongTrip => (
+        '2080-1177',
+        'imgEmployeeTicketEmblemVeThucChuynKhac',
+        'Vé thuộc chuyến khác',
+        'Đối chiếu lại chuyến trên vé.',
+        DriverColors.warning,
+      ),
+      TicketResultKind.cancelled => (
+        '2080-1220',
+        'imgEmployeeTicketEmblemVeDaHy',
+        'Vé đã hủy',
+        'Vé đã hủy không còn hiệu lực.',
+        const Color(0xffbc2018),
+      ),
+      TicketResultKind.refunded => (
+        '2080-1262',
+        'imgEmployeeTicketEmblemVeDaHoanTin',
+        'Vé đã hoàn tiền',
+        'Vé đã hoàn tiền không còn hiệu lực.',
+        const Color(0xffbc2018),
+      ),
+    };
+    final prefix = 'ticket-refresh-$node';
+    return DriverPage(
+      background: DriverColors.cream,
+      statusAsset: '$prefix-imgTinHiuWiFiPin',
+      bottom: Padding(
+        padding: const EdgeInsets.fromLTRB(40, 8, 40, 16),
+        child: SwipeAction(
+          label: kind == TicketResultKind.notFound
+              ? 'Quét lại'
+              : 'Quét vé khác',
+          filled: true,
+          arrowAsset: '$prefix-imgFrame',
+          chevronAsset: '$prefix-imgFrame1',
+          onComplete: () => Navigator.maybePop(context),
+        ),
+      ),
+      child: Column(
+        children: [
+          DriverHeading(
+            'Kiểm tra vé',
+            backAsset: '$prefix-imgIconBack',
+            backAssetSize: const Size(20, 20),
+            background: DriverColors.cream,
+          ),
+          Expanded(
+            child: ListView(
+              padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
+              children: [
+                Center(
+                  child: FigmaAsset('$prefix-$emblem', width: 112, height: 112),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  title,
+                  textAlign: TextAlign.center,
+                  style: driverText(26, FontWeight.w700, color),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  'Chuyến ${trip.id} · 14/10/2026',
+                  textAlign: TextAlign.center,
+                  style: driverText(
+                    12,
+                    FontWeight.w400,
+                    DriverColors.secondary,
+                  ),
+                ),
+                const SizedBox(height: 36),
+                AspectRatio(
+                  aspectRatio: 364 / 284,
+                  child: FittedBox(
+                    child: SizedBox(
+                      width: 364,
+                      height: 284,
+                      child: Stack(
+                        children: [
+                          for (final name in [
+                            'imgVeGiyCoLKhuyt',
+                            'imgCungMauCtKhpGocVe',
+                            'imgVinGocKhoetKhpHaiNa',
+                            'imgDngXeKhongChmLKhuyt',
+                          ])
+                            FigmaAsset(
+                              '$prefix-$name',
+                              width: 364,
+                              height: 284,
+                            ),
+                          Positioned(
+                            left: 24,
+                            right: 24,
+                            top: 24,
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  'KIỂM TRA VÉ',
+                                  style: driverText(
+                                    12,
+                                    FontWeight.w400,
+                                    DriverColors.secondary,
+                                  ),
+                                ),
+                                Text(
+                                  trip.id,
+                                  style: driverText(
+                                    12,
+                                    FontWeight.w400,
+                                    DriverColors.teal,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Positioned(
+                            left: 24,
+                            right: 24,
+                            top: 64,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Mã vé vừa quét',
+                                  style: driverText(
+                                    12,
+                                    FontWeight.w400,
+                                    DriverColors.secondary,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  code,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: driverText(
+                                    26,
+                                    FontWeight.w700,
+                                    DriverColors.navy,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Positioned(
+                            left: 24,
+                            right: 24,
+                            top: 142,
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  '14/10/2026',
+                                  style: driverText(
+                                    12,
+                                    FontWeight.w400,
+                                    DriverColors.secondary,
+                                  ),
+                                ),
+                                Text(
+                                  'Chuyến ${trip.id}',
+                                  style: driverText(
+                                    12,
+                                    FontWeight.w400,
+                                    DriverColors.secondary,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Positioned(
+                            left: 20,
+                            right: 20,
+                            top: 204,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  kind == TicketResultKind.notFound
+                                      ? 'CHƯA XÁC NHẬN LÊN XE'
+                                      : 'KHÔNG THỂ XÁC NHẬN LÊN XE',
+                                  style: driverText(12, FontWeight.w600, color),
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  message,
+                                  style: driverText(
+                                    14,
+                                    FontWeight.w500,
+                                    DriverColors.navy,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'Kết quả minh họa · Chưa kiểm tra qua máy chủ',
+                  textAlign: TextAlign.center,
+                  style: driverText(
+                    12,
+                    FontWeight.w400,
+                    DriverColors.secondary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Màn xác nhận một khách đã lên xe, chỉ lưu trong phiên dữ liệu mẫu.
+class BoardingSuccessScreen extends StatelessWidget {
+  const BoardingSuccessScreen({
+    super.key,
+    required this.trip,
+    required this.passenger,
+  });
+  final DemoTrip trip;
+  final DemoPassenger passenger;
+  @override
+  Widget build(BuildContext context) => DriverPage(
+    background: DriverColors.cream,
+    statusAsset: 'ticket-refresh-1834-668-imgTinHiuWiFiPin',
+    bottom: Padding(
+      padding: const EdgeInsets.fromLTRB(40, 8, 40, 16),
+      child: SwipeAction(
+        label: 'Quét vé tiếp',
+        filled: true,
+        arrowAsset: 'ticket-refresh-1834-668-imgFrame',
+        chevronAsset: 'ticket-refresh-1834-668-imgFrame1',
+        onComplete: () => Navigator.of(context).pushReplacement(
+          MaterialPageRoute<void>(builder: (_) => ScannerScreen(trip: trip)),
+        ),
+      ),
+    ),
+    child: Column(
+      children: [
+        Align(
+          alignment: Alignment.centerLeft,
+          child: SizedBox(
+            height: 28,
+            child: IconButton(
+              padding: EdgeInsets.zero,
+              tooltip: 'Quay lại',
+              onPressed: () => Navigator.maybePop(context),
+              icon: const Icon(Icons.chevron_left),
+            ),
+          ),
+        ),
+        Expanded(
+          child: ListView(
+            padding: const EdgeInsets.fromLTRB(24, 4, 24, 16),
+            children: [
+              const Center(
+                child: FigmaAsset(
+                  'ticket-refresh-1834-668-imgXacNhnDuTichTrenVe',
+                  width: 112,
+                  height: 112,
+                ),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'Đã lên xe · Bản mẫu',
+                textAlign: TextAlign.center,
+                style: driverText(28, FontWeight.w700, const Color(0xff157a48)),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'Chuyến ${trip.id} · 14/10/2026',
+                textAlign: TextAlign.center,
+                style: driverText(14, FontWeight.w500, DriverColors.secondary),
+              ),
+              const SizedBox(height: 28),
+              _PhysicalTicket(trip: trip, passenger: passenger),
+              const SizedBox(height: 20),
+              DriverCard(
+                padding: 20,
+                child: Column(
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            '${trip.boardedCount} / ${trip.passengers.length} đã lên xe',
+                            style: driverText(
+                              18,
+                              FontWeight.w600,
+                              DriverColors.teal,
+                            ),
+                          ),
+                        ),
+                        Text(
+                          'Còn ${trip.passengers.length - trip.boardedCount} khách',
+                          style: driverText(
+                            12,
+                            FontWeight.w400,
+                            DriverColors.secondary,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 14),
+                    LinearProgressIndicator(
+                      value: trip.passengers.isEmpty
+                          ? 0
+                          : trip.boardedCount / trip.passengers.length,
+                      minHeight: 6,
+                      borderRadius: BorderRadius.circular(3),
+                      backgroundColor: DriverColors.border,
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'Chỉ lưu trong phiên xem thử, chưa gửi máy chủ.',
+                textAlign: TextAlign.center,
+                style: driverText(12, FontWeight.w400, DriverColors.secondary),
+              ),
+            ],
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
+/// Chỉnh trạng thái và ghi chú của khách thuộc chuyến đang phụ trách.
+class PassengerStatusScreen extends StatefulWidget {
+  const PassengerStatusScreen({
+    super.key,
+    required this.trip,
+    required this.passenger,
+  });
+  final DemoTrip trip;
+  final DemoPassenger passenger;
+  @override
+  State<PassengerStatusScreen> createState() => _PassengerStatusScreenState();
+}
+
+class _PassengerStatusScreenState extends State<PassengerStatusScreen> {
+  late final _note = TextEditingController(text: widget.passenger.note);
+  late var _selection = widget.passenger.absent
+      ? 1
+      : widget.passenger.needsAttention
+      ? 2
+      : 0;
+  bool get _canMarkAbsent =>
+      ['Đón khách', 'Khởi hành', 'Đang chạy'].contains(widget.trip.status);
+  @override
+  void dispose() {
+    _note.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final passenger = widget.passenger;
+    return DriverPage(
+      statusBackground: DriverColors.canvas,
+      statusAsset: 'ticket-refresh-1905-767-imgTinHiuWiFiPin',
+      bottom: Padding(
+        padding: const EdgeInsets.fromLTRB(40, 14, 40, 16),
+        child: SwipeAction(
+          label: 'Lưu trạng thái',
+          enabled: !passenger.boarded && widget.trip.assigned,
+          arrowAsset: 'ticket-refresh-1905-767-imgFrame',
+          chevronAsset: 'ticket-refresh-1905-767-imgFrame1',
+          onComplete: () {
+            if (_selection == 1 && !_canMarkAbsent) return;
+            passenger.absent = _selection == 1;
+            passenger.needsAttention = _selection == 2;
+            passenger.note = _note.text.trim();
+            Navigator.pop(context);
+            showDemoNotice(
+              context,
+              'Đã lưu trạng thái khách trong bản mẫu, chưa gửi máy chủ.',
+            );
+          },
+        ),
+      ),
+      child: Column(
+        children: [
+          DriverHeading(
+            'Cập nhật khách',
+            subtitle: '${widget.trip.id} · Vé ${passenger.ticket}',
+            background: DriverColors.canvas,
+            trailing: Container(
+              width: 48,
+              height: 48,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: const FigmaAsset(
+                'ticket-refresh-1905-767-imgFrame2',
+                width: 27,
+                height: 27,
+              ),
+            ),
+          ),
+          Expanded(
+            child: ListView(
+              padding: const EdgeInsets.all(24),
+              children: [
+                DriverCard(
+                  color: DriverColors.canvas,
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              passenger.name,
+                              style: driverText(22, FontWeight.w600),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              passenger.maskedPhone,
+                              style: driverText(
+                                12,
+                                FontWeight.w400,
+                                DriverColors.secondary,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Container(
+                        width: 56,
+                        height: 56,
+                        alignment: Alignment.center,
+                        decoration: BoxDecoration(
+                          color: DriverColors.teal,
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Text(
+                          passenger.seat,
+                          style: driverText(22, FontWeight.w700, Colors.white),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        'Trạng thái hiện tại',
+                        style: driverText(
+                          12,
+                          FontWeight.w400,
+                          DriverColors.secondary,
+                        ),
+                      ),
+                    ),
+                    Text(
+                      passenger.boarded
+                          ? 'Đã lên xe'
+                          : passenger.absent
+                          ? 'Vắng mặt'
+                          : passenger.needsAttention
+                          ? 'Cần xử lý'
+                          : 'Chưa lên xe',
+                      style: driverText(12, FontWeight.w400, DriverColors.teal),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 24),
+                Text(
+                  'Trạng thái mới',
+                  style: driverText(14, FontWeight.w500, DriverColors.navy),
+                ),
+                const SizedBox(height: 12),
+                for (var i = 0; i < 3; i++)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 10),
+                    child: InkWell(
+                      onTap: passenger.boarded || (i == 1 && !_canMarkAbsent)
+                          ? null
+                          : () => setState(() => _selection = i),
+                      borderRadius: BorderRadius.circular(16),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 14,
+                        ),
+                        decoration: BoxDecoration(
+                          color: _selection == i ? DriverColors.cream : null,
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Row(
+                          children: [
+                            if (i == 1 && _selection == i) ...[
+                              const FigmaAsset(
+                                'ticket-refresh-1905-767-imgIconKhachVng',
+                                width: 22,
+                                height: 22,
+                              ),
+                              const SizedBox(width: 20),
+                            ],
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: _selection == i
+                                    ? CrossAxisAlignment.start
+                                    : CrossAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    const [
+                                      'Chưa lên',
+                                      'Vắng mặt',
+                                      'Cần xử lý',
+                                    ][i],
+                                    style: driverText(
+                                      _selection == i ? 16 : 14,
+                                      _selection == i
+                                          ? FontWeight.w600
+                                          : FontWeight.w500,
+                                      _selection == i
+                                          ? DriverColors.warning
+                                          : DriverColors.secondary,
+                                    ),
+                                  ),
+                                  if (i == 1 && _selection == i)
+                                    Text(
+                                      'Chưa có mặt tại điểm đón.',
+                                      style: driverText(
+                                        12,
+                                        FontWeight.w400,
+                                        DriverColors.secondary,
+                                      ),
+                                    ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                if (!_canMarkAbsent)
+                  Text(
+                    'Có thể ghi vắng mặt sau khi bắt đầu đón khách.',
+                    style: driverText(
+                      12,
+                      FontWeight.w400,
+                      DriverColors.secondary,
+                    ),
+                  ),
+                if (passenger.boarded)
+                  Text(
+                    'Khách đã lên xe; trạng thái được giữ trong bản mẫu.',
+                    style: driverText(
+                      12,
+                      FontWeight.w400,
+                      DriverColors.secondary,
+                    ),
+                  ),
+                const SizedBox(height: 20),
+                Text(
+                  'Ghi chú (không bắt buộc)',
+                  style: driverText(14, FontWeight.w500),
+                ),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: _note,
+                  maxLines: 4,
+                  readOnly: passenger.boarded,
+                  decoration: InputDecoration(
+                    hintText: 'Thêm thông tin cần lưu ý…',
+                    fillColor: DriverColors.canvas,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      borderSide: BorderSide.none,
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      borderSide: BorderSide.none,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 /// Khung quét vé minh họa, chưa truy cập camera hay xác minh với máy chủ.
 class ScannerScreen extends StatelessWidget {
-  const ScannerScreen({super.key, required this.trip});
+  const ScannerScreen({
+    super.key,
+    required this.trip,
+    this.initiallyOffline = false,
+  });
   final DemoTrip trip;
+  final bool initiallyOffline;
   @override
   Widget build(BuildContext context) => DriverPage(
     background: const Color(0xff111317),
@@ -109,24 +741,72 @@ class ScannerScreen extends StatelessWidget {
                       child: Stack(
                         alignment: Alignment.center,
                         children: [
-                          const FigmaAsset(
-                            'scanner-imgKhungNhnDinBnGoc',
-                            width: 280,
-                            height: 280,
-                          ),
-                          Container(
-                            height: 2,
-                            margin: const EdgeInsets.symmetric(horizontal: 2),
-                            decoration: const BoxDecoration(
-                              color: DriverColors.orange,
-                              boxShadow: [
-                                BoxShadow(
-                                  color: DriverColors.orange,
-                                  blurRadius: 5,
-                                ),
-                              ],
+                          if (!initiallyOffline)
+                            const FigmaAsset(
+                              'scanner-imgKhungNhnDinBnGoc',
+                              width: 280,
+                              height: 280,
                             ),
-                          ),
+                          if (initiallyOffline)
+                            for (var corner = 0; corner < 4; corner++)
+                              Positioned(
+                                left: corner.isEven ? 0 : null,
+                                right: corner.isOdd ? 0 : null,
+                                top: corner < 2 ? 0 : null,
+                                bottom: corner >= 2 ? 0 : null,
+                                child: Container(
+                                  width: 25,
+                                  height: 25,
+                                  decoration: BoxDecoration(
+                                    border: Border(
+                                      top: corner < 2
+                                          ? const BorderSide(
+                                              color: Color(0xffaeafb3),
+                                              width: 2,
+                                            )
+                                          : BorderSide.none,
+                                      bottom: corner >= 2
+                                          ? const BorderSide(
+                                              color: Color(0xffaeafb3),
+                                              width: 2,
+                                            )
+                                          : BorderSide.none,
+                                      left: corner.isEven
+                                          ? const BorderSide(
+                                              color: Color(0xffaeafb3),
+                                              width: 2,
+                                            )
+                                          : BorderSide.none,
+                                      right: corner.isOdd
+                                          ? const BorderSide(
+                                              color: Color(0xffaeafb3),
+                                              width: 2,
+                                            )
+                                          : BorderSide.none,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                          if (initiallyOffline)
+                            const FigmaAsset(
+                              'ticket-refresh-2082-1336-imgIconWifi',
+                              width: 52,
+                              height: 52,
+                            )
+                          else
+                            Container(
+                              height: 2,
+                              margin: const EdgeInsets.symmetric(horizontal: 2),
+                              decoration: const BoxDecoration(
+                                color: DriverColors.orange,
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: DriverColors.orange,
+                                    blurRadius: 5,
+                                  ),
+                                ],
+                              ),
+                            ),
                         ],
                       ),
                     ),
@@ -172,24 +852,31 @@ class ScannerScreen extends StatelessWidget {
               ),
               const SizedBox(height: 16),
               Text(
-                'Sẵn sàng kiểm tra vé',
+                initiallyOffline ? 'Mất kết nối' : 'Sẵn sàng kiểm tra vé',
                 style: driverText(24, FontWeight.w600, DriverColors.navy),
               ),
               const SizedBox(height: 8),
               Text(
-                'Đặt mã QR trên vé vào khung quét.',
+                initiallyOffline
+                    ? 'Cần kết nối để xác thực vé.'
+                    : 'Đặt mã QR trên vé vào khung quét.',
                 style: driverText(14, FontWeight.w500, DriverColors.secondary),
               ),
               const SizedBox(height: 28),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: SwipeAction(
-                  label: 'Nhập mã vé',
+                  label: initiallyOffline ? 'Thử lại' : 'Nhập mã vé',
                   filled: true,
                   arrowAsset: 'scanner-imgFrame',
                   chevronAsset: 'scanner-imgFrame1',
-                  onComplete: () =>
-                      openDriverPage(context, ManualTicketScreen(trip: trip)),
+                  onComplete: () => initiallyOffline
+                      ? Navigator.of(context).pushReplacement(
+                          MaterialPageRoute<void>(
+                            builder: (_) => ScannerScreen(trip: trip),
+                          ),
+                        )
+                      : openDriverPage(context, ManualTicketScreen(trip: trip)),
                 ),
               ),
             ],
@@ -219,12 +906,27 @@ class _ManualTicketScreenState extends State<ManualTicketScreen> {
 
   void _verify() {
     final code = _code.text.trim().toUpperCase();
+    if (code.isEmpty) {
+      setState(() => _error = 'Nhập mã vé cần kiểm tra.');
+      return;
+    }
     final matches = widget.trip.passengers.where((p) => p.ticket == code);
-    if (matches.isEmpty) {
-      setState(
-        () => _error = code.isEmpty
-            ? 'Nhập mã vé cần kiểm tra.'
-            : 'Không tìm thấy vé trong chuyến mẫu này.',
+    final result = code == 'VX102CANCEL'
+        ? TicketResultKind.cancelled
+        : code == 'VX102REFUND'
+        ? TicketResultKind.refunded
+        : createDemoTrips()
+              .where((t) => t.id != widget.trip.id)
+              .any((t) => t.passengers.any((p) => p.ticket == code))
+        ? TicketResultKind.wrongTrip
+        : matches.isEmpty
+        ? TicketResultKind.notFound
+        : null;
+    if (result != null) {
+      FocusScope.of(context).unfocus();
+      openDriverPage(
+        context,
+        TicketResultScreen(trip: widget.trip, code: code, kind: result),
       );
       return;
     }
@@ -429,6 +1131,9 @@ class _TicketScreenState extends State<TicketScreen> {
   Widget build(BuildContext context) {
     final trip = widget.trip;
     final passenger = widget.passenger;
+    if (passenger.boarded) {
+      return BoardingSuccessScreen(trip: trip, passenger: passenger);
+    }
     return DriverPage(
       background: DriverColors.cream,
       statusAsset: 'ticket-imgTinHiuWiFiPin',
@@ -488,6 +1193,19 @@ class _TicketScreenState extends State<TicketScreen> {
                 ),
                 const SizedBox(height: 16),
                 _PhysicalTicket(trip: trip, passenger: passenger),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton(
+                    onPressed: () async {
+                      await openDriverPage(
+                        context,
+                        PassengerStatusScreen(trip: trip, passenger: passenger),
+                      );
+                      if (mounted) setState(() {});
+                    },
+                    child: const Text('Cập nhật khách'),
+                  ),
+                ),
                 const SizedBox(height: 16),
                 DriverCard(
                   child: Row(
@@ -526,23 +1244,18 @@ class _TicketScreenState extends State<TicketScreen> {
                   chevronAsset: 'ticket-imgFrame1',
                   onComplete: () {
                     if (passenger.boarded) return;
-                    setState(() => passenger.boarded = true);
-                    showDemoNotice(
-                      context,
-                      'Bản mẫu: đã đổi trạng thái trong phiên, chưa gửi máy chủ.',
-                    );
+                    setState(() {
+                      passenger.boarded = true;
+                      passenger.absent = false;
+                      passenger.needsAttention = false;
+                      passenger.checkedInAt = DateTime.now();
+                    });
                   },
                 ),
-                TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: Text(
-                    '← Quay lại để quét vé khác',
-                    style: driverText(
-                      12,
-                      FontWeight.w400,
-                      DriverColors.secondary,
-                    ),
-                  ),
+                IconButton(
+                  tooltip: 'Quay lại',
+                  onPressed: () => Navigator.maybePop(context),
+                  icon: const Icon(Icons.arrow_back, size: 20),
                 ),
               ],
             ),
@@ -769,7 +1482,7 @@ class _PhysicalTicket extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
                       Text(
-                        'Trạng thái',
+                        passenger.boarded ? 'Soát vé' : 'Trạng thái',
                         style: driverText(
                           12,
                           FontWeight.w400,
@@ -778,7 +1491,13 @@ class _PhysicalTicket extends StatelessWidget {
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        passenger.boarded ? 'Đã lên' : 'Chưa lên',
+                        passenger.boarded
+                            ? '${(passenger.checkedInAt?.hour ?? 9).toString().padLeft(2, '0')}:${(passenger.checkedInAt?.minute ?? 41).toString().padLeft(2, '0')}'
+                            : passenger.absent
+                            ? 'Vắng mặt'
+                            : passenger.needsAttention
+                            ? 'Cần xử lý'
+                            : 'Chưa lên',
                         style: driverText(
                           16,
                           FontWeight.w600,

@@ -32,6 +32,28 @@ cd D:\Marketplace-Ve-Xe-Nhanh\apps\employee_mobile
 - Vận hành chuyến, ghi và xem nhật trình, biểu mẫu báo sự cố.
 - Cá nhân, chế độ sáng/tối, thiết bị đăng nhập, đăng xuất.
 
+## Bản thiết kế cập nhật
+
+Đối chiếu Figma tại [Giao diện Tài Xế](https://www.figma.com/design/6c81q3DdHVS0anfDw2sVVj/UI-UX?node-id=1484-3742):
+
+- Kết quả vé: không tìm thấy, sai chuyến, đã hủy, hoàn tiền; màn lên xe thành công với tiến độ động.
+- Cập nhật khách: chưa lên, vắng mặt sau khi bắt đầu đón, cần xử lý và ghi chú cục bộ.
+- Vận hành: chờ cập nhật, lỗi/thử lại, hoàn thành và lịch sử được giữ trong phiên.
+- Nhật trình: điểm dừng, kiểm tra xe, lỗi lưu và danh sách chưa đồng bộ. Không báo đã đồng bộ khi chưa có API.
+- Chi tiết nhật trình: có trạng thái tải lỗi, thử lại và khóa thao tác trong lúc tải; không tạo bản ghi giả nếu vẫn chưa có dữ liệu.
+- Thiết bị: xác nhận trước khi kết thúc phiên mẫu, hủy xác nhận và trạng thái chỉ còn thiết bị hiện tại.
+- Chuyến/hành khách: giao diện tải, lỗi, trống, không tìm thấy và ngoài phạm vi phân công.
+
+Mã vé thử trên chuyến MX102: `VX102001` (hợp lệ), `VX10200X` (không tìm thấy), `VX103001` (sai chuyến), `VX102CANCEL` (đã hủy), `VX102REFUND` (hoàn tiền). Đây là dữ liệu kiểm tra giao diện, không phải vé thật.
+
+Trang đối chiếu riêng cho các trạng thái khó gặp:
+
+```powershell
+..\..\.tools\flutter\bin\flutter.bat run -d chrome -t lib/preview_gallery.dart
+```
+
+Trang này không nằm trong điều hướng ứng dụng chính. Chức năng quét vẫn là khung camera mẫu; API, email và thu hồi phiên máy chủ chưa được tích hợp.
+
 Thao tác xác nhận dùng **vuốt sang phải** trên tay kéo màu cam.
 Theo yêu cầu giao diện, không hiển thị dòng hướng dẫn vuốt ở chân màn hình hoặc dưới nút; áp dụng cả cho các màn thêm sau.
 Dữ liệu chuyến mẫu nằm ở ngày **14/10/2026**; đổi sang ngày khác sẽ hiện trạng thái trống.
@@ -41,7 +63,7 @@ Dữ liệu chuyến mẫu nằm ở ngày **14/10/2026**; đổi sang ngày kh�
 Đây là giao diện dùng dữ liệu mẫu, **chưa kết nối API hoặc xác thực tài khoản thật**.
 Không nhập mật khẩu thật. Mật khẩu mẫu không được lưu hoặc gửi đi.
 Thay đổi hành khách, trạng thái chuyến và nhật trình chỉ tồn tại trong phiên;
-lịch sử cập nhật trạng thái giới hạn trong lần mở màn Vận hành.
+lịch sử cập nhật trạng thái được giữ khi mở lại màn Vận hành trong cùng phiên.
 Camera/đèn pin, email, thu hồi phiên và ảnh minh chứng hiện là thao tác minh họa.
 Số điện thoại hành khách chỉ chứa dữ liệu đã che.
 

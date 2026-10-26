@@ -2,6 +2,15 @@ import 'package:flutter/material.dart';
 
 import 'design_system.dart';
 
+/// Phiên thiết bị mẫu được giữ trong suốt lần xem thử của nhân viên.
+class DemoDeviceSessions {
+  DemoDeviceSessions({this.hasOther = true});
+  bool hasOther;
+}
+
+/// Loại phiên cần xác nhận thu hồi trong màn thiết bị mẫu.
+enum DeviceConfirmation { current, other }
+
 /// Màn cá nhân của nhân viên với thông tin và thao tác minh họa.
 class ProfileScreen extends StatelessWidget {
   /// Tạo nội dung cá nhân để hiển thị trong hai mục chính của ứng dụng.
@@ -11,12 +20,14 @@ class ProfileScreen extends StatelessWidget {
     required this.dark,
     required this.onThemeChanged,
     required this.onLogout,
+    this.sessions,
   });
 
   final String username;
   final bool dark;
   final ValueChanged<bool> onThemeChanged;
   final VoidCallback onLogout;
+  final DemoDeviceSessions? sessions;
 
   @override
   Widget build(BuildContext context) {
@@ -245,8 +256,13 @@ class ProfileScreen extends StatelessWidget {
                           menu(
                             'Thiết bị đăng nhập',
                             'imgGroup',
-                            () =>
-                                openDriverPage(context, const DevicesScreen()),
+                            () => openDriverPage(
+                              context,
+                              DevicesScreen(
+                                sessions: sessions,
+                                onCurrentSessionEnded: onLogout,
+                              ),
+                            ),
                           ),
                           const SizedBox(height: 16),
                           sectionTitle('Giao diện'),
@@ -321,9 +337,14 @@ class ProfileScreen extends StatelessWidget {
 /// Màn liên hệ nhà xe với địa chỉ email minh họa của thiết kế.
 class ContactScreen extends StatelessWidget {
   /// Tạo màn hỗ trợ cho tài khoản nhập ở màn đăng nhập hoặc màn cá nhân.
-  const ContactScreen({super.key, this.username = 'mayexpress/nv.minh'});
+  const ContactScreen({
+    super.key,
+    this.username = 'mayexpress/nv.minh',
+    this.supportEmail = 'hotro@mayexpress.example',
+  });
 
   final String username;
+  final String? supportEmail;
 
   @override
   Widget build(BuildContext context) => DriverPage(
@@ -435,7 +456,9 @@ class ContactScreen extends StatelessWidget {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  'Email hỗ trợ',
+                                  supportEmail == null
+                                      ? 'Chưa có thông tin liên hệ'
+                                      : 'Email hỗ trợ',
                                   style: driverText(
                                     12,
                                     FontWeight.w400,
@@ -444,7 +467,7 @@ class ContactScreen extends StatelessWidget {
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
-                                  'hotro@mayexpress.example',
+                                  supportEmail ?? 'Liên hệ trực tiếp người quản lý nhà xe để được hỗ trợ.',
                                   style: driverText(
                                     14,
                                     FontWeight.w500,
@@ -458,14 +481,60 @@ class ContactScreen extends StatelessWidget {
                       ),
                       const SizedBox(height: 20),
                       SwipeAction(
-                        label: 'Mở email hỗ trợ',
+                        label: supportEmail == null
+                            ? 'Về cá nhân'
+                            : 'Mở email hỗ trợ',
                         background: Colors.white,
                         arrowAsset: 'contact-imgFrame',
                         chevronAsset: 'contact-imgFrame1',
-                        onComplete: () => showDemoNotice(
-                          context,
-                          'Email .example là dữ liệu minh họa, chưa thể gửi email hỗ trợ.',
-                        ),
+                        onComplete: () => supportEmail == null
+                            ? Navigator.maybePop(context)
+                            : showModalBottomSheet<void>(
+                                context: context,
+                                showDragHandle: true,
+                                builder: (context) => SafeArea(
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(24),
+                                    child: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Text(
+                                          'Không mở được email',
+                                          style: driverText(
+                                            22,
+                                            FontWeight.w600,
+                                            DriverColors.navy,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 12),
+                                        Text(
+                                          'Mở ứng dụng email và dùng địa chỉ hỗ trợ của nhà xe.',
+                                          style: driverText(
+                                            14,
+                                            FontWeight.w500,
+                                            DriverColors.secondary,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 12),
+                                        Text(
+                                          'Email .example là dữ liệu minh họa.',
+                                          style: driverText(
+                                            12,
+                                            FontWeight.w400,
+                                            DriverColors.secondary,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 20),
+                                        SwipeAction(
+                                          label: 'Đã hiểu',
+                                          onComplete: () =>
+                                              Navigator.pop(context),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
                       ),
                       const SizedBox(height: 20),
                     ],
@@ -495,9 +564,130 @@ class ContactScreen extends StatelessWidget {
 }
 
 /// Màn các phiên đăng nhập với dữ liệu mẫu và thao tác thu hồi minh họa.
-class DevicesScreen extends StatelessWidget {
+class DevicesScreen extends StatefulWidget {
   /// Tạo màn thiết bị, không thực hiện thay đổi phiên đăng nhập thật.
-  const DevicesScreen({super.key});
+  const DevicesScreen({
+    super.key,
+    this.sessions,
+    this.onCurrentSessionEnded,
+    this.initialConfirmation,
+  });
+  final DemoDeviceSessions? sessions;
+  final VoidCallback? onCurrentSessionEnded;
+  final DeviceConfirmation? initialConfirmation;
+  @override
+  State<DevicesScreen> createState() => _DevicesScreenState();
+}
+
+class _DevicesScreenState extends State<DevicesScreen> {
+  late final _sessions = widget.sessions ?? DemoDeviceSessions();
+  @override
+  void initState() {
+    super.initState();
+    if (widget.initialConfirmation != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _confirm(widget.initialConfirmation!);
+      });
+    }
+  }
+
+  Future<void> _confirm(DeviceConfirmation kind) async {
+    final current = kind == DeviceConfirmation.current;
+    final confirmed = await showModalBottomSheet<bool>(
+      context: context,
+      showDragHandle: true,
+      builder: (context) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                current ? 'Đăng xuất thiết bị này?' : 'Thu hồi phiên này?',
+                style: driverText(22, FontWeight.w600, DriverColors.navy),
+              ),
+              const SizedBox(height: 20),
+              DriverCard(
+                color: DriverColors.canvas,
+                child: Row(
+                  children: [
+                    FigmaAsset(
+                      current
+                          ? 'devices-imgDinThoi'
+                          : 'devices-imgDinThoiAndroid',
+                      width: 36,
+                      height: 36,
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            current ? 'iPhone 13' : 'Samsung Galaxy A54',
+                            style: driverText(16, FontWeight.w600),
+                          ),
+                          Text(
+                            current
+                                ? 'iOS · Thiết bị này'
+                                : 'Android · Phiên khác',
+                            style: driverText(
+                              12,
+                              FontWeight.w400,
+                              DriverColors.secondary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 20),
+              Text(
+                current
+                    ? 'Bạn sẽ được đưa về màn hình đăng nhập.'
+                    : 'Thiết bị này sẽ cần đăng nhập lại.',
+                style: driverText(14, FontWeight.w500, DriverColors.secondary),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'Thao tác chỉ áp dụng trong bản mẫu.',
+                style: driverText(12, FontWeight.w400, DriverColors.secondary),
+              ),
+              const SizedBox(height: 24),
+              SwipeAction(
+                label: current ? 'Đăng xuất' : 'Thu hồi phiên',
+                onComplete: () => Navigator.pop(context, true),
+              ),
+              Align(
+                alignment: Alignment.center,
+                child: TextButton(
+                  onPressed: () => Navigator.pop(context, false),
+                  child: const Text('Hủy'),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+    if (!mounted || confirmed != true) return;
+    if (current) {
+      if (widget.onCurrentSessionEnded != null) {
+        widget.onCurrentSessionEnded!();
+      } else {
+        Navigator.maybePop(context);
+      }
+    } else {
+      setState(() => _sessions.hasOther = false);
+      showDemoNotice(
+        context,
+        'Đã thu hồi phiên mẫu; chưa thay đổi phiên đăng nhập trên máy chủ.',
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) => DriverPage(
@@ -508,9 +698,9 @@ class DevicesScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const DriverHeading(
+          DriverHeading(
             'Thiết bị đăng nhập',
-            subtitle: '2 phiên đang hoạt động',
+            subtitle: '${_sessions.hasOther ? 2 : 1} phiên đang hoạt động',
             foreground: DriverColors.navy,
             backAsset: 'devices-imgGroup',
           ),
@@ -603,84 +793,102 @@ class DevicesScreen extends StatelessWidget {
                         background: Colors.white,
                         arrowAsset: 'devices-imgFrame',
                         chevronAsset: 'devices-imgFrame1',
-                        onComplete: () => showDemoNotice(
-                          context,
-                          'Đây là thiết bị minh họa. Chưa thực hiện đăng xuất phiên thật.',
-                        ),
+                        onComplete: () => _confirm(DeviceConfirmation.current),
                       ),
                       const SizedBox(height: 8),
                     ],
                   ),
                 ),
                 const SizedBox(height: 20),
-                Text(
-                  'Phiên khác',
-                  style: driverText(16, FontWeight.w600, DriverColors.navy),
-                ),
-                const SizedBox(height: 16),
-                Row(
-                  children: [
-                    const FigmaAsset(
-                      'devices-imgDinThoiAndroid',
-                      width: 36,
-                      height: 36,
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Samsung Galaxy A54',
-                            style: driverText(
-                              16,
-                              FontWeight.w600,
-                              DriverColors.navy,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            'Android · Ứng dụng nhân viên',
-                            style: driverText(
-                              12,
-                              FontWeight.w400,
-                              DriverColors.secondary,
-                            ),
-                          ),
-                        ],
+                if (_sessions.hasOther) ...[
+                  Text(
+                    'Phiên khác',
+                    style: driverText(16, FontWeight.w600, DriverColors.navy),
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      const FigmaAsset(
+                        'devices-imgDinThoiAndroid',
+                        width: 36,
+                        height: 36,
                       ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Samsung Galaxy A54',
+                              style: driverText(
+                                16,
+                                FontWeight.w600,
+                                DriverColors.navy,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'Android · Ứng dụng nhân viên',
+                              style: driverText(
+                                12,
+                                FontWeight.w400,
+                                DriverColors.secondary,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+                  Text(
+                    'Hoạt động gần nhất · 13/10, 19:42',
+                    style: driverText(
+                      12,
+                      FontWeight.w400,
+                      DriverColors.secondary,
                     ),
-                  ],
-                ),
-                const SizedBox(height: 20),
-                Text(
-                  'Hoạt động gần nhất · 13/10, 19:42',
-                  style: driverText(
-                    12,
-                    FontWeight.w400,
-                    DriverColors.secondary,
                   ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'IP 113.***.***.84',
-                  style: driverText(
-                    12,
-                    FontWeight.w400,
-                    DriverColors.secondary,
+                  const SizedBox(height: 4),
+                  Text(
+                    'IP 113.***.***.84',
+                    style: driverText(
+                      12,
+                      FontWeight.w400,
+                      DriverColors.secondary,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 22),
-                SwipeAction(
-                  label: 'Thu hồi phiên này',
-                  background: Colors.white,
-                  arrowAsset: 'devices-imgFrame',
-                  chevronAsset: 'devices-imgFrame1',
-                  onComplete: () => showDemoNotice(
-                    context,
-                    'Đây là phiên minh họa. Chưa thực hiện thu hồi phiên thật.',
+                  const SizedBox(height: 22),
+                  SwipeAction(
+                    label: 'Thu hồi phiên này',
+                    background: Colors.white,
+                    arrowAsset: 'devices-imgFrame',
+                    chevronAsset: 'devices-imgFrame1',
+                    onComplete: () => _confirm(DeviceConfirmation.other),
                   ),
-                ),
+                ] else ...[
+                  const Center(
+                    child: FigmaAsset(
+                      'profile-refresh-imgCacPhienDaThuHi',
+                      width: 56,
+                      height: 56,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Chỉ còn thiết bị này',
+                    style: driverText(16, FontWeight.w600, DriverColors.navy),
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    'Không có phiên đăng nhập khác.',
+                    style: driverText(
+                      14,
+                      FontWeight.w500,
+                      DriverColors.secondary,
+                    ),
+                  ),
+                ],
                 const SizedBox(height: 70),
                 const Divider(color: DriverColors.border, height: 1),
                 const SizedBox(height: 20),

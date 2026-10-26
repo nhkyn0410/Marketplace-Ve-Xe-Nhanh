@@ -72,8 +72,9 @@ void main() {
       addTearDown(tester.view.resetDevicePixelRatio);
       await enterPreview(tester);
       await tester.tap(find.byTooltip('Ngày sau'));
+      await tester.pump(const Duration(milliseconds: 400));
       await tester.pumpAndSettle();
-      expect(find.text('Chưa có chuyến được phân công'), findsOneWidget);
+      expect(find.text('Chưa có chuyến'), findsOneWidget);
       await tester.tap(find.text('Về ngày có chuyến mẫu'));
       await tester.pumpAndSettle();
       await swipe(tester, 'Xem chuyến');
@@ -85,8 +86,9 @@ void main() {
       expect(find.text('Nguyễn Văn An'), findsNothing);
       await tester.enterText(find.byType(TextField), 'missing');
       await tester.pumpAndSettle();
-      expect(find.text('Không tìm thấy hành khách.'), findsOneWidget);
+      expect(find.text('Không tìm thấy hành khách'), findsOneWidget);
       await tester.enterText(find.byType(TextField), '');
+      await tester.pumpAndSettle();
       await tester.tap(find.text('Đã lên · 0'));
       await tester.pumpAndSettle();
       expect(find.text('Chưa có hành khách ở trạng thái này.'), findsOneWidget);
@@ -105,18 +107,19 @@ void main() {
       );
       await tester.enterText(find.byType(TextField), 'VX103001');
       await swipe(tester, 'Kiểm tra vé');
-      expect(
-        find.text('Không tìm thấy vé trong chuyến mẫu này.'),
-        findsOneWidget,
-      );
+      expect(find.text('Vé thuộc chuyến khác'), findsOneWidget);
       expect(trip.boardedCount, 0);
+      await swipe(tester, 'Quét vé khác');
       await tester.enterText(find.byType(TextField), ' vx102001 ');
       await swipe(tester, 'Kiểm tra vé');
       expect(find.text('Vé hợp lệ · Bản mẫu'), findsOneWidget);
       await swipe(tester, 'Xác nhận lên xe');
       expect(trip.boardedCount, 1);
       expect(find.text('Đã lên xe · Bản mẫu'), findsOneWidget);
-      await swipe(tester, 'Đã xác nhận trong bản mẫu');
+      await tester.tap(find.byTooltip('Quay lại'));
+      await tester.pumpAndSettle();
+      await swipe(tester, 'Kiểm tra vé');
+      expect(find.byKey(const ValueKey('swipe-Xác nhận lên xe')), findsNothing);
       expect(trip.boardedCount, 1);
     },
   );
@@ -168,6 +171,8 @@ void main() {
         .widgetList<SwipeAction>(find.byType(SwipeAction))
         .first;
     await swipe(tester, action.label);
+    await tester.pump(const Duration(milliseconds: 600));
+    await tester.pumpAndSettle();
     expect(trip.status, 'Đón khách');
     expect(find.textContaining('chưa gửi máy chủ.'), findsOneWidget);
   });

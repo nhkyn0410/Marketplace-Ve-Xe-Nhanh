@@ -5,16 +5,25 @@ import 'design_system.dart';
 
 /// Vận hành chuyến và nhật trình mẫu, chỉ thay đổi dữ liệu trong phiên xem thử.
 class OperationsScreen extends StatefulWidget {
-  const OperationsScreen({super.key, required this.trip});
+  const OperationsScreen({
+    super.key,
+    required this.trip,
+    this.initiallyFailed = false,
+    this.initiallyUpdating = false,
+  });
   final DemoTrip trip;
+  final bool initiallyFailed, initiallyUpdating;
 
   @override
   State<OperationsScreen> createState() => _OperationsScreenState();
 }
 
 class _OperationsScreenState extends State<OperationsScreen> {
-  final List<({String title, DateTime occurredAt})> _history = [];
+  List<({String title, DateTime occurredAt})> get _history =>
+      widget.trip.operationHistory;
   String? _updatedAt;
+  late bool _busy = widget.initiallyUpdating;
+  late bool _failed = widget.initiallyFailed;
 
   String? get _next => switch (widget.trip.status) {
     'Sắp khởi hành' || 'Chưa khởi hành' => 'Đón khách',
@@ -27,30 +36,35 @@ class _OperationsScreenState extends State<OperationsScreen> {
   Future<void> _writeJournal() async {
     final entry = await openDriverPage<_JournalEntry>(
       context,
-      _JournalScreen(trip: widget.trip),
+      JournalScreen(trip: widget.trip),
     );
     if (!mounted || entry == null) return;
-    setState(() {
-      widget.trip.journal.add((
-        title: entry.category,
-        time: entry.time,
-        note: entry.note,
-        occurredAt: entry.occurredAt,
-        location: entry.location,
-        vehicle: entry.vehicle,
-        delay: entry.delay,
-      ));
-    });
+    setState(() {});
     showDemoNotice(
       context,
       'Bản minh họa: đã lưu nhật trình trong phiên, chưa gửi máy chủ.',
     );
   }
 
-  void _changeStatus() {
+  Future<void> _changeStatus() async {
     final next = _next;
-    if (next == null) return;
+    if (next == null || _busy || !widget.trip.assigned) return;
     setState(() {
+      _busy = true;
+      _failed = false;
+    });
+    await Future<void>.delayed(const Duration(milliseconds: 500));
+    if (!mounted) return;
+    if (widget.trip.demoOperationFailure) {
+      widget.trip.demoOperationFailure = false;
+      setState(() {
+        _busy = false;
+        _failed = true;
+      });
+      return;
+    }
+    setState(() {
+      _busy = false;
       widget.trip.status = next;
       final occurredAt = DateTime.now();
       _updatedAt = _clock(occurredAt);
@@ -66,6 +80,9 @@ class _OperationsScreenState extends State<OperationsScreen> {
   Widget build(BuildContext context) {
     final trip = widget.trip;
     final next = _next;
+    final updatedAt =
+        _updatedAt ??
+        (_history.isEmpty ? null : _clock(_history.first.occurredAt));
     final activities =
         <({String title, DateTime occurredAt, _JournalEntry? entry})>[
           for (final event in _history)
@@ -88,9 +105,11 @@ class _OperationsScreenState extends State<OperationsScreen> {
       background: Colors.white,
       statusAsset: 'operations-imgTinHiuWiFiPin',
       bottom: _ActionFooter(
-        label: 'Ghi nhật trình',
+        label: next == null ? 'Về chi tiết chuyến' : 'Ghi nhật trình',
         prefix: 'operations',
-        onComplete: _writeJournal,
+        onComplete: next == null
+            ? () => Navigator.maybePop(context)
+            : _writeJournal,
         links: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
@@ -119,7 +138,9 @@ class _OperationsScreenState extends State<OperationsScreen> {
               padding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
               children: [
                 DriverCard(
-                  color: DriverColors.canvas,
+                  color: next == null
+                      ? const Color(0xffedfbf3)
+                      : DriverColors.canvas,
                   radius: 24,
                   child: Column(
                     children: [
@@ -130,7 +151,11 @@ class _OperationsScreenState extends State<OperationsScreen> {
                       ),
                       const SizedBox(height: 12),
                       Text(
-                        trip.status,
+                        trip.status == 'Đón khách'
+                            ? 'Đang đón khách'
+                            : trip.status == 'Khởi hành'
+                            ? 'Đã khởi hành'
+                            : trip.status,
                         textAlign: TextAlign.center,
                         style: driverText(
                           24,
@@ -140,9 +165,9 @@ class _OperationsScreenState extends State<OperationsScreen> {
                       ),
                       const SizedBox(height: 12),
                       Text(
-                        _updatedAt == null
+                        updatedAt == null
                             ? 'Trạng thái chuyến minh họa'
-                            : '${trip.status} từ $_updatedAt',
+                            : '${trip.status} từ $updatedAt',
                         style: driverText(
                           12,
                           FontWeight.w400,
@@ -150,22 +175,71 @@ class _OperationsScreenState extends State<OperationsScreen> {
                         ),
                       ),
                       const SizedBox(height: 12),
-                      SwipeAction(
-                        label: next == 'Hoàn thành'
-                            ? 'Xác nhận hoàn thành'
-                            : next == null
-                            ? 'Đã hoàn thành'
-                            : 'Xác nhận $next',
-                        filled: true,
-                        enabled: next != null,
-                        onComplete: _changeStatus,
-                        arrowAsset: 'operations-imgFrame',
-                        chevronAsset: 'operations-imgFrame2',
-                      ),
+                      if (next == null)
+                        Text(
+                          'Chuyến đã kết thúc',
+                          style: driverText(
+                            14,
+                            FontWeight.w500,
+                            const Color(0xff157a48),
+                          ),
+                        )
+                      else
+                        SwipeAction(
+                          label: _busy
+                              ? 'Đang cập nhật…'
+                              : _failed
+                              ? 'Thử cập nhật lại'
+                              : next == 'Hoàn thành'
+                              ? 'Xác nhận hoàn thành'
+                              : next == 'Khởi hành'
+                              ? 'Xác nhận khởi hành'
+                              : next == 'Đang chạy'
+                              ? 'Chuyển sang Đang chạy'
+                              : 'Xác nhận $next',
+                          filled: true,
+                          enabled: !_busy && widget.trip.assigned,
+                          handleAsset:
+                              trip.status == 'Đón khách' ||
+                                  trip.status == 'Khởi hành'
+                              ? 'operation-refresh-boarding-imgTayKeoHinhXeBuytDangChy'
+                              : null,
+                          onComplete: _changeStatus,
+                          arrowAsset: 'operations-imgFrame',
+                          chevronAsset: 'operations-imgFrame2',
+                        ),
                     ],
                   ),
                 ),
                 const SizedBox(height: 24),
+                if (_busy)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 24),
+                    child: Text(
+                      'Đang cập nhật bản mẫu…',
+                      textAlign: TextAlign.center,
+                      style: driverText(
+                        12,
+                        FontWeight.w400,
+                        DriverColors.secondary,
+                      ),
+                    ),
+                  ),
+                if (_failed) ...[
+                  DriverCard(
+                    color: DriverColors.cream,
+                    child: Text(
+                      'Chưa cập nhật trạng thái.',
+                      textAlign: TextAlign.center,
+                      style: driverText(
+                        14,
+                        FontWeight.w500,
+                        DriverColors.warning,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                ],
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -184,6 +258,17 @@ class _OperationsScreenState extends State<OperationsScreen> {
                   ],
                 ),
                 const SizedBox(height: 12),
+                if (trip.journal.isNotEmpty)
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: TextButton(
+                      onPressed: () => openDriverPage(
+                        context,
+                        PendingJournalScreen(trip: trip),
+                      ),
+                      child: const Text('Chưa đồng bộ'),
+                    ),
+                  ),
                 if (_history.isEmpty && trip.journal.isEmpty)
                   Padding(
                     padding: const EdgeInsets.symmetric(vertical: 20),
@@ -293,20 +378,33 @@ class _JournalEntry {
   String get time => _clock(occurredAt);
 }
 
-class _JournalScreen extends StatefulWidget {
-  const _JournalScreen({required this.trip});
+/// Biểu mẫu nhật trình mẫu cho điểm dừng và kiểm tra xe.
+class JournalScreen extends StatefulWidget {
+  const JournalScreen({
+    super.key,
+    required this.trip,
+    this.initialCategory = 'Điểm dừng',
+    this.initiallyFailed = false,
+    this.initialNote = '',
+  });
   final DemoTrip trip;
+  final String initialCategory;
+  final bool initiallyFailed;
+  final String initialNote;
   @override
-  State<_JournalScreen> createState() => _JournalScreenState();
+  State<JournalScreen> createState() => _JournalScreenState();
 }
 
-class _JournalScreenState extends State<_JournalScreen> {
-  final _note = TextEditingController();
+class _JournalScreenState extends State<JournalScreen> {
+  late final _note = TextEditingController(text: widget.initialNote);
   final _delay = TextEditingController(text: '0');
   final _form = GlobalKey<FormState>();
-  String _category = 'Điểm dừng',
-      _location = 'Trạm dừng nghỉ',
-      _vehicle = 'Bình thường';
+  late String _category = widget.initialCategory;
+  late String _location = widget.initialCategory == 'Kiểm tra xe'
+      ? widget.trip.pickup
+      : 'Trạm dừng nghỉ';
+  String _vehicle = 'Bình thường';
+  late bool _failed = widget.initiallyFailed;
   DateTime _occurredAt = DateTime.now();
 
   @override
@@ -321,10 +419,25 @@ class _JournalScreenState extends State<_JournalScreen> {
     background: Colors.white,
     statusAsset: 'journal-imgTinHiuWiFiPin',
     bottom: _ActionFooter(
-      label: 'Lưu nhật trình',
+      label: _failed ? 'Lưu lại' : 'Lưu nhật trình',
       prefix: 'journal',
       onComplete: () {
         if (!_form.currentState!.validate()) return;
+        if (!widget.trip.assigned) return;
+        if (widget.trip.demoJournalFailure) {
+          widget.trip.demoJournalFailure = false;
+          setState(() => _failed = true);
+          return;
+        }
+        widget.trip.journal.add((
+          title: _category,
+          time: _clock(_occurredAt),
+          note: _note.text.trim(),
+          occurredAt: _occurredAt,
+          location: _location,
+          vehicle: _vehicle,
+          delay: _category == 'Kiểm tra xe' ? 0 : int.parse(_delay.text),
+        ));
         Navigator.pop(
           context,
           _JournalEntry(
@@ -332,7 +445,7 @@ class _JournalScreenState extends State<_JournalScreen> {
             occurredAt: _occurredAt,
             location: _location,
             vehicle: _vehicle,
-            delay: int.parse(_delay.text),
+            delay: _category == 'Kiểm tra xe' ? 0 : int.parse(_delay.text),
             note: _note.text.trim(),
           ),
         );
@@ -343,11 +456,20 @@ class _JournalScreenState extends State<_JournalScreen> {
         _OperationHeading(
           'Ghi nhật trình',
           prefix: 'journal',
-          subtitle: '${widget.trip.id} · ${widget.trip.plate}',
-          trailing: const FigmaAsset(
-            'journal-imgIconGhiChep',
-            width: 32,
-            height: 32,
+          subtitle: '${widget.trip.id} · 14/10/2026',
+          trailing: Container(
+            width: 40,
+            height: 40,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: DriverColors.canvas,
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: const FigmaAsset(
+              'operation-refresh-journal-imgIconDocument',
+              width: 24,
+              height: 24,
+            ),
           ),
         ),
         Expanded(
@@ -356,11 +478,20 @@ class _JournalScreenState extends State<_JournalScreen> {
             child: ListView(
               padding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
               children: [
+                if (_failed) ...[
+                  const _SaveFailure(message: 'Chưa lưu được nhật trình'),
+                  const SizedBox(height: 20),
+                ],
                 _ChoiceRow(
                   label: 'Loại ghi nhận',
-                  choices: const ['Điểm dừng', 'Kiểm tra xe', 'Khác'],
+                  choices: const ['Điểm dừng', 'Kiểm tra xe'],
                   selected: _category,
-                  onChanged: (value) => setState(() => _category = value),
+                  onChanged: (value) => setState(() {
+                    _category = value;
+                    _location = value == 'Kiểm tra xe'
+                        ? widget.trip.pickup
+                        : 'Trạm dừng nghỉ';
+                  }),
                 ),
                 const SizedBox(height: 20),
                 _PickerField(
@@ -410,29 +541,30 @@ class _JournalScreenState extends State<_JournalScreen> {
                         },
                       ),
                     ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: _Labelled(
-                        'Độ trễ',
-                        TextFormField(
-                          controller: _delay,
-                          keyboardType: TextInputType.number,
-                          style: driverText(
-                            14,
-                            FontWeight.w500,
-                            DriverColors.navy,
+                    if (_category != 'Kiểm tra xe') const SizedBox(width: 16),
+                    if (_category != 'Kiểm tra xe')
+                      Expanded(
+                        child: _Labelled(
+                          'Độ trễ',
+                          TextFormField(
+                            controller: _delay,
+                            keyboardType: TextInputType.number,
+                            style: driverText(
+                              14,
+                              FontWeight.w500,
+                              DriverColors.navy,
+                            ),
+                            decoration: _fieldDecoration.copyWith(
+                              suffixText: 'phút',
+                            ),
+                            validator: (text) =>
+                                int.tryParse(text ?? '') == null ||
+                                    int.parse(text!) < 0
+                                ? 'Nhập phút ≥ 0'
+                                : null,
                           ),
-                          decoration: _fieldDecoration.copyWith(
-                            suffixText: 'phút',
-                          ),
-                          validator: (text) =>
-                              int.tryParse(text ?? '') == null ||
-                                  int.parse(text!) < 0
-                              ? 'Nhập phút ≥ 0'
-                              : null,
                         ),
                       ),
-                    ),
                   ],
                 ),
                 const SizedBox(height: 20),
@@ -452,6 +584,125 @@ class _JournalScreenState extends State<_JournalScreen> {
       ],
     ),
   );
+}
+
+/// Mở chi tiết một nhật trình đã lưu trong phiên xem thử.
+class JournalDetailScreen extends StatefulWidget {
+  const JournalDetailScreen({
+    super.key,
+    required this.trip,
+    this.index = 0,
+    this.initiallyFailed = false,
+    this.onRetry,
+  });
+  final DemoTrip trip;
+  final int index;
+  final bool initiallyFailed;
+  final Future<void> Function()? onRetry;
+  @override
+  State<JournalDetailScreen> createState() => _JournalDetailScreenState();
+}
+
+class _JournalDetailScreenState extends State<JournalDetailScreen> {
+  late bool _failed = widget.initiallyFailed;
+  bool _loading = false;
+
+  Future<void> _retry() async {
+    if (_loading) return;
+    setState(() => _loading = true);
+    try {
+      if (widget.onRetry != null) {
+        await widget.onRetry!();
+      } else {
+        await Future<void>.delayed(const Duration(milliseconds: 400));
+      }
+      if (mounted) setState(() => _failed = false);
+    } catch (_) {
+      if (mounted) setState(() => _failed = true);
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final trip = widget.trip;
+    final index = widget.index;
+    if (_failed || index < 0 || index >= trip.journal.length) {
+      return DriverPage(
+        statusAsset: 'journal-detail-imgTinHiuWiFiPin',
+        bottom: _ActionFooter(
+          label: _loading ? 'Đang tải…' : 'Thử lại',
+          prefix: 'journal-detail',
+          enabled: !_loading,
+          onComplete: _retry,
+        ),
+        child: Column(
+          children: [
+            _OperationHeading(
+              'Chi tiết nhật trình',
+              prefix: 'journal-detail',
+              subtitle: '${trip.id} · 14/10/2026',
+            ),
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 80,
+                ),
+                child: Column(
+                  children: [
+                    if (_loading)
+                      const SizedBox(
+                        width: 40,
+                        height: 40,
+                        child: CircularProgressIndicator(),
+                      )
+                    else
+                      const FigmaAsset(
+                        'journal-error-imgTiLi',
+                        width: 36,
+                        height: 36,
+                      ),
+                    const SizedBox(height: 24),
+                    Text(
+                      _loading
+                          ? 'Đang tải nhật trình…'
+                          : 'Chưa tải được nhật trình',
+                      textAlign: TextAlign.center,
+                      style: driverText(22, FontWeight.w600, DriverColors.navy),
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      'Kiểm tra kết nối rồi thử lại.',
+                      textAlign: TextAlign.center,
+                      style: driverText(
+                        14,
+                        FontWeight.w500,
+                        DriverColors.secondary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+    final entry = trip.journal[index];
+    return _JournalDetailScreen(
+      trip: trip,
+      entry: _JournalEntry(
+        category: entry.title,
+        occurredAt: entry.occurredAt,
+        location: entry.location,
+        vehicle: entry.vehicle,
+        delay: entry.delay,
+        note: entry.note,
+      ),
+    );
+  }
 }
 
 class _JournalDetailScreen extends StatelessWidget {
@@ -557,25 +808,31 @@ class _JournalDetailScreen extends StatelessWidget {
                 'Tình trạng xe',
                 entry.vehicle,
               ),
-              const Divider(height: 24, color: DriverColors.border),
-              Row(
-                children: [
-                  const FigmaAsset(
-                    'journal-detail-imgDngH',
-                    width: 24,
-                    height: 24,
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      entry.delay == 0
-                          ? 'Không trễ so với dự kiến'
-                          : 'Trễ ${entry.delay} phút so với dự kiến',
-                      style: driverText(14, FontWeight.w500, DriverColors.navy),
+              if (entry.category != 'Kiểm tra xe')
+                const Divider(height: 24, color: DriverColors.border),
+              if (entry.category != 'Kiểm tra xe')
+                Row(
+                  children: [
+                    const FigmaAsset(
+                      'journal-detail-imgDngH',
+                      width: 24,
+                      height: 24,
                     ),
-                  ),
-                ],
-              ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        entry.delay == 0
+                            ? 'Không trễ so với dự kiến'
+                            : 'Trễ ${entry.delay} phút so với dự kiến',
+                        style: driverText(
+                          14,
+                          FontWeight.w500,
+                          DriverColors.navy,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               const SizedBox(height: 24),
               DriverCard(
                 color: DriverColors.canvas,
@@ -643,13 +900,19 @@ class _JournalDetailScreen extends StatelessWidget {
 
 /// Biểu mẫu báo sự cố minh họa với lựa chọn mức độ và minh chứng tùy chọn.
 class IncidentScreen extends StatefulWidget {
-  const IncidentScreen({super.key, required this.trip});
+  const IncidentScreen({
+    super.key,
+    required this.trip,
+    this.initiallyFailed = false,
+  });
   final DemoTrip trip;
+  final bool initiallyFailed;
   @override
   State<IncidentScreen> createState() => _IncidentScreenState();
 }
 
 class _IncidentScreenState extends State<IncidentScreen> {
+  late bool _failed = widget.initiallyFailed;
   final _description = TextEditingController();
   final _form = GlobalKey<FormState>();
   String _type = 'Phương tiện',
@@ -682,10 +945,16 @@ class _IncidentScreenState extends State<IncidentScreen> {
     background: Colors.white,
     statusAsset: 'incident-imgTinHiuWiFiPin',
     bottom: _ActionFooter(
-      label: 'Gửi báo cáo',
+      label: _failed ? 'Gửi lại' : 'Gửi báo cáo',
       prefix: 'incident',
       onComplete: () {
         if (!_form.currentState!.validate()) return;
+        if (widget.trip.demoIncidentFailure) {
+          widget.trip.demoIncidentFailure = false;
+          setState(() => _failed = true);
+          return;
+        }
+        setState(() => _failed = false);
         showDemoNotice(
           context,
           'Bản minh họa: báo cáo $_type ($_severity) chỉ xem thử, chưa gửi máy chủ.',
@@ -719,6 +988,10 @@ class _IncidentScreenState extends State<IncidentScreen> {
             child: ListView(
               padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
               children: [
+                if (_failed) ...[
+                  const _SaveFailure(message: 'Chưa gửi được báo cáo'),
+                  const SizedBox(height: 20),
+                ],
                 _PickerField(
                   'Loại sự cố',
                   _type,
@@ -855,6 +1128,164 @@ class _IncidentScreenState extends State<IncidentScreen> {
   );
 }
 
+class _SaveFailure extends StatelessWidget {
+  const _SaveFailure({required this.message});
+  final String message;
+  @override
+  Widget build(BuildContext context) => DriverCard(
+    color: const Color(0xfffff0f0),
+    child: Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const FigmaAsset(
+          'operation-refresh-failure-imgIconWarning',
+          width: 20,
+          height: 20,
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                message,
+                style: driverText(16, FontWeight.w600, const Color(0xffbc2018)),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                'Bạn có thể chỉnh sửa hoặc thử lại.',
+                style: driverText(12, FontWeight.w400, DriverColors.navy),
+              ),
+            ],
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
+/// Xem các nhật trình đang lưu cục bộ và chưa gửi tới nhà xe.
+class PendingJournalScreen extends StatelessWidget {
+  const PendingJournalScreen({super.key, required this.trip});
+  final DemoTrip trip;
+  @override
+  Widget build(BuildContext context) => DriverPage(
+    bottom: Padding(
+      padding: const EdgeInsets.fromLTRB(40, 14, 40, 16),
+      child: SwipeAction(
+        label: 'Thử đồng bộ',
+        onComplete: () => showDemoNotice(
+          context,
+          'Bản mẫu chưa kết nối máy chủ; các bản ghi vẫn được giữ trong phiên.',
+        ),
+      ),
+    ),
+    child: Column(
+      children: [
+        DriverHeading(
+          'Chưa đồng bộ',
+          subtitle: 'Chuyến ${trip.id}',
+          backAsset: 'operation-refresh-pending-imgIconBack',
+          backAssetSize: const Size(20, 20),
+        ),
+        Expanded(
+          child: ListView(
+            padding: const EdgeInsets.all(24),
+            children: [
+              DriverCard(
+                color: DriverColors.canvas,
+                radius: 24,
+                padding: 24,
+                child: Column(
+                  children: [
+                    const FigmaAsset(
+                      'operation-refresh-pending-imgIllustrationSyncPending',
+                      width: 160,
+                      height: 144,
+                    ),
+                    const SizedBox(height: 20),
+                    Text(
+                      '${trip.journal.length} bản ghi chờ đồng bộ',
+                      textAlign: TextAlign.center,
+                      style: driverText(22, FontWeight.w600, DriverColors.navy),
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      'Chưa gửi tới nhà xe.',
+                      style: driverText(
+                        14,
+                        FontWeight.w500,
+                        DriverColors.secondary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 24),
+              Text('Nhật trình', style: driverText(16, FontWeight.w600)),
+              const SizedBox(height: 24),
+              for (final entry in trip.journal)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 16),
+                  child: DriverCard(
+                    border: true,
+                    radius: 24,
+                    padding: 20,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                '${_date(entry.occurredAt)} · ${entry.time}',
+                                style: driverText(
+                                  12,
+                                  FontWeight.w400,
+                                  DriverColors.secondary,
+                                ),
+                              ),
+                            ),
+                            const StatusPill('Chờ gửi'),
+                          ],
+                        ),
+                        const SizedBox(height: 24),
+                        Text(
+                          entry.note.isEmpty ? entry.title : entry.note,
+                          style: driverText(16, FontWeight.w600),
+                        ),
+                        const SizedBox(height: 20),
+                        Text(
+                          'Xe ${entry.vehicle.toLowerCase()}',
+                          style: driverText(
+                            14,
+                            FontWeight.w500,
+                            DriverColors.secondary,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          entry.delay == 0
+                              ? 'Không trễ'
+                              : 'Trễ ${entry.delay} phút',
+                          style: driverText(
+                            14,
+                            FontWeight.w500,
+                            DriverColors.secondary,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
 class _OperationHeading extends StatelessWidget {
   const _OperationHeading(
     this.title, {
@@ -946,7 +1377,13 @@ class _PickerField extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 12),
-            FigmaAsset('$prefix-imgVutChnGiaTr', width: 20, height: 20),
+            FigmaAsset(
+              prefix == 'journal'
+                  ? 'operation-refresh-journal-imgIconRight'
+                  : '$prefix-imgVutChnGiaTr',
+              width: 20,
+              height: 20,
+            ),
           ],
         ),
       ),
@@ -977,10 +1414,11 @@ class _ChoiceRow extends StatelessWidget {
               style: driverText(14, FontWeight.w500, DriverColors.navy),
             ),
           ),
-          Text(
-            '↔',
-            style: driverText(12, FontWeight.w400, DriverColors.secondary),
-          ),
+          if (choices.length > 2)
+            Text(
+              '↔',
+              style: driverText(12, FontWeight.w400, DriverColors.secondary),
+            ),
         ],
       ),
       const SizedBox(height: 8),
@@ -1010,10 +1448,10 @@ class _ChoiceRow extends StatelessWidget {
                       onTap: () => onChanged(choices[i]),
                       borderRadius: BorderRadius.circular(16),
                       child: Container(
-                        width: ((box.maxWidth - 16) / 3).clamp(
-                          104.0,
-                          double.infinity,
-                        ),
+                        width:
+                            ((box.maxWidth - 8 * (choices.length - 1)) /
+                                    choices.length)
+                                .clamp(104.0, double.infinity),
                         height: 40,
                         alignment: Alignment.center,
                         decoration: BoxDecoration(
@@ -1062,10 +1500,12 @@ class _ActionFooter extends StatelessWidget {
     required this.prefix,
     required this.onComplete,
     this.links,
+    this.enabled = true,
   });
   final String label, prefix;
   final VoidCallback onComplete;
   final Widget? links;
+  final bool enabled;
   @override
   Widget build(BuildContext context) => Padding(
     padding: const EdgeInsets.fromLTRB(40, 14, 40, 4),
@@ -1074,6 +1514,7 @@ class _ActionFooter extends StatelessWidget {
       children: [
         SwipeAction(
           label: label,
+          enabled: enabled,
           onComplete: onComplete,
           arrowAsset: '$prefix-imgFrame',
           chevronAsset: '$prefix-imgFrame1',

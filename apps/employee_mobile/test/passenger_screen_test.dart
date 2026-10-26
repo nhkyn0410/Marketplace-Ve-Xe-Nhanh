@@ -52,13 +52,13 @@ void main() {
       expect(trip.boardedCount, 1);
       await tester.pump(const Duration(seconds: 5));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('← Quay lại để quét vé khác'));
+      await tester.tap(find.byTooltip('Quay lại'));
+      await tester.pumpAndSettle();
+      expect(find.text('Không tìm thấy hành khách'), findsOneWidget);
+      await tester.tap(find.byTooltip('Xóa tìm kiếm'));
       await tester.pumpAndSettle();
       expect(find.text('Chưa lên · 31'), findsOneWidget);
       expect(find.text('Đã lên · 1'), findsOneWidget);
-      expect(find.text('Không tìm thấy hành khách.'), findsOneWidget);
-      await tester.tap(find.byTooltip('Xóa tìm kiếm'));
-      await tester.pumpAndSettle();
       expect(find.text('Nguyễn Văn An'), findsOneWidget);
       expect(find.text('Trần Thị Mai'), findsNothing);
       await tester.tap(find.text('Đã lên · 1'));
@@ -123,7 +123,7 @@ void main() {
       await tester.pumpAndSettle();
       expect(tester.takeException(), isNull);
       tester.view.resetViewInsets();
-      await tester.testTextInput.receiveAction(TextInputAction.search);
+      await tester.tap(find.byTooltip('Xóa tìm kiếm'));
       await tester.pumpAndSettle();
       await tester.drag(
         find.byKey(const ValueKey('swipe-Quét vé')),

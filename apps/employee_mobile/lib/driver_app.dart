@@ -65,6 +65,7 @@ class EmployeeHome extends StatefulWidget {
 class _EmployeeHomeState extends State<EmployeeHome> {
   final _pages = PageController();
   final _trips = createDemoTrips();
+  final _deviceSessions = DemoDeviceSessions();
   int _tab = 0;
 
   @override
@@ -122,6 +123,7 @@ class _EmployeeHomeState extends State<EmployeeHome> {
             dark: Theme.of(context).brightness == Brightness.dark,
             onThemeChanged: widget.onThemeChanged,
             onLogout: _logout,
+            sessions: _deviceSessions,
           ),
         ],
       ),
