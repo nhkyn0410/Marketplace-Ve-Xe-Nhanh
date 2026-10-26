@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { AlertCircle, CheckCircle2, Gift, ArrowRight } from "lucide-react";
+import { AlertCircle, Award, CheckCircle2, Gift, Info, Tag } from "lucide-react";
 import type { UserVouchersData, UserVoucherStatus } from "../../lib/data/types";
 import { AccountSidebar } from "../account/account-sidebar";
 import { saveVoucherCode } from "../../lib/data/loyalty";
@@ -65,7 +65,7 @@ export function VouchersView({ vouchersData, isPreview = false }: VouchersViewPr
         {/* Header & Nút Đổi điểm */}
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-xl font-black text-vxn-ink sm:text-2xl">Ví voucher</h1>
+            <h1 className="text-2xl/9 font-semibold tracking-[-0.24px] text-vxn-ink">Ví voucher</h1>
             <p className="mt-1 text-xs text-vxn-fg-4">
               Voucher đổi từ điểm và mã khuyến mãi công khai bạn đã lưu.
             </p>
@@ -119,7 +119,7 @@ export function VouchersView({ vouchersData, isPreview = false }: VouchersViewPr
             </div>
           )}
 
-          <p className="mt-3 text-2xs text-vxn-fg-4">
+          <p className="mt-3 text-xs text-vxn-fg-4">
             Mỗi mã chỉ lưu một lần. Lưu mã không giữ chỗ lượt dùng của chương trình.
           </p>
           <p className="mt-2 text-xs text-vxn-fg-3">Bạn có thể lưu và theo dõi voucher tại đây. Áp dụng voucher khi đặt vé trên web hiện chưa khả dụng.</p>
@@ -166,75 +166,46 @@ export function VouchersView({ vouchersData, isPreview = false }: VouchersViewPr
           </button>
         </div>
 
-        {/* Danh sách thẻ voucher */}
-        <div className="space-y-4">
-          {filteredVouchers.length === 0 && <p className="rounded-xl border bg-white p-5 text-sm text-vxn-fg-4">Chưa có voucher ở trạng thái này.</p>}
+        {/* Danh sách phiếu voucher — Figma 1448:20918 (lưới 2 cột, cuống trái theo nguồn voucher) */}
+        {filteredVouchers.length === 0 && <p className="rounded-xl border bg-white p-5 text-sm text-vxn-fg-4">Chưa có voucher ở trạng thái này.</p>}
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           {filteredVouchers.map((v) => {
-            const isHolding = v.status === "holding";
-            const isExpiringSoon = v.statusLabel === "Sắp hết hạn";
+            const isRedemption = v.type === "loyalty_redemption";
+            const isInactive = v.status === "used" || v.status === "expired";
+            const StubIcon = isRedemption ? Award : Tag;
+            const badgeClass =
+              v.status === "expired"
+                ? "bg-error-50 text-error-700"
+                : v.status === "used" || v.status === "holding"
+                  ? "bg-vxn-bg-mist text-vxn-fg-3"
+                  : v.statusLabel === "Sắp hết hạn"
+                    ? "bg-warning-50 text-warning-700"
+                    : "bg-success-50 text-success-600";
 
             return (
-              <div
-                key={v.id}
-                className="relative flex flex-col justify-between overflow-hidden rounded-2xl border border-vxn-border bg-white p-5 shadow-2xs transition hover:shadow-md sm:flex-row sm:items-center"
-              >
-                {/* Dải màu đánh dấu bên trái */}
-                <div
-                  className={`absolute top-0 bottom-0 left-0 w-1.5 ${
-                    isHolding
-                      ? "bg-slate-400"
-                      : isExpiringSoon
-                        ? "bg-amber-500"
-                        : "bg-teal-600"
-                  }`}
-                />
-
-                <div className="space-y-1.5 pl-2">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="rounded-md bg-slate-100 px-2 py-0.5 text-2xs font-bold text-slate-700">
-                      {v.typeLabel}
-                    </span>
-                    <span
-                      className={`rounded-md px-2 py-0.5 text-2xs font-bold ${
-                        isHolding
-                          ? "bg-slate-100 text-slate-700"
-                          : v.status === "expired"
-                            ? "bg-red-50 text-red-700"
-                            : v.status === "used"
-                              ? "bg-slate-100 text-slate-700"
-                          : isExpiringSoon
-                            ? "bg-amber-50 text-amber-700"
-                            : "bg-emerald-50 text-emerald-700"
-                      }`}
-                    >
-                      {v.statusLabel}
-                    </span>
-                  </div>
-
-                  <h3 className="text-base font-black text-vxn-ink">{v.title}</h3>
-                  {v.discountLabel && <p className="text-sm font-bold text-vxn-teal-800">{v.discountLabel}</p>}
-                  {v.code && <p className="text-xs text-vxn-fg-3">Mã: <span className="font-mono font-semibold">{v.code}</span></p>}
-
-                  <p className="text-xs text-vxn-fg-3">{v.scopeText}</p>
-
-                  <p className="text-2xs font-medium text-vxn-fg-4">Hạn dùng {v.expiryDateText}</p>
+              <div key={v.id} className={`flex overflow-hidden rounded-xl border border-vxn-border bg-white ${isInactive ? "opacity-70" : ""}`}>
+                <div className={`flex w-24 shrink-0 flex-col items-center justify-center gap-1.5 p-3 ${isRedemption ? "bg-vxn-teal-700 text-white" : "bg-[#fef8ec] text-warning-700"}`}>
+                  <StubIcon className="size-6" />
+                  <span className="text-xs/[18px] font-medium">{v.typeLabel}</span>
                 </div>
-
-                {/* Nút Dùng ngay */}
-                <div className="mt-4 shrink-0 sm:mt-0 sm:pl-4">
-                  {v.status === "available" ? (
-                    <Link
-                      href="/trips"
-                      className="inline-flex items-center gap-1.5 text-xs font-bold text-vxn-teal-700 hover:text-vxn-teal-800 hover:underline"
-                    >
-                      <span>Tìm chuyến</span>
-                      <ArrowRight className="h-3.5 w-3.5" />
-                    </Link>
-                  ) : (
-                    <span className="text-xs font-semibold text-vxn-fg-4 italic">
-                      {isHolding ? "Đang được áp dụng" : v.statusLabel}
-                    </span>
-                  )}
+                <div className="flex min-w-0 flex-1 flex-col gap-1.5 p-4">
+                  <div className="flex items-start gap-2">
+                    <h3 className="min-w-0 flex-1 text-base/6 font-semibold text-vxn-ink">{v.title}</h3>
+                    <span className={`shrink-0 rounded-lg px-2 py-1 text-xs/[18px] font-medium ${badgeClass}`}>{v.statusLabel}</span>
+                  </div>
+                  {v.discountLabel && <p className="text-[13px]/[19.5px] font-semibold text-vxn-teal-700">{v.discountLabel}</p>}
+                  <p className="text-[13px]/[19.5px] text-foreground">{v.scopeText}</p>
+                  {v.code && <p className="text-xs text-vxn-fg-5">Mã: <span className="font-mono font-semibold">{v.code}</span></p>}
+                  <div className="mt-auto flex items-center justify-between gap-2 pt-1">
+                    <span className="text-xs/[18px] text-vxn-fg-5">Hạn dùng {v.expiryDateText}</span>
+                    {v.status === "available" ? (
+                      <Link href="/trips" className="text-[13px] font-semibold whitespace-nowrap text-primary hover:underline">
+                        Dùng ngay ›
+                      </Link>
+                    ) : (
+                      <span className="text-xs whitespace-nowrap text-vxn-fg-5">{v.status === "holding" ? "Đang được áp dụng" : v.statusLabel}</span>
+                    )}
+                  </div>
                 </div>
               </div>
             );
@@ -242,7 +213,8 @@ export function VouchersView({ vouchersData, isPreview = false }: VouchersViewPr
         </div>
 
         {/* Chú thích phía dưới danh sách */}
-        <div className="rounded-xl bg-vxn-bg-soft/70 p-4 text-2xs leading-relaxed text-vxn-fg-4">
+        <div className="flex items-start gap-2 rounded-xl bg-vxn-bg-soft p-4 text-[13px]/[19.5px] text-vxn-fg-5">
+          <Info className="mt-0.5 size-4 shrink-0" />
           Voucher đang giữ chưa thể dùng cho đơn khác. Trạng thái ví được cập nhật theo đơn vé.
         </div>
       </div>

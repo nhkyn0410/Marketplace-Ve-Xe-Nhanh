@@ -57,7 +57,7 @@ export function TripFilters() {
       <div className="mt-4 space-y-4 text-sm">
         {/* 1. Giờ khởi hành */}
         <div>
-          <h4 className="text-[11px] font-bold uppercase tracking-wider text-slate-900">
+          <h4 className="text-[13px] font-semibold text-vxn-ink">
             Giờ khởi hành
           </h4>
           <div className="mt-2 grid grid-cols-2 gap-1.5 text-xs">
@@ -85,7 +85,7 @@ export function TripFilters() {
 
         {/* 2. Khoảng giá */}
         <div className="border-t border-slate-100 pt-3.5">
-          <h4 className="text-[11px] font-bold uppercase tracking-wider text-slate-900">
+          <h4 className="text-[13px] font-semibold text-vxn-ink">
             Khoảng giá
           </h4>
           <div className="mt-2.5">
@@ -103,7 +103,7 @@ export function TripFilters() {
 
         {/* 3. Dạng chỗ */}
         <div className="border-t border-slate-100 pt-3.5">
-          <h4 className="text-[11px] font-bold uppercase tracking-wider text-slate-900">
+          <h4 className="text-[13px] font-semibold text-vxn-ink">
             Dạng chỗ
           </h4>
           <div className="mt-2 space-y-1.5">
@@ -133,7 +133,7 @@ export function TripFilters() {
 
         {/* 4. Hạng xe */}
         <div className="border-t border-slate-100 pt-3.5">
-          <h4 className="text-[11px] font-bold uppercase tracking-wider text-slate-900">
+          <h4 className="text-[13px] font-semibold text-vxn-ink">
             Hạng xe
           </h4>
           <div className="mt-2 space-y-1.5">
@@ -162,7 +162,7 @@ export function TripFilters() {
 
         {/* 5. Nhà xe */}
         <div className="border-t border-slate-100 pt-3.5">
-          <h4 className="text-[11px] font-bold uppercase tracking-wider text-slate-900">
+          <h4 className="text-[13px] font-semibold text-vxn-ink">
             Nhà xe
           </h4>
           <div className="mt-2 space-y-1.5">
@@ -193,7 +193,7 @@ export function TripFilters() {
 
         {/* 6. Điểm đón */}
         <div className="border-t border-slate-100 pt-3.5">
-          <h4 className="text-[11px] font-bold uppercase tracking-wider text-slate-900">
+          <h4 className="text-[13px] font-semibold text-vxn-ink">
             Điểm đón
           </h4>
           <div className="mt-2 space-y-1.5">
@@ -223,7 +223,7 @@ export function TripFilters() {
 
         {/* 7. Điểm trả */}
         <div className="border-t border-slate-100 pt-3.5">
-          <h4 className="text-[11px] font-bold uppercase tracking-wider text-slate-900">
+          <h4 className="text-[13px] font-semibold text-vxn-ink">
             Điểm trả
           </h4>
           <div className="mt-2 space-y-1.5">
@@ -252,7 +252,7 @@ export function TripFilters() {
 
         {/* 8. Tiện ích */}
         <div className="border-t border-slate-100 pt-3.5">
-          <h4 className="text-[11px] font-bold uppercase tracking-wider text-slate-900">
+          <h4 className="text-[13px] font-semibold text-vxn-ink">
             Tiện ích
           </h4>
           <div className="mt-2 grid grid-cols-2 gap-1.5">
@@ -285,7 +285,7 @@ export function TripFilters() {
 
         {/* 9. Đánh giá */}
         <div className="border-t border-slate-100 pt-3.5">
-          <h4 className="text-[11px] font-bold uppercase tracking-wider text-slate-900">
+          <h4 className="text-[13px] font-semibold text-vxn-ink">
             Đánh giá
           </h4>
           <div className="mt-2 space-y-1.5">

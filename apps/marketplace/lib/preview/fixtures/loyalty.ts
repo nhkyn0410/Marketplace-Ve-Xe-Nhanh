@@ -1,14 +1,14 @@
 import type {
   LoyaltyHistoryData,
-  LoyaltyProfile,
   LoyaltyRedemptionQuote,
   UserVouchersData
 } from "../../data/types";
+import type { LoyaltyProfileData } from "../../data/loyalty-mappers";
 
 /**
  * Fixture hồ sơ thành viên VXN Plus (SCR-PSG-33 - Figma 1448:19617).
  */
-export const loyaltyProfileFixture: LoyaltyProfile = {
+export const loyaltyProfileFixture: LoyaltyProfileData = {
   currentTier: "silver",
   currentTierName: "Hạng Bạc",
   multiplierText: "Hệ số tích điểm ×1,2",
@@ -19,6 +19,21 @@ export const loyaltyProfileFixture: LoyaltyProfile = {
   nextTierMultiplierText: "×1,5",
   availablePoints: 1250,
   estimatedVoucherVnd: "1250000",
+  // Chính sách mẫu theo LLD-OQ-06 (Khanh chốt 18/10/2026): 1 điểm = 1.000đ, đổi từ 100 điểm, voucher 30 ngày,
+  // tích 1 điểm / 10.000đ. Hạn điểm 12 tháng chỉ là số minh hoạ cho preview.
+  rules: {
+    earnUnit: 10000,
+    pointValue: 1000,
+    minRedeemPoints: 100,
+    pointExpiryMonths: 12,
+    voucherValidityDays: 30,
+    tiers: [
+      { tier: "BRONZE", minPoints: 0, multiplierPercent: 100 },
+      { tier: "SILVER", minPoints: 2000, multiplierPercent: 120 },
+      { tier: "GOLD", minPoints: 5000, multiplierPercent: 150 },
+      { tier: "PLATINUM", minPoints: 10000, multiplierPercent: 200 }
+    ]
+  },
   tiers: [
     {
       code: "bronze",

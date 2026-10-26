@@ -20,7 +20,7 @@ export function PaymentResultView({ result }: PaymentResultViewProps) {
   const currentStep = result.status === "success" ? 4 : 3;
 
   return (
-    <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 py-6 space-y-8">
+    <div className="mx-auto w-full max-w-[1200px] px-4 sm:px-6 lg:px-14 py-6 space-y-8">
       {/* Thanh tiến trình */}
       <CheckoutStepper
         currentStep={currentStep}

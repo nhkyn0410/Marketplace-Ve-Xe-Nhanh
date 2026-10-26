@@ -174,6 +174,7 @@ export const ticketLookupIdealFixture: TicketLookupInitData = {
  */
 export const ticketLookupOtpFixture: TicketLookupOtpState = {
   bookingCode: "VXN-4H9P6C",
+  email: "hoa.le@gmail.com",
   maskedEmail: "h***e@gmail.com",
   otpDigits: ["4", "8", "2", "9", "1", "7"],
   expiresInSeconds: 272,

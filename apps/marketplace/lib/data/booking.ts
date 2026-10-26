@@ -9,7 +9,8 @@ import { refreshSessionIfNeeded } from "./session";
 import { bookingHeaders, rememberBooking, rememberedBooking } from "./booking-access";
 import { apiMoney, mapPayment, mapPaymentResult, mapPoint, mapSeatSelection, moneyString, remainingSeconds, seatTypeLabel, type ApiBooking, type ApiHold, type ApiTrip } from "./booking-mappers";
 import { type DataResult, failed, ok } from "./result";
-import type { BookingPaymentData, BookingPaymentResultData, CheckoutContactInfo, CheckoutHoldData, CheckoutPassengerItem, CheckoutPromotionQuote, TripSeatSelectionData } from "./types";
+import type { BookingPaymentData, BookingPaymentResultData, CheckoutContactInfo, CheckoutHoldData, CheckoutPassengerItem, CheckoutPromotionQuote, CheckoutVoucherItem, TripSeatSelectionData } from "./types";
+import { getUserVouchers } from "./loyalty";
 
 /** Lấy điểm dừng và trạng thái chỗ từ chi tiết chuyến công khai. */
 export async function getTripSeatSelection(tripId: string): Promise<DataResult<TripSeatSelectionData>> {
@@ -43,9 +44,28 @@ export async function getCheckoutHoldData(holdId: string): Promise<DataResult<Ch
   try {
     const subtotal = moneyString(hold.data.subtotal);
     const account = profile?.status === "ok" ? profile.data : null;
+    // Ví voucher chỉ là phần bổ sung: lỗi tải ví không được làm hỏng bước nhập hành khách.
+    const vouchers = account ? await walletVoucherOptions(hold.data.tripId, subtotal).catch(() => []) : [];
     const savedPassengers = account?.savedPassengers?.map((passenger) => ({ id: passenger.id, fullName: passenger.name, phoneNumber: passenger.phone, idNumber: "" })) ?? [];
-    return ok({ holdId: hold.data.holdId, tripId: hold.data.tripId, routeName: trip.data.routeName, departureTimeText: mapSeatSelection(trip.data).departureTimeText, operatorName: trip.data.operator.name, holdCountdownSeconds: remainingSeconds(hold.data.expiresAt), pickupPoint: mapPoint({ ...hold.data.pickup, address: trip.data.stops.find((s) => s.sequence === hold.data.pickup.sequence)?.address ?? "" }), dropoffPoint: mapPoint({ ...hold.data.dropoff, address: trip.data.stops.find((s) => s.sequence === hold.data.dropoff.sequence)?.address ?? "" }), contactInfo: { fullName: account?.fullName ?? "", phoneNumber: account?.phone ?? "", email: account?.email ?? "" }, savedPassengers, maxSavedPassengers: 0, currentSavedPassengersCount: savedPassengers.length, passengers: hold.data.seats.map((seat) => ({ seatCode: seat.code, seatTypeLabel: seatTypeLabel(seat.type), floorLabel: "", priceVnd: moneyString(seat.price), fullName: "", phoneNumber: "", idNumber: "", shouldSaveForLater: false })), vouchers: [], priceSummary: { isEstimate: true, ticketPriceTotalVnd: subtotal, ticketCount: hold.data.seats.length, serviceFeeVnd: "0", discountVnd: "0", discountLabel: "Ưu đãi", finalTotalVnd: subtotal } });
+    return ok({ holdId: hold.data.holdId, tripId: hold.data.tripId, routeName: trip.data.routeName, departureTimeText: mapSeatSelection(trip.data).departureTimeText, operatorName: trip.data.operator.name, holdCountdownSeconds: remainingSeconds(hold.data.expiresAt), pickupPoint: mapPoint({ ...hold.data.pickup, address: trip.data.stops.find((s) => s.sequence === hold.data.pickup.sequence)?.address ?? "" }), dropoffPoint: mapPoint({ ...hold.data.dropoff, address: trip.data.stops.find((s) => s.sequence === hold.data.dropoff.sequence)?.address ?? "" }), contactInfo: { fullName: account?.fullName ?? "", phoneNumber: account?.phone ?? "", email: account?.email ?? "" }, savedPassengers, maxSavedPassengers: 0, currentSavedPassengersCount: savedPassengers.length, passengers: hold.data.seats.map((seat) => ({ seatCode: seat.code, seatTypeLabel: seatTypeLabel(seat.type), floorLabel: "", priceVnd: moneyString(seat.price), fullName: "", phoneNumber: "", idNumber: "", shouldSaveForLater: false })), vouchers, priceSummary: { isEstimate: true, ticketPriceTotalVnd: subtotal, ticketCount: hold.data.seats.length, serviceFeeVnd: "0", discountVnd: "0", discountLabel: "Ưu đãi", finalTotalVnd: subtotal } });
   } catch { return failed("GET /seat-holds/{holdId}", "Dữ liệu giá giữ chỗ không hợp lệ."); }
+}
+
+/** Ưu đãi gửi báo giá: mã khuyến mãi công khai hoặc voucher trong ví (cần đăng nhập). */
+type CheckoutOffer = { readonly code: string } | { readonly userVoucherId: string };
+
+/** Báo giá một ưu đãi cho chuyến + tiền vé trên máy chủ (POST /promotions/check), không tự tính mức giảm. */
+async function quoteOffer(tripId: string, subtotalVnd: string, offer: CheckoutOffer): Promise<DataResult<CheckoutPromotionQuote>> {
+  if (subtotalVnd === "0") return failed("POST /promotions/check", "Giá vé này chưa hỗ trợ áp ưu đãi.");
+  const input: components["schemas"]["PromotionCheckInputDto"] = { tripId, subtotal: apiMoney(subtotalVnd), ...offer };
+  const result = await apiRequest<components["schemas"]["PromotionCheckDto_Output"]>("/promotions/check", { method: "POST", body: JSON.stringify(input) });
+  if (result.status !== "ok") return result;
+  const discountVnd = moneyString(result.data.discount);
+  const totalVnd = moneyString(result.data.total);
+  if (("code" in offer && result.data.code !== offer.code) || typeof result.data.name !== "string" || BigInt(discountVnd) + BigInt(totalVnd) !== BigInt(subtotalVnd)) {
+    return failed("POST /promotions/check", "Báo giá ưu đãi không hợp lệ. Vui lòng kiểm tra lại.");
+  }
+  return ok({ code: result.data.code, name: result.data.name, discountVnd, totalVnd });
 }
 
 /** Kiểm mã theo chuyến và subtotal giữ chỗ trên máy chủ, không tự tính mức giảm. */
@@ -57,23 +77,38 @@ export async function checkCheckoutPromotion(holdId: string, rawCode: string): P
   const hold = await apiRequest<ApiHold>(`/seat-holds/${encodeURIComponent(holdId)}`);
   if (hold.status !== "ok") return hold;
   if (remainingSeconds(hold.data.expiresAt) <= 0) return failed("POST /promotions/check", "Phiên giữ chỗ đã hết hạn. Vui lòng quay lại chọn chỗ.");
-  try {
-    const subtotalVnd = moneyString(hold.data.subtotal);
-    if (subtotalVnd === "0") return failed("POST /promotions/check", "Giá vé này chưa hỗ trợ áp mã khuyến mãi.");
-    const input: components["schemas"]["PromotionCheckInputDto"] = { tripId: hold.data.tripId, code, subtotal: apiMoney(subtotalVnd) };
-    const result = await apiRequest<components["schemas"]["PromotionCheckDto_Output"]>("/promotions/check", { method: "POST", body: JSON.stringify(input) });
-    if (result.status !== "ok") return result;
-    const discountVnd = moneyString(result.data.discount);
-    const totalVnd = moneyString(result.data.total);
-    if (result.data.code !== code || typeof result.data.name !== "string" || BigInt(discountVnd) + BigInt(totalVnd) !== BigInt(subtotalVnd)) {
-      return failed("POST /promotions/check", "Báo giá khuyến mãi không hợp lệ. Vui lòng kiểm tra lại mã.");
-    }
-    return ok({ code: result.data.code, name: result.data.name, discountVnd, totalVnd });
-  } catch { return failed("POST /promotions/check", "Dữ liệu giá khuyến mãi không hợp lệ. Vui lòng thử lại."); }
+  try { return await quoteOffer(hold.data.tripId, moneyString(hold.data.subtotal), { code }); }
+  catch { return failed("POST /promotions/check", "Dữ liệu giá khuyến mãi không hợp lệ. Vui lòng thử lại."); }
+}
+
+/**
+ * Voucher khả dụng trong ví kèm báo giá cho đúng chuyến này (tối đa 10, mỗi voucher một lần báo giá):
+ * áp được → số tiền giảm; không áp được → "Không phù hợp" với lý do từ máy chủ (Figma 1444:12945).
+ */
+async function walletVoucherOptions(tripId: string, subtotalVnd: string): Promise<CheckoutVoucherItem[]> {
+  const wallet = await getUserVouchers("available");
+  if (wallet.status !== "ok") return [];
+  return Promise.all(wallet.data.vouchers.filter((voucher) => voucher.status === "available").slice(0, 10).map(async (voucher) => {
+    const isRedemption = voucher.type === "loyalty_redemption";
+    const title = `${isRedemption ? "Voucher đổi điểm" : voucher.code || voucher.title} · ${voucher.discountLabel ?? voucher.title}`;
+    const quote = await quoteOffer(tripId, subtotalVnd, { userVoucherId: voucher.id }).catch(() => null);
+    const applicable = quote?.status === "ok";
+    return {
+      id: voucher.id,
+      code: applicable ? quote.data.code : voucher.code,
+      title,
+      description: applicable ? `${voucher.scopeText} · Hạn dùng ${voucher.expiryDateText}` : (quote?.status === "error" && quote.message) || "Không áp dụng cho chuyến này.",
+      discountVnd: applicable ? quote.data.discountVnd : "0",
+      discountLabel: isRedemption ? "Voucher đổi điểm" : `Mã ${voucher.code || voucher.title}`,
+      tagText: applicable ? (isRedemption ? "Đổi từ điểm" : "Mã đã lưu") : "Không phù hợp",
+      isApplicable: applicable
+    };
+  }));
 }
 
 /** Tạo booking bằng tổng khách đã thấy; API kiểm lại mã/giá và token khách được giữ trong cookie httpOnly. */
-export async function createBooking(holdId: string, payload: { readonly contactInfo: CheckoutContactInfo; readonly passengers: readonly CheckoutPassengerItem[]; readonly note: string; readonly promotion?: { readonly code: string; readonly expectedTotalVnd: string } }): Promise<DataResult<{ readonly bookingId: string }>> {
+/** `promotion`: đúng một trong `code` (mã công khai) hoặc `userVoucherId` (voucher trong ví), kèm tổng sau giảm khách đã thấy. */
+export async function createBooking(holdId: string, payload: { readonly contactInfo: CheckoutContactInfo; readonly passengers: readonly CheckoutPassengerItem[]; readonly note: string; readonly promotion?: { readonly code?: string; readonly userVoucherId?: string; readonly expectedTotalVnd: string } }): Promise<DataResult<{ readonly bookingId: string }>> {
   const session = await refreshSessionIfNeeded();
   if (session.status !== "ok") return session;
   const existingId = await rememberedBooking(holdId);
@@ -81,14 +116,18 @@ export async function createBooking(holdId: string, payload: { readonly contactI
   if (!payload.contactInfo.fullName.trim() || !payload.contactInfo.email.trim() || !payload.contactInfo.phoneNumber.trim() || payload.passengers.some((passenger) => !passenger.fullName.trim())) {
     return failed("POST /bookings", "Vui lòng nhập thông tin liên hệ và tên từng hành khách.");
   }
-  const promotionCode = payload.promotion?.code.trim().toUpperCase();
-  if (payload.promotion && (!promotionCode || !/^[A-Z0-9]{3,20}$/.test(promotionCode))) {
+  const promotionCode = payload.promotion?.code?.trim().toUpperCase();
+  const userVoucherId = payload.promotion?.userVoucherId;
+  if (payload.promotion && Boolean(promotionCode) === Boolean(userVoucherId)) {
+    return failed("POST /bookings", "Mỗi đơn chỉ áp một voucher hoặc một mã khuyến mãi.");
+  }
+  if (promotionCode && !/^[A-Z0-9]{3,20}$/.test(promotionCode)) {
     return failed("POST /bookings", "Mã khuyến mãi không hợp lệ. Vui lòng kiểm tra lại mã trước khi đặt vé.");
   }
   const hold = await apiRequest<ApiHold>(`/seat-holds/${encodeURIComponent(holdId)}`);
   if (hold.status !== "ok") return hold;
   try {
-    const input: components["schemas"]["BookingInputDto"] = { holdId, contact: { fullName: payload.contactInfo.fullName.trim(), phone: payload.contactInfo.phoneNumber.trim(), email: payload.contactInfo.email.trim() }, passengers: payload.passengers.map((passenger) => ({ seatCode: passenger.seatCode, fullName: passenger.fullName.trim(), phone: passenger.phoneNumber.trim() || null })), note: payload.note.trim() || null, expectedTotal: apiMoney(payload.promotion ? payload.promotion.expectedTotalVnd : moneyString(hold.data.subtotal)), ...(promotionCode ? { promotionCode } : {}) };
+    const input: components["schemas"]["BookingInputDto"] = { holdId, contact: { fullName: payload.contactInfo.fullName.trim(), phone: payload.contactInfo.phoneNumber.trim(), email: payload.contactInfo.email.trim() }, passengers: payload.passengers.map((passenger) => ({ seatCode: passenger.seatCode, fullName: passenger.fullName.trim(), phone: passenger.phoneNumber.trim() || null })), note: payload.note.trim() || null, expectedTotal: apiMoney(payload.promotion ? payload.promotion.expectedTotalVnd : moneyString(hold.data.subtotal)), ...(promotionCode ? { promotionCode } : {}), ...(userVoucherId ? { userVoucherId } : {}) };
     const result = await apiRequest<components["schemas"]["CreatedBookingDto_Output"]>("/bookings", { method: "POST", body: JSON.stringify(input) });
     if (result.status !== "ok") return result;
     await rememberBooking(holdId, result.data.bookingId, result.data.accessToken);

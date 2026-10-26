@@ -14,7 +14,7 @@ import { TripReviews } from "../../../components/trips/detail/trip-reviews";
 import { TripBookingSidebar } from "../../../components/trips/detail/trip-booking-sidebar";
 
 export const metadata: Metadata = {
-  title: "Chi tiết chuyến xe | Vé Xe Nhanh",
+  title: "Chi tiết chuyến xe",
   description: "Xem chi tiết chuyến xe, lịch trình, giá vé và tiện ích trên Vé Xe Nhanh."
 };
 
@@ -36,29 +36,25 @@ export default async function TripDetailPage(props: PageProps) {
 
   // Topbar điều hướng theo chuẩn Figma 1443:11643
   const topBarHeader = (
-    <div className="border-b border-vxn-border/60 bg-white">
-      <div className="mx-auto max-w-7xl px-4 py-2.5 sm:px-6 lg:px-8">
-        <PassengerTopBar
-          breadcrumbs={[
-            { label: "Trang chủ", href: "/" },
-            { label: "Mua vé", href: "/trips" },
-            ...(preview === "ideal"
-              ? [{ label: "TP. Hồ Chí Minh → Đà Lạt", href: "/trips?preview=ideal" }]
-              : []),
-            { label: "Chi tiết chuyến" }
-          ]}
-        />
-      </div>
-    </div>
+    <PassengerTopBar
+      breadcrumbs={[
+        { label: "Trang chủ", href: "/" },
+        { label: "Mua vé", href: "/trips" },
+        ...(preview === "ideal"
+          ? [{ label: "TP. Hồ Chí Minh → Đà Lạt", href: "/trips?preview=ideal" }]
+          : []),
+        { label: "Chi tiết chuyến" }
+      ]}
+    />
   );
 
   // Nhánh Preview phục vụ kiểm thử giao diện theo Figma
   if (preview === "ideal") {
     const trip = tripDetailFixture;
     return (
-      <div className="min-h-screen bg-[#f9f9ff]">
+      <div className="min-h-viewport bg-[#f9f9ff]">
         {topBarHeader}
-        <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6">
+        <div className="mx-auto w-full max-w-[1200px] px-4 sm:px-6 lg:px-14 py-6">
           {/* Lưới 2 cột: Cột nội dung chi tiết (8) & Cột tóm tắt đặt vé (4) */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
             {/* Cột trái */}
@@ -87,7 +83,7 @@ export default async function TripDetailPage(props: PageProps) {
               <TripBookingSidebar trip={trip} />
             </div>
           </div>
-        </main>
+        </div>
       </div>
     );
   }
@@ -97,14 +93,14 @@ export default async function TripDetailPage(props: PageProps) {
 
   if (result.status !== "ok") {
     return (
-      <div className="min-h-screen bg-[#f9f9ff]">
+      <div className="min-h-viewport bg-[#f9f9ff]">
         {topBarHeader}
-        <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12">
+        <div className="mx-auto w-full max-w-[1200px] px-4 sm:px-6 lg:px-14 py-12">
           <FeatureUnavailable
             title="Chi tiết chuyến xe"
             endpoint={result.endpoint}
           />
-        </main>
+        </div>
       </div>
     );
   }
@@ -113,9 +109,9 @@ export default async function TripDetailPage(props: PageProps) {
   const trip = result.data;
 
   return (
-    <div className="min-h-screen bg-[#f9f9ff]">
+    <div className="min-h-viewport bg-[#f9f9ff]">
       {topBarHeader}
-      <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6">
+      <div className="mx-auto w-full max-w-[1200px] px-4 sm:px-6 lg:px-14 py-6">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           <div className="lg:col-span-8 space-y-6">
             <TripDetailHeader trip={trip} />
@@ -140,7 +136,7 @@ export default async function TripDetailPage(props: PageProps) {
             <TripBookingSidebar trip={trip} />
           </div>
         </div>
-      </main>
+      </div>
     </div>
   );
 }

@@ -31,6 +31,7 @@ import { PassengerLoyaltyService } from "./passenger-loyalty.service";
 import { expireBooking } from "../booking/booking-expiry";
 import { recordRefund } from "../escrow/escrow-entries";
 import { transitionVoucher } from "../promotion/voucher-apply";
+import { PromotionService } from "../promotion/promotion.service";
 
 /**
  * TASK-LOY-001 trên Postgres + Redis THẬT (role app), chính sách VXN Plus v1 do migration seed (1 điểm / 10.000 ₫, hạng Bạc từ 2.000
@@ -77,7 +78,7 @@ describe.skipIf(!ready && !requireDb)("VXN Plus — Postgres + Redis thật (LOY
   const ward = randomUUID();
   const points = [randomUUID(), randomUUID(), randomUUID()];
   const vehicleType = randomUUID();
-  const users = { rider: randomUUID(), silver: randomUUID(), expiring: randomUUID(), wallet: randomUUID(), otherWallet: randomUUID() };
+  const users = { rider: randomUUID(), silver: randomUUID(), expiring: randomUUID(), wallet: randomUUID(), otherWallet: randomUUID(), quote: randomUUID() };
   const admin = { sub: randomUUID(), role: "PLATFORM_ADMIN" } as VerifiedAccessToken;
   const ownerAuthz: Authorization = { permission: "trip:manage", scope: "tenant", db: tenantScope(operatorId) };
   const platformAuthz: Authorization = { permission: "loyalty:manage", scope: "any", db: platformScope() };
@@ -459,5 +460,19 @@ describe.skipIf(!ready && !requireDb)("VXN Plus — Postgres + Redis thật (LOY
     await prisma.withTenant(operatorId, (tx) => transitionVoucher(tx, operatorId, retry.bookingId, "TRIP_CANCELLED"));
     await prisma.withSystem((tx) => tx.promotion.update({ where: { id: promotion.id }, data: { status: "PAUSED" } }));
     expect((await wallet.vouchers(users.otherWallet, { offset: 0, limit: 20, status: "EXPIRED" })).items.map((item) => item.userVoucherId)).toContain(voucher.userVoucherId);
+  }, 60_000);
+  it("báo giá voucher trong ví (POST /promotions/check): đúng số giảm, không giữ voucher; chưa đăng nhập hoặc voucher của người khác bị từ chối", async () => {
+    const wallet = new PassengerLoyaltyService(prisma);
+    const promotions = new PromotionService(prisma, {} as never);
+    await loyalty.adjust(platformAuthz, admin, users.quote, { direction: "CREDIT", points: 200, reason: "Dữ liệu thử báo giá voucher" }, randomUUID());
+    const voucher = await wallet.redeem(users.quote, 100, randomUUID());
+    const tripId = await openTrip();
+    const input = { tripId, userVoucherId: voucher.userVoucherId, subtotal: 300_000 };
+    expect(await promotions.check(input, users.quote)).toEqual({ code: "VXNPLUS", name: "Voucher VXN Plus", discount: 100_000, total: 200_000 });
+    // Báo giá hai lần vẫn được: không giữ voucher, voucher vẫn "Khả dụng" trong ví
+    expect((await promotions.check(input, users.quote)).discount).toBe(100_000);
+    expect((await wallet.vouchers(users.quote, { status: "AVAILABLE", offset: 0, limit: 20 })).items.some((item) => item.userVoucherId === voucher.userVoucherId)).toBe(true);
+    expect(await rejectionOf(promotions.check(input, null))).toMatchObject({ status: 422, code: "VOUCHER_NOT_AVAILABLE" });
+    expect(await rejectionOf(promotions.check(input, users.otherWallet))).toMatchObject({ code: "VOUCHER_NOT_AVAILABLE" });
   }, 60_000);
 });

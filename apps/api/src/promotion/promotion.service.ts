@@ -22,6 +22,7 @@ import type {
   PROMOTION_DISPLAY,
 } from "./dto/promotion.dto";
 import { evaluatePromotion } from "./promotion-apply";
+import { evaluateVoucher } from "./voucher-apply";
 import { promotionCodeTaken, promotionGuardrail, promotionInvalid, promotionNotFound, promotionStateInvalid, promotionUnavailable } from "./promotion.errors";
 
 const AUDIT_TIMEOUT_MS = 2_000;
@@ -340,13 +341,17 @@ export class PromotionService {
   // ------------------------------------------------------------------ Kiểm mã (khách)
 
   /** Báo trước số tiền giảm của một mã cho chuyến (FR-MKT-10) — không giữ lượt dùng; lượt giữ khi tạo đơn. */
-  async check(input: PromotionCheckInput, now: Date = new Date()): Promise<PromotionCheck> {
+  /** `userId`: hành khách đang đăng nhập (bắt buộc khi báo giá voucher trong ví, khách vãng lai chỉ dùng được `code`). */
+  async check(input: PromotionCheckInput, userId: string | null = null, now: Date = new Date()): Promise<PromotionCheck> {
     const result = await withTripOperator(this.prisma, input.tripId, async (tx, operatorId) => {
       const trip = await tx.trip.findFirst({ where: { id: input.tripId, operatorId }, select: { routeId: true } });
       if (!trip) {
         return null;
       }
-      return evaluatePromotion(tx, { operatorId, routeId: trip.routeId, tripId: input.tripId, subtotal: BigInt(input.subtotal), code: input.code, now });
+      const context = { operatorId, routeId: trip.routeId, tripId: input.tripId, subtotal: BigInt(input.subtotal), now };
+      return input.userVoucherId
+        ? evaluateVoucher(tx, userId, input.userVoucherId, context, { claim: false })
+        : evaluatePromotion(tx, { ...context, code: input.code! });
     });
     if (!result) {
       throw promotionInvalid("Không tìm thấy chuyến.");

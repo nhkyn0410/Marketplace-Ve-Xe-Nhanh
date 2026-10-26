@@ -11,7 +11,7 @@ import { OperatorFeaturedRoutes } from "../../../components/operators/operator-f
 import { OperatorReviewsAndTerms } from "../../../components/operators/operator-reviews-and-terms";
 
 export const metadata: Metadata = {
-  title: "Thông tin nhà xe | Vé Xe Nhanh",
+  title: "Thông tin nhà xe",
   description: "Xem đánh giá, tuyến đường và chỉ số chất lượng của nhà xe đối tác trên Vé Xe Nhanh."
 };
 
@@ -33,26 +33,22 @@ export default async function OperatorDetailPage(props: PageProps) {
 
   // Topbar điều hướng theo Figma 1443:12312
   const topBarHeader = (operatorName: string) => (
-    <div className="border-b border-vxn-border/60 bg-white">
-      <div className="mx-auto max-w-7xl px-4 py-2.5 sm:px-6 lg:px-8">
-        <PassengerTopBar
-          breadcrumbs={[
-            { label: "Trang chủ", href: "/" },
-            { label: "Nhà xe", href: preview === "ideal" ? "/explore?preview=ideal" : "/explore" },
-            { label: operatorName }
-          ]}
-        />
-      </div>
-    </div>
+    <PassengerTopBar
+      breadcrumbs={[
+        { label: "Trang chủ", href: "/" },
+        { label: "Nhà xe", href: preview === "ideal" ? "/explore?preview=ideal" : "/explore" },
+        { label: operatorName }
+      ]}
+    />
   );
 
   // Nhánh Preview phục vụ kiểm thử giao diện theo Figma
   if (preview === "ideal") {
     const operator = operatorProfileFixture;
     return (
-      <div className="min-h-screen bg-[#f9f9ff]">
+      <div className="min-h-viewport bg-[#f9f9ff]">
         {topBarHeader(operator.name)}
-        <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6 space-y-8">
+        <div className="mx-auto w-full max-w-[1200px] px-4 sm:px-6 lg:px-14 py-6 space-y-8">
           <OperatorHeader operator={operator} />
           <OperatorMetrics metrics={operator.metrics} />
           <OperatorFeaturedRoutes routes={operator.featuredRoutes} />
@@ -60,7 +56,7 @@ export default async function OperatorDetailPage(props: PageProps) {
             reviews={operator.reviews}
             terms={operator.terms}
           />
-        </main>
+        </div>
       </div>
     );
   }
@@ -71,14 +67,14 @@ export default async function OperatorDetailPage(props: PageProps) {
 
   if (result.status !== "ok") {
     return (
-      <div className="min-h-screen bg-[#f9f9ff]">
+      <div className="min-h-viewport bg-[#f9f9ff]">
         {topBarHeader("Hồ sơ nhà xe")}
-        <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12">
+        <div className="mx-auto w-full max-w-[1200px] px-4 sm:px-6 lg:px-14 py-12">
           <FeatureUnavailable
             title="Không thể tải hồ sơ nhà xe"
             description={result.status === "error" ? result.message : undefined}
           />
-        </main>
+        </div>
       </div>
     );
   }
@@ -86,9 +82,9 @@ export default async function OperatorDetailPage(props: PageProps) {
   // Hiển thị hồ sơ nhà xe từ API
   const operator = result.data;
   return (
-    <div className="min-h-screen bg-[#f9f9ff]">
+    <div className="min-h-viewport bg-[#f9f9ff]">
       {topBarHeader(operator.name)}
-      <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6 space-y-8">
+      <div className="mx-auto w-full max-w-[1200px] px-4 sm:px-6 lg:px-14 py-6 space-y-8">
         <OperatorHeader operator={operator} />
         <OperatorMetrics metrics={operator.metrics} />
         <OperatorFeaturedRoutes routes={operator.featuredRoutes} />
@@ -97,7 +93,7 @@ export default async function OperatorDetailPage(props: PageProps) {
           terms={operator.terms}
         />
         {operator.nextReviewCursor && <Link className="text-vxn-teal-800 underline" href={`/operators/${encodeURIComponent(params.operatorId)}?cursor=${encodeURIComponent(operator.nextReviewCursor)}#reviews`}>Trang đánh giá tiếp theo</Link>}
-      </main>
+      </div>
     </div>
   );
 }

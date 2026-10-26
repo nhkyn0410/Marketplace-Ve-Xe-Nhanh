@@ -11,7 +11,7 @@ import { FeatureUnavailable } from "../../../components/states/feature-unavailab
 import { AccountSignInRequired } from "../../../components/account/account-sign-in-required";
 
 export const metadata: Metadata = {
-  title: "Phiên đăng nhập & Thiết bị | Vé Xe Nhanh",
+  title: "Phiên đăng nhập & Thiết bị",
   description: "Quản lý danh sách các thiết bị đang đăng nhập tài khoản hành khách và thu hồi phiên lạ."
 };
 
@@ -49,7 +49,7 @@ export default async function AccountSessionsPage({
 
   if (sessionsRes.status === "unavailable") {
     return (
-      <div className="container mx-auto px-4 sm:px-6 py-10 max-w-7xl">
+      <div className="mx-auto w-full px-4 sm:px-6 py-10 max-w-[1200px] lg:px-14">
         <FeatureUnavailable
           title="Phiên đăng nhập & Thiết bị"
           description="Danh sách phiên đăng nhập hiện chưa khả dụng. Vui lòng thử lại sau."
@@ -61,7 +61,7 @@ export default async function AccountSessionsPage({
   if (sessionsRes.status === "error") {
     if (sessionsRes.httpStatus === 401) return <AccountSignInRequired />;
     return (
-      <div className="container mx-auto px-4 sm:px-6 py-10 max-w-7xl">
+      <div className="mx-auto w-full px-4 sm:px-6 py-10 max-w-[1200px] lg:px-14">
         <FeatureUnavailable
           title="Phiên đăng nhập & Thiết bị"
           description={sessionsRes.message ?? "Không thể tải danh sách phiên đăng nhập."}

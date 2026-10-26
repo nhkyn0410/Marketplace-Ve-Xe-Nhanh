@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowLeft, MapPin } from "lucide-react";
+import { ArrowLeft, MapPin, AlertTriangle } from "lucide-react";
 import Link from "next/link";
 import { formatVnd } from "../../lib/format";
 import { SelectedSeatDetail } from "../../lib/data/types";
@@ -20,6 +20,11 @@ export interface SeatSelectionSidebarProps {
   readonly subtotalVnd: string;
   readonly onClearSelection?: () => void;
   readonly onContinue?: () => void;
+  /** Lỗi giữ chỗ hiển thị ngay trên nút Tiếp tục (trên mobile nút nằm cuối trang). */
+  readonly errorMessage?: string | null;
+  readonly isSubmitting?: boolean;
+  /** Số ngày điểm trả lệch so với điểm đón (giờ VN); 0 thì không hiện "+N ngày". */
+  readonly dropoffDayOffset?: number;
 }
 
 /**
@@ -36,7 +41,10 @@ export function SeatSelectionSidebar({
   selectedSeatsSummary,
   subtotalVnd,
   onClearSelection,
-  onContinue
+  onContinue,
+  errorMessage,
+  isSubmitting = false,
+  dropoffDayOffset = 0
 }: SeatSelectionSidebarProps) {
   const hasSeats = selectedSeatsSummary.length > 0;
 
@@ -67,7 +75,7 @@ export function SeatSelectionSidebar({
                 <span className="text-vxn-fg-2">{pickupPointName}</span>
               </div>
               <div>
-                Trả <span className="font-bold text-vxn-ink">{dropoffTime}</span> (+1 ngày) •{" "}
+                Trả <span className="font-bold text-vxn-ink">{dropoffTime}</span>{dropoffDayOffset > 0 && ` (+${dropoffDayOffset} ngày)`} •{" "}
                 <span className="text-vxn-fg-2">{dropoffPointName}</span>
               </div>
             </div>
@@ -121,24 +129,33 @@ export function SeatSelectionSidebar({
           {/* Tạm tính */}
           <div className="flex items-baseline justify-between pt-4 pb-5">
             <span className="text-sm font-medium text-vxn-fg-3">Tạm tính</span>
-            <span className="text-xl sm:text-2xl font-black text-vxn-ink">
+            <span className="text-xl sm:text-2xl font-extrabold text-vxn-ink">
               {formatVnd(subtotalVnd)}
             </span>
           </div>
 
           {/* Hành động */}
           <div className="space-y-2.5">
+            {errorMessage && (
+              <div role="alert" className="flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs font-semibold text-amber-800">
+                <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+                <span>{errorMessage}</span>
+              </div>
+            )}
             <button
               type="button"
-              disabled={!hasSeats}
+              disabled={!hasSeats || isSubmitting}
+              aria-busy={isSubmitting}
               onClick={onContinue}
               className={`w-full rounded-xl py-3 text-sm font-bold text-white shadow-xs transition text-center ${
-                hasSeats
+                hasSeats && !isSubmitting
                   ? "bg-[#00506a] hover:bg-[#00476b] active:scale-[0.99] cursor-pointer"
-                  : "bg-neutral-300 cursor-not-allowed"
+                  : hasSeats
+                    ? "bg-[#00506a]/70 cursor-wait"
+                    : "bg-neutral-300 cursor-not-allowed"
               }`}
             >
-              Tiếp tục
+              {isSubmitting ? "Đang giữ chỗ..." : "Tiếp tục"}
             </button>
 
             <Link

@@ -4,6 +4,7 @@ import { ArrowRightLeft } from "lucide-react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { ProvinceItem } from "../../lib/data/types";
+import { formatTripDateVi } from "../../lib/format";
 
 /**
  * Thuộc tính của thanh tìm kiếm chuyến xe tóm tắt trên trang danh sách chuyến.
@@ -48,19 +49,23 @@ export function TripSearchBar({
     router.push(`/trips?${new URLSearchParams({ origin, destination, date, passengers: String(passengers) })}`);
   };
 
+  const field = "relative rounded-xl border border-slate-200 bg-white px-4 py-2.5 transition focus-within:border-[#00506a]";
+  const label = "block text-xs font-medium text-slate-500";
+  const value = "mt-0.5 w-full appearance-none truncate bg-transparent text-[15px] font-bold text-vxn-ink outline-none";
+
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-3.5 shadow-2xs">
+    <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-2xs">
       <form onSubmit={handleSearch} className="flex flex-col gap-3 lg:flex-row lg:items-center">
         {/* Cụm Điểm đi & Điểm đến */}
         <div className="flex flex-1 flex-col gap-2 sm:flex-row sm:items-center">
-          {/* Điểm đi */}
-          <div className="flex-1 rounded-xl border border-slate-200 bg-white px-3.5 py-1.5 focus-within:border-[#00506a]">
-            <label className="block text-[11px] font-semibold text-slate-400">Điểm đi</label>
+          <div className={`${field} min-w-0 flex-1`}>
+            <label htmlFor="search-origin" className={label}>Điểm đi</label>
             <select
+              id="search-origin"
               required disabled={!provinces.length}
               value={origin}
               onChange={(e) => setOrigin(e.target.value)}
-              className="w-full bg-transparent text-sm font-bold text-slate-900 outline-none"
+              className={value}
             >
               <option value="">Chọn điểm đi</option>
               {provinces.map((province) => <option key={province.id} value={province.id}>{province.name}</option>)}
@@ -68,25 +73,25 @@ export function TripSearchBar({
           </div>
 
           {/* Nút hoán đổi */}
-          <div className="flex items-center justify-center shrink-0">
+          <div className="flex shrink-0 items-center justify-center">
             <button
               type="button"
               onClick={handleSwap}
-              title="Đổi chiều điểm đi / đến"
-              className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 shadow-xs hover:border-[#00506a] hover:text-[#00506a] transition cursor-pointer"
+              aria-label="Đổi chiều điểm đi / đến"
+              className="inline-flex h-9 w-9 cursor-pointer items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 transition hover:border-[#00506a] hover:text-[#00506a]"
             >
-              <ArrowRightLeft className="h-4 w-4" />
+              <ArrowRightLeft className="h-3.5 w-3.5" />
             </button>
           </div>
 
-          {/* Điểm đến */}
-          <div className="flex-1 rounded-xl border border-slate-200 bg-white px-3.5 py-1.5 focus-within:border-[#00506a]">
-            <label className="block text-[11px] font-semibold text-slate-400">Điểm đến</label>
+          <div className={`${field} min-w-0 flex-1`}>
+            <label htmlFor="search-destination" className={label}>Điểm đến</label>
             <select
+              id="search-destination"
               required disabled={!provinces.length}
               value={destination}
               onChange={(e) => setDestination(e.target.value)}
-              className="w-full bg-transparent text-sm font-bold text-slate-900 outline-none"
+              className={value}
             >
               <option value="">Chọn điểm đến</option>
               {provinces.map((province) => <option key={province.id} value={province.id}>{province.name}</option>)}
@@ -94,49 +99,48 @@ export function TripSearchBar({
           </div>
         </div>
 
-        {/* Ngày đi */}
-        <div className="w-full sm:w-48 lg:w-44 rounded-xl border border-slate-200 bg-white px-3.5 py-1.5 focus-within:border-[#00506a]">
-          <label className="block text-[11px] font-semibold text-slate-400">Ngày đi</label>
+        {/* Ngày đi: hiển thị "T6, 16/10/2026", ô date gốc phủ trong suốt để mở lịch */}
+        <div className={`${field} w-full sm:w-48 lg:w-[170px]`}>
+          <label htmlFor="search-date" className={label}>Ngày đi</label>
+          <div className="mt-0.5 text-[15px] font-bold text-vxn-ink">{date ? formatTripDateVi(date) : "Chọn ngày"}</div>
           <input
+            id="search-date"
             type="date"
             required
             value={date}
             onChange={(e) => setDate(e.target.value)}
-            className="w-full bg-transparent text-sm font-bold text-slate-900 outline-none cursor-default"
+            className="absolute inset-0 cursor-pointer opacity-0"
           />
         </div>
 
         {/* Hành khách */}
-        <div className="w-full sm:w-44 lg:w-36 rounded-xl border border-slate-200 bg-white px-3.5 py-1.5 focus-within:border-[#00506a]">
-          <label className="block text-[11px] font-semibold text-slate-400">Hành khách</label>
-          <div className="text-sm font-bold text-slate-900">
-            <input
-              aria-label="Số hành khách"
-              type="number"
-              required min={1} max={10} step={1}
-              value={passengers}
-              onChange={(e) => setPassengers(Number(e.target.value))}
-              className="w-12 bg-transparent font-bold text-slate-900"
-            />
-            hành khách
-          </div>
+        <div className={`${field} w-full sm:w-44 lg:w-[150px]`}>
+          <label htmlFor="search-passengers" className={label}>Hành khách</label>
+          <select
+            id="search-passengers"
+            value={passengers}
+            onChange={(e) => setPassengers(Number(e.target.value))}
+            className={value}
+          >
+            {Array.from({ length: 10 }, (_, index) => index + 1).map((count) => (
+              <option key={count} value={count}>{count} hành khách</option>
+            ))}
+          </select>
         </div>
 
         {/* Nút Tìm chuyến */}
-        <div className="shrink-0">
-          <button
-            type="submit"
-            disabled={!provinces.length}
-            className="flex w-full items-center justify-center rounded-xl bg-[#00506a] px-6 py-3 text-sm font-bold text-white shadow-xs transition hover:bg-[#00476b] active:scale-[0.99] cursor-pointer"
-          >
-            Tìm chuyến
-          </button>
-        </div>
+        <button
+          type="submit"
+          disabled={!provinces.length}
+          className="h-[54px] w-full shrink-0 cursor-pointer rounded-xl bg-[#00506a] px-6 text-sm font-bold text-white shadow-xs transition hover:bg-[#00476b] disabled:cursor-not-allowed disabled:opacity-60 lg:w-[140px]"
+        >
+          Tìm chuyến
+        </button>
       </form>
 
       {!provinces.length && <p className="mt-3 text-xs text-amber-800">Chưa tải được danh sách tỉnh thành. Vui lòng tải lại trang để thay đổi tìm kiếm.</p>}
       {actionError && (
-        <div className="mt-3 rounded-lg border border-amber-200 bg-amber-50 p-2.5 text-xs font-medium text-amber-800">
+        <div role="alert" className="mt-3 rounded-lg border border-amber-200 bg-amber-50 p-2.5 text-xs font-medium text-amber-800">
           {actionError}
         </div>
       )}
