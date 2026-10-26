@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { paidPrice } from "../refund/refund-policy";
+import { PromotionCheckInputSchema } from "./dto/promotion.dto";
 import { discountFor, MIN_PAYABLE, vnMonthStart } from "./promotion-apply";
 
 describe("Khuyến mãi — tính tiền (TASK-PROM-001, BIGINT VND)", () => {
@@ -32,5 +33,20 @@ describe("Khuyến mãi — tính tiền (TASK-PROM-001, BIGINT VND)", () => {
   it("đầu tháng theo giờ VN (23:30 UTC ngày 31 = ngày 1 tháng sau)", () => {
     expect(vnMonthStart(new Date("2026-10-31T23:30:00Z")).toISOString()).toBe("2026-10-31T17:00:00.000Z");
     expect(vnMonthStart(new Date("2026-10-19T03:00:00Z")).toISOString()).toBe("2026-09-30T17:00:00.000Z");
+  });
+});
+
+describe("Báo giá khuyến mãi (POST /promotions/check) — đúng một trong mã / voucher trong ví", () => {
+  const base = { tripId: "7f3c2a10-1234-4abc-9def-0123456789ab", subtotal: 300_000 };
+  const voucherId = "3b8d6c2e-5678-4cde-8f01-23456789abcd";
+
+  it("nhận mã khuyến mãi hoặc voucher trong ví", () => {
+    expect(PromotionCheckInputSchema.safeParse({ ...base, code: "THU10" }).success).toBe(true);
+    expect(PromotionCheckInputSchema.safeParse({ ...base, userVoucherId: voucherId }).success).toBe(true);
+  });
+
+  it("từ chối khi gửi cả hai hoặc không gửi gì", () => {
+    expect(PromotionCheckInputSchema.safeParse({ ...base, code: "THU10", userVoucherId: voucherId }).success).toBe(false);
+    expect(PromotionCheckInputSchema.safeParse(base).success).toBe(false);
   });
 });

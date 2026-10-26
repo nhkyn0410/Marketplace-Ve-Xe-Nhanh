@@ -41,7 +41,7 @@ export function TicketCardItem({ ticket, onCancelClick }: TicketCardItemProps) {
           <span className="text-[11px] font-medium text-neutral-500">
             {ticket.departureDayOfWeek}
           </span>
-          <span className="text-2xl font-black text-vxn-ink leading-tight">
+          <span className="text-2xl font-extrabold text-vxn-ink leading-tight">
             {ticket.departureDay}
           </span>
           <span className="text-[10px] text-neutral-400">
@@ -91,7 +91,7 @@ export function TicketCardItem({ ticket, onCancelClick }: TicketCardItemProps) {
 
       {/* Khối bên phải: Giá tiền và Nút thao tác */}
       <div className="flex flex-col sm:items-end gap-3 shrink-0 pt-2 md:pt-0 border-t md:border-t-0 border-neutral-100">
-        <span className="text-lg sm:text-xl font-black text-vxn-ink">
+        <span className="text-lg sm:text-xl font-extrabold text-vxn-ink">
           {formatVnd(ticket.totalAmountVnd)}
         </span>
 

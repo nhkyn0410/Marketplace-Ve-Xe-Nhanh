@@ -51,7 +51,7 @@ export function ExploreView({
       {/* 1. Header Trang & Tìm kiếm */}
       <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
         <div>
-          <h1 className="text-2xl font-black text-vxn-ink sm:text-3xl lg:text-4xl">
+          <h1 className="text-2xl/9 font-semibold tracking-[-0.24px] text-vxn-ink">
             Khám phá
           </h1>
           <p className="mt-2 text-xs text-vxn-fg-4 sm:text-sm">
@@ -103,16 +103,16 @@ export function ExploreView({
           <div className="flex flex-1 flex-col justify-between p-6 sm:p-8 lg:p-10">
             <div className="space-y-3">
               <div className="flex items-center gap-2">
-                <span className="inline-flex items-center gap-1 rounded-full bg-red-500 px-2.5 py-0.5 text-2xs font-bold text-white uppercase">
+                <span className="inline-flex items-center gap-1 rounded-full bg-red-500 px-2.5 py-0.5 text-xs font-bold text-white uppercase">
                   <Sparkles className="h-3 w-3" />
                   Nổi bật
                 </span>
-                <span className="text-2xs font-black tracking-wider text-vxn-teal-700 uppercase">
+                <span className="text-xs font-extrabold tracking-wider text-vxn-teal-700 uppercase">
                   {featuredArticle.category}
                 </span>
               </div>
 
-              <h2 className="text-xl font-black text-vxn-ink transition group-hover:text-vxn-teal-800 sm:text-2xl">
+              <h2 className="text-xl font-extrabold text-vxn-ink transition group-hover:text-vxn-teal-800 sm:text-2xl">
                 <Link href={`/explore/${featuredArticle.slug}`}>
                   {featuredArticle.title}
                 </Link>
@@ -132,10 +132,10 @@ export function ExploreView({
 
               <Link
                 href={`/explore/${featuredArticle.slug}`}
-                className="inline-flex items-center gap-1.5 font-bold text-vxn-teal-700 hover:text-vxn-teal-800"
+                className="inline-flex items-center gap-1.5 rounded-lg bg-vxn-teal-700 px-4 py-2 text-sm font-semibold text-white hover:bg-vxn-teal-800"
               >
-                <span>Đọc bài viết</span>
                 <ArrowRight className="h-4 w-4" />
+                <span>Đọc bài viết</span>
               </Link>
             </div>
           </div>
@@ -161,7 +161,7 @@ export function ExploreView({
             {/* Nội dung bài */}
             <div className="flex flex-1 flex-col justify-between p-5">
               <div className="space-y-2">
-                <span className="text-2xs font-bold text-vxn-teal-700 uppercase tracking-wider">
+                <span className="text-xs font-bold text-vxn-teal-700 uppercase tracking-wider">
                   {art.category}
                 </span>
 
@@ -174,7 +174,7 @@ export function ExploreView({
                 </p>
               </div>
 
-              <div className="mt-4 flex items-center justify-between border-t border-vxn-border/60 pt-3 text-2xs text-vxn-fg-4">
+              <div className="mt-4 flex items-center justify-between border-t border-vxn-border/60 pt-3 text-xs text-vxn-fg-4">
                 <span>{art.publishedDateText}</span>
                 {art.viewsCountText && <span className="flex items-center gap-1"><Eye className="h-3 w-3" />{art.viewsCountText}</span>}
               </div>

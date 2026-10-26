@@ -50,7 +50,7 @@ export function TripDetailHeader({ trip }: TripDetailHeaderProps) {
 
       {/* Hàng 2: Tuyến xe */}
       <div>
-        <h1 className="text-2xl font-black text-slate-900">
+        <h1 className="text-2xl/9 font-semibold tracking-[-0.24px] text-vxn-ink">
           {trip.routeName}
         </h1>
         <p className="text-xs text-slate-500 mt-1">
@@ -61,7 +61,7 @@ export function TripDetailHeader({ trip }: TripDetailHeaderProps) {
         <div className="mt-5 flex items-center justify-between gap-2 sm:gap-4">
           {/* Giờ xuất phát */}
           <div className="shrink-0">
-            <div className="text-xl sm:text-2xl font-black text-slate-900">
+            <div className="text-xl sm:text-2xl font-extrabold text-slate-900">
               {trip.departureTime}
             </div>
             <p className="text-[11px] sm:text-xs text-slate-500 mt-0.5 max-w-[110px] sm:max-w-none truncate sm:whitespace-normal">
@@ -83,7 +83,7 @@ export function TripDetailHeader({ trip }: TripDetailHeaderProps) {
           {/* Giờ đến */}
           <div className="text-right shrink-0">
             <div className="flex items-center justify-end gap-1">
-              <span className="text-xl sm:text-2xl font-black text-slate-900">
+              <span className="text-xl sm:text-2xl font-extrabold text-slate-900">
                 {trip.arrivalTime}
               </span>
               {trip.isNextDay && (

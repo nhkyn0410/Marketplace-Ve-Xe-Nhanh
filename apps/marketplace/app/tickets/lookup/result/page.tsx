@@ -8,7 +8,7 @@ import { ErrorState } from "../../../../components/states/error-state";
 import { LookupResultView } from "../../../../components/tickets/lookup-result/lookup-result-view";
 
 export const metadata: Metadata = {
-  title: "Kết quả tra cứu vé | Vé Xe Nhanh",
+  title: "Kết quả tra cứu vé",
   description: "Chi tiết vé xe khách dành cho hành khách tra cứu bằng mã đơn hoặc số vé."
 };
 

@@ -1,12 +1,12 @@
 "use client";
 
 import React, { useState } from "react";
-import Link from "next/link";
 import { Monitor, Smartphone, ShieldCheck, LogOut, Check, AlertCircle } from "lucide-react";
 import { Button } from "@vexenhanh/ui/components/button";
 import type { UserProfileData, UserSessionItem } from "../../lib/data/types";
 import { revokeSession, revokeAllOtherSessions } from "../../lib/data/auth";
 import { AccountSidebar } from "./account-sidebar";
+import { PassengerTopBar } from "../passenger-topbar";
 
 export interface AccountSessionsViewProps {
   readonly user?: UserProfileData;
@@ -143,23 +143,9 @@ export const AccountSessionsView: React.FC<AccountSessionsViewProps> = ({
   };
 
   return (
-    <div className="container mx-auto px-4 sm:px-6 py-6 max-w-7xl space-y-6">
-      {/* Breadcrumb điều hướng */}
-      <nav className="text-xs text-muted-foreground flex items-center gap-1.5">
-        <Link href="/" className="hover:text-foreground">
-          Trang chủ
-        </Link>
-        <span>›</span>
-        <Link href={isPreview ? "/account?preview=ideal" : "/account"} className="hover:text-foreground">
-          Tài khoản
-        </Link>
-        <span>›</span>
-        <Link href={isPreview ? "/account?preview=ideal" : "/account"} className="hover:text-foreground">
-          Bảo mật
-        </Link>
-        <span>›</span>
-        <span className="text-foreground font-medium">Phiên đăng nhập</span>
-      </nav>
+    <>
+      <PassengerTopBar breadcrumbs={[{ label: "Trang chủ", href: "/" }, { label: "Tài khoản", href: isPreview ? "/account?preview=ideal" : "/account" }, { label: "Bảo mật" }, { label: "Phiên đăng nhập" }]} />
+      <div className="mx-auto w-full px-4 sm:px-6 py-6 max-w-[1200px] space-y-6 lg:px-14">
 
       {/* Thông báo kết quả thao tác */}
       {statusMessage && (
@@ -189,7 +175,7 @@ export const AccountSessionsView: React.FC<AccountSessionsViewProps> = ({
           {/* Đầu trang tiêu đề & nút đăng xuất tất cả */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="space-y-1">
-              <h1 className="text-2xl font-bold tracking-tight text-foreground">
+              <h1 className="text-2xl/9 font-semibold tracking-[-0.24px] text-vxn-ink">
                 Phiên đăng nhập
               </h1>
               <p className="text-xs text-muted-foreground">
@@ -274,5 +260,6 @@ export const AccountSessionsView: React.FC<AccountSessionsViewProps> = ({
         </div>
       </div>
     </div>
+    </>
   );
 };

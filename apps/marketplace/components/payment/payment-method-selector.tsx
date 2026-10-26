@@ -53,7 +53,7 @@ export function PaymentMethodSelector({
             </div>
 
             {/* Logo Badge */}
-            <div className="flex h-9 w-16 shrink-0 items-center justify-center rounded-lg border border-neutral-200 bg-white font-black text-xs text-blue-700 tracking-tighter shadow-2xs">
+            <div className="flex h-9 w-16 shrink-0 items-center justify-center rounded-lg border border-neutral-200 bg-white font-extrabold text-xs text-blue-700 tracking-tighter shadow-2xs">
               VNPAY
             </div>
 
@@ -91,7 +91,7 @@ export function PaymentMethodSelector({
           </div>
 
           {/* Logo Badge */}
-          <div className="flex h-9 w-16 shrink-0 items-center justify-center rounded-lg border border-neutral-200 bg-pink-50 font-black text-xs text-pink-600 shadow-2xs">
+          <div className="flex h-9 w-16 shrink-0 items-center justify-center rounded-lg border border-neutral-200 bg-pink-50 font-extrabold text-xs text-pink-600 shadow-2xs">
             MoMo
           </div>
 

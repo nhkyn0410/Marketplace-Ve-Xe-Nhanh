@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Star, ChevronDown } from "lucide-react";
+import { Star, ChevronDown, Check } from "lucide-react";
 import { OperatorReviewItem } from "../../lib/data/types";
 import { MarkdownContent } from "../explore/markdown-content";
 
@@ -119,14 +119,15 @@ export function OperatorReviewsAndTerms({
 
       {/* Cột phải: Điều khoản dịch vụ */}
       <div className="lg:col-span-4 bg-white rounded-2xl border border-neutral-200 p-6 shadow-xs space-y-4">
-        <h3 className="text-base font-semibold text-neutral-900">
+        <h3 className="text-lg/6 font-semibold text-vxn-ink">
           Điều khoản dịch vụ
         </h3>
 
         <div className="space-y-3.5 text-xs text-neutral-600">
           {terms.map((term) => (
-            <div key={term}>
-              <MarkdownContent>{term}</MarkdownContent>
+            <div key={term} className="flex items-start gap-2">
+              <Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-success-600" />
+              <div className="min-w-0 flex-1"><MarkdownContent>{term}</MarkdownContent></div>
             </div>
           ))}
         </div>

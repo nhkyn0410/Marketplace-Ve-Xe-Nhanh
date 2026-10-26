@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { formatDateVi, formatDateTimeVi, formatTimeVi, formatVnd } from "./index";
+import { formatDateVi, formatDateTimeVi, formatTimeVi, formatTripDateVi, formatVnd, vnDayOffset } from "./index";
 
 describe("formatVnd", () => {
   it("định dạng số 0 thành 0đ", () => {
@@ -41,5 +41,30 @@ describe("datetime helpers", () => {
     expect(formatTimeVi(iso)).toBe("21:30");
     expect(formatDateTimeVi(iso)).toBe("21:30 14/10/2026");
     expect(formatDateVi("2026-10-14T18:00:00Z")).toBe("15/10/2026");
+  });
+});
+
+describe("formatTripDateVi", () => {
+  it("thêm thứ viết tắt và đổi sang dd/mm/yyyy", () => {
+    expect(formatTripDateVi("2026-10-16")).toBe("T6, 16/10/2026");
+    expect(formatTripDateVi("2026-10-18")).toBe("CN, 18/10/2026");
+  });
+
+  it("giữ nguyên chuỗi không đúng dạng YYYY-MM-DD", () => {
+    expect(formatTripDateVi("")).toBe("");
+    expect(formatTripDateVi("16/10/2026")).toBe("16/10/2026");
+  });
+});
+
+describe("vnDayOffset", () => {
+  it("tính chênh ngày theo giờ Việt Nam, kể cả khi giờ UTC cùng ngày", () => {
+    // 22:30 VN ngày 16 = 15:30 UTC ngày 16; 05:30 VN ngày 17 = 22:30 UTC ngày 16
+    expect(vnDayOffset("2026-10-16T15:30:00Z", "2026-10-16T22:30:00Z")).toBe(1);
+    expect(vnDayOffset("2026-10-16T01:00:00Z", "2026-10-16T08:00:00Z")).toBe(0);
+  });
+
+  it("trả 0 khi thiếu hoặc sai dữ liệu", () => {
+    expect(vnDayOffset(undefined, "2026-10-16T22:30:00Z")).toBe(0);
+    expect(vnDayOffset("abc", "2026-10-16T22:30:00Z")).toBe(0);
   });
 });

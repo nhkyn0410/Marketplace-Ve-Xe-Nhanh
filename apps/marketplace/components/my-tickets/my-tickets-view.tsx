@@ -50,7 +50,7 @@ export function MyTicketsView({ initialData, onCancelTicket }: MyTicketsViewProp
   const isEmpty = filteredTickets.length === 0;
 
   return (
-    <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+    <div className="mx-auto w-full max-w-[1200px] px-4 sm:px-6 lg:px-14 py-8 space-y-6">
       {/* Tiêu đề & nút Đặt vé mới */}
       <TicketsHeader />
 

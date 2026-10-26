@@ -7,7 +7,7 @@ const { request, jar, values } = vi.hoisted(() => {
 vi.mock("./api", () => ({ apiRequest: request }));
 vi.mock("./session", () => ({ refreshSessionIfNeeded: vi.fn(async () => ({ status: "ok", data: { rotated: false } })) }));
 vi.mock("next/headers", () => ({ cookies: vi.fn(async () => jar) }));
-import { cancelTickets, endTicketLookup, getCancellationQuote, getMyTickets, getTicketDetail, getTicketLookupResult, lookupTickets } from "./tickets";
+import { cancelTickets, endTicketLookup, getCancellationQuote, getMyTickets, getTicketDetail, getTicketLookupResult, requestTicketLookupOtp, verifyTicketLookupOtp } from "./tickets";
 
 describe("ticket API integration", () => {
   beforeEach(() => { vi.clearAllMocks(); values.clear(); request.mockReset(); });
@@ -40,20 +40,40 @@ describe("ticket API integration", () => {
     expect(JSON.parse(request.mock.calls[1]![1].body)).toEqual({ ticketIds: ["ticket-id"], expectedRefund: 80000, reason: "Đổi kế hoạch" });
   });
 
-  it("giữ thông tin tra cứu trong cookie httpOnly; kết thúc phiên xóa thông tin xác thực", async () => {
+  it("tra cứu bắt buộc mã xác minh: gửi mã, xác minh rồi chỉ giữ phiên tra cứu trong cookie httpOnly; kết thúc phiên xóa cookie", async () => {
     const booking = bookingFixture();
+    const sent = { maskedEmail: "g***@example.test", expiresInSeconds: 300, resendAfterSeconds: 60, maxAttempts: 5 };
+    request.mockResolvedValueOnce({ status: "ok", data: sent });
+    expect(await requestTicketLookupOtp({ bookingCodeOrTicketCode: " vxn-test ", email: "GUEST@example.test" })).toEqual({ status: "ok", data: sent });
+    expect(request.mock.calls[0]![0]).toBe("/guest/ticket-lookup/otp");
+    expect(JSON.parse(request.mock.calls[0]![1].body)).toEqual({ bookingCode: "VXN-TEST", email: "guest@example.test" });
+    expect(jar.set).not.toHaveBeenCalled();
+
+    const expiresAt = new Date(Date.now() + 900_000).toISOString();
+    request.mockResolvedValueOnce({ status: "ok", data: { lookupToken: "secret-lookup-token", expiresAt } });
+    expect(await verifyTicketLookupOtp({ bookingCodeOrTicketCode: "VXN-TEST", email: "guest@example.test", otp: "123456" })).toEqual({ status: "ok", data: { expiresAt } });
+    expect(request.mock.calls[1]![0]).toBe("/guest/ticket-lookup/verify");
+    expect(JSON.parse(request.mock.calls[1]![1].body)).toEqual({ bookingCode: "VXN-TEST", email: "guest@example.test", otp: "123456" });
+    expect(jar.set).toHaveBeenCalledWith("vxn_ticket_lookup", expect.any(String), expect.objectContaining({ httpOnly: true, maxAge: expect.any(Number) }));
+    expect(values.get("vxn_ticket_lookup")).not.toContain("guest@example.test");
+
     request.mockResolvedValue({ status: "ok", data: booking });
-    expect(await lookupTickets({ bookingCodeOrTicketCode: " vxn-test ", email: "GUEST@example.test" })).toEqual({ status: "ok", data: { bookingId: booking.bookingId } });
-    expect(jar.set).toHaveBeenCalledWith("vxn_ticket_lookup", expect.any(String), expect.objectContaining({ httpOnly: true, maxAge: 900 }));
     const result = await getTicketLookupResult();
-    expect(request.mock.calls[1]![0]).toBe("/guest/ticket-lookup");
-    expect(JSON.parse(request.mock.calls[1]![1].body)).toEqual({ bookingCode: "VXN-TEST", email: "guest@example.test" });
+    expect(request.mock.calls[2]![0]).toBe("/guest/ticket-lookup");
+    expect(JSON.parse(request.mock.calls[2]![1].body)).toEqual({ lookupToken: "secret-lookup-token" });
     expect(result.status === "ok" && result.data.tickets[0]?.qrCodeDataUrl).toMatch(/^data:image\/png;base64,/);
     expect(result.status === "ok" && result.data.canManageBooking).toBe(false);
+    expect(JSON.stringify(result)).not.toContain("secret-lookup-token");
     values.set(`vxn_booking_${booking.bookingId}`, "original-booking-capability");
     const originalBrowser = await getTicketLookupResult();
     expect(originalBrowser.status === "ok" && originalBrowser.data.canManageBooking).toBe(true);
     await endTicketLookup();
     expect((await getTicketLookupResult()).status).toBe("error");
+  });
+
+  it("sai mã xác minh không tạo phiên tra cứu", async () => {
+    request.mockResolvedValueOnce({ status: "error", endpoint: "POST /guest/ticket-lookup/verify", message: "Mã xác minh không đúng. Còn 4 lần thử.", httpStatus: 422 });
+    expect(await verifyTicketLookupOtp({ bookingCodeOrTicketCode: "VXN-TEST", email: "guest@example.test", otp: "000000" })).toMatchObject({ status: "error", httpStatus: 422 });
+    expect(jar.set).not.toHaveBeenCalled();
   });
 });

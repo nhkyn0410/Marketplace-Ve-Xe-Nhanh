@@ -154,7 +154,18 @@ export class PermissionListQueryDto extends createZodDto(
   }),
 ) {}
 
-export const PromotionCheckInputSchema = z.object({ tripId: z.uuid(), code: z.string().trim().min(1).max(20), subtotal: z.int().min(1).max(MAX_VND) });
+/**
+ * Báo trước số tiền giảm: gửi ĐÚNG MỘT trong `code` (mã khuyến mãi) hoặc `userVoucherId` (voucher trong ví — cần đăng nhập).
+ * Không giữ lượt dùng / không giữ voucher; việc giữ diễn ra khi tạo booking.
+ */
+export const PromotionCheckInputSchema = z
+  .object({
+    tripId: z.uuid(),
+    code: z.string().trim().min(1).max(20).optional(),
+    userVoucherId: z.uuid().optional(),
+    subtotal: z.int().min(1).max(MAX_VND),
+  })
+  .refine((input) => Boolean(input.code) !== Boolean(input.userVoucherId), { path: ["code"], message: "Gửi đúng một trong mã khuyến mãi hoặc voucher trong ví." });
 export type PromotionCheckInput = z.infer<typeof PromotionCheckInputSchema>;
 /** Báo trước số tiền giảm của một mã cho chuyến + tiền vé (không giữ lượt dùng). */
 export class PromotionCheckInputDto extends createZodDto(PromotionCheckInputSchema) {}

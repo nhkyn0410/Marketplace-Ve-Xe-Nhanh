@@ -171,19 +171,26 @@ export class BookingService {
   }
 
   /**
-   * Tra cứu vé của khách vãng lai (API §7.2 `POST /guest/ticket-lookup`, Security §8): đúng mã booking VÀ đúng số điện thoại
-   * hoặc email liên hệ lúc đặt. Sai bất kỳ → `null` (nơi gọi trả 404 như không tồn tại, không lộ mã nào có thật).
+   * Tra cứu vé của khách vãng lai, bước gửi mã (API §7.2 `POST /guest/ticket-lookup/otp`, Security §8): id booking khi đúng
+   * mã booking VÀ đúng email liên hệ lúc đặt; sai bất kỳ → `null` (nơi gọi vẫn trả phản hồi trung tính).
    */
-  async lookup(bookingCode: string, contact: { phone?: string; email?: string }): Promise<BookingResponse | null> {
+  async matchGuestContact(bookingCode: string, email: string): Promise<string | null> {
     const bookingId = await bookingIdOfCode(this.prisma, bookingCode);
     if (!bookingId) {
       return null;
     }
     const row = await withBookingOperator(this.prisma, bookingId, (tx, operatorId) =>
+      tx.booking.findFirst({ where: { id: bookingId, operatorId }, select: { contactEmail: true } }),
+    );
+    return row?.contactEmail === email.toLowerCase() ? bookingId : null;
+  }
+
+  /** Booking cho phiên tra cứu đã xác minh OTP (chỉ xem — không cấp mã truy cập booking). */
+  async getForLookup(bookingId: string): Promise<BookingResponse | null> {
+    const row = await withBookingOperator(this.prisma, bookingId, (tx, operatorId) =>
       tx.booking.findFirst({ where: { id: bookingId, operatorId }, select: BOOKING_SELECT }),
     );
-    const matches = row && (contact.phone ? row.contactPhone === contact.phone : row.contactEmail === contact.email?.toLowerCase());
-    return matches ? toResponse(row, this.qr) : null;
+    return row ? toResponse(row, this.qr) : null;
   }
 
   private async insert(

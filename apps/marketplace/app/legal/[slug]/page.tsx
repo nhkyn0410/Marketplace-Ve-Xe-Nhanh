@@ -44,27 +44,27 @@ export default async function LegalDocumentPage(
 
   if (result.status === "unavailable") {
     return (
-      <div className="min-h-screen bg-background">
-        <main className="mx-auto max-w-5xl px-4 py-16 sm:px-6 lg:px-8">
+      <div className="min-h-viewport bg-background">
+        <div className="mx-auto max-w-5xl px-4 py-16 sm:px-6 lg:px-8">
           <FeatureUnavailable
             title="Văn bản pháp lý chưa sẵn sàng"
             description="Nội dung điều khoản pháp lý đang được cập nhật từ ban quản trị. Vui lòng quay lại sau hoặc liên hệ tổng đài hỗ trợ."
             endpoint={result.endpoint}
           />
-        </main>
+        </div>
       </div>
     );
   }
 
   if (result.status === "error") {
     return (
-      <div className="min-h-screen bg-background">
-        <main className="mx-auto max-w-5xl px-4 py-16 sm:px-6 lg:px-8">
+      <div className="min-h-viewport bg-background">
+        <div className="mx-auto max-w-5xl px-4 py-16 sm:px-6 lg:px-8">
           <FeatureUnavailable
             title="Không thể tải văn bản pháp lý"
             description={result.message}
           />
-        </main>
+        </div>
       </div>
     );
   }

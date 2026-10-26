@@ -105,7 +105,7 @@ export function LoyaltyRedemptionModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-[rgb(8_23_33/0.55)] p-4"
       role="dialog"
       aria-modal="true"
       aria-labelledby={titleId}
@@ -129,7 +129,7 @@ export function LoyaltyRedemptionModal({
             <Gift className="h-5 w-5" />
           </div>
           <div>
-            <h2 id={titleId} className="text-lg font-black text-vxn-ink sm:text-xl">
+            <h2 id={titleId} className="text-lg font-extrabold text-vxn-ink sm:text-xl">
               Đổi điểm lấy voucher
             </h2>
             <p id={descId} className="text-xs text-vxn-fg-4">
@@ -141,19 +141,19 @@ export function LoyaltyRedemptionModal({
         {/* Khối tóm tắt 3 chỉ số */}
         <div className="mt-5 grid grid-cols-3 divide-x divide-vxn-border/60 rounded-xl border border-vxn-border bg-vxn-bg-soft p-3 text-center">
           <div>
-            <div className="text-2xs text-vxn-fg-4">Điểm hiện có</div>
+            <div className="text-xs text-vxn-fg-4">Điểm hiện có</div>
             <div className="mt-0.5 text-xs font-bold text-vxn-ink sm:text-sm">
               {profile.availablePoints.toLocaleString("vi-VN")} điểm
             </div>
           </div>
           <div>
-            <div className="text-2xs text-vxn-fg-4">Giá trị quy đổi</div>
+            <div className="text-xs text-vxn-fg-4">Giá trị quy đổi</div>
             <div className="mt-0.5 text-xs font-bold text-vxn-teal-700 sm:text-sm">
               {profile.rules ? `1 điểm = ${formatVnd(String(profile.rules.pointValue))}` : "Chưa có chính sách"}
             </div>
           </div>
           <div>
-            <div className="text-2xs text-vxn-fg-4">Số điểm tối thiểu</div>
+            <div className="text-xs text-vxn-fg-4">Số điểm tối thiểu</div>
             <div className="mt-0.5 text-xs font-bold text-vxn-ink sm:text-sm">
               {minPoints} điểm
             </div>
@@ -213,7 +213,7 @@ export function LoyaltyRedemptionModal({
               onChange={handleSliderChange}
               className="h-2 w-full cursor-pointer appearance-none rounded-lg bg-slate-200 accent-[#00506a]"
             />
-            <div className="mt-1 flex justify-between text-2xs text-vxn-fg-4">
+            <div className="mt-1 flex justify-between text-xs text-vxn-fg-4">
               <span>{minPoints}</span>
               <span>{maxPoints.toLocaleString("vi-VN")}</span>
             </div>
@@ -224,7 +224,7 @@ export function LoyaltyRedemptionModal({
         <div className="mt-5 space-y-2 rounded-xl border border-teal-100 bg-teal-50/60 p-3.5 text-xs">
           <div className="flex items-center justify-between">
             <span className="text-vxn-fg-3">Voucher nhận được:</span>
-            <span className="text-sm font-black text-vxn-teal-800">
+            <span className="text-sm font-extrabold text-vxn-teal-800">
               {profile.rules ? `Giảm ${formatVnd(redemption?.voucherValueVnd ?? voucherValueVnd)}` : "Chưa có chính sách"}
             </span>
           </div>
@@ -257,7 +257,7 @@ export function LoyaltyRedemptionModal({
         )}
 
         {/* Chú thích điều khoản */}
-        <p className="mt-4 text-2xs leading-relaxed text-vxn-fg-4">
+        <p className="mt-4 text-xs leading-relaxed text-vxn-fg-4">
           Điểm đã đổi không hoàn lại. Voucher được lưu vào ví của bạn. Áp dụng voucher khi đặt vé trên web hiện chưa khả dụng.
         </p>
 
