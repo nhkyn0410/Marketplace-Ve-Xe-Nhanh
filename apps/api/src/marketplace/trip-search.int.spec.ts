@@ -5,6 +5,7 @@ import type { AuditService } from "../audit/audit.service";
 import { parseAppConfig } from "../config/env.config";
 import { tenantScope } from "../database/db-scope";
 import { PrismaService } from "../database/prisma.service";
+import { loadFeaturedOperators, loadPopularRoutes } from "../database/public-highlights";
 import type { Coordinates, RouteLeg, RoutingProvider } from "../external/routing/routing-provider";
 import type { StorageProvider } from "../external/storage/storage-provider";
 import type { Authorization } from "../iam/role/authorization";
@@ -243,6 +244,29 @@ describe.skipIf(!url && !requireDb)("Tìm chuyến công khai — Postgres thậ
     expect(result.facets).toEqual({ operators: [{ id: opA, name: `Nhà xe A ${tag}`, count: 4 }], priceMin: 250_000, priceMax: 350_000 });
     expect((await search.search(query({ fromProvinceId: provinceB, toProvinceId: provinceA }))).items).toEqual([]);
     expect((await search.search(query({ date: "2031-05-11" }))).items).toEqual([]);
+  });
+
+  it("tuyến phổ biến + nhà xe tiêu biểu: gộp 3 tuyến cùng cặp tỉnh, bỏ nháp và nhà xe tạm khóa", async () => {
+    const now = new Date(DAY0 - HOUR);
+    const pair = { originProvinceId: provinceA, originName: "đi", destinationProvinceId: provinceB, destinationName: "đến" };
+    const popular = (await loadPopularRoutes(prisma, 1000, now)).filter((route) => route.originProvinceId === provinceA || route.destinationProvinceId === provinceA);
+    expect(popular).toEqual([
+      {
+        ...pair,
+        distanceMeters: 100_000,
+        durationSeconds: 3 * 3600,
+        minPrice: 250_000n,
+        vehicleTypeNames: ["Ghế ngồi", "Limousine giường"],
+        nextDepartureAt: new Date(DAY0 + 8 * HOUR),
+        operatorCount: 1,
+        averageRating: null,
+        reviewCount: 0,
+      },
+    ]);
+    const featured = (await loadFeaturedOperators(prisma, 1000, now)).filter((operator) => operator.operatorId === opA || operator.operatorId === opB);
+    expect(featured).toEqual([{ operatorId: opA, displayName: `Nhà xe A ${tag}`, averageRating: null, reviewCount: 0, routes: [pair] }]);
+    // Ngoài cửa sổ 30 ngày tới thì không còn là tuyến đang bán.
+    expect((await loadPopularRoutes(prisma, 1000, new Date(DAY0 - 40 * 24 * HOUR))).some((route) => route.originProvinceId === provinceA)).toBe(false);
   });
 
   it("theo địa danh: điểm trong bán kính 5 km (cả văn phòng riêng) khớp, điểm cách ~20 km không khớp", async () => {

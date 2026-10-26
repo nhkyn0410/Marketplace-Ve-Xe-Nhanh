@@ -28,10 +28,13 @@ export class ResendEmailNotifier implements EmailNotifier {
   ) {}
 
   async sendOtp(message: OtpEmailMessage): Promise<void> {
+    const lookup = message.purpose === "ticket-lookup";
     await this.send(
       message.email,
-      "Mã OTP đăng nhập Vé Xe Nhanh",
-      `<p>Mã OTP của bạn: <strong>${escapeHtml(message.otp)}</strong></p><p>Mã hết hạn sau 5 phút. Không chia sẻ mã cho bất kỳ ai.</p>`,
+      lookup ? "Mã xác minh tra cứu vé Vé Xe Nhanh" : "Mã OTP đăng nhập Vé Xe Nhanh",
+      `<p>${lookup ? "Mã xác minh tra cứu vé" : "Mã OTP"} của bạn: <strong>${escapeHtml(message.otp)}</strong></p>` +
+        "<p>Mã hết hạn sau 5 phút. Không chia sẻ mã cho bất kỳ ai.</p>" +
+        (lookup ? "<p>Nếu bạn không yêu cầu tra cứu vé, hãy bỏ qua email này.</p>" : ""),
       "OTP",
     );
   }

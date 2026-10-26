@@ -27,7 +27,7 @@ export function TicketsFeaturedCard({ featured }: TicketsFeaturedCardProps) {
             {featured.badgeText}
           </span>
 
-          <h2 className="text-xl sm:text-2xl font-black text-white">
+          <h2 className="text-xl sm:text-2xl font-extrabold text-white">
             {featured.routeName}
           </h2>
 

@@ -20,7 +20,7 @@ export function PartnerOperatorsSection({
 }: PartnerOperatorsSectionProps) {
   if (isUnavailable || !operators || operators.length === 0) {
     return (
-      <section className="mx-auto w-full max-w-[1120px] px-4 py-8 sm:px-6 lg:px-8">
+      <section className="mx-auto w-full max-w-[1200px] px-4 py-8 sm:px-6 lg:px-14">
         <div className="flex items-center justify-between pb-4">
           <h2 className="text-xl font-extrabold text-[#0f172a] sm:text-2xl">
             Nhà xe đối tác
@@ -35,7 +35,7 @@ export function PartnerOperatorsSection({
   }
 
   return (
-    <section className="mx-auto w-full max-w-[1120px] px-4 py-8 sm:px-6 lg:px-8">
+    <section className="mx-auto w-full max-w-[1200px] px-4 py-8 sm:px-6 lg:px-14">
       {/* Tiêu đề mục */}
       <div className="flex items-end justify-between pb-5">
         <h2 className="text-xl font-extrabold text-[#0f172a] sm:text-2xl">
@@ -70,9 +70,13 @@ export function PartnerOperatorsSection({
               </h4>
 
               <div className="mt-1 flex items-center gap-1 text-[11px] text-slate-500">
-                <Star className="h-3 w-3 fill-[#f3a826] text-[#f3a826]" />
-                <span className="font-bold text-[#0f172a]">{operator.rating.toFixed(1)}</span>
-                <span>·</span>
+                {operator.rating !== null && (
+                  <>
+                    <Star className="h-3 w-3 fill-[#f3a826] text-[#f3a826]" />
+                    <span className="font-bold text-[#0f172a]">{operator.rating.toFixed(1)}</span>
+                    <span>·</span>
+                  </>
+                )}
                 <span>{operator.ratingCountText}</span>
               </div>
             </div>

@@ -11,7 +11,7 @@ import { FeatureUnavailable, ErrorState } from "../../../../components/states";
 import { PaymentPageView } from "../../../../components/payment/payment-page-view";
 
 export const metadata: Metadata = {
-  title: "Thanh toán vé xe | Vé Xe Nhanh",
+  title: "Thanh toán vé xe",
   description: "Chọn phương thức thanh toán VNPay, MoMo và hoàn tất mua vé trực tuyến an toàn."
 };
 
@@ -70,7 +70,7 @@ export default async function BookingPaymentPage({
     return (
       <div className="flex-1 bg-neutral-50/40 pb-16">
         <PassengerTopBar breadcrumbs={breadcrumbs} />
-        <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+        <div className="mx-auto w-full max-w-[1200px] px-4 py-12 sm:px-6 lg:px-14">
           <FeatureUnavailable
             endpoint={result.endpoint}
             title="Cổng thanh toán đang được kết nối"
@@ -85,7 +85,7 @@ export default async function BookingPaymentPage({
     return (
       <div className="flex-1 bg-neutral-50/40 pb-16">
         <PassengerTopBar breadcrumbs={breadcrumbs} />
-        <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+        <div className="mx-auto w-full max-w-[1200px] px-4 py-12 sm:px-6 lg:px-14">
           <ErrorState
             title="Không thể tải thông tin thanh toán"
             description="Đơn đặt vé không tồn tại hoặc đã hết hạn giữ chỗ."

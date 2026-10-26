@@ -16,8 +16,8 @@ export function OperatorFeaturedRoutes({ routes }: OperatorFeaturedRoutesProps) 
   if (!routes.length) return null;
   return (
     <div className="space-y-3.5">
-      <h2 className="text-base font-semibold text-neutral-900">
-        Các tuyến đang khai thác
+      <h2 className="text-lg/6 font-semibold text-vxn-ink">
+        Tuyến tiêu biểu
       </h2>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -27,7 +27,7 @@ export function OperatorFeaturedRoutes({ routes }: OperatorFeaturedRoutesProps) 
             className="bg-white rounded-2xl border border-neutral-200 overflow-hidden shadow-xs hover:shadow-md transition-shadow flex flex-col"
           >
             {/* Ảnh tuyến đường */}
-            {route.imageUrl && <div className="relative h-44 w-full bg-neutral-100 overflow-hidden">
+            {route.imageUrl && <div className="relative h-32 w-full bg-neutral-100 overflow-hidden">
               {route.imageUrl && <img
                 src={route.imageUrl}
                 alt={route.routeName}

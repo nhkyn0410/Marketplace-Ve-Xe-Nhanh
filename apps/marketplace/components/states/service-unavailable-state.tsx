@@ -36,7 +36,7 @@ export function ServiceUnavailableState({
         LỖI 503
       </span>
 
-      <h1 className="mt-2 text-2xl font-bold text-vxn-ink sm:text-3xl">
+      <h1 className="mt-2 text-2xl/9 font-semibold tracking-[-0.24px] text-vxn-ink">
         {title}
       </h1>
 

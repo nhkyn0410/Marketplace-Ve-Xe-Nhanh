@@ -38,7 +38,7 @@ export default function ErrorPage({ error, reset }: ErrorPageProps) {
   };
 
   return (
-    <div data-no-footer="true" className="flex min-h-[calc(100vh-4rem)] flex-col bg-white">
+    <div data-no-footer="true" className="flex min-h-[calc(var(--vxn-vh)_-_4rem)] flex-col bg-white">
       <PassengerTopBar
         breadcrumbs={[
           { label: "Trang chủ", href: "/" },
@@ -58,7 +58,7 @@ export default function ErrorPage({ error, reset }: ErrorPageProps) {
         </span>
 
         {/* Tiêu đề lỗi */}
-        <h1 className="mt-3 text-2xl font-bold text-vxn-ink sm:text-3xl">
+        <h1 className="mt-3 text-2xl/9 font-semibold tracking-[-0.24px] text-vxn-ink">
           Đã có lỗi xảy ra
         </h1>
 

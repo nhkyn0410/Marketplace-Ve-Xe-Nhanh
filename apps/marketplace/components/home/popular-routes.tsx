@@ -25,6 +25,16 @@ const ROUTE_BACKGROUND_IMAGES: Record<string, string> = {
   "route-hn-ninhbinh": "/images/route-hn-ninhbinh.jpg"
 };
 
+/** Ảnh nền: dữ liệu thật mang sẵn `imageUrl`, bản xem trước tra theo `id`. */
+function imageOf(route: PopularRouteItem, fallback: string): string {
+  return route.imageUrl ?? ROUTE_BACKGROUND_IMAGES[route.id] ?? fallback;
+}
+
+/** Link tìm chuyến: dữ liệu thật mang sẵn `href` (tỉnh đi / đến + ngày có chuyến). */
+function hrefOf(route: PopularRouteItem): string {
+  return route.href ?? `/trips?from=${encodeURIComponent(route.fromCity)}&to=${encodeURIComponent(route.toCity)}`;
+}
+
 /**
  * Khối Tuyến xe phổ biến trên trang chủ chuẩn theo Figma 776:791.
  */
@@ -34,7 +44,7 @@ export function PopularRoutesSection({
 }: PopularRoutesSectionProps) {
   if (isUnavailable || !routes || routes.length === 0) {
     return (
-      <section className="mx-auto w-full max-w-[1120px] px-4 pt-12 pb-6 sm:px-6 lg:px-8">
+      <section className="mx-auto w-full max-w-[1200px] px-4 pt-12 pb-6 sm:px-6 lg:px-14">
         <div className="flex items-end justify-between pb-5">
           <div>
             <span className="text-xs font-bold tracking-wider text-[#d9881c] uppercase">
@@ -57,7 +67,7 @@ export function PopularRoutesSection({
   const standardRoutes = routes.filter((r) => r.id !== featuredRoute?.id);
 
   return (
-    <section className="mx-auto w-full max-w-[1120px] px-4 pt-12 pb-6 sm:px-6 lg:px-8">
+    <section className="mx-auto w-full max-w-[1200px] px-4 pt-12 pb-6 sm:px-6 lg:px-14">
       {/* Tiêu đề mục */}
       <div className="flex items-end justify-between pb-5">
         <div>
@@ -83,7 +93,7 @@ export function PopularRoutesSection({
           <div
             className="group relative flex min-h-[245px] flex-col justify-between overflow-hidden rounded-2xl bg-cover bg-center p-5 text-white shadow-xs transition hover:shadow-lg sm:col-span-2 lg:col-span-2"
             style={{
-              backgroundImage: `url('${ROUTE_BACKGROUND_IMAGES[featuredRoute.id] ?? ROUTE_BACKGROUND_IMAGES["route-sg-dalat"]}')`
+              backgroundImage: `url('${imageOf(featuredRoute, "/images/route-sg-dalat.jpg")}')`
             }}
           >
             {/* Lớp gradient overlay nửa dưới */}
@@ -93,15 +103,17 @@ export function PopularRoutesSection({
               <span className="rounded-full bg-[#fde8c4] px-3 py-1 text-[10px] font-extrabold tracking-wide text-[#9a5806] uppercase">
                 NỔI BẬT
               </span>
-              <div className="inline-flex items-center gap-1 rounded-full bg-black/45 px-2.5 py-1 text-xs font-bold text-white backdrop-blur-xs">
-                <Star className="h-3 w-3 fill-[#f3a826] text-[#f3a826]" />
-                <span>{featuredRoute.rating.toFixed(1)}</span>
-              </div>
+              {featuredRoute.rating !== null && (
+                <div className="inline-flex items-center gap-1 rounded-full bg-black/45 px-2.5 py-1 text-xs font-bold text-white backdrop-blur-xs">
+                  <Star className="h-3 w-3 fill-[#f3a826] text-[#f3a826]" />
+                  <span>{featuredRoute.rating.toFixed(1)}</span>
+                </div>
+              )}
             </div>
 
             <div className="relative z-10">
               <p className="text-xs font-medium text-white/90">
-                {featuredRoute.distanceKm} km • {featuredRoute.durationText} • {featuredRoute.vehicleTypeText}
+                {[`${featuredRoute.distanceKm} km`, featuredRoute.durationText, featuredRoute.vehicleTypeText].filter(Boolean).join(" • ")}
               </p>
               <h3 className="mt-0.5 flex items-center gap-2 text-2xl font-extrabold tracking-tight text-white sm:text-[26px]">
                 <span>{featuredRoute.fromCity}</span>
@@ -111,13 +123,17 @@ export function PopularRoutesSection({
 
               <div className="mt-2 flex items-end justify-between">
                 <div>
-                  <span className="text-xs text-white/85">Từ </span>
-                  <span className="text-xl font-extrabold text-[#f3a826]">
-                    {formatVnd(featuredRoute.minPriceVnd)}
-                  </span>
+                  {featuredRoute.minPriceVnd !== null && (
+                    <>
+                      <span className="text-xs text-white/85">Từ </span>
+                      <span className="text-xl font-extrabold text-[#f3a826]">
+                        {formatVnd(featuredRoute.minPriceVnd)}
+                      </span>
+                    </>
+                  )}
                 </div>
                 <Link
-                  href={`/trips?from=${encodeURIComponent(featuredRoute.fromCity)}&to=${encodeURIComponent(featuredRoute.toCity)}`}
+                  href={hrefOf(featuredRoute)}
                   className="inline-flex items-center gap-1.5 rounded-lg bg-[#00506a]/90 px-3.5 py-2 text-xs font-bold text-white backdrop-blur-xs transition hover:bg-[#00506a]"
                 >
                   <span>Đặt vé ngay</span>
@@ -134,22 +150,24 @@ export function PopularRoutesSection({
           return (
             <Link
               key={route.id}
-              href={`/trips?from=${encodeURIComponent(route.fromCity)}&to=${encodeURIComponent(route.toCity)}`}
+              href={hrefOf(route)}
               className={`group relative flex flex-col justify-between overflow-hidden rounded-2xl bg-cover bg-center p-4 text-white shadow-xs transition hover:shadow-lg ${
                 isTopRow ? "min-h-[245px]" : "min-h-[175px]"
               }`}
               style={{
-                backgroundImage: `url('${ROUTE_BACKGROUND_IMAGES[route.id] ?? ROUTE_BACKGROUND_IMAGES["route-hn-sapa"]}')`
+                backgroundImage: `url('${imageOf(route, "/images/route-hn-sapa.jpg")}')`
               }}
             >
               {/* Lớp gradient overlay nửa dưới */}
               <div className="absolute inset-0 bg-gradient-to-t from-[#061824]/90 via-[#061824]/25 to-transparent" />
 
-              <div className="relative z-10 flex items-center">
-                <div className="inline-flex items-center gap-1 rounded-full bg-black/45 px-2.5 py-0.5 text-[11px] font-bold text-white backdrop-blur-xs">
-                  <Star className="h-3 w-3 fill-[#f3a826] text-[#f3a826]" />
-                  <span>{route.rating.toFixed(1)}</span>
-                </div>
+              <div className="relative z-10 flex min-h-5 items-center">
+                {route.rating !== null && (
+                  <div className="inline-flex items-center gap-1 rounded-full bg-black/45 px-2.5 py-0.5 text-[11px] font-bold text-white backdrop-blur-xs">
+                    <Star className="h-3 w-3 fill-[#f3a826] text-[#f3a826]" />
+                    <span>{route.rating.toFixed(1)}</span>
+                  </div>
+                )}
               </div>
 
               <div className="relative z-10">
@@ -161,10 +179,14 @@ export function PopularRoutesSection({
 
                 <div className="mt-1 flex items-center justify-between text-xs">
                   <div>
-                    <span className="text-white/80">Từ </span>
-                    <span className="text-sm font-extrabold text-[#f3a826]">
-                      {formatVnd(route.minPriceVnd)}
-                    </span>
+                    {route.minPriceVnd !== null && (
+                      <>
+                        <span className="text-white/80">Từ </span>
+                        <span className="text-sm font-extrabold text-[#f3a826]">
+                          {formatVnd(route.minPriceVnd)}
+                        </span>
+                      </>
+                    )}
                   </div>
                   {isTopRow && (
                     <span className="text-[11px] font-medium text-white/90 group-hover:underline">

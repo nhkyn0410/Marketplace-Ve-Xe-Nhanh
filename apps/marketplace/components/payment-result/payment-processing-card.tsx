@@ -49,16 +49,16 @@ export function PaymentProcessingCard({
   };
 
   return (
-    <div className="mx-auto max-w-2xl rounded-3xl border border-vxn-border bg-white p-6 sm:p-10 shadow-xs text-center">
+    <div className="mx-auto max-w-[560px] rounded-2xl border border-vxn-border bg-white p-6 sm:p-8 shadow-xs text-center">
       {/* Icon loading vòng xoay */}
       <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-teal-50 text-vxn-teal-800">
         <Loader2 className="h-8 w-8 animate-spin" />
       </div>
 
       {/* Tiêu đề & mô tả */}
-      <h2 className="mt-5 text-xl sm:text-2xl font-black text-vxn-ink">
+      <h1 className="mt-5 text-[22px]/7 font-semibold text-vxn-ink">
         Đang kiểm tra đơn đặt vé
-      </h2>
+      </h1>
       <p className="mt-2.5 text-xs sm:text-sm text-vxn-fg-4 max-w-lg mx-auto leading-relaxed">
         {result.processingMessage ?? "Hệ thống tự kiểm tra kết quả và hiển thị vé khi thanh toán được xác nhận, vé được phát hành."}
       </p>

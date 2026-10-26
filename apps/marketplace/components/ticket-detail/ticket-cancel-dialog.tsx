@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@vexenhanh/ui/components/button";
-import { X } from "lucide-react";
+import { AlertTriangle, X } from "lucide-react";
 import { formatVnd } from "../../lib/format";
 import { cancelTickets, getCancellationQuote } from "../../lib/data/tickets";
 import type { TicketPassengerDetail, TicketTripInfo } from "../../lib/data/types";
@@ -64,36 +64,65 @@ export const TicketCancelDialog: React.FC<TicketCancelDialogProps> = ({ isOpen, 
   };
 
   return (
-    <div role="dialog" aria-modal="true" aria-labelledby="cancel-dialog-title" className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
-      <div className="flex max-h-[90vh] w-full max-w-lg flex-col overflow-hidden rounded-2xl border border-border bg-background shadow-2xl">
-        <div className="flex items-center justify-between px-6 py-5">
-          <h2 id="cancel-dialog-title" className="text-xl font-bold">Hủy vé</h2>
-          <button type="button" onClick={onClose} disabled={isSubmitting} aria-label="Đóng hộp thoại"><X className="h-5 w-5" /></button>
+    <div role="dialog" aria-modal="true" aria-labelledby="cancel-dialog-title" className="fixed inset-0 z-50 flex items-center justify-center bg-[rgb(8_23_33/0.55)] p-4">
+      {/* Modal Hủy vé — Figma 1456:23988 */}
+      <div className="flex max-h-[calc(var(--vxn-vh)*0.9)] w-full max-w-[480px] flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-2xl">
+        <div className="flex items-center justify-between px-5 pt-5 pb-3">
+          <h2 id="cancel-dialog-title" className="text-lg/6 font-semibold text-vxn-ink">Hủy vé</h2>
+          <button type="button" onClick={onClose} disabled={isSubmitting} aria-label="Đóng hộp thoại" className="rounded-full p-0.5 text-vxn-fg-5 hover:bg-muted hover:text-vxn-ink">
+            <X className="h-5 w-5" />
+          </button>
         </div>
-        <div className="space-y-4 overflow-y-auto px-6 pb-5 text-sm">
-          <p>{bookingCode} · {trip.routeName}<br />{trip.departureTime} · {trip.departureDateText}</p>
-          {error && <p role="alert" className="rounded-xl bg-destructive/10 p-3 text-destructive">{error}</p>}
-          <div className="space-y-2">
+
+        <div className="space-y-4 overflow-y-auto px-5 pb-5 text-sm">
+          <div className="rounded-xl bg-vxn-bg-soft p-3">
+            <p className="text-[13px] font-semibold text-vxn-ink">{bookingCode} · {trip.routeName}</p>
+            <p className="mt-0.5 text-xs text-vxn-fg-5">Khởi hành {trip.departureTime} · {trip.departureDateText} · {trip.operatorName}</p>
+          </div>
+
+          {error && <p role="alert" className="rounded-xl bg-destructive/10 p-3 text-[13px] text-destructive">{error}</p>}
+
+          <fieldset className="space-y-2">
+            <legend className="mb-2 text-[13px] font-semibold text-vxn-ink">Chọn vé muốn hủy</legend>
             {tickets.map((ticket) => (
-              <label key={ticket.ticketId} className="flex items-center gap-3 rounded-xl border p-3">
-                <input type="checkbox" checked={selectedTicketIds.includes(ticket.ticketId)} disabled={isSubmitting || ticket.status !== "valid"} onChange={() => { setQuote(null); setSelectedTicketIds((ids) => ids.includes(ticket.ticketId) ? ids.filter((id) => id !== ticket.ticketId) : [...ids, ticket.ticketId]); }} />
-                <span>Chỗ {ticket.seatCode} · {ticket.passengerName}<span className="block text-xs text-muted-foreground">{ticket.statusLabel}</span></span>
+              <label key={ticket.ticketId} className={`flex items-center gap-3 rounded-xl border border-vxn-border px-3 py-2.5 ${ticket.status === "valid" ? "cursor-pointer" : "opacity-60"}`}>
+                <input type="checkbox" className="size-4 accent-vxn-teal-700" checked={selectedTicketIds.includes(ticket.ticketId)} disabled={isSubmitting || ticket.status !== "valid"} onChange={() => { setQuote(null); setSelectedTicketIds((ids) => ids.includes(ticket.ticketId) ? ids.filter((id) => id !== ticket.ticketId) : [...ids, ticket.ticketId]); }} />
+                <span className="min-w-0 flex-1 text-[13px] text-vxn-ink">Chỗ {ticket.seatCode} · {ticket.passengerName}</span>
+                <span className="shrink-0 text-xs text-vxn-fg-5">{ticket.statusLabel}</span>
               </label>
             ))}
-          </div>
-          {quoteLoading && <p role="status">Đang lấy báo giá hoàn tiền…</p>}
-          {quote && <div className="space-y-2 rounded-xl border p-4">
-            <div className="flex justify-between"><span>Giá trị vé được chọn</span><span>{formatVnd(quote.totalPaidVnd)}</span></div>
-            <div className="flex justify-between"><span>Không hoàn lại</span><span>{formatVnd(quote.feeVnd)}</span></div>
-            <div className="flex justify-between font-bold"><span>Tiền hoàn ({quote.refundPercent}%)</span><span>{formatVnd(quote.refundAmountVnd)}</span></div>
-          </div>}
+          </fieldset>
+
+          {quoteLoading && <p role="status" className="text-[13px] text-vxn-fg-5">Đang lấy báo giá hoàn tiền…</p>}
+          {quote && (
+            <div className="space-y-2 rounded-xl border border-vxn-border p-4 text-[13px]">
+              <p className="text-xs font-semibold text-vxn-ink">Tiền hoàn dự kiến (theo chính sách lưu lúc đặt)</p>
+              <div className="flex justify-between text-vxn-fg-5"><span>Số tiền đã trả cho vé hủy</span><span className="text-vxn-ink">{formatVnd(quote.totalPaidVnd)}</span></div>
+              <div className="flex justify-between text-vxn-fg-5"><span>Không hoàn lại</span><span className="text-vxn-ink">-{formatVnd(quote.feeVnd)}</span></div>
+              <div className="flex items-baseline justify-between border-t border-vxn-border pt-2">
+                <span className="font-semibold text-vxn-ink">Tiền hoàn ({quote.refundPercent}%)</span>
+                <span className="text-lg font-semibold text-success-600">{formatVnd(quote.refundAmountVnd)}</span>
+              </div>
+            </div>
+          )}
           {!quote && !quoteLoading && bookingId && <Button variant="outline" onClick={() => setQuoteVersion((version) => version + 1)}>Lấy lại báo giá</Button>}
-          <label className="block space-y-2"><span>Lý do hủy (không bắt buộc)</span><textarea value={reason} onChange={(event) => setReason(event.target.value)} maxLength={500} disabled={isSubmitting} className="w-full rounded-xl border bg-background p-3" /></label>
-          <p className="text-xs text-muted-foreground">Vé đã hủy không khôi phục được. Hệ thống kiểm tra lại số tiền hoàn khi xác nhận.</p>
+
+          <label className="block space-y-2">
+            <span className="text-[13px] font-semibold text-vxn-ink">Lý do hủy (không bắt buộc)</span>
+            <textarea value={reason} onChange={(event) => setReason(event.target.value)} maxLength={500} disabled={isSubmitting} rows={3} placeholder="Ví dụ: đổi kế hoạch đi lại" className="w-full rounded-xl border border-vxn-border bg-white p-3 text-[13px] outline-none focus:border-vxn-teal-700" />
+          </label>
+
+          <div className="flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs text-amber-800">
+            <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+            <span>Vé đã hủy không khôi phục được. Hệ thống kiểm tra lại số tiền hoàn khi xác nhận.</span>
+          </div>
         </div>
-        <div className="grid grid-cols-2 gap-3 border-t p-5">
+
+        <div className="grid grid-cols-2 gap-3 border-t border-vxn-border p-5">
           <Button variant="outline" onClick={onClose} disabled={isSubmitting}>Giữ vé</Button>
-          <Button variant="destructive" onClick={handleSubmit} disabled={!quote?.cancellable || quoteLoading || isSubmitting}>{isSubmitting ? "Đang xử lý…" : "Xác nhận hủy vé"}</Button>
+          <Button variant="destructive" onClick={handleSubmit} disabled={!quote?.cancellable || quoteLoading || isSubmitting}>
+            {isSubmitting ? "Đang xử lý…" : selectedTicketIds.length ? `Hủy ${selectedTicketIds.length} vé` : "Hủy vé"}
+          </Button>
         </div>
       </div>
     </div>

@@ -22,7 +22,7 @@ export function OperatorHeader({ operator }: OperatorHeaderProps) {
 
         <div className="space-y-2">
           <div className="flex flex-wrap items-center gap-2.5">
-            <h1 className="text-2xl font-bold text-slate-900">
+            <h1 className="text-2xl/9 font-semibold tracking-[-0.24px] text-vxn-ink">
               {operator.name}
             </h1>
             {operator.isVerified && (

@@ -38,7 +38,7 @@ export function TripCard({ trip }: TripCardProps) {
           <div className="flex items-center justify-between gap-2 border-b border-slate-100 pb-3">
             <div className="flex items-center gap-2.5 min-w-0">
               <div
-                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-xs font-black text-white shadow-xs"
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-xs font-extrabold text-white shadow-xs"
                 style={{ backgroundColor: trip.operatorAccentColor ?? "#00506a" }}
               >
                 {trip.operatorCode}
@@ -74,7 +74,7 @@ export function TripCard({ trip }: TripCardProps) {
             <div className="flex items-center justify-between sm:justify-start gap-3 sm:gap-4 shrink-0">
               {/* Giờ đi */}
               <div>
-                <div className="text-2xl font-black text-slate-900">
+                <div className="text-2xl font-extrabold text-slate-900">
                   {trip.departureTime}
                 </div>
                 <div className="text-xs font-medium text-slate-500">{trip.departureCity}</div>
@@ -94,7 +94,7 @@ export function TripCard({ trip }: TripCardProps) {
               {/* Giờ đến */}
               <div>
                 <div className="flex items-center gap-1.5">
-                  <span className="text-2xl font-black text-slate-900">
+                  <span className="text-2xl font-extrabold text-slate-900">
                     {trip.arrivalTime}
                   </span>
                   {trip.isNextDay && (
@@ -111,7 +111,7 @@ export function TripCard({ trip }: TripCardProps) {
             <div className="flex items-baseline justify-between sm:block sm:text-right shrink-0 pt-2 sm:pt-0 border-t border-dashed border-slate-100 sm:border-0">
               <span className="text-xs text-slate-500 sm:hidden">Giá vé từ</span>
               <div className="text-right">
-                <div className="text-2xl font-black text-[#00506a] sm:text-3xl whitespace-nowrap leading-tight">
+                <div className="text-2xl font-extrabold text-[#00506a] sm:text-3xl whitespace-nowrap leading-tight">
                   {formatVnd(trip.priceVnd)}
                 </div>
                 <div className="text-[11px] text-slate-500">từ / chỗ</div>

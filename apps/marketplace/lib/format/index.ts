@@ -51,3 +51,39 @@ export function formatTimeVi(isoString: string): string {
 export function formatDateTimeVi(isoString: string): string {
   return `${formatTimeVi(isoString)} ${formatDateVi(isoString)}`;
 }
+
+const WEEKDAYS_SHORT = ["CN", "T2", "T3", "T4", "T5", "T6", "T7"];
+
+/**
+ * Định dạng ngày đi `YYYY-MM-DD` thành "T6, 16/10/2026" như ô Ngày đi trong Figma; chuỗi khác giữ nguyên.
+ */
+export function formatTripDateVi(isoDate: string): string {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(isoDate);
+  if (!match) {
+    return isoDate;
+  }
+  const [, year, month, day] = match;
+  const weekday = new Date(Date.UTC(Number(year), Number(month) - 1, Number(day))).getUTCDay();
+  return `${WEEKDAYS_SHORT[weekday]}, ${day}/${month}/${year}`;
+}
+
+/**
+ * Số ngày lịch (giờ Việt Nam) từ `fromIso` tới `toIso`, vd đón 22:30 hôm nay, trả 05:30 hôm sau → 1.
+ * Thiếu hoặc sai định dạng thì trả 0 để giao diện không hiện "+N ngày".
+ */
+export function vnDayOffset(fromIso?: string, toIso?: string): number {
+  if (!fromIso || !toIso) {
+    return 0;
+  }
+  const day = (iso: string): number | null => {
+    const date = new Date(iso);
+    if (Number.isNaN(date.getTime())) {
+      return null;
+    }
+    const [year, month, dayOfMonth] = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Ho_Chi_Minh", year: "numeric", month: "2-digit", day: "2-digit" }).format(date).split("-").map(Number);
+    return Date.UTC(year, month - 1, dayOfMonth) / 86_400_000;
+  };
+  const from = day(fromIso);
+  const to = day(toIso);
+  return from === null || to === null ? 0 : Math.max(0, to - from);
+}

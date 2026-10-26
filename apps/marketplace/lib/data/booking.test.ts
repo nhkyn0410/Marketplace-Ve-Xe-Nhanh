@@ -2,18 +2,19 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { apiMoney, mapBookingPrice, mapLookupResult, mapPaymentResult, mapSeatSelection, mapTicketDetail, moneyString } from "./booking-mappers";
 import { bookingFixture, holdFixture, publicTripFixture } from "./booking-test-fixture";
 
-const { request, profile, jar, values } = vi.hoisted(() => {
+const { request, profile, wallet, jar, values } = vi.hoisted(() => {
   const values = new Map<string, string>();
-  return { request: vi.fn(), profile: vi.fn(), values, jar: { get: vi.fn((name: string) => values.has(name) ? { value: values.get(name) } : undefined), set: vi.fn((name: string, value: string) => { values.set(name, value); }) } };
+  return { request: vi.fn(), profile: vi.fn(), wallet: vi.fn(), values, jar: { get: vi.fn((name: string) => values.has(name) ? { value: values.get(name) } : undefined), set: vi.fn((name: string, value: string) => { values.set(name, value); }) } };
 });
 vi.mock("./api", () => ({ apiRequest: request, ACCESS_COOKIE: "vxn_marketplace_access" }));
 vi.mock("./auth", () => ({ getAccountProfile: profile }));
+vi.mock("./loyalty", () => ({ getUserVouchers: wallet }));
 vi.mock("./session", () => ({ refreshSessionIfNeeded: vi.fn(async () => ({ status: "ok", data: { rotated: false } })) }));
 vi.mock("next/headers", () => ({ cookies: vi.fn(async () => jar) }));
 import { checkCheckoutPromotion, createBooking, createPayment, getCheckoutHoldData, holdSeats } from "./booking";
 
 describe("booking API integration", () => {
-  beforeEach(() => { vi.clearAllMocks(); values.clear(); request.mockReset(); });
+  beforeEach(() => { vi.clearAllMocks(); values.clear(); request.mockReset(); wallet.mockResolvedValue({ status: "ok", data: { vouchers: [], availableCount: 0, usedCount: 0, expiredCount: 0 } }); });
 
   it("dùng BigInt/chuỗi cho tiền và từ chối số không an toàn từ API", () => {
     expect(moneyString(Number.MAX_SAFE_INTEGER)).toBe("9007199254740991");
@@ -160,6 +161,41 @@ describe("booking API integration", () => {
     const guest = await getCheckoutHoldData(holdFixture().holdId);
     expect(guest.status === "ok" && guest.data.contactInfo).toEqual({ fullName: "", email: "", phoneNumber: "" });
     expect(profile).not.toHaveBeenCalled();
+  });
+
+  it("voucher trong ví: báo giá từng voucher cho chuyến, không áp được thì 'Không phù hợp', lỗi ví không làm hỏng checkout", async () => {
+    values.set("vxn_marketplace_access", "account-token");
+    profile.mockResolvedValue({ status: "ok", data: { fullName: "Khách", email: "k@example.test", phone: "0900000000", savedPassengers: [] } });
+    const base = { status: "available", statusLabel: "Khả dụng", scopeText: "Đơn tối thiểu 0đ", expiryDateText: "05/11/2026" };
+    wallet.mockResolvedValue({ status: "ok", data: { vouchers: [
+      { ...base, id: "v-redeem", code: "", title: "Voucher VXN Plus", type: "loyalty_redemption", typeLabel: "Đổi điểm", discountLabel: "Giảm 50.000đ" },
+      { ...base, id: "v-saved", code: "TAYBAC30", title: "Tây Bắc", type: "public_code", typeLabel: "Mã đã lưu", discountLabel: "Giảm 30.000đ" }
+    ], availableCount: 2, usedCount: 0, expiredCount: 0 } });
+    request.mockResolvedValueOnce({ status: "ok", data: holdFixture() }).mockResolvedValueOnce({ status: "ok", data: publicTripFixture() })
+      .mockResolvedValueOnce({ status: "ok", data: { code: "VXNPLUS", name: "Voucher VXN Plus", discount: 50_000, total: 50_001 } })
+      .mockResolvedValueOnce({ status: "error", endpoint: "POST /promotions/check", message: "Mã khuyến mãi không áp dụng cho tuyến này." });
+    const result = await getCheckoutHoldData(holdFixture().holdId);
+    expect(result.status === "ok" && result.data.vouchers).toMatchObject([
+      { id: "v-redeem", isApplicable: true, discountVnd: "50000", tagText: "Đổi từ điểm", discountLabel: "Voucher đổi điểm" },
+      { id: "v-saved", isApplicable: false, discountVnd: "0", tagText: "Không phù hợp", description: "Mã khuyến mãi không áp dụng cho tuyến này." }
+    ]);
+    expect(JSON.parse(request.mock.calls[2]![1].body)).toMatchObject({ userVoucherId: "v-redeem", subtotal: 100_001 });
+    wallet.mockRejectedValueOnce(new Error("network"));
+    request.mockResolvedValueOnce({ status: "ok", data: holdFixture() }).mockResolvedValueOnce({ status: "ok", data: publicTripFixture() });
+    const fallback = await getCheckoutHoldData(holdFixture().holdId);
+    expect(fallback.status === "ok" && fallback.data.vouchers).toEqual([]);
+  });
+
+  it("tạo đơn với voucher trong ví gửi userVoucherId; gửi cả mã lẫn voucher bị chặn trước khi gọi API", async () => {
+    const hold = holdFixture();
+    const payload = { contactInfo: { fullName: "Khách", phoneNumber: "0900000000", email: "k@example.test" }, passengers: [{ ...bookingFixture().passengers[0]!, seatTypeLabel: "", floorLabel: "", priceVnd: "1", phoneNumber: "", idNumber: "", shouldSaveForLater: false }], note: "" };
+    expect((await createBooking(hold.holdId, { ...payload, promotion: { code: "THU10", userVoucherId: "v-redeem", expectedTotalVnd: "50001" } })).status).toBe("error");
+    expect(request).not.toHaveBeenCalled();
+    request.mockResolvedValueOnce({ status: "ok", data: hold }).mockResolvedValueOnce({ status: "ok", data: { bookingId: "b-1", accessToken: "t" } });
+    expect((await createBooking(hold.holdId, { ...payload, promotion: { userVoucherId: "v-redeem", expectedTotalVnd: "50001" } })).status).toBe("ok");
+    const body = JSON.parse(request.mock.calls[1]![1].body);
+    expect(body).toMatchObject({ userVoucherId: "v-redeem", expectedTotal: 50_001 });
+    expect(body.promotionCode).toBeUndefined();
   });
 
   it("gửi đúng provider và token qua header, từ chối liên kết thanh toán thực thi mã", async () => {

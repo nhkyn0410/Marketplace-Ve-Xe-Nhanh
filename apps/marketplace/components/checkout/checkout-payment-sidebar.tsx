@@ -139,7 +139,7 @@ export function CheckoutPaymentSidebar({
             <span className="text-sm font-medium text-vxn-fg-3">
               {priceSummary.isEstimate ? priceSummary.discountVnd !== "0" ? "Tạm tính sau ưu đãi" : "Tiền vé đang giữ" : "Tổng thanh toán"}
             </span>
-            <span className="text-xl sm:text-2xl font-black text-vxn-teal-800">
+            <span className="text-xl sm:text-2xl font-extrabold text-vxn-teal-800">
               {formatVnd(priceSummary.finalTotalVnd)}
             </span>
           </div>
