@@ -589,7 +589,18 @@ class _TransactionRow extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 12),
-          SvgPicture.asset('$_assetRoot/chevron.svg', width: 12, height: 12),
+          SizedBox(
+            width: 12,
+            height: 12,
+            child: Center(
+              child: SvgPicture.asset(
+                '$_assetRoot/chevron.svg',
+                key: Key('point-chevron-${item.id}'),
+                width: 5.2,
+                height: 8.7,
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -606,29 +617,45 @@ class _TransactionArtwork extends StatelessWidget {
     final image = item.imageAsset;
     if (item.kind == PointTransactionKind.earn) {
       return ClipRRect(
+        key: Key('point-artwork-${item.id}'),
         borderRadius: BorderRadius.circular(11),
         child: Image.asset(
           image ?? '$_assetRoot/bus_${imageIndex + 1}.png',
+          key: Key('point-artwork-image-${item.id}'),
           width: 58,
           height: 47,
           fit: BoxFit.cover,
         ),
       );
     }
+    final iconSize = _transactionIconSize(item.kind);
     return Container(
+      key: Key('point-artwork-${item.id}'),
       width: 58,
       height: 47,
-      padding: const EdgeInsets.all(11),
+      alignment: Alignment.center,
       decoration: BoxDecoration(
         color: _kindBackground(item.kind),
         borderRadius: BorderRadius.circular(11),
       ),
       child: item.iconAsset == null
           ? Icon(_kindIcon(item.kind), color: _kindColor(item.kind), size: 25)
-          : SvgPicture.asset(item.iconAsset!),
+          : SvgPicture.asset(
+              item.iconAsset!,
+              key: Key('point-artwork-icon-${item.id}'),
+              width: iconSize.width,
+              height: iconSize.height,
+            ),
     );
   }
 }
+
+Size _transactionIconSize(PointTransactionKind kind) => switch (kind) {
+  PointTransactionKind.redeem => const Size(20.45, 18.3667),
+  PointTransactionKind.expire => const Size(20.45, 20.45),
+  PointTransactionKind.adjust => const Size(24, 24),
+  _ => const Size(25, 25),
+};
 
 class _PointHistoryEmpty extends StatelessWidget {
   const _PointHistoryEmpty({this.onLearnMore});

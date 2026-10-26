@@ -58,6 +58,46 @@ void main() {
     expect(find.text('−500'), findsOneWidget);
     expect(find.text('Tháng 10/2026'), findsOneWidget);
     expect(find.text('Tháng 09/2026'), findsOneWidget);
+    for (final id in const [
+      'figma-earn-october-1',
+      'figma-earn-october-2',
+      'figma-earn-september',
+    ]) {
+      expect(
+        tester.getSize(find.byKey(Key('point-artwork-$id'))),
+        const Size(58, 47),
+      );
+      expect(
+        tester.getSize(find.byKey(Key('point-artwork-image-$id'))),
+        const Size(58, 47),
+      );
+    }
+    final redeemIconSize = tester.getSize(
+      find.byKey(const Key('point-artwork-icon-figma-redeem-october')),
+    );
+    expect(redeemIconSize.width, closeTo(20.45, .01));
+    expect(redeemIconSize.height, closeTo(18.3667, .01));
+    final septemberRedeemIconSize = tester.getSize(
+      find.byKey(const Key('point-artwork-icon-figma-redeem-september')),
+    );
+    expect(septemberRedeemIconSize.width, closeTo(20.45, .01));
+    expect(septemberRedeemIconSize.height, closeTo(18.3667, .01));
+    final expireIconSize = tester.getSize(
+      find.byKey(const Key('point-artwork-icon-figma-expire-october')),
+    );
+    expect(expireIconSize.width, closeTo(20.45, .01));
+    expect(expireIconSize.height, closeTo(20.45, .01));
+    expect(
+      tester.getSize(
+        find.byKey(const Key('point-artwork-icon-figma-adjust-september')),
+      ),
+      const Size(24, 24),
+    );
+    final chevronSize = tester.getSize(
+      find.byKey(const Key('point-chevron-figma-earn-october-1')),
+    );
+    expect(chevronSize.width, closeTo(5.2, .01));
+    expect(chevronSize.height, closeTo(8.7, .01));
     expect(
       tester.getSize(find.byKey(const Key('point-history-overview'))).height,
       145,
