@@ -95,6 +95,9 @@ flutter:
     - assets/home/support/
     - assets/home/tabbar/
     - assets/ticket/
+    - assets/ticket/detail/
+    - assets/ticket/payment/
+    - assets/ticket/completion/
     - assets/account/
     - assets/account/saved_passengers/
     - assets/account/vouchers/

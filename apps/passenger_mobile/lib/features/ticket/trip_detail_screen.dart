@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
+import 'seat_selection_screen.dart';
+
 const _detailAssets = 'assets/ticket/detail';
 const _ink = Color(0xFF09243D);
 const _blue = Color(0xFF2B7EAD);
@@ -74,6 +76,27 @@ class _HeroAndOperator extends StatelessWidget {
                     Color(0xB0081C24),
                   ],
                   stops: [0.32, 0.56, 1],
+                ),
+              ),
+            ),
+          ),
+          const Positioned(
+            left: 0,
+            top: 102,
+            width: 253,
+            height: 104,
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.all(Radius.circular(30)),
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Color(0x00081C24),
+                    Color(0x45081C24),
+                    Color(0x94081C24),
+                  ],
+                  stops: [0.04, 0.55, 0.97],
                 ),
               ),
             ),
@@ -181,18 +204,23 @@ class _HeroRoute extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                const _HeroCity('TP.HCM'),
-                const SizedBox(width: 13),
-                SvgPicture.asset(
-                  '$_detailAssets/route_arrow.svg',
-                  width: 17,
-                  height: 17,
-                ),
-                const SizedBox(width: 18),
-                const _HeroCity('Đà Lạt'),
-              ],
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerLeft,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const _HeroCity('TP.HCM'),
+                  const SizedBox(width: 13),
+                  SvgPicture.asset(
+                    '$_detailAssets/route_arrow.svg',
+                    width: 17,
+                    height: 17,
+                  ),
+                  const SizedBox(width: 18),
+                  const _HeroCity('Đà Lạt'),
+                ],
+              ),
             ),
             const SizedBox(height: 2),
             SizedBox(
@@ -201,11 +229,10 @@ class _HeroRoute extends StatelessWidget {
               child: Stack(
                 alignment: Alignment.center,
                 children: [
-                  Positioned.fill(
-                    child: SvgPicture.asset(
-                      '$_detailAssets/hero_route_line.svg',
-                      fit: BoxFit.fill,
-                    ),
+                  SvgPicture.asset(
+                    '$_detailAssets/hero_route_line.svg',
+                    width: 188,
+                    height: 2,
                   ),
                   Positioned(
                     left: 0,
@@ -313,7 +340,7 @@ class _OperatorCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return _WhiteCard(
       height: 68,
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       child: Row(
         children: [
           ClipRRect(
@@ -326,33 +353,37 @@ class _OperatorCard extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 14),
-          const Expanded(
+          Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Row(
-                  children: [
-                    Flexible(
-                      child: Text(
-                        'Phương Trang',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          color: Color(0xFF072752),
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
+                LayoutBuilder(
+                  builder: (context, constraints) => Row(
+                    children: [
+                      Flexible(
+                        child: Text(
+                          'Phương Trang',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            color: Color(0xFF072752),
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                       ),
-                    ),
-                    SizedBox(width: 8),
-                    _PopularBadge(),
-                  ],
+                      if (constraints.maxWidth >= 125) ...[
+                        SizedBox(width: 8),
+                        _PopularBadge(),
+                      ],
+                    ],
+                  ),
                 ),
-                SizedBox(height: 2),
-                _RatingLine(),
-                SizedBox(height: 2),
-                Text(
+                const SizedBox(height: 2),
+                const _RatingLine(),
+                const SizedBox(height: 2),
+                const Text(
                   'An toàn · Đúng giờ · Chất lượng cao',
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -459,7 +490,7 @@ class _VehicleSummary extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.fromLTRB(7, 6, 7, 0),
       child: _WhiteCard(
-        height: 86,
+        height: 94,
         padding: const EdgeInsets.all(8),
         child: Row(
           children: [
@@ -468,7 +499,7 @@ class _VehicleSummary extends StatelessWidget {
               child: Image.asset(
                 '$_detailAssets/limousine_interior.png',
                 width: 93,
-                height: 70,
+                height: 78,
                 fit: BoxFit.cover,
               ),
             ),
@@ -1192,20 +1223,16 @@ class _BookingBar extends StatelessWidget {
               child: FilledButton(
                 key: Key('trip-detail-cta'),
                 onPressed: () {
-                  ScaffoldMessenger.of(context)
-                    ..hideCurrentSnackBar()
-                    ..showSnackBar(
-                      const SnackBar(
-                        content: Text(
-                          'Màn chọn chỗ sẽ được kết nối ở bước tiếp theo.',
-                        ),
-                      ),
-                    );
+                  Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (_) => const SeatSelectionScreen(),
+                    ),
+                  );
                 },
                 style: FilledButton.styleFrom(
                   backgroundColor: _blue,
                   foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(11),
                   ),
