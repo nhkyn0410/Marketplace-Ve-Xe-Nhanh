@@ -464,16 +464,20 @@ class _LookupField extends StatelessWidget {
             fillColor: Colors.white,
             isDense: true,
             contentPadding: const EdgeInsets.symmetric(vertical: 15),
-            prefixIconConstraints: const BoxConstraints(
-              minWidth: 50,
-              minHeight: 50,
+            prefixIconConstraints: const BoxConstraints.tightFor(
+              width: 48,
+              height: 50,
             ),
-            prefixIcon: Center(
-              child: SvgPicture.asset(
-                iconAsset,
-                width: 18.06,
-                height: 14.4,
-                excludeFromSemantics: true,
+            prefixIcon: SizedBox(
+              width: 48,
+              height: 50,
+              child: Center(
+                child: SvgPicture.asset(
+                  iconAsset,
+                  width: 18.06,
+                  height: 14.4,
+                  excludeFromSemantics: true,
+                ),
               ),
             ),
             border: _inputBorder(const Color(0xFFD1DEEA)),

@@ -18,7 +18,7 @@ import 'package:passenger_mobile/features/explore/explore_screen.dart';
 import 'package:passenger_mobile/features/home/home_models.dart';
 import 'package:passenger_mobile/features/home/home_screen.dart';
 import 'package:passenger_mobile/features/home/route_dock_tabbar.dart';
-import 'package:passenger_mobile/features/journey/guest_ticket_lookup_screen.dart';
+import 'package:passenger_mobile/features/journey/guest_journey_flow.dart';
 import 'package:passenger_mobile/features/ticket/ticket_screen.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -940,7 +940,7 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
       return TicketScreen(onTabSelected: _selectMainTab);
     }
     if (_step == _AuthStep.guest && _currentTab == 3) {
-      return GuestTicketLookupScreen(
+      return GuestJourneyFlow(
         onLoginRequested: _returnToLogin,
         onTabSelected: _selectMainTab,
       );

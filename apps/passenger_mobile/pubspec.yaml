@@ -96,6 +96,7 @@ flutter:
     - assets/home/tabbar/
     - assets/explore/
     - assets/journey/guest_lookup/
+    - assets/journey/flow/
     - assets/ticket/
     - assets/ticket/detail/
     - assets/ticket/payment/
