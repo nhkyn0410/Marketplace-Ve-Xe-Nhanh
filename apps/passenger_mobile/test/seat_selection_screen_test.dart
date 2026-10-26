@@ -61,8 +61,13 @@ void main() {
 
     expect(
       tester.getSize(find.byKey(const Key('seat-bus-frame'))),
-      const Size(185, 370),
+      const Size(185, 352),
     );
+    expect(
+      tester.getSize(find.byKey(const Key('seat-A01'))),
+      const Size(52, 27),
+    );
+    expect(tester.widget<Text>(find.text('A01')).style?.fontSize, 10);
     await tester.ensureVisible(find.byKey(const Key('seat-A02')));
     await tester.tap(find.byKey(const Key('seat-A02')));
     await tester.pump();

@@ -537,10 +537,6 @@ class _SeatMap extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final textScale = MediaQuery.textScalerOf(context)
-        .scale(1)
-        .clamp(1.0, 1.5)
-        .toDouble();
     return Container(
       padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
       decoration: BoxDecoration(
@@ -551,7 +547,7 @@ class _SeatMap extends StatelessWidget {
         child: SizedBox(
           key: const Key('seat-bus-frame'),
           width: 185,
-          height: 370 + ((textScale - 1) * 110),
+          height: 352,
           child: CustomPaint(
             painter: _BusOutlinePainter(),
             child: Padding(
@@ -601,10 +597,6 @@ class _SeatButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final textScale = MediaQuery.textScalerOf(context)
-        .scale(1)
-        .clamp(1.0, 1.5)
-        .toDouble();
     final selected = status == _SeatStatus.selected;
     final enabled = status == _SeatStatus.available || selected;
     final background = switch (status) {
@@ -625,7 +617,7 @@ class _SeatButton extends StatelessWidget {
       borderRadius: BorderRadius.circular(7),
       child: Container(
         width: 52,
-        height: 30 + ((textScale - 1) * 12),
+        height: 27,
         alignment: Alignment.center,
         decoration: BoxDecoration(
           color: background,
@@ -651,7 +643,7 @@ class _SeatButton extends StatelessWidget {
                     _SeatStatus.unavailable => const Color(0xFF86A5BB),
                     _SeatStatus.available => const Color(0xFF20538C),
                   },
-                  fontSize: 13,
+                  fontSize: 10,
                   fontWeight: FontWeight.w500,
                 ),
               ),
