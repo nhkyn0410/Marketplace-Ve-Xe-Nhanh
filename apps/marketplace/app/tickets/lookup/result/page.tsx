@@ -51,7 +51,7 @@ export default async function TicketLookupResultPage({
     return <LookupBookingsView data={ticketLookupBookingsFixture} isPreview />;
   }
   if (previewState === "ideal") {
-    return <LookupResultView data={ticketLookupResultFixture} />;
+    return <LookupResultView data={ticketLookupResultFixture} isPreview />;
   }
 
   // 2. Nhánh thật: danh sách đơn của phiên quyết định mở danh sách hay thẳng một đơn
@@ -66,5 +66,6 @@ export default async function TicketLookupResultPage({
 
   const result = await getTicketLookupResult(byEmail ? bookingId : undefined);
   if (result.status !== "ok") return <LookupFailure result={result} />;
-  return <LookupResultView data={result.data} backToList={byEmail} loginPrompt={loginPrompt} />;
+  const bookedWithAccount = list.data.items.find((item) => item.bookingId === result.data.bookingId)?.bookedWithAccount ?? false;
+  return <LookupResultView data={result.data} backToList={byEmail} loginPrompt={loginPrompt} bookedWithAccount={bookedWithAccount} />;
 }

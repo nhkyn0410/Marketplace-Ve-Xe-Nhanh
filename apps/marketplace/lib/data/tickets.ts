@@ -5,7 +5,7 @@ import { cookies } from "next/headers";
 import QRCode from "qrcode";
 import { apiRequest } from "./api";
 import { refreshSessionIfNeeded } from "./session";
-import { bookingHeaders } from "./booking-access";
+import { bookingHeaders, rememberLookupBookingAccess } from "./booking-access";
 import { apiMoney, mapLookupBookings, mapLookupResult, mapMyTicket, mapTicketDetail, moneyString, remainingSeconds, type ApiBooking } from "./booking-mappers";
 import { type DataResult, failed, ok } from "./result";
 import type { MyTicketsData, TicketDetailData, TicketLookupBookingsData, TicketLookupOtpSent, TicketLookupResultData } from "./types";
@@ -133,6 +133,25 @@ export async function getTicketLookupResult(bookingId?: string): Promise<DataRes
     const canManageBooking = Boolean((await bookingHeaders(booking.data.bookingId))["X-Booking-Token"]);
     return ok({ ...mapped, bookingId: booking.data.bookingId, canManageBooking, tickets });
   } catch { return failed("POST /guest/ticket-lookup", "Không thể đọc kết quả. Vui lòng tra cứu lại."); }
+}
+
+/**
+ * Mở quyền hủy vé / gửi khiếu nại cho một đơn khách vãng lai của phiên tra cứu đã xác minh OTP: API cấp mã truy cập phụ
+ * (hết hạn cùng phiên), lưu vào cookie httpOnly của đơn để các trang quản lý vé / hỗ trợ dùng như mã lúc đặt.
+ */
+export async function unlockTicketLookupBooking(bookingId: string): Promise<DataResult<{ readonly bookingId: string }>> {
+  try {
+    const session = await lookupSession();
+    if (!session) return failed("POST /guest/ticket-lookup/booking-access", EXPIRED_MESSAGE);
+    if ((await bookingHeaders(bookingId))["X-Booking-Token"]) return ok({ bookingId });
+    const refreshed = await refreshSessionIfNeeded();
+    if (refreshed.status !== "ok") return refreshed;
+    const input = { lookupToken: session.lookupToken, bookingId } satisfies components["schemas"]["TicketLookupInputDto"];
+    const result = await apiRequest<components["schemas"]["TicketLookupAccessDto_Output"]>("/guest/ticket-lookup/booking-access", { method: "POST", body: JSON.stringify(input) });
+    if (result.status !== "ok") return result;
+    await rememberLookupBookingAccess(result.data.bookingId, result.data.accessToken, remainingSeconds(result.data.expiresAt));
+    return ok({ bookingId: result.data.bookingId });
+  } catch { return failed("POST /guest/ticket-lookup/booking-access", "Chưa mở được quyền quản lý đơn. Vui lòng thử lại."); }
 }
 
 /** Xóa thông tin xác thực tra cứu khỏi trình duyệt khi khách kết thúc phiên. */
