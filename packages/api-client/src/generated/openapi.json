@@ -12319,6 +12319,128 @@
         ]
       }
     },
+    "/v1/guest/ticket-lookup/otp": {
+      "post": {
+        "operationId": "TicketController_requestOtp",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TicketLookupOtpInputDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Đã nhận yêu cầu (mã chỉ được gửi khi mã booking và email khớp).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TicketLookupOtpResponseDto_Output"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Gửi token nhưng token sai / hết hạn (không gửi token = khách vãng lai).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "`TICKET_LOOKUP_RATE_LIMITED` — quá số lần theo IP, chưa hết 60 giây chờ gửi lại, hoặc quá 5 mã / giờ.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Tra cứu tạm gián đoạn.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "tickets"
+        ]
+      }
+    },
+    "/v1/guest/ticket-lookup/verify": {
+      "post": {
+        "operationId": "TicketController_verifyOtp",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TicketLookupVerifyInputDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Phiên tra cứu.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TicketLookupSessionDto_Output"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Gửi token nhưng token sai / hết hạn (không gửi token = khách vãng lai).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "`TICKET_LOOKUP_OTP_INVALID` — sai mã (kèm số lần thử còn lại), hết hạn hoặc hết lượt.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Tra cứu tạm gián đoạn.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "tickets"
+        ]
+      }
+    },
     "/v1/guest/ticket-lookup": {
       "post": {
         "operationId": "TicketController_lookup",
@@ -12355,17 +12477,7 @@
             }
           },
           "404": {
-            "description": "`BOOKING_NOT_FOUND` — sai mã hoặc liên hệ.",
-            "content": {
-              "application/problem+json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetailsDto"
-                }
-              }
-            }
-          },
-          "429": {
-            "description": "`TICKET_LOOKUP_RATE_LIMITED`.",
+            "description": "`TICKET_LOOKUP_EXPIRED` — phiên tra cứu không có hoặc đã hết hạn.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -40350,13 +40462,10 @@
         ],
         "additionalProperties": false
       },
-      "TicketLookupInputDto": {
+      "TicketLookupOtpInputDto": {
         "type": "object",
         "properties": {
           "bookingCode": {
-            "type": "string"
-          },
-          "phone": {
             "type": "string"
           },
           "email": {
@@ -40367,7 +40476,92 @@
           }
         },
         "required": [
-          "bookingCode"
+          "bookingCode",
+          "email"
+        ]
+      },
+      "TicketLookupOtpResponseDto_Output": {
+        "type": "object",
+        "properties": {
+          "maskedEmail": {
+            "type": "string"
+          },
+          "expiresInSeconds": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "resendAfterSeconds": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "maxAttempts": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          }
+        },
+        "required": [
+          "maskedEmail",
+          "expiresInSeconds",
+          "resendAfterSeconds",
+          "maxAttempts"
+        ],
+        "additionalProperties": false
+      },
+      "TicketLookupVerifyInputDto": {
+        "type": "object",
+        "properties": {
+          "bookingCode": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string",
+            "maxLength": 254,
+            "format": "email",
+            "pattern": "^(?!\\.)(?!.*\\.\\.)([A-Za-z0-9_'+\\-\\.]*)[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
+          },
+          "otp": {
+            "type": "string",
+            "pattern": "^\\d{6}$"
+          }
+        },
+        "required": [
+          "bookingCode",
+          "email",
+          "otp"
+        ]
+      },
+      "TicketLookupSessionDto_Output": {
+        "type": "object",
+        "properties": {
+          "lookupToken": {
+            "type": "string"
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$"
+          }
+        },
+        "required": [
+          "lookupToken",
+          "expiresAt"
+        ],
+        "additionalProperties": false
+      },
+      "TicketLookupInputDto": {
+        "type": "object",
+        "properties": {
+          "lookupToken": {
+            "type": "string",
+            "minLength": 20,
+            "maxLength": 100
+          }
+        },
+        "required": [
+          "lookupToken"
         ]
       },
       "CancellationQuoteDto_Output": {

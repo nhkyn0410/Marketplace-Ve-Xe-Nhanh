@@ -2084,6 +2084,38 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/guest/ticket-lookup/otp": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["TicketController_requestOtp"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/guest/ticket-lookup/verify": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["TicketController_verifyOtp"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/guest/ticket-lookup": {
         parameters: {
             query?: never;
@@ -7319,11 +7351,30 @@ export interface components {
             issuedAt: string;
             checkedInAt: string | null;
         };
-        TicketLookupInputDto: {
+        TicketLookupOtpInputDto: {
             bookingCode: string;
-            phone?: string;
             /** Format: email */
-            email?: string;
+            email: string;
+        };
+        TicketLookupOtpResponseDto_Output: {
+            maskedEmail: string;
+            expiresInSeconds: number;
+            resendAfterSeconds: number;
+            maxAttempts: number;
+        };
+        TicketLookupVerifyInputDto: {
+            bookingCode: string;
+            /** Format: email */
+            email: string;
+            otp: string;
+        };
+        TicketLookupSessionDto_Output: {
+            lookupToken: string;
+            /** Format: date-time */
+            expiresAt: string;
+        };
+        TicketLookupInputDto: {
+            lookupToken: string;
         };
         CancellationQuoteDto_Output: {
             tickets: {
@@ -18252,6 +18303,108 @@ export interface operations {
             };
         };
     };
+    TicketController_requestOtp: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TicketLookupOtpInputDto"];
+            };
+        };
+        responses: {
+            /** @description Đã nhận yêu cầu (mã chỉ được gửi khi mã booking và email khớp). */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TicketLookupOtpResponseDto_Output"];
+                };
+            };
+            /** @description Gửi token nhưng token sai / hết hạn (không gửi token = khách vãng lai). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `TICKET_LOOKUP_RATE_LIMITED` — quá số lần theo IP, chưa hết 60 giây chờ gửi lại, hoặc quá 5 mã / giờ. */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Tra cứu tạm gián đoạn. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    TicketController_verifyOtp: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TicketLookupVerifyInputDto"];
+            };
+        };
+        responses: {
+            /** @description Phiên tra cứu. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TicketLookupSessionDto_Output"];
+                };
+            };
+            /** @description Gửi token nhưng token sai / hết hạn (không gửi token = khách vãng lai). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `TICKET_LOOKUP_OTP_INVALID` — sai mã (kèm số lần thử còn lại), hết hạn hoặc hết lượt. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Tra cứu tạm gián đoạn. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
     TicketController_lookup: {
         parameters: {
             query?: never;
@@ -18283,17 +18436,8 @@ export interface operations {
                     "application/problem+json": components["schemas"]["ProblemDetailsDto"];
                 };
             };
-            /** @description `BOOKING_NOT_FOUND` — sai mã hoặc liên hệ. */
+            /** @description `TICKET_LOOKUP_EXPIRED` — phiên tra cứu không có hoặc đã hết hạn. */
             404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
-                };
-            };
-            /** @description `TICKET_LOOKUP_RATE_LIMITED`. */
-            429: {
                 headers: {
                     [name: string]: unknown;
                 };

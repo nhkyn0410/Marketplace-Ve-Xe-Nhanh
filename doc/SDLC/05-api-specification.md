@@ -59,6 +59,7 @@
 | v0.38     | 21/10/2026 | AI Agent       | **Phân quyền theo từng tài khoản (`TASK-IAM-007`, chờ duyệt):** §7.1 `GET /auth/me` trả `permissions`; §7.3 thêm `/operator/managers*`; GET xe / sơ đồ ghế / tuyến / điểm dừng / chuyến / lịch / bảng giá đổi sang `transport:read`; §7.5 thêm `PUT /admin/platform-accounts/{id}/permissions`, route tài khoản quản trị dùng `access:manage`, thao tác chi trả `payout:manage`, hoàn tiền Admin `refund:manage`. |
 | v0.39     | 26/10/2026 | AI Agent       | **Voucher trong ví khi đặt vé (`TASK-PROM-002`, Khanh 26/10/2026 "mở rộng api", chờ duyệt):** §7.2 `POST /promotions/check` nhận `userVoucherId` (báo giá, không giữ voucher) bên cạnh `code`; web bước 2 hiện tab Ví voucher theo Figma 1444:12945. Giữ trạng thái Review. |
 | v0.40     | 26/10/2026 | AI Agent       | **Tuyến phổ biến + nhà xe tiêu biểu cho trang chủ (SCR-PSG-01, Khanh 26/10/2026 "bổ sung api", chờ duyệt):** §7.6 thêm `GET /catalog/popular-routes`, `GET /catalog/featured-operators` (công khai, đọc ở ngữ cảnh system, chỉ dữ liệu được phép hiển thị). Giữ trạng thái Review. |
+| v0.41     | 26/10/2026 | AI Agent       | **Tra cứu vé khách vãng lai bắt buộc OTP (UX-OQ-09, Khanh 26/10/2026, chờ duyệt):** §7.2 thêm `POST /guest/ticket-lookup/otp`, `/guest/ticket-lookup/verify`; `POST /guest/ticket-lookup` chỉ nhận phiên tra cứu `lookupToken`. Chỉ email (SMS hoãn v1). Giữ trạng thái Review. |
 
 ---
 
@@ -238,7 +239,9 @@ Gửi cả `Max-Age` và `Expires`; logout/reuse/revoke current family phải x�
 | GET    | `/bookings/{bookingId}`                  | User, Guest | Xem booking                       |
 | POST   | `/bookings/{bookingId}/payments`         | User, Guest | Tạo payment (VNPay/MoMo)          |
 | GET    | `/tickets/{ticketId}`                    | User        | Xem vé                            |
-| POST   | `/guest/ticket-lookup`                   | Guest       | Tra cứu vé khách vãng lai         |
+| POST   | `/guest/ticket-lookup/otp`               | Guest       | Chờ duyệt (26/10/2026, UX-OQ-09 Khanh chốt bắt buộc OTP): `{ bookingCode (mã đặt vé hoặc mã vé "-NN"), email }` → 202 `{ maskedEmail, expiresInSeconds: 300, resendAfterSeconds: 60, maxAttempts: 5 }` **như nhau dù khớp hay không**; chỉ khi khớp mới gửi mã 6 số về email liên hệ của đơn (SMS hoãn v1 — ADR-020). 429 `TICKET_LOOKUP_RATE_LIMITED`: 10 lần / 10 phút / IP, chờ 60 giây giữa hai lần gửi, ≤ 5 mã / giờ / cặp mã + email; Redis lỗi → 503 |
+| POST   | `/guest/ticket-lookup/verify`            | Guest       | Chờ duyệt: `{ bookingCode, email, otp }` → `{ lookupToken, expiresAt }` (phiên tra cứu 15 phút, Redis chỉ giữ băm). 422 `TICKET_LOOKUP_OTP_INVALID` — sai mã (câu báo kèm "Còn N lần thử"), hết hạn hoặc hết 5 lượt (phải gửi lại mã); mã dùng một lần |
+| POST   | `/guest/ticket-lookup`                   | Guest       | Tra cứu vé khách vãng lai. Chờ duyệt (26/10/2026): body đổi thành `{ lookupToken }` (bỏ tra trực tiếp bằng mã + SĐT / email) → booking kèm vé, chỉ xem; 404 `TICKET_LOOKUP_EXPIRED`. Hủy vé / khiếu nại vẫn cần mã truy cập booking của trình duyệt đã đặt hoặc tài khoản |
 | GET    | `/article-categories`                    | User, Guest | Chuyên mục bài viết + số bài đã xuất bản |
 | GET    | `/articles`                              | User, Guest | Bài `PUBLISHED` (lọc `category`, `q`, `featured`; phân trang) |
 | GET    | `/articles/{slug}`                       | User, Guest | Chi tiết bài `PUBLISHED` (khác → 404) |
