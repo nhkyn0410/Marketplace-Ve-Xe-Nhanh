@@ -221,7 +221,11 @@ describe.skipIf(!ready && !requireDb)("Khiếu nại, tranh chấp, đánh giá 
       await tx.supportTicket.deleteMany({ where: { operatorId } });
       await tx.notificationDelivery.deleteMany({ where: { operatorId } });
       await tx.notification.deleteMany({ where: { operatorId } });
+      // `generatePayouts` ở payout.int.spec quét mọi nhà xe: chạy song song có thể tạo kỳ chi trả từ bút toán của file này.
+      await tx.payoutItem.deleteMany({ where: { operatorId } });
       await tx.escrowLedger.deleteMany({ where: { operatorId } });
+      await tx.payoutStatusHistory.deleteMany({ where: { operatorId } });
+      await tx.payout.deleteMany({ where: { operatorId } });
       await tx.ticketStatusHistory.deleteMany({ where: { operatorId } });
       await tx.ticket.deleteMany({ where: { operatorId } });
       await tx.refundStatusHistory.deleteMany({ where: { operatorId } });
