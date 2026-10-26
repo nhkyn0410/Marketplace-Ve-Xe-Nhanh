@@ -722,11 +722,25 @@ export interface TicketLookupInitData {
  */
 export interface TicketLookupOtpState {
   readonly bookingCode: string;
+  /** Email khách đã nhập ở B1 (gửi lại khi xác minh / gửi lại mã). */
+  readonly email: string;
   readonly maskedEmail: string;
   readonly otpDigits: readonly string[];
   readonly expiresInSeconds: number;
   readonly remainingAttempts: number;
   readonly resendCountdownSeconds: number;
+  /** Lúc gửi mã (ms) — gửi lại tạo bước nhập mã mới. */
+  readonly sentAt?: number;
+}
+
+/**
+ * Phản hồi bước gửi mã tra cứu vé — như nhau dù mã đặt vé / email có khớp hay không.
+ */
+export interface TicketLookupOtpSent {
+  readonly maskedEmail: string;
+  readonly expiresInSeconds: number;
+  readonly resendAfterSeconds: number;
+  readonly maxAttempts: number;
 }
 
 /**
