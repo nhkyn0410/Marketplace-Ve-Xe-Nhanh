@@ -1012,6 +1012,38 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/catalog/popular-routes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["CatalogController_listPopularRoutes"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/catalog/featured-operators": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["CatalogController_listFeaturedOperators"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/admin/catalog/provinces": {
         parameters: {
             query?: never;
@@ -5345,6 +5377,41 @@ export interface components {
                 id: string;
                 code: string;
                 name: string;
+            }[];
+        };
+        PopularRouteListResponseDto_Output: {
+            items: {
+                /** Format: uuid */
+                originProvinceId: string;
+                originName: string;
+                /** Format: uuid */
+                destinationProvinceId: string;
+                destinationName: string;
+                distanceMeters: number;
+                durationSeconds: number;
+                minPrice: number | null;
+                vehicleTypeNames: string[];
+                nextDepartureAt: string | null;
+                operatorCount: number;
+                averageRating: number | null;
+                reviewCount: number;
+            }[];
+        };
+        FeaturedOperatorListResponseDto_Output: {
+            items: {
+                /** Format: uuid */
+                operatorId: string;
+                displayName: string;
+                averageRating: number | null;
+                reviewCount: number;
+                routes: {
+                    /** Format: uuid */
+                    originProvinceId: string;
+                    originName: string;
+                    /** Format: uuid */
+                    destinationProvinceId: string;
+                    destinationName: string;
+                }[];
             }[];
         };
         AdminProvincePageDto_Output: {
@@ -12981,6 +13048,68 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AmenityListResponseDto_Output"];
+                };
+            };
+        };
+    };
+    CatalogController_listPopularRoutes: {
+        parameters: {
+            query?: {
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Tuyến phổ biến (gộp mọi nhà xe theo cặp tỉnh). */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PopularRouteListResponseDto_Output"];
+                };
+            };
+            /** @description Query không hợp lệ. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    CatalogController_listFeaturedOperators: {
+        parameters: {
+            query?: {
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Nhà xe tiêu biểu kèm tuyến đang mở bán. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FeaturedOperatorListResponseDto_Output"];
+                };
+            };
+            /** @description Query không hợp lệ. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
                 };
             };
         };

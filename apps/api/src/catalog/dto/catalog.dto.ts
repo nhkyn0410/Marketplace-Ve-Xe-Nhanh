@@ -107,3 +107,61 @@ export type AmenityListResponse = z.infer<typeof AmenityListResponseSchema>;
 export class AmenityListResponseDto extends createZodDto(
   AmenityListResponseSchema,
 ) {}
+
+/** Query `GET /catalog/popular-routes` và `GET /catalog/featured-operators`: số mục tối đa. */
+const highlightLimit = (fallback: number) =>
+  z.object({ limit: z.coerce.number().int().min(1).max(20).default(fallback) });
+export class PopularRouteListQueryDto extends createZodDto(highlightLimit(7)) {}
+export class FeaturedOperatorListQueryDto extends createZodDto(
+  highlightLimit(5),
+) {}
+
+const ProvincePairSchema = z.object({
+  originProvinceId: z.uuid(),
+  /** Tên ngắn ("TP. Hồ Chí Minh", "Lâm Đồng"). */
+  originName: z.string(),
+  destinationProvinceId: z.uuid(),
+  destinationName: z.string(),
+});
+
+export const PopularRouteListResponseSchema = z.object({
+  items: z.array(
+    ProvincePairSchema.extend({
+      distanceMeters: z.int(),
+      durationSeconds: z.int(),
+      /** VND, giá thấp nhất của các bảng giá đang áp dụng; null khi chưa có. */
+      minPrice: z.int().nullable(),
+      vehicleTypeNames: z.array(z.string()),
+      nextDepartureAt: z.iso.datetime().nullable(),
+      operatorCount: z.int(),
+      averageRating: z.number().nullable(),
+      reviewCount: z.int(),
+    }),
+  ),
+});
+export type PopularRouteListResponse = z.infer<
+  typeof PopularRouteListResponseSchema
+>;
+/** Tuyến phổ biến: cặp tỉnh có chuyến mở bán, gộp mọi nhà xe. */
+export class PopularRouteListResponseDto extends createZodDto(
+  PopularRouteListResponseSchema,
+) {}
+
+export const FeaturedOperatorListResponseSchema = z.object({
+  items: z.array(
+    z.object({
+      operatorId: z.uuid(),
+      displayName: z.string(),
+      averageRating: z.number().nullable(),
+      reviewCount: z.int(),
+      routes: z.array(ProvincePairSchema),
+    }),
+  ),
+});
+export type FeaturedOperatorListResponse = z.infer<
+  typeof FeaturedOperatorListResponseSchema
+>;
+/** Nhà xe tiêu biểu đang mở bán, kèm các tuyến (cặp tỉnh). */
+export class FeaturedOperatorListResponseDto extends createZodDto(
+  FeaturedOperatorListResponseSchema,
+) {}

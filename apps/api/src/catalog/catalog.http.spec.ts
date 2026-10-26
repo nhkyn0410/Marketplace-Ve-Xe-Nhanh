@@ -53,6 +53,43 @@ describe("Catalog routes — HTTP công khai", () => {
     ],
   }));
   const listAmenities = vi.fn(async () => ({ items: [] }));
+  const originProvinceId = randomUUID();
+  const destinationProvinceId = randomUUID();
+  const pair = {
+    originProvinceId,
+    originName: "TP. Hồ Chí Minh",
+    destinationProvinceId,
+    destinationName: "Lâm Đồng",
+  };
+  const listPopularRoutes = vi.fn(async () => ({
+    items: [
+      {
+        ...pair,
+        distanceMeters: 308_000,
+        durationSeconds: 25_200,
+        minPrice: 280_000,
+        vehicleTypeNames: ["Giường nằm"],
+        nextDepartureAt: "2026-10-27T15:00:00.000Z",
+        operatorCount: 2,
+        averageRating: 4.8,
+        reviewCount: 12,
+        // Field nội bộ mô phỏng service lỡ trả thêm: serializer phải cắt.
+        routeId: randomUUID(),
+      },
+    ],
+  }));
+  const operatorId = randomUUID();
+  const listFeaturedOperators = vi.fn(async () => ({
+    items: [
+      {
+        operatorId,
+        displayName: "Phương Trang",
+        averageRating: null,
+        reviewCount: 0,
+        routes: [pair],
+      },
+    ],
+  }));
   let app: INestApplication;
   let base: string;
 
@@ -68,6 +105,8 @@ describe("Catalog routes — HTTP công khai", () => {
           listStopPoints,
           listVehicleTypes,
           listAmenities,
+          listPopularRoutes,
+          listFeaturedOperators,
         },
       },
     ],
@@ -100,6 +139,8 @@ describe("Catalog routes — HTTP công khai", () => {
     "stop-points",
     "vehicle-types",
     "amenities",
+    "popular-routes",
+    "featured-operators",
   ])("GET /catalog/%s trả 200 khi KHÔNG có token", async (path) => {
     const response = await fetch(`${base}/${path}`);
     expect(response.status).toBe(200);
@@ -123,6 +164,31 @@ describe("Catalog routes — HTTP công khai", () => {
           description: null,
           form: "SLEEPER",
           class: "LIMOUSINE",
+        },
+      ],
+    });
+  });
+
+  it("popular-routes áp mặc định limit=7 và chỉ trả field công khai", async () => {
+    const body = await (await fetch(`${base}/popular-routes`)).json();
+    expect(listPopularRoutes).toHaveBeenLastCalledWith(7);
+    expect(body.items[0]).not.toHaveProperty("routeId");
+    expect(body.items[0]).toMatchObject({ ...pair, minPrice: 280_000 });
+    await fetch(`${base}/popular-routes?limit=3`);
+    expect(listPopularRoutes).toHaveBeenLastCalledWith(3);
+  });
+
+  it("featured-operators áp mặc định limit=5, nhà xe chưa có đánh giá trả averageRating null", async () => {
+    const body = await (await fetch(`${base}/featured-operators`)).json();
+    expect(listFeaturedOperators).toHaveBeenLastCalledWith(5);
+    expect(body).toEqual({
+      items: [
+        {
+          operatorId,
+          displayName: "Phương Trang",
+          averageRating: null,
+          reviewCount: 0,
+          routes: [pair],
         },
       ],
     });
@@ -167,6 +233,9 @@ describe("Catalog routes — HTTP công khai", () => {
     "stop-points?cursor=abc",
     "stop-points?wardId=abc",
     `stop-points?q=${"x".repeat(101)}`,
+    "popular-routes?limit=0",
+    "popular-routes?limit=21",
+    "featured-operators?limit=abc",
   ])(
     "GET /catalog/%s → 400 problem+json, service không bị gọi",
     async (path) => {
@@ -177,6 +246,8 @@ describe("Catalog routes — HTTP công khai", () => {
       );
       expect(listWards).not.toHaveBeenCalled();
       expect(listStopPoints).not.toHaveBeenCalled();
+      expect(listPopularRoutes).not.toHaveBeenCalled();
+      expect(listFeaturedOperators).not.toHaveBeenCalled();
     },
   );
 });

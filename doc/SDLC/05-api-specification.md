@@ -58,6 +58,7 @@
 | v0.37     | 19/10/2026 | AI Agent       | **Sáu phần tiếp theo (Khanh 19/10/2026, chờ duyệt):** §7.2 thêm khiếu nại / tranh chấp / đánh giá theo đơn, `POST /promotions/check`; §7.3 thêm Tổng quan + Báo cáo, Hỗ trợ (khiếu nại, tranh chấp, đánh giá), Khuyến mãi; §7.4 ghi hiện thực soát vé + trạng thái chuyến; §7.5 thêm Tổng quan + Báo cáo, Khiếu nại & tranh chấp, đánh giá, Khuyến mãi, ghi hiện thực VXN Plus (đường dẫn tài khoản theo email, tham số qua `/admin/policies/LOYALTY`). Giữ trạng thái Review. |
 | v0.38     | 21/10/2026 | AI Agent       | **Phân quyền theo từng tài khoản (`TASK-IAM-007`, chờ duyệt):** §7.1 `GET /auth/me` trả `permissions`; §7.3 thêm `/operator/managers*`; GET xe / sơ đồ ghế / tuyến / điểm dừng / chuyến / lịch / bảng giá đổi sang `transport:read`; §7.5 thêm `PUT /admin/platform-accounts/{id}/permissions`, route tài khoản quản trị dùng `access:manage`, thao tác chi trả `payout:manage`, hoàn tiền Admin `refund:manage`. |
 | v0.39     | 26/10/2026 | AI Agent       | **Voucher trong ví khi đặt vé (`TASK-PROM-002`, Khanh 26/10/2026 "mở rộng api", chờ duyệt):** §7.2 `POST /promotions/check` nhận `userVoucherId` (báo giá, không giữ voucher) bên cạnh `code`; web bước 2 hiện tab Ví voucher theo Figma 1444:12945. Giữ trạng thái Review. |
+| v0.40     | 26/10/2026 | AI Agent       | **Tuyến phổ biến + nhà xe tiêu biểu cho trang chủ (SCR-PSG-01, Khanh 26/10/2026 "bổ sung api", chờ duyệt):** §7.6 thêm `GET /catalog/popular-routes`, `GET /catalog/featured-operators` (công khai, đọc ở ngữ cảnh system, chỉ dữ liệu được phép hiển thị). Giữ trạng thái Review. |
 
 ---
 
@@ -445,6 +446,8 @@ Dữ liệu chuẩn Platform (DB §5.2 nhóm Catalog) cho Marketplace search và
 | GET    | `/catalog/stop-points`   | Guest, User, Operator   | Điểm dừng dùng chung (bến xe, điểm dừng đón trả, trạm dừng nghỉ); lọc `provinceId`, `wardId`, `type`, tìm `q`; cursor mặc định 20 / tối đa 100 |
 | GET    | `/catalog/vehicle-types` | Guest, User, Operator   | Loại phương tiện chuẩn; mỗi item kèm `form` (`SEATER` / `SLEEPER` / `CABIN`) và `class` (`STANDARD` / `LIMOUSINE`) — BR-77 |
 | GET    | `/catalog/amenities`     | Guest, User, Operator   | Tiện ích chuẩn                                                                             |
+| GET    | `/catalog/popular-routes` | Guest, User | Chờ duyệt (26/10/2026): tuyến phổ biến cho trang chủ — gộp tuyến `ACTIVE` của nhà xe `ACTIVE` theo **cặp tỉnh** điểm đầu → điểm cuối, chỉ tuyến có chuyến `OPEN_FOR_SALE` đã gắn xe trong 30 ngày tới; xếp theo vé đã thanh toán 30 ngày qua, rồi số chuyến sắp chạy. Mỗi mục: tỉnh đi / đến (tên ngắn), quãng đường + thời gian ngắn nhất, `minPrice` (giá thấp nhất của bảng giá đang áp dụng, VND, có thể `null`), `vehicleTypeNames`, `nextDepartureAt`, `operatorCount`, `averageRating` (review `VISIBLE`, `null` khi chưa có) + `reviewCount`. `limit` mặc định 7 / tối đa 20 |
+| GET    | `/catalog/featured-operators` | Guest, User | Chờ duyệt (26/10/2026): nhà xe tiêu biểu — nhà xe `ACTIVE` có chuyến mở bán 30 ngày tới, xếp theo số review `VISIBLE`, rồi điểm trung bình, rồi tên; mỗi mục kèm tối đa 6 cặp tỉnh đang mở bán (cho tab "Theo nhà xe"). Không trả logo (schema chưa có). `limit` mặc định 5 / tối đa 20 |
 
 ---
 
