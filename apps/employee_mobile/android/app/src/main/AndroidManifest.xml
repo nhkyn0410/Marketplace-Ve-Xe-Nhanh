@@ -1,5 +1,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.CAMERA"/>
+    <uses-feature android:name="android.hardware.camera" android:required="false"/>
 
     <!-- Định vị cho Driver (ADR-028). `geolocator` KHÔNG tự khai quyền này — manifest
          của nó chỉ khai `GeolocatorLocationService`, nên quyền phải khai ở đây.

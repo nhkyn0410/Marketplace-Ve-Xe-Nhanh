@@ -154,34 +154,6 @@
       "nodeId": "1769:479"
     },
     {
-      "name": "manual-imgGroup",
-      "nodeId": "1897:748"
-    },
-    {
-      "name": "manual-imgTinHiuWiFiPin",
-      "nodeId": "1897:748"
-    },
-    {
-      "name": "manual-imgIconVe",
-      "nodeId": "1897:748"
-    },
-    {
-      "name": "manual-imgGroup1",
-      "nodeId": "1897:748"
-    },
-    {
-      "name": "manual-imgIconQr",
-      "nodeId": "1897:748"
-    },
-    {
-      "name": "manual-imgFrame",
-      "nodeId": "1897:748"
-    },
-    {
-      "name": "manual-imgFrame1",
-      "nodeId": "1897:748"
-    },
-    {
       "name": "scanner-imgTinHiuWiFiPin",
       "nodeId": "1788:547"
     },
@@ -904,6 +876,30 @@
     {
       "name": "journal-error-imgTiLi",
       "nodeId": "2000:1241"
+    },
+    {
+      "name": "seat-map-imgFrame",
+      "nodeId": "2527:1802"
+    },
+    {
+      "name": "seat-map-imgFrame1",
+      "nodeId": "2527:1802"
+    },
+    {
+      "name": "seat-map-imgDuTichDaLen",
+      "nodeId": "2527:1802"
+    },
+    {
+      "name": "seat-map-imgTinHiuWiFiPin",
+      "nodeId": "2527:1802"
+    },
+    {
+      "name": "seat-map-imgQuayLi",
+      "nodeId": "2527:1802"
+    },
+    {
+      "name": "seat-map-imgXacNhn",
+      "nodeId": "2527:1802"
     }
   ]
 }

@@ -72,6 +72,27 @@ class _GalleryHome extends StatelessWidget {
   Widget build(BuildContext context) {
     final cases = <(String, Widget Function())>[
       (
+        'Soát vé · Quét QR',
+        () => ScannerScreen(
+          trip: _trip('Đón khách'),
+          scanResults: const Stream.empty(),
+        ),
+      ),
+      (
+        'Soát vé · Sơ đồ ghế',
+        () {
+          final trip = _trip('Đón khách');
+          final passenger = trip.passengers.first
+            ..boarded = true
+            ..checkedInAt = DateTime(2026, 10, 14, 9, 41);
+          return SeatMapScreen(
+            trip: trip,
+            lastPassenger: passenger,
+            scanResults: const Stream.empty(),
+          );
+        },
+      ),
+      (
         'Chuyến · Chưa được phân công',
         () => DriverPage(
           bottom: DriverTabs(onSelected: (_) {}),
@@ -149,12 +170,20 @@ class _GalleryHome extends StatelessWidget {
           final passenger = trip.passengers.first
             ..boarded = true
             ..checkedInAt = DateTime(2026, 10, 14, 9, 41);
-          return BoardingSuccessScreen(trip: trip, passenger: passenger);
+          return BoardingSuccessScreen(
+            trip: trip,
+            passenger: passenger,
+            scanResults: const Stream.empty(),
+          );
         },
       ),
       (
         'Quét vé · Mất kết nối',
-        () => ScannerScreen(trip: _trip(), initiallyOffline: true),
+        () => ScannerScreen(
+          trip: _trip(),
+          initiallyOffline: true,
+          scanResults: const Stream.empty(),
+        ),
       ),
       (
         'Vận hành · Đón khách',

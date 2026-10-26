@@ -8,13 +8,15 @@ class DemoTrip {
     required this.operatingNote,
     required this.passengers,
     this.status = 'Sắp khởi hành',
-  });
+    List<String>? seats,
+  }) : seats = seats ?? [for (var i = 0; i < 36; i++) _seatCode(i)];
   final String id;
   final String origin;
   final String destination;
   final String departure;
   final String operatingNote;
   final List<DemoPassenger> passengers;
+  final List<String> seats;
   String status;
   bool assigned = true;
   final List<({String title, DateTime occurredAt})> operationHistory = [];
@@ -70,7 +72,7 @@ List<DemoTrip> createDemoTrips() => [
       for (var i = 4; i <= 32; i++)
         DemoPassenger(
           'Khách mẫu ${i.toString().padLeft(2, '0')}',
-          '${i <= 16 ? 'A' : 'B'}${(i <= 16 ? i : i - 16).toString().padLeft(2, '0')}',
+          _seatCode(i - 1),
           'VX102${i.toString().padLeft(3, '0')}',
           '0*** *** ***',
         ),
@@ -87,10 +89,13 @@ List<DemoTrip> createDemoTrips() => [
       for (var i = 1; i <= 28; i++)
         DemoPassenger(
           'Khách mẫu ${i.toString().padLeft(2, '0')}',
-          '${i <= 16 ? 'A' : 'B'}${(i <= 16 ? i : i - 16).toString().padLeft(2, '0')}',
+          _seatCode(i - 1),
           'VX103${i.toString().padLeft(3, '0')}',
           '0*** *** ***',
         ),
     ],
   ),
 ];
+
+String _seatCode(int index) =>
+    '${String.fromCharCode(65 + index ~/ 4)}${(index % 4 + 1).toString().padLeft(2, '0')}';

@@ -62,9 +62,14 @@ void main() {
       'Ticket result $code blocks boarding without exposing passenger data',
       (tester) async {
         final trip = createDemoTrips().first;
-        await _open(tester, ManualTicketScreen(trip: trip));
-        await tester.enterText(find.byType(TextField), code);
-        await _swipe(tester, 'Kiểm tra vé');
+        final scans = StreamController<String>.broadcast();
+        addTearDown(scans.close);
+        await _open(
+          tester,
+          ScannerScreen(trip: trip, scanResults: scans.stream),
+        );
+        scans.add(code);
+        await tester.pumpAndSettle();
         expect(find.text(title), findsOneWidget);
         expect(find.text('Nguyễn Văn An'), findsNothing);
         expect(

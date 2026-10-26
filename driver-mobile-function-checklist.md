@@ -6,7 +6,7 @@ Checklist này tổng hợp **66 hạng mục** của phần giao diện tài x�
 
 **Tiến độ giao diện và bản mẫu:** **40 / 66 hạng mục đã kiểm tra trong phạm vi ghi dưới đây.**
 
-**Ngày cập nhật:** 25/10/2026.
+**Ngày cập nhật:** 26/10/2026.
 
 **Quy ước kiểm tra:**
 
@@ -49,16 +49,16 @@ Checklist này tổng hợp **66 hạng mục** của phần giao diện tài x�
 - [x] **MANIFEST-01** Hiển thị ghế, tên khách, số điện thoại đã che, mã vé và trạng thái lên xe.
 - [x] **MANIFEST-02** Tìm khách theo tên, mã vé hoặc số điện thoại được phép; có thao tác xóa từ khóa.
 - [x] **MANIFEST-03** Lọc Tất cả, Chưa lên và Đã lên; kết hợp bộ lọc với từ khóa tìm kiếm.
-- [x] **MANIFEST-04** Mở vé của khách và cập nhật số khách chưa lên khi quay lại sau xác nhận mẫu.
+- [x] **MANIFEST-04** Mở màn cập nhật trạng thái khách; cập nhật bộ lọc và số khách khi quay lại sau thao tác với dữ liệu mẫu.
 - [ ] **MANIFEST-05** Kết nối tải manifest và kéo làm mới từ máy chủ; xử lý khi dữ liệu thay đổi từ thiết bị khác.
 - [ ] **MANIFEST-06** Rà soát toàn bộ màn danh sách trống, không tìm thấy, bàn phím và cuộn danh sách theo Figma mới.
 
-## 5. Quét, nhập mã và đối chiếu vé
+## 5. Quét QR và sơ đồ ghế
 
-- [x] **TICKET-01** Nhập mã vé, chuẩn hóa khoảng trắng và chữ hoa, rồi mở kết quả đối chiếu trong dữ liệu mẫu.
+- [x] **TICKET-01** Có luồng Quét QR → Đã lên xe → Sơ đồ ghế → Quét vé tiếp; bỏ màn nhập mã và bước đối chiếu cũ theo Figma mới.
 - [x] **TICKET-02** Có màn không tìm thấy vé, sai chuyến, đã hủy và hoàn tiền; không cho xác nhận lên xe ở các kết quả này.
-- [x] **TICKET-03** Có màn lên xe thành công với thông tin vé, thời điểm soát và tiến độ số khách động; tránh xác nhận trùng trong phiên mẫu.
-- [ ] **TICKET-04** Kết nối camera quét QR, xin quyền camera, điều khiển đèn pin và xử lý quyền bị từ chối.
+- [x] **TICKET-03** Có màn lên xe thành công, sơ đồ 36 ghế với trạng thái đã lên/chưa lên/trống và tiến độ động; giữ thời điểm soát khi quét trùng trong phiên mẫu.
+- [ ] **TICKET-04** Đã nối thư viện camera, đèn pin, đổi camera và thông báo lỗi quyền; cần xác minh các thao tác bằng camera điện thoại thật.
 - [ ] **TICKET-05** Xác minh vé, xác nhận lên xe và chặn trùng bằng API; đồng bộ kết quả giữa nhiều thiết bị.
 - [ ] **TICKET-06** Xác minh trạng thái mất kết nối và thử lại bằng mạng thật; không xác nhận vé khi chưa được máy chủ chấp thuận.
 
@@ -110,7 +110,7 @@ Checklist này tổng hợp **66 hạng mục** của phần giao diện tài x�
 ## 11. Kiểm thử và bàn giao
 
 - [x] **QA-01** Chạy `flutter analyze` cho phiên bản mã đã kiểm tra; không có lỗi hoặc cảnh báo phân tích mã tại lần chạy gần nhất.
-- [x] **QA-02** Chạy bộ widget test; lần kiểm tra gần nhất có 26 kiểm thử đạt.
+- [x] **QA-02** Chạy bộ widget test; lần kiểm tra gần nhất có 30 kiểm thử đạt.
 - [x] **QA-03** Dựng bản web của ứng dụng chính và trang đối chiếu các trạng thái mới.
 - [ ] **QA-04** Hoàn tất rà soát trực quan toàn bộ màn theo Figma mới và ghi lại các điểm chưa khớp.
 - [ ] **QA-05** Build và kiểm thử trên Android; xác minh iOS khi có môi trường macOS/Xcode phù hợp.

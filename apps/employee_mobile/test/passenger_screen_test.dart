@@ -10,7 +10,11 @@ Future<void> _openManifest(WidgetTester tester, DemoTrip trip) async {
   await tester.pumpWidget(
     MaterialApp(
       theme: employeeTheme(Brightness.light),
-      home: PassengerScreen(trip: trip, onTabSelected: (_) {}),
+      home: PassengerScreen(
+        trip: trip,
+        onTabSelected: (_) {},
+        scanResults: const Stream.empty(),
+      ),
     ),
   );
 }
@@ -40,15 +44,15 @@ void main() {
       await tester.pumpAndSettle();
       await tester.fling(find.text('Trần Thị Mai'), const Offset(200, 0), 1000);
       await tester.pumpAndSettle();
-      expect(find.byType(TicketScreen), findsOneWidget);
-      await tester.ensureVisible(
-        find.byKey(const ValueKey('swipe-Xác nhận lên xe')),
-      );
+      expect(find.byType(PassengerStatusScreen), findsOneWidget);
+      await tester.enterText(find.byType(TextField), 'Đón tại cổng chính.');
+      final passenger = trip.passengers[1]..boarded = true;
       await tester.drag(
-        find.byKey(const ValueKey('swipe-Xác nhận lên xe')),
+        find.byKey(const ValueKey('swipe-Lưu trạng thái')),
         const Offset(1000, 0),
       );
       await tester.pumpAndSettle();
+      expect(passenger.boarded, true);
       expect(trip.boardedCount, 1);
       await tester.pump(const Duration(seconds: 5));
       await tester.pumpAndSettle();
@@ -131,7 +135,8 @@ void main() {
       );
       await tester.pumpAndSettle();
       expect(find.byType(ScannerScreen), findsOneWidget);
-      expect(find.text('Bản xem thử · Camera chưa bật'), findsOneWidget);
+      expect(find.text('Đang chờ mã vé'), findsOneWidget);
+      expect(find.text('Nhập mã vé'), findsNothing);
     },
   );
 }

@@ -28,7 +28,7 @@ cd D:\Marketplace-Ve-Xe-Nhanh\apps\employee_mobile
 - Đăng nhập nhân viên, liên hệ nhà xe.
 - Chuyến của tôi, đổi ngày, chi tiết chuyến, ngày không có nhiệm vụ.
 - Hành khách: tìm theo tên/mã vé/số đã che, lọc trạng thái, kéo làm mới.
-- Khung quét QR, nhập mã vé, đối chiếu và xác nhận lên xe mẫu.
+- Quét QR → Đã lên xe → Sơ đồ 36 ghế → Quét vé tiếp; đã bỏ màn nhập mã và bước đối chiếu cũ theo Figma mới.
 - Vận hành chuyến, ghi và xem nhật trình, biểu mẫu báo sự cố.
 - Cá nhân, chế độ sáng/tối, thiết bị đăng nhập, đăng xuất.
 
@@ -52,7 +52,7 @@ Trang đối chiếu riêng cho các trạng thái khó gặp:
 ..\..\.tools\flutter\bin\flutter.bat run -d chrome -t lib/preview_gallery.dart
 ```
 
-Trang này không nằm trong điều hướng ứng dụng chính. Chức năng quét vẫn là khung camera mẫu; API, email và thu hồi phiên máy chủ chưa được tích hợp.
+Trang này không nằm trong điều hướng ứng dụng chính. Có màn Quét QR tĩnh để đối chiếu thiết kế và sơ đồ ghế với dữ liệu mẫu. Trong app chính, camera đọc QR qua `mobile_scanner`; API, email và thu hồi phiên máy chủ chưa được tích hợp.
 
 Thao tác xác nhận dùng **vuốt sang phải** trên tay kéo màu cam.
 Theo yêu cầu giao diện, không hiển thị dòng hướng dẫn vuốt ở chân màn hình hoặc dưới nút; áp dụng cả cho các màn thêm sau.
@@ -64,7 +64,7 @@ Dữ liệu chuyến mẫu nằm ở ngày **14/10/2026**; đổi sang ngày kh�
 Không nhập mật khẩu thật. Mật khẩu mẫu không được lưu hoặc gửi đi.
 Thay đổi hành khách, trạng thái chuyến và nhật trình chỉ tồn tại trong phiên;
 lịch sử cập nhật trạng thái được giữ khi mở lại màn Vận hành trong cùng phiên.
-Camera/đèn pin, email, thu hồi phiên và ảnh minh chứng hiện là thao tác minh họa.
+Camera cần được cấp quyền trên thiết bị hoặc trình duyệt; đèn pin và đổi camera tùy khả năng thiết bị. Chưa xác minh bằng camera điện thoại thật. QR mẫu chỉ chứa mã vé như `VX102001`; kết quả được đối chiếu và cập nhật cục bộ, không xác thực vé thật. Email, thu hồi phiên và ảnh minh chứng hiện là thao tác minh họa.
 Số điện thoại hành khách chỉ chứa dữ liệu đã che.
 
 SVG được tải từ Figma vào `assets/figma`; font Inter và giấy phép ở `assets/fonts`.

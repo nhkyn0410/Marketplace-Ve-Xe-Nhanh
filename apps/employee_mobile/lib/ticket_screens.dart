@@ -1,7 +1,12 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:mobile_scanner/mobile_scanner.dart';
 
 import 'demo_data.dart';
 import 'design_system.dart';
+import 'trip_states.dart';
 
 /// Các kết quả không cho phép xác nhận vé trong phiên minh họa.
 enum TicketResultKind { notFound, wrongTrip, cancelled, refunded }
@@ -25,7 +30,7 @@ class TicketResultScreen extends StatelessWidget {
         '2080-1135',
         'imgEmployeeTicketEmblemKhongTimThyVe',
         'Không tìm thấy vé',
-        'Nhập lại mã hoặc quét lại QR.',
+        'Kiểm tra lại vé và quét lại QR.',
         DriverColors.teal,
       ),
       TicketResultKind.wrongTrip => (
@@ -253,42 +258,40 @@ class BoardingSuccessScreen extends StatelessWidget {
     super.key,
     required this.trip,
     required this.passenger,
+    this.scanResults,
   });
   final DemoTrip trip;
   final DemoPassenger passenger;
+  final Stream<String>? scanResults;
+
   @override
   Widget build(BuildContext context) => DriverPage(
     background: DriverColors.cream,
     statusAsset: 'ticket-refresh-1834-668-imgTinHiuWiFiPin',
     bottom: Padding(
-      padding: const EdgeInsets.fromLTRB(40, 8, 40, 16),
+      padding: const EdgeInsets.fromLTRB(40, 8, 40, 38),
       child: SwipeAction(
-        label: 'Quét vé tiếp',
+        label: 'Xem sơ đồ ghế',
         filled: true,
         arrowAsset: 'ticket-refresh-1834-668-imgFrame',
         chevronAsset: 'ticket-refresh-1834-668-imgFrame1',
         onComplete: () => Navigator.of(context).pushReplacement(
-          MaterialPageRoute<void>(builder: (_) => ScannerScreen(trip: trip)),
+          MaterialPageRoute<void>(
+            builder: (_) => SeatMapScreen(
+              trip: trip,
+              lastPassenger: passenger,
+              scanResults: scanResults,
+            ),
+          ),
         ),
       ),
     ),
     child: Column(
       children: [
-        Align(
-          alignment: Alignment.centerLeft,
-          child: SizedBox(
-            height: 28,
-            child: IconButton(
-              padding: EdgeInsets.zero,
-              tooltip: 'Quay lại',
-              onPressed: () => Navigator.maybePop(context),
-              icon: const Icon(Icons.chevron_left),
-            ),
-          ),
-        ),
+        const SizedBox(height: 32),
         Expanded(
           child: ListView(
-            padding: const EdgeInsets.fromLTRB(24, 4, 24, 16),
+            padding: const EdgeInsets.fromLTRB(24, 0, 24, 16),
             children: [
               const Center(
                 child: FigmaAsset(
@@ -299,9 +302,13 @@ class BoardingSuccessScreen extends StatelessWidget {
               ),
               const SizedBox(height: 12),
               Text(
-                'Đã lên xe · Bản mẫu',
+                'Đã lên xe',
                 textAlign: TextAlign.center,
-                style: driverText(28, FontWeight.w700, const Color(0xff157a48)),
+                style: driverText(
+                  32,
+                  FontWeight.w700,
+                  const Color(0xff157a48),
+                ).copyWith(height: 1.25),
               ),
               const SizedBox(height: 12),
               Text(
@@ -309,55 +316,59 @@ class BoardingSuccessScreen extends StatelessWidget {
                 textAlign: TextAlign.center,
                 style: driverText(14, FontWeight.w500, DriverColors.secondary),
               ),
-              const SizedBox(height: 28),
+              const SizedBox(height: 42),
               _PhysicalTicket(trip: trip, passenger: passenger),
               const SizedBox(height: 20),
-              DriverCard(
-                padding: 20,
-                child: Column(
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            '${trip.boardedCount} / ${trip.passengers.length} đã lên xe',
-                            style: driverText(
-                              18,
-                              FontWeight.w600,
-                              DriverColors.teal,
-                            ),
-                          ),
-                        ),
-                        Text(
-                          'Còn ${trip.passengers.length - trip.boardedCount} khách',
-                          style: driverText(
-                            12,
-                            FontWeight.w400,
-                            DriverColors.secondary,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 14),
-                    LinearProgressIndicator(
-                      value: trip.passengers.isEmpty
-                          ? 0
-                          : trip.boardedCount / trip.passengers.length,
-                      minHeight: 6,
-                      borderRadius: BorderRadius.circular(3),
-                      backgroundColor: DriverColors.border,
-                    ),
-                  ],
+              _BoardingProgress(trip: trip),
+            ],
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
+class _BoardingProgress extends StatelessWidget {
+  const _BoardingProgress({required this.trip, this.compact = false});
+  final DemoTrip trip;
+  final bool compact;
+
+  @override
+  Widget build(BuildContext context) => DriverCard(
+    color: compact ? DriverColors.canvas : Colors.white,
+    padding: compact ? 12 : 20,
+    child: Column(
+      children: [
+        ConstrainedBox(
+          constraints: BoxConstraints(minHeight: compact ? 24 : 28),
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  '${trip.boardedCount} / ${trip.passengers.length} đã lên xe',
+                  style: driverText(
+                    compact ? 16 : 18,
+                    FontWeight.w600,
+                    DriverColors.teal,
+                  ),
                 ),
               ),
-              const SizedBox(height: 12),
               Text(
-                'Chỉ lưu trong phiên xem thử, chưa gửi máy chủ.',
-                textAlign: TextAlign.center,
+                'Còn ${trip.passengers.length - trip.boardedCount} khách',
                 style: driverText(12, FontWeight.w400, DriverColors.secondary),
               ),
             ],
           ),
+        ),
+        SizedBox(height: compact ? 8 : 14),
+        LinearProgressIndicator(
+          value: trip.passengers.isEmpty
+              ? 0
+              : trip.boardedCount / trip.passengers.length,
+          minHeight: compact ? 4 : 6,
+          borderRadius: BorderRadius.circular(3),
+          backgroundColor: compact ? Colors.white : DriverColors.border,
+          color: DriverColors.teal,
         ),
       ],
     ),
@@ -630,286 +641,83 @@ class _PassengerStatusScreenState extends State<PassengerStatusScreen> {
   }
 }
 
-/// Khung quét vé minh họa, chưa truy cập camera hay xác minh với máy chủ.
-class ScannerScreen extends StatelessWidget {
+/// Quét QR bằng camera; xác nhận vé hiện chỉ áp dụng cho dữ liệu mẫu trong phiên.
+class ScannerScreen extends StatefulWidget {
   const ScannerScreen({
     super.key,
     required this.trip,
     this.initiallyOffline = false,
+    this.scanResults,
   });
   final DemoTrip trip;
   final bool initiallyOffline;
+
+  /// Nguồn QR dành cho kiểm thử và trang đối chiếu, không tạo ô nhập mã trong app.
+  final Stream<String>? scanResults;
+
   @override
-  Widget build(BuildContext context) => DriverPage(
-    background: const Color(0xff111317),
-    lightStatus: true,
-    indicatorBackground: DriverColors.cream,
-    statusAsset: 'scanner-imgTinHiuWiFiPin',
-    child: Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(24, 2, 24, 0),
-          child: Row(
-            children: [
-              IconButton(
-                tooltip: 'Quay lại',
-                onPressed: () => Navigator.pop(context),
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints.tightFor(
-                  width: 24,
-                  height: 44,
-                ),
-                icon: const FigmaAsset(
-                  'scanner-imgGroup',
-                  width: 8,
-                  height: 14,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  'Quét vé',
-                  style: driverText(22, FontWeight.w700, Colors.white),
-                ),
-              ),
-              IconButton(
-                tooltip: 'Đèn pin',
-                onPressed: () => showDemoNotice(
-                  context,
-                  'Camera và đèn pin chưa bật trong bản xem thử.',
-                ),
-                icon: const FigmaAsset(
-                  'scanner-imgDenPinNutSetTtIcon',
-                  width: 24,
-                  height: 24,
-                ),
-              ),
-              IconButton(
-                tooltip: 'Cài đặt camera',
-                onPressed: () => showDemoNotice(
-                  context,
-                  'Bản xem thử chưa yêu cầu quyền camera.',
-                ),
-                icon: const FigmaAsset(
-                  'scanner-imgCaiDtCameraIcon',
-                  width: 24,
-                  height: 24,
-                ),
-              ),
-            ],
-          ),
-        ),
-        Expanded(
-          child: LayoutBuilder(
-            builder: (context, box) => SingleChildScrollView(
-              child: ConstrainedBox(
-                constraints: BoxConstraints(minHeight: box.maxHeight),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    const SizedBox(height: 18),
-                    const Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        FigmaAsset('scanner-imgVector', width: 45, height: 35),
-                        FigmaAsset(
-                          'scanner-imgVector1',
-                          width: 131,
-                          height: 18,
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 18),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 32,
-                        vertical: 10,
-                      ),
-                      decoration: BoxDecoration(
-                        color: const Color(0xff26282c),
-                        borderRadius: BorderRadius.circular(24),
-                      ),
-                      child: Text(
-                        '${trip.id} · ${trip.origin} → ${trip.destination}',
-                        style: driverText(12, FontWeight.w400, Colors.white),
-                      ),
-                    ),
-                    const SizedBox(height: 50),
-                    SizedBox(
-                      width: 280,
-                      height: 280,
-                      child: Stack(
-                        alignment: Alignment.center,
-                        children: [
-                          if (!initiallyOffline)
-                            const FigmaAsset(
-                              'scanner-imgKhungNhnDinBnGoc',
-                              width: 280,
-                              height: 280,
-                            ),
-                          if (initiallyOffline)
-                            for (var corner = 0; corner < 4; corner++)
-                              Positioned(
-                                left: corner.isEven ? 0 : null,
-                                right: corner.isOdd ? 0 : null,
-                                top: corner < 2 ? 0 : null,
-                                bottom: corner >= 2 ? 0 : null,
-                                child: Container(
-                                  width: 25,
-                                  height: 25,
-                                  decoration: BoxDecoration(
-                                    border: Border(
-                                      top: corner < 2
-                                          ? const BorderSide(
-                                              color: Color(0xffaeafb3),
-                                              width: 2,
-                                            )
-                                          : BorderSide.none,
-                                      bottom: corner >= 2
-                                          ? const BorderSide(
-                                              color: Color(0xffaeafb3),
-                                              width: 2,
-                                            )
-                                          : BorderSide.none,
-                                      left: corner.isEven
-                                          ? const BorderSide(
-                                              color: Color(0xffaeafb3),
-                                              width: 2,
-                                            )
-                                          : BorderSide.none,
-                                      right: corner.isOdd
-                                          ? const BorderSide(
-                                              color: Color(0xffaeafb3),
-                                              width: 2,
-                                            )
-                                          : BorderSide.none,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                          if (initiallyOffline)
-                            const FigmaAsset(
-                              'ticket-refresh-2082-1336-imgIconWifi',
-                              width: 52,
-                              height: 52,
-                            )
-                          else
-                            Container(
-                              height: 2,
-                              margin: const EdgeInsets.symmetric(horizontal: 2),
-                              decoration: const BoxDecoration(
-                                color: DriverColors.orange,
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: DriverColors.orange,
-                                    blurRadius: 5,
-                                  ),
-                                ],
-                              ),
-                            ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 30),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const FigmaAsset(
-                          'scanner-imgChMa',
-                          width: 5,
-                          height: 5,
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          'Bản xem thử · Camera chưa bật',
-                          style: driverText(12, FontWeight.w400, Colors.white),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 36),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ),
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.fromLTRB(24, 24, 24, 22),
-          decoration: const BoxDecoration(
-            color: DriverColors.cream,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
-          ),
-          child: Column(
-            children: [
-              Container(
-                width: 36,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: DriverColors.border,
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                initiallyOffline ? 'Mất kết nối' : 'Sẵn sàng kiểm tra vé',
-                style: driverText(24, FontWeight.w600, DriverColors.navy),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                initiallyOffline
-                    ? 'Cần kết nối để xác thực vé.'
-                    : 'Đặt mã QR trên vé vào khung quét.',
-                style: driverText(14, FontWeight.w500, DriverColors.secondary),
-              ),
-              const SizedBox(height: 28),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: SwipeAction(
-                  label: initiallyOffline ? 'Thử lại' : 'Nhập mã vé',
-                  filled: true,
-                  arrowAsset: 'scanner-imgFrame',
-                  chevronAsset: 'scanner-imgFrame1',
-                  onComplete: () => initiallyOffline
-                      ? Navigator.of(context).pushReplacement(
-                          MaterialPageRoute<void>(
-                            builder: (_) => ScannerScreen(trip: trip),
-                          ),
-                        )
-                      : openDriverPage(context, ManualTicketScreen(trip: trip)),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-    ),
-  );
+  State<ScannerScreen> createState() => _ScannerScreenState();
 }
 
-/// Nhập mã và đối chiếu chỉ trong danh sách hành khách của chuyến mẫu đang chọn.
-class ManualTicketScreen extends StatefulWidget {
-  const ManualTicketScreen({super.key, required this.trip});
-  final DemoTrip trip;
-  @override
-  State<ManualTicketScreen> createState() => _ManualTicketScreenState();
-}
+class _ScannerScreenState extends State<ScannerScreen>
+    with WidgetsBindingObserver {
+  MobileScannerController? _camera;
+  StreamSubscription<String>? _scanSubscription;
+  bool _processing = false;
+  late bool _offline = widget.initiallyOffline;
 
-class _ManualTicketScreenState extends State<ManualTicketScreen> {
-  final _code = TextEditingController();
-  String? _error;
   @override
-  void dispose() {
-    _code.dispose();
-    super.dispose();
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    if (widget.scanResults == null && !_offline && widget.trip.assigned) {
+      _camera = MobileScannerController(
+        formats: const [BarcodeFormat.qrCode],
+        detectionSpeed: DetectionSpeed.normal,
+      );
+    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _scanSubscription = widget.scanResults?.listen(_acceptCode);
+    });
   }
 
-  void _verify() {
-    final code = _code.text.trim().toUpperCase();
-    if (code.isEmpty) {
-      setState(() => _error = 'Nhập mã vé cần kiểm tra.');
-      return;
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    final camera = _camera;
+    if (camera == null || !camera.value.isInitialized) return;
+    if (state == AppLifecycleState.resumed && !_processing && !_offline) {
+      unawaited(_cameraAction(camera.start));
+    } else {
+      unawaited(_cameraAction(camera.stop));
     }
+  }
+
+  Future<void> _cameraAction(Future<void> Function() action) async {
+    try {
+      await action();
+    } on MobileScannerException {
+      if (mounted) {
+        showDemoNotice(
+          context,
+          'Camera chưa sẵn sàng. Kiểm tra quyền camera rồi thử lại.',
+        );
+      }
+    } on PlatformException {
+      if (mounted) {
+        showDemoNotice(context, 'Thiết bị chưa hỗ trợ thao tác camera này.');
+      }
+    }
+  }
+
+  Future<void> _acceptCode(String rawCode) async {
+    if (!mounted || _processing || _offline || !widget.trip.assigned) return;
+    final code = rawCode.trim().toUpperCase();
+    if (code.isEmpty) return;
+    _processing = true;
+    final camera = _camera;
+    if (camera != null) await _cameraAction(camera.stop);
+    if (!mounted || !widget.trip.assigned) return;
+
     final matches = widget.trip.passengers.where((p) => p.ticket == code);
     final result = code == 'VX102CANCEL'
         ? TicketResultKind.cancelled
@@ -923,94 +731,525 @@ class _ManualTicketScreenState extends State<ManualTicketScreen> {
         ? TicketResultKind.notFound
         : null;
     if (result != null) {
-      FocusScope.of(context).unfocus();
-      openDriverPage(
+      await openDriverPage(
         context,
         TicketResultScreen(trip: widget.trip, code: code, kind: result),
       );
+      if (!mounted) return;
+      _processing = false;
+      if (camera != null) await _cameraAction(camera.start);
       return;
     }
-    setState(() => _error = null);
-    FocusScope.of(context).unfocus();
-    openDriverPage(
-      context,
-      TicketScreen(trip: widget.trip, passenger: matches.first),
+    final passenger = matches.first;
+    if (!passenger.boarded) {
+      passenger.boarded = true;
+      passenger.absent = false;
+      passenger.needsAttention = false;
+      passenger.checkedInAt = DateTime.now();
+    }
+    if (!mounted) return;
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute<void>(
+        builder: (_) => BoardingSuccessScreen(
+          trip: widget.trip,
+          passenger: passenger,
+          scanResults: widget.scanResults,
+        ),
+      ),
     );
   }
 
+  void _retryOffline() {
+    setState(() {
+      _offline = false;
+      if (widget.scanResults == null) {
+        _camera = MobileScannerController(
+          formats: const [BarcodeFormat.qrCode],
+        );
+      }
+    });
+  }
+
   @override
-  Widget build(BuildContext context) => DriverPage(
-    statusAsset: 'manual-imgTinHiuWiFiPin',
-    child: Column(
-      children: [
-        const DriverHeading('Nhập mã vé', backAsset: 'manual-imgGroup'),
-        Expanded(
-          child: ListView(
-            padding: const EdgeInsets.fromLTRB(24, 10, 24, 24),
-            children: [
-              Center(
-                child: Container(
-                  width: 80,
-                  height: 80,
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                    color: DriverColors.cream,
-                    borderRadius: BorderRadius.circular(24),
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    unawaited(_scanSubscription?.cancel());
+    unawaited(_camera?.dispose());
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (!widget.trip.assigned) {
+      return TripAccessScreen(onReturn: () => Navigator.maybePop(context));
+    }
+    return DriverPage(
+      background: const Color(0xff111317),
+      lightStatus: true,
+      indicatorColor: Colors.white,
+      statusAsset: 'scanner-imgTinHiuWiFiPin',
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(24, 2, 24, 14),
+            child: Row(
+              children: [
+                IconButton(
+                  tooltip: 'Quay lại',
+                  onPressed: () => Navigator.maybePop(context),
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints.tightFor(
+                    width: 24,
+                    height: 44,
                   ),
-                  child: const FigmaAsset(
-                    'manual-imgIconVe',
-                    width: 40,
-                    height: 40,
+                  icon: const FigmaAsset(
+                    'scanner-imgGroup',
+                    width: 7.8,
+                    height: 13.8,
                   ),
                 ),
-              ),
-              const SizedBox(height: 12),
-              Text(
-                'Nhập mã trên vé',
-                textAlign: TextAlign.center,
-                style: driverText(26, FontWeight.w700),
-              ),
-              const SizedBox(height: 12),
-              Text(
-                'Đối chiếu với chuyến đang soát',
-                textAlign: TextAlign.center,
-                style: driverText(14, FontWeight.w500, DriverColors.secondary),
-              ),
-              const SizedBox(height: 42),
-              DriverCard(
-                color: DriverColors.canvas,
-                child: Row(
-                  children: [
-                    Container(
-                      width: 44,
-                      height: 44,
-                      alignment: Alignment.center,
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: const FigmaAsset(
-                        'manual-imgGroup1',
-                        width: 18,
-                        height: 21,
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    'Quét vé',
+                    style: driverText(22, FontWeight.w700, Colors.white),
+                  ),
+                ),
+                _cameraButton('Đèn pin', 'scanner-imgDenPinNutSetTtIcon', () {
+                  final camera = _camera;
+                  if (camera == null ||
+                      camera.value.torchState == TorchState.unavailable) {
+                    showDemoNotice(
+                      context,
+                      'Đèn pin không khả dụng trên thiết bị này.',
+                    );
+                  } else {
+                    unawaited(_cameraAction(camera.toggleTorch));
+                  }
+                }),
+                const SizedBox(width: 8),
+                _cameraButton(
+                  'Cài đặt camera',
+                  'scanner-imgCaiDtCameraIcon',
+                  () => showModalBottomSheet<void>(
+                    context: context,
+                    backgroundColor: Colors.white,
+                    showDragHandle: true,
+                    builder: (sheetContext) => SafeArea(
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Camera quét vé',
+                              style: driverText(
+                                22,
+                                FontWeight.w700,
+                                DriverColors.navy,
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            Text(
+                              'Cho phép camera trong cài đặt trình duyệt hoặc ứng dụng. Kết quả soát vé hiện chỉ lưu trong phiên xem thử.',
+                              style: driverText(
+                                14,
+                                FontWeight.w400,
+                                DriverColors.secondary,
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            TextButton(
+                              onPressed: () {
+                                Navigator.pop(sheetContext);
+                                final camera = _camera;
+                                if (camera != null) {
+                                  unawaited(_cameraAction(camera.switchCamera));
+                                }
+                              },
+                              child: const Text('Đổi camera'),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Expanded(
+            child: LayoutBuilder(
+              builder: (context, box) => Stack(
+                children: [
+                  if (_camera != null)
+                    Positioned.fill(
+                      child: MobileScanner(
+                        controller: _camera,
+                        onDetect: (capture) {
+                          final code = capture.barcodes.firstOrNull?.rawValue;
+                          if (code != null) unawaited(_acceptCode(code));
+                        },
+                        placeholderBuilder: (_) =>
+                            const ColoredBox(color: Color(0xff111317)),
+                        errorBuilder: (context, error) =>
+                            const ColoredBox(color: Color(0xff111317)),
+                      ),
+                    ),
+                  SingleChildScrollView(
+                    child: SizedBox(
+                      width: box.maxWidth,
+                      height: 547,
+                      child: Stack(
+                        alignment: Alignment.topCenter,
                         children: [
-                          Text(
-                            '${widget.trip.origin} → ${widget.trip.destination}',
-                            style: driverText(
-                              16,
-                              FontWeight.w600,
-                              DriverColors.navy,
+                          const Positioned(
+                            top: 10,
+                            child: SizedBox(
+                              height: 44.966,
+                              child: Row(
+                                children: [
+                                  FigmaAsset(
+                                    'scanner-imgVector',
+                                    width: 44.9661,
+                                    height: 34.3377,
+                                  ),
+                                  FigmaAsset(
+                                    'scanner-imgVector1',
+                                    width: 131.034,
+                                    height: 17.5649,
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
-                          const SizedBox(height: 6),
+                          Positioned(
+                            top: 68,
+                            child: Container(
+                              width: 264,
+                              height: 34,
+                              alignment: Alignment.center,
+                              decoration: BoxDecoration(
+                                color: const Color(0xff26282c),
+                                borderRadius: BorderRadius.circular(17),
+                              ),
+                              child: Text(
+                                '${widget.trip.id} · ${widget.trip.origin} → ${widget.trip.destination}',
+                                style: driverText(
+                                  12,
+                                  FontWeight.w400,
+                                  Colors.white,
+                                ),
+                              ),
+                            ),
+                          ),
+                          Positioned(
+                            top: 174,
+                            child: SizedBox(
+                              width: 280,
+                              height: 280,
+                              child: Stack(
+                                alignment: Alignment.center,
+                                children: [
+                                  Container(
+                                    decoration: const BoxDecoration(
+                                      gradient: RadialGradient(
+                                        colors: [
+                                          Color(0x8026282c),
+                                          Color(0x00111317),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                  const FigmaAsset(
+                                    'scanner-imgKhungNhnDinBnGoc',
+                                    width: 280,
+                                    height: 280,
+                                  ),
+                                  if (!_offline)
+                                    Container(
+                                      width: 272,
+                                      height: 1,
+                                      decoration: const BoxDecoration(
+                                        gradient: LinearGradient(
+                                          colors: [
+                                            Color(0x00f5a21a),
+                                            Color(0xe6f5a21a),
+                                            Color(0x00f5a21a),
+                                          ],
+                                        ),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: Color(0x66f5a21a),
+                                            blurRadius: 5,
+                                            spreadRadius: 1,
+                                          ),
+                                        ],
+                                      ),
+                                    )
+                                  else
+                                    const FigmaAsset(
+                                      'ticket-refresh-2082-1336-imgIconWifi',
+                                      width: 52,
+                                      height: 52,
+                                    ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          Positioned(
+                            top: 486,
+                            child: Row(
+                              children: [
+                                const FigmaAsset(
+                                  'scanner-imgChMa',
+                                  width: 5,
+                                  height: 5,
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  _offline
+                                      ? 'Đã tạm dừng quét'
+                                      : 'Đang chờ mã vé',
+                                  style: driverText(
+                                    12,
+                                    FontWeight.w400,
+                                    Colors.white,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  if (_camera case final camera?)
+                    Positioned.fill(
+                      child: ValueListenableBuilder<MobileScannerState>(
+                        valueListenable: camera,
+                        builder: (context, state, child) => state.error == null
+                            ? const SizedBox.shrink()
+                            : _cameraError(state.error!),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ),
+          if (_offline)
+            Container(
+              padding: const EdgeInsets.fromLTRB(24, 24, 24, 22),
+              decoration: const BoxDecoration(
+                color: DriverColors.cream,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+              ),
+              child: Column(
+                children: [
+                  Text(
+                    'Mất kết nối',
+                    style: driverText(24, FontWeight.w600, DriverColors.navy),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Cần kết nối để xác thực vé.',
+                    style: driverText(
+                      14,
+                      FontWeight.w500,
+                      DriverColors.secondary,
+                    ),
+                  ),
+                  const SizedBox(height: 28),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: SwipeAction(
+                      label: 'Thử lại',
+                      filled: true,
+                      arrowAsset: 'scanner-imgFrame',
+                      chevronAsset: 'scanner-imgFrame1',
+                      onComplete: _retryOffline,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _cameraButton(String label, String asset, VoidCallback onPressed) =>
+      SizedBox(
+        width: 44,
+        height: 44,
+        child: IconButton(
+          tooltip: label,
+          style: IconButton.styleFrom(backgroundColor: const Color(0xff26282c)),
+          onPressed: onPressed,
+          icon: FigmaAsset(asset, width: 24, height: 24),
+        ),
+      );
+
+  Widget _cameraError(MobileScannerException error) => Align(
+    alignment: Alignment.bottomCenter,
+    child: Padding(
+      padding: const EdgeInsets.fromLTRB(24, 12, 24, 32),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            error.errorCode == MobileScannerErrorCode.permissionDenied
+                ? 'Chưa được cấp quyền camera'
+                : 'Không mở được camera',
+            textAlign: TextAlign.center,
+            style: driverText(16, FontWeight.w600, Colors.white),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Cho phép camera trong cài đặt rồi thử lại.',
+            textAlign: TextAlign.center,
+            style: driverText(12, FontWeight.w400, Colors.white),
+          ),
+          TextButton(
+            onPressed: () {
+              final camera = _camera;
+              if (camera != null) unawaited(_cameraAction(camera.start));
+            },
+            child: const Text(
+              'Thử mở camera',
+              style: TextStyle(color: DriverColors.orange),
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
+/// Sơ đồ ghế theo chuyến, chỉ hiển thị tình trạng lên xe và không cho bán hoặc đổi ghế.
+class SeatMapScreen extends StatelessWidget {
+  const SeatMapScreen({
+    super.key,
+    required this.trip,
+    this.lastPassenger,
+    this.scanResults,
+  });
+  final DemoTrip trip;
+  final DemoPassenger? lastPassenger;
+  final Stream<String>? scanResults;
+
+  @override
+  Widget build(BuildContext context) {
+    if (!trip.assigned) {
+      return TripAccessScreen(onReturn: () => Navigator.maybePop(context));
+    }
+    final passengers = {
+      for (final passenger in trip.passengers) passenger.seat: passenger,
+    };
+    return DriverPage(
+      statusAsset: 'seat-map-imgTinHiuWiFiPin',
+      bottom: Padding(
+        padding: const EdgeInsets.fromLTRB(40, 14, 40, 32),
+        child: SwipeAction(
+          label: 'Quét vé tiếp',
+          arrowAsset: 'seat-map-imgFrame',
+          chevronAsset: 'seat-map-imgFrame1',
+          onComplete: () => Navigator.of(context).pushReplacement(
+            MaterialPageRoute<void>(
+              builder: (_) =>
+                  ScannerScreen(trip: trip, scanResults: scanResults),
+            ),
+          ),
+        ),
+      ),
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(24, 8, 24, 8),
+            child: Column(
+              children: [
+                Row(
+                  children: [
+                    IconButton(
+                      tooltip: 'Về chi tiết chuyến',
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints.tightFor(
+                        width: 32,
+                        height: 40,
+                      ),
+                      onPressed: () => Navigator.popUntil(
+                        context,
+                        (route) =>
+                            route.settings.name == 'TripDetailScreen' ||
+                            route.isFirst,
+                      ),
+                      icon: const FigmaAsset(
+                        'seat-map-imgQuayLi',
+                        width: 20,
+                        height: 20,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Text(
+                      'Sơ đồ ghế',
+                      style: driverText(22, FontWeight.w700, DriverColors.navy),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 6),
+                Padding(
+                  padding: const EdgeInsets.only(left: 44),
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      '${trip.id} · ${trip.origin} → ${trip.destination}',
+                      style: driverText(
+                        12,
+                        FontWeight.w400,
+                        DriverColors.secondary,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Expanded(
+            child: ListView(
+              padding: const EdgeInsets.fromLTRB(24, 16, 24, 16),
+              children: [
+                _BoardingProgress(trip: trip, compact: true),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    _seatLegend('Đã lên', const Color(0xff157a48)),
+                    _seatLegend('Đã đặt\nChưa lên', DriverColors.warning),
+                    _seatLegend('Trống', DriverColors.secondary),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: const Color(0xfff4f5f6),
+                    borderRadius: BorderRadius.circular(24),
+                  ),
+                  child: Column(
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
                           Text(
-                            '${widget.trip.id} · Khởi hành ${widget.trip.departure}',
+                            '↑ Đầu xe',
+                            style: driverText(
+                              12,
+                              FontWeight.w400,
+                              DriverColors.secondary,
+                            ),
+                          ),
+                          Text(
+                            '${trip.seats.length} ghế',
                             style: driverText(
                               12,
                               FontWeight.w400,
@@ -1019,248 +1258,170 @@ class _ManualTicketScreenState extends State<ManualTicketScreen> {
                           ),
                         ],
                       ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 24),
-              Text('Mã vé', style: driverText(16, FontWeight.w600)),
-              const SizedBox(height: 12),
-              TextField(
-                controller: _code,
-                textCapitalization: TextCapitalization.characters,
-                autocorrect: false,
-                style: driverText(22, FontWeight.w600),
-                onChanged: (_) {
-                  if (_error != null) setState(() => _error = null);
-                },
-                decoration: InputDecoration(
-                  hintText:
-                      widget.trip.passengers.firstOrNull?.ticket ?? 'Mã vé',
-                  errorText: _error,
-                  fillColor: Colors.white,
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 14,
-                    vertical: 22,
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(16),
-                    borderSide: const BorderSide(
-                      color: DriverColors.teal,
-                      width: 1.5,
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 12),
-              Text(
-                'Mã được in trên vé hoặc vé điện tử.',
-                style: driverText(12, FontWeight.w400, DriverColors.secondary),
-              ),
-              const SizedBox(height: 24),
-              InkWell(
-                onTap: () => Navigator.pop(context),
-                borderRadius: BorderRadius.circular(16),
-                child: DriverCard(
-                  border: true,
-                  child: Row(
-                    children: [
-                      const FigmaAsset(
-                        'manual-imgIconQr',
-                        width: 24,
-                        height: 24,
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Hoặc quét mã QR',
-                              style: driverText(
-                                16,
-                                FontWeight.w600,
-                                DriverColors.teal,
-                              ),
-                            ),
-                          ],
+                      const SizedBox(height: 14),
+                      for (
+                        var row = 0;
+                        row < (trip.seats.length / 4).ceil();
+                        row++
+                      )
+                        Padding(
+                          padding: EdgeInsets.only(
+                            bottom: row < (trip.seats.length / 4).ceil() - 1
+                                ? 6
+                                : 0,
+                          ),
+                          child: Row(
+                            children: [
+                              for (var column = 0; column < 4; column++) ...[
+                                if (column == 2)
+                                  const SizedBox(width: 52)
+                                else if (column > 0)
+                                  const SizedBox(width: 8),
+                                Expanded(
+                                  child: row * 4 + column < trip.seats.length
+                                      ? _seat(
+                                          trip.seats[row * 4 + column],
+                                          passengers[trip.seats[row * 4 +
+                                              column]],
+                                        )
+                                      : const SizedBox(),
+                                ),
+                              ],
+                            ],
+                          ),
                         ),
-                      ),
                     ],
                   ),
                 ),
-              ),
-            ],
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(40, 14, 40, 12),
-          child: Column(
-            children: [
-              SwipeAction(
-                label: 'Kiểm tra vé',
-                filled: true,
-                onComplete: _verify,
-                arrowAsset: 'manual-imgFrame',
-                chevronAsset: 'manual-imgFrame1',
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Bản mẫu · Chưa kiểm tra vé qua máy chủ',
-                style: driverText(12, FontWeight.w400, DriverColors.secondary),
-              ),
-            ],
-          ),
-        ),
-      ],
-    ),
-  );
-}
-
-/// Vé minh họa và trạng thái lên xe trong phiên xem thử.
-class TicketScreen extends StatefulWidget {
-  const TicketScreen({super.key, required this.trip, required this.passenger});
-  final DemoTrip trip;
-  final DemoPassenger passenger;
-  @override
-  State<TicketScreen> createState() => _TicketScreenState();
-}
-
-class _TicketScreenState extends State<TicketScreen> {
-  @override
-  Widget build(BuildContext context) {
-    final trip = widget.trip;
-    final passenger = widget.passenger;
-    if (passenger.boarded) {
-      return BoardingSuccessScreen(trip: trip, passenger: passenger);
-    }
-    return DriverPage(
-      background: DriverColors.cream,
-      statusAsset: 'ticket-imgTinHiuWiFiPin',
-      child: Column(
-        children: [
-          DriverHeading(
-            'Quét vé  ›  Đối chiếu',
-            back: false,
-            subtitle: '${trip.id} · ${trip.departure}',
-            background: DriverColors.cream,
-          ),
-          Expanded(
-            child: ListView(
-              padding: const EdgeInsets.fromLTRB(24, 12, 24, 24),
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: DriverCard(
-                    color: const Color(0xffedfbf3),
-                    padding: 12,
+                if (lastPassenger case final passenger?
+                    when passenger.boarded &&
+                        passengers[passenger.seat] == passenger) ...[
+                  const SizedBox(height: 12),
+                  Container(
+                    constraints: const BoxConstraints(minHeight: 48),
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: const Color(0xffedfbf3),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
                     child: Row(
                       children: [
                         const FigmaAsset(
-                          'ticket-imgGroup',
-                          width: 29,
-                          height: 29,
+                          'seat-map-imgXacNhn',
+                          width: 20,
+                          height: 20,
                         ),
-                        const SizedBox(width: 16),
+                        const SizedBox(width: 12),
                         Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                passenger.boarded
-                                    ? 'Đã lên xe · Bản mẫu'
-                                    : 'Vé hợp lệ · Bản mẫu',
-                                style: driverText(
-                                  16,
-                                  FontWeight.w600,
-                                  const Color(0xff157a48),
-                                ),
-                              ),
-                              Text(
-                                'Đúng chuyến ${trip.id}',
-                                style: driverText(
-                                  12,
-                                  FontWeight.w400,
-                                  const Color(0xff157a48),
-                                ),
-                              ),
-                            ],
+                          child: Text(
+                            '${passenger.seat} · ${passenger.name}',
+                            style: driverText(
+                              14,
+                              FontWeight.w500,
+                              const Color(0xff157a48),
+                            ),
                           ),
                         ),
                       ],
                     ),
                   ),
-                ),
-                const SizedBox(height: 16),
-                _PhysicalTicket(trip: trip, passenger: passenger),
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: TextButton(
-                    onPressed: () async {
-                      await openDriverPage(
-                        context,
-                        PassengerStatusScreen(trip: trip, passenger: passenger),
-                      );
-                      if (mounted) setState(() {});
-                    },
-                    child: const Text('Cập nhật khách'),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                DriverCard(
-                  child: Row(
-                    children: [
-                      const FigmaAsset(
-                        'ticket-imgIconBus',
-                        width: 20,
-                        height: 20,
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        '${trip.plate} · 14/10/2026',
-                        style: driverText(
-                          12,
-                          FontWeight.w400,
-                          DriverColors.secondary,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(40, 8, 40, 8),
-            child: Column(
-              children: [
-                SwipeAction(
-                  label: passenger.boarded
-                      ? 'Đã xác nhận trong bản mẫu'
-                      : 'Xác nhận lên xe',
-                  enabled: !passenger.boarded,
-                  background: Colors.white,
-                  arrowAsset: 'ticket-imgFrame',
-                  chevronAsset: 'ticket-imgFrame1',
-                  onComplete: () {
-                    if (passenger.boarded) return;
-                    setState(() {
-                      passenger.boarded = true;
-                      passenger.absent = false;
-                      passenger.needsAttention = false;
-                      passenger.checkedInAt = DateTime.now();
-                    });
-                  },
-                ),
-                IconButton(
-                  tooltip: 'Quay lại',
-                  onPressed: () => Navigator.maybePop(context),
-                  icon: const Icon(Icons.arrow_back, size: 20),
-                ),
+                ],
               ],
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _seatLegend(String label, Color color) => Expanded(
+    child: ConstrainedBox(
+      constraints: const BoxConstraints(minHeight: 36),
+      child: Row(
+        children: [
+          Container(
+            width: 16,
+            height: 16,
+            decoration: BoxDecoration(
+              color: color,
+              borderRadius: BorderRadius.circular(5),
+            ),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              label,
+              style: driverText(12, FontWeight.w400, DriverColors.secondary),
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
+
+  Widget _seat(String code, DemoPassenger? passenger) {
+    final boarded = passenger?.boarded ?? false;
+    final empty = passenger == null;
+    final highlighted = boarded && identical(lastPassenger, passenger);
+    final color = empty
+        ? DriverColors.secondary
+        : boarded
+        ? const Color(0xff157a48)
+        : DriverColors.warning;
+    final label = empty
+        ? 'Trống'
+        : boarded
+        ? 'Đã lên'
+        : 'Chưa lên';
+    return Semantics(
+      label: 'Ghế $code, $label',
+      child: Container(
+        key: ValueKey('seat-$code'),
+        constraints: const BoxConstraints(minHeight: 40),
+        padding: EdgeInsets.symmetric(vertical: highlighted ? 1 : 2),
+        decoration: BoxDecoration(
+          color: empty
+              ? Colors.white
+              : boarded
+              ? const Color(0xffedfbf3)
+              : DriverColors.cream,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            width: highlighted ? 2 : 1,
+            color: empty
+                ? DriverColors.border
+                : highlighted
+                ? const Color(0xff157a48)
+                : boarded
+                ? const Color(0xff8de5b6)
+                : const Color(0xfff9d994),
+          ),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Flexible(
+                  child: Text(
+                    code,
+                    style: driverText(14, FontWeight.w500, color),
+                  ),
+                ),
+                if (boarded) ...[
+                  const SizedBox(width: 4),
+                  const FigmaAsset(
+                    'seat-map-imgDuTichDaLen',
+                    width: 12,
+                    height: 12,
+                  ),
+                ],
+              ],
+            ),
+            Text(label, style: driverText(10, FontWeight.w400, color)),
+          ],
+        ),
       ),
     );
   }
@@ -1281,20 +1442,28 @@ class _PhysicalTicket extends StatelessWidget {
         child: Stack(
           children: [
             const FigmaAsset(
-              'ticket-imgPapierLKhuytTht',
+              'ticket-refresh-1834-668-imgPapierLKhuytTht',
               width: 364,
               height: 344,
             ),
             const FigmaAsset(
-              'ticket-imgCungVeMauHThng',
+              'ticket-refresh-1834-668-imgCungVeMauHThng',
               width: 364,
               height: 344,
             ),
-            const FigmaAsset('ticket-imgVinVeLKhuyt', width: 364, height: 344),
+            const FigmaAsset(
+              'ticket-refresh-1834-668-imgVinVeLKhuyt',
+              width: 364,
+              height: 344,
+            ),
             const Positioned(
               left: 24,
               top: 231,
-              child: FigmaAsset('ticket-imgLine', width: 316, height: 1),
+              child: FigmaAsset(
+                'ticket-refresh-1834-668-imgLine',
+                width: 316,
+                height: 1,
+              ),
             ),
             Positioned(
               left: 24,
@@ -1379,7 +1548,7 @@ class _PhysicalTicket extends StatelessWidget {
                         ),
                       ),
                       const FigmaAsset(
-                        'ticket-imgTuynHaiNetCan',
+                        'ticket-refresh-1834-668-imgTuynHaiNetCan',
                         width: 84,
                         height: 24,
                       ),

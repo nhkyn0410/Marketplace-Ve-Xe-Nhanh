@@ -56,6 +56,7 @@ class DriverPage extends StatelessWidget {
     this.statusAsset,
     this.keepTheme = false,
     this.indicatorBackground,
+    this.indicatorColor,
   });
   final Widget child;
   final Widget? bottom;
@@ -65,6 +66,7 @@ class DriverPage extends StatelessWidget {
   final String? statusAsset;
   final bool keepTheme;
   final Color? indicatorBackground;
+  final Color? indicatorColor;
 
   @override
   Widget build(BuildContext context) => Theme(
@@ -113,7 +115,9 @@ class DriverPage extends StatelessWidget {
                       width: 134,
                       height: 5,
                       decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.onSurface,
+                        color:
+                            indicatorColor ??
+                            Theme.of(context).colorScheme.onSurface,
                         borderRadius: BorderRadius.circular(3),
                       ),
                     ),
@@ -406,7 +410,12 @@ class StatusPill extends StatelessWidget {
 /// Mở màn hình con và giữ thao tác quay lại theo Navigator của Flutter.
 Future<T?> openDriverPage<T>(BuildContext context, Widget page) {
   ScaffoldMessenger.maybeOf(context)?.removeCurrentSnackBar();
-  return Navigator.of(context).push<T>(MaterialPageRoute(builder: (_) => page));
+  return Navigator.of(context).push<T>(
+    MaterialPageRoute(
+      settings: RouteSettings(name: page.runtimeType.toString()),
+      builder: (_) => page,
+    ),
+  );
 }
 
 /// Thông báo rõ ràng cho thao tác đang dùng dữ liệu minh họa.

@@ -754,9 +754,11 @@ class PassengerScreen extends StatefulWidget {
     super.key,
     required this.trip,
     required this.onTabSelected,
+    this.scanResults,
   });
   final DemoTrip trip;
   final ValueChanged<int> onTabSelected;
+  final Stream<String>? scanResults;
   @override
   State<PassengerScreen> createState() => _PassengerScreenState();
 }
@@ -923,7 +925,7 @@ class _PassengerScreenState extends State<PassengerScreen> {
     FocusScope.of(context).unfocus();
     await openDriverPage(
       context,
-      TicketScreen(trip: widget.trip, passenger: passenger),
+      PassengerStatusScreen(trip: widget.trip, passenger: passenger),
     );
     if (mounted) setState(() {});
   }
@@ -1235,7 +1237,10 @@ class _PassengerScreenState extends State<PassengerScreen> {
               label: 'Quét vé',
               borderColor: const Color(0xffcacdcf),
               onComplete: () async {
-                await openDriverPage(context, ScannerScreen(trip: trip));
+                await openDriverPage(
+                  context,
+                  ScannerScreen(trip: trip, scanResults: widget.scanResults),
+                );
                 if (mounted) setState(() {});
               },
               arrowAsset: 'manifest-imgFrame',
