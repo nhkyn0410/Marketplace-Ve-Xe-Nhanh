@@ -14,6 +14,10 @@ class _$TripSearchResponseDtoOutputItemsInnerOperator
   final String name;
   @override
   final String slug;
+  @override
+  final num? averageRating;
+  @override
+  final int reviewCount;
 
   factory _$TripSearchResponseDtoOutputItemsInnerOperator(
           [void Function(TripSearchResponseDtoOutputItemsInnerOperatorBuilder)?
@@ -22,7 +26,11 @@ class _$TripSearchResponseDtoOutputItemsInnerOperator
           ._build();
 
   _$TripSearchResponseDtoOutputItemsInnerOperator._(
-      {required this.id, required this.name, required this.slug})
+      {required this.id,
+      required this.name,
+      required this.slug,
+      this.averageRating,
+      required this.reviewCount})
       : super._();
   @override
   TripSearchResponseDtoOutputItemsInnerOperator rebuild(
@@ -40,7 +48,9 @@ class _$TripSearchResponseDtoOutputItemsInnerOperator
     return other is TripSearchResponseDtoOutputItemsInnerOperator &&
         id == other.id &&
         name == other.name &&
-        slug == other.slug;
+        slug == other.slug &&
+        averageRating == other.averageRating &&
+        reviewCount == other.reviewCount;
   }
 
   @override
@@ -49,6 +59,8 @@ class _$TripSearchResponseDtoOutputItemsInnerOperator
     _$hash = $jc(_$hash, id.hashCode);
     _$hash = $jc(_$hash, name.hashCode);
     _$hash = $jc(_$hash, slug.hashCode);
+    _$hash = $jc(_$hash, averageRating.hashCode);
+    _$hash = $jc(_$hash, reviewCount.hashCode);
     _$hash = $jf(_$hash);
     return _$hash;
   }
@@ -59,7 +71,9 @@ class _$TripSearchResponseDtoOutputItemsInnerOperator
             r'TripSearchResponseDtoOutputItemsInnerOperator')
           ..add('id', id)
           ..add('name', name)
-          ..add('slug', slug))
+          ..add('slug', slug)
+          ..add('averageRating', averageRating)
+          ..add('reviewCount', reviewCount))
         .toString();
   }
 }
@@ -82,6 +96,15 @@ class TripSearchResponseDtoOutputItemsInnerOperatorBuilder
   String? get slug => _$this._slug;
   set slug(String? slug) => _$this._slug = slug;
 
+  num? _averageRating;
+  num? get averageRating => _$this._averageRating;
+  set averageRating(num? averageRating) =>
+      _$this._averageRating = averageRating;
+
+  int? _reviewCount;
+  int? get reviewCount => _$this._reviewCount;
+  set reviewCount(int? reviewCount) => _$this._reviewCount = reviewCount;
+
   TripSearchResponseDtoOutputItemsInnerOperatorBuilder() {
     TripSearchResponseDtoOutputItemsInnerOperator._defaults(this);
   }
@@ -92,6 +115,8 @@ class TripSearchResponseDtoOutputItemsInnerOperatorBuilder
       _id = $v.id;
       _name = $v.name;
       _slug = $v.slug;
+      _averageRating = $v.averageRating;
+      _reviewCount = $v.reviewCount;
       _$v = null;
     }
     return this;
@@ -121,6 +146,9 @@ class TripSearchResponseDtoOutputItemsInnerOperatorBuilder
               name, r'TripSearchResponseDtoOutputItemsInnerOperator', 'name'),
           slug: BuiltValueNullFieldError.checkNotNull(
               slug, r'TripSearchResponseDtoOutputItemsInnerOperator', 'slug'),
+          averageRating: averageRating,
+          reviewCount: BuiltValueNullFieldError.checkNotNull(reviewCount,
+              r'TripSearchResponseDtoOutputItemsInnerOperator', 'reviewCount'),
         );
     replace(_$result);
     return _$result;

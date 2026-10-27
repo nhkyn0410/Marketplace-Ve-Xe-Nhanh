@@ -6661,6 +6661,8 @@ export interface components {
                     id: string;
                     name: string;
                     slug: string;
+                    averageRating: number | null;
+                    reviewCount: number;
                 };
                 routeName: string;
                 vehicleType: {
@@ -6722,6 +6724,8 @@ export interface components {
                 name: string;
                 slug: string;
                 hotline: string | null;
+                averageRating: number | null;
+                reviewCount: number;
             };
             routeName: string;
             /** Format: date-time */

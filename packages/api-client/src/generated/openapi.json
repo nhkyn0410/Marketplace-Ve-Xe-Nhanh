@@ -36813,12 +36813,29 @@
                     },
                     "slug": {
                       "type": "string"
+                    },
+                    "averageRating": {
+                      "anyOf": [
+                        {
+                          "type": "number"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "reviewCount": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
                     }
                   },
                   "required": [
                     "id",
                     "name",
-                    "slug"
+                    "slug",
+                    "averageRating",
+                    "reviewCount"
                   ],
                   "additionalProperties": false
                 },
@@ -37107,13 +37124,30 @@
                     "type": "null"
                   }
                 ]
+              },
+              "averageRating": {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "reviewCount": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
               }
             },
             "required": [
               "id",
               "name",
               "slug",
-              "hotline"
+              "hotline",
+              "averageRating",
+              "reviewCount"
             ],
             "additionalProperties": false
           },

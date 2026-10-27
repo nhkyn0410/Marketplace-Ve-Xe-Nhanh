@@ -15,13 +15,22 @@ class _$PublicTripDtoOutputOperator extends PublicTripDtoOutputOperator {
   final String slug;
   @override
   final String? hotline;
+  @override
+  final num? averageRating;
+  @override
+  final int reviewCount;
 
   factory _$PublicTripDtoOutputOperator(
           [void Function(PublicTripDtoOutputOperatorBuilder)? updates]) =>
       (PublicTripDtoOutputOperatorBuilder()..update(updates))._build();
 
   _$PublicTripDtoOutputOperator._(
-      {required this.id, required this.name, required this.slug, this.hotline})
+      {required this.id,
+      required this.name,
+      required this.slug,
+      this.hotline,
+      this.averageRating,
+      required this.reviewCount})
       : super._();
   @override
   PublicTripDtoOutputOperator rebuild(
@@ -39,7 +48,9 @@ class _$PublicTripDtoOutputOperator extends PublicTripDtoOutputOperator {
         id == other.id &&
         name == other.name &&
         slug == other.slug &&
-        hotline == other.hotline;
+        hotline == other.hotline &&
+        averageRating == other.averageRating &&
+        reviewCount == other.reviewCount;
   }
 
   @override
@@ -49,6 +60,8 @@ class _$PublicTripDtoOutputOperator extends PublicTripDtoOutputOperator {
     _$hash = $jc(_$hash, name.hashCode);
     _$hash = $jc(_$hash, slug.hashCode);
     _$hash = $jc(_$hash, hotline.hashCode);
+    _$hash = $jc(_$hash, averageRating.hashCode);
+    _$hash = $jc(_$hash, reviewCount.hashCode);
     _$hash = $jf(_$hash);
     return _$hash;
   }
@@ -59,7 +72,9 @@ class _$PublicTripDtoOutputOperator extends PublicTripDtoOutputOperator {
           ..add('id', id)
           ..add('name', name)
           ..add('slug', slug)
-          ..add('hotline', hotline))
+          ..add('hotline', hotline)
+          ..add('averageRating', averageRating)
+          ..add('reviewCount', reviewCount))
         .toString();
   }
 }
@@ -86,6 +101,15 @@ class PublicTripDtoOutputOperatorBuilder
   String? get hotline => _$this._hotline;
   set hotline(String? hotline) => _$this._hotline = hotline;
 
+  num? _averageRating;
+  num? get averageRating => _$this._averageRating;
+  set averageRating(num? averageRating) =>
+      _$this._averageRating = averageRating;
+
+  int? _reviewCount;
+  int? get reviewCount => _$this._reviewCount;
+  set reviewCount(int? reviewCount) => _$this._reviewCount = reviewCount;
+
   PublicTripDtoOutputOperatorBuilder() {
     PublicTripDtoOutputOperator._defaults(this);
   }
@@ -97,6 +121,8 @@ class PublicTripDtoOutputOperatorBuilder
       _name = $v.name;
       _slug = $v.slug;
       _hotline = $v.hotline;
+      _averageRating = $v.averageRating;
+      _reviewCount = $v.reviewCount;
       _$v = null;
     }
     return this;
@@ -125,6 +151,9 @@ class PublicTripDtoOutputOperatorBuilder
           slug: BuiltValueNullFieldError.checkNotNull(
               slug, r'PublicTripDtoOutputOperator', 'slug'),
           hotline: hotline,
+          averageRating: averageRating,
+          reviewCount: BuiltValueNullFieldError.checkNotNull(
+              reviewCount, r'PublicTripDtoOutputOperator', 'reviewCount'),
         );
     replace(_$result);
     return _$result;

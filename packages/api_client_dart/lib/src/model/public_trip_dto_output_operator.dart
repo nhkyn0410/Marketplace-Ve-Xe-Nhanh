@@ -15,6 +15,8 @@ part 'public_trip_dto_output_operator.g.dart';
 /// * [name] 
 /// * [slug] 
 /// * [hotline] 
+/// * [averageRating] 
+/// * [reviewCount] 
 @BuiltValue()
 abstract class PublicTripDtoOutputOperator implements Built<PublicTripDtoOutputOperator, PublicTripDtoOutputOperatorBuilder> {
   @BuiltValueField(wireName: r'id')
@@ -28,6 +30,12 @@ abstract class PublicTripDtoOutputOperator implements Built<PublicTripDtoOutputO
 
   @BuiltValueField(wireName: r'hotline')
   String? get hotline;
+
+  @BuiltValueField(wireName: r'averageRating')
+  num? get averageRating;
+
+  @BuiltValueField(wireName: r'reviewCount')
+  int get reviewCount;
 
   PublicTripDtoOutputOperator._();
 
@@ -71,6 +79,16 @@ class _$PublicTripDtoOutputOperatorSerializer implements PrimitiveSerializer<Pub
     yield object.hotline == null ? null : serializers.serialize(
       object.hotline,
       specifiedType: const FullType.nullable(String),
+    );
+    yield r'averageRating';
+    yield object.averageRating == null ? null : serializers.serialize(
+      object.averageRating,
+      specifiedType: const FullType.nullable(num),
+    );
+    yield r'reviewCount';
+    yield serializers.serialize(
+      object.reviewCount,
+      specifiedType: const FullType(int),
     );
   }
 
@@ -123,6 +141,21 @@ class _$PublicTripDtoOutputOperatorSerializer implements PrimitiveSerializer<Pub
           ) as String?;
           if (valueDes == null) continue;
           result.hotline = valueDes;
+          break;
+        case r'averageRating':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType.nullable(num),
+          ) as num?;
+          if (valueDes == null) continue;
+          result.averageRating = valueDes;
+          break;
+        case r'reviewCount':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(int),
+          ) as int;
+          result.reviewCount = valueDes;
           break;
         default:
           unhandled.add(key);

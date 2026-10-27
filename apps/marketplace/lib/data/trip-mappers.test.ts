@@ -20,7 +20,7 @@ describe("API trip boundary", () => {
 
   it("keeps unavailable seats ambiguous, picks the lowest server price with BigInt, and keeps absent prices empty", () => {
     const trip: components["schemas"]["PublicTripDto_Output"] = {
-      tripId: "trip", operator: { id: "operator", name: "Nhà xe", slug: "nha-xe", hotline: null }, routeName: "A → B",
+      tripId: "trip", operator: { id: "operator", name: "Nhà xe", slug: "nha-xe", hotline: null, averageRating: null, reviewCount: 0 }, routeName: "A → B",
       departureAt: "2026-10-21T18:00:00Z", arrivalAt: "2026-10-21T22:00:00Z", onlineSaleClosesAt: "2026-10-21T17:00:00Z",
       note: null, vehicleType: { name: "Giường nằm", form: "SLEEPER", class: "STANDARD" }, amenities: [], vehicleImages: [],
       stops: [{ sequence: 1, role: "ORIGIN", name: "Bến xe", address: "Địa chỉ", type: "BUS_STATION", latitude: 10.8, longitude: 106.7,

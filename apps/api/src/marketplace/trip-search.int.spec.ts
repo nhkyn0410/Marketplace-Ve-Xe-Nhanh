@@ -229,7 +229,7 @@ describe.skipIf(!url && !requireDb)("Tìm chuyến công khai — Postgres thậ
     expect(result.items.map((item) => item.tripId)).toEqual([ids.main, ids.cheap, ids.far, ids.office]);
     const main = result.items[0]!;
     expect(main).toMatchObject({
-      operator: { id: opA, name: `Nhà xe A ${tag}` },
+      operator: { id: opA, name: `Nhà xe A ${tag}`, averageRating: null, reviewCount: 0 },
       vehicleType: { form: "SLEEPER", class: "LIMOUSINE" },
       pickup: { sequence: 1, name: `Bến đi ${tag}` },
       dropoff: { sequence: 3, name: `Bến đến ${tag}` },
@@ -307,7 +307,7 @@ describe.skipIf(!url && !requireDb)("Tìm chuyến công khai — Postgres thậ
 
   it("chi tiết: lịch trình đủ điểm, sơ đồ chỗ có giá + còn / không (chỗ khóa), chính sách hủy; nháp / nhà xe tạm khóa → 404", async () => {
     const detail = await search.getTrip(ids.cheap);
-    expect(detail).toMatchObject({ routeName: `Đi – Đến ${tag}`, operator: { hotline: "19001001" }, vehicleImages: [] });
+    expect(detail).toMatchObject({ routeName: `Đi – Đến ${tag}`, operator: { hotline: "19001001", averageRating: null, reviewCount: 0 }, vehicleImages: [] });
     expect(detail.stops.map((stop) => [stop.sequence, stop.type, stop.allowPickup, stop.allowDropoff])).toEqual([
       [1, "BUS_STATION", true, false],
       [2, "REST_STOP", false, false],
