@@ -57,6 +57,7 @@
 | v1.35     | 04/10/2026 | AI Agent, Nguyễn Hồng Khanh | **Thiết kế lại điểm dừng (Khanh chốt 04/10/2026):** `BR-38` viết lại — bến xe và điểm dừng đón trả khách chỉ nằm trong danh mục dùng chung do Admin lập hoặc duyệt (đề xuất kèm căn cứ công bố); điểm riêng của nhà xe chỉ gồm văn phòng trung chuyển và trạm dừng nghỉ. `BR-23` + `BR-79` — quyền đón / trả theo loại điểm và theo từng điểm dừng của tuyến; `BR-80` — tìm chuyến khớp theo vị trí (tỉnh / thành, địa danh dùng chung); `BR-81` — Admin giám sát và khóa điểm riêng. Thêm `FR-OPS-17`, `FR-ADM-21`, `AC-42`; sửa `AS-04`, `FR-MKT-01`, `FR-MKT-09`, `FR-OPS-04..05`, `UC-02`, `UC-13`, `UC-24`, §3.5, §6, §9.3, §15.3. Căn cứ: Nghị định 158/2024/NĐ-CP, Thông tư 36/2024/TT-BGTVT. Mở `OQ-24` (loại hình vận tải). Giữ trạng thái Review. |
 | v1.36     | 21/10/2026 | AI Agent | **Phân quyền theo từng tài khoản (Khanh 21/10/2026, chờ duyệt — `TASK-IAM-007`):** thêm `FR-IAM-19` tài khoản quản lý Operator OS do Owner cấp, tick quyền từng tài khoản; `FR-IAM-07` hiện thực bằng danh sách quyền riêng của tài khoản quản trị trong trần vai trò. |
 | v1.37     | 27/10/2026 | AI Agent | **Tra cứu vé khách vãng lai không cần mã đặt vé (Khanh 27/10/2026, chờ duyệt):** `UC-35` bước 1–2 — email bắt buộc, mã vé / mã booking tùy chọn, OTP gửi về email; thêm A1b (danh sách đơn 12 tháng gồm cả đơn đặt bằng tài khoản, hỏi đăng nhập), A1c (mất email → CSKH). Giữ trạng thái Review. |
+| v1.38     | 27/10/2026 | AI Agent | **Hủy vé và khiếu nại sau OTP tra cứu vé (Khanh 27/10/2026, chờ duyệt):** `UC-35` bước 6 — OTP của phiên tra cứu đủ cho hủy vé / hoàn tiền / khiếu nại của booking khách vãng lai trong phiên; booking đặt bằng tài khoản phải đăng nhập. Giữ trạng thái Review. |
 
 ---
 
@@ -2478,7 +2479,7 @@ Luồng chính:
 3. Hệ thống kiểm tra định dạng mã tra cứu và thông tin liên hệ.
 4. Hệ thống đối chiếu mã tra cứu với booking / ticket và kiểm tra thông tin liên hệ có khớp dữ liệu đã lưu hay không.
 5. Hệ thống xác định mức dữ liệu được phép hiển thị cho Guest: thông tin chuyến, ghế, điểm đón / trả, trạng thái vé, trạng thái thanh toán và hướng dẫn lên xe.
-6. Nếu Guest yêu cầu thao tác nhạy cảm như hủy vé, yêu cầu hoàn tiền, gửi khiếu nại hoặc xem dữ liệu cá nhân chi tiết hơn, hệ thống yêu cầu xác minh bổ sung theo policy.
+6. Nếu Guest yêu cầu thao tác nhạy cảm như hủy vé, yêu cầu hoàn tiền, gửi khiếu nại hoặc xem dữ liệu cá nhân chi tiết hơn, hệ thống yêu cầu xác minh bổ sung theo policy. Chờ duyệt (27/10/2026, Khanh): OTP của phiên tra cứu đủ để hủy vé / yêu cầu hoàn tiền và gửi khiếu nại cho booking khách vãng lai trong phiên (quyền hết cùng phiên); booking đặt bằng tài khoản phải đăng nhập tài khoản đó.
 7. Sau khi xác minh đủ, hệ thống cho Guest tiếp tục sang luồng phù hợp như xem vé điện tử, hủy / hoàn tiền hoặc liên hệ hỗ trợ trong phạm vi vé đã xác minh.
 8. Hệ thống gợi ý đăng ký / đăng nhập nếu Guest muốn quản lý lịch sử booking dài hạn hoặc lưu hồ sơ hành khách cho lần sau.
 

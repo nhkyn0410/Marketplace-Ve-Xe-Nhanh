@@ -87,6 +87,7 @@ describe("Vé — HTTP", () => {
     verifyOtp: vi.fn(async () => session),
     listBookings: vi.fn(async () => bookingList),
     lookup: vi.fn(async () => booking),
+    grantBookingAccess: vi.fn(async () => ({ bookingId: booking.bookingId, accessToken: "a".repeat(43), expiresAt: now })),
   };
   let app: INestApplication;
   let base: string;
@@ -198,5 +199,15 @@ describe("Vé — HTTP", () => {
       expect((await post("", body)).status, JSON.stringify(body)).toBe(400);
     }
     expect(service.lookup).toHaveBeenCalledTimes(2);
+  });
+  it("mã truy cập phụ sau OTP: 200 trả mã + hạn; thiếu / sai phiên hoặc id đơn sai dạng → 400", async () => {
+    const response = await post("/booking-access", { lookupToken: session.lookupToken, bookingId: booking.bookingId });
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({ bookingId: booking.bookingId, accessToken: "a".repeat(43), expiresAt: now });
+    expect(service.grantBookingAccess).toHaveBeenCalledWith({ lookupToken: session.lookupToken, bookingId: booking.bookingId });
+    for (const body of [{}, { lookupToken: "ngan" }, { lookupToken: session.lookupToken, bookingId: "khong-phai-uuid" }]) {
+      expect((await post("/booking-access", body)).status, JSON.stringify(body)).toBe(400);
+    }
+    expect(service.grantBookingAccess).toHaveBeenCalledTimes(1);
   });
 });

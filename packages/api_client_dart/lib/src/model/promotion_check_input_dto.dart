@@ -13,6 +13,7 @@ part 'promotion_check_input_dto.g.dart';
 /// Properties:
 /// * [tripId] 
 /// * [code] 
+/// * [userVoucherId] 
 /// * [subtotal] 
 @BuiltValue()
 abstract class PromotionCheckInputDto implements Built<PromotionCheckInputDto, PromotionCheckInputDtoBuilder> {
@@ -20,7 +21,10 @@ abstract class PromotionCheckInputDto implements Built<PromotionCheckInputDto, P
   String get tripId;
 
   @BuiltValueField(wireName: r'code')
-  String get code;
+  String? get code;
+
+  @BuiltValueField(wireName: r'userVoucherId')
+  String? get userVoucherId;
 
   @BuiltValueField(wireName: r'subtotal')
   int get subtotal;
@@ -53,11 +57,20 @@ class _$PromotionCheckInputDtoSerializer implements PrimitiveSerializer<Promotio
       object.tripId,
       specifiedType: const FullType(String),
     );
-    yield r'code';
-    yield serializers.serialize(
-      object.code,
-      specifiedType: const FullType(String),
-    );
+    if (object.code != null) {
+      yield r'code';
+      yield serializers.serialize(
+        object.code,
+        specifiedType: const FullType(String),
+      );
+    }
+    if (object.userVoucherId != null) {
+      yield r'userVoucherId';
+      yield serializers.serialize(
+        object.userVoucherId,
+        specifiedType: const FullType(String),
+      );
+    }
     yield r'subtotal';
     yield serializers.serialize(
       object.subtotal,
@@ -96,9 +109,18 @@ class _$PromotionCheckInputDtoSerializer implements PrimitiveSerializer<Promotio
         case r'code':
           final valueDes = serializers.deserialize(
             value,
-            specifiedType: const FullType(String),
-          ) as String;
+            specifiedType: const FullType.nullable(String),
+          ) as String?;
+          if (valueDes == null) continue;
           result.code = valueDes;
+          break;
+        case r'userVoucherId':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType.nullable(String),
+          ) as String?;
+          if (valueDes == null) continue;
+          result.userVoucherId = valueDes;
           break;
         case r'subtotal':
           final valueDes = serializers.deserialize(

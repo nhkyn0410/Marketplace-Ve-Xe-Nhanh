@@ -7,7 +7,7 @@ const { request, jar, values } = vi.hoisted(() => {
 vi.mock("./api", () => ({ apiRequest: request }));
 vi.mock("./session", () => ({ refreshSessionIfNeeded: vi.fn(async () => ({ status: "ok", data: { rotated: false } })) }));
 vi.mock("next/headers", () => ({ cookies: vi.fn(async () => jar) }));
-import { cancelTickets, endTicketLookup, getCancellationQuote, getMyTickets, getTicketDetail, getTicketLookupBookings, getTicketLookupResult, requestTicketLookupOtp, verifyTicketLookupOtp } from "./tickets";
+import { cancelTickets, endTicketLookup, getCancellationQuote, getMyTickets, getTicketDetail, getTicketLookupBookings, getTicketLookupResult, requestTicketLookupOtp, unlockTicketLookupBooking, verifyTicketLookupOtp } from "./tickets";
 
 describe("ticket API integration", () => {
   beforeEach(() => { vi.clearAllMocks(); values.clear(); request.mockReset(); });
@@ -113,5 +113,26 @@ describe("ticket API integration", () => {
     request.mockResolvedValueOnce({ status: "ok", data: bookingFixture() });
     expect((await getTicketLookupResult("b2")).status).toBe("ok");
     expect(JSON.parse(request.mock.calls[3]![1].body)).toEqual({ lookupToken: "secret-lookup-token", bookingId: "b2" });
+  });
+  it("mở quyền hủy vé / khiếu nại sau OTP: lưu mã phụ vào cookie của đơn tới hết phiên; trình duyệt đã có mã gốc thì giữ nguyên, không gọi API", async () => {
+    const expiresAt = new Date(Date.now() + 600_000).toISOString();
+    values.set("vxn_ticket_lookup", JSON.stringify({ lookupToken: "secret-lookup-token", expiresAt }));
+    request.mockResolvedValueOnce({ status: "ok", data: { bookingId: "b1", accessToken: "grant-token", expiresAt } });
+    expect(await unlockTicketLookupBooking("b1")).toEqual({ status: "ok", data: { bookingId: "b1" } });
+    expect(request.mock.calls[0]![0]).toBe("/guest/ticket-lookup/booking-access");
+    expect(JSON.parse(request.mock.calls[0]![1].body)).toEqual({ lookupToken: "secret-lookup-token", bookingId: "b1" });
+    expect(jar.set).toHaveBeenCalledWith("vxn_booking_b1", "grant-token", expect.objectContaining({ httpOnly: true, maxAge: expect.any(Number) }));
+    const maxAge = (jar.set.mock.calls.at(-1) as unknown as [string, string, { maxAge: number }])[2].maxAge;
+    expect(maxAge).toBeGreaterThan(590);
+    expect(maxAge).toBeLessThanOrEqual(600);
+
+    values.set("vxn_booking_b2", "original-booking-capability");
+    expect(await unlockTicketLookupBooking("b2")).toEqual({ status: "ok", data: { bookingId: "b2" } });
+    expect(request).toHaveBeenCalledTimes(1);
+    expect(values.get("vxn_booking_b2")).toBe("original-booking-capability");
+
+    request.mockResolvedValueOnce({ status: "error", endpoint: "POST /guest/ticket-lookup/booking-access", message: "Đơn này được đặt bằng tài khoản.", httpStatus: 403 });
+    expect(await unlockTicketLookupBooking("b3")).toMatchObject({ status: "error", httpStatus: 403 });
+    expect(values.has("vxn_booking_b3")).toBe(false);
   });
 });

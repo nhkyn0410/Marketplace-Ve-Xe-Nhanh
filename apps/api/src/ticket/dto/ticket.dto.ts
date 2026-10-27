@@ -91,6 +91,17 @@ export type TicketLookupInput = z.infer<typeof TicketLookupInputSchema>;
 /** Đọc booking + vé bằng phiên tra cứu đã xác minh. */
 export class TicketLookupInputDto extends createZodDto(TicketLookupInputSchema) {}
 
+export const TicketLookupAccessSchema = z.object({
+  bookingId: z.uuid(),
+  /** Mã truy cập phụ — gửi ở header `X-Booking-Token` để xem đơn / vé, hủy vé, gửi khiếu nại; trả MỘT lần. */
+  accessToken: z.string(),
+  /** Hết hạn cùng phiên tra cứu. */
+  expiresAt: z.iso.datetime(),
+});
+export type TicketLookupAccess = z.infer<typeof TicketLookupAccessSchema>;
+/** Quyền thao tác một đơn sau khi xác minh OTP tra cứu vé. */
+export class TicketLookupAccessDto extends createZodDto(TicketLookupAccessSchema) {}
+
 export const TicketLookupBookingListSchema = z.object({
   maskedEmail: z.string(),
   /** `BOOKING`: phiên mở bằng mã đặt vé — chỉ đơn đó; `EMAIL`: các đơn của email trong 12 tháng gần nhất. */

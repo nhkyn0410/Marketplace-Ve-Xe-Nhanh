@@ -3,7 +3,8 @@
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
-import { endTicketLookup } from "../../../lib/data/tickets";
+import { useRouter } from "next/navigation";
+import { endTicketLookup, unlockTicketLookupBooking } from "../../../lib/data/tickets";
 import { Badge } from "@vexenhanh/ui/components/badge";
 import type { TicketLookupResultData, TicketLookupResultItem } from "../../../lib/data/types";
 import { LookupSessionBanner } from "./lookup-session-banner";
@@ -23,13 +24,39 @@ export interface LookupResultViewProps {
   readonly backToList?: boolean;
   /** Hỏi khách có muốn đăng nhập (email có tài khoản / đơn đặt bằng tài khoản). */
   readonly loginPrompt?: LookupLoginPromptProps | null;
+  /** Đơn đặt bằng tài khoản — không mở quyền hủy / khiếu nại qua tra cứu. */
+  readonly bookedWithAccount?: boolean;
+  readonly isPreview?: boolean;
 }
 
 /**
  * Khung hiển thị chi tiết kết quả tra cứu vé cho khách vãng lai (SCR-PSG-29 - node 1446:15578)
  */
-export const LookupResultView: React.FC<LookupResultViewProps> = ({ data, backToList = false, loginPrompt = null }) => {
+export const LookupResultView: React.FC<LookupResultViewProps> = ({ data, backToList = false, loginPrompt = null, bookedWithAccount = false, isPreview = false }) => {
+  const router = useRouter();
   const [selectedTicketForQr, setSelectedTicketForQr] = useState<TicketLookupResultItem | null>(null);
+  const [isOpening, setIsOpening] = useState(false);
+  const [actionError, setActionError] = useState<string | null>(null);
+  // Sau OTP: đơn khách vãng lai mở được quyền hủy vé / khiếu nại (Khanh 27/10/2026); đơn tài khoản phải đăng nhập.
+  const canUnlock = isPreview || (!data.canManageBooking && !bookedWithAccount && Boolean(data.bookingId));
+
+  /** Mở quyền quản lý đơn (nếu chưa có) rồi sang trang hủy vé của một vé / trang khiếu nại của đơn. */
+  const openManagement = async (target: "cancel" | "complaint", ticketId = data.tickets[0]?.ticketId): Promise<void> => {
+    setActionError(null);
+    if (isPreview || !data.bookingId) {
+      setActionError("Đây là giao diện xem trước; thao tác với đơn đã được tắt.");
+      return;
+    }
+    setIsOpening(true);
+    const unlocked = data.canManageBooking ? null : await unlockTicketLookupBooking(data.bookingId);
+    if (unlocked && unlocked.status !== "ok") {
+      setActionError(unlocked.status === "error" ? unlocked.message ?? "Chưa mở được quyền quản lý đơn." : "Chức năng chưa khả dụng.");
+      setIsOpening(false);
+      return;
+    }
+    const bookingQuery = `bookingId=${encodeURIComponent(data.bookingId)}`;
+    router.push(target === "cancel" && ticketId ? `/my-tickets/${ticketId}?${bookingQuery}` : `/support/guest?${bookingQuery}`);
+  };
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -97,6 +124,7 @@ export const LookupResultView: React.FC<LookupResultViewProps> = ({ data, backTo
                   key={ticket.ticketId}
                   ticket={ticket}
                   onOpenQrModal={(t) => setSelectedTicketForQr(t)}
+                  onCancelClick={(data.canManageBooking || canUnlock) && ticket.status === "valid" ? (t) => void openManagement("cancel", t.ticketId) : undefined}
                 />
               ))}
             </div>
@@ -114,9 +142,14 @@ export const LookupResultView: React.FC<LookupResultViewProps> = ({ data, backTo
               bookingCode={data.bookingCode}
               bookingId={data.bookingId}
               canManageBooking={data.canManageBooking}
+              canUnlock={canUnlock}
+              bookedWithAccount={bookedWithAccount}
               ticketId={data.tickets[0]?.ticketId}
               payment={data.payment}
               onPrintOrder={() => window.print()}
+              onOpenManagement={(target) => void openManagement(target)}
+              isOpening={isOpening}
+              actionError={actionError}
             />
           </div>
         </div>
