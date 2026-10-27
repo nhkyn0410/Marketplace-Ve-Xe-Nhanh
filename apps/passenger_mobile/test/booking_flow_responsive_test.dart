@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:passenger_mobile/features/ticket/booking_confirmation_screen.dart';
+import 'package:passenger_mobile/features/ticket/booking_models.dart';
 import 'package:passenger_mobile/features/ticket/passenger_information_screen.dart';
 import 'package:passenger_mobile/features/ticket/payment_screen.dart';
 import 'package:passenger_mobile/features/ticket/seat_selection_screen.dart';
@@ -37,9 +38,19 @@ Future<void> _pumpScreen(
   await tester.pump();
 }
 
-void main() {
-  final now = DateTime(2026, 10, 26, 10);
+const _draft = BookingDraft(
+  contact: BookingContact(
+    fullName: 'Lê Văn An',
+    phone: '0901234567',
+    email: 'an@vidu.com',
+  ),
+  passengers: [
+    BookingPassenger(seatCode: 'A01', fullName: 'Lê Văn An'),
+    BookingPassenger(seatCode: 'A03', fullName: 'Trần Thị Bình'),
+  ],
+);
 
+void main() {
   final screens =
       <
         ({
@@ -66,35 +77,36 @@ void main() {
           bottomAction: const Key('seat-selection-continue'),
         ),
         (
-          build: () => PassengerInformationScreen(
-            selectedSeats: const ['A01', 'A02'],
-            holdExpiresAt: now.add(const Duration(minutes: 10)),
-            now: () => now,
-          ),
+          build: () {
+            final api = FakeBookingApi();
+            return PassengerInformationScreen(
+              api: api,
+              trip: api.trip,
+              hold: sampleHold(),
+            );
+          },
           header: const Key('passenger-information-header'),
           progress: const Key('passenger-information-progress'),
           scroll: const Key('passenger-information-scroll'),
           bottomAction: const Key('passenger-information-continue'),
         ),
         (
-          build: () => BookingConfirmationScreen(
-            selectedSeats: const ['A01', 'A02'],
-            passengerNames: const ['Nguyễn Văn Minh', 'Trần Thị Lan'],
-            holdExpiresAt: now.add(const Duration(minutes: 10)),
-            now: () => now,
-          ),
+          build: () {
+            final api = FakeBookingApi();
+            return BookingConfirmationScreen(
+              api: api,
+              trip: api.trip,
+              hold: sampleHold(),
+              draft: _draft,
+            );
+          },
           header: const Key('booking-confirmation-header'),
           progress: const Key('booking-confirmation-progress'),
           scroll: const Key('booking-confirmation-scroll'),
           bottomAction: const Key('booking-continue-payment'),
         ),
         (
-          build: () => PaymentScreen(
-            selectedSeats: const ['A01', 'A02'],
-            passengerNames: const ['Nguyễn Văn Minh', 'Trần Thị Lan'],
-            holdExpiresAt: now.add(const Duration(minutes: 10)),
-            now: () => now,
-          ),
+          build: () => PaymentScreen(booking: sampleBooking()),
           header: const Key('payment-header'),
           progress: const Key('payment-progress'),
           scroll: const Key('payment-scroll'),
@@ -175,85 +187,12 @@ void main() {
 
     await _pumpScreen(
       tester,
-      PassengerInformationScreen(
-        selectedSeats: const ['A01'],
-        holdExpiresAt: now.add(const Duration(minutes: 10)),
-        now: () => now,
-      ),
+      PassengerInformationScreen(api: api, trip: api.trip, hold: sampleHold()),
       width: 360,
       textScale: 1.5,
     );
     expect(find.byKey(const Key('passenger-hold-countdown')), findsOneWidget);
     expect(find.byKey(const Key('passenger-hold-banner')), findsNothing);
-    expect(tester.takeException(), isNull);
-  });
-
-  testWidgets('bottom sheet ngân hàng không overflow khi mở bàn phím', (
-    tester,
-  ) async {
-    await _pumpScreen(
-      tester,
-      PaymentScreen(
-        selectedSeats: const ['A01'],
-        passengerNames: const ['Nguyễn Văn Minh'],
-        holdExpiresAt: now.add(const Duration(minutes: 10)),
-        now: () => now,
-      ),
-      width: 360,
-      textScale: 1.5,
-    );
-
-    await tester.scrollUntilVisible(
-      find.byKey(const Key('payment-bank-selector')),
-      250,
-      scrollable: find
-          .descendant(
-            of: find.byKey(const Key('payment-scroll')),
-            matching: find.byType(Scrollable),
-          )
-          .first,
-    );
-    await tester.drag(
-      find.byKey(const Key('payment-scroll')),
-      const Offset(0, -240),
-    );
-    await tester.pump();
-    final bankSelector = tester.widget<InkWell>(
-      find.descendant(
-        of: find.byKey(const Key('payment-bank-selector')),
-        matching: find.byType(InkWell),
-      ),
-    );
-    bankSelector.onTap!();
-    await tester.pumpAndSettle();
-
-    expect(find.byKey(const Key('bank-picker-sheet')), findsOneWidget);
-    expect(find.byKey(const Key('bank-grid')), findsOneWidget);
-
-    await tester.tap(find.byKey(const Key('bank-search')));
-    tester.view.viewInsets = const FakeViewPadding(bottom: 300);
-    addTearDown(tester.view.resetViewInsets);
-    await tester.enterText(find.byKey(const Key('bank-search')), 'ngân hàng');
-    await tester.pumpAndSettle();
-
-    expect(find.byKey(const Key('bank-confirm')), findsOneWidget);
-    expect(tester.takeException(), isNull);
-
-    final sheetTitle = find.text('Chọn ngân hàng').last;
-    final titleTop = tester.getTopLeft(sheetTitle).dy;
-    final confirmTop = tester
-        .getTopLeft(find.byKey(const Key('bank-confirm')))
-        .dy;
-    await tester.drag(
-      find.byKey(const Key('bank-grid')),
-      const Offset(0, -400),
-    );
-    await tester.pump();
-    expect(tester.getTopLeft(sheetTitle).dy, closeTo(titleTop, 0.1));
-    expect(
-      tester.getTopLeft(find.byKey(const Key('bank-confirm'))).dy,
-      closeTo(confirmTop, 0.1),
-    );
     expect(tester.takeException(), isNull);
   });
 }

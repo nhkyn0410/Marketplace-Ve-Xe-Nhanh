@@ -174,7 +174,10 @@ class OtpLoginPage extends StatefulWidget {
 class _OtpLoginPageState extends State<OtpLoginPage> {
   final _tokens = const TokenStorage();
   late final _api = createApiClient(baseUrl: apiBaseUrl, tokens: _tokens);
-  late final _bookingApi = TripBookingApi(_api);
+  late final _bookingApi = TripBookingApi(
+    _api,
+    isSignedIn: () => _step == _AuthStep.signedIn,
+  );
   late final _searchCatalog = TripSearchCatalog(
     loadProvinces: _bookingApi.loadProvinces,
     searchStopPoints: _bookingApi.searchStopPoints,
@@ -402,8 +405,12 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
     });
   }
 
-  void _continueAsGuest() {
+  Future<void> _continueAsGuest() async {
     if (_busy) return;
+    // Khách vãng lai không được gửi token cũ còn lưu trong máy: token hết hạn
+    // làm API trả 401 ở giữ chỗ / đặt vé thay vì coi là khách.
+    await _tokens.clear();
+    if (!mounted) return;
     setState(() {
       _step = _AuthStep.guest;
       _error = null;

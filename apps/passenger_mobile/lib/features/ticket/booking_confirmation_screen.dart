@@ -2,11 +2,16 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:mobile_shared/mobile_shared.dart';
+import 'package:passenger_mobile/features/search/trip_search_form.dart';
 
 import 'booking_flow_chrome.dart';
+import 'booking_models.dart';
 import 'payment_screen.dart';
+import 'trip_booking_api.dart';
+import 'trip_detail_models.dart';
+import 'trip_search_models.dart';
 
-const _detailAssets = 'assets/ticket/detail';
 const _ink = Color(0xFF0B2942);
 const _blue = Color(0xFF1E8ABE);
 const _muted = Color(0xFF71899B);
@@ -14,23 +19,22 @@ const _page = Color(0xFFF2F8FB);
 const _orange = Color(0xFFF59B31);
 const _green = Color(0xFF2FAE70);
 const _field = Color(0xFFF7FAFC);
-const _seatPrice = 280000;
-const _serviceFee = 20000;
-const _discount = 50000;
 
+/// Bước xác nhận: xem lại chuyến, hành khách, điểm đón / trả, ưu đãi, tổng tiền rồi tạo đơn (`POST /bookings`).
 class BookingConfirmationScreen extends StatefulWidget {
   const BookingConfirmationScreen({
     super.key,
-    required this.selectedSeats,
-    required this.passengerNames,
-    required this.holdExpiresAt,
+    required this.api,
+    required this.trip,
+    required this.hold,
+    required this.draft,
     this.now,
-  }) : assert(selectedSeats.length > 0),
-       assert(selectedSeats.length == passengerNames.length);
+  });
 
-  final List<String> selectedSeats;
-  final List<String> passengerNames;
-  final DateTime holdExpiresAt;
+  final TripBookingApi api;
+  final TripDetail trip;
+  final SeatHold hold;
+  final BookingDraft draft;
   final DateTime Function()? now;
 
   @override
@@ -39,12 +43,15 @@ class BookingConfirmationScreen extends StatefulWidget {
 }
 
 class _BookingConfirmationScreenState extends State<BookingConfirmationScreen> {
+  late SeatHold _hold = widget.hold;
+  late PromotionQuote? _promotion = widget.draft.promotion;
   Timer? _timer;
   Duration _remaining = Duration.zero;
-  bool _termsAccepted = true;
+  bool _termsAccepted = false;
+  bool _submitting = false;
 
-  int get _ticketAmount => widget.selectedSeats.length * _seatPrice;
-  int get _totalAmount => _ticketAmount + _serviceFee - _discount;
+  int get _discount => _promotion?.discount ?? 0;
+  int get _total => _promotion?.total ?? _hold.subtotal;
   DateTime _now() => widget.now?.call() ?? DateTime.now();
 
   @override
@@ -64,7 +71,7 @@ class _BookingConfirmationScreenState extends State<BookingConfirmationScreen> {
   }
 
   void _refreshRemaining() {
-    final remaining = widget.holdExpiresAt.difference(_now());
+    final remaining = _hold.expiresAt.difference(_now());
     _remaining = remaining.isNegative ? Duration.zero : remaining;
   }
 
@@ -75,22 +82,92 @@ class _BookingConfirmationScreenState extends State<BookingConfirmationScreen> {
     return '$minutes:$remainingSeconds';
   }
 
-  void _continueToPayment() {
-    Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        builder: (_) => PaymentScreen(
-          selectedSeats: widget.selectedSeats,
-          passengerNames: widget.passengerNames,
-          holdExpiresAt: widget.holdExpiresAt,
-          now: widget.now,
+  void _showMessage(String message) {
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  Future<void> _createBooking() async {
+    if (_submitting) return;
+    setState(() => _submitting = true);
+    try {
+      final booking = await widget.api.createBooking(
+        holdId: _hold.holdId,
+        draft: BookingDraft(
+          contact: widget.draft.contact,
+          passengers: widget.draft.passengers,
+          promotion: _promotion,
         ),
-      ),
-    );
+        expectedTotal: _total,
+      );
+      if (!mounted) return;
+      // Đơn đã tạo thì không quay lại sửa được (chỗ đã chuyển sang đơn): xóa các bước trước khỏi lịch sử.
+      await Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute<void>(
+          builder: (_) => PaymentScreen(booking: booking, now: widget.now),
+        ),
+        (route) => route.isFirst,
+      );
+    } catch (error) {
+      if (!mounted) return;
+      await _handleBookingError(error);
+    } finally {
+      if (mounted) setState(() => _submitting = false);
+    }
+  }
+
+  Future<void> _handleBookingError(Object error) async {
+    if (error is ApiFailure && error.code == 'BOOKING_SNAPSHOT_CHANGED') {
+      await _refreshPrices();
+      return;
+    }
+    if (error is ApiFailure && error.code.startsWith('PROMOTION_')) {
+      setState(() => _promotion = null);
+      _showMessage(
+        '${error.detail} Mã đã được bỏ, vui lòng xem lại tổng tiền.',
+      );
+      return;
+    }
+    _showMessage(describeBookingFailure(error));
+  }
+
+  /// Giá vừa đổi: đọc lại phiên giữ chỗ, tính lại mã khuyến mãi, cho khách xem tổng mới.
+  Future<void> _refreshPrices() async {
+    try {
+      final hold = await widget.api.reloadHold(_hold.holdId);
+      PromotionQuote? promotion;
+      final code = _promotion?.code;
+      if (code != null) {
+        try {
+          promotion = await widget.api.checkPromotion(
+            tripId: widget.trip.tripId,
+            code: code,
+            subtotal: hold.subtotal,
+          );
+        } catch (_) {
+          promotion = null;
+        }
+      }
+      if (!mounted) return;
+      setState(() {
+        _hold = hold;
+        _promotion = promotion;
+      });
+      _showMessage(
+        'Giá vé vừa thay đổi. Tổng mới: ${formatVnd(_total)}. Bấm thanh toán lần nữa nếu đồng ý.',
+      );
+    } catch (error) {
+      if (!mounted) return;
+      _showMessage(describeBookingFailure(error));
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final expired = _remaining == Duration.zero;
+    final pickup = widget.trip.stopAt(_hold.pickup.sequence);
+    final dropoff = widget.trip.stopAt(_hold.dropoff.sequence);
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.dark.copyWith(
         statusBarColor: _page,
@@ -100,43 +177,61 @@ class _BookingConfirmationScreenState extends State<BookingConfirmationScreen> {
         key: const Key('booking-confirmation-screen'),
         backgroundColor: _page,
         bottomNavigationBar: _ConfirmationBottomBar(
-          totalAmount: _totalAmount,
-          onContinue: expired || !_termsAccepted ? null : _continueToPayment,
+          totalAmount: _total,
+          busy: _submitting,
+          onContinue: expired || !_termsAccepted || _submitting
+              ? null
+              : _createBooking,
         ),
         body: SafeArea(
           bottom: false,
           child: Column(
             children: [
-              _ConfirmationHeader(
+              BookingFlowHeader(
+                key: const Key('booking-confirmation-header'),
+                title: 'Xác nhận booking',
+                subtitle: widget.trip.routeName,
                 timerLabel: _timerLabel,
                 expired: expired,
                 urgent: _remaining <= const Duration(minutes: 1),
                 onBack: () => Navigator.maybePop(context),
+                backKey: const Key('booking-confirmation-back'),
+                timerKey: const Key('booking-hold-timer'),
+                backgroundColor: _page,
               ),
-              const _ConfirmationProgress(),
+              const BookingStepProgress(
+                key: Key('booking-confirmation-progress'),
+                activeStep: 1,
+                backgroundColor: _page,
+              ),
               Expanded(
                 child: CustomScrollView(
                   key: const Key('booking-confirmation-scroll'),
                   slivers: [
-                    const SliverToBoxAdapter(child: _TripCard()),
+                    SliverToBoxAdapter(
+                      child: _TripCard(trip: widget.trip, hold: _hold),
+                    ),
                     SliverToBoxAdapter(
                       child: _PassengersCard(
-                        seats: widget.selectedSeats,
-                        passengerNames: widget.passengerNames,
+                        passengers: widget.draft.passengers,
+                        contact: widget.draft.contact,
                         onEdit: () => Navigator.maybePop(context),
                       ),
                     ),
-                    SliverToBoxAdapter(
-                      child: _StopsCard(
-                        onEdit: () => Navigator.maybePop(context),
+                    if (pickup != null && dropoff != null)
+                      SliverToBoxAdapter(
+                        child: _StopsCard(pickup: pickup, dropoff: dropoff),
                       ),
-                    ),
-                    const SliverToBoxAdapter(child: _VoucherCard()),
+                    if (_promotion != null)
+                      SliverToBoxAdapter(
+                        child: _VoucherCard(promotion: _promotion!),
+                      ),
                     SliverToBoxAdapter(
                       child: _PaymentDetailsCard(
-                        seatCount: widget.selectedSeats.length,
-                        ticketAmount: _ticketAmount,
-                        totalAmount: _totalAmount,
+                        hold: _hold,
+                        promotion: _promotion,
+                        discount: _discount,
+                        totalAmount: _total,
                       ),
                     ),
                     SliverToBoxAdapter(
@@ -159,104 +254,54 @@ class _BookingConfirmationScreenState extends State<BookingConfirmationScreen> {
   }
 }
 
-class _ConfirmationHeader extends StatelessWidget {
-  const _ConfirmationHeader({
-    required this.timerLabel,
-    required this.expired,
-    required this.urgent,
-    required this.onBack,
-  });
-
-  final String timerLabel;
-  final bool expired;
-  final bool urgent;
-  final VoidCallback onBack;
-
-  @override
-  Widget build(BuildContext context) {
-    return BookingFlowHeader(
-      key: const Key('booking-confirmation-header'),
-      title: 'Xác nhận booking',
-      subtitle: 'TP.HCM → Đà Lạt',
-      timerLabel: timerLabel,
-      expired: expired,
-      urgent: urgent,
-      onBack: onBack,
-      backKey: const Key('booking-confirmation-back'),
-      timerKey: const Key('booking-hold-timer'),
-      backgroundColor: _page,
-    );
-  }
-}
-
-class _ConfirmationProgress extends StatelessWidget {
-  const _ConfirmationProgress();
-
-  @override
-  Widget build(BuildContext context) {
-    return const BookingStepProgress(
-      key: Key('booking-confirmation-progress'),
-      activeStep: 1,
-      backgroundColor: _page,
-    );
-  }
-}
-
 class _TripCard extends StatelessWidget {
-  const _TripCard();
+  const _TripCard({required this.trip, required this.hold});
+
+  final TripDetail trip;
+  final SeatHold hold;
 
   @override
   Widget build(BuildContext context) {
+    final rating = trip.averageRating;
+    final minutes = hold.dropoff.plannedAt
+        .difference(hold.pickup.plannedAt)
+        .inMinutes;
     return _WhiteCard(
       child: Column(
         children: [
           Row(
             children: [
-              Image.asset(
-                '$_detailAssets/phuong_trang_logo.png',
-                width: 34,
-                height: 34,
-                fit: BoxFit.contain,
-              ),
+              OperatorInitialAvatar(name: trip.operatorName, size: 34),
               const SizedBox(width: 9),
-              const Expanded(
+              Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Wrap(
-                      spacing: 7,
-                      runSpacing: 4,
-                      crossAxisAlignment: WrapCrossAlignment.center,
-                      children: [
-                        Text(
-                          'Phương Trang',
-                          style: TextStyle(
-                            color: _ink,
-                            fontSize: 16,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                        _PopularBadge(),
-                      ],
+                    Text(
+                      trip.operatorName,
+                      style: const TextStyle(
+                        color: _ink,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
-                    SizedBox(height: 2),
+                    const SizedBox(height: 2),
                     Row(
                       children: [
-                        Icon(Icons.star_rounded, color: _orange, size: 14),
-                        SizedBox(width: 2),
-                        Text(
-                          '4.8',
-                          style: TextStyle(
-                            color: _ink,
-                            fontSize: 14,
-                            fontWeight: FontWeight.w700,
+                        if (rating != null && trip.reviewCount > 0) ...[
+                          const Icon(
+                            Icons.star_rounded,
+                            color: _orange,
+                            size: 14,
                           ),
-                        ),
-                        SizedBox(width: 4),
+                          const SizedBox(width: 2),
+                        ],
                         Expanded(
                           child: Text(
-                            '(1.2K đánh giá)',
-                            style: TextStyle(color: _muted, fontSize: 13),
+                            rating != null && trip.reviewCount > 0
+                                ? '${rating.toStringAsFixed(1)} (${trip.reviewCount} đánh giá)'
+                                : 'Chưa có đánh giá',
+                            style: const TextStyle(color: _muted, fontSize: 13),
                           ),
                         ),
                       ],
@@ -267,18 +312,19 @@ class _TripCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 10),
-          const Row(
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _RoutePoint(
-                time: '07:00',
-                city: 'TP.HCM',
-                station: 'Bến xe Miền Đông',
+                time: formatVnClock(hold.pickup.plannedAt),
+                station: hold.pickup.name,
               ),
-              Expanded(child: _DurationRoute()),
+              Expanded(
+                child: _DurationRoute(duration: formatTripDuration(minutes)),
+              ),
               _RoutePoint(
-                time: '13:30',
-                city: 'Đà Lạt',
-                station: 'Bến xe Đà Lạt',
+                time: formatVnClock(hold.dropoff.plannedAt),
+                station: hold.dropoff.name,
                 end: true,
               ),
             ],
@@ -288,19 +334,19 @@ class _TripCard extends StatelessWidget {
             child: Divider(height: 1, color: Color(0xFFE7EEF2)),
           ),
           const SizedBox(height: 9),
-          const Row(
+          Row(
             children: [
               Expanded(
                 child: _TripMeta(
                   icon: Icons.calendar_month_rounded,
-                  label: 'Thứ 6, 10/10/2026',
+                  label: formatVnDate(hold.pickup.plannedAt),
                 ),
               ),
-              SizedBox(height: 21, child: VerticalDivider(width: 20)),
+              const SizedBox(height: 21, child: VerticalDivider(width: 20)),
               Expanded(
                 child: _TripMeta(
                   icon: Icons.airline_seat_recline_extra_rounded,
-                  label: 'Limousine 34 phòng',
+                  label: trip.vehicleTypeName,
                 ),
               ),
             ],
@@ -311,46 +357,21 @@ class _TripCard extends StatelessWidget {
   }
 }
 
-class _PopularBadge extends StatelessWidget {
-  const _PopularBadge();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
-      decoration: BoxDecoration(
-        color: const Color(0xFFFFE9D1),
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: const Text(
-        'Phổ biến',
-        style: TextStyle(
-          color: Color(0xFFE98A24),
-          fontSize: 12,
-          fontWeight: FontWeight.w600,
-        ),
-      ),
-    );
-  }
-}
-
 class _RoutePoint extends StatelessWidget {
   const _RoutePoint({
     required this.time,
-    required this.city,
     required this.station,
     this.end = false,
   });
 
   final String time;
-  final String city;
   final String station;
   final bool end;
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: 96,
+      width: 110,
       child: Column(
         crossAxisAlignment: end
             ? CrossAxisAlignment.end
@@ -364,9 +385,10 @@ class _RoutePoint extends StatelessWidget {
               fontWeight: FontWeight.w700,
             ),
           ),
-          Text(city, style: const TextStyle(color: _muted, fontSize: 13)),
           Text(
             station,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
             textAlign: end ? TextAlign.end : TextAlign.start,
             style: const TextStyle(color: _muted, fontSize: 13),
           ),
@@ -377,12 +399,14 @@ class _RoutePoint extends StatelessWidget {
 }
 
 class _DurationRoute extends StatelessWidget {
-  const _DurationRoute();
+  const _DurationRoute({required this.duration});
+
+  final String duration;
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 6),
+      padding: const EdgeInsets.fromLTRB(6, 6, 6, 0),
       child: Column(
         children: [
           Row(
@@ -406,7 +430,7 @@ class _DurationRoute extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 2),
-          const Text('6h30', style: TextStyle(color: _muted, fontSize: 13)),
+          Text(duration, style: const TextStyle(color: _muted, fontSize: 13)),
         ],
       ),
     );
@@ -442,19 +466,20 @@ class _TripMeta extends StatelessWidget {
 
 class _PassengersCard extends StatelessWidget {
   const _PassengersCard({
-    required this.seats,
-    required this.passengerNames,
+    required this.passengers,
+    required this.contact,
     required this.onEdit,
   });
 
-  final List<String> seats;
-  final List<String> passengerNames;
+  final List<BookingPassenger> passengers;
+  final BookingContact contact;
   final VoidCallback onEdit;
 
   @override
   Widget build(BuildContext context) {
     return _WhiteCard(
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _CardHeader(
             icon: Icons.group_rounded,
@@ -462,10 +487,19 @@ class _PassengersCard extends StatelessWidget {
             onEdit: onEdit,
           ),
           const SizedBox(height: 9),
-          for (var index = 0; index < seats.length; index++) ...[
-            _PassengerRow(seat: seats[index], name: passengerNames[index]),
-            if (index != seats.length - 1) const SizedBox(height: 7),
+          for (var index = 0; index < passengers.length; index++) ...[
+            _PassengerRow(
+              seat: passengers[index].seatCode,
+              name: passengers[index].fullName,
+            ),
+            if (index != passengers.length - 1) const SizedBox(height: 7),
           ],
+          const SizedBox(height: 9),
+          Text(
+            'Liên hệ: ${contact.fullName} · ${contact.phone} · ${contact.email}',
+            key: const Key('booking-contact-line'),
+            style: const TextStyle(color: _muted, fontSize: 13),
+          ),
         ],
       ),
     );
@@ -545,32 +579,32 @@ class _PassengerRow extends StatelessWidget {
 }
 
 class _StopsCard extends StatelessWidget {
-  const _StopsCard({required this.onEdit});
+  const _StopsCard({required this.pickup, required this.dropoff});
 
-  final VoidCallback onEdit;
+  final TripStop pickup;
+  final TripStop dropoff;
 
   @override
   Widget build(BuildContext context) {
     return _WhiteCard(
       child: Column(
         children: [
-          _CardHeader(
+          const _CardHeader(
             icon: Icons.location_on_rounded,
             title: 'Điểm đón / Điểm trả',
-            onEdit: onEdit,
           ),
           const SizedBox(height: 10),
-          const Row(
+          Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Icon(Icons.location_on_rounded, color: _green, size: 24),
-              SizedBox(width: 10),
+              const Icon(Icons.location_on_rounded, color: _green, size: 24),
+              const SizedBox(width: 10),
               Expanded(
                 child: _StopDetails(
                   label: 'Điểm đón',
-                  title: 'Bến xe Miền Đông',
-                  address: '292 Đinh Bộ Lĩnh, Bình Thạnh, TP.HCM',
-                  time: '07:00',
+                  title: pickup.name,
+                  address: pickup.address,
+                  time: formatVnClock(pickup.plannedAt),
                 ),
               ),
             ],
@@ -586,21 +620,21 @@ class _StopsCard extends StatelessWidget {
               ),
             ),
           ),
-          const Row(
+          Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Icon(
+              const Icon(
                 Icons.location_on_rounded,
                 color: Color(0xFFF04F56),
                 size: 24,
               ),
-              SizedBox(width: 10),
+              const SizedBox(width: 10),
               Expanded(
                 child: _StopDetails(
                   label: 'Điểm trả',
-                  title: 'Bến xe Đà Lạt',
-                  address: '01 Tô Hiến Thành, Phường 3, Đà Lạt',
-                  time: '13:30',
+                  title: dropoff.name,
+                  address: dropoff.address,
+                  time: formatVnClock(dropoff.plannedAt),
                 ),
               ),
             ],
@@ -660,90 +694,68 @@ class _StopDetails extends StatelessWidget {
 }
 
 class _VoucherCard extends StatelessWidget {
-  const _VoucherCard();
+  const _VoucherCard({required this.promotion});
+
+  final PromotionQuote promotion;
 
   @override
   Widget build(BuildContext context) {
-    return const _WhiteCard(
+    return _WhiteCard(
       child: Column(
         children: [
-          _CardHeader(icon: Icons.card_giftcard_rounded, title: 'Ưu đãi'),
-          SizedBox(height: 9),
-          _AppliedVoucher(),
-        ],
-      ),
-    );
-  }
-}
-
-class _AppliedVoucher extends StatelessWidget {
-  const _AppliedVoucher();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-      decoration: BoxDecoration(
-        color: const Color(0xFFECF8F0),
-        borderRadius: BorderRadius.circular(9),
-      ),
-      child: Row(
-        children: [
+          const _CardHeader(icon: Icons.card_giftcard_rounded, title: 'Ưu đãi'),
+          const SizedBox(height: 9),
           Container(
-            width: 33,
-            height: 33,
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
             decoration: BoxDecoration(
-              color: const Color(0xFFFFE7C7),
-              borderRadius: BorderRadius.circular(8),
+              color: const Color(0xFFECF8F0),
+              borderRadius: BorderRadius.circular(9),
             ),
-            child: const Icon(Icons.percent_rounded, color: _orange, size: 20),
-          ),
-          const SizedBox(width: 9),
-          const Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            child: Row(
               children: [
+                Container(
+                  width: 33,
+                  height: 33,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFFE7C7),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Icon(
+                    Icons.percent_rounded,
+                    color: _orange,
+                    size: 20,
+                  ),
+                ),
+                const SizedBox(width: 9),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        promotion.code,
+                        style: const TextStyle(
+                          color: Color(0xFF258A54),
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      Text(
+                        promotion.name,
+                        style: const TextStyle(color: _muted, fontSize: 13),
+                      ),
+                    ],
+                  ),
+                ),
                 Text(
-                  'VXN50K',
-                  style: TextStyle(
+                  '-${formatVnd(promotion.discount)}',
+                  style: const TextStyle(
                     color: Color(0xFF258A54),
-                    fontSize: 15,
+                    fontSize: 16,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
-                Text(
-                  'Giảm 50.000 đ cho đơn hàng',
-                  style: TextStyle(color: _muted, fontSize: 13),
-                ),
               ],
             ),
-          ),
-          const Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Row(
-                children: [
-                  Icon(Icons.check_circle_rounded, color: _green, size: 15),
-                  SizedBox(width: 3),
-                  Text(
-                    'Đã áp dụng',
-                    style: TextStyle(
-                      color: Color(0xFF258A54),
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
-              ),
-              Text(
-                '-50.000 đ',
-                style: TextStyle(
-                  color: Color(0xFF258A54),
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ],
           ),
         ],
       ),
@@ -753,13 +765,15 @@ class _AppliedVoucher extends StatelessWidget {
 
 class _PaymentDetailsCard extends StatelessWidget {
   const _PaymentDetailsCard({
-    required this.seatCount,
-    required this.ticketAmount,
+    required this.hold,
+    required this.promotion,
+    required this.discount,
     required this.totalAmount,
   });
 
-  final int seatCount;
-  final int ticketAmount;
+  final SeatHold hold;
+  final PromotionQuote? promotion;
+  final int discount;
   final int totalAmount;
 
   @override
@@ -772,18 +786,23 @@ class _PaymentDetailsCard extends StatelessWidget {
             title: 'Chi tiết thanh toán',
           ),
           const SizedBox(height: 8),
-          _PaymentRow(
-            label: 'Tiền vé ($seatCount ghế x 280.000 đ)',
-            amount: '${_formatAmount(ticketAmount)} đ',
-          ),
-          const SizedBox(height: 7),
-          const _PaymentRow(label: 'Phí dịch vụ', amount: '20.000 đ'),
-          const SizedBox(height: 7),
-          const _PaymentRow(
-            label: 'Giảm giá (VXN50K)',
-            amount: '-50.000 đ',
-            discount: true,
-          ),
+          for (final seat in hold.seats) ...[
+            _PaymentRow(
+              label: 'Chỗ ${seat.code}',
+              amount: formatVnd(seat.price),
+            ),
+            const SizedBox(height: 7),
+          ],
+          // v1 chưa thu phí dịch vụ nhưng vẫn tách dòng (CO-12).
+          _PaymentRow(label: 'Phí dịch vụ', amount: formatVnd(0)),
+          if (promotion != null) ...[
+            const SizedBox(height: 7),
+            _PaymentRow(
+              label: 'Giảm giá (${promotion!.code})',
+              amount: '-${formatVnd(discount)}',
+              discount: true,
+            ),
+          ],
           const Padding(
             padding: EdgeInsets.symmetric(vertical: 8),
             child: Divider(height: 1, color: Color(0xFFE2EBF0)),
@@ -801,7 +820,7 @@ class _PaymentDetailsCard extends StatelessWidget {
                 ),
               ),
               Text(
-                '${_formatAmount(totalAmount)} đ',
+                formatVnd(totalAmount),
                 key: const Key('booking-total-amount'),
                 style: const TextStyle(
                   color: _blue,
@@ -984,10 +1003,12 @@ class _WhiteCard extends StatelessWidget {
 class _ConfirmationBottomBar extends StatelessWidget {
   const _ConfirmationBottomBar({
     required this.totalAmount,
+    required this.busy,
     required this.onContinue,
   });
 
   final int totalAmount;
+  final bool busy;
   final VoidCallback? onContinue;
 
   @override
@@ -1019,7 +1040,7 @@ class _ConfirmationBottomBar extends StatelessWidget {
                       style: TextStyle(color: _muted, fontSize: 13),
                     ),
                     Text(
-                      '${_formatAmount(totalAmount)} đ',
+                      formatVnd(totalAmount),
                       style: const TextStyle(
                         color: _blue,
                         fontSize: 19,
@@ -1047,24 +1068,32 @@ class _ConfirmationBottomBar extends StatelessWidget {
                       borderRadius: BorderRadius.circular(10),
                     ),
                   ),
-                  child: const Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Flexible(
-                        child: Text(
-                          'Tiếp tục thanh toán',
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w600,
+                  child: busy
+                      ? const SizedBox.square(
+                          dimension: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2.4,
+                            color: Colors.white,
                           ),
+                        )
+                      : const Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Flexible(
+                              child: Text(
+                                'Tiếp tục thanh toán',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                            SizedBox(width: 8),
+                            Icon(Icons.arrow_forward_rounded, size: 18),
+                          ],
                         ),
-                      ),
-                      SizedBox(width: 8),
-                      Icon(Icons.arrow_forward_rounded, size: 18),
-                    ],
-                  ),
                 ),
               ),
             ],
@@ -1122,14 +1151,4 @@ class _DashedLinePainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _DashedLinePainter oldDelegate) => false;
-}
-
-String _formatAmount(int amount) {
-  final digits = amount.toString();
-  final result = StringBuffer();
-  for (var index = 0; index < digits.length; index++) {
-    if (index > 0 && (digits.length - index) % 3 == 0) result.write('.');
-    result.write(digits[index]);
-  }
-  return result.toString();
 }

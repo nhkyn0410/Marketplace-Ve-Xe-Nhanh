@@ -82,52 +82,55 @@ class BookingFlowHeader extends StatelessWidget {
               ),
             ),
             if (timerLabel != null) ...[
-            const SizedBox(width: 8),
-            ConstrainedBox(
-              constraints: BoxConstraints(maxWidth: maxBadgeWidth),
-              child: Container(
-                key: timerKey,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 8,
-                ),
-                decoration: BoxDecoration(
-                  color: warning
-                      ? const Color(0xFFFFE4E4)
-                      : const Color(0xFFFFF1D8),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      Icons.access_time_filled_rounded,
-                      color: warning ? const Color(0xFFD84A4A) : _orange,
-                      size: 18,
-                    ),
-                    const SizedBox(width: 5),
-                    Flexible(
-                      child: expired
-                          ? Text(
-                              'Đã hết hạn',
-                              textAlign: TextAlign.end,
-                              style: _timerStyle(warning),
-                            )
-                          : Wrap(
-                              alignment: WrapAlignment.end,
-                              children: [
-                                Text(
-                                  'Giữ ghế trong ',
-                                  style: _timerStyle(warning),
-                                ),
-                                Text(timerLabel!, style: _timerStyle(warning)),
-                              ],
-                            ),
-                    ),
-                  ],
+              const SizedBox(width: 8),
+              ConstrainedBox(
+                constraints: BoxConstraints(maxWidth: maxBadgeWidth),
+                child: Container(
+                  key: timerKey,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 8,
+                  ),
+                  decoration: BoxDecoration(
+                    color: warning
+                        ? const Color(0xFFFFE4E4)
+                        : const Color(0xFFFFF1D8),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.access_time_filled_rounded,
+                        color: warning ? const Color(0xFFD84A4A) : _orange,
+                        size: 18,
+                      ),
+                      const SizedBox(width: 5),
+                      Flexible(
+                        child: expired
+                            ? Text(
+                                'Đã hết hạn',
+                                textAlign: TextAlign.end,
+                                style: _timerStyle(warning),
+                              )
+                            : Wrap(
+                                alignment: WrapAlignment.end,
+                                children: [
+                                  Text(
+                                    'Giữ ghế trong ',
+                                    style: _timerStyle(warning),
+                                  ),
+                                  Text(
+                                    timerLabel!,
+                                    style: _timerStyle(warning),
+                                  ),
+                                ],
+                              ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
             ],
           ],
         ),

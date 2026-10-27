@@ -2,14 +2,17 @@ import 'package:api_client_dart/api_client_dart.dart';
 import 'package:dio/dio.dart';
 import 'package:mobile_shared/mobile_shared.dart';
 import 'package:passenger_mobile/features/home/home_models.dart';
+import 'package:passenger_mobile/features/ticket/booking_models.dart';
 import 'package:passenger_mobile/features/ticket/trip_detail_models.dart';
 import 'package:passenger_mobile/features/ticket/trip_search_models.dart';
 
 /// Lời gọi API của luồng tìm chuyến – đặt vé cho app hành khách; lỗi API ném ra dạng [ApiFailure].
 class TripBookingApi {
-  TripBookingApi(this._client);
+  TripBookingApi(this._client, {bool Function()? isSignedIn})
+    : _isSignedIn = isSignedIn ?? (() => false);
 
   final ApiClientDart _client;
+  final bool Function() _isSignedIn;
   List<HomeLocation>? _provinces;
   List<TripAmenityOption>? _amenities;
 
@@ -261,13 +264,153 @@ class TripBookingApi {
   Future<void> releaseHold(String holdId) async {
     try {
       await _call(
-        () => _client.getSeatHoldsApi().seatHoldControllerRelease(
-          holdId: holdId,
-        ),
+        () =>
+            _client.getSeatHoldsApi().seatHoldControllerRelease(holdId: holdId),
       );
     } on ApiFailure catch (failure) {
       if (failure.code != 'SEAT_HOLD_EXPIRED') rethrow;
     }
+  }
+
+  /// Đọc lại phiên giữ chỗ (giá mới nhất) — dùng khi đặt vé báo giá vừa đổi.
+  Future<SeatHold> reloadHold(String holdId) async {
+    final response = await _call(
+      () => _client.getSeatHoldsApi().seatHoldControllerGet(holdId: holdId),
+    );
+    final data = response.data!;
+    return SeatHold(
+      holdId: data.holdId,
+      tripId: data.tripId,
+      pickup: SeatHoldStop(
+        sequence: data.pickup.sequence,
+        name: data.pickup.name,
+        plannedAt: data.pickup.plannedAt,
+      ),
+      dropoff: SeatHoldStop(
+        sequence: data.dropoff.sequence,
+        name: data.dropoff.name,
+        plannedAt: data.dropoff.plannedAt,
+      ),
+      seats: [
+        for (final seat in data.seats)
+          HeldSeat(code: seat.code, type: seat.type.name, price: seat.price),
+      ],
+      subtotal: data.subtotal,
+      expiresAt: data.expiresAt,
+    );
+  }
+
+  /// Hồ sơ + hành khách đã lưu để điền sẵn form; khách vãng lai → `null`.
+  Future<BookingPrefill?> loadPrefill() async {
+    if (!_isSignedIn()) return null;
+    final profileApi = _client.getPassengerProfileApi();
+    final results = await Future.wait([
+      _call(() => profileApi.passengerProfileControllerGet()),
+      _call(() => profileApi.passengerProfileControllerSaved()),
+    ]);
+    final profile = (results[0].data as PassengerProfileDtoOutput?)!;
+    final saved = (results[1].data as SavedPassengerListDtoOutput?)!;
+    return BookingPrefill(
+      contact: BookingContact(
+        fullName: profile.name?.trim() ?? '',
+        phone: profile.phone ?? '',
+        email: profile.email,
+      ),
+      travellers: [
+        for (final item in saved.items)
+          SavedTraveller(fullName: item.fullName, phone: item.phone),
+      ],
+    );
+  }
+
+  /// Kiểm tra mã khuyến mãi cho chuyến + tiền vé (không giữ lượt dùng).
+  Future<PromotionQuote> checkPromotion({
+    required String tripId,
+    required String code,
+    required int subtotal,
+  }) async {
+    final input = PromotionCheckInputDto(
+      (b) => b
+        ..tripId = tripId
+        ..code = code
+        ..subtotal = subtotal,
+    );
+    final response = await _call(
+      () => _client.getPromotionsApi().publicPromotionControllerCheck(
+        promotionCheckInputDto: input,
+      ),
+    );
+    final data = response.data!;
+    return PromotionQuote(
+      code: data.code,
+      name: data.name,
+      discount: data.discount,
+      total: data.total,
+    );
+  }
+
+  /// Tạo đơn chờ thanh toán từ phiên giữ chỗ; [expectedTotal] là tổng sau giảm khách đã thấy.
+  Future<CreatedBooking> createBooking({
+    required String holdId,
+    required BookingDraft draft,
+    required int expectedTotal,
+  }) async {
+    final input = BookingInputDto(
+      (b) => b
+        ..holdId = holdId
+        ..contact.fullName = draft.contact.fullName
+        ..contact.phone = draft.contact.phone
+        ..contact.email = draft.contact.email
+        ..passengers.addAll([
+          for (final passenger in draft.passengers)
+            BookingInputDtoPassengersInner(
+              (p) => p
+                ..seatCode = passenger.seatCode
+                ..fullName = passenger.fullName
+                ..phone = passenger.phone,
+            ),
+        ])
+        ..note = null
+        ..expectedTotal = expectedTotal
+        ..promotionCode = draft.promotion?.code,
+    );
+    final response = await _call(
+      () => _client.getBookingsApi().bookingControllerCreate(
+        bookingInputDto: input,
+      ),
+    );
+    final data = response.data!;
+    return CreatedBooking(
+      bookingId: data.bookingId,
+      bookingCode: data.bookingCode,
+      status: data.status.name,
+      routeName: data.trip.routeName,
+      operatorName: data.trip.operatorName,
+      vehicleTypeName: data.trip.vehicleTypeName,
+      pickupName: data.pickup.name,
+      pickupAt: data.pickup.plannedAt,
+      dropoffName: data.dropoff.name,
+      dropoffAt: data.dropoff.plannedAt,
+      contact: BookingContact(
+        fullName: data.contact.fullName,
+        phone: data.contact.phone,
+        email: data.contact.email,
+      ),
+      passengers: [
+        for (final passenger in data.passengers)
+          BookedPassenger(
+            seatCode: passenger.seatCode,
+            fullName: passenger.fullName,
+            price: passenger.price,
+          ),
+      ],
+      subtotal: data.subtotal,
+      serviceFee: data.serviceFee,
+      discount: data.discount,
+      total: data.total,
+      expiresAt: data.expiresAt,
+      accessToken: data.accessToken,
+    );
   }
 
   Future<T> _call<T>(Future<T> Function() run) async {
@@ -294,6 +437,10 @@ String describeBookingFailure(Object error) {
     'SEAT_HOLD_RATE_LIMITED' =>
       'Bạn thao tác quá nhanh. Vui lòng thử lại sau ít phút.',
     'SEAT_HOLD_EXPIRED' => 'Thời gian giữ chỗ đã hết. Vui lòng chọn lại.',
+    'BOOKING_SNAPSHOT_CHANGED' =>
+      'Giá vé vừa thay đổi. Vui lòng xem lại tổng tiền.',
+    'BOOKING_ALREADY_CREATED' => 'Đơn cho lượt giữ chỗ này đã được tạo.',
+    'TRIP_NOT_ON_SALE' => 'Chuyến đã ngừng bán online.',
     _ =>
       error.status == 503
           ? 'Hệ thống giữ chỗ đang bận. Vui lòng thử lại.'

@@ -2,9 +2,14 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:mobile_shared/mobile_shared.dart';
 
-import 'booking_flow_chrome.dart';
 import 'booking_confirmation_screen.dart';
+import 'booking_flow_chrome.dart';
+import 'booking_models.dart';
+import 'trip_booking_api.dart';
+import 'trip_detail_models.dart';
+import 'trip_search_models.dart';
 
 const _ink = Color(0xFF0B2942);
 const _blue = Color(0xFF1E8ABE);
@@ -12,17 +17,27 @@ const _muted = Color(0xFF71899B);
 const _page = Color(0xFFF2F8FB);
 const _orange = Color(0xFFF59B31);
 const _field = Color(0xFFF7FAFC);
+const _danger = Color(0xFFD84A4A);
 
+/// Số điện thoại VN như API chấp nhận: `0xxxxxxxxx` hoặc `+84xxxxxxxxx` (bỏ khoảng trắng, chấm, gạch).
+final _phonePattern = RegExp(r'^(0|\+84)\d{9}$');
+final _emailPattern = RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+$');
+
+String _normalizePhone(String value) => value.replaceAll(RegExp(r'[\s.-]'), '');
+
+/// Bước 2 đặt vé: người liên hệ, tên hành khách từng chỗ, mã khuyến mãi; đếm theo hạn giữ chỗ.
 class PassengerInformationScreen extends StatefulWidget {
   const PassengerInformationScreen({
     super.key,
-    required this.selectedSeats,
-    required this.holdExpiresAt,
+    required this.api,
+    required this.trip,
+    required this.hold,
     this.now,
-  }) : assert(selectedSeats.length > 0);
+  });
 
-  final List<String> selectedSeats;
-  final DateTime holdExpiresAt;
+  final TripBookingApi api;
+  final TripDetail trip;
+  final SeatHold hold;
   final DateTime Function()? now;
 
   @override
@@ -32,35 +47,32 @@ class PassengerInformationScreen extends StatefulWidget {
 
 class _PassengerInformationScreenState
     extends State<PassengerInformationScreen> {
-  final _contactName = TextEditingController(text: 'Nguyễn Văn Minh');
-  final _email = TextEditingController(text: 'minhnguyen.1990@gmail.com');
-  final _phone = TextEditingController(text: '0908 123 456');
-  final _voucher = TextEditingController();
+  final _contactName = TextEditingController();
+  final _email = TextEditingController();
+  final _phone = TextEditingController();
+  final _promoCode = TextEditingController();
 
-  late final List<String> _seats;
-  late final List<TextEditingController> _passengerNames;
+  late final List<HeldSeat> _seats = [...widget.hold.seats]
+    ..sort((a, b) => a.code.compareTo(b.code));
+  late final List<TextEditingController> _passengerNames = [
+    for (final _ in _seats) TextEditingController(),
+  ];
+  List<SavedTraveller> _travellers = const [];
+  PromotionQuote? _promotion;
+  String? _promoError;
+  bool _checkingPromo = false;
   Timer? _timer;
   Duration _remaining = Duration.zero;
 
   @override
   void initState() {
     super.initState();
-    _seats = [...widget.selectedSeats]..sort();
-    _passengerNames = List.generate(
-      _seats.length,
-      (index) => TextEditingController(
-        text: switch (index) {
-          0 => 'Nguyễn Văn Minh',
-          1 => 'Trần Thị Lan',
-          _ => '',
-        },
-      ),
-    );
     _refreshRemaining();
     _timer = Timer.periodic(const Duration(seconds: 1), (_) {
       if (!mounted) return;
       setState(_refreshRemaining);
     });
+    _loadPrefill();
   }
 
   @override
@@ -69,17 +81,38 @@ class _PassengerInformationScreenState
     _contactName.dispose();
     _email.dispose();
     _phone.dispose();
-    _voucher.dispose();
+    _promoCode.dispose();
     for (final controller in _passengerNames) {
       controller.dispose();
     }
     super.dispose();
   }
 
+  Future<void> _loadPrefill() async {
+    BookingPrefill? prefill;
+    try {
+      prefill = await widget.api.loadPrefill();
+    } catch (_) {
+      // Không điền sẵn được thì khách tự nhập.
+      return;
+    }
+    if (prefill == null || !mounted) return;
+    final contact = prefill.contact;
+    setState(() {
+      if (_contactName.text.isEmpty) _contactName.text = contact.fullName;
+      if (_email.text.isEmpty) _email.text = contact.email;
+      if (_phone.text.isEmpty) _phone.text = contact.phone;
+      if (_passengerNames.first.text.isEmpty) {
+        _passengerNames.first.text = contact.fullName;
+      }
+      _travellers = prefill!.travellers;
+    });
+  }
+
   DateTime _now() => widget.now?.call() ?? DateTime.now();
 
   void _refreshRemaining() {
-    final remaining = widget.holdExpiresAt.difference(_now());
+    final remaining = widget.hold.expiresAt.difference(_now());
     _remaining = remaining.isNegative ? Duration.zero : remaining;
   }
 
@@ -90,36 +123,83 @@ class _PassengerInformationScreenState
     return '$minutesPart:$secondsPart';
   }
 
-  bool get _formValid {
-    final phoneDigits = _phone.text.replaceAll(RegExp(r'\D'), '');
-    return _contactName.text.trim().isNotEmpty &&
-        _email.text.contains('@') &&
-        phoneDigits.length >= 9 &&
-        _passengerNames.every(
-          (controller) => controller.text.trim().isNotEmpty,
-        );
-  }
+  bool get _phoneValid => _phonePattern.hasMatch(_normalizePhone(_phone.text));
+
+  bool get _emailValid => _emailPattern.hasMatch(_email.text.trim());
+
+  bool get _formValid =>
+      _contactName.text.trim().isNotEmpty &&
+      _emailValid &&
+      _phoneValid &&
+      _passengerNames.every((controller) => controller.text.trim().isNotEmpty);
+
+  int get _total => _promotion?.total ?? widget.hold.subtotal;
 
   Future<void> _chooseSavedPassenger(int index) async {
-    final selected = await showModalBottomSheet<String>(
+    final selected = await showModalBottomSheet<SavedTraveller>(
       context: context,
       backgroundColor: Colors.transparent,
       useSafeArea: true,
-      builder: (context) => const _SavedPassengerSheet(),
+      builder: (context) => _SavedPassengerSheet(travellers: _travellers),
     );
     if (selected == null || !mounted) return;
-    setState(() => _passengerNames[index].text = selected);
+    setState(() => _passengerNames[index].text = selected.fullName);
+  }
+
+  Future<void> _applyPromotion() async {
+    final code = _promoCode.text.trim().toUpperCase();
+    if (code.isEmpty || _checkingPromo) return;
+    FocusScope.of(context).unfocus();
+    setState(() {
+      _checkingPromo = true;
+      _promoError = null;
+    });
+    try {
+      final quote = await widget.api.checkPromotion(
+        tripId: widget.trip.tripId,
+        code: code,
+        subtotal: widget.hold.subtotal,
+      );
+      if (!mounted) return;
+      setState(() {
+        _promotion = quote;
+        _promoCode.clear();
+      });
+    } catch (error) {
+      if (!mounted) return;
+      setState(() {
+        _promoError = error is ApiFailure && !error.isNetworkError
+            ? error.detail
+            : describeBookingFailure(error);
+      });
+    } finally {
+      if (mounted) setState(() => _checkingPromo = false);
+    }
   }
 
   void _continueToConfirmation() {
+    final draft = BookingDraft(
+      contact: BookingContact(
+        fullName: _contactName.text.trim(),
+        phone: _normalizePhone(_phone.text),
+        email: _email.text.trim(),
+      ),
+      passengers: [
+        for (var index = 0; index < _seats.length; index++)
+          BookingPassenger(
+            seatCode: _seats[index].code,
+            fullName: _passengerNames[index].text.trim(),
+          ),
+      ],
+      promotion: _promotion,
+    );
     Navigator.of(context).push(
       MaterialPageRoute<void>(
         builder: (_) => BookingConfirmationScreen(
-          selectedSeats: _seats,
-          passengerNames: [
-            for (final controller in _passengerNames) controller.text.trim(),
-          ],
-          holdExpiresAt: widget.holdExpiresAt,
+          api: widget.api,
+          trip: widget.trip,
+          hold: widget.hold,
+          draft: draft,
           now: widget.now,
         ),
       ),
@@ -129,6 +209,8 @@ class _PassengerInformationScreenState
   @override
   Widget build(BuildContext context) {
     final expired = _remaining == Duration.zero;
+    final phoneTouched = _phone.text.trim().isNotEmpty;
+    final emailTouched = _email.text.trim().isNotEmpty;
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.dark.copyWith(
         statusBarColor: Colors.white,
@@ -139,20 +221,29 @@ class _PassengerInformationScreenState
         resizeToAvoidBottomInset: true,
         backgroundColor: _page,
         bottomNavigationBar: _PassengerBottomBar(
-          seats: _seats,
+          passengerCount: _seats.length,
+          total: _total,
           onContinue: expired || !_formValid ? null : _continueToConfirmation,
         ),
         body: SafeArea(
           bottom: false,
           child: Column(
             children: [
-              _Header(
+              BookingFlowHeader(
+                key: const Key('passenger-information-header'),
+                title: 'Thông tin hành khách',
+                subtitle: widget.trip.routeName,
                 timerLabel: _timerLabel,
                 expired: expired,
                 urgent: _remaining <= const Duration(minutes: 1),
                 onBack: () => Navigator.maybePop(context),
+                backKey: const Key('passenger-information-back'),
+                timerKey: const Key('passenger-hold-countdown'),
               ),
-              const _StepProgress(),
+              const BookingStepProgress(
+                key: Key('passenger-information-progress'),
+                activeStep: 1,
+              ),
               Expanded(
                 child: CustomScrollView(
                   key: const Key('passenger-information-scroll'),
@@ -160,13 +251,19 @@ class _PassengerInformationScreenState
                       ScrollViewKeyboardDismissBehavior.onDrag,
                   slivers: [
                     SliverToBoxAdapter(
-                      child: _TripSeatSummary(seatCount: _seats.length),
+                      child: _TripSeatSummary(hold: widget.hold),
                     ),
                     SliverToBoxAdapter(
                       child: _ContactCard(
                         name: _contactName,
                         email: _email,
                         phone: _phone,
+                        emailError: emailTouched && !_emailValid
+                            ? 'Email chưa đúng định dạng.'
+                            : null,
+                        phoneError: phoneTouched && !_phoneValid
+                            ? 'Số điện thoại gồm 10 số, bắt đầu bằng 0 hoặc +84.'
+                            : null,
                         onChanged: () => setState(() {}),
                       ),
                     ),
@@ -180,14 +277,23 @@ class _PassengerInformationScreenState
                       itemCount: _seats.length,
                       itemBuilder: (context, index) => _PassengerCard(
                         index: index,
-                        seat: _seats[index],
+                        seat: _seats[index].code,
                         controller: _passengerNames[index],
                         onChanged: () => setState(() {}),
-                        onChooseSaved: () => _chooseSavedPassenger(index),
+                        onChooseSaved: _travellers.isEmpty
+                            ? null
+                            : () => _chooseSavedPassenger(index),
                       ),
                     ),
                     SliverToBoxAdapter(
-                      child: _PromotionCard(controller: _voucher),
+                      child: _PromotionCard(
+                        controller: _promoCode,
+                        promotion: _promotion,
+                        error: _promoError,
+                        checking: _checkingPromo,
+                        onApply: _applyPromotion,
+                        onRemove: () => setState(() => _promotion = null),
+                      ),
                     ),
                     const SliverToBoxAdapter(child: SizedBox(height: 16)),
                   ],
@@ -201,54 +307,16 @@ class _PassengerInformationScreenState
   }
 }
 
-class _Header extends StatelessWidget {
-  const _Header({
-    required this.timerLabel,
-    required this.expired,
-    required this.urgent,
-    required this.onBack,
-  });
-
-  final String timerLabel;
-  final bool expired;
-  final bool urgent;
-  final VoidCallback onBack;
-
-  @override
-  Widget build(BuildContext context) {
-    return BookingFlowHeader(
-      key: const Key('passenger-information-header'),
-      title: 'Thông tin hành khách',
-      subtitle: 'TP.HCM → Đà Lạt',
-      timerLabel: timerLabel,
-      expired: expired,
-      urgent: urgent,
-      onBack: onBack,
-      backKey: const Key('passenger-information-back'),
-      timerKey: const Key('passenger-hold-countdown'),
-    );
-  }
-}
-
-class _StepProgress extends StatelessWidget {
-  const _StepProgress();
-
-  @override
-  Widget build(BuildContext context) {
-    return const BookingStepProgress(
-      key: Key('passenger-information-progress'),
-      activeStep: 1,
-    );
-  }
-}
-
 class _TripSeatSummary extends StatelessWidget {
-  const _TripSeatSummary({required this.seatCount});
+  const _TripSeatSummary({required this.hold});
 
-  final int seatCount;
+  final SeatHold hold;
 
   @override
   Widget build(BuildContext context) {
+    final minutes = hold.dropoff.plannedAt
+        .difference(hold.pickup.plannedAt)
+        .inMinutes;
     return Container(
       margin: const EdgeInsets.fromLTRB(10, 8, 10, 0),
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
@@ -258,18 +326,19 @@ class _TripSeatSummary extends StatelessWidget {
       ),
       child: Column(
         children: [
-          const Row(
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _RoutePoint(
-                time: '07:00',
-                city: 'TP.HCM',
-                station: 'Bến xe Miền Đông',
+                time: formatVnClock(hold.pickup.plannedAt),
+                station: hold.pickup.name,
               ),
-              Expanded(child: _DurationRoute()),
+              Expanded(
+                child: _DurationRoute(duration: formatTripDuration(minutes)),
+              ),
               _RoutePoint(
-                time: '13:30',
-                city: 'Đà Lạt',
-                station: 'Bến xe Đà Lạt',
+                time: formatVnClock(hold.dropoff.plannedAt),
+                station: hold.dropoff.name,
                 end: true,
               ),
             ],
@@ -279,19 +348,18 @@ class _TripSeatSummary extends StatelessWidget {
             children: [
               const Icon(Icons.event_seat_rounded, color: _muted, size: 20),
               const SizedBox(width: 6),
-              const Expanded(
+              Expanded(
                 child: Text(
-                  'Số ghế\nđã chọn',
-                  style: TextStyle(color: _muted, fontSize: 13, height: 1.2),
+                  'Chỗ đã chọn · ${formatVnDate(hold.pickup.plannedAt)}',
+                  style: const TextStyle(color: _muted, fontSize: 13),
                 ),
               ),
               Text(
-                '$seatCount',
-                key: const Key('selected-seat-count'),
+                hold.seatCodes.join(', '),
+                key: const Key('selected-seat-codes'),
                 style: const TextStyle(
                   color: _blue,
-                  fontSize: 16,
-                  height: 1.2,
+                  fontSize: 15,
                   fontWeight: FontWeight.w700,
                 ),
               ),
@@ -306,20 +374,18 @@ class _TripSeatSummary extends StatelessWidget {
 class _RoutePoint extends StatelessWidget {
   const _RoutePoint({
     required this.time,
-    required this.city,
     required this.station,
     this.end = false,
   });
 
   final String time;
-  final String city;
   final String station;
   final bool end;
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: 92,
+      width: 110,
       child: Column(
         crossAxisAlignment: end
             ? CrossAxisAlignment.end
@@ -333,9 +399,10 @@ class _RoutePoint extends StatelessWidget {
               fontWeight: FontWeight.w600,
             ),
           ),
-          Text(city, style: const TextStyle(color: _muted, fontSize: 13)),
           Text(
             station,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
             textAlign: end ? TextAlign.end : TextAlign.start,
             style: const TextStyle(color: _muted, fontSize: 13),
           ),
@@ -346,12 +413,14 @@ class _RoutePoint extends StatelessWidget {
 }
 
 class _DurationRoute extends StatelessWidget {
-  const _DurationRoute();
+  const _DurationRoute({required this.duration});
+
+  final String duration;
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 5),
+      padding: const EdgeInsets.fromLTRB(5, 6, 5, 0),
       child: Column(
         children: [
           Row(
@@ -375,7 +444,7 @@ class _DurationRoute extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 2),
-          const Text('6h30', style: TextStyle(color: _muted, fontSize: 13)),
+          Text(duration, style: const TextStyle(color: _muted, fontSize: 13)),
         ],
       ),
     );
@@ -425,12 +494,16 @@ class _ContactCard extends StatelessWidget {
     required this.name,
     required this.email,
     required this.phone,
+    required this.emailError,
+    required this.phoneError,
     required this.onChanged,
   });
 
   final TextEditingController name;
   final TextEditingController email;
   final TextEditingController phone;
+  final String? emailError;
+  final String? phoneError;
   final VoidCallback onChanged;
 
   @override
@@ -455,15 +528,18 @@ class _ContactCard extends StatelessWidget {
             label: 'Họ và tên',
             icon: Icons.person_rounded,
             controller: name,
+            hintText: 'Nhập họ và tên người liên hệ',
             textInputAction: TextInputAction.next,
             onChanged: onChanged,
           ),
           const SizedBox(height: 7),
           _InputField(
             fieldKey: const Key('contact-email-field'),
-            label: 'Email',
+            label: 'Email (nhận vé điện tử)',
             icon: Icons.email_rounded,
             controller: email,
+            hintText: 'email@vidu.com',
+            errorText: emailError,
             keyboardType: TextInputType.emailAddress,
             textInputAction: TextInputAction.next,
             onChanged: onChanged,
@@ -474,6 +550,8 @@ class _ContactCard extends StatelessWidget {
             label: 'Số điện thoại',
             icon: Icons.phone_rounded,
             controller: phone,
+            hintText: '0901 234 567',
+            errorText: phoneError,
             keyboardType: TextInputType.phone,
             textInputAction: TextInputAction.done,
             onChanged: onChanged,
@@ -551,6 +629,7 @@ class _InputField extends StatelessWidget {
     this.keyboardType,
     this.textInputAction,
     this.hintText,
+    this.errorText,
   });
 
   final Key fieldKey;
@@ -561,6 +640,7 @@ class _InputField extends StatelessWidget {
   final TextInputType? keyboardType;
   final TextInputAction? textInputAction;
   final String? hintText;
+  final String? errorText;
 
   @override
   Widget build(BuildContext context) {
@@ -584,6 +664,8 @@ class _InputField extends StatelessWidget {
                 color: Color(0xFF9BB0BE),
                 fontSize: 13,
               ),
+              errorText: errorText,
+              errorMaxLines: 2,
               filled: true,
               fillColor: _field,
               isDense: true,
@@ -614,6 +696,14 @@ class _InputField extends StatelessWidget {
                 borderRadius: BorderRadius.circular(7),
                 borderSide: const BorderSide(color: _blue),
               ),
+              errorBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(7),
+                borderSide: const BorderSide(color: _danger),
+              ),
+              focusedErrorBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(7),
+                borderSide: const BorderSide(color: _danger),
+              ),
             ),
           ),
         ),
@@ -635,7 +725,9 @@ class _PassengerCard extends StatelessWidget {
   final String seat;
   final TextEditingController controller;
   final VoidCallback onChanged;
-  final VoidCallback onChooseSaved;
+
+  /// `null` = không có hành khách đã lưu (khách vãng lai) — ẩn nút chọn.
+  final VoidCallback? onChooseSaved;
 
   @override
   Widget build(BuildContext context) {
@@ -704,37 +796,38 @@ class _PassengerCard extends StatelessWidget {
               ),
             ],
           ),
-          Align(
-            alignment: Alignment.centerRight,
-            child: Material(
-              color: const Color(0xFFEFF7FB),
-              borderRadius: BorderRadius.circular(18),
-              child: InkWell(
-                key: Key('saved-passenger-$seat'),
-                onTap: onChooseSaved,
+          if (onChooseSaved != null)
+            Align(
+              alignment: Alignment.centerRight,
+              child: Material(
+                color: const Color(0xFFEFF7FB),
                 borderRadius: BorderRadius.circular(18),
-                child: const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(Icons.person_rounded, color: _blue, size: 18),
-                      SizedBox(width: 5),
-                      Flexible(
-                        child: Text(
-                          'Chọn hành khách đã lưu',
-                          style: TextStyle(
-                            color: Color(0xFF397393),
-                            fontSize: 13,
+                child: InkWell(
+                  key: Key('saved-passenger-$seat'),
+                  onTap: onChooseSaved,
+                  borderRadius: BorderRadius.circular(18),
+                  child: const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.person_rounded, color: _blue, size: 18),
+                        SizedBox(width: 5),
+                        Flexible(
+                          child: Text(
+                            'Chọn hành khách đã lưu',
+                            style: TextStyle(
+                              color: Color(0xFF397393),
+                              fontSize: 13,
+                            ),
                           ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               ),
             ),
-          ),
           Padding(
             padding: const EdgeInsets.fromLTRB(57, 8, 0, 0),
             child: _InputField(
@@ -754,12 +847,25 @@ class _PassengerCard extends StatelessWidget {
 }
 
 class _PromotionCard extends StatelessWidget {
-  const _PromotionCard({required this.controller});
+  const _PromotionCard({
+    required this.controller,
+    required this.promotion,
+    required this.error,
+    required this.checking,
+    required this.onApply,
+    required this.onRemove,
+  });
 
   final TextEditingController controller;
+  final PromotionQuote? promotion;
+  final String? error;
+  final bool checking;
+  final VoidCallback onApply;
+  final VoidCallback onRemove;
 
   @override
   Widget build(BuildContext context) {
+    final applied = promotion;
     return Container(
       margin: const EdgeInsets.fromLTRB(10, 5, 10, 0),
       padding: const EdgeInsets.fromLTRB(12, 11, 12, 12),
@@ -777,14 +883,16 @@ class _PromotionCard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 9),
-          Row(
-            children: [
-              Expanded(
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(minHeight: 48),
+          if (applied == null)
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
                   child: TextField(
                     key: const Key('voucher-field'),
                     controller: controller,
+                    textCapitalization: TextCapitalization.characters,
+                    onSubmitted: (_) => onApply(),
                     style: const TextStyle(color: _ink, fontSize: 14),
                     decoration: InputDecoration(
                       hintText: 'Nhập mã khuyến mãi',
@@ -792,13 +900,16 @@ class _PromotionCard extends StatelessWidget {
                         color: Color(0xFFA5B5C0),
                         fontSize: 13,
                       ),
+                      errorText: error,
+                      errorMaxLines: 2,
                       prefixIcon: const Icon(
                         Icons.confirmation_number_rounded,
                         color: _muted,
                         size: 15,
                       ),
                       prefixIconConstraints: const BoxConstraints(minWidth: 38),
-                      contentPadding: const EdgeInsets.symmetric(vertical: 8),
+                      contentPadding: const EdgeInsets.symmetric(vertical: 14),
+                      isDense: true,
                       filled: true,
                       fillColor: _field,
                       enabledBorder: OutlineInputBorder(
@@ -809,91 +920,93 @@ class _PromotionCard extends StatelessWidget {
                         borderRadius: BorderRadius.circular(7),
                         borderSide: const BorderSide(color: _blue),
                       ),
+                      errorBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(7),
+                        borderSide: const BorderSide(color: _danger),
+                      ),
+                      focusedErrorBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(7),
+                        borderSide: const BorderSide(color: _danger),
+                      ),
                     ),
                   ),
                 ),
-              ),
-              const SizedBox(width: 7),
-              ConstrainedBox(
-                constraints: const BoxConstraints(minHeight: 48),
-                child: FilledButton(
-                  onPressed: () {},
-                  style: FilledButton.styleFrom(
-                    backgroundColor: _blue,
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
+                const SizedBox(width: 7),
+                SizedBox(
+                  height: 48,
+                  child: FilledButton(
+                    key: const Key('voucher-apply'),
+                    onPressed: checking ? null : onApply,
+                    style: FilledButton.styleFrom(
+                      backgroundColor: _blue,
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
                     ),
+                    child: checking
+                        ? const SizedBox.square(
+                            dimension: 18,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2.2,
+                              color: Colors.white,
+                            ),
+                          )
+                        : const Text(
+                            'Áp dụng',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
                   ),
-                  child: const Text(
-                    'Áp dụng',
-                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 7),
-          const Row(
-            children: [
-              Icon(Icons.local_activity_rounded, color: _orange, size: 17),
-              SizedBox(width: 6),
-              Expanded(
-                child: Text(
-                  'Voucher của tôi',
-                  style: TextStyle(color: _ink, fontSize: 14),
-                ),
-              ),
-              Icon(Icons.chevron_right_rounded, color: _muted, size: 17),
-            ],
-          ),
-          const SizedBox(height: 7),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-            decoration: BoxDecoration(
-              color: const Color(0xFFECF9F1),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: const Row(
-              children: [
-                Icon(
-                  Icons.confirmation_number_rounded,
-                  color: _orange,
-                  size: 21,
-                ),
-                SizedBox(width: 7),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'VXN50K',
-                        style: TextStyle(
-                          color: Color(0xFF258A54),
-                          fontSize: 15,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      Text(
-                        'Giảm 50.000 đ cho đơn hàng',
-                        style: TextStyle(color: _muted, fontSize: 13),
-                      ),
-                    ],
-                  ),
-                ),
-                Icon(
-                  Icons.check_circle_rounded,
-                  color: Color(0xFF2FB471),
-                  size: 15,
-                ),
-                SizedBox(width: 3),
-                Text(
-                  'Đã áp dụng',
-                  style: TextStyle(color: Color(0xFF258A54), fontSize: 13),
                 ),
               ],
+            )
+          else
+            Container(
+              key: const Key('voucher-applied'),
+              padding: const EdgeInsets.fromLTRB(10, 8, 4, 8),
+              decoration: BoxDecoration(
+                color: const Color(0xFFECF9F1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                children: [
+                  const Icon(
+                    Icons.confirmation_number_rounded,
+                    color: _orange,
+                    size: 21,
+                  ),
+                  const SizedBox(width: 7),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          '${applied.code} đã áp dụng',
+                          style: const TextStyle(
+                            color: Color(0xFF258A54),
+                            fontSize: 15,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        Text(
+                          '${applied.name} · −${formatVnd(applied.discount)}',
+                          style: const TextStyle(color: _muted, fontSize: 13),
+                        ),
+                      ],
+                    ),
+                  ),
+                  IconButton(
+                    key: const Key('voucher-remove'),
+                    tooltip: 'Bỏ mã',
+                    onPressed: onRemove,
+                    icon: const Icon(Icons.close_rounded, color: _muted),
+                  ),
+                ],
+              ),
             ),
-          ),
         ],
       ),
     );
@@ -901,14 +1014,18 @@ class _PromotionCard extends StatelessWidget {
 }
 
 class _PassengerBottomBar extends StatelessWidget {
-  const _PassengerBottomBar({required this.seats, required this.onContinue});
+  const _PassengerBottomBar({
+    required this.passengerCount,
+    required this.total,
+    required this.onContinue,
+  });
 
-  final List<String> seats;
+  final int passengerCount;
+  final int total;
   final VoidCallback? onContinue;
 
   @override
   Widget build(BuildContext context) {
-    final amount = seats.length * 280000;
     return DecoratedBox(
       decoration: const BoxDecoration(
         color: Colors.white,
@@ -932,7 +1049,7 @@ class _PassengerBottomBar extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      '${seats.length} khách hàng',
+                      '$passengerCount hành khách',
                       key: const Key('passenger-count'),
                       style: const TextStyle(
                         color: _ink,
@@ -942,7 +1059,7 @@ class _PassengerBottomBar extends StatelessWidget {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      '${_formatAmount(amount)} đ',
+                      formatVnd(total),
                       key: const Key('passenger-total-amount'),
                       style: const TextStyle(
                         color: _blue,
@@ -951,7 +1068,7 @@ class _PassengerBottomBar extends StatelessWidget {
                       ),
                     ),
                     const Text(
-                      'Tổng tiền',
+                      'Tạm tính',
                       style: TextStyle(color: _muted, fontSize: 13),
                     ),
                   ],
@@ -1004,7 +1121,9 @@ class _PassengerBottomBar extends StatelessWidget {
 }
 
 class _SavedPassengerSheet extends StatelessWidget {
-  const _SavedPassengerSheet();
+  const _SavedPassengerSheet({required this.travellers});
+
+  final List<SavedTraveller> travellers;
 
   @override
   Widget build(BuildContext context) {
@@ -1030,38 +1149,38 @@ class _SavedPassengerSheet extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 9),
-              for (final name in const ['Nguyễn Văn Minh', 'Trần Thị Lan'])
-                ListTile(
-                  key: Key('saved-passenger-$name'),
-                  contentPadding: EdgeInsets.zero,
-                  leading: const CircleAvatar(
-                    backgroundColor: Color(0xFFE8F4FA),
-                    child: Icon(Icons.person_rounded, color: _blue),
-                  ),
-                  title: Text(
-                    name,
-                    style: const TextStyle(color: _ink, fontSize: 14),
-                  ),
-                  trailing: const Icon(
-                    Icons.chevron_right_rounded,
-                    color: _muted,
-                  ),
-                  onTap: () => Navigator.pop(context, name),
+              Flexible(
+                child: ListView(
+                  shrinkWrap: true,
+                  children: [
+                    for (final traveller in travellers)
+                      ListTile(
+                        key: Key('saved-passenger-${traveller.fullName}'),
+                        contentPadding: EdgeInsets.zero,
+                        leading: const CircleAvatar(
+                          backgroundColor: Color(0xFFE8F4FA),
+                          child: Icon(Icons.person_rounded, color: _blue),
+                        ),
+                        title: Text(
+                          traveller.fullName,
+                          style: const TextStyle(color: _ink, fontSize: 14),
+                        ),
+                        subtitle: traveller.phone == null
+                            ? null
+                            : Text(traveller.phone!),
+                        trailing: const Icon(
+                          Icons.chevron_right_rounded,
+                          color: _muted,
+                        ),
+                        onTap: () => Navigator.pop(context, traveller),
+                      ),
+                  ],
                 ),
+              ),
             ],
           ),
         ),
       ),
     );
   }
-}
-
-String _formatAmount(int amount) {
-  final digits = amount.toString();
-  final buffer = StringBuffer();
-  for (var index = 0; index < digits.length; index++) {
-    if (index > 0 && (digits.length - index) % 3 == 0) buffer.write('.');
-    buffer.write(digits[index]);
-  }
-  return buffer.toString();
 }

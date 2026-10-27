@@ -1,13 +1,34 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mobile_shared/mobile_shared.dart';
 import 'package:passenger_mobile/features/ticket/booking_confirmation_screen.dart';
+import 'package:passenger_mobile/features/ticket/booking_models.dart';
+
+import 'support/fake_booking_api.dart';
+
+const _draft = BookingDraft(
+  contact: BookingContact(
+    fullName: 'Lê Văn An',
+    phone: '0901234567',
+    email: 'an@vidu.com',
+  ),
+  passengers: [
+    BookingPassenger(seatCode: 'A01', fullName: 'Lê Văn An'),
+    BookingPassenger(seatCode: 'A03', fullName: 'Trần Thị Bình'),
+  ],
+  promotion: PromotionQuote(
+    code: 'GIAM50',
+    name: 'Giảm 50K',
+    discount: 50000,
+    total: 550000,
+  ),
+);
 
 Future<void> _pumpScreen(
-  WidgetTester tester, {
+  WidgetTester tester,
+  FakeBookingApi api, {
   double width = 412,
   double height = 900,
-  required DateTime now,
-  DateTime Function()? nowProvider,
 }) async {
   tester.view.devicePixelRatio = 1;
   tester.view.physicalSize = Size(width, height);
@@ -22,109 +43,128 @@ Future<void> _pumpScreen(
         colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF1E8ABE)),
       ),
       home: BookingConfirmationScreen(
-        selectedSeats: const ['A01', 'A02'],
-        passengerNames: const ['Nguyễn Văn Minh', 'Trần Thị Lan'],
-        holdExpiresAt: now.add(const Duration(minutes: 10)),
-        now: nowProvider ?? () => now,
+        api: api,
+        trip: api.trip,
+        hold: sampleHold(),
+        draft: _draft,
       ),
     ),
   );
   await tester.pump();
 }
 
+Future<void> _acceptAndSubmit(WidgetTester tester) async {
+  await tester.scrollUntilVisible(
+    find.byKey(const Key('booking-terms-checkbox')),
+    300,
+    scrollable: find
+        .descendant(
+          of: find.byKey(const Key('booking-confirmation-scroll')),
+          matching: find.byType(Scrollable),
+        )
+        .first,
+  );
+  await tester.tap(find.byKey(const Key('booking-terms-checkbox')));
+  await tester.pump();
+  await tester.tap(find.byKey(const Key('booking-continue-payment')));
+  await tester.pumpAndSettle();
+}
+
 void main() {
-  testWidgets('hiển thị đủ snapshot booking tĩnh theo Figma', (tester) async {
-    final now = DateTime(2026, 10, 26, 10);
-    await _pumpScreen(tester, now: now);
-
-    expect(
-      find.byKey(const Key('booking-confirmation-screen')),
-      findsOneWidget,
-    );
-    expect(find.text('Xác nhận booking'), findsOneWidget);
-    expect(find.text('10:00'), findsOneWidget);
-    expect(find.text('Phương Trang'), findsOneWidget);
-    expect(find.text('Nguyễn Văn Minh'), findsOneWidget);
-    expect(find.text('Trần Thị Lan'), findsOneWidget);
-    expect(find.text('Bến xe Miền Đông'), findsWidgets);
-    expect(find.text('Bến xe Đà Lạt'), findsWidgets);
-    await tester.scrollUntilVisible(
-      find.text('VXN50K'),
-      250,
-      scrollable: find
-          .descendant(
-            of: find.byKey(const Key('booking-confirmation-scroll')),
-            matching: find.byType(Scrollable),
-          )
-          .first,
-    );
-    expect(find.text('VXN50K'), findsWidgets);
-    await tester.scrollUntilVisible(
-      find.text('Tiền vé (2 ghế x 280.000 đ)'),
-      200,
-      scrollable: find
-          .descendant(
-            of: find.byKey(const Key('booking-confirmation-scroll')),
-            matching: find.byType(Scrollable),
-          )
-          .first,
-    );
-    expect(find.text('Tiền vé (2 ghế x 280.000 đ)'), findsOneWidget);
-    expect(find.text('530.000 đ'), findsNWidgets(2));
-    expect(find.byKey(const Key('booking-continue-payment')), findsOneWidget);
-    expect(tester.takeException(), isNull);
-  });
-
-  testWidgets('bỏ điều khoản sẽ khóa nút tiếp tục thanh toán', (tester) async {
-    final now = DateTime(2026, 10, 26, 10);
-    await _pumpScreen(tester, now: now);
-
-    await tester.scrollUntilVisible(
-      find.byKey(const Key('booking-terms-checkbox')),
-      300,
-      scrollable: find.byType(Scrollable),
-    );
-    await tester.tap(find.byKey(const Key('booking-terms-checkbox')));
-    await tester.pump();
-
-    final button = tester.widget<FilledButton>(
-      find.byKey(const Key('booking-continue-payment')),
-    );
-    expect(button.onPressed, isNull);
-    expect(tester.takeException(), isNull);
-  });
-
-  testWidgets('tiếp tục mở màn thanh toán với cùng hạn giữ ghế', (
+  testWidgets('hiện đúng hành khách, giá từng chỗ, mã giảm và tổng sau giảm', (
     tester,
   ) async {
-    var now = DateTime(2026, 10, 26, 10);
-    await _pumpScreen(tester, now: now, nowProvider: () => now);
+    await _pumpScreen(tester, FakeBookingApi());
+    expect(find.text('Trần Thị Bình'), findsOneWidget);
+    expect(find.text('Sài Gòn – Đà Lạt'), findsOneWidget);
+    await tester.scrollUntilVisible(
+      find.byKey(const Key('booking-total-amount')),
+      300,
+      scrollable: find
+          .descendant(
+            of: find.byKey(const Key('booking-confirmation-scroll')),
+            matching: find.byType(Scrollable),
+          )
+          .first,
+    );
+    expect(find.text('Chỗ A01'), findsOneWidget);
+    expect(find.text('Giảm giá (GIAM50)'), findsOneWidget);
+    expect(
+      tester.widget<Text>(find.byKey(const Key('booking-total-amount'))).data,
+      '550.000 ₫',
+    );
+  });
 
-    now = now.add(const Duration(seconds: 30));
-    await tester.pump(const Duration(seconds: 1));
+  testWidgets('chưa đồng ý điều khoản thì không tạo đơn được', (tester) async {
+    await _pumpScreen(tester, FakeBookingApi());
+    expect(
+      tester
+          .widget<FilledButton>(
+            find.byKey(const Key('booking-continue-payment')),
+          )
+          .onPressed,
+      isNull,
+    );
+  });
+
+  testWidgets(
+    'tạo đơn với tổng sau giảm rồi sang màn thanh toán, không quay lại được bước trước',
+    (tester) async {
+      final api = FakeBookingApi();
+      await _pumpScreen(tester, api);
+      await _acceptAndSubmit(tester);
+
+      final call = api.bookings.single;
+      expect(call.holdId, 'hold-1');
+      expect(call.expectedTotal, 550000);
+      expect(call.draft.promotion?.code, 'GIAM50');
+      expect(call.draft.passengers.map((p) => p.seatCode), ['A01', 'A03']);
+      expect(find.byKey(const Key('payment-screen')), findsOneWidget);
+      expect(find.text('VXN-ABC123'), findsWidgets);
+      expect(
+        find.byKey(const Key('booking-confirmation-screen')),
+        findsNothing,
+      );
+    },
+  );
+
+  testWidgets('giá vừa đổi: đọc lại giữ chỗ, tính lại mã, báo tổng mới', (
+    tester,
+  ) async {
+    final api = FakeBookingApi()
+      ..bookingError = const ApiFailure(
+        status: 409,
+        code: 'BOOKING_SNAPSHOT_CHANGED',
+        detail: 'x',
+      )
+      ..reloadedSeatPrice = 320000;
+    await _pumpScreen(tester, api);
+    await _acceptAndSubmit(tester);
+
+    expect(find.byKey(const Key('payment-screen')), findsNothing);
+    expect(find.textContaining('Tổng mới: 590.000 ₫'), findsOneWidget);
+    expect(
+      tester.widget<Text>(find.byKey(const Key('booking-total-amount'))).data,
+      '590.000 ₫',
+    );
+
     await tester.tap(find.byKey(const Key('booking-continue-payment')));
     await tester.pumpAndSettle();
-
+    expect(api.bookings.single.expectedTotal, 590000);
     expect(find.byKey(const Key('payment-screen')), findsOneWidget);
-    expect(find.text('09:30'), findsOneWidget);
-    expect(tester.takeException(), isNull);
   });
 
   testWidgets('viewport 320x568 cuộn được và không bottom overflow', (
     tester,
   ) async {
-    final now = DateTime(2026, 10, 26, 10);
-    await _pumpScreen(tester, width: 320, height: 568, now: now);
-
-    await tester.drag(
-      find.byKey(const Key('booking-confirmation-scroll')),
-      const Offset(0, -1200),
-    );
-    await tester.pumpAndSettle();
-
-    expect(find.text('Chi tiết thanh toán'), findsOneWidget);
-    expect(find.text('Tổng thanh toán'), findsWidgets);
-    expect(find.byKey(const Key('booking-continue-payment')), findsOneWidget);
-    expect(tester.takeException(), isNull);
+    await _pumpScreen(tester, FakeBookingApi(), width: 320, height: 568);
+    for (var index = 0; index < 4; index++) {
+      await tester.drag(
+        find.byKey(const Key('booking-confirmation-scroll')),
+        const Offset(0, -400),
+      );
+      await tester.pump();
+      expect(tester.takeException(), isNull);
+    }
   });
 }

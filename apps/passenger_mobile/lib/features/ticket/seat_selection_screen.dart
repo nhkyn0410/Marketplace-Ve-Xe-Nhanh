@@ -149,8 +149,9 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
     await Navigator.of(context).push(
       MaterialPageRoute<void>(
         builder: (_) => PassengerInformationScreen(
-          selectedSeats: hold.seatCodes,
-          holdExpiresAt: hold.expiresAt,
+          api: widget.api,
+          trip: _trip,
+          hold: hold,
         ),
       ),
     );
