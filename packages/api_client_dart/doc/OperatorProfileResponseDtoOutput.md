@@ -17,6 +17,7 @@ Name | Type | Description | Notes
 **publicEmail** | **String** |  | 
 **address** | **String** |  | 
 **description** | **String** |  | 
+**logoUrl** | **String** |  | 
 **status** | **String** |  | 
 **suspendedReason** | **String** |  | 
 **approvedAt** | [**DateTime**](DateTime.md) |  | 

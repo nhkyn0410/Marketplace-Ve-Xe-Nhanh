@@ -13,7 +13,7 @@
 | Người viết    | Nguyễn Hồng Khanh, AI Agent        |
 | Người duyệt   | Nguyễn Hồng Khanh                |
 | Ngày tạo      | 11/05/2026                       |
-| Ngày cập nhật | 25/10/2026                       |
+| Ngày cập nhật | 27/10/2026                       |
 
 ### 1.2. Lịch sử thay đổi
 
@@ -47,6 +47,7 @@
 | v0.26     | 17/10/2026 | AI Agent       | **Phần không cần đặt vé (Khanh 17/10/2026, chờ duyệt):** §9 thêm `TC-TRN-026` (lịch chuyến lặp lại), `TC-EMP-003` (phân công tài xế), `TC-ADM-008` (nội dung công khai). Giữ trạng thái Draft. |
 | v0.27     | 19/10/2026 | AI Agent       | **Sáu phần tiếp theo (Khanh 19/10/2026, chờ duyệt):** §9 thêm `TC-EMP-004/005` (soát vé, vận hành chuyến), `TC-PAY-004` (đối soát tự động), `TC-RPT-001/002`, `TC-DSP-001..003`, `TC-PROM-001..003`; ghi trạng thái hiện thực `TC-LOY-001/005/006/007` (`TC-LOY-002..004` chờ ví voucher). Giữ trạng thái Draft. |
 | v0.28     | 25/10/2026 | AI Agent       | **`TASK-IAM-007` — phân quyền theo từng tài khoản (Done 25/10/2026, thiết kế chờ duyệt):** §8 thêm AC "Phân quyền theo tài khoản"; §9 thêm `TC-SEC-013..016` (`can()` + trần quyền, claim `perms`, Admin phân quyền không leo thang, Owner quản lý tài khoản quản lý) kèm file test đã có; ghi rõ phần **chưa có test tự động** (người cuối cùng có `access:manage`, E2E hai màn). Giữ trạng thái Draft. |
+| v0.29     | 27/10/2026 | AI Agent       | **Logo nhà xe + trang công khai (FR-OPR-02, TASK-MKT-001; Khanh 27/10/2026, tự thiết kế — chờ duyệt):** §9 thêm `TC-OPR-007` (logo: gắn / thay / gỡ, file sai, tenant-RLS, đồng thời, audit lỗi, guard route) và `TC-OPR-008` (E2E logo + Mở trang nhà xe + Xem trước trên ứng dụng). Giữ trạng thái Draft. |
 
 ---
 
@@ -259,6 +260,8 @@ Mandatory (rủi ro cao, ADR-025): money math, idempotency, tenant RLS, seat-hol
 | TC-OPR-004 | Operator OS — đăng ký nhà xe công khai: màn đăng nhập có lối "Đăng ký"; form bước 1 báo lỗi tại ô, gửi xong chỉ nhắc kiểm tra hộp thư; mở link → token rời thanh địa chỉ, thiếu giấy tờ thì khóa Gửi duyệt, tệp sai loại báo tại chỗ, lưu nháp kèm ba giấy tờ, số tài khoản chỉ hiện 4 số cuối, xem giấy tờ mở URL có hạn; gửi duyệt → trang Chờ duyệt; link sai → trang gửi lại link; gửi lại link thu hồi link cũ | Security | Cao |
 | TC-OPR-005 | Admin — duyệt hồ sơ nhà xe: hàng đợi hiện hồ sơ vừa gửi duyệt kèm cảnh báo trùng mã số thuế / tài khoản nhận tiền, lọc trạng thái rỗng thì "Bỏ lọc"; chi tiết che số tài khoản, nêu hồ sơ trùng, có lịch sử, "Mở tệp" mở URL có hạn ở tab mới; yêu cầu bổ sung không hỏi TOTP → Cần bổ sung, người nộp gửi lại → từ chối kèm TOTP → Bị từ chối kèm lý do; duyệt: tên đăng nhập `nv.` và slug đã dùng báo tại ô, duyệt xong hiện tài khoản `slug/username` + mật khẩu tạm chờ gửi lại | E2E (Playwright) | Cao |
 | TC-OPR-006 | Operator OS hồ sơ & KYC: chủ nhà xe sửa thông tin công khai (audit chỉ trường đổi; tenant không đổi được tên pháp lý / trạng thái kể cả ghi thẳng DB; nhà xe khác không sửa được); thay giấy tờ (khóa nhà xe khác / sai loại / chưa tải → 422, bản cũ tự tải lên bị xóa), xem giấy tờ có audit; đổi tài khoản nhận tiền cần xác nhận lại, trùng → 422, đang chờ → 409, tenant không tự xác minh; Admin xem số đầy đủ (audit) → từ chối kèm lý do / xác minh (bản cũ `REPLACED`), email kết quả; nhân viên / Admin gọi route nhà xe → 403 (`operator-profile.int.spec.ts`, `.http.spec.ts`, `profile.e2e.ts`, `users.e2e.ts`) | E2E/Integration/Security (money) | Rất cao |
+| TC-OPR-007 | Logo nhà xe (FR-OPR-02, Postgres thật, role app + kho local thật): gắn logo → `logoUrl` ở hồ sơ + `public-profile`, audit `operator.logo.update` (trước / sau); gửi lại đúng logo → không đổi gì, không audit; thay → object cũ bị xóa; gỡ → `null`, object bị xóa, gỡ lần nữa không audit; khóa của nhà xe khác / ảnh xe, object chưa tải lên, không phải ảnh, khai sai loại, quá 2 MB → 422 `OPERATOR_LOGO_INVALID`, hồ sơ giữ nguyên; tenant khác không gắn được logo của nhà xe này kể cả ghi thẳng DB (RLS); hai lần đổi đồng thời → còn đúng một object, khớp hồ sơ; audit lỗi → 503 không đổi gì; route logo: không token 401, nhân viên / Admin 403, SVG / GIF / > 2 MB → 400 (`operator-profile.int.spec.ts`, `.http.spec.ts`, `operator-logo-format.spec.ts`); `featured-operators` ghép `logoUrl`, không lộ khóa object (`catalog.service.spec.ts`) | Integration/Security (tenant-RLS) | Rất cao |
+| TC-OPR-008 | E2E màn Hồ sơ & KYC — logo + trang công khai (TASK-MKT-001): tệp không phải ảnh báo lỗi; tải PNG → logo hiện (ảnh tải được), nút "Đổi logo"; "Mở trang nhà xe" là link tab mới tới `/operators/{id}`; "Xem trước trên ứng dụng" mở khung điện thoại có logo, hotline, chỉ số chất lượng, "Chưa có đánh giá."; gỡ logo có hộp xác nhận → về chữ viết tắt (`profile.e2e.ts`) | E2E (Playwright) | Cao |
 
 ---
 

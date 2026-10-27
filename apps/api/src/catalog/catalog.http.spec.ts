@@ -84,6 +84,7 @@ describe("Catalog routes — HTTP công khai", () => {
       {
         operatorId,
         displayName: "Phương Trang",
+        logoUrl: null,
         averageRating: null,
         reviewCount: 0,
         routes: [pair],
@@ -178,7 +179,7 @@ describe("Catalog routes — HTTP công khai", () => {
     expect(listPopularRoutes).toHaveBeenLastCalledWith(3);
   });
 
-  it("featured-operators áp mặc định limit=5, nhà xe chưa có đánh giá trả averageRating null", async () => {
+  it("featured-operators áp mặc định limit=5, nhà xe chưa có đánh giá / logo trả averageRating / logoUrl null", async () => {
     const body = await (await fetch(`${base}/featured-operators`)).json();
     expect(listFeaturedOperators).toHaveBeenLastCalledWith(5);
     expect(body).toEqual({
@@ -186,6 +187,7 @@ describe("Catalog routes — HTTP công khai", () => {
         {
           operatorId,
           displayName: "Phương Trang",
+          logoUrl: null,
           averageRating: null,
           reviewCount: 0,
           routes: [pair],

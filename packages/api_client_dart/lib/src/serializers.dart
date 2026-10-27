@@ -268,6 +268,9 @@ import 'package:api_client_dart/src/model/kyc_download_response_dto_output.dart'
 import 'package:api_client_dart/src/model/kyc_replace_input_dto.dart';
 import 'package:api_client_dart/src/model/kyc_upload_input_dto.dart';
 import 'package:api_client_dart/src/model/kyc_upload_response_dto_output.dart';
+import 'package:api_client_dart/src/model/logo_attach_input_dto.dart';
+import 'package:api_client_dart/src/model/logo_upload_input_dto.dart';
+import 'package:api_client_dart/src/model/logo_upload_response_dto_output.dart';
 import 'package:api_client_dart/src/model/loyalty_member_dto_output.dart';
 import 'package:api_client_dart/src/model/loyalty_redemption_input_dto.dart';
 import 'package:api_client_dart/src/model/loyalty_report_dto_output.dart';
@@ -805,6 +808,9 @@ part 'serializers.g.dart';
   KycReplaceInputDto,
   KycUploadInputDto,
   KycUploadResponseDtoOutput,
+  LogoAttachInputDto,
+  LogoUploadInputDto,
+  LogoUploadResponseDtoOutput,
   LoyaltyMemberDtoOutput,
   LoyaltyRedemptionInputDto,
   LoyaltyReportDtoOutput,

@@ -13,7 +13,7 @@
 | Người viết    | Nguyễn Hồng Khanh, AI Agent |
 | Người duyệt   | Nguyễn Hồng Khanh           |
 | Ngày tạo      | 11/05/2026                  |
-| Ngày cập nhật | 17/10/2026                  |
+| Ngày cập nhật | 27/10/2026                  |
 
 ### 1.2. Lịch sử thay đổi
 
@@ -58,6 +58,7 @@
 | v0.37     | 26/10/2026 | AI Agent | **Figma thanh toán đổi sang payOS + cổng demo (Khanh 21/10 chọn, 26/10 "chỉnh thiết kế", chờ duyệt + chờ ADR thay ADR-019):** SCR-PSG-20 (Ideal + hết giờ giữ chỗ) bỏ VNPay / MoMo + chip ngân hàng, thay bằng "Chuyển khoản VietQR qua payOS" và "Cổng thanh toán thử (demo)"; nhãn phương thức / mã giao dịch ở SCR-PSG-16, 21, 22, 23, 25, 26 (hoàn qua chuyển khoản), 29, 31. Màn Admin (ADM-01, 07a–d, 09b, 14a, 16a–b) và Operator OS "02 · Đặt vé / Chi tiết đơn" còn VNPay / MoMo — sửa cùng task hiện thực payOS. |
 | v0.38     | 27/10/2026 | AI Agent | **Tra cứu vé không cần mã đặt vé (Khanh 27/10/2026, chờ duyệt):** SCR-PSG-27 mã đặt vé không bắt buộc + dòng CSKH khi mất email; SCR-PSG-29 thêm danh sách đơn theo email (12 tháng, gồm đơn đặt bằng tài khoản) và hộp thoại hỏi đăng nhập — chưa có khung Figma cho danh sách. |
 | v0.39     | 27/10/2026 | AI Agent | **Hủy vé và khiếu nại sau OTP (Khanh 27/10/2026, chờ duyệt):** SCR-PSG-29 khối "Thao tác với đơn" (Figma 1446:15578) bật "Hủy vé / yêu cầu hoàn tiền", "Gửi khiếu nại về đơn này" và nút "Hủy vé" ở từng vé cho đơn khách vãng lai — bấm thì mở quyền rồi sang trang quản lý vé / khiếu nại sẵn có; không hỏi OTP lần nữa (khác ghi chú Figma "cần xác minh lại bằng OTP"); đơn đặt bằng tài khoản hiện hướng dẫn đăng nhập. |
+| v0.40     | 27/10/2026 | AI Agent | **Logo nhà xe + trang công khai (FR-OPR-02, TASK-MKT-001; Khanh 27/10/2026, tự thiết kế — chờ duyệt):** §7 Operator OS Hồ sơ & KYC — tải / đổi / gỡ logo, "Mở trang nhà xe" (tab mới tới web khách hàng), "Xem trước trên ứng dụng" (khung điện thoại mô phỏng màn nhà xe); SCR-PSG-17 hiện logo. Web khách hàng: đầu trang nhà xe và thẻ Nhà xe đối tác ở trang chủ dùng logo, chưa có thì chữ viết tắt. |
 
 ---
 
@@ -355,7 +356,7 @@ Mỗi màn hình là một bảng đủ 5 trạng thái theo §10.1. Cột **Thi
 
 | Trạng thái     | Nội dung cần có                                                                  | Thiết kế |
 | -------------- | -------------------------------------------------------------------------------- | -------- |
-| Ideal          | Thông tin công khai; scorecard; tuyến tiêu biểu; đánh giá; điều khoản dịch vụ     | Draft    |
+| Ideal          | Thông tin công khai (logo nhà xe nếu có — 27/10/2026); scorecard; tuyến tiêu biểu; đánh giá; điều khoản dịch vụ | Draft    |
 | Empty          | Chưa có đánh giá / chưa có tuyến mở bán                                           | Draft    |
 | Loading        | Skeleton                                                                         | Draft    |
 | Partial / Edge | Tên nhà xe dài; số đánh giá lớn; scorecard chưa đủ dữ liệu                        | Draft    |
@@ -598,7 +599,7 @@ Login `{operatorSlug}/{username}` + password qua `/auth/operator/login` — **ch
 | Vehicle/SeatMap | Vehicle list (kèm ảnh đại diện), vehicle form (chọn loại xe — mỗi lựa chọn hiện dạng chỗ + hạng xe; khối ảnh xe: tải lên tối đa 8, kéo thả sắp xếp (hoặc phím mũi tên trên nút đổi chỗ), đặt chú thích ngắn, xóa; ảnh đầu là ảnh đại diện; ảnh nén ở trình duyệt trước khi tải lên; ảnh chọn ở form được lưu cùng nút "Lưu phương tiện" — ảnh tải lỗi giữ ô "Tải ảnh thất bại" với nút "Thử lại", ảnh khác vẫn được lưu, kể cả khi vừa tạo xe (Figma 08) — `TASK-TRN-009`), seat map editor (theo tầng, mỗi tầng có số hàng / cột riêng; chỗ đôi là một ô lưới vẽ rộng hơn; mỗi ô chọn loại chỗ: ghế / giường đơn / giường đôi / cabin đơn / cabin đôi; hiện tổng số chỗ và sức chứa) | Không sửa tùy tiện khi đã gắn trip có vé; ảnh sai loại / quá 5 MB / quá 8 ảnh báo lỗi tại chỗ (BR-76); ô chọn sơ đồ khóa sẵn khi `seatMapLocked`, trình soạn chỉ đọc khi sơ đồ `inUse` và gợi ý tạo bản sao (TRN-011) |
 | Route/StopPoint | Route list, route form (mỗi điểm dừng chọn cho đón / cho trả theo BR-79), màn **Điểm dừng** (mô tả bên dưới) | Bến xe / điểm dừng đón trả mới cần Admin duyệt; văn phòng trung chuyển và trạm dừng nghỉ dùng ngay; cảnh báo khi hai đầu tuyến không phải bến xe |
 | Trip/Fare       | Trip calendar/list, trip form, fare form, open/lock sale                 | Thay đổi trip đã bán vé cần lý do + audit. Bảng giá (chờ duyệt — `ADM-001-policy-todo.md`): dải cảnh báo khung giá (Figma `1665:24475`) + từng khung đang bị vượt; dòng quy tắc ngoài khung có biểu tượng cảnh báo; không chặn lưu |
-| Hồ sơ & KYC     | Hồ sơ doanh nghiệp (+ Chỉnh sửa), Giấy tờ KYC (Xem / Tải bản mới), Trạng thái hoạt động, Tài khoản nhận tiền (+ Đổi tài khoản: ngân hàng, số TK, chủ TK viết hoa không dấu, lý do, mật khẩu / mã xác thực), Trang công khai | `TASK-OPR-001b` (chờ duyệt — `OPR-001b-todo.md`): theo Figma `1667:27240`, `1667:27586`; đổi tài khoản thành yêu cầu chờ Admin xác minh, báo đang chờ / bị từ chối; nút "Mở trang nhà xe" tắt tới khi có Marketplace; chưa có dải cảnh báo kỳ chi trả |
+| Hồ sơ & KYC     | Hồ sơ doanh nghiệp (+ Chỉnh sửa; logo: Tải logo / Đổi logo / Gỡ logo có xác nhận), Giấy tờ KYC (Xem / Tải bản mới), Trạng thái hoạt động, Tài khoản nhận tiền (+ Đổi tài khoản: ngân hàng, số TK, chủ TK viết hoa không dấu, lý do, mật khẩu / mã xác thực), Trang công khai | `TASK-OPR-001b` (chờ duyệt — `OPR-001b-todo.md`): theo Figma `1667:27240`, `1667:27586`; đổi tài khoản thành yêu cầu chờ Admin xác minh, báo đang chờ / bị từ chối; chưa có dải cảnh báo kỳ chi trả. **27/10/2026 (tự thiết kế, chờ duyệt — chưa có frame Figma cho phần này):** logo thu nhỏ còn 512 px (PNG) trước khi tải, chữ viết tắt khi chưa có logo; thẻ Trang công khai: "Mở trang nhà xe" mở tab mới tới `/operators/{id}` của web khách hàng (`NEXT_PUBLIC_MARKETPLACE_URL`), "Xem trước trên ứng dụng" mở khung điện thoại mô phỏng màn nhà xe của app hành khách bằng dữ liệu `public-profile`; nhà xe tạm khóa → hai nút tắt kèm lý do |
 | Lịch chạy lặp lại | Nút "Lịch chạy lặp lại" ở đầu trang Chuyến xe → danh sách lịch (tuyến, giờ chạy, thứ chạy, khoảng áp dụng, xe, số chuyến đã sinh, Đang áp dụng / Sắp áp dụng / Đã hết hạn); form quy tắc + thẻ "Ngày có chuyến" + khối "Sinh chuyến" (mở bán ngay chuyến đủ điều kiện; kết quả từng ngày) | `TASK-TRN-007` (chờ duyệt — `TRN-007-todo.md`): **chưa có khung Figma**, dựng theo bộ kit màn Chuyến xe |
 | Phân công chuyến | Nút "Phân công chuyến" ở đầu trang Nhân viên → lọc ngày / tuyến / tình trạng; bảng Khởi hành · Tuyến · Xe · Tài xế (chọn là lưu) · Tình trạng (Đã phân công / Chưa phân công / Trùng lịch); lỗi trùng giờ dưới ô; hộp thoại lý do khi chuyến sắp chạy | `TASK-EMP-001` phía Operator OS (chờ duyệt — `EMP-001-todo.md`): theo Figma `1666:26082`; mô tả trang không hứa thông báo (chờ NSR-001) |
 | Booking/Ticket  | Booking list, passenger list, export                                     | Mask dữ liệu cá nhân (`0*** *** 789`) theo quyền             |

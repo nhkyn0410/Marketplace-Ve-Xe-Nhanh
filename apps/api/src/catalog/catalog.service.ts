@@ -6,6 +6,10 @@ import {
   loadFeaturedOperators,
   loadPopularRoutes,
 } from "../database/public-highlights";
+import {
+  PUBLIC_STORAGE,
+  type StorageProvider,
+} from "../external/storage/storage-provider";
 import { vndToJson } from "../fare/fare-pricing";
 import type {
   AmenityListResponse,
@@ -26,7 +30,11 @@ const ACTIVE = CatalogStatus.ACTIVE;
  */
 @Injectable()
 export class CatalogService {
-  constructor(@Inject(PrismaService) private readonly prisma: PrismaService) {}
+  constructor(
+    @Inject(PrismaService) private readonly prisma: PrismaService,
+    @Inject(PUBLIC_STORAGE)
+    private readonly storage: Pick<StorageProvider, "publicUrl">,
+  ) {}
 
   /** Liệt kê tỉnh/thành đang hoạt động, theo mã. */
   async listProvinces(): Promise<ProvinceListResponse> {
@@ -142,6 +150,12 @@ export class CatalogService {
     limit: number,
     now = new Date(),
   ): Promise<FeaturedOperatorListResponse> {
-    return { items: await loadFeaturedOperators(this.prisma, limit, now) };
+    const operators = await loadFeaturedOperators(this.prisma, limit, now);
+    return {
+      items: operators.map(({ logoObjectKey, ...operator }) => ({
+        ...operator,
+        logoUrl: logoObjectKey ? this.storage.publicUrl(logoObjectKey) : null,
+      })),
+    };
   }
 }

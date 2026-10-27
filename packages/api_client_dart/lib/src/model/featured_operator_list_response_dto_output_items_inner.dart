@@ -15,6 +15,7 @@ part 'featured_operator_list_response_dto_output_items_inner.g.dart';
 /// Properties:
 /// * [operatorId] 
 /// * [displayName] 
+/// * [logoUrl] 
 /// * [averageRating] 
 /// * [reviewCount] 
 /// * [routes] 
@@ -25,6 +26,9 @@ abstract class FeaturedOperatorListResponseDtoOutputItemsInner implements Built<
 
   @BuiltValueField(wireName: r'displayName')
   String get displayName;
+
+  @BuiltValueField(wireName: r'logoUrl')
+  String? get logoUrl;
 
   @BuiltValueField(wireName: r'averageRating')
   num? get averageRating;
@@ -67,6 +71,11 @@ class _$FeaturedOperatorListResponseDtoOutputItemsInnerSerializer implements Pri
     yield serializers.serialize(
       object.displayName,
       specifiedType: const FullType(String),
+    );
+    yield r'logoUrl';
+    yield object.logoUrl == null ? null : serializers.serialize(
+      object.logoUrl,
+      specifiedType: const FullType.nullable(String),
     );
     yield r'averageRating';
     yield object.averageRating == null ? null : serializers.serialize(
@@ -119,6 +128,14 @@ class _$FeaturedOperatorListResponseDtoOutputItemsInnerSerializer implements Pri
             specifiedType: const FullType(String),
           ) as String;
           result.displayName = valueDes;
+          break;
+        case r'logoUrl':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType.nullable(String),
+          ) as String?;
+          if (valueDes == null) continue;
+          result.logoUrl = valueDes;
           break;
         case r'averageRating':
           final valueDes = serializers.deserialize(

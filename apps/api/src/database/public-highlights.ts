@@ -193,6 +193,8 @@ export async function loadPopularRoutes(prisma: Pick<PrismaService, "withSystem"
 export type FeaturedOperator = {
   operatorId: string;
   displayName: string;
+  /** Khóa object logo ở kho công khai; service ghép thành địa chỉ. */
+  logoObjectKey: string | null;
   averageRating: number | null;
   reviewCount: number;
   /** Cặp tỉnh các tuyến đang mở bán của nhà xe, bán chạy trước. */
@@ -204,7 +206,7 @@ export async function loadFeaturedOperators(prisma: Pick<PrismaService, "withSys
   return prisma.withSystem(async (tx) => {
     const operators = await tx.operatorProfile.findMany({
       where: { status: "ACTIVE", trips: { some: upcomingTrips(now) } },
-      select: { id: true, displayName: true },
+      select: { id: true, displayName: true, logoObjectKey: true },
     });
     if (operators.length === 0) return [];
     const ratings = await tx.review.groupBy({ by: ["operatorId"], where: { status: "VISIBLE", operatorId: { in: operators.map((operator) => operator.id) } }, _avg: { rating: true }, _count: { id: true } });
@@ -213,7 +215,7 @@ export async function loadFeaturedOperators(prisma: Pick<PrismaService, "withSys
       .map((operator) => {
         const rating = byOperator.get(operator.id);
         const average = rating?._avg.rating ?? null;
-        return { operatorId: operator.id, displayName: operator.displayName, averageRating: average === null ? null : Math.round(average * 10) / 10, reviewCount: rating?._count.id ?? 0 };
+        return { operatorId: operator.id, displayName: operator.displayName, logoObjectKey: operator.logoObjectKey, averageRating: average === null ? null : Math.round(average * 10) / 10, reviewCount: rating?._count.id ?? 0 };
       })
       .sort((a, b) => b.reviewCount - a.reviewCount || (b.averageRating ?? 0) - (a.averageRating ?? 0) || a.displayName.localeCompare(b.displayName, "vi"))
       .slice(0, limit);

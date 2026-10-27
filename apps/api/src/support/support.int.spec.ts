@@ -422,7 +422,7 @@ describe.skipIf(!ready && !requireDb)("Khiếu nại, tranh chấp, đánh giá 
 
     const list = await reviews.operatorList(operatorAuthz, { limit: 20 });
     expect([list.items.map((item) => item.reviewId), list.average, list.validCount]).toEqual([[review.reviewId], 2, 1]);
-    const publicProfile = await loadPublicOperatorProfile(prisma, operatorId, { limit: 20 }, new Date());
+    const publicProfile = await loadPublicOperatorProfile(prisma, operatorId, { limit: 20 }, new Date(), (key) => key);
     expect(publicProfile?.scorecard).toMatchObject({ averageRating: 2, reviewCount: 1 });
     expect(publicProfile?.reviews.map((item) => item.reviewId)).toEqual([review.reviewId]);
     expect(publicProfile).not.toHaveProperty("taxCode");
@@ -442,7 +442,7 @@ describe.skipIf(!ready && !requireDb)("Khiếu nại, tranh chấp, đánh giá 
     expect(events.at(-1)).toMatchObject({ action: "review.moderate", targetId: review.reviewId, before: { status: "VISIBLE" }, after: { status: "HIDDEN" } });
     const afterHide = await reviews.operatorList(operatorAuthz, { limit: 20 });
     expect([afterHide.items, afterHide.average, afterHide.validCount]).toEqual([[], null, 0]);
-    const hiddenPublic = await loadPublicOperatorProfile(prisma, operatorId, { limit: 20 }, new Date());
+    const hiddenPublic = await loadPublicOperatorProfile(prisma, operatorId, { limit: 20 }, new Date(), (key) => key);
     expect(hiddenPublic?.scorecard).toMatchObject({ averageRating: null, reviewCount: 0 });
     expect(hiddenPublic?.reviews).toEqual([]);
     expect((await reviews.adminList(moderationAuthz, { status: "attention", operatorId, limit: 20 })).items).toEqual([]);

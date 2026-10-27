@@ -95,6 +95,8 @@ export function describeProfileError(error: unknown): { field: "identity" | null
         return { field: null, message: "Giấy tờ không hợp lệ hoặc chưa tải lên xong. Hãy tải lại." };
       case "KYC_DOCUMENT_NOT_FOUND":
         return { field: null, message: "Nhà xe chưa có giấy tờ này." };
+      case "OPERATOR_LOGO_INVALID":
+        return { field: null, message: "Logo không hợp lệ hoặc chưa tải lên xong. Hãy chọn lại ảnh." };
     }
     if (error.status === 503) {
       return { field: null, message: "Hệ thống tạm thời chưa xử lý được nên chưa đổi gì. Vui lòng thử lại sau." };
