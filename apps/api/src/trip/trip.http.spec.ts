@@ -117,7 +117,6 @@ describe("Trip routes — HTTP", () => {
     routeId: randomUUID(),
     vehicleId: randomUUID(),
     departureAt: "2031-01-01T07:00:00+07:00",
-    arrivalAt: "2031-01-01T15:00:00+07:00",
     stopTimes: null,
     onlineSaleCutoffMinutes: 60,
     note: null,
@@ -186,7 +185,6 @@ describe("Trip routes — HTTP", () => {
     const owner = await token("OPERATOR_OWNER");
     const body = {
       departureAt: "2031-01-01T23:00:00+07:00",
-      arrivalAt: "2031-01-02T06:00:00+07:00",
       stopTimes: null,
       vehicleId: randomUUID(),
       stops: [
@@ -227,7 +225,7 @@ describe("Trip routes — HTTP", () => {
   });
 
   it.each([
-    ["POST", "/trips", { ...tripBody, arrivalAt: "2031-01-01T06:00:00+07:00" }],
+    ["POST", "/trips", { ...tripBody, departureAt: "2020-01-01T06:00:00+07:00" }],
     ["POST", "/trips", { ...tripBody, routeId: "khong-phai-uuid" }],
     ["PUT", `/trips/${id}`, { routeId: tripBody.routeId, departureAt: tripBody.departureAt }],
     ["GET", "/trips?status=UNKNOWN", undefined],

@@ -101,7 +101,6 @@ describe.skipIf(!ready && !requireDb)("Thanh toán — Postgres + Redis thật (
         routeId,
         vehicleId,
         departureAt: departureAt.toISOString(),
-        arrivalAt: new Date(departureAt.getTime() + 6 * HOUR).toISOString(),
         stopTimes: null,
         onlineSaleCutoffMinutes: 60,
         note: null,

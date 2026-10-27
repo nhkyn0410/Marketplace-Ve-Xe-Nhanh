@@ -7,13 +7,16 @@ import { ArrowDown, ArrowUp, X } from "lucide-react";
 import { useId, useState } from "react";
 
 import {
+  legMinutesOf,
   legOf,
   lockedFlags,
+  parseLegMinutes,
   STOP_NOTE_MAX_LENGTH,
   stopKey,
-  type DraftStop
+  type DraftStop,
+  type LegMinutes
 } from "../../lib/route/route-form";
-import { COMPUTED_ON_SAVE, legLabel } from "../../lib/route/route-format";
+import { COMPUTED_ON_SAVE, formatDuration, legLabel } from "../../lib/route/route-format";
 import { STOP_POINT_TYPE_LABELS } from "../../lib/stop-point/stop-point-format";
 
 const ICON_BUTTON =
@@ -22,49 +25,107 @@ const ICON_BUTTON =
 /**
  * Danh sách điểm dừng theo thứ tự hành trình của form tuyến (Figma "VXN / Route stop item"): mỗi điểm có
  * công tắc cho đón / cho trả (khóa ở điểm đầu, điểm cuối và trạm dừng nghỉ — BR-79), nút đổi thứ tự / bỏ;
- * giữa hai điểm là số liệu chặng đã lưu hoặc "Tính khi lưu".
+ * giữa hai điểm là số liệu chặng hệ thống tính (hoặc "Tính khi lưu") và ô số phút chạy thực tế nhà xe chỉnh được
+ * (chờ duyệt 27/10/2026).
  */
 export function RouteStopList({
   stops,
   legs,
+  legMinutes,
   onMove,
   onRemove,
   onFlag,
-  onNote
+  onNote,
+  onLegMinutes
 }: {
   stops: DraftStop[];
   legs: ReadonlyMap<string, { distanceMeters: number; durationSeconds: number }>;
+  legMinutes: LegMinutes;
   onMove: (index: number, direction: -1 | 1) => void;
   onRemove: (index: number) => void;
   onFlag: (index: number, flag: "allowPickup" | "allowDropoff", value: boolean) => void;
   onNote: (index: number, note: string) => void;
+  onLegMinutes: (index: number, value: string) => void;
 }) {
   return (
     <ol aria-label="Điểm dừng của tuyến" className="flex flex-col gap-1.5">
-      {stops.map((stop, index) => {
-        const leg = index > 0 ? legOf(legs, stops, index) : null;
-        return (
-          <li key={stopKey(stop)} className="flex flex-col gap-1.5">
-            {index > 0 && (
-              <p className="flex items-center gap-2.5 pl-[29px] text-xs leading-[18px] text-muted-foreground">
-                <span className="h-6 w-0.5 bg-border" aria-hidden />
-                <span className="sr-only">Chặng tới điểm {index + 1}: </span>
-                {leg ? legLabel(leg.distanceMeters, leg.durationSeconds) : COMPUTED_ON_SAVE}
-              </p>
-            )}
-            <RouteStopItem
-              stop={stop}
-              index={index}
-              total={stops.length}
-              onMove={(direction) => onMove(index, direction)}
-              onRemove={() => onRemove(index)}
-              onFlag={(flag, value) => onFlag(index, flag, value)}
-              onNote={(note) => onNote(index, note)}
+      {stops.map((stop, index) => (
+        <li key={stopKey(stop)} className="flex flex-col gap-1.5">
+          {index > 0 && (
+            <LegRow
+              leg={legOf(legs, stops, index)}
+              minutes={legMinutesOf(legMinutes, stops, index)}
+              stopName={stop.name}
+              position={index + 1}
+              onMinutes={(value) => onLegMinutes(index, value)}
             />
-          </li>
-        );
-      })}
+          )}
+          <RouteStopItem
+            stop={stop}
+            index={index}
+            total={stops.length}
+            onMove={(direction) => onMove(index, direction)}
+            onRemove={() => onRemove(index)}
+            onFlag={(flag, value) => onFlag(index, flag, value)}
+            onNote={(note) => onNote(index, note)}
+          />
+        </li>
+      ))}
     </ol>
+  );
+}
+
+/**
+ * Chặng tới một điểm: số hệ thống tính và ô số phút chạy thực tế. Ô trống = dùng số hệ thống; giờ đến của chuyến tính theo
+ * tổng thời gian các chặng.
+ */
+function LegRow({
+  leg,
+  minutes,
+  stopName,
+  position,
+  onMinutes
+}: {
+  leg: { distanceMeters: number; durationSeconds: number } | null;
+  minutes: string;
+  stopName: string;
+  position: number;
+  onMinutes: (value: string) => void;
+}) {
+  const inputId = useId();
+  const edited = parseLegMinutes(minutes);
+  return (
+    <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1 pl-[29px] text-xs leading-[18px] text-muted-foreground">
+      <span className="h-6 w-0.5 bg-border" aria-hidden />
+      <span>
+        <span className="sr-only">Chặng tới điểm {position}: </span>
+        {leg ? `${legLabel(leg.distanceMeters, leg.durationSeconds)} (hệ thống tính)` : COMPUTED_ON_SAVE}
+      </span>
+      <span className="flex items-center gap-1.5">
+        <label htmlFor={inputId}>Chạy thực tế</label>
+        <Input
+          id={inputId}
+          aria-label={`Thời gian chạy thực tế tới ${stopName}, số phút`}
+          inputMode="numeric"
+          value={minutes}
+          onChange={(event) => onMinutes(event.target.value)}
+          placeholder={leg ? String(Math.round(leg.durationSeconds / 60)) : "—"}
+          maxLength={4}
+          autoComplete="off"
+          className="h-7 w-16 px-2 text-xs"
+        />
+        <span>phút{edited !== null && ` (${formatDuration(edited * 60)})`}</span>
+      </span>
+      {minutes !== "" && (
+        <button
+          type="button"
+          onClick={() => onMinutes("")}
+          className="rounded underline-offset-2 outline-none hover:text-vxn-fg-1 hover:underline focus-visible:ring-[3px] focus-visible:ring-ring/50"
+        >
+          Dùng số hệ thống
+        </button>
+      )}
+    </div>
   );
 }
 

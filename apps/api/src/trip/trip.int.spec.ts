@@ -17,7 +17,8 @@ import { TripService } from "./trip.service";
 
 /**
  * TASK-TRN-003 — Postgres THẬT bằng role APP (RLS chỉ có hiệu lực với role không superuser/BYPASSRLS).
- * Route tạo qua RouteService với provider giả: chặng thứ i = 60·(i+1) giây (không gọi Goong).
+ * Route tạo qua RouteService với provider giả: chặng thứ i = (i+1) giờ (không gọi Goong). Giờ đến máy chủ tính = giờ đi
+ * + thời gian chạy của tuyến (27/10/2026): R3 = 3 giờ, R2 / RB = 1 giờ.
  */
 const url = process.env.DATABASE_URL;
 const requireDb = process.env.REQUIRE_DB_TESTS === "1";
@@ -46,7 +47,7 @@ const noAudit = {
 class FakeRouting implements RoutingProvider {
   readonly source = "GOONG" as const;
   async measureLegs(points: Coordinates[]): Promise<RouteLeg[]> {
-    return points.slice(1).map((_point, index) => ({ distanceMeters: 1000 * (index + 1), durationSeconds: 60 * (index + 1) }));
+    return points.slice(1).map((_point, index) => ({ distanceMeters: 1000 * (index + 1), durationSeconds: 3600 * (index + 1) }));
   }
 }
 
@@ -65,8 +66,8 @@ describe.skipIf(!url && !requireDb)("Trip — Postgres thật, role app", () => 
   const vehicleType = randomUUID();
   const authzA = authz(tenantA);
   const authzB = authz(tenantB);
-  let route3: string; // 3 điểm, chặng 60 s + 120 s
-  let route2: string; // 2 điểm
+  let route3: string; // 3 điểm, chặng 1 giờ + 2 giờ = 3 giờ
+  let route2: string; // 2 điểm, 1 giờ
   let routeInactive: string;
   let routeB: string;
   // Mỗi test dùng một khung giờ riêng (ngày khác nhau) để không đụng xe của test khác.
@@ -257,7 +258,7 @@ describe.skipIf(!url && !requireDb)("Trip — Postgres thật, role app", () => 
       const start = nextDay();
       const trip = await trips.create(
         authzA,
-        tripInput({ routeId: route3, vehicleId: vehicle.id, departureAt: at(start, 1), arrivalAt: at(start, 4) }),
+        tripInput({ routeId: route3, vehicleId: vehicle.id, departureAt: at(start, 1) }),
       );
       await prisma.withTenant(tenantB, async (tx) => {
         expect(await tx.trip.findMany({ where: { id: trip.id } })).toEqual([]);
@@ -289,7 +290,7 @@ describe.skipIf(!url && !requireDb)("Trip — Postgres thật, role app", () => 
       const start = nextDay();
       await trips.create(
         authzB,
-        tripInput({ routeId: routeB, vehicleId: vehicleB.id, departureAt: at(start, 1), arrivalAt: at(start, 4) }),
+        tripInput({ routeId: routeB, vehicleId: vehicleB.id, departureAt: at(start, 1) }),
       );
       const cross = await rejectionOf(
         prisma.withSystem((tx) =>
@@ -298,8 +299,8 @@ describe.skipIf(!url && !requireDb)("Trip — Postgres thật, role app", () => 
               operatorId: tenantA,
               routeId: route3,
               vehicleId: vehicleB.id,
-              departureAt: new Date(start + 2 * HOUR),
-              arrivalAt: new Date(start + 3 * HOUR),
+              departureAt: new Date(start + HOUR),
+              arrivalAt: new Date(start + 2 * HOUR),
             },
           }),
         ),
@@ -322,7 +323,7 @@ describe.skipIf(!url && !requireDb)("Trip — Postgres thật, role app", () => 
 
     it("CHECK BR-79: điểm đầu chỉ đón, điểm cuối chỉ trả (kể cả ghi thẳng DB)", async () => {
       const start = nextDay();
-      const trip = await trips.create(authzA, tripInput({ routeId: route2, departureAt: at(start, 1), arrivalAt: at(start, 3) }));
+      const trip = await trips.create(authzA, tripInput({ routeId: route2, departureAt: at(start, 1) }));
       for (const [sequence, data] of [
         [1, { allowDropoff: true }],
         [2, { allowPickup: true }],
@@ -339,7 +340,7 @@ describe.skipIf(!url && !requireDb)("Trip — Postgres thật, role app", () => 
     it("route/xe của B → 422 như không tồn tại; chuyến của A với B → 404", async () => {
       const { vehicle: vehicleB } = await vehicleWithSeats(authzB);
       const start = nextDay();
-      const times = { departureAt: at(start, 1), arrivalAt: at(start, 3) };
+      const times = { departureAt: at(start, 1) };
       expect((await rejectionOf(trips.create(authzA, tripInput({ routeId: routeB, ...times })))).code).toBe("ROUTE_UNAVAILABLE");
       expect((await rejectionOf(trips.create(authzA, tripInput({ routeId: route3, vehicleId: vehicleB.id, ...times })))).code).toBe(
         "VEHICLE_UNAVAILABLE",
@@ -359,13 +360,13 @@ describe.skipIf(!url && !requireDb)("Trip — Postgres thật, role app", () => 
       const start = nextDay();
       const trip = await trips.create(
         authzA,
-        tripInput({ routeId: route3, vehicleId: vehicle.id, departureAt: at(start, 0), arrivalAt: at(start, 3), note: " Ghi chú " }),
+        tripInput({ routeId: route3, vehicleId: vehicle.id, departureAt: at(start, 0), note: " Ghi chú " }),
       );
       expect(trip.status).toBe("DRAFT");
       expect(trip.routeName).toBe(`R3 ${tag}`);
       expect(trip.vehiclePlateNumber).toBe(vehicle.plateNumber);
       expect(trip.note).toBe("Ghi chú");
-      // Chặng 60 s + 120 s → điểm giữa ở 1/3 quãng thời gian 3 giờ.
+      // Chặng 1 giờ + 2 giờ → giờ đến = giờ đi + 3 giờ, điểm giữa sau 1 giờ.
       expect(trip.stops.map((stop) => [stop.sequence, stop.role, stop.plannedAt])).toEqual([
         [1, "ORIGIN", at(start, 0)],
         [2, "INTERMEDIATE", at(start, 1)],
@@ -385,24 +386,55 @@ describe.skipIf(!url && !requireDb)("Trip — Postgres thật, role app", () => 
       expect(new Set(trip.seats.map((seat) => seat.status))).toEqual(new Set(["AVAILABLE"]));
     });
 
-    it("giờ từng điểm do Operator gửi được giữ nguyên; sai số điểm → 422", async () => {
+    it("giờ từng điểm do Operator gửi được giữ nguyên; sai số điểm hoặc điểm cuối lệch giờ đến theo tuyến → 422", async () => {
       const start = nextDay();
       const times = [at(start, 0), at(start, 2), at(start, 3)];
       const trip = await trips.create(
         authzA,
-        tripInput({ routeId: route3, departureAt: times[0], arrivalAt: times[2], stopTimes: times }),
+        tripInput({ routeId: route3, departureAt: times[0], stopTimes: times }),
       );
       expect(trip.stops.map((stop) => stop.plannedAt)).toEqual(times);
       expect(trip.seats).toEqual([]);
       const wrong = await rejectionOf(
-        trips.create(authzA, tripInput({ routeId: route2, departureAt: times[0], arrivalAt: times[2], stopTimes: times })),
+        trips.create(authzA, tripInput({ routeId: route2, departureAt: times[0], stopTimes: times })),
       );
       expect(wrong.code).toBe("TRIP_STOP_TIMES_INVALID");
+      // R3 chạy 3 giờ: điểm cuối phải đúng giờ đi + 3 giờ, không tự kéo dài / rút ngắn chuyến.
+      for (const last of [2, 4]) {
+        const late = await rejectionOf(
+          trips.create(authzA, tripInput({ routeId: route3, departureAt: times[0], stopTimes: [times[0], times[1], at(start, last)] })),
+        );
+        expect(late.code, `điểm cuối ${last} giờ`).toBe("TRIP_STOP_TIMES_INVALID");
+      }
+    });
+
+    it("giờ đến theo thời gian chặng nhà xe chỉnh trên tuyến (ghi đè số hệ thống tính)", async () => {
+      const route = await routes.create(
+        authzA,
+        RouteInputSchema.parse({
+          name: `Chỉnh chặng ${tag}`,
+          status: "ACTIVE",
+          note: null,
+          stops: points.map((id, index) => ({
+            catalogStopPointId: id,
+            stopPointId: null,
+            note: null,
+            allowPickup: index !== points.length - 1,
+            allowDropoff: index !== 0,
+            // Chặng 2 giữ số hệ thống (2 giờ); chặng 1 nhà xe chỉnh còn 30 phút.
+            ...(index === 1 ? { durationMinutesFromPrevious: 30 } : {}),
+          })),
+        }),
+      );
+      const start = nextDay();
+      const trip = await trips.create(authzA, tripInput({ routeId: route.id, departureAt: at(start, 0) }));
+      expect(trip.arrivalAt).toBe(at(start, 2.5));
+      expect(trip.stops.map((stop) => stop.plannedAt)).toEqual([at(start, 0), at(start, 0.5), at(start, 2.5)]);
     });
 
     it("route ngừng dùng → ROUTE_UNAVAILABLE; xe bảo dưỡng hoặc chưa có sơ đồ → VEHICLE_UNAVAILABLE", async () => {
       const start = nextDay();
-      const times = { departureAt: at(start, 1), arrivalAt: at(start, 3) };
+      const times = { departureAt: at(start, 1) };
       expect((await rejectionOf(trips.create(authzA, tripInput({ routeId: routeInactive, ...times })))).code).toBe(
         "ROUTE_UNAVAILABLE",
       );
@@ -432,29 +464,26 @@ describe.skipIf(!url && !requireDb)("Trip — Postgres thật, role app", () => 
       const { vehicle } = await vehicleWithSeats(authzA);
       const { vehicle: other } = await vehicleWithSeats(authzA);
       const start = nextDay();
-      const first = await trips.create(
-        authzA,
-        tripInput({ routeId: route3, vehicleId: vehicle.id, departureAt: at(start, 2), arrivalAt: at(start, 6) }),
-      );
-      for (const [from, to] of [
-        [1, 3],
-        [3, 5],
-        [5, 8],
-        [1, 8],
+      // R3 chạy 3 giờ: chuyến đầu 2 → 5.
+      const first = await trips.create(authzA, tripInput({ routeId: route3, vehicleId: vehicle.id, departureAt: at(start, 2) }));
+      expect(first.arrivalAt).toBe(at(start, 5));
+      for (const [routeId, from] of [
+        [route3, 0],
+        [route3, 3],
+        [route3, 4],
+        [route2, 3],
       ] as const) {
-        const overlap = await rejectionOf(
-          trips.create(authzA, tripInput({ routeId: route3, vehicleId: vehicle.id, departureAt: at(start, from), arrivalAt: at(start, to) })),
-        );
-        expect(overlap.code, `${from}-${to}`).toBe("VEHICLE_SCHEDULE_CONFLICT");
+        const overlap = await rejectionOf(trips.create(authzA, tripInput({ routeId, vehicleId: vehicle.id, departureAt: at(start, from) })));
+        expect(overlap.code, `${routeId === route3 ? "R3" : "R2"} từ ${from}`).toBe("VEHICLE_SCHEDULE_CONFLICT");
         expect(overlap.status).toBe(409);
       }
       // Không có thời gian đệm quay đầu (Khanh chốt 30/09/2026): khởi hành đúng lúc chuyến trước đến.
-      await trips.create(authzA, tripInput({ routeId: route3, vehicleId: vehicle.id, departureAt: at(start, 6), arrivalAt: at(start, 9) }));
-      await trips.create(authzA, tripInput({ routeId: route3, vehicleId: vehicle.id, departureAt: at(start, 0), arrivalAt: at(start, 2) }));
-      await trips.create(authzA, tripInput({ routeId: route3, vehicleId: other.id, departureAt: at(start, 3), arrivalAt: at(start, 5) }));
-      await trips.create(authzA, tripInput({ routeId: route3, departureAt: at(start, 3), arrivalAt: at(start, 5) }));
+      await trips.create(authzA, tripInput({ routeId: route3, vehicleId: vehicle.id, departureAt: at(start, 5) }));
+      await trips.create(authzA, tripInput({ routeId: route2, vehicleId: vehicle.id, departureAt: at(start, 1) }));
+      await trips.create(authzA, tripInput({ routeId: route3, vehicleId: other.id, departureAt: at(start, 3) }));
+      await trips.create(authzA, tripInput({ routeId: route3, departureAt: at(start, 3) }));
       await setTripStatus(first.id, "CANCELLED");
-      await trips.create(authzA, tripInput({ routeId: route3, vehicleId: vehicle.id, departureAt: at(start, 3), arrivalAt: at(start, 5) }));
+      await trips.create(authzA, tripInput({ routeId: route3, vehicleId: vehicle.id, departureAt: at(start, 2) }));
     });
 
     it("hai request đồng thời gắn cùng xe trùng giờ → đúng một thành công (ràng buộc ở DB)", async () => {
@@ -465,7 +494,7 @@ describe.skipIf(!url && !requireDb)("Trip — Postgres thật, role app", () => 
           [0, 1].map((offset) =>
             trips.create(
               authzA,
-              tripInput({ routeId: route3, vehicleId: vehicle.id, departureAt: at(start, offset), arrivalAt: at(start, offset + 3) }),
+              tripInput({ routeId: route3, vehicleId: vehicle.id, departureAt: at(start, offset) }),
             ),
           ),
         );
@@ -481,7 +510,7 @@ describe.skipIf(!url && !requireDb)("Trip — Postgres thật, role app", () => 
       const { vehicle } = await vehicleWithSeats(authzA, 4);
       const { vehicle: bigger } = await vehicleWithSeats(authzA, 6);
       const start = nextDay();
-      const base = { departureAt: at(start, 1), arrivalAt: at(start, 4) };
+      const base = { departureAt: at(start, 1) };
       const trip = await trips.create(authzA, tripInput({ routeId: route3, vehicleId: vehicle.id, ...base }));
       // Ghế bị khoá (TRN-006 sẽ làm qua API) phải còn nguyên khi PUT không đổi xe.
       await prisma.withTenant(tenantA, (tx) =>
@@ -519,7 +548,7 @@ describe.skipIf(!url && !requireDb)("Trip — Postgres thật, role app", () => 
       // luôn đọc giá trị cũ và đỏ ~1/2 mỗi vòng; bản khoá-khi-đọc thì PUT sau luôn thấy kết quả PUT trước.
       for (let round = 0; round < 6; round++) {
         const start = nextDay();
-        const base = { routeId: route3, departureAt: at(start, 1), arrivalAt: at(start, 3) };
+        const base = { routeId: route3, departureAt: at(start, 1) };
         const trip = await trips.create(authzA, tripInput({ ...base, vehicleId: small.id }));
         await raceBehindLock(
           (tx) => tx.$queryRaw`SELECT 1 FROM trips WHERE id = ${trip.id} FOR UPDATE`,
@@ -538,7 +567,7 @@ describe.skipIf(!url && !requireDb)("Trip — Postgres thật, role app", () => 
     it("nháp quá hạn được dời sang lịch mới: ghế sinh lại theo sơ đồ HIỆN TẠI của xe (sơ đồ có thể đã bị sửa)", async () => {
       const { vehicle, map } = await vehicleWithSeats(authzA, 4);
       const start = nextDay();
-      const base = { routeId: route3, vehicleId: vehicle.id, departureAt: at(start, 1), arrivalAt: at(start, 3) };
+      const base = { routeId: route3, vehicleId: vehicle.id, departureAt: at(start, 1) };
       const trip = await trips.create(authzA, tripInput(base));
       await moveTripToPast(trip.id);
       // Nháp quá hạn không còn giữ sơ đồ (UC-12 A3) → sửa được.
@@ -554,7 +583,7 @@ describe.skipIf(!url && !requireDb)("Trip — Postgres thật, role app", () => 
     it("route/xe ĐANG gắn đã ngừng dùng vẫn sửa được chuyến; route/xe MỚI thì phải hợp lệ", async () => {
       const { vehicle } = await vehicleWithSeats(authzA);
       const start = nextDay();
-      const base = { vehicleId: vehicle.id, departureAt: at(start, 1), arrivalAt: at(start, 4) };
+      const base = { vehicleId: vehicle.id, departureAt: at(start, 1) };
       const trip = await trips.create(authzA, tripInput({ routeId: route2, ...base }));
       await prisma.withTenant(tenantA, async (tx) => {
         await tx.route.update({ where: { id: route2 }, data: { status: "INACTIVE" } });
@@ -578,24 +607,20 @@ describe.skipIf(!url && !requireDb)("Trip — Postgres thật, role app", () => 
     it("chuyến đã rời DRAFT → TRIP_NOT_EDITABLE; dời giờ chồng chuyến khác của xe → 409; dời trong chính nó được", async () => {
       const { vehicle } = await vehicleWithSeats(authzA);
       const start = nextDay();
-      const trip = await trips.create(
-        authzA,
-        tripInput({ routeId: route3, vehicleId: vehicle.id, departureAt: at(start, 1), arrivalAt: at(start, 3) }),
-      );
-      await trips.create(authzA, tripInput({ routeId: route3, vehicleId: vehicle.id, departureAt: at(start, 5), arrivalAt: at(start, 7) }));
-      const moved = await trips.update(
-        authzA,
-        trip.id,
-        tripInput({ routeId: route3, vehicleId: vehicle.id, departureAt: at(start, 2), arrivalAt: at(start, 5) }),
-      );
+      // R3 chạy 3 giờ: chuyến 1 → 4, chuyến khác của xe 7 → 10.
+      const trip = await trips.create(authzA, tripInput({ routeId: route3, vehicleId: vehicle.id, departureAt: at(start, 1) }));
+      await trips.create(authzA, tripInput({ routeId: route3, vehicleId: vehicle.id, departureAt: at(start, 7) }));
+      const moved = await trips.update(authzA, trip.id, tripInput({ routeId: route3, vehicleId: vehicle.id, departureAt: at(start, 2) }));
       expect(moved.departureAt).toBe(at(start, 2));
+      // Giờ đến dời theo, giữ thời gian chạy của tuyến.
+      expect(moved.arrivalAt).toBe(at(start, 5));
       const overlap = await rejectionOf(
-        trips.update(authzA, trip.id, tripInput({ routeId: route3, vehicleId: vehicle.id, departureAt: at(start, 2), arrivalAt: at(start, 6) })),
+        trips.update(authzA, trip.id, tripInput({ routeId: route3, vehicleId: vehicle.id, departureAt: at(start, 5) })),
       );
       expect(overlap.code).toBe("VEHICLE_SCHEDULE_CONFLICT");
       await setTripStatus(trip.id, "OPEN_FOR_SALE");
       const locked = await rejectionOf(
-        trips.update(authzA, trip.id, tripInput({ routeId: route3, vehicleId: vehicle.id, departureAt: at(start, 2), arrivalAt: at(start, 4) })),
+        trips.update(authzA, trip.id, tripInput({ routeId: route3, vehicleId: vehicle.id, departureAt: at(start, 3) })),
       );
       expect(locked.code).toBe("TRIP_NOT_EDITABLE");
       expect((await trips.get(authzA, trip.id)).arrivalAt).toBe(at(start, 5));
@@ -609,7 +634,7 @@ describe.skipIf(!url && !requireDb)("Trip — Postgres thật, role app", () => 
       const start = nextDay();
       const trip = await trips.create(
         authzA,
-        tripInput({ routeId: route3, vehicleId: vehicle.id, departureAt: at(start, 1), arrivalAt: at(start, 3) }),
+        tripInput({ routeId: route3, vehicleId: vehicle.id, departureAt: at(start, 1) }),
       );
       const layout = SeatMapInputSchema.parse({
         name: map.name,
@@ -667,7 +692,7 @@ describe.skipIf(!url && !requireDb)("Trip — Postgres thật, role app", () => 
       const start = nextDay();
       const trip = await trips.create(
         authzA,
-        tripInput({ routeId: route3, vehicleId: vehicle.id, departureAt: at(start, 1), arrivalAt: at(start, 3) }),
+        tripInput({ routeId: route3, vehicleId: vehicle.id, departureAt: at(start, 1) }),
       );
       await moveTripToPast(trip.id);
       await setTripStatus(trip.id, "IN_PROGRESS");
@@ -682,7 +707,7 @@ describe.skipIf(!url && !requireDb)("Trip — Postgres thật, role app", () => 
       const start = nextDay();
       const trip = await trips.create(
         authzA,
-        tripInput({ routeId: route3, vehicleId: vehicle.id, departureAt: at(start, 1), arrivalAt: at(start, 3) }),
+        tripInput({ routeId: route3, vehicleId: vehicle.id, departureAt: at(start, 1) }),
       );
       expect((await seatMaps.get(authzA, map.id)).inUse).toBe(true);
       await moveTripToPast(trip.id);
@@ -700,7 +725,7 @@ describe.skipIf(!url && !requireDb)("Trip — Postgres thật, role app", () => 
         () =>
           trips.create(
             authzA,
-            tripInput({ routeId: route3, vehicleId: vehicle.id, departureAt: at(start, 1), arrivalAt: at(start, 3) }),
+            tripInput({ routeId: route3, vehicleId: vehicle.id, departureAt: at(start, 1) }),
           ),
         1,
       );
@@ -714,12 +739,12 @@ describe.skipIf(!url && !requireDb)("Trip — Postgres thật, role app", () => 
       const start = nextDay();
       const created: string[] = [];
       for (const hour of [5, 1, 3, 3, 3]) {
-        const trip = await trips.create(authzA, tripInput({ routeId: route2, departureAt: at(start, hour), arrivalAt: at(start, hour + 1) }));
+        const trip = await trips.create(authzA, tripInput({ routeId: route2, departureAt: at(start, hour) }));
         created.push(trip.id);
       }
       const withVehicle = await trips.create(
         authzA,
-        tripInput({ routeId: route3, vehicleId: vehicle.id, departureAt: at(start, 2), arrivalAt: at(start, 4) }),
+        tripInput({ routeId: route3, vehicleId: vehicle.id, departureAt: at(start, 2) }),
       );
       const window = { departureFrom: new Date(start), departureTo: new Date(start + 24 * HOUR) };
       const seen: string[] = [];

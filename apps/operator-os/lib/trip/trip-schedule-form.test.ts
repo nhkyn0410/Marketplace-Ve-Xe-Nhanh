@@ -9,10 +9,8 @@ import {
   scheduleSchema,
   scheduleState,
   shortDayLabel,
-  suggestDuration,
   toScheduleFormValues,
   toScheduleInput,
-  totalDurationMinutes,
   weekdaysLabel,
   type ScheduleFormValues
 } from "./trip-schedule-form";
@@ -22,8 +20,6 @@ const valid: ScheduleFormValues = {
   ...emptyScheduleValues(today),
   routeId: "route-1",
   departureTime: "22:30",
-  durationHours: "7",
-  durationMinutes: "15",
   daysOfWeek: [5, 1, 3],
   startDate: "2026-10-19",
   endDate: "2026-11-01",
@@ -41,21 +37,17 @@ describe("form lịch chạy lặp lại (TRN-007)", () => {
     });
   });
 
-  it("body API: phút chạy = giờ × 60 + phút, thứ sắp tăng dần, chưa gắn xe → null, ghi chú cắt khoảng trắng", () => {
+  it("body API: không gửi thời gian chạy (máy chủ lấy theo tuyến), thứ sắp tăng dần, chưa gắn xe → null, ghi chú cắt khoảng trắng", () => {
     expect(toScheduleInput(valid)).toEqual({
       routeId: "route-1",
       vehicleId: null,
       departureTime: "22:30",
-      durationMinutes: 435,
       daysOfWeek: [1, 3, 5],
       startDate: "2026-10-19",
       endDate: "2026-11-01",
       onlineSaleCutoffMinutes: 60,
       note: "Chạy cố định"
     });
-    expect(totalDurationMinutes({ durationHours: "5", durationMinutes: "60" })).toBeNull();
-    expect(totalDurationMinutes({ durationHours: "x", durationMinutes: "0" })).toBeNull();
-    expect(suggestDuration(5 * 3600 + 61)).toEqual({ hours: "5", minutes: "5" });
   });
 
   it("đọc lại lịch đã lưu ra giá trị form", () => {
@@ -77,10 +69,10 @@ describe("form lịch chạy lặp lại (TRN-007)", () => {
       createdAt: "2026-10-17T00:00:00.000Z",
       updatedAt: "2026-10-17T00:00:00.000Z"
     });
-    expect(values).toMatchObject({ vehicleId: "v", durationHours: "5", durationMinutes: "30", onlineSaleCutoffMinutes: "30", note: "" });
+    expect(values).toMatchObject({ vehicleId: "v", onlineSaleCutoffMinutes: "30", note: "" });
   });
 
-  it("validate: thiếu thứ, thời gian chạy 0, kết thúc trước bắt đầu, quá 93 ngày, đã qua, số phút ngừng bán sai", () => {
+  it("validate: thiếu thứ, kết thúc trước bắt đầu, quá 93 ngày, đã qua, số phút ngừng bán sai", () => {
     const schema = scheduleSchema(today);
     expect(schema.safeParse(valid).success).toBe(true);
     const issueOf = (overrides: Partial<ScheduleFormValues>) => {
@@ -88,7 +80,6 @@ describe("form lịch chạy lặp lại (TRN-007)", () => {
       return result.success ? null : result.error.issues[0]!.path[0];
     };
     expect(issueOf({ daysOfWeek: [] })).toBe("daysOfWeek");
-    expect(issueOf({ durationHours: "0", durationMinutes: "0" })).toBe("durationHours");
     expect(issueOf({ endDate: "2026-10-18" })).toBe("endDate");
     expect(issueOf({ endDate: "2027-01-21" })).toBe("endDate");
     expect(issueOf({ startDate: "2026-10-01", endDate: "2026-10-10" })).toBe("endDate");

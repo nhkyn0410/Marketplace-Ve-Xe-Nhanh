@@ -1,7 +1,8 @@
 import type { components } from "@vexenhanh/api-client";
+import { formatTripDateVi } from "../format";
 import type {
   BookingPaymentData, BookingPaymentResultData, CheckoutPassengerItem,
-  CheckoutPriceSummary, MyTicketItem, SeatLocationPoint, TicketDetailData,
+  CheckoutPriceSummary, MyTicketItem, SeatLocationPoint, SeatSelectionItem, TicketDetailData,
   TicketLookupBookingItem, TicketLookupBookingsData, TicketLookupResultData, TripSeatSelectionData
 } from "./types";
 
@@ -71,14 +72,26 @@ export function ticketStatus(status: ApiBooking["tickets"][number]["status"]): T
   return status === "USED" ? "used" : status === "CHECKED_IN" ? "checked_in" : status === "NO_SHOW" ? "no_show" : ["CANCELLED", "REFUNDED"].includes(status) ? "cancelled" : "valid";
 }
 
+/**
+ * Trạng thái ghế trên sơ đồ: API gộp đã bán / đang có người giữ / nhà xe khóa thành `UNAVAILABLE` (hiện "Đã đặt");
+ * chỗ chưa có giá thì không bán được ("Không bán").
+ */
+function seatStatus(seat: ApiTrip["seats"][number]): SeatSelectionItem["status"] {
+  if (seat.price === null) return "disabled";
+  return seat.status === "AVAILABLE" ? "available" : "booked";
+}
+
 /** Chuyển chỗ còn bán và điểm dừng thật sang màn chọn chỗ. */
 export function mapSeatSelection(trip: ApiTrip): TripSeatSelectionData {
   const pickupPoints = trip.stops.filter((point) => point.allowPickup).map(mapPoint);
   const dropoffPoints = trip.stops.filter((point) => point.allowDropoff).map(mapPoint);
+  // "19:24 • T4, 28/10/2026" như Figma; ngày lấy theo giờ VN.
+  const departureDay = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Ho_Chi_Minh" }).format(new Date(trip.departureAt));
+  const departureTimeText = `${dateText(trip.departureAt, { hour: "2-digit", minute: "2-digit" })} • ${formatTripDateVi(departureDay)}`;
   return {
-    tripId: trip.tripId, routeName: trip.routeName, departureTimeText: dateText(trip.departureAt, { dateStyle: "short", timeStyle: "short" }), operatorName: trip.operator.name,
+    tripId: trip.tripId, routeName: trip.routeName, departureTimeText, operatorName: trip.operator.name,
     pickupPoints, dropoffPoints, selectedPickupPointId: pickupPoints[0]?.id ?? "", selectedDropoffPointId: dropoffPoints.at(-1)?.id ?? "",
-    seats: [...trip.seats].sort((a, b) => a.deck - b.deck || a.row - b.row || a.column - b.column).map((seat) => ({ id: seat.code, code: seat.code, label: seat.code, floor: seat.deck === 2 ? 2 : 1, row: seat.row, column: seat.column, status: seat.status === "AVAILABLE" && seat.price !== null ? "available" : "disabled", type: seat.type.endsWith("DOUBLE") ? "double" : "single", priceVnd: seat.price === null ? "0" : moneyString(seat.price) })),
+    seats: [...trip.seats].sort((a, b) => a.deck - b.deck || a.row - b.row || a.column - b.column).map((seat) => ({ id: seat.code, code: seat.code, label: seat.code, floor: seat.deck === 2 ? 2 : 1, row: seat.row, column: seat.column, status: seatStatus(seat), type: seat.type.endsWith("DOUBLE") ? "double" : "single", typeLabel: seatTypeLabel(seat.type), priceVnd: seat.price === null ? "0" : moneyString(seat.price) })),
     selectedSeatCodes: [], maxSeats: 10, holdCountdownSeconds: 0, selectedSeatsSummary: [], subtotalVnd: "0"
   };
 }
@@ -146,4 +159,15 @@ export function mapLookupResult(booking: ApiBooking, expiresInSeconds: number): 
   const email = booking.contact.email.replace(/^(.).+(@.*)$/, "$1***$2");
   const detail = mapTicketDetail(booking);
   return { bookingCode: booking.bookingCode, routeName: booking.trip.routeName, departureTimeText: dateText(booking.pickup.plannedAt, { dateStyle: "short", timeStyle: "short" }), operatorName: booking.trip.operatorName, statusLabel: bookingStatusLabel(booking.status), session: { maskedEmail: email, expiresInSeconds }, tickets: detail.tickets.map((ticket) => ({ ...ticket, statusLabel: ticket.statusLabel ?? "" })), pickupPoint: { time: detail.trip.departureTime, name: booking.pickup.name, address: booking.pickup.address }, dropoffPoint: { time: detail.trip.arrivalTime, name: booking.dropoff.name, address: booking.dropoff.address, noticeText: "Giờ đến dự kiến" }, payment: { seatCount: booking.passengers.length, ticketPriceTotalVnd: moneyString(booking.subtotal), serviceFeeVnd: moneyString(booking.serviceFee), paidTotalVnd: detail.payment.paidTotalVnd, methodLabel: detail.payment.methodLabel, statusLabel: detail.payment.statusLabel } };
+}
+
+/** Điểm trả hợp lệ với điểm đón: đứng sau điểm đón trên hành trình (id điểm = thứ tự `sequence` của API). */
+export function isDropoffAfterPickup(pickupId: string, dropoffId: string): boolean {
+  return Number(dropoffId) > Number(pickupId);
+}
+
+/** Đổi điểm đón: giữ điểm trả đang chọn nếu còn hợp lệ, không thì lấy điểm trả hợp lệ cuối cùng (bến cuối). */
+export function dropoffForPickup(pickupId: string, dropoffPoints: readonly SeatLocationPoint[], currentDropoffId: string): string {
+  if (isDropoffAfterPickup(pickupId, currentDropoffId)) return currentDropoffId;
+  return dropoffPoints.filter((point) => isDropoffAfterPickup(pickupId, point.id)).at(-1)?.id ?? currentDropoffId;
 }

@@ -114,7 +114,6 @@ describe.skipIf(!ready && !requireDb)("Thanh toán & hoàn tiền phía Admin �
         routeId,
         vehicleId: vehicle.id,
         departureAt: departureAt.toISOString(),
-        arrivalAt: new Date(departureAt.getTime() + 6 * HOUR).toISOString(),
         stopTimes: null,
         onlineSaleCutoffMinutes: 60,
         note: null,

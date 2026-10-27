@@ -46,7 +46,9 @@ import {
   ROUTE_NAME_MAX_LENGTH,
   ROUTE_NOTE_MAX_LENGTH,
   routeInfoSchema,
+  savedLegMinutes,
   savedLegs,
+  setLegMinutes,
   setStopFlag,
   setStopNote,
   stopKey,
@@ -54,8 +56,10 @@ import {
   toRouteInfoValues,
   toRouteInput,
   totalsOf,
+  validateLegMinutes,
   validateStops,
   type DraftStop,
+  type LegMinutes,
   type RouteInfoValues,
   type StopCandidate
 } from "../../lib/route/route-form";
@@ -146,6 +150,7 @@ function RouteFormBody({ route }: { route?: Route }) {
   const [formError, setFormError] = useState<string | null>(null);
   const [stopsError, setStopsError] = useState<string | null>(null);
   const [stops, setStops] = useState<DraftStop[]>(() => (route ? toDraftStops(route) : []));
+  const [legMinutes, setLegMinutesState] = useState<LegMinutes>(() => savedLegMinutes(route));
   const [pickerOpen, setPickerOpen] = useState(false);
   const [confirmLeave, setConfirmLeave] = useState(false);
   // Bản đồ lộ trình: các điểm bảng chọn đang liệt kê và dòng đang được rê tới.
@@ -162,15 +167,19 @@ function RouteFormBody({ route }: { route?: Route }) {
 
   const legs = useMemo(() => savedLegs(route), [route]);
   const storedStops = useMemo(() => JSON.stringify(route ? toDraftStops(route) : []), [route]);
-  const dirty = form.formState.isDirty || JSON.stringify(stops) !== storedStops;
+  const storedLegMinutes = useMemo(() => savedLegMinutes(route), [route]);
+  const legMinutesChanged = [...new Set([...Object.keys(storedLegMinutes), ...Object.keys(legMinutes)])].some(
+    (key) => storedLegMinutes[key] !== legMinutes[key]
+  );
+  const dirty = form.formState.isDirty || JSON.stringify(stops) !== storedStops || legMinutesChanged;
   const selectedKeys = useMemo(() => new Set(stops.map(stopKey)), [stops]);
-  const totals = totalsOf(legs, stops);
+  const totals = totalsOf(legs, stops, legMinutes);
   const counts = countFlags(stops);
   const warning = busStationWarning(stops);
 
   const save = useMutation({
     mutationFn: (info: RouteInfoValues) =>
-      route ? updateRoute(route.id, toRouteInput(info, stops)) : createRoute(toRouteInput(info, stops)),
+      route ? updateRoute(route.id, toRouteInput(info, stops, legMinutes)) : createRoute(toRouteInput(info, stops, legMinutes)),
     onSuccess: (result) => {
       void queryClient.invalidateQueries({ queryKey: ["routes"] });
       // Số tuyến đang dùng của từng điểm dừng đổi theo.
@@ -182,6 +191,7 @@ function RouteFormBody({ route }: { route?: Route }) {
       }
       form.reset(toRouteInfoValues(result));
       setStops(toDraftStops(result));
+      setLegMinutesState(savedLegMinutes(result));
       setPickerOpen(false);
       setSaved(true);
     },
@@ -207,7 +217,7 @@ function RouteFormBody({ route }: { route?: Route }) {
   function submit(info: RouteInfoValues) {
     setFormError(null);
     setSaved(false);
-    const problem = validateStops(stops);
+    const problem = validateStops(stops) ?? validateLegMinutes(legMinutes, stops);
     setStopsError(problem);
     if (!problem) {
       save.mutate(info);
@@ -291,6 +301,12 @@ function RouteFormBody({ route }: { route?: Route }) {
               onRemove={(index) => changeStops(removeStop(stops, index))}
               onFlag={(index, flag, value) => changeStops(setStopFlag(stops, index, flag, value))}
               onNote={(index, value) => changeStops(setStopNote(stops, index, value))}
+              legMinutes={legMinutes}
+              onLegMinutes={(index, value) => {
+                setLegMinutesState(setLegMinutes(legMinutes, stops, index, value));
+                setStopsError(null);
+                setSaved(false);
+              }}
             />
           )}
 
@@ -420,8 +436,8 @@ function RouteFormBody({ route }: { route?: Route }) {
               {route && <SummaryRow label="Cập nhật lần cuối" value={formatDateTime(route.updatedAt)} />}
             </dl>
             <p className={HELPER}>
-              Quãng đường và thời gian do hệ thống tính bằng bản đồ Goong mỗi khi lưu thay đổi về điểm dừng; không nhập
-              tay.
+              Quãng đường và thời gian do hệ thống tính bằng bản đồ Goong mỗi khi lưu thay đổi về điểm dừng. Xe khách chạy
+              chậm hơn số này thì nhập số phút chạy thực tế ở từng chặng; giờ đến của chuyến tính theo tổng thời gian chạy.
               {route?.metricsSource === "ESTIMATE" &&
                 " Số liệu hiện tại là ước lượng vì môi trường này chưa có khóa bản đồ."}
             </p>

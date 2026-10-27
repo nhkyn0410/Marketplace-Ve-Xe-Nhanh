@@ -31,7 +31,6 @@ import {
 } from "./trip.errors";
 import { insertDraftTrip, TripService, type TripActor } from "./trip.service";
 
-const MINUTE = 60_000;
 const AUDIT_TARGET = "trip_schedule";
 /** Số lịch tối đa trả về một lần — một nhà xe có vài chục tuyến, mỗi tuyến vài khung giờ. */
 const LIST_LIMIT = 200;
@@ -82,9 +81,9 @@ export class TripScheduleService {
   async create(actor: TripActor, authz: Authorization, input: TripScheduleInput): Promise<TripScheduleResponse> {
     const { db, operatorId } = requireTenant(authz);
     const row = await this.prisma.withScope(db, async (tx) => {
-      await assertResources(tx, operatorId, input);
+      const routeSeconds = await assertResources(tx, operatorId, input);
       const created = await tx.tripSchedule.create({
-        data: { operatorId, ...ruleFields(input), createdBy: actor.sub },
+        data: { operatorId, ...ruleFields(input, routeSeconds), createdBy: actor.sub },
         select: { id: true },
       });
       return findSchedule(tx, operatorId, created.id);
@@ -107,8 +106,8 @@ export class TripScheduleService {
       if (!current) {
         throw tripScheduleNotFound();
       }
-      await assertResources(tx, operatorId, input);
-      await tx.tripSchedule.updateMany({ where: { id: scheduleId, operatorId }, data: ruleFields(input) });
+      const routeSeconds = await assertResources(tx, operatorId, input);
+      await tx.tripSchedule.updateMany({ where: { id: scheduleId, operatorId }, data: ruleFields(input, routeSeconds) });
       return { before: current, after: (await findSchedule(tx, operatorId, scheduleId))! };
     });
     const response = toResponse(after);
@@ -190,13 +189,12 @@ export class TripScheduleService {
             routeId: string;
             vehicleId: string | null;
             departureMinute: number;
-            durationMinutes: number;
             onlineSaleCutoffMinutes: number;
             note: string | null;
           }[]
         >`
           SELECT route_id AS "routeId", vehicle_id AS "vehicleId", departure_minute AS "departureMinute",
-                 duration_minutes AS "durationMinutes", online_sale_cutoff_minutes AS "onlineSaleCutoffMinutes", note
+                 online_sale_cutoff_minutes AS "onlineSaleCutoffMinutes", note
           FROM trip_schedules
           WHERE id = ${scheduleId} AND operator_id = ${operatorId}
           FOR UPDATE`;
@@ -214,6 +212,7 @@ export class TripScheduleService {
         if (departureAt.getTime() <= Date.now()) {
           return "PAST";
         }
+        // Giờ đến tính theo thời gian chạy HIỆN TẠI của tuyến (`insertDraftTrip`), không theo số lưu lúc tạo lịch.
         const tripId = await insertDraftTrip(
           tx,
           operatorId,
@@ -221,7 +220,6 @@ export class TripScheduleService {
             routeId: rule.routeId,
             vehicleId: rule.vehicleId,
             departureAt,
-            arrivalAt: new Date(departureAt.getTime() + rule.durationMinutes * MINUTE),
             stopTimes: null,
             onlineSaleCutoffMinutes: rule.onlineSaleCutoffMinutes,
             note: rule.note,
@@ -291,12 +289,13 @@ function findSchedule(tx: DbTransaction, operatorId: string, scheduleId: string)
   return tx.tripSchedule.findFirst({ where: { id: scheduleId, operatorId }, select: SCHEDULE_SELECT });
 }
 
-function ruleFields(input: TripScheduleInput) {
+/** Cột của quy tắc; `durationMinutes` = thời gian chạy của tuyến lúc lưu (chỉ để hiển thị, ít nhất 1 phút). */
+function ruleFields(input: TripScheduleInput, routeSeconds: number) {
   return {
     routeId: input.routeId,
     vehicleId: input.vehicleId,
     departureMinute: minuteOfDay(input.departureTime),
-    durationMinutes: input.durationMinutes,
+    durationMinutes: Math.max(1, Math.round(routeSeconds / 60)),
     daysOfWeek: daysToMask(input.daysOfWeek),
     startDate: dateOnly(input.startDate),
     endDate: dateOnly(input.endDate),
@@ -307,16 +306,16 @@ function ruleFields(input: TripScheduleInput) {
 
 /**
  * Tuyến phải đang dùng; xe (nếu chọn) phải đang hoạt động và có sơ đồ ghế — như khi tạo chuyến lẻ (UC-14 A2). Không phân
- * biệt "không có" / "tenant khác" / "ngừng dùng" để không lộ dữ liệu tenant khác.
+ * biệt "không có" / "tenant khác" / "ngừng dùng" để không lộ dữ liệu tenant khác. Trả thời gian chạy của tuyến (giây).
  */
 async function assertResources(
   tx: DbTransaction,
   operatorId: string,
   input: { routeId: string; vehicleId: string | null },
-): Promise<void> {
+): Promise<number> {
   const route = await tx.route.findFirst({
     where: { id: input.routeId, operatorId, status: RouteStatus.ACTIVE },
-    select: { id: true },
+    select: { totalDurationSeconds: true },
   });
   if (!route) {
     throw routeUnavailable();
@@ -330,6 +329,7 @@ async function assertResources(
       throw vehicleUnavailable();
     }
   }
+  return route.totalDurationSeconds;
 }
 
 function toResponse(row: NonNullable<Awaited<ReturnType<typeof findSchedule>>>): TripScheduleResponse {

@@ -12,10 +12,12 @@ import { useRouter } from "next/navigation";
 import { useId, useState, type ReactNode } from "react";
 
 import { ApiError } from "../../lib/auth/api-client";
+import { getRoute } from "../../lib/route/route-api";
 import { stopKey, type StopCandidate } from "../../lib/route/route-form";
+import { formatDuration } from "../../lib/route/route-format";
 import { changeTrip, getTrip, getTripSales, type Trip, type TripSales } from "../../lib/trip/trip-api";
 import { CHANGE_REASON_MAX, describeTripChangeError, impactLabel, toChangeInput, type StopReplacement } from "../../lib/trip/trip-change";
-import { arrivalIso, departureIso, toTripFormValues } from "../../lib/trip/trip-form";
+import { departureIso, hasCompleteTimes, routeArrivalMs, toTripFormValues } from "../../lib/trip/trip-form";
 import { formatTime, formatWeekdayDate, stopMetaLabel, TRIP_STATUS } from "../../lib/trip/trip-format";
 import { listAllVehicles } from "../../lib/vehicle/vehicle-api";
 import { formatPlateNumber } from "../../lib/vehicle/vehicle-format";
@@ -89,22 +91,26 @@ function ChangeBody({ trip, sales }: { trip: Trip; sales: TripSales }) {
   const initial = toTripFormValues(trip);
   const [departureDate, setDepartureDate] = useState(initial.departureDate);
   const [departureTime, setDepartureTime] = useState(initial.departureTime);
-  const [arrivalDate, setArrivalDate] = useState(initial.arrivalDate);
-  const [arrivalTime, setArrivalTime] = useState(initial.arrivalTime);
   const [vehicleId, setVehicleId] = useState(trip.vehicleId ?? "");
   const [reason, setReason] = useState("");
   const [replacements, setReplacements] = useState<Map<number, StopReplacement>>(new Map());
   const [picking, setPicking] = useState<number | null>(null);
   const [errors, setErrors] = useState<{ reason?: string; form?: string }>({});
-  const ids = { departureDate: useId(), departureTime: useId(), arrivalDate: useId(), arrivalTime: useId() };
+  const ids = { departureDate: useId(), departureTime: useId() };
   const vehicles = useQuery({ queryKey: ["vehicles", "all"], queryFn: listAllVehicles });
+  // Giờ đến máy chủ tính = giờ đi mới + thời gian chạy HIỆN TẠI của tuyến (chờ duyệt 27/10/2026); ở đây xem trước.
+  const route = useQuery({ queryKey: ["route", trip.routeId], queryFn: () => getRoute(trip.routeId) });
+  const arrivalAt =
+    route.data && hasCompleteTimes({ departureDate, departureTime })
+      ? new Date(routeArrivalMs(new Date(departureIso({ departureDate, departureTime })).getTime(), route.data.totalDurationSeconds)).toISOString()
+      : null;
   const usable = (vehicles.data ?? []).filter((vehicle) => vehicle.status === "ACTIVE" && vehicle.seatMap);
 
   const save = useMutation({
     mutationFn: () =>
       changeTrip(
         trip.id,
-        toChangeInput(trip, { departureAt: departureIso({ departureDate, departureTime }), arrivalAt: arrivalIso({ arrivalDate, arrivalTime }), vehicleId, reason }, replacements)
+        toChangeInput(trip, { departureAt: departureIso({ departureDate, departureTime }), vehicleId, reason }, replacements)
       ),
     onSuccess: (updated) => {
       queryClient.setQueryData(["trip", trip.id], updated);
@@ -146,10 +152,18 @@ function ChangeBody({ trip, sales }: { trip: Trip; sales: TripSales }) {
             <div className="grid gap-4 sm:grid-cols-2">
               <TimeField id={ids.departureDate} label="Ngày khởi hành" type="date" value={departureDate} onChange={setDepartureDate} />
               <TimeField id={ids.departureTime} label="Giờ khởi hành" type="time" value={departureTime} onChange={setDepartureTime} />
-              <TimeField id={ids.arrivalDate} label="Ngày đến" type="date" value={arrivalDate} onChange={setArrivalDate} />
-              <TimeField id={ids.arrivalTime} label="Giờ đến" type="time" value={arrivalTime} onChange={setArrivalTime} />
             </div>
-            <p className={HELPER}>Giờ tại các điểm ở giữa được chia lại theo thời gian chạy từng chặng của tuyến.</p>
+            <p className="text-sm leading-5 text-vxn-fg-1">
+              Giờ đến (theo tuyến):{" "}
+              <span className="font-medium text-vxn-ink">
+                {arrivalAt ? `${formatTime(arrivalAt)} ${formatWeekdayDate(arrivalAt)}` : "—"}
+              </span>
+            </p>
+            <p className={HELPER}>
+              Giờ đến = giờ khởi hành + thời gian chạy của tuyến
+              {route.data ? ` (${formatDuration(route.data.totalDurationSeconds)})` : ""}; giờ tại các điểm ở giữa chia theo
+              từng chặng. Lệch thực tế thì sửa thời gian chặng ở Tuyến đường.
+            </p>
           </section>
 
           <section aria-labelledby="change-vehicle" className={CARD}>

@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { apiMoney, mapBookingPrice, mapLookupResult, mapPaymentResult, mapSeatSelection, mapTicketDetail, moneyString } from "./booking-mappers";
+import { apiMoney, dropoffForPickup, isDropoffAfterPickup, mapBookingPrice, mapLookupResult, mapPaymentResult, mapSeatSelection, mapTicketDetail, moneyString } from "./booking-mappers";
 import { bookingFixture, holdFixture, publicTripFixture } from "./booking-test-fixture";
 
 const { request, profile, wallet, jar, values } = vi.hoisted(() => {
@@ -44,14 +44,29 @@ describe("booking API integration", () => {
     expect(mapPaymentResult({ ...booking, status: "CANCELLED", payment: null, tickets: [] })).toMatchObject({ status: "failed", canRetryPayment: false });
   });
 
-  it("giữ tọa độ ghế thật và không cho chọn ghế chưa có giá hoặc không còn bán", () => {
+  it("giữ tọa độ ghế thật và không cho chọn ghế chưa có giá hoặc không còn bán; đã bán / đang giữ hiện Đã đặt, chưa có giá hiện Không bán", () => {
     const trip = publicTripFixture();
     trip.seats.push({ ...trip.seats[0]!, code: "A2", column: 5, price: null }, { ...trip.seats[0]!, code: "A3", column: 6, status: "UNAVAILABLE" });
     expect(mapSeatSelection(trip).seats).toMatchObject([
       { code: "A1", row: 2, column: 4, status: "available", priceVnd: "100001" },
       { code: "A2", status: "disabled" },
-      { code: "A3", status: "disabled" }
+      { code: "A3", status: "booked" }
     ]);
+  });
+
+  it("loại chỗ theo API (ghế ngồi không thành giường đơn) và giờ khởi hành kèm thứ, ngày", () => {
+    const trip = publicTripFixture();
+    const seats = mapSeatSelection({ ...trip, seats: [{ ...trip.seats[0]!, type: "SEAT" }, { ...trip.seats[0]!, code: "B1", type: "CABIN_DOUBLE" }] }).seats;
+    expect(seats.map((seat) => [seat.typeLabel, seat.type])).toEqual([["Ghế ngồi", "single"], ["Cabin đôi", "double"]]);
+    expect(mapSeatSelection({ ...trip, departureAt: "2026-10-28T12:24:00.000Z" }).departureTimeText).toBe("19:24 • T4, 28/10/2026");
+  });
+
+  it("điểm trả phải đứng sau điểm đón; đổi điểm đón thì giữ điểm trả còn hợp lệ, không thì lấy bến cuối", () => {
+    const dropoffs = [2, 3].map((sequence) => ({ id: String(sequence), name: "", address: "", time: "", hasFreeShuttle: false }));
+    expect(isDropoffAfterPickup("1", "2")).toBe(true);
+    expect(isDropoffAfterPickup("2", "2")).toBe(false);
+    expect(dropoffForPickup("1", dropoffs, "2")).toBe("2");
+    expect(dropoffForPickup("2", dropoffs, "2")).toBe("3");
   });
 
   it("không gửi giữ chỗ trùng hoặc điểm trả trước điểm đón", async () => {

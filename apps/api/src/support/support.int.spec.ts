@@ -119,7 +119,7 @@ describe.skipIf(!ready && !requireDb)("Khiếu nại, tranh chấp, đánh giá 
     const departureAt = new Date(Date.now() + hoursAhead * HOUR);
     const trip = await trips.create(
       ownerAuthz,
-      TripInputSchema.parse({ routeId, vehicleId: vehicle.id, departureAt: departureAt.toISOString(), arrivalAt: new Date(departureAt.getTime() + 6 * HOUR).toISOString(), stopTimes: null, onlineSaleCutoffMinutes: 60, note: null }),
+      TripInputSchema.parse({ routeId, vehicleId: vehicle.id, departureAt: departureAt.toISOString(), stopTimes: null, onlineSaleCutoffMinutes: 60, note: null }),
     );
     await prisma.withSystem((tx) => tx.trip.update({ where: { id: trip.id }, data: { status: "OPEN_FOR_SALE" } }));
     const hold = await holds.create(user, undefined, SeatHoldInputSchema.parse({ tripId: trip.id, seatCodes, pickupSequence: 1, dropoffSequence: 3 }));

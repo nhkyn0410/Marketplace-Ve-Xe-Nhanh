@@ -156,7 +156,6 @@ describe.skipIf(!ready && !requireDb)("Đặt vé của nhà xe — Postgres th�
           routeId,
           vehicleId,
           departureAt: departure.toISOString(),
-          arrivalAt: new Date(departure.getTime() + 7 * HOUR).toISOString(),
           stopTimes: null,
           onlineSaleCutoffMinutes: 60,
           note: null,

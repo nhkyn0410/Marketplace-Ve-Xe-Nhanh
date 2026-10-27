@@ -4,6 +4,8 @@ import { RouteStatus, RouteStopRole, RoutingMetricsSource, StopPointType } from 
 
 /** Giới hạn điểm/route: đủ cho tuyến liên tỉnh, chặn payload và số lần gọi Goong (mỗi chặng một lần). */
 export const MAX_ROUTE_STOPS = 25;
+/** Một chặng chỉnh tay dài tối đa 24 giờ. */
+export const MAX_LEG_MINUTES = 1440;
 
 const optionalText = (max: number) =>
   z
@@ -22,6 +24,11 @@ const RouteStopInputSchema = z
     // điểm) và trả 422 `ROUTE_STOP_PICKUP_DROPOFF_INVALID`.
     allowPickup: z.boolean(),
     allowDropoff: z.boolean(),
+    /**
+     * Thời gian xe khách chạy thật của chặng TỚI điểm này (phút) — nhà xe chỉnh khi số hệ thống tính (Goong / ước lượng)
+     * lệch thực tế. `null` / bỏ trống = dùng số hệ thống. Điểm đầu không có chặng (chờ duyệt 27/10/2026).
+     */
+    durationMinutesFromPrevious: z.int().min(1).max(MAX_LEG_MINUTES).nullable().optional(),
   })
   .refine(
     (stop) => (stop.catalogStopPointId === null) !== (stop.stopPointId === null),
@@ -37,6 +44,9 @@ export const RouteInputSchema = z
     stops: z.array(RouteStopInputSchema).min(2).max(MAX_ROUTE_STOPS),
   })
   .superRefine((input, ctx) => {
+    if (input.stops[0]?.durationMinutesFromPrevious) {
+      ctx.addIssue({ code: "custom", path: ["stops", 0, "durationMinutesFromPrevious"], message: "Điểm đầu không có chặng trước." });
+    }
     // UC-13 bước 5: không vòng lặp — một điểm không xuất hiện hai lần (kéo theo đầu ≠ cuối).
     const seen = new Set<string>();
     input.stops.forEach((stop, index) => {
@@ -106,7 +116,10 @@ export const RouteResponseSchema = z.object({
       allowPickup: z.boolean(),
       allowDropoff: z.boolean(),
       distanceMetersFromPrevious: z.int().nullable(),
+      /** Thời gian chặng đang dùng (nhà xe chỉnh, hoặc số hệ thống); tổng = `totalDurationSeconds`. */
       durationSecondsFromPrevious: z.int().nullable(),
+      /** Số hệ thống tính cho chặng; khác `durationSecondsFromPrevious` nghĩa là nhà xe đã chỉnh tay. */
+      measuredDurationSecondsFromPrevious: z.int().nullable(),
     }),
   ),
 });
