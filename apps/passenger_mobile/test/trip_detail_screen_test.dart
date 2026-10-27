@@ -3,6 +3,15 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:passenger_mobile/features/ticket/ticket_screen.dart';
 import 'package:passenger_mobile/features/ticket/trip_detail_screen.dart';
 
+import 'support/trip_search_fakes.dart';
+
+Widget _ticketWithOneTrip() => TicketScreen(
+  onTabSelected: (_) {},
+  searchCatalog: fakeCatalog(),
+  initialQuery: sampleQuery,
+  searchTrips: (_, _, _) async => samplePage([sampleTrip('t1')]),
+);
+
 Future<void> _pumpApp(
   WidgetTester tester, {
   required Widget home,
@@ -40,13 +49,13 @@ void _expectNoFlutterException(WidgetTester tester) {
 }
 
 void main() {
-  testWidgets('mũi tên Phương Trang mở màn chi tiết chuyến', (tester) async {
-    await _pumpApp(tester, home: TicketScreen(onTabSelected: (_) {}));
+  testWidgets('bấm thẻ chuyến mở màn chi tiết chuyến', (tester) async {
+    await _pumpApp(tester, home: _ticketWithOneTrip());
 
-    final arrow = find.byKey(const Key('phuong-trang-detail-arrow'));
-    await tester.ensureVisible(arrow);
+    final card = find.byKey(const ValueKey('ticket-trip-t1'));
+    await tester.ensureVisible(card);
     await tester.pumpAndSettle();
-    await tester.tap(arrow);
+    await tester.tap(card);
     await tester.pumpAndSettle();
 
     expect(find.byKey(const Key('trip-detail-screen')), findsOneWidget);
@@ -131,12 +140,12 @@ void main() {
   }
 
   testWidgets('nút quay lại trở về danh sách chuyến', (tester) async {
-    await _pumpApp(tester, home: TicketScreen(onTabSelected: (_) {}));
+    await _pumpApp(tester, home: _ticketWithOneTrip());
 
-    final arrow = find.byKey(const Key('phuong-trang-detail-arrow'));
-    await tester.ensureVisible(arrow);
+    final card = find.byKey(const ValueKey('ticket-trip-t1'));
+    await tester.ensureVisible(card);
     await tester.pumpAndSettle();
-    await tester.tap(arrow);
+    await tester.tap(card);
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('trip-detail-back')));
     await tester.pumpAndSettle();

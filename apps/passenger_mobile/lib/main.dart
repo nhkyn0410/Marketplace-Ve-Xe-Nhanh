@@ -19,7 +19,9 @@ import 'package:passenger_mobile/features/home/home_models.dart';
 import 'package:passenger_mobile/features/home/home_screen.dart';
 import 'package:passenger_mobile/features/home/route_dock_tabbar.dart';
 import 'package:passenger_mobile/features/journey/guest_journey_flow.dart';
+import 'package:passenger_mobile/features/search/trip_search_form.dart';
 import 'package:passenger_mobile/features/ticket/ticket_screen.dart';
+import 'package:passenger_mobile/features/ticket/trip_booking_api.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 /// Origin của API — KHÔNG kèm `/v1`.
@@ -170,6 +172,16 @@ class OtpLoginPage extends StatefulWidget {
 class _OtpLoginPageState extends State<OtpLoginPage> {
   final _tokens = const TokenStorage();
   late final _api = createApiClient(baseUrl: apiBaseUrl, tokens: _tokens);
+  late final _bookingApi = TripBookingApi(_api);
+  late final _searchCatalog = TripSearchCatalog(
+    loadProvinces: _bookingApi.loadProvinces,
+    searchStopPoints: _bookingApi.searchStopPoints,
+    loadOperators: _bookingApi.loadOperators,
+    loadAmenities: _bookingApi.loadAmenities,
+  );
+
+  /// Lần tìm chuyến gần nhất — giữ để quay lại tab Mua vé vẫn thấy danh sách.
+  HomeSearchQuery? _lastSearchQuery;
 
   _AuthStep _step = _AuthStep.email;
   bool _busy = false;
@@ -774,53 +786,18 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
       );
   }
 
-  Future<List<HomeLocation>> _loadHomeLocations() async {
-    final response = await _api
-        .getCatalogApi()
-        .catalogControllerListProvinces();
-    final data = response.data;
-    if (data == null) {
-      throw StateError('Province response did not contain data.');
-    }
-    return data.items
-        .map((item) => HomeLocation(id: item.id, name: item.name))
-        .toList(growable: false);
-  }
-
-  Future<int> _searchHomeTrips(HomeSearchQuery query) async {
-    String? fromProvinceId;
-    String? fromStopPointId;
-    String? toProvinceId;
-    String? toStopPointId;
-    if (query.from.kind == HomeLocationKind.province) {
-      fromProvinceId = query.from.id;
-    } else {
-      fromStopPointId = query.from.id;
-    }
-    if (query.to.kind == HomeLocationKind.province) {
-      toProvinceId = query.to.id;
-    } else {
-      toStopPointId = query.to.id;
-    }
-
-    final response = await _api.getTripsApi().publicTripControllerSearch(
-      date: Date(query.date.year, query.date.month, query.date.day),
-      fromProvinceId: fromProvinceId,
-      fromStopPointId: fromStopPointId,
-      toProvinceId: toProvinceId,
-      toStopPointId: toStopPointId,
-      passengers: query.passengers,
-      operatorId: query.operatorId,
-    );
-    final data = response.data;
-    if (data == null) {
-      throw StateError('Trip search response did not contain data.');
-    }
-    return data.total;
+  /// Trang chủ bấm "Tìm chuyến": sang tab Mua vé, tìm ngay theo điều kiện đã chọn.
+  void _openTripResults(HomeSearchQuery query) {
+    setState(() {
+      _lastSearchQuery = query;
+      _currentTab = 1;
+      _accountView = _AccountView.overview;
+      _error = null;
+    });
   }
 
   Future<List<HomePopularRoute>> _loadPopularRoutes(DateTime date) async {
-    final provinces = await _loadHomeLocations();
+    final provinces = await _bookingApi.loadProvinces();
     final routes = await Future.wait(
       _popularRouteSpecs.map(
         (spec) => _loadPopularRoute(spec, provinces, date),
@@ -937,7 +914,13 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
     }
     if ((_step == _AuthStep.signedIn || _step == _AuthStep.guest) &&
         _currentTab == 1) {
-      return TicketScreen(onTabSelected: _selectMainTab);
+      return TicketScreen(
+        onTabSelected: _selectMainTab,
+        searchCatalog: _searchCatalog,
+        searchTrips: _bookingApi.searchTrips,
+        initialQuery: _lastSearchQuery,
+        onQueryChanged: (query) => _lastSearchQuery = query,
+      );
     }
     if (_step == _AuthStep.guest && _currentTab == 3) {
       return GuestJourneyFlow(
@@ -1109,10 +1092,10 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
     return HomeScreen(
       isLoggedIn: isLoggedIn,
       userName: _displayName ?? emailName,
-      loadLocations: _loadHomeLocations,
+      searchCatalog: _searchCatalog,
       loadPopularRoutes: _loadPopularRoutes,
       loadFaqs: _loadHomeFaqs,
-      onSearch: _searchHomeTrips,
+      onSearch: _openTripResults,
       onCallHotline: _launchSupportHotline,
       onLoginRequested: isLoggedIn ? null : _returnToLogin,
       onTabSelected: _selectMainTab,

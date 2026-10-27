@@ -7,11 +7,44 @@ class HomeLocation {
     required this.id,
     required this.name,
     this.kind = HomeLocationKind.province,
+    this.detail,
   });
 
   final String id;
   final String name;
   final HomeLocationKind kind;
+
+  /// Dòng phụ khi gợi ý (địa chỉ của bến / địa danh); tỉnh thì không có.
+  final String? detail;
+}
+
+/// Một tuyến (tỉnh đi → tỉnh đến) nhà xe đang mở bán.
+class HomeOperatorRoute {
+  const HomeOperatorRoute({required this.from, required this.to});
+
+  final HomeLocation from;
+  final HomeLocation to;
+
+  String get label => '${from.name} → ${to.name}';
+}
+
+/// Nhà xe đang mở bán, dùng cho chế độ tìm "Theo nhà xe".
+class HomeOperator {
+  const HomeOperator({
+    required this.id,
+    required this.name,
+    required this.reviewCount,
+    required this.routes,
+    this.averageRating,
+  });
+
+  final String id;
+  final String name;
+
+  /// Trung bình các đánh giá đang hiển thị; `null` khi chưa có đánh giá.
+  final double? averageRating;
+  final int reviewCount;
+  final List<HomeOperatorRoute> routes;
 }
 
 class HomeSearchQuery {
@@ -21,7 +54,7 @@ class HomeSearchQuery {
     required this.to,
     required this.date,
     required this.passengers,
-    this.operatorId,
+    this.operator,
   });
 
   final HomeSearchMode mode;
@@ -29,7 +62,11 @@ class HomeSearchQuery {
   final HomeLocation to;
   final DateTime date;
   final int passengers;
-  final String? operatorId;
+
+  /// Chỉ có ở chế độ "Theo nhà xe".
+  final HomeOperator? operator;
+
+  String? get operatorId => operator?.id;
 }
 
 class HomePopularRoute {

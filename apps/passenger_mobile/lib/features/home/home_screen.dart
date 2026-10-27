@@ -8,6 +8,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:passenger_mobile/features/home/home_models.dart';
 import 'package:passenger_mobile/features/home/route_dock_tabbar.dart';
+import 'package:passenger_mobile/features/search/trip_search_form.dart';
 
 const _assetRoot = 'assets/home';
 const _primary = Color(0xFF2B7EAD);
@@ -19,8 +20,8 @@ const _plannerSurfaceLoader = _FilterlessSvgAssetLoader(
   '$_assetRoot/illustrations/planner_surface.svg',
 );
 
-typedef HomeLocationsLoader = Future<List<HomeLocation>> Function();
-typedef HomeTripSearch = Future<int> Function(HomeSearchQuery query);
+/// Nhận điều kiện tìm hợp lệ từ form Trang chủ (mở danh sách chuyến ở tab Mua vé).
+typedef HomeTripSearch = void Function(HomeSearchQuery query);
 typedef HomePopularRoutesLoader = Future<List<HomePopularRoute>> Function(
   DateTime date,
 );
@@ -33,7 +34,7 @@ class HomeScreen extends StatefulWidget {
     this.userName,
     this.initialMode = HomeSearchMode.route,
     this.initialDate,
-    this.loadLocations,
+    this.searchCatalog,
     this.loadPopularRoutes,
     this.loadFaqs,
     this.onSearch,
@@ -48,7 +49,7 @@ class HomeScreen extends StatefulWidget {
   final String? userName;
   final HomeSearchMode initialMode;
   final DateTime? initialDate;
-  final HomeLocationsLoader? loadLocations;
+  final TripSearchCatalog? searchCatalog;
   final HomePopularRoutesLoader? loadPopularRoutes;
   final HomeFaqLoader? loadFaqs;
   final HomeTripSearch? onSearch;
@@ -61,34 +62,31 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends State<HomeScreen>
+    with TripSearchFormState<HomeScreen> {
   static const _supportHotline = '1900 636 707';
 
   final _scrollController = ScrollController();
-  late HomeSearchMode _mode = widget.initialMode;
-  late DateTime _date =
-      widget.initialDate ?? DateTime.now().add(const Duration(days: 1));
-  HomeLocation? _from;
-  HomeLocation? _to;
-  int _passengers = 1;
-  bool _searching = false;
   bool _dockVisible = true;
   Future<List<HomePopularRoute>>? _popularRoutesFuture;
 
-  String get _fromLabel => _from?.name ?? 'TP. Hồ Chí Minh';
-  String get _toLabel => _to?.name ?? 'Đà Lạt';
+  @override
+  TripSearchCatalog? get searchCatalog => widget.searchCatalog;
 
   @override
   void initState() {
     super.initState();
-    _popularRoutesFuture = widget.loadPopularRoutes?.call(_date);
+    searchMode = widget.initialMode;
+    final initialDate = widget.initialDate;
+    if (initialDate != null) searchDate = initialDate;
+    _popularRoutesFuture = widget.loadPopularRoutes?.call(searchDate);
   }
 
   @override
   void didUpdateWidget(covariant HomeScreen oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.loadPopularRoutes != widget.loadPopularRoutes) {
-      _popularRoutesFuture = widget.loadPopularRoutes?.call(_date);
+      _popularRoutesFuture = widget.loadPopularRoutes?.call(searchDate);
     }
   }
 
@@ -128,20 +126,22 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: _HomeTopArea(
                   isLoggedIn: widget.isLoggedIn,
                   userName: widget.userName,
-                  mode: _mode,
-                  fromLabel: _fromLabel,
-                  toLabel: _toLabel,
-                  date: _date,
-                  passengers: _passengers,
-                  searching: _searching,
-                  onModeChanged: (mode) => setState(() => _mode = mode),
-                  onPickFrom: () => _pickLocation(isOrigin: true),
-                  onPickTo: () => _pickLocation(isOrigin: false),
-                  onSwap: _swapLocations,
+                  mode: searchMode,
+                  fromLabel: searchFrom?.name,
+                  toLabel: searchTo?.name,
+                  operatorLabel: searchOperator?.name,
+                  routeLabel: searchOperatorRoute?.label,
+                  date: searchDate,
+                  passengers: searchPassengers,
+                  onModeChanged: (mode) => setState(() => searchMode = mode),
+                  onPickFrom: () => pickSearchLocation(isOrigin: true),
+                  onPickTo: () => pickSearchLocation(isOrigin: false),
+                  onSwap: swapSearchLocations,
                   onPickDate: _pickDate,
-                  onPickPassengers: _pickPassengers,
+                  onPickPassengers: pickSearchPassengers,
                   onSearch: _search,
-                  onOperatorTap: _showOperatorApiGap,
+                  onOperatorTap: pickSearchOperator,
+                  onRouteTap: pickSearchOperatorRoute,
                 ),
               ),
               SliverPadding(
@@ -216,9 +216,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _selectPopularRoute(HomePopularRoute route) {
     setState(() {
-      _mode = HomeSearchMode.route;
-      _from = route.from;
-      _to = route.to;
+      searchMode = HomeSearchMode.route;
+      searchFrom = route.from;
+      searchTo = route.to;
     });
     _scrollController.animateTo(
       0,
@@ -262,182 +262,22 @@ class _HomeScreenState extends State<HomeScreen> {
     _showMessage('Bạn có thể góp ý từ chuyến đi đã hoàn thành.');
   }
 
-  Future<void> _pickLocation({required bool isOrigin}) async {
-    final loader = widget.loadLocations;
-    if (loader == null) {
-      _showMessage('Danh mục địa điểm hiện chưa khả dụng.');
-      return;
-    }
-
-    final selected = await showModalBottomSheet<HomeLocation>(
-      context: context,
-      isScrollControlled: true,
-      useSafeArea: true,
-      backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      builder: (context) => _LocationPicker(
-        title: isOrigin ? 'Chọn điểm đi' : 'Chọn điểm đến',
-        loader: loader,
-      ),
-    );
-    if (selected == null || !mounted) return;
-    setState(() {
-      if (isOrigin) {
-        _from = selected;
-      } else {
-        _to = selected;
-      }
-    });
-  }
-
-  void _swapLocations() {
-    setState(() {
-      final previous = _from;
-      _from = _to;
-      _to = previous;
-    });
-  }
-
   Future<void> _pickDate() async {
-    final now = DateTime.now();
-    final firstDate = DateTime(now.year, now.month, now.day);
-    final selected = await showDatePicker(
-      context: context,
-      initialDate: _date.isBefore(firstDate) ? firstDate : _date,
-      firstDate: firstDate,
-      lastDate: firstDate.add(const Duration(days: 365)),
-      helpText: 'Chọn ngày đi',
-    );
-    if (selected != null && mounted) {
-      setState(() {
-        _date = selected;
-        _popularRoutesFuture = widget.loadPopularRoutes?.call(selected);
-      });
-    }
+    if (!await pickSearchDate() || !mounted) return;
+    setState(() {
+      _popularRoutesFuture = widget.loadPopularRoutes?.call(searchDate);
+    });
   }
 
-  Future<void> _pickPassengers() async {
-    var value = _passengers;
-    final selected = await showModalBottomSheet<int>(
-      context: context,
-      useSafeArea: true,
-      backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      builder: (context) => StatefulBuilder(
-        builder: (context, setSheetState) => Padding(
-          padding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Text(
-                'Số hành khách',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                  color: _primaryDark,
-                ),
-              ),
-              const SizedBox(height: 18),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  IconButton.outlined(
-                    onPressed: value > 1
-                        ? () => setSheetState(() => value--)
-                        : null,
-                    icon: const Icon(Icons.remove),
-                  ),
-                  SizedBox(
-                    width: 90,
-                    child: Text(
-                      '$value khách',
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                  IconButton.outlined(
-                    onPressed: value < 10
-                        ? () => setSheetState(() => value++)
-                        : null,
-                    icon: const Icon(Icons.add),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 18),
-              SizedBox(
-                width: double.infinity,
-                child: FilledButton(
-                  onPressed: () => Navigator.pop(context, value),
-                  child: const Text('Xác nhận'),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-    if (selected != null && mounted) {
-      setState(() => _passengers = selected);
-    }
-  }
-
-  void _showOperatorApiGap() {
-    _showMessage(
-      'Danh sách nhà xe chưa có API công khai; chưa thể chọn nhà xe khác.',
-    );
-  }
-
-  Future<void> _search() async {
-    if (_searching) return;
-    if (_mode == HomeSearchMode.operator) {
-      _showOperatorApiGap();
-      return;
-    }
-    final from = _from;
-    final to = _to;
-    if (from == null || to == null) {
-      _showMessage('Vui lòng chọn điểm đi và điểm đến từ danh mục.');
-      return;
-    }
-    if (from.id == to.id && from.kind == to.kind) {
-      _showMessage('Điểm đi và điểm đến phải khác nhau.');
-      return;
-    }
+  void _search() {
+    final query = buildSearchQuery();
+    if (query == null) return;
     final search = widget.onSearch;
     if (search == null) {
       _showMessage('Tìm chuyến hiện chưa khả dụng.');
       return;
     }
-
-    setState(() => _searching = true);
-    try {
-      final total = await search(
-        HomeSearchQuery(
-          mode: _mode,
-          from: from,
-          to: to,
-          date: _date,
-          passengers: _passengers,
-        ),
-      );
-      if (!mounted) return;
-      _showMessage(
-        total == 0
-            ? 'Chưa có chuyến phù hợp. Hãy thử ngày hoặc địa điểm khác.'
-            : 'Tìm thấy $total chuyến phù hợp.',
-      );
-    } catch (_) {
-      _showMessage('Không thể tìm chuyến. Vui lòng kiểm tra mạng và thử lại.');
-    } finally {
-      if (mounted) setState(() => _searching = false);
-    }
+    search(query);
   }
 }
 
@@ -448,9 +288,10 @@ class _HomeTopArea extends StatelessWidget {
     required this.mode,
     required this.fromLabel,
     required this.toLabel,
+    required this.operatorLabel,
+    required this.routeLabel,
     required this.date,
     required this.passengers,
-    required this.searching,
     required this.onModeChanged,
     required this.onPickFrom,
     required this.onPickTo,
@@ -459,16 +300,18 @@ class _HomeTopArea extends StatelessWidget {
     required this.onPickPassengers,
     required this.onSearch,
     required this.onOperatorTap,
+    required this.onRouteTap,
   });
 
   final bool isLoggedIn;
   final String? userName;
   final HomeSearchMode mode;
-  final String fromLabel;
-  final String toLabel;
+  final String? fromLabel;
+  final String? toLabel;
+  final String? operatorLabel;
+  final String? routeLabel;
   final DateTime date;
   final int passengers;
-  final bool searching;
   final ValueChanged<HomeSearchMode> onModeChanged;
   final VoidCallback onPickFrom;
   final VoidCallback onPickTo;
@@ -477,6 +320,7 @@ class _HomeTopArea extends StatelessWidget {
   final VoidCallback onPickPassengers;
   final VoidCallback onSearch;
   final VoidCallback onOperatorTap;
+  final VoidCallback onRouteTap;
 
   @override
   Widget build(BuildContext context) {
@@ -512,9 +356,10 @@ class _HomeTopArea extends StatelessWidget {
                   mode: mode,
                   fromLabel: fromLabel,
                   toLabel: toLabel,
+                  operatorLabel: operatorLabel,
+                  routeLabel: routeLabel,
                   date: date,
                   passengers: passengers,
-                  searching: searching,
                   onModeChanged: onModeChanged,
                   onPickFrom: onPickFrom,
                   onPickTo: onPickTo,
@@ -523,6 +368,7 @@ class _HomeTopArea extends StatelessWidget {
                   onPickPassengers: onPickPassengers,
                   onSearch: onSearch,
                   onOperatorTap: onOperatorTap,
+                  onRouteTap: onRouteTap,
                 ),
               ),
               Positioned(
@@ -725,9 +571,10 @@ class _JourneyPlanner extends StatelessWidget {
     required this.mode,
     required this.fromLabel,
     required this.toLabel,
+    required this.operatorLabel,
+    required this.routeLabel,
     required this.date,
     required this.passengers,
-    required this.searching,
     required this.onModeChanged,
     required this.onPickFrom,
     required this.onPickTo,
@@ -736,15 +583,17 @@ class _JourneyPlanner extends StatelessWidget {
     required this.onPickPassengers,
     required this.onSearch,
     required this.onOperatorTap,
+    required this.onRouteTap,
   });
 
   final bool narrow;
   final HomeSearchMode mode;
-  final String fromLabel;
-  final String toLabel;
+  final String? fromLabel;
+  final String? toLabel;
+  final String? operatorLabel;
+  final String? routeLabel;
   final DateTime date;
   final int passengers;
-  final bool searching;
   final ValueChanged<HomeSearchMode> onModeChanged;
   final VoidCallback onPickFrom;
   final VoidCallback onPickTo;
@@ -753,6 +602,7 @@ class _JourneyPlanner extends StatelessWidget {
   final VoidCallback onPickPassengers;
   final VoidCallback onSearch;
   final VoidCallback onOperatorTap;
+  final VoidCallback onRouteTap;
 
   @override
   Widget build(BuildContext context) {
@@ -820,6 +670,7 @@ class _JourneyPlanner extends StatelessWidget {
                                   key: const Key('origin-input'),
                                   label: 'Điểm đi',
                                   value: fromLabel,
+                                  placeholder: 'Chọn điểm đi',
                                   asset: '$_assetRoot/icons/origin_pin.svg',
                                   onTap: onPickFrom,
                                 ),
@@ -828,6 +679,7 @@ class _JourneyPlanner extends StatelessWidget {
                                   key: const Key('destination-input'),
                                   label: 'Điểm đến',
                                   value: toLabel,
+                                  placeholder: 'Chọn điểm đến',
                                   asset:
                                       '$_assetRoot/icons/destination_pin.svg',
                                   onTap: onPickTo,
@@ -882,18 +734,22 @@ class _JourneyPlanner extends StatelessWidget {
                             _PlannerInput(
                               key: const Key('operator-input'),
                               label: 'Nhà xe',
-                              value: 'Phương Trang',
-                              asset: '$_assetRoot/operators/phuong_trang.png',
-                              raster: true,
+                              value: operatorLabel,
+                              placeholder: 'Chọn nhà xe',
+                              asset:
+                                  '$_assetRoot/icons/search_mode_operator_inactive.svg',
                               onTap: onOperatorTap,
                             ),
                             const SizedBox(height: 12),
                             _PlannerInput(
                               key: const Key('operator-route-input'),
                               label: 'Tuyến',
-                              value: '$fromLabel → $toLabel',
+                              value: routeLabel,
+                              placeholder: operatorLabel == null
+                                  ? 'Chọn nhà xe trước'
+                                  : 'Chọn tuyến',
                               asset: '$_assetRoot/icons/operator_route.svg',
-                              onTap: onPickFrom,
+                              onTap: onRouteTap,
                             ),
                           ],
                         ),
@@ -949,55 +805,45 @@ class _JourneyPlanner extends StatelessWidget {
                   ),
                   child: FilledButton(
                     key: const Key('home-search-button'),
-                    onPressed: searching ? null : onSearch,
+                    onPressed: onSearch,
                     style: FilledButton.styleFrom(
                       backgroundColor: Colors.transparent,
-                      disabledBackgroundColor: Colors.transparent,
                       shadowColor: Colors.transparent,
                       foregroundColor: Colors.white,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(20),
                       ),
                     ),
-                    child: searching
-                        ? const SizedBox(
-                            width: 22,
-                            height: 22,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2.5,
-                              color: Colors.white,
-                            ),
-                          )
-                        : FittedBox(
-                            fit: BoxFit.scaleDown,
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                SvgPicture.asset(
-                                  '$_assetRoot/icons/search.svg',
-                                  width: 20,
-                                  height: 20,
-                                  excludeFromSemantics: true,
-                                ),
-                                const SizedBox(width: 12),
-                                const Text(
-                                  'Tìm chuyến',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                                const SizedBox(width: 12),
-                                SvgPicture.asset(
-                                  '$_assetRoot/icons/arrow_right.svg',
-                                  width: 20,
-                                  height: 20,
-                                  excludeFromSemantics: true,
-                                ),
-                              ],
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          SvgPicture.asset(
+                            '$_assetRoot/icons/search.svg',
+                            width: 20,
+                            height: 20,
+                            excludeFromSemantics: true,
+                          ),
+                          const SizedBox(width: 12),
+                          const Text(
+                            'Tìm chuyến',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
                             ),
                           ),
+                          const SizedBox(width: 12),
+                          SvgPicture.asset(
+                            '$_assetRoot/icons/arrow_right.svg',
+                            width: 20,
+                            height: 20,
+                            excludeFromSemantics: true,
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
                 ),
               ),
@@ -1060,7 +906,7 @@ class _SearchModeControl extends StatelessWidget {
                 child: _SearchModeButton(
                   key: const Key('search-mode-route'),
                   selected: mode == HomeSearchMode.route,
-                  label: 'Theo tuyến',
+                  label: 'Theo chuyến',
                   selectedAsset:
                       '$_assetRoot/icons/search_mode_route_active.svg',
                   unselectedAsset:
@@ -1154,17 +1000,19 @@ class _PlannerInput extends StatelessWidget {
   const _PlannerInput({
     required this.label,
     required this.value,
+    required this.placeholder,
     required this.asset,
     required this.onTap,
-    this.raster = false,
     super.key,
   });
 
   final String label;
-  final String value;
+
+  /// `null` = chưa chọn, hiện [placeholder].
+  final String? value;
+  final String placeholder;
   final String asset;
   final VoidCallback onTap;
-  final bool raster;
 
   @override
   Widget build(BuildContext context) {
@@ -1183,22 +1031,12 @@ class _PlannerInput extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Row(
               children: [
-                raster
-                    ? ClipRRect(
-                        borderRadius: BorderRadius.circular(5),
-                        child: Image.asset(
-                          asset,
-                          width: 24,
-                          height: 24,
-                          fit: BoxFit.cover,
-                        ),
-                      )
-                    : SvgPicture.asset(
-                        asset,
-                        width: 24,
-                        height: 24,
-                        excludeFromSemantics: true,
-                      ),
+                SvgPicture.asset(
+                  asset,
+                  width: 24,
+                  height: 24,
+                  excludeFromSemantics: true,
+                ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(
@@ -1215,14 +1053,16 @@ class _PlannerInput extends StatelessWidget {
                         ),
                       ),
                       Text(
-                        value,
+                        value ?? placeholder,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          color: _primaryDark,
-                          fontSize: 18,
+                        style: TextStyle(
+                          color: value == null ? _secondary : _primaryDark,
+                          fontSize: value == null ? 16 : 18,
                           height: 24 / 18,
-                          fontWeight: FontWeight.w600,
+                          fontWeight: value == null
+                              ? FontWeight.w500
+                              : FontWeight.w600,
                         ),
                       ),
                     ],
@@ -1300,85 +1140,6 @@ class _CompactPlannerInput extends StatelessWidget {
             ),
           ),
         ),
-      ),
-    );
-  }
-}
-
-class _LocationPicker extends StatelessWidget {
-  const _LocationPicker({required this.title, required this.loader});
-
-  final String title;
-  final HomeLocationsLoader loader;
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      height: MediaQuery.sizeOf(context).height * .72,
-      child: Column(
-        children: [
-          const SizedBox(height: 10),
-          Container(
-            width: 42,
-            height: 4,
-            decoration: BoxDecoration(
-              color: const Color(0xFFD5E2EA),
-              borderRadius: BorderRadius.circular(2),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(18),
-            child: Text(
-              title,
-              style: const TextStyle(
-                color: _primaryDark,
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-          Expanded(
-            child: FutureBuilder<List<HomeLocation>>(
-              future: loader(),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState != ConnectionState.done) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-                if (snapshot.hasError) {
-                  return const Center(
-                    child: Padding(
-                      padding: EdgeInsets.all(24),
-                      child: Text(
-                        'Không tải được danh mục địa điểm. Vui lòng thử lại.',
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                  );
-                }
-                final items = snapshot.data ?? const <HomeLocation>[];
-                if (items.isEmpty) {
-                  return const Center(child: Text('Chưa có địa điểm phù hợp.'));
-                }
-                return ListView.separated(
-                  itemCount: items.length,
-                  separatorBuilder: (_, _) => const Divider(height: 1),
-                  itemBuilder: (context, index) {
-                    final item = items[index];
-                    return ListTile(
-                      leading: SvgPicture.asset(
-                        '$_assetRoot/icons/origin_pin.svg',
-                        width: 22,
-                        height: 22,
-                      ),
-                      title: Text(item.name),
-                      onTap: () => Navigator.pop(context, item),
-                    );
-                  },
-                );
-              },
-            ),
-          ),
-        ],
       ),
     );
   }

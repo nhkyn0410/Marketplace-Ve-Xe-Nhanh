@@ -3,10 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:passenger_mobile/features/home/home_models.dart';
 import 'package:passenger_mobile/features/home/home_screen.dart';
 
-const _locations = <HomeLocation>[
-  HomeLocation(id: 'hcm', name: 'TP. Hồ Chí Minh'),
-  HomeLocation(id: 'lam-dong', name: 'Lâm Đồng'),
-];
+import 'support/trip_search_fakes.dart';
 
 Future<void> _pumpHome(
   WidgetTester tester, {
@@ -47,7 +44,7 @@ Future<void> _pumpHome(
         userName: isLoggedIn ? 'Khanh' : null,
         initialMode: initialMode,
         initialDate: DateTime(2026, 10, 22),
-        loadLocations: () async => _locations,
+        searchCatalog: fakeCatalog(),
         loadPopularRoutes: loadPopularRoutes,
         loadFaqs: loadFaqs,
         onSearch: onSearch,
@@ -267,12 +264,18 @@ void main() {
     tester,
   ) async {
     await _pumpHome(tester, width: 412);
+    expect(find.text('Theo chuyến'), findsOneWidget);
+    expect(find.text('Theo tuyến'), findsNothing);
     expect(find.byKey(const Key('origin-input')), findsOneWidget);
+    expect(find.text('Chọn điểm đi'), findsOneWidget);
+    expect(find.text('Chọn điểm đến'), findsOneWidget);
 
     await tester.tap(find.byKey(const Key('search-mode-operator')));
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('operator-input')), findsOneWidget);
-    expect(find.text('Phương Trang'), findsWidgets);
+    // Lần đầu mở: ô trống để chọn, không điền sẵn nhà xe / tuyến.
+    expect(find.text('Chọn nhà xe'), findsOneWidget);
+    expect(find.text('Chọn nhà xe trước'), findsOneWidget);
 
     await tester.tap(find.byKey(const Key('search-mode-route')));
     await tester.pumpAndSettle();
@@ -331,14 +334,7 @@ void main() {
     tester,
   ) async {
     HomeSearchQuery? submitted;
-    await _pumpHome(
-      tester,
-      width: 412,
-      onSearch: (query) async {
-        submitted = query;
-        return 3;
-      },
-    );
+    await _pumpHome(tester, width: 412, onSearch: (query) => submitted = query);
 
     await tester.tap(find.byKey(const Key('home-search-button')));
     await tester.pump();
@@ -363,7 +359,75 @@ void main() {
     expect(submitted!.from.id, 'hcm');
     expect(submitted!.to.id, 'lam-dong');
     expect(submitted!.passengers, 1);
-    expect(find.text('Tìm thấy 3 chuyến phù hợp.'), findsOneWidget);
+    expect(submitted!.operatorId, isNull);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('gõ không dấu vẫn gợi ý tỉnh, gõ từ 2 ký tự gợi ý cả bến xe', (
+    tester,
+  ) async {
+    HomeSearchQuery? submitted;
+    await _pumpHome(tester, width: 412, onSearch: (query) => submitted = query);
+
+    await tester.tap(find.byKey(const Key('origin-input')));
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.byKey(const Key('location-search-field')),
+      'ho chi',
+    );
+    await tester.pump(const Duration(milliseconds: 350));
+    await tester.pumpAndSettle();
+    expect(find.text('TP. Hồ Chí Minh'), findsWidgets);
+    expect(find.text('Lâm Đồng'), findsNothing);
+    expect(find.text('Bến xe Miền Đông'), findsOneWidget);
+
+    await tester.tap(find.text('Bến xe Miền Đông'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('destination-input')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Lâm Đồng').last);
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const Key('home-search-button')));
+    await tester.pumpAndSettle();
+    expect(submitted!.from.kind, HomeLocationKind.stopPoint);
+    expect(submitted!.from.id, 'mien-dong');
+    expect(submitted!.to.id, 'lam-dong');
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('theo nhà xe: chọn nhà xe rồi chọn tuyến (đủ điểm đi và đến)', (
+    tester,
+  ) async {
+    HomeSearchQuery? submitted;
+    await _pumpHome(tester, width: 412, onSearch: (query) => submitted = query);
+    await tester.tap(find.byKey(const Key('search-mode-operator')));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const Key('home-search-button')));
+    await tester.pump();
+    expect(find.text('Vui lòng chọn nhà xe.'), findsOneWidget);
+
+    // Bấm ô Tuyến khi chưa có nhà xe thì mở chọn nhà xe trước.
+    await tester.tap(find.byKey(const Key('operator-route-input')));
+    await tester.pumpAndSettle();
+    expect(find.text('Chọn nhà xe'), findsWidgets);
+    expect(find.text('★ 4.7 (12 đánh giá) · 2 tuyến'), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('operator-option-op-pt')));
+    await tester.pumpAndSettle();
+
+    // Nhà xe có nhiều tuyến → tự mở bước chọn tuyến.
+    expect(find.text('Chọn tuyến · Phương Trang'), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('operator-route-option-1')));
+    await tester.pumpAndSettle();
+    expect(find.text('Lâm Đồng → TP. Hồ Chí Minh'), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('home-search-button')));
+    await tester.pumpAndSettle();
+    expect(submitted!.mode, HomeSearchMode.operator);
+    expect(submitted!.operatorId, 'op-pt');
+    expect(submitted!.from.id, 'lam-dong');
+    expect(submitted!.to.id, 'hcm');
     expect(tester.takeException(), isNull);
   });
 

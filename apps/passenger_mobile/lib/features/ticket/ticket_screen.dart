@@ -2,8 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:mobile_shared/mobile_shared.dart';
+import 'package:passenger_mobile/features/home/home_models.dart';
 import 'package:passenger_mobile/features/home/route_dock_tabbar.dart';
+import 'package:passenger_mobile/features/search/trip_search_form.dart';
 import 'package:passenger_mobile/features/ticket/trip_detail_screen.dart';
+import 'package:passenger_mobile/features/ticket/trip_search_models.dart';
 
 const _assetRoot = 'assets/ticket';
 const _homeAssetRoot = 'assets/home';
@@ -12,90 +16,58 @@ const _primaryDark = Color(0xFF09243D);
 const _secondary = Color(0xFF607A8E);
 const _pageBackground = Color(0xFFF4F8F9);
 
-enum _TicketSearchMode { trip, operator }
-
-class _TicketTrip {
-  const _TicketTrip({
-    required this.operatorName,
-    required this.logoAsset,
-    required this.vehicleAsset,
-    required this.rating,
-    required this.reviewCount,
-    required this.departureTime,
-    required this.arrivalTime,
-    required this.vehicleType,
-    required this.availableSeats,
-    required this.price,
-    this.urgent = false,
+/// Tab Mua vé: form tìm chuyến và danh sách chuyến ngay bên dưới (Figma 05).
+class TicketScreen extends StatefulWidget {
+  const TicketScreen({
+    required this.onTabSelected,
+    this.searchCatalog,
+    this.searchTrips,
+    this.initialQuery,
+    this.onQueryChanged,
+    super.key,
   });
 
-  final String operatorName;
-  final String logoAsset;
-  final String vehicleAsset;
-  final String rating;
-  final String reviewCount;
-  final String departureTime;
-  final String arrivalTime;
-  final String vehicleType;
-  final int availableSeats;
-  final String price;
-  final bool urgent;
-}
-
-const _figmaTrips = <_TicketTrip>[
-  _TicketTrip(
-    operatorName: 'Phương Trang',
-    logoAsset: '$_homeAssetRoot/operators/phuong_trang.png',
-    vehicleAsset: '$_assetRoot/phuong_trang_bus.png',
-    rating: '4.8',
-    reviewCount: '1.2K đánh giá',
-    departureTime: '07:00',
-    arrivalTime: '13:30',
-    vehicleType: 'Limousine 34 phòng',
-    availableSeats: 4,
-    price: '280.000 ₫',
-    urgent: true,
-  ),
-  _TicketTrip(
-    operatorName: 'Thành Bưởi',
-    logoAsset: '$_homeAssetRoot/operators/thanh_buoi.png',
-    vehicleAsset: '$_assetRoot/thanh_buoi_bus.png',
-    rating: '4.6',
-    reviewCount: '980 đánh giá',
-    departureTime: '08:00',
-    arrivalTime: '14:30',
-    vehicleType: 'Limousine 24 phòng',
-    availableSeats: 12,
-    price: '320.000 ₫',
-  ),
-  _TicketTrip(
-    operatorName: 'Điền Linh',
-    logoAsset: '$_homeAssetRoot/operators/dien_linh.png',
-    vehicleAsset: '$_assetRoot/dien_linh_bus.png',
-    rating: '4.5',
-    reviewCount: '420 đánh giá',
-    departureTime: '09:00',
-    arrivalTime: '15:30',
-    vehicleType: 'Giường nằm cao cấp',
-    availableSeats: 8,
-    price: '250.000 ₫',
-  ),
-];
-
-class TicketScreen extends StatefulWidget {
-  const TicketScreen({required this.onTabSelected, super.key});
-
   final ValueChanged<int> onTabSelected;
+  final TripSearchCatalog? searchCatalog;
+  final TripSearchRunner? searchTrips;
+
+  /// Điều kiện tìm mang sang từ Trang chủ / lần tìm trước; có thì tìm ngay khi mở.
+  final HomeSearchQuery? initialQuery;
+
+  /// Báo điều kiện vừa tìm để giữ lại khi rời tab.
+  final ValueChanged<HomeSearchQuery>? onQueryChanged;
 
   @override
   State<TicketScreen> createState() => _TicketScreenState();
 }
 
-class _TicketScreenState extends State<TicketScreen> {
+class _TicketScreenState extends State<TicketScreen>
+    with TripSearchFormState<TicketScreen> {
   final _scrollController = ScrollController();
-  _TicketSearchMode _mode = _TicketSearchMode.trip;
   bool _dockVisible = true;
-  int _activeFilterCount = 3;
+
+  HomeSearchQuery? _query;
+  TripSearchFilters _filters = const TripSearchFilters();
+  TripSearchPage? _page;
+  List<TripSummary> _trips = const [];
+  bool _loading = false;
+  bool _loadingMore = false;
+  String? _error;
+  int _request = 0;
+
+  @override
+  TripSearchCatalog? get searchCatalog => widget.searchCatalog;
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(_maybeLoadMore);
+    final query = widget.initialQuery;
+    if (query != null) {
+      applySearchQuery(query);
+      _search(query);
+    }
+  }
 
   @override
   void dispose() {
@@ -105,6 +77,7 @@ class _TicketScreenState extends State<TicketScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final query = _query;
     return Scaffold(
       key: const Key('ticket-screen'),
       extendBody: true,
@@ -143,46 +116,64 @@ class _TicketScreenState extends State<TicketScreen> {
                 slivers: [
                   SliverToBoxAdapter(
                     child: _TicketHeader(
-                      mode: _mode,
-                      onModeChanged: (mode) => setState(() => _mode = mode),
-                      onSearch: _showSearchFeedback,
-                    ),
-                  ),
-                  SliverPadding(
-                    padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
-                    sliver: SliverToBoxAdapter(
-                      child: _ResultToolbar(
-                        activeFilterCount: _activeFilterCount,
-                        onFilter: _openFilters,
-                        onSort: _showSortSheet,
+                      planner: _JourneyPlanner(
+                        mode: searchMode,
+                        fromLabel: searchFrom?.name,
+                        toLabel: searchTo?.name,
+                        operatorLabel: searchOperator?.name,
+                        routeLabel: searchOperatorRoute?.label,
+                        date: searchDate,
+                        passengers: searchPassengers,
+                        onModeChanged: (mode) =>
+                            setState(() => searchMode = mode),
+                        onPickFrom: () => pickSearchLocation(isOrigin: true),
+                        onPickTo: () => pickSearchLocation(isOrigin: false),
+                        onSwap: swapSearchLocations,
+                        onOperatorTap: pickSearchOperator,
+                        onRouteTap: pickSearchOperatorRoute,
+                        onPickDate: pickSearchDate,
+                        onPickPassengers: pickSearchPassengers,
+                        onSearch: _onSearchPressed,
                       ),
                     ),
                   ),
-                  const SliverPadding(
-                    padding: EdgeInsets.fromLTRB(16, 14, 16, 10),
-                    sliver: SliverToBoxAdapter(child: _ResultSummary()),
-                  ),
-                  SliverPadding(
-                    padding: const EdgeInsets.fromLTRB(8, 0, 8, 142),
-                    sliver: SliverList.separated(
-                      itemBuilder: (context, index) => _TripCard(
-                        key: ValueKey(
-                          'ticket-trip-${_figmaTrips[index].operatorName}',
+                  if (query == null)
+                    const SliverPadding(
+                      padding: EdgeInsets.fromLTRB(24, 28, 24, 142),
+                      sliver: SliverToBoxAdapter(
+                        child: _ResultMessage(
+                          icon: Icons.travel_explore,
+                          message:
+                              'Chọn điểm đi, điểm đến và ngày đi rồi bấm "Tìm chuyến".',
                         ),
-                        trip: _figmaTrips[index],
-                        onOpenDetail: index == 0
-                            ? () => Navigator.of(context).push(
-                                MaterialPageRoute<void>(
-                                  builder: (_) => const TripDetailScreen(),
-                                ),
-                              )
-                            : null,
                       ),
-                      separatorBuilder: (context, index) =>
-                          const SizedBox(height: 14),
-                      itemCount: _figmaTrips.length,
+                    )
+                  else ...[
+                    SliverPadding(
+                      padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
+                      sliver: SliverToBoxAdapter(
+                        child: _ResultToolbar(
+                          filters: _filters,
+                          operators: _page?.operators ?? const [],
+                          onFilter: _openFilters,
+                          onSort: _openSortSheet,
+                          onChanged: _applyFilters,
+                        ),
+                      ),
                     ),
-                  ),
+                    if (!_loading && _error == null)
+                      SliverPadding(
+                        padding: const EdgeInsets.fromLTRB(16, 14, 16, 10),
+                        sliver: SliverToBoxAdapter(
+                          child: _ResultSummary(
+                            total: _page?.total ?? 0,
+                            sort: _filters.sort,
+                            onSort: _openSortSheet,
+                          ),
+                        ),
+                      ),
+                    ..._resultSlivers(query),
+                  ],
                 ],
               ),
             ),
@@ -190,6 +181,94 @@ class _TicketScreenState extends State<TicketScreen> {
         ),
       ),
     );
+  }
+
+  List<Widget> _resultSlivers(HomeSearchQuery query) {
+    if (_loading) {
+      return const [
+        SliverPadding(
+          padding: EdgeInsets.only(top: 48, bottom: 142),
+          sliver: SliverToBoxAdapter(
+            child: Center(
+              child: CircularProgressIndicator(key: Key('ticket-loading')),
+            ),
+          ),
+        ),
+      ];
+    }
+    final error = _error;
+    if (error != null) {
+      return [
+        SliverPadding(
+          padding: const EdgeInsets.fromLTRB(24, 28, 24, 142),
+          sliver: SliverToBoxAdapter(
+            child: _ResultMessage(
+              icon: Icons.wifi_off_outlined,
+              message: error,
+              actionLabel: 'Thử lại',
+              onAction: () => _search(query),
+            ),
+          ),
+        ),
+      ];
+    }
+    if (_trips.isEmpty) {
+      final filtered = _filters.activeCount > 0;
+      return [
+        SliverPadding(
+          padding: const EdgeInsets.fromLTRB(24, 20, 24, 142),
+          sliver: SliverToBoxAdapter(
+            child: _ResultMessage(
+              key: const Key('ticket-empty'),
+              icon: Icons.directions_bus_outlined,
+              message: filtered
+                  ? 'Không có chuyến khớp bộ lọc. Hãy bỏ bớt bộ lọc.'
+                  : 'Chưa có chuyến phù hợp. Hãy thử ngày khác hoặc địa điểm khác.',
+              actionLabel: filtered ? 'Bỏ lọc' : null,
+              onAction: filtered
+                  ? () => _applyFilters(_filters.cleared())
+                  : null,
+            ),
+          ),
+        ),
+      ];
+    }
+    return [
+      SliverPadding(
+        padding: const EdgeInsets.fromLTRB(8, 0, 8, 0),
+        sliver: SliverList.separated(
+          itemBuilder: (context, index) {
+            final trip = _trips[index];
+            return _TripCard(
+              key: ValueKey('ticket-trip-${trip.tripId}'),
+              trip: trip,
+              fromLabel: query.from.name,
+              toLabel: query.to.name,
+              onOpenDetail: () => Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (_) => const TripDetailScreen(),
+                ),
+              ),
+            );
+          },
+          separatorBuilder: (context, index) => const SizedBox(height: 14),
+          itemCount: _trips.length,
+        ),
+      ),
+      SliverPadding(
+        padding: const EdgeInsets.only(top: 14, bottom: 142),
+        sliver: SliverToBoxAdapter(
+          child: _loadingMore
+              ? const Center(
+                  child: SizedBox.square(
+                    dimension: 26,
+                    child: CircularProgressIndicator(strokeWidth: 2.6),
+                  ),
+                )
+              : const SizedBox.shrink(),
+        ),
+      ),
+    ];
   }
 
   bool _handleUserScroll(UserScrollNotification notification) {
@@ -205,34 +284,110 @@ class _TicketScreenState extends State<TicketScreen> {
     return false;
   }
 
-  void _showSearchFeedback() {
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(
-          content: Text(
-            _mode == _TicketSearchMode.trip
-                ? 'Đang tìm chuyến TP.HCM → Đà Lạt.'
-                : 'Đang tìm chuyến của Phương Trang.',
-          ),
-        ),
-      );
+  void _onSearchPressed() {
+    final query = buildSearchQuery();
+    if (query == null) return;
+    // Đổi điều kiện tìm thì nhà xe và khoảng giá cũ không còn đúng với kết quả mới.
+    _filters = TripSearchFilters(
+      vehicleForm: _filters.vehicleForm,
+      vehicleClass: _filters.vehicleClass,
+      departureSlot: _filters.departureSlot,
+      amenityIds: _filters.amenityIds,
+      sort: _filters.sort,
+    );
+    widget.onQueryChanged?.call(query);
+    _search(query);
+  }
+
+  Future<void> _search(HomeSearchQuery query) async {
+    final runner = widget.searchTrips;
+    if (runner == null) {
+      showSearchMessage('Tìm chuyến hiện chưa khả dụng.');
+      return;
+    }
+    final request = ++_request;
+    setState(() {
+      _query = query;
+      _loading = true;
+      _loadingMore = false;
+      _error = null;
+      _trips = const [];
+    });
+    try {
+      final page = await runner(query, _filters, 1);
+      if (!mounted || request != _request) return;
+      setState(() {
+        _page = page;
+        _trips = page.items;
+        _loading = false;
+      });
+    } catch (error) {
+      if (!mounted || request != _request) return;
+      setState(() {
+        _loading = false;
+        _error = _describeSearchError(error);
+      });
+    }
+  }
+
+  Future<void> _maybeLoadMore() async {
+    final query = _query;
+    final page = _page;
+    final runner = widget.searchTrips;
+    if (query == null ||
+        page == null ||
+        runner == null ||
+        !page.hasMore ||
+        _loading ||
+        _loadingMore ||
+        !_scrollController.hasClients) {
+      return;
+    }
+    final position = _scrollController.position;
+    if (position.pixels < position.maxScrollExtent - 400) return;
+    final request = _request;
+    setState(() => _loadingMore = true);
+    try {
+      final next = await runner(query, _filters, page.page + 1);
+      if (!mounted || request != _request) return;
+      setState(() {
+        _page = next;
+        _trips = [..._trips, ...next.items];
+        _loadingMore = false;
+      });
+    } catch (_) {
+      if (!mounted || request != _request) return;
+      setState(() => _loadingMore = false);
+      showSearchMessage('Không tải thêm được chuyến. Vui lòng thử lại.');
+    }
+  }
+
+  void _applyFilters(TripSearchFilters filters) {
+    _filters = filters;
+    final query = _query;
+    if (query != null) _search(query);
   }
 
   Future<void> _openFilters() async {
-    final result = await showModalBottomSheet<int>(
+    final result = await showModalBottomSheet<TripSearchFilters>(
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
       backgroundColor: Colors.transparent,
       barrierColor: const Color(0x66102632),
-      builder: (context) => const _TripFilterSheet(),
+      builder: (context) => _TripFilterSheet(
+        initial: _filters,
+        operators: _page?.operators ?? const [],
+        priceMin: _page?.priceMin,
+        priceMax: _page?.priceMax,
+        loadAmenities: widget.searchCatalog?.loadAmenities,
+      ),
     );
-    if (result != null && mounted) setState(() => _activeFilterCount = result);
+    if (result != null && mounted) _applyFilters(result);
   }
 
-  void _showSortSheet() {
-    showModalBottomSheet<void>(
+  Future<void> _openSortSheet() async {
+    final selected = await showModalBottomSheet<TripSearchSort>(
       context: context,
       showDragHandle: true,
       builder: (context) => SafeArea(
@@ -247,38 +402,41 @@ class _TicketScreenState extends State<TicketScreen> {
                 style: TextStyle(fontSize: 19, fontWeight: FontWeight.w600),
               ),
               const SizedBox(height: 10),
-              for (final label in const [
-                'Giá từ thấp đến cao',
-                'Giờ khởi hành sớm nhất',
-                'Đánh giá cao nhất',
-                'Thời gian di chuyển ngắn nhất',
-              ])
+              for (final sort in TripSearchSort.values)
                 ListTile(
+                  key: ValueKey('ticket-sort-${sort.name}'),
                   contentPadding: EdgeInsets.zero,
-                  title: Text(label),
-                  trailing: label == 'Giá từ thấp đến cao'
+                  title: Text(sort.label),
+                  trailing: sort == _filters.sort
                       ? const Icon(Icons.check_circle, color: _primary)
                       : null,
-                  onTap: () => Navigator.pop(context),
+                  onTap: () => Navigator.pop(context, sort),
                 ),
             ],
           ),
         ),
       ),
     );
+    if (selected != null && selected != _filters.sort && mounted) {
+      _applyFilters(_filters.withSort(selected));
+    }
   }
 }
 
-class _TicketHeader extends StatelessWidget {
-  const _TicketHeader({
-    required this.mode,
-    required this.onModeChanged,
-    required this.onSearch,
-  });
+String _describeSearchError(Object error) {
+  if (error is ApiFailure) {
+    if (error.isNetworkError) {
+      return 'Không thể kết nối máy chủ. Vui lòng kiểm tra mạng và thử lại.';
+    }
+    return error.detail;
+  }
+  return 'Không thể tìm chuyến. Vui lòng thử lại.';
+}
 
-  final _TicketSearchMode mode;
-  final ValueChanged<_TicketSearchMode> onModeChanged;
-  final VoidCallback onSearch;
+class _TicketHeader extends StatelessWidget {
+  const _TicketHeader({required this.planner});
+
+  final Widget planner;
 
   @override
   Widget build(BuildContext context) {
@@ -316,11 +474,7 @@ class _TicketHeader extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 28),
-              _JourneyPlanner(
-                mode: mode,
-                onModeChanged: onModeChanged,
-                onSearch: onSearch,
-              ),
+              planner,
             ],
           ),
         ),
@@ -332,12 +486,38 @@ class _TicketHeader extends StatelessWidget {
 class _JourneyPlanner extends StatelessWidget {
   const _JourneyPlanner({
     required this.mode,
+    required this.fromLabel,
+    required this.toLabel,
+    required this.operatorLabel,
+    required this.routeLabel,
+    required this.date,
+    required this.passengers,
     required this.onModeChanged,
+    required this.onPickFrom,
+    required this.onPickTo,
+    required this.onSwap,
+    required this.onOperatorTap,
+    required this.onRouteTap,
+    required this.onPickDate,
+    required this.onPickPassengers,
     required this.onSearch,
   });
 
-  final _TicketSearchMode mode;
-  final ValueChanged<_TicketSearchMode> onModeChanged;
+  final HomeSearchMode mode;
+  final String? fromLabel;
+  final String? toLabel;
+  final String? operatorLabel;
+  final String? routeLabel;
+  final DateTime date;
+  final int passengers;
+  final ValueChanged<HomeSearchMode> onModeChanged;
+  final VoidCallback onPickFrom;
+  final VoidCallback onPickTo;
+  final VoidCallback onSwap;
+  final VoidCallback onOperatorTap;
+  final VoidCallback onRouteTap;
+  final VoidCallback onPickDate;
+  final VoidCallback onPickPassengers;
   final VoidCallback onSearch;
 
   @override
@@ -376,24 +556,41 @@ class _JourneyPlanner extends StatelessWidget {
                 child: child,
               ),
             ),
-            child: mode == _TicketSearchMode.trip
-                ? const _RouteInputs(key: ValueKey('ticket-route-inputs'))
-                : const _OperatorInput(key: ValueKey('ticket-operator-input')),
+            child: mode == HomeSearchMode.route
+                ? _RouteInputs(
+                    key: const ValueKey('ticket-route-inputs'),
+                    fromLabel: fromLabel,
+                    toLabel: toLabel,
+                    onPickFrom: onPickFrom,
+                    onPickTo: onPickTo,
+                    onSwap: onSwap,
+                  )
+                : _OperatorInput(
+                    key: const ValueKey('ticket-operator-input'),
+                    operatorLabel: operatorLabel,
+                    routeLabel: routeLabel,
+                    onOperatorTap: onOperatorTap,
+                    onRouteTap: onRouteTap,
+                  ),
           ),
           const SizedBox(height: 12),
-          const Row(
+          Row(
             children: [
               Expanded(
                 child: _CompactInput(
+                  key: const Key('ticket-date-input'),
                   icon: Icons.calendar_month_outlined,
-                  label: '10/10/2026',
+                  label: formatSearchDate(date),
+                  onTap: onPickDate,
                 ),
               ),
-              SizedBox(width: 10),
+              const SizedBox(width: 10),
               Expanded(
                 child: _CompactInput(
+                  key: const Key('ticket-passenger-input'),
                   icon: Icons.person_outline,
-                  label: '1 khách',
+                  label: '$passengers khách',
+                  onTap: onPickPassengers,
                 ),
               ),
             ],
@@ -455,8 +652,8 @@ class _JourneyPlanner extends StatelessWidget {
 class _SearchModeControl extends StatelessWidget {
   const _SearchModeControl({required this.mode, required this.onChanged});
 
-  final _TicketSearchMode mode;
-  final ValueChanged<_TicketSearchMode> onChanged;
+  final HomeSearchMode mode;
+  final ValueChanged<HomeSearchMode> onChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -473,7 +670,7 @@ class _SearchModeControl extends StatelessWidget {
             child: AnimatedAlign(
               duration: const Duration(milliseconds: 280),
               curve: Curves.easeOutCubic,
-              alignment: mode == _TicketSearchMode.trip
+              alignment: mode == HomeSearchMode.route
                   ? Alignment.centerLeft
                   : Alignment.centerRight,
               child: FractionallySizedBox(
@@ -497,23 +694,23 @@ class _SearchModeControl extends StatelessWidget {
               Expanded(
                 child: _ModeButton(
                   key: const Key('ticket-mode-trip'),
-                  selected: mode == _TicketSearchMode.trip,
+                  selected: mode == HomeSearchMode.route,
                   label: 'Theo chuyến',
-                  asset: mode == _TicketSearchMode.trip
+                  asset: mode == HomeSearchMode.route
                       ? '$_homeAssetRoot/icons/search_mode_route_active.svg'
                       : '$_homeAssetRoot/icons/search_mode_route_inactive.svg',
-                  onTap: () => onChanged(_TicketSearchMode.trip),
+                  onTap: () => onChanged(HomeSearchMode.route),
                 ),
               ),
               Expanded(
                 child: _ModeButton(
                   key: const Key('ticket-mode-operator'),
-                  selected: mode == _TicketSearchMode.operator,
+                  selected: mode == HomeSearchMode.operator,
                   label: 'Theo nhà xe',
-                  asset: mode == _TicketSearchMode.operator
+                  asset: mode == HomeSearchMode.operator
                       ? '$_homeAssetRoot/icons/search_mode_operator_active.svg'
                       : '$_homeAssetRoot/icons/search_mode_operator_inactive.svg',
-                  onTap: () => onChanged(_TicketSearchMode.operator),
+                  onTap: () => onChanged(HomeSearchMode.operator),
                 ),
               ),
             ],
@@ -572,54 +769,71 @@ class _ModeButton extends StatelessWidget {
 }
 
 class _RouteInputs extends StatelessWidget {
-  const _RouteInputs({super.key});
+  const _RouteInputs({
+    required this.fromLabel,
+    required this.toLabel,
+    required this.onPickFrom,
+    required this.onPickTo,
+    required this.onSwap,
+    super.key,
+  });
+
+  final String? fromLabel;
+  final String? toLabel;
+  final VoidCallback onPickFrom;
+  final VoidCallback onPickTo;
+  final VoidCallback onSwap;
 
   @override
   Widget build(BuildContext context) {
     return Stack(
       children: [
-        const Column(
+        Column(
           children: [
             _PlannerInput(
-              key: Key('ticket-origin-input'),
+              key: const Key('ticket-origin-input'),
               icon: Icons.location_on_outlined,
               iconColor: _primary,
               label: 'Điểm đi',
-              value: 'TP. Hồ Chí Minh',
+              value: fromLabel,
+              placeholder: 'Chọn điểm đi',
+              onTap: onPickFrom,
             ),
-            SizedBox(height: 10),
+            const SizedBox(height: 10),
             _PlannerInput(
-              key: Key('ticket-destination-input'),
+              key: const Key('ticket-destination-input'),
               icon: Icons.location_on_outlined,
-              iconColor: Color(0xFFF39A20),
+              iconColor: const Color(0xFFF39A20),
               label: 'Điểm đến',
-              value: 'Đà Lạt',
+              value: toLabel,
+              placeholder: 'Chọn điểm đến',
+              onTap: onPickTo,
             ),
           ],
         ),
         Positioned(
           right: 0,
           top: 55,
-          child: Container(
-            width: 42,
-            height: 42,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              shape: BoxShape.circle,
-              border: Border.all(color: const Color(0xFFE1EDF6)),
-              boxShadow: const [
-                BoxShadow(
-                  color: Color(0x1A14527D),
-                  offset: Offset(0, 5),
-                  blurRadius: 12,
-                ),
-              ],
+          child: Material(
+            color: Colors.white,
+            shape: const CircleBorder(
+              side: BorderSide(color: Color(0xFFE1EDF6)),
             ),
-            child: Center(
-              child: SvgPicture.asset(
-                '$_homeAssetRoot/icons/swap.svg',
-                width: 23,
-                height: 23,
+            elevation: 3,
+            shadowColor: const Color(0x1A14527D),
+            child: InkResponse(
+              key: const Key('ticket-swap-locations'),
+              onTap: onSwap,
+              radius: 21,
+              child: SizedBox.square(
+                dimension: 42,
+                child: Center(
+                  child: SvgPicture.asset(
+                    '$_homeAssetRoot/icons/swap.svg',
+                    width: 23,
+                    height: 23,
+                  ),
+                ),
               ),
             ),
           ),
@@ -630,24 +844,43 @@ class _RouteInputs extends StatelessWidget {
 }
 
 class _OperatorInput extends StatelessWidget {
-  const _OperatorInput({super.key});
+  const _OperatorInput({
+    required this.operatorLabel,
+    required this.routeLabel,
+    required this.onOperatorTap,
+    required this.onRouteTap,
+    super.key,
+  });
+
+  final String? operatorLabel;
+  final String? routeLabel;
+  final VoidCallback onOperatorTap;
+  final VoidCallback onRouteTap;
 
   @override
   Widget build(BuildContext context) {
-    return const Column(
+    return Column(
       children: [
         _PlannerInput(
+          key: const Key('ticket-operator-field'),
           icon: Icons.apartment_outlined,
           iconColor: _primary,
           label: 'Nhà xe',
-          value: 'Phương Trang',
+          value: operatorLabel,
+          placeholder: 'Chọn nhà xe',
+          onTap: onOperatorTap,
         ),
-        SizedBox(height: 10),
+        const SizedBox(height: 10),
         _PlannerInput(
+          key: const Key('ticket-operator-route-field'),
           icon: Icons.route_outlined,
-          iconColor: Color(0xFFF39A20),
+          iconColor: const Color(0xFFF39A20),
           label: 'Tuyến đường',
-          value: 'TP. Hồ Chí Minh → Đà Lạt',
+          value: routeLabel,
+          placeholder: operatorLabel == null
+              ? 'Chọn nhà xe trước'
+              : 'Chọn tuyến',
+          onTap: onRouteTap,
         ),
       ],
     );
@@ -660,113 +893,207 @@ class _PlannerInput extends StatelessWidget {
     required this.iconColor,
     required this.label,
     required this.value,
+    required this.placeholder,
+    required this.onTap,
     super.key,
   });
 
   final IconData icon;
   final Color iconColor;
   final String label;
-  final String value;
+
+  /// `null` = chưa chọn, hiện [placeholder].
+  final String? value;
+  final String placeholder;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return SizedBox(
       height: 62,
-      padding: const EdgeInsets.symmetric(horizontal: 13),
-      decoration: BoxDecoration(
+      child: Material(
         color: Colors.white,
-        border: Border.all(color: const Color(0xFFE1EDF6)),
-        borderRadius: BorderRadius.circular(15),
-      ),
-      child: Row(
-        children: [
-          Icon(icon, size: 23, color: iconColor),
-          const SizedBox(width: 11),
-          Expanded(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.start,
+        shape: RoundedRectangleBorder(
+          side: const BorderSide(color: Color(0xFFE1EDF6)),
+          borderRadius: BorderRadius.circular(15),
+        ),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(15),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 13),
+            child: Row(
               children: [
-                Text(
-                  label,
-                  style: const TextStyle(color: _secondary, fontSize: 11.5),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  value,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    color: _primaryDark,
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600,
+                Icon(icon, size: 23, color: iconColor),
+                const SizedBox(width: 11),
+                Expanded(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        label,
+                        style: const TextStyle(
+                          color: _secondary,
+                          fontSize: 11.5,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        value ?? placeholder,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          color: value == null ? _secondary : _primaryDark,
+                          fontSize: 15,
+                          fontWeight: value == null
+                              ? FontWeight.w500
+                              : FontWeight.w600,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
+                const Icon(Icons.chevron_right, size: 20, color: _primary),
               ],
             ),
           ),
-          const Icon(Icons.chevron_right, size: 20, color: _primary),
-        ],
+        ),
       ),
     );
   }
 }
 
 class _CompactInput extends StatelessWidget {
-  const _CompactInput({required this.icon, required this.label});
+  const _CompactInput({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+    super.key,
+  });
 
   final IconData icon;
   final String label;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return SizedBox(
       height: 52,
-      padding: const EdgeInsets.symmetric(horizontal: 10),
-      decoration: BoxDecoration(
+      child: Material(
         color: Colors.white,
-        border: Border.all(color: const Color(0xFFE1EDF6)),
-        borderRadius: BorderRadius.circular(14),
-      ),
-      child: Row(
-        children: [
-          Icon(icon, size: 19, color: _primary),
-          const SizedBox(width: 6),
-          Expanded(
-            child: FittedBox(
-              alignment: Alignment.centerLeft,
-              fit: BoxFit.scaleDown,
-              child: Text(
-                label,
-                maxLines: 1,
-                style: const TextStyle(
-                  color: _primaryDark,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
+        shape: RoundedRectangleBorder(
+          side: const BorderSide(color: Color(0xFFE1EDF6)),
+          borderRadius: BorderRadius.circular(14),
+        ),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(14),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 10),
+            child: Row(
+              children: [
+                Icon(icon, size: 19, color: _primary),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: FittedBox(
+                    alignment: Alignment.centerLeft,
+                    fit: BoxFit.scaleDown,
+                    child: Text(
+                      label,
+                      maxLines: 1,
+                      style: const TextStyle(
+                        color: _primaryDark,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
                 ),
-              ),
+                const Icon(Icons.chevron_right, size: 17, color: _primary),
+              ],
             ),
           ),
-          const Icon(Icons.chevron_right, size: 17, color: _primary),
-        ],
+        ),
       ),
+    );
+  }
+}
+
+class _ResultMessage extends StatelessWidget {
+  const _ResultMessage({
+    required this.icon,
+    required this.message,
+    this.actionLabel,
+    this.onAction,
+    super.key,
+  });
+
+  final IconData icon;
+  final String message;
+  final String? actionLabel;
+  final VoidCallback? onAction;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Icon(icon, size: 40, color: const Color(0xFF9DB7C6)),
+        const SizedBox(height: 10),
+        Text(
+          message,
+          textAlign: TextAlign.center,
+          style: const TextStyle(color: _secondary, fontSize: 13, height: 1.4),
+        ),
+        if (actionLabel != null && onAction != null) ...[
+          const SizedBox(height: 12),
+          OutlinedButton(onPressed: onAction, child: Text(actionLabel!)),
+        ],
+      ],
     );
   }
 }
 
 class _ResultToolbar extends StatelessWidget {
   const _ResultToolbar({
-    required this.activeFilterCount,
+    required this.filters,
+    required this.operators,
     required this.onFilter,
     required this.onSort,
+    required this.onChanged,
   });
 
-  final int activeFilterCount;
+  final TripSearchFilters filters;
+  final List<TripOperatorFacet> operators;
   final VoidCallback onFilter;
   final VoidCallback onSort;
+  final ValueChanged<TripSearchFilters> onChanged;
 
   @override
   Widget build(BuildContext context) {
+    final operatorName = operators
+        .where((operator) => operator.id == filters.operatorId)
+        .map((operator) => operator.name)
+        .firstOrNull;
+    final chips = <(String, TripSearchFilters)>[
+      if (filters.vehicleForm != null)
+        (
+          filters.vehicleForm!.label,
+          _copy(filters, clearVehicleForm: true),
+        ),
+      if (filters.vehicleClass != null)
+        (
+          filters.vehicleClass!.label,
+          _copy(filters, clearVehicleClass: true),
+        ),
+      if (filters.departureSlot != null)
+        (
+          filters.departureSlot!.label,
+          _copy(filters, clearDepartureSlot: true),
+        ),
+      if (operatorName != null)
+        (operatorName, _copy(filters, clearOperator: true)),
+    ];
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: Row(
@@ -775,21 +1102,47 @@ class _ResultToolbar extends StatelessWidget {
             key: const Key('ticket-filter-chip'),
             icon: Icons.filter_alt_outlined,
             label: 'Lọc',
-            count: activeFilterCount,
-            selected: true,
+            count: filters.activeCount == 0 ? null : filters.activeCount,
+            selected: filters.activeCount > 0,
             onTap: onFilter,
           ),
-          const SizedBox(width: 9),
-          _ToolbarChip(icon: Icons.tune, label: 'Sắp xếp', onTap: onSort),
           const SizedBox(width: 9),
           _ToolbarChip(
-            label: 'Limousine',
-            selected: true,
-            trailing: Icons.close,
-            onTap: onFilter,
+            key: const Key('ticket-sort-chip'),
+            icon: Icons.tune,
+            label: 'Sắp xếp',
+            onTap: onSort,
           ),
+          for (final chip in chips) ...[
+            const SizedBox(width: 9),
+            _ToolbarChip(
+              label: chip.$1,
+              selected: true,
+              trailing: Icons.close,
+              onTap: () => onChanged(chip.$2),
+            ),
+          ],
         ],
       ),
+    );
+  }
+
+  TripSearchFilters _copy(
+    TripSearchFilters source, {
+    bool clearVehicleForm = false,
+    bool clearVehicleClass = false,
+    bool clearDepartureSlot = false,
+    bool clearOperator = false,
+  }) {
+    return TripSearchFilters(
+      vehicleForm: clearVehicleForm ? null : source.vehicleForm,
+      vehicleClass: clearVehicleClass ? null : source.vehicleClass,
+      departureSlot: clearDepartureSlot ? null : source.departureSlot,
+      priceMin: source.priceMin,
+      priceMax: source.priceMax,
+      amenityIds: source.amenityIds,
+      operatorId: clearOperator ? null : source.operatorId,
+      sort: source.sort,
     );
   }
 }
@@ -866,79 +1219,127 @@ class _ToolbarChip extends StatelessWidget {
 }
 
 class _ResultSummary extends StatelessWidget {
-  const _ResultSummary();
+  const _ResultSummary({
+    required this.total,
+    required this.sort,
+    required this.onSort,
+  });
+
+  final int total;
+  final TripSearchSort sort;
+  final VoidCallback onSort;
 
   @override
   Widget build(BuildContext context) {
-    return const Row(
+    return Row(
       children: [
         Expanded(
           child: FittedBox(
             alignment: Alignment.centerLeft,
             fit: BoxFit.scaleDown,
             child: Text(
-              '24 chuyến phù hợp',
+              '$total chuyến phù hợp',
+              key: const Key('ticket-result-total'),
               maxLines: 1,
-              style: TextStyle(color: _primaryDark, fontSize: 12.5),
+              style: const TextStyle(color: _primaryDark, fontSize: 12.5),
             ),
           ),
         ),
-        SizedBox(width: 12),
+        const SizedBox(width: 12),
         Flexible(
-          child: FittedBox(
-            fit: BoxFit.scaleDown,
-            child: Text(
-              'Giá từ thấp đến cao',
-              maxLines: 1,
-              style: TextStyle(color: _primaryDark, fontSize: 11),
+          child: InkWell(
+            onTap: onSort,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Flexible(
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(
+                      sort.label,
+                      maxLines: 1,
+                      style: const TextStyle(
+                        color: _primaryDark,
+                        fontSize: 11,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 3),
+                const Icon(
+                  Icons.keyboard_arrow_down,
+                  size: 15,
+                  color: _primaryDark,
+                ),
+              ],
             ),
           ),
         ),
-        SizedBox(width: 3),
-        Icon(Icons.keyboard_arrow_down, size: 15, color: _primaryDark),
       ],
     );
   }
 }
 
 class _TripCard extends StatelessWidget {
-  const _TripCard({required this.trip, this.onOpenDetail, super.key});
+  const _TripCard({
+    required this.trip,
+    required this.fromLabel,
+    required this.toLabel,
+    required this.onOpenDetail,
+    super.key,
+  });
 
-  final _TicketTrip trip;
-  final VoidCallback? onOpenDetail;
+  final TripSummary trip;
+  final String fromLabel;
+  final String toLabel;
+  final VoidCallback onOpenDetail;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(13, 11, 0, 0),
-      decoration: BoxDecoration(
-        color: const Color(0xFFFFFEFD),
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x1421404F),
-            offset: Offset(0, 7),
-            blurRadius: 19,
-          ),
-        ],
-      ),
+    return Material(
+      color: const Color(0xFFFFFEFD),
+      borderRadius: BorderRadius.circular(20),
       clipBehavior: Clip.antiAlias,
-      child: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.only(right: 13),
-            child: _TripOperatorHeader(trip: trip),
+      elevation: 0,
+      child: InkWell(
+        onTap: onOpenDetail,
+        child: Ink(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: const [
+              BoxShadow(
+                color: Color(0x1421404F),
+                offset: Offset(0, 7),
+                blurRadius: 19,
+              ),
+            ],
           ),
-          const SizedBox(height: 8),
-          SizedBox(height: 76, child: _TripJourney(trip: trip)),
-          const SizedBox(height: 5),
-          Padding(
-            padding: const EdgeInsets.only(right: 13),
-            child: _TripAmenities(trip: trip),
+          padding: const EdgeInsets.fromLTRB(13, 11, 0, 0),
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(right: 13),
+                child: _TripOperatorHeader(trip: trip),
+              ),
+              const SizedBox(height: 8),
+              SizedBox(
+                height: 76,
+                child: _TripJourney(
+                  trip: trip,
+                  fromLabel: fromLabel,
+                  toLabel: toLabel,
+                ),
+              ),
+              const SizedBox(height: 5),
+              Padding(
+                padding: const EdgeInsets.only(right: 13),
+                child: _TripAmenities(trip: trip),
+              ),
+              const SizedBox(height: 8),
+              _TripFooter(trip: trip, onOpenDetail: onOpenDetail),
+            ],
           ),
-          const SizedBox(height: 8),
-          _TripFooter(trip: trip, onOpenDetail: onOpenDetail),
-        ],
+        ),
       ),
     );
   }
@@ -946,17 +1347,14 @@ class _TripCard extends StatelessWidget {
 
 class _TripOperatorHeader extends StatelessWidget {
   const _TripOperatorHeader({required this.trip});
-  final _TicketTrip trip;
+  final TripSummary trip;
 
   @override
   Widget build(BuildContext context) {
+    final rated = trip.averageRating != null && trip.reviewCount > 0;
     return Row(
       children: [
-        SizedBox(
-          width: 42,
-          height: 38,
-          child: Image.asset(trip.logoAsset, fit: BoxFit.contain),
-        ),
+        OperatorInitialAvatar(name: trip.operatorName, size: 38),
         const SizedBox(width: 9),
         Expanded(
           child: Column(
@@ -975,15 +1373,19 @@ class _TripOperatorHeader extends StatelessWidget {
               const SizedBox(height: 2),
               Row(
                 children: [
-                  SvgPicture.asset(
-                    '$_assetRoot/trip_star.svg',
-                    width: 11,
-                    height: 11,
-                  ),
-                  const SizedBox(width: 4),
+                  if (rated) ...[
+                    SvgPicture.asset(
+                      '$_assetRoot/trip_star.svg',
+                      width: 11,
+                      height: 11,
+                    ),
+                    const SizedBox(width: 4),
+                  ],
                   Flexible(
                     child: Text(
-                      '${trip.rating} (${trip.reviewCount})',
+                      rated
+                          ? '${trip.averageRating!.toStringAsFixed(1)} (${trip.reviewCount} đánh giá)'
+                          : 'Chưa có đánh giá',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(color: _secondary, fontSize: 10),
@@ -994,65 +1396,88 @@ class _TripOperatorHeader extends StatelessWidget {
             ],
           ),
         ),
-        SvgPicture.asset('$_assetRoot/trip_heart.svg', width: 17, height: 17),
       ],
     );
   }
 }
 
 class _TripJourney extends StatelessWidget {
-  const _TripJourney({required this.trip});
-  final _TicketTrip trip;
+  const _TripJourney({
+    required this.trip,
+    required this.fromLabel,
+    required this.toLabel,
+  });
+
+  final TripSummary trip;
+  final String fromLabel;
+  final String toLabel;
 
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
         final vehicleWidth = constraints.maxWidth < 340 ? 82.0 : 98.0;
+        final cover = trip.coverImageUrl;
         return Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             SizedBox(
               width: 67,
               child: _JourneyPoint(
-                time: trip.departureTime,
-                city: 'TP.HCM',
-                station: 'Bến xe Miền Đông',
+                time: formatVnClock(trip.pickup.plannedAt),
+                city: _compactPlace(fromLabel),
+                station: trip.pickup.name,
               ),
             ),
-            Expanded(child: _RouteDuration(duration: '6h30')),
+            Expanded(
+              child: _RouteDuration(
+                duration: formatTripDuration(trip.durationMinutes),
+              ),
+            ),
             const SizedBox(width: 4),
             SizedBox(
               width: 56,
               child: _JourneyPoint(
-                time: trip.arrivalTime,
-                city: 'Đà Lạt',
-                station: 'Bến xe Đà Lạt',
+                time: formatVnClock(trip.dropoff.plannedAt),
+                city: _compactPlace(toLabel),
+                station: trip.dropoff.name,
               ),
             ),
             SizedBox(
               width: vehicleWidth,
               height: 76,
               child: ClipOval(
-                child: Image.asset(
-                  trip.vehicleAsset,
-                  fit: BoxFit.cover,
-                  alignment: Alignment.center,
-                  errorBuilder: (context, error, stackTrace) =>
-                      const ColoredBox(
-                        color: Color(0xFFEAF4FB),
-                        child: Icon(
-                          Icons.directions_bus,
-                          color: _primary,
-                          size: 42,
-                        ),
+                child: cover == null
+                    ? const _VehicleFallback()
+                    : Image.network(
+                        cover,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) =>
+                            const _VehicleFallback(),
                       ),
-                ),
               ),
             ),
           ],
         );
       },
+    );
+  }
+}
+
+/// Cột thẻ chuyến hẹp: viết tắt TP. Hồ Chí Minh như Figma ("TP.HCM").
+String _compactPlace(String name) =>
+    name == 'TP. Hồ Chí Minh' ? 'TP.HCM' : name;
+
+class _VehicleFallback extends StatelessWidget {
+  const _VehicleFallback();
+
+  @override
+  Widget build(BuildContext context) {
+    return const ColoredBox(
+      color: Color(0xFFEAF4FB),
+      child: Center(
+        child: Icon(Icons.directions_bus, color: _primary, size: 42),
+      ),
     );
   }
 }
@@ -1087,6 +1512,7 @@ class _JourneyPoint extends StatelessWidget {
         Text(
           city,
           maxLines: 1,
+          overflow: TextOverflow.ellipsis,
           style: const TextStyle(color: _primaryDark, fontSize: 10.5),
         ),
         Text(
@@ -1156,10 +1582,11 @@ class _RouteDuration extends StatelessWidget {
 
 class _TripAmenities extends StatelessWidget {
   const _TripAmenities({required this.trip});
-  final _TicketTrip trip;
+  final TripSummary trip;
 
   @override
   Widget build(BuildContext context) {
+    final amenities = trip.amenityNames.join(' · ');
     return Row(
       children: [
         SvgPicture.asset(
@@ -1168,107 +1595,111 @@ class _TripAmenities extends StatelessWidget {
           height: 16,
         ),
         const SizedBox(width: 7),
-        Expanded(
+        Flexible(
           child: Text(
-            trip.vehicleType,
+            trip.vehicleTypeName,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: const TextStyle(color: _primaryDark, fontSize: 9),
           ),
         ),
-        SvgPicture.asset('$_assetRoot/trip_wifi.svg', width: 15, height: 15),
-        const SizedBox(width: 13),
-        SvgPicture.asset('$_assetRoot/trip_snow.svg', width: 15, height: 15),
-        const SizedBox(width: 13),
-        SvgPicture.asset(
-          '$_assetRoot/trip_seat_amenity.svg',
-          width: 15,
-          height: 15,
-        ),
-        const SizedBox(width: 8),
-        const Text('+2', style: TextStyle(color: _secondary, fontSize: 9)),
+        if (amenities.isNotEmpty) ...[
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              amenities,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.end,
+              style: const TextStyle(color: _secondary, fontSize: 9),
+            ),
+          ),
+        ],
       ],
     );
   }
 }
 
 class _TripFooter extends StatelessWidget {
-  const _TripFooter({required this.trip, this.onOpenDetail});
-  final _TicketTrip trip;
-  final VoidCallback? onOpenDetail;
+  const _TripFooter({required this.trip, required this.onOpenDetail});
+  final TripSummary trip;
+  final VoidCallback onOpenDetail;
 
   @override
   Widget build(BuildContext context) {
+    final urgent = trip.availableSeats <= 5;
     return Row(
       crossAxisAlignment: CrossAxisAlignment.end,
       children: [
         Expanded(
           child: Padding(
             padding: const EdgeInsets.only(bottom: 17),
-            child: trip.urgent
-                ? Container(
-                    width: 105,
-                    height: 22,
-                    padding: const EdgeInsets.symmetric(horizontal: 7),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFFFF4DA),
-                      borderRadius: BorderRadius.circular(11),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: urgent
+                  ? Container(
+                      height: 22,
+                      padding: const EdgeInsets.symmetric(horizontal: 7),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFFF4DA),
+                        borderRadius: BorderRadius.circular(11),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          SvgPicture.asset(
+                            '$_assetRoot/trip_flame.svg',
+                            width: 12,
+                            height: 12,
+                          ),
+                          const SizedBox(width: 5),
+                          Flexible(
+                            child: Text(
+                              'Chỉ còn ${trip.availableSeats} chỗ',
+                              maxLines: 1,
+                              style: const TextStyle(
+                                color: Color(0xFFD98112),
+                                fontSize: 9.5,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                  : Row(
                       children: [
-                        SvgPicture.asset(
-                          '$_assetRoot/trip_flame.svg',
-                          width: 12,
-                          height: 12,
+                        const Icon(
+                          Icons.event_seat_outlined,
+                          size: 14,
+                          color: Color(0xFF268140),
                         ),
-                        const SizedBox(width: 5),
+                        const SizedBox(width: 7),
                         Flexible(
                           child: Text(
-                            'Chỉ còn ${trip.availableSeats} chỗ',
+                            'Còn ${trip.availableSeats} chỗ',
                             maxLines: 1,
                             style: const TextStyle(
-                              color: Color(0xFFD98112),
-                              fontSize: 9.5,
+                              color: Color(0xFF268140),
+                              fontSize: 10,
                             ),
                           ),
                         ),
                       ],
                     ),
-                  )
-                : Row(
-                    children: [
-                      const Icon(
-                        Icons.event_seat_outlined,
-                        size: 14,
-                        color: Color(0xFF268140),
-                      ),
-                      const SizedBox(width: 7),
-                      Flexible(
-                        child: Text(
-                          'Còn ${trip.availableSeats} chỗ',
-                          maxLines: 1,
-                          style: const TextStyle(
-                            color: Color(0xFF268140),
-                            fontSize: 10,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
+            ),
           ),
         ),
-        _FareStub(price: trip.price, onOpenDetail: onOpenDetail),
+        _FareStub(price: formatVnd(trip.minPrice), onOpenDetail: onOpenDetail),
       ],
     );
   }
 }
 
 class _FareStub extends StatelessWidget {
-  const _FareStub({required this.price, this.onOpenDetail});
+  const _FareStub({required this.price, required this.onOpenDetail});
 
   final String price;
-  final VoidCallback? onOpenDetail;
+  final VoidCallback onOpenDetail;
 
   @override
   Widget build(BuildContext context) {
@@ -1334,9 +1765,6 @@ class _FareStub extends StatelessWidget {
                     ),
                   ),
                   InkResponse(
-                    key: onOpenDetail == null
-                        ? null
-                        : const Key('phuong-trang-detail-arrow'),
                     onTap: onOpenDetail,
                     radius: 22,
                     child: SizedBox.square(
@@ -1369,24 +1797,49 @@ class _FareStub extends StatelessWidget {
 }
 
 class _TripFilterSheet extends StatefulWidget {
-  const _TripFilterSheet();
+  const _TripFilterSheet({
+    required this.initial,
+    required this.operators,
+    required this.priceMin,
+    required this.priceMax,
+    required this.loadAmenities,
+  });
+
+  final TripSearchFilters initial;
+  final List<TripOperatorFacet> operators;
+  final int? priceMin;
+  final int? priceMax;
+  final Future<List<TripAmenityOption>> Function()? loadAmenities;
 
   @override
   State<_TripFilterSheet> createState() => _TripFilterSheetState();
 }
 
 class _TripFilterSheetState extends State<_TripFilterSheet> {
-  RangeValues _price = const RangeValues(.3, .68);
-  final Set<String> _vehicleOptions = {'Limousine'};
-  String _departure = 'Trưa';
-  final Set<String> _amenities = {'Wi-Fi'};
-  final Set<String> _operators = {'Phương Trang', 'Thành Bưởi'};
+  late TripVehicleForm? _form = widget.initial.vehicleForm;
+  late TripVehicleClass? _class = widget.initial.vehicleClass;
+  late TripDepartureSlot? _slot = widget.initial.departureSlot;
+  late final Set<String> _amenityIds = {...widget.initial.amenityIds};
+  late String? _operatorId = widget.initial.operatorId;
+  late RangeValues? _price = _initialPrice();
+  late final Future<List<TripAmenityOption>>? _amenities = widget
+      .loadAmenities
+      ?.call();
 
-  int get _selectionCount =>
-      _vehicleOptions.length +
-      (_departure.isEmpty ? 0 : 1) +
-      _amenities.length +
-      _operators.length;
+  bool get _hasPriceRange =>
+      widget.priceMin != null &&
+      widget.priceMax != null &&
+      widget.priceMax! > widget.priceMin!;
+
+  RangeValues? _initialPrice() {
+    if (!_hasPriceRange) return null;
+    final low = widget.priceMin!.toDouble();
+    final high = widget.priceMax!.toDouble();
+    return RangeValues(
+      (widget.initial.priceMin?.toDouble() ?? low).clamp(low, high),
+      (widget.initial.priceMax?.toDouble() ?? high).clamp(low, high),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -1446,69 +1899,105 @@ class _TripFilterSheetState extends State<_TripFilterSheet> {
                   controller: scrollController,
                   padding: const EdgeInsets.fromLTRB(16, 14, 16, 18),
                   children: [
-                    const _FilterSectionTitle('Khoảng giá'),
-                    SliderTheme(
-                      data: SliderTheme.of(context).copyWith(
-                        activeTrackColor: _primary,
-                        inactiveTrackColor: const Color(0xFFD8E5EB),
-                        thumbColor: Colors.white,
-                        overlayColor: const Color(0x1F2B7EAD),
-                        thumbShape: const RoundSliderThumbShape(
-                          enabledThumbRadius: 9,
-                          elevation: 2,
-                        ),
-                        rangeTrackShape:
-                            const RoundedRectRangeSliderTrackShape(),
-                      ),
-                      child: RangeSlider(
-                        values: _price,
-                        onChanged: (value) => setState(() => _price = value),
-                      ),
-                    ),
-                    const Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            '100.000 ₫',
-                            style: TextStyle(color: _secondary, fontSize: 11),
+                    if (_price != null) ...[
+                      const _FilterSectionTitle('Khoảng giá'),
+                      SliderTheme(
+                        data: SliderTheme.of(context).copyWith(
+                          activeTrackColor: _primary,
+                          inactiveTrackColor: const Color(0xFFD8E5EB),
+                          thumbColor: Colors.white,
+                          overlayColor: const Color(0x1F2B7EAD),
+                          thumbShape: const RoundSliderThumbShape(
+                            enabledThumbRadius: 9,
+                            elevation: 2,
                           ),
+                          rangeTrackShape:
+                              const RoundedRectRangeSliderTrackShape(),
                         ),
-                        Text(
-                          '800.000 ₫+',
-                          style: TextStyle(color: _secondary, fontSize: 11),
+                        child: RangeSlider(
+                          values: _price!,
+                          min: widget.priceMin!.toDouble(),
+                          max: widget.priceMax!.toDouble(),
+                          onChanged: (value) => setState(() => _price = value),
                         ),
-                      ],
-                    ),
-                    const SizedBox(height: 22),
-                    const _FilterSectionTitle('Loại xe'),
+                      ),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              formatVnd(_price!.start.round()),
+                              style: const TextStyle(
+                                color: _secondary,
+                                fontSize: 11,
+                              ),
+                            ),
+                          ),
+                          Text(
+                            formatVnd(_price!.end.round()),
+                            style: const TextStyle(
+                              color: _secondary,
+                              fontSize: 11,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 22),
+                    ],
+                    const _FilterSectionTitle('Dạng chỗ'),
                     const SizedBox(height: 10),
                     _FourColumnOptions(
                       children: [
                         _FilterOptionCard(
                           icon: Icons.directions_bus_outlined,
                           label: 'Tất cả',
-                          selected: _vehicleOptions.isEmpty,
-                          onTap: () => setState(_vehicleOptions.clear),
+                          selected: _form == null,
+                          onTap: () => setState(() => _form = null),
                         ),
+                        for (final form in TripVehicleForm.values)
+                          _FilterOptionCard(
+                            key: ValueKey('ticket-filter-form-${form.name}'),
+                            icon: switch (form) {
+                              TripVehicleForm.seater =>
+                                Icons.event_seat_outlined,
+                              TripVehicleForm.sleeper => Icons.bed_outlined,
+                              TripVehicleForm.cabin =>
+                                Icons.meeting_room_outlined,
+                            },
+                            label: form.label,
+                            selected: _form == form,
+                            onTap: () => setState(
+                              () => _form = _form == form ? null : form,
+                            ),
+                          ),
+                      ],
+                    ),
+                    const SizedBox(height: 22),
+                    const _FilterSectionTitle('Hạng xe'),
+                    const SizedBox(height: 10),
+                    _FourColumnOptions(
+                      children: [
                         _FilterOptionCard(
-                          icon: Icons.diamond_outlined,
-                          label: 'Limousine',
-                          selected: _vehicleOptions.contains('Limousine'),
-                          onTap: () => _toggleSet(_vehicleOptions, 'Limousine'),
+                          icon: Icons.directions_bus_outlined,
+                          label: 'Tất cả',
+                          selected: _class == null,
+                          onTap: () => setState(() => _class = null),
                         ),
-                        _FilterOptionCard(
-                          icon: Icons.bed_outlined,
-                          label: 'Giường nằm',
-                          selected: _vehicleOptions.contains('Giường nằm'),
-                          onTap: () =>
-                              _toggleSet(_vehicleOptions, 'Giường nằm'),
-                        ),
-                        _FilterOptionCard(
-                          icon: Icons.event_seat_outlined,
-                          label: 'Ghế ngồi',
-                          selected: _vehicleOptions.contains('Ghế ngồi'),
-                          onTap: () => _toggleSet(_vehicleOptions, 'Ghế ngồi'),
-                        ),
+                        for (final vehicleClass in TripVehicleClass.values)
+                          _FilterOptionCard(
+                            key: ValueKey(
+                              'ticket-filter-class-${vehicleClass.name}',
+                            ),
+                            icon: vehicleClass == TripVehicleClass.limousine
+                                ? Icons.diamond_outlined
+                                : Icons.airline_seat_recline_normal_outlined,
+                            label: vehicleClass.label,
+                            selected: _class == vehicleClass,
+                            onTap: () => setState(
+                              () => _class = _class == vehicleClass
+                                  ? null
+                                  : vehicleClass,
+                            ),
+                          ),
                       ],
                     ),
                     const SizedBox(height: 22),
@@ -1516,113 +2005,81 @@ class _TripFilterSheetState extends State<_TripFilterSheet> {
                     const SizedBox(height: 10),
                     _FourColumnOptions(
                       children: [
-                        _DepartureOption(
-                          icon: Icons.wb_twilight_outlined,
-                          label: 'Sáng',
-                          time: '00:00 – 06:00',
-                          selected: _departure == 'Sáng',
-                          onTap: () => setState(() => _departure = 'Sáng'),
-                        ),
-                        _DepartureOption(
-                          icon: Icons.wb_sunny_outlined,
-                          label: 'Trưa',
-                          time: '06:00 – 12:00',
-                          selected: _departure == 'Trưa',
-                          onTap: () => setState(() => _departure = 'Trưa'),
-                        ),
-                        _DepartureOption(
-                          icon: Icons.wb_twilight_outlined,
-                          label: 'Chiều',
-                          time: '12:00 – 18:00',
-                          selected: _departure == 'Chiều',
-                          onTap: () => setState(() => _departure = 'Chiều'),
-                        ),
-                        _DepartureOption(
-                          icon: Icons.dark_mode_outlined,
-                          label: 'Tối',
-                          time: '18:00 – 24:00',
-                          selected: _departure == 'Tối',
-                          onTap: () => setState(() => _departure = 'Tối'),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 22),
-                    const _FilterSectionTitle('Tiện ích'),
-                    const SizedBox(height: 10),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: [
-                        for (final option in const <(IconData, String)>[
-                          (Icons.wifi, 'Wi-Fi'),
-                          (Icons.ac_unit, 'Điều hòa'),
-                          (Icons.water_drop_outlined, 'Nước uống'),
-                          (Icons.usb, 'USB'),
-                          (Icons.wc, 'WC'),
-                          (Icons.tv_outlined, 'Màn hình'),
-                          (Icons.bedroom_child_outlined, 'Chăn gối'),
-                          (Icons.add, 'Khác'),
-                        ])
-                          _AmenityChip(
-                            icon: option.$1,
-                            label: option.$2,
-                            selected: _amenities.contains(option.$2),
-                            onTap: () => _toggleSet(_amenities, option.$2),
+                        for (final slot in TripDepartureSlot.values)
+                          _DepartureOption(
+                            key: ValueKey('ticket-filter-slot-${slot.name}'),
+                            icon: switch (slot) {
+                              TripDepartureSlot.earlyMorning =>
+                                Icons.nights_stay_outlined,
+                              TripDepartureSlot.morning =>
+                                Icons.wb_twilight_outlined,
+                              TripDepartureSlot.afternoon =>
+                                Icons.wb_sunny_outlined,
+                              TripDepartureSlot.evening =>
+                                Icons.dark_mode_outlined,
+                            },
+                            label: slot.label,
+                            time: slot.range,
+                            selected: _slot == slot,
+                            onTap: () => setState(
+                              () => _slot = _slot == slot ? null : slot,
+                            ),
                           ),
                       ],
                     ),
-                    const SizedBox(height: 24),
-                    const _FilterSectionTitle('Nhà xe'),
-                    const SizedBox(height: 8),
-                    for (final operator in const <(String, String, String)>[
-                      (
-                        'Phương Trang',
-                        '$_homeAssetRoot/operators/phuong_trang.png',
-                        '12',
+                    if (_amenities != null)
+                      FutureBuilder<List<TripAmenityOption>>(
+                        future: _amenities,
+                        builder: (context, snapshot) {
+                          final amenities = snapshot.data;
+                          if (amenities == null || amenities.isEmpty) {
+                            return const SizedBox.shrink();
+                          }
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const SizedBox(height: 22),
+                              const _FilterSectionTitle('Tiện ích'),
+                              const SizedBox(height: 10),
+                              Wrap(
+                                spacing: 8,
+                                runSpacing: 8,
+                                children: [
+                                  for (final amenity in amenities)
+                                    _AmenityChip(
+                                      label: amenity.name,
+                                      selected: _amenityIds.contains(
+                                        amenity.id,
+                                      ),
+                                      onTap: () => setState(() {
+                                        if (!_amenityIds.add(amenity.id)) {
+                                          _amenityIds.remove(amenity.id);
+                                        }
+                                      }),
+                                    ),
+                                ],
+                              ),
+                            ],
+                          );
+                        },
                       ),
-                      (
-                        'Thành Bưởi',
-                        '$_homeAssetRoot/operators/thanh_buoi.png',
-                        '8',
-                      ),
-                      (
-                        'Điền Linh',
-                        '$_homeAssetRoot/operators/dien_linh.png',
-                        '6',
-                      ),
-                      (
-                        'Futa Limousine',
-                        '$_homeAssetRoot/operators/phuong_trang.png',
-                        '5',
-                      ),
-                      (
-                        'Tân Niên',
-                        '$_homeAssetRoot/operators/dien_linh.png',
-                        '4',
-                      ),
-                    ])
-                      _OperatorFilterRow(
-                        label: operator.$1,
-                        logoAsset: operator.$2,
-                        count: operator.$3,
-                        selected: _operators.contains(operator.$1),
-                        onChanged: () => _toggleSet(_operators, operator.$1),
-                      ),
-                    TextButton.icon(
-                      onPressed: () {},
-                      iconAlignment: IconAlignment.end,
-                      icon: const Icon(Icons.keyboard_arrow_down, size: 16),
-                      label: const Text('Xem thêm'),
-                      style: TextButton.styleFrom(
-                        padding: EdgeInsets.zero,
-                        alignment: Alignment.centerLeft,
-                        foregroundColor: _primary,
-                        textStyle: const TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w500,
+                    if (widget.operators.isNotEmpty) ...[
+                      const SizedBox(height: 24),
+                      const _FilterSectionTitle('Nhà xe'),
+                      const SizedBox(height: 8),
+                      for (final operator in widget.operators)
+                        _OperatorFilterRow(
+                          key: ValueKey('ticket-filter-operator-${operator.id}'),
+                          label: operator.name,
+                          count: operator.count,
+                          selected: _operatorId == operator.id,
+                          onChanged: () => setState(
+                            () => _operatorId = _operatorId == operator.id
+                                ? null
+                                : operator.id,
+                          ),
                         ),
-                      ),
-                    ),
+                    ],
                   ],
                 ),
               ),
@@ -1653,8 +2110,7 @@ class _TripFilterSheetState extends State<_TripFilterSheet> {
                     Expanded(
                       child: FilledButton(
                         key: const Key('ticket-filter-apply'),
-                        onPressed: () =>
-                            Navigator.pop(context, _selectionCount),
+                        onPressed: () => Navigator.pop(context, _result()),
                         style: FilledButton.styleFrom(
                           minimumSize: const Size.fromHeight(52),
                           backgroundColor: _primary,
@@ -1662,12 +2118,9 @@ class _TripFilterSheetState extends State<_TripFilterSheet> {
                             borderRadius: BorderRadius.circular(19),
                           ),
                         ),
-                        child: const FittedBox(
-                          fit: BoxFit.scaleDown,
-                          child: Text(
-                            'Áp dụng (24)',
-                            style: TextStyle(fontWeight: FontWeight.w600),
-                          ),
+                        child: const Text(
+                          'Áp dụng',
+                          style: TextStyle(fontWeight: FontWeight.w600),
                         ),
                       ),
                     ),
@@ -1681,19 +2134,37 @@ class _TripFilterSheetState extends State<_TripFilterSheet> {
     );
   }
 
-  void _toggleSet(Set<String> values, String value) {
-    setState(() {
-      if (!values.add(value)) values.remove(value);
-    });
+  TripSearchFilters _result() {
+    final price = _price;
+    final lowChanged =
+        price != null && price.start.round() > widget.priceMin!;
+    final highChanged =
+        price != null && price.end.round() < widget.priceMax!;
+    return TripSearchFilters(
+      vehicleForm: _form,
+      vehicleClass: _class,
+      departureSlot: _slot,
+      priceMin: lowChanged ? price.start.round() : null,
+      priceMax: highChanged ? price.end.round() : null,
+      amenityIds: {..._amenityIds},
+      operatorId: _operatorId,
+      sort: widget.initial.sort,
+    );
   }
 
   void _reset() {
     setState(() {
-      _price = const RangeValues(0, 1);
-      _vehicleOptions.clear();
-      _departure = '';
-      _amenities.clear();
-      _operators.clear();
+      _form = null;
+      _class = null;
+      _slot = null;
+      _amenityIds.clear();
+      _operatorId = null;
+      _price = _hasPriceRange
+          ? RangeValues(
+              widget.priceMin!.toDouble(),
+              widget.priceMax!.toDouble(),
+            )
+          : null;
     });
   }
 }
@@ -1739,6 +2210,7 @@ class _FilterOptionCard extends StatelessWidget {
     required this.label,
     required this.selected,
     required this.onTap,
+    super.key,
   });
 
   final IconData icon;
@@ -1784,6 +2256,7 @@ class _DepartureOption extends StatelessWidget {
     required this.time,
     required this.selected,
     required this.onTap,
+    super.key,
   });
 
   final IconData icon;
@@ -1804,9 +2277,13 @@ class _DepartureOption extends StatelessWidget {
           children: [
             Icon(icon, size: 22, color: _primaryDark),
             const SizedBox(height: 4),
-            Text(
-              label,
-              style: const TextStyle(color: _primaryDark, fontSize: 11.5),
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                label,
+                maxLines: 1,
+                style: const TextStyle(color: _primaryDark, fontSize: 11.5),
+              ),
             ),
             const SizedBox(height: 2),
             FittedBox(
@@ -1854,13 +2331,11 @@ class _SelectableFilterSurface extends StatelessWidget {
 
 class _AmenityChip extends StatelessWidget {
   const _AmenityChip({
-    required this.icon,
     required this.label,
     required this.selected,
     required this.onTap,
   });
 
-  final IconData icon;
   final String label;
   final bool selected;
   final VoidCallback onTap;
@@ -1880,7 +2355,11 @@ class _AmenityChip extends StatelessWidget {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(icon, size: 16, color: _secondary),
+              Icon(
+                selected ? Icons.check_circle : Icons.add_circle_outline,
+                size: 16,
+                color: selected ? _primary : _secondary,
+              ),
               const SizedBox(width: 6),
               Text(
                 label,
@@ -1897,15 +2376,14 @@ class _AmenityChip extends StatelessWidget {
 class _OperatorFilterRow extends StatelessWidget {
   const _OperatorFilterRow({
     required this.label,
-    required this.logoAsset,
     required this.count,
     required this.selected,
     required this.onChanged,
+    super.key,
   });
 
   final String label;
-  final String logoAsset;
-  final String count;
+  final int count;
   final bool selected;
   final VoidCallback onChanged;
 
@@ -1932,11 +2410,7 @@ class _OperatorFilterRow extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 14),
-            SizedBox(
-              width: 32,
-              height: 28,
-              child: Image.asset(logoAsset, fit: BoxFit.contain),
-            ),
+            OperatorInitialAvatar(name: label, size: 26),
             const SizedBox(width: 14),
             Expanded(
               child: Text(
@@ -1947,7 +2421,7 @@ class _OperatorFilterRow extends StatelessWidget {
               ),
             ),
             Text(
-              count,
+              '$count',
               style: const TextStyle(color: _secondary, fontSize: 10.5),
             ),
             const SizedBox(width: 8),

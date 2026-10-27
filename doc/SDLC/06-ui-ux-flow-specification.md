@@ -13,7 +13,7 @@
 | Người viết    | Nguyễn Hồng Khanh, AI Agent |
 | Người duyệt   | Nguyễn Hồng Khanh           |
 | Ngày tạo      | 11/05/2026                  |
-| Ngày cập nhật | 17/10/2026                  |
+| Ngày cập nhật | 27/10/2026                  |
 
 ### 1.2. Lịch sử thay đổi
 
@@ -58,6 +58,7 @@
 | v0.37     | 26/10/2026 | AI Agent | **Figma thanh toán đổi sang payOS + cổng demo (Khanh 21/10 chọn, 26/10 "chỉnh thiết kế", chờ duyệt + chờ ADR thay ADR-019):** SCR-PSG-20 (Ideal + hết giờ giữ chỗ) bỏ VNPay / MoMo + chip ngân hàng, thay bằng "Chuyển khoản VietQR qua payOS" và "Cổng thanh toán thử (demo)"; nhãn phương thức / mã giao dịch ở SCR-PSG-16, 21, 22, 23, 25, 26 (hoàn qua chuyển khoản), 29, 31. Màn Admin (ADM-01, 07a–d, 09b, 14a, 16a–b) và Operator OS "02 · Đặt vé / Chi tiết đơn" còn VNPay / MoMo — sửa cùng task hiện thực payOS. |
 | v0.38     | 27/10/2026 | AI Agent | **Tra cứu vé không cần mã đặt vé (Khanh 27/10/2026, chờ duyệt):** SCR-PSG-27 mã đặt vé không bắt buộc + dòng CSKH khi mất email; SCR-PSG-29 thêm danh sách đơn theo email (12 tháng, gồm đơn đặt bằng tài khoản) và hộp thoại hỏi đăng nhập — chưa có khung Figma cho danh sách. |
 | v0.39     | 27/10/2026 | AI Agent | **Hủy vé và khiếu nại sau OTP (Khanh 27/10/2026, chờ duyệt):** SCR-PSG-29 khối "Thao tác với đơn" (Figma 1446:15578) bật "Hủy vé / yêu cầu hoàn tiền", "Gửi khiếu nại về đơn này" và nút "Hủy vé" ở từng vé cho đơn khách vãng lai — bấm thì mở quyền rồi sang trang quản lý vé / khiếu nại sẵn có; không hỏi OTP lần nữa (khác ghi chú Figma "cần xác minh lại bằng OTP"); đơn đặt bằng tài khoản hiện hướng dẫn đăng nhập. |
+| v0.40     | 27/10/2026 | AI Agent | **Form tìm chuyến app hành khách (Khanh 27/10/2026, chờ duyệt):** chế độ tìm đổi tên "Theo tuyến" → **"Theo chuyến"** (Trang chủ và Mua vé như nhau); không làm màn "Chọn chuyến" riêng (Figma Mobile 06 trùng tab Mua vé 05) — Trang chủ bấm Tìm thì sang tab Mua vé, danh sách hiện ngay dưới form. Điểm đi / đến gõ để gợi ý tỉnh / thành và bến, địa danh dùng chung (bỏ trạm dừng nghỉ). Chế độ "Theo nhà xe": lần đầu là ô trống "Chọn nhà xe" / "Chọn tuyến", chọn tuyến của nhà xe là chọn cả điểm đi và điểm đến. Lọc tách dạng chỗ / hạng xe (BR-77). |
 
 ---
 
