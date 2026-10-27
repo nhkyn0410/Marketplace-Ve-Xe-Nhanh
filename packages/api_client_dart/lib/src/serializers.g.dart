@@ -425,6 +425,10 @@ Serializers _$serializers = (Serializers().toBuilder()
           .serializer)
       ..add(FareUpdateInputDto.serializer)
       ..add(FareUpdateInputDtoStatusEnum.serializer)
+      ..add(FeaturedOperatorListResponseDtoOutput.serializer)
+      ..add(FeaturedOperatorListResponseDtoOutputItemsInner.serializer)
+      ..add(
+          FeaturedOperatorListResponseDtoOutputItemsInnerRoutesInner.serializer)
       ..add(FinanceBookingPageDtoOutput.serializer)
       ..add(FinanceBookingPageDtoOutputItemsInner.serializer)
       ..add(FinanceBookingPageDtoOutputItemsInnerStateEnum.serializer)
@@ -634,6 +638,8 @@ Serializers _$serializers = (Serializers().toBuilder()
       ..add(PolicyVersionDtoOutputStateEnum.serializer)
       ..add(PolicyVersionDtoOutputStatusEnum.serializer)
       ..add(PolicyVersionDtoOutputTypeEnum.serializer)
+      ..add(PopularRouteListResponseDtoOutput.serializer)
+      ..add(PopularRouteListResponseDtoOutputItemsInner.serializer)
       ..add(PostgresHealthResponseDtoOutput.serializer)
       ..add(PostgresHealthResponseDtoOutputServiceEnum.serializer)
       ..add(PostgresHealthResponseDtoOutputStatusEnum.serializer)
@@ -796,7 +802,17 @@ Serializers _$serializers = (Serializers().toBuilder()
       ..add(TicketDetailDtoOutputReporterPartyEnum.serializer)
       ..add(TicketDetailDtoOutputRequestedPriorityEnum.serializer)
       ..add(TicketDetailDtoOutputStatusEnum.serializer)
+      ..add(TicketLookupAccessDtoOutput.serializer)
+      ..add(TicketLookupBookingListDtoOutput.serializer)
+      ..add(TicketLookupBookingListDtoOutputItemsInner.serializer)
+      ..add(TicketLookupBookingListDtoOutputItemsInnerStatusEnum.serializer)
+      ..add(TicketLookupBookingListDtoOutputScopeEnum.serializer)
       ..add(TicketLookupInputDto.serializer)
+      ..add(TicketLookupOtpInputDto.serializer)
+      ..add(TicketLookupOtpResponseDtoOutput.serializer)
+      ..add(TicketLookupSessionDtoOutput.serializer)
+      ..add(TicketLookupSessionInputDto.serializer)
+      ..add(TicketLookupVerifyInputDto.serializer)
       ..add(TicketPageDtoOutput.serializer)
       ..add(TicketResponseDtoOutput.serializer)
       ..add(TicketResponseDtoOutputBookingStatusEnum.serializer)
@@ -1331,6 +1347,18 @@ Serializers _$serializers = (Serializers().toBuilder()
           ]),
           () => ListBuilder<FareRevisionListResponseDtoOutputItemsInner>())
       ..addBuilderFactory(
+          const FullType(BuiltList, const [
+            const FullType(FeaturedOperatorListResponseDtoOutputItemsInner)
+          ]),
+          () => ListBuilder<FeaturedOperatorListResponseDtoOutputItemsInner>())
+      ..addBuilderFactory(
+          const FullType(BuiltList, const [
+            const FullType(
+                FeaturedOperatorListResponseDtoOutputItemsInnerRoutesInner)
+          ]),
+          () => ListBuilder<
+              FeaturedOperatorListResponseDtoOutputItemsInnerRoutesInner>())
+      ..addBuilderFactory(
           const FullType(BuiltList,
               const [const FullType(FinanceBookingPageDtoOutputItemsInner)]),
           () => ListBuilder<FinanceBookingPageDtoOutputItemsInner>())
@@ -1469,6 +1497,11 @@ Serializers _$serializers = (Serializers().toBuilder()
           ]),
           () => ListBuilder<
               PolicyOverviewDtoOutputVersionsInnerRulesAnyOfTiersInner>())
+      ..addBuilderFactory(
+          const FullType(BuiltList, const [
+            const FullType(PopularRouteListResponseDtoOutputItemsInner)
+          ]),
+          () => ListBuilder<PopularRouteListResponseDtoOutputItemsInner>())
       ..addBuilderFactory(
           const FullType(BuiltList,
               const [const FullType(PreferencesDtoOutputItemsInner)]),
@@ -1637,6 +1670,9 @@ Serializers _$serializers = (Serializers().toBuilder()
           const FullType(BuiltList, const [const FullType(String)]),
           () => ListBuilder<String>())
       ..addBuilderFactory(
+          const FullType(BuiltList, const [const FullType(String)]),
+          () => ListBuilder<String>())
+      ..addBuilderFactory(
           const FullType(BuiltList,
               const [const FullType(OperatorBookingDetailDtoOutputSeatsInner)]),
           () => ListBuilder<OperatorBookingDetailDtoOutputSeatsInner>())
@@ -1711,6 +1747,11 @@ Serializers _$serializers = (Serializers().toBuilder()
           ]),
           () =>
               ListBuilder<TicketDetailDtoOutputMessagesInnerAttachmentsInner>())
+      ..addBuilderFactory(
+          const FullType(BuiltList, const [
+            const FullType(TicketLookupBookingListDtoOutputItemsInner)
+          ]),
+          () => ListBuilder<TicketLookupBookingListDtoOutputItemsInner>())
       ..addBuilderFactory(
           const FullType(BuiltList,
               const [const FullType(TripAssignmentPageDtoOutputItemsInner)]),

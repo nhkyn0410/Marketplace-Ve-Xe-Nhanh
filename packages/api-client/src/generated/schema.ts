@@ -692,6 +692,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/auth/oauth/{provider}/id-token": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AuthController_oauthIdToken"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/auth/oauth/{provider}": {
         parameters: {
             query?: never;
@@ -5204,6 +5220,9 @@ export interface components {
         PasswordChangeRequiredDto: {
             passwordChangeToken: string;
             newPassword: string;
+        };
+        OAuthIdTokenDto: {
+            idToken: string;
         };
         OAuthInitDto: {
             /** Format: uri */
@@ -12064,6 +12083,42 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AuthTokenResponseDto_Output"];
+                };
+            };
+        };
+    };
+    AuthController_oauthIdToken: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description OAuth provider native (v1: google). */
+                provider: "google";
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OAuthIdTokenDto"];
+            };
+        };
+        responses: {
+            /** @description Xác minh Google ID token từ SDK native và cấp access/refresh token Passenger. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuthTokenResponseDto_Output"];
+                };
+            };
+            /** @description Google ID token không hợp lệ hoặc đã hết hạn. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
                 };
             };
         };

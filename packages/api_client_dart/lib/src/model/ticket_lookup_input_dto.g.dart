@@ -8,17 +8,15 @@ part of 'ticket_lookup_input_dto.dart';
 
 class _$TicketLookupInputDto extends TicketLookupInputDto {
   @override
-  final String bookingCode;
+  final String lookupToken;
   @override
-  final String? phone;
-  @override
-  final String? email;
+  final String? bookingId;
 
   factory _$TicketLookupInputDto(
           [void Function(TicketLookupInputDtoBuilder)? updates]) =>
       (TicketLookupInputDtoBuilder()..update(updates))._build();
 
-  _$TicketLookupInputDto._({required this.bookingCode, this.phone, this.email})
+  _$TicketLookupInputDto._({required this.lookupToken, this.bookingId})
       : super._();
   @override
   TicketLookupInputDto rebuild(
@@ -33,17 +31,15 @@ class _$TicketLookupInputDto extends TicketLookupInputDto {
   bool operator ==(Object other) {
     if (identical(other, this)) return true;
     return other is TicketLookupInputDto &&
-        bookingCode == other.bookingCode &&
-        phone == other.phone &&
-        email == other.email;
+        lookupToken == other.lookupToken &&
+        bookingId == other.bookingId;
   }
 
   @override
   int get hashCode {
     var _$hash = 0;
-    _$hash = $jc(_$hash, bookingCode.hashCode);
-    _$hash = $jc(_$hash, phone.hashCode);
-    _$hash = $jc(_$hash, email.hashCode);
+    _$hash = $jc(_$hash, lookupToken.hashCode);
+    _$hash = $jc(_$hash, bookingId.hashCode);
     _$hash = $jf(_$hash);
     return _$hash;
   }
@@ -51,9 +47,8 @@ class _$TicketLookupInputDto extends TicketLookupInputDto {
   @override
   String toString() {
     return (newBuiltValueToStringHelper(r'TicketLookupInputDto')
-          ..add('bookingCode', bookingCode)
-          ..add('phone', phone)
-          ..add('email', email))
+          ..add('lookupToken', lookupToken)
+          ..add('bookingId', bookingId))
         .toString();
   }
 }
@@ -62,17 +57,13 @@ class TicketLookupInputDtoBuilder
     implements Builder<TicketLookupInputDto, TicketLookupInputDtoBuilder> {
   _$TicketLookupInputDto? _$v;
 
-  String? _bookingCode;
-  String? get bookingCode => _$this._bookingCode;
-  set bookingCode(String? bookingCode) => _$this._bookingCode = bookingCode;
+  String? _lookupToken;
+  String? get lookupToken => _$this._lookupToken;
+  set lookupToken(String? lookupToken) => _$this._lookupToken = lookupToken;
 
-  String? _phone;
-  String? get phone => _$this._phone;
-  set phone(String? phone) => _$this._phone = phone;
-
-  String? _email;
-  String? get email => _$this._email;
-  set email(String? email) => _$this._email = email;
+  String? _bookingId;
+  String? get bookingId => _$this._bookingId;
+  set bookingId(String? bookingId) => _$this._bookingId = bookingId;
 
   TicketLookupInputDtoBuilder() {
     TicketLookupInputDto._defaults(this);
@@ -81,9 +72,8 @@ class TicketLookupInputDtoBuilder
   TicketLookupInputDtoBuilder get _$this {
     final $v = _$v;
     if ($v != null) {
-      _bookingCode = $v.bookingCode;
-      _phone = $v.phone;
-      _email = $v.email;
+      _lookupToken = $v.lookupToken;
+      _bookingId = $v.bookingId;
       _$v = null;
     }
     return this;
@@ -105,10 +95,9 @@ class TicketLookupInputDtoBuilder
   _$TicketLookupInputDto _build() {
     final _$result = _$v ??
         _$TicketLookupInputDto._(
-          bookingCode: BuiltValueNullFieldError.checkNotNull(
-              bookingCode, r'TicketLookupInputDto', 'bookingCode'),
-          phone: phone,
-          email: email,
+          lookupToken: BuiltValueNullFieldError.checkNotNull(
+              lookupToken, r'TicketLookupInputDto', 'lookupToken'),
+          bookingId: bookingId,
         );
     replace(_$result);
     return _$result;
