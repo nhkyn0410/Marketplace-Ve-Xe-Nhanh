@@ -6,7 +6,6 @@ import 'package:mobile_shared/mobile_shared.dart';
 import 'package:passenger_mobile/features/home/home_models.dart';
 import 'package:passenger_mobile/features/home/route_dock_tabbar.dart';
 import 'package:passenger_mobile/features/search/trip_search_form.dart';
-import 'package:passenger_mobile/features/ticket/trip_detail_screen.dart';
 import 'package:passenger_mobile/features/ticket/trip_search_models.dart';
 
 const _assetRoot = 'assets/ticket';
@@ -24,12 +23,16 @@ class TicketScreen extends StatefulWidget {
     this.searchTrips,
     this.initialQuery,
     this.onQueryChanged,
+    this.onTripSelected,
     super.key,
   });
 
   final ValueChanged<int> onTabSelected;
   final TripSearchCatalog? searchCatalog;
   final TripSearchRunner? searchTrips;
+
+  /// Bấm một chuyến trong danh sách (mở chi tiết chuyến).
+  final void Function(TripSummary trip, HomeSearchQuery query)? onTripSelected;
 
   /// Điều kiện tìm mang sang từ Trang chủ / lần tìm trước; có thì tìm ngay khi mở.
   final HomeSearchQuery? initialQuery;
@@ -244,11 +247,7 @@ class _TicketScreenState extends State<TicketScreen>
               trip: trip,
               fromLabel: query.from.name,
               toLabel: query.to.name,
-              onOpenDetail: () => Navigator.of(context).push(
-                MaterialPageRoute<void>(
-                  builder: (_) => const TripDetailScreen(),
-                ),
-              ),
+              onOpenDetail: () => widget.onTripSelected?.call(trip, query),
             );
           },
           separatorBuilder: (context, index) => const SizedBox(height: 14),

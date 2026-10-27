@@ -1,0 +1,173 @@
+/// Một điểm dừng của chuyến (`GET /trips/{tripId}`).
+class TripStop {
+  const TripStop({
+    required this.sequence,
+    required this.name,
+    required this.address,
+    required this.type,
+    required this.plannedAt,
+    required this.allowPickup,
+    required this.allowDropoff,
+  });
+
+  /// Thứ tự điểm trong chuyến — gửi khi giữ chỗ.
+  final int sequence;
+  final String name;
+  final String address;
+
+  /// `BUS_STATION`, `PICKUP_POINT`, `OFFICE`, `REST_STOP`…
+  final String type;
+  final DateTime plannedAt;
+  final bool allowPickup;
+  final bool allowDropoff;
+}
+
+/// Một chỗ trên sơ đồ của chuyến.
+class TripSeat {
+  const TripSeat({
+    required this.code,
+    required this.deck,
+    required this.row,
+    required this.column,
+    required this.type,
+    required this.available,
+    this.price,
+  });
+
+  final String code;
+  final int deck;
+  final int row;
+  final int column;
+
+  /// `SEAT`, `BED`, `BED_DOUBLE`, `CABIN`, `CABIN_DOUBLE`.
+  final String type;
+
+  /// API gộp đã bán / đang giữ / khóa thành "không đặt được".
+  final bool available;
+
+  /// VND; `null` = chỗ chưa có giá, không đặt được.
+  final int? price;
+
+  bool get bookable => available && price != null;
+}
+
+/// Mốc hủy vé: hủy khi còn ít nhất [minHoursBefore] giờ thì hoàn [refundPercent]%.
+class CancellationTier {
+  const CancellationTier({
+    required this.minHoursBefore,
+    required this.refundPercent,
+  });
+
+  final int minHoursBefore;
+  final int refundPercent;
+}
+
+/// Chi tiết chuyến đang mở bán: nhà xe, lịch trình, xe, sơ đồ chỗ + giá, chính sách hủy.
+class TripDetail {
+  const TripDetail({
+    required this.tripId,
+    required this.operatorName,
+    required this.reviewCount,
+    required this.routeName,
+    required this.departureAt,
+    required this.arrivalAt,
+    required this.vehicleTypeName,
+    required this.amenityNames,
+    required this.imageUrls,
+    required this.stops,
+    required this.seats,
+    required this.cancellationTiers,
+    this.operatorHotline,
+    this.averageRating,
+    this.note,
+  });
+
+  final String tripId;
+  final String operatorName;
+  final String? operatorHotline;
+  final double? averageRating;
+  final int reviewCount;
+  final String routeName;
+  final DateTime departureAt;
+  final DateTime arrivalAt;
+  final String? note;
+  final String vehicleTypeName;
+  final List<String> amenityNames;
+  final List<String> imageUrls;
+  final List<TripStop> stops;
+  final List<TripSeat> seats;
+  final List<CancellationTier> cancellationTiers;
+
+  List<TripStop> get pickupStops =>
+      stops.where((stop) => stop.allowPickup).toList(growable: false);
+
+  /// Điểm trả hợp lệ sau điểm đón [pickupSequence].
+  List<TripStop> dropoffStopsAfter(int pickupSequence) => stops
+      .where((stop) => stop.allowDropoff && stop.sequence > pickupSequence)
+      .toList(growable: false);
+
+  TripStop? stopAt(int sequence) {
+    for (final stop in stops) {
+      if (stop.sequence == sequence) return stop;
+    }
+    return null;
+  }
+
+  /// Giá thấp nhất trong các chỗ còn đặt được.
+  int? get minPrice {
+    int? lowest;
+    for (final seat in seats) {
+      final price = seat.price;
+      if (!seat.bookable || price == null) continue;
+      if (lowest == null || price < lowest) lowest = price;
+    }
+    return lowest;
+  }
+}
+
+/// Điểm đón / trả ghi trong phiên giữ chỗ.
+class SeatHoldStop {
+  const SeatHoldStop({
+    required this.sequence,
+    required this.name,
+    required this.plannedAt,
+  });
+
+  final int sequence;
+  final String name;
+  final DateTime plannedAt;
+}
+
+/// Một chỗ đã giữ kèm giá lúc giữ (VND).
+class HeldSeat {
+  const HeldSeat({required this.code, required this.type, required this.price});
+
+  final String code;
+  final String type;
+  final int price;
+}
+
+/// Phiên giữ chỗ (`POST /seat-holds`), hết hạn ở [expiresAt].
+class SeatHold {
+  const SeatHold({
+    required this.holdId,
+    required this.tripId,
+    required this.pickup,
+    required this.dropoff,
+    required this.seats,
+    required this.subtotal,
+    required this.expiresAt,
+  });
+
+  final String holdId;
+  final String tripId;
+  final SeatHoldStop pickup;
+  final SeatHoldStop dropoff;
+  final List<HeldSeat> seats;
+
+  /// Tổng giá vé lúc giữ, VND.
+  final int subtotal;
+  final DateTime expiresAt;
+
+  List<String> get seatCodes => [for (final seat in seats) seat.code];
+}

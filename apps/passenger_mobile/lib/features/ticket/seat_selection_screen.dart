@@ -1,109 +1,175 @@
-import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:mobile_shared/mobile_shared.dart';
+import 'package:passenger_mobile/features/search/trip_search_form.dart';
+import 'package:passenger_mobile/features/ticket/booking_flow_chrome.dart';
+import 'package:passenger_mobile/features/ticket/passenger_information_screen.dart';
+import 'package:passenger_mobile/features/ticket/stop_picker_sheet.dart';
+import 'package:passenger_mobile/features/ticket/trip_booking_api.dart';
+import 'package:passenger_mobile/features/ticket/trip_detail_models.dart';
+import 'package:passenger_mobile/features/ticket/trip_search_models.dart';
 
-import 'booking_flow_chrome.dart';
-import 'passenger_information_screen.dart';
-
-const _detailAssets = 'assets/ticket/detail';
-const _ticketAssets = 'assets/ticket';
 const _ink = Color(0xFF0B2942);
 const _blue = Color(0xFF1E8ABE);
-const _lightBlue = Color(0xFFEAF6FC);
 const _muted = Color(0xFF71899B);
 const _page = Color(0xFFF2F8FB);
 const _orange = Color(0xFFF59B31);
-const _green = Color(0xFF26A56F);
 
-enum _SeatStatus { available, selected, booked, unavailable }
+/// Số chỗ tối đa mỗi lần giữ / đặt (API `MAX_PASSENGERS`).
+const _maxSeats = 10;
 
+enum _SeatStatus { available, selected, unavailable }
+
+/// Chọn chỗ trên sơ đồ của chuyến + điểm đón / trả, rồi giữ chỗ (`POST /seat-holds`).
 class SeatSelectionScreen extends StatefulWidget {
   const SeatSelectionScreen({
+    required this.api,
+    required this.trip,
+    required this.pickupSequence,
+    required this.dropoffSequence,
     super.key,
-    this.holdDuration = const Duration(minutes: 10),
-    this.now,
   });
 
-  /// SDLC v1: a successful seat hold expires after exactly 10 minutes.
-  final Duration holdDuration;
-  final DateTime Function()? now;
+  final TripBookingApi api;
+  final TripDetail trip;
+  final int pickupSequence;
+  final int dropoffSequence;
 
   @override
   State<SeatSelectionScreen> createState() => _SeatSelectionScreenState();
 }
 
 class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
-  static const _unavailableSeats = {'A13', 'A16'};
-  static const _bookedSeats = {'A07', 'A10'};
+  late TripDetail _trip = widget.trip;
+  late int _pickup = widget.pickupSequence;
+  late int _dropoff = widget.dropoffSequence;
+  final Set<String> _selected = {};
+  int _deck = 1;
+  bool _holding = false;
 
-  Timer? _timer;
-  late DateTime _holdExpiresAt;
-  Duration _remaining = Duration.zero;
-  final Set<String> _selectedSeats = {'A01'};
-  _Stop _pickup = _pickupStops.first;
-  _Stop _dropoff = _dropoffStops.first;
+  List<int> get _decks =>
+      ({for (final seat in _trip.seats) seat.deck}.toList()..sort());
 
-  @override
-  void initState() {
-    super.initState();
-    // Fixture UI represents the Figma state after SeatHold succeeds. Replace
-    // this timestamp with expiresAt from POST /v1/seat-holds when API is ready.
-    _holdExpiresAt = _now().add(widget.holdDuration);
-    _refreshRemaining();
-    _timer = Timer.periodic(const Duration(seconds: 1), (_) {
-      if (!mounted) return;
-      setState(_refreshRemaining);
+  int get _total {
+    var sum = 0;
+    for (final seat in _trip.seats) {
+      if (_selected.contains(seat.code)) sum += seat.price ?? 0;
+    }
+    return sum;
+  }
+
+  void _showMessage(String message) {
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  void _toggleSeat(TripSeat seat) {
+    if (!seat.bookable || _holding) return;
+    setState(() {
+      if (_selected.remove(seat.code)) return;
+      if (_selected.length >= _maxSeats) {
+        _showMessage('Mỗi lần đặt tối đa $_maxSeats chỗ.');
+        return;
+      }
+      _selected.add(seat.code);
     });
   }
 
-  @override
-  void dispose() {
-    _timer?.cancel();
-    super.dispose();
-  }
-
-  void _refreshRemaining() {
-    final next = _holdExpiresAt.difference(_now());
-    _remaining = next.isNegative ? Duration.zero : next;
-  }
-
-  DateTime _now() => widget.now?.call() ?? DateTime.now();
-
-  String get _timerLabel {
-    final seconds = (_remaining.inMilliseconds / 1000).ceil();
-    final minutesPart = (seconds ~/ 60).toString().padLeft(2, '0');
-    final secondsPart = (seconds % 60).toString().padLeft(2, '0');
-    return '$minutesPart:$secondsPart';
-  }
-
   Future<void> _chooseStop({required bool pickup}) async {
-    final stops = pickup ? _pickupStops : _dropoffStops;
-    final current = pickup ? _pickup : _dropoff;
-    final selected = await showModalBottomSheet<_Stop>(
-      context: context,
-      isScrollControlled: true,
-      useSafeArea: true,
-      backgroundColor: Colors.transparent,
-      barrierColor: const Color(0x990A2336),
-      builder: (context) =>
-          _StopPickerSheet(pickup: pickup, stops: stops, selected: current),
+    final stops = pickup ? _trip.pickupStops : _trip.dropoffStopsAfter(_pickup);
+    final selected = await showTripStopPicker(
+      context,
+      pickup: pickup,
+      stops: stops,
+      selectedSequence: pickup ? _pickup : _dropoff,
     );
     if (selected == null || !mounted) return;
     setState(() {
       if (pickup) {
-        _pickup = selected;
+        _pickup = selected.sequence;
+        final dropoffs = _trip.dropoffStopsAfter(_pickup);
+        if (!dropoffs.any((stop) => stop.sequence == _dropoff) &&
+            dropoffs.isNotEmpty) {
+          _dropoff = dropoffs.last.sequence;
+        }
       } else {
-        _dropoff = selected;
+        _dropoff = selected.sequence;
       }
     });
   }
 
+  /// Tải lại sơ đồ; bỏ những chỗ đã chọn nay không còn đặt được.
+  Future<void> _reloadSeats() async {
+    try {
+      final trip = await widget.api.loadTrip(_trip.tripId);
+      if (!mounted) return;
+      final bookable = {
+        for (final seat in trip.seats)
+          if (seat.bookable) seat.code,
+      };
+      setState(() {
+        _trip = trip;
+        _selected.removeWhere((code) => !bookable.contains(code));
+      });
+    } catch (_) {
+      // Giữ sơ đồ cũ; lần giữ chỗ sau server vẫn kiểm lại.
+    }
+  }
+
+  Future<void> _continue() async {
+    final codes = _selected.toList()..sort();
+    setState(() => _holding = true);
+    SeatHold hold;
+    try {
+      hold = await widget.api.holdSeats(
+        tripId: _trip.tripId,
+        seatCodes: codes,
+        pickupSequence: _pickup,
+        dropoffSequence: _dropoff,
+      );
+    } catch (error) {
+      if (!mounted) return;
+      setState(() => _holding = false);
+      _showMessage(describeBookingFailure(error));
+      if (error is ApiFailure &&
+          const {
+            'SEAT_NOT_AVAILABLE',
+            'SEAT_HOLD_CONFLICT',
+            'TRIP_SEAT_UNKNOWN',
+          }.contains(error.code)) {
+        await _reloadSeats();
+      }
+      return;
+    }
+    if (!mounted) return;
+    setState(() => _holding = false);
+    await Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => PassengerInformationScreen(
+          selectedSeats: hold.seatCodes,
+          holdExpiresAt: hold.expiresAt,
+        ),
+      ),
+    );
+    // Khách quay lại chọn chỗ khác: trả chỗ đang giữ cho người khác.
+    try {
+      await widget.api.releaseHold(hold.holdId);
+    } catch (_) {
+      // Giữ chỗ tự hết hạn sau 10 phút nếu bỏ không được.
+    }
+    await _reloadSeats();
+  }
+
   @override
   Widget build(BuildContext context) {
-    final expired = _remaining == Duration.zero;
-    final selectedSeats = _selectedSeats.toList()..sort();
+    final pickup = _trip.stopAt(_pickup);
+    final dropoff = _trip.stopAt(_dropoff);
+    final decks = _decks;
+    final deck = decks.contains(_deck) ? _deck : decks.first;
+    final codes = _selected.toList()..sort();
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.dark.copyWith(
         statusBarColor: Colors.white,
@@ -113,60 +179,68 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
         key: const Key('seat-selection-screen'),
         backgroundColor: _page,
         bottomNavigationBar: _SeatBookingBar(
-          seats: expired ? const [] : selectedSeats,
-          onContinue: expired || selectedSeats.isEmpty
-              ? null
-              : () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute<void>(
-                      builder: (_) => PassengerInformationScreen(
-                        selectedSeats: selectedSeats,
-                        holdExpiresAt: _holdExpiresAt,
-                        now: widget.now,
-                      ),
-                    ),
-                  );
-                },
+          seats: codes,
+          total: _total,
+          busy: _holding,
+          onContinue: codes.isEmpty || _holding ? null : _continue,
         ),
         body: SafeArea(
           bottom: false,
           child: Column(
             children: [
-              _Header(
-                timerLabel: _timerLabel,
-                expired: expired,
-                urgent: _remaining <= const Duration(minutes: 1),
+              BookingFlowHeader(
+                key: const Key('seat-selection-header'),
+                title: 'Chọn chỗ',
+                subtitle: _trip.routeName,
+                timerLabel: null,
+                expired: false,
                 onBack: () => Navigator.maybePop(context),
+                backKey: const Key('seat-selection-back'),
+                timerKey: const Key('seat-hold-countdown'),
               ),
-              const _StepProgress(),
+              const BookingStepProgress(
+                key: Key('seat-selection-progress'),
+                activeStep: 0,
+              ),
               Expanded(
                 child: CustomScrollView(
                   key: const Key('seat-selection-scroll'),
                   slivers: [
-                    const SliverToBoxAdapter(child: _TripSummary()),
-                    SliverToBoxAdapter(
-                      child: _StopSummary(
-                        pickup: _pickup,
-                        dropoff: _dropoff,
-                        onPickup: () => _chooseStop(pickup: true),
-                        onDropoff: () => _chooseStop(pickup: false),
+                    if (pickup != null && dropoff != null) ...[
+                      SliverToBoxAdapter(
+                        child: _TripSummary(
+                          trip: _trip,
+                          pickup: pickup,
+                          dropoff: dropoff,
+                        ),
                       ),
-                    ),
+                      SliverToBoxAdapter(
+                        child: _StopSummary(
+                          pickup: pickup,
+                          dropoff: dropoff,
+                          onPickup: () => _chooseStop(pickup: true),
+                          onDropoff: () => _chooseStop(pickup: false),
+                        ),
+                      ),
+                    ],
+                    if (decks.length > 1)
+                      SliverToBoxAdapter(
+                        child: _DeckSwitch(
+                          decks: decks,
+                          selected: deck,
+                          onChanged: (value) => setState(() => _deck = value),
+                        ),
+                      ),
                     SliverToBoxAdapter(
                       child: Padding(
                         padding: const EdgeInsets.fromLTRB(14, 12, 14, 4),
                         child: _SeatMap(
-                          selectedSeats: expired ? const {} : _selectedSeats,
-                          unavailableSeats: _unavailableSeats,
-                          bookedSeats: _bookedSeats,
-                          onSeatSelected: (seat) {
-                            if (expired) return;
-                            setState(() {
-                              if (!_selectedSeats.remove(seat)) {
-                                _selectedSeats.add(seat);
-                              }
-                            });
-                          },
+                          seats: [
+                            for (final seat in _trip.seats)
+                              if (seat.deck == deck) seat,
+                          ],
+                          selected: _selected,
+                          onSeatSelected: _toggleSeat,
                         ),
                       ),
                     ),
@@ -183,54 +257,24 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
   }
 }
 
-class _Header extends StatelessWidget {
-  const _Header({
-    required this.timerLabel,
-    required this.expired,
-    required this.urgent,
-    required this.onBack,
+class _TripSummary extends StatelessWidget {
+  const _TripSummary({
+    required this.trip,
+    required this.pickup,
+    required this.dropoff,
   });
 
-  final String timerLabel;
-  final bool expired;
-  final bool urgent;
-  final VoidCallback onBack;
+  final TripDetail trip;
+  final TripStop pickup;
+  final TripStop dropoff;
 
   @override
   Widget build(BuildContext context) {
-    return BookingFlowHeader(
-      key: const Key('seat-selection-header'),
-      title: 'Chọn chỗ',
-      timerLabel: timerLabel,
-      expired: expired,
-      urgent: urgent,
-      onBack: onBack,
-      backKey: const Key('seat-selection-back'),
-      timerKey: const Key('seat-hold-countdown'),
-    );
-  }
-}
-
-class _StepProgress extends StatelessWidget {
-  const _StepProgress();
-
-  @override
-  Widget build(BuildContext context) {
-    return const BookingStepProgress(
-      key: Key('seat-selection-progress'),
-      activeStep: 0,
-    );
-  }
-}
-
-class _TripSummary extends StatelessWidget {
-  const _TripSummary();
-
-  @override
-  Widget build(BuildContext context) {
+    final minutes = dropoff.plannedAt.difference(pickup.plannedAt).inMinutes;
+    final rating = trip.averageRating;
     return Container(
       margin: const EdgeInsets.fromLTRB(10, 8, 10, 0),
-      padding: const EdgeInsets.fromLTRB(11, 10, 8, 9),
+      padding: const EdgeInsets.fromLTRB(11, 10, 11, 9),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(13),
@@ -246,66 +290,69 @@ class _TripSummary extends StatelessWidget {
         children: [
           Row(
             children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(3),
-                child: Image.asset(
-                  '$_detailAssets/phuong_trang_logo.png',
-                  width: 31,
-                  height: 31,
-                  fit: BoxFit.cover,
-                ),
-              ),
+              OperatorInitialAvatar(name: trip.operatorName, size: 31),
               const SizedBox(width: 8),
-              const Expanded(
+              Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Phương Trang',
-                      style: TextStyle(
+                      trip.operatorName,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
                         color: _ink,
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
-                    SizedBox(height: 1),
+                    const SizedBox(height: 1),
                     Row(
                       children: [
-                        Icon(Icons.star_rounded, color: _orange, size: 12),
-                        SizedBox(width: 2),
+                        if (rating != null && trip.reviewCount > 0) ...[
+                          const Icon(
+                            Icons.star_rounded,
+                            color: _orange,
+                            size: 12,
+                          ),
+                          const SizedBox(width: 2),
+                        ],
                         Flexible(
                           child: Text(
-                            '4.8 (12.5K đánh giá)',
+                            rating != null && trip.reviewCount > 0
+                                ? '${rating.toStringAsFixed(1)} (${trip.reviewCount} đánh giá)'
+                                : 'Chưa có đánh giá',
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: TextStyle(color: _muted, fontSize: 13),
+                            style: const TextStyle(color: _muted, fontSize: 13),
                           ),
                         ),
                       ],
                     ),
                     Text(
-                      'Limousine 34 phòng',
-                      style: TextStyle(color: _muted, fontSize: 13),
+                      '${trip.vehicleTypeName} · ${formatVnDate(pickup.plannedAt)}',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(color: _muted, fontSize: 13),
                     ),
                   ],
                 ),
               ),
-              Image.asset(
-                '$_ticketAssets/phuong_trang_bus.png',
-                width: 55,
-                height: 34,
-                fit: BoxFit.cover,
-                alignment: Alignment.center,
-              ),
-              const Icon(Icons.chevron_right_rounded, color: _muted, size: 19),
             ],
           ),
           const SizedBox(height: 9),
-          const Row(
+          Row(
             children: [
-              _TripTime(time: '07:00', place: 'TP.HCM'),
-              Expanded(child: _TripLine()),
-              _TripTime(time: '13:30', place: 'Đà Lạt', alignEnd: true),
+              _TripTime(
+                time: formatVnClock(pickup.plannedAt),
+                place: pickup.name,
+              ),
+              Expanded(child: _TripLine(duration: formatTripDuration(minutes))),
+              _TripTime(
+                time: formatVnClock(dropoff.plannedAt),
+                place: dropoff.name,
+                alignEnd: true,
+              ),
             ],
           ),
         ],
@@ -327,27 +374,38 @@ class _TripTime extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: alignEnd
-          ? CrossAxisAlignment.end
-          : CrossAxisAlignment.start,
-      children: [
-        Text(
-          time,
-          style: const TextStyle(
-            color: _ink,
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
+    return ConstrainedBox(
+      constraints: const BoxConstraints(maxWidth: 120),
+      child: Column(
+        crossAxisAlignment: alignEnd
+            ? CrossAxisAlignment.end
+            : CrossAxisAlignment.start,
+        children: [
+          Text(
+            time,
+            style: const TextStyle(
+              color: _ink,
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+            ),
           ),
-        ),
-        Text(place, style: const TextStyle(color: _muted, fontSize: 13)),
-      ],
+          Text(
+            place,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            textAlign: alignEnd ? TextAlign.end : TextAlign.start,
+            style: const TextStyle(color: _muted, fontSize: 13),
+          ),
+        ],
+      ),
     );
   }
 }
 
 class _TripLine extends StatelessWidget {
-  const _TripLine();
+  const _TripLine({required this.duration});
+
+  final String duration;
 
   @override
   Widget build(BuildContext context) {
@@ -379,7 +437,7 @@ class _TripLine extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 2),
-          const Text('6h30', style: TextStyle(color: _muted, fontSize: 13)),
+          Text(duration, style: const TextStyle(color: _muted, fontSize: 13)),
         ],
       ),
     );
@@ -394,8 +452,8 @@ class _StopSummary extends StatelessWidget {
     required this.onDropoff,
   });
 
-  final _Stop pickup;
-  final _Stop dropoff;
+  final TripStop pickup;
+  final TripStop dropoff;
   final VoidCallback onPickup;
   final VoidCallback onDropoff;
 
@@ -404,55 +462,35 @@ class _StopSummary extends StatelessWidget {
     final stackCards =
         MediaQuery.sizeOf(context).width < 390 ||
         MediaQuery.textScalerOf(context).scale(13) > 16;
+    final pickupCard = _StopCard(
+      key: const Key('pickup-card'),
+      title: 'Điểm đón',
+      stop: pickup,
+      color: _blue,
+      onTap: onPickup,
+    );
+    final dropoffCard = _StopCard(
+      key: const Key('dropoff-card'),
+      title: 'Điểm trả',
+      stop: dropoff,
+      color: _orange,
+      onTap: onDropoff,
+    );
     return Padding(
       padding: const EdgeInsets.fromLTRB(10, 7, 10, 0),
       child: stackCards
           ? Column(
               children: [
-                SizedBox(
-                  width: double.infinity,
-                  child: _StopCard(
-                    key: const Key('pickup-card'),
-                    title: 'Điểm đón',
-                    stop: pickup,
-                    color: _blue,
-                    onTap: onPickup,
-                  ),
-                ),
+                SizedBox(width: double.infinity, child: pickupCard),
                 const SizedBox(height: 7),
-                SizedBox(
-                  width: double.infinity,
-                  child: _StopCard(
-                    key: const Key('dropoff-card'),
-                    title: 'Điểm trả',
-                    stop: dropoff,
-                    color: _orange,
-                    onTap: onDropoff,
-                  ),
-                ),
+                SizedBox(width: double.infinity, child: dropoffCard),
               ],
             )
           : Row(
               children: [
-                Expanded(
-                  child: _StopCard(
-                    key: const Key('pickup-card'),
-                    title: 'Điểm đón',
-                    stop: pickup,
-                    color: _blue,
-                    onTap: onPickup,
-                  ),
-                ),
+                Expanded(child: pickupCard),
                 const SizedBox(width: 7),
-                Expanded(
-                  child: _StopCard(
-                    key: const Key('dropoff-card'),
-                    title: 'Điểm trả',
-                    stop: dropoff,
-                    color: _orange,
-                    onTap: onDropoff,
-                  ),
-                ),
+                Expanded(child: dropoffCard),
               ],
             ),
     );
@@ -469,7 +507,7 @@ class _StopCard extends StatelessWidget {
   });
 
   final String title;
-  final _Stop stop;
+  final TripStop stop;
   final Color color;
   final VoidCallback onTap;
 
@@ -492,11 +530,13 @@ class _StopCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      title,
+                      '$title · ${formatVnClock(stop.plannedAt)}',
                       style: const TextStyle(color: _muted, fontSize: 13),
                     ),
                     Text(
                       stop.name,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
                         color: _ink,
                         fontSize: 14,
@@ -515,28 +555,84 @@ class _StopCard extends StatelessWidget {
   }
 }
 
+class _DeckSwitch extends StatelessWidget {
+  const _DeckSwitch({
+    required this.decks,
+    required this.selected,
+    required this.onChanged,
+  });
+
+  final List<int> decks;
+  final int selected;
+  final ValueChanged<int> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(14, 12, 14, 0),
+      child: Row(
+        children: [
+          for (final deck in decks) ...[
+            Expanded(
+              child: ChoiceChip(
+                key: Key('seat-deck-$deck'),
+                label: SizedBox(
+                  width: double.infinity,
+                  child: Text(
+                    deck == 1 ? 'Tầng dưới' : 'Tầng trên',
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+                selected: deck == selected,
+                showCheckmark: false,
+                selectedColor: const Color(0xFFDDF0FA),
+                labelStyle: TextStyle(
+                  color: deck == selected ? _blue : _muted,
+                  fontWeight: FontWeight.w600,
+                ),
+                onSelected: (_) => onChanged(deck),
+              ),
+            ),
+            if (deck != decks.last) const SizedBox(width: 8),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
 class _SeatMap extends StatelessWidget {
   const _SeatMap({
-    required this.selectedSeats,
-    required this.unavailableSeats,
-    required this.bookedSeats,
+    required this.seats,
+    required this.selected,
     required this.onSeatSelected,
   });
 
-  final Set<String> selectedSeats;
-  final Set<String> unavailableSeats;
-  final Set<String> bookedSeats;
-  final ValueChanged<String> onSeatSelected;
+  final List<TripSeat> seats;
+  final Set<String> selected;
+  final ValueChanged<TripSeat> onSeatSelected;
 
-  _SeatStatus statusOf(String seat) {
-    if (selectedSeats.contains(seat)) return _SeatStatus.selected;
-    if (bookedSeats.contains(seat)) return _SeatStatus.booked;
-    if (unavailableSeats.contains(seat)) return _SeatStatus.unavailable;
-    return _SeatStatus.available;
+  _SeatStatus statusOf(TripSeat seat) {
+    if (selected.contains(seat.code)) return _SeatStatus.selected;
+    return seat.bookable ? _SeatStatus.available : _SeatStatus.unavailable;
   }
 
   @override
   Widget build(BuildContext context) {
+    final rows = seats.fold<int>(0, (max, seat) => math.max(max, seat.row));
+    final columns = seats.fold<int>(
+      0,
+      (max, seat) => math.max(max, seat.column),
+    );
+    final byPosition = {
+      for (final seat in seats) (seat.row, seat.column): seat,
+    };
+    final seatWidth = columns <= 2 ? 52.0 : (columns == 3 ? 42.0 : 34.0);
+    const seatHeight = 30.0;
+    final gapX = columns <= 2 ? 19.0 : 8.0;
+    const gapY = 8.0;
+    final frameWidth = 62 + columns * seatWidth + (columns - 1) * gapX;
+    final frameHeight = 75 + rows * seatHeight + (rows - 1) * gapY + 12;
     return Container(
       padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
       decoration: BoxDecoration(
@@ -546,35 +642,37 @@ class _SeatMap extends StatelessWidget {
       child: Center(
         child: SizedBox(
           key: const Key('seat-bus-frame'),
-          width: 185,
-          height: 352,
+          width: frameWidth,
+          height: frameHeight,
           child: CustomPaint(
             painter: _BusOutlinePainter(),
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(31, 75, 31, 9),
+              padding: const EdgeInsets.fromLTRB(31, 75, 31, 12),
               child: Column(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: List.generate(9, (row) {
-                  final leftSeat =
-                      'A${(row * 2 + 1).toString().padLeft(2, '0')}';
-                  final rightSeat =
-                      'A${(row * 2 + 2).toString().padLeft(2, '0')}';
-                  return Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      _SeatButton(
-                        seat: leftSeat,
-                        status: statusOf(leftSeat),
-                        onTap: () => onSeatSelected(leftSeat),
-                      ),
-                      _SeatButton(
-                        seat: rightSeat,
-                        status: statusOf(rightSeat),
-                        onTap: () => onSeatSelected(rightSeat),
-                      ),
-                    ],
-                  );
-                }),
+                children: [
+                  for (var row = 1; row <= rows; row++) ...[
+                    Row(
+                      children: [
+                        for (var column = 1; column <= columns; column++) ...[
+                          SizedBox(
+                            width: seatWidth,
+                            height: seatHeight,
+                            child: switch (byPosition[(row, column)]) {
+                              final TripSeat seat => _SeatButton(
+                                seat: seat.code,
+                                status: statusOf(seat),
+                                onTap: () => onSeatSelected(seat),
+                              ),
+                              null => const SizedBox.shrink(),
+                            },
+                          ),
+                          if (column < columns) SizedBox(width: gapX),
+                        ],
+                      ],
+                    ),
+                    if (row < rows) const SizedBox(height: gapY),
+                  ],
+                ],
               ),
             ),
           ),
@@ -598,17 +696,15 @@ class _SeatButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final selected = status == _SeatStatus.selected;
-    final enabled = status == _SeatStatus.available || selected;
+    final enabled = status != _SeatStatus.unavailable;
     final background = switch (status) {
       _SeatStatus.available => Colors.white,
       _SeatStatus.selected => _blue,
-      _SeatStatus.booked => const Color(0xFFDCE5EA),
       _SeatStatus.unavailable => const Color(0xFFE5EDF2),
     };
     final border = switch (status) {
       _SeatStatus.available => const Color(0xFF1687E8),
       _SeatStatus.selected => _blue,
-      _SeatStatus.booked => const Color(0xFFDCE5EA),
       _SeatStatus.unavailable => const Color(0xFFCCDBE5),
     };
     return InkWell(
@@ -616,8 +712,6 @@ class _SeatButton extends StatelessWidget {
       onTap: enabled ? onTap : null,
       borderRadius: BorderRadius.circular(7),
       child: Container(
-        width: 52,
-        height: 27,
         alignment: Alignment.center,
         decoration: BoxDecoration(
           color: background,
@@ -634,17 +728,19 @@ class _SeatButton extends StatelessWidget {
             if (status == _SeatStatus.unavailable)
               const CustomPaint(painter: _SeatHatchPainter()),
             Center(
-              child: Text(
-                seat,
-                style: TextStyle(
-                  color: switch (status) {
-                    _SeatStatus.selected => Colors.white,
-                    _SeatStatus.booked => const Color(0xFF8AA8BE),
-                    _SeatStatus.unavailable => const Color(0xFF86A5BB),
-                    _SeatStatus.available => const Color(0xFF20538C),
-                  },
-                  fontSize: 10,
-                  fontWeight: FontWeight.w500,
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  seat,
+                  style: TextStyle(
+                    color: switch (status) {
+                      _SeatStatus.selected => Colors.white,
+                      _SeatStatus.unavailable => const Color(0xFF86A5BB),
+                      _SeatStatus.available => const Color(0xFF20538C),
+                    },
+                    fontSize: 10,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
               ),
             ),
@@ -831,15 +927,11 @@ class _SeatLegend extends StatelessWidget {
             border: Color(0xFF9CB2C0),
           ),
           _LegendItem(label: 'Đang chọn', color: _blue, border: _blue),
+          // API gộp đã bán / đang giữ / khóa thành một trạng thái.
           _LegendItem(
-            label: 'Đã đặt',
-            color: Color(0xFFD1DBE1),
-            border: Color(0xFFBCCAD2),
-          ),
-          _LegendItem(
-            label: 'Không khả dụng',
-            color: Color(0xFFEEF2F4),
-            border: Color(0xFFDDE5E9),
+            label: 'Không đặt được',
+            color: Color(0xFFE5EDF2),
+            border: Color(0xFFCCDBE5),
           ),
         ],
       ),
@@ -880,9 +972,16 @@ class _LegendItem extends StatelessWidget {
 }
 
 class _SeatBookingBar extends StatelessWidget {
-  const _SeatBookingBar({required this.seats, required this.onContinue});
+  const _SeatBookingBar({
+    required this.seats,
+    required this.total,
+    required this.busy,
+    required this.onContinue,
+  });
 
   final List<String> seats;
+  final int total;
+  final bool busy;
   final VoidCallback? onContinue;
 
   @override
@@ -910,7 +1009,9 @@ class _SeatBookingBar extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      '${seats.length} ghế',
+                      seats.isEmpty
+                          ? 'Chưa chọn chỗ'
+                          : '${seats.length} chỗ — ${seats.join(', ')}',
                       key: const Key('seat-selection-count'),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -922,9 +1023,8 @@ class _SeatBookingBar extends StatelessWidget {
                     ),
                     const SizedBox(height: 1),
                     Text(
-                      seats.isEmpty
-                          ? '0 đ'
-                          : '${_formatAmount(seats.length * 280000)} đ',
+                      formatVnd(total),
+                      key: const Key('seat-selection-total'),
                       style: const TextStyle(
                         color: _orange,
                         fontSize: 19,
@@ -950,24 +1050,32 @@ class _SeatBookingBar extends StatelessWidget {
                       borderRadius: BorderRadius.circular(10),
                     ),
                   ),
-                  child: const Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Flexible(
-                        child: Text(
-                          'Tiếp tục',
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w600,
+                  child: busy
+                      ? const SizedBox.square(
+                          dimension: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2.4,
+                            color: Colors.white,
                           ),
+                        )
+                      : const Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Flexible(
+                              child: Text(
+                                'Tiếp tục',
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                            SizedBox(width: 7),
+                            Icon(Icons.arrow_forward_rounded, size: 16),
+                          ],
                         ),
-                      ),
-                      SizedBox(width: 7),
-                      Icon(Icons.arrow_forward_rounded, size: 16),
-                    ],
-                  ),
                 ),
               ),
             ],
@@ -977,294 +1085,3 @@ class _SeatBookingBar extends StatelessWidget {
     );
   }
 }
-
-String _formatAmount(int amount) {
-  final digits = amount.toString();
-  final buffer = StringBuffer();
-  for (var index = 0; index < digits.length; index++) {
-    if (index > 0 && (digits.length - index) % 3 == 0) buffer.write('.');
-    buffer.write(digits[index]);
-  }
-  return buffer.toString();
-}
-
-class _StopPickerSheet extends StatefulWidget {
-  const _StopPickerSheet({
-    required this.pickup,
-    required this.stops,
-    required this.selected,
-  });
-
-  final bool pickup;
-  final List<_Stop> stops;
-  final _Stop selected;
-
-  @override
-  State<_StopPickerSheet> createState() => _StopPickerSheetState();
-}
-
-class _StopPickerSheetState extends State<_StopPickerSheet> {
-  late _Stop _selected;
-
-  @override
-  void initState() {
-    super.initState();
-    _selected = widget.selected;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final media = MediaQuery.sizeOf(context);
-    final maxHeight = math.min(520.0, media.height * .72);
-    final accent = widget.pickup ? _green : const Color(0xFFFF5252);
-    return Align(
-      alignment: Alignment.bottomCenter,
-      child: ConstrainedBox(
-        constraints: BoxConstraints(maxHeight: maxHeight),
-        child: Material(
-          key: Key(widget.pickup ? 'pickup-sheet' : 'dropoff-sheet'),
-          color: Colors.white,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(22)),
-          clipBehavior: Clip.antiAlias,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(15, 15, 8, 10),
-                child: Row(
-                  children: [
-                    Icon(Icons.location_on_rounded, color: accent, size: 22),
-                    const SizedBox(width: 7),
-                    Expanded(
-                      child: Text(
-                        widget.pickup ? 'Chọn điểm đón' : 'Chọn điểm trả',
-                        style: const TextStyle(
-                          color: _ink,
-                          fontSize: 19,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                    IconButton(
-                      key: const Key('stop-sheet-close'),
-                      onPressed: () => Navigator.pop(context),
-                      visualDensity: VisualDensity.compact,
-                      icon: const Icon(
-                        Icons.close_rounded,
-                        color: _ink,
-                        size: 20,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Flexible(
-                child: ListView.builder(
-                  key: const Key('stop-options'),
-                  shrinkWrap: true,
-                  padding: const EdgeInsets.fromLTRB(11, 0, 11, 8),
-                  itemCount: widget.stops.length,
-                  itemBuilder: (context, index) {
-                    final stop = widget.stops[index];
-                    final selected = stop == _selected;
-                    return _StopOption(
-                      stop: stop,
-                      selected: selected,
-                      first: index == 0,
-                      last: index == widget.stops.length - 1,
-                      onTap: () => setState(() => _selected = stop),
-                    );
-                  },
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(11, 4, 11, 11),
-                child: SizedBox(
-                  width: double.infinity,
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(minHeight: 50),
-                    child: FilledButton(
-                      key: const Key('confirm-stop'),
-                      onPressed: () => Navigator.pop(context, _selected),
-                      style: FilledButton.styleFrom(
-                        backgroundColor: _blue,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                      ),
-                      child: const Text(
-                        'Xác nhận',
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _StopOption extends StatelessWidget {
-  const _StopOption({
-    required this.stop,
-    required this.selected,
-    required this.first,
-    required this.last,
-    required this.onTap,
-  });
-
-  final _Stop stop;
-  final bool selected;
-  final bool first;
-  final bool last;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      key: Key('stop-${stop.time}-${stop.name}'),
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(10),
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 7),
-        decoration: BoxDecoration(
-          color: selected ? _lightBlue : Colors.transparent,
-          borderRadius: BorderRadius.circular(10),
-        ),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            SizedBox(
-              width: 28,
-              child: Column(
-                children: [
-                  if (!first)
-                    Container(
-                      width: 1,
-                      height: 8,
-                      color: const Color(0xFFD7E2E8),
-                    )
-                  else
-                    const SizedBox(height: 8),
-                  Container(
-                    width: 8,
-                    height: 8,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: selected ? _blue : const Color(0xFFB9CBD5),
-                    ),
-                  ),
-                  if (!last)
-                    Container(
-                      width: 1,
-                      height: 35,
-                      color: const Color(0xFFD7E2E8),
-                    ),
-                ],
-              ),
-            ),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.only(top: 1),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      stop.time,
-                      style: const TextStyle(color: _muted, fontSize: 13),
-                    ),
-                    const SizedBox(height: 1),
-                    Text(
-                      stop.name,
-                      style: const TextStyle(
-                        color: _ink,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    const SizedBox(height: 1),
-                    Text(
-                      stop.address,
-                      style: const TextStyle(color: _muted, fontSize: 13),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(8, 15, 8, 0),
-              child: Container(
-                width: 16,
-                height: 16,
-                padding: const EdgeInsets.all(3),
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: selected ? _blue : const Color(0xFFB9CBD5),
-                  ),
-                ),
-                child: selected
-                    ? const DecoratedBox(
-                        decoration: BoxDecoration(
-                          color: _blue,
-                          shape: BoxShape.circle,
-                        ),
-                      )
-                    : null,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _Stop {
-  const _Stop({required this.time, required this.name, required this.address});
-
-  final String time;
-  final String name;
-  final String address;
-}
-
-const _pickupStops = [
-  _Stop(
-    time: '07:00',
-    name: 'Bến xe Miền Tây',
-    address: '395 Kinh Dương Vương, Bình Tân, TP.HCM',
-  ),
-  _Stop(
-    time: '07:20',
-    name: 'Ngã tư Bình Phước',
-    address: 'Quốc lộ 13, Thủ Đức',
-  ),
-  _Stop(time: '07:40', name: 'Bến xe An Sương', address: 'Quốc lộ 22, Hóc Môn'),
-  _Stop(
-    time: '08:00',
-    name: 'Trạm thu phí Tây Ninh',
-    address: 'Quốc lộ 22, Củ Chi',
-  ),
-];
-
-const _dropoffStops = [
-  _Stop(
-    time: '13:30',
-    name: 'Bến xe Đà Lạt',
-    address: '01 Tô Hiến Thành, Phường 3, Đà Lạt',
-  ),
-  _Stop(
-    time: '13:50',
-    name: 'Ngã ba Liên Khương',
-    address: 'Quốc lộ 27, Đức Trọng',
-  ),
-  _Stop(time: '14:10', name: 'Chợ Liên Nghĩa', address: 'Đức Trọng, Lâm Đồng'),
-  _Stop(time: '14:30', name: 'Trung tâm Đà Lạt', address: 'Đường 3/2, Đà Lạt'),
-];

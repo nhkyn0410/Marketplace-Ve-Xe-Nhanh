@@ -5,6 +5,8 @@ import 'package:passenger_mobile/features/ticket/passenger_information_screen.da
 import 'package:passenger_mobile/features/ticket/payment_screen.dart';
 import 'package:passenger_mobile/features/ticket/seat_selection_screen.dart';
 
+import 'support/fake_booking_api.dart';
+
 Future<void> _pumpScreen(
   WidgetTester tester,
   Widget screen, {
@@ -49,7 +51,15 @@ void main() {
         })
       >[
         (
-          build: () => SeatSelectionScreen(now: () => now),
+          build: () {
+            final api = FakeBookingApi();
+            return SeatSelectionScreen(
+              api: api,
+              trip: api.trip,
+              pickupSequence: 1,
+              dropoffSequence: 5,
+            );
+          },
           header: const Key('seat-selection-header'),
           progress: const Key('seat-selection-progress'),
           scroll: const Key('seat-selection-scroll'),
@@ -147,13 +157,20 @@ void main() {
   testWidgets('badge timer thống nhất và không còn banner cam trong nội dung', (
     tester,
   ) async {
+    final api = FakeBookingApi();
     await _pumpScreen(
       tester,
-      SeatSelectionScreen(now: () => now),
+      SeatSelectionScreen(
+        api: api,
+        trip: api.trip,
+        pickupSequence: 1,
+        dropoffSequence: 5,
+      ),
       width: 360,
       textScale: 1.5,
     );
-    expect(find.byKey(const Key('seat-hold-countdown')), findsOneWidget);
+    // Bước 1 chưa giữ chỗ nên chưa có đồng hồ.
+    expect(find.byKey(const Key('seat-hold-countdown')), findsNothing);
     expect(find.byKey(const Key('seat-hold-banner')), findsNothing);
 
     await _pumpScreen(

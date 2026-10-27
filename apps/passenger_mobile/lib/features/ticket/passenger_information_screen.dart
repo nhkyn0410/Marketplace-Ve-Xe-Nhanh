@@ -219,6 +219,7 @@ class _Header extends StatelessWidget {
     return BookingFlowHeader(
       key: const Key('passenger-information-header'),
       title: 'Thông tin hành khách',
+      subtitle: 'TP.HCM → Đà Lạt',
       timerLabel: timerLabel,
       expired: expired,
       urgent: urgent,

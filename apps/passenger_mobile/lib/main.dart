@@ -22,6 +22,8 @@ import 'package:passenger_mobile/features/journey/guest_journey_flow.dart';
 import 'package:passenger_mobile/features/search/trip_search_form.dart';
 import 'package:passenger_mobile/features/ticket/ticket_screen.dart';
 import 'package:passenger_mobile/features/ticket/trip_booking_api.dart';
+import 'package:passenger_mobile/features/ticket/trip_detail_screen.dart';
+import 'package:passenger_mobile/features/ticket/trip_search_models.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 /// Origin của API — KHÔNG kèm `/v1`.
@@ -796,6 +798,22 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
     });
   }
 
+  /// Mở chi tiết chuyến từ danh sách Mua vé, giữ điểm đón / trả khớp lần tìm.
+  void _openTripDetail(TripSummary trip, HomeSearchQuery query) {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => TripDetailScreen(
+          api: _bookingApi,
+          tripId: trip.tripId,
+          fromLabel: query.from.name,
+          toLabel: query.to.name,
+          pickupSequence: trip.pickup.sequence,
+          dropoffSequence: trip.dropoff.sequence,
+        ),
+      ),
+    );
+  }
+
   Future<List<HomePopularRoute>> _loadPopularRoutes(DateTime date) async {
     final provinces = await _bookingApi.loadProvinces();
     final routes = await Future.wait(
@@ -920,6 +938,7 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
         searchTrips: _bookingApi.searchTrips,
         initialQuery: _lastSearchQuery,
         onQueryChanged: (query) => _lastSearchQuery = query,
+        onTripSelected: _openTripDetail,
       );
     }
     if (_step == _AuthStep.guest && _currentTab == 3) {

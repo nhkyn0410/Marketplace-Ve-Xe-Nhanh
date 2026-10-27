@@ -212,6 +212,22 @@ String formatTripDuration(int minutes) {
   return rest == 0 ? '${hours}h' : '${hours}h${rest.toString().padLeft(2, '0')}';
 }
 
+/// `Thứ Tư, 28/10/2026` theo giờ Việt Nam (UTC+7).
+String formatVnDate(DateTime value) {
+  const weekdays = [
+    'Thứ Hai',
+    'Thứ Ba',
+    'Thứ Tư',
+    'Thứ Năm',
+    'Thứ Sáu',
+    'Thứ Bảy',
+    'Chủ nhật',
+  ];
+  final vn = value.toUtc().add(const Duration(hours: 7));
+  String two(int part) => part.toString().padLeft(2, '0');
+  return '${weekdays[vn.weekday - 1]}, ${two(vn.day)}/${two(vn.month)}/${vn.year}';
+}
+
 /// Giờ:phút theo giờ Việt Nam (UTC+7) của một mốc thời gian.
 String formatVnClock(DateTime value) {
   final vn = value.toUtc().add(const Duration(hours: 7));

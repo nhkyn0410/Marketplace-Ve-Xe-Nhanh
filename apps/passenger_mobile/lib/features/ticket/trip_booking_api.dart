@@ -2,6 +2,7 @@ import 'package:api_client_dart/api_client_dart.dart';
 import 'package:dio/dio.dart';
 import 'package:mobile_shared/mobile_shared.dart';
 import 'package:passenger_mobile/features/home/home_models.dart';
+import 'package:passenger_mobile/features/ticket/trip_detail_models.dart';
 import 'package:passenger_mobile/features/ticket/trip_search_models.dart';
 
 /// Lời gọi API của luồng tìm chuyến – đặt vé cho app hành khách; lỗi API ném ra dạng [ApiFailure].
@@ -161,6 +162,114 @@ class TripBookingApi {
     );
   }
 
+  /// Chi tiết chuyến đang mở bán; chỗ đang có người giữ hiện là không đặt được.
+  Future<TripDetail> loadTrip(String tripId) async {
+    final response = await _call(
+      () => _client.getTripsApi().publicTripControllerGet(tripId: tripId),
+    );
+    final data = response.data!;
+    return TripDetail(
+      tripId: data.tripId,
+      operatorName: data.operator_.name,
+      operatorHotline: data.operator_.hotline,
+      averageRating: data.operator_.averageRating?.toDouble(),
+      reviewCount: data.operator_.reviewCount,
+      routeName: data.routeName,
+      departureAt: data.departureAt,
+      arrivalAt: data.arrivalAt,
+      note: data.note,
+      vehicleTypeName: data.vehicleType.name,
+      amenityNames: [for (final amenity in data.amenities) amenity.name],
+      imageUrls: [for (final image in data.vehicleImages) image.url],
+      stops: [
+        for (final stop in data.stops)
+          TripStop(
+            sequence: stop.sequence,
+            name: stop.name,
+            address: stop.address,
+            type: stop.type.name,
+            plannedAt: stop.plannedAt,
+            allowPickup: stop.allowPickup,
+            allowDropoff: stop.allowDropoff,
+          ),
+      ],
+      seats: [
+        for (final seat in data.seats)
+          TripSeat(
+            code: seat.code,
+            deck: seat.deck,
+            row: seat.row,
+            column: seat.column,
+            type: seat.type.name,
+            available: seat.status.name == 'AVAILABLE',
+            price: seat.price,
+          ),
+      ],
+      cancellationTiers: [
+        for (final tier in data.cancellationPolicy.tiers)
+          CancellationTier(
+            minHoursBefore: tier.minHoursBefore,
+            refundPercent: tier.refundPercent,
+          ),
+      ],
+    );
+  }
+
+  /// Giữ các chỗ của chuyến kèm điểm đón / trả (10 phút theo chính sách giữ chỗ).
+  Future<SeatHold> holdSeats({
+    required String tripId,
+    required List<String> seatCodes,
+    required int pickupSequence,
+    required int dropoffSequence,
+  }) async {
+    final input = SeatHoldInputDto(
+      (b) => b
+        ..tripId = tripId
+        ..seatCodes.addAll(seatCodes)
+        ..pickupSequence = pickupSequence
+        ..dropoffSequence = dropoffSequence,
+    );
+    final response = await _call(
+      () => _client.getSeatHoldsApi().seatHoldControllerCreate(
+        seatHoldInputDto: input,
+      ),
+    );
+    final data = response.data!;
+    return SeatHold(
+      holdId: data.holdId,
+      tripId: data.tripId,
+      pickup: SeatHoldStop(
+        sequence: data.pickup.sequence,
+        name: data.pickup.name,
+        plannedAt: data.pickup.plannedAt,
+      ),
+      dropoff: SeatHoldStop(
+        sequence: data.dropoff.sequence,
+        name: data.dropoff.name,
+        plannedAt: data.dropoff.plannedAt,
+      ),
+      seats: [
+        for (final seat in data.seats)
+          HeldSeat(code: seat.code, type: seat.type.name, price: seat.price),
+      ],
+      subtotal: data.subtotal,
+      expiresAt: data.expiresAt,
+    );
+  }
+
+  /// Bỏ giữ chỗ khi khách quay lại chọn chỗ khác; giữ chỗ đã hết hạn thì coi như xong.
+  Future<void> releaseHold(String holdId) async {
+    try {
+      await _call(
+        () => _client.getSeatHoldsApi().seatHoldControllerRelease(
+          holdId: holdId,
+        ),
+      );
+    } on ApiFailure catch (failure) {
+      if (failure.code != 'SEAT_HOLD_EXPIRED') rethrow;
+    }
+  }
+
   Future<T> _call<T>(Future<T> Function() run) async {
     try {
       return await run();
@@ -168,6 +277,28 @@ class TripBookingApi {
       throw toApiFailure(error, _client.serializers);
     }
   }
+}
+
+/// Câu tiếng Việt cho lỗi của luồng đặt vé (giữ chỗ, xem chuyến); lỗi lạ dùng `detail` của API.
+String describeBookingFailure(Object error) {
+  if (error is! ApiFailure) return 'Đã xảy ra lỗi. Vui lòng thử lại.';
+  if (error.isNetworkError) {
+    return 'Không thể kết nối máy chủ. Vui lòng kiểm tra mạng và thử lại.';
+  }
+  return switch (error.code) {
+    'TRIP_NOT_FOUND' => 'Chuyến không còn mở bán.',
+    'SEAT_NOT_AVAILABLE' || 'SEAT_HOLD_CONFLICT' =>
+      'Chỗ bạn chọn vừa có người giữ hoặc đặt. Vui lòng chọn chỗ khác.',
+    'SEAT_HOLD_STOPS_INVALID' => 'Điểm đón / trả không hợp lệ cho chuyến này.',
+    'TRIP_SEAT_UNKNOWN' => 'Sơ đồ chỗ vừa thay đổi. Vui lòng chọn lại.',
+    'SEAT_HOLD_RATE_LIMITED' =>
+      'Bạn thao tác quá nhanh. Vui lòng thử lại sau ít phút.',
+    'SEAT_HOLD_EXPIRED' => 'Thời gian giữ chỗ đã hết. Vui lòng chọn lại.',
+    _ =>
+      error.status == 503
+          ? 'Hệ thống giữ chỗ đang bận. Vui lòng thử lại.'
+          : error.detail,
+  };
 }
 
 /// "Thành phố Hồ Chí Minh" → "TP. Hồ Chí Minh", "Tỉnh Lâm Đồng" → "Lâm Đồng" (cùng quy tắc với API).

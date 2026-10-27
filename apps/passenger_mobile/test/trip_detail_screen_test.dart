@@ -3,13 +3,21 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:passenger_mobile/features/ticket/ticket_screen.dart';
 import 'package:passenger_mobile/features/ticket/trip_detail_screen.dart';
 
+import 'support/fake_booking_api.dart';
 import 'support/trip_search_fakes.dart';
 
-Widget _ticketWithOneTrip() => TicketScreen(
-  onTabSelected: (_) {},
-  searchCatalog: fakeCatalog(),
-  initialQuery: sampleQuery,
-  searchTrips: (_, _, _) async => samplePage([sampleTrip('t1')]),
+Widget _detail() => TripDetailScreen(api: FakeBookingApi(), tripId: 'trip-1');
+
+Widget _ticketWithOneTrip() => Builder(
+  builder: (context) => TicketScreen(
+    onTabSelected: (_) {},
+    searchCatalog: fakeCatalog(),
+    initialQuery: sampleQuery,
+    searchTrips: (_, _, _) async => samplePage([sampleTrip('t1')]),
+    onTripSelected: (trip, query) => Navigator.of(context).push(
+      MaterialPageRoute<void>(builder: (_) => _detail()),
+    ),
+  ),
 );
 
 Future<void> _pumpApp(
@@ -69,12 +77,12 @@ void main() {
   ) async {
     await _pumpApp(
       tester,
-      home: const TripDetailScreen(),
+      home: _detail(),
       width: 320,
       height: 568,
     );
 
-    expect(find.text('Phương Trang'), findsOneWidget);
+    expect(find.text('Nhà xe Sao Mai'), findsOneWidget);
     await tester.dragUntilVisible(
       find.text('Tiện ích trên xe'),
       find.byKey(const Key('trip-detail-scroll')),
@@ -87,7 +95,7 @@ void main() {
   });
 
   testWidgets('header cố định khi nội dung cuộn', (tester) async {
-    await _pumpApp(tester, home: const TripDetailScreen());
+    await _pumpApp(tester, home: _detail());
 
     final header = find.byKey(const Key('trip-detail-header'));
     final initialTop = tester.getTopLeft(header).dy;
@@ -101,7 +109,7 @@ void main() {
   });
 
   testWidgets('nút Xem nhà xe vừa với nội dung', (tester) async {
-    await _pumpApp(tester, home: const TripDetailScreen());
+    await _pumpApp(tester, home: _detail());
 
     final operatorLink = find.byKey(const Key('trip-detail-operator-link'));
     final operatorLinkContent = find.byKey(
@@ -122,7 +130,7 @@ void main() {
     ) async {
       await _pumpApp(
         tester,
-        home: const TripDetailScreen(),
+        home: _detail(),
         width: width,
         height: 800,
         textScaleFactor: 1.6,

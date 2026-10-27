@@ -11,6 +11,7 @@ class BookingFlowHeader extends StatelessWidget {
   const BookingFlowHeader({
     super.key,
     required this.title,
+    required this.subtitle,
     required this.timerLabel,
     required this.expired,
     required this.onBack,
@@ -21,7 +22,12 @@ class BookingFlowHeader extends StatelessWidget {
   });
 
   final String title;
-  final String timerLabel;
+
+  /// Dòng phụ dưới tiêu đề, vd. tên tuyến.
+  final String subtitle;
+
+  /// `null` = chưa giữ chỗ, không hiện đồng hồ.
+  final String? timerLabel;
   final bool expired;
   final bool urgent;
   final VoidCallback onBack;
@@ -66,13 +72,16 @@ class BookingFlowHeader extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 2),
-                  const Text(
-                    'TP.HCM → Đà Lạt',
-                    style: TextStyle(color: _muted, fontSize: 13),
+                  Text(
+                    subtitle,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(color: _muted, fontSize: 13),
                   ),
                 ],
               ),
             ),
+            if (timerLabel != null) ...[
             const SizedBox(width: 8),
             ConstrainedBox(
               constraints: BoxConstraints(maxWidth: maxBadgeWidth),
@@ -111,7 +120,7 @@ class BookingFlowHeader extends StatelessWidget {
                                   'Giữ ghế trong ',
                                   style: _timerStyle(warning),
                                 ),
-                                Text(timerLabel, style: _timerStyle(warning)),
+                                Text(timerLabel!, style: _timerStyle(warning)),
                               ],
                             ),
                     ),
@@ -119,6 +128,7 @@ class BookingFlowHeader extends StatelessWidget {
                 ),
               ),
             ),
+            ],
           ],
         ),
       ),

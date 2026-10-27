@@ -3,6 +3,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:passenger_mobile/features/ticket/passenger_information_screen.dart';
 import 'package:passenger_mobile/features/ticket/seat_selection_screen.dart';
 
+import 'support/fake_booking_api.dart';
+
 Future<void> _pumpApp(
   WidgetTester tester, {
   required Widget home,
@@ -81,23 +83,29 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('countdown giữ nguyên thời gian khi chuyển từ bước 1', (
+  testWidgets('đồng hồ bước 2 đếm theo hạn giữ chỗ server trả', (
     tester,
   ) async {
-    var now = DateTime(2026, 10, 26, 10);
-    await _pumpApp(tester, home: SeatSelectionScreen(now: () => now));
-
-    now = now.add(const Duration(seconds: 30));
-    await tester.pump(const Duration(seconds: 1));
-    expect(find.text('09:30'), findsOneWidget);
-
+    final api = FakeBookingApi();
+    await _pumpApp(
+      tester,
+      home: SeatSelectionScreen(
+        api: api,
+        trip: api.trip,
+        pickupSequence: 1,
+        dropoffSequence: 5,
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('seat-A01')));
+    await tester.pump();
     await tester.tap(find.byKey(const Key('seat-selection-continue')));
     await tester.pumpAndSettle();
     expect(
       find.byKey(const Key('passenger-information-screen')),
       findsOneWidget,
     );
-    expect(find.text('09:30'), findsOneWidget);
+    expect(find.textContaining(RegExp(r'^(10:00|09:5\d)$')), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 
@@ -129,6 +137,12 @@ void main() {
           )
           .first,
     );
+    // Đưa nút lên khỏi thanh tổng tiền ở đáy màn hình.
+    await tester.drag(
+      find.byKey(const Key('passenger-information-scroll')),
+      const Offset(0, -150),
+    );
+    await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('saved-passenger-A03')));
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('saved-passenger-sheet')), findsOneWidget);

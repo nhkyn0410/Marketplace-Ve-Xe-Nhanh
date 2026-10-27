@@ -200,6 +200,7 @@ class _PaymentHeader extends StatelessWidget {
     return BookingFlowHeader(
       key: const Key('payment-header'),
       title: 'Thanh toán',
+      subtitle: 'TP.HCM → Đà Lạt',
       timerLabel: timerLabel,
       expired: expired,
       urgent: urgent,

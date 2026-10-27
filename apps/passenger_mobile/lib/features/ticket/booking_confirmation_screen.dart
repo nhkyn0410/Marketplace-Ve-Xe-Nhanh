@@ -177,6 +177,7 @@ class _ConfirmationHeader extends StatelessWidget {
     return BookingFlowHeader(
       key: const Key('booking-confirmation-header'),
       title: 'Xác nhận booking',
+      subtitle: 'TP.HCM → Đà Lạt',
       timerLabel: timerLabel,
       expired: expired,
       urgent: urgent,
