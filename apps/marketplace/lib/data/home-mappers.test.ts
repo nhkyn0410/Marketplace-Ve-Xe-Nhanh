@@ -66,21 +66,27 @@ describe("mapPopularRoute", () => {
 });
 
 describe("mapFeaturedOperator", () => {
-  it("viết tắt, số đánh giá, tuyến cho tab Theo nhà xe", () => {
+  it("viết tắt, logo, số đánh giá, tuyến cho tab Theo nhà xe", () => {
     const item = mapFeaturedOperator(
-      { operatorId: "op-1", displayName: "Phương Trang", averageRating: null, reviewCount: 0, routes: [route] },
+      { operatorId: "op-1", displayName: "Phương Trang", logoUrl: null, averageRating: null, reviewCount: 0, routes: [route] },
       1
     );
     expect(item).toEqual({
       id: "op-1",
       name: "Phương Trang",
       shortCode: "PT",
+      logoUrl: null,
       rating: null,
       ratingCountText: "Chưa có đánh giá",
       popularRoutesText: "TP. Hồ Chí Minh → Lâm Đồng",
       accentColor: "#00506A",
       routes: [{ originProvinceId: route.originProvinceId, destinationProvinceId: route.destinationProvinceId, label: "TP. Hồ Chí Minh → Lâm Đồng" }]
     });
-    expect(mapFeaturedOperator({ operatorId: "op-2", displayName: "A B", averageRating: 4.5, reviewCount: 12_840, routes: [] }, 0).ratingCountText).toBe("12.840 đánh giá");
+    const withLogo = mapFeaturedOperator(
+      { operatorId: "op-2", displayName: "A B", logoUrl: "https://cdn.test/operator-logos/op-2/logo.png", averageRating: 4.5, reviewCount: 12_840, routes: [] },
+      0
+    );
+    expect(withLogo.ratingCountText).toBe("12.840 đánh giá");
+    expect(withLogo.logoUrl).toBe("https://cdn.test/operator-logos/op-2/logo.png");
   });
 });

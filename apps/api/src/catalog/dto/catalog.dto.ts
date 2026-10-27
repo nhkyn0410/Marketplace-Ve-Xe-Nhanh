@@ -152,6 +152,8 @@ export const FeaturedOperatorListResponseSchema = z.object({
     z.object({
       operatorId: z.uuid(),
       displayName: z.string(),
+      /** Logo ở kho công khai; `null` = chưa có logo (hiển thị chữ viết tắt). */
+      logoUrl: z.url().nullable(),
       averageRating: z.number().nullable(),
       reviewCount: z.int(),
       routes: z.array(ProvincePairSchema),

@@ -70,6 +70,7 @@ export function mapFeaturedOperator(operator: FeaturedOperatorDto, index: number
     id: operator.operatorId,
     name: operator.displayName,
     shortCode: operatorInitials(operator.displayName),
+    logoUrl: operator.logoUrl,
     rating: operator.averageRating,
     ratingCountText: operator.reviewCount > 0 ? `${operator.reviewCount.toLocaleString("vi-VN")} đánh giá` : "Chưa có đánh giá",
     popularRoutesText: routes.map((route) => route.label).join(", "),

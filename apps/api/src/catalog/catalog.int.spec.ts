@@ -61,7 +61,7 @@ describe.skipIf(!url && !requireDb)("Catalog — Postgres thật, role app", () 
 
   beforeAll(async () => {
     prisma = new PrismaService(parseAppConfig({ DATABASE_URL: url }));
-    catalog = new CatalogService(prisma);
+    catalog = new CatalogService(prisma, { publicUrl: (key) => `https://cdn.test/${key}` });
     const [role] = await prisma.$queryRaw<
       { rolsuper: boolean; rolbypassrls: boolean }[]
     >`

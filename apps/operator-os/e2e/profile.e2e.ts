@@ -2,12 +2,15 @@ import { expect, test, type Page } from "@playwright/test";
 
 import { accounts, signInWithEnrollment } from "./helpers";
 
-// Màn Hồ sơ & KYC của chủ nhà xe (TASK-OPR-001b, UC-11; Figma 1667:27240, 1667:27586): sửa thông tin công khai, tải
-// bản mới của một giấy tờ KYC rồi mở xem, gửi yêu cầu đổi tài khoản nhận tiền (xác nhận lại danh tính bằng mật khẩu).
+// Màn Hồ sơ & KYC của chủ nhà xe (TASK-OPR-001b, UC-11; Figma 1667:27240, 1667:27586): sửa thông tin công khai, đổi /
+// gỡ logo, trang công khai + xem trước trên ứng dụng (TASK-MKT-001), tải bản mới của một giấy tờ KYC rồi mở xem, gửi yêu
+// cầu đổi tài khoản nhận tiền (xác nhận lại danh tính bằng mật khẩu).
 test.describe.configure({ mode: "serial" });
 
 const FIRST_VISIT = { timeout: 30_000 };
 const PDF = Buffer.from("%PDF-1.7\n1 0 obj << >> endobj\ntrailer << >>\n%%EOF\n");
+/** PNG 1×1 hợp lệ — trình duyệt đọc được để thu nhỏ rồi tải lên làm logo. */
+const PNG = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==", "base64");
 let page: Page;
 let password: string;
 
@@ -34,7 +37,10 @@ test("xem hồ sơ: thông tin doanh nghiệp, trạng thái, tài khoản nhậ
   await expect(bank).toContainText("•••• 4521");
   await expect(bank).not.toContainText("0071000124521");
   await expect(page.getByRole("region", { name: "Trạng thái hoạt động" })).toContainText("Đang hoạt động");
-  await expect(page.getByRole("button", { name: "Mở trang nhà xe" })).toBeDisabled();
+  // Trang công khai: link tới /operators/{id} của web khách hàng, mở ở tab mới.
+  const openPage = page.getByRole("region", { name: "Trang công khai" }).getByRole("link", { name: "Mở trang nhà xe" });
+  await expect(openPage).toHaveAttribute("href", /\/operators\/[0-9a-f-]{36}$/);
+  await expect(openPage).toHaveAttribute("target", "_blank");
 
   await business.getByRole("button", { name: "Chỉnh sửa" }).click();
   const dialog = page.getByRole("dialog", { name: "Chỉnh sửa hồ sơ doanh nghiệp" });
@@ -48,6 +54,37 @@ test("xem hồ sơ: thông tin doanh nghiệp, trạng thái, tài khoản nhậ
   await expect(page.getByRole("status")).toContainText("Đã lưu hồ sơ doanh nghiệp.");
   await expect(business).toContainText("19001234");
   await expect(business).toContainText("Tuyến TP. Hồ Chí Minh – Đà Lạt, xe giường nằm.");
+});
+
+test("logo: tệp sai định dạng báo lỗi; tải PNG → hiện logo, xem trước trên ứng dụng có logo; gỡ (xác nhận) → về chữ viết tắt", async () => {
+  const business = page.getByRole("region", { name: "Hồ sơ doanh nghiệp" });
+  const logoInput = business.getByLabel("Chọn ảnh logo");
+  await logoInput.setInputFiles({ name: "ghi-chu.txt", mimeType: "text/plain", buffer: Buffer.from("x") });
+  await expect(page.getByText("Định dạng không được hỗ trợ. Chọn JPEG, PNG hoặc WebP.")).toBeVisible();
+
+  await logoInput.setInputFiles({ name: "logo.png", mimeType: "image/png", buffer: PNG });
+  await expect(page.getByRole("status")).toContainText("Đã cập nhật logo nhà xe.", { timeout: 20_000 });
+  const logo = business.getByRole("img", { name: /^Logo / });
+  await expect(logo).toBeVisible();
+  // Ảnh tải được từ kho công khai (dev: kho local qua API).
+  await expect.poll(() => logo.evaluate((image: HTMLImageElement) => image.naturalWidth), { timeout: 20_000 }).toBeGreaterThan(0);
+  await expect(business.getByRole("button", { name: "Đổi logo" })).toBeVisible();
+
+  await page.getByRole("region", { name: "Trang công khai" }).getByRole("button", { name: "Xem trước trên ứng dụng" }).click();
+  const preview = page.getByRole("dialog", { name: "Xem trước trên ứng dụng" });
+  const screen = preview.getByRole("region", { name: "Màn hình ứng dụng" });
+  await expect(screen.getByRole("img", { name: /^Logo / })).toBeVisible({ timeout: 20_000 });
+  await expect(screen).toContainText("19001234");
+  await expect(screen).toContainText("Chỉ số chất lượng");
+  await expect(screen).toContainText("Chưa có đánh giá.");
+  await preview.getByRole("button", { name: "Đóng" }).click();
+  await expect(preview).toBeHidden();
+
+  await business.getByRole("button", { name: "Gỡ logo" }).click();
+  await page.getByRole("alertdialog", { name: "Gỡ logo nhà xe?" }).getByRole("button", { name: "Gỡ logo" }).click();
+  await expect(page.getByRole("status")).toContainText("Đã gỡ logo nhà xe.", { timeout: 20_000 });
+  await expect(business.getByRole("img", { name: /^Logo / })).toHaveCount(0);
+  await expect(business.getByRole("button", { name: "Tải logo" })).toBeVisible();
 });
 
 test("giấy tờ KYC: tệp sai định dạng báo lỗi; tải bản mới PDF → hiện tên tệp, mở xem được", async () => {

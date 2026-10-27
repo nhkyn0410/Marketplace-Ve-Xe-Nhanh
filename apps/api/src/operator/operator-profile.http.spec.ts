@@ -26,6 +26,7 @@ describe("Hồ sơ nhà xe — HTTP", () => {
     publicEmail: null,
     address: null,
     description: null,
+    logoUrl: null,
     status: "ACTIVE",
     suspendedReason: null,
     approvedAt: null,
@@ -34,6 +35,7 @@ describe("Hồ sơ nhà xe — HTTP", () => {
     bankChange: null,
   };
   const objectKey = `operator-kyc/${operatorId}/${randomUUID()}.pdf`;
+  const logoKey = `operator-logos/${operatorId}/${randomUUID()}.png`;
   const service = {
     get: vi.fn(async () => profile),
     update: vi.fn(async () => profile),
@@ -41,6 +43,9 @@ describe("Hồ sơ nhà xe — HTTP", () => {
     replaceDocument: vi.fn(async () => profile),
     createDocumentDownload: vi.fn(async () => ({ url: "https://download.test/get", expiresAt: now })),
     requestBankChange: vi.fn(async () => profile),
+    createLogoUpload: vi.fn(async () => ({ uploadUrl: "https://upload.test/put", objectKey: logoKey, expiresAt: now })),
+    setLogo: vi.fn(async () => profile),
+    removeLogo: vi.fn(async () => profile),
   };
   const reauth = { granted: false };
   let app: INestApplication;
@@ -121,6 +126,9 @@ describe("Hồ sơ nhà xe — HTTP", () => {
     ["PUT", "/documents/TRANSPORT_LICENSE", { objectKey, fileName: "gpkd.pdf" }, 200, false],
     ["POST", "/documents/TRANSPORT_LICENSE/download-url", undefined, 200, false],
     ["POST", "/bank-account-change", bank, 201, true],
+    ["POST", "/logo/upload-url", { contentType: "image/png", sizeBytes: 2048 }, 200, false],
+    ["PUT", "/logo", { objectKey: logoKey }, 200, false],
+    ["DELETE", "/logo", undefined, 200, false],
   ];
 
   it.each(routes)(
@@ -160,7 +168,7 @@ describe("Hồ sơ nhà xe — HTTP", () => {
     });
   });
 
-  it("validate → 400: hotline / email sai, loại giấy tờ lạ, file không phải PDF / ảnh hoặc quá 10 MB, số tài khoản / lý do sai", async () => {
+  it("validate → 400: hotline / email sai, loại giấy tờ lạ, file không phải PDF / ảnh hoặc quá 10 MB, logo không phải JPEG / PNG / WebP hoặc quá 2 MB, số tài khoản / lý do sai", async () => {
     reauth.granted = true;
     const owner = await token("OPERATOR_OWNER");
     for (const [method, path, body] of [
@@ -174,6 +182,11 @@ describe("Hồ sơ nhà xe — HTTP", () => {
       ["POST", "/bank-account-change", { ...bank, accountNumber: "12AB" }],
       ["POST", "/bank-account-change", { ...bank, reason: "ab" }],
       ["POST", "/bank-account-change", { ...bank, accountHolder: "Ω" }],
+      ["POST", "/logo/upload-url", { contentType: "image/svg+xml", sizeBytes: 10 }],
+      ["POST", "/logo/upload-url", { contentType: "image/gif", sizeBytes: 10 }],
+      ["POST", "/logo/upload-url", { contentType: "image/png", sizeBytes: 2 * 1024 * 1024 + 1 }],
+      ["PUT", "/logo", {}],
+      ["PUT", "/logo", { objectKey: "" }],
     ] as const) {
       expect((await call(method, path, owner, body)).status, `${method} ${path}`).toBe(400);
     }

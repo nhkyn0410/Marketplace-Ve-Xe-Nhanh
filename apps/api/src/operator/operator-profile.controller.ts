@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpCode, Inject, Param, Post, Put } from "@nestjs/common";
+import { Body, Controller, Delete, Get, HttpCode, Inject, Param, Post, Put } from "@nestjs/common";
 import { ApiBody, ApiParam, ApiResponse, ApiTags, getSchemaPath } from "@nestjs/swagger";
 import { ZodResponse } from "nestjs-zod";
 import { OperatorApplicationDocumentType } from "../database/prisma.types";
@@ -16,6 +16,10 @@ import {
   KycUploadInputDto,
   KycUploadResponseDto,
   type KycUploadResponse,
+  LogoAttachInputDto,
+  LogoUploadInputDto,
+  LogoUploadResponseDto,
+  type LogoUploadResponse,
   OperatorProfileResponseDto,
   type OperatorProfileResponse,
   OperatorProfileUpdateDto,
@@ -54,6 +58,42 @@ export class OperatorProfileController {
     @Body() input: OperatorProfileUpdateDto,
   ): Promise<OperatorProfileResponse> {
     return this.profiles.update(authz, actor, input);
+  }
+
+  /** Cấp URL để trình duyệt tải thẳng logo lên kho công khai (hiệu lực 5 phút). */
+  @Post("logo/upload-url")
+  @HttpCode(200)
+  @Authorize("kyc:submit")
+  @ApiBody({ type: LogoUploadInputDto })
+  @ZodResponse({ status: 200, description: "URL tải lên và khóa object.", type: LogoUploadResponseDto })
+  @ApiResponse({ status: 400, description: "Loại file hoặc dung lượng không hợp lệ.", content: problemContent })
+  @ApiResponse({ status: 503, description: "Kho công khai không phản hồi.", content: problemContent })
+  createLogoUploadUrl(@Authz() authz: Authorization, @Body() input: LogoUploadInputDto): Promise<LogoUploadResponse> {
+    return this.profiles.createLogoUpload(authz, input);
+  }
+
+  /** Đặt logo vừa tải lên làm logo nhà xe (audited); logo cũ bị xóa khỏi kho. */
+  @Put("logo")
+  @Authorize("kyc:submit")
+  @ApiBody({ type: LogoAttachInputDto })
+  @ZodResponse({ status: 200, description: "Hồ sơ sau khi đổi logo.", type: OperatorProfileResponseDto })
+  @ApiResponse({ status: 422, description: "`OPERATOR_LOGO_INVALID`.", content: problemContent })
+  @ApiResponse({ status: 503, description: "Kho công khai / audit không phản hồi.", content: problemContent })
+  setLogo(
+    @Authz() authz: Authorization,
+    @CurrentUser() actor: VerifiedAccessToken,
+    @Body() input: LogoAttachInputDto,
+  ): Promise<OperatorProfileResponse> {
+    return this.profiles.setLogo(authz, actor, input);
+  }
+
+  /** Gỡ logo (audited) — trang nhà xe quay về chữ viết tắt. */
+  @Delete("logo")
+  @Authorize("kyc:submit")
+  @ZodResponse({ status: 200, description: "Hồ sơ sau khi gỡ logo.", type: OperatorProfileResponseDto })
+  @ApiResponse({ status: 503, description: "Chưa ghi được audit — không đổi gì.", content: problemContent })
+  removeLogo(@Authz() authz: Authorization, @CurrentUser() actor: VerifiedAccessToken): Promise<OperatorProfileResponse> {
+    return this.profiles.removeLogo(authz, actor);
   }
 
   /** Cấp URL để trình duyệt tải thẳng một giấy tờ lên kho riêng tư (hiệu lực 5 phút). */

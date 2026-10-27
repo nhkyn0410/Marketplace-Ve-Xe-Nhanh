@@ -19,6 +19,7 @@ part 'public_operator_profile_dto_output.g.dart';
 /// * [operatorId] 
 /// * [operatorSlug] 
 /// * [displayName] 
+/// * [logoUrl] 
 /// * [description] 
 /// * [hotline] 
 /// * [publicEmail] 
@@ -38,6 +39,9 @@ abstract class PublicOperatorProfileDtoOutput implements Built<PublicOperatorPro
 
   @BuiltValueField(wireName: r'displayName')
   String get displayName;
+
+  @BuiltValueField(wireName: r'logoUrl')
+  String? get logoUrl;
 
   @BuiltValueField(wireName: r'description')
   String? get description;
@@ -103,6 +107,11 @@ class _$PublicOperatorProfileDtoOutputSerializer implements PrimitiveSerializer<
     yield serializers.serialize(
       object.displayName,
       specifiedType: const FullType(String),
+    );
+    yield r'logoUrl';
+    yield object.logoUrl == null ? null : serializers.serialize(
+      object.logoUrl,
+      specifiedType: const FullType.nullable(String),
     );
     yield r'description';
     yield object.description == null ? null : serializers.serialize(
@@ -192,6 +201,14 @@ class _$PublicOperatorProfileDtoOutputSerializer implements PrimitiveSerializer<
             specifiedType: const FullType(String),
           ) as String;
           result.displayName = valueDes;
+          break;
+        case r'logoUrl':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType.nullable(String),
+          ) as String?;
+          if (valueDes == null) continue;
+          result.logoUrl = valueDes;
           break;
         case r'description':
           final valueDes = serializers.deserialize(

@@ -10,7 +10,9 @@ class _$PromotionCheckInputDto extends PromotionCheckInputDto {
   @override
   final String tripId;
   @override
-  final String code;
+  final String? code;
+  @override
+  final String? userVoucherId;
   @override
   final int subtotal;
 
@@ -19,7 +21,10 @@ class _$PromotionCheckInputDto extends PromotionCheckInputDto {
       (PromotionCheckInputDtoBuilder()..update(updates))._build();
 
   _$PromotionCheckInputDto._(
-      {required this.tripId, required this.code, required this.subtotal})
+      {required this.tripId,
+      this.code,
+      this.userVoucherId,
+      required this.subtotal})
       : super._();
   @override
   PromotionCheckInputDto rebuild(
@@ -36,6 +41,7 @@ class _$PromotionCheckInputDto extends PromotionCheckInputDto {
     return other is PromotionCheckInputDto &&
         tripId == other.tripId &&
         code == other.code &&
+        userVoucherId == other.userVoucherId &&
         subtotal == other.subtotal;
   }
 
@@ -44,6 +50,7 @@ class _$PromotionCheckInputDto extends PromotionCheckInputDto {
     var _$hash = 0;
     _$hash = $jc(_$hash, tripId.hashCode);
     _$hash = $jc(_$hash, code.hashCode);
+    _$hash = $jc(_$hash, userVoucherId.hashCode);
     _$hash = $jc(_$hash, subtotal.hashCode);
     _$hash = $jf(_$hash);
     return _$hash;
@@ -54,6 +61,7 @@ class _$PromotionCheckInputDto extends PromotionCheckInputDto {
     return (newBuiltValueToStringHelper(r'PromotionCheckInputDto')
           ..add('tripId', tripId)
           ..add('code', code)
+          ..add('userVoucherId', userVoucherId)
           ..add('subtotal', subtotal))
         .toString();
   }
@@ -71,6 +79,11 @@ class PromotionCheckInputDtoBuilder
   String? get code => _$this._code;
   set code(String? code) => _$this._code = code;
 
+  String? _userVoucherId;
+  String? get userVoucherId => _$this._userVoucherId;
+  set userVoucherId(String? userVoucherId) =>
+      _$this._userVoucherId = userVoucherId;
+
   int? _subtotal;
   int? get subtotal => _$this._subtotal;
   set subtotal(int? subtotal) => _$this._subtotal = subtotal;
@@ -84,6 +97,7 @@ class PromotionCheckInputDtoBuilder
     if ($v != null) {
       _tripId = $v.tripId;
       _code = $v.code;
+      _userVoucherId = $v.userVoucherId;
       _subtotal = $v.subtotal;
       _$v = null;
     }
@@ -108,8 +122,8 @@ class PromotionCheckInputDtoBuilder
         _$PromotionCheckInputDto._(
           tripId: BuiltValueNullFieldError.checkNotNull(
               tripId, r'PromotionCheckInputDto', 'tripId'),
-          code: BuiltValueNullFieldError.checkNotNull(
-              code, r'PromotionCheckInputDto', 'code'),
+          code: code,
+          userVoucherId: userVoucherId,
           subtotal: BuiltValueNullFieldError.checkNotNull(
               subtotal, r'PromotionCheckInputDto', 'subtotal'),
         );

@@ -55,6 +55,8 @@ export interface FeaturedOperatorItem {
   readonly id: string;
   readonly name: string;
   readonly shortCode: string;
+  /** Logo ở kho công khai; không có → ô chữ viết tắt `shortCode`. */
+  readonly logoUrl?: string | null;
   /** Null khi chưa có đánh giá. */
   readonly rating: number | null;
   readonly ratingCountText: string;
@@ -296,6 +298,8 @@ export interface OperatorProfileData {
   readonly id: string;
   readonly name: string;
   readonly code: string;
+  /** Logo ở kho công khai; không có → ô chữ viết tắt `code`. */
+  readonly logoUrl?: string | null;
   readonly isVerified: boolean;
   readonly description: string;
   readonly hotline: string;

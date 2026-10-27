@@ -264,7 +264,7 @@ describe.skipIf(!url && !requireDb)("Tìm chuyến công khai — Postgres thậ
       },
     ]);
     const featured = (await loadFeaturedOperators(prisma, 1000, now)).filter((operator) => operator.operatorId === opA || operator.operatorId === opB);
-    expect(featured).toEqual([{ operatorId: opA, displayName: `Nhà xe A ${tag}`, averageRating: null, reviewCount: 0, routes: [pair] }]);
+    expect(featured).toEqual([{ operatorId: opA, displayName: `Nhà xe A ${tag}`, logoObjectKey: null, averageRating: null, reviewCount: 0, routes: [pair] }]);
     // Ngoài cửa sổ 30 ngày tới thì không còn là tuyến đang bán.
     expect((await loadPopularRoutes(prisma, 1000, new Date(DAY0 - 40 * 24 * HOUR))).some((route) => route.originProvinceId === provinceA)).toBe(false);
   });

@@ -299,10 +299,13 @@ Class | Method | HTTP request | Description
 [*OperatorManagersApi*](doc/OperatorManagersApi.md) | [**operatorManagerControllerResetPassword**](doc/OperatorManagersApi.md#operatormanagercontrollerresetpassword) | **POST** /v1/operator/managers/{managerId}/password-reset | 
 [*OperatorManagersApi*](doc/OperatorManagersApi.md) | [**operatorManagerControllerUpdate**](doc/OperatorManagersApi.md#operatormanagercontrollerupdate) | **PATCH** /v1/operator/managers/{managerId} | 
 [*OperatorProfileApi*](doc/OperatorProfileApi.md) | [**operatorProfileControllerCreateDownloadUrl**](doc/OperatorProfileApi.md#operatorprofilecontrollercreatedownloadurl) | **POST** /v1/operator/profile/documents/{type}/download-url | 
+[*OperatorProfileApi*](doc/OperatorProfileApi.md) | [**operatorProfileControllerCreateLogoUploadUrl**](doc/OperatorProfileApi.md#operatorprofilecontrollercreatelogouploadurl) | **POST** /v1/operator/profile/logo/upload-url | 
 [*OperatorProfileApi*](doc/OperatorProfileApi.md) | [**operatorProfileControllerCreateUploadUrl**](doc/OperatorProfileApi.md#operatorprofilecontrollercreateuploadurl) | **POST** /v1/operator/profile/documents/upload-url | 
 [*OperatorProfileApi*](doc/OperatorProfileApi.md) | [**operatorProfileControllerGet**](doc/OperatorProfileApi.md#operatorprofilecontrollerget) | **GET** /v1/operator/profile | 
+[*OperatorProfileApi*](doc/OperatorProfileApi.md) | [**operatorProfileControllerRemoveLogo**](doc/OperatorProfileApi.md#operatorprofilecontrollerremovelogo) | **DELETE** /v1/operator/profile/logo | 
 [*OperatorProfileApi*](doc/OperatorProfileApi.md) | [**operatorProfileControllerReplaceDocument**](doc/OperatorProfileApi.md#operatorprofilecontrollerreplacedocument) | **PUT** /v1/operator/profile/documents/{type} | 
 [*OperatorProfileApi*](doc/OperatorProfileApi.md) | [**operatorProfileControllerRequestBankChange**](doc/OperatorProfileApi.md#operatorprofilecontrollerrequestbankchange) | **POST** /v1/operator/profile/bank-account-change | 
+[*OperatorProfileApi*](doc/OperatorProfileApi.md) | [**operatorProfileControllerSetLogo**](doc/OperatorProfileApi.md#operatorprofilecontrollersetlogo) | **PUT** /v1/operator/profile/logo | 
 [*OperatorProfileApi*](doc/OperatorProfileApi.md) | [**operatorProfileControllerUpdate**](doc/OperatorProfileApi.md#operatorprofilecontrollerupdate) | **PUT** /v1/operator/profile | 
 [*OperatorPromotionsApi*](doc/OperatorPromotionsApi.md) | [**operatorPromotionControllerCreate**](doc/OperatorPromotionsApi.md#operatorpromotioncontrollercreate) | **POST** /v1/operator/promotions | 
 [*OperatorPromotionsApi*](doc/OperatorPromotionsApi.md) | [**operatorPromotionControllerGet**](doc/OperatorPromotionsApi.md#operatorpromotioncontrollerget) | **GET** /v1/operator/promotions/{promotionId} | 
@@ -654,6 +657,9 @@ Class | Method | HTTP request | Description
  - [KycReplaceInputDto](doc/KycReplaceInputDto.md)
  - [KycUploadInputDto](doc/KycUploadInputDto.md)
  - [KycUploadResponseDtoOutput](doc/KycUploadResponseDtoOutput.md)
+ - [LogoAttachInputDto](doc/LogoAttachInputDto.md)
+ - [LogoUploadInputDto](doc/LogoUploadInputDto.md)
+ - [LogoUploadResponseDtoOutput](doc/LogoUploadResponseDtoOutput.md)
  - [LoyaltyMemberDtoOutput](doc/LoyaltyMemberDtoOutput.md)
  - [LoyaltyRedemptionInputDto](doc/LoyaltyRedemptionInputDto.md)
  - [LoyaltyReportDtoOutput](doc/LoyaltyReportDtoOutput.md)
