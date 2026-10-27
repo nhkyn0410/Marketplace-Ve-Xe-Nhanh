@@ -612,6 +612,12 @@ Serializers _$serializers = (Serializers().toBuilder()
       ..add(PermissionPageDtoOutput.serializer)
       ..add(PermissionPageDtoOutputItemsInner.serializer)
       ..add(PickupWindowInputDto.serializer)
+      ..add(PlaceSuggestionListResponseDtoOutput.serializer)
+      ..add(PlaceSuggestionListResponseDtoOutputItemsInner.serializer)
+      ..add(PlaceSuggestionListResponseDtoOutputItemsInnerKindEnum.serializer)
+      ..add(PlaceSuggestionListResponseDtoOutputItemsInnerTarget.serializer)
+      ..add(PlaceSuggestionListResponseDtoOutputItemsInnerTargetTypeEnum
+          .serializer)
       ..add(PointAdjustInputDto.serializer)
       ..add(PointAdjustInputDtoDirectionEnum.serializer)
       ..add(PolicyCancelDto.serializer)
@@ -890,6 +896,7 @@ Serializers _$serializers = (Serializers().toBuilder()
       ..add(
           TripSearchResponseDtoOutputItemsInnerVehicleTypeClass_Enum.serializer)
       ..add(TripSearchResponseDtoOutputItemsInnerVehicleTypeFormEnum.serializer)
+      ..add(TripSearchResponseDtoOutputWidenedToProvince.serializer)
       ..add(TripSeatStatusInputDto.serializer)
       ..add(TripSeatStatusInputDtoStatusEnum.serializer)
       ..add(TripStatusInputDto.serializer)
@@ -1485,6 +1492,11 @@ Serializers _$serializers = (Serializers().toBuilder()
           const FullType(BuiltList,
               const [const FullType(PermissionPageDtoOutputItemsInner)]),
           () => ListBuilder<PermissionPageDtoOutputItemsInner>())
+      ..addBuilderFactory(
+          const FullType(BuiltList, const [
+            const FullType(PlaceSuggestionListResponseDtoOutputItemsInner)
+          ]),
+          () => ListBuilder<PlaceSuggestionListResponseDtoOutputItemsInner>())
       ..addBuilderFactory(
           const FullType(BuiltList,
               const [const FullType(PolicyOverviewDtoOutputVersionsInner)]),

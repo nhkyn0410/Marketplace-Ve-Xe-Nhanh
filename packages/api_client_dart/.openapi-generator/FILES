@@ -404,6 +404,9 @@ doc/PermissionInputDto.md
 doc/PermissionPageDtoOutput.md
 doc/PermissionPageDtoOutputItemsInner.md
 doc/PickupWindowInputDto.md
+doc/PlaceSuggestionListResponseDtoOutput.md
+doc/PlaceSuggestionListResponseDtoOutputItemsInner.md
+doc/PlaceSuggestionListResponseDtoOutputItemsInnerTarget.md
 doc/PointAdjustInputDto.md
 doc/PolicyCancelDto.md
 doc/PolicyDraftCreateDto.md
@@ -580,6 +583,7 @@ doc/TripSearchResponseDtoOutputItemsInnerAmenitiesInner.md
 doc/TripSearchResponseDtoOutputItemsInnerOperator.md
 doc/TripSearchResponseDtoOutputItemsInnerPickup.md
 doc/TripSearchResponseDtoOutputItemsInnerVehicleType.md
+doc/TripSearchResponseDtoOutputWidenedToProvince.md
 doc/TripSeatStatusInputDto.md
 doc/TripStatusInputDto.md
 doc/TripsApi.md
@@ -1021,6 +1025,9 @@ lib/src/model/permission_input_dto.dart
 lib/src/model/permission_page_dto_output.dart
 lib/src/model/permission_page_dto_output_items_inner.dart
 lib/src/model/pickup_window_input_dto.dart
+lib/src/model/place_suggestion_list_response_dto_output.dart
+lib/src/model/place_suggestion_list_response_dto_output_items_inner.dart
+lib/src/model/place_suggestion_list_response_dto_output_items_inner_target.dart
 lib/src/model/point_adjust_input_dto.dart
 lib/src/model/policy_cancel_dto.dart
 lib/src/model/policy_draft_create_dto.dart
@@ -1191,6 +1198,7 @@ lib/src/model/trip_search_response_dto_output_items_inner_amenities_inner.dart
 lib/src/model/trip_search_response_dto_output_items_inner_operator.dart
 lib/src/model/trip_search_response_dto_output_items_inner_pickup.dart
 lib/src/model/trip_search_response_dto_output_items_inner_vehicle_type.dart
+lib/src/model/trip_search_response_dto_output_widened_to_province.dart
 lib/src/model/trip_seat_status_input_dto.dart
 lib/src/model/trip_status_input_dto.dart
 lib/src/model/user_voucher_dto_output.dart
@@ -1213,6 +1221,7 @@ lib/src/model/ward_list_response_dto_output.dart
 lib/src/model/ward_list_response_dto_output_items_inner.dart
 lib/src/serializers.dart
 pubspec.yaml
-test/logo_attach_input_dto_test.dart
-test/logo_upload_input_dto_test.dart
-test/logo_upload_response_dto_output_test.dart
+test/place_suggestion_list_response_dto_output_items_inner_target_test.dart
+test/place_suggestion_list_response_dto_output_items_inner_test.dart
+test/place_suggestion_list_response_dto_output_test.dart
+test/trip_search_response_dto_output_widened_to_province_test.dart

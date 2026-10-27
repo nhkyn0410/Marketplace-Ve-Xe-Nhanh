@@ -3,9 +3,15 @@ import type { TripDetailData, TripSearchResultItem } from "./types";
 import { formatDateVi, formatTimeVi } from "../format";
 
 /** Bộ lọc tìm chuyến được chuyển sang query của API công khai. */
+/** Loại điểm đi / điểm đến — khớp `target.type` của `GET /catalog/places`. */
+export type PlaceType = "province" | "ward" | "stopPoint";
+
 export interface SearchTripsParams {
   readonly origin?: string;
+  /** Thiếu = tỉnh / thành (link cũ: tuyến phổ biến, nhà xe chỉ mang id tỉnh). */
+  readonly originType?: PlaceType;
   readonly destination?: string;
+  readonly destinationType?: PlaceType;
   readonly date?: string;
   readonly passengers?: number;
   readonly timeRange?: string;
@@ -24,13 +30,20 @@ export function apiMoney(value: number): string {
   return BigInt(value).toString();
 }
 
+/** Đọc loại điểm từ URL; giá trị lạ coi như tỉnh. */
+export function placeType(value: string | undefined): PlaceType {
+  return value === "ward" || value === "stopPoint" ? value : "province";
+}
+
 /** Tạo query tìm chuyến, giữ giá dưới dạng chuỗi và ngày theo giờ Việt Nam. */
 export function searchQuery(params: SearchTripsParams): URLSearchParams {
   const date = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Ho_Chi_Minh" }).format(new Date());
   const query = new URLSearchParams({ date: params.date || date, passengers: String(params.passengers ?? 1) });
   const forms: Record<string, string> = { seat: "SEATER", sleeper: "SLEEPER", cabin: "CABIN" };
+  const keys: Record<PlaceType, string> = { province: "ProvinceId", ward: "WardId", stopPoint: "StopPointId" };
   const values = {
-    fromProvinceId: params.origin, toProvinceId: params.destination,
+    [`from${keys[params.originType ?? "province"]}`]: params.origin,
+    [`to${keys[params.destinationType ?? "province"]}`]: params.destination,
     operatorId: params.operatorId, priceMin: params.minPriceVnd, priceMax: params.maxPriceVnd,
     vehicleForm: params.seatType ? forms[params.seatType] : undefined,
     vehicleClass: params.vehicleType?.toUpperCase(), page: params.page,
@@ -99,4 +112,33 @@ export function mapTripDetail(trip: components["schemas"]["PublicTripDto_Output"
     cancellationNote: trip.note ?? "Xem báo giá hoàn tiền trước khi xác nhận hủy.",
     reviewsAverage: 0, reviewsCountText: "Xem đánh giá trên trang nhà xe", reviews: []
   };
+}
+
+/** Một điểm đi / điểm đến trên URL `/trips`: `origin` + `originType` + `originLabel` (tên hiện lại trên ô). */
+export interface PlaceParam {
+  readonly type: PlaceType;
+  readonly id: string;
+  readonly label: string;
+}
+
+/** Tham số URL của một điểm; tỉnh không ghi `…Type` để link cũ vẫn đúng. */
+export function placeSearchParams(side: "origin" | "destination", place: PlaceParam): Record<string, string> {
+  return {
+    [side]: place.id,
+    ...(place.type === "province" ? {} : { [`${side}Type`]: place.type }),
+    [`${side}Label`]: place.label
+  };
+}
+
+/** Điểm ban đầu của ô tìm từ URL; link cũ chỉ có id tỉnh thì lấy tên từ danh sách tỉnh. */
+export function initialPlace(
+  id: string | undefined,
+  type: string | undefined,
+  label: string | undefined,
+  provinces: readonly { readonly id: string; readonly name: string }[]
+): PlaceParam | null {
+  if (!id) return null;
+  const resolvedType = placeType(type);
+  const name = label || (resolvedType === "province" ? provinces.find((province) => province.id === id)?.name : undefined);
+  return { type: resolvedType, id, label: name ?? "" };
 }

@@ -103,8 +103,10 @@ class TripsApi {
   /// Parameters:
   /// * [date] 
   /// * [fromProvinceId] 
+  /// * [fromWardId] 
   /// * [fromStopPointId] 
   /// * [toProvinceId] 
+  /// * [toWardId] 
   /// * [toStopPointId] 
   /// * [passengers] 
   /// * [operatorId] 
@@ -130,8 +132,10 @@ class TripsApi {
   Future<Response<TripSearchResponseDtoOutput>> publicTripControllerSearch({ 
     required Date date,
     String? fromProvinceId,
+    String? fromWardId,
     String? fromStopPointId,
     String? toProvinceId,
+    String? toWardId,
     String? toStopPointId,
     int? passengers = 1,
     String? operatorId,
@@ -167,8 +171,10 @@ class TripsApi {
 
     final _queryParameters = <String, dynamic>{
       if (fromProvinceId != null) r'fromProvinceId': encodeQueryParameter(_serializers, fromProvinceId, const FullType(String)),
+      if (fromWardId != null) r'fromWardId': encodeQueryParameter(_serializers, fromWardId, const FullType(String)),
       if (fromStopPointId != null) r'fromStopPointId': encodeQueryParameter(_serializers, fromStopPointId, const FullType(String)),
       if (toProvinceId != null) r'toProvinceId': encodeQueryParameter(_serializers, toProvinceId, const FullType(String)),
+      if (toWardId != null) r'toWardId': encodeQueryParameter(_serializers, toWardId, const FullType(String)),
       if (toStopPointId != null) r'toStopPointId': encodeQueryParameter(_serializers, toStopPointId, const FullType(String)),
       r'date': encodeQueryParameter(_serializers, date, const FullType(Date)),
       if (passengers != null) r'passengers': encodeQueryParameter(_serializers, passengers, const FullType(int)),

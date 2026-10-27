@@ -13,13 +13,13 @@ import {
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import type { FeaturedOperatorItem, ProvinceItem } from "../../lib/data/types";
+import { placeSearchParams } from "../../lib/data/trip-mappers";
+import type { FeaturedOperatorItem } from "../../lib/data/types";
 import { formatTripDateVi } from "../../lib/format";
+import { PlaceInput, type PlaceValue } from "../trips/place-input";
 
 /** Thuộc tính của form tìm chuyến trên trang chủ. */
 export interface SearchHeroProps {
-  readonly provinces: readonly ProvinceItem[];
-  readonly catalogError?: string;
   readonly featuredOperators?: readonly FeaturedOperatorItem[];
   readonly initialTab?: "trip" | "operator";
   readonly initialPickerOpen?: boolean;
@@ -38,7 +38,6 @@ const PREVIEW_ROUTE_OPTIONS = [
  * Khối Banner Hero & Form tìm kiếm chuyến xe 2 tab (Mua vé & Theo nhà xe) chuẩn Figma 776:791, 830:592, 836:113, 837:131.
  */
 export function SearchHero({
-  provinces,
   featuredOperators = [],
   initialTab = "trip",
   initialPickerOpen = false,
@@ -46,8 +45,8 @@ export function SearchHero({
 }: SearchHeroProps) {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<"trip" | "operator">(initialTab);
-  const [origin, setOrigin] = useState<string>("");
-  const [destination, setDestination] = useState<string>("");
+  const [origin, setOrigin] = useState<PlaceValue | null>(null);
+  const [destination, setDestination] = useState<PlaceValue | null>(null);
   const [departureDate, setDepartureDate] = useState<string>("");
   const [passengerCount] = useState<number>(1);
 
@@ -79,11 +78,16 @@ export function SearchHero({
     }
     const passengers = String(passengerCount);
     if (activeTab === "trip") {
-      if (!departureDate || !origin || !destination || origin === destination) {
-        setActionError("Chọn ngày đi và hai tỉnh thành khác nhau.");
+      if (!departureDate || !origin || !destination || origin.id === destination.id) {
+        setActionError("Chọn ngày đi và hai điểm khác nhau từ danh sách gợi ý.");
         return;
       }
-      router.push(`/trips?${new URLSearchParams({ origin, destination, date: departureDate, passengers })}`);
+      router.push(`/trips?${new URLSearchParams({
+        ...placeSearchParams("origin", origin),
+        ...placeSearchParams("destination", destination),
+        date: departureDate,
+        passengers
+      })}`);
       return;
     }
     if (!selectedOperator) {
@@ -203,24 +207,16 @@ export function SearchHero({
               /* TAB 1: MUA VÉ / THEO CHUYẾN (830:592) */
               <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
                 {/* Điểm đi */}
-                <div className="flex-1 rounded-xl border border-slate-200 bg-white px-4 py-2.5 transition focus-within:border-[#00506a]">
-                  <label htmlFor="trip-origin" className="block text-xs font-medium text-slate-500">
-                    Điểm đi
-                  </label>
-                  <select
-                    id="trip-origin"
-                    value={origin}
-                    onChange={(e) => setOrigin(e.target.value)}
-                    className="mt-0.5 w-full appearance-none bg-transparent text-[15px] font-bold text-[#0f172a] outline-none"
-                  >
-                    <option value="">Chọn điểm đi</option>
-                    {provinces.map((p) => (
-                      <option key={p.id} value={p.id}>
-                        {p.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                <PlaceInput
+                  id="trip-origin"
+                  label="Điểm đi"
+                  placeholder="Tỉnh, phường / xã, bến xe…"
+                  value={origin}
+                  onChange={setOrigin}
+                  fieldClassName="flex-1 rounded-xl border border-slate-200 bg-white px-4 py-2.5 transition focus-within:border-[#00506a]"
+                  labelClassName="block text-xs font-medium text-slate-500"
+                  inputClassName="mt-0.5 w-full appearance-none bg-transparent text-[15px] font-bold text-[#0f172a] outline-none placeholder:font-medium placeholder:text-slate-400"
+                />
 
                 {/* Nút hoán đổi */}
                 <div className="flex items-center justify-center">
@@ -236,24 +232,16 @@ export function SearchHero({
                 </div>
 
                 {/* Điểm đến */}
-                <div className="flex-1 rounded-xl border border-slate-200 bg-white px-4 py-2.5 transition focus-within:border-[#00506a]">
-                  <label htmlFor="trip-dest" className="block text-xs font-medium text-slate-500">
-                    Điểm đến
-                  </label>
-                  <select
-                    id="trip-dest"
-                    value={destination}
-                    onChange={(e) => setDestination(e.target.value)}
-                    className="mt-0.5 w-full appearance-none bg-transparent text-[15px] font-bold text-[#0f172a] outline-none"
-                  >
-                    <option value="">Chọn điểm đến</option>
-                    {provinces.map((p) => (
-                      <option key={p.id} value={p.id}>
-                        {p.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                <PlaceInput
+                  id="trip-dest"
+                  label="Điểm đến"
+                  placeholder="Tỉnh, phường / xã, bến xe…"
+                  value={destination}
+                  onChange={setDestination}
+                  fieldClassName="flex-1 rounded-xl border border-slate-200 bg-white px-4 py-2.5 transition focus-within:border-[#00506a]"
+                  labelClassName="block text-xs font-medium text-slate-500"
+                  inputClassName="mt-0.5 w-full appearance-none bg-transparent text-[15px] font-bold text-[#0f172a] outline-none placeholder:font-medium placeholder:text-slate-400"
+                />
 
                 {/* Ngày đi */}
                 <div className="relative rounded-xl border border-slate-200 bg-white px-4 py-2.5 transition focus-within:border-[#00506a] lg:w-[155px] lg:shrink-0">

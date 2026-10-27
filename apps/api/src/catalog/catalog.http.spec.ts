@@ -91,6 +91,16 @@ describe("Catalog routes — HTTP công khai", () => {
       },
     ],
   }));
+  const listPlaces = vi.fn(async () => ({
+    items: [
+      {
+        kind: "LEGACY",
+        label: "Phường Giáp Bát",
+        detail: "Cũ: Quận Hoàng Mai, Thành phố Hà Nội · Nay: Phường Tương Mai, Thành phố Hà Nội",
+        target: { type: "ward", id: operatorId },
+      },
+    ],
+  }));
   let app: INestApplication;
   let base: string;
 
@@ -108,6 +118,7 @@ describe("Catalog routes — HTTP công khai", () => {
           listAmenities,
           listPopularRoutes,
           listFeaturedOperators,
+          listPlaces,
         },
       },
     ],
@@ -238,6 +249,9 @@ describe("Catalog routes — HTTP công khai", () => {
     "popular-routes?limit=0",
     "popular-routes?limit=21",
     "featured-operators?limit=abc",
+    "places",
+    "places?q=a",
+    "places?q=ha%20noi&limit=21",
   ])(
     "GET /catalog/%s → 400 problem+json, service không bị gọi",
     async (path) => {
@@ -250,6 +264,13 @@ describe("Catalog routes — HTTP công khai", () => {
       expect(listStopPoints).not.toHaveBeenCalled();
       expect(listPopularRoutes).not.toHaveBeenCalled();
       expect(listFeaturedOperators).not.toHaveBeenCalled();
+      expect(listPlaces).not.toHaveBeenCalled();
     },
   );
+
+  it("places áp mặc định limit=8, cắt khoảng trắng của từ khoá, trả đúng dạng gợi ý", async () => {
+    const body = await (await fetch(`${base}/places?q=%20giap%20bat%20`)).json();
+    expect(listPlaces).toHaveBeenLastCalledWith({ q: "giap bat", limit: 8 });
+    expect(body.items[0]).toMatchObject({ kind: "LEGACY", target: { type: "ward" } });
+  });
 });

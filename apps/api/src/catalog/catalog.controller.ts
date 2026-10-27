@@ -16,6 +16,9 @@ import {
   FeaturedOperatorListQueryDto,
   FeaturedOperatorListResponseDto,
   type FeaturedOperatorListResponse,
+  PlaceSuggestionListResponseDto,
+  type PlaceSuggestionListResponse,
+  PlaceSuggestionQueryDto,
   PopularRouteListQueryDto,
   PopularRouteListResponseDto,
   type PopularRouteListResponse,
@@ -199,4 +202,15 @@ export class CatalogController {
   ): Promise<FeaturedOperatorListResponse> {
     return this.catalog.listFeaturedOperators(query.limit);
   }
+
+  /** Gợi ý điểm đi / điểm đến: tỉnh, phường / xã, địa danh, tên hành chính trước sáp nhập (dẫn tới đơn vị mới). */
+  @Get("places")
+  @ApiQuery({ name: "q", required: true, type: String, minLength: 2, maxLength: 100 })
+  @ApiQuery({ name: "limit", required: false, type: Number, minimum: 1, maximum: 20 })
+  @ZodResponse({ status: 200, description: "Gợi ý địa điểm, khớp sát nhất trước.", type: PlaceSuggestionListResponseDto })
+  @ApiResponse({ status: 400, description: "Từ khoá dưới 2 ký tự / query không hợp lệ.", content: problemContent })
+  listPlaces(@Query() query: PlaceSuggestionQueryDto): Promise<PlaceSuggestionListResponse> {
+    return this.catalog.listPlaces(query);
+  }
 }
+

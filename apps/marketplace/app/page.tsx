@@ -5,14 +5,12 @@ import { PopularRoutesSection } from "../components/home/popular-routes";
 import { SearchHero } from "../components/home/search-hero";
 import { PassengerTopBar } from "../components/passenger-topbar";
 import { ForbiddenState, ServiceUnavailableState } from "../components/states";
-import { getProvinces } from "../lib/data/catalog";
 import { getFeaturedOperators, getHandbookArticles, getPopularRoutes } from "../lib/data/home";
 import { getPreview } from "../lib/preview";
 import {
   featuredOperatorsFixture,
   handbookArticlesFixture,
-  popularRoutesFixture,
-  provincesFixture
+  popularRoutesFixture
 } from "../lib/preview/fixtures/home";
 import ErrorPage from "./error";
 import NotFound from "./not-found";
@@ -78,7 +76,6 @@ export default async function MarketplacePage(props: MarketplacePageProps) {
     return (
       <div className="flex flex-col bg-white">
         <SearchHero
-          provinces={provincesFixture}
           featuredOperators={featuredOperatorsFixture}
           initialTab={preview === "ideal" ? "trip" : "operator"}
           initialPickerOpen={preview === "operator-picker"}
@@ -93,12 +90,10 @@ export default async function MarketplacePage(props: MarketplacePageProps) {
   }
 
   // Nhánh DỮ LIỆU THẬT (không có ?preview)
-  const [provincesResult, articlesResult, routesResult, operatorsResult] = await Promise.all([
-    getProvinces(), getHandbookArticles(), getPopularRoutes(), getFeaturedOperators()
+  const [articlesResult, routesResult, operatorsResult] = await Promise.all([
+    getHandbookArticles(), getPopularRoutes(), getFeaturedOperators()
   ]);
 
-  const provinces =
-    provincesResult.status === "ok" ? provincesResult.data : [];
   // UI SCR-PSG-01 Empty: chưa có tuyến phổ biến / nhà xe (hoặc tải lỗi) thì ẩn khối, form tìm chuyến vẫn dùng được.
   const popularRoutes = routesResult.status === "ok" ? routesResult.data : [];
   const featuredOperators = operatorsResult.status === "ok" ? operatorsResult.data : [];
@@ -106,8 +101,6 @@ export default async function MarketplacePage(props: MarketplacePageProps) {
   return (
     <div className="flex flex-col bg-white">
       <SearchHero
-        provinces={provinces}
-        catalogError={provincesResult.status !== "ok" ? "Chưa tải được danh sách tỉnh thành. Vui lòng tải lại trang để tìm chuyến." : undefined}
         featuredOperators={featuredOperators}
       />
       {popularRoutes.length > 0 && <PopularRoutesSection routes={popularRoutes} />}

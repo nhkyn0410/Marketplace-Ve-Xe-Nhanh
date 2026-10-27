@@ -360,6 +360,9 @@ import 'package:api_client_dart/src/model/permission_input_dto.dart';
 import 'package:api_client_dart/src/model/permission_page_dto_output.dart';
 import 'package:api_client_dart/src/model/permission_page_dto_output_items_inner.dart';
 import 'package:api_client_dart/src/model/pickup_window_input_dto.dart';
+import 'package:api_client_dart/src/model/place_suggestion_list_response_dto_output.dart';
+import 'package:api_client_dart/src/model/place_suggestion_list_response_dto_output_items_inner.dart';
+import 'package:api_client_dart/src/model/place_suggestion_list_response_dto_output_items_inner_target.dart';
 import 'package:api_client_dart/src/model/point_adjust_input_dto.dart';
 import 'package:api_client_dart/src/model/policy_cancel_dto.dart';
 import 'package:api_client_dart/src/model/policy_draft_create_dto.dart';
@@ -530,6 +533,7 @@ import 'package:api_client_dart/src/model/trip_search_response_dto_output_items_
 import 'package:api_client_dart/src/model/trip_search_response_dto_output_items_inner_operator.dart';
 import 'package:api_client_dart/src/model/trip_search_response_dto_output_items_inner_pickup.dart';
 import 'package:api_client_dart/src/model/trip_search_response_dto_output_items_inner_vehicle_type.dart';
+import 'package:api_client_dart/src/model/trip_search_response_dto_output_widened_to_province.dart';
 import 'package:api_client_dart/src/model/trip_seat_status_input_dto.dart';
 import 'package:api_client_dart/src/model/trip_status_input_dto.dart';
 import 'package:api_client_dart/src/model/user_voucher_dto_output.dart';
@@ -900,6 +904,9 @@ part 'serializers.g.dart';
   PermissionPageDtoOutput,
   PermissionPageDtoOutputItemsInner,
   PickupWindowInputDto,
+  PlaceSuggestionListResponseDtoOutput,
+  PlaceSuggestionListResponseDtoOutputItemsInner,
+  PlaceSuggestionListResponseDtoOutputItemsInnerTarget,
   PointAdjustInputDto,
   PolicyCancelDto,
   PolicyDraftCreateDto,
@@ -1070,6 +1077,7 @@ part 'serializers.g.dart';
   TripSearchResponseDtoOutputItemsInnerOperator,
   TripSearchResponseDtoOutputItemsInnerPickup,
   TripSearchResponseDtoOutputItemsInnerVehicleType,
+  TripSearchResponseDtoOutputWidenedToProvince,
   TripSeatStatusInputDto,
   TripStatusInputDto,
   UserVoucherDtoOutput,
@@ -1175,6 +1183,10 @@ Serializers serializers = (_$serializers.toBuilder()
       ..addBuilderFactory(
         const FullType(BuiltList, [FullType(ArticlePageDtoOutputItemsInner)]),
         () => ListBuilder<ArticlePageDtoOutputItemsInner>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(PlaceSuggestionListResponseDtoOutputItemsInner)]),
+        () => ListBuilder<PlaceSuggestionListResponseDtoOutputItemsInner>(),
       )
       ..addBuilderFactory(
         const FullType(BuiltList, [FullType(TicketLookupBookingListDtoOutputItemsInner)]),
