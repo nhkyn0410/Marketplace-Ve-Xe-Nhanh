@@ -15,7 +15,6 @@ part 'trip_input_dto.g.dart';
 /// * [routeId] 
 /// * [vehicleId] 
 /// * [departureAt] 
-/// * [arrivalAt] 
 /// * [stopTimes] 
 /// * [onlineSaleCutoffMinutes] 
 /// * [note] 
@@ -29,9 +28,6 @@ abstract class TripInputDto implements Built<TripInputDto, TripInputDtoBuilder> 
 
   @BuiltValueField(wireName: r'departureAt')
   DateTime get departureAt;
-
-  @BuiltValueField(wireName: r'arrivalAt')
-  DateTime get arrivalAt;
 
   @BuiltValueField(wireName: r'stopTimes')
   BuiltList<DateTime>? get stopTimes;
@@ -78,11 +74,6 @@ class _$TripInputDtoSerializer implements PrimitiveSerializer<TripInputDto> {
     yield r'departureAt';
     yield serializers.serialize(
       object.departureAt,
-      specifiedType: const FullType(DateTime),
-    );
-    yield r'arrivalAt';
-    yield serializers.serialize(
-      object.arrivalAt,
       specifiedType: const FullType(DateTime),
     );
     yield r'stopTimes';
@@ -144,13 +135,6 @@ class _$TripInputDtoSerializer implements PrimitiveSerializer<TripInputDto> {
             specifiedType: const FullType(DateTime),
           ) as DateTime;
           result.departureAt = valueDes;
-          break;
-        case r'arrivalAt':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(DateTime),
-          ) as DateTime;
-          result.arrivalAt = valueDes;
           break;
         case r'stopTimes':
           final valueDes = serializers.deserialize(

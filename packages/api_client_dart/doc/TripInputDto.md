@@ -11,7 +11,6 @@ Name | Type | Description | Notes
 **routeId** | **String** |  | 
 **vehicleId** | **String** |  | 
 **departureAt** | [**DateTime**](DateTime.md) |  | 
-**arrivalAt** | [**DateTime**](DateTime.md) |  | 
 **stopTimes** | [**BuiltList&lt;DateTime&gt;**](DateTime.md) |  | 
 **onlineSaleCutoffMinutes** | **int** |  | 
 **note** | **String** |  | 

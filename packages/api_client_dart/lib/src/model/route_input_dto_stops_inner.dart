@@ -16,6 +16,7 @@ part 'route_input_dto_stops_inner.g.dart';
 /// * [note] 
 /// * [allowPickup] 
 /// * [allowDropoff] 
+/// * [durationMinutesFromPrevious] 
 @BuiltValue()
 abstract class RouteInputDtoStopsInner implements Built<RouteInputDtoStopsInner, RouteInputDtoStopsInnerBuilder> {
   @BuiltValueField(wireName: r'catalogStopPointId')
@@ -32,6 +33,9 @@ abstract class RouteInputDtoStopsInner implements Built<RouteInputDtoStopsInner,
 
   @BuiltValueField(wireName: r'allowDropoff')
   bool get allowDropoff;
+
+  @BuiltValueField(wireName: r'durationMinutesFromPrevious')
+  int? get durationMinutesFromPrevious;
 
   RouteInputDtoStopsInner._();
 
@@ -81,6 +85,13 @@ class _$RouteInputDtoStopsInnerSerializer implements PrimitiveSerializer<RouteIn
       object.allowDropoff,
       specifiedType: const FullType(bool),
     );
+    if (object.durationMinutesFromPrevious != null) {
+      yield r'durationMinutesFromPrevious';
+      yield serializers.serialize(
+        object.durationMinutesFromPrevious,
+        specifiedType: const FullType.nullable(int),
+      );
+    }
   }
 
   @override
@@ -141,6 +152,14 @@ class _$RouteInputDtoStopsInnerSerializer implements PrimitiveSerializer<RouteIn
             specifiedType: const FullType(bool),
           ) as bool;
           result.allowDropoff = valueDes;
+          break;
+        case r'durationMinutesFromPrevious':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType.nullable(int),
+          ) as int?;
+          if (valueDes == null) continue;
+          result.durationMinutesFromPrevious = valueDes;
           break;
         default:
           unhandled.add(key);
