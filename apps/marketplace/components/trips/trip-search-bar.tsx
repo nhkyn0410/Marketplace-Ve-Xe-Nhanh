@@ -3,15 +3,22 @@
 import { ArrowRightLeft } from "lucide-react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { initialPlace, placeSearchParams } from "../../lib/data/trip-mappers";
 import { ProvinceItem } from "../../lib/data/types";
 import { formatTripDateVi } from "../../lib/format";
+import { PlaceInput, type PlaceValue } from "./place-input";
 
 /**
  * Thuộc tính của thanh tìm kiếm chuyến xe tóm tắt trên trang danh sách chuyến.
  */
 export interface TripSearchBarProps {
   readonly initialOrigin?: string;
+  /** Loại + tên điểm từ URL (`originType`, `originLabel`); thiếu = tỉnh, tên lấy từ `provinces`. */
+  readonly initialOriginType?: string;
+  readonly initialOriginLabel?: string;
   readonly initialDestination?: string;
+  readonly initialDestinationType?: string;
+  readonly initialDestinationLabel?: string;
   readonly initialDate?: string;
   readonly initialPassengers?: number;
   readonly provinces?: readonly ProvinceItem[];
@@ -21,15 +28,23 @@ export interface TripSearchBarProps {
  * Thanh tìm kiếm chuyến xe nhỏ gọn trên đầu trang /trips chuẩn theo Figma 1440:11297.
  */
 export function TripSearchBar({
-  initialOrigin = "",
-  initialDestination = "",
+  initialOrigin,
+  initialOriginType,
+  initialOriginLabel,
+  initialDestination,
+  initialDestinationType,
+  initialDestinationLabel,
   initialDate = "",
   initialPassengers = 1,
   provinces = []
 }: TripSearchBarProps) {
   const router = useRouter();
-  const [origin, setOrigin] = useState<string>(initialOrigin);
-  const [destination, setDestination] = useState<string>(initialDestination);
+  const [origin, setOrigin] = useState<PlaceValue | null>(() =>
+    initialPlace(initialOrigin, initialOriginType, initialOriginLabel, provinces)
+  );
+  const [destination, setDestination] = useState<PlaceValue | null>(() =>
+    initialPlace(initialDestination, initialDestinationType, initialDestinationLabel, provinces)
+  );
   const [date, setDate] = useState<string>(initialDate);
   const [passengers, setPassengers] = useState<number>(initialPassengers);
   const [actionError, setActionError] = useState<string | null>(null);
@@ -42,11 +57,16 @@ export function TripSearchBar({
 
   const handleSearch = (e: React.FormEvent): void => {
     e.preventDefault();
-    if (!date || !origin || !destination || origin === destination) {
-      setActionError("Chọn ngày đi và hai tỉnh thành khác nhau.");
+    if (!date || !origin || !destination || origin.id === destination.id) {
+      setActionError("Chọn ngày đi và hai điểm khác nhau từ danh sách gợi ý.");
       return;
     }
-    router.push(`/trips?${new URLSearchParams({ origin, destination, date, passengers: String(passengers) })}`);
+    router.push(`/trips?${new URLSearchParams({
+      ...placeSearchParams("origin", origin),
+      ...placeSearchParams("destination", destination),
+      date,
+      passengers: String(passengers)
+    })}`);
   };
 
   const field = "relative rounded-xl border border-slate-200 bg-white px-4 py-2.5 transition focus-within:border-[#00506a]";
@@ -58,19 +78,16 @@ export function TripSearchBar({
       <form onSubmit={handleSearch} className="flex flex-col gap-3 lg:flex-row lg:items-center">
         {/* Cụm Điểm đi & Điểm đến */}
         <div className="flex flex-1 flex-col gap-2 sm:flex-row sm:items-center">
-          <div className={`${field} min-w-0 flex-1`}>
-            <label htmlFor="search-origin" className={label}>Điểm đi</label>
-            <select
-              id="search-origin"
-              required disabled={!provinces.length}
-              value={origin}
-              onChange={(e) => setOrigin(e.target.value)}
-              className={value}
-            >
-              <option value="">Chọn điểm đi</option>
-              {provinces.map((province) => <option key={province.id} value={province.id}>{province.name}</option>)}
-            </select>
-          </div>
+          <PlaceInput
+            id="search-origin"
+            label="Điểm đi"
+            placeholder="Tỉnh, phường / xã, bến xe…"
+            value={origin}
+            onChange={setOrigin}
+            fieldClassName={`${field} min-w-0 flex-1`}
+            labelClassName={label}
+            inputClassName={value}
+          />
 
           {/* Nút hoán đổi */}
           <div className="flex shrink-0 items-center justify-center">
@@ -84,19 +101,16 @@ export function TripSearchBar({
             </button>
           </div>
 
-          <div className={`${field} min-w-0 flex-1`}>
-            <label htmlFor="search-destination" className={label}>Điểm đến</label>
-            <select
-              id="search-destination"
-              required disabled={!provinces.length}
-              value={destination}
-              onChange={(e) => setDestination(e.target.value)}
-              className={value}
-            >
-              <option value="">Chọn điểm đến</option>
-              {provinces.map((province) => <option key={province.id} value={province.id}>{province.name}</option>)}
-            </select>
-          </div>
+          <PlaceInput
+            id="search-destination"
+            label="Điểm đến"
+            placeholder="Tỉnh, phường / xã, bến xe…"
+            value={destination}
+            onChange={setDestination}
+            fieldClassName={`${field} min-w-0 flex-1`}
+            labelClassName={label}
+            inputClassName={value}
+          />
         </div>
 
         {/* Ngày đi: hiển thị "T6, 16/10/2026", ô date gốc phủ trong suốt để mở lịch */}

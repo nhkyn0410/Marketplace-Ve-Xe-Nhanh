@@ -1,7 +1,7 @@
 import { Inject, Injectable } from "@nestjs/common";
 import { searchTextContains } from "../common/search-text";
 import { PrismaService } from "../database/prisma.service";
-import { CatalogStatus } from "../database/prisma.types";
+import { CatalogStatus, StopPointType } from "../database/prisma.types";
 import {
   loadFeaturedOperators,
   loadPopularRoutes,
@@ -14,6 +14,8 @@ import { vndToJson } from "../fare/fare-pricing";
 import type {
   AmenityListResponse,
   FeaturedOperatorListResponse,
+  PlaceSuggestionListResponse,
+  PlaceSuggestionQuery,
   PopularRouteListResponse,
   ProvinceListResponse,
   StopPointListQuery,
@@ -23,6 +25,29 @@ import type {
 } from "./dto/catalog.dto";
 
 const ACTIVE = CatalogStatus.ACTIVE;
+/** Số ứng viên mỗi loại trước khi xếp hạng gợi ý địa điểm. */
+const PLACE_CANDIDATES = 20;
+const PLACE_KIND_ORDER = { PROVINCE: 0, WARD: 1, STOP_POINT: 2, LEGACY: 3 } as const;
+
+type Place = PlaceSuggestionListResponse["items"][number];
+type LegacyPlaceRow = {
+  legacyProvinceName: string;
+  legacyDistrictName: string;
+  legacyWardName: string;
+  provinceId: string;
+  provinceName: string;
+  wardId: string;
+  wardName: string;
+  labelSearch: string;
+};
+
+/** Tên khớp từ khoá từ đầu (0), từ đầu một từ (1), hay ở giữa (2) — so trên chuỗi đã bỏ dấu. */
+function placeRank(searchText: string, needle: string): number {
+  if (searchText.startsWith(needle)) {
+    return 0;
+  }
+  return searchText.includes(` ${needle}`) ? 1 : 2;
+}
 
 /**
  * Đọc catalog chuẩn Platform cho API công khai (TASK-CAT-001). Chỉ trả item `ACTIVE`.
@@ -158,4 +183,115 @@ export class CatalogService {
       })),
     };
   }
+
+  /**
+   * Gợi ý điểm đi / điểm đến cho ô tìm chuyến (tự thiết kế 27/10/2026, chờ duyệt): tỉnh, phường / xã mới, địa danh
+   * dùng chung đang dùng và tên hành chính trước sáp nhập 2025 (`legacy_administrative_mappings`). So không dấu trên
+   * `search_text`; tên cũ chỉ so với tên cấp nhỏ nhất của dòng (phường, không có thì huyện, rồi tỉnh) để gõ tên tỉnh
+   * không kéo ra mọi phường cũ. Tên cũ cấp phường dẫn tới phường mới; cấp huyện / tỉnh dẫn tới tỉnh mới. Tên cũ trùng
+   * hệt tên mới thì bỏ (đã có gợi ý mới).
+   */
+  async listPlaces(query: PlaceSuggestionQuery): Promise<PlaceSuggestionListResponse> {
+    const contains = await searchTextContains(this.prisma, query.q);
+    // Bỏ ký tự thoát LIKE để xếp hạng trên chuỗi thật.
+    const needle = contains.replace(/\\(.)/g, "$1");
+    if (!needle) {
+      return { items: [] };
+    }
+    const activeWard = { status: ACTIVE, province: { status: ACTIVE } };
+    const like = `%${contains}%`;
+    const [provinces, wards, stopPoints, legacy] = await Promise.all([
+      this.prisma.province.findMany({
+        where: { status: ACTIVE, searchText: { contains } },
+        orderBy: { name: "asc" },
+        take: PLACE_CANDIDATES,
+        select: { id: true, name: true, searchText: true },
+      }),
+      this.prisma.ward.findMany({
+        where: { ...activeWard, searchText: { contains } },
+        orderBy: { name: "asc" },
+        take: PLACE_CANDIDATES,
+        select: { id: true, name: true, searchText: true, province: { select: { name: true } } },
+      }),
+      this.prisma.stopPointCatalog.findMany({
+        // Trạm dừng nghỉ không cho đón / trả (BR-79) — chọn làm điểm đi / đến không bao giờ ra chuyến.
+        where: { status: ACTIVE, type: { not: StopPointType.REST_STOP }, ward: activeWard, searchText: { contains } },
+        orderBy: { name: "asc" },
+        take: PLACE_CANDIDATES,
+        select: { id: true, name: true, address: true, searchText: true },
+      }),
+      this.prisma.$queryRaw<LegacyPlaceRow[]>`
+        SELECT * FROM (
+          SELECT m.legacy_province_name AS "legacyProvinceName", m.legacy_district_name AS "legacyDistrictName",
+                 m.legacy_ward_name AS "legacyWardName", p.id AS "provinceId", p.name AS "provinceName",
+                 w.id AS "wardId", w.name AS "wardName",
+                 vxn_search_text(COALESCE(NULLIF(m.legacy_ward_name, ''), NULLIF(m.legacy_district_name, ''),
+                                          m.legacy_province_name)) AS "labelSearch"
+          FROM legacy_administrative_mappings m
+          JOIN wards w ON w.id = m.ward_id AND w.status = 'ACTIVE'
+          JOIN provinces p ON p.id = m.province_id AND p.status = 'ACTIVE'
+          WHERE m.search_text LIKE ${like}
+        ) candidate
+        WHERE candidate."labelSearch" LIKE ${like}
+        ORDER BY length(candidate."labelSearch"), candidate."labelSearch"
+        LIMIT ${PLACE_CANDIDATES}`,
+    ]);
+
+    const ranked: { place: Place; rank: number }[] = [
+      ...provinces.map((row) => ({
+        rank: placeRank(row.searchText ?? "", needle),
+        place: { kind: "PROVINCE" as const, label: row.name, detail: null, target: { type: "province" as const, id: row.id } },
+      })),
+      ...wards.map((row) => ({
+        rank: placeRank(row.searchText ?? "", needle),
+        place: { kind: "WARD" as const, label: row.name, detail: row.province.name, target: { type: "ward" as const, id: row.id } },
+      })),
+      ...stopPoints.map((row) => ({
+        rank: placeRank(row.searchText ?? "", needle),
+        place: { kind: "STOP_POINT" as const, label: row.name, detail: row.address, target: { type: "stopPoint" as const, id: row.id } },
+      })),
+      ...legacy.flatMap((row) => {
+        const place = legacyPlace(row);
+        return place ? [{ rank: placeRank(row.labelSearch, needle), place }] : [];
+      }),
+    ];
+    // Cùng hạng: tên khớp đúng cả dấu như người dùng gõ lên trước ("cờ đỏ" → "Xã Cờ Đỏ" trước "Xã Cổ Đô").
+    const typed = query.q.toLocaleLowerCase("vi");
+    const accentMiss = (place: Place) => (place.label.toLocaleLowerCase("vi").includes(typed) ? 0 : 1);
+    ranked.sort(
+      (a, b) =>
+        a.rank - b.rank ||
+        accentMiss(a.place) - accentMiss(b.place) ||
+        PLACE_KIND_ORDER[a.place.kind] - PLACE_KIND_ORDER[b.place.kind] ||
+        a.place.label.length - b.place.label.length ||
+        a.place.label.localeCompare(b.place.label, "vi"),
+    );
+    return { items: ranked.slice(0, query.limit).map(({ place }) => place) };
+  }
 }
+
+/** Gợi ý cho một dòng ánh xạ cũ; `null` khi tên cũ trùng hệt tên đơn vị mới (gợi ý mới đã đủ). */
+function legacyPlace(row: LegacyPlaceRow): Place | null {
+  if (row.legacyWardName) {
+    if (row.legacyWardName === row.wardName) {
+      return null;
+    }
+    return {
+      kind: "LEGACY",
+      label: row.legacyWardName,
+      detail: `Cũ: ${row.legacyDistrictName ? `${row.legacyDistrictName}, ` : ""}${row.legacyProvinceName} · Nay: ${row.wardName}, ${row.provinceName}`,
+      target: { type: "ward", id: row.wardId },
+    };
+  }
+  const label = row.legacyDistrictName || row.legacyProvinceName;
+  if (label === row.provinceName) {
+    return null;
+  }
+  return {
+    kind: "LEGACY",
+    label,
+    detail: `${row.legacyDistrictName ? `Cũ: ${row.legacyProvinceName} · ` : ""}Nay thuộc ${row.provinceName}`,
+    target: { type: "province", id: row.provinceId },
+  };
+}
+

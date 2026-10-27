@@ -11,6 +11,7 @@ Method | HTTP request | Description
 ------------- | ------------- | -------------
 [**catalogControllerListAmenities**](CatalogApi.md#catalogcontrollerlistamenities) | **GET** /v1/catalog/amenities | 
 [**catalogControllerListFeaturedOperators**](CatalogApi.md#catalogcontrollerlistfeaturedoperators) | **GET** /v1/catalog/featured-operators | 
+[**catalogControllerListPlaces**](CatalogApi.md#catalogcontrollerlistplaces) | **GET** /v1/catalog/places | 
 [**catalogControllerListPopularRoutes**](CatalogApi.md#catalogcontrollerlistpopularroutes) | **GET** /v1/catalog/popular-routes | 
 [**catalogControllerListProvinces**](CatalogApi.md#catalogcontrollerlistprovinces) | **GET** /v1/catalog/provinces | 
 [**catalogControllerListStopPoints**](CatalogApi.md#catalogcontrollerliststoppoints) | **GET** /v1/catalog/stop-points | 
@@ -84,6 +85,49 @@ Name | Type | Description  | Notes
 ### Return type
 
 [**FeaturedOperatorListResponseDtoOutput**](FeaturedOperatorListResponseDtoOutput.md)
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json, application/problem+json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **catalogControllerListPlaces**
+> PlaceSuggestionListResponseDtoOutput catalogControllerListPlaces(q, limit)
+
+
+
+### Example
+```dart
+import 'package:api_client_dart/api.dart';
+
+final api = ApiClientDart().getCatalogApi();
+final String q = q_example; // String | 
+final num limit = 8.14; // num | 
+
+try {
+    final response = api.catalogControllerListPlaces(q, limit);
+    print(response);
+} on DioException catch (e) {
+    print('Exception when calling CatalogApi->catalogControllerListPlaces: $e\n');
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **q** | **String**|  | 
+ **limit** | **num**|  | [optional] [default to 8]
+
+### Return type
+
+[**PlaceSuggestionListResponseDtoOutput**](PlaceSuggestionListResponseDtoOutput.md)
 
 ### Authorization
 

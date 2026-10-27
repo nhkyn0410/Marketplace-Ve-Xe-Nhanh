@@ -1044,6 +1044,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/catalog/places": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["CatalogController_listPlaces"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/admin/catalog/provinces": {
         parameters: {
             query?: never;
@@ -5512,6 +5528,20 @@ export interface components {
                 }[];
             }[];
         };
+        PlaceSuggestionListResponseDto_Output: {
+            items: {
+                /** @enum {string} */
+                kind: "PROVINCE" | "WARD" | "STOP_POINT" | "LEGACY";
+                label: string;
+                detail: string | null;
+                target: {
+                    /** @enum {string} */
+                    type: "province" | "ward" | "stopPoint";
+                    /** Format: uuid */
+                    id: string;
+                };
+            }[];
+        };
         AdminProvincePageDto_Output: {
             items: {
                 /** Format: uuid */
@@ -6726,6 +6756,10 @@ export interface components {
                 }[];
                 priceMin: number | null;
                 priceMax: number | null;
+            };
+            widenedToProvince: {
+                from: boolean;
+                to: boolean;
             };
         };
         PublicTripDto_Output: {
@@ -13281,6 +13315,38 @@ export interface operations {
             };
         };
     };
+    CatalogController_listPlaces: {
+        parameters: {
+            query: {
+                q: string;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Gợi ý địa điểm, khớp sát nhất trước. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlaceSuggestionListResponseDto_Output"];
+                };
+            };
+            /** @description Từ khoá dưới 2 ký tự / query không hợp lệ. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
     AdminCatalogController_listProvinces: {
         parameters: {
             query?: {
@@ -17582,8 +17648,10 @@ export interface operations {
         parameters: {
             query: {
                 fromProvinceId?: string;
+                fromWardId?: string;
                 fromStopPointId?: string;
                 toProvinceId?: string;
+                toWardId?: string;
                 toStopPointId?: string;
                 date: string;
                 passengers?: number;

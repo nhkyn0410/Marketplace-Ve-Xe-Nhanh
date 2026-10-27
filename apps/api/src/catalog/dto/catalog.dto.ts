@@ -167,3 +167,40 @@ export type FeaturedOperatorListResponse = z.infer<
 export class FeaturedOperatorListResponseDto extends createZodDto(
   FeaturedOperatorListResponseSchema,
 ) {}
+
+/** Query `GET /catalog/places`: từ khoá (gõ không dấu được) + số gợi ý tối đa. */
+export const PlaceSuggestionQuerySchema = z.object({
+  q: z.string().trim().min(2).max(100),
+  limit: z.coerce.number().int().min(1).max(20).default(8),
+});
+export type PlaceSuggestionQuery = z.infer<typeof PlaceSuggestionQuerySchema>;
+export class PlaceSuggestionQueryDto extends createZodDto(
+  PlaceSuggestionQuerySchema,
+) {}
+
+export const PLACE_KINDS = ["PROVINCE", "WARD", "STOP_POINT", "LEGACY"] as const;
+
+export const PlaceSuggestionListResponseSchema = z.object({
+  items: z.array(
+    z.object({
+      /** Loại gợi ý; `LEGACY` = tên đơn vị hành chính trước sáp nhập 2025. */
+      kind: z.enum(PLACE_KINDS),
+      /** Tên hiển thị (tên cũ với `LEGACY`). */
+      label: z.string(),
+      /** Dòng phụ: tỉnh của phường, địa chỉ của địa danh, đơn vị mới của tên cũ. */
+      detail: z.string().nullable(),
+      /** Gửi vào `GET /trips/search`: `province` → `fromProvinceId`, `ward` → `fromWardId`, `stopPoint` → `fromStopPointId`. */
+      target: z.object({
+        type: z.enum(["province", "ward", "stopPoint"]),
+        id: z.uuid(),
+      }),
+    }),
+  ),
+});
+export type PlaceSuggestionListResponse = z.infer<
+  typeof PlaceSuggestionListResponseSchema
+>;
+/** Gợi ý điểm đi / điểm đến cho ô tìm chuyến. */
+export class PlaceSuggestionListResponseDto extends createZodDto(
+  PlaceSuggestionListResponseSchema,
+) {}

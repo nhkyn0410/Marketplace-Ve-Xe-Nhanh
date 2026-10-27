@@ -17,6 +17,8 @@ import { SeatMapInputSchema } from "../vehicle/dto/seat-map.dto";
 import { VehicleInputSchema } from "../vehicle/dto/vehicle.dto";
 import { SeatMapService } from "../vehicle/seat-map.service";
 import { VehicleService } from "../vehicle/vehicle.service";
+import { CatalogService } from "../catalog/catalog.service";
+import { PlaceSuggestionQuerySchema } from "../catalog/dto/catalog.dto";
 import { TripSearchQuerySchema } from "./dto/public-trip.dto";
 import { TripSearchService } from "./trip-search.service";
 
@@ -57,7 +59,7 @@ describe.skipIf(!url && !requireDb)("Tìm chuyến công khai — Postgres thậ
   const tag = randomUUID().slice(0, 8);
   const [opA, opB] = [randomUUID(), randomUUID()];
   const [provinceA, provinceB] = [randomUUID(), randomUUID()];
-  const [wardA, wardB] = [randomUUID(), randomUUID()];
+  const [wardA, wardB, wardEmpty] = [randomUUID(), randomUUID(), randomUUID()];
   const [stationA, restStop, stationB, farA] = [randomUUID(), randomUUID(), randomUUID(), randomUUID()];
   const officeNearA = randomUUID();
   const [sleeperLimo, seater] = [randomUUID(), randomUUID()];
@@ -142,6 +144,19 @@ describe.skipIf(!url && !requireDb)("Tìm chuyến công khai — Postgres thậ
         data: [
           { id: wardA, provinceId: provinceA, code: `wa-${tag}`, name: "Phường đi" },
           { id: wardB, provinceId: provinceB, code: `wb-${tag}`, name: "Phường đến" },
+          // Cùng tỉnh đi nhưng không có điểm dừng nào: tìm theo phường này phải nới ra cả tỉnh.
+          { id: wardEmpty, provinceId: provinceA, code: `we-${tag}`, name: `Phường trống ${tag}` },
+          // Bỏ dấu thì trùng nhau: gõ có dấu phải ra đúng tên trước.
+          { provinceId: provinceA, code: `wc1-${tag}`, name: `Xã Cổ Đô ${tag}` },
+          { provinceId: provinceA, code: `wc2-${tag}`, name: `Xã Cờ Đỏ ${tag}` },
+        ],
+      });
+      await tx.legacyAdministrativeMapping.createMany({
+        data: [
+          { legacyProvinceCode: "99", legacyProvinceName: `Tỉnh cũ ${tag}`, legacyDistrictName: `Huyện cũ ${tag}`, legacyWardName: `Xã Cũ Đông ${tag}`, provinceId: provinceA, wardId: wardEmpty },
+          { legacyProvinceCode: "99", legacyProvinceName: `Tỉnh cũ ${tag}`, legacyDistrictName: `Huyện cũ ${tag}`, legacyWardName: "", provinceId: provinceA, wardId: wardEmpty },
+          // Tên cũ trùng hệt tên mới: chỉ hiện gợi ý phường mới.
+          { legacyProvinceCode: "99", legacyProvinceName: `Tỉnh cũ ${tag}`, legacyDistrictName: `Huyện cũ ${tag}`, legacyWardName: `Phường trống ${tag}`, provinceId: provinceA, wardId: wardEmpty },
         ],
       });
       const point = (id: string, name: string, type: "BUS_STATION" | "REST_STOP", provinceId: string, wardId: string, latitude: number, longitude: number) => ({
@@ -215,6 +230,7 @@ describe.skipIf(!url && !requireDb)("Tìm chuyến công khai — Postgres thậ
       await tx.seatMap.deleteMany({ where: { operatorId } });
       await tx.stopPoint.deleteMany({ where: { operatorId } });
       await tx.stopPointCatalog.deleteMany({ where: { provinceId: { in: [provinceA, provinceB] } } });
+      await tx.legacyAdministrativeMapping.deleteMany({ where: { provinceId: { in: [provinceA, provinceB] } } });
       await tx.ward.deleteMany({ where: { provinceId: { in: [provinceA, provinceB] } } });
       await tx.province.deleteMany({ where: { id: { in: [provinceA, provinceB] } } });
       await tx.vehicleType.deleteMany({ where: { id: { in: [sleeperLimo, seater] } } });
@@ -267,6 +283,57 @@ describe.skipIf(!url && !requireDb)("Tìm chuyến công khai — Postgres thậ
     expect(featured).toEqual([{ operatorId: opA, displayName: `Nhà xe A ${tag}`, logoObjectKey: null, averageRating: null, reviewCount: 0, routes: [pair] }]);
     // Ngoài cửa sổ 30 ngày tới thì không còn là tuyến đang bán.
     expect((await loadPopularRoutes(prisma, 1000, new Date(DAY0 - 40 * 24 * HOUR))).some((route) => route.originProvinceId === provinceA)).toBe(false);
+  });
+
+  it("theo phường / xã: khớp điểm đón / trả nằm trong phường; phường không có chuyến → nới ra cả tỉnh (widenedToProvince); phường không có → rỗng", async () => {
+    const byWard = await search.search(query({ fromProvinceId: undefined, fromWardId: wardA, toProvinceId: undefined, toWardId: wardB }));
+    expect(byWard.items.map((item) => item.tripId)).toEqual([ids.main, ids.cheap, ids.far, ids.office]);
+    expect(byWard.widenedToProvince).toEqual({ from: false, to: false });
+
+    const widened = await search.search(query({ fromProvinceId: undefined, fromWardId: wardEmpty }));
+    expect(widened.items.map((item) => item.tripId)).toEqual([ids.main, ids.cheap, ids.far, ids.office]);
+    expect(widened.widenedToProvince).toEqual({ from: true, to: false });
+
+    const unknown = await search.search(query({ fromProvinceId: undefined, fromWardId: randomUUID() }));
+    expect(unknown).toMatchObject({ items: [], total: 0, widenedToProvince: { from: false, to: false } });
+    // Nới ra cả tỉnh vẫn không có chuyến (ngày không có chuyến) → rỗng, không bật cờ nới.
+    expect(await search.search(query({ fromProvinceId: undefined, fromWardId: wardEmpty, date: "2031-05-11" }))).toMatchObject({
+      items: [],
+      widenedToProvince: { from: false, to: false },
+    });
+    expect(() => query({ fromWardId: wardA })).toThrow();
+    expect((await search.search(query())).widenedToProvince).toEqual({ from: false, to: false });
+  });
+
+  it("gợi ý địa điểm: phường mới, địa danh, tên cũ cấp xã → phường mới, cấp huyện → tỉnh; tên cũ trùng tên mới bị bỏ; gõ không dấu", async () => {
+    const catalog = new CatalogService(prisma, { publicUrl: (key) => key });
+    const { items } = await catalog.listPlaces(PlaceSuggestionQuerySchema.parse({ q: tag, limit: 20 }));
+    expect(items.filter((item) => item.kind === "WARD").map((item) => item.label)).toEqual(
+      expect.arrayContaining([`Phường trống ${tag}`, `Xã Cổ Đô ${tag}`, `Xã Cờ Đỏ ${tag}`]),
+    );
+    expect(items.find((item) => item.label === `Phường trống ${tag}`)).toEqual({
+      kind: "WARD",
+      label: `Phường trống ${tag}`,
+      detail: "Tỉnh đi",
+      target: { type: "ward", id: wardEmpty },
+    });
+    const accented = await catalog.listPlaces(PlaceSuggestionQuerySchema.parse({ q: `cờ đỏ ${tag}` }));
+    expect(accented.items.map((item) => item.label)).toEqual([`Xã Cờ Đỏ ${tag}`, `Xã Cổ Đô ${tag}`]);
+    expect(items.filter((item) => item.kind === "STOP_POINT").map((item) => item.target.id).sort()).toEqual(
+      [stationA, stationB, farA].sort(),
+    );
+    expect(items.filter((item) => item.kind === "LEGACY")).toEqual([
+      { kind: "LEGACY", label: `Huyện cũ ${tag}`, detail: `Cũ: Tỉnh cũ ${tag} · Nay thuộc Tỉnh đi`, target: { type: "province", id: provinceA } },
+      {
+        kind: "LEGACY",
+        label: `Xã Cũ Đông ${tag}`,
+        detail: `Cũ: Huyện cũ ${tag}, Tỉnh cũ ${tag} · Nay: Phường trống ${tag}, Tỉnh đi`,
+        target: { type: "ward", id: wardEmpty },
+      },
+    ]);
+    const accentless = await catalog.listPlaces(PlaceSuggestionQuerySchema.parse({ q: `xa cu dong ${tag}` }));
+    expect(accentless.items).toEqual([expect.objectContaining({ kind: "LEGACY", target: { type: "ward", id: wardEmpty } })]);
+    expect(() => PlaceSuggestionQuerySchema.parse({ q: "a" })).toThrow();
   });
 
   it("theo địa danh: điểm trong bán kính 5 km (cả văn phòng riêng) khớp, điểm cách ~20 km không khớp", async () => {

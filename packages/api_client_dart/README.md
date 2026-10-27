@@ -228,6 +228,7 @@ Class | Method | HTTP request | Description
 [*CancellationsApi*](doc/CancellationsApi.md) | [**cancellationControllerQuote**](doc/CancellationsApi.md#cancellationcontrollerquote) | **GET** /v1/bookings/{bookingId}/cancellation-quote | 
 [*CatalogApi*](doc/CatalogApi.md) | [**catalogControllerListAmenities**](doc/CatalogApi.md#catalogcontrollerlistamenities) | **GET** /v1/catalog/amenities | 
 [*CatalogApi*](doc/CatalogApi.md) | [**catalogControllerListFeaturedOperators**](doc/CatalogApi.md#catalogcontrollerlistfeaturedoperators) | **GET** /v1/catalog/featured-operators | 
+[*CatalogApi*](doc/CatalogApi.md) | [**catalogControllerListPlaces**](doc/CatalogApi.md#catalogcontrollerlistplaces) | **GET** /v1/catalog/places | 
 [*CatalogApi*](doc/CatalogApi.md) | [**catalogControllerListPopularRoutes**](doc/CatalogApi.md#catalogcontrollerlistpopularroutes) | **GET** /v1/catalog/popular-routes | 
 [*CatalogApi*](doc/CatalogApi.md) | [**catalogControllerListProvinces**](doc/CatalogApi.md#catalogcontrollerlistprovinces) | **GET** /v1/catalog/provinces | 
 [*CatalogApi*](doc/CatalogApi.md) | [**catalogControllerListStopPoints**](doc/CatalogApi.md#catalogcontrollerliststoppoints) | **GET** /v1/catalog/stop-points | 
@@ -749,6 +750,9 @@ Class | Method | HTTP request | Description
  - [PermissionPageDtoOutput](doc/PermissionPageDtoOutput.md)
  - [PermissionPageDtoOutputItemsInner](doc/PermissionPageDtoOutputItemsInner.md)
  - [PickupWindowInputDto](doc/PickupWindowInputDto.md)
+ - [PlaceSuggestionListResponseDtoOutput](doc/PlaceSuggestionListResponseDtoOutput.md)
+ - [PlaceSuggestionListResponseDtoOutputItemsInner](doc/PlaceSuggestionListResponseDtoOutputItemsInner.md)
+ - [PlaceSuggestionListResponseDtoOutputItemsInnerTarget](doc/PlaceSuggestionListResponseDtoOutputItemsInnerTarget.md)
  - [PointAdjustInputDto](doc/PointAdjustInputDto.md)
  - [PolicyCancelDto](doc/PolicyCancelDto.md)
  - [PolicyDraftCreateDto](doc/PolicyDraftCreateDto.md)
@@ -919,6 +923,7 @@ Class | Method | HTTP request | Description
  - [TripSearchResponseDtoOutputItemsInnerOperator](doc/TripSearchResponseDtoOutputItemsInnerOperator.md)
  - [TripSearchResponseDtoOutputItemsInnerPickup](doc/TripSearchResponseDtoOutputItemsInnerPickup.md)
  - [TripSearchResponseDtoOutputItemsInnerVehicleType](doc/TripSearchResponseDtoOutputItemsInnerVehicleType.md)
+ - [TripSearchResponseDtoOutputWidenedToProvince](doc/TripSearchResponseDtoOutputWidenedToProvince.md)
  - [TripSeatStatusInputDto](doc/TripSeatStatusInputDto.md)
  - [TripStatusInputDto](doc/TripStatusInputDto.md)
  - [UserVoucherDtoOutput](doc/UserVoucherDtoOutput.md)

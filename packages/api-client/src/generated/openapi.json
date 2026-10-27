@@ -4694,6 +4694,59 @@
         ]
       }
     },
+    "/v1/catalog/places": {
+      "get": {
+        "operationId": "CatalogController_listPlaces",
+        "parameters": [
+          {
+            "name": "q",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "minLength": 2,
+              "maxLength": 100,
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 20,
+              "default": 8,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Gợi ý địa điểm, khớp sát nhất trước.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlaceSuggestionListResponseDto_Output"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Từ khoá dưới 2 ký tự / query không hợp lệ.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "catalog"
+        ]
+      }
+    },
     "/v1/admin/catalog/provinces": {
       "get": {
         "operationId": "AdminCatalogController_listProvinces",
@@ -10925,6 +10978,16 @@
             }
           },
           {
+            "name": "fromWardId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minLength": 1,
+              "maxLength": 64,
+              "type": "string"
+            }
+          },
+          {
             "name": "fromStopPointId",
             "required": false,
             "in": "query",
@@ -10936,6 +10999,16 @@
           },
           {
             "name": "toProvinceId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minLength": 1,
+              "maxLength": 64,
+              "type": "string"
+            }
+          },
+          {
+            "name": "toWardId",
             "required": false,
             "in": "query",
             "schema": {
@@ -31260,6 +31333,75 @@
         ],
         "additionalProperties": false
       },
+      "PlaceSuggestionListResponseDto_Output": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "kind": {
+                  "type": "string",
+                  "enum": [
+                    "PROVINCE",
+                    "WARD",
+                    "STOP_POINT",
+                    "LEGACY"
+                  ]
+                },
+                "label": {
+                  "type": "string"
+                },
+                "detail": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "target": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "enum": [
+                        "province",
+                        "ward",
+                        "stopPoint"
+                      ]
+                    },
+                    "id": {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    }
+                  },
+                  "required": [
+                    "type",
+                    "id"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "required": [
+                "kind",
+                "label",
+                "detail",
+                "target"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "items"
+        ],
+        "additionalProperties": false
+      },
       "AdminProvincePageDto_Output": {
         "type": "object",
         "properties": {
@@ -37228,6 +37370,22 @@
               "priceMax"
             ],
             "additionalProperties": false
+          },
+          "widenedToProvince": {
+            "type": "object",
+            "properties": {
+              "from": {
+                "type": "boolean"
+              },
+              "to": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "from",
+              "to"
+            ],
+            "additionalProperties": false
           }
         },
         "required": [
@@ -37235,7 +37393,8 @@
           "total",
           "page",
           "limit",
-          "facets"
+          "facets",
+          "widenedToProvince"
         ],
         "additionalProperties": false
       },
