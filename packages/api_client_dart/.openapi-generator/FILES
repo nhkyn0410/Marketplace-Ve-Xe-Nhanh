@@ -288,6 +288,9 @@ doc/KycDownloadResponseDtoOutput.md
 doc/KycReplaceInputDto.md
 doc/KycUploadInputDto.md
 doc/KycUploadResponseDtoOutput.md
+doc/LogoAttachInputDto.md
+doc/LogoUploadInputDto.md
+doc/LogoUploadResponseDtoOutput.md
 doc/LoyaltyMemberDtoOutput.md
 doc/LoyaltyRedemptionInputDto.md
 doc/LoyaltyReportDtoOutput.md
@@ -401,6 +404,9 @@ doc/PermissionInputDto.md
 doc/PermissionPageDtoOutput.md
 doc/PermissionPageDtoOutputItemsInner.md
 doc/PickupWindowInputDto.md
+doc/PlaceSuggestionListResponseDtoOutput.md
+doc/PlaceSuggestionListResponseDtoOutputItemsInner.md
+doc/PlaceSuggestionListResponseDtoOutputItemsInnerTarget.md
 doc/PointAdjustInputDto.md
 doc/PolicyCancelDto.md
 doc/PolicyDraftCreateDto.md
@@ -577,6 +583,7 @@ doc/TripSearchResponseDtoOutputItemsInnerAmenitiesInner.md
 doc/TripSearchResponseDtoOutputItemsInnerOperator.md
 doc/TripSearchResponseDtoOutputItemsInnerPickup.md
 doc/TripSearchResponseDtoOutputItemsInnerVehicleType.md
+doc/TripSearchResponseDtoOutputWidenedToProvince.md
 doc/TripSeatStatusInputDto.md
 doc/TripStatusInputDto.md
 doc/TripsApi.md
@@ -926,6 +933,9 @@ lib/src/model/kyc_download_response_dto_output.dart
 lib/src/model/kyc_replace_input_dto.dart
 lib/src/model/kyc_upload_input_dto.dart
 lib/src/model/kyc_upload_response_dto_output.dart
+lib/src/model/logo_attach_input_dto.dart
+lib/src/model/logo_upload_input_dto.dart
+lib/src/model/logo_upload_response_dto_output.dart
 lib/src/model/loyalty_member_dto_output.dart
 lib/src/model/loyalty_redemption_input_dto.dart
 lib/src/model/loyalty_report_dto_output.dart
@@ -1015,6 +1025,9 @@ lib/src/model/permission_input_dto.dart
 lib/src/model/permission_page_dto_output.dart
 lib/src/model/permission_page_dto_output_items_inner.dart
 lib/src/model/pickup_window_input_dto.dart
+lib/src/model/place_suggestion_list_response_dto_output.dart
+lib/src/model/place_suggestion_list_response_dto_output_items_inner.dart
+lib/src/model/place_suggestion_list_response_dto_output_items_inner_target.dart
 lib/src/model/point_adjust_input_dto.dart
 lib/src/model/policy_cancel_dto.dart
 lib/src/model/policy_draft_create_dto.dart
@@ -1185,6 +1198,7 @@ lib/src/model/trip_search_response_dto_output_items_inner_amenities_inner.dart
 lib/src/model/trip_search_response_dto_output_items_inner_operator.dart
 lib/src/model/trip_search_response_dto_output_items_inner_pickup.dart
 lib/src/model/trip_search_response_dto_output_items_inner_vehicle_type.dart
+lib/src/model/trip_search_response_dto_output_widened_to_province.dart
 lib/src/model/trip_seat_status_input_dto.dart
 lib/src/model/trip_status_input_dto.dart
 lib/src/model/user_voucher_dto_output.dart
@@ -1207,16 +1221,7 @@ lib/src/model/ward_list_response_dto_output.dart
 lib/src/model/ward_list_response_dto_output_items_inner.dart
 lib/src/serializers.dart
 pubspec.yaml
-test/featured_operator_list_response_dto_output_items_inner_routes_inner_test.dart
-test/featured_operator_list_response_dto_output_items_inner_test.dart
-test/featured_operator_list_response_dto_output_test.dart
-test/popular_route_list_response_dto_output_items_inner_test.dart
-test/popular_route_list_response_dto_output_test.dart
-test/ticket_lookup_access_dto_output_test.dart
-test/ticket_lookup_booking_list_dto_output_items_inner_test.dart
-test/ticket_lookup_booking_list_dto_output_test.dart
-test/ticket_lookup_otp_input_dto_test.dart
-test/ticket_lookup_otp_response_dto_output_test.dart
-test/ticket_lookup_session_dto_output_test.dart
-test/ticket_lookup_session_input_dto_test.dart
-test/ticket_lookup_verify_input_dto_test.dart
+test/place_suggestion_list_response_dto_output_items_inner_target_test.dart
+test/place_suggestion_list_response_dto_output_items_inner_test.dart
+test/place_suggestion_list_response_dto_output_test.dart
+test/trip_search_response_dto_output_widened_to_province_test.dart

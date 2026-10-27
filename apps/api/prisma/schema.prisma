@@ -178,6 +178,8 @@ model OperatorProfile {
   publicEmail     String?        @map("public_email")
   address         String?
   description     String?
+  /// Khóa object logo ở kho công khai (`operator-logos/{id}/{uuid}.{ext}`, ADR-018); `null` = chưa có logo (FR-OPR-02).
+  logoObjectKey   String?        @unique @map("logo_object_key")
   approvedAt      DateTime?      @map("approved_at")
   createdAt       DateTime       @default(now()) @map("created_at")
   updatedAt       DateTime       @updatedAt @map("updated_at")

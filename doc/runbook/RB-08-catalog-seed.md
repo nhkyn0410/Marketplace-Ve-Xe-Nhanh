@@ -21,7 +21,7 @@ match:
 ## Kiểm tra
 
 - Dòng đầu in `Seed catalog → <host>/<DB>` kèm số ánh xạ cũ và điểm dừng chuẩn — đúng môi trường mới đọc tiếp.
-- Lần đầu: `Đọc file: 34 tỉnh, 3321 xã, 239 ánh xạ cũ, …`; `Tạo mới:` đúng các số đó. Chạy lần hai: `Tạo mới` = 0.
+- Lần đầu: `Đọc file: 34 tỉnh, 3321 xã, 10262 ánh xạ cũ, …`; `Tạo mới:` đúng các số đó. Chạy lần hai: `Tạo mới` = 0.
 - `GET /v1/catalog/provinces` trả 34 tỉnh; Admin → Danh mục tìm được tỉnh / xã khi gõ không dấu.
 
 ## Lỗi hay gặp

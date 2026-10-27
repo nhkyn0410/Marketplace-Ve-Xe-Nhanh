@@ -24,6 +24,18 @@ export function kycDocumentInvalid(): HttpException {
   );
 }
 
+/**
+ * Logo gửi lên không gắn được: khóa không thuộc nhà xe, object chưa tải lên / quá cũ, sai loại, quá 2 MB hoặc chữ ký
+ * file không phải ảnh. Lý do cụ thể chỉ ghi log.
+ */
+export function operatorLogoInvalid(): HttpException {
+  return problem(
+    HttpStatus.UNPROCESSABLE_ENTITY,
+    "OPERATOR_LOGO_INVALID",
+    "Logo không hợp lệ hoặc chưa tải lên xong. Hãy chọn lại ảnh.",
+  );
+}
+
 /** Đã có một yêu cầu đổi tài khoản nhận tiền đang chờ Admin xác minh. */
 export function bankChangePending(): HttpException {
   return problem(

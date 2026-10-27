@@ -4694,6 +4694,59 @@
         ]
       }
     },
+    "/v1/catalog/places": {
+      "get": {
+        "operationId": "CatalogController_listPlaces",
+        "parameters": [
+          {
+            "name": "q",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "minLength": 2,
+              "maxLength": 100,
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 20,
+              "default": 8,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Gợi ý địa điểm, khớp sát nhất trước.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlaceSuggestionListResponseDto_Output"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Từ khoá dưới 2 ký tự / query không hợp lệ.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "catalog"
+        ]
+      }
+    },
     "/v1/admin/catalog/provinces": {
       "get": {
         "operationId": "AdminCatalogController_listProvinces",
@@ -10925,6 +10978,16 @@
             }
           },
           {
+            "name": "fromWardId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minLength": 1,
+              "maxLength": 64,
+              "type": "string"
+            }
+          },
+          {
             "name": "fromStopPointId",
             "required": false,
             "in": "query",
@@ -10936,6 +10999,16 @@
           },
           {
             "name": "toProvinceId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minLength": 1,
+              "maxLength": 64,
+              "type": "string"
+            }
+          },
+          {
+            "name": "toWardId",
             "required": false,
             "in": "query",
             "schema": {
@@ -23538,6 +23611,212 @@
         ]
       }
     },
+    "/v1/operator/profile/logo/upload-url": {
+      "post": {
+        "operationId": "OperatorProfileController_createLogoUploadUrl",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LogoUploadInputDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "URL tải lên và khóa object.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LogoUploadResponseDto_Output"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Loại file hoặc dung lượng không hợp lệ.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Thiếu hoặc sai access token.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "`PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Kho công khai không phản hồi.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "operator-profile"
+        ]
+      }
+    },
+    "/v1/operator/profile/logo": {
+      "put": {
+        "operationId": "OperatorProfileController_setLogo",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LogoAttachInputDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Hồ sơ sau khi đổi logo.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OperatorProfileResponseDto_Output"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Thiếu hoặc sai access token.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "`PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "`OPERATOR_LOGO_INVALID`.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Kho công khai / audit không phản hồi.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "operator-profile"
+        ]
+      },
+      "delete": {
+        "operationId": "OperatorProfileController_removeLogo",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Hồ sơ sau khi gỡ logo.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OperatorProfileResponseDto_Output"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Thiếu hoặc sai access token.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "`PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Chưa ghi được audit — không đổi gì.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "operator-profile"
+        ]
+      }
+    },
     "/v1/operator/profile/documents/upload-url": {
       "post": {
         "operationId": "OperatorProfileController_createUploadUrl",
@@ -28301,6 +28580,17 @@
           "displayName": {
             "type": "string"
           },
+          "logoUrl": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uri"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "description": {
             "anyOf": [
               {
@@ -28562,6 +28852,7 @@
           "operatorId",
           "operatorSlug",
           "displayName",
+          "logoUrl",
           "description",
           "hotline",
           "publicEmail",
@@ -30967,6 +31258,17 @@
                 "displayName": {
                   "type": "string"
                 },
+                "logoUrl": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "format": "uri"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
                 "averageRating": {
                   "anyOf": [
                     {
@@ -31017,9 +31319,79 @@
               "required": [
                 "operatorId",
                 "displayName",
+                "logoUrl",
                 "averageRating",
                 "reviewCount",
                 "routes"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "items"
+        ],
+        "additionalProperties": false
+      },
+      "PlaceSuggestionListResponseDto_Output": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "kind": {
+                  "type": "string",
+                  "enum": [
+                    "PROVINCE",
+                    "WARD",
+                    "STOP_POINT",
+                    "LEGACY"
+                  ]
+                },
+                "label": {
+                  "type": "string"
+                },
+                "detail": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "target": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "enum": [
+                        "province",
+                        "ward",
+                        "stopPoint"
+                      ]
+                    },
+                    "id": {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    }
+                  },
+                  "required": [
+                    "type",
+                    "id"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "required": [
+                "kind",
+                "label",
+                "detail",
+                "target"
               ],
               "additionalProperties": false
             }
@@ -37005,6 +37377,22 @@
               "priceMax"
             ],
             "additionalProperties": false
+          },
+          "widenedToProvince": {
+            "type": "object",
+            "properties": {
+              "from": {
+                "type": "boolean"
+              },
+              "to": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "from",
+              "to"
+            ],
+            "additionalProperties": false
           }
         },
         "required": [
@@ -37012,7 +37400,8 @@
           "total",
           "page",
           "limit",
-          "facets"
+          "facets",
+          "widenedToProvince"
         ],
         "additionalProperties": false
       },
@@ -52144,6 +52533,17 @@
               }
             ]
           },
+          "logoUrl": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uri"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "status": {
             "type": "string",
             "enum": [
@@ -52340,6 +52740,7 @@
           "publicEmail",
           "address",
           "description",
+          "logoUrl",
           "status",
           "suspendedReason",
           "approvedAt",
@@ -52388,6 +52789,64 @@
           "publicEmail",
           "address",
           "description"
+        ]
+      },
+      "LogoUploadInputDto": {
+        "type": "object",
+        "properties": {
+          "contentType": {
+            "type": "string",
+            "enum": [
+              "image/jpeg",
+              "image/png",
+              "image/webp"
+            ]
+          },
+          "sizeBytes": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 2097152
+          }
+        },
+        "required": [
+          "contentType",
+          "sizeBytes"
+        ]
+      },
+      "LogoUploadResponseDto_Output": {
+        "type": "object",
+        "properties": {
+          "uploadUrl": {
+            "type": "string",
+            "format": "uri"
+          },
+          "objectKey": {
+            "type": "string"
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$"
+          }
+        },
+        "required": [
+          "uploadUrl",
+          "objectKey",
+          "expiresAt"
+        ],
+        "additionalProperties": false
+      },
+      "LogoAttachInputDto": {
+        "type": "object",
+        "properties": {
+          "objectKey": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          }
+        },
+        "required": [
+          "objectKey"
         ]
       },
       "KycUploadInputDto": {

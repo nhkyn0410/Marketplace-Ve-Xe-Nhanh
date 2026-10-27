@@ -329,6 +329,9 @@ export 'package:api_client_dart/src/model/kyc_download_response_dto_output.dart'
 export 'package:api_client_dart/src/model/kyc_replace_input_dto.dart';
 export 'package:api_client_dart/src/model/kyc_upload_input_dto.dart';
 export 'package:api_client_dart/src/model/kyc_upload_response_dto_output.dart';
+export 'package:api_client_dart/src/model/logo_attach_input_dto.dart';
+export 'package:api_client_dart/src/model/logo_upload_input_dto.dart';
+export 'package:api_client_dart/src/model/logo_upload_response_dto_output.dart';
 export 'package:api_client_dart/src/model/loyalty_member_dto_output.dart';
 export 'package:api_client_dart/src/model/loyalty_redemption_input_dto.dart';
 export 'package:api_client_dart/src/model/loyalty_report_dto_output.dart';
@@ -418,6 +421,9 @@ export 'package:api_client_dart/src/model/permission_input_dto.dart';
 export 'package:api_client_dart/src/model/permission_page_dto_output.dart';
 export 'package:api_client_dart/src/model/permission_page_dto_output_items_inner.dart';
 export 'package:api_client_dart/src/model/pickup_window_input_dto.dart';
+export 'package:api_client_dart/src/model/place_suggestion_list_response_dto_output.dart';
+export 'package:api_client_dart/src/model/place_suggestion_list_response_dto_output_items_inner.dart';
+export 'package:api_client_dart/src/model/place_suggestion_list_response_dto_output_items_inner_target.dart';
 export 'package:api_client_dart/src/model/point_adjust_input_dto.dart';
 export 'package:api_client_dart/src/model/policy_cancel_dto.dart';
 export 'package:api_client_dart/src/model/policy_draft_create_dto.dart';
@@ -588,6 +594,7 @@ export 'package:api_client_dart/src/model/trip_search_response_dto_output_items_
 export 'package:api_client_dart/src/model/trip_search_response_dto_output_items_inner_operator.dart';
 export 'package:api_client_dart/src/model/trip_search_response_dto_output_items_inner_pickup.dart';
 export 'package:api_client_dart/src/model/trip_search_response_dto_output_items_inner_vehicle_type.dart';
+export 'package:api_client_dart/src/model/trip_search_response_dto_output_widened_to_province.dart';
 export 'package:api_client_dart/src/model/trip_seat_status_input_dto.dart';
 export 'package:api_client_dart/src/model/trip_status_input_dto.dart';
 export 'package:api_client_dart/src/model/user_voucher_dto_output.dart';

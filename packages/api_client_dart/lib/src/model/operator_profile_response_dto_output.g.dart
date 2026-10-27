@@ -89,6 +89,8 @@ class _$OperatorProfileResponseDtoOutput
   @override
   final String? description;
   @override
+  final String? logoUrl;
+  @override
   final OperatorProfileResponseDtoOutputStatusEnum status;
   @override
   final String? suspendedReason;
@@ -115,6 +117,7 @@ class _$OperatorProfileResponseDtoOutput
       this.publicEmail,
       this.address,
       this.description,
+      this.logoUrl,
       required this.status,
       this.suspendedReason,
       this.approvedAt,
@@ -144,6 +147,7 @@ class _$OperatorProfileResponseDtoOutput
         publicEmail == other.publicEmail &&
         address == other.address &&
         description == other.description &&
+        logoUrl == other.logoUrl &&
         status == other.status &&
         suspendedReason == other.suspendedReason &&
         approvedAt == other.approvedAt &&
@@ -164,6 +168,7 @@ class _$OperatorProfileResponseDtoOutput
     _$hash = $jc(_$hash, publicEmail.hashCode);
     _$hash = $jc(_$hash, address.hashCode);
     _$hash = $jc(_$hash, description.hashCode);
+    _$hash = $jc(_$hash, logoUrl.hashCode);
     _$hash = $jc(_$hash, status.hashCode);
     _$hash = $jc(_$hash, suspendedReason.hashCode);
     _$hash = $jc(_$hash, approvedAt.hashCode);
@@ -186,6 +191,7 @@ class _$OperatorProfileResponseDtoOutput
           ..add('publicEmail', publicEmail)
           ..add('address', address)
           ..add('description', description)
+          ..add('logoUrl', logoUrl)
           ..add('status', status)
           ..add('suspendedReason', suspendedReason)
           ..add('approvedAt', approvedAt)
@@ -237,6 +243,10 @@ class OperatorProfileResponseDtoOutputBuilder
   String? _description;
   String? get description => _$this._description;
   set description(String? description) => _$this._description = description;
+
+  String? _logoUrl;
+  String? get logoUrl => _$this._logoUrl;
+  set logoUrl(String? logoUrl) => _$this._logoUrl = logoUrl;
 
   OperatorProfileResponseDtoOutputStatusEnum? _status;
   OperatorProfileResponseDtoOutputStatusEnum? get status => _$this._status;
@@ -293,6 +303,7 @@ class OperatorProfileResponseDtoOutputBuilder
       _publicEmail = $v.publicEmail;
       _address = $v.address;
       _description = $v.description;
+      _logoUrl = $v.logoUrl;
       _status = $v.status;
       _suspendedReason = $v.suspendedReason;
       _approvedAt = $v.approvedAt;
@@ -334,6 +345,7 @@ class OperatorProfileResponseDtoOutputBuilder
             publicEmail: publicEmail,
             address: address,
             description: description,
+            logoUrl: logoUrl,
             status: BuiltValueNullFieldError.checkNotNull(
                 status, r'OperatorProfileResponseDtoOutput', 'status'),
             suspendedReason: suspendedReason,

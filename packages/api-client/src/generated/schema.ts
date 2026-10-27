@@ -1044,6 +1044,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/catalog/places": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["CatalogController_listPlaces"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/admin/catalog/provinces": {
         parameters: {
             query?: never;
@@ -4068,6 +4084,38 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/operator/profile/logo/upload-url": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["OperatorProfileController_createLogoUploadUrl"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operator/profile/logo": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["OperatorProfileController_setLogo"];
+        post?: never;
+        delete: operations["OperatorProfileController_removeLogo"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/operator/profile/documents/upload-url": {
         parameters: {
             query?: never;
@@ -4926,6 +4974,7 @@ export interface components {
             operatorId: string;
             operatorSlug: string;
             displayName: string;
+            logoUrl: string | null;
             description: string | null;
             hotline: string | null;
             publicEmail: string | null;
@@ -5466,6 +5515,7 @@ export interface components {
                 /** Format: uuid */
                 operatorId: string;
                 displayName: string;
+                logoUrl: string | null;
                 averageRating: number | null;
                 reviewCount: number;
                 routes: {
@@ -5476,6 +5526,20 @@ export interface components {
                     destinationProvinceId: string;
                     destinationName: string;
                 }[];
+            }[];
+        };
+        PlaceSuggestionListResponseDto_Output: {
+            items: {
+                /** @enum {string} */
+                kind: "PROVINCE" | "WARD" | "STOP_POINT" | "LEGACY";
+                label: string;
+                detail: string | null;
+                target: {
+                    /** @enum {string} */
+                    type: "province" | "ward" | "stopPoint";
+                    /** Format: uuid */
+                    id: string;
+                };
             }[];
         };
         AdminProvincePageDto_Output: {
@@ -6689,6 +6753,10 @@ export interface components {
                 }[];
                 priceMin: number | null;
                 priceMax: number | null;
+            };
+            widenedToProvince: {
+                from: boolean;
+                to: boolean;
             };
         };
         PublicTripDto_Output: {
@@ -9489,6 +9557,7 @@ export interface components {
             publicEmail: string | null;
             address: string | null;
             description: string | null;
+            logoUrl: string | null;
             /** @enum {string} */
             status: "ACTIVE" | "SUSPENDED";
             suspendedReason: string | null;
@@ -9527,6 +9596,21 @@ export interface components {
             publicEmail: string;
             address: string;
             description: string | null;
+        };
+        LogoUploadInputDto: {
+            /** @enum {string} */
+            contentType: "image/jpeg" | "image/png" | "image/webp";
+            sizeBytes: number;
+        };
+        LogoUploadResponseDto_Output: {
+            /** Format: uri */
+            uploadUrl: string;
+            objectKey: string;
+            /** Format: date-time */
+            expiresAt: string;
+        };
+        LogoAttachInputDto: {
+            objectKey: string;
         };
         KycUploadInputDto: {
             /** @enum {string} */
@@ -13218,6 +13302,38 @@ export interface operations {
                 };
             };
             /** @description Query không hợp lệ. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    CatalogController_listPlaces: {
+        parameters: {
+            query: {
+                q: string;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Gợi ý địa điểm, khớp sát nhất trước. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlaceSuggestionListResponseDto_Output"];
+                };
+            };
+            /** @description Từ khoá dưới 2 ký tự / query không hợp lệ. */
             400: {
                 headers: {
                     [name: string]: unknown;
@@ -17529,8 +17645,10 @@ export interface operations {
         parameters: {
             query: {
                 fromProvinceId?: string;
+                fromWardId?: string;
                 fromStopPointId?: string;
                 toProvinceId?: string;
+                toWardId?: string;
                 toStopPointId?: string;
                 date: string;
                 passengers?: number;
@@ -25854,6 +25972,173 @@ export interface operations {
                 };
                 content: {
                     "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Chưa ghi được audit — không đổi gì. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    OperatorProfileController_createLogoUploadUrl: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LogoUploadInputDto"];
+            };
+        };
+        responses: {
+            /** @description URL tải lên và khóa object. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LogoUploadResponseDto_Output"];
+                };
+            };
+            /** @description Loại file hoặc dung lượng không hợp lệ. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Kho công khai không phản hồi. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    OperatorProfileController_setLogo: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LogoAttachInputDto"];
+            };
+        };
+        responses: {
+            /** @description Hồ sơ sau khi đổi logo. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OperatorProfileResponseDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `OPERATOR_LOGO_INVALID`. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Kho công khai / audit không phản hồi. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    OperatorProfileController_removeLogo: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Hồ sơ sau khi gỡ logo. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OperatorProfileResponseDto_Output"];
                 };
             };
             /** @description Thiếu hoặc sai access token. */

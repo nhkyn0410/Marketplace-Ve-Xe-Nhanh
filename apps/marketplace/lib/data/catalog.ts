@@ -18,3 +18,18 @@ export async function getStopPoints(query?: string): Promise<DataResult<readonly
   const result = await apiRequest<components["schemas"]["StopPointListResponseDto_Output"]>(`/catalog/stop-points?${params}`);
   return result.status === "ok" ? ok(result.data.items) : result;
 }
+
+export type PlaceSuggestion = components["schemas"]["PlaceSuggestionListResponseDto_Output"]["items"][number];
+
+/**
+ * Gợi ý điểm đi / điểm đến cho ô tìm chuyến: tỉnh, phường / xã, địa danh, tên hành chính cũ (dẫn tới đơn vị mới).
+ * Dưới 2 ký tự thì không gọi API.
+ */
+export async function getPlaceSuggestions(query: string): Promise<DataResult<readonly PlaceSuggestion[]>> {
+  const q = query.trim();
+  if (q.length < 2) return ok([]);
+  const result = await apiRequest<components["schemas"]["PlaceSuggestionListResponseDto_Output"]>(
+    `/catalog/places?${new URLSearchParams({ q, limit: "8" })}`
+  );
+  return result.status === "ok" ? ok(result.data.items) : result;
+}

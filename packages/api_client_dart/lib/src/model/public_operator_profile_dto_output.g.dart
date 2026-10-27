@@ -14,6 +14,8 @@ class _$PublicOperatorProfileDtoOutput extends PublicOperatorProfileDtoOutput {
   @override
   final String displayName;
   @override
+  final String? logoUrl;
+  @override
   final String? description;
   @override
   final String? hotline;
@@ -40,6 +42,7 @@ class _$PublicOperatorProfileDtoOutput extends PublicOperatorProfileDtoOutput {
       {required this.operatorId,
       required this.operatorSlug,
       required this.displayName,
+      this.logoUrl,
       this.description,
       this.hotline,
       this.publicEmail,
@@ -66,6 +69,7 @@ class _$PublicOperatorProfileDtoOutput extends PublicOperatorProfileDtoOutput {
         operatorId == other.operatorId &&
         operatorSlug == other.operatorSlug &&
         displayName == other.displayName &&
+        logoUrl == other.logoUrl &&
         description == other.description &&
         hotline == other.hotline &&
         publicEmail == other.publicEmail &&
@@ -83,6 +87,7 @@ class _$PublicOperatorProfileDtoOutput extends PublicOperatorProfileDtoOutput {
     _$hash = $jc(_$hash, operatorId.hashCode);
     _$hash = $jc(_$hash, operatorSlug.hashCode);
     _$hash = $jc(_$hash, displayName.hashCode);
+    _$hash = $jc(_$hash, logoUrl.hashCode);
     _$hash = $jc(_$hash, description.hashCode);
     _$hash = $jc(_$hash, hotline.hashCode);
     _$hash = $jc(_$hash, publicEmail.hashCode);
@@ -102,6 +107,7 @@ class _$PublicOperatorProfileDtoOutput extends PublicOperatorProfileDtoOutput {
           ..add('operatorId', operatorId)
           ..add('operatorSlug', operatorSlug)
           ..add('displayName', displayName)
+          ..add('logoUrl', logoUrl)
           ..add('description', description)
           ..add('hotline', hotline)
           ..add('publicEmail', publicEmail)
@@ -132,6 +138,10 @@ class PublicOperatorProfileDtoOutputBuilder
   String? _displayName;
   String? get displayName => _$this._displayName;
   set displayName(String? displayName) => _$this._displayName = displayName;
+
+  String? _logoUrl;
+  String? get logoUrl => _$this._logoUrl;
+  set logoUrl(String? logoUrl) => _$this._logoUrl = logoUrl;
 
   String? _description;
   String? get description => _$this._description;
@@ -193,6 +203,7 @@ class PublicOperatorProfileDtoOutputBuilder
       _operatorId = $v.operatorId;
       _operatorSlug = $v.operatorSlug;
       _displayName = $v.displayName;
+      _logoUrl = $v.logoUrl;
       _description = $v.description;
       _hotline = $v.hotline;
       _publicEmail = $v.publicEmail;
@@ -231,6 +242,7 @@ class PublicOperatorProfileDtoOutputBuilder
                 r'PublicOperatorProfileDtoOutput', 'operatorSlug'),
             displayName: BuiltValueNullFieldError.checkNotNull(
                 displayName, r'PublicOperatorProfileDtoOutput', 'displayName'),
+            logoUrl: logoUrl,
             description: description,
             hotline: hotline,
             publicEmail: publicEmail,

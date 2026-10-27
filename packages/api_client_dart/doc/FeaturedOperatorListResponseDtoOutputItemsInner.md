@@ -10,6 +10,7 @@ Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **operatorId** | **String** |  | 
 **displayName** | **String** |  | 
+**logoUrl** | **String** |  | 
 **averageRating** | **num** |  | 
 **reviewCount** | **int** |  | 
 **routes** | [**BuiltList&lt;FeaturedOperatorListResponseDtoOutputItemsInnerRoutesInner&gt;**](FeaturedOperatorListResponseDtoOutputItemsInnerRoutesInner.md) |  | 

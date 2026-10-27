@@ -7,6 +7,7 @@ import { AuditWriteError, type AuditEventInput, type AuditService } from "../aud
 import { parseAppConfig } from "../config/env.config";
 import { platformScope, tenantScope } from "../database/db-scope";
 import { PrismaService } from "../database/prisma.service";
+import { loadPublicOperatorProfile } from "../database/public-operator-profile";
 import type { BankAccountChangeEmailMessage, EmailNotifier } from "../external/notification/email-notifier";
 import { LocalStorageProvider } from "../external/storage/local-storage-provider";
 import type { Authorization } from "../iam/role/authorization";
@@ -25,6 +26,7 @@ const requireDb = process.env.REQUIRE_DB_TESTS === "1";
 
 const PDF = Uint8Array.from([0x25, 0x50, 0x44, 0x46, 0x2d, 0x31, 0x2e, 0x37, 0x0a, 1, 2, 3]);
 const NOT_PDF = Uint8Array.from([0x3c, 0x68, 0x74, 0x6d, 0x6c, 0x3e, 0x0a, 1, 2, 3]);
+const PNG = Uint8Array.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0, 0, 0, 0x0d, 1, 2, 3]);
 
 async function rejectionOf(promise: Promise<unknown>): Promise<{ status?: number; code?: string }> {
   try {
@@ -40,6 +42,7 @@ describe.skipIf(!url && !requireDb)("Hồ sơ & KYC nhà xe — Postgres thật,
   let prisma: PrismaService;
   let rootDir: string;
   let storage: LocalStorageProvider;
+  let publicStorage: LocalStorageProvider;
   let profiles: OperatorProfileService;
   let admin: AdminOperatorService;
   const tag = randomUUID().slice(0, 8);
@@ -69,6 +72,13 @@ describe.skipIf(!url && !requireDb)("Hồ sơ & KYC nhà xe — Postgres thật,
     return target.objectKey;
   }
 
+  /** Tải một logo lên kho công khai như trình duyệt (xin URL → ghi object), chưa gắn vào hồ sơ. */
+  async function uploadedLogo(bytes: Uint8Array = PNG, storedType = "image/png"): Promise<string> {
+    const target = await profiles.createLogoUpload(tenant, { contentType: "image/png", sizeBytes: bytes.length });
+    await publicStorage.write(target.objectKey, storedType, bytes);
+    return target.objectKey;
+  }
+
   beforeAll(async () => {
     prisma = new PrismaService(parseAppConfig({ DATABASE_URL: url }));
     const [role] = await prisma.$queryRaw<{ rolsuper: boolean; rolbypassrls: boolean }[]>`
@@ -78,7 +88,8 @@ describe.skipIf(!url && !requireDb)("Hồ sơ & KYC nhà xe — Postgres thật,
     }
     rootDir = await mkdtemp(join(tmpdir(), "vxn-opr1b-"));
     storage = new LocalStorageProvider({ rootDir, apiBaseUrl: "http://storage.test" });
-    profiles = new OperatorProfileService(prisma, storage, audit);
+    publicStorage = new LocalStorageProvider({ rootDir: join(rootDir, "public"), apiBaseUrl: "http://cdn.test" });
+    profiles = new OperatorProfileService(prisma, storage, audit, publicStorage);
     admin = new AdminOperatorService(
       prisma,
       audit,
@@ -238,6 +249,95 @@ describe.skipIf(!url && !requireDb)("Hồ sơ & KYC nhà xe — Postgres thật,
     expect((await profiles.get(tenant)).documents).toEqual([expect.objectContaining({ fileName: "gpkd-moi.pdf" })]);
   });
 
+  it("logo: gắn → logoUrl ở hồ sơ + trang công khai, audit; gửi lại y nguyên không đổi gì; thay → logo cũ bị xóa; gỡ → null, object bị xóa", async () => {
+    expect((await profiles.get(tenant)).logoUrl).toBeNull();
+    const first = await uploadedLogo();
+    expect(first).toMatch(new RegExp(`^operator-logos/${operatorId}/[0-9a-f-]{36}\\.png$`));
+    const withLogo = await profiles.setLogo(tenant, owner, { objectKey: first });
+    expect(withLogo.logoUrl).toBe(publicStorage.publicUrl(first));
+    expect(recordAuditEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        action: "operator.logo.update",
+        operatorId,
+        before: null,
+        after: { logoObjectKey: first, contentType: "image/png", sizeBytes: PNG.length },
+      }),
+      expect.objectContaining({ deadline: expect.any(Number) }),
+    );
+    const publicProfile = await loadPublicOperatorProfile(prisma, operatorId, { limit: 20 }, new Date(), (key) => publicStorage.publicUrl(key));
+    expect(publicProfile?.logoUrl).toBe(publicStorage.publicUrl(first));
+
+    await profiles.setLogo(tenant, owner, { objectKey: first });
+    expect(recordAuditEvent).toHaveBeenCalledTimes(1);
+    expect(await publicStorage.head(first)).not.toBeNull();
+
+    const second = await uploadedLogo();
+    expect((await profiles.setLogo(tenant, owner, { objectKey: second })).logoUrl).toBe(publicStorage.publicUrl(second));
+    expect(await publicStorage.head(first)).toBeNull();
+    expect(recordAuditEvent).toHaveBeenLastCalledWith(
+      expect.objectContaining({ action: "operator.logo.update", before: { logoObjectKey: first } }),
+      expect.anything(),
+    );
+
+    const removed = await profiles.removeLogo(tenant, owner);
+    expect(removed.logoUrl).toBeNull();
+    expect(await publicStorage.head(second)).toBeNull();
+    expect(recordAuditEvent).toHaveBeenLastCalledWith(
+      expect.objectContaining({ action: "operator.logo.remove", before: { logoObjectKey: second }, after: null }),
+      expect.anything(),
+    );
+    // Gỡ khi chưa có logo: không đổi gì, không ghi audit.
+    await profiles.removeLogo(tenant, owner);
+    expect(recordAuditEvent).toHaveBeenCalledTimes(3);
+  });
+
+  it("logo sai → 422, hồ sơ giữ nguyên: khóa nhà xe khác / ảnh xe, chưa tải lên, không phải ảnh, khai sai loại, quá 2 MB; tenant khác không gắn được logo của nhà xe này", async () => {
+    const kept = await uploadedLogo();
+    await profiles.setLogo(tenant, owner, { objectKey: kept });
+    recordAuditEvent.mockClear();
+
+    const foreign = `operator-logos/${otherId}/${randomUUID()}.png`;
+    await publicStorage.write(foreign, "image/png", PNG);
+    const vehicleKey = `vehicles/${operatorId}/${randomUUID()}/${randomUUID()}.png`;
+    await publicStorage.write(vehicleKey, "image/png", PNG);
+    const missing = `operator-logos/${operatorId}/${randomUUID()}.png`;
+    const html = await uploadedLogo(new TextEncoder().encode("<html><script>alert(1)</script></html>"));
+    const mislabeled = await uploadedLogo(PNG, "image/jpeg");
+    const tooBig = await uploadedLogo(Uint8Array.from({ length: 2 * 1024 * 1024 + 1 }, (_, index) => PNG[index] ?? 0));
+    for (const objectKey of [foreign, vehicleKey, missing, html, mislabeled, tooBig]) {
+      expect(await rejectionOf(profiles.setLogo(tenant, owner, { objectKey })), objectKey).toEqual({
+        status: 422,
+        code: "OPERATOR_LOGO_INVALID",
+      });
+    }
+    // Nhà xe khác (token tenant khác) gửi khóa logo của nhà xe này: khóa không thuộc tiền tố của họ.
+    const otherTenant: Authorization = { permission: "kyc:submit", scope: "tenant", db: tenantScope(otherId) };
+    const stolen = await uploadedLogo();
+    expect(await rejectionOf(profiles.setLogo(otherTenant, owner, { objectKey: stolen }))).toEqual({
+      status: 422,
+      code: "OPERATOR_LOGO_INVALID",
+    });
+    // RLS: scope tenant của nhà xe khác không ghi được cột logo của nhà xe này.
+    const hijack = await prisma.withScope(tenantScope(otherId), (tx) =>
+      tx.operatorProfile.updateMany({ where: { id: operatorId }, data: { logoObjectKey: stolen } }),
+    );
+    expect(hijack.count).toBe(0);
+    expect(recordAuditEvent).not.toHaveBeenCalled();
+    expect((await profiles.get(tenant)).logoUrl).toBe(publicStorage.publicUrl(kept));
+    await profiles.removeLogo(tenant, owner);
+  });
+
+  it("logo: hai lần đổi đồng thời xếp hàng — hồ sơ giữ logo của lần sau, object của lần trước bị xóa, không còn object mồ côi", async () => {
+    const [a, b] = await Promise.all([uploadedLogo(), uploadedLogo()]);
+    await Promise.all([profiles.setLogo(tenant, owner, { objectKey: a }), profiles.setLogo(tenant, owner, { objectKey: b })]);
+    const current = (await profiles.get(tenant)).logoUrl;
+    expect([publicStorage.publicUrl(a), publicStorage.publicUrl(b)]).toContain(current);
+    const remaining = (await Promise.all([a, b].map(async (key) => ((await publicStorage.head(key)) ? key : null)))).filter(Boolean);
+    expect(remaining).toHaveLength(1);
+    expect(publicStorage.publicUrl(remaining[0]!)).toBe(current);
+    await profiles.removeLogo(tenant, owner);
+  });
+
   it("đổi tài khoản: trùng tài khoản đang dùng → 422; gửi → chờ xác minh (tài khoản cũ vẫn dùng), gửi lần nữa → 409; RLS chặn tenant tự xác minh", async () => {
     expect(
       await rejectionOf(profiles.requestBankChange(tenant, owner, bank({ bankName: "Vietcombank", accountNumber: "0071000124521" }))),
@@ -340,9 +440,16 @@ describe.skipIf(!url && !requireDb)("Hồ sơ & KYC nhà xe — Postgres thật,
     });
   });
 
-  it("audit lỗi → 503 và không đổi gì (sửa hồ sơ, gửi yêu cầu đổi tài khoản)", async () => {
+  it("audit lỗi → 503 và không đổi gì (sửa hồ sơ, đổi / gỡ logo, gửi yêu cầu đổi tài khoản)", async () => {
+    const logo = await uploadedLogo();
+    await profiles.setLogo(tenant, owner, { objectKey: logo });
+    const replacement = await uploadedLogo();
     recordAuditEvent.mockRejectedValue(new AuditWriteError("mongo down"));
     const before = await profiles.get(tenant);
+    expect(await rejectionOf(profiles.setLogo(tenant, owner, { objectKey: replacement }))).toEqual({ status: 503, code: "SERVICE_UNAVAILABLE" });
+    expect(await rejectionOf(profiles.removeLogo(tenant, owner))).toEqual({ status: 503, code: "SERVICE_UNAVAILABLE" });
+    expect((await profiles.get(tenant)).logoUrl).toBe(publicStorage.publicUrl(logo));
+    expect(await publicStorage.head(logo)).not.toBeNull();
     expect(
       await rejectionOf(profiles.update(tenant, owner, ProfileUpdateInputSchema.parse({ ...before, displayName: "Tên khác" }))),
     ).toEqual({ status: 503, code: "SERVICE_UNAVAILABLE" });

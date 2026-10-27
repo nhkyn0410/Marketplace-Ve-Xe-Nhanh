@@ -3,6 +3,7 @@ import { z } from "zod";
 import { OperatorApplicationDocumentType, OperatorStatus } from "../../database/prisma.types";
 import { DOCUMENT_CONTENT_TYPES, MAX_DOCUMENT_BYTES } from "../../operator-kyc/operator-application-format";
 import { normalizeAccountHolder } from "../kyc-document-format";
+import { MAX_OPERATOR_LOGO_BYTES, OPERATOR_LOGO_CONTENT_TYPES } from "../operator-logo-format";
 
 // API §7.3 `/operator/profile` — hồ sơ, giấy tờ KYC và tài khoản nhận tiền của nhà xe đã duyệt (TASK-OPR-001b, UC-11,
 // FR-OPR-02..05; Figma 1667:27240, 1667:27586).
@@ -78,6 +79,8 @@ export const OperatorProfileResponseSchema = z.object({
   publicEmail: z.string().nullable(),
   address: z.string().nullable(),
   description: z.string().nullable(),
+  /** Địa chỉ công khai (CDN) của logo; `null` = chưa có logo, nơi hiển thị dùng chữ viết tắt. */
+  logoUrl: z.url().nullable(),
   status: z.enum(OperatorStatus),
   suspendedReason: z.string().nullable(),
   approvedAt: z.iso.datetime().nullable(),
@@ -126,6 +129,29 @@ export type KycDownloadResponse = z.infer<typeof KycDownloadResponseSchema>;
 export class KycDownloadResponseDto extends createZodDto(KycDownloadResponseSchema) {}
 
 export class KycDocumentTypeParamDto extends createZodDto(z.object({ type: DocumentTypeSchema })) {}
+
+export const LogoUploadInputSchema = z.object({
+  contentType: z.enum(OPERATOR_LOGO_CONTENT_TYPES),
+  sizeBytes: z.int().min(1).max(MAX_OPERATOR_LOGO_BYTES),
+});
+export type LogoUploadInput = z.infer<typeof LogoUploadInputSchema>;
+/** Body xin URL tải logo lên kho công khai (JPEG / PNG / WebP, tối đa 2 MB). */
+export class LogoUploadInputDto extends createZodDto(LogoUploadInputSchema) {}
+
+export const LogoUploadResponseSchema = z.object({
+  /** URL để trình duyệt `PUT` thẳng file lên kho, kèm đúng header `Content-Type` đã khai. */
+  uploadUrl: z.url(),
+  /** Khóa object do server sinh — gửi lại ở `PUT /operator/profile/logo`. */
+  objectKey: z.string(),
+  expiresAt: z.iso.datetime(),
+});
+export type LogoUploadResponse = z.infer<typeof LogoUploadResponseSchema>;
+export class LogoUploadResponseDto extends createZodDto(LogoUploadResponseSchema) {}
+
+export const LogoAttachInputSchema = z.object({ objectKey: z.string().min(1).max(200) });
+export type LogoAttachInput = z.infer<typeof LogoAttachInputSchema>;
+/** Body gắn logo vừa tải lên làm logo của nhà xe. */
+export class LogoAttachInputDto extends createZodDto(LogoAttachInputSchema) {}
 
 export const BankChangeInputSchema = z.object({
   bankName: requiredText(100),

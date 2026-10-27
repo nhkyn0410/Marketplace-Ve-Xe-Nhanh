@@ -14,7 +14,7 @@ export async function getOperatorProfile(operatorId: string, cursor?: string): P
   const p = result.data;
   const percent = (value: number | null) => value === null ? "Chưa có dữ liệu" : `${(value * 100).toFixed(1)}%`;
   return ok({ id: p.operatorId, name: p.displayName, code: p.operatorSlug.slice(0, 2).toUpperCase(),
-    isVerified: false, description: p.description ?? "", hotline: p.hotline ?? "", email: p.publicEmail ?? "",
+    logoUrl: p.logoUrl, isVerified: false, description: p.description ?? "", hotline: p.hotline ?? "", email: p.publicEmail ?? "",
     headquarters: p.address ?? "", metrics: { ratingAverageText: p.scorecard.averageRating?.toFixed(1) ?? "—",
       ratingTotalText: `${p.scorecard.reviewCount} đánh giá`, cancellationRateText: percent(p.scorecard.operatorCancellationRate),
       cancellationRatePeriod: "", refundDisputeRateText: `${percent(p.scorecard.refundBookingRate)} / ${percent(p.scorecard.disputeBookingRate)}`,

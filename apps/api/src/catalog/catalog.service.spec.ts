@@ -1,7 +1,10 @@
 import { randomUUID } from "node:crypto";
 import { describe, expect, it, vi } from "vitest";
 import type { PrismaService } from "../database/prisma.service";
+import { loadFeaturedOperators } from "../database/public-highlights";
 import { CatalogService } from "./catalog.service";
+
+vi.mock("../database/public-highlights", () => ({ loadFeaturedOperators: vi.fn(), loadPopularRoutes: vi.fn() }));
 
 function stopPoint(id: string) {
   return {
@@ -28,7 +31,7 @@ function serviceWith(rows: unknown[]) {
     amenity: { findMany },
     $queryRaw: queryRaw,
   } as unknown as PrismaService;
-  return { service: new CatalogService(prisma), findMany, queryRaw };
+  return { service: new CatalogService(prisma, { publicUrl: (key) => `https://cdn.test/${key}` }), findMany, queryRaw };
 }
 
 describe("CatalogService — chỉ ACTIVE + cursor", () => {
@@ -115,5 +118,20 @@ describe("CatalogService — chỉ ACTIVE + cursor", () => {
     });
     expect(last.items).toHaveLength(2);
     expect(last.nextCursor).toBeNull();
+  });
+});
+
+describe("CatalogService — nhà xe tiêu biểu", () => {
+  it("ghép khóa logo thành địa chỉ ở kho công khai; chưa có logo → logoUrl null; không lộ khóa object", async () => {
+    const withLogo = randomUUID();
+    const withoutLogo = randomUUID();
+    const logoKey = `operator-logos/${withLogo}/${randomUUID()}.png`;
+    vi.mocked(loadFeaturedOperators).mockResolvedValueOnce([
+      { operatorId: withLogo, displayName: "Phương Trang", logoObjectKey: logoKey, averageRating: 4.6, reviewCount: 12, routes: [] },
+      { operatorId: withoutLogo, displayName: "Thành Bưởi", logoObjectKey: null, averageRating: null, reviewCount: 0, routes: [] },
+    ]);
+    const { items } = await serviceWith([]).service.listFeaturedOperators(5);
+    expect(items.map((item) => item.logoUrl)).toEqual([`https://cdn.test/${logoKey}`, null]);
+    expect(JSON.stringify(items)).not.toContain("logoObjectKey");
   });
 });
