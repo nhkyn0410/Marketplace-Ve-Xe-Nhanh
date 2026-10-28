@@ -83,6 +83,24 @@ const AdminPlatformAccountDtoOutputPermissionsEnum
     _$adminPlatformAccountDtoOutputPermissionsEnum_tripColonManage =
     const AdminPlatformAccountDtoOutputPermissionsEnum._('tripColonManage');
 const AdminPlatformAccountDtoOutputPermissionsEnum
+    _$adminPlatformAccountDtoOutputPermissionsEnum_tripColonDispatch =
+    const AdminPlatformAccountDtoOutputPermissionsEnum._('tripColonDispatch');
+const AdminPlatformAccountDtoOutputPermissionsEnum
+    _$adminPlatformAccountDtoOutputPermissionsEnum_officeColonManage =
+    const AdminPlatformAccountDtoOutputPermissionsEnum._('officeColonManage');
+const AdminPlatformAccountDtoOutputPermissionsEnum
+    _$adminPlatformAccountDtoOutputPermissionsEnum_officeColonRead =
+    const AdminPlatformAccountDtoOutputPermissionsEnum._('officeColonRead');
+const AdminPlatformAccountDtoOutputPermissionsEnum
+    _$adminPlatformAccountDtoOutputPermissionsEnum_counterColonSell =
+    const AdminPlatformAccountDtoOutputPermissionsEnum._('counterColonSell');
+const AdminPlatformAccountDtoOutputPermissionsEnum
+    _$adminPlatformAccountDtoOutputPermissionsEnum_counterColonCollect =
+    const AdminPlatformAccountDtoOutputPermissionsEnum._('counterColonCollect');
+const AdminPlatformAccountDtoOutputPermissionsEnum
+    _$adminPlatformAccountDtoOutputPermissionsEnum_counterColonRead =
+    const AdminPlatformAccountDtoOutputPermissionsEnum._('counterColonRead');
+const AdminPlatformAccountDtoOutputPermissionsEnum
     _$adminPlatformAccountDtoOutputPermissionsEnum_checkinColonPerform =
     const AdminPlatformAccountDtoOutputPermissionsEnum._('checkinColonPerform');
 const AdminPlatformAccountDtoOutputPermissionsEnum
@@ -206,6 +224,18 @@ AdminPlatformAccountDtoOutputPermissionsEnum
       return _$adminPlatformAccountDtoOutputPermissionsEnum_routeColonManage;
     case 'tripColonManage':
       return _$adminPlatformAccountDtoOutputPermissionsEnum_tripColonManage;
+    case 'tripColonDispatch':
+      return _$adminPlatformAccountDtoOutputPermissionsEnum_tripColonDispatch;
+    case 'officeColonManage':
+      return _$adminPlatformAccountDtoOutputPermissionsEnum_officeColonManage;
+    case 'officeColonRead':
+      return _$adminPlatformAccountDtoOutputPermissionsEnum_officeColonRead;
+    case 'counterColonSell':
+      return _$adminPlatformAccountDtoOutputPermissionsEnum_counterColonSell;
+    case 'counterColonCollect':
+      return _$adminPlatformAccountDtoOutputPermissionsEnum_counterColonCollect;
+    case 'counterColonRead':
+      return _$adminPlatformAccountDtoOutputPermissionsEnum_counterColonRead;
     case 'checkinColonPerform':
       return _$adminPlatformAccountDtoOutputPermissionsEnum_checkinColonPerform;
     case 'checkinColonRead':
@@ -286,6 +316,12 @@ final BuiltSet<AdminPlatformAccountDtoOutputPermissionsEnum>
   _$adminPlatformAccountDtoOutputPermissionsEnum_vehicleColonRead,
   _$adminPlatformAccountDtoOutputPermissionsEnum_routeColonManage,
   _$adminPlatformAccountDtoOutputPermissionsEnum_tripColonManage,
+  _$adminPlatformAccountDtoOutputPermissionsEnum_tripColonDispatch,
+  _$adminPlatformAccountDtoOutputPermissionsEnum_officeColonManage,
+  _$adminPlatformAccountDtoOutputPermissionsEnum_officeColonRead,
+  _$adminPlatformAccountDtoOutputPermissionsEnum_counterColonSell,
+  _$adminPlatformAccountDtoOutputPermissionsEnum_counterColonCollect,
+  _$adminPlatformAccountDtoOutputPermissionsEnum_counterColonRead,
   _$adminPlatformAccountDtoOutputPermissionsEnum_checkinColonPerform,
   _$adminPlatformAccountDtoOutputPermissionsEnum_checkinColonRead,
   _$adminPlatformAccountDtoOutputPermissionsEnum_tripColonOperate,
@@ -410,6 +446,12 @@ class _$AdminPlatformAccountDtoOutputPermissionsEnumSerializer
     'vehicleColonRead': 'vehicle:read',
     'routeColonManage': 'route:manage',
     'tripColonManage': 'trip:manage',
+    'tripColonDispatch': 'trip:dispatch',
+    'officeColonManage': 'office:manage',
+    'officeColonRead': 'office:read',
+    'counterColonSell': 'counter:sell',
+    'counterColonCollect': 'counter:collect',
+    'counterColonRead': 'counter:read',
     'checkinColonPerform': 'checkin:perform',
     'checkinColonRead': 'checkin:read',
     'tripColonOperate': 'trip:operate',
@@ -456,6 +498,12 @@ class _$AdminPlatformAccountDtoOutputPermissionsEnumSerializer
     'vehicle:read': 'vehicleColonRead',
     'route:manage': 'routeColonManage',
     'trip:manage': 'tripColonManage',
+    'trip:dispatch': 'tripColonDispatch',
+    'office:manage': 'officeColonManage',
+    'office:read': 'officeColonRead',
+    'counter:sell': 'counterColonSell',
+    'counter:collect': 'counterColonCollect',
+    'counter:read': 'counterColonRead',
     'checkin:perform': 'checkinColonPerform',
     'checkin:read': 'checkinColonRead',
     'trip:operate': 'tripColonOperate',

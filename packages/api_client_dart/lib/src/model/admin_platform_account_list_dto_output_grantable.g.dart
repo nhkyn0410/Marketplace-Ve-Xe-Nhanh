@@ -71,6 +71,30 @@ const AdminPlatformAccountListDtoOutputGrantablePLATFORM_ADMINEnum
     const AdminPlatformAccountListDtoOutputGrantablePLATFORM_ADMINEnum._(
         'tripColonManage');
 const AdminPlatformAccountListDtoOutputGrantablePLATFORM_ADMINEnum
+    _$adminPlatformAccountListDtoOutputGrantablePLATFORMADMINEnum_tripColonDispatch =
+    const AdminPlatformAccountListDtoOutputGrantablePLATFORM_ADMINEnum._(
+        'tripColonDispatch');
+const AdminPlatformAccountListDtoOutputGrantablePLATFORM_ADMINEnum
+    _$adminPlatformAccountListDtoOutputGrantablePLATFORMADMINEnum_officeColonManage =
+    const AdminPlatformAccountListDtoOutputGrantablePLATFORM_ADMINEnum._(
+        'officeColonManage');
+const AdminPlatformAccountListDtoOutputGrantablePLATFORM_ADMINEnum
+    _$adminPlatformAccountListDtoOutputGrantablePLATFORMADMINEnum_officeColonRead =
+    const AdminPlatformAccountListDtoOutputGrantablePLATFORM_ADMINEnum._(
+        'officeColonRead');
+const AdminPlatformAccountListDtoOutputGrantablePLATFORM_ADMINEnum
+    _$adminPlatformAccountListDtoOutputGrantablePLATFORMADMINEnum_counterColonSell =
+    const AdminPlatformAccountListDtoOutputGrantablePLATFORM_ADMINEnum._(
+        'counterColonSell');
+const AdminPlatformAccountListDtoOutputGrantablePLATFORM_ADMINEnum
+    _$adminPlatformAccountListDtoOutputGrantablePLATFORMADMINEnum_counterColonCollect =
+    const AdminPlatformAccountListDtoOutputGrantablePLATFORM_ADMINEnum._(
+        'counterColonCollect');
+const AdminPlatformAccountListDtoOutputGrantablePLATFORM_ADMINEnum
+    _$adminPlatformAccountListDtoOutputGrantablePLATFORMADMINEnum_counterColonRead =
+    const AdminPlatformAccountListDtoOutputGrantablePLATFORM_ADMINEnum._(
+        'counterColonRead');
+const AdminPlatformAccountListDtoOutputGrantablePLATFORM_ADMINEnum
     _$adminPlatformAccountListDtoOutputGrantablePLATFORMADMINEnum_checkinColonPerform =
     const AdminPlatformAccountListDtoOutputGrantablePLATFORM_ADMINEnum._(
         'checkinColonPerform');
@@ -219,6 +243,18 @@ AdminPlatformAccountListDtoOutputGrantablePLATFORM_ADMINEnum
       return _$adminPlatformAccountListDtoOutputGrantablePLATFORMADMINEnum_routeColonManage;
     case 'tripColonManage':
       return _$adminPlatformAccountListDtoOutputGrantablePLATFORMADMINEnum_tripColonManage;
+    case 'tripColonDispatch':
+      return _$adminPlatformAccountListDtoOutputGrantablePLATFORMADMINEnum_tripColonDispatch;
+    case 'officeColonManage':
+      return _$adminPlatformAccountListDtoOutputGrantablePLATFORMADMINEnum_officeColonManage;
+    case 'officeColonRead':
+      return _$adminPlatformAccountListDtoOutputGrantablePLATFORMADMINEnum_officeColonRead;
+    case 'counterColonSell':
+      return _$adminPlatformAccountListDtoOutputGrantablePLATFORMADMINEnum_counterColonSell;
+    case 'counterColonCollect':
+      return _$adminPlatformAccountListDtoOutputGrantablePLATFORMADMINEnum_counterColonCollect;
+    case 'counterColonRead':
+      return _$adminPlatformAccountListDtoOutputGrantablePLATFORMADMINEnum_counterColonRead;
     case 'checkinColonPerform':
       return _$adminPlatformAccountListDtoOutputGrantablePLATFORMADMINEnum_checkinColonPerform;
     case 'checkinColonRead':
@@ -300,6 +336,12 @@ final BuiltSet<AdminPlatformAccountListDtoOutputGrantablePLATFORM_ADMINEnum>
   _$adminPlatformAccountListDtoOutputGrantablePLATFORMADMINEnum_vehicleColonRead,
   _$adminPlatformAccountListDtoOutputGrantablePLATFORMADMINEnum_routeColonManage,
   _$adminPlatformAccountListDtoOutputGrantablePLATFORMADMINEnum_tripColonManage,
+  _$adminPlatformAccountListDtoOutputGrantablePLATFORMADMINEnum_tripColonDispatch,
+  _$adminPlatformAccountListDtoOutputGrantablePLATFORMADMINEnum_officeColonManage,
+  _$adminPlatformAccountListDtoOutputGrantablePLATFORMADMINEnum_officeColonRead,
+  _$adminPlatformAccountListDtoOutputGrantablePLATFORMADMINEnum_counterColonSell,
+  _$adminPlatformAccountListDtoOutputGrantablePLATFORMADMINEnum_counterColonCollect,
+  _$adminPlatformAccountListDtoOutputGrantablePLATFORMADMINEnum_counterColonRead,
   _$adminPlatformAccountListDtoOutputGrantablePLATFORMADMINEnum_checkinColonPerform,
   _$adminPlatformAccountListDtoOutputGrantablePLATFORMADMINEnum_checkinColonRead,
   _$adminPlatformAccountListDtoOutputGrantablePLATFORMADMINEnum_tripColonOperate,
@@ -394,6 +436,30 @@ const AdminPlatformAccountListDtoOutputGrantablePLATFORM_SUPPORTEnum
     _$adminPlatformAccountListDtoOutputGrantablePLATFORMSUPPORTEnum_tripColonManage =
     const AdminPlatformAccountListDtoOutputGrantablePLATFORM_SUPPORTEnum._(
         'tripColonManage');
+const AdminPlatformAccountListDtoOutputGrantablePLATFORM_SUPPORTEnum
+    _$adminPlatformAccountListDtoOutputGrantablePLATFORMSUPPORTEnum_tripColonDispatch =
+    const AdminPlatformAccountListDtoOutputGrantablePLATFORM_SUPPORTEnum._(
+        'tripColonDispatch');
+const AdminPlatformAccountListDtoOutputGrantablePLATFORM_SUPPORTEnum
+    _$adminPlatformAccountListDtoOutputGrantablePLATFORMSUPPORTEnum_officeColonManage =
+    const AdminPlatformAccountListDtoOutputGrantablePLATFORM_SUPPORTEnum._(
+        'officeColonManage');
+const AdminPlatformAccountListDtoOutputGrantablePLATFORM_SUPPORTEnum
+    _$adminPlatformAccountListDtoOutputGrantablePLATFORMSUPPORTEnum_officeColonRead =
+    const AdminPlatformAccountListDtoOutputGrantablePLATFORM_SUPPORTEnum._(
+        'officeColonRead');
+const AdminPlatformAccountListDtoOutputGrantablePLATFORM_SUPPORTEnum
+    _$adminPlatformAccountListDtoOutputGrantablePLATFORMSUPPORTEnum_counterColonSell =
+    const AdminPlatformAccountListDtoOutputGrantablePLATFORM_SUPPORTEnum._(
+        'counterColonSell');
+const AdminPlatformAccountListDtoOutputGrantablePLATFORM_SUPPORTEnum
+    _$adminPlatformAccountListDtoOutputGrantablePLATFORMSUPPORTEnum_counterColonCollect =
+    const AdminPlatformAccountListDtoOutputGrantablePLATFORM_SUPPORTEnum._(
+        'counterColonCollect');
+const AdminPlatformAccountListDtoOutputGrantablePLATFORM_SUPPORTEnum
+    _$adminPlatformAccountListDtoOutputGrantablePLATFORMSUPPORTEnum_counterColonRead =
+    const AdminPlatformAccountListDtoOutputGrantablePLATFORM_SUPPORTEnum._(
+        'counterColonRead');
 const AdminPlatformAccountListDtoOutputGrantablePLATFORM_SUPPORTEnum
     _$adminPlatformAccountListDtoOutputGrantablePLATFORMSUPPORTEnum_checkinColonPerform =
     const AdminPlatformAccountListDtoOutputGrantablePLATFORM_SUPPORTEnum._(
@@ -543,6 +609,18 @@ AdminPlatformAccountListDtoOutputGrantablePLATFORM_SUPPORTEnum
       return _$adminPlatformAccountListDtoOutputGrantablePLATFORMSUPPORTEnum_routeColonManage;
     case 'tripColonManage':
       return _$adminPlatformAccountListDtoOutputGrantablePLATFORMSUPPORTEnum_tripColonManage;
+    case 'tripColonDispatch':
+      return _$adminPlatformAccountListDtoOutputGrantablePLATFORMSUPPORTEnum_tripColonDispatch;
+    case 'officeColonManage':
+      return _$adminPlatformAccountListDtoOutputGrantablePLATFORMSUPPORTEnum_officeColonManage;
+    case 'officeColonRead':
+      return _$adminPlatformAccountListDtoOutputGrantablePLATFORMSUPPORTEnum_officeColonRead;
+    case 'counterColonSell':
+      return _$adminPlatformAccountListDtoOutputGrantablePLATFORMSUPPORTEnum_counterColonSell;
+    case 'counterColonCollect':
+      return _$adminPlatformAccountListDtoOutputGrantablePLATFORMSUPPORTEnum_counterColonCollect;
+    case 'counterColonRead':
+      return _$adminPlatformAccountListDtoOutputGrantablePLATFORMSUPPORTEnum_counterColonRead;
     case 'checkinColonPerform':
       return _$adminPlatformAccountListDtoOutputGrantablePLATFORMSUPPORTEnum_checkinColonPerform;
     case 'checkinColonRead':
@@ -624,6 +702,12 @@ final BuiltSet<AdminPlatformAccountListDtoOutputGrantablePLATFORM_SUPPORTEnum>
   _$adminPlatformAccountListDtoOutputGrantablePLATFORMSUPPORTEnum_vehicleColonRead,
   _$adminPlatformAccountListDtoOutputGrantablePLATFORMSUPPORTEnum_routeColonManage,
   _$adminPlatformAccountListDtoOutputGrantablePLATFORMSUPPORTEnum_tripColonManage,
+  _$adminPlatformAccountListDtoOutputGrantablePLATFORMSUPPORTEnum_tripColonDispatch,
+  _$adminPlatformAccountListDtoOutputGrantablePLATFORMSUPPORTEnum_officeColonManage,
+  _$adminPlatformAccountListDtoOutputGrantablePLATFORMSUPPORTEnum_officeColonRead,
+  _$adminPlatformAccountListDtoOutputGrantablePLATFORMSUPPORTEnum_counterColonSell,
+  _$adminPlatformAccountListDtoOutputGrantablePLATFORMSUPPORTEnum_counterColonCollect,
+  _$adminPlatformAccountListDtoOutputGrantablePLATFORMSUPPORTEnum_counterColonRead,
   _$adminPlatformAccountListDtoOutputGrantablePLATFORMSUPPORTEnum_checkinColonPerform,
   _$adminPlatformAccountListDtoOutputGrantablePLATFORMSUPPORTEnum_checkinColonRead,
   _$adminPlatformAccountListDtoOutputGrantablePLATFORMSUPPORTEnum_tripColonOperate,
@@ -682,6 +766,12 @@ class _$AdminPlatformAccountListDtoOutputGrantablePLATFORM_ADMINEnumSerializer
     'vehicleColonRead': 'vehicle:read',
     'routeColonManage': 'route:manage',
     'tripColonManage': 'trip:manage',
+    'tripColonDispatch': 'trip:dispatch',
+    'officeColonManage': 'office:manage',
+    'officeColonRead': 'office:read',
+    'counterColonSell': 'counter:sell',
+    'counterColonCollect': 'counter:collect',
+    'counterColonRead': 'counter:read',
     'checkinColonPerform': 'checkin:perform',
     'checkinColonRead': 'checkin:read',
     'tripColonOperate': 'trip:operate',
@@ -728,6 +818,12 @@ class _$AdminPlatformAccountListDtoOutputGrantablePLATFORM_ADMINEnumSerializer
     'vehicle:read': 'vehicleColonRead',
     'route:manage': 'routeColonManage',
     'trip:manage': 'tripColonManage',
+    'trip:dispatch': 'tripColonDispatch',
+    'office:manage': 'officeColonManage',
+    'office:read': 'officeColonRead',
+    'counter:sell': 'counterColonSell',
+    'counter:collect': 'counterColonCollect',
+    'counter:read': 'counterColonRead',
     'checkin:perform': 'checkinColonPerform',
     'checkin:read': 'checkinColonRead',
     'trip:operate': 'tripColonOperate',
@@ -801,6 +897,12 @@ class _$AdminPlatformAccountListDtoOutputGrantablePLATFORM_SUPPORTEnumSerializer
     'vehicleColonRead': 'vehicle:read',
     'routeColonManage': 'route:manage',
     'tripColonManage': 'trip:manage',
+    'tripColonDispatch': 'trip:dispatch',
+    'officeColonManage': 'office:manage',
+    'officeColonRead': 'office:read',
+    'counterColonSell': 'counter:sell',
+    'counterColonCollect': 'counter:collect',
+    'counterColonRead': 'counter:read',
     'checkinColonPerform': 'checkin:perform',
     'checkinColonRead': 'checkin:read',
     'tripColonOperate': 'trip:operate',
@@ -847,6 +949,12 @@ class _$AdminPlatformAccountListDtoOutputGrantablePLATFORM_SUPPORTEnumSerializer
     'vehicle:read': 'vehicleColonRead',
     'route:manage': 'routeColonManage',
     'trip:manage': 'tripColonManage',
+    'trip:dispatch': 'tripColonDispatch',
+    'office:manage': 'officeColonManage',
+    'office:read': 'officeColonRead',
+    'counter:sell': 'counterColonSell',
+    'counter:collect': 'counterColonCollect',
+    'counter:read': 'counterColonRead',
     'checkin:perform': 'checkinColonPerform',
     'checkin:read': 'checkinColonRead',
     'trip:operate': 'tripColonOperate',

@@ -6,6 +6,32 @@ part of 'commission_overview_dto_output_overrides_inner.dart';
 // BuiltValueGenerator
 // **************************************************************************
 
+const CommissionOverviewDtoOutputOverridesInnerChannelEnum
+    _$commissionOverviewDtoOutputOverridesInnerChannelEnum_ONLINE =
+    const CommissionOverviewDtoOutputOverridesInnerChannelEnum._('ONLINE');
+const CommissionOverviewDtoOutputOverridesInnerChannelEnum
+    _$commissionOverviewDtoOutputOverridesInnerChannelEnum_COUNTER =
+    const CommissionOverviewDtoOutputOverridesInnerChannelEnum._('COUNTER');
+
+CommissionOverviewDtoOutputOverridesInnerChannelEnum
+    _$commissionOverviewDtoOutputOverridesInnerChannelEnumValueOf(String name) {
+  switch (name) {
+    case 'ONLINE':
+      return _$commissionOverviewDtoOutputOverridesInnerChannelEnum_ONLINE;
+    case 'COUNTER':
+      return _$commissionOverviewDtoOutputOverridesInnerChannelEnum_COUNTER;
+    default:
+      throw ArgumentError(name);
+  }
+}
+
+final BuiltSet<CommissionOverviewDtoOutputOverridesInnerChannelEnum>
+    _$commissionOverviewDtoOutputOverridesInnerChannelEnumValues = BuiltSet<
+        CommissionOverviewDtoOutputOverridesInnerChannelEnum>(const <CommissionOverviewDtoOutputOverridesInnerChannelEnum>[
+  _$commissionOverviewDtoOutputOverridesInnerChannelEnum_ONLINE,
+  _$commissionOverviewDtoOutputOverridesInnerChannelEnum_COUNTER,
+]);
+
 const CommissionOverviewDtoOutputOverridesInnerStatusEnum
     _$commissionOverviewDtoOutputOverridesInnerStatusEnum_ACTIVE =
     const CommissionOverviewDtoOutputOverridesInnerStatusEnum._('ACTIVE');
@@ -70,12 +96,50 @@ final BuiltSet<CommissionOverviewDtoOutputOverridesInnerStateEnum>
   _$commissionOverviewDtoOutputOverridesInnerStateEnum_CANCELLED,
 ]);
 
+Serializer<CommissionOverviewDtoOutputOverridesInnerChannelEnum>
+    _$commissionOverviewDtoOutputOverridesInnerChannelEnumSerializer =
+    _$CommissionOverviewDtoOutputOverridesInnerChannelEnumSerializer();
 Serializer<CommissionOverviewDtoOutputOverridesInnerStatusEnum>
     _$commissionOverviewDtoOutputOverridesInnerStatusEnumSerializer =
     _$CommissionOverviewDtoOutputOverridesInnerStatusEnumSerializer();
 Serializer<CommissionOverviewDtoOutputOverridesInnerStateEnum>
     _$commissionOverviewDtoOutputOverridesInnerStateEnumSerializer =
     _$CommissionOverviewDtoOutputOverridesInnerStateEnumSerializer();
+
+class _$CommissionOverviewDtoOutputOverridesInnerChannelEnumSerializer
+    implements
+        PrimitiveSerializer<
+            CommissionOverviewDtoOutputOverridesInnerChannelEnum> {
+  static const Map<String, Object> _toWire = const <String, Object>{
+    'ONLINE': 'ONLINE',
+    'COUNTER': 'COUNTER',
+  };
+  static const Map<Object, String> _fromWire = const <Object, String>{
+    'ONLINE': 'ONLINE',
+    'COUNTER': 'COUNTER',
+  };
+
+  @override
+  final Iterable<Type> types = const <Type>[
+    CommissionOverviewDtoOutputOverridesInnerChannelEnum
+  ];
+  @override
+  final String wireName =
+      'CommissionOverviewDtoOutputOverridesInnerChannelEnum';
+
+  @override
+  Object serialize(Serializers serializers,
+          CommissionOverviewDtoOutputOverridesInnerChannelEnum object,
+          {FullType specifiedType = FullType.unspecified}) =>
+      _toWire[object.name] ?? object.name;
+
+  @override
+  CommissionOverviewDtoOutputOverridesInnerChannelEnum deserialize(
+          Serializers serializers, Object serialized,
+          {FullType specifiedType = FullType.unspecified}) =>
+      CommissionOverviewDtoOutputOverridesInnerChannelEnum.valueOf(
+          _fromWire[serialized] ?? (serialized is String ? serialized : ''));
+}
 
 class _$CommissionOverviewDtoOutputOverridesInnerStatusEnumSerializer
     implements
@@ -156,6 +220,8 @@ class _$CommissionOverviewDtoOutputOverridesInner
   @override
   final String operatorId;
   @override
+  final CommissionOverviewDtoOutputOverridesInnerChannelEnum channel;
+  @override
   final String operatorName;
   @override
   final String operatorSlug;
@@ -187,6 +253,7 @@ class _$CommissionOverviewDtoOutputOverridesInner
   _$CommissionOverviewDtoOutputOverridesInner._(
       {required this.id,
       required this.operatorId,
+      required this.channel,
       required this.operatorName,
       required this.operatorSlug,
       required this.rateBps,
@@ -215,6 +282,7 @@ class _$CommissionOverviewDtoOutputOverridesInner
     return other is CommissionOverviewDtoOutputOverridesInner &&
         id == other.id &&
         operatorId == other.operatorId &&
+        channel == other.channel &&
         operatorName == other.operatorName &&
         operatorSlug == other.operatorSlug &&
         rateBps == other.rateBps &&
@@ -233,6 +301,7 @@ class _$CommissionOverviewDtoOutputOverridesInner
     var _$hash = 0;
     _$hash = $jc(_$hash, id.hashCode);
     _$hash = $jc(_$hash, operatorId.hashCode);
+    _$hash = $jc(_$hash, channel.hashCode);
     _$hash = $jc(_$hash, operatorName.hashCode);
     _$hash = $jc(_$hash, operatorSlug.hashCode);
     _$hash = $jc(_$hash, rateBps.hashCode);
@@ -254,6 +323,7 @@ class _$CommissionOverviewDtoOutputOverridesInner
             r'CommissionOverviewDtoOutputOverridesInner')
           ..add('id', id)
           ..add('operatorId', operatorId)
+          ..add('channel', channel)
           ..add('operatorName', operatorName)
           ..add('operatorSlug', operatorSlug)
           ..add('rateBps', rateBps)
@@ -282,6 +352,12 @@ class CommissionOverviewDtoOutputOverridesInnerBuilder
   String? _operatorId;
   String? get operatorId => _$this._operatorId;
   set operatorId(String? operatorId) => _$this._operatorId = operatorId;
+
+  CommissionOverviewDtoOutputOverridesInnerChannelEnum? _channel;
+  CommissionOverviewDtoOutputOverridesInnerChannelEnum? get channel =>
+      _$this._channel;
+  set channel(CommissionOverviewDtoOutputOverridesInnerChannelEnum? channel) =>
+      _$this._channel = channel;
 
   String? _operatorName;
   String? get operatorName => _$this._operatorName;
@@ -341,6 +417,7 @@ class CommissionOverviewDtoOutputOverridesInnerBuilder
     if ($v != null) {
       _id = $v.id;
       _operatorId = $v.operatorId;
+      _channel = $v.channel;
       _operatorName = $v.operatorName;
       _operatorSlug = $v.operatorSlug;
       _rateBps = $v.rateBps;
@@ -379,6 +456,8 @@ class CommissionOverviewDtoOutputOverridesInnerBuilder
               id, r'CommissionOverviewDtoOutputOverridesInner', 'id'),
           operatorId: BuiltValueNullFieldError.checkNotNull(operatorId,
               r'CommissionOverviewDtoOutputOverridesInner', 'operatorId'),
+          channel: BuiltValueNullFieldError.checkNotNull(
+              channel, r'CommissionOverviewDtoOutputOverridesInner', 'channel'),
           operatorName: BuiltValueNullFieldError.checkNotNull(operatorName,
               r'CommissionOverviewDtoOutputOverridesInner', 'operatorName'),
           operatorSlug: BuiltValueNullFieldError.checkNotNull(operatorSlug,

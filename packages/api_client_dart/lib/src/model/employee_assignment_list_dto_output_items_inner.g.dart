@@ -15,6 +15,9 @@ const EmployeeAssignmentListDtoOutputItemsInnerRoleEnum
 const EmployeeAssignmentListDtoOutputItemsInnerRoleEnum
     _$employeeAssignmentListDtoOutputItemsInnerRoleEnum_SUPPORT_STAFF =
     const EmployeeAssignmentListDtoOutputItemsInnerRoleEnum._('SUPPORT_STAFF');
+const EmployeeAssignmentListDtoOutputItemsInnerRoleEnum
+    _$employeeAssignmentListDtoOutputItemsInnerRoleEnum_SALES_STAFF =
+    const EmployeeAssignmentListDtoOutputItemsInnerRoleEnum._('SALES_STAFF');
 
 EmployeeAssignmentListDtoOutputItemsInnerRoleEnum
     _$employeeAssignmentListDtoOutputItemsInnerRoleEnumValueOf(String name) {
@@ -25,6 +28,8 @@ EmployeeAssignmentListDtoOutputItemsInnerRoleEnum
       return _$employeeAssignmentListDtoOutputItemsInnerRoleEnum_TICKET_STAFF;
     case 'SUPPORT_STAFF':
       return _$employeeAssignmentListDtoOutputItemsInnerRoleEnum_SUPPORT_STAFF;
+    case 'SALES_STAFF':
+      return _$employeeAssignmentListDtoOutputItemsInnerRoleEnum_SALES_STAFF;
     default:
       throw ArgumentError(name);
   }
@@ -36,6 +41,7 @@ final BuiltSet<EmployeeAssignmentListDtoOutputItemsInnerRoleEnum>
   _$employeeAssignmentListDtoOutputItemsInnerRoleEnum_DRIVER,
   _$employeeAssignmentListDtoOutputItemsInnerRoleEnum_TICKET_STAFF,
   _$employeeAssignmentListDtoOutputItemsInnerRoleEnum_SUPPORT_STAFF,
+  _$employeeAssignmentListDtoOutputItemsInnerRoleEnum_SALES_STAFF,
 ]);
 
 const EmployeeAssignmentListDtoOutputItemsInnerStatusEnum
@@ -127,11 +133,13 @@ class _$EmployeeAssignmentListDtoOutputItemsInnerRoleEnumSerializer
     'DRIVER': 'DRIVER',
     'TICKET_STAFF': 'TICKET_STAFF',
     'SUPPORT_STAFF': 'SUPPORT_STAFF',
+    'SALES_STAFF': 'SALES_STAFF',
   };
   static const Map<Object, String> _fromWire = const <Object, String>{
     'DRIVER': 'DRIVER',
     'TICKET_STAFF': 'TICKET_STAFF',
     'SUPPORT_STAFF': 'SUPPORT_STAFF',
+    'SALES_STAFF': 'SALES_STAFF',
   };
 
   @override

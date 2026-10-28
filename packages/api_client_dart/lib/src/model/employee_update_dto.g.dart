@@ -12,6 +12,8 @@ const EmployeeUpdateDtoRoleEnum _$employeeUpdateDtoRoleEnum_TICKET_STAFF =
     const EmployeeUpdateDtoRoleEnum._('TICKET_STAFF');
 const EmployeeUpdateDtoRoleEnum _$employeeUpdateDtoRoleEnum_SUPPORT_STAFF =
     const EmployeeUpdateDtoRoleEnum._('SUPPORT_STAFF');
+const EmployeeUpdateDtoRoleEnum _$employeeUpdateDtoRoleEnum_SALES_STAFF =
+    const EmployeeUpdateDtoRoleEnum._('SALES_STAFF');
 
 EmployeeUpdateDtoRoleEnum _$employeeUpdateDtoRoleEnumValueOf(String name) {
   switch (name) {
@@ -21,6 +23,8 @@ EmployeeUpdateDtoRoleEnum _$employeeUpdateDtoRoleEnumValueOf(String name) {
       return _$employeeUpdateDtoRoleEnum_TICKET_STAFF;
     case 'SUPPORT_STAFF':
       return _$employeeUpdateDtoRoleEnum_SUPPORT_STAFF;
+    case 'SALES_STAFF':
+      return _$employeeUpdateDtoRoleEnum_SALES_STAFF;
     default:
       throw ArgumentError(name);
   }
@@ -31,6 +35,7 @@ final BuiltSet<EmployeeUpdateDtoRoleEnum> _$employeeUpdateDtoRoleEnumValues =
   _$employeeUpdateDtoRoleEnum_DRIVER,
   _$employeeUpdateDtoRoleEnum_TICKET_STAFF,
   _$employeeUpdateDtoRoleEnum_SUPPORT_STAFF,
+  _$employeeUpdateDtoRoleEnum_SALES_STAFF,
 ]);
 
 const EmployeeUpdateDtoStatusEnum _$employeeUpdateDtoStatusEnum_ACTIVE =
@@ -73,11 +78,13 @@ class _$EmployeeUpdateDtoRoleEnumSerializer
     'DRIVER': 'DRIVER',
     'TICKET_STAFF': 'TICKET_STAFF',
     'SUPPORT_STAFF': 'SUPPORT_STAFF',
+    'SALES_STAFF': 'SALES_STAFF',
   };
   static const Map<Object, String> _fromWire = const <Object, String>{
     'DRIVER': 'DRIVER',
     'TICKET_STAFF': 'TICKET_STAFF',
     'SUPPORT_STAFF': 'SUPPORT_STAFF',
+    'SALES_STAFF': 'SALES_STAFF',
   };
 
   @override
