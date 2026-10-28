@@ -67,22 +67,28 @@ void main() {
       tester.getTopLeft(find.byKey(const Key('article-detail-title'))),
       const Offset(18, 247),
     );
-    expect(
-      tester.getTopLeft(find.byKey(const Key('article-detail-introduction'))),
-      const Offset(18, 398),
-    );
-    expect(
-      tester.getTopLeft(find.byKey(const Key('article-detail-section-1'))),
-      const Offset(18, 512),
-    );
-    expect(
-      tester.getTopLeft(find.byKey(const Key('article-detail-quote-card'))),
-      const Offset(18, 742),
-    );
-    expect(
-      tester.getTopLeft(find.byKey(const Key('article-detail-cta-card'))),
-      const Offset(18, 1399),
-    );
+    // Dưới tiêu đề không so toạ độ tuyệt đối (Figma: giới thiệu y=398, mục 1 y=512, trích dẫn y=742,
+    // CTA y=1399): chiều cao dòng lẻ nửa pixel (21 × 1.5 = 31.5…) được làm tròn từng dòng khác nhau
+    // giữa Windows và Linux CI. Kiểm khoảng cách 14 giữa các khối liền nhau — đúng trên mọi nền tảng.
+    const column = [
+      'article-detail-title',
+      'article-detail-metadata',
+      'article-detail-divider',
+      'article-detail-introduction',
+      'article-detail-section-1',
+      'article-detail-quote-card',
+      'article-detail-section-2',
+      'article-detail-section-3',
+      'article-detail-cta-card',
+    ];
+    for (var i = 1; i < column.length; i++) {
+      final above = tester.getBottomLeft(find.byKey(Key(column[i - 1])));
+      expect(
+        tester.getTopLeft(find.byKey(Key(column[i]))),
+        Offset(18, above.dy + 14),
+        reason: '${column[i]} nằm dưới ${column[i - 1]} 14px',
+      );
+    }
     for (var section = 1; section <= 3; section++) {
       expect(
         tester.getSize(
