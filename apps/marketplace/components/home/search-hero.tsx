@@ -15,8 +15,18 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { placeSearchParams } from "../../lib/data/trip-mappers";
 import type { FeaturedOperatorItem } from "../../lib/data/types";
-import { formatTripDateVi } from "../../lib/format";
 import { PlaceInput, type PlaceValue } from "../trips/place-input";
+import {
+  ChoiceField,
+  DateField,
+  PASSENGER_OPTIONS,
+  PLACE_INPUT,
+  PLACE_PLACEHOLDER,
+  SEARCH_FIELD,
+  SEARCH_LABEL,
+  SEARCH_VALUE,
+  SEARCH_VALUE_EMPTY
+} from "../trips/search-fields";
 
 /** Thuộc tính của form tìm chuyến trên trang chủ. */
 export interface SearchHeroProps {
@@ -34,6 +44,7 @@ const PREVIEW_ROUTE_OPTIONS = [
   { value: "hn-sp", label: "Hà Nội ↔ Sapa" }
 ];
 
+
 /**
  * Khối Banner Hero & Form tìm kiếm chuyến xe 2 tab (Mua vé & Theo nhà xe) chuẩn Figma 776:791, 830:592, 836:113, 837:131.
  */
@@ -48,7 +59,7 @@ export function SearchHero({
   const [origin, setOrigin] = useState<PlaceValue | null>(null);
   const [destination, setDestination] = useState<PlaceValue | null>(null);
   const [departureDate, setDepartureDate] = useState<string>("");
-  const [passengerCount] = useState<number>(1);
+  const [passengerCount, setPassengerCount] = useState<number>(1);
 
   const [selectedOperator, setSelectedOperator] = useState<FeaturedOperatorItem | null>(null);
   const [selectedRoute, setSelectedRoute] = useState<string>("");
@@ -210,12 +221,12 @@ export function SearchHero({
                 <PlaceInput
                   id="trip-origin"
                   label="Điểm đi"
-                  placeholder="Tỉnh, phường / xã, bến xe…"
+                  placeholder={PLACE_PLACEHOLDER}
                   value={origin}
                   onChange={setOrigin}
-                  fieldClassName="flex-1 rounded-xl border border-slate-200 bg-white px-4 py-2.5 transition focus-within:border-[#00506a]"
-                  labelClassName="block text-xs font-medium text-slate-500"
-                  inputClassName="mt-0.5 w-full appearance-none bg-transparent text-[15px] font-bold text-[#0f172a] outline-none placeholder:font-medium placeholder:text-slate-400"
+                  fieldClassName={`${SEARCH_FIELD} flex-1`}
+                  labelClassName={SEARCH_LABEL}
+                  inputClassName={PLACE_INPUT}
                 />
 
                 {/* Nút hoán đổi */}
@@ -235,44 +246,28 @@ export function SearchHero({
                 <PlaceInput
                   id="trip-dest"
                   label="Điểm đến"
-                  placeholder="Tỉnh, phường / xã, bến xe…"
+                  placeholder={PLACE_PLACEHOLDER}
                   value={destination}
                   onChange={setDestination}
-                  fieldClassName="flex-1 rounded-xl border border-slate-200 bg-white px-4 py-2.5 transition focus-within:border-[#00506a]"
-                  labelClassName="block text-xs font-medium text-slate-500"
-                  inputClassName="mt-0.5 w-full appearance-none bg-transparent text-[15px] font-bold text-[#0f172a] outline-none placeholder:font-medium placeholder:text-slate-400"
+                  fieldClassName={`${SEARCH_FIELD} flex-1`}
+                  labelClassName={SEARCH_LABEL}
+                  inputClassName={PLACE_INPUT}
                 />
 
-                {/* Ngày đi */}
-                <div className="relative rounded-xl border border-slate-200 bg-white px-4 py-2.5 transition focus-within:border-[#00506a] lg:w-[155px] lg:shrink-0">
-                  <label htmlFor="trip-date" className="block text-xs font-medium text-slate-500">
-                    Ngày đi
-                  </label>
-                  <div className="mt-0.5 text-[15px] font-bold text-[#0f172a]">
-                    {departureDate ? formatTripDateVi(departureDate) : "Chọn ngày"}
-                  </div>
-                  <input
-                    id="trip-date"
-                    type="date"
-                    value={departureDate}
-                    onChange={(e) => setDepartureDate(e.target.value)}
-                    aria-label="Ngày đi"
-                    className="absolute inset-0 cursor-pointer opacity-0"
-                  />
-                </div>
+                <DateField value={departureDate} onChange={setDepartureDate} className="lg:w-[170px] lg:shrink-0" />
 
-                {/* Hành khách */}
-                <div className="rounded-xl border border-slate-200 bg-white px-4 py-2.5 lg:w-[155px] lg:shrink-0">
-                  <span className="block text-xs font-medium text-slate-500">Hành khách</span>
-                  <div className="mt-0.5 text-[15px] font-bold text-[#0f172a]">
-                    {passengerCount} hành khách
-                  </div>
-                </div>
+                <ChoiceField
+                  label="Hành khách"
+                  options={PASSENGER_OPTIONS}
+                  value={String(passengerCount)}
+                  onChange={(value) => setPassengerCount(Number(value))}
+                  className="lg:w-[150px] lg:shrink-0"
+                />
 
                 {/* Nút Tìm chuyến */}
                 <Button
                   type="submit"
-                  className="h-[54px] w-full rounded-xl bg-[#00506a] px-6 text-sm font-bold text-white shadow-xs transition hover:bg-[#003f54] lg:w-[165px] lg:shrink-0"
+                  className="h-[54px] w-full rounded-xl bg-[#00506a] px-6 text-sm font-bold text-white shadow-xs transition hover:bg-[#003f54] lg:w-[140px] lg:shrink-0"
                 >
                   Tìm chuyến
                 </Button>
@@ -356,13 +351,7 @@ export function SearchHero({
                     >
                       Nhà xe
                     </span>
-                    <span
-                      className={`mt-0.5 block truncate text-[15px] ${
-                        isPickerOpen && !selectedOperator
-                          ? "font-medium text-slate-400"
-                          : "font-bold text-[#0f172a]"
-                      }`}
-                    >
+                    <span className={selectedOperator ? SEARCH_VALUE : SEARCH_VALUE_EMPTY}>
                       {selectedOperator
                         ? selectedOperator.name
                         : isPickerOpen
@@ -372,51 +361,25 @@ export function SearchHero({
                   </button>
                 </div>
 
-                {/* Tuyến đường */}
-                <div className="flex-[1.15] rounded-xl border border-slate-200 bg-white px-4 py-2.5 transition focus-within:border-[#00506a]">
-                  <label htmlFor="operator-route" className="block text-xs font-medium text-slate-500">
-                    Tuyến đường
-                  </label>
-                  <select
-                    id="operator-route"
-                    value={selectedRoute}
-                    onChange={(e) => setSelectedRoute(e.target.value)}
-                    className="mt-0.5 w-full appearance-none bg-transparent text-[15px] font-bold text-[#0f172a] outline-none"
-                  >
-                    <option value="">Tất cả tuyến</option>
-                    {routeOptions.map((route) => (
-                      <option key={route.value} value={route.value}>
-                        {route.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                <ChoiceField
+                  label="Tuyến đường"
+                  options={[{ value: "", label: "Tất cả tuyến" }, ...routeOptions]}
+                  value={selectedRoute}
+                  onChange={setSelectedRoute}
+                  onOpen={() => setIsPickerOpen(false)}
+                  className="flex-[1.15]"
+                />
 
-                {/* Ngày đi */}
-                <div className="relative rounded-xl border border-slate-200 bg-white px-4 py-2.5 transition focus-within:border-[#00506a] lg:w-[175px] lg:shrink-0">
-                  <label htmlFor="operator-date" className="block text-xs font-medium text-slate-500">
-                    Ngày đi
-                  </label>
-                  <div className="mt-0.5 text-[15px] font-bold text-[#0f172a]">
-                    {departureDate ? formatTripDateVi(departureDate) : "Chọn ngày"}
-                  </div>
-                  <input
-                    id="operator-date"
-                    type="date"
-                    value={departureDate}
-                    onChange={(e) => setDepartureDate(e.target.value)}
-                    aria-label="Ngày đi"
-                    className="absolute inset-0 cursor-pointer opacity-0"
-                  />
-                </div>
+                <DateField onOpen={() => setIsPickerOpen(false)} value={departureDate} onChange={setDepartureDate} className="lg:w-[175px] lg:shrink-0" />
 
-                {/* Hành khách */}
-                <div className="rounded-xl border border-slate-200 bg-white px-4 py-2.5 lg:w-[175px] lg:shrink-0">
-                  <span className="block text-xs font-medium text-slate-500">Hành khách</span>
-                  <div className="mt-0.5 text-[15px] font-bold text-[#0f172a]">
-                    {passengerCount} hành khách
-                  </div>
-                </div>
+                <ChoiceField
+                  label="Hành khách"
+                  options={PASSENGER_OPTIONS}
+                  value={String(passengerCount)}
+                  onChange={(value) => setPassengerCount(Number(value))}
+                  onOpen={() => setIsPickerOpen(false)}
+                  className="lg:w-[175px] lg:shrink-0"
+                />
 
                 {/* Nút Tìm chuyến */}
                 <Button
@@ -451,3 +414,4 @@ export function SearchHero({
     </section>
   );
 }
+
