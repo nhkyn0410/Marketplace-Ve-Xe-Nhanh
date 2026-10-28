@@ -11,7 +11,6 @@ Name | Type | Description | Notes
 **routeId** | **String** |  | 
 **vehicleId** | **String** |  | 
 **departureTime** | **String** |  | 
-**durationMinutes** | **int** |  | 
 **daysOfWeek** | **BuiltList&lt;int&gt;** |  | 
 **startDate** | [**Date**](Date.md) |  | 
 **endDate** | [**Date**](Date.md) |  | 

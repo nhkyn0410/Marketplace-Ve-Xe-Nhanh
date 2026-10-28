@@ -9,7 +9,6 @@ import 'package:api_client_dart/api.dart';
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **departureAt** | [**DateTime**](DateTime.md) |  | 
-**arrivalAt** | [**DateTime**](DateTime.md) |  | 
 **stopTimes** | [**BuiltList&lt;DateTime&gt;**](DateTime.md) |  | 
 **vehicleId** | **String** |  | 
 **stops** | [**BuiltList&lt;TripChangeInputDtoStopsInner&gt;**](TripChangeInputDtoStopsInner.md) |  | 

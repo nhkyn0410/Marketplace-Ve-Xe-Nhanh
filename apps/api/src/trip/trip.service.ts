@@ -211,7 +211,8 @@ export class TripService {
           throw tripNotEditable();
         }
         const routeStops = await loadRouteStops(tx, operatorId, input.routeId, input.routeId === current.routeId);
-        const stopTimes = planStopTimes(input, routeStops);
+        const arrivalAt = routeArrival(input.departureAt, routeStops);
+        const stopTimes = planStopTimes(input, routeStops, arrivalAt);
         const expired = new Date(current.arrivalAt).getTime() <= Date.now();
         const rebuildSeats = expired || input.vehicleId !== current.vehicleId;
         const seats = rebuildSeats && input.vehicleId ? await lockVehicleSeats(tx, operatorId, input.vehicleId) : [];
@@ -229,7 +230,7 @@ export class TripService {
             routeId: input.routeId,
             vehicleId: input.vehicleId,
             departureAt: input.departureAt,
-            arrivalAt: input.arrivalAt,
+            arrivalAt,
             onlineSaleCutoffMinutes: input.onlineSaleCutoffMinutes,
             note: input.note,
           },
@@ -429,7 +430,8 @@ export async function insertDraftTrip(
   origin?: { scheduleId: string; serviceDate: Date },
 ): Promise<string> {
   const routeStops = await loadRouteStops(tx, operatorId, input.routeId, false);
-  const stopTimes = planStopTimes(input, routeStops);
+  const arrivalAt = routeArrival(input.departureAt, routeStops);
+  const stopTimes = planStopTimes(input, routeStops, arrivalAt);
   const seats = input.vehicleId ? await lockVehicleSeats(tx, operatorId, input.vehicleId) : [];
   const trip = await tx.trip.create({
     data: {
@@ -437,7 +439,7 @@ export async function insertDraftTrip(
       routeId: input.routeId,
       vehicleId: input.vehicleId,
       departureAt: input.departureAt,
-      arrivalAt: input.arrivalAt,
+      arrivalAt,
       onlineSaleCutoffMinutes: input.onlineSaleCutoffMinutes,
       note: input.note,
       scheduleId: origin?.scheduleId,
@@ -485,19 +487,38 @@ export async function loadRouteStops(
 }
 
 /**
- * Giờ dự kiến tại từng điểm. Operator gửi `stopTimes` thì dùng nguyên (Zod đã kiểm đầu/cuối và thứ tự);
- * không gửi thì chia khoảng [giờ đi, giờ đến] theo tỉ lệ thời gian chặng đã lưu của route (ADR-027: không
- * gọi Goong lại) — giữ đúng giờ đi/đến Operator chọn dù xe khách chạy chậm hơn số liệu định tuyến.
+ * Giờ đến của chuyến = giờ đi + thời gian chạy của tuyến (tổng các chặng — số nhà xe chỉnh ở Tuyến đường, không chỉnh thì
+ * số hệ thống), làm tròn theo phút, ít nhất 1 phút (Khanh 27/10/2026 "thời gian gắn với tuyến", chờ duyệt). Nhà xe không
+ * nhập tay giờ đến: muốn đổi thì chỉnh thời gian chặng của tuyến.
  */
-export function planStopTimes(input: Pick<TripInput, "stopTimes" | "departureAt" | "arrivalAt">, stops: RouteStopRow[]): Date[] {
+export function routeArrival(departureAt: Date, stops: Pick<RouteStopRow, "durationSecondsFromPrevious">[]): Date {
+  const seconds = stops.reduce((sum, stop) => sum + (stop.durationSecondsFromPrevious ?? 0), 0);
+  return new Date(departureAt.getTime() + Math.max(1, Math.round(seconds / 60)) * MINUTE);
+}
+
+/**
+ * Giờ dự kiến tại từng điểm. Operator gửi `stopTimes` thì dùng nguyên — phải đủ điểm, đầu = giờ đi, cuối = giờ đến tính
+ * theo tuyến (thứ tự không giảm Zod đã kiểm); không gửi thì chia khoảng [giờ đi, giờ đến] theo tỉ lệ thời gian chặng của
+ * route (ADR-027: không gọi Goong lại).
+ */
+export function planStopTimes(
+  input: Pick<TripInput, "stopTimes" | "departureAt">,
+  stops: Pick<RouteStopRow, "durationSecondsFromPrevious">[],
+  arrivalAt: Date,
+): Date[] {
   if (input.stopTimes) {
-    if (input.stopTimes.length !== stops.length) {
+    const times = input.stopTimes;
+    if (
+      times.length !== stops.length ||
+      times[0]!.getTime() !== input.departureAt.getTime() ||
+      times[times.length - 1]!.getTime() !== arrivalAt.getTime()
+    ) {
       throw tripStopTimesInvalid();
     }
-    return input.stopTimes;
+    return times;
   }
   const departure = input.departureAt.getTime();
-  const span = input.arrivalAt.getTime() - departure;
+  const span = arrivalAt.getTime() - departure;
   let elapsed = 0;
   const cumulative = stops.map((stop) => (elapsed += stop.durationSecondsFromPrevious ?? 0));
   const total = cumulative[cumulative.length - 1]!;
@@ -505,7 +526,7 @@ export function planStopTimes(input: Pick<TripInput, "stopTimes" | "departureAt"
   // Làm tròn XUỐNG theo phút tính từ giờ đi: giờ hiển thị gọn, vẫn không giảm dần và không vượt giờ đến.
   return cumulative.map((seconds, index) =>
     index === last
-      ? input.arrivalAt
+      ? arrivalAt
       : new Date(departure + (total === 0 ? 0 : Math.floor(((seconds / total) * span) / MINUTE) * MINUTE)),
   );
 }

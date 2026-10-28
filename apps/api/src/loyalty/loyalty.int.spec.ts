@@ -94,7 +94,7 @@ describe.skipIf(!ready && !requireDb)("VXN Plus — Postgres + Redis thật (LOY
     const departureAt = new Date(Date.now() + 48 * HOUR);
     const trip = await trips.create(
       ownerAuthz,
-      TripInputSchema.parse({ routeId, vehicleId: vehicle.id, departureAt: departureAt.toISOString(), arrivalAt: new Date(departureAt.getTime() + 6 * HOUR).toISOString(), stopTimes: null, onlineSaleCutoffMinutes: 60, note: null }),
+      TripInputSchema.parse({ routeId, vehicleId: vehicle.id, departureAt: departureAt.toISOString(), stopTimes: null, onlineSaleCutoffMinutes: 60, note: null }),
     );
     await prisma.withSystem((tx) => tx.trip.update({ where: { id: trip.id }, data: { status: "OPEN_FOR_SALE" } }));
     return trip.id;

@@ -370,6 +370,59 @@ const EMPLOYEE = {
   operator: ACTIVE_OPERATOR
 };
 
+describe("AuthService.counterLogin", () => {
+  it("nhân viên bán vé không đăng nhập nhầm cổng mobile của tài xế/soát vé", async () => {
+    const ctx = setup();
+    ctx.prisma.operatorProfile.findUnique.mockResolvedValue(ACTIVE_OPERATOR);
+    ctx.prisma.employeeAccount.findUnique.mockResolvedValue({ ...EMPLOYEE, role: "SALES_STAFF" });
+    ctx.credentials.verify.mockResolvedValue(true);
+    expect(await problemOf(ctx.service.employeeLogin("phuongtrang/nv.sales01", "good", {}))).toEqual({ status: 401, code: "AUTH_INVALID_CREDENTIALS" });
+    expect(ctx.sessions.create).not.toHaveBeenCalled();
+    expect(ctx.passwordChanges.begin).not.toHaveBeenCalled();
+  });
+  it("nhân viên bán vé nhận phiên EMPLOYEE và ghi đúng role", async () => {
+    const ctx = setup();
+    ctx.prisma.operatorProfile.findUnique.mockResolvedValue(ACTIVE_OPERATOR);
+    ctx.prisma.employeeAccount.findUnique.mockResolvedValue({ ...EMPLOYEE, role: "SALES_STAFF", username: "nv.sales01" });
+    ctx.credentials.verify.mockResolvedValue(true);
+    expect(await ctx.service.counterLogin("phuongtrang/nv.sales01", "good", {})).toMatchObject({ role: "SALES_STAFF", accessToken: "tok" });
+    expect(ctx.sessions.create).toHaveBeenCalledWith({ type: "EMPLOYEE", id: "emp-1", operatorId: "op-1", authEpoch: 0 }, {});
+    expect(ctx.prisma.operatorAccount.findUnique).not.toHaveBeenCalled();
+  });
+
+  it("chủ nhà xe vẫn qua MFA và được ghi đúng chủ thể OPERATOR", async () => {
+    const ctx = setup();
+    ctx.prisma.operatorProfile.findUnique.mockResolvedValue(ACTIVE_OPERATOR);
+    ctx.prisma.operatorAccount.findUnique.mockResolvedValue(OWNER);
+    ctx.credentials.verify.mockResolvedValue(true);
+    expect(await ctx.service.counterLogin("phuongtrang/owner01", "good", {})).toMatchObject({ mfaRequired: true });
+    expect(ctx.mfa.begin).toHaveBeenCalledWith(expect.objectContaining({ subjectType: "OPERATOR", subjectId: OWNER.id }), {});
+    expect(ctx.sessions.create).not.toHaveBeenCalled();
+  });
+
+  it.each(["DRIVER", "TICKET_STAFF", "SUPPORT_STAFF", "OPERATOR_MANAGER"])("%s không nhận phiên hoặc challenge bán vé", async (role) => {
+    const ctx = setup();
+    ctx.prisma.operatorProfile.findUnique.mockResolvedValue(ACTIVE_OPERATOR);
+    ctx.prisma.employeeAccount.findUnique.mockResolvedValue({ ...EMPLOYEE, role, passwordChangeRequired: true });
+    ctx.prisma.operatorAccount.findUnique.mockResolvedValue({ ...OWNER, role, passwordChangeRequired: true });
+    ctx.credentials.verify.mockResolvedValue(true);
+    expect(await problemOf(ctx.service.counterLogin(`phuongtrang/${role === "OPERATOR_MANAGER" ? "manager01" : "nv.other01"}`, "good", {}))).toEqual({ status: 401, code: "AUTH_INVALID_CREDENTIALS" });
+    expect(ctx.sessions.create).not.toHaveBeenCalled();
+    expect(ctx.passwordChanges.begin).not.toHaveBeenCalled();
+    expect(ctx.mfa.begin).not.toHaveBeenCalled();
+  });
+
+  it("nhân viên bán vé phải đổi mật khẩu tạm trước khi có phiên", async () => {
+    const ctx = setup();
+    ctx.prisma.operatorProfile.findUnique.mockResolvedValue(ACTIVE_OPERATOR);
+    ctx.prisma.employeeAccount.findUnique.mockResolvedValue({ ...EMPLOYEE, role: "SALES_STAFF", passwordChangeRequired: true, temporaryPasswordExpiresAt: new Date(Date.now() + 60_000) });
+    ctx.credentials.verify.mockResolvedValue(true);
+    expect(await ctx.service.counterLogin("phuongtrang/nv.sales01", "temporary", {})).toMatchObject({ passwordChangeRequired: true });
+    expect(ctx.passwordChanges.begin).toHaveBeenCalledWith(expect.objectContaining({ subjectType: "EMPLOYEE", subjectId: EMPLOYEE.id }));
+    expect(ctx.sessions.create).not.toHaveBeenCalled();
+  });
+});
+
 describe("AuthService.employeeLogin", () => {
   let ctx: ReturnType<typeof setup>;
   beforeEach(() => {

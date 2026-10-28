@@ -12,7 +12,7 @@ class _$BookingContactDtoOutput extends BookingContactDtoOutput {
   @override
   final String phone;
   @override
-  final String email;
+  final String? email;
   @override
   final BuiltList<BookingContactDtoOutputPassengersInner> passengers;
 
@@ -23,7 +23,7 @@ class _$BookingContactDtoOutput extends BookingContactDtoOutput {
   _$BookingContactDtoOutput._(
       {required this.fullName,
       required this.phone,
-      required this.email,
+      this.email,
       required this.passengers})
       : super._();
   @override
@@ -130,8 +130,7 @@ class BookingContactDtoOutputBuilder
                 fullName, r'BookingContactDtoOutput', 'fullName'),
             phone: BuiltValueNullFieldError.checkNotNull(
                 phone, r'BookingContactDtoOutput', 'phone'),
-            email: BuiltValueNullFieldError.checkNotNull(
-                email, r'BookingContactDtoOutput', 'email'),
+            email: email,
             passengers: passengers.build(),
           );
     } catch (_) {

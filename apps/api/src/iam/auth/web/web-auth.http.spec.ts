@@ -76,6 +76,7 @@ function attribute(cookie: Cookie | undefined, name: string): string | undefined
 describe("Web auth dual transport — HTTP (TASK-IAM-006)", () => {
   const authService = {
     operatorLogin: vi.fn(),
+    counterLogin: vi.fn(),
     employeeLogin: vi.fn(),
     verifyOtp: vi.fn(),
     exchangeSession: vi.fn(),
@@ -133,6 +134,7 @@ describe("Web auth dual transport — HTTP (TASK-IAM-006)", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     authService.operatorLogin.mockResolvedValue(session);
+    authService.counterLogin.mockResolvedValue({ ...session, role: "SALES_STAFF" });
     authService.employeeLogin.mockResolvedValue(session);
     authService.exchangeSession.mockResolvedValue({ ...session, scope: "passenger", role: "PASSENGER" });
     authService.oauthIdToken.mockResolvedValue({ ...session, scope: "passenger", role: "PASSENGER" });
@@ -192,6 +194,40 @@ describe("Web auth dual transport — HTTP (TASK-IAM-006)", () => {
   }
 
   const login = { identifier: "phuongtrang/driver01", password: "secret-password" };
+
+  describe("cổng bán vé riêng (COUNTER-SALES)", () => {
+    const counter = { identifier: "phuongtrang/nv.sales01", password: "secret-password" };
+
+    it("cookie mode cấp phiên bán vé trong cookie httpOnly, không lộ token trong JSON", async () => {
+      const { response, json } = await post("/auth/counter/login", { headers: await cookieHeaders(), body: counter });
+      expect(response.status).toBe(200);
+      expect(json).toMatchObject({ role: "SALES_STAFF", scope: "operator" });
+      expect(json).not.toHaveProperty("accessToken");
+      expect(json).not.toHaveProperty("refreshToken");
+      expect(attribute(setCookies(response).get("vxn_access"), "HttpOnly")).toBe("HttpOnly");
+      expect(authService.counterLogin).toHaveBeenCalledWith(counter.identifier, counter.password, expect.any(Object));
+      expect(authService.operatorLogin).not.toHaveBeenCalled();
+      expect(authService.employeeLogin).not.toHaveBeenCalled();
+    });
+
+    it("không có CSRF hoặc origin Admin thì chặn trước khi kiểm mật khẩu", async () => {
+      const missing = await post("/auth/counter/login", { headers: { origin: OPERATOR_ORIGIN, "x-auth-transport": "cookie" }, body: counter });
+      expect(missing.response.status).toBe(403);
+      expect(missing.json.code).toBe("AUTH_CSRF_INVALID");
+      const wrongOrigin = await post("/auth/counter/login", { headers: await cookieHeaders("", ADMIN_ORIGIN), body: counter });
+      expect(wrongOrigin.response.status).toBe(403);
+      expect(wrongOrigin.json.code).toBe("AUTH_ORIGIN_FORBIDDEN");
+      expect(authService.counterLogin).not.toHaveBeenCalled();
+    });
+
+    it("chủ nhà xe vẫn nhận challenge MFA, chưa có cookie phiên", async () => {
+      authService.counterLogin.mockResolvedValueOnce({ mfaRequired: true, challengeToken: "c".repeat(43), enrollmentRequired: false, challengeExpiresIn: 300 });
+      const { response, json } = await post("/auth/counter/login", { headers: await cookieHeaders(), body: { ...counter, identifier: "phuongtrang/owner01" } });
+      expect(response.status).toBe(200);
+      expect(json).toMatchObject({ mfaRequired: true });
+      expect(setCookies(response).has("vxn_access")).toBe(false);
+    });
+  });
 
   describe("hồi quy Mobile (không header = bearer)", () => {
     it("login trả token JSON như cũ, không Set-Cookie", async () => {

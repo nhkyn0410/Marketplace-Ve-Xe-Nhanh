@@ -1167,7 +1167,8 @@ async function seedTripFixtures(
       latitude: point.latitude,
       longitude: point.longitude,
       distanceMetersFromPrevious: index === 0 ? null : 150_000,
-      durationSecondsFromPrevious: index === 0 ? null : 9_900
+      durationSecondsFromPrevious: index === 0 ? null : 9_900,
+      measuredDurationSeconds: index === 0 ? null : 9_900
     }))
   });
   const seatMap = await tx.seatMap.create({

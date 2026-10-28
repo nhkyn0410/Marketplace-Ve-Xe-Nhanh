@@ -18,11 +18,11 @@ part 'admin_platform_account_list_dto_output_grantable.g.dart';
 abstract class AdminPlatformAccountListDtoOutputGrantable implements Built<AdminPlatformAccountListDtoOutputGrantable, AdminPlatformAccountListDtoOutputGrantableBuilder> {
   @BuiltValueField(wireName: r'PLATFORM_ADMIN')
   BuiltList<AdminPlatformAccountListDtoOutputGrantablePLATFORM_ADMINEnum> get PLATFORM_ADMIN;
-  // enum PLATFORM_ADMINEnum {  profile:manage,  loyalty:use,  notification:manage,  incident:create,  journey-log:create,  system:run,  trip:search,  booking:create,  booking:read,  payment:create,  payment:monitor,  refund:request,  vehicle:manage,  vehicle:read,  route:manage,  trip:manage,  checkin:perform,  checkin:read,  trip:operate,  kyc:submit,  kyc:review,  catalog:manage,  content:moderate,  content:manage,  user:manage,  system:read,  finance:read,  finance:configure,  audit:read,  employee:manage,  account:lock,  support:create,  review:create,  support:respond,  support:manage,  dispute:decide,  promotion:manage,  promotion:configure,  loyalty:manage,  access:manage,  transport:read,  manager:manage,  payout:manage,  refund:manage,  };
+  // enum PLATFORM_ADMINEnum {  profile:manage,  loyalty:use,  notification:manage,  incident:create,  journey-log:create,  system:run,  trip:search,  booking:create,  booking:read,  payment:create,  payment:monitor,  refund:request,  vehicle:manage,  vehicle:read,  route:manage,  trip:manage,  trip:dispatch,  office:manage,  office:read,  counter:sell,  counter:collect,  counter:read,  checkin:perform,  checkin:read,  trip:operate,  kyc:submit,  kyc:review,  catalog:manage,  content:moderate,  content:manage,  user:manage,  system:read,  finance:read,  finance:configure,  audit:read,  employee:manage,  account:lock,  support:create,  review:create,  support:respond,  support:manage,  dispute:decide,  promotion:manage,  promotion:configure,  loyalty:manage,  access:manage,  transport:read,  manager:manage,  payout:manage,  refund:manage,  };
 
   @BuiltValueField(wireName: r'PLATFORM_SUPPORT')
   BuiltList<AdminPlatformAccountListDtoOutputGrantablePLATFORM_SUPPORTEnum> get PLATFORM_SUPPORT;
-  // enum PLATFORM_SUPPORTEnum {  profile:manage,  loyalty:use,  notification:manage,  incident:create,  journey-log:create,  system:run,  trip:search,  booking:create,  booking:read,  payment:create,  payment:monitor,  refund:request,  vehicle:manage,  vehicle:read,  route:manage,  trip:manage,  checkin:perform,  checkin:read,  trip:operate,  kyc:submit,  kyc:review,  catalog:manage,  content:moderate,  content:manage,  user:manage,  system:read,  finance:read,  finance:configure,  audit:read,  employee:manage,  account:lock,  support:create,  review:create,  support:respond,  support:manage,  dispute:decide,  promotion:manage,  promotion:configure,  loyalty:manage,  access:manage,  transport:read,  manager:manage,  payout:manage,  refund:manage,  };
+  // enum PLATFORM_SUPPORTEnum {  profile:manage,  loyalty:use,  notification:manage,  incident:create,  journey-log:create,  system:run,  trip:search,  booking:create,  booking:read,  payment:create,  payment:monitor,  refund:request,  vehicle:manage,  vehicle:read,  route:manage,  trip:manage,  trip:dispatch,  office:manage,  office:read,  counter:sell,  counter:collect,  counter:read,  checkin:perform,  checkin:read,  trip:operate,  kyc:submit,  kyc:review,  catalog:manage,  content:moderate,  content:manage,  user:manage,  system:read,  finance:read,  finance:configure,  audit:read,  employee:manage,  account:lock,  support:create,  review:create,  support:respond,  support:manage,  dispute:decide,  promotion:manage,  promotion:configure,  loyalty:manage,  access:manage,  transport:read,  manager:manage,  payout:manage,  refund:manage,  };
 
   AdminPlatformAccountListDtoOutputGrantable._();
 
@@ -158,6 +158,18 @@ class AdminPlatformAccountListDtoOutputGrantablePLATFORM_ADMINEnum extends EnumC
   static const AdminPlatformAccountListDtoOutputGrantablePLATFORM_ADMINEnum routeColonManage = _$adminPlatformAccountListDtoOutputGrantablePLATFORMADMINEnum_routeColonManage;
   @BuiltValueEnumConst(wireName: r'trip:manage')
   static const AdminPlatformAccountListDtoOutputGrantablePLATFORM_ADMINEnum tripColonManage = _$adminPlatformAccountListDtoOutputGrantablePLATFORMADMINEnum_tripColonManage;
+  @BuiltValueEnumConst(wireName: r'trip:dispatch')
+  static const AdminPlatformAccountListDtoOutputGrantablePLATFORM_ADMINEnum tripColonDispatch = _$adminPlatformAccountListDtoOutputGrantablePLATFORMADMINEnum_tripColonDispatch;
+  @BuiltValueEnumConst(wireName: r'office:manage')
+  static const AdminPlatformAccountListDtoOutputGrantablePLATFORM_ADMINEnum officeColonManage = _$adminPlatformAccountListDtoOutputGrantablePLATFORMADMINEnum_officeColonManage;
+  @BuiltValueEnumConst(wireName: r'office:read')
+  static const AdminPlatformAccountListDtoOutputGrantablePLATFORM_ADMINEnum officeColonRead = _$adminPlatformAccountListDtoOutputGrantablePLATFORMADMINEnum_officeColonRead;
+  @BuiltValueEnumConst(wireName: r'counter:sell')
+  static const AdminPlatformAccountListDtoOutputGrantablePLATFORM_ADMINEnum counterColonSell = _$adminPlatformAccountListDtoOutputGrantablePLATFORMADMINEnum_counterColonSell;
+  @BuiltValueEnumConst(wireName: r'counter:collect')
+  static const AdminPlatformAccountListDtoOutputGrantablePLATFORM_ADMINEnum counterColonCollect = _$adminPlatformAccountListDtoOutputGrantablePLATFORMADMINEnum_counterColonCollect;
+  @BuiltValueEnumConst(wireName: r'counter:read')
+  static const AdminPlatformAccountListDtoOutputGrantablePLATFORM_ADMINEnum counterColonRead = _$adminPlatformAccountListDtoOutputGrantablePLATFORMADMINEnum_counterColonRead;
   @BuiltValueEnumConst(wireName: r'checkin:perform')
   static const AdminPlatformAccountListDtoOutputGrantablePLATFORM_ADMINEnum checkinColonPerform = _$adminPlatformAccountListDtoOutputGrantablePLATFORMADMINEnum_checkinColonPerform;
   @BuiltValueEnumConst(wireName: r'checkin:read')
@@ -257,6 +269,18 @@ class AdminPlatformAccountListDtoOutputGrantablePLATFORM_SUPPORTEnum extends Enu
   static const AdminPlatformAccountListDtoOutputGrantablePLATFORM_SUPPORTEnum routeColonManage = _$adminPlatformAccountListDtoOutputGrantablePLATFORMSUPPORTEnum_routeColonManage;
   @BuiltValueEnumConst(wireName: r'trip:manage')
   static const AdminPlatformAccountListDtoOutputGrantablePLATFORM_SUPPORTEnum tripColonManage = _$adminPlatformAccountListDtoOutputGrantablePLATFORMSUPPORTEnum_tripColonManage;
+  @BuiltValueEnumConst(wireName: r'trip:dispatch')
+  static const AdminPlatformAccountListDtoOutputGrantablePLATFORM_SUPPORTEnum tripColonDispatch = _$adminPlatformAccountListDtoOutputGrantablePLATFORMSUPPORTEnum_tripColonDispatch;
+  @BuiltValueEnumConst(wireName: r'office:manage')
+  static const AdminPlatformAccountListDtoOutputGrantablePLATFORM_SUPPORTEnum officeColonManage = _$adminPlatformAccountListDtoOutputGrantablePLATFORMSUPPORTEnum_officeColonManage;
+  @BuiltValueEnumConst(wireName: r'office:read')
+  static const AdminPlatformAccountListDtoOutputGrantablePLATFORM_SUPPORTEnum officeColonRead = _$adminPlatformAccountListDtoOutputGrantablePLATFORMSUPPORTEnum_officeColonRead;
+  @BuiltValueEnumConst(wireName: r'counter:sell')
+  static const AdminPlatformAccountListDtoOutputGrantablePLATFORM_SUPPORTEnum counterColonSell = _$adminPlatformAccountListDtoOutputGrantablePLATFORMSUPPORTEnum_counterColonSell;
+  @BuiltValueEnumConst(wireName: r'counter:collect')
+  static const AdminPlatformAccountListDtoOutputGrantablePLATFORM_SUPPORTEnum counterColonCollect = _$adminPlatformAccountListDtoOutputGrantablePLATFORMSUPPORTEnum_counterColonCollect;
+  @BuiltValueEnumConst(wireName: r'counter:read')
+  static const AdminPlatformAccountListDtoOutputGrantablePLATFORM_SUPPORTEnum counterColonRead = _$adminPlatformAccountListDtoOutputGrantablePLATFORMSUPPORTEnum_counterColonRead;
   @BuiltValueEnumConst(wireName: r'checkin:perform')
   static const AdminPlatformAccountListDtoOutputGrantablePLATFORM_SUPPORTEnum checkinColonPerform = _$adminPlatformAccountListDtoOutputGrantablePLATFORMSUPPORTEnum_checkinColonPerform;
   @BuiltValueEnumConst(wireName: r'checkin:read')

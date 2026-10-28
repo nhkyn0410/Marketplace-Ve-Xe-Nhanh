@@ -99,7 +99,7 @@ describe.skipIf(!ready && !requireDb)("Đổi / hủy chuyến đã bán vé + t
     const departureAt = new Date(Date.now() + 48 * HOUR);
     const trip = await trips.create(
       authz,
-      TripInputSchema.parse({ routeId, vehicleId: vehicle.id, departureAt: departureAt.toISOString(), arrivalAt: new Date(departureAt.getTime() + 6 * HOUR).toISOString(), stopTimes: null, onlineSaleCutoffMinutes: 60, note: null }),
+      TripInputSchema.parse({ routeId, vehicleId: vehicle.id, departureAt: departureAt.toISOString(), stopTimes: null, onlineSaleCutoffMinutes: 60, note: null }),
     );
     await prisma.withSystem((tx) => tx.trip.update({ where: { id: trip.id }, data: { status: "OPEN_FOR_SALE" } }));
     const paid = await pendingBooking(trip.id, ["A1", "A2"]);
@@ -134,7 +134,6 @@ describe.skipIf(!ready && !requireDb)("Đổi / hủy chuyến đã bán vé + t
     const trip = await trips.get(authz, tripId);
     return TripChangeInputSchema.parse({
       departureAt: trip.departureAt,
-      arrivalAt: trip.arrivalAt,
       stopTimes: null,
       vehicleId: trip.vehicleId,
       stops: trip.stops.map((stop) => ({ sequence: stop.sequence, catalogStopPointId: stop.catalogStopPointId, stopPointId: stop.stopPointId })),
@@ -258,7 +257,8 @@ describe.skipIf(!ready && !requireDb)("Đổi / hủy chuyến đã bán vé + t
     expect(await rejectionOf(changes.change(actor, authz, tripId, await currentInput(tripId, {})))).toMatchObject({ status: 422, code: "TRIP_CHANGE_EMPTY" });
 
     const later = new Date(departureAt.getTime() + HOUR);
-    const input = await currentInput(tripId, { departureAt: later.toISOString(), arrivalAt: new Date(later.getTime() + 6 * HOUR).toISOString(), reason: "Tắc đường cao tốc" });
+    const before = await trips.get(authz, tripId);
+    const input = await currentInput(tripId, { departureAt: later.toISOString(), reason: "Tắc đường cao tốc" });
     recordAuditEvent.mockRejectedValueOnce(new AuditWriteError(new Error("mongo down")));
     expect(await rejectionOf(changes.change(actor, authz, tripId, input))).toMatchObject({ status: 503 });
     expect((await trips.get(authz, tripId)).departureAt).toBe(departureAt.toISOString());
@@ -266,6 +266,8 @@ describe.skipIf(!ready && !requireDb)("Đổi / hủy chuyến đã bán vé + t
     dispatch.mockClear();
     const updated = await changes.change(actor, authz, tripId, input);
     expect(updated.departureAt).toBe(later.toISOString());
+    // Giờ đến máy chủ tính theo tuyến: dời theo giờ đi, giữ nguyên thời gian chạy.
+    expect(Date.parse(updated.arrivalAt)).toBe(Date.parse(before.arrivalAt) + HOUR);
     expect(updated.stops[0]!.plannedAt).toBe(later.toISOString());
     expect(updated.seats.filter((seat) => seat.status === "BOOKED").map((seat) => seat.code)).toEqual(["A1", "A2"]);
     const sales = await changes.sales(authz, tripId);
@@ -282,7 +284,7 @@ describe.skipIf(!ready && !requireDb)("Đổi / hủy chuyến đã bán vé + t
     expect(view.tripChanges).toEqual([expect.objectContaining({ kinds: ["SCHEDULE"], reason: "Tắc đường cao tốc", after: expect.objectContaining({ departureAt: later.toISOString() }) })]);
 
     const pending = await pendingBooking(tripId, ["A3"]);
-    expect(await rejectionOf(changes.change(actor, authz, tripId, await currentInput(tripId, { reason: "Đổi lại giờ", departureAt: departureAt.toISOString(), arrivalAt: new Date(departureAt.getTime() + 6 * HOUR).toISOString() })))).toMatchObject({
+    expect(await rejectionOf(changes.change(actor, authz, tripId, await currentInput(tripId, { reason: "Đổi lại giờ", departureAt: departureAt.toISOString() })))).toMatchObject({
       status: 409,
       code: "TRIP_CHANGE_NOT_ALLOWED",
     });

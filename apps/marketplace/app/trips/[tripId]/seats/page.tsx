@@ -33,12 +33,18 @@ export default async function SeatsPage({ params, searchParams }: SeatsPageProps
     { label: "Mua vé", href: "/trips" },
     { label: "Chọn chỗ" }
   ];
+  // Như Figma: chèn tên tuyến (về trang chi tiết chuyến) trước "Chọn chỗ" khi đã có dữ liệu chuyến.
+  const withRoute = (routeName: string) => [
+    ...breadcrumbs.slice(0, 2),
+    { label: routeName, href: `/trips/${encodeURIComponent(tripId)}` },
+    ...breadcrumbs.slice(2)
+  ];
 
   // Nhánh Preview (môi trường dev)
   if (preview === "ideal") {
     return (
       <div className="flex-1 bg-neutral-50/40 pb-16">
-        <PassengerTopBar breadcrumbs={breadcrumbs} />
+        <PassengerTopBar breadcrumbs={withRoute(tripSeatSelectionIdealFixture.routeName)} />
         <SeatSelectionView initialData={tripSeatSelectionIdealFixture} />
       </div>
     );
@@ -87,7 +93,7 @@ export default async function SeatsPage({ params, searchParams }: SeatsPageProps
 
   return (
     <div className="flex-1 bg-neutral-50/40 pb-16">
-      <PassengerTopBar breadcrumbs={breadcrumbs} />
+      <PassengerTopBar breadcrumbs={withRoute(result.data.routeName)} />
       <SeatSelectionView initialData={result.data} />
     </div>
   );

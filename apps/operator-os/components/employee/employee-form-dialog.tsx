@@ -160,7 +160,7 @@ function EmployeeForm({
         <DialogDescription>
           {editing
             ? "Đổi tên đăng nhập hoặc email sẽ đăng xuất nhân viên khỏi mọi thiết bị. Đổi email thì phải cấp lại mật khẩu tạm tới email mới."
-            : "Mật khẩu tạm được gửi tới email liên hệ. Nhân viên phải đổi mật khẩu ở lần đăng nhập đầu trên ứng dụng Nhân viên."}
+            : "Mật khẩu tạm được gửi tới email liên hệ. Nhân viên bán vé đăng nhập cổng bán vé; nhân viên vận hành dùng ứng dụng Nhân viên. Lần đầu phải đổi mật khẩu tạm."}
         </DialogDescription>
       </DialogHeader>
       <form noValidate onSubmit={submit} className="flex flex-col gap-4">

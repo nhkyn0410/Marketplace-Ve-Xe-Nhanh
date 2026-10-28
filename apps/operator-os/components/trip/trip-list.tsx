@@ -1,6 +1,7 @@
 "use client";
 
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
+import { useCan } from "@vexenhanh/ui/components/auth/auth-context";
 import { Badge } from "@vexenhanh/ui/components/badge";
 import { Button } from "@vexenhanh/ui/components/button";
 import { Input } from "@vexenhanh/ui/components/input";
@@ -46,6 +47,7 @@ import {
  * "Danh sách | Lịch xe" (`?view=schedule`) ở đầu trang.
  */
 export function TripList() {
+  const canManage = useCan()("trip:manage");
   const router = useRouter();
   const pathname = usePathname();
   const params = useSearchParams();
@@ -74,18 +76,18 @@ export function TripList() {
                 </TabsTrigger>
               </TabsList>
             </Tabs>
-            <Button asChild variant="outline" className={`${BUTTON} bg-card`}>
+            {canManage && <Button asChild variant="outline" className={`${BUTTON} bg-card`}>
               <Link href="/trips/schedules">
                 <CalendarSync className="size-[18px]" />
                 Lịch chạy lặp lại
               </Link>
-            </Button>
-            <Button asChild className={`${BUTTON} w-40`}>
+            </Button>}
+            {canManage && <Button asChild className={`${BUTTON} w-40`}>
               <Link href="/trips/new">
                 <Plus className="size-[18px]" />
                 Tạo chuyến
               </Link>
-            </Button>
+            </Button>}
           </>
         }
       />
@@ -96,6 +98,7 @@ export function TripList() {
 
 /** Danh sách chuyến (Figma 01): sắp theo giờ khởi hành; mặc định hiện chuyến từ hôm nay trở đi. */
 function TripListView() {
+  const canManage = useCan()("trip:manage");
   const today = useMemo(() => todayLocalDate(), []);
   const [from, setFrom] = useState(today);
   const [to, setTo] = useState("");
@@ -174,14 +177,14 @@ function TripListView() {
         icon={<FileX2 className="size-6 text-vxn-fg-3" />}
         title="Chưa có chuyến từ hôm nay"
         description="Tạo chuyến từ một tuyến đang hoạt động. Muốn xem chuyến đã qua thì lùi ngày ở ô “Khởi hành từ ngày”."
-        action={
+        action={canManage ? (
           <Button asChild className={`${BUTTON} w-[180px]`}>
             <Link href="/trips/new">
               <Plus className="size-[18px]" />
               Tạo chuyến
             </Link>
           </Button>
-        }
+        ) : undefined}
       />
     );
   } else {

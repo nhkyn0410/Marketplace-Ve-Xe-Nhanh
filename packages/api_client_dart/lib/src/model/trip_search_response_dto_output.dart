@@ -6,6 +6,7 @@
 import 'package:api_client_dart/src/model/trip_search_response_dto_output_items_inner.dart';
 import 'package:built_collection/built_collection.dart';
 import 'package:api_client_dart/src/model/trip_search_response_dto_output_facets.dart';
+import 'package:api_client_dart/src/model/trip_search_response_dto_output_widened_to_province.dart';
 import 'package:built_value/built_value.dart';
 import 'package:built_value/serializer.dart';
 
@@ -19,6 +20,7 @@ part 'trip_search_response_dto_output.g.dart';
 /// * [page] 
 /// * [limit] 
 /// * [facets] 
+/// * [widenedToProvince] 
 @BuiltValue()
 abstract class TripSearchResponseDtoOutput implements Built<TripSearchResponseDtoOutput, TripSearchResponseDtoOutputBuilder> {
   @BuiltValueField(wireName: r'items')
@@ -35,6 +37,9 @@ abstract class TripSearchResponseDtoOutput implements Built<TripSearchResponseDt
 
   @BuiltValueField(wireName: r'facets')
   TripSearchResponseDtoOutputFacets get facets;
+
+  @BuiltValueField(wireName: r'widenedToProvince')
+  TripSearchResponseDtoOutputWidenedToProvince get widenedToProvince;
 
   TripSearchResponseDtoOutput._();
 
@@ -83,6 +88,11 @@ class _$TripSearchResponseDtoOutputSerializer implements PrimitiveSerializer<Tri
     yield serializers.serialize(
       object.facets,
       specifiedType: const FullType(TripSearchResponseDtoOutputFacets),
+    );
+    yield r'widenedToProvince';
+    yield serializers.serialize(
+      object.widenedToProvince,
+      specifiedType: const FullType(TripSearchResponseDtoOutputWidenedToProvince),
     );
   }
 
@@ -141,6 +151,13 @@ class _$TripSearchResponseDtoOutputSerializer implements PrimitiveSerializer<Tri
             specifiedType: const FullType(TripSearchResponseDtoOutputFacets),
           ) as TripSearchResponseDtoOutputFacets;
           result.facets.replace(valueDes);
+          break;
+        case r'widenedToProvince':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(TripSearchResponseDtoOutputWidenedToProvince),
+          ) as TripSearchResponseDtoOutputWidenedToProvince;
+          result.widenedToProvince.replace(valueDes);
           break;
         default:
           unhandled.add(key);

@@ -42,7 +42,7 @@ import {
   tripStopsInvalid,
   vehicleScheduleConflict,
 } from "./trip.errors";
-import { findDetail, loadRouteStops, lockVehicleSeats, planStopTimes, toResponse, type TripActor } from "./trip.service";
+import { findDetail, loadRouteStops, lockVehicleSeats, planStopTimes, routeArrival, toResponse, type TripActor } from "./trip.service";
 import { releaseRedemption } from "../promotion/promotion-apply";
 import { transitionVoucher } from "../promotion/voucher-apply";
 import { tripCancellationRefund } from "./trip-cancellation-amount";
@@ -155,12 +155,14 @@ export class TripChangeService {
         });
         await assertStopPointsUsable(tx, operatorId, changedStops, detail.stops);
 
-        // Giờ: chia lại theo thời gian chặng đã lưu của tuyến khi không gửi giờ từng điểm.
+        // Giờ: giờ đến = giờ đi mới + thời gian chạy của tuyến (dời theo giờ đi); giờ từng điểm chia lại theo chặng của
+        // tuyến khi không gửi.
         const routeStops = await loadRouteStops(tx, operatorId, current.routeId, true);
-        const stopTimes = planStopTimes(input, routeStops);
+        const arrivalAt = routeArrival(input.departureAt, routeStops);
+        const stopTimes = planStopTimes(input, routeStops, arrivalAt);
         const scheduleChanged =
           detail.departureAt.getTime() !== input.departureAt.getTime() ||
-          detail.arrivalAt.getTime() !== input.arrivalAt.getTime() ||
+          detail.arrivalAt.getTime() !== arrivalAt.getTime() ||
           detail.stops.some((stop, index) => stop.plannedAt.getTime() !== stopTimes[index]!.getTime());
         const vehicleChanged = input.vehicleId !== current.vehicleId;
         if (!scheduleChanged && !vehicleChanged && changedStops.length === 0) {
@@ -180,7 +182,7 @@ export class TripChangeService {
 
         await tx.trip.updateMany({
           where: { id: tripId, operatorId, status: current.status },
-          data: { departureAt: input.departureAt, arrivalAt: input.arrivalAt, vehicleId: input.vehicleId },
+          data: { departureAt: input.departureAt, arrivalAt, vehicleId: input.vehicleId },
         });
         for (const [index, stop] of detail.stops.entries()) {
           const replacement = changedStops.find((item) => item.sequence === stop.sequence);
@@ -256,6 +258,9 @@ export class TripChangeService {
         }
         if (!CANCELLABLE.includes(current.status)) {
           throw tripStatusTransitionInvalid(`Không hủy được chuyến đang ở trạng thái ${current.status}.`);
+        }
+        if (await tx.booking.findFirst({ where: { operatorId, tripId, channel: "COUNTER", status: { in: [BookingStatus.CONFIRMED, BookingStatus.PAID, BookingStatus.PARTIALLY_CANCELLED] } }, select: { id: true } })) {
+          throw tripChangeNotAllowed("Chuyến có vé quầy do nhà xe trực tiếp thu tiền. Cần xử lý hoàn vé quầy trước khi hủy chuyến; chưa tự hoàn qua cổng thanh toán online.");
         }
         const seats = await lockSeats(tx, operatorId, tripId);
         const before = snapshotOf((await findDetail(tx, operatorId, tripId))!);

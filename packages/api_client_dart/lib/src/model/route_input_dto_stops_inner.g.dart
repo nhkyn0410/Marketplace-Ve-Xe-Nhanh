@@ -17,6 +17,8 @@ class _$RouteInputDtoStopsInner extends RouteInputDtoStopsInner {
   final bool allowPickup;
   @override
   final bool allowDropoff;
+  @override
+  final int? durationMinutesFromPrevious;
 
   factory _$RouteInputDtoStopsInner(
           [void Function(RouteInputDtoStopsInnerBuilder)? updates]) =>
@@ -27,7 +29,8 @@ class _$RouteInputDtoStopsInner extends RouteInputDtoStopsInner {
       this.stopPointId,
       this.note,
       required this.allowPickup,
-      required this.allowDropoff})
+      required this.allowDropoff,
+      this.durationMinutesFromPrevious})
       : super._();
   @override
   RouteInputDtoStopsInner rebuild(
@@ -46,7 +49,8 @@ class _$RouteInputDtoStopsInner extends RouteInputDtoStopsInner {
         stopPointId == other.stopPointId &&
         note == other.note &&
         allowPickup == other.allowPickup &&
-        allowDropoff == other.allowDropoff;
+        allowDropoff == other.allowDropoff &&
+        durationMinutesFromPrevious == other.durationMinutesFromPrevious;
   }
 
   @override
@@ -57,6 +61,7 @@ class _$RouteInputDtoStopsInner extends RouteInputDtoStopsInner {
     _$hash = $jc(_$hash, note.hashCode);
     _$hash = $jc(_$hash, allowPickup.hashCode);
     _$hash = $jc(_$hash, allowDropoff.hashCode);
+    _$hash = $jc(_$hash, durationMinutesFromPrevious.hashCode);
     _$hash = $jf(_$hash);
     return _$hash;
   }
@@ -68,7 +73,8 @@ class _$RouteInputDtoStopsInner extends RouteInputDtoStopsInner {
           ..add('stopPointId', stopPointId)
           ..add('note', note)
           ..add('allowPickup', allowPickup)
-          ..add('allowDropoff', allowDropoff))
+          ..add('allowDropoff', allowDropoff)
+          ..add('durationMinutesFromPrevious', durationMinutesFromPrevious))
         .toString();
   }
 }
@@ -99,6 +105,11 @@ class RouteInputDtoStopsInnerBuilder
   bool? get allowDropoff => _$this._allowDropoff;
   set allowDropoff(bool? allowDropoff) => _$this._allowDropoff = allowDropoff;
 
+  int? _durationMinutesFromPrevious;
+  int? get durationMinutesFromPrevious => _$this._durationMinutesFromPrevious;
+  set durationMinutesFromPrevious(int? durationMinutesFromPrevious) =>
+      _$this._durationMinutesFromPrevious = durationMinutesFromPrevious;
+
   RouteInputDtoStopsInnerBuilder() {
     RouteInputDtoStopsInner._defaults(this);
   }
@@ -111,6 +122,7 @@ class RouteInputDtoStopsInnerBuilder
       _note = $v.note;
       _allowPickup = $v.allowPickup;
       _allowDropoff = $v.allowDropoff;
+      _durationMinutesFromPrevious = $v.durationMinutesFromPrevious;
       _$v = null;
     }
     return this;
@@ -139,6 +151,7 @@ class RouteInputDtoStopsInnerBuilder
               allowPickup, r'RouteInputDtoStopsInner', 'allowPickup'),
           allowDropoff: BuiltValueNullFieldError.checkNotNull(
               allowDropoff, r'RouteInputDtoStopsInner', 'allowDropoff'),
+          durationMinutesFromPrevious: durationMinutesFromPrevious,
         );
     replace(_$result);
     return _$result;

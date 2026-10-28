@@ -15,6 +15,9 @@ const AdminEmployeePageDtoOutputItemsInnerRoleEnum
 const AdminEmployeePageDtoOutputItemsInnerRoleEnum
     _$adminEmployeePageDtoOutputItemsInnerRoleEnum_SUPPORT_STAFF =
     const AdminEmployeePageDtoOutputItemsInnerRoleEnum._('SUPPORT_STAFF');
+const AdminEmployeePageDtoOutputItemsInnerRoleEnum
+    _$adminEmployeePageDtoOutputItemsInnerRoleEnum_SALES_STAFF =
+    const AdminEmployeePageDtoOutputItemsInnerRoleEnum._('SALES_STAFF');
 
 AdminEmployeePageDtoOutputItemsInnerRoleEnum
     _$adminEmployeePageDtoOutputItemsInnerRoleEnumValueOf(String name) {
@@ -25,6 +28,8 @@ AdminEmployeePageDtoOutputItemsInnerRoleEnum
       return _$adminEmployeePageDtoOutputItemsInnerRoleEnum_TICKET_STAFF;
     case 'SUPPORT_STAFF':
       return _$adminEmployeePageDtoOutputItemsInnerRoleEnum_SUPPORT_STAFF;
+    case 'SALES_STAFF':
+      return _$adminEmployeePageDtoOutputItemsInnerRoleEnum_SALES_STAFF;
     default:
       throw ArgumentError(name);
   }
@@ -36,6 +41,7 @@ final BuiltSet<AdminEmployeePageDtoOutputItemsInnerRoleEnum>
   _$adminEmployeePageDtoOutputItemsInnerRoleEnum_DRIVER,
   _$adminEmployeePageDtoOutputItemsInnerRoleEnum_TICKET_STAFF,
   _$adminEmployeePageDtoOutputItemsInnerRoleEnum_SUPPORT_STAFF,
+  _$adminEmployeePageDtoOutputItemsInnerRoleEnum_SALES_STAFF,
 ]);
 
 const AdminEmployeePageDtoOutputItemsInnerStatusEnum
@@ -84,11 +90,13 @@ class _$AdminEmployeePageDtoOutputItemsInnerRoleEnumSerializer
     'DRIVER': 'DRIVER',
     'TICKET_STAFF': 'TICKET_STAFF',
     'SUPPORT_STAFF': 'SUPPORT_STAFF',
+    'SALES_STAFF': 'SALES_STAFF',
   };
   static const Map<Object, String> _fromWire = const <Object, String>{
     'DRIVER': 'DRIVER',
     'TICKET_STAFF': 'TICKET_STAFF',
     'SUPPORT_STAFF': 'SUPPORT_STAFF',
+    'SALES_STAFF': 'SALES_STAFF',
   };
 
   @override

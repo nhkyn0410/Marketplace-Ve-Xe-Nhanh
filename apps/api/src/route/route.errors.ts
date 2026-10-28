@@ -7,6 +7,11 @@ function problem(status: HttpStatus, code: string, detail: string): HttpExceptio
   return new HttpException({ code, detail, title: TITLE }, status);
 }
 
+/** Tổng thời gian chạy của tuyến (sau khi chỉnh chặng) vượt 7 ngày — chuyến dài nhất cho phép. */
+export function routeDurationTooLong(): HttpException {
+  return problem(HttpStatus.UNPROCESSABLE_ENTITY, "ROUTE_DURATION_INVALID", "Tổng thời gian chạy của tuyến không được quá 7 ngày.");
+}
+
 /** Route không tồn tại HOẶC thuộc tenant khác — cùng một lỗi để chống dò id (IDOR). */
 export function routeNotFound(): HttpException {
   return problem(HttpStatus.NOT_FOUND, "ROUTE_NOT_FOUND", "Không tìm thấy tuyến.");

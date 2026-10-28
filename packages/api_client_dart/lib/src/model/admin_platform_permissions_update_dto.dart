@@ -18,7 +18,7 @@ part 'admin_platform_permissions_update_dto.g.dart';
 abstract class AdminPlatformPermissionsUpdateDto implements Built<AdminPlatformPermissionsUpdateDto, AdminPlatformPermissionsUpdateDtoBuilder> {
   @BuiltValueField(wireName: r'permissions')
   BuiltList<AdminPlatformPermissionsUpdateDtoPermissionsEnum> get permissions;
-  // enum permissionsEnum {  profile:manage,  loyalty:use,  notification:manage,  incident:create,  journey-log:create,  system:run,  trip:search,  booking:create,  booking:read,  payment:create,  payment:monitor,  refund:request,  vehicle:manage,  vehicle:read,  route:manage,  trip:manage,  checkin:perform,  checkin:read,  trip:operate,  kyc:submit,  kyc:review,  catalog:manage,  content:moderate,  content:manage,  user:manage,  system:read,  finance:read,  finance:configure,  audit:read,  employee:manage,  account:lock,  support:create,  review:create,  support:respond,  support:manage,  dispute:decide,  promotion:manage,  promotion:configure,  loyalty:manage,  access:manage,  transport:read,  manager:manage,  payout:manage,  refund:manage,  };
+  // enum permissionsEnum {  profile:manage,  loyalty:use,  notification:manage,  incident:create,  journey-log:create,  system:run,  trip:search,  booking:create,  booking:read,  payment:create,  payment:monitor,  refund:request,  vehicle:manage,  vehicle:read,  route:manage,  trip:manage,  trip:dispatch,  office:manage,  office:read,  counter:sell,  counter:collect,  counter:read,  checkin:perform,  checkin:read,  trip:operate,  kyc:submit,  kyc:review,  catalog:manage,  content:moderate,  content:manage,  user:manage,  system:read,  finance:read,  finance:configure,  audit:read,  employee:manage,  account:lock,  support:create,  review:create,  support:respond,  support:manage,  dispute:decide,  promotion:manage,  promotion:configure,  loyalty:manage,  access:manage,  transport:read,  manager:manage,  payout:manage,  refund:manage,  };
 
   @BuiltValueField(wireName: r'reason')
   String get reason;
@@ -157,6 +157,18 @@ class AdminPlatformPermissionsUpdateDtoPermissionsEnum extends EnumClass {
   static const AdminPlatformPermissionsUpdateDtoPermissionsEnum routeColonManage = _$adminPlatformPermissionsUpdateDtoPermissionsEnum_routeColonManage;
   @BuiltValueEnumConst(wireName: r'trip:manage')
   static const AdminPlatformPermissionsUpdateDtoPermissionsEnum tripColonManage = _$adminPlatformPermissionsUpdateDtoPermissionsEnum_tripColonManage;
+  @BuiltValueEnumConst(wireName: r'trip:dispatch')
+  static const AdminPlatformPermissionsUpdateDtoPermissionsEnum tripColonDispatch = _$adminPlatformPermissionsUpdateDtoPermissionsEnum_tripColonDispatch;
+  @BuiltValueEnumConst(wireName: r'office:manage')
+  static const AdminPlatformPermissionsUpdateDtoPermissionsEnum officeColonManage = _$adminPlatformPermissionsUpdateDtoPermissionsEnum_officeColonManage;
+  @BuiltValueEnumConst(wireName: r'office:read')
+  static const AdminPlatformPermissionsUpdateDtoPermissionsEnum officeColonRead = _$adminPlatformPermissionsUpdateDtoPermissionsEnum_officeColonRead;
+  @BuiltValueEnumConst(wireName: r'counter:sell')
+  static const AdminPlatformPermissionsUpdateDtoPermissionsEnum counterColonSell = _$adminPlatformPermissionsUpdateDtoPermissionsEnum_counterColonSell;
+  @BuiltValueEnumConst(wireName: r'counter:collect')
+  static const AdminPlatformPermissionsUpdateDtoPermissionsEnum counterColonCollect = _$adminPlatformPermissionsUpdateDtoPermissionsEnum_counterColonCollect;
+  @BuiltValueEnumConst(wireName: r'counter:read')
+  static const AdminPlatformPermissionsUpdateDtoPermissionsEnum counterColonRead = _$adminPlatformPermissionsUpdateDtoPermissionsEnum_counterColonRead;
   @BuiltValueEnumConst(wireName: r'checkin:perform')
   static const AdminPlatformPermissionsUpdateDtoPermissionsEnum checkinColonPerform = _$adminPlatformPermissionsUpdateDtoPermissionsEnum_checkinColonPerform;
   @BuiltValueEnumConst(wireName: r'checkin:read')

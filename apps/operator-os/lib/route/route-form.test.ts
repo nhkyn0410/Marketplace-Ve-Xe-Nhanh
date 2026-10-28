@@ -9,6 +9,7 @@ import {
   countFlags,
   describeSaveError,
   EMPTY_ROUTE_INFO,
+  legMinutesOf,
   legOf,
   lockedFlags,
   MAX_ROUTE_STOPS,
@@ -16,7 +17,9 @@ import {
   normalizeStops,
   removeStop,
   routeInfoSchema,
+  savedLegMinutes,
   savedLegs,
+  setLegMinutes,
   setStopFlag,
   setStopNote,
   stopKey,
@@ -24,6 +27,7 @@ import {
   toRouteInfoValues,
   toRouteInput,
   totalsOf,
+  validateLegMinutes,
   validateStops,
   type DraftStop,
   type StopCandidate
@@ -174,9 +178,9 @@ describe("thông tin tuyến và đổi sang DTO", () => {
       status: "INACTIVE",
       note: null,
       stops: [
-        { catalogStopPointId: "a", stopPointId: null, note: null, allowPickup: true, allowDropoff: false },
-        { catalogStopPointId: null, stopPointId: "r", note: "Nghỉ 20 phút", allowPickup: false, allowDropoff: false },
-        { catalogStopPointId: null, stopPointId: "o", note: null, allowPickup: false, allowDropoff: true }
+        { catalogStopPointId: "a", stopPointId: null, note: null, allowPickup: true, allowDropoff: false, durationMinutesFromPrevious: null },
+        { catalogStopPointId: null, stopPointId: "r", note: "Nghỉ 20 phút", allowPickup: false, allowDropoff: false, durationMinutesFromPrevious: null },
+        { catalogStopPointId: null, stopPointId: "o", note: null, allowPickup: false, allowDropoff: true, durationMinutesFromPrevious: null }
       ]
     });
     expect(countFlags(stops)).toEqual({ pickup: 1, dropoff: 1 });
@@ -199,6 +203,7 @@ describe("tuyến đã lưu → form", () => {
     allowDropoff: true,
     distanceMetersFromPrevious: null,
     durationSecondsFromPrevious: null,
+    measuredDurationSecondsFromPrevious: null,
     ...extra
   });
   const route: Route = {
@@ -213,9 +218,9 @@ describe("tuyến đã lưu → form", () => {
     updatedAt: "2026-10-05T07:20:00.000Z",
     // Cố ý đảo thứ tự mảng: form phải xếp theo `sequence`.
     stops: [
-      stop(3, "c", { allowPickup: false, distanceMetersFromPrevious: 78_000, durationSecondsFromPrevious: 6_600, note: "Cổng B" }),
+      stop(3, "c", { allowPickup: false, distanceMetersFromPrevious: 78_000, durationSecondsFromPrevious: 6_600, measuredDurationSecondsFromPrevious: 6_600, note: "Cổng B" }),
       stop(1, "a", { allowDropoff: false, latitude: 10.75, longitude: 106.68 }),
-      stop(2, "b", { distanceMetersFromPrevious: 62_000, durationSecondsFromPrevious: 5_100 })
+      stop(2, "b", { distanceMetersFromPrevious: 62_000, durationSecondsFromPrevious: 5_100, measuredDurationSecondsFromPrevious: 5_100 })
     ]
   };
 
@@ -246,6 +251,39 @@ describe("tuyến đã lưu → form", () => {
     expect(totalsOf(savedLegs(undefined), stops)).toBeNull();
     expect(totalsOf(legs, stops.slice(0, 1))).toBeNull();
   });
+
+  it("thời gian chạy thực tế nhà xe chỉnh: đọc từ tuyến đã lưu, tổng theo số chỉnh, gửi số phút; xóa trắng = số hệ thống", () => {
+    // Chặng b → c nhà xe đã chỉnh 2 giờ 15 phút (hệ thống tính 1 giờ 50 phút).
+    const edited: Route = {
+      ...route,
+      totalDurationSeconds: 5_100 + 8_100,
+      stops: route.stops.map((item) => (item.sequence === 3 ? { ...item, durationSecondsFromPrevious: 8_100 } : item))
+    };
+    const stops = toDraftStops(edited);
+    const minutes = savedLegMinutes(edited);
+    expect(legOf(savedLegs(edited), stops, 2)).toEqual({ distanceMeters: 78_000, durationSeconds: 6_600 });
+    expect([legMinutesOf(minutes, stops, 1), legMinutesOf(minutes, stops, 2)]).toEqual(["", "135"]);
+    expect(totalsOf(savedLegs(edited), stops, minutes)).toEqual({ distanceMeters: 140_000, durationSeconds: 13_200 });
+    expect(toRouteInput(toRouteInfoValues(edited), stops, minutes).stops.map((item) => item.durationMinutesFromPrevious)).toEqual([null, null, 135]);
+
+    const cleared = setLegMinutes(minutes, stops, 2, " ");
+    expect(cleared).toEqual({});
+    expect(totalsOf(savedLegs(edited), stops, cleared)).toEqual({ distanceMeters: 140_000, durationSeconds: 11_700 });
+    // Đổi thứ tự: chặng mới không mang số chỉnh của chặng cũ.
+    expect(legMinutesOf(minutes, moveStop(stops, 1, 1), 2)).toBe("");
+    expect(savedLegMinutes(route)).toEqual({});
+  });
+
+  it("ô số phút: số nguyên 1–1440, ô trống hợp lệ", () => {
+    const stops = toDraftStops(route);
+    for (const value of ["0", "1441", "1,5", "abc", "-5"]) {
+      expect(validateLegMinutes(setLegMinutes({}, stops, 2, value), stops), value).toMatch(/Điểm c/);
+      expect(toRouteInput(EMPTY_ROUTE_INFO, stops, setLegMinutes({}, stops, 2, value)).stops[2]!.durationMinutesFromPrevious).toBeNull();
+    }
+    for (const value of ["", "1", " 95 ", "1440"]) {
+      expect(validateLegMinutes(setLegMinutes({}, stops, 2, value), stops), value).toBeNull();
+    }
+  });
 });
 
 describe("describeSaveError", () => {
@@ -253,6 +291,7 @@ describe("describeSaveError", () => {
     ["ROUTE_NAME_CONFLICT", 409, "name"],
     ["STOP_POINT_UNAVAILABLE", 422, "stops"],
     ["ROUTE_STOP_PICKUP_DROPOFF_INVALID", 422, "stops"],
+    ["ROUTE_DURATION_INVALID", 422, "stops"],
     ["ROUTING_PROVIDER_UNAVAILABLE", 503, null],
     ["ROUTE_NOT_FOUND", 404, null]
   ])("%s → chỗ %j, có thông báo riêng", (code, status, field) => {

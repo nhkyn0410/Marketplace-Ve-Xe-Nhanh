@@ -53,7 +53,7 @@ describe.skipIf(!url && !requireDb)("Admin danh mục chuẩn — Postgres thậ
       throw new Error("DATABASE_URL đang là superuser/BYPASSRLS — dùng role app (TRN-001-guide.md §0).");
     }
     admin = new AdminCatalogService(prisma, { recordAuditEvent } as unknown as AuditService);
-    publicCatalog = new CatalogService(prisma);
+    publicCatalog = new CatalogService(prisma, { publicUrl: (key) => `https://cdn.test/${key}` });
     // Mã tỉnh chỉ có 2 chữ số: lấy mã chưa dùng trong DB test.
     const used = new Set((await prisma.province.findMany({ select: { code: true } })).map((row) => row.code));
     freeProvinceCodes = Array.from({ length: 100 }, (_, index) => String(index).padStart(2, "0")).filter((code) => !used.has(code));

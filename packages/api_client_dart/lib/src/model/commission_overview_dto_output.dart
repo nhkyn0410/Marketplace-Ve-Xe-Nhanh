@@ -15,11 +15,16 @@ part 'commission_overview_dto_output.g.dart';
 ///
 /// Properties:
 /// * [default_] 
+/// * [counterDefaultRateBps] 
 /// * [overrides] 
 @BuiltValue()
 abstract class CommissionOverviewDtoOutput implements Built<CommissionOverviewDtoOutput, CommissionOverviewDtoOutputBuilder> {
   @BuiltValueField(wireName: r'default')
   CommissionOverviewDtoOutputDefault? get default_;
+
+  @BuiltValueField(wireName: r'counterDefaultRateBps')
+  CommissionOverviewDtoOutputCounterDefaultRateBpsEnum get counterDefaultRateBps;
+  // enum counterDefaultRateBpsEnum {  0,  };
 
   @BuiltValueField(wireName: r'overrides')
   BuiltList<CommissionOverviewDtoOutputOverridesInner> get overrides;
@@ -51,6 +56,11 @@ class _$CommissionOverviewDtoOutputSerializer implements PrimitiveSerializer<Com
     yield object.default_ == null ? null : serializers.serialize(
       object.default_,
       specifiedType: const FullType.nullable(CommissionOverviewDtoOutputDefault),
+    );
+    yield r'counterDefaultRateBps';
+    yield serializers.serialize(
+      object.counterDefaultRateBps,
+      specifiedType: const FullType(CommissionOverviewDtoOutputCounterDefaultRateBpsEnum),
     );
     yield r'overrides';
     yield serializers.serialize(
@@ -88,6 +98,13 @@ class _$CommissionOverviewDtoOutputSerializer implements PrimitiveSerializer<Com
           if (valueDes == null) continue;
           result.default_.replace(valueDes);
           break;
+        case r'counterDefaultRateBps':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(CommissionOverviewDtoOutputCounterDefaultRateBpsEnum),
+          ) as CommissionOverviewDtoOutputCounterDefaultRateBpsEnum;
+          result.counterDefaultRateBps = valueDes;
+          break;
         case r'overrides':
           final valueDes = serializers.deserialize(
             value,
@@ -124,4 +141,17 @@ class _$CommissionOverviewDtoOutputSerializer implements PrimitiveSerializer<Com
   }
 }
 
+
+class CommissionOverviewDtoOutputCounterDefaultRateBpsEnum extends EnumClass {
+
+  @BuiltValueEnumConst(wireName: r'0')
+  static const CommissionOverviewDtoOutputCounterDefaultRateBpsEnum n0 = _$commissionOverviewDtoOutputCounterDefaultRateBpsEnum_n0;
+
+  static Serializer<CommissionOverviewDtoOutputCounterDefaultRateBpsEnum> get serializer => _$commissionOverviewDtoOutputCounterDefaultRateBpsEnumSerializer;
+
+  const CommissionOverviewDtoOutputCounterDefaultRateBpsEnum._(String name): super(name);
+
+  static BuiltSet<CommissionOverviewDtoOutputCounterDefaultRateBpsEnum> get values => _$commissionOverviewDtoOutputCounterDefaultRateBpsEnumValues;
+  static CommissionOverviewDtoOutputCounterDefaultRateBpsEnum valueOf(String name) => _$commissionOverviewDtoOutputCounterDefaultRateBpsEnumValueOf(name);
+}
 

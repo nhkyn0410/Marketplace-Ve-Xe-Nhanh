@@ -3,6 +3,7 @@
 //
 
 // ignore_for_file: unused_element
+import 'package:built_collection/built_collection.dart';
 import 'package:built_value/built_value.dart';
 import 'package:built_value/serializer.dart';
 
@@ -12,6 +13,7 @@ part 'commission_rule_create_dto.g.dart';
 ///
 /// Properties:
 /// * [operatorId] 
+/// * [channel] 
 /// * [rateBps] 
 /// * [effectiveFrom] 
 /// * [effectiveTo] 
@@ -20,6 +22,10 @@ part 'commission_rule_create_dto.g.dart';
 abstract class CommissionRuleCreateDto implements Built<CommissionRuleCreateDto, CommissionRuleCreateDtoBuilder> {
   @BuiltValueField(wireName: r'operatorId')
   String get operatorId;
+
+  @BuiltValueField(wireName: r'channel')
+  CommissionRuleCreateDtoChannelEnum? get channel;
+  // enum channelEnum {  ONLINE,  COUNTER,  };
 
   @BuiltValueField(wireName: r'rateBps')
   int get rateBps;
@@ -38,7 +44,8 @@ abstract class CommissionRuleCreateDto implements Built<CommissionRuleCreateDto,
   factory CommissionRuleCreateDto([void updates(CommissionRuleCreateDtoBuilder b)]) = _$CommissionRuleCreateDto;
 
   @BuiltValueHook(initializeBuilder: true)
-  static void _defaults(CommissionRuleCreateDtoBuilder b) => b;
+  static void _defaults(CommissionRuleCreateDtoBuilder b) => b
+      ..channel = CommissionRuleCreateDtoChannelEnum.valueOf('ONLINE');
 
   @BuiltValueSerializer(custom: true)
   static Serializer<CommissionRuleCreateDto> get serializer => _$CommissionRuleCreateDtoSerializer();
@@ -61,6 +68,13 @@ class _$CommissionRuleCreateDtoSerializer implements PrimitiveSerializer<Commiss
       object.operatorId,
       specifiedType: const FullType(String),
     );
+    if (object.channel != null) {
+      yield r'channel';
+      yield serializers.serialize(
+        object.channel,
+        specifiedType: const FullType(CommissionRuleCreateDtoChannelEnum),
+      );
+    }
     yield r'rateBps';
     yield serializers.serialize(
       object.rateBps,
@@ -110,6 +124,14 @@ class _$CommissionRuleCreateDtoSerializer implements PrimitiveSerializer<Commiss
             specifiedType: const FullType(String),
           ) as String;
           result.operatorId = valueDes;
+          break;
+        case r'channel':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType.nullable(CommissionRuleCreateDtoChannelEnum),
+          ) as CommissionRuleCreateDtoChannelEnum?;
+          if (valueDes == null) continue;
+          result.channel = valueDes;
           break;
         case r'rateBps':
           final valueDes = serializers.deserialize(
@@ -169,4 +191,19 @@ class _$CommissionRuleCreateDtoSerializer implements PrimitiveSerializer<Commiss
   }
 }
 
+
+class CommissionRuleCreateDtoChannelEnum extends EnumClass {
+
+  @BuiltValueEnumConst(wireName: r'ONLINE')
+  static const CommissionRuleCreateDtoChannelEnum ONLINE = _$commissionRuleCreateDtoChannelEnum_ONLINE;
+  @BuiltValueEnumConst(wireName: r'COUNTER')
+  static const CommissionRuleCreateDtoChannelEnum COUNTER = _$commissionRuleCreateDtoChannelEnum_COUNTER;
+
+  static Serializer<CommissionRuleCreateDtoChannelEnum> get serializer => _$commissionRuleCreateDtoChannelEnumSerializer;
+
+  const CommissionRuleCreateDtoChannelEnum._(String name): super(name);
+
+  static BuiltSet<CommissionRuleCreateDtoChannelEnum> get values => _$commissionRuleCreateDtoChannelEnumValues;
+  static CommissionRuleCreateDtoChannelEnum valueOf(String name) => _$commissionRuleCreateDtoChannelEnumValueOf(name);
+}
 

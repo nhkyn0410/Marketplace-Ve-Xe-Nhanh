@@ -41,7 +41,7 @@ import { PaymentWebhookService } from "./payment-webhook.service";
 const url = process.env.DATABASE_URL;
 const ready = Boolean(url && process.env.REDIS_URL);
 const requireDb = process.env.REQUIRE_DB_TESTS === "1";
-const HOUR = 3_600_000;
+// const HOUR = 3_600_000;
 
 async function rejectionOf(promise: Promise<unknown>): Promise<{ status?: number; code?: string }> {
   try {
@@ -101,7 +101,6 @@ describe.skipIf(!ready && !requireDb)("Thanh toán — Postgres + Redis thật (
         routeId,
         vehicleId,
         departureAt: departureAt.toISOString(),
-        arrivalAt: new Date(departureAt.getTime() + 6 * HOUR).toISOString(),
         stopTimes: null,
         onlineSaleCutoffMinutes: 60,
         note: null,

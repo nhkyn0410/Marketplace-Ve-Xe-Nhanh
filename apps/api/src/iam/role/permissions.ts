@@ -22,6 +22,12 @@ export const PERMISSIONS = [
   "vehicle:read", // §7 Vehicle/SeatMap — "xem nếu được phân công"
   "route:manage", // §7 Route/StopPoint (TASK-TRN-002, SRS permission matrix) — route, điểm riêng, đề xuất
   "trip:manage", // §7 Trip/fare/inventory (TASK-TRN-003) — tạo/sửa chuyến của nhà xe
+  "trip:dispatch", // COUNTER-SALES — điều phối xác nhận khởi hành thực tế trong nhà xe
+  "office:manage", // COUNTER-SALES — chủ nhà xe quản lý văn phòng và phân công tài khoản
+  "office:read", // COUNTER-SALES — văn phòng được cấp cho nhân viên bán vé; Owner xem toàn nhà xe
+  "counter:sell", // COUNTER-SALES — bán vé tại văn phòng trong phạm vi được phân công
+  "counter:collect", // COUNTER-SALES — xác nhận khoản thu tại văn phòng được phân công
+  "counter:read", // COUNTER-SALES — xem đơn / khoản thu trong phạm vi văn phòng
   "checkin:perform", // §7 Check-in
   "checkin:read", // §7 Check-in — "xem kết quả" / "giám sát"
   "trip:operate", // §7 Trip cột Employee — "cập nhật trạng thái chuyến được phân công" (FR-EMP-09, TASK-EMP-002), chỉ tài xế
@@ -107,6 +113,12 @@ export const ROLE_GRANTS: Readonly<Record<Role, Grants>> = {
     "vehicle:read": "tenant",
     "route:manage": "tenant",
     "trip:manage": "tenant",
+    "trip:dispatch": "tenant",
+    "office:manage": "tenant",
+    "office:read": "tenant",
+    "counter:sell": "tenant",
+    "counter:collect": "tenant",
+    "counter:read": "tenant",
     "checkin:read": "tenant",
     "kyc:submit": "tenant",
     "finance:read": "tenant",
@@ -127,6 +139,7 @@ export const ROLE_GRANTS: Readonly<Record<Role, Grants>> = {
     "vehicle:read": "tenant",
     "route:manage": "tenant",
     "trip:manage": "tenant",
+    "trip:dispatch": "tenant",
     "checkin:read": "tenant",
     "finance:read": "tenant",
     "employee:manage": "tenant",
@@ -139,6 +152,13 @@ export const ROLE_GRANTS: Readonly<Record<Role, Grants>> = {
   [Role.DRIVER]: DRIVER,
   [Role.TICKET_STAFF]: EMPLOYEE,
   [Role.SUPPORT_STAFF]: { ...EMPLOYEE, "incident:create": "assigned" },
+  [Role.SALES_STAFF]: {
+    "notification:manage": "own",
+    "office:read": "tenant",
+    "counter:sell": "tenant",
+    "counter:collect": "tenant",
+    "counter:read": "tenant",
+  },
   [Role.PLATFORM_ADMIN]: {
     "notification:manage": "own",
     "system:run": "any",
@@ -183,6 +203,7 @@ export const OPERATOR_MANAGER_PERMISSIONS = [
   "vehicle:manage",
   "route:manage",
   "trip:manage",
+  "trip:dispatch",
   "booking:read",
   "finance:read",
   "employee:manage",

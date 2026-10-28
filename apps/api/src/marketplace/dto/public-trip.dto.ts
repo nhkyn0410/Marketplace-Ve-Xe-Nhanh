@@ -12,10 +12,15 @@ const id = z.string().trim().min(1).max(64);
 
 export const TripSearchQuerySchema = z
   .object({
-    /** Phía đi: tỉnh / thành HOẶC một điểm dùng chung (địa danh — khớp trong bán kính, BR-80). */
+    /**
+     * Phía đi: đúng một trong tỉnh / thành, phường / xã (điểm đón nằm trong phường — chờ duyệt 27/10/2026) hoặc một điểm
+     * dùng chung (địa danh — khớp trong bán kính, BR-80).
+     */
     fromProvinceId: id.optional(),
+    fromWardId: id.optional(),
     fromStopPointId: z.uuid().optional(),
     toProvinceId: id.optional(),
+    toWardId: id.optional(),
     toStopPointId: z.uuid().optional(),
     /** Ngày đi (giờ đón tại điểm đón khớp) theo giờ VN. */
     date: z.iso.date(),
@@ -39,11 +44,12 @@ export const TripSearchQuerySchema = z
     limit: z.coerce.number().int().min(1).max(50).default(20),
   })
   .superRefine((query, ctx) => {
-    if (Boolean(query.fromProvinceId) === Boolean(query.fromStopPointId)) {
-      ctx.addIssue({ code: "custom", path: ["fromProvinceId"], message: "Chọn đúng một điểm đi: tỉnh / thành hoặc địa danh." });
+    const count = (...values: (string | undefined)[]) => values.filter(Boolean).length;
+    if (count(query.fromProvinceId, query.fromWardId, query.fromStopPointId) !== 1) {
+      ctx.addIssue({ code: "custom", path: ["fromProvinceId"], message: "Chọn đúng một điểm đi: tỉnh / thành, phường / xã hoặc địa danh." });
     }
-    if (Boolean(query.toProvinceId) === Boolean(query.toStopPointId)) {
-      ctx.addIssue({ code: "custom", path: ["toProvinceId"], message: "Chọn đúng một điểm đến: tỉnh / thành hoặc địa danh." });
+    if (count(query.toProvinceId, query.toWardId, query.toStopPointId) !== 1) {
+      ctx.addIssue({ code: "custom", path: ["toProvinceId"], message: "Chọn đúng một điểm đến: tỉnh / thành, phường / xã hoặc địa danh." });
     }
     if (query.priceMin !== undefined && query.priceMax !== undefined && query.priceMin > query.priceMax) {
       ctx.addIssue({ code: "custom", path: ["priceMax"], message: "Giá tối đa phải từ giá tối thiểu trở lên." });
@@ -100,6 +106,11 @@ export const TripSearchResponseSchema = z.object({
     priceMin: z.int().nullable(),
     priceMax: z.int().nullable(),
   }),
+  /**
+   * Phía tìm theo phường / xã mà phường không có chuyến nào khớp → kết quả đã nới ra cả tỉnh của phường đó (`true`);
+   * giao diện báo "không có điểm đón / trả tại phường". Phía tỉnh / địa danh luôn `false`.
+   */
+  widenedToProvince: z.object({ from: z.boolean(), to: z.boolean() }),
 });
 export type TripSearchResponse = z.infer<typeof TripSearchResponseSchema>;
 export class TripSearchResponseDto extends createZodDto(TripSearchResponseSchema) {}

@@ -92,8 +92,52 @@ function SeatTile({
   );
 }
 
+/** Một tầng của sơ đồ; `title` trống (xe một tầng) thì không ghi tên tầng. */
+function SeatDeck({
+  title,
+  seats,
+  selectedSeatCodes,
+  onToggleSeat
+}: {
+  readonly title: string | null;
+  readonly seats: readonly SeatSelectionItem[];
+  readonly selectedSeatCodes: readonly string[];
+  readonly onToggleSeat?: (seatCode: string) => void;
+}) {
+  return (
+    <div className="rounded-2xl border border-vxn-border bg-neutral-50/30 p-4 sm:p-5">
+      {title && <div className="text-center font-bold text-sm text-vxn-ink">{title}</div>}
+      <div className={`${title ? "mt-2.5" : ""} flex items-center justify-center`}>
+        <span className="inline-flex items-center gap-1.5 rounded-full border border-neutral-200 bg-white px-3 py-0.5 text-[11px] text-neutral-500">
+          <User className="h-3 w-3" />
+          Đầu xe • tài xế
+        </span>
+      </div>
+
+      <div
+        className="mt-5 grid gap-2.5 sm:gap-3 place-items-center"
+        style={{ gridTemplateColumns: `repeat(${Math.max(1, ...seats.map((seat) => seat.column ?? 3))}, minmax(0, 1fr))` }}
+      >
+        {seats.map((seat) => (
+          <SeatTile key={seat.id} seat={seat} isSelected={selectedSeatCodes.includes(seat.code)} onToggle={onToggleSeat} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+const LEGEND: readonly { status: SeatSelectionStatus; label: string; swatch: string }[] = [
+  { status: "available", label: "Còn trống", swatch: "border border-neutral-300 bg-white" },
+  { status: "selected", label: "Đang chọn", swatch: "bg-vxn-teal-900" },
+  { status: "holding", label: "Đang giữ", swatch: "border border-amber-400 bg-amber-50" },
+  { status: "booked", label: "Đã đặt", swatch: "border border-neutral-200 bg-neutral-100" },
+  { status: "disabled", label: "Không bán", swatch: "border border-dashed border-neutral-300 bg-white" }
+];
+
 /**
- * Khối sơ đồ chọn chỗ 2 tầng theo Figma 1443:12719.
+ * Khối sơ đồ chọn chỗ theo Figma 1443:12719: xe hai tầng hiện hai tầng cạnh nhau; xe một tầng hiện một sơ đồ ở giữa,
+ * không ghi tên tầng. Chú thích chỉ liệt kê trạng thái có trên xe này (API công khai gộp đã bán / đang giữ / bị khóa
+ * thành "Đã đặt", nên thường không có "Đang giữ").
  */
 export function SeatMap({
   seats,
@@ -103,6 +147,9 @@ export function SeatMap({
 }: SeatMapProps) {
   const floor1Seats = seats.filter((s) => s.floor === 1);
   const floor2Seats = seats.filter((s) => s.floor === 2);
+  const twoDecks = floor1Seats.length > 0 && floor2Seats.length > 0;
+  const present = new Set<SeatSelectionStatus>(seats.map((seat) => seat.status));
+  const legend = LEGEND.filter(({ status }) => status === "available" || status === "selected" || present.has(status));
 
   return (
     <section className="rounded-2xl border border-vxn-border bg-white p-5 sm:p-6 shadow-2xs">
@@ -126,78 +173,24 @@ export function SeatMap({
 
       {/* Chú thích màu sắc (Legend) */}
       <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 rounded-xl bg-neutral-50/80 p-3 text-xs text-neutral-600">
-        <div className="flex items-center gap-2">
-          <span className="h-4 w-4 rounded-md border border-neutral-300 bg-white" />
-          <span>Còn trống</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="h-4 w-4 rounded-md bg-vxn-teal-900" />
-          <span className="font-medium text-vxn-ink">Đang chọn</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="h-4 w-4 rounded-md border border-amber-400 bg-amber-50" />
-          <span>Đang giữ</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="h-4 w-4 rounded-md border border-neutral-200 bg-neutral-100" />
-          <span>Đã đặt</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="h-4 w-4 rounded-md border border-dashed border-neutral-300 bg-white" />
-          <span>Không bán</span>
-        </div>
+        {legend.map(({ status, label, swatch }) => (
+          <div key={status} className="flex items-center gap-2">
+            <span className={`h-4 w-4 rounded-md ${swatch}`} />
+            <span className={status === "selected" ? "font-medium text-vxn-ink" : undefined}>{label}</span>
+          </div>
+        ))}
       </div>
 
-      {/* Sơ đồ 2 tầng */}
-      <div className="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-2">
-        {/* Tầng dưới */}
-        <div className="rounded-2xl border border-vxn-border bg-neutral-50/30 p-4 sm:p-5">
-          <div className="text-center font-bold text-sm text-vxn-ink">
-            Tầng dưới
-          </div>
-          <div className="mt-2.5 flex items-center justify-center">
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-neutral-200 bg-white px-3 py-0.5 text-[11px] text-neutral-500">
-              <User className="h-3 w-3" />
-              Đầu xe • tài xế
-            </span>
-          </div>
-
-          <div className="mt-5 grid gap-2.5 sm:gap-3 place-items-center" style={{ gridTemplateColumns: `repeat(${Math.max(1, ...floor1Seats.map((seat) => seat.column ?? 3))}, minmax(0, 1fr))` }}>
-            {floor1Seats.map((seat) => (
-              <SeatTile
-                key={seat.id}
-                seat={seat}
-                isSelected={selectedSeatCodes.includes(seat.code)}
-                onToggle={onToggleSeat}
-              />
-            ))}
-          </div>
+      {twoDecks ? (
+        <div className="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-2">
+          <SeatDeck title="Tầng dưới" seats={floor1Seats} selectedSeatCodes={selectedSeatCodes} onToggleSeat={onToggleSeat} />
+          <SeatDeck title="Tầng trên" seats={floor2Seats} selectedSeatCodes={selectedSeatCodes} onToggleSeat={onToggleSeat} />
         </div>
-
-        {/* Tầng trên */}
-        {floor2Seats.length > 0 && <div className="rounded-2xl border border-vxn-border bg-neutral-50/30 p-4 sm:p-5">
-          <div className="text-center font-bold text-sm text-vxn-ink">
-            Tầng trên
-          </div>
-          <div className="mt-2.5 flex items-center justify-center">
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-neutral-200 bg-white px-3 py-0.5 text-[11px] text-neutral-500">
-              <User className="h-3 w-3" />
-              Đầu xe • tài xế
-            </span>
-          </div>
-
-          <div className="mt-5 grid gap-2.5 sm:gap-3 place-items-center" style={{ gridTemplateColumns: `repeat(${Math.max(1, ...floor2Seats.map((seat) => seat.column ?? 3))}, minmax(0, 1fr))` }}>
-            {floor2Seats.map((seat) => (
-              <SeatTile
-                key={seat.id}
-                seat={seat}
-                isSelected={selectedSeatCodes.includes(seat.code)}
-                onToggle={onToggleSeat}
-              />
-            ))}
-          </div>
-        </div>}
-      </div>
+      ) : (
+        <div className="mx-auto mt-6 w-full max-w-md">
+          <SeatDeck title={null} seats={floor1Seats.length > 0 ? floor1Seats : floor2Seats} selectedSeatCodes={selectedSeatCodes} onToggleSeat={onToggleSeat} />
+        </div>
+      )}
     </section>
   );
 }

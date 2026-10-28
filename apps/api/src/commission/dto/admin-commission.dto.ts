@@ -28,6 +28,7 @@ export class CommissionRuleUpdateDto extends createZodDto(CommissionRuleInputSch
 export const CommissionRuleCreateSchema = z
   .object({
     operatorId: z.uuid(),
+    channel: z.enum(["ONLINE", "COUNTER"]).default("ONLINE"),
     rateBps: RateBpsSchema,
     effectiveFrom: InstantSchema,
     effectiveTo: InstantSchema.nullable(),
@@ -46,6 +47,7 @@ export class CommissionRuleIdParamDto extends createZodDto(z.object({ id: z.uuid
 const CommissionRuleSchema = z.object({
   id: z.uuid(),
   operatorId: z.uuid(),
+  channel: z.enum(["ONLINE", "COUNTER"]),
   operatorName: z.string(),
   operatorSlug: z.string(),
   rateBps: z.int(),
@@ -64,6 +66,7 @@ export class CommissionRuleDto extends createZodDto(CommissionRuleSchema) {}
 export const CommissionOverviewSchema = z.object({
   /** Mức mặc định đang áp dụng; `null` nếu chưa cấu hình. */
   default: z.object({ rateBps: z.int(), effectiveFrom: z.iso.datetime() }).nullable(),
+  counterDefaultRateBps: z.literal(0),
   /** Mức riêng, mới bắt đầu trước. */
   overrides: z.array(CommissionRuleSchema),
 });

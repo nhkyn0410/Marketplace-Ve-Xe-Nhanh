@@ -2,6 +2,7 @@
 // sinh tự OpenAPI. Kích hoạt / hủy / thay đổi hoa hồng / khung giá cần xác nhận lại danh tính (`withReauth`).
 import type { components } from "@vexenhanh/api-client";
 import { apiRequest } from "@vexenhanh/ui/lib/auth/api-client";
+import type { CounterCommissionOverview, CounterCommissionSettlement, CounterCommissionSettlementInput } from "@vexenhanh/types";
 
 type Schemas = components["schemas"];
 
@@ -68,6 +69,16 @@ export function updateCommissionRule(id: string, input: CommissionRuleUpdate): P
 
 export function cancelCommissionRule(id: string, reason: string): Promise<CommissionRule> {
   return apiRequest<CommissionRule>(`/admin/commission-rules/${id}/cancel`, { method: "POST", body: { reason } });
+}
+
+/** Số phí quầy phải thu và các khoản thu đã ghi nhận của một nhà xe. */
+export function getCounterCommission(operatorId: string): Promise<CounterCommissionOverview> {
+  return apiRequest<CounterCommissionOverview>(`/admin/counter-commissions?${new URLSearchParams({ operatorId })}`);
+}
+
+/** Xác nhận Platform đã thu phí quầy thủ công, giữ khóa chống lặp khi thử lại. */
+export function settleCounterCommission(input: CounterCommissionSettlementInput): Promise<CounterCommissionSettlement> {
+  return apiRequest<CounterCommissionSettlement>("/admin/counter-commissions/settlements", { method: "POST", body: input });
 }
 
 export type OperatorOption = { id: string; name: string; slug: string };

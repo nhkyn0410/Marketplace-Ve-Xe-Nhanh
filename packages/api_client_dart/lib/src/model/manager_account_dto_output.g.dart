@@ -16,6 +16,9 @@ const ManagerAccountDtoOutputPermissionsEnum
     _$managerAccountDtoOutputPermissionsEnum_tripColonManage =
     const ManagerAccountDtoOutputPermissionsEnum._('tripColonManage');
 const ManagerAccountDtoOutputPermissionsEnum
+    _$managerAccountDtoOutputPermissionsEnum_tripColonDispatch =
+    const ManagerAccountDtoOutputPermissionsEnum._('tripColonDispatch');
+const ManagerAccountDtoOutputPermissionsEnum
     _$managerAccountDtoOutputPermissionsEnum_bookingColonRead =
     const ManagerAccountDtoOutputPermissionsEnum._('bookingColonRead');
 const ManagerAccountDtoOutputPermissionsEnum
@@ -40,6 +43,8 @@ ManagerAccountDtoOutputPermissionsEnum
       return _$managerAccountDtoOutputPermissionsEnum_routeColonManage;
     case 'tripColonManage':
       return _$managerAccountDtoOutputPermissionsEnum_tripColonManage;
+    case 'tripColonDispatch':
+      return _$managerAccountDtoOutputPermissionsEnum_tripColonDispatch;
     case 'bookingColonRead':
       return _$managerAccountDtoOutputPermissionsEnum_bookingColonRead;
     case 'financeColonRead':
@@ -61,6 +66,7 @@ final BuiltSet<ManagerAccountDtoOutputPermissionsEnum>
   _$managerAccountDtoOutputPermissionsEnum_vehicleColonManage,
   _$managerAccountDtoOutputPermissionsEnum_routeColonManage,
   _$managerAccountDtoOutputPermissionsEnum_tripColonManage,
+  _$managerAccountDtoOutputPermissionsEnum_tripColonDispatch,
   _$managerAccountDtoOutputPermissionsEnum_bookingColonRead,
   _$managerAccountDtoOutputPermissionsEnum_financeColonRead,
   _$managerAccountDtoOutputPermissionsEnum_employeeColonManage,
@@ -113,6 +119,7 @@ class _$ManagerAccountDtoOutputPermissionsEnumSerializer
     'vehicleColonManage': 'vehicle:manage',
     'routeColonManage': 'route:manage',
     'tripColonManage': 'trip:manage',
+    'tripColonDispatch': 'trip:dispatch',
     'bookingColonRead': 'booking:read',
     'financeColonRead': 'finance:read',
     'employeeColonManage': 'employee:manage',
@@ -123,6 +130,7 @@ class _$ManagerAccountDtoOutputPermissionsEnumSerializer
     'vehicle:manage': 'vehicleColonManage',
     'route:manage': 'routeColonManage',
     'trip:manage': 'tripColonManage',
+    'trip:dispatch': 'tripColonDispatch',
     'booking:read': 'bookingColonRead',
     'finance:read': 'financeColonRead',
     'employee:manage': 'employeeColonManage',

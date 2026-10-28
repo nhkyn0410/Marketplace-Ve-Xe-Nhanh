@@ -14,6 +14,7 @@ import 'package:api_client_dart/src/api/admin_audit_logs_api.dart';
 import 'package:api_client_dart/src/api/admin_catalog_api.dart';
 import 'package:api_client_dart/src/api/admin_commission_api.dart';
 import 'package:api_client_dart/src/api/admin_content_pages_api.dart';
+import 'package:api_client_dart/src/api/admin_counter_commissions_api.dart';
 import 'package:api_client_dart/src/api/admin_disputes_api.dart';
 import 'package:api_client_dart/src/api/admin_loyalty_api.dart';
 import 'package:api_client_dart/src/api/admin_notification_api.dart';
@@ -37,6 +38,7 @@ import 'package:api_client_dart/src/api/bookings_api.dart';
 import 'package:api_client_dart/src/api/cancellations_api.dart';
 import 'package:api_client_dart/src/api/catalog_api.dart';
 import 'package:api_client_dart/src/api/content_pages_api.dart';
+import 'package:api_client_dart/src/api/counter_sales_api.dart';
 import 'package:api_client_dart/src/api/disputes_api.dart';
 import 'package:api_client_dart/src/api/employee_operations_api.dart';
 import 'package:api_client_dart/src/api/health_api.dart';
@@ -50,6 +52,7 @@ import 'package:api_client_dart/src/api/operator_employees_api.dart';
 import 'package:api_client_dart/src/api/operator_fares_api.dart';
 import 'package:api_client_dart/src/api/operator_finance_api.dart';
 import 'package:api_client_dart/src/api/operator_managers_api.dart';
+import 'package:api_client_dart/src/api/operator_offices_api.dart';
 import 'package:api_client_dart/src/api/operator_profile_api.dart';
 import 'package:api_client_dart/src/api/operator_promotions_api.dart';
 import 'package:api_client_dart/src/api/operator_reports_api.dart';
@@ -198,6 +201,12 @@ class ApiClientDart {
     return AdminContentPagesApi(dio, serializers);
   }
 
+  /// Get AdminCounterCommissionsApi instance, base route and serializer can be overridden by a given but be careful,
+  /// by doing that all interceptors will not be executed
+  AdminCounterCommissionsApi getAdminCounterCommissionsApi() {
+    return AdminCounterCommissionsApi(dio, serializers);
+  }
+
   /// Get AdminDisputesApi instance, base route and serializer can be overridden by a given but be careful,
   /// by doing that all interceptors will not be executed
   AdminDisputesApi getAdminDisputesApi() {
@@ -336,6 +345,12 @@ class ApiClientDart {
     return ContentPagesApi(dio, serializers);
   }
 
+  /// Get CounterSalesApi instance, base route and serializer can be overridden by a given but be careful,
+  /// by doing that all interceptors will not be executed
+  CounterSalesApi getCounterSalesApi() {
+    return CounterSalesApi(dio, serializers);
+  }
+
   /// Get DisputesApi instance, base route and serializer can be overridden by a given but be careful,
   /// by doing that all interceptors will not be executed
   DisputesApi getDisputesApi() {
@@ -412,6 +427,12 @@ class ApiClientDart {
   /// by doing that all interceptors will not be executed
   OperatorManagersApi getOperatorManagersApi() {
     return OperatorManagersApi(dio, serializers);
+  }
+
+  /// Get OperatorOfficesApi instance, base route and serializer can be overridden by a given but be careful,
+  /// by doing that all interceptors will not be executed
+  OperatorOfficesApi getOperatorOfficesApi() {
+    return OperatorOfficesApi(dio, serializers);
   }
 
   /// Get OperatorProfileApi instance, base route and serializer can be overridden by a given but be careful,

@@ -6,9 +6,71 @@ part of 'commission_rule_create_dto.dart';
 // BuiltValueGenerator
 // **************************************************************************
 
+const CommissionRuleCreateDtoChannelEnum
+    _$commissionRuleCreateDtoChannelEnum_ONLINE =
+    const CommissionRuleCreateDtoChannelEnum._('ONLINE');
+const CommissionRuleCreateDtoChannelEnum
+    _$commissionRuleCreateDtoChannelEnum_COUNTER =
+    const CommissionRuleCreateDtoChannelEnum._('COUNTER');
+
+CommissionRuleCreateDtoChannelEnum _$commissionRuleCreateDtoChannelEnumValueOf(
+    String name) {
+  switch (name) {
+    case 'ONLINE':
+      return _$commissionRuleCreateDtoChannelEnum_ONLINE;
+    case 'COUNTER':
+      return _$commissionRuleCreateDtoChannelEnum_COUNTER;
+    default:
+      throw ArgumentError(name);
+  }
+}
+
+final BuiltSet<CommissionRuleCreateDtoChannelEnum>
+    _$commissionRuleCreateDtoChannelEnumValues = BuiltSet<
+        CommissionRuleCreateDtoChannelEnum>(const <CommissionRuleCreateDtoChannelEnum>[
+  _$commissionRuleCreateDtoChannelEnum_ONLINE,
+  _$commissionRuleCreateDtoChannelEnum_COUNTER,
+]);
+
+Serializer<CommissionRuleCreateDtoChannelEnum>
+    _$commissionRuleCreateDtoChannelEnumSerializer =
+    _$CommissionRuleCreateDtoChannelEnumSerializer();
+
+class _$CommissionRuleCreateDtoChannelEnumSerializer
+    implements PrimitiveSerializer<CommissionRuleCreateDtoChannelEnum> {
+  static const Map<String, Object> _toWire = const <String, Object>{
+    'ONLINE': 'ONLINE',
+    'COUNTER': 'COUNTER',
+  };
+  static const Map<Object, String> _fromWire = const <Object, String>{
+    'ONLINE': 'ONLINE',
+    'COUNTER': 'COUNTER',
+  };
+
+  @override
+  final Iterable<Type> types = const <Type>[CommissionRuleCreateDtoChannelEnum];
+  @override
+  final String wireName = 'CommissionRuleCreateDtoChannelEnum';
+
+  @override
+  Object serialize(
+          Serializers serializers, CommissionRuleCreateDtoChannelEnum object,
+          {FullType specifiedType = FullType.unspecified}) =>
+      _toWire[object.name] ?? object.name;
+
+  @override
+  CommissionRuleCreateDtoChannelEnum deserialize(
+          Serializers serializers, Object serialized,
+          {FullType specifiedType = FullType.unspecified}) =>
+      CommissionRuleCreateDtoChannelEnum.valueOf(
+          _fromWire[serialized] ?? (serialized is String ? serialized : ''));
+}
+
 class _$CommissionRuleCreateDto extends CommissionRuleCreateDto {
   @override
   final String operatorId;
+  @override
+  final CommissionRuleCreateDtoChannelEnum? channel;
   @override
   final int rateBps;
   @override
@@ -24,6 +86,7 @@ class _$CommissionRuleCreateDto extends CommissionRuleCreateDto {
 
   _$CommissionRuleCreateDto._(
       {required this.operatorId,
+      this.channel,
       required this.rateBps,
       required this.effectiveFrom,
       this.effectiveTo,
@@ -43,6 +106,7 @@ class _$CommissionRuleCreateDto extends CommissionRuleCreateDto {
     if (identical(other, this)) return true;
     return other is CommissionRuleCreateDto &&
         operatorId == other.operatorId &&
+        channel == other.channel &&
         rateBps == other.rateBps &&
         effectiveFrom == other.effectiveFrom &&
         effectiveTo == other.effectiveTo &&
@@ -53,6 +117,7 @@ class _$CommissionRuleCreateDto extends CommissionRuleCreateDto {
   int get hashCode {
     var _$hash = 0;
     _$hash = $jc(_$hash, operatorId.hashCode);
+    _$hash = $jc(_$hash, channel.hashCode);
     _$hash = $jc(_$hash, rateBps.hashCode);
     _$hash = $jc(_$hash, effectiveFrom.hashCode);
     _$hash = $jc(_$hash, effectiveTo.hashCode);
@@ -65,6 +130,7 @@ class _$CommissionRuleCreateDto extends CommissionRuleCreateDto {
   String toString() {
     return (newBuiltValueToStringHelper(r'CommissionRuleCreateDto')
           ..add('operatorId', operatorId)
+          ..add('channel', channel)
           ..add('rateBps', rateBps)
           ..add('effectiveFrom', effectiveFrom)
           ..add('effectiveTo', effectiveTo)
@@ -81,6 +147,11 @@ class CommissionRuleCreateDtoBuilder
   String? _operatorId;
   String? get operatorId => _$this._operatorId;
   set operatorId(String? operatorId) => _$this._operatorId = operatorId;
+
+  CommissionRuleCreateDtoChannelEnum? _channel;
+  CommissionRuleCreateDtoChannelEnum? get channel => _$this._channel;
+  set channel(CommissionRuleCreateDtoChannelEnum? channel) =>
+      _$this._channel = channel;
 
   int? _rateBps;
   int? get rateBps => _$this._rateBps;
@@ -107,6 +178,7 @@ class CommissionRuleCreateDtoBuilder
     final $v = _$v;
     if ($v != null) {
       _operatorId = $v.operatorId;
+      _channel = $v.channel;
       _rateBps = $v.rateBps;
       _effectiveFrom = $v.effectiveFrom;
       _effectiveTo = $v.effectiveTo;
@@ -134,6 +206,7 @@ class CommissionRuleCreateDtoBuilder
         _$CommissionRuleCreateDto._(
           operatorId: BuiltValueNullFieldError.checkNotNull(
               operatorId, r'CommissionRuleCreateDto', 'operatorId'),
+          channel: channel,
           rateBps: BuiltValueNullFieldError.checkNotNull(
               rateBps, r'CommissionRuleCreateDto', 'rateBps'),
           effectiveFrom: BuiltValueNullFieldError.checkNotNull(

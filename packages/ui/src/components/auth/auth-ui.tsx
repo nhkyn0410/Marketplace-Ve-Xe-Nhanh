@@ -39,7 +39,7 @@ const THEMES = {
 } as const;
 
 function useTheme() {
-  return THEMES[useAuthPortal().id];
+  return THEMES[useAuthPortal().id === "admin" ? "admin" : "operator"];
 }
 
 /** Nền gradient + logo + chân trang dùng chung cho mọi màn xác thực. */
@@ -61,7 +61,7 @@ export function AuthPage({ languageChip = true, children }: { languageChip?: boo
     // Gradient đặt ở khung cuộn với `bg-origin-border` để phủ cả vùng giữ chỗ (không lộ dải nền trắng).
     <div className={cn("flex h-dvh flex-col overflow-y-auto bg-origin-border [scrollbar-gutter:stable]", theme.page)}>
       <div className="flex flex-1 flex-col">
-        <header className="mx-auto flex w-full max-w-[1440px] items-center justify-between px-12 pt-16 pb-6 min-[1440px]:px-[94px] [@media(max-height:889px)]:pt-5 [@media(max-height:889px)]:pb-3">
+        <header className={cn("mx-auto flex w-full max-w-[1440px] items-center justify-between px-12 pt-16 pb-6 min-[1440px]:px-[94px] [@media(max-height:889px)]:pt-5 [@media(max-height:889px)]:pb-3", portal.id === "counter" && "max-sm:px-5")}>
           <LogoWordmark className="h-[60px] w-[235px] text-white [@media(max-height:889px)]:h-12 [@media(max-height:889px)]:w-[188px]" />
           {languageChip && portal.id === "admin" && (
             // Figma ADM-00a: nhãn "Cổng nội bộ" thay cho chip ngôn ngữ.
@@ -70,7 +70,7 @@ export function AuthPage({ languageChip = true, children }: { languageChip?: boo
               <span className="text-xs leading-[18px] font-medium text-white">Cổng nội bộ</span>
             </div>
           )}
-          {languageChip && portal.id === "operator" && (
+          {languageChip && portal.id !== "admin" && (
             // v1 chỉ có tiếng Việt (OQ-12): nhãn trang trí, không phải nút chọn ngôn ngữ.
             <div
               aria-hidden
@@ -94,8 +94,9 @@ export function AuthPage({ languageChip = true, children }: { languageChip?: boo
 
 /** Vùng hai cột: hero bên trái, thẻ form bên phải. */
 export function AuthMain({ children }: { children: ReactNode }) {
+  const counter = useAuthPortal().id === "counter";
   return (
-    <main className="mx-auto flex w-full max-w-[1440px] flex-1 items-center justify-between gap-10 px-12 py-2 min-[1440px]:px-[94px]">
+    <main className={cn("mx-auto flex w-full max-w-[1440px] flex-1 items-center justify-between gap-10 px-12 py-2 min-[1440px]:px-[94px]", counter && "max-lg:flex-col max-lg:justify-center max-lg:gap-6 max-lg:px-5 max-lg:py-8 [&>*]:max-w-full")}>
       {children}
     </main>
   );
@@ -135,7 +136,7 @@ export function LoginHero() {
 export function StepHero({ accent, title, description }: { accent: string; title: string; description: [string, string] }) {
   const portal = useAuthPortal();
   return (
-    <div className="flex w-[600px] min-w-0 flex-col gap-6">
+    <div className={cn("flex w-[600px] min-w-0 flex-col gap-6", portal.id === "counter" && "max-lg:hidden")}>
       <HeroChip dot={portal.id === "admin" ? "saffron" : "white"}>{portal.texts.securityChip}</HeroChip>
       <p className="text-[44px] leading-[56px] font-bold text-white">
         <span className="text-vxn-saffron-500">{accent}</span>

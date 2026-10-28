@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { components } from "@vexenhanh/api-client";
-import { apiMoney, mapTripDetail, searchQuery } from "./trip-mappers";
+import { apiMoney, initialPlace, mapTripDetail, placeSearchParams, placeType, searchQuery } from "./trip-mappers";
 
 describe("API trip boundary", () => {
   it("rejects lossy/fractional amounts and converts safe VND integers without float arithmetic", () => {
@@ -16,6 +16,26 @@ describe("API trip boundary", () => {
       priceMax: "9007199254740991", vehicleForm: "SLEEPER", vehicleClass: "LIMOUSINE", sort: "price",
       departureFrom: "18:00", departureTo: "23:59"
     });
+  });
+
+  it("điểm đi / đến theo loại: phường → fromWardId / toWardId, địa danh → StopPointId; thiếu hoặc lạ → tỉnh", () => {
+    const query = searchQuery({ origin: "w1", originType: "ward", destination: "s1", destinationType: "stopPoint", date: "2026-10-22" });
+    expect(query.get("fromWardId")).toBe("w1");
+    expect(query.get("toStopPointId")).toBe("s1");
+    expect(query.has("fromProvinceId")).toBe(false);
+    expect(placeType("ward")).toBe("ward");
+    expect(placeType("district")).toBe("province");
+    expect(placeType(undefined)).toBe("province");
+  });
+
+  it("URL của điểm: tỉnh không ghi loại; phường / địa danh ghi loại + tên; link cũ chỉ có id tỉnh lấy tên từ danh sách", () => {
+    expect(placeSearchParams("origin", { type: "province", id: "p1", label: "Lâm Đồng" })).toEqual({ origin: "p1", originLabel: "Lâm Đồng" });
+    expect(placeSearchParams("destination", { type: "ward", id: "w1", label: "Phường Thắng Tam" })).toEqual({
+      destination: "w1", destinationType: "ward", destinationLabel: "Phường Thắng Tam"
+    });
+    expect(initialPlace("p1", undefined, undefined, [{ id: "p1", name: "Lâm Đồng" }])).toEqual({ type: "province", id: "p1", label: "Lâm Đồng" });
+    expect(initialPlace("w1", "ward", "Phường A", [])).toEqual({ type: "ward", id: "w1", label: "Phường A" });
+    expect(initialPlace(undefined, "ward", "x", [])).toBeNull();
   });
 
   it("keeps unavailable seats ambiguous, picks the lowest server price with BigInt, and keeps absent prices empty", () => {

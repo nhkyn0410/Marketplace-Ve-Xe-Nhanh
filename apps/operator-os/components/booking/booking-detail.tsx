@@ -211,7 +211,7 @@ function ContactCard({ booking }: { booking: OperatorBookingDetail }) {
       <dl className="flex flex-col gap-3">
         <Row label="Họ tên" value={booking.contactName} />
         <Row label="Số điện thoại" value={contact?.phone ?? booking.contactPhoneMasked} />
-        <Row label="Email" value={contact?.email ?? booking.contactEmailMasked} />
+        <Row label="Email" value={contact?.email ?? booking.contactEmailMasked ?? "Không có"} />
         <Row label="Ghi chú" value={booking.note ?? "Không có"} />
         {contact?.passengers
           .filter((passenger) => passenger.phone)

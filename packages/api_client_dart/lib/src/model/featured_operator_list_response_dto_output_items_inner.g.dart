@@ -13,6 +13,8 @@ class _$FeaturedOperatorListResponseDtoOutputItemsInner
   @override
   final String displayName;
   @override
+  final String? logoUrl;
+  @override
   final num? averageRating;
   @override
   final int reviewCount;
@@ -31,6 +33,7 @@ class _$FeaturedOperatorListResponseDtoOutputItemsInner
   _$FeaturedOperatorListResponseDtoOutputItemsInner._(
       {required this.operatorId,
       required this.displayName,
+      this.logoUrl,
       this.averageRating,
       required this.reviewCount,
       required this.routes})
@@ -51,6 +54,7 @@ class _$FeaturedOperatorListResponseDtoOutputItemsInner
     return other is FeaturedOperatorListResponseDtoOutputItemsInner &&
         operatorId == other.operatorId &&
         displayName == other.displayName &&
+        logoUrl == other.logoUrl &&
         averageRating == other.averageRating &&
         reviewCount == other.reviewCount &&
         routes == other.routes;
@@ -61,6 +65,7 @@ class _$FeaturedOperatorListResponseDtoOutputItemsInner
     var _$hash = 0;
     _$hash = $jc(_$hash, operatorId.hashCode);
     _$hash = $jc(_$hash, displayName.hashCode);
+    _$hash = $jc(_$hash, logoUrl.hashCode);
     _$hash = $jc(_$hash, averageRating.hashCode);
     _$hash = $jc(_$hash, reviewCount.hashCode);
     _$hash = $jc(_$hash, routes.hashCode);
@@ -74,6 +79,7 @@ class _$FeaturedOperatorListResponseDtoOutputItemsInner
             r'FeaturedOperatorListResponseDtoOutputItemsInner')
           ..add('operatorId', operatorId)
           ..add('displayName', displayName)
+          ..add('logoUrl', logoUrl)
           ..add('averageRating', averageRating)
           ..add('reviewCount', reviewCount)
           ..add('routes', routes))
@@ -94,6 +100,10 @@ class FeaturedOperatorListResponseDtoOutputItemsInnerBuilder
   String? _displayName;
   String? get displayName => _$this._displayName;
   set displayName(String? displayName) => _$this._displayName = displayName;
+
+  String? _logoUrl;
+  String? get logoUrl => _$this._logoUrl;
+  set logoUrl(String? logoUrl) => _$this._logoUrl = logoUrl;
 
   num? _averageRating;
   num? get averageRating => _$this._averageRating;
@@ -124,6 +134,7 @@ class FeaturedOperatorListResponseDtoOutputItemsInnerBuilder
     if ($v != null) {
       _operatorId = $v.operatorId;
       _displayName = $v.displayName;
+      _logoUrl = $v.logoUrl;
       _averageRating = $v.averageRating;
       _reviewCount = $v.reviewCount;
       _routes = $v.routes.toBuilder();
@@ -160,6 +171,7 @@ class FeaturedOperatorListResponseDtoOutputItemsInnerBuilder
                 displayName,
                 r'FeaturedOperatorListResponseDtoOutputItemsInner',
                 'displayName'),
+            logoUrl: logoUrl,
             averageRating: averageRating,
             reviewCount: BuiltValueNullFieldError.checkNotNull(
                 reviewCount,

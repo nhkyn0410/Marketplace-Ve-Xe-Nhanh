@@ -35,7 +35,7 @@ abstract class EmployeeAccountResponseDtoOutput implements Built<EmployeeAccount
 
   @BuiltValueField(wireName: r'role')
   EmployeeAccountResponseDtoOutputRoleEnum get role;
-  // enum roleEnum {  DRIVER,  TICKET_STAFF,  SUPPORT_STAFF,  };
+  // enum roleEnum {  DRIVER,  TICKET_STAFF,  SUPPORT_STAFF,  SALES_STAFF,  };
 
   @BuiltValueField(wireName: r'status')
   EmployeeAccountResponseDtoOutputStatusEnum get status;
@@ -262,6 +262,8 @@ class EmployeeAccountResponseDtoOutputRoleEnum extends EnumClass {
   static const EmployeeAccountResponseDtoOutputRoleEnum TICKET_STAFF = _$employeeAccountResponseDtoOutputRoleEnum_TICKET_STAFF;
   @BuiltValueEnumConst(wireName: r'SUPPORT_STAFF')
   static const EmployeeAccountResponseDtoOutputRoleEnum SUPPORT_STAFF = _$employeeAccountResponseDtoOutputRoleEnum_SUPPORT_STAFF;
+  @BuiltValueEnumConst(wireName: r'SALES_STAFF')
+  static const EmployeeAccountResponseDtoOutputRoleEnum SALES_STAFF = _$employeeAccountResponseDtoOutputRoleEnum_SALES_STAFF;
 
   static Serializer<EmployeeAccountResponseDtoOutputRoleEnum> get serializer => _$employeeAccountResponseDtoOutputRoleEnumSerializer;
 

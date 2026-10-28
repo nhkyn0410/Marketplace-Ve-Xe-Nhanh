@@ -43,7 +43,9 @@ export const OperatorScorecardSchema = z.object({
   checkInRate: rate, noShowRate: rate,
 });
 export const PublicOperatorProfileSchema = z.object({
-  operatorId: z.uuid(), operatorSlug: z.string(), displayName: z.string(), description: z.string().nullable(),
+  operatorId: z.uuid(), operatorSlug: z.string(), displayName: z.string(),
+  /** Logo ở kho công khai; `null` = chưa có logo (hiển thị chữ viết tắt). */
+  logoUrl: z.url().nullable(), description: z.string().nullable(),
   hotline: z.string().nullable(), publicEmail: z.string().nullable(), address: z.string().nullable(),
   scorecard: OperatorScorecardSchema,
   routes: z.array(z.object({ routeId: z.uuid(), name: z.string() })),

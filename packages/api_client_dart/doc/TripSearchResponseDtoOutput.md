@@ -13,6 +13,7 @@ Name | Type | Description | Notes
 **page** | **int** |  | 
 **limit** | **int** |  | 
 **facets** | [**TripSearchResponseDtoOutputFacets**](TripSearchResponseDtoOutputFacets.md) |  | 
+**widenedToProvince** | [**TripSearchResponseDtoOutputWidenedToProvince**](TripSearchResponseDtoOutputWidenedToProvince.md) |  | 
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)
 

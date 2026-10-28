@@ -13,7 +13,7 @@
 | Người viết    | Nguyễn Hồng Khanh, AI Agent   |
 | Người duyệt   | Nguyễn Hồng Khanh             |
 | Ngày tạo      | 11/05/2026                    |
-| Ngày cập nhật | 17/10/2026                    |
+| Ngày cập nhật | 28/10/2026                    |
 
 ### 1.2. Lịch sử thay đổi
 
@@ -45,6 +45,7 @@
 | v0.24     | 20/10/2026 | AI Agent       | **Khanh chốt OQ-21 cho giai đoạn demo:** §9 dòng Cross-border PII — production demo chỉ dữ liệu mẫu, giấy tờ ở R2 private (ADR-018 bổ sung 20/10/2026); căn cứ Luật BVDLCN 2025 + NĐ 356/2025. Giữ trạng thái hiện có. |
 | v0.25     | 21/10/2026 | AI Agent       | **Phân quyền theo từng tài khoản (`TASK-IAM-007`, Khanh 21/10/2026, chờ duyệt):** §5/§6 đoạn RBAC thêm danh sách quyền riêng của tài khoản + role `OPERATOR_MANAGER`; §7 thêm dòng "Phân quyền theo tài khoản" (`access:manage` Admin, `manager:manage` Owner, `transport:read`), tách `payout:manage` / `refund:manage` khỏi `finance:configure`, tài khoản quản trị chuyển từ `user:manage` sang `access:manage`. |
 | v0.26     | 27/10/2026 | AI Agent       | **Hủy vé / khiếu nại của khách vãng lai sau OTP tra cứu vé (Khanh 27/10/2026, chờ duyệt):** OTP gửi về email liên hệ là bước xác minh bổ sung; sau đó API cấp mã truy cập phụ cho đúng booking khách vãng lai của phiên (`booking_access_grants`, SHA-256, hết hạn cùng phiên 15 phút), chỉ được nhận ở xem đơn / vé, hủy vé, khiếu nại — không ở thanh toán / tranh chấp; booking đặt bằng tài khoản vẫn chỉ chủ tài khoản; trình duyệt đã có mã gốc thì giữ mã gốc. |
+| v0.27     | 27/10/2026 | AI Agent       | **Logo nhà xe (FR-OPR-02; Khanh 27/10/2026, tự thiết kế — chờ duyệt):** §7 dòng Logo nhà xe (chỉ Owner, `kyc:submit`); §9 dòng Logo nhà xe (public bucket, JPEG / PNG / WebP ≤ 2 MB, khóa theo tiền tố nhà xe, kiểm chữ ký ảnh, audit). |
 
 ---
 
@@ -175,6 +176,7 @@ RBAC 8-role hardcoded enum v1 (Anonymous / Passenger / OperatorOwner / Driver / 
 | Cancel/refund request    | Vé / booking đã xác minh, theo policy | Vé của mình | Vé thuộc Operator theo policy | Không                  | Có                     |
 | Vehicle/SeatMap          | Không              | Không       | Có trong tenant               | Xem nếu được phân công | Giám sát/toàn hệ thống |
 | Ảnh phương tiện          | Xem qua chuyến     | Xem qua chuyến | Tải lên / sắp xếp / xóa trong tenant (`vehicle:manage`, Owner) | Không | Rà soát, gỡ ảnh vi phạm (lý do + audit) — `content:moderate`, chỉ PlatformAdmin |
+| Logo nhà xe (chờ duyệt 27/10/2026) | Xem trên trang nhà xe / thẻ nhà xe | Như Guest | Tải lên / đổi / gỡ logo của tenant mình (`kyc:submit`, chỉ Owner; tài khoản quản lý không có) | Không | Chưa có thao tác gỡ logo vi phạm (`OPR-logo-public-page-todo.md` L6) |
 | Danh mục chuẩn (tỉnh, phường, loại xe, tiện ích) | Đọc mục đang dùng (`/catalog/*`) | Đọc mục đang dùng | Đọc mục đang dùng; chọn khi cấu hình xe / điểm dừng | Không | Thêm / sửa tên / ngừng dùng (lý do) / dùng lại — `catalog:manage`, chỉ PlatformAdmin, audit; không xóa |
 | Route/StopPoint riêng/đề xuất | Không         | Không       | Có trong tenant (`route:manage`, Owner): điểm riêng chỉ văn phòng trung chuyển / trạm dừng nghỉ; đề xuất bến xe / điểm dừng đón trả | Xem theo chuyến được phân công (task sau) | Quản lý điểm dùng chung, duyệt đề xuất, xem và khóa điểm riêng (ADM-004; quyền `catalog:manage`, chỉ PlatformAdmin) |
 | Trip (tạo/sửa chuyến nháp, mở bán / khóa / hủy, khóa ghế thủ công), bảng giá (fare) | Không | Không  | Có trong tenant (`trip:manage`, Owner) | Xem / cập nhật trạng thái chuyến được phân công (EMP-001/002) | Giám sát, khoá khi vi phạm (task Admin sau) |
@@ -197,6 +199,19 @@ RBAC 8-role hardcoded enum v1 (Anonymous / Passenger / OperatorOwner / Driver / 
 | Phân quyền theo tài khoản (FR-IAM-07) | Không | Không | `manager:manage` (Owner): cấp / khóa / cấp lại mật khẩu / đặt lại 2FA / tick quyền **tài khoản quản lý** (`OPERATOR_MANAGER`, dùng Operator OS, TOTP bắt buộc). Trần = quyền Owner trừ `kyc:submit` (hồ sơ, giấy tờ, tài khoản nhận tiền) và `manager:manage`; mọi tài khoản dùng OS có sẵn `transport:read` (xem xe / tuyến / chuyến / bảng giá) | Không | `access:manage` (PlatformAdmin): cấp / khóa / cấp lại mật khẩu / đặt lại 2FA / tick quyền tài khoản quản trị trong trần của vai trò. Chỉ cấp / gỡ quyền mình đang có (đọc lại từ DB); không tự sửa mình; luôn còn ≥ 1 tài khoản hoạt động có `access:manage`. Đổi quyền tăng `auth_epoch` + thu hồi mọi phiên → hiệu lực ngay (chờ duyệt — `IAM-007-todo.md`) |
 
 ---
+
+### COUNTER-SALES — Phân quyền mở rộng (Khanh 27/10/2026)
+
+RBAC bổ sung role `SALES_STAFF` (tổng10 gồm Anonymous), lưu trong `EmployeeAccount`, khác `TICKET_STAFF` soát vé. Nhà xe cấp/khóa/cấp lại mật khẩu và thu hồi phiên bằng luồng nhân viên hiện có. Cổng `/auth/counter/login` chỉ nhận Owner/nhân viên bán vé; cùng3 namespace, không thêm identity store. Owner giữ MFA; nhân viên giữ chính sách đổi mật khẩu tạm và kiểm trạng thái phiên/tenant. Cookie quầy dùng Origin Operator + CSRF như Operator OS.
+
+| Quyền | Owner | SALES_STAFF | OPERATOR_MANAGER |
+| --- | --- | --- | --- |
+| `office:manage` | Tenant | Không | Không |
+| `office:read` | Mọi office tenant | Chỉ office hoạt động được phân công | Không |
+| `counter:sell`, `counter:collect`, `counter:read` | Mọi office tenant | Chỉ office được phân công | Không |
+| `trip:dispatch` | Tenant | Không | Chỉ khi Owner cấp quyền riêng |
+
+Sales staff không có check-in/vận hành chuyến mặc định; driver/check-in/support không có quyền bán/thu quầy. Service kiểm assignment trên server cùng tenant filter và RLS; không tin office/channel/seller từ client. Public hold/booking/payment không được tiêu thụ hold quầy hoặc đổi kênh để hưởng phí thấp. Khoản thu và sổ phí append-only; cấu hình/thu hoa hồng Platform yêu cầu đúng quyền, thu phí có reauth và audit. Hoàn/chốt ca chưa được cấp thêm quyền trong phạm vi này.
 
 ## 8. Sensitive action control
 
@@ -238,6 +253,7 @@ RBAC 8-role hardcoded enum v1 (Anonymous / Passenger / OperatorOwner / Driver / 
 | Tài khoản nhận tiền (`bank_accounts`) | Nhà xe chỉ thấy 4 số cuối; Admin xem số đầy đủ khi xác minh yêu cầu đổi — mỗi lượt xem ghi audit; audit / email chỉ ghi số đã che (chờ duyệt, `OPR-001b-todo.md`) |
 | Attachment (dispute/payment-proof) | R2 private bucket, presigned URL + audit                                                                                |
 | Ảnh phương tiện                    | R2 **public bucket** (ADR-018), không chứa PII / giấy tờ; chỉ JPEG / PNG / WebP ≤ 5 MB (không SVG); tên object ngẫu nhiên, không dùng tên file gốc; presigned `PUT` TTL 5 phút ký kèm `Content-Type`; server kiểm lại loại + dung lượng + chữ ký định dạng trước khi gắn vào xe; EXIF (vị trí chụp) bị loại khi nén ở trình duyệt (LLD-OQ-08); chú thích ảnh (tối đa 60 ký tự) là văn bản công khai do nhà xe nhập, hiển thị dạng text thuần, không render HTML |
+| Logo nhà xe                        | R2 **public bucket** như ảnh phương tiện (chờ duyệt 27/10/2026): JPEG / PNG / WebP ≤ 2 MB (không SVG); khóa `operator-logos/{operatorId}/{uuid}.{ext}` do server sinh, chỉ gắn được khóa dưới tiền tố của chính nhà xe trong token; server kiểm loại + dung lượng + chữ ký ảnh trước khi gắn; Operator OS thu nhỏ + vẽ lại ảnh (bỏ EXIF) trước khi tải; đổi / gỡ có audit |
 | Cross-border PII                   | Resend (email), R2 (giấy tờ), Postgres / Mongo / Redis (Singapore) đặt ngoài VN. **Giai đoạn demo (OQ-21, Khanh 20/10/2026):** chỉ dữ liệu mẫu, không người dùng thật; giấy tờ ở R2 private + cảnh báo "chỉ tải giấy tờ mẫu". **Trước khi nhận dữ liệu thật:** hồ sơ đánh giá tác động chuyển dữ liệu xuyên biên giới (Luật BVDLCN 2025, NĐ 356/2025) hoặc chuyển nơi lưu về VN |
 | QR token                           | Không đoán được, lưu hash; verify server-side                                                                           |
 | Audit log                          | Không chứa secret/plaintext nhạy cảm; Mongo cluster riêng                                                               |

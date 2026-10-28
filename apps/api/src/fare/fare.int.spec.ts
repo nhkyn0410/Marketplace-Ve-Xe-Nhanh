@@ -489,7 +489,7 @@ describe.skipIf(!(url && mongoUrl) && !requireDb)("Fare â€” Postgres + Mongo thá
       const sleeper = await vehicleOfType(typeSleeper);
       const limo = await vehicleOfType(typeLimo);
       const start = nextDay();
-      const base = { routeId: route, departureAt: at(start, 1), arrivalAt: at(start, 5), stopTimes: null, onlineSaleCutoffMinutes: 60, note: null };
+      const base = { routeId: route, departureAt: at(start, 1), stopTimes: null, onlineSaleCutoffMinutes: 60, note: null };
       const trip = await trips.create(authzA, TripInputSchema.parse({ ...base, vehicleId: sleeper.id }));
       const prices = (seats: { code: string; price: number | null }[]) => seats.map((seat) => [seat.code, seat.price]);
       expect(prices(trip.seats)).toEqual([
@@ -504,7 +504,7 @@ describe.skipIf(!(url && mongoUrl) && !requireDb)("Fare â€” Postgres + Mongo thá
       const tetStart = Date.UTC(2032, 0, 22);
       const tet = await trips.create(
         authzA,
-        TripInputSchema.parse({ ...base, vehicleId: sleeper.id, departureAt: at(tetStart, 1), arrivalAt: at(tetStart, 5) }),
+        TripInputSchema.parse({ ...base, vehicleId: sleeper.id, departureAt: at(tetStart, 1) }),
       );
       expect(prices(tet.seats)).toEqual([
         ["A1", 600_000],
@@ -525,7 +525,6 @@ describe.skipIf(!(url && mongoUrl) && !requireDb)("Fare â€” Postgres + Mongo thá
         routeId: route,
         vehicleId: limo.id,
         departureAt: at(start, 1),
-        arrivalAt: at(start, 5),
         stopTimes: null,
         onlineSaleCutoffMinutes: 60,
         note: null,

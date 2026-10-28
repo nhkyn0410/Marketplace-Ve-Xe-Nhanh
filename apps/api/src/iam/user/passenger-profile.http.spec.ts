@@ -29,7 +29,7 @@ describe("Hồ sơ và danh sách riêng của hành khách — HTTP", () => {
     supportTickets: vi.fn(async () => page), disputes: vi.fn(async () => page),
   };
   const publicProfiles = { get: vi.fn(async () => ({
-    operatorId, operatorSlug: "nhaxe", displayName: "Nhà xe", description: null,
+    operatorId, operatorSlug: "nhaxe", displayName: "Nhà xe", logoUrl: null, description: null,
     hotline: null, publicEmail: null, address: null, serviceTerms: null,
     scorecard: { averageRating: null, reviewCount: 0, operatorCancellationRate: null, refundBookingRate: null, disputeBookingRate: null, checkInRate: null, noShowRate: null },
     routes: [], reviews: [], nextReviewCursor: null,

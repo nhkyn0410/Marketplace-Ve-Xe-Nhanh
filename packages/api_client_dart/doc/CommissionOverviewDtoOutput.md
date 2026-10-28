@@ -9,6 +9,7 @@ import 'package:api_client_dart/api.dart';
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **default_** | [**CommissionOverviewDtoOutputDefault**](CommissionOverviewDtoOutputDefault.md) |  | 
+**counterDefaultRateBps** | **num** |  | 
 **overrides** | [**BuiltList&lt;CommissionOverviewDtoOutputOverridesInner&gt;**](CommissionOverviewDtoOutputOverridesInner.md) |  | 
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)

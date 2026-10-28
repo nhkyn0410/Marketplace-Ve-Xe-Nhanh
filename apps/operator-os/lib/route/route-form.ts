@@ -12,6 +12,8 @@ export const MAX_ROUTE_STOPS = 25;
 export const ROUTE_NAME_MAX_LENGTH = 150;
 export const ROUTE_NOTE_MAX_LENGTH = 500;
 export const STOP_NOTE_MAX_LENGTH = 300;
+/** Thời gian một chặng nhà xe nhập tay tối đa (phút, `MAX_LEG_MINUTES` của API). */
+export const MAX_LEG_MINUTES = 1440;
 
 /** Một điểm dừng đang nằm trong form tuyến. Đúng một trong hai id có giá trị (điểm dùng chung hoặc điểm riêng). */
 export type DraftStop = {
@@ -183,29 +185,88 @@ export function toDraftStops(route: Route): DraftStop[] {
     }));
 }
 
-/** Body gửi API: PUT thay toàn bộ nên luôn gửi đủ mọi trường; ghi chú trống gửi `null`. */
-export function toRouteInput(info: RouteInfoValues, stops: DraftStop[]): RouteInput {
+/**
+ * Số phút nhà xe chỉnh tay cho từng chặng, tra theo cặp điểm liền nhau như `savedLegs` (chờ duyệt 27/10/2026): đổi thứ tự
+ * điểm thì chặng mới không mang số chỉnh của chặng cũ. Không có khóa = dùng số hệ thống tính.
+ */
+export type LegMinutes = Readonly<Record<string, string>>;
+
+function legKey(stops: Pick<DraftStop, "catalogStopPointId" | "stopPointId">[], index: number): string {
+  return `${stopKey(stops[index - 1]!)}>${stopKey(stops[index]!)}`;
+}
+
+/** Ô số phút của chặng từ điểm `index - 1` tới điểm `index`; `""` = dùng số hệ thống. */
+export function legMinutesOf(minutes: LegMinutes, stops: DraftStop[], index: number): string {
+  return minutes[legKey(stops, index)] ?? "";
+}
+
+/** Sửa ô số phút của một chặng; xóa trắng = quay về số hệ thống. */
+export function setLegMinutes(minutes: LegMinutes, stops: DraftStop[], index: number, value: string): LegMinutes {
+  const { [legKey(stops, index)]: _previous, ...rest } = minutes;
+  return value.trim() === "" ? rest : { ...rest, [legKey(stops, index)]: value };
+}
+
+/** Số phút hợp lệ (số nguyên 1–1440); ô trống hoặc sai thì `null`. */
+export function parseLegMinutes(text: string): number | null {
+  const trimmed = text.trim();
+  if (!/^\d+$/.test(trimmed)) {
+    return null;
+  }
+  const value = Number(trimmed);
+  return value >= 1 && value <= MAX_LEG_MINUTES ? value : null;
+}
+
+/** Lỗi của các ô số phút trước khi gửi; `null` = hợp lệ. */
+export function validateLegMinutes(minutes: LegMinutes, stops: DraftStop[]): string | null {
+  for (let index = 1; index < stops.length; index++) {
+    const text = legMinutesOf(minutes, stops, index);
+    if (text.trim() !== "" && parseLegMinutes(text) === null) {
+      return `Thời gian chạy tới “${stops[index]!.name}” phải là số phút nguyên từ 1 đến ${MAX_LEG_MINUTES}.`;
+    }
+  }
+  return null;
+}
+
+/** Số phút nhà xe đã chỉnh trên tuyến đã lưu: chặng có thời gian đang dùng khác số hệ thống tính. */
+export function savedLegMinutes(route: Route | undefined): LegMinutes {
+  if (!route) {
+    return {};
+  }
+  const stops = [...route.stops].sort((a, b) => a.sequence - b.sequence);
+  const minutes: Record<string, string> = {};
+  stops.forEach((stop, index) => {
+    const seconds = stop.durationSecondsFromPrevious;
+    if (index > 0 && seconds !== null && seconds !== stop.measuredDurationSecondsFromPrevious) {
+      minutes[legKey(stops, index)] = String(Math.round(seconds / 60));
+    }
+  });
+  return minutes;
+}
+
+/** Body gửi API: PUT thay toàn bộ nên luôn gửi đủ mọi trường; ghi chú trống gửi `null`, chặng không chỉnh gửi `null`. */
+export function toRouteInput(info: RouteInfoValues, stops: DraftStop[], minutes: LegMinutes = {}): RouteInput {
   const note = info.note.trim();
   return {
     name: info.name.trim(),
     status: info.status,
     note: note === "" ? null : note,
-    stops: stops.map((stop) => {
+    stops: stops.map((stop, index) => {
       const stopNote = stop.note.trim();
       return {
         catalogStopPointId: stop.catalogStopPointId,
         stopPointId: stop.stopPointId,
         note: stopNote === "" ? null : stopNote,
         allowPickup: stop.allowPickup,
-        allowDropoff: stop.allowDropoff
+        allowDropoff: stop.allowDropoff,
+        durationMinutesFromPrevious: index === 0 ? null : parseLegMinutes(legMinutesOf(minutes, stops, index))
       };
     })
   };
 }
 
 /**
- * Số liệu từng chặng của tuyến đã lưu, tra theo cặp điểm liền nhau. Người dùng đổi thứ tự thì chặng nào còn
- * nguyên cặp vẫn hiện số cũ, chặng mới hiện "Tính khi lưu".
+ * Số liệu HỆ THỐNG tính của từng chặng trên tuyến đã lưu (không gồm số nhà xe chỉnh — xem `savedLegMinutes`), tra theo
+ * cặp điểm liền nhau. Người dùng đổi thứ tự thì chặng nào còn nguyên cặp vẫn hiện số cũ, chặng mới hiện "Tính khi lưu".
  */
 export function savedLegs(route: Route | undefined): Map<string, { distanceMeters: number; durationSeconds: number }> {
   const legs = new Map<string, { distanceMeters: number; durationSeconds: number }>();
@@ -213,11 +274,11 @@ export function savedLegs(route: Route | undefined): Map<string, { distanceMeter
     return legs;
   }
   const stops = [...route.stops].sort((a, b) => a.sequence - b.sequence);
-  stops.slice(1).forEach((stop, index) => {
-    if (stop.distanceMetersFromPrevious !== null && stop.durationSecondsFromPrevious !== null) {
-      legs.set(`${stopKey(stops[index]!)}>${stopKey(stop)}`, {
+  stops.forEach((stop, index) => {
+    if (index > 0 && stop.distanceMetersFromPrevious !== null && stop.measuredDurationSecondsFromPrevious !== null) {
+      legs.set(legKey(stops, index), {
         distanceMeters: stop.distanceMetersFromPrevious,
-        durationSeconds: stop.durationSecondsFromPrevious
+        durationSeconds: stop.measuredDurationSecondsFromPrevious
       });
     }
   });
@@ -230,13 +291,17 @@ export function legOf(
   stops: DraftStop[],
   index: number
 ): { distanceMeters: number; durationSeconds: number } | null {
-  return legs.get(`${stopKey(stops[index - 1]!)}>${stopKey(stops[index]!)}`) ?? null;
+  return legs.get(legKey(stops, index)) ?? null;
 }
 
-/** Tổng quãng đường và thời gian nếu mọi chặng đều đã có số; còn chặng chưa tính thì `null`. */
+/**
+ * Tổng quãng đường và thời gian nếu mọi chặng đều đã có số; còn chặng chưa tính thì `null`. Thời gian lấy số nhà xe
+ * chỉnh nếu có, không thì số hệ thống — đúng tổng máy chủ lưu và dùng tính giờ đến của chuyến.
+ */
 export function totalsOf(
   legs: ReadonlyMap<string, { distanceMeters: number; durationSeconds: number }>,
-  stops: DraftStop[]
+  stops: DraftStop[],
+  minutes: LegMinutes = {}
 ): { distanceMeters: number; durationSeconds: number } | null {
   if (stops.length < MIN_ROUTE_STOPS) {
     return null;
@@ -249,7 +314,8 @@ export function totalsOf(
       return null;
     }
     distanceMeters += leg.distanceMeters;
-    durationSeconds += leg.durationSeconds;
+    const edited = parseLegMinutes(legMinutesOf(minutes, stops, index));
+    durationSeconds += edited === null ? leg.durationSeconds : edited * 60;
   }
   return { distanceMeters, durationSeconds };
 }
@@ -270,6 +336,8 @@ export function describeSaveError(error: unknown): { field: SaveErrorField; mess
         };
       case "ROUTE_STOP_PICKUP_DROPOFF_INVALID":
         return { field: "stops", message: "Cho đón / cho trả chưa đúng quy tắc. Vui lòng kiểm tra lại các điểm dừng." };
+      case "ROUTE_DURATION_INVALID":
+        return { field: "stops", message: "Tổng thời gian chạy của tuyến không được quá 7 ngày. Hãy kiểm tra thời gian từng chặng." };
       case "ROUTING_PROVIDER_UNAVAILABLE":
         return {
           field: null,

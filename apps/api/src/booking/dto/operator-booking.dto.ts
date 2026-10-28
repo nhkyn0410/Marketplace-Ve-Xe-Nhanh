@@ -56,7 +56,7 @@ export class OperatorBookingPageDto extends createZodDto(OperatorBookingPageSche
 const StopSchema = z.object({ sequence: z.int(), name: z.string(), address: z.string(), plannedAt: z.iso.datetime() });
 
 export const OperatorBookingDetailSchema = OperatorBookingSummarySchema.extend({
-  contactEmailMasked: z.string(),
+  contactEmailMasked: z.string().nullable(),
   note: z.string().nullable(),
   pickup: StopSchema,
   dropoff: StopSchema,
@@ -89,7 +89,7 @@ export class OperatorBookingDetailDto extends createZodDto(OperatorBookingDetail
 export const BookingContactSchema = z.object({
   fullName: z.string(),
   phone: z.string(),
-  email: z.string(),
+  email: z.string().nullable(),
   passengers: z.array(z.object({ seatCode: z.string(), phone: z.string().nullable() })),
 });
 export type BookingContact = z.infer<typeof BookingContactSchema>;

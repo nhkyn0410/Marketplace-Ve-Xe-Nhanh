@@ -30,7 +30,7 @@ abstract class AdminPlatformAccountCreateDto implements Built<AdminPlatformAccou
 
   @BuiltValueField(wireName: r'permissions')
   BuiltList<AdminPlatformAccountCreateDtoPermissionsEnum> get permissions;
-  // enum permissionsEnum {  profile:manage,  loyalty:use,  notification:manage,  incident:create,  journey-log:create,  system:run,  trip:search,  booking:create,  booking:read,  payment:create,  payment:monitor,  refund:request,  vehicle:manage,  vehicle:read,  route:manage,  trip:manage,  checkin:perform,  checkin:read,  trip:operate,  kyc:submit,  kyc:review,  catalog:manage,  content:moderate,  content:manage,  user:manage,  system:read,  finance:read,  finance:configure,  audit:read,  employee:manage,  account:lock,  support:create,  review:create,  support:respond,  support:manage,  dispute:decide,  promotion:manage,  promotion:configure,  loyalty:manage,  access:manage,  transport:read,  manager:manage,  payout:manage,  refund:manage,  };
+  // enum permissionsEnum {  profile:manage,  loyalty:use,  notification:manage,  incident:create,  journey-log:create,  system:run,  trip:search,  booking:create,  booking:read,  payment:create,  payment:monitor,  refund:request,  vehicle:manage,  vehicle:read,  route:manage,  trip:manage,  trip:dispatch,  office:manage,  office:read,  counter:sell,  counter:collect,  counter:read,  checkin:perform,  checkin:read,  trip:operate,  kyc:submit,  kyc:review,  catalog:manage,  content:moderate,  content:manage,  user:manage,  system:read,  finance:read,  finance:configure,  audit:read,  employee:manage,  account:lock,  support:create,  review:create,  support:respond,  support:manage,  dispute:decide,  promotion:manage,  promotion:configure,  loyalty:manage,  access:manage,  transport:read,  manager:manage,  payout:manage,  refund:manage,  };
 
   AdminPlatformAccountCreateDto._();
 
@@ -205,6 +205,18 @@ class AdminPlatformAccountCreateDtoPermissionsEnum extends EnumClass {
   static const AdminPlatformAccountCreateDtoPermissionsEnum routeColonManage = _$adminPlatformAccountCreateDtoPermissionsEnum_routeColonManage;
   @BuiltValueEnumConst(wireName: r'trip:manage')
   static const AdminPlatformAccountCreateDtoPermissionsEnum tripColonManage = _$adminPlatformAccountCreateDtoPermissionsEnum_tripColonManage;
+  @BuiltValueEnumConst(wireName: r'trip:dispatch')
+  static const AdminPlatformAccountCreateDtoPermissionsEnum tripColonDispatch = _$adminPlatformAccountCreateDtoPermissionsEnum_tripColonDispatch;
+  @BuiltValueEnumConst(wireName: r'office:manage')
+  static const AdminPlatformAccountCreateDtoPermissionsEnum officeColonManage = _$adminPlatformAccountCreateDtoPermissionsEnum_officeColonManage;
+  @BuiltValueEnumConst(wireName: r'office:read')
+  static const AdminPlatformAccountCreateDtoPermissionsEnum officeColonRead = _$adminPlatformAccountCreateDtoPermissionsEnum_officeColonRead;
+  @BuiltValueEnumConst(wireName: r'counter:sell')
+  static const AdminPlatformAccountCreateDtoPermissionsEnum counterColonSell = _$adminPlatformAccountCreateDtoPermissionsEnum_counterColonSell;
+  @BuiltValueEnumConst(wireName: r'counter:collect')
+  static const AdminPlatformAccountCreateDtoPermissionsEnum counterColonCollect = _$adminPlatformAccountCreateDtoPermissionsEnum_counterColonCollect;
+  @BuiltValueEnumConst(wireName: r'counter:read')
+  static const AdminPlatformAccountCreateDtoPermissionsEnum counterColonRead = _$adminPlatformAccountCreateDtoPermissionsEnum_counterColonRead;
   @BuiltValueEnumConst(wireName: r'checkin:perform')
   static const AdminPlatformAccountCreateDtoPermissionsEnum checkinColonPerform = _$adminPlatformAccountCreateDtoPermissionsEnum_checkinColonPerform;
   @BuiltValueEnumConst(wireName: r'checkin:read')

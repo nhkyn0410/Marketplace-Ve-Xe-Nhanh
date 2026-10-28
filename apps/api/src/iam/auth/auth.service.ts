@@ -160,14 +160,22 @@ export class AuthService {
   }
 
   async employeeLogin(identifier: string, password: string, ctx: RequestContext): Promise<CredentialLoginResult> {
-    return this.operatorSideLogin(SubjectType.EMPLOYEE, identifier, password, ctx);
+    return this.operatorSideLogin(SubjectType.EMPLOYEE, identifier, password, ctx, ["DRIVER", "TICKET_STAFF", "SUPPORT_STAFF"]);
+  }
+
+  /** Đăng nhập cổng bán vé dành cho chủ nhà xe hoặc nhân viên bán vé được cấp tài khoản. */
+  async counterLogin(identifier: string, password: string, ctx: RequestContext): Promise<CredentialLoginResult> {
+    const resolved = resolveIdentifier(identifier);
+    const employee = resolved?.scope === "operator" && resolved.username.startsWith("nv.");
+    return this.operatorSideLogin(employee ? SubjectType.EMPLOYEE : SubjectType.OPERATOR, identifier, password, ctx, ["OPERATOR_OWNER", "SALES_STAFF"]);
   }
 
   private async operatorSideLogin(
     subjectType: OperatorSideSubjectType,
     identifier: string,
     password: string,
-    ctx: RequestContext
+    ctx: RequestContext,
+    allowedRoles?: readonly string[],
   ): Promise<CredentialLoginResult> {
     await this.otpRateLimiter.assertCanAttemptLogin(identifier, ctx.ip);
 
@@ -184,7 +192,7 @@ export class AuthService {
       ? await this.findOperatorSideAccount(subjectType, operator.id, operatorSlug, username)
       : null;
 
-    if (!operator || !account) {
+    if (!operator || !account || (allowedRoles && !allowedRoles.includes(account.role))) {
       await this.credentials.verify(password, DUMMY_PASSWORD_HASH);
       await this.recordUnknownAttempt("operator", identifier, "unknown_account", ctx);
       throw invalidCredentials();

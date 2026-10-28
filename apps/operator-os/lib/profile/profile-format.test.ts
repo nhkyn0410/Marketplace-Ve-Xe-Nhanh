@@ -62,6 +62,7 @@ describe("hồ sơ nhà xe — form", () => {
       message: "Mật khẩu hoặc mã xác thực không đúng."
     });
     expect(describeProfileError(new ApiError(409, "BANK_ACCOUNT_CHANGE_PENDING", "")).message).toMatch(/đang chờ xác minh/);
+    expect(describeProfileError(new ApiError(422, "OPERATOR_LOGO_INVALID", "")).message).toMatch(/Logo không hợp lệ/);
     expect(describeProfileError(new ApiError(503, "SERVICE_UNAVAILABLE", "")).message).toMatch(/chưa đổi gì/);
     expect(describeProfileError(new TypeError("fetch failed")).message).toMatch(/Không kết nối được/);
   });

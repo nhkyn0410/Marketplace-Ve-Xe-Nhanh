@@ -17,6 +17,8 @@ class _$TripSearchResponseDtoOutput extends TripSearchResponseDtoOutput {
   final int limit;
   @override
   final TripSearchResponseDtoOutputFacets facets;
+  @override
+  final TripSearchResponseDtoOutputWidenedToProvince widenedToProvince;
 
   factory _$TripSearchResponseDtoOutput(
           [void Function(TripSearchResponseDtoOutputBuilder)? updates]) =>
@@ -27,7 +29,8 @@ class _$TripSearchResponseDtoOutput extends TripSearchResponseDtoOutput {
       required this.total,
       required this.page,
       required this.limit,
-      required this.facets})
+      required this.facets,
+      required this.widenedToProvince})
       : super._();
   @override
   TripSearchResponseDtoOutput rebuild(
@@ -46,7 +49,8 @@ class _$TripSearchResponseDtoOutput extends TripSearchResponseDtoOutput {
         total == other.total &&
         page == other.page &&
         limit == other.limit &&
-        facets == other.facets;
+        facets == other.facets &&
+        widenedToProvince == other.widenedToProvince;
   }
 
   @override
@@ -57,6 +61,7 @@ class _$TripSearchResponseDtoOutput extends TripSearchResponseDtoOutput {
     _$hash = $jc(_$hash, page.hashCode);
     _$hash = $jc(_$hash, limit.hashCode);
     _$hash = $jc(_$hash, facets.hashCode);
+    _$hash = $jc(_$hash, widenedToProvince.hashCode);
     _$hash = $jf(_$hash);
     return _$hash;
   }
@@ -68,7 +73,8 @@ class _$TripSearchResponseDtoOutput extends TripSearchResponseDtoOutput {
           ..add('total', total)
           ..add('page', page)
           ..add('limit', limit)
-          ..add('facets', facets))
+          ..add('facets', facets)
+          ..add('widenedToProvince', widenedToProvince))
         .toString();
   }
 }
@@ -103,6 +109,15 @@ class TripSearchResponseDtoOutputBuilder
   set facets(TripSearchResponseDtoOutputFacetsBuilder? facets) =>
       _$this._facets = facets;
 
+  TripSearchResponseDtoOutputWidenedToProvinceBuilder? _widenedToProvince;
+  TripSearchResponseDtoOutputWidenedToProvinceBuilder get widenedToProvince =>
+      _$this._widenedToProvince ??=
+          TripSearchResponseDtoOutputWidenedToProvinceBuilder();
+  set widenedToProvince(
+          TripSearchResponseDtoOutputWidenedToProvinceBuilder?
+              widenedToProvince) =>
+      _$this._widenedToProvince = widenedToProvince;
+
   TripSearchResponseDtoOutputBuilder() {
     TripSearchResponseDtoOutput._defaults(this);
   }
@@ -115,6 +130,7 @@ class TripSearchResponseDtoOutputBuilder
       _page = $v.page;
       _limit = $v.limit;
       _facets = $v.facets.toBuilder();
+      _widenedToProvince = $v.widenedToProvince.toBuilder();
       _$v = null;
     }
     return this;
@@ -146,6 +162,7 @@ class TripSearchResponseDtoOutputBuilder
             limit: BuiltValueNullFieldError.checkNotNull(
                 limit, r'TripSearchResponseDtoOutput', 'limit'),
             facets: facets.build(),
+            widenedToProvince: widenedToProvince.build(),
           );
     } catch (_) {
       late String _$failedField;
@@ -155,6 +172,8 @@ class TripSearchResponseDtoOutputBuilder
 
         _$failedField = 'facets';
         facets.build();
+        _$failedField = 'widenedToProvince';
+        widenedToProvince.build();
       } catch (e) {
         throw BuiltValueNestedFieldError(
             r'TripSearchResponseDtoOutput', _$failedField, e.toString());

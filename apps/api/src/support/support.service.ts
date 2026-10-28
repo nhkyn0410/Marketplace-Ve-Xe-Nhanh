@@ -579,7 +579,7 @@ async function loadDetail(tx: DbTransaction, where: TicketWhere, view: View, nam
   return {
     ...toSummary(row, view === "ADMIN" ? names : null),
     requestedPriority: row.requestedPriority,
-    contactEmailMasked: view === "ADMIN" ? maskEmail(row.booking.contactEmail) : null,
+    contactEmailMasked: view === "ADMIN" && row.booking.contactEmail ? maskEmail(row.booking.contactEmail) : null,
     trip: {
       tripId: row.booking.trip.id,
       routeName: row.booking.trip.route.name,

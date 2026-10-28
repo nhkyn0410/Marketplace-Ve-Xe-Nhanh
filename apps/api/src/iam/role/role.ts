@@ -15,6 +15,8 @@ export const Role = {
   DRIVER: "DRIVER",
   TICKET_STAFF: "TICKET_STAFF",
   SUPPORT_STAFF: "SUPPORT_STAFF",
+  /** Nhân viên bán vé dùng cổng quầy riêng, không có quyền soát vé mặc định. */
+  SALES_STAFF: "SALES_STAFF",
   PLATFORM_ADMIN: "PLATFORM_ADMIN",
   PLATFORM_SUPPORT: "PLATFORM_SUPPORT",
 } as const;
@@ -34,6 +36,7 @@ export const ROLE_SCOPE: Readonly<Record<Role, "passenger" | "operator" | "platf
   [Role.DRIVER]: "operator",
   [Role.TICKET_STAFF]: "operator",
   [Role.SUPPORT_STAFF]: "operator",
+  [Role.SALES_STAFF]: "operator",
   [Role.PLATFORM_ADMIN]: "platform",
   [Role.PLATFORM_SUPPORT]: "platform",
 };
@@ -52,6 +55,7 @@ export const ROLE_REQUIRES_MFA: Readonly<Record<Role, boolean>> = {
   [Role.DRIVER]: false,
   [Role.TICKET_STAFF]: false,
   [Role.SUPPORT_STAFF]: false,
+  [Role.SALES_STAFF]: false,
   [Role.PLATFORM_ADMIN]: true,
   [Role.PLATFORM_SUPPORT]: true,
 };

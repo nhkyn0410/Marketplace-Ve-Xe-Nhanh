@@ -196,6 +196,22 @@ export class AuthController {
     );
   }
 
+  /** Đăng nhập cổng bán vé: nhân viên bán vé hoặc chủ nhà xe; dùng chung namespace Operator. */
+  @Post("counter/login")
+  @HttpCode(200)
+  @NoStore()
+  @DualTransport()
+  @ApiBody({ type: CredentialLoginDto })
+  @ZodResponse({ status: 200, description: "Cổng bán vé: SALES_STAFF hoặc OPERATOR_OWNER; giữ luồng đổi mật khẩu và MFA của tài khoản.", type: CredentialLoginResponseDto })
+  @ApiResponse({ status: 401, description: "Sai thông tin đăng nhập hoặc tài khoản không dùng cổng bán vé.", content: problemContent })
+  async counterLogin(@Body() dto: CredentialLoginDto, @Req() req: Request, @Res({ passthrough: true }) res: Response): Promise<CredentialLoginResponse> {
+    const transport = resolveAuthTransport(req);
+    if (transport === "cookie") {
+      this.web.assertOriginScope(req, "operator");
+    }
+    return this.credentialLoginResponse(await this.authService.counterLogin(dto.identifier, dto.password, this.context(req)), transport, res);
+  }
+
   /** Login nhân viên nhà xe cho app Nhân viên (chỉ Bearer). */
   @Post("employee/login")
   @BearerOnly()

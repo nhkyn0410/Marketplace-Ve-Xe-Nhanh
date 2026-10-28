@@ -2,7 +2,7 @@ import { createZodDto } from "nestjs-zod";
 import { z } from "zod";
 import { TripChangeKind } from "../../database/prisma.types";
 import { MAX_ROUTE_STOPS } from "../../route/dto/route.dto";
-import { InstantSchema, MAX_TRIP_DURATION_MS } from "./trip.dto";
+import { arrivalYearOverflows, InstantSchema } from "./trip.dto";
 
 // Đổi / hủy chuyến đã bán vé (TASK-TRN-008, FR-OPS-11..12, BR-10/12/20, BF-06, UC-14 A4). Bảng / API AI tự đề xuất, chờ
 // Khanh duyệt (`doc/task-propreties/TRN-008-todo.md`).
@@ -10,14 +10,14 @@ import { InstantSchema, MAX_TRIP_DURATION_MS } from "./trip.dto";
 const ReasonSchema = z.string().trim().min(3).max(500);
 
 /**
- * Lịch chạy MỚI của chuyến đang bán (gửi đủ như PUT chuyến nháp): giờ đi / đến, giờ từng điểm (tuỳ chọn), xe, điểm của từng
- * thứ tự dừng (đổi điểm đón / trả — giữ nguyên vai trò, quyền đón / trả). Máy chủ so với hiện tại để biết đổi gì; không đổi
- * gì → 422. Tuyến không đổi được (vé gắn theo thứ tự điểm của tuyến).
+ * Lịch chạy MỚI của chuyến đang bán (gửi đủ như PUT chuyến nháp): giờ đi, giờ từng điểm (tuỳ chọn), xe, điểm của từng thứ
+ * tự dừng (đổi điểm đón / trả — giữ nguyên vai trò, quyền đón / trả). Giờ đến máy chủ tính = giờ đi + thời gian chạy của
+ * tuyến (27/10/2026, chờ duyệt). Máy chủ so với hiện tại để biết đổi gì; không đổi gì → 422. Tuyến không đổi được (vé gắn
+ * theo thứ tự điểm của tuyến).
  */
 export const TripChangeInputSchema = z
   .object({
     departureAt: InstantSchema,
-    arrivalAt: InstantSchema,
     stopTimes: z.array(InstantSchema).min(2).max(MAX_ROUTE_STOPS).nullable(),
     vehicleId: z.uuid(),
     stops: z
@@ -33,22 +33,18 @@ export const TripChangeInputSchema = z
         ctx.addIssue({ code: "custom", path: ["stops", index], message: "Chọn đúng một điểm (dùng chung hoặc của nhà xe)." });
       }
     });
-    if (!(input.departureAt instanceof Date) || !(input.arrivalAt instanceof Date)) {
+    if (!(input.departureAt instanceof Date)) {
       return;
     }
     const departure = input.departureAt.getTime();
-    const arrival = input.arrivalAt.getTime();
     if (departure <= Date.now()) {
       ctx.addIssue({ code: "custom", path: ["departureAt"], message: "Giờ khởi hành phải ở tương lai." });
-    }
-    if (arrival <= departure) {
-      ctx.addIssue({ code: "custom", path: ["arrivalAt"], message: "Giờ đến phải sau giờ khởi hành." });
-    } else if (arrival - departure > MAX_TRIP_DURATION_MS) {
-      ctx.addIssue({ code: "custom", path: ["arrivalAt"], message: "Chuyến dài quá 7 ngày." });
+    } else if (arrivalYearOverflows(departure)) {
+      ctx.addIssue({ code: "custom", path: ["departureAt"], message: "Năm phải trong khoảng 1970–9999." });
     }
     const times = input.stopTimes;
     if (times && times.every((time) => time instanceof Date)) {
-      if (times[0]!.getTime() !== departure || times[times.length - 1]!.getTime() !== arrival) {
+      if (times[0]!.getTime() !== departure) {
         ctx.addIssue({ code: "custom", path: ["stopTimes"], message: "Điểm đầu/cuối phải trùng giờ đi/giờ đến." });
       }
       times.forEach((time, index) => {

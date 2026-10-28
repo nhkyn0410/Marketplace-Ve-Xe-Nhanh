@@ -212,6 +212,8 @@ export async function loadOperatorRatings(prisma: Pick<PrismaService, "withSyste
 export type FeaturedOperator = OperatorRating & {
   operatorId: string;
   displayName: string;
+  /** Khóa object logo ở kho công khai; service ghép thành địa chỉ. */
+  logoObjectKey: string | null;
   /** Cặp tỉnh các tuyến đang mở bán của nhà xe, bán chạy trước. */
   routes: ProvincePair[];
 };
@@ -221,12 +223,12 @@ export async function loadFeaturedOperators(prisma: Pick<PrismaService, "withSys
   return prisma.withSystem(async (tx) => {
     const operators = await tx.operatorProfile.findMany({
       where: { status: "ACTIVE", trips: { some: upcomingTrips(now) } },
-      select: { id: true, displayName: true },
+      select: { id: true, displayName: true, logoObjectKey: true },
     });
     if (operators.length === 0) return [];
     const ratings = await operatorRatingsIn(tx, operators.map((operator) => operator.id));
     const featured = operators
-      .map((operator) => ({ operatorId: operator.id, displayName: operator.displayName, ...(ratings.get(operator.id) ?? NO_RATING) }))
+      .map((operator) => ({ operatorId: operator.id, displayName: operator.displayName, logoObjectKey: operator.logoObjectKey, ...(ratings.get(operator.id) ?? NO_RATING) }))
       .sort((a, b) => b.reviewCount - a.reviewCount || (b.averageRating ?? 0) - (a.averageRating ?? 0) || a.displayName.localeCompare(b.displayName, "vi"))
       .slice(0, limit);
     const rows = await loadRouteRows(tx, now, featured.map((operator) => operator.operatorId));

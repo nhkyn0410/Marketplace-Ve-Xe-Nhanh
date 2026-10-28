@@ -68,13 +68,13 @@ test("tạo chuyến nháp: thiếu ô báo tại ô, giờ đến tự gợi ý
   await page.getByRole("button", { name: "Lưu chuyến nháp" }).click();
   await expect(page.getByText("Chọn tuyến của chuyến.")).toBeVisible();
   await expect(page.getByText("Chọn ngày khởi hành.")).toBeVisible();
-  await expect(page.getByText("Nhập giờ đến.")).toBeVisible();
+  // Giờ đến không nhập tay: tính theo tuyến (chờ duyệt 27/10/2026).
+  await expect(page.getByLabel("Giờ đến *")).toHaveCount(0);
 
   await fillTrip("06:00");
   await expect(page.getByText("3 điểm dừng · thời gian chạy 5 giờ 30 phút")).toBeVisible();
   // Giờ đến = giờ khởi hành + thời gian chạy của tuyến (5 giờ 30 phút).
-  await expect(page.getByLabel("Ngày đến *")).toHaveValue(DAY);
-  await expect(page.getByLabel("Giờ đến *")).toHaveValue("11:30");
+  await expect(page.getByRole("group", { name: "Giờ đến theo tuyến" })).toContainText("11:30");
 
   // Tự chia theo hai chặng bằng nhau: điểm giữa nằm chính giữa; trạm dừng nghỉ không đón trả khách (BR-79).
   await expect(page.getByRole("switch", { name: /Tự chia/ })).toBeChecked();
@@ -138,7 +138,7 @@ test("xe trùng giờ nằm ở nhóm Trùng giờ, không chọn được (BR-1
   await choose("Tuyến *", routeName);
   await page.getByLabel("Ngày khởi hành *").fill(DAY);
   await page.getByLabel("Giờ khởi hành *").fill("08:00");
-  await expect(page.getByLabel("Giờ đến *")).toHaveValue("13:30");
+  await expect(page.getByRole("group", { name: "Giờ đến theo tuyến" })).toContainText("13:30");
   // TASK-TRN-015: ô Xe chia nhóm Rảnh / Trùng giờ theo giờ chuyến đang nhập; xe trùng giờ không chọn được.
   await page.getByLabel("Xe", { exact: true }).click();
   const busy = page.getByRole("option", { name: new RegExp(plate.replace(".", "\\.")) });
@@ -147,9 +147,9 @@ test("xe trùng giờ nằm ở nhóm Trùng giờ, không chọn được (BR-1
   await expect(busy).toContainText("Bận tới 11:30");
   await page.keyboard.press("Escape");
 
-  // Không có thời gian đệm quay đầu: chuyến sau khởi hành đúng 11:30 là hợp lệ; giờ đến gợi ý lại theo giờ đi mới.
+  // Không có thời gian đệm quay đầu: chuyến sau khởi hành đúng 11:30 là hợp lệ; giờ đến tính lại theo giờ đi mới.
   await page.getByLabel("Giờ khởi hành *").fill("11:30");
-  await expect(page.getByLabel("Giờ đến *")).toHaveValue("17:00");
+  await expect(page.getByRole("group", { name: "Giờ đến theo tuyến" })).toContainText("17:00");
   await page.getByLabel("Xe", { exact: true }).click();
   const free = page.getByRole("option", { name: new RegExp(plate.replace(".", "\\.")) });
   await expect(free).toContainText("Rảnh từ 11:30");
@@ -499,9 +499,8 @@ test("lịch chạy lặp lại: tạo lịch T2 / T4 / T6 → sinh 6 chuyến n
   await expect(page.getByText("Nhập giờ khởi hành.")).toBeVisible();
 
   await choose("Tuyến *", routeName);
-  // Thời gian chạy gợi ý theo tuyến (5 giờ 30 phút).
-  await expect(page.getByLabel("Thời gian chạy *")).toHaveValue("5");
-  await expect(page.getByLabel("Số phút của thời gian chạy")).toHaveValue("30");
+  // Thời gian chạy lấy theo tuyến (5 giờ 30 phút), không nhập tay.
+  await expect(page.getByRole("group", { name: "Thời gian chạy theo tuyến" })).toContainText("5 giờ 30 phút");
   await page.getByLabel("Giờ khởi hành *").fill("07:00");
   for (const day of ["Thứ Ba", "Thứ Năm", "Thứ Bảy", "Chủ nhật"]) {
     await page.getByRole("button", { name: day, exact: true }).click();

@@ -10,6 +10,7 @@ Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **id** | **String** |  | 
 **operatorId** | **String** |  | 
+**channel** | **String** |  | 
 **operatorName** | **String** |  | 
 **operatorSlug** | **String** |  | 
 **rateBps** | **int** |  | 

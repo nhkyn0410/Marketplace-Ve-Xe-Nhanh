@@ -13,6 +13,8 @@ export async function searchTrips(params: SearchTripsParams = {}): Promise<DataR
   readonly summary: TripSearchSummary;
   readonly trips: readonly TripSearchResultItem[];
   readonly pagination: { readonly page: number; readonly limit: number };
+  /** Phía tìm theo phường không có chuyến → API đã nới ra cả tỉnh. */
+  readonly widenedToProvince: { readonly from: boolean; readonly to: boolean };
 }>> {
   const query = searchQuery(params);
   const result = await apiRequest<components["schemas"]["TripSearchResponseDto_Output"]>(`/trips/search?${query}`);
@@ -25,7 +27,8 @@ export async function searchTrips(params: SearchTripsParams = {}): Promise<DataR
       departureDateShortText: (query.get("date") ?? "").split("-").reverse().join("/"),
       passengerCount: params.passengers ?? 1,
       totalTrips: result.data.total
-    }, trips: result.data.items.map(mapTripSearchItem), pagination: { page: result.data.page, limit: result.data.limit } });
+    }, trips: result.data.items.map(mapTripSearchItem), pagination: { page: result.data.page, limit: result.data.limit },
+      widenedToProvince: result.data.widenedToProvince });
   } catch {
     return failed("GET /trips/search", "Giá vé từ hệ thống không hợp lệ.");
   }

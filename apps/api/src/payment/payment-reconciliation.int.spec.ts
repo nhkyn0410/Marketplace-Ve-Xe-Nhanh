@@ -81,7 +81,7 @@ describe.skipIf(!ready && !requireDb)("Đối soát thanh toán với cổng —
     const departureAt = new Date(Date.now() + 48 * HOUR);
     const trip = await trips.create(
       authz,
-      TripInputSchema.parse({ routeId, vehicleId: vehicle.id, departureAt: departureAt.toISOString(), arrivalAt: new Date(departureAt.getTime() + 6 * HOUR).toISOString(), stopTimes: null, onlineSaleCutoffMinutes: 60, note: null }),
+      TripInputSchema.parse({ routeId, vehicleId: vehicle.id, departureAt: departureAt.toISOString(), stopTimes: null, onlineSaleCutoffMinutes: 60, note: null }),
     );
     await prisma.withSystem((tx) => tx.trip.update({ where: { id: trip.id }, data: { status: "OPEN_FOR_SALE" } }));
     const hold = await holds.create(null, undefined, SeatHoldInputSchema.parse({ tripId: trip.id, seatCodes: ["A1"], pickupSequence: 1, dropoffSequence: 3 }));

@@ -27,6 +27,11 @@ describe("RouteInputSchema (Q3)", () => {
     ]);
   });
 
+  it("thời gian chặng nhà xe nhập (phút) là tuỳ chọn; null / bỏ trống = dùng số hệ thống tính", () => {
+    const stops = [catalogStop(), { ...privateStop(), durationMinutesFromPrevious: 95 }, { ...catalogStop(), durationMinutesFromPrevious: null }];
+    expect(RouteInputSchema.parse({ ...base, stops }).stops.map((stop) => stop.durationMinutesFromPrevious)).toEqual([undefined, 95, null]);
+  });
+
   it.each([
     ["dưới 2 điểm", { stops: [catalogStop()] }],
     ["quá số điểm tối đa", { stops: Array.from({ length: MAX_ROUTE_STOPS + 1 }, () => catalogStop()) }],
@@ -41,6 +46,10 @@ describe("RouteInputSchema (Q3)", () => {
     ["thiếu allowPickup", { stops: [catalogStop(), { catalogStopPointId: randomUUID(), stopPointId: null, note: null, allowDropoff: true }] }],
     ["thiếu allowDropoff", { stops: [catalogStop(), { catalogStopPointId: randomUUID(), stopPointId: null, note: null, allowPickup: true }] }],
     ["cờ không phải boolean", { stops: [catalogStop(), { ...catalogStop(), allowPickup: "true" }] }],
+    ["thời gian chặng ở điểm đầu", { stops: [{ ...catalogStop(), durationMinutesFromPrevious: 30 }, catalogStop()] }],
+    ["thời gian chặng 0 phút", { stops: [catalogStop(), { ...catalogStop(), durationMinutesFromPrevious: 0 }] }],
+    ["thời gian chặng quá 1 ngày", { stops: [catalogStop(), { ...catalogStop(), durationMinutesFromPrevious: 1441 }] }],
+    ["thời gian chặng lẻ phút", { stops: [catalogStop(), { ...catalogStop(), durationMinutesFromPrevious: 30.5 }] }],
   ])("từ chối %s", (_case, override) => {
     expect(RouteInputSchema.safeParse({ ...base, ...override }).success).toBe(false);
   });

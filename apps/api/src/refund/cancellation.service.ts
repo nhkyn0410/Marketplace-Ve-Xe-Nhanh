@@ -17,7 +17,7 @@ import { settleBookingStatus } from "./booking-settlement";
 import type { CancellationInput, CancellationQuote, CancellationResult } from "./dto/cancellation.dto";
 import { REFUND_JOB, REFUND_JOB_OPTIONS } from "./refund-processing";
 import { applicableTier, type CancellationTier, paidPrice, refundOf } from "./refund-policy";
-import { cancellationNotAllowed, refundAmountChanged, ticketsNotInBooking } from "./refund.errors";
+import { cancellationNotAllowed, counterRefundManualRequired, refundAmountChanged, ticketsNotInBooking } from "./refund.errors";
 
 /** Mã gửi cổng `RFD` + 12 ký tự (CHECK `refunds_code_format`). */
 const CODE_ALPHABET = "23456789ABCDEFGHJKLMNPQRSTUVWXYZ";
@@ -169,6 +169,7 @@ async function load(tx: DbTransaction, operatorId: string, bookingId: string) {
     where: { id: bookingId, operatorId },
     select: {
       tripId: true,
+      channel: true,
       userId: true,
       accessTokenHash: true,
       accessGrants: ACCESS_GRANT_SELECT,
@@ -187,6 +188,7 @@ async function load(tx: DbTransaction, operatorId: string, bookingId: string) {
 }
 
 function buildQuote(data: Loaded, ticketIds: string[], now: Date): CancellationQuote {
+  if (data.channel === "COUNTER") throw counterRefundManualRequired();
   const known = new Set(data.tickets.map((ticket) => ticket.id));
   if (ticketIds.some((id) => !known.has(id))) {
     throw ticketsNotInBooking();

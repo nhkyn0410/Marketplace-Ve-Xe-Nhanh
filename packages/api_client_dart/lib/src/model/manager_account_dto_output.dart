@@ -36,7 +36,7 @@ abstract class ManagerAccountDtoOutput implements Built<ManagerAccountDtoOutput,
 
   @BuiltValueField(wireName: r'permissions')
   BuiltList<ManagerAccountDtoOutputPermissionsEnum> get permissions;
-  // enum permissionsEnum {  vehicle:manage,  route:manage,  trip:manage,  booking:read,  finance:read,  employee:manage,  support:respond,  promotion:manage,  };
+  // enum permissionsEnum {  vehicle:manage,  route:manage,  trip:manage,  trip:dispatch,  booking:read,  finance:read,  employee:manage,  support:respond,  promotion:manage,  };
 
   @BuiltValueField(wireName: r'status')
   ManagerAccountDtoOutputStatusEnum get status;
@@ -279,6 +279,8 @@ class ManagerAccountDtoOutputPermissionsEnum extends EnumClass {
   static const ManagerAccountDtoOutputPermissionsEnum routeColonManage = _$managerAccountDtoOutputPermissionsEnum_routeColonManage;
   @BuiltValueEnumConst(wireName: r'trip:manage')
   static const ManagerAccountDtoOutputPermissionsEnum tripColonManage = _$managerAccountDtoOutputPermissionsEnum_tripColonManage;
+  @BuiltValueEnumConst(wireName: r'trip:dispatch')
+  static const ManagerAccountDtoOutputPermissionsEnum tripColonDispatch = _$managerAccountDtoOutputPermissionsEnum_tripColonDispatch;
   @BuiltValueEnumConst(wireName: r'booking:read')
   static const ManagerAccountDtoOutputPermissionsEnum bookingColonRead = _$managerAccountDtoOutputPermissionsEnum_bookingColonRead;
   @BuiltValueEnumConst(wireName: r'finance:read')

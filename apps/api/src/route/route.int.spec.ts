@@ -349,6 +349,7 @@ describe.skipIf(!url && !requireDb)("Route / StopPoint / Proposal — Postgres t
       longitude: 106,
       distanceMetersFromPrevious: 1,
       durationSecondsFromPrevious: 1,
+      measuredDurationSeconds: 1,
       ...extra,
     });
 
@@ -357,9 +358,17 @@ describe.skipIf(!url && !requireDb)("Route / StopPoint / Proposal — Postgres t
       ["hai nguồn", { catalogStopPointId: "__catalog__", stopPointId: "__private__" }, /route_stops_single_source|23514/],
       [
         "điểm đầu có số liệu chặng",
-        { sequence: 1, role: "ORIGIN", allowPickup: true, allowDropoff: false, catalogStopPointId: "__catalog2__" },
+        { sequence: 1, role: "ORIGIN", allowPickup: true, allowDropoff: false, catalogStopPointId: "__catalog2__", measuredDurationSeconds: null },
         /route_stops_sequence_consistent/,
       ],
+      // Số hệ thống tính (giữ để nhà xe quay về sau khi chỉnh tay): đi cùng số liệu chặng, không âm.
+      [
+        "điểm đầu có số hệ thống tính",
+        { sequence: 1, role: "ORIGIN", allowPickup: true, allowDropoff: false, catalogStopPointId: "__catalog2__", distanceMetersFromPrevious: null, durationSecondsFromPrevious: null },
+        /route_stops_measured_duration_consistent/,
+      ],
+      ["điểm sau thiếu số hệ thống tính", { catalogStopPointId: "__catalog2__", measuredDurationSeconds: null }, /route_stops_measured_duration_consistent/],
+      ["số hệ thống tính âm", { catalogStopPointId: "__catalog2__", measuredDurationSeconds: -1 }, /route_stops_measured_duration_consistent/],
       ["điểm riêng của tenant khác", { stopPointId: "__privateB__" }, /route_stops_stop_point_id_operator_id_fkey|23503|Foreign key/i],
       // BR-79: điểm cuối chỉ trả, điểm đầu chỉ đón — DB tự chặn dù service có bug.
       ["điểm cuối cho đón", { catalogStopPointId: "__catalog2__", allowPickup: true }, /route_stops_pickup_dropoff_by_role/],
@@ -679,6 +688,46 @@ describe.skipIf(!url && !requireDb)("Route / StopPoint / Proposal — Postgres t
       const recomputed = await routes.update(authzA, created.id, routeInput(`PUT2 ${tag}`, [stops[0]!, stops[2]!, stops[1]!]));
       expect(routing.calls).toBe(2);
       expect(recomputed.stops[2]).toMatchObject({ latitude: 11.3, longitude: 107.2 });
+    });
+
+    it("thời gian chặng nhà xe chỉnh: ghi đè số hệ thống, tổng theo số chỉnh; để trống quay về số hệ thống, không gọi lại provider", async () => {
+      const own = await stopPoints.create(authzA, stopPointInput({ latitude: 11.2, longitude: 107.1 }));
+      const stops = (minutes: number | null) => [catalogStop(catalog1), privateStop(own.id), { ...catalogStop(catalog2), durationMinutesFromPrevious: minutes }];
+      // Provider giả: chặng 1 = 60 s, chặng 2 = 120 s.
+      const created = await routes.create(authzA, routeInput(`CHỈNH ${tag}`, stops(45)));
+      expect(created.totalDurationSeconds).toBe(60 + 45 * 60);
+      expect(created.stops.map((stop) => [stop.durationSecondsFromPrevious, stop.measuredDurationSecondsFromPrevious])).toEqual([
+        [null, null],
+        [60, 60],
+        [2700, 120],
+      ]);
+      expect(created.totalDistanceMeters).toBe(3000);
+
+      routing.calls = 0;
+      const reverted = await routes.update(authzA, created.id, routeInput(`CHỈNH ${tag}`, stops(null)));
+      expect(routing.calls).toBe(0);
+      expect(reverted.totalDurationSeconds).toBe(180);
+      expect(reverted.stops[2]).toMatchObject({ durationSecondsFromPrevious: 120, measuredDurationSecondsFromPrevious: 120 });
+      // Chỉnh lại lần nữa cũng không tốn quota.
+      expect((await routes.update(authzA, created.id, routeInput(`CHỈNH ${tag}`, stops(90)))).totalDurationSeconds).toBe(60 + 90 * 60);
+      expect(routing.calls).toBe(0);
+    });
+
+    it("tổng thời gian tuyến quá 7 ngày (kể cả do số chỉnh tay) → 422 ROUTE_DURATION_INVALID, không lưu", async () => {
+      const own = await stopPoints.create(authzA, stopPointInput({ latitude: 11.2, longitude: 107.1 }));
+      routing.legsOverride = [
+        { distanceMeters: 1000, durationSeconds: 6.5 * 24 * 3600 },
+        { distanceMeters: 1000, durationSeconds: 60 },
+      ];
+      const stops = (minutes: number | null) => [catalogStop(catalog1), privateStop(own.id), { ...catalogStop(catalog2), durationMinutesFromPrevious: minutes }];
+      const created = await routes.create(authzA, routeInput(`DÀI ${tag}`, stops(null)));
+      expect(created.totalDurationSeconds).toBe(6.5 * 24 * 3600 + 60);
+      expect(await rejectionOf(routes.update(authzA, created.id, routeInput(`DÀI ${tag}`, stops(1440))))).toMatchObject({
+        status: 422,
+        code: "ROUTE_DURATION_INVALID",
+      });
+      expect(await rejectionOf(routes.create(authzA, routeInput(`DÀI2 ${tag}`, stops(1440))))).toMatchObject({ code: "ROUTE_DURATION_INVALID" });
+      expect((await routes.get(authzA, created.id)).totalDurationSeconds).toBe(6.5 * 24 * 3600 + 60);
     });
 
     it("số liệu ước lượng (dev) được tính lại khi đã có Goong, kể cả không đổi toạ độ", async () => {

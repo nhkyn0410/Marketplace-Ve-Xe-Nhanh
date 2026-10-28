@@ -12,8 +12,6 @@ const DATE = /^\d{4}-\d{2}-\d{2}$/;
 const TIME = /^([01]\d|2[0-3]):[0-5]\d$/;
 /** Một lịch áp dụng tối đa 93 ngày (giống máy chủ). */
 export const MAX_SCHEDULE_SPAN_DAYS = 92;
-/** Chuyến dài tối đa 7 ngày (giống máy chủ). */
-const MAX_DURATION_MINUTES = 7 * 24 * 60;
 
 /** Thứ theo ISO: 1 = thứ Hai … 7 = Chủ nhật — nhãn ngắn cho nút chọn. */
 export const WEEKDAY_OPTIONS = [
@@ -30,8 +28,6 @@ export type ScheduleFormValues = {
   routeId: string;
   vehicleId: string;
   departureTime: string;
-  durationHours: string;
-  durationMinutes: string;
   daysOfWeek: number[];
   startDate: string;
   endDate: string;
@@ -44,8 +40,6 @@ export function emptyScheduleValues(today: string): ScheduleFormValues {
     routeId: "",
     vehicleId: NO_VEHICLE,
     departureTime: "",
-    durationHours: "",
-    durationMinutes: "0",
     daysOfWeek: [1, 2, 3, 4, 5, 6, 7],
     startDate: today,
     endDate: addDays(today, 29),
@@ -59,8 +53,6 @@ export function toScheduleFormValues(schedule: TripSchedule): ScheduleFormValues
     routeId: schedule.routeId,
     vehicleId: schedule.vehicleId ?? NO_VEHICLE,
     departureTime: schedule.departureTime,
-    durationHours: String(Math.floor(schedule.durationMinutes / 60)),
-    durationMinutes: String(schedule.durationMinutes % 60),
     daysOfWeek: schedule.daysOfWeek,
     startDate: schedule.startDate,
     endDate: schedule.endDate,
@@ -69,29 +61,12 @@ export function toScheduleFormValues(schedule: TripSchedule): ScheduleFormValues
   };
 }
 
-/** Tổng số phút chạy từ hai ô giờ / phút; sai định dạng → `null`. */
-export function totalDurationMinutes(values: Pick<ScheduleFormValues, "durationHours" | "durationMinutes">): number | null {
-  if (!/^\d{1,3}$/.test(values.durationHours.trim()) || !/^\d{1,2}$/.test(values.durationMinutes.trim())) {
-    return null;
-  }
-  const minutes = Number(values.durationMinutes);
-  return minutes > 59 ? null : Number(values.durationHours) * 60 + minutes;
-}
-
-/** Gợi ý thời gian chạy từ tổng thời gian chạy các chặng của tuyến (làm tròn lên 5 phút). */
-export function suggestDuration(totalSeconds: number): { hours: string; minutes: string } {
-  const minutes = Math.max(5, Math.ceil(totalSeconds / 300) * 5);
-  return { hours: String(Math.floor(minutes / 60)), minutes: String(minutes % 60) };
-}
-
 export function scheduleSchema(today: string) {
   return z
     .object({
       routeId: z.string().min(1, "Chọn tuyến."),
       vehicleId: z.string(),
       departureTime: z.string().regex(TIME, "Nhập giờ khởi hành."),
-      durationHours: z.string(),
-      durationMinutes: z.string(),
       daysOfWeek: z.array(z.number()).min(1, "Chọn ít nhất một thứ trong tuần."),
       startDate: z.string().regex(DATE, "Chọn ngày bắt đầu."),
       endDate: z.string().regex(DATE, "Chọn ngày kết thúc."),
@@ -99,12 +74,6 @@ export function scheduleSchema(today: string) {
       note: z.string().max(TRIP_NOTE_MAX_LENGTH)
     })
     .superRefine((values, ctx) => {
-      const duration = totalDurationMinutes(values);
-      if (duration === null || duration < 1) {
-        ctx.addIssue({ code: "custom", path: ["durationHours"], message: "Nhập thời gian chạy (giờ và phút, phút từ 0 đến 59)." });
-      } else if (duration > MAX_DURATION_MINUTES) {
-        ctx.addIssue({ code: "custom", path: ["durationHours"], message: "Một chuyến dài tối đa 7 ngày." });
-      }
       if (parseCutoffMinutes(values.onlineSaleCutoffMinutes) === null) {
         ctx.addIssue({
           code: "custom",
@@ -130,7 +99,6 @@ export function toScheduleInput(values: ScheduleFormValues): TripScheduleInput {
     routeId: values.routeId,
     vehicleId: values.vehicleId === NO_VEHICLE ? null : values.vehicleId,
     departureTime: values.departureTime,
-    durationMinutes: totalDurationMinutes(values)!,
     daysOfWeek: [...values.daysOfWeek].sort((a, b) => a - b),
     startDate: values.startDate,
     endDate: values.endDate,
