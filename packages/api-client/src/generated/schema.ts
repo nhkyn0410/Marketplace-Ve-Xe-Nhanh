@@ -5063,6 +5063,7 @@ export interface components {
                 seatCode: string;
                 fullName: string;
                 phone: string | null;
+                companionName?: string | null;
             }[];
             note: string | null;
             expectedTotal: string;
@@ -5092,6 +5093,7 @@ export interface components {
             passengers: {
                 seatCode: string;
                 fullName: string;
+                companionName: string | null;
                 price: string;
             }[];
             total: string;
@@ -5105,6 +5107,7 @@ export interface components {
                 ticketCode: string;
                 seatCode: string;
                 passengerName: string;
+                companionName: string | null;
                 status: string;
                 qrToken: string;
             }[];
@@ -5148,6 +5151,7 @@ export interface components {
                 passengers: {
                     seatCode: string;
                     fullName: string;
+                    companionName: string | null;
                     price: string;
                 }[];
                 total: string;
@@ -5161,6 +5165,7 @@ export interface components {
                     ticketCode: string;
                     seatCode: string;
                     passengerName: string;
+                    companionName: string | null;
                     status: string;
                     qrToken: string;
                 }[];
@@ -5219,6 +5224,7 @@ export interface components {
                 passengers: {
                     seatCode: string;
                     fullName: string;
+                    companionName: string | null;
                     price: string;
                 }[];
                 total: string;
@@ -5232,6 +5238,7 @@ export interface components {
                     ticketCode: string;
                     seatCode: string;
                     passengerName: string;
+                    companionName: string | null;
                     status: string;
                     qrToken: string;
                 }[];
@@ -5698,6 +5705,7 @@ export interface components {
                 departureAt: string;
                 seatCode: string;
                 passengerName: string;
+                companionName: string | null;
                 status: string;
                 /** Format: date-time */
                 issuedAt: string;
@@ -7393,6 +7401,7 @@ export interface components {
                 ticketCode: string;
                 seatCode: string;
                 fullName: string;
+                companionName: string | null;
                 phone: string | null;
                 /** @enum {string} */
                 status: "VALID" | "CANCELLED" | "CHECKED_IN" | "NO_SHOW" | "USED" | "REFUNDED";
@@ -7843,6 +7852,7 @@ export interface components {
                 seatCode: string;
                 fullName: string;
                 phone: string | null;
+                companionName?: string | null;
             }[];
             note: string | null;
             expectedTotal: number;
@@ -7892,6 +7902,7 @@ export interface components {
                 seatType: "SEAT" | "BED" | "BED_DOUBLE" | "CABIN" | "CABIN_DOUBLE";
                 fullName: string;
                 phone: string | null;
+                companionName: string | null;
                 price: number;
             }[];
             note: string | null;
@@ -7924,6 +7935,7 @@ export interface components {
                 ticketCode: string;
                 seatCode: string;
                 passengerName: string;
+                companionName: string | null;
                 /** @enum {string} */
                 status: "VALID" | "CANCELLED" | "CHECKED_IN" | "NO_SHOW" | "USED" | "REFUNDED";
                 qrToken: string;
@@ -8011,6 +8023,7 @@ export interface components {
                 seatType: "SEAT" | "BED" | "BED_DOUBLE" | "CABIN" | "CABIN_DOUBLE";
                 fullName: string;
                 phone: string | null;
+                companionName: string | null;
                 price: number;
             }[];
             note: string | null;
@@ -8043,6 +8056,7 @@ export interface components {
                 ticketCode: string;
                 seatCode: string;
                 passengerName: string;
+                companionName: string | null;
                 /** @enum {string} */
                 status: "VALID" | "CANCELLED" | "CHECKED_IN" | "NO_SHOW" | "USED" | "REFUNDED";
                 qrToken: string;
@@ -8169,6 +8183,7 @@ export interface components {
                 /** @enum {string} */
                 seatType: "SEAT" | "BED" | "BED_DOUBLE" | "CABIN" | "CABIN_DOUBLE";
                 passengerName: string;
+                companionName: string | null;
                 phoneMasked: string | null;
                 ticketCode: string | null;
                 ticketStatus: ("VALID" | "CANCELLED" | "CHECKED_IN" | "NO_SHOW" | "USED" | "REFUNDED") | null;
@@ -8226,6 +8241,7 @@ export interface components {
             items: {
                 seatCode: string;
                 passengerName: string;
+                companionName: string | null;
                 phoneMasked: string | null;
                 /** Format: uuid */
                 bookingId: string;
@@ -8382,6 +8398,7 @@ export interface components {
             /** @enum {string} */
             seatType: "SEAT" | "BED" | "BED_DOUBLE" | "CABIN" | "CABIN_DOUBLE";
             passengerName: string;
+            companionName: string | null;
             /** Format: uuid */
             bookingId: string;
             bookingCode: string;
@@ -8482,6 +8499,7 @@ export interface components {
                 ticketCode: string;
                 seatCode: string;
                 passengerName: string;
+                companionName: string | null;
                 /** @enum {string} */
                 status: "VALID" | "CANCELLED" | "CHECKED_IN" | "NO_SHOW" | "USED" | "REFUNDED";
                 price: number;
@@ -8546,6 +8564,7 @@ export interface components {
                     seatType: "SEAT" | "BED" | "BED_DOUBLE" | "CABIN" | "CABIN_DOUBLE";
                     fullName: string;
                     phone: string | null;
+                    companionName: string | null;
                     price: number;
                 }[];
                 note: string | null;
@@ -8578,6 +8597,7 @@ export interface components {
                     ticketCode: string;
                     seatCode: string;
                     passengerName: string;
+                    companionName: string | null;
                     /** @enum {string} */
                     status: "VALID" | "CANCELLED" | "CHECKED_IN" | "NO_SHOW" | "USED" | "REFUNDED";
                     qrToken: string;
@@ -8920,6 +8940,7 @@ export interface components {
                 ticketCode: string;
                 seatCode: string;
                 passengerName: string;
+                companionName: string | null;
                 phoneMasked: string;
                 pickup: {
                     sequence: number;
@@ -8952,6 +8973,7 @@ export interface components {
                 ticketCode: string;
                 seatCode: string;
                 passengerName: string;
+                companionName: string | null;
                 phoneMasked: string;
                 pickup: {
                     sequence: number;
@@ -8990,6 +9012,7 @@ export interface components {
                 ticketCode: string;
                 seatCode: string;
                 passengerName: string;
+                companionName: string | null;
                 phoneMasked: string;
                 pickup: {
                     sequence: number;
@@ -11116,6 +11139,7 @@ export interface components {
                 departureAt: string;
                 passengers: {
                     fullName: string;
+                    companionName: string | null;
                     seatCode: string;
                     ticketStatus: string | null;
                 }[];

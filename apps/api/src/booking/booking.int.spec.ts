@@ -572,6 +572,31 @@ describe.skipIf(!ready && !requireDb)(
       ).toBe(0);
     });
 
+    it("chỗ đôi có người đi cùng (BR-78 bổ sung, chờ duyệt): lưu + trả trên đơn; khai cho chỗ thường → 422, không ghi gì; DB chặn ghi thẳng", async () => {
+      const tripId = await openTrip();
+      await prisma.withSystem((tx) => tx.tripSeat.updateMany({ where: { tripId, seatCode: "A3" }, data: { type: "BED_DOUBLE" } }));
+      const hold = await holdSeats(tripId, ["A2", "A3"]);
+      const passengers = (companionOfA2: string | null) => [
+        { seatCode: "A2", fullName: "Người A2", phone: null, companionName: companionOfA2 },
+        { seatCode: "A3", fullName: "Người A3", phone: null, companionName: "  Người đi cùng A3  " },
+      ];
+      expect(await rejectionOf(bookings.create(null, bookingInput(hold.holdId, [], 640_000, { passengers: passengers("Không được") })))).toMatchObject({
+        status: 422,
+        code: "BOOKING_COMPANION_NOT_ALLOWED",
+        reasons: ["A2"],
+      });
+      expect(await prisma.withSystem((tx) => tx.booking.count({ where: { holdId: hold.holdId } }))).toBe(0);
+
+      const created = await bookings.create(null, bookingInput(hold.holdId, [], 640_000, { passengers: passengers("") }));
+      expect(created.passengers.map((passenger) => [passenger.seatCode, passenger.seatType, passenger.companionName])).toEqual([
+        ["A2", "BED", null],
+        ["A3", "BED_DOUBLE", "Người đi cùng A3"],
+      ]);
+      await expect(
+        prisma.withSystem((tx) => tx.passengerInfo.updateMany({ where: { bookingId: created.bookingId, seatCode: "A2" }, data: { companionName: "Lách luật" } })),
+      ).rejects.toThrow();
+    });
+
     it("booking của hành khách: chỉ chính họ xem; nhà xe không hủy / thu hồi được chuyến khi còn khách đang thanh toán", async () => {
       const tripId = await openTrip();
       const hold = await holdSeats(tripId, ["A4"], rider);

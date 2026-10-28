@@ -14,6 +14,7 @@ part 'counter_booking_input_dto_passengers_inner.g.dart';
 /// * [seatCode] 
 /// * [fullName] 
 /// * [phone] 
+/// * [companionName] 
 @BuiltValue()
 abstract class CounterBookingInputDtoPassengersInner implements Built<CounterBookingInputDtoPassengersInner, CounterBookingInputDtoPassengersInnerBuilder> {
   @BuiltValueField(wireName: r'seatCode')
@@ -24,6 +25,9 @@ abstract class CounterBookingInputDtoPassengersInner implements Built<CounterBoo
 
   @BuiltValueField(wireName: r'phone')
   String? get phone;
+
+  @BuiltValueField(wireName: r'companionName')
+  String? get companionName;
 
   CounterBookingInputDtoPassengersInner._();
 
@@ -63,6 +67,13 @@ class _$CounterBookingInputDtoPassengersInnerSerializer implements PrimitiveSeri
       object.phone,
       specifiedType: const FullType.nullable(String),
     );
+    if (object.companionName != null) {
+      yield r'companionName';
+      yield serializers.serialize(
+        object.companionName,
+        specifiedType: const FullType.nullable(String),
+      );
+    }
   }
 
   @override
@@ -107,6 +118,14 @@ class _$CounterBookingInputDtoPassengersInnerSerializer implements PrimitiveSeri
           ) as String?;
           if (valueDes == null) continue;
           result.phone = valueDes;
+          break;
+        case r'companionName':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType.nullable(String),
+          ) as String?;
+          if (valueDes == null) continue;
+          result.companionName = valueDes;
           break;
         default:
           unhandled.add(key);

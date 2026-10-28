@@ -112,6 +112,8 @@ class _$CreatedBookingDtoOutputTicketsInner
   @override
   final String passengerName;
   @override
+  final String? companionName;
+  @override
   final CreatedBookingDtoOutputTicketsInnerStatusEnum status;
   @override
   final String qrToken;
@@ -126,6 +128,7 @@ class _$CreatedBookingDtoOutputTicketsInner
       required this.ticketCode,
       required this.seatCode,
       required this.passengerName,
+      this.companionName,
       required this.status,
       required this.qrToken})
       : super._();
@@ -146,6 +149,7 @@ class _$CreatedBookingDtoOutputTicketsInner
         ticketCode == other.ticketCode &&
         seatCode == other.seatCode &&
         passengerName == other.passengerName &&
+        companionName == other.companionName &&
         status == other.status &&
         qrToken == other.qrToken;
   }
@@ -157,6 +161,7 @@ class _$CreatedBookingDtoOutputTicketsInner
     _$hash = $jc(_$hash, ticketCode.hashCode);
     _$hash = $jc(_$hash, seatCode.hashCode);
     _$hash = $jc(_$hash, passengerName.hashCode);
+    _$hash = $jc(_$hash, companionName.hashCode);
     _$hash = $jc(_$hash, status.hashCode);
     _$hash = $jc(_$hash, qrToken.hashCode);
     _$hash = $jf(_$hash);
@@ -170,6 +175,7 @@ class _$CreatedBookingDtoOutputTicketsInner
           ..add('ticketCode', ticketCode)
           ..add('seatCode', seatCode)
           ..add('passengerName', passengerName)
+          ..add('companionName', companionName)
           ..add('status', status)
           ..add('qrToken', qrToken))
         .toString();
@@ -199,6 +205,11 @@ class CreatedBookingDtoOutputTicketsInnerBuilder
   set passengerName(String? passengerName) =>
       _$this._passengerName = passengerName;
 
+  String? _companionName;
+  String? get companionName => _$this._companionName;
+  set companionName(String? companionName) =>
+      _$this._companionName = companionName;
+
   CreatedBookingDtoOutputTicketsInnerStatusEnum? _status;
   CreatedBookingDtoOutputTicketsInnerStatusEnum? get status => _$this._status;
   set status(CreatedBookingDtoOutputTicketsInnerStatusEnum? status) =>
@@ -219,6 +230,7 @@ class CreatedBookingDtoOutputTicketsInnerBuilder
       _ticketCode = $v.ticketCode;
       _seatCode = $v.seatCode;
       _passengerName = $v.passengerName;
+      _companionName = $v.companionName;
       _status = $v.status;
       _qrToken = $v.qrToken;
       _$v = null;
@@ -251,6 +263,7 @@ class CreatedBookingDtoOutputTicketsInnerBuilder
               seatCode, r'CreatedBookingDtoOutputTicketsInner', 'seatCode'),
           passengerName: BuiltValueNullFieldError.checkNotNull(passengerName,
               r'CreatedBookingDtoOutputTicketsInner', 'passengerName'),
+          companionName: companionName,
           status: BuiltValueNullFieldError.checkNotNull(
               status, r'CreatedBookingDtoOutputTicketsInner', 'status'),
           qrToken: BuiltValueNullFieldError.checkNotNull(

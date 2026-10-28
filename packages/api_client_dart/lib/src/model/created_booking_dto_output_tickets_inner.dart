@@ -16,6 +16,7 @@ part 'created_booking_dto_output_tickets_inner.g.dart';
 /// * [ticketCode] 
 /// * [seatCode] 
 /// * [passengerName] 
+/// * [companionName] 
 /// * [status] 
 /// * [qrToken] 
 @BuiltValue()
@@ -31,6 +32,9 @@ abstract class CreatedBookingDtoOutputTicketsInner implements Built<CreatedBooki
 
   @BuiltValueField(wireName: r'passengerName')
   String get passengerName;
+
+  @BuiltValueField(wireName: r'companionName')
+  String? get companionName;
 
   @BuiltValueField(wireName: r'status')
   CreatedBookingDtoOutputTicketsInnerStatusEnum get status;
@@ -81,6 +85,11 @@ class _$CreatedBookingDtoOutputTicketsInnerSerializer implements PrimitiveSerial
     yield serializers.serialize(
       object.passengerName,
       specifiedType: const FullType(String),
+    );
+    yield r'companionName';
+    yield object.companionName == null ? null : serializers.serialize(
+      object.companionName,
+      specifiedType: const FullType.nullable(String),
     );
     yield r'status';
     yield serializers.serialize(
@@ -142,6 +151,14 @@ class _$CreatedBookingDtoOutputTicketsInnerSerializer implements PrimitiveSerial
             specifiedType: const FullType(String),
           ) as String;
           result.passengerName = valueDes;
+          break;
+        case r'companionName':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType.nullable(String),
+          ) as String?;
+          if (valueDes == null) continue;
+          result.companionName = valueDes;
           break;
         case r'status':
           final valueDes = serializers.deserialize(

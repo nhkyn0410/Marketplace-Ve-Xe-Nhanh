@@ -81,9 +81,9 @@ export class PassengerProfileService {
       if (query.cursor && !cursor) return { items: [], nextCursor: null };
       const rows = await tx.ticket.findMany({ where: { booking: { userId }, ...after(cursor) }, orderBy: [{ createdAt: "desc" }, { id: "desc" }], take: query.limit + 1, select: {
         id: true, ticketCode: true, bookingId: true, seatCode: true, status: true, issuedAt: true,
-        passenger: { select: { fullName: true } }, booking: { select: { bookingCode: true, operator: { select: { displayName: true } }, trip: { select: { departureAt: true, route: { select: { name: true } } } } } },
+        passenger: { select: { fullName: true, companionName: true } }, booking: { select: { bookingCode: true, operator: { select: { displayName: true } }, trip: { select: { departureAt: true, route: { select: { name: true } } } } } },
       } });
-      return paginate(rows, query.limit, (row) => ({ ticketId: row.id, ticketCode: row.ticketCode, bookingId: row.bookingId, bookingCode: row.booking.bookingCode, operatorName: row.booking.operator.displayName, routeName: row.booking.trip.route.name, departureAt: row.booking.trip.departureAt.toISOString(), seatCode: row.seatCode, passengerName: row.passenger.fullName, status: row.status, issuedAt: row.issuedAt.toISOString() }));
+      return paginate(rows, query.limit, (row) => ({ ticketId: row.id, ticketCode: row.ticketCode, bookingId: row.bookingId, bookingCode: row.booking.bookingCode, operatorName: row.booking.operator.displayName, routeName: row.booking.trip.route.name, departureAt: row.booking.trip.departureAt.toISOString(), seatCode: row.seatCode, passengerName: row.passenger.fullName, companionName: row.passenger.companionName, status: row.status, issuedAt: row.issuedAt.toISOString() }));
     });
   }
 

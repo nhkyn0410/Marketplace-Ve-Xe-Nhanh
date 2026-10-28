@@ -26,6 +26,7 @@ export const CancellationQuoteSchema = z.object({
       ticketCode: z.string(),
       seatCode: z.string(),
       passengerName: z.string(),
+      companionName: z.string().nullable(),
       status: z.enum(TicketStatus),
       /** VND — giá vé lúc đặt. */
       price: z.int(),

@@ -110,6 +110,8 @@ class _$TripPassengerListDtoOutputItemsInner
   @override
   final String passengerName;
   @override
+  final String? companionName;
+  @override
   final String? phoneMasked;
   @override
   final String bookingId;
@@ -134,6 +136,7 @@ class _$TripPassengerListDtoOutputItemsInner
   _$TripPassengerListDtoOutputItemsInner._(
       {required this.seatCode,
       required this.passengerName,
+      this.companionName,
       this.phoneMasked,
       required this.bookingId,
       required this.bookingCode,
@@ -158,6 +161,7 @@ class _$TripPassengerListDtoOutputItemsInner
     return other is TripPassengerListDtoOutputItemsInner &&
         seatCode == other.seatCode &&
         passengerName == other.passengerName &&
+        companionName == other.companionName &&
         phoneMasked == other.phoneMasked &&
         bookingId == other.bookingId &&
         bookingCode == other.bookingCode &&
@@ -173,6 +177,7 @@ class _$TripPassengerListDtoOutputItemsInner
     var _$hash = 0;
     _$hash = $jc(_$hash, seatCode.hashCode);
     _$hash = $jc(_$hash, passengerName.hashCode);
+    _$hash = $jc(_$hash, companionName.hashCode);
     _$hash = $jc(_$hash, phoneMasked.hashCode);
     _$hash = $jc(_$hash, bookingId.hashCode);
     _$hash = $jc(_$hash, bookingCode.hashCode);
@@ -190,6 +195,7 @@ class _$TripPassengerListDtoOutputItemsInner
     return (newBuiltValueToStringHelper(r'TripPassengerListDtoOutputItemsInner')
           ..add('seatCode', seatCode)
           ..add('passengerName', passengerName)
+          ..add('companionName', companionName)
           ..add('phoneMasked', phoneMasked)
           ..add('bookingId', bookingId)
           ..add('bookingCode', bookingCode)
@@ -216,6 +222,11 @@ class TripPassengerListDtoOutputItemsInnerBuilder
   String? get passengerName => _$this._passengerName;
   set passengerName(String? passengerName) =>
       _$this._passengerName = passengerName;
+
+  String? _companionName;
+  String? get companionName => _$this._companionName;
+  set companionName(String? companionName) =>
+      _$this._companionName = companionName;
 
   String? _phoneMasked;
   String? get phoneMasked => _$this._phoneMasked;
@@ -267,6 +278,7 @@ class TripPassengerListDtoOutputItemsInnerBuilder
     if ($v != null) {
       _seatCode = $v.seatCode;
       _passengerName = $v.passengerName;
+      _companionName = $v.companionName;
       _phoneMasked = $v.phoneMasked;
       _bookingId = $v.bookingId;
       _bookingCode = $v.bookingCode;
@@ -303,6 +315,7 @@ class TripPassengerListDtoOutputItemsInnerBuilder
                 seatCode, r'TripPassengerListDtoOutputItemsInner', 'seatCode'),
             passengerName: BuiltValueNullFieldError.checkNotNull(passengerName,
                 r'TripPassengerListDtoOutputItemsInner', 'passengerName'),
+            companionName: companionName,
             phoneMasked: phoneMasked,
             bookingId: BuiltValueNullFieldError.checkNotNull(bookingId,
                 r'TripPassengerListDtoOutputItemsInner', 'bookingId'),

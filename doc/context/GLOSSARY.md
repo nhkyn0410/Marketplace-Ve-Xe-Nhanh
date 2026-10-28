@@ -53,8 +53,8 @@ Rules:
 | Sale lock              | Khóa / tạm dừng bán        | Trip status `LOCKED`: hidden from search, no new hold / booking; the Operator can reopen it (FR-OPS-10). Pausing and locking are the same state in v1. |
 | Fare / FareRule        | Giá vé / quy tắc giá vé    | A route's price table (one per route in v1); each FareRule prices a vehicle type × seat type × optional departure-time window (BR-41). A Trip's seat price follows its route and assigned vehicle's type. |
 | Booking                | Đơn đặt vé                 | A purchase order placed by User or Guest; may contain one or more Tickets and a policy snapshot.      |
-| PassengerInfo          | Thông tin hành khách       | Per-passenger information captured in a Booking.                                                      |
-| Ticket                 | Vé điện tử                 | An electronic ticket representing one passenger on one seat of one Trip; carries a QR token.          |
+| PassengerInfo          | Thông tin hành khách       | Per-passenger information captured in a Booking. On a double slot (BED_DOUBLE / CABIN_DOUBLE) it may also carry an optional `companionName` — the second traveller sharing the same ticket (BR-78, pending approval 28/10/2026). |
+| Ticket                 | Vé điện tử                 | An electronic ticket representing one passenger on one seat of one Trip; carries a QR token. A double slot is still one ticket / one QR even when it carries a companion. |
 | SeatHold               | Bản giữ ghế                | A time-bound, atomic hold on one or more seats during checkout; backed by TTL.                        |
 | Payment                | Giao dịch thanh toán       | A payment intent / record for a Booking; passes through Initiated → Processing → Success / Failed.    |
 | Refund                 | Giao dịch hoàn tiền        | A refund record linked to a Booking / Ticket / Payment; passes through Requested → Approved → ...    |

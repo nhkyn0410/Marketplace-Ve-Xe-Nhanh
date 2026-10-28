@@ -9,6 +9,7 @@ import 'package:api_client_dart/api.dart';
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **fullName** | **String** |  | 
+**companionName** | **String** |  | 
 **seatCode** | **String** |  | 
 **ticketStatus** | **String** |  | 
 

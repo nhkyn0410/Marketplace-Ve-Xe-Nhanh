@@ -49,6 +49,7 @@
 | v0.28     | 25/10/2026 | AI Agent       | **`TASK-IAM-007` — phân quyền theo từng tài khoản (Done 25/10/2026, thiết kế chờ duyệt):** §8 thêm AC "Phân quyền theo tài khoản"; §9 thêm `TC-SEC-013..016` (`can()` + trần quyền, claim `perms`, Admin phân quyền không leo thang, Owner quản lý tài khoản quản lý) kèm file test đã có; ghi rõ phần **chưa có test tự động** (người cuối cùng có `access:manage`, E2E hai màn). Giữ trạng thái Draft. |
 | v0.29     | 28/10/2026 | AI Agent       | **Giờ đến theo tuyến (Khanh 27/10/2026, chờ duyệt):** §9 thêm `TC-TRN-027`; `TC-TRN-021` giờ đến không còn ô nhập. |
 | v0.30     | 28/10/2026 | AI Agent       | **Admin giám sát (Khanh 28/10/2026, chờ duyệt):** §9 thêm `TC-ADM-009` (chi tiết nhà xe / tài khoản hành khách, tuyến + chuyến + danh sách người đi, ẩn tiền khi thiếu quyền, audit lượt xem, báo cáo theo tuyến / khu vực, tìm giao dịch theo SĐT người đặt). |
+| v0.31     | 28/10/2026 | AI Agent       | **Người đi cùng trên chỗ đôi (Khanh 28/10/2026, chờ duyệt):** thêm `TC-BOOK-004`. |
 | v0.29     | 27/10/2026 | AI Agent       | **Logo nhà xe + trang công khai (FR-OPR-02, TASK-MKT-001; Khanh 27/10/2026, tự thiết kế — chờ duyệt):** §9 thêm `TC-OPR-007` (logo: gắn / thay / gỡ, file sai, tenant-RLS, đồng thời, audit lỗi, guard route) và `TC-OPR-008` (E2E logo + Mở trang nhà xe + Xem trước trên ứng dụng). Giữ trạng thái Draft. |
 | v0.30     | 27/10/2026 | AI Agent       | **Tìm theo phường + gợi ý địa điểm (chờ duyệt):** §9 thêm `TC-TRN-027`. Giữ trạng thái Draft. |
 
@@ -173,6 +174,7 @@ Mandatory (rủi ro cao, ADR-025): money math, idempotency, tenant RLS, seat-hol
 | TC-BOOK-001 | Giữ ghế thành công với Redis hold còn TTL | Integration | Cao |
 | TC-BOOK-002 | Hai user giữ cùng ghế đồng thời, chỉ một thành công | Integration/Concurrency | Rất cao |
 | TC-BOOK-003 | Redis hold hết TTL tự giải phóng ghế | Integration | Cao |
+| TC-BOOK-004 | Người đi cùng trên chỗ đôi (Khanh 28/10/2026, chờ duyệt, BR-78): khai cho chỗ giường đôi → lưu + trả trên đơn (đã bỏ khoảng trắng); khai cho chỗ thường → 422 `BOOKING_COMPANION_NOT_ALLOWED`, không tạo đơn; ô trống → `null`; DB chặn ghi thẳng cho chỗ thường (`booking.int.spec.ts`, `booking.test.ts` web, `passenger_information_screen_test.dart`) | Integration/UI | Trung bình |
 | TC-PAY-001 | VNPay/MoMo callback success cập nhật booking/payment/ticket/escrow/commission | Integration | Rất cao |
 | TC-PAY-002 | Callback trùng (dedup provider+txn) không ghi trùng tiền/ticket | Integration | Rất cao |
 | TC-PAY-003 | Webhook HMAC sai (SHA512/SHA256) bị từ chối | Security | Rất cao |

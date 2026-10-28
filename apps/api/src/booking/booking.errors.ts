@@ -17,6 +17,11 @@ export function passengersMismatch(): HttpException {
   return problem(HttpStatus.UNPROCESSABLE_ENTITY, "BOOKING_PASSENGERS_MISMATCH", "Mỗi chỗ đã giữ cần đúng một hành khách.");
 }
 
+/** Khai người đi cùng cho chỗ không phải chỗ đôi (BR-78 bổ sung 28/10/2026, chờ duyệt). */
+export function companionNotAllowed(seatCodes: string[]): HttpException {
+  return problem(HttpStatus.UNPROCESSABLE_ENTITY, "BOOKING_COMPANION_NOT_ALLOWED", `Chỉ giường đôi / cabin đôi mới có người đi cùng: ${seatCodes.join(", ")}.`, seatCodes);
+}
+
 /** Chuyến không còn mở bán / đã quá giờ bán online / nhà xe tạm khóa. */
 export function tripNotOnSale(): HttpException {
   return problem(HttpStatus.CONFLICT, "TRIP_NOT_ON_SALE", "Chuyến không còn mở bán online.");

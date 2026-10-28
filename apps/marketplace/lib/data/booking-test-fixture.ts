@@ -6,9 +6,9 @@ export function bookingFixture(overrides: Partial<ApiBooking> = {}): ApiBooking 
     bookingId: "11111111-1111-4111-8111-111111111111", bookingCode: "VXN-TEST", status: "CONFIRMED", tripId: "22222222-2222-4222-8222-222222222222",
     trip: { routeName: "Hà Nội → Hải Phòng", operatorName: "Nhà xe kiểm thử", operatorHotline: null, vehicleTypeName: "Ghế ngồi", departureAt: "2030-01-01T01:00:00Z", arrivalAt: "2030-01-01T03:00:00Z" },
     pickup: { sequence: 1, name: "Điểm đón", address: "Địa chỉ đón", plannedAt: "2030-01-01T01:00:00Z" }, dropoff: { sequence: 2, name: "Điểm trả", address: "Địa chỉ trả", plannedAt: "2030-01-01T03:00:00Z" },
-    contact: { fullName: "Khách kiểm thử", phone: "0900000000", email: "guest@example.test" }, passengers: [{ seatCode: "A1", seatType: "SEAT", fullName: "Khách kiểm thử", phone: null, price: 100001 }], note: null, subtotal: 100001, serviceFee: 0, discount: 1, discountFunding: "PLATFORM", total: 100000,
+    contact: { fullName: "Khách kiểm thử", phone: "0900000000", email: "guest@example.test" }, passengers: [{ seatCode: "A1", seatType: "SEAT", fullName: "Khách kiểm thử", phone: null, companionName: null, price: 100001 }], note: null, subtotal: 100001, serviceFee: 0, discount: 1, discountFunding: "PLATFORM", total: 100000,
     cancellationPolicy: { tiers: [{ minHoursBefore: 24, refundPercent: 80 }] }, expiresAt: "2030-01-01T00:00:00Z", payment: { paymentCode: "PAY-TEST", provider: "VNPAY", status: "SUCCESS", amount: 100000, paidAt: "2029-12-01T01:00:00Z" },
-    tickets: [{ ticketId: "33333333-3333-4333-8333-333333333333", ticketCode: "VXN-T1", seatCode: "A1", passengerName: "Khách kiểm thử", status: "VALID", qrToken: "signed-qr-content" }], refunds: [], tripChanges: [], createdAt: "2029-12-01T00:00:00Z", ...overrides
+    tickets: [{ ticketId: "33333333-3333-4333-8333-333333333333", ticketCode: "VXN-T1", seatCode: "A1", passengerName: "Khách kiểm thử", companionName: null, status: "VALID", qrToken: "signed-qr-content" }], refunds: [], tripChanges: [], createdAt: "2029-12-01T00:00:00Z", ...overrides
   };
 }
 

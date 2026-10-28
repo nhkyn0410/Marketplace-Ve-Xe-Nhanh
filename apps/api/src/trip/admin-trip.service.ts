@@ -141,7 +141,7 @@ export class AdminTripService {
           ticketCode: true,
           seatCode: true,
           status: true,
-          passenger: { select: { fullName: true, phone: true, price: true } },
+          passenger: { select: { fullName: true, phone: true, price: true, companionName: true } },
           booking: { select: { bookingCode: true, channel: true, userId: true } },
         },
       });
@@ -210,6 +210,7 @@ export class AdminTripService {
         ticketCode: ticket.ticketCode,
         seatCode: ticket.seatCode,
         fullName: ticket.passenger.fullName,
+        companionName: ticket.passenger.companionName,
         phone: ticket.passenger.phone ? maskPhone(ticket.passenger.phone) : null,
         status: ticket.status,
         bookingCode: ticket.booking.bookingCode,

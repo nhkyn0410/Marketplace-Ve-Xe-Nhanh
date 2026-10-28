@@ -86,7 +86,7 @@ export const AdminTripDetailSchema = AdminTripSchema.extend({
   /** Tổng giá vé đã bán. */
   ticketRevenue: z.int().nonnegative().nullable(),
   /**
-   * Danh sách người đi (mỗi vé một người; chỗ đôi tối đa hai người nhưng ghi một tên — BR-78), gồm cả khách vãng lai và
+   * Danh sách người đi (mỗi vé một chỗ; chỗ đôi có thể thêm người đi cùng — BR-78), gồm cả khách vãng lai và
    * khách mua tại quầy. SĐT đã che.
    */
   manifest: z.array(
@@ -94,6 +94,8 @@ export const AdminTripDetailSchema = AdminTripSchema.extend({
       ticketCode: z.string(),
       seatCode: z.string(),
       fullName: z.string(),
+      /** Người đi cùng trên chỗ đôi (chung vé). */
+      companionName: z.string().nullable(),
       phone: z.string().nullable(),
       status: z.enum(TicketStatus),
       bookingCode: z.string(),

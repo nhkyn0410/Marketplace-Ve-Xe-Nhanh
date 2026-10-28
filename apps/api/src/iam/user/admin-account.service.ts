@@ -245,7 +245,7 @@ export class AdminAccountService {
             operator: { select: { displayName: true } },
             tripId: true,
             trip: { select: { departureAt: true, route: { select: { name: true } } } },
-            passengers: { orderBy: { seatCode: "asc" }, select: { fullName: true, seatCode: true, tickets: { select: { status: true } } } },
+            passengers: { orderBy: { seatCode: "asc" }, select: { fullName: true, companionName: true, seatCode: true, tickets: { select: { status: true } } } },
             payments: { orderBy: { createdAt: "desc" }, take: 1, select: { id: true } },
           },
         }),
@@ -267,6 +267,7 @@ export class AdminAccountService {
           departureAt: row.trip.departureAt.toISOString(),
           passengers: row.passengers.map((passenger) => ({
             fullName: passenger.fullName,
+            companionName: passenger.companionName,
             seatCode: passenger.seatCode,
             ticketStatus: passenger.tickets[0]?.status ?? null,
           })),

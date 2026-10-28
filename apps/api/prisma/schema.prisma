@@ -1723,6 +1723,9 @@ model PassengerInfo {
   price      BigInt
   fullName   String   @map("full_name")
   phone      String?
+  /// Người đi cùng trên chỗ đôi (giường đôi / cabin đôi — BR-78), không bắt buộc; chỗ khác luôn `null` (CHECK). Cùng một
+  /// vé / QR với người đứng tên (chờ duyệt 28/10/2026).
+  companionName String? @map("companion_name")
 
   booking Booking  @relation(fields: [bookingId, operatorId], references: [id, operatorId], onDelete: Restrict, onUpdate: Restrict)
   /// Đúng một vé (unique `passenger_info_id`); khai mảng vì FK ghép với `operator_id`.

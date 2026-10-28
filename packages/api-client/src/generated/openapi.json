@@ -29096,6 +29096,17 @@
                       "type": "null"
                     }
                   ]
+                },
+                "companionName": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "maxLength": 100
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
                 }
               },
               "required": [
@@ -29224,6 +29235,16 @@
                 "fullName": {
                   "type": "string"
                 },
+                "companionName": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
                 "price": {
                   "type": "string",
                   "pattern": "^(0|[1-9]\\d{0,18})$"
@@ -29232,6 +29253,7 @@
               "required": [
                 "seatCode",
                 "fullName",
+                "companionName",
                 "price"
               ],
               "additionalProperties": false
@@ -29270,6 +29292,16 @@
                 "passengerName": {
                   "type": "string"
                 },
+                "companionName": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
                 "status": {
                   "type": "string"
                 },
@@ -29282,6 +29314,7 @@
                 "ticketCode",
                 "seatCode",
                 "passengerName",
+                "companionName",
                 "status",
                 "qrToken"
               ],
@@ -29473,6 +29506,16 @@
                       "fullName": {
                         "type": "string"
                       },
+                      "companionName": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
                       "price": {
                         "type": "string",
                         "pattern": "^(0|[1-9]\\d{0,18})$"
@@ -29481,6 +29524,7 @@
                     "required": [
                       "seatCode",
                       "fullName",
+                      "companionName",
                       "price"
                     ],
                     "additionalProperties": false
@@ -29519,6 +29563,16 @@
                       "passengerName": {
                         "type": "string"
                       },
+                      "companionName": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
                       "status": {
                         "type": "string"
                       },
@@ -29531,6 +29585,7 @@
                       "ticketCode",
                       "seatCode",
                       "passengerName",
+                      "companionName",
                       "status",
                       "qrToken"
                     ],
@@ -29801,6 +29856,16 @@
                     "fullName": {
                       "type": "string"
                     },
+                    "companionName": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
                     "price": {
                       "type": "string",
                       "pattern": "^(0|[1-9]\\d{0,18})$"
@@ -29809,6 +29874,7 @@
                   "required": [
                     "seatCode",
                     "fullName",
+                    "companionName",
                     "price"
                   ],
                   "additionalProperties": false
@@ -29847,6 +29913,16 @@
                     "passengerName": {
                       "type": "string"
                     },
+                    "companionName": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
                     "status": {
                       "type": "string"
                     },
@@ -29859,6 +29935,7 @@
                     "ticketCode",
                     "seatCode",
                     "passengerName",
+                    "companionName",
                     "status",
                     "qrToken"
                   ],
@@ -32200,6 +32277,16 @@
                 "passengerName": {
                   "type": "string"
                 },
+                "companionName": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
                 "status": {
                   "type": "string"
                 },
@@ -32219,6 +32306,7 @@
                 "departureAt",
                 "seatCode",
                 "passengerName",
+                "companionName",
                 "status",
                 "issuedAt"
               ],
@@ -40573,6 +40661,16 @@
                 "fullName": {
                   "type": "string"
                 },
+                "companionName": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
                 "phone": {
                   "anyOf": [
                     {
@@ -40622,6 +40720,7 @@
                 "ticketCode",
                 "seatCode",
                 "fullName",
+                "companionName",
                 "phone",
                 "status",
                 "bookingCode",
@@ -42895,6 +42994,17 @@
                       "type": "null"
                     }
                   ]
+                },
+                "companionName": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "maxLength": 100
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
                 }
               },
               "required": [
@@ -43133,6 +43243,16 @@
                     }
                   ]
                 },
+                "companionName": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
                 "price": {
                   "type": "integer",
                   "minimum": -9007199254740991,
@@ -43144,6 +43264,7 @@
                 "seatType",
                 "fullName",
                 "phone",
+                "companionName",
                 "price"
               ],
               "additionalProperties": false
@@ -43309,6 +43430,16 @@
                 "passengerName": {
                   "type": "string"
                 },
+                "companionName": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
                 "status": {
                   "type": "string",
                   "enum": [
@@ -43329,6 +43460,7 @@
                 "ticketCode",
                 "seatCode",
                 "passengerName",
+                "companionName",
                 "status",
                 "qrToken"
               ],
@@ -43733,6 +43865,16 @@
                     }
                   ]
                 },
+                "companionName": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
                 "price": {
                   "type": "integer",
                   "minimum": -9007199254740991,
@@ -43744,6 +43886,7 @@
                 "seatType",
                 "fullName",
                 "phone",
+                "companionName",
                 "price"
               ],
               "additionalProperties": false
@@ -43909,6 +44052,16 @@
                 "passengerName": {
                   "type": "string"
                 },
+                "companionName": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
                 "status": {
                   "type": "string",
                   "enum": [
@@ -43929,6 +44082,7 @@
                 "ticketCode",
                 "seatCode",
                 "passengerName",
+                "companionName",
                 "status",
                 "qrToken"
               ],
@@ -44567,6 +44721,16 @@
                 "passengerName": {
                   "type": "string"
                 },
+                "companionName": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
                 "phoneMasked": {
                   "anyOf": [
                     {
@@ -44610,6 +44774,7 @@
                 "seatCode",
                 "seatType",
                 "passengerName",
+                "companionName",
                 "phoneMasked",
                 "ticketCode",
                 "ticketStatus"
@@ -44940,6 +45105,16 @@
                 "passengerName": {
                   "type": "string"
                 },
+                "companionName": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
                 "phoneMasked": {
                   "anyOf": [
                     {
@@ -45015,6 +45190,7 @@
               "required": [
                 "seatCode",
                 "passengerName",
+                "companionName",
                 "phoneMasked",
                 "bookingId",
                 "bookingCode",
@@ -45764,6 +45940,16 @@
           "passengerName": {
             "type": "string"
           },
+          "companionName": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "bookingId": {
             "type": "string",
             "format": "uuid",
@@ -45914,6 +46100,7 @@
           "seatCode",
           "seatType",
           "passengerName",
+          "companionName",
           "bookingId",
           "bookingCode",
           "bookingStatus",
@@ -46188,6 +46375,16 @@
                 "passengerName": {
                   "type": "string"
                 },
+                "companionName": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
                 "status": {
                   "type": "string",
                   "enum": [
@@ -46223,6 +46420,7 @@
                 "ticketCode",
                 "seatCode",
                 "passengerName",
+                "companionName",
                 "status",
                 "price",
                 "cancellable",
@@ -46509,6 +46707,16 @@
                         }
                       ]
                     },
+                    "companionName": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
                     "price": {
                       "type": "integer",
                       "minimum": -9007199254740991,
@@ -46520,6 +46728,7 @@
                     "seatType",
                     "fullName",
                     "phone",
+                    "companionName",
                     "price"
                   ],
                   "additionalProperties": false
@@ -46685,6 +46894,16 @@
                     "passengerName": {
                       "type": "string"
                     },
+                    "companionName": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
                     "status": {
                       "type": "string",
                       "enum": [
@@ -46705,6 +46924,7 @@
                     "ticketCode",
                     "seatCode",
                     "passengerName",
+                    "companionName",
                     "status",
                     "qrToken"
                   ],
@@ -48525,6 +48745,16 @@
                 "passengerName": {
                   "type": "string"
                 },
+                "companionName": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
                 "phoneMasked": {
                   "type": "string"
                 },
@@ -48645,6 +48875,7 @@
                 "ticketCode",
                 "seatCode",
                 "passengerName",
+                "companionName",
                 "phoneMasked",
                 "pickup",
                 "dropoff",
@@ -48713,6 +48944,16 @@
                   },
                   "passengerName": {
                     "type": "string"
+                  },
+                  "companionName": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
                   },
                   "phoneMasked": {
                     "type": "string"
@@ -48834,6 +49075,7 @@
                   "ticketCode",
                   "seatCode",
                   "passengerName",
+                  "companionName",
                   "phoneMasked",
                   "pickup",
                   "dropoff",
@@ -48930,6 +49172,16 @@
               },
               "passengerName": {
                 "type": "string"
+              },
+              "companionName": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
               },
               "phoneMasked": {
                 "type": "string"
@@ -49051,6 +49303,7 @@
               "ticketCode",
               "seatCode",
               "passengerName",
+              "companionName",
               "phoneMasked",
               "pickup",
               "dropoff",
@@ -60823,6 +61076,16 @@
                       "fullName": {
                         "type": "string"
                       },
+                      "companionName": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
                       "seatCode": {
                         "type": "string"
                       },
@@ -60839,6 +61102,7 @@
                     },
                     "required": [
                       "fullName",
+                      "companionName",
                       "seatCode",
                       "ticketStatus"
                     ],

@@ -26,7 +26,7 @@ export const PassengerBookingPageSchema = z.object({ items: z.array(bookingSumma
 export const PassengerTicketPageSchema = z.object({ items: z.array(z.object({
   ticketId: z.uuid(), ticketCode: z.string(), bookingId: z.uuid(), bookingCode: z.string(),
   operatorName: z.string(), routeName: z.string(), departureAt: z.iso.datetime(),
-  seatCode: z.string(), passengerName: z.string(), status: z.string(), issuedAt: z.iso.datetime(),
+  seatCode: z.string(), passengerName: z.string(), companionName: z.string().nullable(), status: z.string(), issuedAt: z.iso.datetime(),
 })), nextCursor: z.uuid().nullable() });
 export const PassengerSupportPageSchema = z.object({ items: z.array(z.object({
   ticketId: z.uuid(), ticketCode: z.string(), bookingId: z.uuid(), bookingCode: z.string(),

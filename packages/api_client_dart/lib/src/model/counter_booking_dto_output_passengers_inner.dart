@@ -13,6 +13,7 @@ part 'counter_booking_dto_output_passengers_inner.g.dart';
 /// Properties:
 /// * [seatCode] 
 /// * [fullName] 
+/// * [companionName] 
 /// * [price] 
 @BuiltValue()
 abstract class CounterBookingDtoOutputPassengersInner implements Built<CounterBookingDtoOutputPassengersInner, CounterBookingDtoOutputPassengersInnerBuilder> {
@@ -21,6 +22,9 @@ abstract class CounterBookingDtoOutputPassengersInner implements Built<CounterBo
 
   @BuiltValueField(wireName: r'fullName')
   String get fullName;
+
+  @BuiltValueField(wireName: r'companionName')
+  String? get companionName;
 
   @BuiltValueField(wireName: r'price')
   String get price;
@@ -57,6 +61,11 @@ class _$CounterBookingDtoOutputPassengersInnerSerializer implements PrimitiveSer
     yield serializers.serialize(
       object.fullName,
       specifiedType: const FullType(String),
+    );
+    yield r'companionName';
+    yield object.companionName == null ? null : serializers.serialize(
+      object.companionName,
+      specifiedType: const FullType.nullable(String),
     );
     yield r'price';
     yield serializers.serialize(
@@ -99,6 +108,14 @@ class _$CounterBookingDtoOutputPassengersInnerSerializer implements PrimitiveSer
             specifiedType: const FullType(String),
           ) as String;
           result.fullName = valueDes;
+          break;
+        case r'companionName':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType.nullable(String),
+          ) as String?;
+          if (valueDes == null) continue;
+          result.companionName = valueDes;
           break;
         case r'price':
           final valueDes = serializers.deserialize(

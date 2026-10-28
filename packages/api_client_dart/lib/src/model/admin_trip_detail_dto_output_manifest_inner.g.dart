@@ -172,6 +172,8 @@ class _$AdminTripDetailDtoOutputManifestInner
   @override
   final String fullName;
   @override
+  final String? companionName;
+  @override
   final String? phone;
   @override
   final AdminTripDetailDtoOutputManifestInnerStatusEnum status;
@@ -194,6 +196,7 @@ class _$AdminTripDetailDtoOutputManifestInner
       {required this.ticketCode,
       required this.seatCode,
       required this.fullName,
+      this.companionName,
       this.phone,
       required this.status,
       required this.bookingCode,
@@ -218,6 +221,7 @@ class _$AdminTripDetailDtoOutputManifestInner
         ticketCode == other.ticketCode &&
         seatCode == other.seatCode &&
         fullName == other.fullName &&
+        companionName == other.companionName &&
         phone == other.phone &&
         status == other.status &&
         bookingCode == other.bookingCode &&
@@ -232,6 +236,7 @@ class _$AdminTripDetailDtoOutputManifestInner
     _$hash = $jc(_$hash, ticketCode.hashCode);
     _$hash = $jc(_$hash, seatCode.hashCode);
     _$hash = $jc(_$hash, fullName.hashCode);
+    _$hash = $jc(_$hash, companionName.hashCode);
     _$hash = $jc(_$hash, phone.hashCode);
     _$hash = $jc(_$hash, status.hashCode);
     _$hash = $jc(_$hash, bookingCode.hashCode);
@@ -249,6 +254,7 @@ class _$AdminTripDetailDtoOutputManifestInner
           ..add('ticketCode', ticketCode)
           ..add('seatCode', seatCode)
           ..add('fullName', fullName)
+          ..add('companionName', companionName)
           ..add('phone', phone)
           ..add('status', status)
           ..add('bookingCode', bookingCode)
@@ -276,6 +282,11 @@ class AdminTripDetailDtoOutputManifestInnerBuilder
   String? _fullName;
   String? get fullName => _$this._fullName;
   set fullName(String? fullName) => _$this._fullName = fullName;
+
+  String? _companionName;
+  String? get companionName => _$this._companionName;
+  set companionName(String? companionName) =>
+      _$this._companionName = companionName;
 
   String? _phone;
   String? get phone => _$this._phone;
@@ -314,6 +325,7 @@ class AdminTripDetailDtoOutputManifestInnerBuilder
       _ticketCode = $v.ticketCode;
       _seatCode = $v.seatCode;
       _fullName = $v.fullName;
+      _companionName = $v.companionName;
       _phone = $v.phone;
       _status = $v.status;
       _bookingCode = $v.bookingCode;
@@ -348,6 +360,7 @@ class AdminTripDetailDtoOutputManifestInnerBuilder
               seatCode, r'AdminTripDetailDtoOutputManifestInner', 'seatCode'),
           fullName: BuiltValueNullFieldError.checkNotNull(
               fullName, r'AdminTripDetailDtoOutputManifestInner', 'fullName'),
+          companionName: companionName,
           phone: phone,
           status: BuiltValueNullFieldError.checkNotNull(
               status, r'AdminTripDetailDtoOutputManifestInner', 'status'),

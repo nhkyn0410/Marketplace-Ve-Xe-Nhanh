@@ -97,7 +97,7 @@ function TripBody({ trip }: { trip: TripDetail }) {
       </div>
       <Card
         title="Danh sách người đi"
-        description="Mỗi vé là một người đi (chỗ đôi chở tối đa hai người nhưng ghi một tên). Gồm khách vãng lai và khách mua tại quầy; SĐT đã che."
+        description="Mỗi vé là một chỗ; chỗ đôi có thể thêm người đi cùng (chung vé). Gồm khách vãng lai và khách mua tại quầy; SĐT đã che."
         actions={
           <span className="flex items-center gap-1.5 text-xs leading-[18px] text-muted-foreground">
             <Eye className="size-4" />
@@ -128,6 +128,7 @@ function TripBody({ trip }: { trip: TripDetail }) {
                       <td className={TABLE_CELL}>
                         <div className="flex min-w-0 flex-col">
                           <span className="truncate font-medium text-vxn-ink">{ticket.fullName}</span>
+                          {ticket.companionName && <span className="truncate text-xs leading-[18px] text-vxn-fg-1">Đi cùng: {ticket.companionName}</span>}
                           <span className="text-xs leading-[18px] text-muted-foreground tabular-nums">{ticket.phone ?? "Không có SĐT"}</span>
                         </div>
                       </td>

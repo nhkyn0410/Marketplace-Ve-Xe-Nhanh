@@ -14,6 +14,7 @@ Name | Type | Description | Notes
 **seatCode** | **String** |  | 
 **seatType** | **String** |  | 
 **passengerName** | **String** |  | 
+**companionName** | **String** |  | 
 **bookingId** | **String** |  | 
 **bookingCode** | **String** |  | 
 **bookingStatus** | **String** |  | 

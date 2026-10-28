@@ -119,6 +119,7 @@ function DetailBody({ booking }: { booking: OperatorBookingDetail }) {
                         <td className={`${TABLE_CELL} font-semibold`}>{seat.ticketCode ? displayCode(seat.ticketCode) : "Chưa phát hành"}</td>
                         <td className={TABLE_CELL}>
                           <p className="truncate font-medium">{seat.passengerName}</p>
+                          {seat.companionName && <p className="truncate text-xs text-muted-foreground">Đi cùng: {seat.companionName}</p>}
                           {seat.phoneMasked && <p className="text-xs leading-[18px] text-muted-foreground">{seat.phoneMasked}</p>}
                         </td>
                         <td className={TABLE_CELL}>

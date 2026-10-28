@@ -112,6 +112,8 @@ class _$CancellationQuoteDtoOutputTicketsInner
   @override
   final String passengerName;
   @override
+  final String? companionName;
+  @override
   final CancellationQuoteDtoOutputTicketsInnerStatusEnum status;
   @override
   final int price;
@@ -131,6 +133,7 @@ class _$CancellationQuoteDtoOutputTicketsInner
       required this.ticketCode,
       required this.seatCode,
       required this.passengerName,
+      this.companionName,
       required this.status,
       required this.price,
       required this.cancellable,
@@ -154,6 +157,7 @@ class _$CancellationQuoteDtoOutputTicketsInner
         ticketCode == other.ticketCode &&
         seatCode == other.seatCode &&
         passengerName == other.passengerName &&
+        companionName == other.companionName &&
         status == other.status &&
         price == other.price &&
         cancellable == other.cancellable &&
@@ -167,6 +171,7 @@ class _$CancellationQuoteDtoOutputTicketsInner
     _$hash = $jc(_$hash, ticketCode.hashCode);
     _$hash = $jc(_$hash, seatCode.hashCode);
     _$hash = $jc(_$hash, passengerName.hashCode);
+    _$hash = $jc(_$hash, companionName.hashCode);
     _$hash = $jc(_$hash, status.hashCode);
     _$hash = $jc(_$hash, price.hashCode);
     _$hash = $jc(_$hash, cancellable.hashCode);
@@ -183,6 +188,7 @@ class _$CancellationQuoteDtoOutputTicketsInner
           ..add('ticketCode', ticketCode)
           ..add('seatCode', seatCode)
           ..add('passengerName', passengerName)
+          ..add('companionName', companionName)
           ..add('status', status)
           ..add('price', price)
           ..add('cancellable', cancellable)
@@ -214,6 +220,11 @@ class CancellationQuoteDtoOutputTicketsInnerBuilder
   set passengerName(String? passengerName) =>
       _$this._passengerName = passengerName;
 
+  String? _companionName;
+  String? get companionName => _$this._companionName;
+  set companionName(String? companionName) =>
+      _$this._companionName = companionName;
+
   CancellationQuoteDtoOutputTicketsInnerStatusEnum? _status;
   CancellationQuoteDtoOutputTicketsInnerStatusEnum? get status =>
       _$this._status;
@@ -243,6 +254,7 @@ class CancellationQuoteDtoOutputTicketsInnerBuilder
       _ticketCode = $v.ticketCode;
       _seatCode = $v.seatCode;
       _passengerName = $v.passengerName;
+      _companionName = $v.companionName;
       _status = $v.status;
       _price = $v.price;
       _cancellable = $v.cancellable;
@@ -277,6 +289,7 @@ class CancellationQuoteDtoOutputTicketsInnerBuilder
               seatCode, r'CancellationQuoteDtoOutputTicketsInner', 'seatCode'),
           passengerName: BuiltValueNullFieldError.checkNotNull(passengerName,
               r'CancellationQuoteDtoOutputTicketsInner', 'passengerName'),
+          companionName: companionName,
           status: BuiltValueNullFieldError.checkNotNull(
               status, r'CancellationQuoteDtoOutputTicketsInner', 'status'),
           price: BuiltValueNullFieldError.checkNotNull(

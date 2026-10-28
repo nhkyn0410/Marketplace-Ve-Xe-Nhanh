@@ -490,7 +490,7 @@ class _PassengersCard extends StatelessWidget {
           for (var index = 0; index < passengers.length; index++) ...[
             _PassengerRow(
               seat: passengers[index].seatCode,
-              name: passengers[index].fullName,
+              name: passengers[index].displayName,
             ),
             if (index != passengers.length - 1) const SizedBox(height: 7),
           ],

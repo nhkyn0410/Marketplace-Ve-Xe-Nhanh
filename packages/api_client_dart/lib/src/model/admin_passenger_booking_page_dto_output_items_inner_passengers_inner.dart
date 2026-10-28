@@ -12,12 +12,16 @@ part 'admin_passenger_booking_page_dto_output_items_inner_passengers_inner.g.dar
 ///
 /// Properties:
 /// * [fullName] 
+/// * [companionName] 
 /// * [seatCode] 
 /// * [ticketStatus] 
 @BuiltValue()
 abstract class AdminPassengerBookingPageDtoOutputItemsInnerPassengersInner implements Built<AdminPassengerBookingPageDtoOutputItemsInnerPassengersInner, AdminPassengerBookingPageDtoOutputItemsInnerPassengersInnerBuilder> {
   @BuiltValueField(wireName: r'fullName')
   String get fullName;
+
+  @BuiltValueField(wireName: r'companionName')
+  String? get companionName;
 
   @BuiltValueField(wireName: r'seatCode')
   String get seatCode;
@@ -52,6 +56,11 @@ class _$AdminPassengerBookingPageDtoOutputItemsInnerPassengersInnerSerializer im
     yield serializers.serialize(
       object.fullName,
       specifiedType: const FullType(String),
+    );
+    yield r'companionName';
+    yield object.companionName == null ? null : serializers.serialize(
+      object.companionName,
+      specifiedType: const FullType.nullable(String),
     );
     yield r'seatCode';
     yield serializers.serialize(
@@ -92,6 +101,14 @@ class _$AdminPassengerBookingPageDtoOutputItemsInnerPassengersInnerSerializer im
             specifiedType: const FullType(String),
           ) as String;
           result.fullName = valueDes;
+          break;
+        case r'companionName':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType.nullable(String),
+          ) as String?;
+          if (valueDes == null) continue;
+          result.companionName = valueDes;
           break;
         case r'seatCode':
           final valueDes = serializers.deserialize(

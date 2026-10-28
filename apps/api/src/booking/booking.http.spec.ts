@@ -27,7 +27,7 @@ describe("Đặt vé — HTTP", () => {
     pickup: stop,
     dropoff: { ...stop, sequence: 3 },
     contact: { fullName: "A", phone: "0901234567", email: "a@example.com" },
-    passengers: [{ seatCode: "A1", seatType: "BED", fullName: "A", phone: null, price: 320000 }],
+    passengers: [{ seatCode: "A1", seatType: "BED", fullName: "A", phone: null, companionName: null, price: 320000 }],
     note: null,
     subtotal: 320000,
     serviceFee: 0,

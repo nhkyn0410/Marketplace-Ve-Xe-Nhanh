@@ -180,7 +180,7 @@ async function load(tx: DbTransaction, operatorId: string, bookingId: string) {
       trip: { select: { status: true, departureAt: true } },
       tickets: {
         orderBy: { ticketCode: "asc" },
-        select: { id: true, ticketCode: true, seatCode: true, status: true, passenger: { select: { fullName: true, price: true } } },
+        select: { id: true, ticketCode: true, seatCode: true, status: true, passenger: { select: { fullName: true, price: true, companionName: true } } },
       },
       payments: { where: { status: PaymentStatus.SUCCESS }, take: 1, select: { id: true } },
     },
@@ -209,6 +209,7 @@ function buildQuote(data: Loaded, ticketIds: string[], now: Date): CancellationQ
       ticketCode: ticket.ticketCode,
       seatCode: ticket.seatCode,
       passengerName: ticket.passenger.fullName,
+      companionName: ticket.passenger.companionName,
       status: ticket.status,
       price: vndToJson(ticket.passenger.price),
       cancellable: reason === null,

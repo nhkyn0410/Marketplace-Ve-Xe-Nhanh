@@ -27,6 +27,8 @@ class _$PassengerTicketPageDtoOutputItemsInner
   @override
   final String passengerName;
   @override
+  final String? companionName;
+  @override
   final String status;
   @override
   final DateTime issuedAt;
@@ -47,6 +49,7 @@ class _$PassengerTicketPageDtoOutputItemsInner
       required this.departureAt,
       required this.seatCode,
       required this.passengerName,
+      this.companionName,
       required this.status,
       required this.issuedAt})
       : super._();
@@ -73,6 +76,7 @@ class _$PassengerTicketPageDtoOutputItemsInner
         departureAt == other.departureAt &&
         seatCode == other.seatCode &&
         passengerName == other.passengerName &&
+        companionName == other.companionName &&
         status == other.status &&
         issuedAt == other.issuedAt;
   }
@@ -89,6 +93,7 @@ class _$PassengerTicketPageDtoOutputItemsInner
     _$hash = $jc(_$hash, departureAt.hashCode);
     _$hash = $jc(_$hash, seatCode.hashCode);
     _$hash = $jc(_$hash, passengerName.hashCode);
+    _$hash = $jc(_$hash, companionName.hashCode);
     _$hash = $jc(_$hash, status.hashCode);
     _$hash = $jc(_$hash, issuedAt.hashCode);
     _$hash = $jf(_$hash);
@@ -108,6 +113,7 @@ class _$PassengerTicketPageDtoOutputItemsInner
           ..add('departureAt', departureAt)
           ..add('seatCode', seatCode)
           ..add('passengerName', passengerName)
+          ..add('companionName', companionName)
           ..add('status', status)
           ..add('issuedAt', issuedAt))
         .toString();
@@ -157,6 +163,11 @@ class PassengerTicketPageDtoOutputItemsInnerBuilder
   set passengerName(String? passengerName) =>
       _$this._passengerName = passengerName;
 
+  String? _companionName;
+  String? get companionName => _$this._companionName;
+  set companionName(String? companionName) =>
+      _$this._companionName = companionName;
+
   String? _status;
   String? get status => _$this._status;
   set status(String? status) => _$this._status = status;
@@ -181,6 +192,7 @@ class PassengerTicketPageDtoOutputItemsInnerBuilder
       _departureAt = $v.departureAt;
       _seatCode = $v.seatCode;
       _passengerName = $v.passengerName;
+      _companionName = $v.companionName;
       _status = $v.status;
       _issuedAt = $v.issuedAt;
       _$v = null;
@@ -223,6 +235,7 @@ class PassengerTicketPageDtoOutputItemsInnerBuilder
               seatCode, r'PassengerTicketPageDtoOutputItemsInner', 'seatCode'),
           passengerName: BuiltValueNullFieldError.checkNotNull(passengerName,
               r'PassengerTicketPageDtoOutputItemsInner', 'passengerName'),
+          companionName: companionName,
           status: BuiltValueNullFieldError.checkNotNull(
               status, r'PassengerTicketPageDtoOutputItemsInner', 'status'),
           issuedAt: BuiltValueNullFieldError.checkNotNull(

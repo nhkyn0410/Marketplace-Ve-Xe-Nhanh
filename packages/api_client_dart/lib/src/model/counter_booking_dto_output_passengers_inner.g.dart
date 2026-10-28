@@ -13,6 +13,8 @@ class _$CounterBookingDtoOutputPassengersInner
   @override
   final String fullName;
   @override
+  final String? companionName;
+  @override
   final String price;
 
   factory _$CounterBookingDtoOutputPassengersInner(
@@ -22,7 +24,10 @@ class _$CounterBookingDtoOutputPassengersInner
           ._build();
 
   _$CounterBookingDtoOutputPassengersInner._(
-      {required this.seatCode, required this.fullName, required this.price})
+      {required this.seatCode,
+      required this.fullName,
+      this.companionName,
+      required this.price})
       : super._();
   @override
   CounterBookingDtoOutputPassengersInner rebuild(
@@ -40,6 +45,7 @@ class _$CounterBookingDtoOutputPassengersInner
     return other is CounterBookingDtoOutputPassengersInner &&
         seatCode == other.seatCode &&
         fullName == other.fullName &&
+        companionName == other.companionName &&
         price == other.price;
   }
 
@@ -48,6 +54,7 @@ class _$CounterBookingDtoOutputPassengersInner
     var _$hash = 0;
     _$hash = $jc(_$hash, seatCode.hashCode);
     _$hash = $jc(_$hash, fullName.hashCode);
+    _$hash = $jc(_$hash, companionName.hashCode);
     _$hash = $jc(_$hash, price.hashCode);
     _$hash = $jf(_$hash);
     return _$hash;
@@ -59,6 +66,7 @@ class _$CounterBookingDtoOutputPassengersInner
             r'CounterBookingDtoOutputPassengersInner')
           ..add('seatCode', seatCode)
           ..add('fullName', fullName)
+          ..add('companionName', companionName)
           ..add('price', price))
         .toString();
   }
@@ -78,6 +86,11 @@ class CounterBookingDtoOutputPassengersInnerBuilder
   String? get fullName => _$this._fullName;
   set fullName(String? fullName) => _$this._fullName = fullName;
 
+  String? _companionName;
+  String? get companionName => _$this._companionName;
+  set companionName(String? companionName) =>
+      _$this._companionName = companionName;
+
   String? _price;
   String? get price => _$this._price;
   set price(String? price) => _$this._price = price;
@@ -91,6 +104,7 @@ class CounterBookingDtoOutputPassengersInnerBuilder
     if ($v != null) {
       _seatCode = $v.seatCode;
       _fullName = $v.fullName;
+      _companionName = $v.companionName;
       _price = $v.price;
       _$v = null;
     }
@@ -118,6 +132,7 @@ class CounterBookingDtoOutputPassengersInnerBuilder
               seatCode, r'CounterBookingDtoOutputPassengersInner', 'seatCode'),
           fullName: BuiltValueNullFieldError.checkNotNull(
               fullName, r'CounterBookingDtoOutputPassengersInner', 'fullName'),
+          companionName: companionName,
           price: BuiltValueNullFieldError.checkNotNull(
               price, r'CounterBookingDtoOutputPassengersInner', 'price'),
         );

@@ -43,6 +43,8 @@ export const ManifestTicketSchema = z.object({
   ticketCode: z.string(),
   seatCode: z.string(),
   passengerName: z.string(),
+  /** Người đi cùng trên chỗ đôi (chung vé). */
+  companionName: z.string().nullable(),
   /** Số điện thoại hành khách / người liên hệ đã che (`0*** *** 567`). */
   phoneMasked: z.string(),
   pickup: PointSchema,

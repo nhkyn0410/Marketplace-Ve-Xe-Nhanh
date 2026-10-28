@@ -12,6 +12,7 @@ Name | Type | Description | Notes
 **ticketCode** | **String** |  | 
 **seatCode** | **String** |  | 
 **passengerName** | **String** |  | 
+**companionName** | **String** |  | 
 **phoneMasked** | **String** |  | 
 **pickup** | [**TripManifestDtoOutputPassengersInnerPickup**](TripManifestDtoOutputPassengersInnerPickup.md) |  | 
 **dropoff** | [**TripManifestDtoOutputPassengersInnerPickup**](TripManifestDtoOutputPassengersInnerPickup.md) |  | 

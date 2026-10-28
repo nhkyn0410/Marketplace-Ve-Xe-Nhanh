@@ -89,8 +89,8 @@ const PassengerBookingSchema = z.object({
   tripId: z.uuid(),
   routeName: z.string(),
   departureAt: z.iso.datetime(),
-  /** Người đi trên từng vé (một chỗ = một vé). Chỗ đôi chở tối đa hai người nhưng chỉ ghi một tên (BR-78). */
-  passengers: z.array(z.object({ fullName: z.string(), seatCode: z.string(), ticketStatus: z.string().nullable() })),
+  /** Người đi trên từng vé (một chỗ = một vé); chỗ đôi có thêm `companionName` (người đi cùng, chung vé — BR-78). */
+  passengers: z.array(z.object({ fullName: z.string(), companionName: z.string().nullable(), seatCode: z.string(), ticketStatus: z.string().nullable() })),
   /** Thanh toán gần nhất của đơn — mở chi tiết ở mục Giao dịch. */
   paymentId: z.uuid().nullable(),
 });

@@ -13,6 +13,8 @@ export const TicketResponseSchema = z.object({
   seatCode: z.string(),
   seatType: z.enum(SeatType),
   passengerName: z.string(),
+  /** Người đi cùng trên chỗ đôi (chung vé / QR), `null` nếu không có. */
+  companionName: z.string().nullable(),
   bookingId: z.uuid(),
   bookingCode: z.string(),
   bookingStatus: z.enum(BookingStatus),

@@ -232,7 +232,10 @@ function BookingRow({ booking, showMoney, canOpenPayment }: { booking: Passenger
           return (
             <li key={passenger.seatCode} className="flex items-center gap-2 rounded-lg bg-muted px-3 py-1.5 text-xs leading-[18px]">
               <span className="font-semibold text-vxn-ink">{passenger.seatCode}</span>
-              <span className="text-vxn-fg-1">{passenger.fullName}</span>
+              <span className="text-vxn-fg-1">
+                {passenger.fullName}
+                {passenger.companionName ? ` và ${passenger.companionName}` : ""}
+              </span>
               {ticket && <Badge tone={ticket.tone}>{ticket.label}</Badge>}
             </li>
           );

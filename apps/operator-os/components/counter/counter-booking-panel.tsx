@@ -122,7 +122,7 @@ function CounterTickets({ booking }: { booking: CounterBooking }) {
             <p className="text-xs font-semibold uppercase tracking-wide text-primary">Vé Xe Nhanh · Vé tại văn phòng</p>
             <h3 className="text-lg font-semibold">{booking.trip.routeName}</h3>
             <p className="text-sm">{formatDateTime(booking.trip.departureAt)}</p>
-            <p className="text-base font-semibold">Ghế {ticket.seatCode} · {ticket.passengerName}</p>
+            <p className="text-base font-semibold">Ghế {ticket.seatCode} · {ticket.passengerName}{ticket.companionName ? ` và ${ticket.companionName}` : ""}</p>
             {qr[index]?.data && <img src={qr[index].data} alt={`Mã QR vé ${ticket.ticketCode}`} width={200} height={200} />}
             {qr[index]?.isPending && <p role="status" className="text-sm">Đang tạo QR…</p>}
             <p className="font-mono text-sm font-semibold">{ticket.ticketCode}</p>

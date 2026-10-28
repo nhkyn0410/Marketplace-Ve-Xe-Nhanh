@@ -17,6 +17,7 @@ Name | Type | Description | Notes
 **departureAt** | [**DateTime**](DateTime.md) |  | 
 **seatCode** | **String** |  | 
 **passengerName** | **String** |  | 
+**companionName** | **String** |  | 
 **status** | **String** |  | 
 **issuedAt** | [**DateTime**](DateTime.md) |  | 
 

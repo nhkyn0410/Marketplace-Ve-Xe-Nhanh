@@ -20,6 +20,7 @@ part 'passenger_ticket_page_dto_output_items_inner.g.dart';
 /// * [departureAt] 
 /// * [seatCode] 
 /// * [passengerName] 
+/// * [companionName] 
 /// * [status] 
 /// * [issuedAt] 
 @BuiltValue()
@@ -50,6 +51,9 @@ abstract class PassengerTicketPageDtoOutputItemsInner implements Built<Passenger
 
   @BuiltValueField(wireName: r'passengerName')
   String get passengerName;
+
+  @BuiltValueField(wireName: r'companionName')
+  String? get companionName;
 
   @BuiltValueField(wireName: r'status')
   String get status;
@@ -124,6 +128,11 @@ class _$PassengerTicketPageDtoOutputItemsInnerSerializer implements PrimitiveSer
     yield serializers.serialize(
       object.passengerName,
       specifiedType: const FullType(String),
+    );
+    yield r'companionName';
+    yield object.companionName == null ? null : serializers.serialize(
+      object.companionName,
+      specifiedType: const FullType.nullable(String),
     );
     yield r'status';
     yield serializers.serialize(
@@ -220,6 +229,14 @@ class _$PassengerTicketPageDtoOutputItemsInnerSerializer implements PrimitiveSer
             specifiedType: const FullType(String),
           ) as String;
           result.passengerName = valueDes;
+          break;
+        case r'companionName':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType.nullable(String),
+          ) as String?;
+          if (valueDes == null) continue;
+          result.companionName = valueDes;
           break;
         case r'status':
           final valueDes = serializers.deserialize(

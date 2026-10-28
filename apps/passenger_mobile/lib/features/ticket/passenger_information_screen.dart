@@ -57,6 +57,11 @@ class _PassengerInformationScreenState
   late final List<TextEditingController> _passengerNames = [
     for (final _ in _seats) TextEditingController(),
   ];
+
+  /// Người đi cùng trên chỗ đôi (BR-78 bổ sung 28/10/2026, chờ duyệt) — chỉ dùng ở chỗ đôi, không bắt buộc.
+  late final List<TextEditingController> _companionNames = [
+    for (final _ in _seats) TextEditingController(),
+  ];
   List<SavedTraveller> _travellers = const [];
   PromotionQuote? _promotion;
   String? _promoError;
@@ -82,7 +87,7 @@ class _PassengerInformationScreenState
     _email.dispose();
     _phone.dispose();
     _promoCode.dispose();
-    for (final controller in _passengerNames) {
+    for (final controller in [..._passengerNames, ..._companionNames]) {
       controller.dispose();
     }
     super.dispose();
@@ -189,6 +194,11 @@ class _PassengerInformationScreenState
           BookingPassenger(
             seatCode: _seats[index].code,
             fullName: _passengerNames[index].text.trim(),
+            companionName:
+                isDoubleSeat(_seats[index].type) &&
+                    _companionNames[index].text.trim().isNotEmpty
+                ? _companionNames[index].text.trim()
+                : null,
           ),
       ],
       promotion: _promotion,
@@ -279,6 +289,9 @@ class _PassengerInformationScreenState
                         index: index,
                         seat: _seats[index].code,
                         controller: _passengerNames[index],
+                        companionController: isDoubleSeat(_seats[index].type)
+                            ? _companionNames[index]
+                            : null,
                         onChanged: () => setState(() {}),
                         onChooseSaved: _travellers.isEmpty
                             ? null
@@ -719,12 +732,16 @@ class _PassengerCard extends StatelessWidget {
     required this.controller,
     required this.onChanged,
     required this.onChooseSaved,
+    this.companionController,
   });
 
   final int index;
   final String seat;
   final TextEditingController controller;
   final VoidCallback onChanged;
+
+  /// Ô người đi cùng — chỉ có ở chỗ đôi.
+  final TextEditingController? companionController;
 
   /// `null` = không có hành khách đã lưu (khách vãng lai) — ẩn nút chọn.
   final VoidCallback? onChooseSaved;
@@ -840,6 +857,19 @@ class _PassengerCard extends StatelessWidget {
               onChanged: onChanged,
             ),
           ),
+          if (companionController != null)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(57, 8, 0, 0),
+              child: _InputField(
+                fieldKey: Key('companion-name-$seat'),
+                label: 'Người đi cùng (không bắt buộc)',
+                icon: Icons.people_alt_rounded,
+                controller: companionController!,
+                hintText: 'Chỗ đôi chở tối đa 2 người, chung một vé',
+                textInputAction: TextInputAction.next,
+                onChanged: onChanged,
+              ),
+            ),
         ],
       ),
     );

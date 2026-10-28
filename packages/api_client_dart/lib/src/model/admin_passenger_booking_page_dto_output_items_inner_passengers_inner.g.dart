@@ -11,6 +11,8 @@ class _$AdminPassengerBookingPageDtoOutputItemsInnerPassengersInner
   @override
   final String fullName;
   @override
+  final String? companionName;
+  @override
   final String seatCode;
   @override
   final String? ticketStatus;
@@ -24,7 +26,10 @@ class _$AdminPassengerBookingPageDtoOutputItemsInnerPassengersInner
           ._build();
 
   _$AdminPassengerBookingPageDtoOutputItemsInnerPassengersInner._(
-      {required this.fullName, required this.seatCode, this.ticketStatus})
+      {required this.fullName,
+      this.companionName,
+      required this.seatCode,
+      this.ticketStatus})
       : super._();
   @override
   AdminPassengerBookingPageDtoOutputItemsInnerPassengersInner rebuild(
@@ -45,6 +50,7 @@ class _$AdminPassengerBookingPageDtoOutputItemsInnerPassengersInner
     return other
             is AdminPassengerBookingPageDtoOutputItemsInnerPassengersInner &&
         fullName == other.fullName &&
+        companionName == other.companionName &&
         seatCode == other.seatCode &&
         ticketStatus == other.ticketStatus;
   }
@@ -53,6 +59,7 @@ class _$AdminPassengerBookingPageDtoOutputItemsInnerPassengersInner
   int get hashCode {
     var _$hash = 0;
     _$hash = $jc(_$hash, fullName.hashCode);
+    _$hash = $jc(_$hash, companionName.hashCode);
     _$hash = $jc(_$hash, seatCode.hashCode);
     _$hash = $jc(_$hash, ticketStatus.hashCode);
     _$hash = $jf(_$hash);
@@ -64,6 +71,7 @@ class _$AdminPassengerBookingPageDtoOutputItemsInnerPassengersInner
     return (newBuiltValueToStringHelper(
             r'AdminPassengerBookingPageDtoOutputItemsInnerPassengersInner')
           ..add('fullName', fullName)
+          ..add('companionName', companionName)
           ..add('seatCode', seatCode)
           ..add('ticketStatus', ticketStatus))
         .toString();
@@ -79,6 +87,11 @@ class AdminPassengerBookingPageDtoOutputItemsInnerPassengersInnerBuilder
   String? _fullName;
   String? get fullName => _$this._fullName;
   set fullName(String? fullName) => _$this._fullName = fullName;
+
+  String? _companionName;
+  String? get companionName => _$this._companionName;
+  set companionName(String? companionName) =>
+      _$this._companionName = companionName;
 
   String? _seatCode;
   String? get seatCode => _$this._seatCode;
@@ -97,6 +110,7 @@ class AdminPassengerBookingPageDtoOutputItemsInnerPassengersInnerBuilder
     final $v = _$v;
     if ($v != null) {
       _fullName = $v.fullName;
+      _companionName = $v.companionName;
       _seatCode = $v.seatCode;
       _ticketStatus = $v.ticketStatus;
       _$v = null;
@@ -130,6 +144,7 @@ class AdminPassengerBookingPageDtoOutputItemsInnerPassengersInnerBuilder
               fullName,
               r'AdminPassengerBookingPageDtoOutputItemsInnerPassengersInner',
               'fullName'),
+          companionName: companionName,
           seatCode: BuiltValueNullFieldError.checkNotNull(
               seatCode,
               r'AdminPassengerBookingPageDtoOutputItemsInnerPassengersInner',

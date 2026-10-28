@@ -30,13 +30,16 @@ Future<void> _pumpApp(
   await tester.pump();
 }
 
-Widget _screen(FakeBookingApi api, {DateTime Function()? now}) =>
-    PassengerInformationScreen(
-      api: api,
-      trip: api.trip,
-      hold: sampleHold(),
-      now: now,
-    );
+Widget _screen(
+  FakeBookingApi api, {
+  DateTime Function()? now,
+  Set<String> doubleSeats = const {},
+}) => PassengerInformationScreen(
+  api: api,
+  trip: api.trip,
+  hold: sampleHold(doubleSeats: doubleSeats),
+  now: now,
+);
 
 Future<void> _fillForm(WidgetTester tester) async {
   await tester.enterText(
@@ -253,6 +256,27 @@ void main() {
     );
     expect(find.text('Trần Thị Bình'), findsOneWidget);
   });
+
+  testWidgets(
+    'chỗ đôi có ô người đi cùng (không bắt buộc), sang bước xác nhận hiện "A và B"',
+    (tester) async {
+      await _pumpApp(
+        tester,
+        home: _screen(FakeBookingApi(), doubleSeats: {'A03'}),
+      );
+      expect(find.byKey(const Key('companion-name-A01')), findsNothing);
+      await _fillForm(tester);
+      expect(find.byKey(const Key('companion-name-A03')), findsOneWidget);
+      await tester.enterText(
+        find.byKey(const Key('companion-name-A03')),
+        '  Lê Thị Cúc  ',
+      );
+      await tester.pump();
+      await tester.tap(find.byKey(const Key('passenger-information-continue')));
+      await tester.pumpAndSettle();
+      expect(find.text('Trần Thị Bình và Lê Thị Cúc'), findsOneWidget);
+    },
+  );
 
   testWidgets('viewport nhỏ cuộn toàn bộ form không bottom overflow', (
     tester,

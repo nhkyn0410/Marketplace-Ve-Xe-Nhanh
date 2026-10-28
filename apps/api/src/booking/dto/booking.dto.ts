@@ -12,6 +12,14 @@ export const PhoneSchema = z
   .transform((value) => value.replace(/[\s.-]/g, ""))
   .pipe(z.string().regex(/^(0|\+84)\d{9}$/, "Số điện thoại không hợp lệ."));
 const NameSchema = z.string().trim().min(1).max(100);
+/** Người đi cùng trên chỗ đôi (BR-78 bổ sung 28/10/2026, chờ duyệt): không bắt buộc, chuỗi rỗng = không có. */
+export const CompanionNameSchema = z
+  .string()
+  .trim()
+  .max(100)
+  .nullish()
+  .transform((value) => value || null)
+  .optional();
 
 export const BookingInputSchema = z
   .object({
@@ -19,7 +27,7 @@ export const BookingInputSchema = z
     contact: z.object({ fullName: NameSchema, phone: PhoneSchema, email: z.email().max(254) }),
     /** Mỗi chỗ đã giữ đúng một hành khách. */
     passengers: z
-      .array(z.object({ seatCode: SeatCodeSchema, fullName: NameSchema, phone: PhoneSchema.nullable() }))
+      .array(z.object({ seatCode: SeatCodeSchema, fullName: NameSchema, phone: PhoneSchema.nullable(), companionName: CompanionNameSchema }))
       .min(1)
       .max(MAX_PASSENGERS),
     /** Ghi chú cho nhà xe (đón dọc đường, hành lý…). */
@@ -80,7 +88,8 @@ export const BookingResponseSchema = z.object({
   pickup: StopSchema,
   dropoff: StopSchema,
   contact: z.object({ fullName: z.string(), phone: z.string(), email: z.string() }),
-  passengers: z.array(z.object({ seatCode: z.string(), seatType: z.enum(SeatType), fullName: z.string(), phone: z.string().nullable(), price: z.int() })),
+  /** `companionName`: người đi cùng trên chỗ đôi (chung vé), `null` nếu không có. */
+  passengers: z.array(z.object({ seatCode: z.string(), seatType: z.enum(SeatType), fullName: z.string(), phone: z.string().nullable(), companionName: z.string().nullable(), price: z.int() })),
   note: z.string().nullable(),
   /** VND: tổng giá vé, phí dịch vụ (v1 = 0, vẫn tách dòng — CO-12), giảm giá, số phải trả. */
   subtotal: z.int(),
@@ -113,6 +122,7 @@ export const BookingResponseSchema = z.object({
       ticketCode: z.string(),
       seatCode: z.string(),
       passengerName: z.string(),
+      companionName: z.string().nullable(),
       status: z.enum(TicketStatus),
       qrToken: z.string(),
     }),
