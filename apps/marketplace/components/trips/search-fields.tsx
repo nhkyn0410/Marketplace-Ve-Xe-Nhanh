@@ -187,7 +187,11 @@ function MonthCalendar({ value, onSelect }: { readonly value: string; readonly o
 
   const firstWeekday = (new Date(view.year, view.month, 1).getDay() + 6) % 7;
   const daysInMonth = new Date(view.year, view.month + 1, 0).getDate();
-  const cells = [...Array<null>(firstWeekday).fill(null), ...Array.from({ length: daysInMonth }, (_, index) => index + 1)];
+  // Luôn đủ 6 hàng (42 ô) để lịch không đổi chiều cao khi chuyển tháng.
+  const cells = Array.from({ length: 42 }, (_, index) => {
+    const day = index - firstWeekday + 1;
+    return day >= 1 && day <= daysInMonth ? day : null;
+  });
   // Không lùi về tháng trước tháng hiện tại (toàn ngày đã qua).
   const canGoBack = iso(view.year, view.month, 1) > `${today.slice(0, 7)}-01`;
   const shift = (delta: number) => {
@@ -216,7 +220,7 @@ function MonthCalendar({ value, onSelect }: { readonly value: string; readonly o
           </span>
         ))}
         {cells.map((day, index) => {
-          if (day === null) return <span key={`blank-${index}`} />;
+          if (day === null) return <span key={`blank-${index}`} className="h-9" />;
           const date = iso(view.year, view.month, day);
           const isPast = date < today;
           const isSelected = date === value;
