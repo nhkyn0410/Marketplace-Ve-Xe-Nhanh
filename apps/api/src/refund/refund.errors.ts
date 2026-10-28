@@ -2,6 +2,11 @@ import { HttpException, HttpStatus } from "@nestjs/common";
 
 const TITLE = "Refund error";
 
+/** Vé quầy cần quy trình hoàn tiền trực tiếp của nhà xe, không hoàn qua cổng online. */
+export function counterRefundManualRequired(): HttpException {
+  return problem(HttpStatus.CONFLICT, "COUNTER_REFUND_MANUAL_REQUIRED", "Vé bán tại quầy cần nhà xe xử lý khoản thu trực tiếp; chưa hỗ trợ hoàn qua cổng thanh toán online.");
+}
+
 function problem(status: HttpStatus, code: string, detail: string, reasons?: string[]): HttpException {
   // ProblemDetailsExceptionFilter đọc `{ code, detail, title, reasons }` → RFC 7807 (ADR-012, API §6.2).
   return new HttpException({ code, detail, title: TITLE, ...(reasons ? { reasons } : {}) }, status);

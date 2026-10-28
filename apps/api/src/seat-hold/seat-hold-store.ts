@@ -13,8 +13,10 @@ export type HoldRecord = {
   dropoff: HoldStop;
   /** Hành khách đã đăng nhập tạo giữ chỗ; `null` = khách vãng lai (biết `holdId` là chủ). */
   userId: string | null;
-  seats: { code: string; type: string; price: number }[];
-  subtotal: number;
+  /** Phiên quầy chỉ được chính người bán dùng tại đúng văn phòng. */
+  counter?: { operatorId: string; officeId: string; actor: string };
+  seats: { code: string; type: string; price: number | string }[];
+  subtotal: number | string;
   createdAt: string;
   expiresAt: string;
 };

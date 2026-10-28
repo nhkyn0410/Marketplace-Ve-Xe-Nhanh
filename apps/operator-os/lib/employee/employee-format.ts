@@ -8,12 +8,13 @@ export const EMPLOYEE_USERNAME_PREFIX = "nv.";
 /** Vai trò của nhân viên: nhãn và một dòng mô tả để chủ nhà xe chọn đúng. */
 export const EMPLOYEE_ROLE: Record<EmployeeRole, { label: string; description: string }> = {
   DRIVER: { label: "Tài xế", description: "Lái xe của các chuyến được phân công." },
-  TICKET_STAFF: { label: "Nhân viên bán vé", description: "Soát vé và đón khách lên xe." },
+  TICKET_STAFF: { label: "Nhân viên soát vé", description: "Soát vé và đón khách lên xe." },
+  SALES_STAFF: { label: "Nhân viên bán vé", description: "Bán và xác nhận thu vé tại văn phòng được phân công." },
   SUPPORT_STAFF: { label: "Nhân viên hỗ trợ", description: "Tiếp nhận và xử lý yêu cầu hỗ trợ của hành khách." }
 };
 
 /** Thứ tự vai trò trong ô chọn và ô lọc. */
-export const EMPLOYEE_ROLE_ORDER: EmployeeRole[] = ["DRIVER", "TICKET_STAFF", "SUPPORT_STAFF"];
+export const EMPLOYEE_ROLE_ORDER: EmployeeRole[] = ["DRIVER", "TICKET_STAFF", "SALES_STAFF", "SUPPORT_STAFF"];
 
 /** Nhãn + màu trạng thái tài khoản. */
 export const EMPLOYEE_STATUS: Record<EmployeeStatus, { label: string; tone: "success" | "danger" | "neutral" }> = {

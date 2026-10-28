@@ -1,5 +1,7 @@
 # CLAUDE.md
 
+> COUNTER-SALES, Khanh chốt 27/10/2026: thêm `SALES_STAFF` (tổng10 role gồm Anonymous), nhân viên bán vé dùng cổng web riêng `/auth/counter/login` → `/counter` trong Operator OS; Owner cũng bán được. Cùng namespace Operator, không mở phần quản trị OS cho nhân viên. Xem ADR-017 bổ sung và `doc/task-propreties/COUNTER-SALES-todo.md`.
+
 File này được Claude Code tự động load mỗi session. Đây là "bộ não" cho **coding agent** của dự án Marketplace-Ve-Xe-Nhanh (giai đoạn build v1).
 
 ---

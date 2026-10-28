@@ -55,7 +55,7 @@ export type AuthPortalTexts = {
  * state machine, chỉ khác endpoint, phiên được nhận, chữ và bảng màu.
  */
 export type AuthPortal = {
-  id: "operator" | "admin";
+  id: "operator" | "admin" | "counter";
   /** Endpoint đăng nhập bằng tên đăng nhập + mật khẩu của cổng. */
   loginPath: string;
   /** Phiên nào được vào cổng; phiên khác bị thu hồi ngay và về màn đăng nhập (lớp phòng thủ thứ hai). */

@@ -19,6 +19,7 @@ import type {
   CommissionRuleInput,
   CommissionRuleResponse,
 } from "./dto/admin-commission.dto";
+import { assertCounterBelowOnline } from "./commission-schedule";
 
 type Actor = Pick<VerifiedAccessToken, "sub" | "role">;
 
@@ -27,6 +28,7 @@ const AUDIT_TIMEOUT_MS = 2_000;
 const RULE_SELECT = {
   id: true,
   operatorId: true,
+  channel: true,
   rateBps: true,
   effectiveFrom: true,
   effectiveTo: true,
@@ -41,6 +43,7 @@ const RULE_SELECT = {
 type RuleRow = {
   id: string;
   operatorId: string | null;
+  channel: "ONLINE" | "COUNTER";
   rateBps: number;
   effectiveFrom: Date;
   effectiveTo: Date | null;
@@ -69,7 +72,7 @@ export class AdminCommissionService {
       const now = new Date();
       const [defaults, overrides] = await Promise.all([
         tx.commissionRule.findMany({
-          where: { operatorId: null, status: PolicyRuleStatus.ACTIVE, effectiveFrom: { lte: now } },
+          where: { operatorId: null, channel: "ONLINE", status: PolicyRuleStatus.ACTIVE, effectiveFrom: { lte: now }, OR: [{ effectiveTo: null }, { effectiveTo: { gt: now } }] },
           orderBy: { effectiveFrom: "desc" },
           take: 1,
           select: { rateBps: true, effectiveFrom: true, effectiveTo: true },
@@ -85,6 +88,7 @@ export class AdminCommissionService {
       const names = await usernames(tx, overrides.map((row) => row.createdBy));
       return {
         default: current ? { rateBps: current.rateBps, effectiveFrom: current.effectiveFrom.toISOString() } : null,
+        counterDefaultRateBps: 0,
         overrides: overrides.map((row) => toRule(row, now, names)),
       };
     });
@@ -98,10 +102,11 @@ export class AdminCommissionService {
         throw commissionPeriodInvalid();
       }
       await lockOperator(tx, input.operatorId);
-      await assertNoOverlap(tx, input.operatorId, input.effectiveFrom, input.effectiveTo, null);
+      await assertNoOverlap(tx, input.operatorId, input.channel, input.effectiveFrom, input.effectiveTo, null);
       const row = await tx.commissionRule.create({
         data: {
           operatorId: input.operatorId,
+          channel: input.channel,
           rateBps: input.rateBps,
           effectiveFrom: input.effectiveFrom,
           effectiveTo: input.effectiveTo,
@@ -110,6 +115,7 @@ export class AdminCommissionService {
         },
         select: RULE_SELECT,
       });
+      await validateSchedule(tx, input.operatorId, now);
       await this.record(actor, "commission_rule.create", row, null, snapshot(row), deadline, input.reason);
       return toRule(row, now, await usernames(tx, [row.createdBy]));
     });
@@ -122,8 +128,9 @@ export class AdminCommissionService {
   async update(authz: Authorization, actor: Actor, id: string, input: CommissionRuleInput): Promise<CommissionRuleResponse> {
     return this.write(authz, async (tx, deadline) => {
       const now = new Date();
+      const initial = await findOverride(tx, id);
+      await lockOperator(tx, initial.operatorId!);
       const before = await findOverride(tx, id);
-      await lockOperator(tx, before.operatorId!);
       if (before.status === PolicyRuleStatus.CANCELLED || (before.effectiveTo && before.effectiveTo <= now)) {
         throw commissionRuleLocked();
       }
@@ -137,12 +144,13 @@ export class AdminCommissionService {
       } else if (input.effectiveFrom <= now) {
         throw commissionPeriodInvalid();
       }
-      await assertNoOverlap(tx, before.operatorId!, input.effectiveFrom, input.effectiveTo, id);
+      await assertNoOverlap(tx, before.operatorId!, before.channel, input.effectiveFrom, input.effectiveTo, id);
       const row = await tx.commissionRule.update({
         where: { id },
         data: { rateBps: input.rateBps, effectiveFrom: input.effectiveFrom, effectiveTo: input.effectiveTo, reason: input.reason },
         select: RULE_SELECT,
       });
+      await validateSchedule(tx, before.operatorId!, now);
       await this.record(actor, "commission_rule.update", row, snapshot(before), snapshot(row), deadline, input.reason);
       return toRule(row, now, await usernames(tx, [row.createdBy]));
     });
@@ -152,8 +160,9 @@ export class AdminCommissionService {
   async cancel(authz: Authorization, actor: Actor, id: string, reason: string): Promise<CommissionRuleResponse> {
     return this.write(authz, async (tx, deadline) => {
       const now = new Date();
+      const initial = await findOverride(tx, id);
+      await lockOperator(tx, initial.operatorId!);
       const before = await findOverride(tx, id);
-      await lockOperator(tx, before.operatorId!);
       const state = ruleState(before, now);
       if (state === "CANCELLED" || state === "EXPIRED") {
         throw commissionRuleLocked();
@@ -167,6 +176,7 @@ export class AdminCommissionService {
               { effectiveTo: now, cancelledBy: actor.sub, cancelledAt: now, cancelReason: reason },
         select: RULE_SELECT,
       });
+      await validateSchedule(tx, before.operatorId!, now);
       await this.record(actor, "commission_rule.cancel", row, snapshot(before), snapshot(row), deadline, reason);
       return toRule(row, now, await usernames(tx, [row.createdBy]));
     });
@@ -229,6 +239,7 @@ async function findOverride(tx: DbTransaction, id: string): Promise<RuleRow> {
 async function assertNoOverlap(
   tx: DbTransaction,
   operatorId: string,
+  channel: "ONLINE" | "COUNTER",
   from: Date,
   to: Date | null,
   exceptId: string | null,
@@ -236,6 +247,7 @@ async function assertNoOverlap(
   const overlapping = await tx.commissionRule.count({
     where: {
       operatorId,
+      channel,
       status: PolicyRuleStatus.ACTIVE,
       ...(exceptId ? { id: { not: exceptId } } : {}),
       OR: [{ effectiveTo: null }, { effectiveTo: { gt: from } }],
@@ -247,8 +259,9 @@ async function assertNoOverlap(
   }
 }
 
-function snapshot(row: { rateBps: number; effectiveFrom: Date; effectiveTo: Date | null }): Record<string, unknown> {
+function snapshot(row: { channel: "ONLINE" | "COUNTER"; rateBps: number; effectiveFrom: Date; effectiveTo: Date | null }): Record<string, unknown> {
   return {
+    channel: row.channel,
     rateBps: row.rateBps,
     effectiveFrom: row.effectiveFrom.toISOString(),
     effectiveTo: row.effectiveTo?.toISOString() ?? null,
@@ -268,6 +281,7 @@ function toRule(row: RuleRow, now: Date, names: Map<string, string>): Commission
   return {
     id: row.id,
     operatorId: row.operatorId!,
+    channel: row.channel,
     operatorName: row.operator!.displayName,
     operatorSlug: row.operator!.operatorSlug,
     rateBps: row.rateBps,
@@ -280,6 +294,14 @@ function toRule(row: RuleRow, now: Date, names: Map<string, string>): Commission
     createdBy: row.createdBy ? (names.get(row.createdBy) ?? null) : null,
     createdAt: row.createdAt.toISOString(),
   };
+}
+
+async function validateSchedule(tx: DbTransaction, operatorId: string, now: Date): Promise<void> {
+  const rules = await tx.commissionRule.findMany({
+    where: { status: PolicyRuleStatus.ACTIVE, OR: [{ operatorId }, { operatorId: null, channel: "ONLINE" }] },
+    select: { operatorId: true, channel: true, rateBps: true, effectiveFrom: true, effectiveTo: true },
+  });
+  assertCounterBelowOnline(rules, operatorId, now);
 }
 
 function platformDb(authz: Authorization): DbScope {

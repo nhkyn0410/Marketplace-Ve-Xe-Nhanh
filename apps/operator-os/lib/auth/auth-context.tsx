@@ -7,7 +7,9 @@ import {
 } from "@vexenhanh/ui/components/auth/auth-context";
 import { LoginHero } from "@vexenhanh/ui/components/auth/auth-ui";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
+import { acceptsCounterSession, isCounterPath } from "../counter/portal";
 
 export type { AuthMe, AuthNotice, AuthState } from "@vexenhanh/ui/components/auth/auth-context";
 export { useAuth } from "@vexenhanh/ui/components/auth/auth-context";
@@ -58,7 +60,29 @@ export const OPERATOR_PORTAL: AuthPortal = {
   )
 };
 
+/** Cổng bán tại quầy dùng tài khoản nhân viên bán vé hoặc tài khoản chủ nhà xe. */
+export const COUNTER_PORTAL: AuthPortal = {
+  ...OPERATOR_PORTAL,
+  id: "counter",
+  loginPath: "/auth/counter/login",
+  accept: acceptsCounterSession,
+  loginHero: <div className="hidden min-w-0 flex-1 flex-col gap-5 text-white lg:flex"><span className="w-fit rounded-full bg-white/15 px-5 py-2 text-xs font-semibold uppercase tracking-wide">Văn phòng nhà xe</span><h2 className="text-4xl leading-tight font-semibold">Bán vé nhanh.<br /><span className="text-vxn-saffron-500">Theo dõi từng khoản thu.</span></h2><p className="max-w-md text-base leading-7 text-white/80">Chọn chuyến và ghế, ghi nhận người bán, thu tiền và phát vé từ cùng một nơi.</p></div>,
+  texts: {
+    ...OPERATOR_PORTAL.texts,
+    footer: "Cổng bán vé tại văn phòng nhà xe",
+    loginTitle: "Đăng nhập bán vé tại quầy",
+    loginSubtitle: "Dùng tài khoản nhân viên bán vé hoặc chủ nhà xe.",
+    identifierPlaceholder: "nhaxe/nv.banve",
+    destination: "cổng bán vé",
+    contact: "chủ nhà xe",
+    accountNoun: "tài khoản bán vé",
+  },
+  loginFooter: <Link href="/" className="block text-center text-sm text-primary underline">Về cổng quản lý nhà xe</Link>,
+  passwordHelp: { title: "Cấp lại mật khẩu", description: ["Tài khoản nhân viên do nhà xe cấp.", "Liên hệ chủ nhà xe để được cấp lại mật khẩu."] },
+};
+
 /** Phiên web của Operator OS: chỉ Owner scope `operator` mới được vào. */
 export function AuthProvider({ children }: { children: ReactNode }) {
-  return <PortalAuthProvider portal={OPERATOR_PORTAL}>{children}</PortalAuthProvider>;
+  const portal = isCounterPath(usePathname()) ? COUNTER_PORTAL : OPERATOR_PORTAL;
+  return <PortalAuthProvider key={portal.id} portal={portal}>{children}</PortalAuthProvider>;
 }

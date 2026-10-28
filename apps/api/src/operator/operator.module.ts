@@ -10,6 +10,8 @@ import { OperatorProfileController } from "./operator-profile.controller";
 import { OperatorProfileService } from "./operator-profile.service";
 import { PublicOperatorProfileController } from "./public-operator-profile.controller";
 import { PublicOperatorProfileService } from "./public-operator-profile.service";
+import { SalesOfficeController } from "./sales-office.controller";
+import { SalesOfficeService } from "./sales-office.service";
 
 /**
  * Hồ sơ nhà xe (DOMAIN-MAP `operator/`): Admin xem danh sách, tạm khóa / mở lại nhà xe (FR-ADM-02/03, UC-23 A6) —
@@ -18,7 +20,7 @@ import { PublicOperatorProfileService } from "./public-operator-profile.service"
  */
 @Module({
   imports: [DatabaseModule, IamModule, AuditModule, NotificationModule, StorageModule],
-  controllers: [AdminOperatorController, OperatorProfileController, PublicOperatorProfileController],
-  providers: [AdminOperatorService, OperatorProfileService, PublicOperatorProfileService],
+  controllers: [AdminOperatorController, OperatorProfileController, PublicOperatorProfileController, SalesOfficeController],
+  providers: [AdminOperatorService, OperatorProfileService, PublicOperatorProfileService, SalesOfficeService],
 })
 export class OperatorModule {}

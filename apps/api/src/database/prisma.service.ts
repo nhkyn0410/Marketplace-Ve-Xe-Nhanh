@@ -50,6 +50,8 @@ export const RLS_TABLES = [
   "notification_push_receipts",
   "operator_profiles",
   "operator_accounts",
+  "sales_offices",
+  "sales_office_assignments",
   "employee_accounts",
   "operator_login_names",
   "auth_sessions",
@@ -102,6 +104,9 @@ export const RLS_TABLES = [
   "content_pages",
   // Booking (TASK-BTP-002): tenant_isolation.
   "bookings",
+  "counter_receipts",
+  "counter_commission_receivables",
+  "counter_commission_settlements",
   "passenger_infos",
   "booking_status_histories",
   // Payment (TASK-BTP-003): tenant_isolation.

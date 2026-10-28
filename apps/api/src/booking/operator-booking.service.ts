@@ -119,7 +119,7 @@ export class OperatorBookingService {
     const snapshot = row.snapshot as Snapshot;
     return {
       ...toSummary(row),
-      contactEmailMasked: maskEmail(row.contactEmail),
+      contactEmailMasked: row.contactEmail ? maskEmail(row.contactEmail) : null,
       note: row.note,
       pickup: snapshot.pickup,
       dropoff: snapshot.dropoff,

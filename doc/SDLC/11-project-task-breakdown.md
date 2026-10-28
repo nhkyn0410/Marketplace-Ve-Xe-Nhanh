@@ -13,7 +13,7 @@
 | Người viết    | Nguyễn Hồng Khanh, AI Agent |
 | Người duyệt   | Nguyễn Hồng Khanh           |
 | Ngày tạo      | 11/05/2026                  |
-| Ngày cập nhật | 25/10/2026                  |
+| Ngày cập nhật | 28/10/2026                  |
 
 ### 1.2. Lịch sử thay đổi
 
@@ -295,6 +295,12 @@ Bảng xếp theo thứ tự làm. ID cũ giữ nguyên để không vỡ tham c
 | TASK-TEST-001 | Setup Vitest + Supertest + Playwright + Maestro + Testcontainers; mandatory test money/idempotency/tenant-RLS                           | 08 Test, ADR-025       | QA/BE        | TASK-FND-002 | Draft  |
 
 ---
+
+### COUNTER-SALES — Thực hiện mở rộng theo yêu cầu Khanh 27/10/2026
+
+Phụ thuộc IAM/Operator/Trip/Seat-hold/Booking/Ticket/Commission hiện có; triển khai trên `feat/selling_tickets`, không tạo module/app mới. Các lát được theo dõi ở [COUNTER-SALES todo](../task-propreties/COUNTER-SALES-todo.md): văn phòng + nhân viên bán vé/cổng riêng; giữ ghế + đơn quầy + thu/phát vé; hoa hồng theo kênh + phải thu/thu thủ công; xác nhận khởi hành và kiểm thử cạnh tranh/tenant/money/idempotency; đồng bộ OpenAPI/UI/docs.
+
+Tiêu chí hoàn thành áp dụng Definition of Done bên dưới và acceptance COUNTER-SALES trong Test Plan. Không coi quỹ đầu ca/bàn giao, hoàn/đổi quầy hay ưu đãi là đã làm; các quy tắc này chưa được Khanh chốt. Không tự promote tài liệu hoặc ghi đã review độc lập.
 
 ## 8. Definition of Done
 

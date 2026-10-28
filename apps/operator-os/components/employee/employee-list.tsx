@@ -158,7 +158,7 @@ export function EmployeeList() {
       <ListStatePanel
         icon={<Users className="size-6 text-vxn-fg-3" />}
         title="Chưa có nhân viên"
-        description="Thêm tài xế, nhân viên bán vé hoặc nhân viên hỗ trợ để họ đăng nhập ứng dụng Nhân viên."
+        description="Thêm tài xế, nhân viên soát vé, nhân viên bán vé hoặc nhân viên hỗ trợ của nhà xe."
         action={addButton}
       />
     );
@@ -196,7 +196,7 @@ export function EmployeeList() {
     <div className="flex flex-col gap-6">
       <PageHeader
         title="Nhân viên"
-        description="Chủ nhà xe cấp và quản lý tài khoản. Nhân viên đăng nhập ứng dụng Nhân viên, không đăng nhập trang quản lý này."
+        description="Nhân viên bán vé dùng cổng bán vé riêng; tài xế, soát vé và hỗ trợ dùng ứng dụng Nhân viên. Chủ nhà xe cấp và quản lý tài khoản."
         actions={
           <>
             {/* Figma "05 · Nhân viên / Phân công chuyến" (TASK-EMP-001). */}

@@ -427,16 +427,16 @@ describe.skipIf(!ready && !requireDb)("Thanh toán — Postgres + Redis thật (
     const emailLimits = `ticket-lookup:email:${createHash("sha256").update("a@example.com").digest("hex")}`;
     // Email liên hệ dùng chung giữa các lần chạy: xóa giới hạn gửi mã còn lại của lần trước.
     await redis.del(`${emailLimits}:cooldown`, `${emailLimits}:count`);
-    const requestOtp = (email: string, bookingCode: string | undefined = created.bookingCode) =>
+    const requestOtp = (email: string, bookingCode: string | null = created.bookingCode) =>
       tickets.requestOtp(ip, TicketLookupOtpInputSchema.parse({ email, ...(bookingCode ? { bookingCode } : {}) }));
-    const verify = (otp: string, bookingCode: string | undefined = created.bookingCode) =>
+    const verify = (otp: string, bookingCode: string | null = created.bookingCode) =>
       tickets.verifyOtp(TicketLookupVerifyInputSchema.parse({ email: "a@example.com", otp, ...(bookingCode ? { bookingCode } : {}) }));
     const neutral = { expiresInSeconds: 300, resendAfterSeconds: 60, maxAttempts: 5 };
     expect(await requestOtp("khac@example.com")).toEqual({ maskedEmail: "k***@example.com", ...neutral });
     expect(sentOtps).toEqual([]);
     expect(await requestOtp("A@Example.com", created.bookingCode.toLowerCase())).toEqual({ maskedEmail: "a***@example.com", ...neutral });
     expect(sentOtps).toEqual([{ email: "a@example.com", otp: expect.stringMatching(/^\d{6}$/), purpose: "ticket-lookup" }]);
-    expect(await rejectionOf(requestOtp("a@example.com", undefined))).toMatchObject({ status: 429, code: "TICKET_LOOKUP_RATE_LIMITED" });
+    expect(await rejectionOf(requestOtp("a@example.com", null))).toMatchObject({ status: 429, code: "TICKET_LOOKUP_RATE_LIMITED" });
     const otp = sentOtps[0]!.otp;
     expect(await rejectionOf(verify(otp === "000000" ? "111111" : "000000"))).toMatchObject({ status: 422, code: "TICKET_LOOKUP_OTP_INVALID" });
     const session = await verify(otp);
@@ -451,9 +451,9 @@ describe.skipIf(!ready && !requireDb)("Thanh toán — Postgres + Redis thật (
 
     // Chỉ email: hết thời gian chờ gửi lại → mã mới, phiên thấy đơn vừa đặt trong danh sách và xem được khi chọn đúng đơn.
     await redis.del(`${emailLimits}:cooldown`);
-    await requestOtp("a@example.com", undefined);
+    await requestOtp("a@example.com", null);
     expect(sentOtps).toHaveLength(2);
-    const byEmail = await verify(sentOtps[1]!.otp, undefined);
+    const byEmail = await verify(sentOtps[1]!.otp, null);
     const listed = await tickets.listBookings({ lookupToken: byEmail.lookupToken });
     expect(listed.scope).toBe("EMAIL");
     expect(listed.items.map((item) => item.bookingId)).toContain(created.bookingId);
@@ -462,7 +462,7 @@ describe.skipIf(!ready && !requireDb)("Thanh toán — Postgres + Redis thật (
 
     // Email không có đơn không bao giờ xác minh được; 10 lần gửi mã / 10 phút / IP (đã dùng 4).
     for (let index = 0; index < 6; index++) {
-      await requestOtp(`x${index}-${tag}@example.com`, undefined);
+      await requestOtp(`x${index}-${tag}@example.com`, null);
     }
     expect(await rejectionOf(requestOtp(`y-${tag}@example.com`))).toMatchObject({ status: 429, code: "TICKET_LOOKUP_RATE_LIMITED" });
     expect(sentOtps).toHaveLength(2);

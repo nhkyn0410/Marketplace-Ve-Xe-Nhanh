@@ -15,7 +15,8 @@ Rules:
 | User     | Người dùng        | Passenger who has an account on the platform; can buy, manage and review tickets.                                                 |
 | Guest    | Khách vãng lai    | Passenger who has not logged in or has no account; uses guest session for browsing, holding seats, booking, paying and lookup.    |
 | Operator | Nhà xe            | Transport business onboarded onto the platform; owns and runs vehicles, routes, trips, fares and employees within its own tenant. |
-| Employee | Nhân viên nhà xe  | Operator-internal staff with role `TICKET_STAFF`, `DRIVER` or `SUPPORT_STAFF`; logs in via operator-issued credentials `{operatorSlug}/nv.{…}` only through the Employee app (`/auth/employee/login`, Bearer); never enters Operator OS (ADR-017 amend 28/09/2026). |
+| Employee | Nhân viên nhà xe  | Operator-internal staff with credentials `{operatorSlug}/nv.{…}`. `DRIVER`, `TICKET_STAFF` (soát vé), `SUPPORT_STAFF` use the employee app; `SALES_STAFF` (bán vé) uses the dedicated counter web portal `/auth/counter/login`. Sales staff do not enter the Operator OS administration area. COUNTER-SALES amendment 27/10/2026. |
+| Sales staff | Nhân viên bán vé | Employee role `SALES_STAFF`, provisioned and managed by the operator; sells and records receipts within assigned active sales offices. Operator owners may also sell through the same counter portal. |
 | Operator manager | Quản lý nhà xe | (Chờ duyệt — `TASK-IAM-007`) Operator-side account with role `OPERATOR_MANAGER`, issued by the Owner, logs in to Operator OS as `{operatorSlug}/{username}` with mandatory TOTP; can only use the permissions the Owner ticked (never KYC / payout bank account / manager accounts). |
 | Admin    | Admin toàn hệ thống | Platform administrator running the marketplace; final arbiter for disputes; manages KYC, policy, commission, payout.            |
 | Platform | Nền tảng          | The marketplace operator itself; not a transport company; provides Marketplace / Operator OS / Platform admin layers.             |
@@ -110,6 +111,23 @@ Rules:
 | ADR     | Bản ghi quyết định kiến trúc | Architecture Decision Record.                                       |
 
 ## 6. Auth error codes
+
+### COUNTER-SALES: entities and financial states (27/10/2026)
+
+| Identifier | Thuật ngữ | Definition |
+| --- | --- | --- |
+| `SalesOffice` | Văn phòng bán vé | Operator-owned sales location; distinct from transport `StopPoint.OFFICE`; deactivated rather than deleted. |
+| `SalesOfficeAssignment` | Phân công văn phòng | Same-tenant link from sales office to `EmployeeAccount` with role `SALES_STAFF`; checked on the server. |
+| `SalesChannel` | Kênh bán | `ONLINE` or `COUNTER`, assigned by the server; independent of cash/bank transfer. |
+| `CounterReceipt` | Khoản thu tại quầy | Money received by the operator; `COMPLETED` issues tickets, `EXCEPTION` preserves money received without issuing tickets. Never an escrow capture. |
+| `CounterCommissionReceivable` | Hoa hồng quầy phải thu | Immutable commission snapshot, using explicit counter rule or default0%; operator owes Platform this amount. |
+| `CounterCommissionSettlement` | Khoản hoa hồng đã thu | Platform-admin manual confirmation of money received from operator, with unique reference and idempotency key. |
+
+### Authentication errors
+
+`COUNTER_PAYMENT_MANUAL_REQUIRED` (409) chặn đơn quầy đi qua gateway online. `COUNTER_RECEIPT_UNAVAILABLE` (503) yêu cầu giữ nguyên khóa thao tác và đối chiếu lại; lỗi dựng QR/response sau commit không rollback khoản thu đã lưu.
+
+Các mã nghiệp vụ quầy dùng RFC7807: `COUNTER_TRIP_CLOSED` (409), `COUNTER_BOOKING_NOT_FOUND` (404), `COUNTER_IDEMPOTENCY_CONFLICT`, `COUNTER_TRANSFER_DUPLICATE`, `COUNTER_RECEIPT_CONFLICT`, `COUNTER_BOOKING_KEY_REUSED` và `COUNTER_SETTLEMENT_KEY_REUSED` / `COUNTER_SETTLEMENT_EXCEEDS_BALANCE` / `COUNTER_SETTLEMENT_REFERENCE_USED` (409). `COUNTER_COMMISSION_NOT_LOWER` (422) báo cấu hình phí không hợp lệ. `COUNTER_REFUND_MANUAL_REQUIRED` (409) chặn vé quầy đi qua luồng hoàn online. Lý do receipt ngoại lệ như `AMOUNT_MISMATCH`, `TRIP_CLOSED`, `BOOKING_EXPIRED`, `ISSUANCE_FAILED`, `UNRESOLVED_RECEIPT` là dữ liệu của receipt, không phải trạng thái “chưa nhận tiền”.
 
 | Code | Nghĩa | HTTP |
 | ---- | ----- | ---- |

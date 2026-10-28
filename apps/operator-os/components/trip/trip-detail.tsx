@@ -1,6 +1,7 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useCan } from "@vexenhanh/ui/components/auth/auth-context";
 import { Badge } from "@vexenhanh/ui/components/badge";
 import { Button } from "@vexenhanh/ui/components/button";
 import { Skeleton } from "@vexenhanh/ui/components/skeleton";
@@ -65,6 +66,7 @@ import { OnlineSaleCard, ReadinessCard, SeatSummaryCard } from "./trip-sale-pane
 import { TripSeatMap } from "./trip-seat-map";
 import { StopTimeText, TripStopRow } from "./trip-stop-row";
 import { PickupWindowPanel } from "./pickup-window-panel";
+import { TripDeparturePanel } from "./trip-departure-panel";
 
 const CARD = "flex flex-col gap-5 rounded-xl border bg-card p-6";
 const CARD_TITLE = "text-base leading-6 font-semibold text-vxn-ink";
@@ -159,6 +161,7 @@ const ACTION_TARGET: Record<"withdraw" | "lock" | "open" | "reopen", TripStatusI
 };
 
 function TripDetailBody({ trip, saved, changed, onDismissSaved }: { trip: Trip; saved: boolean; changed: boolean; onDismissSaved: () => void }) {
+  const canManage = useCan()("trip:manage");
   const queryClient = useQueryClient();
   // Tình hình bán + lịch sử đổi / hủy (TRN-008) — chuyến nháp chưa bán nên không cần.
   const sales = useQuery({ queryKey: ["trip-sales", trip.id], queryFn: () => getTripSales(trip.id), enabled: trip.status !== "DRAFT" });
@@ -179,8 +182,8 @@ function TripDetailBody({ trip, saved, changed, onDismissSaved }: { trip: Trip; 
   const [seatError, setSeatError] = useState<string | null>(null);
 
   const tickets = soldSeatCount(trip.seats);
-  const actions = tripActions(trip.status, tickets > 0);
-  const seatsEditable = canEditSeats(trip.status);
+  const actions = canManage ? tripActions(trip.status, tickets > 0) : [];
+  const seatsEditable = canManage && canEditSeats(trip.status);
   // Sơ đồ tải lại có thể làm một chỗ đang chọn không còn chọn được (vừa có khách giữ) — lô chỉ giữ chỗ còn hợp lệ.
   const picked = seatsEditable ? validSelection(selection, trip.seats) : null;
   const showReadiness = trip.status === "DRAFT" || trip.status === "LOCKED";
@@ -418,6 +421,7 @@ function TripDetailBody({ trip, saved, changed, onDismissSaved }: { trip: Trip; 
 
       <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_440px]">
         <div className="flex min-w-0 flex-col gap-6">
+          <TripDeparturePanel trip={trip} />
           <section aria-labelledby="trip-seats-heading" className={CARD}>
             <div className="flex flex-col gap-1">
               <h2 id="trip-seats-heading" className={CARD_TITLE}>
@@ -515,7 +519,7 @@ function TripDetailBody({ trip, saved, changed, onDismissSaved }: { trip: Trip; 
 
           {sales.data && sales.data.changes.length > 0 && <ChangeHistoryCard changes={sales.data.changes} />}
 
-          <PickupWindowPanel trip={trip} />
+          {canManage && <PickupWindowPanel trip={trip} />}
           <section aria-labelledby="trip-info-heading" className={`${CARD} gap-3.5`}>
             <h2 id="trip-info-heading" className={CARD_TITLE}>
               Thông tin chuyến

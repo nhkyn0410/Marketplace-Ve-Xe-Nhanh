@@ -23,6 +23,7 @@ export function commissionOf(amount: bigint, rateBps: number): bigint {
 export async function commissionRateAt(tx: DbTransaction, operatorId: string, at: Date): Promise<number> {
   const rules = await tx.commissionRule.findMany({
     where: {
+      channel: "ONLINE",
       OR: [{ operatorId }, { operatorId: null }],
       status: PolicyRuleStatus.ACTIVE,
       effectiveFrom: { lte: at },

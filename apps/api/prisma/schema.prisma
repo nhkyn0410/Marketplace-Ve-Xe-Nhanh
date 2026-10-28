@@ -50,6 +50,7 @@ enum EmployeeRole {
   DRIVER
   TICKET_STAFF
   SUPPORT_STAFF
+  SALES_STAFF
 }
 
 /// Loại account sở hữu một tên đăng nhập trong namespace Operator.
@@ -183,6 +184,7 @@ model OperatorProfile {
   updatedAt       DateTime       @updatedAt @map("updated_at")
 
   operatorAccounts    OperatorAccount[]
+  salesOffices        SalesOffice[]
   employeeAccounts    EmployeeAccount[]
   operatorLoginNames  OperatorLoginName[]
   seatMaps            SeatMap[]
@@ -200,6 +202,7 @@ model OperatorProfile {
   bankAccounts        BankAccount[]
   policyVersions      PolicyVersion[]
   commissionRules     CommissionRule[]
+  counterCommissionSettlements CounterCommissionSettlement[]
   escrowEntries       EscrowLedger[]
   payouts             Payout[]
   notifications       Notification[]
@@ -266,6 +269,44 @@ model OperatorAccount {
   @@map("operator_accounts")
 }
 
+/// Văn phòng bán vé của nhà xe; ngừng hoạt động thay vì xóa để giữ lịch sử.
+model SalesOffice {
+  id         String   @id @default(uuid())
+  operatorId String   @map("operator_id")
+  code       String
+  name       String
+  address    String
+  active     Boolean  @default(true)
+  version    Int      @default(0)
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  operator    OperatorProfile         @relation(fields: [operatorId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  assignments SalesOfficeAssignment[]
+  bookings    Booking[]
+  receipts    CounterReceipt[]
+
+  @@unique([id, operatorId])
+  @@unique([operatorId, code])
+  @@index([operatorId, active])
+  @@map("sales_offices")
+}
+
+/// Phân công nhân viên bán vé cho văn phòng trong cùng nhà xe.
+model SalesOfficeAssignment {
+  officeId   String   @map("office_id")
+  employeeId String   @map("employee_id")
+  operatorId String   @map("operator_id")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  office  SalesOffice     @relation(fields: [officeId, operatorId], references: [id, operatorId], onDelete: Restrict, onUpdate: Restrict)
+  employee EmployeeAccount @relation(fields: [employeeId, operatorId], references: [id, operatorId], onDelete: Restrict, onUpdate: Restrict)
+
+  @@id([officeId, employeeId])
+  @@index([operatorId, employeeId])
+  @@map("sales_office_assignments")
+}
+
 /// Login Employee trong tenant: username + password (operator-owned).
 model EmployeeAccount {
   id                         String        @id @default(uuid())
@@ -289,6 +330,7 @@ model EmployeeAccount {
   operator    OperatorProfile      @relation(fields: [operatorId], references: [id], onDelete: Restrict, onUpdate: Restrict)
   loginName   OperatorLoginName    @relation(fields: [operatorId, username], references: [operatorId, username], onDelete: NoAction, onUpdate: NoAction)
   assignments EmployeeAssignment[]
+  salesOfficeAssignments SalesOfficeAssignment[]
 
   @@unique([operatorId, username])
   @@unique([id, operatorId])
@@ -1389,6 +1431,7 @@ model PolicyVersion {
 model CommissionRule {
   id            String           @id @default(uuid())
   operatorId    String?          @map("operator_id")
+  channel       SalesChannel     @default(ONLINE)
   rateBps       Int              @map("rate_bps")
   effectiveFrom DateTime         @map("effective_from")
   /// Không gồm; `null` = không thời hạn.
@@ -1403,6 +1446,7 @@ model CommissionRule {
   updatedAt     DateTime         @updatedAt @map("updated_at")
 
   operator OperatorProfile? @relation(fields: [operatorId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  counterReceivables CounterCommissionReceivable[]
 
   @@index([operatorId, status])
   @@map("commission_rules")
@@ -1500,6 +1544,24 @@ enum BookingStatus {
   REFUND_FAILED
 }
 
+/// Kênh tạo đơn được máy chủ xác định, tách khỏi phương thức thu tiền.
+enum SalesChannel {
+  ONLINE
+  COUNTER
+}
+
+/// Phương thức nhà xe trực tiếp thu tiền tại văn phòng.
+enum CounterReceiptMethod {
+  CASH
+  BANK_TRANSFER
+}
+
+/// Khoản thu hợp lệ phát vé hoặc khoản thu cần xử lý ngoại lệ.
+enum CounterReceiptStatus {
+  COMPLETED
+  EXCEPTION
+}
+
 /// Đơn đặt vé (FR-BTP-05/06). Tiền BIGINT VND, `total = subtotal + serviceFee − discount` (CHECK). `snapshot` = dữ liệu
 /// bắt buộc lúc đặt (SRS §9.4): chuyến, nhà xe, tuyến, điểm đón / trả, giá từng chỗ, chính sách hủy.
 model Booking {
@@ -1509,6 +1571,10 @@ model Booking {
   bookingCode     String        @unique @map("booking_code")
   operatorId      String        @map("operator_id")
   tripId          String        @map("trip_id")
+  channel         SalesChannel  @default(ONLINE)
+  officeId        String?       @map("office_id")
+  /// Chủ thể tạo đơn quầy `operator:{id}` hoặc `employee:{id}`, không dùng userId của hành khách.
+  soldBy          String?       @map("sold_by")
   /// Hành khách đã đăng nhập; `null` = khách vãng lai (dùng `accessTokenHash`).
   userId          String?       @map("user_id")
   /// Phiên giữ chỗ đã dùng — mỗi phiên tối đa một booking.
@@ -1516,7 +1582,7 @@ model Booking {
   status          BookingStatus @default(PENDING_PAYMENT)
   contactName     String        @map("contact_name")
   contactPhone    String        @map("contact_phone")
-  contactEmail    String        @map("contact_email")
+  contactEmail    String?       @map("contact_email")
   pickupSequence  Int           @map("pickup_sequence")
   dropoffSequence Int           @map("dropoff_sequence")
   subtotal        BigInt
@@ -1546,6 +1612,9 @@ model Booking {
   tickets    Ticket[]
   refunds    Refund[]
   ledger     EscrowLedger[]
+  office     SalesOffice? @relation(fields: [officeId, operatorId], references: [id, operatorId], onDelete: Restrict, onUpdate: Restrict)
+  counterReceipts CounterReceipt[]
+  counterReceivables CounterCommissionReceivable[]
 
   supportTickets SupportTicket[]
   disputeCases   DisputeCase[]
@@ -1559,12 +1628,80 @@ model Booking {
   @@index([userId, createdAt(sort: Desc)])
   @@index([operatorId, status])
   @@index([tripId])
+  @@index([operatorId, officeId, createdAt(sort: Desc)])
   @@index([status, expiresAt])
   /// Tra cứu vé khách vãng lai theo email liên hệ (12 tháng gần nhất, mới nhất trước) — `TASK-BTP-004`, 27/10/2026.
   @@index([contactEmail, createdAt(sort: Desc)])
   /// Tra theo số điện thoại liên hệ (CSKH / tra cứu sau này) — Khanh 27/10/2026.
   @@index([contactPhone, createdAt(sort: Desc)])
   @@map("bookings")
+}
+
+/// Khoản nhà xe đã xác nhận thực nhận; tách khỏi tiền Platform giữ hộ.
+model CounterReceipt {
+  id              String               @id @default(uuid())
+  operatorId      String               @map("operator_id")
+  bookingId       String               @map("booking_id")
+  officeId        String               @map("office_id")
+  idempotencyKey  String               @map("idempotency_key")
+  method          CounterReceiptMethod
+  amount          BigInt
+  reference       String?
+  status          CounterReceiptStatus
+  exceptionReason String?              @map("exception_reason")
+  recordedBy      String               @map("recorded_by")
+  receivedAt      DateTime             @default(now()) @map("received_at")
+  createdAt       DateTime             @default(now()) @map("created_at")
+
+  booking Booking @relation(fields: [bookingId, operatorId], references: [id, operatorId], onDelete: Restrict, onUpdate: Restrict)
+  office SalesOffice @relation(fields: [officeId, operatorId], references: [id, operatorId], onDelete: Restrict, onUpdate: Restrict)
+  receivable CounterCommissionReceivable?
+
+  @@unique([id, operatorId])
+  @@unique([operatorId, idempotencyKey])
+  @@unique([operatorId, reference])
+  @@index([operatorId, officeId, createdAt])
+  @@map("counter_receipts")
+}
+
+/// Snapshot khoản hoa hồng phải thu, không ghi vào escrow hoặc payout.
+model CounterCommissionReceivable {
+  id               String   @id @default(uuid())
+  operatorId       String   @map("operator_id")
+  receiptId        String   @unique @map("receipt_id")
+  bookingId        String   @map("booking_id")
+  commissionRuleId String?  @map("commission_rule_id")
+  rateBps          Int      @map("rate_bps")
+  basis            BigInt
+  amount           BigInt
+  createdAt        DateTime @default(now()) @map("created_at")
+
+  receipt CounterReceipt @relation(fields: [receiptId, operatorId], references: [id, operatorId], onDelete: Restrict, onUpdate: Restrict)
+  booking Booking @relation(fields: [bookingId, operatorId], references: [id, operatorId], onDelete: Restrict, onUpdate: Restrict)
+  commissionRule CommissionRule? @relation(fields: [commissionRuleId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+
+  @@unique([receiptId, operatorId])
+  @@index([operatorId, createdAt])
+  @@map("counter_commission_receivables")
+}
+
+/// Khoản Platform đã xác nhận thu hoa hồng theo kỳ, không khấu trừ tiền online.
+model CounterCommissionSettlement {
+  id             String   @id @default(uuid())
+  operatorId     String   @map("operator_id")
+  idempotencyKey String   @map("idempotency_key")
+  amount         BigInt
+  reference      String
+  reason         String
+  createdBy      String   @map("created_by")
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  operator OperatorProfile @relation(fields: [operatorId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+
+  @@unique([operatorId, idempotencyKey])
+  @@unique([operatorId, reference])
+  @@index([operatorId, createdAt])
+  @@map("counter_commission_settlements")
 }
 
 /// Hành khách của từng chỗ trong booking (DB §4 `passenger_infos`), kèm giá chỗ lúc đặt.

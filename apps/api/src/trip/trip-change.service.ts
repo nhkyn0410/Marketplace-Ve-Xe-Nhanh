@@ -257,6 +257,9 @@ export class TripChangeService {
         if (!CANCELLABLE.includes(current.status)) {
           throw tripStatusTransitionInvalid(`Không hủy được chuyến đang ở trạng thái ${current.status}.`);
         }
+        if (await tx.booking.findFirst({ where: { operatorId, tripId, channel: "COUNTER", status: { in: [BookingStatus.CONFIRMED, BookingStatus.PAID, BookingStatus.PARTIALLY_CANCELLED] } }, select: { id: true } })) {
+          throw tripChangeNotAllowed("Chuyến có vé quầy do nhà xe trực tiếp thu tiền. Cần xử lý hoàn vé quầy trước khi hủy chuyến; chưa tự hoàn qua cổng thanh toán online.");
+        }
         const seats = await lockSeats(tx, operatorId, tripId);
         const before = snapshotOf((await findDetail(tx, operatorId, tripId))!);
         await tx.trip.updateMany({ where: { id: tripId, operatorId, status: current.status }, data: { status: TripStatus.CANCELLED, statusReason: reason } });

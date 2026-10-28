@@ -35,6 +35,7 @@ import { formatDate, LOCK_REASON_MAX, lockReasonError } from "../../lib/user/use
 import { AccountActionDialog, type AccountAction } from "../user/account-dialogs";
 import { CARD, CARD_TITLE } from "./cancellation-tab";
 import { OperatorPicker } from "./operator-picker";
+import { CounterCommissionPanel } from "./counter-commission-panel";
 
 const STAT = "flex flex-col gap-2 rounded-xl border bg-card p-5";
 
@@ -82,10 +83,10 @@ export function CommissionTab({
     <>
       <div className="grid gap-4 md:grid-cols-3">
         <div className={STAT}>
-          <p className="text-sm leading-5 text-muted-foreground">Hoa hồng mặc định</p>
+          <p className="text-sm leading-5 text-muted-foreground">Hoa hồng online mặc định</p>
           <p className="text-[30px] leading-[38px] font-semibold text-vxn-ink">{data.default ? formatRate(data.default.rateBps) : "—"}</p>
           <p className="text-xs leading-[18px] text-muted-foreground">
-            {data.default ? `Trên giá vé bán thành công · từ ${formatDate(data.default.effectiveFrom)}` : "Chưa cấu hình"}
+            {data.default ? `Từ ${formatDate(data.default.effectiveFrom)} · Quầy mặc định 0%` : "Online chưa cấu hình · Quầy mặc định 0%"}
           </p>
         </div>
         <div className={STAT}>
@@ -105,7 +106,7 @@ export function CommissionTab({
           <h2 id="commission-overrides" className={CARD_TITLE}>
             Mức riêng theo nhà xe
           </h2>
-          <p className="text-sm leading-5 text-muted-foreground">Mỗi mức có ngày hiệu lực riêng; hết hiệu lực thì quay về mức mặc định.</p>
+          <p className="text-sm leading-5 text-muted-foreground">Cấu hình riêng theo kênh bán và ngày hiệu lực. Mức quầy phải thấp hơn online; chưa cấu hình quầy dùng 0%.</p>
         </div>
         {data.overrides.length === 0 ? (
           <ListStatePanel
@@ -142,6 +143,7 @@ export function CommissionTab({
                           <span className="flex min-w-0 flex-col">
                             <span className="truncate font-semibold text-vxn-ink">{rule.operatorName}</span>
                             <span className="truncate text-xs leading-[18px] text-muted-foreground">{rule.operatorSlug}</span>
+                            <span className="text-xs text-muted-foreground">{rule.channel === "COUNTER" ? "Bán tại quầy" : "Bán online"}</span>
                           </span>
                         </td>
                         <td className={`${TABLE_CELL} text-right font-semibold`}>{formatRate(rule.rateBps)}</td>
@@ -200,6 +202,7 @@ export function CommissionTab({
           Hoa hồng tính trên giá vé bán thành công, trước phần giảm do Vé Xe Nhanh chịu. Thay đổi tỷ lệ không áp ngược cho giao dịch đã ghi.
         </p>
       </div>
+      <CounterCommissionPanel onNotice={onNotice} />
       <CommissionDialog
         open={creating || editing !== null}
         rule={editing}
@@ -269,6 +272,7 @@ function CommissionForm({
     rule ? { id: rule.operatorId, name: rule.operatorName, slug: rule.operatorSlug } : null
   );
   const [rate, setRate] = useState(rule ? bpsToPercentInput(rule.rateBps) : "");
+  const [channel, setChannel] = useState<"ONLINE" | "COUNTER">(rule?.channel ?? "ONLINE");
   const [from, setFrom] = useState(rule ? toVnDateInput(rule.effectiveFrom) : "");
   const [to, setTo] = useState(rule?.effectiveTo ? toVnDateInput(rule.effectiveTo, true) : "");
   const [reason, setReason] = useState("");
@@ -278,7 +282,7 @@ function CommissionForm({
       withReauth(identity.secret, () =>
         rule
           ? updateCommissionRule(rule.id, { ...input, reason: reason.trim() })
-          : createCommissionRule({ ...input, operatorId: operator!.id, reason: reason.trim() })
+          : createCommissionRule({ ...input, channel, operatorId: operator!.id, reason: reason.trim() })
       ),
     onMutate: () => onPendingChange(true),
     onSettled: () => onPendingChange(false),
@@ -338,6 +342,9 @@ function CommissionForm({
               <OperatorPicker id={control.id} value={operator} onChange={setOperator} disabled={busy} invalid={Boolean(errors.operator)} />
             )
           }
+        </FormField>
+        <FormField label="Kênh bán *" helper="Quầy chưa có mức riêng dùng 0%; mức cấu hình phải thấp hơn online.">
+          {(control) => <select {...control} className="h-10 rounded-md border bg-background px-3 text-sm" value={channel} disabled={busy || Boolean(rule)} onChange={(event) => setChannel(event.target.value as "ONLINE" | "COUNTER")}><option value="ONLINE">Bán online</option><option value="COUNTER">Bán tại quầy</option></select>}
         </FormField>
         <div className="grid gap-4 sm:grid-cols-3">
           <FormField label="Tỷ lệ (%) *" error={errors.rate}>

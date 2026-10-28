@@ -27,15 +27,15 @@ Notes:
 | Entity group             | Target module(s)                                              | Notes                                                                                                |
 | ------------------------ | ------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
 | Identity & Access        | `iam/` (split: `auth/`, `user/`, `session/`, `role/`)         | Owns User, Admin, Operator account, Employee account, Role, Session.                                 |
-| Operator Profile & KYC   | `operator/` + `operator-kyc/`                                 | Owns OperatorApplication (pre-tenant registration, BR-75), OperatorProfile, KycDocument, BankAccount, OperatorStatusHistory.                               |
+| Operator Profile & KYC   | `operator/` + `operator-kyc/`                                 | Owns OperatorApplication (pre-tenant registration, BR-75), OperatorProfile, KycDocument, BankAccount, OperatorStatusHistory, SalesOffice, SalesOfficeAssignment. |
 | Location & Catalog       | `catalog/`                                                    | Province, Ward, StopPoint, VehicleType, Amenity, ContentPage.                                        |
 | Transport Resource       | `vehicle/`, `route/`, `stop-point/`                           | Vehicle, VehicleImage, SeatMap, Seat, Route, RouteStop.                                              |
 | Trip & Inventory         | `trip/`, `fare/`, `seat-hold/`                                | Trip, TripStop, TripSeat, SeatHold, Fare, FareRule.                                                  |
-| Booking & Ticket         | `booking/`, `ticket/`                                         | Booking, PassengerInfo, Ticket, TicketQrToken, BookingStatusHistory.                                 |
+| Booking & Ticket         | `booking/`, `ticket/`                                         | Booking, PassengerInfo, Ticket, TicketQrToken, BookingStatusHistory; counter sale attribution and CounterReceipt. |
 | Promotion & Campaign     | `promotion/`                                                  | Promotion, PromotionRule, PromotionRedemption, PromotionUsageLimit, UserVoucher (voucher wallet).                                  |
 | Loyalty (VXN Plus)       | `loyalty/`                                                    | LoyaltyAccount, PointTransaction (append-only ledger), MembershipTier (enum; thresholds/multipliers in `PolicyVersion`). Platform-level, no `operatorId`. |
 | Content                  | `content/`                                                    | Article, ArticleCategory (Khám phá page). `ContentPage` (static pages) stays in `catalog/`.          |
-| Payment, Escrow & Payout | `payment/`, `refund/`, `escrow/`, `payout/`, `commission/`    | Payment, Refund, EscrowLedger, CommissionRule, Payout, ReconciliationRecord.                         |
+| Payment, Escrow & Payout | `payment/`, `refund/`, `escrow/`, `payout/`, `commission/`    | Payment, Refund, EscrowLedger, CommissionRule, Payout, ReconciliationRecord, CounterCommissionReceivable, CounterCommissionSettlement. Counter money never increases escrow/payout. |
 | Operation & Check-in     | `manifest/`, `check-in/`, `journey-log/`, `incident/`         | CheckInEvent, JourneyLog, IncidentReport, EmployeeAssignment.                                        |
 | Support & Trust          | `support/`, `complaint/`, `review/`, `dispute/`, `scorecard/` | SupportTicket, Complaint, Review, DisputeCase, OperatorScorecard.                                    |
 | Notification & Audit     | `notification/`, `audit/`, `policy/`                          | Notification, NotificationDelivery, NotificationPreference, AuditLog, PolicyVersion, PolicySnapshot. |
@@ -47,7 +47,7 @@ Notes:
 | User (Passenger) | `apps/marketplace` (web) + `apps/passenger_mobile`                     | Search, booking, ticket, profile, review, complaint.               |
 | Guest            | `apps/marketplace` (web) + `apps/passenger_mobile` (guest session)     | Search, hold seat, book, pay, lookup ticket; no long-term history. |
 | Operator         | `apps/operator-os` (web, CSR sau auth)                                 | Operator OS layer entry.                                           |
-| Employee         | `apps/employee_mobile` (mobile only)                                   | Check-in, manifest, status update, journey log, incident. No Operator OS access — login `/auth/employee/login` (ADR-017 amend 28/09/2026). |
+| Employee         | `apps/employee_mobile`; `SALES_STAFF` uses `apps/operator-os` dedicated `/counter` web area | Driver/check-in/support keep `/auth/employee/login` Bearer. Sales staff use `/auth/counter/login` (operator namespace, cookie web); Owner can use the same counter portal. No sales-staff access to Operator OS administration. COUNTER-SALES, 27/10/2026. |
 | Admin            | `apps/admin` (web)                                                     | Platform admin layer entry; no mobile app for v1.                  |
 
 > **Folder naming — Flutter apps use `snake_case` (decided 14/09/2026).** `apps/passenger_mobile`,

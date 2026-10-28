@@ -13,7 +13,7 @@
 | Người viết    | Nguyễn Hồng Khanh, AI Agent |
 | Người duyệt   | Nguyễn Hồng Khanh           |
 | Ngày tạo      | 11/05/2026                  |
-| Ngày cập nhật | 25/10/2026                  |
+| Ngày cập nhật | 28/10/2026                  |
 
 ### 1.2. Lịch sử thay đổi
 
@@ -453,6 +453,21 @@ Dữ liệu chuẩn Platform (DB §5.2 nhóm Catalog) cho Marketplace search và
 | GET    | `/catalog/featured-operators` | Guest, User           | Chờ duyệt (26/10/2026): nhà xe tiêu biểu — nhà xe `ACTIVE` có chuyến mở bán 30 ngày tới, xếp theo số review `VISIBLE`, rồi điểm trung bình, rồi tên; mỗi mục kèm tối đa 6 cặp tỉnh đang mở bán (cho tab "Theo nhà xe"). Không trả logo (schema chưa có). `limit` mặc định 5 / tối đa 20                                                                                                                                                                                                                                                                                              |
 
 ---
+
+### COUNTER-SALES — Contract mở rộng (27/10/2026)
+
+| API (đều dưới `/v1`) | Contract/quyền |
+| --- | --- |
+| `POST /auth/counter/login` | `{identifier,password}`; chỉ Owner/`SALES_STAFF`, cùng namespace Operator; cookie web dùng CSRF/Origin, giữ luồng đổi mật khẩu/MFA. Sai role không cấp phiên/challenge. |
+| `GET /operator/offices`, `GET /operator/offices/{id}` | `office:read`; Owner mọi office, nhân viên các office hoạt động được phân công. |
+| `POST /operator/offices`, `PATCH /operator/offices/{id}` | `office:manage` chỉ Owner; mã/tên/địa chỉ/active; cập nhật kèm version. |
+| `GET`, `PUT /operator/offices/{id}/assignments` | Chỉ Owner; thay danh sách `{version,employeeIds}` bằng `SALES_STAFF` hoạt động cùng tenant. |
+| `/operator/counter/*` | Nhóm API giữ chỗ/đơn/khoản thu quầy: `counter:sell`, `counter:collect`, `counter:read`; tenant/office/actor xác định server. Shared Zod ở `packages/types/src/counter-sales.ts`; OpenAPI sinh từ controller là contract máy đọc. |
+| `POST /operator/trips/{id}/departure` | `trip:dispatch`; `{note?}` → `{tripId,departedAt}`; timestamp server, retry giữ nguyên mốc; thiếu/khác tenant404, trạng thái không hợp lệ409. |
+| `GET /admin/counter-commissions` | `finance:read` Platform, lọc operator/from/to; tiền JSON là chuỗi số đồng. |
+| `POST /admin/counter-commissions/settlements` | `finance:configure` + reauth; `{operatorId,idempotencyKey,amount,reference,reason}`; không vượt phí còn phải thu, không dùng lại tham chiếu. |
+
+Khoản thu quầy thiếu/thừa/muộn trả kết quả ngoại lệ có receiptId; không biến thành lỗi “chưa nhận tiền”. Khóa idempotency dùng lại với payload khác bị409. Không thêm gateway/vendor hoặc endpoint hoàn quầy khi chưa có chính sách.
 
 ## 8. Idempotency
 

@@ -135,11 +135,23 @@ import { PassengerLoyaltyController } from "../loyalty/passenger-loyalty.control
 import { PassengerLoyaltyService } from "../loyalty/passenger-loyalty.service";
 import { AdminReconciliationController } from "../payment/admin-reconciliation.controller";
 import { AdminReconciliationService } from "../payment/admin-reconciliation.service";
+import { SalesOfficeController } from "../operator/sales-office.controller";
+import { SalesOfficeService } from "../operator/sales-office.service";
+import { CounterSalesController } from "../booking/counter-sales.controller";
+import { CounterSalesService } from "../booking/counter-sales.service";
+import { CounterCommissionController } from "../commission/counter-commission.controller";
+import { CounterCommissionService } from "../commission/counter-commission.service";
+import { OperatorDepartureController } from "../trip/operator-departure.controller";
+import { OperatorDepartureService } from "../trip/operator-departure.service";
 
 @Module({
   // Mọi controller IAM phải có mặt ở đây, nếu không route biến mất khỏi OpenAPI
   // và `gen:api-client` sinh client thiếu toàn bộ auth mà CI vẫn xanh (ADR-012).
   controllers: [
+    SalesOfficeController,
+    CounterSalesController,
+    CounterCommissionController,
+    OperatorDepartureController,
     AdminNotificationController,
     AdminReconciliationController,
     PreferenceController,
@@ -219,6 +231,10 @@ import { AdminReconciliationService } from "../payment/admin-reconciliation.serv
     AdminPlatformAccountController,
   ],
   providers: [
+    { provide: SalesOfficeService, useValue: {} },
+    { provide: CounterSalesService, useValue: {} },
+    { provide: CounterCommissionService, useValue: {} },
+    { provide: OperatorDepartureService, useValue: {} },
     { provide: AdminReconciliationService, useValue: {} },
     { provide: OperatorManagerService, useValue: {} },
     { provide: PreferenceService, useValue: {} },

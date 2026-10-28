@@ -35,6 +35,7 @@ describe("nhãn", () => {
   it("đủ nhãn cho mọi vai trò và trạng thái", () => {
     expect(EMPLOYEE_ROLE_ORDER.map((role) => EMPLOYEE_ROLE[role].label)).toEqual([
       "Tài xế",
+      "Nhân viên soát vé",
       "Nhân viên bán vé",
       "Nhân viên hỗ trợ"
     ]);

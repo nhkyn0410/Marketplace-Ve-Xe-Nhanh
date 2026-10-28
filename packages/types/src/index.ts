@@ -2,6 +2,10 @@ import { z } from "zod";
 export * from "./notification";
 export * from "./reconciliation";
 export * from "./operations";
+export * from "./sales-office";
+export * from "./counter-sales";
+export * from "./trip-departure";
+export * from "./counter-commission";
 export * from "./passenger-profile";
 export * from "./passenger-loyalty";
 

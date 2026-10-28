@@ -13,7 +13,7 @@
 | Người viết    | Nguyễn Hồng Khanh, AI Agent                 |
 | Người duyệt   | Nguyễn Hồng Khanh                           |
 | Ngày tạo      | 11/05/2026                                  |
-| Ngày cập nhật | 25/10/2026                                  |
+| Ngày cập nhật | 28/10/2026                                  |
 
 ### 1.2. Lịch sử thay đổi
 
@@ -394,6 +394,17 @@ Tên module / folder dưới đây dùng **target state** theo `context/DOMAIN-M
 | 3    | Admin (`loyalty:manage`): tra cứu theo email, lịch sử điểm, điều chỉnh (xác nhận lại danh tính, `Idempotency-Key`, không âm, audit `loyalty.adjust`), báo cáo quý theo hạng lúc ghi. Đổi điểm / ví voucher / phần giảm Vé Xe Nhanh chịu chưa làm (TASK-PROM-002). |
 
 ---
+
+### COUNTER-SALES — Giữ chỗ, bán và xác nhận thu (27/10/2026)
+
+1. Xác thực Owner/`SALES_STAFF`, lấy tenant từ phiên. Owner dùng mọi văn phòng; nhân viên phải được phân công văn phòng hoạt động. Kiểm lại trên server ở mỗi thao tác.
+2. Quầy dùng cùng khóa Redis `seat:{tripId}:{seatCode}:hold`, hạn10 phút; bản ghi gắn kênh, văn phòng và chủ thể nhân viên. Luồng guest/passenger không được dùng hold quầy. Quầy nhận `OPEN_FOR_SALE`/`BOARDING` với `departedAt = null`, không áp cutoff theo giờ lịch.
+3. Tạo booking từ hold còn hiệu lực: khóa trip trước, rồi ghế theo thứ tự; kiểm lại trạng thái, giá và hành khách như lõi online. Server ghi `COUNTER`, office và `soldBy`; email quầy tùy chọn, online vẫn bắt buộc. Không áp promotion/loyalty cho quầy trong bản đầu.
+4. Xác nhận tiền mặt/chuyển khoản thủ công dùng idempotency key; chuyển khoản cần tham chiếu duy nhất trong nhà xe. Tiền thực nhận khác tổng, đã hết hạn/khởi hành hoặc không thể phát vé được ghi `EXCEPTION`, không làm mất dấu khoản thu và không tự phát vé.
+5. Khoản hợp lệ khóa cùng dòng trip với tài xế/điều phối, sau đó booking/ghế; phát vé qua lõi `issueTickets`. Chốt snapshot hoa hồng tại thời điểm thu thành công (mặc định0%), ghi phải thu riêng, không gọi capture escrow. Gửi lại/in lại không sinh vé hay khoản thu mới.
+6. Điều phối có `trip:dispatch` gọi `POST /operator/trips/{tripId}/departure`; khóa `FOR NO KEY UPDATE`, ghi giờ server. Gửi lại sau khởi hành giữ nguyên mốc; tài xế tiếp tục dùng luồng được phân công. Không tự chuyển trạng thái bằng giờ dự kiến.
+
+Hoàn/đổi vé quầy và xử lý kết thúc ngoại lệ chưa có chính sách được chốt; không chạy qua gateway refund hoặc tính khoản hoàn bằng0 vì không có `Payment`. Theo dõi phạm vi tại [COUNTER-SALES todo](../task-propreties/COUNTER-SALES-todo.md).
 
 ## 7. Validation và error handling
 

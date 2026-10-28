@@ -13,7 +13,7 @@
 | Người viết    | Nguyễn Hồng Khanh, AI Agent        |
 | Người duyệt   | Nguyễn Hồng Khanh                |
 | Ngày tạo      | 11/05/2026                       |
-| Ngày cập nhật | 25/10/2026                       |
+| Ngày cập nhật | 28/10/2026                       |
 
 ### 1.2. Lịch sử thay đổi
 
@@ -261,6 +261,17 @@ Mandatory (rủi ro cao, ADR-025): money math, idempotency, tenant RLS, seat-hol
 | TC-OPR-006 | Operator OS hồ sơ & KYC: chủ nhà xe sửa thông tin công khai (audit chỉ trường đổi; tenant không đổi được tên pháp lý / trạng thái kể cả ghi thẳng DB; nhà xe khác không sửa được); thay giấy tờ (khóa nhà xe khác / sai loại / chưa tải → 422, bản cũ tự tải lên bị xóa), xem giấy tờ có audit; đổi tài khoản nhận tiền cần xác nhận lại, trùng → 422, đang chờ → 409, tenant không tự xác minh; Admin xem số đầy đủ (audit) → từ chối kèm lý do / xác minh (bản cũ `REPLACED`), email kết quả; nhân viên / Admin gọi route nhà xe → 403 (`operator-profile.int.spec.ts`, `.http.spec.ts`, `profile.e2e.ts`, `users.e2e.ts`) | E2E/Integration/Security (money) | Rất cao |
 
 ---
+
+### COUNTER-SALES — Tiêu chí hồi quy bổ sung (27/10/2026)
+
+- Cổng quầy nhận Owner/SALES_STAFF, giữ MFA/đổi mật khẩu tạm; role khác không có phiên/challenge, cookie thiếu CSRF/sai Origin bị chặn. Chủ nhà xe tạo/khóa/cấp lại mật khẩu nhân viên bán vé được; nhân viên không tự quản lý tài khoản.
+- Hai office và online cùng giữ/mua một ghế chỉ có một kết quả hợp lệ. Guest không dùng được hold quầy. Nhân viên không đọc/bán/thu văn phòng chưa được cấp hoặc tenant khác; chứng minh bằng role PostgreSQL không BYPASSRLS.
+- Giờ lịch đã qua nhưng chưa depart vẫn bán; sau xác nhận thực tế giữ mới và chốt vé bị chặn. Giao dịch bán/khởi hành cùng khóa trip; retry không đổi mốc khởi hành.
+- Gửi lặp xác nhận thu/in lại không tăng receipt/vé/phí; khóa dùng payload khác hoặc bank reference đã dùng bị409. Thiếu/thừa/đến muộn được ghi EXCEPTION, không phát vé và không mất dấu tiền đã nhận.
+- Counter mặc định0%, không dùng rule ONLINE; configuredcounter thấp hơn online trên mọi khoảng hiệu lực, kể cả sửa/hủy ruleonline tương lai. Snapshot không tính lại; bigint làm tròn xuống đồng.
+- Thu trực tiếp không tăng escrow/payout. Thu phí thủ công có unique reference/key, không vượt khoản phải thu; retry không thu thêm. Online payment/webhook/refund và mandatory HMAC/refresh reuse không hồi quy.
+
+Kết quả thực chạy ghi tại [COUNTER-SALES todo](../task-propreties/COUNTER-SALES-todo.md); checklist này không mặc nhiên chứng minh test đã chạy hay được review.
 
 ## 10. Entry / Exit criteria
 

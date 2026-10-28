@@ -2,6 +2,7 @@ import { randomInt } from "node:crypto";
 import { Inject, Injectable, Logger } from "@nestjs/common";
 import { bookingNotFound } from "../booking/booking.errors";
 import { canAccessBooking } from "../booking/booking-access";
+import { counterError } from "../booking/counter-sales.errors";
 import { APP_CONFIG, type AppConfig } from "../config/env.config";
 import { withBookingOperator } from "../database/marketplace-scope";
 import { PrismaService, type DbTransaction } from "../database/prisma.service";
@@ -122,11 +123,12 @@ export class PaymentService {
     await tx.$queryRaw`SELECT id FROM bookings WHERE id = ${bookingId} AND operator_id = ${operatorId} FOR UPDATE`;
     const booking = await tx.booking.findFirst({
       where: { id: bookingId, operatorId },
-      select: { bookingCode: true, status: true, total: true, expiresAt: true, userId: true, accessTokenHash: true },
+      select: { bookingCode: true, channel: true, status: true, total: true, expiresAt: true, userId: true, accessTokenHash: true },
     });
     if (!booking || !canAccessBooking(booking, user, accessToken)) {
       return null;
     }
+    if (booking.channel === "COUNTER") throw counterError("COUNTER_PAYMENT_MANUAL_REQUIRED", "Đơn tại quầy do nhà xe xác nhận thu tiền trực tiếp, không tạo thanh toán qua cổng online.");
     if (booking.status === "PENDING_PAYMENT" && booking.expiresAt <= now) {
       throw bookingExpired();
     }

@@ -9,14 +9,17 @@ import { BookingController } from "./booking.controller";
 import { BookingService } from "./booking.service";
 import { OperatorBookingController } from "./operator-booking.controller";
 import { OperatorBookingService } from "./operator-booking.service";
+import { CounterSalesController } from "./counter-sales.controller";
+import { CounterSalesService } from "./counter-sales.service";
+import { RedisModule } from "../redis/redis.module";
 
 /**
  * Booking/Ticket/Payment (DOMAIN-MAP `booking/`) — TASK-BTP-002: tạo + xem booking; TASK-OPR-003: màn Đặt vé của nhà xe.
  */
 @Module({
-  imports: [DatabaseModule, IamModule, SeatHoldModule, AuditModule],
-  controllers: [BookingController, OperatorBookingController],
-  providers: [BookingService, OperatorBookingService, { provide: TICKET_QR, inject: [APP_CONFIG], useFactory: createTicketQrSigner }],
+  imports: [DatabaseModule, IamModule, SeatHoldModule, AuditModule, RedisModule],
+  controllers: [BookingController, OperatorBookingController, CounterSalesController],
+  providers: [BookingService, OperatorBookingService, CounterSalesService, { provide: TICKET_QR, inject: [APP_CONFIG], useFactory: createTicketQrSigner }],
   exports: [BookingService, TICKET_QR],
 })
 export class BookingModule {}
