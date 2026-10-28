@@ -9,6 +9,7 @@ All URIs are relative to *http://localhost*
 
 Method | HTTP request | Description
 ------------- | ------------- | -------------
+[**operatorDepartureControllerDepart**](OperatorTripsApi.md#operatordeparturecontrollerdepart) | **POST** /v1/operator/trips/{tripId}/departure | 
 [**pickupWindowControllerUpdate**](OperatorTripsApi.md#pickupwindowcontrollerupdate) | **PUT** /v1/operator/trips/{tripId}/stops/{sequence}/pickup-window | 
 [**tripControllerChange**](OperatorTripsApi.md#tripcontrollerchange) | **POST** /v1/operator/trips/{tripId}/changes | 
 [**tripControllerChangeStatus**](OperatorTripsApi.md#tripcontrollerchangestatus) | **PUT** /v1/operator/trips/{tripId}/status | 
@@ -19,6 +20,49 @@ Method | HTTP request | Description
 [**tripControllerSetSeatStatus**](OperatorTripsApi.md#tripcontrollersetseatstatus) | **PUT** /v1/operator/trips/{tripId}/seats/status | 
 [**tripControllerUpdate**](OperatorTripsApi.md#tripcontrollerupdate) | **PUT** /v1/operator/trips/{tripId} | 
 
+
+# **operatorDepartureControllerDepart**
+> TripDepartureDtoOutput operatorDepartureControllerDepart(tripId, tripDepartureInputDto)
+
+
+
+### Example
+```dart
+import 'package:api_client_dart/api.dart';
+
+final api = ApiClientDart().getOperatorTripsApi();
+final String tripId = 38400000-8cf0-11bd-b23e-10b96e4ef00d; // String | 
+final TripDepartureInputDto tripDepartureInputDto = ; // TripDepartureInputDto | 
+
+try {
+    final response = api.operatorDepartureControllerDepart(tripId, tripDepartureInputDto);
+    print(response);
+} on DioException catch (e) {
+    print('Exception when calling OperatorTripsApi->operatorDepartureControllerDepart: $e\n');
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **tripId** | **String**|  | 
+ **tripDepartureInputDto** | [**TripDepartureInputDto**](TripDepartureInputDto.md)|  | 
+
+### Return type
+
+[**TripDepartureDtoOutput**](TripDepartureDtoOutput.md)
+
+### Authorization
+
+[bearer](../README.md#bearer)
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
+ - **Accept**: application/json, application/problem+json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **pickupWindowControllerUpdate**
 > TripResponseDtoOutput pickupWindowControllerUpdate(tripId, sequence, pickupWindowInputDto)

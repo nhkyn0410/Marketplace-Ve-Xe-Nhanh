@@ -1,4 +1,4 @@
-# api_client_dart.model.SeatHoldResponseDtoOutputPickup
+# api_client_dart.model.SalesOfficeListDtoOutputItemsInner
 
 ## Load the model package
 ```dart
@@ -8,9 +8,14 @@ import 'package:api_client_dart/api.dart';
 ## Properties
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**sequence** | **int** |  | 
+**id** | **String** |  | 
+**code** | **String** |  | 
 **name** | **String** |  | 
-**plannedAt** | [**DateTime**](DateTime.md) |  | 
+**address** | **String** |  | 
+**active** | **bool** |  | 
+**version** | **int** |  | 
+**createdAt** | [**DateTime**](DateTime.md) |  | 
+**updatedAt** | [**DateTime**](DateTime.md) |  | 
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)
 

@@ -15,6 +15,9 @@ const OperatorReportDtoOutputEmployeesInnerRoleEnum
 const OperatorReportDtoOutputEmployeesInnerRoleEnum
     _$operatorReportDtoOutputEmployeesInnerRoleEnum_SUPPORT_STAFF =
     const OperatorReportDtoOutputEmployeesInnerRoleEnum._('SUPPORT_STAFF');
+const OperatorReportDtoOutputEmployeesInnerRoleEnum
+    _$operatorReportDtoOutputEmployeesInnerRoleEnum_SALES_STAFF =
+    const OperatorReportDtoOutputEmployeesInnerRoleEnum._('SALES_STAFF');
 
 OperatorReportDtoOutputEmployeesInnerRoleEnum
     _$operatorReportDtoOutputEmployeesInnerRoleEnumValueOf(String name) {
@@ -25,6 +28,8 @@ OperatorReportDtoOutputEmployeesInnerRoleEnum
       return _$operatorReportDtoOutputEmployeesInnerRoleEnum_TICKET_STAFF;
     case 'SUPPORT_STAFF':
       return _$operatorReportDtoOutputEmployeesInnerRoleEnum_SUPPORT_STAFF;
+    case 'SALES_STAFF':
+      return _$operatorReportDtoOutputEmployeesInnerRoleEnum_SALES_STAFF;
     default:
       throw ArgumentError(name);
   }
@@ -36,6 +41,7 @@ final BuiltSet<OperatorReportDtoOutputEmployeesInnerRoleEnum>
   _$operatorReportDtoOutputEmployeesInnerRoleEnum_DRIVER,
   _$operatorReportDtoOutputEmployeesInnerRoleEnum_TICKET_STAFF,
   _$operatorReportDtoOutputEmployeesInnerRoleEnum_SUPPORT_STAFF,
+  _$operatorReportDtoOutputEmployeesInnerRoleEnum_SALES_STAFF,
 ]);
 
 Serializer<OperatorReportDtoOutputEmployeesInnerRoleEnum>
@@ -49,11 +55,13 @@ class _$OperatorReportDtoOutputEmployeesInnerRoleEnumSerializer
     'DRIVER': 'DRIVER',
     'TICKET_STAFF': 'TICKET_STAFF',
     'SUPPORT_STAFF': 'SUPPORT_STAFF',
+    'SALES_STAFF': 'SALES_STAFF',
   };
   static const Map<Object, String> _fromWire = const <Object, String>{
     'DRIVER': 'DRIVER',
     'TICKET_STAFF': 'TICKET_STAFF',
     'SUPPORT_STAFF': 'SUPPORT_STAFF',
+    'SALES_STAFF': 'SALES_STAFF',
   };
 
   @override

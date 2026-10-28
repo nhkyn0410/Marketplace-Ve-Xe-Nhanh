@@ -6,6 +6,32 @@ part of 'commission_rule_dto_output.dart';
 // BuiltValueGenerator
 // **************************************************************************
 
+const CommissionRuleDtoOutputChannelEnum
+    _$commissionRuleDtoOutputChannelEnum_ONLINE =
+    const CommissionRuleDtoOutputChannelEnum._('ONLINE');
+const CommissionRuleDtoOutputChannelEnum
+    _$commissionRuleDtoOutputChannelEnum_COUNTER =
+    const CommissionRuleDtoOutputChannelEnum._('COUNTER');
+
+CommissionRuleDtoOutputChannelEnum _$commissionRuleDtoOutputChannelEnumValueOf(
+    String name) {
+  switch (name) {
+    case 'ONLINE':
+      return _$commissionRuleDtoOutputChannelEnum_ONLINE;
+    case 'COUNTER':
+      return _$commissionRuleDtoOutputChannelEnum_COUNTER;
+    default:
+      throw ArgumentError(name);
+  }
+}
+
+final BuiltSet<CommissionRuleDtoOutputChannelEnum>
+    _$commissionRuleDtoOutputChannelEnumValues = BuiltSet<
+        CommissionRuleDtoOutputChannelEnum>(const <CommissionRuleDtoOutputChannelEnum>[
+  _$commissionRuleDtoOutputChannelEnum_ONLINE,
+  _$commissionRuleDtoOutputChannelEnum_COUNTER,
+]);
+
 const CommissionRuleDtoOutputStatusEnum
     _$commissionRuleDtoOutputStatusEnum_ACTIVE =
     const CommissionRuleDtoOutputStatusEnum._('ACTIVE');
@@ -70,12 +96,45 @@ final BuiltSet<CommissionRuleDtoOutputStateEnum>
   _$commissionRuleDtoOutputStateEnum_CANCELLED,
 ]);
 
+Serializer<CommissionRuleDtoOutputChannelEnum>
+    _$commissionRuleDtoOutputChannelEnumSerializer =
+    _$CommissionRuleDtoOutputChannelEnumSerializer();
 Serializer<CommissionRuleDtoOutputStatusEnum>
     _$commissionRuleDtoOutputStatusEnumSerializer =
     _$CommissionRuleDtoOutputStatusEnumSerializer();
 Serializer<CommissionRuleDtoOutputStateEnum>
     _$commissionRuleDtoOutputStateEnumSerializer =
     _$CommissionRuleDtoOutputStateEnumSerializer();
+
+class _$CommissionRuleDtoOutputChannelEnumSerializer
+    implements PrimitiveSerializer<CommissionRuleDtoOutputChannelEnum> {
+  static const Map<String, Object> _toWire = const <String, Object>{
+    'ONLINE': 'ONLINE',
+    'COUNTER': 'COUNTER',
+  };
+  static const Map<Object, String> _fromWire = const <Object, String>{
+    'ONLINE': 'ONLINE',
+    'COUNTER': 'COUNTER',
+  };
+
+  @override
+  final Iterable<Type> types = const <Type>[CommissionRuleDtoOutputChannelEnum];
+  @override
+  final String wireName = 'CommissionRuleDtoOutputChannelEnum';
+
+  @override
+  Object serialize(
+          Serializers serializers, CommissionRuleDtoOutputChannelEnum object,
+          {FullType specifiedType = FullType.unspecified}) =>
+      _toWire[object.name] ?? object.name;
+
+  @override
+  CommissionRuleDtoOutputChannelEnum deserialize(
+          Serializers serializers, Object serialized,
+          {FullType specifiedType = FullType.unspecified}) =>
+      CommissionRuleDtoOutputChannelEnum.valueOf(
+          _fromWire[serialized] ?? (serialized is String ? serialized : ''));
+}
 
 class _$CommissionRuleDtoOutputStatusEnumSerializer
     implements PrimitiveSerializer<CommissionRuleDtoOutputStatusEnum> {
@@ -147,6 +206,8 @@ class _$CommissionRuleDtoOutput extends CommissionRuleDtoOutput {
   @override
   final String operatorId;
   @override
+  final CommissionRuleDtoOutputChannelEnum channel;
+  @override
   final String operatorName;
   @override
   final String operatorSlug;
@@ -176,6 +237,7 @@ class _$CommissionRuleDtoOutput extends CommissionRuleDtoOutput {
   _$CommissionRuleDtoOutput._(
       {required this.id,
       required this.operatorId,
+      required this.channel,
       required this.operatorName,
       required this.operatorSlug,
       required this.rateBps,
@@ -203,6 +265,7 @@ class _$CommissionRuleDtoOutput extends CommissionRuleDtoOutput {
     return other is CommissionRuleDtoOutput &&
         id == other.id &&
         operatorId == other.operatorId &&
+        channel == other.channel &&
         operatorName == other.operatorName &&
         operatorSlug == other.operatorSlug &&
         rateBps == other.rateBps &&
@@ -221,6 +284,7 @@ class _$CommissionRuleDtoOutput extends CommissionRuleDtoOutput {
     var _$hash = 0;
     _$hash = $jc(_$hash, id.hashCode);
     _$hash = $jc(_$hash, operatorId.hashCode);
+    _$hash = $jc(_$hash, channel.hashCode);
     _$hash = $jc(_$hash, operatorName.hashCode);
     _$hash = $jc(_$hash, operatorSlug.hashCode);
     _$hash = $jc(_$hash, rateBps.hashCode);
@@ -241,6 +305,7 @@ class _$CommissionRuleDtoOutput extends CommissionRuleDtoOutput {
     return (newBuiltValueToStringHelper(r'CommissionRuleDtoOutput')
           ..add('id', id)
           ..add('operatorId', operatorId)
+          ..add('channel', channel)
           ..add('operatorName', operatorName)
           ..add('operatorSlug', operatorSlug)
           ..add('rateBps', rateBps)
@@ -268,6 +333,11 @@ class CommissionRuleDtoOutputBuilder
   String? _operatorId;
   String? get operatorId => _$this._operatorId;
   set operatorId(String? operatorId) => _$this._operatorId = operatorId;
+
+  CommissionRuleDtoOutputChannelEnum? _channel;
+  CommissionRuleDtoOutputChannelEnum? get channel => _$this._channel;
+  set channel(CommissionRuleDtoOutputChannelEnum? channel) =>
+      _$this._channel = channel;
 
   String? _operatorName;
   String? get operatorName => _$this._operatorName;
@@ -324,6 +394,7 @@ class CommissionRuleDtoOutputBuilder
     if ($v != null) {
       _id = $v.id;
       _operatorId = $v.operatorId;
+      _channel = $v.channel;
       _operatorName = $v.operatorName;
       _operatorSlug = $v.operatorSlug;
       _rateBps = $v.rateBps;
@@ -360,6 +431,8 @@ class CommissionRuleDtoOutputBuilder
               id, r'CommissionRuleDtoOutput', 'id'),
           operatorId: BuiltValueNullFieldError.checkNotNull(
               operatorId, r'CommissionRuleDtoOutput', 'operatorId'),
+          channel: BuiltValueNullFieldError.checkNotNull(
+              channel, r'CommissionRuleDtoOutput', 'channel'),
           operatorName: BuiltValueNullFieldError.checkNotNull(
               operatorName, r'CommissionRuleDtoOutput', 'operatorName'),
           operatorSlug: BuiltValueNullFieldError.checkNotNull(

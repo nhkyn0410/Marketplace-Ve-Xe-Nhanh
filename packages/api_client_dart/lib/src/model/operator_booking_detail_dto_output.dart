@@ -81,7 +81,7 @@ abstract class OperatorBookingDetailDtoOutput implements Built<OperatorBookingDe
   OperatorBookingPageDtoOutputItemsInnerPayment? get payment;
 
   @BuiltValueField(wireName: r'contactEmailMasked')
-  String get contactEmailMasked;
+  String? get contactEmailMasked;
 
   @BuiltValueField(wireName: r'note')
   String? get note;
@@ -198,9 +198,9 @@ class _$OperatorBookingDetailDtoOutputSerializer implements PrimitiveSerializer<
       specifiedType: const FullType.nullable(OperatorBookingPageDtoOutputItemsInnerPayment),
     );
     yield r'contactEmailMasked';
-    yield serializers.serialize(
+    yield object.contactEmailMasked == null ? null : serializers.serialize(
       object.contactEmailMasked,
-      specifiedType: const FullType(String),
+      specifiedType: const FullType.nullable(String),
     );
     yield r'note';
     yield object.note == null ? null : serializers.serialize(
@@ -363,8 +363,9 @@ class _$OperatorBookingDetailDtoOutputSerializer implements PrimitiveSerializer<
         case r'contactEmailMasked':
           final valueDes = serializers.deserialize(
             value,
-            specifiedType: const FullType(String),
-          ) as String;
+            specifiedType: const FullType.nullable(String),
+          ) as String?;
+          if (valueDes == null) continue;
           result.contactEmailMasked = valueDes;
           break;
         case r'note':

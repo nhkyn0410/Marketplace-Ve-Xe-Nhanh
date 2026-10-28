@@ -67,6 +67,29 @@ const AdminPlatformPermissionsUpdateDtoPermissionsEnum
     _$adminPlatformPermissionsUpdateDtoPermissionsEnum_tripColonManage =
     const AdminPlatformPermissionsUpdateDtoPermissionsEnum._('tripColonManage');
 const AdminPlatformPermissionsUpdateDtoPermissionsEnum
+    _$adminPlatformPermissionsUpdateDtoPermissionsEnum_tripColonDispatch =
+    const AdminPlatformPermissionsUpdateDtoPermissionsEnum._(
+        'tripColonDispatch');
+const AdminPlatformPermissionsUpdateDtoPermissionsEnum
+    _$adminPlatformPermissionsUpdateDtoPermissionsEnum_officeColonManage =
+    const AdminPlatformPermissionsUpdateDtoPermissionsEnum._(
+        'officeColonManage');
+const AdminPlatformPermissionsUpdateDtoPermissionsEnum
+    _$adminPlatformPermissionsUpdateDtoPermissionsEnum_officeColonRead =
+    const AdminPlatformPermissionsUpdateDtoPermissionsEnum._('officeColonRead');
+const AdminPlatformPermissionsUpdateDtoPermissionsEnum
+    _$adminPlatformPermissionsUpdateDtoPermissionsEnum_counterColonSell =
+    const AdminPlatformPermissionsUpdateDtoPermissionsEnum._(
+        'counterColonSell');
+const AdminPlatformPermissionsUpdateDtoPermissionsEnum
+    _$adminPlatformPermissionsUpdateDtoPermissionsEnum_counterColonCollect =
+    const AdminPlatformPermissionsUpdateDtoPermissionsEnum._(
+        'counterColonCollect');
+const AdminPlatformPermissionsUpdateDtoPermissionsEnum
+    _$adminPlatformPermissionsUpdateDtoPermissionsEnum_counterColonRead =
+    const AdminPlatformPermissionsUpdateDtoPermissionsEnum._(
+        'counterColonRead');
+const AdminPlatformPermissionsUpdateDtoPermissionsEnum
     _$adminPlatformPermissionsUpdateDtoPermissionsEnum_checkinColonPerform =
     const AdminPlatformPermissionsUpdateDtoPermissionsEnum._(
         'checkinColonPerform');
@@ -209,6 +232,18 @@ AdminPlatformPermissionsUpdateDtoPermissionsEnum
       return _$adminPlatformPermissionsUpdateDtoPermissionsEnum_routeColonManage;
     case 'tripColonManage':
       return _$adminPlatformPermissionsUpdateDtoPermissionsEnum_tripColonManage;
+    case 'tripColonDispatch':
+      return _$adminPlatformPermissionsUpdateDtoPermissionsEnum_tripColonDispatch;
+    case 'officeColonManage':
+      return _$adminPlatformPermissionsUpdateDtoPermissionsEnum_officeColonManage;
+    case 'officeColonRead':
+      return _$adminPlatformPermissionsUpdateDtoPermissionsEnum_officeColonRead;
+    case 'counterColonSell':
+      return _$adminPlatformPermissionsUpdateDtoPermissionsEnum_counterColonSell;
+    case 'counterColonCollect':
+      return _$adminPlatformPermissionsUpdateDtoPermissionsEnum_counterColonCollect;
+    case 'counterColonRead':
+      return _$adminPlatformPermissionsUpdateDtoPermissionsEnum_counterColonRead;
     case 'checkinColonPerform':
       return _$adminPlatformPermissionsUpdateDtoPermissionsEnum_checkinColonPerform;
     case 'checkinColonRead':
@@ -289,6 +324,12 @@ final BuiltSet<AdminPlatformPermissionsUpdateDtoPermissionsEnum>
   _$adminPlatformPermissionsUpdateDtoPermissionsEnum_vehicleColonRead,
   _$adminPlatformPermissionsUpdateDtoPermissionsEnum_routeColonManage,
   _$adminPlatformPermissionsUpdateDtoPermissionsEnum_tripColonManage,
+  _$adminPlatformPermissionsUpdateDtoPermissionsEnum_tripColonDispatch,
+  _$adminPlatformPermissionsUpdateDtoPermissionsEnum_officeColonManage,
+  _$adminPlatformPermissionsUpdateDtoPermissionsEnum_officeColonRead,
+  _$adminPlatformPermissionsUpdateDtoPermissionsEnum_counterColonSell,
+  _$adminPlatformPermissionsUpdateDtoPermissionsEnum_counterColonCollect,
+  _$adminPlatformPermissionsUpdateDtoPermissionsEnum_counterColonRead,
   _$adminPlatformPermissionsUpdateDtoPermissionsEnum_checkinColonPerform,
   _$adminPlatformPermissionsUpdateDtoPermissionsEnum_checkinColonRead,
   _$adminPlatformPermissionsUpdateDtoPermissionsEnum_tripColonOperate,
@@ -343,6 +384,12 @@ class _$AdminPlatformPermissionsUpdateDtoPermissionsEnumSerializer
     'vehicleColonRead': 'vehicle:read',
     'routeColonManage': 'route:manage',
     'tripColonManage': 'trip:manage',
+    'tripColonDispatch': 'trip:dispatch',
+    'officeColonManage': 'office:manage',
+    'officeColonRead': 'office:read',
+    'counterColonSell': 'counter:sell',
+    'counterColonCollect': 'counter:collect',
+    'counterColonRead': 'counter:read',
     'checkinColonPerform': 'checkin:perform',
     'checkinColonRead': 'checkin:read',
     'tripColonOperate': 'trip:operate',
@@ -389,6 +436,12 @@ class _$AdminPlatformPermissionsUpdateDtoPermissionsEnumSerializer
     'vehicle:read': 'vehicleColonRead',
     'route:manage': 'routeColonManage',
     'trip:manage': 'tripColonManage',
+    'trip:dispatch': 'tripColonDispatch',
+    'office:manage': 'officeColonManage',
+    'office:read': 'officeColonRead',
+    'counter:sell': 'counterColonSell',
+    'counter:collect': 'counterColonCollect',
+    'counter:read': 'counterColonRead',
     'checkin:perform': 'checkinColonPerform',
     'checkin:read': 'checkinColonRead',
     'trip:operate': 'tripColonOperate',

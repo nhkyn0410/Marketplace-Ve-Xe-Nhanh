@@ -15,6 +15,9 @@ const EmployeeAccountResponseDtoOutputRoleEnum
 const EmployeeAccountResponseDtoOutputRoleEnum
     _$employeeAccountResponseDtoOutputRoleEnum_SUPPORT_STAFF =
     const EmployeeAccountResponseDtoOutputRoleEnum._('SUPPORT_STAFF');
+const EmployeeAccountResponseDtoOutputRoleEnum
+    _$employeeAccountResponseDtoOutputRoleEnum_SALES_STAFF =
+    const EmployeeAccountResponseDtoOutputRoleEnum._('SALES_STAFF');
 
 EmployeeAccountResponseDtoOutputRoleEnum
     _$employeeAccountResponseDtoOutputRoleEnumValueOf(String name) {
@@ -25,6 +28,8 @@ EmployeeAccountResponseDtoOutputRoleEnum
       return _$employeeAccountResponseDtoOutputRoleEnum_TICKET_STAFF;
     case 'SUPPORT_STAFF':
       return _$employeeAccountResponseDtoOutputRoleEnum_SUPPORT_STAFF;
+    case 'SALES_STAFF':
+      return _$employeeAccountResponseDtoOutputRoleEnum_SALES_STAFF;
     default:
       throw ArgumentError(name);
   }
@@ -36,6 +41,7 @@ final BuiltSet<EmployeeAccountResponseDtoOutputRoleEnum>
   _$employeeAccountResponseDtoOutputRoleEnum_DRIVER,
   _$employeeAccountResponseDtoOutputRoleEnum_TICKET_STAFF,
   _$employeeAccountResponseDtoOutputRoleEnum_SUPPORT_STAFF,
+  _$employeeAccountResponseDtoOutputRoleEnum_SALES_STAFF,
 ]);
 
 const EmployeeAccountResponseDtoOutputStatusEnum
@@ -83,11 +89,13 @@ class _$EmployeeAccountResponseDtoOutputRoleEnumSerializer
     'DRIVER': 'DRIVER',
     'TICKET_STAFF': 'TICKET_STAFF',
     'SUPPORT_STAFF': 'SUPPORT_STAFF',
+    'SALES_STAFF': 'SALES_STAFF',
   };
   static const Map<Object, String> _fromWire = const <Object, String>{
     'DRIVER': 'DRIVER',
     'TICKET_STAFF': 'TICKET_STAFF',
     'SUPPORT_STAFF': 'SUPPORT_STAFF',
+    'SALES_STAFF': 'SALES_STAFF',
   };
 
   @override

@@ -15,7 +15,8 @@ export const MANAGER_PERMISSION_GROUPS: PermissionGroup<ManagerPermission>[] = [
     items: [
       { permission: "vehicle:manage", label: "Phương tiện & sơ đồ ghế", description: "Thêm, sửa xe, ảnh xe và sơ đồ ghế." },
       { permission: "route:manage", label: "Tuyến & điểm dừng", description: "Tuyến đường, điểm dừng riêng, đề xuất điểm dừng." },
-      { permission: "trip:manage", label: "Chuyến xe & bảng giá", description: "Tạo, mở bán, khóa, hủy chuyến; lịch chạy; bảng giá." }
+      { permission: "trip:manage", label: "Chuyến xe & bảng giá", description: "Tạo, mở bán, khóa, hủy chuyến; lịch chạy; bảng giá." },
+      { permission: "trip:dispatch", label: "Xác nhận khởi hành", description: "Xác nhận xe thực sự khởi hành; kết thúc khả năng bán vé tại quầy." }
     ]
   },
   {
@@ -37,7 +38,7 @@ export const MANAGER_PERMISSION_GROUPS: PermissionGroup<ManagerPermission>[] = [
 
 export const MANAGER_TEMPLATES: PermissionTemplate<ManagerPermission>[] = [
   { id: "all", label: "Đủ quyền quản lý", permissions: "all" },
-  { id: "operations", label: "Điều hành", permissions: ["vehicle:manage", "route:manage", "trip:manage", "employee:manage", "booking:read"] },
+  { id: "operations", label: "Điều hành", permissions: ["vehicle:manage", "route:manage", "trip:manage", "trip:dispatch", "employee:manage", "booking:read"] },
   { id: "sales", label: "Bán vé & CSKH", permissions: ["booking:read", "support:respond", "promotion:manage"] },
   { id: "finance", label: "Kế toán", permissions: ["finance:read", "booking:read"] }
 ];

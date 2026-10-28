@@ -16,6 +16,9 @@ const ManagerListDtoOutputItemsInnerPermissionsEnum
     _$managerListDtoOutputItemsInnerPermissionsEnum_tripColonManage =
     const ManagerListDtoOutputItemsInnerPermissionsEnum._('tripColonManage');
 const ManagerListDtoOutputItemsInnerPermissionsEnum
+    _$managerListDtoOutputItemsInnerPermissionsEnum_tripColonDispatch =
+    const ManagerListDtoOutputItemsInnerPermissionsEnum._('tripColonDispatch');
+const ManagerListDtoOutputItemsInnerPermissionsEnum
     _$managerListDtoOutputItemsInnerPermissionsEnum_bookingColonRead =
     const ManagerListDtoOutputItemsInnerPermissionsEnum._('bookingColonRead');
 const ManagerListDtoOutputItemsInnerPermissionsEnum
@@ -43,6 +46,8 @@ ManagerListDtoOutputItemsInnerPermissionsEnum
       return _$managerListDtoOutputItemsInnerPermissionsEnum_routeColonManage;
     case 'tripColonManage':
       return _$managerListDtoOutputItemsInnerPermissionsEnum_tripColonManage;
+    case 'tripColonDispatch':
+      return _$managerListDtoOutputItemsInnerPermissionsEnum_tripColonDispatch;
     case 'bookingColonRead':
       return _$managerListDtoOutputItemsInnerPermissionsEnum_bookingColonRead;
     case 'financeColonRead':
@@ -64,6 +69,7 @@ final BuiltSet<ManagerListDtoOutputItemsInnerPermissionsEnum>
   _$managerListDtoOutputItemsInnerPermissionsEnum_vehicleColonManage,
   _$managerListDtoOutputItemsInnerPermissionsEnum_routeColonManage,
   _$managerListDtoOutputItemsInnerPermissionsEnum_tripColonManage,
+  _$managerListDtoOutputItemsInnerPermissionsEnum_tripColonDispatch,
   _$managerListDtoOutputItemsInnerPermissionsEnum_bookingColonRead,
   _$managerListDtoOutputItemsInnerPermissionsEnum_financeColonRead,
   _$managerListDtoOutputItemsInnerPermissionsEnum_employeeColonManage,
@@ -117,6 +123,7 @@ class _$ManagerListDtoOutputItemsInnerPermissionsEnumSerializer
     'vehicleColonManage': 'vehicle:manage',
     'routeColonManage': 'route:manage',
     'tripColonManage': 'trip:manage',
+    'tripColonDispatch': 'trip:dispatch',
     'bookingColonRead': 'booking:read',
     'financeColonRead': 'finance:read',
     'employeeColonManage': 'employee:manage',
@@ -127,6 +134,7 @@ class _$ManagerListDtoOutputItemsInnerPermissionsEnumSerializer
     'vehicle:manage': 'vehicleColonManage',
     'route:manage': 'routeColonManage',
     'trip:manage': 'tripColonManage',
+    'trip:dispatch': 'tripColonDispatch',
     'booking:read': 'bookingColonRead',
     'finance:read': 'financeColonRead',
     'employee:manage': 'employeeColonManage',

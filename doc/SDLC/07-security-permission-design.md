@@ -13,7 +13,7 @@
 | Người viết    | Nguyễn Hồng Khanh, AI Agent   |
 | Người duyệt   | Nguyễn Hồng Khanh             |
 | Ngày tạo      | 11/05/2026                    |
-| Ngày cập nhật | 27/10/2026                    |
+| Ngày cập nhật | 28/10/2026                    |
 
 ### 1.2. Lịch sử thay đổi
 
@@ -199,6 +199,19 @@ RBAC 8-role hardcoded enum v1 (Anonymous / Passenger / OperatorOwner / Driver / 
 | Phân quyền theo tài khoản (FR-IAM-07) | Không | Không | `manager:manage` (Owner): cấp / khóa / cấp lại mật khẩu / đặt lại 2FA / tick quyền **tài khoản quản lý** (`OPERATOR_MANAGER`, dùng Operator OS, TOTP bắt buộc). Trần = quyền Owner trừ `kyc:submit` (hồ sơ, giấy tờ, tài khoản nhận tiền) và `manager:manage`; mọi tài khoản dùng OS có sẵn `transport:read` (xem xe / tuyến / chuyến / bảng giá) | Không | `access:manage` (PlatformAdmin): cấp / khóa / cấp lại mật khẩu / đặt lại 2FA / tick quyền tài khoản quản trị trong trần của vai trò. Chỉ cấp / gỡ quyền mình đang có (đọc lại từ DB); không tự sửa mình; luôn còn ≥ 1 tài khoản hoạt động có `access:manage`. Đổi quyền tăng `auth_epoch` + thu hồi mọi phiên → hiệu lực ngay (chờ duyệt — `IAM-007-todo.md`) |
 
 ---
+
+### COUNTER-SALES — Phân quyền mở rộng (Khanh 27/10/2026)
+
+RBAC bổ sung role `SALES_STAFF` (tổng10 gồm Anonymous), lưu trong `EmployeeAccount`, khác `TICKET_STAFF` soát vé. Nhà xe cấp/khóa/cấp lại mật khẩu và thu hồi phiên bằng luồng nhân viên hiện có. Cổng `/auth/counter/login` chỉ nhận Owner/nhân viên bán vé; cùng3 namespace, không thêm identity store. Owner giữ MFA; nhân viên giữ chính sách đổi mật khẩu tạm và kiểm trạng thái phiên/tenant. Cookie quầy dùng Origin Operator + CSRF như Operator OS.
+
+| Quyền | Owner | SALES_STAFF | OPERATOR_MANAGER |
+| --- | --- | --- | --- |
+| `office:manage` | Tenant | Không | Không |
+| `office:read` | Mọi office tenant | Chỉ office hoạt động được phân công | Không |
+| `counter:sell`, `counter:collect`, `counter:read` | Mọi office tenant | Chỉ office được phân công | Không |
+| `trip:dispatch` | Tenant | Không | Chỉ khi Owner cấp quyền riêng |
+
+Sales staff không có check-in/vận hành chuyến mặc định; driver/check-in/support không có quyền bán/thu quầy. Service kiểm assignment trên server cùng tenant filter và RLS; không tin office/channel/seller từ client. Public hold/booking/payment không được tiêu thụ hold quầy hoặc đổi kênh để hưởng phí thấp. Khoản thu và sổ phí append-only; cấu hình/thu hoa hồng Platform yêu cầu đúng quyền, thu phí có reauth và audit. Hoàn/chốt ca chưa được cấp thêm quyền trong phạm vi này.
 
 ## 8. Sensitive action control
 

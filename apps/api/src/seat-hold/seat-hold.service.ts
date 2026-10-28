@@ -134,7 +134,7 @@ export class SeatHoldService {
   private async owned(user: VerifiedAccessToken | null, holdId: string): Promise<HoldRecord> {
     const record = await this.redisCall(() => readHold(this.redis, holdId));
     // Giữ chỗ của hành khách khác = không tồn tại (không lộ việc holdId có thật).
-    if (!record || (record.userId !== null && record.userId !== user?.sub)) {
+    if (!record || record.counter || (record.userId !== null && record.userId !== user?.sub)) {
       throw seatHoldExpired();
     }
     return record;
@@ -180,7 +180,7 @@ function toResponse(record: HoldRecord): SeatHoldResponse {
     pickup: record.pickup,
     dropoff: record.dropoff,
     seats: record.seats as SeatHoldResponse["seats"],
-    subtotal: record.subtotal,
+    subtotal: record.subtotal as number,
     expiresAt: record.expiresAt,
   };
 }

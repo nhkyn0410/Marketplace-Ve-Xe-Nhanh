@@ -267,13 +267,17 @@ Serializers _$serializers = (Serializers().toBuilder()
       ..add(ClassifyInputDtoHandlerEnum.serializer)
       ..add(ClassifyInputDtoPriorityEnum.serializer)
       ..add(CommissionOverviewDtoOutput.serializer)
+      ..add(CommissionOverviewDtoOutputCounterDefaultRateBpsEnum.serializer)
       ..add(CommissionOverviewDtoOutputDefault.serializer)
       ..add(CommissionOverviewDtoOutputOverridesInner.serializer)
+      ..add(CommissionOverviewDtoOutputOverridesInnerChannelEnum.serializer)
       ..add(CommissionOverviewDtoOutputOverridesInnerStateEnum.serializer)
       ..add(CommissionOverviewDtoOutputOverridesInnerStatusEnum.serializer)
       ..add(CommissionRuleCancelDto.serializer)
       ..add(CommissionRuleCreateDto.serializer)
+      ..add(CommissionRuleCreateDtoChannelEnum.serializer)
       ..add(CommissionRuleDtoOutput.serializer)
+      ..add(CommissionRuleDtoOutputChannelEnum.serializer)
       ..add(CommissionRuleDtoOutputStateEnum.serializer)
       ..add(CommissionRuleDtoOutputStatusEnum.serializer)
       ..add(CommissionRuleUpdateDto.serializer)
@@ -294,6 +298,41 @@ Serializers _$serializers = (Serializers().toBuilder()
       ..add(ContentPagePageDtoOutputItemsInnerTypeEnum.serializer)
       ..add(ContentPageStatusInputDto.serializer)
       ..add(ContentPageStatusInputDtoStatusEnum.serializer)
+      ..add(CounterBookingDtoOutput.serializer)
+      ..add(CounterBookingDtoOutputContact.serializer)
+      ..add(CounterBookingDtoOutputPassengersInner.serializer)
+      ..add(CounterBookingDtoOutputReceiptsInner.serializer)
+      ..add(CounterBookingDtoOutputReceiptsInnerMethodEnum.serializer)
+      ..add(CounterBookingDtoOutputReceiptsInnerStatusEnum.serializer)
+      ..add(CounterBookingDtoOutputTicketsInner.serializer)
+      ..add(CounterBookingDtoOutputTrip.serializer)
+      ..add(CounterBookingInputDto.serializer)
+      ..add(CounterBookingInputDtoContact.serializer)
+      ..add(CounterBookingInputDtoPassengersInner.serializer)
+      ..add(CounterBookingListDtoOutput.serializer)
+      ..add(CounterBookingListDtoOutputItemsInner.serializer)
+      ..add(CounterCommissionOverviewDtoOutput.serializer)
+      ..add(CounterCommissionOverviewDtoOutputItemsInner.serializer)
+      ..add(CounterCommissionOverviewDtoOutputSettlementsInner.serializer)
+      ..add(CounterCommissionSettlementDtoOutput.serializer)
+      ..add(CounterCommissionSettlementInputDto.serializer)
+      ..add(CounterHoldDtoOutput.serializer)
+      ..add(CounterHoldDtoOutputPickup.serializer)
+      ..add(CounterHoldDtoOutputSeatsInner.serializer)
+      ..add(CounterHoldDtoOutputSeatsInnerTypeEnum.serializer)
+      ..add(CounterHoldInputDto.serializer)
+      ..add(CounterReceiptInputDto.serializer)
+      ..add(CounterReceiptInputDtoMethodEnum.serializer)
+      ..add(CounterReceiptResultDtoOutput.serializer)
+      ..add(CounterReceiptResultDtoOutputStatusEnum.serializer)
+      ..add(CounterReportDtoOutput.serializer)
+      ..add(CounterReportDtoOutputSellersInner.serializer)
+      ..add(CounterTripListDtoOutput.serializer)
+      ..add(CounterTripListDtoOutputItemsInner.serializer)
+      ..add(CounterTripListDtoOutputItemsInnerSeatsInner.serializer)
+      ..add(CounterTripListDtoOutputItemsInnerSeatsInnerTypeEnum.serializer)
+      ..add(CounterTripListDtoOutputItemsInnerStatusEnum.serializer)
+      ..add(CounterTripListDtoOutputItemsInnerStopsInner.serializer)
       ..add(CreatedBookingDtoOutput.serializer)
       ..add(CreatedBookingDtoOutputContact.serializer)
       ..add(CreatedBookingDtoOutputDiscountFundingEnum.serializer)
@@ -755,6 +794,15 @@ Serializers _$serializers = (Serializers().toBuilder()
       ..add(RouteResponseDtoOutputStopsInner.serializer)
       ..add(RouteResponseDtoOutputStopsInnerRoleEnum.serializer)
       ..add(RouteResponseDtoOutputStopsInnerTypeEnum.serializer)
+      ..add(SalesOfficeAssignmentsDtoOutput.serializer)
+      ..add(SalesOfficeAssignmentsDtoOutputItemsInner.serializer)
+      ..add(SalesOfficeAssignmentsDtoOutputItemsInnerStatusEnum.serializer)
+      ..add(SalesOfficeAssignmentsInputDto.serializer)
+      ..add(SalesOfficeDtoOutput.serializer)
+      ..add(SalesOfficeInputDto.serializer)
+      ..add(SalesOfficeListDtoOutput.serializer)
+      ..add(SalesOfficeListDtoOutputItemsInner.serializer)
+      ..add(SalesOfficeUpdateDto.serializer)
       ..add(SaveVoucherInputDto.serializer)
       ..add(SavedPassengerDtoOutput.serializer)
       ..add(SavedPassengerInputDto.serializer)
@@ -762,7 +810,6 @@ Serializers _$serializers = (Serializers().toBuilder()
       ..add(SavedPassengerListDtoOutputItemsInner.serializer)
       ..add(SeatHoldInputDto.serializer)
       ..add(SeatHoldResponseDtoOutput.serializer)
-      ..add(SeatHoldResponseDtoOutputPickup.serializer)
       ..add(SeatHoldResponseDtoOutputSeatsInner.serializer)
       ..add(SeatHoldResponseDtoOutputSeatsInnerTypeEnum.serializer)
       ..add(SeatMapInputDto.serializer)
@@ -845,6 +892,8 @@ Serializers _$serializers = (Serializers().toBuilder()
       ..add(TripAssignmentPageDtoOutputItemsInnerStatusEnum.serializer)
       ..add(TripChangeInputDto.serializer)
       ..add(TripChangeInputDtoStopsInner.serializer)
+      ..add(TripDepartureDtoOutput.serializer)
+      ..add(TripDepartureInputDto.serializer)
       ..add(TripInputDto.serializer)
       ..add(TripListResponseDtoOutput.serializer)
       ..add(TripListResponseDtoOutputItemsInner.serializer)
@@ -1202,6 +1251,71 @@ Serializers _$serializers = (Serializers().toBuilder()
           const FullType(BuiltList,
               const [const FullType(ContentPagePageDtoOutputItemsInner)]),
           () => ListBuilder<ContentPagePageDtoOutputItemsInner>())
+      ..addBuilderFactory(
+          const FullType(BuiltList,
+              const [const FullType(CounterBookingDtoOutputPassengersInner)]),
+          () => ListBuilder<CounterBookingDtoOutputPassengersInner>())
+      ..addBuilderFactory(
+          const FullType(BuiltList,
+              const [const FullType(CounterBookingDtoOutputTicketsInner)]),
+          () => ListBuilder<CounterBookingDtoOutputTicketsInner>())
+      ..addBuilderFactory(
+          const FullType(BuiltList,
+              const [const FullType(CounterBookingDtoOutputReceiptsInner)]),
+          () => ListBuilder<CounterBookingDtoOutputReceiptsInner>())
+      ..addBuilderFactory(
+          const FullType(BuiltList,
+              const [const FullType(CounterBookingDtoOutputPassengersInner)]),
+          () => ListBuilder<CounterBookingDtoOutputPassengersInner>())
+      ..addBuilderFactory(
+          const FullType(BuiltList,
+              const [const FullType(CounterBookingDtoOutputTicketsInner)]),
+          () => ListBuilder<CounterBookingDtoOutputTicketsInner>())
+      ..addBuilderFactory(
+          const FullType(BuiltList,
+              const [const FullType(CounterBookingDtoOutputReceiptsInner)]),
+          () => ListBuilder<CounterBookingDtoOutputReceiptsInner>())
+      ..addBuilderFactory(
+          const FullType(BuiltList,
+              const [const FullType(CounterBookingInputDtoPassengersInner)]),
+          () => ListBuilder<CounterBookingInputDtoPassengersInner>())
+      ..addBuilderFactory(
+          const FullType(BuiltList,
+              const [const FullType(CounterBookingListDtoOutputItemsInner)]),
+          () => ListBuilder<CounterBookingListDtoOutputItemsInner>())
+      ..addBuilderFactory(
+          const FullType(BuiltList, const [
+            const FullType(CounterCommissionOverviewDtoOutputItemsInner)
+          ]),
+          () => ListBuilder<CounterCommissionOverviewDtoOutputItemsInner>())
+      ..addBuilderFactory(
+          const FullType(BuiltList, const [
+            const FullType(CounterCommissionOverviewDtoOutputSettlementsInner)
+          ]),
+          () =>
+              ListBuilder<CounterCommissionOverviewDtoOutputSettlementsInner>())
+      ..addBuilderFactory(
+          const FullType(BuiltList,
+              const [const FullType(CounterHoldDtoOutputSeatsInner)]),
+          () => ListBuilder<CounterHoldDtoOutputSeatsInner>())
+      ..addBuilderFactory(
+          const FullType(BuiltList,
+              const [const FullType(CounterReportDtoOutputSellersInner)]),
+          () => ListBuilder<CounterReportDtoOutputSellersInner>())
+      ..addBuilderFactory(
+          const FullType(BuiltList,
+              const [const FullType(CounterTripListDtoOutputItemsInner)]),
+          () => ListBuilder<CounterTripListDtoOutputItemsInner>())
+      ..addBuilderFactory(
+          const FullType(BuiltList, const [
+            const FullType(CounterTripListDtoOutputItemsInnerStopsInner)
+          ]),
+          () => ListBuilder<CounterTripListDtoOutputItemsInnerStopsInner>())
+      ..addBuilderFactory(
+          const FullType(BuiltList, const [
+            const FullType(CounterTripListDtoOutputItemsInnerSeatsInner)
+          ]),
+          () => ListBuilder<CounterTripListDtoOutputItemsInnerSeatsInner>())
       ..addBuilderFactory(
           const FullType(BuiltList,
               const [const FullType(CreatedBookingDtoOutputPassengersInner)]),
@@ -1599,6 +1713,15 @@ Serializers _$serializers = (Serializers().toBuilder()
               const [const FullType(RouteResponseDtoOutputStopsInner)]),
           () => ListBuilder<RouteResponseDtoOutputStopsInner>())
       ..addBuilderFactory(
+          const FullType(BuiltList, const [
+            const FullType(SalesOfficeAssignmentsDtoOutputItemsInner)
+          ]),
+          () => ListBuilder<SalesOfficeAssignmentsDtoOutputItemsInner>())
+      ..addBuilderFactory(
+          const FullType(BuiltList,
+              const [const FullType(SalesOfficeListDtoOutputItemsInner)]),
+          () => ListBuilder<SalesOfficeListDtoOutputItemsInner>())
+      ..addBuilderFactory(
           const FullType(BuiltList,
               const [const FullType(SavedPassengerListDtoOutputItemsInner)]),
           () => ListBuilder<SavedPassengerListDtoOutputItemsInner>())
@@ -1639,6 +1762,12 @@ Serializers _$serializers = (Serializers().toBuilder()
             const FullType(StopPointProposalListResponseDtoOutputItemsInner)
           ]),
           () => ListBuilder<StopPointProposalListResponseDtoOutputItemsInner>())
+      ..addBuilderFactory(
+          const FullType(BuiltList, const [const FullType(String)]),
+          () => ListBuilder<String>())
+      ..addBuilderFactory(
+          const FullType(BuiltList, const [const FullType(String)]),
+          () => ListBuilder<String>())
       ..addBuilderFactory(
           const FullType(BuiltList, const [const FullType(String)]),
           () => ListBuilder<String>())

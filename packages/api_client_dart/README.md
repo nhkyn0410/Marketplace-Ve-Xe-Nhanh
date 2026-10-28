@@ -101,6 +101,8 @@ Class | Method | HTTP request | Description
 [*AdminContentPagesApi*](doc/AdminContentPagesApi.md) | [**adminContentPageControllerList**](doc/AdminContentPagesApi.md#admincontentpagecontrollerlist) | **GET** /v1/admin/content-pages | 
 [*AdminContentPagesApi*](doc/AdminContentPagesApi.md) | [**adminContentPageControllerSetStatus**](doc/AdminContentPagesApi.md#admincontentpagecontrollersetstatus) | **PUT** /v1/admin/content-pages/{id}/status | 
 [*AdminContentPagesApi*](doc/AdminContentPagesApi.md) | [**adminContentPageControllerUpdate**](doc/AdminContentPagesApi.md#admincontentpagecontrollerupdate) | **PUT** /v1/admin/content-pages/{id} | 
+[*AdminCounterCommissionsApi*](doc/AdminCounterCommissionsApi.md) | [**counterCommissionControllerOverview**](doc/AdminCounterCommissionsApi.md#countercommissioncontrolleroverview) | **GET** /v1/admin/counter-commissions | 
+[*AdminCounterCommissionsApi*](doc/AdminCounterCommissionsApi.md) | [**counterCommissionControllerSettle**](doc/AdminCounterCommissionsApi.md#countercommissioncontrollersettle) | **POST** /v1/admin/counter-commissions/settlements | 
 [*AdminDisputesApi*](doc/AdminDisputesApi.md) | [**adminDisputeControllerDecide**](doc/AdminDisputesApi.md#admindisputecontrollerdecide) | **POST** /v1/admin/disputes/{disputeId}/decision | 
 [*AdminDisputesApi*](doc/AdminDisputesApi.md) | [**adminDisputeControllerEscalate**](doc/AdminDisputesApi.md#admindisputecontrollerescalate) | **POST** /v1/admin/support-tickets/{ticketId}/escalate | 
 [*AdminDisputesApi*](doc/AdminDisputesApi.md) | [**adminDisputeControllerGet**](doc/AdminDisputesApi.md#admindisputecontrollerget) | **GET** /v1/admin/disputes/{disputeId} | 
@@ -206,6 +208,7 @@ Class | Method | HTTP request | Description
 [*ArticlesApi*](doc/ArticlesApi.md) | [**articleControllerListCategories**](doc/ArticlesApi.md#articlecontrollerlistcategories) | **GET** /v1/article-categories | 
 [*ArticlesApi*](doc/ArticlesApi.md) | [**articleControllerRecordView**](doc/ArticlesApi.md#articlecontrollerrecordview) | **POST** /v1/articles/{slug}/views | 
 [*AuthApi*](doc/AuthApi.md) | [**authControllerChangeRequiredPassword**](doc/AuthApi.md#authcontrollerchangerequiredpassword) | **POST** /v1/auth/password/change-required | 
+[*AuthApi*](doc/AuthApi.md) | [**authControllerCounterLogin**](doc/AuthApi.md#authcontrollercounterlogin) | **POST** /v1/auth/counter/login | 
 [*AuthApi*](doc/AuthApi.md) | [**authControllerCsrf**](doc/AuthApi.md#authcontrollercsrf) | **GET** /v1/auth/csrf | 
 [*AuthApi*](doc/AuthApi.md) | [**authControllerEmployeeLogin**](doc/AuthApi.md#authcontrolleremployeelogin) | **POST** /v1/auth/employee/login | 
 [*AuthApi*](doc/AuthApi.md) | [**authControllerLogout**](doc/AuthApi.md#authcontrollerlogout) | **POST** /v1/auth/logout | 
@@ -236,6 +239,15 @@ Class | Method | HTTP request | Description
 [*CatalogApi*](doc/CatalogApi.md) | [**catalogControllerListWards**](doc/CatalogApi.md#catalogcontrollerlistwards) | **GET** /v1/catalog/wards | 
 [*ContentPagesApi*](doc/ContentPagesApi.md) | [**contentPageControllerGet**](doc/ContentPagesApi.md#contentpagecontrollerget) | **GET** /v1/content-pages/{slug} | 
 [*ContentPagesApi*](doc/ContentPagesApi.md) | [**contentPageControllerList**](doc/ContentPagesApi.md#contentpagecontrollerlist) | **GET** /v1/content-pages | 
+[*CounterSalesApi*](doc/CounterSalesApi.md) | [**counterSalesControllerCollect**](doc/CounterSalesApi.md#countersalescontrollercollect) | **POST** /v1/operator/counter/bookings/{bookingId}/receipts | 
+[*CounterSalesApi*](doc/CounterSalesApi.md) | [**counterSalesControllerCreate**](doc/CounterSalesApi.md#countersalescontrollercreate) | **POST** /v1/operator/counter/bookings | 
+[*CounterSalesApi*](doc/CounterSalesApi.md) | [**counterSalesControllerGet**](doc/CounterSalesApi.md#countersalescontrollerget) | **GET** /v1/operator/counter/bookings/{bookingId} | 
+[*CounterSalesApi*](doc/CounterSalesApi.md) | [**counterSalesControllerGetHold**](doc/CounterSalesApi.md#countersalescontrollergethold) | **GET** /v1/operator/counter/holds/{holdId} | 
+[*CounterSalesApi*](doc/CounterSalesApi.md) | [**counterSalesControllerHold**](doc/CounterSalesApi.md#countersalescontrollerhold) | **POST** /v1/operator/counter/holds | 
+[*CounterSalesApi*](doc/CounterSalesApi.md) | [**counterSalesControllerList**](doc/CounterSalesApi.md#countersalescontrollerlist) | **GET** /v1/operator/counter/bookings | 
+[*CounterSalesApi*](doc/CounterSalesApi.md) | [**counterSalesControllerRelease**](doc/CounterSalesApi.md#countersalescontrollerrelease) | **DELETE** /v1/operator/counter/holds/{holdId} | 
+[*CounterSalesApi*](doc/CounterSalesApi.md) | [**counterSalesControllerReport**](doc/CounterSalesApi.md#countersalescontrollerreport) | **GET** /v1/operator/counter/report | 
+[*CounterSalesApi*](doc/CounterSalesApi.md) | [**counterSalesControllerTrips**](doc/CounterSalesApi.md#countersalescontrollertrips) | **GET** /v1/operator/counter/trips | 
 [*DisputesApi*](doc/DisputesApi.md) | [**customerDisputeControllerGet**](doc/DisputesApi.md#customerdisputecontrollerget) | **GET** /v1/bookings/{bookingId}/disputes/{disputeId} | 
 [*DisputesApi*](doc/DisputesApi.md) | [**customerDisputeControllerList**](doc/DisputesApi.md#customerdisputecontrollerlist) | **GET** /v1/bookings/{bookingId}/disputes | 
 [*DisputesApi*](doc/DisputesApi.md) | [**customerDisputeControllerRespond**](doc/DisputesApi.md#customerdisputecontrollerrespond) | **POST** /v1/bookings/{bookingId}/disputes/{disputeId}/responses | 
@@ -299,6 +311,12 @@ Class | Method | HTTP request | Description
 [*OperatorManagersApi*](doc/OperatorManagersApi.md) | [**operatorManagerControllerResetMfa**](doc/OperatorManagersApi.md#operatormanagercontrollerresetmfa) | **POST** /v1/operator/managers/{managerId}/mfa-reset | 
 [*OperatorManagersApi*](doc/OperatorManagersApi.md) | [**operatorManagerControllerResetPassword**](doc/OperatorManagersApi.md#operatormanagercontrollerresetpassword) | **POST** /v1/operator/managers/{managerId}/password-reset | 
 [*OperatorManagersApi*](doc/OperatorManagersApi.md) | [**operatorManagerControllerUpdate**](doc/OperatorManagersApi.md#operatormanagercontrollerupdate) | **PATCH** /v1/operator/managers/{managerId} | 
+[*OperatorOfficesApi*](doc/OperatorOfficesApi.md) | [**salesOfficeControllerAssignments**](doc/OperatorOfficesApi.md#salesofficecontrollerassignments) | **GET** /v1/operator/offices/{officeId}/assignments | 
+[*OperatorOfficesApi*](doc/OperatorOfficesApi.md) | [**salesOfficeControllerCreate**](doc/OperatorOfficesApi.md#salesofficecontrollercreate) | **POST** /v1/operator/offices | 
+[*OperatorOfficesApi*](doc/OperatorOfficesApi.md) | [**salesOfficeControllerGet**](doc/OperatorOfficesApi.md#salesofficecontrollerget) | **GET** /v1/operator/offices/{officeId} | 
+[*OperatorOfficesApi*](doc/OperatorOfficesApi.md) | [**salesOfficeControllerList**](doc/OperatorOfficesApi.md#salesofficecontrollerlist) | **GET** /v1/operator/offices | 
+[*OperatorOfficesApi*](doc/OperatorOfficesApi.md) | [**salesOfficeControllerReplaceAssignments**](doc/OperatorOfficesApi.md#salesofficecontrollerreplaceassignments) | **PUT** /v1/operator/offices/{officeId}/assignments | 
+[*OperatorOfficesApi*](doc/OperatorOfficesApi.md) | [**salesOfficeControllerUpdate**](doc/OperatorOfficesApi.md#salesofficecontrollerupdate) | **PATCH** /v1/operator/offices/{officeId} | 
 [*OperatorProfileApi*](doc/OperatorProfileApi.md) | [**operatorProfileControllerCreateDownloadUrl**](doc/OperatorProfileApi.md#operatorprofilecontrollercreatedownloadurl) | **POST** /v1/operator/profile/documents/{type}/download-url | 
 [*OperatorProfileApi*](doc/OperatorProfileApi.md) | [**operatorProfileControllerCreateLogoUploadUrl**](doc/OperatorProfileApi.md#operatorprofilecontrollercreatelogouploadurl) | **POST** /v1/operator/profile/logo/upload-url | 
 [*OperatorProfileApi*](doc/OperatorProfileApi.md) | [**operatorProfileControllerCreateUploadUrl**](doc/OperatorProfileApi.md#operatorprofilecontrollercreateuploadurl) | **POST** /v1/operator/profile/documents/upload-url | 
@@ -348,6 +366,7 @@ Class | Method | HTTP request | Description
 [*OperatorTripSchedulesApi*](doc/OperatorTripSchedulesApi.md) | [**tripScheduleControllerGet**](doc/OperatorTripSchedulesApi.md#tripschedulecontrollerget) | **GET** /v1/operator/trip-schedules/{scheduleId} | 
 [*OperatorTripSchedulesApi*](doc/OperatorTripSchedulesApi.md) | [**tripScheduleControllerList**](doc/OperatorTripSchedulesApi.md#tripschedulecontrollerlist) | **GET** /v1/operator/trip-schedules | 
 [*OperatorTripSchedulesApi*](doc/OperatorTripSchedulesApi.md) | [**tripScheduleControllerUpdate**](doc/OperatorTripSchedulesApi.md#tripschedulecontrollerupdate) | **PUT** /v1/operator/trip-schedules/{scheduleId} | 
+[*OperatorTripsApi*](doc/OperatorTripsApi.md) | [**operatorDepartureControllerDepart**](doc/OperatorTripsApi.md#operatordeparturecontrollerdepart) | **POST** /v1/operator/trips/{tripId}/departure | 
 [*OperatorTripsApi*](doc/OperatorTripsApi.md) | [**pickupWindowControllerUpdate**](doc/OperatorTripsApi.md#pickupwindowcontrollerupdate) | **PUT** /v1/operator/trips/{tripId}/stops/{sequence}/pickup-window | 
 [*OperatorTripsApi*](doc/OperatorTripsApi.md) | [**tripControllerChange**](doc/OperatorTripsApi.md#tripcontrollerchange) | **POST** /v1/operator/trips/{tripId}/changes | 
 [*OperatorTripsApi*](doc/OperatorTripsApi.md) | [**tripControllerChangeStatus**](doc/OperatorTripsApi.md#tripcontrollerchangestatus) | **PUT** /v1/operator/trips/{tripId}/status | 
@@ -566,6 +585,34 @@ Class | Method | HTTP request | Description
  - [ContentPagePageDtoOutput](doc/ContentPagePageDtoOutput.md)
  - [ContentPagePageDtoOutputItemsInner](doc/ContentPagePageDtoOutputItemsInner.md)
  - [ContentPageStatusInputDto](doc/ContentPageStatusInputDto.md)
+ - [CounterBookingDtoOutput](doc/CounterBookingDtoOutput.md)
+ - [CounterBookingDtoOutputContact](doc/CounterBookingDtoOutputContact.md)
+ - [CounterBookingDtoOutputPassengersInner](doc/CounterBookingDtoOutputPassengersInner.md)
+ - [CounterBookingDtoOutputReceiptsInner](doc/CounterBookingDtoOutputReceiptsInner.md)
+ - [CounterBookingDtoOutputTicketsInner](doc/CounterBookingDtoOutputTicketsInner.md)
+ - [CounterBookingDtoOutputTrip](doc/CounterBookingDtoOutputTrip.md)
+ - [CounterBookingInputDto](doc/CounterBookingInputDto.md)
+ - [CounterBookingInputDtoContact](doc/CounterBookingInputDtoContact.md)
+ - [CounterBookingInputDtoPassengersInner](doc/CounterBookingInputDtoPassengersInner.md)
+ - [CounterBookingListDtoOutput](doc/CounterBookingListDtoOutput.md)
+ - [CounterBookingListDtoOutputItemsInner](doc/CounterBookingListDtoOutputItemsInner.md)
+ - [CounterCommissionOverviewDtoOutput](doc/CounterCommissionOverviewDtoOutput.md)
+ - [CounterCommissionOverviewDtoOutputItemsInner](doc/CounterCommissionOverviewDtoOutputItemsInner.md)
+ - [CounterCommissionOverviewDtoOutputSettlementsInner](doc/CounterCommissionOverviewDtoOutputSettlementsInner.md)
+ - [CounterCommissionSettlementDtoOutput](doc/CounterCommissionSettlementDtoOutput.md)
+ - [CounterCommissionSettlementInputDto](doc/CounterCommissionSettlementInputDto.md)
+ - [CounterHoldDtoOutput](doc/CounterHoldDtoOutput.md)
+ - [CounterHoldDtoOutputPickup](doc/CounterHoldDtoOutputPickup.md)
+ - [CounterHoldDtoOutputSeatsInner](doc/CounterHoldDtoOutputSeatsInner.md)
+ - [CounterHoldInputDto](doc/CounterHoldInputDto.md)
+ - [CounterReceiptInputDto](doc/CounterReceiptInputDto.md)
+ - [CounterReceiptResultDtoOutput](doc/CounterReceiptResultDtoOutput.md)
+ - [CounterReportDtoOutput](doc/CounterReportDtoOutput.md)
+ - [CounterReportDtoOutputSellersInner](doc/CounterReportDtoOutputSellersInner.md)
+ - [CounterTripListDtoOutput](doc/CounterTripListDtoOutput.md)
+ - [CounterTripListDtoOutputItemsInner](doc/CounterTripListDtoOutputItemsInner.md)
+ - [CounterTripListDtoOutputItemsInnerSeatsInner](doc/CounterTripListDtoOutputItemsInnerSeatsInner.md)
+ - [CounterTripListDtoOutputItemsInnerStopsInner](doc/CounterTripListDtoOutputItemsInnerStopsInner.md)
  - [CreatedBookingDtoOutput](doc/CreatedBookingDtoOutput.md)
  - [CreatedBookingDtoOutputContact](doc/CreatedBookingDtoOutputContact.md)
  - [CreatedBookingDtoOutputPassengersInner](doc/CreatedBookingDtoOutputPassengersInner.md)
@@ -831,6 +878,14 @@ Class | Method | HTTP request | Description
  - [RouteListResponseDtoOutputItemsInner](doc/RouteListResponseDtoOutputItemsInner.md)
  - [RouteResponseDtoOutput](doc/RouteResponseDtoOutput.md)
  - [RouteResponseDtoOutputStopsInner](doc/RouteResponseDtoOutputStopsInner.md)
+ - [SalesOfficeAssignmentsDtoOutput](doc/SalesOfficeAssignmentsDtoOutput.md)
+ - [SalesOfficeAssignmentsDtoOutputItemsInner](doc/SalesOfficeAssignmentsDtoOutputItemsInner.md)
+ - [SalesOfficeAssignmentsInputDto](doc/SalesOfficeAssignmentsInputDto.md)
+ - [SalesOfficeDtoOutput](doc/SalesOfficeDtoOutput.md)
+ - [SalesOfficeInputDto](doc/SalesOfficeInputDto.md)
+ - [SalesOfficeListDtoOutput](doc/SalesOfficeListDtoOutput.md)
+ - [SalesOfficeListDtoOutputItemsInner](doc/SalesOfficeListDtoOutputItemsInner.md)
+ - [SalesOfficeUpdateDto](doc/SalesOfficeUpdateDto.md)
  - [SaveVoucherInputDto](doc/SaveVoucherInputDto.md)
  - [SavedPassengerDtoOutput](doc/SavedPassengerDtoOutput.md)
  - [SavedPassengerInputDto](doc/SavedPassengerInputDto.md)
@@ -838,7 +893,6 @@ Class | Method | HTTP request | Description
  - [SavedPassengerListDtoOutputItemsInner](doc/SavedPassengerListDtoOutputItemsInner.md)
  - [SeatHoldInputDto](doc/SeatHoldInputDto.md)
  - [SeatHoldResponseDtoOutput](doc/SeatHoldResponseDtoOutput.md)
- - [SeatHoldResponseDtoOutputPickup](doc/SeatHoldResponseDtoOutputPickup.md)
  - [SeatHoldResponseDtoOutputSeatsInner](doc/SeatHoldResponseDtoOutputSeatsInner.md)
  - [SeatMapInputDto](doc/SeatMapInputDto.md)
  - [SeatMapInputDtoLayout](doc/SeatMapInputDtoLayout.md)
@@ -889,6 +943,8 @@ Class | Method | HTTP request | Description
  - [TripAssignmentPageDtoOutputItemsInnerDriver](doc/TripAssignmentPageDtoOutputItemsInnerDriver.md)
  - [TripChangeInputDto](doc/TripChangeInputDto.md)
  - [TripChangeInputDtoStopsInner](doc/TripChangeInputDtoStopsInner.md)
+ - [TripDepartureDtoOutput](doc/TripDepartureDtoOutput.md)
+ - [TripDepartureInputDto](doc/TripDepartureInputDto.md)
  - [TripInputDto](doc/TripInputDto.md)
  - [TripListResponseDtoOutput](doc/TripListResponseDtoOutput.md)
  - [TripListResponseDtoOutputItemsInner](doc/TripListResponseDtoOutputItemsInner.md)

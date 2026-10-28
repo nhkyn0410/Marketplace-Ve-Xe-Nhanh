@@ -42,6 +42,26 @@ describe("OpenAPI generation", () => {
       ).toBeDefined();
       expect(document.components?.schemas?.ProblemDetailsDto).toBeDefined();
 
+      // COUNTER-SALES: controller chạy thật cũng phải được đăng ký ở module chỉ dùng để sinh contract.
+      for (const [path, method] of [
+        ["/v1/auth/counter/login", "post"],
+        ["/v1/operator/offices", "get"],
+        ["/v1/operator/offices/{officeId}/assignments", "put"],
+        ["/v1/operator/counter/trips", "get"],
+        ["/v1/operator/counter/holds", "post"],
+        ["/v1/operator/counter/bookings", "post"],
+        ["/v1/operator/counter/bookings/{bookingId}/receipts", "post"],
+        ["/v1/operator/counter/report", "get"],
+        ["/v1/operator/trips/{tripId}/departure", "post"],
+        ["/v1/admin/counter-commissions/settlements", "post"],
+      ] as const) {
+        const operation = document.paths[path]?.[method];
+        expect(operation, `${method} ${path}`).toBeDefined();
+        if (method !== "get") expect(operation?.requestBody, `${path} body`).toBeDefined();
+      }
+      expect(document.components?.schemas?.SalesOfficeDto_Output).toBeDefined();
+      expect(document.components?.schemas?.CounterReceiptResultDto_Output).toBeDefined();
+
       // 9 endpoint auth trong phạm vi API §7.1 phải có mặt (`/auth/mfa/verify` = IAM-004): thiếu
       // chúng thì `gen:api-client` sinh client không có auth mà CI vẫn xanh — lỗi im lặng đã từng xảy ra thật.
       for (const path of [

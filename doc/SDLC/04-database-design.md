@@ -13,7 +13,7 @@
 | Người viết    | Nguyễn Hồng Khanh, AI Agent |
 | Người duyệt   | Nguyễn Hồng Khanh           |
 | Ngày tạo      | 11/05/2026                  |
-| Ngày cập nhật | 27/10/2026                  |
+| Ngày cập nhật | 28/10/2026                  |
 
 ### 1.2. Lịch sử thay đổi
 
@@ -261,6 +261,20 @@ erDiagram
 > **Tách login Owner/Employee (ADR-017 amend 28/09/2026, TASK-IAM-006).** Registry `operator_login_names` giữ nguyên nên username vẫn duy nhất xuyên Owner/Employee trong một Operator. Migration thêm hai CHECK trên phải: (1) đổi username Employee hiện có thành `nv.` + `lower(username)` và đồng bộ registry; account bị đổi tên tăng `auth_epoch` + `version` như PATCH username ở app, nên phiên cũ hết hiệu lực; (2) **dừng cả migration kèm thông báo rõ** nếu có Owner đang dùng tiền tố `nv.` (mọi kiểu hoa/thường), nếu tên sau khi đổi dài quá 64 ký tự, hoặc nếu hai username trùng nhau sau khi đổi trong cùng Operator (vd `Driver01` và `driver01`). Trước khi migrate production: kiểm không có Owner nào dùng `nv.`; nếu đã có Employee thì báo họ username mới.
 
 ---
+
+### COUNTER-SALES — Dữ liệu quầy (27/10/2026)
+
+| Entity/bảng | Ràng buộc |
+| --- | --- |
+| `SalesOffice` / `sales_offices` | Thuộc operator; unique mã trong tenant; tên/địa chỉ, active, version; ngừng hoạt động thay xóa lịch sử. |
+| `SalesOfficeAssignment` / `sales_office_assignments` | Ghép office + employee, FK ghép operator chống gắn chéo tenant; service chỉ phân công nhân viên `SALES_STAFF` đang hoạt động. |
+| `Booking` | `channel` mặc định `ONLINE`; `COUNTER` có office và `soldBy` (operator/employee), không gắn employee vào passenger `userId`; email nullable chỉ để phục vụ quầy, online vẫn bắt buộc. |
+| `CounterReceipt` / `counter_receipts` | BIGINT VND; `CASH`/`BANK_TRANSFER`, `COMPLETED`/`EXCEPTION`; unique `(operator_id,idempotency_key)` và `(operator_id,reference)`; lưu người xác nhận và lý do ngoại lệ; append-only. |
+| `CommissionRule` | Thêm chiều `SalesChannel` `ONLINE`/`COUNTER`; giá trị cũ làONLINE. Quầy thiếu rule riêng áp0%. |
+| `CounterCommissionReceivable` | Liên kết receipt/booking cùng tenant; snapshot rule nullable, rateBps, basis và amount; BIGINT, append-only; không thuộc escrow. |
+| `CounterCommissionSettlement` | Phí Platform đã thu thủ công; BIGINT, người ghi, tham chiếu/lý do; unique key và tham chiếu trong operator, append-only. |
+
+Bảng tenant mới bật `ENABLE` + `FORCE RLS`, service vẫn lọc operator; settlement chỉ Platform ghi. Khóa trip trước booking/ghế thống nhất với xác nhận khởi hành thực tế; khóa operator xếp hàng cấu hình hoa hồng và thu phí. Chi tiết SQL có tại ba migration COUNTER-SALES; không áp lên dữ liệu dùng chung trong lúc kiểm thử.
 
 ## 8. Transaction, lock và idempotency
 

@@ -12,9 +12,9 @@ class _$SeatHoldResponseDtoOutput extends SeatHoldResponseDtoOutput {
   @override
   final String tripId;
   @override
-  final SeatHoldResponseDtoOutputPickup pickup;
+  final CounterHoldDtoOutputPickup pickup;
   @override
-  final SeatHoldResponseDtoOutputPickup dropoff;
+  final CounterHoldDtoOutputPickup dropoff;
   @override
   final BuiltList<SeatHoldResponseDtoOutputSeatsInner> seats;
   @override
@@ -98,16 +98,16 @@ class SeatHoldResponseDtoOutputBuilder
   String? get tripId => _$this._tripId;
   set tripId(String? tripId) => _$this._tripId = tripId;
 
-  SeatHoldResponseDtoOutputPickupBuilder? _pickup;
-  SeatHoldResponseDtoOutputPickupBuilder get pickup =>
-      _$this._pickup ??= SeatHoldResponseDtoOutputPickupBuilder();
-  set pickup(SeatHoldResponseDtoOutputPickupBuilder? pickup) =>
+  CounterHoldDtoOutputPickupBuilder? _pickup;
+  CounterHoldDtoOutputPickupBuilder get pickup =>
+      _$this._pickup ??= CounterHoldDtoOutputPickupBuilder();
+  set pickup(CounterHoldDtoOutputPickupBuilder? pickup) =>
       _$this._pickup = pickup;
 
-  SeatHoldResponseDtoOutputPickupBuilder? _dropoff;
-  SeatHoldResponseDtoOutputPickupBuilder get dropoff =>
-      _$this._dropoff ??= SeatHoldResponseDtoOutputPickupBuilder();
-  set dropoff(SeatHoldResponseDtoOutputPickupBuilder? dropoff) =>
+  CounterHoldDtoOutputPickupBuilder? _dropoff;
+  CounterHoldDtoOutputPickupBuilder get dropoff =>
+      _$this._dropoff ??= CounterHoldDtoOutputPickupBuilder();
+  set dropoff(CounterHoldDtoOutputPickupBuilder? dropoff) =>
       _$this._dropoff = dropoff;
 
   ListBuilder<SeatHoldResponseDtoOutputSeatsInner>? _seats;

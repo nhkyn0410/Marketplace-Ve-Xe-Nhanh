@@ -4,6 +4,214 @@
  */
 
 export interface paths {
+    "/v1/operator/offices": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["SalesOfficeController_list"];
+        put?: never;
+        post: operations["SalesOfficeController_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operator/offices/{officeId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["SalesOfficeController_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: operations["SalesOfficeController_update"];
+        trace?: never;
+    };
+    "/v1/operator/offices/{officeId}/assignments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["SalesOfficeController_assignments"];
+        put: operations["SalesOfficeController_replaceAssignments"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operator/counter/trips": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["CounterSalesController_trips"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operator/counter/report": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["CounterSalesController_report"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operator/counter/holds": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["CounterSalesController_hold"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operator/counter/holds/{holdId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["CounterSalesController_getHold"];
+        put?: never;
+        post?: never;
+        delete: operations["CounterSalesController_release"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operator/counter/bookings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["CounterSalesController_list"];
+        put?: never;
+        post: operations["CounterSalesController_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operator/counter/bookings/{bookingId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["CounterSalesController_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operator/counter/bookings/{bookingId}/receipts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["CounterSalesController_collect"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/counter-commissions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["CounterCommissionController_overview"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/counter-commissions/settlements": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["CounterCommissionController_settle"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operator/trips/{tripId}/departure": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["OperatorDepartureController_depart"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/admin/system/notifications": {
         parameters: {
             query?: never;
@@ -606,6 +814,22 @@ export interface paths {
         get?: never;
         put?: never;
         post: operations["AuthController_operatorLogin"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/auth/counter/login": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AuthController_counterLogin"];
         delete?: never;
         options?: never;
         head?: never;
@@ -4547,6 +4771,404 @@ export interface components {
             requestId?: string;
             traceId?: string;
         };
+        SalesOfficeListDto_Output: {
+            items: {
+                /** Format: uuid */
+                id: string;
+                code: string;
+                name: string;
+                address: string;
+                active: boolean;
+                version: number;
+                /** Format: date-time */
+                createdAt: string;
+                /** Format: date-time */
+                updatedAt: string;
+            }[];
+        };
+        SalesOfficeDto_Output: {
+            /** Format: uuid */
+            id: string;
+            code: string;
+            name: string;
+            address: string;
+            active: boolean;
+            version: number;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        SalesOfficeInputDto: {
+            code: string;
+            name: string;
+            address: string;
+            /** @default true */
+            active: boolean;
+        };
+        SalesOfficeUpdateDto: {
+            code: string;
+            name: string;
+            address: string;
+            active: boolean;
+            version: number;
+        };
+        SalesOfficeAssignmentsDto_Output: {
+            items: {
+                /** Format: uuid */
+                employeeId: string;
+                username: string;
+                /** @enum {string} */
+                status: "ACTIVE" | "LOCKED" | "DISABLED";
+            }[];
+        };
+        SalesOfficeAssignmentsInputDto: {
+            version: number;
+            employeeIds: string[];
+        };
+        CounterTripListDto_Output: {
+            items: {
+                /** Format: uuid */
+                tripId: string;
+                routeName: string;
+                /** Format: date-time */
+                departureAt: string;
+                /** Format: date-time */
+                arrivalAt: string;
+                /** @enum {string} */
+                status: "OPEN_FOR_SALE" | "BOARDING";
+                vehiclePlateNumber: string | null;
+                stops: {
+                    sequence: number;
+                    name: string;
+                    /** Format: date-time */
+                    plannedAt: string;
+                    allowPickup: boolean;
+                    allowDropoff: boolean;
+                }[];
+                seats: {
+                    code: string;
+                    /** @enum {string} */
+                    type: "SEAT" | "BED" | "BED_DOUBLE" | "CABIN" | "CABIN_DOUBLE";
+                    status: string;
+                    price: string | null;
+                }[];
+            }[];
+        };
+        CounterReportDto_Output: {
+            cash: string;
+            bankTransfer: string;
+            exceptions: string;
+            commission: string;
+            receipts: number;
+            sellers: {
+                seller: string;
+                cash: string;
+                bankTransfer: string;
+                exceptions: string;
+                commission: string;
+            }[];
+        };
+        CounterHoldInputDto: {
+            /** Format: uuid */
+            officeId: string;
+            /** Format: uuid */
+            tripId: string;
+            seatCodes: string[];
+            pickupSequence: number;
+            dropoffSequence: number;
+        };
+        CounterHoldDto_Output: {
+            /** Format: uuid */
+            holdId: string;
+            /** Format: uuid */
+            officeId: string;
+            /** Format: uuid */
+            tripId: string;
+            pickup: {
+                sequence: number;
+                name: string;
+                /** Format: date-time */
+                plannedAt: string;
+            };
+            dropoff: {
+                sequence: number;
+                name: string;
+                /** Format: date-time */
+                plannedAt: string;
+            };
+            seats: {
+                code: string;
+                /** @enum {string} */
+                type: "SEAT" | "BED" | "BED_DOUBLE" | "CABIN" | "CABIN_DOUBLE";
+                price: string;
+            }[];
+            subtotal: string;
+            /** Format: date-time */
+            expiresAt: string;
+        };
+        CounterBookingInputDto: {
+            /** Format: uuid */
+            holdId: string;
+            contact: {
+                fullName: string;
+                phone: string;
+                email: string | null;
+            };
+            passengers: {
+                seatCode: string;
+                fullName: string;
+                phone: string | null;
+            }[];
+            note: string | null;
+            expectedTotal: string;
+        };
+        CounterBookingDto_Output: {
+            /** Format: uuid */
+            bookingId: string;
+            bookingCode: string;
+            /** Format: uuid */
+            officeId: string;
+            seller: string;
+            status: string;
+            /** Format: uuid */
+            tripId: string;
+            trip: {
+                routeName: string;
+                /** Format: date-time */
+                departureAt: string;
+                /** Format: date-time */
+                arrivalAt: string;
+            };
+            contact: {
+                fullName: string;
+                phone: string;
+                email: string | null;
+            };
+            passengers: {
+                seatCode: string;
+                fullName: string;
+                price: string;
+            }[];
+            total: string;
+            /** Format: date-time */
+            expiresAt: string;
+            /** Format: date-time */
+            createdAt: string;
+            tickets: {
+                /** Format: uuid */
+                ticketId: string;
+                ticketCode: string;
+                seatCode: string;
+                passengerName: string;
+                status: string;
+                qrToken: string;
+            }[];
+            receipts: {
+                /** Format: uuid */
+                id: string;
+                /** @enum {string} */
+                method: "CASH" | "BANK_TRANSFER";
+                amount: string;
+                reference: string | null;
+                /** @enum {string} */
+                status: "COMPLETED" | "EXCEPTION";
+                exceptionReason: string | null;
+                /** Format: date-time */
+                createdAt: string;
+            }[];
+        };
+        CounterBookingListDto_Output: {
+            items: {
+                /** Format: uuid */
+                bookingId: string;
+                bookingCode: string;
+                /** Format: uuid */
+                officeId: string;
+                seller: string;
+                status: string;
+                /** Format: uuid */
+                tripId: string;
+                trip: {
+                    routeName: string;
+                    /** Format: date-time */
+                    departureAt: string;
+                    /** Format: date-time */
+                    arrivalAt: string;
+                };
+                contact: {
+                    fullName: string;
+                    phone: string;
+                    email: string | null;
+                };
+                passengers: {
+                    seatCode: string;
+                    fullName: string;
+                    price: string;
+                }[];
+                total: string;
+                /** Format: date-time */
+                expiresAt: string;
+                /** Format: date-time */
+                createdAt: string;
+                tickets: {
+                    /** Format: uuid */
+                    ticketId: string;
+                    ticketCode: string;
+                    seatCode: string;
+                    passengerName: string;
+                    status: string;
+                    qrToken: string;
+                }[];
+                receipts: {
+                    /** Format: uuid */
+                    id: string;
+                    /** @enum {string} */
+                    method: "CASH" | "BANK_TRANSFER";
+                    amount: string;
+                    reference: string | null;
+                    /** @enum {string} */
+                    status: "COMPLETED" | "EXCEPTION";
+                    exceptionReason: string | null;
+                    /** Format: date-time */
+                    createdAt: string;
+                }[];
+            }[];
+            nextCursor: string | null;
+        };
+        CounterReceiptInputDto: {
+            /** Format: uuid */
+            idempotencyKey: string;
+            /** @enum {string} */
+            method: "CASH" | "BANK_TRANSFER";
+            amount: string;
+            reference: string | null;
+        };
+        CounterReceiptResultDto_Output: {
+            /** Format: uuid */
+            receiptId: string;
+            /** @enum {string} */
+            status: "COMPLETED" | "EXCEPTION";
+            exceptionReason: string | null;
+            booking: {
+                /** Format: uuid */
+                bookingId: string;
+                bookingCode: string;
+                /** Format: uuid */
+                officeId: string;
+                seller: string;
+                status: string;
+                /** Format: uuid */
+                tripId: string;
+                trip: {
+                    routeName: string;
+                    /** Format: date-time */
+                    departureAt: string;
+                    /** Format: date-time */
+                    arrivalAt: string;
+                };
+                contact: {
+                    fullName: string;
+                    phone: string;
+                    email: string | null;
+                };
+                passengers: {
+                    seatCode: string;
+                    fullName: string;
+                    price: string;
+                }[];
+                total: string;
+                /** Format: date-time */
+                expiresAt: string;
+                /** Format: date-time */
+                createdAt: string;
+                tickets: {
+                    /** Format: uuid */
+                    ticketId: string;
+                    ticketCode: string;
+                    seatCode: string;
+                    passengerName: string;
+                    status: string;
+                    qrToken: string;
+                }[];
+                receipts: {
+                    /** Format: uuid */
+                    id: string;
+                    /** @enum {string} */
+                    method: "CASH" | "BANK_TRANSFER";
+                    amount: string;
+                    reference: string | null;
+                    /** @enum {string} */
+                    status: "COMPLETED" | "EXCEPTION";
+                    exceptionReason: string | null;
+                    /** Format: date-time */
+                    createdAt: string;
+                }[];
+            };
+        };
+        CounterCommissionOverviewDto_Output: {
+            /** Format: uuid */
+            operatorId: string;
+            accrued: string;
+            settled: string;
+            outstanding: string;
+            items: {
+                /** Format: uuid */
+                id: string;
+                /** Format: uuid */
+                bookingId: string;
+                /** Format: uuid */
+                receiptId: string;
+                commissionRuleId: string | null;
+                rateBps: number;
+                basis: string;
+                amount: string;
+                /** Format: date-time */
+                createdAt: string;
+            }[];
+            settlements: {
+                /** Format: uuid */
+                id: string;
+                /** Format: uuid */
+                operatorId: string;
+                amount: string;
+                reference: string;
+                reason: string;
+                createdBy: string;
+                /** Format: date-time */
+                createdAt: string;
+            }[];
+        };
+        CounterCommissionSettlementInputDto: {
+            /** Format: uuid */
+            operatorId: string;
+            /** Format: uuid */
+            idempotencyKey: string;
+            amount: string;
+            reference: string;
+            reason: string;
+        };
+        CounterCommissionSettlementDto_Output: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            operatorId: string;
+            amount: string;
+            reference: string;
+            reason: string;
+            createdBy: string;
+            /** Format: date-time */
+            createdAt: string;
+        };
+        TripDepartureInputDto: {
+            note?: string | null;
+        };
+        TripDepartureDto_Output: {
+            /** Format: uuid */
+            tripId: string;
+            /** Format: date-time */
+            departedAt: string;
+        };
         NotificationLogDto_Output: {
             items: {
                 id: string;
@@ -5330,7 +5952,7 @@ export interface components {
                 username: string;
                 contactEmail: string | null;
                 /** @enum {string} */
-                role: "DRIVER" | "TICKET_STAFF" | "SUPPORT_STAFF";
+                role: "DRIVER" | "TICKET_STAFF" | "SUPPORT_STAFF" | "SALES_STAFF";
                 /** @enum {string} */
                 status: "ACTIVE" | "LOCKED" | "DISABLED";
                 credentialDeliveryPending: boolean;
@@ -5348,7 +5970,7 @@ export interface components {
             /** Format: email */
             contactEmail: string;
             /** @enum {string} */
-            role: "DRIVER" | "TICKET_STAFF" | "SUPPORT_STAFF";
+            role: "DRIVER" | "TICKET_STAFF" | "SUPPORT_STAFF" | "SALES_STAFF";
             reason: string;
         };
         EmployeeAccountResponseDto_Output: {
@@ -5357,7 +5979,7 @@ export interface components {
             username: string;
             contactEmail: string | null;
             /** @enum {string} */
-            role: "DRIVER" | "TICKET_STAFF" | "SUPPORT_STAFF";
+            role: "DRIVER" | "TICKET_STAFF" | "SUPPORT_STAFF" | "SALES_STAFF";
             /** @enum {string} */
             status: "ACTIVE" | "LOCKED" | "DISABLED";
             credentialDeliveryPending: boolean;
@@ -5373,7 +5995,7 @@ export interface components {
             /** Format: email */
             contactEmail?: string;
             /** @enum {string} */
-            role?: "DRIVER" | "TICKET_STAFF" | "SUPPORT_STAFF";
+            role?: "DRIVER" | "TICKET_STAFF" | "SUPPORT_STAFF" | "SALES_STAFF";
             /** @enum {string} */
             status?: "ACTIVE" | "LOCKED" | "DISABLED";
             reason: string;
@@ -5391,7 +6013,7 @@ export interface components {
                 id: string;
                 username: string;
                 contactEmail: string | null;
-                permissions: ("vehicle:manage" | "route:manage" | "trip:manage" | "booking:read" | "finance:read" | "employee:manage" | "support:respond" | "promotion:manage")[];
+                permissions: ("vehicle:manage" | "route:manage" | "trip:manage" | "trip:dispatch" | "booking:read" | "finance:read" | "employee:manage" | "support:respond" | "promotion:manage")[];
                 /** @enum {string} */
                 status: "ACTIVE" | "LOCKED" | "DISABLED";
                 mfaEnabled: boolean;
@@ -5407,7 +6029,7 @@ export interface components {
             username: string;
             /** Format: email */
             contactEmail: string;
-            permissions: ("vehicle:manage" | "route:manage" | "trip:manage" | "booking:read" | "finance:read" | "employee:manage" | "support:respond" | "promotion:manage")[];
+            permissions: ("vehicle:manage" | "route:manage" | "trip:manage" | "trip:dispatch" | "booking:read" | "finance:read" | "employee:manage" | "support:respond" | "promotion:manage")[];
             reason: string;
         };
         ManagerAccountDto_Output: {
@@ -5415,7 +6037,7 @@ export interface components {
             id: string;
             username: string;
             contactEmail: string | null;
-            permissions: ("vehicle:manage" | "route:manage" | "trip:manage" | "booking:read" | "finance:read" | "employee:manage" | "support:respond" | "promotion:manage")[];
+            permissions: ("vehicle:manage" | "route:manage" | "trip:manage" | "trip:dispatch" | "booking:read" | "finance:read" | "employee:manage" | "support:respond" | "promotion:manage")[];
             /** @enum {string} */
             status: "ACTIVE" | "LOCKED" | "DISABLED";
             mfaEnabled: boolean;
@@ -5427,7 +6049,7 @@ export interface components {
             createdAt: string;
         };
         ManagerUpdateDto: {
-            permissions?: ("vehicle:manage" | "route:manage" | "trip:manage" | "booking:read" | "finance:read" | "employee:manage" | "support:respond" | "promotion:manage")[];
+            permissions?: ("vehicle:manage" | "route:manage" | "trip:manage" | "trip:dispatch" | "booking:read" | "finance:read" | "employee:manage" | "support:respond" | "promotion:manage")[];
             /** @enum {string} */
             status?: "ACTIVE" | "LOCKED";
             reason: string;
@@ -7180,7 +7802,7 @@ export interface components {
                 status: "INITIATED" | "PROCESSING" | "SUCCESS" | "FAILED" | "EXPIRED" | "CANCELLED" | "RECONCILING";
                 paidAt: string | null;
             } | null;
-            contactEmailMasked: string;
+            contactEmailMasked: string | null;
             note: string | null;
             pickup: {
                 sequence: number;
@@ -7229,7 +7851,7 @@ export interface components {
         BookingContactDto_Output: {
             fullName: string;
             phone: string;
-            email: string;
+            email: string | null;
             passengers: {
                 seatCode: string;
                 phone: string | null;
@@ -7912,7 +8534,7 @@ export interface components {
                 /** Format: uuid */
                 tripId: string;
                 /** @enum {string} */
-                role: "DRIVER" | "TICKET_STAFF" | "SUPPORT_STAFF";
+                role: "DRIVER" | "TICKET_STAFF" | "SUPPORT_STAFF" | "SALES_STAFF";
                 routeName: string;
                 /** Format: date-time */
                 departureAt: string;
@@ -7932,7 +8554,7 @@ export interface components {
                 /** Format: uuid */
                 tripId: string;
                 /** @enum {string} */
-                role: "DRIVER" | "TICKET_STAFF" | "SUPPORT_STAFF";
+                role: "DRIVER" | "TICKET_STAFF" | "SUPPORT_STAFF" | "SALES_STAFF";
                 routeName: string;
                 /** Format: date-time */
                 departureAt: string;
@@ -8051,7 +8673,7 @@ export interface components {
             /** Format: uuid */
             tripId: string;
             /** @enum {string} */
-            role: "DRIVER" | "TICKET_STAFF" | "SUPPORT_STAFF";
+            role: "DRIVER" | "TICKET_STAFF" | "SUPPORT_STAFF" | "SALES_STAFF";
             routeName: string;
             /** Format: date-time */
             departureAt: string;
@@ -8129,7 +8751,7 @@ export interface components {
                 employeeId: string;
                 loginName: string;
                 /** @enum {string} */
-                role: "DRIVER" | "TICKET_STAFF" | "SUPPORT_STAFF";
+                role: "DRIVER" | "TICKET_STAFF" | "SUPPORT_STAFF" | "SALES_STAFF";
                 assignedTrips: number;
                 completedTrips: number;
                 ticketsChecked: number;
@@ -9883,11 +10505,15 @@ export interface components {
                 /** Format: date-time */
                 effectiveFrom: string;
             } | null;
+            /** @constant */
+            counterDefaultRateBps: 0;
             overrides: {
                 /** Format: uuid */
                 id: string;
                 /** Format: uuid */
                 operatorId: string;
+                /** @enum {string} */
+                channel: "ONLINE" | "COUNTER";
                 operatorName: string;
                 operatorSlug: string;
                 rateBps: number;
@@ -9908,6 +10534,11 @@ export interface components {
         CommissionRuleCreateDto: {
             /** Format: uuid */
             operatorId: string;
+            /**
+             * @default ONLINE
+             * @enum {string}
+             */
+            channel: "ONLINE" | "COUNTER";
             rateBps: number;
             /** Format: date-time */
             effectiveFrom: string;
@@ -9919,6 +10550,8 @@ export interface components {
             id: string;
             /** Format: uuid */
             operatorId: string;
+            /** @enum {string} */
+            channel: "ONLINE" | "COUNTER";
             operatorName: string;
             operatorSlug: string;
             rateBps: number;
@@ -10018,7 +10651,7 @@ export interface components {
                 operatorId: string;
                 operatorName: string;
                 /** @enum {string} */
-                role: "DRIVER" | "TICKET_STAFF" | "SUPPORT_STAFF";
+                role: "DRIVER" | "TICKET_STAFF" | "SUPPORT_STAFF" | "SALES_STAFF";
                 /** @enum {string} */
                 status: "ACTIVE" | "LOCKED" | "DISABLED";
                 lastLoginAt: string | null;
@@ -10039,7 +10672,7 @@ export interface components {
                 email: string | null;
                 /** @enum {string} */
                 role: "PLATFORM_ADMIN" | "PLATFORM_SUPPORT";
-                permissions: ("profile:manage" | "loyalty:use" | "notification:manage" | "incident:create" | "journey-log:create" | "system:run" | "trip:search" | "booking:create" | "booking:read" | "payment:create" | "payment:monitor" | "refund:request" | "vehicle:manage" | "vehicle:read" | "route:manage" | "trip:manage" | "checkin:perform" | "checkin:read" | "trip:operate" | "kyc:submit" | "kyc:review" | "catalog:manage" | "content:moderate" | "content:manage" | "user:manage" | "system:read" | "finance:read" | "finance:configure" | "audit:read" | "employee:manage" | "account:lock" | "support:create" | "review:create" | "support:respond" | "support:manage" | "dispute:decide" | "promotion:manage" | "promotion:configure" | "loyalty:manage" | "access:manage" | "transport:read" | "manager:manage" | "payout:manage" | "refund:manage")[];
+                permissions: ("profile:manage" | "loyalty:use" | "notification:manage" | "incident:create" | "journey-log:create" | "system:run" | "trip:search" | "booking:create" | "booking:read" | "payment:create" | "payment:monitor" | "refund:request" | "vehicle:manage" | "vehicle:read" | "route:manage" | "trip:manage" | "trip:dispatch" | "office:manage" | "office:read" | "counter:sell" | "counter:collect" | "counter:read" | "checkin:perform" | "checkin:read" | "trip:operate" | "kyc:submit" | "kyc:review" | "catalog:manage" | "content:moderate" | "content:manage" | "user:manage" | "system:read" | "finance:read" | "finance:configure" | "audit:read" | "employee:manage" | "account:lock" | "support:create" | "review:create" | "support:respond" | "support:manage" | "dispute:decide" | "promotion:manage" | "promotion:configure" | "loyalty:manage" | "access:manage" | "transport:read" | "manager:manage" | "payout:manage" | "refund:manage")[];
                 /** @enum {string} */
                 status: "ACTIVE" | "LOCKED" | "DISABLED";
                 mfaEnabled: boolean;
@@ -10051,8 +10684,8 @@ export interface components {
                 isSelf: boolean;
             }[];
             grantable: {
-                PLATFORM_ADMIN: ("profile:manage" | "loyalty:use" | "notification:manage" | "incident:create" | "journey-log:create" | "system:run" | "trip:search" | "booking:create" | "booking:read" | "payment:create" | "payment:monitor" | "refund:request" | "vehicle:manage" | "vehicle:read" | "route:manage" | "trip:manage" | "checkin:perform" | "checkin:read" | "trip:operate" | "kyc:submit" | "kyc:review" | "catalog:manage" | "content:moderate" | "content:manage" | "user:manage" | "system:read" | "finance:read" | "finance:configure" | "audit:read" | "employee:manage" | "account:lock" | "support:create" | "review:create" | "support:respond" | "support:manage" | "dispute:decide" | "promotion:manage" | "promotion:configure" | "loyalty:manage" | "access:manage" | "transport:read" | "manager:manage" | "payout:manage" | "refund:manage")[];
-                PLATFORM_SUPPORT: ("profile:manage" | "loyalty:use" | "notification:manage" | "incident:create" | "journey-log:create" | "system:run" | "trip:search" | "booking:create" | "booking:read" | "payment:create" | "payment:monitor" | "refund:request" | "vehicle:manage" | "vehicle:read" | "route:manage" | "trip:manage" | "checkin:perform" | "checkin:read" | "trip:operate" | "kyc:submit" | "kyc:review" | "catalog:manage" | "content:moderate" | "content:manage" | "user:manage" | "system:read" | "finance:read" | "finance:configure" | "audit:read" | "employee:manage" | "account:lock" | "support:create" | "review:create" | "support:respond" | "support:manage" | "dispute:decide" | "promotion:manage" | "promotion:configure" | "loyalty:manage" | "access:manage" | "transport:read" | "manager:manage" | "payout:manage" | "refund:manage")[];
+                PLATFORM_ADMIN: ("profile:manage" | "loyalty:use" | "notification:manage" | "incident:create" | "journey-log:create" | "system:run" | "trip:search" | "booking:create" | "booking:read" | "payment:create" | "payment:monitor" | "refund:request" | "vehicle:manage" | "vehicle:read" | "route:manage" | "trip:manage" | "trip:dispatch" | "office:manage" | "office:read" | "counter:sell" | "counter:collect" | "counter:read" | "checkin:perform" | "checkin:read" | "trip:operate" | "kyc:submit" | "kyc:review" | "catalog:manage" | "content:moderate" | "content:manage" | "user:manage" | "system:read" | "finance:read" | "finance:configure" | "audit:read" | "employee:manage" | "account:lock" | "support:create" | "review:create" | "support:respond" | "support:manage" | "dispute:decide" | "promotion:manage" | "promotion:configure" | "loyalty:manage" | "access:manage" | "transport:read" | "manager:manage" | "payout:manage" | "refund:manage")[];
+                PLATFORM_SUPPORT: ("profile:manage" | "loyalty:use" | "notification:manage" | "incident:create" | "journey-log:create" | "system:run" | "trip:search" | "booking:create" | "booking:read" | "payment:create" | "payment:monitor" | "refund:request" | "vehicle:manage" | "vehicle:read" | "route:manage" | "trip:manage" | "trip:dispatch" | "office:manage" | "office:read" | "counter:sell" | "counter:collect" | "counter:read" | "checkin:perform" | "checkin:read" | "trip:operate" | "kyc:submit" | "kyc:review" | "catalog:manage" | "content:moderate" | "content:manage" | "user:manage" | "system:read" | "finance:read" | "finance:configure" | "audit:read" | "employee:manage" | "account:lock" | "support:create" | "review:create" | "support:respond" | "support:manage" | "dispute:decide" | "promotion:manage" | "promotion:configure" | "loyalty:manage" | "access:manage" | "transport:read" | "manager:manage" | "payout:manage" | "refund:manage")[];
             };
         };
         AdminPlatformAccountCreateDto: {
@@ -10061,7 +10694,7 @@ export interface components {
             email: string;
             /** @enum {string} */
             role: "PLATFORM_ADMIN" | "PLATFORM_SUPPORT";
-            permissions: ("profile:manage" | "loyalty:use" | "notification:manage" | "incident:create" | "journey-log:create" | "system:run" | "trip:search" | "booking:create" | "booking:read" | "payment:create" | "payment:monitor" | "refund:request" | "vehicle:manage" | "vehicle:read" | "route:manage" | "trip:manage" | "checkin:perform" | "checkin:read" | "trip:operate" | "kyc:submit" | "kyc:review" | "catalog:manage" | "content:moderate" | "content:manage" | "user:manage" | "system:read" | "finance:read" | "finance:configure" | "audit:read" | "employee:manage" | "account:lock" | "support:create" | "review:create" | "support:respond" | "support:manage" | "dispute:decide" | "promotion:manage" | "promotion:configure" | "loyalty:manage" | "access:manage" | "transport:read" | "manager:manage" | "payout:manage" | "refund:manage")[];
+            permissions: ("profile:manage" | "loyalty:use" | "notification:manage" | "incident:create" | "journey-log:create" | "system:run" | "trip:search" | "booking:create" | "booking:read" | "payment:create" | "payment:monitor" | "refund:request" | "vehicle:manage" | "vehicle:read" | "route:manage" | "trip:manage" | "trip:dispatch" | "office:manage" | "office:read" | "counter:sell" | "counter:collect" | "counter:read" | "checkin:perform" | "checkin:read" | "trip:operate" | "kyc:submit" | "kyc:review" | "catalog:manage" | "content:moderate" | "content:manage" | "user:manage" | "system:read" | "finance:read" | "finance:configure" | "audit:read" | "employee:manage" | "account:lock" | "support:create" | "review:create" | "support:respond" | "support:manage" | "dispute:decide" | "promotion:manage" | "promotion:configure" | "loyalty:manage" | "access:manage" | "transport:read" | "manager:manage" | "payout:manage" | "refund:manage")[];
         };
         AdminPlatformAccountDto_Output: {
             /** Format: uuid */
@@ -10070,7 +10703,7 @@ export interface components {
             email: string | null;
             /** @enum {string} */
             role: "PLATFORM_ADMIN" | "PLATFORM_SUPPORT";
-            permissions: ("profile:manage" | "loyalty:use" | "notification:manage" | "incident:create" | "journey-log:create" | "system:run" | "trip:search" | "booking:create" | "booking:read" | "payment:create" | "payment:monitor" | "refund:request" | "vehicle:manage" | "vehicle:read" | "route:manage" | "trip:manage" | "checkin:perform" | "checkin:read" | "trip:operate" | "kyc:submit" | "kyc:review" | "catalog:manage" | "content:moderate" | "content:manage" | "user:manage" | "system:read" | "finance:read" | "finance:configure" | "audit:read" | "employee:manage" | "account:lock" | "support:create" | "review:create" | "support:respond" | "support:manage" | "dispute:decide" | "promotion:manage" | "promotion:configure" | "loyalty:manage" | "access:manage" | "transport:read" | "manager:manage" | "payout:manage" | "refund:manage")[];
+            permissions: ("profile:manage" | "loyalty:use" | "notification:manage" | "incident:create" | "journey-log:create" | "system:run" | "trip:search" | "booking:create" | "booking:read" | "payment:create" | "payment:monitor" | "refund:request" | "vehicle:manage" | "vehicle:read" | "route:manage" | "trip:manage" | "trip:dispatch" | "office:manage" | "office:read" | "counter:sell" | "counter:collect" | "counter:read" | "checkin:perform" | "checkin:read" | "trip:operate" | "kyc:submit" | "kyc:review" | "catalog:manage" | "content:moderate" | "content:manage" | "user:manage" | "system:read" | "finance:read" | "finance:configure" | "audit:read" | "employee:manage" | "account:lock" | "support:create" | "review:create" | "support:respond" | "support:manage" | "dispute:decide" | "promotion:manage" | "promotion:configure" | "loyalty:manage" | "access:manage" | "transport:read" | "manager:manage" | "payout:manage" | "refund:manage")[];
             /** @enum {string} */
             status: "ACTIVE" | "LOCKED" | "DISABLED";
             mfaEnabled: boolean;
@@ -10082,7 +10715,7 @@ export interface components {
             isSelf: boolean;
         };
         AdminPlatformPermissionsUpdateDto: {
-            permissions: ("profile:manage" | "loyalty:use" | "notification:manage" | "incident:create" | "journey-log:create" | "system:run" | "trip:search" | "booking:create" | "booking:read" | "payment:create" | "payment:monitor" | "refund:request" | "vehicle:manage" | "vehicle:read" | "route:manage" | "trip:manage" | "checkin:perform" | "checkin:read" | "trip:operate" | "kyc:submit" | "kyc:review" | "catalog:manage" | "content:moderate" | "content:manage" | "user:manage" | "system:read" | "finance:read" | "finance:configure" | "audit:read" | "employee:manage" | "account:lock" | "support:create" | "review:create" | "support:respond" | "support:manage" | "dispute:decide" | "promotion:manage" | "promotion:configure" | "loyalty:manage" | "access:manage" | "transport:read" | "manager:manage" | "payout:manage" | "refund:manage")[];
+            permissions: ("profile:manage" | "loyalty:use" | "notification:manage" | "incident:create" | "journey-log:create" | "system:run" | "trip:search" | "booking:create" | "booking:read" | "payment:create" | "payment:monitor" | "refund:request" | "vehicle:manage" | "vehicle:read" | "route:manage" | "trip:manage" | "trip:dispatch" | "office:manage" | "office:read" | "counter:sell" | "counter:collect" | "counter:read" | "checkin:perform" | "checkin:read" | "trip:operate" | "kyc:submit" | "kyc:review" | "catalog:manage" | "content:moderate" | "content:manage" | "user:manage" | "system:read" | "finance:read" | "finance:configure" | "audit:read" | "employee:manage" | "account:lock" | "support:create" | "review:create" | "support:respond" | "support:manage" | "dispute:decide" | "promotion:manage" | "promotion:configure" | "loyalty:manage" | "access:manage" | "transport:read" | "manager:manage" | "payout:manage" | "refund:manage")[];
             reason: string;
         };
     };
@@ -10094,6 +10727,763 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    SalesOfficeController_list: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SalesOfficeListDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    SalesOfficeController_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SalesOfficeInputDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SalesOfficeDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    SalesOfficeController_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                officeId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SalesOfficeDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    SalesOfficeController_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                officeId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SalesOfficeUpdateDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SalesOfficeDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    SalesOfficeController_assignments: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                officeId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SalesOfficeAssignmentsDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    SalesOfficeController_replaceAssignments: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                officeId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SalesOfficeAssignmentsInputDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SalesOfficeDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    CounterSalesController_trips: {
+        parameters: {
+            query: {
+                officeId: string;
+                date: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CounterTripListDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    CounterSalesController_report: {
+        parameters: {
+            query: {
+                officeId: string;
+                date: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CounterReportDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    CounterSalesController_hold: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CounterHoldInputDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CounterHoldDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    CounterSalesController_getHold: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                holdId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CounterHoldDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    CounterSalesController_release: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                holdId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Đã nhả phiên giữ chỗ. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    CounterSalesController_list: {
+        parameters: {
+            query: {
+                officeId: string;
+                cursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CounterBookingListDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    CounterSalesController_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CounterBookingInputDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CounterBookingDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    CounterSalesController_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                bookingId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CounterBookingDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    CounterSalesController_collect: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                bookingId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CounterReceiptInputDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CounterReceiptResultDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Mã thao tác hoặc tham chiếu chuyển khoản đã được sử dụng. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    CounterCommissionController_overview: {
+        parameters: {
+            query: {
+                operatorId: string;
+                from?: string;
+                to?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CounterCommissionOverviewDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    CounterCommissionController_settle: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CounterCommissionSettlementInputDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CounterCommissionSettlementDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    OperatorDepartureController_depart: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tripId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TripDepartureInputDto"];
+            };
+        };
+        responses: {
+            /** @description Mốc khởi hành thực tế (giờ máy chủ). */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TripDepartureDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description TRIP_NOT_FOUND (kể cả khác nhà xe). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description TRIP_STATUS_TRANSITION_INVALID — chuyến chưa mở bán hoặc đã hủy. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
     AdminNotificationController_history: {
         parameters: {
             query?: {
@@ -11873,6 +13263,62 @@ export interface operations {
                 };
             };
             /** @description Sai thông tin đăng nhập. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Cookie mode: CSRF thiếu/sai (`AUTH_CSRF_INVALID`), Origin ngoài allowlist (`AUTH_ORIGIN_FORBIDDEN`) hoặc tài khoản bị khóa. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AuthController_counterLogin: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description `cookie` (web: phiên trong cookie httpOnly) hoặc `bearer` (mặc định, Mobile). */
+                "X-Auth-Transport"?: "cookie" | "bearer";
+                /** @description Bắt buộc ở cookie mode: token từ `GET /auth/csrf` (signed double-submit). */
+                "X-CSRF-Token"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CredentialLoginDto"];
+            };
+        };
+        responses: {
+            /** @description Cổng bán vé: SALES_STAFF hoặc OPERATOR_OWNER; giữ luồng đổi mật khẩu và MFA của tài khoản. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CredentialLoginResponseDto_Output"];
+                };
+            };
+            /** @description `X-Auth-Transport` sai (`AUTH_TRANSPORT_INVALID`) hoặc gửi cả Bearer lẫn cookie (`AUTH_TRANSPORT_AMBIGUOUS`). */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Sai thông tin đăng nhập hoặc tài khoản không dùng cổng bán vé. */
             401: {
                 headers: {
                     [name: string]: unknown;
@@ -27492,7 +28938,7 @@ export interface operations {
             query?: {
                 q?: string;
                 operatorId?: string;
-                role?: "DRIVER" | "TICKET_STAFF" | "SUPPORT_STAFF";
+                role?: "DRIVER" | "TICKET_STAFF" | "SUPPORT_STAFF" | "SALES_STAFF";
                 status?: "ACTIVE" | "LOCKED" | "DISABLED";
                 cursor?: string;
                 limit?: number;

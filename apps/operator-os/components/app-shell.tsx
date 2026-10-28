@@ -16,6 +16,7 @@ import {
   Megaphone,
   Route,
   ShieldOff,
+  Store,
   Tag,
   Ticket,
   UserCog,
@@ -29,6 +30,8 @@ import type { ReactNode } from "react";
 import { ListStatePanel } from "./list-parts";
 import { useAuth } from "../lib/auth/auth-context";
 import { isPublicPath } from "../lib/public-routes";
+import { isCounterPath } from "../lib/counter/portal";
+import { CounterShell } from "./counter/counter-shell";
 
 // Theo 06 UI/UX §5 (Information architecture — Operator OS). `permissions` = quyền của API trang gọi để ghi (TASK-IAM-007):
 // tài khoản quản lý chỉ thấy mục được tick; chủ nhà xe có đủ.
@@ -42,12 +45,14 @@ export const NAV_GROUPS: NavGroup[] = [
       { href: "/stop-points", label: "Điểm dừng", icon: MapPin, permissions: ["route:manage"] },
       { href: "/routes", label: "Tuyến đường", icon: Route, permissions: ["route:manage"] },
       { href: "/fares", label: "Bảng giá", icon: Tag, permissions: ["trip:manage"] },
-      { href: "/trips", label: "Chuyến xe", icon: CalendarClock, permissions: ["trip:manage"] }
+      { href: "/trips", label: "Chuyến xe", icon: CalendarClock, permissions: ["trip:manage", "trip:dispatch"] }
     ]
   },
   {
     label: "Kinh doanh",
     items: [
+      { href: "/offices", label: "Văn phòng bán vé", icon: Store, permissions: ["office:manage"] },
+      { href: "/counter", label: "Bán vé tại quầy", icon: Ticket, permissions: ["counter:sell"] },
       { href: "/bookings", label: "Đặt vé", icon: Ticket, permissions: ["booking:read"] },
       // Figma "VXN / Operator sidebar" (Khanh duyệt thêm mục 13/10/2026).
       { href: "/promotions", label: "Khuyến mãi", icon: Megaphone, permissions: ["promotion:manage"] },
@@ -77,6 +82,8 @@ export function AppShell({ children }: { children: ReactNode }) {
   if (isPublicPath(pathname)) {
     return children;
   }
+  if (pathname === "/auth/counter/login") return children;
+  if (isCounterPath(pathname)) return <CounterShell>{children}</CounterShell>;
   // `AuthGate` chỉ dựng khung này khi đã đăng nhập; kiểm lại để kiểu dữ liệu chặt.
   const me = state.status === "authenticated" ? state.me : null;
   // `/auth/me` chưa trả tên hiển thị của nhà xe nên tạm dùng mã nhà xe (slug).

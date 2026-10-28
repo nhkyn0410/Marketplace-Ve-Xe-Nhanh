@@ -13,7 +13,7 @@
 | Người viết    | Nguyễn Hồng Khanh, AI Agent |
 | Người duyệt   | Nguyễn Hồng Khanh           |
 | Ngày tạo      | 11/05/2026                  |
-| Ngày cập nhật | 27/10/2026                  |
+| Ngày cập nhật | 28/10/2026                  |
 
 ### 1.2. Lịch sử thay đổi
 
@@ -679,6 +679,14 @@ Login `{operatorSlug}/{username}` + password qua `/auth/operator/login` — **ch
 - Khác khung Figma, chờ Khanh xem (bảng N1–N8 ở `IAM-005-web-todo.md`): không có ngày đăng nhập gần nhất, ngày khóa, ngày thiết lập xác thực hai lớp và số mã dự phòng còn lại vì API chưa trả; thêm nhân viên có ô xác nhận danh tính; chưa có nút vô hiệu hóa vĩnh viễn; nút "Phân công chuyến" (`TASK-EMP-001`) và tab "Thông báo" (`TASK-NSR-002`) chưa làm.
 
 ---
+
+### COUNTER-SALES — Cổng web bán vé riêng (27/10/2026)
+
+`/auth/counter/login` dẫn tới `/counter`, dùng cùng ứng dụng Operator OS nhưng layout/cổng tiếp nhận Owner và `SALES_STAFF` riêng với phần quản trị. Owner tạo/khóa/cấp lại mật khẩu nhân viên bán vé qua quản lý nhân viên như tài xế/soát vé; phân công nhiều văn phòng ở màn văn phòng. Nhân viên bán vé không vào phần quản trị Operator OS.
+
+Luồng quầy: chọn văn phòng được cấp → ngày/chuyến → điểm đón/trả và ghế còn trống → giữ10 phút → thông tin khách (email tùy chọn) → thu đủ tiền mặt hoặc chuyển khoản đã đối chiếu mã giao dịch → vé QR/in/in lại. Hiện rõ người đang bán; lịch sử lưu văn phòng và người bán. Không hiển thị nút xác nhận chuyển khoản bằng ảnh chụp tự động.
+
+Mọi bước có loading/error/empty/permission state. Sau timeout tải lại đơn/khoản thu để tiếp tục an toàn; khoản thu ngoại lệ hiển thị đã nhận tiền cần xử lý, không báo phát vé thành công. Chi tiết chuyến cho người có `trip:dispatch` xác nhận xe thực sự khởi hành bằng hộp xác nhận; giờ lịch trễ không tự đóng quầy. Admin cấu hình kênh hoa hồng và ghi khoản phí đã thu thủ công, tách khỏi payout.
 
 ## 8. Flow Employee
 

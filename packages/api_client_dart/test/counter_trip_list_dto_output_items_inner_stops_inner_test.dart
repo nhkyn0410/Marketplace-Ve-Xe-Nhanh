@@ -1,12 +1,12 @@
 import 'package:test/test.dart';
 import 'package:api_client_dart/api_client_dart.dart';
 
-// tests for SeatHoldResponseDtoOutputPickup
+// tests for CounterTripListDtoOutputItemsInnerStopsInner
 void main() {
-  final instance = SeatHoldResponseDtoOutputPickupBuilder();
+  final instance = CounterTripListDtoOutputItemsInnerStopsInnerBuilder();
   // TODO add properties to the builder and call build()
 
-  group(SeatHoldResponseDtoOutputPickup, () {
+  group(CounterTripListDtoOutputItemsInnerStopsInner, () {
     // int sequence
     test('to test the property `sequence`', () async {
       // TODO
@@ -19,6 +19,16 @@ void main() {
 
     // DateTime plannedAt
     test('to test the property `plannedAt`', () async {
+      // TODO
+    });
+
+    // bool allowPickup
+    test('to test the property `allowPickup`', () async {
+      // TODO
+    });
+
+    // bool allowDropoff
+    test('to test the property `allowDropoff`', () async {
       // TODO
     });
 

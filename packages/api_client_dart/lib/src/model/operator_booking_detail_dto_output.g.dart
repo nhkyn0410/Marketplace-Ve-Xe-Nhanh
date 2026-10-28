@@ -220,7 +220,7 @@ class _$OperatorBookingDetailDtoOutput extends OperatorBookingDetailDtoOutput {
   @override
   final OperatorBookingPageDtoOutputItemsInnerPayment? payment;
   @override
-  final String contactEmailMasked;
+  final String? contactEmailMasked;
   @override
   final String? note;
   @override
@@ -259,7 +259,7 @@ class _$OperatorBookingDetailDtoOutput extends OperatorBookingDetailDtoOutput {
       required this.cancelledTicketCount,
       required this.total,
       this.payment,
-      required this.contactEmailMasked,
+      this.contactEmailMasked,
       this.note,
       required this.pickup,
       required this.dropoff,
@@ -574,10 +574,7 @@ class OperatorBookingDetailDtoOutputBuilder
             total: BuiltValueNullFieldError.checkNotNull(
                 total, r'OperatorBookingDetailDtoOutput', 'total'),
             payment: _payment?.build(),
-            contactEmailMasked: BuiltValueNullFieldError.checkNotNull(
-                contactEmailMasked,
-                r'OperatorBookingDetailDtoOutput',
-                'contactEmailMasked'),
+            contactEmailMasked: contactEmailMasked,
             note: note,
             pickup: pickup.build(),
             dropoff: dropoff.build(),

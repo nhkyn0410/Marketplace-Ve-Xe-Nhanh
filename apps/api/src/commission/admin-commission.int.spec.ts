@@ -29,6 +29,7 @@ describe.skipIf(!url && !requireDb)("Hoa hồng — Postgres thật, role app", 
   const tag = randomUUID().slice(0, 8);
   const operatorA = randomUUID();
   const operatorB = randomUUID();
+  const operatorC = randomUUID();
   const actor = { sub: randomUUID(), role: "PLATFORM_ADMIN" };
   const authz: Authorization = { permission: "finance:configure", scope: "any", db: platformScope() };
   const recordAuditEvent = vi.fn(async (_event: AuditEventInput, _options?: unknown) => undefined);
@@ -53,6 +54,7 @@ describe.skipIf(!url && !requireDb)("Hoa hồng — Postgres thật, role app", 
         data: [
           { id: operatorA, operatorSlug: `cms-a-${tag}`, displayName: `Hà Linh ${tag}` },
           { id: operatorB, operatorSlug: `cms-b-${tag}`, displayName: `Tâm Hạnh ${tag}` },
+          { id: operatorC, operatorSlug: `cms-c-${tag}`, displayName: `Quầy ${tag}` },
         ],
       }),
     );
@@ -63,7 +65,7 @@ describe.skipIf(!url && !requireDb)("Hoa hồng — Postgres thật, role app", 
       return;
     }
     await prisma.withSystem(async (tx) => {
-      const ids = { in: [operatorA, operatorB] };
+      const ids = { in: [operatorA, operatorB, operatorC] };
       await tx.commissionRule.deleteMany({ where: { operatorId: ids } });
       await tx.operatorProfile.deleteMany({ where: { id: ids } });
     });
@@ -166,5 +168,24 @@ describe.skipIf(!url && !requireDb)("Hoa hồng — Postgres thật, role app", 
       code: "SERVICE_UNAVAILABLE",
     });
     expect((await mine()).length).toBe(before);
+  });
+
+  it("hai kênh dùng khoảng riêng; mức quầy phải thấp hơn online tại mọi biên tương lai", async () => {
+    const online = await commission.create(authz, actor, create({ operatorId: operatorC, channel: "ONLINE", rateBps: 700, effectiveFrom: at(100), effectiveTo: at(120) }));
+    const counter = await commission.create(authz, actor, create({ operatorId: operatorC, channel: "COUNTER", rateBps: 600, effectiveFrom: online.effectiveFrom, effectiveTo: online.effectiveTo }));
+    expect(counter.channel).toBe("COUNTER");
+    // Kết thúc mức online700 sớm sẽ đưa về500, thấp hơn quầy600 đang lên lịch: toàn giao dịch bị từ chối.
+    expect(await rejectionOf(commission.update(authz, actor, online.id, edit({ rateBps: 700, effectiveFrom: online.effectiveFrom, effectiveTo: at(110) })))).toEqual({ status: 422, code: "COUNTER_COMMISSION_NOT_LOWER" });
+    expect(await rejectionOf(commission.cancel(authz, actor, online.id, "Không còn hợp đồng"))).toEqual({ status: 422, code: "COUNTER_COMMISSION_NOT_LOWER" });
+    expect(await prisma.withSystem((tx) => tx.commissionRule.findUnique({ where: { id: online.id } }))).toMatchObject({ status: "ACTIVE", effectiveTo: new Date(online.effectiveTo!) });
+    await commission.cancel(authz, actor, counter.id, "Hủy mức quầy trước");
+    expect(await commission.cancel(authz, actor, online.id, "Hủy mức online sau")).toMatchObject({ state: "CANCELLED" });
+  });
+
+  it("hai cấu hình đồng thời cùng kênh và khoảng chỉ một giao dịch ghi được", async () => {
+    const input = create({ operatorId: operatorC, channel: "COUNTER", rateBps: 100, effectiveFrom: at(200), effectiveTo: at(220) });
+    const results = await Promise.allSettled([commission.create(authz, actor, input), commission.create(authz, actor, input)]);
+    expect(results.filter((result) => result.status === "fulfilled")).toHaveLength(1);
+    expect(await prisma.withSystem((tx) => tx.commissionRule.count({ where: { operatorId: operatorC, channel: "COUNTER", status: "ACTIVE", effectiveFrom: input.effectiveFrom } }))).toBe(1);
   });
 });

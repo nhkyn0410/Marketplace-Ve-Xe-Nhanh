@@ -1,7 +1,7 @@
 # Bán vé tại văn phòng nhà xe — Phân tích mở rộng
 
-> Ngày cập nhật: **26/10/2026**. Nguồn: Khanh xác nhận phạm vi và mốc khởi hành trong chat ngày 26/10/2026.
-> **Trạng thái:** quyết định nghiệp vụ tại §1 đã được Khanh chốt; thiết kế tại §3–§8 là **ĐỀ XUẤT, chưa duyệt**, chưa triển khai code. Tài liệu này là ghi chú phân tích bổ trợ SRS, không thay thế HLD / LLD / DB / API / UI / Security / Test / Task.
+> Ngày cập nhật: **28/10/2026**. Nguồn: Khanh xác nhận phạm vi và mốc khởi hành ngày 26/10; yêu cầu triển khai theo kế hoạch, bổ sung quyết định phí và đối soát ngày27/10/2026.
+> **Trạng thái:** quyết định nghiệp vụ tại §1 đã được triển khai cho luồng bán/thu/phát/in lại vé trên nhánh `feat/selling_tickets`; kết quả kiểm chứng và giới hạn tại [COUNTER-SALES-todo](COUNTER-SALES-todo.md). Các câu hỏi còn mở tại §9 (ca/bàn giao, hoàn/đổi, kết thúc ngoại lệ) chưa được tự quyết. Tài liệu này là phân tích bổ trợ SRS; phần triển khai đã được đồng bộ HLD / LLD / DB / API / UI / Security / Test / Task, không tự promote trạng thái tài liệu.
 
 ## 1. Quyết định đã chốt
 
@@ -10,19 +10,24 @@
 | Chủ thể | Văn phòng bán vé của nhà xe, thuộc phạm vi nhà xe đó. |
 | Số văn phòng | Quản lý **nhiều văn phòng ngay từ đầu**. |
 | Phương thức thu | **Tiền mặt và chuyển khoản**. |
-| Hoa hồng | Vé quầy **có chịu hoa hồng**, theo mức cấu hình **thấp hơn mức online**. Chưa chốt con số cụ thể. |
+| Hoa hồng | Vé quầy **có chịu hoa hồng**, theo mức cấu hình **thấp hơn mức online**. Khanh chốt 27/10: **mặc định 0% khi chưa có cấu hình riêng cho quầy**; không dùng mặc định online 5%. |
+| Thu hoa hồng | Khanh đồng ý 27/10: ghi khoản phải thu riêng đối với nhà xe, **thu theo kỳ và xác nhận thủ công**. Chưa chốt kỳ hạn và quy trình xử lý chênh lệch. |
+| Người bán / cổng đăng nhập | Khanh chốt 27/10: **nhân viên bán vé có cổng đăng nhập riêng**, do nhà xe quản lý như tài xế / nhân viên soát vé; chủ nhà xe cũng được bán trên web và phải lưu dấu vết người bán. Role triển khai `SALES_STAFF`, tách `TICKET_STAFF` soát vé. |
+| Xác minh chuyển khoản | Khanh đồng ý phương án thủ công: tiền vào tài khoản nhà xe, người có quyền đối chiếu tiền thực nhận rồi xác nhận; ảnh chuyển khoản tự nó chưa đủ để kết luận đã thu. Không thêm vendor ngân hàng tự động. |
 | Giờ bán | Quầy được bán sau giờ ngừng bán online, đến khi xe khởi hành. |
 | Định nghĩa khởi hành | Theo lúc **tài xế / điều phối xác nhận xe thực sự khởi hành**, kể cả trễ lịch. Giờ khởi hành dự kiến không tự đóng bán quầy. |
 
-Các quyết định này không mặc nhiên chốt phương thức xác minh chuyển khoản, cách thu hoa hồng từ nhà xe, phân quyền theo văn phòng hay quy tắc trả sau / đặt cọc.
+Các quyết định này không mặc nhiên chốt chi tiết tham chiếu / xử lý chuyển khoản thiếu, thừa, muộn; kỳ hạn / thao tác thu hoa hồng; ca / bàn giao hay quy tắc trả sau / đặt cọc. Cổng nhân viên bán vé thay hướng dùng tài khoản quản lý tại §3 của bản phân tích trước.
 
 Nguồn yêu cầu chính thức: [SRS §6.2 và §21](../SDLC/01-srs-he-thong-dat-ve-xe-khach.md).
 
-## 2. Nền hiện có và khoảng trống
+## 2. Nền trước triển khai và khoảng trống (26/10/2026)
+
+Các mô tả dưới đây chụp nền trước khi bắt đầu code; phần đã triển khai28/10 và kiểm chứng xem [todo](COUNTER-SALES-todo.md).
 
 - Operator OS đã có chuyến, sơ đồ ghế, khóa ghế bán ngoài hệ thống, xem booking / vé, danh sách hành khách và xuất file. `BLOCKED` hiện chỉ chặn ghế; không đại diện cho booking, hành khách hay khoản thu tại quầy. Nguồn: [SRS FR-OPS-13..15](../SDLC/01-srs-he-thong-dat-ve-xe-khach.md), [ghi chú OPR-003](OPR-003-todo.md).
 - Giữ ghế và tạo booking hiện dành cho guest / passenger; cần đường thao tác nhân viên với tenant và người bán được xác thực. Nguồn: [booking controller](../../apps/api/src/booking/booking.controller.ts), [seat-hold service](../../apps/api/src/seat-hold/seat-hold.service.ts).
-- `OPERATOR_MANAGER` đã có trong code; mẫu “Bán vé & CSKH” mới có quyền xem đơn và hỗ trợ. Thiết kế tài khoản này còn chờ duyệt trong [IAM-007](IAM-007-todo.md). `Employee` hiện dùng app nhân viên; không mặc nhiên được vào Operator OS.
+- `OPERATOR_MANAGER` đã có trong code; mẫu “Bán vé & CSKH” chỉ có quyền xem đơn và hỗ trợ, không dùng làm danh tính bán quầy. Theo quyết định 27/10, thêm `SALES_STAFF` trong tài khoản nhân viên và cổng bán riêng; tài xế / soát vé không mặc nhiên được bán quầy. Quyền theo tài khoản quản lý vẫn theo [IAM-007](IAM-007-todo.md).
 - `StopPoint` loại `OFFICE` hiện là văn phòng / điểm trung chuyển, chưa mô hình hóa nơi chịu trách nhiệm bán và thu tiền. Không tự đồng nhất hai khái niệm. Nguồn: [GLOSSARY](../context/GLOSSARY.md), [API §7.3](../SDLC/05-api-specification.md).
 - Code đã có `TripStatus.DEPARTED` và `Trip.departedAt` thực tế. Tài xế được phân công xác nhận qua luồng vận hành; điều phối chưa có đường xác nhận tương đương. Nguồn: [schema Trip](../../apps/api/prisma/schema.prisma), [employee operations](../../apps/api/src/check-in/employee-operations.service.ts).
 - Hoa hồng hiện phân giải theo nhà xe và hiệu lực, chưa có chiều kênh bán. Code chốt mức tại lúc thanh toán thành công, lưu mức áp dụng vào bút toán và dùng lại khi đảo hoa hồng; phép tính dùng BigInt, làm tròn xuống đồng. Đây là hiện trạng code cần đối chiếu khi thiết kế quầy, không phải quyết định mới. Nguồn: [escrow entries](../../apps/api/src/escrow/escrow-entries.ts), [payment callback](../../apps/api/src/payment/payment-callback.ts).
@@ -34,7 +39,7 @@ Mở rộng trong `apps/operator-os`, dùng chung backend và kho ghế hiện c
 | Khái niệm đề xuất | Nội dung cần thiết kế |
 | --- | --- |
 | Văn phòng bán vé | Mã, tên, nhà xe sở hữu, địa chỉ, trạng thái hoạt động. Quan hệ tùy chọn với điểm trung chuyển nếu thực tế cùng địa điểm. |
-| Phân công tài khoản | Tài khoản được làm việc tại một hoặc nhiều văn phòng; phân biệt bán vé, xác nhận thu, xem báo cáo, chốt ca và hoàn tiền. |
+| Phân công người bán | Nhân viên `SALES_STAFF` được gắn văn phòng. Bản triển khai dùng chủ nhà xe thấy mọi văn phòng, nhân viên chỉ văn phòng đang hoạt động được phân công; đây là giả định triển khai được nêu khi làm, chưa mở quyền hoàn / chốt ca. |
 | Dấu vết đơn quầy | Nhà xe, kênh bán, văn phòng và tài khoản tạo đơn; giữ lịch sử kể cả người bán chuyển văn phòng hay văn phòng ngừng hoạt động. |
 | Ca thu tiền | Người chịu trách nhiệm, văn phòng, tiền đầu ca, khoản thu / hoàn theo phương thức, số thực bàn giao và chênh lệch. Mức chi tiết cần Khanh duyệt. |
 
@@ -52,7 +57,7 @@ Tenant lấy từ phiên đăng nhập; server kiểm văn phòng và phân côn
 6. Xác nhận khoản thu bằng tài khoản có quyền; server kiểm lại ghế, trạng thái chuyến, quyền văn phòng và tính duy nhất của thao tác trước khi chốt.
 7. Phát hành vé QR qua lõi vé hiện có, ghi khoản thu và hoa hồng tương ứng; cập nhật danh sách hành khách. In lại vé không phát sinh vé hoặc khoản thu mới.
 
-**Chuyển khoản:** đề xuất bản đầu tiền vào tài khoản của nhà xe, người được phân quyền đối chiếu tiền thực nhận rồi xác nhận. Ảnh chụp chuyển khoản tự nó chưa đủ để kết luận đã thu. Chủ tài khoản nhận, thẩm quyền xác nhận, nguồn tham chiếu giao dịch và cách chống dùng lại cần Khanh chốt; chưa thêm ngân hàng / vendor hoặc đồng bộ tự động.
+**Chuyển khoản:** Khanh đồng ý bản đầu tiền vào tài khoản của nhà xe, người có quyền đối chiếu tiền thực nhận rồi xác nhận. Ảnh chụp chuyển khoản tự nó chưa đủ để kết luận đã thu. Nguồn tham chiếu giao dịch, cách chống dùng lại và xử lý thiếu / thừa / đến muộn cần thiết kế rõ; chưa thêm ngân hàng / vendor hoặc đồng bộ tự động.
 
 Kênh bán và phương thức thu là hai thuộc tính khác nhau: vé quầy trả chuyển khoản vẫn dùng hoa hồng quầy. Kênh, văn phòng, người bán và mức hoa hồng do server xác định, client không được đổi đơn online thành đơn quầy để nhận phí thấp hơn.
 
@@ -60,9 +65,9 @@ Kênh bán và phương thức thu là hai thuộc tính khác nhau: vé quầy 
 
 - Mở rộng cấu hình hoa hồng theo kênh bán, nhà xe và khoảng hiệu lực; quyền cấu hình theo cơ chế Admin hiện có. Chưa đề xuất mức riêng từng văn phòng.
 - Ràng buộc “quầy thấp hơn online” cần so sánh với mức online có hiệu lực của cùng nhà xe. Phải kiểm cả các lần thay đổi / khoảng hiệu lực tương lai; cách xử lý cấu hình làm hai mức không còn hợp lệ cần duyệt trước code.
-- Không tự đặt tỷ lệ quầy và không dùng mặc định online 5% khi thiếu cấu hình quầy. Đề xuất thiếu mức hợp lệ thì báo chưa đủ cấu hình để bán, không mặc nhiên miễn phí.
+- **Khanh chốt 27/10:** khi chưa có cấu hình riêng cho quầy, áp dụng **0%**. Quyết định này thay đề xuất cũ chặn bán khi thiếu mức quầy; không dùng mặc định online 5%. Mức được cấu hình vẫn phải thỏa điều kiện thấp hơn mức online áp dụng.
 - Đề xuất giữ thời điểm chốt tỷ lệ lúc xác nhận thu thành công cho nhất quán code hiện tại; lưu kênh, rule, rate, cơ sở tính và số tiền hoa hồng đã dùng. Đổi cấu hình không tính lại đơn cũ.
-- Tiền nhà xe thu trực tiếp không tạo khoản Platform đang giữ để payout lại. Cần sổ theo dõi khoản phải thu hoa hồng của Platform đối với nhà xe. Cách thu khoản đó là OPEN QUESTION: theo kỳ, khấu trừ tiền online đủ điều kiện, hoặc phương án khác.
+- Tiền nhà xe thu trực tiếp không tạo khoản Platform đang giữ để payout lại. **Khanh đồng ý 27/10:** theo dõi khoản phải thu hoa hồng riêng và thu theo kỳ bằng xác nhận thủ công; không tự khấu trừ tiền online. Kỳ hạn, minh chứng và xử lý thiếu / thừa còn cần chốt.
 - Hủy / hoàn phải liên kết khoản thu gốc, đảo hoa hồng theo dữ liệu đã chốt và tránh xử lý lặp. Quy tắc hoàn một phần, phí hủy, no-show và áp dụng khuyến mãi / loyalty cho vé quầy chưa được quyết định.
 - Tiền VND dùng BIGINT / Decimal, không dùng number / float cho tiền. Phải xác định quy tắc làm tròn và phân bổ khi một booking có nhiều vé, hoàn từng phần để không sai lệch tổng.
 
@@ -89,9 +94,9 @@ Ví dụ **minh họa, không phải mức phí đã chốt**: nhà xe thu 600.0
 | Vận hành chuyến | Điều phối / tài xế xác nhận khởi hành; chặn bán đồng thời sau mốc thực tế. |
 | Đối soát + xử lý ngoại lệ | Ca bán, bàn giao, hủy / hoàn theo quyền; xử lý chuyển khoản muộn và giao dịch chưa hoàn tất. |
 
-Operator OS dự kiến thêm nơi quản lý văn phòng, màn bán tại quầy, danh sách giao dịch theo kênh / văn phòng / người bán, ca thu tiền và tài chính quầy. Admin mở rộng cấu hình hoa hồng theo kênh. Đây là đầu ra đề xuất cho UI, chưa phải thiết kế màn đã duyệt.
+Operator OS thêm quản lý văn phòng và lối bán cho chủ nhà xe; nhân viên bán qua cổng đăng nhập riêng theo quyết định 27/10. Danh sách giao dịch theo kênh / văn phòng / người bán, ca thu tiền và tài chính quầy cùng cấu hình hoa hồng Admin được theo dõi theo từng lát. Ca / bàn giao và các quy tắc ngoại lệ chưa được quyết định.
 
-Sau khi chốt các câu hỏi §9, cần đồng bộ HLD / LLD / DB / API / UI / Security / Test / Task, DOMAIN-MAP / GLOSSARY nếu phát sinh thuật ngữ chính thức. Chưa cấp mã task / entity / error / permission mới trong ghi chú này, chưa thay ADR / vendor.
+Đồng bộ HLD / LLD / DB / API / UI / Security / Test / Task, DOMAIN-MAP / GLOSSARY theo từng lát thực tế; theo dõi tại [COUNTER-SALES-todo](COUNTER-SALES-todo.md). Không suy ra các quyết định còn mở tại §9 từ yêu cầu bắt đầu triển khai; chưa thay ADR / vendor.
 
 ## 8. ĐỀ XUẤT — Tiêu chí nghiệm thu trọng yếu
 
@@ -104,16 +109,15 @@ Sau khi chốt các câu hỏi §9, cần đồng bộ HLD / LLD / DB / API / UI
 - Money math, so sánh mức quầy với online theo hiệu lực, snapshot, hoàn một phần và đảo hoa hồng: tổng đúng tới đồng, không dùng số thực cho tiền.
 - Tiền nhà xe tự thu không làm tăng escrow / payout; đối soát từng văn phòng khớp tổng nhà xe, tiền mặt không bị cộng lẫn chuyển khoản.
 
-Các mục trên là kế hoạch kiểm chứng; chưa chạy test vì chưa thay code.
+Các mục trên là kế hoạch kiểm chứng cho toàn bộ phạm vi. Kết quả kiểm tra của từng lát được ghi riêng tại [COUNTER-SALES-todo](COUNTER-SALES-todo.md); không coi danh sách này là test đã pass.
 
 ## 9. OPEN QUESTION — Cần chốt trước thiết kế dùng để code
 
 | Điểm | Chưa chốt | Hướng đề xuất để thảo luận |
 | --- | --- | --- |
-| Xác minh chuyển khoản | Tài khoản nhận, người xác nhận, tham chiếu chống trùng, tiền thiếu / thừa / đến muộn | Chuyển vào nhà xe, xác nhận thủ công có audit ở bản đầu. |
-| Thu hoa hồng | Thu theo kỳ hay khấu trừ tiền online; kỳ hạn, khoản thiếu bù, điều chỉnh khi hoàn | Theo dõi khoản phải thu riêng; chỉ áp cơ chế thu được Khanh chọn. |
-| Cấu hình phí | Mức quầy ban đầu, phạm vi chung / riêng nhà xe và xử lý thay đổi online làm vi phạm “thấp hơn” | Có mức quầy riêng theo kênh / nhà xe / hiệu lực, không lấy fallback online. |
-| Phân quyền văn phòng | Ai được bán / xem / chốt / hoàn tại một hay nhiều office; xử lý vé office khác | Tận dụng tài khoản quản lý Operator OS và danh sách văn phòng được cấp. |
+| Xác minh chuyển khoản | Quy trình kết thúc/hoàn/đổi khoản thu ngoại lệ | Đã có tham chiếu chống trùng và ghi EXCEPTION cho thiếu/thừa/muộn; tiền vào nhà xe, đối chiếu thủ công có người xác nhận, không tự phát vé. |
+| Thu hoa hồng | Kỳ hạn, khoản thiếu bù, minh chứng xác nhận và điều chỉnh khi hoàn | Đã chốt khoản phải thu riêng + thu theo kỳ, xác nhận thủ công; không tự khấu trừ tiền online. |
+| Phân quyền văn phòng | Chốt ca / hoàn và xử lý vé office khác; phạm vi chi tiết ngoài bán / xác nhận thu | Đã chốt cổng nhân viên bán riêng `SALES_STAFF` và chủ nhà xe được bán; triển khai owner mọi văn phòng, nhân viên văn phòng được phân công, không tự cấp quyền soát vé / hoàn tiền. |
 | Ca và bàn giao | Có quỹ đầu ca, nhiều người chung két, nộp / rút, duyệt chênh lệch không | Mỗi người chịu trách nhiệm khoản thu rõ ràng; thiết kế mức tối thiểu sau khi chốt cách vận hành. |
 | Ngoại lệ và ưu đãi | Thu tiền nhưng hết hạn / đã khởi hành, hoàn / đổi, giá riêng, khuyến mãi / loyalty | Bản đầu thu đủ theo bảng giá; mọi ngoại lệ có quyền và audit, không mặc nhiên áp ưu đãi online. |
 

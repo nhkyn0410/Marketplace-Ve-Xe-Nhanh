@@ -40,7 +40,7 @@ type EmployeeRow = {
   operatorId: string;
   username: string;
   contactEmail: string | null;
-  role: "DRIVER" | "TICKET_STAFF" | "SUPPORT_STAFF";
+  role: "DRIVER" | "TICKET_STAFF" | "SUPPORT_STAFF" | "SALES_STAFF";
   status: "ACTIVE" | "LOCKED" | "DISABLED";
   credentialDeliveryPending: boolean;
   passwordChangeRequired: boolean;

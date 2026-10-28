@@ -147,6 +147,17 @@ describe("Employee account routes — HTTP authorization", () => {
     expect(response.body.code).toBe("PERMISSION_DENIED");
   });
 
+  it("chủ nhà xe cấp nhân viên bán vé qua cùng luồng nhân viên; nhân viên bán vé không tự cấp tài khoản", async () => {
+    recentReauth = true;
+    create.mockClear();
+    const body = { username: "nv.sales-test", contactEmail: "sales@example.com", role: "SALES_STAFF", reason: "Nhân viên bán vé mới" };
+    expect((await request("POST", "", await token("OPERATOR_OWNER"), body)).status).toBe(201);
+    expect(create).toHaveBeenCalledWith(expect.objectContaining({ role: "OPERATOR_OWNER" }), expect.any(Object), expect.objectContaining({ role: "SALES_STAFF" }), expect.any(Object));
+    create.mockClear();
+    expect((await request("POST", "", await token("SALES_STAFF"), body)).status).toBe(403);
+    expect(create).not.toHaveBeenCalled();
+  });
+
   it.each([
     ["POST", "", { username: "driver-test", contactEmail: "driver@example.com", role: "DRIVER", reason: "onboarding" }],
     ["POST", "", { username: "nv.Tuan", contactEmail: "driver@example.com", role: "DRIVER", reason: "onboarding" }],

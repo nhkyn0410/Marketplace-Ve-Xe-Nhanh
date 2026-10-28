@@ -22,6 +22,7 @@ import type { BookingInput, BookingResponse, CreatedBooking } from "./dto/bookin
 import { claimPromotion } from "../promotion/promotion-apply";
 import { evaluateVoucher, reserveVoucher } from "../promotion/voucher-apply";
 import { voucherProblem } from "../loyalty/passenger-loyalty.service";
+import type { CounterBookingInput } from "@vexenhanh/types";
 
 const MINUTE = 60_000;
 /** Mã booking `VXN` + 6 ký tự, bỏ 0/O/1/I cho dễ đọc qua điện thoại (32^6 ≈ 1 tỷ mã). */
@@ -51,6 +52,7 @@ type BookingSnapshot = {
   pickup: SnapshotStop;
   dropoff: SnapshotStop;
   cancellationPolicy: { tiers: Tier[] };
+  counterSale?: { soldBy: string; sellerLabel: string; officeId: string };
   /** Mã khuyến mãi đã áp (BR-47) — phần giảm do nhà xe chịu (Khanh 18/10/2026, LLD-OQ-07). */
   promotion?: { code: string; name: string; discount: number; fundedBy: "OPERATOR" | "PLATFORM" };
 };
@@ -62,7 +64,7 @@ type BookingRow = {
   tripId: string;
   contactName: string;
   contactPhone: string;
-  contactEmail: string;
+  contactEmail: string | null;
   note: string | null;
   subtotal: bigint;
   serviceFee: bigint;
@@ -77,6 +79,12 @@ type BookingRow = {
   refunds: { refundCode: string; amount: bigint; status: RefundStatus; createdAt: Date }[];
   trip: { changes: { kinds: TripChangeKind[]; before: unknown; after: unknown; reason: string; createdAt: Date }[] };
 };
+
+type CoreBookingInput = Omit<BookingInput, "contact" | "expectedTotal"> & {
+  contact: { fullName: string; phone: string; email: string | null };
+  expectedTotal: number | string;
+};
+type CounterAttribution = { officeId: string; soldBy: string; sellerLabel: string };
 
 const BOOKING_SELECT = {
   id: true,
@@ -141,12 +149,13 @@ export class BookingService {
     let created: BookingResponse | null = null;
     for (let attempt = 1; !created; attempt++) {
       try {
-        created = await this.transaction(() =>
+        const row = await this.transaction(() =>
           withTripOperator(this.prisma, hold.tripId, (tx, operatorId) => this.insert(tx, operatorId, user, hold, input, accessToken, now)),
         );
-        if (!created) {
+        if (!row) {
           throw tripNotOnSale();
         }
+        created = toResponse(row, this.qr);
       } catch (error) {
         if (!isUniqueConflict(error)) {
           throw error;
@@ -159,6 +168,14 @@ export class BookingService {
     }
     await this.holds.releaseConsumed(hold);
     return { ...created, accessToken };
+  }
+
+  /** Tạo đơn quầy trong giao dịch tenant đã kiểm văn phòng, tái sử dụng lõi giá và khóa ghế. */
+  async createAtCounter(tx: DbTransaction, operatorId: string, hold: HoldRecord, input: CounterBookingInput, attribution: CounterAttribution): Promise<string> {
+    const held = new Set(hold.seatCodes);
+    if (input.passengers.length !== held.size || input.passengers.some((passenger) => !held.has(passenger.seatCode))) throw passengersMismatch();
+    const booking = await this.insert(tx, operatorId, null, hold, { ...input, promotionCode: null, userVoucherId: null }, randomBytes(32).toString("base64url"), new Date(), attribution);
+    return booking.id;
   }
 
   /**
@@ -270,10 +287,11 @@ export class BookingService {
     operatorId: string,
     user: VerifiedAccessToken | null,
     hold: HoldRecord,
-    input: BookingInput,
+    input: CoreBookingInput,
     accessToken: string,
     now: Date,
-  ): Promise<BookingResponse> {
+    counter?: CounterAttribution,
+  ): Promise<BookingRow> {
     const [locked] = await tx.$queryRaw<{ id: string }[]>`
       SELECT id FROM trips WHERE id = ${hold.tripId} AND operator_id = ${operatorId} FOR SHARE`;
     const trip = locked
@@ -281,6 +299,7 @@ export class BookingService {
           where: { id: hold.tripId, operatorId },
           select: {
             status: true,
+            departedAt: true,
             routeId: true,
             departureAt: true,
             arrivalAt: true,
@@ -303,7 +322,8 @@ export class BookingService {
         })
       : null;
     const saleClosesAt = trip ? trip.departureAt.getTime() - trip.onlineSaleCutoffMinutes * MINUTE : 0;
-    if (!trip?.vehicle || trip.status !== "OPEN_FOR_SALE" || trip.operator.status !== "ACTIVE" || saleClosesAt <= now.getTime()) {
+    const open = counter ? trip && ["OPEN_FOR_SALE", "BOARDING"].includes(trip.status) && trip.departedAt === null : trip?.status === "OPEN_FOR_SALE" && saleClosesAt > now.getTime();
+    if (!trip?.vehicle || !open || trip.operator.status !== "ACTIVE") {
       throw tripNotOnSale();
     }
     const pickup = trip.stops.find((stop) => stop.sequence === hold.pickup.sequence);
@@ -346,7 +366,7 @@ export class BookingService {
       : null;
     const discount = promotion?.discount ?? 0n;
     const total = subtotal + serviceFee - discount;
-    if (vndToJson(total) !== input.expectedTotal) {
+    if (total !== BigInt(input.expectedTotal)) {
       throw snapshotChanged(vndToJson(total));
     }
 
@@ -375,6 +395,7 @@ export class BookingService {
       pickup: point(pickup),
       dropoff: point(dropoff),
       cancellationPolicy: { tiers },
+      ...(counter ? { counterSale: { soldBy: counter.soldBy, sellerLabel: counter.sellerLabel, officeId: counter.officeId } } : {}),
       ...(promotion ? { promotion: { code: promotion.code, name: promotion.name, discount: vndToJson(promotion.discount), fundedBy: promotion.fundedBy } } : {}),
     };
     const booking = await tx.booking.create({
@@ -382,12 +403,13 @@ export class BookingService {
         bookingCode: newBookingCode(),
         operatorId,
         tripId: hold.tripId,
+        ...(counter ? { channel: "COUNTER", officeId: counter.officeId, soldBy: counter.soldBy } : {}),
         userId: user?.sub ?? null,
         holdId: hold.holdId,
         status: BookingStatus.PENDING_PAYMENT,
         contactName: input.contact.fullName,
         contactPhone: input.contact.phone,
-        contactEmail: input.contact.email.toLowerCase(),
+        contactEmail: input.contact.email?.toLowerCase() ?? null,
         pickupSequence: pickup.sequence,
         dropoffSequence: dropoff.sequence,
         subtotal,
@@ -413,7 +435,7 @@ export class BookingService {
           }),
         },
         histories: {
-          create: { fromStatus: null, toStatus: BookingStatus.PENDING_PAYMENT, actor: user ? `user:${user.sub}` : "guest" },
+          create: { fromStatus: null, toStatus: BookingStatus.PENDING_PAYMENT, actor: counter?.soldBy ?? (user ? `user:${user.sub}` : "guest") },
         },
       },
       select: BOOKING_SELECT,
@@ -428,7 +450,7 @@ export class BookingService {
         data: { promotionId: promotion.promotionId, userVoucherId: promotion.userVoucherId ?? null, operatorId, bookingId: booking.id, code: promotion.code, discount: promotion.discount, fundedBy: promotion.fundedBy },
       });
     }
-    return toResponse(booking, this.qr);
+    return booking;
   }
 
   /** Transaction hết hạn / deadlock khi tranh khoá với thao tác khác → 503, không có gì được ghi; client thử lại. */
@@ -473,7 +495,7 @@ function toResponse(row: BookingRow, qr: TicketQrSigner): BookingResponse {
     trip: snapshot.trip,
     pickup: snapshot.pickup,
     dropoff: snapshot.dropoff,
-    contact: { fullName: row.contactName, phone: row.contactPhone, email: row.contactEmail },
+    contact: { fullName: row.contactName, phone: row.contactPhone, email: row.contactEmail ?? "" },
     passengers: row.passengers.map((passenger) => ({ ...passenger, price: vndToJson(passenger.price) })),
     note: row.note,
     subtotal: vndToJson(row.subtotal),

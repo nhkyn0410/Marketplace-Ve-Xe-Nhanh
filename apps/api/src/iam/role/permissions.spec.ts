@@ -124,7 +124,7 @@ describe("can() — các ô quan trọng của Security §7", () => {
 });
 
 describe("phân quyền theo từng tài khoản — TASK-IAM-007", () => {
-  const OWNER_ONLY = ["kyc:submit", "manager:manage"] as const;
+  const OWNER_ONLY = ["kyc:submit", "manager:manage", "office:manage"] as const;
 
   it("quyền tick được ⊆ grant của role, không gồm tùy chọn thông báo của chính mình", () => {
     for (const [role, account] of Object.entries(ACCOUNT_PERMISSIONS)) {
@@ -150,6 +150,15 @@ describe("phân quyền theo từng tài khoản — TASK-IAM-007", () => {
       Object.values(Role).filter((role) => ROLE_GRANTS[role][permission]).sort();
     expect(holders("access:manage")).toEqual([Role.PLATFORM_ADMIN]);
     expect(holders("manager:manage")).toEqual([Role.OPERATOR_OWNER]);
+    expect(holders("office:manage")).toEqual([Role.OPERATOR_OWNER]);
+  });
+
+  it("điều phối là quyền riêng: Owner có, manager cần được cấp, tài xế giữ luồng phân công", () => {
+    expect(can({ role: Role.OPERATOR_OWNER }, "trip:dispatch")).toEqual({ allowed: true, scope: "tenant" });
+    expect(can({ role: Role.OPERATOR_MANAGER, perms: ["trip:manage"] }, "trip:dispatch").allowed).toBe(false);
+    expect(can({ role: Role.OPERATOR_MANAGER, perms: ["trip:dispatch"] }, "trip:dispatch")).toEqual({ allowed: true, scope: "tenant" });
+    expect(can({ role: Role.DRIVER, perms: ["trip:dispatch"] }, "trip:dispatch").allowed).toBe(false);
+    expect(can({ role: Role.DRIVER }, "trip:operate")).toEqual({ allowed: true, scope: "assigned" });
   });
 
   it("tài khoản mang danh sách: chỉ có quyền tick được trong danh sách; quyền không tick được vẫn theo role", () => {

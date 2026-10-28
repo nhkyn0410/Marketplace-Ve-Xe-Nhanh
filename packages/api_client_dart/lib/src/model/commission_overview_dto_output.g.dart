@@ -6,9 +6,69 @@ part of 'commission_overview_dto_output.dart';
 // BuiltValueGenerator
 // **************************************************************************
 
+const CommissionOverviewDtoOutputCounterDefaultRateBpsEnum
+    _$commissionOverviewDtoOutputCounterDefaultRateBpsEnum_n0 =
+    const CommissionOverviewDtoOutputCounterDefaultRateBpsEnum._('n0');
+
+CommissionOverviewDtoOutputCounterDefaultRateBpsEnum
+    _$commissionOverviewDtoOutputCounterDefaultRateBpsEnumValueOf(String name) {
+  switch (name) {
+    case 'n0':
+      return _$commissionOverviewDtoOutputCounterDefaultRateBpsEnum_n0;
+    default:
+      throw ArgumentError(name);
+  }
+}
+
+final BuiltSet<CommissionOverviewDtoOutputCounterDefaultRateBpsEnum>
+    _$commissionOverviewDtoOutputCounterDefaultRateBpsEnumValues = BuiltSet<
+        CommissionOverviewDtoOutputCounterDefaultRateBpsEnum>(const <CommissionOverviewDtoOutputCounterDefaultRateBpsEnum>[
+  _$commissionOverviewDtoOutputCounterDefaultRateBpsEnum_n0,
+]);
+
+Serializer<CommissionOverviewDtoOutputCounterDefaultRateBpsEnum>
+    _$commissionOverviewDtoOutputCounterDefaultRateBpsEnumSerializer =
+    _$CommissionOverviewDtoOutputCounterDefaultRateBpsEnumSerializer();
+
+class _$CommissionOverviewDtoOutputCounterDefaultRateBpsEnumSerializer
+    implements
+        PrimitiveSerializer<
+            CommissionOverviewDtoOutputCounterDefaultRateBpsEnum> {
+  static const Map<String, Object> _toWire = const <String, Object>{
+    'n0': '0',
+  };
+  static const Map<Object, String> _fromWire = const <Object, String>{
+    '0': 'n0',
+  };
+
+  @override
+  final Iterable<Type> types = const <Type>[
+    CommissionOverviewDtoOutputCounterDefaultRateBpsEnum
+  ];
+  @override
+  final String wireName =
+      'CommissionOverviewDtoOutputCounterDefaultRateBpsEnum';
+
+  @override
+  Object serialize(Serializers serializers,
+          CommissionOverviewDtoOutputCounterDefaultRateBpsEnum object,
+          {FullType specifiedType = FullType.unspecified}) =>
+      _toWire[object.name] ?? object.name;
+
+  @override
+  CommissionOverviewDtoOutputCounterDefaultRateBpsEnum deserialize(
+          Serializers serializers, Object serialized,
+          {FullType specifiedType = FullType.unspecified}) =>
+      CommissionOverviewDtoOutputCounterDefaultRateBpsEnum.valueOf(
+          _fromWire[serialized] ?? (serialized is String ? serialized : ''));
+}
+
 class _$CommissionOverviewDtoOutput extends CommissionOverviewDtoOutput {
   @override
   final CommissionOverviewDtoOutputDefault? default_;
+  @override
+  final CommissionOverviewDtoOutputCounterDefaultRateBpsEnum
+      counterDefaultRateBps;
   @override
   final BuiltList<CommissionOverviewDtoOutputOverridesInner> overrides;
 
@@ -16,7 +76,10 @@ class _$CommissionOverviewDtoOutput extends CommissionOverviewDtoOutput {
           [void Function(CommissionOverviewDtoOutputBuilder)? updates]) =>
       (CommissionOverviewDtoOutputBuilder()..update(updates))._build();
 
-  _$CommissionOverviewDtoOutput._({this.default_, required this.overrides})
+  _$CommissionOverviewDtoOutput._(
+      {this.default_,
+      required this.counterDefaultRateBps,
+      required this.overrides})
       : super._();
   @override
   CommissionOverviewDtoOutput rebuild(
@@ -32,6 +95,7 @@ class _$CommissionOverviewDtoOutput extends CommissionOverviewDtoOutput {
     if (identical(other, this)) return true;
     return other is CommissionOverviewDtoOutput &&
         default_ == other.default_ &&
+        counterDefaultRateBps == other.counterDefaultRateBps &&
         overrides == other.overrides;
   }
 
@@ -39,6 +103,7 @@ class _$CommissionOverviewDtoOutput extends CommissionOverviewDtoOutput {
   int get hashCode {
     var _$hash = 0;
     _$hash = $jc(_$hash, default_.hashCode);
+    _$hash = $jc(_$hash, counterDefaultRateBps.hashCode);
     _$hash = $jc(_$hash, overrides.hashCode);
     _$hash = $jf(_$hash);
     return _$hash;
@@ -48,6 +113,7 @@ class _$CommissionOverviewDtoOutput extends CommissionOverviewDtoOutput {
   String toString() {
     return (newBuiltValueToStringHelper(r'CommissionOverviewDtoOutput')
           ..add('default_', default_)
+          ..add('counterDefaultRateBps', counterDefaultRateBps)
           ..add('overrides', overrides))
         .toString();
   }
@@ -65,6 +131,14 @@ class CommissionOverviewDtoOutputBuilder
   set default_(CommissionOverviewDtoOutputDefaultBuilder? default_) =>
       _$this._default_ = default_;
 
+  CommissionOverviewDtoOutputCounterDefaultRateBpsEnum? _counterDefaultRateBps;
+  CommissionOverviewDtoOutputCounterDefaultRateBpsEnum?
+      get counterDefaultRateBps => _$this._counterDefaultRateBps;
+  set counterDefaultRateBps(
+          CommissionOverviewDtoOutputCounterDefaultRateBpsEnum?
+              counterDefaultRateBps) =>
+      _$this._counterDefaultRateBps = counterDefaultRateBps;
+
   ListBuilder<CommissionOverviewDtoOutputOverridesInner>? _overrides;
   ListBuilder<CommissionOverviewDtoOutputOverridesInner> get overrides =>
       _$this._overrides ??=
@@ -81,6 +155,7 @@ class CommissionOverviewDtoOutputBuilder
     final $v = _$v;
     if ($v != null) {
       _default_ = $v.default_?.toBuilder();
+      _counterDefaultRateBps = $v.counterDefaultRateBps;
       _overrides = $v.overrides.toBuilder();
       _$v = null;
     }
@@ -106,6 +181,10 @@ class CommissionOverviewDtoOutputBuilder
       _$result = _$v ??
           _$CommissionOverviewDtoOutput._(
             default_: _default_?.build(),
+            counterDefaultRateBps: BuiltValueNullFieldError.checkNotNull(
+                counterDefaultRateBps,
+                r'CommissionOverviewDtoOutput',
+                'counterDefaultRateBps'),
             overrides: overrides.build(),
           );
     } catch (_) {
@@ -113,6 +192,7 @@ class CommissionOverviewDtoOutputBuilder
       try {
         _$failedField = 'default_';
         _default_?.build();
+
         _$failedField = 'overrides';
         overrides.build();
       } catch (e) {

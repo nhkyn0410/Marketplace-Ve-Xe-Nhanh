@@ -11,8 +11,10 @@ import {
 } from "./manager-format";
 
 describe("tài khoản quản lý nhà xe (TASK-IAM-007)", () => {
-  it("danh mục đủ 8 quyền tick được, không trùng; mẫu chỉ dùng quyền trong danh mục", () => {
-    expect(new Set(ALL_MANAGER_PERMISSIONS).size).toBe(8);
+  it("danh mục đủ 9 quyền tick được, không trùng; mẫu chỉ dùng quyền trong danh mục", () => {
+    expect(new Set(ALL_MANAGER_PERMISSIONS).size).toBe(9);
+    expect(ALL_MANAGER_PERMISSIONS).toContain("trip:dispatch");
+    expect(ALL_MANAGER_PERMISSIONS).not.toContain("office:manage");
     expect(ALL_MANAGER_PERMISSIONS).not.toContain("kyc:submit");
     expect(ALL_MANAGER_PERMISSIONS).not.toContain("manager:manage");
     for (const template of MANAGER_TEMPLATES) {

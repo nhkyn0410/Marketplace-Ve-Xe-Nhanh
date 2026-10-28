@@ -19,7 +19,8 @@ export const ACCOUNT_STATUS: Record<AccountStatus, { label: string; tone: Tone }
 
 export const EMPLOYEE_ROLE: Record<EmployeeRole, string> = {
   DRIVER: "Tài xế",
-  TICKET_STAFF: "Nhân viên bán vé",
+  TICKET_STAFF: "Nhân viên soát vé",
+  SALES_STAFF: "Nhân viên bán vé",
   SUPPORT_STAFF: "Nhân viên hỗ trợ"
 };
 

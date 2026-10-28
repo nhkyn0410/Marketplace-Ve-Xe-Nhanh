@@ -9,6 +9,7 @@ import 'package:api_client_dart/api.dart';
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **operatorId** | **String** |  | 
+**channel** | **String** |  | [optional] [default to 'ONLINE']
 **rateBps** | **int** |  | 
 **effectiveFrom** | [**DateTime**](DateTime.md) |  | 
 **effectiveTo** | [**DateTime**](DateTime.md) |  | 

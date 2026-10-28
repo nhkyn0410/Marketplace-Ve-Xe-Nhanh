@@ -9,7 +9,8 @@
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "test": "vitest run --passWithNoTests",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "test:e2e:counter": "playwright test --config playwright.counter.config.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.9.1",

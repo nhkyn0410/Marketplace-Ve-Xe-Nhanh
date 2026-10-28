@@ -39,7 +39,7 @@ abstract class AdminEmployeePageDtoOutputItemsInner implements Built<AdminEmploy
 
   @BuiltValueField(wireName: r'role')
   AdminEmployeePageDtoOutputItemsInnerRoleEnum get role;
-  // enum roleEnum {  DRIVER,  TICKET_STAFF,  SUPPORT_STAFF,  };
+  // enum roleEnum {  DRIVER,  TICKET_STAFF,  SUPPORT_STAFF,  SALES_STAFF,  };
 
   @BuiltValueField(wireName: r'status')
   AdminEmployeePageDtoOutputItemsInnerStatusEnum get status;
@@ -230,6 +230,8 @@ class AdminEmployeePageDtoOutputItemsInnerRoleEnum extends EnumClass {
   static const AdminEmployeePageDtoOutputItemsInnerRoleEnum TICKET_STAFF = _$adminEmployeePageDtoOutputItemsInnerRoleEnum_TICKET_STAFF;
   @BuiltValueEnumConst(wireName: r'SUPPORT_STAFF')
   static const AdminEmployeePageDtoOutputItemsInnerRoleEnum SUPPORT_STAFF = _$adminEmployeePageDtoOutputItemsInnerRoleEnum_SUPPORT_STAFF;
+  @BuiltValueEnumConst(wireName: r'SALES_STAFF')
+  static const AdminEmployeePageDtoOutputItemsInnerRoleEnum SALES_STAFF = _$adminEmployeePageDtoOutputItemsInnerRoleEnum_SALES_STAFF;
 
   static Serializer<AdminEmployeePageDtoOutputItemsInnerRoleEnum> get serializer => _$adminEmployeePageDtoOutputItemsInnerRoleEnumSerializer;
 

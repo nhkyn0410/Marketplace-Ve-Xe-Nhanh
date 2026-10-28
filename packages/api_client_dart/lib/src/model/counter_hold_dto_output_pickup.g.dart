@@ -1,13 +1,12 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'seat_hold_response_dto_output_pickup.dart';
+part of 'counter_hold_dto_output_pickup.dart';
 
 // **************************************************************************
 // BuiltValueGenerator
 // **************************************************************************
 
-class _$SeatHoldResponseDtoOutputPickup
-    extends SeatHoldResponseDtoOutputPickup {
+class _$CounterHoldDtoOutputPickup extends CounterHoldDtoOutputPickup {
   @override
   final int sequence;
   @override
@@ -15,26 +14,26 @@ class _$SeatHoldResponseDtoOutputPickup
   @override
   final DateTime plannedAt;
 
-  factory _$SeatHoldResponseDtoOutputPickup(
-          [void Function(SeatHoldResponseDtoOutputPickupBuilder)? updates]) =>
-      (SeatHoldResponseDtoOutputPickupBuilder()..update(updates))._build();
+  factory _$CounterHoldDtoOutputPickup(
+          [void Function(CounterHoldDtoOutputPickupBuilder)? updates]) =>
+      (CounterHoldDtoOutputPickupBuilder()..update(updates))._build();
 
-  _$SeatHoldResponseDtoOutputPickup._(
+  _$CounterHoldDtoOutputPickup._(
       {required this.sequence, required this.name, required this.plannedAt})
       : super._();
   @override
-  SeatHoldResponseDtoOutputPickup rebuild(
-          void Function(SeatHoldResponseDtoOutputPickupBuilder) updates) =>
+  CounterHoldDtoOutputPickup rebuild(
+          void Function(CounterHoldDtoOutputPickupBuilder) updates) =>
       (toBuilder()..update(updates)).build();
 
   @override
-  SeatHoldResponseDtoOutputPickupBuilder toBuilder() =>
-      SeatHoldResponseDtoOutputPickupBuilder()..replace(this);
+  CounterHoldDtoOutputPickupBuilder toBuilder() =>
+      CounterHoldDtoOutputPickupBuilder()..replace(this);
 
   @override
   bool operator ==(Object other) {
     if (identical(other, this)) return true;
-    return other is SeatHoldResponseDtoOutputPickup &&
+    return other is CounterHoldDtoOutputPickup &&
         sequence == other.sequence &&
         name == other.name &&
         plannedAt == other.plannedAt;
@@ -52,7 +51,7 @@ class _$SeatHoldResponseDtoOutputPickup
 
   @override
   String toString() {
-    return (newBuiltValueToStringHelper(r'SeatHoldResponseDtoOutputPickup')
+    return (newBuiltValueToStringHelper(r'CounterHoldDtoOutputPickup')
           ..add('sequence', sequence)
           ..add('name', name)
           ..add('plannedAt', plannedAt))
@@ -60,11 +59,10 @@ class _$SeatHoldResponseDtoOutputPickup
   }
 }
 
-class SeatHoldResponseDtoOutputPickupBuilder
+class CounterHoldDtoOutputPickupBuilder
     implements
-        Builder<SeatHoldResponseDtoOutputPickup,
-            SeatHoldResponseDtoOutputPickupBuilder> {
-  _$SeatHoldResponseDtoOutputPickup? _$v;
+        Builder<CounterHoldDtoOutputPickup, CounterHoldDtoOutputPickupBuilder> {
+  _$CounterHoldDtoOutputPickup? _$v;
 
   int? _sequence;
   int? get sequence => _$this._sequence;
@@ -78,11 +76,11 @@ class SeatHoldResponseDtoOutputPickupBuilder
   DateTime? get plannedAt => _$this._plannedAt;
   set plannedAt(DateTime? plannedAt) => _$this._plannedAt = plannedAt;
 
-  SeatHoldResponseDtoOutputPickupBuilder() {
-    SeatHoldResponseDtoOutputPickup._defaults(this);
+  CounterHoldDtoOutputPickupBuilder() {
+    CounterHoldDtoOutputPickup._defaults(this);
   }
 
-  SeatHoldResponseDtoOutputPickupBuilder get _$this {
+  CounterHoldDtoOutputPickupBuilder get _$this {
     final $v = _$v;
     if ($v != null) {
       _sequence = $v.sequence;
@@ -94,27 +92,27 @@ class SeatHoldResponseDtoOutputPickupBuilder
   }
 
   @override
-  void replace(SeatHoldResponseDtoOutputPickup other) {
-    _$v = other as _$SeatHoldResponseDtoOutputPickup;
+  void replace(CounterHoldDtoOutputPickup other) {
+    _$v = other as _$CounterHoldDtoOutputPickup;
   }
 
   @override
-  void update(void Function(SeatHoldResponseDtoOutputPickupBuilder)? updates) {
+  void update(void Function(CounterHoldDtoOutputPickupBuilder)? updates) {
     if (updates != null) updates(this);
   }
 
   @override
-  SeatHoldResponseDtoOutputPickup build() => _build();
+  CounterHoldDtoOutputPickup build() => _build();
 
-  _$SeatHoldResponseDtoOutputPickup _build() {
+  _$CounterHoldDtoOutputPickup _build() {
     final _$result = _$v ??
-        _$SeatHoldResponseDtoOutputPickup._(
+        _$CounterHoldDtoOutputPickup._(
           sequence: BuiltValueNullFieldError.checkNotNull(
-              sequence, r'SeatHoldResponseDtoOutputPickup', 'sequence'),
+              sequence, r'CounterHoldDtoOutputPickup', 'sequence'),
           name: BuiltValueNullFieldError.checkNotNull(
-              name, r'SeatHoldResponseDtoOutputPickup', 'name'),
+              name, r'CounterHoldDtoOutputPickup', 'name'),
           plannedAt: BuiltValueNullFieldError.checkNotNull(
-              plannedAt, r'SeatHoldResponseDtoOutputPickup', 'plannedAt'),
+              plannedAt, r'CounterHoldDtoOutputPickup', 'plannedAt'),
         );
     replace(_$result);
     return _$result;
