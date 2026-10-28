@@ -45,7 +45,6 @@ import 'package:api_client_dart/src/model/admin_audit_log_list_dto_output_items_
 import 'package:api_client_dart/src/model/admin_audit_log_list_dto_output_items_inner_operator.dart';
 import 'package:api_client_dart/src/model/admin_bank_change_approve_dto.dart';
 import 'package:api_client_dart/src/model/admin_bank_change_dto_output.dart';
-import 'package:api_client_dart/src/model/admin_bank_change_dto_output_current.dart';
 import 'package:api_client_dart/src/model/admin_bank_change_dto_output_requested.dart';
 import 'package:api_client_dart/src/model/admin_bank_change_reject_dto.dart';
 import 'package:api_client_dart/src/model/admin_catalog_deactivate_dto.dart';
@@ -53,6 +52,9 @@ import 'package:api_client_dart/src/model/admin_catalog_rename_dto.dart';
 import 'package:api_client_dart/src/model/admin_employee_page_dto_output.dart';
 import 'package:api_client_dart/src/model/admin_employee_page_dto_output_items_inner.dart';
 import 'package:api_client_dart/src/model/admin_message_input_dto.dart';
+import 'package:api_client_dart/src/model/admin_operator_detail_dto_output.dart';
+import 'package:api_client_dart/src/model/admin_operator_detail_dto_output_bank_account.dart';
+import 'package:api_client_dart/src/model/admin_operator_detail_dto_output_stats.dart';
 import 'package:api_client_dart/src/model/admin_operator_page_dto_output.dart';
 import 'package:api_client_dart/src/model/admin_operator_page_dto_output_items_inner.dart';
 import 'package:api_client_dart/src/model/admin_operator_page_dto_output_items_inner_owner.dart';
@@ -60,12 +62,18 @@ import 'package:api_client_dart/src/model/admin_operator_stop_point_dto_output.d
 import 'package:api_client_dart/src/model/admin_operator_stop_point_list_dto_output.dart';
 import 'package:api_client_dart/src/model/admin_operator_stop_point_list_dto_output_items_inner.dart';
 import 'package:api_client_dart/src/model/admin_operator_suspend_dto.dart';
+import 'package:api_client_dart/src/model/admin_operator_vehicle_list_dto_output.dart';
+import 'package:api_client_dart/src/model/admin_operator_vehicle_list_dto_output_items_inner.dart';
 import 'package:api_client_dart/src/model/admin_overview_dto_output.dart';
 import 'package:api_client_dart/src/model/admin_overview_dto_output_bookings.dart';
 import 'package:api_client_dart/src/model/admin_overview_dto_output_daily_inner.dart';
 import 'package:api_client_dart/src/model/admin_overview_dto_output_escrow.dart';
 import 'package:api_client_dart/src/model/admin_overview_dto_output_queues.dart';
 import 'package:api_client_dart/src/model/admin_overview_dto_output_tickets.dart';
+import 'package:api_client_dart/src/model/admin_passenger_booking_page_dto_output.dart';
+import 'package:api_client_dart/src/model/admin_passenger_booking_page_dto_output_items_inner.dart';
+import 'package:api_client_dart/src/model/admin_passenger_booking_page_dto_output_items_inner_passengers_inner.dart';
+import 'package:api_client_dart/src/model/admin_passenger_detail_dto_output.dart';
 import 'package:api_client_dart/src/model/admin_passenger_page_dto_output.dart';
 import 'package:api_client_dart/src/model/admin_passenger_page_dto_output_items_inner.dart';
 import 'package:api_client_dart/src/model/admin_payment_detail_dto_output.dart';
@@ -97,8 +105,17 @@ import 'package:api_client_dart/src/model/admin_refund_page_dto_output_items_inn
 import 'package:api_client_dart/src/model/admin_remove_vehicle_image_input_dto.dart';
 import 'package:api_client_dart/src/model/admin_report_dto_output.dart';
 import 'package:api_client_dart/src/model/admin_report_dto_output_by_operator_inner.dart';
+import 'package:api_client_dart/src/model/admin_report_dto_output_by_region_inner.dart';
+import 'package:api_client_dart/src/model/admin_report_dto_output_by_route_inner.dart';
 import 'package:api_client_dart/src/model/admin_report_dto_output_payment_methods_inner.dart';
 import 'package:api_client_dart/src/model/admin_report_dto_output_totals.dart';
+import 'package:api_client_dart/src/model/admin_route_detail_dto_output.dart';
+import 'package:api_client_dart/src/model/admin_route_detail_dto_output_next_trips_inner.dart';
+import 'package:api_client_dart/src/model/admin_route_detail_dto_output_stops_inner.dart';
+import 'package:api_client_dart/src/model/admin_route_page_dto_output.dart';
+import 'package:api_client_dart/src/model/admin_route_page_dto_output_items_inner.dart';
+import 'package:api_client_dart/src/model/admin_route_page_dto_output_items_inner_origin.dart';
+import 'package:api_client_dart/src/model/admin_route_page_dto_output_period.dart';
 import 'package:api_client_dart/src/model/admin_shared_stop_point_dto_output.dart';
 import 'package:api_client_dart/src/model/admin_shared_stop_point_input_dto.dart';
 import 'package:api_client_dart/src/model/admin_shared_stop_point_list_dto_output.dart';
@@ -108,6 +125,13 @@ import 'package:api_client_dart/src/model/admin_stop_point_proposal_dto_output.d
 import 'package:api_client_dart/src/model/admin_stop_point_proposal_list_dto_output.dart';
 import 'package:api_client_dart/src/model/admin_stop_point_proposal_list_dto_output_items_inner.dart';
 import 'package:api_client_dart/src/model/admin_stop_point_proposal_list_dto_output_items_inner_nearby_inner.dart';
+import 'package:api_client_dart/src/model/admin_trip_detail_dto_output.dart';
+import 'package:api_client_dart/src/model/admin_trip_detail_dto_output_manifest_inner.dart';
+import 'package:api_client_dart/src/model/admin_trip_detail_dto_output_seat_summary.dart';
+import 'package:api_client_dart/src/model/admin_trip_detail_dto_output_staff_inner.dart';
+import 'package:api_client_dart/src/model/admin_trip_detail_dto_output_stops_inner.dart';
+import 'package:api_client_dart/src/model/admin_trip_page_dto_output.dart';
+import 'package:api_client_dart/src/model/admin_trip_page_dto_output_items_inner.dart';
 import 'package:api_client_dart/src/model/admin_vehicle_image_list_dto_output.dart';
 import 'package:api_client_dart/src/model/admin_vehicle_image_list_dto_output_items_inner.dart';
 import 'package:api_client_dart/src/model/admin_vehicle_image_list_dto_output_operators_inner.dart';
@@ -627,7 +651,6 @@ part 'serializers.g.dart';
   AdminAuditLogListDtoOutputItemsInnerOperator,
   AdminBankChangeApproveDto,
   AdminBankChangeDtoOutput,
-  AdminBankChangeDtoOutputCurrent,
   AdminBankChangeDtoOutputRequested,
   AdminBankChangeRejectDto,
   AdminCatalogDeactivateDto,
@@ -635,6 +658,9 @@ part 'serializers.g.dart';
   AdminEmployeePageDtoOutput,
   AdminEmployeePageDtoOutputItemsInner,
   AdminMessageInputDto,
+  AdminOperatorDetailDtoOutput,
+  AdminOperatorDetailDtoOutputBankAccount,
+  AdminOperatorDetailDtoOutputStats,
   AdminOperatorPageDtoOutput,
   AdminOperatorPageDtoOutputItemsInner,
   AdminOperatorPageDtoOutputItemsInnerOwner,
@@ -642,12 +668,18 @@ part 'serializers.g.dart';
   AdminOperatorStopPointListDtoOutput,
   AdminOperatorStopPointListDtoOutputItemsInner,
   AdminOperatorSuspendDto,
+  AdminOperatorVehicleListDtoOutput,
+  AdminOperatorVehicleListDtoOutputItemsInner,
   AdminOverviewDtoOutput,
   AdminOverviewDtoOutputBookings,
   AdminOverviewDtoOutputDailyInner,
   AdminOverviewDtoOutputEscrow,
   AdminOverviewDtoOutputQueues,
   AdminOverviewDtoOutputTickets,
+  AdminPassengerBookingPageDtoOutput,
+  AdminPassengerBookingPageDtoOutputItemsInner,
+  AdminPassengerBookingPageDtoOutputItemsInnerPassengersInner,
+  AdminPassengerDetailDtoOutput,
   AdminPassengerPageDtoOutput,
   AdminPassengerPageDtoOutputItemsInner,
   AdminPaymentDetailDtoOutput,
@@ -679,8 +711,17 @@ part 'serializers.g.dart';
   AdminRemoveVehicleImageInputDto,
   AdminReportDtoOutput,
   AdminReportDtoOutputByOperatorInner,
+  AdminReportDtoOutputByRegionInner,
+  AdminReportDtoOutputByRouteInner,
   AdminReportDtoOutputPaymentMethodsInner,
   AdminReportDtoOutputTotals,
+  AdminRouteDetailDtoOutput,
+  AdminRouteDetailDtoOutputNextTripsInner,
+  AdminRouteDetailDtoOutputStopsInner,
+  AdminRoutePageDtoOutput,
+  AdminRoutePageDtoOutputItemsInner,
+  AdminRoutePageDtoOutputItemsInnerOrigin,
+  AdminRoutePageDtoOutputPeriod,
   AdminSharedStopPointDtoOutput,
   AdminSharedStopPointInputDto,
   AdminSharedStopPointListDtoOutput,
@@ -690,6 +731,13 @@ part 'serializers.g.dart';
   AdminStopPointProposalListDtoOutput,
   AdminStopPointProposalListDtoOutputItemsInner,
   AdminStopPointProposalListDtoOutputItemsInnerNearbyInner,
+  AdminTripDetailDtoOutput,
+  AdminTripDetailDtoOutputManifestInner,
+  AdminTripDetailDtoOutputSeatSummary,
+  AdminTripDetailDtoOutputStaffInner,
+  AdminTripDetailDtoOutputStopsInner,
+  AdminTripPageDtoOutput,
+  AdminTripPageDtoOutputItemsInner,
   AdminVehicleImageListDtoOutput,
   AdminVehicleImageListDtoOutputItemsInner,
   AdminVehicleImageListDtoOutputOperatorsInner,
@@ -1225,6 +1273,10 @@ Serializers serializers = (_$serializers.toBuilder()
         () => ListBuilder<AdminEmployeePageDtoOutputItemsInner>(),
       )
       ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(AdminPassengerBookingPageDtoOutputItemsInner)]),
+        () => ListBuilder<AdminPassengerBookingPageDtoOutputItemsInner>(),
+      )
+      ..addBuilderFactory(
         const FullType(BuiltList, [FullType(AdminPlatformAccountListDtoOutputItemsInner)]),
         () => ListBuilder<AdminPlatformAccountListDtoOutputItemsInner>(),
       )
@@ -1271,6 +1323,10 @@ Serializers serializers = (_$serializers.toBuilder()
       ..addBuilderFactory(
         const FullType(BuiltList, [FullType(TicketLookupBookingListDtoOutputItemsInner)]),
         () => ListBuilder<TicketLookupBookingListDtoOutputItemsInner>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(AdminOperatorVehicleListDtoOutputItemsInner)]),
+        () => ListBuilder<AdminOperatorVehicleListDtoOutputItemsInner>(),
       )
       ..addBuilderFactory(
         const FullType(BuiltList, [FullType(AdminVehicleTypeListDtoOutputItemsInner)]),
@@ -1441,6 +1497,10 @@ Serializers serializers = (_$serializers.toBuilder()
         () => ListBuilder<CounterCommissionOverviewDtoOutputItemsInner>(),
       )
       ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(AdminTripDetailDtoOutputManifestInner)]),
+        () => ListBuilder<AdminTripDetailDtoOutputManifestInner>(),
+      )
+      ..addBuilderFactory(
         const FullType(BuiltList, [FullType(CreatedBookingDtoOutputPassengersInner)]),
         () => ListBuilder<CreatedBookingDtoOutputPassengersInner>(),
       )
@@ -1455,6 +1515,10 @@ Serializers serializers = (_$serializers.toBuilder()
       ..addBuilderFactory(
         const FullType(BuiltList, [FullType(PayoutDetailDtoOutputTripsInner)]),
         () => ListBuilder<PayoutDetailDtoOutputTripsInner>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(AdminTripDetailDtoOutputStaffInner)]),
+        () => ListBuilder<AdminTripDetailDtoOutputStaffInner>(),
       )
       ..addBuilderFactory(
         const FullType(BuiltList, [FullType(OperatorStopPointListResponseDtoOutputItemsInner)]),
@@ -1533,6 +1597,10 @@ Serializers serializers = (_$serializers.toBuilder()
         () => ListBuilder<OperatorBookingPageDtoOutputItemsInner>(),
       )
       ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(AdminReportDtoOutputByRouteInner)]),
+        () => ListBuilder<AdminReportDtoOutputByRouteInner>(),
+      )
+      ..addBuilderFactory(
         const FullType(BuiltList, [FullType(SeatMapListResponseDtoOutputItemsInner)]),
         () => ListBuilder<SeatMapListResponseDtoOutputItemsInner>(),
       )
@@ -1563,6 +1631,14 @@ Serializers serializers = (_$serializers.toBuilder()
       ..addBuilderFactory(
         const FullType(BuiltList, [FullType(ApplicationUpdateInputDtoDocumentsInner)]),
         () => ListBuilder<ApplicationUpdateInputDtoDocumentsInner>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(AdminTripPageDtoOutputItemsInner)]),
+        () => ListBuilder<AdminTripPageDtoOutputItemsInner>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(AdminTripDetailDtoOutputStopsInner)]),
+        () => ListBuilder<AdminTripDetailDtoOutputStopsInner>(),
       )
       ..addBuilderFactory(
         const FullType(BuiltList, [FullType(SeatMapResponseDtoOutputSeatsInner)]),
@@ -1599,6 +1675,14 @@ Serializers serializers = (_$serializers.toBuilder()
       ..addBuilderFactory(
         const FullType(BuiltList, [FullType(AdminVehicleImageListDtoOutputOperatorsInner)]),
         () => ListBuilder<AdminVehicleImageListDtoOutputOperatorsInner>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(AdminRoutePageDtoOutputItemsInner)]),
+        () => ListBuilder<AdminRoutePageDtoOutputItemsInner>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(AdminReportDtoOutputByRegionInner)]),
+        () => ListBuilder<AdminReportDtoOutputByRegionInner>(),
       )
       ..addBuilderFactory(
         const FullType(BuiltList, [FullType(TripResponseDtoOutputStopsInner)]),
@@ -1643,6 +1727,10 @@ Serializers serializers = (_$serializers.toBuilder()
       ..addBuilderFactory(
         const FullType(BuiltList, [FullType(CounterBookingListDtoOutputItemsInner)]),
         () => ListBuilder<CounterBookingListDtoOutputItemsInner>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(AdminPassengerBookingPageDtoOutputItemsInnerPassengersInner)]),
+        () => ListBuilder<AdminPassengerBookingPageDtoOutputItemsInnerPassengersInner>(),
       )
       ..addBuilderFactory(
         const FullType(BuiltList, [FullType(TripListResponseDtoOutputItemsInner)]),
@@ -1721,6 +1809,10 @@ Serializers serializers = (_$serializers.toBuilder()
         () => ListBuilder<DisputeDetailDtoOutputEventsInner>(),
       )
       ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(AdminRouteDetailDtoOutputNextTripsInner)]),
+        () => ListBuilder<AdminRouteDetailDtoOutputNextTripsInner>(),
+      )
+      ..addBuilderFactory(
         const FullType(BuiltList, [FullType(AdminArticleCategoryListDtoOutputItemsInner)]),
         () => ListBuilder<AdminArticleCategoryListDtoOutputItemsInner>(),
       )
@@ -1771,6 +1863,10 @@ Serializers serializers = (_$serializers.toBuilder()
       ..addBuilderFactory(
         const FullType(BuiltList, [FullType(SeatMapResponseDtoOutputLayoutDecksInner)]),
         () => ListBuilder<SeatMapResponseDtoOutputLayoutDecksInner>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(AdminRouteDetailDtoOutputStopsInner)]),
+        () => ListBuilder<AdminRouteDetailDtoOutputStopsInner>(),
       )
       ..addBuilderFactory(
         const FullType(BuiltList, [FullType(PolicyOverviewDtoOutputOverridesInner)]),

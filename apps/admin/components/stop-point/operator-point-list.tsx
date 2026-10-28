@@ -15,6 +15,8 @@ import { FormField } from "@vexenhanh/ui/components/form-field";
 import {
   ALL,
   FilterSelect,
+  LocatableName,
+  locatableRow,
   SearchField,
   TABLE,
   TABLE_CELL,
@@ -24,7 +26,11 @@ import {
   useDebouncedValue
 } from "@vexenhanh/ui/components/list-controls";
 import { BUTTON, ListLoadMoreFooter, ListStatePanel } from "@vexenhanh/ui/components/list-parts";
+import { StopOverviewMap, type OverviewPoint } from "@vexenhanh/ui/components/stop-overview-map";
 import { Textarea } from "@vexenhanh/ui/components/textarea";
+import { GOONG_MAPTILES_KEY } from "@vexenhanh/ui/lib/map-config";
+import { markerKind, nextSelection, OWN_MAP_LEGEND, type OverviewSelection } from "@vexenhanh/ui/lib/stop-map";
+import { useMapOpen } from "@vexenhanh/ui/lib/use-map-open";
 import { CircleAlert, FileX2, Info, LoaderCircle, Lock, LockOpen, RefreshCw, TriangleAlert } from "lucide-react";
 import { useMemo, useState, type FormEvent, type ReactNode } from "react";
 
@@ -48,8 +54,8 @@ import {
 type Action = { kind: "suspend" | "unsuspend"; stopPoint: OperatorStopPoint };
 
 /**
- * Tab "Của nhà xe" (Figma ADM-05d; BR-81): điểm riêng của mọi nhà xe, lọc loại / tỉnh / trạng thái, tìm không
- * dấu. Admin không sửa điểm riêng — chỉ khóa (kèm lý do) / mở khóa.
+ * Tab "Của nhà xe" (Figma ADM-05d; BR-81): bản đồ tổng quan + điểm riêng của mọi nhà xe, lọc loại / tỉnh / trạng thái,
+ * tìm không dấu. Admin không sửa điểm riêng — chỉ khóa (kèm lý do) / mở khóa.
  */
 export function OperatorPointList({ onNotice }: { onNotice: (message: string) => void }) {
   const [search, setSearch] = useState("");
@@ -58,6 +64,8 @@ export function OperatorPointList({ onNotice }: { onNotice: (message: string) =>
   const [status, setStatus] = useState<string>(ALL);
   const q = useDebouncedValue(search.trim());
   const [action, setAction] = useState<Action | null>(null);
+  const [mapOpen, setMapOpen] = useMapOpen("stop-overview", true);
+  const [selection, setSelection] = useState<OverviewSelection | null>(null);
 
   const filters = {
     q: q || undefined,
@@ -74,6 +82,20 @@ export function OperatorPointList({ onNotice }: { onNotice: (message: string) =>
   const provinces = useQuery({ queryKey: ["catalog", "provinces"], queryFn: listProvinces, staleTime: 300_000 });
   const items = useMemo(() => pages.data?.pages.flatMap((page) => page.items) ?? [], [pages.data]);
   const total = pages.data?.pages[0]?.total ?? 0;
+  const mapPoints = useMemo(
+    () =>
+      items.map(
+        (item): OverviewPoint => ({
+          id: item.id,
+          name: item.name,
+          address: item.address,
+          meta: `${STOP_POINT_TYPE_LABELS[item.type]} · ${item.operatorName} · ${item.routeCount} tuyến`,
+          kind: markerKind(item.type, item.status),
+          point: { latitude: item.latitude, longitude: item.longitude }
+        })
+      ),
+    [items]
+  );
   const filtered = q !== "" || type !== ALL || provinceId !== ALL || status !== ALL;
 
   let body: ReactNode;
@@ -105,7 +127,14 @@ export function OperatorPointList({ onNotice }: { onNotice: (message: string) =>
       />
     );
   } else {
-    body = <OperatorPointTable items={items} onAction={setAction} />;
+    body = (
+      <OperatorPointTable
+        items={items}
+        selectedId={selection?.id ?? null}
+        onLocate={GOONG_MAPTILES_KEY && mapOpen ? (id) => setSelection((current) => nextSelection(current, id, true)) : undefined}
+        onAction={setAction}
+      />
+    );
     footer = (
       <ListLoadMoreFooter
         hasMore={pages.hasNextPage}
@@ -121,6 +150,17 @@ export function OperatorPointList({ onNotice }: { onNotice: (message: string) =>
 
   return (
     <>
+      {GOONG_MAPTILES_KEY && (
+        <StopOverviewMap
+          mapKey={GOONG_MAPTILES_KEY}
+          points={mapPoints}
+          legend={OWN_MAP_LEGEND}
+          open={mapOpen}
+          onOpenChange={setMapOpen}
+          selection={selection}
+          onSelect={(id) => setSelection((current) => nextSelection(current, id, false))}
+        />
+      )}
       <section aria-label="Điểm dừng của nhà xe" className="flex flex-col rounded-xl border bg-card p-6">
         <div className="flex flex-wrap items-end gap-4 pb-5">
           <SearchField label="Tìm điểm dừng" placeholder="Tên hoặc địa chỉ" value={search} onChange={setSearch} />
@@ -172,7 +212,17 @@ export function OperatorPointList({ onNotice }: { onNotice: (message: string) =>
 const COLUMNS = ["", "w-[15.5%]", "w-[15.5%]", "w-[14%]", "w-[6.5%]", "w-[16%]", "w-[104px]"];
 const HEADINGS = ["Tên và địa chỉ", "Loại điểm", "Nhà xe", "Tỉnh / thành", "Số tuyến", "Trạng thái", ""];
 
-function OperatorPointTable({ items, onAction }: { items: OperatorStopPoint[]; onAction: (action: Action) => void }) {
+function OperatorPointTable({
+  items,
+  selectedId,
+  onLocate,
+  onAction
+}: {
+  items: OperatorStopPoint[];
+  selectedId: string | null;
+  onLocate?: (id: string) => void;
+  onAction: (action: Action) => void;
+}) {
   return (
     <div className="relative overflow-x-auto">
       <table className={`${TABLE} min-w-[960px]`}>
@@ -195,10 +245,10 @@ function OperatorPointTable({ items, onAction }: { items: OperatorStopPoint[]; o
             const status = OPERATOR_POINT_STATUS[item.status];
             const suspended = item.status === "SUSPENDED";
             return (
-              <tr key={item.id} className="h-[76px] border-b">
+              <tr key={item.id} {...locatableRow(item.id, selectedId, onLocate)}>
                 <td className={TABLE_CELL}>
                   <div className="flex min-w-0 flex-col gap-1">
-                    <span className="truncate font-semibold text-vxn-ink">{item.name}</span>
+                    <LocatableName id={item.id} name={item.name} className="truncate font-semibold text-vxn-ink" onLocate={onLocate} />
                     <span className="truncate text-xs leading-[18px] text-muted-foreground">{item.address}</span>
                   </div>
                 </td>

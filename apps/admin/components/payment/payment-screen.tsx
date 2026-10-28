@@ -14,7 +14,7 @@ const TABS = ["payments", "refunds", "reconcile"] as const;
 type Tab = (typeof TABS)[number];
 
 /**
- * Thanh toán & hoàn tiền (Figma ADM-07a, 07c; TASK-ADM-002, FR-ADM-10, FR-BTP-17, UC-32): tab Thanh toán / Hoàn tiền / Cần
+ * Giao dịch (Figma ADM-07a, 07c; TASK-ADM-002, FR-ADM-10, FR-BTP-17, UC-32): tab Thanh toán / Hoàn tiền / Cần
  * đối soát (`?tab=`). Thanh toán cần đối soát = cổng đã trừ tiền nhưng thanh toán không nhận vào booking.
  */
 export function PaymentScreen() {
@@ -28,7 +28,7 @@ export function PaymentScreen() {
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader title="Thanh toán & hoàn tiền" description="Giám sát giao dịch qua cổng thanh toán, hoàn tiền và các khoản cần đối soát." />
+      <PageHeader title="Giao dịch" description="Giám sát giao dịch qua cổng thanh toán, hoàn tiền và các khoản cần đối soát." />
       <Tabs
         value={tab}
         onValueChange={(next) => router.replace(next === "payments" ? pathname : `${pathname}?tab=${next}`, { scroll: false })}

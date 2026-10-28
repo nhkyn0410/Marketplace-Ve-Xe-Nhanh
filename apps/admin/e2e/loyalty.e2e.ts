@@ -54,7 +54,7 @@ test("chính sách chương trình: phiên bản đang áp dụng điền sẵn 
 
 test("tài khoản thành viên: email không có → báo; tra cứu → hạng, điểm, sổ điểm; trừ quá số dư bị chặn; cộng 25 (lý do + TOTP) → 375", async () => {
   const { passengerEmail, passengerName } = accounts().loyalty;
-  await page.getByRole("tab", { name: "Tài khoản thành viên" }).click();
+  await page.getByRole("tab", { name: "Điểm thành viên" }).click();
   const email = page.getByLabel("Tra cứu hành khách");
   await email.fill(`khong-co-${passengerEmail}`);
   await page.getByRole("button", { name: "Tra cứu" }).click();

@@ -26,7 +26,7 @@ export type E2eAccounts = {
   adminPolicy: { operatorName: string; operatorSlug: string };
   /** Quản trị viên riêng cho E2E màn Chi trả nhà xe + kỳ chờ rà soát của nhà xe đặt vé. */
   platformFinance: { username: string; password: string };
-  /** Quản trị viên riêng cho E2E màn Thanh toán & hoàn tiền (TASK-ADM-002). */
+  /** Quản trị viên riêng cho E2E màn Giao dịch (TASK-ADM-002). */
   platformPayments: { username: string; password: string };
   /** Quản trị viên riêng cho E2E Tổng quan + Báo cáo (TASK-RPT-002). */
   platformReports: { username: string; password: string };

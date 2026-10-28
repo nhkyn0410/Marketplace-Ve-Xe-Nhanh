@@ -11,6 +11,7 @@ import { ProblemDetailsDto } from "../openapi/openapi.dto";
 import {
   AdminOverviewDto,
   AdminReportDto,
+  AdminReportExportQueryDto,
   AdminReportQueryDto,
   OperatorOverviewDto,
   OperatorReportDto,
@@ -123,13 +124,14 @@ export class AdminReportingController {
   @ApiQuery({ name: "to", required: true, type: String, format: "date" })
   @ApiQuery({ name: "operatorId", required: false, type: String, format: "uuid" })
   @ApiQuery({ name: "provider", required: false, enum: PaymentProvider })
+  @ApiQuery({ name: "group", required: false, enum: ["operator", "route", "region"] })
   @ApiProduces("text/csv")
   @ApiResponse(csvResponse)
   @ApiResponse({ status: 503, description: "Chưa ghi được nhật ký — không xuất.", content: problemContent })
   async export(
     @CurrentUser() actor: VerifiedAccessToken,
     @Authz() authz: Authorization,
-    @Query() query: AdminReportQueryDto,
+    @Query() query: AdminReportExportQueryDto,
     @Res() res: Response,
   ): Promise<void> {
     sendCsv(res, await this.reports.adminReportCsv(authz, actor, query));

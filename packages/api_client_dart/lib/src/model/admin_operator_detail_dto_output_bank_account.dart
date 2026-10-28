@@ -6,9 +6,9 @@
 import 'package:built_value/built_value.dart';
 import 'package:built_value/serializer.dart';
 
-part 'admin_bank_change_dto_output_current.g.dart';
+part 'admin_operator_detail_dto_output_bank_account.g.dart';
 
-/// AdminBankChangeDtoOutputCurrent
+/// AdminOperatorDetailDtoOutputBankAccount
 ///
 /// Properties:
 /// * [bankName] 
@@ -16,7 +16,7 @@ part 'admin_bank_change_dto_output_current.g.dart';
 /// * [accountHolder] 
 /// * [verifiedAt] 
 @BuiltValue()
-abstract class AdminBankChangeDtoOutputCurrent implements Built<AdminBankChangeDtoOutputCurrent, AdminBankChangeDtoOutputCurrentBuilder> {
+abstract class AdminOperatorDetailDtoOutputBankAccount implements Built<AdminOperatorDetailDtoOutputBankAccount, AdminOperatorDetailDtoOutputBankAccountBuilder> {
   @BuiltValueField(wireName: r'bankName')
   String get bankName;
 
@@ -29,27 +29,27 @@ abstract class AdminBankChangeDtoOutputCurrent implements Built<AdminBankChangeD
   @BuiltValueField(wireName: r'verifiedAt')
   DateTime? get verifiedAt;
 
-  AdminBankChangeDtoOutputCurrent._();
+  AdminOperatorDetailDtoOutputBankAccount._();
 
-  factory AdminBankChangeDtoOutputCurrent([void updates(AdminBankChangeDtoOutputCurrentBuilder b)]) = _$AdminBankChangeDtoOutputCurrent;
+  factory AdminOperatorDetailDtoOutputBankAccount([void updates(AdminOperatorDetailDtoOutputBankAccountBuilder b)]) = _$AdminOperatorDetailDtoOutputBankAccount;
 
   @BuiltValueHook(initializeBuilder: true)
-  static void _defaults(AdminBankChangeDtoOutputCurrentBuilder b) => b;
+  static void _defaults(AdminOperatorDetailDtoOutputBankAccountBuilder b) => b;
 
   @BuiltValueSerializer(custom: true)
-  static Serializer<AdminBankChangeDtoOutputCurrent> get serializer => _$AdminBankChangeDtoOutputCurrentSerializer();
+  static Serializer<AdminOperatorDetailDtoOutputBankAccount> get serializer => _$AdminOperatorDetailDtoOutputBankAccountSerializer();
 }
 
-class _$AdminBankChangeDtoOutputCurrentSerializer implements PrimitiveSerializer<AdminBankChangeDtoOutputCurrent> {
+class _$AdminOperatorDetailDtoOutputBankAccountSerializer implements PrimitiveSerializer<AdminOperatorDetailDtoOutputBankAccount> {
   @override
-  final Iterable<Type> types = const [AdminBankChangeDtoOutputCurrent, _$AdminBankChangeDtoOutputCurrent];
+  final Iterable<Type> types = const [AdminOperatorDetailDtoOutputBankAccount, _$AdminOperatorDetailDtoOutputBankAccount];
 
   @override
-  final String wireName = r'AdminBankChangeDtoOutputCurrent';
+  final String wireName = r'AdminOperatorDetailDtoOutputBankAccount';
 
   Iterable<Object?> _serializeProperties(
     Serializers serializers,
-    AdminBankChangeDtoOutputCurrent object, {
+    AdminOperatorDetailDtoOutputBankAccount object, {
     FullType specifiedType = FullType.unspecified,
   }) sync* {
     yield r'bankName';
@@ -77,7 +77,7 @@ class _$AdminBankChangeDtoOutputCurrentSerializer implements PrimitiveSerializer
   @override
   Object serialize(
     Serializers serializers,
-    AdminBankChangeDtoOutputCurrent object, {
+    AdminOperatorDetailDtoOutputBankAccount object, {
     FullType specifiedType = FullType.unspecified,
   }) {
     return _serializeProperties(serializers, object, specifiedType: specifiedType).toList();
@@ -88,7 +88,7 @@ class _$AdminBankChangeDtoOutputCurrentSerializer implements PrimitiveSerializer
     Object serialized, {
     FullType specifiedType = FullType.unspecified,
     required List<Object?> serializedList,
-    required AdminBankChangeDtoOutputCurrentBuilder result,
+    required AdminOperatorDetailDtoOutputBankAccountBuilder result,
     required List<Object?> unhandled,
   }) {
     for (var i = 0; i < serializedList.length; i += 2) {
@@ -133,12 +133,12 @@ class _$AdminBankChangeDtoOutputCurrentSerializer implements PrimitiveSerializer
   }
 
   @override
-  AdminBankChangeDtoOutputCurrent deserialize(
+  AdminOperatorDetailDtoOutputBankAccount deserialize(
     Serializers serializers,
     Object serialized, {
     FullType specifiedType = FullType.unspecified,
   }) {
-    final result = AdminBankChangeDtoOutputCurrentBuilder();
+    final result = AdminOperatorDetailDtoOutputBankAccountBuilder();
     final serializedList = (serialized as Iterable<Object?>).toList();
     final unhandled = <Object?>[];
     _deserializeProperties(

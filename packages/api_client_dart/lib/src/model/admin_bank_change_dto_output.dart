@@ -3,8 +3,8 @@
 //
 
 // ignore_for_file: unused_element
-import 'package:api_client_dart/src/model/admin_bank_change_dto_output_current.dart';
 import 'package:api_client_dart/src/model/admin_bank_change_dto_output_requested.dart';
+import 'package:api_client_dart/src/model/admin_operator_detail_dto_output_bank_account.dart';
 import 'package:built_value/built_value.dart';
 import 'package:built_value/serializer.dart';
 
@@ -34,7 +34,7 @@ abstract class AdminBankChangeDtoOutput implements Built<AdminBankChangeDtoOutpu
   String? get taxCode;
 
   @BuiltValueField(wireName: r'current')
-  AdminBankChangeDtoOutputCurrent? get current;
+  AdminOperatorDetailDtoOutputBankAccount? get current;
 
   @BuiltValueField(wireName: r'requested')
   AdminBankChangeDtoOutputRequested get requested;
@@ -85,7 +85,7 @@ class _$AdminBankChangeDtoOutputSerializer implements PrimitiveSerializer<AdminB
     yield r'current';
     yield object.current == null ? null : serializers.serialize(
       object.current,
-      specifiedType: const FullType.nullable(AdminBankChangeDtoOutputCurrent),
+      specifiedType: const FullType.nullable(AdminOperatorDetailDtoOutputBankAccount),
     );
     yield r'requested';
     yield serializers.serialize(
@@ -148,8 +148,8 @@ class _$AdminBankChangeDtoOutputSerializer implements PrimitiveSerializer<AdminB
         case r'current':
           final valueDes = serializers.deserialize(
             value,
-            specifiedType: const FullType.nullable(AdminBankChangeDtoOutputCurrent),
-          ) as AdminBankChangeDtoOutputCurrent?;
+            specifiedType: const FullType.nullable(AdminOperatorDetailDtoOutputBankAccount),
+          ) as AdminOperatorDetailDtoOutputBankAccount?;
           if (valueDes == null) continue;
           result.current.replace(valueDes);
           break;

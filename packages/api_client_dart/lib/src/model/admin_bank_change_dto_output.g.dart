@@ -16,7 +16,7 @@ class _$AdminBankChangeDtoOutput extends AdminBankChangeDtoOutput {
   @override
   final String? taxCode;
   @override
-  final AdminBankChangeDtoOutputCurrent? current;
+  final AdminOperatorDetailDtoOutputBankAccount? current;
   @override
   final AdminBankChangeDtoOutputRequested requested;
 
@@ -100,10 +100,10 @@ class AdminBankChangeDtoOutputBuilder
   String? get taxCode => _$this._taxCode;
   set taxCode(String? taxCode) => _$this._taxCode = taxCode;
 
-  AdminBankChangeDtoOutputCurrentBuilder? _current;
-  AdminBankChangeDtoOutputCurrentBuilder get current =>
-      _$this._current ??= AdminBankChangeDtoOutputCurrentBuilder();
-  set current(AdminBankChangeDtoOutputCurrentBuilder? current) =>
+  AdminOperatorDetailDtoOutputBankAccountBuilder? _current;
+  AdminOperatorDetailDtoOutputBankAccountBuilder get current =>
+      _$this._current ??= AdminOperatorDetailDtoOutputBankAccountBuilder();
+  set current(AdminOperatorDetailDtoOutputBankAccountBuilder? current) =>
       _$this._current = current;
 
   AdminBankChangeDtoOutputRequestedBuilder? _requested;

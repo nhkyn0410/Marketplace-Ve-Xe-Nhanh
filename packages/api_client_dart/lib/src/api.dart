@@ -27,9 +27,11 @@ import 'package:api_client_dart/src/api/admin_promotions_api.dart';
 import 'package:api_client_dart/src/api/admin_refunds_api.dart';
 import 'package:api_client_dart/src/api/admin_reports_api.dart';
 import 'package:api_client_dart/src/api/admin_reviews_api.dart';
+import 'package:api_client_dart/src/api/admin_routes_api.dart';
 import 'package:api_client_dart/src/api/admin_stop_points_api.dart';
 import 'package:api_client_dart/src/api/admin_support_api.dart';
 import 'package:api_client_dart/src/api/admin_system_api.dart';
+import 'package:api_client_dart/src/api/admin_trips_api.dart';
 import 'package:api_client_dart/src/api/admin_users_api.dart';
 import 'package:api_client_dart/src/api/admin_vehicle_images_api.dart';
 import 'package:api_client_dart/src/api/articles_api.dart';
@@ -279,6 +281,12 @@ class ApiClientDart {
     return AdminReviewsApi(dio, serializers);
   }
 
+  /// Get AdminRoutesApi instance, base route and serializer can be overridden by a given but be careful,
+  /// by doing that all interceptors will not be executed
+  AdminRoutesApi getAdminRoutesApi() {
+    return AdminRoutesApi(dio, serializers);
+  }
+
   /// Get AdminStopPointsApi instance, base route and serializer can be overridden by a given but be careful,
   /// by doing that all interceptors will not be executed
   AdminStopPointsApi getAdminStopPointsApi() {
@@ -295,6 +303,12 @@ class ApiClientDart {
   /// by doing that all interceptors will not be executed
   AdminSystemApi getAdminSystemApi() {
     return AdminSystemApi(dio, serializers);
+  }
+
+  /// Get AdminTripsApi instance, base route and serializer can be overridden by a given but be careful,
+  /// by doing that all interceptors will not be executed
+  AdminTripsApi getAdminTripsApi() {
+    return AdminTripsApi(dio, serializers);
   }
 
   /// Get AdminUsersApi instance, base route and serializer can be overridden by a given but be careful,

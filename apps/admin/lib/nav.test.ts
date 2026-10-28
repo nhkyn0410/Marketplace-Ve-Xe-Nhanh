@@ -5,10 +5,12 @@ import { visibleNavGroups } from "@vexenhanh/ui/lib/nav";
 import { NAV_GROUPS } from "./nav";
 
 describe("thanh bên Admin", () => {
-  it("đủ 16 mục theo Figma, không trùng đường dẫn", () => {
+  it("16 mục theo Figma + Tuyến & chuyến (chờ duyệt 28/10/2026), không trùng đường dẫn", () => {
     const items = NAV_GROUPS.flatMap((group) => group.items);
-    expect(items).toHaveLength(16);
-    expect(new Set(items.map((item) => item.href)).size).toBe(16);
+    expect(items).toHaveLength(17);
+    expect(new Set(items.map((item) => item.href)).size).toBe(17);
+    expect(items.find((item) => item.href === "/routes")).toMatchObject({ label: "Tuyến & chuyến", permissions: ["user:manage"] });
+    expect(items.find((item) => item.href === "/payments")?.label).toBe("Giao dịch");
     expect(NAV_GROUPS.map((group) => group.label)).toEqual([
       undefined,
       "Đối tác & người dùng",

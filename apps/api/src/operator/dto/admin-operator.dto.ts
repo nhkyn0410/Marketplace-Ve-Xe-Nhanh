@@ -104,3 +104,56 @@ export const BankChangeRejectInputSchema = BankChangeDecisionInputSchema.extend(
   reason: z.string().trim().min(3).max(500),
 });
 export class AdminBankChangeRejectDto extends createZodDto(BankChangeRejectInputSchema) {}
+
+// ── Chi tiết nhà xe cho Admin (FR-ADM-02 "giám sát", SRS ma trận quyền "Xem / giám sát toàn hệ thống"; tự thiết kế
+// 28/10/2026, chờ duyệt) ──
+
+/** Số tiền chỉ trả cho tài khoản có quyền xem thanh toán (`payment:monitor`); thiếu quyền → `null`. */
+const MoneyOrHidden = z.int().nonnegative().nullable();
+
+export const AdminOperatorDetailSchema = AdminOperatorSchema.extend({
+  legalName: z.string().nullable(),
+  taxCode: z.string().nullable(),
+  hotline: z.string().nullable(),
+  publicEmail: z.string().nullable(),
+  address: z.string().nullable(),
+  description: z.string().nullable(),
+  /** Tài khoản nhận tiền đang dùng (đã xác minh) — số tài khoản che, xem số đầy đủ ở hộp thoại xác minh (có audit). */
+  bankAccount: z
+    .object({ bankName: z.string(), accountNumber: z.string(), accountHolder: z.string(), verifiedAt: z.iso.datetime().nullable() })
+    .nullable(),
+  vehicleCount: z.int(),
+  employeeCount: z.int(),
+  /** Số liệu 30 ngày gần nhất theo giờ VN (chuyến khởi hành trong kỳ). */
+  stats: z.object({
+    from: z.iso.date(),
+    to: z.iso.date(),
+    trips: z.int(),
+    completedTrips: z.int(),
+    cancelledTrips: z.int(),
+    seats: z.int(),
+    ticketsSold: z.int(),
+    /** Tổng giá vé đã bán của chuyến trong kỳ. */
+    ticketRevenue: MoneyOrHidden,
+    /** Hoàn tiền thành công trong kỳ. */
+    refunded: MoneyOrHidden,
+    averageRating: z.number().nullable(),
+    reviewCount: z.int(),
+  }),
+});
+export type AdminOperatorDetail = z.infer<typeof AdminOperatorDetailSchema>;
+export class AdminOperatorDetailDto extends createZodDto(AdminOperatorDetailSchema) {}
+
+const AdminOperatorVehicleSchema = z.object({
+  id: z.uuid(),
+  plateNumber: z.string(),
+  vehicleTypeName: z.string(),
+  /** Số chỗ của sơ đồ ghế; xe chưa gắn sơ đồ → `null`. */
+  seatCount: z.int().nullable(),
+  status: z.enum(["ACTIVE", "MAINTENANCE", "INACTIVE"]),
+  /** Chuyến chưa khởi hành đang dùng xe (mở bán / hết chỗ / khóa bán). */
+  upcomingTripCount: z.int(),
+});
+export const AdminOperatorVehicleListSchema = z.object({ items: z.array(AdminOperatorVehicleSchema) });
+export type AdminOperatorVehicleList = z.infer<typeof AdminOperatorVehicleListSchema>;
+export class AdminOperatorVehicleListDto extends createZodDto(AdminOperatorVehicleListSchema) {}

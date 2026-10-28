@@ -1828,6 +1828,38 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/admin/routes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminRouteController_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/routes/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminRouteController_detail"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/operator/trips": {
         parameters: {
             query?: never;
@@ -1917,6 +1949,38 @@ export interface paths {
         };
         get?: never;
         put: operations["TripController_setSeatStatus"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/trips": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminTripController_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/trips/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminTripController_detail"];
+        put?: never;
         post?: never;
         delete?: never;
         options?: never;
@@ -4228,6 +4292,38 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/admin/operators/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminOperatorController_detail"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/operators/{id}/vehicles": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminOperatorController_vehicles"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/admin/operators/{id}/suspend": {
         parameters: {
             query?: never;
@@ -4620,6 +4716,38 @@ export interface paths {
             cookie?: never;
         };
         get: operations["AdminPassengerController_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/passengers/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminPassengerController_detail"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/passengers/{id}/bookings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminPassengerController_bookings"];
         put?: never;
         post?: never;
         delete?: never;
@@ -6984,6 +7112,112 @@ export interface components {
                 durationMinutesFromPrevious?: number | null;
             }[];
         };
+        AdminRoutePageDto_Output: {
+            items: {
+                trips: number;
+                completedTrips: number;
+                cancelledTrips: number;
+                seats: number;
+                ticketsSold: number;
+                ticketRevenue: number | null;
+                /** Format: uuid */
+                id: string;
+                name: string;
+                /** @enum {string} */
+                status: "ACTIVE" | "INACTIVE";
+                /** Format: uuid */
+                operatorId: string;
+                operatorName: string;
+                origin: {
+                    /** Format: uuid */
+                    id: string;
+                    name: string;
+                } | null;
+                destination: {
+                    /** Format: uuid */
+                    id: string;
+                    name: string;
+                } | null;
+                stopCount: number;
+                distanceMeters: number;
+                durationSeconds: number;
+                upcomingTrips: number;
+                averageRating: number | null;
+                reviewCount: number;
+            }[];
+            nextCursor: string | null;
+            total: number;
+            period: {
+                /** Format: date */
+                from: string;
+                /** Format: date */
+                to: string;
+            };
+        };
+        AdminRouteDetailDto_Output: {
+            trips: number;
+            completedTrips: number;
+            cancelledTrips: number;
+            seats: number;
+            ticketsSold: number;
+            ticketRevenue: number | null;
+            /** Format: uuid */
+            id: string;
+            name: string;
+            /** @enum {string} */
+            status: "ACTIVE" | "INACTIVE";
+            /** Format: uuid */
+            operatorId: string;
+            operatorName: string;
+            origin: {
+                /** Format: uuid */
+                id: string;
+                name: string;
+            } | null;
+            destination: {
+                /** Format: uuid */
+                id: string;
+                name: string;
+            } | null;
+            stopCount: number;
+            distanceMeters: number;
+            durationSeconds: number;
+            upcomingTrips: number;
+            averageRating: number | null;
+            reviewCount: number;
+            note: string | null;
+            period: {
+                /** Format: date */
+                from: string;
+                /** Format: date */
+                to: string;
+            };
+            stops: {
+                sequence: number;
+                name: string;
+                address: string;
+                /** @enum {string} */
+                type: "BUS_STATION" | "OFFICE" | "REST_STOP" | "PICKUP_POINT";
+                shared: boolean;
+                provinceName: string | null;
+                latitude: number;
+                longitude: number;
+                allowPickup: boolean;
+                allowDropoff: boolean;
+                distanceMetersFromPrevious: number | null;
+                durationSecondsFromPrevious: number | null;
+            }[];
+            nextTrips: {
+                /** Format: uuid */
+                id: string;
+                /** Format: date-time */
+                departureAt: string;
+                status: string;
+                vehiclePlate: string | null;
+                seats: number;
+                ticketsSold: number;
+            }[];
+        };
         TripListResponseDto_Output: {
             items: {
                 /** Format: uuid */
@@ -7079,6 +7313,95 @@ export interface components {
             /** @enum {string} */
             status: "BLOCKED" | "AVAILABLE";
             note: string | null;
+        };
+        AdminTripPageDto_Output: {
+            items: {
+                /** Format: uuid */
+                id: string;
+                /** Format: date-time */
+                departureAt: string;
+                /** Format: date-time */
+                arrivalAt: string;
+                /** @enum {string} */
+                status: "DRAFT" | "OPEN_FOR_SALE" | "SOLD_OUT" | "LOCKED" | "BOARDING" | "DEPARTED" | "IN_PROGRESS" | "COMPLETED" | "CANCELLED" | "INCIDENT";
+                /** Format: uuid */
+                operatorId: string;
+                operatorName: string;
+                /** Format: uuid */
+                routeId: string;
+                routeName: string;
+                vehiclePlate: string | null;
+                seats: number;
+                ticketsSold: number;
+            }[];
+            nextCursor: string | null;
+            total: number;
+            period: {
+                /** Format: date */
+                from: string;
+                /** Format: date */
+                to: string;
+            };
+        };
+        AdminTripDetailDto_Output: {
+            /** Format: uuid */
+            id: string;
+            /** Format: date-time */
+            departureAt: string;
+            /** Format: date-time */
+            arrivalAt: string;
+            /** @enum {string} */
+            status: "DRAFT" | "OPEN_FOR_SALE" | "SOLD_OUT" | "LOCKED" | "BOARDING" | "DEPARTED" | "IN_PROGRESS" | "COMPLETED" | "CANCELLED" | "INCIDENT";
+            /** Format: uuid */
+            operatorId: string;
+            operatorName: string;
+            /** Format: uuid */
+            routeId: string;
+            routeName: string;
+            vehiclePlate: string | null;
+            seats: number;
+            ticketsSold: number;
+            statusReason: string | null;
+            departedAt: string | null;
+            completedAt: string | null;
+            onlineSaleCutoffMinutes: number;
+            vehicleTypeName: string | null;
+            stops: {
+                sequence: number;
+                name: string;
+                address: string;
+                /** Format: date-time */
+                plannedAt: string;
+                allowPickup: boolean;
+                allowDropoff: boolean;
+            }[];
+            seatSummary: {
+                available: number;
+                holding: number;
+                booked: number;
+                checkedIn: number;
+                blocked: number;
+            };
+            staff: {
+                username: string;
+                /** @enum {string} */
+                role: "DRIVER" | "TICKET_STAFF" | "SUPPORT_STAFF" | "SALES_STAFF";
+            }[];
+            bookingCount: number;
+            ticketRevenue: number | null;
+            manifest: {
+                ticketCode: string;
+                seatCode: string;
+                fullName: string;
+                phone: string | null;
+                /** @enum {string} */
+                status: "VALID" | "CANCELLED" | "CHECKED_IN" | "NO_SHOW" | "USED" | "REFUNDED";
+                bookingCode: string;
+                /** @enum {string} */
+                channel: "ONLINE" | "COUNTER";
+                guest: boolean;
+                userId: string | null;
+            }[];
         };
         TripScheduleListResponseDto_Output: {
             items: {
@@ -8845,6 +9168,34 @@ export interface components {
                 amount: number;
                 count: number;
             }[];
+            byRoute: {
+                /** Format: uuid */
+                routeId: string;
+                routeName: string;
+                /** Format: uuid */
+                operatorId: string;
+                operatorName: string;
+                originName: string | null;
+                destinationName: string | null;
+                trips: number;
+                seats: number;
+                ticketsSold: number;
+                ticketRevenue: number;
+            }[];
+            byRegion: {
+                /** Format: uuid */
+                originProvinceId: string;
+                originName: string;
+                /** Format: uuid */
+                destinationProvinceId: string;
+                destinationName: string;
+                routes: number;
+                operators: number;
+                trips: number;
+                seats: number;
+                ticketsSold: number;
+                ticketRevenue: number;
+            }[];
         };
         CustomerTicketListDto_Output: {
             items: {
@@ -10157,6 +10508,70 @@ export interface components {
             nextCursor: string | null;
             total: number;
         };
+        AdminOperatorDetailDto_Output: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            slug: string;
+            /** @enum {string} */
+            status: "ACTIVE" | "SUSPENDED";
+            suspendedReason: string | null;
+            suspendedAt: string | null;
+            /** Format: date-time */
+            approvedAt: string;
+            applicationId: string | null;
+            owner: {
+                /** Format: uuid */
+                id: string;
+                username: string;
+                email: string | null;
+                credentialDeliveryPending: boolean;
+            } | null;
+            routeCount: number;
+            openTripCount: number;
+            bankChangePending: boolean;
+            legalName: string | null;
+            taxCode: string | null;
+            hotline: string | null;
+            publicEmail: string | null;
+            address: string | null;
+            description: string | null;
+            bankAccount: {
+                bankName: string;
+                accountNumber: string;
+                accountHolder: string;
+                verifiedAt: string | null;
+            } | null;
+            vehicleCount: number;
+            employeeCount: number;
+            stats: {
+                /** Format: date */
+                from: string;
+                /** Format: date */
+                to: string;
+                trips: number;
+                completedTrips: number;
+                cancelledTrips: number;
+                seats: number;
+                ticketsSold: number;
+                ticketRevenue: number | null;
+                refunded: number | null;
+                averageRating: number | null;
+                reviewCount: number;
+            };
+        };
+        AdminOperatorVehicleListDto_Output: {
+            items: {
+                /** Format: uuid */
+                id: string;
+                plateNumber: string;
+                vehicleTypeName: string;
+                seatCount: number | null;
+                /** @enum {string} */
+                status: "ACTIVE" | "MAINTENANCE" | "INACTIVE";
+                upcomingTripCount: number;
+            }[];
+        };
         AdminOperatorSuspendDto: {
             reason: string;
         };
@@ -10657,6 +11072,54 @@ export interface components {
                 /** Format: date-time */
                 createdAt: string;
                 lastLoginAt: string | null;
+            }[];
+            nextCursor: string | null;
+            total: number;
+        };
+        AdminPassengerDetailDto_Output: {
+            id: string;
+            name: string | null;
+            email: string;
+            providers: string[];
+            /** @enum {string} */
+            status: "ACTIVE" | "LOCKED" | "DISABLED";
+            lockedReason: string | null;
+            lockedAt: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            lastLoginAt: string | null;
+            emailVerified: boolean;
+            phone: string | null;
+            loyaltyPoints: number | null;
+            savedPassengerCount: number;
+            bookingCount: number;
+            ticketCount: number;
+            supportTicketCount: number;
+            totalPaid: number | null;
+        };
+        AdminPassengerBookingPageDto_Output: {
+            items: {
+                /** Format: uuid */
+                id: string;
+                bookingCode: string;
+                status: string;
+                /** Format: date-time */
+                createdAt: string;
+                total: number | null;
+                /** Format: uuid */
+                operatorId: string;
+                operatorName: string;
+                /** Format: uuid */
+                tripId: string;
+                routeName: string;
+                /** Format: date-time */
+                departureAt: string;
+                passengers: {
+                    fullName: string;
+                    seatCode: string;
+                    ticketStatus: string | null;
+                }[];
+                paymentId: string | null;
             }[];
             nextCursor: string | null;
             total: number;
@@ -17782,6 +18245,116 @@ export interface operations {
             };
         };
     };
+    AdminRouteController_list: {
+        parameters: {
+            query?: {
+                q?: string;
+                operatorId?: string;
+                status?: "ACTIVE" | "INACTIVE";
+                originProvinceId?: string;
+                destinationProvinceId?: string;
+                from?: string;
+                to?: string;
+                sort?: "sold" | "revenue" | "trips" | "fill" | "name";
+                cursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Một trang tuyến. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminRoutePageDto_Output"];
+                };
+            };
+            /** @description Query không hợp lệ (kỳ tối đa 366 ngày). */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminRouteController_detail: {
+        parameters: {
+            query?: {
+                from?: string;
+                to?: string;
+            };
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Chi tiết tuyến. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminRouteDetailDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `ROUTE_NOT_FOUND`. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
     TripController_list: {
         parameters: {
             query?: {
@@ -18324,6 +18897,120 @@ export interface operations {
             };
             /** @description `TRIP_SEAT_UNKNOWN` (mã ghế không thuộc chuyến). */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminTripController_list: {
+        parameters: {
+            query?: {
+                from?: string;
+                to?: string;
+                operatorId?: string;
+                routeId?: string;
+                status?: "DRAFT" | "OPEN_FOR_SALE" | "SOLD_OUT" | "LOCKED" | "BOARDING" | "DEPARTED" | "IN_PROGRESS" | "COMPLETED" | "CANCELLED" | "INCIDENT";
+                q?: string;
+                cursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Một trang chuyến. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminTripPageDto_Output"];
+                };
+            };
+            /** @description Query không hợp lệ (kỳ tối đa 92 ngày). */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminTripController_detail: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Chi tiết chuyến. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminTripDetailDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `TRIP_NOT_FOUND`. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Chưa ghi được nhật ký lượt xem — không trả dữ liệu. */
+            503: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -21932,6 +22619,7 @@ export interface operations {
                 to: string;
                 operatorId?: string;
                 provider?: "VNPAY" | "MOMO";
+                group?: "operator" | "route" | "region";
             };
             header?: never;
             path?: never;
@@ -27098,6 +27786,104 @@ export interface operations {
             };
         };
     };
+    AdminOperatorController_detail: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Chi tiết nhà xe. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminOperatorDetailDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `OPERATOR_NOT_FOUND`. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminOperatorController_vehicles: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Xe của nhà xe. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminOperatorVehicleListDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `OPERATOR_NOT_FOUND`. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
     AdminOperatorController_suspend: {
         parameters: {
             query?: never;
@@ -28849,6 +29635,116 @@ export interface operations {
             };
             /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
             403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminPassengerController_detail: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Chi tiết hành khách. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminPassengerDetailDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `ACCOUNT_NOT_FOUND`. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Chưa ghi được nhật ký lượt xem — không trả dữ liệu. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminPassengerController_bookings: {
+        parameters: {
+            query?: {
+                cursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Một trang đơn đặt vé. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminPassengerBookingPageDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `ACCOUNT_NOT_FOUND`. */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };

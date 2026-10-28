@@ -124,11 +124,13 @@ Class | Method | HTTP request | Description
 [*AdminOperatorApplicationsApi*](doc/AdminOperatorApplicationsApi.md) | [**operatorApplicationReviewControllerRequestInfo**](doc/AdminOperatorApplicationsApi.md#operatorapplicationreviewcontrollerrequestinfo) | **POST** /v1/admin/operator-applications/{applicationId}/request-info | 
 [*AdminOperatorApplicationsApi*](doc/AdminOperatorApplicationsApi.md) | [**operatorApplicationReviewControllerResendOwnerCredentials**](doc/AdminOperatorApplicationsApi.md#operatorapplicationreviewcontrollerresendownercredentials) | **POST** /v1/admin/operator-applications/{applicationId}/resend-owner-credentials | 
 [*AdminOperatorsApi*](doc/AdminOperatorsApi.md) | [**adminOperatorControllerApproveBankChange**](doc/AdminOperatorsApi.md#adminoperatorcontrollerapprovebankchange) | **POST** /v1/admin/operators/{id}/bank-account-change/approve | 
+[*AdminOperatorsApi*](doc/AdminOperatorsApi.md) | [**adminOperatorControllerDetail**](doc/AdminOperatorsApi.md#adminoperatorcontrollerdetail) | **GET** /v1/admin/operators/{id} | 
 [*AdminOperatorsApi*](doc/AdminOperatorsApi.md) | [**adminOperatorControllerGetBankChange**](doc/AdminOperatorsApi.md#adminoperatorcontrollergetbankchange) | **GET** /v1/admin/operators/{id}/bank-account-change | 
 [*AdminOperatorsApi*](doc/AdminOperatorsApi.md) | [**adminOperatorControllerList**](doc/AdminOperatorsApi.md#adminoperatorcontrollerlist) | **GET** /v1/admin/operators | 
 [*AdminOperatorsApi*](doc/AdminOperatorsApi.md) | [**adminOperatorControllerRejectBankChange**](doc/AdminOperatorsApi.md#adminoperatorcontrollerrejectbankchange) | **POST** /v1/admin/operators/{id}/bank-account-change/reject | 
 [*AdminOperatorsApi*](doc/AdminOperatorsApi.md) | [**adminOperatorControllerSuspend**](doc/AdminOperatorsApi.md#adminoperatorcontrollersuspend) | **POST** /v1/admin/operators/{id}/suspend | 
 [*AdminOperatorsApi*](doc/AdminOperatorsApi.md) | [**adminOperatorControllerUnsuspend**](doc/AdminOperatorsApi.md#adminoperatorcontrollerunsuspend) | **POST** /v1/admin/operators/{id}/unsuspend | 
+[*AdminOperatorsApi*](doc/AdminOperatorsApi.md) | [**adminOperatorControllerVehicles**](doc/AdminOperatorsApi.md#adminoperatorcontrollervehicles) | **GET** /v1/admin/operators/{id}/vehicles | 
 [*AdminPaymentsApi*](doc/AdminPaymentsApi.md) | [**adminPaymentControllerGet**](doc/AdminPaymentsApi.md#adminpaymentcontrollerget) | **GET** /v1/admin/payments/{paymentId} | 
 [*AdminPaymentsApi*](doc/AdminPaymentsApi.md) | [**adminPaymentControllerList**](doc/AdminPaymentsApi.md#adminpaymentcontrollerlist) | **GET** /v1/admin/payments | 
 [*AdminPayoutsApi*](doc/AdminPayoutsApi.md) | [**adminPayoutControllerCancel**](doc/AdminPayoutsApi.md#adminpayoutcontrollercancel) | **POST** /v1/admin/payouts/{payoutId}/cancel | 
@@ -167,6 +169,8 @@ Class | Method | HTTP request | Description
 [*AdminReportsApi*](doc/AdminReportsApi.md) | [**adminReportingControllerSummary**](doc/AdminReportsApi.md#adminreportingcontrollersummary) | **GET** /v1/admin/reports/summary | 
 [*AdminReviewsApi*](doc/AdminReviewsApi.md) | [**adminReviewControllerList**](doc/AdminReviewsApi.md#adminreviewcontrollerlist) | **GET** /v1/admin/reviews | 
 [*AdminReviewsApi*](doc/AdminReviewsApi.md) | [**adminReviewControllerModerate**](doc/AdminReviewsApi.md#adminreviewcontrollermoderate) | **POST** /v1/admin/reviews/{reviewId}/moderation | 
+[*AdminRoutesApi*](doc/AdminRoutesApi.md) | [**adminRouteControllerDetail**](doc/AdminRoutesApi.md#adminroutecontrollerdetail) | **GET** /v1/admin/routes/{id} | 
+[*AdminRoutesApi*](doc/AdminRoutesApi.md) | [**adminRouteControllerList**](doc/AdminRoutesApi.md#adminroutecontrollerlist) | **GET** /v1/admin/routes | 
 [*AdminStopPointsApi*](doc/AdminStopPointsApi.md) | [**adminOperatorStopPointControllerList**](doc/AdminStopPointsApi.md#adminoperatorstoppointcontrollerlist) | **GET** /v1/admin/operator-stop-points | 
 [*AdminStopPointsApi*](doc/AdminStopPointsApi.md) | [**adminOperatorStopPointControllerSuspend**](doc/AdminStopPointsApi.md#adminoperatorstoppointcontrollersuspend) | **POST** /v1/admin/operator-stop-points/{id}/suspend | 
 [*AdminStopPointsApi*](doc/AdminStopPointsApi.md) | [**adminOperatorStopPointControllerUnsuspend**](doc/AdminStopPointsApi.md#adminoperatorstoppointcontrollerunsuspend) | **POST** /v1/admin/operator-stop-points/{id}/unsuspend | 
@@ -190,7 +194,11 @@ Class | Method | HTTP request | Description
 [*AdminSystemApi*](doc/AdminSystemApi.md) | [**adminReconciliationControllerRun**](doc/AdminSystemApi.md#adminreconciliationcontrollerrun) | **POST** /v1/admin/system/reconciliation | 
 [*AdminSystemApi*](doc/AdminSystemApi.md) | [**systemStatusControllerIntegrations**](doc/AdminSystemApi.md#systemstatuscontrollerintegrations) | **GET** /v1/admin/system/integrations | 
 [*AdminSystemApi*](doc/AdminSystemApi.md) | [**systemStatusControllerJobs**](doc/AdminSystemApi.md#systemstatuscontrollerjobs) | **GET** /v1/admin/system/jobs | 
+[*AdminTripsApi*](doc/AdminTripsApi.md) | [**adminTripControllerDetail**](doc/AdminTripsApi.md#admintripcontrollerdetail) | **GET** /v1/admin/trips/{id} | 
+[*AdminTripsApi*](doc/AdminTripsApi.md) | [**adminTripControllerList**](doc/AdminTripsApi.md#admintripcontrollerlist) | **GET** /v1/admin/trips | 
 [*AdminUsersApi*](doc/AdminUsersApi.md) | [**adminEmployeeControllerList**](doc/AdminUsersApi.md#adminemployeecontrollerlist) | **GET** /v1/admin/employees | 
+[*AdminUsersApi*](doc/AdminUsersApi.md) | [**adminPassengerControllerBookings**](doc/AdminUsersApi.md#adminpassengercontrollerbookings) | **GET** /v1/admin/passengers/{id}/bookings | 
+[*AdminUsersApi*](doc/AdminUsersApi.md) | [**adminPassengerControllerDetail**](doc/AdminUsersApi.md#adminpassengercontrollerdetail) | **GET** /v1/admin/passengers/{id} | 
 [*AdminUsersApi*](doc/AdminUsersApi.md) | [**adminPassengerControllerList**](doc/AdminUsersApi.md#adminpassengercontrollerlist) | **GET** /v1/admin/passengers | 
 [*AdminUsersApi*](doc/AdminUsersApi.md) | [**adminPassengerControllerLock**](doc/AdminUsersApi.md#adminpassengercontrollerlock) | **POST** /v1/admin/passengers/{id}/lock | 
 [*AdminUsersApi*](doc/AdminUsersApi.md) | [**adminPassengerControllerUnlock**](doc/AdminUsersApi.md#adminpassengercontrollerunlock) | **POST** /v1/admin/passengers/{id}/unlock | 
@@ -455,7 +463,6 @@ Class | Method | HTTP request | Description
  - [AdminAuditLogListDtoOutputItemsInnerOperator](doc/AdminAuditLogListDtoOutputItemsInnerOperator.md)
  - [AdminBankChangeApproveDto](doc/AdminBankChangeApproveDto.md)
  - [AdminBankChangeDtoOutput](doc/AdminBankChangeDtoOutput.md)
- - [AdminBankChangeDtoOutputCurrent](doc/AdminBankChangeDtoOutputCurrent.md)
  - [AdminBankChangeDtoOutputRequested](doc/AdminBankChangeDtoOutputRequested.md)
  - [AdminBankChangeRejectDto](doc/AdminBankChangeRejectDto.md)
  - [AdminCatalogDeactivateDto](doc/AdminCatalogDeactivateDto.md)
@@ -463,6 +470,9 @@ Class | Method | HTTP request | Description
  - [AdminEmployeePageDtoOutput](doc/AdminEmployeePageDtoOutput.md)
  - [AdminEmployeePageDtoOutputItemsInner](doc/AdminEmployeePageDtoOutputItemsInner.md)
  - [AdminMessageInputDto](doc/AdminMessageInputDto.md)
+ - [AdminOperatorDetailDtoOutput](doc/AdminOperatorDetailDtoOutput.md)
+ - [AdminOperatorDetailDtoOutputBankAccount](doc/AdminOperatorDetailDtoOutputBankAccount.md)
+ - [AdminOperatorDetailDtoOutputStats](doc/AdminOperatorDetailDtoOutputStats.md)
  - [AdminOperatorPageDtoOutput](doc/AdminOperatorPageDtoOutput.md)
  - [AdminOperatorPageDtoOutputItemsInner](doc/AdminOperatorPageDtoOutputItemsInner.md)
  - [AdminOperatorPageDtoOutputItemsInnerOwner](doc/AdminOperatorPageDtoOutputItemsInnerOwner.md)
@@ -470,12 +480,18 @@ Class | Method | HTTP request | Description
  - [AdminOperatorStopPointListDtoOutput](doc/AdminOperatorStopPointListDtoOutput.md)
  - [AdminOperatorStopPointListDtoOutputItemsInner](doc/AdminOperatorStopPointListDtoOutputItemsInner.md)
  - [AdminOperatorSuspendDto](doc/AdminOperatorSuspendDto.md)
+ - [AdminOperatorVehicleListDtoOutput](doc/AdminOperatorVehicleListDtoOutput.md)
+ - [AdminOperatorVehicleListDtoOutputItemsInner](doc/AdminOperatorVehicleListDtoOutputItemsInner.md)
  - [AdminOverviewDtoOutput](doc/AdminOverviewDtoOutput.md)
  - [AdminOverviewDtoOutputBookings](doc/AdminOverviewDtoOutputBookings.md)
  - [AdminOverviewDtoOutputDailyInner](doc/AdminOverviewDtoOutputDailyInner.md)
  - [AdminOverviewDtoOutputEscrow](doc/AdminOverviewDtoOutputEscrow.md)
  - [AdminOverviewDtoOutputQueues](doc/AdminOverviewDtoOutputQueues.md)
  - [AdminOverviewDtoOutputTickets](doc/AdminOverviewDtoOutputTickets.md)
+ - [AdminPassengerBookingPageDtoOutput](doc/AdminPassengerBookingPageDtoOutput.md)
+ - [AdminPassengerBookingPageDtoOutputItemsInner](doc/AdminPassengerBookingPageDtoOutputItemsInner.md)
+ - [AdminPassengerBookingPageDtoOutputItemsInnerPassengersInner](doc/AdminPassengerBookingPageDtoOutputItemsInnerPassengersInner.md)
+ - [AdminPassengerDetailDtoOutput](doc/AdminPassengerDetailDtoOutput.md)
  - [AdminPassengerPageDtoOutput](doc/AdminPassengerPageDtoOutput.md)
  - [AdminPassengerPageDtoOutputItemsInner](doc/AdminPassengerPageDtoOutputItemsInner.md)
  - [AdminPaymentDetailDtoOutput](doc/AdminPaymentDetailDtoOutput.md)
@@ -507,8 +523,17 @@ Class | Method | HTTP request | Description
  - [AdminRemoveVehicleImageInputDto](doc/AdminRemoveVehicleImageInputDto.md)
  - [AdminReportDtoOutput](doc/AdminReportDtoOutput.md)
  - [AdminReportDtoOutputByOperatorInner](doc/AdminReportDtoOutputByOperatorInner.md)
+ - [AdminReportDtoOutputByRegionInner](doc/AdminReportDtoOutputByRegionInner.md)
+ - [AdminReportDtoOutputByRouteInner](doc/AdminReportDtoOutputByRouteInner.md)
  - [AdminReportDtoOutputPaymentMethodsInner](doc/AdminReportDtoOutputPaymentMethodsInner.md)
  - [AdminReportDtoOutputTotals](doc/AdminReportDtoOutputTotals.md)
+ - [AdminRouteDetailDtoOutput](doc/AdminRouteDetailDtoOutput.md)
+ - [AdminRouteDetailDtoOutputNextTripsInner](doc/AdminRouteDetailDtoOutputNextTripsInner.md)
+ - [AdminRouteDetailDtoOutputStopsInner](doc/AdminRouteDetailDtoOutputStopsInner.md)
+ - [AdminRoutePageDtoOutput](doc/AdminRoutePageDtoOutput.md)
+ - [AdminRoutePageDtoOutputItemsInner](doc/AdminRoutePageDtoOutputItemsInner.md)
+ - [AdminRoutePageDtoOutputItemsInnerOrigin](doc/AdminRoutePageDtoOutputItemsInnerOrigin.md)
+ - [AdminRoutePageDtoOutputPeriod](doc/AdminRoutePageDtoOutputPeriod.md)
  - [AdminSharedStopPointDtoOutput](doc/AdminSharedStopPointDtoOutput.md)
  - [AdminSharedStopPointInputDto](doc/AdminSharedStopPointInputDto.md)
  - [AdminSharedStopPointListDtoOutput](doc/AdminSharedStopPointListDtoOutput.md)
@@ -518,6 +543,13 @@ Class | Method | HTTP request | Description
  - [AdminStopPointProposalListDtoOutput](doc/AdminStopPointProposalListDtoOutput.md)
  - [AdminStopPointProposalListDtoOutputItemsInner](doc/AdminStopPointProposalListDtoOutputItemsInner.md)
  - [AdminStopPointProposalListDtoOutputItemsInnerNearbyInner](doc/AdminStopPointProposalListDtoOutputItemsInnerNearbyInner.md)
+ - [AdminTripDetailDtoOutput](doc/AdminTripDetailDtoOutput.md)
+ - [AdminTripDetailDtoOutputManifestInner](doc/AdminTripDetailDtoOutputManifestInner.md)
+ - [AdminTripDetailDtoOutputSeatSummary](doc/AdminTripDetailDtoOutputSeatSummary.md)
+ - [AdminTripDetailDtoOutputStaffInner](doc/AdminTripDetailDtoOutputStaffInner.md)
+ - [AdminTripDetailDtoOutputStopsInner](doc/AdminTripDetailDtoOutputStopsInner.md)
+ - [AdminTripPageDtoOutput](doc/AdminTripPageDtoOutput.md)
+ - [AdminTripPageDtoOutputItemsInner](doc/AdminTripPageDtoOutputItemsInner.md)
  - [AdminVehicleImageListDtoOutput](doc/AdminVehicleImageListDtoOutput.md)
  - [AdminVehicleImageListDtoOutputItemsInner](doc/AdminVehicleImageListDtoOutputItemsInner.md)
  - [AdminVehicleImageListDtoOutputOperatorsInner](doc/AdminVehicleImageListDtoOutputOperatorsInner.md)

@@ -1,13 +1,13 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'admin_bank_change_dto_output_current.dart';
+part of 'admin_operator_detail_dto_output_bank_account.dart';
 
 // **************************************************************************
 // BuiltValueGenerator
 // **************************************************************************
 
-class _$AdminBankChangeDtoOutputCurrent
-    extends AdminBankChangeDtoOutputCurrent {
+class _$AdminOperatorDetailDtoOutputBankAccount
+    extends AdminOperatorDetailDtoOutputBankAccount {
   @override
   final String bankName;
   @override
@@ -17,29 +17,32 @@ class _$AdminBankChangeDtoOutputCurrent
   @override
   final DateTime? verifiedAt;
 
-  factory _$AdminBankChangeDtoOutputCurrent(
-          [void Function(AdminBankChangeDtoOutputCurrentBuilder)? updates]) =>
-      (AdminBankChangeDtoOutputCurrentBuilder()..update(updates))._build();
+  factory _$AdminOperatorDetailDtoOutputBankAccount(
+          [void Function(AdminOperatorDetailDtoOutputBankAccountBuilder)?
+              updates]) =>
+      (AdminOperatorDetailDtoOutputBankAccountBuilder()..update(updates))
+          ._build();
 
-  _$AdminBankChangeDtoOutputCurrent._(
+  _$AdminOperatorDetailDtoOutputBankAccount._(
       {required this.bankName,
       required this.accountNumber,
       required this.accountHolder,
       this.verifiedAt})
       : super._();
   @override
-  AdminBankChangeDtoOutputCurrent rebuild(
-          void Function(AdminBankChangeDtoOutputCurrentBuilder) updates) =>
+  AdminOperatorDetailDtoOutputBankAccount rebuild(
+          void Function(AdminOperatorDetailDtoOutputBankAccountBuilder)
+              updates) =>
       (toBuilder()..update(updates)).build();
 
   @override
-  AdminBankChangeDtoOutputCurrentBuilder toBuilder() =>
-      AdminBankChangeDtoOutputCurrentBuilder()..replace(this);
+  AdminOperatorDetailDtoOutputBankAccountBuilder toBuilder() =>
+      AdminOperatorDetailDtoOutputBankAccountBuilder()..replace(this);
 
   @override
   bool operator ==(Object other) {
     if (identical(other, this)) return true;
-    return other is AdminBankChangeDtoOutputCurrent &&
+    return other is AdminOperatorDetailDtoOutputBankAccount &&
         bankName == other.bankName &&
         accountNumber == other.accountNumber &&
         accountHolder == other.accountHolder &&
@@ -59,7 +62,8 @@ class _$AdminBankChangeDtoOutputCurrent
 
   @override
   String toString() {
-    return (newBuiltValueToStringHelper(r'AdminBankChangeDtoOutputCurrent')
+    return (newBuiltValueToStringHelper(
+            r'AdminOperatorDetailDtoOutputBankAccount')
           ..add('bankName', bankName)
           ..add('accountNumber', accountNumber)
           ..add('accountHolder', accountHolder)
@@ -68,11 +72,11 @@ class _$AdminBankChangeDtoOutputCurrent
   }
 }
 
-class AdminBankChangeDtoOutputCurrentBuilder
+class AdminOperatorDetailDtoOutputBankAccountBuilder
     implements
-        Builder<AdminBankChangeDtoOutputCurrent,
-            AdminBankChangeDtoOutputCurrentBuilder> {
-  _$AdminBankChangeDtoOutputCurrent? _$v;
+        Builder<AdminOperatorDetailDtoOutputBankAccount,
+            AdminOperatorDetailDtoOutputBankAccountBuilder> {
+  _$AdminOperatorDetailDtoOutputBankAccount? _$v;
 
   String? _bankName;
   String? get bankName => _$this._bankName;
@@ -92,11 +96,11 @@ class AdminBankChangeDtoOutputCurrentBuilder
   DateTime? get verifiedAt => _$this._verifiedAt;
   set verifiedAt(DateTime? verifiedAt) => _$this._verifiedAt = verifiedAt;
 
-  AdminBankChangeDtoOutputCurrentBuilder() {
-    AdminBankChangeDtoOutputCurrent._defaults(this);
+  AdminOperatorDetailDtoOutputBankAccountBuilder() {
+    AdminOperatorDetailDtoOutputBankAccount._defaults(this);
   }
 
-  AdminBankChangeDtoOutputCurrentBuilder get _$this {
+  AdminOperatorDetailDtoOutputBankAccountBuilder get _$this {
     final $v = _$v;
     if ($v != null) {
       _bankName = $v.bankName;
@@ -109,27 +113,28 @@ class AdminBankChangeDtoOutputCurrentBuilder
   }
 
   @override
-  void replace(AdminBankChangeDtoOutputCurrent other) {
-    _$v = other as _$AdminBankChangeDtoOutputCurrent;
+  void replace(AdminOperatorDetailDtoOutputBankAccount other) {
+    _$v = other as _$AdminOperatorDetailDtoOutputBankAccount;
   }
 
   @override
-  void update(void Function(AdminBankChangeDtoOutputCurrentBuilder)? updates) {
+  void update(
+      void Function(AdminOperatorDetailDtoOutputBankAccountBuilder)? updates) {
     if (updates != null) updates(this);
   }
 
   @override
-  AdminBankChangeDtoOutputCurrent build() => _build();
+  AdminOperatorDetailDtoOutputBankAccount build() => _build();
 
-  _$AdminBankChangeDtoOutputCurrent _build() {
+  _$AdminOperatorDetailDtoOutputBankAccount _build() {
     final _$result = _$v ??
-        _$AdminBankChangeDtoOutputCurrent._(
+        _$AdminOperatorDetailDtoOutputBankAccount._(
           bankName: BuiltValueNullFieldError.checkNotNull(
-              bankName, r'AdminBankChangeDtoOutputCurrent', 'bankName'),
+              bankName, r'AdminOperatorDetailDtoOutputBankAccount', 'bankName'),
           accountNumber: BuiltValueNullFieldError.checkNotNull(accountNumber,
-              r'AdminBankChangeDtoOutputCurrent', 'accountNumber'),
+              r'AdminOperatorDetailDtoOutputBankAccount', 'accountNumber'),
           accountHolder: BuiltValueNullFieldError.checkNotNull(accountHolder,
-              r'AdminBankChangeDtoOutputCurrent', 'accountHolder'),
+              r'AdminOperatorDetailDtoOutputBankAccount', 'accountHolder'),
           verifiedAt: verifiedAt,
         );
     replace(_$result);

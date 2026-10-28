@@ -3,8 +3,10 @@
 //
 
 // ignore_for_file: unused_element
+import 'package:api_client_dart/src/model/admin_report_dto_output_by_route_inner.dart';
 import 'package:built_collection/built_collection.dart';
 import 'package:api_client_dart/src/model/admin_report_dto_output_totals.dart';
+import 'package:api_client_dart/src/model/admin_report_dto_output_by_region_inner.dart';
 import 'package:api_client_dart/src/model/admin_report_dto_output_by_operator_inner.dart';
 import 'package:api_client_dart/src/model/admin_report_dto_output_payment_methods_inner.dart';
 import 'package:built_value/built_value.dart';
@@ -18,6 +20,8 @@ part 'admin_report_dto_output.g.dart';
 /// * [totals] 
 /// * [byOperator] 
 /// * [paymentMethods] 
+/// * [byRoute] 
+/// * [byRegion] 
 @BuiltValue()
 abstract class AdminReportDtoOutput implements Built<AdminReportDtoOutput, AdminReportDtoOutputBuilder> {
   @BuiltValueField(wireName: r'totals')
@@ -28,6 +32,12 @@ abstract class AdminReportDtoOutput implements Built<AdminReportDtoOutput, Admin
 
   @BuiltValueField(wireName: r'paymentMethods')
   BuiltList<AdminReportDtoOutputPaymentMethodsInner> get paymentMethods;
+
+  @BuiltValueField(wireName: r'byRoute')
+  BuiltList<AdminReportDtoOutputByRouteInner> get byRoute;
+
+  @BuiltValueField(wireName: r'byRegion')
+  BuiltList<AdminReportDtoOutputByRegionInner> get byRegion;
 
   AdminReportDtoOutput._();
 
@@ -66,6 +76,16 @@ class _$AdminReportDtoOutputSerializer implements PrimitiveSerializer<AdminRepor
     yield serializers.serialize(
       object.paymentMethods,
       specifiedType: const FullType(BuiltList, [FullType(AdminReportDtoOutputPaymentMethodsInner)]),
+    );
+    yield r'byRoute';
+    yield serializers.serialize(
+      object.byRoute,
+      specifiedType: const FullType(BuiltList, [FullType(AdminReportDtoOutputByRouteInner)]),
+    );
+    yield r'byRegion';
+    yield serializers.serialize(
+      object.byRegion,
+      specifiedType: const FullType(BuiltList, [FullType(AdminReportDtoOutputByRegionInner)]),
     );
   }
 
@@ -110,6 +130,20 @@ class _$AdminReportDtoOutputSerializer implements PrimitiveSerializer<AdminRepor
             specifiedType: const FullType(BuiltList, [FullType(AdminReportDtoOutputPaymentMethodsInner)]),
           ) as BuiltList<AdminReportDtoOutputPaymentMethodsInner>;
           result.paymentMethods.replace(valueDes);
+          break;
+        case r'byRoute':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(BuiltList, [FullType(AdminReportDtoOutputByRouteInner)]),
+          ) as BuiltList<AdminReportDtoOutputByRouteInner>;
+          result.byRoute.replace(valueDes);
+          break;
+        case r'byRegion':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(BuiltList, [FullType(AdminReportDtoOutputByRegionInner)]),
+          ) as BuiltList<AdminReportDtoOutputByRegionInner>;
+          result.byRegion.replace(valueDes);
           break;
         default:
           unhandled.add(key);

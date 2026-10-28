@@ -15,7 +15,7 @@ Method | HTTP request | Description
 
 
 # **adminReportingControllerExport**
-> String adminReportingControllerExport(from, to, operatorId, provider)
+> String adminReportingControllerExport(from, to, operatorId, provider, group)
 
 
 
@@ -28,9 +28,10 @@ final Date from = 2013-10-20; // Date |
 final Date to = 2013-10-20; // Date | 
 final String operatorId = 38400000-8cf0-11bd-b23e-10b96e4ef00d; // String | 
 final String provider = provider_example; // String | 
+final String group = group_example; // String | 
 
 try {
-    final response = api.adminReportingControllerExport(from, to, operatorId, provider);
+    final response = api.adminReportingControllerExport(from, to, operatorId, provider, group);
     print(response);
 } on DioException catch (e) {
     print('Exception when calling AdminReportsApi->adminReportingControllerExport: $e\n');
@@ -45,6 +46,7 @@ Name | Type | Description  | Notes
  **to** | **Date**|  | 
  **operatorId** | **String**|  | [optional] 
  **provider** | **String**|  | [optional] 
+ **group** | **String**|  | [optional] 
 
 ### Return type
 

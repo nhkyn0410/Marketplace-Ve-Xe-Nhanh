@@ -26,7 +26,7 @@ import { BankChangeDialog } from "./bank-change-dialog";
 
 /**
  * Tab "Nhà xe" của màn Nhà xe & KYC (Figma ADM-02e/f; FR-ADM-02/03, UC-23 A6): nhà xe đã duyệt, tìm tên / mã / chủ nhà
- * xe, lọc trạng thái; tạm khóa (lý do + TOTP) / mở khóa; "Gửi lại" mở hồ sơ để gửi lại mật khẩu tạm cho chủ nhà xe;
+ * xe, lọc trạng thái; bấm tên mở chi tiết nhà xe; tạm khóa (lý do + TOTP) / mở khóa; "Gửi lại" mở hồ sơ để gửi lại mật khẩu tạm cho chủ nhà xe;
  * nhà xe gửi yêu cầu đổi tài khoản nhận tiền thì có nút "Xác minh TK" (TASK-OPR-001b).
  */
 export function OperatorList() {
@@ -215,7 +215,9 @@ function OperatorTable({
               <tr key={row.id} className="h-[72px] border-b">
                 <td className={TABLE_CELL}>
                   <div className="flex min-w-0 flex-col">
-                    <span className="truncate font-semibold text-vxn-ink">{row.name}</span>
+                    <Link href={`/operators/${row.id}`} className="truncate font-semibold text-vxn-ink hover:text-primary hover:underline">
+                      {row.name}
+                    </Link>
                     <span className={SUBLINE}>{row.slug}</span>
                   </div>
                 </td>

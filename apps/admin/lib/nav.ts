@@ -10,6 +10,7 @@ import {
   LayoutDashboard,
   MapPin,
   MessageSquareWarning,
+  Route,
   Plug,
   ScrollText,
   ShieldCheck,
@@ -28,7 +29,8 @@ export const NAV_GROUPS: NavGroup[] = [
     label: "Đối tác & người dùng",
     items: [
       { href: "/operators", label: "Nhà xe & KYC", icon: Building2, permissions: ["kyc:review", "user:manage"] },
-      { href: "/users", label: "Người dùng", icon: Users, permissions: ["user:manage", "access:manage"] }
+      { href: "/users", label: "Người dùng", icon: Users, permissions: ["user:manage", "access:manage"] },
+      { href: "/routes", label: "Tuyến & chuyến", icon: Route, permissions: ["user:manage"] }
     ]
   },
   {
@@ -42,7 +44,7 @@ export const NAV_GROUPS: NavGroup[] = [
   {
     label: "Tài chính",
     items: [
-      { href: "/payments", label: "Thanh toán & hoàn tiền", icon: CreditCard, permissions: ["payment:monitor"] },
+      { href: "/payments", label: "Giao dịch", icon: CreditCard, permissions: ["payment:monitor"] },
       { href: "/payouts", label: "Chi trả nhà xe", icon: Banknote, permissions: ["payment:monitor"] }
     ]
   },

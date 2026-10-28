@@ -14,6 +14,9 @@ import { Textarea } from "@vexenhanh/ui/components/textarea";
 import { ApiError } from "@vexenhanh/ui/lib/auth/api-client";
 import { withReauth } from "@vexenhanh/ui/lib/auth/reauth";
 import { CircleAlert, CircleCheck, History, Info, LoaderCircle, Pencil, RefreshCw, Search, UserSearch } from "lucide-react";
+import { useCan } from "@vexenhanh/ui/components/auth/auth-context";
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useState, type FormEvent } from "react";
 
 import { adjustPoints, describeLoyaltyError, getMember, listTransactions, TRANSACTION_PAGE, type LoyaltyMember } from "../../lib/loyalty/loyalty-api";
@@ -24,10 +27,15 @@ import { LoyaltyFrame } from "./loyalty-screen";
 
 const COLUMNS = ["w-[15%]", "w-[14%]", "", "w-[18%]", "w-[11%]"];
 
-/** Tài khoản thành viên (Figma ADM-12b; FR-LOY-11): tra cứu theo email, thẻ hạng / điểm, sổ điểm chỉ ghi thêm, điều chỉnh điểm. */
+/**
+ * Điểm thành viên (Figma ADM-12b "Tài khoản thành viên" — đổi tên 28/10/2026 để không nhầm với Người dùng › Tài khoản hành
+ * khách, chờ duyệt; FR-LOY-11): tra cứu theo email (`?email=` mở thẳng — từ chi tiết hành khách), thẻ hạng / điểm, sổ
+ * điểm chỉ ghi thêm, điều chỉnh điểm.
+ */
 export function LoyaltyMembersTab() {
-  const [input, setInput] = useState("");
-  const [email, setEmail] = useState<string | null>(null);
+  const initial = useSearchParams().get("email")?.trim().toLowerCase() ?? "";
+  const [input, setInput] = useState(initial);
+  const [email, setEmail] = useState<string | null>(initial || null);
   const [inputError, setInputError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [adjusting, setAdjusting] = useState(false);
@@ -65,7 +73,7 @@ export function LoyaltyMembersTab() {
       )}
       {email === null ? (
         <section className="rounded-xl border bg-card">
-          <ListStatePanel icon={<UserSearch className="size-6 text-vxn-fg-3" />} title="Tra cứu tài khoản thành viên" description="Nhập email hành khách để xem hạng, điểm và lịch sử giao dịch điểm." compact />
+          <ListStatePanel icon={<UserSearch className="size-6 text-vxn-fg-3" />} title="Tra cứu điểm thành viên" description="Nhập email tài khoản hành khách để xem hạng, điểm và lịch sử giao dịch điểm." compact />
         </section>
       ) : member.isPending ? (
         <Skeleton className="h-[104px] rounded-xl" />
@@ -110,6 +118,7 @@ function initials(member: LoyaltyMember): string {
 }
 
 function MemberCard({ member, onAdjust }: { member: LoyaltyMember; onAdjust: () => void }) {
+  const canViewProfile = useCan()("user:manage");
   return (
     <section aria-label="Tài khoản thành viên" className="flex flex-wrap items-center gap-x-8 gap-y-4 rounded-xl border bg-card px-6 py-5">
       <div className="flex min-w-0 flex-[1_1_20rem] items-center gap-5">
@@ -124,6 +133,14 @@ function MemberCard({ member, onAdjust }: { member: LoyaltyMember; onAdjust: () 
           </p>
           <p className="text-sm leading-5 break-all text-muted-foreground">
             {member.email} · thành viên từ {formatDate(member.memberSince)}
+            {canViewProfile && (
+              <>
+                {" · "}
+                <Link href={`/users/passengers/${encodeURIComponent(member.userId)}`} className="font-medium text-primary hover:underline">
+                  Xem hồ sơ hành khách
+                </Link>
+              </>
+            )}
           </p>
           {member.policyVersion === null ? (
             <p className="text-xs leading-[18px] text-warning-700">Chương trình chưa có phiên bản chính sách đang áp dụng.</p>

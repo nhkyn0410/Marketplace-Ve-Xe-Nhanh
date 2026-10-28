@@ -13,6 +13,10 @@ class _$AdminReportDtoOutput extends AdminReportDtoOutput {
   final BuiltList<AdminReportDtoOutputByOperatorInner> byOperator;
   @override
   final BuiltList<AdminReportDtoOutputPaymentMethodsInner> paymentMethods;
+  @override
+  final BuiltList<AdminReportDtoOutputByRouteInner> byRoute;
+  @override
+  final BuiltList<AdminReportDtoOutputByRegionInner> byRegion;
 
   factory _$AdminReportDtoOutput(
           [void Function(AdminReportDtoOutputBuilder)? updates]) =>
@@ -21,7 +25,9 @@ class _$AdminReportDtoOutput extends AdminReportDtoOutput {
   _$AdminReportDtoOutput._(
       {required this.totals,
       required this.byOperator,
-      required this.paymentMethods})
+      required this.paymentMethods,
+      required this.byRoute,
+      required this.byRegion})
       : super._();
   @override
   AdminReportDtoOutput rebuild(
@@ -38,7 +44,9 @@ class _$AdminReportDtoOutput extends AdminReportDtoOutput {
     return other is AdminReportDtoOutput &&
         totals == other.totals &&
         byOperator == other.byOperator &&
-        paymentMethods == other.paymentMethods;
+        paymentMethods == other.paymentMethods &&
+        byRoute == other.byRoute &&
+        byRegion == other.byRegion;
   }
 
   @override
@@ -47,6 +55,8 @@ class _$AdminReportDtoOutput extends AdminReportDtoOutput {
     _$hash = $jc(_$hash, totals.hashCode);
     _$hash = $jc(_$hash, byOperator.hashCode);
     _$hash = $jc(_$hash, paymentMethods.hashCode);
+    _$hash = $jc(_$hash, byRoute.hashCode);
+    _$hash = $jc(_$hash, byRegion.hashCode);
     _$hash = $jf(_$hash);
     return _$hash;
   }
@@ -56,7 +66,9 @@ class _$AdminReportDtoOutput extends AdminReportDtoOutput {
     return (newBuiltValueToStringHelper(r'AdminReportDtoOutput')
           ..add('totals', totals)
           ..add('byOperator', byOperator)
-          ..add('paymentMethods', paymentMethods))
+          ..add('paymentMethods', paymentMethods)
+          ..add('byRoute', byRoute)
+          ..add('byRegion', byRegion))
         .toString();
   }
 }
@@ -87,6 +99,18 @@ class AdminReportDtoOutputBuilder
               paymentMethods) =>
       _$this._paymentMethods = paymentMethods;
 
+  ListBuilder<AdminReportDtoOutputByRouteInner>? _byRoute;
+  ListBuilder<AdminReportDtoOutputByRouteInner> get byRoute =>
+      _$this._byRoute ??= ListBuilder<AdminReportDtoOutputByRouteInner>();
+  set byRoute(ListBuilder<AdminReportDtoOutputByRouteInner>? byRoute) =>
+      _$this._byRoute = byRoute;
+
+  ListBuilder<AdminReportDtoOutputByRegionInner>? _byRegion;
+  ListBuilder<AdminReportDtoOutputByRegionInner> get byRegion =>
+      _$this._byRegion ??= ListBuilder<AdminReportDtoOutputByRegionInner>();
+  set byRegion(ListBuilder<AdminReportDtoOutputByRegionInner>? byRegion) =>
+      _$this._byRegion = byRegion;
+
   AdminReportDtoOutputBuilder() {
     AdminReportDtoOutput._defaults(this);
   }
@@ -97,6 +121,8 @@ class AdminReportDtoOutputBuilder
       _totals = $v.totals.toBuilder();
       _byOperator = $v.byOperator.toBuilder();
       _paymentMethods = $v.paymentMethods.toBuilder();
+      _byRoute = $v.byRoute.toBuilder();
+      _byRegion = $v.byRegion.toBuilder();
       _$v = null;
     }
     return this;
@@ -123,6 +149,8 @@ class AdminReportDtoOutputBuilder
             totals: totals.build(),
             byOperator: byOperator.build(),
             paymentMethods: paymentMethods.build(),
+            byRoute: byRoute.build(),
+            byRegion: byRegion.build(),
           );
     } catch (_) {
       late String _$failedField;
@@ -133,6 +161,10 @@ class AdminReportDtoOutputBuilder
         byOperator.build();
         _$failedField = 'paymentMethods';
         paymentMethods.build();
+        _$failedField = 'byRoute';
+        byRoute.build();
+        _$failedField = 'byRegion';
+        byRegion.build();
       } catch (e) {
         throw BuiltValueNestedFieldError(
             r'AdminReportDtoOutput', _$failedField, e.toString());

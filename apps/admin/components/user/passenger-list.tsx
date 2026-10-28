@@ -16,6 +16,7 @@ import {
 } from "@vexenhanh/ui/components/list-controls";
 import { BUTTON, ListLoadMoreFooter, ListStatePanel } from "@vexenhanh/ui/components/list-parts";
 import { CircleAlert, Lock, LockOpen, RefreshCw, Users } from "lucide-react";
+import Link from "next/link";
 import { useMemo, useState, type ReactNode } from "react";
 
 import { listPassengers, lockPassenger, unlockPassenger, type AccountStatus, type Passenger } from "../../lib/user/user-api";
@@ -25,7 +26,8 @@ import type { AccountAction } from "./account-dialogs";
 const STATUSES: AccountStatus[] = ["ACTIVE", "LOCKED"];
 
 /**
- * Tab "Hành khách" (Figma ADM-03a; FR-IAM-08): tìm email / họ tên, lọc trạng thái; khóa (lý do + TOTP) / mở khóa.
+ * Tab "Tài khoản hành khách" (Figma ADM-03a; FR-IAM-08): tìm email / họ tên, lọc trạng thái; bấm tên mở chi tiết; khóa (lý do
+ * + TOTP) / mở khóa.
  * Hành khách không có mật khẩu — khóa chặn đăng nhập OTP / OAuth và thu hồi mọi phiên.
  */
 export function PassengerList({ onAction }: { onAction: (action: AccountAction) => void }) {
@@ -78,7 +80,7 @@ export function PassengerList({ onAction }: { onAction: (action: AccountAction) 
       <ListStatePanel
         icon={<Users className="size-6 text-vxn-fg-3" />}
         title={q || status !== ALL ? "Không có hành khách phù hợp" : "Chưa có hành khách nào"}
-        description="Hành khách tự đăng ký bằng email ở trang đặt vé."
+        description="Hành khách tự đăng ký bằng email ở trang đặt vé. Khách vãng lai không có tài khoản — tra theo đơn ở mục Giao dịch."
       />
     );
   } else {
@@ -107,7 +109,9 @@ export function PassengerList({ onAction }: { onAction: (action: AccountAction) 
               <tr key={row.id} className="h-[68px] border-b">
                 <td className={TABLE_CELL}>
                   <div className="flex min-w-0 flex-col">
-                    <span className="truncate font-semibold text-vxn-ink">{row.name ?? "Chưa có họ tên"}</span>
+                    <Link href={`/users/passengers/${encodeURIComponent(row.id)}`} className="truncate font-semibold text-vxn-ink hover:text-primary hover:underline">
+                      {row.name ?? "Chưa có họ tên"}
+                    </Link>
                     <span className="truncate text-xs leading-[18px] text-muted-foreground">{row.email}</span>
                   </div>
                 </td>

@@ -1,4 +1,4 @@
-// Logic thuần của màn Thanh toán & hoàn tiền (Figma ADM-07a–d; TASK-ADM-002): nhãn trạng thái, ghi chú dòng, dòng thời gian
+// Logic thuần của màn Giao dịch (Figma ADM-07a–d; TASK-ADM-002): nhãn trạng thái, ghi chú dòng, dòng thời gian
 // giao dịch, phân bổ số tiền, câu lỗi.
 import { ApiError } from "@vexenhanh/ui/lib/auth/api-client";
 import { describeReauthError } from "@vexenhanh/ui/lib/auth/reauth";

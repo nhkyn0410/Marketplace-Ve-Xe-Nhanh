@@ -2,7 +2,7 @@ import { expect, test, type Locator, type Page } from "@playwright/test";
 
 import { accounts, signInPlatform, totp } from "./helpers";
 
-// TASK-ADM-002 (màn Thanh toán & hoàn tiền, Figma ADM-07a–d) — đơn đã xác nhận của nhà xe đặt vé do global-setup seed có thanh
+// TASK-ADM-002 (màn Giao dịch, Figma ADM-07a–d) — đơn đã xác nhận của nhà xe đặt vé do global-setup seed có thanh
 // toán thành công (vé + sổ giữ hộ) và hai thanh toán trùng cần đối soát: một khoản chưa xử lý, một khoản có hoàn tiền thất bại
 // (cổng trả lỗi 91). Chạy tuần tự, dùng chung một phiên.
 test.describe.configure({ mode: "serial" });
@@ -15,7 +15,7 @@ let fixtures: NonNullable<ReturnType<typeof accounts>["bookingFixtures"]>;
 test.beforeAll(async ({ browser }) => {
   const { bookingFixtures, platformPayments } = accounts();
   if (!bookingFixtures) {
-    throw new Error("Thiếu dữ liệu nền cho màn Thanh toán & hoàn tiền (chạy db:seed:catalog).");
+    throw new Error("Thiếu dữ liệu nền cho màn Giao dịch (chạy db:seed:catalog).");
   }
   fixtures = bookingFixtures;
   page = await browser.newPage();
@@ -44,8 +44,8 @@ async function fillTotp(scope: Locator | Page) {
 }
 
 test("thanh toán: tìm theo mã đặt vé → thành công + 2 khoản cần đối soát; chi tiết có dòng thời gian, phân bổ theo sổ, cổng", async () => {
-  await page.getByRole("link", { name: "Thanh toán & hoàn tiền" }).click();
-  await expect(page.getByRole("heading", { name: "Thanh toán & hoàn tiền", level: 1 })).toBeVisible(FIRST_VISIT);
+  await page.getByRole("link", { name: "Giao dịch" }).click();
+  await expect(page.getByRole("heading", { name: "Giao dịch", level: 1 })).toBeVisible(FIRST_VISIT);
   await page.getByLabel("Tìm kiếm").fill(fixtures.confirmedCode);
   const rows = page.getByRole("row");
   await expect(rows).toHaveCount(4, FIRST_VISIT);

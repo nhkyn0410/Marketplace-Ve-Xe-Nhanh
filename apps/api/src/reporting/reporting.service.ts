@@ -6,7 +6,16 @@ import { TicketStatus, type EmployeeRole, type PaymentProvider } from "../databa
 import type { VerifiedAccessToken } from "../iam/auth/token.service";
 import type { Authorization } from "../iam/role/authorization";
 import { requireTenant } from "../iam/role/require-tenant";
-import type { AdminOverview, AdminReport, AdminReportQuery, OperatorOverview, OperatorReport, OperatorReportQuery } from "./dto/reporting.dto";
+import type {
+  AdminOverview,
+  AdminReport,
+  AdminReportExportQuery,
+  AdminReportQuery,
+  OperatorOverview,
+  OperatorReport,
+  OperatorReportQuery,
+} from "./dto/reporting.dto";
+import { routePerformance } from "./route-performance";
 import { auditUnavailable } from "./reporting.errors";
 
 const DAY_MS = 86_400_000;
@@ -263,13 +272,34 @@ export class ReportingService {
           reviewCount: reviews.find((review) => review.operatorId === row.operatorId)?._count._all ?? 0,
         })),
         paymentMethods: methods.map((row) => ({ provider: row.provider, amount: Number(row.amount), count: Number(row.count) })),
+        ...(await routeBreakdown(tx, from, to, operator)),
       };
     });
   }
 
-  /** CSV theo nhà xe (BR-56: ghi audit mỗi lần xuất). */
-  async adminReportCsv(authz: Authorization, actor: Actor, query: AdminReportQuery): Promise<{ filename: string; csv: string }> {
+  /** CSV theo nhà xe / tuyến / khu vực (BR-56: ghi audit mỗi lần xuất). */
+  async adminReportCsv(authz: Authorization, actor: Actor, query: AdminReportQuery & { group?: AdminReportExportQuery["group"] }): Promise<{ filename: string; csv: string }> {
     const report = await this.adminReport(authz, query);
+    if (query.group === "route") {
+      await this.record(actor, "platform_report_route", query, report.byRoute.length);
+      return {
+        filename: `bao-cao-theo-tuyen-${query.from}-${query.to}.csv`,
+        csv: csv(
+          ["Tuyến", "Nhà xe", "Tỉnh đi", "Tỉnh đến", "Chuyến", "Vé bán", "Lấp đầy (%)", "Doanh thu vé (VND)"],
+          report.byRoute.map((row) => [row.routeName, row.operatorName, row.originName ?? "", row.destinationName ?? "", row.trips, row.ticketsSold, percent(row.ticketsSold, row.seats), row.ticketRevenue]),
+        ),
+      };
+    }
+    if (query.group === "region") {
+      await this.record(actor, "platform_report_region", query, report.byRegion.length);
+      return {
+        filename: `bao-cao-theo-khu-vuc-${query.from}-${query.to}.csv`,
+        csv: csv(
+          ["Tỉnh đi", "Tỉnh đến", "Số tuyến", "Số nhà xe", "Chuyến", "Vé bán", "Lấp đầy (%)", "Doanh thu vé (VND)"],
+          report.byRegion.map((row) => [row.originName, row.destinationName, row.routes, row.operators, row.trips, row.ticketsSold, percent(row.ticketsSold, row.seats), row.ticketRevenue]),
+        ),
+      };
+    }
     await this.record(actor, "platform_report", query, report.byOperator.length);
     return {
       filename: `bao-cao-he-thong-${query.from}-${query.to}.csv`,
@@ -429,4 +459,93 @@ function platformDb(authz: Authorization): DbScope {
     throw new Error("Route Admin báo cáo cần ngữ cảnh DB platform (quyền `payment:monitor`).");
   }
   return authz.db;
+}
+
+/** Số dòng tối đa của khối Theo tuyến / Theo khu vực. */
+const BREAKDOWN_LIMIT = 50;
+
+type Totals = { sold: bigint; revenue: bigint };
+const bySold = (a: Totals, b: Totals) => (a.sold === b.sold ? (a.revenue === b.revenue ? 0 : a.revenue < b.revenue ? 1 : -1) : a.sold < b.sold ? 1 : -1);
+
+/**
+ * Theo tuyến + theo khu vực (cặp tỉnh điểm đầu → điểm cuối) cho báo cáo Admin (FR-NSR-13; chờ duyệt 28/10/2026). Xếp theo
+ * vé bán, rồi doanh thu vé.
+ */
+async function routeBreakdown(tx: DbTransaction, from: Date, to: Date, operatorId: string | null): Promise<Pick<AdminReport, "byRoute" | "byRegion">> {
+  const rows = (await routePerformance(tx, { from, to, operatorId })).map((row) => ({
+    ...row,
+    trips: BigInt(row.trips),
+    seats: BigInt(row.seats),
+    sold: BigInt(row.sold),
+    revenue: BigInt(row.revenue),
+  }));
+  if (rows.length === 0) {
+    return { byRoute: [], byRegion: [] };
+  }
+  const routes = await tx.route.findMany({
+    where: { id: { in: rows.map((row) => row.routeId) } },
+    select: {
+      id: true,
+      name: true,
+      operator: { select: { displayName: true } },
+      stops: { orderBy: { sequence: "asc" }, select: { catalogStopPoint: { select: { provinceId: true } }, stopPoint: { select: { provinceId: true } } } },
+    },
+  });
+  type Stop = (typeof routes)[number]["stops"][number] | undefined;
+  const provinceOf = (stop: Stop) => stop?.catalogStopPoint?.provinceId ?? stop?.stopPoint?.provinceId ?? null;
+  const info = new Map(routes.map((route) => [route.id, { ...route, origin: provinceOf(route.stops[0]), destination: provinceOf(route.stops.at(-1)) }]));
+  const provinceIds = [...new Set([...info.values()].flatMap((route) => [route.origin, route.destination]).filter((id): id is string => Boolean(id)))];
+  const names = new Map((await tx.province.findMany({ where: { id: { in: provinceIds } }, select: { id: true, name: true } })).map((province) => [province.id, province.name]));
+
+  const byRoute = [...rows]
+    .sort(bySold)
+    .slice(0, BREAKDOWN_LIMIT)
+    .map((row) => {
+      const route = info.get(row.routeId);
+      return {
+        routeId: row.routeId,
+        routeName: route?.name ?? "",
+        operatorId: row.operatorId,
+        operatorName: route?.operator.displayName ?? "",
+        originName: route?.origin ? (names.get(route.origin) ?? null) : null,
+        destinationName: route?.destination ? (names.get(route.destination) ?? null) : null,
+        trips: Number(row.trips),
+        seats: Number(row.seats),
+        ticketsSold: Number(row.sold),
+        ticketRevenue: Number(row.revenue),
+      };
+    });
+
+  const regions = new Map<string, { origin: string; destination: string; routes: number; operators: Set<string>; trips: bigint; seats: bigint; sold: bigint; revenue: bigint }>();
+  for (const row of rows) {
+    const route = info.get(row.routeId);
+    if (!route?.origin || !route.destination) {
+      continue;
+    }
+    const key = `${route.origin}>${route.destination}`;
+    const region = regions.get(key) ?? { origin: route.origin, destination: route.destination, routes: 0, operators: new Set<string>(), trips: 0n, seats: 0n, sold: 0n, revenue: 0n };
+    region.routes += 1;
+    region.operators.add(row.operatorId);
+    region.trips += row.trips;
+    region.seats += row.seats;
+    region.sold += row.sold;
+    region.revenue += row.revenue;
+    regions.set(key, region);
+  }
+  const byRegion = [...regions.values()]
+    .sort(bySold)
+    .slice(0, BREAKDOWN_LIMIT)
+    .map((region) => ({
+      originProvinceId: region.origin,
+      originName: names.get(region.origin) ?? "",
+      destinationProvinceId: region.destination,
+      destinationName: names.get(region.destination) ?? "",
+      routes: region.routes,
+      operators: region.operators.size,
+      trips: Number(region.trips),
+      seats: Number(region.seats),
+      ticketsSold: Number(region.sold),
+      ticketRevenue: Number(region.revenue),
+    }));
+  return { byRoute, byRegion };
 }
