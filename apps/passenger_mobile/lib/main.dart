@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:mobile_shared/mobile_shared.dart';
 import 'package:passenger_mobile/features/account/account_screen.dart';
 import 'package:passenger_mobile/features/account/edit_profile_screen.dart';
+import 'package:passenger_mobile/features/account/guest_account_screen.dart';
 import 'package:passenger_mobile/features/account/my_reviews_screen.dart';
 import 'package:passenger_mobile/features/account/notification_settings_screen.dart';
 import 'package:passenger_mobile/features/account/point_history_screen.dart';
@@ -189,6 +190,9 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
   HomeSearchQuery? _lastSearchQuery;
 
   _AuthStep _step = _AuthStep.email;
+
+  /// Đã dựng màn đăng nhập lần đầu (đã chạy splash).
+  bool _loginIntroPlayed = false;
   bool _busy = false;
   String? _error;
   String? _email;
@@ -776,7 +780,7 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
         index == 1 ||
         index == 2 ||
         (index == 3 && _step == _AuthStep.guest) ||
-        (index == 4 && _step == _AuthStep.signedIn)) {
+        index == 4) {
       setState(() {
         _currentTab = index;
         _accountView = _AccountView.overview;
@@ -894,6 +898,17 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
         .toList(growable: false);
   }
 
+  Future<void> _callSupport() async {
+    if (await _launchSupportHotline('1900 636 707') || !mounted) return;
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        const SnackBar(
+          content: Text('Không thể mở ứng dụng gọi điện trên thiết bị này.'),
+        ),
+      );
+  }
+
   Future<bool> _launchSupportHotline(String hotline) {
     final digits = hotline.replaceAll(RegExp(r'\D'), '');
     return launchUrl(
@@ -952,6 +967,15 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
       return GuestJourneyFlow(
         onLoginRequested: _returnToLogin,
         onTabSelected: _selectMainTab,
+        onFaqRequested: () => showHomeFaqSheet(context, _loadHomeFaqs),
+        onSupportRequested: _callSupport,
+      );
+    }
+    if (_step == _AuthStep.guest && _currentTab == 4) {
+      return GuestAccountScreen(
+        onLoginRequested: _returnToLogin,
+        onTabSelected: _selectMainTab,
+        onCallHotline: _launchSupportHotline,
       );
     }
     if (_step == _AuthStep.signedIn) {
@@ -1084,10 +1108,15 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
       );
     }
 
+    // Splash chỉ chạy lần mở app đầu tiên; quay lại đăng nhập sau đó (bấm Đăng nhập, đăng xuất, sửa email)
+    // dựng lại màn nên phải tắt intro, nếu không splash chạy lại. `playIntro` chỉ được đọc lúc màn mới dựng.
+    final playIntro = !_loginIntroPlayed;
+    _loginIntroPlayed = true;
     return IndexedStack(
       index: _step == _AuthStep.email ? 0 : 1,
       children: [
         AuthEntryScreen(
+          playIntro: playIntro,
           busy: _busy,
           errorMessage: _step == _AuthStep.email ? _error : null,
           onEmailChanged: _clearFeedback,

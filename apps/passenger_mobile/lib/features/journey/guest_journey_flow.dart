@@ -10,11 +10,15 @@ class GuestJourneyFlow extends StatefulWidget {
   const GuestJourneyFlow({
     required this.onLoginRequested,
     required this.onTabSelected,
+    this.onFaqRequested,
+    this.onSupportRequested,
     super.key,
   });
 
   final VoidCallback onLoginRequested;
   final ValueChanged<int> onTabSelected;
+  final VoidCallback? onFaqRequested;
+  final VoidCallback? onSupportRequested;
 
   @override
   State<GuestJourneyFlow> createState() => _GuestJourneyFlowState();
@@ -22,7 +26,8 @@ class GuestJourneyFlow extends StatefulWidget {
 
 class _GuestJourneyFlowState extends State<GuestJourneyFlow> {
   _GuestJourneyStep _step = _GuestJourneyStep.lookup;
-  String _bookingCode = 'VXN-8F3K2Q';
+  // Kết quả tra cứu vẫn là dữ liệu mẫu — chưa nối API `/guest/ticket-lookup/*`.
+  final String _bookingCode = 'VXN-8F3K2Q';
   String _email = 'minh.nguyen@gmail.com';
 
   String get _maskedEmail {
@@ -40,54 +45,38 @@ class _GuestJourneyFlowState extends State<GuestJourneyFlow> {
 
   @override
   Widget build(BuildContext context) {
-    final disableAnimations = MediaQuery.disableAnimationsOf(context);
-    return AnimatedSwitcher(
-      duration: disableAnimations
-          ? Duration.zero
-          : const Duration(milliseconds: 260),
-      switchInCurve: Curves.easeOutCubic,
-      switchOutCurve: Curves.easeInCubic,
-      transitionBuilder: (child, animation) => FadeTransition(
-        opacity: animation,
-        child: SlideTransition(
-          position: Tween<Offset>(
-            begin: const Offset(.025, 0),
-            end: Offset.zero,
-          ).animate(animation),
-          child: child,
+    // Đổi bước tức thì, không trượt (như màn Tài khoản khi chưa đăng nhập).
+    return KeyedSubtree(
+      key: ValueKey(_step),
+      child: switch (_step) {
+        _GuestJourneyStep.lookup => GuestTicketLookupScreen(
+          onLoginRequested: widget.onLoginRequested,
+          onTabSelected: widget.onTabSelected,
+          onFaqRequested: widget.onFaqRequested,
+          onSupportRequested: widget.onSupportRequested,
+          onRequestOtp: (email) async {
+            _email = email;
+            _show(_GuestJourneyStep.otp);
+          },
         ),
-      ),
-      child: KeyedSubtree(
-        key: ValueKey(_step),
-        child: switch (_step) {
-          _GuestJourneyStep.lookup => GuestTicketLookupScreen(
-            onLoginRequested: widget.onLoginRequested,
-            onTabSelected: widget.onTabSelected,
-            onRequestOtp: (bookingCode, email) async {
-              _bookingCode = bookingCode;
-              _email = email;
-              _show(_GuestJourneyStep.otp);
-            },
-          ),
-          _GuestJourneyStep.otp => GuestJourneyOtpScreen(
-            maskedEmail: _maskedEmail,
-            onVerified: () => _show(_GuestJourneyStep.results),
-            onChangeLookup: () => _show(_GuestJourneyStep.lookup),
-            onTabSelected: widget.onTabSelected,
-          ),
-          _GuestJourneyStep.results => GuestTicketResultsScreen(
-            bookingCode: _bookingCode,
-            maskedEmail: _maskedEmail,
-            onOpenTicket: () => _show(_GuestJourneyStep.detail),
-            onChangeLookup: () => _show(_GuestJourneyStep.lookup),
-            onTabSelected: widget.onTabSelected,
-          ),
-          _GuestJourneyStep.detail => GuestTicketDetailScreen(
-            onBack: () => _show(_GuestJourneyStep.results),
-            onTabSelected: widget.onTabSelected,
-          ),
-        },
-      ),
+        _GuestJourneyStep.otp => GuestJourneyOtpScreen(
+          maskedEmail: _maskedEmail,
+          onVerified: () => _show(_GuestJourneyStep.results),
+          onChangeLookup: () => _show(_GuestJourneyStep.lookup),
+          onTabSelected: widget.onTabSelected,
+        ),
+        _GuestJourneyStep.results => GuestTicketResultsScreen(
+          bookingCode: _bookingCode,
+          maskedEmail: _maskedEmail,
+          onOpenTicket: () => _show(_GuestJourneyStep.detail),
+          onChangeLookup: () => _show(_GuestJourneyStep.lookup),
+          onTabSelected: widget.onTabSelected,
+        ),
+        _GuestJourneyStep.detail => GuestTicketDetailScreen(
+          onBack: () => _show(_GuestJourneyStep.results),
+          onTabSelected: widget.onTabSelected,
+        ),
+      },
     );
   }
 }

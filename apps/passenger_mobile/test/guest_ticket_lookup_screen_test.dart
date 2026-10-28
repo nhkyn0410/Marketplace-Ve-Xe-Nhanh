@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:passenger_mobile/features/journey/guest_ticket_lookup_screen.dart';
 
@@ -47,28 +48,28 @@ void main() {
 
     expect(find.text('Tra cứu hành trình'), findsOneWidget);
     expect(find.text('Tra cứu vé khách vãng lai'), findsOneWidget);
-    expect(find.text('Mã đặt vé'), findsOneWidget);
+    // Như bản web: chỉ cần email liên hệ, không có ô mã đặt vé.
+    expect(find.text('Mã đặt vé'), findsNothing);
+    expect(find.byKey(const Key('guest-booking-code-field')), findsNothing);
     expect(find.text('Email liên hệ'), findsOneWidget);
+    final helper = find.text('Mã OTP được gửi đến email liên hệ để xác minh');
+    expect(helper, findsOneWidget);
+    // Câu ghi chú nằm trên một dòng (font test rộng hơn font thật nên không kiểm chữ có bị cắt).
+    final line = tester.renderObject<RenderParagraph>(helper);
+    expect(line.size.height, lessThan(2 * 17));
     expect(find.text('Nhận mã OTP'), findsOneWidget);
     expect(find.text('Cần hỗ trợ?'), findsOneWidget);
     expect(find.byKey(const Key('route-dock-tabbar')), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('form kiểm tra mã đặt vé và email trước khi nhận OTP', (
-    tester,
-  ) async {
+  testWidgets('form kiểm tra email trước khi nhận OTP', (tester) async {
     await _pumpScreen(tester, width: 390);
 
     await tester.tap(find.byKey(const Key('guest-request-otp-button')));
     await tester.pump();
-    expect(find.text('Vui lòng nhập mã đặt vé.'), findsOneWidget);
     expect(find.text('Vui lòng nhập email liên hệ.'), findsOneWidget);
 
-    await tester.enterText(
-      find.byKey(const Key('guest-booking-code-field')),
-      'VXN-8F3K2Q',
-    );
     await tester.enterText(
       find.byKey(const Key('guest-email-field')),
       'email-khong-hop-le',
@@ -79,24 +80,14 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('gửi đúng mã đặt vé và email sau khi form hợp lệ', (
-    tester,
-  ) async {
-    String? bookingCode;
+  testWidgets('gửi đúng email sau khi form hợp lệ', (tester) async {
     String? email;
     await _pumpScreen(
       tester,
       width: 390,
-      onRequestOtp: (code, contactEmail) async {
-        bookingCode = code;
-        email = contactEmail;
-      },
+      onRequestOtp: (contactEmail) async => email = contactEmail,
     );
 
-    await tester.enterText(
-      find.byKey(const Key('guest-booking-code-field')),
-      '  VXN-8F3K2Q  ',
-    );
     await tester.enterText(
       find.byKey(const Key('guest-email-field')),
       '  guest@example.com  ',
@@ -104,7 +95,6 @@ void main() {
     await tester.tap(find.byKey(const Key('guest-request-otp-button')));
     await tester.pumpAndSettle();
 
-    expect(bookingCode, 'VXN-8F3K2Q');
     expect(email, 'guest@example.com');
     expect(tester.takeException(), isNull);
   });
@@ -113,12 +103,7 @@ void main() {
     tester,
   ) async {
     for (final width in <double>[320, 360, 375, 390, 412, 430]) {
-      await _pumpScreen(
-        tester,
-        width: width,
-        height: 568,
-        textScale: 1.5,
-      );
+      await _pumpScreen(tester, width: width, height: 568, textScale: 1.5);
       await tester.drag(
         find.byKey(const Key('guest-ticket-lookup-scroll')),
         const Offset(0, -700),

@@ -20,6 +20,8 @@ void main() {
     view.resetDevicePixelRatio();
   });
 
+  _skipIntroTests();
+
   testWidgets('màn đăng nhập mở ở bước nhập email', (tester) async {
     await tester.pumpWidget(const PassengerApp());
 
@@ -343,6 +345,42 @@ void main() {
     expect(tester.takeException(), isNull);
     expect(find.byKey(const Key('email-field')), findsOneWidget);
     expect(find.byKey(const Key('continue-button')), findsOneWidget);
+  });
+}
+
+void _skipIntroTests() {
+  testWidgets('quay lại đăng nhập (playIntro: false) không chạy splash', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: AuthEntryScreen(
+          playIntro: false,
+          precacheMotionAssets: false,
+          onRequestOtp: (_) async {},
+          onContinueAsGuest: () {},
+        ),
+      ),
+    );
+    await tester.pump();
+
+    // Timeline đứng ở cuối ngay khung đầu: màn đăng nhập hoàn chỉnh, nút khách bấm được ngay.
+    expect(_node(tester, '1257:251').animation.value, 1);
+  });
+
+  testWidgets('lần mở app đầu vẫn chạy splash', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: AuthEntryScreen(
+          precacheMotionAssets: false,
+          onRequestOtp: (_) async {},
+        ),
+      ),
+    );
+    await tester.pump();
+
+    expect(_node(tester, '1257:251').animation.value, lessThan(1));
+    await tester.pumpAndSettle();
   });
 }
 

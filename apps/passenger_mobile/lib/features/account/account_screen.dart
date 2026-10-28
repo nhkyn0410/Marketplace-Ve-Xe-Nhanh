@@ -87,14 +87,6 @@ class _AccountScreenState extends State<AccountScreen> {
     setState(() => _loggingOut = false);
   }
 
-  void _showComingSoon(String label) {
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(content: Text('$label sẽ được triển khai ở bước tiếp theo.')),
-      );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -140,7 +132,6 @@ class _AccountScreenState extends State<AccountScreen> {
                 onMyReviews: widget.onMyReviews,
                 onNotificationSettings: widget.onNotificationSettings,
                 onLoginSessions: widget.onLoginSessions,
-                onComingSoon: _showComingSoon,
               );
             },
           ),
@@ -178,7 +169,6 @@ class _AccountContent extends StatelessWidget {
     required this.onMyReviews,
     required this.onNotificationSettings,
     required this.onLoginSessions,
-    required this.onComingSoon,
   });
 
   final AccountOverview overview;
@@ -193,7 +183,6 @@ class _AccountContent extends StatelessWidget {
   final VoidCallback onMyReviews;
   final VoidCallback onNotificationSettings;
   final VoidCallback onLoginSessions;
-  final ValueChanged<String> onComingSoon;
 
   @override
   Widget build(BuildContext context) {
@@ -211,10 +200,7 @@ class _AccountContent extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                _LoyaltyCard(
-                  overview: overview,
-                  onTap: () => onComingSoon('VXN Plus'),
-                ),
+                _LoyaltyCard(overview: overview, onTap: onPointHistory),
                 const SizedBox(height: 12),
                 const _SectionTitle('Tiện ích tài khoản'),
                 const SizedBox(height: 8),

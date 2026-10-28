@@ -10,8 +10,8 @@ const _body = Color(0xFF607A8E);
 const _label = Color(0xFF486983);
 const _pageBackground = Color(0xFFE3F6FE);
 
-typedef GuestTicketLookupCallback =
-    Future<void> Function(String bookingCode, String email);
+/// Tra cứu chỉ bằng email liên hệ (như bản web): API trả các đơn của email sau khi xác minh OTP.
+typedef GuestTicketLookupCallback = Future<void> Function(String email);
 
 class GuestTicketLookupScreen extends StatefulWidget {
   const GuestTicketLookupScreen({
@@ -36,14 +36,12 @@ class GuestTicketLookupScreen extends StatefulWidget {
 
 class _GuestTicketLookupScreenState extends State<GuestTicketLookupScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _bookingCodeController = TextEditingController();
   final _emailController = TextEditingController();
   final _scrollController = ScrollController();
   bool _submitting = false;
 
   @override
   void dispose() {
-    _bookingCodeController.dispose();
     _emailController.dispose();
     _scrollController.dispose();
     super.dispose();
@@ -110,22 +108,6 @@ class _GuestTicketLookupScreenState extends State<GuestTicketLookupScreen> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             const _LookupIntroduction(),
-            const SizedBox(height: 14),
-            _LookupField(
-              fieldKey: const Key('guest-booking-code-field'),
-              controller: _bookingCodeController,
-              label: 'Mã đặt vé',
-              hintText: 'Ví dụ: VXN-8F3K2Q',
-              iconAsset: '$_assetRoot/ticket_input.svg',
-              textCapitalization: TextCapitalization.characters,
-              textInputAction: TextInputAction.next,
-              validator: (value) {
-                if (value == null || value.trim().isEmpty) {
-                  return 'Vui lòng nhập mã đặt vé.';
-                }
-                return null;
-              },
-            ),
             const SizedBox(height: 14),
             _LookupField(
               fieldKey: const Key('guest-email-field'),
@@ -223,10 +205,7 @@ class _GuestTicketLookupScreenState extends State<GuestTicketLookupScreen> {
 
     setState(() => _submitting = true);
     try {
-      await callback(
-        _bookingCodeController.text.trim(),
-        _emailController.text.trim(),
-      );
+      await callback(_emailController.text.trim());
     } finally {
       if (mounted) setState(() => _submitting = false);
     }
@@ -377,7 +356,7 @@ class _LookupIntroduction extends StatelessWidget {
               ),
               SizedBox(height: 3),
               Text(
-                'Nhập mã đặt vé và email liên hệ để tra cứu thông tin hành trình của bạn.',
+                'Nhập email liên hệ đã dùng khi đặt vé để tra cứu thông tin hành trình của bạn.',
                 style: TextStyle(
                   color: _body,
                   fontSize: 12.5,
@@ -402,7 +381,6 @@ class _LookupField extends StatelessWidget {
     required this.iconAsset,
     required this.validator,
     this.keyboardType,
-    this.textCapitalization = TextCapitalization.none,
     this.textInputAction,
     this.autofillHints,
     this.onFieldSubmitted,
@@ -415,7 +393,6 @@ class _LookupField extends StatelessWidget {
   final String iconAsset;
   final FormFieldValidator<String> validator;
   final TextInputType? keyboardType;
-  final TextCapitalization textCapitalization;
   final TextInputAction? textInputAction;
   final Iterable<String>? autofillHints;
   final ValueChanged<String>? onFieldSubmitted;
@@ -439,7 +416,6 @@ class _LookupField extends StatelessWidget {
           key: fieldKey,
           controller: controller,
           keyboardType: keyboardType,
-          textCapitalization: textCapitalization,
           textInputAction: textInputAction,
           autofillHints: autofillHints,
           autocorrect: false,
@@ -534,7 +510,10 @@ class _OtpHelper extends StatelessWidget {
           const SizedBox(width: 10),
           const Expanded(
             child: Text(
-              'Mã OTP sẽ được gửi đến email liên hệ để xác minh.',
+              'Mã OTP được gửi đến email liên hệ để xác minh',
+              maxLines: 1,
+              softWrap: false,
+              overflow: TextOverflow.ellipsis,
               style: TextStyle(
                 color: _label,
                 fontSize: 11.5,

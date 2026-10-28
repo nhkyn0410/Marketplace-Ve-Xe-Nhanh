@@ -161,7 +161,11 @@ class _HomeScreenState extends State<HomeScreen>
                     const SizedBox(height: 12),
                     const _OperatorsSection(),
                     const SizedBox(height: 12),
-                    const _ArticlesSection(),
+                    _ArticlesSection(
+                      onSeeAll: widget.onTabSelected == null
+                          ? null
+                          : () => widget.onTabSelected!(0),
+                    ),
                     const SizedBox(height: 14),
                     _SupportSection(
                       onHelpCenter: _openHelpCenter,
@@ -202,10 +206,6 @@ class _HomeScreenState extends State<HomeScreen>
 
   void _handleTabTap(int index) {
     if (index == 2) return;
-    if (index == 4 && !widget.isLoggedIn && widget.onLoginRequested != null) {
-      widget.onLoginRequested!();
-      return;
-    }
     final callback = widget.onTabSelected;
     if (callback != null) {
       callback(index);
@@ -233,16 +233,7 @@ class _HomeScreenState extends State<HomeScreen>
       _showMessage('Trung tâm trợ giúp hiện chưa khả dụng.');
       return;
     }
-    await showModalBottomSheet<void>(
-      context: context,
-      useSafeArea: true,
-      isScrollControlled: true,
-      backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      builder: (context) => _FaqSheet(loader: loader),
-    );
+    await showHomeFaqSheet(context, loader);
   }
 
   Future<void> _callHotline() async {
@@ -1681,7 +1672,10 @@ class _OperatorCard extends StatelessWidget {
 }
 
 class _ArticlesSection extends StatelessWidget {
-  const _ArticlesSection();
+  const _ArticlesSection({this.onSeeAll});
+
+  /// Mở tab Khám phá (danh sách bài viết đầy đủ).
+  final VoidCallback? onSeeAll;
 
   @override
   Widget build(BuildContext context) {
@@ -1704,6 +1698,7 @@ class _ArticlesSection extends StatelessWidget {
     ];
     return _HomeSection(
       title: 'Khám phá & cẩm nang',
+      onSeeAll: onSeeAll,
       iconAsset: '$_assetRoot/icons/section_book_route.svg',
       child: _HorizontalStrip(
         gap: 7,
@@ -1799,6 +1794,20 @@ class _ArticleCard extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Sheet câu hỏi thường gặp (dùng chung trang chủ và tra cứu vé).
+Future<void> showHomeFaqSheet(BuildContext context, HomeFaqLoader loader) {
+  return showModalBottomSheet<void>(
+    context: context,
+    useSafeArea: true,
+    isScrollControlled: true,
+    backgroundColor: Colors.white,
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+    ),
+    builder: (context) => _FaqSheet(loader: loader),
+  );
 }
 
 class _FaqSheet extends StatefulWidget {
@@ -2334,11 +2343,15 @@ class _HomeSection extends StatelessWidget {
     required this.title,
     required this.iconAsset,
     required this.child,
+    this.onSeeAll,
   });
 
   final String title;
   final String iconAsset;
   final Widget child;
+
+  /// Mở danh sách đầy đủ; `null` = chưa có màn danh sách → ẩn "Xem tất cả".
+  final VoidCallback? onSeeAll;
 
   @override
   Widget build(BuildContext context) {
@@ -2367,26 +2380,19 @@ class _HomeSection extends StatelessWidget {
                 ),
               ),
             ),
-            TextButton(
-              onPressed: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(
-                      '$title: danh sách đầy đủ chưa được triển khai.',
-                    ),
-                  ),
-                );
-              },
-              style: TextButton.styleFrom(
-                minimumSize: const Size(0, 24),
-                padding: const EdgeInsets.symmetric(horizontal: 5),
-                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            if (onSeeAll != null)
+              TextButton(
+                onPressed: onSeeAll,
+                style: TextButton.styleFrom(
+                  minimumSize: const Size(0, 24),
+                  padding: const EdgeInsets.symmetric(horizontal: 5),
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
+                child: const Text(
+                  'Xem tất cả  ›',
+                  style: TextStyle(fontSize: 10, fontWeight: FontWeight.w500),
+                ),
               ),
-              child: const Text(
-                'Xem tất cả  ›',
-                style: TextStyle(fontSize: 10, fontWeight: FontWeight.w500),
-              ),
-            ),
           ],
         ),
         const SizedBox(height: 5),

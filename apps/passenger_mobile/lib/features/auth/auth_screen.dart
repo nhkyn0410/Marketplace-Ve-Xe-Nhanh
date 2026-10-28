@@ -100,10 +100,14 @@ class AuthEntryScreen extends StatefulWidget {
     this.errorMessage,
     this.otpRequested = false,
     this.precacheMotionAssets = true,
+    this.playIntro = true,
     super.key,
   });
 
   final Future<void> Function(String email) onRequestOtp;
+
+  /// `false` = vào thẳng màn đăng nhập hoàn chỉnh, không chạy splash (đã vào app rồi bấm Đăng nhập).
+  final bool playIntro;
   final VoidCallback? onEmailChanged;
   final Future<void> Function()? onGoogleSignIn;
   final VoidCallback? onContinueAsGuest;
@@ -134,7 +138,7 @@ class _AuthEntryScreenState extends State<AuthEntryScreen>
     if (_motionStarted) return;
 
     _motionStarted = true;
-    if (MediaQuery.of(context).disableAnimations) {
+    if (!widget.playIntro || MediaQuery.of(context).disableAnimations) {
       _motionController.value = 1;
     } else if (widget.precacheMotionAssets) {
       _precacheAndStartMotion();
