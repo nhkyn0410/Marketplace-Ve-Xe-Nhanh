@@ -6,9 +6,6 @@ import { MAX_ONLINE_SALE_CUTOFF_MINUTES } from "./trip.dto";
 
 // API §7.3 `/operator/trip-schedules*` — lịch chuyến lặp lại (TASK-TRN-007, FR-OPS-07, UC-14 bước 7; chờ Khanh duyệt).
 
-/** Chuyến dài tối đa 7 ngày như chuyến lẻ (`MAX_TRIP_DURATION_MS`). */
-export const MAX_SCHEDULE_DURATION_MINUTES = 7 * 24 * 60;
-
 const DateOnlySchema = z.iso.date();
 const TimeOfDaySchema = z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, "Giờ dạng HH:mm.");
 
@@ -26,10 +23,8 @@ export const TripScheduleInputSchema = z
     routeId: z.uuid(),
     /** Để trống thì chuyến sinh ra chưa gắn xe (gắn sau ở từng chuyến). */
     vehicleId: z.uuid().nullable(),
-    /** Giờ khởi hành theo giờ Việt Nam. */
+    /** Giờ khởi hành theo giờ Việt Nam. Giờ đến = giờ khởi hành + thời gian chạy của tuyến (máy chủ tính). */
     departureTime: TimeOfDaySchema,
-    /** Giờ đến = giờ khởi hành + số phút này. */
-    durationMinutes: z.int().min(1).max(MAX_SCHEDULE_DURATION_MINUTES),
     /** Thứ chạy theo ISO: 1 = thứ Hai … 7 = Chủ nhật. */
     daysOfWeek: z.array(z.int().min(1).max(7)).min(1).max(7),
     startDate: DateOnlySchema,
@@ -67,6 +62,7 @@ export const TripScheduleResponseSchema = z.object({
   vehicleId: z.uuid().nullable(),
   vehiclePlateNumber: z.string().nullable(),
   departureTime: z.string(),
+  /** Thời gian chạy của tuyến lúc lưu lịch (phút) — chuyến sinh ra luôn tính giờ đến theo tuyến hiện tại. */
   durationMinutes: z.int(),
   daysOfWeek: z.array(z.int()),
   startDate: z.iso.date(),

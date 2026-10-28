@@ -24,6 +24,7 @@ part 'operator_profile_response_dto_output.g.dart';
 /// * [publicEmail] 
 /// * [address] 
 /// * [description] 
+/// * [logoUrl] 
 /// * [status] 
 /// * [suspendedReason] 
 /// * [approvedAt] 
@@ -58,6 +59,9 @@ abstract class OperatorProfileResponseDtoOutput implements Built<OperatorProfile
 
   @BuiltValueField(wireName: r'description')
   String? get description;
+
+  @BuiltValueField(wireName: r'logoUrl')
+  String? get logoUrl;
 
   @BuiltValueField(wireName: r'status')
   OperatorProfileResponseDtoOutputStatusEnum get status;
@@ -144,6 +148,11 @@ class _$OperatorProfileResponseDtoOutputSerializer implements PrimitiveSerialize
     yield r'description';
     yield object.description == null ? null : serializers.serialize(
       object.description,
+      specifiedType: const FullType.nullable(String),
+    );
+    yield r'logoUrl';
+    yield object.logoUrl == null ? null : serializers.serialize(
+      object.logoUrl,
       specifiedType: const FullType.nullable(String),
     );
     yield r'status';
@@ -267,6 +276,14 @@ class _$OperatorProfileResponseDtoOutputSerializer implements PrimitiveSerialize
           ) as String?;
           if (valueDes == null) continue;
           result.description = valueDes;
+          break;
+        case r'logoUrl':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType.nullable(String),
+          ) as String?;
+          if (valueDes == null) continue;
+          result.logoUrl = valueDes;
           break;
         case r'status':
           final valueDes = serializers.deserialize(

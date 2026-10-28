@@ -12,7 +12,6 @@ describe("TripInputSchema", () => {
     routeId: randomUUID(),
     vehicleId: null,
     departureAt: future(0),
-    arrivalAt: future(8),
     stopTimes: null,
     onlineSaleCutoffMinutes: 60,
     note: " ",
@@ -24,20 +23,17 @@ describe("TripInputSchema", () => {
     expect(parsed.note).toBeNull();
   });
 
-  it("chấp nhận giờ từng điểm: đầu = giờ đi, cuối = giờ đến, được bằng nhau ở giữa", () => {
+  it("chấp nhận giờ từng điểm: đầu = giờ đi, được bằng nhau ở giữa (điểm cuối so với tuyến ở service)", () => {
     const stopTimes = [future(0), future(3), future(3), future(8)];
     expect(TripInputSchema.safeParse({ ...base, stopTimes }).success).toBe(true);
   });
 
   it.each([
-    ["giờ đến trước giờ đi", { arrivalAt: future(-1) }],
-    ["giờ đến bằng giờ đi", { arrivalAt: future(0) }],
-    ["khởi hành trong quá khứ", { departureAt: "2020-01-01T00:00:00Z", arrivalAt: "2020-01-01T05:00:00Z" }],
-    ["chuyến dài quá 7 ngày", { arrivalAt: future(7 * 24 + 1) }],
+    ["khởi hành trong quá khứ", { departureAt: "2020-01-01T00:00:00Z" }],
     ["giờ không có múi giờ", { departureAt: "2031-01-01T07:00:00" }],
-    ["năm UTC vượt 9999", { departureAt: "9999-12-31T20:00:00-07:00", arrivalAt: "9999-12-31T23:00:00-07:00" }],
+    ["năm UTC vượt 9999", { departureAt: "9999-12-31T20:00:00-07:00" }],
+    ["giờ đến theo tuyến có thể vượt năm 9999", { departureAt: "9999-12-28T00:00:00Z" }],
     ["điểm đầu lệch giờ đi", { stopTimes: [future(1), future(8)] }],
-    ["điểm cuối lệch giờ đến", { stopTimes: [future(0), future(7)] }],
     ["giờ các điểm giảm dần", { stopTimes: [future(0), future(5), future(4), future(8)] }],
     ["chỉ một giờ", { stopTimes: [future(0)] }],
     ["quá số điểm tối đa", { stopTimes: Array.from({ length: MAX_ROUTE_STOPS + 1 }, () => future(0)) }],
@@ -48,10 +44,11 @@ describe("TripInputSchema", () => {
     expect(TripInputSchema.safeParse({ ...base, ...override }).success).toBe(false);
   });
 
-  it("bỏ field lạ: không nhận status/operatorId từ body", () => {
-    const parsed = TripInputSchema.parse({ ...base, status: "OPEN_FOR_SALE", operatorId: randomUUID() });
+  it("bỏ field lạ: không nhận status/operatorId/giờ đến từ body (giờ đến máy chủ tính theo tuyến)", () => {
+    const parsed = TripInputSchema.parse({ ...base, status: "OPEN_FOR_SALE", operatorId: randomUUID(), arrivalAt: future(8) });
     expect(parsed).not.toHaveProperty("status");
     expect(parsed).not.toHaveProperty("operatorId");
+    expect(parsed).not.toHaveProperty("arrivalAt");
   });
 
   it("thời điểm ngừng bán online: 0–1440 phút, số nguyên, bắt buộc (PUT thay toàn bộ)", () => {

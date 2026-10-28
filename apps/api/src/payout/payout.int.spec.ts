@@ -142,7 +142,6 @@ describe.skipIf(!ready && !requireDb)("Escrow + chi trả — Postgres + Redis t
         routeId,
         vehicleId: vehicle.id,
         departureAt: departureAt.toISOString(),
-        arrivalAt: new Date(departureAt.getTime() + 6 * HOUR).toISOString(),
         stopTimes: null,
         onlineSaleCutoffMinutes: 60,
         note: null,

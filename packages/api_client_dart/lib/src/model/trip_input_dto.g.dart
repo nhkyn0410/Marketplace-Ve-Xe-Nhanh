@@ -14,8 +14,6 @@ class _$TripInputDto extends TripInputDto {
   @override
   final DateTime departureAt;
   @override
-  final DateTime arrivalAt;
-  @override
   final BuiltList<DateTime>? stopTimes;
   @override
   final int onlineSaleCutoffMinutes;
@@ -29,7 +27,6 @@ class _$TripInputDto extends TripInputDto {
       {required this.routeId,
       this.vehicleId,
       required this.departureAt,
-      required this.arrivalAt,
       this.stopTimes,
       required this.onlineSaleCutoffMinutes,
       this.note})
@@ -48,7 +45,6 @@ class _$TripInputDto extends TripInputDto {
         routeId == other.routeId &&
         vehicleId == other.vehicleId &&
         departureAt == other.departureAt &&
-        arrivalAt == other.arrivalAt &&
         stopTimes == other.stopTimes &&
         onlineSaleCutoffMinutes == other.onlineSaleCutoffMinutes &&
         note == other.note;
@@ -60,7 +56,6 @@ class _$TripInputDto extends TripInputDto {
     _$hash = $jc(_$hash, routeId.hashCode);
     _$hash = $jc(_$hash, vehicleId.hashCode);
     _$hash = $jc(_$hash, departureAt.hashCode);
-    _$hash = $jc(_$hash, arrivalAt.hashCode);
     _$hash = $jc(_$hash, stopTimes.hashCode);
     _$hash = $jc(_$hash, onlineSaleCutoffMinutes.hashCode);
     _$hash = $jc(_$hash, note.hashCode);
@@ -74,7 +69,6 @@ class _$TripInputDto extends TripInputDto {
           ..add('routeId', routeId)
           ..add('vehicleId', vehicleId)
           ..add('departureAt', departureAt)
-          ..add('arrivalAt', arrivalAt)
           ..add('stopTimes', stopTimes)
           ..add('onlineSaleCutoffMinutes', onlineSaleCutoffMinutes)
           ..add('note', note))
@@ -97,10 +91,6 @@ class TripInputDtoBuilder
   DateTime? _departureAt;
   DateTime? get departureAt => _$this._departureAt;
   set departureAt(DateTime? departureAt) => _$this._departureAt = departureAt;
-
-  DateTime? _arrivalAt;
-  DateTime? get arrivalAt => _$this._arrivalAt;
-  set arrivalAt(DateTime? arrivalAt) => _$this._arrivalAt = arrivalAt;
 
   ListBuilder<DateTime>? _stopTimes;
   ListBuilder<DateTime> get stopTimes =>
@@ -127,7 +117,6 @@ class TripInputDtoBuilder
       _routeId = $v.routeId;
       _vehicleId = $v.vehicleId;
       _departureAt = $v.departureAt;
-      _arrivalAt = $v.arrivalAt;
       _stopTimes = $v.stopTimes?.toBuilder();
       _onlineSaleCutoffMinutes = $v.onlineSaleCutoffMinutes;
       _note = $v.note;
@@ -159,8 +148,6 @@ class TripInputDtoBuilder
             vehicleId: vehicleId,
             departureAt: BuiltValueNullFieldError.checkNotNull(
                 departureAt, r'TripInputDto', 'departureAt'),
-            arrivalAt: BuiltValueNullFieldError.checkNotNull(
-                arrivalAt, r'TripInputDto', 'arrivalAt'),
             stopTimes: _stopTimes?.build(),
             onlineSaleCutoffMinutes: BuiltValueNullFieldError.checkNotNull(
                 onlineSaleCutoffMinutes,

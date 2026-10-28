@@ -84,9 +84,20 @@ describe("Catalog routes — HTTP công khai", () => {
       {
         operatorId,
         displayName: "Phương Trang",
+        logoUrl: null,
         averageRating: null,
         reviewCount: 0,
         routes: [pair],
+      },
+    ],
+  }));
+  const listPlaces = vi.fn(async () => ({
+    items: [
+      {
+        kind: "LEGACY",
+        label: "Phường Giáp Bát",
+        detail: "Cũ: Quận Hoàng Mai, Thành phố Hà Nội · Nay: Phường Tương Mai, Thành phố Hà Nội",
+        target: { type: "ward", id: operatorId },
       },
     ],
   }));
@@ -107,6 +118,7 @@ describe("Catalog routes — HTTP công khai", () => {
           listAmenities,
           listPopularRoutes,
           listFeaturedOperators,
+          listPlaces,
         },
       },
     ],
@@ -178,7 +190,7 @@ describe("Catalog routes — HTTP công khai", () => {
     expect(listPopularRoutes).toHaveBeenLastCalledWith(3);
   });
 
-  it("featured-operators áp mặc định limit=5, nhà xe chưa có đánh giá trả averageRating null", async () => {
+  it("featured-operators áp mặc định limit=5, nhà xe chưa có đánh giá / logo trả averageRating / logoUrl null", async () => {
     const body = await (await fetch(`${base}/featured-operators`)).json();
     expect(listFeaturedOperators).toHaveBeenLastCalledWith(5);
     expect(body).toEqual({
@@ -186,6 +198,7 @@ describe("Catalog routes — HTTP công khai", () => {
         {
           operatorId,
           displayName: "Phương Trang",
+          logoUrl: null,
           averageRating: null,
           reviewCount: 0,
           routes: [pair],
@@ -236,6 +249,9 @@ describe("Catalog routes — HTTP công khai", () => {
     "popular-routes?limit=0",
     "popular-routes?limit=21",
     "featured-operators?limit=abc",
+    "places",
+    "places?q=a",
+    "places?q=ha%20noi&limit=21",
   ])(
     "GET /catalog/%s → 400 problem+json, service không bị gọi",
     async (path) => {
@@ -248,6 +264,13 @@ describe("Catalog routes — HTTP công khai", () => {
       expect(listStopPoints).not.toHaveBeenCalled();
       expect(listPopularRoutes).not.toHaveBeenCalled();
       expect(listFeaturedOperators).not.toHaveBeenCalled();
+      expect(listPlaces).not.toHaveBeenCalled();
     },
   );
+
+  it("places áp mặc định limit=8, cắt khoảng trắng của từ khoá, trả đúng dạng gợi ý", async () => {
+    const body = await (await fetch(`${base}/places?q=%20giap%20bat%20`)).json();
+    expect(listPlaces).toHaveBeenLastCalledWith({ q: "giap bat", limit: 8 });
+    expect(body.items[0]).toMatchObject({ kind: "LEGACY", target: { type: "ward" } });
+  });
 });

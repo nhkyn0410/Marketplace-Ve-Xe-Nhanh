@@ -1,6 +1,6 @@
 import { Inject, Injectable } from "@nestjs/common";
 import { AuditService, AuditWriteError } from "../audit/audit.service";
-import { canAccessBooking } from "../booking/booking-access";
+import { ACCESS_GRANT_SELECT, canAccessBooking } from "../booking/booking-access";
 import type { DbScope } from "../database/db-scope";
 import { withBookingOperator } from "../database/marketplace-scope";
 import { PrismaService, transactionDeadline, type DbTransaction } from "../database/prisma.service";
@@ -433,7 +433,7 @@ export class SupportService {
   /** Chạy ở tenant của đơn nếu người gọi có quyền với đơn (hành khách sở hữu / khách vãng lai có mã truy cập); không → 404. */
   private async asCustomer<T>(user: VerifiedAccessToken | null, bookingId: string, token: string | undefined, work: (tx: DbTransaction, operatorId: string) => Promise<T>): Promise<T> {
     const result = await withBookingOperator(this.prisma, bookingId, async (tx, operatorId) => {
-      const booking = await tx.booking.findFirst({ where: { id: bookingId, operatorId }, select: { userId: true, accessTokenHash: true } });
+      const booking = await tx.booking.findFirst({ where: { id: bookingId, operatorId }, select: { userId: true, accessTokenHash: true, accessGrants: ACCESS_GRANT_SELECT } });
       if (!booking || !canAccessBooking(booking, user, token)) {
         return { found: false as const };
       }

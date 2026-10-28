@@ -14,8 +14,6 @@ class _$TripScheduleInputDto extends TripScheduleInputDto {
   @override
   final String departureTime;
   @override
-  final int durationMinutes;
-  @override
   final BuiltList<int> daysOfWeek;
   @override
   final Date startDate;
@@ -34,7 +32,6 @@ class _$TripScheduleInputDto extends TripScheduleInputDto {
       {required this.routeId,
       this.vehicleId,
       required this.departureTime,
-      required this.durationMinutes,
       required this.daysOfWeek,
       required this.startDate,
       required this.endDate,
@@ -57,7 +54,6 @@ class _$TripScheduleInputDto extends TripScheduleInputDto {
         routeId == other.routeId &&
         vehicleId == other.vehicleId &&
         departureTime == other.departureTime &&
-        durationMinutes == other.durationMinutes &&
         daysOfWeek == other.daysOfWeek &&
         startDate == other.startDate &&
         endDate == other.endDate &&
@@ -71,7 +67,6 @@ class _$TripScheduleInputDto extends TripScheduleInputDto {
     _$hash = $jc(_$hash, routeId.hashCode);
     _$hash = $jc(_$hash, vehicleId.hashCode);
     _$hash = $jc(_$hash, departureTime.hashCode);
-    _$hash = $jc(_$hash, durationMinutes.hashCode);
     _$hash = $jc(_$hash, daysOfWeek.hashCode);
     _$hash = $jc(_$hash, startDate.hashCode);
     _$hash = $jc(_$hash, endDate.hashCode);
@@ -87,7 +82,6 @@ class _$TripScheduleInputDto extends TripScheduleInputDto {
           ..add('routeId', routeId)
           ..add('vehicleId', vehicleId)
           ..add('departureTime', departureTime)
-          ..add('durationMinutes', durationMinutes)
           ..add('daysOfWeek', daysOfWeek)
           ..add('startDate', startDate)
           ..add('endDate', endDate)
@@ -113,11 +107,6 @@ class TripScheduleInputDtoBuilder
   String? get departureTime => _$this._departureTime;
   set departureTime(String? departureTime) =>
       _$this._departureTime = departureTime;
-
-  int? _durationMinutes;
-  int? get durationMinutes => _$this._durationMinutes;
-  set durationMinutes(int? durationMinutes) =>
-      _$this._durationMinutes = durationMinutes;
 
   ListBuilder<int>? _daysOfWeek;
   ListBuilder<int> get daysOfWeek => _$this._daysOfWeek ??= ListBuilder<int>();
@@ -151,7 +140,6 @@ class TripScheduleInputDtoBuilder
       _routeId = $v.routeId;
       _vehicleId = $v.vehicleId;
       _departureTime = $v.departureTime;
-      _durationMinutes = $v.durationMinutes;
       _daysOfWeek = $v.daysOfWeek.toBuilder();
       _startDate = $v.startDate;
       _endDate = $v.endDate;
@@ -185,8 +173,6 @@ class TripScheduleInputDtoBuilder
             vehicleId: vehicleId,
             departureTime: BuiltValueNullFieldError.checkNotNull(
                 departureTime, r'TripScheduleInputDto', 'departureTime'),
-            durationMinutes: BuiltValueNullFieldError.checkNotNull(
-                durationMinutes, r'TripScheduleInputDto', 'durationMinutes'),
             daysOfWeek: daysOfWeek.build(),
             startDate: BuiltValueNullFieldError.checkNotNull(
                 startDate, r'TripScheduleInputDto', 'startDate'),

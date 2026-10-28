@@ -3,6 +3,7 @@
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { holdSeats } from "../../lib/data/booking";
+import { dropoffForPickup, isDropoffAfterPickup } from "../../lib/data/booking-mappers";
 import { vnDayOffset } from "../../lib/format";
 import { CheckoutStepper } from "./checkout-stepper";
 import { SeatPointSelector } from "./seat-point-selector";
@@ -54,19 +55,26 @@ export function SeatSelectionView({ initialData }: SeatSelectionViewProps) {
     initialData.dropoffPoints.find((p) => p.id === selectedDropoffId) ??
     initialData.dropoffPoints[0];
 
-  // Tính danh sách tóm tắt ghế đã chọn
+  // Tính danh sách tóm tắt ghế đã chọn; chỉ ghi tầng khi xe có hai tầng.
+  const twoDecks = new Set(initialData.seats.map((seat) => seat.floor)).size > 1;
   const selectedSeatsSummary: SelectedSeatDetail[] = selectedSeatCodes.map(
     (code) => {
       const seat = initialData.seats.find((s) => s.code === code);
       return {
         id: seat?.id ?? code,
         code,
-        seatTypeLabel: seat?.type === "double" ? "Giường đôi" : "Giường đơn",
-        floorLabel: seat?.floor === 1 ? "Tầng dưới" : "Tầng trên",
+        seatTypeLabel: seat?.typeLabel ?? (seat?.type === "double" ? "Giường đôi" : "Giường đơn"),
+        floorLabel: twoDecks ? (seat?.floor === 1 ? "Tầng dưới" : "Tầng trên") : "",
         priceVnd: seat?.priceVnd ?? "0"
       };
     }
   );
+
+  // Đổi điểm đón: điểm trả phải còn đứng sau điểm đón.
+  const handleSelectPickup = (id: string): void => {
+    setSelectedPickupId(id);
+    setSelectedDropoffId((current) => dropoffForPickup(id, initialData.dropoffPoints, current));
+  };
 
   // Tính tổng tiền từ các ghế đã chọn bằng BigInt
   const subtotalBigInt = selectedSeatsSummary.reduce(
@@ -126,8 +134,9 @@ export function SeatSelectionView({ initialData }: SeatSelectionViewProps) {
             dropoffPoints={initialData.dropoffPoints}
             selectedPickupId={selectedPickupId}
             selectedDropoffId={selectedDropoffId}
-            onSelectPickup={setSelectedPickupId}
+            onSelectPickup={handleSelectPickup}
             onSelectDropoff={setSelectedDropoffId}
+            isDropoffDisabled={(id) => !isDropoffAfterPickup(selectedPickupId, id)}
           />
 
           <SeatMap

@@ -38,10 +38,8 @@ import {
   scheduleSchema,
   shortDayLabel,
   SKIP_REASON_LABEL,
-  suggestDuration,
   toScheduleFormValues,
   toScheduleInput,
-  totalDurationMinutes,
   WEEKDAY_OPTIONS,
   weekdaysLabel,
   type ScheduleFormValues
@@ -123,8 +121,6 @@ function ScheduleFormBody({ schedule }: { schedule?: TripSchedule }) {
   const queryClient = useQueryClient();
   const today = todayLocalDate();
   const [formError, setFormError] = useState<string | null>(null);
-  // Thời gian chạy tự gợi ý theo tuyến cho tới khi nhà xe sửa tay; lịch đã lưu giữ số đã lưu.
-  const [durationTouched, setDurationTouched] = useState(schedule !== undefined);
   const schema = useMemo(() => scheduleSchema(today), [today]);
   const form = useForm<ScheduleFormValues>({
     resolver: zodResolver(schema),
@@ -149,7 +145,8 @@ function ScheduleFormBody({ schedule }: { schedule?: TripSchedule }) {
     return options;
   }, [activeRoutes.data, schedule]);
   const dates = matchingDates(values);
-  const duration = totalDurationMinutes(values);
+  // Chuyến sinh ra tính giờ đến = giờ khởi hành + thời gian chạy HIỆN TẠI của tuyến (chờ duyệt 27/10/2026).
+  const routeSeconds = selectedRoute?.totalDurationSeconds ?? (schedule && values.routeId === schedule.routeId ? schedule.durationMinutes * 60 : undefined);
 
   const save = useMutation({
     mutationFn: () => {
@@ -174,18 +171,6 @@ function ScheduleFormBody({ schedule }: { schedule?: TripSchedule }) {
       }
     }
   });
-
-  function suggest(routeId: string) {
-    if (durationTouched) {
-      return;
-    }
-    const seconds = activeRoutes.data?.find((route) => route.id === routeId)?.totalDurationSeconds;
-    if (seconds !== undefined) {
-      const suggestion = suggestDuration(seconds);
-      form.setValue("durationHours", suggestion.hours, { shouldDirty: true });
-      form.setValue("durationMinutes", suggestion.minutes, { shouldDirty: true });
-    }
-  }
 
   const dirty = form.formState.isDirty;
   const justCreated = searchParams.get("saved") === "1";
@@ -261,13 +246,7 @@ function ScheduleFormBody({ schedule }: { schedule?: TripSchedule }) {
                   control={form.control}
                   name="routeId"
                   render={({ field }) => (
-                    <Select
-                      value={field.value}
-                      onValueChange={(routeId) => {
-                        field.onChange(routeId);
-                        suggest(routeId);
-                      }}
-                    >
+                    <Select value={field.value} onValueChange={field.onChange}>
                       <SelectTrigger {...control} onBlur={field.onBlur}>
                         <SelectValue placeholder="Chọn tuyến" />
                       </SelectTrigger>
@@ -288,32 +267,15 @@ function ScheduleFormBody({ schedule }: { schedule?: TripSchedule }) {
               <FormField label="Giờ khởi hành *" helper="Theo giờ Việt Nam" error={errors.departureTime?.message}>
                 {(control) => <Input {...control} type="time" {...form.register("departureTime")} />}
               </FormField>
-              <FormField
-                label="Thời gian chạy *"
-                helper={duration ? `Mỗi chuyến chạy ${formatDuration(duration * 60)}` : "Gợi ý theo tuyến, sửa được"}
-                error={errors.durationHours?.message}
-              >
-                {(control) => (
-                  <div className="flex items-center gap-2">
-                    <Input
-                      {...control}
-                      inputMode="numeric"
-                      maxLength={3}
-                      className="w-20"
-                      {...form.register("durationHours", { onChange: () => setDurationTouched(true) })}
-                    />
-                    <span className="text-sm text-muted-foreground">giờ</span>
-                    <Input
-                      aria-label="Số phút của thời gian chạy"
-                      inputMode="numeric"
-                      maxLength={2}
-                      className="w-20"
-                      {...form.register("durationMinutes", { onChange: () => setDurationTouched(true) })}
-                    />
-                    <span className="text-sm text-muted-foreground">phút</span>
-                  </div>
-                )}
-              </FormField>
+              <div role="group" aria-label="Thời gian chạy theo tuyến" className="flex flex-col gap-1 rounded-lg bg-muted/50 px-4 py-3">
+                <span className="text-sm leading-5 font-medium text-vxn-fg-1">Thời gian chạy (theo tuyến)</span>
+                <span className="text-sm leading-5 text-vxn-ink">
+                  {routeSeconds === undefined ? "Chọn tuyến" : formatDuration(routeSeconds)}
+                </span>
+                <span className="text-xs leading-[18px] text-muted-foreground">
+                  Giờ đến của mỗi chuyến = giờ khởi hành + thời gian này. Lệch thực tế thì sửa thời gian chặng ở Tuyến đường.
+                </span>
+              </div>
             </div>
 
             <Controller

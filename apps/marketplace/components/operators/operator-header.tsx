@@ -15,10 +15,18 @@ export function OperatorHeader({ operator }: OperatorHeaderProps) {
   return (
     <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-2xs flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
       <div className="flex flex-col sm:flex-row items-start gap-4">
-        {/* Avatar nhà xe */}
-        <div className="w-14 h-14 rounded-2xl bg-[#00506a] text-white flex items-center justify-center font-bold text-xl shrink-0 shadow-xs">
-          {operator.code}
-        </div>
+        {/* Avatar nhà xe: logo ở kho công khai (<img> thường, không qua bộ tối ưu ảnh của Next); chưa có → chữ viết tắt */}
+        {operator.logoUrl ? (
+          <img
+            src={operator.logoUrl}
+            alt={`Logo ${operator.name}`}
+            className="w-14 h-14 rounded-2xl border border-slate-200 bg-white object-contain shrink-0 shadow-xs"
+          />
+        ) : (
+          <div className="w-14 h-14 rounded-2xl bg-[#00506a] text-white flex items-center justify-center font-bold text-xl shrink-0 shadow-xs">
+            {operator.code}
+          </div>
+        )}
 
         <div className="space-y-2">
           <div className="flex flex-wrap items-center gap-2.5">

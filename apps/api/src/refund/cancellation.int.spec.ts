@@ -94,7 +94,6 @@ describe.skipIf(!ready && !requireDb)("Hủy vé + hoàn tiền — Postgres + R
         routeId,
         vehicleId: (await freshVehicle()).id,
         departureAt: departureAt.toISOString(),
-        arrivalAt: new Date(departureAt.getTime() + 6 * HOUR).toISOString(),
         stopTimes: null,
         onlineSaleCutoffMinutes: 60,
         note: null,
@@ -243,6 +242,7 @@ describe.skipIf(!ready && !requireDb)("Hủy vé + hoàn tiền — Postgres + R
       await tx.tripSeat.updateMany({ where: { operatorId }, data: { bookingId: null } });
       await tx.bookingStatusHistory.deleteMany({ where: { operatorId } });
       await tx.passengerInfo.deleteMany({ where: { operatorId } });
+      await tx.bookingAccessGrant.deleteMany({ where: { operatorId } });
       await tx.booking.deleteMany({ where: { operatorId } });
       await tx.tripSeat.deleteMany({ where: { operatorId } });
       await tx.tripStop.deleteMany({ where: { operatorId } });
@@ -277,6 +277,29 @@ describe.skipIf(!ready && !requireDb)("Hủy vé + hoàn tiền — Postgres + R
     expect((await cancellations.quote(null, booking.bookingId, booking.accessToken, [first!.ticketId, second!.ticketId])).refundAmount).toBe(599_998);
     expect(await rejectionOf(cancellations.quote(null, booking.bookingId, booking.accessToken, [randomUUID()]))).toMatchObject({ status: 422, code: "CANCELLATION_TICKETS_INVALID" });
     expect(await rejectionOf(cancellations.quote(null, booking.bookingId, undefined, [first!.ticketId]))).toMatchObject({ status: 404, code: "BOOKING_NOT_FOUND" });
+  });
+
+  it("mã truy cập phụ cấp sau OTP tra cứu vé: xem đơn + báo giá hủy được; hết hạn → 404; RLS: nhà xe khác không thấy mã", async () => {
+    const booking = await confirmedBooking(48, ["A3"]);
+    const ticketIds = [booking.tickets[0]!.ticketId];
+    const granted = await bookings.grantLookupAccess(booking.bookingId, undefined, new Date(Date.now() + 15 * 60_000));
+    if (typeof granted === "string") throw new Error(granted);
+    expect((await bookings.get(null, booking.bookingId, granted.accessToken)).bookingId).toBe(booking.bookingId);
+    expect((await cancellations.quote(null, booking.bookingId, granted.accessToken, ticketIds)).refundPercent).toBe(90);
+    const stored = await prisma.withTenant(operatorId, (tx) => tx.bookingAccessGrant.findMany({ where: { bookingId: booking.bookingId }, select: { tokenHash: true } }));
+    expect(stored).toHaveLength(1);
+    expect(stored[0]!.tokenHash).not.toContain(granted.accessToken);
+
+    const expired = await bookings.grantLookupAccess(booking.bookingId, undefined, new Date(Date.now() - 1000));
+    if (typeof expired === "string") throw new Error(expired);
+    expect(await rejectionOf(cancellations.quote(null, booking.bookingId, expired.accessToken, ticketIds))).toMatchObject({ status: 404, code: "BOOKING_NOT_FOUND" });
+    // Cấp mới dọn mã đã hết hạn của đơn.
+    await bookings.grantLookupAccess(booking.bookingId, undefined, new Date(Date.now() + 60_000));
+    expect(await prisma.withTenant(operatorId, (tx) => tx.bookingAccessGrant.count({ where: { bookingId: booking.bookingId } }))).toBe(2);
+    expect(await prisma.withTenant(otherOperator, (tx) => tx.bookingAccessGrant.count({ where: { bookingId: booking.bookingId } }))).toBe(0);
+    // Mã phụ không dùng cho đơn khác.
+    const other = await confirmedBooking(48, ["A4"]);
+    expect(await rejectionOf(cancellations.quote(null, other.bookingId, granted.accessToken, [other.tickets[0]!.ticketId]))).toMatchObject({ status: 404 });
   });
 
   it("hủy một phần: số hoàn lệch → 409 kèm số mới; đúng → vé CANCELLED + refund APPROVED + chỗ trả lại + booking REFUND_PENDING + xếp job; worker hoàn thành công → vé REFUNDED, booking PARTIALLY_CANCELLED; chạy lại bỏ qua", async () => {

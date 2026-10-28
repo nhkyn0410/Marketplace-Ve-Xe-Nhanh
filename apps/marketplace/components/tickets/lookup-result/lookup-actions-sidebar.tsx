@@ -8,7 +8,8 @@ import {
   MessageSquare,
   UserPlus,
   ArrowRight,
-  Printer
+  Printer,
+  XCircle
 } from "lucide-react";
 import { formatVnd } from "../../../lib/format";
 import type { TicketLookupResultData } from "../../../lib/data/types";
@@ -21,8 +22,15 @@ export interface LookupActionsSidebarProps {
   readonly bookingCode: string;
   readonly bookingId?: string;
   readonly canManageBooking?: boolean;
+  /** Đơn khách vãng lai trong phiên tra cứu đã xác minh OTP: bấm thao tác sẽ mở quyền rồi chuyển trang. */
+  readonly canUnlock?: boolean;
+  /** Đơn đặt bằng tài khoản: hủy vé / khiếu nại qua tài khoản. */
+  readonly bookedWithAccount?: boolean;
   readonly ticketId?: string;
   readonly onPrintOrder?: () => void;
+  readonly onOpenManagement?: (target: "cancel" | "complaint") => void;
+  readonly isOpening?: boolean;
+  readonly actionError?: string | null;
 }
 
 /**
@@ -32,9 +40,22 @@ export const LookupActionsSidebar: React.FC<LookupActionsSidebarProps> = ({
   payment,
   bookingId,
   canManageBooking,
+  canUnlock = false,
+  bookedWithAccount = false,
   ticketId,
-  onPrintOrder
+  onPrintOrder,
+  onOpenManagement,
+  isOpening = false,
+  actionError = null
 }) => {
+  const canAct = Boolean((canManageBooking || canUnlock) && bookingId && onOpenManagement);
+  const hint = canManageBooking
+    ? "Trình duyệt này còn quyền quản lý đơn đã đặt."
+    : canUnlock
+      ? "Đã xác minh email: bạn có thể hủy vé và gửi khiếu nại cho đơn này trong phiên tra cứu."
+      : bookedWithAccount
+        ? "Đơn này được đặt bằng tài khoản. Đăng nhập tài khoản đó để hủy vé hoặc gửi khiếu nại."
+        : "Tra cứu cho phép xem vé. Để hủy vé hoặc gửi hỗ trợ, mở trình duyệt đã đặt vé hoặc đăng nhập tài khoản đặt vé.";
   return (
     <div className="space-y-5">
 
@@ -87,24 +108,39 @@ export const LookupActionsSidebar: React.FC<LookupActionsSidebarProps> = ({
             Thao tác với đơn
           </h3>
           <p className="text-[11px] text-muted-foreground mt-0.5">
-            {canManageBooking ? "Trình duyệt này còn quyền quản lý đơn đã đặt." : "Tra cứu cho phép xem vé. Để hủy vé hoặc gửi hỗ trợ, mở trình duyệt đã đặt vé hoặc đăng nhập tài khoản đặt vé."}
+            {hint}
           </p>
         </div>
 
-        <div className="space-y-2">
-          {canManageBooking && bookingId && ticketId && <Link href={`/my-tickets/${ticketId}?bookingId=${encodeURIComponent(bookingId)}`} className="block rounded-xl border border-border/80 px-4 py-3 text-xs font-semibold hover:bg-muted/50">Quản lý vé / yêu cầu hoàn tiền</Link>}
+        {actionError && <p role="alert" className="rounded-xl border border-destructive/30 bg-destructive/10 px-3 py-2 text-xs text-destructive">{actionError}</p>}
 
-          {canManageBooking && bookingId && <Link href={`/support/guest?bookingId=${encodeURIComponent(bookingId)}`} className="block">
+        <div className="space-y-2">
+          {canAct && ticketId && (
             <Button
               type="button"
               variant="outline"
+              disabled={isOpening}
+              onClick={() => onOpenManagement?.("cancel")}
+              className="w-full h-10 justify-start gap-2 text-xs font-semibold border-border/80 text-foreground hover:bg-muted/50"
+            >
+              <XCircle className="h-4 w-4 text-muted-foreground" />
+              <span>Hủy vé / yêu cầu hoàn tiền</span>
+            </Button>
+          )}
+
+          {canAct && (
+            <Button
+              type="button"
+              variant="outline"
+              disabled={isOpening}
+              onClick={() => onOpenManagement?.("complaint")}
               className="w-full h-10 justify-start gap-2 text-xs font-semibold border-border/80 text-foreground hover:bg-muted/50"
             >
               <MessageSquare className="h-4 w-4 text-muted-foreground" />
               <span>Gửi khiếu nại về đơn này</span>
             </Button>
-          </Link>}
-          {!canManageBooking && <Link href="/login?next=%2Fmy-tickets" className="block rounded-xl border border-border/80 px-4 py-3 text-xs font-semibold hover:bg-muted/50">Đăng nhập để quản lý vé</Link>}
+          )}
+          {!canAct && <Link href="/login?next=%2Fmy-tickets" className="block rounded-xl border border-border/80 px-4 py-3 text-xs font-semibold hover:bg-muted/50">Đăng nhập để quản lý vé</Link>}
 
           {onPrintOrder && (
             <Button

@@ -66,6 +66,7 @@ describe.skipIf(!url && !requireDb)("Lịch chuyến lặp lại — Postgres th
   const authzA = authz(tenantA);
   const authzB = authz(tenantB);
   const actor = { sub: `owner-${tag}`, role: "OPERATOR_OWNER" };
+  // Tuyến giả: chặng thứ i = (i+1) giờ → R3 chạy 3 giờ, tuyến có giá (2 điểm) chạy 1 giờ.
   let route: string;
   let routeWithFare: string;
   let routeInactive: string;
@@ -81,7 +82,6 @@ describe.skipIf(!url && !requireDb)("Lịch chuyến lặp lại — Postgres th
       routeId: route,
       vehicleId: null,
       departureTime: "06:00",
-      durationMinutes: 300,
       daysOfWeek: [1, 2, 3, 4, 5, 6, 7],
       startDate: dayFromToday(3),
       endDate: dayFromToday(5),
@@ -244,9 +244,10 @@ describe.skipIf(!url && !requireDb)("Lịch chuyến lặp lại — Postgres th
     const created = await schedules.create(
       actor,
       authzA,
-      scheduleInput({ vehicleId: vehicles[0], departureTime: "22:30", durationMinutes: 420, daysOfWeek: [1, 3, 5, 7], startDate: dayFromToday(2), endDate: dayFromToday(15) }),
+      scheduleInput({ vehicleId: vehicles[0], departureTime: "22:30", daysOfWeek: [1, 3, 5, 7], startDate: dayFromToday(2), endDate: dayFromToday(15) }),
     );
-    expect(created).toMatchObject({ departureTime: "22:30", durationMinutes: 420, daysOfWeek: [1, 3, 5, 7], tripCount: 0, lastGeneratedAt: null });
+    // Thời gian chạy lấy theo tuyến (body không gửi số phút).
+    expect(created).toMatchObject({ departureTime: "22:30", durationMinutes: 180, daysOfWeek: [1, 3, 5, 7], tripCount: 0, lastGeneratedAt: null });
     expect(recordAuditEvent).toHaveBeenCalledWith(expect.objectContaining({ action: "trip_schedule.create", targetId: created.id, operatorId: tenantA }));
     const expected = scheduleDates({ startDate: dateOnly(created.startDate), endDate: dateOnly(created.endDate), daysOfWeek: 0b1010101 });
 
@@ -259,7 +260,7 @@ describe.skipIf(!url && !requireDb)("Lịch chuyến lặp lại — Postgres th
     rows.forEach((row, index) => {
       expect(row.serviceDate!.toISOString().slice(0, 10)).toBe(expected[index]);
       expect(row.departureAt.toISOString()).toBe(departureOf(expected[index]!, 22 * 60 + 30).toISOString());
-      expect(row.arrivalAt.getTime() - row.departureAt.getTime()).toBe(420 * 60_000);
+      expect(row.arrivalAt.getTime() - row.departureAt.getTime()).toBe(180 * 60_000);
       expect(row).toMatchObject({ status: "DRAFT", vehicleId: vehicles[0], _count: { stops: 3, seats: 3 } });
     });
 
@@ -292,13 +293,13 @@ describe.skipIf(!url && !requireDb)("Lịch chuyến lặp lại — Postgres th
     const created = await schedules.create(
       actor,
       authzA,
-      scheduleInput({ vehicleId: vehicles[2], departureTime: "00:00", durationMinutes: 120, startDate: dayFromToday(0), endDate: dayFromToday(4) }),
+      scheduleInput({ vehicleId: vehicles[2], departureTime: "00:00", startDate: dayFromToday(0), endDate: dayFromToday(4) }),
     );
-    // Chuyến lẻ dùng cùng xe chồng giờ ngày thứ 2.
+    // Chuyến lẻ dùng cùng xe chồng giờ ngày thứ 2 (tuyến 1 giờ: 01:00 → 02:00, chồng 00:00 → 03:00).
     const blocker = await schedules.create(
       actor,
       authzA,
-      scheduleInput({ vehicleId: vehicles[2], departureTime: "01:00", durationMinutes: 60, startDate: dayFromToday(2), endDate: dayFromToday(2) }),
+      scheduleInput({ routeId: routeWithFare, vehicleId: vehicles[2], departureTime: "01:00", startDate: dayFromToday(2), endDate: dayFromToday(2) }),
     );
     expect((await schedules.generate(actor, authzA, blocker.id, { openForSale: false })).created).toHaveLength(1);
 
@@ -314,7 +315,7 @@ describe.skipIf(!url && !requireDb)("Lịch chuyến lặp lại — Postgres th
       actor,
       authzA,
       created.id,
-      scheduleInput({ vehicleId: vehicles[2], departureTime: "03:00", durationMinutes: 120, startDate: dayFromToday(0), endDate: dayFromToday(4) }),
+      scheduleInput({ vehicleId: vehicles[2], departureTime: "03:00", startDate: dayFromToday(0), endDate: dayFromToday(4) }),
     );
     expect(updated.departureTime).toBe("03:00");
     expect(recordAuditEvent).toHaveBeenLastCalledWith(
@@ -336,7 +337,7 @@ describe.skipIf(!url && !requireDb)("Lịch chuyến lặp lại — Postgres th
     const ready = await schedules.create(
       actor,
       authzA,
-      scheduleInput({ routeId: routeWithFare, vehicleId: vehicles[0], departureTime: "09:00", durationMinutes: 60, startDate: dayFromToday(30), endDate: dayFromToday(31) }),
+      scheduleInput({ routeId: routeWithFare, vehicleId: vehicles[0], departureTime: "09:00", startDate: dayFromToday(30), endDate: dayFromToday(31) }),
     );
     const opened = await schedules.generate(actor, authzA, ready.id, { openForSale: true });
     expect(opened.created.map((trip) => trip.status)).toEqual(["OPEN_FOR_SALE", "OPEN_FOR_SALE"]);
@@ -351,6 +352,26 @@ describe.skipIf(!url && !requireDb)("Lịch chuyến lặp lại — Postgres th
     expect(kept.created[0]!.status).toBe("DRAFT");
     expect(kept.created[0]!.notOpenedReasons).toEqual(expect.arrayContaining(["VEHICLE_MISSING", "FARE_MISSING"]));
     expect((await tripsOf(notReady.id))[0]!.status).toBe("DRAFT");
+  });
+
+  it("sửa thời gian chặng của tuyến sau khi lưu lịch: chuyến sinh ra tính giờ đến theo tuyến HIỆN TẠI", async () => {
+    const routeStops = (minutes?: number) =>
+      points.slice(0, 2).map((id, index) => ({
+        catalogStopPointId: id,
+        stopPointId: null,
+        note: null,
+        allowPickup: index === 0,
+        allowDropoff: index === 1,
+        ...(index === 1 && minutes ? { durationMinutesFromPrevious: minutes } : {}),
+      }));
+    const routeInput = (minutes?: number) => RouteInputSchema.parse({ name: `Lịch chỉnh chặng ${tag}`, status: "ACTIVE", note: null, stops: routeStops(minutes) });
+    const edited = await routes.create(authzA, routeInput());
+    const created = await schedules.create(actor, authzA, scheduleInput({ routeId: edited.id, startDate: dayFromToday(60), endDate: dayFromToday(60) }));
+    expect(created.durationMinutes).toBe(60);
+    await routes.update(authzA, edited.id, routeInput(95));
+    await schedules.generate(actor, authzA, created.id, { openForSale: false });
+    const [trip] = await tripsOf(created.id);
+    expect(trip!.arrivalAt.getTime() - trip!.departureAt.getTime()).toBe(95 * 60_000);
   });
 
   it("DB: một lịch một chuyến mỗi ngày kể cả ghi thẳng; CHECK khoảng ngày; tenant khác không ghi được lịch", async () => {

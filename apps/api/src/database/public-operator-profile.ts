@@ -1,10 +1,10 @@
 import type { PublicOperatorProfile } from "@vexenhanh/types";
 import type { PrismaService } from "./prisma.service";
 
-/** Hồ sơ công khai chỉ chọn trường công khai, review đang hiển thị và tuyến đang mở bán. */
-export async function loadPublicOperatorProfile(prisma: Pick<PrismaService, "withSystem">, operatorId: string, query: { cursor?: string; limit: number }, now: Date): Promise<PublicOperatorProfile | null> {
+/** Hồ sơ công khai chỉ chọn trường công khai, review đang hiển thị và tuyến đang mở bán. `publicUrl` ghép địa chỉ logo. */
+export async function loadPublicOperatorProfile(prisma: Pick<PrismaService, "withSystem">, operatorId: string, query: { cursor?: string; limit: number }, now: Date, publicUrl: (key: string) => string): Promise<PublicOperatorProfile | null> {
   return prisma.withSystem(async (tx) => {
-    const profile = await tx.operatorProfile.findFirst({ where: { id: operatorId, status: "ACTIVE" }, select: { id: true, operatorSlug: true, displayName: true, description: true, hotline: true, publicEmail: true, address: true } });
+    const profile = await tx.operatorProfile.findFirst({ where: { id: operatorId, status: "ACTIVE" }, select: { id: true, operatorSlug: true, displayName: true, logoObjectKey: true, description: true, hotline: true, publicEmail: true, address: true } });
     if (!profile) return null;
     const cursor = query.cursor ? await tx.review.findFirst({ where: { id: query.cursor, operatorId, status: "VISIBLE" }, select: { id: true, createdAt: true } }) : null;
     const rating = await tx.review.aggregate({ where: { operatorId, status: "VISIBLE" }, _avg: { rating: true }, _count: { id: true } });
@@ -24,7 +24,7 @@ export async function loadPublicOperatorProfile(prisma: Pick<PrismaService, "wit
     const page = reviews.slice(0, query.limit);
     return {
       operatorId: profile.id, operatorSlug: profile.operatorSlug, displayName: profile.displayName,
-      description: profile.description, hotline: profile.hotline, publicEmail: profile.publicEmail, address: profile.address,
+      logoUrl: profile.logoObjectKey ? publicUrl(profile.logoObjectKey) : null, description: profile.description, hotline: profile.hotline, publicEmail: profile.publicEmail, address: profile.address,
       scorecard: { averageRating: rating._avg.rating, reviewCount: rating._count.id,
         operatorCancellationRate: knownCancellations ? ratio(operatorCancelled, trips.length) : null,
         refundBookingRate: ratio(refunded, bookings), disputeBookingRate: ratio(disputed, bookings),

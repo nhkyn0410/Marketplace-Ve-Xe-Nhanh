@@ -179,6 +179,8 @@ model OperatorProfile {
   publicEmail     String?        @map("public_email")
   address         String?
   description     String?
+  /// Khóa object logo ở kho công khai (`operator-logos/{id}/{uuid}.{ext}`, ADR-018); `null` = chưa có logo (FR-OPR-02).
+  logoObjectKey   String?        @unique @map("logo_object_key")
   approvedAt      DateTime?      @map("approved_at")
   createdAt       DateTime       @default(now()) @map("created_at")
   updatedAt       DateTime       @updatedAt @map("updated_at")
@@ -896,7 +898,11 @@ model RouteStop {
   longitude                   Float
   /// Từ điểm liền trước; điểm đầu để trống (CHECK trong migration).
   distanceMetersFromPrevious  Int?          @map("distance_meters_from_previous")
+  /// Thời gian chạy của chặng ĐANG DÙNG: số nhà xe chỉnh tay, không chỉnh thì bằng số hệ thống tính. Giờ đến của chuyến
+  /// = giờ đi + tổng các chặng (chờ duyệt 27/10/2026).
   durationSecondsFromPrevious Int?          @map("duration_seconds_from_previous")
+  /// Số hệ thống tính (Goong / ước lượng) — giữ để nhà xe xem lại / quay về số hệ thống mà không phải gọi lại provider.
+  measuredDurationSeconds     Int?          @map("measured_duration_seconds")
 
   route            Route             @relation(fields: [routeId, operatorId], references: [id, operatorId], onDelete: Restrict, onUpdate: Restrict)
   catalogStopPoint StopPointCatalog? @relation(fields: [catalogStopPointId], references: [id], onDelete: Restrict, onUpdate: Restrict)
@@ -1615,6 +1621,8 @@ model Booking {
   office     SalesOffice? @relation(fields: [officeId, operatorId], references: [id, operatorId], onDelete: Restrict, onUpdate: Restrict)
   counterReceipts CounterReceipt[]
   counterReceivables CounterCommissionReceivable[]
+  /// Mã truy cập phụ cấp sau khi khách vãng lai xác minh OTP tra cứu vé (hủy vé / khiếu nại).
+  accessGrants BookingAccessGrant[]
 
   supportTickets SupportTicket[]
   disputeCases   DisputeCase[]
@@ -1727,6 +1735,23 @@ model PassengerInfo {
 }
 
 /// Lịch sử trạng thái booking (FR-BTP-18).
+/// Mã truy cập phụ của booking khách vãng lai, cấp sau khi xác minh OTP tra cứu vé (Khanh 27/10/2026, chờ duyệt): dùng như
+/// `X-Booking-Token` để xem đơn / vé, hủy vé, gửi khiếu nại tới khi hết phiên tra cứu. Không dùng để thanh toán / tranh chấp.
+model BookingAccessGrant {
+  id         String   @id @default(uuid())
+  bookingId  String   @map("booking_id")
+  operatorId String   @map("operator_id")
+  /// SHA-256 của mã trả MỘT lần.
+  tokenHash  String   @unique @map("token_hash")
+  expiresAt  DateTime @map("expires_at")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  booking Booking @relation(fields: [bookingId, operatorId], references: [id, operatorId], onDelete: Restrict, onUpdate: Restrict)
+
+  @@index([bookingId, expiresAt])
+  @@map("booking_access_grants")
+}
+
 model BookingStatusHistory {
   id         String         @id @default(uuid())
   bookingId  String         @map("booking_id")

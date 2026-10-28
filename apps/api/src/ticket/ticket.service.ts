@@ -1,7 +1,7 @@
 import { createHash, randomBytes, randomInt } from "node:crypto";
 import { Inject, Injectable, Logger } from "@nestjs/common";
 import type Redis from "ioredis";
-import { canAccessBooking } from "../booking/booking-access";
+import { ACCESS_GRANT_SELECT, canAccessBooking } from "../booking/booking-access";
 import { BookingService } from "../booking/booking.service";
 import { vndToJson } from "../fare/fare-pricing";
 import type { BookingResponse } from "../booking/dto/booking.dto";
@@ -11,6 +11,7 @@ import { EMAIL_NOTIFIER, type EmailNotifier, maskEmail } from "../external/notif
 import type { VerifiedAccessToken } from "../iam/auth/token.service";
 import { REDIS_CLIENT } from "../redis/redis.config";
 import type {
+  TicketLookupAccess,
   TicketLookupBookingList,
   TicketLookupInput,
   TicketLookupOtpInput,
@@ -21,7 +22,7 @@ import type {
   TicketResponse,
 } from "./dto/ticket.dto";
 import { TICKET_QR, type TicketQrSigner } from "./ticket-qr";
-import { lookupBookingNotFound, lookupExpired, lookupOtpInvalid, lookupRateLimited, lookupUnavailable, ticketNotFound } from "./ticket.errors";
+import { lookupBookingNotFound, lookupBookingRequiresLogin, lookupExpired, lookupOtpInvalid, lookupRateLimited, lookupUnavailable, ticketNotFound } from "./ticket.errors";
 
 /** Chống dò mã booking: tối đa 10 lần gửi mã tra cứu / 10 phút / địa chỉ IP. */
 const LOOKUPS_PER_WINDOW = 10;
@@ -107,7 +108,7 @@ export class TicketService {
           issuedAt: true,
           checkedInAt: true,
           passenger: { select: { fullName: true, seatType: true } },
-          booking: { select: { id: true, bookingCode: true, status: true, snapshot: true, userId: true, accessTokenHash: true } },
+          booking: { select: { id: true, bookingCode: true, status: true, snapshot: true, userId: true, accessTokenHash: true, accessGrants: ACCESS_GRANT_SELECT } },
         },
       }),
     );
@@ -216,6 +217,31 @@ export class TicketService {
       throw lookupBookingNotFound();
     }
     return booking;
+  }
+
+  /** Bước 4: mã truy cập phụ để hủy vé / gửi khiếu nại một đơn khách vãng lai của phiên, hết hạn cùng phiên. */
+  async grantBookingAccess(input: TicketLookupInput, now = new Date()): Promise<TicketLookupAccess> {
+    const scope = await this.sessionScope(input.lookupToken);
+    if (scope.bookingId && input.bookingId && input.bookingId !== scope.bookingId) {
+      throw lookupBookingNotFound();
+    }
+    const bookingId = scope.bookingId ?? input.bookingId;
+    if (!bookingId) {
+      throw lookupBookingNotFound();
+    }
+    const ttl = await this.redisCall(() => this.redis.pttl(sessionKey(input.lookupToken)));
+    if (ttl <= 0) {
+      throw lookupExpired();
+    }
+    const expiresAt = new Date(now.getTime() + ttl);
+    const granted = await this.bookings.grantLookupAccess(bookingId, scope.bookingId ? undefined : { email: scope.email, since: lookupSince(now) }, expiresAt, now);
+    if (granted === "ACCOUNT") {
+      throw lookupBookingRequiresLogin();
+    }
+    if (granted === "NOT_FOUND") {
+      throw lookupBookingNotFound();
+    }
+    return { bookingId, accessToken: granted.accessToken, expiresAt: expiresAt.toISOString() };
   }
 
   private async sessionScope(lookupToken: string): Promise<LookupScope> {

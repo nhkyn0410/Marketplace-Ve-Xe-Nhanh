@@ -10,10 +10,13 @@ All URIs are relative to *http://localhost*
 Method | HTTP request | Description
 ------------- | ------------- | -------------
 [**operatorProfileControllerCreateDownloadUrl**](OperatorProfileApi.md#operatorprofilecontrollercreatedownloadurl) | **POST** /v1/operator/profile/documents/{type}/download-url | 
+[**operatorProfileControllerCreateLogoUploadUrl**](OperatorProfileApi.md#operatorprofilecontrollercreatelogouploadurl) | **POST** /v1/operator/profile/logo/upload-url | 
 [**operatorProfileControllerCreateUploadUrl**](OperatorProfileApi.md#operatorprofilecontrollercreateuploadurl) | **POST** /v1/operator/profile/documents/upload-url | 
 [**operatorProfileControllerGet**](OperatorProfileApi.md#operatorprofilecontrollerget) | **GET** /v1/operator/profile | 
+[**operatorProfileControllerRemoveLogo**](OperatorProfileApi.md#operatorprofilecontrollerremovelogo) | **DELETE** /v1/operator/profile/logo | 
 [**operatorProfileControllerReplaceDocument**](OperatorProfileApi.md#operatorprofilecontrollerreplacedocument) | **PUT** /v1/operator/profile/documents/{type} | 
 [**operatorProfileControllerRequestBankChange**](OperatorProfileApi.md#operatorprofilecontrollerrequestbankchange) | **POST** /v1/operator/profile/bank-account-change | 
+[**operatorProfileControllerSetLogo**](OperatorProfileApi.md#operatorprofilecontrollersetlogo) | **PUT** /v1/operator/profile/logo | 
 [**operatorProfileControllerUpdate**](OperatorProfileApi.md#operatorprofilecontrollerupdate) | **PUT** /v1/operator/profile | 
 
 
@@ -54,6 +57,47 @@ Name | Type | Description  | Notes
 ### HTTP request headers
 
  - **Content-Type**: Not defined
+ - **Accept**: application/json, application/problem+json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **operatorProfileControllerCreateLogoUploadUrl**
+> LogoUploadResponseDtoOutput operatorProfileControllerCreateLogoUploadUrl(logoUploadInputDto)
+
+
+
+### Example
+```dart
+import 'package:api_client_dart/api.dart';
+
+final api = ApiClientDart().getOperatorProfileApi();
+final LogoUploadInputDto logoUploadInputDto = ; // LogoUploadInputDto | 
+
+try {
+    final response = api.operatorProfileControllerCreateLogoUploadUrl(logoUploadInputDto);
+    print(response);
+} on DioException catch (e) {
+    print('Exception when calling OperatorProfileApi->operatorProfileControllerCreateLogoUploadUrl: $e\n');
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **logoUploadInputDto** | [**LogoUploadInputDto**](LogoUploadInputDto.md)|  | 
+
+### Return type
+
+[**LogoUploadResponseDtoOutput**](LogoUploadResponseDtoOutput.md)
+
+### Authorization
+
+[bearer](../README.md#bearer)
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
  - **Accept**: application/json, application/problem+json
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
@@ -115,6 +159,43 @@ try {
     print(response);
 } on DioException catch (e) {
     print('Exception when calling OperatorProfileApi->operatorProfileControllerGet: $e\n');
+}
+```
+
+### Parameters
+This endpoint does not need any parameter.
+
+### Return type
+
+[**OperatorProfileResponseDtoOutput**](OperatorProfileResponseDtoOutput.md)
+
+### Authorization
+
+[bearer](../README.md#bearer)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json, application/problem+json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **operatorProfileControllerRemoveLogo**
+> OperatorProfileResponseDtoOutput operatorProfileControllerRemoveLogo()
+
+
+
+### Example
+```dart
+import 'package:api_client_dart/api.dart';
+
+final api = ApiClientDart().getOperatorProfileApi();
+
+try {
+    final response = api.operatorProfileControllerRemoveLogo();
+    print(response);
+} on DioException catch (e) {
+    print('Exception when calling OperatorProfileApi->operatorProfileControllerRemoveLogo: $e\n');
 }
 ```
 
@@ -204,6 +285,47 @@ try {
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
  **bankChangeInputDto** | [**BankChangeInputDto**](BankChangeInputDto.md)|  | 
+
+### Return type
+
+[**OperatorProfileResponseDtoOutput**](OperatorProfileResponseDtoOutput.md)
+
+### Authorization
+
+[bearer](../README.md#bearer)
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
+ - **Accept**: application/json, application/problem+json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **operatorProfileControllerSetLogo**
+> OperatorProfileResponseDtoOutput operatorProfileControllerSetLogo(logoAttachInputDto)
+
+
+
+### Example
+```dart
+import 'package:api_client_dart/api.dart';
+
+final api = ApiClientDart().getOperatorProfileApi();
+final LogoAttachInputDto logoAttachInputDto = ; // LogoAttachInputDto | 
+
+try {
+    final response = api.operatorProfileControllerSetLogo(logoAttachInputDto);
+    print(response);
+} on DioException catch (e) {
+    print('Exception when calling OperatorProfileApi->operatorProfileControllerSetLogo: $e\n');
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **logoAttachInputDto** | [**LogoAttachInputDto**](LogoAttachInputDto.md)|  | 
 
 ### Return type
 

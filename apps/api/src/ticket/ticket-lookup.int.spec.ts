@@ -31,6 +31,7 @@ describe.skipIf(!ready && !requireDb)("Tra cứu vé khách vãng lai — OTP tr
   let redis: Redis;
   let service: TicketService;
   const sent: OtpEmailMessage[] = [];
+  const grants: { id: string; expiresAt: Date }[] = [];
   const tag = randomUUID().slice(0, 8);
   const email = `khach-${tag}@example.com`;
   const accountEmail = `tk-${tag}@example.com`;
@@ -49,6 +50,12 @@ describe.skipIf(!ready && !requireDb)("Tra cứu vé khách vãng lai — OTP tr
     matchGuestContact: async (bookingCode: string, contact: string) => (bookingCode === code && contact === email ? guestBookingId : null),
     listForGuestLookup: async (scope: { email: string; bookingId: string | null }, _since: Date, limit: number) =>
       (owned[scope.email] ?? []).filter((item) => !scope.bookingId || item.bookingId === scope.bookingId).slice(0, limit),
+    grantLookupAccess: async (id: string, match: { email: string } | undefined, expiresAt: Date) => {
+      grants.push({ id, expiresAt });
+      const found = Object.entries(owned).find(([owner, items]) => items.some((item) => item.bookingId === id) && (!match || owner === match.email));
+      if (!found) return "NOT_FOUND";
+      return found[1].find((item) => item.bookingId === id)!.bookedWithAccount ? "ACCOUNT" : { accessToken: `grant-${id}` };
+    },
     getForLookup: async (id: string, match?: { email: string }) => {
       const found = Object.entries(owned).find(([owner, items]) => items.some((item) => item.bookingId === id) && (!match || owner === match.email));
       return found ? ({ bookingId: id } as BookingResponse) : null;
@@ -139,6 +146,23 @@ describe.skipIf(!ready && !requireDb)("Tra cứu vé khách vãng lai — OTP tr
     await request(accountEmail);
     const accountSession = await verify(lastOtp(), accountEmail);
     expect(await service.listBookings({ lookupToken: accountSession.lookupToken })).toMatchObject({ scope: "EMAIL", hasAccount: true });
+    await clearLimits();
+  });
+
+  it("sau OTP cấp mã truy cập phụ để hủy vé / khiếu nại: hết hạn cùng phiên; đơn tài khoản → 403; ngoài phạm vi → 404", async () => {
+    await request(email);
+    const session = await verify(lastOtp());
+    const granted = await service.grantBookingAccess({ lookupToken: session.lookupToken, bookingId: guestBookingId });
+    expect(granted).toMatchObject({ bookingId: guestBookingId, accessToken: `grant-${guestBookingId}` });
+    // Hạn mã phụ = phần còn lại của phiên (≤ 15 phút), không dài hơn.
+    const remaining = new Date(granted.expiresAt).getTime() - Date.now();
+    expect(remaining).toBeGreaterThan(880_000);
+    expect(remaining).toBeLessThanOrEqual(900_000);
+    expect(grants.at(-1)).toMatchObject({ id: guestBookingId });
+    expect(await failure(service.grantBookingAccess({ lookupToken: session.lookupToken, bookingId: accountBookingId }))).toMatchObject({ status: 403, code: "BOOKING_REQUIRES_LOGIN" });
+    expect(await failure(service.grantBookingAccess({ lookupToken: session.lookupToken, bookingId: otherBookingId }))).toMatchObject({ status: 404, code: "BOOKING_NOT_FOUND" });
+    expect(await failure(service.grantBookingAccess({ lookupToken: session.lookupToken }))).toMatchObject({ status: 404, code: "BOOKING_NOT_FOUND" });
+    expect(await failure(service.grantBookingAccess({ lookupToken: "x".repeat(43), bookingId: guestBookingId }))).toMatchObject({ status: 404, code: "TICKET_LOOKUP_EXPIRED" });
     await clearLimits();
   });
 

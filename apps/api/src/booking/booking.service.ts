@@ -16,7 +16,7 @@ import {
   snapshotChanged,
   tripNotOnSale,
 } from "./booking.errors";
-import { canAccessBooking, hashBookingToken } from "./booking-access";
+import { ACCESS_GRANT_SELECT, canAccessBooking, hashBookingToken } from "./booking-access";
 import { expireBooking } from "./booking-expiry";
 import type { BookingInput, BookingResponse, CreatedBooking } from "./dto/booking.dto";
 import { claimPromotion } from "../promotion/promotion-apply";
@@ -104,6 +104,7 @@ const BOOKING_SELECT = {
   createdAt: true,
   userId: true,
   accessTokenHash: true,
+  accessGrants: ACCESS_GRANT_SELECT,
   passengers: {
     orderBy: { seatCode: "asc" },
     select: { seatCode: true, seatType: true, fullName: true, phone: true, price: true },
@@ -238,6 +239,36 @@ export class BookingService {
         createdAt: row.createdAt,
       };
     });
+  }
+
+  /**
+   * Mã truy cập phụ cho booking khách vãng lai trong phạm vi phiên tra cứu đã xác minh OTP (hủy vé / khiếu nại — Khanh
+   * 27/10/2026). Đơn đặt bằng tài khoản không cấp (`ACCOUNT` — phải đăng nhập); ngoài phạm vi → `NOT_FOUND`. Mã chỉ trả một
+   * lần, DB giữ băm; dọn mã đã hết hạn của đơn khi cấp mới.
+   */
+  async grantLookupAccess(
+    bookingId: string,
+    match: { email: string; since: Date } | undefined,
+    expiresAt: Date,
+    now = new Date(),
+  ): Promise<{ accessToken: string } | "NOT_FOUND" | "ACCOUNT"> {
+    const accessToken = randomBytes(32).toString("base64url");
+    const outcome = await withBookingOperator(this.prisma, bookingId, async (tx, operatorId) => {
+      const row = await tx.booking.findFirst({
+        where: { id: bookingId, operatorId, ...(match ? { contactEmail: match.email.toLowerCase(), createdAt: { gte: match.since } } : {}) },
+        select: { userId: true },
+      });
+      if (!row) {
+        return "NOT_FOUND" as const;
+      }
+      if (row.userId !== null) {
+        return "ACCOUNT" as const;
+      }
+      await tx.bookingAccessGrant.deleteMany({ where: { bookingId, operatorId, expiresAt: { lte: now } } });
+      await tx.bookingAccessGrant.create({ data: { bookingId, operatorId, tokenHash: hashBookingToken(accessToken), expiresAt } });
+      return { accessToken };
+    });
+    return outcome ?? "NOT_FOUND";
   }
 
   /** Booking cho phiên tra cứu đã xác minh OTP (chỉ xem — không cấp mã truy cập booking); `match` giới hạn theo email. */

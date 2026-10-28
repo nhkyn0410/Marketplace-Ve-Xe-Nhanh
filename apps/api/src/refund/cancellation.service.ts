@@ -2,7 +2,7 @@ import { createHash, randomInt } from "node:crypto";
 import { InjectQueue } from "@nestjs/bullmq";
 import { HttpException, HttpStatus, Inject, Injectable, Logger } from "@nestjs/common";
 import type { Queue } from "bullmq";
-import { canAccessBooking } from "../booking/booking-access";
+import { ACCESS_GRANT_SELECT, canAccessBooking } from "../booking/booking-access";
 import { bookingNotFound } from "../booking/booking.errors";
 import { BookingService } from "../booking/booking.service";
 import { withBookingOperator } from "../database/marketplace-scope";
@@ -172,6 +172,7 @@ async function load(tx: DbTransaction, operatorId: string, bookingId: string) {
       channel: true,
       userId: true,
       accessTokenHash: true,
+      accessGrants: ACCESS_GRANT_SELECT,
       contactEmail: true,
       snapshot: true,
       subtotal: true,

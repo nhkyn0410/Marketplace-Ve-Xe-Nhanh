@@ -94,7 +94,7 @@ describe.skipIf(!ready && !requireDb)("Báo cáo nhà xe + Admin — Postgres + 
     const departureAt = new Date(Date.now() + hoursAhead * HOUR);
     const trip = await trips.create(
       ownerAuthz,
-      TripInputSchema.parse({ routeId, vehicleId: vehicle.id, departureAt: departureAt.toISOString(), arrivalAt: new Date(departureAt.getTime() + 6 * HOUR).toISOString(), stopTimes: null, onlineSaleCutoffMinutes: 60, note: null }),
+      TripInputSchema.parse({ routeId, vehicleId: vehicle.id, departureAt: departureAt.toISOString(), stopTimes: null, onlineSaleCutoffMinutes: 60, note: null }),
     );
     await prisma.withSystem(async (tx) => {
       await tx.trip.update({ where: { id: trip.id }, data: { status: "OPEN_FOR_SALE" } });
@@ -214,7 +214,11 @@ describe.skipIf(!ready && !requireDb)("Báo cáo nhà xe + Admin — Postgres + 
       await tx.notification.deleteMany({ where: { operatorId } });
       await tx.review.deleteMany({ where: { operatorId } });
       await tx.incidentReport.deleteMany({ where: { operatorId } });
+      // `generatePayouts` ở payout.int.spec quét mọi nhà xe: chạy song song có thể tạo kỳ chi trả từ bút toán của file này.
+      await tx.payoutItem.deleteMany({ where: { operatorId } });
       await tx.escrowLedger.deleteMany({ where: { operatorId } });
+      await tx.payoutStatusHistory.deleteMany({ where: { operatorId } });
+      await tx.payout.deleteMany({ where: { operatorId } });
       await tx.ticketStatusHistory.deleteMany({ where: { operatorId } });
       await tx.ticket.deleteMany({ where: { operatorId } });
       await tx.refund.deleteMany({ where: { operatorId } });

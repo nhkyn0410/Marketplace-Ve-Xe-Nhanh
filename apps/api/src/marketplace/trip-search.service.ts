@@ -5,6 +5,7 @@ import type { SeatType } from "../database/prisma.types";
 import { PrismaService } from "../database/prisma.service";
 import {
   findLandmark,
+  findWard,
   loadActiveFareRules,
   loadCancellationTiers,
   loadPublicTrip,
@@ -28,6 +29,8 @@ const CANDIDATE_LIMIT = 300;
 /** Cache kết quả tìm 60 giây (ADR-015) — tìm không giữ chỗ nên Redis lỗi thì tính lại, không chặn. */
 const CACHE_TTL_SECONDS = 60;
 
+type Matched = { items: TripSearchItem[]; widenedToProvince: TripSearchResponse["widenedToProvince"] };
+
 /**
  * Tìm chuyến + chi tiết chuyến công khai (TASK-TRN-004; FR-MKT-01..05, FR-MKT-15, BR-22, BR-77, BR-80; LLD §6.13 bước 7).
  * Khớp vị trí ở SQL (`database/public-trips.ts`, ngữ cảnh `system` vì đọc mọi nhà xe); giá tính ở đây bằng đúng hàm
@@ -45,7 +48,7 @@ export class TripSearchService {
   ) {}
 
   async search(query: TripSearchQuery): Promise<TripSearchResponse> {
-    const all = await this.matching(query);
+    const { items: all, widenedToProvince } = await this.matching(query);
     const operators = new Map<string, { id: string; name: string; count: number }>();
     for (const item of all) {
       const entry = operators.get(item.operator.id) ?? { id: item.operator.id, name: item.operator.name, count: 0 };
@@ -65,6 +68,7 @@ export class TripSearchService {
         priceMin: prices.length > 0 ? Math.min(...prices) : null,
         priceMax: prices.length > 0 ? Math.max(...prices) : null,
       },
+      widenedToProvince,
     };
   }
 
@@ -115,37 +119,50 @@ export class TripSearchService {
     };
   }
 
-  /** Mọi chuyến khớp (điểm đi, điểm đến, ngày, số khách), kèm giá thấp nhất — cache 60 giây. */
-  private async matching(query: TripSearchQuery): Promise<TripSearchItem[]> {
+  /**
+   * Mọi chuyến khớp (điểm đi, điểm đến, ngày, số khách), kèm giá thấp nhất — cache 60 giây. Phía phường / xã không ra
+   * chuyến nào → nới phía đó ra cả tỉnh của phường và đánh dấu `widenedToProvince`.
+   */
+  private async matching(query: TripSearchQuery): Promise<Matched> {
     const identity = {
-      from: query.fromProvinceId ?? `stop:${query.fromStopPointId}`,
-      to: query.toProvinceId ?? `stop:${query.toStopPointId}`,
+      from: query.fromProvinceId ?? (query.fromWardId ? `ward:${query.fromWardId}` : `stop:${query.fromStopPointId}`),
+      to: query.toProvinceId ?? (query.toWardId ? `ward:${query.toWardId}` : `stop:${query.toStopPointId}`),
       date: query.date,
       passengers: query.passengers,
     };
-    const key = `trip-search:v1:${createHash("sha256").update(JSON.stringify(identity)).digest("hex")}`;
+    const key = `trip-search:v2:${createHash("sha256").update(JSON.stringify(identity)).digest("hex")}`;
     const cached = await this.redis.get(key).catch((error: unknown) => {
       this.logger.warn({ event: "trip_search.cache_read_failed", error });
       return null;
     });
     if (cached) {
-      return JSON.parse(cached) as TripSearchItem[];
+      return JSON.parse(cached) as Matched;
     }
-    const items = await this.compute(query);
-    await this.redis.set(key, JSON.stringify(items), "EX", CACHE_TTL_SECONDS).catch((error: unknown) => {
+    const [from, to] = await Promise.all([
+      this.side(query.fromProvinceId, query.fromWardId, query.fromStopPointId),
+      this.side(query.toProvinceId, query.toWardId, query.toStopPointId),
+    ]);
+    let matched: Matched = { items: [], widenedToProvince: { from: false, to: false } };
+    if (from && to) {
+      matched.items = await this.compute(query, from.side, to.side);
+      const widen = { from: Boolean(from.wardProvinceId), to: Boolean(to.wardProvinceId) };
+      if (matched.items.length === 0 && (widen.from || widen.to)) {
+        const fromSide = widen.from ? { provinceId: from.wardProvinceId! } : from.side;
+        const toSide = widen.to ? { provinceId: to.wardProvinceId! } : to.side;
+        const widened = await this.compute(query, fromSide, toSide);
+        // Nới ra cả tỉnh vẫn không có chuyến → giữ kết quả rỗng, không báo "đang hiện chuyến trong tỉnh".
+        if (widened.length > 0) {
+          matched = { items: widened, widenedToProvince: widen };
+        }
+      }
+    }
+    await this.redis.set(key, JSON.stringify(matched), "EX", CACHE_TTL_SECONDS).catch((error: unknown) => {
       this.logger.warn({ event: "trip_search.cache_write_failed", error });
     });
-    return items;
+    return matched;
   }
 
-  private async compute(query: TripSearchQuery): Promise<TripSearchItem[]> {
-    const [from, to] = await Promise.all([
-      this.side(query.fromProvinceId, query.fromStopPointId),
-      this.side(query.toProvinceId, query.toStopPointId),
-    ]);
-    if (!from || !to) {
-      return [];
-    }
+  private async compute(query: TripSearchQuery, from: SearchSide, to: SearchSide): Promise<TripSearchItem[]> {
     const dayStart = new Date(Date.parse(`${query.date}T00:00:00Z`) - VN_OFFSET);
     const candidates = await searchTripCandidates(this.prisma, {
       from,
@@ -201,13 +218,24 @@ export class TripSearchService {
     return items;
   }
 
-  /** Tỉnh / thành giữ nguyên; địa danh → tọa độ + bán kính; địa danh không có / ngừng dùng → không khớp gì. */
-  private async side(provinceId: string | undefined, stopPointId: string | undefined): Promise<SearchSide | null> {
+  /**
+   * Tỉnh / thành giữ nguyên; phường / xã → khớp điểm trong phường (kèm tỉnh để nới); địa danh → tọa độ + bán kính.
+   * Phường / địa danh không có hoặc ngừng dùng → không khớp gì.
+   */
+  private async side(
+    provinceId: string | undefined,
+    wardId: string | undefined,
+    stopPointId: string | undefined,
+  ): Promise<{ side: SearchSide; wardProvinceId?: string } | null> {
     if (provinceId) {
-      return { provinceId };
+      return { side: { provinceId } };
+    }
+    if (wardId) {
+      const ward = await findWard(this.prisma, wardId);
+      return ward ? { side: { wardId }, wardProvinceId: ward.provinceId } : null;
     }
     const landmark = await findLandmark(this.prisma, stopPointId!);
-    return landmark ? { ...landmark, radiusMeters: LANDMARK_RADIUS_METERS } : null;
+    return landmark ? { side: { ...landmark, radiusMeters: LANDMARK_RADIUS_METERS } } : null;
   }
 }
 

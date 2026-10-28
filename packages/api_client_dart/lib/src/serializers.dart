@@ -244,6 +244,9 @@ import 'package:api_client_dart/src/model/fare_revision_list_response_dto_output
 import 'package:api_client_dart/src/model/fare_revision_list_response_dto_output_items_inner_after.dart';
 import 'package:api_client_dart/src/model/fare_revision_list_response_dto_output_items_inner_before.dart';
 import 'package:api_client_dart/src/model/fare_update_input_dto.dart';
+import 'package:api_client_dart/src/model/featured_operator_list_response_dto_output.dart';
+import 'package:api_client_dart/src/model/featured_operator_list_response_dto_output_items_inner.dart';
+import 'package:api_client_dart/src/model/featured_operator_list_response_dto_output_items_inner_routes_inner.dart';
 import 'package:api_client_dart/src/model/finance_booking_page_dto_output.dart';
 import 'package:api_client_dart/src/model/finance_booking_page_dto_output_items_inner.dart';
 import 'package:api_client_dart/src/model/finance_booking_page_dto_output_items_inner_trip.dart';
@@ -265,6 +268,9 @@ import 'package:api_client_dart/src/model/kyc_download_response_dto_output.dart'
 import 'package:api_client_dart/src/model/kyc_replace_input_dto.dart';
 import 'package:api_client_dart/src/model/kyc_upload_input_dto.dart';
 import 'package:api_client_dart/src/model/kyc_upload_response_dto_output.dart';
+import 'package:api_client_dart/src/model/logo_attach_input_dto.dart';
+import 'package:api_client_dart/src/model/logo_upload_input_dto.dart';
+import 'package:api_client_dart/src/model/logo_upload_response_dto_output.dart';
 import 'package:api_client_dart/src/model/loyalty_member_dto_output.dart';
 import 'package:api_client_dart/src/model/loyalty_redemption_input_dto.dart';
 import 'package:api_client_dart/src/model/loyalty_report_dto_output.dart';
@@ -354,6 +360,9 @@ import 'package:api_client_dart/src/model/permission_input_dto.dart';
 import 'package:api_client_dart/src/model/permission_page_dto_output.dart';
 import 'package:api_client_dart/src/model/permission_page_dto_output_items_inner.dart';
 import 'package:api_client_dart/src/model/pickup_window_input_dto.dart';
+import 'package:api_client_dart/src/model/place_suggestion_list_response_dto_output.dart';
+import 'package:api_client_dart/src/model/place_suggestion_list_response_dto_output_items_inner.dart';
+import 'package:api_client_dart/src/model/place_suggestion_list_response_dto_output_items_inner_target.dart';
 import 'package:api_client_dart/src/model/point_adjust_input_dto.dart';
 import 'package:api_client_dart/src/model/policy_cancel_dto.dart';
 import 'package:api_client_dart/src/model/policy_draft_create_dto.dart';
@@ -369,6 +378,8 @@ import 'package:api_client_dart/src/model/policy_overview_dto_output_versions_in
 import 'package:api_client_dart/src/model/policy_overview_dto_output_versions_inner_rules_any_of_tiers_inner.dart';
 import 'package:api_client_dart/src/model/policy_publish_dto.dart';
 import 'package:api_client_dart/src/model/policy_version_dto_output.dart';
+import 'package:api_client_dart/src/model/popular_route_list_response_dto_output.dart';
+import 'package:api_client_dart/src/model/popular_route_list_response_dto_output_items_inner.dart';
 import 'package:api_client_dart/src/model/postgres_health_response_dto_output.dart';
 import 'package:api_client_dart/src/model/preference_input_dto.dart';
 import 'package:api_client_dart/src/model/preferences_dto_output.dart';
@@ -465,7 +476,15 @@ import 'package:api_client_dart/src/model/ticket_detail_dto_output_dispute.dart'
 import 'package:api_client_dart/src/model/ticket_detail_dto_output_messages_inner.dart';
 import 'package:api_client_dart/src/model/ticket_detail_dto_output_messages_inner_attachments_inner.dart';
 import 'package:api_client_dart/src/model/ticket_detail_dto_output_payments_inner.dart';
+import 'package:api_client_dart/src/model/ticket_lookup_access_dto_output.dart';
+import 'package:api_client_dart/src/model/ticket_lookup_booking_list_dto_output.dart';
+import 'package:api_client_dart/src/model/ticket_lookup_booking_list_dto_output_items_inner.dart';
 import 'package:api_client_dart/src/model/ticket_lookup_input_dto.dart';
+import 'package:api_client_dart/src/model/ticket_lookup_otp_input_dto.dart';
+import 'package:api_client_dart/src/model/ticket_lookup_otp_response_dto_output.dart';
+import 'package:api_client_dart/src/model/ticket_lookup_session_dto_output.dart';
+import 'package:api_client_dart/src/model/ticket_lookup_session_input_dto.dart';
+import 'package:api_client_dart/src/model/ticket_lookup_verify_input_dto.dart';
 import 'package:api_client_dart/src/model/ticket_page_dto_output.dart';
 import 'package:api_client_dart/src/model/ticket_response_dto_output.dart';
 import 'package:api_client_dart/src/model/ticket_status_input_dto.dart';
@@ -514,6 +533,7 @@ import 'package:api_client_dart/src/model/trip_search_response_dto_output_items_
 import 'package:api_client_dart/src/model/trip_search_response_dto_output_items_inner_operator.dart';
 import 'package:api_client_dart/src/model/trip_search_response_dto_output_items_inner_pickup.dart';
 import 'package:api_client_dart/src/model/trip_search_response_dto_output_items_inner_vehicle_type.dart';
+import 'package:api_client_dart/src/model/trip_search_response_dto_output_widened_to_province.dart';
 import 'package:api_client_dart/src/model/trip_seat_status_input_dto.dart';
 import 'package:api_client_dart/src/model/trip_status_input_dto.dart';
 import 'package:api_client_dart/src/model/user_voucher_dto_output.dart';
@@ -768,6 +788,9 @@ part 'serializers.g.dart';
   FareRevisionListResponseDtoOutputItemsInnerAfter,
   FareRevisionListResponseDtoOutputItemsInnerBefore,
   FareUpdateInputDto,
+  FeaturedOperatorListResponseDtoOutput,
+  FeaturedOperatorListResponseDtoOutputItemsInner,
+  FeaturedOperatorListResponseDtoOutputItemsInnerRoutesInner,
   FinanceBookingPageDtoOutput,
   FinanceBookingPageDtoOutputItemsInner,
   FinanceBookingPageDtoOutputItemsInnerTrip,
@@ -789,6 +812,9 @@ part 'serializers.g.dart';
   KycReplaceInputDto,
   KycUploadInputDto,
   KycUploadResponseDtoOutput,
+  LogoAttachInputDto,
+  LogoUploadInputDto,
+  LogoUploadResponseDtoOutput,
   LoyaltyMemberDtoOutput,
   LoyaltyRedemptionInputDto,
   LoyaltyReportDtoOutput,
@@ -878,6 +904,9 @@ part 'serializers.g.dart';
   PermissionPageDtoOutput,
   PermissionPageDtoOutputItemsInner,
   PickupWindowInputDto,
+  PlaceSuggestionListResponseDtoOutput,
+  PlaceSuggestionListResponseDtoOutputItemsInner,
+  PlaceSuggestionListResponseDtoOutputItemsInnerTarget,
   PointAdjustInputDto,
   PolicyCancelDto,
   PolicyDraftCreateDto,
@@ -893,6 +922,8 @@ part 'serializers.g.dart';
   PolicyOverviewDtoOutputVersionsInnerRulesAnyOfTiersInner,
   PolicyPublishDto,
   PolicyVersionDtoOutput,
+  PopularRouteListResponseDtoOutput,
+  PopularRouteListResponseDtoOutputItemsInner,
   PostgresHealthResponseDtoOutput,
   PreferenceInputDto,
   PreferencesDtoOutput,
@@ -989,7 +1020,15 @@ part 'serializers.g.dart';
   TicketDetailDtoOutputMessagesInner,
   TicketDetailDtoOutputMessagesInnerAttachmentsInner,
   TicketDetailDtoOutputPaymentsInner,
+  TicketLookupAccessDtoOutput,
+  TicketLookupBookingListDtoOutput,
+  TicketLookupBookingListDtoOutputItemsInner,
   TicketLookupInputDto,
+  TicketLookupOtpInputDto,
+  TicketLookupOtpResponseDtoOutput,
+  TicketLookupSessionDtoOutput,
+  TicketLookupSessionInputDto,
+  TicketLookupVerifyInputDto,
   TicketPageDtoOutput,
   TicketResponseDtoOutput,
   TicketStatusInputDto,
@@ -1038,6 +1077,7 @@ part 'serializers.g.dart';
   TripSearchResponseDtoOutputItemsInnerOperator,
   TripSearchResponseDtoOutputItemsInnerPickup,
   TripSearchResponseDtoOutputItemsInnerVehicleType,
+  TripSearchResponseDtoOutputWidenedToProvince,
   TripSeatStatusInputDto,
   TripStatusInputDto,
   UserVoucherDtoOutput,
@@ -1145,6 +1185,14 @@ Serializers serializers = (_$serializers.toBuilder()
         () => ListBuilder<ArticlePageDtoOutputItemsInner>(),
       )
       ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(PlaceSuggestionListResponseDtoOutputItemsInner)]),
+        () => ListBuilder<PlaceSuggestionListResponseDtoOutputItemsInner>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(TicketLookupBookingListDtoOutputItemsInner)]),
+        () => ListBuilder<TicketLookupBookingListDtoOutputItemsInner>(),
+      )
+      ..addBuilderFactory(
         const FullType(BuiltList, [FullType(AdminVehicleTypeListDtoOutputItemsInner)]),
         () => ListBuilder<AdminVehicleTypeListDtoOutputItemsInner>(),
       )
@@ -1163,6 +1211,10 @@ Serializers serializers = (_$serializers.toBuilder()
       ..addBuilderFactory(
         const FullType(BuiltList, [FullType(TripResponseDtoOutputSeatsInner)]),
         () => ListBuilder<TripResponseDtoOutputSeatsInner>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(PopularRouteListResponseDtoOutputItemsInner)]),
+        () => ListBuilder<PopularRouteListResponseDtoOutputItemsInner>(),
       )
       ..addBuilderFactory(
         const FullType(BuiltList, [FullType(CustomerTicketInputDtoAttachmentsInner)]),
@@ -1215,6 +1267,10 @@ Serializers serializers = (_$serializers.toBuilder()
       ..addBuilderFactory(
         const FullType(BuiltList, [FullType(PermissionPageDtoOutputItemsInner)]),
         () => ListBuilder<PermissionPageDtoOutputItemsInner>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(FeaturedOperatorListResponseDtoOutputItemsInner)]),
+        () => ListBuilder<FeaturedOperatorListResponseDtoOutputItemsInner>(),
       )
       ..addBuilderFactory(
         const FullType(BuiltList, [FullType(PassengerLoyaltyTransactionsDtoOutputItemsInner)]),
@@ -1311,6 +1367,10 @@ Serializers serializers = (_$serializers.toBuilder()
       ..addBuilderFactory(
         const FullType(BuiltList, [FullType(VehicleListResponseDtoOutputItemsInner)]),
         () => ListBuilder<VehicleListResponseDtoOutputItemsInner>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(FeaturedOperatorListResponseDtoOutputItemsInnerRoutesInner)]),
+        () => ListBuilder<FeaturedOperatorListResponseDtoOutputItemsInnerRoutesInner>(),
       )
       ..addBuilderFactory(
         const FullType(BuiltList, [FullType(SeatMapInputDtoLayoutDecksInner)]),

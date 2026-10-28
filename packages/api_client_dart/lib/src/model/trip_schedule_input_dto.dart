@@ -16,7 +16,6 @@ part 'trip_schedule_input_dto.g.dart';
 /// * [routeId] 
 /// * [vehicleId] 
 /// * [departureTime] 
-/// * [durationMinutes] 
 /// * [daysOfWeek] 
 /// * [startDate] 
 /// * [endDate] 
@@ -32,9 +31,6 @@ abstract class TripScheduleInputDto implements Built<TripScheduleInputDto, TripS
 
   @BuiltValueField(wireName: r'departureTime')
   String get departureTime;
-
-  @BuiltValueField(wireName: r'durationMinutes')
-  int get durationMinutes;
 
   @BuiltValueField(wireName: r'daysOfWeek')
   BuiltList<int> get daysOfWeek;
@@ -88,11 +84,6 @@ class _$TripScheduleInputDtoSerializer implements PrimitiveSerializer<TripSchedu
     yield serializers.serialize(
       object.departureTime,
       specifiedType: const FullType(String),
-    );
-    yield r'durationMinutes';
-    yield serializers.serialize(
-      object.durationMinutes,
-      specifiedType: const FullType(int),
     );
     yield r'daysOfWeek';
     yield serializers.serialize(
@@ -163,13 +154,6 @@ class _$TripScheduleInputDtoSerializer implements PrimitiveSerializer<TripSchedu
             specifiedType: const FullType(String),
           ) as String;
           result.departureTime = valueDes;
-          break;
-        case r'durationMinutes':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(int),
-          ) as int;
-          result.durationMinutes = valueDes;
           break;
         case r'daysOfWeek':
           final valueDes = serializers.deserialize(

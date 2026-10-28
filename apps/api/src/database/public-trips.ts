@@ -6,8 +6,11 @@ import type { SeatType } from "./prisma.types";
 // nhà xe nên phải chạy ở ngữ cảnh `system` (RLS `tenant_isolation`) — đặt ở `database/` như `article-views.ts`. Chỉ đọc,
 // và luôn tự lọc đúng điều kiện hiển thị: chuyến `OPEN_FOR_SALE`, nhà xe `ACTIVE`, chưa qua giờ ngừng bán online.
 
-/** Một phía của truy vấn tìm: tỉnh / thành, hoặc tọa độ của một địa danh dùng chung + bán kính. */
-export type SearchSide = { provinceId: string } | { latitude: number; longitude: number; radiusMeters: number };
+/** Một phía của truy vấn tìm: tỉnh / thành, phường / xã, hoặc tọa độ của một địa danh dùng chung + bán kính. */
+export type SearchSide =
+  | { provinceId: string }
+  | { wardId: string }
+  | { latitude: number; longitude: number; radiusMeters: number };
 
 export type SearchCandidate = {
   tripId: string;
@@ -49,10 +52,23 @@ export async function findLandmark(
   );
 }
 
+/** Tỉnh của một phường / xã đang dùng (để nới tìm ra cả tỉnh khi phường không có chuyến); `null` = không có / ngừng dùng. */
+export async function findWard(
+  prisma: Pick<PrismaService, "withSystem">,
+  wardId: string,
+): Promise<{ provinceId: string } | null> {
+  return prisma.withSystem((tx) =>
+    tx.ward.findFirst({ where: { id: wardId, status: "ACTIVE", province: { status: "ACTIVE" } }, select: { provinceId: true } }),
+  );
+}
+
 // Khoảng cách đường tròn lớn (m) giữa điểm dừng `s` và tọa độ cho trước — không gọi dịch vụ định tuyến lúc tìm (BR-80).
 function sideMatch(side: SearchSide): Prisma.Sql {
   if ("provinceId" in side) {
     return Prisma.sql`s.province_id = ${side.provinceId}`;
+  }
+  if ("wardId" in side) {
+    return Prisma.sql`s.ward_id = ${side.wardId}`;
   }
   return Prisma.sql`6371000 * 2 * asin(sqrt(
       power(sin(radians(s.lat - ${side.latitude}) / 2), 2)
@@ -82,7 +98,7 @@ export async function searchTripCandidates(
       s AS (
         SELECT ts.trip_id, ts.sequence, ts.planned_at, ts.allow_pickup, ts.allow_dropoff,
                COALESCE(c.name, p.name) AS name, COALESCE(c.address, p.address) AS address,
-               COALESCE(c.province_id, p.province_id) AS province_id,
+               COALESCE(c.province_id, p.province_id) AS province_id, COALESCE(c.ward_id, p.ward_id) AS ward_id,
                COALESCE(c.latitude, p.latitude) AS lat, COALESCE(c.longitude, p.longitude) AS lng
         FROM trip_stops ts
         JOIN open_trips ot ON ot.id = ts.trip_id

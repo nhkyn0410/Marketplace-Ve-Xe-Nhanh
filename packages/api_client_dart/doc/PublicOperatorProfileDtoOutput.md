@@ -11,6 +11,7 @@ Name | Type | Description | Notes
 **operatorId** | **String** |  | 
 **operatorSlug** | **String** |  | 
 **displayName** | **String** |  | 
+**logoUrl** | **String** |  | 
 **description** | **String** |  | 
 **hotline** | **String** |  | 
 **publicEmail** | **String** |  | 

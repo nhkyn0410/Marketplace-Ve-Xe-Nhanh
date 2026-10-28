@@ -23,12 +23,11 @@ describe("trip-change (TRN-008)", () => {
     } as Parameters<typeof toChangeInput>[0];
     const input = toChangeInput(
       trip,
-      { departureAt: "2026-10-16T23:00:00+07:00", arrivalAt: "2026-10-17T06:00:00+07:00", vehicleId: "v2", reason: "  Xe cũ hỏng  " },
+      { departureAt: "2026-10-16T23:00:00+07:00", vehicleId: "v2", reason: "  Xe cũ hỏng  " },
       new Map([[2, { catalogStopPointId: null, stopPointId: "own-1", name: "Văn phòng Đà Lạt" }]])
     );
     expect(input).toEqual({
       departureAt: "2026-10-16T23:00:00+07:00",
-      arrivalAt: "2026-10-17T06:00:00+07:00",
       stopTimes: null,
       vehicleId: "v2",
       stops: [

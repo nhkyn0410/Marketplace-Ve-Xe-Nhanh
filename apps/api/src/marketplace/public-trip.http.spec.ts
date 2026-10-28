@@ -12,7 +12,7 @@ import { TripSearchService } from "./trip-search.service";
 /** Route công khai `/trips/search`, `/trips/{tripId}` (TASK-TRN-004): không cần đăng nhập; nghiệp vụ ở `.int.spec.ts`. */
 describe("Tìm chuyến công khai — HTTP", () => {
   const service = {
-    search: vi.fn(async () => ({ items: [], total: 0, page: 1, limit: 20, facets: { operators: [], priceMin: null, priceMax: null } })),
+    search: vi.fn(async () => ({ items: [], total: 0, page: 1, limit: 20, facets: { operators: [], priceMin: null, priceMax: null }, widenedToProvince: { from: false, to: false } })),
     getTrip: vi.fn(async () => {
       throw new Error("không gọi");
     }),
@@ -57,6 +57,8 @@ describe("Tìm chuyến công khai — HTTP", () => {
     [`date=2031-05-10&toProvinceId=${province}`],
     [`fromProvinceId=${province}&fromStopPointId=${randomUUID()}&toProvinceId=${province}&date=2031-05-10`],
     [`fromProvinceId=${province}&toProvinceId=${province}`],
+    [`fromProvinceId=${province}&fromWardId=${randomUUID()}&toProvinceId=${province}&date=2031-05-10`],
+    [`fromProvinceId=${province}&toProvinceId=${province}&toWardId=${randomUUID()}&date=2031-05-10`],
     [`fromProvinceId=${province}&toProvinceId=${province}&date=10/05/2031`],
     [`fromProvinceId=${province}&toProvinceId=${province}&date=2031-05-10&passengers=11`],
     [`fromProvinceId=${province}&toProvinceId=${province}&date=2031-05-10&priceMin=500&priceMax=100`],

@@ -58,12 +58,21 @@ export function PartnerOperatorsSection({
             className="group flex flex-col justify-between rounded-2xl border border-slate-200 bg-white p-4 shadow-2xs transition hover:border-[#00506a] hover:shadow-md"
           >
             <div>
-              <div
-                className="flex h-10 w-10 items-center justify-center rounded-xl text-xs font-extrabold text-white"
-                style={{ backgroundColor: operator.accentColor ?? "#00506a" }}
-              >
-                {operator.shortCode}
-              </div>
+              {operator.logoUrl ? (
+                <img
+                  src={operator.logoUrl}
+                  alt={`Logo ${operator.name}`}
+                  loading="lazy"
+                  className="h-10 w-10 rounded-xl border border-slate-200 bg-white object-contain"
+                />
+              ) : (
+                <div
+                  className="flex h-10 w-10 items-center justify-center rounded-xl text-xs font-extrabold text-white"
+                  style={{ backgroundColor: operator.accentColor ?? "#00506a" }}
+                >
+                  {operator.shortCode}
+                </div>
+              )}
 
               <h4 className="mt-3.5 text-xs font-bold text-[#0f172a] group-hover:text-[#00506a]">
                 {operator.name}

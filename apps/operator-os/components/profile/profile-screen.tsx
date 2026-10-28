@@ -1,43 +1,88 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle
+} from "@vexenhanh/ui/components/alert-dialog";
 import { Badge } from "@vexenhanh/ui/components/badge";
 import { Button } from "@vexenhanh/ui/components/button";
 import { DemoDataNotice } from "@vexenhanh/ui/components/demo-data-notice";
 import { Skeleton } from "@vexenhanh/ui/components/skeleton";
-import { CircleAlert, CircleCheck, Clock, ExternalLink, Eye, Info, LoaderCircle, Pencil, RefreshCw, Upload } from "lucide-react";
+import {
+  CircleAlert,
+  CircleCheck,
+  Clock,
+  ExternalLink,
+  Eye,
+  Info,
+  LoaderCircle,
+  Pencil,
+  RefreshCw,
+  Smartphone,
+  Trash2,
+  Upload
+} from "lucide-react";
 import { useRef, useState, type ReactNode } from "react";
 
-import { kycDocumentUrl, type KycDocumentType, type OperatorProfile, getProfile, replaceKycDocument } from "../../lib/profile/profile-api";
-import { describeProfileError, formatDate, initialsOf } from "../../lib/profile/profile-format";
+import {
+  kycDocumentUrl,
+  type KycDocumentType,
+  type OperatorProfile,
+  getProfile,
+  removeLogo,
+  replaceKycDocument,
+  uploadLogo
+} from "../../lib/profile/profile-api";
+import { describeProfileError, formatDate } from "../../lib/profile/profile-format";
+import { operatorPageUrl } from "../../lib/profile/public-page";
 import { DOCUMENT_TYPES, documentFileProblem } from "../../lib/register/application";
+import { compressImage } from "../../lib/vehicle/image-compress";
+import { fileProblem } from "../../lib/vehicle/vehicle-images";
 import { BUTTON, ListStatePanel } from "../list-parts";
 import { PageHeader } from "../page-header";
 import { TABLE, TABLE_CELL, TABLE_HEAD_CELL, TABLE_HEAD_ROW } from "../stop-point/list-controls";
+import { AppPreviewDialog, PUBLIC_PROFILE_QUERY_KEY } from "./app-preview-dialog";
+import { OperatorLogo } from "./operator-logo";
 import { BankChangeDialog, ProfileEditDialog } from "./profile-dialogs";
 
 const CARD = "flex flex-col gap-5 rounded-xl border bg-card p-6";
 const CARD_TITLE = "text-lg leading-7 font-semibold text-vxn-ink";
 const HELPER = "text-sm leading-5 text-muted-foreground";
 const QUERY_KEY = ["operator-profile"];
+/** Logo thu nhỏ còn cạnh dài 512 px trước khi tải lên — đủ nét cho mọi nơi hiện logo. */
+const LOGO_MAX_EDGE = 512;
+/** Trần của API; ảnh 512 px hầu như luôn dưới mức này. */
+const LOGO_MAX_BYTES = 2 * 1024 * 1024;
 
 type Notice = { tone: "success" | "error"; text: string };
 
 /**
  * Màn Hồ sơ & KYC của chủ nhà xe (Figma 1667:27240; TASK-OPR-001b, UC-11, FR-OPR-02..05): hồ sơ doanh nghiệp (sửa
- * thông tin công khai), giấy tờ KYC (xem / tải bản mới, kho riêng tư), trạng thái hoạt động, tài khoản nhận tiền
- * (đổi = gửi yêu cầu chờ Admin xác minh). Trang công khai chờ Marketplace nên nút mở trang tắt.
+ * thông tin công khai, đổi / gỡ logo), giấy tờ KYC (xem / tải bản mới, kho riêng tư), trạng thái hoạt động, tài khoản
+ * nhận tiền (đổi = gửi yêu cầu chờ Admin xác minh), trang công khai (mở trang nhà xe trên web khách hàng, xem trước màn
+ * nhà xe trên ứng dụng — TASK-MKT-001).
  */
 export function ProfileScreen() {
   const queryClient = useQueryClient();
   const profile = useQuery({ queryKey: QUERY_KEY, queryFn: getProfile });
   const [editing, setEditing] = useState(false);
   const [changingBank, setChangingBank] = useState(false);
+  const [previewing, setPreviewing] = useState(false);
   const [notice, setNotice] = useState<Notice | null>(null);
   const saved = (next: OperatorProfile, text: string) => {
     queryClient.setQueryData(QUERY_KEY, next);
+    // Khung xem trước đọc hồ sơ công khai: làm mới sau khi đổi thông tin / logo.
+    void queryClient.invalidateQueries({ queryKey: [PUBLIC_PROFILE_QUERY_KEY] });
     setNotice({ tone: "success", text });
   };
+  const failed = (text: string) => setNotice({ tone: "error", text });
 
   if (!profile.data) {
     return (
@@ -88,19 +133,17 @@ export function ProfileScreen() {
 
       <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
         <div className="flex min-w-0 flex-col gap-6">
-          <BusinessCard profile={data} onEdit={() => setEditing(true)} />
-          <DocumentsCard
-            profile={data}
-            onSaved={(next, text) => saved(next, text)}
-            onError={(text) => setNotice({ tone: "error", text })}
-          />
+          <BusinessCard profile={data} onEdit={() => setEditing(true)} onSaved={saved} onError={failed} />
+          <DocumentsCard profile={data} onSaved={(next, text) => saved(next, text)} onError={failed} />
         </div>
         <div className="flex min-w-0 flex-col gap-6">
           <StatusCard profile={data} />
           <BankCard profile={data} onChange={() => setChangingBank(true)} />
-          <PublicPageCard />
+          <PublicPageCard profile={data} onPreview={() => setPreviewing(true)} />
         </div>
       </div>
+
+      <AppPreviewDialog operatorId={data.id} open={previewing} onClose={() => setPreviewing(false)} />
 
       <ProfileEditDialog
         profile={data}
@@ -129,7 +172,17 @@ function Field({ label, children, wide = false }: { label: string; children: Rea
 
 const missing = <span className="font-normal text-muted-foreground">Chưa có</span>;
 
-function BusinessCard({ profile, onEdit }: { profile: OperatorProfile; onEdit: () => void }) {
+function BusinessCard({
+  profile,
+  onEdit,
+  onSaved,
+  onError
+}: {
+  profile: OperatorProfile;
+  onEdit: () => void;
+  onSaved: (profile: OperatorProfile, text: string) => void;
+  onError: (text: string) => void;
+}) {
   return (
     <section aria-labelledby="business-heading" className={CARD}>
       <div className="flex flex-wrap items-start gap-3">
@@ -145,12 +198,7 @@ function BusinessCard({ profile, onEdit }: { profile: OperatorProfile; onEdit: (
         </Button>
       </div>
       <div className="flex flex-wrap gap-5">
-        <span
-          aria-hidden
-          className="flex size-[88px] shrink-0 items-center justify-center rounded-2xl bg-accent text-2xl font-semibold text-vxn-teal-700"
-        >
-          {initialsOf(profile.displayName)}
-        </span>
+        <LogoField profile={profile} onSaved={onSaved} onError={onError} />
         <dl className="grid min-w-[240px] flex-1 gap-x-6 gap-y-4 sm:grid-cols-2">
           <Field label="Tên nhà xe">{profile.displayName}</Field>
           <Field label="Mã nhà xe">{profile.slug}</Field>
@@ -167,6 +215,111 @@ function BusinessCard({ profile, onEdit }: { profile: OperatorProfile; onEdit: (
         </Field>
       </dl>
     </section>
+  );
+}
+
+/** Lỗi đọc / thu nhỏ ảnh ngay trong trình duyệt — báo nguyên văn, không qua thông báo lỗi máy chủ. */
+class LogoFileError extends Error {}
+
+/**
+ * Logo nhà xe (FR-OPR-02): tải / đổi / gỡ. Ảnh được thu nhỏ còn cạnh dài 512 px và xuất PNG trong trình duyệt (giữ nền
+ * trong suốt, bỏ EXIF) rồi mới tải lên kho công khai; gỡ logo cần xác nhận.
+ */
+function LogoField({
+  profile,
+  onSaved,
+  onError
+}: {
+  profile: OperatorProfile;
+  onSaved: (profile: OperatorProfile, text: string) => void;
+  onError: (text: string) => void;
+}) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [confirmRemove, setConfirmRemove] = useState(false);
+  const upload = useMutation({
+    mutationFn: async (file: File) => {
+      let image: Blob;
+      try {
+        image = await compressImage(file, { maxEdge: LOGO_MAX_EDGE, type: "image/png" });
+      } catch {
+        throw new LogoFileError("Không đọc được tệp ảnh. Hãy chọn ảnh JPEG, PNG hoặc WebP khác.");
+      }
+      if (image.size > LOGO_MAX_BYTES) {
+        throw new LogoFileError("Logo vượt quá 2 MB sau khi thu nhỏ. Hãy chọn ảnh khác.");
+      }
+      return uploadLogo(image);
+    },
+    onSuccess: (next) => onSaved(next, "Đã cập nhật logo nhà xe."),
+    onError: (error) => onError(error instanceof LogoFileError ? error.message : describeProfileError(error).message)
+  });
+  const remove = useMutation({
+    mutationFn: removeLogo,
+    onSuccess: (next) => onSaved(next, "Đã gỡ logo nhà xe."),
+    onError: (error) => onError(describeProfileError(error).message)
+  });
+  const busy = upload.isPending || remove.isPending;
+
+  return (
+    <div className="relative flex shrink-0 flex-col items-start gap-1.5">
+      <OperatorLogo name={profile.displayName} logoUrl={profile.logoUrl} className="size-[88px] rounded-2xl text-2xl" />
+      <input
+        ref={inputRef}
+        type="file"
+        aria-label="Chọn ảnh logo"
+        accept="image/jpeg,image/png,image/webp"
+        tabIndex={-1}
+        className="sr-only"
+        onChange={(event) => {
+          const file = event.target.files?.[0];
+          event.target.value = "";
+          if (!file) {
+            return;
+          }
+          const problem = fileProblem(file);
+          if (problem) {
+            onError(problem);
+            return;
+          }
+          upload.mutate(file);
+        }}
+      />
+      <Button
+        type="button"
+        variant="ghost"
+        className="h-8 px-2 font-semibold"
+        disabled={busy}
+        onClick={() => inputRef.current?.click()}
+      >
+        {upload.isPending ? <LoaderCircle className="size-4 animate-spin" /> : <Upload className="size-4" />}
+        {profile.logoUrl ? "Đổi logo" : "Tải logo"}
+      </Button>
+      {profile.logoUrl && (
+        <Button
+          type="button"
+          variant="ghost"
+          className="h-8 px-2 font-semibold text-error-600 hover:text-error-700"
+          disabled={busy}
+          onClick={() => setConfirmRemove(true)}
+        >
+          {remove.isPending ? <LoaderCircle className="size-4 animate-spin" /> : <Trash2 className="size-4" />}
+          Gỡ logo
+        </Button>
+      )}
+      <AlertDialog open={confirmRemove} onOpenChange={setConfirmRemove}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Gỡ logo nhà xe?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Trang nhà xe và thẻ nhà xe sẽ hiện chữ viết tắt cho tới khi bạn tải logo mới. Ảnh logo hiện tại bị xóa.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Hủy</AlertDialogCancel>
+            <AlertDialogAction onClick={() => remove.mutate()}>Gỡ logo</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
   );
 }
 
@@ -420,7 +573,24 @@ function BankCard({ profile, onChange }: { profile: OperatorProfile; onChange: (
   );
 }
 
-function PublicPageCard() {
+/**
+ * Trang công khai (TASK-MKT-001): mở trang `/operators/{id}` trên web khách hàng ở tab mới, hoặc xem trước màn nhà xe
+ * trên ứng dụng. Nhà xe tạm khóa thì trang bị ẩn với hành khách nên cả hai nút tắt.
+ */
+function PublicPageCard({ profile, onPreview }: { profile: OperatorProfile; onPreview: () => void }) {
+  const active = profile.status === "ACTIVE";
+  const url = operatorPageUrl(profile.id);
+  const note = !active
+    ? "Nhà xe đang tạm khóa nên trang công khai đang ẩn với hành khách."
+    : url
+      ? null
+      : "Chưa cấu hình địa chỉ web khách hàng (NEXT_PUBLIC_MARKETPLACE_URL) nên chưa mở được trang.";
+  const openLabel = (
+    <>
+      <ExternalLink className="size-[18px]" />
+      Mở trang nhà xe
+    </>
+  );
   return (
     <section aria-labelledby="public-heading" className={CARD}>
       <div className="flex flex-col gap-1">
@@ -430,11 +600,30 @@ function PublicPageCard() {
         <p className={HELPER}>Hành khách xem hồ sơ, tuyến tiêu biểu và đánh giá của nhà xe tại đây.</p>
       </div>
       <div className="flex flex-col gap-2">
-        <Button type="button" variant="outline" className={`${BUTTON} w-full bg-card`} disabled>
-          <ExternalLink className="size-[18px]" />
-          Mở trang nhà xe
+        {active && url ? (
+          <Button asChild variant="outline" className={`${BUTTON} w-full bg-card`}>
+            <a href={url} target="_blank" rel="noopener noreferrer">
+              {openLabel}
+            </a>
+          </Button>
+        ) : (
+          <Button type="button" variant="outline" className={`${BUTTON} w-full bg-card`} disabled>
+            {openLabel}
+          </Button>
+        )}
+        <Button type="button" variant="outline" className={`${BUTTON} w-full bg-card`} disabled={!active} onClick={onPreview}>
+          <Smartphone className="size-[18px]" />
+          Xem trước trên ứng dụng
         </Button>
-        <p className="text-xs leading-[18px] text-muted-foreground">Trang công khai mở khi trang đặt vé cho hành khách ra mắt.</p>
+        {note ? (
+          <p className="text-xs leading-[18px] text-muted-foreground">{note}</p>
+        ) : (
+          url && (
+            <p className="truncate text-xs leading-[18px] text-muted-foreground" title={url}>
+              {url.replace(/^https?:\/\//, "")}
+            </p>
+          )
+        )}
       </div>
     </section>
   );

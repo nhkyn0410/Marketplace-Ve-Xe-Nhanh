@@ -119,7 +119,7 @@ describe.skipIf(!ready && !requireDb)("Khiếu nại, tranh chấp, đánh giá 
     const departureAt = new Date(Date.now() + hoursAhead * HOUR);
     const trip = await trips.create(
       ownerAuthz,
-      TripInputSchema.parse({ routeId, vehicleId: vehicle.id, departureAt: departureAt.toISOString(), arrivalAt: new Date(departureAt.getTime() + 6 * HOUR).toISOString(), stopTimes: null, onlineSaleCutoffMinutes: 60, note: null }),
+      TripInputSchema.parse({ routeId, vehicleId: vehicle.id, departureAt: departureAt.toISOString(), stopTimes: null, onlineSaleCutoffMinutes: 60, note: null }),
     );
     await prisma.withSystem((tx) => tx.trip.update({ where: { id: trip.id }, data: { status: "OPEN_FOR_SALE" } }));
     const hold = await holds.create(user, undefined, SeatHoldInputSchema.parse({ tripId: trip.id, seatCodes, pickupSequence: 1, dropoffSequence: 3 }));
@@ -221,7 +221,11 @@ describe.skipIf(!ready && !requireDb)("Khiếu nại, tranh chấp, đánh giá 
       await tx.supportTicket.deleteMany({ where: { operatorId } });
       await tx.notificationDelivery.deleteMany({ where: { operatorId } });
       await tx.notification.deleteMany({ where: { operatorId } });
+      // `generatePayouts` ở payout.int.spec quét mọi nhà xe: chạy song song có thể tạo kỳ chi trả từ bút toán của file này.
+      await tx.payoutItem.deleteMany({ where: { operatorId } });
       await tx.escrowLedger.deleteMany({ where: { operatorId } });
+      await tx.payoutStatusHistory.deleteMany({ where: { operatorId } });
+      await tx.payout.deleteMany({ where: { operatorId } });
       await tx.ticketStatusHistory.deleteMany({ where: { operatorId } });
       await tx.ticket.deleteMany({ where: { operatorId } });
       await tx.refundStatusHistory.deleteMany({ where: { operatorId } });
@@ -418,7 +422,7 @@ describe.skipIf(!ready && !requireDb)("Khiếu nại, tranh chấp, đánh giá 
 
     const list = await reviews.operatorList(operatorAuthz, { limit: 20 });
     expect([list.items.map((item) => item.reviewId), list.average, list.validCount]).toEqual([[review.reviewId], 2, 1]);
-    const publicProfile = await loadPublicOperatorProfile(prisma, operatorId, { limit: 20 }, new Date());
+    const publicProfile = await loadPublicOperatorProfile(prisma, operatorId, { limit: 20 }, new Date(), (key) => key);
     expect(publicProfile?.scorecard).toMatchObject({ averageRating: 2, reviewCount: 1 });
     expect(publicProfile?.reviews.map((item) => item.reviewId)).toEqual([review.reviewId]);
     expect(publicProfile).not.toHaveProperty("taxCode");
@@ -438,7 +442,7 @@ describe.skipIf(!ready && !requireDb)("Khiếu nại, tranh chấp, đánh giá 
     expect(events.at(-1)).toMatchObject({ action: "review.moderate", targetId: review.reviewId, before: { status: "VISIBLE" }, after: { status: "HIDDEN" } });
     const afterHide = await reviews.operatorList(operatorAuthz, { limit: 20 });
     expect([afterHide.items, afterHide.average, afterHide.validCount]).toEqual([[], null, 0]);
-    const hiddenPublic = await loadPublicOperatorProfile(prisma, operatorId, { limit: 20 }, new Date());
+    const hiddenPublic = await loadPublicOperatorProfile(prisma, operatorId, { limit: 20 }, new Date(), (key) => key);
     expect(hiddenPublic?.scorecard).toMatchObject({ averageRating: null, reviewCount: 0 });
     expect(hiddenPublic?.reviews).toEqual([]);
     expect((await reviews.adminList(moderationAuthz, { status: "attention", operatorId, limit: 20 })).items).toEqual([]);

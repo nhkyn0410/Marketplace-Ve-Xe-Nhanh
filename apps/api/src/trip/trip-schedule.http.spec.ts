@@ -108,7 +108,6 @@ describe("Trip schedule routes — HTTP", () => {
     routeId: randomUUID(),
     vehicleId: null,
     departureTime: "06:00",
-    durationMinutes: 330,
     daysOfWeek: [5, 1, 3],
     startDate: today,
     endDate: today,
@@ -150,7 +149,7 @@ describe("Trip schedule routes — HTTP", () => {
 
   it.each([
     ["POST", "/trip-schedules", { ...scheduleBody, departureTime: "6:00" }],
-    ["POST", "/trip-schedules", { ...scheduleBody, durationMinutes: 0 }],
+    ["POST", "/trip-schedules", { ...scheduleBody, departureTime: "24:00" }],
     ["POST", "/trip-schedules", { ...scheduleBody, daysOfWeek: [] }],
     ["POST", "/trip-schedules", { ...scheduleBody, daysOfWeek: [0] }],
     ["POST", "/trip-schedules", { ...scheduleBody, endDate: "2020-01-01" }],
