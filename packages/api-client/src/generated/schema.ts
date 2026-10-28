@@ -6326,6 +6326,7 @@ export interface components {
                 allowDropoff: boolean;
                 distanceMetersFromPrevious: number | null;
                 durationSecondsFromPrevious: number | null;
+                measuredDurationSecondsFromPrevious: number | null;
             }[];
         };
         RouteInputDto: {
@@ -6339,6 +6340,7 @@ export interface components {
                 note: string | null;
                 allowPickup: boolean;
                 allowDropoff: boolean;
+                durationMinutesFromPrevious?: number | null;
             }[];
         };
         TripListResponseDto_Output: {
@@ -6370,8 +6372,6 @@ export interface components {
             vehicleId: string | null;
             /** Format: date-time */
             departureAt: string;
-            /** Format: date-time */
-            arrivalAt: string;
             stopTimes: string[] | null;
             onlineSaleCutoffMinutes: number;
             note: string | null;
@@ -6418,8 +6418,6 @@ export interface components {
         TripChangeInputDto: {
             /** Format: date-time */
             departureAt: string;
-            /** Format: date-time */
-            arrivalAt: string;
             stopTimes: string[] | null;
             /** Format: uuid */
             vehicleId: string;
@@ -6496,7 +6494,6 @@ export interface components {
             routeId: string;
             vehicleId: string | null;
             departureTime: string;
-            durationMinutes: number;
             daysOfWeek: number[];
             /** Format: date */
             startDate: string;

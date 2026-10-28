@@ -10,15 +10,17 @@ export const CHANGE_REASON_MAX = 500;
 /** Điểm thay thế cho một thứ tự dừng (đã chọn trong bảng chọn điểm). */
 export type StopReplacement = { catalogStopPointId: string | null; stopPointId: string | null; name: string };
 
-/** Body đổi chuyến từ giá trị đang nhập: giờ (ISO có múi giờ), xe, điểm từng thứ tự (thay hoặc giữ), lý do. */
+/**
+ * Body đổi chuyến từ giá trị đang nhập: giờ đi (ISO có múi giờ), xe, điểm từng thứ tự (thay hoặc giữ), lý do. Giờ đến máy
+ * chủ tính theo tuyến (chờ duyệt 27/10/2026).
+ */
 export function toChangeInput(
   trip: Pick<Trip, "stops">,
-  values: { departureAt: string; arrivalAt: string; vehicleId: string; reason: string },
+  values: { departureAt: string; vehicleId: string; reason: string },
   replacements: ReadonlyMap<number, StopReplacement>
 ): TripChangeInput {
   return {
     departureAt: values.departureAt,
-    arrivalAt: values.arrivalAt,
     stopTimes: null,
     vehicleId: values.vehicleId,
     stops: trip.stops.map((stop) => {
@@ -108,7 +110,7 @@ export function describeTripChangeError(error: unknown): string {
         return "Máy chủ đang bận nên chuyến chưa đổi. Vui lòng thử lại.";
     }
     if (error.status === 400) {
-      return "Thông tin chưa hợp lệ: kiểm tra giờ khởi hành ở tương lai, giờ đến sau giờ đi và lý do 3–500 ký tự.";
+      return "Thông tin chưa hợp lệ: kiểm tra giờ khởi hành ở tương lai và lý do 3–500 ký tự.";
     }
   }
   return "Chưa lưu được thay đổi. Vui lòng kiểm tra kết nối và thử lại.";

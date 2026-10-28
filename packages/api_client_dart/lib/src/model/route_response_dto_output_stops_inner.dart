@@ -26,6 +26,7 @@ part 'route_response_dto_output_stops_inner.g.dart';
 /// * [allowDropoff] 
 /// * [distanceMetersFromPrevious] 
 /// * [durationSecondsFromPrevious] 
+/// * [measuredDurationSecondsFromPrevious] 
 @BuiltValue()
 abstract class RouteResponseDtoOutputStopsInner implements Built<RouteResponseDtoOutputStopsInner, RouteResponseDtoOutputStopsInnerBuilder> {
   @BuiltValueField(wireName: r'sequence')
@@ -71,6 +72,9 @@ abstract class RouteResponseDtoOutputStopsInner implements Built<RouteResponseDt
 
   @BuiltValueField(wireName: r'durationSecondsFromPrevious')
   int? get durationSecondsFromPrevious;
+
+  @BuiltValueField(wireName: r'measuredDurationSecondsFromPrevious')
+  int? get measuredDurationSecondsFromPrevious;
 
   RouteResponseDtoOutputStopsInner._();
 
@@ -163,6 +167,11 @@ class _$RouteResponseDtoOutputStopsInnerSerializer implements PrimitiveSerialize
     yield r'durationSecondsFromPrevious';
     yield object.durationSecondsFromPrevious == null ? null : serializers.serialize(
       object.durationSecondsFromPrevious,
+      specifiedType: const FullType.nullable(int),
+    );
+    yield r'measuredDurationSecondsFromPrevious';
+    yield object.measuredDurationSecondsFromPrevious == null ? null : serializers.serialize(
+      object.measuredDurationSecondsFromPrevious,
       specifiedType: const FullType.nullable(int),
     );
   }
@@ -290,6 +299,14 @@ class _$RouteResponseDtoOutputStopsInnerSerializer implements PrimitiveSerialize
           ) as int?;
           if (valueDes == null) continue;
           result.durationSecondsFromPrevious = valueDes;
+          break;
+        case r'measuredDurationSecondsFromPrevious':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType.nullable(int),
+          ) as int?;
+          if (valueDes == null) continue;
+          result.measuredDurationSecondsFromPrevious = valueDes;
           break;
         default:
           unhandled.add(key);

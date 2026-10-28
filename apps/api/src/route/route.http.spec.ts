@@ -213,6 +213,7 @@ describe("Route / StopPoint / Proposal routes — HTTP", () => {
       allowDropoff: false,
       distanceMetersFromPrevious: null,
       durationSecondsFromPrevious: null,
+      measuredDurationSecondsFromPrevious: null,
     };
     services.routes.get.mockResolvedValueOnce({ ...route, stops: [stop] } as never);
     const response = await call("GET", `/routes/${id}`, await token("OPERATOR_OWNER"));
@@ -230,6 +231,11 @@ describe("Route / StopPoint / Proposal routes — HTTP", () => {
     ["PUT", `/routes/${id}`, { name: "x", stops: routeBody.stops }],
     // BR-79: thiếu cờ cho đón / cho trả là 400, không ngầm hiểu.
     ["POST", "/routes", { ...routeBody, stops: routeBody.stops.map(({ allowPickup: _allowPickup, ...stop }) => stop) }],
+    // Thời gian chặng nhà xe nhập: không đặt ở điểm đầu; 1–1440 phút, số nguyên.
+    ["POST", "/routes", { ...routeBody, stops: [{ ...routeBody.stops[0], durationMinutesFromPrevious: 30 }, routeBody.stops[1]] }],
+    ["POST", "/routes", { ...routeBody, stops: [routeBody.stops[0], { ...routeBody.stops[1], durationMinutesFromPrevious: 0 }] }],
+    ["POST", "/routes", { ...routeBody, stops: [routeBody.stops[0], { ...routeBody.stops[1], durationMinutesFromPrevious: 1441 }] }],
+    ["POST", "/routes", { ...routeBody, stops: [routeBody.stops[0], { ...routeBody.stops[1], durationMinutesFromPrevious: 30.5 }] }],
     ["POST", "/stop-points", { ...location, status: "ACTIVE", latitude: 95 }],
     // Tạm ngưng là quyền của Admin Platform: nhà xe không tự đặt được.
     ["PUT", `/stop-points/${id}`, { ...location, status: "SUSPENDED" }],

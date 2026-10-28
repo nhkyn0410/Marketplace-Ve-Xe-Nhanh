@@ -10,8 +10,6 @@ class _$TripChangeInputDto extends TripChangeInputDto {
   @override
   final DateTime departureAt;
   @override
-  final DateTime arrivalAt;
-  @override
   final BuiltList<DateTime>? stopTimes;
   @override
   final String vehicleId;
@@ -26,7 +24,6 @@ class _$TripChangeInputDto extends TripChangeInputDto {
 
   _$TripChangeInputDto._(
       {required this.departureAt,
-      required this.arrivalAt,
       this.stopTimes,
       required this.vehicleId,
       required this.stops,
@@ -46,7 +43,6 @@ class _$TripChangeInputDto extends TripChangeInputDto {
     if (identical(other, this)) return true;
     return other is TripChangeInputDto &&
         departureAt == other.departureAt &&
-        arrivalAt == other.arrivalAt &&
         stopTimes == other.stopTimes &&
         vehicleId == other.vehicleId &&
         stops == other.stops &&
@@ -57,7 +53,6 @@ class _$TripChangeInputDto extends TripChangeInputDto {
   int get hashCode {
     var _$hash = 0;
     _$hash = $jc(_$hash, departureAt.hashCode);
-    _$hash = $jc(_$hash, arrivalAt.hashCode);
     _$hash = $jc(_$hash, stopTimes.hashCode);
     _$hash = $jc(_$hash, vehicleId.hashCode);
     _$hash = $jc(_$hash, stops.hashCode);
@@ -70,7 +65,6 @@ class _$TripChangeInputDto extends TripChangeInputDto {
   String toString() {
     return (newBuiltValueToStringHelper(r'TripChangeInputDto')
           ..add('departureAt', departureAt)
-          ..add('arrivalAt', arrivalAt)
           ..add('stopTimes', stopTimes)
           ..add('vehicleId', vehicleId)
           ..add('stops', stops)
@@ -86,10 +80,6 @@ class TripChangeInputDtoBuilder
   DateTime? _departureAt;
   DateTime? get departureAt => _$this._departureAt;
   set departureAt(DateTime? departureAt) => _$this._departureAt = departureAt;
-
-  DateTime? _arrivalAt;
-  DateTime? get arrivalAt => _$this._arrivalAt;
-  set arrivalAt(DateTime? arrivalAt) => _$this._arrivalAt = arrivalAt;
 
   ListBuilder<DateTime>? _stopTimes;
   ListBuilder<DateTime> get stopTimes =>
@@ -119,7 +109,6 @@ class TripChangeInputDtoBuilder
     final $v = _$v;
     if ($v != null) {
       _departureAt = $v.departureAt;
-      _arrivalAt = $v.arrivalAt;
       _stopTimes = $v.stopTimes?.toBuilder();
       _vehicleId = $v.vehicleId;
       _stops = $v.stops.toBuilder();
@@ -149,8 +138,6 @@ class TripChangeInputDtoBuilder
           _$TripChangeInputDto._(
             departureAt: BuiltValueNullFieldError.checkNotNull(
                 departureAt, r'TripChangeInputDto', 'departureAt'),
-            arrivalAt: BuiltValueNullFieldError.checkNotNull(
-                arrivalAt, r'TripChangeInputDto', 'arrivalAt'),
             stopTimes: _stopTimes?.build(),
             vehicleId: BuiltValueNullFieldError.checkNotNull(
                 vehicleId, r'TripChangeInputDto', 'vehicleId'),

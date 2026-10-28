@@ -14,7 +14,6 @@ part 'trip_change_input_dto.g.dart';
 ///
 /// Properties:
 /// * [departureAt] 
-/// * [arrivalAt] 
 /// * [stopTimes] 
 /// * [vehicleId] 
 /// * [stops] 
@@ -23,9 +22,6 @@ part 'trip_change_input_dto.g.dart';
 abstract class TripChangeInputDto implements Built<TripChangeInputDto, TripChangeInputDtoBuilder> {
   @BuiltValueField(wireName: r'departureAt')
   DateTime get departureAt;
-
-  @BuiltValueField(wireName: r'arrivalAt')
-  DateTime get arrivalAt;
 
   @BuiltValueField(wireName: r'stopTimes')
   BuiltList<DateTime>? get stopTimes;
@@ -65,11 +61,6 @@ class _$TripChangeInputDtoSerializer implements PrimitiveSerializer<TripChangeIn
     yield r'departureAt';
     yield serializers.serialize(
       object.departureAt,
-      specifiedType: const FullType(DateTime),
-    );
-    yield r'arrivalAt';
-    yield serializers.serialize(
-      object.arrivalAt,
       specifiedType: const FullType(DateTime),
     );
     yield r'stopTimes';
@@ -121,13 +112,6 @@ class _$TripChangeInputDtoSerializer implements PrimitiveSerializer<TripChangeIn
             specifiedType: const FullType(DateTime),
           ) as DateTime;
           result.departureAt = valueDes;
-          break;
-        case r'arrivalAt':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(DateTime),
-          ) as DateTime;
-          result.arrivalAt = valueDes;
           break;
         case r'stopTimes':
           final valueDes = serializers.deserialize(

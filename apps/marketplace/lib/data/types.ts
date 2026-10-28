@@ -341,6 +341,8 @@ export interface SeatSelectionItem {
   readonly floor: 1 | 2;
   readonly status: SeatSelectionStatus;
   readonly type: "single" | "double";
+  /** Tên loại chỗ theo API ("Ghế ngồi", "Giường nằm", "Cabin đôi"…); thiếu thì suy từ `type` (giường đơn / đôi). */
+  readonly typeLabel?: string;
   readonly priceVnd: string;
   readonly capacityText?: string;
 }

@@ -32,7 +32,7 @@ import { OperatorBookingService } from "./operator-booking.service";
 const url = process.env.DATABASE_URL;
 const ready = Boolean(url && process.env.REDIS_URL);
 const requireDb = process.env.REQUIRE_DB_TESTS === "1";
-const HOUR = 3_600_000;
+// const HOUR = 3_600_000;
 
 async function rejectionOf(promise: Promise<unknown>): Promise<{ status?: number; code?: string }> {
   try {
@@ -156,7 +156,6 @@ describe.skipIf(!ready && !requireDb)("Đặt vé của nhà xe — Postgres th�
           routeId,
           vehicleId,
           departureAt: departure.toISOString(),
-          arrivalAt: new Date(departure.getTime() + 7 * HOUR).toISOString(),
           stopTimes: null,
           onlineSaleCutoffMinutes: 60,
           note: null,

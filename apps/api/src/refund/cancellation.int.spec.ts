@@ -94,7 +94,6 @@ describe.skipIf(!ready && !requireDb)("Hủy vé + hoàn tiền — Postgres + R
         routeId,
         vehicleId: (await freshVehicle()).id,
         departureAt: departureAt.toISOString(),
-        arrivalAt: new Date(departureAt.getTime() + 6 * HOUR).toISOString(),
         stopTimes: null,
         onlineSaleCutoffMinutes: 60,
         note: null,

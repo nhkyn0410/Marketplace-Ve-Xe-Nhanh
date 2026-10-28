@@ -47,6 +47,7 @@
 | v0.26     | 19/10/2026 | AI Agent       | **Sáu phần tiếp theo (Khanh 19/10/2026, chờ duyệt):** thêm §6.20 Soát vé + vận hành chuyến (`TASK-EMP-002` backend), §6.21 Đối soát tự động với cổng (FR-BTP-17), §6.22 Báo cáo + Tổng quan (`TASK-RPT-001/002`), §6.23 Khiếu nại / tranh chấp / đánh giá (`TASK-TRUST-001`), §6.24 Khuyến mãi (`TASK-PROM-001`), §6.25 VXN Plus phía Admin (`TASK-LOY-001`). Chi tiết + điểm chờ Khanh ở `doc/task-propreties/*-todo.md`. Giữ trạng thái Review. |
 | v0.27     | 25/10/2026 | AI Agent       | **Đồng bộ `TASK-IAM-007` (đã merge PR #44, chờ duyệt thiết kế):** §5.2 module Identity thêm phân quyền theo tài khoản; §6.5.1 mới — `can()` + `ACCOUNT_PERMISSIONS`, claim `perms`, luồng Admin phân quyền (khóa dòng, không leo thang, còn người có `access:manage`), luồng Owner quản lý tài khoản quản lý, `transport:read`; §7 thêm `PERMISSION_NOT_ASSIGNABLE` / `PERMISSION_GRANT_FORBIDDEN`. |
 | v0.28     | 27/10/2026 | AI Agent       | **Logo nhà xe (FR-OPR-02; Khanh 27/10/2026, tự thiết kế — chờ duyệt):** §6.14 thêm bước 6 (tải logo lên kho công khai, kiểm object, khóa dòng khi đổi / gỡ, audit `operator.logo.*`); §7 thêm `OPERATOR_LOGO_INVALID`; bảng audit thêm `operator.logo.*`. |
+| v0.29     | 28/10/2026 | AI Agent       | **Giờ đến tính theo tuyến (`TASK-TRN-016`, Khanh 27/10/2026, chờ duyệt):** Trip / đổi chuyến / lịch lặp lại không nhận giờ đến — `routeArrival` = giờ đi + tổng thời gian chặng của route (làm tròn phút, ≥ 1 phút); `planStopTimes` chia theo chặng, `stopTimes` gửi lên phải kết thúc đúng giờ đó. Route: số phút nhà xe chỉnh từng chặng ghi đè số Goong / ước lượng (giữ `measured_duration_seconds`, đổi riêng số chỉnh không gọi lại provider, tổng ≤ 7 ngày). |
 
 ---
 
@@ -326,7 +327,7 @@ Tên module / folder dưới đây dùng **target state** theo `context/DOMAIN-M
 
 | Bước | Xử lý |
 | ---- | ----- |
-| 1    | `TripScheduleService` (module `trip/`, quyền `trip:manage`): `trip_schedules` = quy tắc (tuyến, xe tuỳ chọn, giờ khởi hành theo giờ VN, thời gian chạy, thứ chạy bitmask, khoảng ngày ≤ 93 ngày, ngừng bán online, ghi chú). Tuyến phải đang dùng, xe (nếu có) đang hoạt động + có sơ đồ ghế (kiểm khi tạo / sửa / trước khi sinh). |
+| 1    | `TripScheduleService` (module `trip/`, quyền `trip:manage`): `trip_schedules` = quy tắc (tuyến, xe tuỳ chọn, giờ khởi hành theo giờ VN, thời gian chạy — bản chụp thời gian của tuyến lúc lưu, chuyến sinh ra tính giờ đến theo tuyến hiện tại (chờ duyệt 27/10/2026), thứ chạy bitmask, khoảng ngày ≤ 93 ngày, ngừng bán online, ghi chú). Tuyến phải đang dùng, xe (nếu có) đang hoạt động + có sơ đồ ghế (kiểm khi tạo / sửa / trước khi sinh). |
 | 2    | "Sinh chuyến" (thủ công): mỗi ngày khớp quy tắc một transaction — khoá dòng lịch `FOR UPDATE`, đọc quy tắc hiện tại, ngày đã có chuyến của lịch → `EXISTS`, giờ khởi hành đã qua → `PAST`, còn lại chèn chuyến `DRAFT` qua `insertDraftTrip` (chung với tạo chuyến lẻ: chép điểm dừng + ghế); xe chồng giờ (EXCLUDE) → `VEHICLE_CONFLICT`, bỏ qua ngày đó. UNIQUE `trips(schedule_id, service_date)` là chốt cuối khi chạy đồng thời. |
 | 3    | `openForSale`: mở bán từng chuyến vừa sinh qua `TripService.changeStatus` (BR-39 + audit từng chuyến); chưa đủ điều kiện → giữ nháp, trả lý do. Sửa lịch chỉ áp cho ngày chưa sinh. Audit lịch ghi sau commit, không chặn. |
 

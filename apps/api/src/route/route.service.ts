@@ -20,6 +20,7 @@ import { isPrismaUniqueConflict } from "../iam/user/account.errors";
 import { stopPointUnavailable } from "../stop-point/stop-point.errors";
 import type { RouteInput, RouteListResponse, RouteResponse } from "./dto/route.dto";
 import {
+  routeDurationTooLong,
   routeNameConflict,
   routeNotFound,
   routeStopPickupDropoffInvalid,
@@ -44,6 +45,8 @@ const POINT_SELECT = { name: true, address: true, type: true } as const;
 /** Trần một chặng: 5.000 km / 7 ngày — quá mức là provider trả sai; 25 điểm × trần vẫn nằm trong INT4. */
 const MAX_LEG_METERS = 5_000_000;
 const MAX_LEG_SECONDS = 7 * 24 * 3_600;
+/** Tổng thời gian chạy của tuyến tối đa 7 ngày — bằng độ dài tối đa của một chuyến (giờ đến tính theo tuyến). */
+const MAX_ROUTE_SECONDS = 7 * 24 * 3_600;
 const ACTIVE_WARD = { status: CatalogStatus.ACTIVE, province: { status: CatalogStatus.ACTIVE } } as const;
 
 /**
@@ -127,13 +130,14 @@ export class RouteService {
       return resolveStops(tx, operatorId, input.stops);
     });
     const measured = await this.measure(stops);
+    const legs = effectiveLegs(input, measured.legs);
     const row = await this.withNameConflict(() =>
       this.prisma.withScope(db, async (tx) => {
         const route = await tx.route.create({
-          data: { operatorId, ...routeData(input, measured) },
+          data: { operatorId, ...routeData(input, measured, legs) },
           select: { id: true },
         });
-        await tx.routeStop.createMany({ data: stopRows(operatorId, route.id, stops, measured.legs) });
+        await tx.routeStop.createMany({ data: stopRows(operatorId, route.id, stops, measured.legs, legs) });
         return findDetail(tx, operatorId, route.id);
       }),
     );
@@ -162,23 +166,25 @@ export class RouteService {
       current.metricsSource === this.routing.source && sameCoordinates(current.stops, stops)
         ? {
             source: current.metricsSource,
+            // Số HỆ THỐNG đã lưu (không phải số nhà xe chỉnh) — bỏ chỉnh tay thì quay về đúng số này.
             legs: current.stops.slice(1).map((stop) => ({
               distanceMeters: stop.distanceMetersFromPrevious!,
-              durationSeconds: stop.durationSecondsFromPrevious!,
+              durationSeconds: stop.measuredDurationSeconds!,
             })),
           }
         : await this.measure(stops);
+    const legs = effectiveLegs(input, measured.legs);
     const row = await this.withNameConflict(() =>
       this.prisma.withScope(db, async (tx) => {
         const updated = await tx.route.updateMany({
           where: { id: routeId, operatorId },
-          data: routeData(input, measured),
+          data: routeData(input, measured, legs),
         });
         if (updated.count === 0) {
           throw routeNotFound();
         }
         await tx.routeStop.deleteMany({ where: { routeId, operatorId } });
-        await tx.routeStop.createMany({ data: stopRows(operatorId, routeId, stops, measured.legs) });
+        await tx.routeStop.createMany({ data: stopRows(operatorId, routeId, stops, measured.legs, legs) });
         return findDetail(tx, operatorId, routeId);
       }),
     );
@@ -331,18 +337,33 @@ function sameCoordinates(
   );
 }
 
-function routeData(input: RouteInput, measured: Measured) {
+/**
+ * Chặng dùng thật: chặng nào nhà xe nhập số phút thì lấy số đó, còn lại giữ số hệ thống (chờ duyệt 27/10/2026). Tổng quá
+ * 7 ngày thì từ chối — giờ đến của chuyến = giờ đi + tổng này.
+ */
+function effectiveLegs(input: RouteInput, measured: RouteLeg[]): RouteLeg[] {
+  const legs = measured.map((leg, index) => {
+    const minutes = input.stops[index + 1]?.durationMinutesFromPrevious;
+    return minutes ? { ...leg, durationSeconds: minutes * 60 } : leg;
+  });
+  if (legs.reduce((sum, leg) => sum + leg.durationSeconds, 0) > MAX_ROUTE_SECONDS) {
+    throw routeDurationTooLong();
+  }
+  return legs;
+}
+
+function routeData(input: RouteInput, measured: Measured, legs: RouteLeg[]) {
   return {
     name: input.name,
     status: input.status,
     note: input.note,
-    totalDistanceMeters: measured.legs.reduce((sum, leg) => sum + leg.distanceMeters, 0),
-    totalDurationSeconds: measured.legs.reduce((sum, leg) => sum + leg.durationSeconds, 0),
+    totalDistanceMeters: legs.reduce((sum, leg) => sum + leg.distanceMeters, 0),
+    totalDurationSeconds: legs.reduce((sum, leg) => sum + leg.durationSeconds, 0),
     metricsSource: measured.source,
   };
 }
 
-function stopRows(operatorId: string, routeId: string, stops: ResolvedStop[], legs: RouteLeg[]) {
+function stopRows(operatorId: string, routeId: string, stops: ResolvedStop[], measured: RouteLeg[], legs: RouteLeg[]) {
   const last = stops.length - 1;
   return stops.map((stop, index) => ({
     operatorId,
@@ -358,6 +379,7 @@ function stopRows(operatorId: string, routeId: string, stops: ResolvedStop[], le
     longitude: stop.longitude,
     distanceMetersFromPrevious: index === 0 ? null : legs[index - 1]!.distanceMeters,
     durationSecondsFromPrevious: index === 0 ? null : legs[index - 1]!.durationSeconds,
+    measuredDurationSeconds: index === 0 ? null : measured[index - 1]!.durationSeconds,
   }));
 }
 
@@ -388,6 +410,7 @@ function findDetail(tx: DbTransaction, operatorId: string, routeId: string) {
           longitude: true,
           distanceMetersFromPrevious: true,
           durationSecondsFromPrevious: true,
+          measuredDurationSeconds: true,
           catalogStopPoint: { select: POINT_SELECT },
           stopPoint: { select: POINT_SELECT },
         },
@@ -401,9 +424,9 @@ function toResponse(row: NonNullable<Awaited<ReturnType<typeof findDetail>>>): R
     ...row,
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
-    stops: row.stops.map(({ catalogStopPoint, stopPoint, ...stop }) => {
+    stops: row.stops.map(({ catalogStopPoint, stopPoint, measuredDurationSeconds, ...stop }) => {
       const point = catalogStopPoint ?? stopPoint!;
-      return { ...stop, name: point.name, type: point.type, address: point.address };
+      return { ...stop, measuredDurationSecondsFromPrevious: measuredDurationSeconds, name: point.name, type: point.type, address: point.address };
     }),
   };
 }

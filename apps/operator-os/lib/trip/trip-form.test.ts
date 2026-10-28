@@ -3,7 +3,6 @@ import { describe, expect, it } from "vitest";
 import { ApiError } from "../auth/api-client";
 import type { Trip } from "./trip-api";
 import {
-  arrivalIso,
   autoSplitTimes,
   departureIso,
   describeTripSaveError,
@@ -13,7 +12,7 @@ import {
   NO_VEHICLE,
   parseCutoffMinutes,
   resolveManualTimes,
-  suggestArrival,
+  routeArrivalMs,
   toTripFormValues,
   toTripInput,
   tripInfoSchema,
@@ -31,8 +30,6 @@ const values: TripFormValues = {
   routeId: ROUTE_ID,
   departureDate: "2026-10-08",
   departureTime: "06:00",
-  arrivalDate: "2026-10-08",
-  arrivalTime: "11:30",
   vehicleId: VEHICLE_ID,
   onlineSaleCutoffMinutes: "60",
   note: " Ghé trạm 20 phút. "
@@ -45,42 +42,39 @@ describe("tripTimeIssues", () => {
 
   it.each([
     ["khởi hành đã qua", { departureDate: "2026-10-07", departureTime: "09:00" }, "departureDate", /tương lai/],
-    ["khởi hành đúng lúc này", { departureDate: "2026-10-07", departureTime: "10:00" }, "departureDate", /tương lai/],
-    ["đến trước khi đi", { arrivalTime: "05:00" }, "arrivalTime", /sau giờ khởi hành/],
-    ["đến bằng giờ đi", { arrivalTime: "06:00" }, "arrivalTime", /sau giờ khởi hành/],
-    ["dài quá 7 ngày", { arrivalDate: "2026-10-15", arrivalTime: "06:01" }, "arrivalDate", /7 ngày/]
+    ["khởi hành đúng lúc này", { departureDate: "2026-10-07", departureTime: "10:00" }, "departureDate", /tương lai/]
   ] as const)("%s", (_case, override, path, message) => {
     const issues = tripTimeIssues({ ...values, ...override }, NOW);
     expect(issues.find((issue) => issue.path === path)?.message).toMatch(message);
   });
 
-  it("đúng 7 ngày vẫn được; thiếu ngày giờ thì để từng ô tự báo", () => {
-    expect(tripTimeIssues({ ...values, arrivalDate: "2026-10-15", arrivalTime: "06:00" }, NOW)).toEqual([]);
-    expect(tripTimeIssues({ ...values, arrivalTime: "" }, NOW)).toEqual([]);
+  it("thiếu ngày giờ thì để từng ô tự báo", () => {
+    expect(tripTimeIssues({ ...values, departureTime: "" }, NOW)).toEqual([]);
     expect(tripTimeIssues({ ...values, departureDate: "08/10/2026" }, NOW)).toEqual([]);
   });
 });
 
 describe("tripInfoSchema", () => {
-  const future: TripFormValues = { ...values, departureDate: "2999-01-01", arrivalDate: "2999-01-01" };
+  const future: TripFormValues = { ...values, departureDate: "2999-01-01" };
 
   it("nhận form hợp lệ; xe để trống được khi còn nháp", () => {
     expect(tripInfoSchema.safeParse(future).success).toBe(true);
     expect(tripInfoSchema.safeParse({ ...future, vehicleId: NO_VEHICLE }).success).toBe(true);
   });
 
-  it("form trống: báo thiếu tuyến và đủ bốn ô ngày giờ", () => {
+  it("form trống: báo thiếu tuyến và hai ô ngày giờ khởi hành (giờ đến không nhập)", () => {
     const result = tripInfoSchema.safeParse(EMPTY_TRIP_VALUES);
     expect(result.success).toBe(false);
     const paths = result.error!.issues.map((issue) => issue.path[0]);
     expect(paths).toEqual(
-      expect.arrayContaining(["routeId", "departureDate", "departureTime", "arrivalDate", "arrivalTime"])
+      expect.arrayContaining(["routeId", "departureDate", "departureTime"])
     );
+    expect(paths).not.toContain("arrivalDate");
   });
 
   it.each([
     ["giờ sai dạng", { departureTime: "25:00" }, "departureTime"],
-    ["khởi hành trong quá khứ", { departureDate: "2020-01-01", arrivalDate: "2020-01-01" }, "departureDate"],
+    ["khởi hành trong quá khứ", { departureDate: "2020-01-01" }, "departureDate"],
     ["ghi chú quá dài", { note: "x".repeat(501) }, "note"],
     ["số phút ngừng bán để trống", { onlineSaleCutoffMinutes: "" }, "onlineSaleCutoffMinutes"],
     ["số phút ngừng bán vượt một ngày", { onlineSaleCutoffMinutes: "1441" }, "onlineSaleCutoffMinutes"]
@@ -107,18 +101,18 @@ describe("parseCutoffMinutes", () => {
   });
 });
 
-describe("giờ đến gợi ý", () => {
+describe("giờ đến theo tuyến — đúng công thức của máy chủ", () => {
+  const departure = ms("2026-10-08T06:00:00+07:00");
+
   it("cộng thời gian chạy của tuyến, làm tròn phút, tự sang ngày", () => {
-    expect(suggestArrival("2026-10-08", "06:00", 19_800)).toEqual({ date: "2026-10-08", time: "11:30" });
-    expect(suggestArrival("2026-10-08", "22:00", 27_000)).toEqual({ date: "2026-10-09", time: "05:30" });
-    expect(suggestArrival("2026-10-08", "06:00", 19_829)).toEqual({ date: "2026-10-08", time: "11:30" });
-    expect(suggestArrival("2026-10-08", "06:00", 19_830)).toEqual({ date: "2026-10-08", time: "11:31" });
+    expect(routeArrivalMs(departure, 19_800)).toBe(ms("2026-10-08T11:30:00+07:00"));
+    expect(routeArrivalMs(ms("2026-10-08T22:00:00+07:00"), 27_000)).toBe(ms("2026-10-09T05:30:00+07:00"));
+    expect(routeArrivalMs(departure, 19_829)).toBe(ms("2026-10-08T11:30:00+07:00"));
+    expect(routeArrivalMs(departure, 19_830)).toBe(ms("2026-10-08T11:31:00+07:00"));
   });
 
-  it("tuyến chưa có thời gian chạy vẫn gợi ý sau giờ đi ít nhất 1 phút; chưa nhập giờ đi thì không gợi ý", () => {
-    expect(suggestArrival("2026-10-08", "06:00", 0)).toEqual({ date: "2026-10-08", time: "06:01" });
-    expect(suggestArrival("2026-10-08", "", 19_800)).toBeNull();
-    expect(suggestArrival("", "06:00", 19_800)).toBeNull();
+  it("tuyến chưa có thời gian chạy vẫn đến sau giờ đi ít nhất 1 phút", () => {
+    expect(routeArrivalMs(departure, 0)).toBe(departure + 60_000);
   });
 });
 
@@ -204,8 +198,6 @@ describe("đổi qua lại với chuyến đã lưu", () => {
       routeId: ROUTE_ID,
       departureDate: "2026-10-08",
       departureTime: "06:00",
-      arrivalDate: "2026-10-08",
-      arrivalTime: "09:00",
       vehicleId: NO_VEHICLE,
       onlineSaleCutoffMinutes: "45",
       note: ""
@@ -227,7 +219,6 @@ describe("toTripInput", () => {
       routeId: ROUTE_ID,
       vehicleId: VEHICLE_ID,
       departureAt: "2026-10-08T06:00:00+07:00",
-      arrivalAt: "2026-10-08T11:30:00+07:00",
       stopTimes: null,
       onlineSaleCutoffMinutes: 60,
       note: "Ghé trạm 20 phút."
@@ -237,16 +228,16 @@ describe("toTripInput", () => {
 
   it("chưa gắn xe → null; ghi chú toàn khoảng trắng → null; giờ tự nhập gửi dạng ISO", () => {
     const departure = ms(departureIso(values));
-    const arrival = ms(arrivalIso(values));
+    const arrival = routeArrivalMs(departure, 19_800);
     const input = toTripInput({ ...values, vehicleId: NO_VEHICLE, note: "   " }, [departure, arrival]);
     expect(input.vehicleId).toBeNull();
     expect(input.note).toBeNull();
     expect(input.stopTimes).toEqual(["2026-10-07T23:00:00.000Z", "2026-10-08T04:30:00.000Z"]);
   });
 
-  it("hasCompleteTimes chỉ đúng khi đủ bốn ô ngày giờ", () => {
+  it("hasCompleteTimes chỉ đúng khi đủ ngày giờ khởi hành", () => {
     expect(hasCompleteTimes(values)).toBe(true);
-    expect(hasCompleteTimes({ ...values, arrivalDate: "" })).toBe(false);
+    expect(hasCompleteTimes({ ...values, departureDate: "" })).toBe(false);
     expect(hasCompleteTimes(EMPTY_TRIP_VALUES)).toBe(false);
   });
 });
@@ -256,7 +247,7 @@ describe("describeTripSaveError", () => {
     ["VEHICLE_SCHEDULE_CONFLICT", 409, "vehicleId", /trùng khoảng giờ/],
     ["VEHICLE_UNAVAILABLE", 422, "vehicleId", /sơ đồ ghế/],
     ["ROUTE_UNAVAILABLE", 422, "routeId", /không còn hoạt động/],
-    ["TRIP_STOP_TIMES_INVALID", 422, "stops", /số điểm dừng/],
+    ["TRIP_STOP_TIMES_INVALID", 422, "stops", /điểm dừng hoặc thời gian chạy/],
     ["TRIP_SEAT_NOT_AVAILABLE", 409, "vehicleId", /đang được giữ hoặc đã bán/],
     ["TRIP_NOT_EDITABLE", 409, null, /Nháp/],
     ["TRIP_NOT_FOUND", 404, null, /không còn tồn tại/],

@@ -103,7 +103,6 @@ describe.skipIf(!url && !requireDb)("Tìm chuyến công khai — Postgres thậ
         routeId,
         vehicleId,
         departureAt: departureAt.toISOString(),
-        arrivalAt: new Date(departureAt.getTime() + 6 * HOUR).toISOString(),
         stopTimes: null,
         onlineSaleCutoffMinutes: options.cutoff ?? 60,
         note: null,
