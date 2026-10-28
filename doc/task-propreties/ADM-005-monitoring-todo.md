@@ -39,7 +39,7 @@ Nhánh `feat/admin-improvements` (từ `develop`). Chưa qua `code-reviewer` / `
 | --- | --- | --- | --- |
 | G1 | Quyền | Mọi màn giám sát dùng `user:manage` (như mục Nhà xe); số tiền chỉ trả khi có thêm `payment:monitor`, thiếu thì `null` — không thêm quyền mới | Duyệt |
 | G2 | Khách vãng lai | Không đưa vào danh sách tài khoản (không có tài khoản, không khóa được, gộp theo SĐT dễ nhầm); tra theo đơn: Giao dịch tìm SĐT / email người đặt, chi tiết chuyến có danh sách người đi | Duyệt |
-| G3 | "Một vé = một hành khách" | Đúng theo dữ liệu (một chỗ = một `PassengerInfo` = một vé); chỗ đôi chở 1–2 người nhưng chỉ ghi một tên (BR-78) | Ghi nhận / có cần ghi tên người thứ hai |
+| G3 | "Một vé = một hành khách" | **Khanh 28/10/2026: cần người thứ 2** → đã làm: chỗ đôi khai thêm họ tên người đi cùng (không bắt buộc, không SĐT), chung 1 vé / 1 QR (`BR-78` bổ sung, `TC-BOOK-004`) | Đã chốt |
 | G4 | Dữ liệu cá nhân | SĐT che; mỗi lượt mở chi tiết hành khách / chuyến ghi audit, lỗi audit → 503; trang không giữ bộ nhớ đệm | Duyệt |
 | G5 | Kỳ số liệu | Chi tiết nhà xe: 30 ngày gần nhất, chuyến đã khởi hành trong kỳ; tuyến: chọn kỳ, mặc định 30 ngày; chuyến: mặc định hôm nay + 6 ngày, tối đa 92 ngày | Duyệt |
 | G6 | Doanh thu tuyến | = tổng giá vé đã bán của chuyến khởi hành trong kỳ (khác GMV theo giờ thanh toán ở báo cáo) | Duyệt |
