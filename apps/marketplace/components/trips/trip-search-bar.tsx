@@ -5,8 +5,8 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { initialPlace, placeSearchParams } from "../../lib/data/trip-mappers";
 import { ProvinceItem } from "../../lib/data/types";
-import { formatTripDateVi } from "../../lib/format";
 import { PlaceInput, type PlaceValue } from "./place-input";
+import { ChoiceField, DateField, PASSENGER_OPTIONS, PLACE_INPUT, PLACE_PLACEHOLDER, SEARCH_FIELD, SEARCH_LABEL } from "./search-fields";
 
 /**
  * Thuộc tính của thanh tìm kiếm chuyến xe tóm tắt trên trang danh sách chuyến.
@@ -69,10 +69,6 @@ export function TripSearchBar({
     })}`);
   };
 
-  const field = "relative rounded-xl border border-slate-200 bg-white px-4 py-2.5 transition focus-within:border-[#00506a]";
-  const label = "block text-xs font-medium text-slate-500";
-  const value = "mt-0.5 w-full appearance-none truncate bg-transparent text-[15px] font-bold text-vxn-ink outline-none";
-
   return (
     <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-2xs">
       <form onSubmit={handleSearch} className="flex flex-col gap-3 lg:flex-row lg:items-center">
@@ -81,12 +77,12 @@ export function TripSearchBar({
           <PlaceInput
             id="search-origin"
             label="Điểm đi"
-            placeholder="Tỉnh, phường / xã, bến xe…"
+            placeholder={PLACE_PLACEHOLDER}
             value={origin}
             onChange={setOrigin}
-            fieldClassName={`${field} min-w-0 flex-1`}
-            labelClassName={label}
-            inputClassName={value}
+            fieldClassName={`${SEARCH_FIELD} flex-1`}
+            labelClassName={SEARCH_LABEL}
+            inputClassName={PLACE_INPUT}
           />
 
           {/* Nút hoán đổi */}
@@ -104,43 +100,25 @@ export function TripSearchBar({
           <PlaceInput
             id="search-destination"
             label="Điểm đến"
-            placeholder="Tỉnh, phường / xã, bến xe…"
+            placeholder={PLACE_PLACEHOLDER}
             value={destination}
             onChange={setDestination}
-            fieldClassName={`${field} min-w-0 flex-1`}
-            labelClassName={label}
-            inputClassName={value}
+            fieldClassName={`${SEARCH_FIELD} flex-1`}
+            labelClassName={SEARCH_LABEL}
+            inputClassName={PLACE_INPUT}
           />
         </div>
 
-        {/* Ngày đi: hiển thị "T6, 16/10/2026", ô date gốc phủ trong suốt để mở lịch */}
-        <div className={`${field} w-full sm:w-48 lg:w-[170px]`}>
-          <label htmlFor="search-date" className={label}>Ngày đi</label>
-          <div className="mt-0.5 text-[15px] font-bold text-vxn-ink">{date ? formatTripDateVi(date) : "Chọn ngày"}</div>
-          <input
-            id="search-date"
-            type="date"
-            required
-            value={date}
-            onChange={(e) => setDate(e.target.value)}
-            className="absolute inset-0 cursor-pointer opacity-0"
-          />
-        </div>
+        <DateField value={date} onChange={setDate} placement="bottom" className="w-full sm:w-48 lg:w-[170px] lg:shrink-0" />
 
-        {/* Hành khách */}
-        <div className={`${field} w-full sm:w-44 lg:w-[150px]`}>
-          <label htmlFor="search-passengers" className={label}>Hành khách</label>
-          <select
-            id="search-passengers"
-            value={passengers}
-            onChange={(e) => setPassengers(Number(e.target.value))}
-            className={value}
-          >
-            {Array.from({ length: 10 }, (_, index) => index + 1).map((count) => (
-              <option key={count} value={count}>{count} hành khách</option>
-            ))}
-          </select>
-        </div>
+        <ChoiceField
+          label="Hành khách"
+          options={PASSENGER_OPTIONS}
+          value={String(passengers)}
+          onChange={(value) => setPassengers(Number(value))}
+          placement="bottom"
+          className="w-full sm:w-44 lg:w-[150px] lg:shrink-0"
+        />
 
         {/* Nút Tìm chuyến */}
         <button

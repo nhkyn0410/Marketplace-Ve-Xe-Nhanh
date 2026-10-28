@@ -4,7 +4,6 @@ import { Button } from "@vexenhanh/ui/components/button";
 import {
   ArrowLeftRight,
   BusFront,
-  Check,
   ChevronDown,
   FileText,
   Phone,
@@ -13,11 +12,21 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useId, useState } from "react";
+import { useState } from "react";
 import { placeSearchParams } from "../../lib/data/trip-mappers";
 import type { FeaturedOperatorItem } from "../../lib/data/types";
-import { formatTripDateVi } from "../../lib/format";
 import { PlaceInput, type PlaceValue } from "../trips/place-input";
+import {
+  ChoiceField,
+  DateField,
+  PASSENGER_OPTIONS,
+  PLACE_INPUT,
+  PLACE_PLACEHOLDER,
+  SEARCH_FIELD,
+  SEARCH_LABEL,
+  SEARCH_VALUE,
+  SEARCH_VALUE_EMPTY
+} from "../trips/search-fields";
 
 /** Thuộc tính của form tìm chuyến trên trang chủ. */
 export interface SearchHeroProps {
@@ -35,17 +44,6 @@ const PREVIEW_ROUTE_OPTIONS = [
   { value: "hn-sp", label: "Hà Nội ↔ Sapa" }
 ];
 
-/** Số hành khách tối đa mỗi lần tìm (khớp thanh tìm kiếm trang /trips). */
-const PASSENGER_OPTIONS = Array.from({ length: 10 }, (_, index) => ({ value: String(index + 1), label: `${index + 1} hành khách` }));
-
-const FIELD = "relative min-w-0 rounded-xl border border-slate-200 bg-white px-4 py-2.5 transition focus-within:border-[#00506a]";
-const LABEL = "block text-xs font-medium text-slate-500";
-const VALUE_BOX = "mt-0.5 block w-full truncate bg-transparent text-left text-sm outline-none";
-const VALUE = `${VALUE_BOX} font-semibold text-slate-700`;
-/** Chữ gợi ý khi ô chưa có giá trị. */
-const VALUE_EMPTY = `${VALUE_BOX} text-slate-400`;
-const PLACE_INPUT = `${VALUE} placeholder:font-normal placeholder:text-slate-400`;
-const PLACE_PLACEHOLDER = "Tỉnh, phường/xã, bến xe";
 
 /**
  * Khối Banner Hero & Form tìm kiếm chuyến xe 2 tab (Mua vé & Theo nhà xe) chuẩn Figma 776:791, 830:592, 836:113, 837:131.
@@ -226,8 +224,8 @@ export function SearchHero({
                   placeholder={PLACE_PLACEHOLDER}
                   value={origin}
                   onChange={setOrigin}
-                  fieldClassName={`${FIELD} flex-1`}
-                  labelClassName={LABEL}
+                  fieldClassName={`${SEARCH_FIELD} flex-1`}
+                  labelClassName={SEARCH_LABEL}
                   inputClassName={PLACE_INPUT}
                 />
 
@@ -251,12 +249,12 @@ export function SearchHero({
                   placeholder={PLACE_PLACEHOLDER}
                   value={destination}
                   onChange={setDestination}
-                  fieldClassName={`${FIELD} flex-1`}
-                  labelClassName={LABEL}
+                  fieldClassName={`${SEARCH_FIELD} flex-1`}
+                  labelClassName={SEARCH_LABEL}
                   inputClassName={PLACE_INPUT}
                 />
 
-                <DateField id="trip-date" value={departureDate} onChange={setDepartureDate} className="lg:w-[150px] lg:shrink-0" />
+                <DateField value={departureDate} onChange={setDepartureDate} className="lg:w-[170px] lg:shrink-0" />
 
                 <ChoiceField
                   label="Hành khách"
@@ -269,7 +267,7 @@ export function SearchHero({
                 {/* Nút Tìm chuyến */}
                 <Button
                   type="submit"
-                  className="h-[54px] w-full rounded-xl bg-[#00506a] px-6 text-sm font-bold text-white shadow-xs transition hover:bg-[#003f54] lg:w-[150px] lg:shrink-0"
+                  className="h-[54px] w-full rounded-xl bg-[#00506a] px-6 text-sm font-bold text-white shadow-xs transition hover:bg-[#003f54] lg:w-[140px] lg:shrink-0"
                 >
                   Tìm chuyến
                 </Button>
@@ -353,7 +351,7 @@ export function SearchHero({
                     >
                       Nhà xe
                     </span>
-                    <span className={selectedOperator ? VALUE : VALUE_EMPTY}>
+                    <span className={selectedOperator ? SEARCH_VALUE : SEARCH_VALUE_EMPTY}>
                       {selectedOperator
                         ? selectedOperator.name
                         : isPickerOpen
@@ -372,7 +370,7 @@ export function SearchHero({
                   className="flex-[1.15]"
                 />
 
-                <DateField id="operator-date" value={departureDate} onChange={setDepartureDate} className="lg:w-[175px] lg:shrink-0" />
+                <DateField onOpen={() => setIsPickerOpen(false)} value={departureDate} onChange={setDepartureDate} className="lg:w-[175px] lg:shrink-0" />
 
                 <ChoiceField
                   label="Hành khách"
@@ -417,119 +415,3 @@ export function SearchHero({
   );
 }
 
-/** Ngày hôm nay theo giờ máy người dùng, dạng `YYYY-MM-DD` cho `min` của ô date. */
-function todayIso(): string {
-  const now = new Date();
-  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
-}
-
-/**
- * Ô Ngày đi: hiện "T6, 16/10/2026", ô date gốc phủ trong suốt. Bấm vào đâu trong ô cũng mở lịch (`showPicker`) — Chrome
- * desktop chỉ tự mở lịch khi bấm đúng biểu tượng lịch, mà biểu tượng đó đang bị ẩn.
- */
-function DateField({ id, value, onChange, className }: {
-  readonly id: string;
-  readonly value: string;
-  readonly onChange: (value: string) => void;
-  readonly className: string;
-}) {
-  return (
-    <div className={`${FIELD} ${className}`}>
-      <label htmlFor={id} className={LABEL}>
-        Ngày đi
-      </label>
-      <div className={value ? VALUE : VALUE_EMPTY}>
-        {value ? formatTripDateVi(value) : "Chọn ngày"}
-      </div>
-      <input
-        id={id}
-        type="date"
-        min={todayIso()}
-        suppressHydrationWarning
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        onClick={(e) => {
-          try {
-            e.currentTarget.showPicker();
-          } catch {
-            // Trình duyệt cũ / không cho mở bằng code: vẫn còn bàn phím và biểu tượng lịch gốc.
-          }
-        }}
-        className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
-      />
-    </div>
-  );
-}
-
-/**
- * Ô chọn một giá trị (tuyến đường, số hành khách) với danh sách nổi phía trên ô, cùng kiểu popover nhà xe nổi bật —
- * thay `<select>` gốc vì danh sách của trình duyệt lệch hẳn giao diện. Esc hoặc bấm ra ngoài thì đóng.
- */
-function ChoiceField({ label, options, value, onChange, onOpen, className }: {
-  readonly label: string;
-  readonly options: readonly { readonly value: string; readonly label: string }[];
-  readonly value: string;
-  readonly onChange: (value: string) => void;
-  readonly onOpen?: () => void;
-  readonly className: string;
-}) {
-  const listId = useId();
-  const [open, setOpen] = useState(false);
-  const selected = options.find((option) => option.value === value) ?? options[0];
-
-  return (
-    <div
-      className={`relative min-w-0 ${className}`}
-      onBlur={(e) => {
-        if (!e.currentTarget.contains(e.relatedTarget)) setOpen(false);
-      }}
-      onKeyDown={(e) => {
-        if (e.key === "Escape") setOpen(false);
-      }}
-    >
-      {open && (
-        <ul
-          id={listId}
-          role="listbox"
-          aria-label={label}
-          className="absolute bottom-[calc(100%+10px)] left-0 z-30 max-h-64 w-max min-w-full max-w-[min(26rem,calc(100vw-2rem))] overflow-y-auto rounded-2xl border border-slate-200 bg-white p-2 shadow-2xl"
-        >
-          {options.map((option) => (
-            <li key={option.value} role="option" aria-selected={option.value === value}>
-              <button
-                type="button"
-                onClick={() => {
-                  onChange(option.value);
-                  setOpen(false);
-                }}
-                className={`flex w-full items-center justify-between gap-2 rounded-xl px-3 py-2 text-left text-sm transition hover:bg-[#eef6f9] ${
-                  option.value === value ? "bg-[#eef6f9] font-semibold text-[#00506a]" : "text-slate-700"
-                }`}
-              >
-                <span className="truncate">{option.label}</span>
-                {option.value === value && <Check className="h-4 w-4 shrink-0" />}
-              </button>
-            </li>
-          ))}
-        </ul>
-      )}
-      <button
-        type="button"
-        aria-haspopup="listbox"
-        aria-expanded={open}
-        aria-controls={open ? listId : undefined}
-        onClick={() => {
-          if (!open) onOpen?.();
-          setOpen(!open);
-        }}
-        className={`${FIELD} w-full cursor-pointer pr-9 text-left ${open ? "border-[#00506a]" : "hover:border-[#00506a]"}`}
-      >
-        <span className={LABEL}>{label}</span>
-        <span className={VALUE}>{selected?.label}</span>
-        <ChevronDown
-          className={`absolute top-1/2 right-3 h-4 w-4 -translate-y-1/2 text-slate-400 transition ${open ? "rotate-180" : ""}`}
-        />
-      </button>
-    </div>
-  );
-}
