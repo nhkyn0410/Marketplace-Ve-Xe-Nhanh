@@ -345,16 +345,10 @@ export class AuthService {
 
   // ── OAuth (Passenger — Better Auth, ADR-020) ──
   async oauthInit(provider: string, callbackURL: string | undefined): Promise<string> {
-    if (!SUPPORTED_OAUTH.includes(provider as OAuthProvider)) {
-      throw new AuthException(
-        HttpStatus.BAD_REQUEST,
-        "AUTH_OAUTH_PROVIDER_UNSUPPORTED",
-        `OAuth provider không hỗ trợ: ${provider}`
-      );
-    }
+    const supportedProvider = this.requireSupportedOAuthProvider(provider);
     this.assertAllowedCallback(callbackURL);
     const result = await this.auth.api.signInSocial({
-      body: { provider: provider as OAuthProvider, callbackURL, disableRedirect: true }
+      body: { provider: supportedProvider, callbackURL, disableRedirect: true }
     });
     if (!result.url) {
       throw new AuthException(
@@ -364,6 +358,52 @@ export class AuthService {
       );
     }
     return result.url;
+  }
+
+  /**
+   * Mobile-native OAuth: Google SDK cấp ID token, Better Auth xác minh token và liên kết
+   * account theo email đã xác minh, sau đó ta huỷ session cầu nối và cấp session nội bộ.
+   */
+  async oauthIdToken(provider: string, idToken: string, ctx: RequestContext): Promise<LoginResult> {
+    const supportedProvider = this.requireSupportedOAuthProvider(provider);
+    let result: Awaited<ReturnType<Auth["api"]["signInSocial"]>>;
+    try {
+      result = await this.auth.api.signInSocial({
+        body: { provider: supportedProvider, idToken: { token: idToken } }
+      });
+    } catch (error) {
+      if (!isClientAuthError(error)) {
+        throw error;
+      }
+      await this.loginHistory.record({
+        scope: "passenger",
+        result: "failure",
+        targetId: supportedProvider,
+        reason: "oauth_invalid",
+        ...ctx
+      });
+      throw invalidCredentials();
+    }
+
+    if (!("user" in result) || !("token" in result)) {
+      throw new AuthException(
+        HttpStatus.BAD_GATEWAY,
+        "AUTH_OAUTH_SIGN_IN_FAILED",
+        "Không hoàn tất được đăng nhập OAuth."
+      );
+    }
+    await this.discardBetterAuthSession(result.token);
+    if (!result.user.emailVerified) {
+      await this.loginHistory.record({
+        scope: "passenger",
+        result: "failure",
+        targetId: result.user.id,
+        reason: "oauth_email_unverified",
+        ...ctx
+      });
+      throw invalidCredentials();
+    }
+    return this.issuePassengerToken(result.user.id, ctx);
   }
 
   /** Đổi Better Auth session (sau OAuth callback) → JWT của ta (headless bridge). */
@@ -524,6 +564,17 @@ export class AuthService {
         "callbackURL không nằm trong danh sách cho phép."
       );
     }
+  }
+
+  private requireSupportedOAuthProvider(provider: string): OAuthProvider {
+    if (!SUPPORTED_OAUTH.includes(provider as OAuthProvider)) {
+      throw new AuthException(
+        HttpStatus.BAD_REQUEST,
+        "AUTH_OAUTH_PROVIDER_UNSUPPORTED",
+        `OAuth provider không hỗ trợ: ${provider}`
+      );
+    }
+    return provider as OAuthProvider;
   }
 
   private async issuePassengerToken(userId: string, ctx: RequestContext): Promise<LoginResult> {

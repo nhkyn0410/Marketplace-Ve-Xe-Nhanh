@@ -3,6 +3,7 @@ import { HttpException, HttpStatus, Inject, Injectable, Logger } from "@nestjs/c
 import type Redis from "ioredis";
 import type { SeatType } from "../database/prisma.types";
 import { PrismaService } from "../database/prisma.service";
+import { loadOperatorRatings, NO_RATING } from "../database/public-highlights";
 import {
   findLandmark,
   findWard,
@@ -79,9 +80,10 @@ export class TripSearchService {
     if (!trip || !trip.vehicle) {
       throw new HttpException({ code: "TRIP_NOT_FOUND", detail: "Không tìm thấy chuyến.", title: "Trip error" }, HttpStatus.NOT_FOUND);
     }
-    const [rules, tiers] = await Promise.all([
+    const [rules, tiers, ratings] = await Promise.all([
       loadActiveFareRules(this.prisma, [trip.route.id]),
       loadCancellationTiers(this.prisma, [trip.operator.id], now),
+      loadOperatorRatings(this.prisma, [trip.operator.id]),
     ]);
     const vehicleTypeId = trip.vehicle.vehicleType.id;
     // Chỗ đang được giữ (BTP-001) hiện "không đặt được"; Redis lỗi thì chỉ dựa trạng thái Postgres — lúc giữ chỗ kiểm lại.
@@ -91,7 +93,13 @@ export class TripSearchService {
     });
     return {
       tripId: trip.id,
-      operator: { id: trip.operator.id, name: trip.operator.displayName, slug: trip.operator.operatorSlug, hotline: trip.operator.hotline },
+      operator: {
+        id: trip.operator.id,
+        name: trip.operator.displayName,
+        slug: trip.operator.operatorSlug,
+        hotline: trip.operator.hotline,
+        ...(ratings.get(trip.operator.id) ?? NO_RATING),
+      },
       routeName: trip.route.name,
       departureAt: trip.departureAt.toISOString(),
       arrivalAt: trip.arrivalAt.toISOString(),
@@ -130,7 +138,8 @@ export class TripSearchService {
       date: query.date,
       passengers: query.passengers,
     };
-    const key = `trip-search:v2:${createHash("sha256").update(JSON.stringify(identity)).digest("hex")}`;
+    // Tăng `vN` mỗi khi đổi dạng kết quả cache (`Matched` / `TripSearchItem`), để kết quả cũ trong cache không lọt ra response mới.
+    const key = `trip-search:v3:${createHash("sha256").update(JSON.stringify(identity)).digest("hex")}`;
     const cached = await this.redis.get(key).catch((error: unknown) => {
       this.logger.warn({ event: "trip_search.cache_read_failed", error });
       return null;
@@ -173,7 +182,10 @@ export class TripSearchService {
       now: new Date(),
       limit: CANDIDATE_LIMIT,
     });
-    const rules = await loadActiveFareRules(this.prisma, [...new Set(candidates.map((candidate) => candidate.routeId))]);
+    const [rules, ratings] = await Promise.all([
+      loadActiveFareRules(this.prisma, [...new Set(candidates.map((candidate) => candidate.routeId))]),
+      loadOperatorRatings(this.prisma, [...new Set(candidates.map((candidate) => candidate.operatorId))]),
+    ]);
     const rulesByRoute = new Map<string, FareRuleRow[]>();
     for (const rule of rules) {
       rulesByRoute.set(rule.routeId, [...(rulesByRoute.get(rule.routeId) ?? []), rule]);
@@ -191,7 +203,12 @@ export class TripSearchService {
       const minPrice = prices.reduce((min, price) => (price < min ? price : min));
       items.push({
         tripId: candidate.tripId,
-        operator: { id: candidate.operatorId, name: candidate.operatorName, slug: candidate.operatorSlug },
+        operator: {
+          id: candidate.operatorId,
+          name: candidate.operatorName,
+          slug: candidate.operatorSlug,
+          ...(ratings.get(candidate.operatorId) ?? NO_RATING),
+        },
         routeName: candidate.routeName,
         vehicleType: {
           name: candidate.vehicleTypeName,

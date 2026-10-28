@@ -1,5 +1,6 @@
-import { describe, expect, it } from "vitest";
-import { groupPopularRoutes, type HighlightRouteRow, shortProvinceName } from "./public-highlights";
+import { describe, expect, it, vi } from "vitest";
+import type { PrismaService } from "./prisma.service";
+import { groupPopularRoutes, type HighlightRouteRow, loadOperatorRatings, shortProvinceName } from "./public-highlights";
 
 const names = new Map([
   ["hcm", "Thành phố Hồ Chí Minh"],
@@ -89,5 +90,20 @@ describe("groupPopularRoutes", () => {
       3,
     );
     expect(routes.map((route) => `${route.originName}>${route.destinationName}`)).toEqual(["TP. Hồ Chí Minh>Khánh Hòa", "TP. Hà Nội>Lâm Đồng", "TP. Hồ Chí Minh>Lâm Đồng"]);
+  });
+});
+
+describe("loadOperatorRatings", () => {
+  it("chỉ tính đánh giá đang hiển thị, làm tròn 1 chữ số; nhà xe chưa có đánh giá không có trong map; danh sách rỗng không hỏi DB", async () => {
+    const groupBy = vi.fn().mockResolvedValue([{ operatorId: "op-a", _avg: { rating: 4.666 }, _count: { id: 3 } }]);
+    const prisma = { withSystem: (run: (tx: unknown) => unknown) => run({ review: { groupBy } }) } as unknown as Pick<PrismaService, "withSystem">;
+
+    const ratings = await loadOperatorRatings(prisma, ["op-a", "op-b"]);
+
+    expect(ratings.get("op-a")).toEqual({ averageRating: 4.7, reviewCount: 3 });
+    expect(ratings.has("op-b")).toBe(false);
+    expect(groupBy).toHaveBeenCalledWith(expect.objectContaining({ where: { status: "VISIBLE", operatorId: { in: ["op-a", "op-b"] } } }));
+    expect(await loadOperatorRatings(prisma, [])).toEqual(new Map());
+    expect(groupBy).toHaveBeenCalledTimes(1);
   });
 });

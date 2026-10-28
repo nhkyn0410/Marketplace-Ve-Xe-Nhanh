@@ -69,6 +69,7 @@ describe("OpenAPI generation", () => {
         "/v1/auth/otp/request",
         "/v1/auth/otp/verify",
         "/v1/auth/oauth/{provider}",
+        "/v1/auth/oauth/{provider}/id-token",
         "/v1/auth/oauth/session",
         "/v1/auth/operator/login",
         "/v1/auth/employee/login",
@@ -104,6 +105,7 @@ describe("OpenAPI generation", () => {
         "/v1/auth/otp/request",
         "/v1/auth/otp/verify",
         "/v1/auth/oauth/{provider}",
+        "/v1/auth/oauth/{provider}/id-token",
         "/v1/auth/operator/login",
         "/v1/auth/employee/login",
         "/v1/auth/platform/login",
@@ -255,6 +257,14 @@ describe("OpenAPI generation", () => {
           (param) => "name" in param && param.name === "provider",
         ),
         "thiếu @ApiParam cho {provider}",
+      ).toBe(true);
+      const nativeOauthParams =
+        document.paths["/v1/auth/oauth/{provider}/id-token"]?.post?.parameters ?? [];
+      expect(
+        nativeOauthParams.some(
+          (param) => "name" in param && param.name === "provider",
+        ),
+        "thiếu @ApiParam cho {provider} của native OAuth",
       ).toBe(true);
       // CAT-001 (API §7.6): catalog đọc công khai — có route, KHÔNG security, query khai tường minh
       // (tsx không có `design:paramtypes` nên `@Query()` DTO không tự sinh param).

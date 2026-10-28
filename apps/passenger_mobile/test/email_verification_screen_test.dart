@@ -34,10 +34,12 @@ void main() {
     String? errorMessage,
     bool busy = false,
     EdgeInsets padding = EdgeInsets.zero,
+    TextScaler textScaler = TextScaler.noScaling,
   }) {
     return MaterialApp(
       builder: (context, child) => MediaQuery(
-        data: MediaQuery.of(context).copyWith(padding: padding),
+        data: MediaQuery.of(context)
+            .copyWith(padding: padding, textScaler: textScaler),
         child: child!,
       ),
       home: EmailVerificationScreen(
@@ -138,9 +140,7 @@ void main() {
     expect(_text(tester, const Key('otp-expiry')), '05:00');
 
     now = issuedAt.add(const Duration(minutes: 5, seconds: 1));
-    tester.binding.handleAppLifecycleStateChanged(
-      AppLifecycleState.resumed,
-    );
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
     await tester.pump();
 
     expect(_text(tester, const Key('otp-expiry')), '00:00');
@@ -225,10 +225,20 @@ void main() {
         tester.getSize(find.byKey(const Key('otp-responsive-viewport'))).width,
         size.width,
       );
+      expect(
+        tester.getSize(find.byKey(const Key('otp-responsive-viewport'))).height,
+        size.height,
+      );
+      expect(
+        tester.getBottomRight(find.byKey(const Key('otp-verify-button'))).dy,
+        lessThanOrEqualTo(size.height),
+      );
     });
   }
 
-  testWidgets('OTP có thể cuộn để không bị bàn phím che', (tester) async {
+  testWidgets('khung OTP không cuộn và thích ứng khi mở bàn phím', (
+    tester,
+  ) async {
     final view =
         TestWidgetsFlutterBinding.instance.platformDispatcher.views.first;
     view.physicalSize = const Size(360, 640);
@@ -238,6 +248,15 @@ void main() {
       screen(padding: const EdgeInsets.only(top: 48, bottom: 24)),
     );
     await tester.pump();
+
+    expect(find.byType(SingleChildScrollView), findsNothing);
+    final headingTop = tester.getTopLeft(find.text('Xác nhận email')).dy;
+    await tester.drag(
+      find.byKey(const Key('otp-responsive-viewport')),
+      const Offset(0, -120),
+    );
+    await tester.pump();
+    expect(tester.getTopLeft(find.text('Xác nhận email')).dy, headingTop);
 
     await tester.tap(find.byKey(const Key('otp-field')));
     tester.view.viewInsets = const FakeViewPadding(bottom: 300);
@@ -249,6 +268,20 @@ void main() {
       tester.getBottomRight(find.byKey(const Key('otp-field'))).dy,
       lessThanOrEqualTo(340),
     );
+  });
+
+  testWidgets('OTP co giãn khi Android tăng cỡ chữ', (tester) async {
+    await tester.pumpWidget(
+      screen(
+        padding: const EdgeInsets.only(top: 48, bottom: 24),
+        textScaler: const TextScaler.linear(1.3),
+      ),
+    );
+    await tester.pump();
+
+    expect(tester.takeException(), isNull);
+    expect(find.byKey(const Key('otp-verify-button')), findsOneWidget);
+    expect(find.byKey(const Key('otp-support-button')), findsOneWidget);
   });
 }
 

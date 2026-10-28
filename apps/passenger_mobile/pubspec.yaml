@@ -37,6 +37,7 @@ dependencies:
     path: ../../packages/api_client_dart
   dio: ^5.7.0
   flutter_svg: ^2.3.0
+  url_launcher: ^6.3.2
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
@@ -45,12 +46,15 @@ dependencies:
   flutter_secure_storage: ^11.1.1
   local_auth: ^3.0.2
   app_links: ^7.2.1
+  google_sign_in: ^7.2.0
   maplibre_gl: ^0.27.1
   firebase_core: ^4.14.0
   firebase_messaging: ^16.6.0
 
 dev_dependencies:
   flutter_test:
+    sdk: flutter
+  integration_test:
     sdk: flutter
 
   # The "flutter_lints" package below contains a set of recommended lints to
@@ -77,6 +81,34 @@ flutter:
     - assets/auth/waves/
     - assets/auth/logo/
     - assets/auth/icons/
+    - assets/home/hero/
+    - assets/home/icons/
+    - assets/home/illustrations/
+    - assets/home/destinations/da_lat.png
+    - assets/home/destinations/da_nang.jpg
+    - assets/home/destinations/nha_trang.jpg
+    - assets/home/destinations/phan_thiet.jpg
+    - assets/home/vouchers/discount_20.png
+    - assets/home/vouchers/discount_50k.jpg
+    - assets/home/operators/
+    - assets/home/articles/coastal_routes.jpg
+    - assets/home/articles/da_lat_checkin.png
+    - assets/home/articles/da_lat_coach_guide.jpg
+    - assets/home/support/
+    - assets/home/tabbar/
+    - assets/explore/
+    - assets/journey/guest_lookup/
+    - assets/journey/flow/
+    - assets/ticket/
+    - assets/ticket/detail/
+    - assets/ticket/payment/
+    - assets/ticket/completion/
+    - assets/account/
+    - assets/account/saved_passengers/
+    - assets/account/vouchers/
+    - assets/account/points/
+    - assets/account/reviews/
+    - assets/account/settings/
 
   fonts:
     - family: Be Vietnam Pro
@@ -87,6 +119,8 @@ flutter:
           weight: 500
         - asset: assets/fonts/BeVietnamPro-SemiBold.ttf
           weight: 600
+        - asset: assets/fonts/BeVietnamPro-Bold.ttf
+          weight: 700
 
   # To add assets to your application, add an assets section, like this:
   # assets:

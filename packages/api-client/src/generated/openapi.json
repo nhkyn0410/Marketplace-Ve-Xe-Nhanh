@@ -4280,6 +4280,60 @@
         ]
       }
     },
+    "/v1/auth/oauth/{provider}/id-token": {
+      "post": {
+        "operationId": "AuthController_oauthIdToken",
+        "parameters": [
+          {
+            "name": "provider",
+            "required": true,
+            "in": "path",
+            "description": "OAuth provider native (v1: google).",
+            "schema": {
+              "enum": [
+                "google"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OAuthIdTokenDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Xác minh Google ID token từ SDK native và cấp access/refresh token Passenger.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthTokenResponseDto_Output"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Google ID token không hợp lệ hoặc đã hết hạn.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "auth"
+        ]
+      }
+    },
     "/v1/auth/oauth/{provider}": {
       "post": {
         "operationId": "AuthController_oauth",
@@ -32982,6 +33036,19 @@
           "newPassword"
         ]
       },
+      "OAuthIdTokenDto": {
+        "type": "object",
+        "properties": {
+          "idToken": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 10000
+          }
+        },
+        "required": [
+          "idToken"
+        ]
+      },
       "OAuthInitDto": {
         "type": "object",
         "properties": {
@@ -40119,12 +40186,29 @@
                     },
                     "slug": {
                       "type": "string"
+                    },
+                    "averageRating": {
+                      "anyOf": [
+                        {
+                          "type": "number"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "reviewCount": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
                     }
                   },
                   "required": [
                     "id",
                     "name",
-                    "slug"
+                    "slug",
+                    "averageRating",
+                    "reviewCount"
                   ],
                   "additionalProperties": false
                 },
@@ -40430,13 +40514,30 @@
                     "type": "null"
                   }
                 ]
+              },
+              "averageRating": {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "reviewCount": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
               }
             },
             "required": [
               "id",
               "name",
               "slug",
-              "hotline"
+              "hotline",
+              "averageRating",
+              "reviewCount"
             ],
             "additionalProperties": false
           },

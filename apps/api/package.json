@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "node scripts/dev.mjs main",
     "dev:worker": "node scripts/dev.mjs worker",
-    "build": "pnpm --filter @vexenhanh/types build && tsc -p tsconfig.build.json",
+    "build": "prisma generate && pnpm --filter @vexenhanh/types build && tsc -p tsconfig.build.json",
     "start": "node dist/main.js",
     "start:worker": "node dist/worker.js",
     "lint": "eslint .",

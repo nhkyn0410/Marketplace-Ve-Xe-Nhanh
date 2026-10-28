@@ -16,6 +16,7 @@ Method | HTTP request | Description
 [**authControllerLogout**](AuthApi.md#authcontrollerlogout) | **POST** /v1/auth/logout | 
 [**authControllerMe**](AuthApi.md#authcontrollerme) | **GET** /v1/auth/me | 
 [**authControllerOauth**](AuthApi.md#authcontrolleroauth) | **POST** /v1/auth/oauth/{provider} | 
+[**authControllerOauthIdToken**](AuthApi.md#authcontrolleroauthidtoken) | **POST** /v1/auth/oauth/{provider}/id-token | 
 [**authControllerOauthSession**](AuthApi.md#authcontrolleroauthsession) | **POST** /v1/auth/oauth/session | 
 [**authControllerOperatorLogin**](AuthApi.md#authcontrolleroperatorlogin) | **POST** /v1/auth/operator/login | 
 [**authControllerPlatformLogin**](AuthApi.md#authcontrollerplatformlogin) | **POST** /v1/auth/platform/login | 
@@ -317,6 +318,49 @@ No authorization required
 
  - **Content-Type**: application/json
  - **Accept**: application/json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **authControllerOauthIdToken**
+> AuthTokenResponseDtoOutput authControllerOauthIdToken(provider, oAuthIdTokenDto)
+
+
+
+### Example
+```dart
+import 'package:api_client_dart/api.dart';
+
+final api = ApiClientDart().getAuthApi();
+final String provider = provider_example; // String | OAuth provider native (v1: google).
+final OAuthIdTokenDto oAuthIdTokenDto = ; // OAuthIdTokenDto | 
+
+try {
+    final response = api.authControllerOauthIdToken(provider, oAuthIdTokenDto);
+    print(response);
+} on DioException catch (e) {
+    print('Exception when calling AuthApi->authControllerOauthIdToken: $e\n');
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **provider** | **String**| OAuth provider native (v1: google). | 
+ **oAuthIdTokenDto** | [**OAuthIdTokenDto**](OAuthIdTokenDto.md)|  | 
+
+### Return type
+
+[**AuthTokenResponseDtoOutput**](AuthTokenResponseDtoOutput.md)
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
+ - **Accept**: application/json, application/problem+json
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 

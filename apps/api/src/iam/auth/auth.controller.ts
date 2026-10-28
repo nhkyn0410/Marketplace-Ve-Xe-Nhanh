@@ -57,6 +57,7 @@ import {
   MfaVerifyDto,
   type MfaVerifyResponse,
   MfaVerifyResponseDto,
+  OAuthIdTokenDto,
   OAuthInitDto,
   type OAuthRedirectResponse,
   OAuthRedirectResponseDto,
@@ -348,6 +349,33 @@ export class AuthController {
         toHeaders(req),
         this.context(req)
       )
+    );
+  }
+
+  /**
+   * Mobile lấy Google ID token bằng SDK native rồi đổi trực tiếp sang phiên nội bộ.
+   * Không dùng browser cookie bridge và không đưa access/refresh token vào deep-link URL.
+   */
+  @Post("oauth/:provider/id-token")
+  @BearerOnly()
+  @HttpCode(200)
+  @NoStore()
+  @ApiParam({ name: "provider", enum: SUPPORTED_OAUTH, description: "OAuth provider native (v1: google)." })
+  @ApiBody({ type: OAuthIdTokenDto })
+  @ZodResponse({
+    status: 200,
+    description: "Xác minh Google ID token từ SDK native và cấp access/refresh token Passenger.",
+    type: AuthTokenResponseDto
+  })
+  @ApiResponse({ status: 401, description: "Google ID token không hợp lệ hoặc đã hết hạn.", content: problemContent })
+  async oauthIdToken(
+    @Param("provider") provider: string,
+    @Body() dto: OAuthIdTokenDto,
+    @Req() req: Request
+  ): Promise<AuthTokenResponse> {
+    assertBearerOnly(req);
+    return toTokenResponse(
+      await this.authService.oauthIdToken(provider, dto.idToken, this.context(req))
     );
   }
 

@@ -58,6 +58,13 @@ export const TripSearchQuerySchema = z
 export type TripSearchQuery = z.infer<typeof TripSearchQuerySchema>;
 export class TripSearchQueryDto extends createZodDto(TripSearchQuerySchema) {}
 
+/** Điểm đánh giá công khai của nhà xe (như "Nhà xe nổi bật"): trung bình các đánh giá đang hiển thị, 1 chữ số thập phân. */
+const OperatorRatingShape = {
+  /** `null` = chưa có đánh giá nào đang hiển thị. */
+  averageRating: z.number().nullable(),
+  reviewCount: z.int(),
+};
+
 const PointSchema = z.object({
   /** Thứ tự điểm trong chuyến — dùng khi giữ chỗ / đặt vé. */
   sequence: z.int(),
@@ -68,7 +75,7 @@ const PointSchema = z.object({
 
 export const TripSearchItemSchema = z.object({
   tripId: z.uuid(),
-  operator: z.object({ id: z.uuid(), name: z.string(), slug: z.string() }),
+  operator: z.object({ id: z.uuid(), name: z.string(), slug: z.string(), ...OperatorRatingShape }),
   routeName: z.string(),
   vehicleType: z.object({ name: z.string(), form: z.enum(VehicleForm), class: z.enum(VehicleClass) }),
   departureAt: z.iso.datetime(),
@@ -110,7 +117,7 @@ export class TripSearchResponseDto extends createZodDto(TripSearchResponseSchema
 
 export const PublicTripSchema = z.object({
   tripId: z.uuid(),
-  operator: z.object({ id: z.uuid(), name: z.string(), slug: z.string(), hotline: z.string().nullable() }),
+  operator: z.object({ id: z.uuid(), name: z.string(), slug: z.string(), hotline: z.string().nullable(), ...OperatorRatingShape }),
   routeName: z.string(),
   departureAt: z.iso.datetime(),
   arrivalAt: z.iso.datetime(),

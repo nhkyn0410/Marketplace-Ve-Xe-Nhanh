@@ -869,6 +869,75 @@ describe("AuthService OAuth + session exchange", () => {
     expect(await statusOf(ctx.service.oauthInit("google", undefined))).toBe(502);
   });
 
+  it("xác minh Google ID token native rồi cấp phiên Passenger nội bộ", async () => {
+    ctx.auth.api.signInSocial.mockResolvedValue({
+      redirect: false,
+      token: "ba-native-token",
+      url: undefined,
+      user: { id: "user-google-1", emailVerified: true }
+    });
+
+    const result = await ctx.service.oauthIdToken("google", "google-id-token", {
+      ip: "1.2.3.4"
+    });
+
+    expect(ctx.auth.api.signInSocial).toHaveBeenCalledWith({
+      body: { provider: "google", idToken: { token: "google-id-token" } }
+    });
+    expect(ctx.prisma.session.deleteMany).toHaveBeenCalledWith({ where: { token: "ba-native-token" } });
+    expect(result).toMatchObject({ scope: "passenger", role: "PASSENGER", refreshToken: "refresh-raw" });
+    expect(ctx.tokens.mintAccessToken).toHaveBeenCalledWith(
+      expect.objectContaining({ sub: "user-google-1", scope: "passenger" })
+    );
+  });
+
+  it("không cấp phiên nếu Google không xác nhận quyền sở hữu email", async () => {
+    ctx.auth.api.signInSocial.mockResolvedValue({
+      redirect: false,
+      token: "ba-unverified-token",
+      url: undefined,
+      user: { id: "user-google-unverified", emailVerified: false }
+    });
+
+    expect(await statusOf(ctx.service.oauthIdToken("google", "google-id-token", {}))).toBe(401);
+    expect(ctx.prisma.session.deleteMany).toHaveBeenCalledWith({ where: { token: "ba-unverified-token" } });
+    expect(ctx.sessions.create).not.toHaveBeenCalled();
+    expect(ctx.history.record).toHaveBeenCalledWith(
+      expect.objectContaining({ reason: "oauth_email_unverified" })
+    );
+  });
+
+  it("Google ID token sai trả 401 generic và ghi login history không chứa token", async () => {
+    ctx.auth.api.signInSocial.mockRejectedValue(
+      Object.assign(new Error("invalid Google token"), { status: "UNAUTHORIZED" })
+    );
+
+    expect(await statusOf(ctx.service.oauthIdToken("google", "secret-id-token", {}))).toBe(401);
+    expect(ctx.history.record).toHaveBeenCalledWith(
+      expect.objectContaining({
+        scope: "passenger",
+        result: "failure",
+        targetId: "google",
+        reason: "oauth_invalid"
+      })
+    );
+    expect(JSON.stringify(ctx.history.record.mock.calls)).not.toContain("secret-id-token");
+  });
+
+  it("không che lỗi hạ tầng của OAuth native thành 401", async () => {
+    ctx.auth.api.signInSocial.mockRejectedValue(new Error("database unavailable"));
+
+    await expect(ctx.service.oauthIdToken("google", "google-id-token", {})).rejects.toThrow(
+      "database unavailable"
+    );
+    expect(ctx.history.record).not.toHaveBeenCalled();
+  });
+
+  it("OAuth native từ chối provider ngoài Google trước khi gọi Better Auth", async () => {
+    expect(await statusOf(ctx.service.oauthIdToken("facebook", "id-token", {}))).toBe(400);
+    expect(ctx.auth.api.signInSocial).not.toHaveBeenCalled();
+  });
+
   it("exchanges a valid Better Auth session for a passenger token", async () => {
     ctx.auth.api.getSession.mockResolvedValue({
       session: { token: "ba-oauth-token" },

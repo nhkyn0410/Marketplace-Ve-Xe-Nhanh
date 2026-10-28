@@ -80,6 +80,7 @@ describe("Web auth dual transport — HTTP (TASK-IAM-006)", () => {
     employeeLogin: vi.fn(),
     verifyOtp: vi.fn(),
     exchangeSession: vi.fn(),
+    oauthIdToken: vi.fn(),
     oauthInit: vi.fn(),
     platformLogin: vi.fn(),
     verifyMfa: vi.fn(),
@@ -136,6 +137,7 @@ describe("Web auth dual transport — HTTP (TASK-IAM-006)", () => {
     authService.counterLogin.mockResolvedValue({ ...session, role: "SALES_STAFF" });
     authService.employeeLogin.mockResolvedValue(session);
     authService.exchangeSession.mockResolvedValue({ ...session, scope: "passenger", role: "PASSENGER" });
+    authService.oauthIdToken.mockResolvedValue({ ...session, scope: "passenger", role: "PASSENGER" });
     authService.platformLogin.mockResolvedValue({
       mfaRequired: true,
       challengeToken: "c".repeat(43),
@@ -265,6 +267,7 @@ describe("Web auth dual transport — HTTP (TASK-IAM-006)", () => {
       ["/auth/employee/login", employee],
       ["/auth/otp/verify", { email: "a@example.com", otp: "123456" }],
       ["/auth/oauth/session", {}],
+      ["/auth/oauth/google/id-token", { idToken: "google-id-token" }],
     ])("%s ở cookie mode → 400 AUTH_TRANSPORT_INVALID, không trả token thô", async (path, body) => {
       const { response, json } = await post(path, { headers: await cookieHeaders(), body });
       expect(response.status).toBe(400);
@@ -273,6 +276,7 @@ describe("Web auth dual transport — HTTP (TASK-IAM-006)", () => {
       expect(authService.employeeLogin).not.toHaveBeenCalled();
       expect(authService.verifyOtp).not.toHaveBeenCalled();
       expect(authService.exchangeSession).not.toHaveBeenCalled();
+      expect(authService.oauthIdToken).not.toHaveBeenCalled();
     });
 
     it("hồi quy: POST /auth/oauth/session tới đúng handler, không bị `oauth/:provider` nuốt", async () => {
@@ -280,6 +284,22 @@ describe("Web auth dual transport — HTTP (TASK-IAM-006)", () => {
       expect(response.status).toBe(200);
       expect(json).toMatchObject({ scope: "passenger", accessToken: "raw-access-token" });
       expect(authService.exchangeSession).toHaveBeenCalledOnce();
+      expect(authService.oauthInit).not.toHaveBeenCalled();
+    });
+
+    it("POST /auth/oauth/google/id-token cấp token JSON và tới đúng handler native", async () => {
+      const { response, json } = await post("/auth/oauth/google/id-token", {
+        body: { idToken: "google-id-token" }
+      });
+
+      expect(response.status).toBe(200);
+      expect(json).toMatchObject({ scope: "passenger", accessToken: "raw-access-token" });
+      expect(response.headers.getSetCookie()).toEqual([]);
+      expect(authService.oauthIdToken).toHaveBeenCalledWith(
+        "google",
+        "google-id-token",
+        expect.any(Object)
+      );
       expect(authService.oauthInit).not.toHaveBeenCalled();
     });
   });

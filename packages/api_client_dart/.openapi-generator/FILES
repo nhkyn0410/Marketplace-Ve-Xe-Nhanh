@@ -345,6 +345,7 @@ doc/MongoHealthResponseDtoOutput.md
 doc/NotificationApi.md
 doc/NotificationLogDtoOutput.md
 doc/NotificationLogDtoOutputItemsInner.md
+doc/OAuthIdTokenDto.md
 doc/OAuthInitDto.md
 doc/OAuthRedirectResponseDtoOutput.md
 doc/OperatorApplicationsApi.md
@@ -1030,6 +1031,7 @@ lib/src/model/moderation_input_dto.dart
 lib/src/model/mongo_health_response_dto_output.dart
 lib/src/model/notification_log_dto_output.dart
 lib/src/model/notification_log_dto_output_items_inner.dart
+lib/src/model/o_auth_id_token_dto.dart
 lib/src/model/o_auth_init_dto.dart
 lib/src/model/o_auth_redirect_response_dto_output.dart
 lib/src/model/operator_booking_detail_dto_output.dart

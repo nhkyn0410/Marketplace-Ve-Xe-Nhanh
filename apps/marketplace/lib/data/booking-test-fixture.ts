@@ -22,7 +22,7 @@ export function holdFixture(): ApiHold {
 export function publicTripFixture(): ApiTrip {
   const booking = bookingFixture();
   return {
-    tripId: booking.tripId, operator: { id: "55555555-5555-4555-8555-555555555555", name: booking.trip.operatorName, slug: "test", hotline: null }, routeName: booking.trip.routeName, departureAt: booking.trip.departureAt, arrivalAt: booking.trip.arrivalAt, onlineSaleClosesAt: "2029-12-31T23:00:00Z", note: null,
+    tripId: booking.tripId, operator: { id: "55555555-5555-4555-8555-555555555555", name: booking.trip.operatorName, slug: "test", hotline: null, averageRating: null, reviewCount: 0 }, routeName: booking.trip.routeName, departureAt: booking.trip.departureAt, arrivalAt: booking.trip.arrivalAt, onlineSaleClosesAt: "2029-12-31T23:00:00Z", note: null,
     vehicleType: { name: "Ghế ngồi", form: "SEATER", class: "STANDARD" }, amenities: [], vehicleImages: [],
     stops: [booking.pickup, booking.dropoff].map((stop, index) => ({ ...stop, role: index === 0 ? "ORIGIN" : "DESTINATION", type: "BUS_STATION", latitude: 0, longitude: 0, pickupWindowStart: null, pickupWindowEnd: null, allowPickup: index === 0, allowDropoff: index === 1, note: null })),
     seats: [{ code: "A1", deck: 1, row: 2, column: 4, type: "SEAT", status: "AVAILABLE", price: 100001 }], cancellationPolicy: booking.cancellationPolicy

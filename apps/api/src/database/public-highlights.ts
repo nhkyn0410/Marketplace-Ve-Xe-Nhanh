@@ -190,13 +190,30 @@ export async function loadPopularRoutes(prisma: Pick<PrismaService, "withSystem"
   });
 }
 
-export type FeaturedOperator = {
+/** Điểm đánh giá công khai của một nhà xe: trung bình các đánh giá đang hiển thị (1 chữ số thập phân) + số đánh giá. */
+export type OperatorRating = { averageRating: number | null; reviewCount: number };
+
+/** Nhà xe chưa có đánh giá nào đang hiển thị. */
+export const NO_RATING: OperatorRating = { averageRating: null, reviewCount: 0 };
+
+async function operatorRatingsIn(tx: Tx, operatorIds: readonly string[]): Promise<Map<string, OperatorRating>> {
+  if (operatorIds.length === 0) return new Map();
+  const rows = await tx.review.groupBy({ by: ["operatorId"], where: { status: "VISIBLE", operatorId: { in: [...operatorIds] } }, _avg: { rating: true }, _count: { id: true } });
+  return new Map(
+    rows.map((row) => [row.operatorId, { averageRating: row._avg.rating === null ? null : Math.round(row._avg.rating * 10) / 10, reviewCount: row._count.id }]),
+  );
+}
+
+/** Điểm đánh giá công khai theo nhà xe (tìm chuyến, chi tiết chuyến); nhà xe chưa có đánh giá thì không có trong map. */
+export async function loadOperatorRatings(prisma: Pick<PrismaService, "withSystem">, operatorIds: readonly string[]): Promise<Map<string, OperatorRating>> {
+  return prisma.withSystem((tx) => operatorRatingsIn(tx, operatorIds));
+}
+
+export type FeaturedOperator = OperatorRating & {
   operatorId: string;
   displayName: string;
   /** Khóa object logo ở kho công khai; service ghép thành địa chỉ. */
   logoObjectKey: string | null;
-  averageRating: number | null;
-  reviewCount: number;
   /** Cặp tỉnh các tuyến đang mở bán của nhà xe, bán chạy trước. */
   routes: ProvincePair[];
 };
@@ -209,14 +226,9 @@ export async function loadFeaturedOperators(prisma: Pick<PrismaService, "withSys
       select: { id: true, displayName: true, logoObjectKey: true },
     });
     if (operators.length === 0) return [];
-    const ratings = await tx.review.groupBy({ by: ["operatorId"], where: { status: "VISIBLE", operatorId: { in: operators.map((operator) => operator.id) } }, _avg: { rating: true }, _count: { id: true } });
-    const byOperator = new Map(ratings.map((row) => [row.operatorId, row]));
+    const ratings = await operatorRatingsIn(tx, operators.map((operator) => operator.id));
     const featured = operators
-      .map((operator) => {
-        const rating = byOperator.get(operator.id);
-        const average = rating?._avg.rating ?? null;
-        return { operatorId: operator.id, displayName: operator.displayName, logoObjectKey: operator.logoObjectKey, averageRating: average === null ? null : Math.round(average * 10) / 10, reviewCount: rating?._count.id ?? 0 };
-      })
+      .map((operator) => ({ operatorId: operator.id, displayName: operator.displayName, logoObjectKey: operator.logoObjectKey, ...(ratings.get(operator.id) ?? NO_RATING) }))
       .sort((a, b) => b.reviewCount - a.reviewCount || (b.averageRating ?? 0) - (a.averageRating ?? 0) || a.displayName.localeCompare(b.displayName, "vi"))
       .slice(0, limit);
     const rows = await loadRouteRows(tx, now, featured.map((operator) => operator.operatorId));

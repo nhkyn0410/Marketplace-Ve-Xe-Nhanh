@@ -14,6 +14,8 @@ part 'trip_search_response_dto_output_items_inner_operator.g.dart';
 /// * [id] 
 /// * [name] 
 /// * [slug] 
+/// * [averageRating] 
+/// * [reviewCount] 
 @BuiltValue()
 abstract class TripSearchResponseDtoOutputItemsInnerOperator implements Built<TripSearchResponseDtoOutputItemsInnerOperator, TripSearchResponseDtoOutputItemsInnerOperatorBuilder> {
   @BuiltValueField(wireName: r'id')
@@ -24,6 +26,12 @@ abstract class TripSearchResponseDtoOutputItemsInnerOperator implements Built<Tr
 
   @BuiltValueField(wireName: r'slug')
   String get slug;
+
+  @BuiltValueField(wireName: r'averageRating')
+  num? get averageRating;
+
+  @BuiltValueField(wireName: r'reviewCount')
+  int get reviewCount;
 
   TripSearchResponseDtoOutputItemsInnerOperator._();
 
@@ -62,6 +70,16 @@ class _$TripSearchResponseDtoOutputItemsInnerOperatorSerializer implements Primi
     yield serializers.serialize(
       object.slug,
       specifiedType: const FullType(String),
+    );
+    yield r'averageRating';
+    yield object.averageRating == null ? null : serializers.serialize(
+      object.averageRating,
+      specifiedType: const FullType.nullable(num),
+    );
+    yield r'reviewCount';
+    yield serializers.serialize(
+      object.reviewCount,
+      specifiedType: const FullType(int),
     );
   }
 
@@ -106,6 +124,21 @@ class _$TripSearchResponseDtoOutputItemsInnerOperatorSerializer implements Primi
             specifiedType: const FullType(String),
           ) as String;
           result.slug = valueDes;
+          break;
+        case r'averageRating':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType.nullable(num),
+          ) as num?;
+          if (valueDes == null) continue;
+          result.averageRating = valueDes;
+          break;
+        case r'reviewCount':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(int),
+          ) as int;
+          result.reviewCount = valueDes;
           break;
         default:
           unhandled.add(key);

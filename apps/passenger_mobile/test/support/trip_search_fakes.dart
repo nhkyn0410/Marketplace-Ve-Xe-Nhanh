@@ -1,0 +1,110 @@
+import 'package:passenger_mobile/features/home/home_models.dart';
+import 'package:passenger_mobile/features/search/trip_search_form.dart';
+import 'package:passenger_mobile/features/ticket/trip_search_models.dart';
+
+const hcm = HomeLocation(id: 'hcm', name: 'TP. Hồ Chí Minh');
+const lamDong = HomeLocation(id: 'lam-dong', name: 'Lâm Đồng');
+const mienDong = HomeLocation(
+  id: 'mien-dong',
+  name: 'Bến xe Miền Đông',
+  kind: HomeLocationKind.stopPoint,
+  detail: '292 Đinh Bộ Lĩnh',
+);
+
+const phuongTrang = HomeOperator(
+  id: 'op-pt',
+  name: 'Phương Trang',
+  averageRating: 4.7,
+  reviewCount: 12,
+  routes: [
+    HomeOperatorRoute(from: hcm, to: lamDong),
+    HomeOperatorRoute(from: lamDong, to: hcm),
+  ],
+);
+
+final sampleQuery = HomeSearchQuery(
+  mode: HomeSearchMode.route,
+  from: hcm,
+  to: lamDong,
+  date: DateTime(2026, 10, 30),
+  passengers: 1,
+);
+
+/// Chuyến mẫu; giờ là UTC nên 00:00Z = 07:00 giờ VN.
+TripSummary sampleTrip(
+  String id, {
+  String operatorName = 'Phương Trang',
+  int seats = 12,
+  int price = 280000,
+  double? rating = 4.7,
+  int reviewCount = 12,
+}) {
+  return TripSummary(
+    tripId: id,
+    operatorId: 'op-$operatorName',
+    operatorName: operatorName,
+    averageRating: rating,
+    reviewCount: reviewCount,
+    vehicleTypeName: 'Limousine giường',
+    pickup: TripStopSummary(
+      sequence: 1,
+      name: 'Bến xe Miền Đông',
+      address: '292 Đinh Bộ Lĩnh',
+      plannedAt: DateTime.utc(2026, 10, 30),
+    ),
+    dropoff: TripStopSummary(
+      sequence: 3,
+      name: 'Bến xe Đà Lạt',
+      address: '01 Tô Hiến Thành',
+      plannedAt: DateTime.utc(2026, 10, 30, 6, 30),
+    ),
+    durationMinutes: 390,
+    availableSeats: seats,
+    minPrice: price,
+    amenityNames: const ['Wi-Fi', 'Nước uống'],
+  );
+}
+
+TripSearchPage samplePage(
+  List<TripSummary> items, {
+  int total = -1,
+  int page = 1,
+  int limit = 20,
+}) {
+  return TripSearchPage(
+    items: items,
+    total: total < 0 ? items.length : total,
+    page: page,
+    limit: limit,
+    operators: const [
+      TripOperatorFacet(id: 'op-Phương Trang', name: 'Phương Trang', count: 2),
+    ],
+    priceMin: 250000,
+    priceMax: 350000,
+  );
+}
+
+/// Danh mục giả cho form tìm chuyến.
+TripSearchCatalog fakeCatalog({
+  List<HomeLocation> provinces = const [hcm, lamDong],
+  List<HomeLocation> stopPoints = const [mienDong],
+  List<HomeOperator> operators = const [phuongTrang],
+}) {
+  return TripSearchCatalog(
+    loadProvinces: () async => provinces,
+    searchStopPoints: (_) async => stopPoints,
+    loadOperators: () async => operators,
+    loadAmenities: () async => const [
+      TripAmenityOption(id: 'wifi', name: 'Wi-Fi'),
+    ],
+  );
+}
+
+/// Một lần gọi tìm chuyến mà test ghi lại.
+class SearchCall {
+  SearchCall(this.query, this.filters, this.page);
+
+  final HomeSearchQuery query;
+  final TripSearchFilters filters;
+  final int page;
+}

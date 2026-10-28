@@ -20,6 +20,8 @@ void main() {
     view.resetDevicePixelRatio();
   });
 
+  _skipIntroTests();
+
   testWidgets('màn đăng nhập mở ở bước nhập email', (tester) async {
     await tester.pumpWidget(const PassengerApp());
 
@@ -28,6 +30,10 @@ void main() {
     expect(find.text('Email'), findsOneWidget);
     expect(find.text('Tiếp tục'), findsOneWidget);
     expect(find.byKey(const Key('email-field')), findsOneWidget);
+    final transition = tester.widget<AnimatedSwitcher>(
+      find.byKey(const Key('auth-flow-transition')),
+    );
+    expect(transition.duration, const Duration(milliseconds: 420));
 
     // OTP chỉ xuất hiện sau khi request API thành công.
     expect(find.text('Mã OTP (6 chữ số)'), findsNothing);
@@ -60,17 +66,76 @@ void main() {
     );
   });
 
-  testWidgets('OAuth chưa tích hợp không điều hướng giả', (tester) async {
+  testWidgets('nút Google gọi đúng luồng OAuth được truyền vào', (
+    tester,
+  ) async {
+    var googleCalls = 0;
     await tester.pumpWidget(
-      _reducedMotionApp(AuthEntryScreen(onRequestOtp: (_) async {})),
+      _reducedMotionApp(
+        AuthEntryScreen(
+          onRequestOtp: (_) async {},
+          onGoogleSignIn: () async => googleCalls++,
+        ),
+      ),
     );
     await tester.pump();
 
     await tester.tap(find.byKey(const Key('oauth-google')));
     await tester.pump();
 
+    expect(googleCalls, 1);
+    expect(find.byType(AuthEntryScreen), findsOneWidget);
+  });
+
+  testWidgets('Google, Facebook và Apple cùng hàng và chia đều chiều rộng', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      _reducedMotionApp(AuthEntryScreen(onRequestOtp: (_) async {})),
+    );
+    await tester.pump();
+
+    final google = find.byKey(const Key('oauth-google'));
+    final facebook = find.byKey(const Key('oauth-facebook'));
+    final apple = find.byKey(const Key('oauth-apple'));
+    final googleSize = tester.getSize(google);
+
+    expect(find.text('Google'), findsOneWidget);
+    expect(find.text('Facebook'), findsOneWidget);
+    expect(find.text('Apple'), findsOneWidget);
+    expect(tester.getSize(facebook).width, closeTo(googleSize.width, 0.01));
+    expect(tester.getSize(apple).width, closeTo(googleSize.width, 0.01));
     expect(
-      find.text('Đăng nhập Google chưa được tích hợp trong giai đoạn này.'),
+      tester.getTopLeft(facebook).dy,
+      closeTo(tester.getTopLeft(google).dy, 0.01),
+    );
+    expect(
+      tester.getTopLeft(apple).dy,
+      closeTo(tester.getTopLeft(google).dy, 0.01),
+    );
+    expect(
+      tester.getTopLeft(google).dx,
+      lessThan(tester.getTopLeft(facebook).dx),
+    );
+    expect(
+      tester.getTopLeft(facebook).dx,
+      lessThan(tester.getTopLeft(apple).dx),
+    );
+  });
+
+  testWidgets('Apple chưa hỗ trợ vẫn báo rõ và không điều hướng giả', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      _reducedMotionApp(AuthEntryScreen(onRequestOtp: (_) async {})),
+    );
+    await tester.pump();
+
+    await tester.tap(find.byKey(const Key('oauth-apple')));
+    await tester.pump();
+
+    expect(
+      find.text('Đăng nhập Apple chưa được tích hợp trong giai đoạn này.'),
       findsOneWidget,
     );
     expect(find.byType(AuthEntryScreen), findsOneWidget);
@@ -199,6 +264,16 @@ void main() {
         tester.getSize(find.byKey(const Key('auth-responsive-viewport'))).width,
         size.width,
       );
+      expect(
+        tester
+            .getSize(find.byKey(const Key('auth-responsive-viewport')))
+            .height,
+        size.height,
+      );
+      expect(
+        tester.getBottomRight(find.byKey(const Key('guest-button'))).dy,
+        lessThanOrEqualTo(size.height),
+      );
     });
   }
 
@@ -220,7 +295,9 @@ void main() {
     );
   });
 
-  testWidgets('form cuộn lên và không bị bàn phím che', (tester) async {
+  testWidgets('khung đăng nhập không cuộn và thích ứng khi mở bàn phím', (
+    tester,
+  ) async {
     final view =
         TestWidgetsFlutterBinding.instance.platformDispatcher.views.first;
     view.physicalSize = const Size(360, 640);
@@ -234,6 +311,15 @@ void main() {
     );
     await tester.pump();
 
+    expect(find.byType(SingleChildScrollView), findsNothing);
+    final headingTop = tester.getTopLeft(find.text('Đăng nhập')).dy;
+    await tester.drag(
+      find.byKey(const Key('auth-responsive-viewport')),
+      const Offset(0, -120),
+    );
+    await tester.pump();
+    expect(tester.getTopLeft(find.text('Đăng nhập')).dy, headingTop);
+
     await tester.tap(find.byKey(const Key('email-field')));
     await tester.pump();
     tester.view.viewInsets = const FakeViewPadding(bottom: 300);
@@ -246,6 +332,56 @@ void main() {
       lessThanOrEqualTo(340),
     );
   });
+
+  testWidgets('không tràn 1 px khi Android tăng cỡ chữ', (tester) async {
+    await tester.pumpWidget(
+      _reducedMotionApp(
+        AuthEntryScreen(onRequestOtp: (_) async {}),
+        textScaler: const TextScaler.linear(1.3),
+      ),
+    );
+    await tester.pump();
+
+    expect(tester.takeException(), isNull);
+    expect(find.byKey(const Key('email-field')), findsOneWidget);
+    expect(find.byKey(const Key('continue-button')), findsOneWidget);
+  });
+}
+
+void _skipIntroTests() {
+  testWidgets('quay lại đăng nhập (playIntro: false) không chạy splash', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: AuthEntryScreen(
+          playIntro: false,
+          precacheMotionAssets: false,
+          onRequestOtp: (_) async {},
+          onContinueAsGuest: () {},
+        ),
+      ),
+    );
+    await tester.pump();
+
+    // Timeline đứng ở cuối ngay khung đầu: màn đăng nhập hoàn chỉnh, nút khách bấm được ngay.
+    expect(_node(tester, '1257:251').animation.value, 1);
+  });
+
+  testWidgets('lần mở app đầu vẫn chạy splash', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: AuthEntryScreen(
+          precacheMotionAssets: false,
+          onRequestOtp: (_) async {},
+        ),
+      ),
+    );
+    await tester.pump();
+
+    expect(_node(tester, '1257:251').animation.value, lessThan(1));
+    await tester.pumpAndSettle();
+  });
 }
 
 AuthMotionNode _node(WidgetTester tester, String nodeId) {
@@ -256,12 +392,19 @@ AuthMotionNode _node(WidgetTester tester, String nodeId) {
   );
 }
 
-Widget _reducedMotionApp(Widget home, {EdgeInsets padding = EdgeInsets.zero}) {
+Widget _reducedMotionApp(
+  Widget home, {
+  EdgeInsets padding = EdgeInsets.zero,
+  TextScaler textScaler = TextScaler.noScaling,
+}) {
   return MaterialApp(
     builder: (context, child) {
       return MediaQuery(
-        data: MediaQuery.of(context)
-            .copyWith(disableAnimations: true, padding: padding),
+        data: MediaQuery.of(context).copyWith(
+          disableAnimations: true,
+          padding: padding,
+          textScaler: textScaler,
+        ),
         child: child!,
       );
     },
