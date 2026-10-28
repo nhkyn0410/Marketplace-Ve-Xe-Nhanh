@@ -48,10 +48,7 @@ class GuestAccountScreen extends StatelessWidget {
           key: const Key('guest-account-scroll'),
           padding: const EdgeInsets.only(bottom: 144),
           children: [
-            const JourneyHeroHeader(
-              title: 'Tài khoản',
-              subtitle: 'Đăng nhập để đặt vé nhanh hơn và nhận ưu đãi.',
-            ),
+            const JourneyHeroHeader(title: 'Tài khoản'),
             Padding(
               padding: const EdgeInsets.fromLTRB(18, 15, 18, 0),
               child: Center(

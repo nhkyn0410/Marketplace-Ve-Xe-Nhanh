@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:passenger_mobile/features/home/route_dock_tabbar.dart';
+import 'package:passenger_mobile/features/journey/guest_journey_shared.dart';
 
 const _assetRoot = 'assets/journey/guest_lookup';
 const _primary = Color(0xFF2B7EAD);
@@ -233,22 +234,30 @@ class _JourneyHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final logoTop = brandLogoTop(MediaQuery.paddingOf(context).top);
     return SizedBox(
       height: 250,
       child: Stack(
         fit: StackFit.expand,
         children: [
           Image.asset(
-            '$_assetRoot/hero_journey.png',
+            '$journeyAssetRoot/hero_250.png',
             fit: BoxFit.cover,
             alignment: Alignment.topCenter,
             filterQuality: FilterQuality.high,
           ),
-          const Positioned(
+          Positioned(
+            left: brandLogoLeft,
+            top: logoTop,
+            width: brandLogoSize.width,
+            height: brandLogoSize.height,
+            child: const JourneyBrandLogo(),
+          ),
+          Positioned(
             left: 18,
             right: 18,
-            top: 98,
-            child: Text(
+            top: logoTop + 40,
+            child: const Text(
               'Tra cứu hành trình',
               maxLines: 1,
               overflow: TextOverflow.fade,
@@ -263,7 +272,7 @@ class _JourneyHeader extends StatelessWidget {
           ),
           Positioned(
             left: 22,
-            top: 177,
+            top: logoTop + 119,
             width: 128,
             height: 40,
             child: FilledButton(

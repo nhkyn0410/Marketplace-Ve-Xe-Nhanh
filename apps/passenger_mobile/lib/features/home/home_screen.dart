@@ -8,6 +8,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:passenger_mobile/features/home/home_models.dart';
 import 'package:passenger_mobile/features/home/route_dock_tabbar.dart';
+import 'package:passenger_mobile/features/journey/guest_journey_shared.dart';
 import 'package:passenger_mobile/features/search/trip_search_form.dart';
 
 const _assetRoot = 'assets/home';
@@ -16,6 +17,10 @@ const _primaryDark = Color(0xFF102E58);
 const _secondary = Color(0xFF607A8E);
 const _pageBackground = Color(0xFFF7FCFF);
 const _surfaceBorder = Color(0xFFE0EFF8);
+
+/// Ô trên-trái (núi, hồ, xe khách) của sprite `hero/landscape_bus.png`
+/// 1536 × 1024 gồm 2 × 3 ô.
+const _heroTile = Size(768, 1024 / 3);
 const _plannerSurfaceLoader = _FilterlessSvgAssetLoader(
   '$_assetRoot/illustrations/planner_surface.svg',
 );
@@ -113,7 +118,9 @@ class _HomeScreenState extends State<HomeScreen>
           child: RouteDockTabBar(currentIndex: 2, onTap: _handleTabTap),
         ),
       ),
+      // Hero tự chừa thanh trạng thái để ảnh nền tràn lên sau nó.
       body: SafeArea(
+        top: false,
         bottom: false,
         child: NotificationListener<UserScrollNotification>(
           onNotification: _handleUserScroll,
@@ -321,8 +328,11 @@ class _HomeTopArea extends StatelessWidget {
         final textScale = MediaQuery.textScalerOf(context).scale(1);
         final narrow = width < 350 || textScale > 1.25;
         final heroHeight = (width * .411).clamp(154.0, 188.0);
+        // Nội dung hero dời xuống để logo (cách đỉnh nội dung 8dp) trùng vị trí
+        // logo các màn khác; phần phía trên là ảnh nền nằm sau thanh trạng thái.
+        final contentTop = brandLogoTop(MediaQuery.paddingOf(context).top) - 8;
         final plannerHeight = narrow ? 506.0 : 426.0;
-        final plannerTop = heroHeight - 26;
+        final plannerTop = contentTop + heroHeight - 26;
         final totalHeight = plannerTop + plannerHeight + 44;
 
         return SizedBox(
@@ -334,8 +344,12 @@ class _HomeTopArea extends StatelessWidget {
                 left: 0,
                 right: 0,
                 top: 0,
-                height: heroHeight,
-                child: _HomeHero(isLoggedIn: isLoggedIn, userName: userName),
+                height: contentTop + heroHeight,
+                child: _HomeHero(
+                  isLoggedIn: isLoggedIn,
+                  userName: userName,
+                  contentTop: contentTop,
+                ),
               ),
               Positioned(
                 left: width < 340 ? 6 : 8,
@@ -401,28 +415,47 @@ class _HomeTopArea extends StatelessWidget {
 }
 
 class _HomeHero extends StatelessWidget {
-  const _HomeHero({required this.isLoggedIn, required this.userName});
+  const _HomeHero({
+    required this.isLoggedIn,
+    required this.userName,
+    required this.contentTop,
+  });
 
   final bool isLoggedIn;
   final String? userName;
+
+  /// Khoảng ảnh nền phía trên nội dung hero (gồm cả thanh trạng thái).
+  final double contentTop;
 
   @override
   Widget build(BuildContext context) {
     return Stack(
       fit: StackFit.expand,
       children: [
-        ClipRect(
-          child: FractionallySizedBox(
-            alignment: Alignment.topLeft,
-            widthFactor: 2,
-            heightFactor: 3,
-            child: Image.asset(
-              '$_assetRoot/hero/landscape_bus.png',
-              fit: BoxFit.cover,
-              alignment: Alignment.topLeft,
-              excludeFromSemantics: true,
-            ),
-          ),
+        // Ô ảnh phủ kín hero (kể cả sau thanh trạng thái), không lộ sang ô kế
+        // bên dưới; khi phải phóng to thì canh phải để giữ trọn xe khách.
+        LayoutBuilder(
+          builder: (context, constraints) {
+            final scale = math.max(
+              constraints.maxWidth / _heroTile.width,
+              constraints.maxHeight / _heroTile.height,
+            );
+            return Stack(
+              children: [
+                Positioned(
+                  left: constraints.maxWidth - _heroTile.width * scale,
+                  top: 0,
+                  width: _heroTile.width * 2 * scale,
+                  height: _heroTile.height * 3 * scale,
+                  child: Image.asset(
+                    '$_assetRoot/hero/landscape_bus.png',
+                    fit: BoxFit.fill,
+                    excludeFromSemantics: true,
+                  ),
+                ),
+              ],
+            );
+          },
         ),
         const DecoratedBox(
           decoration: BoxDecoration(
@@ -434,45 +467,15 @@ class _HomeHero extends StatelessWidget {
           ),
         ),
         Positioned(
-          left: 17,
-          top: 8,
-          child: Container(
-            height: 35,
-            padding: const EdgeInsets.symmetric(horizontal: 10),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(18),
-              border: Border.all(color: _surfaceBorder, width: .6),
-              boxShadow: const [
-                BoxShadow(
-                  color: Color(0x121F6EA6),
-                  offset: Offset(0, 3),
-                  blurRadius: 6,
-                ),
-              ],
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                SvgPicture.asset(
-                  '$_assetRoot/hero/logo_mark.svg',
-                  width: 27,
-                  height: 27,
-                  excludeFromSemantics: true,
-                ),
-                const SizedBox(width: 2),
-                SvgPicture.asset(
-                  '$_assetRoot/hero/logo_wordmark.svg',
-                  width: 76,
-                  excludeFromSemantics: true,
-                ),
-              ],
-            ),
-          ),
+          left: brandLogoLeft,
+          top: contentTop + 8,
+          width: brandLogoSize.width,
+          height: brandLogoSize.height,
+          child: const JourneyBrandLogo(),
         ),
         Positioned(
           right: 15,
-          top: 10,
+          top: contentTop + 10,
           child: Row(
             children: [
               SizedBox(
@@ -513,7 +516,7 @@ class _HomeHero extends StatelessWidget {
         Positioned(
           left: 19,
           right: 12,
-          top: 54,
+          top: contentTop + 54,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [

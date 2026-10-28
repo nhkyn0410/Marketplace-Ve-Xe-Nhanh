@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
@@ -109,7 +111,9 @@ class _TicketScreenState extends State<TicketScreen>
               stops: [0, .52, 1],
             ),
           ),
+          // Header tự chừa thanh trạng thái để ảnh nền tràn lên sau nó.
           child: SafeArea(
+            top: false,
             bottom: false,
             child: NotificationListener<UserScrollNotification>(
               onNotification: _handleUserScroll,
@@ -439,6 +443,9 @@ class _TicketHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Tiêu đề cùng kiểu, cùng vị trí với tiêu đề Khám phá: thiết kế rộng 412,
+    // thu nhỏ theo bề rộng màn như canvas trang Khám phá.
+    final scale = math.min(1.0, MediaQuery.sizeOf(context).width / 412);
     return Stack(
       children: [
         Positioned(
@@ -456,23 +463,41 @@ class _TicketHeader extends StatelessWidget {
           ),
         ),
         Padding(
-          padding: const EdgeInsets.only(top: 22),
+          padding: EdgeInsets.only(
+            top: MediaQuery.paddingOf(context).top + 36 * scale,
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 20),
-                child: Text(
-                  'MUA VÉ',
-                  style: TextStyle(
-                    color: _primaryDark,
-                    fontSize: 24,
-                    height: 1.1,
-                    fontWeight: FontWeight.w600,
-                  ),
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: 29 * scale),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Mua vé',
+                      style: TextStyle(
+                        color: const Color(0xFF0B1739),
+                        fontFamily: 'Be Vietnam Pro',
+                        fontSize: 28 * scale,
+                        height: 1.4,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    Text(
+                      'cho hành trình của bạn',
+                      style: TextStyle(
+                        color: const Color(0xFF3B91C5),
+                        fontFamily: 'Be Vietnam Pro',
+                        fontSize: 24 * scale,
+                        height: 1.4,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              const SizedBox(height: 28),
+              const SizedBox(height: 20),
               planner,
             ],
           ),
