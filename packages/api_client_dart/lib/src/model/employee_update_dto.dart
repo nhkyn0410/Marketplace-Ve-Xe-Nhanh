@@ -27,7 +27,7 @@ abstract class EmployeeUpdateDto implements Built<EmployeeUpdateDto, EmployeeUpd
 
   @BuiltValueField(wireName: r'role')
   EmployeeUpdateDtoRoleEnum? get role;
-  // enum roleEnum {  DRIVER,  TICKET_STAFF,  SUPPORT_STAFF,  };
+  // enum roleEnum {  DRIVER,  TICKET_STAFF,  SUPPORT_STAFF,  SALES_STAFF,  };
 
   @BuiltValueField(wireName: r'status')
   EmployeeUpdateDtoStatusEnum? get status;
@@ -192,6 +192,8 @@ class EmployeeUpdateDtoRoleEnum extends EnumClass {
   static const EmployeeUpdateDtoRoleEnum TICKET_STAFF = _$employeeUpdateDtoRoleEnum_TICKET_STAFF;
   @BuiltValueEnumConst(wireName: r'SUPPORT_STAFF')
   static const EmployeeUpdateDtoRoleEnum SUPPORT_STAFF = _$employeeUpdateDtoRoleEnum_SUPPORT_STAFF;
+  @BuiltValueEnumConst(wireName: r'SALES_STAFF')
+  static const EmployeeUpdateDtoRoleEnum SALES_STAFF = _$employeeUpdateDtoRoleEnum_SALES_STAFF;
 
   static Serializer<EmployeeUpdateDtoRoleEnum> get serializer => _$employeeUpdateDtoRoleEnumSerializer;
 

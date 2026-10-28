@@ -30,7 +30,7 @@ abstract class EmployeeAssignmentDtoOutput implements Built<EmployeeAssignmentDt
 
   @BuiltValueField(wireName: r'role')
   EmployeeAssignmentDtoOutputRoleEnum get role;
-  // enum roleEnum {  DRIVER,  TICKET_STAFF,  SUPPORT_STAFF,  };
+  // enum roleEnum {  DRIVER,  TICKET_STAFF,  SUPPORT_STAFF,  SALES_STAFF,  };
 
   @BuiltValueField(wireName: r'routeName')
   String get routeName;
@@ -277,6 +277,8 @@ class EmployeeAssignmentDtoOutputRoleEnum extends EnumClass {
   static const EmployeeAssignmentDtoOutputRoleEnum TICKET_STAFF = _$employeeAssignmentDtoOutputRoleEnum_TICKET_STAFF;
   @BuiltValueEnumConst(wireName: r'SUPPORT_STAFF')
   static const EmployeeAssignmentDtoOutputRoleEnum SUPPORT_STAFF = _$employeeAssignmentDtoOutputRoleEnum_SUPPORT_STAFF;
+  @BuiltValueEnumConst(wireName: r'SALES_STAFF')
+  static const EmployeeAssignmentDtoOutputRoleEnum SALES_STAFF = _$employeeAssignmentDtoOutputRoleEnum_SALES_STAFF;
 
   static Serializer<EmployeeAssignmentDtoOutputRoleEnum> get serializer => _$employeeAssignmentDtoOutputRoleEnumSerializer;
 

@@ -14,6 +14,7 @@ part 'commission_overview_dto_output_overrides_inner.g.dart';
 /// Properties:
 /// * [id] 
 /// * [operatorId] 
+/// * [channel] 
 /// * [operatorName] 
 /// * [operatorSlug] 
 /// * [rateBps] 
@@ -32,6 +33,10 @@ abstract class CommissionOverviewDtoOutputOverridesInner implements Built<Commis
 
   @BuiltValueField(wireName: r'operatorId')
   String get operatorId;
+
+  @BuiltValueField(wireName: r'channel')
+  CommissionOverviewDtoOutputOverridesInnerChannelEnum get channel;
+  // enum channelEnum {  ONLINE,  COUNTER,  };
 
   @BuiltValueField(wireName: r'operatorName')
   String get operatorName;
@@ -100,6 +105,11 @@ class _$CommissionOverviewDtoOutputOverridesInnerSerializer implements Primitive
     yield serializers.serialize(
       object.operatorId,
       specifiedType: const FullType(String),
+    );
+    yield r'channel';
+    yield serializers.serialize(
+      object.channel,
+      specifiedType: const FullType(CommissionOverviewDtoOutputOverridesInnerChannelEnum),
     );
     yield r'operatorName';
     yield serializers.serialize(
@@ -192,6 +202,13 @@ class _$CommissionOverviewDtoOutputOverridesInnerSerializer implements Primitive
             specifiedType: const FullType(String),
           ) as String;
           result.operatorId = valueDes;
+          break;
+        case r'channel':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(CommissionOverviewDtoOutputOverridesInnerChannelEnum),
+          ) as CommissionOverviewDtoOutputOverridesInnerChannelEnum;
+          result.channel = valueDes;
           break;
         case r'operatorName':
           final valueDes = serializers.deserialize(
@@ -302,6 +319,21 @@ class _$CommissionOverviewDtoOutputOverridesInnerSerializer implements Primitive
   }
 }
 
+
+class CommissionOverviewDtoOutputOverridesInnerChannelEnum extends EnumClass {
+
+  @BuiltValueEnumConst(wireName: r'ONLINE')
+  static const CommissionOverviewDtoOutputOverridesInnerChannelEnum ONLINE = _$commissionOverviewDtoOutputOverridesInnerChannelEnum_ONLINE;
+  @BuiltValueEnumConst(wireName: r'COUNTER')
+  static const CommissionOverviewDtoOutputOverridesInnerChannelEnum COUNTER = _$commissionOverviewDtoOutputOverridesInnerChannelEnum_COUNTER;
+
+  static Serializer<CommissionOverviewDtoOutputOverridesInnerChannelEnum> get serializer => _$commissionOverviewDtoOutputOverridesInnerChannelEnumSerializer;
+
+  const CommissionOverviewDtoOutputOverridesInnerChannelEnum._(String name): super(name);
+
+  static BuiltSet<CommissionOverviewDtoOutputOverridesInnerChannelEnum> get values => _$commissionOverviewDtoOutputOverridesInnerChannelEnumValues;
+  static CommissionOverviewDtoOutputOverridesInnerChannelEnum valueOf(String name) => _$commissionOverviewDtoOutputOverridesInnerChannelEnumValueOf(name);
+}
 
 class CommissionOverviewDtoOutputOverridesInnerStatusEnum extends EnumClass {
 

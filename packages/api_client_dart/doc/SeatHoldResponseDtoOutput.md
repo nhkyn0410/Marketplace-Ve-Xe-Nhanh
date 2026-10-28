@@ -10,8 +10,8 @@ Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **holdId** | **String** |  | 
 **tripId** | **String** |  | 
-**pickup** | [**SeatHoldResponseDtoOutputPickup**](SeatHoldResponseDtoOutputPickup.md) |  | 
-**dropoff** | [**SeatHoldResponseDtoOutputPickup**](SeatHoldResponseDtoOutputPickup.md) |  | 
+**pickup** | [**CounterHoldDtoOutputPickup**](CounterHoldDtoOutputPickup.md) |  | 
+**dropoff** | [**CounterHoldDtoOutputPickup**](CounterHoldDtoOutputPickup.md) |  | 
 **seats** | [**BuiltList&lt;SeatHoldResponseDtoOutputSeatsInner&gt;**](SeatHoldResponseDtoOutputSeatsInner.md) |  | 
 **subtotal** | **int** |  | 
 **expiresAt** | [**DateTime**](DateTime.md) |  | 

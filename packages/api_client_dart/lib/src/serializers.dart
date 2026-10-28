@@ -176,6 +176,34 @@ import 'package:api_client_dart/src/model/content_page_input_dto.dart';
 import 'package:api_client_dart/src/model/content_page_page_dto_output.dart';
 import 'package:api_client_dart/src/model/content_page_page_dto_output_items_inner.dart';
 import 'package:api_client_dart/src/model/content_page_status_input_dto.dart';
+import 'package:api_client_dart/src/model/counter_booking_dto_output.dart';
+import 'package:api_client_dart/src/model/counter_booking_dto_output_contact.dart';
+import 'package:api_client_dart/src/model/counter_booking_dto_output_passengers_inner.dart';
+import 'package:api_client_dart/src/model/counter_booking_dto_output_receipts_inner.dart';
+import 'package:api_client_dart/src/model/counter_booking_dto_output_tickets_inner.dart';
+import 'package:api_client_dart/src/model/counter_booking_dto_output_trip.dart';
+import 'package:api_client_dart/src/model/counter_booking_input_dto.dart';
+import 'package:api_client_dart/src/model/counter_booking_input_dto_contact.dart';
+import 'package:api_client_dart/src/model/counter_booking_input_dto_passengers_inner.dart';
+import 'package:api_client_dart/src/model/counter_booking_list_dto_output.dart';
+import 'package:api_client_dart/src/model/counter_booking_list_dto_output_items_inner.dart';
+import 'package:api_client_dart/src/model/counter_commission_overview_dto_output.dart';
+import 'package:api_client_dart/src/model/counter_commission_overview_dto_output_items_inner.dart';
+import 'package:api_client_dart/src/model/counter_commission_overview_dto_output_settlements_inner.dart';
+import 'package:api_client_dart/src/model/counter_commission_settlement_dto_output.dart';
+import 'package:api_client_dart/src/model/counter_commission_settlement_input_dto.dart';
+import 'package:api_client_dart/src/model/counter_hold_dto_output.dart';
+import 'package:api_client_dart/src/model/counter_hold_dto_output_pickup.dart';
+import 'package:api_client_dart/src/model/counter_hold_dto_output_seats_inner.dart';
+import 'package:api_client_dart/src/model/counter_hold_input_dto.dart';
+import 'package:api_client_dart/src/model/counter_receipt_input_dto.dart';
+import 'package:api_client_dart/src/model/counter_receipt_result_dto_output.dart';
+import 'package:api_client_dart/src/model/counter_report_dto_output.dart';
+import 'package:api_client_dart/src/model/counter_report_dto_output_sellers_inner.dart';
+import 'package:api_client_dart/src/model/counter_trip_list_dto_output.dart';
+import 'package:api_client_dart/src/model/counter_trip_list_dto_output_items_inner.dart';
+import 'package:api_client_dart/src/model/counter_trip_list_dto_output_items_inner_seats_inner.dart';
+import 'package:api_client_dart/src/model/counter_trip_list_dto_output_items_inner_stops_inner.dart';
 import 'package:api_client_dart/src/model/created_booking_dto_output.dart';
 import 'package:api_client_dart/src/model/created_booking_dto_output_contact.dart';
 import 'package:api_client_dart/src/model/created_booking_dto_output_passengers_inner.dart';
@@ -441,6 +469,14 @@ import 'package:api_client_dart/src/model/route_list_response_dto_output.dart';
 import 'package:api_client_dart/src/model/route_list_response_dto_output_items_inner.dart';
 import 'package:api_client_dart/src/model/route_response_dto_output.dart';
 import 'package:api_client_dart/src/model/route_response_dto_output_stops_inner.dart';
+import 'package:api_client_dart/src/model/sales_office_assignments_dto_output.dart';
+import 'package:api_client_dart/src/model/sales_office_assignments_dto_output_items_inner.dart';
+import 'package:api_client_dart/src/model/sales_office_assignments_input_dto.dart';
+import 'package:api_client_dart/src/model/sales_office_dto_output.dart';
+import 'package:api_client_dart/src/model/sales_office_input_dto.dart';
+import 'package:api_client_dart/src/model/sales_office_list_dto_output.dart';
+import 'package:api_client_dart/src/model/sales_office_list_dto_output_items_inner.dart';
+import 'package:api_client_dart/src/model/sales_office_update_dto.dart';
 import 'package:api_client_dart/src/model/save_voucher_input_dto.dart';
 import 'package:api_client_dart/src/model/saved_passenger_dto_output.dart';
 import 'package:api_client_dart/src/model/saved_passenger_input_dto.dart';
@@ -448,7 +484,6 @@ import 'package:api_client_dart/src/model/saved_passenger_list_dto_output.dart';
 import 'package:api_client_dart/src/model/saved_passenger_list_dto_output_items_inner.dart';
 import 'package:api_client_dart/src/model/seat_hold_input_dto.dart';
 import 'package:api_client_dart/src/model/seat_hold_response_dto_output.dart';
-import 'package:api_client_dart/src/model/seat_hold_response_dto_output_pickup.dart';
 import 'package:api_client_dart/src/model/seat_hold_response_dto_output_seats_inner.dart';
 import 'package:api_client_dart/src/model/seat_map_input_dto.dart';
 import 'package:api_client_dart/src/model/seat_map_input_dto_layout.dart';
@@ -499,6 +534,8 @@ import 'package:api_client_dart/src/model/trip_assignment_page_dto_output_items_
 import 'package:api_client_dart/src/model/trip_assignment_page_dto_output_items_inner_driver.dart';
 import 'package:api_client_dart/src/model/trip_change_input_dto.dart';
 import 'package:api_client_dart/src/model/trip_change_input_dto_stops_inner.dart';
+import 'package:api_client_dart/src/model/trip_departure_dto_output.dart';
+import 'package:api_client_dart/src/model/trip_departure_input_dto.dart';
 import 'package:api_client_dart/src/model/trip_input_dto.dart';
 import 'package:api_client_dart/src/model/trip_list_response_dto_output.dart';
 import 'package:api_client_dart/src/model/trip_list_response_dto_output_items_inner.dart';
@@ -720,6 +757,34 @@ part 'serializers.g.dart';
   ContentPagePageDtoOutput,
   ContentPagePageDtoOutputItemsInner,
   ContentPageStatusInputDto,
+  CounterBookingDtoOutput,
+  CounterBookingDtoOutputContact,
+  CounterBookingDtoOutputPassengersInner,
+  CounterBookingDtoOutputReceiptsInner,
+  CounterBookingDtoOutputTicketsInner,
+  CounterBookingDtoOutputTrip,
+  CounterBookingInputDto,
+  CounterBookingInputDtoContact,
+  CounterBookingInputDtoPassengersInner,
+  CounterBookingListDtoOutput,
+  CounterBookingListDtoOutputItemsInner,
+  CounterCommissionOverviewDtoOutput,
+  CounterCommissionOverviewDtoOutputItemsInner,
+  CounterCommissionOverviewDtoOutputSettlementsInner,
+  CounterCommissionSettlementDtoOutput,
+  CounterCommissionSettlementInputDto,
+  CounterHoldDtoOutput,
+  CounterHoldDtoOutputPickup,
+  CounterHoldDtoOutputSeatsInner,
+  CounterHoldInputDto,
+  CounterReceiptInputDto,
+  CounterReceiptResultDtoOutput,
+  CounterReportDtoOutput,
+  CounterReportDtoOutputSellersInner,
+  CounterTripListDtoOutput,
+  CounterTripListDtoOutputItemsInner,
+  CounterTripListDtoOutputItemsInnerSeatsInner,
+  CounterTripListDtoOutputItemsInnerStopsInner,
   CreatedBookingDtoOutput,
   CreatedBookingDtoOutputContact,
   CreatedBookingDtoOutputPassengersInner,
@@ -985,6 +1050,14 @@ part 'serializers.g.dart';
   RouteListResponseDtoOutputItemsInner,
   RouteResponseDtoOutput,
   RouteResponseDtoOutputStopsInner,
+  SalesOfficeAssignmentsDtoOutput,
+  SalesOfficeAssignmentsDtoOutputItemsInner,
+  SalesOfficeAssignmentsInputDto,
+  SalesOfficeDtoOutput,
+  SalesOfficeInputDto,
+  SalesOfficeListDtoOutput,
+  SalesOfficeListDtoOutputItemsInner,
+  SalesOfficeUpdateDto,
   SaveVoucherInputDto,
   SavedPassengerDtoOutput,
   SavedPassengerInputDto,
@@ -992,7 +1065,6 @@ part 'serializers.g.dart';
   SavedPassengerListDtoOutputItemsInner,
   SeatHoldInputDto,
   SeatHoldResponseDtoOutput,
-  SeatHoldResponseDtoOutputPickup,
   SeatHoldResponseDtoOutputSeatsInner,
   SeatMapInputDto,
   SeatMapInputDtoLayout,
@@ -1043,6 +1115,8 @@ part 'serializers.g.dart';
   TripAssignmentPageDtoOutputItemsInnerDriver,
   TripChangeInputDto,
   TripChangeInputDtoStopsInner,
+  TripDepartureDtoOutput,
+  TripDepartureInputDto,
   TripInputDto,
   TripListResponseDtoOutput,
   TripListResponseDtoOutputItemsInner,
@@ -1185,6 +1259,10 @@ Serializers serializers = (_$serializers.toBuilder()
         () => ListBuilder<ArticlePageDtoOutputItemsInner>(),
       )
       ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(CounterCommissionOverviewDtoOutputSettlementsInner)]),
+        () => ListBuilder<CounterCommissionOverviewDtoOutputSettlementsInner>(),
+      )
+      ..addBuilderFactory(
         const FullType(BuiltList, [FullType(PlaceSuggestionListResponseDtoOutputItemsInner)]),
         () => ListBuilder<PlaceSuggestionListResponseDtoOutputItemsInner>(),
       )
@@ -1249,12 +1327,20 @@ Serializers serializers = (_$serializers.toBuilder()
         () => ListBuilder<RouteInputDtoStopsInner>(),
       )
       ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(SalesOfficeListDtoOutputItemsInner)]),
+        () => ListBuilder<SalesOfficeListDtoOutputItemsInner>(),
+      )
+      ..addBuilderFactory(
         const FullType(BuiltList, [FullType(EmployeeListResponseDtoOutputItemsInner)]),
         () => ListBuilder<EmployeeListResponseDtoOutputItemsInner>(),
       )
       ..addBuilderFactory(
         const FullType(BuiltList, [FullType(CreatedBookingDtoOutputRefundsInner)]),
         () => ListBuilder<CreatedBookingDtoOutputRefundsInner>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(CounterReportDtoOutputSellersInner)]),
+        () => ListBuilder<CounterReportDtoOutputSellersInner>(),
       )
       ..addBuilderFactory(
         const FullType(BuiltList, [FullType(OperatorBookingDetailDtoOutputSeatsInner)]),
@@ -1269,12 +1355,20 @@ Serializers serializers = (_$serializers.toBuilder()
         () => ListBuilder<PermissionPageDtoOutputItemsInner>(),
       )
       ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(CounterTripListDtoOutputItemsInnerStopsInner)]),
+        () => ListBuilder<CounterTripListDtoOutputItemsInnerStopsInner>(),
+      )
+      ..addBuilderFactory(
         const FullType(BuiltList, [FullType(FeaturedOperatorListResponseDtoOutputItemsInner)]),
         () => ListBuilder<FeaturedOperatorListResponseDtoOutputItemsInner>(),
       )
       ..addBuilderFactory(
         const FullType(BuiltList, [FullType(PassengerLoyaltyTransactionsDtoOutputItemsInner)]),
         () => ListBuilder<PassengerLoyaltyTransactionsDtoOutputItemsInner>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(CounterTripListDtoOutputItemsInnerSeatsInner)]),
+        () => ListBuilder<CounterTripListDtoOutputItemsInnerSeatsInner>(),
       )
       ..addBuilderFactory(
         const FullType(BuiltList, [FullType(CreatedBookingDtoOutputTripChangesInner)]),
@@ -1341,6 +1435,10 @@ Serializers serializers = (_$serializers.toBuilder()
         () => ListBuilder<ManagerListDtoOutputItemsInner>(),
       )
       ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(CounterCommissionOverviewDtoOutputItemsInner)]),
+        () => ListBuilder<CounterCommissionOverviewDtoOutputItemsInner>(),
+      )
+      ..addBuilderFactory(
         const FullType(BuiltList, [FullType(CreatedBookingDtoOutputPassengersInner)]),
         () => ListBuilder<CreatedBookingDtoOutputPassengersInner>(),
       )
@@ -1365,6 +1463,10 @@ Serializers serializers = (_$serializers.toBuilder()
         () => MapBuilder<String, JsonObject?>(),
       )
       ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(CounterBookingInputDtoPassengersInner)]),
+        () => ListBuilder<CounterBookingInputDtoPassengersInner>(),
+      )
+      ..addBuilderFactory(
         const FullType(BuiltList, [FullType(VehicleListResponseDtoOutputItemsInner)]),
         () => ListBuilder<VehicleListResponseDtoOutputItemsInner>(),
       )
@@ -1375,6 +1477,10 @@ Serializers serializers = (_$serializers.toBuilder()
       ..addBuilderFactory(
         const FullType(BuiltList, [FullType(SeatMapInputDtoLayoutDecksInner)]),
         () => ListBuilder<SeatMapInputDtoLayoutDecksInner>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(CounterBookingDtoOutputPassengersInner)]),
+        () => ListBuilder<CounterBookingDtoOutputPassengersInner>(),
       )
       ..addBuilderFactory(
         const FullType(BuiltList, [FullType(String)]),
@@ -1435,6 +1541,10 @@ Serializers serializers = (_$serializers.toBuilder()
       ..addBuilderFactory(
         const FullType(BuiltList, [FullType(AdminVehicleImageListDtoOutputItemsInner)]),
         () => ListBuilder<AdminVehicleImageListDtoOutputItemsInner>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(SalesOfficeAssignmentsDtoOutputItemsInner)]),
+        () => ListBuilder<SalesOfficeAssignmentsDtoOutputItemsInner>(),
       )
       ..addBuilderFactory(
         const FullType(BuiltList, [FullType(PassengerSupportPageDtoOutputItemsInner)]),
@@ -1529,6 +1639,10 @@ Serializers serializers = (_$serializers.toBuilder()
         () => ListBuilder<AssigneeListDtoOutputItemsInner>(),
       )
       ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(CounterBookingListDtoOutputItemsInner)]),
+        () => ListBuilder<CounterBookingListDtoOutputItemsInner>(),
+      )
+      ..addBuilderFactory(
         const FullType(BuiltList, [FullType(TripListResponseDtoOutputItemsInner)]),
         () => ListBuilder<TripListResponseDtoOutputItemsInner>(),
       )
@@ -1547,6 +1661,10 @@ Serializers serializers = (_$serializers.toBuilder()
       ..addBuilderFactory(
         const FullType(BuiltList, [FullType(ArticleCategoryListDtoOutputItemsInner)]),
         () => ListBuilder<ArticleCategoryListDtoOutputItemsInner>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(CounterHoldDtoOutputSeatsInner)]),
+        () => ListBuilder<CounterHoldDtoOutputSeatsInner>(),
       )
       ..addBuilderFactory(
         const FullType(BuiltList, [FullType(IncidentPageDtoOutputItemsInner)]),
@@ -1645,6 +1763,10 @@ Serializers serializers = (_$serializers.toBuilder()
         () => ListBuilder<AdminApplicationDetailDtoOutputDocumentsInner>(),
       )
       ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(CounterTripListDtoOutputItemsInner)]),
+        () => ListBuilder<CounterTripListDtoOutputItemsInner>(),
+      )
+      ..addBuilderFactory(
         const FullType(BuiltList, [FullType(SeatMapResponseDtoOutputLayoutDecksInner)]),
         () => ListBuilder<SeatMapResponseDtoOutputLayoutDecksInner>(),
       )
@@ -1663,6 +1785,14 @@ Serializers serializers = (_$serializers.toBuilder()
       ..addBuilderFactory(
         const FullType(BuiltList, [FullType(PolicyOverviewDtoOutputVersionsInnerRulesAnyOfTiersInner)]),
         () => ListBuilder<PolicyOverviewDtoOutputVersionsInnerRulesAnyOfTiersInner>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(CounterBookingDtoOutputReceiptsInner)]),
+        () => ListBuilder<CounterBookingDtoOutputReceiptsInner>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(CounterBookingDtoOutputTicketsInner)]),
+        () => ListBuilder<CounterBookingDtoOutputTicketsInner>(),
       )
       ..addBuilderFactory(
         const FullType(BuiltList, [FullType(SessionListResponseDtoOutputItemsInner)]),

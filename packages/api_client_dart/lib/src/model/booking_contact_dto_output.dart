@@ -26,7 +26,7 @@ abstract class BookingContactDtoOutput implements Built<BookingContactDtoOutput,
   String get phone;
 
   @BuiltValueField(wireName: r'email')
-  String get email;
+  String? get email;
 
   @BuiltValueField(wireName: r'passengers')
   BuiltList<BookingContactDtoOutputPassengersInner> get passengers;
@@ -65,9 +65,9 @@ class _$BookingContactDtoOutputSerializer implements PrimitiveSerializer<Booking
       specifiedType: const FullType(String),
     );
     yield r'email';
-    yield serializers.serialize(
+    yield object.email == null ? null : serializers.serialize(
       object.email,
-      specifiedType: const FullType(String),
+      specifiedType: const FullType.nullable(String),
     );
     yield r'passengers';
     yield serializers.serialize(
@@ -114,8 +114,9 @@ class _$BookingContactDtoOutputSerializer implements PrimitiveSerializer<Booking
         case r'email':
           final valueDes = serializers.deserialize(
             value,
-            specifiedType: const FullType(String),
-          ) as String;
+            specifiedType: const FullType.nullable(String),
+          ) as String?;
+          if (valueDes == null) continue;
           result.email = valueDes;
           break;
         case r'passengers':

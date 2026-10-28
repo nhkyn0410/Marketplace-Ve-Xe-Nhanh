@@ -5,7 +5,7 @@
 // ignore_for_file: unused_element
 import 'package:built_collection/built_collection.dart';
 import 'package:api_client_dart/src/model/seat_hold_response_dto_output_seats_inner.dart';
-import 'package:api_client_dart/src/model/seat_hold_response_dto_output_pickup.dart';
+import 'package:api_client_dart/src/model/counter_hold_dto_output_pickup.dart';
 import 'package:built_value/built_value.dart';
 import 'package:built_value/serializer.dart';
 
@@ -30,10 +30,10 @@ abstract class SeatHoldResponseDtoOutput implements Built<SeatHoldResponseDtoOut
   String get tripId;
 
   @BuiltValueField(wireName: r'pickup')
-  SeatHoldResponseDtoOutputPickup get pickup;
+  CounterHoldDtoOutputPickup get pickup;
 
   @BuiltValueField(wireName: r'dropoff')
-  SeatHoldResponseDtoOutputPickup get dropoff;
+  CounterHoldDtoOutputPickup get dropoff;
 
   @BuiltValueField(wireName: r'seats')
   BuiltList<SeatHoldResponseDtoOutputSeatsInner> get seats;
@@ -80,12 +80,12 @@ class _$SeatHoldResponseDtoOutputSerializer implements PrimitiveSerializer<SeatH
     yield r'pickup';
     yield serializers.serialize(
       object.pickup,
-      specifiedType: const FullType(SeatHoldResponseDtoOutputPickup),
+      specifiedType: const FullType(CounterHoldDtoOutputPickup),
     );
     yield r'dropoff';
     yield serializers.serialize(
       object.dropoff,
-      specifiedType: const FullType(SeatHoldResponseDtoOutputPickup),
+      specifiedType: const FullType(CounterHoldDtoOutputPickup),
     );
     yield r'seats';
     yield serializers.serialize(
@@ -142,15 +142,15 @@ class _$SeatHoldResponseDtoOutputSerializer implements PrimitiveSerializer<SeatH
         case r'pickup':
           final valueDes = serializers.deserialize(
             value,
-            specifiedType: const FullType(SeatHoldResponseDtoOutputPickup),
-          ) as SeatHoldResponseDtoOutputPickup;
+            specifiedType: const FullType(CounterHoldDtoOutputPickup),
+          ) as CounterHoldDtoOutputPickup;
           result.pickup.replace(valueDes);
           break;
         case r'dropoff':
           final valueDes = serializers.deserialize(
             value,
-            specifiedType: const FullType(SeatHoldResponseDtoOutputPickup),
-          ) as SeatHoldResponseDtoOutputPickup;
+            specifiedType: const FullType(CounterHoldDtoOutputPickup),
+          ) as CounterHoldDtoOutputPickup;
           result.dropoff.replace(valueDes);
           break;
         case r'seats':

@@ -19,7 +19,7 @@ part 'manager_update_dto.g.dart';
 abstract class ManagerUpdateDto implements Built<ManagerUpdateDto, ManagerUpdateDtoBuilder> {
   @BuiltValueField(wireName: r'permissions')
   BuiltList<ManagerUpdateDtoPermissionsEnum>? get permissions;
-  // enum permissionsEnum {  vehicle:manage,  route:manage,  trip:manage,  booking:read,  finance:read,  employee:manage,  support:respond,  promotion:manage,  };
+  // enum permissionsEnum {  vehicle:manage,  route:manage,  trip:manage,  trip:dispatch,  booking:read,  finance:read,  employee:manage,  support:respond,  promotion:manage,  };
 
   @BuiltValueField(wireName: r'status')
   ManagerUpdateDtoStatusEnum? get status;
@@ -154,6 +154,8 @@ class ManagerUpdateDtoPermissionsEnum extends EnumClass {
   static const ManagerUpdateDtoPermissionsEnum routeColonManage = _$managerUpdateDtoPermissionsEnum_routeColonManage;
   @BuiltValueEnumConst(wireName: r'trip:manage')
   static const ManagerUpdateDtoPermissionsEnum tripColonManage = _$managerUpdateDtoPermissionsEnum_tripColonManage;
+  @BuiltValueEnumConst(wireName: r'trip:dispatch')
+  static const ManagerUpdateDtoPermissionsEnum tripColonDispatch = _$managerUpdateDtoPermissionsEnum_tripColonDispatch;
   @BuiltValueEnumConst(wireName: r'booking:read')
   static const ManagerUpdateDtoPermissionsEnum bookingColonRead = _$managerUpdateDtoPermissionsEnum_bookingColonRead;
   @BuiltValueEnumConst(wireName: r'finance:read')

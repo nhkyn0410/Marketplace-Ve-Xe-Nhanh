@@ -14,6 +14,7 @@ part 'commission_rule_dto_output.g.dart';
 /// Properties:
 /// * [id] 
 /// * [operatorId] 
+/// * [channel] 
 /// * [operatorName] 
 /// * [operatorSlug] 
 /// * [rateBps] 
@@ -32,6 +33,10 @@ abstract class CommissionRuleDtoOutput implements Built<CommissionRuleDtoOutput,
 
   @BuiltValueField(wireName: r'operatorId')
   String get operatorId;
+
+  @BuiltValueField(wireName: r'channel')
+  CommissionRuleDtoOutputChannelEnum get channel;
+  // enum channelEnum {  ONLINE,  COUNTER,  };
 
   @BuiltValueField(wireName: r'operatorName')
   String get operatorName;
@@ -100,6 +105,11 @@ class _$CommissionRuleDtoOutputSerializer implements PrimitiveSerializer<Commiss
     yield serializers.serialize(
       object.operatorId,
       specifiedType: const FullType(String),
+    );
+    yield r'channel';
+    yield serializers.serialize(
+      object.channel,
+      specifiedType: const FullType(CommissionRuleDtoOutputChannelEnum),
     );
     yield r'operatorName';
     yield serializers.serialize(
@@ -192,6 +202,13 @@ class _$CommissionRuleDtoOutputSerializer implements PrimitiveSerializer<Commiss
             specifiedType: const FullType(String),
           ) as String;
           result.operatorId = valueDes;
+          break;
+        case r'channel':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(CommissionRuleDtoOutputChannelEnum),
+          ) as CommissionRuleDtoOutputChannelEnum;
+          result.channel = valueDes;
           break;
         case r'operatorName':
           final valueDes = serializers.deserialize(
@@ -302,6 +319,21 @@ class _$CommissionRuleDtoOutputSerializer implements PrimitiveSerializer<Commiss
   }
 }
 
+
+class CommissionRuleDtoOutputChannelEnum extends EnumClass {
+
+  @BuiltValueEnumConst(wireName: r'ONLINE')
+  static const CommissionRuleDtoOutputChannelEnum ONLINE = _$commissionRuleDtoOutputChannelEnum_ONLINE;
+  @BuiltValueEnumConst(wireName: r'COUNTER')
+  static const CommissionRuleDtoOutputChannelEnum COUNTER = _$commissionRuleDtoOutputChannelEnum_COUNTER;
+
+  static Serializer<CommissionRuleDtoOutputChannelEnum> get serializer => _$commissionRuleDtoOutputChannelEnumSerializer;
+
+  const CommissionRuleDtoOutputChannelEnum._(String name): super(name);
+
+  static BuiltSet<CommissionRuleDtoOutputChannelEnum> get values => _$commissionRuleDtoOutputChannelEnumValues;
+  static CommissionRuleDtoOutputChannelEnum valueOf(String name) => _$commissionRuleDtoOutputChannelEnumValueOf(name);
+}
 
 class CommissionRuleDtoOutputStatusEnum extends EnumClass {
 

@@ -42,7 +42,7 @@ abstract class AdminPlatformAccountListDtoOutputItemsInner implements Built<Admi
 
   @BuiltValueField(wireName: r'permissions')
   BuiltList<AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum> get permissions;
-  // enum permissionsEnum {  profile:manage,  loyalty:use,  notification:manage,  incident:create,  journey-log:create,  system:run,  trip:search,  booking:create,  booking:read,  payment:create,  payment:monitor,  refund:request,  vehicle:manage,  vehicle:read,  route:manage,  trip:manage,  checkin:perform,  checkin:read,  trip:operate,  kyc:submit,  kyc:review,  catalog:manage,  content:moderate,  content:manage,  user:manage,  system:read,  finance:read,  finance:configure,  audit:read,  employee:manage,  account:lock,  support:create,  review:create,  support:respond,  support:manage,  dispute:decide,  promotion:manage,  promotion:configure,  loyalty:manage,  access:manage,  transport:read,  manager:manage,  payout:manage,  refund:manage,  };
+  // enum permissionsEnum {  profile:manage,  loyalty:use,  notification:manage,  incident:create,  journey-log:create,  system:run,  trip:search,  booking:create,  booking:read,  payment:create,  payment:monitor,  refund:request,  vehicle:manage,  vehicle:read,  route:manage,  trip:manage,  trip:dispatch,  office:manage,  office:read,  counter:sell,  counter:collect,  counter:read,  checkin:perform,  checkin:read,  trip:operate,  kyc:submit,  kyc:review,  catalog:manage,  content:moderate,  content:manage,  user:manage,  system:read,  finance:read,  finance:configure,  audit:read,  employee:manage,  account:lock,  support:create,  review:create,  support:respond,  support:manage,  dispute:decide,  promotion:manage,  promotion:configure,  loyalty:manage,  access:manage,  transport:read,  manager:manage,  payout:manage,  refund:manage,  };
 
   @BuiltValueField(wireName: r'status')
   AdminPlatformAccountListDtoOutputItemsInnerStatusEnum get status;
@@ -354,6 +354,18 @@ class AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum extends EnumCla
   static const AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum routeColonManage = _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_routeColonManage;
   @BuiltValueEnumConst(wireName: r'trip:manage')
   static const AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum tripColonManage = _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_tripColonManage;
+  @BuiltValueEnumConst(wireName: r'trip:dispatch')
+  static const AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum tripColonDispatch = _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_tripColonDispatch;
+  @BuiltValueEnumConst(wireName: r'office:manage')
+  static const AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum officeColonManage = _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_officeColonManage;
+  @BuiltValueEnumConst(wireName: r'office:read')
+  static const AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum officeColonRead = _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_officeColonRead;
+  @BuiltValueEnumConst(wireName: r'counter:sell')
+  static const AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum counterColonSell = _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_counterColonSell;
+  @BuiltValueEnumConst(wireName: r'counter:collect')
+  static const AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum counterColonCollect = _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_counterColonCollect;
+  @BuiltValueEnumConst(wireName: r'counter:read')
+  static const AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum counterColonRead = _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_counterColonRead;
   @BuiltValueEnumConst(wireName: r'checkin:perform')
   static const AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum checkinColonPerform = _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_checkinColonPerform;
   @BuiltValueEnumConst(wireName: r'checkin:read')

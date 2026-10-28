@@ -29,7 +29,7 @@ abstract class OperatorReportDtoOutputEmployeesInner implements Built<OperatorRe
 
   @BuiltValueField(wireName: r'role')
   OperatorReportDtoOutputEmployeesInnerRoleEnum get role;
-  // enum roleEnum {  DRIVER,  TICKET_STAFF,  SUPPORT_STAFF,  };
+  // enum roleEnum {  DRIVER,  TICKET_STAFF,  SUPPORT_STAFF,  SALES_STAFF,  };
 
   @BuiltValueField(wireName: r'assignedTrips')
   int get assignedTrips;
@@ -211,6 +211,8 @@ class OperatorReportDtoOutputEmployeesInnerRoleEnum extends EnumClass {
   static const OperatorReportDtoOutputEmployeesInnerRoleEnum TICKET_STAFF = _$operatorReportDtoOutputEmployeesInnerRoleEnum_TICKET_STAFF;
   @BuiltValueEnumConst(wireName: r'SUPPORT_STAFF')
   static const OperatorReportDtoOutputEmployeesInnerRoleEnum SUPPORT_STAFF = _$operatorReportDtoOutputEmployeesInnerRoleEnum_SUPPORT_STAFF;
+  @BuiltValueEnumConst(wireName: r'SALES_STAFF')
+  static const OperatorReportDtoOutputEmployeesInnerRoleEnum SALES_STAFF = _$operatorReportDtoOutputEmployeesInnerRoleEnum_SALES_STAFF;
 
   static Serializer<OperatorReportDtoOutputEmployeesInnerRoleEnum> get serializer => _$operatorReportDtoOutputEmployeesInnerRoleEnumSerializer;
 

@@ -26,7 +26,7 @@ abstract class ManagerCreateDto implements Built<ManagerCreateDto, ManagerCreate
 
   @BuiltValueField(wireName: r'permissions')
   BuiltList<ManagerCreateDtoPermissionsEnum> get permissions;
-  // enum permissionsEnum {  vehicle:manage,  route:manage,  trip:manage,  booking:read,  finance:read,  employee:manage,  support:respond,  promotion:manage,  };
+  // enum permissionsEnum {  vehicle:manage,  route:manage,  trip:manage,  trip:dispatch,  booking:read,  finance:read,  employee:manage,  support:respond,  promotion:manage,  };
 
   @BuiltValueField(wireName: r'reason')
   String get reason;
@@ -163,6 +163,8 @@ class ManagerCreateDtoPermissionsEnum extends EnumClass {
   static const ManagerCreateDtoPermissionsEnum routeColonManage = _$managerCreateDtoPermissionsEnum_routeColonManage;
   @BuiltValueEnumConst(wireName: r'trip:manage')
   static const ManagerCreateDtoPermissionsEnum tripColonManage = _$managerCreateDtoPermissionsEnum_tripColonManage;
+  @BuiltValueEnumConst(wireName: r'trip:dispatch')
+  static const ManagerCreateDtoPermissionsEnum tripColonDispatch = _$managerCreateDtoPermissionsEnum_tripColonDispatch;
   @BuiltValueEnumConst(wireName: r'booking:read')
   static const ManagerCreateDtoPermissionsEnum bookingColonRead = _$managerCreateDtoPermissionsEnum_bookingColonRead;
   @BuiltValueEnumConst(wireName: r'finance:read')
