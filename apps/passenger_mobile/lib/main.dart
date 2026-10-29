@@ -799,14 +799,36 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
       );
   }
 
-  /// Trang chủ bấm "Tìm chuyến": sang tab Mua vé, tìm ngay theo điều kiện đã chọn.
+  /// Trang chủ bấm "Tìm chuyến": mở màn Kết quả để chọn chuyến theo điều kiện
+  /// đã nhập; quay lại thì về Trang chủ. Tab Mua vé dùng lại điều kiện này.
   void _openTripResults(HomeSearchQuery query) {
-    setState(() {
-      _lastSearchQuery = query;
-      _currentTab = 1;
-      _accountView = _AccountView.overview;
-      _error = null;
-    });
+    _lastSearchQuery = query;
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => TripResultsScreen(
+          query: query,
+          searchTrips: _bookingApi.searchTrips,
+          searchCatalog: _searchCatalog,
+          onTripSelected: _openTripDetail,
+        ),
+      ),
+    );
+  }
+
+  /// Tab Mua vé chưa có điều kiện nào: tuyến phổ biến đầu tiên, ngày mai, 1 khách.
+  Future<HomeSearchQuery?> _loadDefaultExploreQuery() async {
+    final spec = _popularRouteSpecs.first;
+    final provinces = await _bookingApi.loadProvinces();
+    final from = _findProvince(provinces, spec.fromProvinceNames);
+    final to = _findProvince(provinces, spec.toProvinceNames);
+    if (from == null || to == null) return null;
+    return HomeSearchQuery(
+      mode: HomeSearchMode.route,
+      from: from,
+      to: to,
+      date: defaultSearchDate(),
+      passengers: 1,
+    );
   }
 
   /// Mở chi tiết chuyến từ danh sách Mua vé, giữ điểm đón / trả khớp lần tìm.
@@ -958,7 +980,9 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
         onTabSelected: _selectMainTab,
         searchCatalog: _searchCatalog,
         searchTrips: _bookingApi.searchTrips,
+        loadOperatorFare: _bookingApi.loadOperatorMinFare,
         initialQuery: _lastSearchQuery,
+        loadDefaultQuery: _loadDefaultExploreQuery,
         onQueryChanged: (query) => _lastSearchQuery = query,
         onTripSelected: _openTripDetail,
       );

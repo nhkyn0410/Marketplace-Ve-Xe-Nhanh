@@ -138,8 +138,8 @@ enum TripDepartureSlot {
 
 /// Cách sắp xếp kết quả tìm chuyến.
 enum TripSearchSort {
-  departure('departure', 'Giờ khởi hành sớm nhất'),
-  price('price', 'Giá thấp nhất'),
+  departure('departure', 'Khởi hành sớm nhất'),
+  price('price', 'Giá từ thấp đến cao'),
   duration('duration', 'Thời gian di chuyển ngắn nhất');
 
   const TripSearchSort(this.apiValue, this.label);
@@ -197,19 +197,20 @@ class TripSearchFilters {
 }
 
 /// Hàm tìm một trang chuyến theo điều kiện tìm + bộ lọc.
-typedef TripSearchRunner =
-    Future<TripSearchPage> Function(
-      HomeSearchQuery query,
-      TripSearchFilters filters,
-      int page,
-    );
+typedef TripSearchRunner = Future<TripSearchPage> Function(
+  HomeSearchQuery query,
+  TripSearchFilters filters,
+  int page,
+);
 
 /// `390` phút → `6h30`; `360` → `6h`.
 String formatTripDuration(int minutes) {
   final hours = minutes ~/ 60;
   final rest = minutes % 60;
   if (hours == 0) return '${rest}p';
-  return rest == 0 ? '${hours}h' : '${hours}h${rest.toString().padLeft(2, '0')}';
+  return rest == 0
+      ? '${hours}h'
+      : '${hours}h${rest.toString().padLeft(2, '0')}';
 }
 
 /// `Thứ Tư, 28/10/2026` theo giờ Việt Nam (UTC+7).
@@ -227,6 +228,10 @@ String formatVnDate(DateTime value) {
   String two(int part) => part.toString().padLeft(2, '0');
   return '${weekdays[vn.weekday - 1]}, ${two(vn.day)}/${two(vn.month)}/${vn.year}';
 }
+
+/// `Thứ 2` … `Thứ 7`, `Chủ nhật` của một ngày theo lịch (ngày đi người dùng chọn).
+String formatVnWeekday(DateTime day) =>
+    day.weekday == DateTime.sunday ? 'Chủ nhật' : 'Thứ ${day.weekday + 1}';
 
 /// Giờ:phút theo giờ Việt Nam (UTC+7) của một mốc thời gian.
 String formatVnClock(DateTime value) {

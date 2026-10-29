@@ -61,6 +61,7 @@ class TripBookingApi {
         HomeOperator(
           id: item.operatorId,
           name: item.displayName,
+          logoUrl: item.logoUrl,
           averageRating: item.averageRating?.toDouble(),
           reviewCount: item.reviewCount,
           routes: [
@@ -163,6 +164,30 @@ class TripBookingApi {
           ),
       ],
     );
+  }
+
+  /// Giá vé thấp nhất của nhà xe trên một tuyến vào ngày đi; `null` khi ngày đó
+  /// nhà xe không có chuyến mở bán. API nhà xe nổi bật chưa trả giá nên lấy
+  /// chuyến rẻ nhất qua tìm chuyến.
+  Future<int?> loadOperatorMinFare(
+    String operatorId,
+    HomeOperatorRoute route,
+    DateTime date,
+  ) async {
+    final response = await _call(
+      () => _client.getTripsApi().publicTripControllerSearch(
+        date: Date(date.year, date.month, date.day),
+        fromProvinceId: route.from.id,
+        toProvinceId: route.to.id,
+        passengers: 1,
+        operatorId: operatorId,
+        sort: TripSearchSort.price.apiValue,
+        page: 1,
+        limit: 1,
+      ),
+    );
+    final items = response.data!.items;
+    return items.isEmpty ? null : items.first.minPrice;
   }
 
   /// Chi tiết chuyến đang mở bán; chỗ đang có người giữ hiện là không đặt được.

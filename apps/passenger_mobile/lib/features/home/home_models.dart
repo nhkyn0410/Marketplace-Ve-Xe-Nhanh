@@ -36,6 +36,7 @@ class HomeOperator {
     required this.reviewCount,
     required this.routes,
     this.averageRating,
+    this.logoUrl,
   });
 
   final String id;
@@ -43,6 +44,9 @@ class HomeOperator {
 
   /// Trung bình các đánh giá đang hiển thị; `null` khi chưa có đánh giá.
   final double? averageRating;
+
+  /// `null` khi nhà xe chưa tải logo — hiện chữ cái đầu thay thế.
+  final String? logoUrl;
   final int reviewCount;
   final List<HomeOperatorRoute> routes;
 }
