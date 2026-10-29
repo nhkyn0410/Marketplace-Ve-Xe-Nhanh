@@ -160,12 +160,20 @@ class FakeBookingApi implements TripBookingApi {
   /// Lỗi ném ra ở lần giữ chỗ tiếp theo (rồi xoá).
   ApiFailure? holdError;
   int loads = 0;
+
+  /// Chặng của từng lần tải chi tiết (3.3: giá theo chặng).
+  final loadedLegs = <({int? pickup, int? dropoff})>[];
   final holds = <({List<String> seats, int pickup, int dropoff})>[];
   final released = <String>[];
 
   @override
-  Future<TripDetail> loadTrip(String tripId) async {
+  Future<TripDetail> loadTrip(
+    String tripId, {
+    int? pickupSequence,
+    int? dropoffSequence,
+  }) async {
     loads++;
+    loadedLegs.add((pickup: pickupSequence, dropoff: dropoffSequence));
     return trip;
   }
 

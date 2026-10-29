@@ -99,7 +99,8 @@ export function mapSeatSelection(trip: ApiTrip): TripSeatSelectionData {
   const departureDay = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Ho_Chi_Minh" }).format(new Date(trip.departureAt));
   const departureTimeText = `${dateText(trip.departureAt, { hour: "2-digit", minute: "2-digit" })} • ${formatTripDateVi(departureDay)}`;
   return {
-    tripId: trip.tripId, routeName: trip.routeName, departureTimeText, operatorName: trip.operator.name,
+    // Tiêu đề là chặng khách đi (3.3) khi có; không thì tên tuyến.
+    tripId: trip.tripId, routeName: trip.segment?.title ?? trip.routeName, departureTimeText, operatorName: trip.operator.name,
     pickupPoints, dropoffPoints, selectedPickupPointId: pickupPoints[0]?.id ?? "", selectedDropoffPointId: dropoffPoints.at(-1)?.id ?? "",
     seats: [...trip.seats].sort((a, b) => a.deck - b.deck || a.row - b.row || a.column - b.column).map((seat) => ({ id: seat.code, code: seat.code, label: seat.code, floor: seat.deck === 2 ? 2 : 1, row: seat.row, column: seat.column, status: seatStatus(seat), type: seat.type.endsWith("DOUBLE") ? "double" : "single", typeLabel: seatTypeLabel(seat.type), priceVnd: seat.price === null ? "0" : moneyString(seat.price) })),
     selectedSeatCodes: [], maxSeats: 10, holdCountdownSeconds: 0, selectedSeatsSummary: [], subtotalVnd: "0"

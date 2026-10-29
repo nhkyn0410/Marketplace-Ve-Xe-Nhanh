@@ -14,7 +14,7 @@ Method | HTTP request | Description
 
 
 # **publicTripControllerGet**
-> PublicTripDtoOutput publicTripControllerGet(tripId)
+> PublicTripDtoOutput publicTripControllerGet(tripId, pickupSequence, dropoffSequence)
 
 
 
@@ -24,9 +24,11 @@ import 'package:api_client_dart/api.dart';
 
 final api = ApiClientDart().getTripsApi();
 final String tripId = 38400000-8cf0-11bd-b23e-10b96e4ef00d; // String | 
+final num pickupSequence = 8.14; // num | 
+final num dropoffSequence = 8.14; // num | 
 
 try {
-    final response = api.publicTripControllerGet(tripId);
+    final response = api.publicTripControllerGet(tripId, pickupSequence, dropoffSequence);
     print(response);
 } on DioException catch (e) {
     print('Exception when calling TripsApi->publicTripControllerGet: $e\n');
@@ -38,6 +40,8 @@ try {
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
  **tripId** | **String**|  | 
+ **pickupSequence** | **num**|  | [optional] 
+ **dropoffSequence** | **num**|  | [optional] 
 
 ### Return type
 

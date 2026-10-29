@@ -15,6 +15,8 @@ class _$TripSearchResponseDtoOutputItemsInner
   @override
   final String routeName;
   @override
+  final String segmentTitle;
+  @override
   final TripSearchResponseDtoOutputItemsInnerVehicleType vehicleType;
   @override
   final DateTime departureAt;
@@ -48,6 +50,7 @@ class _$TripSearchResponseDtoOutputItemsInner
       {required this.tripId,
       required this.operator_,
       required this.routeName,
+      required this.segmentTitle,
       required this.vehicleType,
       required this.departureAt,
       required this.arrivalAt,
@@ -77,6 +80,7 @@ class _$TripSearchResponseDtoOutputItemsInner
         tripId == other.tripId &&
         operator_ == other.operator_ &&
         routeName == other.routeName &&
+        segmentTitle == other.segmentTitle &&
         vehicleType == other.vehicleType &&
         departureAt == other.departureAt &&
         arrivalAt == other.arrivalAt &&
@@ -96,6 +100,7 @@ class _$TripSearchResponseDtoOutputItemsInner
     _$hash = $jc(_$hash, tripId.hashCode);
     _$hash = $jc(_$hash, operator_.hashCode);
     _$hash = $jc(_$hash, routeName.hashCode);
+    _$hash = $jc(_$hash, segmentTitle.hashCode);
     _$hash = $jc(_$hash, vehicleType.hashCode);
     _$hash = $jc(_$hash, departureAt.hashCode);
     _$hash = $jc(_$hash, arrivalAt.hashCode);
@@ -118,6 +123,7 @@ class _$TripSearchResponseDtoOutputItemsInner
           ..add('tripId', tripId)
           ..add('operator_', operator_)
           ..add('routeName', routeName)
+          ..add('segmentTitle', segmentTitle)
           ..add('vehicleType', vehicleType)
           ..add('departureAt', departureAt)
           ..add('arrivalAt', arrivalAt)
@@ -154,6 +160,10 @@ class TripSearchResponseDtoOutputItemsInnerBuilder
   String? _routeName;
   String? get routeName => _$this._routeName;
   set routeName(String? routeName) => _$this._routeName = routeName;
+
+  String? _segmentTitle;
+  String? get segmentTitle => _$this._segmentTitle;
+  set segmentTitle(String? segmentTitle) => _$this._segmentTitle = segmentTitle;
 
   TripSearchResponseDtoOutputItemsInnerVehicleTypeBuilder? _vehicleType;
   TripSearchResponseDtoOutputItemsInnerVehicleTypeBuilder get vehicleType =>
@@ -227,6 +237,7 @@ class TripSearchResponseDtoOutputItemsInnerBuilder
       _tripId = $v.tripId;
       _operator_ = $v.operator_.toBuilder();
       _routeName = $v.routeName;
+      _segmentTitle = $v.segmentTitle;
       _vehicleType = $v.vehicleType.toBuilder();
       _departureAt = $v.departureAt;
       _arrivalAt = $v.arrivalAt;
@@ -267,6 +278,8 @@ class TripSearchResponseDtoOutputItemsInnerBuilder
             operator_: operator_.build(),
             routeName: BuiltValueNullFieldError.checkNotNull(routeName,
                 r'TripSearchResponseDtoOutputItemsInner', 'routeName'),
+            segmentTitle: BuiltValueNullFieldError.checkNotNull(segmentTitle,
+                r'TripSearchResponseDtoOutputItemsInner', 'segmentTitle'),
             vehicleType: vehicleType.build(),
             departureAt: BuiltValueNullFieldError.checkNotNull(departureAt,
                 r'TripSearchResponseDtoOutputItemsInner', 'departureAt'),

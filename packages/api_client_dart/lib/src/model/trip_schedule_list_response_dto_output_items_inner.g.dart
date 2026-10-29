@@ -9,6 +9,8 @@ part of 'trip_schedule_list_response_dto_output_items_inner.dart';
 class _$TripScheduleListResponseDtoOutputItemsInner
     extends TripScheduleListResponseDtoOutputItemsInner {
   @override
+  final BuiltList<String> subRouteIds;
+  @override
   final String id;
   @override
   final String routeId;
@@ -48,7 +50,8 @@ class _$TripScheduleListResponseDtoOutputItemsInner
           ._build();
 
   _$TripScheduleListResponseDtoOutputItemsInner._(
-      {required this.id,
+      {required this.subRouteIds,
+      required this.id,
       required this.routeId,
       required this.routeName,
       this.vehicleId,
@@ -79,6 +82,7 @@ class _$TripScheduleListResponseDtoOutputItemsInner
   bool operator ==(Object other) {
     if (identical(other, this)) return true;
     return other is TripScheduleListResponseDtoOutputItemsInner &&
+        subRouteIds == other.subRouteIds &&
         id == other.id &&
         routeId == other.routeId &&
         routeName == other.routeName &&
@@ -100,6 +104,7 @@ class _$TripScheduleListResponseDtoOutputItemsInner
   @override
   int get hashCode {
     var _$hash = 0;
+    _$hash = $jc(_$hash, subRouteIds.hashCode);
     _$hash = $jc(_$hash, id.hashCode);
     _$hash = $jc(_$hash, routeId.hashCode);
     _$hash = $jc(_$hash, routeName.hashCode);
@@ -124,6 +129,7 @@ class _$TripScheduleListResponseDtoOutputItemsInner
   String toString() {
     return (newBuiltValueToStringHelper(
             r'TripScheduleListResponseDtoOutputItemsInner')
+          ..add('subRouteIds', subRouteIds)
           ..add('id', id)
           ..add('routeId', routeId)
           ..add('routeName', routeName)
@@ -149,6 +155,12 @@ class TripScheduleListResponseDtoOutputItemsInnerBuilder
         Builder<TripScheduleListResponseDtoOutputItemsInner,
             TripScheduleListResponseDtoOutputItemsInnerBuilder> {
   _$TripScheduleListResponseDtoOutputItemsInner? _$v;
+
+  ListBuilder<String>? _subRouteIds;
+  ListBuilder<String> get subRouteIds =>
+      _$this._subRouteIds ??= ListBuilder<String>();
+  set subRouteIds(ListBuilder<String>? subRouteIds) =>
+      _$this._subRouteIds = subRouteIds;
 
   String? _id;
   String? get id => _$this._id;
@@ -227,6 +239,7 @@ class TripScheduleListResponseDtoOutputItemsInnerBuilder
   TripScheduleListResponseDtoOutputItemsInnerBuilder get _$this {
     final $v = _$v;
     if ($v != null) {
+      _subRouteIds = $v.subRouteIds.toBuilder();
       _id = $v.id;
       _routeId = $v.routeId;
       _routeName = $v.routeName;
@@ -268,6 +281,7 @@ class TripScheduleListResponseDtoOutputItemsInnerBuilder
     try {
       _$result = _$v ??
           _$TripScheduleListResponseDtoOutputItemsInner._(
+            subRouteIds: subRouteIds.build(),
             id: BuiltValueNullFieldError.checkNotNull(
                 id, r'TripScheduleListResponseDtoOutputItemsInner', 'id'),
             routeId: BuiltValueNullFieldError.checkNotNull(routeId,
@@ -305,6 +319,9 @@ class TripScheduleListResponseDtoOutputItemsInnerBuilder
     } catch (_) {
       late String _$failedField;
       try {
+        _$failedField = 'subRouteIds';
+        subRouteIds.build();
+
         _$failedField = 'daysOfWeek';
         daysOfWeek.build();
       } catch (e) {

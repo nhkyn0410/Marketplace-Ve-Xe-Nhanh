@@ -37,6 +37,11 @@ export function stopsInvalid(): HttpException {
   return problem(HttpStatus.UNPROCESSABLE_ENTITY, "SEAT_HOLD_STOPS_INVALID", "Điểm đón phải cho đón, điểm trả phải cho trả và điểm đón đứng trước điểm trả.");
 }
 
+/** Điểm đón đã qua giờ ngừng bán online (tính theo giờ xe tới điểm đón — 3.3). */
+export function pickupSaleClosed(): HttpException {
+  return problem(HttpStatus.UNPROCESSABLE_ENTITY, "SEAT_HOLD_PICKUP_CLOSED", "Điểm đón này đã hết giờ bán vé online. Chọn điểm đón khác.");
+}
+
 /** Giữ chỗ quá nhiều lần từ một địa chỉ trong 10 phút (chống giữ chỗ hàng loạt). */
 export function holdRateLimited(): HttpException {
   return problem(HttpStatus.TOO_MANY_REQUESTS, "SEAT_HOLD_RATE_LIMITED", "Bạn giữ chỗ quá nhiều lần. Vui lòng thử lại sau ít phút.");

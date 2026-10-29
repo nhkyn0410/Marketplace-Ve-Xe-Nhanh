@@ -773,6 +773,7 @@ Serializers _$serializers = (Serializers().toBuilder()
       ..add(PublicTripDtoOutputSeatsInner.serializer)
       ..add(PublicTripDtoOutputSeatsInnerStatusEnum.serializer)
       ..add(PublicTripDtoOutputSeatsInnerTypeEnum.serializer)
+      ..add(PublicTripDtoOutputSegment.serializer)
       ..add(PublicTripDtoOutputStopsInner.serializer)
       ..add(PublicTripDtoOutputStopsInnerRoleEnum.serializer)
       ..add(PublicTripDtoOutputStopsInnerTypeEnum.serializer)
@@ -1518,6 +1519,9 @@ Serializers _$serializers = (Serializers().toBuilder()
           const FullType(BuiltList, const [const FullType(DateTime)]),
           () => ListBuilder<DateTime>())
       ..addBuilderFactory(
+          const FullType(BuiltList, const [const FullType(String)]),
+          () => ListBuilder<String>())
+      ..addBuilderFactory(
           const FullType(BuiltList, const [const FullType(DateTime)]),
           () => ListBuilder<DateTime>())
       ..addBuilderFactory(
@@ -1971,6 +1975,17 @@ Serializers _$serializers = (Serializers().toBuilder()
           const FullType(BuiltList, const [const FullType(String)]),
           () => ListBuilder<String>())
       ..addBuilderFactory(
+          const FullType(BuiltList,
+              const [const FullType(TripResponseDtoOutputStopsInner)]),
+          () => ListBuilder<TripResponseDtoOutputStopsInner>())
+      ..addBuilderFactory(
+          const FullType(BuiltList,
+              const [const FullType(TripResponseDtoOutputSeatsInner)]),
+          () => ListBuilder<TripResponseDtoOutputSeatsInner>())
+      ..addBuilderFactory(
+          const FullType(BuiltList, const [const FullType(String)]),
+          () => ListBuilder<String>())
+      ..addBuilderFactory(
           const FullType(BuiltList, const [
             const FullType(VehicleListResponseDtoOutputItemsInnerImagesInner)
           ]),
@@ -1985,6 +2000,18 @@ Serializers _$serializers = (Serializers().toBuilder()
           ]),
           () =>
               ListBuilder<VehicleListResponseDtoOutputItemsInnerImagesInner>())
+      ..addBuilderFactory(
+          const FullType(BuiltList, const [const FullType(String)]),
+          () => ListBuilder<String>())
+      ..addBuilderFactory(
+          const FullType(BuiltList, const [const FullType(int)]),
+          () => ListBuilder<int>())
+      ..addBuilderFactory(
+          const FullType(BuiltList, const [const FullType(String)]),
+          () => ListBuilder<String>())
+      ..addBuilderFactory(
+          const FullType(BuiltList, const [const FullType(int)]),
+          () => ListBuilder<int>())
       ..addBuilderFactory(
           const FullType(BuiltList, const [
             const FullType(SubRouteSuggestionListDtoOutputItemsInner)
@@ -2063,14 +2090,6 @@ Serializers _$serializers = (Serializers().toBuilder()
           const FullType(BuiltList,
               const [const FullType(TripManifestDtoOutputPassengersInner)]),
           () => ListBuilder<TripManifestDtoOutputPassengersInner>())
-      ..addBuilderFactory(
-          const FullType(BuiltList,
-              const [const FullType(TripResponseDtoOutputStopsInner)]),
-          () => ListBuilder<TripResponseDtoOutputStopsInner>())
-      ..addBuilderFactory(
-          const FullType(BuiltList,
-              const [const FullType(TripResponseDtoOutputSeatsInner)]),
-          () => ListBuilder<TripResponseDtoOutputSeatsInner>())
       ..addBuilderFactory(
           const FullType(BuiltList,
               const [const FullType(TripSalesDtoOutputChangesInner)]),
@@ -2174,11 +2193,8 @@ Serializers _$serializers = (Serializers().toBuilder()
           const FullType(BuiltList, const [const FullType(int)]),
           () => ListBuilder<int>())
       ..addBuilderFactory(
-          const FullType(BuiltList, const [const FullType(int)]),
-          () => ListBuilder<int>())
-      ..addBuilderFactory(
-          const FullType(BuiltList, const [const FullType(int)]),
-          () => ListBuilder<int>())
+          const FullType(BuiltList, const [const FullType(String)]),
+          () => ListBuilder<String>())
       ..addBuilderFactory(
           const FullType(
               BuiltMap, const [const FullType(String), const FullType(int)]),

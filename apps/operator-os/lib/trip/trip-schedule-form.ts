@@ -33,6 +33,8 @@ export type ScheduleFormValues = {
   endDate: string;
   onlineSaleCutoffMinutes: string;
   note: string;
+  /** Chặng mở bán (3.3) chép sang từng chuyến lịch sinh ra. */
+  subRouteIds: string[];
 };
 
 export function emptyScheduleValues(today: string): ScheduleFormValues {
@@ -44,7 +46,8 @@ export function emptyScheduleValues(today: string): ScheduleFormValues {
     startDate: today,
     endDate: addDays(today, 29),
     onlineSaleCutoffMinutes: "60",
-    note: ""
+    note: "",
+    subRouteIds: []
   };
 }
 
@@ -57,7 +60,8 @@ export function toScheduleFormValues(schedule: TripSchedule): ScheduleFormValues
     startDate: schedule.startDate,
     endDate: schedule.endDate,
     onlineSaleCutoffMinutes: String(schedule.onlineSaleCutoffMinutes),
-    note: schedule.note ?? ""
+    note: schedule.note ?? "",
+    subRouteIds: schedule.subRouteIds
   };
 }
 
@@ -71,7 +75,8 @@ export function scheduleSchema(today: string) {
       startDate: z.string().regex(DATE, "Chọn ngày bắt đầu."),
       endDate: z.string().regex(DATE, "Chọn ngày kết thúc."),
       onlineSaleCutoffMinutes: z.string(),
-      note: z.string().max(TRIP_NOTE_MAX_LENGTH)
+      note: z.string().max(TRIP_NOTE_MAX_LENGTH),
+      subRouteIds: z.array(z.string())
     })
     .superRefine((values, ctx) => {
       if (parseCutoffMinutes(values.onlineSaleCutoffMinutes) === null) {
@@ -103,7 +108,8 @@ export function toScheduleInput(values: ScheduleFormValues): TripScheduleInput {
     startDate: values.startDate,
     endDate: values.endDate,
     onlineSaleCutoffMinutes: parseCutoffMinutes(values.onlineSaleCutoffMinutes)!,
-    note: values.note.trim() || null
+    note: values.note.trim() || null,
+    subRouteIds: values.subRouteIds
   };
 }
 

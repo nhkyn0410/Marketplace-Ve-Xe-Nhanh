@@ -13341,6 +13341,26 @@
               "format": "uuid",
               "type": "string"
             }
+          },
+          {
+            "name": "pickupSequence",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 9007199254740991,
+              "type": "number"
+            }
+          },
+          {
+            "name": "dropoffSequence",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 9007199254740991,
+              "type": "number"
+            }
           }
         ],
         "responses": {
@@ -32105,6 +32125,14 @@
             "minimum": -9007199254740991,
             "maximum": 9007199254740991
           },
+          "subRouteIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            }
+          },
           "statusReason": {
             "anyOf": [
               {
@@ -32352,6 +32380,7 @@
           "createdAt",
           "updatedAt",
           "onlineSaleCutoffMinutes",
+          "subRouteIds",
           "statusReason",
           "departedAt",
           "completedAt",
@@ -41087,6 +41116,16 @@
                 "type": "null"
               }
             ]
+          },
+          "subRouteIds": {
+            "default": [],
+            "maxItems": 50,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            }
           }
         },
         "required": [
@@ -41947,6 +41986,14 @@
             "items": {
               "type": "object",
               "properties": {
+                "subRouteIds": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                  }
+                },
                 "id": {
                   "type": "string",
                   "format": "uuid",
@@ -42052,6 +42099,7 @@
                 }
               },
               "required": [
+                "subRouteIds",
                 "id",
                 "routeId",
                 "routeName",
@@ -42081,6 +42129,14 @@
       "TripScheduleResponseDto_Output": {
         "type": "object",
         "properties": {
+          "subRouteIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            }
+          },
           "id": {
             "type": "string",
             "format": "uuid",
@@ -42186,6 +42242,7 @@
           }
         },
         "required": [
+          "subRouteIds",
           "id",
           "routeId",
           "routeName",
@@ -42264,6 +42321,16 @@
                 "type": "null"
               }
             ]
+          },
+          "subRouteIds": {
+            "default": [],
+            "maxItems": 50,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            }
           }
         },
         "required": [
@@ -43322,6 +43389,9 @@
                 "routeName": {
                   "type": "string"
                 },
+                "segmentTitle": {
+                  "type": "string"
+                },
                 "vehicleType": {
                   "type": "object",
                   "properties": {
@@ -43471,6 +43541,7 @@
                 "tripId",
                 "operator",
                 "routeName",
+                "segmentTitle",
                 "vehicleType",
                 "departureAt",
                 "arrivalAt",
@@ -43651,6 +43722,37 @@
           "routeName": {
             "type": "string"
           },
+          "segment": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "pickupSequence": {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 9007199254740991
+                  },
+                  "dropoffSequence": {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 9007199254740991
+                  },
+                  "title": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "pickupSequence",
+                  "dropoffSequence",
+                  "title"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "departureAt": {
             "type": "string",
             "format": "date-time",
@@ -43824,6 +43926,9 @@
                 "allowDropoff": {
                   "type": "boolean"
                 },
+                "pickupOpen": {
+                  "type": "boolean"
+                },
                 "note": {
                   "anyOf": [
                     {
@@ -43848,6 +43953,7 @@
                 "pickupWindowEnd",
                 "allowPickup",
                 "allowDropoff",
+                "pickupOpen",
                 "note"
               ],
               "additionalProperties": false
@@ -43955,6 +44061,7 @@
           "tripId",
           "operator",
           "routeName",
+          "segment",
           "departureAt",
           "arrivalAt",
           "onlineSaleClosesAt",

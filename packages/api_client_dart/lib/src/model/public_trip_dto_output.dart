@@ -4,6 +4,7 @@
 
 // ignore_for_file: unused_element
 import 'package:api_client_dart/src/model/public_trip_dto_output_operator.dart';
+import 'package:api_client_dart/src/model/public_trip_dto_output_segment.dart';
 import 'package:api_client_dart/src/model/trip_search_response_dto_output_items_inner_amenities_inner.dart';
 import 'package:built_collection/built_collection.dart';
 import 'package:api_client_dart/src/model/trip_search_response_dto_output_items_inner_vehicle_type.dart';
@@ -22,6 +23,7 @@ part 'public_trip_dto_output.g.dart';
 /// * [tripId] 
 /// * [operator_] 
 /// * [routeName] 
+/// * [segment] 
 /// * [departureAt] 
 /// * [arrivalAt] 
 /// * [onlineSaleClosesAt] 
@@ -42,6 +44,9 @@ abstract class PublicTripDtoOutput implements Built<PublicTripDtoOutput, PublicT
 
   @BuiltValueField(wireName: r'routeName')
   String get routeName;
+
+  @BuiltValueField(wireName: r'segment')
+  PublicTripDtoOutputSegment? get segment;
 
   @BuiltValueField(wireName: r'departureAt')
   DateTime get departureAt;
@@ -110,6 +115,11 @@ class _$PublicTripDtoOutputSerializer implements PrimitiveSerializer<PublicTripD
     yield serializers.serialize(
       object.routeName,
       specifiedType: const FullType(String),
+    );
+    yield r'segment';
+    yield object.segment == null ? null : serializers.serialize(
+      object.segment,
+      specifiedType: const FullType.nullable(PublicTripDtoOutputSegment),
     );
     yield r'departureAt';
     yield serializers.serialize(
@@ -204,6 +214,14 @@ class _$PublicTripDtoOutputSerializer implements PrimitiveSerializer<PublicTripD
             specifiedType: const FullType(String),
           ) as String;
           result.routeName = valueDes;
+          break;
+        case r'segment':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType.nullable(PublicTripDtoOutputSegment),
+          ) as PublicTripDtoOutputSegment?;
+          if (valueDes == null) continue;
+          result.segment.replace(valueDes);
           break;
         case r'departureAt':
           final valueDes = serializers.deserialize(

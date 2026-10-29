@@ -24,6 +24,7 @@ part 'public_trip_dto_output_stops_inner.g.dart';
 /// * [pickupWindowEnd] 
 /// * [allowPickup] 
 /// * [allowDropoff] 
+/// * [pickupOpen] 
 /// * [note] 
 @BuiltValue()
 abstract class PublicTripDtoOutputStopsInner implements Built<PublicTripDtoOutputStopsInner, PublicTripDtoOutputStopsInnerBuilder> {
@@ -64,6 +65,9 @@ abstract class PublicTripDtoOutputStopsInner implements Built<PublicTripDtoOutpu
 
   @BuiltValueField(wireName: r'allowDropoff')
   bool get allowDropoff;
+
+  @BuiltValueField(wireName: r'pickupOpen')
+  bool get pickupOpen;
 
   @BuiltValueField(wireName: r'note')
   String? get note;
@@ -149,6 +153,11 @@ class _$PublicTripDtoOutputStopsInnerSerializer implements PrimitiveSerializer<P
     yield r'allowDropoff';
     yield serializers.serialize(
       object.allowDropoff,
+      specifiedType: const FullType(bool),
+    );
+    yield r'pickupOpen';
+    yield serializers.serialize(
+      object.pickupOpen,
       specifiedType: const FullType(bool),
     );
     yield r'note';
@@ -264,6 +273,13 @@ class _$PublicTripDtoOutputStopsInnerSerializer implements PrimitiveSerializer<P
             specifiedType: const FullType(bool),
           ) as bool;
           result.allowDropoff = valueDes;
+          break;
+        case r'pickupOpen':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(bool),
+          ) as bool;
+          result.pickupOpen = valueDes;
           break;
         case r'note':
           final valueDes = serializers.deserialize(

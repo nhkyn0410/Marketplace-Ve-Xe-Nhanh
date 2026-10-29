@@ -884,6 +884,7 @@ Class | Method | HTTP request | Description
  - [PublicTripDtoOutputCancellationPolicyTiersInner](doc/PublicTripDtoOutputCancellationPolicyTiersInner.md)
  - [PublicTripDtoOutputOperator](doc/PublicTripDtoOutputOperator.md)
  - [PublicTripDtoOutputSeatsInner](doc/PublicTripDtoOutputSeatsInner.md)
+ - [PublicTripDtoOutputSegment](doc/PublicTripDtoOutputSegment.md)
  - [PublicTripDtoOutputStopsInner](doc/PublicTripDtoOutputStopsInner.md)
  - [PublicTripDtoOutputVehicleImagesInner](doc/PublicTripDtoOutputVehicleImagesInner.md)
  - [QueueHealthResponseDtoOutput](doc/QueueHealthResponseDtoOutput.md)

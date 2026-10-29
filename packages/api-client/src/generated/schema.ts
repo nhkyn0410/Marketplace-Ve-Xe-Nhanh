@@ -5667,6 +5667,7 @@ export interface components {
             /** Format: date-time */
             updatedAt: string;
             onlineSaleCutoffMinutes: number;
+            subRouteIds: string[];
             statusReason: string | null;
             departedAt: string | null;
             completedAt: string | null;
@@ -7440,6 +7441,8 @@ export interface components {
             stopTimes: string[] | null;
             onlineSaleCutoffMinutes: number;
             note: string | null;
+            /** @default [] */
+            subRouteIds: string[];
         };
         TripSalesDto_Output: {
             soldSeats: number;
@@ -7596,6 +7599,7 @@ export interface components {
         };
         TripScheduleListResponseDto_Output: {
             items: {
+                subRouteIds: string[];
                 /** Format: uuid */
                 id: string;
                 /** Format: uuid */
@@ -7621,6 +7625,7 @@ export interface components {
             }[];
         };
         TripScheduleResponseDto_Output: {
+            subRouteIds: string[];
             /** Format: uuid */
             id: string;
             /** Format: uuid */
@@ -7656,6 +7661,8 @@ export interface components {
             endDate: string;
             onlineSaleCutoffMinutes: number;
             note: string | null;
+            /** @default [] */
+            subRouteIds: string[];
         };
         TripScheduleGenerateInputDto: {
             openForSale: boolean;
@@ -7862,6 +7869,7 @@ export interface components {
                     reviewCount: number;
                 };
                 routeName: string;
+                segmentTitle: string;
                 vehicleType: {
                     name: string;
                     /** @enum {string} */
@@ -7929,6 +7937,11 @@ export interface components {
                 reviewCount: number;
             };
             routeName: string;
+            segment: {
+                pickupSequence: number;
+                dropoffSequence: number;
+                title: string;
+            } | null;
             /** Format: date-time */
             departureAt: string;
             /** Format: date-time */
@@ -7967,6 +7980,7 @@ export interface components {
                 pickupWindowEnd: string | null;
                 allowPickup: boolean;
                 allowDropoff: boolean;
+                pickupOpen: boolean;
                 note: string | null;
             }[];
             seats: {
@@ -20372,7 +20386,10 @@ export interface operations {
     };
     PublicTripController_get: {
         parameters: {
-            query?: never;
+            query?: {
+                pickupSequence?: number;
+                dropoffSequence?: number;
+            };
             header?: never;
             path: {
                 tripId: string;

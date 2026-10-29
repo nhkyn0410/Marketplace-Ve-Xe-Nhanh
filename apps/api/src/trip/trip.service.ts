@@ -32,6 +32,7 @@ import {
   tripBusy,
   tripHistoryUnavailable,
   tripNotEditable,
+  tripSubRouteUnavailable,
   tripNotFound,
   tripNotReadyForSale,
   tripSeatNotAvailable,
@@ -180,7 +181,10 @@ export class TripService {
   async create(authz: Authorization, input: TripInput): Promise<TripResponse> {
     const { db, operatorId } = requireTenant(authz);
     const row = await this.withOverlapConflict(() =>
-      this.prisma.withScope(db, async (tx) => findDetail(tx, operatorId, await insertDraftTrip(tx, operatorId, input))),
+      this.prisma.withScope(db, async (tx) => {
+        await assertSubRoutes(tx, operatorId, input.routeId, input.subRouteIds);
+        return findDetail(tx, operatorId, await insertDraftTrip(tx, operatorId, input));
+      }),
     );
     return toResponse(row!);
   }
@@ -242,6 +246,10 @@ export class TripService {
         }
         await tx.tripStop.deleteMany({ where: { tripId, operatorId } });
         await tx.tripStop.createMany({ data: stopRows(operatorId, tripId, routeStops, stopTimes) });
+        const kept = input.routeId === current.routeId ? await tripSubRouteIds(tx, operatorId, tripId) : [];
+        await assertSubRoutes(tx, operatorId, input.routeId, input.subRouteIds, kept);
+        await tx.tripSubRoute.deleteMany({ where: { tripId, operatorId } });
+        await tx.tripSubRoute.createMany({ data: input.subRouteIds.map((subRouteId) => ({ tripId, subRouteId, operatorId })) });
         if (rebuildSeats) {
           await tx.tripSeat.deleteMany({ where: { tripId, operatorId } });
           await tx.tripSeat.createMany({ data: seatRows(operatorId, tripId, seats, blocked) });
@@ -451,7 +459,28 @@ export async function insertDraftTrip(
   });
   await tx.tripStop.createMany({ data: stopRows(operatorId, trip.id, routeStops, stopTimes) });
   await tx.tripSeat.createMany({ data: seatRows(operatorId, trip.id, seats) });
+  await tx.tripSubRoute.createMany({ data: input.subRouteIds.map((subRouteId) => ({ tripId: trip.id, subRouteId, operatorId })) });
   return trip.id;
+}
+
+/**
+ * Chặng mở bán (3.3) phải là tuyến con của đúng tuyến `routeId`, đang bật; tuyến con đã gắn sẵn (`kept`) giữ được dù đã
+ * ngừng (như route / xe đang gắn). Không phân biệt lý do để không lộ dữ liệu tenant khác.
+ */
+export async function assertSubRoutes(tx: DbTransaction, operatorId: string, routeId: string, ids: readonly string[], kept: readonly string[] = []) {
+  if (ids.length === 0) {
+    return;
+  }
+  const valid = await tx.route.count({
+    where: { id: { in: [...ids] }, operatorId, parentRouteId: routeId, OR: [{ status: RouteStatus.ACTIVE }, { id: { in: [...kept] } }] },
+  });
+  if (valid !== new Set(ids).size) {
+    throw tripSubRouteUnavailable();
+  }
+}
+
+async function tripSubRouteIds(tx: DbTransaction, operatorId: string, tripId: string): Promise<string[]> {
+  return (await tx.tripSubRoute.findMany({ where: { tripId, operatorId }, select: { subRouteId: true } })).map((row) => row.subRouteId);
 }
 
 /**
@@ -685,6 +714,7 @@ export function findDetail(tx: DbTransaction, operatorId: string, tripId: string
     where: { id: tripId, operatorId },
     select: {
       id: true,
+      subRoutes: { orderBy: { subRouteId: "asc" }, select: { subRouteId: true } },
       routeId: true,
       vehicleId: true,
       departureAt: true,
@@ -737,7 +767,7 @@ export function findDetail(tx: DbTransaction, operatorId: string, tripId: string
 }
 
 export function toResponse(row: NonNullable<Awaited<ReturnType<typeof findDetail>>>): TripResponse {
-  const { route, vehicle, stops, seats, ...trip } = row;
+  const { route, vehicle, stops, seats, subRoutes, ...trip } = row;
   // Không gắn xe / tuyến chưa có bảng giá / bảng giá INACTIVE / không có rule khớp → giá `null` (TRN-006 chặn mở bán).
   const rules = route.fare?.status === FareStatus.ACTIVE ? route.fare.rules : [];
   const priceOf = (seatType: SeatType): number | null => {
@@ -749,6 +779,7 @@ export function toResponse(row: NonNullable<Awaited<ReturnType<typeof findDetail
   };
   return {
     ...trip,
+    subRouteIds: subRoutes.map((item) => item.subRouteId),
     routeName: route.name,
     vehiclePlateNumber: vehicle?.plateNumber ?? null,
     seatCount: seats.length,

@@ -16,6 +16,7 @@ Name | Type | Description | Notes
 **endDate** | [**Date**](Date.md) |  | 
 **onlineSaleCutoffMinutes** | **int** |  | 
 **note** | **String** |  | 
+**subRouteIds** | **BuiltList&lt;String&gt;** |  | [optional] [default to ListBuilder()]
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)
 

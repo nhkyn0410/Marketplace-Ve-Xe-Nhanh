@@ -20,6 +20,7 @@ Name | Type | Description | Notes
 **createdAt** | [**DateTime**](DateTime.md) |  | 
 **updatedAt** | [**DateTime**](DateTime.md) |  | 
 **onlineSaleCutoffMinutes** | **int** |  | 
+**subRouteIds** | **BuiltList&lt;String&gt;** |  | 
 **statusReason** | **String** |  | 
 **departedAt** | [**DateTime**](DateTime.md) |  | 
 **completedAt** | [**DateTime**](DateTime.md) |  | 

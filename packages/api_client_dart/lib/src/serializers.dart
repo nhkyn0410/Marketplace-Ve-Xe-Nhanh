@@ -462,6 +462,7 @@ import 'package:api_client_dart/src/model/public_trip_dto_output_cancellation_po
 import 'package:api_client_dart/src/model/public_trip_dto_output_cancellation_policy_tiers_inner.dart';
 import 'package:api_client_dart/src/model/public_trip_dto_output_operator.dart';
 import 'package:api_client_dart/src/model/public_trip_dto_output_seats_inner.dart';
+import 'package:api_client_dart/src/model/public_trip_dto_output_segment.dart';
 import 'package:api_client_dart/src/model/public_trip_dto_output_stops_inner.dart';
 import 'package:api_client_dart/src/model/public_trip_dto_output_vehicle_images_inner.dart';
 import 'package:api_client_dart/src/model/queue_health_response_dto_output.dart';
@@ -1078,6 +1079,7 @@ part 'serializers.g.dart';
   PublicTripDtoOutputCancellationPolicyTiersInner,
   PublicTripDtoOutputOperator,
   PublicTripDtoOutputSeatsInner,
+  PublicTripDtoOutputSegment,
   PublicTripDtoOutputStopsInner,
   PublicTripDtoOutputVehicleImagesInner,
   QueueHealthResponseDtoOutput,

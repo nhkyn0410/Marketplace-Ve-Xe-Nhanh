@@ -27,8 +27,10 @@ export const BoardingPassCard: React.FC<BoardingPassCardProps> = ({
   onSelectTicket
 }) => {
   const currentTicket = tickets[activeTicketIndex] ?? tickets[0];
-  // Figma tách điểm đi / điểm đến bằng mũi tên màu cam: routeName dạng "A → B"
-  const [origin, destination] = trip.routeName.split("→").map((part) => part.trim());
+  // Figma tách điểm đi / điểm đến bằng mũi tên màu cam: lấy đúng điểm khách lên / xuống xe (3.3) — tên tuyến do nhà xe đặt
+  // không chắc có dạng "A → B" (vd "TP.HCM - Gia Nghĩa - Buôn Ma Thuột").
+  const origin = trip.departurePointName;
+  const destination = trip.arrivalPointName;
 
   return (
     <div className="space-y-3">

@@ -20,6 +20,7 @@ Name | Type | Description | Notes
 **pickupWindowEnd** | [**DateTime**](DateTime.md) |  | 
 **allowPickup** | **bool** |  | 
 **allowDropoff** | **bool** |  | 
+**pickupOpen** | **bool** |  | 
 **note** | **String** |  | 
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)

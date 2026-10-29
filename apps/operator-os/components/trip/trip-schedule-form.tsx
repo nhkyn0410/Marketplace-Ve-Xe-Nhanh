@@ -13,7 +13,7 @@ import { cn } from "@vexenhanh/ui/lib/utils";
 import { ArrowLeft, CalendarSync, CircleAlert, CircleCheck, FileX2, LoaderCircle, RefreshCw } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useId, useMemo, useState, type ReactNode } from "react";
+import { useCallback, useId, useMemo, useState, type ReactNode } from "react";
 import { Controller, useForm } from "react-hook-form";
 
 import { ApiError } from "../../lib/auth/api-client";
@@ -47,6 +47,7 @@ import {
 import { listAllVehicles } from "../../lib/vehicle/vehicle-api";
 import { formatPlateNumber } from "../../lib/vehicle/vehicle-format";
 import { FormField } from "../form-field";
+import { SegmentOffersField } from "./segment-offers-field";
 import { BUTTON } from "../list-parts";
 import { PageHeader } from "../page-header";
 
@@ -128,6 +129,8 @@ function ScheduleFormBody({ schedule }: { schedule?: TripSchedule }) {
   });
   const { errors } = form.formState;
   const values = form.watch();
+  // Chặng mở bán (3.3) chép sang từng chuyến lịch sinh ra.
+  const setSubRoutes = useCallback((ids: string[]) => form.setValue("subRouteIds", ids, { shouldDirty: true }), [form]);
 
   const activeRoutes = useQuery({ queryKey: ["routes", "all", "ACTIVE"], queryFn: () => listAllRoutes("ACTIVE") });
   const vehicles = useQuery({ queryKey: ["vehicles", "all"], queryFn: listAllVehicles });
@@ -354,6 +357,12 @@ function ScheduleFormBody({ schedule }: { schedule?: TripSchedule }) {
             >
               {(control) => <Textarea {...control} {...form.register("note")} rows={3} maxLength={TRIP_NOTE_MAX_LENGTH} />}
             </FormField>
+            <SegmentOffersField
+              routeId={values.routeId}
+              value={values.subRouteIds}
+              onChange={setSubRoutes}
+              autoSelect={!schedule}
+            />
           </form>
         </section>
 

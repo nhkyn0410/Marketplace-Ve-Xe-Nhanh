@@ -72,10 +72,13 @@ export type SearchCandidate = {
   pickupName: string;
   pickupAddress: string;
   pickupAt: Date;
+  /** Phường của điểm đón / trả — ghép tiêu đề chặng cho khách (3.3). */
+  pickupWardId: string;
   dropoffSequence: number;
   dropoffName: string;
   dropoffAddress: string;
   dropoffAt: Date;
+  dropoffWardId: string;
   availableSeats: number;
   /** Loại chỗ còn trống (để tính giá thấp nhất). */
   availableSeatTypes: string[];
@@ -136,12 +139,13 @@ export async function searchTripCandidates(
         SELECT t.* FROM trips t
         JOIN operator_profiles o ON o.id = t.operator_id AND o.status = 'ACTIVE'
         WHERE t.status = 'OPEN_FOR_SALE'
-          AND t.departure_at - make_interval(mins => t.online_sale_cutoff_minutes) > ${query.now}
+          -- Giờ ngừng bán online tính theo giờ xe tới điểm đón (3.3) — kiểm ở CTE pick; ở đây chỉ bỏ chuyến đã tới nơi.
+          AND t.arrival_at > ${query.now}
           -- Giờ đón trong ngày chỉ có thể rơi vào chuyến khởi hành trước cuối ngày và chưa đến trước đầu ngày.
           AND t.departure_at < ${query.dayEnd} AND t.arrival_at > ${query.dayStart}
       ),
       s AS (
-        SELECT ts.trip_id, ts.sequence, ts.planned_at, ts.allow_pickup, ts.allow_dropoff,
+        SELECT ts.trip_id, ts.sequence, ts.planned_at, ts.allow_pickup, ts.allow_dropoff, ot.online_sale_cutoff_minutes AS cutoff,
                COALESCE(c.name, p.name) AS name, COALESCE(c.address, p.address) AS address,
                COALESCE(c.province_id, p.province_id) AS province_id, COALESCE(c.ward_id, p.ward_id) AS ward_id,
                COALESCE(c.latitude, p.latitude) AS lat, COALESCE(c.longitude, p.longitude) AS lng
@@ -153,6 +157,7 @@ export async function searchTripCandidates(
       pick AS (
         SELECT DISTINCT ON (s.trip_id) s.* FROM s
         WHERE s.allow_pickup AND s.planned_at >= ${query.dayStart} AND s.planned_at < ${query.dayEnd} AND ${sideMatch(query.from)}
+          AND s.planned_at - make_interval(mins => s.cutoff) > ${query.now}
         ORDER BY s.trip_id, s.sequence
       ),
       dropoff AS (
@@ -172,6 +177,7 @@ export async function searchTripCandidates(
              vt.id AS "vehicleTypeId", vt.name AS "vehicleTypeName", vt.form::text AS "vehicleForm", vt.class::text AS "vehicleClass",
              t.departure_at AS "departureAt", t.arrival_at AS "arrivalAt", t.online_sale_cutoff_minutes AS "onlineSaleCutoffMinutes",
              pick.sequence AS "pickupSequence", pick.name AS "pickupName", pick.address AS "pickupAddress", pick.planned_at AS "pickupAt",
+             pick.ward_id AS "pickupWardId", dropoff.ward_id AS "dropoffWardId",
              dropoff.sequence AS "dropoffSequence", dropoff.name AS "dropoffName", dropoff.address AS "dropoffAddress",
              dropoff.planned_at AS "dropoffAt",
              seats.available AS "availableSeats", seats.types AS "availableSeatTypes",
@@ -244,6 +250,11 @@ export async function loadCancellationTiers(
   );
 }
 
+/** Điểm đón còn bán online: giờ xe tới điểm đó trừ số phút ngừng bán vẫn sau `now` (3.3, chờ duyệt). */
+export function pickupSaleOpen(plannedAt: Date, cutoffMinutes: number, now: Date): boolean {
+  return plannedAt.getTime() - cutoffMinutes * 60_000 > now.getTime();
+}
+
 /** Chi tiết một chuyến đang hiển thị công khai (BR-22); không hiển thị → `null` (API trả 404 như không tồn tại). */
 export async function loadPublicTrip(prisma: Pick<PrismaService, "withSystem">, tripId: string, now: Date) {
   const trip = await prisma.withSystem((tx) =>
@@ -275,15 +286,18 @@ export async function loadPublicTrip(prisma: Pick<PrismaService, "withSystem">, 
             allowPickup: true,
             allowDropoff: true,
             note: true,
-            catalogStopPoint: { select: { name: true, address: true, type: true, latitude: true, longitude: true } },
-            stopPoint: { select: { name: true, address: true, type: true, latitude: true, longitude: true } },
+            catalogStopPointId: true,
+            stopPointId: true,
+            catalogStopPoint: { select: { name: true, address: true, type: true, latitude: true, longitude: true, wardId: true } },
+            stopPoint: { select: { name: true, address: true, type: true, latitude: true, longitude: true, wardId: true } },
           },
         },
         seats: { select: { seatCode: true, deck: true, row: true, column: true, type: true, status: true } },
       },
     }),
   );
-  if (!trip || trip.departureAt.getTime() - trip.onlineSaleCutoffMinutes * 60_000 <= now.getTime()) {
+  // Còn bán online khi còn ít nhất một điểm đón chưa qua giờ ngừng bán (tính theo giờ xe tới điểm đón — 3.3).
+  if (!trip || !trip.stops.some((stop) => stop.allowPickup && pickupSaleOpen(stop.plannedAt, trip.onlineSaleCutoffMinutes, now))) {
     return null;
   }
   return trip;

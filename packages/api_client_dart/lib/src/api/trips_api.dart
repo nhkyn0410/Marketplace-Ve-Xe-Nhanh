@@ -27,6 +27,8 @@ class TripsApi {
   ///
   /// Parameters:
   /// * [tripId] 
+  /// * [pickupSequence] 
+  /// * [dropoffSequence] 
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
   /// * [extras] - Can be used to add flags to the request
@@ -38,6 +40,8 @@ class TripsApi {
   /// Throws [DioException] if API call or serialization fails
   Future<Response<PublicTripDtoOutput>> publicTripControllerGet({ 
     required String tripId,
+    num? pickupSequence,
+    num? dropoffSequence,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
     Map<String, dynamic>? extra,
@@ -58,9 +62,15 @@ class TripsApi {
       validateStatus: validateStatus,
     );
 
+    final _queryParameters = <String, dynamic>{
+      if (pickupSequence != null) r'pickupSequence': encodeQueryParameter(_serializers, pickupSequence, const FullType(num)),
+      if (dropoffSequence != null) r'dropoffSequence': encodeQueryParameter(_serializers, dropoffSequence, const FullType(num)),
+    };
+
     final _response = await _dio.request<Object>(
       _path,
       options: _options,
+      queryParameters: _queryParameters,
       cancelToken: cancelToken,
       onSendProgress: onSendProgress,
       onReceiveProgress: onReceiveProgress,

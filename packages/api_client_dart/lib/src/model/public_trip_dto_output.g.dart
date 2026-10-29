@@ -14,6 +14,8 @@ class _$PublicTripDtoOutput extends PublicTripDtoOutput {
   @override
   final String routeName;
   @override
+  final PublicTripDtoOutputSegment? segment;
+  @override
   final DateTime departureAt;
   @override
   final DateTime arrivalAt;
@@ -43,6 +45,7 @@ class _$PublicTripDtoOutput extends PublicTripDtoOutput {
       {required this.tripId,
       required this.operator_,
       required this.routeName,
+      this.segment,
       required this.departureAt,
       required this.arrivalAt,
       required this.onlineSaleClosesAt,
@@ -70,6 +73,7 @@ class _$PublicTripDtoOutput extends PublicTripDtoOutput {
         tripId == other.tripId &&
         operator_ == other.operator_ &&
         routeName == other.routeName &&
+        segment == other.segment &&
         departureAt == other.departureAt &&
         arrivalAt == other.arrivalAt &&
         onlineSaleClosesAt == other.onlineSaleClosesAt &&
@@ -88,6 +92,7 @@ class _$PublicTripDtoOutput extends PublicTripDtoOutput {
     _$hash = $jc(_$hash, tripId.hashCode);
     _$hash = $jc(_$hash, operator_.hashCode);
     _$hash = $jc(_$hash, routeName.hashCode);
+    _$hash = $jc(_$hash, segment.hashCode);
     _$hash = $jc(_$hash, departureAt.hashCode);
     _$hash = $jc(_$hash, arrivalAt.hashCode);
     _$hash = $jc(_$hash, onlineSaleClosesAt.hashCode);
@@ -108,6 +113,7 @@ class _$PublicTripDtoOutput extends PublicTripDtoOutput {
           ..add('tripId', tripId)
           ..add('operator_', operator_)
           ..add('routeName', routeName)
+          ..add('segment', segment)
           ..add('departureAt', departureAt)
           ..add('arrivalAt', arrivalAt)
           ..add('onlineSaleClosesAt', onlineSaleClosesAt)
@@ -139,6 +145,12 @@ class PublicTripDtoOutputBuilder
   String? _routeName;
   String? get routeName => _$this._routeName;
   set routeName(String? routeName) => _$this._routeName = routeName;
+
+  PublicTripDtoOutputSegmentBuilder? _segment;
+  PublicTripDtoOutputSegmentBuilder get segment =>
+      _$this._segment ??= PublicTripDtoOutputSegmentBuilder();
+  set segment(PublicTripDtoOutputSegmentBuilder? segment) =>
+      _$this._segment = segment;
 
   DateTime? _departureAt;
   DateTime? get departureAt => _$this._departureAt;
@@ -213,6 +225,7 @@ class PublicTripDtoOutputBuilder
       _tripId = $v.tripId;
       _operator_ = $v.operator_.toBuilder();
       _routeName = $v.routeName;
+      _segment = $v.segment?.toBuilder();
       _departureAt = $v.departureAt;
       _arrivalAt = $v.arrivalAt;
       _onlineSaleClosesAt = $v.onlineSaleClosesAt;
@@ -251,6 +264,7 @@ class PublicTripDtoOutputBuilder
             operator_: operator_.build(),
             routeName: BuiltValueNullFieldError.checkNotNull(
                 routeName, r'PublicTripDtoOutput', 'routeName'),
+            segment: _segment?.build(),
             departureAt: BuiltValueNullFieldError.checkNotNull(
                 departureAt, r'PublicTripDtoOutput', 'departureAt'),
             arrivalAt: BuiltValueNullFieldError.checkNotNull(
@@ -272,6 +286,9 @@ class PublicTripDtoOutputBuilder
       try {
         _$failedField = 'operator_';
         operator_.build();
+
+        _$failedField = 'segment';
+        _segment?.build();
 
         _$failedField = 'vehicleType';
         vehicleType.build();

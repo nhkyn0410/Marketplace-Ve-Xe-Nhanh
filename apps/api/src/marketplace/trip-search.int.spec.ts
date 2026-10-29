@@ -9,7 +9,7 @@ import { loadFeaturedOperators, loadPopularRoutes } from "../database/public-hig
 import type { Coordinates, RouteLeg, RoutingProvider } from "../external/routing/routing-provider";
 import type { StorageProvider } from "../external/storage/storage-provider";
 import type { Authorization } from "../iam/role/authorization";
-import { RouteInputSchema } from "../route/dto/route.dto";
+import { RouteInputSchema, SubRouteInputSchema } from "../route/dto/route.dto";
 import { RouteService } from "../route/route.service";
 import { TripInputSchema } from "../trip/dto/trip.dto";
 import { TripService } from "../trip/trip.service";
@@ -58,7 +58,9 @@ describe.skipIf(!url && !requireDb)("Tìm chuyến công khai — Postgres thậ
   const redis = new MemoryRedis();
   const tag = randomUUID().slice(0, 8);
   const [opA, opB] = [randomUUID(), randomUUID()];
-  const [provinceA, provinceB] = [randomUUID(), randomUUID()];
+  const [provinceA, provinceB, provinceMid] = [randomUUID(), randomUUID(), randomUUID()];
+  const [wardMid, stationMid] = [randomUUID(), randomUUID()];
+  let routes: RouteService;
   const [wardA, wardB, wardEmpty] = [randomUUID(), randomUUID(), randomUUID()];
   const [stationA, restStop, stationB, farA] = [randomUUID(), randomUUID(), randomUUID(), randomUUID()];
   const officeNearA = randomUUID();
@@ -95,7 +97,13 @@ describe.skipIf(!url && !requireDb)("Tìm chuyến công khai — Postgres thậ
   }
 
   /** Chuyến của tuyến, khởi hành `start` giờ (giờ VN, ngày `DATE` + `day`), chạy 6 giờ; mặc định mở bán luôn. */
-  async function trip(operatorId: string, routeId: string, vehicleId: string, start: number, options: { day?: number; status?: string; cutoff?: number; at?: Date } = {}) {
+  async function trip(
+    operatorId: string,
+    routeId: string,
+    vehicleId: string,
+    start: number,
+    options: { day?: number; status?: string; cutoff?: number; at?: Date; subRouteIds?: string[] } = {},
+  ) {
     const departureAt = options.at ?? new Date(DAY0 + (options.day ?? 0) * 24 * HOUR + start * HOUR);
     const created = await trips.create(
       authz(operatorId),
@@ -106,6 +114,7 @@ describe.skipIf(!url && !requireDb)("Tìm chuyến công khai — Postgres thậ
         stopTimes: null,
         onlineSaleCutoffMinutes: options.cutoff ?? 60,
         note: null,
+        subRouteIds: options.subRouteIds ?? [],
       }),
     );
     await prisma.withSystem((tx) =>
@@ -125,7 +134,7 @@ describe.skipIf(!url && !requireDb)("Tìm chuyến công khai — Postgres thậ
     prisma = new PrismaService(parseAppConfig({ DATABASE_URL: url }));
     search = new TripSearchService(prisma, storage, redis as unknown as Redis);
     trips = new TripService(prisma, {} as AuditService);
-    const routes = new RouteService(prisma, new FakeRouting());
+    routes = new RouteService(prisma, new FakeRouting());
     await prisma.withSystem(async (tx) => {
       await tx.operatorProfile.createMany({
         data: [
@@ -137,12 +146,14 @@ describe.skipIf(!url && !requireDb)("Tìm chuyến công khai — Postgres thậ
         data: [
           { id: provinceA, code: `sa-${tag}`, name: "Tỉnh đi" },
           { id: provinceB, code: `sb-${tag}`, name: "Tỉnh đến" },
+          { id: provinceMid, code: `sm-${tag}`, name: "Tỉnh Giữa" },
         ],
       });
       await tx.ward.createMany({
         data: [
           { id: wardA, provinceId: provinceA, code: `wa-${tag}`, name: "Phường đi" },
           { id: wardB, provinceId: provinceB, code: `wb-${tag}`, name: "Phường đến" },
+          { id: wardMid, provinceId: provinceMid, code: `wm-${tag}`, name: "Phường giữa" },
           // Cùng tỉnh đi nhưng không có điểm dừng nào: tìm theo phường này phải nới ra cả tỉnh.
           { id: wardEmpty, provinceId: provinceA, code: `we-${tag}`, name: `Phường trống ${tag}` },
           // Bỏ dấu thì trùng nhau: gõ có dấu phải ra đúng tên trước.
@@ -167,6 +178,7 @@ describe.skipIf(!url && !requireDb)("Tìm chuyến công khai — Postgres thậ
           point(stationA, "Bến đi", "BUS_STATION", provinceA, wardA, 10.8, 106.7),
           point(restStop, "Trạm nghỉ", "REST_STOP", provinceA, wardA, 11.3, 107.5),
           point(stationB, "Bến đến", "BUS_STATION", provinceB, wardB, 11.94, 108.45),
+          point(stationMid, "Bến giữa", "BUS_STATION", provinceMid, wardMid, 11.5, 107.8),
           // Cách bến đi ~20 km: ngoài bán kính 5 km.
           point(farA, "Bến xa", "BUS_STATION", provinceA, wardA, 10.98, 106.7),
         ],
@@ -222,16 +234,18 @@ describe.skipIf(!url && !requireDb)("Tìm chuyến công khai — Postgres thậ
       await tx.fareRule.deleteMany({ where: { operatorId } });
       await tx.fare.deleteMany({ where: { operatorId } });
       await tx.routeStop.deleteMany({ where: { operatorId } });
+      await tx.route.deleteMany({ where: { operatorId, parentRouteId: { not: null } } });
       await tx.route.deleteMany({ where: { operatorId } });
       await tx.vehicleAmenity.deleteMany({ where: { operatorId } });
       await tx.vehicle.deleteMany({ where: { operatorId } });
       await tx.seat.deleteMany({ where: { operatorId } });
       await tx.seatMap.deleteMany({ where: { operatorId } });
       await tx.stopPoint.deleteMany({ where: { operatorId } });
-      await tx.stopPointCatalog.deleteMany({ where: { provinceId: { in: [provinceA, provinceB] } } });
-      await tx.legacyAdministrativeMapping.deleteMany({ where: { provinceId: { in: [provinceA, provinceB] } } });
-      await tx.ward.deleteMany({ where: { provinceId: { in: [provinceA, provinceB] } } });
-      await tx.province.deleteMany({ where: { id: { in: [provinceA, provinceB] } } });
+      const provinces = { in: [provinceA, provinceB, provinceMid] };
+      await tx.stopPointCatalog.deleteMany({ where: { provinceId: provinces } });
+      await tx.legacyAdministrativeMapping.deleteMany({ where: { provinceId: provinces } });
+      await tx.ward.deleteMany({ where: { provinceId: provinces } });
+      await tx.province.deleteMany({ where: { id: provinces } });
       await tx.vehicleType.deleteMany({ where: { id: { in: [sleeperLimo, seater] } } });
       await tx.amenity.deleteMany({ where: { id: amenity } });
       await tx.operatorProfile.deleteMany({ where: { id: operatorId } });
@@ -353,7 +367,7 @@ describe.skipIf(!url && !requireDb)("Tìm chuyến công khai — Postgres thậ
     const accented = await catalog.listPlaces(PlaceSuggestionQuerySchema.parse({ q: `cờ đỏ ${tag}` }));
     expect(accented.items.map((item) => item.label)).toEqual([`Xã Cờ Đỏ ${tag}`, `Xã Cổ Đô ${tag}`]);
     expect(items.filter((item) => item.kind === "STOP_POINT").map((item) => item.target.id).sort()).toEqual(
-      [stationA, stationB, farA].sort(),
+      [stationA, stationB, farA, stationMid].sort(),
     );
     expect(items.filter((item) => item.kind === "LEGACY")).toEqual([
       {
@@ -409,6 +423,75 @@ describe.skipIf(!url && !requireDb)("Tìm chuyến công khai — Postgres thậ
     redis.store.clear();
     expect((await search.search(query())).items.some((item) => item.tripId === ids.far)).toBe(false);
     await prisma.withSystem((tx) => tx.fare.updateMany({ where: { routeId: ids.routeFar }, data: { status: "ACTIVE" } }));
+  });
+
+  it("chặng (3.3): giá của tuyến con ngắn nhất bao trọn chặng, tiêu đề theo nơi; chặng không có tuyến con → giá tuyến chính; chi tiết theo chặng", async () => {
+    const stop = (id: string, pickup: boolean, dropoff: boolean) => ({ catalogStopPointId: id, stopPointId: null, note: null, allowPickup: pickup, allowDropoff: dropoff });
+    const main = await routes.create(
+      authz(opA),
+      RouteInputSchema.parse({ name: `Qua giữa ${tag}`, status: "ACTIVE", note: null, stops: [stop(stationA, true, false), stop(stationMid, true, true), stop(stationB, false, true)] }),
+    );
+    await fare(opA, main.id, [{ seatType: null, price: 300_000n }]);
+    const point = (id: string) => ({ catalogStopPointId: id, stopPointId: null });
+    const sub = await routes.createSubRoute(
+      authz(opA),
+      main.id,
+      SubRouteInputSchema.parse({ from: point(stationA), to: point(stationMid), name: "", nameSource: "AUTO", status: "DRAFT", note: null }),
+    );
+    await fare(opA, sub.id, [{ seatType: null, price: 120_000n }]);
+    const bus = await vehicle(opA, seater, [{ code: "M1", type: "SEAT" }, { code: "M2", type: "SEAT" }]);
+    // Tuyến con còn Nháp / của tuyến khác → không gắn được vào chuyến.
+    await expect(trip(opA, main.id, bus, 12, { subRouteIds: [sub.id] })).rejects.toMatchObject({ response: { code: "TRIP_SUB_ROUTE_UNAVAILABLE" } });
+    await routes.updateSubRoute(
+      authz(opA),
+      main.id,
+      sub.id,
+      SubRouteInputSchema.parse({ from: point(stationA), to: point(stationMid), name: "", nameSource: "AUTO", status: "ACTIVE", note: null }),
+    );
+    await expect(trip(opA, ids.routeA, bus, 12, { subRouteIds: [sub.id] })).rejects.toMatchObject({ response: { code: "TRIP_SUB_ROUTE_UNAVAILABLE" } });
+    const segmented = await trip(opA, main.id, bus, 12, { subRouteIds: [sub.id] });
+    expect((await trips.get(authz(opA), segmented)).subRouteIds).toEqual([sub.id]);
+
+    redis.store.clear();
+    const toMid = (await search.search(query({ toProvinceId: provinceMid }))).items.find((item) => item.tripId === segmented)!;
+    // Nơi của phường đi tùy dữ liệu tên cũ test khác gắn vào; phía đến là tỉnh mới gọn.
+    expect(toMid).toMatchObject({ minPrice: 120_000, segmentTitle: expect.stringMatching(/ → Giữa$/), routeName: `Qua giữa ${tag}` });
+    const whole = (await search.search(query())).items.find((item) => item.tripId === segmented)!;
+    expect(whole).toMatchObject({ minPrice: 300_000, segmentTitle: expect.stringMatching(/ → đến$/) });
+
+    const detail = await search.getTrip(segmented, { pickupSequence: 1, dropoffSequence: 2 });
+    expect(detail.segment).toEqual({ pickupSequence: 1, dropoffSequence: 2, title: toMid.segmentTitle });
+    expect(detail.seats.map((seat) => seat.price)).toEqual([120_000, 120_000]);
+    const plain = await search.getTrip(segmented);
+    expect(plain.segment).toBeNull();
+    expect(plain.seats.map((seat) => seat.price)).toEqual([300_000, 300_000]);
+    // Chặng sai (điểm trả trước điểm đón) → bỏ qua, giá cả tuyến.
+    expect((await search.getTrip(segmented, { pickupSequence: 2, dropoffSequence: 1 })).segment).toBeNull();
+  });
+
+  it("giờ ngừng bán theo điểm đón (3.3): điểm đầu đã qua giờ nhưng điểm giữa còn → chuyến vẫn bán từ điểm giữa", async () => {
+    const stop = (id: string, pickup: boolean, dropoff: boolean) => ({ catalogStopPointId: id, stopPointId: null, note: null, allowPickup: pickup, allowDropoff: dropoff });
+    const route = await routes.create(
+      authz(opA),
+      RouteInputSchema.parse({ name: `Ngừng theo điểm ${tag}`, status: "ACTIVE", note: null, stops: [stop(stationA, true, false), stop(stationMid, true, true), stop(stationB, false, true)] }),
+    );
+    await fare(opA, route.id, [{ seatType: null, price: 200_000n }]);
+    const bus = await vehicle(opA, seater, [{ code: "N1", type: "SEAT" }]);
+    // Khởi hành sau 30 phút, ngừng bán 60 phút trước giờ xe tới điểm đón; điểm giữa tới sau 3 giờ.
+    const soon = new Date(Date.now() + 30 * 60_000);
+    const tripId = await trip(opA, route.id, bus, 0, { at: soon, cutoff: 60 });
+    const detail = await search.getTrip(tripId);
+    expect(detail.stops.map((item) => item.pickupOpen)).toEqual([false, true, false]);
+    const midAt = Date.parse(detail.stops[1]!.plannedAt);
+    expect(detail.onlineSaleClosesAt).toBe(new Date(midAt - 60 * 60_000).toISOString());
+    const midDate = new Date(midAt + 7 * HOUR).toISOString().slice(0, 10);
+    redis.store.clear();
+    const fromMid = await search.search(query({ fromProvinceId: provinceMid, date: midDate }));
+    expect(fromMid.items.find((item) => item.tripId === tripId)).toMatchObject({ pickup: { sequence: 2 } });
+    const fromStart = await search.search(query({ date: new Date(soon.getTime() + 7 * HOUR).toISOString().slice(0, 10) }));
+    expect(fromStart.items.some((item) => item.tripId === tripId)).toBe(false);
+    // Chọn chặng từ điểm đầu đã qua giờ → không tính chặng đó.
+    expect((await search.getTrip(tripId, { pickupSequence: 1, dropoffSequence: 3 })).segment).toBeNull();
   });
 
   it("chi tiết: lịch trình đủ điểm, sơ đồ chỗ có giá + còn / không (chỗ khóa), chính sách hủy; nháp / nhà xe tạm khóa → 404", async () => {

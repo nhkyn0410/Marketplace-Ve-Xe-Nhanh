@@ -19,6 +19,7 @@ part 'trip_search_response_dto_output_items_inner.g.dart';
 /// * [tripId] 
 /// * [operator_] 
 /// * [routeName] 
+/// * [segmentTitle] 
 /// * [vehicleType] 
 /// * [departureAt] 
 /// * [arrivalAt] 
@@ -40,6 +41,9 @@ abstract class TripSearchResponseDtoOutputItemsInner implements Built<TripSearch
 
   @BuiltValueField(wireName: r'routeName')
   String get routeName;
+
+  @BuiltValueField(wireName: r'segmentTitle')
+  String get segmentTitle;
 
   @BuiltValueField(wireName: r'vehicleType')
   TripSearchResponseDtoOutputItemsInnerVehicleType get vehicleType;
@@ -110,6 +114,11 @@ class _$TripSearchResponseDtoOutputItemsInnerSerializer implements PrimitiveSeri
     yield r'routeName';
     yield serializers.serialize(
       object.routeName,
+      specifiedType: const FullType(String),
+    );
+    yield r'segmentTitle';
+    yield serializers.serialize(
+      object.segmentTitle,
       specifiedType: const FullType(String),
     );
     yield r'vehicleType';
@@ -210,6 +219,13 @@ class _$TripSearchResponseDtoOutputItemsInnerSerializer implements PrimitiveSeri
             specifiedType: const FullType(String),
           ) as String;
           result.routeName = valueDes;
+          break;
+        case r'segmentTitle':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(String),
+          ) as String;
+          result.segmentTitle = valueDes;
           break;
         case r'vehicleType':
           final valueDes = serializers.deserialize(

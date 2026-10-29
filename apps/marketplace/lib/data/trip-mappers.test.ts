@@ -55,7 +55,7 @@ describe("API trip boundary", () => {
 
   it("thẻ kết quả lấy điểm đánh giá nhà xe từ API", () => {
     const item = (averageRating: number | null, reviewCount: number) => mapTripSearchItem({
-      tripId: "trip", operator: { id: "op", name: "Nhà xe A", slug: "a", averageRating, reviewCount }, routeName: "A → B",
+      tripId: "trip", operator: { id: "op", name: "Nhà xe A", slug: "a", averageRating, reviewCount }, routeName: "A → B", segmentTitle: "A → B",
       vehicleType: { name: "Giường nằm", form: "SLEEPER", class: "STANDARD" },
       departureAt: "2026-10-30T01:00:00Z", arrivalAt: "2026-10-30T07:00:00Z",
       pickup: { sequence: 1, name: "Bến A", address: "x", plannedAt: "2026-10-30T01:00:00Z" },
@@ -98,11 +98,11 @@ describe("API trip boundary", () => {
 
   it("keeps unavailable seats ambiguous, picks the lowest server price with BigInt, and keeps absent prices empty", () => {
     const trip: components["schemas"]["PublicTripDto_Output"] = {
-      tripId: "trip", operator: { id: "operator", name: "Nhà xe", slug: "nha-xe", hotline: null, averageRating: null, reviewCount: 0 }, routeName: "A → B",
+      tripId: "trip", operator: { id: "operator", name: "Nhà xe", slug: "nha-xe", hotline: null, averageRating: null, reviewCount: 0 }, routeName: "A → B", segment: null,
       departureAt: "2026-10-21T18:00:00Z", arrivalAt: "2026-10-21T22:00:00Z", onlineSaleClosesAt: "2026-10-21T17:00:00Z",
       note: null, vehicleType: { name: "Giường nằm", form: "SLEEPER", class: "STANDARD" }, amenities: [], vehicleImages: [],
       stops: [{ sequence: 1, role: "ORIGIN", name: "Bến xe", address: "Địa chỉ", type: "BUS_STATION", latitude: 10.8, longitude: 106.7,
-        plannedAt: "2026-10-21T18:00:00Z", pickupWindowStart: null, pickupWindowEnd: null, allowPickup: true, allowDropoff: false, note: null }],
+        plannedAt: "2026-10-21T18:00:00Z", pickupWindowStart: null, pickupWindowEnd: null, allowPickup: true, allowDropoff: false, pickupOpen: true, note: null }],
       seats: [ { code: "A1", deck: 1, row: 1, column: 1, type: "BED", status: "AVAILABLE", price: 300000 },
         { code: "A2", deck: 1, row: 1, column: 2, type: "BED", status: "UNAVAILABLE", price: 200000 } ],
       cancellationPolicy: { tiers: [{ minHoursBefore: 24, refundPercent: 80 }] }
@@ -115,5 +115,27 @@ describe("API trip boundary", () => {
     expect(mapped.departureTime).toBe("01:00");
     expect(mapped.timeline[0]).toMatchObject({ lat: 10.8, lng: 106.7, isRestStop: false, badges: ["Đón khách"] });
     expect(mapTripDetail({ ...trip, seats: [] }).priceSingleVnd).toBe("");
+
+    // Chặng khách đi (3.3): tiêu đề theo chặng, tên tuyến thành dòng phụ, giờ + điểm theo điểm lên / xuống, đánh dấu hai điểm.
+    const stop = trip.stops[0]!;
+    const segmented = mapTripDetail({
+      ...trip,
+      routeName: "TP.HCM - Gia Nghĩa - BMT",
+      segment: { pickupSequence: 2, dropoffSequence: 3, title: "Gia Nghĩa → Buôn Ma Thuột" },
+      stops: [
+        { ...stop, pickupOpen: false },
+        { ...stop, sequence: 2, role: "INTERMEDIATE", name: "VP Gia Nghĩa", plannedAt: "2026-10-21T20:00:00Z", allowDropoff: true },
+        { ...stop, sequence: 3, role: "DESTINATION", name: "BX BMT", plannedAt: "2026-10-21T22:00:00Z", allowPickup: false, allowDropoff: true, pickupOpen: false }
+      ]
+    });
+    expect(segmented).toMatchObject({
+      routeName: "Gia Nghĩa → Buôn Ma Thuột",
+      departureTime: "03:00",
+      departureStation: "VP Gia Nghĩa",
+      arrivalStation: "BX BMT",
+      durationText: "2 giờ 0 phút"
+    });
+    expect(segmented.routeMeta.startsWith("TP.HCM - Gia Nghĩa - BMT · ")).toBe(true);
+    expect(segmented.timeline.map((item) => item.badges)).toEqual([["Hết giờ bán online"], ["Bạn lên xe"], ["Bạn xuống xe"]]);
   });
 });

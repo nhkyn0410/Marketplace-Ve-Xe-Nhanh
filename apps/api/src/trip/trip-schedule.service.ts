@@ -29,7 +29,7 @@ import {
   tripScheduleNotFound,
   vehicleUnavailable,
 } from "./trip.errors";
-import { insertDraftTrip, TripService, type TripActor } from "./trip.service";
+import { assertSubRoutes, insertDraftTrip, TripService, type TripActor } from "./trip.service";
 
 const AUDIT_TARGET = "trip_schedule";
 /** Số lịch tối đa trả về một lần — một nhà xe có vài chục tuyến, mỗi tuyến vài khung giờ. */
@@ -82,9 +82,13 @@ export class TripScheduleService {
     const { db, operatorId } = requireTenant(authz);
     const row = await this.prisma.withScope(db, async (tx) => {
       const routeSeconds = await assertResources(tx, operatorId, input);
+      await assertSubRoutes(tx, operatorId, input.routeId, input.subRouteIds);
       const created = await tx.tripSchedule.create({
         data: { operatorId, ...ruleFields(input, routeSeconds), createdBy: actor.sub },
         select: { id: true },
+      });
+      await tx.tripScheduleSubRoute.createMany({
+        data: input.subRouteIds.map((subRouteId) => ({ scheduleId: created.id, subRouteId, operatorId })),
       });
       return findSchedule(tx, operatorId, created.id);
     });
@@ -107,7 +111,11 @@ export class TripScheduleService {
         throw tripScheduleNotFound();
       }
       const routeSeconds = await assertResources(tx, operatorId, input);
+      const kept = input.routeId === current.routeId ? current.subRoutes.map((item) => item.subRouteId) : [];
+      await assertSubRoutes(tx, operatorId, input.routeId, input.subRouteIds, kept);
       await tx.tripSchedule.updateMany({ where: { id: scheduleId, operatorId }, data: ruleFields(input, routeSeconds) });
+      await tx.tripScheduleSubRoute.deleteMany({ where: { scheduleId, operatorId } });
+      await tx.tripScheduleSubRoute.createMany({ data: input.subRouteIds.map((subRouteId) => ({ scheduleId, subRouteId, operatorId })) });
       return { before: current, after: (await findSchedule(tx, operatorId, scheduleId))! };
     });
     const response = toResponse(after);
@@ -212,6 +220,11 @@ export class TripScheduleService {
         if (departureAt.getTime() <= Date.now()) {
           return "PAST";
         }
+        // Chặng mở bán của lịch (3.3): chỉ chép tuyến con còn bật của đúng tuyến; tuyến con đã ngừng thì bỏ qua.
+        const subRoutes = await tx.route.findMany({
+          where: { operatorId, parentRouteId: rule.routeId, status: RouteStatus.ACTIVE, scheduleOffers: { some: { scheduleId } } },
+          select: { id: true },
+        });
         // Giờ đến tính theo thời gian chạy HIỆN TẠI của tuyến (`insertDraftTrip`), không theo số lưu lúc tạo lịch.
         const tripId = await insertDraftTrip(
           tx,
@@ -223,6 +236,7 @@ export class TripScheduleService {
             stopTimes: null,
             onlineSaleCutoffMinutes: rule.onlineSaleCutoffMinutes,
             note: rule.note,
+            subRouteIds: subRoutes.map((route) => route.id),
           },
           { scheduleId, serviceDate: dateOnly(serviceDate) },
         );
@@ -283,6 +297,7 @@ const SCHEDULE_SELECT = {
   route: { select: { name: true } },
   vehicle: { select: { plateNumber: true } },
   _count: { select: { trips: true } },
+  subRoutes: { orderBy: { subRouteId: "asc" }, select: { subRouteId: true } },
 } as const;
 
 function findSchedule(tx: DbTransaction, operatorId: string, scheduleId: string) {
@@ -333,9 +348,10 @@ async function assertResources(
 }
 
 function toResponse(row: NonNullable<Awaited<ReturnType<typeof findSchedule>>>): TripScheduleResponse {
-  const { route, vehicle, _count, departureMinute, daysOfWeek, startDate, endDate, ...schedule } = row;
+  const { route, vehicle, _count, subRoutes, departureMinute, daysOfWeek, startDate, endDate, ...schedule } = row;
   return {
     ...schedule,
+    subRouteIds: subRoutes.map((item) => item.subRouteId),
     routeName: route.name,
     vehiclePlateNumber: vehicle?.plateNumber ?? null,
     departureTime: timeOfDay(departureMinute),

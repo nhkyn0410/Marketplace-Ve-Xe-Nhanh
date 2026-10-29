@@ -13,6 +13,7 @@ part 'trip_schedule_list_response_dto_output_items_inner.g.dart';
 /// TripScheduleListResponseDtoOutputItemsInner
 ///
 /// Properties:
+/// * [subRouteIds] 
 /// * [id] 
 /// * [routeId] 
 /// * [routeName] 
@@ -31,6 +32,9 @@ part 'trip_schedule_list_response_dto_output_items_inner.g.dart';
 /// * [updatedAt] 
 @BuiltValue()
 abstract class TripScheduleListResponseDtoOutputItemsInner implements Built<TripScheduleListResponseDtoOutputItemsInner, TripScheduleListResponseDtoOutputItemsInnerBuilder> {
+  @BuiltValueField(wireName: r'subRouteIds')
+  BuiltList<String> get subRouteIds;
+
   @BuiltValueField(wireName: r'id')
   String get id;
 
@@ -102,6 +106,11 @@ class _$TripScheduleListResponseDtoOutputItemsInnerSerializer implements Primiti
     TripScheduleListResponseDtoOutputItemsInner object, {
     FullType specifiedType = FullType.unspecified,
   }) sync* {
+    yield r'subRouteIds';
+    yield serializers.serialize(
+      object.subRouteIds,
+      specifiedType: const FullType(BuiltList, [FullType(String)]),
+    );
     yield r'id';
     yield serializers.serialize(
       object.id,
@@ -205,6 +214,13 @@ class _$TripScheduleListResponseDtoOutputItemsInnerSerializer implements Primiti
       final key = serializedList[i] as String;
       final value = serializedList[i + 1];
       switch (key) {
+        case r'subRouteIds':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(BuiltList, [FullType(String)]),
+          ) as BuiltList<String>;
+          result.subRouteIds.replace(valueDes);
+          break;
         case r'id':
           final valueDes = serializers.deserialize(
             value,

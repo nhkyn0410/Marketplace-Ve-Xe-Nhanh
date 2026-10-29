@@ -81,7 +81,10 @@ const PointSchema = z.object({
 export const TripSearchItemSchema = z.object({
   tripId: z.uuid(),
   operator: z.object({ id: z.uuid(), name: z.string(), slug: z.string(), ...OperatorRatingShape }),
+  /** Tên tuyến của nhà xe — dòng phụ; tiêu đề cho khách là `segmentTitle`. */
   routeName: z.string(),
+  /** Chặng khách đi theo nơi của điểm đón / trả (3.3), vd "TP.HCM → Gia Nghĩa"; hai điểm cùng nơi thì tên hai điểm. */
+  segmentTitle: z.string(),
   vehicleType: z.object({ name: z.string(), form: z.enum(VehicleForm), class: z.enum(VehicleClass) }),
   departureAt: z.iso.datetime(),
   arrivalAt: z.iso.datetime(),
@@ -90,12 +93,12 @@ export const TripSearchItemSchema = z.object({
   /** Phút từ điểm đón tới điểm trả. */
   durationMinutes: z.int(),
   availableSeats: z.int(),
-  /** Giá thấp nhất (VND) trong các chỗ còn trống. */
+  /** Giá thấp nhất (VND) trong các chỗ còn trống, theo chặng khách đi (giá tuyến con nếu có — 3.3). */
   minPrice: z.int(),
   /** Ảnh đại diện của xe (FR-MKT-15); `null` = giao diện hiện hình thay thế. */
   vehicleCoverImageUrl: z.string().nullable(),
   amenities: z.array(z.object({ id: z.string(), name: z.string() })),
-  /** Sau mốc này không đặt online được nữa (AS-20). */
+  /** Sau mốc này không đặt online được nữa (AS-20) — tính theo giờ xe tới điểm đón (3.3). */
   onlineSaleClosesAt: z.iso.datetime(),
 });
 export type TripSearchItem = z.infer<typeof TripSearchItemSchema>;
@@ -124,8 +127,14 @@ export const PublicTripSchema = z.object({
   tripId: z.uuid(),
   operator: z.object({ id: z.uuid(), name: z.string(), slug: z.string(), hotline: z.string().nullable(), ...OperatorRatingShape }),
   routeName: z.string(),
+  /**
+   * Chặng khách đi khi gọi kèm `pickupSequence` + `dropoffSequence` hợp lệ (3.3): tiêu đề theo nơi + giá ghế theo chặng;
+   * không kèm (hoặc sai) → `null`, giá ghế theo cả tuyến.
+   */
+  segment: z.object({ pickupSequence: z.int(), dropoffSequence: z.int(), title: z.string() }).nullable(),
   departureAt: z.iso.datetime(),
   arrivalAt: z.iso.datetime(),
+  /** Hết giờ bán online của điểm đón đã chọn; không chọn thì của điểm đón muộn nhất còn bán. */
   onlineSaleClosesAt: z.iso.datetime(),
   note: z.string().nullable(),
   vehicleType: z.object({ name: z.string(), form: z.enum(VehicleForm), class: z.enum(VehicleClass) }),
@@ -146,6 +155,8 @@ export const PublicTripSchema = z.object({
       pickupWindowEnd: z.iso.datetime().nullable(),
       allowPickup: z.boolean(),
       allowDropoff: z.boolean(),
+      /** Điểm đón còn bán online (chưa qua giờ ngừng bán tính theo giờ xe tới điểm này — 3.3); điểm không cho đón `false`. */
+      pickupOpen: z.boolean(),
       note: z.string().nullable(),
     }),
   ),
@@ -167,3 +178,11 @@ export const PublicTripSchema = z.object({
 });
 export type PublicTrip = z.infer<typeof PublicTripSchema>;
 export class PublicTripDto extends createZodDto(PublicTripSchema) {}
+
+/** Query chi tiết chuyến công khai: chặng khách đi (tùy chọn) để tính giá ghế theo chặng (3.3). */
+export const PublicTripQuerySchema = z.object({
+  pickupSequence: z.coerce.number().int().min(1).optional(),
+  dropoffSequence: z.coerce.number().int().min(1).optional(),
+});
+export type PublicTripQuery = z.infer<typeof PublicTripQuerySchema>;
+export class PublicTripQueryDto extends createZodDto(PublicTripQuerySchema) {}

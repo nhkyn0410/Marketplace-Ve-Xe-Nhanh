@@ -528,6 +528,7 @@ export 'package:api_client_dart/src/model/public_trip_dto_output_cancellation_po
 export 'package:api_client_dart/src/model/public_trip_dto_output_cancellation_policy_tiers_inner.dart';
 export 'package:api_client_dart/src/model/public_trip_dto_output_operator.dart';
 export 'package:api_client_dart/src/model/public_trip_dto_output_seats_inner.dart';
+export 'package:api_client_dart/src/model/public_trip_dto_output_segment.dart';
 export 'package:api_client_dart/src/model/public_trip_dto_output_stops_inner.dart';
 export 'package:api_client_dart/src/model/public_trip_dto_output_vehicle_images_inner.dart';
 export 'package:api_client_dart/src/model/queue_health_response_dto_output.dart';

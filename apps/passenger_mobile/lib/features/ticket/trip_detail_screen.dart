@@ -57,7 +57,12 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
   Future<void> _load() async {
     setState(() => _error = null);
     try {
-      final trip = await widget.api.loadTrip(widget.tripId);
+      // Giá chỗ + tiêu đề theo chặng đang chọn (3.3); lần đầu theo chặng của lần tìm.
+      final trip = await widget.api.loadTrip(
+        widget.tripId,
+        pickupSequence: _pickup ?? widget.pickupSequence,
+        dropoffSequence: _dropoff ?? widget.dropoffSequence,
+      );
       if (!mounted) return;
       setState(() {
         _trip = trip;
@@ -110,6 +115,8 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
         _dropoff = selected.sequence;
       }
     });
+    // Đổi chặng thì giá chỗ và tiêu đề đổi theo.
+    _load();
   }
 
   Future<void> _openSeats() async {
@@ -315,8 +322,9 @@ class _HeroAndOperator extends StatelessWidget {
                   right: 16,
                   bottom: 16,
                   child: _HeroRoute(
-                    fromCity: fromLabel ?? pickup!.name,
-                    toCity: toLabel ?? dropoff!.name,
+                    // Nơi của chặng đang chọn (3.3), không lấy chữ trên ô tìm: khách đổi điểm đón / trả thì nhãn đổi theo.
+                    fromCity: _segmentPart(trip, 0) ?? pickup!.name,
+                    toCity: _segmentPart(trip, 1) ?? dropoff!.name,
                     pickup: pickup!,
                     dropoff: dropoff!,
                   ),
@@ -1520,4 +1528,10 @@ class _BookingBar extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Một đầu của tiêu đề chặng "A → B" (0 = nơi đón, 1 = nơi trả); không có chặng → `null`.
+String? _segmentPart(TripDetail trip, int index) {
+  final parts = trip.segmentTitle?.split(' → ');
+  return parts != null && parts.length == 2 ? parts[index] : null;
 }

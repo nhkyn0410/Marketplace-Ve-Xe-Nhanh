@@ -54,8 +54,16 @@ export const TripInputSchema = z
     /** Số phút trước giờ khởi hành thì ngừng bán online (AS-20, 0–1440; UI gợi ý 60). */
     onlineSaleCutoffMinutes: z.int().min(0).max(MAX_ONLINE_SALE_CUTOFF_MINUTES),
     note: optionalText(500),
+    /**
+     * Chặng mở bán (3.3): tuyến con ĐANG BẬT của đúng tuyến này mà chuyến bán thêm theo giá riêng. Thiếu = không bán theo chặng
+     * (client cũ vẫn chạy).
+     */
+    subRouteIds: z.array(z.uuid()).max(50).default([]),
   })
   .superRefine((input, ctx) => {
+    if (new Set(input.subRouteIds).size !== input.subRouteIds.length) {
+      ctx.addIssue({ code: "custom", path: ["subRouteIds"], message: "Tuyến con bị lặp." });
+    }
     // Zod 4 vẫn chạy refine khi một field datetime sai định dạng (giá trị còn là chuỗi, chưa transform) —
     // lỗi định dạng đã được báo, bỏ qua phần so sánh giờ.
     const times = input.stopTimes;
@@ -153,6 +161,8 @@ export class TripListResponseDto extends createZodDto(TripListResponseSchema) {}
 export const TripResponseSchema = z.object({
   ...TripSummaryFields,
   onlineSaleCutoffMinutes: z.int(),
+  /** Tuyến con chuyến bán thêm theo chặng (3.3). */
+  subRouteIds: z.array(z.uuid()),
   /** Lý do lần đổi trạng thái gần nhất (chuyến hủy luôn có). */
   statusReason: z.string().nullable(),
   /** Giờ khởi hành / hoàn thành thực tế do tài xế cập nhật (TASK-EMP-002). */

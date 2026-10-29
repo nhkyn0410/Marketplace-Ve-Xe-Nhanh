@@ -11,6 +11,7 @@ Name | Type | Description | Notes
 **tripId** | **String** |  | 
 **operator_** | [**TripSearchResponseDtoOutputItemsInnerOperator**](TripSearchResponseDtoOutputItemsInnerOperator.md) |  | 
 **routeName** | **String** |  | 
+**segmentTitle** | **String** |  | 
 **vehicleType** | [**TripSearchResponseDtoOutputItemsInnerVehicleType**](TripSearchResponseDtoOutputItemsInnerVehicleType.md) |  | 
 **departureAt** | [**DateTime**](DateTime.md) |  | 
 **arrivalAt** | [**DateTime**](DateTime.md) |  | 

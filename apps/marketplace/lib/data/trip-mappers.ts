@@ -151,6 +151,12 @@ export function mapTripSearchItem(item: components["schemas"]["TripSearchRespons
 /** Chuyển chi tiết chuyến công khai thành dữ liệu màn hình khách hàng. */
 export function mapTripDetail(trip: components["schemas"]["PublicTripDto_Output"]): TripDetailData {
   const stops = [...trip.stops].sort((a, b) => a.sequence - b.sequence);
+  // Chặng khách đi (3.3): tiêu đề theo nơi đón / trả, giờ + điểm theo chặng; tên tuyến thành dòng phụ.
+  const segment = trip.segment;
+  const from = (segment && stops.find((s) => s.sequence === segment.pickupSequence)) || undefined;
+  const to = (segment && stops.find((s) => s.sequence === segment.dropoffSequence)) || undefined;
+  const startAt = from?.plannedAt ?? trip.departureAt;
+  const endAt = to?.plannedAt ?? trip.arrivalAt;
   const prices = trip.seats.flatMap((s) => s.status === "AVAILABLE" && s.price !== null ? [BigInt(apiMoney(s.price))] : []);
   const doublePrices = trip.seats.flatMap((s) => s.status === "AVAILABLE" && s.type.endsWith("DOUBLE") && s.price !== null ? [BigInt(apiMoney(s.price))] : []);
   const min = (values: bigint[]) => values.length ? values.reduce((a, b) => a < b ? a : b).toString() : "";
@@ -160,18 +166,22 @@ export function mapTripDetail(trip: components["schemas"]["PublicTripDto_Output"
     operatorRatingCountText: "Chưa có dữ liệu đánh giá", operatorPhone: trip.operator.hotline ?? "",
     operatorEmail: "", operatorDescription: "", vehicleTypeName: trip.vehicleType.name,
     seatTypeName: formNames[trip.vehicleType.form], vehicleClass: trip.vehicleType.class === "LIMOUSINE" ? "Limousine" : "Tiêu chuẩn",
-    statusBadge: "", routeName: trip.routeName, routeMeta: formatDateVi(trip.departureAt),
-    departureTime: formatTimeVi(trip.departureAt), departureStation: stops[0]?.name ?? "",
-    durationText: duration(Math.round((Date.parse(trip.arrivalAt) - Date.parse(trip.departureAt)) / 60000)),
-    stopsSummaryText: `${stops.length} điểm dừng`, arrivalTime: formatTimeVi(trip.arrivalAt),
-    arrivalStation: stops.at(-1)?.name ?? "", isNextDay: nextDay(trip.departureAt, trip.arrivalAt),
+    statusBadge: "", routeName: segment?.title ?? trip.routeName,
+    routeMeta: segment ? `${trip.routeName} · ${formatDateVi(startAt)}` : formatDateVi(trip.departureAt),
+    departureTime: formatTimeVi(startAt), departureStation: from?.name ?? stops[0]?.name ?? "",
+    durationText: duration(Math.round((Date.parse(endAt) - Date.parse(startAt)) / 60000)),
+    stopsSummaryText: `${stops.length} điểm dừng`, arrivalTime: formatTimeVi(endAt),
+    arrivalStation: to?.name ?? stops.at(-1)?.name ?? "", isNextDay: nextDay(startAt, endAt),
     photos: trip.vehicleImages.map((i) => ({ url: i.url, caption: i.caption ?? "" })),
     photosCaption: "Ảnh xe từ nhà xe", remainingPhotosCount: Math.max(0, trip.vehicleImages.length - 5),
     amenities: trip.amenities.map((a) => a.name),
     timeline: stops.map((s) => ({ time: formatTimeVi(s.plannedAt), stationName: s.name, address: s.address,
       stationType: s.type === "REST_STOP" ? "rest_stop" : s.type === "BUS_STATION" ? "bus_station" : "office",
       stationTypeLabel: s.type === "REST_STOP" ? "Điểm nghỉ" : s.type === "BUS_STATION" ? "Bến xe" : s.type === "OFFICE" ? "Văn phòng" : "Điểm dừng",
-      isRestStop: s.type === "REST_STOP", badges: [s.allowPickup ? "Đón khách" : "", s.allowDropoff ? "Trả khách" : ""].filter(Boolean), lat: s.latitude, lng: s.longitude })),
+      isRestStop: s.type === "REST_STOP",
+      badges: s.sequence === from?.sequence ? ["Bạn lên xe"] : s.sequence === to?.sequence ? ["Bạn xuống xe"]
+        : [s.allowPickup ? (s.pickupOpen ? "Đón khách" : "Hết giờ bán online") : "", s.allowDropoff ? "Trả khách" : ""].filter(Boolean),
+      lat: s.latitude, lng: s.longitude })),
     seatMap: trip.seats.map((s) => ({ id: s.code, label: s.code, floor: s.deck === 2 ? 2 : 1,
       row: s.row, col: s.column, status: s.status === "AVAILABLE" ? "available" : "unavailable",
       isDouble: s.type.endsWith("DOUBLE") })),

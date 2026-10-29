@@ -29,7 +29,7 @@ import { Textarea } from "@vexenhanh/ui/components/textarea";
 import { Bus, CircleAlert, FileX2, LoaderCircle, RefreshCw } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useId, useMemo, useState, type ReactNode } from "react";
+import { useCallback, useId, useMemo, useState, type ReactNode } from "react";
 import { Controller, useForm } from "react-hook-form";
 
 import { ApiError } from "../../lib/auth/api-client";
@@ -73,6 +73,7 @@ import { onlineSaleCloseLabel } from "../../lib/trip/trip-sale";
 import { listAllVehicles, listVehicleTypes } from "../../lib/vehicle/vehicle-api";
 import { formatPlateNumber, vehicleTypeLabel } from "../../lib/vehicle/vehicle-format";
 import { FormField } from "../form-field";
+import { SegmentOffersField } from "./segment-offers-field";
 import { BUTTON } from "../list-parts";
 import { PageHeader } from "../page-header";
 import { StopTimeDay, StopTimeLocked, TripStopRow } from "./trip-stop-row";
@@ -194,6 +195,8 @@ function TripFormBody({ trip, tripRoute }: { trip?: Trip; tripRoute?: Route }) {
   });
   const { errors } = form.formState;
   const values = form.watch();
+  // Chặng mở bán (3.3): đổi tuyến thì danh sách tuyến con đổi theo (ô tự tích sẵn khi tạo mới).
+  const setSubRoutes = useCallback((ids: string[]) => form.setValue("subRouteIds", ids, { shouldDirty: true }), [form]);
 
   const activeRoutes = useQuery({ queryKey: ["routes", "all", "ACTIVE"], queryFn: () => listAllRoutes("ACTIVE") });
   const vehicles = useQuery({ queryKey: ["vehicles", "all"], queryFn: listAllVehicles });
@@ -536,6 +539,12 @@ function TripFormBody({ trip, tripRoute }: { trip?: Trip; tripRoute?: Route }) {
               >
                 {(control) => <Textarea {...control} {...form.register("note")} rows={3} maxLength={TRIP_NOTE_MAX_LENGTH} />}
               </FormField>
+              <SegmentOffersField
+                routeId={values.routeId}
+                value={values.subRouteIds}
+                onChange={setSubRoutes}
+                autoSelect={!trip}
+              />
             </form>
           </section>
 

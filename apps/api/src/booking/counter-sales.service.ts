@@ -5,7 +5,9 @@ import type Redis from "ioredis";
 import { AuditService } from "../audit/audit.service";
 import { recordCounterCommission, resolveCounterCommission, type CounterCommissionSnapshot } from "../commission/counter-commission";
 import { PrismaService, type DbTransaction } from "../database/prisma.service";
+import { loadSegmentOffers } from "../database/segment-offers";
 import { resolveSeatPrice } from "../fare/fare-pricing";
+import { coveringOffer, segmentSeatPrice } from "../fare/segment-pricing";
 import type { VerifiedAccessToken } from "../iam/auth/token.service";
 import { can } from "../iam/role/access-policy";
 import type { Authorization } from "../iam/role/authorization";
@@ -82,9 +84,11 @@ export class CounterSalesService {
         const dropoff = trip.stops.find((stop) => stop.sequence === input.dropoffSequence);
         if (!pickup?.allowPickup || !dropoff?.allowDropoff || pickup.sequence >= dropoff.sequence) throw stopsInvalid();
         const rules = await fareRules(tx, operatorId, trip.routeId);
+        // Giá theo chặng (3.3): tuyến con ngắn nhất bao trọn chặng, không có thì giá tuyến chính.
+        const offer = coveringOffer((await loadSegmentOffers(tx, [trip.id])).get(trip.id) ?? [], pickup.sequence, dropoff.sequence);
         const seats = input.seatCodes.map((code) => {
           const seat = trip.seats.find((item) => item.seatCode === code);
-          return { code, type: seat?.type, status: seat?.status, price: seat ? resolveSeatPrice(rules, trip.vehicle!.vehicleTypeId, seat.type, trip.departureAt) : null };
+          return { code, type: seat?.type, status: seat?.status, price: seat ? segmentSeatPrice(offer, rules, trip.vehicle!.vehicleTypeId, seat.type, trip.departureAt) : null };
         });
         const bad = seats.filter((seat) => seat.status !== "AVAILABLE" || seat.price === null || seat.price <= 0n);
         if (bad.length) throw seatNotAvailable(bad.map((seat) => seat.code));

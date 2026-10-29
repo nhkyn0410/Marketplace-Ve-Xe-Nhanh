@@ -62,7 +62,7 @@ export default async function SeatsPage({ params, searchParams }: SeatsPageProps
   }
 
   // Nhánh dữ liệu thật (gọi hàm data)
-  const result = await getTripSeatSelection(tripId);
+  const result = await getTripSeatSelection(tripId, readTripLeg(resolvedSearchParams));
 
   if (result.status === "unavailable") {
     return (

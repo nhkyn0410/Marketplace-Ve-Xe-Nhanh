@@ -513,6 +513,7 @@ doc/PublicTripDtoOutputCancellationPolicy.md
 doc/PublicTripDtoOutputCancellationPolicyTiersInner.md
 doc/PublicTripDtoOutputOperator.md
 doc/PublicTripDtoOutputSeatsInner.md
+doc/PublicTripDtoOutputSegment.md
 doc/PublicTripDtoOutputStopsInner.md
 doc/PublicTripDtoOutputVehicleImagesInner.md
 doc/QueueHealthResponseDtoOutput.md
@@ -1209,6 +1210,7 @@ lib/src/model/public_trip_dto_output_cancellation_policy.dart
 lib/src/model/public_trip_dto_output_cancellation_policy_tiers_inner.dart
 lib/src/model/public_trip_dto_output_operator.dart
 lib/src/model/public_trip_dto_output_seats_inner.dart
+lib/src/model/public_trip_dto_output_segment.dart
 lib/src/model/public_trip_dto_output_stops_inner.dart
 lib/src/model/public_trip_dto_output_vehicle_images_inner.dart
 lib/src/model/queue_health_response_dto_output.dart
@@ -1375,12 +1377,4 @@ lib/src/model/ward_list_response_dto_output.dart
 lib/src/model/ward_list_response_dto_output_items_inner.dart
 lib/src/serializers.dart
 pubspec.yaml
-test/route_list_response_dto_output_items_inner_sub_routes_inner_test.dart
-test/route_response_dto_output_sub_routes_inner_fare_test.dart
-test/route_response_dto_output_sub_routes_inner_from_test.dart
-test/route_response_dto_output_sub_routes_inner_test.dart
-test/sub_route_input_dto_from_test.dart
-test/sub_route_input_dto_test.dart
-test/sub_route_suggestion_list_dto_output_items_inner_suggested_rules_inner_test.dart
-test/sub_route_suggestion_list_dto_output_items_inner_test.dart
-test/sub_route_suggestion_list_dto_output_test.dart
+test/public_trip_dto_output_segment_test.dart

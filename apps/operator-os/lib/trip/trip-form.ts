@@ -28,6 +28,8 @@ export type TripFormValues = {
   /** Số phút ngừng bán online trước giờ khởi hành, đang gõ dạng chữ. */
   onlineSaleCutoffMinutes: string;
   note: string;
+  /** Chặng mở bán (3.3): tuyến con đang bật của tuyến đã chọn, chuyến bán thêm theo giá riêng. */
+  subRouteIds: string[];
 };
 
 type TimeIssue = { path: keyof TripFormValues; message: string };
@@ -54,7 +56,8 @@ export const tripInfoSchema = z
     onlineSaleCutoffMinutes: z
       .string()
       .refine((value) => parseCutoffMinutes(value) !== null, `Nhập số phút nguyên từ 0 đến ${MAX_ONLINE_SALE_CUTOFF_MINUTES}.`),
-    note: z.string().max(TRIP_NOTE_MAX_LENGTH, `Ghi chú tối đa ${TRIP_NOTE_MAX_LENGTH} ký tự.`)
+    note: z.string().max(TRIP_NOTE_MAX_LENGTH, `Ghi chú tối đa ${TRIP_NOTE_MAX_LENGTH} ký tự.`),
+    subRouteIds: z.array(z.string())
   })
   .superRefine((values, ctx) => {
     for (const issue of tripTimeIssues(values, Date.now())) {
@@ -69,7 +72,8 @@ export const EMPTY_TRIP_VALUES: TripFormValues = {
   departureTime: "",
   vehicleId: NO_VEHICLE,
   onlineSaleCutoffMinutes: String(DEFAULT_ONLINE_SALE_CUTOFF_MINUTES),
-  note: ""
+  note: "",
+  subRouteIds: []
 };
 
 /** Số phút ngừng bán online đang gõ → số nguyên 0–1440; chữ, số lẻ, số âm hay vượt khoảng → `null`. */
@@ -91,7 +95,8 @@ export function toTripFormValues(trip: Trip): TripFormValues {
     departureTime: departure.time,
     vehicleId: trip.vehicleId ?? NO_VEHICLE,
     onlineSaleCutoffMinutes: String(trip.onlineSaleCutoffMinutes),
-    note: trip.note ?? ""
+    note: trip.note ?? "",
+    subRouteIds: trip.subRouteIds
   };
 }
 
@@ -230,7 +235,8 @@ export function toTripInput(values: TripFormValues, stopTimesMs: number[] | null
     stopTimes: stopTimesMs && stopTimesMs.map((ms) => new Date(ms).toISOString()),
     // Form đã kiểm trước khi gọi; giá trị sai lọt tới đây thì gửi mức gợi ý thay vì NaN.
     onlineSaleCutoffMinutes: parseCutoffMinutes(values.onlineSaleCutoffMinutes) ?? DEFAULT_ONLINE_SALE_CUTOFF_MINUTES,
-    note: values.note.trim() || null
+    note: values.note.trim() || null,
+    subRouteIds: values.subRouteIds
   };
 }
 

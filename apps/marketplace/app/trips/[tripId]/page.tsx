@@ -90,7 +90,7 @@ export default async function TripDetailPage(props: PageProps) {
   }
 
   // Nhánh dữ liệu thật (Gọi API qua lib/data/trips.ts)
-  const result = await getTripDetails(params.tripId);
+  const result = await getTripDetails(params.tripId, readTripLeg(searchParams));
 
   if (result.status !== "ok") {
     return (

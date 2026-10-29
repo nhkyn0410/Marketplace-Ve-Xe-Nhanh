@@ -891,6 +891,9 @@ model Route {
   trips     Trip[]
   schedules TripSchedule[]
   fare      Fare?
+  /// Chuyến / lịch lặp lại mở bán theo tuyến con này (3.3).
+  tripOffers     TripSubRoute[]
+  scheduleOffers TripScheduleSubRoute[]
 
   @@unique([operatorId, name])
   @@unique([id, operatorId])
@@ -998,6 +1001,7 @@ model Trip {
   assignments EmployeeAssignment[]
   bookings    Booking[]
   changes     TripChange[]
+  subRoutes   TripSubRoute[]
 
   reviews Review[]
 
@@ -1038,10 +1042,43 @@ model TripSchedule {
   route    Route           @relation(fields: [routeId, operatorId], references: [id, operatorId], onDelete: Restrict, onUpdate: Restrict)
   vehicle  Vehicle?        @relation(fields: [vehicleId, operatorId], references: [id, operatorId], onDelete: Restrict, onUpdate: Restrict)
   trips    Trip[]
+  subRoutes TripScheduleSubRoute[]
 
   @@unique([id, operatorId])
   @@index([operatorId, endDate])
   @@map("trip_schedules")
+}
+
+/// Chặng mở bán của chuyến (giai đoạn 3.3, tự thiết kế 29/10/2026, chờ duyệt): chuyến chạy trên tuyến chính bán thêm theo
+/// giá của tuyến con này cho khách đi trong đoạn của nó (không tạo chuyến riêng, ghế vẫn tính cả chuyến). Chỉ tuyến con của
+/// đúng tuyến của chuyến (kiểm ở service); FK ghép kèm `operator_id` giữ cùng nhà xe.
+model TripSubRoute {
+  tripId     String   @map("trip_id")
+  subRouteId String   @map("sub_route_id")
+  operatorId String   @map("operator_id")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  trip     Trip  @relation(fields: [tripId, operatorId], references: [id, operatorId], onDelete: Cascade, onUpdate: Restrict)
+  subRoute Route @relation(fields: [subRouteId, operatorId], references: [id, operatorId], onDelete: Restrict, onUpdate: Restrict)
+
+  @@id([tripId, subRouteId])
+  @@index([subRouteId])
+  @@map("trip_sub_routes")
+}
+
+/// Chặng mở bán của lịch lặp lại (3.3): chép sang từng chuyến lịch sinh ra.
+model TripScheduleSubRoute {
+  scheduleId String   @map("schedule_id")
+  subRouteId String   @map("sub_route_id")
+  operatorId String   @map("operator_id")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  schedule TripSchedule @relation(fields: [scheduleId, operatorId], references: [id, operatorId], onDelete: Cascade, onUpdate: Restrict)
+  subRoute Route        @relation(fields: [subRouteId, operatorId], references: [id, operatorId], onDelete: Restrict, onUpdate: Restrict)
+
+  @@id([scheduleId, subRouteId])
+  @@index([subRouteId])
+  @@map("trip_schedule_sub_routes")
 }
 
 /// Phân công nhân viên cho chuyến (TASK-EMP-001, UC-16 bước 4–6 — chờ Khanh duyệt). v1 chỉ tài xế (`DRIVER`); mỗi chuyến

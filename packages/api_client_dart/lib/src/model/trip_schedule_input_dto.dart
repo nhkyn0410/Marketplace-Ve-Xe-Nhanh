@@ -21,6 +21,7 @@ part 'trip_schedule_input_dto.g.dart';
 /// * [endDate] 
 /// * [onlineSaleCutoffMinutes] 
 /// * [note] 
+/// * [subRouteIds] 
 @BuiltValue()
 abstract class TripScheduleInputDto implements Built<TripScheduleInputDto, TripScheduleInputDtoBuilder> {
   @BuiltValueField(wireName: r'routeId')
@@ -47,12 +48,16 @@ abstract class TripScheduleInputDto implements Built<TripScheduleInputDto, TripS
   @BuiltValueField(wireName: r'note')
   String? get note;
 
+  @BuiltValueField(wireName: r'subRouteIds')
+  BuiltList<String>? get subRouteIds;
+
   TripScheduleInputDto._();
 
   factory TripScheduleInputDto([void updates(TripScheduleInputDtoBuilder b)]) = _$TripScheduleInputDto;
 
   @BuiltValueHook(initializeBuilder: true)
-  static void _defaults(TripScheduleInputDtoBuilder b) => b;
+  static void _defaults(TripScheduleInputDtoBuilder b) => b
+      ..subRouteIds = ListBuilder();
 
   @BuiltValueSerializer(custom: true)
   static Serializer<TripScheduleInputDto> get serializer => _$TripScheduleInputDtoSerializer();
@@ -110,6 +115,13 @@ class _$TripScheduleInputDtoSerializer implements PrimitiveSerializer<TripSchedu
       object.note,
       specifiedType: const FullType.nullable(String),
     );
+    if (object.subRouteIds != null) {
+      yield r'subRouteIds';
+      yield serializers.serialize(
+        object.subRouteIds,
+        specifiedType: const FullType(BuiltList, [FullType(String)]),
+      );
+    }
   }
 
   @override
@@ -190,6 +202,14 @@ class _$TripScheduleInputDtoSerializer implements PrimitiveSerializer<TripSchedu
           ) as String?;
           if (valueDes == null) continue;
           result.note = valueDes;
+          break;
+        case r'subRouteIds':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType.nullable(BuiltList, [FullType(String)]),
+          ) as BuiltList<String>?;
+          if (valueDes == null) continue;
+          result.subRouteIds.replace(valueDes);
           break;
         default:
           unhandled.add(key);

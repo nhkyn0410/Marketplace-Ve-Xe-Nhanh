@@ -34,7 +34,8 @@ const values: TripFormValues = {
   departureTime: "06:00",
   vehicleId: VEHICLE_ID,
   onlineSaleCutoffMinutes: "60",
-  note: " Ghé trạm 20 phút. "
+  note: " Ghé trạm 20 phút. ",
+  subRouteIds: ["sub-1"]
 };
 
 describe("tripTimeIssues", () => {
@@ -207,6 +208,7 @@ describe("đổi qua lại với chuyến đã lưu", () => {
     departureAt: "2026-10-07T23:00:00.000Z",
     arrivalAt: "2026-10-08T02:00:00.000Z",
     onlineSaleCutoffMinutes: 45,
+    subRouteIds: [],
     note: null,
     stops: [
       { plannedAt: "2026-10-07T23:00:00.000Z" },
@@ -222,7 +224,8 @@ describe("đổi qua lại với chuyến đã lưu", () => {
       departureTime: "06:00",
       vehicleId: NO_VEHICLE,
       onlineSaleCutoffMinutes: "45",
-      note: ""
+      note: "",
+      subRouteIds: []
     });
   });
 
@@ -243,7 +246,8 @@ describe("toTripInput", () => {
       departureAt: "2026-10-08T06:00:00+07:00",
       stopTimes: null,
       onlineSaleCutoffMinutes: 60,
-      note: "Ghé trạm 20 phút."
+      note: "Ghé trạm 20 phút.",
+      subRouteIds: ["sub-1"]
     });
     expect(toTripInput({ ...values, onlineSaleCutoffMinutes: " 0 " }, null).onlineSaleCutoffMinutes).toBe(0);
   });

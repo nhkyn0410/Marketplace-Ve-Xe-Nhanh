@@ -30,6 +30,7 @@ describe("Trip routes — HTTP", () => {
     status: "DRAFT",
     seatCount: 0,
     onlineSaleCutoffMinutes: 60,
+    subRouteIds: [],
     statusReason: null,
     departedAt: null,
     completedAt: null,

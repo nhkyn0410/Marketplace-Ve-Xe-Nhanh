@@ -99,12 +99,18 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
         _dropoff = selected.sequence;
       }
     });
+    // Giá chỗ theo chặng (3.3): đổi điểm đón / trả thì tải lại giá.
+    _reloadSeats();
   }
 
-  /// Tải lại sơ đồ; bỏ những chỗ đã chọn nay không còn đặt được.
+  /// Tải lại sơ đồ (giá theo chặng đang chọn); bỏ những chỗ đã chọn nay không còn đặt được.
   Future<void> _reloadSeats() async {
     try {
-      final trip = await widget.api.loadTrip(_trip.tripId);
+      final trip = await widget.api.loadTrip(
+        _trip.tripId,
+        pickupSequence: _pickup,
+        dropoffSequence: _dropoff,
+      );
       if (!mounted) return;
       final bookable = {
         for (final seat in trip.seats)

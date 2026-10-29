@@ -205,10 +205,19 @@ class TripBookingApi {
     return items.isEmpty ? null : items.first.minPrice;
   }
 
-  /// Chi tiết chuyến đang mở bán; chỗ đang có người giữ hiện là không đặt được.
-  Future<TripDetail> loadTrip(String tripId) async {
+  /// Chi tiết chuyến đang mở bán; chỗ đang có người giữ hiện là không đặt được. Kèm chặng khách đi thì giá chỗ +
+  /// tiêu đề theo chặng (3.3).
+  Future<TripDetail> loadTrip(
+    String tripId, {
+    int? pickupSequence,
+    int? dropoffSequence,
+  }) async {
     final response = await _call(
-      () => _client.getTripsApi().publicTripControllerGet(tripId: tripId),
+      () => _client.getTripsApi().publicTripControllerGet(
+        tripId: tripId,
+        pickupSequence: pickupSequence,
+        dropoffSequence: dropoffSequence,
+      ),
     );
     final data = response.data!;
     return TripDetail(
@@ -218,6 +227,7 @@ class TripBookingApi {
       averageRating: data.operator_.averageRating?.toDouble(),
       reviewCount: data.operator_.reviewCount,
       routeName: data.routeName,
+      segmentTitle: data.segment?.title,
       departureAt: data.departureAt,
       arrivalAt: data.arrivalAt,
       note: data.note,
@@ -234,6 +244,7 @@ class TripBookingApi {
             plannedAt: stop.plannedAt,
             allowPickup: stop.allowPickup,
             allowDropoff: stop.allowDropoff,
+            pickupOpen: stop.pickupOpen,
           ),
       ],
       seats: [

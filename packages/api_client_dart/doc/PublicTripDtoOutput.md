@@ -11,6 +11,7 @@ Name | Type | Description | Notes
 **tripId** | **String** |  | 
 **operator_** | [**PublicTripDtoOutputOperator**](PublicTripDtoOutputOperator.md) |  | 
 **routeName** | **String** |  | 
+**segment** | [**PublicTripDtoOutputSegment**](PublicTripDtoOutputSegment.md) |  | 
 **departureAt** | [**DateTime**](DateTime.md) |  | 
 **arrivalAt** | [**DateTime**](DateTime.md) |  | 
 **onlineSaleClosesAt** | [**DateTime**](DateTime.md) |  | 
