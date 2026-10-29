@@ -3,7 +3,7 @@
 import type { components } from "@vexenhanh/api-client";
 import { apiRequest } from "./api";
 import { ok, failed, type DataResult } from "./result";
-import { mapTripDetail, mapTripSearchItem, searchQuery, type SearchTripsParams, type TripLeg } from "./trip-mappers";
+import { mapTripDetail, mapTripSearchItem, publicTripPath, searchQuery, type SearchTripsParams, type TripLeg } from "./trip-mappers";
 import type { TripDetailData, TripSearchResultItem, TripSearchSummary } from "./types";
 
 export type { SearchTripsParams } from "./trip-mappers";
@@ -50,10 +50,4 @@ export async function getTripDetails(tripId: string, leg: TripLeg = {}): Promise
         rating: r.rating, travelDateText: "", content: r.comment ?? "" })) });
   }
   catch { return failed("GET /trips/{tripId}", "Giá vé từ hệ thống không hợp lệ."); }
-}
-
-/** `/trips/{id}` kèm chặng khách đi (`pickupSequence` + `dropoffSequence`) khi đủ hai điểm — máy chủ tính giá theo chặng. */
-export function publicTripPath(tripId: string, leg: TripLeg): string {
-  const path = `/trips/${encodeURIComponent(tripId)}`;
-  return leg.pickup !== undefined && leg.dropoff !== undefined ? `${path}?pickupSequence=${leg.pickup}&dropoffSequence=${leg.dropoff}` : path;
 }

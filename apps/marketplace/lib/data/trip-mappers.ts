@@ -222,3 +222,9 @@ export function initialPlace(
   const name = label || (resolvedType === "province" ? provinces.find((province) => province.id === id)?.name : undefined);
   return { type: resolvedType, id, label: name ?? "" };
 }
+
+/** `/trips/{id}` kèm chặng khách đi (`pickupSequence` + `dropoffSequence`) khi đủ hai điểm — máy chủ tính giá theo chặng. */
+export function publicTripPath(tripId: string, leg: TripLeg): string {
+  const path = `/trips/${encodeURIComponent(tripId)}`;
+  return leg.pickup !== undefined && leg.dropoff !== undefined ? `${path}?pickupSequence=${leg.pickup}&dropoffSequence=${leg.dropoff}` : path;
+}
