@@ -79,7 +79,7 @@ void main() {
       expect(find.text('Chưa có chuyến'), findsOneWidget);
       await tester.tap(find.text('Về ngày có chuyến mẫu'));
       await tester.pumpAndSettle();
-      await swipe(tester, 'Xem chuyến');
+      await swipe(tester, 'Khởi hành chuyến');
       expect(find.text('32 hành khách'), findsOneWidget);
       await swipe(tester, 'Danh sách khách');
       await tester.enterText(find.byType(TextField), 'VX102002');

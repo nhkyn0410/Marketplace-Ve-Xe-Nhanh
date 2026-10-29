@@ -323,7 +323,7 @@ class _TripCard extends StatelessWidget {
         ),
         SizedBox(height: nearest ? 70 / 3 : 7),
         SwipeAction(
-          label: 'Xem chuyến',
+          label: 'Khởi hành chuyến',
           onComplete: onOpen,
           arrowAsset: 'trips-imgFrame',
           chevronAsset: 'trips-imgFrame1',

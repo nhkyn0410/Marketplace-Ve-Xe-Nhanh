@@ -44,7 +44,7 @@ void main() {
         findsOneWidget,
       );
       expect(find.text('Về ngày có chuyến mẫu'), findsNothing);
-      expect(find.text('Xem chuyến'), findsNothing);
+      expect(find.text('Khởi hành chuyến'), findsNothing);
     },
   );
 
@@ -74,7 +74,7 @@ void main() {
       expect(find.text('Chưa có chuyến'), findsOneWidget);
       await tester.tap(find.text('Về ngày có chuyến mẫu'));
       await tester.pumpAndSettle();
-      await _swipe(tester, 'Xem chuyến', last: true);
+      await _swipe(tester, 'Khởi hành chuyến', last: true);
       expect(find.text('MX103'), findsOneWidget);
       expect(find.text('28 hành khách'), findsOneWidget);
       expect(find.text('14/10/2026 · 17:30'), findsOneWidget);
@@ -97,7 +97,7 @@ void main() {
         ),
       ),
     );
-    await _swipe(tester, 'Xem chuyến');
+    await _swipe(tester, 'Khởi hành chuyến');
     expect(find.text('MX102'), findsOneWidget);
     expect(find.text('32 hành khách'), findsOneWidget);
   });
