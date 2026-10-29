@@ -17,12 +17,29 @@ class BookingPassenger {
     required this.seatCode,
     required this.fullName,
     this.phone,
+    this.companionName,
   });
 
   final String seatCode;
   final String fullName;
   final String? phone;
+
+  /// Người đi cùng trên chỗ đôi (giường đôi / cabin đôi), chung vé — không bắt buộc.
+  final String? companionName;
+
+  /// Tên hiển thị: "A và B" khi chỗ đôi có người đi cùng.
+  String get displayName => passengerDisplayName(fullName, companionName);
 }
+
+/// "A và B" khi có người đi cùng trên chỗ đôi, không thì chỉ người đứng tên.
+String passengerDisplayName(String fullName, String? companionName) =>
+    companionName == null || companionName.isEmpty
+    ? fullName
+    : '$fullName và $companionName';
+
+/// Chỗ đôi (giường đôi / cabin đôi) được khai thêm người đi cùng (BR-78).
+bool isDoubleSeat(String seatType) =>
+    seatType == 'BED_DOUBLE' || seatType == 'CABIN_DOUBLE';
 
 /// Hành khách đã lưu trong tài khoản, chọn nhanh khi điền form.
 class SavedTraveller {
@@ -78,11 +95,17 @@ class BookedPassenger {
     required this.seatCode,
     required this.fullName,
     required this.price,
+    this.companionName,
   });
 
   final String seatCode;
   final String fullName;
   final int price;
+
+  /// Người đi cùng trên chỗ đôi, chung vé.
+  final String? companionName;
+
+  String get displayName => passengerDisplayName(fullName, companionName);
 }
 
 /// Đơn vừa tạo (`POST /bookings`), đang chờ thanh toán tới [expiresAt].

@@ -221,6 +221,7 @@ function Manifest({ tripId }: { tripId: string }) {
                       <td className={`${TABLE_CELL} font-semibold`}>{item.seatCode}</td>
                       <td className={TABLE_CELL}>
                         <p className="truncate font-medium">{item.passengerName}</p>
+                        {item.companionName && <p className="truncate text-xs text-muted-foreground">Đi cùng: {item.companionName}</p>}
                         <p className="truncate text-xs leading-[18px] text-muted-foreground">
                           <Link href={`/bookings/${item.bookingId}`} className="hover:underline">
                             Đơn {displayCode(item.bookingCode)}

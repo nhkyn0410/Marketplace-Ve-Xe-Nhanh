@@ -420,6 +420,10 @@ export interface CheckoutPassengerItem {
   readonly phoneNumber: string;
   readonly idNumber: string;
   readonly shouldSaveForLater: boolean;
+  /** Chỗ đôi (giường đôi / cabin đôi) — được khai thêm người đi cùng, chung vé (BR-78 bổ sung 28/10/2026, chờ duyệt). */
+  readonly isDoubleSeat?: boolean;
+  /** Người đi cùng trên chỗ đôi, không bắt buộc. */
+  readonly companionName?: string | null;
 }
 
 /**

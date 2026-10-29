@@ -30,7 +30,8 @@ export type CounterHold = z.infer<typeof CounterHoldSchema>;
 
 export const CounterBookingInputSchema = z.object({
   holdId: z.uuid(), contact,
-  passengers: z.array(z.object({ seatCode, fullName: name, phone: phone.nullable() })).min(1).max(10),
+  // `companionName`: người đi cùng trên chỗ đôi (BR-78 bổ sung 28/10/2026, chờ duyệt), không bắt buộc.
+  passengers: z.array(z.object({ seatCode, fullName: name, phone: phone.nullable(), companionName: z.string().trim().max(100).nullish().transform((value) => value || null).optional() })).min(1).max(10),
   note: z.string().trim().max(500).nullable(), expectedTotal: CounterMoneySchema,
 }).refine((value) => new Set(value.passengers.map((passenger) => passenger.seatCode)).size === value.passengers.length, "Mỗi chỗ một hành khách.");
 export type CounterBookingInput = z.infer<typeof CounterBookingInputSchema>;
@@ -47,9 +48,9 @@ export const CounterReceiptSchema = z.object({ id: z.uuid(), method: z.enum(["CA
 export const CounterBookingSchema = z.object({
   bookingId: z.uuid(), bookingCode: z.string(), officeId: z.uuid(), seller: z.string(), status: z.string(), tripId: z.uuid(),
   trip: z.object({ routeName: z.string(), departureAt: z.iso.datetime(), arrivalAt: z.iso.datetime() }),
-  contact, passengers: z.array(z.object({ seatCode: z.string(), fullName: z.string(), price: CounterMoneySchema })),
+  contact, passengers: z.array(z.object({ seatCode: z.string(), fullName: z.string(), companionName: z.string().nullable(), price: CounterMoneySchema })),
   total: CounterMoneySchema, expiresAt: z.iso.datetime(), createdAt: z.iso.datetime(),
-  tickets: z.array(z.object({ ticketId: z.uuid(), ticketCode: z.string(), seatCode: z.string(), passengerName: z.string(), status: z.string(), qrToken: z.string() })),
+  tickets: z.array(z.object({ ticketId: z.uuid(), ticketCode: z.string(), seatCode: z.string(), passengerName: z.string(), companionName: z.string().nullable(), status: z.string(), qrToken: z.string() })),
   receipts: z.array(CounterReceiptSchema),
 });
 export type CounterBooking = z.infer<typeof CounterBookingSchema>;

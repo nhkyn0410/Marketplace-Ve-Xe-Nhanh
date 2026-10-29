@@ -369,7 +369,7 @@ function DecisionDialog({ detail, onClose, onDone }: DialogProps) {
         )}
         <p className="flex gap-2.5 rounded-lg bg-accent px-4 py-3 text-sm leading-5 text-accent-foreground">
           <Info className="mt-0.5 size-4 shrink-0" aria-hidden />
-          Quyết định được gửi cho hành khách và nhà xe. Khoản hoàn được xử lý tại mục Thanh toán & hoàn tiền và trừ vào tiền chi trả của nhà xe.
+          Quyết định được gửi cho hành khách và nhà xe. Khoản hoàn được xử lý tại mục Giao dịch và trừ vào tiền chi trả của nhà xe.
         </p>
         <FormField label="Lý do và căn cứ *" helper="Lý do được lưu vào nhật ký audit." error={errors.reason}>
           {(control) => <Textarea {...control} rows={3} maxLength={500} value={reason} disabled={submit.isPending} placeholder="Nhập lý do (3–500 ký tự)…" onChange={(event) => setReason(event.target.value)} />}

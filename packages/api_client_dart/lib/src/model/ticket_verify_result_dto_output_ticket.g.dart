@@ -112,6 +112,8 @@ class _$TicketVerifyResultDtoOutputTicket
   @override
   final String passengerName;
   @override
+  final String? companionName;
+  @override
   final String phoneMasked;
   @override
   final TripManifestDtoOutputPassengersInnerPickup pickup;
@@ -131,6 +133,7 @@ class _$TicketVerifyResultDtoOutputTicket
       required this.ticketCode,
       required this.seatCode,
       required this.passengerName,
+      this.companionName,
       required this.phoneMasked,
       required this.pickup,
       required this.dropoff,
@@ -154,6 +157,7 @@ class _$TicketVerifyResultDtoOutputTicket
         ticketCode == other.ticketCode &&
         seatCode == other.seatCode &&
         passengerName == other.passengerName &&
+        companionName == other.companionName &&
         phoneMasked == other.phoneMasked &&
         pickup == other.pickup &&
         dropoff == other.dropoff &&
@@ -168,6 +172,7 @@ class _$TicketVerifyResultDtoOutputTicket
     _$hash = $jc(_$hash, ticketCode.hashCode);
     _$hash = $jc(_$hash, seatCode.hashCode);
     _$hash = $jc(_$hash, passengerName.hashCode);
+    _$hash = $jc(_$hash, companionName.hashCode);
     _$hash = $jc(_$hash, phoneMasked.hashCode);
     _$hash = $jc(_$hash, pickup.hashCode);
     _$hash = $jc(_$hash, dropoff.hashCode);
@@ -184,6 +189,7 @@ class _$TicketVerifyResultDtoOutputTicket
           ..add('ticketCode', ticketCode)
           ..add('seatCode', seatCode)
           ..add('passengerName', passengerName)
+          ..add('companionName', companionName)
           ..add('phoneMasked', phoneMasked)
           ..add('pickup', pickup)
           ..add('dropoff', dropoff)
@@ -215,6 +221,11 @@ class TicketVerifyResultDtoOutputTicketBuilder
   String? get passengerName => _$this._passengerName;
   set passengerName(String? passengerName) =>
       _$this._passengerName = passengerName;
+
+  String? _companionName;
+  String? get companionName => _$this._companionName;
+  set companionName(String? companionName) =>
+      _$this._companionName = companionName;
 
   String? _phoneMasked;
   String? get phoneMasked => _$this._phoneMasked;
@@ -252,6 +263,7 @@ class TicketVerifyResultDtoOutputTicketBuilder
       _ticketCode = $v.ticketCode;
       _seatCode = $v.seatCode;
       _passengerName = $v.passengerName;
+      _companionName = $v.companionName;
       _phoneMasked = $v.phoneMasked;
       _pickup = $v.pickup.toBuilder();
       _dropoff = $v.dropoff.toBuilder();
@@ -289,6 +301,7 @@ class TicketVerifyResultDtoOutputTicketBuilder
                 seatCode, r'TicketVerifyResultDtoOutputTicket', 'seatCode'),
             passengerName: BuiltValueNullFieldError.checkNotNull(passengerName,
                 r'TicketVerifyResultDtoOutputTicket', 'passengerName'),
+            companionName: companionName,
             phoneMasked: BuiltValueNullFieldError.checkNotNull(phoneMasked,
                 r'TicketVerifyResultDtoOutputTicket', 'phoneMasked'),
             pickup: pickup.build(),

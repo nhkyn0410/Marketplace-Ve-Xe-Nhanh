@@ -367,7 +367,8 @@ class TripBookingApi {
               (p) => p
                 ..seatCode = passenger.seatCode
                 ..fullName = passenger.fullName
-                ..phone = passenger.phone,
+                ..phone = passenger.phone
+                ..companionName = passenger.companionName,
             ),
         ])
         ..note = null
@@ -402,6 +403,7 @@ class TripBookingApi {
             seatCode: passenger.seatCode,
             fullName: passenger.fullName,
             price: passenger.price,
+            companionName: passenger.companionName,
           ),
       ],
       subtotal: data.subtotal,

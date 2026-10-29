@@ -1,12 +1,12 @@
 import 'package:test/test.dart';
 import 'package:api_client_dart/api_client_dart.dart';
 
-// tests for AdminBankChangeDtoOutputCurrent
+// tests for AdminOperatorDetailDtoOutputBankAccount
 void main() {
-  final instance = AdminBankChangeDtoOutputCurrentBuilder();
+  final instance = AdminOperatorDetailDtoOutputBankAccountBuilder();
   // TODO add properties to the builder and call build()
 
-  group(AdminBankChangeDtoOutputCurrent, () {
+  group(AdminOperatorDetailDtoOutputBankAccount, () {
     // String bankName
     test('to test the property `bankName`', () async {
       // TODO

@@ -66,6 +66,7 @@ export const OperatorBookingDetailSchema = OperatorBookingSummarySchema.extend({
       seatCode: z.string(),
       seatType: z.enum(SeatType),
       passengerName: z.string(),
+      companionName: z.string().nullable(),
       phoneMasked: z.string().nullable(),
       ticketCode: z.string().nullable(),
       ticketStatus: z.enum(TicketStatus).nullable(),
@@ -115,6 +116,7 @@ export const TripPassengerListSchema = z.object({
     z.object({
       seatCode: z.string(),
       passengerName: z.string(),
+      companionName: z.string().nullable(),
       phoneMasked: z.string().nullable(),
       bookingId: z.uuid(),
       bookingCode: z.string(),

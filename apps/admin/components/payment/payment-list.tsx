@@ -163,7 +163,7 @@ export function PaymentList({ mode }: { mode: "all" | "reconcile" }) {
               className="w-44"
             />
           )}
-          <SearchField value={search} onChange={setSearch} placeholder="Mã đặt vé, mã thanh toán, mã giao dịch cổng" />
+          <SearchField value={search} onChange={setSearch} placeholder="Mã đặt vé, mã thanh toán, mã cổng, SĐT hoặc email người đặt" />
         </div>
         {body}
         {items.length > 0 && !rangeInvalid && (

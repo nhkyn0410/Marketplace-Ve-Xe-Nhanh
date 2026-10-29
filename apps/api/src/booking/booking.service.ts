@@ -10,6 +10,7 @@ import type { HoldRecord } from "../seat-hold/seat-hold-store";
 import { TICKET_QR, type TicketQrSigner } from "../ticket/ticket-qr";
 import { SeatHoldService } from "../seat-hold/seat-hold.service";
 import {
+  companionNotAllowed,
   bookingNotFound,
   holdAlreadyUsed,
   passengersMismatch,
@@ -24,6 +25,8 @@ import { evaluateVoucher, reserveVoucher } from "../promotion/voucher-apply";
 import { voucherProblem } from "../loyalty/passenger-loyalty.service";
 import type { CounterBookingInput } from "@vexenhanh/types";
 
+/** Chỗ đôi được khai người đi cùng (BR-78). */
+const DOUBLE_SEATS = new Set<string>(["BED_DOUBLE", "CABIN_DOUBLE"]);
 const MINUTE = 60_000;
 /** Mã booking `VXN` + 6 ký tự, bỏ 0/O/1/I cho dễ đọc qua điện thoại (32^6 ≈ 1 tỷ mã). */
 const CODE_ALPHABET = "23456789ABCDEFGHJKLMNPQRSTUVWXYZ";
@@ -73,9 +76,9 @@ type BookingRow = {
   snapshot: unknown;
   expiresAt: Date;
   createdAt: Date;
-  passengers: { seatCode: string; seatType: SeatType; fullName: string; phone: string | null; price: bigint }[];
+  passengers: { seatCode: string; seatType: SeatType; fullName: string; phone: string | null; companionName: string | null; price: bigint }[];
   payments: { paymentCode: string; provider: PaymentProvider; status: PaymentStatus; amount: bigint; paidAt: Date | null }[];
-  tickets: { id: string; ticketCode: string; seatCode: string; status: TicketStatus; passenger: { fullName: string } }[];
+  tickets: { id: string; ticketCode: string; seatCode: string; status: TicketStatus; passenger: { fullName: string; companionName: string | null } }[];
   refunds: { refundCode: string; amount: bigint; status: RefundStatus; createdAt: Date }[];
   trip: { changes: { kinds: TripChangeKind[]; before: unknown; after: unknown; reason: string; createdAt: Date }[] };
 };
@@ -107,7 +110,7 @@ const BOOKING_SELECT = {
   accessGrants: ACCESS_GRANT_SELECT,
   passengers: {
     orderBy: { seatCode: "asc" },
-    select: { seatCode: true, seatType: true, fullName: true, phone: true, price: true },
+    select: { seatCode: true, seatType: true, fullName: true, phone: true, companionName: true, price: true },
   },
   payments: {
     orderBy: { createdAt: "desc" },
@@ -115,7 +118,7 @@ const BOOKING_SELECT = {
   },
   tickets: {
     orderBy: { ticketCode: "asc" },
-    select: { id: true, ticketCode: true, seatCode: true, status: true, passenger: { select: { fullName: true } } },
+    select: { id: true, ticketCode: true, seatCode: true, status: true, passenger: { select: { fullName: true, companionName: true } } },
   },
   refunds: { orderBy: { createdAt: "asc" }, select: { refundCode: true, amount: true, status: true, createdAt: true } },
   trip: { select: { changes: { orderBy: { createdAt: "asc" }, select: { kinds: true, before: true, after: true, reason: true, createdAt: true } } } },
@@ -356,6 +359,12 @@ export class BookingService {
       }
       throw seatNotAvailable(unavailable.map((seat) => seat.code));
     }
+    const notDouble = input.passengers
+      .filter((passenger) => passenger.companionName && !DOUBLE_SEATS.has(priced.find((seat) => seat.code === passenger.seatCode)?.type ?? ""))
+      .map((passenger) => passenger.seatCode);
+    if (notDouble.length > 0) {
+      throw companionNotAllowed(notDouble);
+    }
     const subtotal = priced.reduce((sum, seat) => sum + seat.price!, 0n);
     const serviceFee = 0n;
     // Giữ một lượt dùng của mã ngay trong transaction này: đơn không tạo được thì rollback trả luôn lượt (TASK-PROM-001).
@@ -431,6 +440,7 @@ export class BookingService {
               price: seat.price!,
               fullName: passenger.fullName,
               phone: passenger.phone,
+              companionName: passenger.companionName ?? null,
             };
           }),
         },
@@ -511,6 +521,7 @@ function toResponse(row: BookingRow, qr: TicketQrSigner): BookingResponse {
       ticketCode: ticket.ticketCode,
       seatCode: ticket.seatCode,
       passengerName: ticket.passenger.fullName,
+      companionName: ticket.passenger.companionName,
       status: ticket.status,
       qrToken: qr.token(ticket.id),
     })),

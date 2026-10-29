@@ -3,11 +3,14 @@ import { AuditService, AuditWriteError, type AuditEventInput } from "../../audit
 import { decodeTimeCursor, encodeTimeCursor } from "../../common/time-cursor";
 import type { DbScope } from "../../database/db-scope";
 import { PrismaService, transactionDeadline, type DbTransaction } from "../../database/prisma.service";
-import { AccountStatus, PlatformRole, SessionRevokeReason, SubjectType } from "../../database/prisma.types";
+import { AccountStatus, PlatformRole, SessionRevokeReason, SubjectType, TicketStatus } from "../../database/prisma.types";
+import { maskPhone } from "../../booking/operator-booking.service";
+import { vndToJson } from "../../fare/fare-pricing";
 import { EMAIL_NOTIFIER, type EmailNotifier, maskEmail } from "../../external/notification/email-notifier";
 import { CredentialService } from "../auth/credential.service";
 import { MfaService } from "../auth/mfa.service";
 import type { VerifiedAccessToken } from "../auth/token.service";
+import { can } from "../role/access-policy";
 import type { Authorization } from "../role/authorization";
 import { permissionDenied } from "../role/authorization.errors";
 import { SessionService } from "../session/session.service";
@@ -18,9 +21,12 @@ import { generateTemporaryPassword, TEMPORARY_PASSWORD_TTL_MS } from "./account-
 import type {
   AdminEmployee,
   AdminPassenger,
+  AdminPassengerBookingPage,
+  AdminPassengerDetail,
   AdminPlatformAccount,
   EmployeeListQuery,
   EmployeePage,
+  PassengerBookingQuery,
   PassengerListQuery,
   PassengerPage,
   PlatformAccountCreate,
@@ -36,6 +42,8 @@ const AUDIT_TIMEOUT_MS = 2_000;
 const TITLE = "Account management error";
 /** Cách đăng nhập OAuth hiện ra ở cột "Đăng nhập bằng" (ADR-020); email OTP luôn dùng được. */
 const OAUTH_PROVIDERS = new Set(["google", "facebook", "apple"]);
+/** Vé còn đi chuyến (đã bán, chưa hủy / hoàn). */
+const LIVE_TICKETS: TicketStatus[] = [TicketStatus.VALID, TicketStatus.CHECKED_IN, TicketStatus.NO_SHOW, TicketStatus.USED];
 
 function problem(status: HttpStatus, code: string, detail: string): HttpException {
   return new HttpException({ code, detail, title: TITLE }, status);
@@ -146,6 +154,129 @@ export class AdminAccountService {
       nextCursor: page.rows.length > query.limit && last ? encodeTimeCursor(last.createdAt, last.id) : null,
       total: page.total,
     };
+  }
+
+  /**
+   * Chi tiết một tài khoản hành khách (chờ duyệt 28/10/2026): hồ sơ (SĐT che), cách đăng nhập, số đơn / vé / yêu cầu hỗ
+   * trợ, điểm VXN Plus. Mỗi lượt xem ghi audit (Security §239); chưa ghi được audit → 503, không trả dữ liệu.
+   */
+  async passengerDetail(authz: Authorization, actor: Actor, id: string): Promise<AdminPassengerDetail> {
+    const showMoney = can(actor, "payment:monitor").allowed;
+    const view = await this.prisma.withScope(platformDb(authz), async (tx) => {
+      const user = await tx.user.findUnique({
+        where: { id },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          emailVerified: true,
+          phone: true,
+          status: true,
+          lockedReason: true,
+          lockedAt: true,
+          createdAt: true,
+          accounts: { select: { providerId: true } },
+          loyaltyAccount: { select: { availablePoints: true } },
+          _count: { select: { savedPassengers: true, bookings: true } },
+        },
+      });
+      if (!user) {
+        throw accountNotFound();
+      }
+      const [tickets, supportTickets, paid] = await Promise.all([
+        tx.ticket.count({ where: { booking: { userId: id }, status: { in: LIVE_TICKETS } } }),
+        tx.supportTicket.count({ where: { userId: id } }),
+        tx.payment.aggregate({ where: { booking: { userId: id }, status: "SUCCESS" }, _sum: { amount: true } }),
+      ]);
+      return { user, tickets, supportTickets, paid: paid._sum.amount ?? 0n };
+    });
+    await this.audit
+      .recordAuditEvent(
+        { actorId: actor.sub, actorRole: actor.role, action: "passenger.view", targetType: "passenger", targetId: id, before: null, after: null },
+        { timeoutMs: AUDIT_TIMEOUT_MS },
+      )
+      .catch((error: unknown) => {
+        throw error instanceof AuditWriteError ? auditUnavailable() : error;
+      });
+    const { user } = view;
+    const lastLogin = await this.sessions.lastLoginAt(SubjectType.PASSENGER, [id]);
+    return {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      providers: ["email-otp", ...new Set(user.accounts.map((account) => account.providerId).filter((provider) => OAUTH_PROVIDERS.has(provider)))],
+      status: user.status,
+      lockedReason: user.lockedReason,
+      lockedAt: user.lockedAt?.toISOString() ?? null,
+      createdAt: user.createdAt.toISOString(),
+      lastLoginAt: lastLogin.get(id)?.toISOString() ?? null,
+      emailVerified: user.emailVerified,
+      phone: user.phone ? maskPhone(user.phone) : null,
+      loyaltyPoints: user.loyaltyAccount?.availablePoints ?? null,
+      savedPassengerCount: user._count.savedPassengers,
+      bookingCount: user._count.bookings,
+      ticketCount: view.tickets,
+      supportTicketCount: view.supportTickets,
+      totalPaid: showMoney ? vndToJson(view.paid) : null,
+    };
+  }
+
+  /** Đơn đặt vé của một tài khoản hành khách, mới đặt trước; mỗi đơn kèm người đi trên từng vé. */
+  async passengerBookings(authz: Authorization, actor: Actor, id: string, query: PassengerBookingQuery): Promise<AdminPassengerBookingPage> {
+    const showMoney = can(actor, "payment:monitor").allowed;
+    return this.prisma.withScope(platformDb(authz), async (tx) => {
+      if (!(await tx.user.findUnique({ where: { id }, select: { id: true } }))) {
+        throw accountNotFound();
+      }
+      const after = query.cursor ? decodeTimeCursor(query.cursor) : null;
+      const where = { userId: id };
+      const [rows, total] = await Promise.all([
+        tx.booking.findMany({
+          where: { AND: [where, after ? { OR: [{ createdAt: { lt: after.at } }, { createdAt: after.at, id: { lt: after.id } }] } : {}] },
+          orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+          take: query.limit + 1,
+          select: {
+            id: true,
+            bookingCode: true,
+            status: true,
+            createdAt: true,
+            total: true,
+            operatorId: true,
+            operator: { select: { displayName: true } },
+            tripId: true,
+            trip: { select: { departureAt: true, route: { select: { name: true } } } },
+            passengers: { orderBy: { seatCode: "asc" }, select: { fullName: true, companionName: true, seatCode: true, tickets: { select: { status: true } } } },
+            payments: { orderBy: { createdAt: "desc" }, take: 1, select: { id: true } },
+          },
+        }),
+        tx.booking.count({ where }),
+      ]);
+      const kept = rows.slice(0, query.limit);
+      const last = kept.at(-1);
+      return {
+        items: kept.map((row) => ({
+          id: row.id,
+          bookingCode: row.bookingCode,
+          status: row.status,
+          createdAt: row.createdAt.toISOString(),
+          total: showMoney ? vndToJson(row.total) : null,
+          operatorId: row.operatorId,
+          operatorName: row.operator.displayName,
+          tripId: row.tripId,
+          routeName: row.trip.route.name,
+          departureAt: row.trip.departureAt.toISOString(),
+          passengers: row.passengers.map((passenger) => ({
+            fullName: passenger.fullName,
+            companionName: passenger.companionName,
+            seatCode: passenger.seatCode,
+            ticketStatus: passenger.tickets[0]?.status ?? null,
+          })),
+          paymentId: row.payments[0]?.id ?? null,
+        })),
+        nextCursor: rows.length > query.limit && last ? encodeTimeCursor(last.createdAt, last.id) : null,
+        total,
+      };
+    });
   }
 
   async lockPassenger(authz: Authorization, actor: Actor, id: string, reason: string): Promise<void> {

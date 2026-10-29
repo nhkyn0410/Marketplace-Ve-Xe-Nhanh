@@ -107,7 +107,7 @@ export class OperatorBookingService {
           discount: true,
           passengers: {
             orderBy: { seatCode: "asc" },
-            select: { seatCode: true, seatType: true, fullName: true, phone: true, tickets: { select: { ticketCode: true, status: true } } },
+            select: { seatCode: true, seatType: true, fullName: true, phone: true, companionName: true, tickets: { select: { ticketCode: true, status: true } } },
           },
           histories: { orderBy: { createdAt: "asc" }, select: { fromStatus: true, toStatus: true, reason: true, actor: true, createdAt: true } },
         },
@@ -127,6 +127,7 @@ export class OperatorBookingService {
         seatCode: passenger.seatCode,
         seatType: passenger.seatType,
         passengerName: passenger.fullName,
+        companionName: passenger.companionName,
         phoneMasked: passenger.phone ? maskPhone(passenger.phone) : null,
         ticketCode: passenger.tickets[0]?.ticketCode ?? null,
         ticketStatus: passenger.tickets[0]?.status ?? null,
@@ -164,6 +165,7 @@ export class OperatorBookingService {
       .map((ticket) => ({
         seatCode: ticket.seatCode,
         passengerName: ticket.passenger.fullName,
+        companionName: ticket.passenger.companionName,
         phoneMasked: maskPhone(ticket.passenger.phone ?? ticket.booking.contactPhone),
         phone: ticket.passenger.phone ?? ticket.booking.contactPhone,
         bookingId: ticket.booking.id,
@@ -243,7 +245,7 @@ export class OperatorBookingService {
           seatCode: true,
           ticketCode: true,
           status: true,
-          passenger: { select: { fullName: true, phone: true } },
+          passenger: { select: { fullName: true, phone: true, companionName: true } },
           booking: { select: { id: true, bookingCode: true, userId: true, contactPhone: true, pickupSequence: true, dropoffSequence: true } },
         },
       });

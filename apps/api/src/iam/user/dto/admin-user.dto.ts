@@ -51,6 +51,53 @@ export const PassengerPageSchema = z.object({ items: z.array(PassengerSchema), n
 export type PassengerPage = z.infer<typeof PassengerPageSchema>;
 export class AdminPassengerPageDto extends createZodDto(PassengerPageSchema) {}
 
+// Chi tiết hành khách (FR-ADM-02 "giám sát"; Security §239 — xem dữ liệu cá nhân có audit; tự thiết kế 28/10/2026, chờ duyệt).
+// Chỉ TÀI KHOẢN hành khách: khách vãng lai không có tài khoản, Admin tra theo đơn / vé (Giao dịch, chi tiết chuyến).
+
+/** Số tiền chỉ trả cho tài khoản có quyền xem thanh toán (`payment:monitor`); thiếu quyền → `null`. */
+const MoneyOrHidden = z.int().nonnegative().nullable();
+
+export const PassengerDetailSchema = PassengerSchema.extend({
+  emailVerified: z.boolean(),
+  /** Số điện thoại trong hồ sơ, đã che (`0*** *** 567`). */
+  phone: z.string().nullable(),
+  /** Điểm VXN Plus khả dụng; chưa có tài khoản thành viên → `null`. Hạng + sổ điểm xem ở VXN Plus (`loyalty:manage`). */
+  loyaltyPoints: z.int().nullable(),
+  savedPassengerCount: z.int(),
+  bookingCount: z.int(),
+  /** Vé còn đi chuyến (đã bán, chưa hủy / hoàn) trên mọi đơn của tài khoản. */
+  ticketCount: z.int(),
+  supportTicketCount: z.int(),
+  /** Tổng thanh toán thành công. */
+  totalPaid: MoneyOrHidden,
+});
+export type AdminPassengerDetail = z.infer<typeof PassengerDetailSchema>;
+export class AdminPassengerDetailDto extends createZodDto(PassengerDetailSchema) {}
+
+export const PassengerBookingQuerySchema = z.object({ cursor: TimeCursorField, limit: page.limit });
+export type PassengerBookingQuery = z.infer<typeof PassengerBookingQuerySchema>;
+export class AdminPassengerBookingQueryDto extends createZodDto(PassengerBookingQuerySchema) {}
+
+const PassengerBookingSchema = z.object({
+  id: z.uuid(),
+  bookingCode: z.string(),
+  status: z.string(),
+  createdAt: z.iso.datetime(),
+  total: MoneyOrHidden,
+  operatorId: z.uuid(),
+  operatorName: z.string(),
+  tripId: z.uuid(),
+  routeName: z.string(),
+  departureAt: z.iso.datetime(),
+  /** Người đi trên từng vé (một chỗ = một vé); chỗ đôi có thêm `companionName` (người đi cùng, chung vé — BR-78). */
+  passengers: z.array(z.object({ fullName: z.string(), companionName: z.string().nullable(), seatCode: z.string(), ticketStatus: z.string().nullable() })),
+  /** Thanh toán gần nhất của đơn — mở chi tiết ở mục Giao dịch. */
+  paymentId: z.uuid().nullable(),
+});
+export const PassengerBookingPageSchema = z.object({ items: z.array(PassengerBookingSchema), nextCursor: z.string().nullable(), total: z.int() });
+export type AdminPassengerBookingPage = z.infer<typeof PassengerBookingPageSchema>;
+export class AdminPassengerBookingPageDto extends createZodDto(PassengerBookingPageSchema) {}
+
 // ── Nhân viên nhà xe (chỉ xem) ──────────────────────────────────────────────────────────────────────────
 
 export const EmployeeListQuerySchema = z.object({

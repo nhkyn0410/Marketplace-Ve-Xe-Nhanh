@@ -42,6 +42,16 @@ export function seatTypeLabel(type: string): string {
   return ({ SEAT: "Ghế ngồi", BED: "Giường nằm", BED_DOUBLE: "Giường đôi", CABIN: "Cabin", CABIN_DOUBLE: "Cabin đôi" } as Record<string, string>)[type] ?? type;
 }
 
+/** Chỗ đôi (giường đôi / cabin đôi) — được khai người đi cùng (BR-78). */
+export function isDoubleSeat(type: string): boolean {
+  return type === "BED_DOUBLE" || type === "CABIN_DOUBLE";
+}
+
+/** Tên trên vé: người đứng tên, kèm người đi cùng nếu chỗ đôi có khai ("A và B"). */
+export function ticketPassengerName(passengerName: string, companionName: string | null | undefined): string {
+  return companionName ? `${passengerName} và ${companionName}` : passengerName;
+}
+
 /** Chuyển điểm dừng của API sang dữ liệu hiển thị. */
 export function mapPoint(point: { sequence: number; name: string; plannedAt: string; address?: string }): SeatLocationPoint {
   return { id: String(point.sequence), name: point.name, address: point.address ?? "", time: dateText(point.plannedAt, { hour: "2-digit", minute: "2-digit" }), hasFreeShuttle: false, plannedAt: point.plannedAt };
@@ -54,7 +64,7 @@ export function mapBookingPrice(booking: ApiBooking): CheckoutPriceSummary {
 
 /** Chuyển hành khách đã chốt sang dữ liệu giao diện. */
 export function mapPassengers(booking: ApiBooking): CheckoutPassengerItem[] {
-  return booking.passengers.map((passenger) => ({ seatCode: passenger.seatCode, seatTypeLabel: seatTypeLabel(passenger.seatType), floorLabel: "", priceVnd: moneyString(passenger.price), fullName: passenger.fullName, phoneNumber: passenger.phone ?? "", idNumber: "", shouldSaveForLater: false }));
+  return booking.passengers.map((passenger) => ({ seatCode: passenger.seatCode, seatTypeLabel: seatTypeLabel(passenger.seatType), floorLabel: "", priceVnd: moneyString(passenger.price), fullName: passenger.fullName, phoneNumber: passenger.phone ?? "", idNumber: "", shouldSaveForLater: false, isDoubleSeat: isDoubleSeat(passenger.seatType), companionName: passenger.companionName ?? "" }));
 }
 
 /** Hiển thị trạng thái booking theo dữ liệu máy chủ, kể cả các bước hoàn tiền. */
@@ -110,7 +120,7 @@ export function mapPaymentResult(booking: ApiBooking): BookingPaymentResultData 
   return {
     bookingId: booking.bookingId, bookingCode: booking.bookingCode, status: success ? "success" : failed ? "failed" : "processing", canRetryPayment: booking.status === "PENDING_PAYMENT" && remainingSeconds(booking.expiresAt) > 0 && booking.payment?.status !== "RECONCILING" && booking.payment?.status !== "SUCCESS", processingMessage: booking.payment?.status === "SUCCESS" ? "Đã nhận thanh toán. Hệ thống đang phát hành vé." : booking.payment ? "Hệ thống đang kiểm tra kết quả giao dịch. Vui lòng chưa thanh toán thêm cho đơn này." : "Đơn chưa có giao dịch thanh toán. Chọn tiếp tục thanh toán để hoàn tất đặt vé.", paymentMethodLabel: booking.payment?.provider ?? "Chưa thanh toán", amountVnd: moneyString(booking.total), customerEmail: booking.contact.email, holdCountdownSeconds: remainingSeconds(booking.expiresAt),
     ...(failed ? { failureReason: closed ? bookingStatusLabel(booking.status) : "Giao dịch chưa hoàn tất. Vui lòng kiểm tra trạng thái trước khi thanh toán lại." } : {}),
-    tickets: booking.tickets.map((ticket) => ({ ticketId: ticket.ticketId, ticketCode: ticket.ticketCode, passengerName: ticket.passengerName, seatCode: ticket.seatCode, seatType: seatTypeLabel(booking.passengers.find((p) => p.seatCode === ticket.seatCode)?.seatType ?? ""), status: ticketStatus(ticket.status) })),
+    tickets: booking.tickets.map((ticket) => ({ ticketId: ticket.ticketId, ticketCode: ticket.ticketCode, passengerName: ticketPassengerName(ticket.passengerName, ticket.companionName), seatCode: ticket.seatCode, seatType: seatTypeLabel(booking.passengers.find((p) => p.seatCode === ticket.seatCode)?.seatType ?? ""), status: ticketStatus(ticket.status) })),
     trip: { operatorName: booking.trip.operatorName, operatorCode: "", routeName: booking.trip.routeName, vehicleType: booking.trip.vehicleTypeName, departureTimeText: dateText(booking.pickup.plannedAt, { dateStyle: "short", timeStyle: "short" }), pickupPointName: booking.pickup.name, dropoffPointName: booking.dropoff.name, dropoffTimeText: dateText(booking.dropoff.plannedAt, { hour: "2-digit", minute: "2-digit" }) },
     paymentDetails: { ticketCount: booking.passengers.length, ticketPriceTotalVnd: moneyString(booking.subtotal), serviceFeeVnd: moneyString(booking.serviceFee), discountVnd: moneyString(booking.discount), finalTotalVnd: moneyString(booking.total), gatewayTxnId: booking.payment?.paymentCode ?? "", paidAtText: booking.payment?.paidAt ? dateText(booking.payment.paidAt, { dateStyle: "short", timeStyle: "short" }) : "Chưa thanh toán" }
   };
@@ -130,7 +140,7 @@ export function mapTicketDetail(booking: ApiBooking): TicketDetailData {
   return {
     bookingCode: booking.bookingCode, bookingTimeText: dateText(booking.createdAt, { dateStyle: "short", timeStyle: "short" }), status: cancelled ? "cancelled" : completed ? "completed" : "confirmed", statusLabel: bookingStatusLabel(booking.status),
     trip: { operatorName: booking.trip.operatorName, operatorCode: "", operatorHotline: booking.trip.operatorHotline ?? "", routeName: booking.trip.routeName, departureDayOfWeek: dateText(booking.pickup.plannedAt, { weekday: "long" }), departureDateText: dateText(booking.pickup.plannedAt, { dateStyle: "short" }), departureTime: dateText(booking.pickup.plannedAt, { hour: "2-digit", minute: "2-digit" }), departurePointName: booking.pickup.name, departureAddress: booking.pickup.address, arrivalTime: dateText(booking.dropoff.plannedAt, { hour: "2-digit", minute: "2-digit" }), arrivalNoticeText: "Dự kiến", arrivalPointName: booking.dropoff.name, arrivalAddress: booking.dropoff.address, travelDurationText: `${Math.round((Date.parse(booking.dropoff.plannedAt) - Date.parse(booking.pickup.plannedAt)) / 60000)} phút` },
-    tickets: booking.tickets.map((ticket) => ({ ticketId: ticket.ticketId, ticketCode: ticket.ticketCode, passengerName: ticket.passengerName, seatCode: ticket.seatCode, seatType: seatTypeLabel(booking.passengers.find((p) => p.seatCode === ticket.seatCode)?.seatType ?? ""), pricePaidVnd: moneyString(booking.passengers.find((p) => p.seatCode === ticket.seatCode)?.price ?? 0), status: ticketStatus(ticket.status), statusLabel: ({ VALID: "HỢP LỆ", CHECKED_IN: "ĐÃ LÊN XE", USED: "ĐÃ SỬ DỤNG", NO_SHOW: "VẮNG MẶT", CANCELLED: "ĐÃ HỦY", REFUNDED: "ĐÃ HOÀN TIỀN" })[ticket.status] })),
+    tickets: booking.tickets.map((ticket) => ({ ticketId: ticket.ticketId, ticketCode: ticket.ticketCode, passengerName: ticketPassengerName(ticket.passengerName, ticket.companionName), seatCode: ticket.seatCode, seatType: seatTypeLabel(booking.passengers.find((p) => p.seatCode === ticket.seatCode)?.seatType ?? ""), pricePaidVnd: moneyString(booking.passengers.find((p) => p.seatCode === ticket.seatCode)?.price ?? 0), status: ticketStatus(ticket.status), statusLabel: ({ VALID: "HỢP LỆ", CHECKED_IN: "ĐÃ LÊN XE", USED: "ĐÃ SỬ DỤNG", NO_SHOW: "VẮNG MẶT", CANCELLED: "ĐÃ HỦY", REFUNDED: "ĐÃ HOÀN TIỀN" })[ticket.status] })),
     payment: { ticketCount: booking.passengers.length, ticketPriceTotalVnd: moneyString(booking.subtotal), serviceFeeVnd: moneyString(booking.serviceFee), discountVnd: moneyString(booking.discount), paidTotalVnd: booking.payment?.status === "SUCCESS" ? moneyString(booking.payment.amount) : "0", methodLabel: booking.payment?.provider ?? "Chưa thanh toán", gatewayTxnId: booking.payment?.paymentCode ?? "", statusLabel: paymentStatusLabel(booking.payment?.status) },
     refundPolicy: { savedAtText: dateText(booking.createdAt, { dateStyle: "short" }), currentRefundNote: "Số tiền hoàn được hệ thống tính lại khi chọn vé hủy.", milestones: booking.cancellationPolicy.tiers.map((tier) => ({ timeframeText: `Trước giờ đi ít nhất ${tier.minHoursBefore} giờ`, refundRateText: `${tier.refundPercent}%`, refundPercent: tier.refundPercent })) }, boardingRules: []
   };

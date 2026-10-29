@@ -105,6 +105,8 @@ class _$CreatedBookingDtoOutputPassengersInner
   @override
   final String? phone;
   @override
+  final String? companionName;
+  @override
   final int price;
 
   factory _$CreatedBookingDtoOutputPassengersInner(
@@ -118,6 +120,7 @@ class _$CreatedBookingDtoOutputPassengersInner
       required this.seatType,
       required this.fullName,
       this.phone,
+      this.companionName,
       required this.price})
       : super._();
   @override
@@ -138,6 +141,7 @@ class _$CreatedBookingDtoOutputPassengersInner
         seatType == other.seatType &&
         fullName == other.fullName &&
         phone == other.phone &&
+        companionName == other.companionName &&
         price == other.price;
   }
 
@@ -148,6 +152,7 @@ class _$CreatedBookingDtoOutputPassengersInner
     _$hash = $jc(_$hash, seatType.hashCode);
     _$hash = $jc(_$hash, fullName.hashCode);
     _$hash = $jc(_$hash, phone.hashCode);
+    _$hash = $jc(_$hash, companionName.hashCode);
     _$hash = $jc(_$hash, price.hashCode);
     _$hash = $jf(_$hash);
     return _$hash;
@@ -161,6 +166,7 @@ class _$CreatedBookingDtoOutputPassengersInner
           ..add('seatType', seatType)
           ..add('fullName', fullName)
           ..add('phone', phone)
+          ..add('companionName', companionName)
           ..add('price', price))
         .toString();
   }
@@ -190,6 +196,11 @@ class CreatedBookingDtoOutputPassengersInnerBuilder
   String? get phone => _$this._phone;
   set phone(String? phone) => _$this._phone = phone;
 
+  String? _companionName;
+  String? get companionName => _$this._companionName;
+  set companionName(String? companionName) =>
+      _$this._companionName = companionName;
+
   int? _price;
   int? get price => _$this._price;
   set price(int? price) => _$this._price = price;
@@ -205,6 +216,7 @@ class CreatedBookingDtoOutputPassengersInnerBuilder
       _seatType = $v.seatType;
       _fullName = $v.fullName;
       _phone = $v.phone;
+      _companionName = $v.companionName;
       _price = $v.price;
       _$v = null;
     }
@@ -235,6 +247,7 @@ class CreatedBookingDtoOutputPassengersInnerBuilder
           fullName: BuiltValueNullFieldError.checkNotNull(
               fullName, r'CreatedBookingDtoOutputPassengersInner', 'fullName'),
           phone: phone,
+          companionName: companionName,
           price: BuiltValueNullFieldError.checkNotNull(
               price, r'CreatedBookingDtoOutputPassengersInner', 'price'),
         );

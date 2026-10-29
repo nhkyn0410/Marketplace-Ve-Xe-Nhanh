@@ -81,7 +81,10 @@ TripDetail sampleTripDetail() {
 }
 
 /// Phiên giữ chỗ mẫu: [seats] ở chuyến mẫu, đón 1 / trả 5, 300.000 ₫ mỗi chỗ.
-SeatHold sampleHold({List<String> seats = const ['A01', 'A03']}) {
+SeatHold sampleHold({
+  List<String> seats = const ['A01', 'A03'],
+  Set<String> doubleSeats = const {},
+}) {
   final trip = sampleTripDetail();
   final pickup = trip.stopAt(1)!;
   final dropoff = trip.stopAt(5)!;
@@ -100,7 +103,11 @@ SeatHold sampleHold({List<String> seats = const ['A01', 'A03']}) {
     ),
     seats: [
       for (final code in seats)
-        HeldSeat(code: code, type: 'BED', price: 300000),
+        HeldSeat(
+          code: code,
+          type: doubleSeats.contains(code) ? 'BED_DOUBLE' : 'BED',
+          price: 300000,
+        ),
     ],
     subtotal: seats.length * 300000,
     expiresAt: DateTime.now().add(const Duration(minutes: 10)),

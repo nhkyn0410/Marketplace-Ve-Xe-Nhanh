@@ -24,7 +24,7 @@ const TABS = ["passengers", "employees", "admins"] as const;
 type Tab = (typeof TABS)[number];
 
 /**
- * Màn Người dùng (Figma ADM-03a…03d): tab Hành khách / Nhân viên nhà xe / Tài khoản quản trị (`?tab=`). Hai tab đầu cần
+ * Màn Người dùng (Figma ADM-03a…03d): tab Tài khoản hành khách (đổi tên 28/10/2026, chờ duyệt) / Nhân viên nhà xe / Tài khoản quản trị (`?tab=`). Hai tab đầu cần
  * `user:manage`, tab cuối cần `access:manage` (TASK-IAM-007) — chỉ hiện tab được cấp.
  */
 export function UserScreen() {
@@ -49,7 +49,7 @@ export function UserScreen() {
     <div className="flex flex-col gap-6">
       <PageHeader
         title="Người dùng"
-        description="Tài khoản hành khách, nhân viên nhà xe (chỉ xem) và tài khoản quản trị nội bộ."
+        description="Tài khoản hành khách (người tự đăng ký — khách vãng lai không có tài khoản), nhân viên nhà xe (chỉ xem) và tài khoản quản trị nội bộ."
         actions={
           tab === "admins" ? (
             <Button className={`${BUTTON} min-w-52`} onClick={() => setCreating(true)}>
@@ -81,7 +81,7 @@ export function UserScreen() {
         <TabsList className="h-10 w-fit max-w-full overflow-x-auto" aria-label="Loại tài khoản">
           {tabs.includes("passengers") && (
             <TabsTrigger value="passengers" className={TAB_TRIGGER}>
-              Hành khách
+              Tài khoản hành khách
             </TabsTrigger>
           )}
           {tabs.includes("employees") && (

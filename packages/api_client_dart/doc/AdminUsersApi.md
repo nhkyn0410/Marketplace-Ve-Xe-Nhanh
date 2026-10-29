@@ -10,6 +10,8 @@ All URIs are relative to *http://localhost*
 Method | HTTP request | Description
 ------------- | ------------- | -------------
 [**adminEmployeeControllerList**](AdminUsersApi.md#adminemployeecontrollerlist) | **GET** /v1/admin/employees | 
+[**adminPassengerControllerBookings**](AdminUsersApi.md#adminpassengercontrollerbookings) | **GET** /v1/admin/passengers/{id}/bookings | 
+[**adminPassengerControllerDetail**](AdminUsersApi.md#adminpassengercontrollerdetail) | **GET** /v1/admin/passengers/{id} | 
 [**adminPassengerControllerList**](AdminUsersApi.md#adminpassengercontrollerlist) | **GET** /v1/admin/passengers | 
 [**adminPassengerControllerLock**](AdminUsersApi.md#adminpassengercontrollerlock) | **POST** /v1/admin/passengers/{id}/lock | 
 [**adminPassengerControllerUnlock**](AdminUsersApi.md#adminpassengercontrollerunlock) | **POST** /v1/admin/passengers/{id}/unlock | 
@@ -61,6 +63,92 @@ Name | Type | Description  | Notes
 ### Return type
 
 [**AdminEmployeePageDtoOutput**](AdminEmployeePageDtoOutput.md)
+
+### Authorization
+
+[bearer](../README.md#bearer)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json, application/problem+json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **adminPassengerControllerBookings**
+> AdminPassengerBookingPageDtoOutput adminPassengerControllerBookings(id, cursor, limit)
+
+
+
+### Example
+```dart
+import 'package:api_client_dart/api.dart';
+
+final api = ApiClientDart().getAdminUsersApi();
+final String id = id_example; // String | 
+final String cursor = cursor_example; // String | 
+final int limit = 56; // int | 
+
+try {
+    final response = api.adminPassengerControllerBookings(id, cursor, limit);
+    print(response);
+} on DioException catch (e) {
+    print('Exception when calling AdminUsersApi->adminPassengerControllerBookings: $e\n');
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **id** | **String**|  | 
+ **cursor** | **String**|  | [optional] 
+ **limit** | **int**|  | [optional] [default to 20]
+
+### Return type
+
+[**AdminPassengerBookingPageDtoOutput**](AdminPassengerBookingPageDtoOutput.md)
+
+### Authorization
+
+[bearer](../README.md#bearer)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json, application/problem+json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **adminPassengerControllerDetail**
+> AdminPassengerDetailDtoOutput adminPassengerControllerDetail(id)
+
+
+
+### Example
+```dart
+import 'package:api_client_dart/api.dart';
+
+final api = ApiClientDart().getAdminUsersApi();
+final String id = id_example; // String | 
+
+try {
+    final response = api.adminPassengerControllerDetail(id);
+    print(response);
+} on DioException catch (e) {
+    print('Exception when calling AdminUsersApi->adminPassengerControllerDetail: $e\n');
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **id** | **String**|  | 
+
+### Return type
+
+[**AdminPassengerDetailDtoOutput**](AdminPassengerDetailDtoOutput.md)
 
 ### Authorization
 

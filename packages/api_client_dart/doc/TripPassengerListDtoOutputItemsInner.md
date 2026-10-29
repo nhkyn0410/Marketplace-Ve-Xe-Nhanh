@@ -10,6 +10,7 @@ Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **seatCode** | **String** |  | 
 **passengerName** | **String** |  | 
+**companionName** | **String** |  | 
 **phoneMasked** | **String** |  | 
 **bookingId** | **String** |  | 
 **bookingCode** | **String** |  | 

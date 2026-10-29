@@ -182,7 +182,7 @@ class _OrderCard extends StatelessWidget {
             _InfoRow(
               icon: Icons.event_seat_rounded,
               label: 'Chỗ ${passenger.seatCode}',
-              value: passenger.fullName,
+              value: passenger.displayName,
             ),
           const Padding(
             padding: EdgeInsets.symmetric(vertical: 9),

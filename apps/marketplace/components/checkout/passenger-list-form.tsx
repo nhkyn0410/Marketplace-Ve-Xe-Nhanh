@@ -143,6 +143,24 @@ export function PassengerListForm({
               </div>}
             </div>
 
+            {/* Người đi cùng trên chỗ đôi (BR-78 bổ sung 28/10/2026, chờ duyệt) — chung vé, không bắt buộc */}
+            {passenger.isDoubleSeat && (
+              <div className="mt-3.5">
+                <label className="block text-[11px] font-semibold text-vxn-ink">
+                  Người đi cùng <span className="font-normal text-neutral-400">(không bắt buộc)</span>
+                </label>
+                <input
+                  type="text"
+                  value={passenger.companionName ?? ""}
+                  maxLength={100}
+                  onChange={(e) => onUpdatePassenger?.(idx, "companionName", e.target.value)}
+                  placeholder="Họ tên người đi cùng trên chỗ đôi"
+                  className="mt-1 w-full rounded-xl border border-neutral-300 bg-white px-3 py-2 text-xs sm:text-sm text-vxn-ink shadow-2xs focus:border-vxn-teal-700 focus:outline-hidden"
+                />
+                <p className="mt-1 text-[11px] text-neutral-400">Chỗ đôi chở tối đa 2 người, dùng chung một vé.</p>
+              </div>
+            )}
+
             {/* Checkbox lưu hành khách */}
             {maxSavedCount > 0 && <div className="mt-3.5 flex items-center justify-between pt-2">
               <label className="flex items-center gap-2 cursor-pointer text-xs text-vxn-ink font-medium select-none">

@@ -10,11 +10,13 @@ All URIs are relative to *http://localhost*
 Method | HTTP request | Description
 ------------- | ------------- | -------------
 [**adminOperatorControllerApproveBankChange**](AdminOperatorsApi.md#adminoperatorcontrollerapprovebankchange) | **POST** /v1/admin/operators/{id}/bank-account-change/approve | 
+[**adminOperatorControllerDetail**](AdminOperatorsApi.md#adminoperatorcontrollerdetail) | **GET** /v1/admin/operators/{id} | 
 [**adminOperatorControllerGetBankChange**](AdminOperatorsApi.md#adminoperatorcontrollergetbankchange) | **GET** /v1/admin/operators/{id}/bank-account-change | 
 [**adminOperatorControllerList**](AdminOperatorsApi.md#adminoperatorcontrollerlist) | **GET** /v1/admin/operators | 
 [**adminOperatorControllerRejectBankChange**](AdminOperatorsApi.md#adminoperatorcontrollerrejectbankchange) | **POST** /v1/admin/operators/{id}/bank-account-change/reject | 
 [**adminOperatorControllerSuspend**](AdminOperatorsApi.md#adminoperatorcontrollersuspend) | **POST** /v1/admin/operators/{id}/suspend | 
 [**adminOperatorControllerUnsuspend**](AdminOperatorsApi.md#adminoperatorcontrollerunsuspend) | **POST** /v1/admin/operators/{id}/unsuspend | 
+[**adminOperatorControllerVehicles**](AdminOperatorsApi.md#adminoperatorcontrollervehicles) | **GET** /v1/admin/operators/{id}/vehicles | 
 
 
 # **adminOperatorControllerApproveBankChange**
@@ -56,6 +58,47 @@ void (empty response body)
 
  - **Content-Type**: application/json
  - **Accept**: application/problem+json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **adminOperatorControllerDetail**
+> AdminOperatorDetailDtoOutput adminOperatorControllerDetail(id)
+
+
+
+### Example
+```dart
+import 'package:api_client_dart/api.dart';
+
+final api = ApiClientDart().getAdminOperatorsApi();
+final String id = 38400000-8cf0-11bd-b23e-10b96e4ef00d; // String | 
+
+try {
+    final response = api.adminOperatorControllerDetail(id);
+    print(response);
+} on DioException catch (e) {
+    print('Exception when calling AdminOperatorsApi->adminOperatorControllerDetail: $e\n');
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **id** | **String**|  | 
+
+### Return type
+
+[**AdminOperatorDetailDtoOutput**](AdminOperatorDetailDtoOutput.md)
+
+### Authorization
+
+[bearer](../README.md#bearer)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json, application/problem+json
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
@@ -270,6 +313,47 @@ void (empty response body)
 
  - **Content-Type**: Not defined
  - **Accept**: application/problem+json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **adminOperatorControllerVehicles**
+> AdminOperatorVehicleListDtoOutput adminOperatorControllerVehicles(id)
+
+
+
+### Example
+```dart
+import 'package:api_client_dart/api.dart';
+
+final api = ApiClientDart().getAdminOperatorsApi();
+final String id = 38400000-8cf0-11bd-b23e-10b96e4ef00d; // String | 
+
+try {
+    final response = api.adminOperatorControllerVehicles(id);
+    print(response);
+} on DioException catch (e) {
+    print('Exception when calling AdminOperatorsApi->adminOperatorControllerVehicles: $e\n');
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **id** | **String**|  | 
+
+### Return type
+
+[**AdminOperatorVehicleListDtoOutput**](AdminOperatorVehicleListDtoOutput.md)
+
+### Authorization
+
+[bearer](../README.md#bearer)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json, application/problem+json
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 

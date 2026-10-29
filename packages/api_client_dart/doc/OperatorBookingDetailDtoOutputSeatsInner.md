@@ -11,6 +11,7 @@ Name | Type | Description | Notes
 **seatCode** | **String** |  | 
 **seatType** | **String** |  | 
 **passengerName** | **String** |  | 
+**companionName** | **String** |  | 
 **phoneMasked** | **String** |  | 
 **ticketCode** | **String** |  | 
 **ticketStatus** | **String** |  | 

@@ -1,6 +1,11 @@
 import { ApiError } from "../auth/api-client";
 
 /** Hiển thị tiền VND từ chuỗi số nguyên, giữ chính xác cả giá trị lớn. */
+/** Chỗ đôi (giường đôi / cabin đôi) — được khai người đi cùng, chung vé (BR-78 bổ sung 28/10/2026, chờ duyệt). */
+export function isDoubleSeat(type: string): boolean {
+  return type === "BED_DOUBLE" || type === "CABIN_DOUBLE";
+}
+
 export function counterMoney(value: string | bigint): string {
   return `${BigInt(value).toLocaleString("vi-VN")} ₫`;
 }

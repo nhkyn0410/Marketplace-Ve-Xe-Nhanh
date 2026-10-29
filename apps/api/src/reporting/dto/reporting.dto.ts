@@ -101,6 +101,18 @@ export const AdminReportQuerySchema = z
 export type AdminReportQuery = z.infer<typeof AdminReportQuerySchema>;
 export class AdminReportQueryDto extends createZodDto(AdminReportQuerySchema) {}
 
+/** Xuất CSV theo nhà xe (mặc định), theo tuyến hoặc theo khu vực (chờ duyệt 28/10/2026). */
+export const AdminReportExportQuerySchema = z
+  .object({
+    ...DateRange,
+    operatorId: z.uuid().optional(),
+    provider: z.enum(PaymentProvider).optional(),
+    group: z.enum(["operator", "route", "region"]).default("operator"),
+  })
+  .refine(rangeOk, rangeIssue);
+export type AdminReportExportQuery = z.infer<typeof AdminReportExportQuerySchema>;
+export class AdminReportExportQueryDto extends createZodDto(AdminReportExportQuerySchema) {}
+
 export const AdminReportSchema = z.object({
   totals: z.object({
     /** VND — thanh toán thành công trong kỳ (theo giờ trả). */
@@ -134,6 +146,39 @@ export const AdminReportSchema = z.object({
     }),
   ),
   paymentMethods: z.array(z.object({ provider: z.enum(PaymentProvider), amount: z.int(), count: z.int() })),
+  /**
+   * Theo tuyến (FR-NSR-13; chờ duyệt 28/10/2026): tối đa 50 tuyến bán nhiều vé nhất trong kỳ — chuyến khởi hành trong
+   * kỳ, doanh thu = tổng giá vé đã bán (khác GMV tính theo giờ thanh toán).
+   */
+  byRoute: z.array(
+    z.object({
+      routeId: z.uuid(),
+      routeName: z.string(),
+      operatorId: z.uuid(),
+      operatorName: z.string(),
+      originName: z.string().nullable(),
+      destinationName: z.string().nullable(),
+      trips: z.int(),
+      seats: z.int(),
+      ticketsSold: z.int(),
+      ticketRevenue: z.int(),
+    }),
+  ),
+  /** Theo khu vực: gộp tuyến mọi nhà xe theo cặp tỉnh điểm đầu → điểm cuối, tối đa 50 cặp bán nhiều vé nhất. */
+  byRegion: z.array(
+    z.object({
+      originProvinceId: z.uuid(),
+      originName: z.string(),
+      destinationProvinceId: z.uuid(),
+      destinationName: z.string(),
+      routes: z.int(),
+      operators: z.int(),
+      trips: z.int(),
+      seats: z.int(),
+      ticketsSold: z.int(),
+      ticketRevenue: z.int(),
+    }),
+  ),
 });
 export type AdminReport = z.infer<typeof AdminReportSchema>;
 /** Báo cáo toàn hệ thống trong kỳ. */

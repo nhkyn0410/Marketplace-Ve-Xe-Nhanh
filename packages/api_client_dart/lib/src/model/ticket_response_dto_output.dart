@@ -20,6 +20,7 @@ part 'ticket_response_dto_output.g.dart';
 /// * [seatCode] 
 /// * [seatType] 
 /// * [passengerName] 
+/// * [companionName] 
 /// * [bookingId] 
 /// * [bookingCode] 
 /// * [bookingStatus] 
@@ -50,6 +51,9 @@ abstract class TicketResponseDtoOutput implements Built<TicketResponseDtoOutput,
 
   @BuiltValueField(wireName: r'passengerName')
   String get passengerName;
+
+  @BuiltValueField(wireName: r'companionName')
+  String? get companionName;
 
   @BuiltValueField(wireName: r'bookingId')
   String get bookingId;
@@ -131,6 +135,11 @@ class _$TicketResponseDtoOutputSerializer implements PrimitiveSerializer<TicketR
     yield serializers.serialize(
       object.passengerName,
       specifiedType: const FullType(String),
+    );
+    yield r'companionName';
+    yield object.companionName == null ? null : serializers.serialize(
+      object.companionName,
+      specifiedType: const FullType.nullable(String),
     );
     yield r'bookingId';
     yield serializers.serialize(
@@ -241,6 +250,14 @@ class _$TicketResponseDtoOutputSerializer implements PrimitiveSerializer<TicketR
             specifiedType: const FullType(String),
           ) as String;
           result.passengerName = valueDes;
+          break;
+        case r'companionName':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType.nullable(String),
+          ) as String?;
+          if (valueDes == null) continue;
+          result.companionName = valueDes;
           break;
         case r'bookingId':
           final valueDes = serializers.deserialize(

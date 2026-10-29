@@ -20,8 +20,11 @@ import { listEmployees, type AccountStatus, type EmployeeRole } from "../../lib/
 import { ACCOUNT_STATUS, EMPLOYEE_ROLE, formatDateTime } from "../../lib/user/user-format";
 import { ErrorPanel, StatusCell } from "./passenger-list";
 
-/** Tab "Nhân viên nhà xe" (Figma ADM-03b): chỉ xem — tạo, khóa, cấp lại mật khẩu nhân viên do chủ nhà xe làm. */
-export function EmployeeList() {
+/**
+ * Tab "Nhân viên nhà xe" (Figma ADM-03b): chỉ xem — tạo, khóa, cấp lại mật khẩu nhân viên do chủ nhà xe làm. `operatorId`
+ * cố định = tab Nhân viên trong chi tiết nhà xe (ẩn ô lọc nhà xe).
+ */
+export function EmployeeList({ operatorId: fixedOperator }: { operatorId?: string } = {}) {
   const [search, setSearch] = useState("");
   const [operatorId, setOperatorId] = useState<string>(ALL);
   const [role, setRole] = useState<string>(ALL);
@@ -30,11 +33,11 @@ export function EmployeeList() {
   const filters = useMemo(
     () => ({
       q: q || undefined,
-      operatorId: operatorId === ALL ? undefined : operatorId,
+      operatorId: fixedOperator ?? (operatorId === ALL ? undefined : operatorId),
       role: role === ALL ? undefined : role,
       status: status === ALL ? undefined : status
     }),
-    [q, operatorId, role, status]
+    [q, fixedOperator, operatorId, role, status]
   );
   const pages = useInfiniteQuery({
     queryKey: ["admin-employees", filters],
@@ -121,14 +124,16 @@ export function EmployeeList() {
       <section aria-label="Danh sách nhân viên nhà xe" className="flex flex-col rounded-xl border bg-card p-6">
         <div className="flex flex-wrap items-end gap-x-4 gap-y-3 pb-5">
           <SearchField label="Tìm nhân viên" placeholder="Tên đăng nhập hoặc email" value={search} onChange={setSearch} />
-          <FilterSelect
-            label="Nhà xe"
-            allLabel="Tất cả nhà xe"
-            value={operatorId}
-            onChange={setOperatorId}
-            options={operators.map((operator) => ({ value: operator.id, label: operator.name }))}
-            className="w-52"
-          />
+          {!fixedOperator && (
+            <FilterSelect
+              label="Nhà xe"
+              allLabel="Tất cả nhà xe"
+              value={operatorId}
+              onChange={setOperatorId}
+              options={operators.map((operator) => ({ value: operator.id, label: operator.name }))}
+              className="w-52"
+            />
+          )}
           <FilterSelect
             label="Vai trò"
             allLabel="Tất cả vai trò"

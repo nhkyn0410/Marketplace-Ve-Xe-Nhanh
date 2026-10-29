@@ -2,15 +2,18 @@
 
 import { keepPreviousData, useMutation, useQuery } from "@tanstack/react-query";
 import { Button } from "@vexenhanh/ui/components/button";
-import { ALL, TABLE, TABLE_CELL, TABLE_HEAD_CELL, TABLE_HEAD_ROW, TableSkeleton } from "@vexenhanh/ui/components/list-controls";
+import { ALL, FilterSelect, TABLE, TABLE_CELL, TABLE_HEAD_CELL, TABLE_HEAD_ROW, TableSkeleton } from "@vexenhanh/ui/components/list-controls";
 import { BUTTON, ListStatePanel } from "@vexenhanh/ui/components/list-parts";
 import { Skeleton } from "@vexenhanh/ui/components/skeleton";
 import { ApiError } from "@vexenhanh/ui/lib/auth/api-client";
 import { ChartColumn, CircleAlert, Download, LoaderCircle, RefreshCw } from "lucide-react";
+import Link from "next/link";
 import { useState, type ReactNode } from "react";
 
+import { shortProvince } from "../../lib/operation/operation-format";
+
 import { formatVnd, PROVIDER_LABEL } from "../../lib/payment/payment-format";
-import { downloadAdminReportCsv, getAdminReport, type AdminReport } from "../../lib/report/report-api";
+import { downloadAdminReportCsv, getAdminReport, type AdminReport, type ReportGroup } from "../../lib/report/report-api";
 import { countLabel, lastDays, percentLabel, validRange } from "../../lib/report/report-format";
 import { PageHeader } from "../page-header";
 import { ReportFilters, toParams, type ReportFilterState } from "./report-filters";
@@ -18,14 +21,16 @@ import { ReportFilters, toParams, type ReportFilterState } from "./report-filter
 /**
  * Báo cáo toàn hệ thống (Figma ADM-14a; TASK-RPT-002, FR-NSR-13, FR-ADM-17, UC-29): giá trị giao dịch, doanh thu sau hoàn (tạm
  * tính khi còn giao dịch cần đối soát), lấp đầy, chuyến bị nhà xe hủy, bảng theo nhà xe, phương thức thanh toán; xuất CSV (có
- * nhật ký audit). Điểm đánh giá chỉ tính đánh giá công khai của chuyến khởi hành trong kỳ.
+ * nhật ký audit). Điểm đánh giá chỉ tính đánh giá công khai của chuyến khởi hành trong kỳ. Thêm 28/10/2026 (chờ duyệt, FR-NSR-13
+ * "theo tuyến, khu vực"): bảng Theo tuyến, Theo khu vực (cặp tỉnh đi → đến, mọi nhà xe); xuất CSV theo từng kiểu.
  */
 export function ReportScreen() {
   const [filters, setFilters] = useState<ReportFilterState>({ ...lastDays(7), operatorId: ALL, provider: ALL });
   const ok = validRange(filters.from, filters.to);
   const params = toParams(filters);
   const report = useQuery({ queryKey: ["admin-report", params], queryFn: () => getAdminReport(params), enabled: ok, placeholderData: keepPreviousData });
-  const exporter = useMutation({ mutationFn: () => downloadAdminReportCsv(params) });
+  const [group, setGroup] = useState<ReportGroup>("operator");
+  const exporter = useMutation({ mutationFn: () => downloadAdminReportCsv(params, group) });
   const data = report.data;
 
   let body: ReactNode;
@@ -71,6 +76,14 @@ export function ReportScreen() {
             {!data ? <Skeleton className="h-16 w-full" /> : <Methods methods={data.paymentMethods} />}
           </Panel>
         </div>
+        <div className="flex flex-col gap-6">
+          <Panel title="Theo tuyến" description="Tối đa 50 tuyến bán nhiều vé nhất; chuyến khởi hành trong kỳ, doanh thu = tổng giá vé đã bán.">
+            {!data ? <TableSkeleton label="Đang tải số liệu theo tuyến" rows={4} /> : <RouteTable rows={data.byRoute} />}
+          </Panel>
+          <Panel title="Theo khu vực" description="Gộp tuyến mọi nhà xe theo tỉnh điểm đầu → tỉnh điểm cuối — khu vực có nhu cầu cao.">
+            {!data ? <TableSkeleton label="Đang tải số liệu theo khu vực" rows={4} /> : <RegionTable rows={data.byRegion} />}
+          </Panel>
+        </div>
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           <Stat label="Khiếu nại và tranh chấp" value={totals && countLabel(totals.supportTickets)} note={totals && `${countLabel(totals.disputesOpened)} tranh chấp được mở trong kỳ`} />
         </div>
@@ -84,10 +97,23 @@ export function ReportScreen() {
         title="Báo cáo"
         description="Số liệu toàn hệ thống. Số liệu đang đối soát được đánh dấu “tạm tính”."
         actions={
-          <Button className={BUTTON} disabled={!ok || exporter.isPending} onClick={() => exporter.mutate()}>
-            {exporter.isPending ? <LoaderCircle className="size-[18px] animate-spin" /> : <Download className="size-[18px]" />}
-            Xuất báo cáo
-          </Button>
+          <div className="flex flex-wrap items-end gap-3">
+            <FilterSelect
+              label="Kiểu tệp xuất"
+              allLabel="Theo nhà xe"
+              value={group === "operator" ? ALL : group}
+              onChange={(value) => setGroup(value === ALL ? "operator" : (value as ReportGroup))}
+              options={[
+                { value: "route", label: "Theo tuyến" },
+                { value: "region", label: "Theo khu vực" }
+              ]}
+              className="w-44"
+            />
+            <Button className={BUTTON} disabled={!ok || exporter.isPending} onClick={() => exporter.mutate()}>
+              {exporter.isPending ? <LoaderCircle className="size-[18px] animate-spin" /> : <Download className="size-[18px]" />}
+              Xuất báo cáo
+            </Button>
+          </div>
         }
       />
       {exporter.isError && (
@@ -139,6 +165,90 @@ function OperatorTable({ rows }: { rows: AdminReport["byOperator"] }) {
                 {percentLabel(row.refunded, row.gmv)}
               </td>
               <td className={`${TABLE_CELL} text-right tabular-nums`}>{row.averageRating === null ? "—" : `${row.averageRating.toFixed(1)} / 5`} <span className="text-xs text-muted-foreground">({countLabel(row.reviewCount)})</span></td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+function RouteTable({ rows }: { rows: AdminReport["byRoute"] }) {
+  if (rows.length === 0) {
+    return <ListStatePanel icon={<ChartColumn className="size-6 text-vxn-fg-3" />} title="Chưa có chuyến trong kỳ" description="Tuyến có chuyến khởi hành trong kỳ hiện ở đây." compact />;
+  }
+  return (
+    <div className="overflow-x-auto">
+      <table className={`${TABLE} min-w-[560px]`}>
+        <thead>
+          <tr className={TABLE_HEAD_ROW}>
+            <th scope="col" className={`${TABLE_HEAD_CELL} w-[44%]`}>
+              Tuyến
+            </th>
+            {["Chuyến", "Vé", "Lấp đầy", "Doanh thu vé"].map((heading) => (
+              <th key={heading} scope="col" className={`${TABLE_HEAD_CELL} text-right`}>
+                {heading}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((row) => (
+            <tr key={row.routeId} className="border-b last:border-b-0">
+              <td className={TABLE_CELL}>
+                <div className="flex min-w-0 flex-col">
+                  <Link href={`/routes/${row.routeId}`} className="truncate font-semibold text-vxn-ink hover:text-primary hover:underline">
+                    {row.routeName}
+                  </Link>
+                  <span className="truncate text-xs leading-[18px] text-muted-foreground">
+                    {row.operatorName}
+                    {row.originName && row.destinationName ? ` · ${shortProvince(row.originName)} → ${shortProvince(row.destinationName)}` : ""}
+                  </span>
+                </div>
+              </td>
+              <td className={`${TABLE_CELL} text-right tabular-nums`}>{countLabel(row.trips)}</td>
+              <td className={`${TABLE_CELL} text-right font-semibold tabular-nums`}>{countLabel(row.ticketsSold)}</td>
+              <td className={`${TABLE_CELL} text-right tabular-nums`}>{percentLabel(row.ticketsSold, row.seats)}</td>
+              <td className={`${TABLE_CELL} text-right tabular-nums`}>{formatVnd(row.ticketRevenue)}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+function RegionTable({ rows }: { rows: AdminReport["byRegion"] }) {
+  if (rows.length === 0) {
+    return <ListStatePanel icon={<ChartColumn className="size-6 text-vxn-fg-3" />} title="Chưa có chuyến trong kỳ" description="Cặp tỉnh có chuyến khởi hành trong kỳ hiện ở đây." compact />;
+  }
+  return (
+    <div className="overflow-x-auto">
+      <table className={`${TABLE} min-w-[560px]`}>
+        <thead>
+          <tr className={TABLE_HEAD_ROW}>
+            <th scope="col" className={`${TABLE_HEAD_CELL} w-[40%]`}>
+              Tỉnh đi → tỉnh đến
+            </th>
+            {["Tuyến · nhà xe", "Vé", "Lấp đầy", "Doanh thu vé"].map((heading) => (
+              <th key={heading} scope="col" className={`${TABLE_HEAD_CELL} text-right`}>
+                {heading}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((row) => (
+            <tr key={`${row.originProvinceId}>${row.destinationProvinceId}`} className="border-b last:border-b-0">
+              <td className={`${TABLE_CELL} font-semibold text-vxn-ink`}>
+                {shortProvince(row.originName)} → {shortProvince(row.destinationName)}
+              </td>
+              <td className={`${TABLE_CELL} text-right tabular-nums`}>
+                {countLabel(row.routes)} · {countLabel(row.operators)}
+              </td>
+              <td className={`${TABLE_CELL} text-right font-semibold tabular-nums`}>{countLabel(row.ticketsSold)}</td>
+              <td className={`${TABLE_CELL} text-right tabular-nums`}>{percentLabel(row.ticketsSold, row.seats)}</td>
+              <td className={`${TABLE_CELL} text-right tabular-nums`}>{formatVnd(row.ticketRevenue)}</td>
             </tr>
           ))}
         </tbody>

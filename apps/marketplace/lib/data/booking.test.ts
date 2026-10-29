@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { apiMoney, dropoffForPickup, isDropoffAfterPickup, mapBookingPrice, mapLookupResult, mapPaymentResult, mapSeatSelection, mapTicketDetail, moneyString } from "./booking-mappers";
+import { apiMoney, dropoffForPickup, isDoubleSeat, isDropoffAfterPickup, mapBookingPrice, mapLookupResult, mapPaymentResult, mapSeatSelection, mapTicketDetail, moneyString, ticketPassengerName } from "./booking-mappers";
 import { bookingFixture, holdFixture, publicTripFixture } from "./booking-test-fixture";
 
 const { request, profile, wallet, jar, values } = vi.hoisted(() => {
@@ -138,6 +138,31 @@ describe("booking API integration", () => {
     expect(JSON.parse(request.mock.calls[1]![1].body)).toMatchObject({ promotionCode: "THU10", expectedTotal: 90001 });
     expect(request.mock.calls.map((call) => call[0])).toEqual([`/seat-holds/${hold.holdId}`, "/bookings"]);
     expect(JSON.parse(request.mock.calls[1]![1].body)).not.toHaveProperty("userVoucherId");
+  });
+
+  it("chỗ đôi gửi người đi cùng (đã bỏ khoảng trắng); chỗ thường không gửi dù ô có chữ; ô trống → null", async () => {
+    const hold = holdFixture();
+    const booking = bookingFixture();
+    request.mockResolvedValueOnce({ status: "ok", data: hold }).mockResolvedValueOnce({ status: "ok", data: { ...booking, accessToken: "private-guest-token" } });
+    const base = { ...bookingFixture().passengers[0]!, seatTypeLabel: "", floorLabel: "", priceVnd: "1", phoneNumber: "", idNumber: "", shouldSaveForLater: false };
+    const payload = {
+      contactInfo: { fullName: "Khách", phoneNumber: "0900000000", email: "guest@example.test" },
+      passengers: [
+        { ...base, seatCode: "B1", isDoubleSeat: true, companionName: "  Trần Thị B  " },
+        { ...base, seatCode: "B2", isDoubleSeat: true, companionName: "   " },
+        { ...base, seatCode: "A1", isDoubleSeat: false, companionName: "Không gửi" }
+      ],
+      note: ""
+    };
+    expect((await createBooking(hold.holdId, payload)).status).toBe("ok");
+    expect(JSON.parse(request.mock.calls[1]![1].body).passengers.map((passenger: { companionName: string | null }) => passenger.companionName)).toEqual(["Trần Thị B", null, null]);
+  });
+
+  it("tên trên vé ghép người đi cùng của chỗ đôi", () => {
+    expect(ticketPassengerName("Nguyễn Văn A", "Trần Thị B")).toBe("Nguyễn Văn A và Trần Thị B");
+    expect(ticketPassengerName("Nguyễn Văn A", null)).toBe("Nguyễn Văn A");
+    expect(isDoubleSeat("CABIN_DOUBLE")).toBe(true);
+    expect(isDoubleSeat("BED")).toBe(false);
   });
 
   it("giữ lỗi tạo đơn khi mã hết lượt hoặc tổng thay đổi, không tự tạo lại đơn bỏ mã", async () => {

@@ -12,8 +12,12 @@ import {
   AdminBankChangeDto,
   type AdminBankChange,
   AdminBankChangeRejectDto,
+  AdminOperatorDetailDto,
+  type AdminOperatorDetail,
   AdminOperatorIdParamDto,
   AdminOperatorListQueryDto,
+  AdminOperatorVehicleListDto,
+  type AdminOperatorVehicleList,
   AdminOperatorPageDto,
   type AdminOperatorPage,
   AdminOperatorSuspendDto,
@@ -38,6 +42,30 @@ export class AdminOperatorController {
   @ZodResponse({ status: 200, description: "Một trang nhà xe.", type: AdminOperatorPageDto })
   list(@Authz() authz: Authorization, @Query() query: AdminOperatorListQueryDto): Promise<AdminOperatorPage> {
     return this.operators.list(authz, query);
+  }
+
+  /** Chi tiết nhà xe + thẻ số 30 ngày; số tiền chỉ có khi người xem có thêm `payment:monitor` (chờ duyệt 28/10/2026). */
+  @Get(":id")
+  @Authorize("user:manage")
+  @ApiParam(ID_PARAM)
+  @ZodResponse({ status: 200, description: "Chi tiết nhà xe.", type: AdminOperatorDetailDto })
+  @ApiResponse({ status: 404, description: "`OPERATOR_NOT_FOUND`.", content: problemContent })
+  detail(
+    @Authz() authz: Authorization,
+    @CurrentUser() viewer: VerifiedAccessToken,
+    @Param() params: AdminOperatorIdParamDto,
+  ): Promise<AdminOperatorDetail> {
+    return this.operators.detail(authz, viewer, params.id);
+  }
+
+  /** Đội xe của nhà xe (chỉ xem). */
+  @Get(":id/vehicles")
+  @Authorize("user:manage")
+  @ApiParam(ID_PARAM)
+  @ZodResponse({ status: 200, description: "Xe của nhà xe.", type: AdminOperatorVehicleListDto })
+  @ApiResponse({ status: 404, description: "`OPERATOR_NOT_FOUND`.", content: problemContent })
+  vehicles(@Authz() authz: Authorization, @Param() params: AdminOperatorIdParamDto): Promise<AdminOperatorVehicleList> {
+    return this.operators.vehicles(authz, params.id);
   }
 
   /** `ACTIVE` → `SUSPENDED` kèm lý do; thu hồi mọi phiên của nhà xe, email chủ nhà xe (audited). */

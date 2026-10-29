@@ -205,6 +205,8 @@ class _$OperatorBookingDetailDtoOutputSeatsInner
   @override
   final String passengerName;
   @override
+  final String? companionName;
+  @override
   final String? phoneMasked;
   @override
   final String? ticketCode;
@@ -221,6 +223,7 @@ class _$OperatorBookingDetailDtoOutputSeatsInner
       {required this.seatCode,
       required this.seatType,
       required this.passengerName,
+      this.companionName,
       this.phoneMasked,
       this.ticketCode,
       this.ticketStatus})
@@ -242,6 +245,7 @@ class _$OperatorBookingDetailDtoOutputSeatsInner
         seatCode == other.seatCode &&
         seatType == other.seatType &&
         passengerName == other.passengerName &&
+        companionName == other.companionName &&
         phoneMasked == other.phoneMasked &&
         ticketCode == other.ticketCode &&
         ticketStatus == other.ticketStatus;
@@ -253,6 +257,7 @@ class _$OperatorBookingDetailDtoOutputSeatsInner
     _$hash = $jc(_$hash, seatCode.hashCode);
     _$hash = $jc(_$hash, seatType.hashCode);
     _$hash = $jc(_$hash, passengerName.hashCode);
+    _$hash = $jc(_$hash, companionName.hashCode);
     _$hash = $jc(_$hash, phoneMasked.hashCode);
     _$hash = $jc(_$hash, ticketCode.hashCode);
     _$hash = $jc(_$hash, ticketStatus.hashCode);
@@ -267,6 +272,7 @@ class _$OperatorBookingDetailDtoOutputSeatsInner
           ..add('seatCode', seatCode)
           ..add('seatType', seatType)
           ..add('passengerName', passengerName)
+          ..add('companionName', companionName)
           ..add('phoneMasked', phoneMasked)
           ..add('ticketCode', ticketCode)
           ..add('ticketStatus', ticketStatus))
@@ -296,6 +302,11 @@ class OperatorBookingDetailDtoOutputSeatsInnerBuilder
   set passengerName(String? passengerName) =>
       _$this._passengerName = passengerName;
 
+  String? _companionName;
+  String? get companionName => _$this._companionName;
+  set companionName(String? companionName) =>
+      _$this._companionName = companionName;
+
   String? _phoneMasked;
   String? get phoneMasked => _$this._phoneMasked;
   set phoneMasked(String? phoneMasked) => _$this._phoneMasked = phoneMasked;
@@ -322,6 +333,7 @@ class OperatorBookingDetailDtoOutputSeatsInnerBuilder
       _seatCode = $v.seatCode;
       _seatType = $v.seatType;
       _passengerName = $v.passengerName;
+      _companionName = $v.companionName;
       _phoneMasked = $v.phoneMasked;
       _ticketCode = $v.ticketCode;
       _ticketStatus = $v.ticketStatus;
@@ -353,6 +365,7 @@ class OperatorBookingDetailDtoOutputSeatsInnerBuilder
               r'OperatorBookingDetailDtoOutputSeatsInner', 'seatType'),
           passengerName: BuiltValueNullFieldError.checkNotNull(passengerName,
               r'OperatorBookingDetailDtoOutputSeatsInner', 'passengerName'),
+          companionName: companionName,
           phoneMasked: phoneMasked,
           ticketCode: ticketCode,
           ticketStatus: ticketStatus,

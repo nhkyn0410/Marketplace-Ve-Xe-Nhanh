@@ -52,7 +52,7 @@ const DETAIL: PaymentDetail = {
   canRefund: false
 };
 
-describe("payment-format (ADM-002 Thanh toán & hoàn tiền)", () => {
+describe("payment-format (ADM-002 Giao dịch)", () => {
   it("giờ VN, ghi chú dòng, thao tác cuối dòng", () => {
     expect(moment("2026-10-08T07:12:00.000Z")).toBe("08/10 · 14:12");
     expect(tripMoment("2026-10-16T15:30:00.000Z")).toBe("22:30 ngày 16/10/2026");

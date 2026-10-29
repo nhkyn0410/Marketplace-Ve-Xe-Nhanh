@@ -86,7 +86,7 @@ export const AdminPaymentListQuerySchema = z
     status: z.enum(PaymentStatus).optional(),
     /** `open` = chỉ thanh toán cần đối soát chưa xử lý (tab "Cần đối soát"). */
     reconcile: z.enum(["open"]).optional(),
-    /** Mã thanh toán, mã đặt vé hoặc mã giao dịch cổng. */
+    /** Mã thanh toán, mã đặt vé, mã giao dịch cổng, SĐT hoặc email người đặt. */
     q: z.string().trim().min(1).max(100).optional(),
     cursor: z.uuid().optional(),
     limit: z.coerce.number().int().min(1).max(100).default(20),

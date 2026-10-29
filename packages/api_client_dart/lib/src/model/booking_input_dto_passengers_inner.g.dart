@@ -13,13 +13,18 @@ class _$BookingInputDtoPassengersInner extends BookingInputDtoPassengersInner {
   final String fullName;
   @override
   final String? phone;
+  @override
+  final String? companionName;
 
   factory _$BookingInputDtoPassengersInner(
           [void Function(BookingInputDtoPassengersInnerBuilder)? updates]) =>
       (BookingInputDtoPassengersInnerBuilder()..update(updates))._build();
 
   _$BookingInputDtoPassengersInner._(
-      {required this.seatCode, required this.fullName, this.phone})
+      {required this.seatCode,
+      required this.fullName,
+      this.phone,
+      this.companionName})
       : super._();
   @override
   BookingInputDtoPassengersInner rebuild(
@@ -36,7 +41,8 @@ class _$BookingInputDtoPassengersInner extends BookingInputDtoPassengersInner {
     return other is BookingInputDtoPassengersInner &&
         seatCode == other.seatCode &&
         fullName == other.fullName &&
-        phone == other.phone;
+        phone == other.phone &&
+        companionName == other.companionName;
   }
 
   @override
@@ -45,6 +51,7 @@ class _$BookingInputDtoPassengersInner extends BookingInputDtoPassengersInner {
     _$hash = $jc(_$hash, seatCode.hashCode);
     _$hash = $jc(_$hash, fullName.hashCode);
     _$hash = $jc(_$hash, phone.hashCode);
+    _$hash = $jc(_$hash, companionName.hashCode);
     _$hash = $jf(_$hash);
     return _$hash;
   }
@@ -54,7 +61,8 @@ class _$BookingInputDtoPassengersInner extends BookingInputDtoPassengersInner {
     return (newBuiltValueToStringHelper(r'BookingInputDtoPassengersInner')
           ..add('seatCode', seatCode)
           ..add('fullName', fullName)
-          ..add('phone', phone))
+          ..add('phone', phone)
+          ..add('companionName', companionName))
         .toString();
   }
 }
@@ -77,6 +85,11 @@ class BookingInputDtoPassengersInnerBuilder
   String? get phone => _$this._phone;
   set phone(String? phone) => _$this._phone = phone;
 
+  String? _companionName;
+  String? get companionName => _$this._companionName;
+  set companionName(String? companionName) =>
+      _$this._companionName = companionName;
+
   BookingInputDtoPassengersInnerBuilder() {
     BookingInputDtoPassengersInner._defaults(this);
   }
@@ -87,6 +100,7 @@ class BookingInputDtoPassengersInnerBuilder
       _seatCode = $v.seatCode;
       _fullName = $v.fullName;
       _phone = $v.phone;
+      _companionName = $v.companionName;
       _$v = null;
     }
     return this;
@@ -113,6 +127,7 @@ class BookingInputDtoPassengersInnerBuilder
           fullName: BuiltValueNullFieldError.checkNotNull(
               fullName, r'BookingInputDtoPassengersInner', 'fullName'),
           phone: phone,
+          companionName: companionName,
         );
     replace(_$result);
     return _$result;

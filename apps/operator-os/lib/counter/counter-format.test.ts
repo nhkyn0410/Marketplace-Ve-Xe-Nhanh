@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { counterBookingLabel, counterExceptionLabel, counterMoney, counterTicketLabel, counterToday, receiptInputError, selectedCounterTotal } from "./counter-format";
+import { counterBookingLabel, counterExceptionLabel, counterMoney, counterTicketLabel, counterToday, isDoubleSeat, receiptInputError, selectedCounterTotal } from "./counter-format";
 
 describe("tiền và xác nhận thu quầy", () => {
   it("không mất đồng khi tổng và định dạng lớn hơn giới hạn số nguyên number", () => {
@@ -27,5 +27,11 @@ describe("tiền và xác nhận thu quầy", () => {
     expect(counterExceptionLabel("FUTURE_INTERNAL_CODE")).not.toContain("FUTURE_INTERNAL_CODE");
     expect(counterBookingLabel("EXPIRED")).toBe("Hết hạn giữ chỗ");
     expect(counterTicketLabel("CANCELLED")).toBe("Đã hủy");
+  });
+});
+
+describe("người đi cùng trên chỗ đôi (BR-78 bổ sung)", () => {
+  it("chỉ giường đôi / cabin đôi có ô người đi cùng", () => {
+    expect(["SEAT", "BED", "BED_DOUBLE", "CABIN", "CABIN_DOUBLE"].filter(isDoubleSeat)).toEqual(["BED_DOUBLE", "CABIN_DOUBLE"]);
   });
 });

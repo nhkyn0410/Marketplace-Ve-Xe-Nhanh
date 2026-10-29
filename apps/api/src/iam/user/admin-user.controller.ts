@@ -13,6 +13,11 @@ import {
   AdminEmployeeListQueryDto,
   AdminEmployeePageDto,
   type EmployeePage,
+  AdminPassengerBookingPageDto,
+  type AdminPassengerBookingPage,
+  AdminPassengerBookingQueryDto,
+  AdminPassengerDetailDto,
+  type AdminPassengerDetail,
   AdminPassengerListQueryDto,
   AdminPassengerPageDto,
   type PassengerPage,
@@ -58,6 +63,32 @@ export class AdminPassengerController {
   @ZodResponse({ status: 200, description: "Một trang hành khách.", type: AdminPassengerPageDto })
   list(@Authz() authz: Authorization, @Query() query: AdminPassengerListQueryDto): Promise<PassengerPage> {
     return this.accounts.listPassengers(authz, query);
+  }
+
+  /** Chi tiết tài khoản hành khách — mỗi lượt xem ghi audit (Security §239); tiền chỉ có với `payment:monitor`. */
+  @Get(":id")
+  @Authorize("user:manage")
+  @ApiParam({ name: "id", type: String })
+  @ZodResponse({ status: 200, description: "Chi tiết hành khách.", type: AdminPassengerDetailDto })
+  @ApiResponse(NOT_FOUND)
+  @ApiResponse({ status: 503, description: "Chưa ghi được nhật ký lượt xem — không trả dữ liệu.", content: problemContent })
+  detail(@Authz() authz: Authorization, @CurrentUser() actor: VerifiedAccessToken, @Param() params: AdminUserIdParamDto): Promise<AdminPassengerDetail> {
+    return this.accounts.passengerDetail(authz, actor, params.id);
+  }
+
+  /** Đơn đặt vé của tài khoản, mới đặt trước; kèm người đi trên từng vé. */
+  @Get(":id/bookings")
+  @Authorize("user:manage")
+  @ApiParam({ name: "id", type: String })
+  @ZodResponse({ status: 200, description: "Một trang đơn đặt vé.", type: AdminPassengerBookingPageDto })
+  @ApiResponse(NOT_FOUND)
+  bookings(
+    @Authz() authz: Authorization,
+    @CurrentUser() actor: VerifiedAccessToken,
+    @Param() params: AdminUserIdParamDto,
+    @Query() query: AdminPassengerBookingQueryDto,
+  ): Promise<AdminPassengerBookingPage> {
+    return this.accounts.passengerBookings(authz, actor, params.id, query);
   }
 
   /** Khóa (lý do bắt buộc): không đăng nhập / làm mới phiên được, mọi phiên bị thu hồi (audited). */

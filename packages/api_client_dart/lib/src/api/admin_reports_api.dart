@@ -30,6 +30,7 @@ class AdminReportsApi {
   /// * [to] 
   /// * [operatorId] 
   /// * [provider] 
+  /// * [group] 
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
   /// * [extras] - Can be used to add flags to the request
@@ -44,6 +45,7 @@ class AdminReportsApi {
     required Date to,
     String? operatorId,
     String? provider,
+    String? group,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
     Map<String, dynamic>? extra,
@@ -75,6 +77,7 @@ class AdminReportsApi {
       r'to': encodeQueryParameter(_serializers, to, const FullType(Date)),
       if (operatorId != null) r'operatorId': encodeQueryParameter(_serializers, operatorId, const FullType(String)),
       if (provider != null) r'provider': encodeQueryParameter(_serializers, provider, const FullType(String)),
+      if (group != null) r'group': encodeQueryParameter(_serializers, group, const FullType(String)),
     };
 
     final _response = await _dio.request<Object>(

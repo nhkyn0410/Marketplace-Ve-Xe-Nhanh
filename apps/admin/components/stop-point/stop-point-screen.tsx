@@ -5,7 +5,8 @@ import { Button } from "@vexenhanh/ui/components/button";
 import { BUTTON } from "@vexenhanh/ui/components/list-parts";
 import { TAB_TRIGGER } from "@vexenhanh/ui/components/list-controls";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@vexenhanh/ui/components/tabs";
-import { CircleCheck, Plus } from "lucide-react";
+import { GOONG_MAPTILES_KEY } from "@vexenhanh/ui/lib/map-config";
+import { CircleCheck, MapPinOff, Plus } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 
@@ -67,6 +68,13 @@ export function StopPointScreen() {
           </Button>
         }
       />
+      {!GOONG_MAPTILES_KEY && (
+        // Thiếu khóa thì mọi khối bản đồ ẩn đi — báo rõ để không tưởng màn hình thiếu tính năng.
+        <div role="note" className="flex items-center gap-3 rounded-lg bg-warning-50 px-5 py-3 text-sm leading-5 text-warning-700">
+          <MapPinOff className="size-5 shrink-0" />
+          Chưa cấu hình khóa bản đồ (NEXT_PUBLIC_GOONG_MAPTILES_KEY) nên bản đồ đang ẩn; tọa độ vẫn nhập tay được.
+        </div>
+      )}
       {notice && (
         <div role="status" className="flex items-center gap-3 rounded-lg bg-success-50 px-5 py-3 text-sm leading-5 text-success-700">
           <CircleCheck className="size-5 shrink-0" />

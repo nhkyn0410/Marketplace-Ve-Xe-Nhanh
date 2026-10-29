@@ -1,4 +1,4 @@
-// Gọi API Thanh toán & hoàn tiền cho Admin (05 API §7.5 `/admin/payments*`, `/admin/refunds*`; TASK-ADM-002). Kiểu lấy từ
+// Gọi API Giao dịch cho Admin (05 API §7.5 `/admin/payments*`, `/admin/refunds*`; TASK-ADM-002). Kiểu lấy từ
 // client sinh.
 import type { components } from "@vexenhanh/api-client";
 

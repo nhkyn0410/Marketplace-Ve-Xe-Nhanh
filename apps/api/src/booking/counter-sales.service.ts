@@ -279,7 +279,7 @@ export class CounterSalesService {
   }
 
   private async find(tx: DbTransaction, operatorId: string, bookingId: string) {
-    const row = await tx.booking.findFirst({ where: { id: bookingId, operatorId, channel: "COUNTER" }, include: { passengers: { orderBy: { seatCode: "asc" } }, tickets: { orderBy: { ticketCode: "asc" }, include: { passenger: { select: { fullName: true } } } }, counterReceipts: { orderBy: { createdAt: "asc" } } } });
+    const row = await tx.booking.findFirst({ where: { id: bookingId, operatorId, channel: "COUNTER" }, include: { passengers: { orderBy: { seatCode: "asc" } }, tickets: { orderBy: { ticketCode: "asc" }, include: { passenger: { select: { fullName: true, companionName: true } } } }, counterReceipts: { orderBy: { createdAt: "asc" } } } });
     if (!row?.officeId) throw counterError("COUNTER_BOOKING_NOT_FOUND", "Không tìm thấy đơn bán quầy.", HttpStatus.NOT_FOUND);
     return row;
   }
@@ -292,9 +292,9 @@ export class CounterSalesService {
       status: row.status, tripId: row.tripId,
       trip: { routeName: snapshot.trip.routeName, departureAt: snapshot.trip.departureAt, arrivalAt: snapshot.trip.arrivalAt },
       contact: { fullName: row.contactName, phone: row.contactPhone, email: row.contactEmail },
-      passengers: row.passengers.map((passenger) => ({ seatCode: passenger.seatCode, fullName: passenger.fullName, price: passenger.price.toString() })),
+      passengers: row.passengers.map((passenger) => ({ seatCode: passenger.seatCode, fullName: passenger.fullName, companionName: passenger.companionName, price: passenger.price.toString() })),
       total: row.total.toString(), expiresAt: row.expiresAt.toISOString(), createdAt: row.createdAt.toISOString(),
-      tickets: row.tickets.map((ticket) => ({ ticketId: ticket.id, ticketCode: ticket.ticketCode, seatCode: ticket.seatCode, passengerName: ticket.passenger.fullName, status: ticket.status, qrToken: this.qr.token(ticket.id) })),
+      tickets: row.tickets.map((ticket) => ({ ticketId: ticket.id, ticketCode: ticket.ticketCode, seatCode: ticket.seatCode, passengerName: ticket.passenger.fullName, companionName: ticket.passenger.companionName, status: ticket.status, qrToken: this.qr.token(ticket.id) })),
       receipts: row.counterReceipts.map((receipt) => ({ id: receipt.id, method: receipt.method, amount: receipt.amount.toString(), reference: receipt.reference, status: receipt.status, exceptionReason: receipt.exceptionReason, createdAt: receipt.createdAt.toISOString() })),
     };
   }
@@ -315,9 +315,9 @@ function access(actor: Actor, authz: Authorization, permission: Permission) {
 
 function actorKey(actor: Actor): string { return `${actor.role === "OPERATOR_OWNER" ? "operator" : "employee"}:${actor.sub}`; }
 
-function sameBookingInput(row: { contactName: string; contactPhone: string; contactEmail: string | null; note: string | null; total: bigint; passengers: { seatCode: string; fullName: string; phone: string | null }[] }, input: CounterBookingInput): boolean {
+function sameBookingInput(row: { contactName: string; contactPhone: string; contactEmail: string | null; note: string | null; total: bigint; passengers: { seatCode: string; fullName: string; phone: string | null; companionName: string | null }[] }, input: CounterBookingInput): boolean {
   if (row.contactName !== input.contact.fullName || row.contactPhone !== input.contact.phone || row.contactEmail !== (input.contact.email?.toLowerCase() ?? null) || row.note !== input.note || row.total !== BigInt(input.expectedTotal) || row.passengers.length !== input.passengers.length) return false;
-  return input.passengers.every((passenger) => row.passengers.some((saved) => saved.seatCode === passenger.seatCode && saved.fullName === passenger.fullName && saved.phone === passenger.phone));
+  return input.passengers.every((passenger) => row.passengers.some((saved) => saved.seatCode === passenger.seatCode && saved.fullName === passenger.fullName && saved.phone === passenger.phone && saved.companionName === (passenger.companionName ?? null)));
 }
 
 async function displayActor(tx: DbTransaction, operatorId: string, key: string): Promise<string> {

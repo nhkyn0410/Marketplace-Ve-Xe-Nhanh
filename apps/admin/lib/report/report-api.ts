@@ -13,6 +13,8 @@ export type OperatorRow = AdminReport["byOperator"][number];
 export type AdminOverview = Schemas["AdminOverviewDto_Output"];
 
 export type AdminReportParams = { from: string; to: string; operatorId?: string; provider?: PaymentProvider };
+/** Kiểu CSV: theo nhà xe (mặc định), theo tuyến, theo khu vực (chờ duyệt 28/10/2026). */
+export type ReportGroup = "operator" | "route" | "region";
 
 export function getAdminReport(params: AdminReportParams): Promise<AdminReport> {
   return apiRequest<AdminReport>(`/admin/reports/summary?${query(params)}`);
@@ -23,11 +25,13 @@ export function getAdminOverview(params: AdminReportParams): Promise<AdminOvervi
 }
 
 /**
- * Tải báo cáo theo nhà xe dạng CSV (máy chủ ghi nhật ký audit). Không đi qua `apiRequest` vì body là tệp: hết phiên thì làm mới
+ * Tải báo cáo theo nhà xe / tuyến / khu vực dạng CSV (máy chủ ghi nhật ký audit). Không đi qua `apiRequest` vì body là tệp: hết phiên thì làm mới
  * một lần rồi thử lại như `apiRequest`.
  */
-export async function downloadAdminReportCsv(params: AdminReportParams): Promise<void> {
-  const send = () => fetch(`${API_BASE_URL}/admin/reports/export?${query(params)}`, { credentials: "include", cache: "no-store" });
+export async function downloadAdminReportCsv(params: AdminReportParams, group: ReportGroup = "operator"): Promise<void> {
+  const search = query(params);
+  search.set("group", group);
+  const send = () => fetch(`${API_BASE_URL}/admin/reports/export?${search}`, { credentials: "include", cache: "no-store" });
   let response = await send();
   if (response.status === 401 && (await refreshSession()) === "ok") {
     response = await send();

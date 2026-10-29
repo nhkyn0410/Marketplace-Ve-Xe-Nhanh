@@ -170,8 +170,8 @@ test("tổng quan + tích hợp & hệ thống (chỉ đọc) + thanh toán & ho
   await page.getByRole("tab", { name: "Tác vụ nền" }).click();
   await expect(page.getByRole("region", { name: "Tác vụ nền" })).toBeVisible({ timeout: 20_000 });
 
-  await page.getByRole("link", { name: "Thanh toán & hoàn tiền", exact: true }).click();
-  await expect(page.getByRole("heading", { name: "Thanh toán & hoàn tiền", level: 1 })).toBeVisible({ timeout: 20_000 });
+  await page.getByRole("link", { name: "Giao dịch", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "Giao dịch", level: 1 })).toBeVisible({ timeout: 20_000 });
   await expect(page.getByRole("columnheader", { name: "Mã thanh toán" })).toBeVisible();
   await page.getByRole("tab", { name: "Hoàn tiền" }).click();
   await expect(page.getByRole("columnheader", { name: "Mã hoàn tiền" })).toBeVisible();

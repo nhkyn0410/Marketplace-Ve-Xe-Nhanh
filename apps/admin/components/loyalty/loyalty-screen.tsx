@@ -17,7 +17,7 @@ const TABS = ["policy", "members", "report"] as const;
 export type LoyaltyTab = (typeof TABS)[number];
 
 /**
- * VXN Plus (Figma ADM-12a…12d; TASK-LOY-001, FR-LOY-10..12, UC-39): tham số chương trình theo phiên bản, tài khoản thành viên +
+ * VXN Plus (Figma ADM-12a…12d; TASK-LOY-001, FR-LOY-10..12, UC-39): tham số chương trình theo phiên bản, điểm thành viên +
  * điều chỉnh điểm, báo cáo theo quý. Mỗi tab tự dựng đầu trang để đặt nút riêng (Lưu nháp / Kích hoạt, Xuất báo cáo).
  */
 export function LoyaltyScreen() {
@@ -36,14 +36,14 @@ export function LoyaltyFrame({ tab, actions, children }: { tab: LoyaltyTab; acti
   const pathname = usePathname();
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader title="VXN Plus" description="Chương trình thành viên của Vé Xe Nhanh: tham số tích điểm, tài khoản thành viên và báo cáo." actions={actions} />
+      <PageHeader title="VXN Plus" description="Chương trình thành viên của Vé Xe Nhanh: tham số tích điểm, điểm thành viên và báo cáo." actions={actions} />
       <Tabs value={tab} onValueChange={(next) => router.replace(next === "policy" ? pathname : `${pathname}?tab=${next}`, { scroll: false })} className="flex flex-col gap-6">
         <TabsList className="h-10 w-fit max-w-full overflow-x-auto" aria-label="Nhóm VXN Plus">
           <TabsTrigger value="policy" className={TAB_TRIGGER}>
             Chính sách chương trình
           </TabsTrigger>
           <TabsTrigger value="members" className={TAB_TRIGGER}>
-            Tài khoản thành viên
+            Điểm thành viên
           </TabsTrigger>
           <TabsTrigger value="report" className={TAB_TRIGGER}>
             Báo cáo

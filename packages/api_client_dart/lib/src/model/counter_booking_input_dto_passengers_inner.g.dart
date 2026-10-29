@@ -14,6 +14,8 @@ class _$CounterBookingInputDtoPassengersInner
   final String fullName;
   @override
   final String? phone;
+  @override
+  final String? companionName;
 
   factory _$CounterBookingInputDtoPassengersInner(
           [void Function(CounterBookingInputDtoPassengersInnerBuilder)?
@@ -22,7 +24,10 @@ class _$CounterBookingInputDtoPassengersInner
           ._build();
 
   _$CounterBookingInputDtoPassengersInner._(
-      {required this.seatCode, required this.fullName, this.phone})
+      {required this.seatCode,
+      required this.fullName,
+      this.phone,
+      this.companionName})
       : super._();
   @override
   CounterBookingInputDtoPassengersInner rebuild(
@@ -40,7 +45,8 @@ class _$CounterBookingInputDtoPassengersInner
     return other is CounterBookingInputDtoPassengersInner &&
         seatCode == other.seatCode &&
         fullName == other.fullName &&
-        phone == other.phone;
+        phone == other.phone &&
+        companionName == other.companionName;
   }
 
   @override
@@ -49,6 +55,7 @@ class _$CounterBookingInputDtoPassengersInner
     _$hash = $jc(_$hash, seatCode.hashCode);
     _$hash = $jc(_$hash, fullName.hashCode);
     _$hash = $jc(_$hash, phone.hashCode);
+    _$hash = $jc(_$hash, companionName.hashCode);
     _$hash = $jf(_$hash);
     return _$hash;
   }
@@ -59,7 +66,8 @@ class _$CounterBookingInputDtoPassengersInner
             r'CounterBookingInputDtoPassengersInner')
           ..add('seatCode', seatCode)
           ..add('fullName', fullName)
-          ..add('phone', phone))
+          ..add('phone', phone)
+          ..add('companionName', companionName))
         .toString();
   }
 }
@@ -82,6 +90,11 @@ class CounterBookingInputDtoPassengersInnerBuilder
   String? get phone => _$this._phone;
   set phone(String? phone) => _$this._phone = phone;
 
+  String? _companionName;
+  String? get companionName => _$this._companionName;
+  set companionName(String? companionName) =>
+      _$this._companionName = companionName;
+
   CounterBookingInputDtoPassengersInnerBuilder() {
     CounterBookingInputDtoPassengersInner._defaults(this);
   }
@@ -92,6 +105,7 @@ class CounterBookingInputDtoPassengersInnerBuilder
       _seatCode = $v.seatCode;
       _fullName = $v.fullName;
       _phone = $v.phone;
+      _companionName = $v.companionName;
       _$v = null;
     }
     return this;
@@ -119,6 +133,7 @@ class CounterBookingInputDtoPassengersInnerBuilder
           fullName: BuiltValueNullFieldError.checkNotNull(
               fullName, r'CounterBookingInputDtoPassengersInner', 'fullName'),
           phone: phone,
+          companionName: companionName,
         );
     replace(_$result);
     return _$result;

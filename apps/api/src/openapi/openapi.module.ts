@@ -25,6 +25,8 @@ import { CatalogController } from "../catalog/catalog.controller";
 import { AdminCatalogController } from "../catalog/admin-catalog.controller";
 import { AdminCatalogService } from "../catalog/admin-catalog.service";
 import { CatalogService } from "../catalog/catalog.service";
+import { AdminRouteController } from "../route/admin-route.controller";
+import { AdminRouteService } from "../route/admin-route.service";
 import { RouteController } from "../route/route.controller";
 import { RouteService } from "../route/route.service";
 import { StopPointProposalController } from "../stop-point/stop-point-proposal.controller";
@@ -39,6 +41,8 @@ import { StopPointController } from "../stop-point/stop-point.controller";
 import { StopPointService } from "../stop-point/stop-point.service";
 import { FareController } from "../fare/fare.controller";
 import { FareService } from "../fare/fare.service";
+import { AdminTripController } from "../trip/admin-trip.controller";
+import { AdminTripService } from "../trip/admin-trip.service";
 import { TripController } from "../trip/trip.controller";
 import { TripService } from "../trip/trip.service";
 import { TripChangeService } from "../trip/trip-change.service";
@@ -182,7 +186,9 @@ import { OperatorDepartureService } from "../trip/operator-departure.service";
     AdminStopPointProposalController,
     AdminOperatorStopPointController,
     RouteController,
+    AdminRouteController,
     TripController,
+    AdminTripController,
     TripScheduleController,
     EmployeeAssignmentController,
     ContentPageController,
@@ -269,7 +275,9 @@ import { OperatorDepartureService } from "../trip/operator-departure.service";
     { provide: StopPointProposalService, useValue: {} },
     { provide: AdminStopPointService, useValue: {} },
     { provide: RouteService, useValue: {} },
+    { provide: AdminRouteService, useValue: {} },
     { provide: TripService, useValue: {} },
+    { provide: AdminTripService, useValue: {} },
     { provide: TripChangeService, useValue: {} },
     { provide: TripScheduleService, useValue: {} },
     { provide: EmployeeAssignmentService, useValue: {} },

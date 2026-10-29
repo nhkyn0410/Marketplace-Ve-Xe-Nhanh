@@ -15,6 +15,7 @@ part 'trip_passenger_list_dto_output_items_inner.g.dart';
 /// Properties:
 /// * [seatCode] 
 /// * [passengerName] 
+/// * [companionName] 
 /// * [phoneMasked] 
 /// * [bookingId] 
 /// * [bookingCode] 
@@ -30,6 +31,9 @@ abstract class TripPassengerListDtoOutputItemsInner implements Built<TripPasseng
 
   @BuiltValueField(wireName: r'passengerName')
   String get passengerName;
+
+  @BuiltValueField(wireName: r'companionName')
+  String? get companionName;
 
   @BuiltValueField(wireName: r'phoneMasked')
   String? get phoneMasked;
@@ -88,6 +92,11 @@ class _$TripPassengerListDtoOutputItemsInnerSerializer implements PrimitiveSeria
     yield serializers.serialize(
       object.passengerName,
       specifiedType: const FullType(String),
+    );
+    yield r'companionName';
+    yield object.companionName == null ? null : serializers.serialize(
+      object.companionName,
+      specifiedType: const FullType.nullable(String),
     );
     yield r'phoneMasked';
     yield object.phoneMasked == null ? null : serializers.serialize(
@@ -165,6 +174,14 @@ class _$TripPassengerListDtoOutputItemsInnerSerializer implements PrimitiveSeria
             specifiedType: const FullType(String),
           ) as String;
           result.passengerName = valueDes;
+          break;
+        case r'companionName':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType.nullable(String),
+          ) as String?;
+          if (valueDes == null) continue;
+          result.companionName = valueDes;
           break;
         case r'phoneMasked':
           final valueDes = serializers.deserialize(

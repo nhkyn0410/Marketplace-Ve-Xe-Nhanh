@@ -77,7 +77,16 @@ export class AdminPaymentService {
       },
       ...(query.reconcile === "open" ? RECONCILE_OPEN : {}),
       ...(query.q
-        ? { OR: [{ paymentCode: { contains: code } }, { providerTxnId: { contains: query.q } }, { booking: { bookingCode: { contains: code } } }] }
+        ? {
+            OR: [
+              { paymentCode: { contains: code } },
+              { providerTxnId: { contains: query.q } },
+              { booking: { bookingCode: { contains: code } } },
+              // SĐT / email người đặt — tra được cả đơn khách vãng lai (không có tài khoản; chờ duyệt 28/10/2026).
+              { booking: { contactPhone: { contains: query.q.replace(/[\s.-]/g, "") } } },
+              { booking: { contactEmail: { contains: query.q, mode: "insensitive" as const } } },
+            ],
+          }
         : {}),
     };
     return this.prisma.withScope(platformDb(authz), async (tx) => {

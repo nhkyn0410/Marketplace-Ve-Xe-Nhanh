@@ -8,14 +8,42 @@ import { EMAIL_NOTIFIER, type EmailNotifier, maskEmail } from "../external/notif
 import type { VerifiedAccessToken } from "../iam/auth/token.service";
 import type { Authorization } from "../iam/role/authorization";
 import { SessionService } from "../iam/session/session.service";
+import { vndToJson } from "../fare/fare-pricing";
+import { can } from "../iam/role/access-policy";
 import { maskAccountNumber } from "../operator-kyc/operator-application-format";
-import type { AdminBankChange, AdminOperator, AdminOperatorPage, OperatorListQuery } from "./dto/admin-operator.dto";
+import { lastDays, routePerformance, sumPerformance, vnRange } from "../reporting/route-performance";
+import type {
+  AdminBankChange,
+  AdminOperator,
+  AdminOperatorDetail,
+  AdminOperatorPage,
+  AdminOperatorVehicleList,
+  OperatorListQuery,
+} from "./dto/admin-operator.dto";
 import { bankChangeNotFound } from "./operator-profile.errors";
 
 type Actor = Pick<VerifiedAccessToken, "sub" | "role">;
+type Viewer = Pick<VerifiedAccessToken, "role" | "perms">;
+/** Dòng `ROW_SELECT` (khai tay vì module nghiệp vụ không import kiểu Prisma). */
+type OperatorRowShape = {
+  id: string;
+  displayName: string;
+  operatorSlug: string;
+  status: OperatorStatus;
+  suspendedReason: string | null;
+  suspendedAt: Date | null;
+  createdAt: Date;
+  application: { id: string; reviewedAt: Date | null } | null;
+  operatorAccounts: { id: string; username: string; contactEmail: string | null; credentialDeliveryPending: boolean }[];
+  bankAccounts: { id: string }[];
+};
 
 const AUDIT_TIMEOUT_MS = 2_000;
 const OPEN_TRIP_STATUSES = [TripStatus.OPEN_FOR_SALE, TripStatus.SOLD_OUT];
+/** Chuyến chưa khởi hành còn giữ xe (đội xe ở chi tiết nhà xe). */
+const UPCOMING_TRIP_STATUSES = [TripStatus.OPEN_FOR_SALE, TripStatus.SOLD_OUT, TripStatus.LOCKED, TripStatus.BOARDING];
+/** Kỳ thẻ số ở chi tiết nhà xe. */
+const STATS_DAYS = 30;
 
 function problem(status: HttpStatus, code: string, detail: string): HttpException {
   return new HttpException({ code, detail, title: "Operator error" }, status);
@@ -102,32 +130,107 @@ export class AdminOperatorService {
       const tripCount = new Map(trips.map((group) => [group.operatorId, group._count._all]));
       const last = kept.at(-1);
       return {
-        items: kept.map((row): AdminOperator => {
-          const owner = row.operatorAccounts[0];
-          return {
-            id: row.id,
-            name: row.displayName,
-            slug: row.operatorSlug,
-            status: row.status,
-            suspendedReason: row.suspendedReason,
-            suspendedAt: row.suspendedAt?.toISOString() ?? null,
-            approvedAt: (row.application?.reviewedAt ?? row.createdAt).toISOString(),
-            applicationId: row.application?.id ?? null,
-            owner: owner
-              ? {
-                  id: owner.id,
-                  username: `${row.operatorSlug}/${owner.username}`,
-                  email: owner.contactEmail,
-                  credentialDeliveryPending: owner.credentialDeliveryPending,
-                }
-              : null,
-            routeCount: routeCount.get(row.id) ?? 0,
-            openTripCount: tripCount.get(row.id) ?? 0,
-            bankChangePending: row.bankAccounts.length > 0,
-          };
-        }),
+        items: kept.map((row) => toAdminOperator(row, routeCount.get(row.id) ?? 0, tripCount.get(row.id) ?? 0)),
         nextCursor: rows.length > query.limit && last ? encodeTimeCursor(last.createdAt, last.id) : null,
         total,
+      };
+    });
+  }
+
+  /**
+   * Chi tiết một nhà xe (tự thiết kế 28/10/2026, chờ duyệt): hồ sơ công khai + pháp lý, chủ nhà xe, tài khoản nhận tiền
+   * đang dùng (số che), số xe / nhân viên và thẻ số 30 ngày. Tiền chỉ trả khi người xem có `payment:monitor`.
+   */
+  async detail(authz: Authorization, viewer: Viewer, id: string, now: Date = new Date()): Promise<AdminOperatorDetail> {
+    const period = lastDays(now, STATS_DAYS);
+    const { from, to } = vnRange(period);
+    const showMoney = can(viewer, "payment:monitor").allowed;
+    return this.prisma.withScope(platformDb(authz), async (tx) => {
+      const row = await tx.operatorProfile.findUnique({
+        where: { id },
+        select: { ...ROW_SELECT, legalName: true, taxCode: true, hotline: true, publicEmail: true, address: true, description: true },
+      });
+      if (!row) {
+        throw operatorNotFound();
+      }
+      const [routeCount, openTripCount, vehicleCount, employeeCount, bank, performance, refunded, reviews] = await Promise.all([
+        tx.route.count({ where: { operatorId: id, status: "ACTIVE" } }),
+        tx.trip.count({ where: { operatorId: id, status: { in: OPEN_TRIP_STATUSES }, departureAt: { gt: now } } }),
+        tx.vehicle.count({ where: { operatorId: id } }),
+        tx.employeeAccount.count({ where: { operatorId: id } }),
+        tx.bankAccount.findFirst({
+          where: { operatorId: id, status: BankAccountStatus.VERIFIED },
+          orderBy: { reviewedAt: "desc" },
+          select: { bankName: true, accountNumber: true, accountHolder: true, reviewedAt: true },
+        }),
+        routePerformance(tx, { from, to, operatorId: id }),
+        tx.refund.aggregate({ where: { operatorId: id, status: "SUCCESS", processedAt: { gte: from, lt: to } }, _sum: { amount: true } }),
+        tx.review.aggregate({ where: { operatorId: id, status: "VISIBLE" }, _avg: { rating: true }, _count: { _all: true } }),
+      ]);
+      const total = sumPerformance(performance);
+      return {
+        ...toAdminOperator(row, routeCount, openTripCount),
+        legalName: row.legalName,
+        taxCode: row.taxCode,
+        hotline: row.hotline,
+        publicEmail: row.publicEmail,
+        address: row.address,
+        description: row.description,
+        bankAccount: bank
+          ? {
+              bankName: bank.bankName,
+              accountNumber: maskAccountNumber(bank.accountNumber) ?? "",
+              accountHolder: bank.accountHolder,
+              verifiedAt: bank.reviewedAt?.toISOString() ?? null,
+            }
+          : null,
+        vehicleCount,
+        employeeCount,
+        stats: {
+          ...period,
+          trips: Number(total.trips),
+          completedTrips: Number(total.completed),
+          cancelledTrips: Number(total.cancelledTrips),
+          seats: Number(total.seats),
+          ticketsSold: Number(total.sold),
+          ticketRevenue: showMoney ? vndToJson(total.revenue) : null,
+          refunded: showMoney ? vndToJson(refunded._sum.amount ?? 0n) : null,
+          averageRating: reviews._avg.rating === null ? null : Math.round(reviews._avg.rating * 10) / 10,
+          reviewCount: reviews._count._all,
+        },
+      };
+    });
+  }
+
+  /** Đội xe của một nhà xe (chỉ xem): biển số, loại xe, số chỗ, trạng thái, số chuyến sắp chạy đang dùng xe. */
+  async vehicles(authz: Authorization, id: string, now: Date = new Date()): Promise<AdminOperatorVehicleList> {
+    return this.prisma.withScope(platformDb(authz), async (tx) => {
+      if (!(await tx.operatorProfile.findUnique({ where: { id }, select: { id: true } }))) {
+        throw operatorNotFound();
+      }
+      const [vehicles, trips] = await Promise.all([
+        tx.vehicle.findMany({
+          where: { operatorId: id },
+          orderBy: [{ status: "asc" }, { plateNumber: "asc" }],
+          take: 500,
+          select: { id: true, plateNumber: true, status: true, vehicleType: { select: { name: true } }, seatMap: { select: { seatCount: true } } },
+        }),
+        tx.trip.groupBy({
+          by: ["vehicleId"],
+          where: { operatorId: id, vehicleId: { not: null }, status: { in: UPCOMING_TRIP_STATUSES }, departureAt: { gt: now } },
+          _count: { _all: true },
+        }),
+      ]);
+      const tripCount = new Map(trips.map((group) => [group.vehicleId, group._count._all]));
+      return {
+        items: vehicles.map((vehicle) => ({
+          id: vehicle.id,
+          plateNumber: vehicle.plateNumber,
+          vehicleTypeName: vehicle.vehicleType.name,
+          seatCount: vehicle.seatMap?.seatCount ?? null,
+          status: vehicle.status,
+          upcomingTripCount: tripCount.get(vehicle.id) ?? 0,
+        })),
       };
     });
   }
@@ -414,4 +517,34 @@ function platformDb(authz: Authorization): DbScope {
     throw new Error("Route Admin nhà xe cần ngữ cảnh DB platform.");
   }
   return authz.db;
+}
+
+/** Một dòng nhà xe (danh sách + phần đầu của chi tiết). */
+function toAdminOperator(
+  row: OperatorRowShape,
+  routeCount: number,
+  openTripCount: number,
+): AdminOperator {
+  const owner = row.operatorAccounts[0];
+  return {
+    id: row.id,
+    name: row.displayName,
+    slug: row.operatorSlug,
+    status: row.status,
+    suspendedReason: row.suspendedReason,
+    suspendedAt: row.suspendedAt?.toISOString() ?? null,
+    approvedAt: (row.application?.reviewedAt ?? row.createdAt).toISOString(),
+    applicationId: row.application?.id ?? null,
+    owner: owner
+      ? {
+          id: owner.id,
+          username: `${row.operatorSlug}/${owner.username}`,
+          email: owner.contactEmail,
+          credentialDeliveryPending: owner.credentialDeliveryPending,
+        }
+      : null,
+    routeCount,
+    openTripCount,
+    bankChangePending: row.bankAccounts.length > 0,
+  };
 }

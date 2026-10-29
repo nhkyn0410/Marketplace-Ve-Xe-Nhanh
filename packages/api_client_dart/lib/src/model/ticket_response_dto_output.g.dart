@@ -322,6 +322,8 @@ class _$TicketResponseDtoOutput extends TicketResponseDtoOutput {
   @override
   final String passengerName;
   @override
+  final String? companionName;
+  @override
   final String bookingId;
   @override
   final String bookingCode;
@@ -351,6 +353,7 @@ class _$TicketResponseDtoOutput extends TicketResponseDtoOutput {
       required this.seatCode,
       required this.seatType,
       required this.passengerName,
+      this.companionName,
       required this.bookingId,
       required this.bookingCode,
       required this.bookingStatus,
@@ -380,6 +383,7 @@ class _$TicketResponseDtoOutput extends TicketResponseDtoOutput {
         seatCode == other.seatCode &&
         seatType == other.seatType &&
         passengerName == other.passengerName &&
+        companionName == other.companionName &&
         bookingId == other.bookingId &&
         bookingCode == other.bookingCode &&
         bookingStatus == other.bookingStatus &&
@@ -400,6 +404,7 @@ class _$TicketResponseDtoOutput extends TicketResponseDtoOutput {
     _$hash = $jc(_$hash, seatCode.hashCode);
     _$hash = $jc(_$hash, seatType.hashCode);
     _$hash = $jc(_$hash, passengerName.hashCode);
+    _$hash = $jc(_$hash, companionName.hashCode);
     _$hash = $jc(_$hash, bookingId.hashCode);
     _$hash = $jc(_$hash, bookingCode.hashCode);
     _$hash = $jc(_$hash, bookingStatus.hashCode);
@@ -422,6 +427,7 @@ class _$TicketResponseDtoOutput extends TicketResponseDtoOutput {
           ..add('seatCode', seatCode)
           ..add('seatType', seatType)
           ..add('passengerName', passengerName)
+          ..add('companionName', companionName)
           ..add('bookingId', bookingId)
           ..add('bookingCode', bookingCode)
           ..add('bookingStatus', bookingStatus)
@@ -466,6 +472,11 @@ class TicketResponseDtoOutputBuilder
   String? get passengerName => _$this._passengerName;
   set passengerName(String? passengerName) =>
       _$this._passengerName = passengerName;
+
+  String? _companionName;
+  String? get companionName => _$this._companionName;
+  set companionName(String? companionName) =>
+      _$this._companionName = companionName;
 
   String? _bookingId;
   String? get bookingId => _$this._bookingId;
@@ -523,6 +534,7 @@ class TicketResponseDtoOutputBuilder
       _seatCode = $v.seatCode;
       _seatType = $v.seatType;
       _passengerName = $v.passengerName;
+      _companionName = $v.companionName;
       _bookingId = $v.bookingId;
       _bookingCode = $v.bookingCode;
       _bookingStatus = $v.bookingStatus;
@@ -567,6 +579,7 @@ class TicketResponseDtoOutputBuilder
                 seatType, r'TicketResponseDtoOutput', 'seatType'),
             passengerName: BuiltValueNullFieldError.checkNotNull(
                 passengerName, r'TicketResponseDtoOutput', 'passengerName'),
+            companionName: companionName,
             bookingId: BuiltValueNullFieldError.checkNotNull(
                 bookingId, r'TicketResponseDtoOutput', 'bookingId'),
             bookingCode: BuiltValueNullFieldError.checkNotNull(
