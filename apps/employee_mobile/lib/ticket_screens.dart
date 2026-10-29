@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
@@ -664,17 +665,34 @@ class _ScannerScreenState extends State<ScannerScreen>
   MobileScannerController? _camera;
   StreamSubscription<String>? _scanSubscription;
   bool _processing = false;
+  bool _restartingCamera = false;
   late bool _offline = widget.initiallyOffline;
+  late CameraFacing _facing = _desktopWeb
+      ? CameraFacing.front
+      : CameraFacing.back;
+
+  bool get _desktopWeb =>
+      kIsWeb &&
+      defaultTargetPlatform != TargetPlatform.android &&
+      defaultTargetPlatform != TargetPlatform.iOS;
+
+  MobileScannerController _createCameraController() => MobileScannerController(
+    facing: _facing,
+    cameraResolution: _desktopWeb
+        ? const Size(1280, 720)
+        : defaultTargetPlatform == TargetPlatform.android
+        ? const Size(640, 480)
+        : null,
+    formats: const [BarcodeFormat.qrCode],
+    detectionSpeed: DetectionSpeed.normal,
+  );
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     if (widget.scanResults == null && !_offline && widget.trip.assigned) {
-      _camera = MobileScannerController(
-        formats: const [BarcodeFormat.qrCode],
-        detectionSpeed: DetectionSpeed.normal,
-      );
+      _camera = _createCameraController();
     }
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) _scanSubscription = widget.scanResults?.listen(_acceptCode);
@@ -684,7 +702,13 @@ class _ScannerScreenState extends State<ScannerScreen>
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     final camera = _camera;
-    if (camera == null || !camera.value.isInitialized) return;
+    if (camera == null ||
+        !camera.value.isInitialized ||
+        camera.value.isStarting ||
+        camera.value.error != null ||
+        _restartingCamera) {
+      return;
+    }
     if (state == AppLifecycleState.resumed && !_processing && !_offline) {
       unawaited(_cameraAction(camera.start));
     } else {
@@ -707,6 +731,33 @@ class _ScannerScreenState extends State<ScannerScreen>
         showDemoNotice(context, 'Thiết bị chưa hỗ trợ thao tác camera này.');
       }
     }
+  }
+
+  Future<void> _restartCamera({bool switchDirection = false}) async {
+    if (_restartingCamera ||
+        _processing ||
+        _offline ||
+        widget.scanResults != null) {
+      return;
+    }
+    final previous = _camera;
+    if (switchDirection) {
+      _facing = _facing == CameraFacing.front
+          ? CameraFacing.back
+          : CameraFacing.front;
+    }
+    setState(() {
+      _restartingCamera = true;
+      _camera = null;
+    });
+    // Tháo view và listener trước khi giải phóng controller đã lỗi.
+    await WidgetsBinding.instance.endOfFrame;
+    if (previous != null) await _cameraAction(previous.dispose);
+    if (!mounted || !widget.trip.assigned) return;
+    setState(() {
+      _camera = _createCameraController();
+      _restartingCamera = false;
+    });
   }
 
   Future<void> _acceptCode(String rawCode) async {
@@ -763,9 +814,7 @@ class _ScannerScreenState extends State<ScannerScreen>
     setState(() {
       _offline = false;
       if (widget.scanResults == null) {
-        _camera = MobileScannerController(
-          formats: const [BarcodeFormat.qrCode],
-        );
+        _camera = _createCameraController();
       }
     });
   }
@@ -863,10 +912,9 @@ class _ScannerScreenState extends State<ScannerScreen>
                             TextButton(
                               onPressed: () {
                                 Navigator.pop(sheetContext);
-                                final camera = _camera;
-                                if (camera != null) {
-                                  unawaited(_cameraAction(camera.switchCamera));
-                                }
+                                unawaited(
+                                  _restartCamera(switchDirection: true),
+                                );
                               },
                               child: const Text('Đổi camera'),
                             ),
@@ -886,6 +934,7 @@ class _ScannerScreenState extends State<ScannerScreen>
                   if (_camera != null)
                     Positioned.fill(
                       child: MobileScanner(
+                        key: ObjectKey(_camera),
                         controller: _camera,
                         onDetect: (capture) {
                           final code = capture.barcodes.firstOrNull?.rawValue;
@@ -1034,6 +1083,14 @@ class _ScannerScreenState extends State<ScannerScreen>
                             : _cameraError(state.error!),
                       ),
                     ),
+                  if (_restartingCamera)
+                    const Positioned.fill(
+                      child: Center(
+                        child: CircularProgressIndicator(
+                          color: DriverColors.orange,
+                        ),
+                      ),
+                    ),
                 ],
               ),
             ),
@@ -1091,40 +1148,76 @@ class _ScannerScreenState extends State<ScannerScreen>
         ),
       );
 
-  Widget _cameraError(MobileScannerException error) => Align(
-    alignment: Alignment.bottomCenter,
-    child: Padding(
-      padding: const EdgeInsets.fromLTRB(24, 12, 24, 32),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            error.errorCode == MobileScannerErrorCode.permissionDenied
-                ? 'Chưa được cấp quyền camera'
-                : 'Không mở được camera',
-            textAlign: TextAlign.center,
-            style: driverText(16, FontWeight.w600, Colors.white),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Cho phép camera trong cài đặt rồi thử lại.',
-            textAlign: TextAlign.center,
-            style: driverText(12, FontWeight.w400, Colors.white),
-          ),
-          TextButton(
-            onPressed: () {
-              final camera = _camera;
-              if (camera != null) unawaited(_cameraAction(camera.start));
-            },
-            child: const Text(
-              'Thử mở camera',
-              style: TextStyle(color: DriverColors.orange),
-            ),
-          ),
-        ],
+  Widget _cameraError(MobileScannerException error) {
+    final details = error.errorDetails?.message ?? '';
+    final (title, message) = switch (error.errorCode) {
+      MobileScannerErrorCode.permissionDenied => (
+        'Chưa được cấp quyền camera',
+        'Cho phép camera cho trang này trong cài đặt trình duyệt, rồi thử lại.',
       ),
-    ),
-  );
+      _
+          when details.contains('NotReadableError') ||
+              details.contains('TrackStartError') =>
+        (
+          'Webcam đang bận hoặc bị chặn',
+          'Đóng Camera, Teams, Zoom hoặc tab khác đang dùng webcam. Kiểm tra quyền camera của Windows rồi thử lại.',
+        ),
+      _ when details.contains('NotFoundError') => (
+        'Không tìm thấy webcam',
+        'Kết nối hoặc bật webcam laptop rồi thử lại.',
+      ),
+      _ when details.contains('OverconstrainedError') => (
+        'Camera đã chọn không khả dụng',
+        'Chọn Đổi camera để thử webcam khác.',
+      ),
+      MobileScannerErrorCode.unsupported => (
+        'Camera không khả dụng',
+        'Dùng Chrome hoặc Edge tại localhost hoặc HTTPS và kiểm tra webcam đã được kết nối.',
+      ),
+      _ => (
+        'Không mở được camera',
+        'Thử mở lại hoặc đổi camera. Nếu vẫn lỗi, đóng các ứng dụng khác đang dùng webcam.',
+      ),
+    };
+    return Align(
+      alignment: Alignment.bottomCenter,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(24, 12, 24, 32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              title,
+              textAlign: TextAlign.center,
+              style: driverText(16, FontWeight.w600, Colors.white),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              message,
+              textAlign: TextAlign.center,
+              style: driverText(12, FontWeight.w400, Colors.white),
+            ),
+            TextButton(
+              onPressed: () {
+                unawaited(_restartCamera());
+              },
+              child: const Text(
+                'Thử mở camera',
+                style: TextStyle(color: DriverColors.orange),
+              ),
+            ),
+            TextButton(
+              onPressed: () => unawaited(_restartCamera(switchDirection: true)),
+              child: const Text(
+                'Đổi camera',
+                style: TextStyle(color: DriverColors.orange),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
 /// Sơ đồ ghế theo chuyến, chỉ hiển thị tình trạng lên xe và không cho bán hoặc đổi ghế.

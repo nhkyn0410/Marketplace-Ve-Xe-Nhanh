@@ -72,7 +72,11 @@ class _GalleryHome extends StatelessWidget {
   Widget build(BuildContext context) {
     final cases = <(String, Widget Function())>[
       (
-        'Soát vé · Quét QR',
+        'Camera · Mở webcam thật',
+        () => ScannerScreen(trip: _trip('Đón khách')),
+      ),
+      (
+        'Soát vé · Bố cục quét QR',
         () => ScannerScreen(
           trip: _trip('Đón khách'),
           scanResults: const Stream.empty(),

@@ -52,7 +52,9 @@ Trang đối chiếu riêng cho các trạng thái khó gặp:
 ..\..\.tools\flutter\bin\flutter.bat run -d chrome -t lib/preview_gallery.dart
 ```
 
-Trang này không nằm trong điều hướng ứng dụng chính. Có màn Quét QR tĩnh để đối chiếu thiết kế và sơ đồ ghế với dữ liệu mẫu. Trong app chính, camera đọc QR qua `mobile_scanner`; API, email và thu hồi phiên máy chủ chưa được tích hợp.
+Trang này không nằm trong điều hướng ứng dụng chính. Chọn **Camera · Mở webcam thật** để thử camera của máy; mục **Soát vé · Bố cục quét QR** chỉ hiển thị thiết kế tĩnh. Trong app chính, camera đọc QR qua `mobile_scanner`; API, email và thu hồi phiên máy chủ chưa được tích hợp.
+
+Trên trình duyệt laptop, ứng dụng ưu tiên webcam trước ở 1280 × 720; trên Android/iOS vẫn ưu tiên camera sau. Nếu mở camera lỗi, **Thử mở camera** giải phóng phiên cũ rồi tạo lại; **Đổi camera** thử hướng còn lại. Thông báo phân biệt thiếu quyền, không có webcam và webcam đang bận hoặc bị Windows chặn.
 
 Thao tác xác nhận dùng **vuốt sang phải** trên tay kéo màu cam.
 Theo yêu cầu giao diện, không hiển thị dòng hướng dẫn vuốt ở chân màn hình hoặc dưới nút; áp dụng cả cho các màn thêm sau.
