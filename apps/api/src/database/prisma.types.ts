@@ -47,6 +47,7 @@ export {
   RefundStatus,
   ReviewStatus,
   PlatformRole,
+  RouteNameSource,
   RouteStatus,
   RouteStopRole,
   RoutingMetricsSource,

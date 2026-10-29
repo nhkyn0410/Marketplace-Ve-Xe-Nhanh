@@ -67,7 +67,7 @@ abstract class AdminRouteDetailDtoOutput implements Built<AdminRouteDetailDtoOut
 
   @BuiltValueField(wireName: r'status')
   AdminRouteDetailDtoOutputStatusEnum get status;
-  // enum statusEnum {  ACTIVE,  INACTIVE,  };
+  // enum statusEnum {  ACTIVE,  INACTIVE,  DRAFT,  };
 
   @BuiltValueField(wireName: r'operatorId')
   String get operatorId;
@@ -474,6 +474,8 @@ class AdminRouteDetailDtoOutputStatusEnum extends EnumClass {
   static const AdminRouteDetailDtoOutputStatusEnum ACTIVE = _$adminRouteDetailDtoOutputStatusEnum_ACTIVE;
   @BuiltValueEnumConst(wireName: r'INACTIVE')
   static const AdminRouteDetailDtoOutputStatusEnum INACTIVE = _$adminRouteDetailDtoOutputStatusEnum_INACTIVE;
+  @BuiltValueEnumConst(wireName: r'DRAFT')
+  static const AdminRouteDetailDtoOutputStatusEnum DRAFT = _$adminRouteDetailDtoOutputStatusEnum_DRAFT;
 
   static Serializer<AdminRouteDetailDtoOutputStatusEnum> get serializer => _$adminRouteDetailDtoOutputStatusEnumSerializer;
 

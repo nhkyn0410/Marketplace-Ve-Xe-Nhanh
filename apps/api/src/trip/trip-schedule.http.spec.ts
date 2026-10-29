@@ -31,6 +31,7 @@ describe("Trip schedule routes — HTTP", () => {
     startDate: today,
     endDate: today,
     onlineSaleCutoffMinutes: 60,
+    subRouteIds: [],
     note: null,
     tripCount: 0,
     lastGeneratedAt: null,

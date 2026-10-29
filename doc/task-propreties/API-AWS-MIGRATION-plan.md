@@ -1,5 +1,11 @@
 # Kế hoạch chuyển API production và worker sang AWS
 
+> **Cập nhật phạm vi 29/10/2026:** Khanh chọn demo bằng Free Tier/credit, chỉ API
+> cần thường trực, worker bật khi cần. Hướng dẫn áp dụng hiện tại ở
+> [AWS account/credit](AWS-ACCOUNT-CREDITS-guide.md) và
+> [triển khai API Lightsail](AWS-DEPLOY-API-guide.md). Phần ECS/HA và dự trù chi phí
+> bên dưới giữ làm phương án tham khảo trước khi phạm vi được thu gọn.
+
 Ngày lập: **29/10/2026**. Trạng thái: **Đề xuất, chưa triển khai**.
 
 Khanh đã xác nhận phạm vi: **API và worker; giữ nguyên DB, Redis, storage**.

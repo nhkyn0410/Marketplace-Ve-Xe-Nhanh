@@ -42,7 +42,7 @@ void main() {
       // TODO
     });
 
-    // BuiltList<FareResponseDtoOutputRulesInner> rules
+    // BuiltList<SubRouteSuggestionListDtoOutputItemsInnerSuggestedRulesInner> rules
     test('to test the property `rules`', () async {
       // TODO
     });

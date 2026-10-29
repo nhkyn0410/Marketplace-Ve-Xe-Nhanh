@@ -22,7 +22,7 @@ void main() {
       // TODO
     });
 
-    // BuiltList<RouteInputDtoStopsInner> stops
+    // BuiltList<RouteNamePreviewInputDtoStopsInner> stops
     test('to test the property `stops`', () async {
       // TODO
     });

@@ -22,6 +22,7 @@ import {
   SelectValue
 } from "@vexenhanh/ui/components/select";
 import { Skeleton } from "@vexenhanh/ui/components/skeleton";
+import { Switch } from "@vexenhanh/ui/components/switch";
 import { Textarea } from "@vexenhanh/ui/components/textarea";
 import { CircleAlert, CircleCheck, FileX2, LoaderCircle, Plus, RefreshCw } from "lucide-react";
 import Link from "next/link";
@@ -32,7 +33,7 @@ import { Controller, useForm } from "react-hook-form";
 import { ApiError } from "../../lib/auth/api-client";
 import { GOONG_MAPTILES_KEY } from "../../lib/map/map-config";
 import { useMapOpen } from "../../lib/map/use-map-open";
-import { createRoute, getRoute, updateRoute, type Route } from "../../lib/route/route-api";
+import { createRoute, getRoute, previewRouteName, updateRoute, type Route } from "../../lib/route/route-api";
 import {
   addStop,
   busStationWarning,
@@ -55,6 +56,7 @@ import {
   toDraftStops,
   toRouteInfoValues,
   toRouteInput,
+  toStopInputs,
   totalsOf,
   validateLegMinutes,
   validateStops,
@@ -78,6 +80,8 @@ import { RouteMap } from "../map/route-map";
 import { PageHeader } from "../page-header";
 import { RouteStopList } from "./route-stop-list";
 import { StopPicker } from "./stop-picker";
+import { SubRouteForm } from "./sub-route-form";
+import { SubRoutePanel } from "./sub-route-panel";
 
 const CARD = "flex flex-col gap-5 rounded-xl border bg-card p-6";
 const CARD_TITLE = "text-base leading-6 font-semibold text-vxn-ink";
@@ -89,6 +93,8 @@ const FORM_ID = "route-form";
  * truyền `routeId` = thêm mới. Thẻ bản đồ lộ trình chỉ hiện khi môi trường có khóa bản đồ (TASK-TRN-014).
  */
 export function RouteForm({ routeId }: { routeId?: string }) {
+  // Thêm tuyến con (3.2): `/routes/new?parentRouteId=…` từ mục Tuyến con của tuyến chính.
+  const parentRouteId = useSearchParams().get("parentRouteId");
   const route = useQuery({
     queryKey: ["route", routeId],
     queryFn: () => getRoute(routeId!),
@@ -139,6 +145,12 @@ export function RouteForm({ routeId }: { routeId?: string }) {
       </FormShell>
     );
   }
+  if (route.data?.parentRouteId) {
+    return <SubRouteForm key={route.data.id} parentId={route.data.parentRouteId} route={route.data} />;
+  }
+  if (!routeId && parentRouteId) {
+    return <SubRouteForm parentId={parentRouteId} />;
+  }
   // Đổi tuyến (hoặc từ thêm sang sửa) thì dựng lại form với dữ liệu của tuyến đó.
   return <RouteFormBody key={route.data?.id ?? "new"} route={route.data} />;
 }
@@ -164,6 +176,24 @@ function RouteFormBody({ route }: { route?: Route }) {
   });
   const { errors } = form.formState;
   const note = form.watch("note");
+  const nameSource = form.watch("nameSource");
+  // Xem trước tên tự động theo điểm dừng (chỉ phụ thuộc điểm + quyền đón / trả, không phụ thuộc ghi chú); lưu thì máy chủ
+  // ghép lại nên tên lưu luôn khớp dữ liệu mới nhất.
+  const nameKey = JSON.stringify(stops.map((stop) => [stopKey(stop), stop.allowPickup, stop.allowDropoff]));
+  const namePreview = useQuery({
+    queryKey: ["route-name-preview", route?.id ?? null, nameKey],
+    queryFn: () => previewRouteName(toStopInputs(stops), route?.id),
+    enabled: nameSource === "AUTO" && stops.length >= MIN_ROUTE_STOPS,
+    staleTime: 60_000
+  });
+  const autoNameText =
+    stops.length < MIN_ROUTE_STOPS
+      ? `Thêm ít nhất ${MIN_ROUTE_STOPS} điểm dừng để có tên`
+      : namePreview.isPending
+        ? "Đang ghép tên…"
+        : namePreview.isError
+          ? "Chưa xem trước được tên — khi lưu hệ thống sẽ tự ghép"
+          : namePreview.data;
 
   const legs = useMemo(() => savedLegs(route), [route]);
   const storedStops = useMemo(() => JSON.stringify(route ? toDraftStops(route) : []), [route]);
@@ -224,6 +254,15 @@ function RouteFormBody({ route }: { route?: Route }) {
     }
   }
 
+  // Tên còn lỗi vẫn báo luôn lỗi của danh sách điểm dừng, để sửa một lượt.
+  const invalid = () => setStopsError(validateStops(stops));
+
+  /** "Lưu nháp" (3.2): lưu ở trạng thái Nháp — chưa tạo chuyến được, khách không thấy. Điểm dừng vẫn phải hợp lệ. */
+  function saveDraft() {
+    form.setValue("status", "DRAFT", { shouldDirty: true });
+    void form.handleSubmit(submit, invalid)();
+  }
+
   return (
     <FormShell
       title={route ? "Chỉnh sửa tuyến" : "Thêm tuyến"}
@@ -242,6 +281,9 @@ function RouteFormBody({ route }: { route?: Route }) {
             onClick={() => (dirty ? setConfirmLeave(true) : router.push("/routes"))}
           >
             Hủy
+          </Button>
+          <Button type="button" variant="outline" className={`${BUTTON} bg-card`} disabled={save.isPending} onClick={saveDraft}>
+            Lưu nháp
           </Button>
           <Button type="submit" form={FORM_ID} className={`${BUTTON} w-40`} disabled={save.isPending}>
             {save.isPending && <LoaderCircle className="size-[18px] animate-spin" />}
@@ -346,29 +388,69 @@ function RouteFormBody({ route }: { route?: Route }) {
             <form
               id={FORM_ID}
               noValidate
-              onSubmit={(event) =>
-                void form.handleSubmit(submit, () => {
-                  // Tên còn lỗi vẫn báo luôn lỗi của danh sách điểm dừng, để sửa một lượt.
-                  setStopsError(validateStops(stops));
-                })(event)
-              }
+              onSubmit={(event) => void form.handleSubmit(submit, invalid)(event)}
               className="flex flex-col gap-4"
             >
               <FormField
-                label="Tên tuyến *"
-                helper={`Tối đa ${ROUTE_NAME_MAX_LENGTH} ký tự · không trùng tên trong nhà xe`}
+                label={nameSource === "AUTO" ? "Tên tuyến" : "Tên tuyến *"}
+                helper={
+                  nameSource === "AUTO"
+                    ? "Ghép từ nơi của điểm đầu, điểm cuối và các điểm giữa cho đón / trả; đổi điểm dừng thì tên đổi theo."
+                    : `Tối đa ${ROUTE_NAME_MAX_LENGTH} ký tự · không trùng tên trong nhà xe`
+                }
                 error={errors.name?.message}
               >
-                {(control) => (
-                  <Input
-                    {...control}
-                    {...form.register("name")}
-                    autoComplete="off"
-                    maxLength={ROUTE_NAME_MAX_LENGTH}
-                    placeholder="Ví dụ: Sài Gòn – Đà Lạt"
-                  />
-                )}
+                {(control) =>
+                  nameSource === "AUTO" ? (
+                    <Input {...control} readOnly aria-readonly value={autoNameText} className="bg-muted/50" />
+                  ) : (
+                    <Input
+                      {...control}
+                      {...form.register("name")}
+                      autoComplete="off"
+                      maxLength={ROUTE_NAME_MAX_LENGTH}
+                      placeholder="Ví dụ: Sài Gòn – Đà Lạt"
+                    />
+                  )
+                }
               </FormField>
+              <div className="flex items-start gap-3">
+                <Switch
+                  id="route-auto-name"
+                  checked={nameSource === "AUTO"}
+                  onCheckedChange={(checked) => {
+                    // Tắt tự đặt tên: điền sẵn tên đang xem trước để nhà xe chỉ sửa chỗ cần sửa.
+                    if (!checked && namePreview.data) {
+                      form.setValue("name", namePreview.data, { shouldDirty: true });
+                    }
+                    form.setValue("nameSource", checked ? "AUTO" : "MANUAL", { shouldDirty: true, shouldValidate: true });
+                  }}
+                  aria-describedby="route-auto-name-hint"
+                />
+                <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+                  <label htmlFor="route-auto-name" className="text-sm leading-5 font-medium text-vxn-ink">
+                    Tự đặt tên theo điểm dừng
+                  </label>
+                  <p id="route-auto-name-hint" className="text-xs leading-[18px] text-muted-foreground">
+                    Tắt để tự gõ tên. Khách vẫn thấy tên chặng họ đi.
+                  </p>
+                </div>
+              </div>
+              {nameSource === "MANUAL" && route?.suggestedName && (
+                <div className="flex flex-wrap items-center gap-x-2 gap-y-1 rounded-lg bg-muted/50 px-3 py-2 text-xs text-vxn-fg-3">
+                  <span>
+                    Tên gợi ý: <span className="font-medium text-vxn-ink">{route.suggestedName}</span>
+                  </span>
+                  <Button
+                    type="button"
+                    variant="link"
+                    className="h-auto p-0 text-xs"
+                    onClick={() => form.setValue("nameSource", "AUTO", { shouldDirty: true, shouldValidate: true })}
+                  >
+                    Dùng tên tự động
+                  </Button>
+                </div>
+              )}
               <FormField label="Trạng thái *" error={errors.status?.message}>
                 {(control) => (
                   <Controller
@@ -451,6 +533,8 @@ function RouteFormBody({ route }: { route?: Route }) {
           )}
         </div>
       </div>
+
+      {route && <SubRoutePanel route={route} />}
 
       <AlertDialog open={confirmLeave} onOpenChange={setConfirmLeave}>
         <AlertDialogContent>

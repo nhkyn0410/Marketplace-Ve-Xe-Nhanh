@@ -2,6 +2,7 @@ import { Inject, Injectable } from "@nestjs/common";
 import { searchTextContains } from "../common/search-text";
 import { PrismaService } from "../database/prisma.service";
 import { CatalogStatus, StopPointType } from "../database/prisma.types";
+import { LEGACY_DISTRICT_SLUG } from "../database/public-trips";
 import {
   loadFeaturedOperators,
   loadPopularRoutes,
@@ -27,9 +28,21 @@ import type {
 const ACTIVE = CatalogStatus.ACTIVE;
 /** Số ứng viên mỗi loại trước khi xếp hạng gợi ý địa điểm. */
 const PLACE_CANDIDATES = 20;
-const PLACE_KIND_ORDER = { PROVINCE: 0, WARD: 1, STOP_POINT: 2, LEGACY: 3 } as const;
+const PLACE_KIND_ORDER = { PROVINCE: 0, AREA: 1, WARD: 2, STOP_POINT: 3, LEGACY: 4 } as const;
+/** Tiền tố cấp hành chính bỏ đi ở tên khu vực ("Thành phố Đà Lạt" → "Đà Lạt"); quận / huyện giữ nguyên ("Quận 1"). */
+const AREA_PREFIX = /^(Thành phố|Thị xã|Tỉnh) /;
+const AREA_PREFIX_SEARCH = /^(thanh pho|thi xa|tinh) /;
 
 type Place = PlaceSuggestionListResponse["items"][number];
+/** Một khu vực khớp từ khoá: tỉnh cũ (`slug` = null) hoặc quận / huyện / thị xã / thành phố cũ. */
+type AreaPlaceRow = {
+  code: string;
+  legacyProvinceName: string;
+  legacyDistrictName: string;
+  slug: string | null;
+  provinceName: string;
+  labelSearch: string;
+};
 type LegacyPlaceRow = {
   legacyProvinceName: string;
   legacyDistrictName: string;
@@ -187,9 +200,9 @@ export class CatalogService {
   /**
    * Gợi ý điểm đi / điểm đến cho ô tìm chuyến (tự thiết kế 27/10/2026, chờ duyệt): tỉnh, phường / xã mới, địa danh
    * dùng chung đang dùng và tên hành chính trước sáp nhập 2025 (`legacy_administrative_mappings`). So không dấu trên
-   * `search_text`; tên cũ chỉ so với tên cấp nhỏ nhất của dòng (phường, không có thì huyện, rồi tỉnh) để gõ tên tỉnh
-   * không kéo ra mọi phường cũ. Tên cũ cấp phường dẫn tới phường mới; cấp huyện / tỉnh dẫn tới tỉnh mới. Tên cũ trùng
-   * hệt tên mới thì bỏ (đã có gợi ý mới).
+   * `search_text`. Tên phường / xã cũ dẫn tới phường mới (`LEGACY`). Tên quận / huyện / thị xã / thành phố cũ và tên
+   * tỉnh cũ (khác tên tỉnh mới) thành **khu vực** (`AREA`, chờ duyệt 29/10/2026) = mọi phường mới nhận đất của nó — thay
+   * cho trỏ cả tỉnh mới, vốn quá rộng sau sáp nhập (vd "Vũng Tàu" giờ thuộc TP.HCM). Tên cũ trùng hệt tên mới thì bỏ.
    */
   async listPlaces(query: PlaceSuggestionQuery): Promise<PlaceSuggestionListResponse> {
     const contains = await searchTextContains(this.prisma, query.q);
@@ -200,7 +213,7 @@ export class CatalogService {
     }
     const activeWard = { status: ACTIVE, province: { status: ACTIVE } };
     const like = `%${contains}%`;
-    const [provinces, wards, stopPoints, legacy] = await Promise.all([
+    const [provinces, wards, stopPoints, legacy, districtAreas, provinceAreas] = await Promise.all([
       this.prisma.province.findMany({
         where: { status: ACTIVE, searchText: { contains } },
         orderBy: { name: "asc" },
@@ -224,16 +237,38 @@ export class CatalogService {
         SELECT * FROM (
           SELECT m.legacy_province_name AS "legacyProvinceName", m.legacy_district_name AS "legacyDistrictName",
                  m.legacy_ward_name AS "legacyWardName", p.id AS "provinceId", p.name AS "provinceName",
-                 w.id AS "wardId", w.name AS "wardName",
-                 vxn_search_text(COALESCE(NULLIF(m.legacy_ward_name, ''), NULLIF(m.legacy_district_name, ''),
-                                          m.legacy_province_name)) AS "labelSearch"
+                 w.id AS "wardId", w.name AS "wardName", vxn_search_text(m.legacy_ward_name) AS "labelSearch"
           FROM legacy_administrative_mappings m
           JOIN wards w ON w.id = m.ward_id AND w.status = 'ACTIVE'
           JOIN provinces p ON p.id = m.province_id AND p.status = 'ACTIVE'
-          WHERE m.search_text LIKE ${like}
+          WHERE m.search_text LIKE ${like} AND m.legacy_ward_name <> ''
         ) candidate
         WHERE candidate."labelSearch" LIKE ${like}
         ORDER BY length(candidate."labelSearch"), candidate."labelSearch"
+        LIMIT ${PLACE_CANDIDATES}`,
+      // Khu vực cấp quận / huyện / thị xã / thành phố cũ: một dòng mỗi đơn vị cũ, khớp trên chính tên đơn vị.
+      this.prisma.$queryRaw<AreaPlaceRow[]>`
+        SELECT m.legacy_province_code AS "code", min(m.legacy_province_name) AS "legacyProvinceName",
+               m.legacy_district_name AS "legacyDistrictName", ${LEGACY_DISTRICT_SLUG} AS "slug", min(p.name) AS "provinceName",
+               vxn_search_text(m.legacy_district_name) AS "labelSearch"
+        FROM legacy_administrative_mappings m
+        JOIN wards w ON w.id = m.ward_id AND w.status = 'ACTIVE'
+        JOIN provinces p ON p.id = m.province_id AND p.status = 'ACTIVE'
+        WHERE m.search_text LIKE ${like} AND m.legacy_district_name <> '' AND vxn_search_text(m.legacy_district_name) LIKE ${like}
+        GROUP BY m.legacy_province_code, m.legacy_district_name
+        ORDER BY length(vxn_search_text(m.legacy_district_name)), m.legacy_district_name
+        LIMIT ${PLACE_CANDIDATES}`,
+      // Khu vực cấp tỉnh cũ: chỉ tỉnh đã đổi tên sau sáp nhập (tên giữ nguyên thì gợi ý tỉnh mới đã đủ).
+      this.prisma.$queryRaw<AreaPlaceRow[]>`
+        SELECT m.legacy_province_code AS "code", m.legacy_province_name AS "legacyProvinceName",
+               '' AS "legacyDistrictName", NULL::text AS "slug", min(p.name) AS "provinceName",
+               vxn_search_text(m.legacy_province_name) AS "labelSearch"
+        FROM legacy_administrative_mappings m
+        JOIN wards w ON w.id = m.ward_id AND w.status = 'ACTIVE'
+        JOIN provinces p ON p.id = m.province_id AND p.status = 'ACTIVE'
+        WHERE m.search_text LIKE ${like} AND vxn_search_text(m.legacy_province_name) LIKE ${like}
+        GROUP BY m.legacy_province_code, m.legacy_province_name
+        HAVING min(p.name) <> m.legacy_province_name
         LIMIT ${PLACE_CANDIDATES}`,
     ]);
 
@@ -249,6 +284,10 @@ export class CatalogService {
       ...stopPoints.map((row) => ({
         rank: placeRank(row.searchText ?? "", needle),
         place: { kind: "STOP_POINT" as const, label: row.name, detail: row.address, target: { type: "stopPoint" as const, id: row.id } },
+      })),
+      ...[...districtAreas, ...provinceAreas].map((row) => ({
+        rank: placeRank(row.labelSearch.replace(AREA_PREFIX_SEARCH, ""), needle),
+        place: areaPlace(row),
       })),
       ...legacy.flatMap((row) => {
         const place = legacyPlace(row);
@@ -270,28 +309,32 @@ export class CatalogService {
   }
 }
 
-/** Gợi ý cho một dòng ánh xạ cũ; `null` khi tên cũ trùng hệt tên đơn vị mới (gợi ý mới đã đủ). */
+/** Gợi ý cho một tên phường / xã cũ; `null` khi tên cũ trùng hệt tên phường mới (gợi ý mới đã đủ). */
 function legacyPlace(row: LegacyPlaceRow): Place | null {
-  if (row.legacyWardName) {
-    if (row.legacyWardName === row.wardName) {
-      return null;
-    }
-    return {
-      kind: "LEGACY",
-      label: row.legacyWardName,
-      detail: `Cũ: ${row.legacyDistrictName ? `${row.legacyDistrictName}, ` : ""}${row.legacyProvinceName} · Nay: ${row.wardName}, ${row.provinceName}`,
-      target: { type: "ward", id: row.wardId },
-    };
-  }
-  const label = row.legacyDistrictName || row.legacyProvinceName;
-  if (label === row.provinceName) {
+  if (row.legacyWardName === row.wardName) {
     return null;
   }
   return {
     kind: "LEGACY",
-    label,
-    detail: `${row.legacyDistrictName ? `Cũ: ${row.legacyProvinceName} · ` : ""}Nay thuộc ${row.provinceName}`,
-    target: { type: "province", id: row.provinceId },
+    label: row.legacyWardName,
+    detail: `Cũ: ${row.legacyDistrictName ? `${row.legacyDistrictName}, ` : ""}${row.legacyProvinceName} · Nay: ${row.wardName}, ${row.provinceName}`,
+    target: { type: "ward", id: row.wardId },
+  };
+}
+
+/**
+ * Gợi ý khu vực: tên bỏ cấp hành chính ("Thành phố Đà Lạt" → "Đà Lạt"); dòng phụ ghi đơn vị cũ và tỉnh mới — kèm tỉnh cũ
+ * khi khác tỉnh mới, vì nhiều huyện cùng tên (vd "Huyện Châu Thành") giờ có thể chung một tỉnh.
+ */
+function areaPlace(row: AreaPlaceRow): Place {
+  const district = row.slug !== null;
+  const legacyName = district ? row.legacyDistrictName : row.legacyProvinceName;
+  const origin = district && row.legacyProvinceName !== row.provinceName ? `${legacyName}, ${row.legacyProvinceName}` : legacyName;
+  return {
+    kind: "AREA",
+    label: legacyName.replace(AREA_PREFIX, ""),
+    detail: `${origin} cũ · nay thuộc ${row.provinceName}`,
+    target: { type: "area", id: district ? `${row.code}-${row.slug}` : row.code },
   };
 }
 

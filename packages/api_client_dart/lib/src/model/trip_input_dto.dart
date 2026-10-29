@@ -18,6 +18,7 @@ part 'trip_input_dto.g.dart';
 /// * [stopTimes] 
 /// * [onlineSaleCutoffMinutes] 
 /// * [note] 
+/// * [subRouteIds] 
 @BuiltValue()
 abstract class TripInputDto implements Built<TripInputDto, TripInputDtoBuilder> {
   @BuiltValueField(wireName: r'routeId')
@@ -38,12 +39,16 @@ abstract class TripInputDto implements Built<TripInputDto, TripInputDtoBuilder> 
   @BuiltValueField(wireName: r'note')
   String? get note;
 
+  @BuiltValueField(wireName: r'subRouteIds')
+  BuiltList<String>? get subRouteIds;
+
   TripInputDto._();
 
   factory TripInputDto([void updates(TripInputDtoBuilder b)]) = _$TripInputDto;
 
   @BuiltValueHook(initializeBuilder: true)
-  static void _defaults(TripInputDtoBuilder b) => b;
+  static void _defaults(TripInputDtoBuilder b) => b
+      ..subRouteIds = ListBuilder();
 
   @BuiltValueSerializer(custom: true)
   static Serializer<TripInputDto> get serializer => _$TripInputDtoSerializer();
@@ -91,6 +96,13 @@ class _$TripInputDtoSerializer implements PrimitiveSerializer<TripInputDto> {
       object.note,
       specifiedType: const FullType.nullable(String),
     );
+    if (object.subRouteIds != null) {
+      yield r'subRouteIds';
+      yield serializers.serialize(
+        object.subRouteIds,
+        specifiedType: const FullType(BuiltList, [FullType(String)]),
+      );
+    }
   }
 
   @override
@@ -158,6 +170,14 @@ class _$TripInputDtoSerializer implements PrimitiveSerializer<TripInputDto> {
           ) as String?;
           if (valueDes == null) continue;
           result.note = valueDes;
+          break;
+        case r'subRouteIds':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType.nullable(BuiltList, [FullType(String)]),
+          ) as BuiltList<String>?;
+          if (valueDes == null) continue;
+          result.subRouteIds.replace(valueDes);
           break;
         default:
           unhandled.add(key);

@@ -8,6 +8,7 @@ class TripStop {
     required this.plannedAt,
     required this.allowPickup,
     required this.allowDropoff,
+    this.pickupOpen = true,
   });
 
   /// Thứ tự điểm trong chuyến — gửi khi giữ chỗ.
@@ -20,6 +21,9 @@ class TripStop {
   final DateTime plannedAt;
   final bool allowPickup;
   final bool allowDropoff;
+
+  /// Điểm đón còn bán online — giờ ngừng bán tính theo giờ xe tới điểm này (3.3).
+  final bool pickupOpen;
 }
 
 /// Một chỗ trên sơ đồ của chuyến.
@@ -80,6 +84,7 @@ class TripDetail {
     this.operatorHotline,
     this.averageRating,
     this.note,
+    this.segmentTitle,
   });
 
   final String tripId;
@@ -88,6 +93,9 @@ class TripDetail {
   final double? averageRating;
   final int reviewCount;
   final String routeName;
+
+  /// Chặng khách đi theo nơi đón / trả (3.3), vd "TP.HCM → Gia Nghĩa"; `null` khi tải không kèm chặng.
+  final String? segmentTitle;
   final DateTime departureAt;
   final DateTime arrivalAt;
   final String? note;
@@ -98,8 +106,10 @@ class TripDetail {
   final List<TripSeat> seats;
   final List<CancellationTier> cancellationTiers;
 
-  List<TripStop> get pickupStops =>
-      stops.where((stop) => stop.allowPickup).toList(growable: false);
+  /// Điểm đón còn bán online (đã qua giờ ngừng bán thì không chọn được — 3.3).
+  List<TripStop> get pickupStops => stops
+      .where((stop) => stop.allowPickup && stop.pickupOpen)
+      .toList(growable: false);
 
   /// Điểm trả hợp lệ sau điểm đón [pickupSequence].
   List<TripStop> dropoffStopsAfter(int pickupSequence) => stops

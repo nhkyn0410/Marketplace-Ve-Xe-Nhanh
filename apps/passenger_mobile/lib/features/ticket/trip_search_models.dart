@@ -74,6 +74,8 @@ class TripSearchPage {
     required this.operators,
     this.priceMin,
     this.priceMax,
+    this.widenedFrom = false,
+    this.widenedTo = false,
   });
 
   final List<TripSummary> items;
@@ -81,6 +83,11 @@ class TripSearchPage {
   final int page;
   final int limit;
   final List<TripOperatorFacet> operators;
+
+  /// Phía đi / đến là phường / xã hoặc khu vực mà không có chuyến → API đã nới
+  /// ra cả tỉnh chứa nó; màn kết quả nhắc khách xem điểm đón / trả từng chuyến.
+  final bool widenedFrom;
+  final bool widenedTo;
 
   /// Khoảng giá của toàn bộ kết quả trước khi lọc thêm; `null` khi không có chuyến.
   final int? priceMin;

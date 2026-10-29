@@ -107,7 +107,7 @@ export class PromotionService {
 
   /** Các tuyến đang hoạt động để Admin chọn phạm vi chiến dịch giữa nhiều nhà xe. */
   async routeOptions(authz: Authorization) {
-    return this.prisma.withScope(platformDb(authz), async (tx) => ({ items: (await tx.route.findMany({ where: { status: "ACTIVE", operator: { status: "ACTIVE" } }, orderBy: [{ operatorId: "asc" }, { name: "asc" }], select: { id: true, name: true, operator: { select: { displayName: true } } } })).map((route) => ({ routeId: route.id, routeName: route.name, operatorName: route.operator.displayName })) }));
+    return this.prisma.withScope(platformDb(authz), async (tx) => ({ items: (await tx.route.findMany({ where: { status: "ACTIVE", parentRouteId: null, operator: { status: "ACTIVE" } }, orderBy: [{ operatorId: "asc" }, { name: "asc" }], select: { id: true, name: true, operator: { select: { displayName: true } } } })).map((route) => ({ routeId: route.id, routeName: route.name, operatorName: route.operator.displayName })) }));
   }
 
   /** Admin: `scope` PLATFORM = khuyến mãi nền tảng, OPERATOR = khuyến mãi của các nhà xe. */
@@ -307,7 +307,7 @@ export class PromotionService {
       if (!operator) {
         throw promotionNotFound();
       }
-      if (input.routeIds.length > 0 && (await tx.route.count({ where: { id: { in: input.routeIds }, operatorId } })) !== new Set(input.routeIds).size) {
+      if (input.routeIds.length > 0 && (await tx.route.count({ where: { id: { in: input.routeIds }, operatorId, parentRouteId: null } })) !== new Set(input.routeIds).size) {
         throw promotionGuardrail("Tuyến được chọn phải thuộc nhà xe này.");
       }
       const data = {
@@ -487,7 +487,7 @@ async function routeNameMap(tx: DbTransaction, ids: (string | null)[]): Promise<
 
 async function validatePlatformRoutes(tx: DbTransaction, routeIds: string[]): Promise<void> {
   const unique = [...new Set(routeIds)];
-  if (unique.length > 0 && await tx.route.count({ where: { id: { in: unique }, status: "ACTIVE", operator: { status: "ACTIVE" } } }) !== unique.length) {
+  if (unique.length > 0 && await tx.route.count({ where: { id: { in: unique }, status: "ACTIVE", parentRouteId: null, operator: { status: "ACTIVE" } } }) !== unique.length) {
     throw promotionGuardrail("Danh sách có tuyến không còn hoạt động.");
   }
 }

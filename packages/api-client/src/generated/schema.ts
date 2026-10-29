@@ -1828,6 +1828,70 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/operator/routes/name-suggestion": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["RouteController_previewName"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operator/routes/{routeId}/sub-route-suggestions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["RouteController_subRouteSuggestions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operator/routes/{routeId}/sub-routes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["RouteController_createSubRoute"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operator/routes/{routeId}/sub-routes/{subRouteId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["RouteController_updateSubRoute"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/admin/routes": {
         parameters: {
             query?: never;
@@ -5603,6 +5667,7 @@ export interface components {
             /** Format: date-time */
             updatedAt: string;
             onlineSaleCutoffMinutes: number;
+            subRouteIds: string[];
             statusReason: string | null;
             departedAt: string | null;
             completedAt: string | null;
@@ -6308,13 +6373,12 @@ export interface components {
         PlaceSuggestionListResponseDto_Output: {
             items: {
                 /** @enum {string} */
-                kind: "PROVINCE" | "WARD" | "STOP_POINT" | "LEGACY";
+                kind: "PROVINCE" | "AREA" | "WARD" | "STOP_POINT" | "LEGACY";
                 label: string;
                 detail: string | null;
                 target: {
                     /** @enum {string} */
-                    type: "province" | "ward" | "stopPoint";
-                    /** Format: uuid */
+                    type: "province" | "ward" | "area" | "stopPoint";
                     id: string;
                 };
             }[];
@@ -7056,11 +7120,14 @@ export interface components {
                 id: string;
                 name: string;
                 /** @enum {string} */
-                status: "ACTIVE" | "INACTIVE";
+                nameSource: "AUTO" | "MANUAL";
+                /** @enum {string} */
+                status: "ACTIVE" | "INACTIVE" | "DRAFT";
                 totalDistanceMeters: number;
                 totalDurationSeconds: number;
                 /** @enum {string} */
                 metricsSource: "GOONG" | "ESTIMATE";
+                parentRouteId: string | null;
                 /** Format: date-time */
                 createdAt: string;
                 /** Format: date-time */
@@ -7068,6 +7135,27 @@ export interface components {
                 stopCount: number;
                 originName: string;
                 destinationName: string;
+                subRoutes: {
+                    /** Format: uuid */
+                    id: string;
+                    name: string;
+                    /** @enum {string} */
+                    nameSource: "AUTO" | "MANUAL";
+                    /** @enum {string} */
+                    status: "ACTIVE" | "INACTIVE" | "DRAFT";
+                    totalDistanceMeters: number;
+                    totalDurationSeconds: number;
+                    /** @enum {string} */
+                    metricsSource: "GOONG" | "ESTIMATE";
+                    parentRouteId: string | null;
+                    /** Format: date-time */
+                    createdAt: string;
+                    /** Format: date-time */
+                    updatedAt: string;
+                    stopCount: number;
+                    originName: string;
+                    destinationName: string;
+                }[];
             }[];
             nextCursor: string | null;
         };
@@ -7076,15 +7164,51 @@ export interface components {
             id: string;
             name: string;
             /** @enum {string} */
-            status: "ACTIVE" | "INACTIVE";
+            nameSource: "AUTO" | "MANUAL";
+            /** @enum {string} */
+            status: "ACTIVE" | "INACTIVE" | "DRAFT";
             totalDistanceMeters: number;
             totalDurationSeconds: number;
             /** @enum {string} */
             metricsSource: "GOONG" | "ESTIMATE";
+            parentRouteId: string | null;
             /** Format: date-time */
             createdAt: string;
             /** Format: date-time */
             updatedAt: string;
+            parentRouteName: string | null;
+            needsReview: boolean;
+            subRoutes: {
+                /** Format: uuid */
+                id: string;
+                name: string;
+                /** @enum {string} */
+                nameSource: "AUTO" | "MANUAL";
+                /** @enum {string} */
+                status: "ACTIVE" | "INACTIVE" | "DRAFT";
+                totalDistanceMeters: number;
+                totalDurationSeconds: number;
+                from: {
+                    catalogStopPointId: string | null;
+                    stopPointId: string | null;
+                    name: string;
+                };
+                to: {
+                    catalogStopPointId: string | null;
+                    stopPointId: string | null;
+                    name: string;
+                };
+                needsReview: boolean;
+                fare: {
+                    /** Format: uuid */
+                    id: string;
+                    /** @enum {string} */
+                    status: "ACTIVE" | "INACTIVE";
+                    minPrice: number | null;
+                    maxPrice: number | null;
+                } | null;
+            }[];
+            suggestedName: string | null;
             note: string | null;
             stops: {
                 sequence: number;
@@ -7106,10 +7230,29 @@ export interface components {
                 measuredDurationSecondsFromPrevious: number | null;
             }[];
         };
+        RouteNamePreviewInputDto: {
+            stops: {
+                catalogStopPointId: string | null;
+                stopPointId: string | null;
+                note: string | null;
+                allowPickup: boolean;
+                allowDropoff: boolean;
+                durationMinutesFromPrevious?: number | null;
+            }[];
+            routeId?: string | null;
+        };
+        RouteNamePreviewDto_Output: {
+            name: string;
+        };
         RouteInputDto: {
             name: string;
+            /**
+             * @default MANUAL
+             * @enum {string}
+             */
+            nameSource: "AUTO" | "MANUAL";
             /** @enum {string} */
-            status: "ACTIVE" | "INACTIVE";
+            status: "ACTIVE" | "INACTIVE" | "DRAFT";
             note: string | null;
             stops: {
                 catalogStopPointId: string | null;
@@ -7119,6 +7262,46 @@ export interface components {
                 allowDropoff: boolean;
                 durationMinutesFromPrevious?: number | null;
             }[];
+        };
+        SubRouteSuggestionListDto_Output: {
+            items: {
+                from: {
+                    catalogStopPointId: string | null;
+                    stopPointId: string | null;
+                    name: string;
+                };
+                to: {
+                    catalogStopPointId: string | null;
+                    stopPointId: string | null;
+                    name: string;
+                };
+                name: string;
+                totalDistanceMeters: number;
+                totalDurationSeconds: number;
+                suggestedRules: {
+                    vehicleTypeId: string | null;
+                    seatType: ("SEAT" | "BED" | "BED_DOUBLE" | "CABIN" | "CABIN_DOUBLE") | null;
+                    validFrom: string | null;
+                    validTo: string | null;
+                    price: number;
+                }[] | null;
+            }[];
+        };
+        SubRouteInputDto: {
+            from: {
+                catalogStopPointId: string | null;
+                stopPointId: string | null;
+            };
+            to: {
+                catalogStopPointId: string | null;
+                stopPointId: string | null;
+            };
+            name: string;
+            /** @enum {string} */
+            nameSource: "AUTO" | "MANUAL";
+            /** @enum {string} */
+            status: "ACTIVE" | "INACTIVE" | "DRAFT";
+            note: string | null;
         };
         AdminRoutePageDto_Output: {
             items: {
@@ -7132,7 +7315,7 @@ export interface components {
                 id: string;
                 name: string;
                 /** @enum {string} */
-                status: "ACTIVE" | "INACTIVE";
+                status: "ACTIVE" | "INACTIVE" | "DRAFT";
                 /** Format: uuid */
                 operatorId: string;
                 operatorName: string;
@@ -7173,7 +7356,7 @@ export interface components {
             id: string;
             name: string;
             /** @enum {string} */
-            status: "ACTIVE" | "INACTIVE";
+            status: "ACTIVE" | "INACTIVE" | "DRAFT";
             /** Format: uuid */
             operatorId: string;
             operatorName: string;
@@ -7258,6 +7441,8 @@ export interface components {
             stopTimes: string[] | null;
             onlineSaleCutoffMinutes: number;
             note: string | null;
+            /** @default [] */
+            subRouteIds: string[];
         };
         TripSalesDto_Output: {
             soldSeats: number;
@@ -7414,6 +7599,7 @@ export interface components {
         };
         TripScheduleListResponseDto_Output: {
             items: {
+                subRouteIds: string[];
                 /** Format: uuid */
                 id: string;
                 /** Format: uuid */
@@ -7439,6 +7625,7 @@ export interface components {
             }[];
         };
         TripScheduleResponseDto_Output: {
+            subRouteIds: string[];
             /** Format: uuid */
             id: string;
             /** Format: uuid */
@@ -7474,6 +7661,8 @@ export interface components {
             endDate: string;
             onlineSaleCutoffMinutes: number;
             note: string | null;
+            /** @default [] */
+            subRouteIds: string[];
         };
         TripScheduleGenerateInputDto: {
             openForSale: boolean;
@@ -7680,6 +7869,7 @@ export interface components {
                     reviewCount: number;
                 };
                 routeName: string;
+                segmentTitle: string;
                 vehicleType: {
                     name: string;
                     /** @enum {string} */
@@ -7747,6 +7937,11 @@ export interface components {
                 reviewCount: number;
             };
             routeName: string;
+            segment: {
+                pickupSequence: number;
+                dropoffSequence: number;
+                title: string;
+            } | null;
             /** Format: date-time */
             departureAt: string;
             /** Format: date-time */
@@ -7785,6 +7980,7 @@ export interface components {
                 pickupWindowEnd: string | null;
                 allowPickup: boolean;
                 allowDropoff: boolean;
+                pickupOpen: boolean;
                 note: string | null;
             }[];
             seats: {
@@ -18005,9 +18201,10 @@ export interface operations {
     RouteController_list: {
         parameters: {
             query?: {
-                status?: "ACTIVE" | "INACTIVE";
+                status?: "ACTIVE" | "INACTIVE" | "DRAFT";
                 cursor?: string;
                 limit?: number;
+                includeSubRoutes?: "true" | "false";
             };
             header?: never;
             path?: never;
@@ -18240,7 +18437,7 @@ export interface operations {
                     "application/problem+json": components["schemas"]["ProblemDetailsDto"];
                 };
             };
-            /** @description `ROUTE_NAME_CONFLICT`. */
+            /** @description `ROUTE_NAME_CONFLICT`, `ROUTE_IS_SUB_ROUTE` (tuyến con sửa qua tuyến chính). */
             409: {
                 headers: {
                     [name: string]: unknown;
@@ -18269,12 +18466,291 @@ export interface operations {
             };
         };
     };
+    RouteController_previewName: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RouteNamePreviewInputDto"];
+            };
+        };
+        responses: {
+            /** @description Tên tự động, đã tránh trùng tuyến khác của nhà xe. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RouteNamePreviewDto_Output"];
+                };
+            };
+            /** @description Dữ liệu không hợp lệ. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `STOP_POINT_UNAVAILABLE`. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    RouteController_subRouteSuggestions: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                routeId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Gợi ý tuyến con (chưa có tuyến con cùng hai đầu). */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SubRouteSuggestionListDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `ROUTE_NOT_FOUND` (kể cả khác tenant). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `ROUTE_IS_SUB_ROUTE`. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    RouteController_createSubRoute: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                routeId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SubRouteInputDto"];
+            };
+        };
+        responses: {
+            /** @description Tuyến con đã tạo. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RouteResponseDto_Output"];
+                };
+            };
+            /** @description Dữ liệu không hợp lệ. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `ROUTE_NOT_FOUND` (kể cả khác tenant). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `ROUTE_NAME_CONFLICT`, `SUB_ROUTE_CONFLICT`, `ROUTE_IS_SUB_ROUTE`. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `SUB_ROUTE_BOUNDS_INVALID`, `SUB_ROUTE_NOT_READY` (bật khi chưa có bảng giá). */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    RouteController_updateSubRoute: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                routeId: string;
+                subRouteId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SubRouteInputDto"];
+            };
+        };
+        responses: {
+            /** @description Tuyến con sau khi thay. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RouteResponseDto_Output"];
+                };
+            };
+            /** @description Dữ liệu không hợp lệ. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `ROUTE_NOT_FOUND` (kể cả khác tenant). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `ROUTE_NAME_CONFLICT`, `SUB_ROUTE_CONFLICT`. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `SUB_ROUTE_BOUNDS_INVALID`, `SUB_ROUTE_NOT_READY`. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
     AdminRouteController_list: {
         parameters: {
             query?: {
                 q?: string;
                 operatorId?: string;
-                status?: "ACTIVE" | "INACTIVE";
+                status?: "ACTIVE" | "INACTIVE" | "DRAFT";
                 originProvinceId?: string;
                 destinationProvinceId?: string;
                 from?: string;
@@ -19862,9 +20338,11 @@ export interface operations {
             query: {
                 fromProvinceId?: string;
                 fromWardId?: string;
+                fromAreaId?: string;
                 fromStopPointId?: string;
                 toProvinceId?: string;
                 toWardId?: string;
+                toAreaId?: string;
                 toStopPointId?: string;
                 date: string;
                 passengers?: number;
@@ -19908,7 +20386,10 @@ export interface operations {
     };
     PublicTripController_get: {
         parameters: {
-            query?: never;
+            query?: {
+                pickupSequence?: number;
+                dropoffSequence?: number;
+            };
             header?: never;
             path: {
                 tripId: string;

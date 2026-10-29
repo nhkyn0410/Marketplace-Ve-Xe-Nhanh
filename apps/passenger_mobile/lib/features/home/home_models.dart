@@ -1,6 +1,9 @@
 enum HomeSearchMode { route, operator }
 
-enum HomeLocationKind { province, stopPoint }
+/// Loại điểm đi / điểm đến — khớp `target.type` của `GET /catalog/places`:
+/// tỉnh / thành, phường / xã, khu vực (đơn vị hành chính cũ như "Đà Lạt",
+/// "Vũng Tàu" = nhóm phường mới), bến xe – địa danh.
+enum HomeLocationKind { province, ward, area, stopPoint }
 
 class HomeLocation {
   const HomeLocation({
@@ -14,7 +17,8 @@ class HomeLocation {
   final String name;
   final HomeLocationKind kind;
 
-  /// Dòng phụ khi gợi ý (địa chỉ của bến / địa danh); tỉnh thì không có.
+  /// Dòng phụ khi gợi ý (tỉnh của phường, địa chỉ của bến, đơn vị mới của tên
+  /// cũ / khu vực); tỉnh thì không có.
   final String? detail;
 }
 
@@ -73,9 +77,9 @@ class HomeSearchQuery {
   String? get operatorId => operator?.id;
 }
 
+/// Tuyến phổ biến (cặp tỉnh) — cùng nguồn `GET /catalog/popular-routes` với web.
 class HomePopularRoute {
   const HomePopularRoute({
-    required this.tripId,
     required this.from,
     required this.to,
     required this.fromLabel,
@@ -85,7 +89,6 @@ class HomePopularRoute {
     this.imageUrl,
   });
 
-  final String tripId;
   final HomeLocation from;
   final HomeLocation to;
   final String fromLabel;

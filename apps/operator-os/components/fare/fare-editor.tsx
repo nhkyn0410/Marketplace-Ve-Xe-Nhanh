@@ -180,7 +180,12 @@ function FareEditorBody({ fare }: { fare?: Fare }) {
 
   const vehicleTypes = useQuery({ queryKey: ["catalog", "vehicle-types"], queryFn: listVehicleTypes, staleTime: 300_000 });
   // Chỉ cần khi tạo mới: ô chọn tuyến liệt kê tuyến đang hoạt động chưa có bảng giá.
-  const routes = useQuery({ queryKey: ["routes", "all", "ACTIVE"], queryFn: () => listAllRoutes("ACTIVE"), enabled: !fare });
+  // Tuyến Nháp và tuyến con (3.2) cũng tạo được bảng giá — tuyến con cần giá trước khi bật.
+  const routes = useQuery({
+    queryKey: ["routes", "all", "fare-options"],
+    queryFn: async () => (await listAllRoutes(undefined, { includeSubRoutes: true })).filter((route) => route.status !== "INACTIVE"),
+    enabled: !fare
+  });
   const fares = useQuery({ queryKey: ["fares", "all"], queryFn: listAllFares, enabled: !fare });
 
   const typeNames = useMemo(

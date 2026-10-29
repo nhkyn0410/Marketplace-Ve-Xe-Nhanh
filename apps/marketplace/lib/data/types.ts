@@ -60,13 +60,21 @@ export interface FeaturedOperatorItem {
   /** Null khi chưa có đánh giá. */
   readonly rating: number | null;
   readonly ratingCountText: string;
+  /** Số đánh giá đang hiển thị — xếp hạng nhà xe ở trang Khám phá. */
+  readonly reviewCount?: number;
   readonly dailyTripsText?: string;
   readonly vehicleTypesText?: string;
   readonly popularRoutesText: string;
   readonly slug?: string;
   readonly accentColor?: string;
   /** Tuyến (cặp tỉnh) đang mở bán — ô "Tuyến đường" của tab Theo nhà xe. */
-  readonly routes?: readonly { readonly originProvinceId: string; readonly destinationProvinceId: string; readonly label: string }[];
+  readonly routes?: readonly {
+    readonly originProvinceId: string;
+    readonly destinationProvinceId: string;
+    readonly originName?: string;
+    readonly destinationName?: string;
+    readonly label: string;
+  }[];
 }
 
 /**
@@ -120,6 +128,9 @@ export interface TripSearchResultItem {
   readonly moreAmenitiesCount?: number;
   /** Ảnh xe — chưa có nguồn ảnh thật, view hiện khối bg-muted khi thiếu (A5). */
   readonly imageUrl?: string;
+  /** `sequence` của điểm đón / trả khớp lúc tìm — mang sang chi tiết chuyến và chọn chỗ (dữ liệu thật). */
+  readonly pickupSequence?: number;
+  readonly dropoffSequence?: number;
 }
 
 /**

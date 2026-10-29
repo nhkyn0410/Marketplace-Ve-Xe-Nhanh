@@ -179,6 +179,8 @@ class _$PublicTripDtoOutputStopsInner extends PublicTripDtoOutputStopsInner {
   @override
   final bool allowDropoff;
   @override
+  final bool pickupOpen;
+  @override
   final String? note;
 
   factory _$PublicTripDtoOutputStopsInner(
@@ -198,6 +200,7 @@ class _$PublicTripDtoOutputStopsInner extends PublicTripDtoOutputStopsInner {
       this.pickupWindowEnd,
       required this.allowPickup,
       required this.allowDropoff,
+      required this.pickupOpen,
       this.note})
       : super._();
   @override
@@ -225,6 +228,7 @@ class _$PublicTripDtoOutputStopsInner extends PublicTripDtoOutputStopsInner {
         pickupWindowEnd == other.pickupWindowEnd &&
         allowPickup == other.allowPickup &&
         allowDropoff == other.allowDropoff &&
+        pickupOpen == other.pickupOpen &&
         note == other.note;
   }
 
@@ -243,6 +247,7 @@ class _$PublicTripDtoOutputStopsInner extends PublicTripDtoOutputStopsInner {
     _$hash = $jc(_$hash, pickupWindowEnd.hashCode);
     _$hash = $jc(_$hash, allowPickup.hashCode);
     _$hash = $jc(_$hash, allowDropoff.hashCode);
+    _$hash = $jc(_$hash, pickupOpen.hashCode);
     _$hash = $jc(_$hash, note.hashCode);
     _$hash = $jf(_$hash);
     return _$hash;
@@ -263,6 +268,7 @@ class _$PublicTripDtoOutputStopsInner extends PublicTripDtoOutputStopsInner {
           ..add('pickupWindowEnd', pickupWindowEnd)
           ..add('allowPickup', allowPickup)
           ..add('allowDropoff', allowDropoff)
+          ..add('pickupOpen', pickupOpen)
           ..add('note', note))
         .toString();
   }
@@ -324,6 +330,10 @@ class PublicTripDtoOutputStopsInnerBuilder
   bool? get allowDropoff => _$this._allowDropoff;
   set allowDropoff(bool? allowDropoff) => _$this._allowDropoff = allowDropoff;
 
+  bool? _pickupOpen;
+  bool? get pickupOpen => _$this._pickupOpen;
+  set pickupOpen(bool? pickupOpen) => _$this._pickupOpen = pickupOpen;
+
   String? _note;
   String? get note => _$this._note;
   set note(String? note) => _$this._note = note;
@@ -347,6 +357,7 @@ class PublicTripDtoOutputStopsInnerBuilder
       _pickupWindowEnd = $v.pickupWindowEnd;
       _allowPickup = $v.allowPickup;
       _allowDropoff = $v.allowDropoff;
+      _pickupOpen = $v.pickupOpen;
       _note = $v.note;
       _$v = null;
     }
@@ -391,6 +402,8 @@ class PublicTripDtoOutputStopsInnerBuilder
               allowPickup, r'PublicTripDtoOutputStopsInner', 'allowPickup'),
           allowDropoff: BuiltValueNullFieldError.checkNotNull(
               allowDropoff, r'PublicTripDtoOutputStopsInner', 'allowDropoff'),
+          pickupOpen: BuiltValueNullFieldError.checkNotNull(
+              pickupOpen, r'PublicTripDtoOutputStopsInner', 'pickupOpen'),
           note: note,
         );
     replace(_$result);

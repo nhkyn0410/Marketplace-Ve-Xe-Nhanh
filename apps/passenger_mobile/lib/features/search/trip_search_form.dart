@@ -9,17 +9,19 @@ const _primaryDark = Color(0xFF102E58);
 const _secondary = Color(0xFF607A8E);
 const _divider = Color(0xFFE6EEF3);
 
-/// Dữ liệu danh mục cho form tìm chuyến: tỉnh/thành, bến – địa danh theo từ khóa, nhà xe đang mở bán, tiện ích.
+/// Dữ liệu danh mục cho form tìm chuyến: tỉnh/thành, gợi ý địa điểm theo từ khóa, nhà xe đang mở bán, tiện ích.
 class TripSearchCatalog {
   const TripSearchCatalog({
     required this.loadProvinces,
-    required this.searchStopPoints,
+    required this.searchPlaces,
     required this.loadOperators,
     required this.loadAmenities,
   });
 
   final Future<List<HomeLocation>> Function() loadProvinces;
-  final Future<List<HomeLocation>> Function(String keyword) searchStopPoints;
+
+  /// Gợi ý cùng nguồn với web: tỉnh, khu vực, phường / xã, bến – địa danh, tên cũ.
+  final Future<List<HomeLocation>> Function(String keyword) searchPlaces;
   final Future<List<HomeOperator>> Function() loadOperators;
   final Future<List<TripAmenityOption>> Function() loadAmenities;
 }
@@ -416,15 +418,15 @@ class _LocationPickerSheet extends StatefulWidget {
 }
 
 class _LocationPickerSheetState extends State<_LocationPickerSheet> {
-  static const _minStopKeyword = 2;
+  static const _minPlaceKeyword = 2;
 
   late Future<List<HomeLocation>> _provinces = widget.catalog.loadProvinces();
   String _keyword = '';
   Timer? _debounce;
-  int _stopRequest = 0;
-  bool _searchingStops = false;
-  bool _stopSearchFailed = false;
-  List<HomeLocation> _stopPoints = const [];
+  int _placeRequest = 0;
+  bool _searchingPlaces = false;
+  bool _placeSearchFailed = false;
+  List<HomeLocation> _places = const [];
 
   @override
   void dispose() {
@@ -432,35 +434,37 @@ class _LocationPickerSheetState extends State<_LocationPickerSheet> {
     super.dispose();
   }
 
+  /// Dưới 2 ký tự: lọc danh sách tỉnh tại chỗ. Từ 2 ký tự: gợi ý từ API (tỉnh,
+  /// khu vực, phường / xã, bến – địa danh, tên cũ), như ô tìm của web.
   void _onKeywordChanged(String value) {
     final keyword = value.trim();
     setState(() => _keyword = keyword);
     _debounce?.cancel();
-    final request = ++_stopRequest;
-    if (keyword.length < _minStopKeyword) {
+    final request = ++_placeRequest;
+    if (keyword.length < _minPlaceKeyword) {
       setState(() {
-        _stopPoints = const [];
-        _searchingStops = false;
-        _stopSearchFailed = false;
+        _places = const [];
+        _searchingPlaces = false;
+        _placeSearchFailed = false;
       });
       return;
     }
-    setState(() => _searchingStops = true);
+    setState(() => _searchingPlaces = true);
     _debounce = Timer(const Duration(milliseconds: 300), () async {
       try {
-        final items = await widget.catalog.searchStopPoints(keyword);
-        if (!mounted || request != _stopRequest) return;
+        final items = await widget.catalog.searchPlaces(keyword);
+        if (!mounted || request != _placeRequest) return;
         setState(() {
-          _stopPoints = items;
-          _searchingStops = false;
-          _stopSearchFailed = false;
+          _places = items;
+          _searchingPlaces = false;
+          _placeSearchFailed = false;
         });
       } catch (_) {
-        if (!mounted || request != _stopRequest) return;
+        if (!mounted || request != _placeRequest) return;
         setState(() {
-          _stopPoints = const [];
-          _searchingStops = false;
-          _stopSearchFailed = true;
+          _places = const [];
+          _searchingPlaces = false;
+          _placeSearchFailed = true;
         });
       }
     });
@@ -479,7 +483,7 @@ class _LocationPickerSheetState extends State<_LocationPickerSheet> {
           onChanged: _onKeywordChanged,
           textInputAction: TextInputAction.search,
           decoration: InputDecoration(
-            hintText: 'Nhập tỉnh/thành, bến xe, địa danh',
+            hintText: 'Tỉnh, phường/xã, bến xe, tên cũ (Đà Lạt, Vũng Tàu…)',
             prefixIcon: const Icon(Icons.search, color: _secondary),
             filled: true,
             fillColor: const Color(0xFFF3F8FB),
@@ -490,82 +494,74 @@ class _LocationPickerSheetState extends State<_LocationPickerSheet> {
           ),
         ),
       ),
-      child: FutureBuilder<List<HomeLocation>>(
-        future: _provinces,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState != ConnectionState.done) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          if (snapshot.hasError) {
-            return _SheetMessage(
-              'Không tải được danh mục địa điểm. Vui lòng thử lại.',
-              onRetry: () => setState(
-                () => _provinces = widget.catalog.loadProvinces(),
-              ),
-            );
-          }
-          final folded = _fold(_keyword);
-          final provinces = [
-            for (final province in snapshot.data ?? const <HomeLocation>[])
-              if (_fold(province.name).contains(folded)) province,
-          ];
-          final showStops = _keyword.length >= _minStopKeyword;
-          if (provinces.isEmpty &&
-              (!showStops ||
-                  (!_searchingStops && _stopPoints.isEmpty && !_stopSearchFailed))) {
-            return const _SheetMessage('Không tìm thấy địa điểm phù hợp.');
-          }
-          return ListView(
-            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-            children: [
-              if (provinces.isNotEmpty) ...[
-                const _SectionLabel('Tỉnh / thành phố'),
-                for (final province in provinces)
-                  _LocationTile(
-                    location: province,
-                    onTap: () => Navigator.pop(context, province),
-                  ),
-              ],
-              if (showStops) ...[
-                const _SectionLabel('Bến xe, địa danh'),
-                if (_searchingStops)
-                  const Padding(
-                    padding: EdgeInsets.all(16),
-                    child: Center(
-                      child: SizedBox.square(
-                        dimension: 22,
-                        child: CircularProgressIndicator(strokeWidth: 2.4),
-                      ),
-                    ),
-                  )
-                else if (_stopSearchFailed)
-                  const Padding(
-                    padding: EdgeInsets.fromLTRB(18, 4, 18, 12),
-                    child: Text(
-                      'Không tải được bến xe, địa danh.',
-                      style: TextStyle(color: _secondary),
-                    ),
-                  )
-                else if (_stopPoints.isEmpty)
-                  const Padding(
-                    padding: EdgeInsets.fromLTRB(18, 4, 18, 12),
-                    child: Text(
-                      'Không có bến xe, địa danh khớp.',
-                      style: TextStyle(color: _secondary),
-                    ),
-                  )
-                else
-                  for (final stop in _stopPoints)
-                    _LocationTile(
-                      location: stop,
-                      onTap: () => Navigator.pop(context, stop),
-                    ),
-              ],
-              const SizedBox(height: 16),
-            ],
+      child: _keyword.length >= _minPlaceKeyword
+          ? _buildPlaces(context)
+          : _buildProvinces(context),
+    );
+  }
+
+  Widget _buildPlaces(BuildContext context) {
+    if (_searchingPlaces) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    if (_placeSearchFailed) {
+      return _SheetMessage(
+        'Không tải được gợi ý địa điểm. Vui lòng thử lại.',
+        onRetry: () => _onKeywordChanged(_keyword),
+      );
+    }
+    if (_places.isEmpty) {
+      return const _SheetMessage('Không tìm thấy địa điểm phù hợp.');
+    }
+    return ListView(
+      keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+      children: [
+        for (final place in _places)
+          _LocationTile(
+            location: place,
+            onTap: () => Navigator.pop(context, place),
+          ),
+        const SizedBox(height: 16),
+      ],
+    );
+  }
+
+  Widget _buildProvinces(BuildContext context) {
+    return FutureBuilder<List<HomeLocation>>(
+      future: _provinces,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState != ConnectionState.done) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        if (snapshot.hasError) {
+          return _SheetMessage(
+            'Không tải được danh mục địa điểm. Vui lòng thử lại.',
+            onRetry: () => setState(
+              () => _provinces = widget.catalog.loadProvinces(),
+            ),
           );
-        },
-      ),
+        }
+        final folded = _fold(_keyword);
+        final provinces = [
+          for (final province in snapshot.data ?? const <HomeLocation>[])
+            if (_fold(province.name).contains(folded)) province,
+        ];
+        if (provinces.isEmpty) {
+          return const _SheetMessage('Không tìm thấy địa điểm phù hợp.');
+        }
+        return ListView(
+          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+          children: [
+            const _SectionLabel('Tỉnh / thành phố'),
+            for (final province in provinces)
+              _LocationTile(
+                location: province,
+                onTap: () => Navigator.pop(context, province),
+              ),
+            const SizedBox(height: 16),
+          ],
+        );
+      },
     );
   }
 }
@@ -578,18 +574,23 @@ class _LocationTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final province = location.kind == HomeLocationKind.province;
     return ListTile(
       leading: Icon(
-        province ? Icons.location_city_outlined : Icons.place_outlined,
+        switch (location.kind) {
+          HomeLocationKind.province => Icons.location_city_outlined,
+          HomeLocationKind.area => Icons.map_outlined,
+          HomeLocationKind.ward => Icons.holiday_village_outlined,
+          HomeLocationKind.stopPoint => Icons.place_outlined,
+        },
         color: _primary,
       ),
       title: Text(location.name),
+      // Dòng phụ của khu vực / tên cũ khá dài ("… cũ · nay thuộc …"): cho 2 dòng.
       subtitle: location.detail == null
           ? null
           : Text(
               location.detail!,
-              maxLines: 1,
+              maxLines: 2,
               overflow: TextOverflow.ellipsis,
             ),
       onTap: onTap,

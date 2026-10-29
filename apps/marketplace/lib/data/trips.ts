@@ -3,7 +3,7 @@
 import type { components } from "@vexenhanh/api-client";
 import { apiRequest } from "./api";
 import { ok, failed, type DataResult } from "./result";
-import { mapTripDetail, mapTripSearchItem, searchQuery, type SearchTripsParams } from "./trip-mappers";
+import { mapTripDetail, mapTripSearchItem, publicTripPath, searchQuery, type SearchTripsParams, type TripLeg } from "./trip-mappers";
 import type { TripDetailData, TripSearchResultItem, TripSearchSummary } from "./types";
 
 export type { SearchTripsParams } from "./trip-mappers";
@@ -34,9 +34,9 @@ export async function searchTrips(params: SearchTripsParams = {}): Promise<DataR
   }
 }
 
-/** Lấy lịch trình, giá ghế và chính sách hủy thật của chuyến xe. */
-export async function getTripDetails(tripId: string): Promise<DataResult<TripDetailData>> {
-  const result = await apiRequest<components["schemas"]["PublicTripDto_Output"]>(`/trips/${encodeURIComponent(tripId)}`);
+/** Lấy lịch trình, giá ghế và chính sách hủy thật của chuyến xe; kèm chặng khách đi thì giá + tiêu đề theo chặng (3.3). */
+export async function getTripDetails(tripId: string, leg: TripLeg = {}): Promise<DataResult<TripDetailData>> {
+  const result = await apiRequest<components["schemas"]["PublicTripDto_Output"]>(publicTripPath(tripId, leg));
   if (result.status !== "ok") return result;
   try {
     const trip = mapTripDetail(result.data);

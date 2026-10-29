@@ -1,12 +1,12 @@
 import 'package:test/test.dart';
 import 'package:api_client_dart/api_client_dart.dart';
 
-// tests for RouteInputDtoStopsInner
+// tests for RouteResponseDtoOutputSubRoutesInnerFrom
 void main() {
-  final instance = RouteInputDtoStopsInnerBuilder();
+  final instance = RouteResponseDtoOutputSubRoutesInnerFromBuilder();
   // TODO add properties to the builder and call build()
 
-  group(RouteInputDtoStopsInner, () {
+  group(RouteResponseDtoOutputSubRoutesInnerFrom, () {
     // String catalogStopPointId
     test('to test the property `catalogStopPointId`', () async {
       // TODO
@@ -17,8 +17,8 @@ void main() {
       // TODO
     });
 
-    // String note
-    test('to test the property `note`', () async {
+    // String name
+    test('to test the property `name`', () async {
       // TODO
     });
 

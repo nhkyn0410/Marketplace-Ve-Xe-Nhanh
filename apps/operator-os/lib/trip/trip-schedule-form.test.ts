@@ -46,7 +46,8 @@ describe("form lịch chạy lặp lại (TRN-007)", () => {
       startDate: "2026-10-19",
       endDate: "2026-11-01",
       onlineSaleCutoffMinutes: 60,
-      note: "Chạy cố định"
+      note: "Chạy cố định",
+      subRouteIds: []
     });
   });
 
@@ -55,6 +56,7 @@ describe("form lịch chạy lặp lại (TRN-007)", () => {
       id: "s",
       routeId: "r",
       routeName: "SG - ĐL",
+      subRouteIds: ["sub-1"],
       vehicleId: "v",
       vehiclePlateNumber: "51B37760",
       departureTime: "06:00",

@@ -5,20 +5,26 @@ import type { SeatType } from "../database/prisma.types";
 import { PrismaService } from "../database/prisma.service";
 import { loadOperatorRatings, NO_RATING } from "../database/public-highlights";
 import {
+  findArea,
   findLandmark,
   findWard,
   loadActiveFareRules,
   loadCancellationTiers,
   loadPublicTrip,
+  pickupSaleOpen,
   searchTripCandidates,
   type FareRuleRow,
   type SearchSide,
 } from "../database/public-trips";
+import { loadPublicSegmentOffers } from "../database/segment-offers";
+import { loadWardLocalities } from "../database/stop-localities";
 import { PUBLIC_STORAGE, type StorageProvider } from "../external/storage/storage-provider";
-import { resolveSeatPrice, vndToJson } from "../fare/fare-pricing";
+import { vndToJson } from "../fare/fare-pricing";
+import { coveringOffer, segmentSeatPrice } from "../fare/segment-pricing";
+import { composeRouteName } from "../route/route-name";
 import { REDIS_CLIENT } from "../redis/redis.config";
 import { heldSeatCodes } from "../seat-hold/seat-hold-store";
-import type { PublicTrip, TripSearchItem, TripSearchQuery, TripSearchResponse } from "./dto/public-trip.dto";
+import type { PublicTrip, PublicTripQuery, TripSearchItem, TripSearchQuery, TripSearchResponse } from "./dto/public-trip.dto";
 
 const MINUTE = 60_000;
 const DAY = 24 * 60 * MINUTE;
@@ -73,18 +79,38 @@ export class TripSearchService {
     };
   }
 
-  /** Chi tiết chuyến đang hiển thị; không hiển thị (nháp, khóa, hủy, nhà xe tạm khóa, quá giờ bán online) → 404. */
-  async getTrip(tripId: string): Promise<PublicTrip> {
+  /**
+   * Chi tiết chuyến đang hiển thị; không hiển thị (nháp, khóa, hủy, nhà xe tạm khóa, mọi điểm đón đã qua giờ bán online) →
+   * 404. Kèm chặng khách đi (`query`, 3.3) thì giá ghế theo chặng và tiêu đề theo nơi đón / trả.
+   */
+  async getTrip(tripId: string, query: PublicTripQuery = {}): Promise<PublicTrip> {
     const now = new Date();
     const trip = await loadPublicTrip(this.prisma, tripId, now);
     if (!trip || !trip.vehicle) {
       throw new HttpException({ code: "TRIP_NOT_FOUND", detail: "Không tìm thấy chuyến.", title: "Trip error" }, HttpStatus.NOT_FOUND);
     }
-    const [rules, tiers, ratings] = await Promise.all([
+    const [rules, tiers, ratings, offers] = await Promise.all([
       loadActiveFareRules(this.prisma, [trip.route.id]),
       loadCancellationTiers(this.prisma, [trip.operator.id], now),
       loadOperatorRatings(this.prisma, [trip.operator.id]),
+      loadPublicSegmentOffers(this.prisma, [trip.id]),
     ]);
+    const pickup = trip.stops.find((stop) => stop.sequence === query.pickupSequence);
+    const dropoff = trip.stops.find((stop) => stop.sequence === query.dropoffSequence);
+    const chosen =
+      pickup?.allowPickup && dropoff?.allowDropoff && pickup.sequence < dropoff.sequence && pickupSaleOpen(pickup.plannedAt, trip.onlineSaleCutoffMinutes, now)
+        ? { pickup, dropoff }
+        : null;
+    const offer = chosen ? coveringOffer(offers.get(trip.id) ?? [], chosen.pickup.sequence, chosen.dropoff.sequence) : null;
+    const segment = chosen
+      ? {
+          pickupSequence: chosen.pickup.sequence,
+          dropoffSequence: chosen.dropoff.sequence,
+          title: (await this.segmentTitles([[chosen.pickup, chosen.dropoff]]))[0]!,
+        }
+      : null;
+    const lastPickup = [...trip.stops].reverse().find((stop) => stop.allowPickup)!;
+    const closingStop = chosen?.pickup ?? lastPickup;
     const vehicleTypeId = trip.vehicle.vehicleType.id;
     // Chỗ đang được giữ (BTP-001) hiện "không đặt được"; Redis lỗi thì chỉ dựa trạng thái Postgres — lúc giữ chỗ kiểm lại.
     const held = await heldSeatCodes(this.redis, trip.id, trip.seats.map((seat) => seat.seatCode)).catch((error: unknown) => {
@@ -101,21 +127,29 @@ export class TripSearchService {
         ...(ratings.get(trip.operator.id) ?? NO_RATING),
       },
       routeName: trip.route.name,
+      segment,
       departureAt: trip.departureAt.toISOString(),
       arrivalAt: trip.arrivalAt.toISOString(),
-      onlineSaleClosesAt: new Date(trip.departureAt.getTime() - trip.onlineSaleCutoffMinutes * MINUTE).toISOString(),
+      onlineSaleClosesAt: new Date(closingStop.plannedAt.getTime() - trip.onlineSaleCutoffMinutes * MINUTE).toISOString(),
       note: trip.note,
       vehicleType: { name: trip.vehicle.vehicleType.name, form: trip.vehicle.vehicleType.form, class: trip.vehicle.vehicleType.class },
       amenities: trip.vehicle.amenities.map(({ amenity }) => amenity),
       vehicleImages: trip.vehicle.images.map((image) => ({ url: this.storage.publicUrl(image.objectKey), caption: image.caption })),
-      stops: trip.stops.map(({ catalogStopPoint, stopPoint, plannedAt, pickupWindowStart, pickupWindowEnd, ...stop }) => {
-        const point = (catalogStopPoint ?? stopPoint)!;
-        return { ...stop, ...point, plannedAt: plannedAt.toISOString(), pickupWindowStart: pickupWindowStart?.toISOString() ?? null, pickupWindowEnd: pickupWindowEnd?.toISOString() ?? null };
+      stops: trip.stops.map(({ catalogStopPoint, stopPoint, catalogStopPointId: _catalog, stopPointId: _private, plannedAt, pickupWindowStart, pickupWindowEnd, ...stop }) => {
+        const { wardId: _ward, ...point } = (catalogStopPoint ?? stopPoint)!;
+        return {
+          ...stop,
+          ...point,
+          plannedAt: plannedAt.toISOString(),
+          pickupWindowStart: pickupWindowStart?.toISOString() ?? null,
+          pickupWindowEnd: pickupWindowEnd?.toISOString() ?? null,
+          pickupOpen: stop.allowPickup && pickupSaleOpen(plannedAt, trip.onlineSaleCutoffMinutes, now),
+        };
       }),
       seats: [...trip.seats]
         .sort((a, b) => a.deck - b.deck || a.row - b.row || a.column - b.column)
         .map(({ seatCode, status, ...seat }) => {
-          const price = resolveSeatPrice(rules, vehicleTypeId, seat.type, trip.departureAt);
+          const price = segmentSeatPrice(offer, rules, vehicleTypeId, seat.type, trip.departureAt);
           return {
             code: seatCode,
             ...seat,
@@ -127,14 +161,24 @@ export class TripSearchService {
     };
   }
 
+  /** Tiêu đề chặng theo nơi của điểm đón / trả (phường → tên nơi quen thuộc, 3.1). */
+  private async segmentTitles(pairs: [StopWithPoint, StopWithPoint][]): Promise<string[]> {
+    const point = (stop: StopWithPoint) => (stop.catalogStopPoint ?? stop.stopPoint)!;
+    const localities = await loadWardLocalities(this.prisma, pairs.flatMap(([a, b]) => [point(a).wardId, point(b).wardId]));
+    const named = (stop: StopWithPoint) => ({ name: point(stop).name, locality: localities.get(point(stop).wardId) ?? point(stop).name });
+    return pairs.map(([a, b]) => segmentTitle(named(a), named(b)));
+  }
+
   /**
-   * Mọi chuyến khớp (điểm đi, điểm đến, ngày, số khách), kèm giá thấp nhất — cache 60 giây. Phía phường / xã không ra
-   * chuyến nào → nới phía đó ra cả tỉnh của phường và đánh dấu `widenedToProvince`.
+   * Mọi chuyến khớp (điểm đi, điểm đến, ngày, số khách), kèm giá thấp nhất — cache 60 giây. Phía phường / xã hoặc khu vực
+   * không ra chuyến nào → nới phía đó ra cả tỉnh chứa nó và đánh dấu `widenedToProvince`.
    */
   private async matching(query: TripSearchQuery): Promise<Matched> {
+    const sideKey = (provinceId?: string, wardId?: string, areaId?: string, stopPointId?: string) =>
+      provinceId ?? (wardId ? `ward:${wardId}` : areaId ? `area:${areaId}` : `stop:${stopPointId}`);
     const identity = {
-      from: query.fromProvinceId ?? (query.fromWardId ? `ward:${query.fromWardId}` : `stop:${query.fromStopPointId}`),
-      to: query.toProvinceId ?? (query.toWardId ? `ward:${query.toWardId}` : `stop:${query.toStopPointId}`),
+      from: sideKey(query.fromProvinceId, query.fromWardId, query.fromAreaId, query.fromStopPointId),
+      to: sideKey(query.toProvinceId, query.toWardId, query.toAreaId, query.toStopPointId),
       date: query.date,
       passengers: query.passengers,
     };
@@ -148,8 +192,8 @@ export class TripSearchService {
       return JSON.parse(cached) as Matched;
     }
     const [from, to] = await Promise.all([
-      this.side(query.fromProvinceId, query.fromWardId, query.fromStopPointId),
-      this.side(query.toProvinceId, query.toWardId, query.toStopPointId),
+      this.side(query.fromProvinceId, query.fromWardId, query.fromAreaId, query.fromStopPointId),
+      this.side(query.toProvinceId, query.toWardId, query.toAreaId, query.toStopPointId),
     ]);
     let matched: Matched = { items: [], widenedToProvince: { from: false, to: false } };
     if (from && to) {
@@ -190,11 +234,16 @@ export class TripSearchService {
     for (const rule of rules) {
       rulesByRoute.set(rule.routeId, [...(rulesByRoute.get(rule.routeId) ?? []), rule]);
     }
+    const [offers, localities] = await Promise.all([
+      loadPublicSegmentOffers(this.prisma, candidates.map((candidate) => candidate.tripId)),
+      loadWardLocalities(this.prisma, candidates.flatMap((candidate) => [candidate.pickupWardId, candidate.dropoffWardId])),
+    ]);
     const items: TripSearchItem[] = [];
     for (const candidate of candidates) {
       const routeRules = rulesByRoute.get(candidate.routeId) ?? [];
+      const offer = coveringOffer(offers.get(candidate.tripId) ?? [], candidate.pickupSequence, candidate.dropoffSequence);
       const prices = candidate.availableSeatTypes
-        .map((type) => resolveSeatPrice(routeRules, candidate.vehicleTypeId, type as SeatType, candidate.departureAt))
+        .map((type) => segmentSeatPrice(offer, routeRules, candidate.vehicleTypeId, type as SeatType, candidate.departureAt))
         .filter((price): price is bigint => price !== null && price > 0n);
       if (prices.length === 0) {
         // Bảng giá bị ngừng sau khi mở bán: chưa đặt được nên không hiển thị (BR-22).
@@ -210,6 +259,10 @@ export class TripSearchService {
           ...(ratings.get(candidate.operatorId) ?? NO_RATING),
         },
         routeName: candidate.routeName,
+        segmentTitle: segmentTitle(
+          { name: candidate.pickupName, locality: localities.get(candidate.pickupWardId) ?? candidate.pickupName },
+          { name: candidate.dropoffName, locality: localities.get(candidate.dropoffWardId) ?? candidate.dropoffName },
+        ),
         vehicleType: {
           name: candidate.vehicleTypeName,
           form: candidate.vehicleForm as TripSearchItem["vehicleType"]["form"],
@@ -229,19 +282,21 @@ export class TripSearchService {
         minPrice: vndToJson(minPrice),
         vehicleCoverImageUrl: candidate.coverImageKey ? this.storage.publicUrl(candidate.coverImageKey) : null,
         amenities: candidate.amenityIds.map((amenityId, index) => ({ id: amenityId, name: candidate.amenityNames[index]! })),
-        onlineSaleClosesAt: new Date(candidate.departureAt.getTime() - candidate.onlineSaleCutoffMinutes * MINUTE).toISOString(),
+        onlineSaleClosesAt: new Date(candidate.pickupAt.getTime() - candidate.onlineSaleCutoffMinutes * MINUTE).toISOString(),
       });
     }
     return items;
   }
 
   /**
-   * Tỉnh / thành giữ nguyên; phường / xã → khớp điểm trong phường (kèm tỉnh để nới); địa danh → tọa độ + bán kính.
-   * Phường / địa danh không có hoặc ngừng dùng → không khớp gì.
+   * Tỉnh / thành giữ nguyên; phường / xã → khớp điểm trong phường; khu vực → khớp điểm trong nhóm phường của khu vực
+   * (`wardProvinceId` = tỉnh để nới khi không có chuyến); địa danh → tọa độ + bán kính. Phường / khu vực / địa danh không
+   * có hoặc ngừng dùng → không khớp gì.
    */
   private async side(
     provinceId: string | undefined,
     wardId: string | undefined,
+    areaId: string | undefined,
     stopPointId: string | undefined,
   ): Promise<{ side: SearchSide; wardProvinceId?: string } | null> {
     if (provinceId) {
@@ -250,6 +305,10 @@ export class TripSearchService {
     if (wardId) {
       const ward = await findWard(this.prisma, wardId);
       return ward ? { side: { wardId }, wardProvinceId: ward.provinceId } : null;
+    }
+    if (areaId) {
+      const area = await findArea(this.prisma, areaId);
+      return area ? { side: { wardIds: area.wardIds }, wardProvinceId: area.provinceId } : null;
     }
     const landmark = await findLandmark(this.prisma, stopPointId!);
     return landmark ? { side: { ...landmark, radiusMeters: LANDMARK_RADIUS_METERS } } : null;
@@ -285,4 +344,14 @@ function compareBy(sort: TripSearchQuery["sort"]): (a: TripSearchItem, b: TripSe
     return (a, b) => a.durationMinutes - b.durationMinutes || byDeparture(a, b);
   }
   return byDeparture;
+}
+
+type StopWithPoint = { catalogStopPoint: { name: string; wardId: string } | null; stopPoint: { name: string; wardId: string } | null };
+
+/** "Nơi đón → nơi trả" (hai điểm cùng nơi thì tên hai điểm) — cùng cách ghép tên tuyến tự động. */
+function segmentTitle(pickup: { name: string; locality: string }, dropoff: { name: string; locality: string }): string {
+  return composeRouteName([
+    { ...pickup, allowPickup: true, allowDropoff: false },
+    { ...dropoff, allowPickup: false, allowDropoff: true },
+  ]);
 }

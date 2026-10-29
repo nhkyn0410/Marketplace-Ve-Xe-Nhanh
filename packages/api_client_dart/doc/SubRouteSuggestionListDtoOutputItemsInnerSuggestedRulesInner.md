@@ -1,4 +1,4 @@
-# api_client_dart.model.FareResponseDtoOutputRulesInner
+# api_client_dart.model.SubRouteSuggestionListDtoOutputItemsInnerSuggestedRulesInner
 
 ## Load the model package
 ```dart

@@ -26,6 +26,7 @@ part 'trip_response_dto_output.g.dart';
 /// * [createdAt] 
 /// * [updatedAt] 
 /// * [onlineSaleCutoffMinutes] 
+/// * [subRouteIds] 
 /// * [statusReason] 
 /// * [departedAt] 
 /// * [completedAt] 
@@ -70,6 +71,9 @@ abstract class TripResponseDtoOutput implements Built<TripResponseDtoOutput, Tri
 
   @BuiltValueField(wireName: r'onlineSaleCutoffMinutes')
   int get onlineSaleCutoffMinutes;
+
+  @BuiltValueField(wireName: r'subRouteIds')
+  BuiltList<String> get subRouteIds;
 
   @BuiltValueField(wireName: r'statusReason')
   String? get statusReason;
@@ -171,6 +175,11 @@ class _$TripResponseDtoOutputSerializer implements PrimitiveSerializer<TripRespo
     yield serializers.serialize(
       object.onlineSaleCutoffMinutes,
       specifiedType: const FullType(int),
+    );
+    yield r'subRouteIds';
+    yield serializers.serialize(
+      object.subRouteIds,
+      specifiedType: const FullType(BuiltList, [FullType(String)]),
     );
     yield r'statusReason';
     yield object.statusReason == null ? null : serializers.serialize(
@@ -310,6 +319,13 @@ class _$TripResponseDtoOutputSerializer implements PrimitiveSerializer<TripRespo
             specifiedType: const FullType(int),
           ) as int;
           result.onlineSaleCutoffMinutes = valueDes;
+          break;
+        case r'subRouteIds':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(BuiltList, [FullType(String)]),
+          ) as BuiltList<String>;
+          result.subRouteIds.replace(valueDes);
           break;
         case r'statusReason':
           final valueDes = serializers.deserialize(

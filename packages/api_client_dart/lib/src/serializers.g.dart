@@ -486,8 +486,6 @@ Serializers _$serializers = (Serializers().toBuilder()
       ..add(FareListResponseDtoOutputItemsInnerStatusEnum.serializer)
       ..add(FareResponseDtoOutput.serializer)
       ..add(FareResponseDtoOutputBandWarningsInner.serializer)
-      ..add(FareResponseDtoOutputRulesInner.serializer)
-      ..add(FareResponseDtoOutputRulesInnerSeatTypeEnum.serializer)
       ..add(FareResponseDtoOutputStatusEnum.serializer)
       ..add(FareRevisionListResponseDtoOutput.serializer)
       ..add(FareRevisionListResponseDtoOutputItemsInner.serializer)
@@ -775,6 +773,7 @@ Serializers _$serializers = (Serializers().toBuilder()
       ..add(PublicTripDtoOutputSeatsInner.serializer)
       ..add(PublicTripDtoOutputSeatsInnerStatusEnum.serializer)
       ..add(PublicTripDtoOutputSeatsInnerTypeEnum.serializer)
+      ..add(PublicTripDtoOutputSegment.serializer)
       ..add(PublicTripDtoOutputStopsInner.serializer)
       ..add(PublicTripDtoOutputStopsInnerRoleEnum.serializer)
       ..add(PublicTripDtoOutputStopsInnerTypeEnum.serializer)
@@ -819,18 +818,36 @@ Serializers _$serializers = (Serializers().toBuilder()
       ..add(ReviewPageDtoOutputItemsInnerSignalsEnum.serializer)
       ..add(ReviewPageDtoOutputItemsInnerStatusEnum.serializer)
       ..add(RouteInputDto.serializer)
+      ..add(RouteInputDtoNameSourceEnum.serializer)
       ..add(RouteInputDtoStatusEnum.serializer)
-      ..add(RouteInputDtoStopsInner.serializer)
       ..add(RouteListResponseDtoOutput.serializer)
       ..add(RouteListResponseDtoOutputItemsInner.serializer)
       ..add(RouteListResponseDtoOutputItemsInnerMetricsSourceEnum.serializer)
+      ..add(RouteListResponseDtoOutputItemsInnerNameSourceEnum.serializer)
       ..add(RouteListResponseDtoOutputItemsInnerStatusEnum.serializer)
+      ..add(RouteListResponseDtoOutputItemsInnerSubRoutesInner.serializer)
+      ..add(RouteListResponseDtoOutputItemsInnerSubRoutesInnerMetricsSourceEnum
+          .serializer)
+      ..add(RouteListResponseDtoOutputItemsInnerSubRoutesInnerNameSourceEnum
+          .serializer)
+      ..add(RouteListResponseDtoOutputItemsInnerSubRoutesInnerStatusEnum
+          .serializer)
+      ..add(RouteNamePreviewDtoOutput.serializer)
+      ..add(RouteNamePreviewInputDto.serializer)
+      ..add(RouteNamePreviewInputDtoStopsInner.serializer)
       ..add(RouteResponseDtoOutput.serializer)
       ..add(RouteResponseDtoOutputMetricsSourceEnum.serializer)
+      ..add(RouteResponseDtoOutputNameSourceEnum.serializer)
       ..add(RouteResponseDtoOutputStatusEnum.serializer)
       ..add(RouteResponseDtoOutputStopsInner.serializer)
       ..add(RouteResponseDtoOutputStopsInnerRoleEnum.serializer)
       ..add(RouteResponseDtoOutputStopsInnerTypeEnum.serializer)
+      ..add(RouteResponseDtoOutputSubRoutesInner.serializer)
+      ..add(RouteResponseDtoOutputSubRoutesInnerFare.serializer)
+      ..add(RouteResponseDtoOutputSubRoutesInnerFareStatusEnum.serializer)
+      ..add(RouteResponseDtoOutputSubRoutesInnerFrom.serializer)
+      ..add(RouteResponseDtoOutputSubRoutesInnerNameSourceEnum.serializer)
+      ..add(RouteResponseDtoOutputSubRoutesInnerStatusEnum.serializer)
       ..add(SalesOfficeAssignmentsDtoOutput.serializer)
       ..add(SalesOfficeAssignmentsDtoOutputItemsInner.serializer)
       ..add(SalesOfficeAssignmentsDtoOutputItemsInnerStatusEnum.serializer)
@@ -877,6 +894,17 @@ Serializers _$serializers = (Serializers().toBuilder()
       ..add(StopPointProposalResponseDtoOutputStatusEnum.serializer)
       ..add(StopPointProposalResponseDtoOutputTypeEnum.serializer)
       ..add(StopPointReasonInputDto.serializer)
+      ..add(SubRouteInputDto.serializer)
+      ..add(SubRouteInputDtoFrom.serializer)
+      ..add(SubRouteInputDtoNameSourceEnum.serializer)
+      ..add(SubRouteInputDtoStatusEnum.serializer)
+      ..add(SubRouteSuggestionListDtoOutput.serializer)
+      ..add(SubRouteSuggestionListDtoOutputItemsInner.serializer)
+      ..add(SubRouteSuggestionListDtoOutputItemsInnerSuggestedRulesInner
+          .serializer)
+      ..add(
+          SubRouteSuggestionListDtoOutputItemsInnerSuggestedRulesInnerSeatTypeEnum
+              .serializer)
       ..add(SystemIntegrationsDtoOutput.serializer)
       ..add(SystemIntegrationsDtoOutputItemsInner.serializer)
       ..add(SystemIntegrationsDtoOutputItemsInnerStatusEnum.serializer)
@@ -1491,6 +1519,9 @@ Serializers _$serializers = (Serializers().toBuilder()
           const FullType(BuiltList, const [const FullType(DateTime)]),
           () => ListBuilder<DateTime>())
       ..addBuilderFactory(
+          const FullType(BuiltList, const [const FullType(String)]),
+          () => ListBuilder<String>())
+      ..addBuilderFactory(
           const FullType(BuiltList, const [const FullType(DateTime)]),
           () => ListBuilder<DateTime>())
       ..addBuilderFactory(
@@ -1539,22 +1570,6 @@ Serializers _$serializers = (Serializers().toBuilder()
           const FullType(BuiltList,
               const [const FullType(FareListResponseDtoOutputItemsInner)]),
           () => ListBuilder<FareListResponseDtoOutputItemsInner>())
-      ..addBuilderFactory(
-          const FullType(BuiltList,
-              const [const FullType(FareResponseDtoOutputRulesInner)]),
-          () => ListBuilder<FareResponseDtoOutputRulesInner>())
-      ..addBuilderFactory(
-          const FullType(BuiltList,
-              const [const FullType(FareResponseDtoOutputRulesInner)]),
-          () => ListBuilder<FareResponseDtoOutputRulesInner>())
-      ..addBuilderFactory(
-          const FullType(BuiltList,
-              const [const FullType(FareResponseDtoOutputRulesInner)]),
-          () => ListBuilder<FareResponseDtoOutputRulesInner>())
-      ..addBuilderFactory(
-          const FullType(BuiltList,
-              const [const FullType(FareResponseDtoOutputBandWarningsInner)]),
-          () => ListBuilder<FareResponseDtoOutputBandWarningsInner>())
       ..addBuilderFactory(
           const FullType(BuiltList, const [
             const FullType(FareRevisionListResponseDtoOutputItemsInner)
@@ -1791,13 +1806,27 @@ Serializers _$serializers = (Serializers().toBuilder()
               const [const FullType(ReviewPageDtoOutputItemsInnerSignalsEnum)]),
           () => ListBuilder<ReviewPageDtoOutputItemsInnerSignalsEnum>())
       ..addBuilderFactory(
-          const FullType(
-              BuiltList, const [const FullType(RouteInputDtoStopsInner)]),
-          () => ListBuilder<RouteInputDtoStopsInner>())
-      ..addBuilderFactory(
           const FullType(BuiltList,
               const [const FullType(RouteListResponseDtoOutputItemsInner)]),
           () => ListBuilder<RouteListResponseDtoOutputItemsInner>())
+      ..addBuilderFactory(
+          const FullType(BuiltList, const [
+            const FullType(RouteListResponseDtoOutputItemsInnerSubRoutesInner)
+          ]),
+          () =>
+              ListBuilder<RouteListResponseDtoOutputItemsInnerSubRoutesInner>())
+      ..addBuilderFactory(
+          const FullType(BuiltList,
+              const [const FullType(RouteNamePreviewInputDtoStopsInner)]),
+          () => ListBuilder<RouteNamePreviewInputDtoStopsInner>())
+      ..addBuilderFactory(
+          const FullType(BuiltList,
+              const [const FullType(RouteNamePreviewInputDtoStopsInner)]),
+          () => ListBuilder<RouteNamePreviewInputDtoStopsInner>())
+      ..addBuilderFactory(
+          const FullType(BuiltList,
+              const [const FullType(RouteResponseDtoOutputSubRoutesInner)]),
+          () => ListBuilder<RouteResponseDtoOutputSubRoutesInner>())
       ..addBuilderFactory(
           const FullType(BuiltList,
               const [const FullType(RouteResponseDtoOutputStopsInner)]),
@@ -1946,6 +1975,17 @@ Serializers _$serializers = (Serializers().toBuilder()
           const FullType(BuiltList, const [const FullType(String)]),
           () => ListBuilder<String>())
       ..addBuilderFactory(
+          const FullType(BuiltList,
+              const [const FullType(TripResponseDtoOutputStopsInner)]),
+          () => ListBuilder<TripResponseDtoOutputStopsInner>())
+      ..addBuilderFactory(
+          const FullType(BuiltList,
+              const [const FullType(TripResponseDtoOutputSeatsInner)]),
+          () => ListBuilder<TripResponseDtoOutputSeatsInner>())
+      ..addBuilderFactory(
+          const FullType(BuiltList, const [const FullType(String)]),
+          () => ListBuilder<String>())
+      ..addBuilderFactory(
           const FullType(BuiltList, const [
             const FullType(VehicleListResponseDtoOutputItemsInnerImagesInner)
           ]),
@@ -1960,6 +2000,55 @@ Serializers _$serializers = (Serializers().toBuilder()
           ]),
           () =>
               ListBuilder<VehicleListResponseDtoOutputItemsInnerImagesInner>())
+      ..addBuilderFactory(
+          const FullType(BuiltList, const [const FullType(String)]),
+          () => ListBuilder<String>())
+      ..addBuilderFactory(
+          const FullType(BuiltList, const [const FullType(int)]),
+          () => ListBuilder<int>())
+      ..addBuilderFactory(
+          const FullType(BuiltList, const [const FullType(String)]),
+          () => ListBuilder<String>())
+      ..addBuilderFactory(
+          const FullType(BuiltList, const [const FullType(int)]),
+          () => ListBuilder<int>())
+      ..addBuilderFactory(
+          const FullType(BuiltList, const [
+            const FullType(SubRouteSuggestionListDtoOutputItemsInner)
+          ]),
+          () => ListBuilder<SubRouteSuggestionListDtoOutputItemsInner>())
+      ..addBuilderFactory(
+          const FullType(BuiltList, const [
+            const FullType(
+                SubRouteSuggestionListDtoOutputItemsInnerSuggestedRulesInner)
+          ]),
+          () => ListBuilder<
+              SubRouteSuggestionListDtoOutputItemsInnerSuggestedRulesInner>())
+      ..addBuilderFactory(
+          const FullType(BuiltList, const [
+            const FullType(
+                SubRouteSuggestionListDtoOutputItemsInnerSuggestedRulesInner)
+          ]),
+          () => ListBuilder<
+              SubRouteSuggestionListDtoOutputItemsInnerSuggestedRulesInner>())
+      ..addBuilderFactory(
+          const FullType(BuiltList, const [
+            const FullType(
+                SubRouteSuggestionListDtoOutputItemsInnerSuggestedRulesInner)
+          ]),
+          () => ListBuilder<
+              SubRouteSuggestionListDtoOutputItemsInnerSuggestedRulesInner>())
+      ..addBuilderFactory(
+          const FullType(BuiltList, const [
+            const FullType(
+                SubRouteSuggestionListDtoOutputItemsInnerSuggestedRulesInner)
+          ]),
+          () => ListBuilder<
+              SubRouteSuggestionListDtoOutputItemsInnerSuggestedRulesInner>())
+      ..addBuilderFactory(
+          const FullType(BuiltList,
+              const [const FullType(FareResponseDtoOutputBandWarningsInner)]),
+          () => ListBuilder<FareResponseDtoOutputBandWarningsInner>())
       ..addBuilderFactory(
           const FullType(BuiltList,
               const [const FullType(SystemIntegrationsDtoOutputItemsInner)]),
@@ -2001,14 +2090,6 @@ Serializers _$serializers = (Serializers().toBuilder()
           const FullType(BuiltList,
               const [const FullType(TripManifestDtoOutputPassengersInner)]),
           () => ListBuilder<TripManifestDtoOutputPassengersInner>())
-      ..addBuilderFactory(
-          const FullType(BuiltList,
-              const [const FullType(TripResponseDtoOutputStopsInner)]),
-          () => ListBuilder<TripResponseDtoOutputStopsInner>())
-      ..addBuilderFactory(
-          const FullType(BuiltList,
-              const [const FullType(TripResponseDtoOutputSeatsInner)]),
-          () => ListBuilder<TripResponseDtoOutputSeatsInner>())
       ..addBuilderFactory(
           const FullType(BuiltList,
               const [const FullType(TripSalesDtoOutputChangesInner)]),
@@ -2112,11 +2193,8 @@ Serializers _$serializers = (Serializers().toBuilder()
           const FullType(BuiltList, const [const FullType(int)]),
           () => ListBuilder<int>())
       ..addBuilderFactory(
-          const FullType(BuiltList, const [const FullType(int)]),
-          () => ListBuilder<int>())
-      ..addBuilderFactory(
-          const FullType(BuiltList, const [const FullType(int)]),
-          () => ListBuilder<int>())
+          const FullType(BuiltList, const [const FullType(String)]),
+          () => ListBuilder<String>())
       ..addBuilderFactory(
           const FullType(
               BuiltMap, const [const FullType(String), const FullType(int)]),

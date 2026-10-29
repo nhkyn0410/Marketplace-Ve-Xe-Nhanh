@@ -8,6 +8,7 @@ import 'package:api_client_dart/api.dart';
 ## Properties
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
+**subRouteIds** | **BuiltList&lt;String&gt;** |  | 
 **id** | **String** |  | 
 **routeId** | **String** |  | 
 **routeName** | **String** |  | 

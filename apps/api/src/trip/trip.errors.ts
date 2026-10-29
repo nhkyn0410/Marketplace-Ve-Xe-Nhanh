@@ -83,6 +83,15 @@ export function isTransactionExpired(error: unknown): boolean {
   return (error as { code?: unknown } | null)?.code === "P2028";
 }
 
+/** Chặng mở bán (3.3) không phải tuyến con đang bật của tuyến của chuyến / lịch. */
+export function tripSubRouteUnavailable(): HttpException {
+  return problem(
+    HttpStatus.UNPROCESSABLE_ENTITY,
+    "TRIP_SUB_ROUTE_UNAVAILABLE",
+    "Chặng mở bán phải là tuyến con đang bật của tuyến đã chọn. Tải lại danh sách tuyến con rồi chọn lại.",
+  );
+}
+
 /** Route không tồn tại, thuộc tenant khác hoặc đã ngừng dùng — không phân biệt để không lộ dữ liệu tenant khác. */
 export function routeUnavailable(): HttpException {
   return problem(HttpStatus.UNPROCESSABLE_ENTITY, "ROUTE_UNAVAILABLE", "Tuyến không tồn tại hoặc đã ngừng dùng.");

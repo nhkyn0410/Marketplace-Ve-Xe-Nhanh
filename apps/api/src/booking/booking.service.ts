@@ -3,7 +3,9 @@ import { HttpException, HttpStatus, Inject, Injectable } from "@nestjs/common";
 import { bookingIdOfCode, bookingIdOfHold, guestLookupBookingRows, withBookingOperator, withTripOperator } from "../database/marketplace-scope";
 import { PrismaService, type DbTransaction } from "../database/prisma.service";
 import { BookingStatus, type PaymentProvider, type PaymentStatus, type RefundStatus, type SeatType, type TicketStatus, type TripChangeKind } from "../database/prisma.types";
-import { resolveSeatPrice, vndToJson } from "../fare/fare-pricing";
+import { loadSegmentOffers } from "../database/segment-offers";
+import { vndToJson } from "../fare/fare-pricing";
+import { coveringOffer, segmentSeatPrice } from "../fare/segment-pricing";
 import type { VerifiedAccessToken } from "../iam/auth/token.service";
 import { seatNotAvailable, stopsInvalid } from "../seat-hold/seat-hold.errors";
 import type { HoldRecord } from "../seat-hold/seat-hold-store";
@@ -324,7 +326,9 @@ export class BookingService {
           },
         })
       : null;
-    const saleClosesAt = trip ? trip.departureAt.getTime() - trip.onlineSaleCutoffMinutes * MINUTE : 0;
+    // Giờ ngừng bán online tính theo giờ xe tới điểm đón của đơn (3.3).
+    const pickupStop = trip?.stops.find((stop) => stop.sequence === hold.pickup.sequence);
+    const saleClosesAt = pickupStop ? pickupStop.plannedAt.getTime() - trip!.onlineSaleCutoffMinutes * MINUTE : 0;
     const open = counter ? trip && ["OPEN_FOR_SALE", "BOARDING"].includes(trip.status) && trip.departedAt === null : trip?.status === "OPEN_FOR_SALE" && saleClosesAt > now.getTime();
     if (!trip?.vehicle || !open || trip.operator.status !== "ACTIVE") {
       throw tripNotOnSale();
@@ -346,9 +350,11 @@ export class BookingService {
       where: { operatorId, fare: { routeId: trip.routeId, status: "ACTIVE" } },
       select: { vehicleTypeId: true, seatType: true, validFrom: true, validTo: true, price: true },
     });
+    // Giá theo chặng của đơn (3.3) — cùng cách giữ chỗ tính, để tiền đơn khớp giá khách đã thấy.
+    const offer = coveringOffer((await loadSegmentOffers(tx, [hold.tripId])).get(hold.tripId) ?? [], pickup.sequence, dropoff.sequence);
     const priced = hold.seatCodes.map((code) => {
       const seat = seats.find((row) => row.seatCode === code);
-      const price = seat ? resolveSeatPrice(rules, trip.vehicle!.vehicleType.id, seat.type, trip.departureAt) : null;
+      const price = seat ? segmentSeatPrice(offer, rules, trip.vehicle!.vehicleType.id, seat.type, trip.departureAt) : null;
       return { code, type: seat?.type, status: seat?.status, price };
     });
     const unavailable = priced.filter((seat) => seat.status !== "AVAILABLE" || seat.price === null || seat.price <= 0n);

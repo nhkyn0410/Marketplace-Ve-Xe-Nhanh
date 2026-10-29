@@ -1,4 +1,4 @@
-# api_client_dart.model.RouteInputDtoStopsInner
+# api_client_dart.model.RouteResponseDtoOutputSubRoutesInnerFrom
 
 ## Load the model package
 ```dart
@@ -10,10 +10,7 @@ Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **catalogStopPointId** | **String** |  | 
 **stopPointId** | **String** |  | 
-**note** | **String** |  | 
-**allowPickup** | **bool** |  | 
-**allowDropoff** | **bool** |  | 
-**durationMinutesFromPrevious** | **int** |  | [optional] 
+**name** | **String** |  | 
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)
 

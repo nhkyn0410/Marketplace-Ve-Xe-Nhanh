@@ -1,5 +1,7 @@
 import { Metadata } from "next";
 import { getTripSeatSelection } from "../../../../lib/data/booking";
+import { withSelectedLeg } from "../../../../lib/data/booking-mappers";
+import { readTripLeg } from "../../../../lib/data/trip-mappers";
 import { getPreview } from "../../../../lib/preview";
 import {
   tripSeatSelectionIdealFixture,
@@ -60,7 +62,7 @@ export default async function SeatsPage({ params, searchParams }: SeatsPageProps
   }
 
   // Nhánh dữ liệu thật (gọi hàm data)
-  const result = await getTripSeatSelection(tripId);
+  const result = await getTripSeatSelection(tripId, readTripLeg(resolvedSearchParams));
 
   if (result.status === "unavailable") {
     return (
@@ -94,7 +96,7 @@ export default async function SeatsPage({ params, searchParams }: SeatsPageProps
   return (
     <div className="flex-1 bg-neutral-50/40 pb-16">
       <PassengerTopBar breadcrumbs={withRoute(result.data.routeName)} />
-      <SeatSelectionView initialData={result.data} />
+      <SeatSelectionView initialData={withSelectedLeg(result.data, readTripLeg(resolvedSearchParams))} />
     </div>
   );
 }

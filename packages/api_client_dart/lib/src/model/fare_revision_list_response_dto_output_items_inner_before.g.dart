@@ -84,7 +84,8 @@ class _$FareRevisionListResponseDtoOutputItemsInnerBefore
   @override
   final String? note;
   @override
-  final BuiltList<FareResponseDtoOutputRulesInner> rules;
+  final BuiltList<SubRouteSuggestionListDtoOutputItemsInnerSuggestedRulesInner>
+      rules;
 
   factory _$FareRevisionListResponseDtoOutputItemsInnerBefore(
           [void Function(
@@ -166,10 +167,15 @@ class FareRevisionListResponseDtoOutputItemsInnerBeforeBuilder
   String? get note => _$this._note;
   set note(String? note) => _$this._note = note;
 
-  ListBuilder<FareResponseDtoOutputRulesInner>? _rules;
-  ListBuilder<FareResponseDtoOutputRulesInner> get rules =>
-      _$this._rules ??= ListBuilder<FareResponseDtoOutputRulesInner>();
-  set rules(ListBuilder<FareResponseDtoOutputRulesInner>? rules) =>
+  ListBuilder<SubRouteSuggestionListDtoOutputItemsInnerSuggestedRulesInner>?
+      _rules;
+  ListBuilder<SubRouteSuggestionListDtoOutputItemsInnerSuggestedRulesInner>
+      get rules => _$this._rules ??= ListBuilder<
+          SubRouteSuggestionListDtoOutputItemsInnerSuggestedRulesInner>();
+  set rules(
+          ListBuilder<
+                  SubRouteSuggestionListDtoOutputItemsInnerSuggestedRulesInner>?
+              rules) =>
       _$this._rules = rules;
 
   FareRevisionListResponseDtoOutputItemsInnerBeforeBuilder() {

@@ -120,7 +120,7 @@ export class FareService {
     return toResponse(row, bands);
   }
 
-  /** Tạo bảng giá cho một tuyến `ACTIVE` của tenant (mỗi tuyến một bảng giá) + ghi lịch sử. */
+  /** Tạo bảng giá cho một tuyến `ACTIVE` / `DRAFT` của tenant (mỗi tuyến một bảng giá) + ghi lịch sử. */
   async create(actor: FareActor, authz: Authorization, input: FareCreateInput): Promise<FareResponse> {
     const { db, operatorId } = requireTenant(authz);
     assertRulesDisjoint(input.rules);
@@ -128,7 +128,8 @@ export class FareService {
       this.prisma.withScope(db, async (tx) => {
         const deadline = transactionDeadline(Date.now());
         const route = await tx.route.findFirst({
-          where: { id: input.routeId, operatorId, status: RouteStatus.ACTIVE },
+          // Tuyến Nháp (3.2) cũng tạo được bảng giá — tuyến con cần giá trước khi bật.
+          where: { id: input.routeId, operatorId, status: { in: [RouteStatus.ACTIVE, RouteStatus.DRAFT] } },
           select: { id: true },
         });
         if (!route) {

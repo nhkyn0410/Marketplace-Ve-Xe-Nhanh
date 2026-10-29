@@ -1,6 +1,6 @@
 "use client";
 
-import { Building2, History, LoaderCircle, MapPin, MapPinned } from "lucide-react";
+import { Building2, History, LoaderCircle, Map as MapIcon, MapPin, MapPinned } from "lucide-react";
 import { useEffect, useId, useRef, useState } from "react";
 import { getPlaceSuggestions, type PlaceSuggestion } from "../../lib/data/catalog";
 import type { PlaceType } from "../../lib/data/trip-mappers";
@@ -24,7 +24,7 @@ export interface PlaceInputProps {
 }
 
 const DEBOUNCE_MS = 250;
-const KIND_ICON = { PROVINCE: Building2, WARD: MapPinned, STOP_POINT: MapPin, LEGACY: History } as const;
+const KIND_ICON = { PROVINCE: Building2, AREA: MapIcon, WARD: MapPinned, STOP_POINT: MapPin, LEGACY: History } as const;
 
 /**
  * Ô nhập điểm đi / điểm đến có gợi ý (`GET /catalog/places`; tự thiết kế 27/10/2026, chờ duyệt): gõ tên tỉnh, phường /
@@ -40,9 +40,15 @@ export function PlaceInput({ id, label, placeholder, value, onChange, fieldClass
   const [loading, setLoading] = useState(false);
   const [failed, setFailed] = useState(false);
   const request = useRef(0);
+  // Gõ đè lên điểm đã chọn thì báo cha `null`; lần đổi đó do chính ô này gây ra, không được xóa chữ đang gõ.
+  const typedOverValue = useRef(false);
 
   // Ô đổi giá trị từ bên ngoài (đảo chiều, nạp lại từ URL) → hiện đúng tên mới.
   useEffect(() => {
+    if (typedOverValue.current) {
+      typedOverValue.current = false;
+      return;
+    }
     setText(value?.label ?? "");
   }, [value?.id, value?.label]);
 
@@ -97,7 +103,10 @@ export function PlaceInput({ id, label, placeholder, value, onChange, fieldClass
         onChange={(event) => {
           setText(event.target.value);
           setOpen(true);
-          if (value) onChange(null);
+          if (value) {
+            typedOverValue.current = true;
+            onChange(null);
+          }
         }}
         onKeyDown={(event) => {
           if (event.key === "ArrowDown" && items.length > 0) {

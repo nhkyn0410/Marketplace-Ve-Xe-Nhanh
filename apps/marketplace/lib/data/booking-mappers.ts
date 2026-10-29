@@ -99,7 +99,8 @@ export function mapSeatSelection(trip: ApiTrip): TripSeatSelectionData {
   const departureDay = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Ho_Chi_Minh" }).format(new Date(trip.departureAt));
   const departureTimeText = `${dateText(trip.departureAt, { hour: "2-digit", minute: "2-digit" })} • ${formatTripDateVi(departureDay)}`;
   return {
-    tripId: trip.tripId, routeName: trip.routeName, departureTimeText, operatorName: trip.operator.name,
+    // Tiêu đề là chặng khách đi (3.3) khi có; không thì tên tuyến.
+    tripId: trip.tripId, routeName: trip.segment?.title ?? trip.routeName, departureTimeText, operatorName: trip.operator.name,
     pickupPoints, dropoffPoints, selectedPickupPointId: pickupPoints[0]?.id ?? "", selectedDropoffPointId: dropoffPoints.at(-1)?.id ?? "",
     seats: [...trip.seats].sort((a, b) => a.deck - b.deck || a.row - b.row || a.column - b.column).map((seat) => ({ id: seat.code, code: seat.code, label: seat.code, floor: seat.deck === 2 ? 2 : 1, row: seat.row, column: seat.column, status: seatStatus(seat), type: seat.type.endsWith("DOUBLE") ? "double" : "single", typeLabel: seatTypeLabel(seat.type), priceVnd: seat.price === null ? "0" : moneyString(seat.price) })),
     selectedSeatCodes: [], maxSeats: 10, holdCountdownSeconds: 0, selectedSeatsSummary: [], subtotalVnd: "0"
@@ -174,6 +175,21 @@ export function mapLookupResult(booking: ApiBooking, expiresInSeconds: number): 
 /** Điểm trả hợp lệ với điểm đón: đứng sau điểm đón trên hành trình (id điểm = thứ tự `sequence` của API). */
 export function isDropoffAfterPickup(pickupId: string, dropoffId: string): boolean {
   return Number(dropoffId) > Number(pickupId);
+}
+
+/**
+ * Chọn sẵn chặng khách đã tìm (`sequence` điểm đón / trả từ thẻ kết quả). Điểm đón không cho đón thì giữ mặc định của
+ * chuyến; điểm trả không hợp lệ (không cho trả / không đứng sau điểm đón) thì lấy điểm trả hợp lệ như khi đổi điểm đón.
+ */
+export function withSelectedLeg(data: TripSeatSelectionData, leg: { readonly pickup?: number; readonly dropoff?: number }): TripSeatSelectionData {
+  const pickup = data.pickupPoints.find((point) => point.id === String(leg.pickup));
+  if (!pickup) return data;
+  const dropoff = data.dropoffPoints.find((point) => point.id === String(leg.dropoff) && isDropoffAfterPickup(pickup.id, point.id));
+  return {
+    ...data,
+    selectedPickupPointId: pickup.id,
+    selectedDropoffPointId: dropoff?.id ?? dropoffForPickup(pickup.id, data.dropoffPoints, data.selectedDropoffPointId)
+  };
 }
 
 /** Đổi điểm đón: giữ điểm trả đang chọn nếu còn hợp lệ, không thì lấy điểm trả hợp lệ cuối cùng (bến cuối). */

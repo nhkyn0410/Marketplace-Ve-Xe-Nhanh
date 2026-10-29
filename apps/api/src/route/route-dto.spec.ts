@@ -39,7 +39,7 @@ describe("RouteInputSchema (Q3)", () => {
     ["điểm hai nguồn", { stops: [catalogStop(), { catalogStopPointId: randomUUID(), stopPointId: randomUUID(), note: null, ...flags }] }],
     ["lặp điểm catalog (đầu = cuối)", (() => { const id = randomUUID(); return { stops: [catalogStop(id), privateStop(), catalogStop(id)] }; })()],
     ["lặp điểm riêng", (() => { const id = randomUUID(); return { stops: [privateStop(id), privateStop(id)] }; })()],
-    ["trạng thái lạ", { status: "DRAFT" }],
+    ["trạng thái lạ", { status: "ARCHIVED" }],
     ["thiếu note (PUT thay toàn bộ)", { note: undefined }],
     ["client tự gửi role nhưng thiếu nguồn", { stops: [{ role: "ORIGIN", note: null, ...flags }, catalogStop()] }],
     // PUT thay toàn bộ: thiếu cờ là 400, không lặng lẽ coi như "cho cả hai".

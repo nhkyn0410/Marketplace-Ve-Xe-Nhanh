@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { apiMoney, dropoffForPickup, isDoubleSeat, isDropoffAfterPickup, mapBookingPrice, mapLookupResult, mapPaymentResult, mapSeatSelection, mapTicketDetail, moneyString, ticketPassengerName } from "./booking-mappers";
+import { apiMoney, dropoffForPickup, isDoubleSeat, isDropoffAfterPickup, mapBookingPrice, mapLookupResult, mapPaymentResult, mapSeatSelection, mapTicketDetail, moneyString, ticketPassengerName, withSelectedLeg } from "./booking-mappers";
 import { bookingFixture, holdFixture, publicTripFixture } from "./booking-test-fixture";
 
 const { request, profile, wallet, jar, values } = vi.hoisted(() => {
@@ -59,6 +59,27 @@ describe("booking API integration", () => {
     const seats = mapSeatSelection({ ...trip, seats: [{ ...trip.seats[0]!, type: "SEAT" }, { ...trip.seats[0]!, code: "B1", type: "CABIN_DOUBLE" }] }).seats;
     expect(seats.map((seat) => [seat.typeLabel, seat.type])).toEqual([["Ghế ngồi", "single"], ["Cabin đôi", "double"]]);
     expect(mapSeatSelection({ ...trip, departureAt: "2026-10-28T12:24:00.000Z" }).departureTimeText).toBe("19:24 • T4, 28/10/2026");
+  });
+
+  it("chọn sẵn chặng khách đã tìm (điểm đón / trả từ thẻ kết quả); điểm không hợp lệ thì giữ mặc định của chuyến", () => {
+    const trip = publicTripFixture();
+    const stop = trip.stops[0]!;
+    const stops = [
+      { ...stop, sequence: 1, name: "A", allowPickup: true, allowDropoff: false },
+      { ...stop, sequence: 2, name: "M", allowPickup: true, allowDropoff: true },
+      { ...stop, sequence: 3, name: "B", allowPickup: false, allowDropoff: true }
+    ];
+    const data = mapSeatSelection({ ...trip, stops });
+    const leg = (pickup?: number, dropoff?: number) => {
+      const selected = withSelectedLeg(data, { pickup, dropoff });
+      return [selected.selectedPickupPointId, selected.selectedDropoffPointId];
+    };
+    expect(leg()).toEqual(["1", "3"]);
+    expect(leg(2, 3)).toEqual(["2", "3"]);
+    expect(leg(1, 2)).toEqual(["1", "2"]);
+    // Điểm trả không đứng sau điểm đón → điểm trả hợp lệ cuối; điểm không cho đón → giữ mặc định.
+    expect(leg(2, 2)).toEqual(["2", "3"]);
+    expect(leg(3, 3)).toEqual(["1", "3"]);
   });
 
   it("điểm trả phải đứng sau điểm đón; đổi điểm đón thì giữ điểm trả còn hợp lệ, không thì lấy bến cuối", () => {

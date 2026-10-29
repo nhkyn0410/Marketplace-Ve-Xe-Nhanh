@@ -27,6 +27,8 @@ class TripsApi {
   ///
   /// Parameters:
   /// * [tripId] 
+  /// * [pickupSequence] 
+  /// * [dropoffSequence] 
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
   /// * [extras] - Can be used to add flags to the request
@@ -38,6 +40,8 @@ class TripsApi {
   /// Throws [DioException] if API call or serialization fails
   Future<Response<PublicTripDtoOutput>> publicTripControllerGet({ 
     required String tripId,
+    num? pickupSequence,
+    num? dropoffSequence,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
     Map<String, dynamic>? extra,
@@ -58,9 +62,15 @@ class TripsApi {
       validateStatus: validateStatus,
     );
 
+    final _queryParameters = <String, dynamic>{
+      if (pickupSequence != null) r'pickupSequence': encodeQueryParameter(_serializers, pickupSequence, const FullType(num)),
+      if (dropoffSequence != null) r'dropoffSequence': encodeQueryParameter(_serializers, dropoffSequence, const FullType(num)),
+    };
+
     final _response = await _dio.request<Object>(
       _path,
       options: _options,
+      queryParameters: _queryParameters,
       cancelToken: cancelToken,
       onSendProgress: onSendProgress,
       onReceiveProgress: onReceiveProgress,
@@ -104,9 +114,11 @@ class TripsApi {
   /// * [date] 
   /// * [fromProvinceId] 
   /// * [fromWardId] 
+  /// * [fromAreaId] 
   /// * [fromStopPointId] 
   /// * [toProvinceId] 
   /// * [toWardId] 
+  /// * [toAreaId] 
   /// * [toStopPointId] 
   /// * [passengers] 
   /// * [operatorId] 
@@ -133,9 +145,11 @@ class TripsApi {
     required Date date,
     String? fromProvinceId,
     String? fromWardId,
+    String? fromAreaId,
     String? fromStopPointId,
     String? toProvinceId,
     String? toWardId,
+    String? toAreaId,
     String? toStopPointId,
     int? passengers = 1,
     String? operatorId,
@@ -172,9 +186,11 @@ class TripsApi {
     final _queryParameters = <String, dynamic>{
       if (fromProvinceId != null) r'fromProvinceId': encodeQueryParameter(_serializers, fromProvinceId, const FullType(String)),
       if (fromWardId != null) r'fromWardId': encodeQueryParameter(_serializers, fromWardId, const FullType(String)),
+      if (fromAreaId != null) r'fromAreaId': encodeQueryParameter(_serializers, fromAreaId, const FullType(String)),
       if (fromStopPointId != null) r'fromStopPointId': encodeQueryParameter(_serializers, fromStopPointId, const FullType(String)),
       if (toProvinceId != null) r'toProvinceId': encodeQueryParameter(_serializers, toProvinceId, const FullType(String)),
       if (toWardId != null) r'toWardId': encodeQueryParameter(_serializers, toWardId, const FullType(String)),
+      if (toAreaId != null) r'toAreaId': encodeQueryParameter(_serializers, toAreaId, const FullType(String)),
       if (toStopPointId != null) r'toStopPointId': encodeQueryParameter(_serializers, toStopPointId, const FullType(String)),
       r'date': encodeQueryParameter(_serializers, date, const FullType(Date)),
       if (passengers != null) r'passengers': encodeQueryParameter(_serializers, passengers, const FullType(int)),

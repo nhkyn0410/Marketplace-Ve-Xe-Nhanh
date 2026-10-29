@@ -78,9 +78,13 @@ describe("mapFeaturedOperator", () => {
       logoUrl: null,
       rating: null,
       ratingCountText: "Chưa có đánh giá",
+      reviewCount: 0,
       popularRoutesText: "TP. Hồ Chí Minh → Lâm Đồng",
       accentColor: "#00506A",
-      routes: [{ originProvinceId: route.originProvinceId, destinationProvinceId: route.destinationProvinceId, label: "TP. Hồ Chí Minh → Lâm Đồng" }]
+      routes: [{
+        originProvinceId: route.originProvinceId, destinationProvinceId: route.destinationProvinceId,
+        originName: "TP. Hồ Chí Minh", destinationName: "Lâm Đồng", label: "TP. Hồ Chí Minh → Lâm Đồng"
+      }]
     });
     const withLogo = mapFeaturedOperator(
       { operatorId: "op-2", displayName: "A B", logoUrl: "https://cdn.test/operator-logos/op-2/logo.png", averageRating: 4.5, reviewCount: 12_840, routes: [] },

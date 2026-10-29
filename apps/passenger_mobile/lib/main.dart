@@ -111,52 +111,42 @@ enum _AccountView {
   loginSessions,
 }
 
-class _PopularRouteSpec {
-  const _PopularRouteSpec({
-    required this.fromProvinceNames,
-    required this.toProvinceNames,
-    required this.fromLabel,
-    required this.toLabel,
-    required this.fallbackAsset,
-  });
+/// Số thẻ tuyến phổ biến ở Trang chủ.
+const _popularRouteCount = 4;
 
-  final List<String> fromProvinceNames;
-  final List<String> toProvinceNames;
-  final String fromLabel;
-  final String toLabel;
-  final String fallbackAsset;
+/// Ảnh có sẵn theo tỉnh đến (tên bỏ dấu, như web); tỉnh khác dùng lần lượt
+/// các ảnh trong [_fallbackAssets].
+const _destinationAssets = <(String, String)>[
+  ('lam dong', 'assets/home/destinations/da_lat.png'),
+  ('khanh hoa', 'assets/home/destinations/nha_trang.jpg'),
+  ('da nang', 'assets/home/destinations/da_nang.jpg'),
+];
+const _fallbackAssets = <String>[
+  'assets/home/destinations/da_lat.png',
+  'assets/home/destinations/nha_trang.jpg',
+  'assets/home/destinations/da_nang.jpg',
+  'assets/home/destinations/phan_thiet.jpg',
+];
+
+String _destinationAsset(String provinceName, int index) {
+  final plain = provinceName
+      .toLowerCase()
+      .replaceAll(RegExp('[àáạảãâầấậẩẫăằắặẳẵ]'), 'a')
+      .replaceAll(RegExp('[èéẹẻẽêềếệểễ]'), 'e')
+      .replaceAll(RegExp('[ìíịỉĩ]'), 'i')
+      .replaceAll(RegExp('[òóọỏõôồốộổỗơờớợởỡ]'), 'o')
+      .replaceAll(RegExp('[ùúụủũưừứựửữ]'), 'u')
+      .replaceAll(RegExp('[ỳýỵỷỹ]'), 'y')
+      .replaceAll('đ', 'd');
+  for (final (key, asset) in _destinationAssets) {
+    if (plain.contains(key)) return asset;
+  }
+  return _fallbackAssets[index % _fallbackAssets.length];
 }
 
-const _popularRouteSpecs = <_PopularRouteSpec>[
-  _PopularRouteSpec(
-    fromProvinceNames: ['Hồ Chí Minh'],
-    toProvinceNames: ['Lâm Đồng'],
-    fromLabel: 'TP.HCM',
-    toLabel: 'Đà Lạt',
-    fallbackAsset: 'assets/home/destinations/da_lat.png',
-  ),
-  _PopularRouteSpec(
-    fromProvinceNames: ['Hồ Chí Minh'],
-    toProvinceNames: ['Khánh Hòa'],
-    fromLabel: 'TP.HCM',
-    toLabel: 'Nha Trang',
-    fallbackAsset: 'assets/home/destinations/nha_trang.jpg',
-  ),
-  _PopularRouteSpec(
-    fromProvinceNames: ['Hà Nội'],
-    toProvinceNames: ['Đà Nẵng'],
-    fromLabel: 'Hà Nội',
-    toLabel: 'Đà Nẵng',
-    fallbackAsset: 'assets/home/destinations/da_nang.jpg',
-  ),
-  _PopularRouteSpec(
-    fromProvinceNames: ['Hồ Chí Minh'],
-    toProvinceNames: ['Bình Thuận'],
-    fromLabel: 'TP.HCM',
-    toLabel: 'Phan Thiết',
-    fallbackAsset: 'assets/home/destinations/phan_thiet.jpg',
-  ),
-];
+/// Tên tỉnh gọn cho thẻ hẹp: "TP. Hồ Chí Minh" → "TP.HCM".
+String _cardLabel(String provinceName) =>
+    provinceName == 'TP. Hồ Chí Minh' ? 'TP.HCM' : provinceName;
 
 class OtpLoginPage extends StatefulWidget {
   const OtpLoginPage({
@@ -181,7 +171,7 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
   );
   late final _searchCatalog = TripSearchCatalog(
     loadProvinces: _bookingApi.loadProvinces,
-    searchStopPoints: _bookingApi.searchStopPoints,
+    searchPlaces: _bookingApi.searchPlaces,
     loadOperators: _bookingApi.loadOperators,
     loadAmenities: _bookingApi.loadAmenities,
   );
@@ -815,17 +805,15 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
     );
   }
 
-  /// Tab Mua vé chưa có điều kiện nào: tuyến phổ biến đầu tiên, ngày mai, 1 khách.
+  /// Tab Mua vé chưa có điều kiện nào: tuyến phổ biến đầu tiên (như web), ngày
+  /// mai, 1 khách.
   Future<HomeSearchQuery?> _loadDefaultExploreQuery() async {
-    final spec = _popularRouteSpecs.first;
-    final provinces = await _bookingApi.loadProvinces();
-    final from = _findProvince(provinces, spec.fromProvinceNames);
-    final to = _findProvince(provinces, spec.toProvinceNames);
-    if (from == null || to == null) return null;
+    final routes = await _loadPopularRoutes(defaultSearchDate());
+    if (routes.isEmpty) return null;
     return HomeSearchQuery(
       mode: HomeSearchMode.route,
-      from: from,
-      to: to,
+      from: routes.first.from,
+      to: routes.first.to,
       date: defaultSearchDate(),
       passengers: 1,
     );
@@ -847,64 +835,36 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
     );
   }
 
-  Future<List<HomePopularRoute>> _loadPopularRoutes(DateTime date) async {
-    final provinces = await _bookingApi.loadProvinces();
-    final routes = await Future.wait(
-      _popularRouteSpecs.map(
-        (spec) => _loadPopularRoute(spec, provinces, date),
-      ),
+  /// Tuyến phổ biến (cặp tỉnh) — cùng nguồn `GET /catalog/popular-routes` với
+  /// web, thay danh sách gõ cứng trước đây (từng trỏ tỉnh "Bình Thuận" đã sáp
+  /// nhập). Giá "từ" theo bảng giá đang áp dụng của tuyến nên không phụ thuộc
+  /// ngày đi; tuyến chưa có giá thì bỏ (chưa đặt được).
+  Future<List<HomePopularRoute>> _loadPopularRoutes(DateTime _) async {
+    final response = await _api.getCatalogApi().catalogControllerListPopularRoutes(
+      limit: _popularRouteCount,
     );
-    return routes.whereType<HomePopularRoute>().toList(growable: false);
-  }
-
-  Future<HomePopularRoute?> _loadPopularRoute(
-    _PopularRouteSpec spec,
-    List<HomeLocation> provinces,
-    DateTime date,
-  ) async {
-    final from = _findProvince(provinces, spec.fromProvinceNames);
-    final to = _findProvince(provinces, spec.toProvinceNames);
-    if (from == null || to == null) return null;
-    try {
-      final response = await _api.getTripsApi().publicTripControllerSearch(
-        date: Date(date.year, date.month, date.day),
-        fromProvinceId: from.id,
-        toProvinceId: to.id,
-        passengers: 1,
-        sort: 'price',
-        page: 1,
-        limit: 1,
-      );
-      final items = response.data?.items;
-      if (items == null || items.isEmpty) return null;
-      final item = items.first;
-      return HomePopularRoute(
-        tripId: item.tripId,
-        from: from,
-        to: to,
-        fromLabel: spec.fromLabel,
-        toLabel: spec.toLabel,
-        minPriceVnd: item.minPrice,
-        imageUrl: item.vehicleCoverImageUrl,
-        fallbackAsset: spec.fallbackAsset,
-      );
-    } catch (_) {
-      // Một tuyến lỗi không được làm hỏng form tìm chuyến hay các tuyến còn lại.
-      return null;
+    final items = response.data?.items;
+    if (items == null) {
+      throw StateError('Popular routes response did not contain data.');
     }
-  }
-
-  HomeLocation? _findProvince(
-    List<HomeLocation> provinces,
-    List<String> acceptedNames,
-  ) {
-    for (final province in provinces) {
-      final name = province.name.toLowerCase();
-      if (acceptedNames.any((value) => name.contains(value.toLowerCase()))) {
-        return province;
-      }
+    final routes = <HomePopularRoute>[];
+    for (final route in items) {
+      final minPrice = route.minPrice;
+      if (minPrice == null) continue;
+      final from = shortProvinceName(route.originName);
+      final to = shortProvinceName(route.destinationName);
+      routes.add(
+        HomePopularRoute(
+          from: HomeLocation(id: route.originProvinceId, name: from),
+          to: HomeLocation(id: route.destinationProvinceId, name: to),
+          fromLabel: _cardLabel(from),
+          toLabel: _cardLabel(to),
+          minPriceVnd: minPrice,
+          fallbackAsset: _destinationAsset(route.destinationName, routes.length),
+        ),
+      );
     }
-    return null;
+    return routes;
   }
 
   Future<List<HomeFaqItem>> _loadHomeFaqs() async {

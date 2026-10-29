@@ -44,6 +44,8 @@ export class AdminRouteService {
         where: {
           operatorId: query.operatorId,
           status: query.status,
+          // Tuyến con (3.2) không có chuyến riêng — Admin xem theo tuyến chính.
+          parentRouteId: null,
           ...(query.q ? { name: { contains: query.q, mode: "insensitive" as const } } : {}),
         },
         orderBy: [{ createdAt: "desc" }, { id: "desc" }],

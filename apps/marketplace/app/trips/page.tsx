@@ -1,5 +1,6 @@
 import { ChevronDown, ChevronLeft, ChevronRight, Search } from "lucide-react";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 
 import { PassengerTopBar } from "../../components/passenger-topbar";
 import { EmptyState, FeatureUnavailable } from "../../components/states";
@@ -10,7 +11,9 @@ import { TripListHeader } from "../../components/trips/trip-list-header";
 import { TripLoadingSkeleton } from "../../components/trips/trip-loading-skeleton";
 import { TripSearchBar } from "../../components/trips/trip-search-bar";
 import { searchTrips } from "../../lib/data/trips";
-import { placeType } from "../../lib/data/trip-mappers";
+import { JOURNEY_KEYS, placeType, priceRange, stripDates, vnToday } from "../../lib/data/trip-mappers";
+import { RememberLastSearch } from "../../components/trips/remember-last-search";
+import { TripDateStrip } from "../../components/trips/trip-date-strip";
 import { getProvinces } from "../../lib/data/catalog";
 import { LiveTripFilters } from "../../components/trips/live-trip-filters";
 import { CollapsibleFilters } from "../../components/trips/collapsible-filters";
@@ -145,19 +148,30 @@ export default async function TripsPage(props: TripsPageProps) {
 
   // NHÁNH DỮ LIỆU THẬT (không có ?preview)
   const value = (key: string) => typeof resolvedParams?.[key] === "string" ? resolvedParams[key] as string : undefined;
+  const price = priceRange(value("minPriceVnd"), value("maxPriceVnd"));
   const params = { origin: value("origin"), originType: placeType(value("originType")), originLabel: value("originLabel"),
     destination: value("destination"), destinationType: placeType(value("destinationType")), destinationLabel: value("destinationLabel"),
     date: value("date"),
     passengers: Math.min(10, Math.max(1, Math.trunc(Number(value("passengers")) || 1))),
     operatorId: value("operatorId"), seatType: value("seatType"), vehicleType: value("vehicleType"),
-    minPriceVnd: value("minPriceVnd"), maxPriceVnd: value("maxPriceVnd"), timeRange: value("timeRange"),
+    minPriceVnd: price.min, maxPriceVnd: price.max, timeRange: value("timeRange"),
     sortBy: value("sortBy") as "earliest" | "price_asc" | "fastest" | undefined, page: value("page") };
   // Loại "province" là mặc định nên không ghi lên URL (giữ link cũ y nguyên).
   const query = new URLSearchParams(Object.entries(params)
     .filter(([k, v]) => v !== undefined && !(k.endsWith("Type") && v === "province"))
     .map(([k, v]) => [k, String(v)]));
   const searchBarPlaces = { initialOrigin: params.origin, initialOriginType: params.originType, initialOriginLabel: params.originLabel,
-    initialDestination: params.destination, initialDestinationType: params.destinationType, initialDestinationLabel: params.destinationLabel };
+    initialDestination: params.destination, initialDestinationType: params.destinationType, initialDestinationLabel: params.destinationLabel,
+    operatorId: params.operatorId };
+  const clearOperatorHref = `/trips?${new URLSearchParams([...query].filter(([key]) => key !== "operatorId" && key !== "page"))}`;
+  const clearOperatorLink = params.operatorId && (
+    <Link className="inline-block text-xs font-semibold text-vxn-teal-700 hover:underline" href={clearOperatorHref}>Bỏ lọc nhà xe</Link>
+  );
+
+  // Menu "Mua vé" chưa mang điều kiện nào → trang Khám phá (như tab Mua vé của app); `/trips?…` là trang kết quả.
+  if (!params.origin && !params.destination && !params.date && !params.operatorId) {
+    redirect("/trips/explore");
+  }
 
   // API bắt buộc có điểm đi, điểm đến và ngày: chưa chọn đủ thì nhắc chọn tuyến thay vì gọi API rồi báo lỗi kỹ thuật.
   if (!params.origin || !params.destination || !params.date) {
@@ -172,9 +186,12 @@ export default async function TripsPage(props: TripsPageProps) {
           <EmptyState
             icon={Search}
             title="Chọn tuyến để xem chuyến"
-            description="Nhập điểm đi, điểm đến và ngày đi ở thanh tìm kiếm phía trên rồi bấm Tìm chuyến."
+            description={params.operatorId
+              ? "Đang lọc chuyến của một nhà xe. Nhập điểm đi, điểm đến và ngày đi ở thanh tìm kiếm phía trên rồi bấm Tìm chuyến."
+              : "Nhập điểm đi, điểm đến và ngày đi ở thanh tìm kiếm phía trên rồi bấm Tìm chuyến."}
             className="mt-6 bg-white"
           />
+          {clearOperatorLink && <div className="mt-3 text-center">{clearOperatorLink}</div>}
         </div>
       </div>
     );
@@ -184,17 +201,26 @@ export default async function TripsPage(props: TripsPageProps) {
   const provinces = provincesResult.status === "ok" ? provincesResult.data : [];
 
   if (tripsResult.status !== "ok") {
+    // Lỗi 400 = điều kiện trên URL không hợp lệ: vẫn để cột lọc để người dùng sửa, không hiện câu kỹ thuật của API.
+    const invalidQuery = tripsResult.status === "error" && tripsResult.httpStatus === 400;
     return (
       <div className="min-h-viewport bg-[#f9f9ff]">
         {topBarHeader}
         <div className="mx-auto w-full max-w-[1200px] px-4 py-6 sm:px-6 lg:px-14">
           <TripSearchBar key={query.toString()} {...searchBarPlaces}
             initialDate={params.date} initialPassengers={params.passengers} provinces={provinces} />
-          <div className="mt-8">
-            <FeatureUnavailable
-              title="Không thể tải chuyến xe"
-              description={tripsResult.status === "error" ? tripsResult.message : "Dịch vụ tìm chuyến chưa sẵn sàng."}
-            />
+          <div className="mt-6 flex flex-col gap-6 lg:flex-row items-start">
+            <CollapsibleFilters>
+              <LiveTripFilters query={query.toString()} />
+            </CollapsibleFilters>
+            <div className="flex-1 min-w-0 w-full">
+              <FeatureUnavailable
+                title="Không thể tải chuyến xe"
+                description={invalidQuery
+                  ? "Điều kiện tìm chuyến không hợp lệ. Hãy chọn lại điểm đi, điểm đến hoặc bỏ bớt bộ lọc."
+                  : tripsResult.status === "error" ? tripsResult.message : "Dịch vụ tìm chuyến chưa sẵn sàng."}
+              />
+            </div>
           </div>
         </div>
       </div>
@@ -217,6 +243,8 @@ export default async function TripsPage(props: TripsPageProps) {
             <LiveTripFilters query={query.toString()} />
           </CollapsibleFilters>
           <div className="flex-1 min-w-0 w-full space-y-4">
+            <RememberLastSearch query={new URLSearchParams([...query].filter(([key]) => (JOURNEY_KEYS as readonly string[]).includes(key))).toString()} />
+            <TripDateStrip basePath="/trips" query={query.toString()} selected={params.date} dates={stripDates(params.date, vnToday())} />
             <TripListHeader
               totalTrips={summary.totalTrips}
               dateText={summary.departureDateShortText}
@@ -226,13 +254,18 @@ export default async function TripsPage(props: TripsPageProps) {
             />
             {widenedSides && (
               <p role="status" className="rounded-xl bg-amber-50 px-4 py-3 text-xs text-amber-800">
-                Không có chuyến {widenedSides} khách tại phường / xã đã chọn — đang hiện các chuyến trong cùng tỉnh / thành.
+                Không có chuyến {widenedSides} khách tại phường / xã hoặc khu vực đã chọn — đang hiện các chuyến trong cùng tỉnh / thành.
                 Xem điểm {widenedSides} của từng chuyến trước khi đặt.
               </p>
             )}
-            {params.operatorId && <Link className="inline-block text-xs font-semibold text-vxn-teal-700 hover:underline" href={`/trips?${new URLSearchParams(Object.entries(Object.fromEntries(query)).filter(([key]) => key !== "operatorId" && key !== "page"))}`}>Bỏ lọc nhà xe</Link>}
+            {price.invalid && (
+              <p role="status" className="rounded-xl bg-amber-50 px-4 py-3 text-xs text-amber-800">
+                Khoảng giá chưa đúng (giá từ lớn hơn giá đến) nên chưa lọc theo giá. Nhập lại ở bộ lọc.
+              </p>
+            )}
+            {clearOperatorLink}
             {trips.length ? (
-              <div className="space-y-4">{trips.map((trip) => <TripCard key={trip.id} trip={trip} />)}</div>
+              <div className="space-y-4">{trips.map((trip) => <TripCard key={trip.id} trip={trip} passengers={params.passengers} />)}</div>
             ) : (
               <EmptyState
                 icon={Search}

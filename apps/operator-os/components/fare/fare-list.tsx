@@ -44,7 +44,8 @@ const fold = (value: string) =>
 export function FareList() {
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState<string>(ALL);
-  const routes = useQuery({ queryKey: ["routes", "all"], queryFn: () => listAllRoutes() });
+  // Tuyến con (3.2) có bảng giá riêng nên ô lọc liệt kê cả tuyến con.
+  const routes = useQuery({ queryKey: ["routes", "all", "with-sub-routes"], queryFn: () => listAllRoutes(undefined, { includeSubRoutes: true }) });
   const fares = useQuery({ queryKey: ["fares", "all"], queryFn: listAllFares });
 
   const rows = useMemo<Row[]>(() => {

@@ -23,6 +23,8 @@ class _$TripScheduleInputDto extends TripScheduleInputDto {
   final int onlineSaleCutoffMinutes;
   @override
   final String? note;
+  @override
+  final BuiltList<String>? subRouteIds;
 
   factory _$TripScheduleInputDto(
           [void Function(TripScheduleInputDtoBuilder)? updates]) =>
@@ -36,7 +38,8 @@ class _$TripScheduleInputDto extends TripScheduleInputDto {
       required this.startDate,
       required this.endDate,
       required this.onlineSaleCutoffMinutes,
-      this.note})
+      this.note,
+      this.subRouteIds})
       : super._();
   @override
   TripScheduleInputDto rebuild(
@@ -58,7 +61,8 @@ class _$TripScheduleInputDto extends TripScheduleInputDto {
         startDate == other.startDate &&
         endDate == other.endDate &&
         onlineSaleCutoffMinutes == other.onlineSaleCutoffMinutes &&
-        note == other.note;
+        note == other.note &&
+        subRouteIds == other.subRouteIds;
   }
 
   @override
@@ -72,6 +76,7 @@ class _$TripScheduleInputDto extends TripScheduleInputDto {
     _$hash = $jc(_$hash, endDate.hashCode);
     _$hash = $jc(_$hash, onlineSaleCutoffMinutes.hashCode);
     _$hash = $jc(_$hash, note.hashCode);
+    _$hash = $jc(_$hash, subRouteIds.hashCode);
     _$hash = $jf(_$hash);
     return _$hash;
   }
@@ -86,7 +91,8 @@ class _$TripScheduleInputDto extends TripScheduleInputDto {
           ..add('startDate', startDate)
           ..add('endDate', endDate)
           ..add('onlineSaleCutoffMinutes', onlineSaleCutoffMinutes)
-          ..add('note', note))
+          ..add('note', note)
+          ..add('subRouteIds', subRouteIds))
         .toString();
   }
 }
@@ -130,6 +136,12 @@ class TripScheduleInputDtoBuilder
   String? get note => _$this._note;
   set note(String? note) => _$this._note = note;
 
+  ListBuilder<String>? _subRouteIds;
+  ListBuilder<String> get subRouteIds =>
+      _$this._subRouteIds ??= ListBuilder<String>();
+  set subRouteIds(ListBuilder<String>? subRouteIds) =>
+      _$this._subRouteIds = subRouteIds;
+
   TripScheduleInputDtoBuilder() {
     TripScheduleInputDto._defaults(this);
   }
@@ -145,6 +157,7 @@ class TripScheduleInputDtoBuilder
       _endDate = $v.endDate;
       _onlineSaleCutoffMinutes = $v.onlineSaleCutoffMinutes;
       _note = $v.note;
+      _subRouteIds = $v.subRouteIds?.toBuilder();
       _$v = null;
     }
     return this;
@@ -183,12 +196,16 @@ class TripScheduleInputDtoBuilder
                 r'TripScheduleInputDto',
                 'onlineSaleCutoffMinutes'),
             note: note,
+            subRouteIds: _subRouteIds?.build(),
           );
     } catch (_) {
       late String _$failedField;
       try {
         _$failedField = 'daysOfWeek';
         daysOfWeek.build();
+
+        _$failedField = 'subRouteIds';
+        _subRouteIds?.build();
       } catch (e) {
         throw BuiltValueNestedFieldError(
             r'TripScheduleInputDto', _$failedField, e.toString());

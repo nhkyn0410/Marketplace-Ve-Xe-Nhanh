@@ -3,9 +3,9 @@
 //
 
 // ignore_for_file: unused_element
+import 'package:api_client_dart/src/model/sub_route_suggestion_list_dto_output_items_inner_suggested_rules_inner.dart';
 import 'package:built_collection/built_collection.dart';
 import 'package:api_client_dart/src/model/fare_response_dto_output_band_warnings_inner.dart';
-import 'package:api_client_dart/src/model/fare_response_dto_output_rules_inner.dart';
 import 'package:built_value/built_value.dart';
 import 'package:built_value/serializer.dart';
 
@@ -48,7 +48,7 @@ abstract class FareResponseDtoOutput implements Built<FareResponseDtoOutput, Far
   String? get note;
 
   @BuiltValueField(wireName: r'rules')
-  BuiltList<FareResponseDtoOutputRulesInner> get rules;
+  BuiltList<SubRouteSuggestionListDtoOutputItemsInnerSuggestedRulesInner> get rules;
 
   @BuiltValueField(wireName: r'bandWarnings')
   BuiltList<FareResponseDtoOutputBandWarningsInner> get bandWarnings;
@@ -114,7 +114,7 @@ class _$FareResponseDtoOutputSerializer implements PrimitiveSerializer<FareRespo
     yield r'rules';
     yield serializers.serialize(
       object.rules,
-      specifiedType: const FullType(BuiltList, [FullType(FareResponseDtoOutputRulesInner)]),
+      specifiedType: const FullType(BuiltList, [FullType(SubRouteSuggestionListDtoOutputItemsInnerSuggestedRulesInner)]),
     );
     yield r'bandWarnings';
     yield serializers.serialize(
@@ -197,8 +197,8 @@ class _$FareResponseDtoOutputSerializer implements PrimitiveSerializer<FareRespo
         case r'rules':
           final valueDes = serializers.deserialize(
             value,
-            specifiedType: const FullType(BuiltList, [FullType(FareResponseDtoOutputRulesInner)]),
-          ) as BuiltList<FareResponseDtoOutputRulesInner>;
+            specifiedType: const FullType(BuiltList, [FullType(SubRouteSuggestionListDtoOutputItemsInnerSuggestedRulesInner)]),
+          ) as BuiltList<SubRouteSuggestionListDtoOutputItemsInnerSuggestedRulesInner>;
           result.rules.replace(valueDes);
           break;
         case r'bandWarnings':

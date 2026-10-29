@@ -18,7 +18,7 @@ import {
   createRequestRedisClientOptions,
   getRedisUrl,
 } from "../redis/redis.config";
-import { RouteInputSchema } from "../route/dto/route.dto";
+import { RouteInputSchema, SubRouteInputSchema } from "../route/dto/route.dto";
 import { RouteService } from "../route/route.service";
 import { TripInputSchema } from "../trip/dto/trip.dto";
 import { TripService } from "../trip/trip.service";
@@ -256,6 +256,7 @@ describe.skipIf(!ready && !requireDb)(
         await tx.fareRule.deleteMany({ where: { operatorId } });
         await tx.fare.deleteMany({ where: { operatorId } });
         await tx.routeStop.deleteMany({ where: { operatorId } });
+        await tx.route.deleteMany({ where: { operatorId, parentRouteId: { not: null } } });
         await tx.route.deleteMany({ where: { operatorId } });
         await tx.vehicle.deleteMany({ where: { operatorId } });
         await tx.seat.deleteMany({ where: { operatorId } });
@@ -413,12 +414,84 @@ describe.skipIf(!ready && !requireDb)(
       await holds.release(null, guest.holdId);
     });
 
+    it("chặng (3.3): giữ chỗ tính giá tuyến con bao trọn chặng, không có thì giá tuyến chính; điểm đón đã hết giờ bán → 422", async () => {
+      const middle = randomUUID();
+      await prisma.withSystem((tx) =>
+        tx.stopPointCatalog.create({
+          data: { id: middle, name: `Điểm giữa ${tag}`, type: "BUS_STATION", legalBasis: "QĐ (test)", address: "x", provinceId: province, wardId: ward, latitude: 10.5, longitude: 106 },
+        }),
+      );
+      const routing = new RouteService(prisma, new FakeRouting());
+      const stop = (id: string, pickup: boolean, dropoff: boolean) => ({ catalogStopPointId: id, stopPointId: null, note: null, allowPickup: pickup, allowDropoff: dropoff });
+      const main = await routing.create(
+        authz,
+        RouteInputSchema.parse({ name: `Chặng ${tag}`, status: "ACTIVE", note: null, stops: [stop(points[0]!, true, false), stop(middle, true, true), stop(points[2]!, false, true)] }),
+      );
+      const point = (id: string) => ({ catalogStopPointId: id, stopPointId: null });
+      const subInput = (status: string) =>
+        SubRouteInputSchema.parse({ from: point(points[0]!), to: point(middle), name: "", nameSource: "AUTO", status, note: null });
+      const sub = await routing.createSubRoute(authz, main.id, subInput("DRAFT"));
+      await prisma.withSystem(async (tx) => {
+        for (const [routeId, price] of [[main.id, 300_000n], [sub.id, 110_000n]] as const) {
+          const fare = await tx.fare.create({ data: { operatorId, routeId, status: "ACTIVE" } });
+          await tx.fareRule.create({ data: { operatorId, fareId: fare.id, price } });
+        }
+      });
+      await routing.updateSubRoute(authz, main.id, sub.id, subInput("ACTIVE"));
+      const created = await trips.create(
+        authz,
+        TripInputSchema.parse({
+          routeId: main.id,
+          vehicleId,
+          departureAt: new Date(Date.UTC(2031, 6, 5, 1)).toISOString(),
+          stopTimes: null,
+          onlineSaleCutoffMinutes: 60,
+          note: null,
+          subRouteIds: [sub.id],
+        }),
+      );
+      await prisma.withSystem((tx) => tx.trip.update({ where: { id: created.id }, data: { status: "OPEN_FOR_SALE" } }));
+
+      const short = await holds.create(null, nextIp(), hold({ tripId: created.id, seatCodes: ["A1", "A2"], pickupSequence: 1, dropoffSequence: 2 }));
+      expect(short.seats.map((seat) => seat.price)).toEqual([110_000, 110_000]);
+      expect(short.subtotal).toBe(220_000);
+      await holds.release(null, short.holdId);
+      const whole = await holds.create(null, nextIp(), hold({ tripId: created.id, seatCodes: ["A1"], pickupSequence: 1, dropoffSequence: 3 }));
+      expect(whole.subtotal).toBe(300_000);
+      await holds.release(null, whole.holdId);
+
+      // Điểm đầu đã qua giờ ngừng bán (khởi hành sau 30 phút, ngừng 60 phút trước) nhưng điểm giữa còn bán.
+      const soon = await trips.create(
+        authz,
+        TripInputSchema.parse({
+          routeId: main.id,
+          vehicleId,
+          departureAt: new Date(Math.ceil((Date.now() + 30 * MINUTE) / (5 * MINUTE)) * 5 * MINUTE).toISOString(),
+          stopTimes: null,
+          onlineSaleCutoffMinutes: 60,
+          note: null,
+        }),
+      );
+      await prisma.withSystem((tx) => tx.trip.update({ where: { id: soon.id }, data: { status: "OPEN_FOR_SALE" } }));
+      // Trả xe cho các test sau (chuyến sắp chạy của chúng dùng cùng xe).
+      const release = async () =>
+        prisma.withSystem((tx) => tx.trip.update({ where: { id: soon.id }, data: { status: "CANCELLED", statusReason: "Hết test" } }));
+      expect(await rejectionOf(holds.create(null, nextIp(), hold({ tripId: soon.id, pickupSequence: 1, dropoffSequence: 3 })))).toMatchObject({
+        status: 422,
+        code: "SEAT_HOLD_PICKUP_CLOSED",
+      });
+      const fromMiddle = await holds.create(null, nextIp(), hold({ tripId: soon.id, pickupSequence: 2, dropoffSequence: 3 }));
+      expect(fromMiddle.subtotal).toBe(300_000);
+      await holds.release(null, fromMiddle.holdId);
+      await release();
+    });
+
     it("hạn giữ không quá giờ ngừng bán online; 21 lần / 10 phút / IP → 429; Redis mất kết nối → 503", async () => {
-      const soon = await trip(new Date(Date.now() + 65 * MINUTE));
+      // Giờ chạy lưu theo mốc 5 phút (giai đoạn 3.1): lấy sẵn mốc → ngừng bán sau 5–10 phút, sớm hơn hạn giữ 10 phút.
+      const departureAt = Math.ceil((Date.now() + 65 * MINUTE) / (5 * MINUTE)) * 5 * MINUTE;
+      const soon = await trip(new Date(departureAt));
       const capped = await holds.create(null, nextIp(), hold({ tripId: soon }));
-      const ttl = Date.parse(capped.expiresAt) - Date.now();
-      expect(ttl).toBeLessThanOrEqual(5 * MINUTE + 1000);
-      expect(ttl).toBeGreaterThan(4 * MINUTE);
+      expect(capped.expiresAt).toBe(new Date(departureAt - 60 * MINUTE).toISOString());
       await holds.release(null, capped.holdId);
 
       const ip = nextIp();

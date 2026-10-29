@@ -6,12 +6,41 @@ part of 'route_list_response_dto_output_items_inner.dart';
 // BuiltValueGenerator
 // **************************************************************************
 
+const RouteListResponseDtoOutputItemsInnerNameSourceEnum
+    _$routeListResponseDtoOutputItemsInnerNameSourceEnum_AUTO =
+    const RouteListResponseDtoOutputItemsInnerNameSourceEnum._('AUTO');
+const RouteListResponseDtoOutputItemsInnerNameSourceEnum
+    _$routeListResponseDtoOutputItemsInnerNameSourceEnum_MANUAL =
+    const RouteListResponseDtoOutputItemsInnerNameSourceEnum._('MANUAL');
+
+RouteListResponseDtoOutputItemsInnerNameSourceEnum
+    _$routeListResponseDtoOutputItemsInnerNameSourceEnumValueOf(String name) {
+  switch (name) {
+    case 'AUTO':
+      return _$routeListResponseDtoOutputItemsInnerNameSourceEnum_AUTO;
+    case 'MANUAL':
+      return _$routeListResponseDtoOutputItemsInnerNameSourceEnum_MANUAL;
+    default:
+      throw ArgumentError(name);
+  }
+}
+
+final BuiltSet<RouteListResponseDtoOutputItemsInnerNameSourceEnum>
+    _$routeListResponseDtoOutputItemsInnerNameSourceEnumValues = BuiltSet<
+        RouteListResponseDtoOutputItemsInnerNameSourceEnum>(const <RouteListResponseDtoOutputItemsInnerNameSourceEnum>[
+  _$routeListResponseDtoOutputItemsInnerNameSourceEnum_AUTO,
+  _$routeListResponseDtoOutputItemsInnerNameSourceEnum_MANUAL,
+]);
+
 const RouteListResponseDtoOutputItemsInnerStatusEnum
     _$routeListResponseDtoOutputItemsInnerStatusEnum_ACTIVE =
     const RouteListResponseDtoOutputItemsInnerStatusEnum._('ACTIVE');
 const RouteListResponseDtoOutputItemsInnerStatusEnum
     _$routeListResponseDtoOutputItemsInnerStatusEnum_INACTIVE =
     const RouteListResponseDtoOutputItemsInnerStatusEnum._('INACTIVE');
+const RouteListResponseDtoOutputItemsInnerStatusEnum
+    _$routeListResponseDtoOutputItemsInnerStatusEnum_DRAFT =
+    const RouteListResponseDtoOutputItemsInnerStatusEnum._('DRAFT');
 
 RouteListResponseDtoOutputItemsInnerStatusEnum
     _$routeListResponseDtoOutputItemsInnerStatusEnumValueOf(String name) {
@@ -20,6 +49,8 @@ RouteListResponseDtoOutputItemsInnerStatusEnum
       return _$routeListResponseDtoOutputItemsInnerStatusEnum_ACTIVE;
     case 'INACTIVE':
       return _$routeListResponseDtoOutputItemsInnerStatusEnum_INACTIVE;
+    case 'DRAFT':
+      return _$routeListResponseDtoOutputItemsInnerStatusEnum_DRAFT;
     default:
       throw ArgumentError(name);
   }
@@ -30,6 +61,7 @@ final BuiltSet<RouteListResponseDtoOutputItemsInnerStatusEnum>
         RouteListResponseDtoOutputItemsInnerStatusEnum>(const <RouteListResponseDtoOutputItemsInnerStatusEnum>[
   _$routeListResponseDtoOutputItemsInnerStatusEnum_ACTIVE,
   _$routeListResponseDtoOutputItemsInnerStatusEnum_INACTIVE,
+  _$routeListResponseDtoOutputItemsInnerStatusEnum_DRAFT,
 ]);
 
 const RouteListResponseDtoOutputItemsInnerMetricsSourceEnum
@@ -59,6 +91,9 @@ final BuiltSet<RouteListResponseDtoOutputItemsInnerMetricsSourceEnum>
   _$routeListResponseDtoOutputItemsInnerMetricsSourceEnum_ESTIMATE,
 ]);
 
+Serializer<RouteListResponseDtoOutputItemsInnerNameSourceEnum>
+    _$routeListResponseDtoOutputItemsInnerNameSourceEnumSerializer =
+    _$RouteListResponseDtoOutputItemsInnerNameSourceEnumSerializer();
 Serializer<RouteListResponseDtoOutputItemsInnerStatusEnum>
     _$routeListResponseDtoOutputItemsInnerStatusEnumSerializer =
     _$RouteListResponseDtoOutputItemsInnerStatusEnumSerializer();
@@ -66,16 +101,52 @@ Serializer<RouteListResponseDtoOutputItemsInnerMetricsSourceEnum>
     _$routeListResponseDtoOutputItemsInnerMetricsSourceEnumSerializer =
     _$RouteListResponseDtoOutputItemsInnerMetricsSourceEnumSerializer();
 
+class _$RouteListResponseDtoOutputItemsInnerNameSourceEnumSerializer
+    implements
+        PrimitiveSerializer<
+            RouteListResponseDtoOutputItemsInnerNameSourceEnum> {
+  static const Map<String, Object> _toWire = const <String, Object>{
+    'AUTO': 'AUTO',
+    'MANUAL': 'MANUAL',
+  };
+  static const Map<Object, String> _fromWire = const <Object, String>{
+    'AUTO': 'AUTO',
+    'MANUAL': 'MANUAL',
+  };
+
+  @override
+  final Iterable<Type> types = const <Type>[
+    RouteListResponseDtoOutputItemsInnerNameSourceEnum
+  ];
+  @override
+  final String wireName = 'RouteListResponseDtoOutputItemsInnerNameSourceEnum';
+
+  @override
+  Object serialize(Serializers serializers,
+          RouteListResponseDtoOutputItemsInnerNameSourceEnum object,
+          {FullType specifiedType = FullType.unspecified}) =>
+      _toWire[object.name] ?? object.name;
+
+  @override
+  RouteListResponseDtoOutputItemsInnerNameSourceEnum deserialize(
+          Serializers serializers, Object serialized,
+          {FullType specifiedType = FullType.unspecified}) =>
+      RouteListResponseDtoOutputItemsInnerNameSourceEnum.valueOf(
+          _fromWire[serialized] ?? (serialized is String ? serialized : ''));
+}
+
 class _$RouteListResponseDtoOutputItemsInnerStatusEnumSerializer
     implements
         PrimitiveSerializer<RouteListResponseDtoOutputItemsInnerStatusEnum> {
   static const Map<String, Object> _toWire = const <String, Object>{
     'ACTIVE': 'ACTIVE',
     'INACTIVE': 'INACTIVE',
+    'DRAFT': 'DRAFT',
   };
   static const Map<Object, String> _fromWire = const <Object, String>{
     'ACTIVE': 'ACTIVE',
     'INACTIVE': 'INACTIVE',
+    'DRAFT': 'DRAFT',
   };
 
   @override
@@ -141,6 +212,8 @@ class _$RouteListResponseDtoOutputItemsInner
   @override
   final String name;
   @override
+  final RouteListResponseDtoOutputItemsInnerNameSourceEnum nameSource;
+  @override
   final RouteListResponseDtoOutputItemsInnerStatusEnum status;
   @override
   final int totalDistanceMeters;
@@ -148,6 +221,8 @@ class _$RouteListResponseDtoOutputItemsInner
   final int totalDurationSeconds;
   @override
   final RouteListResponseDtoOutputItemsInnerMetricsSourceEnum metricsSource;
+  @override
+  final String? parentRouteId;
   @override
   final DateTime createdAt;
   @override
@@ -158,6 +233,8 @@ class _$RouteListResponseDtoOutputItemsInner
   final String originName;
   @override
   final String destinationName;
+  @override
+  final BuiltList<RouteListResponseDtoOutputItemsInnerSubRoutesInner> subRoutes;
 
   factory _$RouteListResponseDtoOutputItemsInner(
           [void Function(RouteListResponseDtoOutputItemsInnerBuilder)?
@@ -167,15 +244,18 @@ class _$RouteListResponseDtoOutputItemsInner
   _$RouteListResponseDtoOutputItemsInner._(
       {required this.id,
       required this.name,
+      required this.nameSource,
       required this.status,
       required this.totalDistanceMeters,
       required this.totalDurationSeconds,
       required this.metricsSource,
+      this.parentRouteId,
       required this.createdAt,
       required this.updatedAt,
       required this.stopCount,
       required this.originName,
-      required this.destinationName})
+      required this.destinationName,
+      required this.subRoutes})
       : super._();
   @override
   RouteListResponseDtoOutputItemsInner rebuild(
@@ -192,15 +272,18 @@ class _$RouteListResponseDtoOutputItemsInner
     return other is RouteListResponseDtoOutputItemsInner &&
         id == other.id &&
         name == other.name &&
+        nameSource == other.nameSource &&
         status == other.status &&
         totalDistanceMeters == other.totalDistanceMeters &&
         totalDurationSeconds == other.totalDurationSeconds &&
         metricsSource == other.metricsSource &&
+        parentRouteId == other.parentRouteId &&
         createdAt == other.createdAt &&
         updatedAt == other.updatedAt &&
         stopCount == other.stopCount &&
         originName == other.originName &&
-        destinationName == other.destinationName;
+        destinationName == other.destinationName &&
+        subRoutes == other.subRoutes;
   }
 
   @override
@@ -208,15 +291,18 @@ class _$RouteListResponseDtoOutputItemsInner
     var _$hash = 0;
     _$hash = $jc(_$hash, id.hashCode);
     _$hash = $jc(_$hash, name.hashCode);
+    _$hash = $jc(_$hash, nameSource.hashCode);
     _$hash = $jc(_$hash, status.hashCode);
     _$hash = $jc(_$hash, totalDistanceMeters.hashCode);
     _$hash = $jc(_$hash, totalDurationSeconds.hashCode);
     _$hash = $jc(_$hash, metricsSource.hashCode);
+    _$hash = $jc(_$hash, parentRouteId.hashCode);
     _$hash = $jc(_$hash, createdAt.hashCode);
     _$hash = $jc(_$hash, updatedAt.hashCode);
     _$hash = $jc(_$hash, stopCount.hashCode);
     _$hash = $jc(_$hash, originName.hashCode);
     _$hash = $jc(_$hash, destinationName.hashCode);
+    _$hash = $jc(_$hash, subRoutes.hashCode);
     _$hash = $jf(_$hash);
     return _$hash;
   }
@@ -226,15 +312,18 @@ class _$RouteListResponseDtoOutputItemsInner
     return (newBuiltValueToStringHelper(r'RouteListResponseDtoOutputItemsInner')
           ..add('id', id)
           ..add('name', name)
+          ..add('nameSource', nameSource)
           ..add('status', status)
           ..add('totalDistanceMeters', totalDistanceMeters)
           ..add('totalDurationSeconds', totalDurationSeconds)
           ..add('metricsSource', metricsSource)
+          ..add('parentRouteId', parentRouteId)
           ..add('createdAt', createdAt)
           ..add('updatedAt', updatedAt)
           ..add('stopCount', stopCount)
           ..add('originName', originName)
-          ..add('destinationName', destinationName))
+          ..add('destinationName', destinationName)
+          ..add('subRoutes', subRoutes))
         .toString();
   }
 }
@@ -252,6 +341,13 @@ class RouteListResponseDtoOutputItemsInnerBuilder
   String? _name;
   String? get name => _$this._name;
   set name(String? name) => _$this._name = name;
+
+  RouteListResponseDtoOutputItemsInnerNameSourceEnum? _nameSource;
+  RouteListResponseDtoOutputItemsInnerNameSourceEnum? get nameSource =>
+      _$this._nameSource;
+  set nameSource(
+          RouteListResponseDtoOutputItemsInnerNameSourceEnum? nameSource) =>
+      _$this._nameSource = nameSource;
 
   RouteListResponseDtoOutputItemsInnerStatusEnum? _status;
   RouteListResponseDtoOutputItemsInnerStatusEnum? get status => _$this._status;
@@ -276,6 +372,11 @@ class RouteListResponseDtoOutputItemsInnerBuilder
               metricsSource) =>
       _$this._metricsSource = metricsSource;
 
+  String? _parentRouteId;
+  String? get parentRouteId => _$this._parentRouteId;
+  set parentRouteId(String? parentRouteId) =>
+      _$this._parentRouteId = parentRouteId;
+
   DateTime? _createdAt;
   DateTime? get createdAt => _$this._createdAt;
   set createdAt(DateTime? createdAt) => _$this._createdAt = createdAt;
@@ -297,6 +398,15 @@ class RouteListResponseDtoOutputItemsInnerBuilder
   set destinationName(String? destinationName) =>
       _$this._destinationName = destinationName;
 
+  ListBuilder<RouteListResponseDtoOutputItemsInnerSubRoutesInner>? _subRoutes;
+  ListBuilder<RouteListResponseDtoOutputItemsInnerSubRoutesInner>
+      get subRoutes => _$this._subRoutes ??=
+          ListBuilder<RouteListResponseDtoOutputItemsInnerSubRoutesInner>();
+  set subRoutes(
+          ListBuilder<RouteListResponseDtoOutputItemsInnerSubRoutesInner>?
+              subRoutes) =>
+      _$this._subRoutes = subRoutes;
+
   RouteListResponseDtoOutputItemsInnerBuilder() {
     RouteListResponseDtoOutputItemsInner._defaults(this);
   }
@@ -306,15 +416,18 @@ class RouteListResponseDtoOutputItemsInnerBuilder
     if ($v != null) {
       _id = $v.id;
       _name = $v.name;
+      _nameSource = $v.nameSource;
       _status = $v.status;
       _totalDistanceMeters = $v.totalDistanceMeters;
       _totalDurationSeconds = $v.totalDurationSeconds;
       _metricsSource = $v.metricsSource;
+      _parentRouteId = $v.parentRouteId;
       _createdAt = $v.createdAt;
       _updatedAt = $v.updatedAt;
       _stopCount = $v.stopCount;
       _originName = $v.originName;
       _destinationName = $v.destinationName;
+      _subRoutes = $v.subRoutes.toBuilder();
       _$v = null;
     }
     return this;
@@ -335,37 +448,56 @@ class RouteListResponseDtoOutputItemsInnerBuilder
   RouteListResponseDtoOutputItemsInner build() => _build();
 
   _$RouteListResponseDtoOutputItemsInner _build() {
-    final _$result = _$v ??
-        _$RouteListResponseDtoOutputItemsInner._(
-          id: BuiltValueNullFieldError.checkNotNull(
-              id, r'RouteListResponseDtoOutputItemsInner', 'id'),
-          name: BuiltValueNullFieldError.checkNotNull(
-              name, r'RouteListResponseDtoOutputItemsInner', 'name'),
-          status: BuiltValueNullFieldError.checkNotNull(
-              status, r'RouteListResponseDtoOutputItemsInner', 'status'),
-          totalDistanceMeters: BuiltValueNullFieldError.checkNotNull(
-              totalDistanceMeters,
-              r'RouteListResponseDtoOutputItemsInner',
-              'totalDistanceMeters'),
-          totalDurationSeconds: BuiltValueNullFieldError.checkNotNull(
-              totalDurationSeconds,
-              r'RouteListResponseDtoOutputItemsInner',
-              'totalDurationSeconds'),
-          metricsSource: BuiltValueNullFieldError.checkNotNull(metricsSource,
-              r'RouteListResponseDtoOutputItemsInner', 'metricsSource'),
-          createdAt: BuiltValueNullFieldError.checkNotNull(
-              createdAt, r'RouteListResponseDtoOutputItemsInner', 'createdAt'),
-          updatedAt: BuiltValueNullFieldError.checkNotNull(
-              updatedAt, r'RouteListResponseDtoOutputItemsInner', 'updatedAt'),
-          stopCount: BuiltValueNullFieldError.checkNotNull(
-              stopCount, r'RouteListResponseDtoOutputItemsInner', 'stopCount'),
-          originName: BuiltValueNullFieldError.checkNotNull(originName,
-              r'RouteListResponseDtoOutputItemsInner', 'originName'),
-          destinationName: BuiltValueNullFieldError.checkNotNull(
-              destinationName,
-              r'RouteListResponseDtoOutputItemsInner',
-              'destinationName'),
-        );
+    _$RouteListResponseDtoOutputItemsInner _$result;
+    try {
+      _$result = _$v ??
+          _$RouteListResponseDtoOutputItemsInner._(
+            id: BuiltValueNullFieldError.checkNotNull(
+                id, r'RouteListResponseDtoOutputItemsInner', 'id'),
+            name: BuiltValueNullFieldError.checkNotNull(
+                name, r'RouteListResponseDtoOutputItemsInner', 'name'),
+            nameSource: BuiltValueNullFieldError.checkNotNull(nameSource,
+                r'RouteListResponseDtoOutputItemsInner', 'nameSource'),
+            status: BuiltValueNullFieldError.checkNotNull(
+                status, r'RouteListResponseDtoOutputItemsInner', 'status'),
+            totalDistanceMeters: BuiltValueNullFieldError.checkNotNull(
+                totalDistanceMeters,
+                r'RouteListResponseDtoOutputItemsInner',
+                'totalDistanceMeters'),
+            totalDurationSeconds: BuiltValueNullFieldError.checkNotNull(
+                totalDurationSeconds,
+                r'RouteListResponseDtoOutputItemsInner',
+                'totalDurationSeconds'),
+            metricsSource: BuiltValueNullFieldError.checkNotNull(metricsSource,
+                r'RouteListResponseDtoOutputItemsInner', 'metricsSource'),
+            parentRouteId: parentRouteId,
+            createdAt: BuiltValueNullFieldError.checkNotNull(createdAt,
+                r'RouteListResponseDtoOutputItemsInner', 'createdAt'),
+            updatedAt: BuiltValueNullFieldError.checkNotNull(updatedAt,
+                r'RouteListResponseDtoOutputItemsInner', 'updatedAt'),
+            stopCount: BuiltValueNullFieldError.checkNotNull(stopCount,
+                r'RouteListResponseDtoOutputItemsInner', 'stopCount'),
+            originName: BuiltValueNullFieldError.checkNotNull(originName,
+                r'RouteListResponseDtoOutputItemsInner', 'originName'),
+            destinationName: BuiltValueNullFieldError.checkNotNull(
+                destinationName,
+                r'RouteListResponseDtoOutputItemsInner',
+                'destinationName'),
+            subRoutes: subRoutes.build(),
+          );
+    } catch (_) {
+      late String _$failedField;
+      try {
+        _$failedField = 'subRoutes';
+        subRoutes.build();
+      } catch (e) {
+        throw BuiltValueNestedFieldError(
+            r'RouteListResponseDtoOutputItemsInner',
+            _$failedField,
+            e.toString());
+      }
+      rethrow;
+    }
     replace(_$result);
     return _$result;
   }

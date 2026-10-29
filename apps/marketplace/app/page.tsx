@@ -90,13 +90,15 @@ export default async function MarketplacePage(props: MarketplacePageProps) {
   }
 
   // Nhánh DỮ LIỆU THẬT (không có ?preview)
+  // Ô chọn nhà xe của form tìm lấy tối đa 20 nhà xe (như app); khối "Nhà xe đối tác" chỉ hiện 5 thẻ đầu theo Figma.
   const [articlesResult, routesResult, operatorsResult] = await Promise.all([
-    getHandbookArticles(), getPopularRoutes(), getFeaturedOperators()
+    getHandbookArticles(), getPopularRoutes(), getFeaturedOperators(20)
   ]);
 
   // UI SCR-PSG-01 Empty: chưa có tuyến phổ biến / nhà xe (hoặc tải lỗi) thì ẩn khối, form tìm chuyến vẫn dùng được.
   const popularRoutes = routesResult.status === "ok" ? routesResult.data : [];
   const featuredOperators = operatorsResult.status === "ok" ? operatorsResult.data : [];
+  const partnerOperators = featuredOperators.slice(0, 5);
 
   return (
     <div className="flex flex-col bg-white">
@@ -105,7 +107,7 @@ export default async function MarketplacePage(props: MarketplacePageProps) {
       />
       {popularRoutes.length > 0 && <PopularRoutesSection routes={popularRoutes} />}
       <ExploreCardsSection />
-      {featuredOperators.length > 0 && <PartnerOperatorsSection operators={featuredOperators} />}
+      {partnerOperators.length > 0 && <PartnerOperatorsSection operators={partnerOperators} />}
       <PlusAndGuideSection
         articles={articlesResult.status === "ok" ? articlesResult.data : undefined}
         isUnavailable={articlesResult.status !== "ok"}

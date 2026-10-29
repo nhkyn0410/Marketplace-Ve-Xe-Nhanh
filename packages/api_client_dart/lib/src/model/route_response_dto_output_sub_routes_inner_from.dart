@@ -6,58 +6,46 @@
 import 'package:built_value/built_value.dart';
 import 'package:built_value/serializer.dart';
 
-part 'route_input_dto_stops_inner.g.dart';
+part 'route_response_dto_output_sub_routes_inner_from.g.dart';
 
-/// RouteInputDtoStopsInner
+/// RouteResponseDtoOutputSubRoutesInnerFrom
 ///
 /// Properties:
 /// * [catalogStopPointId] 
 /// * [stopPointId] 
-/// * [note] 
-/// * [allowPickup] 
-/// * [allowDropoff] 
-/// * [durationMinutesFromPrevious] 
+/// * [name] 
 @BuiltValue()
-abstract class RouteInputDtoStopsInner implements Built<RouteInputDtoStopsInner, RouteInputDtoStopsInnerBuilder> {
+abstract class RouteResponseDtoOutputSubRoutesInnerFrom implements Built<RouteResponseDtoOutputSubRoutesInnerFrom, RouteResponseDtoOutputSubRoutesInnerFromBuilder> {
   @BuiltValueField(wireName: r'catalogStopPointId')
   String? get catalogStopPointId;
 
   @BuiltValueField(wireName: r'stopPointId')
   String? get stopPointId;
 
-  @BuiltValueField(wireName: r'note')
-  String? get note;
+  @BuiltValueField(wireName: r'name')
+  String get name;
 
-  @BuiltValueField(wireName: r'allowPickup')
-  bool get allowPickup;
+  RouteResponseDtoOutputSubRoutesInnerFrom._();
 
-  @BuiltValueField(wireName: r'allowDropoff')
-  bool get allowDropoff;
-
-  @BuiltValueField(wireName: r'durationMinutesFromPrevious')
-  int? get durationMinutesFromPrevious;
-
-  RouteInputDtoStopsInner._();
-
-  factory RouteInputDtoStopsInner([void updates(RouteInputDtoStopsInnerBuilder b)]) = _$RouteInputDtoStopsInner;
+  factory RouteResponseDtoOutputSubRoutesInnerFrom([void updates(RouteResponseDtoOutputSubRoutesInnerFromBuilder b)]) = _$RouteResponseDtoOutputSubRoutesInnerFrom;
 
   @BuiltValueHook(initializeBuilder: true)
-  static void _defaults(RouteInputDtoStopsInnerBuilder b) => b;
+  static void _defaults(RouteResponseDtoOutputSubRoutesInnerFromBuilder b) => b;
 
   @BuiltValueSerializer(custom: true)
-  static Serializer<RouteInputDtoStopsInner> get serializer => _$RouteInputDtoStopsInnerSerializer();
+  static Serializer<RouteResponseDtoOutputSubRoutesInnerFrom> get serializer => _$RouteResponseDtoOutputSubRoutesInnerFromSerializer();
 }
 
-class _$RouteInputDtoStopsInnerSerializer implements PrimitiveSerializer<RouteInputDtoStopsInner> {
+class _$RouteResponseDtoOutputSubRoutesInnerFromSerializer implements PrimitiveSerializer<RouteResponseDtoOutputSubRoutesInnerFrom> {
   @override
-  final Iterable<Type> types = const [RouteInputDtoStopsInner, _$RouteInputDtoStopsInner];
+  final Iterable<Type> types = const [RouteResponseDtoOutputSubRoutesInnerFrom, _$RouteResponseDtoOutputSubRoutesInnerFrom];
 
   @override
-  final String wireName = r'RouteInputDtoStopsInner';
+  final String wireName = r'RouteResponseDtoOutputSubRoutesInnerFrom';
 
   Iterable<Object?> _serializeProperties(
     Serializers serializers,
-    RouteInputDtoStopsInner object, {
+    RouteResponseDtoOutputSubRoutesInnerFrom object, {
     FullType specifiedType = FullType.unspecified,
   }) sync* {
     yield r'catalogStopPointId';
@@ -70,34 +58,17 @@ class _$RouteInputDtoStopsInnerSerializer implements PrimitiveSerializer<RouteIn
       object.stopPointId,
       specifiedType: const FullType.nullable(String),
     );
-    yield r'note';
-    yield object.note == null ? null : serializers.serialize(
-      object.note,
-      specifiedType: const FullType.nullable(String),
-    );
-    yield r'allowPickup';
+    yield r'name';
     yield serializers.serialize(
-      object.allowPickup,
-      specifiedType: const FullType(bool),
+      object.name,
+      specifiedType: const FullType(String),
     );
-    yield r'allowDropoff';
-    yield serializers.serialize(
-      object.allowDropoff,
-      specifiedType: const FullType(bool),
-    );
-    if (object.durationMinutesFromPrevious != null) {
-      yield r'durationMinutesFromPrevious';
-      yield serializers.serialize(
-        object.durationMinutesFromPrevious,
-        specifiedType: const FullType.nullable(int),
-      );
-    }
   }
 
   @override
   Object serialize(
     Serializers serializers,
-    RouteInputDtoStopsInner object, {
+    RouteResponseDtoOutputSubRoutesInnerFrom object, {
     FullType specifiedType = FullType.unspecified,
   }) {
     return _serializeProperties(serializers, object, specifiedType: specifiedType).toList();
@@ -108,7 +79,7 @@ class _$RouteInputDtoStopsInnerSerializer implements PrimitiveSerializer<RouteIn
     Object serialized, {
     FullType specifiedType = FullType.unspecified,
     required List<Object?> serializedList,
-    required RouteInputDtoStopsInnerBuilder result,
+    required RouteResponseDtoOutputSubRoutesInnerFromBuilder result,
     required List<Object?> unhandled,
   }) {
     for (var i = 0; i < serializedList.length; i += 2) {
@@ -131,35 +102,12 @@ class _$RouteInputDtoStopsInnerSerializer implements PrimitiveSerializer<RouteIn
           if (valueDes == null) continue;
           result.stopPointId = valueDes;
           break;
-        case r'note':
+        case r'name':
           final valueDes = serializers.deserialize(
             value,
-            specifiedType: const FullType.nullable(String),
-          ) as String?;
-          if (valueDes == null) continue;
-          result.note = valueDes;
-          break;
-        case r'allowPickup':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(bool),
-          ) as bool;
-          result.allowPickup = valueDes;
-          break;
-        case r'allowDropoff':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(bool),
-          ) as bool;
-          result.allowDropoff = valueDes;
-          break;
-        case r'durationMinutesFromPrevious':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType.nullable(int),
-          ) as int?;
-          if (valueDes == null) continue;
-          result.durationMinutesFromPrevious = valueDes;
+            specifiedType: const FullType(String),
+          ) as String;
+          result.name = valueDes;
           break;
         default:
           unhandled.add(key);
@@ -170,12 +118,12 @@ class _$RouteInputDtoStopsInnerSerializer implements PrimitiveSerializer<RouteIn
   }
 
   @override
-  RouteInputDtoStopsInner deserialize(
+  RouteResponseDtoOutputSubRoutesInnerFrom deserialize(
     Serializers serializers,
     Object serialized, {
     FullType specifiedType = FullType.unspecified,
   }) {
-    final result = RouteInputDtoStopsInnerBuilder();
+    final result = RouteResponseDtoOutputSubRoutesInnerFromBuilder();
     final serializedList = (serialized as Iterable<Object?>).toList();
     final unhandled = <Object?>[];
     _deserializeProperties(

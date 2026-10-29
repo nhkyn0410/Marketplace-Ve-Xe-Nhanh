@@ -2,8 +2,10 @@ import { randomUUID } from "node:crypto";
 import { HttpException, Inject, Injectable, Logger } from "@nestjs/common";
 import type Redis from "ioredis";
 import { PrismaService } from "../database/prisma.service";
-import { loadActiveFareRules, loadPublicTrip } from "../database/public-trips";
-import { resolveSeatPrice, vndToJson } from "../fare/fare-pricing";
+import { loadActiveFareRules, loadPublicTrip, pickupSaleOpen } from "../database/public-trips";
+import { loadPublicSegmentOffers } from "../database/segment-offers";
+import { vndToJson } from "../fare/fare-pricing";
+import { coveringOffer, segmentSeatPrice } from "../fare/segment-pricing";
 import type { VerifiedAccessToken } from "../iam/auth/token.service";
 import { REDIS_CLIENT } from "../redis/redis.config";
 import type { SeatHoldInput, SeatHoldResponse } from "./dto/seat-hold.dto";
@@ -14,6 +16,7 @@ import {
   seatHoldExpired,
   seatNotAvailable,
   seatUnknown,
+  pickupSaleClosed,
   stopsInvalid,
   tripNotFound,
 } from "./seat-hold.errors";
@@ -60,23 +63,31 @@ export class SeatHoldService {
     if (!pickup?.allowPickup || !dropoff?.allowDropoff || pickup.sequence >= dropoff.sequence) {
       throw stopsInvalid();
     }
+    if (!pickupSaleOpen(pickup.plannedAt, trip.onlineSaleCutoffMinutes, now)) {
+      throw pickupSaleClosed();
+    }
     const seats = input.seatCodes.map((code) => trip.seats.find((seat) => seat.seatCode === code));
     if (seats.some((seat) => !seat)) {
       throw seatUnknown();
     }
-    const rules = await loadActiveFareRules(this.prisma, [trip.route.id]);
+    const [rules, offers] = await Promise.all([
+      loadActiveFareRules(this.prisma, [trip.route.id]),
+      loadPublicSegmentOffers(this.prisma, [trip.id]),
+    ]);
+    // Giá theo chặng khách đi (3.3): bảng giá của tuyến con ngắn nhất bao trọn chặng, không có thì của tuyến chính.
+    const offer = coveringOffer(offers.get(trip.id) ?? [], pickup.sequence, dropoff.sequence);
     const priced = seats.map((seat) => ({
       code: seat!.seatCode,
       type: seat!.type,
       status: seat!.status,
-      price: resolveSeatPrice(rules, trip.vehicle!.vehicleType.id, seat!.type, trip.departureAt),
+      price: segmentSeatPrice(offer, rules, trip.vehicle!.vehicleType.id, seat!.type, trip.departureAt),
     }));
     const unavailable = priced.filter((seat) => seat.status !== "AVAILABLE" || seat.price === null || seat.price <= 0n);
     if (unavailable.length > 0) {
       throw seatNotAvailable(unavailable.map((seat) => seat.code));
     }
 
-    const saleClosesAt = trip.departureAt.getTime() - trip.onlineSaleCutoffMinutes * MINUTE;
+    const saleClosesAt = pickup.plannedAt.getTime() - trip.onlineSaleCutoffMinutes * MINUTE;
     const ttlMs = Math.min((await this.holdMinutes(now)) * MINUTE, saleClosesAt - now.getTime());
     const point = (stop: NonNullable<typeof pickup>) => ({
       sequence: stop.sequence,

@@ -147,24 +147,30 @@ export function countFlags(stops: DraftStop[]): { pickup: number; dropoff: numbe
   };
 }
 
-/** Luật kiểm phần thông tin tuyến; thông báo hiện ngay dưới từng ô (06 UI §10). */
-export const routeInfoSchema = z.object({
-  name: z
-    .string()
-    .trim()
-    .min(1, "Nhập tên tuyến.")
-    .max(ROUTE_NAME_MAX_LENGTH, `Tên tuyến tối đa ${ROUTE_NAME_MAX_LENGTH} ký tự.`),
-  status: z.enum(["ACTIVE", "INACTIVE"]),
-  note: z.string().max(ROUTE_NOTE_MAX_LENGTH, `Ghi chú tối đa ${ROUTE_NOTE_MAX_LENGTH} ký tự.`)
-});
+/**
+ * Luật kiểm phần thông tin tuyến; thông báo hiện ngay dưới từng ô (06 UI §10). "Tự đặt tên" (`AUTO`, 3.1 — chờ duyệt) thì
+ * máy chủ ghép tên từ nơi của các điểm dừng nên không bắt nhập.
+ */
+export const routeInfoSchema = z
+  .object({
+    name: z.string().trim().max(ROUTE_NAME_MAX_LENGTH, `Tên tuyến tối đa ${ROUTE_NAME_MAX_LENGTH} ký tự.`),
+    nameSource: z.enum(["AUTO", "MANUAL"]),
+    status: z.enum(["ACTIVE", "DRAFT", "INACTIVE"]),
+    note: z.string().max(ROUTE_NOTE_MAX_LENGTH, `Ghi chú tối đa ${ROUTE_NOTE_MAX_LENGTH} ký tự.`)
+  })
+  .superRefine((info, ctx) => {
+    if (info.nameSource === "MANUAL" && info.name === "") {
+      ctx.addIssue({ code: "custom", path: ["name"], message: "Nhập tên tuyến hoặc bật Tự đặt tên." });
+    }
+  });
 export type RouteInfoValues = z.infer<typeof routeInfoSchema>;
 
-/** Giá trị ban đầu của form "Thêm tuyến". */
-export const EMPTY_ROUTE_INFO: RouteInfoValues = { name: "", status: "ACTIVE", note: "" };
+/** Giá trị ban đầu của form "Thêm tuyến": tên tự đặt theo điểm dừng. */
+export const EMPTY_ROUTE_INFO: RouteInfoValues = { name: "", nameSource: "AUTO", status: "ACTIVE", note: "" };
 
 /** Đưa tuyến đã lưu vào phần thông tin của form. */
 export function toRouteInfoValues(route: Route): RouteInfoValues {
-  return { name: route.name, status: route.status, note: route.note ?? "" };
+  return { name: route.name, nameSource: route.nameSource, status: route.status, note: route.note ?? "" };
 }
 
 /** Đưa điểm dừng của tuyến đã lưu vào form, theo thứ tự hành trình. */
@@ -247,21 +253,28 @@ export function savedLegMinutes(route: Route | undefined): LegMinutes {
 export function toRouteInput(info: RouteInfoValues, stops: DraftStop[], minutes: LegMinutes = {}): RouteInput {
   const note = info.note.trim();
   return {
-    name: info.name.trim(),
+    // Tự đặt tên: máy chủ ghép tên lúc lưu, tên đang xem trước chỉ để hiển thị.
+    name: info.nameSource === "AUTO" ? "" : info.name.trim(),
+    nameSource: info.nameSource,
     status: info.status,
     note: note === "" ? null : note,
-    stops: stops.map((stop, index) => {
-      const stopNote = stop.note.trim();
-      return {
-        catalogStopPointId: stop.catalogStopPointId,
-        stopPointId: stop.stopPointId,
-        note: stopNote === "" ? null : stopNote,
-        allowPickup: stop.allowPickup,
-        allowDropoff: stop.allowDropoff,
-        durationMinutesFromPrevious: index === 0 ? null : parseLegMinutes(legMinutesOf(minutes, stops, index))
-      };
-    })
+    stops: toStopInputs(stops, minutes)
   };
+}
+
+/** Điểm dừng dạng body API (dùng chung cho lưu tuyến và xem trước tên tự động). */
+export function toStopInputs(stops: DraftStop[], minutes: LegMinutes = {}): RouteInput["stops"] {
+  return stops.map((stop, index) => {
+    const stopNote = stop.note.trim();
+    return {
+      catalogStopPointId: stop.catalogStopPointId,
+      stopPointId: stop.stopPointId,
+      note: stopNote === "" ? null : stopNote,
+      allowPickup: stop.allowPickup,
+      allowDropoff: stop.allowDropoff,
+      durationMinutesFromPrevious: index === 0 ? null : parseLegMinutes(legMinutesOf(minutes, stops, index))
+    };
+  });
 }
 
 /**

@@ -1,12 +1,13 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'route_input_dto_stops_inner.dart';
+part of 'route_name_preview_input_dto_stops_inner.dart';
 
 // **************************************************************************
 // BuiltValueGenerator
 // **************************************************************************
 
-class _$RouteInputDtoStopsInner extends RouteInputDtoStopsInner {
+class _$RouteNamePreviewInputDtoStopsInner
+    extends RouteNamePreviewInputDtoStopsInner {
   @override
   final String? catalogStopPointId;
   @override
@@ -20,11 +21,12 @@ class _$RouteInputDtoStopsInner extends RouteInputDtoStopsInner {
   @override
   final int? durationMinutesFromPrevious;
 
-  factory _$RouteInputDtoStopsInner(
-          [void Function(RouteInputDtoStopsInnerBuilder)? updates]) =>
-      (RouteInputDtoStopsInnerBuilder()..update(updates))._build();
+  factory _$RouteNamePreviewInputDtoStopsInner(
+          [void Function(RouteNamePreviewInputDtoStopsInnerBuilder)?
+              updates]) =>
+      (RouteNamePreviewInputDtoStopsInnerBuilder()..update(updates))._build();
 
-  _$RouteInputDtoStopsInner._(
+  _$RouteNamePreviewInputDtoStopsInner._(
       {this.catalogStopPointId,
       this.stopPointId,
       this.note,
@@ -33,18 +35,18 @@ class _$RouteInputDtoStopsInner extends RouteInputDtoStopsInner {
       this.durationMinutesFromPrevious})
       : super._();
   @override
-  RouteInputDtoStopsInner rebuild(
-          void Function(RouteInputDtoStopsInnerBuilder) updates) =>
+  RouteNamePreviewInputDtoStopsInner rebuild(
+          void Function(RouteNamePreviewInputDtoStopsInnerBuilder) updates) =>
       (toBuilder()..update(updates)).build();
 
   @override
-  RouteInputDtoStopsInnerBuilder toBuilder() =>
-      RouteInputDtoStopsInnerBuilder()..replace(this);
+  RouteNamePreviewInputDtoStopsInnerBuilder toBuilder() =>
+      RouteNamePreviewInputDtoStopsInnerBuilder()..replace(this);
 
   @override
   bool operator ==(Object other) {
     if (identical(other, this)) return true;
-    return other is RouteInputDtoStopsInner &&
+    return other is RouteNamePreviewInputDtoStopsInner &&
         catalogStopPointId == other.catalogStopPointId &&
         stopPointId == other.stopPointId &&
         note == other.note &&
@@ -68,7 +70,7 @@ class _$RouteInputDtoStopsInner extends RouteInputDtoStopsInner {
 
   @override
   String toString() {
-    return (newBuiltValueToStringHelper(r'RouteInputDtoStopsInner')
+    return (newBuiltValueToStringHelper(r'RouteNamePreviewInputDtoStopsInner')
           ..add('catalogStopPointId', catalogStopPointId)
           ..add('stopPointId', stopPointId)
           ..add('note', note)
@@ -79,10 +81,11 @@ class _$RouteInputDtoStopsInner extends RouteInputDtoStopsInner {
   }
 }
 
-class RouteInputDtoStopsInnerBuilder
+class RouteNamePreviewInputDtoStopsInnerBuilder
     implements
-        Builder<RouteInputDtoStopsInner, RouteInputDtoStopsInnerBuilder> {
-  _$RouteInputDtoStopsInner? _$v;
+        Builder<RouteNamePreviewInputDtoStopsInner,
+            RouteNamePreviewInputDtoStopsInnerBuilder> {
+  _$RouteNamePreviewInputDtoStopsInner? _$v;
 
   String? _catalogStopPointId;
   String? get catalogStopPointId => _$this._catalogStopPointId;
@@ -110,11 +113,11 @@ class RouteInputDtoStopsInnerBuilder
   set durationMinutesFromPrevious(int? durationMinutesFromPrevious) =>
       _$this._durationMinutesFromPrevious = durationMinutesFromPrevious;
 
-  RouteInputDtoStopsInnerBuilder() {
-    RouteInputDtoStopsInner._defaults(this);
+  RouteNamePreviewInputDtoStopsInnerBuilder() {
+    RouteNamePreviewInputDtoStopsInner._defaults(this);
   }
 
-  RouteInputDtoStopsInnerBuilder get _$this {
+  RouteNamePreviewInputDtoStopsInnerBuilder get _$this {
     final $v = _$v;
     if ($v != null) {
       _catalogStopPointId = $v.catalogStopPointId;
@@ -129,28 +132,29 @@ class RouteInputDtoStopsInnerBuilder
   }
 
   @override
-  void replace(RouteInputDtoStopsInner other) {
-    _$v = other as _$RouteInputDtoStopsInner;
+  void replace(RouteNamePreviewInputDtoStopsInner other) {
+    _$v = other as _$RouteNamePreviewInputDtoStopsInner;
   }
 
   @override
-  void update(void Function(RouteInputDtoStopsInnerBuilder)? updates) {
+  void update(
+      void Function(RouteNamePreviewInputDtoStopsInnerBuilder)? updates) {
     if (updates != null) updates(this);
   }
 
   @override
-  RouteInputDtoStopsInner build() => _build();
+  RouteNamePreviewInputDtoStopsInner build() => _build();
 
-  _$RouteInputDtoStopsInner _build() {
+  _$RouteNamePreviewInputDtoStopsInner _build() {
     final _$result = _$v ??
-        _$RouteInputDtoStopsInner._(
+        _$RouteNamePreviewInputDtoStopsInner._(
           catalogStopPointId: catalogStopPointId,
           stopPointId: stopPointId,
           note: note,
-          allowPickup: BuiltValueNullFieldError.checkNotNull(
-              allowPickup, r'RouteInputDtoStopsInner', 'allowPickup'),
-          allowDropoff: BuiltValueNullFieldError.checkNotNull(
-              allowDropoff, r'RouteInputDtoStopsInner', 'allowDropoff'),
+          allowPickup: BuiltValueNullFieldError.checkNotNull(allowPickup,
+              r'RouteNamePreviewInputDtoStopsInner', 'allowPickup'),
+          allowDropoff: BuiltValueNullFieldError.checkNotNull(allowDropoff,
+              r'RouteNamePreviewInputDtoStopsInner', 'allowDropoff'),
           durationMinutesFromPrevious: durationMinutesFromPrevious,
         );
     replace(_$result);

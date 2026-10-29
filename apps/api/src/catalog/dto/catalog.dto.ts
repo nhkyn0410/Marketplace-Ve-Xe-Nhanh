@@ -178,21 +178,27 @@ export class PlaceSuggestionQueryDto extends createZodDto(
   PlaceSuggestionQuerySchema,
 ) {}
 
-export const PLACE_KINDS = ["PROVINCE", "WARD", "STOP_POINT", "LEGACY"] as const;
+export const PLACE_KINDS = ["PROVINCE", "AREA", "WARD", "STOP_POINT", "LEGACY"] as const;
 
 export const PlaceSuggestionListResponseSchema = z.object({
   items: z.array(
     z.object({
-      /** Loại gợi ý; `LEGACY` = tên đơn vị hành chính trước sáp nhập 2025. */
+      /**
+       * Loại gợi ý; `AREA` = khu vực — tỉnh cũ hoặc quận / huyện / thị xã / thành phố cũ trước sáp nhập 2025, ứng với
+       * nhóm phường mới (vd "Đà Lạt", "Vũng Tàu", "Bình Thuận"); `LEGACY` = tên phường / xã cũ dẫn tới phường mới.
+       */
       kind: z.enum(PLACE_KINDS),
-      /** Tên hiển thị (tên cũ với `LEGACY`). */
+      /** Tên hiển thị (tên cũ với `LEGACY`, tên khu vực bỏ chữ "Thành phố" / "Thị xã" / "Tỉnh" với `AREA`). */
       label: z.string(),
-      /** Dòng phụ: tỉnh của phường, địa chỉ của địa danh, đơn vị mới của tên cũ. */
+      /** Dòng phụ: tỉnh của phường, địa chỉ của địa danh, đơn vị mới của tên cũ / khu vực. */
       detail: z.string().nullable(),
-      /** Gửi vào `GET /trips/search`: `province` → `fromProvinceId`, `ward` → `fromWardId`, `stopPoint` → `fromStopPointId`. */
+      /**
+       * Gửi vào `GET /trips/search`: `province` → `fromProvinceId`, `ward` → `fromWardId`, `area` → `fromAreaId`,
+       * `stopPoint` → `fromStopPointId`. Mã khu vực không phải uuid (vd `77-thanh-pho-vung-tau`).
+       */
       target: z.object({
-        type: z.enum(["province", "ward", "stopPoint"]),
-        id: z.uuid(),
+        type: z.enum(["province", "ward", "area", "stopPoint"]),
+        id: z.string(),
       }),
     }),
   ),

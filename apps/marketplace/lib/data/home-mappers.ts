@@ -64,6 +64,8 @@ export function mapFeaturedOperator(operator: FeaturedOperatorDto, index: number
   const routes = operator.routes.map((route) => ({
     originProvinceId: route.originProvinceId,
     destinationProvinceId: route.destinationProvinceId,
+    originName: route.originName,
+    destinationName: route.destinationName,
     label: `${route.originName} → ${route.destinationName}`
   }));
   return {
@@ -73,6 +75,7 @@ export function mapFeaturedOperator(operator: FeaturedOperatorDto, index: number
     logoUrl: operator.logoUrl,
     rating: operator.averageRating,
     ratingCountText: operator.reviewCount > 0 ? `${operator.reviewCount.toLocaleString("vi-VN")} đánh giá` : "Chưa có đánh giá",
+    reviewCount: operator.reviewCount,
     popularRoutesText: routes.map((route) => route.label).join(", "),
     accentColor: OPERATOR_COLORS[index % OPERATOR_COLORS.length],
     routes

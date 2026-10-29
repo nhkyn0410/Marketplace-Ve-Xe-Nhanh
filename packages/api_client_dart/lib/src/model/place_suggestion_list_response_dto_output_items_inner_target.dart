@@ -18,7 +18,7 @@ part 'place_suggestion_list_response_dto_output_items_inner_target.g.dart';
 abstract class PlaceSuggestionListResponseDtoOutputItemsInnerTarget implements Built<PlaceSuggestionListResponseDtoOutputItemsInnerTarget, PlaceSuggestionListResponseDtoOutputItemsInnerTargetBuilder> {
   @BuiltValueField(wireName: r'type')
   PlaceSuggestionListResponseDtoOutputItemsInnerTargetTypeEnum get type;
-  // enum typeEnum {  province,  ward,  stopPoint,  };
+  // enum typeEnum {  province,  ward,  area,  stopPoint,  };
 
   @BuiltValueField(wireName: r'id')
   String get id;
@@ -129,6 +129,8 @@ class PlaceSuggestionListResponseDtoOutputItemsInnerTargetTypeEnum extends EnumC
   static const PlaceSuggestionListResponseDtoOutputItemsInnerTargetTypeEnum province = _$placeSuggestionListResponseDtoOutputItemsInnerTargetTypeEnum_province;
   @BuiltValueEnumConst(wireName: r'ward')
   static const PlaceSuggestionListResponseDtoOutputItemsInnerTargetTypeEnum ward = _$placeSuggestionListResponseDtoOutputItemsInnerTargetTypeEnum_ward;
+  @BuiltValueEnumConst(wireName: r'area')
+  static const PlaceSuggestionListResponseDtoOutputItemsInnerTargetTypeEnum area = _$placeSuggestionListResponseDtoOutputItemsInnerTargetTypeEnum_area;
   @BuiltValueEnumConst(wireName: r'stopPoint')
   static const PlaceSuggestionListResponseDtoOutputItemsInnerTargetTypeEnum stopPoint = _$placeSuggestionListResponseDtoOutputItemsInnerTargetTypeEnum_stopPoint;
 

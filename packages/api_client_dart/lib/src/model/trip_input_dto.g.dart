@@ -19,6 +19,8 @@ class _$TripInputDto extends TripInputDto {
   final int onlineSaleCutoffMinutes;
   @override
   final String? note;
+  @override
+  final BuiltList<String>? subRouteIds;
 
   factory _$TripInputDto([void Function(TripInputDtoBuilder)? updates]) =>
       (TripInputDtoBuilder()..update(updates))._build();
@@ -29,7 +31,8 @@ class _$TripInputDto extends TripInputDto {
       required this.departureAt,
       this.stopTimes,
       required this.onlineSaleCutoffMinutes,
-      this.note})
+      this.note,
+      this.subRouteIds})
       : super._();
   @override
   TripInputDto rebuild(void Function(TripInputDtoBuilder) updates) =>
@@ -47,7 +50,8 @@ class _$TripInputDto extends TripInputDto {
         departureAt == other.departureAt &&
         stopTimes == other.stopTimes &&
         onlineSaleCutoffMinutes == other.onlineSaleCutoffMinutes &&
-        note == other.note;
+        note == other.note &&
+        subRouteIds == other.subRouteIds;
   }
 
   @override
@@ -59,6 +63,7 @@ class _$TripInputDto extends TripInputDto {
     _$hash = $jc(_$hash, stopTimes.hashCode);
     _$hash = $jc(_$hash, onlineSaleCutoffMinutes.hashCode);
     _$hash = $jc(_$hash, note.hashCode);
+    _$hash = $jc(_$hash, subRouteIds.hashCode);
     _$hash = $jf(_$hash);
     return _$hash;
   }
@@ -71,7 +76,8 @@ class _$TripInputDto extends TripInputDto {
           ..add('departureAt', departureAt)
           ..add('stopTimes', stopTimes)
           ..add('onlineSaleCutoffMinutes', onlineSaleCutoffMinutes)
-          ..add('note', note))
+          ..add('note', note)
+          ..add('subRouteIds', subRouteIds))
         .toString();
   }
 }
@@ -107,6 +113,12 @@ class TripInputDtoBuilder
   String? get note => _$this._note;
   set note(String? note) => _$this._note = note;
 
+  ListBuilder<String>? _subRouteIds;
+  ListBuilder<String> get subRouteIds =>
+      _$this._subRouteIds ??= ListBuilder<String>();
+  set subRouteIds(ListBuilder<String>? subRouteIds) =>
+      _$this._subRouteIds = subRouteIds;
+
   TripInputDtoBuilder() {
     TripInputDto._defaults(this);
   }
@@ -120,6 +132,7 @@ class TripInputDtoBuilder
       _stopTimes = $v.stopTimes?.toBuilder();
       _onlineSaleCutoffMinutes = $v.onlineSaleCutoffMinutes;
       _note = $v.note;
+      _subRouteIds = $v.subRouteIds?.toBuilder();
       _$v = null;
     }
     return this;
@@ -154,12 +167,16 @@ class TripInputDtoBuilder
                 r'TripInputDto',
                 'onlineSaleCutoffMinutes'),
             note: note,
+            subRouteIds: _subRouteIds?.build(),
           );
     } catch (_) {
       late String _$failedField;
       try {
         _$failedField = 'stopTimes';
         _stopTimes?.build();
+
+        _$failedField = 'subRouteIds';
+        _subRouteIds?.build();
       } catch (e) {
         throw BuiltValueNestedFieldError(
             r'TripInputDto', _$failedField, e.toString());

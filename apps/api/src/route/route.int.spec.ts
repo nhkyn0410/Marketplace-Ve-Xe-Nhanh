@@ -13,7 +13,8 @@ import type { Authorization } from "../iam/role/authorization";
 import { StopPointInputSchema, StopPointProposalInputSchema } from "../stop-point/dto/stop-point.dto";
 import { StopPointProposalService } from "../stop-point/stop-point-proposal.service";
 import { StopPointService } from "../stop-point/stop-point.service";
-import { RouteInputSchema } from "./dto/route.dto";
+import { loadRouteStops } from "../trip/trip.service";
+import { RouteInputSchema, SubRouteInputSchema } from "./dto/route.dto";
 import { RouteService } from "./route.service";
 
 /**
@@ -66,6 +67,10 @@ describe.skipIf(!url && !requireDb)("Route / StopPoint / Proposal — Postgres t
   const ward = randomUUID();
   const wardInactive = randomUUID();
   const wardOther = randomUUID();
+  // Phường có tên cũ (bảng ánh xạ hành chính) → nơi của điểm dừng khi tự đặt tên tuyến.
+  const wardHcm = randomUUID();
+  const wardGiaNghia = randomUUID();
+  const wardBmt = randomUUID();
   const catalog1 = randomUUID();
   const catalog2 = randomUUID();
   const catalogInactive = randomUUID();
@@ -144,6 +149,24 @@ describe.skipIf(!url && !requireDb)("Route / StopPoint / Proposal — Postgres t
           { id: ward, provinceId: province, code: `rw-${tag}`, name: "Phường route" },
           { id: wardInactive, provinceId: province, code: `ri-${tag}`, name: "Phường ngừng", status: "INACTIVE" },
           { id: wardOther, provinceId: provinceOther, code: `rx-${tag}`, name: "Phường tỉnh khác" },
+          { id: wardHcm, provinceId: province, code: `rh-${tag}`, name: "Phường cũ TP.HCM" },
+          { id: wardGiaNghia, provinceId: province, code: `rg-${tag}`, name: "Phường cũ Gia Nghĩa" },
+          { id: wardBmt, provinceId: province, code: `rb-${tag}`, name: "Phường cũ Buôn Ma Thuột" },
+        ],
+      });
+      const legacy = (wardId: string, legacyProvinceName: string, legacyDistrictName: string) => ({
+        legacyProvinceCode: `R-${tag}`,
+        legacyProvinceName,
+        legacyDistrictName,
+        legacyWardName: `Phường ${wardId.slice(0, 6)}`,
+        provinceId: province,
+        wardId,
+      });
+      await tx.legacyAdministrativeMapping.createMany({
+        data: [
+          legacy(wardHcm, "Thành phố Hồ Chí Minh", "Quận 1"),
+          legacy(wardGiaNghia, "Tỉnh Đắk Nông", "Thành phố Gia Nghĩa"),
+          legacy(wardBmt, "Tỉnh Đắk Lắk", "Thành phố Buôn Ma Thuột"),
         ],
       });
       const point = (id: string, name: string, extra: Record<string, unknown> = {}) => ({
@@ -183,10 +206,15 @@ describe.skipIf(!url && !requireDb)("Route / StopPoint / Proposal — Postgres t
     await prisma.withSystem(async (tx) => {
       const operatorId = { in: [tenantA, tenantB] };
       await tx.routeStop.deleteMany({ where: { operatorId } });
+      await tx.fareRule.deleteMany({ where: { operatorId } });
+      await tx.fare.deleteMany({ where: { operatorId } });
+      // Tuyến con trước (FK tới tuyến chính).
+      await tx.route.deleteMany({ where: { operatorId, parentRouteId: { not: null } } });
       await tx.route.deleteMany({ where: { operatorId } });
       await tx.stopPointProposal.deleteMany({ where: { operatorId } });
       await tx.stopPoint.deleteMany({ where: { operatorId } });
       await tx.stopPointCatalog.deleteMany({ where: { provinceId: { in: [province, provinceOther] } } });
+      await tx.legacyAdministrativeMapping.deleteMany({ where: { provinceId: { in: [province, provinceOther] } } });
       await tx.ward.deleteMany({ where: { provinceId: { in: [province, provinceOther] } } });
       await tx.province.deleteMany({ where: { id: { in: [province, provinceOther] } } });
       await tx.operatorProfile.deleteMany({ where: { id: operatorId } });
@@ -818,6 +846,171 @@ describe.skipIf(!url && !requireDb)("Route / StopPoint / Proposal — Postgres t
       expect((await routes.create(authzB, routeInput(`NAME ${tag}`, stops))).name).toBe(`NAME ${tag}`);
       expect((await rejectionOf(routes.get(authzB, created.id))).code).toBe("ROUTE_NOT_FOUND");
       expect((await rejectionOf(routes.update(authzB, created.id, routeInput(`X ${tag}`, stops)))).code).toBe("ROUTE_NOT_FOUND");
+    });
+
+    it("tự đặt tên (giai đoạn 3.1): nơi theo tên cũ của phường, \"qua\" điểm giữa có đón / trả; trùng thì kèm điểm đầu rồi đánh số", async () => {
+      const [hcm, giaNghia, bmt, rest] = await Promise.all([
+        stopPoints.create(authzA, stopPointInput({ name: `BX Miền Đông ${tag}`, wardId: wardHcm })),
+        stopPoints.create(authzA, stopPointInput({ name: `VP Gia Nghĩa ${tag}`, wardId: wardGiaNghia })),
+        stopPoints.create(authzA, stopPointInput({ name: `BX BMT ${tag}`, wardId: wardBmt })),
+        stopPoints.create(authzA, stopPointInput({ name: `Trạm nghỉ ${tag}`, type: "REST_STOP", wardId: wardGiaNghia })),
+      ]);
+      const auto = (stops: (object & StopFlags)[]) => routeInput("", stops, { nameSource: "AUTO" });
+      const via = [privateStop(hcm.id), privateStop(giaNghia.id), privateStop(bmt.id)];
+      // Trạm nghỉ không đón / trả thì không vào "qua".
+      const direct = [privateStop(hcm.id), privateStop(rest.id, { allowPickup: false, allowDropoff: false }), privateStop(bmt.id)];
+
+      const first = await routes.create(authzA, auto(via));
+      expect(first).toMatchObject({ name: "TP.HCM → Buôn Ma Thuột (qua Gia Nghĩa)", nameSource: "AUTO", suggestedName: null });
+      expect((await routes.create(authzA, auto(direct))).name).toBe("TP.HCM → Buôn Ma Thuột");
+      expect((await routes.create(authzA, auto(direct))).name).toBe(`TP.HCM → Buôn Ma Thuột · BX Miền Đông ${tag}`);
+      expect((await routes.create(authzA, auto(direct))).name).toBe("TP.HCM → Buôn Ma Thuột (2)");
+      // Sửa lại chính tuyến đó: không tự coi tên của mình là trùng.
+      expect((await routes.update(authzA, first.id, auto(via))).name).toBe("TP.HCM → Buôn Ma Thuột (qua Gia Nghĩa)");
+
+      // Xem trước khi đang sửa form: đúng tên sẽ lưu, không gọi provider.
+      routing.calls = 0;
+      expect(await routes.previewName(authzA, { stops: auto(direct).stops })).toEqual({ name: "TP.HCM → Buôn Ma Thuột (3)" });
+      expect(await routes.previewName(authzA, { stops: auto(via).stops, routeId: first.id })).toEqual({
+        name: "TP.HCM → Buôn Ma Thuột (qua Gia Nghĩa)",
+      });
+      expect(routing.calls).toBe(0);
+
+      // Đặt tên tay: giữ tên gõ, kèm tên gợi ý (đã tránh trùng); chuyển sang tự đặt thì tên theo điểm, đổi điểm thì đổi theo.
+      const manual = await routes.create(authzA, routeInput(`Tay ${tag}`, via));
+      expect(manual).toMatchObject({
+        name: `Tay ${tag}`,
+        nameSource: "MANUAL",
+        suggestedName: `TP.HCM → Buôn Ma Thuột (qua Gia Nghĩa) · BX Miền Đông ${tag}`,
+      });
+      expect(await routes.update(authzA, manual.id, auto(via))).toMatchObject({
+        name: `TP.HCM → Buôn Ma Thuột (qua Gia Nghĩa) · BX Miền Đông ${tag}`,
+        nameSource: "AUTO",
+        suggestedName: null,
+      });
+      expect((await routes.update(authzA, manual.id, auto([privateStop(bmt.id), privateStop(hcm.id)]))).name).toBe("Buôn Ma Thuột → TP.HCM");
+      // Hai đầu cùng một nơi (tuyến nội vùng): dùng tên hai điểm.
+      expect((await routes.create(authzA, auto([catalogStop(catalog1), catalogStop(catalog2)]))).name).toBe(`Bến 1 ${tag} → Bến 2 ${tag}`);
+    });
+
+    it("tuyến con (3.2): gợi ý theo nhóm nơi + giá theo tỉ lệ; tạo nháp chép đoạn; trùng / sai đoạn bị chặn; bật cần bảng giá", async () => {
+      const [hcm, giaNghia, bmt] = await Promise.all([
+        stopPoints.create(authzB, stopPointInput({ name: `Con HCM ${tag}`, wardId: wardHcm })),
+        stopPoints.create(authzB, stopPointInput({ name: `Con GN ${tag}`, wardId: wardGiaNghia })),
+        stopPoints.create(authzB, stopPointInput({ name: `Con BMT ${tag}`, wardId: wardBmt })),
+      ]);
+      // Chặng giả: 1.000 m rồi 2.000 m → tuyến chính 3.000 m.
+      const parent = await routes.create(authzB, routeInput("", [privateStop(hcm.id), privateStop(giaNghia.id), privateStop(bmt.id)], { nameSource: "AUTO" }));
+      const fareOf = async (routeId: string, price: bigint) =>
+        prisma.withSystem(async (tx) => {
+          const fare = await tx.fare.create({ data: { operatorId: tenantB, routeId, status: "ACTIVE" }, select: { id: true } });
+          await tx.fareRule.create({ data: { operatorId: tenantB, fareId: fare.id, price } });
+        });
+      await fareOf(parent.id, 300_000n);
+
+      const suggestions = await routes.subRouteSuggestions(authzB, parent.id);
+      expect(suggestions.items.map((item) => [item.name, item.totalDistanceMeters, item.suggestedRules?.map((rule) => rule.price)])).toEqual([
+        ["TP.HCM → Gia Nghĩa", 1000, [100_000]],
+        ["Gia Nghĩa → Buôn Ma Thuột", 2000, [200_000]],
+      ]);
+
+      const point = (id: string) => ({ catalogStopPointId: null, stopPointId: id });
+      const subInput = (from: string, to: string, overrides: Record<string, unknown> = {}) =>
+        SubRouteInputSchema.parse({ from: point(from), to: point(to), name: "", nameSource: "AUTO", status: "DRAFT", note: null, ...overrides });
+      const sub = await routes.createSubRoute(authzB, parent.id, subInput(hcm.id, giaNghia.id));
+      expect(sub).toMatchObject({ name: "TP.HCM → Gia Nghĩa", status: "DRAFT", parentRouteId: parent.id, parentRouteName: parent.name, needsReview: false });
+      expect(sub).toMatchObject({ totalDistanceMeters: 1000, totalDurationSeconds: 60 });
+      expect(sub.stops.map((stop) => [stop.role, stop.stopPointId, stop.allowPickup, stop.allowDropoff])).toEqual([
+        ["ORIGIN", hcm.id, true, false],
+        ["DESTINATION", giaNghia.id, false, true],
+      ]);
+      expect((await routes.get(authzB, parent.id)).subRoutes).toEqual([
+        expect.objectContaining({
+          id: sub.id,
+          from: expect.objectContaining({ name: hcm.name }),
+          to: expect.objectContaining({ name: giaNghia.name }),
+          fare: null,
+          needsReview: false,
+        }),
+      ]);
+      expect((await routes.subRouteSuggestions(authzB, parent.id)).items.map((item) => item.name)).toEqual(["Gia Nghĩa → Buôn Ma Thuột"]);
+
+      expect((await rejectionOf(routes.createSubRoute(authzB, parent.id, subInput(hcm.id, giaNghia.id)))).code).toBe("SUB_ROUTE_CONFLICT");
+      expect((await rejectionOf(routes.createSubRoute(authzB, parent.id, subInput(bmt.id, hcm.id)))).code).toBe("SUB_ROUTE_BOUNDS_INVALID");
+      expect((await rejectionOf(routes.createSubRoute(authzB, parent.id, subInput(hcm.id, bmt.id)))).code).toBe("SUB_ROUTE_BOUNDS_INVALID");
+      // Tuyến con không sửa điểm trực tiếp, không làm tuyến chính cho tuyến con khác, không có chuyến riêng.
+      expect((await rejectionOf(routes.update(authzB, sub.id, routeInput(`X ${tag}`, [privateStop(hcm.id), privateStop(bmt.id)])))).code).toBe(
+        "ROUTE_IS_SUB_ROUTE",
+      );
+      expect((await rejectionOf(routes.createSubRoute(authzB, sub.id, subInput(hcm.id, giaNghia.id)))).code).toBe("ROUTE_IS_SUB_ROUTE");
+      expect((await rejectionOf(prisma.withScope(tenantScope(tenantB), (tx) => loadRouteStops(tx, tenantB, sub.id, false)))).code).toBe(
+        "ROUTE_UNAVAILABLE",
+      );
+
+      // Bật: chưa có bảng giá → 422; có giá → được.
+      expect((await rejectionOf(routes.updateSubRoute(authzB, parent.id, sub.id, subInput(hcm.id, giaNghia.id, { status: "ACTIVE" })))).code).toBe(
+        "SUB_ROUTE_NOT_READY",
+      );
+      await fareOf(sub.id, 100_000n);
+      expect((await routes.updateSubRoute(authzB, parent.id, sub.id, subInput(hcm.id, giaNghia.id, { status: "ACTIVE" }))).status).toBe("ACTIVE");
+      expect((await routes.get(authzB, parent.id)).subRoutes[0]!.fare).toMatchObject({ status: "ACTIVE", minPrice: 100_000, maxPrice: 100_000 });
+
+      // Danh sách: mặc định chỉ tuyến chính, tuyến con lồng bên dưới; `includeSubRoutes` thì tuyến con cũng là một dòng.
+      const listed = (await routes.list(authzB, { limit: 100 })).items;
+      expect(listed.some((item) => item.id === sub.id)).toBe(false);
+      expect(listed.find((item) => item.id === parent.id)!.subRoutes.map((child) => [child.id, child.stopCount, child.originName])).toEqual([
+        [sub.id, 2, hcm.name],
+      ]);
+      expect((await routes.list(authzB, { limit: 100, includeSubRoutes: true })).items.some((item) => item.id === sub.id)).toBe(true);
+
+      // Tenant khác không thấy / không tạo được tuyến con trên tuyến của B.
+      expect((await rejectionOf(routes.createSubRoute(authzA, parent.id, subInput(hcm.id, giaNghia.id)))).code).toBe("ROUTE_NOT_FOUND");
+      expect((await rejectionOf(routes.subRouteSuggestions(authzA, parent.id))).code).toBe("ROUTE_NOT_FOUND");
+    });
+
+    it("tuyến con (3.2): sửa tuyến chính → chép lại đoạn; mất điểm cuối → tự về Nháp, cần xem lại; FK ghép chặn khác nhà xe", async () => {
+      const [hcm, mid, giaNghia, bmt] = await Promise.all([
+        stopPoints.create(authzB, stopPointInput({ name: `Đồng bộ HCM ${tag}`, wardId: wardHcm })),
+        stopPoints.create(authzB, stopPointInput({ name: `Đồng bộ giữa ${tag}`, wardId: wardHcm })),
+        stopPoints.create(authzB, stopPointInput({ name: `Đồng bộ GN ${tag}`, wardId: wardGiaNghia })),
+        stopPoints.create(authzB, stopPointInput({ name: `Đồng bộ BMT ${tag}`, wardId: wardBmt })),
+      ]);
+      const three = [privateStop(hcm.id), privateStop(giaNghia.id), privateStop(bmt.id)];
+      const parent = await routes.create(authzB, routeInput(`Đồng bộ ${tag}`, three));
+      const sub = await routes.createSubRoute(
+        authzB,
+        parent.id,
+        SubRouteInputSchema.parse({
+          from: { catalogStopPointId: null, stopPointId: hcm.id },
+          to: { catalogStopPointId: null, stopPointId: giaNghia.id },
+          name: `Con đồng bộ ${tag}`,
+          nameSource: "MANUAL",
+          status: "INACTIVE",
+          note: null,
+        }),
+      );
+
+      // Chèn điểm giữa: tuyến con chép lại đoạn, số liệu theo chặng mới (1.000 + 2.000 m), giữ tên tay và trạng thái.
+      await routes.update(authzB, parent.id, routeInput(`Đồng bộ ${tag}`, [privateStop(hcm.id), privateStop(mid.id), privateStop(giaNghia.id), privateStop(bmt.id)]));
+      const resynced = await routes.get(authzB, sub.id);
+      expect(resynced.stops.map((stop) => stop.stopPointId)).toEqual([hcm.id, mid.id, giaNghia.id]);
+      expect(resynced).toMatchObject({ name: `Con đồng bộ ${tag}`, status: "INACTIVE", totalDistanceMeters: 3000, needsReview: false });
+
+      // Bỏ điểm cuối của tuyến con: tự về Nháp, giữ bản chép cũ, báo cần xem lại.
+      await routes.update(authzB, parent.id, routeInput(`Đồng bộ ${tag}`, [privateStop(hcm.id), privateStop(mid.id), privateStop(bmt.id)]));
+      const broken = await routes.get(authzB, sub.id);
+      expect(broken).toMatchObject({ status: "DRAFT", needsReview: true });
+      expect(broken.stops).toHaveLength(3);
+      expect((await routes.get(authzB, parent.id)).subRoutes[0]).toMatchObject({ id: sub.id, status: "DRAFT", needsReview: true });
+
+      // FK ghép (parent_route_id, operator_id): tuyến con không trỏ được tới tuyến của nhà xe khác, kể cả scope system.
+      await expect(
+        prisma.withSystem((tx) =>
+          tx.route.create({
+            data: { operatorId: tenantA, parentRouteId: parent.id, name: `Lạ ${tag}`, totalDistanceMeters: 0, totalDurationSeconds: 0, metricsSource: "GOONG" },
+          }),
+        ),
+      ).rejects.toThrow();
     });
 
     it("hai PUT đồng thời: bản sau thắng trọn vẹn, không trộn điểm dừng", async () => {

@@ -2,6 +2,7 @@ import { Metadata } from "next";
 import { getPreview, SearchParamsInput } from "../../../lib/preview";
 import { tripDetailFixture } from "../../../lib/preview/fixtures/trips";
 import { getTripDetails } from "../../../lib/data/trips";
+import { readTripLeg } from "../../../lib/data/trip-mappers";
 import { FeatureUnavailable } from "../../../components/states/feature-unavailable";
 import { PassengerTopBar } from "../../../components/passenger-topbar";
 import { TripDetailHeader } from "../../../components/trips/detail/trip-detail-header";
@@ -89,7 +90,7 @@ export default async function TripDetailPage(props: PageProps) {
   }
 
   // Nhánh dữ liệu thật (Gọi API qua lib/data/trips.ts)
-  const result = await getTripDetails(params.tripId);
+  const result = await getTripDetails(params.tripId, readTripLeg(searchParams));
 
   if (result.status !== "ok") {
     return (
@@ -133,7 +134,7 @@ export default async function TripDetailPage(props: PageProps) {
             <TripReviews trip={trip} />
           </div>
           <div className="lg:col-span-4">
-            <TripBookingSidebar trip={trip} />
+            <TripBookingSidebar trip={trip} leg={readTripLeg(searchParams)} />
           </div>
         </div>
       </div>

@@ -7,9 +7,9 @@ import 'package:built_collection/built_collection.dart';
 import 'package:built_value/built_value.dart';
 import 'package:built_value/serializer.dart';
 
-part 'fare_response_dto_output_rules_inner.g.dart';
+part 'sub_route_suggestion_list_dto_output_items_inner_suggested_rules_inner.g.dart';
 
-/// FareResponseDtoOutputRulesInner
+/// SubRouteSuggestionListDtoOutputItemsInnerSuggestedRulesInner
 ///
 /// Properties:
 /// * [vehicleTypeId] 
@@ -18,12 +18,12 @@ part 'fare_response_dto_output_rules_inner.g.dart';
 /// * [validTo] 
 /// * [price] 
 @BuiltValue()
-abstract class FareResponseDtoOutputRulesInner implements Built<FareResponseDtoOutputRulesInner, FareResponseDtoOutputRulesInnerBuilder> {
+abstract class SubRouteSuggestionListDtoOutputItemsInnerSuggestedRulesInner implements Built<SubRouteSuggestionListDtoOutputItemsInnerSuggestedRulesInner, SubRouteSuggestionListDtoOutputItemsInnerSuggestedRulesInnerBuilder> {
   @BuiltValueField(wireName: r'vehicleTypeId')
   String? get vehicleTypeId;
 
   @BuiltValueField(wireName: r'seatType')
-  FareResponseDtoOutputRulesInnerSeatTypeEnum? get seatType;
+  SubRouteSuggestionListDtoOutputItemsInnerSuggestedRulesInnerSeatTypeEnum? get seatType;
   // enum seatTypeEnum {  SEAT,  BED,  BED_DOUBLE,  CABIN,  CABIN_DOUBLE,  };
 
   @BuiltValueField(wireName: r'validFrom')
@@ -35,27 +35,27 @@ abstract class FareResponseDtoOutputRulesInner implements Built<FareResponseDtoO
   @BuiltValueField(wireName: r'price')
   int get price;
 
-  FareResponseDtoOutputRulesInner._();
+  SubRouteSuggestionListDtoOutputItemsInnerSuggestedRulesInner._();
 
-  factory FareResponseDtoOutputRulesInner([void updates(FareResponseDtoOutputRulesInnerBuilder b)]) = _$FareResponseDtoOutputRulesInner;
+  factory SubRouteSuggestionListDtoOutputItemsInnerSuggestedRulesInner([void updates(SubRouteSuggestionListDtoOutputItemsInnerSuggestedRulesInnerBuilder b)]) = _$SubRouteSuggestionListDtoOutputItemsInnerSuggestedRulesInner;
 
   @BuiltValueHook(initializeBuilder: true)
-  static void _defaults(FareResponseDtoOutputRulesInnerBuilder b) => b;
+  static void _defaults(SubRouteSuggestionListDtoOutputItemsInnerSuggestedRulesInnerBuilder b) => b;
 
   @BuiltValueSerializer(custom: true)
-  static Serializer<FareResponseDtoOutputRulesInner> get serializer => _$FareResponseDtoOutputRulesInnerSerializer();
+  static Serializer<SubRouteSuggestionListDtoOutputItemsInnerSuggestedRulesInner> get serializer => _$SubRouteSuggestionListDtoOutputItemsInnerSuggestedRulesInnerSerializer();
 }
 
-class _$FareResponseDtoOutputRulesInnerSerializer implements PrimitiveSerializer<FareResponseDtoOutputRulesInner> {
+class _$SubRouteSuggestionListDtoOutputItemsInnerSuggestedRulesInnerSerializer implements PrimitiveSerializer<SubRouteSuggestionListDtoOutputItemsInnerSuggestedRulesInner> {
   @override
-  final Iterable<Type> types = const [FareResponseDtoOutputRulesInner, _$FareResponseDtoOutputRulesInner];
+  final Iterable<Type> types = const [SubRouteSuggestionListDtoOutputItemsInnerSuggestedRulesInner, _$SubRouteSuggestionListDtoOutputItemsInnerSuggestedRulesInner];
 
   @override
-  final String wireName = r'FareResponseDtoOutputRulesInner';
+  final String wireName = r'SubRouteSuggestionListDtoOutputItemsInnerSuggestedRulesInner';
 
   Iterable<Object?> _serializeProperties(
     Serializers serializers,
-    FareResponseDtoOutputRulesInner object, {
+    SubRouteSuggestionListDtoOutputItemsInnerSuggestedRulesInner object, {
     FullType specifiedType = FullType.unspecified,
   }) sync* {
     yield r'vehicleTypeId';
@@ -66,7 +66,7 @@ class _$FareResponseDtoOutputRulesInnerSerializer implements PrimitiveSerializer
     yield r'seatType';
     yield object.seatType == null ? null : serializers.serialize(
       object.seatType,
-      specifiedType: const FullType.nullable(FareResponseDtoOutputRulesInnerSeatTypeEnum),
+      specifiedType: const FullType.nullable(SubRouteSuggestionListDtoOutputItemsInnerSuggestedRulesInnerSeatTypeEnum),
     );
     yield r'validFrom';
     yield object.validFrom == null ? null : serializers.serialize(
@@ -88,7 +88,7 @@ class _$FareResponseDtoOutputRulesInnerSerializer implements PrimitiveSerializer
   @override
   Object serialize(
     Serializers serializers,
-    FareResponseDtoOutputRulesInner object, {
+    SubRouteSuggestionListDtoOutputItemsInnerSuggestedRulesInner object, {
     FullType specifiedType = FullType.unspecified,
   }) {
     return _serializeProperties(serializers, object, specifiedType: specifiedType).toList();
@@ -99,7 +99,7 @@ class _$FareResponseDtoOutputRulesInnerSerializer implements PrimitiveSerializer
     Object serialized, {
     FullType specifiedType = FullType.unspecified,
     required List<Object?> serializedList,
-    required FareResponseDtoOutputRulesInnerBuilder result,
+    required SubRouteSuggestionListDtoOutputItemsInnerSuggestedRulesInnerBuilder result,
     required List<Object?> unhandled,
   }) {
     for (var i = 0; i < serializedList.length; i += 2) {
@@ -117,8 +117,8 @@ class _$FareResponseDtoOutputRulesInnerSerializer implements PrimitiveSerializer
         case r'seatType':
           final valueDes = serializers.deserialize(
             value,
-            specifiedType: const FullType.nullable(FareResponseDtoOutputRulesInnerSeatTypeEnum),
-          ) as FareResponseDtoOutputRulesInnerSeatTypeEnum?;
+            specifiedType: const FullType.nullable(SubRouteSuggestionListDtoOutputItemsInnerSuggestedRulesInnerSeatTypeEnum),
+          ) as SubRouteSuggestionListDtoOutputItemsInnerSuggestedRulesInnerSeatTypeEnum?;
           if (valueDes == null) continue;
           result.seatType = valueDes;
           break;
@@ -154,12 +154,12 @@ class _$FareResponseDtoOutputRulesInnerSerializer implements PrimitiveSerializer
   }
 
   @override
-  FareResponseDtoOutputRulesInner deserialize(
+  SubRouteSuggestionListDtoOutputItemsInnerSuggestedRulesInner deserialize(
     Serializers serializers,
     Object serialized, {
     FullType specifiedType = FullType.unspecified,
   }) {
-    final result = FareResponseDtoOutputRulesInnerBuilder();
+    final result = SubRouteSuggestionListDtoOutputItemsInnerSuggestedRulesInnerBuilder();
     final serializedList = (serialized as Iterable<Object?>).toList();
     final unhandled = <Object?>[];
     _deserializeProperties(
@@ -175,24 +175,24 @@ class _$FareResponseDtoOutputRulesInnerSerializer implements PrimitiveSerializer
 }
 
 
-class FareResponseDtoOutputRulesInnerSeatTypeEnum extends EnumClass {
+class SubRouteSuggestionListDtoOutputItemsInnerSuggestedRulesInnerSeatTypeEnum extends EnumClass {
 
   @BuiltValueEnumConst(wireName: r'SEAT')
-  static const FareResponseDtoOutputRulesInnerSeatTypeEnum SEAT = _$fareResponseDtoOutputRulesInnerSeatTypeEnum_SEAT;
+  static const SubRouteSuggestionListDtoOutputItemsInnerSuggestedRulesInnerSeatTypeEnum SEAT = _$subRouteSuggestionListDtoOutputItemsInnerSuggestedRulesInnerSeatTypeEnum_SEAT;
   @BuiltValueEnumConst(wireName: r'BED')
-  static const FareResponseDtoOutputRulesInnerSeatTypeEnum BED = _$fareResponseDtoOutputRulesInnerSeatTypeEnum_BED;
+  static const SubRouteSuggestionListDtoOutputItemsInnerSuggestedRulesInnerSeatTypeEnum BED = _$subRouteSuggestionListDtoOutputItemsInnerSuggestedRulesInnerSeatTypeEnum_BED;
   @BuiltValueEnumConst(wireName: r'BED_DOUBLE')
-  static const FareResponseDtoOutputRulesInnerSeatTypeEnum BED_DOUBLE = _$fareResponseDtoOutputRulesInnerSeatTypeEnum_BED_DOUBLE;
+  static const SubRouteSuggestionListDtoOutputItemsInnerSuggestedRulesInnerSeatTypeEnum BED_DOUBLE = _$subRouteSuggestionListDtoOutputItemsInnerSuggestedRulesInnerSeatTypeEnum_BED_DOUBLE;
   @BuiltValueEnumConst(wireName: r'CABIN')
-  static const FareResponseDtoOutputRulesInnerSeatTypeEnum CABIN = _$fareResponseDtoOutputRulesInnerSeatTypeEnum_CABIN;
+  static const SubRouteSuggestionListDtoOutputItemsInnerSuggestedRulesInnerSeatTypeEnum CABIN = _$subRouteSuggestionListDtoOutputItemsInnerSuggestedRulesInnerSeatTypeEnum_CABIN;
   @BuiltValueEnumConst(wireName: r'CABIN_DOUBLE')
-  static const FareResponseDtoOutputRulesInnerSeatTypeEnum CABIN_DOUBLE = _$fareResponseDtoOutputRulesInnerSeatTypeEnum_CABIN_DOUBLE;
+  static const SubRouteSuggestionListDtoOutputItemsInnerSuggestedRulesInnerSeatTypeEnum CABIN_DOUBLE = _$subRouteSuggestionListDtoOutputItemsInnerSuggestedRulesInnerSeatTypeEnum_CABIN_DOUBLE;
 
-  static Serializer<FareResponseDtoOutputRulesInnerSeatTypeEnum> get serializer => _$fareResponseDtoOutputRulesInnerSeatTypeEnumSerializer;
+  static Serializer<SubRouteSuggestionListDtoOutputItemsInnerSuggestedRulesInnerSeatTypeEnum> get serializer => _$subRouteSuggestionListDtoOutputItemsInnerSuggestedRulesInnerSeatTypeEnumSerializer;
 
-  const FareResponseDtoOutputRulesInnerSeatTypeEnum._(String name): super(name);
+  const SubRouteSuggestionListDtoOutputItemsInnerSuggestedRulesInnerSeatTypeEnum._(String name): super(name);
 
-  static BuiltSet<FareResponseDtoOutputRulesInnerSeatTypeEnum> get values => _$fareResponseDtoOutputRulesInnerSeatTypeEnumValues;
-  static FareResponseDtoOutputRulesInnerSeatTypeEnum valueOf(String name) => _$fareResponseDtoOutputRulesInnerSeatTypeEnumValueOf(name);
+  static BuiltSet<SubRouteSuggestionListDtoOutputItemsInnerSuggestedRulesInnerSeatTypeEnum> get values => _$subRouteSuggestionListDtoOutputItemsInnerSuggestedRulesInnerSeatTypeEnumValues;
+  static SubRouteSuggestionListDtoOutputItemsInnerSuggestedRulesInnerSeatTypeEnum valueOf(String name) => _$subRouteSuggestionListDtoOutputItemsInnerSuggestedRulesInnerSeatTypeEnumValueOf(name);
 }
 

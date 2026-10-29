@@ -32,6 +32,11 @@ export const TripScheduleInputSchema = z
     endDate: DateOnlySchema,
     onlineSaleCutoffMinutes: z.int().min(0).max(MAX_ONLINE_SALE_CUTOFF_MINUTES),
     note: optionalText(500),
+    /**
+     * Chặng mở bán (3.3): tuyến con ĐANG BẬT của đúng tuyến này mà chuyến sinh từ lịch bán thêm theo giá riêng. Thiếu = không bán theo chặng
+     * (client cũ vẫn chạy).
+     */
+    subRouteIds: z.array(z.uuid()).max(50).default([]),
   })
   .superRefine((input, ctx) => {
     if (new Set(input.daysOfWeek).size !== input.daysOfWeek.length) {
@@ -56,6 +61,8 @@ export type TripScheduleInput = z.infer<typeof TripScheduleInputSchema>;
 export class TripScheduleInputDto extends createZodDto(TripScheduleInputSchema) {}
 
 export const TripScheduleResponseSchema = z.object({
+  /** Tuyến con chép sang từng chuyến lịch sinh ra (3.3). */
+  subRouteIds: z.array(z.uuid()),
   id: z.uuid(),
   routeId: z.uuid(),
   routeName: z.string(),

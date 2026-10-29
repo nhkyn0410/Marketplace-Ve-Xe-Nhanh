@@ -42,3 +42,35 @@ export function routingProviderUnavailable(): HttpException {
     "Chưa tính được khoảng cách/thời gian tuyến. Vui lòng thử lại sau.",
   );
 }
+
+/** Tuyến con lấy điểm dừng từ tuyến chính: không sửa điểm trực tiếp, không tạo tuyến con từ tuyến con (3.2). */
+export function routeIsSubRoute(): HttpException {
+  return problem(
+    HttpStatus.CONFLICT,
+    "ROUTE_IS_SUB_ROUTE",
+    "Đây là tuyến con: điểm dừng lấy theo tuyến chính, sửa tại mục Tuyến con của tuyến chính.",
+  );
+}
+
+/** Hai đầu tuyến con phải nằm trên tuyến chính đúng chiều: đầu cho đón, cuối cho trả, không trùng cả tuyến chính. */
+export function subRouteBoundsInvalid(): HttpException {
+  return problem(
+    HttpStatus.UNPROCESSABLE_ENTITY,
+    "SUB_ROUTE_BOUNDS_INVALID",
+    "Điểm đầu và điểm cuối của tuyến con phải nằm trên tuyến chính theo đúng chiều: điểm đầu cho đón, điểm cuối cho trả, và không trùng cả tuyến chính.",
+  );
+}
+
+/** Tuyến chính đã có tuyến con cùng điểm đầu và điểm cuối. */
+export function subRouteConflict(): HttpException {
+  return problem(HttpStatus.CONFLICT, "SUB_ROUTE_CONFLICT", "Tuyến chính đã có tuyến con cùng điểm đầu và điểm cuối.");
+}
+
+/** Bật tuyến con cần bảng giá đang áp dụng (có ít nhất một giá) và hai đầu còn trên tuyến chính. */
+export function subRouteNotReady(): HttpException {
+  return problem(
+    HttpStatus.UNPROCESSABLE_ENTITY,
+    "SUB_ROUTE_NOT_READY",
+    "Tuyến con cần có bảng giá đang áp dụng và hai đầu còn trên tuyến chính trước khi bật.",
+  );
+}

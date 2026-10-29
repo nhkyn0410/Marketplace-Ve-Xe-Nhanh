@@ -118,7 +118,7 @@ export class AdminOperatorService {
       const ids = kept.map((row) => row.id);
       const now = new Date();
       const [routes, trips, total] = await Promise.all([
-        tx.route.groupBy({ by: ["operatorId"], where: { operatorId: { in: ids }, status: "ACTIVE" }, _count: { _all: true } }),
+        tx.route.groupBy({ by: ["operatorId"], where: { operatorId: { in: ids }, status: "ACTIVE", parentRouteId: null }, _count: { _all: true } }),
         tx.trip.groupBy({
           by: ["operatorId"],
           where: { operatorId: { in: ids }, status: { in: OPEN_TRIP_STATUSES }, departureAt: { gt: now } },
@@ -154,7 +154,7 @@ export class AdminOperatorService {
         throw operatorNotFound();
       }
       const [routeCount, openTripCount, vehicleCount, employeeCount, bank, performance, refunded, reviews] = await Promise.all([
-        tx.route.count({ where: { operatorId: id, status: "ACTIVE" } }),
+        tx.route.count({ where: { operatorId: id, status: "ACTIVE", parentRouteId: null } }),
         tx.trip.count({ where: { operatorId: id, status: { in: OPEN_TRIP_STATUSES }, departureAt: { gt: now } } }),
         tx.vehicle.count({ where: { operatorId: id } }),
         tx.employeeAccount.count({ where: { operatorId: id } }),

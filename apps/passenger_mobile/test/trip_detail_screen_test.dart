@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:passenger_mobile/features/ticket/ticket_screen.dart';
+import 'package:passenger_mobile/features/ticket/trip_detail_models.dart';
 import 'package:passenger_mobile/features/ticket/trip_detail_screen.dart';
 
 import 'support/fake_booking_api.dart';
@@ -162,4 +163,46 @@ void main() {
     expect(find.byKey(const Key('trip-detail-screen')), findsNothing);
     _expectNoFlutterException(tester);
   });
+
+  testWidgets(
+    'chặng (3.3): tải chi tiết theo chặng của lần tìm; nhãn thành phố theo chặng, không theo chữ trên ô tìm',
+    (tester) async {
+      final base = sampleTripDetail();
+      final api = FakeBookingApi(
+        trip: TripDetail(
+          tripId: base.tripId,
+          operatorName: base.operatorName,
+          averageRating: base.averageRating,
+          reviewCount: base.reviewCount,
+          routeName: base.routeName,
+          segmentTitle: 'Dầu Giây → Bảo Lộc',
+          departureAt: base.departureAt,
+          arrivalAt: base.arrivalAt,
+          vehicleTypeName: base.vehicleTypeName,
+          amenityNames: base.amenityNames,
+          imageUrls: base.imageUrls,
+          stops: base.stops,
+          seats: base.seats,
+          cancellationTiers: base.cancellationTiers,
+        ),
+      );
+      await _pumpApp(
+        tester,
+        home: TripDetailScreen(
+          api: api,
+          tripId: 'trip-1',
+          fromLabel: 'TP. Hồ Chí Minh',
+          toLabel: 'Lâm Đồng',
+          pickupSequence: 2,
+          dropoffSequence: 4,
+        ),
+      );
+
+      expect(api.loadedLegs.first, (pickup: 2, dropoff: 4));
+      expect(find.text('Dầu Giây'), findsWidgets);
+      expect(find.text('Bảo Lộc'), findsWidgets);
+      expect(find.text('TP. Hồ Chí Minh'), findsNothing);
+      _expectNoFlutterException(tester);
+    },
+  );
 }

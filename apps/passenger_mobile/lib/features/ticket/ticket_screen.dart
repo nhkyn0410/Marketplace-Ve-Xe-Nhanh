@@ -325,6 +325,7 @@ class _TicketScreenState extends State<TicketScreen>
       ];
     }
     return [
+      ..._widenedSlivers(_page),
       SliverPadding(
         padding: const EdgeInsets.symmetric(horizontal: 15),
         sliver: SliverList.separated(
@@ -1396,6 +1397,50 @@ Widget _messageSliver(Widget child, {double bottom = 142}) {
   );
 }
 
+/// Nhắc khi API đã nới phía phường / xã hoặc khu vực ra cả tỉnh vì không có
+/// chuyến tại nơi đã chọn (như web).
+class _WidenedNotice extends StatelessWidget {
+  const _WidenedNotice({required this.from, required this.to});
+
+  final bool from;
+  final bool to;
+
+  @override
+  Widget build(BuildContext context) {
+    final sides = [if (from) 'đón', if (to) 'trả'].join(' / ');
+    return Container(
+      key: const Key('results-widened-notice'),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFFF4DA),
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Text(
+        'Không có chuyến $sides khách tại nơi đã chọn — đang hiện các chuyến '
+        'trong cùng tỉnh / thành. Xem điểm $sides của từng chuyến trước khi đặt.',
+        style: const TextStyle(
+          color: Color(0xFF8A5A00),
+          fontSize: 12,
+          height: 1.4,
+        ),
+      ),
+    );
+  }
+}
+
+/// Dòng nhắc nới tỉnh (nếu có) đặt trên danh sách chuyến.
+List<Widget> _widenedSlivers(TripSearchPage? page) {
+  if (page == null || !(page.widenedFrom || page.widenedTo)) return const [];
+  return [
+    SliverPadding(
+      padding: const EdgeInsets.fromLTRB(15, 0, 15, 12),
+      sliver: SliverToBoxAdapter(
+        child: _WidenedNotice(from: page.widenedFrom, to: page.widenedTo),
+      ),
+    ),
+  ];
+}
+
 String _describeSearchError(Object error) {
   if (error is ApiFailure) {
     if (error.isNetworkError) {
@@ -2426,6 +2471,10 @@ class _TripFilterSheetState extends State<_TripFilterSheet> {
   late final Set<String> _amenityIds = {...widget.initial.amenityIds};
   late String? _operatorId = widget.initial.operatorId;
   late RangeValues? _price = _initialPrice();
+
+  /// Chưa kéo thanh giá (hoặc khoảng giá của ngày này không đủ để hiện thanh)
+  /// thì giữ nguyên lọc giá đang có, không âm thầm bỏ / đổi.
+  bool _priceChanged = false;
   late final Future<List<TripAmenityOption>>? _amenities = widget
       .loadAmenities
       ?.call();
@@ -2522,7 +2571,10 @@ class _TripFilterSheetState extends State<_TripFilterSheet> {
                           values: _price!,
                           min: widget.priceMin!.toDouble(),
                           max: widget.priceMax!.toDouble(),
-                          onChanged: (value) => setState(() => _price = value),
+                          onChanged: (value) => setState(() {
+                            _price = value;
+                            _priceChanged = true;
+                          }),
                         ),
                       ),
                       Row(
@@ -2748,8 +2800,12 @@ class _TripFilterSheetState extends State<_TripFilterSheet> {
       vehicleForm: _form,
       vehicleClass: _class,
       departureSlot: _slot,
-      priceMin: lowChanged ? price.start.round() : null,
-      priceMax: highChanged ? price.end.round() : null,
+      priceMin: _priceChanged
+          ? (lowChanged ? price.start.round() : null)
+          : widget.initial.priceMin,
+      priceMax: _priceChanged
+          ? (highChanged ? price.end.round() : null)
+          : widget.initial.priceMax,
       amenityIds: {..._amenityIds},
       operatorId: _operatorId,
       sort: widget.initial.sort,
@@ -2763,6 +2819,7 @@ class _TripFilterSheetState extends State<_TripFilterSheet> {
       _slot = null;
       _amenityIds.clear();
       _operatorId = null;
+      _priceChanged = true;
       _price = _hasPriceRange
           ? RangeValues(
               widget.priceMin!.toDouble(),

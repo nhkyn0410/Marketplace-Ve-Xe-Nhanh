@@ -154,6 +154,8 @@ class _$TripResponseDtoOutput extends TripResponseDtoOutput {
   @override
   final int onlineSaleCutoffMinutes;
   @override
+  final BuiltList<String> subRouteIds;
+  @override
   final String? statusReason;
   @override
   final DateTime? departedAt;
@@ -183,6 +185,7 @@ class _$TripResponseDtoOutput extends TripResponseDtoOutput {
       required this.createdAt,
       required this.updatedAt,
       required this.onlineSaleCutoffMinutes,
+      required this.subRouteIds,
       this.statusReason,
       this.departedAt,
       this.completedAt,
@@ -215,6 +218,7 @@ class _$TripResponseDtoOutput extends TripResponseDtoOutput {
         createdAt == other.createdAt &&
         updatedAt == other.updatedAt &&
         onlineSaleCutoffMinutes == other.onlineSaleCutoffMinutes &&
+        subRouteIds == other.subRouteIds &&
         statusReason == other.statusReason &&
         departedAt == other.departedAt &&
         completedAt == other.completedAt &&
@@ -238,6 +242,7 @@ class _$TripResponseDtoOutput extends TripResponseDtoOutput {
     _$hash = $jc(_$hash, createdAt.hashCode);
     _$hash = $jc(_$hash, updatedAt.hashCode);
     _$hash = $jc(_$hash, onlineSaleCutoffMinutes.hashCode);
+    _$hash = $jc(_$hash, subRouteIds.hashCode);
     _$hash = $jc(_$hash, statusReason.hashCode);
     _$hash = $jc(_$hash, departedAt.hashCode);
     _$hash = $jc(_$hash, completedAt.hashCode);
@@ -263,6 +268,7 @@ class _$TripResponseDtoOutput extends TripResponseDtoOutput {
           ..add('createdAt', createdAt)
           ..add('updatedAt', updatedAt)
           ..add('onlineSaleCutoffMinutes', onlineSaleCutoffMinutes)
+          ..add('subRouteIds', subRouteIds)
           ..add('statusReason', statusReason)
           ..add('departedAt', departedAt)
           ..add('completedAt', completedAt)
@@ -328,6 +334,12 @@ class TripResponseDtoOutputBuilder
   set onlineSaleCutoffMinutes(int? onlineSaleCutoffMinutes) =>
       _$this._onlineSaleCutoffMinutes = onlineSaleCutoffMinutes;
 
+  ListBuilder<String>? _subRouteIds;
+  ListBuilder<String> get subRouteIds =>
+      _$this._subRouteIds ??= ListBuilder<String>();
+  set subRouteIds(ListBuilder<String>? subRouteIds) =>
+      _$this._subRouteIds = subRouteIds;
+
   String? _statusReason;
   String? get statusReason => _$this._statusReason;
   set statusReason(String? statusReason) => _$this._statusReason = statusReason;
@@ -375,6 +387,7 @@ class TripResponseDtoOutputBuilder
       _createdAt = $v.createdAt;
       _updatedAt = $v.updatedAt;
       _onlineSaleCutoffMinutes = $v.onlineSaleCutoffMinutes;
+      _subRouteIds = $v.subRouteIds.toBuilder();
       _statusReason = $v.statusReason;
       _departedAt = $v.departedAt;
       _completedAt = $v.completedAt;
@@ -428,6 +441,7 @@ class TripResponseDtoOutputBuilder
                 onlineSaleCutoffMinutes,
                 r'TripResponseDtoOutput',
                 'onlineSaleCutoffMinutes'),
+            subRouteIds: subRouteIds.build(),
             statusReason: statusReason,
             departedAt: departedAt,
             completedAt: completedAt,
@@ -438,6 +452,9 @@ class TripResponseDtoOutputBuilder
     } catch (_) {
       late String _$failedField;
       try {
+        _$failedField = 'subRouteIds';
+        subRouteIds.build();
+
         _$failedField = 'stops';
         stops.build();
         _$failedField = 'seats';

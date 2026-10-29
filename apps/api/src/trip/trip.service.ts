@@ -32,6 +32,7 @@ import {
   tripBusy,
   tripHistoryUnavailable,
   tripNotEditable,
+  tripSubRouteUnavailable,
   tripNotFound,
   tripNotReadyForSale,
   tripSeatNotAvailable,
@@ -180,7 +181,10 @@ export class TripService {
   async create(authz: Authorization, input: TripInput): Promise<TripResponse> {
     const { db, operatorId } = requireTenant(authz);
     const row = await this.withOverlapConflict(() =>
-      this.prisma.withScope(db, async (tx) => findDetail(tx, operatorId, await insertDraftTrip(tx, operatorId, input))),
+      this.prisma.withScope(db, async (tx) => {
+        await assertSubRoutes(tx, operatorId, input.routeId, input.subRouteIds);
+        return findDetail(tx, operatorId, await insertDraftTrip(tx, operatorId, input));
+      }),
     );
     return toResponse(row!);
   }
@@ -210,9 +214,10 @@ export class TripService {
         if (current.status !== TripStatus.DRAFT) {
           throw tripNotEditable();
         }
+        const departureAt = roundDeparture(input.departureAt);
         const routeStops = await loadRouteStops(tx, operatorId, input.routeId, input.routeId === current.routeId);
-        const arrivalAt = routeArrival(input.departureAt, routeStops);
-        const stopTimes = planStopTimes(input, routeStops, arrivalAt);
+        const arrivalAt = routeArrival(departureAt, routeStops);
+        const stopTimes = planStopTimes({ ...input, departureAt }, routeStops, arrivalAt);
         const expired = new Date(current.arrivalAt).getTime() <= Date.now();
         const rebuildSeats = expired || input.vehicleId !== current.vehicleId;
         const seats = rebuildSeats && input.vehicleId ? await lockVehicleSeats(tx, operatorId, input.vehicleId) : [];
@@ -229,7 +234,7 @@ export class TripService {
           data: {
             routeId: input.routeId,
             vehicleId: input.vehicleId,
-            departureAt: input.departureAt,
+            departureAt,
             arrivalAt,
             onlineSaleCutoffMinutes: input.onlineSaleCutoffMinutes,
             note: input.note,
@@ -241,6 +246,10 @@ export class TripService {
         }
         await tx.tripStop.deleteMany({ where: { tripId, operatorId } });
         await tx.tripStop.createMany({ data: stopRows(operatorId, tripId, routeStops, stopTimes) });
+        const kept = input.routeId === current.routeId ? await tripSubRouteIds(tx, operatorId, tripId) : [];
+        await assertSubRoutes(tx, operatorId, input.routeId, input.subRouteIds, kept);
+        await tx.tripSubRoute.deleteMany({ where: { tripId, operatorId } });
+        await tx.tripSubRoute.createMany({ data: input.subRouteIds.map((subRouteId) => ({ tripId, subRouteId, operatorId })) });
         if (rebuildSeats) {
           await tx.tripSeat.deleteMany({ where: { tripId, operatorId } });
           await tx.tripSeat.createMany({ data: seatRows(operatorId, tripId, seats, blocked) });
@@ -429,16 +438,17 @@ export async function insertDraftTrip(
   input: TripInput,
   origin?: { scheduleId: string; serviceDate: Date },
 ): Promise<string> {
+  const departureAt = roundDeparture(input.departureAt);
   const routeStops = await loadRouteStops(tx, operatorId, input.routeId, false);
-  const arrivalAt = routeArrival(input.departureAt, routeStops);
-  const stopTimes = planStopTimes(input, routeStops, arrivalAt);
+  const arrivalAt = routeArrival(departureAt, routeStops);
+  const stopTimes = planStopTimes({ ...input, departureAt }, routeStops, arrivalAt);
   const seats = input.vehicleId ? await lockVehicleSeats(tx, operatorId, input.vehicleId) : [];
   const trip = await tx.trip.create({
     data: {
       operatorId,
       routeId: input.routeId,
       vehicleId: input.vehicleId,
-      departureAt: input.departureAt,
+      departureAt,
       arrivalAt,
       onlineSaleCutoffMinutes: input.onlineSaleCutoffMinutes,
       note: input.note,
@@ -449,7 +459,28 @@ export async function insertDraftTrip(
   });
   await tx.tripStop.createMany({ data: stopRows(operatorId, trip.id, routeStops, stopTimes) });
   await tx.tripSeat.createMany({ data: seatRows(operatorId, trip.id, seats) });
+  await tx.tripSubRoute.createMany({ data: input.subRouteIds.map((subRouteId) => ({ tripId: trip.id, subRouteId, operatorId })) });
   return trip.id;
+}
+
+/**
+ * Chặng mở bán (3.3) phải là tuyến con của đúng tuyến `routeId`, đang bật; tuyến con đã gắn sẵn (`kept`) giữ được dù đã
+ * ngừng (như route / xe đang gắn). Không phân biệt lý do để không lộ dữ liệu tenant khác.
+ */
+export async function assertSubRoutes(tx: DbTransaction, operatorId: string, routeId: string, ids: readonly string[], kept: readonly string[] = []) {
+  if (ids.length === 0) {
+    return;
+  }
+  const valid = await tx.route.count({
+    where: { id: { in: [...ids] }, operatorId, parentRouteId: routeId, OR: [{ status: RouteStatus.ACTIVE }, { id: { in: [...kept] } }] },
+  });
+  if (valid !== new Set(ids).size) {
+    throw tripSubRouteUnavailable();
+  }
+}
+
+async function tripSubRouteIds(tx: DbTransaction, operatorId: string, tripId: string): Promise<string[]> {
+  return (await tx.tripSubRoute.findMany({ where: { tripId, operatorId }, select: { subRouteId: true } })).map((row) => row.subRouteId);
 }
 
 /**
@@ -463,7 +494,8 @@ export async function loadRouteStops(
   keep: boolean,
 ): Promise<RouteStopRow[]> {
   const route = await tx.route.findFirst({
-    where: { id: routeId, operatorId, ...(keep ? {} : { status: RouteStatus.ACTIVE }) },
+    // Chuyến chỉ chạy trên tuyến chính; tuyến con (3.2) là chặng mở bán của chuyến, không có chuyến riêng.
+    where: { id: routeId, operatorId, parentRouteId: null, ...(keep ? {} : { status: RouteStatus.ACTIVE }) },
     select: {
       stops: {
         orderBy: { sequence: "asc" },
@@ -487,24 +519,50 @@ export async function loadRouteStops(
 }
 
 /**
- * Giờ đến của chuyến = giờ đi + thời gian chạy của tuyến (tổng các chặng — số nhà xe chỉnh ở Tuyến đường, không chỉnh thì
- * số hệ thống), làm tròn theo phút, ít nhất 1 phút (Khanh 27/10/2026 "thời gian gắn với tuyến", chờ duyệt). Nhà xe không
- * nhập tay giờ đến: muốn đổi thì chỉnh thời gian chặng của tuyến.
+ * Giờ của chuyến theo bước 5 phút (giai đoạn 3.1, Khanh 29/10/2026, chờ duyệt). Giờ VN lệch UTC tròn giờ nên lưới 5 phút
+ * trên mốc UTC trùng lưới 5 phút trên đồng hồ VN.
  */
-export function routeArrival(departureAt: Date, stops: Pick<RouteStopRow, "durationSecondsFromPrevious">[]): Date {
+export const TIME_STEP_MINUTES = 5;
+const STEP = TIME_STEP_MINUTES * MINUTE;
+const floorStep = (ms: number) => Math.floor(ms / STEP) * STEP;
+const ceilStep = (ms: number) => Math.ceil(ms / STEP) * STEP;
+
+/** Giờ khởi hành làm tròn về mốc 5 phút gần nhất (06:32 → 06:30, 06:33 → 06:35). */
+export function roundDeparture(departureAt: Date): Date {
+  return new Date(Math.round(departureAt.getTime() / STEP) * STEP);
+}
+
+/**
+ * Giờ đến của chuyến = giờ đi + thời gian chạy của tuyến (tổng các chặng — số nhà xe chỉnh ở Tuyến đường, không chỉnh thì
+ * số hệ thống), ít nhất 1 phút (Khanh 27/10/2026 "thời gian gắn với tuyến", chờ duyệt), làm tròn LÊN mốc 5 phút để không
+ * hứa đến sớm hơn thực tế (3.1). Nhà xe không nhập tay giờ đến: muốn đổi thì chỉnh thời gian chặng của tuyến.
+ */
+export function routeArrival(departureAt: Date, stops: Pick<RouteStopRow, "durationSecondsFromPrevious">[], rounding = true): Date {
   const seconds = stops.reduce((sum, stop) => sum + (stop.durationSecondsFromPrevious ?? 0), 0);
-  return new Date(departureAt.getTime() + Math.max(1, Math.round(seconds / 60)) * MINUTE);
+  const arrival = departureAt.getTime() + Math.max(1, Math.round(seconds / 60)) * MINUTE;
+  return new Date(rounding ? ceilStep(arrival) : arrival);
+}
+
+/**
+ * Chuyến tạo trước khi có bước 5 phút (giờ đi / đến lẻ phút) mà nhà xe không dời giờ đi: đổi lịch giữ cách tính cũ, để đổi
+ * xe / điểm dừng không tự làm tròn giờ rồi báo khách "đổi giờ" chỉ vì vài phút.
+ */
+export function keepsLegacyTimes(current: { departureAt: Date; arrivalAt: Date }, departureAt: Date): boolean {
+  const offGrid = current.departureAt.getTime() % STEP !== 0 || current.arrivalAt.getTime() % STEP !== 0;
+  return offGrid && current.departureAt.getTime() === departureAt.getTime();
 }
 
 /**
  * Giờ dự kiến tại từng điểm. Operator gửi `stopTimes` thì dùng nguyên — phải đủ điểm, đầu = giờ đi, cuối = giờ đến tính
  * theo tuyến (thứ tự không giảm Zod đã kiểm); không gửi thì chia khoảng [giờ đi, giờ đến] theo tỉ lệ thời gian chặng của
- * route (ADR-027: không gọi Goong lại).
+ * route (ADR-027: không gọi Goong lại), làm tròn mốc 5 phút (3.1): điểm cho đón làm tròn XUỐNG (khách ra sớm, không lỡ
+ * xe), điểm chỉ trả / dừng nghỉ làm tròn LÊN (không hứa đến sớm); luôn không giảm dần và không vượt giờ đến.
  */
 export function planStopTimes(
   input: Pick<TripInput, "stopTimes" | "departureAt">,
-  stops: Pick<RouteStopRow, "durationSecondsFromPrevious">[],
+  stops: Pick<RouteStopRow, "durationSecondsFromPrevious" | "allowPickup">[],
   arrivalAt: Date,
+  rounding = true,
 ): Date[] {
   if (input.stopTimes) {
     const times = input.stopTimes;
@@ -523,12 +581,21 @@ export function planStopTimes(
   const cumulative = stops.map((stop) => (elapsed += stop.durationSecondsFromPrevious ?? 0));
   const total = cumulative[cumulative.length - 1]!;
   const last = stops.length - 1;
-  // Làm tròn XUỐNG theo phút tính từ giờ đi: giờ hiển thị gọn, vẫn không giảm dần và không vượt giờ đến.
-  return cumulative.map((seconds, index) =>
-    index === last
-      ? arrivalAt
-      : new Date(departure + (total === 0 ? 0 : Math.floor(((seconds / total) * span) / MINUTE) * MINUTE)),
-  );
+  const arrival = arrivalAt.getTime();
+  let previous = departure;
+  return cumulative.map((seconds, index) => {
+    if (index === 0 || index === last) {
+      return index === 0 ? input.departureAt : arrivalAt;
+    }
+    const raw = departure + (total === 0 ? 0 : (seconds / total) * span);
+    if (!rounding) {
+      // Cách cũ (chuyến lẻ phút, xem `keepsLegacyTimes`): làm tròn xuống theo phút tính từ giờ đi.
+      return new Date(departure + Math.floor((raw - departure) / MINUTE) * MINUTE);
+    }
+    const rounded = stops[index]!.allowPickup ? floorStep(raw) : ceilStep(raw);
+    previous = Math.min(Math.max(rounded, previous), arrival);
+    return new Date(previous);
+  });
 }
 
 /**
@@ -647,6 +714,7 @@ export function findDetail(tx: DbTransaction, operatorId: string, tripId: string
     where: { id: tripId, operatorId },
     select: {
       id: true,
+      subRoutes: { orderBy: { subRouteId: "asc" }, select: { subRouteId: true } },
       routeId: true,
       vehicleId: true,
       departureAt: true,
@@ -699,7 +767,7 @@ export function findDetail(tx: DbTransaction, operatorId: string, tripId: string
 }
 
 export function toResponse(row: NonNullable<Awaited<ReturnType<typeof findDetail>>>): TripResponse {
-  const { route, vehicle, stops, seats, ...trip } = row;
+  const { route, vehicle, stops, seats, subRoutes, ...trip } = row;
   // Không gắn xe / tuyến chưa có bảng giá / bảng giá INACTIVE / không có rule khớp → giá `null` (TRN-006 chặn mở bán).
   const rules = route.fare?.status === FareStatus.ACTIVE ? route.fare.rules : [];
   const priceOf = (seatType: SeatType): number | null => {
@@ -711,6 +779,7 @@ export function toResponse(row: NonNullable<Awaited<ReturnType<typeof findDetail
   };
   return {
     ...trip,
+    subRouteIds: subRoutes.map((item) => item.subRouteId),
     routeName: route.name,
     vehiclePlateNumber: vehicle?.plateNumber ?? null,
     seatCount: seats.length,

@@ -160,12 +160,20 @@ class FakeBookingApi implements TripBookingApi {
   /// Lỗi ném ra ở lần giữ chỗ tiếp theo (rồi xoá).
   ApiFailure? holdError;
   int loads = 0;
+
+  /// Chặng của từng lần tải chi tiết (3.3: giá theo chặng).
+  final loadedLegs = <({int? pickup, int? dropoff})>[];
   final holds = <({List<String> seats, int pickup, int dropoff})>[];
   final released = <String>[];
 
   @override
-  Future<TripDetail> loadTrip(String tripId) async {
+  Future<TripDetail> loadTrip(
+    String tripId, {
+    int? pickupSequence,
+    int? dropoffSequence,
+  }) async {
     loads++;
+    loadedLegs.add((pickup: pickupSequence, dropoff: dropoffSequence));
     return trip;
   }
 
@@ -324,7 +332,7 @@ class FakeBookingApi implements TripBookingApi {
   Future<List<HomeLocation>> loadProvinces() async => const [];
 
   @override
-  Future<List<HomeLocation>> searchStopPoints(String keyword) async => const [];
+  Future<List<HomeLocation>> searchPlaces(String keyword) async => const [];
 
   @override
   Future<List<HomeOperator>> loadOperators() async => const [];

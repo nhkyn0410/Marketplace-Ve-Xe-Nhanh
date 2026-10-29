@@ -10,6 +10,9 @@ const PlaceSuggestionListResponseDtoOutputItemsInnerKindEnum
     _$placeSuggestionListResponseDtoOutputItemsInnerKindEnum_PROVINCE =
     const PlaceSuggestionListResponseDtoOutputItemsInnerKindEnum._('PROVINCE');
 const PlaceSuggestionListResponseDtoOutputItemsInnerKindEnum
+    _$placeSuggestionListResponseDtoOutputItemsInnerKindEnum_AREA =
+    const PlaceSuggestionListResponseDtoOutputItemsInnerKindEnum._('AREA');
+const PlaceSuggestionListResponseDtoOutputItemsInnerKindEnum
     _$placeSuggestionListResponseDtoOutputItemsInnerKindEnum_WARD =
     const PlaceSuggestionListResponseDtoOutputItemsInnerKindEnum._('WARD');
 const PlaceSuggestionListResponseDtoOutputItemsInnerKindEnum
@@ -26,6 +29,8 @@ PlaceSuggestionListResponseDtoOutputItemsInnerKindEnum
   switch (name) {
     case 'PROVINCE':
       return _$placeSuggestionListResponseDtoOutputItemsInnerKindEnum_PROVINCE;
+    case 'AREA':
+      return _$placeSuggestionListResponseDtoOutputItemsInnerKindEnum_AREA;
     case 'WARD':
       return _$placeSuggestionListResponseDtoOutputItemsInnerKindEnum_WARD;
     case 'STOP_POINT':
@@ -41,6 +46,7 @@ final BuiltSet<PlaceSuggestionListResponseDtoOutputItemsInnerKindEnum>
     _$placeSuggestionListResponseDtoOutputItemsInnerKindEnumValues = BuiltSet<
         PlaceSuggestionListResponseDtoOutputItemsInnerKindEnum>(const <PlaceSuggestionListResponseDtoOutputItemsInnerKindEnum>[
   _$placeSuggestionListResponseDtoOutputItemsInnerKindEnum_PROVINCE,
+  _$placeSuggestionListResponseDtoOutputItemsInnerKindEnum_AREA,
   _$placeSuggestionListResponseDtoOutputItemsInnerKindEnum_WARD,
   _$placeSuggestionListResponseDtoOutputItemsInnerKindEnum_STOP_POINT,
   _$placeSuggestionListResponseDtoOutputItemsInnerKindEnum_LEGACY,
@@ -56,12 +62,14 @@ class _$PlaceSuggestionListResponseDtoOutputItemsInnerKindEnumSerializer
             PlaceSuggestionListResponseDtoOutputItemsInnerKindEnum> {
   static const Map<String, Object> _toWire = const <String, Object>{
     'PROVINCE': 'PROVINCE',
+    'AREA': 'AREA',
     'WARD': 'WARD',
     'STOP_POINT': 'STOP_POINT',
     'LEGACY': 'LEGACY',
   };
   static const Map<Object, String> _fromWire = const <Object, String>{
     'PROVINCE': 'PROVINCE',
+    'AREA': 'AREA',
     'WARD': 'WARD',
     'STOP_POINT': 'STOP_POINT',
     'LEGACY': 'LEGACY',

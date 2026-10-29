@@ -7,14 +7,16 @@ import { apiRequest, ACCESS_COOKIE } from "./api";
 import { getAccountProfile } from "./auth";
 import { refreshSessionIfNeeded } from "./session";
 import { bookingHeaders, rememberBooking, rememberedBooking } from "./booking-access";
+import { publicTripPath, type TripLeg } from "./trip-mappers";
 import { apiMoney, mapPayment, mapPaymentResult, mapPoint, mapSeatSelection, moneyString, remainingSeconds, seatTypeLabel, isDoubleSeat, type ApiBooking, type ApiHold, type ApiTrip } from "./booking-mappers";
 import { type DataResult, failed, ok } from "./result";
 import type { BookingPaymentData, BookingPaymentResultData, CheckoutContactInfo, CheckoutHoldData, CheckoutPassengerItem, CheckoutPromotionQuote, CheckoutVoucherItem, TripSeatSelectionData } from "./types";
 import { getUserVouchers } from "./loyalty";
 
 /** Lấy điểm dừng và trạng thái chỗ từ chi tiết chuyến công khai. */
-export async function getTripSeatSelection(tripId: string): Promise<DataResult<TripSeatSelectionData>> {
-  const result = await apiRequest<ApiTrip>(`/trips/${encodeURIComponent(tripId)}`);
+export async function getTripSeatSelection(tripId: string, leg: TripLeg = {}): Promise<DataResult<TripSeatSelectionData>> {
+  // Giá ghế theo chặng đã chọn từ trang kết quả / chi tiết (3.3); đổi điểm trên màn chọn ghế thì giá chốt lại lúc giữ chỗ.
+  const result = await apiRequest<ApiTrip>(publicTripPath(tripId, leg));
   if (result.status !== "ok") return result;
   try { return ok(mapSeatSelection(result.data)); }
   catch { return failed("GET /trips/{tripId}", "Dữ liệu giá vé không hợp lệ."); }

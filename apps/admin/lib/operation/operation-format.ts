@@ -22,6 +22,7 @@ export const TRIP_STATUS_ORDER = ["DRAFT", "OPEN_FOR_SALE", "LOCKED", "SOLD_OUT"
 
 export const ROUTE_STATUS: Record<string, { label: string; tone: Tone }> = {
   ACTIVE: { label: "Đang dùng", tone: "success" },
+  DRAFT: { label: "Nháp", tone: "warning" },
   INACTIVE: { label: "Ngừng dùng", tone: "neutral" }
 };
 

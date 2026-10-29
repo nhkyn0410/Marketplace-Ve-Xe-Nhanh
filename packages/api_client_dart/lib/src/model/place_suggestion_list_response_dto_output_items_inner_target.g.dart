@@ -15,6 +15,10 @@ const PlaceSuggestionListResponseDtoOutputItemsInnerTargetTypeEnum
     const PlaceSuggestionListResponseDtoOutputItemsInnerTargetTypeEnum._(
         'ward');
 const PlaceSuggestionListResponseDtoOutputItemsInnerTargetTypeEnum
+    _$placeSuggestionListResponseDtoOutputItemsInnerTargetTypeEnum_area =
+    const PlaceSuggestionListResponseDtoOutputItemsInnerTargetTypeEnum._(
+        'area');
+const PlaceSuggestionListResponseDtoOutputItemsInnerTargetTypeEnum
     _$placeSuggestionListResponseDtoOutputItemsInnerTargetTypeEnum_stopPoint =
     const PlaceSuggestionListResponseDtoOutputItemsInnerTargetTypeEnum._(
         'stopPoint');
@@ -27,6 +31,8 @@ PlaceSuggestionListResponseDtoOutputItemsInnerTargetTypeEnum
       return _$placeSuggestionListResponseDtoOutputItemsInnerTargetTypeEnum_province;
     case 'ward':
       return _$placeSuggestionListResponseDtoOutputItemsInnerTargetTypeEnum_ward;
+    case 'area':
+      return _$placeSuggestionListResponseDtoOutputItemsInnerTargetTypeEnum_area;
     case 'stopPoint':
       return _$placeSuggestionListResponseDtoOutputItemsInnerTargetTypeEnum_stopPoint;
     default:
@@ -40,6 +46,7 @@ final BuiltSet<PlaceSuggestionListResponseDtoOutputItemsInnerTargetTypeEnum>
         PlaceSuggestionListResponseDtoOutputItemsInnerTargetTypeEnum>(const <PlaceSuggestionListResponseDtoOutputItemsInnerTargetTypeEnum>[
   _$placeSuggestionListResponseDtoOutputItemsInnerTargetTypeEnum_province,
   _$placeSuggestionListResponseDtoOutputItemsInnerTargetTypeEnum_ward,
+  _$placeSuggestionListResponseDtoOutputItemsInnerTargetTypeEnum_area,
   _$placeSuggestionListResponseDtoOutputItemsInnerTargetTypeEnum_stopPoint,
 ]);
 
@@ -54,11 +61,13 @@ class _$PlaceSuggestionListResponseDtoOutputItemsInnerTargetTypeEnumSerializer
   static const Map<String, Object> _toWire = const <String, Object>{
     'province': 'province',
     'ward': 'ward',
+    'area': 'area',
     'stopPoint': 'stopPoint',
   };
   static const Map<Object, String> _fromWire = const <Object, String>{
     'province': 'province',
     'ward': 'ward',
+    'area': 'area',
     'stopPoint': 'stopPoint',
   };
 

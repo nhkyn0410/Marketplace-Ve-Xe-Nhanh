@@ -17,7 +17,15 @@ import { stopKey, type StopCandidate } from "../../lib/route/route-form";
 import { formatDuration } from "../../lib/route/route-format";
 import { changeTrip, getTrip, getTripSales, type Trip, type TripSales } from "../../lib/trip/trip-api";
 import { CHANGE_REASON_MAX, describeTripChangeError, impactLabel, toChangeInput, type StopReplacement } from "../../lib/trip/trip-change";
-import { departureIso, hasCompleteTimes, routeArrivalMs, toTripFormValues } from "../../lib/trip/trip-form";
+import {
+  departureIso,
+  hasCompleteTimes,
+  keepsLegacyTimes,
+  roundClock,
+  routeArrivalMs,
+  TIME_STEP_MINUTES,
+  toTripFormValues
+} from "../../lib/trip/trip-form";
 import { formatTime, formatWeekdayDate, stopMetaLabel, TRIP_STATUS } from "../../lib/trip/trip-format";
 import { listAllVehicles } from "../../lib/vehicle/vehicle-api";
 import { formatPlateNumber } from "../../lib/vehicle/vehicle-format";
@@ -100,9 +108,14 @@ function ChangeBody({ trip, sales }: { trip: Trip; sales: TripSales }) {
   const vehicles = useQuery({ queryKey: ["vehicles", "all"], queryFn: listAllVehicles });
   // Giờ đến máy chủ tính = giờ đi mới + thời gian chạy HIỆN TẠI của tuyến (chờ duyệt 27/10/2026); ở đây xem trước.
   const route = useQuery({ queryKey: ["route", trip.routeId], queryFn: () => getRoute(trip.routeId) });
+  // Giờ đi giữ nguyên ô đang có thì gửi đúng giờ đang bán (không làm tròn chuyến cũ lẻ phút); dời giờ thì làm tròn 5 phút.
+  const unchanged = departureDate === initial.departureDate && departureTime === initial.departureTime;
+  const departureAt = unchanged ? trip.departureAt : departureIso({ departureDate, departureTime });
   const arrivalAt =
     route.data && hasCompleteTimes({ departureDate, departureTime })
-      ? new Date(routeArrivalMs(new Date(departureIso({ departureDate, departureTime })).getTime(), route.data.totalDurationSeconds)).toISOString()
+      ? new Date(
+          routeArrivalMs(Date.parse(departureAt), route.data.totalDurationSeconds, !keepsLegacyTimes(trip, Date.parse(departureAt)))
+        ).toISOString()
       : null;
   const usable = (vehicles.data ?? []).filter((vehicle) => vehicle.status === "ACTIVE" && vehicle.seatMap);
 
@@ -110,7 +123,7 @@ function ChangeBody({ trip, sales }: { trip: Trip; sales: TripSales }) {
     mutationFn: () =>
       changeTrip(
         trip.id,
-        toChangeInput(trip, { departureAt: departureIso({ departureDate, departureTime }), vehicleId, reason }, replacements)
+        toChangeInput(trip, { departureAt, vehicleId, reason }, replacements)
       ),
     onSuccess: (updated) => {
       queryClient.setQueryData(["trip", trip.id], updated);
@@ -151,7 +164,14 @@ function ChangeBody({ trip, sales }: { trip: Trip; sales: TripSales }) {
             </h2>
             <div className="grid gap-4 sm:grid-cols-2">
               <TimeField id={ids.departureDate} label="Ngày khởi hành" type="date" value={departureDate} onChange={setDepartureDate} />
-              <TimeField id={ids.departureTime} label="Giờ khởi hành" type="time" value={departureTime} onChange={setDepartureTime} />
+              <TimeField
+                id={ids.departureTime}
+                label="Giờ khởi hành"
+                type="time"
+                value={departureTime}
+                onChange={setDepartureTime}
+                onBlur={() => setDepartureTime((value) => (value === initial.departureTime ? value : roundClock(value)))}
+              />
             </div>
             <p className="text-sm leading-5 text-vxn-fg-1">
               Giờ đến (theo tuyến):{" "}
@@ -292,13 +312,35 @@ function ChangeBody({ trip, sales }: { trip: Trip; sales: TripSales }) {
   );
 }
 
-function TimeField({ id, label, type, value, onChange }: { id: string; label: string; type: "date" | "time"; value: string; onChange: (value: string) => void }) {
+function TimeField({
+  id,
+  label,
+  type,
+  value,
+  onChange,
+  onBlur
+}: {
+  id: string;
+  label: string;
+  type: "date" | "time";
+  value: string;
+  onChange: (value: string) => void;
+  onBlur?: () => void;
+}) {
   return (
     <div className="flex flex-col gap-1.5">
       <label htmlFor={id} className="text-sm leading-5 font-medium text-vxn-ink">
         {label}
       </label>
-      <Input id={id} type={type} value={value} required onChange={(event) => onChange(event.target.value)} />
+      <Input
+        id={id}
+        type={type}
+        value={value}
+        required
+        step={type === "time" ? TIME_STEP_MINUTES * 60 : undefined}
+        onChange={(event) => onChange(event.target.value)}
+        onBlur={onBlur}
+      />
     </div>
   );
 }
