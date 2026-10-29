@@ -1,6 +1,6 @@
 import { createZodDto } from "nestjs-zod";
 import { z } from "zod";
-import { RouteStatus, RouteStopRole, RoutingMetricsSource, StopPointType } from "../../database/prisma.types";
+import { RouteNameSource, RouteStatus, RouteStopRole, RoutingMetricsSource, StopPointType } from "../../database/prisma.types";
 
 /** Giới hạn điểm/route: đủ cho tuyến liên tỉnh, chặn payload và số lần gọi Goong (mỗi chặng một lần). */
 export const MAX_ROUTE_STOPS = 25;
@@ -35,15 +35,21 @@ const RouteStopInputSchema = z
     "Mỗi điểm chọn đúng một nguồn: catalog hoặc điểm riêng.",
   );
 
-// Không `.default()`: POST và PUT (thay toàn bộ) phải gửi đủ trường. Vai trò điểm suy từ vị trí (Q3).
+// Không `.default()`: POST và PUT (thay toàn bộ) phải gửi đủ trường. Vai trò điểm suy từ vị trí (Q3). Ngoại lệ duy nhất:
+// `nameSource` mặc định `MANUAL` để client cũ (chỉ gửi `name`) vẫn chạy như trước.
 export const RouteInputSchema = z
   .object({
-    name: z.string().trim().min(1).max(150),
+    /** Bắt buộc khi `nameSource = MANUAL`; `AUTO` thì máy chủ tự ghép tên từ nơi của các điểm dừng, bỏ qua trường này. */
+    name: z.string().trim().max(150),
+    nameSource: z.enum(RouteNameSource).default(RouteNameSource.MANUAL),
     status: z.enum(RouteStatus),
     note: optionalText(500),
     stops: z.array(RouteStopInputSchema).min(2).max(MAX_ROUTE_STOPS),
   })
   .superRefine((input, ctx) => {
+    if (input.nameSource === RouteNameSource.MANUAL && input.name === "") {
+      ctx.addIssue({ code: "custom", path: ["name"], message: "Nhập tên tuyến hoặc bật tự đặt tên." });
+    }
     if (input.stops[0]?.durationMinutesFromPrevious) {
       ctx.addIssue({ code: "custom", path: ["stops", 0, "durationMinutesFromPrevious"], message: "Điểm đầu không có chặng trước." });
     }
@@ -70,9 +76,24 @@ export class RouteListQueryDto extends createZodDto(
   }),
 ) {}
 
+/** Xem trước tên tuyến tự động khi đang sửa điểm dừng (form Operator OS); `routeId` = tuyến đang sửa, không tính trùng tên. */
+export const RouteNamePreviewInputSchema = z.object({
+  stops: z.array(RouteStopInputSchema).min(2).max(MAX_ROUTE_STOPS),
+  routeId: z.uuid().nullable().optional(),
+});
+export type RouteNamePreviewInput = z.infer<typeof RouteNamePreviewInputSchema>;
+/** Body xem trước tên tuyến tự động. */
+export class RouteNamePreviewInputDto extends createZodDto(RouteNamePreviewInputSchema) {}
+
+export const RouteNamePreviewSchema = z.object({ name: z.string() });
+export type RouteNamePreview = z.infer<typeof RouteNamePreviewSchema>;
+/** Tên tuyến tự động (đã tránh trùng tên tuyến khác của nhà xe). */
+export class RouteNamePreviewDto extends createZodDto(RouteNamePreviewSchema) {}
+
 const RouteSummaryFields = {
   id: z.uuid(),
   name: z.string(),
+  nameSource: z.enum(RouteNameSource),
   status: z.enum(RouteStatus),
   totalDistanceMeters: z.int(),
   totalDurationSeconds: z.int(),
@@ -99,6 +120,8 @@ export class RouteListResponseDto extends createZodDto(RouteListResponseSchema) 
 
 export const RouteResponseSchema = z.object({
   ...RouteSummaryFields,
+  /** Tuyến đặt tên tay mà tên tự động khác tên đang dùng → gợi ý để nhà xe bấm áp dụng; còn lại `null`. */
+  suggestedName: z.string().nullable(),
   note: z.string().nullable(),
   stops: z.array(
     z.object({

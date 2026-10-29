@@ -14,6 +14,7 @@ part 'route_list_response_dto_output_items_inner.g.dart';
 /// Properties:
 /// * [id] 
 /// * [name] 
+/// * [nameSource] 
 /// * [status] 
 /// * [totalDistanceMeters] 
 /// * [totalDurationSeconds] 
@@ -30,6 +31,10 @@ abstract class RouteListResponseDtoOutputItemsInner implements Built<RouteListRe
 
   @BuiltValueField(wireName: r'name')
   String get name;
+
+  @BuiltValueField(wireName: r'nameSource')
+  RouteListResponseDtoOutputItemsInnerNameSourceEnum get nameSource;
+  // enum nameSourceEnum {  AUTO,  MANUAL,  };
 
   @BuiltValueField(wireName: r'status')
   RouteListResponseDtoOutputItemsInnerStatusEnum get status;
@@ -92,6 +97,11 @@ class _$RouteListResponseDtoOutputItemsInnerSerializer implements PrimitiveSeria
     yield serializers.serialize(
       object.name,
       specifiedType: const FullType(String),
+    );
+    yield r'nameSource';
+    yield serializers.serialize(
+      object.nameSource,
+      specifiedType: const FullType(RouteListResponseDtoOutputItemsInnerNameSourceEnum),
     );
     yield r'status';
     yield serializers.serialize(
@@ -174,6 +184,13 @@ class _$RouteListResponseDtoOutputItemsInnerSerializer implements PrimitiveSeria
             specifiedType: const FullType(String),
           ) as String;
           result.name = valueDes;
+          break;
+        case r'nameSource':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(RouteListResponseDtoOutputItemsInnerNameSourceEnum),
+          ) as RouteListResponseDtoOutputItemsInnerNameSourceEnum;
+          result.nameSource = valueDes;
           break;
         case r'status':
           final valueDes = serializers.deserialize(
@@ -267,6 +284,21 @@ class _$RouteListResponseDtoOutputItemsInnerSerializer implements PrimitiveSeria
   }
 }
 
+
+class RouteListResponseDtoOutputItemsInnerNameSourceEnum extends EnumClass {
+
+  @BuiltValueEnumConst(wireName: r'AUTO')
+  static const RouteListResponseDtoOutputItemsInnerNameSourceEnum AUTO = _$routeListResponseDtoOutputItemsInnerNameSourceEnum_AUTO;
+  @BuiltValueEnumConst(wireName: r'MANUAL')
+  static const RouteListResponseDtoOutputItemsInnerNameSourceEnum MANUAL = _$routeListResponseDtoOutputItemsInnerNameSourceEnum_MANUAL;
+
+  static Serializer<RouteListResponseDtoOutputItemsInnerNameSourceEnum> get serializer => _$routeListResponseDtoOutputItemsInnerNameSourceEnumSerializer;
+
+  const RouteListResponseDtoOutputItemsInnerNameSourceEnum._(String name): super(name);
+
+  static BuiltSet<RouteListResponseDtoOutputItemsInnerNameSourceEnum> get values => _$routeListResponseDtoOutputItemsInnerNameSourceEnumValues;
+  static RouteListResponseDtoOutputItemsInnerNameSourceEnum valueOf(String name) => _$routeListResponseDtoOutputItemsInnerNameSourceEnumValueOf(name);
+}
 
 class RouteListResponseDtoOutputItemsInnerStatusEnum extends EnumClass {
 

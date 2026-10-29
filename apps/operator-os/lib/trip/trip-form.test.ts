@@ -9,9 +9,11 @@ import {
   EMPTY_TRIP_VALUES,
   prefillTripValues,
   hasCompleteTimes,
+  keepsLegacyTimes,
   NO_VEHICLE,
   parseCutoffMinutes,
   resolveManualTimes,
+  roundClock,
   routeArrivalMs,
   toTripFormValues,
   toTripInput,
@@ -104,15 +106,31 @@ describe("parseCutoffMinutes", () => {
 describe("giờ đến theo tuyến — đúng công thức của máy chủ", () => {
   const departure = ms("2026-10-08T06:00:00+07:00");
 
-  it("cộng thời gian chạy của tuyến, làm tròn phút, tự sang ngày", () => {
+  it("cộng thời gian chạy của tuyến, làm tròn LÊN mốc 5 phút, tự sang ngày", () => {
     expect(routeArrivalMs(departure, 19_800)).toBe(ms("2026-10-08T11:30:00+07:00"));
     expect(routeArrivalMs(ms("2026-10-08T22:00:00+07:00"), 27_000)).toBe(ms("2026-10-09T05:30:00+07:00"));
     expect(routeArrivalMs(departure, 19_829)).toBe(ms("2026-10-08T11:30:00+07:00"));
-    expect(routeArrivalMs(departure, 19_830)).toBe(ms("2026-10-08T11:31:00+07:00"));
+    expect(routeArrivalMs(departure, 19_830)).toBe(ms("2026-10-08T11:35:00+07:00"));
+    // Chuyến cũ lẻ phút không dời giờ: cách cũ theo phút.
+    expect(routeArrivalMs(departure, 19_830, false)).toBe(ms("2026-10-08T11:31:00+07:00"));
   });
 
-  it("tuyến chưa có thời gian chạy vẫn đến sau giờ đi ít nhất 1 phút", () => {
-    expect(routeArrivalMs(departure, 0)).toBe(departure + 60_000);
+  it("tuyến chưa có thời gian chạy vẫn đến sau giờ đi — thành mốc 5 phút kế tiếp", () => {
+    expect(routeArrivalMs(departure, 0)).toBe(departure + 5 * 60_000);
+  });
+
+  it("giờ khởi hành làm tròn mốc 5 phút gần nhất, không sang ngày hôm sau", () => {
+    expect(roundClock("06:32")).toBe("06:30");
+    expect(roundClock("06:33")).toBe("06:35");
+    expect(roundClock("23:58")).toBe("23:55");
+    expect(roundClock("6:3")).toBe("6:3");
+    expect(departureIso({ departureDate: "2026-10-08", departureTime: "06:32" })).toBe("2026-10-08T06:30:00+07:00");
+  });
+
+  it("đổi lịch chuyến cũ lẻ phút mà không dời giờ đi → giữ cách cũ", () => {
+    const legacy = { departureAt: "2026-10-08T06:32:00+07:00", arrivalAt: "2026-10-08T08:08:00+07:00" };
+    expect(keepsLegacyTimes(legacy, ms("2026-10-08T06:32:00+07:00"))).toBe(true);
+    expect(keepsLegacyTimes(legacy, ms("2026-10-08T06:35:00+07:00"))).toBe(false);
   });
 });
 
@@ -129,11 +147,15 @@ describe("autoSplitTimes — đúng công thức của máy chủ", () => {
     ]);
   });
 
-  it("làm tròn XUỐNG theo phút tính từ giờ đi, không vượt giờ đến", () => {
-    // 100 phút chia 1 : 2 → 33,33 phút → 33 phút.
+  it("mốc 5 phút: điểm cho đón làm tròn XUỐNG, điểm chỉ trả làm tròn LÊN, không vượt giờ đến", () => {
+    // 100 phút chia 1 : 2 → 33,33 phút: cho đón → 30 phút, chỉ trả → 35 phút.
     const times = autoSplitTimes(departure, departure + 100 * 60_000, [null, 1, 2]);
-    expect((times[1]! - departure) / 60_000).toBe(33);
+    expect((times[1]! - departure) / 60_000).toBe(30);
     expect(times[2]).toBe(departure + 100 * 60_000);
+    const dropoffOnly = autoSplitTimes(departure, departure + 100 * 60_000, [null, 1, 2], [true, false, false]);
+    expect((dropoffOnly[1]! - departure) / 60_000).toBe(35);
+    // Cách cũ (không làm tròn 5 phút): theo phút.
+    expect((autoSplitTimes(departure, departure + 100 * 60_000, [null, 1, 2], [], false)[1]! - departure) / 60_000).toBe(33);
   });
 
   it("tuyến chưa có số liệu chặng: các điểm giữa bằng giờ đi, điểm cuối vẫn là giờ đến", () => {

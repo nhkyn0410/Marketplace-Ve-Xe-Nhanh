@@ -541,9 +541,11 @@ doc/ReviewPageDtoOutput.md
 doc/ReviewPageDtoOutputItemsInner.md
 doc/ReviewsApi.md
 doc/RouteInputDto.md
-doc/RouteInputDtoStopsInner.md
 doc/RouteListResponseDtoOutput.md
 doc/RouteListResponseDtoOutputItemsInner.md
+doc/RouteNamePreviewDtoOutput.md
+doc/RouteNamePreviewInputDto.md
+doc/RouteNamePreviewInputDtoStopsInner.md
 doc/RouteResponseDtoOutput.md
 doc/RouteResponseDtoOutputStopsInner.md
 doc/SalesOfficeAssignmentsDtoOutput.md
@@ -1226,9 +1228,11 @@ lib/src/model/review_input_dto.dart
 lib/src/model/review_page_dto_output.dart
 lib/src/model/review_page_dto_output_items_inner.dart
 lib/src/model/route_input_dto.dart
-lib/src/model/route_input_dto_stops_inner.dart
 lib/src/model/route_list_response_dto_output.dart
 lib/src/model/route_list_response_dto_output_items_inner.dart
+lib/src/model/route_name_preview_dto_output.dart
+lib/src/model/route_name_preview_input_dto.dart
+lib/src/model/route_name_preview_input_dto_stops_inner.dart
 lib/src/model/route_response_dto_output.dart
 lib/src/model/route_response_dto_output_stops_inner.dart
 lib/src/model/sales_office_assignments_dto_output.dart
@@ -1355,3 +1359,6 @@ lib/src/model/ward_list_response_dto_output.dart
 lib/src/model/ward_list_response_dto_output_items_inner.dart
 lib/src/serializers.dart
 pubspec.yaml
+test/route_name_preview_dto_output_test.dart
+test/route_name_preview_input_dto_stops_inner_test.dart
+test/route_name_preview_input_dto_test.dart

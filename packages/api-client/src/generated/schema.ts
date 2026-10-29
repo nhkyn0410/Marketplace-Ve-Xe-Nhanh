@@ -1828,6 +1828,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/operator/routes/name-suggestion": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["RouteController_previewName"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/admin/routes": {
         parameters: {
             query?: never;
@@ -7055,6 +7071,8 @@ export interface components {
                 id: string;
                 name: string;
                 /** @enum {string} */
+                nameSource: "AUTO" | "MANUAL";
+                /** @enum {string} */
                 status: "ACTIVE" | "INACTIVE";
                 totalDistanceMeters: number;
                 totalDurationSeconds: number;
@@ -7075,6 +7093,8 @@ export interface components {
             id: string;
             name: string;
             /** @enum {string} */
+            nameSource: "AUTO" | "MANUAL";
+            /** @enum {string} */
             status: "ACTIVE" | "INACTIVE";
             totalDistanceMeters: number;
             totalDurationSeconds: number;
@@ -7084,6 +7104,7 @@ export interface components {
             createdAt: string;
             /** Format: date-time */
             updatedAt: string;
+            suggestedName: string | null;
             note: string | null;
             stops: {
                 sequence: number;
@@ -7105,8 +7126,27 @@ export interface components {
                 measuredDurationSecondsFromPrevious: number | null;
             }[];
         };
+        RouteNamePreviewInputDto: {
+            stops: {
+                catalogStopPointId: string | null;
+                stopPointId: string | null;
+                note: string | null;
+                allowPickup: boolean;
+                allowDropoff: boolean;
+                durationMinutesFromPrevious?: number | null;
+            }[];
+            routeId?: string | null;
+        };
+        RouteNamePreviewDto_Output: {
+            name: string;
+        };
         RouteInputDto: {
             name: string;
+            /**
+             * @default MANUAL
+             * @enum {string}
+             */
+            nameSource: "AUTO" | "MANUAL";
             /** @enum {string} */
             status: "ACTIVE" | "INACTIVE";
             note: string | null;
@@ -18259,6 +18299,66 @@ export interface operations {
             };
             /** @description `ROUTING_PROVIDER_UNAVAILABLE` — không đổi gì. */
             503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    RouteController_previewName: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RouteNamePreviewInputDto"];
+            };
+        };
+        responses: {
+            /** @description Tên tự động, đã tránh trùng tuyến khác của nhà xe. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RouteNamePreviewDto_Output"];
+                };
+            };
+            /** @description Dữ liệu không hợp lệ. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `STOP_POINT_UNAVAILABLE`. */
+            422: {
                 headers: {
                     [name: string]: unknown;
                 };

@@ -6,6 +6,32 @@ part of 'route_list_response_dto_output_items_inner.dart';
 // BuiltValueGenerator
 // **************************************************************************
 
+const RouteListResponseDtoOutputItemsInnerNameSourceEnum
+    _$routeListResponseDtoOutputItemsInnerNameSourceEnum_AUTO =
+    const RouteListResponseDtoOutputItemsInnerNameSourceEnum._('AUTO');
+const RouteListResponseDtoOutputItemsInnerNameSourceEnum
+    _$routeListResponseDtoOutputItemsInnerNameSourceEnum_MANUAL =
+    const RouteListResponseDtoOutputItemsInnerNameSourceEnum._('MANUAL');
+
+RouteListResponseDtoOutputItemsInnerNameSourceEnum
+    _$routeListResponseDtoOutputItemsInnerNameSourceEnumValueOf(String name) {
+  switch (name) {
+    case 'AUTO':
+      return _$routeListResponseDtoOutputItemsInnerNameSourceEnum_AUTO;
+    case 'MANUAL':
+      return _$routeListResponseDtoOutputItemsInnerNameSourceEnum_MANUAL;
+    default:
+      throw ArgumentError(name);
+  }
+}
+
+final BuiltSet<RouteListResponseDtoOutputItemsInnerNameSourceEnum>
+    _$routeListResponseDtoOutputItemsInnerNameSourceEnumValues = BuiltSet<
+        RouteListResponseDtoOutputItemsInnerNameSourceEnum>(const <RouteListResponseDtoOutputItemsInnerNameSourceEnum>[
+  _$routeListResponseDtoOutputItemsInnerNameSourceEnum_AUTO,
+  _$routeListResponseDtoOutputItemsInnerNameSourceEnum_MANUAL,
+]);
+
 const RouteListResponseDtoOutputItemsInnerStatusEnum
     _$routeListResponseDtoOutputItemsInnerStatusEnum_ACTIVE =
     const RouteListResponseDtoOutputItemsInnerStatusEnum._('ACTIVE');
@@ -59,12 +85,49 @@ final BuiltSet<RouteListResponseDtoOutputItemsInnerMetricsSourceEnum>
   _$routeListResponseDtoOutputItemsInnerMetricsSourceEnum_ESTIMATE,
 ]);
 
+Serializer<RouteListResponseDtoOutputItemsInnerNameSourceEnum>
+    _$routeListResponseDtoOutputItemsInnerNameSourceEnumSerializer =
+    _$RouteListResponseDtoOutputItemsInnerNameSourceEnumSerializer();
 Serializer<RouteListResponseDtoOutputItemsInnerStatusEnum>
     _$routeListResponseDtoOutputItemsInnerStatusEnumSerializer =
     _$RouteListResponseDtoOutputItemsInnerStatusEnumSerializer();
 Serializer<RouteListResponseDtoOutputItemsInnerMetricsSourceEnum>
     _$routeListResponseDtoOutputItemsInnerMetricsSourceEnumSerializer =
     _$RouteListResponseDtoOutputItemsInnerMetricsSourceEnumSerializer();
+
+class _$RouteListResponseDtoOutputItemsInnerNameSourceEnumSerializer
+    implements
+        PrimitiveSerializer<
+            RouteListResponseDtoOutputItemsInnerNameSourceEnum> {
+  static const Map<String, Object> _toWire = const <String, Object>{
+    'AUTO': 'AUTO',
+    'MANUAL': 'MANUAL',
+  };
+  static const Map<Object, String> _fromWire = const <Object, String>{
+    'AUTO': 'AUTO',
+    'MANUAL': 'MANUAL',
+  };
+
+  @override
+  final Iterable<Type> types = const <Type>[
+    RouteListResponseDtoOutputItemsInnerNameSourceEnum
+  ];
+  @override
+  final String wireName = 'RouteListResponseDtoOutputItemsInnerNameSourceEnum';
+
+  @override
+  Object serialize(Serializers serializers,
+          RouteListResponseDtoOutputItemsInnerNameSourceEnum object,
+          {FullType specifiedType = FullType.unspecified}) =>
+      _toWire[object.name] ?? object.name;
+
+  @override
+  RouteListResponseDtoOutputItemsInnerNameSourceEnum deserialize(
+          Serializers serializers, Object serialized,
+          {FullType specifiedType = FullType.unspecified}) =>
+      RouteListResponseDtoOutputItemsInnerNameSourceEnum.valueOf(
+          _fromWire[serialized] ?? (serialized is String ? serialized : ''));
+}
 
 class _$RouteListResponseDtoOutputItemsInnerStatusEnumSerializer
     implements
@@ -141,6 +204,8 @@ class _$RouteListResponseDtoOutputItemsInner
   @override
   final String name;
   @override
+  final RouteListResponseDtoOutputItemsInnerNameSourceEnum nameSource;
+  @override
   final RouteListResponseDtoOutputItemsInnerStatusEnum status;
   @override
   final int totalDistanceMeters;
@@ -167,6 +232,7 @@ class _$RouteListResponseDtoOutputItemsInner
   _$RouteListResponseDtoOutputItemsInner._(
       {required this.id,
       required this.name,
+      required this.nameSource,
       required this.status,
       required this.totalDistanceMeters,
       required this.totalDurationSeconds,
@@ -192,6 +258,7 @@ class _$RouteListResponseDtoOutputItemsInner
     return other is RouteListResponseDtoOutputItemsInner &&
         id == other.id &&
         name == other.name &&
+        nameSource == other.nameSource &&
         status == other.status &&
         totalDistanceMeters == other.totalDistanceMeters &&
         totalDurationSeconds == other.totalDurationSeconds &&
@@ -208,6 +275,7 @@ class _$RouteListResponseDtoOutputItemsInner
     var _$hash = 0;
     _$hash = $jc(_$hash, id.hashCode);
     _$hash = $jc(_$hash, name.hashCode);
+    _$hash = $jc(_$hash, nameSource.hashCode);
     _$hash = $jc(_$hash, status.hashCode);
     _$hash = $jc(_$hash, totalDistanceMeters.hashCode);
     _$hash = $jc(_$hash, totalDurationSeconds.hashCode);
@@ -226,6 +294,7 @@ class _$RouteListResponseDtoOutputItemsInner
     return (newBuiltValueToStringHelper(r'RouteListResponseDtoOutputItemsInner')
           ..add('id', id)
           ..add('name', name)
+          ..add('nameSource', nameSource)
           ..add('status', status)
           ..add('totalDistanceMeters', totalDistanceMeters)
           ..add('totalDurationSeconds', totalDurationSeconds)
@@ -252,6 +321,13 @@ class RouteListResponseDtoOutputItemsInnerBuilder
   String? _name;
   String? get name => _$this._name;
   set name(String? name) => _$this._name = name;
+
+  RouteListResponseDtoOutputItemsInnerNameSourceEnum? _nameSource;
+  RouteListResponseDtoOutputItemsInnerNameSourceEnum? get nameSource =>
+      _$this._nameSource;
+  set nameSource(
+          RouteListResponseDtoOutputItemsInnerNameSourceEnum? nameSource) =>
+      _$this._nameSource = nameSource;
 
   RouteListResponseDtoOutputItemsInnerStatusEnum? _status;
   RouteListResponseDtoOutputItemsInnerStatusEnum? get status => _$this._status;
@@ -306,6 +382,7 @@ class RouteListResponseDtoOutputItemsInnerBuilder
     if ($v != null) {
       _id = $v.id;
       _name = $v.name;
+      _nameSource = $v.nameSource;
       _status = $v.status;
       _totalDistanceMeters = $v.totalDistanceMeters;
       _totalDurationSeconds = $v.totalDurationSeconds;
@@ -341,6 +418,8 @@ class RouteListResponseDtoOutputItemsInnerBuilder
               id, r'RouteListResponseDtoOutputItemsInner', 'id'),
           name: BuiltValueNullFieldError.checkNotNull(
               name, r'RouteListResponseDtoOutputItemsInner', 'name'),
+          nameSource: BuiltValueNullFieldError.checkNotNull(nameSource,
+              r'RouteListResponseDtoOutputItemsInner', 'nameSource'),
           status: BuiltValueNullFieldError.checkNotNull(
               status, r'RouteListResponseDtoOutputItemsInner', 'status'),
           totalDistanceMeters: BuiltValueNullFieldError.checkNotNull(

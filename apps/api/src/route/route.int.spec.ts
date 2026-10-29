@@ -66,6 +66,10 @@ describe.skipIf(!url && !requireDb)("Route / StopPoint / Proposal — Postgres t
   const ward = randomUUID();
   const wardInactive = randomUUID();
   const wardOther = randomUUID();
+  // Phường có tên cũ (bảng ánh xạ hành chính) → nơi của điểm dừng khi tự đặt tên tuyến.
+  const wardHcm = randomUUID();
+  const wardGiaNghia = randomUUID();
+  const wardBmt = randomUUID();
   const catalog1 = randomUUID();
   const catalog2 = randomUUID();
   const catalogInactive = randomUUID();
@@ -144,6 +148,24 @@ describe.skipIf(!url && !requireDb)("Route / StopPoint / Proposal — Postgres t
           { id: ward, provinceId: province, code: `rw-${tag}`, name: "Phường route" },
           { id: wardInactive, provinceId: province, code: `ri-${tag}`, name: "Phường ngừng", status: "INACTIVE" },
           { id: wardOther, provinceId: provinceOther, code: `rx-${tag}`, name: "Phường tỉnh khác" },
+          { id: wardHcm, provinceId: province, code: `rh-${tag}`, name: "Phường cũ TP.HCM" },
+          { id: wardGiaNghia, provinceId: province, code: `rg-${tag}`, name: "Phường cũ Gia Nghĩa" },
+          { id: wardBmt, provinceId: province, code: `rb-${tag}`, name: "Phường cũ Buôn Ma Thuột" },
+        ],
+      });
+      const legacy = (wardId: string, legacyProvinceName: string, legacyDistrictName: string) => ({
+        legacyProvinceCode: `R-${tag}`,
+        legacyProvinceName,
+        legacyDistrictName,
+        legacyWardName: `Phường ${wardId.slice(0, 6)}`,
+        provinceId: province,
+        wardId,
+      });
+      await tx.legacyAdministrativeMapping.createMany({
+        data: [
+          legacy(wardHcm, "Thành phố Hồ Chí Minh", "Quận 1"),
+          legacy(wardGiaNghia, "Tỉnh Đắk Nông", "Thành phố Gia Nghĩa"),
+          legacy(wardBmt, "Tỉnh Đắk Lắk", "Thành phố Buôn Ma Thuột"),
         ],
       });
       const point = (id: string, name: string, extra: Record<string, unknown> = {}) => ({
@@ -187,6 +209,7 @@ describe.skipIf(!url && !requireDb)("Route / StopPoint / Proposal — Postgres t
       await tx.stopPointProposal.deleteMany({ where: { operatorId } });
       await tx.stopPoint.deleteMany({ where: { operatorId } });
       await tx.stopPointCatalog.deleteMany({ where: { provinceId: { in: [province, provinceOther] } } });
+      await tx.legacyAdministrativeMapping.deleteMany({ where: { provinceId: { in: [province, provinceOther] } } });
       await tx.ward.deleteMany({ where: { provinceId: { in: [province, provinceOther] } } });
       await tx.province.deleteMany({ where: { id: { in: [province, provinceOther] } } });
       await tx.operatorProfile.deleteMany({ where: { id: operatorId } });
@@ -818,6 +841,51 @@ describe.skipIf(!url && !requireDb)("Route / StopPoint / Proposal — Postgres t
       expect((await routes.create(authzB, routeInput(`NAME ${tag}`, stops))).name).toBe(`NAME ${tag}`);
       expect((await rejectionOf(routes.get(authzB, created.id))).code).toBe("ROUTE_NOT_FOUND");
       expect((await rejectionOf(routes.update(authzB, created.id, routeInput(`X ${tag}`, stops)))).code).toBe("ROUTE_NOT_FOUND");
+    });
+
+    it("tự đặt tên (giai đoạn 3.1): nơi theo tên cũ của phường, \"qua\" điểm giữa có đón / trả; trùng thì kèm điểm đầu rồi đánh số", async () => {
+      const [hcm, giaNghia, bmt, rest] = await Promise.all([
+        stopPoints.create(authzA, stopPointInput({ name: `BX Miền Đông ${tag}`, wardId: wardHcm })),
+        stopPoints.create(authzA, stopPointInput({ name: `VP Gia Nghĩa ${tag}`, wardId: wardGiaNghia })),
+        stopPoints.create(authzA, stopPointInput({ name: `BX BMT ${tag}`, wardId: wardBmt })),
+        stopPoints.create(authzA, stopPointInput({ name: `Trạm nghỉ ${tag}`, type: "REST_STOP", wardId: wardGiaNghia })),
+      ]);
+      const auto = (stops: (object & StopFlags)[]) => routeInput("", stops, { nameSource: "AUTO" });
+      const via = [privateStop(hcm.id), privateStop(giaNghia.id), privateStop(bmt.id)];
+      // Trạm nghỉ không đón / trả thì không vào "qua".
+      const direct = [privateStop(hcm.id), privateStop(rest.id, { allowPickup: false, allowDropoff: false }), privateStop(bmt.id)];
+
+      const first = await routes.create(authzA, auto(via));
+      expect(first).toMatchObject({ name: "TP.HCM → Buôn Ma Thuột (qua Gia Nghĩa)", nameSource: "AUTO", suggestedName: null });
+      expect((await routes.create(authzA, auto(direct))).name).toBe("TP.HCM → Buôn Ma Thuột");
+      expect((await routes.create(authzA, auto(direct))).name).toBe(`TP.HCM → Buôn Ma Thuột · BX Miền Đông ${tag}`);
+      expect((await routes.create(authzA, auto(direct))).name).toBe("TP.HCM → Buôn Ma Thuột (2)");
+      // Sửa lại chính tuyến đó: không tự coi tên của mình là trùng.
+      expect((await routes.update(authzA, first.id, auto(via))).name).toBe("TP.HCM → Buôn Ma Thuột (qua Gia Nghĩa)");
+
+      // Xem trước khi đang sửa form: đúng tên sẽ lưu, không gọi provider.
+      routing.calls = 0;
+      expect(await routes.previewName(authzA, { stops: auto(direct).stops })).toEqual({ name: "TP.HCM → Buôn Ma Thuột (3)" });
+      expect(await routes.previewName(authzA, { stops: auto(via).stops, routeId: first.id })).toEqual({
+        name: "TP.HCM → Buôn Ma Thuột (qua Gia Nghĩa)",
+      });
+      expect(routing.calls).toBe(0);
+
+      // Đặt tên tay: giữ tên gõ, kèm tên gợi ý (đã tránh trùng); chuyển sang tự đặt thì tên theo điểm, đổi điểm thì đổi theo.
+      const manual = await routes.create(authzA, routeInput(`Tay ${tag}`, via));
+      expect(manual).toMatchObject({
+        name: `Tay ${tag}`,
+        nameSource: "MANUAL",
+        suggestedName: `TP.HCM → Buôn Ma Thuột (qua Gia Nghĩa) · BX Miền Đông ${tag}`,
+      });
+      expect(await routes.update(authzA, manual.id, auto(via))).toMatchObject({
+        name: `TP.HCM → Buôn Ma Thuột (qua Gia Nghĩa) · BX Miền Đông ${tag}`,
+        nameSource: "AUTO",
+        suggestedName: null,
+      });
+      expect((await routes.update(authzA, manual.id, auto([privateStop(bmt.id), privateStop(hcm.id)]))).name).toBe("Buôn Ma Thuột → TP.HCM");
+      // Hai đầu cùng một nơi (tuyến nội vùng): dùng tên hai điểm.
+      expect((await routes.create(authzA, auto([catalogStop(catalog1), catalogStop(catalog2)]))).name).toBe(`Bến 1 ${tag} → Bến 2 ${tag}`);
     });
 
     it("hai PUT đồng thời: bản sau thắng trọn vẹn, không trộn điểm dừng", async () => {

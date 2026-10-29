@@ -19,7 +19,7 @@ import { Controller, useForm } from "react-hook-form";
 import { ApiError } from "../../lib/auth/api-client";
 import { listAllRoutes } from "../../lib/route/route-api";
 import { formatDuration } from "../../lib/route/route-format";
-import { MAX_ONLINE_SALE_CUTOFF_MINUTES, NO_VEHICLE, TRIP_NOTE_MAX_LENGTH } from "../../lib/trip/trip-form";
+import { MAX_ONLINE_SALE_CUTOFF_MINUTES, NO_VEHICLE, roundClock, TIME_STEP_MINUTES, TRIP_NOTE_MAX_LENGTH } from "../../lib/trip/trip-form";
 import { TRIP_STATUS, todayLocalDate } from "../../lib/trip/trip-format";
 import {
   createTripSchedule,
@@ -264,8 +264,18 @@ function ScheduleFormBody({ schedule }: { schedule?: TripSchedule }) {
             </FormField>
 
             <div className="grid gap-4 sm:grid-cols-2">
-              <FormField label="Giờ khởi hành *" helper="Theo giờ Việt Nam" error={errors.departureTime?.message}>
-                {(control) => <Input {...control} type="time" {...form.register("departureTime")} />}
+              <FormField label="Giờ khởi hành *" helper="Theo giờ Việt Nam · làm tròn theo bước 5 phút" error={errors.departureTime?.message}>
+                {(control) => (
+                  <Input
+                    {...control}
+                    type="time"
+                    step={TIME_STEP_MINUTES * 60}
+                    {...form.register("departureTime", {
+                      onBlur: (event: { target: { value: string } }) =>
+                        form.setValue("departureTime", roundClock(event.target.value), { shouldDirty: true, shouldValidate: true })
+                    })}
+                  />
+                )}
               </FormField>
               <div role="group" aria-label="Thời gian chạy theo tuyến" className="flex flex-col gap-1 rounded-lg bg-muted/50 px-4 py-3">
                 <span className="text-sm leading-5 font-medium text-vxn-fg-1">Thời gian chạy (theo tuyến)</span>

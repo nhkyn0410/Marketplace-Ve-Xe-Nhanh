@@ -95,9 +95,26 @@ export function toTripFormValues(trip: Trip): TripFormValues {
   };
 }
 
-/** Giờ khởi hành đang nhập, dạng ISO có múi giờ. */
+/** Giờ của chuyến theo bước 5 phút — cùng quy tắc máy chủ (3.1, chờ duyệt). */
+export const TIME_STEP_MINUTES = 5;
+const STEP_MS = TIME_STEP_MINUTES * MINUTE_MS;
+
+/**
+ * Giờ `HH:mm` làm tròn về mốc 5 phút gần nhất ("06:32" → "06:30", "06:33" → "06:35"); không sang ngày hôm sau ("23:58" →
+ * "23:55"). Chuỗi chưa đúng định dạng giữ nguyên.
+ */
+export function roundClock(time: string): string {
+  if (!TIME.test(time)) {
+    return time;
+  }
+  const [hours, minutes] = time.split(":").map(Number) as [number, number];
+  const total = Math.min(Math.round((hours * 60 + minutes) / TIME_STEP_MINUTES) * TIME_STEP_MINUTES, 24 * 60 - TIME_STEP_MINUTES);
+  return `${String(Math.floor(total / 60)).padStart(2, "0")}:${String(total % 60).padStart(2, "0")}`;
+}
+
+/** Giờ khởi hành đang nhập (đã làm tròn 5 phút như máy chủ), dạng ISO có múi giờ. */
 export function departureIso(values: Pick<TripFormValues, "departureDate" | "departureTime">): string {
-  return fromLocalParts(values.departureDate, values.departureTime);
+  return fromLocalParts(values.departureDate, roundClock(values.departureTime));
 }
 
 /** Đã nhập đủ ngày giờ khởi hành đúng định dạng chưa — đủ thì mới tính được giờ đến và giờ từng điểm. */
@@ -106,29 +123,55 @@ export function hasCompleteTimes(values: Pick<TripFormValues, "departureDate" | 
 }
 
 /**
- * Giờ đến theo tuyến = giờ khởi hành + thời gian chạy của tuyến, làm tròn phút, ít nhất 1 phút — đúng công thức máy chủ
- * (`routeArrival`), để giờ xem trước trùng giờ được lưu.
+ * Giờ đến theo tuyến = giờ khởi hành + thời gian chạy của tuyến, ít nhất 1 phút, làm tròn LÊN mốc 5 phút — đúng công thức
+ * máy chủ (`routeArrival`), để giờ xem trước trùng giờ được lưu. `rounding = false`: cách cũ cho chuyến lẻ phút không dời giờ.
  */
-export function routeArrivalMs(departureMs: number, routeDurationSeconds: number): number {
-  return departureMs + Math.max(1, Math.round(routeDurationSeconds / 60)) * MINUTE_MS;
+export function routeArrivalMs(departureMs: number, routeDurationSeconds: number, rounding = true): number {
+  const arrival = departureMs + Math.max(1, Math.round(routeDurationSeconds / 60)) * MINUTE_MS;
+  return rounding ? Math.ceil(arrival / STEP_MS) * STEP_MS : arrival;
 }
 
 /**
- * Giờ dự kiến tại từng điểm khi "Tự chia": chia khoảng [giờ đi, giờ đến] theo tỉ lệ thời gian chạy từng chặng
- * của tuyến, làm tròn xuống theo phút tính từ giờ đi — đúng công thức của máy chủ, để giờ xem trước trùng giờ
- * được lưu. `legSeconds[i]` = thời gian chặng tới điểm `i` (điểm đầu là `null`).
+ * Chuyến tạo trước bước 5 phút (giờ lẻ phút) mà không dời giờ đi: máy chủ giữ cách tính cũ khi đổi lịch (`keepsLegacyTimes`),
+ * ở đây làm theo để giờ xem trước khớp.
  */
-export function autoSplitTimes(departureMs: number, arrivalMs: number, legSeconds: (number | null)[]): number[] {
+export function keepsLegacyTimes(current: { departureAt: string; arrivalAt: string }, departureMs: number): boolean {
+  const departure = Date.parse(current.departureAt);
+  const offGrid = departure % STEP_MS !== 0 || Date.parse(current.arrivalAt) % STEP_MS !== 0;
+  return offGrid && departure === departureMs;
+}
+
+/**
+ * Giờ dự kiến tại từng điểm khi "Tự chia": chia khoảng [giờ đi, giờ đến] theo tỉ lệ thời gian chạy từng chặng của tuyến
+ * rồi làm tròn mốc 5 phút — điểm cho đón làm tròn xuống, điểm chỉ trả làm tròn lên, không giảm dần, không vượt giờ đến —
+ * đúng công thức của máy chủ để giờ xem trước trùng giờ được lưu. `legSeconds[i]` = thời gian chặng tới điểm `i` (điểm đầu
+ * là `null`); `allowPickup[i]` = điểm `i` cho đón (thiếu = có).
+ */
+export function autoSplitTimes(
+  departureMs: number,
+  arrivalMs: number,
+  legSeconds: (number | null)[],
+  allowPickup: readonly boolean[] = [],
+  rounding = true
+): number[] {
   const span = arrivalMs - departureMs;
   let elapsed = 0;
   const cumulative = legSeconds.map((seconds) => (elapsed += seconds ?? 0));
   const total = cumulative[cumulative.length - 1] ?? 0;
   const last = legSeconds.length - 1;
-  return cumulative.map((seconds, index) =>
-    index === last
-      ? arrivalMs
-      : departureMs + (total === 0 ? 0 : Math.floor(((seconds / total) * span) / MINUTE_MS) * MINUTE_MS)
-  );
+  let previous = departureMs;
+  return cumulative.map((seconds, index) => {
+    if (index === 0 || index === last) {
+      return index === 0 ? departureMs : arrivalMs;
+    }
+    const raw = departureMs + (total === 0 ? 0 : (seconds / total) * span);
+    if (!rounding) {
+      return departureMs + Math.floor((raw - departureMs) / MINUTE_MS) * MINUTE_MS;
+    }
+    const rounded = allowPickup[index] === false ? Math.ceil(raw / STEP_MS) * STEP_MS : Math.floor(raw / STEP_MS) * STEP_MS;
+    previous = Math.min(Math.max(rounded, previous), arrivalMs);
+    return previous;
+  });
 }
 
 /**

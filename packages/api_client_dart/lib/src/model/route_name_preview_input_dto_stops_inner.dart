@@ -6,9 +6,9 @@
 import 'package:built_value/built_value.dart';
 import 'package:built_value/serializer.dart';
 
-part 'route_input_dto_stops_inner.g.dart';
+part 'route_name_preview_input_dto_stops_inner.g.dart';
 
-/// RouteInputDtoStopsInner
+/// RouteNamePreviewInputDtoStopsInner
 ///
 /// Properties:
 /// * [catalogStopPointId] 
@@ -18,7 +18,7 @@ part 'route_input_dto_stops_inner.g.dart';
 /// * [allowDropoff] 
 /// * [durationMinutesFromPrevious] 
 @BuiltValue()
-abstract class RouteInputDtoStopsInner implements Built<RouteInputDtoStopsInner, RouteInputDtoStopsInnerBuilder> {
+abstract class RouteNamePreviewInputDtoStopsInner implements Built<RouteNamePreviewInputDtoStopsInner, RouteNamePreviewInputDtoStopsInnerBuilder> {
   @BuiltValueField(wireName: r'catalogStopPointId')
   String? get catalogStopPointId;
 
@@ -37,27 +37,27 @@ abstract class RouteInputDtoStopsInner implements Built<RouteInputDtoStopsInner,
   @BuiltValueField(wireName: r'durationMinutesFromPrevious')
   int? get durationMinutesFromPrevious;
 
-  RouteInputDtoStopsInner._();
+  RouteNamePreviewInputDtoStopsInner._();
 
-  factory RouteInputDtoStopsInner([void updates(RouteInputDtoStopsInnerBuilder b)]) = _$RouteInputDtoStopsInner;
+  factory RouteNamePreviewInputDtoStopsInner([void updates(RouteNamePreviewInputDtoStopsInnerBuilder b)]) = _$RouteNamePreviewInputDtoStopsInner;
 
   @BuiltValueHook(initializeBuilder: true)
-  static void _defaults(RouteInputDtoStopsInnerBuilder b) => b;
+  static void _defaults(RouteNamePreviewInputDtoStopsInnerBuilder b) => b;
 
   @BuiltValueSerializer(custom: true)
-  static Serializer<RouteInputDtoStopsInner> get serializer => _$RouteInputDtoStopsInnerSerializer();
+  static Serializer<RouteNamePreviewInputDtoStopsInner> get serializer => _$RouteNamePreviewInputDtoStopsInnerSerializer();
 }
 
-class _$RouteInputDtoStopsInnerSerializer implements PrimitiveSerializer<RouteInputDtoStopsInner> {
+class _$RouteNamePreviewInputDtoStopsInnerSerializer implements PrimitiveSerializer<RouteNamePreviewInputDtoStopsInner> {
   @override
-  final Iterable<Type> types = const [RouteInputDtoStopsInner, _$RouteInputDtoStopsInner];
+  final Iterable<Type> types = const [RouteNamePreviewInputDtoStopsInner, _$RouteNamePreviewInputDtoStopsInner];
 
   @override
-  final String wireName = r'RouteInputDtoStopsInner';
+  final String wireName = r'RouteNamePreviewInputDtoStopsInner';
 
   Iterable<Object?> _serializeProperties(
     Serializers serializers,
-    RouteInputDtoStopsInner object, {
+    RouteNamePreviewInputDtoStopsInner object, {
     FullType specifiedType = FullType.unspecified,
   }) sync* {
     yield r'catalogStopPointId';
@@ -97,7 +97,7 @@ class _$RouteInputDtoStopsInnerSerializer implements PrimitiveSerializer<RouteIn
   @override
   Object serialize(
     Serializers serializers,
-    RouteInputDtoStopsInner object, {
+    RouteNamePreviewInputDtoStopsInner object, {
     FullType specifiedType = FullType.unspecified,
   }) {
     return _serializeProperties(serializers, object, specifiedType: specifiedType).toList();
@@ -108,7 +108,7 @@ class _$RouteInputDtoStopsInnerSerializer implements PrimitiveSerializer<RouteIn
     Object serialized, {
     FullType specifiedType = FullType.unspecified,
     required List<Object?> serializedList,
-    required RouteInputDtoStopsInnerBuilder result,
+    required RouteNamePreviewInputDtoStopsInnerBuilder result,
     required List<Object?> unhandled,
   }) {
     for (var i = 0; i < serializedList.length; i += 2) {
@@ -170,12 +170,12 @@ class _$RouteInputDtoStopsInnerSerializer implements PrimitiveSerializer<RouteIn
   }
 
   @override
-  RouteInputDtoStopsInner deserialize(
+  RouteNamePreviewInputDtoStopsInner deserialize(
     Serializers serializers,
     Object serialized, {
     FullType specifiedType = FullType.unspecified,
   }) {
-    final result = RouteInputDtoStopsInnerBuilder();
+    final result = RouteNamePreviewInputDtoStopsInnerBuilder();
     final serializedList = (serialized as Iterable<Object?>).toList();
     final unhandled = <Object?>[];
     _deserializeProperties(

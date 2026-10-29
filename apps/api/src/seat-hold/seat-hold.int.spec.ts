@@ -414,11 +414,11 @@ describe.skipIf(!ready && !requireDb)(
     });
 
     it("hạn giữ không quá giờ ngừng bán online; 21 lần / 10 phút / IP → 429; Redis mất kết nối → 503", async () => {
-      const soon = await trip(new Date(Date.now() + 65 * MINUTE));
+      // Giờ chạy lưu theo mốc 5 phút (giai đoạn 3.1): lấy sẵn mốc → ngừng bán sau 5–10 phút, sớm hơn hạn giữ 10 phút.
+      const departureAt = Math.ceil((Date.now() + 65 * MINUTE) / (5 * MINUTE)) * 5 * MINUTE;
+      const soon = await trip(new Date(departureAt));
       const capped = await holds.create(null, nextIp(), hold({ tripId: soon }));
-      const ttl = Date.parse(capped.expiresAt) - Date.now();
-      expect(ttl).toBeLessThanOrEqual(5 * MINUTE + 1000);
-      expect(ttl).toBeGreaterThan(4 * MINUTE);
+      expect(capped.expiresAt).toBe(new Date(departureAt - 60 * MINUTE).toISOString());
       await holds.release(null, capped.holdId);
 
       const ip = nextIp();

@@ -351,6 +351,7 @@ Class | Method | HTTP request | Description
 [*OperatorRoutesApi*](doc/OperatorRoutesApi.md) | [**routeControllerCreate**](doc/OperatorRoutesApi.md#routecontrollercreate) | **POST** /v1/operator/routes | 
 [*OperatorRoutesApi*](doc/OperatorRoutesApi.md) | [**routeControllerGet**](doc/OperatorRoutesApi.md#routecontrollerget) | **GET** /v1/operator/routes/{routeId} | 
 [*OperatorRoutesApi*](doc/OperatorRoutesApi.md) | [**routeControllerList**](doc/OperatorRoutesApi.md#routecontrollerlist) | **GET** /v1/operator/routes | 
+[*OperatorRoutesApi*](doc/OperatorRoutesApi.md) | [**routeControllerPreviewName**](doc/OperatorRoutesApi.md#routecontrollerpreviewname) | **POST** /v1/operator/routes/name-suggestion | 
 [*OperatorRoutesApi*](doc/OperatorRoutesApi.md) | [**routeControllerUpdate**](doc/OperatorRoutesApi.md#routecontrollerupdate) | **PUT** /v1/operator/routes/{routeId} | 
 [*OperatorSeatMapsApi*](doc/OperatorSeatMapsApi.md) | [**seatMapControllerCreate**](doc/OperatorSeatMapsApi.md#seatmapcontrollercreate) | **POST** /v1/operator/seat-maps | 
 [*OperatorSeatMapsApi*](doc/OperatorSeatMapsApi.md) | [**seatMapControllerGet**](doc/OperatorSeatMapsApi.md#seatmapcontrollerget) | **GET** /v1/operator/seat-maps/{seatMapId} | 
@@ -907,9 +908,11 @@ Class | Method | HTTP request | Description
  - [ReviewPageDtoOutput](doc/ReviewPageDtoOutput.md)
  - [ReviewPageDtoOutputItemsInner](doc/ReviewPageDtoOutputItemsInner.md)
  - [RouteInputDto](doc/RouteInputDto.md)
- - [RouteInputDtoStopsInner](doc/RouteInputDtoStopsInner.md)
  - [RouteListResponseDtoOutput](doc/RouteListResponseDtoOutput.md)
  - [RouteListResponseDtoOutputItemsInner](doc/RouteListResponseDtoOutputItemsInner.md)
+ - [RouteNamePreviewDtoOutput](doc/RouteNamePreviewDtoOutput.md)
+ - [RouteNamePreviewInputDto](doc/RouteNamePreviewInputDto.md)
+ - [RouteNamePreviewInputDtoStopsInner](doc/RouteNamePreviewInputDtoStopsInner.md)
  - [RouteResponseDtoOutput](doc/RouteResponseDtoOutput.md)
  - [RouteResponseDtoOutputStopsInner](doc/RouteResponseDtoOutputStopsInner.md)
  - [SalesOfficeAssignmentsDtoOutput](doc/SalesOfficeAssignmentsDtoOutput.md)

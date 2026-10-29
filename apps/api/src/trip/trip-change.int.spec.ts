@@ -40,7 +40,8 @@ import { TripService } from "./trip.service";
 const url = process.env.DATABASE_URL;
 const ready = Boolean(url && process.env.REDIS_URL);
 const requireDb = process.env.REQUIRE_DB_TESTS === "1";
-const HOUR = 3_600_000;
+const MINUTE = 60_000;
+const HOUR = 60 * MINUTE;
 const DAY = 24 * HOUR;
 
 async function rejectionOf(promise: Promise<unknown>): Promise<{ status?: number; code?: string; reasons?: string[] }> {
@@ -96,7 +97,8 @@ describe.skipIf(!ready && !requireDb)("Đổi / hủy chuyến đã bán vé + t
   /** Chuyến mở bán sau 48 giờ + đơn 2 chỗ (A1, A2) đã thanh toán qua callback thật (vé, sổ giữ hộ, thông báo vé điện tử). */
   async function soldTrip() {
     const vehicle = await newVehicle(sameSeatMap);
-    const departureAt = new Date(Date.now() + 48 * HOUR);
+    // Giờ chạy lưu theo mốc 5 phút (giai đoạn 3.1) — lấy sẵn mốc để so nguyên giá trị.
+    const departureAt = new Date(Math.ceil((Date.now() + 48 * HOUR) / (5 * MINUTE)) * 5 * MINUTE);
     const trip = await trips.create(
       authz,
       TripInputSchema.parse({ routeId, vehicleId: vehicle.id, departureAt: departureAt.toISOString(), stopTimes: null, onlineSaleCutoffMinutes: 60, note: null }),

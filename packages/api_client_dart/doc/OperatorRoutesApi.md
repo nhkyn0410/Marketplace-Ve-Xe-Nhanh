@@ -12,6 +12,7 @@ Method | HTTP request | Description
 [**routeControllerCreate**](OperatorRoutesApi.md#routecontrollercreate) | **POST** /v1/operator/routes | 
 [**routeControllerGet**](OperatorRoutesApi.md#routecontrollerget) | **GET** /v1/operator/routes/{routeId} | 
 [**routeControllerList**](OperatorRoutesApi.md#routecontrollerlist) | **GET** /v1/operator/routes | 
+[**routeControllerPreviewName**](OperatorRoutesApi.md#routecontrollerpreviewname) | **POST** /v1/operator/routes/name-suggestion | 
 [**routeControllerUpdate**](OperatorRoutesApi.md#routecontrollerupdate) | **PUT** /v1/operator/routes/{routeId} | 
 
 
@@ -138,6 +139,47 @@ Name | Type | Description  | Notes
 ### HTTP request headers
 
  - **Content-Type**: Not defined
+ - **Accept**: application/json, application/problem+json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **routeControllerPreviewName**
+> RouteNamePreviewDtoOutput routeControllerPreviewName(routeNamePreviewInputDto)
+
+
+
+### Example
+```dart
+import 'package:api_client_dart/api.dart';
+
+final api = ApiClientDart().getOperatorRoutesApi();
+final RouteNamePreviewInputDto routeNamePreviewInputDto = ; // RouteNamePreviewInputDto | 
+
+try {
+    final response = api.routeControllerPreviewName(routeNamePreviewInputDto);
+    print(response);
+} on DioException catch (e) {
+    print('Exception when calling OperatorRoutesApi->routeControllerPreviewName: $e\n');
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **routeNamePreviewInputDto** | [**RouteNamePreviewInputDto**](RouteNamePreviewInputDto.md)|  | 
+
+### Return type
+
+[**RouteNamePreviewDtoOutput**](RouteNamePreviewDtoOutput.md)
+
+### Authorization
+
+[bearer](../README.md#bearer)
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
  - **Accept**: application/json, application/problem+json
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)

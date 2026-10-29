@@ -489,9 +489,11 @@ import 'package:api_client_dart/src/model/review_input_dto.dart';
 import 'package:api_client_dart/src/model/review_page_dto_output.dart';
 import 'package:api_client_dart/src/model/review_page_dto_output_items_inner.dart';
 import 'package:api_client_dart/src/model/route_input_dto.dart';
-import 'package:api_client_dart/src/model/route_input_dto_stops_inner.dart';
 import 'package:api_client_dart/src/model/route_list_response_dto_output.dart';
 import 'package:api_client_dart/src/model/route_list_response_dto_output_items_inner.dart';
+import 'package:api_client_dart/src/model/route_name_preview_dto_output.dart';
+import 'package:api_client_dart/src/model/route_name_preview_input_dto.dart';
+import 'package:api_client_dart/src/model/route_name_preview_input_dto_stops_inner.dart';
 import 'package:api_client_dart/src/model/route_response_dto_output.dart';
 import 'package:api_client_dart/src/model/route_response_dto_output_stops_inner.dart';
 import 'package:api_client_dart/src/model/sales_office_assignments_dto_output.dart';
@@ -1095,9 +1097,11 @@ part 'serializers.g.dart';
   ReviewPageDtoOutput,
   ReviewPageDtoOutputItemsInner,
   RouteInputDto,
-  RouteInputDtoStopsInner,
   RouteListResponseDtoOutput,
   RouteListResponseDtoOutputItemsInner,
+  RouteNamePreviewDtoOutput,
+  RouteNamePreviewInputDto,
+  RouteNamePreviewInputDtoStopsInner,
   RouteResponseDtoOutput,
   RouteResponseDtoOutputStopsInner,
   SalesOfficeAssignmentsDtoOutput,
@@ -1379,10 +1383,6 @@ Serializers serializers = (_$serializers.toBuilder()
       ..addBuilderFactory(
         const FullType(BuiltList, [FullType(TicketDetailDtoOutputMessagesInner)]),
         () => ListBuilder<TicketDetailDtoOutputMessagesInner>(),
-      )
-      ..addBuilderFactory(
-        const FullType(BuiltList, [FullType(RouteInputDtoStopsInner)]),
-        () => ListBuilder<RouteInputDtoStopsInner>(),
       )
       ..addBuilderFactory(
         const FullType(BuiltList, [FullType(SalesOfficeListDtoOutputItemsInner)]),
@@ -1923,6 +1923,10 @@ Serializers serializers = (_$serializers.toBuilder()
       ..addBuilderFactory(
         const FullType(BuiltList, [FullType(SeatMapInputDtoSeatsInner)]),
         () => ListBuilder<SeatMapInputDtoSeatsInner>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(RouteNamePreviewInputDtoStopsInner)]),
+        () => ListBuilder<RouteNamePreviewInputDtoStopsInner>(),
       )
       ..addBuilderFactory(
         const FullType(BuiltList, [FullType(TripManifestDtoOutputPassengersInner)]),

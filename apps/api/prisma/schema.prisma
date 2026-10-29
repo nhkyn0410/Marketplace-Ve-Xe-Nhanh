@@ -778,6 +778,13 @@ enum RouteStatus {
   INACTIVE
 }
 
+/// Tên tuyến do hệ thống ghép từ nơi của các điểm dừng (`AUTO`, vd "TP.HCM → Buôn Ma Thuột (qua Gia Nghĩa)") hay nhà
+/// xe gõ tay (`MANUAL`) — tự thiết kế 29/10/2026, chờ duyệt.
+enum RouteNameSource {
+  AUTO
+  MANUAL
+}
+
 /// Vai trò điểm trong route — suy ra từ vị trí (đầu / giữa / cuối).
 enum RouteStopRole {
   ORIGIN
@@ -859,6 +866,8 @@ model Route {
   id                   String               @id @default(uuid())
   operatorId           String               @map("operator_id")
   name                 String
+  /// Tuyến cũ giữ `MANUAL`; tuyến tạo từ form mới mặc định `AUTO` (tên đổi theo điểm dừng mỗi lần lưu).
+  nameSource           RouteNameSource      @default(MANUAL) @map("name_source")
   status               RouteStatus          @default(ACTIVE)
   note                 String?
   totalDistanceMeters  Int                  @map("total_distance_meters")

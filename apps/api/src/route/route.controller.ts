@@ -10,6 +10,9 @@ import {
   RouteListQueryDto,
   RouteListResponseDto,
   type RouteListResponse,
+  RouteNamePreviewDto,
+  RouteNamePreviewInputDto,
+  type RouteNamePreview,
   RouteResponseDto,
   type RouteResponse,
 } from "./dto/route.dto";
@@ -46,6 +49,18 @@ export class RouteController {
   @ApiResponse({ status: 404, description: "`ROUTE_NOT_FOUND` (kể cả khác tenant).", content: problemContent })
   get(@Authz() authz: Authorization, @Param("routeId") routeId: string): Promise<RouteResponse> {
     return this.routes.get(authz, routeId);
+  }
+
+  /** Xem trước tên tuyến tự động (giai đoạn 3.1, chờ duyệt) theo điểm dừng đang sửa; không lưu, không gọi provider. */
+  @Post("name-suggestion")
+  @HttpCode(200)
+  @Authorize("route:manage")
+  @ApiBody({ type: RouteNamePreviewInputDto })
+  @ZodResponse({ status: 200, description: "Tên tự động, đã tránh trùng tuyến khác của nhà xe.", type: RouteNamePreviewDto })
+  @ApiResponse({ status: 400, description: "Dữ liệu không hợp lệ.", content: problemContent })
+  @ApiResponse({ status: 422, description: "`STOP_POINT_UNAVAILABLE`.", content: problemContent })
+  previewName(@Authz() authz: Authorization, @Body() input: RouteNamePreviewInputDto): Promise<RouteNamePreview> {
+    return this.routes.previewName(authz, input);
   }
 
   /** Tạo route và tính khoảng cách/thời gian từng chặng. */

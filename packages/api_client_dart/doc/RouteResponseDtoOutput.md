@@ -10,12 +10,14 @@ Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **id** | **String** |  | 
 **name** | **String** |  | 
+**nameSource** | **String** |  | 
 **status** | **String** |  | 
 **totalDistanceMeters** | **int** |  | 
 **totalDurationSeconds** | **int** |  | 
 **metricsSource** | **String** |  | 
 **createdAt** | [**DateTime**](DateTime.md) |  | 
 **updatedAt** | [**DateTime**](DateTime.md) |  | 
+**suggestedName** | **String** |  | 
 **note** | **String** |  | 
 **stops** | [**BuiltList&lt;RouteResponseDtoOutputStopsInner&gt;**](RouteResponseDtoOutputStopsInner.md) |  | 
 

@@ -819,14 +819,19 @@ Serializers _$serializers = (Serializers().toBuilder()
       ..add(ReviewPageDtoOutputItemsInnerSignalsEnum.serializer)
       ..add(ReviewPageDtoOutputItemsInnerStatusEnum.serializer)
       ..add(RouteInputDto.serializer)
+      ..add(RouteInputDtoNameSourceEnum.serializer)
       ..add(RouteInputDtoStatusEnum.serializer)
-      ..add(RouteInputDtoStopsInner.serializer)
       ..add(RouteListResponseDtoOutput.serializer)
       ..add(RouteListResponseDtoOutputItemsInner.serializer)
       ..add(RouteListResponseDtoOutputItemsInnerMetricsSourceEnum.serializer)
+      ..add(RouteListResponseDtoOutputItemsInnerNameSourceEnum.serializer)
       ..add(RouteListResponseDtoOutputItemsInnerStatusEnum.serializer)
+      ..add(RouteNamePreviewDtoOutput.serializer)
+      ..add(RouteNamePreviewInputDto.serializer)
+      ..add(RouteNamePreviewInputDtoStopsInner.serializer)
       ..add(RouteResponseDtoOutput.serializer)
       ..add(RouteResponseDtoOutputMetricsSourceEnum.serializer)
+      ..add(RouteResponseDtoOutputNameSourceEnum.serializer)
       ..add(RouteResponseDtoOutputStatusEnum.serializer)
       ..add(RouteResponseDtoOutputStopsInner.serializer)
       ..add(RouteResponseDtoOutputStopsInnerRoleEnum.serializer)
@@ -1791,13 +1796,17 @@ Serializers _$serializers = (Serializers().toBuilder()
               const [const FullType(ReviewPageDtoOutputItemsInnerSignalsEnum)]),
           () => ListBuilder<ReviewPageDtoOutputItemsInnerSignalsEnum>())
       ..addBuilderFactory(
-          const FullType(
-              BuiltList, const [const FullType(RouteInputDtoStopsInner)]),
-          () => ListBuilder<RouteInputDtoStopsInner>())
-      ..addBuilderFactory(
           const FullType(BuiltList,
               const [const FullType(RouteListResponseDtoOutputItemsInner)]),
           () => ListBuilder<RouteListResponseDtoOutputItemsInner>())
+      ..addBuilderFactory(
+          const FullType(BuiltList,
+              const [const FullType(RouteNamePreviewInputDtoStopsInner)]),
+          () => ListBuilder<RouteNamePreviewInputDtoStopsInner>())
+      ..addBuilderFactory(
+          const FullType(BuiltList,
+              const [const FullType(RouteNamePreviewInputDtoStopsInner)]),
+          () => ListBuilder<RouteNamePreviewInputDtoStopsInner>())
       ..addBuilderFactory(
           const FullType(BuiltList,
               const [const FullType(RouteResponseDtoOutputStopsInner)]),

@@ -3,8 +3,8 @@
 //
 
 // ignore_for_file: unused_element
+import 'package:api_client_dart/src/model/route_name_preview_input_dto_stops_inner.dart';
 import 'package:built_collection/built_collection.dart';
-import 'package:api_client_dart/src/model/route_input_dto_stops_inner.dart';
 import 'package:built_value/built_value.dart';
 import 'package:built_value/serializer.dart';
 
@@ -14,6 +14,7 @@ part 'route_input_dto.g.dart';
 ///
 /// Properties:
 /// * [name] 
+/// * [nameSource] 
 /// * [status] 
 /// * [note] 
 /// * [stops] 
@@ -21,6 +22,10 @@ part 'route_input_dto.g.dart';
 abstract class RouteInputDto implements Built<RouteInputDto, RouteInputDtoBuilder> {
   @BuiltValueField(wireName: r'name')
   String get name;
+
+  @BuiltValueField(wireName: r'nameSource')
+  RouteInputDtoNameSourceEnum? get nameSource;
+  // enum nameSourceEnum {  AUTO,  MANUAL,  };
 
   @BuiltValueField(wireName: r'status')
   RouteInputDtoStatusEnum get status;
@@ -30,14 +35,15 @@ abstract class RouteInputDto implements Built<RouteInputDto, RouteInputDtoBuilde
   String? get note;
 
   @BuiltValueField(wireName: r'stops')
-  BuiltList<RouteInputDtoStopsInner> get stops;
+  BuiltList<RouteNamePreviewInputDtoStopsInner> get stops;
 
   RouteInputDto._();
 
   factory RouteInputDto([void updates(RouteInputDtoBuilder b)]) = _$RouteInputDto;
 
   @BuiltValueHook(initializeBuilder: true)
-  static void _defaults(RouteInputDtoBuilder b) => b;
+  static void _defaults(RouteInputDtoBuilder b) => b
+      ..nameSource = RouteInputDtoNameSourceEnum.valueOf('MANUAL');
 
   @BuiltValueSerializer(custom: true)
   static Serializer<RouteInputDto> get serializer => _$RouteInputDtoSerializer();
@@ -60,6 +66,13 @@ class _$RouteInputDtoSerializer implements PrimitiveSerializer<RouteInputDto> {
       object.name,
       specifiedType: const FullType(String),
     );
+    if (object.nameSource != null) {
+      yield r'nameSource';
+      yield serializers.serialize(
+        object.nameSource,
+        specifiedType: const FullType(RouteInputDtoNameSourceEnum),
+      );
+    }
     yield r'status';
     yield serializers.serialize(
       object.status,
@@ -73,7 +86,7 @@ class _$RouteInputDtoSerializer implements PrimitiveSerializer<RouteInputDto> {
     yield r'stops';
     yield serializers.serialize(
       object.stops,
-      specifiedType: const FullType(BuiltList, [FullType(RouteInputDtoStopsInner)]),
+      specifiedType: const FullType(BuiltList, [FullType(RouteNamePreviewInputDtoStopsInner)]),
     );
   }
 
@@ -105,6 +118,14 @@ class _$RouteInputDtoSerializer implements PrimitiveSerializer<RouteInputDto> {
           ) as String;
           result.name = valueDes;
           break;
+        case r'nameSource':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType.nullable(RouteInputDtoNameSourceEnum),
+          ) as RouteInputDtoNameSourceEnum?;
+          if (valueDes == null) continue;
+          result.nameSource = valueDes;
+          break;
         case r'status':
           final valueDes = serializers.deserialize(
             value,
@@ -123,8 +144,8 @@ class _$RouteInputDtoSerializer implements PrimitiveSerializer<RouteInputDto> {
         case r'stops':
           final valueDes = serializers.deserialize(
             value,
-            specifiedType: const FullType(BuiltList, [FullType(RouteInputDtoStopsInner)]),
-          ) as BuiltList<RouteInputDtoStopsInner>;
+            specifiedType: const FullType(BuiltList, [FullType(RouteNamePreviewInputDtoStopsInner)]),
+          ) as BuiltList<RouteNamePreviewInputDtoStopsInner>;
           result.stops.replace(valueDes);
           break;
         default:
@@ -156,6 +177,21 @@ class _$RouteInputDtoSerializer implements PrimitiveSerializer<RouteInputDto> {
   }
 }
 
+
+class RouteInputDtoNameSourceEnum extends EnumClass {
+
+  @BuiltValueEnumConst(wireName: r'AUTO')
+  static const RouteInputDtoNameSourceEnum AUTO = _$routeInputDtoNameSourceEnum_AUTO;
+  @BuiltValueEnumConst(wireName: r'MANUAL')
+  static const RouteInputDtoNameSourceEnum MANUAL = _$routeInputDtoNameSourceEnum_MANUAL;
+
+  static Serializer<RouteInputDtoNameSourceEnum> get serializer => _$routeInputDtoNameSourceEnumSerializer;
+
+  const RouteInputDtoNameSourceEnum._(String name): super(name);
+
+  static BuiltSet<RouteInputDtoNameSourceEnum> get values => _$routeInputDtoNameSourceEnumValues;
+  static RouteInputDtoNameSourceEnum valueOf(String name) => _$routeInputDtoNameSourceEnumValueOf(name);
+}
 
 class RouteInputDtoStatusEnum extends EnumClass {
 

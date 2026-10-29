@@ -10,6 +10,7 @@ Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **id** | **String** |  | 
 **name** | **String** |  | 
+**nameSource** | **String** |  | 
 **status** | **String** |  | 
 **totalDistanceMeters** | **int** |  | 
 **totalDurationSeconds** | **int** |  | 

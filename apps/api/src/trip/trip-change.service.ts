@@ -42,7 +42,17 @@ import {
   tripStopsInvalid,
   vehicleScheduleConflict,
 } from "./trip.errors";
-import { findDetail, loadRouteStops, lockVehicleSeats, planStopTimes, routeArrival, toResponse, type TripActor } from "./trip.service";
+import {
+  findDetail,
+  keepsLegacyTimes,
+  loadRouteStops,
+  lockVehicleSeats,
+  planStopTimes,
+  roundDeparture,
+  routeArrival,
+  toResponse,
+  type TripActor,
+} from "./trip.service";
 import { releaseRedemption } from "../promotion/promotion-apply";
 import { transitionVoucher } from "../promotion/voucher-apply";
 import { tripCancellationRefund } from "./trip-cancellation-amount";
@@ -158,10 +168,13 @@ export class TripChangeService {
         // Giờ: giờ đến = giờ đi mới + thời gian chạy của tuyến (dời theo giờ đi); giờ từng điểm chia lại theo chặng của
         // tuyến khi không gửi.
         const routeStops = await loadRouteStops(tx, operatorId, current.routeId, true);
-        const arrivalAt = routeArrival(input.departureAt, routeStops);
-        const stopTimes = planStopTimes(input, routeStops, arrivalAt);
+        // Bước 5 phút (3.1); chuyến cũ lẻ phút mà không dời giờ đi thì giữ cách tính cũ (`keepsLegacyTimes`).
+        const rounding = !keepsLegacyTimes(detail, input.departureAt);
+        const departureAt = rounding ? roundDeparture(input.departureAt) : input.departureAt;
+        const arrivalAt = routeArrival(departureAt, routeStops, rounding);
+        const stopTimes = planStopTimes({ ...input, departureAt }, routeStops, arrivalAt, rounding);
         const scheduleChanged =
-          detail.departureAt.getTime() !== input.departureAt.getTime() ||
+          detail.departureAt.getTime() !== departureAt.getTime() ||
           detail.arrivalAt.getTime() !== arrivalAt.getTime() ||
           detail.stops.some((stop, index) => stop.plannedAt.getTime() !== stopTimes[index]!.getTime());
         const vehicleChanged = input.vehicleId !== current.vehicleId;
@@ -182,7 +195,7 @@ export class TripChangeService {
 
         await tx.trip.updateMany({
           where: { id: tripId, operatorId, status: current.status },
-          data: { departureAt: input.departureAt, arrivalAt, vehicleId: input.vehicleId },
+          data: { departureAt, arrivalAt, vehicleId: input.vehicleId },
         });
         for (const [index, stop] of detail.stops.entries()) {
           const replacement = changedStops.find((item) => item.sequence === stop.sequence);

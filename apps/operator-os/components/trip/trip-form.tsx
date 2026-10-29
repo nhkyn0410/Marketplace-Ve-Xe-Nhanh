@@ -41,6 +41,8 @@ import { createTrip, getTrip, updateTrip, type Trip } from "../../lib/trip/trip-
 import {
   autoSplitTimes,
   departureIso,
+  roundClock,
+  TIME_STEP_MINUTES,
   describeTripSaveError,
   hasCompleteTimes,
   MAX_ONLINE_SALE_CUTOFF_MINUTES,
@@ -257,7 +259,7 @@ function TripFormBody({ trip, tripRoute }: { trip?: Trip; tripRoute?: Route }) {
   let stopTimes: (number | undefined)[] = [];
   if (route.data && validSpan) {
     stopTimes = autoSplit
-      ? autoSplitTimes(departureMs, arrivalMs, legSecondsOf(route.data))
+      ? autoSplitTimes(departureMs, arrivalMs, legSecondsOf(route.data), route.data.stops.map((stop) => stop.allowPickup))
       : resolveManualTimes(departureMs, arrivalMs, clockTimes).times;
   }
 
@@ -410,12 +412,17 @@ function TripFormBody({ trip, tripRoute }: { trip?: Trip; tripRoute?: Route }) {
                     />
                   )}
                 </FormField>
-                <FormField label="Giờ khởi hành *" error={errors.departureTime?.message}>
+                <FormField label="Giờ khởi hành *" helper="Làm tròn theo bước 5 phút" error={errors.departureTime?.message}>
                   {(control) => (
                     <Input
                       {...control}
                       type="time"
-                      {...form.register("departureTime")}
+                      step={TIME_STEP_MINUTES * 60}
+                      {...form.register("departureTime", {
+                        // Rời ô thì hiện ngay giờ đã làm tròn — đúng giờ máy chủ sẽ lưu.
+                        onBlur: (event: { target: { value: string } }) =>
+                          form.setValue("departureTime", roundClock(event.target.value), { shouldDirty: true, shouldValidate: true })
+                      })}
                     />
                   )}
                 </FormField>

@@ -15,12 +15,14 @@ part 'route_response_dto_output.g.dart';
 /// Properties:
 /// * [id] 
 /// * [name] 
+/// * [nameSource] 
 /// * [status] 
 /// * [totalDistanceMeters] 
 /// * [totalDurationSeconds] 
 /// * [metricsSource] 
 /// * [createdAt] 
 /// * [updatedAt] 
+/// * [suggestedName] 
 /// * [note] 
 /// * [stops] 
 @BuiltValue()
@@ -30,6 +32,10 @@ abstract class RouteResponseDtoOutput implements Built<RouteResponseDtoOutput, R
 
   @BuiltValueField(wireName: r'name')
   String get name;
+
+  @BuiltValueField(wireName: r'nameSource')
+  RouteResponseDtoOutputNameSourceEnum get nameSource;
+  // enum nameSourceEnum {  AUTO,  MANUAL,  };
 
   @BuiltValueField(wireName: r'status')
   RouteResponseDtoOutputStatusEnum get status;
@@ -50,6 +56,9 @@ abstract class RouteResponseDtoOutput implements Built<RouteResponseDtoOutput, R
 
   @BuiltValueField(wireName: r'updatedAt')
   DateTime get updatedAt;
+
+  @BuiltValueField(wireName: r'suggestedName')
+  String? get suggestedName;
 
   @BuiltValueField(wireName: r'note')
   String? get note;
@@ -90,6 +99,11 @@ class _$RouteResponseDtoOutputSerializer implements PrimitiveSerializer<RouteRes
       object.name,
       specifiedType: const FullType(String),
     );
+    yield r'nameSource';
+    yield serializers.serialize(
+      object.nameSource,
+      specifiedType: const FullType(RouteResponseDtoOutputNameSourceEnum),
+    );
     yield r'status';
     yield serializers.serialize(
       object.status,
@@ -119,6 +133,11 @@ class _$RouteResponseDtoOutputSerializer implements PrimitiveSerializer<RouteRes
     yield serializers.serialize(
       object.updatedAt,
       specifiedType: const FullType(DateTime),
+    );
+    yield r'suggestedName';
+    yield object.suggestedName == null ? null : serializers.serialize(
+      object.suggestedName,
+      specifiedType: const FullType.nullable(String),
     );
     yield r'note';
     yield object.note == null ? null : serializers.serialize(
@@ -167,6 +186,13 @@ class _$RouteResponseDtoOutputSerializer implements PrimitiveSerializer<RouteRes
           ) as String;
           result.name = valueDes;
           break;
+        case r'nameSource':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(RouteResponseDtoOutputNameSourceEnum),
+          ) as RouteResponseDtoOutputNameSourceEnum;
+          result.nameSource = valueDes;
+          break;
         case r'status':
           final valueDes = serializers.deserialize(
             value,
@@ -208,6 +234,14 @@ class _$RouteResponseDtoOutputSerializer implements PrimitiveSerializer<RouteRes
             specifiedType: const FullType(DateTime),
           ) as DateTime;
           result.updatedAt = valueDes;
+          break;
+        case r'suggestedName':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType.nullable(String),
+          ) as String?;
+          if (valueDes == null) continue;
+          result.suggestedName = valueDes;
           break;
         case r'note':
           final valueDes = serializers.deserialize(
@@ -253,6 +287,21 @@ class _$RouteResponseDtoOutputSerializer implements PrimitiveSerializer<RouteRes
   }
 }
 
+
+class RouteResponseDtoOutputNameSourceEnum extends EnumClass {
+
+  @BuiltValueEnumConst(wireName: r'AUTO')
+  static const RouteResponseDtoOutputNameSourceEnum AUTO = _$routeResponseDtoOutputNameSourceEnum_AUTO;
+  @BuiltValueEnumConst(wireName: r'MANUAL')
+  static const RouteResponseDtoOutputNameSourceEnum MANUAL = _$routeResponseDtoOutputNameSourceEnum_MANUAL;
+
+  static Serializer<RouteResponseDtoOutputNameSourceEnum> get serializer => _$routeResponseDtoOutputNameSourceEnumSerializer;
+
+  const RouteResponseDtoOutputNameSourceEnum._(String name): super(name);
+
+  static BuiltSet<RouteResponseDtoOutputNameSourceEnum> get values => _$routeResponseDtoOutputNameSourceEnumValues;
+  static RouteResponseDtoOutputNameSourceEnum valueOf(String name) => _$routeResponseDtoOutputNameSourceEnumValueOf(name);
+}
 
 class RouteResponseDtoOutputStatusEnum extends EnumClass {
 

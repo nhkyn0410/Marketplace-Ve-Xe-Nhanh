@@ -22,6 +22,7 @@ import {
   SelectValue
 } from "@vexenhanh/ui/components/select";
 import { Skeleton } from "@vexenhanh/ui/components/skeleton";
+import { Switch } from "@vexenhanh/ui/components/switch";
 import { Textarea } from "@vexenhanh/ui/components/textarea";
 import { CircleAlert, CircleCheck, FileX2, LoaderCircle, Plus, RefreshCw } from "lucide-react";
 import Link from "next/link";
@@ -32,7 +33,7 @@ import { Controller, useForm } from "react-hook-form";
 import { ApiError } from "../../lib/auth/api-client";
 import { GOONG_MAPTILES_KEY } from "../../lib/map/map-config";
 import { useMapOpen } from "../../lib/map/use-map-open";
-import { createRoute, getRoute, updateRoute, type Route } from "../../lib/route/route-api";
+import { createRoute, getRoute, previewRouteName, updateRoute, type Route } from "../../lib/route/route-api";
 import {
   addStop,
   busStationWarning,
@@ -55,6 +56,7 @@ import {
   toDraftStops,
   toRouteInfoValues,
   toRouteInput,
+  toStopInputs,
   totalsOf,
   validateLegMinutes,
   validateStops,
@@ -164,6 +166,24 @@ function RouteFormBody({ route }: { route?: Route }) {
   });
   const { errors } = form.formState;
   const note = form.watch("note");
+  const nameSource = form.watch("nameSource");
+  // Xem trước tên tự động theo điểm dừng (chỉ phụ thuộc điểm + quyền đón / trả, không phụ thuộc ghi chú); lưu thì máy chủ
+  // ghép lại nên tên lưu luôn khớp dữ liệu mới nhất.
+  const nameKey = JSON.stringify(stops.map((stop) => [stopKey(stop), stop.allowPickup, stop.allowDropoff]));
+  const namePreview = useQuery({
+    queryKey: ["route-name-preview", route?.id ?? null, nameKey],
+    queryFn: () => previewRouteName(toStopInputs(stops), route?.id),
+    enabled: nameSource === "AUTO" && stops.length >= MIN_ROUTE_STOPS,
+    staleTime: 60_000
+  });
+  const autoNameText =
+    stops.length < MIN_ROUTE_STOPS
+      ? `Thêm ít nhất ${MIN_ROUTE_STOPS} điểm dừng để có tên`
+      : namePreview.isPending
+        ? "Đang ghép tên…"
+        : namePreview.isError
+          ? "Chưa xem trước được tên — khi lưu hệ thống sẽ tự ghép"
+          : namePreview.data;
 
   const legs = useMemo(() => savedLegs(route), [route]);
   const storedStops = useMemo(() => JSON.stringify(route ? toDraftStops(route) : []), [route]);
@@ -355,20 +375,65 @@ function RouteFormBody({ route }: { route?: Route }) {
               className="flex flex-col gap-4"
             >
               <FormField
-                label="Tên tuyến *"
-                helper={`Tối đa ${ROUTE_NAME_MAX_LENGTH} ký tự · không trùng tên trong nhà xe`}
+                label={nameSource === "AUTO" ? "Tên tuyến" : "Tên tuyến *"}
+                helper={
+                  nameSource === "AUTO"
+                    ? "Ghép từ nơi của điểm đầu, điểm cuối và các điểm giữa cho đón / trả; đổi điểm dừng thì tên đổi theo."
+                    : `Tối đa ${ROUTE_NAME_MAX_LENGTH} ký tự · không trùng tên trong nhà xe`
+                }
                 error={errors.name?.message}
               >
-                {(control) => (
-                  <Input
-                    {...control}
-                    {...form.register("name")}
-                    autoComplete="off"
-                    maxLength={ROUTE_NAME_MAX_LENGTH}
-                    placeholder="Ví dụ: Sài Gòn – Đà Lạt"
-                  />
-                )}
+                {(control) =>
+                  nameSource === "AUTO" ? (
+                    <Input {...control} readOnly aria-readonly value={autoNameText} className="bg-muted/50" />
+                  ) : (
+                    <Input
+                      {...control}
+                      {...form.register("name")}
+                      autoComplete="off"
+                      maxLength={ROUTE_NAME_MAX_LENGTH}
+                      placeholder="Ví dụ: Sài Gòn – Đà Lạt"
+                    />
+                  )
+                }
               </FormField>
+              <div className="flex items-start gap-3">
+                <Switch
+                  id="route-auto-name"
+                  checked={nameSource === "AUTO"}
+                  onCheckedChange={(checked) => {
+                    // Tắt tự đặt tên: điền sẵn tên đang xem trước để nhà xe chỉ sửa chỗ cần sửa.
+                    if (!checked && namePreview.data) {
+                      form.setValue("name", namePreview.data, { shouldDirty: true });
+                    }
+                    form.setValue("nameSource", checked ? "AUTO" : "MANUAL", { shouldDirty: true, shouldValidate: true });
+                  }}
+                  aria-describedby="route-auto-name-hint"
+                />
+                <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+                  <label htmlFor="route-auto-name" className="text-sm leading-5 font-medium text-vxn-ink">
+                    Tự đặt tên theo điểm dừng
+                  </label>
+                  <p id="route-auto-name-hint" className="text-xs leading-[18px] text-muted-foreground">
+                    Tắt để tự gõ tên. Khách vẫn thấy tên chặng họ đi.
+                  </p>
+                </div>
+              </div>
+              {nameSource === "MANUAL" && route?.suggestedName && (
+                <div className="flex flex-wrap items-center gap-x-2 gap-y-1 rounded-lg bg-muted/50 px-3 py-2 text-xs text-vxn-fg-3">
+                  <span>
+                    Tên gợi ý: <span className="font-medium text-vxn-ink">{route.suggestedName}</span>
+                  </span>
+                  <Button
+                    type="button"
+                    variant="link"
+                    className="h-auto p-0 text-xs"
+                    onClick={() => form.setValue("nameSource", "AUTO", { shouldDirty: true, shouldValidate: true })}
+                  >
+                    Dùng tên tự động
+                  </Button>
+                </div>
+              )}
               <FormField label="Trạng thái *" error={errors.status?.message}>
                 {(control) => (
                   <Controller

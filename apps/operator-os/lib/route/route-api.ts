@@ -52,6 +52,18 @@ export function getRoute(routeId: string): Promise<Route> {
   return apiRequest<Route>(`/operator/routes/${routeId}`);
 }
 
+/**
+ * Tên tuyến tự động cho điểm dừng đang sửa (3.1, chờ duyệt) — "TP.HCM → Buôn Ma Thuột (qua Gia Nghĩa)", đã tránh trùng tuyến
+ * khác của nhà xe. `routeId` = tuyến đang sửa (không tính trùng với chính nó).
+ */
+export async function previewRouteName(stops: RouteInput["stops"], routeId?: string): Promise<string> {
+  const result = await apiRequest<Schemas["RouteNamePreviewDto_Output"]>("/operator/routes/name-suggestion", {
+    method: "POST",
+    body: { stops, routeId: routeId ?? null }
+  });
+  return result.name;
+}
+
 /** Tạo tuyến mới; máy chủ tự tính quãng đường và thời gian từng chặng. */
 export function createRoute(input: RouteInput): Promise<Route> {
   return apiRequest<Route>("/operator/routes", { method: "POST", body: input });

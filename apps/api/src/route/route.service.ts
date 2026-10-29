@@ -2,12 +2,14 @@ import { Inject, Injectable } from "@nestjs/common";
 import { PrismaService, type DbTransaction } from "../database/prisma.service";
 import {
   CatalogStatus,
+  RouteNameSource,
   RouteStopRole,
   StopPointStatus,
   StopPointType,
   type RouteStatus,
   type RoutingMetricsSource,
 } from "../database/prisma.types";
+import { loadWardLocalities } from "../database/stop-localities";
 import {
   ROUTING_PROVIDER,
   type RouteLeg,
@@ -18,7 +20,8 @@ import type { Authorization } from "../iam/role/authorization";
 import { requireTenant } from "../iam/role/require-tenant";
 import { isPrismaUniqueConflict } from "../iam/user/account.errors";
 import { stopPointUnavailable } from "../stop-point/stop-point.errors";
-import type { RouteInput, RouteListResponse, RouteResponse } from "./dto/route.dto";
+import type { RouteInput, RouteListResponse, RouteNamePreview, RouteNamePreviewInput, RouteResponse } from "./dto/route.dto";
+import { composeRouteName, nameCandidates } from "./route-name";
 import {
   routeDurationTooLong,
   routeNameConflict,
@@ -27,7 +30,7 @@ import {
   routingProviderUnavailable,
 } from "./route.errors";
 
-/** Một điểm đã kiểm còn hiệu lực + loại, toạ độ hiện tại của nó và quyền đón / trả nhà xe khai. */
+/** Một điểm đã kiểm còn hiệu lực + loại, toạ độ hiện tại, phường + tên (ghép tên tuyến) và quyền đón / trả nhà xe khai. */
 type ResolvedStop = {
   catalogStopPointId: string | null;
   stopPointId: string | null;
@@ -37,11 +40,15 @@ type ResolvedStop = {
   allowDropoff: boolean;
   latitude: number;
   longitude: number;
+  wardId: string;
+  name: string;
 };
+
+type Scope = ReturnType<typeof requireTenant>["db"];
 
 type Measured = { source: RoutingMetricsSource; legs: RouteLeg[] };
 
-const POINT_SELECT = { name: true, address: true, type: true } as const;
+const POINT_SELECT = { name: true, address: true, type: true, wardId: true } as const;
 /** Trần một chặng: 5.000 km / 7 ngày — quá mức là provider trả sai; 25 điểm × trần vẫn nằm trong INT4. */
 const MAX_LEG_METERS = 5_000_000;
 const MAX_LEG_SECONDS = 7 * 24 * 3_600;
@@ -75,6 +82,7 @@ export class RouteService {
         select: {
           id: true,
           name: true,
+          nameSource: true,
           status: true,
           totalDistanceMeters: true,
           totalDurationSeconds: true,
@@ -119,29 +127,42 @@ export class RouteService {
     if (!row) {
       throw routeNotFound();
     }
-    return toResponse(row);
+    return this.respond(db, operatorId, row);
   }
 
-  /** Tạo route: kiểm điểm → đo chặng (ngoài transaction) → ghi route + điểm trong một transaction. */
+  /**
+   * Tên tuyến tự động cho danh sách điểm đang sửa (chưa lưu) để form xem trước — không gọi provider, không kiểm quyền đón /
+   * trả (form đang sửa dở). Điểm đã có trên tuyến `routeId` được dùng dù đã ngừng, như lúc lưu.
+   */
+  async previewName(authz: Authorization, input: RouteNamePreviewInput): Promise<RouteNamePreview> {
+    const { db, operatorId } = requireTenant(authz);
+    const routeId = input.routeId ?? undefined;
+    const stops = await this.prisma.withScope(db, async (tx) => {
+      const current = routeId ? await findDetail(tx, operatorId, routeId) : null;
+      const kept = current?.stops.map((stop) => stop.catalogStopPointId ?? stop.stopPointId!) ?? [];
+      return loadStops(tx, operatorId, input.stops, kept);
+    });
+    return { name: await this.autoName(db, operatorId, stops, routeId) };
+  }
+
+  /** Tạo route: kiểm điểm + tên → đo chặng (ngoài transaction) → ghi route + điểm trong một transaction. */
   async create(authz: Authorization, input: RouteInput): Promise<RouteResponse> {
     const { db, operatorId } = requireTenant(authz);
-    const stops = await this.prisma.withScope(db, async (tx) => {
-      await assertNameFree(tx, operatorId, input.name);
-      return resolveStops(tx, operatorId, input.stops);
-    });
+    const stops = await this.prisma.withScope(db, (tx) => resolveStops(tx, operatorId, input.stops));
+    const name = await this.resolveName(db, operatorId, input, stops);
     const measured = await this.measure(stops);
     const legs = effectiveLegs(input, measured.legs);
     const row = await this.withNameConflict(() =>
       this.prisma.withScope(db, async (tx) => {
         const route = await tx.route.create({
-          data: { operatorId, ...routeData(input, measured, legs) },
+          data: { operatorId, ...routeData(input, name, measured, legs) },
           select: { id: true },
         });
         await tx.routeStop.createMany({ data: stopRows(operatorId, route.id, stops, measured.legs, legs) });
         return findDetail(tx, operatorId, route.id);
       }),
     );
-    return toResponse(row!);
+    return this.respond(db, operatorId, row!);
   }
 
   /**
@@ -156,12 +177,12 @@ export class RouteService {
       if (!current) {
         throw routeNotFound();
       }
-      await assertNameFree(tx, operatorId, input.name, routeId);
       // Điểm đã có trong route được giữ dù đã bị vô hiệu hoá — để Owner vẫn đổi tên/tạm ngưng route
       // (mẫu TRN-001); chỉ điểm MỚI thêm mới phải ACTIVE. Mở bán (TRN-006) kiểm lại toàn bộ điểm.
       const kept = current.stops.map((stop) => stop.catalogStopPointId ?? stop.stopPointId!);
       return { current, stops: await resolveStops(tx, operatorId, input.stops, kept) };
     });
+    const name = await this.resolveName(db, operatorId, input, stops, routeId);
     const measured =
       current.metricsSource === this.routing.source && sameCoordinates(current.stops, stops)
         ? {
@@ -178,7 +199,7 @@ export class RouteService {
       this.prisma.withScope(db, async (tx) => {
         const updated = await tx.route.updateMany({
           where: { id: routeId, operatorId },
-          data: routeData(input, measured, legs),
+          data: routeData(input, name, measured, legs),
         });
         if (updated.count === 0) {
           throw routeNotFound();
@@ -188,7 +209,56 @@ export class RouteService {
         return findDetail(tx, operatorId, routeId);
       }),
     );
-    return toResponse(row!);
+    return this.respond(db, operatorId, row!);
+  }
+
+  /** Tên sẽ lưu: `AUTO` thì ghép từ điểm dừng; `MANUAL` thì tên nhà xe gõ, chặn trùng TRƯỚC khi gọi provider (security M2). */
+  private async resolveName(db: Scope, operatorId: string, input: RouteInput, stops: ResolvedStop[], routeId?: string): Promise<string> {
+    if (input.nameSource === RouteNameSource.AUTO) {
+      return this.autoName(db, operatorId, stops, routeId);
+    }
+    await this.prisma.withScope(db, (tx) => assertNameFree(tx, operatorId, input.name, routeId));
+    return input.name;
+  }
+
+  /**
+   * Tên tự động của danh sách điểm (giai đoạn 3.1, chờ duyệt): nơi của từng điểm theo phường → `composeRouteName`, rồi lấy
+   * biến thể đầu tiên chưa có ở tuyến khác của nhà xe (bỏ qua `exceptRouteId`).
+   */
+  private async autoName(
+    db: Scope,
+    operatorId: string,
+    stops: Pick<ResolvedStop, "wardId" | "name" | "allowPickup" | "allowDropoff">[],
+    exceptRouteId?: string,
+  ): Promise<string> {
+    const localities = await loadWardLocalities(this.prisma, stops.map((stop) => stop.wardId));
+    const base = composeRouteName(stops.map((stop) => ({ ...stop, locality: localities.get(stop.wardId) ?? stop.name })));
+    const candidates = nameCandidates(base, stops[0]?.name ?? "");
+    const taken = await this.prisma.withScope(db, (tx) =>
+      tx.route.findMany({
+        where: { operatorId, name: { in: candidates }, ...(exceptRouteId ? { id: { not: exceptRouteId } } : {}) },
+        select: { name: true },
+      }),
+    );
+    const free = candidates.find((name) => !taken.some((route) => route.name === name));
+    if (!free) {
+      throw routeNameConflict();
+    }
+    return free;
+  }
+
+  /** Response kèm tên gợi ý: tuyến đặt tên tay mà tên tự động khác tên đang dùng. */
+  private async respond(db: Scope, operatorId: string, row: NonNullable<Awaited<ReturnType<typeof findDetail>>>): Promise<RouteResponse> {
+    let suggestedName: string | null = null;
+    if (row.nameSource === RouteNameSource.MANUAL) {
+      const stops = row.stops.map((stop) => {
+        const point = stop.catalogStopPoint ?? stop.stopPoint!;
+        return { wardId: point.wardId, name: point.name, allowPickup: stop.allowPickup, allowDropoff: stop.allowDropoff };
+      });
+      const auto = await this.autoName(db, operatorId, stops, row.id).catch(() => null);
+      suggestedName = auto && auto !== row.name ? auto : null;
+    }
+    return toResponse(row, suggestedName);
   }
 
   private async measure(stops: ResolvedStop[]): Promise<Measured> {
@@ -259,9 +329,21 @@ async function resolveStops(
   stops: RouteInput["stops"],
   kept: string[] = [],
 ): Promise<ResolvedStop[]> {
+  const resolved = await loadStops(tx, operatorId, stops, kept);
+  assertPickupDropoff(resolved);
+  return resolved;
+}
+
+/** Như `resolveStops` nhưng chưa kiểm quyền đón / trả — dùng cho xem trước tên khi form đang sửa dở. */
+async function loadStops(
+  tx: DbTransaction,
+  operatorId: string,
+  stops: RouteInput["stops"],
+  kept: string[] = [],
+): Promise<ResolvedStop[]> {
   const catalogIds = stops.flatMap((stop) => (stop.catalogStopPointId ? [stop.catalogStopPointId] : []));
   const privateIds = stops.flatMap((stop) => (stop.stopPointId ? [stop.stopPointId] : []));
-  const coordinates = { id: true, type: true, latitude: true, longitude: true } as const;
+  const coordinates = { id: true, type: true, latitude: true, longitude: true, wardId: true, name: true } as const;
   const [catalog, own] = await Promise.all([
     tx.stopPointCatalog.findMany({
       where: {
@@ -281,7 +363,7 @@ async function resolveStops(
   ]);
   const catalogById = new Map(catalog.map((point) => [point.id, point]));
   const ownById = new Map(own.map((point) => [point.id, point]));
-  const resolved = stops.map((stop) => {
+  return stops.map((stop) => {
     const point = stop.catalogStopPointId
       ? catalogById.get(stop.catalogStopPointId)
       : ownById.get(stop.stopPointId!);
@@ -297,10 +379,10 @@ async function resolveStops(
       allowDropoff: stop.allowDropoff,
       latitude: point.latitude,
       longitude: point.longitude,
+      wardId: point.wardId,
+      name: point.name,
     };
   });
-  assertPickupDropoff(resolved);
-  return resolved;
 }
 
 /**
@@ -352,9 +434,10 @@ function effectiveLegs(input: RouteInput, measured: RouteLeg[]): RouteLeg[] {
   return legs;
 }
 
-function routeData(input: RouteInput, measured: Measured, legs: RouteLeg[]) {
+function routeData(input: RouteInput, name: string, measured: Measured, legs: RouteLeg[]) {
   return {
-    name: input.name,
+    name,
+    nameSource: input.nameSource,
     status: input.status,
     note: input.note,
     totalDistanceMeters: legs.reduce((sum, leg) => sum + leg.distanceMeters, 0),
@@ -389,6 +472,7 @@ function findDetail(tx: DbTransaction, operatorId: string, routeId: string) {
     select: {
       id: true,
       name: true,
+      nameSource: true,
       status: true,
       note: true,
       totalDistanceMeters: true,
@@ -419,9 +503,10 @@ function findDetail(tx: DbTransaction, operatorId: string, routeId: string) {
   });
 }
 
-function toResponse(row: NonNullable<Awaited<ReturnType<typeof findDetail>>>): RouteResponse {
+function toResponse(row: NonNullable<Awaited<ReturnType<typeof findDetail>>>, suggestedName: string | null): RouteResponse {
   return {
     ...row,
+    suggestedName,
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
     stops: row.stops.map(({ catalogStopPoint, stopPoint, measuredDurationSeconds, ...stop }) => {

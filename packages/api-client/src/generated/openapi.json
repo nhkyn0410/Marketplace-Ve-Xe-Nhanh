@@ -10262,6 +10262,82 @@
         ]
       }
     },
+    "/v1/operator/routes/name-suggestion": {
+      "post": {
+        "operationId": "RouteController_previewName",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RouteNamePreviewInputDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Tên tự động, đã tránh trùng tuyến khác của nhà xe.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RouteNamePreviewDto_Output"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Dữ liệu không hợp lệ.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Thiếu hoặc sai access token.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "`PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "`STOP_POINT_UNAVAILABLE`.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "operator-routes"
+        ]
+      }
+    },
     "/v1/admin/routes": {
       "get": {
         "operationId": "AdminRouteController_list",
@@ -38789,6 +38865,13 @@
                 "name": {
                   "type": "string"
                 },
+                "nameSource": {
+                  "type": "string",
+                  "enum": [
+                    "AUTO",
+                    "MANUAL"
+                  ]
+                },
                 "status": {
                   "type": "string",
                   "enum": [
@@ -38838,6 +38921,7 @@
               "required": [
                 "id",
                 "name",
+                "nameSource",
                 "status",
                 "totalDistanceMeters",
                 "totalDurationSeconds",
@@ -38881,6 +38965,13 @@
           "name": {
             "type": "string"
           },
+          "nameSource": {
+            "type": "string",
+            "enum": [
+              "AUTO",
+              "MANUAL"
+            ]
+          },
           "status": {
             "type": "string",
             "enum": [
@@ -38914,6 +39005,16 @@
             "type": "string",
             "format": "date-time",
             "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$"
+          },
+          "suggestedName": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "note": {
             "anyOf": [
@@ -39065,14 +39166,118 @@
         "required": [
           "id",
           "name",
+          "nameSource",
           "status",
           "totalDistanceMeters",
           "totalDurationSeconds",
           "metricsSource",
           "createdAt",
           "updatedAt",
+          "suggestedName",
           "note",
           "stops"
+        ],
+        "additionalProperties": false
+      },
+      "RouteNamePreviewInputDto": {
+        "type": "object",
+        "properties": {
+          "stops": {
+            "minItems": 2,
+            "maxItems": 25,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "catalogStopPointId": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "stopPointId": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "note": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "maxLength": 300
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "allowPickup": {
+                  "type": "boolean"
+                },
+                "allowDropoff": {
+                  "type": "boolean"
+                },
+                "durationMinutesFromPrevious": {
+                  "anyOf": [
+                    {
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 1440
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "catalogStopPointId",
+                "stopPointId",
+                "note",
+                "allowPickup",
+                "allowDropoff"
+              ]
+            }
+          },
+          "routeId": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "stops"
+        ]
+      },
+      "RouteNamePreviewDto_Output": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "name"
         ],
         "additionalProperties": false
       },
@@ -39081,8 +39286,15 @@
         "properties": {
           "name": {
             "type": "string",
-            "minLength": 1,
             "maxLength": 150
+          },
+          "nameSource": {
+            "default": "MANUAL",
+            "type": "string",
+            "enum": [
+              "AUTO",
+              "MANUAL"
+            ]
           },
           "status": {
             "type": "string",

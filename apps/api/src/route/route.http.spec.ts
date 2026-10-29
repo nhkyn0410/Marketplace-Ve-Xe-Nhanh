@@ -38,6 +38,8 @@ describe("Route / StopPoint / Proposal routes — HTTP", () => {
   const route = {
     id,
     name: "SG - ĐL",
+    nameSource: "MANUAL",
+    suggestedName: "TP.HCM → Đà Lạt",
     status: "ACTIVE",
     note: null,
     totalDistanceMeters: 1000,
