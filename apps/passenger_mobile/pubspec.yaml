@@ -103,6 +103,7 @@ flutter:
     - assets/ticket/detail/
     - assets/ticket/payment/
     - assets/ticket/completion/
+    - assets/ticket/results/
     - assets/account/
     - assets/account/saved_passengers/
     - assets/account/vouchers/

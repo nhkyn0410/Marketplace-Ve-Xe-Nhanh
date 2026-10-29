@@ -5,6 +5,14 @@ import 'package:passenger_mobile/features/home/home_screen.dart';
 
 import 'support/trip_search_fakes.dart';
 
+/// Thanh cuộn dọc của trang chủ (bỏ qua các carousel ngang bên trong).
+Finder _homeScrollable() => find
+    .descendant(
+      of: find.byKey(const Key('home-content-scroll')),
+      matching: find.byType(Scrollable),
+    )
+    .first;
+
 Future<void> _pumpHome(
   WidgetTester tester, {
   required double width,
@@ -121,6 +129,11 @@ void main() {
     final operator = find.byKey(
       const ValueKey('featured-operator-Phương Trang'),
     );
+    await tester.scrollUntilVisible(
+      operator,
+      200,
+      scrollable: _homeScrollable(),
+    );
     expect(operator, findsOneWidget);
     expect(tester.getSize(operator), const Size(158, 76));
     expect(
@@ -144,6 +157,11 @@ void main() {
       const ValueKey(
         'home-article-assets/home/articles/da_lat_coach_guide.jpg',
       ),
+    );
+    await tester.scrollUntilVisible(
+      article,
+      200,
+      scrollable: _homeScrollable(),
     );
     expect(article, findsOneWidget);
     expect(tester.getSize(article), const Size(154, 86));

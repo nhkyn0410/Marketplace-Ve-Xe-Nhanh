@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:passenger_mobile/features/auth/auth_motion_timeline.dart';
+import 'package:passenger_mobile/features/journey/guest_journey_shared.dart';
 
 const _canvasWidth = 412.0;
 const _figmaCanvasHeight = 915.0;
@@ -81,8 +82,8 @@ const _motionSvgAssets = <String>[
   '$_assetRoot/bus/wheel_front.svg',
   '$_assetRoot/waves/back.svg',
   _waveFormBackgroundAsset,
-  '$_assetRoot/logo/light_mark.svg',
-  '$_assetRoot/logo/light_wordmark.svg',
+  'assets/home/hero/logo_mark.svg',
+  'assets/home/hero/logo_wordmark.svg',
   '$_assetRoot/logo/dark_mark.svg',
   '$_assetRoot/logo/dark_wordmark.svg',
   '$_assetRoot/icons/cta_shine.svg',
@@ -1430,6 +1431,7 @@ class _ResponsiveAuthCanvas extends StatelessWidget {
               child: RepaintBoundary(
                 child: _AuthCanvas(
                   canvasHeight: viewportHeight,
+                  canvasScale: canvasScale,
                   viewportHeight: viewportHeight,
                   safeTop: safeTop,
                   safeBottom: safeBottom,
@@ -1509,6 +1511,7 @@ class _ResponsiveStaticAuthCanvas extends StatelessWidget {
               child: RepaintBoundary(
                 child: _AuthCanvas(
                   canvasHeight: viewportHeight,
+                  canvasScale: canvasScale,
                   viewportHeight: viewportHeight,
                   safeTop: safeTop,
                   safeBottom: safeBottom,
@@ -1529,6 +1532,7 @@ class _ResponsiveStaticAuthCanvas extends StatelessWidget {
 class _AuthCanvas extends StatelessWidget {
   const _AuthCanvas({
     required this.canvasHeight,
+    required this.canvasScale,
     required this.viewportHeight,
     required this.safeTop,
     required this.safeBottom,
@@ -1555,6 +1559,9 @@ class _AuthCanvas extends StatelessWidget {
        );
 
   final double canvasHeight;
+
+  /// Tỉ lệ canvas 412 → bề rộng màn hình (dp).
+  final double canvasScale;
   final double viewportHeight;
   final double safeTop;
   final double safeBottom;
@@ -1603,13 +1610,22 @@ class _AuthCanvas extends StatelessWidget {
                     ),
                   ),
             ),
+            // Logo cùng vị trí và kích thước dp với Trang chủ, Hành trình,
+            // Tài khoản; canvas đang bị scale theo bề rộng nên quy đổi ngược.
             Positioned(
-              left: 24,
-              top: logoTop,
+              left: brandLogoLeft / canvasScale,
+              top: brandLogoTop(safeTop * canvasScale) / canvasScale,
+              width: brandLogoSize.width / canvasScale,
+              height: brandLogoSize.height / canvasScale,
               child: AuthMotionNode(
                 nodeId: '1259:253',
                 animation: motion,
-                child: _logoPill(),
+                child: FittedBox(
+                  child: SizedBox.fromSize(
+                    size: brandLogoSize,
+                    child: const JourneyBrandLogo(),
+                  ),
+                ),
               ),
             ),
             if (showSplashOverlay)
@@ -2405,49 +2421,6 @@ class _AuthCanvas extends StatelessWidget {
           content: Text('$feature chưa được tích hợp trong giai đoạn này.'),
         ),
       );
-  }
-
-  Widget _logoPill() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
-      decoration: BoxDecoration(
-        color: _neutral0,
-        borderRadius: BorderRadius.circular(999),
-        boxShadow: const [
-          BoxShadow(
-            color: Color.fromRGBO(10, 40, 64, 0.12),
-            offset: Offset(0, 4),
-            blurRadius: 14,
-          ),
-        ],
-      ),
-      child: _lightLogo(),
-    );
-  }
-
-  Widget _lightLogo() {
-    return SizedBox(
-      width: 117.422,
-      height: 30,
-      child: Stack(
-        children: [
-          Positioned(
-            left: 0,
-            top: 0,
-            width: 30,
-            height: 30,
-            child: _svg('logo/light_mark.svg', fit: BoxFit.contain),
-          ),
-          Positioned(
-            left: 30,
-            top: 0,
-            width: 87.422,
-            height: 30,
-            child: _svg('logo/light_wordmark.svg', fit: BoxFit.contain),
-          ),
-        ],
-      ),
-    );
   }
 
   Widget _splashOverlay({

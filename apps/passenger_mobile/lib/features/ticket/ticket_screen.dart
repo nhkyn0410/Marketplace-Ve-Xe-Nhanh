@@ -8,20 +8,42 @@ import 'package:passenger_mobile/features/home/route_dock_tabbar.dart';
 import 'package:passenger_mobile/features/search/trip_search_form.dart';
 import 'package:passenger_mobile/features/ticket/trip_search_models.dart';
 
+part 'trip_results_screen.dart';
+
 const _assetRoot = 'assets/ticket';
+const _resultsAssetRoot = 'assets/ticket/results';
 const _homeAssetRoot = 'assets/home';
 const _primary = Color(0xFF2B7EAD);
 const _primaryDark = Color(0xFF09243D);
+const _primarySoft = Color(0xFFEBF5FB);
 const _secondary = Color(0xFF607A8E);
+const _chipBorder = Color(0xFF95C8E8);
 const _pageBackground = Color(0xFFF4F8F9);
+const _pageGradient = LinearGradient(
+  begin: Alignment.topCenter,
+  end: Alignment.bottomCenter,
+  colors: [Color(0xFFE6F4FA), Color(0xFFF3F5F5), Color(0xFFEEEAE4)],
+  stops: [0, .52, 1],
+);
 
-/// Tab Mua vé: form tìm chuyến và danh sách chuyến ngay bên dưới (Figma 05).
+/// Giá vé thấp nhất của một nhà xe trên một tuyến vào ngày đi; `null` khi ngày
+/// đó nhà xe không có chuyến mở bán.
+typedef OperatorFareLoader = Future<int?> Function(
+  String operatorId,
+  HomeOperatorRoute route,
+  DateTime date,
+);
+
+/// Tab Mua vé: khám phá chuyến xe đang mở bán và nhà xe (Figma "Mua vé ·
+/// Khám phá"). Chọn chuyến theo điều kiện đã nhập nằm ở [TripResultsScreen].
 class TicketScreen extends StatefulWidget {
   const TicketScreen({
     required this.onTabSelected,
     this.searchCatalog,
     this.searchTrips,
+    this.loadOperatorFare,
     this.initialQuery,
+    this.loadDefaultQuery,
     this.onQueryChanged,
     this.onTripSelected,
     super.key,
@@ -30,14 +52,20 @@ class TicketScreen extends StatefulWidget {
   final ValueChanged<int> onTabSelected;
   final TripSearchCatalog? searchCatalog;
   final TripSearchRunner? searchTrips;
+  final OperatorFareLoader? loadOperatorFare;
 
   /// Bấm một chuyến trong danh sách (mở chi tiết chuyến).
   final void Function(TripSummary trip, HomeSearchQuery query)? onTripSelected;
 
-  /// Điều kiện tìm mang sang từ Trang chủ / lần tìm trước; có thì tìm ngay khi mở.
+  /// Điều kiện lần tìm trước (Trang chủ / lần khám phá trước): ngày, số khách,
+  /// điểm đi – đến của chế độ Chuyến xe.
   final HomeSearchQuery? initialQuery;
 
-  /// Báo điều kiện vừa tìm để giữ lại khi rời tab.
+  /// Điều kiện mặc định khi chưa có [initialQuery]; trả `null` thì chờ người
+  /// dùng chọn điểm đi, điểm đến.
+  final Future<HomeSearchQuery?> Function()? loadDefaultQuery;
+
+  /// Báo điều kiện vừa đổi để giữ lại khi rời tab.
   final ValueChanged<HomeSearchQuery>? onQueryChanged;
 
   @override
@@ -49,6 +77,9 @@ class _TicketScreenState extends State<TicketScreen>
   final _scrollController = ScrollController();
   bool _dockVisible = true;
 
+  /// `route` = chế độ Chuyến xe, `operator` = chế độ Nhà xe.
+  HomeSearchMode _mode = HomeSearchMode.route;
+
   HomeSearchQuery? _query;
   TripSearchFilters _filters = const TripSearchFilters();
   TripSearchPage? _page;
@@ -57,6 +88,11 @@ class _TicketScreenState extends State<TicketScreen>
   bool _loadingMore = false;
   String? _error;
   int _request = 0;
+
+  Future<List<HomeOperator>>? _operators;
+  HomeLocation? _operatorArea;
+  HomeOperatorRoute? _operatorRoute;
+  final _fares = <String, Future<int?>>{};
 
   @override
   TripSearchCatalog? get searchCatalog => widget.searchCatalog;
@@ -67,8 +103,10 @@ class _TicketScreenState extends State<TicketScreen>
     _scrollController.addListener(_maybeLoadMore);
     final query = widget.initialQuery;
     if (query != null) {
-      applySearchQuery(query);
-      _search(query);
+      _applyContext(query);
+      _search(_contextQuery()!);
+    } else {
+      _loadDefaultContext();
     }
   }
 
@@ -80,7 +118,7 @@ class _TicketScreenState extends State<TicketScreen>
 
   @override
   Widget build(BuildContext context) {
-    final query = _query;
+    final tripsMode = _mode == HomeSearchMode.route;
     return Scaffold(
       key: const Key('ticket-screen'),
       extendBody: true,
@@ -101,15 +139,10 @@ class _TicketScreenState extends State<TicketScreen>
           systemNavigationBarColor: _pageBackground,
         ),
         child: DecoratedBox(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [Color(0xFFE6F4FA), Color(0xFFF3F5F5), Color(0xFFEEEAE4)],
-              stops: [0, .52, 1],
-            ),
-          ),
+          decoration: const BoxDecoration(gradient: _pageGradient),
+          // Header tự chừa thanh trạng thái để ảnh nền tràn lên sau nó.
           child: SafeArea(
+            top: false,
             bottom: false,
             child: NotificationListener<UserScrollNotification>(
               onNotification: _handleUserScroll,
@@ -118,65 +151,31 @@ class _TicketScreenState extends State<TicketScreen>
                 controller: _scrollController,
                 slivers: [
                   SliverToBoxAdapter(
-                    child: _TicketHeader(
-                      planner: _JourneyPlanner(
-                        mode: searchMode,
-                        fromLabel: searchFrom?.name,
-                        toLabel: searchTo?.name,
-                        operatorLabel: searchOperator?.name,
-                        routeLabel: searchOperatorRoute?.label,
-                        date: searchDate,
-                        passengers: searchPassengers,
-                        onModeChanged: (mode) =>
-                            setState(() => searchMode = mode),
-                        onPickFrom: () => pickSearchLocation(isOrigin: true),
-                        onPickTo: () => pickSearchLocation(isOrigin: false),
-                        onSwap: swapSearchLocations,
-                        onOperatorTap: pickSearchOperator,
-                        onRouteTap: pickSearchOperatorRoute,
-                        onPickDate: pickSearchDate,
-                        onPickPassengers: pickSearchPassengers,
-                        onSearch: _onSearchPressed,
+                    child: _ExploreHeader(
+                      mode: _mode,
+                      onModeChanged: _selectMode,
+                    ),
+                  ),
+                  SliverPadding(
+                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                    sliver: SliverToBoxAdapter(
+                      child: tripsMode ? _tripChips() : _operatorChips(),
+                    ),
+                  ),
+                  SliverPadding(
+                    padding: const EdgeInsets.fromLTRB(15, 20, 15, 16),
+                    sliver: SliverToBoxAdapter(
+                      child: _ExploreListHeading(
+                        title: tripsMode
+                            ? 'Chuyến đang mở bán'
+                            : 'Nhà xe đang phục vụ',
+                        trailing: tripsMode
+                            ? 'Giờ đi sớm nhất'
+                            : 'Đánh giá cao',
                       ),
                     ),
                   ),
-                  if (query == null)
-                    const SliverPadding(
-                      padding: EdgeInsets.fromLTRB(24, 28, 24, 142),
-                      sliver: SliverToBoxAdapter(
-                        child: _ResultMessage(
-                          icon: Icons.travel_explore,
-                          message:
-                              'Chọn điểm đi, điểm đến và ngày đi rồi bấm "Tìm chuyến".',
-                        ),
-                      ),
-                    )
-                  else ...[
-                    SliverPadding(
-                      padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
-                      sliver: SliverToBoxAdapter(
-                        child: _ResultToolbar(
-                          filters: _filters,
-                          operators: _page?.operators ?? const [],
-                          onFilter: _openFilters,
-                          onSort: _openSortSheet,
-                          onChanged: _applyFilters,
-                        ),
-                      ),
-                    ),
-                    if (!_loading && _error == null)
-                      SliverPadding(
-                        padding: const EdgeInsets.fromLTRB(16, 14, 16, 10),
-                        sliver: SliverToBoxAdapter(
-                          child: _ResultSummary(
-                            total: _page?.total ?? 0,
-                            sort: _filters.sort,
-                            onSort: _openSortSheet,
-                          ),
-                        ),
-                      ),
-                    ..._resultSlivers(query),
-                  ],
+                  if (tripsMode) ..._tripSlivers() else _operatorSliver(),
                 ],
               ),
             ),
@@ -186,11 +185,95 @@ class _TicketScreenState extends State<TicketScreen>
     );
   }
 
-  List<Widget> _resultSlivers(HomeSearchQuery query) {
+  Widget _tripChips() {
+    final filterCount = _filters.activeCount;
+    return Column(
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: _ExploreChip(
+                key: const Key('explore-date-chip'),
+                label: formatSearchDate(searchDate),
+                onTap: () => _editContext(pickSearchDate),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: _ExploreChip(
+                key: const Key('explore-passenger-chip'),
+                label: '$searchPassengers khách',
+                onTap: () => _editContext(pickSearchPassengers),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        _quickFilterRow(
+          _ExploreChip(
+            key: const Key('explore-origin-chip'),
+            label: _compactPlace(searchFrom?.name ?? 'Điểm đi'),
+            onTap: () => _editContext(() => pickSearchLocation(isOrigin: true)),
+          ),
+          _ExploreChip(
+            key: const Key('explore-destination-chip'),
+            label: _compactPlace(searchTo?.name ?? 'Điểm đến'),
+            onTap: () =>
+                _editContext(() => pickSearchLocation(isOrigin: false)),
+          ),
+          _ExploreChip(
+            key: const Key('explore-filter-chip'),
+            label: filterCount == 0 ? 'Bộ lọc' : 'Bộ lọc · $filterCount',
+            onTap: _openFilters,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _operatorChips() {
+    final filterCount =
+        (_operatorArea == null ? 0 : 1) + (_operatorRoute == null ? 0 : 1);
+    return _quickFilterRow(
+      _ExploreChip(
+        key: const Key('explore-area-chip'),
+        label: _compactPlace(_operatorArea?.name ?? 'Khu vực'),
+        onTap: _pickOperatorArea,
+      ),
+      _ExploreChip(
+        key: const Key('explore-route-chip'),
+        label: _operatorRoute == null
+            ? 'Tuyến phục vụ'
+            : _routeLabel(_operatorRoute!),
+        onTap: _pickOperatorRoute,
+      ),
+      _ExploreChip(
+        key: const Key('explore-operator-filter-chip'),
+        label: filterCount == 0 ? 'Bộ lọc' : 'Bộ lọc · $filterCount',
+        onTap: _openOperatorFilters,
+      ),
+    );
+  }
+
+  /// Hàng chip lọc nhanh theo Figma: 128 · 128 · 108, cách nhau 8.
+  Widget _quickFilterRow(Widget first, Widget second, Widget filter) {
+    return Row(
+      children: [
+        Expanded(flex: 32, child: first),
+        const SizedBox(width: 8),
+        Expanded(flex: 32, child: second),
+        const SizedBox(width: 8),
+        Expanded(flex: 27, child: filter),
+      ],
+    );
+  }
+
+  List<Widget> _tripSlivers() {
+    final query = _query;
     if (_loading) {
       return const [
         SliverPadding(
-          padding: EdgeInsets.only(top: 48, bottom: 142),
+          padding: EdgeInsets.only(top: 32, bottom: 142),
           sliver: SliverToBoxAdapter(
             child: Center(
               child: CircularProgressIndicator(key: Key('ticket-loading')),
@@ -202,15 +285,25 @@ class _TicketScreenState extends State<TicketScreen>
     final error = _error;
     if (error != null) {
       return [
-        SliverPadding(
-          padding: const EdgeInsets.fromLTRB(24, 28, 24, 142),
-          sliver: SliverToBoxAdapter(
-            child: _ResultMessage(
-              icon: Icons.wifi_off_outlined,
-              message: error,
-              actionLabel: 'Thử lại',
-              onAction: () => _search(query),
-            ),
+        _messageSliver(
+          _ResultMessage(
+            icon: Icons.wifi_off_outlined,
+            message: error,
+            actionLabel: 'Thử lại',
+            onAction: query == null
+                ? _loadDefaultContext
+                : () => _search(query),
+          ),
+        ),
+      ];
+    }
+    if (query == null) {
+      return [
+        _messageSliver(
+          const _ResultMessage(
+            key: Key('ticket-pick-route'),
+            icon: Icons.travel_explore,
+            message: 'Chọn điểm đi và điểm đến để xem chuyến đang mở bán.',
           ),
         ),
       ];
@@ -218,27 +311,22 @@ class _TicketScreenState extends State<TicketScreen>
     if (_trips.isEmpty) {
       final filtered = _filters.activeCount > 0;
       return [
-        SliverPadding(
-          padding: const EdgeInsets.fromLTRB(24, 20, 24, 142),
-          sliver: SliverToBoxAdapter(
-            child: _ResultMessage(
-              key: const Key('ticket-empty'),
-              icon: Icons.directions_bus_outlined,
-              message: filtered
-                  ? 'Không có chuyến khớp bộ lọc. Hãy bỏ bớt bộ lọc.'
-                  : 'Chưa có chuyến phù hợp. Hãy thử ngày khác hoặc địa điểm khác.',
-              actionLabel: filtered ? 'Bỏ lọc' : null,
-              onAction: filtered
-                  ? () => _applyFilters(_filters.cleared())
-                  : null,
-            ),
+        _messageSliver(
+          _ResultMessage(
+            key: const Key('ticket-empty'),
+            icon: Icons.directions_bus_outlined,
+            message: filtered
+                ? 'Không có chuyến khớp bộ lọc. Hãy bỏ bớt bộ lọc.'
+                : 'Chưa có chuyến phù hợp. Hãy thử ngày khác hoặc địa điểm khác.',
+            actionLabel: filtered ? 'Bỏ lọc' : null,
+            onAction: filtered ? () => _applyFilters(_filters.cleared()) : null,
           ),
         ),
       ];
     }
     return [
       SliverPadding(
-        padding: const EdgeInsets.fromLTRB(8, 0, 8, 0),
+        padding: const EdgeInsets.symmetric(horizontal: 15),
         sliver: SliverList.separated(
           itemBuilder: (context, index) {
             final trip = _trips[index];
@@ -270,6 +358,78 @@ class _TicketScreenState extends State<TicketScreen>
     ];
   }
 
+  Widget _operatorSliver() {
+    return FutureBuilder<List<HomeOperator>>(
+      future: _operators,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState != ConnectionState.done) {
+          return const SliverPadding(
+            padding: EdgeInsets.only(top: 32, bottom: 142),
+            sliver: SliverToBoxAdapter(
+              child: Center(
+                child: CircularProgressIndicator(
+                  key: Key('explore-operators-loading'),
+                ),
+              ),
+            ),
+          );
+        }
+        if (snapshot.hasError) {
+          return _messageSliver(
+            _ResultMessage(
+              icon: Icons.wifi_off_outlined,
+              message: 'Không tải được danh sách nhà xe. Vui lòng thử lại.',
+              actionLabel: 'Thử lại',
+              onAction: () => setState(() => _operators = _loadOperators()),
+            ),
+          );
+        }
+        final area = _operatorArea;
+        final route = _operatorRoute;
+        final filtered = area != null || route != null;
+        final operators = _rankOperators([
+          for (final operator in snapshot.data ?? const <HomeOperator>[])
+            if (!filtered || _servedRoute(operator, area, route) != null)
+              operator,
+        ]);
+        if (operators.isEmpty) {
+          return _messageSliver(
+            _ResultMessage(
+              key: const Key('explore-operators-empty'),
+              icon: Icons.apartment_outlined,
+              message: filtered
+                  ? 'Chưa có nhà xe phục vụ khu vực, tuyến đã chọn.'
+                  : 'Chưa có nhà xe đang mở bán.',
+              actionLabel: filtered ? 'Bỏ lọc' : null,
+              onAction: filtered ? () => _setOperatorFilters(null, null) : null,
+            ),
+          );
+        }
+        return SliverPadding(
+          padding: const EdgeInsets.fromLTRB(15, 0, 15, 142),
+          sliver: SliverList.separated(
+            itemCount: operators.length,
+            separatorBuilder: (context, index) => const SizedBox(height: 16),
+            itemBuilder: (context, index) {
+              final operator = operators[index];
+              final served = _servedRoute(operator, area, route);
+              return _OperatorCard(
+                key: ValueKey('explore-operator-${operator.id}'),
+                operator: operator,
+                route: served,
+                fare: served == null ? null : _fareFor(operator, served),
+                date: searchDate,
+                onViewTrips: served == null
+                    ? null
+                    : () => _openOperatorTrips(operator, served),
+              );
+            },
+          ),
+        );
+      },
+    );
+  }
+
   bool _handleUserScroll(UserScrollNotification notification) {
     if (notification.metrics.axis != Axis.vertical) return false;
     final shouldShow = switch (notification.direction) {
@@ -283,20 +443,78 @@ class _TicketScreenState extends State<TicketScreen>
     return false;
   }
 
-  void _onSearchPressed() {
-    final query = buildSearchQuery();
-    if (query == null) return;
-    // Đổi điều kiện tìm thì nhà xe và khoảng giá cũ không còn đúng với kết quả mới.
-    _filters = TripSearchFilters(
-      vehicleForm: _filters.vehicleForm,
-      vehicleClass: _filters.vehicleClass,
-      departureSlot: _filters.departureSlot,
-      amenityIds: _filters.amenityIds,
-      sort: _filters.sort,
+  /// Ngày, số khách, điểm đi – đến của chế độ Chuyến xe (lần tìm theo nhà xe
+  /// thì giữ tuyến, bỏ nhà xe).
+  void _applyContext(HomeSearchQuery query) {
+    searchMode = HomeSearchMode.route;
+    searchFrom = query.from;
+    searchTo = query.to;
+    searchDate = query.date;
+    searchPassengers = query.passengers;
+  }
+
+  /// Điều kiện theo các chip; chưa có điểm đi hoặc điểm đến thì `null`.
+  HomeSearchQuery? _contextQuery() {
+    final from = searchFrom;
+    final to = searchTo;
+    if (from == null || to == null) return null;
+    return HomeSearchQuery(
+      mode: HomeSearchMode.route,
+      from: from,
+      to: to,
+      date: searchDate,
+      passengers: searchPassengers,
     );
+  }
+
+  Future<void> _loadDefaultContext() async {
+    final loader = widget.loadDefaultQuery;
+    if (loader == null) return;
+    final request = ++_request;
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+    try {
+      final query = await loader();
+      if (!mounted || request != _request) return;
+      if (query == null) {
+        setState(() => _loading = false);
+        return;
+      }
+      setState(() => _applyContext(query));
+      await _search(query);
+    } catch (_) {
+      if (!mounted || request != _request) return;
+      setState(() {
+        _loading = false;
+        _error = 'Không tải được danh sách chuyến. Vui lòng thử lại.';
+      });
+    }
+  }
+
+  /// Mở ô chọn của một chip (ngày, số khách, điểm đi / đến); điều kiện đổi thì
+  /// tải lại danh sách chuyến.
+  Future<void> _editContext(Future<void> Function() pick) async {
+    final before = _contextQuery();
+    await pick();
+    if (!mounted) return;
+    final query = _contextQuery();
+    if (query == null || _sameContext(before, query)) return;
+    if (query.from.id == query.to.id && query.from.kind == query.to.kind) {
+      showSearchMessage('Điểm đi và điểm đến phải khác nhau.');
+      return;
+    }
     widget.onQueryChanged?.call(query);
     _search(query);
   }
+
+  bool _sameContext(HomeSearchQuery? a, HomeSearchQuery b) =>
+      a != null &&
+      a.from.id == b.from.id &&
+      a.to.id == b.to.id &&
+      a.date == b.date &&
+      a.passengers == b.passengers;
 
   Future<void> _search(HomeSearchQuery query) async {
     final runner = widget.searchTrips;
@@ -333,7 +551,8 @@ class _TicketScreenState extends State<TicketScreen>
     final query = _query;
     final page = _page;
     final runner = widget.searchTrips;
-    if (query == null ||
+    if (_mode != HomeSearchMode.route ||
+        query == null ||
         page == null ||
         runner == null ||
         !page.hasMore ||
@@ -362,7 +581,7 @@ class _TicketScreenState extends State<TicketScreen>
   }
 
   void _applyFilters(TripSearchFilters filters) {
-    _filters = filters;
+    setState(() => _filters = filters);
     final query = _query;
     if (query != null) _search(query);
   }
@@ -385,57 +604,238 @@ class _TicketScreenState extends State<TicketScreen>
     if (result != null && mounted) _applyFilters(result);
   }
 
-  Future<void> _openSortSheet() async {
-    final selected = await showModalBottomSheet<TripSearchSort>(
-      context: context,
-      showDragHandle: true,
-      builder: (context) => SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'Sắp xếp',
-                style: TextStyle(fontSize: 19, fontWeight: FontWeight.w600),
-              ),
-              const SizedBox(height: 10),
-              for (final sort in TripSearchSort.values)
-                ListTile(
-                  key: ValueKey('ticket-sort-${sort.name}'),
-                  contentPadding: EdgeInsets.zero,
-                  title: Text(sort.label),
-                  trailing: sort == _filters.sort
-                      ? const Icon(Icons.check_circle, color: _primary)
-                      : null,
-                  onTap: () => Navigator.pop(context, sort),
-                ),
-            ],
+  void _selectMode(HomeSearchMode mode) {
+    if (mode == _mode) return;
+    setState(() {
+      _mode = mode;
+      if (mode == HomeSearchMode.operator) _operators ??= _loadOperators();
+    });
+  }
+
+  Future<List<HomeOperator>> _loadOperators() {
+    final catalog = widget.searchCatalog;
+    if (catalog == null) {
+      return Future.error(StateError('Danh sách nhà xe chưa khả dụng.'));
+    }
+    return catalog.loadOperators();
+  }
+
+  Future<List<HomeOperator>?> _operatorsOrNull() async {
+    try {
+      return await (_operators ??= _loadOperators());
+    } catch (_) {
+      showSearchMessage('Không tải được danh sách nhà xe. Vui lòng thử lại.');
+      return null;
+    }
+  }
+
+  Future<void> _pickOperatorArea() async {
+    final operators = await _operatorsOrNull();
+    if (operators == null || !mounted) return;
+    final picked = await _pickArea(context, operators, _operatorArea);
+    if (picked == null || !mounted) return;
+    _setOperatorFilters(picked.$1, _operatorRoute);
+  }
+
+  Future<void> _pickOperatorRoute() async {
+    final operators = await _operatorsOrNull();
+    if (operators == null || !mounted) return;
+    final picked = await _pickServedRoute(
+      context,
+      operators,
+      _operatorArea,
+      _operatorRoute,
+    );
+    if (picked == null || !mounted) return;
+    _setOperatorFilters(_operatorArea, picked.$1);
+  }
+
+  Future<void> _openOperatorFilters() async {
+    final operators = await _operatorsOrNull();
+    if (operators == null || !mounted) return;
+    final picked =
+        await showModalBottomSheet<(HomeLocation?, HomeOperatorRoute?)>(
+          context: context,
+          isScrollControlled: true,
+          useSafeArea: true,
+          backgroundColor: Colors.transparent,
+          builder: (context) => _OperatorFilterSheet(
+            operators: operators,
+            area: _operatorArea,
+            route: _operatorRoute,
           ),
+        );
+    if (picked == null || !mounted) return;
+    _setOperatorFilters(picked.$1, picked.$2);
+  }
+
+  /// Tuyến không đi qua khu vực mới chọn thì bỏ lọc tuyến.
+  void _setOperatorFilters(HomeLocation? area, HomeOperatorRoute? route) {
+    setState(() {
+      _operatorArea = area;
+      _operatorRoute =
+          route != null && area != null && !_routeTouches(route, area)
+          ? null
+          : route;
+    });
+  }
+
+  Future<int?>? _fareFor(HomeOperator operator, HomeOperatorRoute route) {
+    final loader = widget.loadOperatorFare;
+    if (loader == null) return null;
+    final date = searchDate;
+    final key =
+        '${operator.id}|${route.from.id}|${route.to.id}|${formatSearchDate(date)}';
+    return _fares.putIfAbsent(
+      key,
+      () => loader(
+        operator.id,
+        route,
+        date,
+      ).then<int?>((price) => price, onError: (_) => null),
+    );
+  }
+
+  /// Nhánh khám phá theo nhà xe: chọn điều kiện hành trình rồi mở kết quả
+  /// riêng của nhà xe; quay lại thì về đúng danh sách nhà xe đang xem.
+  Future<void> _openOperatorTrips(
+    HomeOperator operator,
+    HomeOperatorRoute route,
+  ) async {
+    final query = await showModalBottomSheet<HomeSearchQuery>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => _SearchConditionSheet(
+        title: 'Chuyến của ${operator.name}',
+        actionLabel: 'Xem chuyến ${operator.name}',
+        catalog: widget.searchCatalog,
+        initial: HomeSearchQuery(
+          mode: HomeSearchMode.route,
+          from: route.from,
+          to: route.to,
+          date: searchDate,
+          passengers: searchPassengers,
         ),
       ),
     );
-    if (selected != null && selected != _filters.sort && mounted) {
-      _applyFilters(_filters.withSort(selected));
-    }
+    if (query == null || !mounted) return;
+    await Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => TripResultsScreen(
+          query: query,
+          searchTrips: widget.searchTrips,
+          searchCatalog: widget.searchCatalog,
+          onTripSelected: widget.onTripSelected,
+          initialFilters: TripSearchFilters(operatorId: operator.id),
+          operatorName: operator.name,
+        ),
+      ),
+    );
   }
 }
 
-String _describeSearchError(Object error) {
-  if (error is ApiFailure) {
-    if (error.isNetworkError) {
-      return 'Không thể kết nối máy chủ. Vui lòng kiểm tra mạng và thử lại.';
-    }
-    return error.detail;
-  }
-  return 'Không thể tìm chuyến. Vui lòng thử lại.';
+/// Nhà xe đánh giá cao trước; cùng điểm thì nhiều lượt đánh giá trước.
+List<HomeOperator> _rankOperators(List<HomeOperator> operators) {
+  return [...operators]..sort((a, b) {
+    final byRating = (b.averageRating ?? -1).compareTo(a.averageRating ?? -1);
+    return byRating != 0 ? byRating : b.reviewCount.compareTo(a.reviewCount);
+  });
 }
 
-class _TicketHeader extends StatelessWidget {
-  const _TicketHeader({required this.planner});
+bool _routeTouches(HomeOperatorRoute route, HomeLocation area) =>
+    route.from.id == area.id || route.to.id == area.id;
 
-  final Widget planner;
+bool _sameRoute(HomeOperatorRoute a, HomeOperatorRoute b) =>
+    a.from.id == b.from.id && a.to.id == b.to.id;
+
+/// Tuyến đầu tiên của nhà xe khớp khu vực + tuyến đang lọc; không khớp thì
+/// `null`. Không lọc gì thì là tuyến đầu tiên của nhà xe.
+HomeOperatorRoute? _servedRoute(
+  HomeOperator operator,
+  HomeLocation? area,
+  HomeOperatorRoute? route,
+) {
+  for (final item in operator.routes) {
+    if (area != null && !_routeTouches(item, area)) continue;
+    if (route != null && !_sameRoute(item, route)) continue;
+    return item;
+  }
+  return null;
+}
+
+/// Khu vực = các tỉnh có tuyến của nhà xe đang mở bán. Trả `(null,)` khi chọn
+/// "Tất cả khu vực", `null` khi đóng sheet.
+Future<(HomeLocation?,)?> _pickArea(
+  BuildContext context,
+  List<HomeOperator> operators,
+  HomeLocation? selected,
+) {
+  final areas = <String, HomeLocation>{};
+  for (final operator in operators) {
+    for (final route in operator.routes) {
+      areas.putIfAbsent(route.from.id, () => route.from);
+      areas.putIfAbsent(route.to.id, () => route.to);
+    }
+  }
+  final options = areas.values.toList()
+    ..sort((a, b) => a.name.compareTo(b.name));
+  return showModalBottomSheet<(HomeLocation?,)>(
+    context: context,
+    isScrollControlled: true,
+    useSafeArea: true,
+    backgroundColor: Colors.transparent,
+    builder: (context) => _ChoiceSheet<HomeLocation>(
+      title: 'Khu vực',
+      allLabel: 'Tất cả khu vực',
+      options: options,
+      selected: selected,
+      labelOf: (area) => area.name,
+      isSame: (a, b) => a.id == b.id,
+    ),
+  );
+}
+
+/// Tuyến phục vụ = các tuyến của nhà xe đang mở bán, chỉ tuyến đi qua khu vực
+/// đang chọn. Trả `(null,)` khi chọn "Tất cả tuyến", `null` khi đóng sheet.
+Future<(HomeOperatorRoute?,)?> _pickServedRoute(
+  BuildContext context,
+  List<HomeOperator> operators,
+  HomeLocation? area,
+  HomeOperatorRoute? selected,
+) {
+  final routes = <String, HomeOperatorRoute>{};
+  for (final operator in operators) {
+    for (final route in operator.routes) {
+      if (area != null && !_routeTouches(route, area)) continue;
+      routes.putIfAbsent('${route.from.id}>${route.to.id}', () => route);
+    }
+  }
+  final options = routes.values.toList()
+    ..sort((a, b) => _routeLabel(a).compareTo(_routeLabel(b)));
+  return showModalBottomSheet<(HomeOperatorRoute?,)>(
+    context: context,
+    isScrollControlled: true,
+    useSafeArea: true,
+    backgroundColor: Colors.transparent,
+    builder: (context) => _ChoiceSheet<HomeOperatorRoute>(
+      title: 'Tuyến phục vụ',
+      allLabel: 'Tất cả tuyến',
+      options: options,
+      selected: selected,
+      labelOf: _routeLabel,
+      isSame: _sameRoute,
+    ),
+  );
+}
+
+/// Ảnh nền, tiêu đề "Khám phá chuyến đi" và nút đổi chế độ Chuyến xe · Nhà xe.
+class _ExploreHeader extends StatelessWidget {
+  const _ExploreHeader({required this.mode, required this.onModeChanged});
+
+  final HomeSearchMode mode;
+  final ValueChanged<HomeSearchMode> onModeChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -456,24 +856,42 @@ class _TicketHeader extends StatelessWidget {
           ),
         ),
         Padding(
-          padding: const EdgeInsets.only(top: 22),
+          padding: EdgeInsets.fromLTRB(
+            16,
+            MediaQuery.paddingOf(context).top + 14,
+            16,
+            0,
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 20),
+                padding: EdgeInsets.symmetric(horizontal: 4),
                 child: Text(
-                  'MUA VÉ',
+                  'Khám phá chuyến đi',
+                  key: Key('explore-title'),
                   style: TextStyle(
                     color: _primaryDark,
                     fontSize: 24,
-                    height: 1.1,
+                    height: 34 / 24,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
               ),
-              const SizedBox(height: 28),
-              planner,
+              const SizedBox(height: 3),
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 4),
+                child: Text(
+                  'Chuyến xe và nhà xe cho mọi hành trình',
+                  style: TextStyle(
+                    color: _secondary,
+                    fontSize: 13,
+                    height: 19 / 13,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 11),
+              _SearchModeControl(mode: mode, onChanged: onModeChanged),
             ],
           ),
         ),
@@ -482,170 +900,510 @@ class _TicketHeader extends StatelessWidget {
   }
 }
 
-class _JourneyPlanner extends StatelessWidget {
-  const _JourneyPlanner({
-    required this.mode,
-    required this.fromLabel,
-    required this.toLabel,
-    required this.operatorLabel,
-    required this.routeLabel,
-    required this.date,
-    required this.passengers,
-    required this.onModeChanged,
-    required this.onPickFrom,
-    required this.onPickTo,
-    required this.onSwap,
-    required this.onOperatorTap,
-    required this.onRouteTap,
-    required this.onPickDate,
-    required this.onPickPassengers,
-    required this.onSearch,
-  });
+/// Bộ lọc gọn của trang khám phá (Figma "Discovery / Filter chip").
+class _ExploreChip extends StatelessWidget {
+  const _ExploreChip({required this.label, required this.onTap, super.key});
 
-  final HomeSearchMode mode;
-  final String? fromLabel;
-  final String? toLabel;
-  final String? operatorLabel;
-  final String? routeLabel;
-  final DateTime date;
-  final int passengers;
-  final ValueChanged<HomeSearchMode> onModeChanged;
-  final VoidCallback onPickFrom;
-  final VoidCallback onPickTo;
-  final VoidCallback onSwap;
-  final VoidCallback onOperatorTap;
-  final VoidCallback onRouteTap;
-  final VoidCallback onPickDate;
-  final VoidCallback onPickPassengers;
-  final VoidCallback onSearch;
+  final String label;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
+    return SizedBox(
+      height: 44,
+      child: Material(
+        color: Colors.white,
+        shape: RoundedRectangleBorder(
+          side: const BorderSide(color: _chipBorder),
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(16),
+          child: Padding(
+            // Figma để padding 12 nhưng nhãn dài như "Tuyến phục vụ" tràn vào
+            // phần padding (nội dung căn giữa); 6 giữ nguyên nhãn ngắn và
+            // thêm chỗ cho nhãn dài.
+            padding: const EdgeInsets.symmetric(horizontal: 6),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                // Nhãn hơi dài (máy hẹp) thu nhỏ tối đa 15% thay vì bị cắt;
+                // dài hơn nữa mới cắt "...".
+                Flexible(
+                  child: LayoutBuilder(
+                    builder: (context, constraints) => FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints(
+                          maxWidth: constraints.maxWidth / 0.85,
+                        ),
+                        child: Text(
+                          label,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            color: _primaryDark,
+                            fontSize: 13,
+                            height: 19 / 13,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                SvgPicture.asset(
+                  '$_resultsAssetRoot/chevron.svg',
+                  width: 14,
+                  height: 14,
+                  excludeFromSemantics: true,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ExploreListHeading extends StatelessWidget {
+  const _ExploreListHeading({required this.title, required this.trailing});
+
+  final String title;
+  final String trailing;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: Text(
+            title,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              color: _primaryDark,
+              fontSize: 16,
+              height: 24 / 16,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ),
+        const SizedBox(width: 8),
+        Text(
+          trailing,
+          style: const TextStyle(color: _secondary, fontSize: 12, height: 1.5),
+        ),
+      ],
+    );
+  }
+}
+
+/// Thẻ nhà xe (Figma "Discovery / Operator card").
+class _OperatorCard extends StatelessWidget {
+  const _OperatorCard({
+    required this.operator,
+    required this.route,
+    required this.fare,
+    required this.date,
+    required this.onViewTrips,
+    super.key,
+  });
+
+  final HomeOperator operator;
+
+  /// Tuyến hiển thị (khớp bộ lọc); `null` khi nhà xe chưa có tuyến.
+  final HomeOperatorRoute? route;
+  final Future<int?>? fare;
+
+  /// Ngày đi dùng để lấy giá vé từ.
+  final DateTime date;
+  final VoidCallback? onViewTrips;
+
+  @override
+  Widget build(BuildContext context) {
+    final rating = operator.averageRating;
+    final served = route;
+    final otherRoutes = operator.routes.length - 1;
     return Container(
-      key: const Key('ticket-journey-planner'),
-      margin: const EdgeInsets.symmetric(horizontal: 6),
-      padding: const EdgeInsets.all(18),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFFFEFEFD),
-        borderRadius: BorderRadius.circular(26),
-        border: Border.all(color: const Color(0xFFE0EFF8)),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
         boxShadow: const [
           BoxShadow(
-            color: Color(0x1F21404F),
-            offset: Offset(0, 8),
-            blurRadius: 20,
+            color: Color(0x1421404F),
+            offset: Offset(0, 7.048),
+            blurRadius: 9.398,
           ),
         ],
       ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _SearchModeControl(mode: mode, onChanged: onModeChanged),
-          const SizedBox(height: 12),
-          AnimatedSwitcher(
-            duration: const Duration(milliseconds: 250),
-            switchInCurve: Curves.easeOutCubic,
-            switchOutCurve: Curves.easeInCubic,
-            transitionBuilder: (child, animation) => FadeTransition(
-              opacity: animation,
-              child: SlideTransition(
-                position: Tween<Offset>(
-                  begin: const Offset(.03, 0),
-                  end: Offset.zero,
-                ).animate(animation),
-                child: child,
-              ),
-            ),
-            child: mode == HomeSearchMode.route
-                ? _RouteInputs(
-                    key: const ValueKey('ticket-route-inputs'),
-                    fromLabel: fromLabel,
-                    toLabel: toLabel,
-                    onPickFrom: onPickFrom,
-                    onPickTo: onPickTo,
-                    onSwap: onSwap,
-                  )
-                : _OperatorInput(
-                    key: const ValueKey('ticket-operator-input'),
-                    operatorLabel: operatorLabel,
-                    routeLabel: routeLabel,
-                    onOperatorTap: onOperatorTap,
-                    onRouteTap: onRouteTap,
-                  ),
-          ),
-          const SizedBox(height: 12),
           Row(
             children: [
+              _OperatorLogo(operator: operator),
+              const SizedBox(width: 12),
               Expanded(
-                child: _CompactInput(
-                  key: const Key('ticket-date-input'),
-                  icon: Icons.calendar_month_outlined,
-                  label: formatSearchDate(date),
-                  onTap: onPickDate,
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: _CompactInput(
-                  key: const Key('ticket-passenger-input'),
-                  icon: Icons.person_outline,
-                  label: '$passengers khách',
-                  onTap: onPickPassengers,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      operator.name,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: _primaryDark,
+                        fontSize: 17,
+                        height: 25 / 17,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      rating == null
+                          ? 'Chưa có đánh giá'
+                          : '★ ${rating.toStringAsFixed(1)} · '
+                                '${_compactCount(operator.reviewCount)} đánh giá',
+                      style: const TextStyle(
+                        color: _secondary,
+                        fontSize: 12,
+                        height: 1.5,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
           ),
           const SizedBox(height: 12),
-          SizedBox(
-            width: double.infinity,
-            height: 54,
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFFF4B028), Color(0xFFEA831D)],
+          const Text(
+            'Tuyến đang phục vụ',
+            style: TextStyle(color: _secondary, fontSize: 11, height: 16 / 11),
+          ),
+          const SizedBox(height: 6),
+          Text.rich(
+            TextSpan(
+              text: served == null
+                  ? 'Chưa có tuyến mở bán'
+                  : _routeLabel(served),
+              children: [
+                if (served != null && otherRoutes > 0)
+                  TextSpan(
+                    text: '  +$otherRoutes tuyến',
+                    style: const TextStyle(
+                      color: _secondary,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w400,
+                    ),
+                  ),
+              ],
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              color: _primaryDark,
+              fontSize: 15,
+              height: 22 / 15,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Giá vé từ',
+                      style: TextStyle(
+                        color: _secondary,
+                        fontSize: 11,
+                        height: 16 / 11,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    _OperatorFare(fare: fare, date: date),
+                  ],
                 ),
-                borderRadius: BorderRadius.circular(18),
               ),
-              child: Material(
-                color: Colors.transparent,
+              const SizedBox(width: 8),
+              Material(
+                color: _primarySoft,
+                borderRadius: BorderRadius.circular(16),
                 child: InkWell(
-                  key: const Key('ticket-search-button'),
-                  borderRadius: BorderRadius.circular(18),
-                  onTap: onSearch,
-                  child: const Center(
-                    child: FittedBox(
-                      fit: BoxFit.scaleDown,
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(Icons.search, size: 20, color: Colors.white),
-                          SizedBox(width: 9),
-                          Text(
-                            'Tìm chuyến',
-                            maxLines: 1,
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 15,
-                              fontWeight: FontWeight.w600,
+                  key: ValueKey('explore-operator-${operator.id}-trips'),
+                  onTap: onViewTrips,
+                  borderRadius: BorderRadius.circular(16),
+                  child: SizedBox(
+                    width: 132,
+                    height: 44,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Flexible(
+                          child: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text(
+                              'Xem chuyến',
+                              maxLines: 1,
+                              style: TextStyle(
+                                color: _primary,
+                                fontSize: 13,
+                                height: 19 / 13,
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
                           ),
-                          SizedBox(width: 9),
-                          Icon(
-                            Icons.arrow_forward,
-                            size: 18,
-                            color: Colors.white,
-                          ),
-                        ],
-                      ),
+                        ),
+                        const SizedBox(width: 8),
+                        SvgPicture.asset(
+                          '$_resultsAssetRoot/arrow_right.svg',
+                          width: 16,
+                          height: 16,
+                          excludeFromSemantics: true,
+                        ),
+                      ],
                     ),
                   ),
                 ),
               ),
-            ),
+            ],
           ),
         ],
       ),
     );
   }
+}
+
+/// `1200` → `1.2K`, `980` → `980`.
+String _compactCount(int count) {
+  if (count < 1000) return '$count';
+  final value = (count / 1000).toStringAsFixed(1);
+  return '${value.endsWith('.0') ? value.substring(0, value.length - 2) : value}K';
+}
+
+class _OperatorLogo extends StatelessWidget {
+  const _OperatorLogo({required this.operator});
+
+  final HomeOperator operator;
+
+  @override
+  Widget build(BuildContext context) {
+    final fallback = Center(
+      child: OperatorInitialAvatar(name: operator.name, size: 42),
+    );
+    final url = operator.logoUrl;
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(22.3),
+      child: SizedBox(
+        width: 52,
+        height: 50.76,
+        child: url == null
+            ? fallback
+            : Image.network(
+                url,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) => fallback,
+              ),
+      ),
+    );
+  }
+}
+
+class _OperatorFare extends StatelessWidget {
+  const _OperatorFare({required this.fare, required this.date});
+
+  final Future<int?>? fare;
+  final DateTime date;
+
+  @override
+  Widget build(BuildContext context) {
+    const priceStyle = TextStyle(
+      color: _primary,
+      fontSize: 17,
+      height: 25 / 17,
+      fontWeight: FontWeight.w600,
+    );
+    const noteStyle = TextStyle(color: _secondary, fontSize: 12, height: 1.5);
+    return FutureBuilder<int?>(
+      future: fare,
+      builder: (context, snapshot) {
+        if (fare == null) return const Text('—', style: priceStyle);
+        if (snapshot.connectionState != ConnectionState.done) {
+          return const SizedBox(
+            height: 25,
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: SizedBox.square(
+                dimension: 16,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+            ),
+          );
+        }
+        final price = snapshot.data;
+        if (price == null) {
+          return Text(
+            'Chưa mở bán ngày ${formatSearchDate(date).substring(0, 5)}',
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: noteStyle,
+          );
+        }
+        return Text(formatVnd(price), style: priceStyle);
+      },
+    );
+  }
+}
+
+/// "Lọc nhà xe": khu vực + tuyến phục vụ (Figma "Mua vé / Lọc nhà xe").
+class _OperatorFilterSheet extends StatefulWidget {
+  const _OperatorFilterSheet({
+    required this.operators,
+    required this.area,
+    required this.route,
+  });
+
+  final List<HomeOperator> operators;
+  final HomeLocation? area;
+  final HomeOperatorRoute? route;
+
+  @override
+  State<_OperatorFilterSheet> createState() => _OperatorFilterSheetState();
+}
+
+class _OperatorFilterSheetState extends State<_OperatorFilterSheet> {
+  late HomeLocation? _area = widget.area;
+  late HomeOperatorRoute? _route = widget.route;
+
+  @override
+  Widget build(BuildContext context) {
+    return _ResultsSheet(
+      title: 'Lọc nhà xe',
+      action: _SheetActionButton(
+        key: const Key('explore-operator-filter-apply'),
+        label: 'Áp dụng',
+        onPressed: () => Navigator.pop(context, (_area, _route)),
+      ),
+      child: Column(
+        children: [
+          _PlannerInput(
+            key: const Key('explore-operator-area-input'),
+            icon: Icons.location_on_outlined,
+            iconColor: _primary,
+            label: 'Khu vực',
+            value: _area?.name,
+            placeholder: 'Tất cả khu vực',
+            onTap: _pickAreaValue,
+          ),
+          const SizedBox(height: 16),
+          _PlannerInput(
+            key: const Key('explore-operator-route-input'),
+            icon: Icons.location_on_outlined,
+            iconColor: const Color(0xFFF39A20),
+            label: 'Tuyến phục vụ',
+            value: _route == null ? null : _routeLabel(_route!),
+            placeholder: 'Tất cả tuyến',
+            onTap: _pickRouteValue,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _pickAreaValue() async {
+    final picked = await _pickArea(context, widget.operators, _area);
+    if (picked == null || !mounted) return;
+    setState(() {
+      _area = picked.$1;
+      final route = _route;
+      if (route != null && _area != null && !_routeTouches(route, _area!)) {
+        _route = null;
+      }
+    });
+  }
+
+  Future<void> _pickRouteValue() async {
+    final picked = await _pickServedRoute(
+      context,
+      widget.operators,
+      _area,
+      _route,
+    );
+    if (picked == null || !mounted) return;
+    setState(() => _route = picked.$1);
+  }
+}
+
+/// Sheet chọn một giá trị, dòng đầu là "tất cả" để bỏ lọc.
+class _ChoiceSheet<T> extends StatelessWidget {
+  const _ChoiceSheet({
+    required this.title,
+    required this.allLabel,
+    required this.options,
+    required this.selected,
+    required this.labelOf,
+    required this.isSame,
+  });
+
+  final String title;
+  final String allLabel;
+  final List<T> options;
+  final T? selected;
+  final String Function(T value) labelOf;
+  final bool Function(T a, T b) isSame;
+
+  @override
+  Widget build(BuildContext context) {
+    final current = selected;
+    return _ResultsSheet(
+      title: title,
+      child: Flexible(
+        child: ListView(
+          shrinkWrap: true,
+          padding: EdgeInsets.zero,
+          children: [
+            _SheetOption(
+              label: allLabel,
+              selected: current == null,
+              onTap: () => Navigator.pop(context, (null,)),
+            ),
+            for (final option in options) ...[
+              const SizedBox(height: 8),
+              _SheetOption(
+                label: labelOf(option),
+                selected: current != null && isSame(option, current),
+                onTap: () => Navigator.pop(context, (option,)),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+Widget _messageSliver(Widget child, {double bottom = 142}) {
+  return SliverPadding(
+    padding: EdgeInsets.fromLTRB(24, 12, 24, bottom),
+    sliver: SliverToBoxAdapter(child: child),
+  );
+}
+
+String _describeSearchError(Object error) {
+  if (error is ApiFailure) {
+    if (error.isNetworkError) {
+      return 'Không thể kết nối máy chủ. Vui lòng kiểm tra mạng và thử lại.';
+    }
+    return error.detail;
+  }
+  return 'Không thể tìm chuyến. Vui lòng thử lại.';
 }
 
 class _SearchModeControl extends StatelessWidget {
@@ -694,7 +1452,7 @@ class _SearchModeControl extends StatelessWidget {
                 child: _ModeButton(
                   key: const Key('ticket-mode-trip'),
                   selected: mode == HomeSearchMode.route,
-                  label: 'Theo chuyến',
+                  label: 'Chuyến xe',
                   asset: mode == HomeSearchMode.route
                       ? '$_homeAssetRoot/icons/search_mode_route_active.svg'
                       : '$_homeAssetRoot/icons/search_mode_route_inactive.svg',
@@ -705,7 +1463,7 @@ class _SearchModeControl extends StatelessWidget {
                 child: _ModeButton(
                   key: const Key('ticket-mode-operator'),
                   selected: mode == HomeSearchMode.operator,
-                  label: 'Theo nhà xe',
+                  label: 'Nhà xe',
                   asset: mode == HomeSearchMode.operator
                       ? '$_homeAssetRoot/icons/search_mode_operator_active.svg'
                       : '$_homeAssetRoot/icons/search_mode_operator_inactive.svg',
@@ -744,8 +1502,8 @@ class _ModeButton extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            SvgPicture.asset(asset, width: 19, height: 19),
-            const SizedBox(width: 7),
+            SvgPicture.asset(asset, width: 20, height: 20),
+            const SizedBox(width: 8),
             Flexible(
               child: FittedBox(
                 fit: BoxFit.scaleDown,
@@ -753,7 +1511,8 @@ class _ModeButton extends StatelessWidget {
                   duration: const Duration(milliseconds: 180),
                   style: TextStyle(
                     color: selected ? Colors.white : _secondary,
-                    fontSize: 13,
+                    fontSize: 14,
+                    height: 18 / 14,
                     fontWeight: FontWeight.w600,
                   ),
                   child: Text(label, maxLines: 1),
@@ -836,50 +1595,6 @@ class _RouteInputs extends StatelessWidget {
               ),
             ),
           ),
-        ),
-      ],
-    );
-  }
-}
-
-class _OperatorInput extends StatelessWidget {
-  const _OperatorInput({
-    required this.operatorLabel,
-    required this.routeLabel,
-    required this.onOperatorTap,
-    required this.onRouteTap,
-    super.key,
-  });
-
-  final String? operatorLabel;
-  final String? routeLabel;
-  final VoidCallback onOperatorTap;
-  final VoidCallback onRouteTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        _PlannerInput(
-          key: const Key('ticket-operator-field'),
-          icon: Icons.apartment_outlined,
-          iconColor: _primary,
-          label: 'Nhà xe',
-          value: operatorLabel,
-          placeholder: 'Chọn nhà xe',
-          onTap: onOperatorTap,
-        ),
-        const SizedBox(height: 10),
-        _PlannerInput(
-          key: const Key('ticket-operator-route-field'),
-          icon: Icons.route_outlined,
-          iconColor: const Color(0xFFF39A20),
-          label: 'Tuyến đường',
-          value: routeLabel,
-          placeholder: operatorLabel == null
-              ? 'Chọn nhà xe trước'
-              : 'Chọn tuyến',
-          onTap: onRouteTap,
         ),
       ],
     );
@@ -1053,114 +1768,17 @@ class _ResultMessage extends StatelessWidget {
   }
 }
 
-class _ResultToolbar extends StatelessWidget {
-  const _ResultToolbar({
-    required this.filters,
-    required this.operators,
-    required this.onFilter,
-    required this.onSort,
-    required this.onChanged,
-  });
-
-  final TripSearchFilters filters;
-  final List<TripOperatorFacet> operators;
-  final VoidCallback onFilter;
-  final VoidCallback onSort;
-  final ValueChanged<TripSearchFilters> onChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    final operatorName = operators
-        .where((operator) => operator.id == filters.operatorId)
-        .map((operator) => operator.name)
-        .firstOrNull;
-    final chips = <(String, TripSearchFilters)>[
-      if (filters.vehicleForm != null)
-        (
-          filters.vehicleForm!.label,
-          _copy(filters, clearVehicleForm: true),
-        ),
-      if (filters.vehicleClass != null)
-        (
-          filters.vehicleClass!.label,
-          _copy(filters, clearVehicleClass: true),
-        ),
-      if (filters.departureSlot != null)
-        (
-          filters.departureSlot!.label,
-          _copy(filters, clearDepartureSlot: true),
-        ),
-      if (operatorName != null)
-        (operatorName, _copy(filters, clearOperator: true)),
-    ];
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Row(
-        children: [
-          _ToolbarChip(
-            key: const Key('ticket-filter-chip'),
-            icon: Icons.filter_alt_outlined,
-            label: 'Lọc',
-            count: filters.activeCount == 0 ? null : filters.activeCount,
-            selected: filters.activeCount > 0,
-            onTap: onFilter,
-          ),
-          const SizedBox(width: 9),
-          _ToolbarChip(
-            key: const Key('ticket-sort-chip'),
-            icon: Icons.tune,
-            label: 'Sắp xếp',
-            onTap: onSort,
-          ),
-          for (final chip in chips) ...[
-            const SizedBox(width: 9),
-            _ToolbarChip(
-              label: chip.$1,
-              selected: true,
-              trailing: Icons.close,
-              onTap: () => onChanged(chip.$2),
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-
-  TripSearchFilters _copy(
-    TripSearchFilters source, {
-    bool clearVehicleForm = false,
-    bool clearVehicleClass = false,
-    bool clearDepartureSlot = false,
-    bool clearOperator = false,
-  }) {
-    return TripSearchFilters(
-      vehicleForm: clearVehicleForm ? null : source.vehicleForm,
-      vehicleClass: clearVehicleClass ? null : source.vehicleClass,
-      departureSlot: clearDepartureSlot ? null : source.departureSlot,
-      priceMin: source.priceMin,
-      priceMax: source.priceMax,
-      amenityIds: source.amenityIds,
-      operatorId: clearOperator ? null : source.operatorId,
-      sort: source.sort,
-    );
-  }
-}
-
 class _ToolbarChip extends StatelessWidget {
   const _ToolbarChip({
     required this.label,
     required this.onTap,
-    this.icon,
     this.trailing,
-    this.count,
     this.selected = false,
     super.key,
   });
 
   final String label;
-  final IconData? icon;
   final IconData? trailing;
-  final int? count;
   final bool selected;
   final VoidCallback onTap;
 
@@ -1181,30 +1799,10 @@ class _ToolbarChip extends StatelessWidget {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              if (icon != null) ...[
-                Icon(icon, size: 16, color: _primaryDark),
-                const SizedBox(width: 6),
-              ],
               Text(
                 label,
                 style: const TextStyle(color: _primaryDark, fontSize: 11.5),
               ),
-              if (count != null) ...[
-                const SizedBox(width: 7),
-                Container(
-                  width: 19,
-                  height: 19,
-                  alignment: Alignment.center,
-                  decoration: const BoxDecoration(
-                    color: _primary,
-                    shape: BoxShape.circle,
-                  ),
-                  child: Text(
-                    '$count',
-                    style: const TextStyle(color: Colors.white, fontSize: 10),
-                  ),
-                ),
-              ],
               if (trailing != null) ...[
                 const SizedBox(width: 6),
                 Icon(trailing, size: 14, color: _secondary),
@@ -1295,48 +1893,51 @@ class _TripCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: const Color(0xFFFFFEFD),
-      borderRadius: BorderRadius.circular(20),
-      clipBehavior: Clip.antiAlias,
-      elevation: 0,
-      child: InkWell(
-        onTap: onOpenDetail,
-        child: Ink(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(20),
-            boxShadow: const [
-              BoxShadow(
-                color: Color(0x1421404F),
-                offset: Offset(0, 7),
-                blurRadius: 19,
-              ),
-            ],
+    // Bóng đổ nằm ngoài Material bị clip; đặt trong thì bóng phủ lên nền thẻ
+    // làm thẻ xám thay vì trắng.
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x1421404F),
+            offset: Offset(0, 7),
+            blurRadius: 19,
           ),
-          padding: const EdgeInsets.fromLTRB(13, 11, 0, 0),
-          child: Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.only(right: 13),
-                child: _TripOperatorHeader(trip: trip),
-              ),
-              const SizedBox(height: 8),
-              SizedBox(
-                height: 76,
-                child: _TripJourney(
-                  trip: trip,
-                  fromLabel: fromLabel,
-                  toLabel: toLabel,
+        ],
+      ),
+      child: Material(
+        color: const Color(0xFFFFFEFD),
+        borderRadius: BorderRadius.circular(20),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: onOpenDetail,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(13, 11, 0, 0),
+            child: Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(right: 13),
+                  child: _TripOperatorHeader(trip: trip),
                 ),
-              ),
-              const SizedBox(height: 5),
-              Padding(
-                padding: const EdgeInsets.only(right: 13),
-                child: _TripAmenities(trip: trip),
-              ),
-              const SizedBox(height: 8),
-              _TripFooter(trip: trip, onOpenDetail: onOpenDetail),
-            ],
+                const SizedBox(height: 8),
+                SizedBox(
+                  height: 76,
+                  child: _TripJourney(
+                    trip: trip,
+                    fromLabel: fromLabel,
+                    toLabel: toLabel,
+                  ),
+                ),
+                const SizedBox(height: 5),
+                Padding(
+                  padding: const EdgeInsets.only(right: 13),
+                  child: _TripAmenities(trip: trip),
+                ),
+                const SizedBox(height: 8),
+                _TripFooter(trip: trip, onOpenDetail: onOpenDetail),
+              ],
+            ),
           ),
         ),
       ),
@@ -1466,6 +2067,10 @@ class _TripJourney extends StatelessWidget {
 /// Cột thẻ chuyến hẹp: viết tắt TP. Hồ Chí Minh như Figma ("TP.HCM").
 String _compactPlace(String name) =>
     name == 'TP. Hồ Chí Minh' ? 'TP.HCM' : name;
+
+/// Tên tuyến gọn cho chip, thẻ nhà xe: "TP.HCM → Lâm Đồng".
+String _routeLabel(HomeOperatorRoute route) =>
+    '${_compactPlace(route.from.name)} → ${_compactPlace(route.to.name)}';
 
 class _VehicleFallback extends StatelessWidget {
   const _VehicleFallback();

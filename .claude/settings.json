@@ -7,7 +7,10 @@
           {
             "type": "command",
             "command": "node",
-            "args": [".claude/hooks/ai-journal.mjs", "session-start"],
+            "args": [
+              ".claude/hooks/ai-journal.mjs",
+              "session-start"
+            ],
             "timeout": 15,
             "statusMessage": "Chuẩn bị nhật ký AI..."
           }
@@ -20,12 +23,18 @@
           {
             "type": "command",
             "command": "node",
-            "args": [".claude/hooks/ai-journal.mjs", "stop"],
+            "args": [
+              ".claude/hooks/ai-journal.mjs",
+              "stop"
+            ],
             "timeout": 20,
             "statusMessage": "Kiểm tra nhật ký AI..."
           }
         ]
       }
     ]
+  },
+  "enabledPlugins": {
+    "figma@claude-plugins-official": true
   }
 }

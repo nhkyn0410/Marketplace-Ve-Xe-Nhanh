@@ -4,6 +4,7 @@ import 'package:passenger_mobile/features/ticket/trip_search_models.dart';
 
 const hcm = HomeLocation(id: 'hcm', name: 'TP. Hồ Chí Minh');
 const lamDong = HomeLocation(id: 'lam-dong', name: 'Lâm Đồng');
+const khanhHoa = HomeLocation(id: 'khanh-hoa', name: 'Khánh Hòa');
 const mienDong = HomeLocation(
   id: 'mien-dong',
   name: 'Bến xe Miền Đông',
@@ -20,6 +21,22 @@ const phuongTrang = HomeOperator(
     HomeOperatorRoute(from: hcm, to: lamDong),
     HomeOperatorRoute(from: lamDong, to: hcm),
   ],
+);
+
+const thanhBuoi = HomeOperator(
+  id: 'op-tb',
+  name: 'Thành Bưởi',
+  averageRating: 4.6,
+  reviewCount: 980,
+  routes: [HomeOperatorRoute(from: hcm, to: lamDong)],
+);
+
+const dienLinh = HomeOperator(
+  id: 'op-dl',
+  name: 'Điền Linh',
+  averageRating: 4.9,
+  reviewCount: 1200,
+  routes: [HomeOperatorRoute(from: hcm, to: khanhHoa)],
 );
 
 final sampleQuery = HomeSearchQuery(

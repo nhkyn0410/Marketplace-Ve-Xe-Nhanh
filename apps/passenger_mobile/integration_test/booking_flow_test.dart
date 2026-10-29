@@ -226,14 +226,15 @@ Future<String> _searchFirstTrip(WidgetTester tester) async {
   await _pickLocation(tester, const Key('destination-input'), 'Lâm Đồng');
   await _tap(tester, find.byKey(const Key('home-search-button')));
 
+  // Trang chủ "Tìm chuyến" mở màn Kết quả (không còn chuyển sang tab Mua vé).
   final firstTrip = find.byWidgetPredicate(
     (widget) =>
         widget.key is ValueKey<String> &&
-        (widget.key! as ValueKey<String>).value.startsWith('ticket-trip-'),
+        (widget.key! as ValueKey<String>).value.startsWith('results-trip-'),
   );
   await _pumpUntil(tester, firstTrip);
   final tripId = (tester.widget(firstTrip.first).key! as ValueKey<String>).value
-      .substring('ticket-trip-'.length);
+      .substring('results-trip-'.length);
   await _tap(tester, firstTrip.first);
   await _pumpUntil(tester, find.byKey(const Key('trip-detail-cta')));
   await _pumpUntil(

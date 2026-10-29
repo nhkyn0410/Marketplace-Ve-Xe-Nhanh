@@ -12,10 +12,13 @@ import 'support/trip_search_fakes.dart';
 Future<void> _pumpTicket(
   WidgetTester tester, {
   required double width,
-  double height = 800,
+  double height = 900,
   double textScale = 1,
   HomeSearchQuery? initialQuery,
+  Future<HomeSearchQuery?> Function()? loadDefaultQuery,
   TripSearchRunner? searchTrips,
+  OperatorFareLoader? loadOperatorFare,
+  List<HomeOperator> operators = const [phuongTrang],
   ValueChanged<HomeSearchQuery>? onQueryChanged,
 }) async {
   tester.view.devicePixelRatio = 1;
@@ -39,9 +42,14 @@ Future<void> _pumpTicket(
       },
       home: TicketScreen(
         onTabSelected: (_) {},
-        searchCatalog: fakeCatalog(),
+        searchCatalog: fakeCatalog(
+          provinces: const [hcm, lamDong, khanhHoa],
+          operators: operators,
+        ),
         searchTrips: searchTrips,
+        loadOperatorFare: loadOperatorFare,
         initialQuery: initialQuery,
+        loadDefaultQuery: loadDefaultQuery,
         onQueryChanged: onQueryChanged,
       ),
     ),
@@ -60,8 +68,16 @@ TripSearchRunner _recording(
   };
 }
 
+Future<int?> _fares(String operatorId, HomeOperatorRoute route, DateTime _) {
+  return Future.value(switch (operatorId) {
+    'op-dl' => 250000,
+    'op-pt' => 280000,
+    _ => null,
+  });
+}
+
 void main() {
-  testWidgets('Mua vé responsive không bottom overflow ở các viewport', (
+  testWidgets('Mua vé khám phá responsive không overflow ở các viewport', (
     tester,
   ) async {
     for (final width in <double>[320, 360, 375, 390, 412, 430, 480]) {
@@ -73,75 +89,129 @@ void main() {
         searchTrips: (_, _, _) async => samplePage([sampleTrip('t1')]),
       );
       expect(find.byKey(const Key('ticket-screen')), findsOneWidget);
-      expect(find.byKey(const Key('ticket-journey-planner')), findsOneWidget);
+      expect(find.text('Khám phá chuyến đi'), findsOneWidget);
       expect(find.byKey(const Key('route-dock-tabbar')), findsOneWidget);
       expect(tester.takeException(), isNull, reason: 'viewport $width dp');
     }
   });
 
-  testWidgets('chưa tìm: form trống, gợi ý chọn điểm rồi bấm Tìm chuyến', (
-    tester,
-  ) async {
-    await _pumpTicket(tester, width: 390);
-    expect(find.text('Chọn điểm đi'), findsOneWidget);
-    expect(find.text('Chọn điểm đến'), findsOneWidget);
-    expect(find.textContaining('rồi bấm "Tìm chuyến"'), findsOneWidget);
+  testWidgets(
+    'Chuyến xe: dùng điều kiện mang sang, chip gọn và chuyến sớm nhất trước',
+    (tester) async {
+      final calls = <SearchCall>[];
+      await _pumpTicket(
+        tester,
+        width: 412,
+        height: 1000,
+        initialQuery: sampleQuery,
+        searchTrips: _recording(
+          calls,
+          (_) => samplePage([
+            sampleTrip('t1', seats: 4),
+            sampleTrip(
+              't2',
+              operatorName: 'Thành Bưởi',
+              rating: null,
+              reviewCount: 0,
+            ),
+          ]),
+        ),
+      );
 
-    await tester.tap(find.byKey(const Key('ticket-search-button')));
-    await tester.pump();
-    expect(
-      find.text('Vui lòng chọn điểm đi và điểm đến từ danh mục.'),
-      findsOneWidget,
-    );
-  });
+      expect(calls, hasLength(1));
+      expect(calls.single.query.from.id, 'hcm');
+      expect(calls.single.query.to.id, 'lam-dong');
+      expect(calls.single.filters.sort, TripSearchSort.departure);
+      expect(find.byKey(const Key('ticket-journey-planner')), findsNothing);
+      for (final (chip, label) in [
+        ('explore-date-chip', '30/10/2026'),
+        ('explore-passenger-chip', '1 khách'),
+        ('explore-origin-chip', 'TP.HCM'),
+        ('explore-destination-chip', 'Lâm Đồng'),
+        ('explore-filter-chip', 'Bộ lọc'),
+      ]) {
+        expect(
+          find.descendant(
+            of: find.byKey(Key(chip)),
+            matching: find.text(label),
+          ),
+          findsOneWidget,
+          reason: label,
+        );
+      }
+      expect(find.text('Chuyến đang mở bán'), findsOneWidget);
+      expect(find.text('Giờ đi sớm nhất'), findsOneWidget);
+      final first = find.byKey(const ValueKey('ticket-trip-t1'));
+      expect(first, findsOneWidget);
+      expect(
+        find.descendant(of: first, matching: find.text('280.000 ₫')),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(of: first, matching: find.text('Chỉ còn 4 chỗ')),
+        findsOneWidget,
+      );
+      expect(find.text('Chưa có đánh giá'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    },
+  );
 
-  testWidgets('mang điều kiện từ Trang chủ: tìm ngay, hiện thẻ chuyến từ API', (
+  testWidgets('chưa có điều kiện: tải điều kiện mặc định rồi tìm chuyến', (
     tester,
   ) async {
     final calls = <SearchCall>[];
     await _pumpTicket(
       tester,
-      width: 412,
-      height: 1000,
-      initialQuery: sampleQuery,
-      searchTrips: _recording(
-        calls,
-        (_) => samplePage([
-          sampleTrip('t1', seats: 4),
-          sampleTrip('t2', operatorName: 'Thành Bưởi', rating: null, reviewCount: 0),
-        ]),
-      ),
+      width: 390,
+      loadDefaultQuery: () async => sampleQuery,
+      searchTrips: _recording(calls, (_) => samplePage([sampleTrip('t1')])),
     );
-
-    expect(calls, hasLength(1));
-    expect(calls.single.page, 1);
     expect(calls.single.query.from.id, 'hcm');
-    expect(find.text('TP. Hồ Chí Minh'), findsWidgets);
-    expect(find.text('2 chuyến phù hợp'), findsOneWidget);
-    final first = find.byKey(const ValueKey('ticket-trip-t1'));
-    expect(first, findsOneWidget);
+    expect(find.byKey(const ValueKey('ticket-trip-t1')), findsOneWidget);
+  });
+
+  testWidgets('không có điều kiện mặc định: nhắc chọn điểm đi, điểm đến', (
+    tester,
+  ) async {
+    await _pumpTicket(
+      tester,
+      width: 390,
+      searchTrips: (_, _, _) async => samplePage([sampleTrip('t1')]),
+    );
+    expect(find.byKey(const Key('ticket-pick-route')), findsOneWidget);
+    expect(find.text('Điểm đi'), findsOneWidget);
+    expect(find.text('Điểm đến'), findsOneWidget);
+  });
+
+  testWidgets('đổi điểm đến qua chip thì tìm lại và báo điều kiện mới', (
+    tester,
+  ) async {
+    final calls = <SearchCall>[];
+    HomeSearchQuery? reported;
+    await _pumpTicket(
+      tester,
+      width: 390,
+      initialQuery: sampleQuery,
+      searchTrips: _recording(calls, (_) => samplePage([sampleTrip('t1')])),
+      onQueryChanged: (query) => reported = query,
+    );
+    expect(reported, isNull);
+
+    await tester.tap(find.byKey(const Key('explore-destination-chip')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Khánh Hòa'));
+    await tester.pumpAndSettle();
+
+    expect(calls, hasLength(2));
+    expect(calls.last.query.to.id, 'khanh-hoa');
+    expect(reported!.to.id, 'khanh-hoa');
     expect(
-      find.descendant(of: first, matching: find.text('280.000 ₫')),
+      find.descendant(
+        of: find.byKey(const Key('explore-destination-chip')),
+        matching: find.text('Khánh Hòa'),
+      ),
       findsOneWidget,
     );
-    expect(
-      find.descendant(of: first, matching: find.text('07:00')),
-      findsOneWidget,
-    );
-    expect(
-      find.descendant(of: first, matching: find.text('6h30')),
-      findsOneWidget,
-    );
-    expect(
-      find.descendant(of: first, matching: find.text('4.7 (12 đánh giá)')),
-      findsOneWidget,
-    );
-    expect(
-      find.descendant(of: first, matching: find.text('Chỉ còn 4 chỗ')),
-      findsOneWidget,
-    );
-    expect(find.text('Chưa có đánh giá'), findsOneWidget);
-    expect(tester.takeException(), isNull);
   });
 
   testWidgets('đang tải, lỗi có nút Thử lại, rỗng có lời nhắn', (tester) async {
@@ -173,7 +243,9 @@ void main() {
     );
     await tester.pumpAndSettle();
     expect(
-      find.text('Không thể kết nối máy chủ. Vui lòng kiểm tra mạng và thử lại.'),
+      find.text(
+        'Không thể kết nối máy chủ. Vui lòng kiểm tra mạng và thử lại.',
+      ),
       findsOneWidget,
     );
 
@@ -184,63 +256,33 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('bộ lọc gửi đúng tham số BR-77 + giờ đón; chip lọc gỡ được', (
-    tester,
-  ) async {
-    final calls = <SearchCall>[];
-    await _pumpTicket(
-      tester,
-      width: 390,
-      height: 900,
-      initialQuery: sampleQuery,
-      searchTrips: _recording(calls, (_) => samplePage([sampleTrip('t1')])),
-    );
+  testWidgets(
+    'chip Bộ lọc mở sheet lọc, áp dụng gửi tham số và đếm điều kiện',
+    (tester) async {
+      final calls = <SearchCall>[];
+      await _pumpTicket(
+        tester,
+        width: 390,
+        initialQuery: sampleQuery,
+        searchTrips: _recording(calls, (_) => samplePage([sampleTrip('t1')])),
+      );
 
-    await tester.tap(find.byKey(const Key('ticket-filter-chip')));
-    await tester.pumpAndSettle();
-    expect(find.text('Lọc chuyến'), findsOneWidget);
-    expect(find.text('Cabin'), findsOneWidget);
-    await tester.tap(find.byKey(const ValueKey('ticket-filter-form-sleeper')));
-    await tester.tap(
-      find.byKey(const ValueKey('ticket-filter-class-limousine')),
-    );
-    await tester.tap(find.byKey(const ValueKey('ticket-filter-slot-morning')));
-    await tester.pump();
-    await tester.tap(find.byKey(const Key('ticket-filter-apply')));
-    await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('explore-filter-chip')));
+      await tester.pumpAndSettle();
+      expect(find.text('Lọc chuyến'), findsOneWidget);
+      await tester.tap(
+        find.byKey(const ValueKey('ticket-filter-class-limousine')),
+      );
+      await tester.pump();
+      await tester.tap(find.byKey(const Key('ticket-filter-apply')));
+      await tester.pumpAndSettle();
 
-    final filters = calls.last.filters;
-    expect(filters.vehicleForm, TripVehicleForm.sleeper);
-    expect(filters.vehicleClass, TripVehicleClass.limousine);
-    expect(filters.departureSlot, TripDepartureSlot.morning);
-    expect(filters.activeCount, 3);
-    expect(find.text('Limousine'), findsOneWidget);
-
-    await tester.ensureVisible(find.text('Limousine'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Limousine'));
-    await tester.pumpAndSettle();
-    expect(calls.last.filters.vehicleClass, isNull);
-    expect(calls.last.filters.vehicleForm, TripVehicleForm.sleeper);
-    expect(tester.takeException(), isNull);
-  });
-
-  testWidgets('sắp xếp theo giá gửi lại tìm kiếm', (tester) async {
-    final calls = <SearchCall>[];
-    await _pumpTicket(
-      tester,
-      width: 390,
-      initialQuery: sampleQuery,
-      searchTrips: _recording(calls, (_) => samplePage([sampleTrip('t1')])),
-    );
-    await tester.tap(find.byKey(const Key('ticket-sort-chip')));
-    await tester.pumpAndSettle();
-    expect(find.text('Đánh giá cao nhất'), findsNothing);
-    await tester.tap(find.byKey(const ValueKey('ticket-sort-price')));
-    await tester.pumpAndSettle();
-    expect(calls.last.filters.sort, TripSearchSort.price);
-    expect(find.text('Giá thấp nhất'), findsOneWidget);
-  });
+      expect(calls.last.filters.vehicleClass, TripVehicleClass.limousine);
+      expect(calls.last.filters.sort, TripSearchSort.departure);
+      expect(find.text('Bộ lọc · 1'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    },
+  );
 
   testWidgets('cuộn gần cuối thì tải trang tiếp theo', (tester) async {
     final calls = <SearchCall>[];
@@ -274,80 +316,126 @@ void main() {
     expect(calls, hasLength(2));
   });
 
-  testWidgets('bấm Tìm chuyến ở Mua vé báo điều kiện mới cho màn cha', (
-    tester,
-  ) async {
-    HomeSearchQuery? reported;
+  testWidgets('chuyển Chuyến xe và Nhà xe giữ animation', (tester) async {
     await _pumpTicket(
       tester,
       width: 390,
-      height: 900,
       initialQuery: sampleQuery,
       searchTrips: (_, _, _) async => samplePage([sampleTrip('t1')]),
-      onQueryChanged: (query) => reported = query,
     );
-    expect(reported, isNull);
-    await tester.tap(find.byKey(const Key('ticket-swap-locations')));
-    await tester.pump();
-    await tester.tap(find.byKey(const Key('ticket-search-button')));
-    await tester.pumpAndSettle();
-    expect(reported!.from.id, 'lam-dong');
-    expect(reported!.to.id, 'hcm');
-  });
-
-  testWidgets('chuyển Theo chuyến và Theo nhà xe giữ animation', (
-    tester,
-  ) async {
-    await _pumpTicket(tester, width: 390);
     final indicator = find.byKey(const Key('ticket-search-mode-indicator'));
     final startX = tester.getCenter(indicator).dx;
 
     await tester.tap(find.byKey(const Key('ticket-mode-operator')));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 100));
-    final movingX = tester.getCenter(indicator).dx;
-
-    expect(movingX, greaterThan(startX));
-    expect(find.byKey(const ValueKey('ticket-operator-input')), findsOneWidget);
+    expect(tester.getCenter(indicator).dx, greaterThan(startX));
     await tester.pumpAndSettle();
-    expect(find.text('Chọn nhà xe'), findsOneWidget);
+    expect(find.text('Nhà xe đang phục vụ'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('bottom sheet bộ lọc cuộn và áp dụng không overflow', (
-    tester,
-  ) async {
-    await _pumpTicket(
-      tester,
-      width: 320,
-      height: 568,
-      textScale: 1.3,
-      initialQuery: sampleQuery,
-      searchTrips: (_, _, _) async => samplePage([sampleTrip('t1')]),
-    );
+  testWidgets(
+    'Nhà xe: xếp theo đánh giá, có giá vé từ, lọc khu vực còn nhà xe phục vụ',
+    (tester) async {
+      await _pumpTicket(
+        tester,
+        width: 412,
+        height: 1400,
+        initialQuery: sampleQuery,
+        searchTrips: (_, _, _) async => samplePage([sampleTrip('t1')]),
+        loadOperatorFare: _fares,
+        operators: const [phuongTrang, thanhBuoi, dienLinh],
+      );
+      await tester.tap(find.byKey(const Key('ticket-mode-operator')));
+      await tester.pumpAndSettle();
 
-    await tester.ensureVisible(find.byKey(const Key('ticket-filter-chip')));
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const Key('ticket-filter-chip')));
-    await tester.pumpAndSettle();
-    expect(find.text('Lọc chuyến'), findsOneWidget);
-    expect(tester.takeException(), isNull);
+      expect(find.text('Đánh giá cao'), findsOneWidget);
+      expect(find.text('Khu vực'), findsOneWidget);
+      expect(find.text('Tuyến phục vụ'), findsOneWidget);
+      final order = [
+        for (final id in ['op-dl', 'op-pt', 'op-tb'])
+          tester.getTopLeft(find.byKey(ValueKey('explore-operator-$id'))).dy,
+      ];
+      expect(order, orderedEquals([...order]..sort()));
 
-    await tester.scrollUntilVisible(
-      find.text('Nhà xe'),
-      350,
-      scrollable: find.descendant(
-        of: find.byKey(const Key('ticket-filter-scroll')),
-        matching: find.byType(Scrollable),
-      ),
-    );
-    await tester.pumpAndSettle();
-    expect(find.text('Nhà xe'), findsOneWidget);
-    expect(tester.takeException(), isNull);
+      final dienLinhCard = find.byKey(const ValueKey('explore-operator-op-dl'));
+      expect(
+        find.descendant(
+          of: dienLinhCard,
+          matching: find.text('★ 4.9 · 1.2K đánh giá'),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(of: dienLinhCard, matching: find.text('250.000 ₫')),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(
+          of: find.byKey(const ValueKey('explore-operator-op-tb')),
+          matching: find.text('Chưa mở bán ngày 30/10'),
+        ),
+        findsOneWidget,
+      );
 
-    await tester.tap(find.byKey(const Key('ticket-filter-apply')));
-    await tester.pumpAndSettle();
-    expect(find.text('Lọc chuyến'), findsNothing);
-    expect(tester.takeException(), isNull);
-  });
+      await tester.tap(find.byKey(const Key('explore-area-chip')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Khánh Hòa'));
+      await tester.pumpAndSettle();
+      expect(
+        find.byKey(const ValueKey('explore-operator-op-dl')),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(const ValueKey('explore-operator-op-pt')),
+        findsNothing,
+      );
+      expect(find.text('Bộ lọc · 1'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    },
+  );
+
+  testWidgets(
+    'Xem chuyến của nhà xe mở kết quả riêng có chip nhà xe; quay lại về Nhà xe',
+    (tester) async {
+      final calls = <SearchCall>[];
+      await _pumpTicket(
+        tester,
+        width: 412,
+        height: 1000,
+        initialQuery: sampleQuery,
+        searchTrips: _recording(calls, (_) => samplePage([sampleTrip('t1')])),
+        loadOperatorFare: _fares,
+      );
+      await tester.tap(find.byKey(const Key('ticket-mode-operator')));
+      await tester.pumpAndSettle();
+
+      await tester.tap(
+        find.byKey(const ValueKey('explore-operator-op-pt-trips')),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('Chuyến của Phương Trang'), findsOneWidget);
+      await tester.tap(find.byKey(const Key('results-condition-apply')));
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(const Key('trip-results-screen')), findsOneWidget);
+      expect(calls.last.filters.operatorId, 'op-pt');
+      expect(calls.last.query.from.id, 'hcm');
+      expect(
+        find.descendant(
+          of: find.byKey(const ValueKey('results-chip-0')),
+          matching: find.text('Phương Trang'),
+        ),
+        findsOneWidget,
+      );
+      expect(find.byKey(const Key('route-dock-tabbar')), findsNothing);
+
+      await tester.tap(find.byKey(const Key('results-back')));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('trip-results-screen')), findsNothing);
+      expect(find.text('Nhà xe đang phục vụ'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    },
+  );
 }

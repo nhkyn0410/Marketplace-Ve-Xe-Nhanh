@@ -348,7 +348,6 @@ class _ExploreCanvas extends StatelessWidget {
     return Stack(
       clipBehavior: Clip.none,
       children: [
-        const Positioned(left: 26, top: 11, child: _ExploreLogo()),
         const Positioned(left: 29, top: 36, child: _ExploreHeading()),
         Positioned(
           left: 18,
@@ -426,45 +425,6 @@ class _ExploreCanvas extends StatelessWidget {
           const Positioned(left: 195, top: 1252, child: _CarouselDots()),
         ],
       ],
-    );
-  }
-}
-
-class _ExploreLogo extends StatelessWidget {
-  const _ExploreLogo();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      key: const Key('explore-logo'),
-      width: 100,
-      height: 28,
-      padding: const EdgeInsets.only(left: 6, right: 6),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
-      ),
-      child: Row(
-        children: [
-          SizedBox.square(
-            dimension: 22.483,
-            child: SvgPicture.asset(
-              '$_assetRoot/logo_mark.svg',
-              fit: BoxFit.contain,
-              excludeFromSemantics: true,
-            ),
-          ),
-          SizedBox(
-            width: 65.517,
-            height: 22.483,
-            child: SvgPicture.asset(
-              '$_assetRoot/logo_wordmark.svg',
-              fit: BoxFit.contain,
-              excludeFromSemantics: true,
-            ),
-          ),
-        ],
-      ),
     );
   }
 }

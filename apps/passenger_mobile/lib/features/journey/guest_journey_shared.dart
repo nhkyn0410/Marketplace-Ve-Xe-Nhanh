@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -18,6 +20,15 @@ const journeyOverlayStyle = SystemUiOverlayStyle(
   systemNavigationBarIconBrightness: Brightness.dark,
 );
 
+/// Logo đặt cùng một chỗ trên Đăng nhập, Trang chủ, Hành trình và Tài khoản
+/// (khách) — theo `Brand / logo app` trong Figma (x 19, y 58, 126.4 × 35),
+/// tính từ đỉnh màn hình, kể cả thanh trạng thái.
+const brandLogoLeft = 19.0;
+const brandLogoSize = Size(126.4, 35);
+
+/// Mép trên của logo; máy có thanh trạng thái cao vẫn giữ logo cách nó 12dp.
+double brandLogoTop(double safeTop) => math.max(58, safeTop + 12);
+
 class JourneyHeroHeader extends StatelessWidget {
   const JourneyHeroHeader({required this.title, this.subtitle, super.key});
 
@@ -26,6 +37,7 @@ class JourneyHeroHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final logoTop = brandLogoTop(MediaQuery.paddingOf(context).top);
     return SizedBox(
       height: 250,
       child: Stack(
@@ -38,33 +50,35 @@ class JourneyHeroHeader extends StatelessWidget {
             filterQuality: FilterQuality.high,
           ),
           Positioned(
-            left: 22,
-            top: 44,
-            width: 126,
-            height: 35,
+            left: brandLogoLeft,
+            top: logoTop,
+            width: brandLogoSize.width,
+            height: brandLogoSize.height,
             child: const JourneyBrandLogo(),
           ),
+          // Cùng kiểu tiêu đề với header tab Hành trình (tra cứu vé).
           Positioned(
-            left: 22,
-            right: 20,
-            top: 96,
+            left: 18,
+            right: 18,
+            top: logoTop + 40,
             child: Text(
               title,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
+              maxLines: 1,
+              overflow: TextOverflow.fade,
+              softWrap: false,
               style: const TextStyle(
-                color: Color(0xFF080E32),
-                fontSize: 23,
-                height: 30 / 23,
+                color: Color(0xFF041725),
+                fontSize: 24,
+                height: 1.5,
                 fontWeight: FontWeight.w700,
               ),
             ),
           ),
           if (subtitle != null)
             Positioned(
-              left: 22,
-              right: 20,
-              top: 133,
+              left: 18,
+              right: 18,
+              top: logoTop + 79,
               child: Text(
                 subtitle!,
                 maxLines: 2,

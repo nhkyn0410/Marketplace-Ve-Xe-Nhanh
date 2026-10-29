@@ -333,6 +333,13 @@ class FakeBookingApi implements TripBookingApi {
   Future<List<TripAmenityOption>> loadAmenities() async => const [];
 
   @override
+  Future<int?> loadOperatorMinFare(
+    String operatorId,
+    HomeOperatorRoute route,
+    DateTime date,
+  ) async => null;
+
+  @override
   Future<TripSearchPage> searchTrips(
     HomeSearchQuery query,
     TripSearchFilters filters,
