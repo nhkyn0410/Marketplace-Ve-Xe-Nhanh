@@ -12,6 +12,14 @@ const mienDong = HomeLocation(
   detail: '292 Đinh Bộ Lĩnh',
 );
 
+/// Khu vực (đơn vị hành chính cũ) như API gợi ý khi gõ "Đà Lạt".
+const daLatArea = HomeLocation(
+  id: '68-thanh-pho-da-lat',
+  name: 'Đà Lạt',
+  kind: HomeLocationKind.area,
+  detail: 'Thành phố Đà Lạt cũ · nay thuộc Tỉnh Lâm Đồng',
+);
+
 const phuongTrang = HomeOperator(
   id: 'op-pt',
   name: 'Phương Trang',
@@ -101,15 +109,15 @@ TripSearchPage samplePage(
   );
 }
 
-/// Danh mục giả cho form tìm chuyến.
+/// Danh mục giả cho form tìm chuyến; [places] là gợi ý API trả cho mọi từ khóa.
 TripSearchCatalog fakeCatalog({
   List<HomeLocation> provinces = const [hcm, lamDong],
-  List<HomeLocation> stopPoints = const [mienDong],
+  List<HomeLocation> places = const [hcm, daLatArea, mienDong],
   List<HomeOperator> operators = const [phuongTrang],
 }) {
   return TripSearchCatalog(
     loadProvinces: () async => provinces,
-    searchStopPoints: (_) async => stopPoints,
+    searchPlaces: (_) async => places,
     loadOperators: () async => operators,
     loadAmenities: () async => const [
       TripAmenityOption(id: 'wifi', name: 'Wi-Fi'),

@@ -176,6 +176,21 @@ export function isDropoffAfterPickup(pickupId: string, dropoffId: string): boole
   return Number(dropoffId) > Number(pickupId);
 }
 
+/**
+ * Chọn sẵn chặng khách đã tìm (`sequence` điểm đón / trả từ thẻ kết quả). Điểm đón không cho đón thì giữ mặc định của
+ * chuyến; điểm trả không hợp lệ (không cho trả / không đứng sau điểm đón) thì lấy điểm trả hợp lệ như khi đổi điểm đón.
+ */
+export function withSelectedLeg(data: TripSeatSelectionData, leg: { readonly pickup?: number; readonly dropoff?: number }): TripSeatSelectionData {
+  const pickup = data.pickupPoints.find((point) => point.id === String(leg.pickup));
+  if (!pickup) return data;
+  const dropoff = data.dropoffPoints.find((point) => point.id === String(leg.dropoff) && isDropoffAfterPickup(pickup.id, point.id));
+  return {
+    ...data,
+    selectedPickupPointId: pickup.id,
+    selectedDropoffPointId: dropoff?.id ?? dropoffForPickup(pickup.id, data.dropoffPoints, data.selectedDropoffPointId)
+  };
+}
+
 /** Đổi điểm đón: giữ điểm trả đang chọn nếu còn hợp lệ, không thì lấy điểm trả hợp lệ cuối cùng (bến cuối). */
 export function dropoffForPickup(pickupId: string, dropoffPoints: readonly SeatLocationPoint[], currentDropoffId: string): string {
   if (isDropoffAfterPickup(pickupId, currentDropoffId)) return currentDropoffId;

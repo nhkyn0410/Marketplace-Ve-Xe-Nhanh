@@ -12716,6 +12716,16 @@
             }
           },
           {
+            "name": "fromAreaId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "maxLength": 120,
+              "pattern": "^(\\d{2})(?:-([a-z0-9]+(?:-[a-z0-9]+)*))?$",
+              "type": "string"
+            }
+          },
+          {
             "name": "fromStopPointId",
             "required": false,
             "in": "query",
@@ -12742,6 +12752,16 @@
             "schema": {
               "minLength": 1,
               "maxLength": 64,
+              "type": "string"
+            }
+          },
+          {
+            "name": "toAreaId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "maxLength": 120,
+              "pattern": "^(\\d{2})(?:-([a-z0-9]+(?:-[a-z0-9]+)*))?$",
               "type": "string"
             }
           },
@@ -35279,6 +35299,7 @@
                   "type": "string",
                   "enum": [
                     "PROVINCE",
+                    "AREA",
                     "WARD",
                     "STOP_POINT",
                     "LEGACY"
@@ -35305,13 +35326,12 @@
                       "enum": [
                         "province",
                         "ward",
+                        "area",
                         "stopPoint"
                       ]
                     },
                     "id": {
-                      "type": "string",
-                      "format": "uuid",
-                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                      "type": "string"
                     }
                   },
                   "required": [

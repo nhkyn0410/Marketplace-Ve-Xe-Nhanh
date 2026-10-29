@@ -6308,13 +6308,12 @@ export interface components {
         PlaceSuggestionListResponseDto_Output: {
             items: {
                 /** @enum {string} */
-                kind: "PROVINCE" | "WARD" | "STOP_POINT" | "LEGACY";
+                kind: "PROVINCE" | "AREA" | "WARD" | "STOP_POINT" | "LEGACY";
                 label: string;
                 detail: string | null;
                 target: {
                     /** @enum {string} */
-                    type: "province" | "ward" | "stopPoint";
-                    /** Format: uuid */
+                    type: "province" | "ward" | "area" | "stopPoint";
                     id: string;
                 };
             }[];
@@ -19862,9 +19861,11 @@ export interface operations {
             query: {
                 fromProvinceId?: string;
                 fromWardId?: string;
+                fromAreaId?: string;
                 fromStopPointId?: string;
                 toProvinceId?: string;
                 toWardId?: string;
+                toAreaId?: string;
                 toStopPointId?: string;
                 date: string;
                 passengers?: number;

@@ -42,7 +42,7 @@ export function PartnerOperatorsSection({
           Nhà xe đối tác
         </h2>
         <Link
-          href="/operators/opr-phuongnam"
+          href="/trips/explore?tab=operators"
           className="text-xs font-bold text-[#00506a] hover:underline"
         >
           Xem các nhà xe

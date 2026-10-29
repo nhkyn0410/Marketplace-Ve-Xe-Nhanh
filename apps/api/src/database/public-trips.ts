@@ -6,11 +6,53 @@ import type { SeatType } from "./prisma.types";
 // nhà xe nên phải chạy ở ngữ cảnh `system` (RLS `tenant_isolation`) — đặt ở `database/` như `article-views.ts`. Chỉ đọc,
 // và luôn tự lọc đúng điều kiện hiển thị: chuyến `OPEN_FOR_SALE`, nhà xe `ACTIVE`, chưa qua giờ ngừng bán online.
 
-/** Một phía của truy vấn tìm: tỉnh / thành, phường / xã, hoặc tọa độ của một địa danh dùng chung + bán kính. */
+/**
+ * Một phía của truy vấn tìm: tỉnh / thành, phường / xã, nhóm phường của một khu vực, hoặc tọa độ của một địa danh dùng
+ * chung + bán kính.
+ */
 export type SearchSide =
   | { provinceId: string }
   | { wardId: string }
+  | { wardIds: string[] }
   | { latitude: number; longitude: number; radiusMeters: number };
+
+/**
+ * Khu vực = một đơn vị hành chính cũ trước sáp nhập 2025 — tỉnh cũ, hoặc quận / huyện / thị xã / thành phố cũ — ứng với các
+ * phường mới đã nhận phần đất của nó, suy ra từ `legacy_administrative_mappings` (không có bảng riêng; tự thiết kế
+ * 29/10/2026, chờ duyệt). Mã: `{mã tỉnh cũ}` hoặc `{mã tỉnh cũ}-{tên quận / huyện cũ không dấu, nối gạch}`, vd
+ * `77-thanh-pho-vung-tau` (Vũng Tàu cũ = 5 phường mới của TP.HCM).
+ */
+export const AREA_ID = /^(\d{2})(?:-([a-z0-9]+(?:-[a-z0-9]+)*))?$/;
+
+/**
+ * Phần tên của mã khu vực tính từ `m.legacy_district_name` (bảng `legacy_administrative_mappings` đặt bí danh `m`) — dùng
+ * chung khi gợi ý (tạo mã, `catalog`) và khi tìm (đọc mã, `findArea`) để hai bên luôn khớp.
+ */
+export const LEGACY_DISTRICT_SLUG = Prisma.sql`trim(both '-' from regexp_replace(vxn_search_text(m.legacy_district_name), '[^a-z0-9]+', '-', 'g'))`;
+
+/** Các phường mới (đang dùng) của một khu vực + tỉnh mới chứa chúng (để nới); mã sai / không có → `null`. */
+export async function findArea(
+  prisma: Pick<PrismaService, "withSystem">,
+  areaId: string,
+): Promise<{ wardIds: string[]; provinceId: string } | null> {
+  const match = AREA_ID.exec(areaId);
+  if (!match) {
+    return null;
+  }
+  const [, code, slug] = match;
+  const district = slug === undefined
+    ? Prisma.sql`TRUE`
+    : Prisma.sql`m.legacy_district_name <> '' AND ${LEGACY_DISTRICT_SLUG} = ${slug}`;
+  const [row] = await prisma.withSystem((tx) =>
+    tx.$queryRaw<{ wardIds: string[] | null; provinceId: string | null }[]>`
+      SELECT array_agg(DISTINCT w.id) AS "wardIds", min(w.province_id) AS "provinceId"
+      FROM legacy_administrative_mappings m
+      JOIN wards w ON w.id = m.ward_id AND w.status = 'ACTIVE'
+      JOIN provinces p ON p.id = w.province_id AND p.status = 'ACTIVE'
+      WHERE m.legacy_province_code = ${code} AND ${district}`,
+  );
+  return row?.wardIds?.length && row.provinceId ? { wardIds: row.wardIds, provinceId: row.provinceId } : null;
+}
 
 export type SearchCandidate = {
   tripId: string;
@@ -69,6 +111,9 @@ function sideMatch(side: SearchSide): Prisma.Sql {
   }
   if ("wardId" in side) {
     return Prisma.sql`s.ward_id = ${side.wardId}`;
+  }
+  if ("wardIds" in side) {
+    return Prisma.sql`s.ward_id = ANY(${side.wardIds}::text[])`;
   }
   return Prisma.sql`6371000 * 2 * asin(sqrt(
       power(sin(radians(s.lat - ${side.latitude}) / 2), 2)

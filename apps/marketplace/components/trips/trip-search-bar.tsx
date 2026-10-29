@@ -3,7 +3,7 @@
 import { ArrowRightLeft } from "lucide-react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { initialPlace, placeSearchParams } from "../../lib/data/trip-mappers";
+import { initialPlace, placeSearchParams, samePlace } from "../../lib/data/trip-mappers";
 import { ProvinceItem } from "../../lib/data/types";
 import { PlaceInput, type PlaceValue } from "./place-input";
 import { ChoiceField, DateField, PASSENGER_OPTIONS, PLACE_INPUT, PLACE_PLACEHOLDER, SEARCH_FIELD, SEARCH_LABEL } from "./search-fields";
@@ -22,6 +22,8 @@ export interface TripSearchBarProps {
   readonly initialDate?: string;
   readonly initialPassengers?: number;
   readonly provinces?: readonly ProvinceItem[];
+  /** Nhà xe đang lọc (`operatorId` trên URL) — tìm lại vẫn giữ; bỏ bằng link "Bỏ lọc nhà xe". */
+  readonly operatorId?: string;
 }
 
 /**
@@ -36,7 +38,8 @@ export function TripSearchBar({
   initialDestinationLabel,
   initialDate = "",
   initialPassengers = 1,
-  provinces = []
+  provinces = [],
+  operatorId
 }: TripSearchBarProps) {
   const router = useRouter();
   const [origin, setOrigin] = useState<PlaceValue | null>(() =>
@@ -57,7 +60,7 @@ export function TripSearchBar({
 
   const handleSearch = (e: React.FormEvent): void => {
     e.preventDefault();
-    if (!date || !origin || !destination || origin.id === destination.id) {
+    if (!date || !origin || !destination || samePlace(origin, destination)) {
       setActionError("Chọn ngày đi và hai điểm khác nhau từ danh sách gợi ý.");
       return;
     }
@@ -65,7 +68,8 @@ export function TripSearchBar({
       ...placeSearchParams("origin", origin),
       ...placeSearchParams("destination", destination),
       date,
-      passengers: String(passengers)
+      passengers: String(passengers),
+      ...(operatorId ? { operatorId } : {})
     })}`);
   };
 

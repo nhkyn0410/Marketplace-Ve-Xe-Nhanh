@@ -234,6 +234,71 @@ void main() {
     },
   );
 
+  testWidgets(
+    'Lọc giá đang có không mất khi ngày đó chỉ có một mức giá (sheet không hiện thanh giá)',
+    (tester) async {
+      final calls = <SearchCall>[];
+      final singlePrice = TripSearchPage(
+        items: [sampleTrip('t1', price: 300000)],
+        total: 1,
+        page: 1,
+        limit: 20,
+        operators: const [],
+        priceMin: 300000,
+        priceMax: 300000,
+      );
+      await _pumpResults(
+        tester,
+        width: 390,
+        initialFilters: const TripSearchFilters(priceMin: 260000),
+        searchTrips: _recording(calls, (_) => singlePrice),
+      );
+
+      await tester.tap(find.byKey(const Key('results-filter')));
+      await tester.pumpAndSettle();
+      expect(find.text('Khoảng giá'), findsNothing);
+      await tester.tap(
+        find.byKey(const ValueKey('ticket-filter-form-sleeper')),
+      );
+      await tester.pump();
+      await tester.tap(find.byKey(const Key('ticket-filter-apply')));
+      await tester.pumpAndSettle();
+
+      expect(calls.last.filters.vehicleForm, TripVehicleForm.sleeper);
+      expect(calls.last.filters.priceMin, 260000);
+
+      // "Đặt lại" thì mới bỏ lọc giá.
+      await tester.tap(find.byKey(const Key('results-filter')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('ticket-filter-reset')));
+      await tester.pump();
+      await tester.tap(find.byKey(const Key('ticket-filter-apply')));
+      await tester.pumpAndSettle();
+      expect(calls.last.filters.priceMin, isNull);
+      expect(tester.takeException(), isNull);
+    },
+  );
+
+  testWidgets('khu vực / phường không có chuyến → nhắc đang hiện chuyến cả tỉnh', (
+    tester,
+  ) async {
+    await _pumpResults(
+      tester,
+      width: 390,
+      searchTrips: (_, _, _) async => TripSearchPage(
+        items: [sampleTrip('t1')],
+        total: 1,
+        page: 1,
+        limit: 20,
+        operators: const [],
+        widenedTo: true,
+      ),
+    );
+    expect(find.byKey(const Key('results-widened-notice')), findsOneWidget);
+    expect(find.textContaining('Không có chuyến trả khách'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('Sắp xếp: chọn trong sheet rồi Áp dụng mới tìm lại', (
     tester,
   ) async {

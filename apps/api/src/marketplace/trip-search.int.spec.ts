@@ -304,7 +304,41 @@ describe.skipIf(!url && !requireDb)("Tìm chuyến công khai — Postgres thậ
     expect((await search.search(query())).widenedToProvince).toEqual({ from: false, to: false });
   });
 
-  it("gợi ý địa điểm: phường mới, địa danh, tên cũ cấp xã → phường mới, cấp huyện → tỉnh; tên cũ trùng tên mới bị bỏ; gõ không dấu", async () => {
+  it("theo khu vực (đơn vị hành chính cũ = nhóm phường mới): khớp mọi điểm trong các phường; khu vực không có chuyến → nới ra tỉnh; mã lạ → rỗng", async () => {
+    // "Thành phố Xưa" cũ nay nằm trên 2 phường mới của tỉnh đi: phường có bến đi + phường trống.
+    await prisma.withSystem((tx) =>
+      tx.legacyAdministrativeMapping.createMany({
+        data: [
+          // Tên phường cũ không chứa `tag` để không lẫn vào ca gợi ý tên cũ bên dưới.
+          { legacyProvinceCode: "98", legacyProvinceName: `Tỉnh xưa ${tag}`, legacyDistrictName: `Thành phố Xưa ${tag}`, legacyWardName: "Phường 1", provinceId: provinceA, wardId: wardA },
+          { legacyProvinceCode: "98", legacyProvinceName: `Tỉnh xưa ${tag}`, legacyDistrictName: `Thành phố Xưa ${tag}`, legacyWardName: "Phường 2", provinceId: provinceA, wardId: wardEmpty },
+        ],
+      }),
+    );
+    const catalog = new CatalogService(prisma, { publicUrl: (key) => key });
+    const areaId = `98-thanh-pho-xua-${tag}`;
+    expect((await catalog.listPlaces(PlaceSuggestionQuerySchema.parse({ q: `xua ${tag}` }))).items).toContainEqual({
+      kind: "AREA",
+      label: `Xưa ${tag}`,
+      detail: `Thành phố Xưa ${tag}, Tỉnh xưa ${tag} cũ · nay thuộc Tỉnh đi`,
+      target: { type: "area", id: areaId },
+    });
+
+    const byArea = await search.search(query({ fromProvinceId: undefined, fromAreaId: areaId }));
+    expect(byArea.items.map((item) => item.tripId)).toEqual([ids.main, ids.cheap, ids.far, ids.office]);
+    expect(byArea.widenedToProvince).toEqual({ from: false, to: false });
+
+    // "Huyện cũ" chỉ gồm phường trống → không có chuyến → nới ra cả tỉnh đi.
+    const widened = await search.search(query({ fromProvinceId: undefined, fromAreaId: `99-huyen-cu-${tag}` }));
+    expect(widened.items.map((item) => item.tripId)).toEqual([ids.main, ids.cheap, ids.far, ids.office]);
+    expect(widened.widenedToProvince).toEqual({ from: true, to: false });
+
+    expect(await search.search(query({ fromProvinceId: undefined, fromAreaId: "97-khong-co" }))).toMatchObject({ items: [], total: 0 });
+    expect(() => query({ fromProvinceId: undefined, fromAreaId: "Vũng Tàu" })).toThrow();
+    expect(() => query({ fromAreaId: areaId })).toThrow();
+  });
+
+  it("gợi ý địa điểm: phường mới, địa danh, tên cũ cấp xã → phường mới, cấp huyện / tỉnh → khu vực; tên cũ trùng tên mới bị bỏ; gõ không dấu", async () => {
     const catalog = new CatalogService(prisma, { publicUrl: (key) => key });
     const { items } = await catalog.listPlaces(PlaceSuggestionQuerySchema.parse({ q: tag, limit: 20 }));
     expect(items.filter((item) => item.kind === "WARD").map((item) => item.label)).toEqual(
@@ -322,7 +356,6 @@ describe.skipIf(!url && !requireDb)("Tìm chuyến công khai — Postgres thậ
       [stationA, stationB, farA].sort(),
     );
     expect(items.filter((item) => item.kind === "LEGACY")).toEqual([
-      { kind: "LEGACY", label: `Huyện cũ ${tag}`, detail: `Cũ: Tỉnh cũ ${tag} · Nay thuộc Tỉnh đi`, target: { type: "province", id: provinceA } },
       {
         kind: "LEGACY",
         label: `Xã Cũ Đông ${tag}`,
@@ -330,6 +363,13 @@ describe.skipIf(!url && !requireDb)("Tìm chuyến công khai — Postgres thậ
         target: { type: "ward", id: wardEmpty },
       },
     ]);
+    // Huyện cũ và tỉnh cũ (tên khác tỉnh mới) thành khu vực thay cho trỏ cả tỉnh mới.
+    expect(items.filter((item) => item.kind === "AREA")).toEqual(
+      expect.arrayContaining([
+        { kind: "AREA", label: `Huyện cũ ${tag}`, detail: `Huyện cũ ${tag}, Tỉnh cũ ${tag} cũ · nay thuộc Tỉnh đi`, target: { type: "area", id: `99-huyen-cu-${tag}` } },
+        { kind: "AREA", label: `cũ ${tag}`, detail: `Tỉnh cũ ${tag} cũ · nay thuộc Tỉnh đi`, target: { type: "area", id: "99" } },
+      ]),
+    );
     const accentless = await catalog.listPlaces(PlaceSuggestionQuerySchema.parse({ q: `xa cu dong ${tag}` }));
     expect(accentless.items).toEqual([expect.objectContaining({ kind: "LEGACY", target: { type: "ward", id: wardEmpty } })]);
     expect(() => PlaceSuggestionQuerySchema.parse({ q: "a" })).toThrow();

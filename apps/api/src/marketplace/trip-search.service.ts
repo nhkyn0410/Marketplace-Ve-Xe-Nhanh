@@ -5,6 +5,7 @@ import type { SeatType } from "../database/prisma.types";
 import { PrismaService } from "../database/prisma.service";
 import { loadOperatorRatings, NO_RATING } from "../database/public-highlights";
 import {
+  findArea,
   findLandmark,
   findWard,
   loadActiveFareRules,
@@ -128,13 +129,15 @@ export class TripSearchService {
   }
 
   /**
-   * Mọi chuyến khớp (điểm đi, điểm đến, ngày, số khách), kèm giá thấp nhất — cache 60 giây. Phía phường / xã không ra
-   * chuyến nào → nới phía đó ra cả tỉnh của phường và đánh dấu `widenedToProvince`.
+   * Mọi chuyến khớp (điểm đi, điểm đến, ngày, số khách), kèm giá thấp nhất — cache 60 giây. Phía phường / xã hoặc khu vực
+   * không ra chuyến nào → nới phía đó ra cả tỉnh chứa nó và đánh dấu `widenedToProvince`.
    */
   private async matching(query: TripSearchQuery): Promise<Matched> {
+    const sideKey = (provinceId?: string, wardId?: string, areaId?: string, stopPointId?: string) =>
+      provinceId ?? (wardId ? `ward:${wardId}` : areaId ? `area:${areaId}` : `stop:${stopPointId}`);
     const identity = {
-      from: query.fromProvinceId ?? (query.fromWardId ? `ward:${query.fromWardId}` : `stop:${query.fromStopPointId}`),
-      to: query.toProvinceId ?? (query.toWardId ? `ward:${query.toWardId}` : `stop:${query.toStopPointId}`),
+      from: sideKey(query.fromProvinceId, query.fromWardId, query.fromAreaId, query.fromStopPointId),
+      to: sideKey(query.toProvinceId, query.toWardId, query.toAreaId, query.toStopPointId),
       date: query.date,
       passengers: query.passengers,
     };
@@ -148,8 +151,8 @@ export class TripSearchService {
       return JSON.parse(cached) as Matched;
     }
     const [from, to] = await Promise.all([
-      this.side(query.fromProvinceId, query.fromWardId, query.fromStopPointId),
-      this.side(query.toProvinceId, query.toWardId, query.toStopPointId),
+      this.side(query.fromProvinceId, query.fromWardId, query.fromAreaId, query.fromStopPointId),
+      this.side(query.toProvinceId, query.toWardId, query.toAreaId, query.toStopPointId),
     ]);
     let matched: Matched = { items: [], widenedToProvince: { from: false, to: false } };
     if (from && to) {
@@ -236,12 +239,14 @@ export class TripSearchService {
   }
 
   /**
-   * Tỉnh / thành giữ nguyên; phường / xã → khớp điểm trong phường (kèm tỉnh để nới); địa danh → tọa độ + bán kính.
-   * Phường / địa danh không có hoặc ngừng dùng → không khớp gì.
+   * Tỉnh / thành giữ nguyên; phường / xã → khớp điểm trong phường; khu vực → khớp điểm trong nhóm phường của khu vực
+   * (`wardProvinceId` = tỉnh để nới khi không có chuyến); địa danh → tọa độ + bán kính. Phường / khu vực / địa danh không
+   * có hoặc ngừng dùng → không khớp gì.
    */
   private async side(
     provinceId: string | undefined,
     wardId: string | undefined,
+    areaId: string | undefined,
     stopPointId: string | undefined,
   ): Promise<{ side: SearchSide; wardProvinceId?: string } | null> {
     if (provinceId) {
@@ -250,6 +255,10 @@ export class TripSearchService {
     if (wardId) {
       const ward = await findWard(this.prisma, wardId);
       return ward ? { side: { wardId }, wardProvinceId: ward.provinceId } : null;
+    }
+    if (areaId) {
+      const area = await findArea(this.prisma, areaId);
+      return area ? { side: { wardIds: area.wardIds }, wardProvinceId: area.provinceId } : null;
     }
     const landmark = await findLandmark(this.prisma, stopPointId!);
     return landmark ? { side: { ...landmark, radiusMeters: LANDMARK_RADIUS_METERS } } : null;

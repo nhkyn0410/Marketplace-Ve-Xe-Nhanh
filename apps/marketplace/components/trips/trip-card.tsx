@@ -1,6 +1,7 @@
 import { Airplay, Droplets, MapPin, Star, Wifi } from "lucide-react";
 import Link from "next/link";
 import { formatVnd } from "../../lib/format";
+import { tripLegQuery } from "../../lib/data/trip-mappers";
 import { TripSearchResultItem } from "../../lib/data/types";
 
 /**
@@ -8,12 +9,15 @@ import { TripSearchResultItem } from "../../lib/data/types";
  */
 export interface TripCardProps {
   readonly trip: TripSearchResultItem;
+  /** Số khách của lần tìm — mang sang chi tiết chuyến cùng điểm đón / trả đã khớp. */
+  readonly passengers?: number;
 }
 
 /**
  * Thẻ hiển thị một chuyến xe trong danh sách kết quả tìm kiếm chuẩn theo Figma 1440:11297.
  */
-export function TripCard({ trip }: TripCardProps) {
+export function TripCard({ trip, passengers }: TripCardProps) {
+  const leg = tripLegQuery({ pickup: trip.pickupSequence, dropoff: trip.dropoffSequence, passengers });
   return (
     <div className="flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xs transition hover:border-[#408ba0] hover:shadow-md md:flex-row">
       {/* Ảnh xe bên trái (w-[176px]) */}
@@ -164,7 +168,7 @@ export function TripCard({ trip }: TripCardProps) {
             )}
 
             <Link
-              href={`/trips/${trip.id}`}
+              href={`/trips/${trip.id}${leg ? `?${leg}` : ""}`}
               className="rounded-xl bg-[#00506a] px-5 py-2 text-sm font-bold text-white shadow-xs transition hover:bg-[#00476b] active:scale-[0.99] whitespace-nowrap shrink-0 text-center"
             >
               Chọn chuyến

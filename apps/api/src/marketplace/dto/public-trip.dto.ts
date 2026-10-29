@@ -1,6 +1,7 @@
 import { createZodDto } from "nestjs-zod";
 import { z } from "zod";
 import { RouteStopRole, SeatType, StopPointType, VehicleClass, VehicleForm } from "../../database/prisma.types";
+import { AREA_ID } from "../../database/public-trips";
 
 // API §7.2 `/trips/search`, `/trips/{tripId}` — tìm chuyến + chi tiết chuyến công khai (TASK-TRN-004; FR-MKT-01..05,
 // FR-MKT-15, BR-22, BR-77, BR-80). Không cần đăng nhập. Giờ trong query (`departureFrom` / `departureTo`) theo giờ VN.
@@ -9,18 +10,22 @@ export const MAX_PASSENGERS = 10;
 export const SEARCH_SORTS = ["departure", "price", "duration"] as const;
 const TIME = /^([01]\d|2[0-3]):[0-5]\d$/;
 const id = z.string().trim().min(1).max(64);
+const areaId = z.string().trim().max(120).regex(AREA_ID);
 
 export const TripSearchQuerySchema = z
   .object({
     /**
-     * Phía đi: đúng một trong tỉnh / thành, phường / xã (điểm đón nằm trong phường — chờ duyệt 27/10/2026) hoặc một điểm
-     * dùng chung (địa danh — khớp trong bán kính, BR-80).
+     * Phía đi: đúng một trong tỉnh / thành, phường / xã (điểm đón nằm trong phường — chờ duyệt 27/10/2026), khu vực (đơn vị
+     * hành chính cũ = nhóm phường mới, mã từ `GET /catalog/places` — chờ duyệt 29/10/2026) hoặc một điểm dùng chung (địa
+     * danh — khớp trong bán kính, BR-80).
      */
     fromProvinceId: id.optional(),
     fromWardId: id.optional(),
+    fromAreaId: areaId.optional(),
     fromStopPointId: z.uuid().optional(),
     toProvinceId: id.optional(),
     toWardId: id.optional(),
+    toAreaId: areaId.optional(),
     toStopPointId: z.uuid().optional(),
     /** Ngày đi (giờ đón tại điểm đón khớp) theo giờ VN. */
     date: z.iso.date(),
@@ -45,11 +50,11 @@ export const TripSearchQuerySchema = z
   })
   .superRefine((query, ctx) => {
     const count = (...values: (string | undefined)[]) => values.filter(Boolean).length;
-    if (count(query.fromProvinceId, query.fromWardId, query.fromStopPointId) !== 1) {
-      ctx.addIssue({ code: "custom", path: ["fromProvinceId"], message: "Chọn đúng một điểm đi: tỉnh / thành, phường / xã hoặc địa danh." });
+    if (count(query.fromProvinceId, query.fromWardId, query.fromAreaId, query.fromStopPointId) !== 1) {
+      ctx.addIssue({ code: "custom", path: ["fromProvinceId"], message: "Chọn đúng một điểm đi: tỉnh / thành, phường / xã, khu vực hoặc địa danh." });
     }
-    if (count(query.toProvinceId, query.toWardId, query.toStopPointId) !== 1) {
-      ctx.addIssue({ code: "custom", path: ["toProvinceId"], message: "Chọn đúng một điểm đến: tỉnh / thành, phường / xã hoặc địa danh." });
+    if (count(query.toProvinceId, query.toWardId, query.toAreaId, query.toStopPointId) !== 1) {
+      ctx.addIssue({ code: "custom", path: ["toProvinceId"], message: "Chọn đúng một điểm đến: tỉnh / thành, phường / xã, khu vực hoặc địa danh." });
     }
     if (query.priceMin !== undefined && query.priceMax !== undefined && query.priceMin > query.priceMax) {
       ctx.addIssue({ code: "custom", path: ["priceMax"], message: "Giá tối đa phải từ giá tối thiểu trở lên." });
@@ -107,8 +112,8 @@ export const TripSearchResponseSchema = z.object({
     priceMax: z.int().nullable(),
   }),
   /**
-   * Phía tìm theo phường / xã mà phường không có chuyến nào khớp → kết quả đã nới ra cả tỉnh của phường đó (`true`);
-   * giao diện báo "không có điểm đón / trả tại phường". Phía tỉnh / địa danh luôn `false`.
+   * Phía tìm theo phường / xã hoặc khu vực mà không có chuyến nào khớp → kết quả đã nới ra cả tỉnh chứa phường / khu vực
+   * đó (`true`); giao diện báo "không có điểm đón / trả tại nơi đã chọn". Phía tỉnh / địa danh luôn `false`.
    */
   widenedToProvince: z.object({ from: z.boolean(), to: z.boolean() }),
 });

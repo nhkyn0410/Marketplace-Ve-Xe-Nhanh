@@ -13,7 +13,7 @@ import {
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { placeSearchParams } from "../../lib/data/trip-mappers";
+import { placeSearchParams, samePlace } from "../../lib/data/trip-mappers";
 import type { FeaturedOperatorItem } from "../../lib/data/types";
 import { PlaceInput, type PlaceValue } from "../trips/place-input";
 import {
@@ -35,6 +35,11 @@ export interface SearchHeroProps {
   readonly initialPickerOpen?: boolean;
   /** Bản xem trước: dữ liệu mẫu, không điều hướng tìm chuyến. */
   readonly isPreview?: boolean;
+}
+
+/** Chữ thường, bỏ dấu tiếng Việt — lọc tên nhà xe khi gõ không dấu. */
+function foldVi(value: string): string {
+  return value.normalize("NFD").replace(/\p{Diacritic}/gu, "").replace(/đ/gi, "d").toLowerCase();
 }
 
 /** Tuyến mẫu của tab Theo nhà xe khi xem trước (nhà xe mẫu không kèm tuyến). */
@@ -64,6 +69,7 @@ export function SearchHero({
   const [selectedOperator, setSelectedOperator] = useState<FeaturedOperatorItem | null>(null);
   const [selectedRoute, setSelectedRoute] = useState<string>("");
   const [isPickerOpen, setIsPickerOpen] = useState<boolean>(initialPickerOpen);
+  const [operatorQuery, setOperatorQuery] = useState<string>("");
   const [actionError, setActionError] = useState<string | null>(null);
 
   /**
@@ -89,7 +95,7 @@ export function SearchHero({
     }
     const passengers = String(passengerCount);
     if (activeTab === "trip") {
-      if (!departureDate || !origin || !destination || origin.id === destination.id) {
+      if (!departureDate || !origin || !destination || samePlace(origin, destination)) {
         setActionError("Chọn ngày đi và hai điểm khác nhau từ danh sách gợi ý.");
         return;
       }
@@ -117,7 +123,8 @@ export function SearchHero({
     router.push(`/trips?${new URLSearchParams({ origin: routeOrigin, destination: routeDestination, date: departureDate, passengers, operatorId: selectedOperator.id })}`);
   };
 
-  const pickerOperators = featuredOperators.slice(0, 3);
+  // Ô chọn nhà xe: mọi nhà xe đang mở bán (tối đa 20, như app), gõ để lọc theo tên không dấu.
+  const pickerOperators = featuredOperators.filter((operator) => foldVi(operator.name).includes(foldVi(operatorQuery.trim())));
 
   return (
     <section className="relative flex min-h-[750px] lg:min-h-[max(750px,var(--vxn-vh))] flex-col justify-between overflow-hidden bg-[#0b3b49] text-white">
@@ -194,7 +201,7 @@ export function SearchHero({
               }`}
             >
               <FileText className="h-4 w-4" />
-              <span>Mua vé</span>
+              <span>Theo chuyến</span>
             </button>
             <button
               type="button"
@@ -280,11 +287,24 @@ export function SearchHero({
                   {/* POPOVER NHÀ XE NỔI BẬT (837:131) */}
                   {isPickerOpen && (
                     <div className="absolute bottom-[calc(100%+10px)] left-0 z-30 w-full rounded-2xl border border-slate-200 bg-white p-3 shadow-2xl sm:w-[350px]">
-                      <div className="px-2.5 pt-1 pb-2 text-[11px] font-bold tracking-wider text-slate-400 uppercase">
-                        NHÀ XE NỔI BẬT
-                      </div>
-                      <div className="space-y-1">
-                        {pickerOperators.map((operator, idx) => (
+                      <input
+                        autoFocus
+                        value={operatorQuery}
+                        onChange={(event) => setOperatorQuery(event.target.value)}
+                        onKeyDown={(event) => {
+                          if (event.key === "Escape") setIsPickerOpen(false);
+                        }}
+                        placeholder="Nhập tên nhà xe..."
+                        aria-label="Tìm nhà xe"
+                        className="mb-2 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm text-[#0f172a] outline-none focus:border-[#00506a]"
+                      />
+                      <div className="max-h-72 space-y-1 overflow-y-auto">
+                        {pickerOperators.length === 0 && (
+                          <p className="px-2.5 py-2 text-xs text-slate-500">
+                            {featuredOperators.length === 0 ? "Chưa có nhà xe đang mở bán." : "Không tìm thấy nhà xe phù hợp."}
+                          </p>
+                        )}
+                        {pickerOperators.map((operator) => (
                           <button
                             key={operator.id}
                             type="button"
@@ -295,7 +315,7 @@ export function SearchHero({
                               setIsPickerOpen(false);
                             }}
                             className={`flex w-full items-center gap-3 rounded-xl px-2.5 py-2 text-left transition ${
-                              idx === 0 ? "bg-[#eef6f9]" : "hover:bg-[#eef6f9]"
+                              operator.id === selectedOperator?.id ? "bg-[#eef6f9]" : "hover:bg-[#eef6f9]"
                             }`}
                           >
                             <div
@@ -326,7 +346,7 @@ export function SearchHero({
                       </div>
                       <div className="mt-2 border-t border-slate-100 pt-2">
                         <Link
-                          href="/operators/opr-phuongnam"
+                          href="/trips/explore?tab=operators"
                           className="block px-2.5 py-1 text-xs font-bold text-[#00506a] hover:underline"
                         >
                           Xem tất cả nhà xe
@@ -352,11 +372,7 @@ export function SearchHero({
                       Nhà xe
                     </span>
                     <span className={selectedOperator ? SEARCH_VALUE : SEARCH_VALUE_EMPTY}>
-                      {selectedOperator
-                        ? selectedOperator.name
-                        : isPickerOpen
-                          ? "Nhập tên nhà xe..."
-                          : "Chọn nhà xe"}
+                      {selectedOperator ? selectedOperator.name : "Chọn nhà xe"}
                     </span>
                   </button>
                 </div>

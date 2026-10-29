@@ -3,8 +3,8 @@ import type { TripDetailData, TripSearchResultItem } from "./types";
 import { formatDateVi, formatTimeVi } from "../format";
 
 /** Bộ lọc tìm chuyến được chuyển sang query của API công khai. */
-/** Loại điểm đi / điểm đến — khớp `target.type` của `GET /catalog/places`. */
-export type PlaceType = "province" | "ward" | "stopPoint";
+/** Loại điểm đi / điểm đến — khớp `target.type` của `GET /catalog/places` (`area` = khu vực: đơn vị hành chính cũ). */
+export type PlaceType = "province" | "ward" | "area" | "stopPoint";
 
 export interface SearchTripsParams {
   readonly origin?: string;
@@ -30,17 +30,85 @@ export function apiMoney(value: number): string {
   return BigInt(value).toString();
 }
 
+/**
+ * Khoảng giá từ URL (chuỗi số nguyên VND). Không phải số, hoặc giá từ lớn hơn giá đến → bỏ cả hai và báo `invalid` để
+ * trang nhắc người dùng, thay vì gửi lên API rồi nhận lỗi 400. So sánh bằng BigInt (không ép tiền sang number).
+ */
+export function priceRange(min?: string, max?: string): { readonly min?: string; readonly max?: string; readonly invalid: boolean } {
+  const read = (value?: string) => (value?.trim() ? (/^\d{1,12}$/.test(value.trim()) ? value.trim() : null) : undefined);
+  const [low, high] = [read(min), read(max)];
+  if (low === null || high === null || (low !== undefined && high !== undefined && BigInt(low) > BigInt(high))) {
+    return { invalid: true };
+  }
+  return { min: low, max: high, invalid: false };
+}
+
 /** Đọc loại điểm từ URL; giá trị lạ coi như tỉnh. */
 export function placeType(value: string | undefined): PlaceType {
-  return value === "ward" || value === "stopPoint" ? value : "province";
+  return value === "ward" || value === "area" || value === "stopPoint" ? value : "province";
 }
+
+/** Hai điểm trùng hẳn (cùng loại, cùng mã) — không tìm được; khác loại thì cho tìm kể cả trong cùng tỉnh (vd TP.HCM → Vũng Tàu). */
+export function samePlace(a: { readonly type: PlaceType; readonly id: string }, b: { readonly type: PlaceType; readonly id: string }): boolean {
+  return a.type === b.type && a.id === b.id;
+}
+
+const DAY_MS = 86_400_000;
+const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
+
+/** Ngày hôm nay theo giờ Việt Nam, dạng `YYYY-MM-DD`. */
+export function vnToday(now = new Date()): string {
+  return new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Ho_Chi_Minh" }).format(now);
+}
+
+/** Cộng `days` ngày vào ngày `YYYY-MM-DD`. */
+export function addDays(date: string, days: number): string {
+  return new Date(Date.parse(`${date}T00:00:00Z`) + days * DAY_MS).toISOString().slice(0, 10);
+}
+
+/** 5 ngày quanh ngày đi (lùi 2 ngày, không lùi về trước hôm nay) cho dải đổi ngày nhanh, giống app. */
+export function stripDates(selected: string, today: string): string[] {
+  const from = ISO_DATE.test(selected) && selected > today ? addDays(selected, -2) : today;
+  const start = from < today ? today : from;
+  return Array.from({ length: 5 }, (_, index) => addDays(start, index));
+}
+
+/** Chặng khách đã chọn lúc tìm (điểm đón / trả theo `sequence`) và số khách — mang từ thẻ kết quả sang chi tiết, chọn chỗ. */
+export interface TripLeg {
+  readonly pickup?: number;
+  readonly dropoff?: number;
+  readonly passengers?: number;
+}
+
+/** Đọc chặng từ URL; giá trị lạ thì bỏ (trang dùng mặc định). */
+export function readTripLeg(
+  params: { readonly [key: string]: string | readonly string[] | string[] | undefined } | URLSearchParams | null | undefined
+): TripLeg {
+  const int = (key: string, max: number) => {
+    const raw = params instanceof URLSearchParams ? params.get(key) : params?.[key];
+    const value = typeof raw === "string" && /^\d{1,3}$/.test(raw) ? Number(raw) : 0;
+    return value >= 1 && value <= max ? value : undefined;
+  };
+  return { pickup: int("pickup", 999), dropoff: int("dropoff", 999), passengers: int("passengers", 10) };
+}
+
+/** Query của chặng (`pickup=2&dropoff=3&passengers=2`); rỗng khi không có gì. */
+export function tripLegQuery(leg: TripLeg): string {
+  return new URLSearchParams(Object.entries(leg).flatMap(([key, value]) => (value === undefined ? [] : [[key, String(value)]]))).toString();
+}
+
+/** Cookie giữ điều kiện tìm gần nhất để trang Khám phá mở lại đúng tuyến (như app giữ lần tìm trước). */
+export const LAST_SEARCH_COOKIE = "vxn_last_search";
+/** Tham số điều kiện hành trình (không gồm bộ lọc / sắp xếp / trang). */
+export const JOURNEY_KEYS = [
+  "origin", "originType", "originLabel", "destination", "destinationType", "destinationLabel", "date", "passengers"
+] as const;
 
 /** Tạo query tìm chuyến, giữ giá dưới dạng chuỗi và ngày theo giờ Việt Nam. */
 export function searchQuery(params: SearchTripsParams): URLSearchParams {
-  const date = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Ho_Chi_Minh" }).format(new Date());
-  const query = new URLSearchParams({ date: params.date || date, passengers: String(params.passengers ?? 1) });
+  const query = new URLSearchParams({ date: params.date || vnToday(), passengers: String(params.passengers ?? 1) });
   const forms: Record<string, string> = { seat: "SEATER", sleeper: "SLEEPER", cabin: "CABIN" };
-  const keys: Record<PlaceType, string> = { province: "ProvinceId", ward: "WardId", stopPoint: "StopPointId" };
+  const keys: Record<PlaceType, string> = { province: "ProvinceId", ward: "WardId", area: "AreaId", stopPoint: "StopPointId" };
   const values = {
     [`from${keys[params.originType ?? "province"]}`]: params.origin,
     [`to${keys[params.destinationType ?? "province"]}`]: params.destination,
@@ -51,9 +119,10 @@ export function searchQuery(params: SearchTripsParams): URLSearchParams {
   };
   for (const [key, value] of Object.entries(values)) if (value) query.set(key, value);
   if (params.timeRange) {
-    const [from, to] = params.timeRange.split("-");
+    // "06-12" → 06:00 – 11:59: API so sánh cả hai đầu, nên chuyến 12:00 chỉ thuộc khung "12-18".
+    const [from = "", to = ""] = params.timeRange.split("-");
     query.set("departureFrom", `${from}:00`);
-    query.set("departureTo", to === "24" ? "23:59" : `${to}:00`);
+    query.set("departureTo", `${String(Number(to) - 1).padStart(2, "0")}:59`);
   }
   return query;
 }
@@ -66,15 +135,16 @@ const nextDay = (start: string, end: string) => formatDateVi(start) !== formatDa
 export function mapTripSearchItem(item: components["schemas"]["TripSearchResponseDto_Output"]["items"][number]): TripSearchResultItem {
   return {
     id: item.tripId, operatorId: item.operator.id, operatorName: item.operator.name,
-    operatorCode: item.operator.name.slice(0, 2).toUpperCase(), operatorRating: 0,
-    operatorRatingCountText: "Chưa có dữ liệu đánh giá", vehicleType: item.vehicleType.name,
+    operatorCode: item.operator.name.slice(0, 2).toUpperCase(), operatorRating: item.operator.averageRating ?? 0,
+    operatorRatingCountText: item.operator.reviewCount > 0 ? `${item.operator.reviewCount} đánh giá` : "Chưa có đánh giá",
+    vehicleType: item.vehicleType.name,
     seatType: formNames[item.vehicleType.form], departureTime: formatTimeVi(item.pickup.plannedAt),
     departureCity: item.pickup.name, departureStation: item.pickup.name,
     arrivalTime: formatTimeVi(item.dropoff.plannedAt), arrivalCity: item.dropoff.name,
     arrivalStation: item.dropoff.name, durationText: duration(item.durationMinutes), stopCountText: "",
     isNextDay: nextDay(item.pickup.plannedAt, item.dropoff.plannedAt), priceVnd: apiMoney(item.minPrice),
     availableSeats: item.availableSeats, amenities: item.amenities.map((a) => a.name),
-    imageUrl: item.vehicleCoverImageUrl ?? ""
+    imageUrl: item.vehicleCoverImageUrl ?? "", pickupSequence: item.pickup.sequence, dropoffSequence: item.dropoff.sequence
   };
 }
 

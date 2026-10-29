@@ -172,7 +172,6 @@ void main() {
     tester,
   ) async {
     const route = HomePopularRoute(
-      tripId: 'trip-1',
       from: HomeLocation(id: 'hn', name: 'Hà Nội'),
       to: HomeLocation(id: 'dn', name: 'Đà Nẵng'),
       fromLabel: 'Hà Nội',
@@ -381,38 +380,58 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('gõ không dấu vẫn gợi ý tỉnh, gõ từ 2 ký tự gợi ý cả bến xe', (
-    tester,
-  ) async {
-    HomeSearchQuery? submitted;
-    await _pumpHome(tester, width: 412, onSearch: (query) => submitted = query);
+  testWidgets(
+    '1 ký tự lọc tỉnh không dấu; từ 2 ký tự gợi ý như web (tỉnh, khu vực, bến)',
+    (tester) async {
+      HomeSearchQuery? submitted;
+      await _pumpHome(
+        tester,
+        width: 412,
+        onSearch: (query) => submitted = query,
+      );
 
-    await tester.tap(find.byKey(const Key('origin-input')));
-    await tester.pumpAndSettle();
-    await tester.enterText(
-      find.byKey(const Key('location-search-field')),
-      'ho chi',
-    );
-    await tester.pump(const Duration(milliseconds: 350));
-    await tester.pumpAndSettle();
-    expect(find.text('TP. Hồ Chí Minh'), findsWidgets);
-    expect(find.text('Lâm Đồng'), findsNothing);
-    expect(find.text('Bến xe Miền Đông'), findsOneWidget);
+      await tester.tap(find.byKey(const Key('origin-input')));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byKey(const Key('location-search-field')), 'l');
+      await tester.pumpAndSettle();
+      expect(find.text('Lâm Đồng'), findsWidgets);
+      expect(find.text('TP. Hồ Chí Minh'), findsNothing);
 
-    await tester.tap(find.text('Bến xe Miền Đông'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const Key('destination-input')));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Lâm Đồng').last);
-    await tester.pumpAndSettle();
+      await tester.enterText(
+        find.byKey(const Key('location-search-field')),
+        'mien dong',
+      );
+      await tester.pump(const Duration(milliseconds: 350));
+      await tester.pumpAndSettle();
+      expect(find.text('Bến xe Miền Đông'), findsOneWidget);
+      expect(find.text('Đà Lạt'), findsOneWidget);
+      expect(
+        find.text('Thành phố Đà Lạt cũ · nay thuộc Tỉnh Lâm Đồng'),
+        findsOneWidget,
+      );
 
-    await tester.tap(find.byKey(const Key('home-search-button')));
-    await tester.pumpAndSettle();
-    expect(submitted!.from.kind, HomeLocationKind.stopPoint);
-    expect(submitted!.from.id, 'mien-dong');
-    expect(submitted!.to.id, 'lam-dong');
-    expect(tester.takeException(), isNull);
-  });
+      await tester.tap(find.text('Bến xe Miền Đông'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('destination-input')));
+      await tester.pumpAndSettle();
+      await tester.enterText(
+        find.byKey(const Key('location-search-field')),
+        'da lat',
+      );
+      await tester.pump(const Duration(milliseconds: 350));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Đà Lạt'));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byKey(const Key('home-search-button')));
+      await tester.pumpAndSettle();
+      expect(submitted!.from.kind, HomeLocationKind.stopPoint);
+      expect(submitted!.from.id, 'mien-dong');
+      expect(submitted!.to.kind, HomeLocationKind.area);
+      expect(submitted!.to.id, '68-thanh-pho-da-lat');
+      expect(tester.takeException(), isNull);
+    },
+  );
 
   testWidgets('theo nhà xe: chọn nhà xe rồi chọn tuyến (đủ điểm đi và đến)', (
     tester,

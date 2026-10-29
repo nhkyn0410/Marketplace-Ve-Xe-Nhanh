@@ -29,23 +29,32 @@ class TripBookingApi {
     ];
   }
 
-  /// Bến xe, địa danh dùng chung khớp từ khóa (không phân biệt dấu); bỏ trạm dừng nghỉ vì không đón / trả khách (BR-79).
-  Future<List<HomeLocation>> searchStopPoints(String keyword) async {
+  /// Gợi ý điểm đi / điểm đến khớp từ khóa, cùng nguồn với web
+  /// (`GET /catalog/places`): tỉnh / thành, khu vực (đơn vị hành chính cũ như
+  /// "Đà Lạt", "Vũng Tàu"), phường / xã, bến xe – địa danh (đã bỏ trạm dừng
+  /// nghỉ, BR-79) và tên phường / xã cũ dẫn tới phường mới.
+  Future<List<HomeLocation>> searchPlaces(String keyword) async {
     final response = await _call(
-      () => _client.getCatalogApi().catalogControllerListStopPoints(
+      () => _client.getCatalogApi().catalogControllerListPlaces(
         q: keyword,
         limit: 20,
       ),
     );
     return [
       for (final item in response.data!.items)
-        if (item.type.name != 'REST_STOP')
-          HomeLocation(
-            id: item.id,
-            name: item.name,
-            kind: HomeLocationKind.stopPoint,
-            detail: item.address,
-          ),
+        HomeLocation(
+          id: item.target.id,
+          name: item.kind.name == 'PROVINCE'
+              ? shortProvinceName(item.label)
+              : item.label,
+          kind: switch (item.target.type.name) {
+            'ward' => HomeLocationKind.ward,
+            'area' => HomeLocationKind.area,
+            'stopPoint' => HomeLocationKind.stopPoint,
+            _ => HomeLocationKind.province,
+          },
+          detail: item.detail,
+        ),
     ];
   }
 
@@ -100,16 +109,20 @@ class TripBookingApi {
     TripSearchFilters filters,
     int page,
   ) async {
-    final fromProvince = query.from.kind == HomeLocationKind.province;
-    final toProvince = query.to.kind == HomeLocationKind.province;
+    String? idOf(HomeLocation place, HomeLocationKind kind) =>
+        place.kind == kind ? place.id : null;
     final amenityIds = filters.amenityIds.join(',');
     final response = await _call(
       () => _client.getTripsApi().publicTripControllerSearch(
         date: Date(query.date.year, query.date.month, query.date.day),
-        fromProvinceId: fromProvince ? query.from.id : null,
-        fromStopPointId: fromProvince ? null : query.from.id,
-        toProvinceId: toProvince ? query.to.id : null,
-        toStopPointId: toProvince ? null : query.to.id,
+        fromProvinceId: idOf(query.from, HomeLocationKind.province),
+        fromWardId: idOf(query.from, HomeLocationKind.ward),
+        fromAreaId: idOf(query.from, HomeLocationKind.area),
+        fromStopPointId: idOf(query.from, HomeLocationKind.stopPoint),
+        toProvinceId: idOf(query.to, HomeLocationKind.province),
+        toWardId: idOf(query.to, HomeLocationKind.ward),
+        toAreaId: idOf(query.to, HomeLocationKind.area),
+        toStopPointId: idOf(query.to, HomeLocationKind.stopPoint),
         passengers: query.passengers,
         operatorId: filters.operatorId ?? query.operatorId,
         vehicleForm: filters.vehicleForm?.apiValue,
@@ -131,6 +144,8 @@ class TripBookingApi {
       limit: data.limit,
       priceMin: data.facets.priceMin,
       priceMax: data.facets.priceMax,
+      widenedFrom: data.widenedToProvince.from,
+      widenedTo: data.widenedToProvince.to,
       operators: [
         for (final facet in data.facets.operators)
           TripOperatorFacet(id: facet.id, name: facet.name, count: facet.count),

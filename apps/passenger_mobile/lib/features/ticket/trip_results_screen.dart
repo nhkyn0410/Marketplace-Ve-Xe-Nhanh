@@ -217,6 +217,7 @@ class _TripResultsScreenState extends State<TripResultsScreen> {
     final query = _query;
     final hasMore = _page?.hasMore ?? false;
     return [
+      ..._widenedSlivers(_page),
       SliverPadding(
         padding: const EdgeInsets.symmetric(horizontal: 15),
         sliver: SliverList.separated(

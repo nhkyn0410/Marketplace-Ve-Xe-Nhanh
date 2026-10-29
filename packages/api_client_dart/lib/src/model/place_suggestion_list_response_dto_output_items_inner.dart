@@ -21,7 +21,7 @@ part 'place_suggestion_list_response_dto_output_items_inner.g.dart';
 abstract class PlaceSuggestionListResponseDtoOutputItemsInner implements Built<PlaceSuggestionListResponseDtoOutputItemsInner, PlaceSuggestionListResponseDtoOutputItemsInnerBuilder> {
   @BuiltValueField(wireName: r'kind')
   PlaceSuggestionListResponseDtoOutputItemsInnerKindEnum get kind;
-  // enum kindEnum {  PROVINCE,  WARD,  STOP_POINT,  LEGACY,  };
+  // enum kindEnum {  PROVINCE,  AREA,  WARD,  STOP_POINT,  LEGACY,  };
 
   @BuiltValueField(wireName: r'label')
   String get label;
@@ -161,6 +161,8 @@ class PlaceSuggestionListResponseDtoOutputItemsInnerKindEnum extends EnumClass {
 
   @BuiltValueEnumConst(wireName: r'PROVINCE')
   static const PlaceSuggestionListResponseDtoOutputItemsInnerKindEnum PROVINCE = _$placeSuggestionListResponseDtoOutputItemsInnerKindEnum_PROVINCE;
+  @BuiltValueEnumConst(wireName: r'AREA')
+  static const PlaceSuggestionListResponseDtoOutputItemsInnerKindEnum AREA = _$placeSuggestionListResponseDtoOutputItemsInnerKindEnum_AREA;
   @BuiltValueEnumConst(wireName: r'WARD')
   static const PlaceSuggestionListResponseDtoOutputItemsInnerKindEnum WARD = _$placeSuggestionListResponseDtoOutputItemsInnerKindEnum_WARD;
   @BuiltValueEnumConst(wireName: r'STOP_POINT')

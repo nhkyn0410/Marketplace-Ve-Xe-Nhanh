@@ -324,7 +324,7 @@ class FakeBookingApi implements TripBookingApi {
   Future<List<HomeLocation>> loadProvinces() async => const [];
 
   @override
-  Future<List<HomeLocation>> searchStopPoints(String keyword) async => const [];
+  Future<List<HomeLocation>> searchPlaces(String keyword) async => const [];
 
   @override
   Future<List<HomeOperator>> loadOperators() async => const [];

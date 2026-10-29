@@ -17,9 +17,12 @@ export async function getPopularRoutes(): Promise<DataResult<readonly PopularRou
   return result.status === "ok" ? ok(result.data.items.map((route, index) => mapPopularRoute(route, index))) : result;
 }
 
-/** Nhà xe đối tác tiêu biểu (`GET /catalog/featured-operators`, 5 thẻ theo Figma). */
-export async function getFeaturedOperators(): Promise<DataResult<readonly FeaturedOperatorItem[]>> {
-  const result = await apiRequest<components["schemas"]["FeaturedOperatorListResponseDto_Output"]>("/catalog/featured-operators?limit=5");
+/**
+ * Nhà xe đang mở bán, xếp theo số đánh giá (`GET /catalog/featured-operators`): 5 thẻ "Nhà xe đối tác" theo Figma; ô
+ * chọn nhà xe và trang Khám phá lấy tối đa 20 như app.
+ */
+export async function getFeaturedOperators(limit = 5): Promise<DataResult<readonly FeaturedOperatorItem[]>> {
+  const result = await apiRequest<components["schemas"]["FeaturedOperatorListResponseDto_Output"]>(`/catalog/featured-operators?limit=${limit}`);
   return result.status === "ok" ? ok(result.data.items.map(mapFeaturedOperator)) : result;
 }
 

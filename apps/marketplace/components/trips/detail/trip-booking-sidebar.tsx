@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ShieldCheck, QrCode, Headphones, Clock } from "lucide-react";
 import { formatVnd } from "../../../lib/format";
+import { tripLegQuery, type TripLeg } from "../../../lib/data/trip-mappers";
 
 import { TripDetailData } from "../../../lib/data/types";
 
@@ -13,7 +14,8 @@ import { TripDetailData } from "../../../lib/data/types";
  */
 interface TripBookingSidebarProps {
   readonly trip: TripDetailData;
-  readonly passengerCount?: number;
+  /** Chặng + số khách từ lần tìm: trang chọn chỗ chọn sẵn đúng điểm đón / trả. */
+  readonly leg?: TripLeg;
 }
 
 /**
@@ -21,15 +23,17 @@ interface TripBookingSidebarProps {
  */
 export function TripBookingSidebar({
   trip,
-  passengerCount = 1
+  leg = {}
 }: TripBookingSidebarProps) {
   const router = useRouter();
+  const passengerCount = leg.passengers ?? 1;
 
   // Tính tạm tính: giá đơn * số hành khách (dùng BigInt)
   const estimatedTotalVnd = trip.priceSingleVnd ? (BigInt(trip.priceSingleVnd) * BigInt(passengerCount)).toString() : "";
 
   const handleSelectSeat = () => {
-    router.push(`/trips/${encodeURIComponent(trip.id)}/seats`);
+    const query = tripLegQuery(leg);
+    router.push(`/trips/${encodeURIComponent(trip.id)}/seats${query ? `?${query}` : ""}`);
   };
 
   return (
