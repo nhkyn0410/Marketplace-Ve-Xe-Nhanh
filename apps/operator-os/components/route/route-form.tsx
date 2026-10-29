@@ -80,6 +80,8 @@ import { RouteMap } from "../map/route-map";
 import { PageHeader } from "../page-header";
 import { RouteStopList } from "./route-stop-list";
 import { StopPicker } from "./stop-picker";
+import { SubRouteForm } from "./sub-route-form";
+import { SubRoutePanel } from "./sub-route-panel";
 
 const CARD = "flex flex-col gap-5 rounded-xl border bg-card p-6";
 const CARD_TITLE = "text-base leading-6 font-semibold text-vxn-ink";
@@ -91,6 +93,8 @@ const FORM_ID = "route-form";
  * truyền `routeId` = thêm mới. Thẻ bản đồ lộ trình chỉ hiện khi môi trường có khóa bản đồ (TASK-TRN-014).
  */
 export function RouteForm({ routeId }: { routeId?: string }) {
+  // Thêm tuyến con (3.2): `/routes/new?parentRouteId=…` từ mục Tuyến con của tuyến chính.
+  const parentRouteId = useSearchParams().get("parentRouteId");
   const route = useQuery({
     queryKey: ["route", routeId],
     queryFn: () => getRoute(routeId!),
@@ -140,6 +144,12 @@ export function RouteForm({ routeId }: { routeId?: string }) {
         </div>
       </FormShell>
     );
+  }
+  if (route.data?.parentRouteId) {
+    return <SubRouteForm key={route.data.id} parentId={route.data.parentRouteId} route={route.data} />;
+  }
+  if (!routeId && parentRouteId) {
+    return <SubRouteForm parentId={parentRouteId} />;
   }
   // Đổi tuyến (hoặc từ thêm sang sửa) thì dựng lại form với dữ liệu của tuyến đó.
   return <RouteFormBody key={route.data?.id ?? "new"} route={route.data} />;
@@ -244,6 +254,15 @@ function RouteFormBody({ route }: { route?: Route }) {
     }
   }
 
+  // Tên còn lỗi vẫn báo luôn lỗi của danh sách điểm dừng, để sửa một lượt.
+  const invalid = () => setStopsError(validateStops(stops));
+
+  /** "Lưu nháp" (3.2): lưu ở trạng thái Nháp — chưa tạo chuyến được, khách không thấy. Điểm dừng vẫn phải hợp lệ. */
+  function saveDraft() {
+    form.setValue("status", "DRAFT", { shouldDirty: true });
+    void form.handleSubmit(submit, invalid)();
+  }
+
   return (
     <FormShell
       title={route ? "Chỉnh sửa tuyến" : "Thêm tuyến"}
@@ -262,6 +281,9 @@ function RouteFormBody({ route }: { route?: Route }) {
             onClick={() => (dirty ? setConfirmLeave(true) : router.push("/routes"))}
           >
             Hủy
+          </Button>
+          <Button type="button" variant="outline" className={`${BUTTON} bg-card`} disabled={save.isPending} onClick={saveDraft}>
+            Lưu nháp
           </Button>
           <Button type="submit" form={FORM_ID} className={`${BUTTON} w-40`} disabled={save.isPending}>
             {save.isPending && <LoaderCircle className="size-[18px] animate-spin" />}
@@ -366,12 +388,7 @@ function RouteFormBody({ route }: { route?: Route }) {
             <form
               id={FORM_ID}
               noValidate
-              onSubmit={(event) =>
-                void form.handleSubmit(submit, () => {
-                  // Tên còn lỗi vẫn báo luôn lỗi của danh sách điểm dừng, để sửa một lượt.
-                  setStopsError(validateStops(stops));
-                })(event)
-              }
+              onSubmit={(event) => void form.handleSubmit(submit, invalid)(event)}
               className="flex flex-col gap-4"
             >
               <FormField
@@ -516,6 +533,8 @@ function RouteFormBody({ route }: { route?: Route }) {
           )}
         </div>
       </div>
+
+      {route && <SubRoutePanel route={route} />}
 
       <AlertDialog open={confirmLeave} onOpenChange={setConfirmLeave}>
         <AlertDialogContent>

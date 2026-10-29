@@ -33,6 +33,8 @@ const RouteInputDtoStatusEnum _$routeInputDtoStatusEnum_ACTIVE =
     const RouteInputDtoStatusEnum._('ACTIVE');
 const RouteInputDtoStatusEnum _$routeInputDtoStatusEnum_INACTIVE =
     const RouteInputDtoStatusEnum._('INACTIVE');
+const RouteInputDtoStatusEnum _$routeInputDtoStatusEnum_DRAFT =
+    const RouteInputDtoStatusEnum._('DRAFT');
 
 RouteInputDtoStatusEnum _$routeInputDtoStatusEnumValueOf(String name) {
   switch (name) {
@@ -40,6 +42,8 @@ RouteInputDtoStatusEnum _$routeInputDtoStatusEnumValueOf(String name) {
       return _$routeInputDtoStatusEnum_ACTIVE;
     case 'INACTIVE':
       return _$routeInputDtoStatusEnum_INACTIVE;
+    case 'DRAFT':
+      return _$routeInputDtoStatusEnum_DRAFT;
     default:
       throw ArgumentError(name);
   }
@@ -49,6 +53,7 @@ final BuiltSet<RouteInputDtoStatusEnum> _$routeInputDtoStatusEnumValues =
     BuiltSet<RouteInputDtoStatusEnum>(const <RouteInputDtoStatusEnum>[
   _$routeInputDtoStatusEnum_ACTIVE,
   _$routeInputDtoStatusEnum_INACTIVE,
+  _$routeInputDtoStatusEnum_DRAFT,
 ]);
 
 Serializer<RouteInputDtoNameSourceEnum>
@@ -91,10 +96,12 @@ class _$RouteInputDtoStatusEnumSerializer
   static const Map<String, Object> _toWire = const <String, Object>{
     'ACTIVE': 'ACTIVE',
     'INACTIVE': 'INACTIVE',
+    'DRAFT': 'DRAFT',
   };
   static const Map<Object, String> _fromWire = const <Object, String>{
     'ACTIVE': 'ACTIVE',
     'INACTIVE': 'INACTIVE',
+    'DRAFT': 'DRAFT',
   };
 
   @override

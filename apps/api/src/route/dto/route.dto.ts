@@ -1,6 +1,6 @@
 import { createZodDto } from "nestjs-zod";
 import { z } from "zod";
-import { RouteNameSource, RouteStatus, RouteStopRole, RoutingMetricsSource, StopPointType } from "../../database/prisma.types";
+import { FareStatus, RouteNameSource, RouteStatus, RouteStopRole, RoutingMetricsSource, SeatType, StopPointType } from "../../database/prisma.types";
 
 /** Giới hạn điểm/route: đủ cho tuyến liên tỉnh, chặn payload và số lần gọi Goong (mỗi chặng một lần). */
 export const MAX_ROUTE_STOPS = 25;
@@ -73,6 +73,11 @@ export class RouteListQueryDto extends createZodDto(
     status: z.enum(RouteStatus).optional(),
     cursor: z.uuid().optional(),
     limit: z.coerce.number().int().min(1).max(100).default(20),
+    /** `true` = liệt kê cả tuyến con như một dòng (ô chọn tuyến của Bảng giá); mặc định chỉ tuyến chính, kèm `subRoutes`. */
+    includeSubRoutes: z
+      .enum(["true", "false"])
+      .transform((value) => value === "true")
+      .optional(),
   }),
 ) {}
 
@@ -98,18 +103,26 @@ const RouteSummaryFields = {
   totalDistanceMeters: z.int(),
   totalDurationSeconds: z.int(),
   metricsSource: z.enum(RoutingMetricsSource),
+  /** Tuyến con (3.2): id tuyến chính; tuyến chính `null`. */
+  parentRouteId: z.uuid().nullable(),
   createdAt: z.iso.datetime(),
   updatedAt: z.iso.datetime(),
+};
+
+const RouteListItemFields = {
+  ...RouteSummaryFields,
+  stopCount: z.int(),
+  // Tên điểm đầu / điểm cuối cho cột "Điểm đầu → Điểm cuối" của màn danh sách (TASK-TRN-013).
+  originName: z.string(),
+  destinationName: z.string(),
 };
 
 export const RouteListResponseSchema = z.object({
   items: z.array(
     z.object({
-      ...RouteSummaryFields,
-      stopCount: z.int(),
-      // Tên điểm đầu / điểm cuối cho cột "Điểm đầu → Điểm cuối" của màn danh sách (TASK-TRN-013).
-      originName: z.string(),
-      destinationName: z.string(),
+      ...RouteListItemFields,
+      /** Tuyến con của tuyến chính (màn danh sách hiện lồng bên dưới); dòng tuyến con thì rỗng. */
+      subRoutes: z.array(z.object(RouteListItemFields)),
     }),
   ),
   nextCursor: z.uuid().nullable(),
@@ -118,8 +131,35 @@ export type RouteListResponse = z.infer<typeof RouteListResponseSchema>;
 /** Một trang route (không kèm danh sách điểm dừng, chỉ tên điểm đầu / điểm cuối). */
 export class RouteListResponseDto extends createZodDto(RouteListResponseSchema) {}
 
+/** Điểm theo mã (catalog HOẶC điểm riêng) — hai đầu của tuyến con. */
+const PointRefSchema = z
+  .object({ catalogStopPointId: z.uuid().nullable(), stopPointId: z.uuid().nullable() })
+  .refine((point) => (point.catalogStopPointId === null) !== (point.stopPointId === null), "Chọn đúng một nguồn điểm.");
+
+const SubRouteEndSchema = z.object({ catalogStopPointId: z.uuid().nullable(), stopPointId: z.uuid().nullable(), name: z.string() });
+
 export const RouteResponseSchema = z.object({
   ...RouteSummaryFields,
+  /** Tên tuyến chính (tuyến con); tuyến chính `null`. */
+  parentRouteName: z.string().nullable(),
+  /** Tuyến con có điểm đầu / cuối không còn hợp lệ trên tuyến chính (đã tự về Nháp) — cần chọn lại; tuyến chính `false`. */
+  needsReview: z.boolean(),
+  /** Tuyến con của tuyến chính kèm bảng giá; tuyến con thì rỗng. */
+  subRoutes: z.array(
+    z.object({
+      id: z.uuid(),
+      name: z.string(),
+      nameSource: z.enum(RouteNameSource),
+      status: z.enum(RouteStatus),
+      totalDistanceMeters: z.int(),
+      totalDurationSeconds: z.int(),
+      from: SubRouteEndSchema,
+      to: SubRouteEndSchema,
+      needsReview: z.boolean(),
+      /** Bảng giá của tuyến con; giá thấp / cao nhất (VND) để hiện nhanh. */
+      fare: z.object({ id: z.uuid(), status: z.enum(FareStatus), minPrice: z.int().nullable(), maxPrice: z.int().nullable() }).nullable(),
+    }),
+  ),
   /** Tuyến đặt tên tay mà tên tự động khác tên đang dùng → gợi ý để nhà xe bấm áp dụng; còn lại `null`. */
   suggestedName: z.string().nullable(),
   note: z.string().nullable(),
@@ -149,3 +189,55 @@ export const RouteResponseSchema = z.object({
 export type RouteResponse = z.infer<typeof RouteResponseSchema>;
 /** Chi tiết route kèm điểm dừng theo thứ tự và số liệu từng chặng. */
 export class RouteResponseDto extends createZodDto(RouteResponseSchema) {}
+
+/** Tạo / thay toàn bộ một tuyến con: hai đầu theo mã điểm của tuyến chính; điểm giữa chép theo tuyến chính. */
+export const SubRouteInputSchema = z
+  .object({
+    from: PointRefSchema,
+    to: PointRefSchema,
+    /** Bắt buộc khi `nameSource = MANUAL`; `AUTO` thì ghép từ nơi của các điểm trong đoạn. */
+    name: z.string().trim().max(150),
+    nameSource: z.enum(RouteNameSource),
+    /** `ACTIVE` cần bảng giá đang áp dụng (422 `SUB_ROUTE_NOT_READY`). */
+    status: z.enum(RouteStatus),
+    note: optionalText(500),
+  })
+  .superRefine((input, ctx) => {
+    if (input.nameSource === RouteNameSource.MANUAL && input.name === "") {
+      ctx.addIssue({ code: "custom", path: ["name"], message: "Nhập tên tuyến hoặc bật tự đặt tên." });
+    }
+  });
+export type SubRouteInput = z.infer<typeof SubRouteInputSchema>;
+/** Body tạo / sửa tuyến con. */
+export class SubRouteInputDto extends createZodDto(SubRouteInputSchema) {}
+
+export const SubRouteSuggestionListSchema = z.object({
+  items: z.array(
+    z.object({
+      from: SubRouteEndSchema,
+      to: SubRouteEndSchema,
+      /** Tên tự động, đã tránh trùng tuyến khác của nhà xe. */
+      name: z.string(),
+      totalDistanceMeters: z.int(),
+      totalDurationSeconds: z.int(),
+      /**
+       * Bảng giá gợi ý: mọi quy tắc của bảng giá tuyến chính, giá theo tỉ lệ quãng đường làm tròn 5.000đ; tuyến chính chưa
+       * có bảng giá thì `null`. Nhà xe sửa được trước khi lưu.
+       */
+      suggestedRules: z
+        .array(
+          z.object({
+            vehicleTypeId: z.uuid().nullable(),
+            seatType: z.enum(SeatType).nullable(),
+            validFrom: z.iso.datetime().nullable(),
+            validTo: z.iso.datetime().nullable(),
+            price: z.int(),
+          }),
+        )
+        .nullable(),
+    }),
+  ),
+});
+export type SubRouteSuggestionList = z.infer<typeof SubRouteSuggestionListSchema>;
+/** Các đoạn gợi ý thành tuyến con (chưa có tuyến con cùng hai đầu). */
+export class SubRouteSuggestionListDto extends createZodDto(SubRouteSuggestionListSchema) {}

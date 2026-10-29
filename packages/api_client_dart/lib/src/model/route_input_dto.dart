@@ -29,7 +29,7 @@ abstract class RouteInputDto implements Built<RouteInputDto, RouteInputDtoBuilde
 
   @BuiltValueField(wireName: r'status')
   RouteInputDtoStatusEnum get status;
-  // enum statusEnum {  ACTIVE,  INACTIVE,  };
+  // enum statusEnum {  ACTIVE,  INACTIVE,  DRAFT,  };
 
   @BuiltValueField(wireName: r'note')
   String? get note;
@@ -199,6 +199,8 @@ class RouteInputDtoStatusEnum extends EnumClass {
   static const RouteInputDtoStatusEnum ACTIVE = _$routeInputDtoStatusEnum_ACTIVE;
   @BuiltValueEnumConst(wireName: r'INACTIVE')
   static const RouteInputDtoStatusEnum INACTIVE = _$routeInputDtoStatusEnum_INACTIVE;
+  @BuiltValueEnumConst(wireName: r'DRAFT')
+  static const RouteInputDtoStatusEnum DRAFT = _$routeInputDtoStatusEnum_DRAFT;
 
   static Serializer<RouteInputDtoStatusEnum> get serializer => _$routeInputDtoStatusEnumSerializer;
 

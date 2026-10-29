@@ -60,7 +60,7 @@ abstract class AdminRoutePageDtoOutputItemsInner implements Built<AdminRoutePage
 
   @BuiltValueField(wireName: r'status')
   AdminRoutePageDtoOutputItemsInnerStatusEnum get status;
-  // enum statusEnum {  ACTIVE,  INACTIVE,  };
+  // enum statusEnum {  ACTIVE,  INACTIVE,  DRAFT,  };
 
   @BuiltValueField(wireName: r'operatorId')
   String get operatorId;
@@ -406,6 +406,8 @@ class AdminRoutePageDtoOutputItemsInnerStatusEnum extends EnumClass {
   static const AdminRoutePageDtoOutputItemsInnerStatusEnum ACTIVE = _$adminRoutePageDtoOutputItemsInnerStatusEnum_ACTIVE;
   @BuiltValueEnumConst(wireName: r'INACTIVE')
   static const AdminRoutePageDtoOutputItemsInnerStatusEnum INACTIVE = _$adminRoutePageDtoOutputItemsInnerStatusEnum_INACTIVE;
+  @BuiltValueEnumConst(wireName: r'DRAFT')
+  static const AdminRoutePageDtoOutputItemsInnerStatusEnum DRAFT = _$adminRoutePageDtoOutputItemsInnerStatusEnum_DRAFT;
 
   static Serializer<AdminRoutePageDtoOutputItemsInnerStatusEnum> get serializer => _$adminRoutePageDtoOutputItemsInnerStatusEnumSerializer;
 

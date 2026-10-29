@@ -465,7 +465,8 @@ export async function loadRouteStops(
   keep: boolean,
 ): Promise<RouteStopRow[]> {
   const route = await tx.route.findFirst({
-    where: { id: routeId, operatorId, ...(keep ? {} : { status: RouteStatus.ACTIVE }) },
+    // Chuyến chỉ chạy trên tuyến chính; tuyến con (3.2) là chặng mở bán của chuyến, không có chuyến riêng.
+    where: { id: routeId, operatorId, parentRouteId: null, ...(keep ? {} : { status: RouteStatus.ACTIVE }) },
     select: {
       stops: {
         orderBy: { sequence: "asc" },

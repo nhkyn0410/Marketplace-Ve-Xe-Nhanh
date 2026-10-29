@@ -15,8 +15,12 @@ Name | Type | Description | Notes
 **totalDistanceMeters** | **int** |  | 
 **totalDurationSeconds** | **int** |  | 
 **metricsSource** | **String** |  | 
+**parentRouteId** | **String** |  | 
 **createdAt** | [**DateTime**](DateTime.md) |  | 
 **updatedAt** | [**DateTime**](DateTime.md) |  | 
+**parentRouteName** | **String** |  | 
+**needsReview** | **bool** |  | 
+**subRoutes** | [**BuiltList&lt;RouteResponseDtoOutputSubRoutesInner&gt;**](RouteResponseDtoOutputSubRoutesInner.md) |  | 
 **suggestedName** | **String** |  | 
 **note** | **String** |  | 
 **stops** | [**BuiltList&lt;RouteResponseDtoOutputStopsInner&gt;**](RouteResponseDtoOutputStopsInner.md) |  | 

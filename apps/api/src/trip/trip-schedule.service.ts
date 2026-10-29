@@ -314,7 +314,7 @@ async function assertResources(
   input: { routeId: string; vehicleId: string | null },
 ): Promise<number> {
   const route = await tx.route.findFirst({
-    where: { id: input.routeId, operatorId, status: RouteStatus.ACTIVE },
+    where: { id: input.routeId, operatorId, status: RouteStatus.ACTIVE, parentRouteId: null },
     select: { totalDurationSeconds: true },
   });
   if (!route) {

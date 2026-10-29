@@ -349,10 +349,13 @@ Class | Method | HTTP request | Description
 [*OperatorReviewsApi*](doc/OperatorReviewsApi.md) | [**operatorReviewControllerReply**](doc/OperatorReviewsApi.md#operatorreviewcontrollerreply) | **PUT** /v1/operator/reviews/{reviewId}/reply | 
 [*OperatorReviewsApi*](doc/OperatorReviewsApi.md) | [**operatorReviewControllerReport**](doc/OperatorReviewsApi.md#operatorreviewcontrollerreport) | **POST** /v1/operator/reviews/{reviewId}/report | 
 [*OperatorRoutesApi*](doc/OperatorRoutesApi.md) | [**routeControllerCreate**](doc/OperatorRoutesApi.md#routecontrollercreate) | **POST** /v1/operator/routes | 
+[*OperatorRoutesApi*](doc/OperatorRoutesApi.md) | [**routeControllerCreateSubRoute**](doc/OperatorRoutesApi.md#routecontrollercreatesubroute) | **POST** /v1/operator/routes/{routeId}/sub-routes | 
 [*OperatorRoutesApi*](doc/OperatorRoutesApi.md) | [**routeControllerGet**](doc/OperatorRoutesApi.md#routecontrollerget) | **GET** /v1/operator/routes/{routeId} | 
 [*OperatorRoutesApi*](doc/OperatorRoutesApi.md) | [**routeControllerList**](doc/OperatorRoutesApi.md#routecontrollerlist) | **GET** /v1/operator/routes | 
 [*OperatorRoutesApi*](doc/OperatorRoutesApi.md) | [**routeControllerPreviewName**](doc/OperatorRoutesApi.md#routecontrollerpreviewname) | **POST** /v1/operator/routes/name-suggestion | 
+[*OperatorRoutesApi*](doc/OperatorRoutesApi.md) | [**routeControllerSubRouteSuggestions**](doc/OperatorRoutesApi.md#routecontrollersubroutesuggestions) | **GET** /v1/operator/routes/{routeId}/sub-route-suggestions | 
 [*OperatorRoutesApi*](doc/OperatorRoutesApi.md) | [**routeControllerUpdate**](doc/OperatorRoutesApi.md#routecontrollerupdate) | **PUT** /v1/operator/routes/{routeId} | 
+[*OperatorRoutesApi*](doc/OperatorRoutesApi.md) | [**routeControllerUpdateSubRoute**](doc/OperatorRoutesApi.md#routecontrollerupdatesubroute) | **PUT** /v1/operator/routes/{routeId}/sub-routes/{subRouteId} | 
 [*OperatorSeatMapsApi*](doc/OperatorSeatMapsApi.md) | [**seatMapControllerCreate**](doc/OperatorSeatMapsApi.md#seatmapcontrollercreate) | **POST** /v1/operator/seat-maps | 
 [*OperatorSeatMapsApi*](doc/OperatorSeatMapsApi.md) | [**seatMapControllerGet**](doc/OperatorSeatMapsApi.md#seatmapcontrollerget) | **GET** /v1/operator/seat-maps/{seatMapId} | 
 [*OperatorSeatMapsApi*](doc/OperatorSeatMapsApi.md) | [**seatMapControllerList**](doc/OperatorSeatMapsApi.md#seatmapcontrollerlist) | **GET** /v1/operator/seat-maps | 
@@ -709,7 +712,6 @@ Class | Method | HTTP request | Description
  - [FareListResponseDtoOutputItemsInner](doc/FareListResponseDtoOutputItemsInner.md)
  - [FareResponseDtoOutput](doc/FareResponseDtoOutput.md)
  - [FareResponseDtoOutputBandWarningsInner](doc/FareResponseDtoOutputBandWarningsInner.md)
- - [FareResponseDtoOutputRulesInner](doc/FareResponseDtoOutputRulesInner.md)
  - [FareRevisionListResponseDtoOutput](doc/FareRevisionListResponseDtoOutput.md)
  - [FareRevisionListResponseDtoOutputItemsInner](doc/FareRevisionListResponseDtoOutputItemsInner.md)
  - [FareRevisionListResponseDtoOutputItemsInnerAfter](doc/FareRevisionListResponseDtoOutputItemsInnerAfter.md)
@@ -910,11 +912,15 @@ Class | Method | HTTP request | Description
  - [RouteInputDto](doc/RouteInputDto.md)
  - [RouteListResponseDtoOutput](doc/RouteListResponseDtoOutput.md)
  - [RouteListResponseDtoOutputItemsInner](doc/RouteListResponseDtoOutputItemsInner.md)
+ - [RouteListResponseDtoOutputItemsInnerSubRoutesInner](doc/RouteListResponseDtoOutputItemsInnerSubRoutesInner.md)
  - [RouteNamePreviewDtoOutput](doc/RouteNamePreviewDtoOutput.md)
  - [RouteNamePreviewInputDto](doc/RouteNamePreviewInputDto.md)
  - [RouteNamePreviewInputDtoStopsInner](doc/RouteNamePreviewInputDtoStopsInner.md)
  - [RouteResponseDtoOutput](doc/RouteResponseDtoOutput.md)
  - [RouteResponseDtoOutputStopsInner](doc/RouteResponseDtoOutputStopsInner.md)
+ - [RouteResponseDtoOutputSubRoutesInner](doc/RouteResponseDtoOutputSubRoutesInner.md)
+ - [RouteResponseDtoOutputSubRoutesInnerFare](doc/RouteResponseDtoOutputSubRoutesInnerFare.md)
+ - [RouteResponseDtoOutputSubRoutesInnerFrom](doc/RouteResponseDtoOutputSubRoutesInnerFrom.md)
  - [SalesOfficeAssignmentsDtoOutput](doc/SalesOfficeAssignmentsDtoOutput.md)
  - [SalesOfficeAssignmentsDtoOutputItemsInner](doc/SalesOfficeAssignmentsDtoOutputItemsInner.md)
  - [SalesOfficeAssignmentsInputDto](doc/SalesOfficeAssignmentsInputDto.md)
@@ -950,6 +956,11 @@ Class | Method | HTTP request | Description
  - [StopPointProposalListResponseDtoOutputItemsInner](doc/StopPointProposalListResponseDtoOutputItemsInner.md)
  - [StopPointProposalResponseDtoOutput](doc/StopPointProposalResponseDtoOutput.md)
  - [StopPointReasonInputDto](doc/StopPointReasonInputDto.md)
+ - [SubRouteInputDto](doc/SubRouteInputDto.md)
+ - [SubRouteInputDtoFrom](doc/SubRouteInputDtoFrom.md)
+ - [SubRouteSuggestionListDtoOutput](doc/SubRouteSuggestionListDtoOutput.md)
+ - [SubRouteSuggestionListDtoOutputItemsInner](doc/SubRouteSuggestionListDtoOutputItemsInner.md)
+ - [SubRouteSuggestionListDtoOutputItemsInnerSuggestedRulesInner](doc/SubRouteSuggestionListDtoOutputItemsInnerSuggestedRulesInner.md)
  - [SystemIntegrationsDtoOutput](doc/SystemIntegrationsDtoOutput.md)
  - [SystemIntegrationsDtoOutputItemsInner](doc/SystemIntegrationsDtoOutputItemsInner.md)
  - [TicketDetailDtoOutput](doc/TicketDetailDtoOutput.md)

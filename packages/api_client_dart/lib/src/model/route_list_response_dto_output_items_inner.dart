@@ -4,6 +4,7 @@
 
 // ignore_for_file: unused_element
 import 'package:built_collection/built_collection.dart';
+import 'package:api_client_dart/src/model/route_list_response_dto_output_items_inner_sub_routes_inner.dart';
 import 'package:built_value/built_value.dart';
 import 'package:built_value/serializer.dart';
 
@@ -19,11 +20,13 @@ part 'route_list_response_dto_output_items_inner.g.dart';
 /// * [totalDistanceMeters] 
 /// * [totalDurationSeconds] 
 /// * [metricsSource] 
+/// * [parentRouteId] 
 /// * [createdAt] 
 /// * [updatedAt] 
 /// * [stopCount] 
 /// * [originName] 
 /// * [destinationName] 
+/// * [subRoutes] 
 @BuiltValue()
 abstract class RouteListResponseDtoOutputItemsInner implements Built<RouteListResponseDtoOutputItemsInner, RouteListResponseDtoOutputItemsInnerBuilder> {
   @BuiltValueField(wireName: r'id')
@@ -38,7 +41,7 @@ abstract class RouteListResponseDtoOutputItemsInner implements Built<RouteListRe
 
   @BuiltValueField(wireName: r'status')
   RouteListResponseDtoOutputItemsInnerStatusEnum get status;
-  // enum statusEnum {  ACTIVE,  INACTIVE,  };
+  // enum statusEnum {  ACTIVE,  INACTIVE,  DRAFT,  };
 
   @BuiltValueField(wireName: r'totalDistanceMeters')
   int get totalDistanceMeters;
@@ -49,6 +52,9 @@ abstract class RouteListResponseDtoOutputItemsInner implements Built<RouteListRe
   @BuiltValueField(wireName: r'metricsSource')
   RouteListResponseDtoOutputItemsInnerMetricsSourceEnum get metricsSource;
   // enum metricsSourceEnum {  GOONG,  ESTIMATE,  };
+
+  @BuiltValueField(wireName: r'parentRouteId')
+  String? get parentRouteId;
 
   @BuiltValueField(wireName: r'createdAt')
   DateTime get createdAt;
@@ -64,6 +70,9 @@ abstract class RouteListResponseDtoOutputItemsInner implements Built<RouteListRe
 
   @BuiltValueField(wireName: r'destinationName')
   String get destinationName;
+
+  @BuiltValueField(wireName: r'subRoutes')
+  BuiltList<RouteListResponseDtoOutputItemsInnerSubRoutesInner> get subRoutes;
 
   RouteListResponseDtoOutputItemsInner._();
 
@@ -123,6 +132,11 @@ class _$RouteListResponseDtoOutputItemsInnerSerializer implements PrimitiveSeria
       object.metricsSource,
       specifiedType: const FullType(RouteListResponseDtoOutputItemsInnerMetricsSourceEnum),
     );
+    yield r'parentRouteId';
+    yield object.parentRouteId == null ? null : serializers.serialize(
+      object.parentRouteId,
+      specifiedType: const FullType.nullable(String),
+    );
     yield r'createdAt';
     yield serializers.serialize(
       object.createdAt,
@@ -147,6 +161,11 @@ class _$RouteListResponseDtoOutputItemsInnerSerializer implements PrimitiveSeria
     yield serializers.serialize(
       object.destinationName,
       specifiedType: const FullType(String),
+    );
+    yield r'subRoutes';
+    yield serializers.serialize(
+      object.subRoutes,
+      specifiedType: const FullType(BuiltList, [FullType(RouteListResponseDtoOutputItemsInnerSubRoutesInner)]),
     );
   }
 
@@ -220,6 +239,14 @@ class _$RouteListResponseDtoOutputItemsInnerSerializer implements PrimitiveSeria
           ) as RouteListResponseDtoOutputItemsInnerMetricsSourceEnum;
           result.metricsSource = valueDes;
           break;
+        case r'parentRouteId':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType.nullable(String),
+          ) as String?;
+          if (valueDes == null) continue;
+          result.parentRouteId = valueDes;
+          break;
         case r'createdAt':
           final valueDes = serializers.deserialize(
             value,
@@ -254,6 +281,13 @@ class _$RouteListResponseDtoOutputItemsInnerSerializer implements PrimitiveSeria
             specifiedType: const FullType(String),
           ) as String;
           result.destinationName = valueDes;
+          break;
+        case r'subRoutes':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(BuiltList, [FullType(RouteListResponseDtoOutputItemsInnerSubRoutesInner)]),
+          ) as BuiltList<RouteListResponseDtoOutputItemsInnerSubRoutesInner>;
+          result.subRoutes.replace(valueDes);
           break;
         default:
           unhandled.add(key);
@@ -306,6 +340,8 @@ class RouteListResponseDtoOutputItemsInnerStatusEnum extends EnumClass {
   static const RouteListResponseDtoOutputItemsInnerStatusEnum ACTIVE = _$routeListResponseDtoOutputItemsInnerStatusEnum_ACTIVE;
   @BuiltValueEnumConst(wireName: r'INACTIVE')
   static const RouteListResponseDtoOutputItemsInnerStatusEnum INACTIVE = _$routeListResponseDtoOutputItemsInnerStatusEnum_INACTIVE;
+  @BuiltValueEnumConst(wireName: r'DRAFT')
+  static const RouteListResponseDtoOutputItemsInnerStatusEnum DRAFT = _$routeListResponseDtoOutputItemsInnerStatusEnum_DRAFT;
 
   static Serializer<RouteListResponseDtoOutputItemsInnerStatusEnum> get serializer => _$routeListResponseDtoOutputItemsInnerStatusEnumSerializer;
 

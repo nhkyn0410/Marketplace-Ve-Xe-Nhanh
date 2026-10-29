@@ -773,9 +773,12 @@ enum StopPointProposalStatus {
 }
 
 /// Trạng thái route; `INACTIVE` không dùng để tạo chuyến mới (TRN-003).
+/// `DRAFT` (giai đoạn 3.2, tự thiết kế 29/10/2026, chờ duyệt): tuyến lưu nháp — chưa tạo chuyến được, khách không thấy;
+/// tuyến con tạo từ gợi ý bắt đầu ở `DRAFT` để nhà xe xem lại giá rồi mới bật.
 enum RouteStatus {
   ACTIVE
   INACTIVE
+  DRAFT
 }
 
 /// Tên tuyến do hệ thống ghép từ nơi của các điểm dừng (`AUTO`, vd "TP.HCM → Buôn Ma Thuột (qua Gia Nghĩa)") hay nhà
@@ -873,10 +876,17 @@ model Route {
   totalDistanceMeters  Int                  @map("total_distance_meters")
   totalDurationSeconds Int                  @map("total_duration_seconds")
   metricsSource        RoutingMetricsSource @map("metrics_source")
+  /// Tuyến con (giai đoạn 3.2, tự thiết kế 29/10/2026, chờ duyệt): một đoạn [điểm đầu → điểm cuối] của tuyến chính, có tên,
+  /// trạng thái và bảng giá riêng. Điểm dừng của tuyến con là bản chép đoạn đó của tuyến chính (chỉ đọc, chép lại mỗi lần
+  /// sửa tuyến chính; hai đầu nhận theo mã điểm). Không tạo chuyến trên tuyến con; chỉ một cấp (tuyến chính không có cha).
+  parentRouteId        String?              @map("parent_route_id")
   createdAt            DateTime             @default(now()) @map("created_at")
   updatedAt            DateTime             @updatedAt @map("updated_at")
 
   operator  OperatorProfile @relation(fields: [operatorId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  // FK ghép kèm `operator_id`: tuyến con luôn cùng nhà xe với tuyến chính.
+  parent    Route?          @relation("SubRoutes", fields: [parentRouteId, operatorId], references: [id, operatorId], onDelete: Restrict, onUpdate: Restrict)
+  subRoutes Route[]         @relation("SubRoutes")
   stops     RouteStop[]
   trips     Trip[]
   schedules TripSchedule[]
@@ -885,6 +895,7 @@ model Route {
   @@unique([operatorId, name])
   @@unique([id, operatorId])
   @@index([operatorId, status])
+  @@index([parentRouteId])
   @@map("routes")
 }
 

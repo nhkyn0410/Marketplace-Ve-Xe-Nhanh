@@ -3,8 +3,8 @@
 //
 
 // ignore_for_file: unused_element
+import 'package:api_client_dart/src/model/sub_route_suggestion_list_dto_output_items_inner_suggested_rules_inner.dart';
 import 'package:built_collection/built_collection.dart';
-import 'package:api_client_dart/src/model/fare_response_dto_output_rules_inner.dart';
 import 'package:built_value/built_value.dart';
 import 'package:built_value/serializer.dart';
 
@@ -30,7 +30,7 @@ abstract class FareRevisionListResponseDtoOutputItemsInnerAfter implements Built
   String? get note;
 
   @BuiltValueField(wireName: r'rules')
-  BuiltList<FareResponseDtoOutputRulesInner> get rules;
+  BuiltList<SubRouteSuggestionListDtoOutputItemsInnerSuggestedRulesInner> get rules;
 
   FareRevisionListResponseDtoOutputItemsInnerAfter._();
 
@@ -73,7 +73,7 @@ class _$FareRevisionListResponseDtoOutputItemsInnerAfterSerializer implements Pr
     yield r'rules';
     yield serializers.serialize(
       object.rules,
-      specifiedType: const FullType(BuiltList, [FullType(FareResponseDtoOutputRulesInner)]),
+      specifiedType: const FullType(BuiltList, [FullType(SubRouteSuggestionListDtoOutputItemsInnerSuggestedRulesInner)]),
     );
   }
 
@@ -123,8 +123,8 @@ class _$FareRevisionListResponseDtoOutputItemsInnerAfterSerializer implements Pr
         case r'rules':
           final valueDes = serializers.deserialize(
             value,
-            specifiedType: const FullType(BuiltList, [FullType(FareResponseDtoOutputRulesInner)]),
-          ) as BuiltList<FareResponseDtoOutputRulesInner>;
+            specifiedType: const FullType(BuiltList, [FullType(SubRouteSuggestionListDtoOutputItemsInnerSuggestedRulesInner)]),
+          ) as BuiltList<SubRouteSuggestionListDtoOutputItemsInnerSuggestedRulesInner>;
           result.rules.replace(valueDes);
           break;
         default:

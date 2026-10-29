@@ -12,6 +12,9 @@ const AdminRoutePageDtoOutputItemsInnerStatusEnum
 const AdminRoutePageDtoOutputItemsInnerStatusEnum
     _$adminRoutePageDtoOutputItemsInnerStatusEnum_INACTIVE =
     const AdminRoutePageDtoOutputItemsInnerStatusEnum._('INACTIVE');
+const AdminRoutePageDtoOutputItemsInnerStatusEnum
+    _$adminRoutePageDtoOutputItemsInnerStatusEnum_DRAFT =
+    const AdminRoutePageDtoOutputItemsInnerStatusEnum._('DRAFT');
 
 AdminRoutePageDtoOutputItemsInnerStatusEnum
     _$adminRoutePageDtoOutputItemsInnerStatusEnumValueOf(String name) {
@@ -20,6 +23,8 @@ AdminRoutePageDtoOutputItemsInnerStatusEnum
       return _$adminRoutePageDtoOutputItemsInnerStatusEnum_ACTIVE;
     case 'INACTIVE':
       return _$adminRoutePageDtoOutputItemsInnerStatusEnum_INACTIVE;
+    case 'DRAFT':
+      return _$adminRoutePageDtoOutputItemsInnerStatusEnum_DRAFT;
     default:
       throw ArgumentError(name);
   }
@@ -30,6 +35,7 @@ final BuiltSet<AdminRoutePageDtoOutputItemsInnerStatusEnum>
         AdminRoutePageDtoOutputItemsInnerStatusEnum>(const <AdminRoutePageDtoOutputItemsInnerStatusEnum>[
   _$adminRoutePageDtoOutputItemsInnerStatusEnum_ACTIVE,
   _$adminRoutePageDtoOutputItemsInnerStatusEnum_INACTIVE,
+  _$adminRoutePageDtoOutputItemsInnerStatusEnum_DRAFT,
 ]);
 
 Serializer<AdminRoutePageDtoOutputItemsInnerStatusEnum>
@@ -42,10 +48,12 @@ class _$AdminRoutePageDtoOutputItemsInnerStatusEnumSerializer
   static const Map<String, Object> _toWire = const <String, Object>{
     'ACTIVE': 'ACTIVE',
     'INACTIVE': 'INACTIVE',
+    'DRAFT': 'DRAFT',
   };
   static const Map<Object, String> _fromWire = const <Object, String>{
     'ACTIVE': 'ACTIVE',
     'INACTIVE': 'INACTIVE',
+    'DRAFT': 'DRAFT',
   };
 
   @override

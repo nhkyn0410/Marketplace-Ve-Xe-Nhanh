@@ -12,6 +12,9 @@ const AdminRouteDetailDtoOutputStatusEnum
 const AdminRouteDetailDtoOutputStatusEnum
     _$adminRouteDetailDtoOutputStatusEnum_INACTIVE =
     const AdminRouteDetailDtoOutputStatusEnum._('INACTIVE');
+const AdminRouteDetailDtoOutputStatusEnum
+    _$adminRouteDetailDtoOutputStatusEnum_DRAFT =
+    const AdminRouteDetailDtoOutputStatusEnum._('DRAFT');
 
 AdminRouteDetailDtoOutputStatusEnum
     _$adminRouteDetailDtoOutputStatusEnumValueOf(String name) {
@@ -20,6 +23,8 @@ AdminRouteDetailDtoOutputStatusEnum
       return _$adminRouteDetailDtoOutputStatusEnum_ACTIVE;
     case 'INACTIVE':
       return _$adminRouteDetailDtoOutputStatusEnum_INACTIVE;
+    case 'DRAFT':
+      return _$adminRouteDetailDtoOutputStatusEnum_DRAFT;
     default:
       throw ArgumentError(name);
   }
@@ -30,6 +35,7 @@ final BuiltSet<AdminRouteDetailDtoOutputStatusEnum>
         AdminRouteDetailDtoOutputStatusEnum>(const <AdminRouteDetailDtoOutputStatusEnum>[
   _$adminRouteDetailDtoOutputStatusEnum_ACTIVE,
   _$adminRouteDetailDtoOutputStatusEnum_INACTIVE,
+  _$adminRouteDetailDtoOutputStatusEnum_DRAFT,
 ]);
 
 Serializer<AdminRouteDetailDtoOutputStatusEnum>
@@ -41,10 +47,12 @@ class _$AdminRouteDetailDtoOutputStatusEnumSerializer
   static const Map<String, Object> _toWire = const <String, Object>{
     'ACTIVE': 'ACTIVE',
     'INACTIVE': 'INACTIVE',
+    'DRAFT': 'DRAFT',
   };
   static const Map<Object, String> _fromWire = const <Object, String>{
     'ACTIVE': 'ACTIVE',
     'INACTIVE': 'INACTIVE',
+    'DRAFT': 'DRAFT',
   };
 
   @override

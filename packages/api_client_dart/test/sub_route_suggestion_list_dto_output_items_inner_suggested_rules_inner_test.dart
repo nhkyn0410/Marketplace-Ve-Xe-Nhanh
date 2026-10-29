@@ -1,12 +1,12 @@
 import 'package:test/test.dart';
 import 'package:api_client_dart/api_client_dart.dart';
 
-// tests for FareResponseDtoOutputRulesInner
+// tests for SubRouteSuggestionListDtoOutputItemsInnerSuggestedRulesInner
 void main() {
-  final instance = FareResponseDtoOutputRulesInnerBuilder();
+  final instance = SubRouteSuggestionListDtoOutputItemsInnerSuggestedRulesInnerBuilder();
   // TODO add properties to the builder and call build()
 
-  group(FareResponseDtoOutputRulesInner, () {
+  group(SubRouteSuggestionListDtoOutputItemsInnerSuggestedRulesInner, () {
     // String vehicleTypeId
     test('to test the property `vehicleTypeId`', () async {
       // TODO

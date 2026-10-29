@@ -155,7 +155,7 @@ export const routeInfoSchema = z
   .object({
     name: z.string().trim().max(ROUTE_NAME_MAX_LENGTH, `Tên tuyến tối đa ${ROUTE_NAME_MAX_LENGTH} ký tự.`),
     nameSource: z.enum(["AUTO", "MANUAL"]),
-    status: z.enum(["ACTIVE", "INACTIVE"]),
+    status: z.enum(["ACTIVE", "DRAFT", "INACTIVE"]),
     note: z.string().max(ROUTE_NOTE_MAX_LENGTH, `Ghi chú tối đa ${ROUTE_NOTE_MAX_LENGTH} ký tự.`)
   })
   .superRefine((info, ctx) => {

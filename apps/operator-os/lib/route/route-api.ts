@@ -12,6 +12,9 @@ export type RoutePage = Schemas["RouteListResponseDto_Output"];
 export type RouteSummary = RoutePage["items"][number];
 export type RouteInput = Schemas["RouteInputDto"];
 export type RouteStatus = Route["status"];
+export type SubRoute = Route["subRoutes"][number];
+export type SubRouteInput = Schemas["SubRouteInputDto"];
+export type SubRouteSuggestion = Schemas["SubRouteSuggestionListDto_Output"]["items"][number];
 
 /** Số dòng mỗi lần tải danh sách tuyến (mặc định của API). */
 export const ROUTE_PAGE_SIZE = 20;
@@ -28,14 +31,20 @@ export function listRoutes(params: { status?: RouteStatus; cursor?: string }): P
   return apiRequest<RoutePage>(`/operator/routes?${query}`);
 }
 
-/** Mọi tuyến của nhà xe; đi hết các trang vì ô chọn tuyến của màn Chuyến xe cần đủ danh sách. */
-export async function listAllRoutes(status?: RouteStatus): Promise<RouteSummary[]> {
+/**
+ * Mọi tuyến của nhà xe; đi hết các trang vì ô chọn tuyến của màn Chuyến xe cần đủ danh sách. Mặc định chỉ tuyến chính
+ * (chuyến chỉ chạy trên tuyến chính); `includeSubRoutes` cho ô chọn tuyến của Bảng giá (tuyến con có giá riêng).
+ */
+export async function listAllRoutes(status?: RouteStatus, options: { includeSubRoutes?: boolean } = {}): Promise<RouteSummary[]> {
   const items: RouteSummary[] = [];
   let cursor: string | null = null;
   do {
     const query = new URLSearchParams({ limit: "100" });
     if (status) {
       query.set("status", status);
+    }
+    if (options.includeSubRoutes) {
+      query.set("includeSubRoutes", "true");
     }
     if (cursor) {
       query.set("cursor", cursor);
@@ -72,4 +81,20 @@ export function createRoute(input: RouteInput): Promise<Route> {
 /** Thay toàn bộ một tuyến (PUT gửi đủ mọi trường và toàn bộ danh sách điểm dừng). */
 export function updateRoute(routeId: string, input: RouteInput): Promise<Route> {
   return apiRequest<Route>(`/operator/routes/${routeId}`, { method: "PUT", body: input });
+}
+
+/** Đoạn gợi ý thành tuyến con (3.2) — theo nhóm nơi, kèm bảng giá gợi ý theo tỉ lệ quãng đường. */
+export async function listSubRouteSuggestions(routeId: string): Promise<SubRouteSuggestion[]> {
+  const result = await apiRequest<Schemas["SubRouteSuggestionListDto_Output"]>(`/operator/routes/${routeId}/sub-route-suggestions`);
+  return result.items;
+}
+
+/** Tạo tuyến con của tuyến chính; điểm dừng chép theo đoạn của tuyến chính. */
+export function createSubRoute(parentId: string, input: SubRouteInput): Promise<Route> {
+  return apiRequest<Route>(`/operator/routes/${parentId}/sub-routes`, { method: "POST", body: input });
+}
+
+/** Thay toàn bộ một tuyến con (đổi hai đầu thì chép lại đoạn). */
+export function updateSubRoute(parentId: string, subRouteId: string, input: SubRouteInput): Promise<Route> {
+  return apiRequest<Route>(`/operator/routes/${parentId}/sub-routes/${subRouteId}`, { method: "PUT", body: input });
 }

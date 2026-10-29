@@ -4,6 +4,7 @@
 
 // ignore_for_file: unused_element
 import 'package:api_client_dart/src/model/route_response_dto_output_stops_inner.dart';
+import 'package:api_client_dart/src/model/route_response_dto_output_sub_routes_inner.dart';
 import 'package:built_collection/built_collection.dart';
 import 'package:built_value/built_value.dart';
 import 'package:built_value/serializer.dart';
@@ -20,8 +21,12 @@ part 'route_response_dto_output.g.dart';
 /// * [totalDistanceMeters] 
 /// * [totalDurationSeconds] 
 /// * [metricsSource] 
+/// * [parentRouteId] 
 /// * [createdAt] 
 /// * [updatedAt] 
+/// * [parentRouteName] 
+/// * [needsReview] 
+/// * [subRoutes] 
 /// * [suggestedName] 
 /// * [note] 
 /// * [stops] 
@@ -39,7 +44,7 @@ abstract class RouteResponseDtoOutput implements Built<RouteResponseDtoOutput, R
 
   @BuiltValueField(wireName: r'status')
   RouteResponseDtoOutputStatusEnum get status;
-  // enum statusEnum {  ACTIVE,  INACTIVE,  };
+  // enum statusEnum {  ACTIVE,  INACTIVE,  DRAFT,  };
 
   @BuiltValueField(wireName: r'totalDistanceMeters')
   int get totalDistanceMeters;
@@ -51,11 +56,23 @@ abstract class RouteResponseDtoOutput implements Built<RouteResponseDtoOutput, R
   RouteResponseDtoOutputMetricsSourceEnum get metricsSource;
   // enum metricsSourceEnum {  GOONG,  ESTIMATE,  };
 
+  @BuiltValueField(wireName: r'parentRouteId')
+  String? get parentRouteId;
+
   @BuiltValueField(wireName: r'createdAt')
   DateTime get createdAt;
 
   @BuiltValueField(wireName: r'updatedAt')
   DateTime get updatedAt;
+
+  @BuiltValueField(wireName: r'parentRouteName')
+  String? get parentRouteName;
+
+  @BuiltValueField(wireName: r'needsReview')
+  bool get needsReview;
+
+  @BuiltValueField(wireName: r'subRoutes')
+  BuiltList<RouteResponseDtoOutputSubRoutesInner> get subRoutes;
 
   @BuiltValueField(wireName: r'suggestedName')
   String? get suggestedName;
@@ -124,6 +141,11 @@ class _$RouteResponseDtoOutputSerializer implements PrimitiveSerializer<RouteRes
       object.metricsSource,
       specifiedType: const FullType(RouteResponseDtoOutputMetricsSourceEnum),
     );
+    yield r'parentRouteId';
+    yield object.parentRouteId == null ? null : serializers.serialize(
+      object.parentRouteId,
+      specifiedType: const FullType.nullable(String),
+    );
     yield r'createdAt';
     yield serializers.serialize(
       object.createdAt,
@@ -133,6 +155,21 @@ class _$RouteResponseDtoOutputSerializer implements PrimitiveSerializer<RouteRes
     yield serializers.serialize(
       object.updatedAt,
       specifiedType: const FullType(DateTime),
+    );
+    yield r'parentRouteName';
+    yield object.parentRouteName == null ? null : serializers.serialize(
+      object.parentRouteName,
+      specifiedType: const FullType.nullable(String),
+    );
+    yield r'needsReview';
+    yield serializers.serialize(
+      object.needsReview,
+      specifiedType: const FullType(bool),
+    );
+    yield r'subRoutes';
+    yield serializers.serialize(
+      object.subRoutes,
+      specifiedType: const FullType(BuiltList, [FullType(RouteResponseDtoOutputSubRoutesInner)]),
     );
     yield r'suggestedName';
     yield object.suggestedName == null ? null : serializers.serialize(
@@ -221,6 +258,14 @@ class _$RouteResponseDtoOutputSerializer implements PrimitiveSerializer<RouteRes
           ) as RouteResponseDtoOutputMetricsSourceEnum;
           result.metricsSource = valueDes;
           break;
+        case r'parentRouteId':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType.nullable(String),
+          ) as String?;
+          if (valueDes == null) continue;
+          result.parentRouteId = valueDes;
+          break;
         case r'createdAt':
           final valueDes = serializers.deserialize(
             value,
@@ -234,6 +279,28 @@ class _$RouteResponseDtoOutputSerializer implements PrimitiveSerializer<RouteRes
             specifiedType: const FullType(DateTime),
           ) as DateTime;
           result.updatedAt = valueDes;
+          break;
+        case r'parentRouteName':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType.nullable(String),
+          ) as String?;
+          if (valueDes == null) continue;
+          result.parentRouteName = valueDes;
+          break;
+        case r'needsReview':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(bool),
+          ) as bool;
+          result.needsReview = valueDes;
+          break;
+        case r'subRoutes':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(BuiltList, [FullType(RouteResponseDtoOutputSubRoutesInner)]),
+          ) as BuiltList<RouteResponseDtoOutputSubRoutesInner>;
+          result.subRoutes.replace(valueDes);
           break;
         case r'suggestedName':
           final valueDes = serializers.deserialize(
@@ -309,6 +376,8 @@ class RouteResponseDtoOutputStatusEnum extends EnumClass {
   static const RouteResponseDtoOutputStatusEnum ACTIVE = _$routeResponseDtoOutputStatusEnum_ACTIVE;
   @BuiltValueEnumConst(wireName: r'INACTIVE')
   static const RouteResponseDtoOutputStatusEnum INACTIVE = _$routeResponseDtoOutputStatusEnum_INACTIVE;
+  @BuiltValueEnumConst(wireName: r'DRAFT')
+  static const RouteResponseDtoOutputStatusEnum DRAFT = _$routeResponseDtoOutputStatusEnum_DRAFT;
 
   static Serializer<RouteResponseDtoOutputStatusEnum> get serializer => _$routeResponseDtoOutputStatusEnumSerializer;
 

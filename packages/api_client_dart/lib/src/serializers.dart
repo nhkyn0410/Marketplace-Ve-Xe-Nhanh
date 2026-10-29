@@ -290,7 +290,6 @@ import 'package:api_client_dart/src/model/fare_list_response_dto_output.dart';
 import 'package:api_client_dart/src/model/fare_list_response_dto_output_items_inner.dart';
 import 'package:api_client_dart/src/model/fare_response_dto_output.dart';
 import 'package:api_client_dart/src/model/fare_response_dto_output_band_warnings_inner.dart';
-import 'package:api_client_dart/src/model/fare_response_dto_output_rules_inner.dart';
 import 'package:api_client_dart/src/model/fare_revision_list_response_dto_output.dart';
 import 'package:api_client_dart/src/model/fare_revision_list_response_dto_output_items_inner.dart';
 import 'package:api_client_dart/src/model/fare_revision_list_response_dto_output_items_inner_after.dart';
@@ -491,11 +490,15 @@ import 'package:api_client_dart/src/model/review_page_dto_output_items_inner.dar
 import 'package:api_client_dart/src/model/route_input_dto.dart';
 import 'package:api_client_dart/src/model/route_list_response_dto_output.dart';
 import 'package:api_client_dart/src/model/route_list_response_dto_output_items_inner.dart';
+import 'package:api_client_dart/src/model/route_list_response_dto_output_items_inner_sub_routes_inner.dart';
 import 'package:api_client_dart/src/model/route_name_preview_dto_output.dart';
 import 'package:api_client_dart/src/model/route_name_preview_input_dto.dart';
 import 'package:api_client_dart/src/model/route_name_preview_input_dto_stops_inner.dart';
 import 'package:api_client_dart/src/model/route_response_dto_output.dart';
 import 'package:api_client_dart/src/model/route_response_dto_output_stops_inner.dart';
+import 'package:api_client_dart/src/model/route_response_dto_output_sub_routes_inner.dart';
+import 'package:api_client_dart/src/model/route_response_dto_output_sub_routes_inner_fare.dart';
+import 'package:api_client_dart/src/model/route_response_dto_output_sub_routes_inner_from.dart';
 import 'package:api_client_dart/src/model/sales_office_assignments_dto_output.dart';
 import 'package:api_client_dart/src/model/sales_office_assignments_dto_output_items_inner.dart';
 import 'package:api_client_dart/src/model/sales_office_assignments_input_dto.dart';
@@ -531,6 +534,11 @@ import 'package:api_client_dart/src/model/stop_point_proposal_list_response_dto_
 import 'package:api_client_dart/src/model/stop_point_proposal_list_response_dto_output_items_inner.dart';
 import 'package:api_client_dart/src/model/stop_point_proposal_response_dto_output.dart';
 import 'package:api_client_dart/src/model/stop_point_reason_input_dto.dart';
+import 'package:api_client_dart/src/model/sub_route_input_dto.dart';
+import 'package:api_client_dart/src/model/sub_route_input_dto_from.dart';
+import 'package:api_client_dart/src/model/sub_route_suggestion_list_dto_output.dart';
+import 'package:api_client_dart/src/model/sub_route_suggestion_list_dto_output_items_inner.dart';
+import 'package:api_client_dart/src/model/sub_route_suggestion_list_dto_output_items_inner_suggested_rules_inner.dart';
 import 'package:api_client_dart/src/model/system_integrations_dto_output.dart';
 import 'package:api_client_dart/src/model/system_integrations_dto_output_items_inner.dart';
 import 'package:api_client_dart/src/model/ticket_detail_dto_output.dart';
@@ -898,7 +906,6 @@ part 'serializers.g.dart';
   FareListResponseDtoOutputItemsInner,
   FareResponseDtoOutput,
   FareResponseDtoOutputBandWarningsInner,
-  FareResponseDtoOutputRulesInner,
   FareRevisionListResponseDtoOutput,
   FareRevisionListResponseDtoOutputItemsInner,
   FareRevisionListResponseDtoOutputItemsInnerAfter,
@@ -1099,11 +1106,15 @@ part 'serializers.g.dart';
   RouteInputDto,
   RouteListResponseDtoOutput,
   RouteListResponseDtoOutputItemsInner,
+  RouteListResponseDtoOutputItemsInnerSubRoutesInner,
   RouteNamePreviewDtoOutput,
   RouteNamePreviewInputDto,
   RouteNamePreviewInputDtoStopsInner,
   RouteResponseDtoOutput,
   RouteResponseDtoOutputStopsInner,
+  RouteResponseDtoOutputSubRoutesInner,
+  RouteResponseDtoOutputSubRoutesInnerFare,
+  RouteResponseDtoOutputSubRoutesInnerFrom,
   SalesOfficeAssignmentsDtoOutput,
   SalesOfficeAssignmentsDtoOutputItemsInner,
   SalesOfficeAssignmentsInputDto,
@@ -1139,6 +1150,11 @@ part 'serializers.g.dart';
   StopPointProposalListResponseDtoOutputItemsInner,
   StopPointProposalResponseDtoOutput,
   StopPointReasonInputDto,
+  SubRouteInputDto,
+  SubRouteInputDtoFrom,
+  SubRouteSuggestionListDtoOutput,
+  SubRouteSuggestionListDtoOutputItemsInner,
+  SubRouteSuggestionListDtoOutputItemsInnerSuggestedRulesInner,
   SystemIntegrationsDtoOutput,
   SystemIntegrationsDtoOutputItemsInner,
   TicketDetailDtoOutput,
@@ -1301,6 +1317,14 @@ Serializers serializers = (_$serializers.toBuilder()
         () => ListBuilder<AdminApplicationDetailDtoOutputHistoryInner>(),
       )
       ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(RouteResponseDtoOutputSubRoutesInner)]),
+        () => ListBuilder<RouteResponseDtoOutputSubRoutesInner>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(RouteListResponseDtoOutputItemsInnerSubRoutesInner)]),
+        () => ListBuilder<RouteListResponseDtoOutputItemsInnerSubRoutesInner>(),
+      )
+      ..addBuilderFactory(
         const FullType(BuiltList, [FullType(StopPointListResponseDtoOutputItemsInner)]),
         () => ListBuilder<StopPointListResponseDtoOutputItemsInner>(),
       )
@@ -1343,10 +1367,6 @@ Serializers serializers = (_$serializers.toBuilder()
       ..addBuilderFactory(
         const FullType(BuiltList, [FullType(StopPointProposalListResponseDtoOutputItemsInner)]),
         () => ListBuilder<StopPointProposalListResponseDtoOutputItemsInner>(),
-      )
-      ..addBuilderFactory(
-        const FullType(BuiltList, [FullType(FareResponseDtoOutputRulesInner)]),
-        () => ListBuilder<FareResponseDtoOutputRulesInner>(),
       )
       ..addBuilderFactory(
         const FullType(BuiltList, [FullType(TripResponseDtoOutputSeatsInner)]),
@@ -1503,6 +1523,10 @@ Serializers serializers = (_$serializers.toBuilder()
       ..addBuilderFactory(
         const FullType(BuiltList, [FullType(CreatedBookingDtoOutputPassengersInner)]),
         () => ListBuilder<CreatedBookingDtoOutputPassengersInner>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(SubRouteSuggestionListDtoOutputItemsInnerSuggestedRulesInner)]),
+        () => ListBuilder<SubRouteSuggestionListDtoOutputItemsInnerSuggestedRulesInner>(),
       )
       ..addBuilderFactory(
         const FullType(BuiltList, [FullType(PublicTripDtoOutputVehicleImagesInner)]),
@@ -1887,6 +1911,10 @@ Serializers serializers = (_$serializers.toBuilder()
       ..addBuilderFactory(
         const FullType(BuiltList, [FullType(CounterBookingDtoOutputReceiptsInner)]),
         () => ListBuilder<CounterBookingDtoOutputReceiptsInner>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(SubRouteSuggestionListDtoOutputItemsInner)]),
+        () => ListBuilder<SubRouteSuggestionListDtoOutputItemsInner>(),
       )
       ..addBuilderFactory(
         const FullType(BuiltList, [FullType(CounterBookingDtoOutputTicketsInner)]),

@@ -218,6 +218,10 @@ describe("tuyến đã lưu → form", () => {
     totalDistanceMeters: 140_000,
     totalDurationSeconds: 11_700,
     metricsSource: "GOONG",
+    parentRouteId: null,
+    parentRouteName: null,
+    needsReview: false,
+    subRoutes: [],
     createdAt: "2026-10-05T07:20:00.000Z",
     updatedAt: "2026-10-05T07:20:00.000Z",
     // Cố ý đảo thứ tự mảng: form phải xếp theo `sequence`.
