@@ -12,7 +12,7 @@ import { TripSearchService } from "./trip-search.service";
 /** Route công khai `/trips/search`, `/trips/{tripId}` (TASK-TRN-004): không cần đăng nhập; nghiệp vụ ở `.int.spec.ts`. */
 describe("Tìm chuyến công khai — HTTP", () => {
   const service = {
-    search: vi.fn(async () => ({ items: [], total: 0, page: 1, limit: 20, facets: { operators: [], priceMin: null, priceMax: null }, widenedToProvince: { from: false, to: false } })),
+    search: vi.fn<TripSearchService["search"]>(async () => ({ items: [], total: 0, page: 1, limit: 20, facets: { operators: [], priceMin: null, priceMax: null }, widenedToProvince: { from: false, to: false } })),
     getTrip: vi.fn(async () => {
       throw new Error("không gọi");
     }),
@@ -51,6 +51,14 @@ describe("Tìm chuyến công khai — HTTP", () => {
     expect(service.search).toHaveBeenCalledWith(
       expect.objectContaining({ passengers: 1, sort: "departure", page: 1, limit: 20, amenityIds: ["a", "b"] }),
     );
+  });
+
+  it.each(["", "date=2031-05-10&passengers=2"])("không nhập điểm đi / đến vẫn tìm được: %s", async (query) => {
+    expect((await fetch(`${base}/search?${query}`)).status).toBe(200);
+    const input = service.search.mock.calls[0]![0];
+    expect(input).not.toHaveProperty("fromProvinceId");
+    expect(input).not.toHaveProperty("toProvinceId");
+    expect(input).toMatchObject(query ? { date: "2031-05-10", passengers: 2 } : { passengers: 1 });
   });
 
   it.each([
