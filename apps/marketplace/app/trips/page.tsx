@@ -51,7 +51,7 @@ export default async function TripsPage(props: TripsPageProps) {
     <PassengerTopBar
       breadcrumbs={[
         { label: "Trang chủ", href: "/" },
-        { label: "Mua vé", href: "/trips" },
+        { label: "Mua vé", href: "/trips/explore" },
         { label: "Tìm chuyến xe" }
       ]}
     />

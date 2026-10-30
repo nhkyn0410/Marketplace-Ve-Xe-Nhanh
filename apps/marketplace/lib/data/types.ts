@@ -103,6 +103,8 @@ export interface HomeCatalogData {
  */
 export interface TripSearchResultItem {
   readonly id: string;
+  /** Ngày đón (giờ VN) — hiện khi danh sách gồm nhiều ngày (xem vé không nhập ngày). */
+  readonly departureDateText?: string;
   readonly operatorId: string;
   readonly operatorName: string;
   readonly operatorCode: string;

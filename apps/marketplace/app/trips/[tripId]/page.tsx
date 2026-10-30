@@ -40,7 +40,7 @@ export default async function TripDetailPage(props: PageProps) {
     <PassengerTopBar
       breadcrumbs={[
         { label: "Trang chủ", href: "/" },
-        { label: "Mua vé", href: "/trips" },
+        { label: "Mua vé", href: "/trips/explore" },
         ...(preview === "ideal"
           ? [{ label: "TP. Hồ Chí Minh → Đà Lạt", href: "/trips?preview=ideal" }]
           : []),

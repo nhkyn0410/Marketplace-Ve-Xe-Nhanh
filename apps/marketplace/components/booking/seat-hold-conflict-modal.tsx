@@ -50,7 +50,7 @@ export function SeatHoldConflictModal({
         {/* 2 nút hành động */}
         <div className="mt-6 flex flex-col-reverse gap-2.5 sm:flex-row sm:items-center sm:justify-center">
           <Link
-            href="/trips"
+            href="/trips/explore"
             className="w-full sm:w-auto rounded-xl border border-neutral-300 bg-white px-5 py-2.5 text-xs sm:text-sm font-semibold text-neutral-700 transition hover:bg-neutral-50 text-center"
           >
             Đổi chuyến khác

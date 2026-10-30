@@ -59,7 +59,7 @@ No authorization required
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **publicTripControllerSearch**
-> TripSearchResponseDtoOutput publicTripControllerSearch(date, fromProvinceId, fromWardId, fromAreaId, fromStopPointId, toProvinceId, toWardId, toAreaId, toStopPointId, passengers, operatorId, vehicleForm, vehicleClass, departureFrom, departureTo, priceMin, priceMax, amenityIds, sort, page, limit)
+> TripSearchResponseDtoOutput publicTripControllerSearch(fromProvinceId, fromWardId, fromAreaId, fromStopPointId, toProvinceId, toWardId, toAreaId, toStopPointId, date, passengers, operatorId, vehicleForm, vehicleClass, departureFrom, departureTo, priceMin, priceMax, amenityIds, sort, page, limit)
 
 
 
@@ -68,7 +68,6 @@ No authorization required
 import 'package:api_client_dart/api.dart';
 
 final api = ApiClientDart().getTripsApi();
-final Date date = 2013-10-20; // Date | 
 final String fromProvinceId = fromProvinceId_example; // String | 
 final String fromWardId = fromWardId_example; // String | 
 final String fromAreaId = fromAreaId_example; // String | 
@@ -77,6 +76,7 @@ final String toProvinceId = toProvinceId_example; // String |
 final String toWardId = toWardId_example; // String | 
 final String toAreaId = toAreaId_example; // String | 
 final String toStopPointId = 38400000-8cf0-11bd-b23e-10b96e4ef00d; // String | 
+final Date date = 2013-10-20; // Date | 
 final int passengers = 56; // int | 
 final String operatorId = 38400000-8cf0-11bd-b23e-10b96e4ef00d; // String | 
 final String vehicleForm = vehicleForm_example; // String | 
@@ -91,7 +91,7 @@ final int page = 56; // int |
 final int limit = 56; // int | 
 
 try {
-    final response = api.publicTripControllerSearch(date, fromProvinceId, fromWardId, fromAreaId, fromStopPointId, toProvinceId, toWardId, toAreaId, toStopPointId, passengers, operatorId, vehicleForm, vehicleClass, departureFrom, departureTo, priceMin, priceMax, amenityIds, sort, page, limit);
+    final response = api.publicTripControllerSearch(fromProvinceId, fromWardId, fromAreaId, fromStopPointId, toProvinceId, toWardId, toAreaId, toStopPointId, date, passengers, operatorId, vehicleForm, vehicleClass, departureFrom, departureTo, priceMin, priceMax, amenityIds, sort, page, limit);
     print(response);
 } on DioException catch (e) {
     print('Exception when calling TripsApi->publicTripControllerSearch: $e\n');
@@ -102,7 +102,6 @@ try {
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **date** | **Date**|  | 
  **fromProvinceId** | **String**|  | [optional] 
  **fromWardId** | **String**|  | [optional] 
  **fromAreaId** | **String**|  | [optional] 
@@ -111,6 +110,7 @@ Name | Type | Description  | Notes
  **toWardId** | **String**|  | [optional] 
  **toAreaId** | **String**|  | [optional] 
  **toStopPointId** | **String**|  | [optional] 
+ **date** | **Date**|  | [optional] 
  **passengers** | **int**|  | [optional] [default to 1]
  **operatorId** | **String**|  | [optional] 
  **vehicleForm** | **String**|  | [optional] 

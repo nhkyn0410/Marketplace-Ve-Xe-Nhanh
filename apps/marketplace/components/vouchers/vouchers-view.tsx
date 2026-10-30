@@ -199,7 +199,7 @@ export function VouchersView({ vouchersData, isPreview = false }: VouchersViewPr
                   <div className="mt-auto flex items-center justify-between gap-2 pt-1">
                     <span className="text-xs/[18px] text-vxn-fg-5">Hạn dùng {v.expiryDateText}</span>
                     {v.status === "available" ? (
-                      <Link href="/trips" className="text-[13px] font-semibold whitespace-nowrap text-primary hover:underline">
+                      <Link href="/trips/explore" className="text-[13px] font-semibold whitespace-nowrap text-primary hover:underline">
                         Dùng ngay ›
                       </Link>
                     ) : (

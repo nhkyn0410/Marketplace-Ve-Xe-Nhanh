@@ -17,6 +17,7 @@ Future<void> _pumpTicket(
   HomeSearchQuery? initialQuery,
   Future<HomeSearchQuery?> Function()? loadDefaultQuery,
   TripSearchRunner? searchTrips,
+  TripBrowseRunner? browseTrips,
   OperatorFareLoader? loadOperatorFare,
   List<HomeOperator> operators = const [phuongTrang],
   ValueChanged<HomeSearchQuery>? onQueryChanged,
@@ -47,6 +48,7 @@ Future<void> _pumpTicket(
           operators: operators,
         ),
         searchTrips: searchTrips,
+        browseTrips: browseTrips,
         loadOperatorFare: loadOperatorFare,
         initialQuery: initialQuery,
         loadDefaultQuery: loadDefaultQuery,
@@ -77,6 +79,27 @@ Future<int?> _fares(String operatorId, HomeOperatorRoute route, DateTime _) {
 }
 
 void main() {
+  testWidgets(
+    'chưa tìm lần nào: hiện chuyến sắp chạy, không cần nhập điểm đi / đến hay ngày; thẻ ghi ngày đi',
+    (tester) async {
+      final browsed = <int>[];
+      await _pumpTicket(
+        tester,
+        width: 412,
+        browseTrips: (filters, page) async {
+          browsed.add(page);
+          return samplePage([sampleTrip('t1')]);
+        },
+      );
+
+      expect(browsed, [1]);
+      expect(find.byKey(const Key('ticket-browse-hint')), findsOneWidget);
+      expect(find.byKey(const ValueKey('ticket-trip-t1')), findsOneWidget);
+      expect(find.byKey(const ValueKey('ticket-trip-date-t1')), findsOneWidget);
+      expect(find.byKey(const Key('ticket-pick-route')), findsNothing);
+    },
+  );
+
   testWidgets('Mua vé khám phá responsive không overflow ở các viewport', (
     tester,
   ) async {

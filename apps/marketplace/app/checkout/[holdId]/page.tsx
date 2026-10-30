@@ -33,7 +33,7 @@ export default async function CheckoutPage({
 
   const breadcrumbs = [
     { label: "Trang chủ", href: "/" },
-    { label: "Mua vé", href: "/trips" },
+    { label: "Mua vé", href: "/trips/explore" },
     { label: "Thông tin hành khách" }
   ];
 

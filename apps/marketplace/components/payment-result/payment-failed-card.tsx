@@ -107,7 +107,7 @@ export function PaymentFailedCard({
       {/* Link tìm chuyến khác */}
       <div>
         <Link
-          href="/trips"
+          href="/trips/explore"
           className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-vxn-teal-800 hover:underline"
         >
           <Search className="h-3.5 w-3.5" />

@@ -805,29 +805,15 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
     );
   }
 
-  /// Tab Mua vé chưa có điều kiện nào: tuyến phổ biến đầu tiên (như web), ngày
-  /// mai, 1 khách.
-  Future<HomeSearchQuery?> _loadDefaultExploreQuery() async {
-    final routes = await _loadPopularRoutes(defaultSearchDate());
-    if (routes.isEmpty) return null;
-    return HomeSearchQuery(
-      mode: HomeSearchMode.route,
-      from: routes.first.from,
-      to: routes.first.to,
-      date: defaultSearchDate(),
-      passengers: 1,
-    );
-  }
-
   /// Mở chi tiết chuyến từ danh sách Mua vé, giữ điểm đón / trả khớp lần tìm.
-  void _openTripDetail(TripSummary trip, HomeSearchQuery query) {
+  void _openTripDetail(TripSummary trip, HomeSearchQuery? query) {
     Navigator.of(context).push(
       MaterialPageRoute<void>(
         builder: (_) => TripDetailScreen(
           api: _bookingApi,
           tripId: trip.tripId,
-          fromLabel: query.from.name,
-          toLabel: query.to.name,
+          fromLabel: query?.from.name,
+          toLabel: query?.to.name,
           pickupSequence: trip.pickup.sequence,
           dropoffSequence: trip.dropoff.sequence,
         ),
@@ -942,7 +928,8 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
         searchTrips: _bookingApi.searchTrips,
         loadOperatorFare: _bookingApi.loadOperatorMinFare,
         initialQuery: _lastSearchQuery,
-        loadDefaultQuery: _loadDefaultExploreQuery,
+        // Chưa tìm lần nào: xem mọi chuyến sắp chạy, không cần nhập điểm hay ngày.
+        browseTrips: _bookingApi.browseTrips,
         onQueryChanged: (query) => _lastSearchQuery = query,
         onTripSelected: _openTripDetail,
       );

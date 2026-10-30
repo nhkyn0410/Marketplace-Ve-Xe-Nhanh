@@ -32,6 +32,7 @@ class TripSummary {
     required this.amenityNames,
     this.averageRating,
     this.coverImageUrl,
+    this.segmentTitle,
   });
 
   final String tripId;
@@ -49,6 +50,15 @@ class TripSummary {
   final int minPrice;
   final List<String> amenityNames;
   final String? coverImageUrl;
+
+  /// Chặng theo nơi đón / trả (API ghép, vd "TP.HCM → Gia Nghĩa"); `null` = không có.
+  final String? segmentTitle;
+
+  /// Một đầu của [segmentTitle] (0 = nơi đón, 1 = nơi trả); không có → `null`.
+  String? segmentPart(int index) {
+    final parts = segmentTitle?.split(' → ');
+    return parts != null && parts.length == 2 ? parts[index] : null;
+  }
 }
 
 /// Nhà xe có trong kết quả tìm (trước khi lọc), kèm số chuyến.
@@ -204,6 +214,10 @@ class TripSearchFilters {
 }
 
 /// Hàm tìm một trang chuyến theo điều kiện tìm + bộ lọc.
+/// Xem chuyến sắp chạy không cần điểm đi / đến hay ngày (tab Mua vé chưa tìm lần nào).
+typedef TripBrowseRunner =
+    Future<TripSearchPage> Function(TripSearchFilters filters, int page);
+
 typedef TripSearchRunner = Future<TripSearchPage> Function(
   HomeSearchQuery query,
   TripSearchFilters filters,

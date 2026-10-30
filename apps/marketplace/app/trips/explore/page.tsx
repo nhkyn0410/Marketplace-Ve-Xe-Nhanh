@@ -10,7 +10,7 @@ import { TripCard } from "../../../components/trips/trip-card";
 import { TripDateStrip } from "../../../components/trips/trip-date-strip";
 import { TripSearchBar } from "../../../components/trips/trip-search-bar";
 import { getProvinces } from "../../../lib/data/catalog";
-import { getDefaultExploreJourney, getOperatorMinFare } from "../../../lib/data/explore";
+import { getOperatorMinFare } from "../../../lib/data/explore";
 import { exploreAreas, exploreRoutes, rankOperators, resolveExploreJourney, servedRoute } from "../../../lib/data/explore-mappers";
 import { getFeaturedOperators } from "../../../lib/data/home";
 import { addDays, LAST_SEARCH_COOKIE, placeSearchParams, stripDates, vnToday } from "../../../lib/data/trip-mappers";
@@ -81,29 +81,16 @@ export default async function ExplorePage({ searchParams }: { readonly searchPar
 async function TripsTab({ value, today }: { readonly value: (key: string) => string | undefined; readonly today: string }) {
   const saved = savedSearch((await cookies()).get(LAST_SEARCH_COOKIE)?.value);
   const fromUrl = value("origin") && value("destination") ? value : null;
-  const [fallbackResult, provincesResult] = await Promise.all([
-    fromUrl || saved?.get("origin") ? null : getDefaultExploreJourney(),
-    getProvinces()
-  ]);
-  const fallback = fallbackResult?.status === "ok" ? fallbackResult.data : null;
-  const fallbackRead = fallback ? (key: string) => (fallback as unknown as Record<string, string | undefined>)[key] : null;
+  // `?all=1` hoặc chưa tìm lần nào: xem mọi chuyến sắp chạy, không cần nhập điểm đi / đến hay ngày (chờ duyệt 30/10/2026).
+  const browseAll = value("all") === "1" && !fromUrl;
+  const provincesResult = await getProvinces();
   // Ngày trên URL (đổi bằng dải ngày) được ưu tiên dù hành trình lấy từ lần tìm trước.
   const dateFromUrl = (key: string) => (key === "date" ? value("date") : undefined);
-  const journey = resolveExploreJourney([fromUrl, dateFromUrl, saved ? (key) => saved.get(key) : null, fallbackRead], today);
+  const journey = browseAll ? null : resolveExploreJourney([fromUrl, dateFromUrl, saved ? (key) => saved.get(key) : null], today);
   const provinces = provincesResult.status === "ok" ? provincesResult.data : [];
 
   if (!journey) {
-    return (
-      <>
-        <TripSearchBar provinces={provinces} initialDate={addDays(today, 1)} />
-        <EmptyState
-          icon={Search}
-          title="Chọn tuyến để xem chuyến đang mở bán"
-          description="Nhập điểm đi, điểm đến và ngày đi rồi bấm Tìm chuyến."
-          className="mt-6 bg-white"
-        />
-      </>
-    );
+    return <UpcomingTrips provinces={provinces} today={today} />;
   }
 
   const journeyQuery = new URLSearchParams({
@@ -134,9 +121,14 @@ async function TripsTab({ value, today }: { readonly value: (key: string) => str
               {journey.originLabel} → {journey.destinationLabel} • {formatTripDateVi(journey.date)} • {journey.passengers} hành khách • Giờ đi sớm nhất
             </p>
           </div>
-          <Link href={`/trips?${journeyQuery}`} className="inline-flex items-center gap-1 text-xs font-bold text-[#00506a] hover:underline">
-            Xem tất cả, lọc và sắp xếp <ArrowRight className="h-3.5 w-3.5" />
-          </Link>
+          <div className="flex flex-wrap gap-x-4 gap-y-1">
+            <Link href="/trips/explore?all=1" className="inline-flex items-center gap-1 text-xs font-bold text-[#00506a] hover:underline">
+              Mọi chuyến sắp chạy <ArrowRight className="h-3.5 w-3.5" />
+            </Link>
+            <Link href={`/trips?${journeyQuery}`} className="inline-flex items-center gap-1 text-xs font-bold text-[#00506a] hover:underline">
+              Xem tất cả, lọc và sắp xếp <ArrowRight className="h-3.5 w-3.5" />
+            </Link>
+          </div>
         </div>
         {tripsResult.status !== "ok" ? (
           <FeatureUnavailable
@@ -153,6 +145,31 @@ async function TripsTab({ value, today }: { readonly value: (key: string) => str
         ) : (
           <div className="space-y-4">
             {tripsResult.data.trips.slice(0, LIST_SIZE).map((trip) => <TripCard key={trip.id} trip={trip} passengers={journey.passengers} />)}
+          </div>
+        )}
+      </section>
+    </>
+  );
+}
+
+/** Chuyến sắp chạy của mọi tuyến trong vài ngày tới — xem vé không cần nhập điểm đi / đến hay ngày. */
+async function UpcomingTrips({ provinces, today }: { readonly provinces: Parameters<typeof TripSearchBar>[0]["provinces"]; readonly today: string }) {
+  const result = await searchTrips({ anyDate: true, sortBy: "earliest" });
+  return (
+    <>
+      <TripSearchBar provinces={provinces} initialDate={addDays(today, 1)} />
+      <section className="mt-6 space-y-4" aria-labelledby="explore-trips-heading">
+        <div>
+          <h2 id="explore-trips-heading" className="text-lg font-semibold text-vxn-ink">Chuyến sắp chạy</h2>
+          <p className="mt-0.5 text-xs text-slate-500">Mọi tuyến trong 7 ngày tới • Giờ đi sớm nhất. Chọn điểm đi, điểm đến và ngày để tìm đúng chuyến.</p>
+        </div>
+        {result.status !== "ok" ? (
+          <FeatureUnavailable title="Không thể tải chuyến xe" description="Vui lòng tải lại trang sau ít phút." />
+        ) : result.data.trips.length === 0 ? (
+          <EmptyState icon={Search} title="Chưa có chuyến sắp chạy" description="Hiện chưa có chuyến mở bán trong 7 ngày tới." className="bg-white" />
+        ) : (
+          <div className="space-y-4">
+            {result.data.trips.slice(0, LIST_SIZE * 2).map((trip) => <TripCard key={trip.id} trip={trip} showDate />)}
           </div>
         )}
       </section>

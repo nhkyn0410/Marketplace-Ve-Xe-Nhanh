@@ -359,4 +359,16 @@ class FakeBookingApi implements TripBookingApi {
     limit: 20,
     operators: [],
   );
+
+  @override
+  Future<TripSearchPage> browseTrips(
+    TripSearchFilters filters,
+    int page,
+  ) async => const TripSearchPage(
+    items: [],
+    total: 0,
+    page: 1,
+    limit: 20,
+    operators: [],
+  );
 }

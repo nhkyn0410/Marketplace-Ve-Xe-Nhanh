@@ -111,7 +111,6 @@ class TripsApi {
   /// 
   ///
   /// Parameters:
-  /// * [date] 
   /// * [fromProvinceId] 
   /// * [fromWardId] 
   /// * [fromAreaId] 
@@ -120,6 +119,7 @@ class TripsApi {
   /// * [toWardId] 
   /// * [toAreaId] 
   /// * [toStopPointId] 
+  /// * [date] 
   /// * [passengers] 
   /// * [operatorId] 
   /// * [vehicleForm] 
@@ -142,7 +142,6 @@ class TripsApi {
   /// Returns a [Future] containing a [Response] with a [TripSearchResponseDtoOutput] as data
   /// Throws [DioException] if API call or serialization fails
   Future<Response<TripSearchResponseDtoOutput>> publicTripControllerSearch({ 
-    required Date date,
     String? fromProvinceId,
     String? fromWardId,
     String? fromAreaId,
@@ -151,6 +150,7 @@ class TripsApi {
     String? toWardId,
     String? toAreaId,
     String? toStopPointId,
+    Date? date,
     int? passengers = 1,
     String? operatorId,
     String? vehicleForm,
@@ -192,7 +192,7 @@ class TripsApi {
       if (toWardId != null) r'toWardId': encodeQueryParameter(_serializers, toWardId, const FullType(String)),
       if (toAreaId != null) r'toAreaId': encodeQueryParameter(_serializers, toAreaId, const FullType(String)),
       if (toStopPointId != null) r'toStopPointId': encodeQueryParameter(_serializers, toStopPointId, const FullType(String)),
-      r'date': encodeQueryParameter(_serializers, date, const FullType(Date)),
+      if (date != null) r'date': encodeQueryParameter(_serializers, date, const FullType(Date)),
       if (passengers != null) r'passengers': encodeQueryParameter(_serializers, passengers, const FullType(int)),
       if (operatorId != null) r'operatorId': encodeQueryParameter(_serializers, operatorId, const FullType(String)),
       if (vehicleForm != null) r'vehicleForm': encodeQueryParameter(_serializers, vehicleForm, const FullType(String)),

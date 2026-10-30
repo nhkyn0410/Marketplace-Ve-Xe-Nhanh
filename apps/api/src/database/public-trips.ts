@@ -11,6 +11,8 @@ import type { SeatType } from "./prisma.types";
  * chung + bán kính.
  */
 export type SearchSide =
+  /** Không chọn phía này: mọi điểm cho đón / cho trả. */
+  | { any: true }
   | { provinceId: string }
   | { wardId: string }
   | { wardIds: string[] }
@@ -109,6 +111,9 @@ export async function findWard(
 
 // Khoảng cách đường tròn lớn (m) giữa điểm dừng `s` và tọa độ cho trước — không gọi dịch vụ định tuyến lúc tìm (BR-80).
 function sideMatch(side: SearchSide): Prisma.Sql {
+  if ("any" in side) {
+    return Prisma.sql`TRUE`;
+  }
   if ("provinceId" in side) {
     return Prisma.sql`s.province_id = ${side.provinceId}`;
   }
@@ -164,7 +169,8 @@ export async function searchTripCandidates(
         SELECT DISTINCT ON (s.trip_id) s.* FROM s
         JOIN pick ON pick.trip_id = s.trip_id AND s.sequence > pick.sequence
         WHERE s.allow_dropoff AND ${sideMatch(query.to)}
-        ORDER BY s.trip_id, s.sequence
+        -- Không chọn điểm đến: lấy điểm trả cuối (đi hết chuyến); có thì điểm trả khớp đầu tiên.
+        ORDER BY s.trip_id, s.sequence ${"any" in query.to ? Prisma.sql`DESC` : Prisma.empty}
       ),
       seats AS (
         SELECT ts.trip_id, count(*)::int AS available, array_agg(DISTINCT ts.type::text) AS types

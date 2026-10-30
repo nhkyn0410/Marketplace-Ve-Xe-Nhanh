@@ -34,7 +34,7 @@ export default async function BookingPaymentPage({
 
   const breadcrumbs = [
     { label: "Trang chủ", href: "/" },
-    { label: "Mua vé", href: "/trips" },
+    { label: "Mua vé", href: "/trips/explore" },
     { label: "Thanh toán" }
   ];
 

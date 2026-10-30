@@ -2,35 +2,7 @@
 
 import type { components } from "@vexenhanh/api-client";
 import { apiRequest } from "./api";
-import { ok, type DataResult } from "./result";
-import { apiMoney, vnToday } from "./trip-mappers";
-
-/** Điều kiện hành trình mặc định của trang Khám phá. */
-export interface ExploreJourney {
-  readonly origin: string;
-  readonly originLabel: string;
-  readonly destination: string;
-  readonly destinationLabel: string;
-  readonly date: string;
-}
-
-/**
- * Hành trình mặc định khi chưa có lần tìm nào (như app): tuyến phổ biến đầu tiên, ngày có chuyến sớm nhất của tuyến.
- * Chưa có tuyến phổ biến → `null` (trang nhắc chọn tuyến).
- */
-export async function getDefaultExploreJourney(): Promise<DataResult<ExploreJourney | null>> {
-  const result = await apiRequest<components["schemas"]["PopularRouteListResponseDto_Output"]>("/catalog/popular-routes?limit=1");
-  if (result.status !== "ok") return result;
-  const route = result.data.items[0];
-  if (!route) return ok(null);
-  return ok({
-    origin: route.originProvinceId,
-    originLabel: route.originName,
-    destination: route.destinationProvinceId,
-    destinationLabel: route.destinationName,
-    date: route.nextDepartureAt ? vnToday(new Date(route.nextDepartureAt)) : vnToday()
-  });
-}
+import { apiMoney } from "./trip-mappers";
 
 /**
  * Giá vé thấp nhất (VND, chuỗi) của nhà xe trên một tuyến (cặp tỉnh) vào ngày đi — ô "Giá vé từ" của thẻ nhà xe, như app.
