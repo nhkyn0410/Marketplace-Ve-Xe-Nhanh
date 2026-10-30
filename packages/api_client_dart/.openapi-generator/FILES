@@ -508,6 +508,8 @@ doc/PublicOperatorProfileDtoOutputRoutesInner.md
 doc/PublicOperatorProfileDtoOutputScorecard.md
 doc/PublicOperatorProfileDtoOutputServiceTerms.md
 doc/PublicOperatorsApi.md
+doc/PublicPromotionListDtoOutput.md
+doc/PublicPromotionListDtoOutputItemsInner.md
 doc/PublicTripDtoOutput.md
 doc/PublicTripDtoOutputCancellationPolicy.md
 doc/PublicTripDtoOutputCancellationPolicyTiersInner.md
@@ -1205,6 +1207,8 @@ lib/src/model/public_operator_profile_dto_output_reviews_inner.dart
 lib/src/model/public_operator_profile_dto_output_routes_inner.dart
 lib/src/model/public_operator_profile_dto_output_scorecard.dart
 lib/src/model/public_operator_profile_dto_output_service_terms.dart
+lib/src/model/public_promotion_list_dto_output.dart
+lib/src/model/public_promotion_list_dto_output_items_inner.dart
 lib/src/model/public_trip_dto_output.dart
 lib/src/model/public_trip_dto_output_cancellation_policy.dart
 lib/src/model/public_trip_dto_output_cancellation_policy_tiers_inner.dart
@@ -1377,4 +1381,3 @@ lib/src/model/ward_list_response_dto_output.dart
 lib/src/model/ward_list_response_dto_output_items_inner.dart
 lib/src/serializers.dart
 pubspec.yaml
-test/public_trip_dto_output_segment_test.dart

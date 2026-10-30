@@ -23,11 +23,14 @@ import {
   PromotionPageDto,
   PromotionStatusInputDto,
   PromotionRouteOptionsDto,
+  PublicPromotionListDto,
+  PublicPromotionQueryDto,
   type Permission,
   type PermissionPage,
   type Promotion,
   type PromotionCheck,
   type PromotionPage,
+  type PublicPromotionList,
 } from "./dto/promotion.dto";
 import { PromotionService } from "./promotion.service";
 
@@ -217,6 +220,14 @@ export class OperatorPromotionController {
 /** Kiểm mã khuyến mãi cho một chuyến (không giữ lượt dùng). */
 export class PublicPromotionController {
   constructor(@Inject(PromotionService) private readonly promotions: PromotionService) {}
+
+  /** Khuyến mãi công khai đang chạy (không cần đăng nhập) — chờ duyệt 30/10/2026. */
+  @Get()
+  @ZodResponse({ status: 200, description: "Khuyến mãi đang chạy, còn lượt, sắp hết hạn trước.", type: PublicPromotionListDto })
+  @ApiResponse({ status: 400, description: "Query không hợp lệ.", content: problemContent })
+  list(@Query() query: PublicPromotionQueryDto): Promise<PublicPromotionList> {
+    return this.promotions.publicList(query.limit);
+  }
 
   @Post("check")
   @HttpCode(200)

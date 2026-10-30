@@ -21,6 +21,7 @@ describe("Khuyến mãi — HTTP", () => {
     operatorList: vi.fn(async () => page),
     create: vi.fn(),
     check: vi.fn(async () => ({ code: "THU10", name: "Giảm", discount: 30_000, total: 270_000 })),
+    publicList: vi.fn(async () => ({ items: [] })),
   };
   let app: INestApplication;
   let base: string;
@@ -102,5 +103,9 @@ describe("Khuyến mãi — HTTP", () => {
     expect((await call("POST", "/promotions/check", null, { tripId: randomUUID(), code: "THU10", subtotal: 300_000 })).status).toBe(200);
     expect((await call("POST", "/promotions/check", await token("OPERATOR_OWNER"), { tripId: randomUUID(), code: "THU10", subtotal: 300_000 })).status).toBe(403);
     expect((await call("POST", "/promotions/check", null, { tripId: randomUUID(), code: "THU10", subtotal: 0 })).status).toBe(400);
+    // Danh sách công khai: không cần đăng nhập; `limit` 1–20.
+    expect((await call("GET", "/promotions?limit=5", null)).status).toBe(200);
+    expect(service.publicList).toHaveBeenLastCalledWith(5);
+    expect((await call("GET", "/promotions?limit=0", null)).status).toBe(400);
   });
 });

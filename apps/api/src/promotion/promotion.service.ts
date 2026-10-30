@@ -20,6 +20,7 @@ import type {
   PromotionStats,
   PromotionStatusInput,
   PROMOTION_DISPLAY,
+  PublicPromotionList,
 } from "./dto/promotion.dto";
 import { evaluatePromotion } from "./promotion-apply";
 import { evaluateVoucher } from "./voucher-apply";
@@ -336,6 +337,55 @@ export class PromotionService {
       const row = await tx.operatorProfile.findUniqueOrThrow({ where: { id: operatorId }, select: { id: true, displayName: true, operatorSlug: true, promotionPermission: true } });
       return toPermission(row, await routeNameMap(tx, row.promotionPermission?.routeIds ?? []));
     });
+  }
+
+  // ------------------------------------------------------------------ Khuyến mãi công khai (khách)
+
+  /**
+   * Khuyến mãi đang chạy cho "Ưu đãi nổi bật": `ACTIVE`, trong thời hạn, còn lượt; của nhà xe đang hoạt động, hoặc của nền
+   * tảng đã có nhà xe tham gia (chưa ai tham gia thì không dùng được). Sắp hết hạn trước.
+   */
+  async publicList(limit: number, now: Date = new Date()): Promise<PublicPromotionList> {
+    const rows = await this.prisma.withSystem((tx) =>
+      tx.promotion.findMany({
+        where: {
+          status: PromotionStatus.ACTIVE,
+          startsAt: { lte: now },
+          endsAt: { gt: now },
+          usedCount: { lt: tx.promotion.fields.usageLimit },
+          OR: [
+            { scope: PromotionScope.OPERATOR, operator: { status: "ACTIVE" } },
+            { scope: PromotionScope.PLATFORM, participations: { some: {} } },
+          ],
+        },
+        orderBy: [{ endsAt: "asc" }, { id: "asc" }],
+        take: limit,
+        select: {
+          code: true,
+          name: true,
+          scope: true,
+          discountType: true,
+          discountValue: true,
+          maxDiscount: true,
+          minOrder: true,
+          endsAt: true,
+          operator: { select: { displayName: true } },
+        },
+      }),
+    );
+    return {
+      items: rows.map((row) => ({
+        code: row.code,
+        name: row.name,
+        scope: row.scope,
+        operatorName: row.operator?.displayName ?? null,
+        discountType: row.discountType,
+        discountValue: Number(row.discountValue),
+        maxDiscount: row.maxDiscount === null ? null : Number(row.maxDiscount),
+        minOrder: Number(row.minOrder),
+        endsAt: row.endsAt.toISOString(),
+      })),
+    };
   }
 
   // ------------------------------------------------------------------ Kiểm mã (khách)

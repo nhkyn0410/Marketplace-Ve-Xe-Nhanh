@@ -231,12 +231,16 @@ describe.skipIf(!ready && !requireDb)("Khuyến mãi — Postgres + Redis thật
     const created = await promotions.create(platformAuthz, admin, PromotionInputSchema.parse({ code, name: "Chào bạn mới", discountType: "AMOUNT", discountValue: 30_000, minOrder: 200_000, ...window(), usageLimit: 1 }));
     expect(created).toMatchObject({ scope: "PLATFORM", status: "DRAFT", display: "DRAFT", editable: true, participants: 0 });
     await promotions.setStatus(platformAuthz, admin, created.promotionId, { status: "ACTIVE" });
+    const listed = async () => (await promotions.publicList(20)).items.find((item) => item.code === code);
+    // Chưa nhà xe nào tham gia → chưa hiện ở "Ưu đãi nổi bật".
+    expect(await listed()).toBeUndefined();
     const tripId = await openTrip(30);
     expect(await rejectionOf(promotions.check({ tripId, code, subtotal: 300_000 }))).toMatchObject({ status: 422, code: "PROMOTION_INVALID" });
     expect(await rejectionOf(book(tripId, ["A1"], code, 270_000))).toMatchObject({ status: 422, code: "PROMOTION_INVALID" });
 
     const joined = await promotions.setParticipation(operatorAuthz, owner, created.promotionId, true);
     expect(joined.joined).toBe(true);
+    expect(await listed()).toMatchObject({ code, scope: "PLATFORM", operatorName: null, discountType: "AMOUNT", discountValue: 30_000, minOrder: 200_000 });
     expect(await promotions.check({ tripId, code: code.toLowerCase(), subtotal: 300_000 })).toEqual({ code, name: "Chào bạn mới", discount: 30_000, total: 270_000 });
 
     // Hai đơn đồng thời, còn đúng một lượt → đúng một đơn có giảm, đơn kia 409 (lượt giữ nguyên tử).
@@ -247,6 +251,8 @@ describe.skipIf(!ready && !requireDb)("Khuyến mãi — Postgres + Redis thật
     const first = ok[0]!.value;
     expect(first).toMatchObject({ subtotal: 300_000, discount: 30_000, total: 270_000 });
     expect((await prisma.withSystem((tx) => tx.promotion.findUniqueOrThrow({ where: { code }, select: { usedCount: true } }))).usedCount).toBe(1);
+    // Hết lượt → không còn hiện công khai.
+    expect(await listed()).toBeUndefined();
 
     // Đơn hết hạn → trả lượt; đơn mới dùng được mã.
     await prisma.withSystem((tx) => tx.booking.update({ where: { id: first.bookingId }, data: { expiresAt: new Date(Date.now() - 1000) } }));
