@@ -481,7 +481,8 @@ class _ExploreCanvas extends StatelessWidget {
           width: 384,
           child: _LatestArticles(
             articles: feed.latest,
-            hideEmptyMessage: status != _FeedStatus.ready,
+            hideEmptyMessage:
+                status != _FeedStatus.ready || feed.featured == null,
             articleAction: articleAction,
           ),
         ),
@@ -867,7 +868,7 @@ class _LatestArticles extends StatelessWidget {
   final List<ExploreArticle> articles;
   final VoidCallback? Function(ExploreArticle article) articleAction;
 
-  /// Đang tải hoặc lỗi: thẻ phía trên đã báo, không lặp "chưa có bài viết".
+  /// Đang tải, lỗi hoặc không có bài nào: thẻ phía trên đã báo, không lặp "chưa có bài viết".
   final bool hideEmptyMessage;
 
   @override

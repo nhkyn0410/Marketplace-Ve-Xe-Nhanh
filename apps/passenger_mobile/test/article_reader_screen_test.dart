@@ -96,6 +96,7 @@ void main() {
         findsOneWidget,
       );
       expect(find.byKey(const Key('explore-featured-card')), findsNothing);
+      expect(find.text('Chưa có bài viết trong chuyên mục này.'), findsNothing);
     });
 
     testWidgets('chạm bài nổi bật mở màn đọc bài', (tester) async {
