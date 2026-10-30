@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:passenger_mobile/features/explore/article_api.dart';
 import 'package:passenger_mobile/features/explore/article_reader_screen.dart';
 import 'package:passenger_mobile/features/explore/explore_screen.dart';
+import 'package:passenger_mobile/features/home/home_models.dart';
 
 final _article = ArticleDetail(
   slug: 'di-da-lat',
@@ -65,8 +66,9 @@ void main() {
   group('Khám phá lấy bài viết từ API', () {
     Future<void> pumpExplore(
       WidgetTester tester,
-      Future<ExploreFeed> Function(String? category) loadFeed,
-    ) async {
+      Future<ExploreFeed> Function(String? category, String? query) loadFeed, {
+      Future<List<HomePromotion>> Function()? loadPromotions,
+    }) async {
       tester.view.physicalSize = const Size(412, 915);
       tester.view.devicePixelRatio = 1;
       addTearDown(tester.view.reset);
@@ -76,6 +78,7 @@ void main() {
             onTabSelected: (_) {},
             loadFeed: loadFeed,
             loadArticle: (_) async => _article,
+            loadPromotions: loadPromotions,
           ),
         ),
       );
@@ -85,7 +88,7 @@ void main() {
       tester,
     ) async {
       final pending = Completer<ExploreFeed>();
-      await pumpExplore(tester, (_) => pending.future);
+      await pumpExplore(tester, (_, _) => pending.future);
       await tester.pump();
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
 
@@ -101,7 +104,7 @@ void main() {
 
     testWidgets('chạm bài nổi bật mở màn đọc bài', (tester) async {
       String? requested;
-      await pumpExplore(tester, (category) async {
+      await pumpExplore(tester, (category, _) async {
         requested = category;
         return ExploreFeed(
           featured: ExploreArticle(
@@ -121,6 +124,74 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.byKey(const Key('article-reader-screen')), findsOneWidget);
       expect(find.text('Ngày 1'), findsOneWidget);
+    });
+
+    testWidgets('gửi từ khóa ở ô tìm kiếm thì tải lại theo từ khóa', (
+      tester,
+    ) async {
+      final calls = <(String?, String?)>[];
+      await pumpExplore(tester, (category, query) async {
+        calls.add((category, query));
+        return const ExploreFeed(featured: null, latest: []);
+      });
+      await tester.pumpAndSettle();
+      expect(calls, [(null, null)]);
+
+      await tester.enterText(
+        find.byKey(const Key('explore-search-field')),
+        '  Đà Lạt ',
+      );
+      await tester.testTextInput.receiveAction(TextInputAction.search);
+      await tester.pumpAndSettle();
+      expect(calls.last, (null, 'Đà Lạt'));
+
+      await tester.enterText(find.byKey(const Key('explore-search-field')), '');
+      await tester.testTextInput.receiveAction(TextInputAction.search);
+      await tester.pumpAndSettle();
+      // Bỏ lọc: dùng lại feed đã tải, không gọi thêm.
+      expect(calls, hasLength(2));
+    });
+
+    testWidgets('khối khuyến mãi: không có thì ẩn, có thì hiện mã thật', (
+      tester,
+    ) async {
+      await pumpExplore(
+        tester,
+        (_, _) async => const ExploreFeed(featured: null, latest: []),
+      );
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('explore-promotion-card')), findsNothing);
+      // Dựng lại màn (như mở lại tab) để tải khuyến mãi.
+      await tester.pumpWidget(const SizedBox());
+
+      await pumpExplore(
+        tester,
+        (_, _) async => const ExploreFeed(featured: null, latest: []),
+        loadPromotions: () async => const [
+          HomePromotion(
+            code: 'VXN20',
+            name: 'Giảm 20% cuối tuần',
+            isPercent: true,
+            discountValue: 20,
+            minOrder: 0,
+          ),
+        ],
+      );
+      await tester.pumpAndSettle();
+      final card = find.byKey(const Key('explore-promotion-card'));
+      await tester.scrollUntilVisible(
+        card,
+        300,
+        scrollable: find
+            .descendant(
+              of: find.byKey(const Key('explore-content-scroll')),
+              matching: find.byType(Scrollable),
+            )
+            .first,
+      );
+      expect(find.text('Giảm 20% cuối tuần'), findsOneWidget);
+      expect(find.textContaining('Mã: VXN20'), findsOneWidget);
+      expect(find.text('20%'), findsOneWidget);
     });
   });
 }

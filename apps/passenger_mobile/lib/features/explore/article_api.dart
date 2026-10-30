@@ -44,13 +44,14 @@ class ArticleApi {
 
   final ApiClientDart _client;
 
-  /// Bài nổi bật và các bài mới nhất của chuyên mục [category] (`null` = tất cả).
+  /// Bài nổi bật và các bài mới nhất của chuyên mục [category] (`null` = tất cả), khớp từ khóa [query].
   ///
   /// Trang "Tất cả" còn khối ưu đãi phía dưới nên chỉ lấy 3 bài mới nhất, trang chuyên mục lấy 4.
-  Future<ExploreFeed> loadFeed(String? category) async {
+  Future<ExploreFeed> loadFeed(String? category, [String? query]) async {
     final response = await _call(
       () => _client.getArticlesApi().articleControllerList(
         category: category,
+        q: query,
         limit: 12,
       ),
     );
@@ -78,6 +79,12 @@ class ArticleApi {
           if (item.slug != featured.slug) toArticle(item),
       ].take(category == null ? 3 : 4).toList(growable: false),
     );
+  }
+
+  /// Bài viết mới nhất (mọi chuyên mục) cho mục "Khám phá & cẩm nang" ở Trang chủ.
+  Future<List<ExploreArticle>> loadLatest() async {
+    final feed = await loadFeed(null);
+    return [?feed.featured, ...feed.latest];
   }
 
   /// Toàn bộ bài viết theo [slug]; ghi một lượt xem, lỗi ghi lượt xem thì bỏ qua.

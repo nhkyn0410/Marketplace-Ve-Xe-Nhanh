@@ -2,10 +2,12 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:passenger_mobile/features/explore/article_api.dart';
 import 'package:passenger_mobile/features/explore/article_detail_screen.dart';
 import 'package:passenger_mobile/features/explore/article_reader_screen.dart';
+import 'package:passenger_mobile/features/home/home_models.dart';
 import 'package:passenger_mobile/features/home/route_dock_tabbar.dart';
 
 const _assetRoot = 'assets/explore';
@@ -148,16 +150,21 @@ class ExploreScreen extends StatefulWidget {
     required this.onTabSelected,
     this.loadFeed,
     this.loadArticle,
+    this.loadPromotions,
     super.key,
   });
 
   final ValueChanged<int> onTabSelected;
 
-  /// Bài viết của chuyên mục (`null` = tất cả) từ API; không truyền thì dùng dữ liệu mẫu Figma.
-  final Future<ExploreFeed> Function(String? category)? loadFeed;
+  /// Bài viết của chuyên mục (`null` = tất cả) khớp từ khóa (`null` = không lọc) từ API;
+  /// không truyền thì dùng dữ liệu mẫu Figma.
+  final Future<ExploreFeed> Function(String? category, String? query)? loadFeed;
 
   /// Nội dung một bài viết theo slug, cho màn đọc bài.
   final Future<ArticleDetail> Function(String slug)? loadArticle;
+
+  /// Khuyến mãi đang chạy cho khối "Khuyến mãi nổi bật"; không có thì ẩn khối (chế độ API).
+  final Future<List<HomePromotion>> Function()? loadPromotions;
 
   @override
   State<ExploreScreen> createState() => _ExploreScreenState();
@@ -169,20 +176,53 @@ class _ExploreScreenState extends State<ExploreScreen> {
   bool _dockVisible = true;
   final _remoteFeeds = <String, Future<ExploreFeed>>{};
 
-  /// Feed API của chuyên mục đang chọn, tải một lần; `null` khi dùng dữ liệu mẫu.
+  /// Từ khóa đã gửi ở ô tìm kiếm; rỗng = không lọc.
+  String _query = '';
+  HomePromotion? _promotion;
+
+  String get _feedKey => '$_category|$_query';
+
+  /// Feed API của chuyên mục + từ khóa đang chọn, tải một lần; `null` khi dùng dữ liệu mẫu.
   Future<ExploreFeed>? get _remoteFeed {
     final load = widget.loadFeed;
     if (load == null) return null;
     return _remoteFeeds.putIfAbsent(
-      _category,
-      () => load(_category == 'all' ? null : _category),
+      _feedKey,
+      () => load(
+        _category == 'all' ? null : _category,
+        _query.isEmpty ? null : _query,
+      ),
     );
   }
 
   void _retryFeed() {
     setState(() {
-      _remoteFeeds.remove(_category);
+      _remoteFeeds.remove(_feedKey);
     });
+  }
+
+  void _search(String text) {
+    final query = text.trim();
+    if (query == _query) return;
+    setState(() => _query = query);
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    widget.loadPromotions?.call().then((items) {
+      if (mounted && items.isNotEmpty) setState(() => _promotion = items.first);
+    }, onError: (_) {});
+  }
+
+  Future<void> _copyPromotionCode(String code) async {
+    await Clipboard.setData(ClipboardData(text: code));
+    if (!mounted) return;
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(content: Text('Đã chép mã $code. Dán mã khi đặt vé.')),
+      );
   }
 
   void _findTrip() {
@@ -305,7 +345,15 @@ class _ExploreScreenState extends State<ExploreScreen> {
                             category: _category,
                             searchController: _searchController,
                             onCategorySelected: _selectCategory,
+                            onSearch: _search,
                             articleAction: _articleAction,
+                            // Dữ liệu mẫu giữ khối khuyến mãi Figma; chế độ API chỉ hiện khuyến mãi thật.
+                            promotion: remote
+                                ? _promotion
+                                : _samplePromotionMarker,
+                            onPromotionTap: _promotion == null
+                                ? null
+                                : () => _copyPromotionCode(_promotion!.code),
                           );
                         },
                       ),
@@ -354,6 +402,9 @@ class _ScaledExploreCanvas extends StatelessWidget {
     required this.articleAction,
     required this.status,
     required this.onRetry,
+    required this.onSearch,
+    required this.promotion,
+    required this.onPromotionTap,
   });
 
   final ExploreFeed feed;
@@ -363,6 +414,11 @@ class _ScaledExploreCanvas extends StatelessWidget {
   final VoidCallback? Function(ExploreArticle article) articleAction;
   final _FeedStatus status;
   final VoidCallback onRetry;
+  final ValueChanged<String> onSearch;
+
+  /// Khuyến mãi ở khối dưới; `null` = ẩn khối; [_samplePromotionMarker] = khối mẫu Figma.
+  final HomePromotion? promotion;
+  final VoidCallback? onPromotionTap;
 
   @override
   Widget build(BuildContext context) {
@@ -386,6 +442,9 @@ class _ScaledExploreCanvas extends StatelessWidget {
                 articleAction: articleAction,
                 status: status,
                 onRetry: onRetry,
+                onSearch: onSearch,
+                promotion: promotion,
+                onPromotionTap: onPromotionTap,
               ),
             ),
           ),
@@ -404,6 +463,9 @@ class _ExploreCanvas extends StatelessWidget {
     required this.articleAction,
     required this.status,
     required this.onRetry,
+    required this.onSearch,
+    required this.promotion,
+    required this.onPromotionTap,
   });
 
   final ExploreFeed feed;
@@ -413,6 +475,11 @@ class _ExploreCanvas extends StatelessWidget {
   final VoidCallback? Function(ExploreArticle article) articleAction;
   final _FeedStatus status;
   final VoidCallback onRetry;
+  final ValueChanged<String> onSearch;
+
+  /// Khuyến mãi ở khối dưới; `null` = ẩn khối; [_samplePromotionMarker] = khối mẫu Figma.
+  final HomePromotion? promotion;
+  final VoidCallback? onPromotionTap;
 
   @override
   Widget build(BuildContext context) {
@@ -430,7 +497,10 @@ class _ExploreCanvas extends StatelessWidget {
           top: 111,
           width: 376,
           height: 40,
-          child: _ExploreSearchField(controller: searchController),
+          child: _ExploreSearchField(
+            controller: searchController,
+            onSubmitted: onSearch,
+          ),
         ),
         Positioned(
           left: 60,
@@ -488,7 +558,7 @@ class _ExploreCanvas extends StatelessWidget {
             articleAction: articleAction,
           ),
         ),
-        if (!categoryView) ...[
+        if (!categoryView && promotion != null) ...[
           const Positioned(
             left: 14,
             top: 1118,
@@ -496,14 +566,20 @@ class _ExploreCanvas extends StatelessWidget {
             height: 24,
             child: _PromotionHeading(),
           ),
-          const Positioned(
+          Positioned(
             left: 14,
             top: 1148,
             width: 384,
             height: 98,
-            child: _PromotionCard(),
+            child: _PromotionCard(
+              promotion: identical(promotion, _samplePromotionMarker)
+                  ? null
+                  : promotion,
+              onTap: onPromotionTap,
+            ),
           ),
-          const Positioned(left: 195, top: 1252, child: _CarouselDots()),
+          if (identical(promotion, _samplePromotionMarker))
+            const Positioned(left: 195, top: 1252, child: _CarouselDots()),
         ],
       ],
     );
@@ -548,9 +624,15 @@ class _ExploreHeading extends StatelessWidget {
 }
 
 class _ExploreSearchField extends StatelessWidget {
-  const _ExploreSearchField({required this.controller});
+  const _ExploreSearchField({
+    required this.controller,
+    required this.onSubmitted,
+  });
 
   final TextEditingController controller;
+
+  /// Gửi từ khóa (bàn phím "Tìm"); xóa hết rồi gửi = bỏ lọc.
+  final ValueChanged<String> onSubmitted;
 
   @override
   Widget build(BuildContext context) {
@@ -579,7 +661,10 @@ class _ExploreSearchField extends StatelessWidget {
             child: TextField(
               key: const Key('explore-search-field'),
               controller: controller,
-              onSubmitted: (_) => FocusScope.of(context).unfocus(),
+              onSubmitted: (text) {
+                FocusScope.of(context).unfocus();
+                onSubmitted(text);
+              },
               textInputAction: TextInputAction.search,
               maxLines: 1,
               style: const TextStyle(
@@ -1082,158 +1167,199 @@ class _PromotionHeading extends StatelessWidget {
   }
 }
 
+/// Đánh dấu "dùng khối khuyến mãi mẫu Figma" (chế độ dữ liệu mẫu).
+const _samplePromotionMarker = HomePromotion(
+  code: '',
+  name: '',
+  isPercent: true,
+  discountValue: 30,
+  minOrder: 0,
+);
+
 class _PromotionCard extends StatelessWidget {
-  const _PromotionCard();
+  const _PromotionCard({this.promotion, this.onTap});
+
+  /// `null` = nội dung mẫu Figma.
+  final HomePromotion? promotion;
+
+  /// Chạm để chép mã.
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
-    return ClipRRect(
-      key: const Key('explore-promotion-card'),
-      borderRadius: BorderRadius.circular(11),
-      child: ColoredBox(
-        color: const Color(0xFFFFF2DE),
-        child: Stack(
-          children: [
-            Positioned.fill(
-              child: Image.asset(
-                '$_assetRoot/promotion_weekend.png',
-                fit: BoxFit.cover,
-              ),
-            ),
-            const Positioned.fill(
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.centerLeft,
-                    end: Alignment.centerRight,
-                    stops: [0, .45, .75],
-                    colors: [
-                      Color(0xFFFFF5E0),
-                      Color(0xFAFFF5E0),
-                      Color(0x00FFF5E0),
-                    ],
-                  ),
+    final promotion = this.promotion;
+    final title =
+        promotion?.name ?? 'Ưu đãi giảm giá\ncho hành trình cuối tuần';
+    final subtitle = promotion == null
+        ? 'Tiết kiệm chi phí, thêm niềm vui\ncho mỗi chuyến đi'
+        : '${promotionConditions(promotion)}\nMã: ${promotion.code}';
+    final badgeLabel = promotion == null ? 'Giảm đến' : 'Giảm';
+    final badgeValue = promotion == null
+        ? '30%'
+        : promotion.isPercent
+        ? '${promotion.discountValue}%'
+        : shortVnd(promotion.discountValue);
+    return GestureDetector(
+      onTap: onTap,
+      child: ClipRRect(
+        key: const Key('explore-promotion-card'),
+        borderRadius: BorderRadius.circular(11),
+        child: ColoredBox(
+          color: const Color(0xFFFFF2DE),
+          child: Stack(
+            children: [
+              Positioned.fill(
+                child: Image.asset(
+                  '$_assetRoot/promotion_weekend.png',
+                  fit: BoxFit.cover,
                 ),
               ),
-            ),
-            const Positioned(
-              left: 16,
-              top: 7,
-              child: Text(
-                'KHUYẾN MÃI',
-                style: TextStyle(
-                  color: Color(0xFFF08718),
-                  fontFamily: 'Be Vietnam Pro',
-                  fontSize: 8,
-                  height: 1.4,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-            const Positioned(
-              left: 16,
-              top: 21,
-              child: Text(
-                'Ưu đãi giảm giá\ncho hành trình cuối tuần',
-                style: TextStyle(
-                  color: _ink,
-                  fontFamily: 'Be Vietnam Pro',
-                  fontSize: 11,
-                  height: 1.4,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ),
-            const Positioned(
-              left: 16,
-              top: 54,
-              child: Text(
-                'Tiết kiệm chi phí, thêm niềm vui\ncho mỗi chuyến đi',
-                style: TextStyle(
-                  color: Color(0xFF667B91),
-                  fontFamily: 'Be Vietnam Pro',
-                  fontSize: 8,
-                  height: 1.4,
-                  fontWeight: FontWeight.w400,
-                ),
-              ),
-            ),
-            Positioned(
-              left: 16,
-              top: 77,
-              child: Container(
-                width: 76,
-                height: 17,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFFF862A),
-                  borderRadius: BorderRadius.circular(9),
-                ),
-                child: const Center(
-                  child: Text(
-                    'Xem ưu đãi ›',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontFamily: 'Be Vietnam Pro',
-                      fontSize: 8,
-                      height: 1.4,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-            Positioned(
-              left: 297,
-              top: 11.8,
-              width: 83.354,
-              height: 61.453,
-              child: Center(
-                child: Transform.rotate(
-                  angle: -10 * math.pi / 180,
-                  child: Container(
-                    width: 76,
-                    height: 49,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFFF862A),
-                      borderRadius: BorderRadius.circular(7),
-                    ),
-                    child: const Stack(
-                      children: [
-                        Positioned(
-                          left: 13,
-                          top: 5,
-                          child: Text(
-                            'Giảm đến',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontFamily: 'Be Vietnam Pro',
-                              fontSize: 9,
-                              height: 1.4,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ),
-                        Positioned(
-                          left: 12,
-                          top: 15,
-                          child: Text(
-                            '30%',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontFamily: 'Be Vietnam Pro',
-                              fontSize: 23,
-                              height: 1.4,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                        ),
+              const Positioned.fill(
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.centerLeft,
+                      end: Alignment.centerRight,
+                      stops: [0, .45, .75],
+                      colors: [
+                        Color(0xFFFFF5E0),
+                        Color(0xFAFFF5E0),
+                        Color(0x00FFF5E0),
                       ],
                     ),
                   ),
                 ),
               ),
-            ),
-          ],
+              const Positioned(
+                left: 16,
+                top: 7,
+                child: Text(
+                  'KHUYẾN MÃI',
+                  style: TextStyle(
+                    color: Color(0xFFF08718),
+                    fontFamily: 'Be Vietnam Pro',
+                    fontSize: 8,
+                    height: 1.4,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+              Positioned(
+                left: 16,
+                top: 21,
+                width: 250,
+                child: Text(
+                  title,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: _ink,
+                    fontFamily: 'Be Vietnam Pro',
+                    fontSize: 11,
+                    height: 1.4,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+              Positioned(
+                left: 16,
+                top: 54,
+                width: 250,
+                child: Text(
+                  subtitle,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: Color(0xFF667B91),
+                    fontFamily: 'Be Vietnam Pro',
+                    fontSize: 8,
+                    height: 1.4,
+                    fontWeight: FontWeight.w400,
+                  ),
+                ),
+              ),
+              Positioned(
+                left: 16,
+                top: 77,
+                child: Container(
+                  width: 76,
+                  height: 17,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFF862A),
+                    borderRadius: BorderRadius.circular(9),
+                  ),
+                  child: Center(
+                    child: Text(
+                      promotion == null ? 'Xem ưu đãi ›' : 'Chép mã ›',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontFamily: 'Be Vietnam Pro',
+                        fontSize: 8,
+                        height: 1.4,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              Positioned(
+                left: 297,
+                top: 11.8,
+                width: 83.354,
+                height: 61.453,
+                child: Center(
+                  child: Transform.rotate(
+                    angle: -10 * math.pi / 180,
+                    child: Container(
+                      width: 76,
+                      height: 49,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFF862A),
+                        borderRadius: BorderRadius.circular(7),
+                      ),
+                      child: Stack(
+                        children: [
+                          Positioned(
+                            left: 13,
+                            top: 5,
+                            child: Text(
+                              badgeLabel,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontFamily: 'Be Vietnam Pro',
+                                fontSize: 9,
+                                height: 1.4,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                          Positioned(
+                            left: 12,
+                            right: 4,
+                            top: 15,
+                            child: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              alignment: Alignment.centerLeft,
+                              child: Text(
+                                badgeValue,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontFamily: 'Be Vietnam Pro',
+                                  fontSize: 23,
+                                  height: 1.4,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

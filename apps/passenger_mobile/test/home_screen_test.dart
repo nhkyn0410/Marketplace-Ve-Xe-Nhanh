@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:passenger_mobile/features/explore/explore_screen.dart';
 import 'package:passenger_mobile/features/home/home_models.dart';
 import 'package:passenger_mobile/features/home/home_screen.dart';
 
@@ -23,6 +25,10 @@ Future<void> _pumpHome(
   HomeTripSearch? onSearch,
   HomePopularRoutesLoader? loadPopularRoutes,
   HomeFaqLoader? loadFaqs,
+  HomePromotionsLoader? loadPromotions,
+  HomeOperatorsLoader? loadFeaturedOperators,
+  HomeArticlesLoader? loadArticles,
+  ValueChanged<ExploreArticle>? onArticleSelected,
   HomeHotlineLauncher? onCallHotline,
   VoidCallback? onFeedbackRequested,
   VoidCallback? onLoginRequested,
@@ -55,6 +61,10 @@ Future<void> _pumpHome(
         searchCatalog: fakeCatalog(),
         loadPopularRoutes: loadPopularRoutes,
         loadFaqs: loadFaqs,
+        loadPromotions: loadPromotions,
+        loadFeaturedOperators: loadFeaturedOperators,
+        loadArticles: loadArticles,
+        onArticleSelected: onArticleSelected,
         onSearch: onSearch,
         onCallHotline: onCallHotline,
         onFeedbackRequested: onFeedbackRequested,
@@ -119,52 +129,148 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('bỏ tìm kiếm gần đây và thẻ nội dung dùng kích thước mới', (
+  testWidgets('ưu đãi, nhà xe, bài viết lấy từ API và giữ kích thước thẻ', (
     tester,
   ) async {
-    await _pumpHome(tester, width: 390);
+    ExploreArticle? opened;
+    await _pumpHome(
+      tester,
+      width: 390,
+      loadPromotions: () async => const [
+        HomePromotion(
+          code: 'VXN20',
+          name: 'Giảm 20%',
+          isPercent: true,
+          discountValue: 20,
+          maxDiscount: 50000,
+          minOrder: 0,
+        ),
+        HomePromotion(
+          code: 'SAOMAI50',
+          name: 'Giảm 50K',
+          isPercent: false,
+          discountValue: 50000,
+          minOrder: 300000,
+          operatorName: 'Nhà xe Sao Mai',
+        ),
+      ],
+      loadFeaturedOperators: () async => const [
+        HomeOperator(
+          id: 'op-1',
+          name: 'Nhà xe Sao Mai',
+          averageRating: 4.75,
+          reviewCount: 120,
+          routes: [],
+        ),
+        HomeOperator(id: 'op-2', name: 'An Phú', reviewCount: 0, routes: []),
+      ],
+      loadArticles: () async => [
+        ExploreArticle(
+          slug: 'di-da-lat',
+          title: 'Kinh nghiệm đi Đà Lạt',
+          category: 'Cẩm nang',
+          publishedAt: DateTime.utc(2026, 10, 20),
+          fallbackAsset: 'assets/explore/article_road_trip.png',
+        ),
+      ],
+      onArticleSelected: (article) => opened = article,
+    );
 
     expect(find.text('Tìm kiếm gần đây'), findsNothing);
-
-    final operator = find.byKey(
-      const ValueKey('featured-operator-Phương Trang'),
+    final percent = find.byKey(const ValueKey('home-promotion-VXN20'));
+    expect(
+      find.descendant(of: percent, matching: find.text('Giảm 20%')),
+      findsOne,
     );
+    expect(
+      find.descendant(of: percent, matching: find.text('Tối đa 50K')),
+      findsOne,
+    );
+    expect(find.text('Nhà xe Sao Mai · Đơn từ 300K'), findsOneWidget);
+    expect(find.text('Mã: SAOMAI50'), findsOneWidget);
+
+    final operator = find.byKey(const ValueKey('featured-operator-op-1'));
     await tester.scrollUntilVisible(
       operator,
       200,
       scrollable: _homeScrollable(),
     );
-    expect(operator, findsOneWidget);
     expect(tester.getSize(operator), const Size(158, 76));
-    expect(
-      find.descendant(of: operator, matching: find.text('Phương Trang')),
-      findsOneWidget,
-    );
+    expect(find.descendant(of: operator, matching: find.text('SM')), findsOne);
     expect(
       find.descendant(of: operator, matching: find.text('★ 4.8')),
-      findsOneWidget,
+      findsOne,
     );
     expect(
-      find.descendant(of: operator, matching: find.text('(12.5K đánh giá)')),
+      find.descendant(of: operator, matching: find.text('(120 đánh giá)')),
       findsOneWidget,
     );
-    expect(
-      find.descendant(of: operator, matching: find.text('TP.HCM → Đà Lạt')),
-      findsNothing,
-    );
+    expect(find.text('Chưa có đánh giá'), findsOneWidget);
 
-    final article = find.byKey(
-      const ValueKey(
-        'home-article-assets/home/articles/da_lat_coach_guide.jpg',
-      ),
-    );
+    final article = find.byKey(const ValueKey('home-article-di-da-lat'));
     await tester.scrollUntilVisible(
       article,
       200,
       scrollable: _homeScrollable(),
     );
-    expect(article, findsOneWidget);
     expect(tester.getSize(article), const Size(154, 86));
+    await tester.tap(article);
+    expect(opened?.slug, 'di-da-lat');
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('chạm thẻ ưu đãi chép mã', (tester) async {
+    String? copied;
+    tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+      SystemChannels.platform,
+      (call) async {
+        if (call.method == 'Clipboard.setData') {
+          copied = (call.arguments as Map)['text'] as String?;
+        }
+        return null;
+      },
+    );
+    addTearDown(
+      () => tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+        SystemChannels.platform,
+        null,
+      ),
+    );
+    await _pumpHome(
+      tester,
+      width: 390,
+      loadPromotions: () async => const [
+        HomePromotion(
+          code: 'VXN20',
+          name: 'Giảm 20%',
+          isPercent: true,
+          discountValue: 20,
+          minOrder: 0,
+        ),
+      ],
+    );
+
+    await tester.tap(find.byKey(const ValueKey('home-promotion-VXN20')));
+    await tester.pump();
+    expect(copied, 'VXN20');
+    expect(find.text('Đã chép mã VXN20. Dán mã khi đặt vé.'), findsOneWidget);
+  });
+
+  testWidgets('API rỗng hoặc lỗi thì ẩn mục, không hiện dữ liệu mẫu', (
+    tester,
+  ) async {
+    await _pumpHome(
+      tester,
+      width: 390,
+      loadPromotions: () async => const [],
+      loadFeaturedOperators: () async => throw Exception('mạng'),
+      loadArticles: () async => const [],
+    );
+
+    expect(find.text('Ưu đãi nổi bật'), findsNothing);
+    expect(find.text('Nhà xe nổi bật'), findsNothing);
+    expect(find.text('Khám phá & cẩm nang'), findsNothing);
+    expect(find.text('Phương Trang'), findsNothing);
     expect(tester.takeException(), isNull);
   });
 
@@ -392,7 +498,10 @@ void main() {
 
       await tester.tap(find.byKey(const Key('origin-input')));
       await tester.pumpAndSettle();
-      await tester.enterText(find.byKey(const Key('location-search-field')), 'l');
+      await tester.enterText(
+        find.byKey(const Key('location-search-field')),
+        'l',
+      );
       await tester.pumpAndSettle();
       expect(find.text('Lâm Đồng'), findsWidgets);
       expect(find.text('TP. Hồ Chí Minh'), findsNothing);

@@ -16,6 +16,7 @@ import 'package:passenger_mobile/features/account/voucher_wallet_screen.dart';
 import 'package:passenger_mobile/features/auth/auth_screen.dart';
 import 'package:passenger_mobile/features/auth/google_auth_service.dart';
 import 'package:passenger_mobile/features/explore/article_api.dart';
+import 'package:passenger_mobile/features/explore/article_reader_screen.dart';
 import 'package:passenger_mobile/features/explore/explore_screen.dart';
 import 'package:passenger_mobile/features/home/home_models.dart';
 import 'package:passenger_mobile/features/home/home_screen.dart';
@@ -927,6 +928,7 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
         onTabSelected: _selectMainTab,
         loadFeed: _articleApi.loadFeed,
         loadArticle: _articleApi.loadArticle,
+        loadPromotions: _bookingApi.loadPromotions,
       );
     }
     if ((_step == _AuthStep.signedIn || _step == _AuthStep.guest) &&
@@ -1122,6 +1124,22 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
     );
   }
 
+  /// Mở bài viết từ Trang chủ; "Tìm chuyến đi" trong bài chuyển sang tab Mua vé.
+  void _openArticle(ExploreArticle article) {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (routeContext) => ArticleReaderScreen(
+          slug: article.slug,
+          loadArticle: _articleApi.loadArticle,
+          onFindTrip: () {
+            Navigator.of(routeContext).pop();
+            _selectMainTab(1);
+          },
+        ),
+      ),
+    );
+  }
+
   Widget _home({required bool isLoggedIn}) {
     final emailName = _email?.split('@').first;
     return HomeScreen(
@@ -1130,6 +1148,10 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
       searchCatalog: _searchCatalog,
       loadPopularRoutes: _loadPopularRoutes,
       loadFaqs: _loadHomeFaqs,
+      loadPromotions: _bookingApi.loadPromotions,
+      loadFeaturedOperators: _bookingApi.loadOperators,
+      loadArticles: _articleApi.loadLatest,
+      onArticleSelected: _openArticle,
       onSearch: _openTripResults,
       onCallHotline: _launchSupportHotline,
       onLoginRequested: isLoggedIn ? null : _returnToLogin,
