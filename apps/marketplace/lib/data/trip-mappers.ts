@@ -22,6 +22,8 @@ export interface SearchTripsParams {
   readonly operatorId?: string;
   readonly sortBy?: "earliest" | "price_asc" | "fastest";
   readonly page?: string;
+  /** Xem vé không cần nhập ngày (không gửi `date`): API trả chuyến sắp chạy trong vài ngày tới. */
+  readonly anyDate?: boolean;
 }
 
 /** Kiểm tra số nguyên an toàn tại biên API và chuyển tiền sang chuỗi VND. */
@@ -106,7 +108,10 @@ export const JOURNEY_KEYS = [
 
 /** Tạo query tìm chuyến, giữ giá dưới dạng chuỗi và ngày theo giờ Việt Nam. */
 export function searchQuery(params: SearchTripsParams): URLSearchParams {
-  const query = new URLSearchParams({ date: params.date || vnToday(), passengers: String(params.passengers ?? 1) });
+  // Xem vé không nhập ngày (`anyDate`) thì không gửi `date`; còn lại giữ thứ tự cũ (date trước) cho URL ổn định.
+  const query = new URLSearchParams(
+    params.anyDate && !params.date ? { passengers: String(params.passengers ?? 1) } : { date: params.date || vnToday(), passengers: String(params.passengers ?? 1) }
+  );
   const forms: Record<string, string> = { seat: "SEATER", sleeper: "SLEEPER", cabin: "CABIN" };
   const keys: Record<PlaceType, string> = { province: "ProvinceId", ward: "WardId", area: "AreaId", stopPoint: "StopPointId" };
   const values = {
@@ -139,6 +144,7 @@ export function mapTripSearchItem(item: components["schemas"]["TripSearchRespons
     operatorRatingCountText: item.operator.reviewCount > 0 ? `${item.operator.reviewCount} đánh giá` : "Chưa có đánh giá",
     vehicleType: item.vehicleType.name,
     seatType: formNames[item.vehicleType.form], departureTime: formatTimeVi(item.pickup.plannedAt),
+    departureDateText: formatDateVi(item.pickup.plannedAt),
     departureCity: item.pickup.name, departureStation: item.pickup.name,
     arrivalTime: formatTimeVi(item.dropoff.plannedAt), arrivalCity: item.dropoff.name,
     arrivalStation: item.dropoff.name, durationText: duration(item.durationMinutes), stopCountText: "",

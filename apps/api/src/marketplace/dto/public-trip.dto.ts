@@ -27,8 +27,11 @@ export const TripSearchQuerySchema = z
     toWardId: id.optional(),
     toAreaId: areaId.optional(),
     toStopPointId: z.uuid().optional(),
-    /** Ngày đi (giờ đón tại điểm đón khớp) theo giờ VN. */
-    date: z.iso.date(),
+    /**
+     * Ngày đi (giờ đón tại điểm đón khớp) theo giờ VN. Bỏ trống = mọi chuyến từ bây giờ tới hết `BROWSE_DAYS` ngày (xem vé không
+     * cần nhập ngày — chờ duyệt 30/10/2026).
+     */
+    date: z.iso.date().optional(),
     passengers: z.coerce.number().int().min(1).max(MAX_PASSENGERS).default(1),
     operatorId: z.uuid().optional(),
     vehicleForm: z.enum(VehicleForm).optional(),
@@ -50,11 +53,12 @@ export const TripSearchQuerySchema = z
   })
   .superRefine((query, ctx) => {
     const count = (...values: (string | undefined)[]) => values.filter(Boolean).length;
-    if (count(query.fromProvinceId, query.fromWardId, query.fromAreaId, query.fromStopPointId) !== 1) {
-      ctx.addIssue({ code: "custom", path: ["fromProvinceId"], message: "Chọn đúng một điểm đi: tỉnh / thành, phường / xã, khu vực hoặc địa danh." });
+    // Mỗi phía chọn nhiều nhất một kiểu điểm; bỏ trống = mọi điểm đón / trả (xem vé không cần nhập — chờ duyệt 30/10/2026).
+    if (count(query.fromProvinceId, query.fromWardId, query.fromAreaId, query.fromStopPointId) > 1) {
+      ctx.addIssue({ code: "custom", path: ["fromProvinceId"], message: "Chọn nhiều nhất một điểm đi: tỉnh / thành, phường / xã, khu vực hoặc địa danh." });
     }
-    if (count(query.toProvinceId, query.toWardId, query.toAreaId, query.toStopPointId) !== 1) {
-      ctx.addIssue({ code: "custom", path: ["toProvinceId"], message: "Chọn đúng một điểm đến: tỉnh / thành, phường / xã, khu vực hoặc địa danh." });
+    if (count(query.toProvinceId, query.toWardId, query.toAreaId, query.toStopPointId) > 1) {
+      ctx.addIssue({ code: "custom", path: ["toProvinceId"], message: "Chọn nhiều nhất một điểm đến: tỉnh / thành, phường / xã, khu vực hoặc địa danh." });
     }
     if (query.priceMin !== undefined && query.priceMax !== undefined && query.priceMin > query.priceMax) {
       ctx.addIssue({ code: "custom", path: ["priceMax"], message: "Giá tối đa phải từ giá tối thiểu trở lên." });

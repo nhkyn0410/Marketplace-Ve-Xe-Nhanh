@@ -54,9 +54,9 @@ describe("Tìm chuyến công khai — HTTP", () => {
   });
 
   it.each([
-    [`date=2031-05-10&toProvinceId=${province}`],
+    [`toProvinceId=${province}&toAreaId=79&date=2031-05-10`],
     [`fromProvinceId=${province}&fromStopPointId=${randomUUID()}&toProvinceId=${province}&date=2031-05-10`],
-    [`fromProvinceId=${province}&toProvinceId=${province}`],
+    [`fromAreaId=79&fromWardId=${randomUUID()}`],
     [`fromProvinceId=${province}&fromWardId=${randomUUID()}&toProvinceId=${province}&date=2031-05-10`],
     [`fromProvinceId=${province}&toProvinceId=${province}&toWardId=${randomUUID()}&date=2031-05-10`],
     [`fromProvinceId=${province}&toProvinceId=${province}&date=10/05/2031`],

@@ -41,6 +41,7 @@ class TicketScreen extends StatefulWidget {
     required this.onTabSelected,
     this.searchCatalog,
     this.searchTrips,
+    this.browseTrips,
     this.loadOperatorFare,
     this.initialQuery,
     this.loadDefaultQuery,
@@ -52,10 +53,15 @@ class TicketScreen extends StatefulWidget {
   final ValueChanged<int> onTabSelected;
   final TripSearchCatalog? searchCatalog;
   final TripSearchRunner? searchTrips;
+
+  /// Chưa có điều kiện tìm: xem mọi chuyến sắp chạy, không cần nhập điểm đi /
+  /// đến hay ngày (ưu tiên hơn [loadDefaultQuery]).
+  final TripBrowseRunner? browseTrips;
   final OperatorFareLoader? loadOperatorFare;
 
-  /// Bấm một chuyến trong danh sách (mở chi tiết chuyến).
-  final void Function(TripSummary trip, HomeSearchQuery query)? onTripSelected;
+  /// Bấm một chuyến trong danh sách (mở chi tiết chuyến); `query` = `null` khi
+  /// đang xem chuyến sắp chạy.
+  final void Function(TripSummary trip, HomeSearchQuery? query)? onTripSelected;
 
   /// Điều kiện lần tìm trước (Trang chủ / lần khám phá trước): ngày, số khách,
   /// điểm đi – đến của chế độ Chuyến xe.
@@ -81,6 +87,9 @@ class _TicketScreenState extends State<TicketScreen>
   HomeSearchMode _mode = HomeSearchMode.route;
 
   HomeSearchQuery? _query;
+
+  /// Đang xem chuyến sắp chạy (chưa có điểm đi / đến) — [_query] là `null`.
+  bool _browsing = false;
   TripSearchFilters _filters = const TripSearchFilters();
   TripSearchPage? _page;
   List<TripSummary> _trips = const [];
@@ -105,6 +114,8 @@ class _TicketScreenState extends State<TicketScreen>
     if (query != null) {
       _applyContext(query);
       _search(_contextQuery()!);
+    } else if (widget.browseTrips != null) {
+      _browse();
     } else {
       _loadDefaultContext();
     }
@@ -290,14 +301,16 @@ class _TicketScreenState extends State<TicketScreen>
             icon: Icons.wifi_off_outlined,
             message: error,
             actionLabel: 'Thử lại',
-            onAction: query == null
-                ? _loadDefaultContext
-                : () => _search(query),
+            onAction: query != null
+                ? () => _search(query)
+                : _browsing
+                ? _browse
+                : _loadDefaultContext,
           ),
         ),
       ];
     }
-    if (query == null) {
+    if (query == null && !_browsing) {
       return [
         _messageSliver(
           const _ResultMessage(
@@ -317,6 +330,8 @@ class _TicketScreenState extends State<TicketScreen>
             icon: Icons.directions_bus_outlined,
             message: filtered
                 ? 'Không có chuyến khớp bộ lọc. Hãy bỏ bớt bộ lọc.'
+                : _browsing
+                ? 'Chưa có chuyến sắp chạy trong 7 ngày tới.'
                 : 'Chưa có chuyến phù hợp. Hãy thử ngày khác hoặc địa điểm khác.',
             actionLabel: filtered ? 'Bỏ lọc' : null,
             onAction: filtered ? () => _applyFilters(_filters.cleared()) : null,
@@ -325,6 +340,17 @@ class _TicketScreenState extends State<TicketScreen>
       ];
     }
     return [
+      if (_browsing)
+        _messageSliver(
+          const Padding(
+            key: Key('ticket-browse-hint'),
+            padding: EdgeInsets.symmetric(horizontal: 15),
+            child: Text(
+              'Chuyến sắp chạy của mọi tuyến trong 7 ngày tới. Chọn điểm đi, điểm đến để tìm đúng chuyến.',
+              style: TextStyle(color: Color(0xFF607A8E), fontSize: 13),
+            ),
+          ),
+        ),
       ..._widenedSlivers(_page),
       SliverPadding(
         padding: const EdgeInsets.symmetric(horizontal: 15),
@@ -334,8 +360,10 @@ class _TicketScreenState extends State<TicketScreen>
             return _TripCard(
               key: ValueKey('ticket-trip-${trip.tripId}'),
               trip: trip,
-              fromLabel: query.from.name,
-              toLabel: query.to.name,
+              fromLabel: query?.from.name ?? trip.pickup.name,
+              toLabel: query?.to.name ?? trip.dropoff.name,
+              // Danh sách sắp chạy gồm nhiều ngày: ghi ngày đi trên thẻ.
+              dateLabel: _browsing ? formatVnDate(trip.pickup.plannedAt) : null,
               onOpenDetail: () => widget.onTripSelected?.call(trip, query),
             );
           },
@@ -517,6 +545,36 @@ class _TicketScreenState extends State<TicketScreen>
       a.date == b.date &&
       a.passengers == b.passengers;
 
+  /// Xem mọi chuyến sắp chạy (chưa có điểm đi / đến).
+  Future<void> _browse() async {
+    final runner = widget.browseTrips;
+    if (runner == null) return;
+    final request = ++_request;
+    setState(() {
+      _query = null;
+      _browsing = true;
+      _loading = true;
+      _loadingMore = false;
+      _error = null;
+      _trips = const [];
+    });
+    try {
+      final page = await runner(_filters, 1);
+      if (!mounted || request != _request) return;
+      setState(() {
+        _page = page;
+        _trips = page.items;
+        _loading = false;
+      });
+    } catch (error) {
+      if (!mounted || request != _request) return;
+      setState(() {
+        _loading = false;
+        _error = _describeSearchError(error);
+      });
+    }
+  }
+
   Future<void> _search(HomeSearchQuery query) async {
     final runner = widget.searchTrips;
     if (runner == null) {
@@ -526,6 +584,7 @@ class _TicketScreenState extends State<TicketScreen>
     final request = ++_request;
     setState(() {
       _query = query;
+      _browsing = false;
       _loading = true;
       _loadingMore = false;
       _error = null;
@@ -552,10 +611,11 @@ class _TicketScreenState extends State<TicketScreen>
     final query = _query;
     final page = _page;
     final runner = widget.searchTrips;
+    final browse = widget.browseTrips;
     if (_mode != HomeSearchMode.route ||
-        query == null ||
+        (query == null && !(_browsing && browse != null)) ||
         page == null ||
-        runner == null ||
+        (query != null && runner == null) ||
         !page.hasMore ||
         _loading ||
         _loadingMore ||
@@ -567,7 +627,9 @@ class _TicketScreenState extends State<TicketScreen>
     final request = _request;
     setState(() => _loadingMore = true);
     try {
-      final next = await runner(query, _filters, page.page + 1);
+      final next = query != null
+          ? await runner!(query, _filters, page.page + 1)
+          : await browse!(_filters, page.page + 1);
       if (!mounted || request != _request) return;
       setState(() {
         _page = next;
@@ -584,7 +646,11 @@ class _TicketScreenState extends State<TicketScreen>
   void _applyFilters(TripSearchFilters filters) {
     setState(() => _filters = filters);
     final query = _query;
-    if (query != null) _search(query);
+    if (query != null) {
+      _search(query);
+    } else if (_browsing) {
+      _browse();
+    }
   }
 
   Future<void> _openFilters() async {
@@ -1928,6 +1994,7 @@ class _TripCard extends StatelessWidget {
     required this.fromLabel,
     required this.toLabel,
     required this.onOpenDetail,
+    this.dateLabel,
     super.key,
   });
 
@@ -1935,6 +2002,9 @@ class _TripCard extends StatelessWidget {
   final String fromLabel;
   final String toLabel;
   final VoidCallback onOpenDetail;
+
+  /// Ngày đi (danh sách nhiều ngày); `null` = không ghi.
+  final String? dateLabel;
 
   @override
   Widget build(BuildContext context) {
@@ -1965,6 +2035,22 @@ class _TripCard extends StatelessWidget {
                   padding: const EdgeInsets.only(right: 13),
                   child: _TripOperatorHeader(trip: trip),
                 ),
+                if (dateLabel != null)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 6, right: 13),
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        dateLabel!,
+                        key: ValueKey('ticket-trip-date-${trip.tripId}'),
+                        style: const TextStyle(
+                          color: _primary,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
                 const SizedBox(height: 8),
                 SizedBox(
                   height: 76,
@@ -2070,7 +2156,8 @@ class _TripJourney extends StatelessWidget {
               width: 67,
               child: _JourneyPoint(
                 time: formatVnClock(trip.pickup.plannedAt),
-                city: _compactPlace(fromLabel),
+                // Nơi thật của điểm đón (API ghép theo phường) thay cho chữ trên ô tìm (vd tìm "Lâm Đồng" nhưng đón ở Đà Lạt).
+                city: _compactPlace(trip.segmentPart(0) ?? fromLabel),
                 station: trip.pickup.name,
               ),
             ),
@@ -2084,7 +2171,7 @@ class _TripJourney extends StatelessWidget {
               width: 56,
               child: _JourneyPoint(
                 time: formatVnClock(trip.dropoff.plannedAt),
-                city: _compactPlace(toLabel),
+                city: _compactPlace(trip.segmentPart(1) ?? toLabel),
                 station: trip.dropoff.name,
               ),
             ),

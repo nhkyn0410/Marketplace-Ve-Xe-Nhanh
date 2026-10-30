@@ -79,7 +79,7 @@ export function PopularRoutesSection({
           </h2>
         </div>
         <Link
-          href="/trips"
+          href="/trips/explore"
           className="text-xs font-bold text-[#00506a] hover:underline"
         >
           Xem tất cả tuyến

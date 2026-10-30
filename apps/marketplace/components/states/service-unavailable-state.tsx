@@ -56,7 +56,7 @@ export function ServiceUnavailableState({
           variant="outline"
           className="h-10.5 rounded-lg border-vxn-border bg-white px-5 text-vxn-ink hover:bg-vxn-bg-2"
         >
-          <Link href="/trips">
+          <Link href="/trips/explore">
             <ArrowLeft className="mr-2 size-4" />
             Xem lại chuyến
           </Link>

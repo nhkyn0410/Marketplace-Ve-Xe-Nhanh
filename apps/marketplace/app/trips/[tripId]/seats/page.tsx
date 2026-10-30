@@ -32,7 +32,7 @@ export default async function SeatsPage({ params, searchParams }: SeatsPageProps
 
   const breadcrumbs = [
     { label: "Trang chủ", href: "/" },
-    { label: "Mua vé", href: "/trips" },
+    { label: "Mua vé", href: "/trips/explore" },
     { label: "Chọn chỗ" }
   ];
   // Như Figma: chèn tên tuyến (về trang chi tiết chuyến) trước "Chọn chỗ" khi đã có dữ liệu chuyến.

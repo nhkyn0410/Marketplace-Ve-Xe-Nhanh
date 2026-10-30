@@ -31,7 +31,7 @@ export function TicketsEmptyCard() {
         </Link>
 
         <Link
-          href="/trips"
+          href="/trips/explore"
           className="inline-flex w-full sm:w-auto items-center justify-center gap-2 rounded-xl bg-[#00506a] px-6 py-2.5 text-xs sm:text-sm font-bold text-white shadow-xs transition hover:bg-[#00476b] active:scale-[0.99]"
         >
           <Compass className="h-4 w-4" />

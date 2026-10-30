@@ -53,6 +53,15 @@ describe("API trip boundary", () => {
     expect(tripLegQuery({ passengers: undefined })).toBe("");
   });
 
+  it("xem vé không nhập ngày / điểm: không gửi date và điểm; có ngày thì vẫn gửi", () => {
+    const browse = searchQuery({ anyDate: true, sortBy: "earliest" });
+    expect(browse.has("date")).toBe(false);
+    expect(browse.has("fromProvinceId")).toBe(false);
+    expect(browse.get("sort")).toBe("departure");
+    expect(searchQuery({ anyDate: true, date: "2026-11-02" }).get("date")).toBe("2026-11-02");
+    expect(searchQuery({}).has("date")).toBe(true);
+  });
+
   it("thẻ kết quả lấy điểm đánh giá nhà xe từ API", () => {
     const item = (averageRating: number | null, reviewCount: number) => mapTripSearchItem({
       tripId: "trip", operator: { id: "op", name: "Nhà xe A", slug: "a", averageRating, reviewCount }, routeName: "A → B", segmentTitle: "A → B",

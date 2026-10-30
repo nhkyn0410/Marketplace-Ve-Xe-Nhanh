@@ -17,7 +17,7 @@ export function TicketsHeader() {
       </div>
 
       <Link
-        href="/trips"
+        href="/trips/explore"
         className="inline-flex items-center justify-center gap-1.5 self-start sm:self-auto rounded-xl bg-[#00506a] px-5 py-2.5 text-xs sm:text-sm font-bold text-white shadow-xs transition hover:bg-[#00476b] active:scale-[0.99]"
       >
         <Plus className="h-4 w-4" />

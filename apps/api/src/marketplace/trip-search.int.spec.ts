@@ -490,6 +490,10 @@ describe.skipIf(!url && !requireDb)("Tìm chuyến công khai — Postgres thậ
     expect(fromMid.items.find((item) => item.tripId === tripId)).toMatchObject({ pickup: { sequence: 2 } });
     const fromStart = await search.search(query({ date: new Date(soon.getTime() + 7 * HOUR).toISOString().slice(0, 10) }));
     expect(fromStart.items.some((item) => item.tripId === tripId)).toBe(false);
+    // Không nhập điểm đi / đến / ngày (xem vé): chuyến sắp chạy, đón từ điểm còn bán, trả ở điểm cuối.
+    redis.store.clear();
+    const browse = await search.search(TripSearchQuerySchema.parse({ operatorId: opA, limit: 50 }));
+    expect(browse.items.find((item) => item.tripId === tripId)).toMatchObject({ pickup: { sequence: 2 }, dropoff: { sequence: 3 } });
     // Chọn chặng từ điểm đầu đã qua giờ → không tính chặng đó.
     expect((await search.getTrip(tripId, { pickupSequence: 1, dropoffSequence: 3 })).segment).toBeNull();
   });

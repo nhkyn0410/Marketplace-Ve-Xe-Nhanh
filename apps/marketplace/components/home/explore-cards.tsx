@@ -76,7 +76,7 @@ export function ExploreCardsSection() {
               </p>
               <div className="mt-3">
                 <Link
-                  href="/trips"
+                  href="/trips/explore"
                   className="text-xs font-bold text-[#00506a] hover:underline"
                 >
                   Tìm chuyến phù hợp

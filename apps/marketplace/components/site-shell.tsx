@@ -31,7 +31,7 @@ import { getPreview } from "../lib/preview";
 const MAIN_NAV: readonly NavItem[] = [
   { href: "/explore", label: "Khám phá", icon: Globe },
   { href: "/", label: "Trang chủ", icon: MapPin },
-  { href: "/trips", label: "Mua vé", icon: FileText },
+  { href: "/trips/explore", label: "Mua vé", icon: FileText },
   { href: "/my-tickets", label: "Hành trình", icon: Navigation },
   { href: "/plus", label: "Thành viên", icon: Star }
 ];

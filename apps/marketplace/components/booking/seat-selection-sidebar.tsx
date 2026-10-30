@@ -159,7 +159,7 @@ export function SeatSelectionSidebar({
             </button>
 
             <Link
-              href="/trips"
+              href="/trips/explore"
               className="flex w-full items-center justify-center gap-1.5 rounded-xl border border-neutral-300/90 bg-white py-2.5 text-xs sm:text-sm font-semibold text-neutral-700 transition hover:bg-neutral-50 hover:border-neutral-400 text-center"
             >
               <ArrowLeft className="h-3.5 w-3.5" />

@@ -33,6 +33,8 @@ const VN_OFFSET = 7 * 60 * MINUTE;
 const LANDMARK_RADIUS_METERS = 5_000;
 /** Số chuyến khớp tối đa mỗi truy vấn trước khi lọc / sắp — một cặp điểm trong một ngày chỉ vài chục chuyến. */
 const CANDIDATE_LIMIT = 300;
+/** Không nhập ngày: xem mọi chuyến từ bây giờ tới hết bấy nhiêu ngày (chờ duyệt 30/10/2026). */
+const BROWSE_DAYS = 7;
 /** Cache kết quả tìm 60 giây (ADR-015) — tìm không giữ chỗ nên Redis lỗi thì tính lại, không chặn. */
 const CACHE_TTL_SECONDS = 60;
 
@@ -175,11 +177,12 @@ export class TripSearchService {
    */
   private async matching(query: TripSearchQuery): Promise<Matched> {
     const sideKey = (provinceId?: string, wardId?: string, areaId?: string, stopPointId?: string) =>
-      provinceId ?? (wardId ? `ward:${wardId}` : areaId ? `area:${areaId}` : `stop:${stopPointId}`);
+      provinceId ?? (wardId ? `ward:${wardId}` : areaId ? `area:${areaId}` : stopPointId ? `stop:${stopPointId}` : "any");
     const identity = {
       from: sideKey(query.fromProvinceId, query.fromWardId, query.fromAreaId, query.fromStopPointId),
       to: sideKey(query.toProvinceId, query.toWardId, query.toAreaId, query.toStopPointId),
-      date: query.date,
+      // Không nhập ngày: cửa sổ trượt theo giờ (cache 60 giây vẫn đủ mới).
+      date: query.date ?? `browse:${new Date().toISOString().slice(0, 13)}`,
       passengers: query.passengers,
     };
     // Tăng `vN` mỗi khi đổi dạng kết quả cache (`Matched` / `TripSearchItem`), để kết quả cũ trong cache không lọt ra response mới.
@@ -216,14 +219,15 @@ export class TripSearchService {
   }
 
   private async compute(query: TripSearchQuery, from: SearchSide, to: SearchSide): Promise<TripSearchItem[]> {
-    const dayStart = new Date(Date.parse(`${query.date}T00:00:00Z`) - VN_OFFSET);
+    const now = new Date();
+    const dayStart = query.date ? new Date(Date.parse(`${query.date}T00:00:00Z`) - VN_OFFSET) : now;
     const candidates = await searchTripCandidates(this.prisma, {
       from,
       to,
       dayStart,
-      dayEnd: new Date(dayStart.getTime() + DAY),
+      dayEnd: new Date(dayStart.getTime() + (query.date ? DAY : BROWSE_DAYS * DAY)),
       passengers: query.passengers,
-      now: new Date(),
+      now,
       limit: CANDIDATE_LIMIT,
     });
     const [rules, ratings] = await Promise.all([
@@ -299,6 +303,9 @@ export class TripSearchService {
     areaId: string | undefined,
     stopPointId: string | undefined,
   ): Promise<{ side: SearchSide; wardProvinceId?: string } | null> {
+    if (!provinceId && !wardId && !areaId && !stopPointId) {
+      return { side: { any: true } };
+    }
     if (provinceId) {
       return { side: { provinceId } };
     }

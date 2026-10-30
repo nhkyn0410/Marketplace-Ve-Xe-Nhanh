@@ -11,12 +11,14 @@ export interface TripCardProps {
   readonly trip: TripSearchResultItem;
   /** Số khách của lần tìm — mang sang chi tiết chuyến cùng điểm đón / trả đã khớp. */
   readonly passengers?: number;
+  /** Hiện ngày đi dưới giờ đi — danh sách chuyến sắp chạy gồm nhiều ngày. */
+  readonly showDate?: boolean;
 }
 
 /**
  * Thẻ hiển thị một chuyến xe trong danh sách kết quả tìm kiếm chuẩn theo Figma 1440:11297.
  */
-export function TripCard({ trip, passengers }: TripCardProps) {
+export function TripCard({ trip, passengers, showDate }: TripCardProps) {
   const leg = tripLegQuery({ pickup: trip.pickupSequence, dropoff: trip.dropoffSequence, passengers });
   return (
     <div className="flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xs transition hover:border-[#408ba0] hover:shadow-md md:flex-row">
@@ -82,6 +84,9 @@ export function TripCard({ trip, passengers }: TripCardProps) {
                   {trip.departureTime}
                 </div>
                 <div className="text-xs font-medium text-slate-500">{trip.departureCity}</div>
+                {showDate && trip.departureDateText && (
+                  <div className="text-[11px] font-semibold text-[#00506a]">{trip.departureDateText}</div>
+                )}
               </div>
 
               {/* Đường kẻ thời gian */}

@@ -137,7 +137,32 @@ class TripBookingApi {
         limit: 20,
       ),
     );
-    final data = response.data!;
+    return _tripPage(response.data!);
+  }
+
+  /// Chuyến sắp chạy của mọi tuyến trong vài ngày tới — không gửi điểm đi / đến hay ngày (chờ duyệt 30/10/2026).
+  Future<TripSearchPage> browseTrips(TripSearchFilters filters, int page) async {
+    final amenityIds = filters.amenityIds.join(',');
+    final response = await _call(
+      () => _client.getTripsApi().publicTripControllerSearch(
+        passengers: 1,
+        operatorId: filters.operatorId,
+        vehicleForm: filters.vehicleForm?.apiValue,
+        vehicleClass: filters.vehicleClass?.apiValue,
+        departureFrom: filters.departureSlot?.from,
+        departureTo: filters.departureSlot?.to,
+        priceMin: filters.priceMin,
+        priceMax: filters.priceMax,
+        amenityIds: amenityIds.isEmpty ? null : amenityIds,
+        sort: filters.sort.apiValue,
+        page: page,
+        limit: 20,
+      ),
+    );
+    return _tripPage(response.data!);
+  }
+
+  TripSearchPage _tripPage(TripSearchResponseDtoOutput data) {
     return TripSearchPage(
       total: data.total,
       page: data.page,
@@ -176,6 +201,7 @@ class TripBookingApi {
             minPrice: item.minPrice,
             amenityNames: [for (final amenity in item.amenities) amenity.name],
             coverImageUrl: item.vehicleCoverImageUrl,
+            segmentTitle: item.segmentTitle,
           ),
       ],
     );

@@ -17,7 +17,7 @@ class TripResultsScreen extends StatefulWidget {
   final HomeSearchQuery query;
   final TripSearchRunner? searchTrips;
   final TripSearchCatalog? searchCatalog;
-  final void Function(TripSummary trip, HomeSearchQuery query)? onTripSelected;
+  final void Function(TripSummary trip, HomeSearchQuery? query)? onTripSelected;
 
   /// Bộ lọc mở sẵn, vd. nhánh khám phá theo nhà xe lọc sẵn một nhà xe.
   final TripSearchFilters initialFilters;

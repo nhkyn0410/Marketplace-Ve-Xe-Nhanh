@@ -20335,7 +20335,7 @@ export interface operations {
     };
     PublicTripController_search: {
         parameters: {
-            query: {
+            query?: {
                 fromProvinceId?: string;
                 fromWardId?: string;
                 fromAreaId?: string;
@@ -20344,7 +20344,7 @@ export interface operations {
                 toWardId?: string;
                 toAreaId?: string;
                 toStopPointId?: string;
-                date: string;
+                date?: string;
                 passengers?: number;
                 operatorId?: string;
                 vehicleForm?: "SEATER" | "SLEEPER" | "CABIN";
