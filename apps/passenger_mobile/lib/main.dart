@@ -15,6 +15,7 @@ import 'package:passenger_mobile/features/account/login_sessions_screen.dart';
 import 'package:passenger_mobile/features/account/voucher_wallet_screen.dart';
 import 'package:passenger_mobile/features/auth/auth_screen.dart';
 import 'package:passenger_mobile/features/auth/google_auth_service.dart';
+import 'package:passenger_mobile/features/explore/article_api.dart';
 import 'package:passenger_mobile/features/explore/explore_screen.dart';
 import 'package:passenger_mobile/features/home/home_models.dart';
 import 'package:passenger_mobile/features/home/home_screen.dart';
@@ -165,6 +166,7 @@ class OtpLoginPage extends StatefulWidget {
 class _OtpLoginPageState extends State<OtpLoginPage> {
   final _tokens = const TokenStorage();
   late final _api = createApiClient(baseUrl: apiBaseUrl, tokens: _tokens);
+  late final _articleApi = ArticleApi(_api);
   late final _bookingApi = TripBookingApi(
     _api,
     isSignedIn: () => _step == _AuthStep.signedIn,
@@ -826,9 +828,9 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
   /// nhập). Giá "từ" theo bảng giá đang áp dụng của tuyến nên không phụ thuộc
   /// ngày đi; tuyến chưa có giá thì bỏ (chưa đặt được).
   Future<List<HomePopularRoute>> _loadPopularRoutes(DateTime _) async {
-    final response = await _api.getCatalogApi().catalogControllerListPopularRoutes(
-      limit: _popularRouteCount,
-    );
+    final response = await _api
+        .getCatalogApi()
+        .catalogControllerListPopularRoutes(limit: _popularRouteCount);
     final items = response.data?.items;
     if (items == null) {
       throw StateError('Popular routes response did not contain data.');
@@ -846,7 +848,10 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
           fromLabel: _cardLabel(from),
           toLabel: _cardLabel(to),
           minPriceVnd: minPrice,
-          fallbackAsset: _destinationAsset(route.destinationName, routes.length),
+          fallbackAsset: _destinationAsset(
+            route.destinationName,
+            routes.length,
+          ),
         ),
       );
     }
@@ -918,7 +923,11 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
   Widget _buildCurrentView(BuildContext context) {
     if ((_step == _AuthStep.signedIn || _step == _AuthStep.guest) &&
         _currentTab == 0) {
-      return ExploreScreen(onTabSelected: _selectMainTab);
+      return ExploreScreen(
+        onTabSelected: _selectMainTab,
+        loadFeed: _articleApi.loadFeed,
+        loadArticle: _articleApi.loadArticle,
+      );
     }
     if ((_step == _AuthStep.signedIn || _step == _AuthStep.guest) &&
         _currentTab == 1) {

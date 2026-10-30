@@ -3,7 +3,9 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:passenger_mobile/features/explore/article_api.dart';
 import 'package:passenger_mobile/features/explore/article_detail_screen.dart';
+import 'package:passenger_mobile/features/explore/article_reader_screen.dart';
 import 'package:passenger_mobile/features/home/route_dock_tabbar.dart';
 
 const _assetRoot = 'assets/explore';
@@ -142,9 +144,20 @@ final _tipsFeed = ExploreFeed(
 );
 
 class ExploreScreen extends StatefulWidget {
-  const ExploreScreen({required this.onTabSelected, super.key});
+  const ExploreScreen({
+    required this.onTabSelected,
+    this.loadFeed,
+    this.loadArticle,
+    super.key,
+  });
 
   final ValueChanged<int> onTabSelected;
+
+  /// Bài viết của chuyên mục (`null` = tất cả) từ API; không truyền thì dùng dữ liệu mẫu Figma.
+  final Future<ExploreFeed> Function(String? category)? loadFeed;
+
+  /// Nội dung một bài viết theo slug, cho màn đọc bài.
+  final Future<ArticleDetail> Function(String slug)? loadArticle;
 
   @override
   State<ExploreScreen> createState() => _ExploreScreenState();
@@ -154,6 +167,45 @@ class _ExploreScreenState extends State<ExploreScreen> {
   final _searchController = TextEditingController();
   String _category = 'all';
   bool _dockVisible = true;
+  final _remoteFeeds = <String, Future<ExploreFeed>>{};
+
+  /// Feed API của chuyên mục đang chọn, tải một lần; `null` khi dùng dữ liệu mẫu.
+  Future<ExploreFeed>? get _remoteFeed {
+    final load = widget.loadFeed;
+    if (load == null) return null;
+    return _remoteFeeds.putIfAbsent(
+      _category,
+      () => load(_category == 'all' ? null : _category),
+    );
+  }
+
+  void _retryFeed() {
+    setState(() {
+      _remoteFeeds.remove(_category);
+    });
+  }
+
+  void _findTrip() {
+    Navigator.of(context).pop();
+    widget.onTabSelected(1);
+  }
+
+  /// Hành động khi chạm một bài; `null` = bài mẫu chưa có màn đọc.
+  VoidCallback? _articleAction(ExploreArticle article) {
+    final loadArticle = widget.loadArticle;
+    if (widget.loadFeed != null && loadArticle != null) {
+      return () => Navigator.of(context).push(
+        MaterialPageRoute<void>(
+          builder: (_) => ArticleReaderScreen(
+            slug: article.slug,
+            loadArticle: loadArticle,
+            onFindTrip: _findTrip,
+          ),
+        ),
+      );
+    }
+    return article.slug == 'phu-yen-xanh-ngay-ngat' ? _openPhuYenArticle : null;
+  }
 
   ExploreFeed get _feed => switch (_category) {
     'cam-nang' => _guideFeed,
@@ -234,15 +286,27 @@ class _ExploreScreenState extends State<ExploreScreen> {
                     ScrollViewKeyboardDismissBehavior.onDrag,
                 slivers: [
                   SliverToBoxAdapter(
-                    child: _ScaledExploreCanvas(
-                      feed: _feed,
-                      category: _category,
-                      searchController: _searchController,
-                      onCategorySelected: _selectCategory,
-                      onFeaturedTap:
-                          _feed.featured?.slug == 'phu-yen-xanh-ngay-ngat'
-                          ? _openPhuYenArticle
-                          : null,
+                    child: FutureBuilder<ExploreFeed>(
+                      future: _remoteFeed,
+                      builder: (context, snapshot) {
+                        final remote = widget.loadFeed != null;
+                        final status = !remote
+                            ? _FeedStatus.ready
+                            : snapshot.hasError
+                            ? _FeedStatus.failed
+                            : snapshot.connectionState == ConnectionState.done
+                            ? _FeedStatus.ready
+                            : _FeedStatus.loading;
+                        return _ScaledExploreCanvas(
+                          feed: remote ? snapshot.data ?? _noArticles : _feed,
+                          status: status,
+                          onRetry: _retryFeed,
+                          category: _category,
+                          searchController: _searchController,
+                          onCategorySelected: _selectCategory,
+                          articleAction: _articleAction,
+                        );
+                      },
                     ),
                   ),
                 ],
@@ -285,14 +349,18 @@ class _ScaledExploreCanvas extends StatelessWidget {
     required this.category,
     required this.searchController,
     required this.onCategorySelected,
-    required this.onFeaturedTap,
+    required this.articleAction,
+    required this.status,
+    required this.onRetry,
   });
 
   final ExploreFeed feed;
   final String category;
   final TextEditingController searchController;
   final ValueChanged<String> onCategorySelected;
-  final VoidCallback? onFeaturedTap;
+  final VoidCallback? Function(ExploreArticle article) articleAction;
+  final _FeedStatus status;
+  final VoidCallback onRetry;
 
   @override
   Widget build(BuildContext context) {
@@ -313,7 +381,9 @@ class _ScaledExploreCanvas extends StatelessWidget {
                 category: category,
                 searchController: searchController,
                 onCategorySelected: onCategorySelected,
-                onFeaturedTap: onFeaturedTap,
+                articleAction: articleAction,
+                status: status,
+                onRetry: onRetry,
               ),
             ),
           ),
@@ -329,14 +399,18 @@ class _ExploreCanvas extends StatelessWidget {
     required this.category,
     required this.searchController,
     required this.onCategorySelected,
-    required this.onFeaturedTap,
+    required this.articleAction,
+    required this.status,
+    required this.onRetry,
   });
 
   final ExploreFeed feed;
   final String category;
   final TextEditingController searchController;
   final ValueChanged<String> onCategorySelected;
-  final VoidCallback? onFeaturedTap;
+  final VoidCallback? Function(ExploreArticle article) articleAction;
+  final _FeedStatus status;
+  final VoidCallback onRetry;
 
   @override
   Widget build(BuildContext context) {
@@ -376,16 +450,16 @@ class _ExploreCanvas extends StatelessWidget {
               article: feed.featured!,
               categoryView: categoryView,
               compact: tipsView,
-              onTap: onFeaturedTap,
+              onTap: articleAction(feed.featured!),
             ),
           )
         else
-          const Positioned(
+          Positioned(
             left: 14,
             top: 207,
             width: 384,
             height: 271,
-            child: _EmptyExploreCard(),
+            child: _EmptyExploreCard(status: status, onRetry: onRetry),
           ),
         Positioned(
           left: 19,
@@ -405,7 +479,11 @@ class _ExploreCanvas extends StatelessWidget {
           left: 14,
           top: latestListTop,
           width: 384,
-          child: _LatestArticles(articles: feed.latest),
+          child: _LatestArticles(
+            articles: feed.latest,
+            hideEmptyMessage: status != _FeedStatus.ready,
+            articleAction: articleAction,
+          ),
         ),
         if (!categoryView) ...[
           const Positioned(
@@ -691,7 +769,11 @@ class _FeaturedArticleCard extends StatelessWidget {
                 left: 16,
                 top: compact ? 229 : 252,
                 child: Text(
-                  '${_formatDate(article.publishedAt)}   ·   ${article.readingTimeMinutes ?? 6} phút đọc',
+                  [
+                    _formatDate(article.publishedAt),
+                    if (article.readingTimeMinutes case final minutes?)
+                      '$minutes phút đọc',
+                  ].join('   ·   '),
                   style: const TextStyle(
                     color: Color(0xFF71869F),
                     fontFamily: 'Be Vietnam Pro',
@@ -776,12 +858,21 @@ class _ArticleCategoryBadge extends StatelessWidget {
 }
 
 class _LatestArticles extends StatelessWidget {
-  const _LatestArticles({required this.articles});
+  const _LatestArticles({
+    required this.articles,
+    required this.articleAction,
+    this.hideEmptyMessage = false,
+  });
 
   final List<ExploreArticle> articles;
+  final VoidCallback? Function(ExploreArticle article) articleAction;
+
+  /// Đang tải hoặc lỗi: thẻ phía trên đã báo, không lặp "chưa có bài viết".
+  final bool hideEmptyMessage;
 
   @override
   Widget build(BuildContext context) {
+    if (articles.isEmpty && hideEmptyMessage) return const SizedBox.shrink();
     if (articles.isEmpty) {
       return const SizedBox(
         height: 588,
@@ -801,17 +892,26 @@ class _LatestArticles extends StatelessWidget {
     return Column(
       children: [
         for (var index = 0; index < visible.length; index++)
-          _LatestArticleRow(article: visible[index], index: index),
+          _LatestArticleRow(
+            article: visible[index],
+            index: index,
+            onTap: articleAction(visible[index]),
+          ),
       ],
     );
   }
 }
 
 class _LatestArticleRow extends StatelessWidget {
-  const _LatestArticleRow({required this.article, required this.index});
+  const _LatestArticleRow({
+    required this.article,
+    required this.index,
+    this.onTap,
+  });
 
   final ExploreArticle article;
   final int index;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -819,88 +919,122 @@ class _LatestArticleRow extends StatelessWidget {
       key: Key('explore-latest-row-$index'),
       width: 384,
       height: 196,
-      child: Stack(
-        children: [
-          const Positioned(
-            left: 4,
-            top: 0,
-            width: 376,
-            height: 1,
-            child: ColoredBox(color: Color(0xFFD8E6ED)),
-          ),
-          Positioned(
-            left: 4,
-            top: 24,
-            width: 240,
-            height: 148,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _ArticleCategoryBadge(
-                  key: Key('explore-latest-badge-$index'),
-                  category: article.category,
-                  uppercase: false,
-                ),
-                const SizedBox(height: 14),
-                Text(
-                  article.title,
-                  maxLines: 4,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    color: _ink,
-                    fontFamily: 'Be Vietnam Pro',
-                    fontSize: 14,
-                    height: 1.5,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ],
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onTap,
+        child: Stack(
+          children: [
+            const Positioned(
+              left: 4,
+              top: 0,
+              width: 376,
+              height: 1,
+              child: ColoredBox(color: Color(0xFFD8E6ED)),
             ),
-          ),
-          Positioned(
-            left: 264,
-            top: 24,
-            width: 116,
-            height: 148,
-            child: ClipRRect(
-              key: Key('explore-latest-image-$index'),
-              borderRadius: BorderRadius.circular(6),
-              child: _NetworkOrAssetImage(
-                url: article.coverImageUrl,
-                fallbackAsset: article.fallbackAsset,
-                fit: BoxFit.cover,
+            Positioned(
+              left: 4,
+              top: 24,
+              width: 240,
+              height: 148,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _ArticleCategoryBadge(
+                    key: Key('explore-latest-badge-$index'),
+                    category: article.category,
+                    uppercase: false,
+                  ),
+                  const SizedBox(height: 14),
+                  Text(
+                    article.title,
+                    maxLines: 4,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      color: _ink,
+                      fontFamily: 'Be Vietnam Pro',
+                      fontSize: 14,
+                      height: 1.5,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ],
               ),
             ),
-          ),
-        ],
+            Positioned(
+              left: 264,
+              top: 24,
+              width: 116,
+              height: 148,
+              child: ClipRRect(
+                key: Key('explore-latest-image-$index'),
+                borderRadius: BorderRadius.circular(6),
+                child: _NetworkOrAssetImage(
+                  url: article.coverImageUrl,
+                  fallbackAsset: article.fallbackAsset,
+                  fit: BoxFit.cover,
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 }
 
+/// Trạng thái feed bài viết lấy từ API.
+enum _FeedStatus { loading, ready, failed }
+
+const _noArticles = ExploreFeed(featured: null, latest: []);
+
 class _EmptyExploreCard extends StatelessWidget {
-  const _EmptyExploreCard();
+  const _EmptyExploreCard({required this.status, required this.onRetry});
+
+  final _FeedStatus status;
+  final VoidCallback onRetry;
 
   @override
   Widget build(BuildContext context) {
+    const style = TextStyle(
+      color: _secondary,
+      fontFamily: 'Be Vietnam Pro',
+      fontSize: 14,
+      height: 1.4,
+    );
     return DecoratedBox(
+      key: const Key('explore-empty-card'),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(14),
       ),
-      child: const Center(
+      child: Center(
         child: Padding(
-          padding: EdgeInsets.all(24),
-          child: Text(
-            'Chưa có bài viết phù hợp. Hãy thử chuyên mục khác.',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              color: _secondary,
-              fontFamily: 'Be Vietnam Pro',
-              fontSize: 14,
-              height: 1.4,
+          padding: const EdgeInsets.all(24),
+          child: switch (status) {
+            _FeedStatus.loading => const CircularProgressIndicator(
+              color: _primary,
             ),
-          ),
+            _FeedStatus.failed => Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text(
+                  'Không tải được bài viết.',
+                  textAlign: TextAlign.center,
+                  style: style,
+                ),
+                TextButton(
+                  key: const Key('explore-retry'),
+                  onPressed: onRetry,
+                  child: const Text('Thử lại'),
+                ),
+              ],
+            ),
+            _FeedStatus.ready => const Text(
+              'Chưa có bài viết phù hợp. Hãy thử chuyên mục khác.',
+              textAlign: TextAlign.center,
+              style: style,
+            ),
+          },
         ),
       ),
     );
