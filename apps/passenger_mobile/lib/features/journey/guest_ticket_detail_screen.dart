@@ -195,136 +195,145 @@ class _GuestTicketDetailScreenState extends State<GuestTicketDetailScreen> {
       ),
       body: AnnotatedRegion<SystemUiOverlayStyle>(
         value: journeyOverlayStyle,
-        child: CustomScrollView(
-          slivers: [
-            SliverToBoxAdapter(
-              child: JourneyDetailHeader(
-                subtitle: _tickets.isEmpty
-                    ? 'Đơn ${_booking.bookingCode}'
-                    : 'Đơn ${_booking.bookingCode} · ${_tickets.length} vé',
-                onBack: widget.onBack,
-                showLogo: _cancelled,
+        child: ScrolledStatusBarScrim(
+          color: journeyPage,
+          child: CustomScrollView(
+            slivers: [
+              SliverToBoxAdapter(
+                child: JourneyDetailHeader(
+                  subtitle: _tickets.isEmpty
+                      ? 'Đơn ${_booking.bookingCode}'
+                      : 'Đơn ${_booking.bookingCode} · ${_tickets.length} vé',
+                  onBack: widget.onBack,
+                  showLogo: _cancelled,
+                ),
               ),
-            ),
-            SliverPadding(
-              padding: const EdgeInsets.fromLTRB(17, 0, 17, 142),
-              sliver: SliverToBoxAdapter(
-                child: Center(
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 378),
-                    child: Column(
-                      children: [
-                        if (_view case final view?) ...[
-                          _PassengerNavigator(
-                            ticket: view.ticket,
-                            selectedIndex: _selectedPassenger,
-                            total: _tickets.length,
-                            onPrevious: () => _movePassenger(-1),
-                            onNext: () => _movePassenger(1),
-                            onShowAll: _openPassengerPicker,
-                          ),
+              SliverPadding(
+                padding: const EdgeInsets.fromLTRB(17, 0, 17, 142),
+                sliver: SliverToBoxAdapter(
+                  child: Center(
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 378),
+                      child: Column(
+                        children: [
+                          if (_view case final view?) ...[
+                            _PassengerNavigator(
+                              ticket: view.ticket,
+                              selectedIndex: _selectedPassenger,
+                              total: _tickets.length,
+                              onPrevious: () => _movePassenger(-1),
+                              onNext: () => _movePassenger(1),
+                              onShowAll: _openPassengerPicker,
+                            ),
+                            const SizedBox(height: 9),
+                            _BoardingPass(view: view),
+                            if (_cancelled) ...[
+                              const SizedBox(height: 7),
+                              const _CancelledQrNotice(),
+                            ],
+                          ] else
+                            JourneySurface(
+                              key: const Key('journey-detail-no-tickets'),
+                              padding: const EdgeInsets.all(14),
+                              child: Text(
+                                _booking.status == 'PENDING_PAYMENT'
+                                    ? 'Đơn đang chờ thanh toán. Vé điện tử sẽ có sau khi thanh toán thành công.'
+                                    : 'Đơn chưa có vé điện tử (${journeyBookingStatusLabel(_booking.status)}).',
+                                style: const TextStyle(
+                                  color: journeyBody,
+                                  fontSize: 12.5,
+                                  height: 1.5,
+                                ),
+                              ),
+                            ),
                           const SizedBox(height: 9),
-                          _BoardingPass(view: view),
-                          if (_cancelled) ...[
-                            const SizedBox(height: 7),
-                            const _CancelledQrNotice(),
-                          ],
-                        ] else
-                          JourneySurface(
-                            key: const Key('journey-detail-no-tickets'),
-                            padding: const EdgeInsets.all(14),
-                            child: Text(
-                              _booking.status == 'PENDING_PAYMENT'
-                                  ? 'Đơn đang chờ thanh toán. Vé điện tử sẽ có sau khi thanh toán thành công.'
-                                  : 'Đơn chưa có vé điện tử (${journeyBookingStatusLabel(_booking.status)}).',
-                              style: const TextStyle(
-                                color: journeyBody,
-                                fontSize: 12.5,
-                                height: 1.5,
+                          _JourneyInformationCard(booking: _booking),
+                          const SizedBox(height: 9),
+                          _booking.refunds.isNotEmpty || _cancelled
+                              ? _RefundPaymentCard(booking: _booking)
+                              : _PaymentCard(booking: _booking),
+                          const SizedBox(height: 9),
+                          _CancellationPolicyCard(booking: _booking),
+                          const SizedBox(height: 9),
+                          if (_cancelled || !_booking.hasActiveTickets)
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: _DetailOutlineAction(
+                                    label: 'Quay lại kết quả',
+                                    onPressed: widget.onBack,
+                                  ),
+                                ),
+                                const SizedBox(width: 5),
+                                Expanded(
+                                  child: _DetailFilledAction(
+                                    label: 'Liên hệ hỗ trợ',
+                                    color: journeyButton,
+                                    onPressed: _showSupport,
+                                  ),
+                                ),
+                              ],
+                            )
+                          else
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: _DetailOutlineAction(
+                                    label: 'Quay lại kết quả',
+                                    onPressed: widget.onBack,
+                                  ),
+                                ),
+                                const SizedBox(width: 5),
+                                Expanded(
+                                  child: _DetailFilledAction(
+                                    key: const Key(
+                                      'guest-ticket-cancel-button',
+                                    ),
+                                    label: _busy ? 'Đang xử lý...' : 'Hủy vé',
+                                    color: const Color(0xFFF04438),
+                                    onPressed: _busy
+                                        ? null
+                                        : _startCancellation,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          const SizedBox(height: 12),
+                          InkWell(
+                            borderRadius: BorderRadius.circular(9),
+                            onTap: _showSupport,
+                            child: Container(
+                              width: double.infinity,
+                              height: 36,
+                              alignment: Alignment.centerLeft,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 5,
+                              ),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFE4F5FC),
+                                borderRadius: BorderRadius.circular(9),
+                                border: Border.all(
+                                  color: const Color(0xFFC7EAF8),
+                                ),
+                              ),
+                              child: const Text(
+                                'Cần hỗ trợ về chuyến đi?  Gửi yêu cầu →',
+                                style: TextStyle(
+                                  color: Color(0xFF087DCE),
+                                  fontSize: 11.5,
+                                  fontWeight: FontWeight.w600,
+                                ),
                               ),
                             ),
                           ),
-                        const SizedBox(height: 9),
-                        _JourneyInformationCard(booking: _booking),
-                        const SizedBox(height: 9),
-                        _booking.refunds.isNotEmpty || _cancelled
-                            ? _RefundPaymentCard(booking: _booking)
-                            : _PaymentCard(booking: _booking),
-                        const SizedBox(height: 9),
-                        _CancellationPolicyCard(booking: _booking),
-                        const SizedBox(height: 9),
-                        if (_cancelled || !_booking.hasActiveTickets)
-                          Row(
-                            children: [
-                              Expanded(
-                                child: _DetailOutlineAction(
-                                  label: 'Quay lại kết quả',
-                                  onPressed: widget.onBack,
-                                ),
-                              ),
-                              const SizedBox(width: 5),
-                              Expanded(
-                                child: _DetailFilledAction(
-                                  label: 'Liên hệ hỗ trợ',
-                                  color: journeyButton,
-                                  onPressed: _showSupport,
-                                ),
-                              ),
-                            ],
-                          )
-                        else
-                          Row(
-                            children: [
-                              Expanded(
-                                child: _DetailOutlineAction(
-                                  label: 'Quay lại kết quả',
-                                  onPressed: widget.onBack,
-                                ),
-                              ),
-                              const SizedBox(width: 5),
-                              Expanded(
-                                child: _DetailFilledAction(
-                                  key: const Key('guest-ticket-cancel-button'),
-                                  label: _busy ? 'Đang xử lý...' : 'Hủy vé',
-                                  color: const Color(0xFFF04438),
-                                  onPressed: _busy ? null : _startCancellation,
-                                ),
-                              ),
-                            ],
-                          ),
-                        const SizedBox(height: 12),
-                        InkWell(
-                          borderRadius: BorderRadius.circular(9),
-                          onTap: _showSupport,
-                          child: Container(
-                            width: double.infinity,
-                            height: 36,
-                            alignment: Alignment.centerLeft,
-                            padding: const EdgeInsets.symmetric(horizontal: 5),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFE4F5FC),
-                              borderRadius: BorderRadius.circular(9),
-                              border: Border.all(
-                                color: const Color(0xFFC7EAF8),
-                              ),
-                            ),
-                            child: const Text(
-                              'Cần hỗ trợ về chuyến đi?  Gửi yêu cầu →',
-                              style: TextStyle(
-                                color: Color(0xFF087DCE),
-                                fontSize: 11.5,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

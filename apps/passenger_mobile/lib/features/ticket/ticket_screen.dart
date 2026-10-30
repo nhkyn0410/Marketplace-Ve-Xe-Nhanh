@@ -134,17 +134,14 @@ class _TicketScreenState extends State<TicketScreen>
       key: const Key('ticket-screen'),
       extendBody: true,
       backgroundColor: _pageBackground,
-      bottomNavigationBar: IgnorePointer(
-        ignoring: !_dockVisible,
-        child: AnimatedSlide(
-          key: const Key('ticket-bottom-dock-animation'),
-          duration: const Duration(milliseconds: 250),
-          curve: Curves.easeOutCubic,
-          offset: _dockVisible ? Offset.zero : const Offset(0, 1),
-          child: RouteDockTabBar(currentIndex: 1, onTap: widget.onTabSelected),
-        ),
+      bottomNavigationBar: RouteDockTabBar(
+        currentIndex: 1,
+        onTap: widget.onTabSelected,
+        visible: _dockVisible,
+        slideKey: const Key('ticket-bottom-dock-animation'),
       ),
       body: TabEntrance(
+        statusBarColor: _pageBackground,
         child: AnnotatedRegion<SystemUiOverlayStyle>(
           value: SystemUiOverlayStyle.dark.copyWith(
             statusBarColor: Colors.transparent,

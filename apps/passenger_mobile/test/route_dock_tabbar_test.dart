@@ -191,4 +191,97 @@ void main() {
       findsNothing,
     );
   });
+
+  testWidgets(
+    'dock ẩn khi cuộn: dải nền nút điều hướng hệ thống vẫn đứng yên',
+    (tester) async {
+      tester.view.devicePixelRatio = 1;
+      tester.view.physicalSize = const Size(390, 800);
+      addTearDown(tester.view.reset);
+      int? tapped;
+      Widget dock(bool visible) => MaterialApp(
+        home: MediaQuery(
+          data: const MediaQueryData(
+            size: Size(390, 800),
+            padding: EdgeInsets.only(bottom: 48),
+          ),
+          child: Scaffold(
+            bottomNavigationBar: RouteDockTabBar(
+              currentIndex: 2,
+              onTap: (index) => tapped = index,
+              visible: visible,
+              slideKey: const Key('dock-slide'),
+            ),
+          ),
+        ),
+      );
+
+      await tester.pumpWidget(dock(true));
+      await tester.pumpAndSettle();
+      await tester.pumpWidget(dock(false));
+      await tester.pumpAndSettle();
+
+      expect(
+        tester
+            .widget<AnimatedSlide>(find.byKey(const Key('dock-slide')))
+            .offset,
+        const Offset(0, 1),
+      );
+      final inset = tester.getRect(
+        find.byKey(const Key('route-dock-system-inset')),
+      );
+      expect(inset.bottom, 800);
+      expect(inset.height, 48);
+      // Dock ẩn thì không nhận chạm.
+      await tester.tap(
+        find.byKey(const Key('route-dock-tab-0')),
+        warnIfMissed: false,
+      );
+      expect(tapped, isNull);
+    },
+  );
+
+  testWidgets('nền thanh trạng thái chỉ hiện khi nội dung đã cuộn', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: MediaQuery(
+          data: const MediaQueryData(
+            size: Size(390, 800),
+            padding: EdgeInsets.only(top: 40),
+          ),
+          child: ScrolledStatusBarScrim(
+            color: Colors.white,
+            child: ListView(
+              key: const Key('scrim-list'),
+              children: [for (var i = 0; i < 40; i++) Text('Dòng $i')],
+            ),
+          ),
+        ),
+      ),
+    );
+    double opacity() => tester
+        .widget<AnimatedOpacity>(find.byKey(const Key('status-bar-scrim')))
+        .opacity;
+    expect(opacity(), 0);
+    expect(
+      tester.getSize(find.byKey(const Key('status-bar-scrim'))).height,
+      40,
+    );
+
+    await tester.drag(
+      find.byKey(const Key('scrim-list')),
+      const Offset(0, -200),
+    );
+    await tester.pumpAndSettle();
+    expect(opacity(), 1);
+
+    await tester.drag(
+      find.byKey(const Key('scrim-list')),
+      const Offset(0, 400),
+    );
+    await tester.pumpAndSettle();
+    expect(opacity(), 0);
+  });
 }

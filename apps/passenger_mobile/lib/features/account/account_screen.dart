@@ -93,17 +93,14 @@ class _AccountScreenState extends State<AccountScreen> {
       key: const Key('account-screen'),
       backgroundColor: _pageBackground,
       extendBody: true,
-      bottomNavigationBar: IgnorePointer(
-        ignoring: !_dockVisible,
-        child: AnimatedSlide(
-          key: const Key('account-bottom-dock-animation'),
-          duration: const Duration(milliseconds: 250),
-          curve: Curves.easeOutCubic,
-          offset: _dockVisible ? Offset.zero : const Offset(0, 1),
-          child: RouteDockTabBar(currentIndex: 4, onTap: widget.onTabSelected),
-        ),
+      bottomNavigationBar: RouteDockTabBar(
+        currentIndex: 4,
+        onTap: widget.onTabSelected,
+        visible: _dockVisible,
+        slideKey: const Key('account-bottom-dock-animation'),
       ),
       body: TabEntrance(
+        statusBarColor: _pageBackground,
         child: AnnotatedRegion<SystemUiOverlayStyle>(
           value: SystemUiOverlayStyle.dark.copyWith(
             statusBarColor: Colors.transparent,

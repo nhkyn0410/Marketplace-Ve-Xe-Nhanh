@@ -129,18 +129,15 @@ class _HomeScreenState extends State<HomeScreen>
       backgroundColor: _pageBackground,
       extendBody: true,
       resizeToAvoidBottomInset: true,
-      bottomNavigationBar: IgnorePointer(
-        ignoring: !_dockVisible,
-        child: AnimatedSlide(
-          key: const Key('home-bottom-dock-animation'),
-          duration: const Duration(milliseconds: 250),
-          curve: Curves.easeOutCubic,
-          offset: _dockVisible ? Offset.zero : const Offset(0, 1),
-          child: RouteDockTabBar(currentIndex: 2, onTap: _handleTabTap),
-        ),
+      bottomNavigationBar: RouteDockTabBar(
+        currentIndex: 2,
+        onTap: _handleTabTap,
+        visible: _dockVisible,
+        slideKey: const Key('home-bottom-dock-animation'),
       ),
       // Hero tự chừa thanh trạng thái để ảnh nền tràn lên sau nó.
       body: TabEntrance(
+        statusBarColor: _pageBackground,
         child: SafeArea(
           top: false,
           bottom: false,

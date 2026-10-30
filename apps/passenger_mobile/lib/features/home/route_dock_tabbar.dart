@@ -10,11 +10,20 @@ class RouteDockTabBar extends StatelessWidget {
   const RouteDockTabBar({
     required this.currentIndex,
     required this.onTap,
+    this.visible = true,
+    this.slideKey,
     super.key,
   });
 
   final int currentIndex;
   final ValueChanged<int> onTap;
+
+  /// `false` = trượt dock xuống (khi cuộn đọc nội dung). Dải nền sau nút điều hướng hệ thống
+  /// vẫn đứng yên để các nút không nằm trên ảnh / chữ.
+  final bool visible;
+
+  /// Key của `AnimatedSlide` (test đọc offset ẩn / hiện).
+  final Key? slideKey;
 
   static const labels = <String>[
     'Khám phá',
@@ -56,25 +65,35 @@ class RouteDockTabBar extends StatelessWidget {
                 top: 0,
                 width: dockWidth,
                 height: 120,
-                child: SizedBox(
-                  key: const Key('route-dock-tabbar'),
-                  child: TweenAnimationBuilder<double>(
-                    tween: Tween(
-                      begin: from.toDouble(),
-                      end: currentIndex.toDouble(),
-                    ),
-                    duration: duration,
+                child: IgnorePointer(
+                  ignoring: !visible,
+                  child: AnimatedSlide(
+                    key: slideKey,
+                    duration: const Duration(milliseconds: 250),
                     curve: Curves.easeOutCubic,
-                    builder: (context, position, _) => _DockCanvas(
-                      currentIndex: currentIndex,
-                      position: position,
-                      onTap: onTap,
+                    offset: visible ? Offset.zero : const Offset(0, 1),
+                    child: SizedBox(
+                      key: const Key('route-dock-tabbar'),
+                      child: TweenAnimationBuilder<double>(
+                        tween: Tween(
+                          begin: from.toDouble(),
+                          end: currentIndex.toDouble(),
+                        ),
+                        duration: duration,
+                        curve: Curves.easeOutCubic,
+                        builder: (context, position, _) => _DockCanvas(
+                          currentIndex: currentIndex,
+                          position: position,
+                          onTap: onTap,
+                        ),
+                      ),
                     ),
                   ),
                 ),
               ),
               if (bottomInset > 0)
                 Positioned(
+                  key: const Key('route-dock-system-inset'),
                   left: 0,
                   right: 0,
                   bottom: 0,
@@ -120,11 +139,13 @@ class _DockCanvas extends StatelessWidget {
         return Stack(
           clipBehavior: Clip.none,
           children: [
+            // Nền dock kéo tới đáy khung 120dp (trước đây dừng ở 108dp, chừa khe 12dp
+            // để nội dung lộ ra giữa dock và dải nút điều hướng hệ thống).
             Positioned(
               left: 0,
               right: 0,
               top: 16,
-              height: 92,
+              height: 104,
               child: DecoratedBox(
                 decoration: BoxDecoration(
                   color: _dockBackground,
@@ -324,9 +345,13 @@ class _DockCanvas extends StatelessWidget {
 
 /// Nội dung một tab hiện dần và trượt nhẹ lên khi mở tab; thanh dock nằm ngoài nên đứng yên.
 class TabEntrance extends StatefulWidget {
-  const TabEntrance({required this.child, super.key});
+  const TabEntrance({required this.child, this.statusBarColor, super.key});
 
   final Widget child;
+
+  /// Màu nền phủ thanh trạng thái khi nội dung đã cuộn ([ScrolledStatusBarScrim]);
+  /// `null` = không phủ (màn không cuộn hoặc tự chừa thanh trạng thái).
+  final Color? statusBarColor;
 
   @override
   State<TabEntrance> createState() => _TabEntranceState();
@@ -358,10 +383,70 @@ class _TabEntranceState extends State<TabEntrance>
 
   @override
   Widget build(BuildContext context) {
-    if (MediaQuery.disableAnimationsOf(context)) return widget.child;
+    final color = widget.statusBarColor;
+    final child = color == null
+        ? widget.child
+        : ScrolledStatusBarScrim(color: color, child: widget.child);
+    if (MediaQuery.disableAnimationsOf(context)) return child;
     return FadeTransition(
       opacity: _opacity,
-      child: SlideTransition(position: _offset, child: widget.child),
+      child: SlideTransition(position: _offset, child: child),
+    );
+  }
+}
+
+/// Nền thanh trạng thái hiện khi nội dung đã cuộn: ở đầu trang ảnh hero vẫn tràn lên sau giờ / pin,
+/// cuộn xuống thì chữ không chạy bên dưới các biểu tượng hệ thống.
+class ScrolledStatusBarScrim extends StatefulWidget {
+  const ScrolledStatusBarScrim({
+    required this.color,
+    required this.child,
+    super.key,
+  });
+
+  final Color color;
+  final Widget child;
+
+  @override
+  State<ScrolledStatusBarScrim> createState() => _ScrolledStatusBarScrimState();
+}
+
+class _ScrolledStatusBarScrimState extends State<ScrolledStatusBarScrim> {
+  bool _scrolled = false;
+
+  bool _onScroll(ScrollNotification notification) {
+    if (notification.depth != 0 || notification.metrics.axis != Axis.vertical) {
+      return false;
+    }
+    final scrolled = notification.metrics.pixels > 0;
+    if (scrolled != _scrolled) setState(() => _scrolled = scrolled);
+    return false;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final top = MediaQuery.paddingOf(context).top;
+    return NotificationListener<ScrollNotification>(
+      onNotification: _onScroll,
+      child: Stack(
+        children: [
+          widget.child,
+          Positioned(
+            left: 0,
+            right: 0,
+            top: 0,
+            height: top,
+            child: IgnorePointer(
+              child: AnimatedOpacity(
+                key: const Key('status-bar-scrim'),
+                opacity: _scrolled ? 1 : 0,
+                duration: const Duration(milliseconds: 150),
+                child: ColoredBox(color: widget.color),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

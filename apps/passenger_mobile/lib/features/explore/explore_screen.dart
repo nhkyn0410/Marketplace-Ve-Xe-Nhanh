@@ -297,15 +297,11 @@ class _ExploreScreenState extends State<ExploreScreen> {
       key: const Key('explore-screen'),
       backgroundColor: _pageBackground,
       extendBody: true,
-      bottomNavigationBar: IgnorePointer(
-        ignoring: !_dockVisible,
-        child: AnimatedSlide(
-          key: const Key('explore-bottom-dock-animation'),
-          duration: const Duration(milliseconds: 250),
-          curve: Curves.easeOutCubic,
-          offset: _dockVisible ? Offset.zero : const Offset(0, 1),
-          child: RouteDockTabBar(currentIndex: 0, onTap: widget.onTabSelected),
-        ),
+      bottomNavigationBar: RouteDockTabBar(
+        currentIndex: 0,
+        onTap: widget.onTabSelected,
+        visible: _dockVisible,
+        slideKey: const Key('explore-bottom-dock-animation'),
       ),
       body: TabEntrance(
         child: Stack(

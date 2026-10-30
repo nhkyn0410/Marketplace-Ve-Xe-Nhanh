@@ -145,6 +145,7 @@ class GuestTicketResultsScreen extends StatelessWidget {
         onTap: onTabSelected,
       ),
       body: TabEntrance(
+        statusBarColor: journeyPage,
         child: AnnotatedRegion<SystemUiOverlayStyle>(
           value: journeyOverlayStyle,
           child: refresh == null
