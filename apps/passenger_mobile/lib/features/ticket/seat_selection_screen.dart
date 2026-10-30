@@ -297,7 +297,11 @@ class _TripSummary extends StatelessWidget {
         children: [
           Row(
             children: [
-              OperatorInitialAvatar(name: trip.operatorName, size: 31),
+              OperatorInitialAvatar(
+                name: trip.operatorName,
+                logoUrl: trip.operatorLogoUrl,
+                size: 31,
+              ),
               const SizedBox(width: 8),
               Expanded(
                 child: Column(

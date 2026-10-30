@@ -79,6 +79,36 @@ Future<int?> _fares(String operatorId, HomeOperatorRoute route, DateTime _) {
 }
 
 void main() {
+  testWidgets('thẻ chuyến dùng logo nhà xe; tải lỗi vẫn có chữ thay thế trên nền xanh nhạt', (
+    tester,
+  ) async {
+    const logo = 'https://cdn.example.test/hai-van-logo.png';
+    await _pumpTicket(
+      tester,
+      width: 412,
+      height: 1000,
+      initialQuery: sampleQuery,
+      searchTrips: (_, _, _) async => samplePage([
+        sampleTrip('logo-trip', operatorName: 'Hải Vân', operatorLogoUrl: logo),
+      ]),
+    );
+    final card = find.byKey(const ValueKey('ticket-trip-logo-trip'));
+    final logoImage = find.byWidgetPredicate(
+      (widget) => widget is Image && widget.image is NetworkImage &&
+          (widget.image as NetworkImage).url == logo,
+    );
+    expect(find.descendant(of: card, matching: logoImage), findsOneWidget);
+    expect(find.descendant(of: card, matching: find.text('H')), findsOneWidget);
+    final scaffold = tester.widget<Scaffold>(find.byKey(const Key('ticket-screen')));
+    expect(scaffold.backgroundColor, const Color(0xFFEFFAFF));
+    final backdrop = tester.widget<DecoratedBox>(find.descendant(
+      of: find.byWidget(scaffold.body!), matching: find.byType(DecoratedBox),
+    ).first).decoration as BoxDecoration;
+    expect(backdrop.color, const Color(0xFFEFFAFF));
+    expect(backdrop.gradient, isNull);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets(
     'chưa tìm lần nào: hiện chuyến sắp chạy, không cần nhập điểm đi / đến hay ngày; thẻ ghi ngày đi',
     (tester) async {

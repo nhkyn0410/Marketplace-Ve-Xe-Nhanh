@@ -30,6 +30,7 @@ import 'package:passenger_mobile/features/ticket/ticket_screen.dart';
 import 'package:passenger_mobile/features/ticket/trip_booking_api.dart';
 import 'package:passenger_mobile/features/ticket/trip_detail_screen.dart';
 import 'package:passenger_mobile/features/ticket/trip_search_models.dart';
+import 'package:passenger_mobile/system_navigation_bar.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 /// Origin của API — KHÔNG kèm `/v1`.
@@ -93,6 +94,7 @@ class PassengerApp extends StatelessWidget {
     return MaterialApp(
       title: 'Vé Xe Nhanh',
       debugShowCheckedModeBanner: false,
+      builder: (context, child) => PassengerSystemNavigation(child: child!),
       theme: ThemeData(
         useMaterial3: true,
         fontFamily: 'Be Vietnam Pro',

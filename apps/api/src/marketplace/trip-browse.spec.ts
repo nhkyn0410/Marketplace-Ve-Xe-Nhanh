@@ -32,7 +32,7 @@ describe("xem chuyến mọi tuyến", () => {
       from: { any: true }, to: { any: true },
       dayStart: new Date("2026-10-30T10:15:00Z"), dayEnd: new Date("2026-11-13T10:15:00Z")
     }));
-    expect(redis.set).toHaveBeenCalledWith(expect.stringMatching(/^trip-search:v4:/), expect.any(String), "EX", 60);
+    expect(redis.set).toHaveBeenCalledWith(expect.stringMatching(/^trip-search:v5:/), expect.any(String), "EX", 60);
   });
 
   it("chỉ nhập ngày: khớp mọi tuyến trong đúng ngày theo giờ Việt Nam", async () => {

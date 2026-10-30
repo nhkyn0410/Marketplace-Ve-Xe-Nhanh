@@ -18,13 +18,7 @@ const _primaryDark = Color(0xFF09243D);
 const _primarySoft = Color(0xFFEBF5FB);
 const _secondary = Color(0xFF607A8E);
 const _chipBorder = Color(0xFF95C8E8);
-const _pageBackground = Color(0xFFF4F8F9);
-const _pageGradient = LinearGradient(
-  begin: Alignment.topCenter,
-  end: Alignment.bottomCenter,
-  colors: [Color(0xFFE6F4FA), Color(0xFFF3F5F5), Color(0xFFEEEAE4)],
-  stops: [0, .52, 1],
-);
+const _pageBackground = Color(0xFFEFFAFF);
 
 /// Giá vé thấp nhất của một nhà xe trên một tuyến vào ngày đi; `null` khi ngày
 /// đó nhà xe không có chuyến mở bán.
@@ -148,7 +142,7 @@ class _TicketScreenState extends State<TicketScreen>
             systemNavigationBarColor: _pageBackground,
           ),
           child: DecoratedBox(
-            decoration: const BoxDecoration(gradient: _pageGradient),
+            decoration: const BoxDecoration(color: _pageBackground),
             // Header tự chừa thanh trạng thái để ảnh nền tràn lên sau nó.
             child: SafeArea(
               top: false,
@@ -330,7 +324,7 @@ class _TicketScreenState extends State<TicketScreen>
             message: filtered
                 ? 'Không có chuyến khớp bộ lọc. Hãy bỏ bớt bộ lọc.'
                 : _browsing
-                ? 'Chưa có chuyến sắp chạy trong 7 ngày tới.'
+                ? 'Chưa có chuyến sắp chạy trong 14 ngày tới.'
                 : 'Chưa có chuyến phù hợp. Hãy thử ngày khác hoặc địa điểm khác.',
             actionLabel: filtered ? 'Bỏ lọc' : null,
             onAction: filtered ? () => _applyFilters(_filters.cleared()) : null,
@@ -345,7 +339,7 @@ class _TicketScreenState extends State<TicketScreen>
             key: Key('ticket-browse-hint'),
             padding: EdgeInsets.symmetric(horizontal: 15),
             child: Text(
-              'Chuyến sắp chạy của mọi tuyến trong 7 ngày tới. Chọn điểm đi, điểm đến để tìm đúng chuyến.',
+              'Chuyến sắp chạy của mọi tuyến trong 14 ngày tới. Chọn điểm đi, điểm đến để tìm đúng chuyến.',
               style: TextStyle(color: Color(0xFF607A8E), fontSize: 13),
             ),
           ),
@@ -2084,7 +2078,11 @@ class _TripOperatorHeader extends StatelessWidget {
     final rated = trip.averageRating != null && trip.reviewCount > 0;
     return Row(
       children: [
-        OperatorInitialAvatar(name: trip.operatorName, size: 38),
+        OperatorInitialAvatar(
+          name: trip.operatorName,
+          logoUrl: trip.operatorLogoUrl,
+          size: 38,
+        ),
         const SizedBox(width: 9),
         Expanded(
           child: Column(

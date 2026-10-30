@@ -11,7 +11,7 @@ class BookingFlowHeader extends StatelessWidget {
   const BookingFlowHeader({
     super.key,
     required this.title,
-    required this.subtitle,
+    this.subtitle,
     required this.timerLabel,
     required this.expired,
     required this.onBack,
@@ -24,7 +24,7 @@ class BookingFlowHeader extends StatelessWidget {
   final String title;
 
   /// Dòng phụ dưới tiêu đề, vd. tên tuyến.
-  final String subtitle;
+  final String? subtitle;
 
   /// `null` = chưa giữ chỗ, không hiện đồng hồ.
   final String? timerLabel;
@@ -71,13 +71,15 @@ class BookingFlowHeader extends StatelessWidget {
                       fontWeight: FontWeight.w700,
                     ),
                   ),
-                  const SizedBox(height: 2),
-                  Text(
-                    subtitle,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(color: _muted, fontSize: 13),
-                  ),
+                  if (subtitle != null) ...[
+                    const SizedBox(height: 2),
+                    Text(
+                      subtitle!,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(color: _muted, fontSize: 13),
+                    ),
+                  ],
                 ],
               ),
             ),
@@ -116,10 +118,11 @@ class BookingFlowHeader extends StatelessWidget {
                             : Wrap(
                                 alignment: WrapAlignment.end,
                                 children: [
-                                  Text(
-                                    'Giữ ghế trong ',
-                                    style: _timerStyle(warning),
-                                  ),
+                                  if (subtitle != null)
+                                    Text(
+                                      'Giữ ghế trong ',
+                                      style: _timerStyle(warning),
+                                    ),
                                   Text(
                                     timerLabel!,
                                     style: _timerStyle(warning),

@@ -7,7 +7,7 @@ import 'package:passenger_mobile/features/ticket/trip_search_models.dart';
 
 /// Chuyến mẫu: đón Miền Đông (1) / Dầu Giây (2), trạm nghỉ (3), trả Bảo Lộc (4) / Đà Lạt (5);
 /// giường 2 tầng 2 × 2, A02 không đặt được.
-TripDetail sampleTripDetail() {
+TripDetail sampleTripDetail({List<String> imageUrls = const [], String? operatorLogoUrl}) {
   final start = DateTime.utc(2026, 10, 30); // 07:00 giờ VN
   TripStop stop(
     int sequence,
@@ -43,6 +43,7 @@ TripDetail sampleTripDetail() {
   return TripDetail(
     tripId: 'trip-1',
     operatorName: 'Nhà xe Sao Mai',
+    operatorLogoUrl: operatorLogoUrl,
     averageRating: 4.7,
     reviewCount: 12,
     routeName: 'Sài Gòn – Đà Lạt',
@@ -50,7 +51,7 @@ TripDetail sampleTripDetail() {
     arrivalAt: start.add(const Duration(hours: 7)),
     vehicleTypeName: 'Giường nằm Limousine',
     amenityNames: const ['Wi-Fi', 'Điều hòa', 'Nước uống'],
-    imageUrls: const [],
+    imageUrls: imageUrls,
     stops: [
       stop(1, 'Bến xe Miền Đông mới', 0, pickup: true),
       stop(

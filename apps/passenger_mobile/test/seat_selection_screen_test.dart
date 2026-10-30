@@ -128,7 +128,8 @@ void main() {
       find.byKey(const Key('passenger-information-screen')),
       findsOneWidget,
     );
-    expect(find.byKey(const Key('passenger-card-A01')), findsOneWidget);
+    expect(find.byKey(const Key('passenger-card-A01')), findsNothing);
+    expect(find.byKey(const Key('passenger-card-A03')), findsOneWidget);
 
     await tester.tap(find.byKey(const Key('passenger-information-back')));
     await tester.pumpAndSettle();

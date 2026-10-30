@@ -43406,6 +43406,17 @@
                     "slug": {
                       "type": "string"
                     },
+                    "logoUrl": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "format": "uri"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
                     "averageRating": {
                       "anyOf": [
                         {
@@ -43727,6 +43738,17 @@
               },
               "slug": {
                 "type": "string"
+              },
+              "logoUrl": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "format": "uri"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
               },
               "hotline": {
                 "anyOf": [

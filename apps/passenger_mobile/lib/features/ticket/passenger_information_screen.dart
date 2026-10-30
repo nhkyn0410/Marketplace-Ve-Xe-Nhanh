@@ -25,7 +25,7 @@ final _emailPattern = RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+$');
 
 String _normalizePhone(String value) => value.replaceAll(RegExp(r'[\s.-]'), '');
 
-/// Bước 2 đặt vé: người liên hệ, tên hành khách từng chỗ, mã khuyến mãi; đếm theo hạn giữ chỗ.
+/// Bước 2 đặt vé: người liên hệ, hành khách bổ sung tùy chọn, mã khuyến mãi; đếm theo hạn giữ chỗ.
 class PassengerInformationScreen extends StatefulWidget {
   const PassengerInformationScreen({
     super.key,
@@ -55,6 +55,9 @@ class _PassengerInformationScreenState
   late final List<HeldSeat> _seats = [...widget.hold.seats]
     ..sort((a, b) => a.code.compareTo(b.code));
   late final List<TextEditingController> _passengerNames = [
+    for (final _ in _seats) TextEditingController(),
+  ];
+  late final List<TextEditingController> _passengerPhones = [
     for (final _ in _seats) TextEditingController(),
   ];
 
@@ -87,7 +90,11 @@ class _PassengerInformationScreenState
     _email.dispose();
     _phone.dispose();
     _promoCode.dispose();
-    for (final controller in [..._passengerNames, ..._companionNames]) {
+    for (final controller in [
+      ..._passengerNames,
+      ..._passengerPhones,
+      ..._companionNames,
+    ]) {
       controller.dispose();
     }
     super.dispose();
@@ -107,9 +114,6 @@ class _PassengerInformationScreenState
       if (_contactName.text.isEmpty) _contactName.text = contact.fullName;
       if (_email.text.isEmpty) _email.text = contact.email;
       if (_phone.text.isEmpty) _phone.text = contact.phone;
-      if (_passengerNames.first.text.isEmpty) {
-        _passengerNames.first.text = contact.fullName;
-      }
       _travellers = prefill!.travellers;
     });
   }
@@ -136,7 +140,13 @@ class _PassengerInformationScreenState
       _contactName.text.trim().isNotEmpty &&
       _emailValid &&
       _phoneValid &&
-      _passengerNames.every((controller) => controller.text.trim().isNotEmpty);
+      _passengerPhones
+          .skip(1)
+          .every(
+            (controller) =>
+                controller.text.trim().isEmpty ||
+                _phonePattern.hasMatch(_normalizePhone(controller.text)),
+          );
 
   int get _total => _promotion?.total ?? widget.hold.subtotal;
 
@@ -148,7 +158,10 @@ class _PassengerInformationScreenState
       builder: (context) => _SavedPassengerSheet(travellers: _travellers),
     );
     if (selected == null || !mounted) return;
-    setState(() => _passengerNames[index].text = selected.fullName);
+    setState(() {
+      _passengerNames[index].text = selected.fullName;
+      _passengerPhones[index].text = selected.phone ?? '';
+    });
   }
 
   Future<void> _applyPromotion() async {
@@ -193,7 +206,14 @@ class _PassengerInformationScreenState
         for (var index = 0; index < _seats.length; index++)
           BookingPassenger(
             seatCode: _seats[index].code,
-            fullName: _passengerNames[index].text.trim(),
+            fullName: index == 0 || _passengerNames[index].text.trim().isEmpty
+                ? _contactName.text.trim()
+                : _passengerNames[index].text.trim(),
+            phone: index == 0
+                ? _normalizePhone(_phone.text)
+                : _passengerPhones[index].text.trim().isEmpty
+                ? null
+                : _normalizePhone(_passengerPhones[index].text),
             companionName:
                 isDoubleSeat(_seats[index].type) &&
                     _companionNames[index].text.trim().isNotEmpty
@@ -242,7 +262,6 @@ class _PassengerInformationScreenState
               BookingFlowHeader(
                 key: const Key('passenger-information-header'),
                 title: 'Thông tin hành khách',
-                subtitle: widget.trip.routeName,
                 timerLabel: _timerLabel,
                 expired: expired,
                 urgent: _remaining <= const Duration(minutes: 1),
@@ -277,26 +296,39 @@ class _PassengerInformationScreenState
                         onChanged: () => setState(() {}),
                       ),
                     ),
-                    const SliverToBoxAdapter(
-                      child: _SectionTitle(
-                        icon: Icons.group_rounded,
-                        title: 'Hành khách',
+                    if (_seats.length > 1)
+                      const SliverToBoxAdapter(
+                        child: _SectionTitle(
+                          icon: Icons.group_rounded,
+                          title: 'Hành khách bổ sung (tùy chọn)',
+                        ),
                       ),
-                    ),
                     SliverList.builder(
-                      itemCount: _seats.length,
-                      itemBuilder: (context, index) => _PassengerCard(
-                        index: index,
-                        seat: _seats[index].code,
-                        controller: _passengerNames[index],
-                        companionController: isDoubleSeat(_seats[index].type)
-                            ? _companionNames[index]
-                            : null,
-                        onChanged: () => setState(() {}),
-                        onChooseSaved: _travellers.isEmpty
-                            ? null
-                            : () => _chooseSavedPassenger(index),
-                      ),
+                      itemCount: _seats.length - 1,
+                      itemBuilder: (context, offset) {
+                        final index = offset + 1;
+                        final phone = _passengerPhones[index];
+                        return _PassengerCard(
+                          index: index,
+                          seat: _seats[index].code,
+                          controller: _passengerNames[index],
+                          phoneController: phone,
+                          phoneError:
+                              phone.text.trim().isNotEmpty &&
+                                  !_phonePattern.hasMatch(
+                                    _normalizePhone(phone.text),
+                                  )
+                              ? 'Số điện thoại gồm 10 số, bắt đầu bằng 0 hoặc +84.'
+                              : null,
+                          companionController: isDoubleSeat(_seats[index].type)
+                              ? _companionNames[index]
+                              : null,
+                          onChanged: () => setState(() {}),
+                          onChooseSaved: _travellers.isEmpty
+                              ? null
+                              : () => _chooseSavedPassenger(index),
+                        );
+                      },
                     ),
                     SliverToBoxAdapter(
                       child: _PromotionCard(
@@ -730,6 +762,8 @@ class _PassengerCard extends StatelessWidget {
     required this.index,
     required this.seat,
     required this.controller,
+    required this.phoneController,
+    required this.phoneError,
     required this.onChanged,
     required this.onChooseSaved,
     this.companionController,
@@ -738,6 +772,8 @@ class _PassengerCard extends StatelessWidget {
   final int index;
   final String seat;
   final TextEditingController controller;
+  final TextEditingController phoneController;
+  final String? phoneError;
   final VoidCallback onChanged;
 
   /// Ô người đi cùng — chỉ có ở chỗ đôi.
@@ -805,7 +841,7 @@ class _PassengerCard extends StatelessWidget {
                       ),
                     ),
                     const Text(
-                      'Thông tin bắt buộc',
+                      'Không bắt buộc',
                       style: TextStyle(color: _muted, fontSize: 13),
                     ),
                   ],
@@ -849,11 +885,25 @@ class _PassengerCard extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(57, 8, 0, 0),
             child: _InputField(
               fieldKey: Key('passenger-name-$seat'),
-              label: 'Họ và tên',
+              label: 'Họ và tên (tùy chọn)',
               icon: Icons.person_rounded,
               controller: controller,
               hintText: 'Nhập họ và tên',
               textInputAction: TextInputAction.next,
+              onChanged: onChanged,
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(57, 8, 0, 0),
+            child: _InputField(
+              fieldKey: Key('passenger-phone-$seat'),
+              label: 'Số điện thoại (tùy chọn)',
+              icon: Icons.phone_rounded,
+              controller: phoneController,
+              keyboardType: TextInputType.phone,
+              textInputAction: TextInputAction.done,
+              hintText: 'Nhập số điện thoại',
+              errorText: phoneError,
               onChanged: onChanged,
             ),
           ),
@@ -1078,14 +1128,24 @@ class _PassengerBottomBar extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      '$passengerCount hành khách',
-                      key: const Key('passenger-count'),
-                      style: const TextStyle(
-                        color: _ink,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                      ),
+                    Wrap(
+                      spacing: 6,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      children: [
+                        Text(
+                          '$passengerCount hành khách',
+                          key: const Key('passenger-count'),
+                          style: const TextStyle(
+                            color: _ink,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const Text(
+                          'Tạm tính',
+                          style: TextStyle(color: _muted, fontSize: 13),
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 2),
                     Text(
@@ -1096,10 +1156,6 @@ class _PassengerBottomBar extends StatelessWidget {
                         fontSize: 19,
                         fontWeight: FontWeight.w700,
                       ),
-                    ),
-                    const Text(
-                      'Tạm tính',
-                      style: TextStyle(color: _muted, fontSize: 13),
                     ),
                   ],
                 ),

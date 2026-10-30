@@ -70,7 +70,7 @@ class TripBookingApi {
         HomeOperator(
           id: item.operatorId,
           name: item.displayName,
-          logoUrl: item.logoUrl,
+          logoUrl: _publicImageUrl(item.logoUrl),
           averageRating: item.averageRating?.toDouble(),
           reviewCount: item.reviewCount,
           routes: [
@@ -141,7 +141,10 @@ class TripBookingApi {
   }
 
   /// Chuyến sắp chạy của mọi tuyến trong vài ngày tới — không gửi điểm đi / đến hay ngày (chờ duyệt 30/10/2026).
-  Future<TripSearchPage> browseTrips(TripSearchFilters filters, int page) async {
+  Future<TripSearchPage> browseTrips(
+    TripSearchFilters filters,
+    int page,
+  ) async {
     final amenityIds = filters.amenityIds.join(',');
     final response = await _call(
       () => _client.getTripsApi().publicTripControllerSearch(
@@ -181,6 +184,7 @@ class TripBookingApi {
             tripId: item.tripId,
             operatorId: item.operator_.id,
             operatorName: item.operator_.name,
+            operatorLogoUrl: _publicImageUrl(item.operator_.logoUrl),
             averageRating: item.operator_.averageRating?.toDouble(),
             reviewCount: item.operator_.reviewCount,
             vehicleTypeName: item.vehicleType.name,
@@ -200,11 +204,27 @@ class TripBookingApi {
             availableSeats: item.availableSeats,
             minPrice: item.minPrice,
             amenityNames: [for (final amenity in item.amenities) amenity.name],
-            coverImageUrl: item.vehicleCoverImageUrl,
+            coverImageUrl: _publicImageUrl(item.vehicleCoverImageUrl),
             segmentTitle: item.segmentTitle,
           ),
       ],
     );
+  }
+
+  /// Ảnh kho dev dùng cùng địa chỉ API mà thiết bị kết nối, thay cho localhost của server.
+  String? _publicImageUrl(String? value) {
+    if (value == null || value.trim().isEmpty) return null;
+    final uri = Uri.tryParse(value);
+    if (uri != null &&
+        (uri.scheme == 'http' || uri.scheme == 'https') &&
+        const {'localhost', '127.0.0.1', '::1', '[::1]'}.contains(uri.host) &&
+        uri.path.startsWith('/v1/dev-storage/public/')) {
+      final api = Uri.parse(_client.dio.options.baseUrl);
+      return uri
+          .replace(scheme: api.scheme, host: api.host, port: api.port)
+          .toString();
+    }
+    return value;
   }
 
   /// Giá vé thấp nhất của nhà xe trên một tuyến vào ngày đi; `null` khi ngày đó
@@ -249,6 +269,7 @@ class TripBookingApi {
     return TripDetail(
       tripId: data.tripId,
       operatorName: data.operator_.name,
+      operatorLogoUrl: _publicImageUrl(data.operator_.logoUrl),
       operatorHotline: data.operator_.hotline,
       averageRating: data.operator_.averageRating?.toDouble(),
       reviewCount: data.operator_.reviewCount,
@@ -259,7 +280,10 @@ class TripBookingApi {
       note: data.note,
       vehicleTypeName: data.vehicleType.name,
       amenityNames: [for (final amenity in data.amenities) amenity.name],
-      imageUrls: [for (final image in data.vehicleImages) image.url],
+      imageUrls: data.vehicleImages
+          .map((image) => _publicImageUrl(image.url))
+          .whereType<String>()
+          .toList(growable: false),
       stops: [
         for (final stop in data.stops)
           TripStop(

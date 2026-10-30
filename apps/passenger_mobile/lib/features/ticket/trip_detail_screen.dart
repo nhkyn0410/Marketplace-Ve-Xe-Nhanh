@@ -586,7 +586,11 @@ class _OperatorCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              OperatorInitialAvatar(name: trip.operatorName, size: 48),
+              OperatorInitialAvatar(
+                name: trip.operatorName,
+                logoUrl: trip.operatorLogoUrl,
+                size: 48,
+              ),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
@@ -730,10 +734,10 @@ class _VehicleSummary extends StatelessWidget {
                   child: SizedBox(
                     width: 104,
                     height: 76,
-                    child: images.length < 2
+                    child: images.isEmpty
                         ? fallback
                         : Image.network(
-                            images[1],
+                            images.first,
                             fit: BoxFit.cover,
                             errorBuilder: (context, error, stackTrace) =>
                                 fallback,
@@ -846,7 +850,7 @@ class _SummaryAmenity extends StatelessWidget {
   }
 }
 
-/// Lịch trình các điểm dừng của chuyến (thay khung bản đồ minh họa tĩnh).
+/// Lịch trình các điểm dừng trong chặng khách chọn, từ điểm đón tới điểm trả.
 class _ScheduleSection extends StatelessWidget {
   const _ScheduleSection({
     required this.trip,
@@ -862,6 +866,12 @@ class _ScheduleSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final from = pickup ?? trip.stops.first;
     final to = dropoff ?? trip.stops.last;
+    final stops = trip.stops
+        .where(
+          (stop) =>
+              stop.sequence >= from.sequence && stop.sequence <= to.sequence,
+        )
+        .toList(growable: false);
     final minutes = to.plannedAt.difference(from.plannedAt).inMinutes;
     return Padding(
       padding: const EdgeInsets.fromLTRB(12, 16, 12, 0),
@@ -874,8 +884,9 @@ class _ScheduleSection extends StatelessWidget {
             borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
             padding: const EdgeInsets.fromLTRB(12, 10, 12, 6),
             child: Column(
+              key: const Key('trip-segment-itinerary'),
               children: [
-                for (final stop in trip.stops)
+                for (final stop in stops)
                   _ScheduleRow(
                     stop: stop,
                     highlighted:
@@ -904,8 +915,8 @@ class _ScheduleSection extends StatelessWidget {
                 Expanded(
                   child: _Metric(
                     icon: 'pin.svg',
-                    value: '${trip.stops.length} điểm dừng',
-                    label: 'Trên tuyến',
+                    value: '${stops.length} điểm dừng',
+                    label: 'Trong chặng',
                   ),
                 ),
               ],

@@ -271,7 +271,11 @@ class _TripCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              OperatorInitialAvatar(name: trip.operatorName, size: 34),
+              OperatorInitialAvatar(
+                name: trip.operatorName,
+                logoUrl: trip.operatorLogoUrl,
+                size: 34,
+              ),
               const SizedBox(width: 9),
               Expanded(
                 child: Column(

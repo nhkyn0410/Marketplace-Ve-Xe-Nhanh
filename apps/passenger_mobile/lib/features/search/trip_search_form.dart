@@ -638,7 +638,10 @@ class _OperatorPickerSheetState extends State<_OperatorPickerSheet> {
               final operator = operators[index];
               return ListTile(
                 key: ValueKey('operator-option-${operator.id}'),
-                leading: OperatorInitialAvatar(name: operator.name),
+                leading: OperatorInitialAvatar(
+                  name: operator.name,
+                  logoUrl: operator.logoUrl,
+                ),
                 title: Text(operator.name),
                 subtitle: Text(
                   '${describeOperatorRating(operator.averageRating, operator.reviewCount)} · ${operator.routes.length} tuyến',
@@ -686,16 +689,30 @@ class _OperatorRoutePickerSheet extends StatelessWidget {
   }
 }
 
-/// Ô tròn chữ cái đầu tên nhà xe — dùng thay logo khi API chưa có logo (FR-OPR-02).
+/// Logo nhà xe trong ô tròn; chưa có ảnh hoặc tải lỗi thì dùng chữ cái đầu (FR-OPR-02).
 class OperatorInitialAvatar extends StatelessWidget {
-  const OperatorInitialAvatar({required this.name, this.size = 36, super.key});
+  const OperatorInitialAvatar({
+    required this.name,
+    this.logoUrl,
+    this.size = 36,
+    super.key,
+  });
 
   final String name;
+  final String? logoUrl;
   final double size;
 
   @override
   Widget build(BuildContext context) {
     final trimmed = name.trim();
+    final initials = Text(
+      trimmed.isEmpty ? '?' : trimmed.characters.first.toUpperCase(),
+      style: TextStyle(
+        color: _primary,
+        fontSize: size * .44,
+        fontWeight: FontWeight.w700,
+      ),
+    );
     return Container(
       width: size,
       height: size,
@@ -704,14 +721,17 @@ class OperatorInitialAvatar extends StatelessWidget {
         color: Color(0xFFE2F1F8),
         shape: BoxShape.circle,
       ),
-      child: Text(
-        trimmed.isEmpty ? '?' : trimmed.characters.first.toUpperCase(),
-        style: TextStyle(
-          color: _primary,
-          fontSize: size * .44,
-          fontWeight: FontWeight.w700,
-        ),
-      ),
+      child: logoUrl == null || logoUrl!.isEmpty
+          ? initials
+          : ClipOval(
+              child: Image.network(
+                logoUrl!,
+                width: size,
+                height: size,
+                fit: BoxFit.contain,
+                errorBuilder: (_, _, _) => Center(child: initials),
+              ),
+            ),
     );
   }
 }

@@ -7881,6 +7881,7 @@ export interface components {
                     id: string;
                     name: string;
                     slug: string;
+                    logoUrl?: string | null;
                     averageRating: number | null;
                     reviewCount: number;
                 };
@@ -7948,6 +7949,7 @@ export interface components {
                 id: string;
                 name: string;
                 slug: string;
+                logoUrl?: string | null;
                 hotline: string | null;
                 averageRating: number | null;
                 reviewCount: number;

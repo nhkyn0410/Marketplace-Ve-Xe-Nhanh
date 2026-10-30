@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:passenger_mobile/features/search/trip_search_form.dart';
 import 'package:passenger_mobile/features/ticket/ticket_screen.dart';
 import 'package:passenger_mobile/features/ticket/trip_detail_models.dart';
 import 'package:passenger_mobile/features/ticket/trip_detail_screen.dart';
@@ -58,6 +59,43 @@ void _expectNoFlutterException(WidgetTester tester) {
 }
 
 void main() {
+  testWidgets('logo nhà xe đi theo chuyến từ chi tiết qua chọn chỗ tới xác nhận', (
+    tester,
+  ) async {
+    const logo = 'https://cdn.example.test/sao-mai-logo.png';
+    final api = FakeBookingApi(trip: sampleTripDetail(operatorLogoUrl: logo));
+    final avatar = find.byType(OperatorInitialAvatar);
+    final logoImage = find.byWidgetPredicate(
+      (widget) => widget is Image && widget.image is NetworkImage &&
+          (widget.image as NetworkImage).url == logo,
+    );
+    void expectLogo() {
+      expect(avatar, findsOneWidget);
+      expect(tester.widget<OperatorInitialAvatar>(avatar).logoUrl, logo);
+      expect(find.descendant(of: avatar, matching: logoImage), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    }
+
+    await _pumpApp(tester, home: TripDetailScreen(api: api, tripId: api.trip.tripId));
+    expectLogo();
+    await tester.tap(find.byKey(const Key('trip-detail-cta')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('seat-selection-screen')), findsOneWidget);
+    expectLogo();
+    await tester.tap(find.byKey(const Key('seat-A01')));
+    await tester.pump();
+    await tester.tap(find.byKey(const Key('seat-selection-continue')));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byKey(const Key('contact-name-field')), 'Lê Văn An');
+    await tester.enterText(find.byKey(const Key('contact-email-field')), 'an@example.com');
+    await tester.enterText(find.byKey(const Key('contact-phone-field')), '0901234567');
+    await tester.pump();
+    await tester.tap(find.byKey(const Key('passenger-information-continue')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('booking-confirmation-screen')), findsOneWidget);
+    expectLogo();
+  });
+
   testWidgets('bấm thẻ chuyến mở màn chi tiết chuyến', (tester) async {
     await _pumpApp(tester, home: _ticketWithOneTrip());
 
@@ -106,6 +144,29 @@ void main() {
 
     expect(find.text('Chi tiết chuyến'), findsOneWidget);
     expect(tester.getTopLeft(header).dy, initialTop);
+    _expectNoFlutterException(tester);
+  });
+
+  testWidgets('xe chỉ có một ảnh vẫn dùng ảnh thật ở phần tóm tắt', (
+    tester,
+  ) async {
+    const image = 'https://cdn.example.test/vehicle.jpg';
+    await _pumpApp(
+      tester,
+      home: TripDetailScreen(
+        api: FakeBookingApi(trip: sampleTripDetail(imageUrls: [image])),
+        tripId: 'trip-1',
+      ),
+    );
+    expect(
+      find.byWidgetPredicate(
+        (widget) =>
+            widget is Image &&
+            widget.image is NetworkImage &&
+            (widget.image as NetworkImage).url == image,
+      ),
+      findsNWidgets(2),
+    );
     _expectNoFlutterException(tester);
   });
 
@@ -202,6 +263,20 @@ void main() {
       expect(find.text('Dầu Giây'), findsWidgets);
       expect(find.text('Bảo Lộc'), findsWidgets);
       expect(find.text('TP. Hồ Chí Minh'), findsNothing);
+      await tester.ensureVisible(
+        find.byKey(const Key('trip-segment-itinerary')),
+      );
+      await tester.pumpAndSettle();
+      final schedule = find.byKey(const Key('trip-segment-itinerary'));
+      for (final stop in base.stops) {
+        expect(
+          find.descendant(of: schedule, matching: find.text(stop.name)),
+          stop.sequence >= 2 && stop.sequence <= 4
+              ? findsOneWidget
+              : findsNothing,
+        );
+      }
+      expect(find.text('3 điểm dừng'), findsOneWidget);
       _expectNoFlutterException(tester);
     },
   );

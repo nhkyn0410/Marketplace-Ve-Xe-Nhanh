@@ -36,14 +36,157 @@ class _FakeAdapter implements HttpClientAdapter {
   void close({bool force = false}) {}
 }
 
-(TripBookingApi, _FakeAdapter) _api(Map<String, Object> responses) {
+(TripBookingApi, _FakeAdapter) _api(
+  Map<String, Object> responses, {
+  String baseUrl = 'http://api.test',
+}) {
   final adapter = _FakeAdapter(responses);
-  final dio = Dio(BaseOptions(baseUrl: 'http://api.test'))
-    ..httpClientAdapter = adapter;
+  final dio = Dio(BaseOptions(baseUrl: baseUrl))..httpClientAdapter = adapter;
   return (TripBookingApi(ApiClientDart(dio: dio)), adapter);
 }
 
 void main() {
+  test('logo nhà xe dùng API trên thiết bị, giữ URL CDN và logo thiếu', () async {
+    const path = '/v1/dev-storage/public/operator-logos/operator/logo.png';
+    final (api, _) = _api({
+      '/v1/catalog/featured-operators': {
+        'items': [
+          for (final logo in [
+            'http://localhost:3000$path',
+            'https://cdn.example.com/logo.png',
+            null,
+          ])
+            {
+              'operatorId': 'operator',
+              'displayName': 'Nhà xe',
+              'logoUrl': logo,
+              'averageRating': null,
+              'reviewCount': 0,
+              'routes': <Object>[],
+            },
+        ],
+      },
+    }, baseUrl: 'http://10.0.2.2:3000');
+    final operators = await api.loadOperators();
+    expect(
+      [for (final operator in operators) operator.logoUrl],
+      ['http://10.0.2.2:3000$path', 'https://cdn.example.com/logo.png', null],
+    );
+  });
+
+  test(
+    'ảnh kho dev theo API trên thiết bị, giữ ảnh CDN và ảnh thiếu',
+    () async {
+      const path = '/v1/dev-storage/public/vehicles/test/bus.jpg';
+      const logoPath = '/v1/dev-storage/public/operator-logos/operator/logo.png';
+      final sources = <String?>[
+        'http://localhost:3000$path',
+        'http://127.0.0.1:3000$path',
+        'http://[::1]:3000$path',
+        'https://cdn.example.com/bus.jpg',
+        'http://localhost:9000/other/bus.jpg',
+        null,
+      ];
+      Map<String, Object?> item(String? image) => {
+        'tripId': 'trip-1',
+        'operator': {
+          'id': 'op-1',
+          'name': 'Nhà xe',
+          'slug': 'nha-xe',
+          'logoUrl': image == null ? null : 'http://localhost:3000$logoPath',
+          'averageRating': null,
+          'reviewCount': 0,
+        },
+        'routeName': 'A → B',
+        'segmentTitle': 'A → B',
+        'vehicleType': {
+          'name': 'Giường nằm',
+          'form': 'SLEEPER',
+          'class': 'STANDARD',
+        },
+        'departureAt': '2026-10-30T00:00:00Z',
+        'arrivalAt': '2026-10-30T06:00:00Z',
+        'pickup': {
+          'sequence': 1,
+          'name': 'A',
+          'address': 'A',
+          'plannedAt': '2026-10-30T00:00:00Z',
+        },
+        'dropoff': {
+          'sequence': 2,
+          'name': 'B',
+          'address': 'B',
+          'plannedAt': '2026-10-30T06:00:00Z',
+        },
+        'durationMinutes': 360,
+        'availableSeats': 10,
+        'minPrice': 300000,
+        'vehicleCoverImageUrl': image,
+        'amenities': <Object>[],
+        'onlineSaleClosesAt': '2026-10-29T23:00:00Z',
+      };
+      final (api, _) = _api({
+        '/v1/trips/search': {
+          'items': [for (final source in sources) item(source)],
+          'total': sources.length,
+          'page': 1,
+          'limit': 20,
+          'facets': {
+            'operators': <Object>[],
+            'priceMin': 300000,
+            'priceMax': 300000,
+          },
+          'widenedToProvince': {'from': false, 'to': false},
+        },
+        '/v1/trips/trip-1': {
+          'tripId': 'trip-1',
+          'operator': {
+            'id': 'op-1',
+            'name': 'Nhà xe',
+            'slug': 'nha-xe',
+            'hotline': null,
+            'logoUrl': 'http://localhost:3000$logoPath',
+            'averageRating': null,
+            'reviewCount': 0,
+          },
+          'routeName': 'A → B',
+          'segment': null,
+          'departureAt': '2026-10-30T00:00:00Z',
+          'arrivalAt': '2026-10-30T06:00:00Z',
+          'onlineSaleClosesAt': '2026-10-29T23:00:00Z',
+          'note': null,
+          'vehicleType': {
+            'name': 'Giường nằm',
+            'form': 'SLEEPER',
+            'class': 'STANDARD',
+          },
+          'amenities': <Object>[],
+          'stops': <Object>[],
+          'seats': <Object>[],
+          'vehicleImages': [
+            for (final source in sources.whereType<String>())
+              {'url': source, 'caption': null},
+          ],
+          'cancellationPolicy': {'tiers': <Object>[]},
+        },
+      }, baseUrl: 'http://10.0.2.2:3000');
+      final expected = [
+        for (var index = 0; index < 3; index++) 'http://10.0.2.2:3000$path',
+        ...sources.skip(3),
+      ];
+      final trips = await api.browseTrips(const TripSearchFilters(), 1);
+      expect([for (final trip in trips.items) trip.coverImageUrl], expected);
+      expect(trips.items.first.operatorLogoUrl, 'http://10.0.2.2:3000$logoPath');
+      expect(trips.items.last.operatorLogoUrl, isNull);
+      final detail = await api.loadTrip('trip-1');
+      expect(detail.operatorLogoUrl, 'http://10.0.2.2:3000$logoPath');
+      expect(
+        detail.imageUrls,
+        expected.whereType<String>().toList(),
+      );
+    },
+  );
+
   test('gợi ý địa điểm: đúng loại theo target.type, tỉnh dùng tên rút gọn', () async {
     final (api, _) = _api({
       '/v1/catalog/places': {
