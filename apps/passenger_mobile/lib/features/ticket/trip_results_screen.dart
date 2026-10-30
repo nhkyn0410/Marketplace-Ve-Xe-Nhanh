@@ -1237,11 +1237,13 @@ class _SheetActionButton extends StatelessWidget {
   }
 }
 
-/// Thứ tự cách sắp xếp trong sheet (API chỉ hỗ trợ ba cách này).
+/// Thứ tự cách sắp xếp trong sheet.
 const _sortOptions = [
   TripSearchSort.price,
+  TripSearchSort.priceDesc,
   TripSearchSort.departure,
   TripSearchSort.duration,
+  TripSearchSort.rating,
 ];
 
 class _SortSheet extends StatefulWidget {

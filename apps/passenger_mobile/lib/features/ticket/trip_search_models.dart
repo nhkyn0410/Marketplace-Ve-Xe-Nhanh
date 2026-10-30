@@ -157,7 +157,9 @@ enum TripDepartureSlot {
 enum TripSearchSort {
   departure('departure', 'Khởi hành sớm nhất'),
   price('price', 'Giá từ thấp đến cao'),
-  duration('duration', 'Thời gian di chuyển ngắn nhất');
+  priceDesc('price_desc', 'Giá từ cao đến thấp'),
+  duration('duration', 'Thời gian di chuyển ngắn nhất'),
+  rating('rating', 'Đánh giá cao nhất');
 
   const TripSearchSort(this.apiValue, this.label);
 

@@ -7,7 +7,8 @@ import { AREA_ID } from "../../database/public-trips";
 // FR-MKT-15, BR-22, BR-77, BR-80). Không cần đăng nhập. Giờ trong query (`departureFrom` / `departureTo`) theo giờ VN.
 
 export const MAX_PASSENGERS = 10;
-export const SEARCH_SORTS = ["departure", "price", "duration"] as const;
+/** `price_desc` = giá cao trước; `rating` = nhà xe điểm đánh giá cao trước (chưa có đánh giá xếp cuối). */
+export const SEARCH_SORTS = ["departure", "price", "price_desc", "duration", "rating"] as const;
 const TIME = /^([01]\d|2[0-3]):[0-5]\d$/;
 const id = z.string().trim().min(1).max(64);
 const areaId = z.string().trim().max(120).regex(AREA_ID);
