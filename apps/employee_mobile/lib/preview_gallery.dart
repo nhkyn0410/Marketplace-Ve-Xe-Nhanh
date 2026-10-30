@@ -160,6 +160,8 @@ class _GalleryHome extends StatelessWidget {
             TicketResultKind.wrongTrip => 'Sai chuyến',
             TicketResultKind.cancelled => 'Đã hủy',
             TicketResultKind.refunded => 'Đã hoàn tiền',
+            TicketResultKind.alreadyBoarded => 'Đã lên xe trước đó',
+            TicketResultKind.unavailable => 'Không thể xác nhận',
           }}',
           () => TicketResultScreen(
             trip: _trip(),

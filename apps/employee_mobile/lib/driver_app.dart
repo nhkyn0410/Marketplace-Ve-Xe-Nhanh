@@ -3,19 +3,25 @@ import 'package:flutter/material.dart';
 
 import 'demo_data.dart';
 import 'design_system.dart';
+import 'employee_api.dart';
 import 'login_screen.dart';
 import 'profile_screens.dart';
 import 'trip_screens.dart';
 
-/// App nhân viên với luồng giao diện minh họa độc lập với hệ thống đăng nhập thật.
+/// App nhân viên; bản xem thử chỉ bật khi caller yêu cầu rõ.
 class EmployeeApp extends StatefulWidget {
-  const EmployeeApp({super.key});
+  const EmployeeApp({super.key, this.api, this.preview = false});
+  final EmployeeApi? api;
+  final bool preview;
   @override
   State<EmployeeApp> createState() => _EmployeeAppState();
 }
 
 class _EmployeeAppState extends State<EmployeeApp> {
   bool _dark = false;
+  late final EmployeeApi? _api = widget.preview
+      ? null
+      : (widget.api ?? EmployeeApi());
   @override
   Widget build(BuildContext context) => MaterialApp(
     title: 'Vé Xe Nhanh · Nhân viên',
@@ -35,10 +41,12 @@ class _EmployeeAppState extends State<EmployeeApp> {
           )
         : child!,
     home: LoginScreen(
+      onLogin: _api?.login,
       onPreview: (context, username) {
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(
             builder: (_) => EmployeeHome(
+              api: _api,
               username: username,
               onThemeChanged: (dark) => setState(() => _dark = dark),
             ),
@@ -55,16 +63,18 @@ class EmployeeHome extends StatefulWidget {
     super.key,
     required this.username,
     required this.onThemeChanged,
+    this.api,
   });
   final String username;
   final ValueChanged<bool> onThemeChanged;
+  final EmployeeApi? api;
   @override
   State<EmployeeHome> createState() => _EmployeeHomeState();
 }
 
 class _EmployeeHomeState extends State<EmployeeHome> {
   final _pages = PageController();
-  final _trips = createDemoTrips();
+  late final _trips = widget.api == null ? createDemoTrips() : <DemoTrip>[];
   final _deviceSessions = DemoDeviceSessions();
   int _tab = 0;
 
@@ -80,23 +90,33 @@ class _EmployeeHomeState extends State<EmployeeHome> {
     curve: Curves.easeOut,
   );
 
-  void _logout() => Navigator.of(context).pushAndRemoveUntil(
-    MaterialPageRoute(
-      builder: (_) => LoginScreen(
-        onPreview: (context, username) {
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(
-              builder: (_) => EmployeeHome(
-                username: username,
-                onThemeChanged: widget.onThemeChanged,
+  Future<void> _logout() async {
+    try {
+      await widget.api?.logout();
+    } on EmployeeApiException {
+      // Adapter vẫn xóa token cục bộ khi server không phản hồi.
+    }
+    if (!mounted) return;
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(
+        builder: (_) => LoginScreen(
+          onLogin: widget.api?.login,
+          onPreview: (context, username) {
+            Navigator.of(context).pushReplacement(
+              MaterialPageRoute(
+                builder: (_) => EmployeeHome(
+                  api: widget.api,
+                  username: username,
+                  onThemeChanged: widget.onThemeChanged,
+                ),
               ),
-            ),
-          );
-        },
+            );
+          },
+        ),
       ),
-    ),
-    (_) => false,
-  );
+      (_) => false,
+    );
+  }
 
   @override
   Widget build(BuildContext context) => Theme(
@@ -113,6 +133,10 @@ class _EmployeeHomeState extends State<EmployeeHome> {
         children: [
           TripsScreen(
             trips: _trips,
+            username: widget.api == null ? 'Minh' : widget.username,
+            loadTrips: widget.api == null
+                ? null
+                : (day) => widget.api!.assignments(day: day),
             onTabSelected: (index) {
               Navigator.of(context).popUntil((route) => route.isFirst);
               _selectTab(index);

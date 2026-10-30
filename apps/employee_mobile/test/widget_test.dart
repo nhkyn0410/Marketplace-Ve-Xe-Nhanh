@@ -17,7 +17,7 @@ Future<void> swipe(WidgetTester tester, String label) async {
 }
 
 Future<void> enterPreview(WidgetTester tester) async {
-  await tester.pumpWidget(const EmployeeApp());
+  await tester.pumpWidget(const EmployeeApp(preview: true));
   await tester.enterText(
     find.byType(TextFormField).at(0),
     'mayexpress/nv.minh',
@@ -39,7 +39,7 @@ void main() {
   testWidgets('Login requires complete swipe and explains the demo session', (
     tester,
   ) async {
-    await tester.pumpWidget(const EmployeeApp());
+    await tester.pumpWidget(const EmployeeApp(preview: true));
     expect(tester.getSize(find.byType(SwipeAction)).width, 720);
     await tester.tap(find.text('Đăng nhập'));
     await tester.pumpAndSettle();

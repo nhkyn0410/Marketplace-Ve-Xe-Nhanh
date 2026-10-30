@@ -6,8 +6,8 @@ Giao diện Flutter theo [thiết kế Figma](https://www.figma.com/design/6c81q
 
 1. Mở folder `D:\Marketplace-Ve-Xe-Nhanh`.
 2. Chọn **Run and Debug → Tài xế - Chrome**, nhấn **F5**.
-3. Nhập tên mẫu `mayexpress/nv.minh` và mật khẩu mẫu bất kỳ.
-4. Kéo nút màu cam sang phải để đăng nhập, sau đó chọn **Mở bản xem thử**.
+3. Nhập tài khoản nhân viên thật dạng `nhaxe/username` và mật khẩu đã được cấp trên backend.
+4. Kéo nút màu cam sang phải để đăng nhập. Danh sách chỉ tải những chuyến được phân công của ngày đang chọn.
 
 VS Code được cấu hình cục bộ dùng Flutter **3.47.2** trong `.tools/flutter`.
 SDK và cấu hình máy không được commit. Trên máy khác, cài SDK theo `.fvmrc` của repo.
@@ -17,11 +17,27 @@ Hoặc chạy từ PowerShell:
 ```powershell
 cd D:\Marketplace-Ve-Xe-Nhanh\apps\employee_mobile
 ..\..\.tools\flutter\bin\flutter.bat pub get
-..\..\.tools\flutter\bin\flutter.bat run -d chrome
+..\..\.tools\flutter\bin\flutter.bat run -d chrome --dart-define=API_BASE_URL=http://localhost:3000
 ```
 
-Để chạy trên Android/iOS, chọn thiết bị trong VS Code rồi dùng cấu hình
-**Tài xế - Android/iOS**. Chưa xác minh bản build Android/iOS trong lượt triển khai này.
+API phải đang hoạt động, có dữ liệu chuyến/phân công và vé được phát hành hợp lệ. `API_BASE_URL` chỉ chứa origin, không thêm `/v1`.
+
+Điện thoại Android kết nối USB có thể chuyển tiếp API localhost của laptop:
+
+```powershell
+& "$env:LOCALAPPDATA\Android\sdk\platform-tools\adb.exe" -s ee520560 reverse tcp:3000 tcp:3000
+..\..\.tools\flutter\bin\flutter.bat run -d ee520560 --dart-define=API_BASE_URL=http://127.0.0.1:3000
+```
+
+Thay `ee520560` bằng ID điện thoại từ `flutter devices` nếu chạy trên máy khác. Máy ảo mặc định dùng `http://10.0.2.2:3000`. Bản release cần API HTTPS.
+
+### Soát vé thật
+
+Camera gửi nguyên token QR lên API xác minh, không đổi chữ hoa/thường. Chỉ token QR do hệ thống phát hành được chấp nhận trong luồng camera; QR chứa mã vé gõ tay, URL hoặc nội dung bất kỳ bị từ chối.
+
+Luồng tự động theo yêu cầu giao diện: quét → loading → xác minh → check-in → Đã lên xe. Hai API `/v1/employee/tickets/verify` và `/v1/employee/check-ins` xác minh quyền/phân công/nhà xe/chuyến/trạng thái trên server. Chỉ sau khi API check-in trả thành công mới cập nhật danh sách/ghế. Vé quét lại không tăng số khách; mất mạng hoặc timeout không báo thành công và cần kiểm tra lại trạng thái vé trước khi thử lại.
+
+Các chức năng vận hành, nhật trình, sự cố và quản lý hồ sơ/thiết bị chưa được tích hợp API trong thay đổi này. Thao tác ghi vận hành/nhật trình/sự cố trên chuyến thật bị chặn để không báo lưu thành công cục bộ.
 
 ## Các màn đã có
 
@@ -52,7 +68,7 @@ Trang đối chiếu riêng cho các trạng thái khó gặp:
 ..\..\.tools\flutter\bin\flutter.bat run -d chrome -t lib/preview_gallery.dart
 ```
 
-Trang này không nằm trong điều hướng ứng dụng chính. Chọn **Camera · Mở webcam thật** để thử camera của máy; mục **Soát vé · Bố cục quét QR** chỉ hiển thị thiết kế tĩnh. Trong app chính, camera đọc QR qua `mobile_scanner`; API, email và thu hồi phiên máy chủ chưa được tích hợp.
+Trang này không nằm trong điều hướng ứng dụng chính và vẫn dùng dữ liệu mẫu. Chọn **Camera · Mở webcam thật** để thử camera của máy với vé mẫu; mục **Soát vé · Bố cục quét QR** chỉ hiển thị thiết kế tĩnh. Dữ liệu mẫu không được dùng để quyết định kết quả soát vé ở ứng dụng chính.
 
 Trên trình duyệt laptop, ứng dụng ưu tiên webcam trước ở 1280 × 720; trên Android/iOS vẫn ưu tiên camera sau. Nếu mở camera lỗi, **Thử mở camera** giải phóng phiên cũ rồi tạo lại; **Đổi camera** thử hướng còn lại. Thông báo phân biệt thiếu quyền, không có webcam và webcam đang bận hoặc bị Windows chặn.
 

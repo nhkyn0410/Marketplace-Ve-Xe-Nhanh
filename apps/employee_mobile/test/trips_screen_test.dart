@@ -55,7 +55,7 @@ void main() {
       tester.view.devicePixelRatio = 1;
       addTearDown(tester.view.resetPhysicalSize);
       addTearDown(tester.view.resetDevicePixelRatio);
-      await tester.pumpWidget(const EmployeeApp());
+      await tester.pumpWidget(const EmployeeApp(preview: true));
       await tester.enterText(
         find.byType(TextFormField).at(0),
         'mayexpress/nv.minh',

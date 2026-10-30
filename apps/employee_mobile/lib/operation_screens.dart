@@ -47,6 +47,13 @@ class _OperationsScreenState extends State<OperationsScreen> {
   }
 
   Future<void> _changeStatus() async {
+    if (widget.trip.isLive) {
+      showDemoNotice(
+        context,
+        'Chức năng cập nhật vận hành chưa kết nối máy chủ.',
+      );
+      return;
+    }
     final next = _next;
     if (next == null || _busy || !widget.trip.assigned) return;
     setState(() {
@@ -423,6 +430,13 @@ class _JournalScreenState extends State<JournalScreen> {
       prefix: 'journal',
       onComplete: () {
         if (!_form.currentState!.validate()) return;
+        if (widget.trip.isLive) {
+          showDemoNotice(
+            context,
+            'Chức năng lưu nhật trình chưa kết nối máy chủ.',
+          );
+          return;
+        }
         if (!widget.trip.assigned) return;
         if (widget.trip.demoJournalFailure) {
           widget.trip.demoJournalFailure = false;
@@ -949,6 +963,10 @@ class _IncidentScreenState extends State<IncidentScreen> {
       prefix: 'incident',
       onComplete: () {
         if (!_form.currentState!.validate()) return;
+        if (widget.trip.isLive) {
+          showDemoNotice(context, 'Chức năng gửi sự cố chưa kết nối máy chủ.');
+          return;
+        }
         if (widget.trip.demoIncidentFailure) {
           widget.trip.demoIncidentFailure = false;
           setState(() => _failed = true);

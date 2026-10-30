@@ -14,24 +14,42 @@ class TripsScreen extends StatefulWidget {
     required this.trips,
     required this.onTabSelected,
     this.initialState = AssignmentViewState.ready,
+    this.loadTrips,
+    this.username = 'Minh',
   });
   final List<DemoTrip> trips;
   final ValueChanged<int> onTabSelected;
   final AssignmentViewState initialState;
+  final Future<List<DemoTrip>> Function(DateTime day)? loadTrips;
+  final String username;
   @override
   State<TripsScreen> createState() => _TripsScreenState();
 }
 
 class _TripsScreenState extends State<TripsScreen>
     with AutomaticKeepAliveClientMixin<TripsScreen> {
-  var _date = DateTime(2026, 10, 14);
+  late DateTime _date;
+  List<DemoTrip> _serverTrips = [];
+  String? _loadError;
   bool _loading = false;
   late AssignmentViewState _viewState = widget.initialState;
   int _loadRequest = 0;
-  bool get _isDemoDate => _date == DateTime(2026, 10, 14);
-  List<DemoTrip> get _assignedTrips =>
-      widget.trips.where((trip) => trip.assigned).toList();
-  bool get _hasTrips => _isDemoDate && _assignedTrips.isNotEmpty;
+  bool get _live => widget.loadTrips != null;
+  bool get _isDemoDate => !_live && _date == DateTime(2026, 10, 14);
+  List<DemoTrip> get _assignedTrips => (_live ? _serverTrips : widget.trips)
+      .where((trip) => trip.assigned)
+      .toList();
+  bool get _hasTrips => (_live || _isDemoDate) && _assignedTrips.isNotEmpty;
+
+  @override
+  void initState() {
+    super.initState();
+    final now = DateTime.now();
+    _date = _live
+        ? DateTime(now.year, now.month, now.day)
+        : DateTime(2026, 10, 14);
+    if (_live) _changeDay(0);
+  }
 
   @override
   bool get wantKeepAlive => true;
@@ -41,8 +59,25 @@ class _TripsScreenState extends State<TripsScreen>
     setState(() {
       _date = _date.add(Duration(days: offset));
       _loading = true;
+      _loadError = null;
+      _viewState = AssignmentViewState.ready;
     });
-    await Future<void>.delayed(const Duration(milliseconds: 350));
+    if (_live) {
+      try {
+        final trips = await widget.loadTrips!(_date);
+        if (!mounted || request != _loadRequest) return;
+        setState(() => _serverTrips = trips);
+      } catch (_) {
+        if (!mounted || request != _loadRequest) return;
+        setState(() {
+          _serverTrips = [];
+          _viewState = AssignmentViewState.failed;
+          _loadError = 'Không tải được chuyến. Kiểm tra kết nối và đăng nhập lại nếu phiên đã hết hạn.';
+        });
+      }
+    } else {
+      await Future<void>.delayed(const Duration(milliseconds: 350));
+    }
     if (mounted && request == _loadRequest) setState(() => _loading = false);
   }
 
@@ -50,20 +85,34 @@ class _TripsScreenState extends State<TripsScreen>
   Widget build(BuildContext context) {
     super.build(context);
     if (_loading || _viewState != AssignmentViewState.ready || !_hasTrips) {
-      return AssignmentStateBody(
-        state: _loading ? AssignmentViewState.loading : _viewState,
-        date: _date,
-        onDayChanged: (offset) {
-          _viewState = AssignmentViewState.ready;
-          _changeDay(offset);
-        },
-        onReload: () {
-          _viewState = AssignmentViewState.ready;
-          _changeDay(0);
-        },
-        onSampleDay: _isDemoDate
-            ? null
-            : () => setState(() => _date = DateTime(2026, 10, 14)),
+      return Column(
+        children: [
+          if (_loadError != null)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(24, 12, 24, 0),
+              child: Text(
+                _loadError!,
+                style: driverText(13, FontWeight.w500, DriverColors.secondary),
+              ),
+            ),
+          Expanded(
+            child: AssignmentStateBody(
+              state: _loading ? AssignmentViewState.loading : _viewState,
+              date: _date,
+              onDayChanged: (offset) {
+                _viewState = AssignmentViewState.ready;
+                _changeDay(offset);
+              },
+              onReload: () {
+                _viewState = AssignmentViewState.ready;
+                _changeDay(0);
+              },
+              onSampleDay: _live || _isDemoDate
+                  ? null
+                  : () => setState(() => _date = DateTime(2026, 10, 14)),
+            ),
+          ),
+        ],
       );
     }
     return Column(
@@ -81,7 +130,7 @@ class _TripsScreenState extends State<TripsScreen>
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Chào Minh,',
+                          'Chào ${widget.username},',
                           style: driverText(
                             14,
                             FontWeight.w500,
@@ -438,6 +487,13 @@ class TripDetailScreen extends StatefulWidget {
 
 class _TripDetailScreenState extends State<TripDetailScreen> {
   void _startBoarding() {
+    if (widget.trip.isLive) {
+      openDriverPage(
+        context,
+        PassengerScreen(trip: widget.trip, onTabSelected: widget.onTabSelected),
+      );
+      return;
+    }
     if (widget.trip.status == 'Sắp khởi hành' ||
         widget.trip.status == 'Chưa khởi hành') {
       setState(() {
@@ -474,7 +530,8 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
         children: [
           DriverHeading(
             trip.id,
-            subtitle: '14/10/2026 · ${trip.departure}',
+            subtitle:
+                '${trip.serviceDate == null ? '14/10/2026' : '${trip.serviceDate!.day}/${trip.serviceDate!.month}/${trip.serviceDate!.year}'} · ${trip.departure}',
             large: true,
             padding: const EdgeInsets.fromLTRB(24, 12, 24, 26),
             background: DriverColors.cream,
@@ -767,7 +824,7 @@ class _PassengerScreenState extends State<PassengerScreen> {
   final _search = TextEditingController();
   String _query = '';
   int _filter = 0;
-  var _updated = '09:41';
+  late String _updated = widget.trip.isLive ? 'Vừa tải' : '09:41';
 
   Widget _blankPage({required bool search}) => DriverPage(
     bottom: DriverTabs(onSelected: widget.onTabSelected),
@@ -972,12 +1029,25 @@ class _PassengerScreenState extends State<PassengerScreen> {
   }
 
   Future<void> _refresh() async {
-    await Future<void>.delayed(const Duration(milliseconds: 350));
+    if (widget.trip.isLive) {
+      try {
+        await widget.trip.reloadManifest!();
+      } catch (_) {
+        if (!mounted) return;
+        showDemoNotice(
+          context,
+          'Chưa tải được danh sách khách. Vui lòng thử lại.',
+        );
+        return;
+      }
+    } else {
+      await Future<void>.delayed(const Duration(milliseconds: 350));
+    }
     if (!mounted) return;
     final now = DateTime.now();
     setState(
       () => _updated =
-          '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')} · Bản mẫu',
+          '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}${widget.trip.isLive ? '' : ' · Bản mẫu'}',
     );
   }
 

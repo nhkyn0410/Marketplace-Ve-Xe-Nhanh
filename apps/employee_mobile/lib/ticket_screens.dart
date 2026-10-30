@@ -7,10 +7,23 @@ import 'package:mobile_scanner/mobile_scanner.dart';
 
 import 'demo_data.dart';
 import 'design_system.dart';
+import 'employee_api.dart';
 import 'trip_states.dart';
 
+String _tripDate(DemoTrip trip) {
+  final date = trip.serviceDate ?? DateTime(2026, 10, 14);
+  return '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}';
+}
+
 /// Các kết quả không cho phép xác nhận vé trong phiên minh họa.
-enum TicketResultKind { notFound, wrongTrip, cancelled, refunded }
+enum TicketResultKind {
+  notFound,
+  wrongTrip,
+  cancelled,
+  refunded,
+  alreadyBoarded,
+  unavailable,
+}
 
 /// Hiển thị kết quả vé lỗi mà không lộ thông tin hành khách của chuyến khác.
 class TicketResultScreen extends StatelessWidget {
@@ -19,10 +32,12 @@ class TicketResultScreen extends StatelessWidget {
     required this.trip,
     required this.code,
     required this.kind,
+    this.message,
   });
   final DemoTrip trip;
   final String code;
   final TicketResultKind kind;
+  final String? message;
 
   @override
   Widget build(BuildContext context) {
@@ -53,6 +68,20 @@ class TicketResultScreen extends StatelessWidget {
         'imgEmployeeTicketEmblemVeDaHoanTin',
         'Vé đã hoàn tiền',
         'Vé đã hoàn tiền không còn hiệu lực.',
+        const Color(0xffbc2018),
+      ),
+      TicketResultKind.alreadyBoarded => (
+        '2080-1135',
+        'imgEmployeeTicketEmblemKhongTimThyVe',
+        'Vé đã lên xe trước đó',
+        'Không ghi nhận lên xe lần nữa.',
+        DriverColors.warning,
+      ),
+      TicketResultKind.unavailable => (
+        '2080-1220',
+        'imgEmployeeTicketEmblemVeDaHy',
+        'Không thể xác nhận lên xe',
+        this.message ?? 'Vé hoặc chuyến không còn cho phép check-in.',
         const Color(0xffbc2018),
       ),
     };
@@ -95,7 +124,7 @@ class TicketResultScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  'Chuyến ${trip.id} · 14/10/2026',
+                  'Chuyến ${trip.id} · ${_tripDate(trip)}',
                   textAlign: TextAlign.center,
                   style: driverText(
                     12,
@@ -186,7 +215,7 @@ class TicketResultScreen extends StatelessWidget {
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 Text(
-                                  '14/10/2026',
+                                  _tripDate(trip),
                                   style: driverText(
                                     12,
                                     FontWeight.w400,
@@ -313,7 +342,7 @@ class BoardingSuccessScreen extends StatelessWidget {
               ),
               const SizedBox(height: 12),
               Text(
-                'Chuyến ${trip.id} · 14/10/2026',
+                'Chuyến ${trip.id} · ${_tripDate(trip)}',
                 textAlign: TextAlign.center,
                 style: driverText(14, FontWeight.w500, DriverColors.secondary),
               ),
@@ -346,7 +375,7 @@ class _BoardingProgress extends StatelessWidget {
             children: [
               Expanded(
                 child: Text(
-                  '${trip.boardedCount} / ${trip.passengers.length} đã lên xe',
+                  '${trip.boardedCount} / ${trip.ticketCount} đã lên xe',
                   style: driverText(
                     compact ? 16 : 18,
                     FontWeight.w600,
@@ -355,7 +384,7 @@ class _BoardingProgress extends StatelessWidget {
                 ),
               ),
               Text(
-                'Còn ${trip.passengers.length - trip.boardedCount} khách',
+                'Còn ${trip.ticketCount - trip.boardedCount} khách',
                 style: driverText(12, FontWeight.w400, DriverColors.secondary),
               ),
             ],
@@ -363,9 +392,9 @@ class _BoardingProgress extends StatelessWidget {
         ),
         SizedBox(height: compact ? 8 : 14),
         LinearProgressIndicator(
-          value: trip.passengers.isEmpty
+          value: trip.ticketCount == 0
               ? 0
-              : trip.boardedCount / trip.passengers.length,
+              : trip.boardedCount / trip.ticketCount,
           minHeight: compact ? 4 : 6,
           borderRadius: BorderRadius.circular(3),
           backgroundColor: compact ? Colors.white : DriverColors.border,
@@ -418,6 +447,13 @@ class _PassengerStatusScreenState extends State<PassengerStatusScreen> {
           arrowAsset: 'ticket-refresh-1905-767-imgFrame',
           chevronAsset: 'ticket-refresh-1905-767-imgFrame1',
           onComplete: () {
+            if (widget.trip.isLive) {
+              showDemoNotice(
+                context,
+                'Chức năng lưu trạng thái khách chưa kết nối máy chủ.',
+              );
+              return;
+            }
             if (_selection == 1 && !_canMarkAbsent) return;
             passenger.absent = _selection == 1;
             passenger.needsAttention = _selection == 2;
@@ -762,6 +798,10 @@ class _ScannerScreenState extends State<ScannerScreen>
 
   Future<void> _acceptCode(String rawCode) async {
     if (!mounted || _processing || _offline || !widget.trip.assigned) return;
+    if (widget.trip.isLive) {
+      await _acceptLiveCode(rawCode);
+      return;
+    }
     final code = rawCode.trim().toUpperCase();
     if (code.isEmpty) return;
     _processing = true;
@@ -808,6 +848,84 @@ class _ScannerScreenState extends State<ScannerScreen>
         ),
       ),
     );
+  }
+
+  Future<void> _acceptLiveCode(String rawCode) async {
+    final board = widget.trip.checkInTicket;
+    if (rawCode.trim().isEmpty) return;
+    setState(() => _processing = true);
+    final camera = _camera;
+    if (camera != null) await _cameraAction(camera.stop);
+    if (!mounted) return;
+    var completed = false;
+    try {
+      if (board == null) {
+        throw const EmployeeApiException(
+          'UNAVAILABLE',
+          'Chưa kết nối được dịch vụ soát vé.',
+        );
+      }
+      // Token QR phân biệt hoa/thường; chỉ server quyết định vé hợp lệ.
+      final passenger = await board(rawCode.trim());
+      if (!mounted) return;
+      completed = true;
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute<void>(
+          builder: (_) => BoardingSuccessScreen(
+            trip: widget.trip,
+            passenger: passenger,
+            scanResults: widget.scanResults,
+          ),
+        ),
+      );
+    } on EmployeeTicketException catch (error) {
+      if (!mounted) return;
+      final kind = switch (error.code) {
+        'WRONG_TRIP' => TicketResultKind.wrongTrip,
+        'CANCELLED' => TicketResultKind.cancelled,
+        'REFUNDED' => TicketResultKind.refunded,
+        'ALREADY_CHECKED_IN' => TicketResultKind.alreadyBoarded,
+        'NOT_FOUND' ||
+        'TICKET_NOT_FOUND' ||
+        'INVALID_QR' => TicketResultKind.notFound,
+        _ => TicketResultKind.unavailable,
+      };
+      await openDriverPage(
+        context,
+        TicketResultScreen(
+          trip: widget.trip,
+          code: error.ticketCode ?? 'Không xác định',
+          kind: kind,
+          message: error.message,
+        ),
+      );
+    } on EmployeeApiException catch (error) {
+      if (!mounted) return;
+      await showDialog<void>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Chưa xác nhận lên xe'),
+          content: Text(error.message),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Đóng'),
+            ),
+          ],
+        ),
+      );
+    } catch (_) {
+      if (!mounted) return;
+      showDemoNotice(
+        context,
+        'Chưa xác nhận được kết quả từ máy chủ. Kiểm tra lại vé trước khi thử lại.',
+      );
+    } finally {
+      if (mounted && !completed) {
+        setState(() => _processing = false);
+        if (camera != null && !_offline) await _cameraAction(camera.start);
+      }
+    }
   }
 
   void _retryOffline() {
@@ -1083,7 +1201,7 @@ class _ScannerScreenState extends State<ScannerScreen>
                             : _cameraError(state.error!),
                       ),
                     ),
-                  if (_restartingCamera)
+                  if (_restartingCamera || (_processing && widget.trip.isLive))
                     const Positioned.fill(
                       child: Center(
                         child: CircularProgressIndicator(
@@ -1318,7 +1436,8 @@ class SeatMapScreen extends StatelessWidget {
                   children: [
                     _seatLegend('Đã lên', const Color(0xff157a48)),
                     _seatLegend('Đã đặt\nChưa lên', DriverColors.warning),
-                    _seatLegend('Trống', DriverColors.secondary),
+                    if (!trip.isLive)
+                      _seatLegend('Trống', DriverColors.secondary),
                   ],
                 ),
                 const SizedBox(height: 12),
@@ -1342,7 +1461,7 @@ class SeatMapScreen extends StatelessWidget {
                             ),
                           ),
                           Text(
-                            '${trip.seats.length} ghế',
+                            '${trip.seats.length} ${trip.isLive ? 'ghế có vé' : 'ghế'}',
                             style: driverText(
                               12,
                               FontWeight.w400,
