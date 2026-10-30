@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:api_client_dart/api_client_dart.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
@@ -17,6 +19,7 @@ import 'package:passenger_mobile/features/auth/auth_screen.dart';
 import 'package:passenger_mobile/features/auth/google_auth_service.dart';
 import 'package:passenger_mobile/features/explore/article_api.dart';
 import 'package:passenger_mobile/features/journey/journey_api.dart';
+import 'package:passenger_mobile/features/notification/push_service.dart';
 import 'package:passenger_mobile/features/explore/article_reader_screen.dart';
 import 'package:passenger_mobile/features/explore/explore_screen.dart';
 import 'package:passenger_mobile/features/home/home_models.dart';
@@ -168,6 +171,66 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
   final _tokens = const TokenStorage();
   late final _api = createApiClient(baseUrl: apiBaseUrl, tokens: _tokens);
   late final _articleApi = ArticleApi(_api);
+  late final _push = PushService(
+    registerDevice: (token) async {
+      final response = await _api
+          .getNotificationApi()
+          .preferenceControllerDevice(
+            deviceInputDto: DeviceInputDto(
+              (builder) => builder
+                ..provider = DeviceInputDtoProviderEnum.FCM
+                ..token = token,
+            ),
+          );
+      return response.data!.id;
+    },
+    removeDevice: (id) =>
+        _api.getNotificationApi().preferenceControllerRemove(id: id),
+  );
+  final _pushSubscriptions = <StreamSubscription<PushMessage>>[];
+
+  @override
+  void initState() {
+    super.initState();
+    _pushSubscriptions
+      ..add(_push.foregroundMessages.listen(_showPush))
+      // Chạm thông báo (đơn, vé, hoàn tiền…) → mở tab Hành trình.
+      ..add(
+        _push.openedMessages.listen((_) {
+          if (mounted && _step == _AuthStep.signedIn) _selectMainTab(3);
+        }),
+      );
+  }
+
+  @override
+  void dispose() {
+    for (final subscription in _pushSubscriptions) {
+      subscription.cancel();
+    }
+    super.dispose();
+  }
+
+  /// App đang mở thì hệ thống không hiện thông báo — hiện thanh báo trong app.
+  void _showPush(PushMessage message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(
+            message.body.isEmpty
+                ? message.title
+                : '${message.title}\n${message.body}',
+          ),
+          action: _step == _AuthStep.signedIn
+              ? SnackBarAction(
+                  label: 'Xem',
+                  onPressed: () => _selectMainTab(3),
+                )
+              : null,
+        ),
+      );
+  }
   late final _journeyApi = JourneyApi(_api);
   late final _bookingApi = TripBookingApi(
     _api,
@@ -358,6 +421,8 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
           : _AuthStep.signedIn;
       _error = null;
     });
+    // Có phiên rồi mới đăng ký thiết bị nhận push; lỗi push không chặn đăng nhập.
+    unawaited(_push.enable());
   }
 
   Future<bool> _completeProfile(String fullName, String? phone) async {
@@ -751,6 +816,8 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
 
   Future<bool> _logout() async {
     final succeeded = await _run(() async {
+      // Gỡ thiết bị khi còn phiên, để tài khoản không nhận push trên máy đã đăng xuất.
+      await _push.disable();
       await _api.getAuthApi().authControllerLogout(xAuthTransport: 'bearer');
       await _tokens.clear();
     });
