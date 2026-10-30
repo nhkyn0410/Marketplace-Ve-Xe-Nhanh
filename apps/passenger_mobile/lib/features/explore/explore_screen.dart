@@ -12,7 +12,7 @@ import 'package:passenger_mobile/features/home/route_dock_tabbar.dart';
 
 const _assetRoot = 'assets/explore';
 const _designWidth = 412.0;
-const _designContentHeight = 1411.0;
+const _designContentHeight = 1389.0;
 const _pageBackground = Color(0xFFEFFAFF);
 const _ink = Color(0xFF0B1739);
 const _primary = Color(0xFF1589BD);
@@ -482,15 +482,16 @@ class _ExploreCanvas extends StatelessWidget {
     final categoryView = category != 'all';
     final tipsView = category == 'meo-du-lich';
     final featuredHeight = tipsView ? 252.0 : 271.0;
-    final latestHeadingTop = categoryView ? 490.0 : 485.0;
-    final latestListTop = categoryView ? 528.0 : 523.0;
+    final latestHeadingTop = categoryView ? 468.0 : 463.0;
+    final latestListTop = categoryView ? 506.0 : 501.0;
     return Stack(
       clipBehavior: Clip.none,
       children: [
-        const Positioned(left: 29, top: 36, child: _ExploreHeading()),
+        // Tiêu đề cùng kiểu, cùng vị trí với tab Mua vé (cách thanh trạng thái 14, lề 20).
+        const Positioned(left: 20, top: 14, child: _ExploreHeading()),
         Positioned(
           left: 18,
-          top: 111,
+          top: 89,
           width: 376,
           height: 40,
           child: _ExploreSearchField(
@@ -500,7 +501,7 @@ class _ExploreCanvas extends StatelessWidget {
         ),
         Positioned(
           left: 60,
-          top: 164,
+          top: 142,
           width: 272,
           height: 30,
           child: _ExploreCategories(
@@ -511,7 +512,7 @@ class _ExploreCanvas extends StatelessWidget {
         if (feed.featured != null)
           Positioned(
             left: 14,
-            top: 207,
+            top: 185,
             width: 384,
             height: featuredHeight,
             child: _FeaturedArticleCard(
@@ -524,7 +525,7 @@ class _ExploreCanvas extends StatelessWidget {
         else
           Positioned(
             left: 14,
-            top: 207,
+            top: 185,
             width: 384,
             height: 271,
             child: _EmptyExploreCard(status: status, onRetry: onRetry),
@@ -557,14 +558,14 @@ class _ExploreCanvas extends StatelessWidget {
         if (!categoryView && promotion != null) ...[
           const Positioned(
             left: 14,
-            top: 1118,
+            top: 1096,
             width: 384,
             height: 24,
             child: _PromotionHeading(),
           ),
           Positioned(
             left: 14,
-            top: 1148,
+            top: 1126,
             width: 384,
             height: 98,
             child: _PromotionCard(
@@ -575,7 +576,7 @@ class _ExploreCanvas extends StatelessWidget {
             ),
           ),
           if (identical(promotion, _samplePromotionMarker))
-            const Positioned(left: 195, top: 1252, child: _CarouselDots()),
+            const Positioned(left: 195, top: 1230, child: _CarouselDots()),
         ],
       ],
     );
@@ -587,30 +588,31 @@ class _ExploreHeading extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Cùng kiểu chữ với tiêu đề tab Mua vé ("Khám phá chuyến đi").
     return const SizedBox(
-      height: 73,
+      width: 372,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Khám phá',
+            'Khám phá hành trình',
             key: Key('explore-heading-primary'),
             style: TextStyle(
-              color: _ink,
-              fontFamily: 'Be Vietnam Pro',
-              fontSize: 28,
-              height: 1.4,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-          Text(
-            'hành trình mới',
-            style: TextStyle(
-              color: Color(0xFF3B91C5),
+              color: Color(0xFF09243D),
               fontFamily: 'Be Vietnam Pro',
               fontSize: 24,
-              height: 1.4,
-              fontWeight: FontWeight.w700,
+              height: 34 / 24,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          SizedBox(height: 3),
+          Text(
+            'Bài viết, cẩm nang và ưu đãi cho chuyến đi',
+            style: TextStyle(
+              color: Color(0xFF607A8E),
+              fontFamily: 'Be Vietnam Pro',
+              fontSize: 13,
+              height: 19 / 13,
             ),
           ),
         ],

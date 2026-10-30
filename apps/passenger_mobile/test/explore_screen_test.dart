@@ -95,9 +95,11 @@ void main() {
       find.byKey(const Key('explore-heading-primary')),
     );
     expect(heading.style?.fontFamily, 'Be Vietnam Pro');
-    expect(heading.style?.fontSize, 28);
-    expect(heading.style?.height, 1.4);
-    expect(heading.style?.fontWeight, FontWeight.w700);
+    // Cùng kiểu với tiêu đề tab Mua vé.
+    expect(heading.data, 'Khám phá hành trình');
+    expect(heading.style?.fontSize, 24);
+    expect(heading.style?.height, 34 / 24);
+    expect(heading.style?.fontWeight, FontWeight.w600);
     expect(find.byKey(const Key('route-dock-tabbar')), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
