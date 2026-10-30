@@ -1,5 +1,11 @@
 import type { DbTransaction, PrismaService } from "./prisma.service";
-import type { PaymentProvider, PaymentStatus } from "./prisma.types";
+import {
+  type DiscountType,
+  type PaymentProvider,
+  type PaymentStatus,
+  PromotionScope,
+  PromotionStatus,
+} from "./prisma.types";
 
 // Ngữ cảnh RLS cho luồng khách đặt vé / thanh toán (TASK-BTP-002+): token của khách vãng lai / hành khách KHÔNG mang tenant,
 // nên tenant lấy từ chính chuyến / booking ở server (không bao giờ từ body). Đặt ở `database/` vì chỉ ở đây được chọn scope.
@@ -146,5 +152,56 @@ export async function listPaymentsToReconcile(
 export async function listStuckRefunds(prisma: Pick<PrismaService, "withSystem">, updatedBefore: Date, limit: number): Promise<{ id: string; attempt: number }[]> {
   return prisma.withSystem((tx) =>
     tx.refund.findMany({ where: { status: "APPROVED", updatedAt: { lt: updatedBefore } }, orderBy: { updatedAt: "asc" }, take: limit, select: { id: true, attempt: true } }),
+  );
+}
+
+/** Dòng khuyến mãi công khai đang chạy được đọc từ cơ sở dữ liệu. */
+export interface PublicPromotionRow {
+  readonly code: string;
+  readonly name: string;
+  readonly scope: PromotionScope;
+  readonly discountType: DiscountType;
+  readonly discountValue: bigint;
+  readonly maxDiscount: bigint | null;
+  readonly minOrder: bigint;
+  readonly endsAt: Date;
+  readonly operator: { readonly displayName: string } | null;
+}
+
+/**
+ * Khuyến mãi công khai đang chạy (mọi nhà xe): `ACTIVE`, trong thời hạn, còn lượt; của nhà xe đang hoạt động, hoặc của nền
+ * tảng đã có nhà xe tham gia. Sắp hết hạn trước.
+ */
+export function listPublicPromotions(
+  prisma: Pick<PrismaService, "withSystem">,
+  limit: number,
+  now: Date,
+): Promise<PublicPromotionRow[]> {
+  return prisma.withSystem((tx) =>
+    tx.promotion.findMany({
+      where: {
+        status: PromotionStatus.ACTIVE,
+        startsAt: { lte: now },
+        endsAt: { gt: now },
+        usedCount: { lt: tx.promotion.fields.usageLimit },
+        OR: [
+          { scope: PromotionScope.OPERATOR, operator: { status: "ACTIVE" } },
+          { scope: PromotionScope.PLATFORM, participations: { some: {} } },
+        ],
+      },
+      orderBy: [{ endsAt: "asc" }, { id: "asc" }],
+      take: limit,
+      select: {
+        code: true,
+        name: true,
+        scope: true,
+        discountType: true,
+        discountValue: true,
+        maxDiscount: true,
+        minOrder: true,
+        endsAt: true,
+        operator: { select: { displayName: true } },
+      },
+    }),
   );
 }

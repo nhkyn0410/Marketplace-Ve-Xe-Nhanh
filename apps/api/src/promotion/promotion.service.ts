@@ -1,7 +1,7 @@
 import { Inject, Injectable } from "@nestjs/common";
 import { AuditService, AuditWriteError } from "../audit/audit.service";
 import type { DbScope } from "../database/db-scope";
-import { withTripOperator } from "../database/marketplace-scope";
+import { listPublicPromotions, withTripOperator } from "../database/marketplace-scope";
 import { PrismaService, transactionDeadline, type DbTransaction } from "../database/prisma.service";
 import { DiscountType, PromotionScope, PromotionStatus, RedemptionStatus } from "../database/prisma.types";
 import type { VerifiedAccessToken } from "../iam/auth/token.service";
@@ -346,33 +346,7 @@ export class PromotionService {
    * tảng đã có nhà xe tham gia (chưa ai tham gia thì không dùng được). Sắp hết hạn trước.
    */
   async publicList(limit: number, now: Date = new Date()): Promise<PublicPromotionList> {
-    const rows = await this.prisma.withSystem((tx) =>
-      tx.promotion.findMany({
-        where: {
-          status: PromotionStatus.ACTIVE,
-          startsAt: { lte: now },
-          endsAt: { gt: now },
-          usedCount: { lt: tx.promotion.fields.usageLimit },
-          OR: [
-            { scope: PromotionScope.OPERATOR, operator: { status: "ACTIVE" } },
-            { scope: PromotionScope.PLATFORM, participations: { some: {} } },
-          ],
-        },
-        orderBy: [{ endsAt: "asc" }, { id: "asc" }],
-        take: limit,
-        select: {
-          code: true,
-          name: true,
-          scope: true,
-          discountType: true,
-          discountValue: true,
-          maxDiscount: true,
-          minOrder: true,
-          endsAt: true,
-          operator: { select: { displayName: true } },
-        },
-      }),
-    );
+    const rows = await listPublicPromotions(this.prisma, limit, now);
     return {
       items: rows.map((row) => ({
         code: row.code,
