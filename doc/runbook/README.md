@@ -18,6 +18,7 @@ Guide theo task (`doc/task-propreties/<TASK>-guide.md`) vẫn giữ để nghi�
 | [RB-08](RB-08-catalog-seed.md) | Seed catalog chuẩn (tỉnh/xã, địa danh cũ, điểm dừng, loại xe, tiện ích) |
 | [RB-09](RB-09-web-e2e.md) | Chạy E2E Playwright cho web Operator OS / Admin |
 | [RB-10](RB-10-reset-db.md) | Reset toàn bộ DB + tạo quản trị viên đầu tiên (kèm `RB-10-reset-app-schema.sql`) |
+| [RB-11](RB-11-fcm-push.md) | Bật push FCM cho app hành khách trên production |
 
 ## Báo cáo dùng thẻ thế nào
 

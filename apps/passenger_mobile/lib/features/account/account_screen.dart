@@ -93,47 +93,46 @@ class _AccountScreenState extends State<AccountScreen> {
       key: const Key('account-screen'),
       backgroundColor: _pageBackground,
       extendBody: true,
-      bottomNavigationBar: IgnorePointer(
-        ignoring: !_dockVisible,
-        child: AnimatedSlide(
-          key: const Key('account-bottom-dock-animation'),
-          duration: const Duration(milliseconds: 250),
-          curve: Curves.easeOutCubic,
-          offset: _dockVisible ? Offset.zero : const Offset(0, 1),
-          child: RouteDockTabBar(currentIndex: 4, onTap: widget.onTabSelected),
-        ),
+      bottomNavigationBar: RouteDockTabBar(
+        currentIndex: 4,
+        onTap: widget.onTabSelected,
+        visible: _dockVisible,
+        slideKey: const Key('account-bottom-dock-animation'),
       ),
-      body: AnnotatedRegion<SystemUiOverlayStyle>(
-        value: SystemUiOverlayStyle.dark.copyWith(
-          statusBarColor: Colors.transparent,
-          systemNavigationBarColor: _pageBackground,
-        ),
-        child: NotificationListener<UserScrollNotification>(
-          onNotification: _handleUserScroll,
-          child: FutureBuilder<AccountOverview>(
-            future: _overview,
-            builder: (context, snapshot) {
-              if (snapshot.connectionState != ConnectionState.done) {
-                return const _AccountLoading();
-              }
-              if (snapshot.hasError || !snapshot.hasData) {
-                return _AccountError(onRetry: _reload);
-              }
-              return _AccountContent(
-                overview: snapshot.requireData,
-                loggingOut: _loggingOut,
-                logoutErrorMessage: widget.logoutErrorMessage,
-                onRefresh: _reload,
-                onLogout: _logout,
-                onEditProfile: widget.onEditProfile,
-                onSavedPassengers: widget.onSavedPassengers,
-                onVoucherWallet: widget.onVoucherWallet,
-                onPointHistory: widget.onPointHistory,
-                onMyReviews: widget.onMyReviews,
-                onNotificationSettings: widget.onNotificationSettings,
-                onLoginSessions: widget.onLoginSessions,
-              );
-            },
+      body: TabEntrance(
+        statusBarColor: _pageBackground,
+        child: AnnotatedRegion<SystemUiOverlayStyle>(
+          value: SystemUiOverlayStyle.dark.copyWith(
+            statusBarColor: Colors.transparent,
+            systemNavigationBarColor: _pageBackground,
+          ),
+          child: NotificationListener<UserScrollNotification>(
+            onNotification: _handleUserScroll,
+            child: FutureBuilder<AccountOverview>(
+              future: _overview,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState != ConnectionState.done) {
+                  return const _AccountLoading();
+                }
+                if (snapshot.hasError || !snapshot.hasData) {
+                  return _AccountError(onRetry: _reload);
+                }
+                return _AccountContent(
+                  overview: snapshot.requireData,
+                  loggingOut: _loggingOut,
+                  logoutErrorMessage: widget.logoutErrorMessage,
+                  onRefresh: _reload,
+                  onLogout: _logout,
+                  onEditProfile: widget.onEditProfile,
+                  onSavedPassengers: widget.onSavedPassengers,
+                  onVoucherWallet: widget.onVoucherWallet,
+                  onPointHistory: widget.onPointHistory,
+                  onMyReviews: widget.onMyReviews,
+                  onNotificationSettings: widget.onNotificationSettings,
+                  onLoginSessions: widget.onLoginSessions,
+                );
+              },
+            ),
           ),
         ),
       ),

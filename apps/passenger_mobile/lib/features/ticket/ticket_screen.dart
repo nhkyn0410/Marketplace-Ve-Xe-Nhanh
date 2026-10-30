@@ -134,60 +134,59 @@ class _TicketScreenState extends State<TicketScreen>
       key: const Key('ticket-screen'),
       extendBody: true,
       backgroundColor: _pageBackground,
-      bottomNavigationBar: IgnorePointer(
-        ignoring: !_dockVisible,
-        child: AnimatedSlide(
-          key: const Key('ticket-bottom-dock-animation'),
-          duration: const Duration(milliseconds: 250),
-          curve: Curves.easeOutCubic,
-          offset: _dockVisible ? Offset.zero : const Offset(0, 1),
-          child: RouteDockTabBar(currentIndex: 1, onTap: widget.onTabSelected),
-        ),
+      bottomNavigationBar: RouteDockTabBar(
+        currentIndex: 1,
+        onTap: widget.onTabSelected,
+        visible: _dockVisible,
+        slideKey: const Key('ticket-bottom-dock-animation'),
       ),
-      body: AnnotatedRegion<SystemUiOverlayStyle>(
-        value: SystemUiOverlayStyle.dark.copyWith(
-          statusBarColor: Colors.transparent,
-          systemNavigationBarColor: _pageBackground,
-        ),
-        child: DecoratedBox(
-          decoration: const BoxDecoration(gradient: _pageGradient),
-          // Header tự chừa thanh trạng thái để ảnh nền tràn lên sau nó.
-          child: SafeArea(
-            top: false,
-            bottom: false,
-            child: NotificationListener<UserScrollNotification>(
-              onNotification: _handleUserScroll,
-              child: CustomScrollView(
-                key: const Key('ticket-content-scroll'),
-                controller: _scrollController,
-                slivers: [
-                  SliverToBoxAdapter(
-                    child: _ExploreHeader(
-                      mode: _mode,
-                      onModeChanged: _selectMode,
-                    ),
-                  ),
-                  SliverPadding(
-                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-                    sliver: SliverToBoxAdapter(
-                      child: tripsMode ? _tripChips() : _operatorChips(),
-                    ),
-                  ),
-                  SliverPadding(
-                    padding: const EdgeInsets.fromLTRB(15, 20, 15, 16),
-                    sliver: SliverToBoxAdapter(
-                      child: _ExploreListHeading(
-                        title: tripsMode
-                            ? 'Chuyến đang mở bán'
-                            : 'Nhà xe đang phục vụ',
-                        trailing: tripsMode
-                            ? 'Giờ đi sớm nhất'
-                            : 'Đánh giá cao',
+      body: TabEntrance(
+        statusBarColor: _pageBackground,
+        child: AnnotatedRegion<SystemUiOverlayStyle>(
+          value: SystemUiOverlayStyle.dark.copyWith(
+            statusBarColor: Colors.transparent,
+            systemNavigationBarColor: _pageBackground,
+          ),
+          child: DecoratedBox(
+            decoration: const BoxDecoration(gradient: _pageGradient),
+            // Header tự chừa thanh trạng thái để ảnh nền tràn lên sau nó.
+            child: SafeArea(
+              top: false,
+              bottom: false,
+              child: NotificationListener<UserScrollNotification>(
+                onNotification: _handleUserScroll,
+                child: CustomScrollView(
+                  key: const Key('ticket-content-scroll'),
+                  controller: _scrollController,
+                  slivers: [
+                    SliverToBoxAdapter(
+                      child: _ExploreHeader(
+                        mode: _mode,
+                        onModeChanged: _selectMode,
                       ),
                     ),
-                  ),
-                  if (tripsMode) ..._tripSlivers() else _operatorSliver(),
-                ],
+                    SliverPadding(
+                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                      sliver: SliverToBoxAdapter(
+                        child: tripsMode ? _tripChips() : _operatorChips(),
+                      ),
+                    ),
+                    SliverPadding(
+                      padding: const EdgeInsets.fromLTRB(15, 20, 15, 16),
+                      sliver: SliverToBoxAdapter(
+                        child: _ExploreListHeading(
+                          title: tripsMode
+                              ? 'Chuyến đang mở bán'
+                              : 'Nhà xe đang phục vụ',
+                          trailing: tripsMode
+                              ? 'Giờ đi sớm nhất'
+                              : 'Đánh giá cao',
+                        ),
+                      ),
+                    ),
+                    if (tripsMode) ..._tripSlivers() else _operatorSliver(),
+                  ],
+                ),
               ),
             ),
           ),

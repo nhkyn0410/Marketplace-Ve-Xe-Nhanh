@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:passenger_mobile/features/explore/explore_screen.dart';
 import 'package:passenger_mobile/features/home/home_models.dart';
 import 'package:passenger_mobile/features/home/route_dock_tabbar.dart';
 import 'package:passenger_mobile/features/journey/guest_journey_shared.dart';
@@ -31,6 +32,9 @@ typedef HomePopularRoutesLoader = Future<List<HomePopularRoute>> Function(
   DateTime date,
 );
 typedef HomeFaqLoader = Future<List<HomeFaqItem>> Function();
+typedef HomePromotionsLoader = Future<List<HomePromotion>> Function();
+typedef HomeOperatorsLoader = Future<List<HomeOperator>> Function();
+typedef HomeArticlesLoader = Future<List<ExploreArticle>> Function();
 typedef HomeHotlineLauncher = Future<bool> Function(String hotline);
 
 class HomeScreen extends StatefulWidget {
@@ -42,6 +46,10 @@ class HomeScreen extends StatefulWidget {
     this.searchCatalog,
     this.loadPopularRoutes,
     this.loadFaqs,
+    this.loadPromotions,
+    this.loadFeaturedOperators,
+    this.loadArticles,
+    this.onArticleSelected,
     this.onSearch,
     this.onCallHotline,
     this.onFeedbackRequested,
@@ -57,6 +65,16 @@ class HomeScreen extends StatefulWidget {
   final TripSearchCatalog? searchCatalog;
   final HomePopularRoutesLoader? loadPopularRoutes;
   final HomeFaqLoader? loadFaqs;
+
+  /// "Ưu đãi nổi bật"; không truyền hoặc không có khuyến mãi thì ẩn mục.
+  final HomePromotionsLoader? loadPromotions;
+
+  /// "Nhà xe nổi bật" (nhà xe đang mở bán); rỗng thì ẩn mục.
+  final HomeOperatorsLoader? loadFeaturedOperators;
+
+  /// "Khám phá & cẩm nang" (bài viết mới); rỗng thì ẩn mục.
+  final HomeArticlesLoader? loadArticles;
+  final ValueChanged<ExploreArticle>? onArticleSelected;
   final HomeTripSearch? onSearch;
   final HomeHotlineLauncher? onCallHotline;
   final VoidCallback? onFeedbackRequested;
@@ -74,6 +92,9 @@ class _HomeScreenState extends State<HomeScreen>
   final _scrollController = ScrollController();
   bool _dockVisible = true;
   Future<List<HomePopularRoute>>? _popularRoutesFuture;
+  late final _promotionsFuture = widget.loadPromotions?.call();
+  late final _operatorsFuture = widget.loadFeaturedOperators?.call();
+  late final _articlesFuture = widget.loadArticles?.call();
 
   @override
   TripSearchCatalog? get searchCatalog => widget.searchCatalog;
@@ -108,82 +129,90 @@ class _HomeScreenState extends State<HomeScreen>
       backgroundColor: _pageBackground,
       extendBody: true,
       resizeToAvoidBottomInset: true,
-      bottomNavigationBar: IgnorePointer(
-        ignoring: !_dockVisible,
-        child: AnimatedSlide(
-          key: const Key('home-bottom-dock-animation'),
-          duration: const Duration(milliseconds: 250),
-          curve: Curves.easeOutCubic,
-          offset: _dockVisible ? Offset.zero : const Offset(0, 1),
-          child: RouteDockTabBar(currentIndex: 2, onTap: _handleTabTap),
-        ),
+      bottomNavigationBar: RouteDockTabBar(
+        currentIndex: 2,
+        onTap: _handleTabTap,
+        visible: _dockVisible,
+        slideKey: const Key('home-bottom-dock-animation'),
       ),
       // Hero tự chừa thanh trạng thái để ảnh nền tràn lên sau nó.
-      body: SafeArea(
-        top: false,
-        bottom: false,
-        child: NotificationListener<UserScrollNotification>(
-          onNotification: _handleUserScroll,
-          child: CustomScrollView(
-            key: const Key('home-content-scroll'),
-            controller: _scrollController,
-            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-            slivers: [
-              SliverToBoxAdapter(
-                child: _HomeTopArea(
-                  isLoggedIn: widget.isLoggedIn,
-                  userName: widget.userName,
-                  mode: searchMode,
-                  fromLabel: searchFrom?.name,
-                  toLabel: searchTo?.name,
-                  operatorLabel: searchOperator?.name,
-                  routeLabel: searchOperatorRoute?.label,
-                  date: searchDate,
-                  passengers: searchPassengers,
-                  onModeChanged: (mode) => setState(() => searchMode = mode),
-                  onPickFrom: () => pickSearchLocation(isOrigin: true),
-                  onPickTo: () => pickSearchLocation(isOrigin: false),
-                  onSwap: swapSearchLocations,
-                  onPickDate: _pickDate,
-                  onPickPassengers: pickSearchPassengers,
-                  onSearch: _search,
-                  onOperatorTap: pickSearchOperator,
-                  onRouteTap: pickSearchOperatorRoute,
+      body: TabEntrance(
+        statusBarColor: _pageBackground,
+        child: SafeArea(
+          top: false,
+          bottom: false,
+          child: NotificationListener<UserScrollNotification>(
+            onNotification: _handleUserScroll,
+            child: CustomScrollView(
+              key: const Key('home-content-scroll'),
+              controller: _scrollController,
+              keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+              slivers: [
+                SliverToBoxAdapter(
+                  child: _HomeTopArea(
+                    isLoggedIn: widget.isLoggedIn,
+                    userName: widget.userName,
+                    mode: searchMode,
+                    fromLabel: searchFrom?.name,
+                    toLabel: searchTo?.name,
+                    operatorLabel: searchOperator?.name,
+                    routeLabel: searchOperatorRoute?.label,
+                    date: searchDate,
+                    passengers: searchPassengers,
+                    onModeChanged: (mode) => setState(() => searchMode = mode),
+                    onPickFrom: () => pickSearchLocation(isOrigin: true),
+                    onPickTo: () => pickSearchLocation(isOrigin: false),
+                    onSwap: swapSearchLocations,
+                    onPickDate: _pickDate,
+                    onPickPassengers: pickSearchPassengers,
+                    onSearch: _search,
+                    onOperatorTap: pickSearchOperator,
+                    onRouteTap: pickSearchOperatorRoute,
+                  ),
                 ),
-              ),
-              SliverPadding(
-                padding: const EdgeInsets.symmetric(horizontal: 9),
-                sliver: SliverList.list(
-                  children: [
-                    if (!widget.isLoggedIn) ...[
-                      _GuestInvitation(onLogin: widget.onLoginRequested),
+                SliverPadding(
+                  padding: const EdgeInsets.symmetric(horizontal: 9),
+                  sliver: SliverList.list(
+                    children: [
+                      if (!widget.isLoggedIn) ...[
+                        _GuestInvitation(onLogin: widget.onLoginRequested),
+                        const SizedBox(height: 12),
+                      ],
+                      _LoadedSection<HomePromotion>(
+                        future: _promotionsFuture,
+                        builder: (items) => _VoucherSection(promotions: items),
+                      ),
+                      _PopularRoutesSection(
+                        routes: _popularRoutesFuture,
+                        onSelected: _selectPopularRoute,
+                      ),
                       const SizedBox(height: 12),
+                      _LoadedSection<HomeOperator>(
+                        future: _operatorsFuture,
+                        builder: (items) => _OperatorsSection(operators: items),
+                      ),
+                      _LoadedSection<ExploreArticle>(
+                        future: _articlesFuture,
+                        gap: 14,
+                        builder: (items) => _ArticlesSection(
+                          articles: items,
+                          onSelected: widget.onArticleSelected,
+                          onSeeAll: widget.onTabSelected == null
+                              ? null
+                              : () => widget.onTabSelected!(0),
+                        ),
+                      ),
+                      _SupportSection(
+                        onHelpCenter: _openHelpCenter,
+                        onCallHotline: _callHotline,
+                        onFeedback: _requestFeedback,
+                      ),
+                      const SizedBox(height: 150),
                     ],
-                    const _VoucherSection(),
-                    const SizedBox(height: 12),
-                    _PopularRoutesSection(
-                      routes: _popularRoutesFuture,
-                      onSelected: _selectPopularRoute,
-                    ),
-                    const SizedBox(height: 12),
-                    const _OperatorsSection(),
-                    const SizedBox(height: 12),
-                    _ArticlesSection(
-                      onSeeAll: widget.onTabSelected == null
-                          ? null
-                          : () => widget.onTabSelected!(0),
-                    ),
-                    const SizedBox(height: 14),
-                    _SupportSection(
-                      onHelpCenter: _openHelpCenter,
-                      onCallHotline: _callHotline,
-                      onFeedback: _requestFeedback,
-                    ),
-                    const SizedBox(height: 150),
-                  ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -1223,8 +1252,48 @@ class _GuestInvitation extends StatelessWidget {
   }
 }
 
+/// Mục lấy dữ liệu từ API: đang tải, lỗi hoặc rỗng thì ẩn cả mục (kể cả khoảng cách phía dưới).
+class _LoadedSection<T> extends StatelessWidget {
+  const _LoadedSection({
+    required this.future,
+    required this.builder,
+    this.gap = 12,
+  });
+
+  final Future<List<T>>? future;
+  final Widget Function(List<T> items) builder;
+  final double gap;
+
+  @override
+  Widget build(BuildContext context) {
+    final pending = future;
+    if (pending == null) return const SizedBox.shrink();
+    return FutureBuilder<List<T>>(
+      future: pending,
+      builder: (context, snapshot) {
+        final items = snapshot.data;
+        if (snapshot.hasError || items == null || items.isEmpty) {
+          return const SizedBox.shrink();
+        }
+        return Padding(
+          padding: EdgeInsets.only(bottom: gap),
+          child: builder(items),
+        );
+      },
+    );
+  }
+}
+
+/// Hai kiểu nền thẻ ưu đãi theo Figma, dùng xen kẽ.
+const _voucherStyles = [
+  ('$_assetRoot/vouchers/discount_20.png', Color(0xFFA74711)),
+  ('$_assetRoot/vouchers/discount_50k.jpg', Color(0xFF155D9B)),
+];
+
 class _VoucherSection extends StatelessWidget {
-  const _VoucherSection();
+  const _VoucherSection({required this.promotions});
+
+  final List<HomePromotion> promotions;
 
   @override
   Widget build(BuildContext context) {
@@ -1233,24 +1302,30 @@ class _VoucherSection extends StatelessWidget {
       iconAsset: '$_assetRoot/icons/gift_route.svg',
       child: _HorizontalStrip(
         gap: 8,
-        children: const [
-          _VoucherCard(
-            asset: '$_assetRoot/vouchers/discount_20.png',
-            title: 'Giảm 20%',
-            subtitle: 'Cho mọi tuyến đường',
-            code: 'Mã: VXN20',
-            color: Color(0xFFA74711),
-          ),
-          _VoucherCard(
-            asset: '$_assetRoot/vouchers/discount_50k.jpg',
-            title: 'Giảm 50K',
-            subtitle: 'Cho đơn từ 300K',
-            code: 'Mã: DALAT50',
-            color: Color(0xFF155D9B),
-          ),
+        children: [
+          for (var index = 0; index < promotions.length; index++)
+            _VoucherCard(
+              key: ValueKey('home-promotion-${promotions[index].code}'),
+              asset: _voucherStyles[index % _voucherStyles.length].$1,
+              title: promotionTitle(promotions[index]),
+              subtitle: promotionConditions(promotions[index]),
+              code: 'Mã: ${promotions[index].code}',
+              color: _voucherStyles[index % _voucherStyles.length].$2,
+              onTap: () => _copyCode(context, promotions[index].code),
+            ),
         ],
       ),
     );
+  }
+
+  static Future<void> _copyCode(BuildContext context, String code) async {
+    await Clipboard.setData(ClipboardData(text: code));
+    if (!context.mounted) return;
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(content: Text('Đã chép mã $code. Dán mã khi đặt vé.')),
+      );
   }
 }
 
@@ -1261,6 +1336,8 @@ class _VoucherCard extends StatelessWidget {
     required this.subtitle,
     required this.code,
     required this.color,
+    this.onTap,
+    super.key,
   });
 
   final String asset;
@@ -1269,93 +1346,102 @@ class _VoucherCard extends StatelessWidget {
   final String code;
   final Color color;
 
+  /// Chạm để chép mã.
+  final VoidCallback? onTap;
+
   @override
   Widget build(BuildContext context) {
     final viewportWidth = MediaQuery.sizeOf(context).width;
     final width = math.min(192.0, math.max(156.0, (viewportWidth - 26) / 2));
-    return Container(
-      width: width,
-      height: 66,
-      clipBehavior: Clip.antiAlias,
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: .5),
-        borderRadius: BorderRadius.circular(8),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x121F6EA6),
-            offset: Offset(0, 3),
-            blurRadius: 10,
-          ),
-        ],
-      ),
-      child: Stack(
-        children: [
-          Positioned.fill(
-            left: width * .33,
-            child: Opacity(
-              opacity: .6,
-              child: Image.asset(asset, fit: BoxFit.cover),
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: width,
+        height: 66,
+        clipBehavior: Clip.antiAlias,
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: .5),
+          borderRadius: BorderRadius.circular(8),
+          boxShadow: const [
+            BoxShadow(
+              color: Color(0x121F6EA6),
+              offset: Offset(0, 3),
+              blurRadius: 10,
             ),
-          ),
-          Positioned.fill(
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    const Color(0xFFFFFAE5).withValues(alpha: .98),
-                    Colors.white.withValues(alpha: 0),
-                  ],
-                  stops: const [.35, .78],
-                ),
+          ],
+        ),
+        child: Stack(
+          children: [
+            Positioned.fill(
+              left: width * .33,
+              child: Opacity(
+                opacity: .6,
+                child: Image.asset(asset, fit: BoxFit.cover),
               ),
             ),
-          ),
-          Positioned(
-            left: 13,
-            top: 5,
-            child: Text(
-              title,
-              style: TextStyle(
-                color: color,
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-          Positioned(
-            left: 13,
-            top: 28,
-            child: Text(
-              subtitle,
-              style: TextStyle(
-                color: color,
-                fontSize: 9,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ),
-          Positioned(
-            left: 13,
-            top: 45,
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(4),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
-                child: Text(
-                  code,
-                  style: TextStyle(
-                    color: color,
-                    fontSize: 7.3,
-                    fontWeight: FontWeight.w600,
+            Positioned.fill(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      const Color(0xFFFFFAE5).withValues(alpha: .98),
+                      Colors.white.withValues(alpha: 0),
+                    ],
+                    stops: const [.35, .78],
                   ),
                 ),
               ),
             ),
-          ),
-        ],
+            Positioned(
+              left: 13,
+              top: 5,
+              child: Text(
+                title,
+                style: TextStyle(
+                  color: color,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+            Positioned(
+              left: 13,
+              top: 28,
+              child: Text(
+                subtitle,
+                style: TextStyle(
+                  color: color,
+                  fontSize: 9,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+            Positioned(
+              left: 13,
+              top: 45,
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 5,
+                    vertical: 2,
+                  ),
+                  child: Text(
+                    code,
+                    style: TextStyle(
+                      color: color,
+                      fontSize: 7.3,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -1565,46 +1651,33 @@ class _PopularRouteCard extends StatelessWidget {
 }
 
 class _OperatorsSection extends StatelessWidget {
-  const _OperatorsSection();
+  const _OperatorsSection({required this.operators});
+
+  final List<HomeOperator> operators;
 
   @override
   Widget build(BuildContext context) {
-    const operators = [
-      ('Phương Trang', '4.8', '$_assetRoot/operators/phuong_trang.png'),
-      ('Điền Linh', '4.7', '$_assetRoot/operators/dien_linh.png'),
-      ('Thành Bưởi', '4.6', '$_assetRoot/operators/thanh_buoi.png'),
-    ];
     return _HomeSection(
       title: 'Nhà xe nổi bật',
       iconAsset: '$_assetRoot/icons/section_bus_route.svg',
       child: _HorizontalStrip(
         gap: 7,
-        children: operators
-            .map(
-              (item) => _OperatorCard(
-                key: ValueKey('featured-operator-${item.$1}'),
-                name: item.$1,
-                rating: item.$2,
-                asset: item.$3,
-              ),
-            )
-            .toList(),
+        children: [
+          for (final operator in operators)
+            _OperatorCard(
+              key: ValueKey('featured-operator-${operator.id}'),
+              operator: operator,
+            ),
+        ],
       ),
     );
   }
 }
 
 class _OperatorCard extends StatelessWidget {
-  const _OperatorCard({
-    required this.name,
-    required this.rating,
-    required this.asset,
-    super.key,
-  });
+  const _OperatorCard({required this.operator, super.key});
 
-  final String name;
-  final String rating;
-  final String asset;
+  final HomeOperator operator;
 
   @override
   Widget build(BuildContext context) {
@@ -1620,11 +1693,9 @@ class _OperatorCard extends StatelessWidget {
         children: [
           ClipRRect(
             borderRadius: BorderRadius.circular(8),
-            child: Image.asset(
-              asset,
-              width: 44,
-              height: 44,
-              fit: BoxFit.contain,
+            child: SizedBox.square(
+              dimension: 44,
+              child: _OperatorLogo(operator: operator),
             ),
           ),
           const SizedBox(width: 8),
@@ -1634,7 +1705,7 @@ class _OperatorCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  name,
+                  operator.name,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
@@ -1649,19 +1720,28 @@ class _OperatorCard extends StatelessWidget {
                   alignment: Alignment.centerLeft,
                   child: Row(
                     children: [
-                      Text(
-                        '★ $rating',
-                        style: const TextStyle(
-                          color: Color(0xFFE89B26),
-                          fontSize: 9,
-                          fontWeight: FontWeight.w600,
+                      if (operator.averageRating case final rating?) ...[
+                        Text(
+                          '★ ${rating.toStringAsFixed(1)}',
+                          style: const TextStyle(
+                            color: Color(0xFFE89B26),
+                            fontSize: 9,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
-                      ),
-                      const SizedBox(width: 4),
-                      const Text(
-                        '(12.5K đánh giá)',
-                        style: TextStyle(color: _secondary, fontSize: 7.5),
-                      ),
+                        const SizedBox(width: 4),
+                        Text(
+                          '(${operator.reviewCount} đánh giá)',
+                          style: const TextStyle(
+                            color: _secondary,
+                            fontSize: 7.5,
+                          ),
+                        ),
+                      ] else
+                        const Text(
+                          'Chưa có đánh giá',
+                          style: TextStyle(color: _secondary, fontSize: 7.5),
+                        ),
                     ],
                   ),
                 ),
@@ -1674,125 +1754,160 @@ class _OperatorCard extends StatelessWidget {
   }
 }
 
+/// Logo nhà xe từ kho công khai; chưa có logo hoặc tải lỗi thì hiện chữ cái đầu.
+class _OperatorLogo extends StatelessWidget {
+  const _OperatorLogo({required this.operator});
+
+  final HomeOperator operator;
+
+  @override
+  Widget build(BuildContext context) {
+    final initials = ColoredBox(
+      color: const Color(0xFFEAF6FC),
+      child: Center(
+        child: Text(
+          _initials(operator.name),
+          style: const TextStyle(
+            color: _primary,
+            fontSize: 15,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+      ),
+    );
+    final url = operator.logoUrl;
+    if (url == null || url.isEmpty) return initials;
+    return Image.network(
+      url,
+      fit: BoxFit.contain,
+      errorBuilder: (_, _, _) => initials,
+    );
+  }
+
+  /// "Nhà xe Sao Mai" → "SM": bỏ chữ "Nhà xe", lấy chữ cái đầu của hai từ đầu.
+  static String _initials(String name) {
+    final words = name
+        .replaceFirst(RegExp(r'^nhà xe\s+', caseSensitive: false), '')
+        .split(RegExp(r'\s+'))
+        .where((word) => word.isNotEmpty)
+        .take(2);
+    return words.map((word) => word.characters.first.toUpperCase()).join();
+  }
+}
+
 class _ArticlesSection extends StatelessWidget {
-  const _ArticlesSection({this.onSeeAll});
+  const _ArticlesSection({
+    required this.articles,
+    this.onSelected,
+    this.onSeeAll,
+  });
+
+  final List<ExploreArticle> articles;
+  final ValueChanged<ExploreArticle>? onSelected;
 
   /// Mở tab Khám phá (danh sách bài viết đầy đủ).
   final VoidCallback? onSeeAll;
 
   @override
   Widget build(BuildContext context) {
-    const articles = [
-      (
-        'CẨM NANG',
-        'Kinh nghiệm đi Đà Lạt\nbằng xe khách',
-        '$_assetRoot/articles/da_lat_coach_guide.jpg',
-      ),
-      (
-        'CẨM NANG',
-        'Top 7 điểm check-in\nkhông thể bỏ lỡ ở Đà Lạt',
-        '$_assetRoot/articles/da_lat_checkin.png',
-      ),
-      (
-        'LIFESTYLE',
-        'Những cung đường biển\nđẹp nhất Việt Nam',
-        '$_assetRoot/articles/coastal_routes.jpg',
-      ),
-    ];
     return _HomeSection(
       title: 'Khám phá & cẩm nang',
       onSeeAll: onSeeAll,
       iconAsset: '$_assetRoot/icons/section_book_route.svg',
       child: _HorizontalStrip(
         gap: 7,
-        children: articles
-            .map(
-              (item) => _ArticleCard(
-                key: ValueKey('home-article-${item.$3}'),
-                category: item.$1,
-                title: item.$2,
-                asset: item.$3,
-              ),
-            )
-            .toList(),
+        children: [
+          for (final article in articles)
+            _ArticleCard(
+              key: ValueKey('home-article-${article.slug}'),
+              article: article,
+              onTap: onSelected == null ? null : () => onSelected!(article),
+            ),
+        ],
       ),
     );
   }
 }
 
 class _ArticleCard extends StatelessWidget {
-  const _ArticleCard({
-    required this.category,
-    required this.title,
-    required this.asset,
-    super.key,
-  });
+  const _ArticleCard({required this.article, this.onTap, super.key});
 
-  final String category;
-  final String title;
-  final String asset;
+  final ExploreArticle article;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: 154,
-      height: 86,
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(12),
-        child: Stack(
-          fit: StackFit.expand,
-          children: [
-            Image.asset(asset, fit: BoxFit.cover),
-            const DecoratedBox(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [Colors.transparent, Color(0xD1001A29)],
+    final cover = article.coverImageUrl;
+    final fallback = Image.asset(article.fallbackAsset, fit: BoxFit.cover);
+    return GestureDetector(
+      onTap: onTap,
+      child: SizedBox(
+        width: 154,
+        height: 86,
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(12),
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              if (cover == null || cover.isEmpty)
+                fallback
+              else
+                Image.network(
+                  cover,
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, _, _) => fallback,
+                ),
+              const DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [Colors.transparent, Color(0xD1001A29)],
+                  ),
                 ),
               ),
-            ),
-            Positioned(
-              left: 9,
-              top: 7,
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(7),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 5,
-                    vertical: 2,
+              Positioned(
+                left: 9,
+                top: 7,
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(7),
                   ),
-                  child: Text(
-                    category,
-                    style: const TextStyle(
-                      color: _primaryDark,
-                      fontSize: 7,
-                      fontWeight: FontWeight.w600,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 5,
+                      vertical: 2,
+                    ),
+                    child: Text(
+                      article.category.toUpperCase(),
+                      style: const TextStyle(
+                        color: _primaryDark,
+                        fontSize: 7,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
                 ),
               ),
-            ),
-            Positioned(
-              left: 9,
-              right: 7,
-              bottom: 7,
-              child: Text(
-                title,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 10,
-                  height: 1.3,
-                  fontWeight: FontWeight.w600,
+              Positioned(
+                left: 9,
+                right: 7,
+                bottom: 7,
+                child: Text(
+                  article.title,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 10,
+                    height: 1.3,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

@@ -138,3 +138,9 @@ export function insertAt(text: string, start: number, end: number, snippet: stri
   const inserted = `${lead}${snippet}\n`;
   return { text: `${before}${inserted}${after}`, cursor: before.length + inserted.length };
 }
+
+/** Thời gian đọc ước tính như app hành khách (`ArticleDetail.readingMinutes`): ~200 từ/phút, tối thiểu 1. */
+export function readingMinutes(markdown: string): number {
+  const words = markdown.split(/\s+/).filter((word) => word !== "").length;
+  return Math.max(1, Math.ceil(words / 200));
+}

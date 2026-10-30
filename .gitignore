@@ -146,4 +146,4 @@ Desktop.ini
 # Kho object local của API khi chạy dev / test (TASK-TRN-009)
 .storage/
 **/.storage/
-/apps/api/prisma/seed-data/manual-kit/
+/apps/api/prisma/seed-data

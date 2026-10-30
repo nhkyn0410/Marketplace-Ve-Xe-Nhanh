@@ -400,6 +400,25 @@ class TripBookingApi {
     );
   }
 
+  /// Khuyến mãi công khai đang chạy, sắp hết hạn trước — mục "Ưu đãi nổi bật".
+  Future<List<HomePromotion>> loadPromotions() async {
+    final response = await _call(
+      () => _client.getPromotionsApi().publicPromotionControllerList(limit: 10),
+    );
+    return [
+      for (final item in response.data!.items)
+        HomePromotion(
+          code: item.code,
+          name: item.name,
+          isPercent: item.discountType.name == 'PERCENT',
+          discountValue: item.discountValue,
+          maxDiscount: item.maxDiscount,
+          minOrder: item.minOrder,
+          operatorName: item.operatorName,
+        ),
+    ];
+  }
+
   /// Kiểm tra mã khuyến mãi cho chuyến + tiền vé (không giữ lượt dùng).
   Future<PromotionQuote> checkPromotion({
     required String tripId,

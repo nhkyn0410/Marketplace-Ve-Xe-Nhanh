@@ -62,7 +62,7 @@ describe("Tìm chuyến công khai — HTTP", () => {
     [`fromProvinceId=${province}&toProvinceId=${province}&date=10/05/2031`],
     [`fromProvinceId=${province}&toProvinceId=${province}&date=2031-05-10&passengers=11`],
     [`fromProvinceId=${province}&toProvinceId=${province}&date=2031-05-10&priceMin=500&priceMax=100`],
-    [`fromProvinceId=${province}&toProvinceId=${province}&date=2031-05-10&sort=rating`],
+    [`fromProvinceId=${province}&toProvinceId=${province}&date=2031-05-10&sort=cheapest`],
   ])("query sai → 400, service không bị gọi: %s", async (query) => {
     expect((await fetch(`${base}/search?${query}`)).status).toBe(400);
     expect(service.search).not.toHaveBeenCalled();

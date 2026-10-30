@@ -13,6 +13,7 @@ import {
 } from "@vexenhanh/ui/components/alert-dialog";
 import { Badge } from "@vexenhanh/ui/components/badge";
 import { Button } from "@vexenhanh/ui/components/button";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@vexenhanh/ui/components/dialog";
 import { FormField } from "@vexenhanh/ui/components/form-field";
 import { Input } from "@vexenhanh/ui/components/input";
 import { BUTTON, ListStatePanel } from "@vexenhanh/ui/components/list-parts";
@@ -31,6 +32,7 @@ import {
   LoaderCircle,
   RefreshCw,
   Send,
+  Smartphone,
   Trash2,
   Upload
 } from "lucide-react";
@@ -67,6 +69,7 @@ import {
 } from "../../lib/article/article-format";
 import { compressImage, imageFileProblem } from "../../lib/article/image-compress";
 import { MarkdownPreview } from "./markdown-preview";
+import { MobileArticlePreview } from "./mobile-article-preview";
 
 const EMPTY: ArticleFormValues = {
   title: "",
@@ -158,6 +161,7 @@ function EditorForm({
   const [errors, setErrors] = useState<Partial<Record<ArticleField | "form", string>>>({});
   const [uploading, setUploading] = useState<"cover" | "inline" | null>(null);
   const [confirmArchive, setConfirmArchive] = useState(false);
+  const [mobilePreview, setMobilePreview] = useState(false);
   const contentRef = useRef<HTMLTextAreaElement>(null);
   const coverInput = useRef<HTMLInputElement>(null);
   const inlineInput = useRef<HTMLInputElement>(null);
@@ -445,7 +449,19 @@ function EditorForm({
                 )}
               </FormField>
               <div className="flex min-w-0 flex-col gap-1.5">
-                <span className="text-xs leading-[18px] font-medium text-muted-foreground">Xem trước</span>
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-xs leading-[18px] font-medium text-muted-foreground">Xem trước</span>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="h-7 gap-1.5 px-2 text-xs"
+                    onClick={() => setMobilePreview(true)}
+                  >
+                    <Smartphone className="size-4" />
+                    Xem trên điện thoại
+                  </Button>
+                </div>
                 <div aria-label="Xem trước nội dung" className="min-h-80 overflow-auto rounded-lg border p-4">
                   <MarkdownPreview markdown={values.contentMarkdown} />
                 </div>
@@ -454,6 +470,21 @@ function EditorForm({
             <p className="text-xs leading-[18px] text-muted-foreground">
               Nội dung được làm sạch trước khi hiển thị; mã script và HTML bị loại bỏ.
             </p>
+            <Dialog open={mobilePreview} onOpenChange={setMobilePreview}>
+              <DialogContent className="max-h-[calc(100vh-2rem)] w-auto max-w-[460px] overflow-y-auto sm:max-w-[460px]">
+                <DialogHeader>
+                  <DialogTitle>Xem trên điện thoại</DialogTitle>
+                  <DialogDescription>Bố cục và kiểu chữ như màn đọc bài của app hành khách.</DialogDescription>
+                </DialogHeader>
+                <MobileArticlePreview
+                  title={values.title}
+                  summary={values.summary}
+                  markdown={values.contentMarkdown}
+                  categoryName={categoryOptions.find((category) => category.id === values.categoryId)?.name ?? null}
+                  coverUrl={coverUrl}
+                />
+              </DialogContent>
+            </Dialog>
           </Card>
         </div>
 

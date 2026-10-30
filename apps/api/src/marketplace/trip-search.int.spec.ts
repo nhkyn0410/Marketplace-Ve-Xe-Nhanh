@@ -403,6 +403,7 @@ describe.skipIf(!url && !requireDb)("Tìm chuyến công khai — Postgres thậ
     expect((await search.search(query({ priceMin: 260_000, priceMax: 320_000 }))).items.map((item) => item.tripId)).toEqual([ids.far, ids.office]);
     expect((await search.search(query({ amenityIds: `${amenity},${randomUUID()}` }))).items).toEqual([]);
     expect((await search.search(query({ sort: "price" }))).items.map((item) => item.minPrice)).toEqual([250_000, 280_000, 300_000, 350_000]);
+    expect((await search.search(query({ sort: "price_desc" }))).items.map((item) => item.minPrice)).toEqual([350_000, 300_000, 280_000, 250_000]);
     const page2 = await search.search(query({ limit: 3, page: 2 }));
     expect(page2).toMatchObject({ total: 4, page: 2 });
     expect(page2.items.map((item) => item.tripId)).toEqual([ids.office]);

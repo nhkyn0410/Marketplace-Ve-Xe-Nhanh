@@ -766,6 +766,10 @@ Serializers _$serializers = (Serializers().toBuilder()
       ..add(PublicOperatorProfileDtoOutputRoutesInner.serializer)
       ..add(PublicOperatorProfileDtoOutputScorecard.serializer)
       ..add(PublicOperatorProfileDtoOutputServiceTerms.serializer)
+      ..add(PublicPromotionListDtoOutput.serializer)
+      ..add(PublicPromotionListDtoOutputItemsInner.serializer)
+      ..add(PublicPromotionListDtoOutputItemsInnerDiscountTypeEnum.serializer)
+      ..add(PublicPromotionListDtoOutputItemsInnerScopeEnum.serializer)
       ..add(PublicTripDtoOutput.serializer)
       ..add(PublicTripDtoOutputCancellationPolicy.serializer)
       ..add(PublicTripDtoOutputCancellationPolicyTiersInner.serializer)
@@ -1770,6 +1774,10 @@ Serializers _$serializers = (Serializers().toBuilder()
             const FullType(PublicOperatorProfileDtoOutputReviewsInner)
           ]),
           () => ListBuilder<PublicOperatorProfileDtoOutputReviewsInner>())
+      ..addBuilderFactory(
+          const FullType(BuiltList,
+              const [const FullType(PublicPromotionListDtoOutputItemsInner)]),
+          () => ListBuilder<PublicPromotionListDtoOutputItemsInner>())
       ..addBuilderFactory(
           const FullType(BuiltList, const [
             const FullType(PublicTripDtoOutputCancellationPolicyTiersInner)

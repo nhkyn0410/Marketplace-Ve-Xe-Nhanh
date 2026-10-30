@@ -32,7 +32,8 @@ Future<void> _pumpDock(
       ),
     ),
   );
-  await tester.pump();
+  // Bóng tròn trượt từ tab vẽ trước đó; chờ trượt xong.
+  await tester.pumpAndSettle();
 }
 
 void main() {
@@ -123,5 +124,164 @@ void main() {
       const Size.square(64),
     );
     expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('đổi tab: bóng tròn trượt từ tab cũ sang tab mới', (
+    tester,
+  ) async {
+    await _pumpDock(tester, width: 390, currentIndex: 0);
+    double bubbleCenter() =>
+        tester.getCenter(find.byKey(const Key('route-dock-active-bubble'))).dx;
+    final start = bubbleCenter();
+
+    await _pumpDock(tester, width: 390, currentIndex: 4);
+    final end = bubbleCenter();
+    expect(end, greaterThan(start + 250));
+
+    // Dựng thanh dock mới ở tab 1 (như khi mở tab khác): bóng bắt đầu từ tab 4.
+    await tester.pumpWidget(const SizedBox());
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          bottomNavigationBar: RouteDockTabBar(currentIndex: 1, onTap: (_) {}),
+        ),
+      ),
+    );
+    await tester.pump(const Duration(milliseconds: 60));
+    final midway = bubbleCenter();
+    expect(midway, lessThan(end));
+    expect(midway, greaterThan(start));
+    await tester.pumpAndSettle();
+    expect(bubbleCenter(), closeTo(start + (end - start) / 4, 1));
+  });
+
+  testWidgets('nội dung tab hiện dần khi mở, tắt hiệu ứng thì hiện ngay', (
+    tester,
+  ) async {
+    double opacity() => tester
+        .widget<FadeTransition>(
+          find.descendant(
+            of: find.byType(TabEntrance),
+            matching: find.byType(FadeTransition),
+          ),
+        )
+        .opacity
+        .value;
+
+    await tester.pumpWidget(
+      const MaterialApp(home: TabEntrance(child: Text('Nội dung'))),
+    );
+    expect(opacity(), closeTo(.3, .001));
+    await tester.pump(const Duration(milliseconds: 120));
+    expect(opacity(), inExclusiveRange(.3, 1));
+    await tester.pumpAndSettle();
+    expect(opacity(), 1);
+
+    await tester.pumpWidget(
+      const MediaQuery(
+        data: MediaQueryData(disableAnimations: true),
+        child: MaterialApp(home: TabEntrance(child: Text('Ngay'))),
+      ),
+    );
+    expect(
+      find.descendant(
+        of: find.byType(TabEntrance),
+        matching: find.byType(FadeTransition),
+      ),
+      findsNothing,
+    );
+  });
+
+  testWidgets(
+    'dock ẩn khi cuộn: dải nền nút điều hướng hệ thống vẫn đứng yên',
+    (tester) async {
+      tester.view.devicePixelRatio = 1;
+      tester.view.physicalSize = const Size(390, 800);
+      addTearDown(tester.view.reset);
+      int? tapped;
+      Widget dock(bool visible) => MaterialApp(
+        home: MediaQuery(
+          data: const MediaQueryData(
+            size: Size(390, 800),
+            padding: EdgeInsets.only(bottom: 48),
+          ),
+          child: Scaffold(
+            bottomNavigationBar: RouteDockTabBar(
+              currentIndex: 2,
+              onTap: (index) => tapped = index,
+              visible: visible,
+              slideKey: const Key('dock-slide'),
+            ),
+          ),
+        ),
+      );
+
+      await tester.pumpWidget(dock(true));
+      await tester.pumpAndSettle();
+      await tester.pumpWidget(dock(false));
+      await tester.pumpAndSettle();
+
+      expect(
+        tester
+            .widget<AnimatedSlide>(find.byKey(const Key('dock-slide')))
+            .offset,
+        const Offset(0, 1),
+      );
+      final inset = tester.getRect(
+        find.byKey(const Key('route-dock-system-inset')),
+      );
+      expect(inset.bottom, 800);
+      expect(inset.height, 48);
+      // Dock ẩn thì không nhận chạm.
+      await tester.tap(
+        find.byKey(const Key('route-dock-tab-0')),
+        warnIfMissed: false,
+      );
+      expect(tapped, isNull);
+    },
+  );
+
+  testWidgets('nền thanh trạng thái chỉ hiện khi nội dung đã cuộn', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: MediaQuery(
+          data: const MediaQueryData(
+            size: Size(390, 800),
+            padding: EdgeInsets.only(top: 40),
+          ),
+          child: ScrolledStatusBarScrim(
+            color: Colors.white,
+            child: ListView(
+              key: const Key('scrim-list'),
+              children: [for (var i = 0; i < 40; i++) Text('Dòng $i')],
+            ),
+          ),
+        ),
+      ),
+    );
+    double opacity() => tester
+        .widget<AnimatedOpacity>(find.byKey(const Key('status-bar-scrim')))
+        .opacity;
+    expect(opacity(), 0);
+    expect(
+      tester.getSize(find.byKey(const Key('status-bar-scrim'))).height,
+      40,
+    );
+
+    await tester.drag(
+      find.byKey(const Key('scrim-list')),
+      const Offset(0, -200),
+    );
+    await tester.pumpAndSettle();
+    expect(opacity(), 1);
+
+    await tester.drag(
+      find.byKey(const Key('scrim-list')),
+      const Offset(0, 400),
+    );
+    await tester.pumpAndSettle();
+    expect(opacity(), 0);
   });
 }

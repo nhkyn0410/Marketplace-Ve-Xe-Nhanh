@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
@@ -28,6 +29,124 @@ const brandLogoSize = Size(126.4, 35);
 
 /// Mép trên của logo; máy có thanh trạng thái cao vẫn giữ logo cách nó 12dp.
 double brandLogoTop(double safeTop) => math.max(58, safeTop + 12);
+
+/// Trang khách (Hành trình, Tài khoản) không cuộn: phần dưới [header] nằm gọn
+/// giữa header và thanh tab nổi; máy thấp hoặc chữ lớn thì thu nhỏ thay vì cuộn.
+/// Người dùng không vuốt được; khi bàn phím mở, ô đang nhập vẫn tự dời lên.
+class JourneyFixedPage extends StatelessWidget {
+  const JourneyFixedPage({
+    required this.header,
+    required this.child,
+    this.scrollKey,
+    super.key,
+  });
+
+  final Widget header;
+
+  /// Nội dung dưới header; dùng `MainAxisSize.min` vì được đo theo chiều cao tự nhiên.
+  final Widget child;
+  final Key? scrollKey;
+
+  @override
+  Widget build(BuildContext context) {
+    final media = MediaQuery.of(context);
+    // Theo chiều cao màn hình chứ không theo vùng còn lại khi bàn phím mở,
+    // để nội dung không co lại lúc gõ.
+    return SingleChildScrollView(
+      key: scrollKey,
+      physics: const NeverScrollableScrollPhysics(),
+      child: SizedBox(
+        height: media.size.height,
+        child: Column(
+          children: [
+            header,
+            Expanded(
+              child: Padding(
+                padding: EdgeInsets.fromLTRB(
+                  18,
+                  15,
+                  18,
+                  // Scaffold `extendBody` đã cộng chiều cao thanh tab nổi vào đây.
+                  media.padding.bottom,
+                ),
+                child: Align(
+                  alignment: Alignment.topCenter,
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 376),
+                    child: _ShrinkToFit(child: child),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Thu nhỏ nội dung cho vừa chiều cao mà vẫn phủ hết chiều rộng: đo lại với
+/// chiều rộng = rộng / tỉ lệ rồi mới thu nhỏ (FittedBox thì thu cả bề ngang).
+class _ShrinkToFit extends SingleChildRenderObjectWidget {
+  const _ShrinkToFit({required Widget super.child});
+
+  @override
+  RenderObject createRenderObject(BuildContext context) => _RenderShrinkToFit();
+}
+
+class _RenderShrinkToFit extends RenderProxyBox {
+  double _scale = 1;
+
+  Matrix4 get _transform => Matrix4.diagonal3Values(_scale, _scale, 1);
+
+  @override
+  void performLayout() {
+    final child = this.child!;
+    final width = constraints.maxWidth;
+    child.layout(BoxConstraints.tightFor(width: width), parentUsesSize: true);
+    _scale = 1;
+    if (child.size.height > constraints.maxHeight) {
+      _scale = constraints.maxHeight / child.size.height;
+      // Rộng hơn thì chữ ít xuống dòng hơn, chỉ thấp đi nên vẫn vừa.
+      child.layout(
+        BoxConstraints.tightFor(width: width / _scale),
+        parentUsesSize: true,
+      );
+    }
+    size = constraints.constrain(Size(width, child.size.height * _scale));
+  }
+
+  @override
+  void paint(PaintingContext context, Offset offset) {
+    if (_scale == 1) {
+      layer = null;
+      super.paint(context, offset);
+      return;
+    }
+    layer = context.pushTransform(
+      needsCompositing,
+      offset,
+      _transform,
+      super.paint,
+      oldLayer: layer is TransformLayer ? layer! as TransformLayer : null,
+    );
+  }
+
+  @override
+  bool hitTestChildren(BoxHitTestResult result, {required Offset position}) {
+    return result.addWithPaintTransform(
+      transform: _transform,
+      position: position,
+      hitTest: (result, position) =>
+          super.hitTestChildren(result, position: position),
+    );
+  }
+
+  @override
+  void applyPaintTransform(RenderBox child, Matrix4 transform) {
+    transform.multiply(_transform);
+  }
+}
 
 class JourneyHeroHeader extends StatelessWidget {
   const JourneyHeroHeader({required this.title, this.subtitle, super.key});

@@ -457,6 +457,8 @@ import 'package:api_client_dart/src/model/public_operator_profile_dto_output_rev
 import 'package:api_client_dart/src/model/public_operator_profile_dto_output_routes_inner.dart';
 import 'package:api_client_dart/src/model/public_operator_profile_dto_output_scorecard.dart';
 import 'package:api_client_dart/src/model/public_operator_profile_dto_output_service_terms.dart';
+import 'package:api_client_dart/src/model/public_promotion_list_dto_output.dart';
+import 'package:api_client_dart/src/model/public_promotion_list_dto_output_items_inner.dart';
 import 'package:api_client_dart/src/model/public_trip_dto_output.dart';
 import 'package:api_client_dart/src/model/public_trip_dto_output_cancellation_policy.dart';
 import 'package:api_client_dart/src/model/public_trip_dto_output_cancellation_policy_tiers_inner.dart';
@@ -1074,6 +1076,8 @@ part 'serializers.g.dart';
   PublicOperatorProfileDtoOutputRoutesInner,
   PublicOperatorProfileDtoOutputScorecard,
   PublicOperatorProfileDtoOutputServiceTerms,
+  PublicPromotionListDtoOutput,
+  PublicPromotionListDtoOutputItemsInner,
   PublicTripDtoOutput,
   PublicTripDtoOutputCancellationPolicy,
   PublicTripDtoOutputCancellationPolicyTiersInner,
@@ -1409,6 +1413,10 @@ Serializers serializers = (_$serializers.toBuilder()
       ..addBuilderFactory(
         const FullType(BuiltList, [FullType(SalesOfficeListDtoOutputItemsInner)]),
         () => ListBuilder<SalesOfficeListDtoOutputItemsInner>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(PublicPromotionListDtoOutputItemsInner)]),
+        () => ListBuilder<PublicPromotionListDtoOutputItemsInner>(),
       )
       ..addBuilderFactory(
         const FullType(BuiltList, [FullType(EmployeeListResponseDtoOutputItemsInner)]),

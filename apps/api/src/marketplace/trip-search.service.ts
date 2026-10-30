@@ -341,14 +341,24 @@ function matchesFilters(item: TripSearchItem, query: TripSearchQuery): boolean {
   );
 }
 
-function compareBy(sort: TripSearchQuery["sort"]): (a: TripSearchItem, b: TripSearchItem) => number {
+/** Thứ tự kết quả tìm chuyến theo `sort` (export để test riêng). */
+export function compareBy(sort: TripSearchQuery["sort"]): (a: TripSearchItem, b: TripSearchItem) => number {
   const byDeparture = (a: TripSearchItem, b: TripSearchItem) =>
     a.pickup.plannedAt.localeCompare(b.pickup.plannedAt) || a.tripId.localeCompare(b.tripId);
   if (sort === "price") {
     return (a, b) => a.minPrice - b.minPrice || byDeparture(a, b);
   }
+  if (sort === "price_desc") {
+    return (a, b) => b.minPrice - a.minPrice || byDeparture(a, b);
+  }
   if (sort === "duration") {
     return (a, b) => a.durationMinutes - b.durationMinutes || byDeparture(a, b);
+  }
+  if (sort === "rating") {
+    return (a, b) =>
+      (b.operator.averageRating ?? -1) - (a.operator.averageRating ?? -1) ||
+      b.operator.reviewCount - a.operator.reviewCount ||
+      byDeparture(a, b);
   }
   return byDeparture;
 }

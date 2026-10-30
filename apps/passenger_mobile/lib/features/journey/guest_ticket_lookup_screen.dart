@@ -38,13 +38,11 @@ class GuestTicketLookupScreen extends StatefulWidget {
 class _GuestTicketLookupScreenState extends State<GuestTicketLookupScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
-  final _scrollController = ScrollController();
   bool _submitting = false;
 
   @override
   void dispose() {
     _emailController.dispose();
-    _scrollController.dispose();
     super.dispose();
   }
 
@@ -58,43 +56,28 @@ class _GuestTicketLookupScreenState extends State<GuestTicketLookupScreen> {
         currentIndex: 3,
         onTap: widget.onTabSelected,
       ),
-      body: AnnotatedRegion<SystemUiOverlayStyle>(
-        value: SystemUiOverlayStyle.dark.copyWith(
-          statusBarColor: Colors.transparent,
-          systemNavigationBarColor: _pageBackground,
-        ),
-        child: CustomScrollView(
-          key: const Key('guest-ticket-lookup-scroll'),
-          controller: _scrollController,
-          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-          slivers: [
-            SliverToBoxAdapter(
-              child: _JourneyHeader(onLoginRequested: widget.onLoginRequested),
-            ),
-            SliverPadding(
-              padding: const EdgeInsets.fromLTRB(18, 15, 18, 144),
-              sliver: SliverToBoxAdapter(
-                child: Center(
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 376),
-                    child: Column(
-                      children: [
-                        _buildLookupCard(),
-                        const SizedBox(height: 14),
-                        _SupportCard(
-                          onFaqRequested:
-                              widget.onFaqRequested ?? _showFaqPlaceholder,
-                          onSupportRequested:
-                              widget.onSupportRequested ??
-                              _showSupportPlaceholder,
-                        ),
-                      ],
-                    ),
-                  ),
+      body: TabEntrance(
+        child: AnnotatedRegion<SystemUiOverlayStyle>(
+          value: SystemUiOverlayStyle.dark.copyWith(
+            statusBarColor: Colors.transparent,
+            systemNavigationBarColor: _pageBackground,
+          ),
+          child: JourneyFixedPage(
+            scrollKey: const Key('guest-ticket-lookup-scroll'),
+            header: _JourneyHeader(onLoginRequested: widget.onLoginRequested),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _buildLookupCard(),
+                const SizedBox(height: 14),
+                _SupportCard(
+                  onFaqRequested: widget.onFaqRequested ?? _showFaqPlaceholder,
+                  onSupportRequested:
+                      widget.onSupportRequested ?? _showSupportPlaceholder,
                 ),
-              ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );

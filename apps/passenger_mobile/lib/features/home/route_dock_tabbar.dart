@@ -10,11 +10,20 @@ class RouteDockTabBar extends StatelessWidget {
   const RouteDockTabBar({
     required this.currentIndex,
     required this.onTap,
+    this.visible = true,
+    this.slideKey,
     super.key,
   });
 
   final int currentIndex;
   final ValueChanged<int> onTap;
+
+  /// `false` = trượt dock xuống (khi cuộn đọc nội dung). Dải nền sau nút điều hướng hệ thống
+  /// vẫn đứng yên để các nút không nằm trên ảnh / chữ.
+  final bool visible;
+
+  /// Key của `AnimatedSlide` (test đọc offset ẩn / hiện).
+  final Key? slideKey;
 
   static const labels = <String>[
     'Khám phá',
@@ -32,9 +41,18 @@ class RouteDockTabBar extends StatelessWidget {
     '$_dockAssetRoot/account.svg',
   ];
 
+  /// Tab mà thanh dock vừa hiển thị. Mỗi tab dựng thanh dock riêng, nên nhờ giá trị này
+  /// bóng tròn trượt từ tab cũ sang tab mới thay vì nhảy thẳng.
+  static int? _lastIndex;
+
   @override
   Widget build(BuildContext context) {
     final bottomInset = MediaQuery.paddingOf(context).bottom;
+    final from = _lastIndex ?? currentIndex;
+    _lastIndex = currentIndex;
+    final duration = MediaQuery.disableAnimationsOf(context)
+        ? Duration.zero
+        : const Duration(milliseconds: 380);
     return LayoutBuilder(
       builder: (context, constraints) {
         final dockWidth = constraints.maxWidth.clamp(0.0, 390.0);
@@ -47,13 +65,35 @@ class RouteDockTabBar extends StatelessWidget {
                 top: 0,
                 width: dockWidth,
                 height: 120,
-                child: SizedBox(
-                  key: const Key('route-dock-tabbar'),
-                  child: _DockCanvas(currentIndex: currentIndex, onTap: onTap),
+                child: IgnorePointer(
+                  ignoring: !visible,
+                  child: AnimatedSlide(
+                    key: slideKey,
+                    duration: const Duration(milliseconds: 250),
+                    curve: Curves.easeOutCubic,
+                    offset: visible ? Offset.zero : const Offset(0, 1),
+                    child: SizedBox(
+                      key: const Key('route-dock-tabbar'),
+                      child: TweenAnimationBuilder<double>(
+                        tween: Tween(
+                          begin: from.toDouble(),
+                          end: currentIndex.toDouble(),
+                        ),
+                        duration: duration,
+                        curve: Curves.easeOutCubic,
+                        builder: (context, position, _) => _DockCanvas(
+                          currentIndex: currentIndex,
+                          position: position,
+                          onTap: onTap,
+                        ),
+                      ),
+                    ),
+                  ),
                 ),
               ),
               if (bottomInset > 0)
                 Positioned(
+                  key: const Key('route-dock-system-inset'),
                   left: 0,
                   right: 0,
                   bottom: 0,
@@ -69,9 +109,16 @@ class RouteDockTabBar extends StatelessWidget {
 }
 
 class _DockCanvas extends StatelessWidget {
-  const _DockCanvas({required this.currentIndex, required this.onTap});
+  const _DockCanvas({
+    required this.currentIndex,
+    required this.position,
+    required this.onTap,
+  });
 
   final int currentIndex;
+
+  /// Vị trí bóng tròn (chỉ số tab, có phần lẻ khi đang trượt).
+  final double position;
   final ValueChanged<int> onTap;
 
   @override
@@ -82,17 +129,23 @@ class _DockCanvas extends StatelessWidget {
         final tabsInset = width * 5 / 390;
         final tabsWidth = width - tabsInset * 2;
         final slot = tabsWidth / 5;
-        final bubbleSize = currentIndex == 2 ? 64.0 : 58.0;
-        final activeCenter = tabsInset + slot * (currentIndex + .5);
+        // Bóng ở Trang chủ to hơn (64 so với 58); đổi cỡ dần khi trượt qua.
+        final homeness = (1 - (position - 2).abs()).clamp(0.0, 1.0);
+        final bubbleSize = 58.0 + 6 * homeness;
+        final activeCenter = tabsInset + slot * (position + .5);
+        // Biểu tượng trong bóng hiện dần khi bóng tới tab mới.
+        final arrival = (1 - (position - currentIndex).abs()).clamp(0.0, 1.0);
 
         return Stack(
           clipBehavior: Clip.none,
           children: [
+            // Nền dock kéo tới đáy khung 120dp (trước đây dừng ở 108dp, chừa khe 12dp
+            // để nội dung lộ ra giữa dock và dải nút điều hướng hệ thống).
             Positioned(
               left: 0,
               right: 0,
               top: 16,
-              height: 92,
+              height: 104,
               child: DecoratedBox(
                 decoration: BoxDecoration(
                   color: _dockBackground,
@@ -167,7 +220,7 @@ class _DockCanvas extends StatelessWidget {
             ),
             Positioned(
               left: activeCenter - bubbleSize / 2,
-              top: currentIndex == 2 ? 7 : 10,
+              top: 10 - 3 * homeness,
               width: bubbleSize,
               height: bubbleSize,
               child: DecoratedBox(
@@ -184,16 +237,19 @@ class _DockCanvas extends StatelessWidget {
                     ),
                   ],
                 ),
-                child: Padding(
-                  padding: EdgeInsets.all((bubbleSize - 24) / 2),
-                  child: SvgPicture.asset(
-                    currentIndex == 2
-                        ? '$_dockAssetRoot/home_active.svg'
-                        : RouteDockTabBar.iconAssets[currentIndex],
-                    colorFilter: currentIndex == 2
-                        ? null
-                        : const ColorFilter.mode(_primary, BlendMode.srcIn),
-                    excludeFromSemantics: true,
+                child: Opacity(
+                  opacity: arrival,
+                  child: Padding(
+                    padding: EdgeInsets.all((bubbleSize - 24) / 2),
+                    child: SvgPicture.asset(
+                      currentIndex == 2
+                          ? '$_dockAssetRoot/home_active.svg'
+                          : RouteDockTabBar.iconAssets[currentIndex],
+                      colorFilter: currentIndex == 2
+                          ? null
+                          : const ColorFilter.mode(_primary, BlendMode.srcIn),
+                      excludeFromSemantics: true,
+                    ),
                   ),
                 ),
               ),
@@ -283,6 +339,114 @@ class _DockCanvas extends StatelessWidget {
           ],
         );
       },
+    );
+  }
+}
+
+/// Nội dung một tab hiện dần và trượt nhẹ lên khi mở tab; thanh dock nằm ngoài nên đứng yên.
+class TabEntrance extends StatefulWidget {
+  const TabEntrance({required this.child, this.statusBarColor, super.key});
+
+  final Widget child;
+
+  /// Màu nền phủ thanh trạng thái khi nội dung đã cuộn ([ScrolledStatusBarScrim]);
+  /// `null` = không phủ (màn không cuộn hoặc tự chừa thanh trạng thái).
+  final Color? statusBarColor;
+
+  @override
+  State<TabEntrance> createState() => _TabEntranceState();
+}
+
+class _TabEntranceState extends State<TabEntrance>
+    with SingleTickerProviderStateMixin {
+  late final _controller = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 320),
+  )..forward();
+  late final _curve = CurvedAnimation(
+    parent: _controller,
+    curve: Curves.easeOutCubic,
+  );
+  // Bắt đầu từ 0.3 chứ không từ 0: tránh khung đầu trống trơn trông như nháy màn.
+  late final _opacity = Tween<double>(begin: .3, end: 1).animate(_curve);
+  late final _offset = Tween<Offset>(
+    begin: const Offset(0, .02),
+    end: Offset.zero,
+  ).animate(_curve);
+
+  @override
+  void dispose() {
+    _curve.dispose();
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final color = widget.statusBarColor;
+    final child = color == null
+        ? widget.child
+        : ScrolledStatusBarScrim(color: color, child: widget.child);
+    if (MediaQuery.disableAnimationsOf(context)) return child;
+    return FadeTransition(
+      opacity: _opacity,
+      child: SlideTransition(position: _offset, child: child),
+    );
+  }
+}
+
+/// Nền thanh trạng thái hiện khi nội dung đã cuộn: ở đầu trang ảnh hero vẫn tràn lên sau giờ / pin,
+/// cuộn xuống thì chữ không chạy bên dưới các biểu tượng hệ thống.
+class ScrolledStatusBarScrim extends StatefulWidget {
+  const ScrolledStatusBarScrim({
+    required this.color,
+    required this.child,
+    super.key,
+  });
+
+  final Color color;
+  final Widget child;
+
+  @override
+  State<ScrolledStatusBarScrim> createState() => _ScrolledStatusBarScrimState();
+}
+
+class _ScrolledStatusBarScrimState extends State<ScrolledStatusBarScrim> {
+  bool _scrolled = false;
+
+  bool _onScroll(ScrollNotification notification) {
+    if (notification.depth != 0 || notification.metrics.axis != Axis.vertical) {
+      return false;
+    }
+    final scrolled = notification.metrics.pixels > 0;
+    if (scrolled != _scrolled) setState(() => _scrolled = scrolled);
+    return false;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final top = MediaQuery.paddingOf(context).top;
+    return NotificationListener<ScrollNotification>(
+      onNotification: _onScroll,
+      child: Stack(
+        children: [
+          widget.child,
+          Positioned(
+            left: 0,
+            right: 0,
+            top: 0,
+            height: top,
+            child: IgnorePointer(
+              child: AnimatedOpacity(
+                key: const Key('status-bar-scrim'),
+                opacity: _scrolled ? 1 : 0,
+                duration: const Duration(milliseconds: 150),
+                child: ColoredBox(color: widget.color),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

@@ -279,25 +279,26 @@ void main() {
     },
   );
 
-  testWidgets('khu vực / phường không có chuyến → nhắc đang hiện chuyến cả tỉnh', (
-    tester,
-  ) async {
-    await _pumpResults(
-      tester,
-      width: 390,
-      searchTrips: (_, _, _) async => TripSearchPage(
-        items: [sampleTrip('t1')],
-        total: 1,
-        page: 1,
-        limit: 20,
-        operators: const [],
-        widenedTo: true,
-      ),
-    );
-    expect(find.byKey(const Key('results-widened-notice')), findsOneWidget);
-    expect(find.textContaining('Không có chuyến trả khách'), findsOneWidget);
-    expect(tester.takeException(), isNull);
-  });
+  testWidgets(
+    'khu vực / phường không có chuyến → nhắc đang hiện chuyến cả tỉnh',
+    (tester) async {
+      await _pumpResults(
+        tester,
+        width: 390,
+        searchTrips: (_, _, _) async => TripSearchPage(
+          items: [sampleTrip('t1')],
+          total: 1,
+          page: 1,
+          limit: 20,
+          operators: const [],
+          widenedTo: true,
+        ),
+      );
+      expect(find.byKey(const Key('results-widened-notice')), findsOneWidget);
+      expect(find.textContaining('Không có chuyến trả khách'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    },
+  );
 
   testWidgets('Sắp xếp: chọn trong sheet rồi Áp dụng mới tìm lại', (
     tester,
@@ -312,15 +313,17 @@ void main() {
     await tester.tap(find.byKey(const Key('results-sort')));
     await tester.pumpAndSettle();
     expect(find.text('Sắp xếp chuyến'), findsOneWidget);
-    expect(find.text('Đánh giá cao nhất'), findsNothing);
-    await tester.tap(find.byKey(const ValueKey('results-sort-price')));
+    for (final sort in TripSearchSort.values) {
+      expect(find.byKey(ValueKey('results-sort-${sort.name}')), findsOneWidget);
+    }
+    await tester.tap(find.byKey(const ValueKey('results-sort-rating')));
     await tester.pump();
     expect(calls, hasLength(1));
     await tester.tap(find.byKey(const Key('results-sort-apply')));
     await tester.pumpAndSettle();
 
-    expect(calls.last.filters.sort, TripSearchSort.price);
-    expect(find.text('Giá từ thấp đến cao'), findsOneWidget);
+    expect(calls.last.filters.sort, TripSearchSort.rating);
+    expect(find.text('Đánh giá cao nhất'), findsOneWidget);
   });
 
   testWidgets(

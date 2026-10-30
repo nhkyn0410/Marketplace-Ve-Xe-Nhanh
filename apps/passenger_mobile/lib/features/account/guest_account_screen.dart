@@ -42,111 +42,100 @@ class GuestAccountScreen extends StatelessWidget {
         currentIndex: 4,
         onTap: onTabSelected,
       ),
-      body: AnnotatedRegion(
-        value: journeyOverlayStyle,
-        child: ListView(
-          key: const Key('guest-account-scroll'),
-          padding: const EdgeInsets.only(bottom: 144),
-          children: [
-            const JourneyHeroHeader(title: 'Tài khoản'),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(18, 15, 18, 0),
-              child: Center(
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 376),
+      body: TabEntrance(
+        child: AnnotatedRegion(
+          value: journeyOverlayStyle,
+          child: JourneyFixedPage(
+            scrollKey: const Key('guest-account-scroll'),
+            header: const JourneyHeroHeader(title: 'Tài khoản'),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                JourneySurface(
+                  padding: const EdgeInsets.all(16),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      JourneySurface(
-                        padding: const EdgeInsets.all(16),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            const Text(
-                              'Bạn chưa đăng nhập',
-                              style: TextStyle(
-                                color: journeyInk,
-                                fontSize: 17,
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            const Text(
-                              'Đăng nhập hoặc tạo tài khoản bằng email để dùng:',
-                              style: TextStyle(
-                                color: journeyBody,
-                                fontSize: 13,
-                                height: 1.4,
-                              ),
-                            ),
-                            const SizedBox(height: 12),
-                            const _Benefit(
-                              icon: Icons.people_alt_outlined,
-                              title: 'Hành khách đã lưu',
-                              body:
-                                  'Điền thông tin hành khách chỉ với một chạm.',
-                            ),
-                            const _Benefit(
-                              icon: Icons.local_activity_outlined,
-                              title: 'Ví voucher',
-                              body: 'Lưu mã giảm giá và dùng khi đặt vé.',
-                            ),
-                            const _Benefit(
-                              icon: Icons.workspace_premium_outlined,
-                              title: 'Điểm VXN Plus',
-                              body:
-                                  'Tích điểm sau mỗi chuyến đi để đổi ưu đãi.',
-                            ),
-                            const _Benefit(
-                              icon: Icons.rate_review_outlined,
-                              title: 'Đánh giá chuyến đi',
-                              body:
-                                  'Chia sẻ trải nghiệm với nhà xe sau chuyến.',
-                            ),
-                            const SizedBox(height: 6),
-                            JourneyPrimaryButton(
-                              key: const Key('guest-account-login'),
-                              label: 'Đăng nhập / Đăng ký',
-                              onPressed: onLoginRequested,
-                              height: 46,
-                            ),
-                          ],
+                      const Text(
+                        'Bạn chưa đăng nhập',
+                        style: TextStyle(
+                          color: journeyInk,
+                          fontSize: 17,
+                          fontWeight: FontWeight.w700,
                         ),
                       ),
-                      const SizedBox(height: 14),
-                      JourneySurface(
-                        padding: const EdgeInsets.symmetric(vertical: 4),
-                        child: Column(
-                          children: [
-                            _Action(
-                              key: const Key('guest-account-lookup'),
-                              icon: Icons.confirmation_number_outlined,
-                              title: 'Tra cứu vé đã đặt',
-                              body: 'Không cần đăng nhập: dùng mã đặt vé và email.',
-                              onTap: () => onTabSelected(3),
-                            ),
-                            const Divider(
-                              height: 1,
-                              indent: 16,
-                              endIndent: 16,
-                              color: journeyBorder,
-                            ),
-                            _Action(
-                              key: const Key('guest-account-hotline'),
-                              icon: Icons.support_agent_outlined,
-                              title: 'Tổng đài hỗ trợ',
-                              body: _supportHotline,
-                              onTap: () => _callHotline(context),
-                            ),
-                          ],
+                      const SizedBox(height: 4),
+                      const Text(
+                        'Đăng nhập hoặc tạo tài khoản bằng email để dùng:',
+                        style: TextStyle(
+                          color: journeyBody,
+                          fontSize: 13,
+                          height: 1.4,
                         ),
+                      ),
+                      const SizedBox(height: 12),
+                      const _Benefit(
+                        icon: Icons.people_alt_outlined,
+                        title: 'Hành khách đã lưu',
+                        body: 'Điền thông tin hành khách chỉ với một chạm.',
+                      ),
+                      const _Benefit(
+                        icon: Icons.local_activity_outlined,
+                        title: 'Ví voucher',
+                        body: 'Lưu mã giảm giá và dùng khi đặt vé.',
+                      ),
+                      const _Benefit(
+                        icon: Icons.workspace_premium_outlined,
+                        title: 'Điểm VXN Plus',
+                        body: 'Tích điểm sau mỗi chuyến đi để đổi ưu đãi.',
+                      ),
+                      const _Benefit(
+                        icon: Icons.rate_review_outlined,
+                        title: 'Đánh giá chuyến đi',
+                        body: 'Chia sẻ trải nghiệm với nhà xe sau chuyến.',
+                      ),
+                      const SizedBox(height: 6),
+                      JourneyPrimaryButton(
+                        key: const Key('guest-account-login'),
+                        label: 'Đăng nhập / Đăng ký',
+                        onPressed: onLoginRequested,
+                        height: 46,
                       ),
                     ],
                   ),
                 ),
-              ),
+                const SizedBox(height: 14),
+                JourneySurface(
+                  padding: const EdgeInsets.symmetric(vertical: 4),
+                  child: Column(
+                    children: [
+                      _Action(
+                        key: const Key('guest-account-lookup'),
+                        icon: Icons.confirmation_number_outlined,
+                        title: 'Tra cứu vé đã đặt',
+                        body: 'Không cần đăng nhập: dùng mã đặt vé và email.',
+                        onTap: () => onTabSelected(3),
+                      ),
+                      const Divider(
+                        height: 1,
+                        indent: 16,
+                        endIndent: 16,
+                        color: journeyBorder,
+                      ),
+                      _Action(
+                        key: const Key('guest-account-hotline'),
+                        icon: Icons.support_agent_outlined,
+                        title: 'Tổng đài hỗ trợ',
+                        body: _supportHotline,
+                        onTap: () => _callHotline(context),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );

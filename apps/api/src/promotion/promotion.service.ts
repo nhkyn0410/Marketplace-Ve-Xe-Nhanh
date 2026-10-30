@@ -1,7 +1,7 @@
 import { Inject, Injectable } from "@nestjs/common";
 import { AuditService, AuditWriteError } from "../audit/audit.service";
 import type { DbScope } from "../database/db-scope";
-import { withTripOperator } from "../database/marketplace-scope";
+import { listPublicPromotions, withTripOperator } from "../database/marketplace-scope";
 import { PrismaService, transactionDeadline, type DbTransaction } from "../database/prisma.service";
 import { DiscountType, PromotionScope, PromotionStatus, RedemptionStatus } from "../database/prisma.types";
 import type { VerifiedAccessToken } from "../iam/auth/token.service";
@@ -20,6 +20,7 @@ import type {
   PromotionStats,
   PromotionStatusInput,
   PROMOTION_DISPLAY,
+  PublicPromotionList,
 } from "./dto/promotion.dto";
 import { evaluatePromotion } from "./promotion-apply";
 import { evaluateVoucher } from "./voucher-apply";
@@ -336,6 +337,29 @@ export class PromotionService {
       const row = await tx.operatorProfile.findUniqueOrThrow({ where: { id: operatorId }, select: { id: true, displayName: true, operatorSlug: true, promotionPermission: true } });
       return toPermission(row, await routeNameMap(tx, row.promotionPermission?.routeIds ?? []));
     });
+  }
+
+  // ------------------------------------------------------------------ Khuyến mãi công khai (khách)
+
+  /**
+   * Khuyến mãi đang chạy cho "Ưu đãi nổi bật": `ACTIVE`, trong thời hạn, còn lượt; của nhà xe đang hoạt động, hoặc của nền
+   * tảng đã có nhà xe tham gia (chưa ai tham gia thì không dùng được). Sắp hết hạn trước.
+   */
+  async publicList(limit: number, now: Date = new Date()): Promise<PublicPromotionList> {
+    const rows = await listPublicPromotions(this.prisma, limit, now);
+    return {
+      items: rows.map((row) => ({
+        code: row.code,
+        name: row.name,
+        scope: row.scope,
+        operatorName: row.operator?.displayName ?? null,
+        discountType: row.discountType,
+        discountValue: Number(row.discountValue),
+        maxDiscount: row.maxDiscount === null ? null : Number(row.maxDiscount),
+        minOrder: Number(row.minOrder),
+        endsAt: row.endsAt.toISOString(),
+      })),
+    };
   }
 
   // ------------------------------------------------------------------ Kiểm mã (khách)

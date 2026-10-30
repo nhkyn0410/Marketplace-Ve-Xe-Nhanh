@@ -3,25 +3,139 @@ import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:passenger_mobile/features/home/route_dock_tabbar.dart';
 import 'package:passenger_mobile/features/journey/guest_journey_shared.dart';
+import 'package:passenger_mobile/features/journey/journey_models.dart';
 
+/// Danh sách đơn của tab Hành trình: kết quả tra cứu của khách vãng lai ([lookupEmail] khác `null`)
+/// hoặc "Vé của tôi" của hành khách đăng nhập.
 class GuestTicketResultsScreen extends StatelessWidget {
   const GuestTicketResultsScreen({
-    required this.bookingCode,
-    required this.maskedEmail,
-    required this.onOpenTicket,
-    required this.onChangeLookup,
+    required this.title,
+    required this.subtitle,
+    required this.bookings,
+    required this.onOpenBooking,
     required this.onTabSelected,
+    this.lookupEmail,
+    this.onChangeLookup,
+    this.onRefresh,
     super.key,
   });
 
-  final String bookingCode;
-  final String maskedEmail;
-  final VoidCallback onOpenTicket;
-  final VoidCallback onChangeLookup;
+  final String title;
+  final String subtitle;
+  final List<JourneyBookingSummary> bookings;
+  final ValueChanged<JourneyBookingSummary> onOpenBooking;
   final ValueChanged<int> onTabSelected;
+
+  /// Email đã xác minh (che bớt) của phiên tra cứu; `null` = danh sách của tài khoản.
+  final String? lookupEmail;
+  final VoidCallback? onChangeLookup;
+
+  /// Kéo xuống để tải lại.
+  final Future<void> Function()? onRefresh;
 
   @override
   Widget build(BuildContext context) {
+    final email = lookupEmail;
+    final content = CustomScrollView(
+      key: const Key('journey-results-scroll'),
+      physics: const AlwaysScrollableScrollPhysics(),
+      slivers: [
+        SliverToBoxAdapter(
+          child: JourneyHeroHeader(title: title, subtitle: subtitle),
+        ),
+        SliverPadding(
+          padding: const EdgeInsets.fromLTRB(20, 9, 20, 145),
+          sliver: SliverToBoxAdapter(
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 372),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    if (email != null && onChangeLookup != null) ...[
+                      _LookupSummary(
+                        maskedEmail: email,
+                        onChange: onChangeLookup!,
+                      ),
+                      const SizedBox(height: 14),
+                    ],
+                    Text(
+                      bookings.isEmpty
+                          ? 'Chưa có đơn nào'
+                          : 'Đơn của bạn (${bookings.length})',
+                      style: const TextStyle(
+                        color: journeyInk,
+                        fontSize: 18,
+                        height: 25 / 18,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    if (bookings.isEmpty)
+                      JourneySurface(
+                        key: const Key('journey-results-empty'),
+                        padding: const EdgeInsets.all(16),
+                        child: Text(
+                          email != null
+                              ? 'Email này chưa có đơn nào trong 12 tháng gần đây.'
+                              : 'Bạn chưa đặt vé nào. Tìm chuyến ở tab Mua vé để bắt đầu hành trình.',
+                          style: const TextStyle(
+                            color: journeyBody,
+                            fontSize: 12.5,
+                            height: 1.5,
+                          ),
+                        ),
+                      ),
+                    for (final booking in bookings) ...[
+                      _TicketResultCard(
+                        booking: booking,
+                        onPressed: () => onOpenBooking(booking),
+                      ),
+                      const SizedBox(height: 12),
+                    ],
+                    if (email != null && onChangeLookup != null) ...[
+                      const SizedBox(height: 2),
+                      JourneySurface(
+                        padding: const EdgeInsets.all(14),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            const Text(
+                              'Không đúng kết quả?',
+                              style: TextStyle(
+                                color: journeyInk,
+                                fontSize: 14,
+                                height: 21 / 14,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            const Text(
+                              'Thử tra cứu lại bằng email khác.',
+                              style: TextStyle(
+                                color: journeyBody,
+                                fontSize: 11.5,
+                                height: 17 / 11.5,
+                              ),
+                            ),
+                            const SizedBox(height: 11),
+                            JourneyOutlineButton(
+                              label: 'Tra cứu lại',
+                              onPressed: onChangeLookup!,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+    final refresh = onRefresh;
     return Scaffold(
       key: const Key('guest-ticket-results-screen'),
       extendBody: true,
@@ -30,99 +144,13 @@ class GuestTicketResultsScreen extends StatelessWidget {
         currentIndex: 3,
         onTap: onTabSelected,
       ),
-      body: AnnotatedRegion<SystemUiOverlayStyle>(
-        value: journeyOverlayStyle,
-        child: CustomScrollView(
-          slivers: [
-            SliverToBoxAdapter(
-              child: JourneyHeroHeader(
-                title: 'Kết quả tra cứu vé',
-                subtitle: 'Đã xác minh email $maskedEmail',
-              ),
-            ),
-            SliverPadding(
-              padding: const EdgeInsets.fromLTRB(20, 9, 20, 145),
-              sliver: SliverToBoxAdapter(
-                child: Center(
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 372),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        _LookupSummary(
-                          bookingCode: bookingCode,
-                          maskedEmail: maskedEmail,
-                          onChange: onChangeLookup,
-                        ),
-                        const SizedBox(height: 14),
-                        const Text(
-                          'Kết quả tìm thấy (2)',
-                          style: TextStyle(
-                            color: journeyInk,
-                            fontSize: 18,
-                            height: 25 / 18,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                        const SizedBox(height: 10),
-                        _TicketResultCard(
-                          weekday: 'Thứ 6',
-                          day: '16',
-                          month: 'Tháng 10',
-                          route: 'TP. Hồ Chí Minh → Đà Lạt',
-                          status: 'Hợp lệ',
-                          statusColor: const Color(0xFF067647),
-                          statusBackground: const Color(0xFFECFDF3),
-                          time: '22:30 – 05:30 (+1 ngày)',
-                          operator: 'Phương Nam Travel · Giường nằm Limousine',
-                          bookingCode: 'VXN-8F3K2Q',
-                          seatCount: '2 vé',
-                          station: 'Bến xe Miền Đông mới',
-                          actionLabel: 'Xem vé',
-                          actionIcon: '$journeyAssetRoot/qr_small.svg',
-                          onPressed: onOpenTicket,
-                        ),
-                        const SizedBox(height: 12),
-                        const _PendingTicketCard(),
-                        const SizedBox(height: 14),
-                        JourneySurface(
-                          padding: const EdgeInsets.all(14),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              const Text(
-                                'Không đúng kết quả?',
-                                style: TextStyle(
-                                  color: journeyInk,
-                                  fontSize: 14,
-                                  height: 21 / 14,
-                                  fontWeight: FontWeight.w700,
-                                ),
-                              ),
-                              const SizedBox(height: 2),
-                              const Text(
-                                'Thử tra cứu lại bằng mã đặt vé và email khác.',
-                                style: TextStyle(
-                                  color: journeyBody,
-                                  fontSize: 11.5,
-                                  height: 17 / 11.5,
-                                ),
-                              ),
-                              const SizedBox(height: 11),
-                              JourneyOutlineButton(
-                                label: 'Tra cứu lại',
-                                onPressed: onChangeLookup,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ],
+      body: TabEntrance(
+        statusBarColor: journeyPage,
+        child: AnnotatedRegion<SystemUiOverlayStyle>(
+          value: journeyOverlayStyle,
+          child: refresh == null
+              ? content
+              : RefreshIndicator(onRefresh: refresh, child: content),
         ),
       ),
     );
@@ -130,13 +158,8 @@ class GuestTicketResultsScreen extends StatelessWidget {
 }
 
 class _LookupSummary extends StatelessWidget {
-  const _LookupSummary({
-    required this.bookingCode,
-    required this.maskedEmail,
-    required this.onChange,
-  });
+  const _LookupSummary({required this.maskedEmail, required this.onChange});
 
-  final String bookingCode;
   final String maskedEmail;
   final VoidCallback onChange;
 
@@ -166,11 +189,11 @@ class _LookupSummary extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  bookingCode.isEmpty ? 'VXN-8F3K2Q' : bookingCode,
+                const Text(
+                  'Email đã xác minh',
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
+                  style: TextStyle(
                     color: journeyInk,
                     fontSize: 13.5,
                     fontWeight: FontWeight.w700,
@@ -178,7 +201,7 @@ class _LookupSummary extends StatelessWidget {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  'Email: $maskedEmail',
+                  maskedEmail,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(color: journeyBody, fontSize: 11),
@@ -210,44 +233,30 @@ class _LookupSummary extends StatelessWidget {
   }
 }
 
-class _TicketResultCard extends StatelessWidget {
-  const _TicketResultCard({
-    required this.weekday,
-    required this.day,
-    required this.month,
-    required this.route,
-    required this.status,
-    required this.statusColor,
-    required this.statusBackground,
-    required this.time,
-    required this.operator,
-    required this.bookingCode,
-    required this.seatCount,
-    required this.station,
-    required this.actionLabel,
-    required this.onPressed,
-    this.actionIcon,
-  });
+/// Màu nhãn trạng thái: chữ + nền.
+(Color, Color) _statusColors(String status) => switch (status) {
+  'CONFIRMED' || 'PAID' => (const Color(0xFF067647), const Color(0xFFECFDF3)),
+  'PENDING_PAYMENT' ||
+  'PENDING_CONFIRMATION' ||
+  'REFUND_PENDING' => (const Color(0xFFB54708), const Color(0xFFFFFAEB)),
+  _ => (const Color(0xFF475467), const Color(0xFFF2F4F7)),
+};
 
-  final String weekday;
-  final String day;
-  final String month;
-  final String route;
-  final String status;
-  final Color statusColor;
-  final Color statusBackground;
-  final String time;
-  final String operator;
-  final String bookingCode;
-  final String seatCount;
-  final String station;
-  final String actionLabel;
-  final String? actionIcon;
+const _weekdays = ['Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7', 'CN'];
+
+class _TicketResultCard extends StatelessWidget {
+  const _TicketResultCard({required this.booking, required this.onPressed});
+
+  final JourneyBookingSummary booking;
   final VoidCallback onPressed;
 
   @override
   Widget build(BuildContext context) {
+    final departure = booking.departureAt.toLocal();
+    final (statusColor, statusBackground) = _statusColors(booking.status);
+    final count = booking.ticketCount;
     return JourneySurface(
+      key: ValueKey('journey-booking-${booking.bookingCode}'),
       radius: 16,
       padding: const EdgeInsets.all(12),
       child: Column(
@@ -266,7 +275,7 @@ class _TicketResultCard extends StatelessWidget {
                 child: Column(
                   children: [
                     Text(
-                      weekday,
+                      _weekdays[departure.weekday - 1],
                       style: const TextStyle(
                         color: journeyBody,
                         fontSize: 9.5,
@@ -274,7 +283,7 @@ class _TicketResultCard extends StatelessWidget {
                       ),
                     ),
                     Text(
-                      day,
+                      '${departure.day}',
                       style: const TextStyle(
                         color: journeyInk,
                         fontSize: 22,
@@ -283,7 +292,7 @@ class _TicketResultCard extends StatelessWidget {
                       ),
                     ),
                     Text(
-                      month,
+                      'Tháng ${departure.month}',
                       style: const TextStyle(color: journeyBody, fontSize: 9.5),
                     ),
                   ],
@@ -295,7 +304,7 @@ class _TicketResultCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      route,
+                      booking.routeName,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
@@ -307,7 +316,7 @@ class _TicketResultCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 5),
                     Text(
-                      time,
+                      'Khởi hành ${journeyTime(departure)}',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
@@ -318,7 +327,7 @@ class _TicketResultCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 3),
                     Text(
-                      operator,
+                      booking.operatorName,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
@@ -338,7 +347,7 @@ class _TicketResultCard extends StatelessWidget {
                   borderRadius: BorderRadius.circular(99),
                 ),
                 child: Text(
-                  status,
+                  journeyBookingStatusLabel(booking.status),
                   style: TextStyle(
                     color: statusColor,
                     fontSize: 9.5,
@@ -356,16 +365,16 @@ class _TicketResultCard extends StatelessWidget {
             spacing: 12,
             runSpacing: 7,
             children: [
-              _Meta(icon: 'ticket_meta.svg', label: bookingCode),
-              _Meta(icon: 'seat.svg', label: seatCount),
-              _Meta(icon: 'bus.svg', label: station),
+              _Meta(icon: 'ticket_meta.svg', label: booking.bookingCode),
+              if (count != null) _Meta(icon: 'seat.svg', label: '$count vé'),
+              _Meta(icon: 'payment_card.svg', label: journeyVnd(booking.total)),
             ],
           ),
           const SizedBox(height: 11),
           JourneyPrimaryButton(
-            key: Key('ticket-result-${actionLabel.hashCode}'),
-            label: actionLabel,
-            iconAsset: actionIcon,
+            key: Key('journey-open-${booking.bookingCode}'),
+            label: booking.status == 'PENDING_PAYMENT' ? 'Xem đơn' : 'Xem vé',
+            iconAsset: '$journeyAssetRoot/qr_small.svg',
             height: 40,
             onPressed: onPressed,
           ),
@@ -390,37 +399,6 @@ class _Meta extends StatelessWidget {
         const SizedBox(width: 4),
         Text(label, style: const TextStyle(color: journeyBody, fontSize: 9.5)),
       ],
-    );
-  }
-}
-
-class _PendingTicketCard extends StatelessWidget {
-  const _PendingTicketCard();
-
-  @override
-  Widget build(BuildContext context) {
-    return _TicketResultCard(
-      weekday: 'CN',
-      day: '25',
-      month: 'Tháng 10',
-      route: 'TP. Hồ Chí Minh → Vũng Tàu',
-      status: 'Chờ thanh toán',
-      statusColor: const Color(0xFFB54708),
-      statusBackground: const Color(0xFFFFFAEB),
-      time: '07:00 – 09:15',
-      operator: 'Hoàng Long Coach · Ghế ngồi',
-      bookingCode: 'VXN-2M7T9A',
-      seatCount: '1 vé',
-      station: 'Bến xe Miền Tây',
-      actionLabel: 'Tiếp tục thanh toán',
-      actionIcon: '$journeyAssetRoot/payment_card.svg',
-      onPressed: () {
-        ScaffoldMessenger.of(context)
-          ..hideCurrentSnackBar()
-          ..showSnackBar(
-            const SnackBar(content: Text('Đây là luồng thanh toán mô phỏng.')),
-          );
-      },
     );
   }
 }

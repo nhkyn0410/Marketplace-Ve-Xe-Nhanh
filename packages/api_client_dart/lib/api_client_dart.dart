@@ -523,6 +523,8 @@ export 'package:api_client_dart/src/model/public_operator_profile_dto_output_rev
 export 'package:api_client_dart/src/model/public_operator_profile_dto_output_routes_inner.dart';
 export 'package:api_client_dart/src/model/public_operator_profile_dto_output_scorecard.dart';
 export 'package:api_client_dart/src/model/public_operator_profile_dto_output_service_terms.dart';
+export 'package:api_client_dart/src/model/public_promotion_list_dto_output.dart';
+export 'package:api_client_dart/src/model/public_promotion_list_dto_output_items_inner.dart';
 export 'package:api_client_dart/src/model/public_trip_dto_output.dart';
 export 'package:api_client_dart/src/model/public_trip_dto_output_cancellation_policy.dart';
 export 'package:api_client_dart/src/model/public_trip_dto_output_cancellation_policy_tiers_inner.dart';

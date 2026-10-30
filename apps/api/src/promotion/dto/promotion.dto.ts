@@ -173,3 +173,30 @@ export class PromotionCheckInputDto extends createZodDto(PromotionCheckInputSche
 export const PromotionCheckSchema = z.object({ code: z.string(), name: z.string(), discount: z.int(), total: z.int() });
 export type PromotionCheck = z.infer<typeof PromotionCheckSchema>;
 export class PromotionCheckDto extends createZodDto(PromotionCheckSchema) {}
+
+// Khuyến mãi công khai đang chạy cho "Ưu đãi nổi bật" (trang chủ, Khám phá) — tự thiết kế 30/10/2026, chờ Khanh duyệt.
+export const PublicPromotionQuerySchema = z.object({ limit: z.coerce.number().int().min(1).max(20).default(10) });
+export type PublicPromotionQuery = z.infer<typeof PublicPromotionQuerySchema>;
+/** Số khuyến mãi tối đa trả về. */
+export class PublicPromotionQueryDto extends createZodDto(PublicPromotionQuerySchema) {}
+
+export const PublicPromotionSchema = z.object({
+  code: z.string(),
+  name: z.string(),
+  scope: z.enum(PromotionScope),
+  /** Khuyến mãi của nhà xe: tên nhà xe; khuyến mãi nền tảng: `null`. */
+  operatorName: z.string().nullable(),
+  discountType: z.enum(DiscountType),
+  /** `PERCENT`: % giảm (1–100); `AMOUNT`: số tiền VND giảm mỗi đơn. */
+  discountValue: z.int(),
+  /** VND, chỉ với `PERCENT`; `null` = không giới hạn. */
+  maxDiscount: z.int().nullable(),
+  /** VND; 0 = không yêu cầu. */
+  minOrder: z.int(),
+  endsAt: z.iso.datetime(),
+});
+export type PublicPromotion = z.infer<typeof PublicPromotionSchema>;
+export const PublicPromotionListSchema = z.object({ items: z.array(PublicPromotionSchema) });
+export type PublicPromotionList = z.infer<typeof PublicPromotionListSchema>;
+/** Khuyến mãi công khai đang chạy, sắp hết hạn trước. */
+export class PublicPromotionListDto extends createZodDto(PublicPromotionListSchema) {}

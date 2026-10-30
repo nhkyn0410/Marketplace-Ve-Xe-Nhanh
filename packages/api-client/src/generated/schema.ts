@@ -3796,6 +3796,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/promotions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["PublicPromotionController_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/promotions/check": {
         parameters: {
             query?: never;
@@ -10079,6 +10095,22 @@ export interface components {
         };
         ParticipationInputDto: {
             joined: boolean;
+        };
+        PublicPromotionListDto_Output: {
+            items: {
+                code: string;
+                name: string;
+                /** @enum {string} */
+                scope: "PLATFORM" | "OPERATOR";
+                operatorName: string | null;
+                /** @enum {string} */
+                discountType: "PERCENT" | "AMOUNT";
+                discountValue: number;
+                maxDiscount: number | null;
+                minOrder: number;
+                /** Format: date-time */
+                endsAt: string;
+            }[];
         };
         PromotionCheckInputDto: {
             /** Format: uuid */
@@ -20354,7 +20386,7 @@ export interface operations {
                 priceMin?: number;
                 priceMax?: number;
                 amenityIds?: string;
-                sort?: "departure" | "price" | "duration";
+                sort?: "departure" | "price" | "price_desc" | "duration" | "rating";
                 page?: number;
                 limit?: number;
             };
@@ -25978,6 +26010,37 @@ export interface operations {
             };
             /** @description `PROMOTION_STATE_INVALID` — đã kết thúc. */
             409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    PublicPromotionController_list: {
+        parameters: {
+            query?: {
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Khuyến mãi đang chạy, còn lượt, sắp hết hạn trước. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PublicPromotionListDto_Output"];
+                };
+            };
+            /** @description Query không hợp lệ. */
+            400: {
                 headers: {
                     [name: string]: unknown;
                 };
