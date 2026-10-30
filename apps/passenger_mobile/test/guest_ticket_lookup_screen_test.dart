@@ -99,18 +99,30 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('màn hình thấp và chữ lớn vẫn cuộn, không bottom overflow', (
+  testWidgets('máy thấp, chữ lớn: không cuộn, nội dung gọn trên thanh tab', (
     tester,
   ) async {
     for (final width in <double>[320, 360, 375, 390, 412, 430]) {
       await _pumpScreen(tester, width: width, height: 568, textScale: 1.5);
-      await tester.drag(
-        find.byKey(const Key('guest-ticket-lookup-scroll')),
-        const Offset(0, -700),
-      );
+      final scroll = find.byKey(const Key('guest-ticket-lookup-scroll'));
+      await tester.drag(scroll, const Offset(0, -700));
       await tester.pumpAndSettle();
 
-      expect(find.text('Cần hỗ trợ?'), findsOneWidget);
+      expect(
+        tester
+            .state<ScrollableState>(
+              // Scrollable ngoài cùng; ô email có Scrollable riêng.
+              find
+                  .descendant(of: scroll, matching: find.byType(Scrollable))
+                  .first,
+            )
+            .position
+            .pixels,
+        0,
+        reason: 'viewport $width dp',
+      );
+      final support = tester.getRect(find.text('Cần hỗ trợ?'));
+      expect(support.bottom, lessThanOrEqualTo(568 - 120));
       expect(tester.takeException(), isNull, reason: 'viewport $width dp');
     }
   });

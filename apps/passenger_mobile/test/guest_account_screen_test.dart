@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:passenger_mobile/features/account/guest_account_screen.dart';
@@ -21,12 +23,6 @@ void main() {
           },
         ),
       ),
-    );
-    await tester.pump();
-    // Cuộn hết danh sách: mục cuối nằm trên thanh tab nổi (giống người dùng thật).
-    await tester.drag(
-      find.byKey(const Key('guest-account-scroll')),
-      const Offset(0, -800),
     );
     await tester.pump();
     return (tabs: tabs, calls: calls);
@@ -59,25 +55,51 @@ void main() {
     );
   });
 
-  testWidgets('chữ lớn không tràn', (tester) async {
-    tester.view.physicalSize = const Size(360, 780);
-    tester.view.devicePixelRatio = 1;
-    addTearDown(tester.view.reset);
-    await tester.pumpWidget(
-      MediaQuery(
-        data: const MediaQueryData(
-          size: Size(360, 780),
-          textScaler: TextScaler.linear(1.6),
-        ),
-        child: MaterialApp(
-          home: GuestAccountScreen(
-            onLoginRequested: () {},
-            onTabSelected: (_) {},
+  testWidgets('máy thấp, chữ lớn: không cuộn, nội dung gọn trên thanh tab', (
+    tester,
+  ) async {
+    for (final size in const [Size(360, 640), Size(360, 780), Size(384, 823)]) {
+      tester.view.physicalSize = size;
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(
+        MediaQuery(
+          data: MediaQueryData(
+            size: size,
+            textScaler: const TextScaler.linear(1.6),
+          ),
+          child: MaterialApp(
+            home: GuestAccountScreen(
+              onLoginRequested: () {},
+              onTabSelected: (_) {},
+            ),
           ),
         ),
-      ),
-    );
-    await tester.pump();
-    expect(tester.takeException(), isNull);
+      );
+      await tester.pump();
+      final scroll = find.byKey(const Key('guest-account-scroll'));
+      await tester.drag(scroll, const Offset(0, -800));
+      await tester.pump();
+
+      expect(
+        tester
+            .state<ScrollableState>(
+              find
+                  .descendant(of: scroll, matching: find.byType(Scrollable))
+                  .first,
+            )
+            .position
+            .pixels,
+        0,
+        reason: '$size',
+      );
+      final hotline = tester.getRect(
+        find.byKey(const Key('guest-account-hotline')),
+      );
+      expect(hotline.bottom, lessThanOrEqualTo(size.height - 120));
+      // Thu nhỏ chữ nhưng thẻ vẫn phủ hết bề ngang.
+      expect(hotline.width, closeTo(math.min(376, size.width - 36), 1));
+      expect(tester.takeException(), isNull, reason: '$size');
+    }
   });
 }
