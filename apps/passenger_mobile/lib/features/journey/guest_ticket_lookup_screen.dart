@@ -56,25 +56,27 @@ class _GuestTicketLookupScreenState extends State<GuestTicketLookupScreen> {
         currentIndex: 3,
         onTap: widget.onTabSelected,
       ),
-      body: AnnotatedRegion<SystemUiOverlayStyle>(
-        value: SystemUiOverlayStyle.dark.copyWith(
-          statusBarColor: Colors.transparent,
-          systemNavigationBarColor: _pageBackground,
-        ),
-        child: JourneyFixedPage(
-          scrollKey: const Key('guest-ticket-lookup-scroll'),
-          header: _JourneyHeader(onLoginRequested: widget.onLoginRequested),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              _buildLookupCard(),
-              const SizedBox(height: 14),
-              _SupportCard(
-                onFaqRequested: widget.onFaqRequested ?? _showFaqPlaceholder,
-                onSupportRequested:
-                    widget.onSupportRequested ?? _showSupportPlaceholder,
-              ),
-            ],
+      body: TabEntrance(
+        child: AnnotatedRegion<SystemUiOverlayStyle>(
+          value: SystemUiOverlayStyle.dark.copyWith(
+            statusBarColor: Colors.transparent,
+            systemNavigationBarColor: _pageBackground,
+          ),
+          child: JourneyFixedPage(
+            scrollKey: const Key('guest-ticket-lookup-scroll'),
+            header: _JourneyHeader(onLoginRequested: widget.onLoginRequested),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _buildLookupCard(),
+                const SizedBox(height: 14),
+                _SupportCard(
+                  onFaqRequested: widget.onFaqRequested ?? _showFaqPlaceholder,
+                  onSupportRequested:
+                      widget.onSupportRequested ?? _showSupportPlaceholder,
+                ),
+              ],
+            ),
           ),
         ),
       ),

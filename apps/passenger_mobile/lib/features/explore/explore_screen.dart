@@ -267,53 +267,55 @@ class _ExploreScreenState extends State<ExploreScreen> {
           child: RouteDockTabBar(currentIndex: 0, onTap: widget.onTabSelected),
         ),
       ),
-      body: Stack(
-        children: [
-          const Positioned(
-            left: 0,
-            right: 0,
-            top: 0,
-            height: 275,
-            child: _ExploreBackdrop(),
-          ),
-          SafeArea(
-            bottom: false,
-            child: NotificationListener<UserScrollNotification>(
-              onNotification: _handleUserScroll,
-              child: CustomScrollView(
-                key: const Key('explore-content-scroll'),
-                keyboardDismissBehavior:
-                    ScrollViewKeyboardDismissBehavior.onDrag,
-                slivers: [
-                  SliverToBoxAdapter(
-                    child: FutureBuilder<ExploreFeed>(
-                      future: _remoteFeed,
-                      builder: (context, snapshot) {
-                        final remote = widget.loadFeed != null;
-                        final status = !remote
-                            ? _FeedStatus.ready
-                            : snapshot.hasError
-                            ? _FeedStatus.failed
-                            : snapshot.connectionState == ConnectionState.done
-                            ? _FeedStatus.ready
-                            : _FeedStatus.loading;
-                        return _ScaledExploreCanvas(
-                          feed: remote ? snapshot.data ?? _noArticles : _feed,
-                          status: status,
-                          onRetry: _retryFeed,
-                          category: _category,
-                          searchController: _searchController,
-                          onCategorySelected: _selectCategory,
-                          articleAction: _articleAction,
-                        );
-                      },
+      body: TabEntrance(
+        child: Stack(
+          children: [
+            const Positioned(
+              left: 0,
+              right: 0,
+              top: 0,
+              height: 275,
+              child: _ExploreBackdrop(),
+            ),
+            SafeArea(
+              bottom: false,
+              child: NotificationListener<UserScrollNotification>(
+                onNotification: _handleUserScroll,
+                child: CustomScrollView(
+                  key: const Key('explore-content-scroll'),
+                  keyboardDismissBehavior:
+                      ScrollViewKeyboardDismissBehavior.onDrag,
+                  slivers: [
+                    SliverToBoxAdapter(
+                      child: FutureBuilder<ExploreFeed>(
+                        future: _remoteFeed,
+                        builder: (context, snapshot) {
+                          final remote = widget.loadFeed != null;
+                          final status = !remote
+                              ? _FeedStatus.ready
+                              : snapshot.hasError
+                              ? _FeedStatus.failed
+                              : snapshot.connectionState == ConnectionState.done
+                              ? _FeedStatus.ready
+                              : _FeedStatus.loading;
+                          return _ScaledExploreCanvas(
+                            feed: remote ? snapshot.data ?? _noArticles : _feed,
+                            status: status,
+                            onRetry: _retryFeed,
+                            category: _category,
+                            searchController: _searchController,
+                            onCategorySelected: _selectCategory,
+                            articleAction: _articleAction,
+                          );
+                        },
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

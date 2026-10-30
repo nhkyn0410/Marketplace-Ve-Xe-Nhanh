@@ -32,9 +32,18 @@ class RouteDockTabBar extends StatelessWidget {
     '$_dockAssetRoot/account.svg',
   ];
 
+  /// Tab mà thanh dock vừa hiển thị. Mỗi tab dựng thanh dock riêng, nên nhờ giá trị này
+  /// bóng tròn trượt từ tab cũ sang tab mới thay vì nhảy thẳng.
+  static int? _lastIndex;
+
   @override
   Widget build(BuildContext context) {
     final bottomInset = MediaQuery.paddingOf(context).bottom;
+    final from = _lastIndex ?? currentIndex;
+    _lastIndex = currentIndex;
+    final duration = MediaQuery.disableAnimationsOf(context)
+        ? Duration.zero
+        : const Duration(milliseconds: 380);
     return LayoutBuilder(
       builder: (context, constraints) {
         final dockWidth = constraints.maxWidth.clamp(0.0, 390.0);
@@ -49,7 +58,19 @@ class RouteDockTabBar extends StatelessWidget {
                 height: 120,
                 child: SizedBox(
                   key: const Key('route-dock-tabbar'),
-                  child: _DockCanvas(currentIndex: currentIndex, onTap: onTap),
+                  child: TweenAnimationBuilder<double>(
+                    tween: Tween(
+                      begin: from.toDouble(),
+                      end: currentIndex.toDouble(),
+                    ),
+                    duration: duration,
+                    curve: Curves.easeOutCubic,
+                    builder: (context, position, _) => _DockCanvas(
+                      currentIndex: currentIndex,
+                      position: position,
+                      onTap: onTap,
+                    ),
+                  ),
                 ),
               ),
               if (bottomInset > 0)
@@ -69,9 +90,16 @@ class RouteDockTabBar extends StatelessWidget {
 }
 
 class _DockCanvas extends StatelessWidget {
-  const _DockCanvas({required this.currentIndex, required this.onTap});
+  const _DockCanvas({
+    required this.currentIndex,
+    required this.position,
+    required this.onTap,
+  });
 
   final int currentIndex;
+
+  /// Vị trí bóng tròn (chỉ số tab, có phần lẻ khi đang trượt).
+  final double position;
   final ValueChanged<int> onTap;
 
   @override
@@ -82,8 +110,12 @@ class _DockCanvas extends StatelessWidget {
         final tabsInset = width * 5 / 390;
         final tabsWidth = width - tabsInset * 2;
         final slot = tabsWidth / 5;
-        final bubbleSize = currentIndex == 2 ? 64.0 : 58.0;
-        final activeCenter = tabsInset + slot * (currentIndex + .5);
+        // Bóng ở Trang chủ to hơn (64 so với 58); đổi cỡ dần khi trượt qua.
+        final homeness = (1 - (position - 2).abs()).clamp(0.0, 1.0);
+        final bubbleSize = 58.0 + 6 * homeness;
+        final activeCenter = tabsInset + slot * (position + .5);
+        // Biểu tượng trong bóng hiện dần khi bóng tới tab mới.
+        final arrival = (1 - (position - currentIndex).abs()).clamp(0.0, 1.0);
 
         return Stack(
           clipBehavior: Clip.none,
@@ -167,7 +199,7 @@ class _DockCanvas extends StatelessWidget {
             ),
             Positioned(
               left: activeCenter - bubbleSize / 2,
-              top: currentIndex == 2 ? 7 : 10,
+              top: 10 - 3 * homeness,
               width: bubbleSize,
               height: bubbleSize,
               child: DecoratedBox(
@@ -184,16 +216,19 @@ class _DockCanvas extends StatelessWidget {
                     ),
                   ],
                 ),
-                child: Padding(
-                  padding: EdgeInsets.all((bubbleSize - 24) / 2),
-                  child: SvgPicture.asset(
-                    currentIndex == 2
-                        ? '$_dockAssetRoot/home_active.svg'
-                        : RouteDockTabBar.iconAssets[currentIndex],
-                    colorFilter: currentIndex == 2
-                        ? null
-                        : const ColorFilter.mode(_primary, BlendMode.srcIn),
-                    excludeFromSemantics: true,
+                child: Opacity(
+                  opacity: arrival,
+                  child: Padding(
+                    padding: EdgeInsets.all((bubbleSize - 24) / 2),
+                    child: SvgPicture.asset(
+                      currentIndex == 2
+                          ? '$_dockAssetRoot/home_active.svg'
+                          : RouteDockTabBar.iconAssets[currentIndex],
+                      colorFilter: currentIndex == 2
+                          ? null
+                          : const ColorFilter.mode(_primary, BlendMode.srcIn),
+                      excludeFromSemantics: true,
+                    ),
                   ),
                 ),
               ),
@@ -283,6 +318,50 @@ class _DockCanvas extends StatelessWidget {
           ],
         );
       },
+    );
+  }
+}
+
+/// Nội dung một tab hiện dần và trượt nhẹ lên khi mở tab; thanh dock nằm ngoài nên đứng yên.
+class TabEntrance extends StatefulWidget {
+  const TabEntrance({required this.child, super.key});
+
+  final Widget child;
+
+  @override
+  State<TabEntrance> createState() => _TabEntranceState();
+}
+
+class _TabEntranceState extends State<TabEntrance>
+    with SingleTickerProviderStateMixin {
+  late final _controller = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 320),
+  )..forward();
+  late final _curve = CurvedAnimation(
+    parent: _controller,
+    curve: Curves.easeOutCubic,
+  );
+  // Bắt đầu từ 0.3 chứ không từ 0: tránh khung đầu trống trơn trông như nháy màn.
+  late final _opacity = Tween<double>(begin: .3, end: 1).animate(_curve);
+  late final _offset = Tween<Offset>(
+    begin: const Offset(0, .02),
+    end: Offset.zero,
+  ).animate(_curve);
+
+  @override
+  void dispose() {
+    _curve.dispose();
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (MediaQuery.disableAnimationsOf(context)) return widget.child;
+    return FadeTransition(
+      opacity: _opacity,
+      child: SlideTransition(position: _offset, child: widget.child),
     );
   }
 }

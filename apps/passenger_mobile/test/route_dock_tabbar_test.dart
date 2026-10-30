@@ -32,7 +32,8 @@ Future<void> _pumpDock(
       ),
     ),
   );
-  await tester.pump();
+  // Bóng tròn trượt từ tab vẽ trước đó; chờ trượt xong.
+  await tester.pumpAndSettle();
 }
 
 void main() {
@@ -123,5 +124,71 @@ void main() {
       const Size.square(64),
     );
     expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('đổi tab: bóng tròn trượt từ tab cũ sang tab mới', (
+    tester,
+  ) async {
+    await _pumpDock(tester, width: 390, currentIndex: 0);
+    double bubbleCenter() =>
+        tester.getCenter(find.byKey(const Key('route-dock-active-bubble'))).dx;
+    final start = bubbleCenter();
+
+    await _pumpDock(tester, width: 390, currentIndex: 4);
+    final end = bubbleCenter();
+    expect(end, greaterThan(start + 250));
+
+    // Dựng thanh dock mới ở tab 1 (như khi mở tab khác): bóng bắt đầu từ tab 4.
+    await tester.pumpWidget(const SizedBox());
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          bottomNavigationBar: RouteDockTabBar(currentIndex: 1, onTap: (_) {}),
+        ),
+      ),
+    );
+    await tester.pump(const Duration(milliseconds: 60));
+    final midway = bubbleCenter();
+    expect(midway, lessThan(end));
+    expect(midway, greaterThan(start));
+    await tester.pumpAndSettle();
+    expect(bubbleCenter(), closeTo(start + (end - start) / 4, 1));
+  });
+
+  testWidgets('nội dung tab hiện dần khi mở, tắt hiệu ứng thì hiện ngay', (
+    tester,
+  ) async {
+    double opacity() => tester
+        .widget<FadeTransition>(
+          find.descendant(
+            of: find.byType(TabEntrance),
+            matching: find.byType(FadeTransition),
+          ),
+        )
+        .opacity
+        .value;
+
+    await tester.pumpWidget(
+      const MaterialApp(home: TabEntrance(child: Text('Nội dung'))),
+    );
+    expect(opacity(), closeTo(.3, .001));
+    await tester.pump(const Duration(milliseconds: 120));
+    expect(opacity(), inExclusiveRange(.3, 1));
+    await tester.pumpAndSettle();
+    expect(opacity(), 1);
+
+    await tester.pumpWidget(
+      const MediaQuery(
+        data: MediaQueryData(disableAnimations: true),
+        child: MaterialApp(home: TabEntrance(child: Text('Ngay'))),
+      ),
+    );
+    expect(
+      find.descendant(
+        of: find.byType(TabEntrance),
+        matching: find.byType(FadeTransition),
+      ),
+      findsNothing,
+    );
   });
 }

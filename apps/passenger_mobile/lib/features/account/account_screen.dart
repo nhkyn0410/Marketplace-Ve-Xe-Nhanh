@@ -103,37 +103,39 @@ class _AccountScreenState extends State<AccountScreen> {
           child: RouteDockTabBar(currentIndex: 4, onTap: widget.onTabSelected),
         ),
       ),
-      body: AnnotatedRegion<SystemUiOverlayStyle>(
-        value: SystemUiOverlayStyle.dark.copyWith(
-          statusBarColor: Colors.transparent,
-          systemNavigationBarColor: _pageBackground,
-        ),
-        child: NotificationListener<UserScrollNotification>(
-          onNotification: _handleUserScroll,
-          child: FutureBuilder<AccountOverview>(
-            future: _overview,
-            builder: (context, snapshot) {
-              if (snapshot.connectionState != ConnectionState.done) {
-                return const _AccountLoading();
-              }
-              if (snapshot.hasError || !snapshot.hasData) {
-                return _AccountError(onRetry: _reload);
-              }
-              return _AccountContent(
-                overview: snapshot.requireData,
-                loggingOut: _loggingOut,
-                logoutErrorMessage: widget.logoutErrorMessage,
-                onRefresh: _reload,
-                onLogout: _logout,
-                onEditProfile: widget.onEditProfile,
-                onSavedPassengers: widget.onSavedPassengers,
-                onVoucherWallet: widget.onVoucherWallet,
-                onPointHistory: widget.onPointHistory,
-                onMyReviews: widget.onMyReviews,
-                onNotificationSettings: widget.onNotificationSettings,
-                onLoginSessions: widget.onLoginSessions,
-              );
-            },
+      body: TabEntrance(
+        child: AnnotatedRegion<SystemUiOverlayStyle>(
+          value: SystemUiOverlayStyle.dark.copyWith(
+            statusBarColor: Colors.transparent,
+            systemNavigationBarColor: _pageBackground,
+          ),
+          child: NotificationListener<UserScrollNotification>(
+            onNotification: _handleUserScroll,
+            child: FutureBuilder<AccountOverview>(
+              future: _overview,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState != ConnectionState.done) {
+                  return const _AccountLoading();
+                }
+                if (snapshot.hasError || !snapshot.hasData) {
+                  return _AccountError(onRetry: _reload);
+                }
+                return _AccountContent(
+                  overview: snapshot.requireData,
+                  loggingOut: _loggingOut,
+                  logoutErrorMessage: widget.logoutErrorMessage,
+                  onRefresh: _reload,
+                  onLogout: _logout,
+                  onEditProfile: widget.onEditProfile,
+                  onSavedPassengers: widget.onSavedPassengers,
+                  onVoucherWallet: widget.onVoucherWallet,
+                  onPointHistory: widget.onPointHistory,
+                  onMyReviews: widget.onMyReviews,
+                  onNotificationSettings: widget.onNotificationSettings,
+                  onLoginSessions: widget.onLoginSessions,
+                );
+              },
+            ),
           ),
         ),
       ),

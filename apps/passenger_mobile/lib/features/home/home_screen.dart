@@ -119,71 +119,73 @@ class _HomeScreenState extends State<HomeScreen>
         ),
       ),
       // Hero tự chừa thanh trạng thái để ảnh nền tràn lên sau nó.
-      body: SafeArea(
-        top: false,
-        bottom: false,
-        child: NotificationListener<UserScrollNotification>(
-          onNotification: _handleUserScroll,
-          child: CustomScrollView(
-            key: const Key('home-content-scroll'),
-            controller: _scrollController,
-            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-            slivers: [
-              SliverToBoxAdapter(
-                child: _HomeTopArea(
-                  isLoggedIn: widget.isLoggedIn,
-                  userName: widget.userName,
-                  mode: searchMode,
-                  fromLabel: searchFrom?.name,
-                  toLabel: searchTo?.name,
-                  operatorLabel: searchOperator?.name,
-                  routeLabel: searchOperatorRoute?.label,
-                  date: searchDate,
-                  passengers: searchPassengers,
-                  onModeChanged: (mode) => setState(() => searchMode = mode),
-                  onPickFrom: () => pickSearchLocation(isOrigin: true),
-                  onPickTo: () => pickSearchLocation(isOrigin: false),
-                  onSwap: swapSearchLocations,
-                  onPickDate: _pickDate,
-                  onPickPassengers: pickSearchPassengers,
-                  onSearch: _search,
-                  onOperatorTap: pickSearchOperator,
-                  onRouteTap: pickSearchOperatorRoute,
+      body: TabEntrance(
+        child: SafeArea(
+          top: false,
+          bottom: false,
+          child: NotificationListener<UserScrollNotification>(
+            onNotification: _handleUserScroll,
+            child: CustomScrollView(
+              key: const Key('home-content-scroll'),
+              controller: _scrollController,
+              keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+              slivers: [
+                SliverToBoxAdapter(
+                  child: _HomeTopArea(
+                    isLoggedIn: widget.isLoggedIn,
+                    userName: widget.userName,
+                    mode: searchMode,
+                    fromLabel: searchFrom?.name,
+                    toLabel: searchTo?.name,
+                    operatorLabel: searchOperator?.name,
+                    routeLabel: searchOperatorRoute?.label,
+                    date: searchDate,
+                    passengers: searchPassengers,
+                    onModeChanged: (mode) => setState(() => searchMode = mode),
+                    onPickFrom: () => pickSearchLocation(isOrigin: true),
+                    onPickTo: () => pickSearchLocation(isOrigin: false),
+                    onSwap: swapSearchLocations,
+                    onPickDate: _pickDate,
+                    onPickPassengers: pickSearchPassengers,
+                    onSearch: _search,
+                    onOperatorTap: pickSearchOperator,
+                    onRouteTap: pickSearchOperatorRoute,
+                  ),
                 ),
-              ),
-              SliverPadding(
-                padding: const EdgeInsets.symmetric(horizontal: 9),
-                sliver: SliverList.list(
-                  children: [
-                    if (!widget.isLoggedIn) ...[
-                      _GuestInvitation(onLogin: widget.onLoginRequested),
+                SliverPadding(
+                  padding: const EdgeInsets.symmetric(horizontal: 9),
+                  sliver: SliverList.list(
+                    children: [
+                      if (!widget.isLoggedIn) ...[
+                        _GuestInvitation(onLogin: widget.onLoginRequested),
+                        const SizedBox(height: 12),
+                      ],
+                      const _VoucherSection(),
                       const SizedBox(height: 12),
+                      _PopularRoutesSection(
+                        routes: _popularRoutesFuture,
+                        onSelected: _selectPopularRoute,
+                      ),
+                      const SizedBox(height: 12),
+                      const _OperatorsSection(),
+                      const SizedBox(height: 12),
+                      _ArticlesSection(
+                        onSeeAll: widget.onTabSelected == null
+                            ? null
+                            : () => widget.onTabSelected!(0),
+                      ),
+                      const SizedBox(height: 14),
+                      _SupportSection(
+                        onHelpCenter: _openHelpCenter,
+                        onCallHotline: _callHotline,
+                        onFeedback: _requestFeedback,
+                      ),
+                      const SizedBox(height: 150),
                     ],
-                    const _VoucherSection(),
-                    const SizedBox(height: 12),
-                    _PopularRoutesSection(
-                      routes: _popularRoutesFuture,
-                      onSelected: _selectPopularRoute,
-                    ),
-                    const SizedBox(height: 12),
-                    const _OperatorsSection(),
-                    const SizedBox(height: 12),
-                    _ArticlesSection(
-                      onSeeAll: widget.onTabSelected == null
-                          ? null
-                          : () => widget.onTabSelected!(0),
-                    ),
-                    const SizedBox(height: 14),
-                    _SupportSection(
-                      onHelpCenter: _openHelpCenter,
-                      onCallHotline: _callHotline,
-                      onFeedback: _requestFeedback,
-                    ),
-                    const SizedBox(height: 150),
-                  ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
