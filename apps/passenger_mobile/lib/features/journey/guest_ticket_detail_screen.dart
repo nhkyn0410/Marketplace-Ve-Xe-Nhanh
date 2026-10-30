@@ -5,32 +5,58 @@ import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:passenger_mobile/features/home/route_dock_tabbar.dart';
 import 'package:passenger_mobile/features/journey/guest_journey_shared.dart';
+import 'package:passenger_mobile/features/journey/journey_api.dart';
+import 'package:passenger_mobile/features/journey/journey_models.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 
-class _PassengerTicket {
-  const _PassengerTicket(this.name, this.seat);
+/// Báo giá hủy các vé đã chọn.
+typedef JourneyCancellationQuoter = Future<JourneyCancellationQuote> Function(
+  List<String> ticketIds,
+);
 
-  final String name;
-  final String seat;
+/// Hủy vé rồi trả kết quả hoàn tiền + đơn đã cập nhật.
+typedef JourneyTicketCanceller =
+    Future<(JourneyCancellation, JourneyBooking)> Function(
+      List<String> ticketIds,
+      int expectedRefund,
+      String? reason,
+    );
+
+/// Đơn + vé đang xem — dùng chung cho các thẻ và sheet.
+class _TicketView {
+  const _TicketView(this.booking, this.ticket);
+
+  final JourneyBooking booking;
+  final JourneyTicket ticket;
+
+  /// "TP. Hồ Chí Minh" / "Đà Lạt" từ tên tuyến; tên không tách được thì dùng điểm đón / trả.
+  (String, String) get places {
+    final parts = booking.routeName.split(RegExp(r'\s*(?:→|->|–|—| - )\s*'));
+    if (parts.length >= 2) return (parts.first, parts.last);
+    return (booking.pickup.name, booking.dropoff.name);
+  }
 }
 
-const _passengers = [
-  _PassengerTicket('Nguyễn Văn Minh', 'A3'),
-  _PassengerTicket('Trần Thị Mai', 'A02'),
-  _PassengerTicket('Nguyễn Văn Khách', 'A03'),
-  _PassengerTicket('Lê Minh Anh', 'A04'),
-  _PassengerTicket('Phạm Quốc Bảo', 'A05'),
-  _PassengerTicket('Võ Thanh Hà', 'A06'),
-];
-
+/// Chi tiết một đơn ở tab Hành trình (khách vãng lai đã xác minh hoặc hành khách đăng nhập).
 class GuestTicketDetailScreen extends StatefulWidget {
   const GuestTicketDetailScreen({
+    required this.booking,
     required this.onBack,
     required this.onTabSelected,
+    required this.quoteCancellation,
+    required this.cancelTickets,
+    this.onSupportRequested,
     super.key,
   });
 
+  final JourneyBooking booking;
   final VoidCallback onBack;
   final ValueChanged<int> onTabSelected;
+  final JourneyCancellationQuoter quoteCancellation;
+  final JourneyTicketCanceller cancelTickets;
+
+  /// Gọi tổng đài hỗ trợ.
+  final VoidCallback? onSupportRequested;
 
   @override
   State<GuestTicketDetailScreen> createState() =>
@@ -38,17 +64,30 @@ class GuestTicketDetailScreen extends StatefulWidget {
 }
 
 class _GuestTicketDetailScreenState extends State<GuestTicketDetailScreen> {
+  late JourneyBooking _booking = widget.booking;
   int _selectedPassenger = 0;
-  bool _cancelled = false;
+  bool _busy = false;
 
-  _PassengerTicket get _passenger => _passengers[_selectedPassenger];
+  List<JourneyTicket> get _tickets => _booking.tickets;
+
+  _TicketView? get _view => _tickets.isEmpty
+      ? null
+      : _TicketView(_booking, _tickets[_selectedPassenger]);
+
+  bool get _cancelled => _view?.ticket.isCancelled ?? false;
 
   void _movePassenger(int delta) {
+    if (_tickets.isEmpty) return;
     setState(() {
       _selectedPassenger =
-          (_selectedPassenger + delta + _passengers.length) %
-          _passengers.length;
+          (_selectedPassenger + delta + _tickets.length) % _tickets.length;
     });
+  }
+
+  void _showMessage(String message) {
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(content: Text(message)));
   }
 
   Future<void> _openPassengerPicker() async {
@@ -58,8 +97,10 @@ class _GuestTicketDetailScreenState extends State<GuestTicketDetailScreen> {
       useSafeArea: true,
       backgroundColor: Colors.transparent,
       barrierColor: const Color(0x9908172B),
-      builder: (context) =>
-          _PassengerPickerSheet(selectedIndex: _selectedPassenger),
+      builder: (context) => _PassengerPickerSheet(
+        tickets: _tickets,
+        selectedIndex: _selectedPassenger,
+      ),
     );
     if (selected != null && mounted) {
       setState(() => _selectedPassenger = selected);
@@ -67,31 +108,78 @@ class _GuestTicketDetailScreenState extends State<GuestTicketDetailScreen> {
   }
 
   Future<void> _startCancellation() async {
-    final continueCancellation = await showModalBottomSheet<bool>(
+    final view = _view;
+    if (view == null || _busy) return;
+    final ticketIds = [view.ticket.ticketId];
+    setState(() => _busy = true);
+    final JourneyCancellationQuote quote;
+    try {
+      quote = await widget.quoteCancellation(ticketIds);
+    } catch (error) {
+      if (!mounted) return;
+      setState(() => _busy = false);
+      _showMessage(describeJourneyFailure(error));
+      return;
+    }
+    if (!mounted) return;
+    setState(() => _busy = false);
+    final blocked = quote.blockedReason;
+    if (blocked != null) {
+      _showMessage(blocked);
+      return;
+    }
+
+    // `null` = giữ vé; chuỗi rỗng = không nêu lý do.
+    final reason = await showModalBottomSheet<String>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       barrierColor: const Color(0xA608172B),
-      builder: (context) => const _CancelTicketSheet(),
+      builder: (context) => _CancelTicketSheet(view: view, quote: quote),
     );
-    if (continueCancellation != true || !mounted) return;
+    if (reason == null || !mounted) return;
 
     final confirmed = await showModalBottomSheet<bool>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       barrierColor: const Color(0xA608172B),
-      builder: (context) => const _ConfirmCancellationSheet(),
+      builder: (context) => _ConfirmCancellationSheet(view: view, quote: quote),
     );
     if (confirmed != true || !mounted) return;
 
-    setState(() => _cancelled = true);
+    setState(() => _busy = true);
+    final JourneyCancellation result;
+    try {
+      final (cancellation, updated) = await widget.cancelTickets(
+        ticketIds,
+        quote.refundAmount,
+        reason.isEmpty ? null : reason,
+      );
+      result = cancellation;
+      if (!mounted) return;
+      setState(() {
+        _booking = updated;
+        _busy = false;
+        _selectedPassenger = _selectedPassenger.clamp(
+          0,
+          updated.tickets.isEmpty ? 0 : updated.tickets.length - 1,
+        );
+      });
+    } catch (error) {
+      if (!mounted) return;
+      setState(() => _busy = false);
+      _showMessage(describeJourneyFailure(error));
+      return;
+    }
+    if (!mounted) return;
     await showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       barrierColor: const Color(0xA608172B),
-      builder: (context) => const _CancellationSuccessSheet(),
+      builder: (context) =>
+          _CancellationSuccessSheet(view: view, result: result),
     );
   }
 
@@ -111,9 +199,9 @@ class _GuestTicketDetailScreenState extends State<GuestTicketDetailScreen> {
           slivers: [
             SliverToBoxAdapter(
               child: JourneyDetailHeader(
-                subtitle: _cancelled
-                    ? 'Đơn VXN-8F3K2Q · 2 vé'
-                    : 'Đơn VXN-8F3K2Q',
+                subtitle: _tickets.isEmpty
+                    ? 'Đơn ${_booking.bookingCode}'
+                    : 'Đơn ${_booking.bookingCode} · ${_tickets.length} vé',
                 onBack: widget.onBack,
                 showLogo: _cancelled,
               ),
@@ -126,32 +214,46 @@ class _GuestTicketDetailScreenState extends State<GuestTicketDetailScreen> {
                     constraints: const BoxConstraints(maxWidth: 378),
                     child: Column(
                       children: [
-                        _PassengerNavigator(
-                          passenger: _passenger,
-                          selectedIndex: _selectedPassenger,
-                          onPrevious: () => _movePassenger(-1),
-                          onNext: () => _movePassenger(1),
-                          onShowAll: _openPassengerPicker,
-                        ),
+                        if (_view case final view?) ...[
+                          _PassengerNavigator(
+                            ticket: view.ticket,
+                            selectedIndex: _selectedPassenger,
+                            total: _tickets.length,
+                            onPrevious: () => _movePassenger(-1),
+                            onNext: () => _movePassenger(1),
+                            onShowAll: _openPassengerPicker,
+                          ),
+                          const SizedBox(height: 9),
+                          _BoardingPass(view: view),
+                          if (_cancelled) ...[
+                            const SizedBox(height: 7),
+                            const _CancelledQrNotice(),
+                          ],
+                        ] else
+                          JourneySurface(
+                            key: const Key('journey-detail-no-tickets'),
+                            padding: const EdgeInsets.all(14),
+                            child: Text(
+                              _booking.status == 'PENDING_PAYMENT'
+                                  ? 'Đơn đang chờ thanh toán. Vé điện tử sẽ có sau khi thanh toán thành công.'
+                                  : 'Đơn chưa có vé điện tử (${journeyBookingStatusLabel(_booking.status)}).',
+                              style: const TextStyle(
+                                color: journeyBody,
+                                fontSize: 12.5,
+                                height: 1.5,
+                              ),
+                            ),
+                          ),
                         const SizedBox(height: 9),
-                        _BoardingPass(
-                          passenger: _passenger,
-                          cancelled: _cancelled,
-                        ),
-                        if (_cancelled) ...[
-                          const SizedBox(height: 7),
-                          const _CancelledQrNotice(),
-                        ],
+                        _JourneyInformationCard(booking: _booking),
                         const SizedBox(height: 9),
-                        const _JourneyInformationCard(),
+                        _booking.refunds.isNotEmpty || _cancelled
+                            ? _RefundPaymentCard(booking: _booking)
+                            : _PaymentCard(booking: _booking),
                         const SizedBox(height: 9),
-                        _cancelled
-                            ? const _RefundPaymentCard()
-                            : const _PaymentCard(),
+                        _CancellationPolicyCard(booking: _booking),
                         const SizedBox(height: 9),
-                        const _CancellationPolicyCard(),
-                        const SizedBox(height: 9),
-                        if (_cancelled)
+                        if (_cancelled || !_booking.hasActiveTickets)
                           Row(
                             children: [
                               Expanded(
@@ -165,7 +267,7 @@ class _GuestTicketDetailScreenState extends State<GuestTicketDetailScreen> {
                                 child: _DetailFilledAction(
                                   label: 'Liên hệ hỗ trợ',
                                   color: journeyButton,
-                                  onPressed: () => _showSupport(context),
+                                  onPressed: _showSupport,
                                 ),
                               ),
                             ],
@@ -183,9 +285,9 @@ class _GuestTicketDetailScreenState extends State<GuestTicketDetailScreen> {
                               Expanded(
                                 child: _DetailFilledAction(
                                   key: const Key('guest-ticket-cancel-button'),
-                                  label: 'Hủy vé',
+                                  label: _busy ? 'Đang xử lý...' : 'Hủy vé',
                                   color: const Color(0xFFF04438),
-                                  onPressed: _startCancellation,
+                                  onPressed: _busy ? null : _startCancellation,
                                 ),
                               ),
                             ],
@@ -193,7 +295,7 @@ class _GuestTicketDetailScreenState extends State<GuestTicketDetailScreen> {
                         const SizedBox(height: 12),
                         InkWell(
                           borderRadius: BorderRadius.circular(9),
-                          onTap: () => _showSupport(context),
+                          onTap: _showSupport,
                           child: Container(
                             width: double.infinity,
                             height: 36,
@@ -228,12 +330,13 @@ class _GuestTicketDetailScreenState extends State<GuestTicketDetailScreen> {
     );
   }
 
-  void _showSupport(BuildContext context) {
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        const SnackBar(content: Text('Đã mở yêu cầu hỗ trợ mô phỏng.')),
-      );
+  void _showSupport() {
+    final support = widget.onSupportRequested;
+    if (support != null) {
+      support();
+      return;
+    }
+    _showMessage('Gọi tổng đài 1900 636 707 để được hỗ trợ về chuyến đi.');
   }
 }
 
@@ -279,7 +382,7 @@ class _DetailFilledAction extends StatelessWidget {
 
   final String label;
   final Color color;
-  final VoidCallback onPressed;
+  final VoidCallback? onPressed;
 
   @override
   Widget build(BuildContext context) {
@@ -309,15 +412,17 @@ class _DetailFilledAction extends StatelessWidget {
 
 class _PassengerNavigator extends StatelessWidget {
   const _PassengerNavigator({
-    required this.passenger,
+    required this.ticket,
     required this.selectedIndex,
+    required this.total,
     required this.onPrevious,
     required this.onNext,
     required this.onShowAll,
   });
 
-  final _PassengerTicket passenger;
+  final JourneyTicket ticket;
   final int selectedIndex;
+  final int total;
   final VoidCallback onPrevious;
   final VoidCallback onNext;
   final VoidCallback onShowAll;
@@ -364,7 +469,7 @@ class _PassengerNavigator extends StatelessWidget {
                     right: 76,
                     top: 5,
                     child: Text(
-                      'Vé ${selectedIndex + 1}/6',
+                      'Vé ${selectedIndex + 1}/$total',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
@@ -379,7 +484,7 @@ class _PassengerNavigator extends StatelessWidget {
                     right: 76,
                     top: 19,
                     child: Text(
-                      'Chỗ ${passenger.seat}',
+                      'Chỗ ${ticket.seatCode}',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
@@ -395,7 +500,7 @@ class _PassengerNavigator extends StatelessWidget {
                     right: 60,
                     top: 37,
                     child: Text(
-                      passenger.name,
+                      ticket.passengerName,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
@@ -445,11 +550,11 @@ class _PassengerNavigator extends StatelessWidget {
               child: InkWell(
                 borderRadius: BorderRadius.circular(7),
                 onTap: onShowAll,
-                child: const Center(
+                child: Center(
                   child: Text(
-                    'Tất cả vé (6) ›',
+                    'Tất cả vé ($total) ›',
                     maxLines: 1,
-                    style: TextStyle(
+                    style: const TextStyle(
                       color: journeyPrimary,
                       fontSize: 11,
                       height: 15 / 11,
@@ -502,16 +607,24 @@ class _SmallIconButton extends StatelessWidget {
 }
 
 class _BoardingPass extends StatelessWidget {
-  const _BoardingPass({required this.passenger, required this.cancelled});
+  const _BoardingPass({required this.view});
 
-  final _PassengerTicket passenger;
-  final bool cancelled;
+  final _TicketView view;
 
   @override
   Widget build(BuildContext context) {
-    final displayPassenger = passenger.name == 'Nguyễn Văn Minh'
-        ? 'Nguyễn Văn Khách'
-        : passenger.name;
+    final ticket = view.ticket;
+    final booking = view.booking;
+    final cancelled = ticket.isCancelled;
+    final (origin, destination) = view.places;
+    final companion = ticket.companionName;
+    final displayPassenger = companion == null
+        ? ticket.passengerName
+        : '${ticket.passengerName} + $companion';
+    final days = _dayOffset(
+      booking.pickup.plannedAt,
+      booking.dropoff.plannedAt,
+    );
     return _ScaledDesignBox(
       height: 186,
       child: ClipRRect(
@@ -580,14 +693,15 @@ class _BoardingPass extends StatelessWidget {
                   ),
                 ),
               ),
-              const Positioned(
+              Positioned(
                 left: 46.3,
                 top: 23.3,
                 width: 195,
                 child: Text(
-                  'Vé chuyến - Phương Nam Travel',
+                  'Vé chuyến - ${booking.operatorName}',
                   maxLines: 1,
-                  style: TextStyle(
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
                     color: journeyBody,
                     fontSize: 9,
                     height: 13 / 9,
@@ -608,7 +722,7 @@ class _BoardingPass extends StatelessWidget {
                   ),
                   alignment: Alignment.center,
                   child: Text(
-                    cancelled ? 'Đã hủy' : 'Hợp lệ',
+                    _ticketStatusLabel(ticket.status),
                     maxLines: 1,
                     style: const TextStyle(
                       color: Colors.white,
@@ -619,14 +733,15 @@ class _BoardingPass extends StatelessWidget {
                   ),
                 ),
               ),
-              const Positioned(
+              Positioned(
                 left: 13.3,
                 top: 47.3,
                 width: 146,
                 child: Text(
-                  'TP. Hồ Chí Minh',
+                  origin,
                   maxLines: 1,
-                  style: TextStyle(
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
                     color: journeyInk,
                     fontSize: 16,
                     height: 22 / 16,
@@ -646,14 +761,15 @@ class _BoardingPass extends StatelessWidget {
                   ),
                 ),
               ),
-              const Positioned(
+              Positioned(
                 left: 170.3,
                 top: 47.3,
-                width: 88,
+                width: 98,
                 child: Text(
-                  'Đà Lạt',
+                  destination,
                   maxLines: 1,
-                  style: TextStyle(
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
                     color: journeyInk,
                     fontSize: 16,
                     height: 22 / 16,
@@ -661,14 +777,14 @@ class _BoardingPass extends StatelessWidget {
                   ),
                 ),
               ),
-              const Positioned(
+              Positioned(
                 left: 13.3,
                 top: 70.3,
                 width: 245,
                 child: Text(
-                  'Thứ Sáu · 16/10/2026',
+                  journeyLongDate(booking.pickup.plannedAt),
                   maxLines: 1,
-                  style: TextStyle(
+                  style: const TextStyle(
                     color: journeyInk,
                     fontSize: 11,
                     height: 15 / 11,
@@ -676,13 +792,13 @@ class _BoardingPass extends StatelessWidget {
                   ),
                 ),
               ),
-              const Positioned(
+              Positioned(
                 left: 13.3,
                 top: 91.3,
                 child: _BoardingStation(
                   width: 113,
-                  time: '22:30',
-                  station: 'Bến xe Miền Đông mới',
+                  time: journeyTime(booking.pickup.plannedAt),
+                  station: booking.pickup.name,
                 ),
               ),
               Positioned(
@@ -697,14 +813,14 @@ class _BoardingPass extends StatelessWidget {
                   ),
                 ),
               ),
-              const Positioned(
+              Positioned(
                 left: 156.3,
                 top: 91.3,
                 child: _BoardingStation(
                   width: 109,
-                  time: '05:30',
-                  note: '+1 ngày',
-                  station: 'Bến xe liên tỉnh Đà Lạt',
+                  time: journeyTime(booking.dropoff.plannedAt),
+                  note: days > 0 ? '+$days ngày' : null,
+                  station: booking.dropoff.name,
                 ),
               ),
               const Positioned(
@@ -754,7 +870,7 @@ class _BoardingPass extends StatelessWidget {
                 top: 159.3,
                 width: 29,
                 child: Text(
-                  passenger.seat,
+                  ticket.seatCode,
                   maxLines: 1,
                   style: const TextStyle(
                     color: journeyInk,
@@ -777,14 +893,14 @@ class _BoardingPass extends StatelessWidget {
                   ),
                 ),
               ),
-              const Positioned(
+              Positioned(
                 left: 161.3,
                 top: 159.3,
                 width: 107,
                 child: Text(
-                  'Giường đơn - Tầng dưới',
+                  journeySeatTypeLabel(ticket.seatType),
                   maxLines: 1,
-                  style: TextStyle(
+                  style: const TextStyle(
                     color: journeyInk,
                     fontSize: 9,
                     height: 13 / 9,
@@ -825,8 +941,12 @@ class _BoardingPass extends StatelessWidget {
                     children: [
                       Opacity(
                         opacity: cancelled ? .34 : 1,
-                        child: SvgPicture.asset(
-                          '$journeyAssetRoot/ticket_qr.svg',
+                        child: QrImageView(
+                          key: const Key('journey-ticket-qr'),
+                          data: ticket.qrToken,
+                          size: 84,
+                          padding: EdgeInsets.zero,
+                          semanticsLabel: 'Mã QR vé ${ticket.ticketCode}',
                         ),
                       ),
                       if (cancelled)
@@ -850,8 +970,9 @@ class _BoardingPass extends StatelessWidget {
                 top: 119.3,
                 width: 98,
                 child: Text(
-                  'VXN-8F3K2Q-0${_passengers.indexOf(passenger) + 1}',
+                  ticket.ticketCode,
                   maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   textAlign: TextAlign.center,
                   style: const TextStyle(
                     color: journeyInk,
@@ -1011,8 +1132,31 @@ class _CancelledQrNotice extends StatelessWidget {
   }
 }
 
+/// Số ngày lịch giữa giờ đón và giờ trả (giờ máy).
+int _dayOffset(DateTime from, DateTime to) {
+  final a = from.toLocal();
+  final b = to.toLocal();
+  return DateTime(
+    b.year,
+    b.month,
+    b.day,
+  ).difference(DateTime(a.year, a.month, a.day)).inDays;
+}
+
+/// Nhãn trạng thái vé trên thẻ lên xe.
+String _ticketStatusLabel(String status) => switch (status) {
+  'VALID' => 'Hợp lệ',
+  'CHECKED_IN' => 'Đã lên xe',
+  'USED' => 'Đã đi',
+  'NO_SHOW' => 'Vắng mặt',
+  'CANCELLED' || 'REFUNDED' => 'Đã hủy',
+  _ => status,
+};
+
 class _JourneyInformationCard extends StatelessWidget {
-  const _JourneyInformationCard();
+  const _JourneyInformationCard({required this.booking});
+
+  final JourneyBooking booking;
 
   @override
   Widget build(BuildContext context) {
@@ -1050,22 +1194,30 @@ class _JourneyInformationCard extends StatelessWidget {
                 ),
               ),
             ),
-            const Positioned(
+            Positioned(
               left: 7,
               top: 31,
               child: _JourneyStopPanel(
-                title: 'ĐIỂM ĐÓN · 22:30',
-                station: 'Bến xe Miền Đông mới',
-                address: '501 Hoàng Hữu Nam, TP. Thủ Đức,\nTP. Hồ Chí Minh',
+                title: 'ĐIỂM ĐÓN · ${journeyTime(booking.pickup.plannedAt)}',
+                station: booking.pickup.name,
+                address: booking.pickup.address,
               ),
             ),
-            const Positioned(
+            Positioned(
               left: 204,
               top: 31,
               child: _JourneyStopPanel(
-                title: 'ĐIỂM TRẢ · 05:30 (+1 NGÀY)',
-                station: 'Bến xe liên tỉnh Đà Lạt',
-                address: '1 Tô Hiến Thành, Phường 3,\nĐà Lạt',
+                title: [
+                  'ĐIỂM TRẢ · ${journeyTime(booking.dropoff.plannedAt)}',
+                  if (_dayOffset(
+                        booking.pickup.plannedAt,
+                        booking.dropoff.plannedAt,
+                      )
+                      case final days when days > 0)
+                    '(+$days NGÀY)',
+                ].join(' '),
+                station: booking.dropoff.name,
+                address: booking.dropoff.address,
               ),
             ),
             Positioned(
@@ -1161,7 +1313,9 @@ class _JourneyStopPanel extends StatelessWidget {
 }
 
 class _PaymentCard extends StatelessWidget {
-  const _PaymentCard();
+  const _PaymentCard({required this.booking});
+
+  final JourneyBooking booking;
 
   @override
   Widget build(BuildContext context) {
@@ -1199,25 +1353,32 @@ class _PaymentCard extends StatelessWidget {
                 ),
               ),
             ),
-            const _PaymentLine(
+            _PaymentLine(
               top: 31,
-              label: 'Giá vé (2 chỗ)',
-              value: '560.000đ',
+              label:
+                  'Giá vé (${booking.tickets.isEmpty ? '' : '${booking.tickets.length} '}chỗ)',
+              value: journeyVnd(booking.subtotal),
             ),
-            const _PaymentLine(top: 47, label: 'Phí dịch vụ', value: '0đ'),
-            const _PaymentLine(
+            _PaymentLine(
+              top: 47,
+              label: 'Phí dịch vụ',
+              value: journeyVnd(booking.serviceFee),
+            ),
+            _PaymentLine(
               top: 63,
-              label: 'Voucher đổi điểm',
-              value: '-100.000đ',
-              valueColor: Color(0xFF009F4C),
+              label: 'Giảm giá',
+              value: journeyVnd(-booking.discount),
+              valueColor: const Color(0xFF009F4C),
             ),
-            const Positioned(
+            Positioned(
               left: 13,
               top: 86,
               width: 114,
               child: Text(
-                'Đã thanh toán',
-                style: TextStyle(
+                booking.paymentStatus == 'SUCCESS'
+                    ? 'Đã thanh toán'
+                    : 'Cần thanh toán',
+                style: const TextStyle(
                   color: journeyInk,
                   fontSize: 10,
                   height: 14 / 10,
@@ -1225,14 +1386,14 @@ class _PaymentCard extends StatelessWidget {
                 ),
               ),
             ),
-            const Positioned(
+            Positioned(
               left: 90,
               top: 83,
               width: 100,
               child: Text(
-                '460.000đ',
+                journeyVnd(booking.total),
                 textAlign: TextAlign.right,
-                style: TextStyle(
+                style: const TextStyle(
                   color: journeyPrimary,
                   fontSize: 14,
                   height: 20 / 14,
@@ -1240,10 +1401,10 @@ class _PaymentCard extends StatelessWidget {
                 ),
               ),
             ),
-            const Positioned(
+            Positioned(
               left: 207,
               top: 26,
-              child: _PaymentMetadataPanel(),
+              child: _PaymentMetadataPanel(booking: booking),
             ),
           ],
         ),
@@ -1302,10 +1463,13 @@ class _PaymentLine extends StatelessWidget {
 }
 
 class _PaymentMetadataPanel extends StatelessWidget {
-  const _PaymentMetadataPanel();
+  const _PaymentMetadataPanel({required this.booking});
+
+  final JourneyBooking booking;
 
   @override
   Widget build(BuildContext context) {
+    final paid = booking.paymentStatus == 'SUCCESS';
     return Container(
       width: 161,
       height: 75,
@@ -1313,15 +1477,25 @@ class _PaymentMetadataPanel extends StatelessWidget {
         color: const Color(0xFFF5F7FE),
         borderRadius: BorderRadius.circular(7),
       ),
-      child: const Stack(
+      child: Stack(
         children: [
-          _MetadataLine(top: 8, label: 'Phương thức', value: 'VNPay'),
-          _MetadataLine(top: 29, label: 'Mã giao dịch', value: 'VNP14982231'),
+          _MetadataLine(
+            top: 8,
+            label: 'Phương thức',
+            value: journeyProviderLabel(booking.paymentProvider),
+          ),
+          _MetadataLine(
+            top: 29,
+            label: 'Mã giao dịch',
+            value: booking.paymentCode ?? '—',
+          ),
           _MetadataLine(
             top: 50,
             label: 'Trạng thái',
-            value: 'Thành công',
-            valueColor: Color(0xFF009B61),
+            value: paid ? 'Thành công' : 'Chưa thanh toán',
+            valueColor: paid
+                ? const Color(0xFF009B61)
+                : const Color(0xFFF79009),
           ),
         ],
       ),
@@ -1376,39 +1550,51 @@ class _MetadataLine extends StatelessWidget {
 }
 
 class _RefundPaymentCard extends StatelessWidget {
-  const _RefundPaymentCard();
+  const _RefundPaymentCard({required this.booking});
+
+  final JourneyBooking booking;
 
   @override
   Widget build(BuildContext context) {
-    return const _DetailCard(
+    final refunded = booking.refunds.fold<int>(
+      0,
+      (sum, refund) => sum + refund.amount,
+    );
+    final last = booking.refunds.lastOrNull;
+    return _DetailCard(
       icon: 'wallet.svg',
       title: 'Thanh toán / hoàn tiền',
       child: Column(
         children: [
-          _ValueRow(label: 'Giá vé đã thanh toán', value: '230.000đ'),
-          _ValueRow(
-            label: 'Phí hủy vé',
-            value: '-23.000đ',
-            valueColor: Color(0xFFD92D20),
-          ),
-          Padding(
+          _ValueRow(label: 'Đã thanh toán', value: journeyVnd(booking.total)),
+          const Padding(
             padding: EdgeInsets.symmetric(vertical: 5),
             child: Divider(height: 1, color: Color(0xFFE8EEF4)),
           ),
           _ValueRow(
-            label: 'Hoàn dự kiến',
-            value: '207.000đ',
+            label: 'Tiền hoàn',
+            value: journeyVnd(refunded),
             emphasized: true,
-            valueColor: Color(0xFF067647),
+            valueColor: const Color(0xFF067647),
           ),
-          SizedBox(height: 4),
-          _ValueRow(label: 'Phương thức hoàn', value: 'VNPay'),
-          _ValueRow(label: 'Mã giao dịch', value: 'VNP14982231'),
+          const SizedBox(height: 4),
           _ValueRow(
-            label: 'Trạng thái',
-            value: 'Đang xử lý',
-            valueColor: Color(0xFFF79009),
+            label: 'Phương thức hoàn',
+            value: journeyProviderLabel(booking.paymentProvider),
           ),
+          if (last != null) ...[
+            _ValueRow(label: 'Mã hoàn tiền', value: last.refundCode),
+            _ValueRow(
+              label: 'Trạng thái',
+              value: journeyRefundStatusLabel(last.status),
+              valueColor: const Color(0xFFF79009),
+            ),
+          ] else
+            const _ValueRow(
+              label: 'Trạng thái',
+              value: 'Không hoàn (đã qua mốc hoàn)',
+              valueColor: Color(0xFFD92D20),
+            ),
         ],
       ),
     );
@@ -1416,12 +1602,48 @@ class _RefundPaymentCard extends StatelessWidget {
 }
 
 class _CancellationPolicyCard extends StatelessWidget {
-  const _CancellationPolicyCard();
+  const _CancellationPolicyCard({required this.booking});
+
+  final JourneyBooking booking;
 
   @override
   Widget build(BuildContext context) {
+    final departure = booking.departureAt;
+    final tiers = [...booking.tiers]
+      ..sort((a, b) => b.minHoursBefore.compareTo(a.minHoursBefore));
+    String cutoff(int hours) {
+      final at = departure.subtract(Duration(hours: hours)).toLocal();
+      return '${journeyTime(at)} · ${at.day.toString().padLeft(2, '0')}/'
+          '${at.month.toString().padLeft(2, '0')}';
+    }
+
+    final lines = <(String, String, Color)>[
+      for (final tier in tiers)
+        (
+          'Trước ${cutoff(tier.minHoursBefore)}',
+          tier.refundPercent > 0 ? 'Hoàn ${tier.refundPercent}%' : 'Không hoàn',
+          tier.refundPercent >= 80
+              ? const Color(0xFF009F4C)
+              : tier.refundPercent > 0
+              ? const Color(0xFFF18800)
+              : const Color(0xFFF04438),
+        ),
+      if (tiers.isEmpty || tiers.last.minHoursBefore > 0)
+        (
+          tiers.isEmpty
+              ? 'Mọi thời điểm'
+              : 'Sau ${cutoff(tiers.last.minHoursBefore)}',
+          'Không hoàn',
+          const Color(0xFFF04438),
+        ),
+    ].take(4).toList();
+    final hoursLeft = departure.difference(DateTime.now()).inMinutes / 60;
+    final current = tiers
+        .where((tier) => hoursLeft >= tier.minHoursBefore)
+        .firstOrNull;
+    final currentPercent = current?.refundPercent ?? 0;
     return _ScaledDesignBox(
-      height: 87,
+      height: 87 + math.max(0, lines.length - 3) * 16,
       child: Container(
         decoration: BoxDecoration(
           color: Colors.white,
@@ -1454,24 +1676,13 @@ class _CancellationPolicyCard extends StatelessWidget {
                 ),
               ),
             ),
-            const _PolicyLine(
-              top: 33,
-              label: 'Trước 22:30 · 15/10',
-              value: 'Hoàn 90%',
-              valueColor: Color(0xFF009F4C),
-            ),
-            const _PolicyLine(
-              top: 49,
-              label: 'Đến 18:30 · 16/10',
-              value: 'Hoàn 50%',
-              valueColor: Color(0xFFF18800),
-            ),
-            const _PolicyLine(
-              top: 65,
-              label: 'Sau 18:30 · 16/10',
-              value: 'Không hoàn',
-              valueColor: Color(0xFFF04438),
-            ),
+            for (var index = 0; index < lines.length; index++)
+              _PolicyLine(
+                top: 33 + index * 16,
+                label: lines[index].$1,
+                value: lines[index].$2,
+                valueColor: lines[index].$3,
+              ),
             Positioned(
               left: 222,
               top: 17,
@@ -1494,14 +1705,17 @@ class _CancellationPolicyCard extends StatelessWidget {
                         ),
                       ),
                     ),
-                    const Positioned(
+                    Positioned(
                       left: 32,
                       top: 8,
                       width: 112,
                       child: Text(
-                        'Hiện tại: vé này được hoàn 90%\nsố tiền đã trả khi hủy, nếu đáp\nứng điều kiện.',
+                        currentPercent > 0
+                            ? 'Hiện tại: vé này được hoàn $currentPercent% số tiền đã trả khi hủy, nếu đáp ứng điều kiện.'
+                            : 'Hiện tại: hủy vé sẽ không được hoàn tiền.',
                         maxLines: 3,
-                        style: TextStyle(
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
                           color: journeyBody,
                           fontSize: 7.5,
                           height: 11 / 7.5,
@@ -1659,8 +1873,12 @@ class _ValueRow extends StatelessWidget {
 }
 
 class _PassengerPickerSheet extends StatefulWidget {
-  const _PassengerPickerSheet({required this.selectedIndex});
+  const _PassengerPickerSheet({
+    required this.tickets,
+    required this.selectedIndex,
+  });
 
+  final List<JourneyTicket> tickets;
   final int selectedIndex;
 
   @override
@@ -1673,12 +1891,13 @@ class _PassengerPickerSheetState extends State<_PassengerPickerSheet> {
   @override
   Widget build(BuildContext context) {
     final height = math.min(543.0, MediaQuery.sizeOf(context).height * .82);
-    final indexes = List.generate(_passengers.length, (index) => index)
+    final tickets = widget.tickets;
+    final indexes = List.generate(tickets.length, (index) => index)
         .where((index) {
           final query = _query.toLowerCase().trim();
           return query.isEmpty ||
-              _passengers[index].name.toLowerCase().contains(query) ||
-              _passengers[index].seat.toLowerCase().contains(query);
+              tickets[index].passengerName.toLowerCase().contains(query) ||
+              tickets[index].seatCode.toLowerCase().contains(query);
         })
         .toList(growable: false);
 
@@ -1766,7 +1985,7 @@ class _PassengerPickerSheetState extends State<_PassengerPickerSheet> {
               separatorBuilder: (_, _) => const SizedBox(height: 8),
               itemBuilder: (context, itemIndex) {
                 final index = indexes[itemIndex];
-                final passenger = _passengers[index];
+                final passenger = tickets[index];
                 final selected = index == widget.selectedIndex;
                 return InkWell(
                   borderRadius: BorderRadius.circular(12),
@@ -1799,7 +2018,7 @@ class _PassengerPickerSheetState extends State<_PassengerPickerSheet> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                passenger.name,
+                                passenger.passengerName,
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                                 style: const TextStyle(
@@ -1809,7 +2028,8 @@ class _PassengerPickerSheetState extends State<_PassengerPickerSheet> {
                                 ),
                               ),
                               Text(
-                                'Chỗ ${passenger.seat} · Giường đơn - Tầng dưới',
+                                'Chỗ ${passenger.seatCode} · ${journeySeatTypeLabel(passenger.seatType)}'
+                                '${passenger.isCancelled ? ' · Đã hủy' : ''}',
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                                 style: const TextStyle(
@@ -1846,8 +2066,17 @@ class _PassengerPickerSheetState extends State<_PassengerPickerSheet> {
   }
 }
 
+const _cancelReasons = {
+  'plan': 'Thay đổi kế hoạch',
+  'time': 'Không phù hợp giờ đi',
+  'other': 'Lý do khác',
+};
+
 class _CancelTicketSheet extends StatefulWidget {
-  const _CancelTicketSheet();
+  const _CancelTicketSheet({required this.view, required this.quote});
+
+  final _TicketView view;
+  final JourneyCancellationQuote quote;
 
   @override
   State<_CancelTicketSheet> createState() => _CancelTicketSheetState();
@@ -1861,13 +2090,13 @@ class _CancelTicketSheetState extends State<_CancelTicketSheet> {
     return _SheetFrame(
       desiredHeight: 536,
       title: 'Hủy vé',
-      onClose: () => Navigator.pop(context, false),
+      onClose: () => Navigator.pop(context),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const _CancellationTicketSummary(),
+          _CancellationTicketSummary(view: widget.view),
           const SizedBox(height: 10),
-          const _RefundEstimateCard(),
+          _RefundEstimateCard(view: widget.view, quote: widget.quote),
           const SizedBox(height: 10),
           const Text(
             'Lý do hủy (không bắt buộc)',
@@ -1890,13 +2119,9 @@ class _CancelTicketSheetState extends State<_CancelTicketSheet> {
               'Chọn lý do',
               style: TextStyle(color: journeyBody, fontSize: 11.5),
             ),
-            items: const [
-              DropdownMenuItem(value: 'plan', child: Text('Thay đổi kế hoạch')),
-              DropdownMenuItem(
-                value: 'time',
-                child: Text('Không phù hợp giờ đi'),
-              ),
-              DropdownMenuItem(value: 'other', child: Text('Lý do khác')),
+            items: [
+              for (final entry in _cancelReasons.entries)
+                DropdownMenuItem(value: entry.key, child: Text(entry.value)),
             ],
             onChanged: (value) => setState(() => _reason = value),
             style: const TextStyle(color: journeyInk, fontSize: 11.5),
@@ -1948,16 +2173,18 @@ class _CancelTicketSheetState extends State<_CancelTicketSheet> {
           Expanded(
             child: JourneyOutlineButton(
               label: 'Giữ vé',
-              onPressed: () => Navigator.pop(context, false),
+              onPressed: () => Navigator.pop(context),
             ),
           ),
           const SizedBox(width: 10),
           Expanded(
             child: JourneyPrimaryButton(
+              key: const Key('continue-ticket-cancellation'),
               label: 'Tiếp tục',
               backgroundColor: const Color(0xFFF04438),
               height: 40,
-              onPressed: () => Navigator.pop(context, true),
+              onPressed: () =>
+                  Navigator.pop(context, _cancelReasons[_reason] ?? ''),
             ),
           ),
         ],
@@ -1966,92 +2193,42 @@ class _CancelTicketSheetState extends State<_CancelTicketSheet> {
   }
 }
 
-class _ConfirmCancellationSheet extends StatefulWidget {
-  const _ConfirmCancellationSheet();
+/// Bước xác nhận cuối: xem lại số tiền hoàn rồi hủy (API hủy vé không yêu cầu OTP).
+class _ConfirmCancellationSheet extends StatelessWidget {
+  const _ConfirmCancellationSheet({required this.view, required this.quote});
 
-  @override
-  State<_ConfirmCancellationSheet> createState() =>
-      _ConfirmCancellationSheetState();
-}
-
-class _ConfirmCancellationSheetState extends State<_ConfirmCancellationSheet> {
-  String _otp = '';
+  final _TicketView view;
+  final JourneyCancellationQuote quote;
 
   @override
   Widget build(BuildContext context) {
     return _SheetFrame(
-      desiredHeight: 516,
+      desiredHeight: 420,
       title: 'Xác nhận hủy vé',
       onClose: () => Navigator.pop(context, false),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const _CancellationTicketSummary(),
-          const SizedBox(height: 16),
+          _CancellationTicketSummary(view: view),
+          const SizedBox(height: 14),
           const Text(
-            'Nhập mã OTP đã gửi đến email',
-            style: TextStyle(color: journeyBody, fontSize: 11.5),
-          ),
-          const Text(
-            'nguy***@gmail.com',
-            style: TextStyle(
-              color: journeyInk,
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          const SizedBox(height: 11),
-          JourneyOtpFields(
-            boxHeight: 54,
-            onChanged: (value) => setState(() => _otp = value),
-          ),
-          const SizedBox(height: 10),
-          Row(
-            children: [
-              SvgPicture.asset(
-                '$journeyAssetRoot/clock.svg',
-                width: 15,
-                height: 15,
-              ),
-              const SizedBox(width: 5),
-              const Text(
-                'Mã có hiệu lực ',
-                style: TextStyle(color: journeyBody, fontSize: 10.5),
-              ),
-              const Text(
-                '04:32',
-                style: TextStyle(
-                  color: Color(0xFFF79009),
-                  fontSize: 11,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              const Spacer(),
-              TextButton(
-                onPressed: () {},
-                style: TextButton.styleFrom(
-                  minimumSize: const Size(0, 28),
-                  padding: const EdgeInsets.symmetric(horizontal: 4),
-                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                ),
-                child: const Text(
-                  'Gửi lại mã',
-                  style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.w600),
-                ),
-              ),
-            ],
+            'Vé đã hủy không khôi phục được và chỗ sẽ được mở bán lại.',
+            style: TextStyle(color: journeyBody, fontSize: 11.5, height: 1.5),
           ),
           const Padding(
             padding: EdgeInsets.symmetric(vertical: 10),
             child: Divider(height: 1, color: Color(0xFFE5EAF0)),
           ),
-          const _ValueRow(
+          _ValueRow(
             label: 'Số tiền hoàn dự kiến',
-            value: '207.000đ',
+            value: journeyVnd(quote.refundAmount),
             emphasized: true,
-            valueColor: Color(0xFF067647),
+            valueColor: const Color(0xFF067647),
           ),
-          const _ValueRow(label: 'Phương thức hoàn', value: 'VNPay'),
+          _ValueRow(
+            label: 'Phương thức hoàn',
+            value: journeyProviderLabel(view.booking.paymentProvider),
+          ),
         ],
       ),
       actions: Row(
@@ -2069,19 +2246,7 @@ class _ConfirmCancellationSheetState extends State<_ConfirmCancellationSheet> {
               label: 'Xác nhận hủy vé',
               backgroundColor: const Color(0xFFF04438),
               height: 40,
-              onPressed: () {
-                if (_otp.length != 6) {
-                  ScaffoldMessenger.of(context)
-                    ..hideCurrentSnackBar()
-                    ..showSnackBar(
-                      const SnackBar(
-                        content: Text('Vui lòng nhập đủ 6 số OTP.'),
-                      ),
-                    );
-                  return;
-                }
-                Navigator.pop(context, true);
-              },
+              onPressed: () => Navigator.pop(context, true),
             ),
           ),
         ],
@@ -2091,7 +2256,10 @@ class _ConfirmCancellationSheetState extends State<_ConfirmCancellationSheet> {
 }
 
 class _CancellationSuccessSheet extends StatelessWidget {
-  const _CancellationSuccessSheet();
+  const _CancellationSuccessSheet({required this.view, required this.result});
+
+  final _TicketView view;
+  final JourneyCancellation result;
 
   @override
   Widget build(BuildContext context) {
@@ -2102,7 +2270,7 @@ class _CancellationSuccessSheet extends StatelessWidget {
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const _CancellationTicketSummary(),
+          _CancellationTicketSummary(view: view),
           const SizedBox(height: 11),
           Container(
             padding: const EdgeInsets.all(12),
@@ -2130,7 +2298,7 @@ class _CancellationSuccessSheet extends StatelessWidget {
                       ),
                       SizedBox(height: 2),
                       Text(
-                        'Yêu cầu hủy vé đã được tạo thành công và vé đã được hủy. Chỗ ngồi của bạn không còn hiệu lực.',
+                        'Vé đã được hủy và chỗ ngồi không còn hiệu lực.',
                         style: TextStyle(
                           color: Color(0xFF16794E),
                           fontSize: 9.5,
@@ -2169,17 +2337,24 @@ class _CancellationSuccessSheet extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 8),
-                const _ValueRow(
+                _ValueRow(
                   label: 'Số tiền hoàn dự kiến',
-                  value: '207.000đ',
+                  value: journeyVnd(result.refundAmount),
                   emphasized: true,
-                  valueColor: Color(0xFF067647),
+                  valueColor: const Color(0xFF067647),
                 ),
-                const _ValueRow(label: 'Phương thức hoàn', value: 'VNPay'),
-                const _ValueRow(
+                _ValueRow(
+                  label: 'Phương thức hoàn',
+                  value: journeyProviderLabel(view.booking.paymentProvider),
+                ),
+                if (result.refundCode case final code?)
+                  _ValueRow(label: 'Mã hoàn tiền', value: code),
+                _ValueRow(
                   label: 'Trạng thái',
-                  value: 'Đang xử lý',
-                  valueColor: Color(0xFFF79009),
+                  value: result.refundAmount > 0
+                      ? 'Đang xử lý'
+                      : 'Không hoàn (đã qua mốc hoàn)',
+                  valueColor: const Color(0xFFF79009),
                 ),
               ],
             ),
@@ -2209,7 +2384,9 @@ class _CancellationSuccessSheet extends StatelessWidget {
 }
 
 class _CancellationTicketSummary extends StatelessWidget {
-  const _CancellationTicketSummary();
+  const _CancellationTicketSummary({required this.view});
+
+  final _TicketView view;
 
   @override
   Widget build(BuildContext context) {
@@ -2238,33 +2415,39 @@ class _CancellationTicketSummary extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 9),
-          const Expanded(
+          Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Chỗ A3 · Nguyễn Văn Khách',
-                  style: TextStyle(
+                  'Chỗ ${view.ticket.seatCode} · ${view.ticket.passengerName}',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
                     color: journeyInk,
                     fontSize: 12.5,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
-                SizedBox(height: 4),
+                const SizedBox(height: 4),
                 Text(
-                  'TP. Hồ Chí Minh → Đà Lạt',
-                  style: TextStyle(
+                  view.booking.routeName,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
                     color: journeyInk,
                     fontSize: 11,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
-                SizedBox(height: 2),
+                const SizedBox(height: 2),
                 Text(
-                  'Khởi hành 22:30 · Thứ Sáu, 16/10/2026 · Phương Nam Travel',
+                  'Khởi hành ${journeyTime(view.booking.pickup.plannedAt)} · '
+                  '${journeyLongDate(view.booking.pickup.plannedAt)} · '
+                  '${view.booking.operatorName}',
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
+                  style: const TextStyle(
                     color: journeyBody,
                     fontSize: 9,
                     height: 13 / 9,
@@ -2280,7 +2463,10 @@ class _CancellationTicketSummary extends StatelessWidget {
 }
 
 class _RefundEstimateCard extends StatelessWidget {
-  const _RefundEstimateCard();
+  const _RefundEstimateCard({required this.view, required this.quote});
+
+  final _TicketView view;
+  final JourneyCancellationQuote quote;
 
   @override
   Widget build(BuildContext context) {
@@ -2291,10 +2477,10 @@ class _RefundEstimateCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(14),
         border: Border.all(color: const Color(0xFFCDDAF0), width: 1.5),
       ),
-      child: const Column(
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text(
+          const Text(
             'Tiền hoàn dự kiến (theo chính sách lưu lúc đặt)',
             style: TextStyle(
               color: journeyInk,
@@ -2302,22 +2488,26 @@ class _RefundEstimateCard extends StatelessWidget {
               fontWeight: FontWeight.w700,
             ),
           ),
-          SizedBox(height: 8),
-          _ValueRow(label: 'Số tiền đã trả cho vé hủy', value: '230.000đ'),
+          const SizedBox(height: 8),
           _ValueRow(
-            label: 'Phí hủy 10% (hủy trước 24 giờ)',
-            value: '−23.000đ',
-            valueColor: Color(0xFFD92D20),
+            label: 'Số tiền đã trả cho vé hủy',
+            value: journeyVnd(quote.selectedTotal),
           ),
-          Padding(
+          _ValueRow(
+            label: 'Không hoàn (${100 - quote.refundPercent}%)',
+            value: journeyVnd(-quote.nonRefundable),
+            valueColor: const Color(0xFFD92D20),
+          ),
+          const Padding(
             padding: EdgeInsets.symmetric(vertical: 6),
             child: Divider(height: 1, color: Color(0xFFE5EAF0)),
           ),
           _ValueRow(
-            label: 'Hoàn về VNPay',
-            value: '207.000đ',
+            label:
+                'Hoàn về ${journeyProviderLabel(view.booking.paymentProvider)}',
+            value: journeyVnd(quote.refundAmount),
             emphasized: true,
-            valueColor: Color(0xFF067647),
+            valueColor: const Color(0xFF067647),
           ),
         ],
       ),

@@ -16,11 +16,11 @@ import 'package:passenger_mobile/features/account/voucher_wallet_screen.dart';
 import 'package:passenger_mobile/features/auth/auth_screen.dart';
 import 'package:passenger_mobile/features/auth/google_auth_service.dart';
 import 'package:passenger_mobile/features/explore/article_api.dart';
+import 'package:passenger_mobile/features/journey/journey_api.dart';
 import 'package:passenger_mobile/features/explore/article_reader_screen.dart';
 import 'package:passenger_mobile/features/explore/explore_screen.dart';
 import 'package:passenger_mobile/features/home/home_models.dart';
 import 'package:passenger_mobile/features/home/home_screen.dart';
-import 'package:passenger_mobile/features/home/route_dock_tabbar.dart';
 import 'package:passenger_mobile/features/journey/guest_journey_flow.dart';
 import 'package:passenger_mobile/features/search/trip_search_form.dart';
 import 'package:passenger_mobile/features/ticket/ticket_screen.dart';
@@ -168,6 +168,7 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
   final _tokens = const TokenStorage();
   late final _api = createApiClient(baseUrl: apiBaseUrl, tokens: _tokens);
   late final _articleApi = ArticleApi(_api);
+  late final _journeyApi = JourneyApi(_api);
   late final _bookingApi = TripBookingApi(
     _api,
     isSignedIn: () => _step == _AuthStep.signedIn,
@@ -769,27 +770,11 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
   }
 
   void _selectMainTab(int index) {
-    if (index == 0 ||
-        index == 1 ||
-        index == 2 ||
-        (index == 3 && _step == _AuthStep.guest) ||
-        index == 4) {
-      setState(() {
-        _currentTab = index;
-        _accountView = _AccountView.overview;
-        _error = null;
-      });
-      return;
-    }
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(
-          content: Text(
-            '${RouteDockTabBar.labels[index]} sẽ được triển khai ở bước tiếp theo.',
-          ),
-        ),
-      );
+    setState(() {
+      _currentTab = index;
+      _accountView = _AccountView.overview;
+      _error = null;
+    });
   }
 
   /// Trang chủ bấm "Tìm chuyến": mở màn Kết quả để chọn chuyến theo điều kiện
@@ -947,9 +932,17 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
     }
     if (_step == _AuthStep.guest && _currentTab == 3) {
       return GuestJourneyFlow(
+        api: _journeyApi,
         onLoginRequested: _returnToLogin,
         onTabSelected: _selectMainTab,
         onFaqRequested: () => showHomeFaqSheet(context, _loadHomeFaqs),
+        onSupportRequested: _callSupport,
+      );
+    }
+    if (_step == _AuthStep.signedIn && _currentTab == 3) {
+      return MyJourneyFlow(
+        api: _journeyApi,
+        onTabSelected: _selectMainTab,
         onSupportRequested: _callSupport,
       );
     }
