@@ -2,6 +2,7 @@ import { listOverduePendingBookings, withBookingOperator } from "../database/mar
 import type { DbTransaction, PrismaService } from "../database/prisma.service";
 import { BookingStatus } from "../database/prisma.types";
 import { releaseRedemption } from "../promotion/promotion-apply";
+import type { PaymentGateways } from "../external/payment/payment-gateway";
 
 // Hết hạn thanh toán (TASK-BTP-002, FR-BTP-05, SRS §17.6 `PENDING_PAYMENT → EXPIRED`): job nền mỗi phút quét booking chờ
 // thanh toán đã quá hạn, chuyển `EXPIRED` + trả ghế. `GET /bookings/{id}` cũng gọi `expireBooking` khi job chưa kịp quét.
@@ -58,11 +59,27 @@ export async function expireBooking(tx: DbTransaction, operatorId: string, booki
 export async function expireOverdueBookings(
   prisma: Pick<PrismaService, "withSystem" | "withTenant">,
   now: Date = new Date(),
+  gateways?: PaymentGateways,
 ): Promise<number> {
   let expired = 0;
   for (const bookingId of await listOverduePendingBookings(prisma, now, BATCH)) {
-    if (await withBookingOperator(prisma, bookingId, (tx, operatorId) => expireBooking(tx, operatorId, bookingId, now))) {
+    const result = await withBookingOperator(prisma, bookingId, async (tx, operatorId) => {
+      if (!(await expireBooking(tx, operatorId, bookingId, now))) return null;
+      return tx.payment.findMany({
+        where: { bookingId, operatorId, provider: "PAYOS", status: "EXPIRED", providerOrderCode: { not: null } },
+        select: { providerOrderCode: true },
+      });
+    });
+    if (result) {
       expired++;
+      // Gọi cổng sau khi đã trả ghế và commit; lỗi hủy link không giữ transaction hay chặn đơn khác.
+      for (const payment of result) {
+        try {
+          await gateways?.get("PAYOS")?.cancelCheckout?.(payment.providerOrderCode!);
+        } catch {
+          // Đối soát sẽ tra cứu/hủy lại; callback trễ vẫn đi vào RECONCILING.
+        }
+      }
     }
   }
   return expired;

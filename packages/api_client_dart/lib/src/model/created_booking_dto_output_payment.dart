@@ -24,7 +24,7 @@ abstract class CreatedBookingDtoOutputPayment implements Built<CreatedBookingDto
 
   @BuiltValueField(wireName: r'provider')
   CreatedBookingDtoOutputPaymentProviderEnum get provider;
-  // enum providerEnum {  VNPAY,  MOMO,  };
+  // enum providerEnum {  VNPAY,  MOMO,  PAYOS,  DEMO,  };
 
   @BuiltValueField(wireName: r'status')
   CreatedBookingDtoOutputPaymentStatusEnum get status;
@@ -179,6 +179,10 @@ class CreatedBookingDtoOutputPaymentProviderEnum extends EnumClass {
   static const CreatedBookingDtoOutputPaymentProviderEnum VNPAY = _$createdBookingDtoOutputPaymentProviderEnum_VNPAY;
   @BuiltValueEnumConst(wireName: r'MOMO')
   static const CreatedBookingDtoOutputPaymentProviderEnum MOMO = _$createdBookingDtoOutputPaymentProviderEnum_MOMO;
+  @BuiltValueEnumConst(wireName: r'PAYOS')
+  static const CreatedBookingDtoOutputPaymentProviderEnum PAYOS = _$createdBookingDtoOutputPaymentProviderEnum_PAYOS;
+  @BuiltValueEnumConst(wireName: r'DEMO')
+  static const CreatedBookingDtoOutputPaymentProviderEnum DEMO = _$createdBookingDtoOutputPaymentProviderEnum_DEMO;
 
   static Serializer<CreatedBookingDtoOutputPaymentProviderEnum> get serializer => _$createdBookingDtoOutputPaymentProviderEnumSerializer;
 

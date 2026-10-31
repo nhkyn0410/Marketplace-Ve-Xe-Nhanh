@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:passenger_mobile/features/common/app_toast.dart';
 import 'package:passenger_mobile/features/explore/article_api.dart';
 import 'package:passenger_mobile/features/explore/article_detail_screen.dart';
 import 'package:passenger_mobile/features/explore/article_reader_screen.dart';
@@ -218,11 +219,11 @@ class _ExploreScreenState extends State<ExploreScreen> {
   Future<void> _copyPromotionCode(String code) async {
     await Clipboard.setData(ClipboardData(text: code));
     if (!mounted) return;
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(content: Text('Đã chép mã $code. Dán mã khi đặt vé.')),
-      );
+    AppToast.show(
+      context,
+      message: 'Đã chép mã $code. Dán mã khi đặt vé.',
+      type: AppToastType.success,
+    );
   }
 
   void _findTrip() {

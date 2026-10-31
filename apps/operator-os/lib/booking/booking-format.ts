@@ -57,7 +57,7 @@ export const TICKET_STATUS: Record<TicketStatus, { label: string; tone: Tone }> 
 
 export const TICKET_STATUS_ORDER: TicketStatus[] = ["VALID", "CHECKED_IN", "NO_SHOW", "USED", "CANCELLED", "REFUNDED"];
 
-export const PROVIDER_LABEL: Record<NonNullable<OperatorBooking["payment"]>["provider"], string> = { VNPAY: "VNPay", MOMO: "MoMo" };
+export const PROVIDER_LABEL: Record<NonNullable<OperatorBooking["payment"]>["provider"], string> = { VNPAY: "VNPay", MOMO: "MoMo", PAYOS: "payOS", DEMO: "Cổng thử" };
 
 /** Mã đặt vé / mã vé dễ đọc: `VXN8F3K2Q` → `VXN-8F3K2Q`, `VXN8F3K2Q-01` → `VXN-8F3K2Q-01`. */
 export function displayCode(code: string): string {

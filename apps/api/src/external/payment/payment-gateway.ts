@@ -5,7 +5,7 @@
  */
 export const PAYMENT_GATEWAYS = Symbol("PAYMENT_GATEWAYS");
 
-export type GatewayProvider = "VNPAY" | "MOMO";
+export type GatewayProvider = "VNPAY" | "MOMO" | "PAYOS" | "DEMO";
 
 export type CheckoutRequest = {
   /** Mã payment nội bộ gửi cổng (`vnp_TxnRef` / `orderId`). */
@@ -16,6 +16,10 @@ export type CheckoutRequest = {
   orderInfo: string;
   /** Trang quay về sau khi khách thanh toán (chỉ hiển thị kết quả). */
   returnUrl: string;
+  /** Trang quay về khi khách hủy thanh toán. */
+  cancelUrl?: string;
+  /** Mã số riêng của payOS, sinh từ sequence PostgreSQL. */
+  orderCode?: bigint;
   /** IP khách (VNPay bắt buộc `vnp_IpAddr`). */
   clientIp: string;
   createdAt: Date;
@@ -26,6 +30,8 @@ export type CheckoutRequest = {
 /** Kết quả callback ĐÃ xác thực chữ ký. */
 export type VerifiedCallback = {
   paymentCode: string;
+  /** Mã payOS dùng để tra payment nội bộ sau khi kiểm chữ ký. */
+  orderCode?: bigint;
   /** Mã giao dịch của cổng; `null` khi cổng không cấp (giao dịch lỗi trước khi tạo). */
   providerTxnId: string | null;
   amount: bigint;
@@ -58,6 +64,8 @@ export type RefundRequest = {
 export type TransactionQuery = {
   /** Mã payment đã gửi cổng lúc thanh toán (`vnp_TxnRef` / `orderId`). */
   paymentCode: string;
+  /** Mã số đơn hàng tại payOS. */
+  orderCode?: bigint;
   /** Mã yêu cầu tra cứu, mỗi lần một khác (`vnp_RequestId` / `requestId`). */
   requestCode: string;
   /** Lúc tạo yêu cầu thanh toán (VNPay `vnp_TransactionDate`). */
@@ -74,13 +82,26 @@ export type TransactionStatus = {
   resultCode: string;
 };
 
+/** Thông tin chuyển khoản đã được xác thực từ phản hồi payOS. */
+export type CheckoutTransfer = {
+  qrCode: string;
+  bin: string;
+  accountNumber: string;
+  accountName: string;
+  amount: string;
+  description: string;
+  paymentLinkId: string;
+};
+
 export interface PaymentGateway {
   readonly provider: GatewayProvider;
   /** Giới hạn số tiền một giao dịch của cổng (VND). */
   readonly minAmount: bigint;
   readonly maxAmount: bigint;
   /** Tạo link trang thanh toán. Lỗi phía cổng → `PaymentGatewayError`. */
-  createCheckout(request: CheckoutRequest): Promise<{ paymentUrl: string }>;
+  createCheckout(request: CheckoutRequest): Promise<{ paymentUrl: string; transfer?: CheckoutTransfer }>;
+  /** Hủy link khi booking hết hạn; không hoàn tiền đã chuyển. */
+  cancelCheckout?(orderCode: bigint): Promise<void>;
   /** Xác thực chữ ký callback (query VNPay / body MoMo); sai chữ ký / thiếu trường → `null`. */
   verifyCallback(input: Record<string, unknown>): VerifiedCallback | null;
   /**

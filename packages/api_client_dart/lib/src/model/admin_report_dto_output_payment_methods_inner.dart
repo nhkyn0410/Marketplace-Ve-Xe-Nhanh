@@ -19,7 +19,7 @@ part 'admin_report_dto_output_payment_methods_inner.g.dart';
 abstract class AdminReportDtoOutputPaymentMethodsInner implements Built<AdminReportDtoOutputPaymentMethodsInner, AdminReportDtoOutputPaymentMethodsInnerBuilder> {
   @BuiltValueField(wireName: r'provider')
   AdminReportDtoOutputPaymentMethodsInnerProviderEnum get provider;
-  // enum providerEnum {  VNPAY,  MOMO,  };
+  // enum providerEnum {  VNPAY,  MOMO,  PAYOS,  DEMO,  };
 
   @BuiltValueField(wireName: r'amount')
   int get amount;
@@ -145,6 +145,10 @@ class AdminReportDtoOutputPaymentMethodsInnerProviderEnum extends EnumClass {
   static const AdminReportDtoOutputPaymentMethodsInnerProviderEnum VNPAY = _$adminReportDtoOutputPaymentMethodsInnerProviderEnum_VNPAY;
   @BuiltValueEnumConst(wireName: r'MOMO')
   static const AdminReportDtoOutputPaymentMethodsInnerProviderEnum MOMO = _$adminReportDtoOutputPaymentMethodsInnerProviderEnum_MOMO;
+  @BuiltValueEnumConst(wireName: r'PAYOS')
+  static const AdminReportDtoOutputPaymentMethodsInnerProviderEnum PAYOS = _$adminReportDtoOutputPaymentMethodsInnerProviderEnum_PAYOS;
+  @BuiltValueEnumConst(wireName: r'DEMO')
+  static const AdminReportDtoOutputPaymentMethodsInnerProviderEnum DEMO = _$adminReportDtoOutputPaymentMethodsInnerProviderEnum_DEMO;
 
   static Serializer<AdminReportDtoOutputPaymentMethodsInnerProviderEnum> get serializer => _$adminReportDtoOutputPaymentMethodsInnerProviderEnumSerializer;
 

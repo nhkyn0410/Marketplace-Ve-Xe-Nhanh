@@ -12,6 +12,12 @@ const AdminRefundDetailDtoOutputProviderEnum
 const AdminRefundDetailDtoOutputProviderEnum
     _$adminRefundDetailDtoOutputProviderEnum_MOMO =
     const AdminRefundDetailDtoOutputProviderEnum._('MOMO');
+const AdminRefundDetailDtoOutputProviderEnum
+    _$adminRefundDetailDtoOutputProviderEnum_PAYOS =
+    const AdminRefundDetailDtoOutputProviderEnum._('PAYOS');
+const AdminRefundDetailDtoOutputProviderEnum
+    _$adminRefundDetailDtoOutputProviderEnum_DEMO =
+    const AdminRefundDetailDtoOutputProviderEnum._('DEMO');
 
 AdminRefundDetailDtoOutputProviderEnum
     _$adminRefundDetailDtoOutputProviderEnumValueOf(String name) {
@@ -20,6 +26,10 @@ AdminRefundDetailDtoOutputProviderEnum
       return _$adminRefundDetailDtoOutputProviderEnum_VNPAY;
     case 'MOMO':
       return _$adminRefundDetailDtoOutputProviderEnum_MOMO;
+    case 'PAYOS':
+      return _$adminRefundDetailDtoOutputProviderEnum_PAYOS;
+    case 'DEMO':
+      return _$adminRefundDetailDtoOutputProviderEnum_DEMO;
     default:
       throw ArgumentError(name);
   }
@@ -30,6 +40,8 @@ final BuiltSet<AdminRefundDetailDtoOutputProviderEnum>
         AdminRefundDetailDtoOutputProviderEnum>(const <AdminRefundDetailDtoOutputProviderEnum>[
   _$adminRefundDetailDtoOutputProviderEnum_VNPAY,
   _$adminRefundDetailDtoOutputProviderEnum_MOMO,
+  _$adminRefundDetailDtoOutputProviderEnum_PAYOS,
+  _$adminRefundDetailDtoOutputProviderEnum_DEMO,
 ]);
 
 const AdminRefundDetailDtoOutputSource_Enum
@@ -188,10 +200,14 @@ class _$AdminRefundDetailDtoOutputProviderEnumSerializer
   static const Map<String, Object> _toWire = const <String, Object>{
     'VNPAY': 'VNPAY',
     'MOMO': 'MOMO',
+    'PAYOS': 'PAYOS',
+    'DEMO': 'DEMO',
   };
   static const Map<Object, String> _fromWire = const <Object, String>{
     'VNPAY': 'VNPAY',
     'MOMO': 'MOMO',
+    'PAYOS': 'PAYOS',
+    'DEMO': 'DEMO',
   };
 
   @override

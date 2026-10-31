@@ -107,7 +107,8 @@ void main() {
           bottomAction: const Key('booking-continue-payment'),
         ),
         (
-          build: () => PaymentScreen(booking: sampleBooking()),
+          build: () =>
+              PaymentScreen(api: FakeBookingApi(), booking: sampleBooking()),
           header: const Key('payment-header'),
           progress: const Key('payment-progress'),
           scroll: const Key('payment-scroll'),

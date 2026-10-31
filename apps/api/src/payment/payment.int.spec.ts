@@ -11,6 +11,8 @@ import { tenantScope } from "../database/db-scope";
 import { PrismaService } from "../database/prisma.service";
 import type { EmailNotifier, OtpEmailMessage } from "../external/notification/email-notifier";
 import { PaymentGatewayError, type PaymentGateway, type PaymentGateways } from "../external/payment/payment-gateway";
+import { PayosGateway, signPayosData } from "../external/payment/payos/payos-gateway";
+import { DemoGateway, signDemoCallback } from "../external/payment/demo/demo-gateway";
 import type { Coordinates, RouteLeg, RoutingProvider } from "../external/routing/routing-provider";
 import { sign, signedQuery, VnpayGateway } from "../external/payment/vnpay/vnpay-gateway";
 import type { VerifiedAccessToken } from "../iam/auth/token.service";
@@ -75,9 +77,34 @@ describe.skipIf(!ready && !requireDb)("Thanh toán — Postgres + Redis thật (
   const vnpayConfig = { tmnCode: "TESTTMN1", hashSecret: "bi-mat-vnpay-test", paymentUrl: "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html", apiUrl: "https://sandbox.vnpayment.vn/merchant_webapi/api/transaction" };
   const momoCheckout = vi.fn(async () => ({ paymentUrl: "https://momo.example/pay" }));
   const momo = { provider: "MOMO", minAmount: 1_000n, maxAmount: 50_000_000n, createCheckout: momoCheckout, verifyCallback: () => null } as unknown as PaymentGateway;
+  const payosKey = "checksum-payos-integration";
+  const payosRequests: { orderCode: number; amount: number; expiredAt: number }[] = [];
+  const payosFetch = vi.fn<typeof fetch>(async (_url, init) => {
+    const request = JSON.parse(String(init?.body)) as { orderCode: number; amount: number; expiredAt: number };
+    payosRequests.push(request);
+    const data = {
+      orderCode: request.orderCode,
+      amount: request.amount,
+      currency: "VND",
+      status: "PENDING",
+      checkoutUrl: `https://pay.payos.vn/web/test-${request.orderCode}`,
+      qrCode: `VIETQR-${request.orderCode}`,
+      bin: "970422",
+      accountNumber: "0123456789",
+      accountName: "NGUYEN VAN A",
+      description: `VQR ${request.orderCode}`,
+      paymentLinkId: `test-${request.orderCode}`,
+    };
+    return new Response(JSON.stringify({ code: "00", data, signature: signPayosData(data, payosKey) }), { status: 200 });
+  });
+  const payos = new PayosGateway({ clientId: "test-client", apiKey: "test-api-key", checksumKey: payosKey, apiUrl: "https://api-merchant.payos.vn" }, payosFetch);
+  const demoKey = "demo-integration-test-key";
+  const demo = new DemoGateway({ secret: demoKey, baseUrl: "https://demo.example/v1/dev/payment-gateway/demo", callbackUrl: "https://demo.example/v1/webhooks/payment/demo" });
   const gateways: PaymentGateways = new Map<PaymentGateway["provider"], PaymentGateway>([
     ["VNPAY", new VnpayGateway(vnpayConfig)],
     ["MOMO", momo],
+    ["PAYOS", payos],
+    ["DEMO", demo],
   ]);
   const tag = randomUUID().slice(0, 8);
   const operatorId = randomUUID();
@@ -151,6 +178,31 @@ describe.skipIf(!ready && !requireDb)("Thanh toán — Postgres + Redis thật (
     const outcome = jobs.length > before ? await applyPaymentCallback(prisma, jobs[jobs.length - 1]!, qr) : null;
     return { ack, outcome };
   }
+
+  /** Webhook payOS có chữ ký thật, dùng mã số riêng thay vì mã PAY nội bộ. */
+  function payosWebhook(orderCode: bigint, amount: bigint, reference = `TF-${randomUUID()}`) {
+    const data = {
+      orderCode: Number(orderCode),
+      amount: Number(amount),
+      currency: "VND",
+      code: "00",
+      description: `VQR ${orderCode}`,
+      paymentLinkId: `test-${orderCode}`,
+      reference,
+    };
+    return { code: "00", desc: "success", success: true, data, signature: signPayosData(data, payosKey) };
+  }
+
+  /** Nhận webhook payOS rồi xử lý job theo cùng đường đi của worker thật. */
+  async function deliverPayos(input: ReturnType<typeof payosWebhook>) {
+    const before = jobs.length;
+    const ack = await webhooks.receive("PAYOS", input);
+    const outcome = jobs.length > before ? await applyPaymentCallback(prisma, jobs[jobs.length - 1]!, qr) : null;
+    return { ack, outcome };
+  }
+
+  const storedPayment = (paymentCode: string) =>
+    prisma.withSystem((tx) => tx.payment.findUniqueOrThrow({ where: { paymentCode } }));
 
   const state = (bookingId: string) =>
     prisma.withSystem((tx) =>
@@ -287,6 +339,107 @@ describe.skipIf(!ready && !requireDb)("Thanh toán — Postgres + Redis thật (
     expect(await rejectionOf(payments.create(null, created.bookingId, undefined, { provider: "VNPAY" }, undefined))).toMatchObject({ status: 404, code: "BOOKING_NOT_FOUND" });
     expect(await rejectionOf(payments.create(rider, created.bookingId, "sai", { provider: "VNPAY" }, undefined))).toMatchObject({ code: "BOOKING_NOT_FOUND" });
     expect((await state(created.bookingId)).payments).toEqual([{ status: "PROCESSING", providerTxnId: null, reconcileReason: null, failureCode: null, provider: "VNPAY" }]);
+  });
+
+  it("payOS: giữ nguyên mã số, QR và nội dung từ phản hồi khi tạo lặp; mã truy cập và RLS bảo vệ thông tin chuyển khoản", async () => {
+    const created = await booking();
+    const before = payosRequests.length;
+    expect(await rejectionOf(payments.create(null, created.bookingId, undefined, { provider: "PAYOS" }, undefined))).toMatchObject({ code: "BOOKING_NOT_FOUND" });
+    const first = await payments.create(null, created.bookingId, created.accessToken, { provider: "PAYOS" }, undefined);
+    const stored = await storedPayment(first.paymentCode);
+    expect(stored.providerOrderCode).toBeTypeOf("bigint");
+    expect(first.transfer).toEqual({
+      qrCode: `VIETQR-${stored.providerOrderCode}`,
+      bin: "970422",
+      accountNumber: "0123456789",
+      accountName: "NGUYEN VAN A",
+      amount: "320000",
+      description: `VQR ${stored.providerOrderCode}`,
+      paymentLinkId: `test-${stored.providerOrderCode}`,
+    });
+    expect(first.expiresAt).toBe(created.expiresAt);
+    expect(payosRequests.at(-1)).toMatchObject({ orderCode: Number(stored.providerOrderCode), amount: 320_000, expiredAt: Math.floor(new Date(created.expiresAt).getTime() / 1000) });
+    expect(await payments.create(null, created.bookingId, created.accessToken, { provider: "PAYOS" }, undefined)).toEqual(first);
+    expect(payosRequests).toHaveLength(before + 1);
+    expect(await rejectionOf(payments.create(rider, created.bookingId, "wrong-token", { provider: "PAYOS" }, undefined))).toMatchObject({ code: "BOOKING_NOT_FOUND" });
+    expect(await prisma.withTenant(otherOperator, (tx) => tx.payment.findMany({ where: { paymentCode: first.paymentCode }, select: { checkout: true } }))).toEqual([]);
+    expect(await prisma.withTenant(operatorId, (tx) => tx.payment.count({ where: { paymentCode: first.paymentCode } }))).toBe(1);
+  });
+
+  it("payOS: webhook mã số → mã PAY nội bộ; gửi lặp / worker lặp chỉ thu tiền và phát hành vé một lần", async () => {
+    const created = await booking();
+    const first = await payments.create(null, created.bookingId, created.accessToken, { provider: "PAYOS" }, undefined);
+    const stored = await storedPayment(first.paymentCode);
+    const webhook = payosWebhook(stored.providerOrderCode!, 320_000n);
+    expect(await deliverPayos(webhook)).toEqual({ ack: "ACCEPTED", outcome: "SUCCESS" });
+    expect(jobs.at(-1)).toMatchObject({ provider: "PAYOS", paymentCode: first.paymentCode, providerTxnId: webhook.data.reference, amount: "320000" });
+    expect(await deliverPayos(webhook)).toEqual({ ack: "ALREADY_CONFIRMED", outcome: null });
+    expect(await applyPaymentCallback(prisma, jobs.at(-1)!, qr)).toBe("DUPLICATE");
+    expect((await bookings.get(null, created.bookingId, created.accessToken)).status).toBe("CONFIRMED");
+    expect(await prisma.withSystem((tx) => tx.ticket.count({ where: { bookingId: created.bookingId } }))).toBe(1);
+    expect(await prisma.withSystem((tx) => tx.escrowLedger.findMany({ where: { paymentId: first.paymentId, entryType: "PAYMENT_CAPTURED" }, select: { amount: true } }))).toEqual([{ amount: 320_000n }]);
+  });
+
+  it("payOS: sai chữ ký hoặc mã không có không xếp hàng; sai số tiền vào đối soát, không phát hành vé", async () => {
+    const created = await booking();
+    const first = await payments.create(null, created.bookingId, created.accessToken, { provider: "PAYOS" }, undefined);
+    const stored = await storedPayment(first.paymentCode);
+    const webhook = payosWebhook(stored.providerOrderCode!, 320_000n);
+    const before = jobs.length;
+    expect(await webhooks.receive("PAYOS", { ...webhook, data: { ...webhook.data, amount: 1 } })).toBe("INVALID_SIGNATURE");
+    expect(await webhooks.receive("PAYOS", payosWebhook(9_007_199_254_740_990n, 320_000n))).toBe("NOT_FOUND");
+    expect(jobs).toHaveLength(before);
+    expect(await deliverPayos(payosWebhook(stored.providerOrderCode!, 300_000n))).toEqual({ ack: "AMOUNT_MISMATCH", outcome: "RECONCILING" });
+    expect((await state(created.bookingId)).payments).toMatchObject([{ provider: "PAYOS", status: "RECONCILING", reconcileReason: "AMOUNT_MISMATCH" }]);
+    expect(await prisma.withSystem((tx) => tx.ticket.count({ where: { bookingId: created.bookingId } }))).toBe(0);
+    expect(await prisma.withSystem((tx) => tx.escrowLedger.count({ where: { paymentId: first.paymentId } }))).toBe(0);
+  });
+
+  it("payOS: tiền đến sau hạn khi job hết hạn chưa chạy vẫn đối soát BOOKING_EXPIRED, không bán ghế quá hạn", async () => {
+    const created = await booking();
+    const first = await payments.create(null, created.bookingId, created.accessToken, { provider: "PAYOS" }, undefined);
+    const stored = await storedPayment(first.paymentCode);
+    await prisma.withTenant(operatorId, (tx) => tx.booking.update({ where: { id: created.bookingId }, data: { expiresAt: new Date(Date.now() - 1_000) } }));
+    expect(await deliverPayos(payosWebhook(stored.providerOrderCode!, 320_000n))).toEqual({ ack: "ACCEPTED", outcome: "RECONCILING" });
+    expect((await state(created.bookingId)).payments).toMatchObject([{ status: "RECONCILING", reconcileReason: "BOOKING_EXPIRED" }]);
+    expect(await prisma.withSystem((tx) => tx.ticket.count({ where: { bookingId: created.bookingId } }))).toBe(0);
+    expect(await prisma.withSystem((tx) => tx.escrowLedger.count({ where: { paymentId: first.paymentId } }))).toBe(0);
+  });
+
+  it("payOS: một reference không được thu tiền cho hai booking khác nhau", async () => {
+    const firstBooking = await booking();
+    const secondBooking = await booking();
+    const first = await payments.create(null, firstBooking.bookingId, firstBooking.accessToken, { provider: "PAYOS" }, undefined);
+    const second = await payments.create(null, secondBooking.bookingId, secondBooking.accessToken, { provider: "PAYOS" }, undefined);
+    const [firstStored, secondStored] = await Promise.all([storedPayment(first.paymentCode), storedPayment(second.paymentCode)]);
+    expect(firstStored.providerOrderCode).not.toBe(secondStored.providerOrderCode);
+    const reference = `TF-shared-${randomUUID()}`;
+    expect(await deliverPayos(payosWebhook(firstStored.providerOrderCode!, 320_000n, reference))).toEqual({ ack: "ACCEPTED", outcome: "SUCCESS" });
+    expect(await deliverPayos(payosWebhook(secondStored.providerOrderCode!, 320_000n, reference))).toEqual({ ack: "ACCEPTED", outcome: "DUPLICATE" });
+    expect(await prisma.withSystem((tx) => tx.ticket.count({ where: { bookingId: secondBooking.bookingId } }))).toBe(0);
+    expect(await prisma.withSystem((tx) => tx.escrowLedger.count({ where: { paymentId: second.paymentId } }))).toBe(0);
+    expect((await state(secondBooking.bookingId)).status).toBe("PENDING_PAYMENT");
+  });
+
+  it("DEMO: link có ký → kết quả có ký → worker xác nhận vé; callback sửa tiền hoặc nhắm payment PAYOS bị từ chối", async () => {
+    const created = await booking();
+    const payment = await payments.create(null, created.bookingId, created.accessToken, { provider: "DEMO" }, undefined);
+    expect(payment.transfer).toBeUndefined();
+    const order = demo.checkoutOrder(new URL(payment.paymentUrl).searchParams.get("token")!);
+    expect(order).toMatchObject({ paymentCode: payment.paymentCode, amount: "320000", expiresAt: created.expiresAt });
+    const callback = demo.complete(order!, true);
+    expect(await webhooks.receive("DEMO", { ...callback, amount: "1" })).toBe("INVALID_SIGNATURE");
+    expect(await webhooks.receive("DEMO", callback)).toBe("ACCEPTED");
+    expect(await applyPaymentCallback(prisma, jobs.at(-1)!, qr)).toBe("SUCCESS");
+    expect(await webhooks.receive("DEMO", callback)).toBe("ALREADY_CONFIRMED");
+    expect((await bookings.get(null, created.bookingId, created.accessToken)).tickets).toHaveLength(1);
+    const payosBooking = await booking();
+    const payosPayment = await payments.create(null, payosBooking.bookingId, payosBooking.accessToken, { provider: "PAYOS" }, undefined);
+    const forgedProvider = { paymentCode: payosPayment.paymentCode, amount: "320000", success: true, reference: `DEMO-${payosPayment.paymentCode}` };
+    const before = jobs.length;
+    expect(await webhooks.receive("DEMO", { ...forgedProvider, signature: signDemoCallback(forgedProvider, demoKey) })).toBe("NOT_FOUND");
+    expect(jobs).toHaveLength(before);
+    expect((await state(payosBooking.bookingId)).payments).toMatchObject([{ provider: "PAYOS", status: "PROCESSING" }]);
   });
 
   it("IPN thành công: webhook nhận (00) → worker ghi payment SUCCESS + booking PAID + ghế BOOKED + hủy payment MoMo đang mở; IPN lặp → 02, xử lý lặp → DUPLICATE", async () => {

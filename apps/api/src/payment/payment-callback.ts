@@ -95,10 +95,13 @@ async function apply(tx: DbTransaction, operatorId: string, callback: PaymentCal
   await tx.$queryRaw`SELECT id FROM bookings WHERE id = ${payment.bookingId} AND operator_id = ${operatorId} FOR UPDATE`;
   const booking = await tx.booking.findFirstOrThrow({
     where: { id: payment.bookingId, operatorId },
-    select: { status: true, tripId: true, total: true, subtotal: true, discount: true, contactEmail: true, trip: { select: { arrivalAt: true } }, _count: { select: { passengers: true } } },
+    select: { status: true, expiresAt: true, tripId: true, total: true, subtotal: true, discount: true, contactEmail: true, trip: { select: { arrivalAt: true } }, _count: { select: { passengers: true } } },
   });
   if (booking.status !== BookingStatus.PENDING_PAYMENT) {
     return reconcile(booking.status === BookingStatus.EXPIRED ? "BOOKING_EXPIRED" : booking.status === BookingStatus.CANCELLED ? "BOOKING_CANCELLED" : "DUPLICATE_PAYMENT");
+  }
+  if (booking.expiresAt <= now) {
+    return reconcile("BOOKING_EXPIRED");
   }
   const held = await tx.tripSeat.count({ where: { bookingId: payment.bookingId, operatorId, status: "HOLDING" } });
   if (held !== booking._count.passengers) {

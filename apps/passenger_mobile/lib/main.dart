@@ -99,6 +99,22 @@ class PassengerApp extends StatelessWidget {
         useMaterial3: true,
         fontFamily: 'Be Vietnam Pro',
         colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF2B7EAD)),
+        snackBarTheme: SnackBarThemeData(
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: Colors.white,
+          elevation: 8,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+            side: const BorderSide(color: Color(0xFFD6E8F6), width: 1.2),
+          ),
+          contentTextStyle: const TextStyle(
+            fontFamily: 'Be Vietnam Pro',
+            fontSize: 13.5,
+            fontWeight: FontWeight.w600,
+            height: 1.4,
+            color: Color(0xFF102E58),
+          ),
+        ),
       ),
       home: const OtpLoginPage(),
     );
@@ -613,8 +629,8 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
           ),
         )
         .toList(growable: false);
-    // Fixture Figma chỉ lấp dữ liệu rỗng khi chạy debug để đối chiếu UI.
-    return vouchers.isEmpty && kDebugMode ? figmaVoucherSamples : vouchers;
+    // Ví tài khoản và checkout cùng dùng voucher thật; không cho mẫu xem trước trông như ưu đãi có thể sử dụng.
+    return vouchers;
   }
 
   Future<MyReviewsData> _loadMyReviews() async {

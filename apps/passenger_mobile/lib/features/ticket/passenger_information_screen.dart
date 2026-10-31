@@ -7,6 +7,7 @@ import 'package:mobile_shared/mobile_shared.dart';
 import 'booking_confirmation_screen.dart';
 import 'booking_flow_chrome.dart';
 import 'booking_models.dart';
+import 'booking_voucher_picker.dart';
 import 'trip_booking_api.dart';
 import 'trip_detail_models.dart';
 import 'trip_search_models.dart';
@@ -73,6 +74,7 @@ class _PassengerInformationScreenState
   PromotionQuote? _promotion;
   String? _promoError;
   bool _checkingPromo = false;
+  bool _choosingVoucher = false;
   Timer? _timer;
   Duration _remaining = Duration.zero;
 
@@ -154,6 +156,8 @@ class _PassengerInformationScreenState
 
   int get _total => _promotion?.total ?? widget.hold.subtotal;
 
+  bool get _discountBusy => _checkingPromo || _choosingVoucher;
+
   Future<void> _chooseSavedPassenger(int index) async {
     final selected = await showModalBottomSheet<SavedTraveller>(
       context: context,
@@ -170,7 +174,7 @@ class _PassengerInformationScreenState
 
   Future<void> _applyPromotion() async {
     final code = _promoCode.text.trim().toUpperCase();
-    if (code.isEmpty || _checkingPromo) return;
+    if (code.isEmpty || _discountBusy || _remaining == Duration.zero) return;
     FocusScope.of(context).unfocus();
     setState(() {
       _checkingPromo = true;
@@ -182,7 +186,7 @@ class _PassengerInformationScreenState
         code: code,
         subtotal: widget.hold.subtotal,
       );
-      if (!mounted) return;
+      if (!mounted || !widget.hold.expiresAt.isAfter(_now())) return;
       setState(() {
         _promotion = quote;
         _promoCode.clear();
@@ -196,6 +200,44 @@ class _PassengerInformationScreenState
       });
     } finally {
       if (mounted) setState(() => _checkingPromo = false);
+    }
+  }
+
+  Future<void> _chooseVoucher() async {
+    if (!widget.isSignedIn || _discountBusy || _remaining == Duration.zero) {
+      return;
+    }
+    FocusScope.of(context).unfocus();
+    setState(() {
+      _choosingVoucher = true;
+      _promoError = null;
+    });
+    try {
+      final quote = await showModalBottomSheet<PromotionQuote>(
+        context: context,
+        isScrollControlled: true,
+        useSafeArea: true,
+        backgroundColor: Colors.transparent,
+        builder: (_) => FractionallySizedBox(
+          heightFactor: 0.82,
+          child: BookingVoucherPicker(
+            api: widget.api,
+            tripId: widget.trip.tripId,
+            subtotal: widget.hold.subtotal,
+            holdExpiresAt: widget.hold.expiresAt,
+            selectedVoucherId: _promotion?.userVoucherId,
+            now: widget.now,
+          ),
+        ),
+      );
+      if (!mounted || quote == null) return;
+      if (!widget.hold.expiresAt.isAfter(_now())) return;
+      setState(() {
+        _promotion = quote;
+        _promoCode.clear();
+      });
+    } finally {
+      if (mounted) setState(() => _choosingVoucher = false);
     }
   }
 
@@ -259,7 +301,9 @@ class _PassengerInformationScreenState
         bottomNavigationBar: _PassengerBottomBar(
           passengerCount: _seats.length,
           total: _total,
-          onContinue: expired || !_formValid ? null : _continueToConfirmation,
+          onContinue: expired || !_formValid || _discountBusy
+              ? null
+              : _continueToConfirmation,
         ),
         body: SafeArea(
           bottom: false,
@@ -342,8 +386,16 @@ class _PassengerInformationScreenState
                         promotion: _promotion,
                         error: _promoError,
                         checking: _checkingPromo,
+                        busy: _discountBusy,
                         onApply: _applyPromotion,
-                        onRemove: () => setState(() => _promotion = null),
+                        onChooseVoucher: widget.isSignedIn && !expired
+                            ? _chooseVoucher
+                            : null,
+                        showWallet: widget.isSignedIn,
+                        onRemove: () => setState(() {
+                          _promotion = null;
+                          _promoError = null;
+                        }),
                       ),
                     ),
                     const SliverToBoxAdapter(child: SizedBox(height: 16)),
@@ -938,16 +990,22 @@ class _PromotionCard extends StatelessWidget {
     required this.promotion,
     required this.error,
     required this.checking,
+    required this.busy,
     required this.onApply,
     required this.onRemove,
+    required this.showWallet,
+    this.onChooseVoucher,
   });
 
   final TextEditingController controller;
   final PromotionQuote? promotion;
   final String? error;
   final bool checking;
+  final bool busy;
   final VoidCallback onApply;
   final VoidCallback onRemove;
+  final bool showWallet;
+  final VoidCallback? onChooseVoucher;
 
   @override
   Widget build(BuildContext context) {
@@ -969,6 +1027,25 @@ class _PromotionCard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 9),
+          if (showWallet) ...[
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                key: const Key('voucher-choose-wallet'),
+                onPressed: busy ? null : onChooseVoucher,
+                icon: const Icon(
+                  Icons.account_balance_wallet_outlined,
+                  size: 19,
+                ),
+                label: Text(
+                  applied?.userVoucherId == null
+                      ? 'Chọn từ ví voucher'
+                      : 'Đổi voucher trong ví',
+                ),
+              ),
+            ),
+            const SizedBox(height: 9),
+          ],
           if (applied == null)
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -977,6 +1054,7 @@ class _PromotionCard extends StatelessWidget {
                   child: TextField(
                     key: const Key('voucher-field'),
                     controller: controller,
+                    enabled: !busy,
                     textCapitalization: TextCapitalization.characters,
                     onSubmitted: (_) => onApply(),
                     style: const TextStyle(color: _ink, fontSize: 14),
@@ -1022,7 +1100,7 @@ class _PromotionCard extends StatelessWidget {
                   height: 48,
                   child: FilledButton(
                     key: const Key('voucher-apply'),
-                    onPressed: checking ? null : onApply,
+                    onPressed: busy ? null : onApply,
                     style: FilledButton.styleFrom(
                       backgroundColor: _blue,
                       padding: const EdgeInsets.symmetric(horizontal: 16),

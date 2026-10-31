@@ -12,6 +12,12 @@ const OperatorBookingPageDtoOutputItemsInnerPaymentProviderEnum
 const OperatorBookingPageDtoOutputItemsInnerPaymentProviderEnum
     _$operatorBookingPageDtoOutputItemsInnerPaymentProviderEnum_MOMO =
     const OperatorBookingPageDtoOutputItemsInnerPaymentProviderEnum._('MOMO');
+const OperatorBookingPageDtoOutputItemsInnerPaymentProviderEnum
+    _$operatorBookingPageDtoOutputItemsInnerPaymentProviderEnum_PAYOS =
+    const OperatorBookingPageDtoOutputItemsInnerPaymentProviderEnum._('PAYOS');
+const OperatorBookingPageDtoOutputItemsInnerPaymentProviderEnum
+    _$operatorBookingPageDtoOutputItemsInnerPaymentProviderEnum_DEMO =
+    const OperatorBookingPageDtoOutputItemsInnerPaymentProviderEnum._('DEMO');
 
 OperatorBookingPageDtoOutputItemsInnerPaymentProviderEnum
     _$operatorBookingPageDtoOutputItemsInnerPaymentProviderEnumValueOf(
@@ -21,6 +27,10 @@ OperatorBookingPageDtoOutputItemsInnerPaymentProviderEnum
       return _$operatorBookingPageDtoOutputItemsInnerPaymentProviderEnum_VNPAY;
     case 'MOMO':
       return _$operatorBookingPageDtoOutputItemsInnerPaymentProviderEnum_MOMO;
+    case 'PAYOS':
+      return _$operatorBookingPageDtoOutputItemsInnerPaymentProviderEnum_PAYOS;
+    case 'DEMO':
+      return _$operatorBookingPageDtoOutputItemsInnerPaymentProviderEnum_DEMO;
     default:
       throw ArgumentError(name);
   }
@@ -32,6 +42,8 @@ final BuiltSet<OperatorBookingPageDtoOutputItemsInnerPaymentProviderEnum>
         OperatorBookingPageDtoOutputItemsInnerPaymentProviderEnum>(const <OperatorBookingPageDtoOutputItemsInnerPaymentProviderEnum>[
   _$operatorBookingPageDtoOutputItemsInnerPaymentProviderEnum_VNPAY,
   _$operatorBookingPageDtoOutputItemsInnerPaymentProviderEnum_MOMO,
+  _$operatorBookingPageDtoOutputItemsInnerPaymentProviderEnum_PAYOS,
+  _$operatorBookingPageDtoOutputItemsInnerPaymentProviderEnum_DEMO,
 ]);
 
 const OperatorBookingPageDtoOutputItemsInnerPaymentStatusEnum
@@ -109,10 +121,14 @@ class _$OperatorBookingPageDtoOutputItemsInnerPaymentProviderEnumSerializer
   static const Map<String, Object> _toWire = const <String, Object>{
     'VNPAY': 'VNPAY',
     'MOMO': 'MOMO',
+    'PAYOS': 'PAYOS',
+    'DEMO': 'DEMO',
   };
   static const Map<Object, String> _fromWire = const <Object, String>{
     'VNPAY': 'VNPAY',
     'MOMO': 'MOMO',
+    'PAYOS': 'PAYOS',
+    'DEMO': 'DEMO',
   };
 
   @override

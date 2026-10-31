@@ -2,7 +2,7 @@
 
 Live state of the managed marketplace project `Marketplace-Ve-Xe-Nhanh` (codename renamed 25/05/2026 from `Ve_Xe_Nhanh_NestJS_NextJs_ReactNative`). Agents must consult this file before writing or editing any SDLC document. Update this file after every documentation change that affects status, decisions or blockers.
 
-Last updated: 28/10/2026.
+Last updated: 31/10/2026.
 
 ## 1. SDLC document status
 
@@ -25,6 +25,8 @@ Last updated: 28/10/2026.
 | 12   | Release Notes & Change Log                | `SDLC/12-release-notes-change-log.md`      | Draft    | AI Agent                 |
 
 Status legend per `00a §3.2`: `Writing` / `Draft` / `Review` / `Approved` / `Deprecated` / `Superseded`.
+
+31/10/2026: thanh toán hành khách theo ADR-029 / [kế hoạch](../task-propreties/PAYOS-plan.md) **chờ duyệt**. Nền payOS đã kiểm migration/role app/tiền/RLS trên DB tạm và lint/typecheck/test/build monorepo. Bổ sung ví voucher cho User, bốn thẻ payOS/MoMo/VNPay/DEMO, tách màn chọn / thanh toán và giữ ví API rỗng đúng dữ liệu: Flutter analyze không có issue, 265 tests pass; backend lint/typecheck và 60 gateway/config tests pass. Khóa do Khanh tự điền; OQ-22 mở (payOS thật local, MoMo/VNPay sandbox). Chưa giao dịch/thiết bị thật, review độc lập, commit/push/deploy. Cấu hình: [RB-12](../runbook/RB-12-payos.md).
 
 28/10/2026: giữ trạng thái các tài liệu; đồng bộ thiết kế `COUNTER-SALES` với phạm vi Khanh chốt26–27/10. Đã có văn phòng/phân công, cổng `SALES_STAFF` và Owner, giữ ghế/đơn/thu tiền/phát-in vé quầy, phí mặc định0% + sổ phải thu/thu thủ công, xác nhận khởi hành thực tế. Code tại `feat/selling_tickets`; kết quả kiểm tra và giới hạn ở [checklist](../task-propreties/COUNTER-SALES-todo.md), hướng dẫn tại [guide](../task-propreties/COUNTER-SALES-guide.md). Chưa commit/push, review độc lập hoặc migration database dùng chung; ca/bàn giao/hoàn-đổi còn chờ chính sách.
 

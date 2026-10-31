@@ -12,6 +12,12 @@ const AdminPaymentPageDtoOutputItemsInnerProviderEnum
 const AdminPaymentPageDtoOutputItemsInnerProviderEnum
     _$adminPaymentPageDtoOutputItemsInnerProviderEnum_MOMO =
     const AdminPaymentPageDtoOutputItemsInnerProviderEnum._('MOMO');
+const AdminPaymentPageDtoOutputItemsInnerProviderEnum
+    _$adminPaymentPageDtoOutputItemsInnerProviderEnum_PAYOS =
+    const AdminPaymentPageDtoOutputItemsInnerProviderEnum._('PAYOS');
+const AdminPaymentPageDtoOutputItemsInnerProviderEnum
+    _$adminPaymentPageDtoOutputItemsInnerProviderEnum_DEMO =
+    const AdminPaymentPageDtoOutputItemsInnerProviderEnum._('DEMO');
 
 AdminPaymentPageDtoOutputItemsInnerProviderEnum
     _$adminPaymentPageDtoOutputItemsInnerProviderEnumValueOf(String name) {
@@ -20,6 +26,10 @@ AdminPaymentPageDtoOutputItemsInnerProviderEnum
       return _$adminPaymentPageDtoOutputItemsInnerProviderEnum_VNPAY;
     case 'MOMO':
       return _$adminPaymentPageDtoOutputItemsInnerProviderEnum_MOMO;
+    case 'PAYOS':
+      return _$adminPaymentPageDtoOutputItemsInnerProviderEnum_PAYOS;
+    case 'DEMO':
+      return _$adminPaymentPageDtoOutputItemsInnerProviderEnum_DEMO;
     default:
       throw ArgumentError(name);
   }
@@ -30,6 +40,8 @@ final BuiltSet<AdminPaymentPageDtoOutputItemsInnerProviderEnum>
         AdminPaymentPageDtoOutputItemsInnerProviderEnum>(const <AdminPaymentPageDtoOutputItemsInnerProviderEnum>[
   _$adminPaymentPageDtoOutputItemsInnerProviderEnum_VNPAY,
   _$adminPaymentPageDtoOutputItemsInnerProviderEnum_MOMO,
+  _$adminPaymentPageDtoOutputItemsInnerProviderEnum_PAYOS,
+  _$adminPaymentPageDtoOutputItemsInnerProviderEnum_DEMO,
 ]);
 
 const AdminPaymentPageDtoOutputItemsInnerStatusEnum
@@ -101,10 +113,14 @@ class _$AdminPaymentPageDtoOutputItemsInnerProviderEnumSerializer
   static const Map<String, Object> _toWire = const <String, Object>{
     'VNPAY': 'VNPAY',
     'MOMO': 'MOMO',
+    'PAYOS': 'PAYOS',
+    'DEMO': 'DEMO',
   };
   static const Map<Object, String> _fromWire = const <Object, String>{
     'VNPAY': 'VNPAY',
     'MOMO': 'MOMO',
+    'PAYOS': 'PAYOS',
+    'DEMO': 'DEMO',
   };
 
   @override

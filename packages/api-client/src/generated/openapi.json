@@ -14316,7 +14316,9 @@
             "schema": {
               "enum": [
                 "VNPAY",
-                "MOMO"
+                "MOMO",
+                "PAYOS",
+                "DEMO"
               ],
               "type": "string"
             }
@@ -17320,7 +17322,9 @@
             "schema": {
               "enum": [
                 "VNPAY",
-                "MOMO"
+                "MOMO",
+                "PAYOS",
+                "DEMO"
               ],
               "type": "string"
             }
@@ -17419,7 +17423,9 @@
             "schema": {
               "enum": [
                 "VNPAY",
-                "MOMO"
+                "MOMO",
+                "PAYOS",
+                "DEMO"
               ],
               "type": "string"
             }
@@ -17518,7 +17524,9 @@
             "schema": {
               "enum": [
                 "VNPAY",
-                "MOMO"
+                "MOMO",
+                "PAYOS",
+                "DEMO"
               ],
               "type": "string"
             }
@@ -44719,7 +44727,9 @@
                     "type": "string",
                     "enum": [
                       "VNPAY",
-                      "MOMO"
+                      "MOMO",
+                      "PAYOS",
+                      "DEMO"
                     ]
                   },
                   "status": {
@@ -45341,7 +45351,9 @@
                     "type": "string",
                     "enum": [
                       "VNPAY",
-                      "MOMO"
+                      "MOMO",
+                      "PAYOS",
+                      "DEMO"
                     ]
                   },
                   "status": {
@@ -45762,7 +45774,9 @@
                           "type": "string",
                           "enum": [
                             "VNPAY",
-                            "MOMO"
+                            "MOMO",
+                            "PAYOS",
+                            "DEMO"
                           ]
                         },
                         "status": {
@@ -45939,7 +45953,9 @@
                     "type": "string",
                     "enum": [
                       "VNPAY",
-                      "MOMO"
+                      "MOMO",
+                      "PAYOS",
+                      "DEMO"
                     ]
                   },
                   "status": {
@@ -46574,7 +46590,9 @@
             "type": "string",
             "enum": [
               "VNPAY",
-              "MOMO"
+              "MOMO",
+              "PAYOS",
+              "DEMO"
             ]
           }
         },
@@ -46597,7 +46615,9 @@
             "type": "string",
             "enum": [
               "VNPAY",
-              "MOMO"
+              "MOMO",
+              "PAYOS",
+              "DEMO"
             ]
           },
           "status": {
@@ -46624,6 +46644,49 @@
             "type": "string",
             "format": "date-time",
             "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$"
+          },
+          "transfer": {
+            "type": "object",
+            "properties": {
+              "qrCode": {
+                "type": "string",
+                "minLength": 1
+              },
+              "bin": {
+                "type": "string",
+                "minLength": 1
+              },
+              "accountNumber": {
+                "type": "string",
+                "minLength": 1
+              },
+              "accountName": {
+                "type": "string",
+                "minLength": 1
+              },
+              "amount": {
+                "type": "string",
+                "pattern": "^[1-9]\\d*$"
+              },
+              "description": {
+                "type": "string",
+                "minLength": 1
+              },
+              "paymentLinkId": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "required": [
+              "qrCode",
+              "bin",
+              "accountNumber",
+              "accountName",
+              "amount",
+              "description",
+              "paymentLinkId"
+            ],
+            "additionalProperties": false
           }
         },
         "required": [
@@ -46673,7 +46736,9 @@
                   "type": "string",
                   "enum": [
                     "VNPAY",
-                    "MOMO"
+                    "MOMO",
+                    "PAYOS",
+                    "DEMO"
                   ]
                 },
                 "amount": {
@@ -46815,7 +46880,9 @@
             "type": "string",
             "enum": [
               "VNPAY",
-              "MOMO"
+              "MOMO",
+              "PAYOS",
+              "DEMO"
             ]
           },
           "amount": {
@@ -48183,7 +48250,9 @@
                         "type": "string",
                         "enum": [
                           "VNPAY",
-                          "MOMO"
+                          "MOMO",
+                          "PAYOS",
+                          "DEMO"
                         ]
                       },
                       "status": {
@@ -48579,7 +48648,9 @@
                   "type": "string",
                   "enum": [
                     "VNPAY",
-                    "MOMO"
+                    "MOMO",
+                    "PAYOS",
+                    "DEMO"
                   ]
                 },
                 "operatorId": {
@@ -48721,7 +48792,9 @@
             "type": "string",
             "enum": [
               "VNPAY",
-              "MOMO"
+              "MOMO",
+              "PAYOS",
+              "DEMO"
             ]
           },
           "operatorId": {
@@ -51515,7 +51588,9 @@
                   "type": "string",
                   "enum": [
                     "VNPAY",
-                    "MOMO"
+                    "MOMO",
+                    "PAYOS",
+                    "DEMO"
                   ]
                 },
                 "amount": {
@@ -52190,7 +52265,9 @@
                   "type": "string",
                   "enum": [
                     "VNPAY",
-                    "MOMO"
+                    "MOMO",
+                    "PAYOS",
+                    "DEMO"
                   ]
                 },
                 "status": {

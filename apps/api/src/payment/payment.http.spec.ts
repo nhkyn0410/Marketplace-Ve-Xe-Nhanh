@@ -9,6 +9,9 @@ import { APP_CONFIG, type AppConfig } from "../config/env.config";
 import { MomoGateway } from "../external/payment/momo/momo-gateway";
 import { PAYMENT_SIMULATOR, type PaymentSimulator, PaymentSimulatorController } from "../external/payment/simulator/payment-simulator.controller";
 import { VnpayGateway } from "../external/payment/vnpay/vnpay-gateway";
+import { DemoGateway } from "../external/payment/demo/demo-gateway";
+import { DemoPaymentController } from "../external/payment/demo/demo-payment.controller";
+import { PAYMENT_GATEWAYS, type PaymentGateway } from "../external/payment/payment-gateway";
 import { type AccessTokenClaims, TokenService } from "../iam/auth/token.service";
 import { GuestOrPassengerGuard } from "../iam/role/guest-or-passenger";
 import { SessionService } from "../iam/session/session.service";
@@ -40,12 +43,15 @@ describe("Thanh toán — HTTP", () => {
     vnpay: { tmnCode: "DEVSIM01", hashSecret: "bi-mat-gia-lap", paymentUrl: "", apiUrl: "" },
     momo: { partnerCode: "DEVSIM01", accessKey: "truy-cap", secretKey: "bi-mat-momo", endpoint: "", ipnUrl: "" },
   };
+  const demoConfig = { secret: "http-demo-test-secret", baseUrl: "", callbackUrl: "" };
+  const demoGateway = new DemoGateway(demoConfig);
+  const gateways = new Map<PaymentGateway["provider"], PaymentGateway>([["DEMO", demoGateway]]);
   let app: INestApplication;
   let origin: string;
   let tokens: TokenService;
 
   @Module({
-    controllers: [PaymentController, PaymentWebhookController, PaymentSimulatorController],
+    controllers: [PaymentController, PaymentWebhookController, PaymentSimulatorController, DemoPaymentController],
     providers: [
       { provide: APP_INTERCEPTOR, useClass: ZodSerializerInterceptor },
       { provide: APP_CONFIG, useValue: { NODE_ENV: "test", JWT_ACCESS_TTL_SECONDS: 900, JWT_ISSUER: "vexenhanh-test" } as AppConfig },
@@ -54,6 +60,7 @@ describe("Thanh toán — HTTP", () => {
       { provide: PaymentService, useValue: service },
       { provide: PaymentWebhookService, useValue: { receive } },
       { provide: PAYMENT_SIMULATOR, useValue: simulator },
+      { provide: PAYMENT_GATEWAYS, useValue: gateways },
       { provide: SessionService, useValue: { assertActive: async () => undefined, assertOperatorAccountCurrent: async () => undefined } },
     ],
   })
@@ -69,6 +76,8 @@ describe("Thanh toán — HTTP", () => {
     simulator.vnpay!.paymentUrl = `${origin}/v1/dev/payment-gateway/vnpay`;
     simulator.momo!.endpoint = `${origin}/v1/dev/payment-gateway/momo`;
     simulator.momo!.ipnUrl = `${origin}/v1/webhooks/payment/momo`;
+    demoConfig.baseUrl = `${origin}/v1/dev/payment-gateway/demo`;
+    demoConfig.callbackUrl = `${origin}/v1/webhooks/payment/demo`;
     tokens = app.get(TokenService);
   }, 15_000);
 
@@ -115,6 +124,16 @@ describe("Thanh toán — HTTP", () => {
     expect(service.create).toHaveBeenCalledTimes(2);
   });
 
+  it("payOS nhận provider mới, giữ dữ liệu VietQR trong response; DEMO dùng cùng quyền hành khách / khách vãng lai", async () => {
+    const transfer = { qrCode: "VIETQR", bin: "970422", accountNumber: "0123456789", accountName: "NGUYEN VAN A", amount: "320000", description: "VQR123", paymentLinkId: "payos-link" };
+    const payos = { ...payment, provider: "PAYOS", paymentUrl: "https://pay.payos.vn/web/payos-link", transfer };
+    service.create.mockResolvedValueOnce(payos);
+    expect(await pay(null, { provider: "PAYOS" }, { "X-Booking-Token": "guest-secret" })).toMatchObject({ status: 201, body: { provider: "PAYOS", transfer } });
+    expect(service.create.mock.calls[0]?.slice(1, 4)).toEqual([bookingId, "guest-secret", { provider: "PAYOS" }]);
+    expect((await pay(await token("PASSENGER"), { provider: "DEMO" })).status).toBe(201);
+    expect((await pay(await token("OPERATOR_OWNER"), { provider: "PAYOS" })).status).toBe(403);
+  });
+
   it.each([
     ["ACCEPTED", "00"],
     ["ALREADY_CONFIRMED", "02"],
@@ -138,6 +157,20 @@ describe("Thanh toán — HTTP", () => {
     expect((await momo({ orderId: "PAY1" })).status).toBe(400);
     receive.mockRejectedValueOnce(callbackUnavailable());
     expect((await momo({ orderId: "PAY1" })).status).toBe(503);
+  });
+
+  it.each(["payos", "demo"])("webhook %s không cần token: nhận / lặp / sai tiền / probe → 200, chữ ký sai → 400, hàng đợi lỗi → 503", async (provider) => {
+    const payload = { code: "00", success: true, data: { orderCode: 123, amount: 320000 }, signature: "test" };
+    const send = () => fetch(`${origin}/v1/webhooks/payment/${provider}`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(payload) });
+    for (const ack of ["ACCEPTED", "ALREADY_CONFIRMED", "AMOUNT_MISMATCH", "NOT_FOUND"] as const) {
+      receive.mockResolvedValueOnce(ack);
+      expect((await send()).status, ack).toBe(200);
+    }
+    expect(receive).toHaveBeenCalledWith(provider.toUpperCase(), payload);
+    receive.mockResolvedValueOnce("INVALID_SIGNATURE");
+    expect((await send()).status).toBe(400);
+    receive.mockRejectedValueOnce(callbackUnavailable());
+    expect((await send()).status).toBe(503);
   });
 
   it("cổng VNPay giả lập: link ký → trang; bấm thành công → IPN ký đúng tới webhook + về trang kết quả kèm tham số ký; link bị sửa → 404", async () => {
@@ -192,5 +225,31 @@ describe("Thanh toán — HTTP", () => {
     simulator.vnpay = null;
     expect((await fetch(`${origin}/v1/dev/payment-gateway/vnpay?vnp_Amount=1`)).status).toBe(404);
     simulator.vnpay = saved;
+  });
+
+  it("DEMO: trang → bấm thành công → webhook ký → redirect; bấm lặp giữ reference, sửa token hoặc tắt cổng → 404", async () => {
+    const { paymentUrl } = await demoGateway.createCheckout({ paymentCode: "PAYABCDEFGH2345", amount: 320_000n, orderInfo: "Thanh toan ve thu", returnUrl: "http://localhost:3001/bookings/demo/payment/result", clientIp: "127.0.0.1", createdAt: new Date(), expiresAt: new Date(Date.now() + 600_000) });
+    const token = new URL(paymentUrl).searchParams.get("token")!;
+    const page = await fetch(paymentUrl);
+    expect(page.status).toBe(200);
+    expect(await page.text()).toContain("không có tiền thật");
+    const send = (outcome: string, value = token) => fetch(`${demoConfig.baseUrl}/complete`, { method: "POST", headers: { "content-type": "application/x-www-form-urlencoded" }, body: new URLSearchParams({ token: value, outcome }), redirect: "manual" });
+    const complete = await send("success");
+    expect(complete.status).toBe(302);
+    expect(complete.headers.get("location")).toBe("http://localhost:3001/bookings/demo/payment/result");
+    expect(receive).toHaveBeenCalledTimes(1);
+    const [provider, callback] = receive.mock.calls[0]!;
+    expect(provider).toBe("DEMO");
+    expect(demoGateway.verifyCallback(callback)).toMatchObject({ success: true, paymentCode: "PAYABCDEFGH2345", amount: 320_000n, providerTxnId: "DEMO-PAYABCDEFGH2345" });
+    expect((await send("fail")).status).toBe(302);
+    expect(receive.mock.calls[1]?.[1]).toEqual(callback);
+    expect((await send("success", `${token}tampered`)).status).toBe(404);
+    gateways.delete("DEMO");
+    try {
+      expect((await fetch(paymentUrl)).status).toBe(404);
+      expect((await send("success")).status).toBe(404);
+    } finally {
+      gateways.set("DEMO", demoGateway);
+    }
   });
 });

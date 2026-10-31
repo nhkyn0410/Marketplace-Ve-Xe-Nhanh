@@ -8137,7 +8137,7 @@ export interface components {
             payment: {
                 paymentCode: string;
                 /** @enum {string} */
-                provider: "VNPAY" | "MOMO";
+                provider: "VNPAY" | "MOMO" | "PAYOS" | "DEMO";
                 /** @enum {string} */
                 status: "INITIATED" | "PROCESSING" | "SUCCESS" | "FAILED" | "EXPIRED" | "CANCELLED" | "RECONCILING";
                 amount: number;
@@ -8258,7 +8258,7 @@ export interface components {
             payment: {
                 paymentCode: string;
                 /** @enum {string} */
-                provider: "VNPAY" | "MOMO";
+                provider: "VNPAY" | "MOMO" | "PAYOS" | "DEMO";
                 /** @enum {string} */
                 status: "INITIATED" | "PROCESSING" | "SUCCESS" | "FAILED" | "EXPIRED" | "CANCELLED" | "RECONCILING";
                 amount: number;
@@ -8339,7 +8339,7 @@ export interface components {
                 total: number;
                 payment: {
                     /** @enum {string} */
-                    provider: "VNPAY" | "MOMO";
+                    provider: "VNPAY" | "MOMO" | "PAYOS" | "DEMO";
                     /** @enum {string} */
                     status: "INITIATED" | "PROCESSING" | "SUCCESS" | "FAILED" | "EXPIRED" | "CANCELLED" | "RECONCILING";
                     paidAt: string | null;
@@ -8371,7 +8371,7 @@ export interface components {
             total: number;
             payment: {
                 /** @enum {string} */
-                provider: "VNPAY" | "MOMO";
+                provider: "VNPAY" | "MOMO" | "PAYOS" | "DEMO";
                 /** @enum {string} */
                 status: "INITIATED" | "PROCESSING" | "SUCCESS" | "FAILED" | "EXPIRED" | "CANCELLED" | "RECONCILING";
                 paidAt: string | null;
@@ -8476,20 +8476,29 @@ export interface components {
         };
         PaymentInputDto: {
             /** @enum {string} */
-            provider: "VNPAY" | "MOMO";
+            provider: "VNPAY" | "MOMO" | "PAYOS" | "DEMO";
         };
         PaymentResponseDto_Output: {
             /** Format: uuid */
             paymentId: string;
             paymentCode: string;
             /** @enum {string} */
-            provider: "VNPAY" | "MOMO";
+            provider: "VNPAY" | "MOMO" | "PAYOS" | "DEMO";
             /** @enum {string} */
             status: "INITIATED" | "PROCESSING" | "SUCCESS" | "FAILED" | "EXPIRED" | "CANCELLED" | "RECONCILING";
             amount: number;
             paymentUrl: string;
             /** Format: date-time */
             expiresAt: string;
+            transfer?: {
+                qrCode: string;
+                bin: string;
+                accountNumber: string;
+                accountName: string;
+                amount: string;
+                description: string;
+                paymentLinkId: string;
+            };
         };
         AdminPaymentPageDto_Output: {
             items: {
@@ -8503,7 +8512,7 @@ export interface components {
                 operatorId: string;
                 operatorName: string;
                 /** @enum {string} */
-                provider: "VNPAY" | "MOMO";
+                provider: "VNPAY" | "MOMO" | "PAYOS" | "DEMO";
                 amount: number;
                 /** @enum {string} */
                 status: "INITIATED" | "PROCESSING" | "SUCCESS" | "FAILED" | "EXPIRED" | "CANCELLED" | "RECONCILING";
@@ -8529,7 +8538,7 @@ export interface components {
             operatorId: string;
             operatorName: string;
             /** @enum {string} */
-            provider: "VNPAY" | "MOMO";
+            provider: "VNPAY" | "MOMO" | "PAYOS" | "DEMO";
             amount: number;
             /** @enum {string} */
             status: "INITIATED" | "PROCESSING" | "SUCCESS" | "FAILED" | "EXPIRED" | "CANCELLED" | "RECONCILING";
@@ -8799,7 +8808,7 @@ export interface components {
                 payment: {
                     paymentCode: string;
                     /** @enum {string} */
-                    provider: "VNPAY" | "MOMO";
+                    provider: "VNPAY" | "MOMO" | "PAYOS" | "DEMO";
                     /** @enum {string} */
                     status: "INITIATED" | "PROCESSING" | "SUCCESS" | "FAILED" | "EXPIRED" | "CANCELLED" | "RECONCILING";
                     amount: number;
@@ -8874,7 +8883,7 @@ export interface components {
                 paymentId: string;
                 paymentCode: string;
                 /** @enum {string} */
-                provider: "VNPAY" | "MOMO";
+                provider: "VNPAY" | "MOMO" | "PAYOS" | "DEMO";
                 /** Format: uuid */
                 operatorId: string;
                 operatorName: string;
@@ -8905,7 +8914,7 @@ export interface components {
             paymentId: string;
             paymentCode: string;
             /** @enum {string} */
-            provider: "VNPAY" | "MOMO";
+            provider: "VNPAY" | "MOMO" | "PAYOS" | "DEMO";
             /** Format: uuid */
             operatorId: string;
             operatorName: string;
@@ -9401,7 +9410,7 @@ export interface components {
             }[];
             paymentMethods: {
                 /** @enum {string} */
-                provider: "VNPAY" | "MOMO";
+                provider: "VNPAY" | "MOMO" | "PAYOS" | "DEMO";
                 amount: number;
                 count: number;
             }[];
@@ -9550,7 +9559,7 @@ export interface components {
                 paymentId: string;
                 paymentCode: string;
                 /** @enum {string} */
-                provider: "VNPAY" | "MOMO";
+                provider: "VNPAY" | "MOMO" | "PAYOS" | "DEMO";
                 /** @enum {string} */
                 status: "INITIATED" | "PROCESSING" | "SUCCESS" | "FAILED" | "EXPIRED" | "CANCELLED" | "RECONCILING";
                 amount: number;
@@ -21081,7 +21090,7 @@ export interface operations {
                 from?: string;
                 to?: string;
                 operatorId?: string;
-                provider?: "VNPAY" | "MOMO";
+                provider?: "VNPAY" | "MOMO" | "PAYOS" | "DEMO";
                 status?: "INITIATED" | "PROCESSING" | "SUCCESS" | "FAILED" | "EXPIRED" | "CANCELLED" | "RECONCILING";
                 reconcile?: "open";
                 q?: string;
@@ -23053,7 +23062,7 @@ export interface operations {
                 from: string;
                 to: string;
                 operatorId?: string;
-                provider?: "VNPAY" | "MOMO";
+                provider?: "VNPAY" | "MOMO" | "PAYOS" | "DEMO";
             };
             header?: never;
             path?: never;
@@ -23105,7 +23114,7 @@ export interface operations {
                 from: string;
                 to: string;
                 operatorId?: string;
-                provider?: "VNPAY" | "MOMO";
+                provider?: "VNPAY" | "MOMO" | "PAYOS" | "DEMO";
             };
             header?: never;
             path?: never;
@@ -23157,7 +23166,7 @@ export interface operations {
                 from: string;
                 to: string;
                 operatorId?: string;
-                provider?: "VNPAY" | "MOMO";
+                provider?: "VNPAY" | "MOMO" | "PAYOS" | "DEMO";
                 group?: "operator" | "route" | "region";
             };
             header?: never;

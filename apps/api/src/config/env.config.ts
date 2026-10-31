@@ -214,6 +214,12 @@ export const envSchema = z
     MOMO_ACCESS_KEY: optionalString,
     MOMO_SECRET_KEY: optionalString,
     MOMO_ENDPOINT: z.preprocess(emptyToUndefined, z.url().default("https://test-payment.momo.vn")),
+    // payOS không có sandbox riêng: chỉ thử tiền thật ở local trước khi giải quyết OQ-22.
+    PAYOS_CLIENT_ID: optionalString,
+    PAYOS_API_KEY: optionalString,
+    PAYOS_CHECKSUM_KEY: optionalString,
+    PAYOS_API_URL: z.preprocess(emptyToUndefined, z.url().default("https://api-merchant.payos.vn")),
+    PAYMENT_DEMO_ENABLED: z.preprocess(emptyToUndefined, z.enum(["true", "false"]).default("false").transform((value) => value === "true")),
     // Gốc web Marketplace: cổng đưa khách về `{gốc}/bookings/{bookingId}/payment/result` (chỉ hiển thị kết quả).
     PAYMENT_RETURN_BASE_URL: z.preprocess(emptyToUndefined, z.url().default("http://localhost:3001")),
     // Khóa HMAC sinh QR vé (TASK-BTP-004, BR-29; base64 32 byte, tách khỏi mọi khóa khác). Đổi khóa = mọi QR cũ mất hiệu
@@ -249,6 +255,7 @@ export const envSchema = z
     for (const keys of [
       ["VNPAY_TMN_CODE", "VNPAY_HASH_SECRET"],
       ["MOMO_PARTNER_CODE", "MOMO_ACCESS_KEY", "MOMO_SECRET_KEY"],
+      ["PAYOS_CLIENT_ID", "PAYOS_API_KEY", "PAYOS_CHECKSUM_KEY"],
       ["FCM_PROJECT_ID", "FCM_CLIENT_EMAIL", "FCM_PRIVATE_KEY"],
       ["APNS_TEAM_ID", "APNS_KEY_ID", "APNS_PRIVATE_KEY", "APNS_TOPIC"],
     ] as const) {
@@ -257,6 +264,12 @@ export const envSchema = z
           ctx.addIssue({ code: "custom", path: [key], message: `${key} is required when the gateway is configured.` });
         }
       }
+    }
+    if (env.NODE_ENV === "production" && env.PAYOS_CLIENT_ID) {
+      ctx.addIssue({ code: "custom", path: ["PAYOS_CLIENT_ID"], message: "Live payOS is restricted to local development until OQ-22 is resolved." });
+    }
+    if (env.PAYMENT_DEMO_ENABLED && env.PAYOS_CLIENT_ID) {
+      ctx.addIssue({ code: "custom", path: ["PAYMENT_DEMO_ENABLED"], message: "Demo payments cannot be enabled with live payOS credentials." });
     }
     // Production fail-fast: secret/key bắt buộc, base URL phải https non-localhost (sec H1/M4).
     if (env.NODE_ENV !== "production") {

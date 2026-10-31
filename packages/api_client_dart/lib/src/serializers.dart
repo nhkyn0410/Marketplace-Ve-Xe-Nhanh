@@ -397,6 +397,7 @@ import 'package:api_client_dart/src/model/password_change_challenge_response.dar
 import 'package:api_client_dart/src/model/password_change_required_dto.dart';
 import 'package:api_client_dart/src/model/payment_input_dto.dart';
 import 'package:api_client_dart/src/model/payment_response_dto_output.dart';
+import 'package:api_client_dart/src/model/payment_response_dto_output_transfer.dart';
 import 'package:api_client_dart/src/model/payout_bank_account_dto_output.dart';
 import 'package:api_client_dart/src/model/payout_confirm_input_dto.dart';
 import 'package:api_client_dart/src/model/payout_detail_dto_output.dart';
@@ -1016,6 +1017,7 @@ part 'serializers.g.dart';
   PasswordChangeRequiredDto,
   PaymentInputDto,
   PaymentResponseDtoOutput,
+  PaymentResponseDtoOutputTransfer,
   PayoutBankAccountDtoOutput,
   PayoutConfirmInputDto,
   PayoutDetailDtoOutput,

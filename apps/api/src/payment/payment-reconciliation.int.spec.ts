@@ -58,7 +58,11 @@ describe.skipIf(!ready && !requireDb)("Đối soát thanh toán với cổng —
     }
     return answer;
   });
-  const gateways: PaymentGateways = new Map<PaymentGateway["provider"], PaymentGateway>([["VNPAY", { provider: "VNPAY", queryTransaction } as unknown as PaymentGateway]]);
+  const cancelCheckout = vi.fn(async (_orderCode: bigint) => undefined);
+  const gateways: PaymentGateways = new Map<PaymentGateway["provider"], PaymentGateway>([
+    ["VNPAY", { provider: "VNPAY", queryTransaction } as unknown as PaymentGateway],
+    ["PAYOS", { provider: "PAYOS", queryTransaction, cancelCheckout } as unknown as PaymentGateway],
+  ]);
   const refundAdd = vi.fn(async () => undefined);
   const refunds = { add: refundAdd } as unknown as Pick<Queue, "add">;
   const qr = new TicketQrSigner(Buffer.alloc(32, 9));
@@ -73,7 +77,7 @@ describe.skipIf(!ready && !requireDb)("Đối soát thanh toán với cổng —
   let seatMapId: string;
 
   /** Booking chờ thanh toán + payment VNPay `PROCESSING` đã quá hạn (khách bấm trả nhưng callback chưa về). */
-  async function overduePayment() {
+  async function overduePayment(provider: "VNPAY" | "PAYOS" = "VNPAY", expiresAt = new Date(Date.now() - MINUTE)) {
     const vehicle = await new VehicleService(prisma, {} as never).create(
       authz,
       VehicleInputSchema.parse({ plateNumber: `51F${10000 + Math.floor(Math.random() * 89999)}`, vehicleTypeId: vehicleType, seatMapId, amenityIds: [], status: "ACTIVE", description: null }),
@@ -91,7 +95,7 @@ describe.skipIf(!ready && !requireDb)("Đối soát thanh toán với cổng —
     );
     const paymentCode = `PAY${randomUUID().replace(/-/g, "").slice(0, 12).toUpperCase()}`;
     await prisma.withTenant(operatorId, (tx) =>
-      tx.payment.create({ data: { paymentCode, operatorId, bookingId: created.bookingId, provider: "VNPAY", status: "PROCESSING", amount: 300_000n, expiresAt: new Date(Date.now() - MINUTE) } }),
+      tx.payment.create({ data: { paymentCode, operatorId, bookingId: created.bookingId, provider, status: "PROCESSING", amount: 300_000n, expiresAt } }),
     );
     return { bookingId: created.bookingId, paymentCode };
   }
@@ -227,6 +231,31 @@ describe.skipIf(!ready && !requireDb)("Đối soát thanh toán với cổng —
     expect(queryTransaction.mock.calls.map(([request]) => request.paymentCode)).not.toContain(missing.paymentCode);
     await reconcilePayments(prisma, gateways, qr, refunds, new Date(now.getTime() + 31 * MINUTE));
     expect(queryTransaction.mock.calls.map(([request]) => request.paymentCode)).toContain(missing.paymentCode);
+  }, 60_000);
+
+  it("payOS mất webhook: tra cả payment chưa hết hạn bằng đúng orderCode, nhận tiền và phát hành vé", async () => {
+    const order = await overduePayment("PAYOS", new Date(Date.now() + 5 * MINUTE));
+    const stored = await prisma.withSystem((tx) => tx.payment.findUniqueOrThrow({ where: { paymentCode: order.paymentCode }, select: { providerOrderCode: true } }));
+    answers.set(order.paymentCode, { status: "SUCCESS", providerTxnId: `PAYOS-${tag}-lost`, amount: 300_000n, resultCode: "PAID" });
+    const run = await reconcilePayments(prisma, gateways, qr, refunds);
+    expect(run.confirmedKeys).toContain(`BOOKING_CONFIRMED:${order.paymentCode}`);
+    expect(queryTransaction.mock.calls.map(([request]) => request)).toContainEqual(expect.objectContaining({ paymentCode: order.paymentCode, orderCode: stored.providerOrderCode }));
+    expect(await stateOf(order.paymentCode)).toMatchObject({ status: "SUCCESS", booking: { status: "CONFIRMED", tickets: [{ status: "VALID" }] } });
+  }, 60_000);
+
+  it("payOS: link của booking hết hạn còn chờ được yêu cầu hủy bằng mã số, lỗi hủy không phát hành vé", async () => {
+    const order = await overduePayment("PAYOS");
+    await prisma.withTenant(operatorId, async (tx) => {
+      await tx.booking.update({ where: { id: order.bookingId }, data: { expiresAt: new Date(Date.now() - MINUTE) } });
+      await expireBooking(tx, operatorId, order.bookingId, new Date());
+    });
+    const stored = await prisma.withSystem((tx) => tx.payment.findUniqueOrThrow({ where: { paymentCode: order.paymentCode }, select: { providerOrderCode: true } }));
+    answers.set(order.paymentCode, { status: "PENDING", providerTxnId: null, amount: null, resultCode: "PENDING" });
+    cancelCheckout.mockRejectedValueOnce(new PaymentGatewayError("payOS unavailable"));
+    const run = await reconcilePayments(prisma, gateways, qr, refunds);
+    expect(cancelCheckout).toHaveBeenCalledWith(stored.providerOrderCode);
+    expect(run.errors).toBeGreaterThanOrEqual(1);
+    expect(await stateOf(order.paymentCode)).toMatchObject({ status: "EXPIRED", booking: { status: "EXPIRED", tickets: [] } });
   }, 60_000);
 
   it("refund đứng yên ở APPROVED quá 30 phút → xếp hàng lại đúng jobId của lần gửi; refund mới tạo thì chưa", async () => {

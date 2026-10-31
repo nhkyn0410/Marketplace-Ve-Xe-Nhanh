@@ -15,6 +15,7 @@ Name | Type | Description | Notes
 **amount** | **int** |  | 
 **paymentUrl** | **String** |  | 
 **expiresAt** | [**DateTime**](DateTime.md) |  | 
+**transfer** | [**PaymentResponseDtoOutputTransfer**](PaymentResponseDtoOutputTransfer.md) |  | [optional] 
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)
 

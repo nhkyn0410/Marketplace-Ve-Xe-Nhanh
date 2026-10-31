@@ -75,6 +75,7 @@ class PromotionQuote {
     required this.name,
     required this.discount,
     required this.total,
+    this.userVoucherId,
   });
 
   final String code;
@@ -85,6 +86,34 @@ class PromotionQuote {
 
   /// VND phải trả sau giảm.
   final int total;
+
+  /// Voucher trong ví đã chọn; `null` khi áp mã khuyến mãi nhập tay.
+  final String? userVoucherId;
+}
+
+/// Voucher thật trong ví để hành khách chọn và kiểm tra cho chuyến đang đặt.
+class BookingVoucher {
+  const BookingVoucher({
+    required this.id,
+    required this.name,
+    required this.status,
+    required this.discountType,
+    required this.discountValue,
+    required this.minOrder,
+    required this.expiresAt,
+    this.maxDiscount,
+    this.promotionCode,
+  });
+
+  final String id;
+  final String name;
+  final String status;
+  final String discountType;
+  final String discountValue;
+  final String minOrder;
+  final String? maxDiscount;
+  final String? promotionCode;
+  final DateTime expiresAt;
 }
 
 /// Thông tin khách nhập ở bước 2, mang sang bước xác nhận.

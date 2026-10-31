@@ -12,6 +12,12 @@ const CreatedBookingDtoOutputPaymentProviderEnum
 const CreatedBookingDtoOutputPaymentProviderEnum
     _$createdBookingDtoOutputPaymentProviderEnum_MOMO =
     const CreatedBookingDtoOutputPaymentProviderEnum._('MOMO');
+const CreatedBookingDtoOutputPaymentProviderEnum
+    _$createdBookingDtoOutputPaymentProviderEnum_PAYOS =
+    const CreatedBookingDtoOutputPaymentProviderEnum._('PAYOS');
+const CreatedBookingDtoOutputPaymentProviderEnum
+    _$createdBookingDtoOutputPaymentProviderEnum_DEMO =
+    const CreatedBookingDtoOutputPaymentProviderEnum._('DEMO');
 
 CreatedBookingDtoOutputPaymentProviderEnum
     _$createdBookingDtoOutputPaymentProviderEnumValueOf(String name) {
@@ -20,6 +26,10 @@ CreatedBookingDtoOutputPaymentProviderEnum
       return _$createdBookingDtoOutputPaymentProviderEnum_VNPAY;
     case 'MOMO':
       return _$createdBookingDtoOutputPaymentProviderEnum_MOMO;
+    case 'PAYOS':
+      return _$createdBookingDtoOutputPaymentProviderEnum_PAYOS;
+    case 'DEMO':
+      return _$createdBookingDtoOutputPaymentProviderEnum_DEMO;
     default:
       throw ArgumentError(name);
   }
@@ -30,6 +40,8 @@ final BuiltSet<CreatedBookingDtoOutputPaymentProviderEnum>
         CreatedBookingDtoOutputPaymentProviderEnum>(const <CreatedBookingDtoOutputPaymentProviderEnum>[
   _$createdBookingDtoOutputPaymentProviderEnum_VNPAY,
   _$createdBookingDtoOutputPaymentProviderEnum_MOMO,
+  _$createdBookingDtoOutputPaymentProviderEnum_PAYOS,
+  _$createdBookingDtoOutputPaymentProviderEnum_DEMO,
 ]);
 
 const CreatedBookingDtoOutputPaymentStatusEnum
@@ -100,10 +112,14 @@ class _$CreatedBookingDtoOutputPaymentProviderEnumSerializer
   static const Map<String, Object> _toWire = const <String, Object>{
     'VNPAY': 'VNPAY',
     'MOMO': 'MOMO',
+    'PAYOS': 'PAYOS',
+    'DEMO': 'DEMO',
   };
   static const Map<Object, String> _fromWire = const <Object, String>{
     'VNPAY': 'VNPAY',
     'MOMO': 'MOMO',
+    'PAYOS': 'PAYOS',
+    'DEMO': 'DEMO',
   };
 
   @override

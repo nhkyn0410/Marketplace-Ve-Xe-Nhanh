@@ -60,10 +60,21 @@ export async function listOverduePendingBookings(
 export async function findPaymentByCode(
   prisma: Pick<PrismaService, "withSystem">,
   paymentCode: string,
-): Promise<{ provider: PaymentProvider; status: PaymentStatus; amount: bigint } | null> {
+): Promise<{ paymentCode: string; provider: PaymentProvider; status: PaymentStatus; amount: bigint } | null> {
   return prisma.withSystem((tx) =>
-    tx.payment.findUnique({ where: { paymentCode }, select: { provider: true, status: true, amount: true } }),
+    tx.payment.findUnique({ where: { paymentCode }, select: { paymentCode: true, provider: true, status: true, amount: true } }),
   );
+}
+
+/** Tra mã số payOS sang payment nội bộ trước khi chuyển callback vào tenant sở hữu. */
+export async function findPaymentByOrderCode(
+  prisma: Pick<PrismaService, "withSystem">,
+  providerOrderCode: bigint,
+): Promise<{ paymentCode: string; provider: PaymentProvider; status: PaymentStatus; amount: bigint } | null> {
+  return prisma.withSystem((tx) => tx.payment.findUnique({
+    where: { providerOrderCode },
+    select: { paymentCode: true, provider: true, status: true, amount: true },
+  }));
 }
 
 /** Chạy `work` ở tenant của nhà xe sở hữu payment (theo mã gửi cổng); không có → `null`. */
@@ -132,18 +143,25 @@ export async function withRefundOperator<T>(
 export async function listPaymentsToReconcile(
   prisma: Pick<PrismaService, "withSystem">,
   filter: { expiredBefore: Date; createdAfter: Date; checkedBefore: Date; limit: number },
-): Promise<{ id: string; operatorId: string; paymentCode: string; provider: PaymentProvider; status: PaymentStatus; amount: bigint; createdAt: Date }[]> {
+): Promise<{ id: string; operatorId: string; paymentCode: string; providerOrderCode: bigint | null; provider: PaymentProvider; status: PaymentStatus; amount: bigint; createdAt: Date }[]> {
   return prisma.withSystem((tx) =>
     tx.payment.findMany({
       where: {
         status: { in: ["INITIATED", "PROCESSING", "EXPIRED", "CANCELLED"] },
-        expiresAt: { lt: filter.expiredBefore },
+        OR: [
+          { expiresAt: { lt: filter.expiredBefore } },
+          { provider: "PAYOS", status: { in: ["INITIATED", "PROCESSING"] } },
+        ],
         createdAt: { gt: filter.createdAfter },
-        OR: [{ providerCheckedAt: null }, { providerCheckedAt: { lt: filter.checkedBefore } }],
+        AND: [{ OR: [
+          { providerCheckedAt: null },
+          { providerCheckedAt: { lt: filter.checkedBefore } },
+          { provider: "PAYOS", providerCheckedAt: { lt: new Date(filter.expiredBefore.getTime() - 10 * 60_000) } },
+        ] }],
       },
       orderBy: { createdAt: "asc" },
       take: filter.limit,
-      select: { id: true, operatorId: true, paymentCode: true, provider: true, status: true, amount: true, createdAt: true },
+      select: { id: true, operatorId: true, paymentCode: true, providerOrderCode: true, provider: true, status: true, amount: true, createdAt: true },
     }),
   );
 }

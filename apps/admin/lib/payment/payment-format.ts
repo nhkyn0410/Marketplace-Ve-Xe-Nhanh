@@ -28,7 +28,7 @@ export const REFUND_STATUS: Record<RefundStatus, { label: string; tone: Tone }> 
 };
 export const REFUND_STATUS_ORDER: RefundStatus[] = ["FAILED", "REQUESTED", "APPROVED", "PROCESSING", "SUCCESS", "REJECTED"];
 
-export const PROVIDER_LABEL: Record<PaymentProvider, string> = { VNPAY: "VNPay", MOMO: "MoMo" };
+export const PROVIDER_LABEL: Record<PaymentProvider, string> = { VNPAY: "VNPay", MOMO: "MoMo", PAYOS: "payOS", DEMO: "Cổng thử" };
 
 export const REFUND_SOURCE: Record<RefundSource, string> = { CUSTOMER: "Khách hủy vé", OPERATOR: "Nhà xe hủy chuyến", PLATFORM: "Vé Xe Nhanh (đối soát)" };
 

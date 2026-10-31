@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:passenger_mobile/features/common/app_toast.dart';
 import 'package:passenger_mobile/features/explore/explore_screen.dart';
 import 'package:passenger_mobile/features/home/home_models.dart';
 import 'package:passenger_mobile/features/home/route_dock_tabbar.dart';
@@ -235,9 +236,7 @@ class _HomeScreenState extends State<HomeScreen>
 
   void _showMessage(String message) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(SnackBar(content: Text(message)));
+    AppToast.show(context, message: message, type: AppToastType.info);
   }
 
   void _handleTabTap(int index) {
@@ -1321,11 +1320,11 @@ class _VoucherSection extends StatelessWidget {
   static Future<void> _copyCode(BuildContext context, String code) async {
     await Clipboard.setData(ClipboardData(text: code));
     if (!context.mounted) return;
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(content: Text('Đã chép mã $code. Dán mã khi đặt vé.')),
-      );
+    AppToast.show(
+      context,
+      message: 'Đã chép mã $code. Dán mã khi đặt vé.',
+      type: AppToastType.success,
+    );
   }
 }
 
@@ -1471,7 +1470,7 @@ class _PopularRoutesSection extends StatelessWidget {
           title: 'Tuyến phổ biến',
           iconAsset: '$_assetRoot/icons/popular_route_pin.svg',
           child: _HorizontalStrip(
-            gap: 7,
+            gap: 10,
             children: [
               for (var index = 0; index < items.length; index++)
                 _PopularRouteCard(
@@ -1496,16 +1495,16 @@ class _PopularRoutesSkeleton extends StatelessWidget {
       title: 'Tuyến phổ biến',
       iconAsset: '$_assetRoot/icons/popular_route_pin.svg',
       child: _HorizontalStrip(
-        gap: 7,
+        gap: 10,
         children: List.generate(
           4,
           (index) => Container(
             key: Key('popular-route-skeleton-$index'),
-            width: 94,
-            height: 74,
+            width: 156,
+            height: 94,
             decoration: BoxDecoration(
               color: const Color(0xFFEAF4FB),
-              borderRadius: BorderRadius.circular(7),
+              borderRadius: BorderRadius.circular(10),
             ),
           ),
         ),
@@ -1537,10 +1536,10 @@ class _PopularRouteCard extends StatelessWidget {
           );
     return Container(
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(7),
+        borderRadius: BorderRadius.circular(10),
         boxShadow: const [
           BoxShadow(
-            color: Color(0x121F6EA6),
+            color: Color(0x141F6EA6),
             offset: Offset(0, 3),
             blurRadius: 10,
           ),
@@ -1548,13 +1547,13 @@ class _PopularRouteCard extends StatelessWidget {
       ),
       child: Material(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(7),
+        borderRadius: BorderRadius.circular(10),
         clipBehavior: Clip.antiAlias,
         child: InkWell(
           onTap: onTap,
           child: SizedBox(
-            width: 94,
-            height: 74,
+            width: 156,
+            height: 94,
             child: Stack(
               children: [
                 Positioned.fill(child: image),
@@ -1564,72 +1563,93 @@ class _PopularRouteCard extends StatelessWidget {
                       gradient: LinearGradient(
                         colors: [
                           Colors.white,
-                          Color(0xE6FFFFFF),
-                          Color(0x1FFFFFFF),
+                          Color(0xF5FFFFFF),
+                          Color(0x33FFFFFF),
+                          Colors.transparent,
                         ],
-                        stops: [0, .5, 1],
+                        stops: [0.0, 0.48, 0.78, 1.0],
                       ),
                     ),
                   ),
                 ),
                 Positioned(
-                  left: 7,
-                  top: 5,
-                  right: 4,
+                  left: 10,
+                  top: 8,
+                  right: 36,
                   child: Text(
                     route.fromLabel,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
                       color: _primaryDark,
-                      fontSize: 7.3,
-                      fontWeight: FontWeight.w600,
+                      fontSize: 10.5,
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
                 ),
                 Positioned(
-                  left: 7,
-                  top: 16,
-                  right: 4,
+                  left: 10,
+                  top: 23,
+                  right: 36,
                   child: Text(
                     route.toLabel,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
                       color: _primaryDark,
-                      fontSize: 11.3,
-                      fontWeight: FontWeight.w600,
+                      fontSize: 14.5,
+                      fontWeight: FontWeight.w700,
                     ),
                   ),
                 ),
                 const Positioned(
-                  left: 7,
-                  bottom: 13,
+                  left: 10,
+                  bottom: 23,
                   child: Text(
                     'Chỉ từ',
-                    style: TextStyle(color: _secondary, fontSize: 6.2),
-                  ),
-                ),
-                Positioned(
-                  left: 7,
-                  bottom: 2,
-                  child: Text(
-                    _formatVnd(route.minPriceVnd),
-                    style: const TextStyle(
-                      color: Color(0xFFE68114),
-                      fontSize: 9,
-                      fontWeight: FontWeight.w600,
+                    style: TextStyle(
+                      color: _secondary,
+                      fontSize: 9.5,
+                      fontWeight: FontWeight.w400,
                     ),
                   ),
                 ),
                 Positioned(
-                  right: 6,
-                  bottom: 5,
-                  child: SvgPicture.asset(
-                    '$_assetRoot/icons/route_action.svg',
-                    width: 15,
-                    height: 15,
-                    excludeFromSemantics: true,
+                  left: 10,
+                  bottom: 6,
+                  child: Text(
+                    _formatVnd(route.minPriceVnd),
+                    style: const TextStyle(
+                      color: Color(0xFFE68114),
+                      fontSize: 13.5,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+                Positioned(
+                  right: 8,
+                  bottom: 8,
+                  child: Container(
+                    width: 24,
+                    height: 24,
+                    decoration: const BoxDecoration(
+                      color: Colors.white,
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Color(0x1A000000),
+                          blurRadius: 4,
+                          offset: Offset(0, 1),
+                        ),
+                      ],
+                    ),
+                    alignment: Alignment.center,
+                    child: SvgPicture.asset(
+                      '$_assetRoot/icons/card_arrow_blue.svg',
+                      width: 11,
+                      height: 11,
+                      excludeFromSemantics: true,
+                    ),
                   ),
                 ),
               ],
@@ -2292,7 +2312,7 @@ class _SupportActions extends StatelessWidget {
               width: width,
               circleAsset: '$_assetRoot/icons/support_center_circle.svg',
               iconAsset: '$_assetRoot/icons/chat.svg',
-              title: 'Trung tâm trợ giúp',
+              title: 'Trung tâm\ntrợ giúp',
               subtitle: 'Câu hỏi thường gặp',
               onTap: onHelpCenter,
             ),

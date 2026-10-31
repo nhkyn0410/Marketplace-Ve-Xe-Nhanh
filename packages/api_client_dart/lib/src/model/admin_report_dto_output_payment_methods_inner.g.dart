@@ -12,6 +12,12 @@ const AdminReportDtoOutputPaymentMethodsInnerProviderEnum
 const AdminReportDtoOutputPaymentMethodsInnerProviderEnum
     _$adminReportDtoOutputPaymentMethodsInnerProviderEnum_MOMO =
     const AdminReportDtoOutputPaymentMethodsInnerProviderEnum._('MOMO');
+const AdminReportDtoOutputPaymentMethodsInnerProviderEnum
+    _$adminReportDtoOutputPaymentMethodsInnerProviderEnum_PAYOS =
+    const AdminReportDtoOutputPaymentMethodsInnerProviderEnum._('PAYOS');
+const AdminReportDtoOutputPaymentMethodsInnerProviderEnum
+    _$adminReportDtoOutputPaymentMethodsInnerProviderEnum_DEMO =
+    const AdminReportDtoOutputPaymentMethodsInnerProviderEnum._('DEMO');
 
 AdminReportDtoOutputPaymentMethodsInnerProviderEnum
     _$adminReportDtoOutputPaymentMethodsInnerProviderEnumValueOf(String name) {
@@ -20,6 +26,10 @@ AdminReportDtoOutputPaymentMethodsInnerProviderEnum
       return _$adminReportDtoOutputPaymentMethodsInnerProviderEnum_VNPAY;
     case 'MOMO':
       return _$adminReportDtoOutputPaymentMethodsInnerProviderEnum_MOMO;
+    case 'PAYOS':
+      return _$adminReportDtoOutputPaymentMethodsInnerProviderEnum_PAYOS;
+    case 'DEMO':
+      return _$adminReportDtoOutputPaymentMethodsInnerProviderEnum_DEMO;
     default:
       throw ArgumentError(name);
   }
@@ -30,6 +40,8 @@ final BuiltSet<AdminReportDtoOutputPaymentMethodsInnerProviderEnum>
         AdminReportDtoOutputPaymentMethodsInnerProviderEnum>(const <AdminReportDtoOutputPaymentMethodsInnerProviderEnum>[
   _$adminReportDtoOutputPaymentMethodsInnerProviderEnum_VNPAY,
   _$adminReportDtoOutputPaymentMethodsInnerProviderEnum_MOMO,
+  _$adminReportDtoOutputPaymentMethodsInnerProviderEnum_PAYOS,
+  _$adminReportDtoOutputPaymentMethodsInnerProviderEnum_DEMO,
 ]);
 
 Serializer<AdminReportDtoOutputPaymentMethodsInnerProviderEnum>
@@ -43,10 +55,14 @@ class _$AdminReportDtoOutputPaymentMethodsInnerProviderEnumSerializer
   static const Map<String, Object> _toWire = const <String, Object>{
     'VNPAY': 'VNPAY',
     'MOMO': 'MOMO',
+    'PAYOS': 'PAYOS',
+    'DEMO': 'DEMO',
   };
   static const Map<Object, String> _fromWire = const <Object, String>{
     'VNPAY': 'VNPAY',
     'MOMO': 'MOMO',
+    'PAYOS': 'PAYOS',
+    'DEMO': 'DEMO',
   };
 
   @override

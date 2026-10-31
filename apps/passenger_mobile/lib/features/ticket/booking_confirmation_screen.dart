@@ -138,6 +138,7 @@ class _BookingConfirmationScreenState extends State<BookingConfirmationScreen> {
       await Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute<void>(
           builder: (_) => PaymentScreen(
+            api: widget.api,
             booking: booking,
             now: widget.now,
             isSignedIn: widget.isSignedIn,
@@ -159,10 +160,12 @@ class _BookingConfirmationScreenState extends State<BookingConfirmationScreen> {
       await _refreshPrices();
       return;
     }
-    if (error is ApiFailure && error.code.startsWith('PROMOTION_')) {
+    if (error is ApiFailure &&
+        (error.code.startsWith('PROMOTION_') ||
+            error.code.startsWith('VOUCHER_'))) {
       setState(() => _promotion = null);
       _showMessage(
-        '${error.detail} Mã đã được bỏ, vui lòng xem lại tổng tiền.',
+        '${error.detail} Ưu đãi đã được bỏ, vui lòng xem lại tổng tiền.',
       );
       return;
     }
@@ -177,11 +180,18 @@ class _BookingConfirmationScreenState extends State<BookingConfirmationScreen> {
       final code = _promotion?.code;
       if (code != null) {
         try {
-          promotion = await widget.api.checkPromotion(
-            tripId: widget.trip.tripId,
-            code: code,
-            subtotal: hold.subtotal,
-          );
+          final voucherId = _promotion?.userVoucherId;
+          promotion = voucherId == null
+              ? await widget.api.checkPromotion(
+                  tripId: widget.trip.tripId,
+                  code: code,
+                  subtotal: hold.subtotal,
+                )
+              : await widget.api.checkVoucher(
+                  tripId: widget.trip.tripId,
+                  userVoucherId: voucherId,
+                  subtotal: hold.subtotal,
+                );
         } catch (_) {
           promotion = null;
         }

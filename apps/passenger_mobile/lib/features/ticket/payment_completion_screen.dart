@@ -3,6 +3,11 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:qr_flutter/qr_flutter.dart';
+
+import 'booking_models.dart';
+import 'payment_models.dart';
+import 'trip_search_models.dart';
 
 const _completionAssets = 'assets/ticket/completion';
 const _page = Color(0xFFF4FAFD);
@@ -11,11 +16,7 @@ const _blue = Color(0xFF2B7EAD);
 const _muted = Color(0xFF71899B);
 const _line = Color(0xFFD7E7EF);
 
-/// Local-only preview of the issued tickets.
-///
-/// This screen intentionally does not create a payment, booking, ticket, PDF,
-/// or check-in credential. The ticket data and QR image are presentation
-/// fixtures until the server-issued ticket API is connected.
+/// Hiển thị vé máy chủ đã phát hành; thiếu booking chỉ dùng dữ liệu xem trước.
 class PaymentCompletionScreen extends StatefulWidget {
   const PaymentCompletionScreen({
     super.key,
@@ -23,13 +24,21 @@ class PaymentCompletionScreen extends StatefulWidget {
     required this.passengerNames,
     this.isSignedIn = false,
     this.onBookingFinished,
+    this.booking,
+    this.issuedTickets,
   }) : assert(selectedSeats.length > 0),
-       assert(selectedSeats.length == passengerNames.length);
+       assert(selectedSeats.length == passengerNames.length),
+       assert((booking == null) == (issuedTickets == null)),
+       assert(
+         issuedTickets == null || issuedTickets.length == selectedSeats.length,
+       );
 
   final List<String> selectedSeats;
   final List<String> passengerNames;
   final bool isSignedIn;
   final VoidCallback? onBookingFinished;
+  final CreatedBooking? booking;
+  final List<IssuedBookingTicket>? issuedTickets;
 
   @override
   State<PaymentCompletionScreen> createState() =>
@@ -85,6 +94,9 @@ class _PaymentCompletionScreenState extends State<PaymentCompletionScreen>
   String get _seat => widget.selectedSeats[_selectedIndex];
 
   String _ticketCode(int index) {
+    if (widget.issuedTickets != null) {
+      return widget.issuedTickets![index].ticketCode;
+    }
     final serial = (3865 + index).toString().padLeft(4, '0');
     return 'VXN726810$serial';
   }
@@ -128,7 +140,9 @@ class _PaymentCompletionScreenState extends State<PaymentCompletionScreen>
       ..hideCurrentSnackBar()
       ..showSnackBar(
         const SnackBar(
-          content: Text('Bản PDF mô phỏng sẽ được kết nối ở bước API sau.'),
+          content: Text(
+            'Chưa hỗ trợ tải PDF. Bạn có thể xuất trình mã QR trên màn hình.',
+          ),
         ),
       );
   }
@@ -161,7 +175,10 @@ class _PaymentCompletionScreenState extends State<PaymentCompletionScreen>
               onPressed: _finishBooking,
               style: FilledButton.styleFrom(
                 minimumSize: const Size.fromHeight(52),
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 14,
+                ),
                 backgroundColor: _blue,
                 foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(
@@ -169,13 +186,18 @@ class _PaymentCompletionScreenState extends State<PaymentCompletionScreen>
                 ),
               ),
               icon: Icon(
-                widget.isSignedIn ? Icons.route_outlined : Icons.explore_outlined,
+                widget.isSignedIn
+                    ? Icons.route_outlined
+                    : Icons.explore_outlined,
                 size: 22,
               ),
               label: Text(
                 widget.isSignedIn ? 'Xem chuyến hành trình' : 'Khám phá thêm',
                 textAlign: TextAlign.center,
-                style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
+                style: const TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                ),
               ),
             ),
           ),
@@ -210,6 +232,8 @@ class _PaymentCompletionScreenState extends State<PaymentCompletionScreen>
                       passengerName: _passengerName,
                       seat: _seat,
                       ticketCode: _ticketCode(_selectedIndex),
+                      booking: widget.booking,
+                      qrToken: widget.issuedTickets?[_selectedIndex].qrToken,
                     ),
                     const SizedBox(height: 4),
                     _TicketPagination(
@@ -291,12 +315,7 @@ class _CompletionHeader extends StatelessWidget {
 class _CompletionProgress extends StatelessWidget {
   const _CompletionProgress();
 
-  static const _steps = [
-    'Chọn ghế',
-    'Thông tin',
-    'Thanh toán',
-    'Hoàn tất',
-  ];
+  static const _steps = ['Chọn ghế', 'Thông tin', 'Thanh toán', 'Hoàn tất'];
 
   @override
   Widget build(BuildContext context) {
@@ -614,6 +633,8 @@ class _TicketPrinter extends StatelessWidget {
     required this.passengerName,
     required this.seat,
     required this.ticketCode,
+    this.booking,
+    this.qrToken,
   });
 
   static const _printerWidth = 336.0;
@@ -625,6 +646,8 @@ class _TicketPrinter extends StatelessWidget {
   final String passengerName;
   final String seat;
   final String ticketCode;
+  final CreatedBooking? booking;
+  final String? qrToken;
 
   @override
   Widget build(BuildContext context) {
@@ -672,6 +695,8 @@ class _TicketPrinter extends StatelessWidget {
                           passengerName: passengerName,
                           seat: seat,
                           ticketCode: ticketCode,
+                          booking: booking,
+                          qrToken: qrToken,
                         ),
                       ),
                     ),
@@ -708,11 +733,15 @@ class _TicketBill extends StatelessWidget {
     required this.passengerName,
     required this.seat,
     required this.ticketCode,
+    this.booking,
+    this.qrToken,
   });
 
   final String passengerName;
   final String seat;
   final String ticketCode;
+  final CreatedBooking? booking;
+  final String? qrToken;
 
   @override
   Widget build(BuildContext context) {
@@ -778,10 +807,12 @@ class _TicketBill extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 4),
-                  const Text(
-                    'TP.HCM → ĐÀ LẠT',
+                  Text(
+                    booking?.routeName ?? 'TP.HCM → ĐÀ LẠT',
                     textAlign: TextAlign.center,
-                    style: TextStyle(
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
                       color: _ink,
                       fontSize: 19,
                       height: 1,
@@ -791,10 +822,26 @@ class _TicketBill extends StatelessWidget {
                   const SizedBox(height: 8),
                   const _TicketSeparator(),
                   const SizedBox(height: 7),
-                  const _BillDataRow(label: 'Nhà xe', value: 'Phương Trang'),
-                  const _BillDataRow(label: 'Ngày đi', value: '10/10/2026'),
-                  const _BillDataRow(label: 'Giờ khởi hành', value: '07:00'),
-                  const _BillDataRow(label: 'Tuyến', value: 'TP.HCM → Đà Lạt'),
+                  _BillDataRow(
+                    label: 'Nhà xe',
+                    value: booking?.operatorName ?? 'Phương Trang',
+                  ),
+                  _BillDataRow(
+                    label: 'Ngày đi',
+                    value: booking == null
+                        ? '10/10/2026'
+                        : formatVnDate(booking!.pickupAt),
+                  ),
+                  _BillDataRow(
+                    label: 'Giờ khởi hành',
+                    value: booking == null
+                        ? '07:00'
+                        : formatVnClock(booking!.pickupAt),
+                  ),
+                  _BillDataRow(
+                    label: 'Tuyến',
+                    value: booking?.routeName ?? 'TP.HCM → Đà Lạt',
+                  ),
                   const SizedBox(height: 6),
                   const _TicketSeparator(),
                   const SizedBox(height: 6),
@@ -809,36 +856,51 @@ class _TicketBill extends StatelessWidget {
                     valueKey: const Key('ticket-seat'),
                     valueColor: _blue,
                   ),
-                  const _BillDataRow(
+                  _BillDataRow(
                     label: 'Loại xe',
-                    value: 'Limousine 34 phòng',
+                    value: booking?.vehicleTypeName ?? 'Limousine 34 phòng',
                   ),
                   const SizedBox(height: 6),
                   const _TicketSeparator(),
                   const SizedBox(height: 7),
-                  const _BillStop(
+                  _BillStop(
                     label: 'ĐIỂM ĐÓN',
-                    title: 'Bến xe Miền Đông',
-                    detail: '292 Đinh Bộ Lĩnh, Bình Thạnh, TP.HCM · 07:00',
+                    title: booking?.pickupName ?? 'Bến xe Miền Đông',
+                    detail: booking == null
+                        ? '292 Đinh Bộ Lĩnh, Bình Thạnh, TP.HCM · 07:00'
+                        : formatVnClock(booking!.pickupAt),
                   ),
                   const SizedBox(height: 6),
-                  const _BillStop(
+                  _BillStop(
                     label: 'ĐIỂM TRẢ',
-                    title: 'Bến xe Đà Lạt',
-                    detail: '01 Tô Hiến Thành, Phường 3, Đà Lạt · 13:30',
+                    title: booking?.dropoffName ?? 'Bến xe Đà Lạt',
+                    detail: booking == null
+                        ? '01 Tô Hiến Thành, Phường 3, Đà Lạt · 13:30'
+                        : '${formatVnClock(booking!.dropoffAt)} (dự kiến)',
                   ),
                   const SizedBox(height: 6),
                   const _TicketSeparator(),
                   const SizedBox(height: 7),
                   Semantics(
-                    label: 'Mã QR minh họa, chưa có giá trị soát vé',
+                    label: qrToken == null
+                        ? 'Mã QR minh họa, chưa có giá trị soát vé'
+                        : 'Mã QR vé do máy chủ phát hành',
                     image: true,
                     child: Center(
-                      child: SvgPicture.asset(
-                        '$_completionAssets/ticket_qr_demo.svg',
-                        width: 88,
-                        height: 88,
-                      ),
+                      child: qrToken == null
+                          ? SvgPicture.asset(
+                              '$_completionAssets/ticket_qr_demo.svg',
+                              width: 88,
+                              height: 88,
+                            )
+                          : QrImageView(
+                              key: const Key('ticket-issued-qr'),
+                              data: qrToken!,
+                              semanticsLabel: 'Mã QR vé do máy chủ phát hành',
+                              size: 88,
+                              padding: const EdgeInsets.all(2),
+                              backgroundColor: Colors.white,
+                            ),
                     ),
                   ),
                   const SizedBox(height: 5),

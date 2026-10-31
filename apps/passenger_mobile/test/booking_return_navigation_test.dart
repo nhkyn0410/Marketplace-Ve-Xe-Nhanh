@@ -17,7 +17,7 @@ class _BookingReturnHost extends StatefulWidget {
 
 class _BookingReturnHostState extends State<_BookingReturnHost> {
   var _finished = false;
-  final api = FakeBookingApi();
+  final api = FakeBookingApi()..confirmAfterPayment = true;
 
   void _finishBooking() {
     setState(() => _finished = true);

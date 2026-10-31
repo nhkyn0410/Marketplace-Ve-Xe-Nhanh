@@ -4,6 +4,7 @@
 
 // ignore_for_file: unused_element
 import 'package:built_collection/built_collection.dart';
+import 'package:api_client_dart/src/model/payment_response_dto_output_transfer.dart';
 import 'package:built_value/built_value.dart';
 import 'package:built_value/serializer.dart';
 
@@ -19,6 +20,7 @@ part 'payment_response_dto_output.g.dart';
 /// * [amount] 
 /// * [paymentUrl] 
 /// * [expiresAt] 
+/// * [transfer] 
 @BuiltValue()
 abstract class PaymentResponseDtoOutput implements Built<PaymentResponseDtoOutput, PaymentResponseDtoOutputBuilder> {
   @BuiltValueField(wireName: r'paymentId')
@@ -29,7 +31,7 @@ abstract class PaymentResponseDtoOutput implements Built<PaymentResponseDtoOutpu
 
   @BuiltValueField(wireName: r'provider')
   PaymentResponseDtoOutputProviderEnum get provider;
-  // enum providerEnum {  VNPAY,  MOMO,  };
+  // enum providerEnum {  VNPAY,  MOMO,  PAYOS,  DEMO,  };
 
   @BuiltValueField(wireName: r'status')
   PaymentResponseDtoOutputStatusEnum get status;
@@ -43,6 +45,9 @@ abstract class PaymentResponseDtoOutput implements Built<PaymentResponseDtoOutpu
 
   @BuiltValueField(wireName: r'expiresAt')
   DateTime get expiresAt;
+
+  @BuiltValueField(wireName: r'transfer')
+  PaymentResponseDtoOutputTransfer? get transfer;
 
   PaymentResponseDtoOutput._();
 
@@ -102,6 +107,13 @@ class _$PaymentResponseDtoOutputSerializer implements PrimitiveSerializer<Paymen
       object.expiresAt,
       specifiedType: const FullType(DateTime),
     );
+    if (object.transfer != null) {
+      yield r'transfer';
+      yield serializers.serialize(
+        object.transfer,
+        specifiedType: const FullType(PaymentResponseDtoOutputTransfer),
+      );
+    }
   }
 
   @override
@@ -174,6 +186,14 @@ class _$PaymentResponseDtoOutputSerializer implements PrimitiveSerializer<Paymen
           ) as DateTime;
           result.expiresAt = valueDes;
           break;
+        case r'transfer':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType.nullable(PaymentResponseDtoOutputTransfer),
+          ) as PaymentResponseDtoOutputTransfer?;
+          if (valueDes == null) continue;
+          result.transfer.replace(valueDes);
+          break;
         default:
           unhandled.add(key);
           unhandled.add(value);
@@ -210,6 +230,10 @@ class PaymentResponseDtoOutputProviderEnum extends EnumClass {
   static const PaymentResponseDtoOutputProviderEnum VNPAY = _$paymentResponseDtoOutputProviderEnum_VNPAY;
   @BuiltValueEnumConst(wireName: r'MOMO')
   static const PaymentResponseDtoOutputProviderEnum MOMO = _$paymentResponseDtoOutputProviderEnum_MOMO;
+  @BuiltValueEnumConst(wireName: r'PAYOS')
+  static const PaymentResponseDtoOutputProviderEnum PAYOS = _$paymentResponseDtoOutputProviderEnum_PAYOS;
+  @BuiltValueEnumConst(wireName: r'DEMO')
+  static const PaymentResponseDtoOutputProviderEnum DEMO = _$paymentResponseDtoOutputProviderEnum_DEMO;
 
   static Serializer<PaymentResponseDtoOutputProviderEnum> get serializer => _$paymentResponseDtoOutputProviderEnumSerializer;
 

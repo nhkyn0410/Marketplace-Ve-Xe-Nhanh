@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mobile_shared/mobile_shared.dart';
 import 'package:passenger_mobile/features/ticket/booking_models.dart';
 import 'package:passenger_mobile/features/ticket/booking_confirmation_screen.dart';
 import 'package:passenger_mobile/features/ticket/passenger_information_screen.dart';
@@ -37,12 +40,46 @@ Widget _screen(
   DateTime Function()? now,
   Set<String> doubleSeats = const {},
   List<String> seats = const ['A01', 'A03'],
+  bool isSignedIn = false,
 }) => PassengerInformationScreen(
   api: api,
   trip: api.trip,
   hold: sampleHold(seats: seats, doubleSeats: doubleSeats),
   now: now,
+  isSignedIn: isSignedIn,
 );
+
+BookingVoucher _walletVoucher(String id, {DateTime? expiresAt}) =>
+    BookingVoucher(
+      id: id,
+      name: 'Voucher $id',
+      status: 'AVAILABLE',
+      discountType: 'AMOUNT',
+      discountValue: '50000',
+      minOrder: '300000',
+      expiresAt: expiresAt ?? DateTime.now().add(const Duration(days: 1)),
+    );
+
+Future<void> _openWallet(WidgetTester tester) async {
+  await tester.scrollUntilVisible(
+    find.byKey(const Key('voucher-choose-wallet')),
+    250,
+    scrollable: find
+        .descendant(
+          of: find.byKey(const Key('passenger-information-scroll')),
+          matching: find.byType(Scrollable),
+        )
+        .first,
+  );
+  await tester.ensureVisible(find.byKey(const Key('voucher-choose-wallet')));
+  await tester.drag(
+    find.byKey(const Key('passenger-information-scroll')),
+    const Offset(0, -180),
+  );
+  await tester.pumpAndSettle();
+  await tester.tap(find.byKey(const Key('voucher-choose-wallet')));
+  await tester.pumpAndSettle();
+}
 
 Future<void> _fillContact(WidgetTester tester) async {
   await tester.enterText(
@@ -444,4 +481,154 @@ void main() {
       expect(tester.takeException(), isNull);
     }
   });
+
+  testWidgets(
+    'chỉ khách đăng nhập chọn ví; voucher hợp lệ dùng báo giá server và giữ ID sang xác nhận',
+    (tester) async {
+      final api = FakeBookingApi()
+        ..walletVouchers = [_walletVoucher('wallet-1')];
+      await _pumpApp(tester, home: _screen(api));
+      expect(find.byKey(const Key('voucher-choose-wallet')), findsNothing);
+      expect(api.voucherWalletLoads, 0);
+
+      await _pumpApp(tester, home: _screen(api, isSignedIn: true));
+      await _fillContact(tester);
+      await _openWallet(tester);
+      expect(find.byKey(const Key('booking-voucher-picker')), findsOneWidget);
+      await tester.tap(find.byKey(const Key('booking-voucher-wallet-1')));
+      await tester.pumpAndSettle();
+      expect(api.voucherChecks.single, (
+        tripId: 'trip-1',
+        userVoucherId: 'wallet-1',
+        subtotal: 600000,
+      ));
+      expect(find.text('550.000 ₫'), findsOneWidget);
+      await tester.tap(find.byKey(const Key('passenger-information-continue')));
+      await tester.pumpAndSettle();
+      final draft = tester
+          .widget<BookingConfirmationScreen>(
+            find.byType(BookingConfirmationScreen),
+          )
+          .draft;
+      expect(draft.promotion?.userVoucherId, 'wallet-1');
+      expect(draft.promotion?.discount, 50000);
+      expect(api.bookings, isEmpty);
+    },
+  );
+
+  testWidgets('ví rỗng và lỗi tải có thể thử lại, không dùng voucher mẫu', (
+    tester,
+  ) async {
+    final api = FakeBookingApi()
+      ..voucherWalletLoader = () async => throw StateError('offline');
+    await _pumpApp(tester, home: _screen(api, isSignedIn: true));
+    await _openWallet(tester);
+    expect(find.byKey(const Key('booking-voucher-retry')), findsOneWidget);
+    api.voucherWalletLoader = () async => [];
+    await tester.tap(find.byKey(const Key('booking-voucher-retry')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('booking-voucher-empty')), findsOneWidget);
+    expect(api.voucherChecks, isEmpty);
+    expect(api.bookings, isEmpty);
+  });
+
+  testWidgets(
+    'voucher hết hạn bị khóa; voucher không đúng chuyến hiện lý do từ server',
+    (tester) async {
+      final api = FakeBookingApi()
+        ..walletVouchers = [
+          _walletVoucher(
+            'expired',
+            expiresAt: DateTime.now().subtract(const Duration(days: 1)),
+          ),
+          _walletVoucher('wrong-trip'),
+        ]
+        ..voucherChecker = (_, _) async => throw const ApiFailure(
+          status: 422,
+          code: 'VOUCHER_NOT_APPLICABLE',
+          detail: 'Voucher không áp dụng cho tuyến này.',
+        );
+      await _pumpApp(tester, home: _screen(api, isSignedIn: true));
+      await _openWallet(tester);
+      expect(find.text('Voucher đã hết hạn'), findsOneWidget);
+      await tester.tap(find.byKey(const Key('booking-voucher-expired')));
+      await tester.pump();
+      expect(api.voucherChecks, isEmpty);
+      await tester.tap(find.byKey(const Key('booking-voucher-wrong-trip')));
+      await tester.pumpAndSettle();
+      expect(find.text('Voucher không áp dụng cho tuyến này.'), findsOneWidget);
+      expect(find.byKey(const Key('booking-voucher-picker')), findsOneWidget);
+      expect(find.text('600.000 ₫'), findsWidgets);
+      expect(api.bookings, isEmpty);
+    },
+  );
+
+  testWidgets('bỏ voucher trong ví rồi nhập mã chỉ giữ một ưu đãi', (
+    tester,
+  ) async {
+    final api = FakeBookingApi()..walletVouchers = [_walletVoucher('wallet-1')];
+    await _pumpApp(tester, home: _screen(api, isSignedIn: true));
+    await _fillContact(tester);
+    await _openWallet(tester);
+    await tester.tap(find.byKey(const Key('booking-voucher-wallet-1')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('voucher-remove')));
+    await tester.pumpAndSettle();
+    expect(find.text('600.000 ₫'), findsOneWidget);
+    await tester.enterText(find.byKey(const Key('voucher-field')), 'GIAM50');
+    await tester.tap(find.byKey(const Key('voucher-apply')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('passenger-information-continue')));
+    await tester.pumpAndSettle();
+    final draft = tester
+        .widget<BookingConfirmationScreen>(
+          find.byType(BookingConfirmationScreen),
+        )
+        .draft;
+    expect(draft.promotion?.code, 'GIAM50');
+    expect(draft.promotion?.userVoucherId, isNull);
+  });
+
+  testWidgets(
+    'hết hạn giữ chỗ trong lúc kiểm voucher không áp báo giá đến muộn',
+    (tester) async {
+      final pending = Completer<PromotionQuote>();
+      var now = DateTime.now();
+      final api = FakeBookingApi()
+        ..walletVouchers = [_walletVoucher('wallet-1')]
+        ..voucherChecker = (_, _) => pending.future;
+      await _pumpApp(
+        tester,
+        home: _screen(api, isSignedIn: true, now: () => now),
+      );
+      await _fillContact(tester);
+      await _openWallet(tester);
+      await tester.tap(find.byKey(const Key('booking-voucher-wallet-1')));
+      await tester.pump();
+      expect(api.voucherChecks, hasLength(1));
+      now = now.add(const Duration(minutes: 11));
+      await tester.pump(const Duration(seconds: 1));
+      pending.complete(
+        const PromotionQuote(
+          code: 'WALLET50',
+          name: 'Voucher trong ví',
+          discount: 50000,
+          total: 550000,
+          userVoucherId: 'wallet-1',
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('voucher-applied')), findsNothing);
+      expect(find.text('600.000 ₫'), findsOneWidget);
+      expect(
+        tester
+            .widget<FilledButton>(
+              find.byKey(const Key('passenger-information-continue')),
+            )
+            .onPressed,
+        isNull,
+      );
+      expect(api.bookings, isEmpty);
+    },
+  );
 }

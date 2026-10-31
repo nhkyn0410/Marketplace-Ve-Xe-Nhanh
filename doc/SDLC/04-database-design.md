@@ -13,9 +13,11 @@
 | Người viết    | Nguyễn Hồng Khanh, AI Agent |
 | Người duyệt   | Nguyễn Hồng Khanh           |
 | Ngày tạo      | 11/05/2026                  |
-| Ngày cập nhật | 28/10/2026                  |
+| Ngày cập nhật | 31/10/2026                  |
 
 ### 1.2. Lịch sử thay đổi
+
+31/10/2026 — bổ sung hiện thực payOS **chờ duyệt** (ADR-029): enum `PAYOS` / `DEMO`, `payments.provider_order_code BIGINT UNIQUE NULL` (sequence không tái sử dụng, cấp mặc định cho payment mới, dữ liệu cũ NULL), `checkout JSONB NULL` (tiền là chuỗi); giữ dedup `(provider, provider_txn_id)` với `reference` của payOS và RLS hiện có. Migration `20261031010000_payos_checkout`; role app cần quyền USAGE sequence qua `db:app-role`. Chi tiết tại [PAYOS-plan §2](../task-propreties/PAYOS-plan.md#2-thiết-kế-api). Các mô tả provider VNPay/MoMo dưới đây giữ làm lịch sử / tương thích; không tự đổi trạng thái tài liệu.
 
 | Phiên bản | Ngày       | Người cập nhật | Nội dung thay đổi                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
 | --------- | ---------- | -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |

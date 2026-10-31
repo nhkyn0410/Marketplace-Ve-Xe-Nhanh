@@ -34,6 +34,7 @@ Future<void> _pumpScreen(
   double height = 900,
   SeatHold? hold,
   DateTime Function()? now,
+  BookingDraft draft = _draft,
 }) async {
   tester.view.devicePixelRatio = 1;
   tester.view.physicalSize = Size(width, height);
@@ -51,7 +52,7 @@ Future<void> _pumpScreen(
         api: api,
         trip: api.trip,
         hold: hold ?? sampleHold(),
-        draft: _draft,
+        draft: draft,
         now: now,
       ),
     ),
@@ -355,4 +356,75 @@ void main() {
       expect(tester.takeException(), isNull);
     }
   });
+
+  testWidgets(
+    'giá đổi vẫn kiểm lại voucher bằng ID trong ví, không đổi thành mã nhập tay',
+    (tester) async {
+      final api = FakeBookingApi()
+        ..bookingError = const ApiFailure(
+          status: 409,
+          code: 'BOOKING_SNAPSHOT_CHANGED',
+          detail: 'Giá đổi',
+        )
+        ..reloadedSeatPrice = 320000;
+      final draft = BookingDraft(
+        contact: _draft.contact,
+        passengers: _draft.passengers,
+        promotion: const PromotionQuote(
+          code: 'WALLET50',
+          name: 'Voucher trong ví',
+          discount: 50000,
+          total: 550000,
+          userVoucherId: 'wallet-1',
+        ),
+      );
+      await _pumpScreen(tester, api, draft: draft);
+      await _acceptAndSubmit(tester);
+      expect(api.voucherChecks.single, (
+        tripId: 'trip-1',
+        userVoucherId: 'wallet-1',
+        subtotal: 640000,
+      ));
+      expect(find.textContaining('Tổng mới: 590.000 ₫'), findsOneWidget);
+      await tester.tap(find.byKey(const Key('booking-continue-payment')));
+      await tester.pumpAndSettle();
+      expect(api.bookings.single.draft.promotion?.userVoucherId, 'wallet-1');
+      expect(api.bookings.single.expectedTotal, 590000);
+    },
+  );
+
+  testWidgets(
+    'voucher hết hạn khi tạo đơn được bỏ và khách phải xem lại tổng tiền',
+    (tester) async {
+      final api = FakeBookingApi()
+        ..bookingError = const ApiFailure(
+          status: 422,
+          code: 'VOUCHER_EXPIRED',
+          detail: 'Voucher đã hết hạn.',
+        );
+      final draft = BookingDraft(
+        contact: _draft.contact,
+        passengers: _draft.passengers,
+        promotion: const PromotionQuote(
+          code: 'WALLET50',
+          name: 'Voucher trong ví',
+          discount: 50000,
+          total: 550000,
+          userVoucherId: 'wallet-1',
+        ),
+      );
+      await _pumpScreen(tester, api, draft: draft);
+      await _acceptAndSubmit(tester);
+      expect(find.textContaining('Ưu đãi đã được bỏ'), findsOneWidget);
+      expect(
+        tester.widget<Text>(find.byKey(const Key('booking-total-amount'))).data,
+        '600.000 ₫',
+      );
+      expect(api.bookings, isEmpty);
+      await tester.tap(find.byKey(const Key('booking-continue-payment')));
+      await tester.pumpAndSettle();
+      expect(api.bookings.single.draft.promotion, isNull);
+      expect(api.bookings.single.expectedTotal, 600000);
+    },
+  );
 }
