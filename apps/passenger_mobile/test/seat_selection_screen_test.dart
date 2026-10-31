@@ -38,8 +38,7 @@ Widget _seats(FakeBookingApi api) => SeatSelectionScreen(
   dropoffSequence: 5,
 );
 
-/// Bản sao chuyến mẫu với chỗ [code] đã không còn đặt được.
-TripDetail _withTaken(TripDetail trip, String code) => TripDetail(
+TripDetail _withSeats(TripDetail trip, List<TripSeat> seats) => TripDetail(
   tripId: trip.tripId,
   operatorName: trip.operatorName,
   averageRating: trip.averageRating,
@@ -52,19 +51,33 @@ TripDetail _withTaken(TripDetail trip, String code) => TripDetail(
   imageUrls: trip.imageUrls,
   stops: trip.stops,
   cancellationTiers: trip.cancellationTiers,
-  seats: [
-    for (final seat in trip.seats)
-      TripSeat(
-        code: seat.code,
-        deck: seat.deck,
-        row: seat.row,
-        column: seat.column,
-        type: seat.type,
-        available: seat.available && seat.code != code,
-        price: seat.price,
-      ),
-  ],
+  seats: seats,
 );
+
+/// Bản sao chuyến mẫu với chỗ [code] đã không còn đặt được.
+TripDetail _withTaken(TripDetail trip, String code) => _withSeats(trip, [
+  for (final seat in trip.seats)
+    TripSeat(
+      code: seat.code,
+      deck: seat.deck,
+      row: seat.row,
+      column: seat.column,
+      type: seat.type,
+      available: seat.available && seat.code != code,
+      price: seat.price,
+    ),
+]);
+
+TripSeat _seat(String code, int row, int column, {String type = 'SEAT'}) =>
+    TripSeat(
+      code: code,
+      deck: 1,
+      row: row,
+      column: column,
+      type: type,
+      available: true,
+      price: 300000,
+    );
 
 void main() {
   testWidgets(
@@ -80,7 +93,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.byKey(const Key('seat-selection-screen')), findsOneWidget);
-      expect(find.text('Sài Gòn – Đà Lạt'), findsOneWidget);
+      expect(find.text('Sài Gòn – Đà Lạt'), findsNothing);
       expect(find.byKey(const Key('seat-A01')), findsOneWidget);
       // Chưa giữ chỗ thì chưa đếm giờ.
       expect(find.byKey(const Key('seat-hold-countdown')), findsNothing);
@@ -182,6 +195,115 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('stop-2')), findsNothing);
     expect(find.byKey(const Key('stop-4')), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('xe nhiều ghế giữ lối đi và chọn được hàng cuối trên màn nhỏ', (
+    tester,
+  ) async {
+    final api = FakeBookingApi(
+      trip: _withSeats(sampleTripDetail(), [
+        for (var row = 1; row <= 10; row++)
+          for (var column = 1; column <= 5; column++)
+            if (row == 10 || column != 3)
+              _seat(
+                'A${((row - 1) * 5 + column).toString().padLeft(2, '0')}',
+                row,
+                column,
+              ),
+      ]),
+    );
+    await _pumpApp(tester, home: _seats(api), width: 320, height: 568);
+
+    final first = tester.getRect(find.byKey(const Key('seat-A01')));
+    final second = tester.getRect(find.byKey(const Key('seat-A02')));
+    final fourth = tester.getRect(find.byKey(const Key('seat-A04')));
+    expect(first.width, greaterThanOrEqualTo(48));
+    expect(first.height, greaterThanOrEqualTo(48));
+    expect(fourth.top, first.top);
+    expect(
+      fourth.left - second.right,
+      greaterThan(second.left - first.right + first.width),
+    );
+    expect(find.byKey(const Key('seat-A03')), findsNothing);
+    expect(
+      tester.getRect(find.byKey(const Key('seat-A46'))).top,
+      greaterThan(tester.getRect(find.byKey(const Key('seat-A41'))).bottom),
+    );
+
+    await tester.ensureVisible(find.byKey(const Key('seat-A50')));
+    await tester.pumpAndSettle();
+    expect(
+      tester.getRect(find.byKey(const Key('seat-A50'))).bottom,
+      lessThan(
+        tester.getRect(find.byKey(const Key('seat-selection-continue'))).top,
+      ),
+    );
+    await tester.tap(find.byKey(const Key('seat-A50')));
+    await tester.pump();
+    expect(find.text('1 chỗ — A50'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('seat-selection-continue')));
+    await tester.pumpAndSettle();
+    expect(api.holds.single.seats, ['A50']);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('sơ đồ rộng vuốt ngang, không thu nhỏ vùng bấm', (tester) async {
+    final api = FakeBookingApi(
+      trip: _withSeats(sampleTripDetail(), [
+        for (var column = 1; column <= 10; column++)
+          _seat('A${column.toString().padLeft(2, '0')}', 1, column),
+      ]),
+    );
+    await _pumpApp(tester, home: _seats(api), width: 320);
+    expect(find.text('Vuốt ngang để xem toàn bộ chỗ'), findsOneWidget);
+    expect(
+      tester.getSize(find.byKey(const Key('seat-A10'))).width,
+      greaterThanOrEqualTo(48),
+    );
+    await tester.drag(
+      find.byKey(const Key('seat-map-horizontal-scroll')),
+      const Offset(-700, 0),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('seat-A10')));
+    await tester.pump();
+    expect(find.text('1 chỗ — A10'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('ghế, giường, cabin có kích thước riêng; chỗ đôi giữ một mã', (
+    tester,
+  ) async {
+    final api = FakeBookingApi(
+      trip: _withSeats(sampleTripDetail(), [
+        _seat('S01', 1, 1),
+        _seat('B01', 1, 3, type: 'BED'),
+        _seat('C01', 1, 5, type: 'CABIN'),
+        _seat('D01', 2, 1, type: 'BED_DOUBLE'),
+        _seat('D02', 2, 3, type: 'CABIN_DOUBLE'),
+      ]),
+    );
+    await _pumpApp(tester, home: _seats(api));
+    final seat = tester.getSize(find.byKey(const Key('seat-S01')));
+    final bed = tester.getSize(find.byKey(const Key('seat-B01')));
+    final cabin = tester.getSize(find.byKey(const Key('seat-C01')));
+    final doubleBed = tester.getSize(find.byKey(const Key('seat-D01')));
+    final doubleCabin = tester.getSize(find.byKey(const Key('seat-D02')));
+    expect(seat.height, lessThan(bed.height));
+    expect(bed.width, lessThan(cabin.width));
+    expect(bed.width, lessThan(doubleBed.width));
+    expect(cabin.width, lessThan(doubleCabin.width));
+    expect(find.text('2 người'), findsNWidgets(2));
+
+    await tester.ensureVisible(find.byKey(const Key('seat-D01')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('seat-D01')));
+    await tester.pump();
+    expect(find.text('1 chỗ — D01'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('seat-selection-continue')));
+    await tester.pumpAndSettle();
+    expect(api.holds.single.seats, ['D01']);
     expect(tester.takeException(), isNull);
   });
 
