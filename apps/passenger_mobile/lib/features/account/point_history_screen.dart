@@ -810,8 +810,13 @@ class _DateFilterSheetState extends State<_DateFilterSheet> {
   Widget build(BuildContext context) {
     return Container(
       key: const Key('point-date-filter-sheet'),
-      height: 588,
-      padding: const EdgeInsets.fromLTRB(24, 12, 24, 42),
+      height: 588 + MediaQuery.paddingOf(context).bottom,
+      padding: EdgeInsets.fromLTRB(
+        24,
+        12,
+        24,
+        42 + MediaQuery.paddingOf(context).bottom,
+      ),
       decoration: const BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.vertical(top: Radius.circular(22)),
@@ -847,36 +852,49 @@ class _DateFilterSheetState extends State<_DateFilterSheet> {
             ],
           ),
           const SizedBox(height: 16),
-          Container(
-            height: 360,
-            decoration: BoxDecoration(
-              border: Border.all(color: const Color(0xFFE4EDF7)),
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Column(
-              children: [
-                for (
-                  var index = 0;
-                  index < PointDateFilter.values.length;
-                  index++
-                ) ...[
-                  _DateOption(
-                    option: PointDateFilter.values[index],
-                    selected: _selected == PointDateFilter.values[index],
-                    onTap: () => setState(
-                      () => _selected = PointDateFilter.values[index],
+          Expanded(
+            child: Align(
+              alignment: Alignment.topCenter,
+              child: Container(
+                height: 360,
+                decoration: BoxDecoration(
+                  border: Border.all(color: const Color(0xFFE4EDF7)),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: SingleChildScrollView(
+                  child: SizedBox(
+                    height: 360,
+                    child: Column(
+                      children: [
+                        for (
+                          var index = 0;
+                          index < PointDateFilter.values.length;
+                          index++
+                        ) ...[
+                          _DateOption(
+                            option: PointDateFilter.values[index],
+                            selected:
+                                _selected == PointDateFilter.values[index],
+                            onTap: () => setState(
+                              () => _selected = PointDateFilter.values[index],
+                            ),
+                          ),
+                          if (index != PointDateFilter.values.length - 1)
+                            const Padding(
+                              padding: EdgeInsets.symmetric(horizontal: 16),
+                              child: Divider(
+                                height: .5,
+                                color: Color(0xFFE7EDF5),
+                              ),
+                            ),
+                        ],
+                      ],
                     ),
                   ),
-                  if (index != PointDateFilter.values.length - 1)
-                    const Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 16),
-                      child: Divider(height: .5, color: Color(0xFFE7EDF5)),
-                    ),
-                ],
-              ],
+                ),
+              ),
             ),
           ),
-          const Spacer(),
           SizedBox(
             width: double.infinity,
             height: 56,

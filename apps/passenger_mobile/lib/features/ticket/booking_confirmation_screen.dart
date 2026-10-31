@@ -7,6 +7,7 @@ import 'package:passenger_mobile/features/search/trip_search_form.dart';
 
 import 'booking_flow_chrome.dart';
 import 'booking_models.dart';
+import 'booking_policy_sheet.dart';
 import 'payment_screen.dart';
 import 'trip_booking_api.dart';
 import 'trip_detail_models.dart';
@@ -86,6 +87,33 @@ class _BookingConfirmationScreenState extends State<BookingConfirmationScreen> {
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  Future<void> _showTerms() => showBookingPolicySheet(
+    context: context,
+    title: 'Điều khoản và chính sách',
+    loadDocuments: widget.api.loadBookingTerms,
+  );
+
+  Future<void> _showCancellationPolicy() {
+    final tiers = [...widget.trip.cancellationTiers]
+      ..sort((a, b) => b.minHoursBefore.compareTo(a.minHoursBefore));
+    final body = tiers.isEmpty
+        ? 'Nhà xe chưa công bố mốc hoàn tiền khi hủy vé.'
+        : [
+            for (final tier in tiers)
+              tier.minHoursBefore == 0
+                  ? '- Hủy trước giờ khởi hành: hoàn ${tier.refundPercent}%'
+                  : '- Hủy trước ít nhất ${tier.minHoursBefore} giờ: hoàn ${tier.refundPercent}%',
+            '\nSau các mốc trên: không hoàn tiền.',
+          ].join('\n');
+    return showBookingPolicySheet(
+      context: context,
+      title: 'Chính sách hủy',
+      loadDocuments: () async => [
+        BookingPolicyDocument(title: 'Chính sách hủy', bodyMarkdown: body),
+      ],
+    );
   }
 
   Future<void> _createBooking() async {
@@ -189,8 +217,7 @@ class _BookingConfirmationScreenState extends State<BookingConfirmationScreen> {
             children: [
               BookingFlowHeader(
                 key: const Key('booking-confirmation-header'),
-                title: 'Xác nhận booking',
-                subtitle: widget.trip.routeName,
+                title: 'Xác nhận đặt vé',
                 timerLabel: _timerLabel,
                 expired: expired,
                 urgent: _remaining <= const Duration(minutes: 1),
@@ -237,6 +264,8 @@ class _BookingConfirmationScreenState extends State<BookingConfirmationScreen> {
                     SliverToBoxAdapter(
                       child: _TermsRow(
                         accepted: _termsAccepted,
+                        onViewTerms: _showTerms,
+                        onViewCancellationPolicy: _showCancellationPolicy,
                         onChanged: (value) {
                           setState(() => _termsAccepted = value ?? false);
                         },
@@ -873,10 +902,17 @@ class _PaymentRow extends StatelessWidget {
 }
 
 class _TermsRow extends StatelessWidget {
-  const _TermsRow({required this.accepted, required this.onChanged});
+  const _TermsRow({
+    required this.accepted,
+    required this.onChanged,
+    required this.onViewTerms,
+    required this.onViewCancellationPolicy,
+  });
 
   final bool accepted;
   final ValueChanged<bool?> onChanged;
+  final VoidCallback onViewTerms;
+  final VoidCallback onViewCancellationPolicy;
 
   @override
   Widget build(BuildContext context) {
@@ -904,26 +940,34 @@ class _TermsRow extends StatelessWidget {
             child: Wrap(
               spacing: 3,
               runSpacing: 1,
-              children: const [
-                Text(
+              children: [
+                const Text(
                   'Tôi đồng ý với',
                   style: TextStyle(color: _muted, fontSize: 13),
                 ),
-                Text(
-                  'Điều khoản đặt vé',
-                  style: TextStyle(
-                    color: _blue,
-                    fontSize: 13,
-                    decoration: TextDecoration.underline,
+                InkWell(
+                  key: const Key('booking-view-terms'),
+                  onTap: onViewTerms,
+                  child: const Text(
+                    'Điều khoản đặt vé',
+                    style: TextStyle(
+                      color: _blue,
+                      fontSize: 13,
+                      decoration: TextDecoration.underline,
+                    ),
                   ),
                 ),
-                Text('và', style: TextStyle(color: _muted, fontSize: 13)),
-                Text(
-                  'Chính sách hủy',
-                  style: TextStyle(
-                    color: _blue,
-                    fontSize: 13,
-                    decoration: TextDecoration.underline,
+                const Text('và', style: TextStyle(color: _muted, fontSize: 13)),
+                InkWell(
+                  key: const Key('booking-view-cancellation-policy'),
+                  onTap: onViewCancellationPolicy,
+                  child: const Text(
+                    'Chính sách hủy',
+                    style: TextStyle(
+                      color: _blue,
+                      fontSize: 13,
+                      decoration: TextDecoration.underline,
+                    ),
                   ),
                 ),
               ],

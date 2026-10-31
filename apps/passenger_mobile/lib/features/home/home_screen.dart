@@ -2001,7 +2001,12 @@ class _FaqSheetState extends State<_FaqSheet> {
                   );
                 }
                 return ListView.separated(
-                  padding: const EdgeInsets.fromLTRB(12, 0, 12, 24),
+                  padding: EdgeInsets.fromLTRB(
+                    12,
+                    0,
+                    12,
+                    24 + MediaQuery.paddingOf(context).bottom,
+                  ),
                   itemCount: items.length,
                   separatorBuilder: (_, _) => const Divider(height: 1),
                   itemBuilder: (context, index) {

@@ -158,6 +158,15 @@ class FakeBookingApi implements TripBookingApi {
 
   TripDetail trip;
 
+  Future<List<BookingPolicyDocument>> Function()? bookingTermsLoader;
+  int bookingTermsLoads = 0;
+
+  @override
+  Future<List<BookingPolicyDocument>> loadBookingTerms() async {
+    bookingTermsLoads++;
+    return bookingTermsLoader == null ? const [] : bookingTermsLoader!();
+  }
+
   /// Lỗi ném ra ở lần giữ chỗ tiếp theo (rồi xoá).
   ApiFailure? holdError;
   int loads = 0;

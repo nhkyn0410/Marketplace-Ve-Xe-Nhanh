@@ -15,6 +15,8 @@ class _$TripSearchResponseDtoOutputItemsInnerOperator
   @override
   final String slug;
   @override
+  final String? logoUrl;
+  @override
   final num? averageRating;
   @override
   final int reviewCount;
@@ -29,6 +31,7 @@ class _$TripSearchResponseDtoOutputItemsInnerOperator
       {required this.id,
       required this.name,
       required this.slug,
+      this.logoUrl,
       this.averageRating,
       required this.reviewCount})
       : super._();
@@ -49,6 +52,7 @@ class _$TripSearchResponseDtoOutputItemsInnerOperator
         id == other.id &&
         name == other.name &&
         slug == other.slug &&
+        logoUrl == other.logoUrl &&
         averageRating == other.averageRating &&
         reviewCount == other.reviewCount;
   }
@@ -59,6 +63,7 @@ class _$TripSearchResponseDtoOutputItemsInnerOperator
     _$hash = $jc(_$hash, id.hashCode);
     _$hash = $jc(_$hash, name.hashCode);
     _$hash = $jc(_$hash, slug.hashCode);
+    _$hash = $jc(_$hash, logoUrl.hashCode);
     _$hash = $jc(_$hash, averageRating.hashCode);
     _$hash = $jc(_$hash, reviewCount.hashCode);
     _$hash = $jf(_$hash);
@@ -72,6 +77,7 @@ class _$TripSearchResponseDtoOutputItemsInnerOperator
           ..add('id', id)
           ..add('name', name)
           ..add('slug', slug)
+          ..add('logoUrl', logoUrl)
           ..add('averageRating', averageRating)
           ..add('reviewCount', reviewCount))
         .toString();
@@ -96,6 +102,10 @@ class TripSearchResponseDtoOutputItemsInnerOperatorBuilder
   String? get slug => _$this._slug;
   set slug(String? slug) => _$this._slug = slug;
 
+  String? _logoUrl;
+  String? get logoUrl => _$this._logoUrl;
+  set logoUrl(String? logoUrl) => _$this._logoUrl = logoUrl;
+
   num? _averageRating;
   num? get averageRating => _$this._averageRating;
   set averageRating(num? averageRating) =>
@@ -115,6 +125,7 @@ class TripSearchResponseDtoOutputItemsInnerOperatorBuilder
       _id = $v.id;
       _name = $v.name;
       _slug = $v.slug;
+      _logoUrl = $v.logoUrl;
       _averageRating = $v.averageRating;
       _reviewCount = $v.reviewCount;
       _$v = null;
@@ -146,6 +157,7 @@ class TripSearchResponseDtoOutputItemsInnerOperatorBuilder
               name, r'TripSearchResponseDtoOutputItemsInnerOperator', 'name'),
           slug: BuiltValueNullFieldError.checkNotNull(
               slug, r'TripSearchResponseDtoOutputItemsInnerOperator', 'slug'),
+          logoUrl: logoUrl,
           averageRating: averageRating,
           reviewCount: BuiltValueNullFieldError.checkNotNull(reviewCount,
               r'TripSearchResponseDtoOutputItemsInnerOperator', 'reviewCount'),

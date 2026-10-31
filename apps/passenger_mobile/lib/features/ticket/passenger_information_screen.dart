@@ -261,7 +261,7 @@ class _PassengerInformationScreenState
             children: [
               BookingFlowHeader(
                 key: const Key('passenger-information-header'),
-                title: 'Thông tin hành khách',
+                title: 'Thông tin',
                 timerLabel: _timerLabel,
                 expired: expired,
                 urgent: _remaining <= const Duration(minutes: 1),

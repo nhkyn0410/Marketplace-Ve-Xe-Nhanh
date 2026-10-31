@@ -14,6 +14,8 @@ class _$PublicTripDtoOutputOperator extends PublicTripDtoOutputOperator {
   @override
   final String slug;
   @override
+  final String? logoUrl;
+  @override
   final String? hotline;
   @override
   final num? averageRating;
@@ -28,6 +30,7 @@ class _$PublicTripDtoOutputOperator extends PublicTripDtoOutputOperator {
       {required this.id,
       required this.name,
       required this.slug,
+      this.logoUrl,
       this.hotline,
       this.averageRating,
       required this.reviewCount})
@@ -48,6 +51,7 @@ class _$PublicTripDtoOutputOperator extends PublicTripDtoOutputOperator {
         id == other.id &&
         name == other.name &&
         slug == other.slug &&
+        logoUrl == other.logoUrl &&
         hotline == other.hotline &&
         averageRating == other.averageRating &&
         reviewCount == other.reviewCount;
@@ -59,6 +63,7 @@ class _$PublicTripDtoOutputOperator extends PublicTripDtoOutputOperator {
     _$hash = $jc(_$hash, id.hashCode);
     _$hash = $jc(_$hash, name.hashCode);
     _$hash = $jc(_$hash, slug.hashCode);
+    _$hash = $jc(_$hash, logoUrl.hashCode);
     _$hash = $jc(_$hash, hotline.hashCode);
     _$hash = $jc(_$hash, averageRating.hashCode);
     _$hash = $jc(_$hash, reviewCount.hashCode);
@@ -72,6 +77,7 @@ class _$PublicTripDtoOutputOperator extends PublicTripDtoOutputOperator {
           ..add('id', id)
           ..add('name', name)
           ..add('slug', slug)
+          ..add('logoUrl', logoUrl)
           ..add('hotline', hotline)
           ..add('averageRating', averageRating)
           ..add('reviewCount', reviewCount))
@@ -97,6 +103,10 @@ class PublicTripDtoOutputOperatorBuilder
   String? get slug => _$this._slug;
   set slug(String? slug) => _$this._slug = slug;
 
+  String? _logoUrl;
+  String? get logoUrl => _$this._logoUrl;
+  set logoUrl(String? logoUrl) => _$this._logoUrl = logoUrl;
+
   String? _hotline;
   String? get hotline => _$this._hotline;
   set hotline(String? hotline) => _$this._hotline = hotline;
@@ -120,6 +130,7 @@ class PublicTripDtoOutputOperatorBuilder
       _id = $v.id;
       _name = $v.name;
       _slug = $v.slug;
+      _logoUrl = $v.logoUrl;
       _hotline = $v.hotline;
       _averageRating = $v.averageRating;
       _reviewCount = $v.reviewCount;
@@ -150,6 +161,7 @@ class PublicTripDtoOutputOperatorBuilder
               name, r'PublicTripDtoOutputOperator', 'name'),
           slug: BuiltValueNullFieldError.checkNotNull(
               slug, r'PublicTripDtoOutputOperator', 'slug'),
+          logoUrl: logoUrl,
           hotline: hotline,
           averageRating: averageRating,
           reviewCount: BuiltValueNullFieldError.checkNotNull(

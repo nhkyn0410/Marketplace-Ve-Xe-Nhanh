@@ -16,6 +16,22 @@ class TripBookingApi {
   List<HomeLocation>? _provinces;
   List<TripAmenityOption>? _amenities;
 
+  /// Trang điều khoản / chính sách đã công bố; slug do quản trị cấu hình.
+  Future<List<BookingPolicyDocument>> loadBookingTerms() async {
+    final response = await _call(
+      () =>
+          _client.getContentPagesApi().contentPageControllerList(type: 'PAGE'),
+    );
+    return [
+      for (final item in response.data!.items)
+        if (item.bodyMarkdown.trim().isNotEmpty)
+          BookingPolicyDocument(
+            title: item.title,
+            bodyMarkdown: item.bodyMarkdown,
+          ),
+    ];
+  }
+
   /// Tỉnh/thành đang hoạt động, tên rút gọn ("TP. Hồ Chí Minh", "Lâm Đồng"); tải một lần mỗi phiên.
   Future<List<HomeLocation>> loadProvinces() async {
     final cached = _provinces;

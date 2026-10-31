@@ -46,6 +46,36 @@ class _FakeAdapter implements HttpClientAdapter {
 }
 
 void main() {
+  test(
+    'điều khoản lấy các trang đã công bố theo cấu hình, không cố định slug',
+    () async {
+      final (api, adapter) = _api({
+        '/v1/content-pages': {
+          'items': [
+            for (final body in ['Điều khoản đã công bố.', ' '])
+              {
+                'id': 'page-1',
+                'type': 'PAGE',
+                'placement': 'FOOTER',
+                'title': 'Quy chế hoạt động',
+                'slug': 'quy-che-hoat-dong',
+                'bodyMarkdown': body,
+                'imageUrl': null,
+                'linkUrl': null,
+                'displayOrder': 0,
+                'updatedAt': '2026-10-30T00:00:00Z',
+              },
+          ],
+        },
+      });
+      final documents = await api.loadBookingTerms();
+      expect(adapter.requests.single.uri.queryParameters, {'type': 'PAGE'});
+      expect(documents.single.title, 'Quy chế hoạt động');
+      expect(documents.single.bodyMarkdown, 'Điều khoản đã công bố.');
+    },
+  );
+
+
   test('logo nhà xe dùng API trên thiết bị, giữ URL CDN và logo thiếu', () async {
     const path = '/v1/dev-storage/public/operator-logos/operator/logo.png';
     final (api, _) = _api({

@@ -14,6 +14,7 @@ part 'public_trip_dto_output_operator.g.dart';
 /// * [id] 
 /// * [name] 
 /// * [slug] 
+/// * [logoUrl] 
 /// * [hotline] 
 /// * [averageRating] 
 /// * [reviewCount] 
@@ -27,6 +28,9 @@ abstract class PublicTripDtoOutputOperator implements Built<PublicTripDtoOutputO
 
   @BuiltValueField(wireName: r'slug')
   String get slug;
+
+  @BuiltValueField(wireName: r'logoUrl')
+  String? get logoUrl;
 
   @BuiltValueField(wireName: r'hotline')
   String? get hotline;
@@ -75,6 +79,13 @@ class _$PublicTripDtoOutputOperatorSerializer implements PrimitiveSerializer<Pub
       object.slug,
       specifiedType: const FullType(String),
     );
+    if (object.logoUrl != null) {
+      yield r'logoUrl';
+      yield serializers.serialize(
+        object.logoUrl,
+        specifiedType: const FullType.nullable(String),
+      );
+    }
     yield r'hotline';
     yield object.hotline == null ? null : serializers.serialize(
       object.hotline,
@@ -133,6 +144,14 @@ class _$PublicTripDtoOutputOperatorSerializer implements PrimitiveSerializer<Pub
             specifiedType: const FullType(String),
           ) as String;
           result.slug = valueDes;
+          break;
+        case r'logoUrl':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType.nullable(String),
+          ) as String?;
+          if (valueDes == null) continue;
+          result.logoUrl = valueDes;
           break;
         case r'hotline':
           final valueDes = serializers.deserialize(

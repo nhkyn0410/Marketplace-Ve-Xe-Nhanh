@@ -1,3 +1,14 @@
+/// Nội dung điều khoản / chính sách đã công bố trên nền tảng.
+class BookingPolicyDocument {
+  const BookingPolicyDocument({
+    required this.title,
+    required this.bodyMarkdown,
+  });
+
+  final String title;
+  final String bodyMarkdown;
+}
+
 /// Người liên hệ của đơn (nhận email vé, nhà xe gọi khi cần).
 class BookingContact {
   const BookingContact({

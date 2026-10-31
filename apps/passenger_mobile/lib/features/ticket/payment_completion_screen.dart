@@ -166,7 +166,7 @@ class _PaymentCompletionScreenState extends State<PaymentCompletionScreen>
                           : null,
                       onShowAll: _openTicketPicker,
                     ),
-                    const SizedBox(height: 62),
+                    const SizedBox(height: 16),
                     _TicketPrinter(
                       progress: _printProgress,
                       passengerName: _passengerName,
@@ -245,28 +245,14 @@ class _CompletionHeader extends StatelessWidget {
             ),
           ),
           const Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Vé của bạn',
-                  style: TextStyle(
-                    color: _ink,
-                    fontSize: 19,
-                    height: 1.2,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                SizedBox(height: 2),
-                Text(
-                  'TP.HCM → Đà Lạt',
-                  style: TextStyle(
-                    color: _muted,
-                    fontSize: 11,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ],
+            child: Text(
+              'Vé của bạn',
+              style: TextStyle(
+                color: _ink,
+                fontSize: 19,
+                height: 1.2,
+                fontWeight: FontWeight.w700,
+              ),
             ),
           ),
         ],
@@ -280,7 +266,7 @@ class _CompletionProgress extends StatelessWidget {
 
   static const _steps = [
     'Chọn ghế',
-    'Thông tin\nhành khách',
+    'Thông tin',
     'Thanh toán',
     'Hoàn tất',
   ];
@@ -1239,7 +1225,12 @@ class _PassengerTicketSheetState extends State<_PassengerTicketSheet> {
                   : ListView.separated(
                       keyboardDismissBehavior:
                           ScrollViewKeyboardDismissBehavior.onDrag,
-                      padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
+                      padding: EdgeInsets.fromLTRB(
+                        20,
+                        0,
+                        20,
+                        24 + MediaQuery.paddingOf(context).bottom,
+                      ),
                       itemCount: visibleIndexes.length,
                       separatorBuilder: (_, _) => const SizedBox(height: 12),
                       itemBuilder: (context, listIndex) {

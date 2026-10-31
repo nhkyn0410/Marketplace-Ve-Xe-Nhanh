@@ -1989,7 +1989,12 @@ class _PassengerPickerSheetState extends State<_PassengerPickerSheet> {
           const SizedBox(height: 10),
           Expanded(
             child: ListView.separated(
-              padding: const EdgeInsets.fromLTRB(20, 0, 20, 18),
+              padding: EdgeInsets.fromLTRB(
+                20,
+                0,
+                20,
+                18 + MediaQuery.paddingOf(context).bottom,
+              ),
               itemCount: indexes.length,
               separatorBuilder: (_, _) => const SizedBox(height: 8),
               itemBuilder: (context, itemIndex) {

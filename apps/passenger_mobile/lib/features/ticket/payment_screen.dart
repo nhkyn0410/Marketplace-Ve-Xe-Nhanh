@@ -6,6 +6,7 @@ import 'package:mobile_shared/mobile_shared.dart';
 
 import 'booking_flow_chrome.dart';
 import 'booking_models.dart';
+import 'payment_completion_screen.dart';
 import 'trip_search_models.dart';
 
 const _ink = Color(0xFF0B2942);
@@ -49,6 +50,18 @@ class _PaymentScreenState extends State<PaymentScreen> {
     super.dispose();
   }
 
+  void _openPaymentCompletion() {
+    final passengers = widget.booking.passengers;
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => PaymentCompletionScreen(
+          selectedSeats: passengers.map((p) => p.seatCode).toList(),
+          passengerNames: passengers.map((p) => p.displayName).toList(),
+        ),
+      ),
+    );
+  }
+
   void _refreshRemaining() {
     final remaining = widget.booking.expiresAt.difference(_now());
     _remaining = remaining.isNegative ? Duration.zero : remaining;
@@ -73,7 +86,11 @@ class _PaymentScreenState extends State<PaymentScreen> {
       child: Scaffold(
         key: const Key('payment-screen'),
         backgroundColor: _page,
-        bottomNavigationBar: _PaymentBottomBar(total: booking.total),
+                bottomNavigationBar: _PaymentBottomBar(
+          total: booking.total,
+          disabled: expired,
+          onPay: _openPaymentCompletion,
+        ),
         body: SafeArea(
           bottom: false,
           child: Column(
@@ -81,7 +98,6 @@ class _PaymentScreenState extends State<PaymentScreen> {
               BookingFlowHeader(
                 key: const Key('payment-header'),
                 title: 'Thanh toán',
-                subtitle: booking.routeName,
                 timerLabel: _timerLabel,
                 expired: expired,
                 urgent: _remaining <= const Duration(minutes: 1),
@@ -377,9 +393,15 @@ class _Card extends StatelessWidget {
 }
 
 class _PaymentBottomBar extends StatelessWidget {
-  const _PaymentBottomBar({required this.total});
+  const _PaymentBottomBar({
+    this.total,
+    this.onPay,
+    this.disabled = false,
+  });
 
-  final int total;
+  final int? total;
+  final VoidCallback? onPay;
+  final bool disabled;
 
   @override
   Widget build(BuildContext context) {
@@ -398,46 +420,39 @@ class _PaymentBottomBar extends StatelessWidget {
         top: false,
         child: Padding(
           padding: const EdgeInsets.fromLTRB(12, 9, 12, 10),
-          child: Row(
-            children: [
-              Expanded(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Tổng cộng',
-                      style: TextStyle(color: _muted, fontSize: 13),
-                    ),
-                    Text(
-                      formatVnd(total),
-                      key: const Key('payment-bottom-total'),
-                      style: const TextStyle(
-                        color: _orange,
-                        fontSize: 19,
-                        fontWeight: FontWeight.w700,
+          child: SizedBox(
+            width: double.infinity,
+            height: 50,
+            child: FilledButton(
+              key: const Key('payment-submit'),
+              onPressed: disabled ? null : onPay,
+              style: FilledButton.styleFrom(
+                backgroundColor: _blue,
+                disabledBackgroundColor: const Color(0xFFB9CED9),
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+              child: const Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Flexible(
+                    child: Text(
+                      'Thanh toán',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 8),
-              Flexible(
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(minHeight: 50),
-                  child: const FilledButton(
-                    key: Key('payment-submit'),
-                    onPressed: null,
-                    child: Text(
-                      'Thanh toán (sắp mở)',
-                      maxLines: 2,
-                      textAlign: TextAlign.center,
-                      style: TextStyle(fontWeight: FontWeight.w600),
-                    ),
                   ),
-                ),
+                  SizedBox(width: 6),
+                  Icon(Icons.arrow_forward_rounded, size: 17),
+                ],
               ),
-            ],
+            ),
           ),
         ),
       ),

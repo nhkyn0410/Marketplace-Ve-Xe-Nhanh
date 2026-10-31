@@ -11,6 +11,7 @@ Name | Type | Description | Notes
 **id** | **String** |  | 
 **name** | **String** |  | 
 **slug** | **String** |  | 
+**logoUrl** | **String** |  | [optional] 
 **averageRating** | **num** |  | 
 **reviewCount** | **int** |  | 
 

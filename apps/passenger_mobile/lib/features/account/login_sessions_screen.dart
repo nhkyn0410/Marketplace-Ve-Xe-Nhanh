@@ -573,7 +573,7 @@ class _LogoutConfirmationSheet extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       key: const Key('logout-confirmation-sheet'),
-      height: 432,
+      height: 432 + MediaQuery.paddingOf(context).bottom,
       decoration: const BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.vertical(top: Radius.circular(28)),

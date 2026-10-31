@@ -343,6 +343,7 @@ class _TicketScreenState extends State<TicketScreen>
               style: TextStyle(color: Color(0xFF607A8E), fontSize: 13),
             ),
           ),
+          bottom: 14,
         ),
       ..._widenedSlivers(_page),
       SliverPadding(

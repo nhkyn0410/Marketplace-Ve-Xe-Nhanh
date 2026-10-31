@@ -125,6 +125,14 @@ void main() {
       expect(browsed, [1]);
       expect(find.byKey(const Key('ticket-browse-hint')), findsOneWidget);
       expect(find.byKey(const ValueKey('ticket-trip-t1')), findsOneWidget);
+      final gap =
+          tester.getTopLeft(find.byKey(const ValueKey('ticket-trip-t1'))).dy -
+          tester.getBottomLeft(find.byKey(const Key('ticket-browse-hint'))).dy;
+      expect(
+        gap,
+        inInclusiveRange(8, 24),
+        reason: 'Thẻ chuyến nằm sát lời hướng dẫn, không chừa khoảng trống lớn.',
+      );
       expect(find.byKey(const ValueKey('ticket-trip-date-t1')), findsOneWidget);
       expect(find.byKey(const Key('ticket-pick-route')), findsNothing);
     },

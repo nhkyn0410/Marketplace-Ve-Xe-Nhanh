@@ -30,7 +30,7 @@ Future<void> _pumpScreen(
 
 void main() {
   testWidgets(
-    'hiện đơn thật: mã đơn, hành khách, giảm giá, tổng; nút thanh toán khóa',
+    'hiện đơn thật: mã đơn, hành khách, giảm giá, tổng; nút thanh toán mở khi còn hạn',
     (tester) async {
       await _pumpScreen(tester);
       expect(find.byKey(const Key('payment-booking-code')), findsOneWidget);
@@ -45,20 +45,31 @@ void main() {
         tester
             .widget<FilledButton>(find.byKey(const Key('payment-submit')))
             .onPressed,
-        isNull,
+        isNotNull,
       );
       expect(find.textContaining('VNPay'), findsNothing);
       expect(find.textContaining('MoMo'), findsNothing);
+
+      // Bấm thanh toán mở màn hình hoàn tất phát hành vé
+      await tester.tap(find.byKey(const Key('payment-submit')));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('payment-completion-screen')), findsOneWidget);
     },
   );
 
-  testWidgets('quá hạn thanh toán thì báo đơn đã hết hạn', (tester) async {
+  testWidgets('quá hạn thanh toán thì báo đơn đã hết hạn và khóa nút', (tester) async {
     await _pumpScreen(
       tester,
       now: () => DateTime.now().add(const Duration(minutes: 9)),
     );
     expect(find.text('Đã hết hạn'), findsOneWidget);
     expect(find.textContaining('đã quá hạn thanh toán'), findsOneWidget);
+    expect(
+      tester
+          .widget<FilledButton>(find.byKey(const Key('payment-submit')))
+          .onPressed,
+      isNull,
+    );
   });
 
   testWidgets('viewport 320x568 không bottom overflow', (tester) async {

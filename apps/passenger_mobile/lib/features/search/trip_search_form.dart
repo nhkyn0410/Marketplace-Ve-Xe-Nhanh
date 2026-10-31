@@ -199,7 +199,12 @@ mixin TripSearchFormState<T extends StatefulWidget> on State<T> {
       ),
       builder: (context) => StatefulBuilder(
         builder: (context, setSheetState) => Padding(
-          padding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
+          padding: EdgeInsets.fromLTRB(
+            24,
+            20,
+            24,
+            24 + MediaQuery.paddingOf(context).bottom,
+          ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
