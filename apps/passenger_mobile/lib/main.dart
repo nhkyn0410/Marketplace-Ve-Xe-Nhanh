@@ -92,7 +92,7 @@ class PassengerApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Vé Xe Nhanh',
+      title: 'Vé xe nhanh',
       debugShowCheckedModeBanner: false,
       builder: (context, child) => PassengerSystemNavigation(child: child!),
       theme: ThemeData(

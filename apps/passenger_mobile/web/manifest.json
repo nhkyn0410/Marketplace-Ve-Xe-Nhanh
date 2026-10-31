@@ -1,11 +1,11 @@
 {
-    "name": "passenger_mobile",
-    "short_name": "passenger_mobile",
+    "name": "Vé xe nhanh",
+    "short_name": "Vé xe nhanh",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "background_color": "#FFFFFF",
+    "theme_color": "#123D5C",
+    "description": "Ứng dụng đặt vé xe khách trực tuyến Vé xe nhanh",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

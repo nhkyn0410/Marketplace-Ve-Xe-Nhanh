@@ -14,7 +14,7 @@
          thiết bị. README của chính plugin yêu cầu đặt false. -->
     <application
         android:allowBackup="false"
-        android:label="passenger_mobile"
+        android:label="Vé xe nhanh"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity
