@@ -30,7 +30,7 @@ describe("MomoGateway", () => {
     const [url, init] = fetchImpl.mock.calls[0] as unknown as [string, RequestInit];
     expect(url).toBe("https://test-payment.momo.vn/v2/gateway/api/create");
     const body = JSON.parse(String(init.body)) as Record<string, string | number>;
-    expect(body).toMatchObject({ partnerCode: "MOMOTEST01", amount: 320000, orderId: "PAYABCDEFGH2345", requestType: "captureWallet", ipnUrl: config.ipnUrl });
+    expect(body).toMatchObject({ partnerCode: "MOMOTEST01", accessKey: config.accessKey, amount: 320000, orderId: "PAYABCDEFGH2345", requestType: "captureWallet", ipnUrl: config.ipnUrl, redirectUrl: request.returnUrl, extraData: "", lang: "vi" });
     const raw =
       `accessKey=khoa-truy-cap&amount=320000&extraData=&ipnUrl=${config.ipnUrl}&orderId=PAYABCDEFGH2345` +
       `&orderInfo=Thanh toan ve VXNAB2CD3&partnerCode=MOMOTEST01&redirectUrl=${request.returnUrl}&requestId=${body.requestId}&requestType=captureWallet`;
@@ -49,6 +49,14 @@ describe("MomoGateway", () => {
       expect(error).toBeInstanceOf(PaymentGatewayError);
       expect(String((error as Error).message)).not.toContain(config.secretKey);
     }
+  });
+
+  it("sandbox trả mã 99 → giữ mã lỗi của MoMo, không trả link thanh toán giả lập", async () => {
+    const fetchImpl = vi.fn(async () => new Response(JSON.stringify({ resultCode: 99, message: "Declined due to general reasons." })));
+    await expect(new MomoGateway(config, fetchImpl as unknown as typeof fetch).createCheckout(request)).rejects.toMatchObject({
+      name: "PaymentGatewayError", resultCode: "99", retryable: true,
+    });
+    expect(fetchImpl).toHaveBeenCalledTimes(1);
   });
 
   function ipn(overrides: Record<string, string | number> = {}): Record<string, string | number> {

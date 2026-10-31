@@ -2,7 +2,7 @@
 
 Live state of the managed marketplace project `Marketplace-Ve-Xe-Nhanh` (codename renamed 25/05/2026 from `Ve_Xe_Nhanh_NestJS_NextJs_ReactNative`). Agents must consult this file before writing or editing any SDLC document. Update this file after every documentation change that affects status, decisions or blockers.
 
-Last updated: 31/10/2026.
+Last updated: 01/11/2026.
 
 ## 1. SDLC document status
 
@@ -25,6 +25,8 @@ Last updated: 31/10/2026.
 | 12   | Release Notes & Change Log                | `SDLC/12-release-notes-change-log.md`      | Draft    | AI Agent                 |
 
 Status legend per `00a §3.2`: `Writing` / `Draft` / `Review` / `Approved` / `Deprecated` / `Superseded`.
+
+01/11/2026: đối chiếu MoMo với mẫu Node chính thức, bổ sung `accessKey` trong body và giữ mã lỗi của cổng; đủ khóa thì dùng sandbox, không fallback khi cổng từ chối. Backend lint/typecheck và 58 tests MoMo/gateway/config/HTTP pass. Gọi sandbox bằng khóa công khai trong mẫu và request đối chứng đều nhận `resultCode=99`, chưa có `payUrl` hoặc thanh toán; Khanh chưa có khóa sandbox riêng. Cần khóa Test merchant và HTTPS IPN công khai để kiểm thử tiếp; hướng dẫn ở [RB-12 §3](../runbook/RB-12-payos.md#3-cấu-hình-momo--vnpay-sandbox). Chưa review độc lập/commit/push/deploy; không đổi trạng thái ADR-029 hoặc OQ-22.
 
 31/10/2026: thanh toán hành khách theo ADR-029 / [kế hoạch](../task-propreties/PAYOS-plan.md) **chờ duyệt**. Nền payOS đã kiểm migration/role app/tiền/RLS trên DB tạm và lint/typecheck/test/build monorepo. Bổ sung ví voucher cho User, bốn thẻ payOS/MoMo/VNPay/DEMO, tách màn chọn / thanh toán và giữ ví API rỗng đúng dữ liệu: Flutter analyze không có issue, 265 tests pass; backend lint/typecheck và 60 gateway/config tests pass. Khóa do Khanh tự điền; OQ-22 mở (payOS thật local, MoMo/VNPay sandbox). Chưa giao dịch/thiết bị thật, review độc lập, commit/push/deploy. Cấu hình: [RB-12](../runbook/RB-12-payos.md).
 

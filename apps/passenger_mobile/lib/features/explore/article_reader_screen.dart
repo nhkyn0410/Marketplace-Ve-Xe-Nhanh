@@ -43,6 +43,28 @@ class _ArticleReaderScreenState extends State<ArticleReaderScreen> {
       child: Scaffold(
         key: const Key('article-reader-screen'),
         backgroundColor: Colors.white,
+        appBar: AppBar(
+          backgroundColor: Colors.white,
+          surfaceTintColor: Colors.white,
+          elevation: 0,
+          scrolledUnderElevation: 1,
+          shadowColor: const Color(0x1A21404F),
+          centerTitle: true,
+          leading: IconButton(
+            key: const Key('article-reader-back'),
+            tooltip: 'Quay lại',
+            onPressed: () => Navigator.maybePop(context),
+            icon: const Icon(Icons.arrow_back_ios_new_rounded, color: _ink, size: 20),
+          ),
+          title: const Text(
+            'Bài viết',
+            style: TextStyle(
+              color: _ink,
+              fontSize: 17,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ),
         body: FutureBuilder<ArticleDetail>(
           future: _article,
           builder: (context, snapshot) {
@@ -53,15 +75,10 @@ class _ArticleReaderScreenState extends State<ArticleReaderScreen> {
                 onFindTrip: widget.onFindTrip,
               );
             }
-            return Stack(
-              children: [
-                Center(
-                  child: snapshot.hasError
-                      ? _LoadError(onRetry: _retry)
-                      : const CircularProgressIndicator(color: _blue),
-                ),
-                const _BackButton(),
-              ],
+            return Center(
+              child: snapshot.hasError
+                  ? _LoadError(onRetry: _retry)
+                  : const CircularProgressIndicator(color: _blue),
             );
           },
         ),
@@ -80,14 +97,17 @@ class _ArticleBody extends StatelessWidget {
   Widget build(BuildContext context) {
     final cover = article.coverImageUrl;
     final bottomInset = MediaQuery.paddingOf(context).bottom;
-    return Stack(
-      children: [
-        CustomScrollView(
-          key: const Key('article-reader-scroll'),
-          slivers: [
-            SliverToBoxAdapter(
+    return CustomScrollView(
+      key: const Key('article-reader-scroll'),
+      slivers: [
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(16),
               child: SizedBox(
-                height: 220,
+                height: 190,
+                width: double.infinity,
                 child: cover == null || cover.isEmpty
                     ? Image.asset(articleFallbackAsset, fit: BoxFit.cover)
                     : Image.network(
@@ -100,102 +120,78 @@ class _ArticleBody extends StatelessWidget {
                       ),
               ),
             ),
-            SliverPadding(
-              padding: EdgeInsets.fromLTRB(18, 16, 18, 24 + bottomInset),
-              sliver: SliverList.list(
-                children: [
-                  Align(
-                    alignment: Alignment.centerLeft,
-                    child: Container(
-                      key: const Key('article-reader-category'),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 3,
-                      ),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF8DE5B6),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Text(
-                        article.categoryName,
-                        style: const TextStyle(
-                          color: Color(0xFF0E5C35),
-                          fontSize: 11,
-                          height: 1.4,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
+          ),
+        ),
+        SliverPadding(
+          padding: EdgeInsets.fromLTRB(18, 16, 18, 24 + bottomInset),
+          sliver: SliverList.list(
+            children: [
+              Align(
+                alignment: Alignment.centerLeft,
+                child: Container(
+                  key: const Key('article-reader-category'),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 3,
                   ),
-                  const SizedBox(height: 12),
-                  Text(
-                    article.title,
-                    key: const Key('article-reader-title'),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF8DE5B6),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Text(
+                    article.categoryName,
                     style: const TextStyle(
-                      color: Color(0xFF101E44),
-                      fontSize: 21,
-                      height: 1.45,
-                      fontWeight: FontWeight.w700,
+                      color: Color(0xFF0E5C35),
+                      fontSize: 11,
+                      height: 1.4,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
-                  const SizedBox(height: 10),
-                  Text(
-                    '${_formatDate(article.publishedAt)}   ·   '
-                    '${article.readingMinutes} phút đọc   ·   Vé Xe Nhanh',
-                    style: const TextStyle(
-                      color: Color(0xFF7B8A9F),
-                      fontSize: 12,
-                      height: 1.5,
-                    ),
-                  ),
-                  const SizedBox(height: 14),
-                  const Divider(height: 1, color: Color(0xFFE0E6EE)),
-                  const SizedBox(height: 14),
-                  if (article.summary.isNotEmpty) ...[
-                    Text(
-                      article.summary,
-                      style: const TextStyle(
-                        color: _ink,
-                        fontSize: 15,
-                        height: 1.6,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    const SizedBox(height: 14),
-                  ],
-                  ArticleMarkdown(data: article.contentMarkdown),
-                  const SizedBox(height: 20),
-                  _TripCallToAction(onPressed: onFindTrip),
-                ],
+                ),
               ),
-            ),
-          ],
+              const SizedBox(height: 12),
+              Text(
+                article.title,
+                key: const Key('article-reader-title'),
+                style: const TextStyle(
+                  color: Color(0xFF101E44),
+                  fontSize: 21,
+                  height: 1.45,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              const SizedBox(height: 10),
+              Text(
+                '${_formatDate(article.publishedAt)}   ·   '
+                '${article.readingMinutes} phút đọc   ·   Vé Xe Nhanh',
+                style: const TextStyle(
+                  color: Color(0xFF7B8A9F),
+                  fontSize: 12,
+                  height: 1.5,
+                ),
+              ),
+              const SizedBox(height: 14),
+              const Divider(height: 1, color: Color(0xFFE0E6EE)),
+              const SizedBox(height: 14),
+              if (article.summary.isNotEmpty) ...[
+                Text(
+                  article.summary,
+                  style: const TextStyle(
+                    color: _ink,
+                    fontSize: 15,
+                    height: 1.6,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(height: 14),
+              ],
+              ArticleMarkdown(data: article.contentMarkdown),
+              const SizedBox(height: 20),
+              _TripCallToAction(onPressed: onFindTrip),
+            ],
+          ),
         ),
-        const _BackButton(),
       ],
-    );
-  }
-}
-
-class _BackButton extends StatelessWidget {
-  const _BackButton();
-
-  @override
-  Widget build(BuildContext context) {
-    return Positioned(
-      left: 16,
-      top: MediaQuery.paddingOf(context).top + 8,
-      child: Material(
-        color: Colors.white,
-        shape: const CircleBorder(),
-        elevation: 1,
-        child: IconButton(
-          key: const Key('article-reader-back'),
-          tooltip: 'Quay lại',
-          onPressed: () => Navigator.maybePop(context),
-          icon: const Icon(Icons.chevron_left_rounded, color: _ink),
-        ),
-      ),
     );
   }
 }

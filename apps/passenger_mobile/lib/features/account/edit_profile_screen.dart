@@ -80,7 +80,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   @override
   Widget build(BuildContext context) {
     return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: SystemUiOverlayStyle.light,
+      value: SystemUiOverlayStyle.dark.copyWith(
+        statusBarColor: Colors.transparent,
+        systemNavigationBarColor: Colors.white,
+      ),
       child: Scaffold(
         key: const Key('edit-profile-screen'),
         backgroundColor: _pageBackground,
@@ -211,88 +214,50 @@ class _EditProfileFormState extends State<_EditProfileForm> {
               constraints: const BoxConstraints(maxWidth: 412),
               child: Column(
                 children: [
-                  SizedBox(
-                    height: 269,
+                  // Thanh tiêu đề trên cùng: nút back + tiêu đề
+                  Padding(
+                    padding: EdgeInsets.fromLTRB(16, topInset + 8, 16, 16),
                     child: Stack(
-                      clipBehavior: Clip.none,
+                      alignment: Alignment.center,
                       children: [
-                        Positioned(
-                          left: 8,
-                          right: 8,
-                          top: 0,
-                          height: 198,
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(23),
-                            child: Stack(
-                              fit: StackFit.expand,
-                              children: [
-                                Image.asset(
-                                  'assets/account/edit_profile_header.png',
-                                  fit: BoxFit.cover,
-                                  alignment: const Alignment(0, .18),
-                                ),
-                                const DecoratedBox(
-                                  decoration: BoxDecoration(
-                                    gradient: LinearGradient(
-                                      begin: Alignment.topLeft,
-                                      end: Alignment.center,
-                                      colors: [
-                                        Color(0x82000000),
-                                        Color(0x00000000),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                        Positioned(
-                          left: 17,
-                          top: topInset + 8,
+                        Align(
+                          alignment: Alignment.centerLeft,
                           child: Material(
                             color: Colors.white,
                             shape: const CircleBorder(),
+                            elevation: 1,
+                            shadowColor: const Color(0x1421404F),
                             child: IconButton(
                               key: const Key('edit-profile-back'),
                               onPressed: widget.onBack,
                               icon: const Icon(Icons.chevron_left_rounded),
                               color: _ink,
-                              iconSize: 25,
+                              iconSize: 26,
                               visualDensity: VisualDensity.compact,
                             ),
                           ),
                         ),
-                        Positioned(
-                          left: 61,
-                          top: topInset + 12,
-                          child: const Text(
-                            'Chỉnh sửa thông tin',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 20,
-                              fontWeight: FontWeight.w600,
-                              shadows: [
-                                Shadow(color: Colors.black38, blurRadius: 5),
-                              ],
-                            ),
-                          ),
-                        ),
-                        Positioned(
-                          left: 0,
-                          right: 0,
-                          top: 155,
-                          child: Align(
-                            child: PassengerAvatar(
-                              size: 96,
-                              imageUrl: widget.profile.imageUrl,
-                              showCameraBadge: true,
-                            ),
+                        const Text(
+                          'Chỉnh sửa thông tin',
+                          style: TextStyle(
+                            color: _ink,
+                            fontSize: 18,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
                       ],
                     ),
                   ),
+                  const SizedBox(height: 6),
+                  // Avatar người dùng
+                  Center(
+                    child: PassengerAvatar(
+                      size: 96,
+                      imageUrl: widget.profile.imageUrl,
+                      showCameraBadge: true,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
                   Container(
                     key: const Key('edit-profile-form-card'),
                     margin: const EdgeInsets.symmetric(horizontal: 13),

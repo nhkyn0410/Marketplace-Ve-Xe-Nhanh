@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { NotFoundException } from "@nestjs/common";
 import { parseAppConfig } from "../../../config/env.config";
 import { createPaymentGateways } from "../payment.module";
@@ -6,6 +6,8 @@ import { DemoGateway, signDemoCallback } from "./demo-gateway";
 import { DemoPaymentController } from "./demo-payment.controller";
 
 describe("DemoGateway", () => {
+  afterEach(() => vi.unstubAllGlobals());
+
   const config = { secret: "demo-test-secret", baseUrl: "https://api.example.com/v1/dev/payment-gateway/demo", callbackUrl: "https://api.example.com/v1/webhooks/payment/demo" };
   const request = { paymentCode: "PAYABCDEFGH2345", amount: 10000n, orderInfo: "Thu thanh toan", returnUrl: "https://market.example.com/result", clientIp: "127.0.0.1", createdAt: new Date(), expiresAt: new Date(Date.now() + 600000) };
   const tokenFrom = (url: string) => new URL(url).searchParams.get("token")!;
@@ -71,5 +73,24 @@ describe("DemoGateway", () => {
     expect(setup.simulator).toEqual({ vnpay: null, momo: null });
     expect(setup.gateways.get("VNPAY")?.provider).toBe("VNPAY");
     expect(setup.gateways.get("MOMO")?.provider).toBe("MOMO");
+  });
+
+  it("MoMo có khóa sandbox → gọi API captureWallet, trả link hosted và không bật trang giả lập MoMo", async () => {
+    const fetchImpl = vi.fn(async () => new Response(JSON.stringify({ resultCode: 0, payUrl: "https://test-payment.momo.vn/v2/gateway/pay?t=sandbox-order" })));
+    vi.stubGlobal("fetch", fetchImpl);
+    const setup = createPaymentGateways(parseAppConfig({
+      MOMO_PARTNER_CODE: "momo-test", MOMO_ACCESS_KEY: "test-access", MOMO_SECRET_KEY: "test-secret",
+      BETTER_AUTH_URL: "https://api.example.com",
+    }));
+    expect(setup.simulator.momo).toBeNull();
+    const checkout = await setup.gateways.get("MOMO")!.createCheckout(request);
+    expect(checkout.paymentUrl).toBe("https://test-payment.momo.vn/v2/gateway/pay?t=sandbox-order");
+    expect(fetchImpl).toHaveBeenCalledWith("https://test-payment.momo.vn/v2/gateway/api/create", expect.objectContaining({ method: "POST" }));
+    const [, init] = fetchImpl.mock.calls[0] as unknown as [string, RequestInit];
+    expect(JSON.parse(String(init.body))).toMatchObject({
+      partnerCode: "momo-test", accessKey: "test-access", orderId: request.paymentCode,
+      requestType: "captureWallet", ipnUrl: "https://api.example.com/v1/webhooks/payment/momo",
+      redirectUrl: request.returnUrl,
+    });
   });
 });
