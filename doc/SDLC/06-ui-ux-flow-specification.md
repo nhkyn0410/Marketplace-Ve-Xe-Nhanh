@@ -13,9 +13,11 @@
 | Người viết    | Nguyễn Hồng Khanh, AI Agent |
 | Người duyệt   | Nguyễn Hồng Khanh           |
 | Ngày tạo      | 11/05/2026                  |
-| Ngày cập nhật | 28/10/2026                  |
+| Ngày cập nhật | 31/10/2026                  |
 
 ### 1.2. Lịch sử thay đổi
+
+31/10/2026 — ghi nhận hiện thực SCR-PSG-19/20 **chờ duyệt** theo ADR-029 Proposed: User chọn voucher AVAILABLE từ ví hoặc nhập mã (tối đa một, quote server, reserve khi tạo booking); Guest chỉ nhập mã. Ví API rỗng giữ rỗng ở tab Tài khoản và bước đặt vé, không thay bằng dữ liệu preview. Màn chọn phương thức có bốn thẻ logo payOS / MoMo / VNPay / DEMO, tách khỏi màn thanh toán QR / hosted. Màn thanh toán poll foreground mỗi 4 giây / resume, không kéo dài hạn giữ ghế; chỉ booking CONFIRMED + payment SUCCESS + vé thật mới mở hoàn tất, RECONCILING không gợi ý trả thêm. Không thêm plugin lưu QR / App Links. Đã kiểm lại Flutter analyze không có issue và 265 tests pass; chưa thử giao dịch / thiết bị thật. Các dòng trước ghi “chờ ADR thay ADR-019” nay tham chiếu ADR-029 Proposed, trạng thái tài liệu không đổi. Xem [PAYOS-plan](../task-propreties/PAYOS-plan.md).
 
 | Phiên bản | Ngày       | Người cập nhật | Nội dung thay đổi                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
 | --------- | ---------- | -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -381,9 +383,9 @@ Mỗi màn hình là một bảng đủ 5 trạng thái theo §10.1. Cột **Thi
 
 | Trạng thái     | Nội dung cần có                                                                                                                     | Thiết kế          |
 | -------------- | ----------------------------------------------------------------------------------------------------------------------------------- | ----------------- |
-| Ideal          | Thông tin liên hệ; form hành khách theo ghế; chọn từ hành khách đã lưu; lưu hành khách (≤5); điểm đón/trả chỉ đọc; mã giảm giá; dịch vụ bổ trợ; tóm tắt. Thiếu bộ đếm giữ ghế | Review ⚠ (#3, #8) |
-| Empty          | "Chưa có mã ưu đãi phù hợp cho chuyến này"                                                                                           | Review            |
-| Loading        | Đang áp mã giảm giá; đang lưu                                                                                                        | Draft             |
+| Ideal          | Thông tin liên hệ; form hành khách theo ghế; hành khách đã lưu; điểm đón/trả chỉ đọc; User mở ví chọn voucher AVAILABLE hoặc nhập mã, Guest chỉ nhập mã; tối đa một ưu đãi, báo giá server; tóm tắt và bộ đếm giữ ghế. Chọn voucher chưa reserve, tạo booking mới reserve | Review ⚠ (#3, #8), bổ sung 31/10 chờ duyệt |
+| Empty          | Ví chưa có voucher AVAILABLE / không có ưu đãi phù hợp → vẫn có thể nhập mã hoặc tiếp tục không ưu đãi                                 | Review            |
+| Loading        | Đang tải ví; đang kiểm voucher / mã với server; đang tạo booking, chặn gửi lặp                                                         | Draft             |
 | Partial / Edge | n ghế → n form hành khách; Guest (không có hành khách đã lưu); họ tên dài; mã hợp lệ → dòng giảm giá tách riêng (CO-12); **chỗ đôi có thêm ô "Người đi cùng (không bắt buộc)"** (Khanh 28/10/2026, chờ duyệt, BR-78) — chung vé, vé / xác nhận / thanh toán hiện "A và B" | Draft             |
 | Error          | Lỗi tại field (SĐT, email, CCCD, ngày sinh); mã không hợp lệ / hết hạn / hết lượt / không áp cho chuyến; hold hết hạn                  | Draft             |
 
@@ -391,9 +393,9 @@ Mỗi màn hình là một bảng đủ 5 trạng thái theo §10.1. Cột **Thi
 
 | Trạng thái     | Nội dung cần có                                                                                                      | Thiết kế          |
 | -------------- | -------------------------------------------------------------------------------------------------------------------- | ----------------- |
-| Ideal          | Chọn phương thức (Figma 26/10/2026: chuyển khoản VietQR qua payOS / cổng thanh toán thử chỉ có trên bản demo — chờ ADR thay ADR-019); đồng ý điều khoản; bộ đếm giữ ghế; tóm tắt đơn tách dòng | Review ⚠ (#2, #3, #8) |
+| Ideal          | Màn chọn riêng: bốn thẻ logo payOS / MoMo / VNPay / DEMO, đồng ý điều khoản, bộ đếm giữ ghế và tóm tắt đơn; tiếp tục mới sang màn thanh toán riêng (payOS QR / hosted, MoMo / VNPay / DEMO link cổng). Theo ADR-029 Proposed, bổ sung Khanh 31/10; không kéo dài hạn booking | Review ⚠ (#2, #3, #8), chờ duyệt |
 | Empty          | Chưa đồng ý điều khoản → CTA vô hiệu                                                                                  | Draft             |
-| Loading        | Đang tạo payment + chuyển sang cổng                                                                                   | Draft             |
+| Loading        | Ở màn thanh toán riêng: đang tạo payment / mở cổng / chờ server xác nhận; poll foreground và resume, chặn tạo lặp          | Draft             |
 | Partial / Edge | Phương thức tạm không khả dụng (mẫu "Sắp hỗ trợ" đã có); tổng tiền lớn (nhiều ghế); bộ đếm < 1 phút → cảnh báo        | Review + Draft    |
 | Error          | Giá/ghế đổi khi kiểm tra lại (FR-BTP-04) → xác nhận lại; hold hết hạn; cổng không phản hồi; booking đã thanh toán / đã hủy → chặn thanh toán lại (FR-BTP-07) | Draft             |
 

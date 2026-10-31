@@ -10,6 +10,10 @@ const PaymentInputDtoProviderEnum _$paymentInputDtoProviderEnum_VNPAY =
     const PaymentInputDtoProviderEnum._('VNPAY');
 const PaymentInputDtoProviderEnum _$paymentInputDtoProviderEnum_MOMO =
     const PaymentInputDtoProviderEnum._('MOMO');
+const PaymentInputDtoProviderEnum _$paymentInputDtoProviderEnum_PAYOS =
+    const PaymentInputDtoProviderEnum._('PAYOS');
+const PaymentInputDtoProviderEnum _$paymentInputDtoProviderEnum_DEMO =
+    const PaymentInputDtoProviderEnum._('DEMO');
 
 PaymentInputDtoProviderEnum _$paymentInputDtoProviderEnumValueOf(String name) {
   switch (name) {
@@ -17,6 +21,10 @@ PaymentInputDtoProviderEnum _$paymentInputDtoProviderEnumValueOf(String name) {
       return _$paymentInputDtoProviderEnum_VNPAY;
     case 'MOMO':
       return _$paymentInputDtoProviderEnum_MOMO;
+    case 'PAYOS':
+      return _$paymentInputDtoProviderEnum_PAYOS;
+    case 'DEMO':
+      return _$paymentInputDtoProviderEnum_DEMO;
     default:
       throw ArgumentError(name);
   }
@@ -27,6 +35,8 @@ final BuiltSet<PaymentInputDtoProviderEnum>
     BuiltSet<PaymentInputDtoProviderEnum>(const <PaymentInputDtoProviderEnum>[
   _$paymentInputDtoProviderEnum_VNPAY,
   _$paymentInputDtoProviderEnum_MOMO,
+  _$paymentInputDtoProviderEnum_PAYOS,
+  _$paymentInputDtoProviderEnum_DEMO,
 ]);
 
 Serializer<PaymentInputDtoProviderEnum>
@@ -38,10 +48,14 @@ class _$PaymentInputDtoProviderEnumSerializer
   static const Map<String, Object> _toWire = const <String, Object>{
     'VNPAY': 'VNPAY',
     'MOMO': 'MOMO',
+    'PAYOS': 'PAYOS',
+    'DEMO': 'DEMO',
   };
   static const Map<Object, String> _fromWire = const <Object, String>{
     'VNPAY': 'VNPAY',
     'MOMO': 'MOMO',
+    'PAYOS': 'PAYOS',
+    'DEMO': 'DEMO',
   };
 
   @override

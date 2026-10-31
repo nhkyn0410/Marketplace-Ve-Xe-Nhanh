@@ -173,8 +173,8 @@ export default async function TripsPage(props: TripsPageProps) {
     redirect("/trips/explore");
   }
 
-  // API bắt buộc có điểm đi, điểm đến và ngày: chưa chọn đủ thì nhắc chọn tuyến thay vì gọi API rồi báo lỗi kỹ thuật.
-  if (!params.origin || !params.destination || !params.date) {
+  // Chỉ cần ngày đi; điểm đi / đến bỏ trống thì xem chuyến trên mọi tuyến.
+  if (!params.date) {
     const provincesResult = await getProvinces();
     return (
       <div className="min-h-viewport bg-[#f9f9ff]">
@@ -185,10 +185,10 @@ export default async function TripsPage(props: TripsPageProps) {
           <h1 className="sr-only">Tìm chuyến xe</h1>
           <EmptyState
             icon={Search}
-            title="Chọn tuyến để xem chuyến"
+            title="Chọn ngày để xem chuyến"
             description={params.operatorId
-              ? "Đang lọc chuyến của một nhà xe. Nhập điểm đi, điểm đến và ngày đi ở thanh tìm kiếm phía trên rồi bấm Tìm chuyến."
-              : "Nhập điểm đi, điểm đến và ngày đi ở thanh tìm kiếm phía trên rồi bấm Tìm chuyến."}
+              ? "Đang lọc chuyến của một nhà xe. Chọn ngày đi ở thanh tìm kiếm phía trên rồi bấm Tìm chuyến."
+              : "Chọn ngày đi ở thanh tìm kiếm phía trên rồi bấm Tìm chuyến. Điểm đi và điểm đến không bắt buộc."}
             className="mt-6 bg-white"
           />
           {clearOperatorLink && <div className="mt-3 text-center">{clearOperatorLink}</div>}

@@ -12,6 +12,12 @@ const AdminPaymentDetailDtoOutputProviderEnum
 const AdminPaymentDetailDtoOutputProviderEnum
     _$adminPaymentDetailDtoOutputProviderEnum_MOMO =
     const AdminPaymentDetailDtoOutputProviderEnum._('MOMO');
+const AdminPaymentDetailDtoOutputProviderEnum
+    _$adminPaymentDetailDtoOutputProviderEnum_PAYOS =
+    const AdminPaymentDetailDtoOutputProviderEnum._('PAYOS');
+const AdminPaymentDetailDtoOutputProviderEnum
+    _$adminPaymentDetailDtoOutputProviderEnum_DEMO =
+    const AdminPaymentDetailDtoOutputProviderEnum._('DEMO');
 
 AdminPaymentDetailDtoOutputProviderEnum
     _$adminPaymentDetailDtoOutputProviderEnumValueOf(String name) {
@@ -20,6 +26,10 @@ AdminPaymentDetailDtoOutputProviderEnum
       return _$adminPaymentDetailDtoOutputProviderEnum_VNPAY;
     case 'MOMO':
       return _$adminPaymentDetailDtoOutputProviderEnum_MOMO;
+    case 'PAYOS':
+      return _$adminPaymentDetailDtoOutputProviderEnum_PAYOS;
+    case 'DEMO':
+      return _$adminPaymentDetailDtoOutputProviderEnum_DEMO;
     default:
       throw ArgumentError(name);
   }
@@ -30,6 +40,8 @@ final BuiltSet<AdminPaymentDetailDtoOutputProviderEnum>
         AdminPaymentDetailDtoOutputProviderEnum>(const <AdminPaymentDetailDtoOutputProviderEnum>[
   _$adminPaymentDetailDtoOutputProviderEnum_VNPAY,
   _$adminPaymentDetailDtoOutputProviderEnum_MOMO,
+  _$adminPaymentDetailDtoOutputProviderEnum_PAYOS,
+  _$adminPaymentDetailDtoOutputProviderEnum_DEMO,
 ]);
 
 const AdminPaymentDetailDtoOutputStatusEnum
@@ -100,10 +112,14 @@ class _$AdminPaymentDetailDtoOutputProviderEnumSerializer
   static const Map<String, Object> _toWire = const <String, Object>{
     'VNPAY': 'VNPAY',
     'MOMO': 'MOMO',
+    'PAYOS': 'PAYOS',
+    'DEMO': 'DEMO',
   };
   static const Map<Object, String> _fromWire = const <Object, String>{
     'VNPAY': 'VNPAY',
     'MOMO': 'MOMO',
+    'PAYOS': 'PAYOS',
+    'DEMO': 'DEMO',
   };
 
   @override

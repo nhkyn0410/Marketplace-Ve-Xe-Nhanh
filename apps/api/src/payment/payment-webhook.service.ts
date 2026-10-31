@@ -1,7 +1,7 @@
 import { InjectQueue } from "@nestjs/bullmq";
 import { Inject, Injectable, Logger } from "@nestjs/common";
 import type { Queue } from "bullmq";
-import { findPaymentByCode } from "../database/marketplace-scope";
+import { findPaymentByCode, findPaymentByOrderCode } from "../database/marketplace-scope";
 import { PrismaService } from "../database/prisma.service";
 import { PaymentStatus } from "../database/prisma.types";
 import { type GatewayProvider, PAYMENT_GATEWAYS, type PaymentGateways } from "../external/payment/payment-gateway";
@@ -33,10 +33,13 @@ export class PaymentWebhookService {
       this.logger.warn({ event: "payment.callback.invalid_signature", provider });
       return "INVALID_SIGNATURE";
     }
-    const payment = await findPaymentByCode(this.prisma, callback.paymentCode);
+    const payment = provider === "PAYOS" && callback.orderCode !== undefined
+      ? await findPaymentByOrderCode(this.prisma, callback.orderCode)
+      : await findPaymentByCode(this.prisma, callback.paymentCode);
     if (!payment || payment.provider !== provider) {
       return "NOT_FOUND";
     }
+    const paymentCode = payment.paymentCode;
     const settled =
       payment.status === PaymentStatus.SUCCESS ||
       payment.status === PaymentStatus.RECONCILING ||
@@ -47,7 +50,7 @@ export class PaymentWebhookService {
     }
     const job: PaymentCallbackJob = {
       provider,
-      paymentCode: callback.paymentCode,
+      paymentCode,
       providerTxnId: callback.providerTxnId,
       amount: callback.amount.toString(),
       success: callback.success,
@@ -56,7 +59,7 @@ export class PaymentWebhookService {
     };
     try {
       await this.queue.add(PAYMENT_CALLBACK_JOB, job, {
-        jobId: [provider, callback.paymentCode, callback.providerTxnId ?? "none", callback.resultCode].join("_"),
+        jobId: [provider, paymentCode, callback.providerTxnId ?? "none", callback.resultCode].join("_"),
         attempts: 8,
         backoff: { type: "exponential", delay: 2_000 },
         removeOnComplete: { age: 7 * 24 * 3600 },

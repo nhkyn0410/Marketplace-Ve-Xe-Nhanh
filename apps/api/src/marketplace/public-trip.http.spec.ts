@@ -12,7 +12,7 @@ import { TripSearchService } from "./trip-search.service";
 /** Route công khai `/trips/search`, `/trips/{tripId}` (TASK-TRN-004): không cần đăng nhập; nghiệp vụ ở `.int.spec.ts`. */
 describe("Tìm chuyến công khai — HTTP", () => {
   const service = {
-    search: vi.fn(async () => ({ items: [], total: 0, page: 1, limit: 20, facets: { operators: [], priceMin: null, priceMax: null }, widenedToProvince: { from: false, to: false } })),
+    search: vi.fn<TripSearchService["search"]>(async () => ({ items: [], total: 0, page: 1, limit: 20, facets: { operators: [], priceMin: null, priceMax: null }, widenedToProvince: { from: false, to: false } })),
     getTrip: vi.fn(async () => {
       throw new Error("không gọi");
     }),
@@ -51,6 +51,32 @@ describe("Tìm chuyến công khai — HTTP", () => {
     expect(service.search).toHaveBeenCalledWith(
       expect.objectContaining({ passengers: 1, sort: "departure", page: 1, limit: 20, amenityIds: ["a", "b"] }),
     );
+  });
+
+  it.each(["", "date=2031-05-10&passengers=2"])("không nhập điểm đi / đến vẫn tìm được: %s", async (query) => {
+    expect((await fetch(`${base}/search?${query}`)).status).toBe(200);
+    const input = service.search.mock.calls[0]![0];
+    expect(input).not.toHaveProperty("fromProvinceId");
+    expect(input).not.toHaveProperty("toProvinceId");
+    expect(input).toMatchObject(query ? { date: "2031-05-10", passengers: 2 } : { passengers: 1 });
+  });
+
+  it.each(["https://cdn.test/operator-logo.png", null])("serializer giữ logo nhà xe công khai trong thẻ chuyến: %s", async (logoUrl) => {
+    service.search.mockResolvedValueOnce({
+      items: [{
+        tripId: randomUUID(), operator: { id: randomUUID(), name: "Nhà xe", slug: "nha-xe", logoUrl, averageRating: null, reviewCount: 0 },
+        routeName: "A → B", segmentTitle: "A → B", vehicleType: { name: "Giường nằm", form: "SLEEPER", class: "STANDARD" },
+        departureAt: "2031-05-10T01:00:00Z", arrivalAt: "2031-05-10T07:00:00Z",
+        pickup: { sequence: 1, name: "A", address: "A", plannedAt: "2031-05-10T01:00:00Z" },
+        dropoff: { sequence: 2, name: "B", address: "B", plannedAt: "2031-05-10T07:00:00Z" },
+        durationMinutes: 360, availableSeats: 10, minPrice: 300000, vehicleCoverImageUrl: null, amenities: [], onlineSaleClosesAt: "2031-05-10T00:00:00Z",
+      }],
+      total: 1, page: 1, limit: 20, facets: { operators: [], priceMin: null, priceMax: null }, widenedToProvince: { from: false, to: false },
+    });
+    const response = await fetch(`${base}/search?date=2031-05-10`);
+    expect(response.status).toBe(200);
+    const body = await response.json() as { items: { operator: { logoUrl: string | null } }[] };
+    expect(body.items[0]!.operator.logoUrl).toBe(logoUrl);
   });
 
   it.each([

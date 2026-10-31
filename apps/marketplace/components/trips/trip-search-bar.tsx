@@ -60,13 +60,13 @@ export function TripSearchBar({
 
   const handleSearch = (e: React.FormEvent): void => {
     e.preventDefault();
-    if (!date || !origin || !destination || samePlace(origin, destination)) {
-      setActionError("Chọn ngày đi và hai điểm khác nhau từ danh sách gợi ý.");
+    if (!date || (origin && destination && samePlace(origin, destination))) {
+      setActionError("Chọn ngày đi; nếu chọn cả điểm đi và điểm đến, hai điểm phải khác nhau.");
       return;
     }
     router.push(`/trips?${new URLSearchParams({
-      ...placeSearchParams("origin", origin),
-      ...placeSearchParams("destination", destination),
+      ...(origin ? placeSearchParams("origin", origin) : {}),
+      ...(destination ? placeSearchParams("destination", destination) : {}),
       date,
       passengers: String(passengers),
       ...(operatorId ? { operatorId } : {})
@@ -80,7 +80,7 @@ export function TripSearchBar({
         <div className="flex flex-1 flex-col gap-2 sm:flex-row sm:items-center">
           <PlaceInput
             id="search-origin"
-            label="Điểm đi"
+            label="Điểm đi (tùy chọn)"
             placeholder={PLACE_PLACEHOLDER}
             value={origin}
             onChange={setOrigin}
@@ -103,7 +103,7 @@ export function TripSearchBar({
 
           <PlaceInput
             id="search-destination"
-            label="Điểm đến"
+            label="Điểm đến (tùy chọn)"
             placeholder={PLACE_PLACEHOLDER}
             value={destination}
             onChange={setDestination}
@@ -127,14 +127,13 @@ export function TripSearchBar({
         {/* Nút Tìm chuyến */}
         <button
           type="submit"
-          disabled={!provinces.length}
           className="h-[54px] w-full shrink-0 cursor-pointer rounded-xl bg-[#00506a] px-6 text-sm font-bold text-white shadow-xs transition hover:bg-[#00476b] disabled:cursor-not-allowed disabled:opacity-60 lg:w-[140px]"
         >
           Tìm chuyến
         </button>
       </form>
 
-      {!provinces.length && <p className="mt-3 text-xs text-amber-800">Chưa tải được danh sách tỉnh thành. Vui lòng tải lại trang để thay đổi tìm kiếm.</p>}
+      <p className="mt-3 text-xs text-slate-500">Có thể chỉ chọn ngày đi để xem chuyến trên mọi tuyến.</p>
       {actionError && (
         <div role="alert" className="mt-3 rounded-lg border border-amber-200 bg-amber-50 p-2.5 text-xs font-medium text-amber-800">
           {actionError}

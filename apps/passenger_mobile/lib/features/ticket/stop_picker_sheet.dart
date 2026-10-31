@@ -114,7 +114,12 @@ class _StopPickerSheetState extends State<_StopPickerSheet> {
                 ),
               ),
               Padding(
-                padding: const EdgeInsets.fromLTRB(11, 4, 11, 11),
+                padding: EdgeInsets.fromLTRB(
+                  11,
+                  4,
+                  11,
+                  11 + MediaQuery.paddingOf(context).bottom,
+                ),
                 child: SizedBox(
                   width: double.infinity,
                   child: ConstrainedBox(

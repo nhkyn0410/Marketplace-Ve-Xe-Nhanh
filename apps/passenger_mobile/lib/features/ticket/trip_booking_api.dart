@@ -3,6 +3,7 @@ import 'package:dio/dio.dart';
 import 'package:mobile_shared/mobile_shared.dart';
 import 'package:passenger_mobile/features/home/home_models.dart';
 import 'package:passenger_mobile/features/ticket/booking_models.dart';
+import 'package:passenger_mobile/features/ticket/payment_models.dart';
 import 'package:passenger_mobile/features/ticket/trip_detail_models.dart';
 import 'package:passenger_mobile/features/ticket/trip_search_models.dart';
 
@@ -15,6 +16,22 @@ class TripBookingApi {
   final bool Function() _isSignedIn;
   List<HomeLocation>? _provinces;
   List<TripAmenityOption>? _amenities;
+
+  /// Trang điều khoản / chính sách đã công bố; slug do quản trị cấu hình.
+  Future<List<BookingPolicyDocument>> loadBookingTerms() async {
+    final response = await _call(
+      () =>
+          _client.getContentPagesApi().contentPageControllerList(type: 'PAGE'),
+    );
+    return [
+      for (final item in response.data!.items)
+        if (item.bodyMarkdown.trim().isNotEmpty)
+          BookingPolicyDocument(
+            title: item.title,
+            bodyMarkdown: item.bodyMarkdown,
+          ),
+    ];
+  }
 
   /// Tỉnh/thành đang hoạt động, tên rút gọn ("TP. Hồ Chí Minh", "Lâm Đồng"); tải một lần mỗi phiên.
   Future<List<HomeLocation>> loadProvinces() async {
@@ -70,7 +87,7 @@ class TripBookingApi {
         HomeOperator(
           id: item.operatorId,
           name: item.displayName,
-          logoUrl: item.logoUrl,
+          logoUrl: _publicImageUrl(item.logoUrl),
           averageRating: item.averageRating?.toDouble(),
           reviewCount: item.reviewCount,
           routes: [
@@ -141,7 +158,10 @@ class TripBookingApi {
   }
 
   /// Chuyến sắp chạy của mọi tuyến trong vài ngày tới — không gửi điểm đi / đến hay ngày (chờ duyệt 30/10/2026).
-  Future<TripSearchPage> browseTrips(TripSearchFilters filters, int page) async {
+  Future<TripSearchPage> browseTrips(
+    TripSearchFilters filters,
+    int page,
+  ) async {
     final amenityIds = filters.amenityIds.join(',');
     final response = await _call(
       () => _client.getTripsApi().publicTripControllerSearch(
@@ -181,6 +201,7 @@ class TripBookingApi {
             tripId: item.tripId,
             operatorId: item.operator_.id,
             operatorName: item.operator_.name,
+            operatorLogoUrl: _publicImageUrl(item.operator_.logoUrl),
             averageRating: item.operator_.averageRating?.toDouble(),
             reviewCount: item.operator_.reviewCount,
             vehicleTypeName: item.vehicleType.name,
@@ -200,11 +221,27 @@ class TripBookingApi {
             availableSeats: item.availableSeats,
             minPrice: item.minPrice,
             amenityNames: [for (final amenity in item.amenities) amenity.name],
-            coverImageUrl: item.vehicleCoverImageUrl,
+            coverImageUrl: _publicImageUrl(item.vehicleCoverImageUrl),
             segmentTitle: item.segmentTitle,
           ),
       ],
     );
+  }
+
+  /// Ảnh kho dev dùng cùng địa chỉ API mà thiết bị kết nối, thay cho localhost của server.
+  String? _publicImageUrl(String? value) {
+    if (value == null || value.trim().isEmpty) return null;
+    final uri = Uri.tryParse(value);
+    if (uri != null &&
+        (uri.scheme == 'http' || uri.scheme == 'https') &&
+        const {'localhost', '127.0.0.1', '::1', '[::1]'}.contains(uri.host) &&
+        uri.path.startsWith('/v1/dev-storage/public/')) {
+      final api = Uri.parse(_client.dio.options.baseUrl);
+      return uri
+          .replace(scheme: api.scheme, host: api.host, port: api.port)
+          .toString();
+    }
+    return value;
   }
 
   /// Giá vé thấp nhất của nhà xe trên một tuyến vào ngày đi; `null` khi ngày đó
@@ -249,6 +286,7 @@ class TripBookingApi {
     return TripDetail(
       tripId: data.tripId,
       operatorName: data.operator_.name,
+      operatorLogoUrl: _publicImageUrl(data.operator_.logoUrl),
       operatorHotline: data.operator_.hotline,
       averageRating: data.operator_.averageRating?.toDouble(),
       reviewCount: data.operator_.reviewCount,
@@ -259,7 +297,10 @@ class TripBookingApi {
       note: data.note,
       vehicleTypeName: data.vehicleType.name,
       amenityNames: [for (final amenity in data.amenities) amenity.name],
-      imageUrls: [for (final image in data.vehicleImages) image.url],
+      imageUrls: data.vehicleImages
+          .map((image) => _publicImageUrl(image.url))
+          .whereType<String>()
+          .toList(growable: false),
       stops: [
         for (final stop in data.stops)
           TripStop(
@@ -445,6 +486,66 @@ class TripBookingApi {
     );
   }
 
+  /// Tải voucher đang có trong ví của tài khoản, không thay bằng dữ liệu xem trước.
+  Future<List<BookingVoucher>> loadBookingVouchers() async {
+    final vouchers = <BookingVoucher>[];
+    var offset = 0;
+    while (true) {
+      final response = await _call(
+        () =>
+            _client.getPassengerLoyaltyApi().passengerLoyaltyControllerVouchers(
+              status: 'AVAILABLE',
+              offset: offset,
+              limit: 50,
+            ),
+      );
+      final page = response.data!;
+      for (final item in page.items) {
+        vouchers.add(
+          BookingVoucher(
+            id: item.userVoucherId,
+            name: item.name,
+            status: item.status.name,
+            discountType: item.discountType.name,
+            discountValue: item.discountValue,
+            minOrder: item.minOrder,
+            maxDiscount: item.maxDiscount,
+            expiresAt: item.expiresAt,
+            promotionCode: item.promotionCode,
+          ),
+        );
+      }
+      offset += page.items.length;
+      if (page.items.isEmpty || offset >= page.total) return vouchers;
+    }
+  }
+
+  /// Kiểm tra voucher của chính hành khách cho chuyến, chưa giữ hoặc trừ lượt dùng.
+  Future<PromotionQuote> checkVoucher({
+    required String tripId,
+    required String userVoucherId,
+    required int subtotal,
+  }) async {
+    final response = await _call(
+      () => _client.getPromotionsApi().publicPromotionControllerCheck(
+        promotionCheckInputDto: PromotionCheckInputDto(
+          (b) => b
+            ..tripId = tripId
+            ..userVoucherId = userVoucherId
+            ..subtotal = subtotal,
+        ),
+      ),
+    );
+    final data = response.data!;
+    return PromotionQuote(
+      code: data.code,
+      name: data.name,
+      discount: data.discount,
+      total: data.total,
+      userVoucherId: userVoucherId,
+    );
+  }
+
   /// Tạo đơn chờ thanh toán từ phiên giữ chỗ; [expectedTotal] là tổng sau giảm khách đã thấy.
   Future<CreatedBooking> createBooking({
     required String holdId,
@@ -469,7 +570,10 @@ class TripBookingApi {
         ])
         ..note = null
         ..expectedTotal = expectedTotal
-        ..promotionCode = draft.promotion?.code,
+        ..promotionCode = draft.promotion?.userVoucherId == null
+            ? draft.promotion?.code
+            : null
+        ..userVoucherId = draft.promotion?.userVoucherId,
     );
     final response = await _call(
       () => _client.getBookingsApi().bookingControllerCreate(
@@ -509,6 +613,76 @@ class TripBookingApi {
       expiresAt: data.expiresAt,
       accessToken: data.accessToken,
     );
+  }
+
+  /// Tạo hoặc lấy lại link thanh toán; khách vãng lai dùng mã truy cập của đơn.
+  Future<BookingPaymentSession> startPayment(
+    CreatedBooking booking,
+    PassengerPaymentMethod method,
+  ) async {
+    final response = await _call(
+      () => _client.getPaymentsApi().paymentControllerCreate(
+        bookingId: booking.bookingId,
+        xBookingToken: booking.accessToken,
+        paymentInputDto: PaymentInputDto(
+          (b) =>
+              b.provider = PaymentInputDtoProviderEnum.valueOf(method.apiValue),
+        ),
+      ),
+    );
+    final data = response.data!;
+    final transfer = data.transfer;
+    return BookingPaymentSession(
+      paymentId: data.paymentId,
+      paymentUrl: _paymentUrl(data.paymentUrl),
+      expiresAt: data.expiresAt,
+      transfer: transfer == null
+          ? null
+          : PaymentTransfer(
+              qrCode: transfer.qrCode,
+              bin: transfer.bin,
+              accountNumber: transfer.accountNumber,
+              accountName: transfer.accountName,
+              amount: transfer.amount,
+              description: transfer.description,
+            ),
+    );
+  }
+
+  /// Lấy kết quả thanh toán và vé từ máy chủ khi chờ hoặc quay lại ứng dụng.
+  Future<BookingPaymentState> loadPaymentState(CreatedBooking booking) async {
+    final response = await _call(
+      () => _client.getBookingsApi().bookingControllerGet(
+        bookingId: booking.bookingId,
+        xBookingToken: booking.accessToken,
+      ),
+    );
+    final data = response.data!;
+    return BookingPaymentState(
+      bookingStatus: data.status.name,
+      paymentStatus: data.payment?.status.name,
+      tickets: [
+        for (final ticket in data.tickets)
+          IssuedBookingTicket(
+            ticketCode: ticket.ticketCode,
+            seatCode: ticket.seatCode,
+            passengerName: ticket.passengerName,
+            companionName: ticket.companionName,
+            qrToken: ticket.qrToken,
+          ),
+      ],
+    );
+  }
+
+  Uri _paymentUrl(String value) {
+    final uri = Uri.parse(value);
+    // Simulator local trả localhost của server; đổi sang địa chỉ API trên thiết bị.
+    if (const {'localhost', '127.0.0.1', '::1', '[::1]'}.contains(uri.host) &&
+        uri.path.startsWith('/v1/dev/payment-gateway/')) {
+      final api = Uri.parse(_client.dio.options.baseUrl);
+      return uri.replace(scheme: api.scheme, host: api.host, port: api.port);
+    }
+    return uri;
   }
 
   Future<T> _call<T>(Future<T> Function() run) async {

@@ -12,6 +12,12 @@ const PaymentResponseDtoOutputProviderEnum
 const PaymentResponseDtoOutputProviderEnum
     _$paymentResponseDtoOutputProviderEnum_MOMO =
     const PaymentResponseDtoOutputProviderEnum._('MOMO');
+const PaymentResponseDtoOutputProviderEnum
+    _$paymentResponseDtoOutputProviderEnum_PAYOS =
+    const PaymentResponseDtoOutputProviderEnum._('PAYOS');
+const PaymentResponseDtoOutputProviderEnum
+    _$paymentResponseDtoOutputProviderEnum_DEMO =
+    const PaymentResponseDtoOutputProviderEnum._('DEMO');
 
 PaymentResponseDtoOutputProviderEnum
     _$paymentResponseDtoOutputProviderEnumValueOf(String name) {
@@ -20,6 +26,10 @@ PaymentResponseDtoOutputProviderEnum
       return _$paymentResponseDtoOutputProviderEnum_VNPAY;
     case 'MOMO':
       return _$paymentResponseDtoOutputProviderEnum_MOMO;
+    case 'PAYOS':
+      return _$paymentResponseDtoOutputProviderEnum_PAYOS;
+    case 'DEMO':
+      return _$paymentResponseDtoOutputProviderEnum_DEMO;
     default:
       throw ArgumentError(name);
   }
@@ -30,6 +40,8 @@ final BuiltSet<PaymentResponseDtoOutputProviderEnum>
         PaymentResponseDtoOutputProviderEnum>(const <PaymentResponseDtoOutputProviderEnum>[
   _$paymentResponseDtoOutputProviderEnum_VNPAY,
   _$paymentResponseDtoOutputProviderEnum_MOMO,
+  _$paymentResponseDtoOutputProviderEnum_PAYOS,
+  _$paymentResponseDtoOutputProviderEnum_DEMO,
 ]);
 
 const PaymentResponseDtoOutputStatusEnum
@@ -100,10 +112,14 @@ class _$PaymentResponseDtoOutputProviderEnumSerializer
   static const Map<String, Object> _toWire = const <String, Object>{
     'VNPAY': 'VNPAY',
     'MOMO': 'MOMO',
+    'PAYOS': 'PAYOS',
+    'DEMO': 'DEMO',
   };
   static const Map<Object, String> _fromWire = const <Object, String>{
     'VNPAY': 'VNPAY',
     'MOMO': 'MOMO',
+    'PAYOS': 'PAYOS',
+    'DEMO': 'DEMO',
   };
 
   @override
@@ -182,6 +198,8 @@ class _$PaymentResponseDtoOutput extends PaymentResponseDtoOutput {
   final String paymentUrl;
   @override
   final DateTime expiresAt;
+  @override
+  final PaymentResponseDtoOutputTransfer? transfer;
 
   factory _$PaymentResponseDtoOutput(
           [void Function(PaymentResponseDtoOutputBuilder)? updates]) =>
@@ -194,7 +212,8 @@ class _$PaymentResponseDtoOutput extends PaymentResponseDtoOutput {
       required this.status,
       required this.amount,
       required this.paymentUrl,
-      required this.expiresAt})
+      required this.expiresAt,
+      this.transfer})
       : super._();
   @override
   PaymentResponseDtoOutput rebuild(
@@ -215,7 +234,8 @@ class _$PaymentResponseDtoOutput extends PaymentResponseDtoOutput {
         status == other.status &&
         amount == other.amount &&
         paymentUrl == other.paymentUrl &&
-        expiresAt == other.expiresAt;
+        expiresAt == other.expiresAt &&
+        transfer == other.transfer;
   }
 
   @override
@@ -228,6 +248,7 @@ class _$PaymentResponseDtoOutput extends PaymentResponseDtoOutput {
     _$hash = $jc(_$hash, amount.hashCode);
     _$hash = $jc(_$hash, paymentUrl.hashCode);
     _$hash = $jc(_$hash, expiresAt.hashCode);
+    _$hash = $jc(_$hash, transfer.hashCode);
     _$hash = $jf(_$hash);
     return _$hash;
   }
@@ -241,7 +262,8 @@ class _$PaymentResponseDtoOutput extends PaymentResponseDtoOutput {
           ..add('status', status)
           ..add('amount', amount)
           ..add('paymentUrl', paymentUrl)
-          ..add('expiresAt', expiresAt))
+          ..add('expiresAt', expiresAt)
+          ..add('transfer', transfer))
         .toString();
   }
 }
@@ -281,6 +303,12 @@ class PaymentResponseDtoOutputBuilder
   DateTime? get expiresAt => _$this._expiresAt;
   set expiresAt(DateTime? expiresAt) => _$this._expiresAt = expiresAt;
 
+  PaymentResponseDtoOutputTransferBuilder? _transfer;
+  PaymentResponseDtoOutputTransferBuilder get transfer =>
+      _$this._transfer ??= PaymentResponseDtoOutputTransferBuilder();
+  set transfer(PaymentResponseDtoOutputTransferBuilder? transfer) =>
+      _$this._transfer = transfer;
+
   PaymentResponseDtoOutputBuilder() {
     PaymentResponseDtoOutput._defaults(this);
   }
@@ -295,6 +323,7 @@ class PaymentResponseDtoOutputBuilder
       _amount = $v.amount;
       _paymentUrl = $v.paymentUrl;
       _expiresAt = $v.expiresAt;
+      _transfer = $v.transfer?.toBuilder();
       _$v = null;
     }
     return this;
@@ -314,23 +343,37 @@ class PaymentResponseDtoOutputBuilder
   PaymentResponseDtoOutput build() => _build();
 
   _$PaymentResponseDtoOutput _build() {
-    final _$result = _$v ??
-        _$PaymentResponseDtoOutput._(
-          paymentId: BuiltValueNullFieldError.checkNotNull(
-              paymentId, r'PaymentResponseDtoOutput', 'paymentId'),
-          paymentCode: BuiltValueNullFieldError.checkNotNull(
-              paymentCode, r'PaymentResponseDtoOutput', 'paymentCode'),
-          provider: BuiltValueNullFieldError.checkNotNull(
-              provider, r'PaymentResponseDtoOutput', 'provider'),
-          status: BuiltValueNullFieldError.checkNotNull(
-              status, r'PaymentResponseDtoOutput', 'status'),
-          amount: BuiltValueNullFieldError.checkNotNull(
-              amount, r'PaymentResponseDtoOutput', 'amount'),
-          paymentUrl: BuiltValueNullFieldError.checkNotNull(
-              paymentUrl, r'PaymentResponseDtoOutput', 'paymentUrl'),
-          expiresAt: BuiltValueNullFieldError.checkNotNull(
-              expiresAt, r'PaymentResponseDtoOutput', 'expiresAt'),
-        );
+    _$PaymentResponseDtoOutput _$result;
+    try {
+      _$result = _$v ??
+          _$PaymentResponseDtoOutput._(
+            paymentId: BuiltValueNullFieldError.checkNotNull(
+                paymentId, r'PaymentResponseDtoOutput', 'paymentId'),
+            paymentCode: BuiltValueNullFieldError.checkNotNull(
+                paymentCode, r'PaymentResponseDtoOutput', 'paymentCode'),
+            provider: BuiltValueNullFieldError.checkNotNull(
+                provider, r'PaymentResponseDtoOutput', 'provider'),
+            status: BuiltValueNullFieldError.checkNotNull(
+                status, r'PaymentResponseDtoOutput', 'status'),
+            amount: BuiltValueNullFieldError.checkNotNull(
+                amount, r'PaymentResponseDtoOutput', 'amount'),
+            paymentUrl: BuiltValueNullFieldError.checkNotNull(
+                paymentUrl, r'PaymentResponseDtoOutput', 'paymentUrl'),
+            expiresAt: BuiltValueNullFieldError.checkNotNull(
+                expiresAt, r'PaymentResponseDtoOutput', 'expiresAt'),
+            transfer: _transfer?.build(),
+          );
+    } catch (_) {
+      late String _$failedField;
+      try {
+        _$failedField = 'transfer';
+        _transfer?.build();
+      } catch (e) {
+        throw BuiltValueNestedFieldError(
+            r'PaymentResponseDtoOutput', _$failedField, e.toString());
+      }
+      rethrow;
+    }
     replace(_$result);
     return _$result;
   }

@@ -98,7 +98,7 @@ class _TripResultsScreenState extends State<TripResultsScreen> {
           systemNavigationBarContrastEnforced: false,
         ),
         child: DecoratedBox(
-          decoration: const BoxDecoration(gradient: _pageGradient),
+          decoration: const BoxDecoration(color: _pageBackground),
           child: Stack(
             children: [
               CustomScrollView(

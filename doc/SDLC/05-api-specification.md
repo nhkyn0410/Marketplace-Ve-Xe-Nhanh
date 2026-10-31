@@ -13,9 +13,11 @@
 | Người viết    | Nguyễn Hồng Khanh, AI Agent |
 | Người duyệt   | Nguyễn Hồng Khanh           |
 | Ngày tạo      | 11/05/2026                  |
-| Ngày cập nhật | 30/10/2026                  |
+| Ngày cập nhật | 31/10/2026                  |
 
 ### 1.2. Lịch sử thay đổi
+
+31/10/2026 — bổ sung contract payOS **chờ duyệt** (ADR-029): `POST /v1/bookings/{id}/payments` thêm `PAYOS` / `DEMO`, response thêm `transfer? {qrCode, bin, accountNumber, accountName, amount:string, description, paymentLinkId}`; trường amount cấp ngoài giữ số nguyên JSON hiện có. Khôi phục link sau timeout có thể không có transfer. `POST /v1/webhooks/payment/payos` và `/demo`: kiểm chữ ký trước DB / queue, payload không có đơn nhưng đã ký ACK 200 không tạo payment/vé, sai chữ ký 400, lỗi DB/queue không ACK thành công. Poll `GET /v1/bookings/{id}` với Bearer hoặc `X-Booking-Token`. Zod nguồn chung ở `packages/types/src/payment.ts`; OpenAPI + TS/Dart client phải sinh lại theo [RB-04](../runbook/RB-04-api-client.md). Provider cũ giữ tương thích; không tự đổi trạng thái tài liệu.
 
 | Phiên bản | Ngày       | Người cập nhật | Nội dung thay đổi                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
 | --------- | ---------- | -------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |

@@ -820,6 +820,7 @@ Class | Method | HTTP request | Description
  - [PasswordChangeRequiredDto](doc/PasswordChangeRequiredDto.md)
  - [PaymentInputDto](doc/PaymentInputDto.md)
  - [PaymentResponseDtoOutput](doc/PaymentResponseDtoOutput.md)
+ - [PaymentResponseDtoOutputTransfer](doc/PaymentResponseDtoOutputTransfer.md)
  - [PayoutBankAccountDtoOutput](doc/PayoutBankAccountDtoOutput.md)
  - [PayoutConfirmInputDto](doc/PayoutConfirmInputDto.md)
  - [PayoutDetailDtoOutput](doc/PayoutDetailDtoOutput.md)

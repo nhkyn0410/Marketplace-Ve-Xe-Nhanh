@@ -64,8 +64,10 @@ All 15 tech-selection layers are closed (ADR-002, ADR-009..022; routing Layer 14
 
 | External actor           | Backend adapter (target)                       | Decision reference                                                                                         |
 | ------------------------ | ---------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
-| Cổng thanh toán VNPay    | `external/payment/vnpay/`                      | `ADR-019` (VNPay primary, re-close `OQ-05`)                                                                |
-| Cổng thanh toán MoMo     | `external/payment/momo/`                       | `ADR-019` (phương thức 2 v1, đa phương thức)                                                               |
+| Cổng thanh toán payOS    | `external/payment/payos/`                      | `ADR-029` (Proposed / chờ duyệt; VietQR hành khách, khóa thật chỉ local tới khi đóng OQ-22)                 |
+| Cổng thử nội bộ          | `external/payment/demo/`                       | `ADR-029` (provider DEMO riêng; production mặc định tắt, chỉ dữ liệu mẫu)                                  |
+| Cổng thanh toán VNPay    | `external/payment/vnpay/`                      | `ADR-019` / `ADR-029` (phương thức hành khách đang dùng khi đủ khóa; sandbox tới khi giải quyết OQ-22)      |
+| Cổng thanh toán MoMo     | `external/payment/momo/`                       | `ADR-019` / `ADR-029` (phương thức hành khách đang dùng khi đủ khóa; sandbox tới khi giải quyết OQ-22)      |
 | Dịch vụ email            | `external/notification/email/`                 | `ADR-020` (Resend, re-close `OQ-09`)                                                                       |
 | Dịch vụ SMS              | `external/notification/sms/`                   | `ADR-020` (defer v1 — chỉ adapter port + LocalLoggerAdapter; kích hoạt v1.x)                               |
 | Push notification        | `external/notification/push/`                  | `ADR-020` / `ADR-028` (FCM + APNs trực tiếp — TRONG phạm vi v1)                                            |

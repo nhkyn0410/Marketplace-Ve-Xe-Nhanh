@@ -63,7 +63,7 @@ abstract class AdminRefundDetailDtoOutput implements Built<AdminRefundDetailDtoO
 
   @BuiltValueField(wireName: r'provider')
   AdminRefundDetailDtoOutputProviderEnum get provider;
-  // enum providerEnum {  VNPAY,  MOMO,  };
+  // enum providerEnum {  VNPAY,  MOMO,  PAYOS,  DEMO,  };
 
   @BuiltValueField(wireName: r'operatorId')
   String get operatorId;
@@ -538,6 +538,10 @@ class AdminRefundDetailDtoOutputProviderEnum extends EnumClass {
   static const AdminRefundDetailDtoOutputProviderEnum VNPAY = _$adminRefundDetailDtoOutputProviderEnum_VNPAY;
   @BuiltValueEnumConst(wireName: r'MOMO')
   static const AdminRefundDetailDtoOutputProviderEnum MOMO = _$adminRefundDetailDtoOutputProviderEnum_MOMO;
+  @BuiltValueEnumConst(wireName: r'PAYOS')
+  static const AdminRefundDetailDtoOutputProviderEnum PAYOS = _$adminRefundDetailDtoOutputProviderEnum_PAYOS;
+  @BuiltValueEnumConst(wireName: r'DEMO')
+  static const AdminRefundDetailDtoOutputProviderEnum DEMO = _$adminRefundDetailDtoOutputProviderEnum_DEMO;
 
   static Serializer<AdminRefundDetailDtoOutputProviderEnum> get serializer => _$adminRefundDetailDtoOutputProviderEnumSerializer;
 

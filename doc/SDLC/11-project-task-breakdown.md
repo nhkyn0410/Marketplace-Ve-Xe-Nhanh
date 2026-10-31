@@ -13,9 +13,11 @@
 | Người viết    | Nguyễn Hồng Khanh, AI Agent |
 | Người duyệt   | Nguyễn Hồng Khanh           |
 | Ngày tạo      | 11/05/2026                  |
-| Ngày cập nhật | 28/10/2026                  |
+| Ngày cập nhật | 31/10/2026                  |
 
 ### 1.2. Lịch sử thay đổi
+
+31/10/2026 — TASK-BTP-003 / app hành khách có hiện thực payOS + DEMO theo yêu cầu Khanh; ADR-029 Proposed / chờ duyệt, không tự promote tài liệu. Giữ VNPay/MoMo tương thích dữ liệu; đã có migration / gateway / webhook / đối soát / QR và poll, kiểm thử backend trên DB tạm. Client TS/Dart đã sinh, lint/typecheck/test/build monorepo pass. App hành khách Flutter analyze không có issue, 249 tests pass; package Dart sinh tự động còn cảnh báo analyze, không có lỗi. Chưa thử điện thoại hoặc tiền thật, chưa code/security review, chưa commit/push/deploy. Những dòng tiến độ cũ ghi thanh toán chưa làm được thay bằng trạng thái tại [PAYOS-plan §5](../task-propreties/PAYOS-plan.md#5-thứ-tự-làm-và-tiêu-chí-xong).
 
 | Phiên bản | Ngày       | Người cập nhật | Nội dung thay đổi                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
 | --------- | ---------- | -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |

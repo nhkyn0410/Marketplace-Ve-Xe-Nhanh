@@ -18,13 +18,7 @@ const _primaryDark = Color(0xFF09243D);
 const _primarySoft = Color(0xFFEBF5FB);
 const _secondary = Color(0xFF607A8E);
 const _chipBorder = Color(0xFF95C8E8);
-const _pageBackground = Color(0xFFF4F8F9);
-const _pageGradient = LinearGradient(
-  begin: Alignment.topCenter,
-  end: Alignment.bottomCenter,
-  colors: [Color(0xFFE6F4FA), Color(0xFFF3F5F5), Color(0xFFEEEAE4)],
-  stops: [0, .52, 1],
-);
+const _pageBackground = Color(0xFFEFFAFF);
 
 /// Giá vé thấp nhất của một nhà xe trên một tuyến vào ngày đi; `null` khi ngày
 /// đó nhà xe không có chuyến mở bán.
@@ -148,7 +142,7 @@ class _TicketScreenState extends State<TicketScreen>
             systemNavigationBarColor: _pageBackground,
           ),
           child: DecoratedBox(
-            decoration: const BoxDecoration(gradient: _pageGradient),
+            decoration: const BoxDecoration(color: _pageBackground),
             // Header tự chừa thanh trạng thái để ảnh nền tràn lên sau nó.
             child: SafeArea(
               top: false,
@@ -330,7 +324,7 @@ class _TicketScreenState extends State<TicketScreen>
             message: filtered
                 ? 'Không có chuyến khớp bộ lọc. Hãy bỏ bớt bộ lọc.'
                 : _browsing
-                ? 'Chưa có chuyến sắp chạy trong 7 ngày tới.'
+                ? 'Chưa có chuyến sắp chạy trong 14 ngày tới.'
                 : 'Chưa có chuyến phù hợp. Hãy thử ngày khác hoặc địa điểm khác.',
             actionLabel: filtered ? 'Bỏ lọc' : null,
             onAction: filtered ? () => _applyFilters(_filters.cleared()) : null,
@@ -345,10 +339,11 @@ class _TicketScreenState extends State<TicketScreen>
             key: Key('ticket-browse-hint'),
             padding: EdgeInsets.symmetric(horizontal: 15),
             child: Text(
-              'Chuyến sắp chạy của mọi tuyến trong 7 ngày tới. Chọn điểm đi, điểm đến để tìm đúng chuyến.',
+              'Chuyến sắp chạy của mọi tuyến trong 14 ngày tới. Chọn điểm đi, điểm đến để tìm đúng chuyến.',
               style: TextStyle(color: Color(0xFF607A8E), fontSize: 13),
             ),
           ),
+          bottom: 14,
         ),
       ..._widenedSlivers(_page),
       SliverPadding(
@@ -2051,15 +2046,15 @@ class _TripCard extends StatelessWidget {
                     ),
                   ),
                 const SizedBox(height: 8),
-                SizedBox(
-                  height: 76,
+                Padding(
+                  padding: const EdgeInsets.only(right: 13),
                   child: _TripJourney(
                     trip: trip,
                     fromLabel: fromLabel,
                     toLabel: toLabel,
                   ),
                 ),
-                const SizedBox(height: 5),
+                const SizedBox(height: 8),
                 Padding(
                   padding: const EdgeInsets.only(right: 13),
                   child: _TripAmenities(trip: trip),
@@ -2084,7 +2079,11 @@ class _TripOperatorHeader extends StatelessWidget {
     final rated = trip.averageRating != null && trip.reviewCount > 0;
     return Row(
       children: [
-        OperatorInitialAvatar(name: trip.operatorName, size: 38),
+        OperatorInitialAvatar(
+          name: trip.operatorName,
+          logoUrl: trip.operatorLogoUrl,
+          size: 38,
+        ),
         const SizedBox(width: 9),
         Expanded(
           child: Column(
@@ -2146,37 +2145,43 @@ class _TripJourney extends StatelessWidget {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final vehicleWidth = constraints.maxWidth < 340 ? 82.0 : 98.0;
+        final vehicleSize = constraints.maxWidth < 300 ? 60.0 : 68.0;
         final cover = trip.coverImageUrl;
         return Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            SizedBox(
-              width: 67,
-              child: _JourneyPoint(
-                time: formatVnClock(trip.pickup.plannedAt),
-                // Nơi thật của điểm đón (API ghép theo phường) thay cho chữ trên ô tìm (vd tìm "Lâm Đồng" nhưng đón ở Đà Lạt).
-                city: _compactPlace(trip.segmentPart(0) ?? fromLabel),
-                station: trip.pickup.name,
-              ),
-            ),
             Expanded(
-              child: _RouteDuration(
-                duration: formatTripDuration(trip.durationMinutes),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: _JourneyPoint(
+                      time: formatVnClock(trip.pickup.plannedAt),
+                      // Ưu tiên địa điểm thực của chặng do API trả về.
+                      city: _compactPlace(trip.segmentPart(0) ?? fromLabel),
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                  SizedBox(
+                    width: 40,
+                    child: _RouteDuration(
+                      duration: formatTripDuration(trip.durationMinutes),
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                  Expanded(
+                    child: _JourneyPoint(
+                      time: formatVnClock(trip.dropoff.plannedAt),
+                      city: _compactPlace(trip.segmentPart(1) ?? toLabel),
+                      alignEnd: true,
+                    ),
+                  ),
+                ],
               ),
             ),
-            const SizedBox(width: 4),
-            SizedBox(
-              width: 56,
-              child: _JourneyPoint(
-                time: formatVnClock(trip.dropoff.plannedAt),
-                city: _compactPlace(trip.segmentPart(1) ?? toLabel),
-                station: trip.dropoff.name,
-              ),
-            ),
-            SizedBox(
-              width: vehicleWidth,
-              height: 76,
+            const SizedBox(width: 12),
+            SizedBox.square(
+              dimension: vehicleSize,
               child: ClipOval(
                 child: cover == null
                     ? const _VehicleFallback()
@@ -2221,16 +2226,19 @@ class _JourneyPoint extends StatelessWidget {
   const _JourneyPoint({
     required this.time,
     required this.city,
-    required this.station,
+    this.alignEnd = false,
   });
   final String time;
   final String city;
-  final String station;
+  final bool alignEnd;
 
   @override
   Widget build(BuildContext context) {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: alignEnd
+          ? CrossAxisAlignment.end
+          : CrossAxisAlignment.start,
       children: [
         FittedBox(
           fit: BoxFit.scaleDown,
@@ -2238,23 +2246,18 @@ class _JourneyPoint extends StatelessWidget {
             time,
             style: const TextStyle(
               color: _primaryDark,
-              fontSize: 17,
+              fontSize: 18,
               fontWeight: FontWeight.w600,
             ),
           ),
         ),
-        const SizedBox(height: 2),
+        const SizedBox(height: 4),
         Text(
           city,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: const TextStyle(color: _primaryDark, fontSize: 10.5),
-        ),
-        Text(
-          station,
+          textAlign: alignEnd ? TextAlign.end : TextAlign.start,
           maxLines: 2,
           overflow: TextOverflow.ellipsis,
-          style: const TextStyle(color: _secondary, fontSize: 7.5, height: 1.2),
+          style: const TextStyle(color: _primaryDark, fontSize: 11.5),
         ),
       ],
     );
@@ -2268,8 +2271,8 @@ class _RouteDuration extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(
+      mainAxisSize: MainAxisSize.min,
       children: [
-        const SizedBox(height: 13),
         SizedBox(
           height: 20,
           child: Stack(
@@ -2306,9 +2309,12 @@ class _RouteDuration extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 3),
-        Text(
-          duration,
-          style: const TextStyle(color: _secondary, fontSize: 9.5),
+        FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Text(
+            duration,
+            style: const TextStyle(color: _secondary, fontSize: 9.5),
+          ),
         ),
       ],
     );

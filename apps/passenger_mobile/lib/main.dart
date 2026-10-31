@@ -30,6 +30,7 @@ import 'package:passenger_mobile/features/ticket/ticket_screen.dart';
 import 'package:passenger_mobile/features/ticket/trip_booking_api.dart';
 import 'package:passenger_mobile/features/ticket/trip_detail_screen.dart';
 import 'package:passenger_mobile/features/ticket/trip_search_models.dart';
+import 'package:passenger_mobile/system_navigation_bar.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 /// Origin của API — KHÔNG kèm `/v1`.
@@ -91,12 +92,29 @@ class PassengerApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Vé Xe Nhanh',
+      title: 'Vé xe nhanh',
       debugShowCheckedModeBanner: false,
+      builder: (context, child) => PassengerSystemNavigation(child: child!),
       theme: ThemeData(
         useMaterial3: true,
         fontFamily: 'Be Vietnam Pro',
         colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF2B7EAD)),
+        snackBarTheme: SnackBarThemeData(
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: Colors.white,
+          elevation: 8,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+            side: const BorderSide(color: Color(0xFFD6E8F6), width: 1.2),
+          ),
+          contentTextStyle: const TextStyle(
+            fontFamily: 'Be Vietnam Pro',
+            fontSize: 13.5,
+            fontWeight: FontWeight.w600,
+            height: 1.4,
+            color: Color(0xFF102E58),
+          ),
+        ),
       ),
       home: const OtpLoginPage(),
     );
@@ -611,8 +629,8 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
           ),
         )
         .toList(growable: false);
-    // Fixture Figma chỉ lấp dữ liệu rỗng khi chạy debug để đối chiếu UI.
-    return vouchers.isEmpty && kDebugMode ? figmaVoucherSamples : vouchers;
+    // Ví tài khoản và checkout cùng dùng voucher thật; không cho mẫu xem trước trông như ưu đãi có thể sử dụng.
+    return vouchers;
   }
 
   Future<MyReviewsData> _loadMyReviews() async {
@@ -844,6 +862,11 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
     });
   }
 
+  void _finishBooking() {
+    _selectMainTab(_step == _AuthStep.signedIn ? 3 : 2);
+    Navigator.of(context).popUntil((route) => route.isFirst);
+  }
+
   /// Trang chủ bấm "Tìm chuyến": mở màn Kết quả để chọn chuyến theo điều kiện
   /// đã nhập; quay lại thì về Trang chủ. Tab Mua vé dùng lại điều kiện này.
   void _openTripResults(HomeSearchQuery query) {
@@ -867,6 +890,8 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
         builder: (_) => TripDetailScreen(
           api: _bookingApi,
           tripId: trip.tripId,
+          isSignedIn: _step == _AuthStep.signedIn,
+          onBookingFinished: _finishBooking,
           fromLabel: query?.from.name,
           toLabel: query?.to.name,
           pickupSequence: trip.pickup.sequence,

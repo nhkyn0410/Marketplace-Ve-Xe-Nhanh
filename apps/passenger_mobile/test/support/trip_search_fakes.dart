@@ -63,11 +63,13 @@ TripSummary sampleTrip(
   int price = 280000,
   double? rating = 4.7,
   int reviewCount = 12,
+  String? operatorLogoUrl,
 }) {
   return TripSummary(
     tripId: id,
     operatorId: 'op-$operatorName',
     operatorName: operatorName,
+    operatorLogoUrl: operatorLogoUrl,
     averageRating: rating,
     reviewCount: reviewCount,
     vehicleTypeName: 'Limousine giường',

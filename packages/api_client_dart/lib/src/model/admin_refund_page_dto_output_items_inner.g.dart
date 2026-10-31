@@ -12,6 +12,12 @@ const AdminRefundPageDtoOutputItemsInnerProviderEnum
 const AdminRefundPageDtoOutputItemsInnerProviderEnum
     _$adminRefundPageDtoOutputItemsInnerProviderEnum_MOMO =
     const AdminRefundPageDtoOutputItemsInnerProviderEnum._('MOMO');
+const AdminRefundPageDtoOutputItemsInnerProviderEnum
+    _$adminRefundPageDtoOutputItemsInnerProviderEnum_PAYOS =
+    const AdminRefundPageDtoOutputItemsInnerProviderEnum._('PAYOS');
+const AdminRefundPageDtoOutputItemsInnerProviderEnum
+    _$adminRefundPageDtoOutputItemsInnerProviderEnum_DEMO =
+    const AdminRefundPageDtoOutputItemsInnerProviderEnum._('DEMO');
 
 AdminRefundPageDtoOutputItemsInnerProviderEnum
     _$adminRefundPageDtoOutputItemsInnerProviderEnumValueOf(String name) {
@@ -20,6 +26,10 @@ AdminRefundPageDtoOutputItemsInnerProviderEnum
       return _$adminRefundPageDtoOutputItemsInnerProviderEnum_VNPAY;
     case 'MOMO':
       return _$adminRefundPageDtoOutputItemsInnerProviderEnum_MOMO;
+    case 'PAYOS':
+      return _$adminRefundPageDtoOutputItemsInnerProviderEnum_PAYOS;
+    case 'DEMO':
+      return _$adminRefundPageDtoOutputItemsInnerProviderEnum_DEMO;
     default:
       throw ArgumentError(name);
   }
@@ -30,6 +40,8 @@ final BuiltSet<AdminRefundPageDtoOutputItemsInnerProviderEnum>
         AdminRefundPageDtoOutputItemsInnerProviderEnum>(const <AdminRefundPageDtoOutputItemsInnerProviderEnum>[
   _$adminRefundPageDtoOutputItemsInnerProviderEnum_VNPAY,
   _$adminRefundPageDtoOutputItemsInnerProviderEnum_MOMO,
+  _$adminRefundPageDtoOutputItemsInnerProviderEnum_PAYOS,
+  _$adminRefundPageDtoOutputItemsInnerProviderEnum_DEMO,
 ]);
 
 const AdminRefundPageDtoOutputItemsInnerSource_Enum
@@ -130,10 +142,14 @@ class _$AdminRefundPageDtoOutputItemsInnerProviderEnumSerializer
   static const Map<String, Object> _toWire = const <String, Object>{
     'VNPAY': 'VNPAY',
     'MOMO': 'MOMO',
+    'PAYOS': 'PAYOS',
+    'DEMO': 'DEMO',
   };
   static const Map<Object, String> _fromWire = const <Object, String>{
     'VNPAY': 'VNPAY',
     'MOMO': 'MOMO',
+    'PAYOS': 'PAYOS',
+    'DEMO': 'DEMO',
   };
 
   @override

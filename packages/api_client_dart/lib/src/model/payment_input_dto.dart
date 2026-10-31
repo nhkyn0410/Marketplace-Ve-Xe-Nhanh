@@ -17,7 +17,7 @@ part 'payment_input_dto.g.dart';
 abstract class PaymentInputDto implements Built<PaymentInputDto, PaymentInputDtoBuilder> {
   @BuiltValueField(wireName: r'provider')
   PaymentInputDtoProviderEnum get provider;
-  // enum providerEnum {  VNPAY,  MOMO,  };
+  // enum providerEnum {  VNPAY,  MOMO,  PAYOS,  DEMO,  };
 
   PaymentInputDto._();
 
@@ -113,6 +113,10 @@ class PaymentInputDtoProviderEnum extends EnumClass {
   static const PaymentInputDtoProviderEnum VNPAY = _$paymentInputDtoProviderEnum_VNPAY;
   @BuiltValueEnumConst(wireName: r'MOMO')
   static const PaymentInputDtoProviderEnum MOMO = _$paymentInputDtoProviderEnum_MOMO;
+  @BuiltValueEnumConst(wireName: r'PAYOS')
+  static const PaymentInputDtoProviderEnum PAYOS = _$paymentInputDtoProviderEnum_PAYOS;
+  @BuiltValueEnumConst(wireName: r'DEMO')
+  static const PaymentInputDtoProviderEnum DEMO = _$paymentInputDtoProviderEnum_DEMO;
 
   static Serializer<PaymentInputDtoProviderEnum> get serializer => _$paymentInputDtoProviderEnumSerializer;
 

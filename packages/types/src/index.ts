@@ -8,6 +8,7 @@ export * from "./trip-departure";
 export * from "./counter-commission";
 export * from "./passenger-profile";
 export * from "./passenger-loyalty";
+export * from "./payment";
 
 export const HealthResponseSchema = z.object({
   status: z.literal("ok"),

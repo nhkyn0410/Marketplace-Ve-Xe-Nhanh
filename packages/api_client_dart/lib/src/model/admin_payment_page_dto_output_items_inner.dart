@@ -48,7 +48,7 @@ abstract class AdminPaymentPageDtoOutputItemsInner implements Built<AdminPayment
 
   @BuiltValueField(wireName: r'provider')
   AdminPaymentPageDtoOutputItemsInnerProviderEnum get provider;
-  // enum providerEnum {  VNPAY,  MOMO,  };
+  // enum providerEnum {  VNPAY,  MOMO,  PAYOS,  DEMO,  };
 
   @BuiltValueField(wireName: r'amount')
   int get amount;
@@ -325,6 +325,10 @@ class AdminPaymentPageDtoOutputItemsInnerProviderEnum extends EnumClass {
   static const AdminPaymentPageDtoOutputItemsInnerProviderEnum VNPAY = _$adminPaymentPageDtoOutputItemsInnerProviderEnum_VNPAY;
   @BuiltValueEnumConst(wireName: r'MOMO')
   static const AdminPaymentPageDtoOutputItemsInnerProviderEnum MOMO = _$adminPaymentPageDtoOutputItemsInnerProviderEnum_MOMO;
+  @BuiltValueEnumConst(wireName: r'PAYOS')
+  static const AdminPaymentPageDtoOutputItemsInnerProviderEnum PAYOS = _$adminPaymentPageDtoOutputItemsInnerProviderEnum_PAYOS;
+  @BuiltValueEnumConst(wireName: r'DEMO')
+  static const AdminPaymentPageDtoOutputItemsInnerProviderEnum DEMO = _$adminPaymentPageDtoOutputItemsInnerProviderEnum_DEMO;
 
   static Serializer<AdminPaymentPageDtoOutputItemsInnerProviderEnum> get serializer => _$adminPaymentPageDtoOutputItemsInnerProviderEnumSerializer;
 

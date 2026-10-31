@@ -37,7 +37,7 @@ function savedSearch(raw: string | undefined): URLSearchParams | null {
 
 /**
  * Trang "Mua vé" = Khám phá chuyến đi, giống tab Mua vé của app: tab **Chuyến xe** hiện chuyến đang mở bán của lần tìm gần
- * nhất (chưa tìm lần nào thì tuyến phổ biến đầu tiên); tab **Nhà xe** liệt kê nhà xe đang phục vụ kèm giá vé từ theo ngày.
+ * nhất (chưa tìm lần nào thì mọi tuyến trong 14 ngày tới); tab **Nhà xe** liệt kê nhà xe đang phục vụ kèm giá vé từ theo ngày.
  * Tìm chuyến (trang chủ / thanh tìm) dẫn tới trang kết quả `/trips?…`.
  */
 export default async function ExplorePage({ searchParams }: { readonly searchParams?: Promise<SearchParams> }) {
@@ -81,8 +81,8 @@ export default async function ExplorePage({ searchParams }: { readonly searchPar
 async function TripsTab({ value, today }: { readonly value: (key: string) => string | undefined; readonly today: string }) {
   const saved = savedSearch((await cookies()).get(LAST_SEARCH_COOKIE)?.value);
   const fromUrl = value("origin") && value("destination") ? value : null;
-  // `?all=1` hoặc chưa tìm lần nào: xem mọi chuyến sắp chạy, không cần nhập điểm đi / đến hay ngày (chờ duyệt 30/10/2026).
-  const browseAll = value("all") === "1" && !fromUrl;
+  // Chỉ lọc ngày hoặc `?all=1` thì xem mọi tuyến, không tự lấy lại tuyến trong cookie.
+  const browseAll = !fromUrl && (value("all") === "1" || Boolean(value("date")));
   const provincesResult = await getProvinces();
   // Ngày trên URL (đổi bằng dải ngày) được ưu tiên dù hành trình lấy từ lần tìm trước.
   const dateFromUrl = (key: string) => (key === "date" ? value("date") : undefined);
@@ -90,7 +90,9 @@ async function TripsTab({ value, today }: { readonly value: (key: string) => str
   const provinces = provincesResult.status === "ok" ? provincesResult.data : [];
 
   if (!journey) {
-    return <UpcomingTrips provinces={provinces} today={today} />;
+    const requestedDate = value("date");
+    const date = requestedDate && /^\d{4}-\d{2}-\d{2}$/.test(requestedDate) && requestedDate >= today ? requestedDate : undefined;
+    return <UpcomingTrips provinces={provinces} today={today} date={date} />;
   }
 
   const journeyQuery = new URLSearchParams({
@@ -152,21 +154,25 @@ async function TripsTab({ value, today }: { readonly value: (key: string) => str
   );
 }
 
-/** Chuyến sắp chạy của mọi tuyến trong vài ngày tới — xem vé không cần nhập điểm đi / đến hay ngày. */
-async function UpcomingTrips({ provinces, today }: { readonly provinces: Parameters<typeof TripSearchBar>[0]["provinces"]; readonly today: string }) {
-  const result = await searchTrips({ anyDate: true, sortBy: "earliest" });
+/** Chuyến mọi tuyến trong 14 ngày tới hoặc ngày đã chọn, không cần nhập điểm đi / đến. */
+async function UpcomingTrips({ provinces, today, date }: { readonly provinces: Parameters<typeof TripSearchBar>[0]["provinces"]; readonly today: string; readonly date?: string }) {
+  const result = await searchTrips({ anyDate: true, date, sortBy: "earliest" });
   return (
     <>
-      <TripSearchBar provinces={provinces} initialDate={addDays(today, 1)} />
+      <TripSearchBar key={date ?? "all"} provinces={provinces} initialDate={date ?? addDays(today, 1)} />
       <section className="mt-6 space-y-4" aria-labelledby="explore-trips-heading">
+        <TripDateStrip basePath="/trips/explore" query="all=1" selected={date ?? ""} dates={stripDates(date ?? today, today)} />
         <div>
           <h2 id="explore-trips-heading" className="text-lg font-semibold text-vxn-ink">Chuyến sắp chạy</h2>
-          <p className="mt-0.5 text-xs text-slate-500">Mọi tuyến trong 7 ngày tới • Giờ đi sớm nhất. Chọn điểm đi, điểm đến và ngày để tìm đúng chuyến.</p>
+          <p className="mt-0.5 text-xs text-slate-500">
+            Mọi tuyến {date ? `ngày ${formatTripDateVi(date)}` : "trong 14 ngày tới"} • Giờ đi sớm nhất. Chỉ cần chọn ngày để lọc chuyến.
+          </p>
+          {date && <Link href="/trips/explore?all=1" className="mt-2 inline-block text-xs font-bold text-[#00506a] hover:underline">Xem mọi chuyến trong 14 ngày tới</Link>}
         </div>
         {result.status !== "ok" ? (
           <FeatureUnavailable title="Không thể tải chuyến xe" description="Vui lòng tải lại trang sau ít phút." />
         ) : result.data.trips.length === 0 ? (
-          <EmptyState icon={Search} title="Chưa có chuyến sắp chạy" description="Hiện chưa có chuyến mở bán trong 7 ngày tới." className="bg-white" />
+          <EmptyState icon={Search} title="Chưa có chuyến sắp chạy" description={date ? "Hiện chưa có chuyến mở bán trong ngày đã chọn. Thử đổi ngày hoặc xem mọi chuyến trong 14 ngày tới." : "Hiện chưa có chuyến mở bán trong 14 ngày tới."} className="bg-white" />
         ) : (
           <div className="space-y-4">
             {result.data.trips.slice(0, LIST_SIZE * 2).map((trip) => <TripCard key={trip.id} trip={trip} showDate />)}

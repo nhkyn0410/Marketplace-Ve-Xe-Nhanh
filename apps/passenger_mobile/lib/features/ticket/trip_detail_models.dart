@@ -82,6 +82,7 @@ class TripDetail {
     required this.seats,
     required this.cancellationTiers,
     this.operatorHotline,
+    this.operatorLogoUrl,
     this.averageRating,
     this.note,
     this.segmentTitle,
@@ -89,6 +90,8 @@ class TripDetail {
 
   final String tripId;
   final String operatorName;
+  /// Logo công khai của nhà xe, dùng xuyên suốt luồng đặt vé.
+  final String? operatorLogoUrl;
   final String? operatorHotline;
   final double? averageRating;
   final int reviewCount;

@@ -7,6 +7,7 @@ import { APP_CONFIG, type AppConfig } from "../config/env.config";
 import { withBookingOperator } from "../database/marketplace-scope";
 import { PrismaService, type DbTransaction } from "../database/prisma.service";
 import { PaymentStatus } from "../database/prisma.types";
+import { PaymentTransferSchema, type PaymentTransfer } from "@vexenhanh/types";
 import { PAYMENT_GATEWAYS, PaymentGatewayError, type PaymentGateway, type PaymentGateways } from "../external/payment/payment-gateway";
 import { vndToJson } from "../fare/fare-pricing";
 import type { VerifiedAccessToken } from "../iam/auth/token.service";
@@ -33,11 +34,13 @@ type PaymentRow = {
   status: PaymentStatus;
   amount: bigint;
   paymentUrl: string | null;
+  providerOrderCode: bigint | null;
+  checkout: unknown;
   expiresAt: Date;
   createdAt: Date;
 };
 
-const PAYMENT_SELECT = { id: true, paymentCode: true, provider: true, status: true, amount: true, paymentUrl: true, expiresAt: true, createdAt: true } as const;
+const PAYMENT_SELECT = { id: true, paymentCode: true, provider: true, status: true, amount: true, paymentUrl: true, providerOrderCode: true, checkout: true, expiresAt: true, createdAt: true } as const;
 
 /**
  * Tạo payment cho booking (TASK-BTP-003, FR-BTP-07, BR-27, ADR-019). Chỉ booking `PENDING_PAYMENT` còn hạn, của chính
@@ -78,36 +81,43 @@ export class PaymentService {
       return toResponse(payment);
     }
 
-    let paymentUrl: string;
+    let checkout: Awaited<ReturnType<PaymentGateway["createCheckout"]>>;
+    const returnUrl = `${this.config.PAYMENT_RETURN_BASE_URL.replace(/\/+$/, "")}/bookings/${bookingId}/payment/result`;
     try {
-      ({ paymentUrl } = await gateway.createCheckout({
+      checkout = await gateway.createCheckout({
         paymentCode: payment.paymentCode,
         amount: payment.amount,
         orderInfo: `Thanh toan ve ${bookingCode}`,
-        returnUrl: `${this.config.PAYMENT_RETURN_BASE_URL.replace(/\/+$/, "")}/bookings/${bookingId}/payment/result`,
+        returnUrl,
+        cancelUrl: returnUrl,
+        ...(payment.providerOrderCode !== null ? { orderCode: payment.providerOrderCode } : {}),
         clientIp: clientIp ?? "127.0.0.1",
         // Giờ tạo giao dịch = giờ tạo payment: hoàn tiền VNPay gửi lại đúng mốc này (`vnp_TransactionDate`).
         createdAt: payment.createdAt,
         expiresAt: payment.expiresAt,
-      }));
+      });
     } catch (error) {
       if (!(error instanceof PaymentGatewayError)) {
         throw error;
       }
       this.logger.warn({ event: "payment.gateway_failed", provider: gateway.provider, paymentCode: payment.paymentCode, error: error.message });
-      await withBookingOperator(this.prisma, bookingId, (tx, operatorId) =>
-        transition(tx, operatorId, payment, PaymentStatus.FAILED, { failureCode: "GATEWAY_ERROR" }, error.message),
-      );
+      // payOS có thể đã tạo link trước khi kết nối timeout: giữ mã đơn để lần thử lại không thu tiền hai lần.
+      if (gateway.provider !== "PAYOS" || !error.retryable) {
+        await withBookingOperator(this.prisma, bookingId, (tx, operatorId) =>
+          transition(tx, operatorId, payment, PaymentStatus.FAILED, { failureCode: "GATEWAY_ERROR" }, error.message),
+        );
+      }
       throw providerError();
     }
+    const { paymentUrl, transfer } = checkout;
     const updated = await withBookingOperator(this.prisma, bookingId, (tx, operatorId) =>
-      transition(tx, operatorId, payment, PaymentStatus.PROCESSING, { paymentUrl }, "Đã tạo link thanh toán ở cổng."),
+      transition(tx, operatorId, payment, PaymentStatus.PROCESSING, { paymentUrl, ...(transfer ? { checkout: transfer } : {}) }, "Đã tạo link thanh toán ở cổng."),
     );
     if (!updated) {
       // Booking vừa hết hạn / được thanh toán qua cổng khác giữa chừng → payment đã bị đóng.
       throw bookingInvalidState("đã thay đổi");
     }
-    return toResponse({ ...payment, status: PaymentStatus.PROCESSING, paymentUrl });
+    return toResponse({ ...payment, status: PaymentStatus.PROCESSING, paymentUrl, checkout: transfer ?? null });
   }
 
   private async prepare(
@@ -149,6 +159,10 @@ export class PaymentService {
       if (now.getTime() - open.createdAt.getTime() < IN_FLIGHT_MS) {
         throw paymentInProgress();
       }
+      if (gateway.provider === "PAYOS") {
+        // Retry vẫn dùng orderCode cũ, kể cả khi lần gọi cổng trước bị mất phản hồi.
+        return { payment: open, bookingCode: booking.bookingCode };
+      }
       await transition(tx, operatorId, open, PaymentStatus.CANCELLED, {}, "Tạo link thanh toán lỗi giữa chừng.");
     }
     const payment = await tx.payment.create({
@@ -177,7 +191,7 @@ async function transition(
   operatorId: string,
   payment: { id: string; status: PaymentStatus },
   to: PaymentStatus,
-  data: { paymentUrl?: string; failureCode?: string },
+  data: { paymentUrl?: string; failureCode?: string; checkout?: PaymentTransfer },
   reason: string,
 ): Promise<boolean> {
   const updated = await tx.payment.updateMany({ where: { id: payment.id, operatorId, status: payment.status }, data: { status: to, ...data } });
@@ -197,6 +211,7 @@ function newPaymentCode(): string {
 }
 
 function toResponse(payment: PaymentRow): PaymentResponse {
+  const transfer = PaymentTransferSchema.safeParse(payment.checkout);
   return {
     paymentId: payment.id,
     paymentCode: payment.paymentCode,
@@ -205,5 +220,6 @@ function toResponse(payment: PaymentRow): PaymentResponse {
     amount: vndToJson(payment.amount),
     paymentUrl: payment.paymentUrl!,
     expiresAt: payment.expiresAt.toISOString(),
+    ...(transfer.success ? { transfer: transfer.data } : {}),
   };
 }

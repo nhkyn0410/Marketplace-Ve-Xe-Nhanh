@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:passenger_mobile/features/ticket/booking_confirmation_screen.dart';
+import 'package:passenger_mobile/features/ticket/booking_flow_chrome.dart';
 import 'package:passenger_mobile/features/ticket/booking_models.dart';
 import 'package:passenger_mobile/features/ticket/passenger_information_screen.dart';
 import 'package:passenger_mobile/features/ticket/payment_screen.dart';
@@ -106,7 +107,8 @@ void main() {
           bottomAction: const Key('booking-continue-payment'),
         ),
         (
-          build: () => PaymentScreen(booking: sampleBooking()),
+          build: () =>
+              PaymentScreen(api: FakeBookingApi(), booking: sampleBooking()),
           header: const Key('payment-header'),
           progress: const Key('payment-progress'),
           scroll: const Key('payment-scroll'),
@@ -160,6 +162,9 @@ void main() {
               closeTo(progressTop, 0.1),
             );
             expect(find.byKey(screen.bottomAction), findsOneWidget);
+            expect(find.text('Thông tin'), findsWidgets);
+            expect(find.text('Thông tin\nhành khách'), findsNothing);
+            expect(find.textContaining('Giữ ghế trong'), findsNothing);
           }
         },
       );
@@ -193,6 +198,66 @@ void main() {
     );
     expect(find.byKey(const Key('passenger-hold-countdown')), findsOneWidget);
     expect(find.byKey(const Key('passenger-hold-banner')), findsNothing);
+    expect(find.text('Thông tin'), findsNWidgets(2));
     expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('đồng hồ có phụ đề vẫn gọn và giữ trạng thái, nhãn trợ năng', (
+    tester,
+  ) async {
+    final semantics = tester.ensureSemantics();
+    const timerKey = Key('compact-header-countdown');
+
+    try {
+      for (final state in [
+        (time: '09:19', expired: false, urgent: false),
+        (time: '00:45', expired: false, urgent: true),
+        (time: '00:00', expired: true, urgent: false),
+      ]) {
+        await _pumpScreen(
+          tester,
+          Scaffold(
+            body: BookingFlowHeader(
+              title: 'Thanh toán',
+              subtitle: 'TP. Hồ Chí Minh → Đà Nẵng',
+              timerLabel: state.time,
+              expired: state.expired,
+              urgent: state.urgent,
+              onBack: () {},
+              backKey: const Key('compact-header-back'),
+              timerKey: timerKey,
+            ),
+          ),
+          width: 360,
+          textScale: 1.5,
+        );
+
+        expect(find.textContaining('Giữ ghế trong'), findsNothing);
+        expect(
+          find.text(state.expired ? 'Đã hết hạn' : state.time),
+          findsOneWidget,
+        );
+        expect(
+          find.bySemanticsLabel(
+            state.expired
+                ? 'Đã hết hạn giữ chỗ'
+                : 'Thời gian giữ chỗ còn lại ${state.time}',
+          ),
+          findsOneWidget,
+        );
+        expect(tester.getSize(find.byKey(timerKey)).height, lessThan(36));
+        expect(
+          tester
+              .widget<Icon>(find.byIcon(Icons.access_time_filled_rounded))
+              .color,
+          state.expired || state.urgent
+              ? const Color(0xFFD84A4A)
+              : const Color(0xFFF59B31),
+        );
+        expect(tester.takeException(), isNull);
+      }
+    } finally {
+      semantics.dispose();
+    }
   });
 }

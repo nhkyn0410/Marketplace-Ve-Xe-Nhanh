@@ -31,6 +31,7 @@ class TripSummary {
     required this.minPrice,
     required this.amenityNames,
     this.averageRating,
+    this.operatorLogoUrl,
     this.coverImageUrl,
     this.segmentTitle,
   });
@@ -38,6 +39,8 @@ class TripSummary {
   final String tripId;
   final String operatorId;
   final String operatorName;
+  /// Logo công khai của nhà xe; chưa có ảnh thì dùng chữ cái đầu.
+  final String? operatorLogoUrl;
   final double? averageRating;
   final int reviewCount;
   final String vehicleTypeName;

@@ -1,8 +1,11 @@
 import { createHash } from "node:crypto";
 import { Logger, Module } from "@nestjs/common";
 import { APP_CONFIG, type AppConfig } from "../../config/env.config";
+import { DemoGateway } from "./demo/demo-gateway";
+import { DemoPaymentController } from "./demo/demo-payment.controller";
 import { MomoGateway } from "./momo/momo-gateway";
 import { PAYMENT_GATEWAYS, type PaymentGateway, type PaymentGateways } from "./payment-gateway";
+import { PayosGateway } from "./payos/payos-gateway";
 import {
   PAYMENT_SIMULATOR,
   PAYMENT_SIMULATOR_PATH,
@@ -28,12 +31,19 @@ export function createPaymentGateways(config: AppConfig): { gateways: PaymentGat
   const simulator: PaymentSimulator = { vnpay: null, momo: null };
   const gateways = new Map<PaymentGateway["provider"], PaymentGateway>();
 
+  if (config.PAYOS_CLIENT_ID && config.PAYOS_API_KEY && config.PAYOS_CHECKSUM_KEY) {
+    gateways.set("PAYOS", new PayosGateway({ clientId: config.PAYOS_CLIENT_ID, apiKey: config.PAYOS_API_KEY, checksumKey: config.PAYOS_CHECKSUM_KEY, apiUrl: config.PAYOS_API_URL }));
+  }
+  if (!config.PAYOS_CLIENT_ID && (dev || config.PAYMENT_DEMO_ENABLED)) {
+    gateways.set("DEMO", new DemoGateway({ secret: devKey("demo", 32), baseUrl: `${simulatorBase}/demo`, callbackUrl: `${apiBase}/v1/webhooks/payment/demo` }));
+  }
+
   if (config.VNPAY_TMN_CODE && config.VNPAY_HASH_SECRET) {
     gateways.set(
       "VNPAY",
       new VnpayGateway({ tmnCode: config.VNPAY_TMN_CODE, hashSecret: config.VNPAY_HASH_SECRET, paymentUrl: config.VNPAY_PAYMENT_URL, apiUrl: config.VNPAY_API_URL }),
     );
-  } else if (dev) {
+  } else if (dev && !config.PAYOS_CLIENT_ID) {
     simulator.vnpay = {
       tmnCode: "DEVSIM01",
       hashSecret: devKey("vnpay", 32),
@@ -54,7 +64,7 @@ export function createPaymentGateways(config: AppConfig): { gateways: PaymentGat
         ipnUrl: momoIpnUrl,
       }),
     );
-  } else if (dev) {
+  } else if (dev && !config.PAYOS_CLIENT_ID) {
     simulator.momo = {
       partnerCode: "DEVSIM01",
       accessKey: devKey("momo-access", 12),
@@ -78,7 +88,7 @@ export function createPaymentGateways(config: AppConfig): { gateways: PaymentGat
  * Controller giả lập trả 404 khi cổng tương ứng không phải giả lập.
  */
 @Module({
-  controllers: [PaymentSimulatorController],
+  controllers: [PaymentSimulatorController, DemoPaymentController],
   providers: [
     { provide: "PAYMENT_SETUP", inject: [APP_CONFIG], useFactory: createPaymentGateways },
     { provide: PAYMENT_GATEWAYS, inject: ["PAYMENT_SETUP"], useFactory: (setup: ReturnType<typeof createPaymentGateways>) => setup.gateways },

@@ -41,6 +41,18 @@ describe("parseAppConfig", () => {
     expect(() => parseAppConfig({ NODE_ENV: "staging" })).toThrow(/Invalid environment/);
   });
 
+  it("payOS cần đủ ba khóa; DEMO và payOS thật không được bật chung", () => {
+    const keys = { PAYOS_CLIENT_ID: "client", PAYOS_API_KEY: "api", PAYOS_CHECKSUM_KEY: "checksum" };
+    expect(parseAppConfig({}).PAYMENT_DEMO_ENABLED).toBe(false);
+    expect(parseAppConfig({ PAYMENT_DEMO_ENABLED: "true" }).PAYMENT_DEMO_ENABLED).toBe(true);
+    expect(parseAppConfig({ PAYMENT_DEMO_ENABLED: "false" }).PAYMENT_DEMO_ENABLED).toBe(false);
+    expect(parseAppConfig(keys).PAYOS_CLIENT_ID).toBe("client");
+    expect(() => parseAppConfig({ PAYOS_CLIENT_ID: "client" })).toThrow(/PAYOS_API_KEY/);
+    expect(() => parseAppConfig({ ...keys, PAYMENT_DEMO_ENABLED: "true" })).toThrow(/PAYMENT_DEMO_ENABLED/);
+    expect(() => parseAppConfig({ ...keys, NODE_ENV: "production" })).toThrow(/OQ-22/);
+    expect(() => parseAppConfig({ PAYMENT_DEMO_ENABLED: "yes" })).toThrow(/PAYMENT_DEMO_ENABLED/);
+  });
+
   it("rejects an invalid LOG_LEVEL", () => {
     expect(() => parseAppConfig({ LOG_LEVEL: "loud" })).toThrow(/Invalid environment/);
   });

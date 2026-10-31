@@ -1836,6 +1836,8 @@ model BookingStatusHistory {
 enum PaymentProvider {
   VNPAY
   MOMO
+  PAYOS
+  DEMO
 }
 
 /// SRS §17.8.
@@ -1862,6 +1864,10 @@ model Payment {
   amount            BigInt
   /// Link trang thanh toán của cổng (VNPay ký sẵn / MoMo `payUrl`).
   paymentUrl        String?         @map("payment_url")
+  /// Mã số gửi payOS, cấp từ sequence PostgreSQL; dữ liệu cũ không có mã.
+  providerOrderCode BigInt?         @unique @default(dbgenerated("nextval('payment_provider_order_code_seq'::regclass)")) @map("provider_order_code")
+  /// Dữ liệu chuyển khoản đã kiểm chữ ký; tiền trong JSON là chuỗi VND.
+  checkout          Json?
   /// Mã giao dịch của cổng (`vnp_TransactionNo` / `transId`) — dedup callback.
   providerTxnId     String?         @map("provider_txn_id")
   /// Mã lỗi cổng trả khi thất bại.

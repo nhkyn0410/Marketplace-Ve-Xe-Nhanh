@@ -85,7 +85,7 @@ const PointSchema = z.object({
 
 export const TripSearchItemSchema = z.object({
   tripId: z.uuid(),
-  operator: z.object({ id: z.uuid(), name: z.string(), slug: z.string(), ...OperatorRatingShape }),
+  operator: z.object({ id: z.uuid(), name: z.string(), slug: z.string(), logoUrl: z.url().nullable().optional(), ...OperatorRatingShape }),
   /** Tên tuyến của nhà xe — dòng phụ; tiêu đề cho khách là `segmentTitle`. */
   routeName: z.string(),
   /** Chặng khách đi theo nơi của điểm đón / trả (3.3), vd "TP.HCM → Gia Nghĩa"; hai điểm cùng nơi thì tên hai điểm. */
@@ -130,7 +130,7 @@ export class TripSearchResponseDto extends createZodDto(TripSearchResponseSchema
 
 export const PublicTripSchema = z.object({
   tripId: z.uuid(),
-  operator: z.object({ id: z.uuid(), name: z.string(), slug: z.string(), hotline: z.string().nullable(), ...OperatorRatingShape }),
+  operator: z.object({ id: z.uuid(), name: z.string(), slug: z.string(), logoUrl: z.url().nullable().optional(), hotline: z.string().nullable(), ...OperatorRatingShape }),
   routeName: z.string(),
   /**
    * Chặng khách đi khi gọi kèm `pickupSequence` + `dropoffSequence` hợp lệ (3.3): tiêu đề theo nơi + giá ghế theo chặng;

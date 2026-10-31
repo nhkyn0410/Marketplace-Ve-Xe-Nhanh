@@ -34,7 +34,7 @@ const LANDMARK_RADIUS_METERS = 5_000;
 /** Số chuyến khớp tối đa mỗi truy vấn trước khi lọc / sắp — một cặp điểm trong một ngày chỉ vài chục chuyến. */
 const CANDIDATE_LIMIT = 300;
 /** Không nhập ngày: xem mọi chuyến từ bây giờ tới hết bấy nhiêu ngày (chờ duyệt 30/10/2026). */
-const BROWSE_DAYS = 7;
+const BROWSE_DAYS = 14;
 /** Cache kết quả tìm 60 giây (ADR-015) — tìm không giữ chỗ nên Redis lỗi thì tính lại, không chặn. */
 const CACHE_TTL_SECONDS = 60;
 
@@ -125,6 +125,7 @@ export class TripSearchService {
         id: trip.operator.id,
         name: trip.operator.displayName,
         slug: trip.operator.operatorSlug,
+        logoUrl: trip.operator.logoObjectKey ? this.storage.publicUrl(trip.operator.logoObjectKey) : null,
         hotline: trip.operator.hotline,
         ...(ratings.get(trip.operator.id) ?? NO_RATING),
       },
@@ -186,7 +187,7 @@ export class TripSearchService {
       passengers: query.passengers,
     };
     // Tăng `vN` mỗi khi đổi dạng kết quả cache (`Matched` / `TripSearchItem`), để kết quả cũ trong cache không lọt ra response mới.
-    const key = `trip-search:v3:${createHash("sha256").update(JSON.stringify(identity)).digest("hex")}`;
+    const key = `trip-search:v5:${createHash("sha256").update(JSON.stringify(identity)).digest("hex")}`;
     const cached = await this.redis.get(key).catch((error: unknown) => {
       this.logger.warn({ event: "trip_search.cache_read_failed", error });
       return null;
@@ -260,6 +261,7 @@ export class TripSearchService {
           id: candidate.operatorId,
           name: candidate.operatorName,
           slug: candidate.operatorSlug,
+          logoUrl: candidate.operatorLogoKey ? this.storage.publicUrl(candidate.operatorLogoKey) : null,
           ...(ratings.get(candidate.operatorId) ?? NO_RATING),
         },
         routeName: candidate.routeName,

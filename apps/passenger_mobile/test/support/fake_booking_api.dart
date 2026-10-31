@@ -1,13 +1,17 @@
 import 'package:mobile_shared/mobile_shared.dart';
 import 'package:passenger_mobile/features/home/home_models.dart';
 import 'package:passenger_mobile/features/ticket/booking_models.dart';
+import 'package:passenger_mobile/features/ticket/payment_models.dart';
 import 'package:passenger_mobile/features/ticket/trip_booking_api.dart';
 import 'package:passenger_mobile/features/ticket/trip_detail_models.dart';
 import 'package:passenger_mobile/features/ticket/trip_search_models.dart';
 
 /// Chuyến mẫu: đón Miền Đông (1) / Dầu Giây (2), trạm nghỉ (3), trả Bảo Lộc (4) / Đà Lạt (5);
 /// giường 2 tầng 2 × 2, A02 không đặt được.
-TripDetail sampleTripDetail() {
+TripDetail sampleTripDetail({
+  List<String> imageUrls = const [],
+  String? operatorLogoUrl,
+}) {
   final start = DateTime.utc(2026, 10, 30); // 07:00 giờ VN
   TripStop stop(
     int sequence,
@@ -43,6 +47,7 @@ TripDetail sampleTripDetail() {
   return TripDetail(
     tripId: 'trip-1',
     operatorName: 'Nhà xe Sao Mai',
+    operatorLogoUrl: operatorLogoUrl,
     averageRating: 4.7,
     reviewCount: 12,
     routeName: 'Sài Gòn – Đà Lạt',
@@ -50,7 +55,7 @@ TripDetail sampleTripDetail() {
     arrivalAt: start.add(const Duration(hours: 7)),
     vehicleTypeName: 'Giường nằm Limousine',
     amenityNames: const ['Wi-Fi', 'Điều hòa', 'Nước uống'],
-    imageUrls: const [],
+    imageUrls: imageUrls,
     stops: [
       stop(1, 'Bến xe Miền Đông mới', 0, pickup: true),
       stop(
@@ -157,6 +162,15 @@ class FakeBookingApi implements TripBookingApi {
 
   TripDetail trip;
 
+  Future<List<BookingPolicyDocument>> Function()? bookingTermsLoader;
+  int bookingTermsLoads = 0;
+
+  @override
+  Future<List<BookingPolicyDocument>> loadBookingTerms() async {
+    bookingTermsLoads++;
+    return bookingTermsLoader == null ? const [] : bookingTermsLoader!();
+  }
+
   /// Lỗi ném ra ở lần giữ chỗ tiếp theo (rồi xoá).
   ApiFailure? holdError;
   int loads = 0;
@@ -227,6 +241,14 @@ class FakeBookingApi implements TripBookingApi {
   /// Mã khuyến mãi hợp lệ: giảm 50.000 ₫.
   String validPromotion = 'GIAM50';
 
+  List<BookingVoucher> walletVouchers = [];
+  int voucherWalletLoads = 0;
+  Future<List<BookingVoucher>> Function()? voucherWalletLoader;
+  final voucherChecks =
+      <({String tripId, String userVoucherId, int subtotal})>[];
+  Future<PromotionQuote> Function(String userVoucherId, int subtotal)?
+  voucherChecker;
+
   /// Lỗi ném ra ở lần tạo đơn tiếp theo (rồi xoá).
   ApiFailure? bookingError;
 
@@ -234,8 +256,97 @@ class FakeBookingApi implements TripBookingApi {
   int reloadedSeatPrice = 300000;
   final bookings = <({String holdId, BookingDraft draft, int expectedTotal})>[];
 
+  final payments = <PassengerPaymentMethod>[];
+  int paymentStateLoads = 0;
+  bool confirmAfterPayment = false;
+  BookingPaymentState paymentState = const BookingPaymentState(
+    bookingStatus: 'PENDING_PAYMENT',
+  );
+  Future<BookingPaymentSession> Function(
+    CreatedBooking,
+    PassengerPaymentMethod,
+  )?
+  paymentStarter;
+  Future<BookingPaymentState> Function()? paymentStateLoader;
+
+  @override
+  Future<BookingPaymentSession> startPayment(
+    CreatedBooking booking,
+    PassengerPaymentMethod method,
+  ) async {
+    payments.add(method);
+    if (paymentStarter != null) return paymentStarter!(booking, method);
+    return BookingPaymentSession(
+      paymentId: 'payment-1',
+      paymentUrl: Uri.parse('https://pay.payos.vn/web/payment-1'),
+      expiresAt: booking.expiresAt,
+      transfer: method != PassengerPaymentMethod.payos
+          ? null
+          : const PaymentTransfer(
+              qrCode: 'VIETQR-TEST-PAYMENT',
+              bin: '970422',
+              accountNumber: '123456789',
+              accountName: 'NGUYEN VAN A',
+              amount: '550000',
+              description: 'VXN123456',
+            ),
+    );
+  }
+
+  @override
+  Future<BookingPaymentState> loadPaymentState(CreatedBooking booking) async {
+    paymentStateLoads++;
+    if (paymentStateLoader != null) return paymentStateLoader!();
+    if (confirmAfterPayment && payments.isNotEmpty) {
+      return BookingPaymentState(
+        bookingStatus: 'CONFIRMED',
+        paymentStatus: 'SUCCESS',
+        tickets: [
+          for (final passenger in booking.passengers)
+            IssuedBookingTicket(
+              ticketCode: 'TKT-${passenger.seatCode}',
+              seatCode: passenger.seatCode,
+              passengerName: passenger.fullName,
+              companionName: passenger.companionName,
+              qrToken: 'server-signed-qr-${passenger.seatCode}',
+            ),
+        ],
+      );
+    }
+    return paymentState;
+  }
+
   @override
   Future<BookingPrefill?> loadPrefill() async => prefill;
+
+  @override
+  Future<List<BookingVoucher>> loadBookingVouchers() async {
+    voucherWalletLoads++;
+    return voucherWalletLoader == null
+        ? walletVouchers
+        : voucherWalletLoader!();
+  }
+
+  @override
+  Future<PromotionQuote> checkVoucher({
+    required String tripId,
+    required String userVoucherId,
+    required int subtotal,
+  }) async {
+    voucherChecks.add((
+      tripId: tripId,
+      userVoucherId: userVoucherId,
+      subtotal: subtotal,
+    ));
+    if (voucherChecker != null) return voucherChecker!(userVoucherId, subtotal);
+    return PromotionQuote(
+      code: 'WALLET50',
+      name: 'Voucher trong ví',
+      discount: 50000,
+      total: subtotal - 50000,
+      userVoucherId: userVoucherId,
+    );
+  }
 
   @override
   Future<PromotionQuote> checkPromotion({

@@ -19,7 +19,7 @@ part 'operator_booking_page_dto_output_items_inner_payment.g.dart';
 abstract class OperatorBookingPageDtoOutputItemsInnerPayment implements Built<OperatorBookingPageDtoOutputItemsInnerPayment, OperatorBookingPageDtoOutputItemsInnerPaymentBuilder> {
   @BuiltValueField(wireName: r'provider')
   OperatorBookingPageDtoOutputItemsInnerPaymentProviderEnum get provider;
-  // enum providerEnum {  VNPAY,  MOMO,  };
+  // enum providerEnum {  VNPAY,  MOMO,  PAYOS,  DEMO,  };
 
   @BuiltValueField(wireName: r'status')
   OperatorBookingPageDtoOutputItemsInnerPaymentStatusEnum get status;
@@ -147,6 +147,10 @@ class OperatorBookingPageDtoOutputItemsInnerPaymentProviderEnum extends EnumClas
   static const OperatorBookingPageDtoOutputItemsInnerPaymentProviderEnum VNPAY = _$operatorBookingPageDtoOutputItemsInnerPaymentProviderEnum_VNPAY;
   @BuiltValueEnumConst(wireName: r'MOMO')
   static const OperatorBookingPageDtoOutputItemsInnerPaymentProviderEnum MOMO = _$operatorBookingPageDtoOutputItemsInnerPaymentProviderEnum_MOMO;
+  @BuiltValueEnumConst(wireName: r'PAYOS')
+  static const OperatorBookingPageDtoOutputItemsInnerPaymentProviderEnum PAYOS = _$operatorBookingPageDtoOutputItemsInnerPaymentProviderEnum_PAYOS;
+  @BuiltValueEnumConst(wireName: r'DEMO')
+  static const OperatorBookingPageDtoOutputItemsInnerPaymentProviderEnum DEMO = _$operatorBookingPageDtoOutputItemsInnerPaymentProviderEnum_DEMO;
 
   static Serializer<OperatorBookingPageDtoOutputItemsInnerPaymentProviderEnum> get serializer => _$operatorBookingPageDtoOutputItemsInnerPaymentProviderEnumSerializer;
 

@@ -51,7 +51,7 @@ abstract class AdminRefundPageDtoOutputItemsInner implements Built<AdminRefundPa
 
   @BuiltValueField(wireName: r'provider')
   AdminRefundPageDtoOutputItemsInnerProviderEnum get provider;
-  // enum providerEnum {  VNPAY,  MOMO,  };
+  // enum providerEnum {  VNPAY,  MOMO,  PAYOS,  DEMO,  };
 
   @BuiltValueField(wireName: r'operatorId')
   String get operatorId;
@@ -372,6 +372,10 @@ class AdminRefundPageDtoOutputItemsInnerProviderEnum extends EnumClass {
   static const AdminRefundPageDtoOutputItemsInnerProviderEnum VNPAY = _$adminRefundPageDtoOutputItemsInnerProviderEnum_VNPAY;
   @BuiltValueEnumConst(wireName: r'MOMO')
   static const AdminRefundPageDtoOutputItemsInnerProviderEnum MOMO = _$adminRefundPageDtoOutputItemsInnerProviderEnum_MOMO;
+  @BuiltValueEnumConst(wireName: r'PAYOS')
+  static const AdminRefundPageDtoOutputItemsInnerProviderEnum PAYOS = _$adminRefundPageDtoOutputItemsInnerProviderEnum_PAYOS;
+  @BuiltValueEnumConst(wireName: r'DEMO')
+  static const AdminRefundPageDtoOutputItemsInnerProviderEnum DEMO = _$adminRefundPageDtoOutputItemsInnerProviderEnum_DEMO;
 
   static Serializer<AdminRefundPageDtoOutputItemsInnerProviderEnum> get serializer => _$adminRefundPageDtoOutputItemsInnerProviderEnumSerializer;
 

@@ -1,5 +1,9 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:passenger_mobile/features/search/trip_search_form.dart';
 import 'package:passenger_mobile/features/ticket/ticket_screen.dart';
 import 'package:passenger_mobile/features/ticket/trip_detail_models.dart';
 import 'package:passenger_mobile/features/ticket/trip_detail_screen.dart';
@@ -58,6 +62,154 @@ void _expectNoFlutterException(WidgetTester tester) {
 }
 
 void main() {
+  const shareChannel = MethodChannel('dev.fluttercommunity.plus/share');
+
+  tearDown(() {
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(shareChannel, null);
+  });
+
+  testWidgets(
+    'bỏ trái tim, chia sẻ đúng chặng vừa đổi và giữ nguyên màn chi tiết',
+    (tester) async {
+      final calls = <MethodCall>[];
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(shareChannel, (call) async {
+            calls.add(call);
+            return ''; // Đóng bảng chia sẻ hệ thống.
+          });
+      final api = FakeBookingApi();
+      await _pumpApp(
+        tester,
+        home: TripDetailScreen(api: api, tripId: 'trip-1'),
+      );
+      final detailState = tester.state(find.byType(TripDetailScreen));
+      expect(
+        find.descendant(
+          of: find.byKey(const Key('trip-detail-header')),
+          matching: find.byType(InkResponse),
+        ),
+        findsNWidgets(2),
+      );
+
+      for (final stop in [
+        (kind: 'pickup', sequence: 2),
+        (kind: 'dropoff', sequence: 4),
+      ]) {
+        final field = find.byKey(Key('trip-detail-${stop.kind}'));
+        await tester.scrollUntilVisible(
+          field,
+          300,
+          scrollable: find
+              .descendant(
+                of: find.byKey(const Key('trip-detail-scroll')),
+                matching: find.byType(Scrollable),
+              )
+              .first,
+        );
+        await tester.tap(field);
+        await tester.pumpAndSettle();
+        await tester.tap(find.byKey(Key('stop-${stop.sequence}')));
+        await tester.tap(find.byKey(const Key('confirm-stop')));
+        await tester.pumpAndSettle();
+      }
+      await tester.tap(find.byKey(const Key('trip-detail-share')));
+      await tester.pumpAndSettle();
+
+      expect(calls.single.method, 'share');
+      final arguments = calls.single.arguments as Map;
+      final text = arguments['text'] as String;
+      expect(text, contains('Nhà xe: Nhà xe Sao Mai'));
+      expect(
+        text,
+        contains('Đón: 08:00, Thứ Sáu, 30/10/2026 - Ngã ba Dầu Giây'),
+      );
+      expect(
+        text,
+        contains('Trả: 11:00, Thứ Sáu, 30/10/2026 - Bến xe Bảo Lộc'),
+      );
+      expect(text, contains('Loại xe: Giường nằm Limousine'));
+      expect(text, isNot(contains('Bến xe Miền Đông mới')));
+      expect(text, isNot(contains('Bến xe liên tỉnh Đà Lạt')));
+      expect(arguments['originWidth'], greaterThan(0));
+      expect(arguments['originHeight'], greaterThan(0));
+      expect(api.loadedLegs.last, (pickup: 2, dropoff: 4));
+      expect(tester.state(find.byType(TripDetailScreen)), same(detailState));
+      expect(api.holds, isEmpty);
+      expect(api.bookings, isEmpty);
+      _expectNoFlutterException(tester);
+    },
+  );
+
+  testWidgets('không mở chia sẻ lặp, lỗi hệ thống có thể thử lại', (
+    tester,
+  ) async {
+    final pending = Completer<String>();
+    var calls = 0;
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(shareChannel, (_) {
+          calls++;
+          return calls == 1 ? pending.future : Future.value('');
+        });
+    await _pumpApp(tester, home: _detail());
+    final share = find.byKey(const Key('trip-detail-share'));
+    Finder shareTap() =>
+        find.descendant(of: share, matching: find.byType(InkResponse));
+    await tester.tap(share);
+    await tester.pump();
+    expect(calls, 1);
+    expect(tester.widget<InkResponse>(shareTap()).onTap, isNull);
+
+    pending.completeError(PlatformException(code: 'share_failed'));
+    await tester.pumpAndSettle();
+    expect(
+      find.text('Chưa thể chia sẻ chuyến đi. Vui lòng thử lại.'),
+      findsOneWidget,
+    );
+    expect(tester.widget<InkResponse>(shareTap()).onTap, isNotNull);
+    await tester.tap(share);
+    await tester.pumpAndSettle();
+    expect(calls, 2);
+    expect(find.byKey(const Key('trip-detail-screen')), findsOneWidget);
+    _expectNoFlutterException(tester);
+  });
+  testWidgets('logo nhà xe đi theo chuyến từ chi tiết qua chọn chỗ tới xác nhận', (
+    tester,
+  ) async {
+    const logo = 'https://cdn.example.test/sao-mai-logo.png';
+    final api = FakeBookingApi(trip: sampleTripDetail(operatorLogoUrl: logo));
+    final avatar = find.byType(OperatorInitialAvatar);
+    final logoImage = find.byWidgetPredicate(
+      (widget) => widget is Image && widget.image is NetworkImage &&
+          (widget.image as NetworkImage).url == logo,
+    );
+    void expectLogo() {
+      expect(avatar, findsOneWidget);
+      expect(tester.widget<OperatorInitialAvatar>(avatar).logoUrl, logo);
+      expect(find.descendant(of: avatar, matching: logoImage), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    }
+
+    await _pumpApp(tester, home: TripDetailScreen(api: api, tripId: api.trip.tripId));
+    expectLogo();
+    await tester.tap(find.byKey(const Key('trip-detail-cta')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('seat-selection-screen')), findsOneWidget);
+    expectLogo();
+    await tester.tap(find.byKey(const Key('seat-A01')));
+    await tester.pump();
+    await tester.tap(find.byKey(const Key('seat-selection-continue')));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byKey(const Key('contact-name-field')), 'Lê Văn An');
+    await tester.enterText(find.byKey(const Key('contact-email-field')), 'an@example.com');
+    await tester.enterText(find.byKey(const Key('contact-phone-field')), '0901234567');
+    await tester.pump();
+    await tester.tap(find.byKey(const Key('passenger-information-continue')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('booking-confirmation-screen')), findsOneWidget);
+    expectLogo();
+  });
+
   testWidgets('bấm thẻ chuyến mở màn chi tiết chuyến', (tester) async {
     await _pumpApp(tester, home: _ticketWithOneTrip());
 
@@ -106,6 +258,29 @@ void main() {
 
     expect(find.text('Chi tiết chuyến'), findsOneWidget);
     expect(tester.getTopLeft(header).dy, initialTop);
+    _expectNoFlutterException(tester);
+  });
+
+  testWidgets('xe chỉ có một ảnh vẫn dùng ảnh thật ở phần tóm tắt', (
+    tester,
+  ) async {
+    const image = 'https://cdn.example.test/vehicle.jpg';
+    await _pumpApp(
+      tester,
+      home: TripDetailScreen(
+        api: FakeBookingApi(trip: sampleTripDetail(imageUrls: [image])),
+        tripId: 'trip-1',
+      ),
+    );
+    expect(
+      find.byWidgetPredicate(
+        (widget) =>
+            widget is Image &&
+            widget.image is NetworkImage &&
+            (widget.image as NetworkImage).url == image,
+      ),
+      findsNWidgets(2),
+    );
     _expectNoFlutterException(tester);
   });
 
@@ -199,9 +374,21 @@ void main() {
       );
 
       expect(api.loadedLegs.first, (pickup: 2, dropoff: 4));
-      expect(find.text('Dầu Giây'), findsWidgets);
-      expect(find.text('Bảo Lộc'), findsWidgets);
       expect(find.text('TP. Hồ Chí Minh'), findsNothing);
+      await tester.ensureVisible(
+        find.byKey(const Key('trip-segment-itinerary')),
+      );
+      await tester.pumpAndSettle();
+      final schedule = find.byKey(const Key('trip-segment-itinerary'));
+      for (final stop in base.stops) {
+        expect(
+          find.descendant(of: schedule, matching: find.text(stop.name)),
+          stop.sequence >= 2 && stop.sequence <= 4
+              ? findsOneWidget
+              : findsNothing,
+        );
+      }
+      expect(find.text('3 điểm dừng'), findsOneWidget);
       _expectNoFlutterException(tester);
     },
   );

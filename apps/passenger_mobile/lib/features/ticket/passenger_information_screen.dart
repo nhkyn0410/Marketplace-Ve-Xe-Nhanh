@@ -7,6 +7,7 @@ import 'package:mobile_shared/mobile_shared.dart';
 import 'booking_confirmation_screen.dart';
 import 'booking_flow_chrome.dart';
 import 'booking_models.dart';
+import 'booking_voucher_picker.dart';
 import 'trip_booking_api.dart';
 import 'trip_detail_models.dart';
 import 'trip_search_models.dart';
@@ -25,7 +26,7 @@ final _emailPattern = RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+$');
 
 String _normalizePhone(String value) => value.replaceAll(RegExp(r'[\s.-]'), '');
 
-/// Bước 2 đặt vé: người liên hệ, tên hành khách từng chỗ, mã khuyến mãi; đếm theo hạn giữ chỗ.
+/// Bước 2 đặt vé: người liên hệ, hành khách bổ sung tùy chọn, mã khuyến mãi; đếm theo hạn giữ chỗ.
 class PassengerInformationScreen extends StatefulWidget {
   const PassengerInformationScreen({
     super.key,
@@ -33,12 +34,16 @@ class PassengerInformationScreen extends StatefulWidget {
     required this.trip,
     required this.hold,
     this.now,
+    this.isSignedIn = false,
+    this.onBookingFinished,
   });
 
   final TripBookingApi api;
   final TripDetail trip;
   final SeatHold hold;
   final DateTime Function()? now;
+  final bool isSignedIn;
+  final VoidCallback? onBookingFinished;
 
   @override
   State<PassengerInformationScreen> createState() =>
@@ -57,6 +62,9 @@ class _PassengerInformationScreenState
   late final List<TextEditingController> _passengerNames = [
     for (final _ in _seats) TextEditingController(),
   ];
+  late final List<TextEditingController> _passengerPhones = [
+    for (final _ in _seats) TextEditingController(),
+  ];
 
   /// Người đi cùng trên chỗ đôi (BR-78 bổ sung 28/10/2026, chờ duyệt) — chỉ dùng ở chỗ đôi, không bắt buộc.
   late final List<TextEditingController> _companionNames = [
@@ -66,6 +74,7 @@ class _PassengerInformationScreenState
   PromotionQuote? _promotion;
   String? _promoError;
   bool _checkingPromo = false;
+  bool _choosingVoucher = false;
   Timer? _timer;
   Duration _remaining = Duration.zero;
 
@@ -87,7 +96,11 @@ class _PassengerInformationScreenState
     _email.dispose();
     _phone.dispose();
     _promoCode.dispose();
-    for (final controller in [..._passengerNames, ..._companionNames]) {
+    for (final controller in [
+      ..._passengerNames,
+      ..._passengerPhones,
+      ..._companionNames,
+    ]) {
       controller.dispose();
     }
     super.dispose();
@@ -107,9 +120,6 @@ class _PassengerInformationScreenState
       if (_contactName.text.isEmpty) _contactName.text = contact.fullName;
       if (_email.text.isEmpty) _email.text = contact.email;
       if (_phone.text.isEmpty) _phone.text = contact.phone;
-      if (_passengerNames.first.text.isEmpty) {
-        _passengerNames.first.text = contact.fullName;
-      }
       _travellers = prefill!.travellers;
     });
   }
@@ -136,9 +146,17 @@ class _PassengerInformationScreenState
       _contactName.text.trim().isNotEmpty &&
       _emailValid &&
       _phoneValid &&
-      _passengerNames.every((controller) => controller.text.trim().isNotEmpty);
+      _passengerPhones
+          .skip(1)
+          .every(
+            (controller) =>
+                controller.text.trim().isEmpty ||
+                _phonePattern.hasMatch(_normalizePhone(controller.text)),
+          );
 
   int get _total => _promotion?.total ?? widget.hold.subtotal;
+
+  bool get _discountBusy => _checkingPromo || _choosingVoucher;
 
   Future<void> _chooseSavedPassenger(int index) async {
     final selected = await showModalBottomSheet<SavedTraveller>(
@@ -148,12 +166,15 @@ class _PassengerInformationScreenState
       builder: (context) => _SavedPassengerSheet(travellers: _travellers),
     );
     if (selected == null || !mounted) return;
-    setState(() => _passengerNames[index].text = selected.fullName);
+    setState(() {
+      _passengerNames[index].text = selected.fullName;
+      _passengerPhones[index].text = selected.phone ?? '';
+    });
   }
 
   Future<void> _applyPromotion() async {
     final code = _promoCode.text.trim().toUpperCase();
-    if (code.isEmpty || _checkingPromo) return;
+    if (code.isEmpty || _discountBusy || _remaining == Duration.zero) return;
     FocusScope.of(context).unfocus();
     setState(() {
       _checkingPromo = true;
@@ -165,7 +186,7 @@ class _PassengerInformationScreenState
         code: code,
         subtotal: widget.hold.subtotal,
       );
-      if (!mounted) return;
+      if (!mounted || !widget.hold.expiresAt.isAfter(_now())) return;
       setState(() {
         _promotion = quote;
         _promoCode.clear();
@@ -182,6 +203,44 @@ class _PassengerInformationScreenState
     }
   }
 
+  Future<void> _chooseVoucher() async {
+    if (!widget.isSignedIn || _discountBusy || _remaining == Duration.zero) {
+      return;
+    }
+    FocusScope.of(context).unfocus();
+    setState(() {
+      _choosingVoucher = true;
+      _promoError = null;
+    });
+    try {
+      final quote = await showModalBottomSheet<PromotionQuote>(
+        context: context,
+        isScrollControlled: true,
+        useSafeArea: true,
+        backgroundColor: Colors.transparent,
+        builder: (_) => FractionallySizedBox(
+          heightFactor: 0.82,
+          child: BookingVoucherPicker(
+            api: widget.api,
+            tripId: widget.trip.tripId,
+            subtotal: widget.hold.subtotal,
+            holdExpiresAt: widget.hold.expiresAt,
+            selectedVoucherId: _promotion?.userVoucherId,
+            now: widget.now,
+          ),
+        ),
+      );
+      if (!mounted || quote == null) return;
+      if (!widget.hold.expiresAt.isAfter(_now())) return;
+      setState(() {
+        _promotion = quote;
+        _promoCode.clear();
+      });
+    } finally {
+      if (mounted) setState(() => _choosingVoucher = false);
+    }
+  }
+
   void _continueToConfirmation() {
     final draft = BookingDraft(
       contact: BookingContact(
@@ -193,7 +252,14 @@ class _PassengerInformationScreenState
         for (var index = 0; index < _seats.length; index++)
           BookingPassenger(
             seatCode: _seats[index].code,
-            fullName: _passengerNames[index].text.trim(),
+            fullName: index == 0 || _passengerNames[index].text.trim().isEmpty
+                ? _contactName.text.trim()
+                : _passengerNames[index].text.trim(),
+            phone: index == 0
+                ? _normalizePhone(_phone.text)
+                : _passengerPhones[index].text.trim().isEmpty
+                ? null
+                : _normalizePhone(_passengerPhones[index].text),
             companionName:
                 isDoubleSeat(_seats[index].type) &&
                     _companionNames[index].text.trim().isNotEmpty
@@ -211,6 +277,8 @@ class _PassengerInformationScreenState
           hold: widget.hold,
           draft: draft,
           now: widget.now,
+          isSignedIn: widget.isSignedIn,
+          onBookingFinished: widget.onBookingFinished,
         ),
       ),
     );
@@ -233,7 +301,9 @@ class _PassengerInformationScreenState
         bottomNavigationBar: _PassengerBottomBar(
           passengerCount: _seats.length,
           total: _total,
-          onContinue: expired || !_formValid ? null : _continueToConfirmation,
+          onContinue: expired || !_formValid || _discountBusy
+              ? null
+              : _continueToConfirmation,
         ),
         body: SafeArea(
           bottom: false,
@@ -241,8 +311,7 @@ class _PassengerInformationScreenState
             children: [
               BookingFlowHeader(
                 key: const Key('passenger-information-header'),
-                title: 'Thông tin hành khách',
-                subtitle: widget.trip.routeName,
+                title: 'Thông tin',
                 timerLabel: _timerLabel,
                 expired: expired,
                 urgent: _remaining <= const Duration(minutes: 1),
@@ -277,26 +346,39 @@ class _PassengerInformationScreenState
                         onChanged: () => setState(() {}),
                       ),
                     ),
-                    const SliverToBoxAdapter(
-                      child: _SectionTitle(
-                        icon: Icons.group_rounded,
-                        title: 'Hành khách',
+                    if (_seats.length > 1)
+                      const SliverToBoxAdapter(
+                        child: _SectionTitle(
+                          icon: Icons.group_rounded,
+                          title: 'Hành khách bổ sung (tùy chọn)',
+                        ),
                       ),
-                    ),
                     SliverList.builder(
-                      itemCount: _seats.length,
-                      itemBuilder: (context, index) => _PassengerCard(
-                        index: index,
-                        seat: _seats[index].code,
-                        controller: _passengerNames[index],
-                        companionController: isDoubleSeat(_seats[index].type)
-                            ? _companionNames[index]
-                            : null,
-                        onChanged: () => setState(() {}),
-                        onChooseSaved: _travellers.isEmpty
-                            ? null
-                            : () => _chooseSavedPassenger(index),
-                      ),
+                      itemCount: _seats.length - 1,
+                      itemBuilder: (context, offset) {
+                        final index = offset + 1;
+                        final phone = _passengerPhones[index];
+                        return _PassengerCard(
+                          index: index,
+                          seat: _seats[index].code,
+                          controller: _passengerNames[index],
+                          phoneController: phone,
+                          phoneError:
+                              phone.text.trim().isNotEmpty &&
+                                  !_phonePattern.hasMatch(
+                                    _normalizePhone(phone.text),
+                                  )
+                              ? 'Số điện thoại gồm 10 số, bắt đầu bằng 0 hoặc +84.'
+                              : null,
+                          companionController: isDoubleSeat(_seats[index].type)
+                              ? _companionNames[index]
+                              : null,
+                          onChanged: () => setState(() {}),
+                          onChooseSaved: _travellers.isEmpty
+                              ? null
+                              : () => _chooseSavedPassenger(index),
+                        );
+                      },
                     ),
                     SliverToBoxAdapter(
                       child: _PromotionCard(
@@ -304,8 +386,16 @@ class _PassengerInformationScreenState
                         promotion: _promotion,
                         error: _promoError,
                         checking: _checkingPromo,
+                        busy: _discountBusy,
                         onApply: _applyPromotion,
-                        onRemove: () => setState(() => _promotion = null),
+                        onChooseVoucher: widget.isSignedIn && !expired
+                            ? _chooseVoucher
+                            : null,
+                        showWallet: widget.isSignedIn,
+                        onRemove: () => setState(() {
+                          _promotion = null;
+                          _promoError = null;
+                        }),
                       ),
                     ),
                     const SliverToBoxAdapter(child: SizedBox(height: 16)),
@@ -730,6 +820,8 @@ class _PassengerCard extends StatelessWidget {
     required this.index,
     required this.seat,
     required this.controller,
+    required this.phoneController,
+    required this.phoneError,
     required this.onChanged,
     required this.onChooseSaved,
     this.companionController,
@@ -738,6 +830,8 @@ class _PassengerCard extends StatelessWidget {
   final int index;
   final String seat;
   final TextEditingController controller;
+  final TextEditingController phoneController;
+  final String? phoneError;
   final VoidCallback onChanged;
 
   /// Ô người đi cùng — chỉ có ở chỗ đôi.
@@ -805,7 +899,7 @@ class _PassengerCard extends StatelessWidget {
                       ),
                     ),
                     const Text(
-                      'Thông tin bắt buộc',
+                      'Không bắt buộc',
                       style: TextStyle(color: _muted, fontSize: 13),
                     ),
                   ],
@@ -849,11 +943,25 @@ class _PassengerCard extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(57, 8, 0, 0),
             child: _InputField(
               fieldKey: Key('passenger-name-$seat'),
-              label: 'Họ và tên',
+              label: 'Họ và tên (tùy chọn)',
               icon: Icons.person_rounded,
               controller: controller,
               hintText: 'Nhập họ và tên',
               textInputAction: TextInputAction.next,
+              onChanged: onChanged,
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(57, 8, 0, 0),
+            child: _InputField(
+              fieldKey: Key('passenger-phone-$seat'),
+              label: 'Số điện thoại (tùy chọn)',
+              icon: Icons.phone_rounded,
+              controller: phoneController,
+              keyboardType: TextInputType.phone,
+              textInputAction: TextInputAction.done,
+              hintText: 'Nhập số điện thoại',
+              errorText: phoneError,
               onChanged: onChanged,
             ),
           ),
@@ -882,16 +990,22 @@ class _PromotionCard extends StatelessWidget {
     required this.promotion,
     required this.error,
     required this.checking,
+    required this.busy,
     required this.onApply,
     required this.onRemove,
+    required this.showWallet,
+    this.onChooseVoucher,
   });
 
   final TextEditingController controller;
   final PromotionQuote? promotion;
   final String? error;
   final bool checking;
+  final bool busy;
   final VoidCallback onApply;
   final VoidCallback onRemove;
+  final bool showWallet;
+  final VoidCallback? onChooseVoucher;
 
   @override
   Widget build(BuildContext context) {
@@ -913,6 +1027,25 @@ class _PromotionCard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 9),
+          if (showWallet) ...[
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                key: const Key('voucher-choose-wallet'),
+                onPressed: busy ? null : onChooseVoucher,
+                icon: const Icon(
+                  Icons.account_balance_wallet_outlined,
+                  size: 19,
+                ),
+                label: Text(
+                  applied?.userVoucherId == null
+                      ? 'Chọn từ ví voucher'
+                      : 'Đổi voucher trong ví',
+                ),
+              ),
+            ),
+            const SizedBox(height: 9),
+          ],
           if (applied == null)
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -921,6 +1054,7 @@ class _PromotionCard extends StatelessWidget {
                   child: TextField(
                     key: const Key('voucher-field'),
                     controller: controller,
+                    enabled: !busy,
                     textCapitalization: TextCapitalization.characters,
                     onSubmitted: (_) => onApply(),
                     style: const TextStyle(color: _ink, fontSize: 14),
@@ -966,7 +1100,7 @@ class _PromotionCard extends StatelessWidget {
                   height: 48,
                   child: FilledButton(
                     key: const Key('voucher-apply'),
-                    onPressed: checking ? null : onApply,
+                    onPressed: busy ? null : onApply,
                     style: FilledButton.styleFrom(
                       backgroundColor: _blue,
                       padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -1078,14 +1212,24 @@ class _PassengerBottomBar extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      '$passengerCount hành khách',
-                      key: const Key('passenger-count'),
-                      style: const TextStyle(
-                        color: _ink,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                      ),
+                    Wrap(
+                      spacing: 6,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      children: [
+                        Text(
+                          '$passengerCount hành khách',
+                          key: const Key('passenger-count'),
+                          style: const TextStyle(
+                            color: _ink,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const Text(
+                          'Tạm tính',
+                          style: TextStyle(color: _muted, fontSize: 13),
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 2),
                     Text(
@@ -1096,10 +1240,6 @@ class _PassengerBottomBar extends StatelessWidget {
                         fontSize: 19,
                         fontWeight: FontWeight.w700,
                       ),
-                    ),
-                    const Text(
-                      'Tạm tính',
-                      style: TextStyle(color: _muted, fontSize: 13),
                     ),
                   ],
                 ),

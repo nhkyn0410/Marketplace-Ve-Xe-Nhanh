@@ -14,6 +14,7 @@ part 'trip_search_response_dto_output_items_inner_operator.g.dart';
 /// * [id] 
 /// * [name] 
 /// * [slug] 
+/// * [logoUrl] 
 /// * [averageRating] 
 /// * [reviewCount] 
 @BuiltValue()
@@ -26,6 +27,9 @@ abstract class TripSearchResponseDtoOutputItemsInnerOperator implements Built<Tr
 
   @BuiltValueField(wireName: r'slug')
   String get slug;
+
+  @BuiltValueField(wireName: r'logoUrl')
+  String? get logoUrl;
 
   @BuiltValueField(wireName: r'averageRating')
   num? get averageRating;
@@ -71,6 +75,13 @@ class _$TripSearchResponseDtoOutputItemsInnerOperatorSerializer implements Primi
       object.slug,
       specifiedType: const FullType(String),
     );
+    if (object.logoUrl != null) {
+      yield r'logoUrl';
+      yield serializers.serialize(
+        object.logoUrl,
+        specifiedType: const FullType.nullable(String),
+      );
+    }
     yield r'averageRating';
     yield object.averageRating == null ? null : serializers.serialize(
       object.averageRating,
@@ -124,6 +135,14 @@ class _$TripSearchResponseDtoOutputItemsInnerOperatorSerializer implements Primi
             specifiedType: const FullType(String),
           ) as String;
           result.slug = valueDes;
+          break;
+        case r'logoUrl':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType.nullable(String),
+          ) as String?;
+          if (valueDes == null) continue;
+          result.logoUrl = valueDes;
           break;
         case r'averageRating':
           final valueDes = serializers.deserialize(

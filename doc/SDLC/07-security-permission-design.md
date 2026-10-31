@@ -13,9 +13,11 @@
 | Người viết    | Nguyễn Hồng Khanh, AI Agent   |
 | Người duyệt   | Nguyễn Hồng Khanh             |
 | Ngày tạo      | 11/05/2026                    |
-| Ngày cập nhật | 28/10/2026                    |
+| Ngày cập nhật | 31/10/2026                    |
 
 ### 1.2. Lịch sử thay đổi
+
+31/10/2026 — bổ sung payOS **chờ duyệt** (ADR-029): secret chỉ backend; HMAC-SHA256 kiểm trên dữ liệu gốc, không tin returnUrl hoặc số tiền từ app; mã order số tra sang payment nội bộ rồi xử lý trong tenant, dedup reference. Webhook probe cũng phải kiểm chữ ký trước ACK; không tạo payment/vé cho mã không tồn tại. DEMO provider riêng, production mặc định tắt; không kết hợp khóa payOS và cờ DEMO. Khóa payOS thật bị từ chối khi NODE_ENV=production tới khi giải quyết OQ-22. Không log khóa/chữ ký/PII; không tự đổi trạng thái tài liệu. Xem [PAYOS-plan](../task-propreties/PAYOS-plan.md).
 
 | Phiên bản | Ngày       | Người cập nhật | Nội dung thay đổi                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
 | --------- | ---------- | -------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |

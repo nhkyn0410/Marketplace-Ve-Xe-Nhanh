@@ -79,6 +79,36 @@ Future<int?> _fares(String operatorId, HomeOperatorRoute route, DateTime _) {
 }
 
 void main() {
+  testWidgets('thẻ chuyến dùng logo nhà xe; tải lỗi vẫn có chữ thay thế trên nền xanh nhạt', (
+    tester,
+  ) async {
+    const logo = 'https://cdn.example.test/hai-van-logo.png';
+    await _pumpTicket(
+      tester,
+      width: 412,
+      height: 1000,
+      initialQuery: sampleQuery,
+      searchTrips: (_, _, _) async => samplePage([
+        sampleTrip('logo-trip', operatorName: 'Hải Vân', operatorLogoUrl: logo),
+      ]),
+    );
+    final card = find.byKey(const ValueKey('ticket-trip-logo-trip'));
+    final logoImage = find.byWidgetPredicate(
+      (widget) => widget is Image && widget.image is NetworkImage &&
+          (widget.image as NetworkImage).url == logo,
+    );
+    expect(find.descendant(of: card, matching: logoImage), findsOneWidget);
+    expect(find.descendant(of: card, matching: find.text('H')), findsOneWidget);
+    final scaffold = tester.widget<Scaffold>(find.byKey(const Key('ticket-screen')));
+    expect(scaffold.backgroundColor, const Color(0xFFEFFAFF));
+    final backdrop = tester.widget<DecoratedBox>(find.descendant(
+      of: find.byWidget(scaffold.body!), matching: find.byType(DecoratedBox),
+    ).first).decoration as BoxDecoration;
+    expect(backdrop.color, const Color(0xFFEFFAFF));
+    expect(backdrop.gradient, isNull);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets(
     'chưa tìm lần nào: hiện chuyến sắp chạy, không cần nhập điểm đi / đến hay ngày; thẻ ghi ngày đi',
     (tester) async {
@@ -95,6 +125,14 @@ void main() {
       expect(browsed, [1]);
       expect(find.byKey(const Key('ticket-browse-hint')), findsOneWidget);
       expect(find.byKey(const ValueKey('ticket-trip-t1')), findsOneWidget);
+      final gap =
+          tester.getTopLeft(find.byKey(const ValueKey('ticket-trip-t1'))).dy -
+          tester.getBottomLeft(find.byKey(const Key('ticket-browse-hint'))).dy;
+      expect(
+        gap,
+        inInclusiveRange(8, 24),
+        reason: 'Thẻ chuyến nằm sát lời hướng dẫn, không chừa khoảng trống lớn.',
+      );
       expect(find.byKey(const ValueKey('ticket-trip-date-t1')), findsOneWidget);
       expect(find.byKey(const Key('ticket-pick-route')), findsNothing);
     },

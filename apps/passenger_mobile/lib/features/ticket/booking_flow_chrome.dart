@@ -11,7 +11,7 @@ class BookingFlowHeader extends StatelessWidget {
   const BookingFlowHeader({
     super.key,
     required this.title,
-    required this.subtitle,
+    this.subtitle,
     required this.timerLabel,
     required this.expired,
     required this.onBack,
@@ -24,7 +24,7 @@ class BookingFlowHeader extends StatelessWidget {
   final String title;
 
   /// Dòng phụ dưới tiêu đề, vd. tên tuyến.
-  final String subtitle;
+  final String? subtitle;
 
   /// `null` = chưa giữ chỗ, không hiện đồng hồ.
   final String? timerLabel;
@@ -71,63 +71,59 @@ class BookingFlowHeader extends StatelessWidget {
                       fontWeight: FontWeight.w700,
                     ),
                   ),
-                  const SizedBox(height: 2),
-                  Text(
-                    subtitle,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(color: _muted, fontSize: 13),
-                  ),
+                  if (subtitle != null) ...[
+                    const SizedBox(height: 2),
+                    Text(
+                      subtitle!,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(color: _muted, fontSize: 13),
+                    ),
+                  ],
                 ],
               ),
             ),
             if (timerLabel != null) ...[
               const SizedBox(width: 8),
-              ConstrainedBox(
-                constraints: BoxConstraints(maxWidth: maxBadgeWidth),
-                child: Container(
-                  key: timerKey,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 8,
-                  ),
-                  decoration: BoxDecoration(
-                    color: warning
-                        ? const Color(0xFFFFE4E4)
-                        : const Color(0xFFFFF1D8),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Icons.access_time_filled_rounded,
-                        color: warning ? const Color(0xFFD84A4A) : _orange,
-                        size: 18,
-                      ),
-                      const SizedBox(width: 5),
-                      Flexible(
-                        child: expired
-                            ? Text(
-                                'Đã hết hạn',
-                                textAlign: TextAlign.end,
-                                style: _timerStyle(warning),
-                              )
-                            : Wrap(
-                                alignment: WrapAlignment.end,
-                                children: [
-                                  Text(
-                                    'Giữ ghế trong ',
-                                    style: _timerStyle(warning),
-                                  ),
-                                  Text(
-                                    timerLabel!,
-                                    style: _timerStyle(warning),
-                                  ),
-                                ],
-                              ),
-                      ),
-                    ],
+              Semantics(
+                label: expired
+                    ? 'Đã hết hạn giữ chỗ'
+                    : 'Thời gian giữ chỗ còn lại $timerLabel',
+                excludeSemantics: true,
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(maxWidth: maxBadgeWidth),
+                  child: Container(
+                    key: timerKey,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color: warning
+                          ? const Color(0xFFFFE4E4)
+                          : const Color(0xFFFFF1D8),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.access_time_filled_rounded,
+                          color: warning ? const Color(0xFFD84A4A) : _orange,
+                          size: 16,
+                        ),
+                        const SizedBox(width: 4),
+                        Flexible(
+                          child: Text(
+                            expired ? 'Đã hết hạn' : timerLabel!,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            textAlign: TextAlign.end,
+                            style: _timerStyle(warning),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -158,12 +154,7 @@ class BookingStepProgress extends StatelessWidget {
   final int activeStep;
   final Color backgroundColor;
 
-  static const _steps = [
-    'Chọn ghế',
-    'Thông tin\nhành khách',
-    'Thanh toán',
-    'Hoàn tất',
-  ];
+  static const _steps = ['Chọn ghế', 'Thông tin', 'Thanh toán', 'Hoàn tất'];
 
   @override
   Widget build(BuildContext context) {

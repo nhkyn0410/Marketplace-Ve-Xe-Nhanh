@@ -37,4 +37,18 @@ export class PaymentWebhookController {
     const ack = await this.webhooks.receive("MOMO", body ?? {});
     res.status(ack === "INVALID_SIGNATURE" ? 400 : 204).end();
   }
+
+  /** Nhận giao dịch payOS đã ký, gồm cả payload mẫu lúc xác nhận webhook. */
+  @Post("payos")
+  async payos(@Body() body: Record<string, unknown> | undefined, @Res() res: Response): Promise<void> {
+    const ack = await this.webhooks.receive("PAYOS", body ?? {});
+    res.status(ack === "INVALID_SIGNATURE" ? 400 : 200).json({ received: ack !== "INVALID_SIGNATURE" });
+  }
+
+  /** Nhận kết quả có chữ ký từ cổng demo, không thể áp vào giao dịch payOS. */
+  @Post("demo")
+  async demo(@Body() body: Record<string, unknown> | undefined, @Res() res: Response): Promise<void> {
+    const ack = await this.webhooks.receive("DEMO", body ?? {});
+    res.status(ack === "INVALID_SIGNATURE" ? 400 : 200).json({ received: ack !== "INVALID_SIGNATURE" });
+  }
 }

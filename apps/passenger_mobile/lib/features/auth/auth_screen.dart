@@ -2367,6 +2367,12 @@ class _AuthCanvas extends StatelessWidget {
     Future<void> Function()? onTap,
   }) {
     final isAvailable = onTap != null;
+    final isLongLabel = label.length >= 8; // 'Facebook'
+    final isShortLabel = label.length <= 5; // 'Apple'
+    final iconGap = isLongLabel ? 6.0 : (isShortLabel ? 10.0 : 8.0);
+    final fontSize = isLongLabel ? 13.0 : 13.5;
+    final letterSpacing = isLongLabel ? -0.3 : (isShortLabel ? 0.3 : 0.0);
+
     return Semantics(
       button: true,
       enabled: !busy && isAvailable,
@@ -2391,14 +2397,15 @@ class _AuthCanvas extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 icon,
-                const SizedBox(width: 12),
+                SizedBox(width: iconGap),
                 Flexible(
                   child: Text(
                     label,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontFamily: _fontFamily,
-                      fontSize: 14,
+                      fontSize: fontSize,
+                      letterSpacing: letterSpacing,
                       fontWeight: FontWeight.w500,
                       height: 1.5,
                       color: _neutral900,

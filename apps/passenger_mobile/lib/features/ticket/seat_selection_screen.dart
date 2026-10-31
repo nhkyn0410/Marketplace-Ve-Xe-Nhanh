@@ -6,6 +6,7 @@ import 'package:mobile_shared/mobile_shared.dart';
 import 'package:passenger_mobile/features/search/trip_search_form.dart';
 import 'package:passenger_mobile/features/ticket/booking_flow_chrome.dart';
 import 'package:passenger_mobile/features/ticket/passenger_information_screen.dart';
+import 'package:passenger_mobile/features/ticket/seat_map_tile.dart';
 import 'package:passenger_mobile/features/ticket/stop_picker_sheet.dart';
 import 'package:passenger_mobile/features/ticket/trip_booking_api.dart';
 import 'package:passenger_mobile/features/ticket/trip_detail_models.dart';
@@ -20,8 +21,6 @@ const _orange = Color(0xFFF59B31);
 /// Số chỗ tối đa mỗi lần giữ / đặt (API `MAX_PASSENGERS`).
 const _maxSeats = 10;
 
-enum _SeatStatus { available, selected, unavailable }
-
 /// Chọn chỗ trên sơ đồ của chuyến + điểm đón / trả, rồi giữ chỗ (`POST /seat-holds`).
 class SeatSelectionScreen extends StatefulWidget {
   const SeatSelectionScreen({
@@ -29,6 +28,8 @@ class SeatSelectionScreen extends StatefulWidget {
     required this.trip,
     required this.pickupSequence,
     required this.dropoffSequence,
+    this.isSignedIn = false,
+    this.onBookingFinished,
     super.key,
   });
 
@@ -36,6 +37,8 @@ class SeatSelectionScreen extends StatefulWidget {
   final TripDetail trip;
   final int pickupSequence;
   final int dropoffSequence;
+  final bool isSignedIn;
+  final VoidCallback? onBookingFinished;
 
   @override
   State<SeatSelectionScreen> createState() => _SeatSelectionScreenState();
@@ -158,6 +161,8 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
           api: widget.api,
           trip: _trip,
           hold: hold,
+          isSignedIn: widget.isSignedIn,
+          onBookingFinished: widget.onBookingFinished,
         ),
       ),
     );
@@ -198,7 +203,7 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
               BookingFlowHeader(
                 key: const Key('seat-selection-header'),
                 title: 'Chọn chỗ',
-                subtitle: _trip.routeName,
+                subtitle: null,
                 timerLabel: null,
                 expired: false,
                 onBack: () => Navigator.maybePop(context),
@@ -297,7 +302,11 @@ class _TripSummary extends StatelessWidget {
         children: [
           Row(
             children: [
-              OperatorInitialAvatar(name: trip.operatorName, size: 31),
+              OperatorInitialAvatar(
+                name: trip.operatorName,
+                logoUrl: trip.operatorLogoUrl,
+                size: 31,
+              ),
               const SizedBox(width: 8),
               Expanded(
                 child: Column(
@@ -348,17 +357,21 @@ class _TripSummary extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 9),
-          Row(
+          Column(
             children: [
-              _TripTime(
-                time: formatVnClock(pickup.plannedAt),
-                place: pickup.name,
+              Row(
+                children: [
+                  _TripTime(time: formatVnClock(pickup.plannedAt)),
+                  const SizedBox(width: 8),
+                  const Expanded(child: _TimelineBar()),
+                  const SizedBox(width: 8),
+                  _TripTime(time: formatVnClock(dropoff.plannedAt)),
+                ],
               ),
-              Expanded(child: _TripLine(duration: formatTripDuration(minutes))),
-              _TripTime(
-                time: formatVnClock(dropoff.plannedAt),
-                place: dropoff.name,
-                alignEnd: true,
+              const SizedBox(height: 2),
+              Text(
+                formatTripDuration(minutes),
+                style: const TextStyle(color: _muted, fontSize: 13),
               ),
             ],
           ),
@@ -369,84 +382,50 @@ class _TripSummary extends StatelessWidget {
 }
 
 class _TripTime extends StatelessWidget {
-  const _TripTime({
-    required this.time,
-    required this.place,
-    this.alignEnd = false,
-  });
+  const _TripTime({required this.time});
 
   final String time;
-  final String place;
-  final bool alignEnd;
 
   @override
   Widget build(BuildContext context) {
-    return ConstrainedBox(
-      constraints: const BoxConstraints(maxWidth: 120),
-      child: Column(
-        crossAxisAlignment: alignEnd
-            ? CrossAxisAlignment.end
-            : CrossAxisAlignment.start,
-        children: [
-          Text(
-            time,
-            style: const TextStyle(
-              color: _ink,
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          Text(
-            place,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            textAlign: alignEnd ? TextAlign.end : TextAlign.start,
-            style: const TextStyle(color: _muted, fontSize: 13),
-          ),
-        ],
+    return Text(
+      time,
+      style: const TextStyle(
+        color: _ink,
+        fontSize: 16,
+        fontWeight: FontWeight.w600,
       ),
     );
   }
 }
 
-class _TripLine extends StatelessWidget {
-  const _TripLine({required this.duration});
-
-  final String duration;
+class _TimelineBar extends StatelessWidget {
+  const _TimelineBar();
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 10),
-      child: Column(
-        children: [
-          Row(
-            children: [
-              Container(
-                width: 6,
-                height: 6,
-                decoration: const BoxDecoration(
-                  color: _blue,
-                  shape: BoxShape.circle,
-                ),
-              ),
-              const Expanded(
-                child: Divider(color: Color(0xFFABC5D3), height: 2),
-              ),
-              Container(
-                width: 6,
-                height: 6,
-                decoration: const BoxDecoration(
-                  color: _orange,
-                  shape: BoxShape.circle,
-                ),
-              ),
-            ],
+    return Row(
+      children: [
+        Container(
+          width: 6,
+          height: 6,
+          decoration: const BoxDecoration(
+            color: _blue,
+            shape: BoxShape.circle,
           ),
-          const SizedBox(height: 2),
-          Text(duration, style: const TextStyle(color: _muted, fontSize: 13)),
-        ],
-      ),
+        ),
+        const Expanded(
+          child: Divider(color: Color(0xFFABC5D3), height: 2),
+        ),
+        Container(
+          width: 6,
+          height: 6,
+          decoration: const BoxDecoration(
+            color: _orange,
+            shape: BoxShape.circle,
+          ),
+        ),
+      ],
     );
   }
 }
@@ -619,9 +598,9 @@ class _SeatMap extends StatelessWidget {
   final Set<String> selected;
   final ValueChanged<TripSeat> onSeatSelected;
 
-  _SeatStatus statusOf(TripSeat seat) {
-    if (selected.contains(seat.code)) return _SeatStatus.selected;
-    return seat.bookable ? _SeatStatus.available : _SeatStatus.unavailable;
+  SeatMapStatus statusOf(TripSeat seat) {
+    if (selected.contains(seat.code)) return SeatMapStatus.selected;
+    return seat.bookable ? SeatMapStatus.available : SeatMapStatus.unavailable;
   }
 
   @override
@@ -634,286 +613,133 @@ class _SeatMap extends StatelessWidget {
     final byPosition = {
       for (final seat in seats) (seat.row, seat.column): seat,
     };
-    final seatWidth = columns <= 2 ? 52.0 : (columns == 3 ? 42.0 : 34.0);
-    const seatHeight = 30.0;
-    final gapX = columns <= 2 ? 19.0 : 8.0;
-    const gapY = 8.0;
-    final frameWidth = 62 + columns * seatWidth + (columns - 1) * gapX;
-    final frameHeight = 75 + rows * seatHeight + (rows - 1) * gapY + 12;
+    // Empty cells keep their coordinates; a double widens its column only.
+    final widths = [
+      for (var column = 1; column <= columns; column++)
+        seats
+            .where((seat) => seat.column == column)
+            .fold<double>(
+              24,
+              (width, seat) =>
+                  math.max(width, seatMapTileSize(seat.type).width),
+            ),
+    ];
+    final heights = [
+      for (var row = 1; row <= rows; row++)
+        seats
+            .where((seat) => seat.row == row)
+            .fold<double>(
+              24,
+              (height, seat) =>
+                  math.max(height, seatMapTileSize(seat.type).height),
+            ),
+    ];
+    const gapX = 6.0;
+    const gapY = 10.0;
+    final gridWidth =
+        widths.fold<double>(0, (sum, width) => sum + width) +
+        math.max(0, columns - 1) * gapX;
+    final types = seats.map((seat) => seat.type).toSet();
+
     return Container(
-      padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
+      key: const Key('seat-map-grid'),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(17),
       ),
-      child: Center(
-        child: SizedBox(
-          key: const Key('seat-bus-frame'),
-          width: frameWidth,
-          height: frameHeight,
-          child: CustomPaint(
-            painter: _BusOutlinePainter(),
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(31, 75, 31, 12),
-              child: Column(
-                children: [
-                  for (var row = 1; row <= rows; row++) ...[
-                    Row(
-                      children: [
-                        for (var column = 1; column <= columns; column++) ...[
-                          SizedBox(
-                            width: seatWidth,
-                            height: seatHeight,
-                            child: switch (byPosition[(row, column)]) {
-                              final TripSeat seat => _SeatButton(
-                                seat: seat.code,
-                                status: statusOf(seat),
-                                onTap: () => onSeatSelected(seat),
-                              ),
-                              null => const SizedBox.shrink(),
-                            },
-                          ),
-                          if (column < columns) SizedBox(width: gapX),
-                        ],
-                      ],
-                    ),
-                    if (row < rows) const SizedBox(height: gapY),
-                  ],
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _SeatButton extends StatelessWidget {
-  const _SeatButton({
-    required this.seat,
-    required this.status,
-    required this.onTap,
-  });
-
-  final String seat;
-  final _SeatStatus status;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final selected = status == _SeatStatus.selected;
-    final enabled = status != _SeatStatus.unavailable;
-    final background = switch (status) {
-      _SeatStatus.available => Colors.white,
-      _SeatStatus.selected => _blue,
-      _SeatStatus.unavailable => const Color(0xFFE5EDF2),
-    };
-    final border = switch (status) {
-      _SeatStatus.available => const Color(0xFF1687E8),
-      _SeatStatus.selected => _blue,
-      _SeatStatus.unavailable => const Color(0xFFCCDBE5),
-    };
-    return InkWell(
-      key: Key('seat-$seat'),
-      onTap: enabled ? onTap : null,
-      borderRadius: BorderRadius.circular(7),
-      child: Container(
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          color: background,
-          borderRadius: BorderRadius.circular(7),
-          border: Border.all(color: border),
-          boxShadow: selected
-              ? const [BoxShadow(color: Color(0x331E8ABE), blurRadius: 6)]
-              : null,
-        ),
-        clipBehavior: Clip.antiAlias,
-        child: Stack(
-          fit: StackFit.expand,
-          children: [
-            if (status == _SeatStatus.unavailable)
-              const CustomPaint(painter: _SeatHatchPainter()),
-            Center(
-              child: FittedBox(
-                fit: BoxFit.scaleDown,
-                child: Text(
-                  seat,
-                  style: TextStyle(
-                    color: switch (status) {
-                      _SeatStatus.selected => Colors.white,
-                      _SeatStatus.unavailable => const Color(0xFF86A5BB),
-                      _SeatStatus.available => const Color(0xFF20538C),
-                    },
-                    fontSize: 10,
-                    fontWeight: FontWeight.w500,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Wrap(
+            alignment: WrapAlignment.center,
+            spacing: 14,
+            runSpacing: 6,
+            children: [
+              for (final type in types)
+                Text(
+                  seatMapTypeLabel(type),
+                  style: const TextStyle(
+                    color: _ink,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
-              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          const Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.arrow_upward_rounded, color: _muted, size: 15),
+              SizedBox(width: 4),
+              Text('Đầu xe', style: TextStyle(color: _muted, fontSize: 12)),
+            ],
+          ),
+          const SizedBox(height: 14),
+          LayoutBuilder(
+            builder: (context, constraints) => Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (gridWidth > constraints.maxWidth) ...[
+                  const Text(
+                    'Vuốt ngang để xem toàn bộ chỗ',
+                    style: TextStyle(color: _muted, fontSize: 11),
+                  ),
+                  const SizedBox(height: 8),
+                ],
+                SingleChildScrollView(
+                  key: const Key('seat-map-horizontal-scroll'),
+                  scrollDirection: Axis.horizontal,
+                  child: SizedBox(
+                    width: math.max(gridWidth, constraints.maxWidth),
+                    child: Center(
+                      child: SizedBox(
+                        width: gridWidth,
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            for (var row = 1; row <= rows; row++) ...[
+                              Row(
+                                children: [
+                                  for (var col = 1; col <= columns; col++) ...[
+                                    SizedBox(
+                                      width: widths[col - 1],
+                                      height: heights[row - 1],
+                                      child: switch (byPosition[(row, col)]) {
+                                        final TripSeat seat => Center(
+                                          child: SizedBox.fromSize(
+                                            size: seatMapTileSize(seat.type),
+                                            child: SeatMapTile(
+                                              seat: seat,
+                                              status: statusOf(seat),
+                                              onTap: () => onSeatSelected(seat),
+                                            ),
+                                          ),
+                                        ),
+                                        null => const SizedBox.shrink(),
+                                      },
+                                    ),
+                                    if (col < columns)
+                                      const SizedBox(width: gapX),
+                                  ],
+                                ],
+                              ),
+                              if (row < rows) const SizedBox(height: gapY),
+                            ],
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
-}
-
-class _BusOutlinePainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final scaleX = size.width / 185;
-    final scaleY = size.height / 352;
-    canvas.save();
-    canvas.scale(scaleX, scaleY);
-
-    const outlineColor = Color(0xFF2362AE);
-    final outline = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.35
-      ..strokeCap = StrokeCap.round
-      ..strokeJoin = StrokeJoin.round
-      ..color = outlineColor;
-    final softOutline = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = .9
-      ..strokeCap = StrokeCap.round
-      ..color = const Color(0xFFBED4E4);
-    final windshieldFill = Paint()
-      ..style = PaintingStyle.fill
-      ..color = const Color(0xFFEEF3F7);
-    final dashboardFill = Paint()
-      ..style = PaintingStyle.fill
-      ..color = const Color(0xFFD8E2E9);
-
-    final body = Path()
-      ..moveTo(24, 48)
-      ..lineTo(29, 29)
-      ..cubicTo(32, 13, 53, 8, 92.5, 8)
-      ..cubicTo(132, 8, 153, 13, 156, 29)
-      ..lineTo(161, 48)
-      ..lineTo(161, 331)
-      ..cubicTo(161, 344, 152, 349, 137, 349)
-      ..lineTo(48, 349)
-      ..cubicTo(33, 349, 24, 344, 24, 331)
-      ..close();
-    canvas.drawPath(body, Paint()..color = Colors.white);
-    canvas.drawPath(body, outline);
-
-    final windshield = Path()
-      ..moveTo(29, 64)
-      ..lineTo(29, 45)
-      ..cubicTo(30, 33, 39, 27, 51, 27)
-      ..lineTo(134, 27)
-      ..cubicTo(146, 27, 155, 33, 156, 45)
-      ..lineTo(156, 64)
-      ..cubicTo(156, 70, 151, 73, 143, 73)
-      ..lineTo(42, 73)
-      ..cubicTo(34, 73, 29, 70, 29, 64)
-      ..close();
-    canvas.drawPath(windshield, windshieldFill);
-    canvas.drawPath(windshield, softOutline);
-    canvas.drawLine(const Offset(25, 74), const Offset(160, 74), outline);
-
-    final leftRoofLight = Path()
-      ..moveTo(31, 25)
-      ..quadraticBezierTo(32, 20, 37, 18)
-      ..lineTo(54, 14)
-      ..quadraticBezierTo(55, 23, 48, 26)
-      ..lineTo(31, 30)
-      ..close();
-    final rightRoofLight = Path()
-      ..moveTo(154, 25)
-      ..quadraticBezierTo(153, 20, 148, 18)
-      ..lineTo(131, 14)
-      ..quadraticBezierTo(130, 23, 137, 26)
-      ..lineTo(154, 30)
-      ..close();
-    canvas.drawPath(leftRoofLight, Paint()..color = Colors.white);
-    canvas.drawPath(rightRoofLight, Paint()..color = Colors.white);
-    canvas.drawPath(leftRoofLight, outline);
-    canvas.drawPath(rightRoofLight, outline);
-
-    final driverPanel = RRect.fromRectAndCorners(
-      const Rect.fromLTWH(37, 37, 51, 34),
-      topLeft: const Radius.circular(12),
-      bottomRight: const Radius.circular(12),
-    );
-    canvas.drawRRect(driverPanel, dashboardFill);
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(
-        const Rect.fromLTWH(108, 43, 38, 17),
-        const Radius.circular(7),
-      ),
-      dashboardFill,
-    );
-    _drawSteeringWheel(canvas, const Offset(61, 56));
-
-    for (final rect in const [
-      Rect.fromLTWH(11, 47, 13, 31),
-      Rect.fromLTWH(161, 47, 13, 31),
-      Rect.fromLTWH(17, 106, 6, 43),
-      Rect.fromLTWH(162, 106, 6, 43),
-      Rect.fromLTWH(17, 176, 6, 43),
-      Rect.fromLTWH(162, 176, 6, 43),
-      Rect.fromLTWH(17, 271, 6, 43),
-      Rect.fromLTWH(162, 271, 6, 43),
-    ]) {
-      canvas.drawRRect(
-        RRect.fromRectAndRadius(rect, const Radius.circular(4)),
-        outline,
-      );
-    }
-
-    final aisle = Paint()
-      ..color = const Color(0xFFC7DCE9)
-      ..strokeWidth = .9;
-    for (double y = 77; y < 342; y += 8) {
-      canvas.drawLine(
-        Offset(92.5, y),
-        Offset(92.5, math.min(y + 4, 342)),
-        aisle,
-      );
-    }
-
-    canvas.restore();
-  }
-
-  void _drawSteeringWheel(Canvas canvas, Offset center) {
-    final wheelPaint = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.35
-      ..strokeCap = StrokeCap.round
-      ..color = const Color(0xFF8CA7BC);
-    canvas.drawCircle(center, 10, wheelPaint);
-    canvas.drawCircle(center, 2.4, wheelPaint);
-    canvas.drawLine(center, center.translate(0, 9), wheelPaint);
-    canvas.drawLine(center, center.translate(-8.5, -3), wheelPaint);
-    canvas.drawLine(center, center.translate(8.5, -3), wheelPaint);
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
-}
-
-class _SeatHatchPainter extends CustomPainter {
-  const _SeatHatchPainter();
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = const Color(0xFFCADAE5)
-      ..strokeWidth = 1;
-    for (double x = -size.height; x < size.width; x += 8) {
-      canvas.drawLine(
-        Offset(x, size.height),
-        Offset(x + size.height, 0),
-        paint,
-      );
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
 
 class _SeatLegend extends StatelessWidget {

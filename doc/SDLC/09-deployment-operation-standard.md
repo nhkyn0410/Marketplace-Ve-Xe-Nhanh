@@ -13,9 +13,11 @@
 | Người viết    | Nguyễn Hồng Khanh, AI Agent      |
 | Người duyệt   | Nguyễn Hồng Khanh                |
 | Ngày tạo      | 11/05/2026                       |
-| Ngày cập nhật | 07/10/2026                       |
+| Ngày cập nhật | 31/10/2026                       |
 
 ### 1.2. Lịch sử thay đổi
+
+31/10/2026 — bổ sung vận hành payOS **chờ duyệt** (ADR-029): payOS không có sandbox; khóa thật chỉ local, schema từ chối PAYOS keys trên NODE_ENV=production do OQ-22. DEMO trên bản deploy chỉ dữ liệu mẫu, bật tường minh PAYMENT_DEMO_ENABLED và không có khóa payOS. API + worker cùng DB/Redis/BULLMQ_PREFIX/cấu hình cổng; webhook HTTPS, PAYOS_* chỉ backend, PAYMENT_RETURN_BASE_URL là gốc web kết quả. Manifest Render hiện chưa bật worker, không coi deploy API là đủ hoàn tất thanh toán. Hướng dẫn [RB-12](../runbook/RB-12-payos.md); giữ trạng thái tài liệu, chưa triển khai thật.
 
 | Phiên bản | Ngày       | Người cập nhật | Nội dung thay đổi                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
 | --------- | ---------- | -------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |

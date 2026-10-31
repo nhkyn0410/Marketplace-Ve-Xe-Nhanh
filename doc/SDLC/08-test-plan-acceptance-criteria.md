@@ -13,9 +13,11 @@
 | Người viết    | Nguyễn Hồng Khanh, AI Agent        |
 | Người duyệt   | Nguyễn Hồng Khanh                |
 | Ngày tạo      | 11/05/2026                       |
-| Ngày cập nhật | 28/10/2026                       |
+| Ngày cập nhật | 31/10/2026                       |
 
 ### 1.2. Lịch sử thay đổi
+
+31/10/2026 — thêm phạm vi payOS **chờ duyệt** (ADR-029): vector HMAC đúng/sai/null/thiếu trường; kiểm chữ ký phản hồi; timeout/retry cùng orderCode; webhook trùng reference không ghi tiền/vé trùng; sai tiền / quá hạn kể cả trước job expiry → RECONCILING; tenant RLS; probe không tạo job; queue lỗi không ACK; DEMO tắt/khác provider; query khi mất webhook, hủy link lỗi. Flutter kiểm chọn cổng, QR/copy, mở URL, resume/poll, chặn nhấn lặp, lỗi mạng/hết hạn và vé thực. DB/HTTP/gateway và hồi quy chạy trên DB tạm / mock; lint/typecheck/test/build monorepo pass; client TS/Dart đã sinh. App hành khách Flutter analyze không có issue, 249 tests pass; package Dart sinh tự động không có lỗi analyze nhưng còn cảnh báo. Chưa thử điện thoại hay tiền thật, chưa review độc lập, không ghi đạt toàn bộ acceptance triển khai. Xem [PAYOS-plan](../task-propreties/PAYOS-plan.md).
 
 | Phiên bản | Ngày       | Người cập nhật | Nội dung thay đổi                         |
 | --------- | ---------- | -------------- | ----------------------------------------- |

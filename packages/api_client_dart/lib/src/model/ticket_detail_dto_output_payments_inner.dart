@@ -27,7 +27,7 @@ abstract class TicketDetailDtoOutputPaymentsInner implements Built<TicketDetailD
 
   @BuiltValueField(wireName: r'provider')
   TicketDetailDtoOutputPaymentsInnerProviderEnum get provider;
-  // enum providerEnum {  VNPAY,  MOMO,  };
+  // enum providerEnum {  VNPAY,  MOMO,  PAYOS,  DEMO,  };
 
   @BuiltValueField(wireName: r'status')
   TicketDetailDtoOutputPaymentsInnerStatusEnum get status;
@@ -178,6 +178,10 @@ class TicketDetailDtoOutputPaymentsInnerProviderEnum extends EnumClass {
   static const TicketDetailDtoOutputPaymentsInnerProviderEnum VNPAY = _$ticketDetailDtoOutputPaymentsInnerProviderEnum_VNPAY;
   @BuiltValueEnumConst(wireName: r'MOMO')
   static const TicketDetailDtoOutputPaymentsInnerProviderEnum MOMO = _$ticketDetailDtoOutputPaymentsInnerProviderEnum_MOMO;
+  @BuiltValueEnumConst(wireName: r'PAYOS')
+  static const TicketDetailDtoOutputPaymentsInnerProviderEnum PAYOS = _$ticketDetailDtoOutputPaymentsInnerProviderEnum_PAYOS;
+  @BuiltValueEnumConst(wireName: r'DEMO')
+  static const TicketDetailDtoOutputPaymentsInnerProviderEnum DEMO = _$ticketDetailDtoOutputPaymentsInnerProviderEnum_DEMO;
 
   static Serializer<TicketDetailDtoOutputPaymentsInnerProviderEnum> get serializer => _$ticketDetailDtoOutputPaymentsInnerProviderEnumSerializer;
 

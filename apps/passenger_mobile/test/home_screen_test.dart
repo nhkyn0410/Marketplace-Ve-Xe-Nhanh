@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:passenger_mobile/features/explore/explore_screen.dart';
 import 'package:passenger_mobile/features/home/home_models.dart';
 import 'package:passenger_mobile/features/home/home_screen.dart';
+import 'package:passenger_mobile/features/search/trip_search_form.dart';
 
 import 'support/trip_search_fakes.dart';
 
@@ -27,6 +28,7 @@ Future<void> _pumpHome(
   HomeFaqLoader? loadFaqs,
   HomePromotionsLoader? loadPromotions,
   HomeOperatorsLoader? loadFeaturedOperators,
+  TripSearchCatalog? searchCatalog,
   HomeArticlesLoader? loadArticles,
   ValueChanged<ExploreArticle>? onArticleSelected,
   HomeHotlineLauncher? onCallHotline,
@@ -58,7 +60,7 @@ Future<void> _pumpHome(
         userName: isLoggedIn ? 'Khanh' : null,
         initialMode: initialMode,
         initialDate: DateTime(2026, 10, 22),
-        searchCatalog: fakeCatalog(),
+        searchCatalog: searchCatalog ?? fakeCatalog(),
         loadPopularRoutes: loadPopularRoutes,
         loadFaqs: loadFaqs,
         loadPromotions: loadPromotions,
@@ -76,6 +78,45 @@ Future<void> _pumpHome(
 }
 
 void main() {
+  testWidgets('thẻ nhà xe và danh sách chọn dùng logo, tải lỗi vẫn hiện chữ thay thế', (
+    tester,
+  ) async {
+    const logo = 'https://cdn.example.test/operator-logo.png';
+    const operators = [
+      HomeOperator(
+        id: 'logo-operator',
+        name: 'Nhà xe Sao Mai',
+        logoUrl: logo,
+        reviewCount: 0,
+        routes: [],
+      ),
+    ];
+    await _pumpHome(
+      tester,
+      width: 412,
+      initialMode: HomeSearchMode.operator,
+      loadFeaturedOperators: () async => operators,
+      searchCatalog: fakeCatalog(operators: operators),
+    );
+    final card = find.byKey(const ValueKey('featured-operator-logo-operator'));
+    await tester.scrollUntilVisible(card, 200, scrollable: _homeScrollable());
+    final logoImage = find.byWidgetPredicate(
+      (widget) =>
+          widget is Image &&
+          widget.image is NetworkImage &&
+          (widget.image as NetworkImage).url == logo,
+    );
+    expect(find.descendant(of: card, matching: logoImage), findsOneWidget);
+    await tester.ensureVisible(find.byKey(const Key('operator-input')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('operator-input')));
+    await tester.pumpAndSettle();
+    final option = find.byKey(const ValueKey('operator-option-logo-operator'));
+    expect(find.descendant(of: option, matching: logoImage), findsOneWidget);
+    expect(find.descendant(of: option, matching: find.text('N')), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('Home responsive không overflow ở các viewport bắt buộc', (
     tester,
   ) async {

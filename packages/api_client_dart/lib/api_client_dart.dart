@@ -463,6 +463,7 @@ export 'package:api_client_dart/src/model/password_change_challenge_response.dar
 export 'package:api_client_dart/src/model/password_change_required_dto.dart';
 export 'package:api_client_dart/src/model/payment_input_dto.dart';
 export 'package:api_client_dart/src/model/payment_response_dto_output.dart';
+export 'package:api_client_dart/src/model/payment_response_dto_output_transfer.dart';
 export 'package:api_client_dart/src/model/payout_bank_account_dto_output.dart';
 export 'package:api_client_dart/src/model/payout_confirm_input_dto.dart';
 export 'package:api_client_dart/src/model/payout_detail_dto_output.dart';

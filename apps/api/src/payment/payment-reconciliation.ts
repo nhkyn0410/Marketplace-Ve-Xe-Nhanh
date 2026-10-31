@@ -47,7 +47,10 @@ export async function reconcilePayments(
     run.checked += 1;
     let result: TransactionStatus | null = null;
     try {
-      result = await gateway.queryTransaction({ paymentCode: payment.paymentCode, requestCode: requestCode(), paymentCreatedAt: payment.createdAt, requestedAt: now });
+      result = await gateway.queryTransaction({ paymentCode: payment.paymentCode, ...(payment.providerOrderCode != null ? { orderCode: payment.providerOrderCode } : {}), requestCode: requestCode(), paymentCreatedAt: payment.createdAt, requestedAt: now });
+      if (result.status === "PENDING" && ["EXPIRED", "CANCELLED"].includes(payment.status) && payment.providerOrderCode != null) {
+        await gateway.cancelCheckout?.(payment.providerOrderCode);
+      }
     } catch {
       run.errors += 1;
     }

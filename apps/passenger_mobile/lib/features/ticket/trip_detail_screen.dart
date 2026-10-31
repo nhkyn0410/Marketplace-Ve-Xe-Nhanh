@@ -8,6 +8,7 @@ import 'package:passenger_mobile/features/ticket/stop_picker_sheet.dart';
 import 'package:passenger_mobile/features/ticket/trip_booking_api.dart';
 import 'package:passenger_mobile/features/ticket/trip_detail_models.dart';
 import 'package:passenger_mobile/features/ticket/trip_search_models.dart';
+import 'package:share_plus/share_plus.dart';
 
 const _detailAssets = 'assets/ticket/detail';
 const _ink = Color(0xFF09243D);
@@ -24,11 +25,15 @@ class TripDetailScreen extends StatefulWidget {
     this.toLabel,
     this.pickupSequence,
     this.dropoffSequence,
+    this.isSignedIn = false,
+    this.onBookingFinished,
     super.key,
   });
 
   final TripBookingApi api;
   final String tripId;
+  final bool isSignedIn;
+  final VoidCallback? onBookingFinished;
 
   /// Tên điểm đi / đến khách đã tìm (vd. "TP. Hồ Chí Minh"); không có thì dùng tên điểm đón / trả.
   final String? fromLabel;
@@ -47,6 +52,7 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
   String? _error;
   int? _pickup;
   int? _dropoff;
+  bool _sharing = false;
 
   @override
   void initState() {
@@ -131,11 +137,50 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
           trip: trip,
           pickupSequence: pickup,
           dropoffSequence: dropoff,
+          isSignedIn: widget.isSignedIn,
+          onBookingFinished: widget.onBookingFinished,
         ),
       ),
     );
     // Quay lại thì sơ đồ chỗ có thể đã đổi (người khác giữ / đặt).
     if (mounted) _load();
+  }
+
+  Future<void> _shareTrip(BuildContext originContext) async {
+    final trip = _trip;
+    final pickup = _pickup == null ? null : trip?.stopAt(_pickup!);
+    final dropoff = _dropoff == null ? null : trip?.stopAt(_dropoff!);
+    if (_sharing || trip == null || pickup == null || dropoff == null) return;
+
+    final box = originContext.findRenderObject() as RenderBox?;
+    setState(() => _sharing = true);
+    try {
+      await SharePlus.instance.share(
+        ShareParams(
+          title: 'Chia sẻ chuyến đi',
+          subject: '${pickup.name} → ${dropoff.name}',
+          text: [
+            'Chuyến đi trên Vé Xe Nhanh',
+            'Nhà xe: ${trip.operatorName}',
+            'Đón: ${formatVnClock(pickup.plannedAt)}, ${formatVnDate(pickup.plannedAt)} - ${pickup.name}',
+            'Trả: ${formatVnClock(dropoff.plannedAt)}, ${formatVnDate(dropoff.plannedAt)} - ${dropoff.name}',
+            'Loại xe: ${trip.vehicleTypeName}',
+          ].join('\n'),
+          sharePositionOrigin: box == null
+              ? null
+              : box.localToGlobal(Offset.zero) & box.size,
+        ),
+      );
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Chưa thể chia sẻ chuyến đi. Vui lòng thử lại.'),
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _sharing = false);
+    }
   }
 
   @override
@@ -167,7 +212,13 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
           elevation: 0,
           scrolledUnderElevation: 1,
           shadowColor: const Color(0x1A21404F),
-          title: _HeroToolbar(onBack: () => Navigator.maybePop(context)),
+          title: _HeroToolbar(
+            onBack: () => Navigator.maybePop(context),
+            onShare:
+                trip == null || pickup == null || dropoff == null || _sharing
+                ? null
+                : _shareTrip,
+          ),
         ),
         bottomNavigationBar: trip == null
             ? null
@@ -215,9 +266,6 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
         _HeroAndOperator(
           trip: trip,
           pickup: pickup,
-          dropoff: dropoff,
-          fromLabel: widget.fromLabel,
-          toLabel: widget.toLabel,
         ),
         _VehicleSummary(trip: trip),
         _ScheduleSection(trip: trip, pickup: pickup, dropoff: dropoff),
@@ -242,20 +290,13 @@ class _HeroAndOperator extends StatelessWidget {
   const _HeroAndOperator({
     required this.trip,
     required this.pickup,
-    required this.dropoff,
-    required this.fromLabel,
-    required this.toLabel,
   });
 
   final TripDetail trip;
   final TripStop? pickup;
-  final TripStop? dropoff;
-  final String? fromLabel;
-  final String? toLabel;
 
   @override
   Widget build(BuildContext context) {
-    final useTallHero = MediaQuery.textScalerOf(context).scale(16) > 22;
     final image = trip.imageUrls.isEmpty ? null : trip.imageUrls.first;
     final heroAsset = Image.asset(
       '$_detailAssets/hero_mountain_bus.png',
@@ -266,70 +307,15 @@ class _HeroAndOperator extends StatelessWidget {
     return Column(
       children: [
         SizedBox(
-          height: useTallHero ? 310 : 218,
-          child: Stack(
-            children: [
-              Positioned.fill(
-                child: image == null
-                    ? heroAsset
-                    : Image.network(
-                        image,
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) =>
-                            heroAsset,
-                      ),
-              ),
-              const Positioned.fill(
-                child: DecoratedBox(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [
-                        Color(0x00081C24),
-                        Color(0x17081C24),
-                        Color(0xB0081C24),
-                      ],
-                      stops: [0.32, 0.56, 1],
-                    ),
+          height: 218,
+          child: SizedBox.expand(
+            child: image == null
+                ? heroAsset
+                : Image.network(
+                    image,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) => heroAsset,
                   ),
-                ),
-              ),
-              const Positioned(
-                left: 0,
-                right: 92,
-                top: 100,
-                bottom: 0,
-                child: DecoratedBox(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.all(Radius.circular(30)),
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [
-                        Color(0x00081C24),
-                        Color(0x45081C24),
-                        Color(0x94081C24),
-                      ],
-                      stops: [0.04, 0.55, 0.97],
-                    ),
-                  ),
-                ),
-              ),
-              if (pickup != null && dropoff != null)
-                Positioned(
-                  left: 16,
-                  right: 16,
-                  bottom: 16,
-                  child: _HeroRoute(
-                    // Nơi của chặng đang chọn (3.3), không lấy chữ trên ô tìm: khách đổi điểm đón / trả thì nhãn đổi theo.
-                    fromCity: _segmentPart(trip, 0) ?? pickup!.name,
-                    toCity: _segmentPart(trip, 1) ?? dropoff!.name,
-                    pickup: pickup!,
-                    dropoff: dropoff!,
-                  ),
-                ),
-            ],
           ),
         ),
         Transform.translate(
@@ -345,9 +331,10 @@ class _HeroAndOperator extends StatelessWidget {
 }
 
 class _HeroToolbar extends StatelessWidget {
-  const _HeroToolbar({required this.onBack});
+  const _HeroToolbar({required this.onBack, required this.onShare});
 
   final VoidCallback onBack;
+  final ValueChanged<BuildContext>? onShare;
 
   @override
   Widget build(BuildContext context) {
@@ -356,6 +343,7 @@ class _HeroToolbar extends StatelessWidget {
         _HeaderAction(
           key: const Key('trip-detail-back'),
           icon: 'back.svg',
+          tooltip: 'Quay lại',
           onTap: onBack,
         ),
         const SizedBox(width: 12),
@@ -372,200 +360,57 @@ class _HeroToolbar extends StatelessWidget {
             ),
           ),
         ),
-        const _HeaderAction(icon: 'heart.svg'),
-        const SizedBox(width: 8),
-        const _HeaderAction(icon: 'share.svg'),
+        Builder(
+          builder: (context) => _HeaderAction(
+            key: const Key('trip-detail-share'),
+            icon: 'share.svg',
+            tooltip: 'Chia sẻ chuyến đi',
+            onTap: onShare == null ? null : () => onShare!(context),
+          ),
+        ),
       ],
     );
   }
 }
 
 class _HeaderAction extends StatelessWidget {
-  const _HeaderAction({required this.icon, this.onTap, super.key});
+  const _HeaderAction({
+    required this.icon,
+    required this.tooltip,
+    this.onTap,
+    super.key,
+  });
 
   final String icon;
+  final String tooltip;
   final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Semantics(
-      button: true,
-      child: InkResponse(
-        onTap: onTap,
-        radius: 22,
-        child: SizedBox.square(
-          dimension: 40,
-          child: Stack(
-            alignment: Alignment.center,
-            children: [
-              SvgPicture.asset(
-                '$_detailAssets/header_action.svg',
-                width: 40,
-                height: 40,
-              ),
-              SvgPicture.asset('$_detailAssets/$icon', width: 18, height: 18),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _HeroRoute extends StatelessWidget {
-  const _HeroRoute({
-    required this.fromCity,
-    required this.toCity,
-    required this.pickup,
-    required this.dropoff,
-  });
-
-  final String fromCity;
-  final String toCity;
-  final TripStop pickup;
-  final TripStop dropoff;
-
-  @override
-  Widget build(BuildContext context) {
-    final minutes = dropoff.plannedAt.difference(pickup.plannedAt).inMinutes;
-    return Align(
-      alignment: Alignment.centerLeft,
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 300),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Wrap(
-              spacing: 13,
-              runSpacing: 4,
-              crossAxisAlignment: WrapCrossAlignment.center,
+    return Tooltip(
+      message: tooltip,
+      child: Semantics(
+        button: true,
+        enabled: onTap != null,
+        child: InkResponse(
+          onTap: onTap,
+          radius: 22,
+          child: SizedBox.square(
+            dimension: 40,
+            child: Stack(
+              alignment: Alignment.center,
               children: [
-                _HeroCity(fromCity),
                 SvgPicture.asset(
-                  '$_detailAssets/route_arrow.svg',
-                  width: 17,
-                  height: 17,
+                  '$_detailAssets/header_action.svg',
+                  width: 40,
+                  height: 40,
                 ),
-                _HeroCity(toCity),
+                SvgPicture.asset('$_detailAssets/$icon', width: 18, height: 18),
               ],
             ),
-            const SizedBox(height: 2),
-            SizedBox(
-              width: 220,
-              height: 18,
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  SvgPicture.asset(
-                    '$_detailAssets/hero_route_line.svg',
-                    width: 210,
-                    height: 2,
-                  ),
-                  Positioned(
-                    left: 0,
-                    child: SvgPicture.asset(
-                      '$_detailAssets/route_node.svg',
-                      width: 6,
-                      height: 6,
-                    ),
-                  ),
-                  Positioned(
-                    right: 0,
-                    child: SvgPicture.asset(
-                      '$_detailAssets/route_node.svg',
-                      width: 6,
-                      height: 6,
-                    ),
-                  ),
-                  SvgPicture.asset(
-                    '$_detailAssets/route_bus.svg',
-                    width: 23,
-                    height: 17,
-                  ),
-                ],
-              ),
-            ),
-            Row(
-              children: [
-                SizedBox(
-                  width: 104,
-                  child: _HeroTime(
-                    time: formatVnClock(pickup.plannedAt),
-                    station: pickup.name,
-                  ),
-                ),
-                SizedBox(
-                  width: 82,
-                  child: Center(
-                    child: Text(
-                      formatTripDuration(minutes),
-                      style: const TextStyle(color: Colors.white, fontSize: 13),
-                    ),
-                  ),
-                ),
-                Expanded(
-                  child: _HeroTime(
-                    time: formatVnClock(dropoff.plannedAt),
-                    station: dropoff.name,
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _HeroCity extends StatelessWidget {
-  const _HeroCity(this.label);
-
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    return Text(
-      label,
-      style: const TextStyle(
-        color: Colors.white,
-        fontSize: 19,
-        fontWeight: FontWeight.w600,
-      ),
-    );
-  }
-}
-
-class _HeroTime extends StatelessWidget {
-  const _HeroTime({required this.time, required this.station});
-
-  final String time;
-  final String station;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          time,
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 18,
-            fontWeight: FontWeight.w600,
           ),
         ),
-        Text(
-          station,
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 13,
-            height: 1.2,
-          ),
-        ),
-      ],
+      ),
     );
   }
 }
@@ -586,7 +431,11 @@ class _OperatorCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              OperatorInitialAvatar(name: trip.operatorName, size: 48),
+              OperatorInitialAvatar(
+                name: trip.operatorName,
+                logoUrl: trip.operatorLogoUrl,
+                size: 48,
+              ),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
@@ -730,10 +579,10 @@ class _VehicleSummary extends StatelessWidget {
                   child: SizedBox(
                     width: 104,
                     height: 76,
-                    child: images.length < 2
+                    child: images.isEmpty
                         ? fallback
                         : Image.network(
-                            images[1],
+                            images.first,
                             fit: BoxFit.cover,
                             errorBuilder: (context, error, stackTrace) =>
                                 fallback,
@@ -846,7 +695,7 @@ class _SummaryAmenity extends StatelessWidget {
   }
 }
 
-/// Lịch trình các điểm dừng của chuyến (thay khung bản đồ minh họa tĩnh).
+/// Lịch trình các điểm dừng trong chặng khách chọn, từ điểm đón tới điểm trả.
 class _ScheduleSection extends StatelessWidget {
   const _ScheduleSection({
     required this.trip,
@@ -862,6 +711,12 @@ class _ScheduleSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final from = pickup ?? trip.stops.first;
     final to = dropoff ?? trip.stops.last;
+    final stops = trip.stops
+        .where(
+          (stop) =>
+              stop.sequence >= from.sequence && stop.sequence <= to.sequence,
+        )
+        .toList(growable: false);
     final minutes = to.plannedAt.difference(from.plannedAt).inMinutes;
     return Padding(
       padding: const EdgeInsets.fromLTRB(12, 16, 12, 0),
@@ -874,8 +729,9 @@ class _ScheduleSection extends StatelessWidget {
             borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
             padding: const EdgeInsets.fromLTRB(12, 10, 12, 6),
             child: Column(
+              key: const Key('trip-segment-itinerary'),
               children: [
-                for (final stop in trip.stops)
+                for (final stop in stops)
                   _ScheduleRow(
                     stop: stop,
                     highlighted:
@@ -904,8 +760,8 @@ class _ScheduleSection extends StatelessWidget {
                 Expanded(
                   child: _Metric(
                     icon: 'pin.svg',
-                    value: '${trip.stops.length} điểm dừng',
-                    label: 'Trên tuyến',
+                    value: '${stops.length} điểm dừng',
+                    label: 'Trong chặng',
                   ),
                 ),
               ],
@@ -1528,10 +1384,4 @@ class _BookingBar extends StatelessWidget {
       ),
     );
   }
-}
-
-/// Một đầu của tiêu đề chặng "A → B" (0 = nơi đón, 1 = nơi trả); không có chặng → `null`.
-String? _segmentPart(TripDetail trip, int index) {
-  final parts = trip.segmentTitle?.split(' → ');
-  return parts != null && parts.length == 2 ? parts[index] : null;
 }

@@ -65,7 +65,7 @@ abstract class AdminPaymentDetailDtoOutput implements Built<AdminPaymentDetailDt
 
   @BuiltValueField(wireName: r'provider')
   AdminPaymentDetailDtoOutputProviderEnum get provider;
-  // enum providerEnum {  VNPAY,  MOMO,  };
+  // enum providerEnum {  VNPAY,  MOMO,  PAYOS,  DEMO,  };
 
   @BuiltValueField(wireName: r'amount')
   int get amount;
@@ -511,6 +511,10 @@ class AdminPaymentDetailDtoOutputProviderEnum extends EnumClass {
   static const AdminPaymentDetailDtoOutputProviderEnum VNPAY = _$adminPaymentDetailDtoOutputProviderEnum_VNPAY;
   @BuiltValueEnumConst(wireName: r'MOMO')
   static const AdminPaymentDetailDtoOutputProviderEnum MOMO = _$adminPaymentDetailDtoOutputProviderEnum_MOMO;
+  @BuiltValueEnumConst(wireName: r'PAYOS')
+  static const AdminPaymentDetailDtoOutputProviderEnum PAYOS = _$adminPaymentDetailDtoOutputProviderEnum_PAYOS;
+  @BuiltValueEnumConst(wireName: r'DEMO')
+  static const AdminPaymentDetailDtoOutputProviderEnum DEMO = _$adminPaymentDetailDtoOutputProviderEnum_DEMO;
 
   static Serializer<AdminPaymentDetailDtoOutputProviderEnum> get serializer => _$adminPaymentDetailDtoOutputProviderEnumSerializer;
 

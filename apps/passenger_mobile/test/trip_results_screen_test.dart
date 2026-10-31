@@ -87,6 +87,23 @@ TripSearchRunner _recording(
 }
 
 void main() {
+  testWidgets('kết quả tìm chuyến giữ nền xanh nhạt đồng nhất, không pha xám', (
+    tester,
+  ) async {
+    await _pumpResults(
+      tester, width: 412,
+      searchTrips: (_, _, _) async => samplePage([sampleTrip('t1')]),
+    );
+    final scaffold = tester.widget<Scaffold>(find.byKey(const Key('trip-results-screen')));
+    expect(scaffold.backgroundColor, const Color(0xFFEFFAFF));
+    final backdrop = tester.widget<DecoratedBox>(find.descendant(
+      of: find.byWidget(scaffold.body!), matching: find.byType(DecoratedBox),
+    ).first).decoration as BoxDecoration;
+    expect(backdrop.color, const Color(0xFFEFFAFF));
+    expect(backdrop.gradient, isNull);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets(
     'responsive: thanh công cụ nổi thay thanh 5 mục, không overflow',
     (tester) async {

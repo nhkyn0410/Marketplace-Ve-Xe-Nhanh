@@ -61,6 +61,7 @@ export type SearchCandidate = {
   operatorId: string;
   operatorName: string;
   operatorSlug: string;
+  operatorLogoKey: string | null;
   routeId: string;
   routeName: string;
   vehicleTypeId: string;
@@ -179,6 +180,7 @@ export async function searchTripCandidates(
         GROUP BY ts.trip_id
       )
       SELECT t.id AS "tripId", o.id AS "operatorId", o.display_name AS "operatorName", o.operator_slug AS "operatorSlug",
+             o.logo_object_key AS "operatorLogoKey",
              r.id AS "routeId", r.name AS "routeName",
              vt.id AS "vehicleTypeId", vt.name AS "vehicleTypeName", vt.form::text AS "vehicleForm", vt.class::text AS "vehicleClass",
              t.departure_at AS "departureAt", t.arrival_at AS "arrivalAt", t.online_sale_cutoff_minutes AS "onlineSaleCutoffMinutes",
@@ -272,7 +274,7 @@ export async function loadPublicTrip(prisma: Pick<PrismaService, "withSystem">, 
         arrivalAt: true,
         onlineSaleCutoffMinutes: true,
         note: true,
-        operator: { select: { id: true, displayName: true, operatorSlug: true, hotline: true } },
+        operator: { select: { id: true, displayName: true, operatorSlug: true, logoObjectKey: true, hotline: true } },
         route: { select: { id: true, name: true } },
         vehicle: {
           select: {

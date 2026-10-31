@@ -886,7 +886,7 @@ class _ReviewFormSheetState extends State<_ReviewFormSheet> {
           borderRadius: const BorderRadius.vertical(top: Radius.circular(26)),
           clipBehavior: Clip.antiAlias,
           child: SingleChildScrollView(
-            padding: const EdgeInsets.fromLTRB(22, 12, 20, 26),
+            padding: EdgeInsets.fromLTRB(22, 12, 20, 26 + media.padding.bottom),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
