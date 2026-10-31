@@ -30,6 +30,8 @@ class BookingConfirmationScreen extends StatefulWidget {
     required this.hold,
     required this.draft,
     this.now,
+    this.isSignedIn = false,
+    this.onBookingFinished,
   });
 
   final TripBookingApi api;
@@ -37,6 +39,8 @@ class BookingConfirmationScreen extends StatefulWidget {
   final SeatHold hold;
   final BookingDraft draft;
   final DateTime Function()? now;
+  final bool isSignedIn;
+  final VoidCallback? onBookingFinished;
 
   @override
   State<BookingConfirmationScreen> createState() =>
@@ -133,7 +137,12 @@ class _BookingConfirmationScreenState extends State<BookingConfirmationScreen> {
       // Đơn đã tạo thì không quay lại sửa được (chỗ đã chuyển sang đơn): xóa các bước trước khỏi lịch sử.
       await Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute<void>(
-          builder: (_) => PaymentScreen(booking: booking, now: widget.now),
+          builder: (_) => PaymentScreen(
+            booking: booking,
+            now: widget.now,
+            isSignedIn: widget.isSignedIn,
+            onBookingFinished: widget.onBookingFinished,
+          ),
         ),
         (route) => route.isFirst,
       );

@@ -29,6 +29,8 @@ class SeatSelectionScreen extends StatefulWidget {
     required this.trip,
     required this.pickupSequence,
     required this.dropoffSequence,
+    this.isSignedIn = false,
+    this.onBookingFinished,
     super.key,
   });
 
@@ -36,6 +38,8 @@ class SeatSelectionScreen extends StatefulWidget {
   final TripDetail trip;
   final int pickupSequence;
   final int dropoffSequence;
+  final bool isSignedIn;
+  final VoidCallback? onBookingFinished;
 
   @override
   State<SeatSelectionScreen> createState() => _SeatSelectionScreenState();
@@ -158,6 +162,8 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
           api: widget.api,
           trip: _trip,
           hold: hold,
+          isSignedIn: widget.isSignedIn,
+          onBookingFinished: widget.onBookingFinished,
         ),
       ),
     );

@@ -33,12 +33,16 @@ class PassengerInformationScreen extends StatefulWidget {
     required this.trip,
     required this.hold,
     this.now,
+    this.isSignedIn = false,
+    this.onBookingFinished,
   });
 
   final TripBookingApi api;
   final TripDetail trip;
   final SeatHold hold;
   final DateTime Function()? now;
+  final bool isSignedIn;
+  final VoidCallback? onBookingFinished;
 
   @override
   State<PassengerInformationScreen> createState() =>
@@ -231,6 +235,8 @@ class _PassengerInformationScreenState
           hold: widget.hold,
           draft: draft,
           now: widget.now,
+          isSignedIn: widget.isSignedIn,
+          onBookingFinished: widget.onBookingFinished,
         ),
       ),
     );

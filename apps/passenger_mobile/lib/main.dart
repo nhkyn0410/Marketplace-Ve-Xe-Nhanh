@@ -846,6 +846,11 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
     });
   }
 
+  void _finishBooking() {
+    _selectMainTab(_step == _AuthStep.signedIn ? 3 : 2);
+    Navigator.of(context).popUntil((route) => route.isFirst);
+  }
+
   /// Trang chủ bấm "Tìm chuyến": mở màn Kết quả để chọn chuyến theo điều kiện
   /// đã nhập; quay lại thì về Trang chủ. Tab Mua vé dùng lại điều kiện này.
   void _openTripResults(HomeSearchQuery query) {
@@ -869,6 +874,8 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
         builder: (_) => TripDetailScreen(
           api: _bookingApi,
           tripId: trip.tripId,
+          isSignedIn: _step == _AuthStep.signedIn,
+          onBookingFinished: _finishBooking,
           fromLabel: query?.from.name,
           toLabel: query?.to.name,
           pickupSequence: trip.pickup.sequence,

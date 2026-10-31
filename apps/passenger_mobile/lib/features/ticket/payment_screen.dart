@@ -19,10 +19,18 @@ const _orange = Color(0xFFF59B31);
 ///
 /// Cổng thanh toán (payOS + cổng thử) chưa nối — nút thanh toán khóa kèm ghi chú.
 class PaymentScreen extends StatefulWidget {
-  const PaymentScreen({super.key, required this.booking, this.now});
+  const PaymentScreen({
+    super.key,
+    required this.booking,
+    this.now,
+    this.isSignedIn = false,
+    this.onBookingFinished,
+  });
 
   final CreatedBooking booking;
   final DateTime Function()? now;
+  final bool isSignedIn;
+  final VoidCallback? onBookingFinished;
 
   @override
   State<PaymentScreen> createState() => _PaymentScreenState();
@@ -57,6 +65,8 @@ class _PaymentScreenState extends State<PaymentScreen> {
         builder: (_) => PaymentCompletionScreen(
           selectedSeats: passengers.map((p) => p.seatCode).toList(),
           passengerNames: passengers.map((p) => p.displayName).toList(),
+          isSignedIn: widget.isSignedIn,
+          onBookingFinished: widget.onBookingFinished,
         ),
       ),
     );
