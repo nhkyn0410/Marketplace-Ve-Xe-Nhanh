@@ -21,6 +21,7 @@ Future<void> _pumpTicket(
   OperatorFareLoader? loadOperatorFare,
   List<HomeOperator> operators = const [phuongTrang],
   ValueChanged<HomeSearchQuery>? onQueryChanged,
+  ValueChanged<HomeOperator>? onOperatorSelected,
 }) async {
   tester.view.devicePixelRatio = 1;
   tester.view.physicalSize = Size(width, height);
@@ -53,6 +54,7 @@ Future<void> _pumpTicket(
         initialQuery: initialQuery,
         loadDefaultQuery: loadDefaultQuery,
         onQueryChanged: onQueryChanged,
+        onOperatorSelected: onOperatorSelected,
       ),
     ),
   );
@@ -499,4 +501,108 @@ void main() {
       expect(tester.takeException(), isNull);
     },
   );
+
+  testWidgets('bấm thẻ nhà xe mở trang nhà xe, nút Xem chuyến vẫn giữ luồng cũ', (
+    tester,
+  ) async {
+    HomeOperator? selected;
+    await _pumpTicket(
+      tester,
+      width: 412,
+      height: 1000,
+      initialQuery: sampleQuery,
+      searchTrips: _recording([], (_) => samplePage([sampleTrip('t1')])),
+      loadOperatorFare: _fares,
+      onOperatorSelected: (operator) => selected = operator,
+    );
+    await tester.tap(find.byKey(const Key('ticket-mode-operator')));
+    await tester.pumpAndSettle();
+
+    await tester.tap(
+      find.byKey(const ValueKey('explore-operator-op-pt-trips')),
+    );
+    await tester.pumpAndSettle();
+    expect(selected, isNull);
+    expect(find.text('Chuyến của Phương Trang'), findsOneWidget);
+    await tester.tapAt(const Offset(206, 20));
+    await tester.pumpAndSettle();
+
+    await tester.tap(
+      find.byKey(const ValueKey('explore-operator-op-pt-profile')),
+    );
+    expect(selected?.id, 'op-pt');
+    expect(tester.takeException(), isNull);
+  });
+
+  group('Chuyến của nhà xe', () {
+    Future<void> pumpTrips(
+      WidgetTester tester, {
+      required TripBrowseRunner browseTrips,
+      void Function(TripSummary, HomeSearchQuery?)? onTripSelected,
+    }) async {
+      tester.view.devicePixelRatio = 1;
+      tester.view.physicalSize = const Size(412, 900);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      addTearDown(tester.view.resetPhysicalSize);
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: ThemeData(fontFamily: 'Be Vietnam Pro'),
+          home: OperatorTripsScreen(
+            operatorId: 'op-pt',
+            operatorName: 'Phương Trang',
+            browseTrips: browseTrips,
+            onTripSelected: onTripSelected,
+          ),
+        ),
+      );
+    }
+
+    testWidgets('chỉ tải chuyến của nhà xe, bấm chuyến mở chi tiết', (
+      tester,
+    ) async {
+      final filters = <TripSearchFilters>[];
+      TripSummary? opened;
+      await pumpTrips(
+        tester,
+        browseTrips: (value, page) async {
+          filters.add(value);
+          return samplePage([sampleTrip('t1')]);
+        },
+        onTripSelected: (trip, query) {
+          opened = trip;
+          expect(query, isNull);
+        },
+      );
+      expect(find.byKey(const Key('operator-trips-loading')), findsOneWidget);
+      await tester.pumpAndSettle();
+
+      expect(filters.single.operatorId, 'op-pt');
+      expect(find.text('Chuyến của Phương Trang'), findsOneWidget);
+      await tester.tap(find.byKey(const ValueKey('operator-trip-t1')));
+      expect(opened?.tripId, 't1');
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('chưa có chuyến thì báo trống; lỗi thì thử lại được', (
+      tester,
+    ) async {
+      var calls = 0;
+      await pumpTrips(
+        tester,
+        browseTrips: (_, _) async {
+          calls++;
+          if (calls == 1) {
+            throw const ApiFailure(status: 0, code: 'NETWORK', detail: 'x');
+          }
+          return samplePage(const []);
+        },
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('Thử lại'), findsOneWidget);
+
+      await tester.tap(find.text('Thử lại'));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('operator-trips-empty')), findsOneWidget);
+    });
+  });
 }

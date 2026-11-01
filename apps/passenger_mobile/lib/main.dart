@@ -9,6 +9,7 @@ import 'package:mobile_shared/mobile_shared.dart';
 import 'package:passenger_mobile/features/account/account_screen.dart';
 import 'package:passenger_mobile/features/account/edit_profile_screen.dart';
 import 'package:passenger_mobile/features/account/guest_account_screen.dart';
+import 'package:passenger_mobile/features/account/loyalty_screen.dart';
 import 'package:passenger_mobile/features/account/my_reviews_screen.dart';
 import 'package:passenger_mobile/features/account/notification_settings_screen.dart';
 import 'package:passenger_mobile/features/account/point_history_screen.dart';
@@ -25,6 +26,8 @@ import 'package:passenger_mobile/features/explore/explore_screen.dart';
 import 'package:passenger_mobile/features/home/home_models.dart';
 import 'package:passenger_mobile/features/home/home_screen.dart';
 import 'package:passenger_mobile/features/journey/guest_journey_flow.dart';
+import 'package:passenger_mobile/features/operator/operator_profile_models.dart';
+import 'package:passenger_mobile/features/operator/operator_profile_screen.dart';
 import 'package:passenger_mobile/features/search/trip_search_form.dart';
 import 'package:passenger_mobile/features/ticket/ticket_screen.dart';
 import 'package:passenger_mobile/features/ticket/trip_booking_api.dart';
@@ -128,6 +131,7 @@ enum _AccountView {
   editProfile,
   savedPassengers,
   vouchers,
+  loyalty,
   points,
   reviews,
   notificationSettings,
@@ -276,6 +280,10 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
   DateTime? _otpIssuedAt;
   int _currentTab = 2;
   _AccountView _accountView = _AccountView.overview;
+
+  /// Các màn tài khoản đang nằm dưới [_accountView]: mở Lịch sử điểm từ VXN Plus
+  /// thì quay lại đúng VXN Plus.
+  final _accountViewStack = <_AccountView>[];
 
   /// Bọc mọi lời gọi API: bật cờ bận, dịch lỗi thành câu tiếng Việt, hiện lên UI.
   Future<bool> _run(Future<void> Function() action) async {
@@ -433,7 +441,7 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
       _profileEmail = profile.email;
       _displayName = name;
       _currentTab = 2;
-      _accountView = _AccountView.overview;
+      _resetAccountView();
       _step = name == null || name.isEmpty
           ? _AuthStep.profile
           : _AuthStep.signedIn;
@@ -464,7 +472,7 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
       setState(() {
         _displayName = profile!.name?.trim() ?? fullName;
         _currentTab = 2;
-        _accountView = _AccountView.overview;
+        _resetAccountView();
         _step = _AuthStep.signedIn;
         _error = null;
       });
@@ -502,7 +510,30 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
     setState(() {
       _step = _AuthStep.email;
       _currentTab = 2;
-      _accountView = _AccountView.overview;
+      _resetAccountView();
+      _error = null;
+    });
+  }
+
+  void _resetAccountView() {
+    _accountView = _AccountView.overview;
+    _accountViewStack.clear();
+  }
+
+  /// Mở một màn con của tab Tài khoản, nhớ màn hiện tại để quay lại.
+  void _openAccountView(_AccountView view) {
+    setState(() {
+      _accountViewStack.add(_accountView);
+      _accountView = view;
+      _error = null;
+    });
+  }
+
+  void _closeAccountView() {
+    setState(() {
+      _accountView = _accountViewStack.isEmpty
+          ? _AccountView.overview
+          : _accountViewStack.removeLast();
       _error = null;
     });
   }
@@ -694,10 +725,6 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
     if (member == null || transactions == null) {
       throw StateError('Point history response did not contain data.');
     }
-    // Release giữ đúng empty state từ API; debug dùng fixture để duyệt giao diện.
-    if (transactions.items.isEmpty && kDebugMode) {
-      return figmaPointHistorySample(query);
-    }
     return PointHistoryData(
       availablePoints: member.availablePoints,
       earnedPoints: transactions.totals.earned,
@@ -716,6 +743,75 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
           )
           .toList(growable: false),
     );
+  }
+
+  Future<LoyaltyProgress> _loadLoyaltyProgress() async {
+    final response = await _api
+        .getPassengerLoyaltyApi()
+        .passengerLoyaltyControllerMember();
+    final member = response.data;
+    if (member == null) {
+      throw StateError('Loyalty response did not contain data.');
+    }
+    final next = member.nextTier;
+    final rules = member.rules;
+    return LoyaltyProgress(
+      accountActive: member.status.name == 'ACTIVE',
+      availablePoints: member.availablePoints,
+      earned12m: member.earned12m,
+      tier: member.tier.name,
+      nextTier: next == null
+          ? null
+          : LoyaltyNextTier(
+              tier: next.tier.name,
+              minPoints: next.minPoints,
+              remaining: next.remaining,
+            ),
+      rules: rules == null
+          ? null
+          : LoyaltyProgramRules(
+              earnUnit: rules.earnUnit,
+              pointValue: rules.pointValue,
+              minRedeemPoints: rules.minRedeemPoints,
+              pointExpiryMonths: rules.pointExpiryMonths,
+              voucherValidityDays: rules.voucherValidityDays,
+              tiers: [
+                for (final tier in rules.tiers)
+                  LoyaltyTierRule(
+                    tier: tier.tier.name,
+                    minPoints: tier.minPoints,
+                    multiplierPercent: tier.multiplierPercent,
+                  ),
+              ],
+            ),
+    );
+  }
+
+  /// Lỗi API ném ra dạng [ApiFailure] để bảng đổi điểm tự hiện câu lỗi.
+  Future<RedeemedLoyaltyVoucher> _redeemLoyaltyPoints(
+    int points,
+    String idempotencyKey,
+  ) async {
+    try {
+      final response = await _api
+          .getPassengerLoyaltyApi()
+          .passengerLoyaltyControllerRedeem(
+            idempotencyKey: idempotencyKey,
+            loyaltyRedemptionInputDto: LoyaltyRedemptionInputDto(
+              (builder) => builder.points = points,
+            ),
+          );
+      final voucher = response.data;
+      if (voucher == null) {
+        throw StateError('Redeem response did not contain data.');
+      }
+      return RedeemedLoyaltyVoucher(
+        discountAmount: int.parse(voucher.discountAmount ?? voucher.discountValue),
+        expiresAt: voucher.expiresAt,
+      );
+    } on DioException catch (error) {
+      throw toApiFailure(error, _api.serializers);
+    }
   }
 
   String? _pointType(PointTypeFilter filter) => switch (filter) {
@@ -848,7 +944,7 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
       _displayName = null;
       _otpIssuedAt = null;
       _currentTab = 2;
-      _accountView = _AccountView.overview;
+      _resetAccountView();
       _error = null;
     });
     return true;
@@ -857,7 +953,7 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
   void _selectMainTab(int index) {
     setState(() {
       _currentTab = index;
-      _accountView = _AccountView.overview;
+      _resetAccountView();
       _error = null;
     });
   }
@@ -892,10 +988,37 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
           tripId: trip.tripId,
           isSignedIn: _step == _AuthStep.signedIn,
           onBookingFinished: _finishBooking,
+          onOperatorSelected: _openOperatorProfile,
           fromLabel: query?.from.name,
           toLabel: query?.to.name,
           pickupSequence: trip.pickup.sequence,
           dropoffSequence: trip.dropoff.sequence,
+        ),
+      ),
+    );
+  }
+
+  /// Trang nhà xe (SCR-PSG-17), mở từ Trang chủ, tab Mua vé hoặc chi tiết chuyến.
+  void _openOperatorProfile(String operatorId) {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => OperatorProfileScreen(
+          operatorId: operatorId,
+          loadProfile: _bookingApi.loadOperatorProfile,
+          onViewTrips: _openOperatorTrips,
+        ),
+      ),
+    );
+  }
+
+  void _openOperatorTrips(OperatorProfile profile) {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => OperatorTripsScreen(
+          operatorId: profile.operatorId,
+          operatorName: profile.displayName,
+          browseTrips: _bookingApi.browseTrips,
+          onTripSelected: _openTripDetail,
         ),
       ),
     );
@@ -971,29 +1094,41 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
   @override
   Widget build(BuildContext context) {
     final disableAnimations = MediaQuery.disableAnimationsOf(context);
-    return AnimatedSwitcher(
-      key: const Key('auth-flow-transition'),
-      duration: disableAnimations
-          ? Duration.zero
-          : const Duration(milliseconds: 420),
-      reverseDuration: disableAnimations
-          ? Duration.zero
-          : const Duration(milliseconds: 300),
-      switchInCurve: Curves.easeOutCubic,
-      switchOutCurve: Curves.easeInCubic,
-      transitionBuilder: (child, animation) => FadeTransition(
-        opacity: animation,
-        child: SlideTransition(
-          position: Tween<Offset>(
-            begin: const Offset(0, .025),
-            end: Offset.zero,
-          ).animate(animation),
-          child: child,
+    final inAccountSubView =
+        _step == _AuthStep.signedIn &&
+        _currentTab == 4 &&
+        _accountView != _AccountView.overview;
+    // Màn con của tab Tài khoản không phải route: nút Back của Android phải về
+    // màn trước thay vì thoát app (thoát app là mất phiên đang đăng nhập).
+    return PopScope<void>(
+      canPop: !inAccountSubView,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) _closeAccountView();
+      },
+      child: AnimatedSwitcher(
+        key: const Key('auth-flow-transition'),
+        duration: disableAnimations
+            ? Duration.zero
+            : const Duration(milliseconds: 420),
+        reverseDuration: disableAnimations
+            ? Duration.zero
+            : const Duration(milliseconds: 300),
+        switchInCurve: Curves.easeOutCubic,
+        switchOutCurve: Curves.easeInCubic,
+        transitionBuilder: (child, animation) => FadeTransition(
+          opacity: animation,
+          child: SlideTransition(
+            position: Tween<Offset>(
+              begin: const Offset(0, .025),
+              end: Offset.zero,
+            ).animate(animation),
+            child: child,
+          ),
         ),
-      ),
-      child: KeyedSubtree(
-        key: ValueKey('auth-step-${_step.name}'),
-        child: _buildCurrentView(context),
+        child: KeyedSubtree(
+          key: ValueKey('auth-step-${_step.name}'),
+          child: _buildCurrentView(context),
+        ),
       ),
     );
   }
@@ -1020,6 +1155,7 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
         browseTrips: _bookingApi.browseTrips,
         onQueryChanged: (query) => _lastSearchQuery = query,
         onTripSelected: _openTripDetail,
+        onOperatorSelected: (operator) => _openOperatorProfile(operator.id),
       );
     }
     if (_step == _AuthStep.guest && _currentTab == 3) {
@@ -1053,10 +1189,7 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
             createPassenger: _createSavedPassenger,
             updatePassenger: _updateSavedPassenger,
             deletePassenger: _deleteSavedPassenger,
-            onBack: () => setState(() {
-              _accountView = _AccountView.overview;
-              _error = null;
-            }),
+            onBack: _closeAccountView,
           );
         }
         if (_accountView == _AccountView.editProfile) {
@@ -1065,14 +1198,8 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
             saveProfile: _saveEditableProfile,
             errorMessage: _error,
             onFieldChanged: _clearFeedback,
-            onBack: () => setState(() {
-              _accountView = _AccountView.overview;
-              _error = null;
-            }),
-            onSaved: () => setState(() {
-              _accountView = _AccountView.overview;
-              _error = null;
-            }),
+            onBack: _closeAccountView,
+            onSaved: _closeAccountView,
           );
         }
         if (_accountView == _AccountView.vouchers) {
@@ -1081,23 +1208,30 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
             saveVoucherCode: _saveVoucherCode,
             errorMessage: _error,
             onCodeChanged: _clearFeedback,
-            onBack: () => setState(() {
-              _accountView = _AccountView.overview;
-              _error = null;
-            }),
+            onBack: _closeAccountView,
+          );
+        }
+        if (_accountView == _AccountView.loyalty) {
+          return LoyaltyScreen(
+            loadProgress: _loadLoyaltyProgress,
+            redeemPoints: _redeemLoyaltyPoints,
+            onBack: _closeAccountView,
+            onPointHistory: () => _openAccountView(_AccountView.points),
+            onVoucherWallet: () => _openAccountView(_AccountView.vouchers),
+            onFindTrips: () => _selectMainTab(1),
           );
         }
         if (_accountView == _AccountView.points) {
+          // Mở từ VXN Plus thì "Đổi điểm" chỉ cần quay về VXN Plus.
+          void openLoyalty() =>
+              _accountViewStack.lastOrNull == _AccountView.loyalty
+              ? _closeAccountView()
+              : _openAccountView(_AccountView.loyalty);
           return PointHistoryScreen(
             loadHistory: _loadPointHistory,
-            onLearnMore: () => setState(() {
-              _accountView = _AccountView.overview;
-              _error = null;
-            }),
-            onBack: () => setState(() {
-              _accountView = _AccountView.overview;
-              _error = null;
-            }),
+            onLearnMore: openLoyalty,
+            onRedeem: openLoyalty,
+            onBack: _closeAccountView,
           );
         }
         if (_accountView == _AccountView.reviews) {
@@ -1106,60 +1240,29 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
             submitReview: _submitReview,
             errorMessage: _error,
             onInputChanged: _clearFeedback,
-            onBack: () => setState(() {
-              _accountView = _AccountView.overview;
-              _error = null;
-            }),
+            onBack: _closeAccountView,
           );
         }
         if (_accountView == _AccountView.notificationSettings) {
-          return NotificationSettingsScreen(
-            onBack: () => setState(() {
-              _accountView = _AccountView.overview;
-              _error = null;
-            }),
-          );
+          return NotificationSettingsScreen(onBack: _closeAccountView);
         }
         if (_accountView == _AccountView.loginSessions) {
-          return LoginSessionsScreen(
-            onBack: () => setState(() {
-              _accountView = _AccountView.overview;
-              _error = null;
-            }),
-          );
+          return LoginSessionsScreen(onBack: _closeAccountView);
         }
         return AccountScreen(
           loadOverview: _loadAccountOverview,
           onLogout: _logout,
           onTabSelected: _selectMainTab,
-          onEditProfile: () => setState(() {
-            _accountView = _AccountView.editProfile;
-            _error = null;
-          }),
-          onSavedPassengers: () => setState(() {
-            _accountView = _AccountView.savedPassengers;
-            _error = null;
-          }),
-          onVoucherWallet: () => setState(() {
-            _accountView = _AccountView.vouchers;
-            _error = null;
-          }),
-          onPointHistory: () => setState(() {
-            _accountView = _AccountView.points;
-            _error = null;
-          }),
-          onMyReviews: () => setState(() {
-            _accountView = _AccountView.reviews;
-            _error = null;
-          }),
-          onNotificationSettings: () => setState(() {
-            _accountView = _AccountView.notificationSettings;
-            _error = null;
-          }),
-          onLoginSessions: () => setState(() {
-            _accountView = _AccountView.loginSessions;
-            _error = null;
-          }),
+          onEditProfile: () => _openAccountView(_AccountView.editProfile),
+          onSavedPassengers: () =>
+              _openAccountView(_AccountView.savedPassengers),
+          onVoucherWallet: () => _openAccountView(_AccountView.vouchers),
+          onLoyalty: () => _openAccountView(_AccountView.loyalty),
+          onPointHistory: () => _openAccountView(_AccountView.points),
+          onMyReviews: () => _openAccountView(_AccountView.reviews),
+          onNotificationSettings: () =>
+              _openAccountView(_AccountView.notificationSettings),
+          onLoginSessions: () => _openAccountView(_AccountView.loginSessions),
           logoutErrorMessage: _error,
         );
       }
@@ -1235,6 +1338,7 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
       loadFaqs: _loadHomeFaqs,
       loadPromotions: _bookingApi.loadPromotions,
       loadFeaturedOperators: _bookingApi.loadOperators,
+      onOperatorSelected: (operator) => _openOperatorProfile(operator.id),
       loadArticles: _articleApi.loadLatest,
       onArticleSelected: _openArticle,
       onSearch: _openTripResults,

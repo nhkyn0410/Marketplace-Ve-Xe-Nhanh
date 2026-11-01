@@ -632,7 +632,7 @@ class _PassengerFormSheetState extends State<_PassengerFormSheet> {
                       final phone = value?.trim() ?? '';
                       if (phone.isEmpty) return null;
                       if (!RegExp(r'^(0|\+84)\d{9}$').hasMatch(phone)) {
-                        return 'Số điện thoại phải bắt đầu bằng 0 hoặc +84.';
+                        return 'Số điện thoại gồm 10 số, bắt đầu bằng 0 hoặc +84.';
                       }
                       return null;
                     },

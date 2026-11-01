@@ -2,6 +2,7 @@ import 'package:api_client_dart/api_client_dart.dart';
 import 'package:dio/dio.dart';
 import 'package:mobile_shared/mobile_shared.dart';
 import 'package:passenger_mobile/features/home/home_models.dart';
+import 'package:passenger_mobile/features/operator/operator_profile_models.dart';
 import 'package:passenger_mobile/features/ticket/booking_models.dart';
 import 'package:passenger_mobile/features/ticket/payment_models.dart';
 import 'package:passenger_mobile/features/ticket/trip_detail_models.dart';
@@ -105,6 +106,64 @@ class TripBookingApi {
           ],
         ),
     ];
+  }
+
+  /// Hồ sơ công khai của nhà xe kèm một trang đánh giá; [reviewCursor] tải trang kế tiếp.
+  Future<OperatorProfile> loadOperatorProfile(
+    String operatorId, {
+    String? reviewCursor,
+  }) async {
+    final response = await _call(
+      () => _client.getPublicOperatorsApi().publicOperatorProfileControllerGet(
+        operatorId: operatorId,
+        cursor: reviewCursor,
+        limit: 10,
+      ),
+    );
+    final data = response.data!;
+    final scorecard = data.scorecard;
+    final terms = data.serviceTerms;
+    return OperatorProfile(
+      operatorId: data.operatorId,
+      displayName: data.displayName,
+      logoUrl: _publicImageUrl(data.logoUrl),
+      description: data.description,
+      hotline: data.hotline,
+      publicEmail: data.publicEmail,
+      address: data.address,
+      scorecard: OperatorScorecard(
+        reviewCount: scorecard.reviewCount,
+        averageRating: scorecard.averageRating?.toDouble(),
+        operatorCancellationRate: scorecard.operatorCancellationRate
+            ?.toDouble(),
+        refundBookingRate: scorecard.refundBookingRate?.toDouble(),
+        disputeBookingRate: scorecard.disputeBookingRate?.toDouble(),
+        checkInRate: scorecard.checkInRate?.toDouble(),
+        noShowRate: scorecard.noShowRate?.toDouble(),
+      ),
+      routes: [
+        for (final route in data.routes)
+          OperatorRoute(id: route.routeId, name: route.name),
+      ],
+      serviceTerms: terms == null
+          ? null
+          : OperatorServiceTerms(
+              title: terms.title,
+              contentMarkdown: terms.contentMarkdown,
+            ),
+      reviews: [
+        for (final review in data.reviews)
+          OperatorReview(
+            id: review.reviewId,
+            authorName: review.authorName,
+            rating: review.rating,
+            createdAt: review.createdAt,
+            comment: review.comment,
+            operatorReply: review.operatorReply,
+          ),
+      ],
+      nextReviewCursor: data.nextReviewCursor,
+    );
   }
 
   /// Danh mục tiện ích để lọc chuyến; tải một lần mỗi phiên.
@@ -285,6 +344,7 @@ class TripBookingApi {
     final data = response.data!;
     return TripDetail(
       tripId: data.tripId,
+      operatorId: data.operator_.id,
       operatorName: data.operator_.name,
       operatorLogoUrl: _publicImageUrl(data.operator_.logoUrl),
       operatorHotline: data.operator_.hotline,

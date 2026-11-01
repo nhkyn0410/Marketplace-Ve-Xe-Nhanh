@@ -27,6 +27,7 @@ class TripDetailScreen extends StatefulWidget {
     this.dropoffSequence,
     this.isSignedIn = false,
     this.onBookingFinished,
+    this.onOperatorSelected,
     super.key,
   });
 
@@ -34,6 +35,9 @@ class TripDetailScreen extends StatefulWidget {
   final String tripId;
   final bool isSignedIn;
   final VoidCallback? onBookingFinished;
+
+  /// Bấm "Xem nhà xe": nhận id nhà xe của chuyến.
+  final ValueChanged<String>? onOperatorSelected;
 
   /// Tên điểm đi / đến khách đã tìm (vd. "TP. Hồ Chí Minh"); không có thì dùng tên điểm đón / trả.
   final String? fromLabel;
@@ -266,6 +270,10 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
         _HeroAndOperator(
           trip: trip,
           pickup: pickup,
+          onViewOperator:
+              widget.onOperatorSelected == null || trip.operatorId == null
+              ? null
+              : () => widget.onOperatorSelected!(trip.operatorId!),
         ),
         _VehicleSummary(trip: trip),
         _ScheduleSection(trip: trip, pickup: pickup, dropoff: dropoff),
@@ -290,10 +298,12 @@ class _HeroAndOperator extends StatelessWidget {
   const _HeroAndOperator({
     required this.trip,
     required this.pickup,
+    required this.onViewOperator,
   });
 
   final TripDetail trip;
   final TripStop? pickup;
+  final VoidCallback? onViewOperator;
 
   @override
   Widget build(BuildContext context) {
@@ -322,7 +332,11 @@ class _HeroAndOperator extends StatelessWidget {
           offset: const Offset(0, -12),
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 7),
-            child: _OperatorCard(trip: trip, pickup: pickup),
+            child: _OperatorCard(
+              trip: trip,
+              pickup: pickup,
+              onViewOperator: onViewOperator,
+            ),
           ),
         ),
       ],
@@ -416,10 +430,15 @@ class _HeaderAction extends StatelessWidget {
 }
 
 class _OperatorCard extends StatelessWidget {
-  const _OperatorCard({required this.trip, required this.pickup});
+  const _OperatorCard({
+    required this.trip,
+    required this.pickup,
+    required this.onViewOperator,
+  });
 
   final TripDetail trip;
   final TripStop? pickup;
+  final VoidCallback? onViewOperator;
 
   @override
   Widget build(BuildContext context) {
@@ -470,36 +489,43 @@ class _OperatorCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 8),
-          Container(
-            key: const Key('trip-detail-operator-link'),
-            constraints: const BoxConstraints(minHeight: 44),
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-            decoration: BoxDecoration(
-              color: const Color(0xFFEFF7FD),
+          Material(
+            color: const Color(0xFFEFF7FD),
+            borderRadius: BorderRadius.circular(17),
+            child: InkWell(
+              key: const Key('trip-detail-operator-link'),
+              onTap: onViewOperator,
               borderRadius: BorderRadius.circular(17),
-            ),
-            child: Row(
-              key: const Key('trip-detail-operator-link-content'),
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Text(
-                  'Xem nhà xe',
-                  style: TextStyle(
-                    color: Color(0xFF07549D),
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                  ),
+              child: Container(
+                constraints: const BoxConstraints(minHeight: 44),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 8,
                 ),
-                const SizedBox(width: 4),
-                RotatedBox(
-                  quarterTurns: 3,
-                  child: SvgPicture.asset(
-                    '$_detailAssets/chevron.svg',
-                    width: 11,
-                    height: 11,
-                  ),
+                child: Row(
+                  key: const Key('trip-detail-operator-link-content'),
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Text(
+                      'Xem nhà xe',
+                      style: TextStyle(
+                        color: Color(0xFF07549D),
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    RotatedBox(
+                      quarterTurns: 3,
+                      child: SvgPicture.asset(
+                        '$_detailAssets/chevron.svg',
+                        width: 11,
+                        height: 11,
+                      ),
+                    ),
+                  ],
                 ),
-              ],
+              ),
             ),
           ),
         ],

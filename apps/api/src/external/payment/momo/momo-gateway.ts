@@ -71,6 +71,7 @@ export class MomoGateway implements PaymentGateway {
   async createCheckout(request: CheckoutRequest): Promise<{ paymentUrl: string }> {
     const body = {
       partnerCode: this.config.partnerCode,
+      accessKey: this.config.accessKey,
       requestId: randomUUID(),
       amount: request.amount.toString(),
       orderId: request.paymentCode,
@@ -105,7 +106,11 @@ export class MomoGateway implements PaymentGateway {
     }
     const parsed = CreateResponseSchema.safeParse(await response.json().catch(() => null));
     if (!response.ok || !parsed.success || parsed.data.resultCode !== 0 || !parsed.data.payUrl) {
-      throw new PaymentGatewayError(`MoMo từ chối tạo giao dịch (resultCode ${parsed.success ? parsed.data.resultCode : "?"}).`);
+      throw new PaymentGatewayError(
+        `MoMo từ chối tạo giao dịch (resultCode ${parsed.success ? parsed.data.resultCode : "?"}).`,
+        true,
+        parsed.success ? String(parsed.data.resultCode) : null,
+      );
     }
     return { paymentUrl: parsed.data.payUrl };
   }

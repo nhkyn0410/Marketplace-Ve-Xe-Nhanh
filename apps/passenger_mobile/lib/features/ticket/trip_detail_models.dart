@@ -81,6 +81,7 @@ class TripDetail {
     required this.stops,
     required this.seats,
     required this.cancellationTiers,
+    this.operatorId,
     this.operatorHotline,
     this.operatorLogoUrl,
     this.averageRating,
@@ -89,6 +90,9 @@ class TripDetail {
   });
 
   final String tripId;
+
+  /// Dùng để mở trang nhà xe.
+  final String? operatorId;
   final String operatorName;
   /// Logo công khai của nhà xe, dùng xuyên suốt luồng đặt vé.
   final String? operatorLogoUrl;

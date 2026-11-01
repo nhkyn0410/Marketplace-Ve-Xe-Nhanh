@@ -284,6 +284,23 @@ void main() {
     _expectNoFlutterException(tester);
   });
 
+  testWidgets('bấm Xem nhà xe mở đúng nhà xe của chuyến', (tester) async {
+    String? selected;
+    await _pumpApp(
+      tester,
+      home: TripDetailScreen(
+        api: FakeBookingApi(),
+        tripId: 'trip-1',
+        onOperatorSelected: (id) => selected = id,
+      ),
+    );
+
+    await tester.tap(find.byKey(const Key('trip-detail-operator-link')));
+
+    expect(selected, 'operator-1');
+    _expectNoFlutterException(tester);
+  });
+
   testWidgets('nút Xem nhà xe vừa với nội dung', (tester) async {
     await _pumpApp(tester, home: _detail());
 

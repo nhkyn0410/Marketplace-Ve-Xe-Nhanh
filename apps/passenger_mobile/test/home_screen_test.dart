@@ -31,6 +31,7 @@ Future<void> _pumpHome(
   TripSearchCatalog? searchCatalog,
   HomeArticlesLoader? loadArticles,
   ValueChanged<ExploreArticle>? onArticleSelected,
+  ValueChanged<HomeOperator>? onOperatorSelected,
   HomeHotlineLauncher? onCallHotline,
   VoidCallback? onFeedbackRequested,
   VoidCallback? onLoginRequested,
@@ -65,6 +66,7 @@ Future<void> _pumpHome(
         loadFaqs: loadFaqs,
         loadPromotions: loadPromotions,
         loadFeaturedOperators: loadFeaturedOperators,
+        onOperatorSelected: onOperatorSelected,
         loadArticles: loadArticles,
         onArticleSelected: onArticleSelected,
         onSearch: onSearch,
@@ -115,6 +117,26 @@ void main() {
     expect(find.descendant(of: option, matching: logoImage), findsOneWidget);
     expect(find.descendant(of: option, matching: find.text('N')), findsOneWidget);
     expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('bấm thẻ Nhà xe nổi bật mở trang của nhà xe đó', (tester) async {
+    const operators = [
+      HomeOperator(id: 'op-1', name: 'Sao Mai', reviewCount: 0, routes: []),
+    ];
+    HomeOperator? selected;
+    await _pumpHome(
+      tester,
+      width: 412,
+      loadFeaturedOperators: () async => operators,
+      onOperatorSelected: (operator) => selected = operator,
+    );
+    final card = find.byKey(const ValueKey('featured-operator-op-1'));
+    await tester.scrollUntilVisible(card, 200, scrollable: _homeScrollable());
+    await tester.pumpAndSettle();
+
+    await tester.tap(card);
+
+    expect(selected?.id, 'op-1');
   });
 
   testWidgets('Home responsive không overflow ở các viewport bắt buộc', (

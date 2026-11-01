@@ -108,6 +108,40 @@ void main() {
     expect(find.text('Nguyễn Văn An'), findsOneWidget);
   });
 
+  testWidgets('số điện thoại thiếu số báo đúng lỗi, không gửi lên API', (
+    tester,
+  ) async {
+    var submitted = false;
+    await _pumpScreen(
+      tester,
+      loader: () async => [],
+      creator: (_) async {
+        submitted = true;
+        return true;
+      },
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const Key('saved-passengers-add')));
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.byKey(const Key('saved-passenger-name')),
+      'Nguyễn Văn An',
+    );
+    await tester.enterText(
+      find.byKey(const Key('saved-passenger-phone')),
+      '0912',
+    );
+    await tester.tap(find.byKey(const Key('saved-passenger-submit')));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text('Số điện thoại gồm 10 số, bắt đầu bằng 0 hoặc +84.'),
+      findsOneWidget,
+    );
+    expect(submitted, isFalse);
+  });
+
   testWidgets('mở được floating chỉnh sửa và xác nhận xóa', (tester) async {
     var items = const [
       SavedPassengerData(

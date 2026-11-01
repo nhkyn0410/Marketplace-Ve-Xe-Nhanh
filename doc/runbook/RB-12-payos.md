@@ -68,7 +68,7 @@ payOS [không có sandbox riêng](https://payos.vn/docs/moi-truong-test/). Khóa
 
 Các biến dưới đây đã có trong `apps/api/.env.example`. Điền khóa ở `apps/api/.env.development` rồi khởi động lại API và worker. Không chép khóa vào `.env` của Flutter hoặc `--dart-define`; app chỉ cần `API_BASE_URL` để gọi backend.
 
-**MoMo:** điền đủ cả ba khóa thử nghiệm do MoMo cấp; `MOMO_ENDPOINT` là origin, adapter tự nối `/v2/gateway/api/create`.
+**MoMo:** điền đủ cả ba khóa thử nghiệm do MoMo cấp; `MOMO_ENDPOINT` là origin, adapter tự nối `/v2/gateway/api/create`. Adapter theo [mẫu Node.js chính thức](https://github.com/momo-wallet/payment/blob/master/nodejs/MoMo.js): `captureWallet`, `accessKey` trong body, chữ ký HMAC-SHA256 và trả `payUrl` do MoMo cấp. Bộ khóa công khai trong mẫu chỉ dùng thử local/sandbox; không bảo đảm MoMo vẫn chấp nhận, không dùng làm khóa production.
 
 ```dotenv
 MOMO_PARTNER_CODE=<partner-code>
@@ -77,7 +77,11 @@ MOMO_SECRET_KEY=<secret-key>
 MOMO_ENDPOINT=https://test-payment.momo.vn
 ```
 
-Backend gửi `ipnUrl = {BETTER_AUTH_URL}/v1/webhooks/payment/momo` (POST) và `redirectUrl = {PAYMENT_RETURN_BASE_URL}/bookings/{bookingId}/payment/result` khi tạo giao dịch. `BETTER_AUTH_URL` cần là HTTPS công khai nếu nhận IPN từ MoMo. Tham khảo [Collection Link](https://developers.momo.vn/v3/docs/payment/api/collection-link/) và [Payment Notification](https://developers.momo.vn/v3/docs/payment/api/result-handling/notification/).
+Backend gửi `ipnUrl = {BETTER_AUTH_URL}/v1/webhooks/payment/momo` (POST) và `redirectUrl = {PAYMENT_RETURN_BASE_URL}/bookings/{bookingId}/payment/result` khi tạo giao dịch. `BETTER_AUTH_URL` cần là HTTPS công khai nếu nhận IPN từ MoMo; `localhost` và `10.0.2.2` không phải địa chỉ MoMo gọi được. Giữ URL callback của dự án, không chép `ipnUrl` mẫu bên ngoài. Tham khảo [Thanh toán thông thường](https://developers.momo.vn/v3/vi/docs/payment/api/wallet/onetime/) và [Payment Notification](https://developers.momo.vn/v3/docs/payment/api/result-handling/notification/).
+
+Sau khi điền khóa, khởi động lại cả API/worker và tạo booking mới để thử: payment `PROCESSING` đã tạo trước đó có thể giữ link simulator cũ. Có đủ khóa thì MoMo dùng sandbox đã cấu hình; lỗi từ MoMo được báo lỗi cổng, không tự rơi về simulator. Ngày 01/11/2026, yêu cầu tạo link 10.000đ bằng adapter và yêu cầu đối chứng sát mẫu Node đều tới sandbox nhưng bị MoMo trả HTTP 200 / `resultCode=99`, không có `payUrl`, không thực hiện thanh toán. Theo [bảng mã MoMo](https://developers.momo.vn/v3/vi/docs/payment/api/result-handling/resultcode/), 99 là lỗi không xác định: cần kiểm tra bằng khóa merchant sandbox riêng hoặc nhờ MoMo hỗ trợ; mã này chưa đủ để kết luận khóa sai.
+
+Chưa có khóa riêng: đăng ký tài khoản tại [MoMo for Business](https://business.momo.vn), lấy thông tin tích hợp của môi trường Test, rồi thay ba biến `MOMO_*` ở trên. Theo [quy trình merchant](https://developers.momo.vn/v3/docs/payment/onboarding/merchant-profile/), tài khoản đăng ký thành công có thể dùng môi trường Test với khóa thử nghiệm; khóa production cần hoàn tất xác minh và tích hợp. Khóa thử nghiệm và [ví MoMo Test để trả tiền](https://developers.momo.vn/v3/docs/payment/onboarding/test-instructions/) là hai phần cấu hình riêng.
 
 **VNPay:** điền Terminal ID và Secret Key thử nghiệm do VNPay cấp, giữ URL sandbox mặc định:
 

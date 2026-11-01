@@ -142,17 +142,18 @@ class _PassengerInformationScreenState
 
   bool get _emailValid => _emailPattern.hasMatch(_email.text.trim());
 
+  /// Ghế đầu mặc định là người liên hệ; chỉ hiện thẻ khi có hành khách đã lưu để chọn thay.
+  bool get _showFirstSeat => _travellers.isNotEmpty;
+
   bool get _formValid =>
       _contactName.text.trim().isNotEmpty &&
       _emailValid &&
       _phoneValid &&
-      _passengerPhones
-          .skip(1)
-          .every(
-            (controller) =>
-                controller.text.trim().isEmpty ||
-                _phonePattern.hasMatch(_normalizePhone(controller.text)),
-          );
+      _passengerPhones.every(
+        (controller) =>
+            controller.text.trim().isEmpty ||
+            _phonePattern.hasMatch(_normalizePhone(controller.text)),
+      );
 
   int get _total => _promotion?.total ?? widget.hold.subtotal;
 
@@ -252,14 +253,15 @@ class _PassengerInformationScreenState
         for (var index = 0; index < _seats.length; index++)
           BookingPassenger(
             seatCode: _seats[index].code,
-            fullName: index == 0 || _passengerNames[index].text.trim().isEmpty
+            fullName: _passengerNames[index].text.trim().isEmpty
                 ? _contactName.text.trim()
                 : _passengerNames[index].text.trim(),
-            phone: index == 0
+            // Ghế đầu bỏ trống là người liên hệ đi chỗ này nên dùng luôn số của họ.
+            phone: _passengerPhones[index].text.trim().isNotEmpty
+                ? _normalizePhone(_passengerPhones[index].text)
+                : index == 0 && _passengerNames[index].text.trim().isEmpty
                 ? _normalizePhone(_phone.text)
-                : _passengerPhones[index].text.trim().isEmpty
-                ? null
-                : _normalizePhone(_passengerPhones[index].text),
+                : null,
             companionName:
                 isDoubleSeat(_seats[index].type) &&
                     _companionNames[index].text.trim().isNotEmpty
@@ -289,6 +291,7 @@ class _PassengerInformationScreenState
     final expired = _remaining == Duration.zero;
     final phoneTouched = _phone.text.trim().isNotEmpty;
     final emailTouched = _email.text.trim().isNotEmpty;
+    final firstCardIndex = _showFirstSeat ? 0 : 1;
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.dark.copyWith(
         statusBarColor: Colors.white,
@@ -346,17 +349,19 @@ class _PassengerInformationScreenState
                         onChanged: () => setState(() {}),
                       ),
                     ),
-                    if (_seats.length > 1)
-                      const SliverToBoxAdapter(
+                    if (_seats.length > firstCardIndex)
+                      SliverToBoxAdapter(
                         child: _SectionTitle(
                           icon: Icons.group_rounded,
-                          title: 'Hành khách bổ sung (tùy chọn)',
+                          title: _showFirstSeat
+                              ? 'Hành khách (tùy chọn)'
+                              : 'Hành khách bổ sung (tùy chọn)',
                         ),
                       ),
                     SliverList.builder(
-                      itemCount: _seats.length - 1,
+                      itemCount: _seats.length - firstCardIndex,
                       itemBuilder: (context, offset) {
-                        final index = offset + 1;
+                        final index = offset + firstCardIndex;
                         final phone = _passengerPhones[index];
                         return _PassengerCard(
                           index: index,
@@ -898,9 +903,11 @@ class _PassengerCard extends StatelessWidget {
                         fontWeight: FontWeight.w600,
                       ),
                     ),
-                    const Text(
-                      'Không bắt buộc',
-                      style: TextStyle(color: _muted, fontSize: 13),
+                    Text(
+                      index == 0
+                          ? 'Để trống nếu người liên hệ đi chỗ này'
+                          : 'Không bắt buộc',
+                      style: const TextStyle(color: _muted, fontSize: 13),
                     ),
                   ],
                 ),
