@@ -8,6 +8,7 @@ import 'package:passenger_mobile/features/home/route_dock_tabbar.dart';
 import 'package:passenger_mobile/features/search/trip_search_form.dart';
 import 'package:passenger_mobile/features/ticket/trip_search_models.dart';
 
+part 'operator_trips_screen.dart';
 part 'trip_results_screen.dart';
 
 const _assetRoot = 'assets/ticket';
@@ -41,6 +42,7 @@ class TicketScreen extends StatefulWidget {
     this.loadDefaultQuery,
     this.onQueryChanged,
     this.onTripSelected,
+    this.onOperatorSelected,
     super.key,
   });
 
@@ -56,6 +58,9 @@ class TicketScreen extends StatefulWidget {
   /// Bấm một chuyến trong danh sách (mở chi tiết chuyến); `query` = `null` khi
   /// đang xem chuyến sắp chạy.
   final void Function(TripSummary trip, HomeSearchQuery? query)? onTripSelected;
+
+  /// Bấm một thẻ nhà xe: mở trang nhà xe.
+  final ValueChanged<HomeOperator>? onOperatorSelected;
 
   /// Điều kiện lần tìm trước (Trang chủ / lần khám phá trước): ngày, số khách,
   /// điểm đi – đến của chế độ Chuyến xe.
@@ -445,6 +450,9 @@ class _TicketScreenState extends State<TicketScreen>
                 onViewTrips: served == null
                     ? null
                     : () => _openOperatorTrips(operator, served),
+                onViewProfile: widget.onOperatorSelected == null
+                    ? null
+                    : () => widget.onOperatorSelected!(operator),
               );
             },
           ),
@@ -1071,6 +1079,7 @@ class _OperatorCard extends StatelessWidget {
     required this.fare,
     required this.date,
     required this.onViewTrips,
+    this.onViewProfile,
     super.key,
   });
 
@@ -1084,13 +1093,15 @@ class _OperatorCard extends StatelessWidget {
   final DateTime date;
   final VoidCallback? onViewTrips;
 
+  /// Bấm vào thẻ (ngoài nút "Xem chuyến"): mở trang nhà xe.
+  final VoidCallback? onViewProfile;
+
   @override
   Widget build(BuildContext context) {
     final rating = operator.averageRating;
     final served = route;
     final otherRoutes = operator.routes.length - 1;
-    return Container(
-      padding: const EdgeInsets.all(16),
+    return DecoratedBox(
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(24),
@@ -1102,141 +1113,156 @@ class _OperatorCard extends StatelessWidget {
           ),
         ],
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              _OperatorLogo(operator: operator),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      operator.name,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        color: _primaryDark,
-                        fontSize: 17,
-                        height: 25 / 17,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      rating == null
-                          ? 'Chưa có đánh giá'
-                          : '★ ${rating.toStringAsFixed(1)} · '
-                                '${_compactCount(operator.reviewCount)} đánh giá',
-                      style: const TextStyle(
-                        color: _secondary,
-                        fontSize: 12,
-                        height: 1.5,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          const Text(
-            'Tuyến đang phục vụ',
-            style: TextStyle(color: _secondary, fontSize: 11, height: 16 / 11),
-          ),
-          const SizedBox(height: 6),
-          Text.rich(
-            TextSpan(
-              text: served == null
-                  ? 'Chưa có tuyến mở bán'
-                  : _routeLabel(served),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          key: ValueKey('explore-operator-${operator.id}-profile'),
+          onTap: onViewProfile,
+          borderRadius: BorderRadius.circular(24),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                if (served != null && otherRoutes > 0)
-                  TextSpan(
-                    text: '  +$otherRoutes tuyến',
-                    style: const TextStyle(
-                      color: _secondary,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w400,
-                    ),
-                  ),
-              ],
-            ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
-              color: _primaryDark,
-              fontSize: 15,
-              height: 22 / 15,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                Row(
                   children: [
-                    const Text(
-                      'Giá vé từ',
-                      style: TextStyle(
-                        color: _secondary,
-                        fontSize: 11,
-                        height: 16 / 11,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    _OperatorFare(fare: fare, date: date),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 8),
-              Material(
-                color: _primarySoft,
-                borderRadius: BorderRadius.circular(16),
-                child: InkWell(
-                  key: ValueKey('explore-operator-${operator.id}-trips'),
-                  onTap: onViewTrips,
-                  borderRadius: BorderRadius.circular(16),
-                  child: SizedBox(
-                    width: 132,
-                    height: 44,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Flexible(
-                          child: FittedBox(
-                            fit: BoxFit.scaleDown,
-                            child: Text(
-                              'Xem chuyến',
-                              maxLines: 1,
-                              style: TextStyle(
-                                color: _primary,
-                                fontSize: 13,
-                                height: 19 / 13,
-                                fontWeight: FontWeight.w600,
-                              ),
+                    _OperatorLogo(operator: operator),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            operator.name,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              color: _primaryDark,
+                              fontSize: 17,
+                              height: 25 / 17,
+                              fontWeight: FontWeight.w600,
                             ),
                           ),
-                        ),
-                        const SizedBox(width: 8),
-                        SvgPicture.asset(
-                          '$_resultsAssetRoot/arrow_right.svg',
-                          width: 16,
-                          height: 16,
-                          excludeFromSemantics: true,
-                        ),
-                      ],
+                          const SizedBox(height: 4),
+                          Text(
+                            rating == null
+                                ? 'Chưa có đánh giá'
+                                : '★ ${rating.toStringAsFixed(1)} · '
+                                      '${_compactCount(operator.reviewCount)} đánh giá',
+                            style: const TextStyle(
+                              color: _secondary,
+                              fontSize: 12,
+                              height: 1.5,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                const Text(
+                  'Tuyến đang phục vụ',
+                  style: TextStyle(
+                    color: _secondary,
+                    fontSize: 11,
+                    height: 16 / 11,
                   ),
                 ),
-              ),
-            ],
+                const SizedBox(height: 6),
+                Text.rich(
+                  TextSpan(
+                    text: served == null
+                        ? 'Chưa có tuyến mở bán'
+                        : _routeLabel(served),
+                    children: [
+                      if (served != null && otherRoutes > 0)
+                        TextSpan(
+                          text: '  +$otherRoutes tuyến',
+                          style: const TextStyle(
+                            color: _secondary,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w400,
+                          ),
+                        ),
+                    ],
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: _primaryDark,
+                    fontSize: 15,
+                    height: 22 / 15,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Giá vé từ',
+                            style: TextStyle(
+                              color: _secondary,
+                              fontSize: 11,
+                              height: 16 / 11,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          _OperatorFare(fare: fare, date: date),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Material(
+                      color: _primarySoft,
+                      borderRadius: BorderRadius.circular(16),
+                      child: InkWell(
+                        key: ValueKey('explore-operator-${operator.id}-trips'),
+                        onTap: onViewTrips,
+                        borderRadius: BorderRadius.circular(16),
+                        child: SizedBox(
+                          width: 132,
+                          height: 44,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Flexible(
+                                child: FittedBox(
+                                  fit: BoxFit.scaleDown,
+                                  child: Text(
+                                    'Xem chuyến',
+                                    maxLines: 1,
+                                    style: TextStyle(
+                                      color: _primary,
+                                      fontSize: 13,
+                                      height: 19 / 13,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              SvgPicture.asset(
+                                '$_resultsAssetRoot/arrow_right.svg',
+                                width: 16,
+                                height: 16,
+                                excludeFromSemantics: true,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
-        ],
+        ),
       ),
     );
   }

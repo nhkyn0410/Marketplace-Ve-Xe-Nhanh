@@ -1,5 +1,6 @@
 import 'package:mobile_shared/mobile_shared.dart';
 import 'package:passenger_mobile/features/home/home_models.dart';
+import 'package:passenger_mobile/features/operator/operator_profile_models.dart';
 import 'package:passenger_mobile/features/ticket/booking_models.dart';
 import 'package:passenger_mobile/features/ticket/payment_models.dart';
 import 'package:passenger_mobile/features/ticket/trip_booking_api.dart';
@@ -46,6 +47,7 @@ TripDetail sampleTripDetail({
   );
   return TripDetail(
     tripId: 'trip-1',
+    operatorId: 'operator-1',
     operatorName: 'Nhà xe Sao Mai',
     operatorLogoUrl: operatorLogoUrl,
     averageRating: 4.7,
@@ -447,6 +449,18 @@ class FakeBookingApi implements TripBookingApi {
 
   @override
   Future<List<HomeOperator>> loadOperators() async => const [];
+
+  @override
+  Future<OperatorProfile> loadOperatorProfile(
+    String operatorId, {
+    String? reviewCursor,
+  }) async => OperatorProfile(
+    operatorId: operatorId,
+    displayName: trip.operatorName,
+    scorecard: const OperatorScorecard(reviewCount: 0),
+    routes: const [],
+    reviews: const [],
+  );
 
   @override
   Future<List<HomePromotion>> loadPromotions() async => const [];

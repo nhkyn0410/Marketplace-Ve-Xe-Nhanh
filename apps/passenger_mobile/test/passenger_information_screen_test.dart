@@ -368,6 +368,155 @@ void main() {
     );
   });
 
+  group('ghế đầu khi có hành khách đã lưu', () {
+    FakeBookingApi signedIn(List<SavedTraveller> travellers) => FakeBookingApi()
+      ..prefill = BookingPrefill(
+        contact: const BookingContact(
+          fullName: 'Nguyễn Khanh',
+          phone: '0909000111',
+          email: 'khanh@vidu.com',
+        ),
+        travellers: travellers,
+      );
+
+    Future<void> pickSaved(
+      WidgetTester tester,
+      String seat,
+      String name,
+    ) async {
+      final button = find.byKey(Key('saved-passenger-$seat'));
+      await tester.ensureVisible(button);
+      await tester.pumpAndSettle();
+      await tester.tap(button);
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(Key('saved-passenger-$name')));
+      await tester.pumpAndSettle();
+    }
+
+    Future<BookingDraft> continueToDraft(WidgetTester tester) async {
+      await tester.tap(find.byKey(const Key('passenger-information-continue')));
+      await tester.pumpAndSettle();
+      return tester
+          .widget<BookingConfirmationScreen>(
+            find.byType(BookingConfirmationScreen),
+          )
+          .draft;
+    }
+
+    testWidgets('nhiều vé: chọn người khác cho ghế đầu, liên hệ giữ nguyên', (
+      tester,
+    ) async {
+      final api = signedIn(const [
+        SavedTraveller(fullName: 'Trần Thị Lan', phone: '0909000222'),
+      ]);
+      await _pumpApp(tester, home: _screen(api));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Hành khách (tùy chọn)'), findsOneWidget);
+      expect(find.text('Hành khách bổ sung (tùy chọn)'), findsNothing);
+      expect(
+        find.text('Để trống nếu người liên hệ đi chỗ này'),
+        findsOneWidget,
+      );
+
+      await pickSaved(tester, 'A01', 'Trần Thị Lan');
+      final draft = await continueToDraft(tester);
+
+      expect(draft.contact.fullName, 'Nguyễn Khanh');
+      expect(draft.contact.phone, '0909000111');
+      expect(draft.passengers.first.seatCode, 'A01');
+      expect(draft.passengers.first.fullName, 'Trần Thị Lan');
+      expect(draft.passengers.first.phone, '0909000222');
+      expect(draft.passengers.last.seatCode, 'A03');
+      expect(draft.passengers.last.fullName, 'Nguyễn Khanh');
+      expect(draft.passengers.last.phone, isNull);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('một vé cũng chọn được hành khách đã lưu', (tester) async {
+      final api = signedIn(const [
+        SavedTraveller(fullName: 'Trần Thị Lan', phone: '+84909000222'),
+      ]);
+      await _pumpApp(tester, home: _screen(api, seats: const ['A01']));
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(const Key('passenger-card-A01')), findsOneWidget);
+      await pickSaved(tester, 'A01', 'Trần Thị Lan');
+      final draft = await continueToDraft(tester);
+
+      expect(draft.passengers.single.fullName, 'Trần Thị Lan');
+      expect(draft.passengers.single.phone, '+84909000222');
+      expect(draft.contact.fullName, 'Nguyễn Khanh');
+    });
+
+    testWidgets('để trống ghế đầu thì người liên hệ đi chỗ đó như trước', (
+      tester,
+    ) async {
+      final api = signedIn(const [SavedTraveller(fullName: 'Trần Thị Lan')]);
+      await _pumpApp(tester, home: _screen(api));
+      await tester.pumpAndSettle();
+
+      final draft = await continueToDraft(tester);
+
+      expect(draft.passengers.first.fullName, 'Nguyễn Khanh');
+      expect(draft.passengers.first.phone, '0909000111');
+    });
+
+    testWidgets('người được chọn chưa có số thì không lấy số người liên hệ', (
+      tester,
+    ) async {
+      final api = signedIn(const [SavedTraveller(fullName: 'Trần Thị Lan')]);
+      await _pumpApp(tester, home: _screen(api));
+      await tester.pumpAndSettle();
+
+      await pickSaved(tester, 'A01', 'Trần Thị Lan');
+      final draft = await continueToDraft(tester);
+
+      expect(draft.passengers.first.fullName, 'Trần Thị Lan');
+      expect(draft.passengers.first.phone, isNull);
+    });
+
+    testWidgets('số điện thoại ghế đầu sai thì báo lỗi và khóa Tiếp tục', (
+      tester,
+    ) async {
+      final api = signedIn(const [SavedTraveller(fullName: 'Trần Thị Lan')]);
+      await _pumpApp(tester, home: _screen(api));
+      await tester.pumpAndSettle();
+
+      final phone = find.byKey(const Key('passenger-phone-A01'));
+      await tester.ensureVisible(phone);
+      await tester.enterText(phone, '123');
+      await tester.pump();
+
+      expect(find.textContaining('Số điện thoại gồm 10 số'), findsOneWidget);
+      expect(
+        tester
+            .widget<FilledButton>(
+              find.byKey(const Key('passenger-information-continue')),
+            )
+            .onPressed,
+        isNull,
+      );
+    });
+
+    testWidgets('ghế đầu là chỗ đôi thì thẻ có ô người đi cùng', (tester) async {
+      final api = signedIn(const [SavedTraveller(fullName: 'Trần Thị Lan')]);
+      await _pumpApp(
+        tester,
+        home: _screen(api, seats: const ['A01'], doubleSeats: const {'A01'}),
+      );
+      await tester.pumpAndSettle();
+
+      final companion = find.byKey(const Key('companion-name-A01'));
+      await tester.ensureVisible(companion);
+      await tester.enterText(companion, 'Lê Văn Bình');
+      await tester.pump();
+      final draft = await continueToDraft(tester);
+
+      expect(draft.passengers.single.companionName, 'Lê Văn Bình');
+    });
+  });
+
   testWidgets('mã khuyến mãi: sai thì báo lỗi; đúng thì giảm tổng, gỡ được', (
     tester,
   ) async {

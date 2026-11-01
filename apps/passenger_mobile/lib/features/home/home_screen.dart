@@ -51,6 +51,7 @@ class HomeScreen extends StatefulWidget {
     this.loadFeaturedOperators,
     this.loadArticles,
     this.onArticleSelected,
+    this.onOperatorSelected,
     this.onSearch,
     this.onCallHotline,
     this.onFeedbackRequested,
@@ -72,6 +73,9 @@ class HomeScreen extends StatefulWidget {
 
   /// "Nhà xe nổi bật" (nhà xe đang mở bán); rỗng thì ẩn mục.
   final HomeOperatorsLoader? loadFeaturedOperators;
+
+  /// Bấm một thẻ "Nhà xe nổi bật": mở trang nhà xe.
+  final ValueChanged<HomeOperator>? onOperatorSelected;
 
   /// "Khám phá & cẩm nang" (bài viết mới); rỗng thì ẩn mục.
   final HomeArticlesLoader? loadArticles;
@@ -190,7 +194,10 @@ class _HomeScreenState extends State<HomeScreen>
                       const SizedBox(height: 12),
                       _LoadedSection<HomeOperator>(
                         future: _operatorsFuture,
-                        builder: (items) => _OperatorsSection(operators: items),
+                        builder: (items) => _OperatorsSection(
+                          operators: items,
+                          onSelected: widget.onOperatorSelected,
+                        ),
                       ),
                       _LoadedSection<ExploreArticle>(
                         future: _articlesFuture,
@@ -1671,9 +1678,10 @@ class _PopularRouteCard extends StatelessWidget {
 }
 
 class _OperatorsSection extends StatelessWidget {
-  const _OperatorsSection({required this.operators});
+  const _OperatorsSection({required this.operators, this.onSelected});
 
   final List<HomeOperator> operators;
+  final ValueChanged<HomeOperator>? onSelected;
 
   @override
   Widget build(BuildContext context) {
@@ -1687,6 +1695,7 @@ class _OperatorsSection extends StatelessWidget {
             _OperatorCard(
               key: ValueKey('featured-operator-${operator.id}'),
               operator: operator,
+              onTap: onSelected == null ? null : () => onSelected!(operator),
             ),
         ],
       ),
@@ -1695,9 +1704,10 @@ class _OperatorsSection extends StatelessWidget {
 }
 
 class _OperatorCard extends StatelessWidget {
-  const _OperatorCard({required this.operator, super.key});
+  const _OperatorCard({required this.operator, this.onTap, super.key});
 
   final HomeOperator operator;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -1706,69 +1716,81 @@ class _OperatorCard extends StatelessWidget {
     return Container(
       width: 158,
       height: cardHeight,
-      padding: const EdgeInsets.all(10),
       decoration: _smallCardDecoration(radius: 12),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(8),
-            child: SizedBox.square(
-              dimension: 44,
-              child: _OperatorLogo(operator: operator),
-            ),
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.start,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(12),
+          child: Padding(
+            padding: const EdgeInsets.all(10),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                Text(
-                  operator.name,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    color: _primaryDark,
-                    fontSize: 11,
-                    fontWeight: FontWeight.w600,
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: SizedBox.square(
+                    dimension: 44,
+                    child: _OperatorLogo(operator: operator),
                   ),
                 ),
-                const SizedBox(height: 4),
-                FittedBox(
-                  fit: BoxFit.scaleDown,
-                  alignment: Alignment.centerLeft,
-                  child: Row(
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      if (operator.averageRating case final rating?) ...[
-                        Text(
-                          '★ ${rating.toStringAsFixed(1)}',
-                          style: const TextStyle(
-                            color: Color(0xFFE89B26),
-                            fontSize: 9,
-                            fontWeight: FontWeight.w600,
-                          ),
+                      Text(
+                        operator.name,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          color: _primaryDark,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
                         ),
-                        const SizedBox(width: 4),
-                        Text(
-                          '(${operator.reviewCount} đánh giá)',
-                          style: const TextStyle(
-                            color: _secondary,
-                            fontSize: 7.5,
-                          ),
+                      ),
+                      const SizedBox(height: 4),
+                      FittedBox(
+                        fit: BoxFit.scaleDown,
+                        alignment: Alignment.centerLeft,
+                        child: Row(
+                          children: [
+                            if (operator.averageRating case final rating?) ...[
+                              Text(
+                                '★ ${rating.toStringAsFixed(1)}',
+                                style: const TextStyle(
+                                  color: Color(0xFFE89B26),
+                                  fontSize: 9,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                '(${operator.reviewCount} đánh giá)',
+                                style: const TextStyle(
+                                  color: _secondary,
+                                  fontSize: 7.5,
+                                ),
+                              ),
+                            ] else
+                              const Text(
+                                'Chưa có đánh giá',
+                                style: TextStyle(
+                                  color: _secondary,
+                                  fontSize: 7.5,
+                                ),
+                              ),
+                          ],
                         ),
-                      ] else
-                        const Text(
-                          'Chưa có đánh giá',
-                          style: TextStyle(color: _secondary, fontSize: 7.5),
-                        ),
+                      ),
                     ],
                   ),
                 ),
               ],
             ),
           ),
-        ],
+        ),
       ),
     );
   }

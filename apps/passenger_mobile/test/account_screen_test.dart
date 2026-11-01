@@ -22,6 +22,7 @@ Future<void> _pumpAccount(
   VoidCallback? onEditProfile,
   VoidCallback? onSavedPassengers,
   VoidCallback? onVoucherWallet,
+  VoidCallback? onLoyalty,
   VoidCallback? onPointHistory,
   VoidCallback? onMyReviews,
   VoidCallback? onNotificationSettings,
@@ -44,6 +45,7 @@ Future<void> _pumpAccount(
         onEditProfile: onEditProfile ?? () {},
         onSavedPassengers: onSavedPassengers ?? () {},
         onVoucherWallet: onVoucherWallet ?? () {},
+        onLoyalty: onLoyalty ?? () {},
         onPointHistory: onPointHistory ?? () {},
         onMyReviews: onMyReviews ?? () {},
         onNotificationSettings: onNotificationSettings ?? () {},
@@ -182,6 +184,26 @@ void main() {
     expect(find.byType(SnackBar), findsNothing);
   });
 
+  testWidgets('thẻ VXN Plus và mục điểm thưởng mở màn quản lý điểm', (
+    tester,
+  ) async {
+    var opened = 0;
+    var historyOpened = false;
+    await _pumpAccount(
+      tester,
+      loader: () async => _overview,
+      onLoyalty: () => opened++,
+      onPointHistory: () => historyOpened = true,
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Xem quyền lợi'));
+    await tester.tap(find.byKey(const Key('account-loyalty-menu')));
+
+    expect(opened, 2);
+    expect(historyOpened, isFalse);
+  });
+
   testWidgets('mục đánh giá của tôi mở màn quản lý đánh giá', (tester) async {
     var opened = false;
     await _pumpAccount(
@@ -191,6 +213,8 @@ void main() {
     );
     await tester.pumpAndSettle();
 
+    await tester.ensureVisible(find.text('Đánh giá của tôi'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Đánh giá của tôi'));
 
     expect(opened, isTrue);

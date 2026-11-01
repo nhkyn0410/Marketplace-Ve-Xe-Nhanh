@@ -42,6 +42,7 @@ class AccountScreen extends StatefulWidget {
     required this.onEditProfile,
     required this.onSavedPassengers,
     required this.onVoucherWallet,
+    required this.onLoyalty,
     required this.onPointHistory,
     required this.onMyReviews,
     required this.onNotificationSettings,
@@ -56,6 +57,7 @@ class AccountScreen extends StatefulWidget {
   final VoidCallback onEditProfile;
   final VoidCallback onSavedPassengers;
   final VoidCallback onVoucherWallet;
+  final VoidCallback onLoyalty;
   final VoidCallback onPointHistory;
   final VoidCallback onMyReviews;
   final VoidCallback onNotificationSettings;
@@ -126,6 +128,7 @@ class _AccountScreenState extends State<AccountScreen> {
                   onEditProfile: widget.onEditProfile,
                   onSavedPassengers: widget.onSavedPassengers,
                   onVoucherWallet: widget.onVoucherWallet,
+                  onLoyalty: widget.onLoyalty,
                   onPointHistory: widget.onPointHistory,
                   onMyReviews: widget.onMyReviews,
                   onNotificationSettings: widget.onNotificationSettings,
@@ -164,6 +167,7 @@ class _AccountContent extends StatelessWidget {
     required this.onEditProfile,
     required this.onSavedPassengers,
     required this.onVoucherWallet,
+    required this.onLoyalty,
     required this.onPointHistory,
     required this.onMyReviews,
     required this.onNotificationSettings,
@@ -178,6 +182,7 @@ class _AccountContent extends StatelessWidget {
   final VoidCallback onEditProfile;
   final VoidCallback onSavedPassengers;
   final VoidCallback onVoucherWallet;
+  final VoidCallback onLoyalty;
   final VoidCallback onPointHistory;
   final VoidCallback onMyReviews;
   final VoidCallback onNotificationSettings;
@@ -199,7 +204,7 @@ class _AccountContent extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                _LoyaltyCard(overview: overview, onTap: onPointHistory),
+                _LoyaltyCard(overview: overview, onTap: onLoyalty),
                 const SizedBox(height: 12),
                 const _SectionTitle('Tiện ích tài khoản'),
                 const SizedBox(height: 8),
@@ -222,6 +227,15 @@ class _AccountContent extends StatelessWidget {
                       title: 'Ví voucher',
                       subtitle: 'Voucher ưu đãi của bạn',
                       onTap: onVoucherWallet,
+                    ),
+                    _AccountMenuItem(
+                      key: const Key('account-loyalty-menu'),
+                      icon: Icons.workspace_premium_rounded,
+                      color: const Color(0xFF126993),
+                      background: const Color(0xFFE2F3FC),
+                      title: 'Điểm thưởng VXN Plus',
+                      subtitle: 'Đổi điểm lấy voucher, xem hạng thành viên',
+                      onTap: onLoyalty,
                     ),
                     _AccountMenuItem(
                       icon: Icons.stacked_bar_chart_rounded,
@@ -790,6 +804,7 @@ class _AccountMenuItem extends StatelessWidget {
     required this.title,
     required this.subtitle,
     required this.onTap,
+    super.key,
   });
 
   final IconData icon;

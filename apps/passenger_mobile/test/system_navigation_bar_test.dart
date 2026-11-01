@@ -183,6 +183,7 @@ void main() {
       onEditProfile: () {},
       onSavedPassengers: () {},
       onVoucherWallet: () {},
+      onLoyalty: () {},
       onPointHistory: () {},
       onMyReviews: () {},
       onNotificationSettings: () {},

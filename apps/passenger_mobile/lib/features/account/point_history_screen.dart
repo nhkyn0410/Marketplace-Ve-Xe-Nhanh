@@ -175,12 +175,16 @@ class PointHistoryScreen extends StatefulWidget {
     required this.loadHistory,
     required this.onBack,
     this.onLearnMore,
+    this.onRedeem,
     super.key,
   });
 
   final PointHistoryLoader loadHistory;
   final VoidCallback onBack;
   final VoidCallback? onLearnMore;
+
+  /// Nút "Đổi điểm" ở đầu màn; `null` thì ẩn.
+  final VoidCallback? onRedeem;
 
   @override
   State<PointHistoryScreen> createState() => _PointHistoryScreenState();
@@ -221,7 +225,7 @@ class _PointHistoryScreenState extends State<PointHistoryScreen> {
         body: SafeArea(
           child: Column(
             children: [
-              _HistoryHeader(onBack: widget.onBack),
+              _HistoryHeader(onBack: widget.onBack, onRedeem: widget.onRedeem),
               Expanded(
                 child: FutureBuilder<PointHistoryData>(
                   future: _history,
@@ -748,8 +752,9 @@ class _FilteredEmpty extends StatelessWidget {
 }
 
 class _HistoryHeader extends StatelessWidget {
-  const _HistoryHeader({required this.onBack});
+  const _HistoryHeader({required this.onBack, this.onRedeem});
   final VoidCallback onBack;
+  final VoidCallback? onRedeem;
 
   @override
   Widget build(BuildContext context) {
@@ -789,6 +794,23 @@ class _HistoryHeader extends StatelessWidget {
               fontWeight: FontWeight.w600,
             ),
           ),
+          if (onRedeem != null)
+            Positioned(
+              right: 8,
+              child: TextButton(
+                key: const Key('point-history-redeem'),
+                onPressed: onRedeem,
+                style: TextButton.styleFrom(
+                  foregroundColor: const Color(0xFF126BB1),
+                  padding: const EdgeInsets.symmetric(horizontal: 10),
+                  textStyle: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                child: const Text('Đổi điểm'),
+              ),
+            ),
         ],
       ),
     );

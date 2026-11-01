@@ -19,6 +19,37 @@ Future<void> _pumpScreen(
 }
 
 void main() {
+  testWidgets('nút Đổi điểm chỉ hiện khi có đường sang màn đổi điểm', (
+    tester,
+  ) async {
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(412, 900);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    addTearDown(tester.view.resetPhysicalSize);
+    var opened = false;
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: ThemeData(fontFamily: 'Be Vietnam Pro'),
+        home: PointHistoryScreen(
+          loadHistory: (query) async => figmaPointHistorySample(query),
+          onBack: () {},
+          onRedeem: () => opened = true,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const Key('point-history-redeem')));
+    expect(opened, isTrue);
+
+    await _pumpScreen(
+      tester,
+      loader: (query) async => figmaPointHistorySample(query),
+    );
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('point-history-redeem')), findsNothing);
+  });
+
   testWidgets('hiển thị trạng thái chưa có giao dịch', (tester) async {
     await _pumpScreen(
       tester,
