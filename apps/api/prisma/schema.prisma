@@ -1382,6 +1382,7 @@ model Article {
   updatedAt       DateTime      @updatedAt @map("updated_at")
 
   category ArticleCategory @relation(fields: [categoryId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  notificationCampaigns NotificationCampaign[]
 
   @@index([status, publishedAt(sort: Desc)])
   @@index([categoryId, status, publishedAt(sort: Desc)])
@@ -2224,6 +2225,10 @@ enum NotificationKind {
   OPERATIONS_ALERT
   LOYALTY_UPDATED
   PROMOTION
+  /// Thông báo dịch vụ Admin gửi (bảo trì, sự cố — NTF-21), bắt buộc.
+  SERVICE_NOTICE
+  /// Tin tức Admin gửi, khách chủ động bật mới nhận.
+  NEWS
 }
 
 enum NotificationChannel {
@@ -2254,6 +2259,7 @@ model Notification {
   payload      Json             @default("{}")
   createdAt    DateTime         @default(now()) @map("created_at")
 
+  inboxMessage NotificationInboxMessage?
   operator   OperatorProfile?       @relation(fields: [operatorId], references: [id], onDelete: Restrict, onUpdate: Restrict)
   deliveries NotificationDelivery[]
 
@@ -2324,6 +2330,93 @@ model NotificationPushReceipt {
   updatedAt DateTime @updatedAt @map("updated_at")
   @@unique([deliveryId, deviceId])
   @@map("notification_push_receipts")
+}
+
+/// Dạng chiến dịch Admin gửi (TASK-NSR-003): dịch vụ bắt buộc; khuyến mãi / tin tức khách tắt được.
+enum NotificationCampaignType {
+  SERVICE
+  PROMOTION
+  NEWS
+}
+
+enum NotificationCampaignStatus {
+  DRAFT
+  SCHEDULED
+  SENDING
+  COMPLETED
+  CANCELLED
+}
+
+enum NotificationAudience {
+  ALL
+  LOYALTY_TIER
+}
+
+/// Đích khi khách mở thông báo trong hộp thư.
+enum NotificationLinkType {
+  PROMOTION
+  ARTICLE
+  BOOKING
+}
+
+/// Chiến dịch thông báo của Platform: chỉ gửi hộp thư + push, KHÔNG email hàng loạt (Resend 100 email/ngày dùng chung với OTP).
+model NotificationCampaign {
+  id          String                     @id @default(uuid())
+  type        NotificationCampaignType
+  title       String
+  body        String
+  audience    NotificationAudience       @default(ALL)
+  tiers       LoyaltyTier[]              @default([])
+  promotionId String?                    @map("promotion_id")
+  articleId   String?                    @map("article_id")
+  status      NotificationCampaignStatus @default(DRAFT)
+  scheduledAt DateTime?                  @map("scheduled_at")
+  startedAt   DateTime?                  @map("started_at")
+  completedAt DateTime?                  @map("completed_at")
+  cancelledAt DateTime?                  @map("cancelled_at")
+  /// Lý do dừng do hệ thống (vd khuyến mãi đã kết thúc trước giờ gửi).
+  note        String?
+  /// Người nhận đã ghi và số bỏ qua do trần tần suất, cộng dồn theo lô.
+  recipientCount Int                     @default(0) @map("recipient_count")
+  cappedCount Int                        @default(0) @map("capped_count")
+  /// Id người dùng cuối của lô đã xử lý: gửi tiếp đúng chỗ sau khi worker khởi động lại.
+  cursor      String?
+  createdBy   String                     @map("created_by")
+  updatedBy   String                     @map("updated_by")
+  createdAt   DateTime                   @default(now()) @map("created_at")
+  updatedAt   DateTime                   @updatedAt @map("updated_at")
+
+  promotion Promotion?                 @relation(fields: [promotionId], references: [id], onDelete: SetNull, onUpdate: Restrict)
+  article   Article?                   @relation(fields: [articleId], references: [id], onDelete: SetNull, onUpdate: Restrict)
+  messages  NotificationInboxMessage[]
+
+  @@index([status, scheduledAt])
+  @@index([createdAt(sort: Desc)])
+  @@map("notification_campaigns")
+}
+
+/// Một tin trong hộp thư của một chủ thể; mỗi thông báo tối đa một tin.
+model NotificationInboxMessage {
+  id             String                @id @default(uuid())
+  subjectType    SubjectType           @map("subject_type")
+  subjectId      String                @map("subject_id")
+  notificationId String                @unique @map("notification_id")
+  campaignId     String?               @map("campaign_id")
+  kind           NotificationKind
+  title          String
+  body           String
+  linkType       NotificationLinkType? @map("link_type")
+  /// Mã khuyến mãi / slug bài viết / id đơn theo [linkType].
+  linkTarget     String?               @map("link_target")
+  readAt         DateTime?             @map("read_at")
+  createdAt      DateTime              @default(now()) @map("created_at")
+
+  notification Notification          @relation(fields: [notificationId], references: [id], onDelete: Cascade, onUpdate: Restrict)
+  campaign     NotificationCampaign? @relation(fields: [campaignId], references: [id], onDelete: SetNull, onUpdate: Restrict)
+
+  @@index([subjectType, subjectId, createdAt(sort: Desc), id(sort: Desc)])
+  @@index([campaignId])
+  @@map("notification_inbox_messages")
 }
 
 /// Loại thay đổi của chuyến đã bán vé (BR-10, BR-12).
@@ -2704,6 +2797,7 @@ model Promotion {
   operator       OperatorProfile?         @relation(fields: [operatorId], references: [id], onDelete: Restrict, onUpdate: Restrict)
   participations PromotionParticipation[]
   redemptions    PromotionRedemption[]
+  notificationCampaigns NotificationCampaign[]
 
   @@index([scope, status])
   @@index([operatorId, status])

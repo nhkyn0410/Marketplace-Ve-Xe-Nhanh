@@ -5,9 +5,9 @@ import { PERMISSION_GROUPS, PERMISSION_TEMPLATES, permissionSummary } from "./pe
 describe("danh mục quyền tài khoản quản trị (TASK-IAM-007)", () => {
   const catalog = PERMISSION_GROUPS.flatMap((group) => group.items.map((item) => item.permission));
 
-  it("17 quyền tick được, không trùng; mẫu chỉ dùng quyền trong danh mục", () => {
-    expect(catalog).toHaveLength(17);
-    expect(new Set(catalog).size).toBe(17);
+  it("18 quyền tick được, không trùng; mẫu chỉ dùng quyền trong danh mục", () => {
+    expect(catalog).toHaveLength(18);
+    expect(new Set(catalog).size).toBe(18);
     for (const templates of Object.values(PERMISSION_TEMPLATES)) {
       for (const template of templates) {
         if (template.permissions !== "all") {

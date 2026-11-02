@@ -10,7 +10,8 @@ export type PreferencesResponse = Schemas["PreferencesDto_Output"];
 const notificationLabels: Record<PreferencesResponse["items"][number]["kind"], string> = {
   BOOKING_CONFIRMED: "Xác nhận đặt vé", TICKETS_CANCELLED: "Hủy vé", REFUND_SUCCEEDED: "Hoàn tiền thành công",
   TRIP_CHANGED: "Thay đổi chuyến", TRIP_CANCELLED: "Hủy chuyến", MANUAL_REFUND: "Hoàn tiền thủ công",
-  CASE_UPDATED: "Cập nhật yêu cầu hỗ trợ", OPERATIONS_ALERT: "Thông báo vận hành", LOYALTY_UPDATED: "Điểm và hạng VXN Plus", PROMOTION: "Khuyến mãi và voucher"
+  CASE_UPDATED: "Cập nhật yêu cầu hỗ trợ", OPERATIONS_ALERT: "Thông báo vận hành", LOYALTY_UPDATED: "Điểm và hạng VXN Plus", PROMOTION: "Khuyến mãi và voucher",
+  SERVICE_NOTICE: "Thông báo dịch vụ", NEWS: "Tin tức"
 };
 
 /** Chuyển hồ sơ thật sang dữ liệu hiển thị; các chỉ số chưa tải được giữ trống. */

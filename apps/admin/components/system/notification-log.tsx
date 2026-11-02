@@ -13,7 +13,7 @@ import { formatDateTime } from "../../lib/user/user-format";
 type Delivery = NotificationLog["items"][number];
 const PAGE_SIZE = 25;
 const KIND: Record<Delivery["kind"], string> = {
-  BOOKING_CONFIRMED: "Xác nhận đặt vé", TICKETS_CANCELLED: "Hủy vé", REFUND_SUCCEEDED: "Hoàn tiền thành công", TRIP_CHANGED: "Đổi chuyến", TRIP_CANCELLED: "Hủy chuyến", MANUAL_REFUND: "Hoàn tiền thủ công", CASE_UPDATED: "Cập nhật hồ sơ hỗ trợ", OPERATIONS_ALERT: "Cảnh báo vận hành", LOYALTY_UPDATED: "Cập nhật VXN Plus", PROMOTION: "Khuyến mãi",
+  BOOKING_CONFIRMED: "Xác nhận đặt vé", TICKETS_CANCELLED: "Hủy vé", REFUND_SUCCEEDED: "Hoàn tiền thành công", TRIP_CHANGED: "Đổi chuyến", TRIP_CANCELLED: "Hủy chuyến", MANUAL_REFUND: "Hoàn tiền thủ công", CASE_UPDATED: "Cập nhật hồ sơ hỗ trợ", OPERATIONS_ALERT: "Cảnh báo vận hành", LOYALTY_UPDATED: "Cập nhật VXN Plus", PROMOTION: "Khuyến mãi", SERVICE_NOTICE: "Thông báo dịch vụ", NEWS: "Tin tức",
 };
 const CHANNEL = { EMAIL: "Email", PUSH: "Thông báo đẩy", SMS: "SMS" };
 const STATUS = { PENDING: { label: "Chờ gửi", tone: "warning" }, SENT: { label: "Đã gửi", tone: "success" }, FAILED: { label: "Gửi lỗi", tone: "danger" }, SKIPPED: { label: "Đã bỏ qua", tone: "neutral" } } as const;

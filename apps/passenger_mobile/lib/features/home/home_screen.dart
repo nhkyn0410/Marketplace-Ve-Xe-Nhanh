@@ -57,9 +57,16 @@ class HomeScreen extends StatefulWidget {
     this.onFeedbackRequested,
     this.onLoginRequested,
     this.onTabSelected,
+    this.unreadNotifications = 0,
+    this.onNotificationsTap,
     super.key,
   });
 
+  /// Số tin chưa đọc trong hộp thư; lớn hơn 0 thì chuông có chấm đỏ.
+  final int unreadNotifications;
+
+  /// Chạm chuông: mở hộp thư, hoặc yêu cầu đăng nhập nếu là khách vãng lai.
+  final VoidCallback? onNotificationsTap;
   final bool isLoggedIn;
   final String? userName;
   final HomeSearchMode initialMode;
@@ -157,6 +164,8 @@ class _HomeScreenState extends State<HomeScreen>
                   child: _HomeTopArea(
                     isLoggedIn: widget.isLoggedIn,
                     userName: widget.userName,
+                    unreadNotifications: widget.unreadNotifications,
+                    onNotificationsTap: widget.onNotificationsTap,
                     mode: searchMode,
                     fromLabel: searchFrom?.name,
                     toLabel: searchTo?.name,
@@ -318,6 +327,8 @@ class _HomeTopArea extends StatelessWidget {
   const _HomeTopArea({
     required this.isLoggedIn,
     required this.userName,
+    required this.unreadNotifications,
+    required this.onNotificationsTap,
     required this.mode,
     required this.fromLabel,
     required this.toLabel,
@@ -338,6 +349,8 @@ class _HomeTopArea extends StatelessWidget {
 
   final bool isLoggedIn;
   final String? userName;
+  final int unreadNotifications;
+  final VoidCallback? onNotificationsTap;
   final HomeSearchMode mode;
   final String? fromLabel;
   final String? toLabel;
@@ -384,6 +397,8 @@ class _HomeTopArea extends StatelessWidget {
                   isLoggedIn: isLoggedIn,
                   userName: userName,
                   contentTop: contentTop,
+                  unreadNotifications: unreadNotifications,
+                  onNotificationsTap: onNotificationsTap,
                 ),
               ),
               Positioned(
@@ -454,10 +469,14 @@ class _HomeHero extends StatelessWidget {
     required this.isLoggedIn,
     required this.userName,
     required this.contentTop,
+    required this.unreadNotifications,
+    required this.onNotificationsTap,
   });
 
   final bool isLoggedIn;
   final String? userName;
+  final int unreadNotifications;
+  final VoidCallback? onNotificationsTap;
 
   /// Khoảng ảnh nền phía trên nội dung hero (gồm cả thanh trạng thái).
   final double contentTop;
@@ -508,44 +527,57 @@ class _HomeHero extends StatelessWidget {
           height: brandLogoSize.height,
           child: const JourneyBrandLogo(),
         ),
+        // Vùng chạm 45×45 quanh chuông 29×29.
         Positioned(
-          right: 15,
-          top: contentTop + 10,
-          child: Row(
-            children: [
-              SizedBox(
-                width: 29,
-                height: 29,
-                child: Stack(
-                  children: [
-                    SvgPicture.asset(
-                      '$_assetRoot/hero/bell_frame.svg',
-                      width: 29,
-                      height: 29,
-                      excludeFromSemantics: true,
-                    ),
-                    Center(
-                      child: SvgPicture.asset(
-                        '$_assetRoot/hero/bell.svg',
-                        width: 15,
-                        height: 15,
+          right: 7,
+          top: contentTop + 2,
+          child: Semantics(
+            button: true,
+            label: unreadNotifications > 0
+                ? 'Thông báo, $unreadNotifications tin chưa đọc'
+                : 'Thông báo',
+            child: GestureDetector(
+              key: const Key('home-notification-bell'),
+              behavior: HitTestBehavior.opaque,
+              onTap: onNotificationsTap,
+              child: Padding(
+                padding: const EdgeInsets.all(8),
+                child: SizedBox(
+                  width: 29,
+                  height: 29,
+                  child: Stack(
+                    children: [
+                      SvgPicture.asset(
+                        '$_assetRoot/hero/bell_frame.svg',
+                        width: 29,
+                        height: 29,
                         excludeFromSemantics: true,
                       ),
-                    ),
-                    Positioned(
-                      right: 0,
-                      top: 3,
-                      child: SvgPicture.asset(
-                        '$_assetRoot/hero/notification_unread.svg',
-                        width: 6,
-                        height: 6,
-                        excludeFromSemantics: true,
+                      Center(
+                        child: SvgPicture.asset(
+                          '$_assetRoot/hero/bell.svg',
+                          width: 15,
+                          height: 15,
+                          excludeFromSemantics: true,
+                        ),
                       ),
-                    ),
-                  ],
+                      if (unreadNotifications > 0)
+                        Positioned(
+                          right: 0,
+                          top: 3,
+                          child: SvgPicture.asset(
+                            '$_assetRoot/hero/notification_unread.svg',
+                            key: const Key('home-notification-unread'),
+                            width: 6,
+                            height: 6,
+                            excludeFromSemantics: true,
+                          ),
+                        ),
+                    ],
+                  ),
                 ),
               ),
-            ],
+            ),
           ),
         ),
         Positioned(

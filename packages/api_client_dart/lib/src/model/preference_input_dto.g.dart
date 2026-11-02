@@ -28,6 +28,10 @@ const PreferenceInputDtoKindEnum _$preferenceInputDtoKindEnum_LOYALTY_UPDATED =
     const PreferenceInputDtoKindEnum._('LOYALTY_UPDATED');
 const PreferenceInputDtoKindEnum _$preferenceInputDtoKindEnum_PROMOTION =
     const PreferenceInputDtoKindEnum._('PROMOTION');
+const PreferenceInputDtoKindEnum _$preferenceInputDtoKindEnum_SERVICE_NOTICE =
+    const PreferenceInputDtoKindEnum._('SERVICE_NOTICE');
+const PreferenceInputDtoKindEnum _$preferenceInputDtoKindEnum_NEWS =
+    const PreferenceInputDtoKindEnum._('NEWS');
 
 PreferenceInputDtoKindEnum _$preferenceInputDtoKindEnumValueOf(String name) {
   switch (name) {
@@ -51,6 +55,10 @@ PreferenceInputDtoKindEnum _$preferenceInputDtoKindEnumValueOf(String name) {
       return _$preferenceInputDtoKindEnum_LOYALTY_UPDATED;
     case 'PROMOTION':
       return _$preferenceInputDtoKindEnum_PROMOTION;
+    case 'SERVICE_NOTICE':
+      return _$preferenceInputDtoKindEnum_SERVICE_NOTICE;
+    case 'NEWS':
+      return _$preferenceInputDtoKindEnum_NEWS;
     default:
       throw ArgumentError(name);
   }
@@ -68,6 +76,8 @@ final BuiltSet<PreferenceInputDtoKindEnum> _$preferenceInputDtoKindEnumValues =
   _$preferenceInputDtoKindEnum_OPERATIONS_ALERT,
   _$preferenceInputDtoKindEnum_LOYALTY_UPDATED,
   _$preferenceInputDtoKindEnum_PROMOTION,
+  _$preferenceInputDtoKindEnum_SERVICE_NOTICE,
+  _$preferenceInputDtoKindEnum_NEWS,
 ]);
 
 Serializer<PreferenceInputDtoKindEnum> _$preferenceInputDtoKindEnumSerializer =
@@ -86,6 +96,8 @@ class _$PreferenceInputDtoKindEnumSerializer
     'OPERATIONS_ALERT': 'OPERATIONS_ALERT',
     'LOYALTY_UPDATED': 'LOYALTY_UPDATED',
     'PROMOTION': 'PROMOTION',
+    'SERVICE_NOTICE': 'SERVICE_NOTICE',
+    'NEWS': 'NEWS',
   };
   static const Map<Object, String> _fromWire = const <Object, String>{
     'BOOKING_CONFIRMED': 'BOOKING_CONFIRMED',
@@ -98,6 +110,8 @@ class _$PreferenceInputDtoKindEnumSerializer
     'OPERATIONS_ALERT': 'OPERATIONS_ALERT',
     'LOYALTY_UPDATED': 'LOYALTY_UPDATED',
     'PROMOTION': 'PROMOTION',
+    'SERVICE_NOTICE': 'SERVICE_NOTICE',
+    'NEWS': 'NEWS',
   };
 
   @override

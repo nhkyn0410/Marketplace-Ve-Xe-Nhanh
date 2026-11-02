@@ -185,7 +185,9 @@ class _MyReviewsScreenState extends State<MyReviewsScreen> {
 
   Future<void> _reload() async {
     final next = widget.loadReviews();
-    setState(() => _reviews = next);
+    setState(() {
+      _reviews = next;
+    });
     await next;
   }
 

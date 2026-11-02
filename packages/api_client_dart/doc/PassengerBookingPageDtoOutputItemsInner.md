@@ -16,6 +16,7 @@ Name | Type | Description | Notes
 **routeName** | **String** |  | 
 **departureAt** | [**DateTime**](DateTime.md) |  | 
 **status** | **String** |  | 
+**ticketStatuses** | **BuiltList&lt;String&gt;** |  | 
 **total** | **String** |  | 
 **createdAt** | [**DateTime**](DateTime.md) |  | 
 

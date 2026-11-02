@@ -119,6 +119,8 @@ export const TicketLookupBookingListSchema = z.object({
       operatorName: z.string(),
       departureAt: z.iso.datetime(),
       ticketCount: z.int(),
+      /** Trạng thái từng vé: đơn `CONFIRMED` đã đi hết thì app hiện "Đã đi". */
+      ticketStatuses: z.array(z.string()),
       /** VND. */
       total: z.int(),
       /** Đơn đặt khi đã đăng nhập tài khoản. */

@@ -25,6 +25,8 @@ class _$PassengerBookingPageDtoOutputItemsInner
   @override
   final String status;
   @override
+  final BuiltList<String> ticketStatuses;
+  @override
   final String total;
   @override
   final DateTime createdAt;
@@ -44,6 +46,7 @@ class _$PassengerBookingPageDtoOutputItemsInner
       required this.routeName,
       required this.departureAt,
       required this.status,
+      required this.ticketStatuses,
       required this.total,
       required this.createdAt})
       : super._();
@@ -69,6 +72,7 @@ class _$PassengerBookingPageDtoOutputItemsInner
         routeName == other.routeName &&
         departureAt == other.departureAt &&
         status == other.status &&
+        ticketStatuses == other.ticketStatuses &&
         total == other.total &&
         createdAt == other.createdAt;
   }
@@ -84,6 +88,7 @@ class _$PassengerBookingPageDtoOutputItemsInner
     _$hash = $jc(_$hash, routeName.hashCode);
     _$hash = $jc(_$hash, departureAt.hashCode);
     _$hash = $jc(_$hash, status.hashCode);
+    _$hash = $jc(_$hash, ticketStatuses.hashCode);
     _$hash = $jc(_$hash, total.hashCode);
     _$hash = $jc(_$hash, createdAt.hashCode);
     _$hash = $jf(_$hash);
@@ -102,6 +107,7 @@ class _$PassengerBookingPageDtoOutputItemsInner
           ..add('routeName', routeName)
           ..add('departureAt', departureAt)
           ..add('status', status)
+          ..add('ticketStatuses', ticketStatuses)
           ..add('total', total)
           ..add('createdAt', createdAt))
         .toString();
@@ -146,6 +152,12 @@ class PassengerBookingPageDtoOutputItemsInnerBuilder
   String? get status => _$this._status;
   set status(String? status) => _$this._status = status;
 
+  ListBuilder<String>? _ticketStatuses;
+  ListBuilder<String> get ticketStatuses =>
+      _$this._ticketStatuses ??= ListBuilder<String>();
+  set ticketStatuses(ListBuilder<String>? ticketStatuses) =>
+      _$this._ticketStatuses = ticketStatuses;
+
   String? _total;
   String? get total => _$this._total;
   set total(String? total) => _$this._total = total;
@@ -169,6 +181,7 @@ class PassengerBookingPageDtoOutputItemsInnerBuilder
       _routeName = $v.routeName;
       _departureAt = $v.departureAt;
       _status = $v.status;
+      _ticketStatuses = $v.ticketStatuses.toBuilder();
       _total = $v.total;
       _createdAt = $v.createdAt;
       _$v = null;
@@ -191,29 +204,45 @@ class PassengerBookingPageDtoOutputItemsInnerBuilder
   PassengerBookingPageDtoOutputItemsInner build() => _build();
 
   _$PassengerBookingPageDtoOutputItemsInner _build() {
-    final _$result = _$v ??
-        _$PassengerBookingPageDtoOutputItemsInner._(
-          bookingId: BuiltValueNullFieldError.checkNotNull(bookingId,
-              r'PassengerBookingPageDtoOutputItemsInner', 'bookingId'),
-          bookingCode: BuiltValueNullFieldError.checkNotNull(bookingCode,
-              r'PassengerBookingPageDtoOutputItemsInner', 'bookingCode'),
-          operatorId: BuiltValueNullFieldError.checkNotNull(operatorId,
-              r'PassengerBookingPageDtoOutputItemsInner', 'operatorId'),
-          operatorName: BuiltValueNullFieldError.checkNotNull(operatorName,
-              r'PassengerBookingPageDtoOutputItemsInner', 'operatorName'),
-          tripId: BuiltValueNullFieldError.checkNotNull(
-              tripId, r'PassengerBookingPageDtoOutputItemsInner', 'tripId'),
-          routeName: BuiltValueNullFieldError.checkNotNull(routeName,
-              r'PassengerBookingPageDtoOutputItemsInner', 'routeName'),
-          departureAt: BuiltValueNullFieldError.checkNotNull(departureAt,
-              r'PassengerBookingPageDtoOutputItemsInner', 'departureAt'),
-          status: BuiltValueNullFieldError.checkNotNull(
-              status, r'PassengerBookingPageDtoOutputItemsInner', 'status'),
-          total: BuiltValueNullFieldError.checkNotNull(
-              total, r'PassengerBookingPageDtoOutputItemsInner', 'total'),
-          createdAt: BuiltValueNullFieldError.checkNotNull(createdAt,
-              r'PassengerBookingPageDtoOutputItemsInner', 'createdAt'),
-        );
+    _$PassengerBookingPageDtoOutputItemsInner _$result;
+    try {
+      _$result = _$v ??
+          _$PassengerBookingPageDtoOutputItemsInner._(
+            bookingId: BuiltValueNullFieldError.checkNotNull(bookingId,
+                r'PassengerBookingPageDtoOutputItemsInner', 'bookingId'),
+            bookingCode: BuiltValueNullFieldError.checkNotNull(bookingCode,
+                r'PassengerBookingPageDtoOutputItemsInner', 'bookingCode'),
+            operatorId: BuiltValueNullFieldError.checkNotNull(operatorId,
+                r'PassengerBookingPageDtoOutputItemsInner', 'operatorId'),
+            operatorName: BuiltValueNullFieldError.checkNotNull(operatorName,
+                r'PassengerBookingPageDtoOutputItemsInner', 'operatorName'),
+            tripId: BuiltValueNullFieldError.checkNotNull(
+                tripId, r'PassengerBookingPageDtoOutputItemsInner', 'tripId'),
+            routeName: BuiltValueNullFieldError.checkNotNull(routeName,
+                r'PassengerBookingPageDtoOutputItemsInner', 'routeName'),
+            departureAt: BuiltValueNullFieldError.checkNotNull(departureAt,
+                r'PassengerBookingPageDtoOutputItemsInner', 'departureAt'),
+            status: BuiltValueNullFieldError.checkNotNull(
+                status, r'PassengerBookingPageDtoOutputItemsInner', 'status'),
+            ticketStatuses: ticketStatuses.build(),
+            total: BuiltValueNullFieldError.checkNotNull(
+                total, r'PassengerBookingPageDtoOutputItemsInner', 'total'),
+            createdAt: BuiltValueNullFieldError.checkNotNull(createdAt,
+                r'PassengerBookingPageDtoOutputItemsInner', 'createdAt'),
+          );
+    } catch (_) {
+      late String _$failedField;
+      try {
+        _$failedField = 'ticketStatuses';
+        ticketStatuses.build();
+      } catch (e) {
+        throw BuiltValueNestedFieldError(
+            r'PassengerBookingPageDtoOutputItemsInner',
+            _$failedField,
+            e.toString());
+      }
+      rethrow;
+    }
     replace(_$result);
     return _$result;
   }

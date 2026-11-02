@@ -277,7 +277,199 @@ void main() {
     await tester.tap(find.widgetWithText(SnackBarAction, 'Đăng nhập'));
     expect(loginRequested, isTrue);
   });
+
+  test('trạng thái hiện cho khách lấy theo vé còn hiệu lực', () {
+    String display(String status, List<String> tickets) =>
+        JourneyBookingSummary(
+          bookingId: 'b',
+          bookingCode: 'VXN',
+          status: status,
+          routeName: 'R',
+          operatorName: 'O',
+          departureAt: DateTime(2026, 11, 2),
+          total: 1,
+          ticketStatuses: tickets,
+        ).displayStatus;
+
+    expect(display('CONFIRMED', ['VALID']), 'CONFIRMED');
+    expect(display('CONFIRMED', ['VALID', 'USED']), 'CONFIRMED');
+    expect(display('CONFIRMED', ['USED']), 'USED');
+    expect(display('CONFIRMED', ['USED', 'NO_SHOW']), 'USED');
+    expect(display('CONFIRMED', ['NO_SHOW']), 'NO_SHOW');
+    expect(display('CONFIRMED', ['CHECKED_IN', 'USED']), 'CHECKED_IN');
+    expect(display('PARTIALLY_CANCELLED', ['CANCELLED', 'USED']), 'USED');
+    expect(display('PENDING_PAYMENT', const []), 'PENDING_PAYMENT');
+    expect(display('REFUNDED', ['REFUNDED']), 'REFUNDED');
+  });
+
+  testWidgets('vé đã đi: danh sách ghi "Đã đi", chi tiết không còn nút hủy', (
+    tester,
+  ) async {
+    final api = _UsedTicketApi();
+    await _pump(tester, MyJourneyFlow(api: api, onTabSelected: (_) {}));
+
+    expect(find.text('Đã đi'), findsOneWidget);
+    expect(find.text('Hợp lệ'), findsNothing);
+
+    await tester.tap(find.byKey(const Key('journey-open-VXN-TEST01')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Đã sử dụng'), findsOneWidget);
+    expect(find.text('Lên xe quét mã'), findsNothing);
+    expect(find.text('Vé này không còn hủy được.'), findsOneWidget);
+    expect(find.byKey(const Key('guest-ticket-cancel-button')), findsNothing);
+    expect(find.text('Liên hệ hỗ trợ'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('chuyến đã qua giờ chạy thì không còn nút hủy dù vé chưa dùng', (
+    tester,
+  ) async {
+    final api = _DepartedTripApi();
+    await _pump(tester, MyJourneyFlow(api: api, onTabSelected: (_) {}));
+
+    await tester.tap(find.byKey(const Key('journey-open-VXN-TEST01')));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('guest-ticket-cancel-button')), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('Back ở chi tiết vé về danh sách, không rời tab và không lỗi', (
+    tester,
+  ) async {
+    final key = GlobalKey();
+    await _pump(
+      tester,
+      MyJourneyFlow(key: key, api: _FakeJourneyApi(), onTabSelected: (_) {}),
+    );
+    final flow = key.currentState! as JourneyBackHandler;
+
+    expect(flow.handleBack(), isFalse, reason: 'danh sách là bước đầu');
+
+    await tester.tap(find.byKey(const Key('journey-open-VXN-TEST01')));
+    await tester.pumpAndSettle();
+    expect(find.text('Đơn VXN-TEST01 · 1 vé'), findsOneWidget);
+
+    expect(flow.handleBack(), isTrue);
+    await tester.pumpAndSettle();
+    expect(find.text('Vé của tôi'), findsOneWidget);
+    expect(find.text('Đơn VXN-TEST01 · 1 vé'), findsNothing);
+    // `setState` trả về Future sẽ ném lỗi ngay tại đây ở bản debug.
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('khách vãng lai: Back lùi từng bước của tra cứu', (tester) async {
+    final key = GlobalKey();
+    await _pump(
+      tester,
+      GuestJourneyFlow(
+        key: key,
+        api: _FakeJourneyApi(),
+        onLoginRequested: () {},
+        onTabSelected: (_) {},
+      ),
+    );
+    final flow = key.currentState! as JourneyBackHandler;
+    expect(flow.handleBack(), isFalse);
+
+    await tester.enterText(
+      find.byKey(const Key('guest-email-field')),
+      'khach@example.com',
+    );
+    await tester.tap(find.byKey(const Key('guest-request-otp-button')));
+    await tester.pumpAndSettle();
+    await _enterOtp(tester, '123456');
+    await tester.tap(find.byKey(const Key('guest-journey-verify-otp')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('journey-open-VXN-TEST01')));
+    await tester.pumpAndSettle();
+    expect(find.text('Đơn VXN-TEST01 · 1 vé'), findsOneWidget);
+
+    expect(flow.handleBack(), isTrue);
+    await tester.pumpAndSettle();
+    expect(find.text('Kết quả tra cứu vé'), findsOneWidget);
+
+    expect(flow.handleBack(), isTrue);
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('guest-email-field')), findsOneWidget);
+    expect(flow.handleBack(), isFalse);
+    expect(tester.takeException(), isNull);
+  });
 }
+
+class _UsedTicketApi extends _FakeJourneyApi {
+  @override
+  Future<List<JourneyBookingSummary>> listMyBookings() async => [
+    JourneyBookingSummary(
+      bookingId: 'b-1',
+      bookingCode: 'VXN-TEST01',
+      status: 'CONFIRMED',
+      routeName: 'TP. Hồ Chí Minh → Đà Lạt',
+      operatorName: 'Nhà xe Sao Mai',
+      departureAt: DateTime.now().subtract(const Duration(days: 3)),
+      total: 300000,
+      ticketStatuses: const ['USED'],
+    ),
+  ];
+
+  @override
+  Future<JourneyBooking> loadBooking(
+    String bookingId, {
+    String? accessToken,
+  }) async => _withTicketStatus(_booking(), 'USED');
+}
+
+class _DepartedTripApi extends _FakeJourneyApi {
+  @override
+  Future<JourneyBooking> loadBooking(
+    String bookingId, {
+    String? accessToken,
+  }) async => _withTicketStatus(
+    _booking(),
+    'VALID',
+    departureAt: DateTime.now().subtract(const Duration(hours: 1)),
+  );
+}
+
+JourneyBooking _withTicketStatus(
+  JourneyBooking base,
+  String status, {
+  DateTime? departureAt,
+}) => JourneyBooking(
+  bookingId: base.bookingId,
+  bookingCode: base.bookingCode,
+  status: base.status,
+  routeName: base.routeName,
+  operatorName: base.operatorName,
+  vehicleTypeName: base.vehicleTypeName,
+  departureAt: departureAt ?? base.departureAt,
+  pickup: base.pickup,
+  dropoff: base.dropoff,
+  contactEmail: base.contactEmail,
+  subtotal: base.subtotal,
+  serviceFee: base.serviceFee,
+  discount: base.discount,
+  total: base.total,
+  tiers: base.tiers,
+  tickets: [
+    for (final ticket in base.tickets)
+      JourneyTicket(
+        ticketId: ticket.ticketId,
+        ticketCode: ticket.ticketCode,
+        seatCode: ticket.seatCode,
+        passengerName: ticket.passengerName,
+        status: status,
+        qrToken: ticket.qrToken,
+        seatType: ticket.seatType,
+        price: ticket.price,
+      ),
+  ],
+  refunds: base.refunds,
+  paymentProvider: base.paymentProvider,
+  paymentCode: base.paymentCode,
+  paymentStatus: base.paymentStatus,
+);
 
 class _AccountBookingApi extends _FakeJourneyApi {
   @override

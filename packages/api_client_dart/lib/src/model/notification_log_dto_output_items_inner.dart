@@ -32,7 +32,7 @@ abstract class NotificationLogDtoOutputItemsInner implements Built<NotificationL
 
   @BuiltValueField(wireName: r'kind')
   NotificationLogDtoOutputItemsInnerKindEnum get kind;
-  // enum kindEnum {  BOOKING_CONFIRMED,  TICKETS_CANCELLED,  REFUND_SUCCEEDED,  TRIP_CHANGED,  TRIP_CANCELLED,  MANUAL_REFUND,  CASE_UPDATED,  OPERATIONS_ALERT,  LOYALTY_UPDATED,  PROMOTION,  };
+  // enum kindEnum {  BOOKING_CONFIRMED,  TICKETS_CANCELLED,  REFUND_SUCCEEDED,  TRIP_CHANGED,  TRIP_CANCELLED,  MANUAL_REFUND,  CASE_UPDATED,  OPERATIONS_ALERT,  LOYALTY_UPDATED,  PROMOTION,  SERVICE_NOTICE,  NEWS,  };
 
   @BuiltValueField(wireName: r'channel')
   NotificationLogDtoOutputItemsInnerChannelEnum get channel;
@@ -277,6 +277,10 @@ class NotificationLogDtoOutputItemsInnerKindEnum extends EnumClass {
   static const NotificationLogDtoOutputItemsInnerKindEnum LOYALTY_UPDATED = _$notificationLogDtoOutputItemsInnerKindEnum_LOYALTY_UPDATED;
   @BuiltValueEnumConst(wireName: r'PROMOTION')
   static const NotificationLogDtoOutputItemsInnerKindEnum PROMOTION = _$notificationLogDtoOutputItemsInnerKindEnum_PROMOTION;
+  @BuiltValueEnumConst(wireName: r'SERVICE_NOTICE')
+  static const NotificationLogDtoOutputItemsInnerKindEnum SERVICE_NOTICE = _$notificationLogDtoOutputItemsInnerKindEnum_SERVICE_NOTICE;
+  @BuiltValueEnumConst(wireName: r'NEWS')
+  static const NotificationLogDtoOutputItemsInnerKindEnum NEWS = _$notificationLogDtoOutputItemsInnerKindEnum_NEWS;
 
   static Serializer<NotificationLogDtoOutputItemsInnerKindEnum> get serializer => _$notificationLogDtoOutputItemsInnerKindEnumSerializer;
 

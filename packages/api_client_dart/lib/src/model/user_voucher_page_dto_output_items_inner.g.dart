@@ -233,6 +233,8 @@ class _$UserVoucherPageDtoOutputItemsInner
   @override
   final String minOrder;
   @override
+  final String appliesTo;
+  @override
   final DateTime expiresAt;
   @override
   final DateTime createdAt;
@@ -253,6 +255,7 @@ class _$UserVoucherPageDtoOutputItemsInner
       required this.discountValue,
       this.maxDiscount,
       required this.minOrder,
+      required this.appliesTo,
       required this.expiresAt,
       required this.createdAt})
       : super._();
@@ -279,6 +282,7 @@ class _$UserVoucherPageDtoOutputItemsInner
         discountValue == other.discountValue &&
         maxDiscount == other.maxDiscount &&
         minOrder == other.minOrder &&
+        appliesTo == other.appliesTo &&
         expiresAt == other.expiresAt &&
         createdAt == other.createdAt;
   }
@@ -296,6 +300,7 @@ class _$UserVoucherPageDtoOutputItemsInner
     _$hash = $jc(_$hash, discountValue.hashCode);
     _$hash = $jc(_$hash, maxDiscount.hashCode);
     _$hash = $jc(_$hash, minOrder.hashCode);
+    _$hash = $jc(_$hash, appliesTo.hashCode);
     _$hash = $jc(_$hash, expiresAt.hashCode);
     _$hash = $jc(_$hash, createdAt.hashCode);
     _$hash = $jf(_$hash);
@@ -315,6 +320,7 @@ class _$UserVoucherPageDtoOutputItemsInner
           ..add('discountValue', discountValue)
           ..add('maxDiscount', maxDiscount)
           ..add('minOrder', minOrder)
+          ..add('appliesTo', appliesTo)
           ..add('expiresAt', expiresAt)
           ..add('createdAt', createdAt))
         .toString();
@@ -376,6 +382,10 @@ class UserVoucherPageDtoOutputItemsInnerBuilder
   String? get minOrder => _$this._minOrder;
   set minOrder(String? minOrder) => _$this._minOrder = minOrder;
 
+  String? _appliesTo;
+  String? get appliesTo => _$this._appliesTo;
+  set appliesTo(String? appliesTo) => _$this._appliesTo = appliesTo;
+
   DateTime? _expiresAt;
   DateTime? get expiresAt => _$this._expiresAt;
   set expiresAt(DateTime? expiresAt) => _$this._expiresAt = expiresAt;
@@ -401,6 +411,7 @@ class UserVoucherPageDtoOutputItemsInnerBuilder
       _discountValue = $v.discountValue;
       _maxDiscount = $v.maxDiscount;
       _minOrder = $v.minOrder;
+      _appliesTo = $v.appliesTo;
       _expiresAt = $v.expiresAt;
       _createdAt = $v.createdAt;
       _$v = null;
@@ -442,6 +453,8 @@ class UserVoucherPageDtoOutputItemsInnerBuilder
           maxDiscount: maxDiscount,
           minOrder: BuiltValueNullFieldError.checkNotNull(
               minOrder, r'UserVoucherPageDtoOutputItemsInner', 'minOrder'),
+          appliesTo: BuiltValueNullFieldError.checkNotNull(
+              appliesTo, r'UserVoucherPageDtoOutputItemsInner', 'appliesTo'),
           expiresAt: BuiltValueNullFieldError.checkNotNull(
               expiresAt, r'UserVoucherPageDtoOutputItemsInner', 'expiresAt'),
           createdAt: BuiltValueNullFieldError.checkNotNull(

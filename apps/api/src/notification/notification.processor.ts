@@ -10,7 +10,12 @@ import { deliverPushNotification } from "./push-delivery";
 import { prepareNotificationChannels } from "./notification-outbox";
 import { EMAIL_NOTIFIER, type EmailNotifier } from "../external/notification/email-notifier";
 import { QUEUE_NAMES } from "../queue/queue.constants";
+import { campaignBatchJobId, runCampaignBatch, startDueCampaigns } from "./campaign/campaign-fanout";
+import { pendingDeliveryIds } from "../database/notification-scope";
 import {
+  CAMPAIGN_BATCH_JOB,
+  CAMPAIGN_SWEEP_JOB,
+  CAMPAIGN_SWEEP_SCHEDULE,
   deliverNotification,
   NOTIFICATION_JOB,
   NOTIFICATION_JOB_OPTIONS,
@@ -41,9 +46,29 @@ export class NotificationProcessor extends WorkerHost implements OnModuleInit {
   /** `upsert` chứ không `add`: worker khởi động lại nhiều lần vẫn chỉ có MỘT lịch quét. */
   async onModuleInit(): Promise<void> {
     await this.queue.upsertJobScheduler(NOTIFICATION_SWEEP_JOB, NOTIFICATION_SWEEP_SCHEDULE, { name: NOTIFICATION_SWEEP_JOB });
+    await this.queue.upsertJobScheduler(CAMPAIGN_SWEEP_JOB, CAMPAIGN_SWEEP_SCHEDULE, { name: CAMPAIGN_SWEEP_JOB });
   }
 
-  async process(job: Job<{ deliveryId?: string }>): Promise<{ outcome?: DeliveryOutcome; requeued?: number }> {
+  private enqueueBatch(campaignId: string, cursor: string | null, suffix = ""): Promise<unknown> {
+    return this.queue.add(CAMPAIGN_BATCH_JOB, { campaignId }, { ...NOTIFICATION_JOB_OPTIONS, jobId: campaignBatchJobId(campaignId, cursor, suffix) });
+  }
+
+  async process(job: Job<{ deliveryId?: string; campaignId?: string }>): Promise<{ outcome?: DeliveryOutcome; requeued?: number }> {
+    if (job.name === CAMPAIGN_SWEEP_JOB) {
+      const campaigns = await startDueCampaigns(this.prisma);
+      for (const campaign of campaigns) {
+        await this.enqueueBatch(campaign.id, campaign.cursor, campaign.resumed ? `-resume-${Date.now()}` : "");
+      }
+      return { requeued: campaigns.length };
+    }
+    if (job.name === CAMPAIGN_BATCH_JOB && job.data.campaignId) {
+      const result = await runCampaignBatch(this.prisma, job.data.campaignId);
+      for (const deliveryId of await pendingDeliveryIds(this.prisma, result.dedupKeys)) {
+        await this.queue.add(NOTIFICATION_JOB, { deliveryId }, { ...NOTIFICATION_JOB_OPTIONS, jobId: deliveryId });
+      }
+      if (!result.done) await this.enqueueBatch(job.data.campaignId, result.cursor);
+      return { requeued: result.dedupKeys.length };
+    }
     if (job.name === NOTIFICATION_SWEEP_JOB) {
       await prepareNotificationChannels(this.prisma);
       const ids = await stalePendingDeliveryIds(this.prisma, new Date(Date.now() - STALE_AFTER_MS), SWEEP_LIMIT);

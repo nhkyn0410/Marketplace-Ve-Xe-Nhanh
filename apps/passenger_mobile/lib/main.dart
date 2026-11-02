@@ -20,6 +20,8 @@ import 'package:passenger_mobile/features/auth/auth_screen.dart';
 import 'package:passenger_mobile/features/auth/google_auth_service.dart';
 import 'package:passenger_mobile/features/explore/article_api.dart';
 import 'package:passenger_mobile/features/journey/journey_api.dart';
+import 'package:passenger_mobile/features/notification/inbox_screen.dart';
+import 'package:passenger_mobile/features/notification/notification_center_api.dart';
 import 'package:passenger_mobile/features/notification/push_service.dart';
 import 'package:passenger_mobile/features/explore/article_reader_screen.dart';
 import 'package:passenger_mobile/features/explore/explore_screen.dart';
@@ -191,8 +193,13 @@ class OtpLoginPage extends StatefulWidget {
 
 class _OtpLoginPageState extends State<OtpLoginPage> {
   final _tokens = const TokenStorage();
-  late final _api = createApiClient(baseUrl: apiBaseUrl, tokens: _tokens);
+  late final _api = createApiClient(
+    baseUrl: apiBaseUrl,
+    tokens: _tokens,
+    onUnauthorized: _handleSessionExpired,
+  );
   late final _articleApi = ArticleApi(_api);
+  late final _notificationCenter = NotificationCenterApi(_api);
   late final _push = PushService(
     registerDevice: (token) async {
       final response = await _api
@@ -210,22 +217,110 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
         _api.getNotificationApi().preferenceControllerRemove(id: id),
   );
   final _pushSubscriptions = <StreamSubscription<PushMessage>>[];
+  final _myJourneyKey = GlobalKey();
+  final _guestJourneyKey = GlobalKey();
+  final _inboxKey = GlobalKey<InboxScreenState>();
+
+  late final AppLifecycleListener _lifecycle;
 
   @override
   void initState() {
     super.initState();
+    // Tin đến lúc app ở nền không chạy code Dart nên đồng bộ lại chuông khi mở lại app.
+    _lifecycle = AppLifecycleListener(
+      onResume: () => unawaited(_refreshUnread()),
+    );
     _pushSubscriptions
       ..add(_push.foregroundMessages.listen(_showPush))
-      // Chạm thông báo (đơn, vé, hoàn tiền…) → mở tab Hành trình.
-      ..add(
-        _push.openedMessages.listen((_) {
-          if (mounted && _step == _AuthStep.signedIn) _selectMainTab(3);
-        }),
-      );
+      ..add(_push.openedMessages.listen(_openFromPush));
+    unawaited(_restoreSession());
+  }
+
+  /// Mở lại app còn refresh token thì vào thẳng Trang chủ, không bắt đăng nhập lại
+  /// (ADR-017: phiên 30 ngày). Hồ sơ tải sau; phiên đã hết thì [AuthInterceptor]
+  /// báo về [_handleSessionExpired].
+  Future<void> _restoreSession() async {
+    final String? refreshToken;
+    try {
+      refreshToken = await _tokens.readRefreshToken();
+    } catch (_) {
+      return;
+    }
+    if (refreshToken == null || refreshToken.isEmpty) return;
+    if (!mounted || _step != _AuthStep.email) return;
+    setState(() {
+      _step = _AuthStep.signedIn;
+      _currentTab = 2;
+      _resetAccountView();
+    });
+    unawaited(_refreshUnread());
+    try {
+      final response = await _api
+          .getPassengerProfileApi()
+          .passengerProfileControllerGet();
+      final profile = response.data;
+      if (profile != null && mounted && _step == _AuthStep.signedIn) {
+        final name = profile.name?.trim();
+        setState(() {
+          _email = profile.email;
+          _profileEmail = profile.email;
+          _displayName = name;
+          if (name == null || name.isEmpty) _step = _AuthStep.profile;
+        });
+      }
+    } catch (_) {
+      // Mất mạng hoặc máy chủ lỗi: vẫn giữ phiên, từng màn tự báo lỗi và cho thử lại.
+    }
+    if (mounted && _step != _AuthStep.email) unawaited(_push.enable());
+  }
+
+  /// Refresh token hết hạn hoặc đã bị thu hồi (vd đăng xuất từ thiết bị khác).
+  Future<void> _handleSessionExpired() async {
+    if (!mounted) return;
+    if (_step != _AuthStep.signedIn && _step != _AuthStep.profile) return;
+    unawaited(_push.disable());
+    Navigator.of(context).popUntil((route) => route.isFirst);
+    setState(() {
+      _step = _AuthStep.email;
+      _email = null;
+      _profileEmail = null;
+      _displayName = null;
+      _otpIssuedAt = null;
+      _currentTab = 2;
+      _unreadNotifications = 0;
+      _resetAccountView();
+      _error = 'Phiên đã hết hạn. Vui lòng đăng nhập lại.';
+    });
+  }
+
+  /// Back của Android ở route gốc: tab và màn con không phải route nên phải tự lùi,
+  /// chỉ Trang chủ mới thoát app (mở lại vẫn còn phiên nhờ [_restoreSession]).
+  bool get _canExitOnBack => switch (_step) {
+    _AuthStep.otp => false,
+    _AuthStep.signedIn || _AuthStep.guest => _currentTab == 2,
+    _AuthStep.email || _AuthStep.profile => true,
+  };
+
+  void _handleBack() {
+    if (_step == _AuthStep.otp) {
+      _editEmail();
+      return;
+    }
+    for (final key in [_myJourneyKey, _guestJourneyKey]) {
+      if (key.currentState case final JourneyBackHandler flow) {
+        if (flow.handleBack()) return;
+      }
+    }
+    if (_accountView != _AccountView.overview) {
+      _closeAccountView();
+      return;
+    }
+    _selectMainTab(2);
   }
 
   @override
   void dispose() {
+    _lifecycle.dispose();
     for (final subscription in _pushSubscriptions) {
       subscription.cancel();
     }
@@ -235,10 +330,15 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
   /// App đang mở thì hệ thống không hiện thông báo — hiện thanh báo trong app.
   void _showPush(PushMessage message) {
     if (!mounted) return;
+    unawaited(_refreshUnread());
+    unawaited(_inboxKey.currentState?.reload());
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(
         SnackBar(
+          // Có nút hành động thì SnackBar mặc định không tự tắt và che màn hình.
+          persist: false,
+          duration: const Duration(seconds: 6),
           content: Text(
             message.body.isEmpty
                 ? message.title
@@ -247,11 +347,77 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
           action: _step == _AuthStep.signedIn
               ? SnackBarAction(
                   label: 'Xem',
-                  onPressed: () => _selectMainTab(3),
+                  onPressed: () => _openFromPush(message),
                 )
               : null,
         ),
       );
+  }
+
+  /// Chạm thông báo: tin về đơn vé mở tab Hành trình, tin khác mở hộp thư.
+  void _openFromPush(PushMessage message) {
+    if (!mounted || _step != _AuthStep.signedIn) return;
+    unawaited(_refreshUnread());
+    if (message.opensJourney) {
+      _openJourneyTab();
+    } else {
+      _openInbox();
+    }
+  }
+
+  void _openJourneyTab() {
+    Navigator.of(context).popUntil((route) => route.isFirst);
+    _selectMainTab(3);
+  }
+
+  /// Số tin chưa đọc cho chuông; lỗi mạng thì giữ số cũ, chuông không đáng để báo lỗi.
+  Future<void> _refreshUnread() async {
+    if (_step != _AuthStep.signedIn) return;
+    try {
+      final count = await _notificationCenter.unreadCount();
+      if (mounted && _step == _AuthStep.signedIn) {
+        setState(() => _unreadNotifications = count);
+      }
+    } catch (_) {}
+  }
+
+  void _openInbox() {
+    final open = _inboxKey.currentState;
+    if (open != null) {
+      unawaited(open.reload());
+      return;
+    }
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (routeContext) => InboxScreen(
+          key: _inboxKey,
+          loadPage: _notificationCenter.loadInbox,
+          markRead: _notificationCenter.markRead,
+          markAllRead: _notificationCenter.markAllRead,
+          onBack: () => Navigator.of(routeContext).pop(),
+          onAction: _openInboxAction,
+          onUnreadChanged: (count) {
+            if (mounted) setState(() => _unreadNotifications = count);
+          },
+        ),
+      ),
+    );
+  }
+
+  void _openInboxAction(InboxMessage message) {
+    switch (message.action) {
+      case InboxAction.journey:
+        _openJourneyTab();
+      case InboxAction.article:
+        _openArticleBySlug(message.linkTarget!);
+      case InboxAction.voucher:
+        Navigator.of(context).popUntil((route) => route.isFirst);
+        _voucherPrefill = message.linkTarget;
+        _selectMainTab(4);
+        _openAccountView(_AccountView.vouchers);
+      case null:
+        break;
+    }
   }
   late final _journeyApi = JourneyApi(_api);
   late final _bookingApi = TripBookingApi(
@@ -279,6 +445,10 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
   String? _displayName;
   DateTime? _otpIssuedAt;
   int _currentTab = 2;
+  int _unreadNotifications = 0;
+
+  /// Mã khuyến mãi điền sẵn cho Ví voucher khi đi từ hộp thư.
+  String? _voucherPrefill;
   _AccountView _accountView = _AccountView.overview;
 
   /// Các màn tài khoản đang nằm dưới [_accountView]: mở Lịch sử điểm từ VXN Plus
@@ -449,6 +619,7 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
     });
     // Có phiên rồi mới đăng ký thiết bị nhận push; lỗi push không chặn đăng nhập.
     unawaited(_push.enable());
+    unawaited(_refreshUnread());
   }
 
   Future<bool> _completeProfile(String fullName, String? phone) async {
@@ -531,6 +702,7 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
 
   void _closeAccountView() {
     setState(() {
+      _voucherPrefill = null;
       _accountView = _accountViewStack.isEmpty
           ? _AccountView.overview
           : _accountViewStack.removeLast();
@@ -657,6 +829,7 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
                 ? VoucherSource.loyaltyRedemption
                 : VoucherSource.savedPromotion,
             promotionCode: item.promotionCode,
+            appliesTo: item.appliesTo,
           ),
         )
         .toList(growable: false);
@@ -853,6 +1026,25 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
     };
   }
 
+  Future<List<LoginSessionInfo>> _loadLoginSessions() async {
+    final response = await _api.getAuthApi().sessionControllerList(limit: 50);
+    final items = response.data?.items;
+    if (items == null) {
+      throw StateError('Session response did not contain data.');
+    }
+    return [
+      for (final item in items)
+        LoginSessionInfo(
+          id: item.sessionId,
+          current: item.current,
+          deviceLabel: item.deviceLabel,
+          ipAddress: item.ipAddress,
+          createdAt: item.createdAt,
+          lastUsedAt: item.lastUsedAt,
+        ),
+    ];
+  }
+
   Future<AccountOverview> _loadAccountOverview() async {
     final response = await _api
         .getPassengerProfileApi()
@@ -944,6 +1136,7 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
       _displayName = null;
       _otpIssuedAt = null;
       _currentTab = 2;
+      _unreadNotifications = 0;
       _resetAccountView();
       _error = null;
     });
@@ -1094,16 +1287,10 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
   @override
   Widget build(BuildContext context) {
     final disableAnimations = MediaQuery.disableAnimationsOf(context);
-    final inAccountSubView =
-        _step == _AuthStep.signedIn &&
-        _currentTab == 4 &&
-        _accountView != _AccountView.overview;
-    // Màn con của tab Tài khoản không phải route: nút Back của Android phải về
-    // màn trước thay vì thoát app (thoát app là mất phiên đang đăng nhập).
     return PopScope<void>(
-      canPop: !inAccountSubView,
+      canPop: _canExitOnBack,
       onPopInvokedWithResult: (didPop, _) {
-        if (!didPop) _closeAccountView();
+        if (!didPop) _handleBack();
       },
       child: AnimatedSwitcher(
         key: const Key('auth-flow-transition'),
@@ -1160,6 +1347,7 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
     }
     if (_step == _AuthStep.guest && _currentTab == 3) {
       return GuestJourneyFlow(
+        key: _guestJourneyKey,
         api: _journeyApi,
         onLoginRequested: _returnToLogin,
         onTabSelected: _selectMainTab,
@@ -1169,6 +1357,7 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
     }
     if (_step == _AuthStep.signedIn && _currentTab == 3) {
       return MyJourneyFlow(
+        key: _myJourneyKey,
         api: _journeyApi,
         onTabSelected: _selectMainTab,
         onSupportRequested: _callSupport,
@@ -1208,6 +1397,7 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
             saveVoucherCode: _saveVoucherCode,
             errorMessage: _error,
             onCodeChanged: _clearFeedback,
+            initialCode: _voucherPrefill,
             onBack: _closeAccountView,
           );
         }
@@ -1244,10 +1434,20 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
           );
         }
         if (_accountView == _AccountView.notificationSettings) {
-          return NotificationSettingsScreen(onBack: _closeAccountView);
+          return NotificationSettingsScreen(
+            loadPreferences: _notificationCenter.loadPreferences,
+            savePreference: _notificationCenter.savePreference,
+            onBack: _closeAccountView,
+          );
         }
         if (_accountView == _AccountView.loginSessions) {
-          return LoginSessionsScreen(onBack: _closeAccountView);
+          return LoginSessionsScreen(
+            loadSessions: _loadLoginSessions,
+            revokeSession: (sessionId) => _api
+                .getAuthApi()
+                .sessionControllerRevoke(sessionId: sessionId),
+            onBack: _closeAccountView,
+          );
         }
         return AccountScreen(
           loadOverview: _loadAccountOverview,
@@ -1313,11 +1513,13 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
   }
 
   /// Mở bài viết từ Trang chủ; "Tìm chuyến đi" trong bài chuyển sang tab Mua vé.
-  void _openArticle(ExploreArticle article) {
+  void _openArticle(ExploreArticle article) => _openArticleBySlug(article.slug);
+
+  void _openArticleBySlug(String slug) {
     Navigator.of(context).push(
       MaterialPageRoute<void>(
         builder: (routeContext) => ArticleReaderScreen(
-          slug: article.slug,
+          slug: slug,
           loadArticle: _articleApi.loadArticle,
           onFindTrip: () {
             Navigator.of(routeContext).pop();
@@ -1345,6 +1547,8 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
       onCallHotline: _launchSupportHotline,
       onLoginRequested: isLoggedIn ? null : _returnToLogin,
       onTabSelected: _selectMainTab,
+      unreadNotifications: isLoggedIn ? _unreadNotifications : 0,
+      onNotificationsTap: isLoggedIn ? _openInbox : _returnToLogin,
     );
   }
 }

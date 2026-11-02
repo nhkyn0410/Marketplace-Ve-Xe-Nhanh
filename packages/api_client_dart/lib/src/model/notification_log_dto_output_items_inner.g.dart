@@ -36,6 +36,12 @@ const NotificationLogDtoOutputItemsInnerKindEnum
 const NotificationLogDtoOutputItemsInnerKindEnum
     _$notificationLogDtoOutputItemsInnerKindEnum_PROMOTION =
     const NotificationLogDtoOutputItemsInnerKindEnum._('PROMOTION');
+const NotificationLogDtoOutputItemsInnerKindEnum
+    _$notificationLogDtoOutputItemsInnerKindEnum_SERVICE_NOTICE =
+    const NotificationLogDtoOutputItemsInnerKindEnum._('SERVICE_NOTICE');
+const NotificationLogDtoOutputItemsInnerKindEnum
+    _$notificationLogDtoOutputItemsInnerKindEnum_NEWS =
+    const NotificationLogDtoOutputItemsInnerKindEnum._('NEWS');
 
 NotificationLogDtoOutputItemsInnerKindEnum
     _$notificationLogDtoOutputItemsInnerKindEnumValueOf(String name) {
@@ -60,6 +66,10 @@ NotificationLogDtoOutputItemsInnerKindEnum
       return _$notificationLogDtoOutputItemsInnerKindEnum_LOYALTY_UPDATED;
     case 'PROMOTION':
       return _$notificationLogDtoOutputItemsInnerKindEnum_PROMOTION;
+    case 'SERVICE_NOTICE':
+      return _$notificationLogDtoOutputItemsInnerKindEnum_SERVICE_NOTICE;
+    case 'NEWS':
+      return _$notificationLogDtoOutputItemsInnerKindEnum_NEWS;
     default:
       throw ArgumentError(name);
   }
@@ -78,6 +88,8 @@ final BuiltSet<NotificationLogDtoOutputItemsInnerKindEnum>
   _$notificationLogDtoOutputItemsInnerKindEnum_OPERATIONS_ALERT,
   _$notificationLogDtoOutputItemsInnerKindEnum_LOYALTY_UPDATED,
   _$notificationLogDtoOutputItemsInnerKindEnum_PROMOTION,
+  _$notificationLogDtoOutputItemsInnerKindEnum_SERVICE_NOTICE,
+  _$notificationLogDtoOutputItemsInnerKindEnum_NEWS,
 ]);
 
 const NotificationLogDtoOutputItemsInnerChannelEnum
@@ -173,6 +185,8 @@ class _$NotificationLogDtoOutputItemsInnerKindEnumSerializer
     'OPERATIONS_ALERT': 'OPERATIONS_ALERT',
     'LOYALTY_UPDATED': 'LOYALTY_UPDATED',
     'PROMOTION': 'PROMOTION',
+    'SERVICE_NOTICE': 'SERVICE_NOTICE',
+    'NEWS': 'NEWS',
   };
   static const Map<Object, String> _fromWire = const <Object, String>{
     'BOOKING_CONFIRMED': 'BOOKING_CONFIRMED',
@@ -185,6 +199,8 @@ class _$NotificationLogDtoOutputItemsInnerKindEnumSerializer
     'OPERATIONS_ALERT': 'OPERATIONS_ALERT',
     'LOYALTY_UPDATED': 'LOYALTY_UPDATED',
     'PROMOTION': 'PROMOTION',
+    'SERVICE_NOTICE': 'SERVICE_NOTICE',
+    'NEWS': 'NEWS',
   };
 
   @override

@@ -55,6 +55,7 @@ Map<String, Object?> _voucher(String id) => {
   'discountValue': '50000',
   'maxDiscount': null,
   'minOrder': '300000',
+  'appliesTo': 'Mọi tuyến, mọi nhà xe',
   'expiresAt': '2027-01-01T00:00:00Z',
   'createdAt': '2026-10-31T00:00:00Z',
 };

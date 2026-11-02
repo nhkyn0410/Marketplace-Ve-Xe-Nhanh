@@ -18,6 +18,7 @@ import 'package:api_client_dart/src/api/admin_counter_commissions_api.dart';
 import 'package:api_client_dart/src/api/admin_disputes_api.dart';
 import 'package:api_client_dart/src/api/admin_loyalty_api.dart';
 import 'package:api_client_dart/src/api/admin_notification_api.dart';
+import 'package:api_client_dart/src/api/admin_notification_campaigns_api.dart';
 import 'package:api_client_dart/src/api/admin_operator_applications_api.dart';
 import 'package:api_client_dart/src/api/admin_operators_api.dart';
 import 'package:api_client_dart/src/api/admin_payments_api.dart';
@@ -225,6 +226,12 @@ class ApiClientDart {
   /// by doing that all interceptors will not be executed
   AdminNotificationApi getAdminNotificationApi() {
     return AdminNotificationApi(dio, serializers);
+  }
+
+  /// Get AdminNotificationCampaignsApi instance, base route and serializer can be overridden by a given but be careful,
+  /// by doing that all interceptors will not be executed
+  AdminNotificationCampaignsApi getAdminNotificationCampaignsApi() {
+    return AdminNotificationCampaignsApi(dio, serializers);
   }
 
   /// Get AdminOperatorApplicationsApi instance, base route and serializer can be overridden by a given but be careful,

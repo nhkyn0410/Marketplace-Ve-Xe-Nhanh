@@ -116,6 +116,15 @@ Class | Method | HTTP request | Description
 [*AdminLoyaltyApi*](doc/AdminLoyaltyApi.md) | [**adminLoyaltyControllerReport**](doc/AdminLoyaltyApi.md#adminloyaltycontrollerreport) | **GET** /v1/admin/loyalty/reports | 
 [*AdminLoyaltyApi*](doc/AdminLoyaltyApi.md) | [**adminLoyaltyControllerTransactions**](doc/AdminLoyaltyApi.md#adminloyaltycontrollertransactions) | **GET** /v1/admin/loyalty/accounts/{userId}/transactions | 
 [*AdminNotificationApi*](doc/AdminNotificationApi.md) | [**adminNotificationControllerHistory**](doc/AdminNotificationApi.md#adminnotificationcontrollerhistory) | **GET** /v1/admin/system/notifications | 
+[*AdminNotificationCampaignsApi*](doc/AdminNotificationCampaignsApi.md) | [**adminNotificationCampaignControllerCancel**](doc/AdminNotificationCampaignsApi.md#adminnotificationcampaigncontrollercancel) | **POST** /v1/admin/notification-campaigns/{campaignId}/cancel | 
+[*AdminNotificationCampaignsApi*](doc/AdminNotificationCampaignsApi.md) | [**adminNotificationCampaignControllerCreate**](doc/AdminNotificationCampaignsApi.md#adminnotificationcampaigncontrollercreate) | **POST** /v1/admin/notification-campaigns | 
+[*AdminNotificationCampaignsApi*](doc/AdminNotificationCampaignsApi.md) | [**adminNotificationCampaignControllerDetail**](doc/AdminNotificationCampaignsApi.md#adminnotificationcampaigncontrollerdetail) | **GET** /v1/admin/notification-campaigns/{campaignId} | 
+[*AdminNotificationCampaignsApi*](doc/AdminNotificationCampaignsApi.md) | [**adminNotificationCampaignControllerEstimate**](doc/AdminNotificationCampaignsApi.md#adminnotificationcampaigncontrollerestimate) | **POST** /v1/admin/notification-campaigns/estimate | 
+[*AdminNotificationCampaignsApi*](doc/AdminNotificationCampaignsApi.md) | [**adminNotificationCampaignControllerList**](doc/AdminNotificationCampaignsApi.md#adminnotificationcampaigncontrollerlist) | **GET** /v1/admin/notification-campaigns | 
+[*AdminNotificationCampaignsApi*](doc/AdminNotificationCampaignsApi.md) | [**adminNotificationCampaignControllerOptions**](doc/AdminNotificationCampaignsApi.md#adminnotificationcampaigncontrolleroptions) | **GET** /v1/admin/notification-campaigns/options | 
+[*AdminNotificationCampaignsApi*](doc/AdminNotificationCampaignsApi.md) | [**adminNotificationCampaignControllerSend**](doc/AdminNotificationCampaignsApi.md#adminnotificationcampaigncontrollersend) | **POST** /v1/admin/notification-campaigns/{campaignId}/send | 
+[*AdminNotificationCampaignsApi*](doc/AdminNotificationCampaignsApi.md) | [**adminNotificationCampaignControllerTest**](doc/AdminNotificationCampaignsApi.md#adminnotificationcampaigncontrollertest) | **POST** /v1/admin/notification-campaigns/{campaignId}/test | 
+[*AdminNotificationCampaignsApi*](doc/AdminNotificationCampaignsApi.md) | [**adminNotificationCampaignControllerUpdate**](doc/AdminNotificationCampaignsApi.md#adminnotificationcampaigncontrollerupdate) | **PUT** /v1/admin/notification-campaigns/{campaignId} | 
 [*AdminOperatorApplicationsApi*](doc/AdminOperatorApplicationsApi.md) | [**operatorApplicationReviewControllerApprove**](doc/AdminOperatorApplicationsApi.md#operatorapplicationreviewcontrollerapprove) | **POST** /v1/admin/operator-applications/{applicationId}/approve | 
 [*AdminOperatorApplicationsApi*](doc/AdminOperatorApplicationsApi.md) | [**operatorApplicationReviewControllerCreateDocumentDownload**](doc/AdminOperatorApplicationsApi.md#operatorapplicationreviewcontrollercreatedocumentdownload) | **POST** /v1/admin/operator-applications/{applicationId}/documents/{type}/download-url | 
 [*AdminOperatorApplicationsApi*](doc/AdminOperatorApplicationsApi.md) | [**operatorApplicationReviewControllerGet**](doc/AdminOperatorApplicationsApi.md#operatorapplicationreviewcontrollerget) | **GET** /v1/admin/operator-applications/{applicationId} | 
@@ -282,6 +291,10 @@ Class | Method | HTTP request | Description
 [*JourneyLogsApi*](doc/JourneyLogsApi.md) | [**employeeJourneyLogControllerCreate**](doc/JourneyLogsApi.md#employeejourneylogcontrollercreate) | **POST** /v1/employee/journey-logs | 
 [*JourneyLogsApi*](doc/JourneyLogsApi.md) | [**employeeJourneyLogControllerList**](doc/JourneyLogsApi.md#employeejourneylogcontrollerlist) | **GET** /v1/employee/journey-logs | 
 [*JourneyLogsApi*](doc/JourneyLogsApi.md) | [**operatorJourneyLogControllerList**](doc/JourneyLogsApi.md#operatorjourneylogcontrollerlist) | **GET** /v1/operator/journey-logs | 
+[*NotificationApi*](doc/NotificationApi.md) | [**inboxControllerList**](doc/NotificationApi.md#inboxcontrollerlist) | **GET** /v1/me/inbox | 
+[*NotificationApi*](doc/NotificationApi.md) | [**inboxControllerMarkAllRead**](doc/NotificationApi.md#inboxcontrollermarkallread) | **POST** /v1/me/inbox/read-all | 
+[*NotificationApi*](doc/NotificationApi.md) | [**inboxControllerMarkRead**](doc/NotificationApi.md#inboxcontrollermarkread) | **POST** /v1/me/inbox/{messageId}/read | 
+[*NotificationApi*](doc/NotificationApi.md) | [**inboxControllerUnreadCount**](doc/NotificationApi.md#inboxcontrollerunreadcount) | **GET** /v1/me/inbox/unread-count | 
 [*NotificationApi*](doc/NotificationApi.md) | [**preferenceControllerDevice**](doc/NotificationApi.md#preferencecontrollerdevice) | **POST** /v1/me/push-devices | 
 [*NotificationApi*](doc/NotificationApi.md) | [**preferenceControllerHistory**](doc/NotificationApi.md#preferencecontrollerhistory) | **GET** /v1/me/notifications | 
 [*NotificationApi*](doc/NotificationApi.md) | [**preferenceControllerPreferences**](doc/NotificationApi.md#preferencecontrollerpreferences) | **GET** /v1/me/notification-preferences | 
@@ -586,6 +599,8 @@ Class | Method | HTTP request | Description
  - [AssigneeListDtoOutputItemsInner](doc/AssigneeListDtoOutputItemsInner.md)
  - [AttachmentUploadInputDto](doc/AttachmentUploadInputDto.md)
  - [AttachmentUploadResponseDtoOutput](doc/AttachmentUploadResponseDtoOutput.md)
+ - [AudienceEstimateDtoOutput](doc/AudienceEstimateDtoOutput.md)
+ - [AudienceInputDto](doc/AudienceInputDto.md)
  - [AuthMeResponseDtoOutput](doc/AuthMeResponseDtoOutput.md)
  - [AuthTokenResponseDtoOutput](doc/AuthTokenResponseDtoOutput.md)
  - [BackgroundJobsDtoOutput](doc/BackgroundJobsDtoOutput.md)
@@ -599,6 +614,18 @@ Class | Method | HTTP request | Description
  - [BookingInputDtoContact](doc/BookingInputDtoContact.md)
  - [BookingInputDtoPassengersInner](doc/BookingInputDtoPassengersInner.md)
  - [BookingResponseDtoOutput](doc/BookingResponseDtoOutput.md)
+ - [CampaignDetailDtoOutput](doc/CampaignDetailDtoOutput.md)
+ - [CampaignDetailDtoOutputStats](doc/CampaignDetailDtoOutputStats.md)
+ - [CampaignDtoOutput](doc/CampaignDtoOutput.md)
+ - [CampaignInputDto](doc/CampaignInputDto.md)
+ - [CampaignOptionsDtoOutput](doc/CampaignOptionsDtoOutput.md)
+ - [CampaignOptionsDtoOutputArticlesInner](doc/CampaignOptionsDtoOutputArticlesInner.md)
+ - [CampaignOptionsDtoOutputPromotionsInner](doc/CampaignOptionsDtoOutputPromotionsInner.md)
+ - [CampaignPageDtoOutput](doc/CampaignPageDtoOutput.md)
+ - [CampaignPageDtoOutputItemsInner](doc/CampaignPageDtoOutputItemsInner.md)
+ - [CampaignSendInputDto](doc/CampaignSendInputDto.md)
+ - [CampaignTestInputDto](doc/CampaignTestInputDto.md)
+ - [CampaignTestResultDtoOutput](doc/CampaignTestResultDtoOutput.md)
  - [CancellationInputDto](doc/CancellationInputDto.md)
  - [CancellationQuoteDtoOutput](doc/CancellationQuoteDtoOutput.md)
  - [CancellationQuoteDtoOutputTicketsInner](doc/CancellationQuoteDtoOutputTicketsInner.md)
@@ -727,6 +754,8 @@ Class | Method | HTTP request | Description
  - [FinanceSummaryDtoOutput](doc/FinanceSummaryDtoOutput.md)
  - [FinanceSummaryDtoOutputLastPayout](doc/FinanceSummaryDtoOutputLastPayout.md)
  - [HealthResponseDtoOutput](doc/HealthResponseDtoOutput.md)
+ - [InboxPageDtoOutput](doc/InboxPageDtoOutput.md)
+ - [InboxPageDtoOutputItemsInner](doc/InboxPageDtoOutputItemsInner.md)
  - [IncidentDtoOutput](doc/IncidentDtoOutput.md)
  - [IncidentDtoOutputEvidenceInner](doc/IncidentDtoOutputEvidenceInner.md)
  - [IncidentInputDto](doc/IncidentInputDto.md)
@@ -1035,6 +1064,7 @@ Class | Method | HTTP request | Description
  - [TripSearchResponseDtoOutputWidenedToProvince](doc/TripSearchResponseDtoOutputWidenedToProvince.md)
  - [TripSeatStatusInputDto](doc/TripSeatStatusInputDto.md)
  - [TripStatusInputDto](doc/TripStatusInputDto.md)
+ - [UnreadCountDtoOutput](doc/UnreadCountDtoOutput.md)
  - [UserVoucherDtoOutput](doc/UserVoucherDtoOutput.md)
  - [UserVoucherPageDtoOutput](doc/UserVoucherPageDtoOutput.md)
  - [UserVoucherPageDtoOutputItemsInner](doc/UserVoucherPageDtoOutputItemsInner.md)

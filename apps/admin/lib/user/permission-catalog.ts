@@ -39,6 +39,7 @@ export const PERMISSION_GROUPS: PermissionGroup<Permission>[] = [
       { permission: "content:moderate", label: "Kiểm duyệt", description: "Đánh giá, ảnh phương tiện, nội dung công khai." },
       { permission: "promotion:configure", label: "Khuyến mãi", description: "Khuyến mãi nền tảng, quyền khuyến mãi của nhà xe." },
       { permission: "loyalty:manage", label: "VXN Plus", description: "Tra cứu, điều chỉnh điểm thành viên." },
+      { permission: "notification:broadcast", label: "Gửi thông báo", description: "Soạn và gửi thông báo dịch vụ, khuyến mãi, tin tức tới hành khách." },
       { permission: "content:manage", label: "Bài viết", description: "Soạn, xuất bản, gỡ bài viết và chuyên mục." }
     ]
   },
@@ -58,7 +59,7 @@ export const PERMISSION_TEMPLATES: Record<PlatformRole, PermissionTemplate<Permi
     { id: "partner", label: "Vận hành đối tác", permissions: ["kyc:review", "user:manage", "catalog:manage", "payment:monitor"] },
     { id: "finance", label: "Kế toán", permissions: ["payment:monitor", "refund:manage", "payout:manage", "system:run"] },
     { id: "care", label: "Chăm sóc khách hàng", permissions: ["support:manage", "payment:monitor", "content:moderate"] },
-    { id: "content", label: "Nội dung & khuyến mãi", permissions: ["content:manage", "content:moderate", "promotion:configure", "loyalty:manage"] }
+    { id: "content", label: "Nội dung & khuyến mãi", permissions: ["content:manage", "content:moderate", "promotion:configure", "loyalty:manage", "notification:broadcast"] }
   ],
   PLATFORM_SUPPORT: [{ id: "all", label: "Đủ quyền hỗ trợ", permissions: "all" }]
 };

@@ -7,7 +7,7 @@ const { request, refresh } = vi.hoisted(() => ({ request: vi.fn(), refresh: vi.f
 vi.mock("./api", () => ({ apiRequest: request }));
 vi.mock("./session", () => ({ refreshSessionIfNeeded: refresh }));
 const member: components["schemas"]["PassengerLoyaltyDto_Output"] = { userId: "u1", name: "Khách", email: "a@example.com", status: "ACTIVE", memberSince: "2026-01-01T00:00:00Z", availablePoints: 150, earned12m: 250, tier: "SILVER", nextTier: { tier: "GOLD", minPoints: 1000, remaining: 750 }, policyVersion: 2, rules: { earnUnit: 10000, pointValue: 500, minRedeemPoints: 50, pointExpiryMonths: 12, voucherValidityDays: 45, tiers: [{ tier: "SILVER", minPoints: 200, multiplierPercent: 125 }, { tier: "GOLD", minPoints: 1000, multiplierPercent: 150 }] } };
-const voucher: components["schemas"]["UserVoucherDto_Output"] = { userVoucherId: "v1", source: "LOYALTY_REDEMPTION", status: "RESERVED", promotionCode: null, name: "Voucher đổi điểm", discountAmount: "25000", discountType: "AMOUNT", discountValue: "25000", maxDiscount: null, minOrder: "0", expiresAt: "2026-12-01T00:00:00Z", createdAt: "2026-10-20T00:00:00Z" };
+const voucher: components["schemas"]["UserVoucherDto_Output"] = { userVoucherId: "v1", source: "LOYALTY_REDEMPTION", status: "RESERVED", promotionCode: null, name: "Voucher đổi điểm", appliesTo: "Mọi nhà xe", discountAmount: "25000", discountType: "AMOUNT", discountValue: "25000", maxDiscount: null, minOrder: "0", expiresAt: "2026-12-01T00:00:00Z", createdAt: "2026-10-20T00:00:00Z" };
 
 describe("loyalty integration", () => {
   beforeEach(() => { vi.clearAllMocks(); refresh.mockResolvedValue({ status: "ok", data: { rotated: false } }); });

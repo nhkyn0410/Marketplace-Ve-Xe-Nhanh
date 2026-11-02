@@ -372,6 +372,15 @@ describe.skipIf(!ready && !requireDb)("VXN Plus — Postgres + Redis thật (LOY
     await expect(prisma.withSystem((tx) => tx.loyaltyAccount.update({ where: { userId: users.silver }, data: { availablePoints: -1 } }))).rejects.toThrow();
   }, 60_000);
 
+  it("tổng tích / đổi của khách không đổi khi lọc theo loại giao dịch", async () => {
+    const wallet = new PassengerLoyaltyService(prisma);
+    const all = await wallet.transactions(users.silver, { offset: 0, limit: 5 });
+    const redeemOnly = await wallet.transactions(users.silver, { type: "REDEEM", offset: 0, limit: 5 });
+    expect(all.totals.earned).toBeGreaterThan(0);
+    expect(redeemOnly.totals).toEqual(all.totals);
+    expect(redeemOnly.items.every((item) => item.type === "REDEEM")).toBe(true);
+  });
+
   it("ví voucher: đổi điểm song song không trùng / không âm, giữ một lần, trả khi hết hạn; thanh toán lỗi không làm tiêu trùng trợ giá", async () => {
     const wallet = new PassengerLoyaltyService(prisma);
     await loyalty.adjust(platformAuthz, admin, users.wallet, { direction: "CREDIT", points: 300, reason: "Dữ liệu thử ví voucher" }, randomUUID());

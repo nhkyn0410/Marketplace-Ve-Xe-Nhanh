@@ -2,6 +2,7 @@ import type { AuditService } from "../audit/audit.service";
 import { withNotificationSubject } from "../database/preference-scope";
 import type { PrismaService } from "../database/prisma.service";
 import type { PushNotifier } from "../external/notification/push/push-notifier";
+import { pushCarriesMessage } from "./campaign/campaign-rules";
 import { loadTarget, type DeliveryOutcome } from "./notification-delivery";
 import { renderNotification } from "./notification-templates";
 
@@ -25,7 +26,9 @@ export async function deliverPushNotification(prisma: Pick<PrismaService, "withS
     if (receipt.status === "SKIPPED") continue;
     if (!loaded.content) continue;
     try {
-      const result = await notifier.send({ provider: device.provider, token: device.token, title: renderNotification(loaded.content).title, body: "Bạn có cập nhật mới trên Vé Xe Nhanh. Mở ứng dụng để xem chi tiết.", notificationId: loaded.delivery.notificationId });
+      const rendered = renderNotification(loaded.content);
+      const kind = loaded.delivery.notification.kind;
+      const result = await notifier.send({ provider: device.provider, token: device.token, title: rendered.title, body: pushCarriesMessage(kind) ? rendered.lines.join(" ") : "Bạn có cập nhật mới trên Vé Xe Nhanh. Mở ứng dụng để xem chi tiết.", notificationId: loaded.delivery.notificationId, kind });
       await withNotificationSubject(prisma, async (tx) => {
         await tx.notificationPushReceipt.update({ where: { id: receipt.id }, data: { status: result === "SENT" ? "SENT" : "SKIPPED" } });
         if (result === "UNREGISTERED") await tx.pushDevice.updateMany({ where: { id: device.id, subjectType: device.subjectType, subjectId: device.subjectId }, data: { active: false } });

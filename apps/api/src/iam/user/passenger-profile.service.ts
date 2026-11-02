@@ -68,9 +68,9 @@ export class PassengerProfileService {
       if (query.cursor && !cursor) return { items: [], nextCursor: null };
       const rows = await tx.booking.findMany({ where: { userId, ...after(cursor) }, orderBy: [{ createdAt: "desc" }, { id: "desc" }], take: query.limit + 1, select: {
         id: true, bookingCode: true, operatorId: true, tripId: true, status: true, total: true, createdAt: true,
-        operator: { select: { displayName: true } }, trip: { select: { departureAt: true, route: { select: { name: true } } } },
+        operator: { select: { displayName: true } }, trip: { select: { departureAt: true, route: { select: { name: true } } } }, tickets: { select: { status: true } },
       } });
-      return paginate(rows, query.limit, (row) => ({ bookingId: row.id, bookingCode: row.bookingCode, operatorId: row.operatorId, operatorName: row.operator.displayName, tripId: row.tripId, routeName: row.trip.route.name, departureAt: row.trip.departureAt.toISOString(), status: row.status, total: row.total.toString(), createdAt: row.createdAt.toISOString() }));
+      return paginate(rows, query.limit, (row) => ({ bookingId: row.id, bookingCode: row.bookingCode, operatorId: row.operatorId, operatorName: row.operator.displayName, tripId: row.tripId, routeName: row.trip.route.name, departureAt: row.trip.departureAt.toISOString(), status: row.status, ticketStatuses: row.tickets.map((ticket) => ticket.status), total: row.total.toString(), createdAt: row.createdAt.toISOString() }));
     });
   }
 

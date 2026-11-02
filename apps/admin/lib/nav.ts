@@ -9,6 +9,7 @@ import {
   History,
   LayoutDashboard,
   MapPin,
+  Megaphone,
   MessageSquareWarning,
   Route,
   Plug,
@@ -55,6 +56,7 @@ export const NAV_GROUPS: NavGroup[] = [
       { href: "/moderation", label: "Kiểm duyệt", icon: ShieldCheck, permissions: ["content:moderate"] },
       { href: "/promotions", label: "Khuyến mãi", icon: TicketPercent, permissions: ["promotion:configure"] },
       { href: "/loyalty", label: "VXN Plus", icon: Sparkles, permissions: ["loyalty:manage"] },
+      { href: "/notifications", label: "Thông báo", icon: Megaphone, permissions: ["notification:broadcast"] },
       { href: "/articles", label: "Bài viết", icon: BookOpen, permissions: ["content:manage"] }
     ]
   },

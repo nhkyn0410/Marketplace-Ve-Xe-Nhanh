@@ -3,6 +3,7 @@
 //
 
 // ignore_for_file: unused_element
+import 'package:built_collection/built_collection.dart';
 import 'package:built_value/built_value.dart';
 import 'package:built_value/serializer.dart';
 
@@ -19,6 +20,7 @@ part 'passenger_booking_page_dto_output_items_inner.g.dart';
 /// * [routeName] 
 /// * [departureAt] 
 /// * [status] 
+/// * [ticketStatuses] 
 /// * [total] 
 /// * [createdAt] 
 @BuiltValue()
@@ -46,6 +48,9 @@ abstract class PassengerBookingPageDtoOutputItemsInner implements Built<Passenge
 
   @BuiltValueField(wireName: r'status')
   String get status;
+
+  @BuiltValueField(wireName: r'ticketStatuses')
+  BuiltList<String> get ticketStatuses;
 
   @BuiltValueField(wireName: r'total')
   String get total;
@@ -115,6 +120,11 @@ class _$PassengerBookingPageDtoOutputItemsInnerSerializer implements PrimitiveSe
     yield serializers.serialize(
       object.status,
       specifiedType: const FullType(String),
+    );
+    yield r'ticketStatuses';
+    yield serializers.serialize(
+      object.ticketStatuses,
+      specifiedType: const FullType(BuiltList, [FullType(String)]),
     );
     yield r'total';
     yield serializers.serialize(
@@ -204,6 +214,13 @@ class _$PassengerBookingPageDtoOutputItemsInnerSerializer implements PrimitiveSe
             specifiedType: const FullType(String),
           ) as String;
           result.status = valueDes;
+          break;
+        case r'ticketStatuses':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(BuiltList, [FullType(String)]),
+          ) as BuiltList<String>;
+          result.ticketStatuses.replace(valueDes);
           break;
         case r'total':
           final valueDes = serializers.deserialize(

@@ -76,6 +76,11 @@ class _GuestTicketDetailScreenState extends State<GuestTicketDetailScreen> {
 
   bool get _cancelled => _view?.ticket.isCancelled ?? false;
 
+  /// Vé đã lên xe / đã đi / đã hủy hoặc chuyến đã qua giờ chạy thì không còn nút hủy.
+  bool get _canCancel =>
+      (_view?.ticket.isCancellable ?? false) &&
+      _booking.departureAt.isAfter(DateTime.now());
+
   void _movePassenger(int delta) {
     if (_tickets.isEmpty) return;
     setState(() {
@@ -253,9 +258,12 @@ class _GuestTicketDetailScreenState extends State<GuestTicketDetailScreen> {
                               ? _RefundPaymentCard(booking: _booking)
                               : _PaymentCard(booking: _booking),
                           const SizedBox(height: 9),
-                          _CancellationPolicyCard(booking: _booking),
+                          _CancellationPolicyCard(
+                            booking: _booking,
+                            canCancel: _canCancel,
+                          ),
                           const SizedBox(height: 9),
-                          if (_cancelled || !_booking.hasActiveTickets)
+                          if (!_canCancel)
                             Row(
                               children: [
                                 Expanded(
@@ -949,7 +957,7 @@ class _BoardingPass extends StatelessWidget {
                     alignment: Alignment.center,
                     children: [
                       Opacity(
-                        opacity: cancelled ? .34 : 1,
+                        opacity: ticket.isCancellable ? 1 : .34,
                         child: QrImageView(
                           key: const Key('journey-ticket-qr'),
                           data: ticket.qrToken,
@@ -996,13 +1004,15 @@ class _BoardingPass extends StatelessWidget {
                 top: 137.3,
                 width: 98,
                 child: Text(
-                  cancelled ? 'QR không còn hiệu lực' : 'Lên xe quét mã',
+                  _qrCaption(ticket),
                   maxLines: 1,
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     color: cancelled
                         ? const Color(0xFFD92D20)
-                        : const Color(0xFFC67000),
+                        : ticket.isCancellable
+                        ? const Color(0xFFC67000)
+                        : journeyBody,
                     fontSize: 9,
                     height: 13 / 9,
                   ),
@@ -1151,6 +1161,15 @@ int _dayOffset(DateTime from, DateTime to) {
     b.day,
   ).difference(DateTime(a.year, a.month, a.day)).inDays;
 }
+
+/// Dòng dưới mã QR: vé đã dùng thì không còn "Lên xe quét mã".
+String _qrCaption(JourneyTicket ticket) => switch (ticket.status) {
+  'VALID' => 'Lên xe quét mã',
+  'CHECKED_IN' => 'Đã lên xe',
+  'USED' => 'Đã sử dụng',
+  'NO_SHOW' => 'Vắng mặt',
+  _ => 'QR không còn hiệu lực',
+};
 
 /// Nhãn trạng thái vé trên thẻ lên xe.
 String _ticketStatusLabel(String status) => switch (status) {
@@ -1611,9 +1630,13 @@ class _RefundPaymentCard extends StatelessWidget {
 }
 
 class _CancellationPolicyCard extends StatelessWidget {
-  const _CancellationPolicyCard({required this.booking});
+  const _CancellationPolicyCard({
+    required this.booking,
+    required this.canCancel,
+  });
 
   final JourneyBooking booking;
+  final bool canCancel;
 
   @override
   Widget build(BuildContext context) {
@@ -1719,7 +1742,9 @@ class _CancellationPolicyCard extends StatelessWidget {
                       top: 8,
                       width: 112,
                       child: Text(
-                        currentPercent > 0
+                        !canCancel
+                            ? 'Vé này không còn hủy được.'
+                            : currentPercent > 0
                             ? 'Hiện tại: vé này được hoàn $currentPercent% số tiền đã trả khi hủy, nếu đáp ứng điều kiện.'
                             : 'Hiện tại: hủy vé sẽ không được hoàn tiền.',
                         maxLines: 3,

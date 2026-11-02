@@ -22,6 +22,7 @@ part 'user_voucher_page_dto_output_items_inner.g.dart';
 /// * [discountValue] 
 /// * [maxDiscount] 
 /// * [minOrder] 
+/// * [appliesTo] 
 /// * [expiresAt] 
 /// * [createdAt] 
 @BuiltValue()
@@ -58,6 +59,9 @@ abstract class UserVoucherPageDtoOutputItemsInner implements Built<UserVoucherPa
 
   @BuiltValueField(wireName: r'minOrder')
   String get minOrder;
+
+  @BuiltValueField(wireName: r'appliesTo')
+  String get appliesTo;
 
   @BuiltValueField(wireName: r'expiresAt')
   DateTime get expiresAt;
@@ -136,6 +140,11 @@ class _$UserVoucherPageDtoOutputItemsInnerSerializer implements PrimitiveSeriali
     yield r'minOrder';
     yield serializers.serialize(
       object.minOrder,
+      specifiedType: const FullType(String),
+    );
+    yield r'appliesTo';
+    yield serializers.serialize(
+      object.appliesTo,
       specifiedType: const FullType(String),
     );
     yield r'expiresAt';
@@ -243,6 +252,13 @@ class _$UserVoucherPageDtoOutputItemsInnerSerializer implements PrimitiveSeriali
             specifiedType: const FullType(String),
           ) as String;
           result.minOrder = valueDes;
+          break;
+        case r'appliesTo':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(String),
+          ) as String;
+          result.appliesTo = valueDes;
           break;
         case r'expiresAt':
           final valueDes = serializers.deserialize(

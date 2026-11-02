@@ -37,14 +37,30 @@ class PushConfig {
 
 /// Thông báo đến khi app đang mở (hệ thống không tự hiện) hoặc khi người dùng chạm thông báo.
 class PushMessage {
-  const PushMessage({required this.title, required this.body});
+  const PushMessage({required this.title, required this.body, this.kind});
+
+  /// Loại tin liên quan tới một đơn vé: chạm vào thì mở tab Hành trình.
+  static const _journeyKinds = {
+    'BOOKING_CONFIRMED',
+    'TICKETS_CANCELLED',
+    'REFUND_SUCCEEDED',
+    'TRIP_CHANGED',
+    'TRIP_CANCELLED',
+    'MANUAL_REFUND',
+  };
 
   final String title;
   final String body;
+
+  /// Loại thông báo máy chủ gửi kèm trong `data`.
+  final String? kind;
+
+  /// `false` = mở hộp thư (khuyến mãi, tin tức, thông báo dịch vụ...).
+  bool get opensJourney => kind == null || _journeyKinds.contains(kind);
 }
 
 /// Push FCM cho hành khách đăng nhập (ADR-020/028): xin quyền, đăng ký token với API
-/// (`POST /me/push-devices`), gỡ khi đăng xuất. Máy chủ chỉ gửi tiêu đề + nội dung.
+/// (`POST /me/push-devices`), gỡ khi đăng xuất. Máy chủ gửi tiêu đề, nội dung và loại tin.
 class PushService {
   PushService({
     required this.registerDevice,
@@ -129,9 +145,15 @@ class PushService {
     if (!_initialized) return;
     try {
       if (deviceId != null) await removeDevice(deviceId);
-      await FirebaseMessaging.instance.deleteToken();
     } catch (error) {
       debugPrint('Không gỡ được thiết bị push ($error).');
+    }
+    // Phiên đã hết thì máy chủ từ chối lệnh gỡ; xóa token trên máy để lần gửi sau
+    // máy chủ nhận `UNREGISTERED` và tự tắt thiết bị.
+    try {
+      await FirebaseMessaging.instance.deleteToken();
+    } catch (error) {
+      debugPrint('Không xóa được token push ($error).');
     }
   }
 
@@ -141,6 +163,7 @@ class PushService {
     return PushMessage(
       title: notification.title ?? 'Vé Xe Nhanh',
       body: notification.body ?? '',
+      kind: message.data['kind'] as String?,
     );
   }
 }

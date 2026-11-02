@@ -56,6 +56,7 @@ export const PERMISSIONS = [
   "manager:manage", // TASK-IAM-007 — Owner: tài khoản quản lý dùng Operator OS + phân quyền. Tên riêng, KHÔNG dùng chung `access:manage`: route Admin chỉ khai quyền, grant `tenant` của Owner sẽ lọt qua
   "payout:manage", // TASK-IAM-007 tách từ `finance:configure` — Admin lập / xác nhận chi trả nhà xe (FR-ADM-09)
   "refund:manage", // TASK-IAM-007 tách từ `finance:configure` — Admin thử lại / ghi nhận hoàn tiền thủ công (FR-ADM-10)
+  "notification:broadcast", // TASK-NSR-003 — PlatformAdmin: soạn, gửi chiến dịch thông báo tới hành khách (hộp thư + push)
 ] as const;
 
 export type Permission = (typeof PERMISSIONS)[number];
@@ -184,6 +185,7 @@ export const ROLE_GRANTS: Readonly<Record<Role, Grants>> = {
     "access:manage": "any",
     "payout:manage": "any",
     "refund:manage": "any",
+    "notification:broadcast": "any",
   },
   // GIẢ ĐỊNH (Security §7 chỉ có một cột "Admin"): tối thiểu quyền — chỉ đọc/giám sát, không duyệt,
   // cấu hình hay hoàn tiền. Khanh đổi thì chỉ sửa dòng này.
@@ -239,6 +241,7 @@ export const ACCOUNT_PERMISSIONS: Readonly<
       "content:moderate",
       "support:manage",
       "dispute:decide",
+      "notification:broadcast",
     ],
     required: false,
   },

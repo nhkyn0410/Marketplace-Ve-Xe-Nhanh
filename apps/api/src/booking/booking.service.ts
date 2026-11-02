@@ -46,6 +46,7 @@ export type GuestLookupBooking = {
   operatorName: string;
   departureAt: string;
   ticketCount: number;
+  ticketStatuses: string[];
   total: bigint;
   bookedWithAccount: boolean;
   createdAt: Date;
@@ -238,7 +239,8 @@ export class BookingService {
         routeName: trip.routeName,
         operatorName: trip.operatorName,
         departureAt: trip.departureAt,
-        ticketCount: row._count.tickets,
+        ticketCount: row.tickets.length,
+        ticketStatuses: row.tickets.map((ticket) => ticket.status),
         total: row.total,
         bookedWithAccount: row.userId !== null,
         createdAt: row.createdAt,

@@ -1,6 +1,6 @@
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
-/// Hợp đồng đọc/ghi access token.
+/// Hợp đồng đọc/ghi cặp token của phiên.
 ///
 /// Tách khỏi [TokenStorage] để những thứ *dùng* token (vd `AuthInterceptor`)
 /// test được mà không phải kéo theo platform channel của
@@ -9,6 +9,11 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 abstract interface class TokenStore {
   Future<String?> readAccessToken();
   Future<void> saveAccessToken(String token);
+  Future<String?> readRefreshToken();
+  Future<void> saveSession({
+    required String accessToken,
+    required String refreshToken,
+  });
   Future<void> clear();
 }
 
@@ -29,9 +34,11 @@ class TokenStorage implements TokenStore {
   @override
   Future<String?> readAccessToken() => _storage.read(key: _accessTokenKey);
 
+  @override
   Future<String?> readRefreshToken() => _storage.read(key: _refreshTokenKey);
 
   /// Ghi cả cặp token. Nếu một lần ghi lỗi, xoá phần đã ghi để không giữ phiên dở dang.
+  @override
   Future<void> saveSession({
     required String accessToken,
     required String refreshToken,

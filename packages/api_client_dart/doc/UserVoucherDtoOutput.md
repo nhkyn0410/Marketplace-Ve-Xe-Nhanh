@@ -18,6 +18,7 @@ Name | Type | Description | Notes
 **discountValue** | **String** |  | 
 **maxDiscount** | **String** |  | 
 **minOrder** | **String** |  | 
+**appliesTo** | **String** |  | 
 **expiresAt** | [**DateTime**](DateTime.md) |  | 
 **createdAt** | [**DateTime**](DateTime.md) |  | 
 

@@ -20,7 +20,7 @@ part 'preferences_dto_output_items_inner.g.dart';
 abstract class PreferencesDtoOutputItemsInner implements Built<PreferencesDtoOutputItemsInner, PreferencesDtoOutputItemsInnerBuilder> {
   @BuiltValueField(wireName: r'kind')
   PreferencesDtoOutputItemsInnerKindEnum get kind;
-  // enum kindEnum {  BOOKING_CONFIRMED,  TICKETS_CANCELLED,  REFUND_SUCCEEDED,  TRIP_CHANGED,  TRIP_CANCELLED,  MANUAL_REFUND,  CASE_UPDATED,  OPERATIONS_ALERT,  LOYALTY_UPDATED,  PROMOTION,  };
+  // enum kindEnum {  BOOKING_CONFIRMED,  TICKETS_CANCELLED,  REFUND_SUCCEEDED,  TRIP_CHANGED,  TRIP_CANCELLED,  MANUAL_REFUND,  CASE_UPDATED,  OPERATIONS_ALERT,  LOYALTY_UPDATED,  PROMOTION,  SERVICE_NOTICE,  NEWS,  };
 
   @BuiltValueField(wireName: r'email')
   bool get email;
@@ -177,6 +177,10 @@ class PreferencesDtoOutputItemsInnerKindEnum extends EnumClass {
   static const PreferencesDtoOutputItemsInnerKindEnum LOYALTY_UPDATED = _$preferencesDtoOutputItemsInnerKindEnum_LOYALTY_UPDATED;
   @BuiltValueEnumConst(wireName: r'PROMOTION')
   static const PreferencesDtoOutputItemsInnerKindEnum PROMOTION = _$preferencesDtoOutputItemsInnerKindEnum_PROMOTION;
+  @BuiltValueEnumConst(wireName: r'SERVICE_NOTICE')
+  static const PreferencesDtoOutputItemsInnerKindEnum SERVICE_NOTICE = _$preferencesDtoOutputItemsInnerKindEnum_SERVICE_NOTICE;
+  @BuiltValueEnumConst(wireName: r'NEWS')
+  static const PreferencesDtoOutputItemsInnerKindEnum NEWS = _$preferencesDtoOutputItemsInnerKindEnum_NEWS;
 
   static Serializer<PreferencesDtoOutputItemsInnerKindEnum> get serializer => _$preferencesDtoOutputItemsInnerKindEnumSerializer;
 

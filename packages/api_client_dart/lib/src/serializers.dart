@@ -163,6 +163,8 @@ import 'package:api_client_dart/src/model/assignee_list_dto_output.dart';
 import 'package:api_client_dart/src/model/assignee_list_dto_output_items_inner.dart';
 import 'package:api_client_dart/src/model/attachment_upload_input_dto.dart';
 import 'package:api_client_dart/src/model/attachment_upload_response_dto_output.dart';
+import 'package:api_client_dart/src/model/audience_estimate_dto_output.dart';
+import 'package:api_client_dart/src/model/audience_input_dto.dart';
 import 'package:api_client_dart/src/model/auth_me_response_dto_output.dart';
 import 'package:api_client_dart/src/model/auth_token_response_dto_output.dart';
 import 'package:api_client_dart/src/model/background_jobs_dto_output.dart';
@@ -176,6 +178,18 @@ import 'package:api_client_dart/src/model/booking_input_dto.dart';
 import 'package:api_client_dart/src/model/booking_input_dto_contact.dart';
 import 'package:api_client_dart/src/model/booking_input_dto_passengers_inner.dart';
 import 'package:api_client_dart/src/model/booking_response_dto_output.dart';
+import 'package:api_client_dart/src/model/campaign_detail_dto_output.dart';
+import 'package:api_client_dart/src/model/campaign_detail_dto_output_stats.dart';
+import 'package:api_client_dart/src/model/campaign_dto_output.dart';
+import 'package:api_client_dart/src/model/campaign_input_dto.dart';
+import 'package:api_client_dart/src/model/campaign_options_dto_output.dart';
+import 'package:api_client_dart/src/model/campaign_options_dto_output_articles_inner.dart';
+import 'package:api_client_dart/src/model/campaign_options_dto_output_promotions_inner.dart';
+import 'package:api_client_dart/src/model/campaign_page_dto_output.dart';
+import 'package:api_client_dart/src/model/campaign_page_dto_output_items_inner.dart';
+import 'package:api_client_dart/src/model/campaign_send_input_dto.dart';
+import 'package:api_client_dart/src/model/campaign_test_input_dto.dart';
+import 'package:api_client_dart/src/model/campaign_test_result_dto_output.dart';
 import 'package:api_client_dart/src/model/cancellation_input_dto.dart';
 import 'package:api_client_dart/src/model/cancellation_quote_dto_output.dart';
 import 'package:api_client_dart/src/model/cancellation_quote_dto_output_tickets_inner.dart';
@@ -304,6 +318,8 @@ import 'package:api_client_dart/src/model/finance_booking_page_dto_output_items_
 import 'package:api_client_dart/src/model/finance_summary_dto_output.dart';
 import 'package:api_client_dart/src/model/finance_summary_dto_output_last_payout.dart';
 import 'package:api_client_dart/src/model/health_response_dto_output.dart';
+import 'package:api_client_dart/src/model/inbox_page_dto_output.dart';
+import 'package:api_client_dart/src/model/inbox_page_dto_output_items_inner.dart';
 import 'package:api_client_dart/src/model/incident_dto_output.dart';
 import 'package:api_client_dart/src/model/incident_dto_output_evidence_inner.dart';
 import 'package:api_client_dart/src/model/incident_input_dto.dart';
@@ -612,6 +628,7 @@ import 'package:api_client_dart/src/model/trip_search_response_dto_output_items_
 import 'package:api_client_dart/src/model/trip_search_response_dto_output_widened_to_province.dart';
 import 'package:api_client_dart/src/model/trip_seat_status_input_dto.dart';
 import 'package:api_client_dart/src/model/trip_status_input_dto.dart';
+import 'package:api_client_dart/src/model/unread_count_dto_output.dart';
 import 'package:api_client_dart/src/model/user_voucher_dto_output.dart';
 import 'package:api_client_dart/src/model/user_voucher_page_dto_output.dart';
 import 'package:api_client_dart/src/model/user_voucher_page_dto_output_items_inner.dart';
@@ -783,6 +800,8 @@ part 'serializers.g.dart';
   AssigneeListDtoOutputItemsInner,
   AttachmentUploadInputDto,
   AttachmentUploadResponseDtoOutput,
+  AudienceEstimateDtoOutput,
+  AudienceInputDto,
   AuthMeResponseDtoOutput,
   AuthTokenResponseDtoOutput,
   BackgroundJobsDtoOutput,
@@ -796,6 +815,18 @@ part 'serializers.g.dart';
   BookingInputDtoContact,
   BookingInputDtoPassengersInner,
   BookingResponseDtoOutput,
+  CampaignDetailDtoOutput,
+  CampaignDetailDtoOutputStats,
+  CampaignDtoOutput,
+  CampaignInputDto,
+  CampaignOptionsDtoOutput,
+  CampaignOptionsDtoOutputArticlesInner,
+  CampaignOptionsDtoOutputPromotionsInner,
+  CampaignPageDtoOutput,
+  CampaignPageDtoOutputItemsInner,
+  CampaignSendInputDto,
+  CampaignTestInputDto,
+  CampaignTestResultDtoOutput,
   CancellationInputDto,
   CancellationQuoteDtoOutput,
   CancellationQuoteDtoOutputTicketsInner,
@@ -924,6 +955,8 @@ part 'serializers.g.dart';
   FinanceSummaryDtoOutput,
   FinanceSummaryDtoOutputLastPayout,
   HealthResponseDtoOutput,
+  InboxPageDtoOutput,
+  InboxPageDtoOutputItemsInner,
   IncidentDtoOutput,
   IncidentDtoOutputEvidenceInner,
   IncidentInputDto,
@@ -1232,6 +1265,7 @@ part 'serializers.g.dart';
   TripSearchResponseDtoOutputWidenedToProvince,
   TripSeatStatusInputDto,
   TripStatusInputDto,
+  UnreadCountDtoOutput,
   UserVoucherDtoOutput,
   UserVoucherPageDtoOutput,
   UserVoucherPageDtoOutputItemsInner,
@@ -1353,6 +1387,10 @@ Serializers serializers = (_$serializers.toBuilder()
         () => ListBuilder<CounterCommissionOverviewDtoOutputSettlementsInner>(),
       )
       ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(CampaignPageDtoOutputItemsInner)]),
+        () => ListBuilder<CampaignPageDtoOutputItemsInner>(),
+      )
+      ..addBuilderFactory(
         const FullType(BuiltList, [FullType(PlaceSuggestionListResponseDtoOutputItemsInner)]),
         () => ListBuilder<PlaceSuggestionListResponseDtoOutputItemsInner>(),
       )
@@ -1375,6 +1413,10 @@ Serializers serializers = (_$serializers.toBuilder()
       ..addBuilderFactory(
         const FullType(BuiltList, [FullType(StopPointProposalListResponseDtoOutputItemsInner)]),
         () => ListBuilder<StopPointProposalListResponseDtoOutputItemsInner>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(CampaignOptionsDtoOutputPromotionsInner)]),
+        () => ListBuilder<CampaignOptionsDtoOutputPromotionsInner>(),
       )
       ..addBuilderFactory(
         const FullType(BuiltList, [FullType(TripResponseDtoOutputSeatsInner)]),
@@ -1403,6 +1445,10 @@ Serializers serializers = (_$serializers.toBuilder()
       ..addBuilderFactory(
         const FullType(BuiltList, [FullType(JourneyLogPageDtoOutputItemsInner)]),
         () => ListBuilder<JourneyLogPageDtoOutputItemsInner>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(CampaignOptionsDtoOutputArticlesInner)]),
+        () => ListBuilder<CampaignOptionsDtoOutputArticlesInner>(),
       )
       ..addBuilderFactory(
         const FullType(BuiltList, [FullType(AdminOperatorStopPointListDtoOutputItemsInner)]),
@@ -1627,6 +1673,10 @@ Serializers serializers = (_$serializers.toBuilder()
       ..addBuilderFactory(
         const FullType(BuiltList, [FullType(AdminAuditLogListDtoOutputItemsInner)]),
         () => ListBuilder<AdminAuditLogListDtoOutputItemsInner>(),
+      )
+      ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(InboxPageDtoOutputItemsInner)]),
+        () => ListBuilder<InboxPageDtoOutputItemsInner>(),
       )
       ..addBuilderFactory(
         const FullType(BuiltList, [FullType(OperatorBookingPageDtoOutputItemsInner)]),

@@ -74,6 +74,7 @@ describe("Vé — HTTP", () => {
         operatorName: "Nhà xe",
         departureAt: now,
         ticketCount: 1,
+        ticketStatuses: ["USED"],
         total: 320000,
         bookedWithAccount: true,
         createdAt: now,

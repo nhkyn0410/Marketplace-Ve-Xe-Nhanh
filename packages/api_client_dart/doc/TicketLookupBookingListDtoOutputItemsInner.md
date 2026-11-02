@@ -15,6 +15,7 @@ Name | Type | Description | Notes
 **operatorName** | **String** |  | 
 **departureAt** | [**DateTime**](DateTime.md) |  | 
 **ticketCount** | **int** |  | 
+**ticketStatuses** | **BuiltList&lt;String&gt;** |  | 
 **total** | **int** |  | 
 **bookedWithAccount** | **bool** |  | 
 **createdAt** | [**DateTime**](DateTime.md) |  | 

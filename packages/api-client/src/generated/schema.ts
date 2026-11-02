@@ -228,6 +228,118 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/admin/notification-campaigns": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminNotificationCampaignController_list"];
+        put?: never;
+        post: operations["AdminNotificationCampaignController_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/notification-campaigns/options": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminNotificationCampaignController_options"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/notification-campaigns/estimate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AdminNotificationCampaignController_estimate"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/notification-campaigns/{campaignId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminNotificationCampaignController_detail"];
+        put: operations["AdminNotificationCampaignController_update"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/notification-campaigns/{campaignId}/test": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AdminNotificationCampaignController_test"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/notification-campaigns/{campaignId}/send": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AdminNotificationCampaignController_send"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/notification-campaigns/{campaignId}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AdminNotificationCampaignController_cancel"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/admin/system/reconciliation": {
         parameters: {
             query?: never;
@@ -302,6 +414,70 @@ export interface paths {
         get: operations["PreferenceController_history"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/me/inbox": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["InboxController_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/me/inbox/unread-count": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["InboxController_unreadCount"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/me/inbox/read-all": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["InboxController_markAllRead"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/me/inbox/{messageId}/read": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["InboxController_markRead"];
         delete?: never;
         options?: never;
         head?: never;
@@ -5405,7 +5581,7 @@ export interface components {
                 id: string;
                 notificationId: string;
                 /** @enum {string} */
-                kind: "BOOKING_CONFIRMED" | "TICKETS_CANCELLED" | "REFUND_SUCCEEDED" | "TRIP_CHANGED" | "TRIP_CANCELLED" | "MANUAL_REFUND" | "CASE_UPDATED" | "OPERATIONS_ALERT" | "LOYALTY_UPDATED" | "PROMOTION";
+                kind: "BOOKING_CONFIRMED" | "TICKETS_CANCELLED" | "REFUND_SUCCEEDED" | "TRIP_CHANGED" | "TRIP_CANCELLED" | "MANUAL_REFUND" | "CASE_UPDATED" | "OPERATIONS_ALERT" | "LOYALTY_UPDATED" | "PROMOTION" | "SERVICE_NOTICE" | "NEWS";
                 /** @enum {string} */
                 channel: "EMAIL" | "PUSH" | "SMS";
                 recipientMasked: string;
@@ -5420,6 +5596,162 @@ export interface components {
             total: number;
             offset: number;
             limit: number;
+        };
+        CampaignPageDto_Output: {
+            items: {
+                /** Format: uuid */
+                id: string;
+                /** @enum {string} */
+                type: "SERVICE" | "PROMOTION" | "NEWS";
+                title: string;
+                body: string;
+                /** @enum {string} */
+                audience: "ALL" | "LOYALTY_TIER";
+                tiers: ("BRONZE" | "SILVER" | "GOLD" | "PLATINUM")[];
+                promotionId: string | null;
+                promotionLabel: string | null;
+                articleId: string | null;
+                articleLabel: string | null;
+                /** @enum {string} */
+                status: "DRAFT" | "SCHEDULED" | "SENDING" | "COMPLETED" | "CANCELLED";
+                scheduledAt: string | null;
+                startedAt: string | null;
+                completedAt: string | null;
+                cancelledAt: string | null;
+                note: string | null;
+                recipientCount: number;
+                cappedCount: number;
+                /** Format: date-time */
+                createdAt: string;
+                /** Format: date-time */
+                updatedAt: string;
+            }[];
+            total: number;
+            offset: number;
+            limit: number;
+        };
+        CampaignOptionsDto_Output: {
+            promotions: {
+                /** Format: uuid */
+                id: string;
+                code: string;
+                name: string;
+                /** Format: date-time */
+                endsAt: string;
+            }[];
+            articles: {
+                /** Format: uuid */
+                id: string;
+                title: string;
+                slug: string;
+                publishedAt: string | null;
+            }[];
+        };
+        AudienceInputDto: {
+            /** @enum {string} */
+            type: "SERVICE" | "PROMOTION" | "NEWS";
+            /**
+             * @default ALL
+             * @enum {string}
+             */
+            audience: "ALL" | "LOYALTY_TIER";
+            tiers: ("BRONZE" | "SILVER" | "GOLD" | "PLATINUM")[];
+        };
+        AudienceEstimateDto_Output: {
+            recipients: number;
+            withPush: number;
+            optedOut: number;
+            capped: number;
+        };
+        CampaignInputDto: {
+            /** @enum {string} */
+            type: "SERVICE" | "PROMOTION" | "NEWS";
+            title: string;
+            body: string;
+            /**
+             * @default ALL
+             * @enum {string}
+             */
+            audience: "ALL" | "LOYALTY_TIER";
+            tiers: ("BRONZE" | "SILVER" | "GOLD" | "PLATINUM")[];
+            /** @default null */
+            promotionId: string | null;
+            /** @default null */
+            articleId: string | null;
+        };
+        CampaignDto_Output: {
+            /** Format: uuid */
+            id: string;
+            /** @enum {string} */
+            type: "SERVICE" | "PROMOTION" | "NEWS";
+            title: string;
+            body: string;
+            /** @enum {string} */
+            audience: "ALL" | "LOYALTY_TIER";
+            tiers: ("BRONZE" | "SILVER" | "GOLD" | "PLATINUM")[];
+            promotionId: string | null;
+            promotionLabel: string | null;
+            articleId: string | null;
+            articleLabel: string | null;
+            /** @enum {string} */
+            status: "DRAFT" | "SCHEDULED" | "SENDING" | "COMPLETED" | "CANCELLED";
+            scheduledAt: string | null;
+            startedAt: string | null;
+            completedAt: string | null;
+            cancelledAt: string | null;
+            note: string | null;
+            recipientCount: number;
+            cappedCount: number;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        CampaignDetailDto_Output: {
+            /** Format: uuid */
+            id: string;
+            /** @enum {string} */
+            type: "SERVICE" | "PROMOTION" | "NEWS";
+            title: string;
+            body: string;
+            /** @enum {string} */
+            audience: "ALL" | "LOYALTY_TIER";
+            tiers: ("BRONZE" | "SILVER" | "GOLD" | "PLATINUM")[];
+            promotionId: string | null;
+            promotionLabel: string | null;
+            articleId: string | null;
+            articleLabel: string | null;
+            /** @enum {string} */
+            status: "DRAFT" | "SCHEDULED" | "SENDING" | "COMPLETED" | "CANCELLED";
+            scheduledAt: string | null;
+            startedAt: string | null;
+            completedAt: string | null;
+            cancelledAt: string | null;
+            note: string | null;
+            recipientCount: number;
+            cappedCount: number;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+            stats: {
+                read: number;
+                pushSent: number;
+                pushPending: number;
+                pushFailed: number;
+                pushSkipped: number;
+            };
+        };
+        CampaignTestInputDto: {
+            /** Format: email */
+            email: string;
+        };
+        CampaignTestResultDto_Output: {
+            pushDevices: number;
+        };
+        CampaignSendInputDto: {
+            /** @default null */
+            scheduledAt: string | null;
         };
         ReconciliationPageDto_Output: {
             items: {
@@ -5485,7 +5817,7 @@ export interface components {
         PreferencesDto_Output: {
             items: {
                 /** @enum {string} */
-                kind: "BOOKING_CONFIRMED" | "TICKETS_CANCELLED" | "REFUND_SUCCEEDED" | "TRIP_CHANGED" | "TRIP_CANCELLED" | "MANUAL_REFUND" | "CASE_UPDATED" | "OPERATIONS_ALERT" | "LOYALTY_UPDATED" | "PROMOTION";
+                kind: "BOOKING_CONFIRMED" | "TICKETS_CANCELLED" | "REFUND_SUCCEEDED" | "TRIP_CHANGED" | "TRIP_CANCELLED" | "MANUAL_REFUND" | "CASE_UPDATED" | "OPERATIONS_ALERT" | "LOYALTY_UPDATED" | "PROMOTION" | "SERVICE_NOTICE" | "NEWS";
                 email: boolean;
                 push: boolean;
                 mandatory: boolean;
@@ -5493,7 +5825,7 @@ export interface components {
         };
         PreferenceInputDto: {
             /** @enum {string} */
-            kind: "BOOKING_CONFIRMED" | "TICKETS_CANCELLED" | "REFUND_SUCCEEDED" | "TRIP_CHANGED" | "TRIP_CANCELLED" | "MANUAL_REFUND" | "CASE_UPDATED" | "OPERATIONS_ALERT" | "LOYALTY_UPDATED" | "PROMOTION";
+            kind: "BOOKING_CONFIRMED" | "TICKETS_CANCELLED" | "REFUND_SUCCEEDED" | "TRIP_CHANGED" | "TRIP_CANCELLED" | "MANUAL_REFUND" | "CASE_UPDATED" | "OPERATIONS_ALERT" | "LOYALTY_UPDATED" | "PROMOTION" | "SERVICE_NOTICE" | "NEWS";
             email: boolean;
             push: boolean;
         };
@@ -5507,6 +5839,26 @@ export interface components {
             id: string;
             provider: string;
             active: boolean;
+        };
+        InboxPageDto_Output: {
+            items: {
+                /** Format: uuid */
+                id: string;
+                /** @enum {string} */
+                kind: "BOOKING_CONFIRMED" | "TICKETS_CANCELLED" | "REFUND_SUCCEEDED" | "TRIP_CHANGED" | "TRIP_CANCELLED" | "MANUAL_REFUND" | "CASE_UPDATED" | "OPERATIONS_ALERT" | "LOYALTY_UPDATED" | "PROMOTION" | "SERVICE_NOTICE" | "NEWS";
+                title: string;
+                body: string;
+                linkType: ("PROMOTION" | "ARTICLE" | "BOOKING") | null;
+                linkTarget: string | null;
+                /** Format: date-time */
+                createdAt: string;
+                readAt: string | null;
+            }[];
+            nextCursor: string | null;
+            unreadCount: number;
+        };
+        UnreadCountDto_Output: {
+            unreadCount: number;
         };
         IncidentInputDto: {
             /** Format: uuid */
@@ -5766,6 +6118,7 @@ export interface components {
                 /** Format: date-time */
                 departureAt: string;
                 status: string;
+                ticketStatuses: string[];
                 total: string;
                 /** Format: date-time */
                 createdAt: string;
@@ -5939,6 +6292,7 @@ export interface components {
             discountValue: string;
             maxDiscount: string | null;
             minOrder: string;
+            appliesTo: string;
             /** Format: date-time */
             expiresAt: string;
             /** Format: date-time */
@@ -5960,6 +6314,7 @@ export interface components {
                 discountValue: string;
                 maxDiscount: string | null;
                 minOrder: string;
+                appliesTo: string;
                 /** Format: date-time */
                 expiresAt: string;
                 /** Format: date-time */
@@ -8697,6 +9052,7 @@ export interface components {
                 /** Format: date-time */
                 departureAt: string;
                 ticketCount: number;
+                ticketStatuses: string[];
                 total: number;
                 bookedWithAccount: boolean;
                 /** Format: date-time */
@@ -11421,7 +11777,7 @@ export interface components {
                 email: string | null;
                 /** @enum {string} */
                 role: "PLATFORM_ADMIN" | "PLATFORM_SUPPORT";
-                permissions: ("profile:manage" | "loyalty:use" | "notification:manage" | "incident:create" | "journey-log:create" | "system:run" | "trip:search" | "booking:create" | "booking:read" | "payment:create" | "payment:monitor" | "refund:request" | "vehicle:manage" | "vehicle:read" | "route:manage" | "trip:manage" | "trip:dispatch" | "office:manage" | "office:read" | "counter:sell" | "counter:collect" | "counter:read" | "checkin:perform" | "checkin:read" | "trip:operate" | "kyc:submit" | "kyc:review" | "catalog:manage" | "content:moderate" | "content:manage" | "user:manage" | "system:read" | "finance:read" | "finance:configure" | "audit:read" | "employee:manage" | "account:lock" | "support:create" | "review:create" | "support:respond" | "support:manage" | "dispute:decide" | "promotion:manage" | "promotion:configure" | "loyalty:manage" | "access:manage" | "transport:read" | "manager:manage" | "payout:manage" | "refund:manage")[];
+                permissions: ("profile:manage" | "loyalty:use" | "notification:manage" | "incident:create" | "journey-log:create" | "system:run" | "trip:search" | "booking:create" | "booking:read" | "payment:create" | "payment:monitor" | "refund:request" | "vehicle:manage" | "vehicle:read" | "route:manage" | "trip:manage" | "trip:dispatch" | "office:manage" | "office:read" | "counter:sell" | "counter:collect" | "counter:read" | "checkin:perform" | "checkin:read" | "trip:operate" | "kyc:submit" | "kyc:review" | "catalog:manage" | "content:moderate" | "content:manage" | "user:manage" | "system:read" | "finance:read" | "finance:configure" | "audit:read" | "employee:manage" | "account:lock" | "support:create" | "review:create" | "support:respond" | "support:manage" | "dispute:decide" | "promotion:manage" | "promotion:configure" | "loyalty:manage" | "access:manage" | "transport:read" | "manager:manage" | "payout:manage" | "refund:manage" | "notification:broadcast")[];
                 /** @enum {string} */
                 status: "ACTIVE" | "LOCKED" | "DISABLED";
                 mfaEnabled: boolean;
@@ -11433,8 +11789,8 @@ export interface components {
                 isSelf: boolean;
             }[];
             grantable: {
-                PLATFORM_ADMIN: ("profile:manage" | "loyalty:use" | "notification:manage" | "incident:create" | "journey-log:create" | "system:run" | "trip:search" | "booking:create" | "booking:read" | "payment:create" | "payment:monitor" | "refund:request" | "vehicle:manage" | "vehicle:read" | "route:manage" | "trip:manage" | "trip:dispatch" | "office:manage" | "office:read" | "counter:sell" | "counter:collect" | "counter:read" | "checkin:perform" | "checkin:read" | "trip:operate" | "kyc:submit" | "kyc:review" | "catalog:manage" | "content:moderate" | "content:manage" | "user:manage" | "system:read" | "finance:read" | "finance:configure" | "audit:read" | "employee:manage" | "account:lock" | "support:create" | "review:create" | "support:respond" | "support:manage" | "dispute:decide" | "promotion:manage" | "promotion:configure" | "loyalty:manage" | "access:manage" | "transport:read" | "manager:manage" | "payout:manage" | "refund:manage")[];
-                PLATFORM_SUPPORT: ("profile:manage" | "loyalty:use" | "notification:manage" | "incident:create" | "journey-log:create" | "system:run" | "trip:search" | "booking:create" | "booking:read" | "payment:create" | "payment:monitor" | "refund:request" | "vehicle:manage" | "vehicle:read" | "route:manage" | "trip:manage" | "trip:dispatch" | "office:manage" | "office:read" | "counter:sell" | "counter:collect" | "counter:read" | "checkin:perform" | "checkin:read" | "trip:operate" | "kyc:submit" | "kyc:review" | "catalog:manage" | "content:moderate" | "content:manage" | "user:manage" | "system:read" | "finance:read" | "finance:configure" | "audit:read" | "employee:manage" | "account:lock" | "support:create" | "review:create" | "support:respond" | "support:manage" | "dispute:decide" | "promotion:manage" | "promotion:configure" | "loyalty:manage" | "access:manage" | "transport:read" | "manager:manage" | "payout:manage" | "refund:manage")[];
+                PLATFORM_ADMIN: ("profile:manage" | "loyalty:use" | "notification:manage" | "incident:create" | "journey-log:create" | "system:run" | "trip:search" | "booking:create" | "booking:read" | "payment:create" | "payment:monitor" | "refund:request" | "vehicle:manage" | "vehicle:read" | "route:manage" | "trip:manage" | "trip:dispatch" | "office:manage" | "office:read" | "counter:sell" | "counter:collect" | "counter:read" | "checkin:perform" | "checkin:read" | "trip:operate" | "kyc:submit" | "kyc:review" | "catalog:manage" | "content:moderate" | "content:manage" | "user:manage" | "system:read" | "finance:read" | "finance:configure" | "audit:read" | "employee:manage" | "account:lock" | "support:create" | "review:create" | "support:respond" | "support:manage" | "dispute:decide" | "promotion:manage" | "promotion:configure" | "loyalty:manage" | "access:manage" | "transport:read" | "manager:manage" | "payout:manage" | "refund:manage" | "notification:broadcast")[];
+                PLATFORM_SUPPORT: ("profile:manage" | "loyalty:use" | "notification:manage" | "incident:create" | "journey-log:create" | "system:run" | "trip:search" | "booking:create" | "booking:read" | "payment:create" | "payment:monitor" | "refund:request" | "vehicle:manage" | "vehicle:read" | "route:manage" | "trip:manage" | "trip:dispatch" | "office:manage" | "office:read" | "counter:sell" | "counter:collect" | "counter:read" | "checkin:perform" | "checkin:read" | "trip:operate" | "kyc:submit" | "kyc:review" | "catalog:manage" | "content:moderate" | "content:manage" | "user:manage" | "system:read" | "finance:read" | "finance:configure" | "audit:read" | "employee:manage" | "account:lock" | "support:create" | "review:create" | "support:respond" | "support:manage" | "dispute:decide" | "promotion:manage" | "promotion:configure" | "loyalty:manage" | "access:manage" | "transport:read" | "manager:manage" | "payout:manage" | "refund:manage" | "notification:broadcast")[];
             };
         };
         AdminPlatformAccountCreateDto: {
@@ -11443,7 +11799,7 @@ export interface components {
             email: string;
             /** @enum {string} */
             role: "PLATFORM_ADMIN" | "PLATFORM_SUPPORT";
-            permissions: ("profile:manage" | "loyalty:use" | "notification:manage" | "incident:create" | "journey-log:create" | "system:run" | "trip:search" | "booking:create" | "booking:read" | "payment:create" | "payment:monitor" | "refund:request" | "vehicle:manage" | "vehicle:read" | "route:manage" | "trip:manage" | "trip:dispatch" | "office:manage" | "office:read" | "counter:sell" | "counter:collect" | "counter:read" | "checkin:perform" | "checkin:read" | "trip:operate" | "kyc:submit" | "kyc:review" | "catalog:manage" | "content:moderate" | "content:manage" | "user:manage" | "system:read" | "finance:read" | "finance:configure" | "audit:read" | "employee:manage" | "account:lock" | "support:create" | "review:create" | "support:respond" | "support:manage" | "dispute:decide" | "promotion:manage" | "promotion:configure" | "loyalty:manage" | "access:manage" | "transport:read" | "manager:manage" | "payout:manage" | "refund:manage")[];
+            permissions: ("profile:manage" | "loyalty:use" | "notification:manage" | "incident:create" | "journey-log:create" | "system:run" | "trip:search" | "booking:create" | "booking:read" | "payment:create" | "payment:monitor" | "refund:request" | "vehicle:manage" | "vehicle:read" | "route:manage" | "trip:manage" | "trip:dispatch" | "office:manage" | "office:read" | "counter:sell" | "counter:collect" | "counter:read" | "checkin:perform" | "checkin:read" | "trip:operate" | "kyc:submit" | "kyc:review" | "catalog:manage" | "content:moderate" | "content:manage" | "user:manage" | "system:read" | "finance:read" | "finance:configure" | "audit:read" | "employee:manage" | "account:lock" | "support:create" | "review:create" | "support:respond" | "support:manage" | "dispute:decide" | "promotion:manage" | "promotion:configure" | "loyalty:manage" | "access:manage" | "transport:read" | "manager:manage" | "payout:manage" | "refund:manage" | "notification:broadcast")[];
         };
         AdminPlatformAccountDto_Output: {
             /** Format: uuid */
@@ -11452,7 +11808,7 @@ export interface components {
             email: string | null;
             /** @enum {string} */
             role: "PLATFORM_ADMIN" | "PLATFORM_SUPPORT";
-            permissions: ("profile:manage" | "loyalty:use" | "notification:manage" | "incident:create" | "journey-log:create" | "system:run" | "trip:search" | "booking:create" | "booking:read" | "payment:create" | "payment:monitor" | "refund:request" | "vehicle:manage" | "vehicle:read" | "route:manage" | "trip:manage" | "trip:dispatch" | "office:manage" | "office:read" | "counter:sell" | "counter:collect" | "counter:read" | "checkin:perform" | "checkin:read" | "trip:operate" | "kyc:submit" | "kyc:review" | "catalog:manage" | "content:moderate" | "content:manage" | "user:manage" | "system:read" | "finance:read" | "finance:configure" | "audit:read" | "employee:manage" | "account:lock" | "support:create" | "review:create" | "support:respond" | "support:manage" | "dispute:decide" | "promotion:manage" | "promotion:configure" | "loyalty:manage" | "access:manage" | "transport:read" | "manager:manage" | "payout:manage" | "refund:manage")[];
+            permissions: ("profile:manage" | "loyalty:use" | "notification:manage" | "incident:create" | "journey-log:create" | "system:run" | "trip:search" | "booking:create" | "booking:read" | "payment:create" | "payment:monitor" | "refund:request" | "vehicle:manage" | "vehicle:read" | "route:manage" | "trip:manage" | "trip:dispatch" | "office:manage" | "office:read" | "counter:sell" | "counter:collect" | "counter:read" | "checkin:perform" | "checkin:read" | "trip:operate" | "kyc:submit" | "kyc:review" | "catalog:manage" | "content:moderate" | "content:manage" | "user:manage" | "system:read" | "finance:read" | "finance:configure" | "audit:read" | "employee:manage" | "account:lock" | "support:create" | "review:create" | "support:respond" | "support:manage" | "dispute:decide" | "promotion:manage" | "promotion:configure" | "loyalty:manage" | "access:manage" | "transport:read" | "manager:manage" | "payout:manage" | "refund:manage" | "notification:broadcast")[];
             /** @enum {string} */
             status: "ACTIVE" | "LOCKED" | "DISABLED";
             mfaEnabled: boolean;
@@ -11464,7 +11820,7 @@ export interface components {
             isSelf: boolean;
         };
         AdminPlatformPermissionsUpdateDto: {
-            permissions: ("profile:manage" | "loyalty:use" | "notification:manage" | "incident:create" | "journey-log:create" | "system:run" | "trip:search" | "booking:create" | "booking:read" | "payment:create" | "payment:monitor" | "refund:request" | "vehicle:manage" | "vehicle:read" | "route:manage" | "trip:manage" | "trip:dispatch" | "office:manage" | "office:read" | "counter:sell" | "counter:collect" | "counter:read" | "checkin:perform" | "checkin:read" | "trip:operate" | "kyc:submit" | "kyc:review" | "catalog:manage" | "content:moderate" | "content:manage" | "user:manage" | "system:read" | "finance:read" | "finance:configure" | "audit:read" | "employee:manage" | "account:lock" | "support:create" | "review:create" | "support:respond" | "support:manage" | "dispute:decide" | "promotion:manage" | "promotion:configure" | "loyalty:manage" | "access:manage" | "transport:read" | "manager:manage" | "payout:manage" | "refund:manage")[];
+            permissions: ("profile:manage" | "loyalty:use" | "notification:manage" | "incident:create" | "journey-log:create" | "system:run" | "trip:search" | "booking:create" | "booking:read" | "payment:create" | "payment:monitor" | "refund:request" | "vehicle:manage" | "vehicle:read" | "route:manage" | "trip:manage" | "trip:dispatch" | "office:manage" | "office:read" | "counter:sell" | "counter:collect" | "counter:read" | "checkin:perform" | "checkin:read" | "trip:operate" | "kyc:submit" | "kyc:review" | "catalog:manage" | "content:moderate" | "content:manage" | "user:manage" | "system:read" | "finance:read" | "finance:configure" | "audit:read" | "employee:manage" | "account:lock" | "support:create" | "review:create" | "support:respond" | "support:manage" | "dispute:decide" | "promotion:manage" | "promotion:configure" | "loyalty:manage" | "access:manage" | "transport:read" | "manager:manage" | "payout:manage" | "refund:manage" | "notification:broadcast")[];
             reason: string;
         };
     };
@@ -12274,6 +12630,427 @@ export interface operations {
             };
         };
     };
+    AdminNotificationCampaignController_list: {
+        parameters: {
+            query?: {
+                status?: "DRAFT" | "SCHEDULED" | "SENDING" | "COMPLETED" | "CANCELLED";
+                offset?: number;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Danh sách chiến dịch. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CampaignPageDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminNotificationCampaignController_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CampaignInputDto"];
+            };
+        };
+        responses: {
+            /** @description Bản nháp. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CampaignDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `CAMPAIGN_INVALID`. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminNotificationCampaignController_options: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Nội dung có thể gắn. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CampaignOptionsDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminNotificationCampaignController_estimate: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AudienceInputDto"];
+            };
+        };
+        responses: {
+            /** @description Số người sẽ nhận. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AudienceEstimateDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminNotificationCampaignController_detail: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                campaignId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Chiến dịch. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CampaignDetailDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `CAMPAIGN_NOT_FOUND`. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminNotificationCampaignController_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                campaignId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CampaignInputDto"];
+            };
+        };
+        responses: {
+            /** @description Bản nháp đã sửa. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CampaignDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `CAMPAIGN_STATE_INVALID`. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminNotificationCampaignController_test: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                campaignId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CampaignTestInputDto"];
+            };
+        };
+        responses: {
+            /** @description Đã gửi thử. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CampaignTestResultDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `CAMPAIGN_TEST_RECIPIENT_NOT_FOUND`. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminNotificationCampaignController_send: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                campaignId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CampaignSendInputDto"];
+            };
+        };
+        responses: {
+            /** @description Đã xếp lịch gửi. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CampaignDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `CAMPAIGN_QUIET_HOURS` · `CAMPAIGN_INVALID`. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AdminNotificationCampaignController_cancel: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                campaignId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Đã hủy. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CampaignDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
     AdminReconciliationController_list: {
         parameters: {
             query?: never;
@@ -12526,6 +13303,145 @@ export interface operations {
                     "application/json": components["schemas"]["NotificationLogDto_Output"];
                 };
             };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    InboxController_list: {
+        parameters: {
+            query?: {
+                cursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Hộp thư của tôi. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InboxPageDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    InboxController_unreadCount: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Số tin chưa đọc. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UnreadCountDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    InboxController_markAllRead: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    InboxController_markRead: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                messageId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
             /** @description Thiếu hoặc sai access token. */
             401: {
                 headers: {

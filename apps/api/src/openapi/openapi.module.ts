@@ -126,6 +126,10 @@ import { VehicleController } from "../vehicle/vehicle.controller";
 import { VehicleService } from "../vehicle/vehicle.service";
 import { AdminNotificationController, PreferenceController } from "../notification/preference.controller";
 import { PreferenceService } from "../notification/preference.service";
+import { InboxController } from "../notification/inbox.controller";
+import { InboxService } from "../notification/inbox.service";
+import { AdminNotificationCampaignController } from "../notification/campaign/notification-campaign.controller";
+import { NotificationCampaignService } from "../notification/campaign/notification-campaign.service";
 import { EmployeeIncidentController, OperatorIncidentController, AdminIncidentController } from "../incident/incident.controller";
 import { IncidentService } from "../incident/incident.service";
 import { EmployeeJourneyLogController, OperatorJourneyLogController, AdminJourneyLogController } from "../journey-log/journey-log.controller";
@@ -157,8 +161,10 @@ import { OperatorDepartureService } from "../trip/operator-departure.service";
     CounterCommissionController,
     OperatorDepartureController,
     AdminNotificationController,
+    AdminNotificationCampaignController,
     AdminReconciliationController,
     PreferenceController,
+    InboxController,
     EmployeeIncidentController,
     OperatorIncidentController,
     AdminIncidentController,
@@ -244,6 +250,8 @@ import { OperatorDepartureService } from "../trip/operator-departure.service";
     { provide: AdminReconciliationService, useValue: {} },
     { provide: OperatorManagerService, useValue: {} },
     { provide: PreferenceService, useValue: {} },
+    { provide: InboxService, useValue: {} },
+    { provide: NotificationCampaignService, useValue: {} },
     { provide: IncidentService, useValue: {} },
     { provide: JourneyLogService, useValue: {} },
     { provide: PassengerProfileService, useValue: {} },

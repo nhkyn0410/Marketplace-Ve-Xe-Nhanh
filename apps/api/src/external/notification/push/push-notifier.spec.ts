@@ -8,7 +8,7 @@ const mocks = vi.hoisted(() => ({ send: vi.fn(), initializeApp: vi.fn(() => ({ n
 vi.mock("firebase-admin/app", () => ({ getApps: () => [], initializeApp: mocks.initializeApp, cert: mocks.cert }));
 vi.mock("firebase-admin/messaging", () => ({ getMessaging: () => ({ send: mocks.send }) }));
 vi.mock("node:http2", () => ({ connect: mocks.connect }));
-const message = { provider: "FCM", token: "secret-device-token", title: "Có cập nhật", body: "Mở ứng dụng", notificationId: "notification-id" };
+const message = { provider: "FCM", token: "secret-device-token", title: "Có cập nhật", body: "Mở ứng dụng", notificationId: "notification-id", kind: "BOOKING_CONFIRMED" };
 
 describe("Adapter push FCM/APNs", () => {
   beforeEach(() => vi.clearAllMocks());
@@ -22,11 +22,21 @@ describe("Adapter push FCM/APNs", () => {
     const notifier = new ServerPushNotifier(parseAppConfig({ FCM_PROJECT_ID: "test-project", FCM_CLIENT_EMAIL: "service@example.com", FCM_PRIVATE_KEY: "key" }));
     mocks.send.mockResolvedValueOnce("sent");
     expect(await notifier.send(message)).toBe("SENT");
-    expect(mocks.send.mock.calls[0]![0]).toMatchObject({ token: message.token, data: { notificationId: message.notificationId }, android: { collapseKey: message.notificationId } });
+    expect(mocks.send.mock.calls[0]![0]).toMatchObject({ token: message.token, data: { notificationId: message.notificationId, kind: "BOOKING_CONFIRMED" }, android: { collapseKey: message.notificationId, notification: { channelId: "vxn_important" } } });
     mocks.send.mockRejectedValueOnce({ code: "messaging/registration-token-not-registered" });
     expect(await notifier.send(message)).toBe("UNREGISTERED");
     mocks.send.mockRejectedValueOnce(new Error(message.token));
     await expect(notifier.send(message)).rejects.toThrow("FCM delivery failed (unknown).");
+  });
+  it("tin khuyến mãi đi kênh Android riêng để khách tắt được mà vẫn nhận tin về vé", async () => {
+    const notifier = new ServerPushNotifier(parseAppConfig({ FCM_PROJECT_ID: "test-project", FCM_CLIENT_EMAIL: "service@example.com", FCM_PRIVATE_KEY: "key" }));
+    mocks.send.mockResolvedValue("sent");
+    for (const kind of ["PROMOTION", "NEWS", "LOYALTY_UPDATED"]) {
+      await notifier.send({ ...message, kind });
+      expect(mocks.send.mock.lastCall![0]).toMatchObject({ data: { kind }, android: { notification: { channelId: "vxn_offers" } } });
+    }
+    await notifier.send({ ...message, kind: "SERVICE_NOTICE" });
+    expect(mocks.send.mock.lastCall![0]).toMatchObject({ android: { notification: { channelId: "vxn_important" } } });
   });
   it("APNs ký ES256 và gửi HTTP/2 đúng topic, sandbox, mã gom thông báo", async () => {
     const { privateKey, publicKey } = generateKeyPairSync("ec", { namedCurve: "P-256" });
