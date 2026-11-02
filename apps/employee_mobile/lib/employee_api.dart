@@ -42,9 +42,15 @@ class EmployeeTicketException extends EmployeeApiException {
 }
 
 abstract interface class EmployeeTokenStore implements TokenStore {
+  @override
   Future<String?> readRefreshToken();
   Future<DateTime?> readExpiresAt();
-  Future<void> saveSession(String access, String refresh, DateTime expiresAt);
+  @override
+  Future<void> saveSession({
+    required String accessToken,
+    required String refreshToken,
+    DateTime? expiresAt,
+  });
 }
 
 /// Refresh token and expiry stay beside the access token in secure storage.
@@ -65,17 +71,26 @@ class SecureEmployeeTokenStore implements EmployeeTokenStore {
   Future<void> saveAccessToken(String token) =>
       storage.write(key: _access, value: token);
   @override
-  Future<void> saveSession(
-    String access,
-    String refresh,
-    DateTime expiresAt,
-  ) async {
-    await storage.write(key: _refresh, value: refresh);
-    await storage.write(
-      key: _expiry,
-      value: expiresAt.toUtc().toIso8601String(),
-    );
-    await saveAccessToken(access);
+  Future<void> saveSession({
+    required String accessToken,
+    required String refreshToken,
+    DateTime? expiresAt,
+  }) async {
+    try {
+      await storage.write(key: _refresh, value: refreshToken);
+      if (expiresAt == null) {
+        await storage.delete(key: _expiry);
+      } else {
+        await storage.write(
+          key: _expiry,
+          value: expiresAt.toUtc().toIso8601String(),
+        );
+      }
+      await saveAccessToken(accessToken);
+    } catch (_) {
+      await clear();
+      rethrow;
+    }
   }
 
   @override
@@ -163,9 +178,11 @@ class EmployeeApi {
       }
       final session = sessions.first;
       await tokens.saveSession(
-        session.accessToken,
-        session.refreshToken,
-        DateTime.now().add(Duration(seconds: session.expiresIn ?? 900)),
+        accessToken: session.accessToken,
+        refreshToken: session.refreshToken,
+        expiresAt: DateTime.now().add(
+          Duration(seconds: session.expiresIn ?? 900),
+        ),
       );
     });
   }
@@ -201,9 +218,9 @@ class EmployeeApi {
       );
     }
     await tokens.saveSession(
-      access,
-      refresh,
-      DateTime.now().add(Duration(seconds: expiry as int? ?? 900)),
+      accessToken: access,
+      refreshToken: refresh,
+      expiresAt: DateTime.now().add(Duration(seconds: expiry as int? ?? 900)),
     );
   }
 
@@ -246,9 +263,11 @@ class EmployeeApi {
       );
     }
     await tokens.saveSession(
-      session.accessToken,
-      session.refreshToken,
-      DateTime.now().add(Duration(seconds: session.expiresIn ?? 900)),
+      accessToken: session.accessToken,
+      refreshToken: session.refreshToken,
+      expiresAt: DateTime.now().add(
+        Duration(seconds: session.expiresIn ?? 900),
+      ),
     );
   });
 
@@ -332,6 +351,7 @@ class EmployeeApi {
         trip.serverTicketCount = manifest.trip.ticketCount;
         trip.checkInTicket = (code) => board(trip, code);
         trip.reloadManifest = () => reloadManifest(trip);
+        trip.updateOperation = (status) => operate(trip, status);
         trips.add(trip);
       }
       return trips;
@@ -373,6 +393,36 @@ class EmployeeApi {
         ..addAll(trip.passengers.map((p) => p.seat).toSet());
       trip.serverBoardedCount = manifest.trip.checkedInCount;
       trip.serverTicketCount = manifest.trip.ticketCount;
+      trip.status = _tripStatus(manifest.trip.status.name);
+    });
+  }
+
+  /// Cập nhật vận hành chuyến sau khi máy chủ xác nhận trạng thái mới.
+  Future<void> operate(DemoTrip trip, String status) async {
+    await _ensureSession();
+    await _request(() async {
+      final result =
+          (await _client
+                  .getEmployeeOperationsApi()
+                  .employeeOperationsControllerOperate(
+                    tripId: trip.serverId!,
+                    tripOperationInputDto: TripOperationInputDto(
+                      (b) => b
+                        ..status = TripOperationInputDtoStatusEnum.valueOf(
+                          status,
+                        ),
+                    ),
+                  ))
+              .data;
+      if (result == null || result.status.name != status) {
+        throw const EmployeeApiException(
+          'UNEXPECTED_RESPONSE',
+          'Chưa xác nhận được trạng thái chuyến. Vui lòng tải lại.',
+        );
+      }
+      trip.status = _tripStatus(result.status.name);
+      trip.serverBoardedCount = result.checkedInCount;
+      trip.serverTicketCount = result.ticketCount;
     });
   }
 
@@ -492,7 +542,7 @@ class EmployeeApi {
 
   static String _tripStatus(String status) => switch (status) {
     'BOARDING' => 'Đón khách',
-    'DEPARTED' => 'Đã khởi hành',
+    'DEPARTED' => 'Khởi hành',
     'IN_PROGRESS' => 'Đang chạy',
     'COMPLETED' => 'Hoàn thành',
     'CANCELLED' => 'Đã hủy',

@@ -37,7 +37,9 @@ Camera gửi nguyên token QR lên API xác minh, không đổi chữ hoa/thư�
 
 Luồng tự động theo yêu cầu giao diện: quét → loading → xác minh → check-in → Đã lên xe. Hai API `/v1/employee/tickets/verify` và `/v1/employee/check-ins` xác minh quyền/phân công/nhà xe/chuyến/trạng thái trên server. Chỉ sau khi API check-in trả thành công mới cập nhật danh sách/ghế. Vé quét lại không tăng số khách; mất mạng hoặc timeout không báo thành công và cần kiểm tra lại trạng thái vé trước khi thử lại.
 
-Các chức năng vận hành, nhật trình, sự cố và quản lý hồ sơ/thiết bị chưa được tích hợp API trong thay đổi này. Thao tác ghi vận hành/nhật trình/sự cố trên chuyến thật bị chặn để không báo lưu thành công cục bộ.
+Tài xế được phân công có thể vận hành chuyến qua API: Đón khách → Khởi hành → Đang chạy → Hoàn thành. Giao diện chỉ cập nhật sau khi máy chủ xác nhận; lỗi giữ trạng thái cũ và cho thử lại. Tải lại danh sách/manifest lấy trạng thái mới từ máy chủ. Khi hoàn thành, API chuyển vé đã lên xe sang `USED`, vé chưa lên sang `NO_SHOW`.
+
+Nhật trình, sự cố và quản lý hồ sơ/thiết bị chưa được tích hợp API. Thao tác ghi nhật trình/sự cố trên chuyến thật vẫn bị chặn.
 
 ## Các màn đã có
 

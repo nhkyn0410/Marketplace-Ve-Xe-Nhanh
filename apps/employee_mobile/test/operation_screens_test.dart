@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:employee_mobile/demo_data.dart';
 import 'package:employee_mobile/operation_screens.dart';
 import 'package:flutter/material.dart';
@@ -18,6 +20,70 @@ void main() {
       ..addFont(rootBundle.load('assets/fonts/Inter.ttf'));
     await font.load();
   });
+
+  testWidgets(
+    'live trip completes only after each API confirmation and can retry',
+    (tester) async {
+      tester.view.physicalSize = const Size(390, 844);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      final requested = <String>[];
+      final trip = DemoTrip(
+        id: 'Chuyến thật',
+        serverId: 'live-trip',
+        origin: 'TP.HCM',
+        destination: 'Đà Lạt',
+        departure: '10:00',
+        operatingNote: '',
+        passengers: [],
+      );
+      var confirmation = Completer<void>();
+      trip.updateOperation = (status) {
+        requested.add(status);
+        return confirmation.future;
+      };
+      await tester.pumpWidget(MaterialApp(home: OperationsScreen(trip: trip)));
+      final handle = find.byKey(const ValueKey('swipe-Xác nhận Đón khách'));
+      await tester.ensureVisible(handle);
+      await tester.drag(handle, const Offset(1000, 0));
+      await tester.pump(const Duration(milliseconds: 300));
+      expect(requested, ['BOARDING']);
+      expect(trip.status, 'Sắp khởi hành');
+      confirmation.completeError(StateError('Mất kết nối'));
+      await tester.pumpAndSettle();
+      expect(trip.status, 'Sắp khởi hành');
+      expect(trip.operationHistory, isEmpty);
+      confirmation = Completer<void>();
+      await tester.drag(
+        find.byKey(const ValueKey('swipe-Thử cập nhật lại')),
+        const Offset(1000, 0),
+      );
+      await tester.pump(const Duration(milliseconds: 300));
+      confirmation.complete();
+      await tester.pumpAndSettle();
+      expect(trip.status, 'Đón khách');
+      for (final step in [
+        ('Xác nhận khởi hành', 'DEPARTED', 'Khởi hành'),
+        ('Chuyển sang Đang chạy', 'IN_PROGRESS', 'Đang chạy'),
+        ('Xác nhận hoàn thành', 'COMPLETED', 'Hoàn thành'),
+      ]) {
+        confirmation = Completer<void>();
+        await tester.drag(
+          find.byKey(ValueKey('swipe-${step.$1}')),
+          const Offset(1000, 0),
+        );
+        await tester.pump(const Duration(milliseconds: 300));
+        expect(requested.last, step.$2);
+        expect(trip.status, isNot(step.$3));
+        confirmation.complete();
+        await tester.pumpAndSettle();
+        expect(trip.status, step.$3);
+      }
+      expect(trip.operationHistory, hasLength(4));
+      expect(find.textContaining('chưa gửi máy chủ'), findsNothing);
+    },
+  );
 
   testWidgets(
     'Journal validates delay and keeps detail when Operations reopens',

@@ -4,16 +4,24 @@
 //   flutter test integration_test -d emulator-5554 --dart-define=API_BASE_URL=http://10.0.2.2:3100
 //
 // Mỗi lần chạy tạo thật một đơn chờ thanh toán (giữ chỗ tới khi đơn hết hạn) — chỉ chạy trên DB dev / demo.
+import 'package:api_client_dart/api_client_dart.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
+import 'package:passenger_mobile/features/journey/guest_ticket_detail_screen.dart';
+import 'package:passenger_mobile/features/journey/journey_api.dart';
+import 'package:passenger_mobile/features/ticket/payment_screen.dart';
+import 'package:passenger_mobile/features/ticket/payment_checkout_screen.dart';
+import 'package:passenger_mobile/features/ticket/payment_models.dart';
+import 'package:passenger_mobile/features/ticket/seat_map_tile.dart';
 import 'package:passenger_mobile/main.dart';
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
   final api = Dio(BaseOptions(baseUrl: '$apiBaseUrl/v1'));
+  PaymentScreen? pendingPayment;
 
   /// Trạng thái chỗ [seat] của chuyến theo API công khai (`AVAILABLE` / `UNAVAILABLE`).
   Future<String> seatStatus(String tripId, String seat) async {
@@ -39,7 +47,7 @@ void main() {
         const Key('contact-email-field'),
         'e2e+$stamp@example.com',
       );
-      await _enter(tester, Key('passenger-name-$seat'), 'Khach E2E');
+      // Chỗ đầu mặc định dùng thông tin liên hệ, không có ô tên hành khách riêng.
       await _enter(tester, const Key('voucher-field'), 'KHONGCOMA');
       await _tap(tester, find.byKey(const Key('voucher-apply')));
       await _pumpUntil(
@@ -86,6 +94,7 @@ void main() {
       expect(code, startsWith('VXN'));
       expect(find.byKey(const Key('payment-pending-notice')), findsOneWidget);
       expect(await seatStatus(trip, seat), 'UNAVAILABLE');
+      pendingPayment = tester.widget<PaymentScreen>(find.byType(PaymentScreen));
     },
   );
 
@@ -179,6 +188,179 @@ void main() {
       expect(find.byKey(const Key('guest-email-field')), findsOneWidget);
     },
   );
+  testWidgets(
+    'thanh toán demo, tài xế soát QR và hoàn thành; hành khách thấy vé đã đi',
+    (tester) async {
+      final pending = pendingPayment!;
+      var launchCalled = false;
+      String? callbackFailure;
+      var callbackStage = 'chưa gọi';
+      await tester.pumpWidget(
+        MaterialApp(
+          home: PaymentScreen(
+            api: pending.api,
+            booking: pending.booking,
+            launchPaymentUrl: (uri) async {
+              launchCalled = true;
+              callbackStage = 'mở ${uri.path}';
+              if (uri.path != '/v1/dev/payment-gateway/demo') {
+                callbackFailure = callbackStage;
+                return false;
+              }
+              // Chỉ thay thao tác trên cổng demo bên ngoài; webhook và worker vẫn chạy thật.
+              final response =
+                  await Dio(
+                        BaseOptions(
+                          baseUrl: '$apiBaseUrl/v1',
+                          connectTimeout: const Duration(seconds: 5),
+                          receiveTimeout: const Duration(seconds: 10),
+                        ),
+                      )
+                      .post<Object>(
+                        '/dev/payment-gateway/demo/complete',
+                        data: {
+                          'token': uri.queryParameters['token'],
+                          'outcome': 'success',
+                        },
+                        options: Options(
+                          followRedirects: false,
+                          validateStatus: (status) => status == 302,
+                          responseType: ResponseType.plain,
+                        ),
+                      )
+                      .catchError((Object error) {
+                        callbackFailure = error is DioException
+                            ? '${error.type}, HTTP ${error.response?.statusCode}'
+                            : error.runtimeType.toString();
+                        throw error;
+                      });
+              callbackStage = 'hoàn tất HTTP ${response.statusCode}';
+              return response.statusCode == 302;
+            },
+          ),
+        ),
+      );
+      final demoMethod = find.byKey(const Key('payment-method-DEMO'));
+      await tester.scrollUntilVisible(
+        demoMethod,
+        250,
+        scrollable: find
+            .descendant(
+              of: find.byKey(const Key('payment-scroll')),
+              matching: find.byType(Scrollable),
+            )
+            .first,
+      );
+      await _tap(tester, demoMethod);
+      await _tap(tester, find.byKey(const Key('payment-submit')));
+      await _pumpUntil(tester, find.byType(PaymentCheckoutScreen));
+      final checkout = tester.widget<PaymentCheckoutScreen>(
+        find.byType(PaymentCheckoutScreen),
+      );
+      expect(checkout.method, PassengerPaymentMethod.demo);
+      expect(checkout.launchPaymentUrl, isNotNull);
+      await _pumpFor(tester, const Duration(seconds: 3));
+      if (!launchCalled ||
+          callbackFailure != null ||
+          !callbackStage.startsWith('hoàn tất')) {
+        await tester.drag(
+          find.byKey(const Key('payment-scroll')),
+          const Offset(0, -700),
+        );
+        await tester.pump(const Duration(milliseconds: 500));
+        final error = find.byKey(const Key('payment-error'));
+        throw TestFailure(
+          'Cổng demo chưa mở: bước=$callbackStage; gọi=$launchCalled; callback=$callbackFailure; lifecycle=${WidgetsBinding.instance.lifecycleState}; UI=${error.evaluate().isEmpty ? "không có lỗi" : tester.widget<Text>(error).data}',
+        );
+      }
+      await _pumpUntil(
+        tester,
+        find.byKey(const Key('payment-completion-screen')),
+        timeout: const Duration(seconds: 45),
+      );
+      await _pumpFor(tester, const Duration(seconds: 1));
+      expect(find.byKey(const Key('ticket-issued-qr')), findsOneWidget);
+      final guest = Options(
+        headers: {'X-Booking-Token': pending.booking.accessToken},
+      );
+      final booking = (await api.get<Map<String, dynamic>>(
+        '/bookings/${pending.booking.bookingId}',
+        options: guest,
+      )).data!;
+      expect(booking['status'], 'CONFIRMED');
+      expect((booking['payment'] as Map)['status'], 'SUCCESS');
+      final tripId = booking['tripId'] as String;
+      expect(tripId, const String.fromEnvironment('E2E_TRIP_ID'));
+      final ticket = (booking['tickets'] as List)
+          .cast<Map<String, dynamic>>()
+          .single;
+      final login = await api.post<Map<String, dynamic>>(
+        '/auth/employee/login',
+        data: {
+          'identifier': const String.fromEnvironment('E2E_DRIVER_IDENTIFIER'),
+          'password': const String.fromEnvironment('E2E_DRIVER_PASSWORD'),
+        },
+        options: Options(headers: {'X-Auth-Transport': 'bearer'}),
+      );
+      final driver = Options(
+        headers: {'Authorization': 'Bearer ${login.data!['accessToken']}'},
+      );
+      await api.post<Object>(
+        '/employee/trips/$tripId/status',
+        data: {'status': 'BOARDING', 'note': null},
+        options: driver,
+      );
+      final verify = await api.post<Map<String, dynamic>>(
+        '/employee/tickets/verify',
+        data: {'tripId': tripId, 'code': ticket['qrToken']},
+        options: driver,
+      );
+      expect(verify.data!['result'], 'OK');
+      await api.post<Object>(
+        '/employee/check-ins',
+        data: {
+          'tripId': tripId,
+          'code': ticket['qrToken'],
+          'status': 'CHECKED_IN',
+        },
+        options: driver,
+      );
+      for (final status in ['DEPARTED', 'IN_PROGRESS', 'COMPLETED']) {
+        final updated = await api.post<Map<String, dynamic>>(
+          '/employee/trips/$tripId/status',
+          data: {'status': status, 'note': null},
+          options: driver,
+        );
+        expect(updated.data!['status'], status);
+      }
+      final journey =
+          await JourneyApi(ApiClientDart(basePathOverride: apiBaseUrl))
+              .loadBooking(
+                pending.booking.bookingId,
+                accessToken: pending.booking.accessToken,
+              );
+      expect(journey.tickets.single.status, 'USED');
+      await tester.pumpWidget(
+        MaterialApp(
+          key: const ValueKey('completed-journey-app'),
+          home: GuestTicketDetailScreen(
+            booking: journey,
+            onBack: () {},
+            onTabSelected: (_) {},
+            quoteCancellation: (_) async =>
+                throw StateError('Vé đã dùng không được hủy.'),
+            cancelTickets: (_, _, _) async =>
+                throw StateError('Vé đã dùng không được hủy.'),
+          ),
+        ),
+      );
+      await _pumpFor(tester, const Duration(seconds: 1));
+      expect(find.text('Đã đi'), findsWidgets);
+      expect(find.text('Hủy vé'), findsNothing);
+      expect(tester.takeException(), isNull);
+    },
+    skip: const String.fromEnvironment('E2E_DRIVER_IDENTIFIER').isEmpty,
+  );
 }
 
 /// Không còn thông báo kiểu "sẽ được triển khai" / "chưa triển khai" / "sắp mở".
@@ -254,15 +436,10 @@ Future<String> _holdFirstFreeSeat(WidgetTester tester) async {
   await _tap(tester, find.byKey(const Key('trip-detail-cta')));
   final freeSeat = find.byWidgetPredicate(
     (widget) =>
-        widget is InkWell &&
-        widget.key is ValueKey<String> &&
-        RegExp(r'^seat-[A-Z]+\d+$')
-            .hasMatch((widget.key! as ValueKey<String>).value) &&
-        widget.onTap != null,
+        widget is SeatMapTile && widget.status == SeatMapStatus.available,
   );
   await _pumpUntil(tester, freeSeat);
-  final seat = (tester.widget(freeSeat.first).key! as ValueKey<String>).value
-      .substring('seat-'.length);
+  final seat = tester.widget<SeatMapTile>(freeSeat.first).seat.code;
   await _tap(tester, freeSeat.first);
   await _tap(tester, find.byKey(const Key('seat-selection-continue')));
   await _pumpUntil(
@@ -291,6 +468,16 @@ Future<void> _pickLocation(
 
 Future<void> _enter(WidgetTester tester, Key key, String text) async {
   final field = find.byKey(key);
+  final passengerScroll = find.byKey(const Key('passenger-information-scroll'));
+  if (field.evaluate().isEmpty && passengerScroll.evaluate().isNotEmpty) {
+    await tester.scrollUntilVisible(
+      field,
+      200,
+      scrollable: find
+          .descendant(of: passengerScroll, matching: find.byType(Scrollable))
+          .first,
+    );
+  }
   await _pumpUntil(tester, field);
   await tester.ensureVisible(field);
   await tester.pump();

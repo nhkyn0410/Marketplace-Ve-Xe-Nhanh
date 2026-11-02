@@ -1,10 +1,23 @@
 import { randomUUID } from "node:crypto";
+import type { AddressInfo } from "node:net";
+import { NestFactory } from "@nestjs/core";
+import { Worker } from "bullmq";
+import { ZodValidationPipe } from "nestjs-zod";
+import { AppModule } from "../app.module";
+import { ProblemDetailsExceptionFilter } from "../common/errors/problem-details.filter";
 import Redis from "ioredis";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { type AuditEventInput, AuditService } from "../audit/audit.service";
 import { BookingService } from "../booking/booking.service";
 import { BookingInputSchema } from "../booking/dto/booking.dto";
-import { parseAppConfig } from "../config/env.config";
+import { APP_CONFIG, parseAppConfig } from "../config/env.config";
+import { DemoGateway } from "../external/payment/demo/demo-gateway";
+import { PAYMENT_GATEWAYS, type PaymentGateways } from "../external/payment/payment-gateway";
+import { CredentialService } from "../iam/auth/credential.service";
+import { NotificationDispatcher } from "../notification/notification-dispatcher";
+import { configureApiRoutes } from "../openapi/openapi";
+import { PaymentCallbackProcessor } from "../payment/payment-callback.processor";
+import { QUEUE_NAMES } from "../queue/queue.constants";
 import { tenantScope } from "../database/db-scope";
 import { PrismaService } from "../database/prisma.service";
 import type { Coordinates, RouteLeg, RoutingProvider } from "../external/routing/routing-provider";
@@ -12,7 +25,7 @@ import type { VerifiedAccessToken } from "../iam/auth/token.service";
 import type { Authorization } from "../iam/role/authorization";
 import { applyPaymentCallback } from "../payment/payment-callback";
 import { OperatorFinanceService } from "../payout/operator-finance.service";
-import { createRequestRedisClientOptions, getRedisUrl } from "../redis/redis.config";
+import { createBullMqConnectionOptions, createRequestRedisClientOptions, getBullMqPrefix, getRedisUrl } from "../redis/redis.config";
 import { RouteInputSchema } from "../route/dto/route.dto";
 import { RouteService } from "../route/route.service";
 import { SeatHoldInputSchema } from "../seat-hold/dto/seat-hold.dto";
@@ -65,6 +78,7 @@ describe.skipIf(!ready && !requireDb)("Soát vé + vận hành chuyến của nh
   const recordAuditEvent = vi.fn(async (event: AuditEventInput) => void events.push(event));
   const qr = new TicketQrSigner(Buffer.alloc(32, 8));
   const tag = randomUUID().slice(0, 8);
+  const driverPassword = `Flow!${randomUUID()}`;
   const operatorId = randomUUID();
   const province = randomUUID();
   const ward = randomUUID();
@@ -79,8 +93,8 @@ describe.skipIf(!ready && !requireDb)("Soát vé + vận hành chuyến của nh
   let routeId: string;
   let seatMapId: string;
 
-  /** Chuyến mở bán sau `hoursAhead` giờ, tài xế được phân công, một đơn 2 chỗ đã thanh toán (callback thật → vé + sổ). */
-  async function assignedTrip(hoursAhead = 48) {
+  /** Tạo chuyến mở bán có tài xế được phân công để kiểm thử. */
+  async function openTrip(hoursAhead = 48) {
     const vehicle = await new VehicleService(prisma, {} as never).create(
       ownerAuthz,
       VehicleInputSchema.parse({ plateNumber: `51D${10000 + Math.floor(Math.random() * 89999)}`, vehicleTypeId: vehicleType, seatMapId, amenityIds: [], status: "ACTIVE", description: null }),
@@ -94,6 +108,12 @@ describe.skipIf(!ready && !requireDb)("Soát vé + vận hành chuyến của nh
       await tx.trip.update({ where: { id: trip.id }, data: { status: "OPEN_FOR_SALE" } });
       await tx.employeeAssignment.create({ data: { operatorId, tripId: trip.id, employeeId: driverId, role: "DRIVER" } });
     });
+    return trip;
+  }
+
+  /** Chuyến được phân công với một đơn 2 chỗ đã thanh toán (callback thật → vé + sổ). */
+  async function assignedTrip(hoursAhead = 48) {
+    const trip = await openTrip(hoursAhead);
     const hold = await holds.create(null, undefined, SeatHoldInputSchema.parse({ tripId: trip.id, seatCodes: ["A1", "A2"], pickupSequence: 1, dropoffSequence: 3 }));
     const created = await bookings.create(
       null,
@@ -121,11 +141,12 @@ describe.skipIf(!ready && !requireDb)("Soát vé + vận hành chuyến của nh
     bookings = new BookingService(prisma, holds, qr);
     trips = new TripService(prisma, {} as AuditService);
     operations = new EmployeeOperationsService(prisma, { recordAuditEvent } as unknown as AuditService);
+    const passwordHash = await new CredentialService().hash(driverPassword);
     await prisma.withSystem(async (tx) => {
-      await tx.operatorProfile.create({ data: { id: operatorId, operatorSlug: `eo-${tag}`, displayName: `Nhà xe ${tag}` } });
+      await tx.operatorProfile.create({ data: { id: operatorId, operatorSlug: `eo-${tag}`, displayName: `Nhà xe ${tag}`, status: "ACTIVE" } });
       await tx.employeeAccount.createMany({
         data: [
-          { id: driverId, operatorId, username: `nv.tai-${tag}`, passwordHash: "x", role: "DRIVER" },
+          { id: driverId, operatorId, username: `nv.tai-${tag}`, passwordHash, role: "DRIVER" },
           { id: staffId, operatorId, username: `nv.ve-${tag}`, passwordHash: "x", role: "TICKET_STAFF" },
         ],
       });
@@ -309,6 +330,92 @@ describe.skipIf(!ready && !requireDb)("Soát vé + vận hành chuyến của nh
     await prisma.withSystem((tx) => tx.trip.update({ where: { id: trip.tripId }, data: { payoutEligibleAt: new Date(Date.now() - HOUR) } }));
     expect((await finance.summary(financeAuthz)).eligibleAmount - eligibleBefore).toBe(600_000 - (await commissionOf(trip.bookingId)));
   }, 30_000);
+
+  it.skipIf(!process.env.MONGODB_AUDIT_URI)("HTTP trọn vòng: tìm chuyến → giữ ghế → đặt vé → DEMO/webhook/worker → QR/check-in → hoàn thành → hành khách thấy USED/NO_SHOW", async () => {
+    const trip = await openTrip(60);
+    const app = await NestFactory.create(AppModule, { logger: false, abortOnError: false });
+    let worker: Worker | undefined;
+    try {
+      app.useGlobalPipes(new ZodValidationPipe());
+      app.useGlobalFilters(new ProblemDetailsExceptionFilter());
+      configureApiRoutes(app);
+      await app.listen(0, "127.0.0.1");
+      const origin = `http://127.0.0.1:${(app.getHttpServer().address() as AddressInfo).port}`;
+      const gateway = app.get<PaymentGateways>(PAYMENT_GATEWAYS).get("DEMO");
+      if (!(gateway instanceof DemoGateway)) throw new Error("Luồng thử cần cổng DEMO, không dùng tiền thật.");
+      gateway.config.baseUrl = `${origin}/v1/dev/payment-gateway/demo`;
+      gateway.config.callbackUrl = `${origin}/v1/webhooks/payment/demo`;
+      const processor = new PaymentCallbackProcessor(app.get(PrismaService), app.get(APP_CONFIG), app.get(NotificationDispatcher));
+      worker = new Worker(QUEUE_NAMES.paymentCallbacks, (job) => processor.process(job), {
+        connection: createBullMqConnectionOptions(`journey-${tag}`), prefix: getBullMqPrefix(),
+      });
+      await worker.waitUntilReady();
+      async function call<T>(method: string, path: string, status: number, body?: object, headers: Record<string, string> = {}): Promise<T> {
+        const response = await fetch(`${origin}/v1${path}`, {
+          method, headers: { "content-type": "application/json", ...headers }, body: body ? JSON.stringify(body) : undefined,
+        });
+        const data = await response.json();
+        expect(response.status, response.ok ? path : `${path}: ${data.code} ${data.detail}`).toBe(status);
+        return data as T;
+      }
+      const search = await call<{ items: { tripId: string }[] }>("GET", `/trips/search?operatorId=${operatorId}&passengers=2`, 200);
+      expect(search.items.some((item) => item.tripId === trip.id)).toBe(true);
+      const hold = await call<{ holdId: string; subtotal: number }>("POST", "/seat-holds", 201, { tripId: trip.id, seatCodes: ["A1", "A2"], pickupSequence: 1, dropoffSequence: 3 });
+      const created = await call<{ bookingId: string; status: string; accessToken: string }>("POST", "/bookings", 201, {
+        holdId: hold.holdId, expectedTotal: hold.subtotal, note: null,
+        contact: { fullName: "Khách hành trình", phone: "0901234567", email: `journey-${tag}@example.com` },
+        passengers: ["A1", "A2"].map((seatCode) => ({ seatCode, fullName: `Khách ${seatCode}`, phone: null })),
+      });
+      expect(created.status).toBe("PENDING_PAYMENT");
+      const guest = { "X-Booking-Token": created.accessToken };
+      await call("GET", `/bookings/${created.bookingId}`, 404);
+      const payment = await call<{ paymentUrl: string }>("POST", `/bookings/${created.bookingId}/payments`, 201, { provider: "DEMO" }, guest);
+      const checkout = new URL(payment.paymentUrl);
+      expect(checkout.origin).toBe(origin);
+      expect((await fetch(checkout)).status).toBe(200);
+      const completePayment = () => fetch(`${gateway.config.baseUrl}/complete`, {
+        method: "POST", redirect: "manual", headers: { "content-type": "application/json" },
+        body: JSON.stringify({ token: checkout.searchParams.get("token"), outcome: "success" }),
+      });
+      expect((await completePayment()).status).toBe(302);
+      type Booking = { status: string; payment: { status: string }; tickets: { ticketId: string; status: string; qrToken: string }[] };
+      let confirmed: Booking;
+      await expect.poll(async () => {
+        confirmed = await call<Booking>("GET", `/bookings/${created.bookingId}`, 200, undefined, guest);
+        return confirmed.status;
+      }, { timeout: 15_000 }).toBe("CONFIRMED");
+      expect(confirmed!.payment.status).toBe("SUCCESS");
+      expect(confirmed!.tickets).toHaveLength(2);
+      expect(confirmed!.tickets.map((ticket) => ticket.status)).toEqual(["VALID", "VALID"]);
+      expect((await completePayment()).status).toBe(302);
+      expect(await prisma.withSystem((tx) => tx.ticket.count({ where: { bookingId: created.bookingId } }))).toBe(2);
+      const login = await call<{ accessToken: string }>("POST", "/auth/employee/login", 200, {
+        identifier: `eo-${tag}/nv.tai-${tag}`, password: driverPassword,
+      }, { "X-Auth-Transport": "bearer" });
+      const driverHeaders = { authorization: `Bearer ${login.accessToken}` };
+      const assignments = await call<{ items: { tripId: string }[] }>("GET", "/employee/assignments", 200, undefined, driverHeaders);
+      expect(assignments.items.some((item) => item.tripId === trip.id)).toBe(true);
+      const ticket = confirmed!.tickets[0]!;
+      const qrTicket = await call<{ qrToken: string }>("GET", `/tickets/${ticket.ticketId}`, 200, undefined, guest);
+      const verified = await call<{ result: string }>("POST", "/employee/tickets/verify", 200, { tripId: trip.id, code: qrTicket.qrToken }, driverHeaders);
+      expect(verified.result).toBe("OK");
+      await call("POST", `/employee/trips/${trip.id}/status`, 200, { status: "BOARDING", note: null }, driverHeaders);
+      await call("POST", "/employee/check-ins", 200, { tripId: trip.id, code: qrTicket.qrToken, status: "CHECKED_IN" }, driverHeaders);
+      await call("POST", "/employee/check-ins", 409, { tripId: trip.id, code: qrTicket.qrToken, status: "CHECKED_IN" }, driverHeaders);
+      for (const status of ["DEPARTED", "IN_PROGRESS", "COMPLETED"]) {
+        const operated = await call<{ status: string }>("POST", `/employee/trips/${trip.id}/status`, 200, { status, note: null }, driverHeaders);
+        expect(operated.status).toBe(status);
+      }
+      const completed = await call<Booking>("GET", `/bookings/${created.bookingId}`, 200, undefined, guest);
+      expect(completed.status).toBe("CONFIRMED");
+      expect(completed.tickets.map((item) => item.status).sort()).toEqual(["NO_SHOW", "USED"]);
+      await call("POST", "/employee/check-ins", 409, { tripId: trip.id, code: qrTicket.qrToken, status: "CHECKED_IN" }, driverHeaders);
+    } finally {
+      await worker?.close();
+      await app.close();
+      await prisma.withSystem((tx) => tx.authSession.deleteMany({ where: { subjectId: driverId } }));
+    }
+  }, 60_000);
 
   /** Hoa hồng đã ghi sổ của booking (mức mặc định đang có trong DB) — dương. */
   async function commissionOf(bookingId: string): Promise<number> {

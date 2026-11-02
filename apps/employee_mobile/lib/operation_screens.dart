@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'demo_data.dart';
 import 'design_system.dart';
 
-/// Vận hành chuyến và nhật trình mẫu, chỉ thay đổi dữ liệu trong phiên xem thử.
+/// Vận hành chuyến thật qua API và xem nhật trình trong phiên.
 class OperationsScreen extends StatefulWidget {
   const OperationsScreen({
     super.key,
@@ -47,22 +47,36 @@ class _OperationsScreenState extends State<OperationsScreen> {
   }
 
   Future<void> _changeStatus() async {
-    if (widget.trip.isLive) {
-      showDemoNotice(
-        context,
-        'Chức năng cập nhật vận hành chưa kết nối máy chủ.',
-      );
-      return;
-    }
     final next = _next;
     if (next == null || _busy || !widget.trip.assigned) return;
     setState(() {
       _busy = true;
       _failed = false;
     });
-    await Future<void>.delayed(const Duration(milliseconds: 500));
+    if (widget.trip.isLive) {
+      try {
+        final update = widget.trip.updateOperation;
+        if (update == null) throw StateError('Chưa tải được quyền vận hành.');
+        await update(switch (next) {
+          'Đón khách' => 'BOARDING',
+          'Khởi hành' => 'DEPARTED',
+          'Đang chạy' => 'IN_PROGRESS',
+          _ => 'COMPLETED',
+        });
+      } catch (_) {
+        if (mounted) {
+          setState(() {
+            _busy = false;
+            _failed = true;
+          });
+        }
+        return;
+      }
+    } else {
+      await Future<void>.delayed(const Duration(milliseconds: 500));
+    }
     if (!mounted) return;
-    if (widget.trip.demoOperationFailure) {
+    if (!widget.trip.isLive && widget.trip.demoOperationFailure) {
       widget.trip.demoOperationFailure = false;
       setState(() {
         _busy = false;
@@ -79,7 +93,9 @@ class _OperationsScreenState extends State<OperationsScreen> {
     });
     showDemoNotice(
       context,
-      'Bản minh họa: trạng thái $next chỉ lưu trong phiên, chưa gửi máy chủ.',
+      widget.trip.isLive
+          ? 'Đã cập nhật trạng thái $next.'
+          : 'Bản minh họa: trạng thái $next chỉ lưu trong phiên, chưa gửi máy chủ.',
     );
   }
 
@@ -223,7 +239,9 @@ class _OperationsScreenState extends State<OperationsScreen> {
                   Padding(
                     padding: const EdgeInsets.only(bottom: 24),
                     child: Text(
-                      'Đang cập nhật bản mẫu…',
+                      trip.isLive
+                          ? 'Đang cập nhật chuyến…'
+                          : 'Đang cập nhật bản mẫu…',
                       textAlign: TextAlign.center,
                       style: driverText(
                         12,

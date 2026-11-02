@@ -24,6 +24,7 @@ class DemoTrip {
   final String? vehiclePlate;
   Future<DemoPassenger> Function(String rawCode)? checkInTicket;
   Future<void> Function()? reloadManifest;
+  Future<void> Function(String status)? updateOperation;
   int? serverBoardedCount;
   int? serverTicketCount;
   int get ticketCount => serverTicketCount ?? passengers.length;
