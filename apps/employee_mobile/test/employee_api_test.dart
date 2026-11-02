@@ -24,10 +24,14 @@ class _Tokens implements EmployeeTokenStore {
   @override
   Future<void> saveAccessToken(String token) async => access = token;
   @override
-  Future<void> saveSession(String a, String r, DateTime e) async {
-    access = a;
-    refresh = r;
-    expiry = e;
+  Future<void> saveSession({
+    required String accessToken,
+    required String refreshToken,
+    DateTime? expiresAt,
+  }) async {
+    access = accessToken;
+    refresh = refreshToken;
+    expiry = expiresAt;
   }
 
   @override
@@ -117,6 +121,54 @@ Map<String, dynamic> _body(RequestOptions request) => request.data is String
     : Map<String, dynamic>.from(request.data as Map);
 
 void main() {
+  test(
+    'operation commits server status and allows continuing a departed trip',
+    () async {
+      final trip = _trip();
+      final (api, adapter) = _api((request) {
+        expect(request.path, '/v1/employee/trips/$_tripId/status');
+        expect(request.method, 'POST');
+        expect(_body(request)['status'], 'DEPARTED');
+        expect(trip.status, 'Sắp khởi hành');
+        return _json({
+          'tripId': _tripId,
+          'role': 'DRIVER',
+          'routeName': 'Chuyến thử',
+          'departureAt': '2026-11-03T03:00:00.000Z',
+          'arrivalAt': '2026-11-03T09:00:00.000Z',
+          'status': 'DEPARTED',
+          'vehiclePlateNumber': null,
+          'origin': 'TP.HCM',
+          'destination': 'Đà Lạt',
+          'ticketCount': 2,
+          'checkedInCount': 1,
+        });
+      });
+      await api.operate(trip, 'DEPARTED');
+      expect(trip.status, 'Khởi hành');
+      expect(trip.boardedCount, 1);
+      expect(trip.ticketCount, 2);
+      expect(adapter.requests, hasLength(1));
+    },
+  );
+
+  test('operation failure preserves the previous trip status', () async {
+    final trip = _trip()..status = 'Đang chạy';
+    final (api, _) = _api(
+      (_) => _json({
+        'status': 409,
+        'code': 'TRIP_OPERATION_INVALID',
+        'detail': 'Trạng thái chuyến đã thay đổi.',
+      }, 409),
+    );
+    await expectLater(
+      api.operate(trip, 'COMPLETED'),
+      throwsA(isA<EmployeeApiException>()),
+    );
+    expect(trip.status, 'Đang chạy');
+    expect(trip.operationHistory, isEmpty);
+  });
+
   test('QR token is preserved and local passenger changes only after server commit', () async {
     final trip = _trip();
     final (api, adapter) = _api((request) {
