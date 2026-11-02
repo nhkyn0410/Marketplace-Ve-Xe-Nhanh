@@ -8,14 +8,38 @@ class DemoTrip {
     required this.operatingNote,
     required this.passengers,
     this.status = 'Sắp khởi hành',
-  });
+    this.serverId,
+    this.serviceDate,
+    this.pickupName,
+    this.dropoffName,
+    this.vehiclePlate,
+    this.checkInTicket,
+    List<String>? seats,
+  }) : seats = seats ?? [for (var i = 0; i < 36; i++) _seatCode(i)];
   final String id;
+  final String? serverId;
+  final DateTime? serviceDate;
+  final String? pickupName;
+  final String? dropoffName;
+  final String? vehiclePlate;
+  Future<DemoPassenger> Function(String rawCode)? checkInTicket;
+  Future<void> Function()? reloadManifest;
+  int? serverBoardedCount;
+  int? serverTicketCount;
+  int get ticketCount => serverTicketCount ?? passengers.length;
+  bool get isLive => serverId != null;
   final String origin;
   final String destination;
   final String departure;
   final String operatingNote;
   final List<DemoPassenger> passengers;
+  final List<String> seats;
   String status;
+  bool assigned = true;
+  final List<({String title, DateTime occurredAt})> operationHistory = [];
+  bool demoOperationFailure = false;
+  bool demoJournalFailure = false;
+  bool demoIncidentFailure = false;
   final List<
     ({
       String title,
@@ -29,11 +53,13 @@ class DemoTrip {
   >
   journal = [];
   String get pickup =>
-      origin == 'TP.HCM' ? 'Bến xe Miền Đông' : 'Bến xe Đà Lạt';
+      pickupName ?? (origin == 'TP.HCM' ? 'Bến xe Miền Đông' : 'Bến xe Đà Lạt');
   String get dropoff =>
-      destination == 'Đà Lạt' ? 'Bến xe Đà Lạt' : 'Bến xe Miền Đông';
-  String get plate => '51B-123.45';
-  int get boardedCount => passengers.where((p) => p.boarded).length;
+      dropoffName ??
+      (destination == 'Đà Lạt' ? 'Bến xe Đà Lạt' : 'Bến xe Miền Đông');
+  String get plate => vehiclePlate ?? '51B-123.45';
+  int get boardedCount =>
+      serverBoardedCount ?? passengers.where((p) => p.boarded).length;
 }
 
 /// Hành khách mẫu chỉ chứa số liên hệ đã che.
@@ -44,6 +70,10 @@ class DemoPassenger {
   final String ticket;
   final String maskedPhone;
   bool boarded = false;
+  DateTime? checkedInAt;
+  bool absent = false;
+  bool needsAttention = false;
+  String note = '';
 }
 
 /// Tạo mới bộ dữ liệu Figma mỗi lần vào bản xem thử.
@@ -61,7 +91,7 @@ List<DemoTrip> createDemoTrips() => [
       for (var i = 4; i <= 32; i++)
         DemoPassenger(
           'Khách mẫu ${i.toString().padLeft(2, '0')}',
-          '${i <= 16 ? 'A' : 'B'}${(i <= 16 ? i : i - 16).toString().padLeft(2, '0')}',
+          _seatCode(i - 1),
           'VX102${i.toString().padLeft(3, '0')}',
           '0*** *** ***',
         ),
@@ -78,10 +108,13 @@ List<DemoTrip> createDemoTrips() => [
       for (var i = 1; i <= 28; i++)
         DemoPassenger(
           'Khách mẫu ${i.toString().padLeft(2, '0')}',
-          '${i <= 16 ? 'A' : 'B'}${(i <= 16 ? i : i - 16).toString().padLeft(2, '0')}',
+          _seatCode(i - 1),
           'VX103${i.toString().padLeft(3, '0')}',
           '0*** *** ***',
         ),
     ],
   ),
 ];
+
+String _seatCode(int index) =>
+    '${String.fromCharCode(65 + index ~/ 4)}${(index % 4 + 1).toString().padLeft(2, '0')}';

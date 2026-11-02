@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:employee_mobile/demo_data.dart';
 import 'package:employee_mobile/design_system.dart';
 import 'package:employee_mobile/driver_app.dart';
@@ -15,7 +17,7 @@ Future<void> swipe(WidgetTester tester, String label) async {
 }
 
 Future<void> enterPreview(WidgetTester tester) async {
-  await tester.pumpWidget(const EmployeeApp());
+  await tester.pumpWidget(const EmployeeApp(preview: true));
   await tester.enterText(
     find.byType(TextFormField).at(0),
     'mayexpress/nv.minh',
@@ -37,7 +39,7 @@ void main() {
   testWidgets('Login requires complete swipe and explains the demo session', (
     tester,
   ) async {
-    await tester.pumpWidget(const EmployeeApp());
+    await tester.pumpWidget(const EmployeeApp(preview: true));
     expect(tester.getSize(find.byType(SwipeAction)).width, 720);
     await tester.tap(find.text('Đăng nhập'));
     await tester.pumpAndSettle();
@@ -72,11 +74,12 @@ void main() {
       addTearDown(tester.view.resetDevicePixelRatio);
       await enterPreview(tester);
       await tester.tap(find.byTooltip('Ngày sau'));
+      await tester.pump(const Duration(milliseconds: 400));
       await tester.pumpAndSettle();
-      expect(find.text('Chưa có chuyến được phân công'), findsOneWidget);
+      expect(find.text('Chưa có chuyến'), findsOneWidget);
       await tester.tap(find.text('Về ngày có chuyến mẫu'));
       await tester.pumpAndSettle();
-      await swipe(tester, 'Xem chuyến');
+      await swipe(tester, 'Khởi hành chuyến');
       expect(find.text('32 hành khách'), findsOneWidget);
       await swipe(tester, 'Danh sách khách');
       await tester.enterText(find.byType(TextField), 'VX102002');
@@ -85,8 +88,9 @@ void main() {
       expect(find.text('Nguyễn Văn An'), findsNothing);
       await tester.enterText(find.byType(TextField), 'missing');
       await tester.pumpAndSettle();
-      expect(find.text('Không tìm thấy hành khách.'), findsOneWidget);
+      expect(find.text('Không tìm thấy hành khách'), findsOneWidget);
       await tester.enterText(find.byType(TextField), '');
+      await tester.pumpAndSettle();
       await tester.tap(find.text('Đã lên · 0'));
       await tester.pumpAndSettle();
       expect(find.text('Chưa có hành khách ở trạng thái này.'), findsOneWidget);
@@ -94,30 +98,61 @@ void main() {
   );
 
   testWidgets(
-    'Manual ticket only accepts selected trip and confirms once in demo',
+    'QR scan confirms once, shows seats and resumes without manual entry',
     (tester) async {
       final trip = createDemoTrips().first;
+      final scans = StreamController<String>.broadcast();
+      addTearDown(scans.close);
       await tester.pumpWidget(
         MaterialApp(
-          theme: ThemeData(fontFamily: 'Inter'),
-          home: ManualTicketScreen(trip: trip),
+          theme: employeeTheme(Brightness.light),
+          home: ScannerScreen(trip: trip, scanResults: scans.stream),
         ),
       );
-      await tester.enterText(find.byType(TextField), 'VX103001');
-      await swipe(tester, 'Kiểm tra vé');
+      await tester.pumpAndSettle();
+      expect(find.text('Nhập mã vé'), findsNothing);
+      scans.add('VX103001');
+      await tester.pumpAndSettle();
+      expect(find.text('Vé thuộc chuyến khác'), findsOneWidget);
+      expect(trip.boardedCount, 0);
+      await swipe(tester, 'Quét vé khác');
+      scans.add(' vx102001 ');
+      scans.add('VX102001');
+      await tester.pumpAndSettle();
+      expect(trip.boardedCount, 1);
+      final checkedInAt = trip.passengers.first.checkedInAt;
+      expect(find.text('Đã lên xe'), findsOneWidget);
+      await swipe(tester, 'Xem sơ đồ ghế');
+      expect(find.byType(SeatMapScreen), findsOneWidget);
+      expect(find.text('1 / 32 đã lên xe'), findsOneWidget);
       expect(
-        find.text('Không tìm thấy vé trong chuyến mẫu này.'),
+        find.descendant(
+          of: find.byKey(const ValueKey('seat-A01')),
+          matching: find.text('Đã lên'),
+        ),
         findsOneWidget,
       );
-      expect(trip.boardedCount, 0);
-      await tester.enterText(find.byType(TextField), ' vx102001 ');
-      await swipe(tester, 'Kiểm tra vé');
-      expect(find.text('Vé hợp lệ · Bản mẫu'), findsOneWidget);
-      await swipe(tester, 'Xác nhận lên xe');
+      expect(
+        find.descendant(
+          of: find.byKey(const ValueKey('seat-A02')),
+          matching: find.text('Chưa lên'),
+        ),
+        findsOneWidget,
+      );
+      await tester.ensureVisible(find.byKey(const ValueKey('seat-I04')));
+      expect(
+        find.descendant(
+          of: find.byKey(const ValueKey('seat-I04')),
+          matching: find.text('Trống'),
+        ),
+        findsOneWidget,
+      );
+      await swipe(tester, 'Quét vé tiếp');
+      scans.add('VX102001');
+      await tester.pumpAndSettle();
       expect(trip.boardedCount, 1);
-      expect(find.text('Đã lên xe · Bản mẫu'), findsOneWidget);
-      await swipe(tester, 'Đã xác nhận trong bản mẫu');
-      expect(trip.boardedCount, 1);
+      expect(trip.passengers.first.checkedInAt, checkedInAt);
+      expect(find.byType(BoardingSuccessScreen), findsOneWidget);
     },
   );
 
@@ -168,6 +203,8 @@ void main() {
         .widgetList<SwipeAction>(find.byType(SwipeAction))
         .first;
     await swipe(tester, action.label);
+    await tester.pump(const Duration(milliseconds: 600));
+    await tester.pumpAndSettle();
     expect(trip.status, 'Đón khách');
     expect(find.textContaining('chưa gửi máy chủ.'), findsOneWidget);
   });

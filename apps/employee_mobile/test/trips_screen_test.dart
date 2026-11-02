@@ -38,10 +38,13 @@ void main() {
           ),
         ),
       );
-      expect(find.text('0 chuyến được phân công'), findsOneWidget);
-      expect(find.text('Chưa có chuyến được phân công'), findsOneWidget);
+      expect(find.text('Chưa có chuyến'), findsOneWidget);
+      expect(
+        find.text('Chuyến được phân công sẽ hiện tại đây.'),
+        findsOneWidget,
+      );
       expect(find.text('Về ngày có chuyến mẫu'), findsNothing);
-      expect(find.text('Xem chuyến'), findsNothing);
+      expect(find.text('Khởi hành chuyến'), findsNothing);
     },
   );
 
@@ -52,7 +55,7 @@ void main() {
       tester.view.devicePixelRatio = 1;
       addTearDown(tester.view.resetPhysicalSize);
       addTearDown(tester.view.resetDevicePixelRatio);
-      await tester.pumpWidget(const EmployeeApp());
+      await tester.pumpWidget(const EmployeeApp(preview: true));
       await tester.enterText(
         find.byType(TextFormField).at(0),
         'mayexpress/nv.minh',
@@ -68,10 +71,10 @@ void main() {
       await tester.tap(find.text('Chuyến').last);
       await tester.pumpAndSettle();
       expect(find.text('15/10/2026'), findsOneWidget);
-      expect(find.text('Chưa có chuyến được phân công'), findsOneWidget);
+      expect(find.text('Chưa có chuyến'), findsOneWidget);
       await tester.tap(find.text('Về ngày có chuyến mẫu'));
       await tester.pumpAndSettle();
-      await _swipe(tester, 'Xem chuyến', last: true);
+      await _swipe(tester, 'Khởi hành chuyến', last: true);
       expect(find.text('MX103'), findsOneWidget);
       expect(find.text('28 hành khách'), findsOneWidget);
       expect(find.text('14/10/2026 · 17:30'), findsOneWidget);
@@ -94,7 +97,7 @@ void main() {
         ),
       ),
     );
-    await _swipe(tester, 'Xem chuyến');
+    await _swipe(tester, 'Khởi hành chuyến');
     expect(find.text('MX102'), findsOneWidget);
     expect(find.text('32 hành khách'), findsOneWidget);
   });
@@ -123,6 +126,7 @@ void main() {
       expect(find.byType(OperationsScreen), findsNothing);
       await _swipe(tester, 'Bắt đầu đón khách');
       expect(trip.status, 'Đón khách');
+      expect(trip.operationHistory.single.title, 'Đón khách');
       expect(find.byType(OperationsScreen), findsOneWidget);
       await tester.tap(find.byTooltip('Quay lại'));
       await tester.pumpAndSettle();
@@ -130,6 +134,7 @@ void main() {
       expect(find.text('Mở Vận hành'), findsOneWidget);
       await _swipe(tester, 'Mở Vận hành');
       expect(trip.status, 'Đón khách');
+      expect(trip.operationHistory.length, 1);
     },
   );
 
