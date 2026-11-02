@@ -30,13 +30,14 @@ export class PassengerLoyaltyService {
     });
   }
 
-  /** Lịch sử điểm và tổng tích / đổi / hết hạn theo cùng bộ lọc. */
+  /** Lịch sử điểm theo bộ lọc; tổng tích / đổi / hết hạn chỉ theo khoảng thời gian, không đổi khi lọc loại giao dịch. */
   async transactions(userId: string, query: PassengerLoyaltyTransactionsQueryDto) {
     return withPassengerLoyalty(this.prisma, async (tx) => {
-      const where = { account: { userId }, ...(query.type ? { type: query.type } : {}), createdAt: { ...(query.from ? { gte: new Date(query.from) } : {}), ...(query.to ? { lte: new Date(query.to) } : {}) } };
+      const period = { account: { userId }, createdAt: { ...(query.from ? { gte: new Date(query.from) } : {}), ...(query.to ? { lte: new Date(query.to) } : {}) } };
+      const where = { ...period, ...(query.type ? { type: query.type } : {}) };
       const total = await tx.loyaltyPointTransaction.count({ where });
       const rows = await tx.loyaltyPointTransaction.findMany({ where, orderBy: [{ createdAt: "desc" }, { id: "desc" }], skip: query.offset, take: query.limit, select: { id: true, type: true, points: true, tier: true, sourceLabel: true, reason: true, policyVersion: true, expiresAt: true, createdAt: true } });
-      const sums = await tx.loyaltyPointTransaction.groupBy({ by: ["type"], where, _sum: { points: true } });
+      const sums = await tx.loyaltyPointTransaction.groupBy({ by: ["type"], where: period, _sum: { points: true } });
       const value = (type: LoyaltyPointType) => sums.find((sum) => sum.type === type)?._sum.points ?? 0;
       return { total, items: rows.map((row) => ({ ...row, expiresAt: row.expiresAt?.toISOString() ?? null, createdAt: row.createdAt.toISOString() })), totals: { earned: value(LoyaltyPointType.EARN), redeemed: -value(LoyaltyPointType.REDEEM), expired: -value(LoyaltyPointType.EXPIRE) } };
     });
@@ -107,6 +108,14 @@ export async function expireWallet(tx: DbTransaction, now: Date, userId?: string
 }
 
 async function presentVoucher(tx: DbTransaction, voucher: VoucherRow): Promise<UserVoucher> {
-  const promotion = voucher.promotionId ? await tx.promotion.findUnique({ where: { id: voucher.promotionId } }) : null;
-  return { userVoucherId: voucher.id, source: voucher.source, status: voucher.status, promotionCode: promotion?.code ?? null, name: promotion?.name ?? "Voucher VXN Plus", discountAmount: voucher.discountAmount?.toString() ?? null, discountType: promotion?.discountType ?? DiscountType.AMOUNT, discountValue: (promotion?.discountValue ?? voucher.discountAmount ?? 0n).toString(), maxDiscount: promotion?.maxDiscount?.toString() ?? null, minOrder: (promotion?.minOrder ?? 0n).toString(), expiresAt: voucher.expiresAt.toISOString(), createdAt: voucher.createdAt.toISOString() };
+  const promotion = voucher.promotionId ? await tx.promotion.findUnique({ where: { id: voucher.promotionId }, include: { operator: { select: { displayName: true } } } }) : null;
+  return { userVoucherId: voucher.id, source: voucher.source, status: voucher.status, promotionCode: promotion?.code ?? null, name: promotion?.name ?? "Voucher VXN Plus", discountAmount: voucher.discountAmount?.toString() ?? null, discountType: promotion?.discountType ?? DiscountType.AMOUNT, discountValue: (promotion?.discountValue ?? voucher.discountAmount ?? 0n).toString(), maxDiscount: promotion?.maxDiscount?.toString() ?? null, minOrder: (promotion?.minOrder ?? 0n).toString(), appliesTo: promotion ? await promotionAppliesTo(tx, promotion) : "Mọi tuyến, mọi nhà xe", expiresAt: voucher.expiresAt.toISOString(), createdAt: voucher.createdAt.toISOString() };
+}
+
+/** Mô tả phạm vi khuyến mãi cho khách: nhà xe, tuyến và chuyến nếu bị giới hạn. */
+async function promotionAppliesTo(tx: DbTransaction, promotion: { operator: { displayName: string } | null; routeId: string | null; routeIds: string[]; tripId: string | null }): Promise<string> {
+  const routeIds = [...new Set([...promotion.routeIds, ...(promotion.routeId ? [promotion.routeId] : [])])];
+  const routes = routeIds.length ? await tx.route.findMany({ where: { id: { in: routeIds } }, orderBy: { name: "asc" }, select: { name: true } }) : [];
+  const where = promotion.tripId ? "một chuyến cụ thể" : routes.length ? routes.map((route) => route.name).join(", ") : "mọi tuyến";
+  return `${promotion.operator?.displayName ?? "Mọi nhà xe"} · ${where}`;
 }

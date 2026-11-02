@@ -34,6 +34,8 @@ export const UserVoucherSchema = z.object({
   discountValue: z.string(),
   maxDiscount: z.string().nullable(),
   minOrder: z.string(),
+  /** Nhà xe và tuyến áp dụng, hiện ở "Xem điều kiện". */
+  appliesTo: z.string(),
   expiresAt: z.iso.datetime(),
   createdAt: z.iso.datetime(),
 });

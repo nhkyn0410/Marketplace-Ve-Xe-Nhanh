@@ -109,4 +109,73 @@ void main() {
       const Size(380, 166),
     );
   });
+
+  testWidgets('"Xem điều kiện" mở bảng điều kiện đúng của voucher', (
+    tester,
+  ) async {
+    await _pumpScreen(
+      tester,
+      loader: () async => [
+        VoucherWalletItem(
+          id: 'saved',
+          name: 'Sao Việt giảm 15%',
+          discountType: VoucherDiscountType.percent,
+          discountValue: '15',
+          minOrder: '300000',
+          maxDiscount: '45000',
+          expiresAt: DateTime(2026, 12, 12),
+          source: VoucherSource.savedPromotion,
+          promotionCode: 'SAOVIET15',
+          appliesTo: 'Nhà xe Sao Việt · Hà Nội – Sa Pa',
+        ),
+      ],
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const Key('voucher-conditions-saved')));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('voucher-conditions-sheet')), findsOneWidget);
+    expect(find.text('Giảm 15%'), findsWidgets);
+    expect(find.text('45.000đ'), findsOneWidget);
+    expect(find.text('300.000đ'), findsOneWidget);
+    expect(find.text('Nhà xe Sao Việt · Hà Nội – Sa Pa'), findsOneWidget);
+    expect(find.text('Đến hết 12/12/2026'), findsOneWidget);
+    expect(find.text('Mã khuyến mãi đã lưu'), findsOneWidget);
+    expect(find.text('SAOVIET15'), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('voucher-conditions-close')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('voucher-conditions-sheet')), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('voucher đổi điểm không có đơn tối thiểu thì ghi rõ', (
+    tester,
+  ) async {
+    await _pumpScreen(
+      tester,
+      loader: () async => [
+        VoucherWalletItem(
+          id: 'points',
+          name: 'Voucher VXN Plus',
+          discountType: VoucherDiscountType.amount,
+          discountValue: '100000',
+          minOrder: '0',
+          expiresAt: DateTime(2026, 12, 1),
+          source: VoucherSource.loyaltyRedemption,
+          appliesTo: 'Mọi tuyến, mọi nhà xe',
+        ),
+      ],
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const Key('voucher-conditions-points')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Không yêu cầu'), findsOneWidget);
+    expect(find.text('Mọi tuyến, mọi nhà xe'), findsOneWidget);
+    expect(find.text('Đổi từ điểm VXN Plus'), findsOneWidget);
+    expect(find.text('Giảm tối đa'), findsNothing);
+  });
 }

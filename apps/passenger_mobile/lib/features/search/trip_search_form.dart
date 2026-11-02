@@ -629,7 +629,9 @@ class _OperatorPickerSheetState extends State<_OperatorPickerSheet> {
           if (snapshot.hasError) {
             return _SheetMessage(
               'Không tải được danh sách nhà xe. Vui lòng thử lại.',
-              onRetry: () => setState(() => _operators = widget.loader()),
+              onRetry: () => setState(() {
+                _operators = widget.loader();
+              }),
             );
           }
           final operators = snapshot.data ?? const <HomeOperator>[];

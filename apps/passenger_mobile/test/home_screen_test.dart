@@ -35,6 +35,8 @@ Future<void> _pumpHome(
   HomeHotlineLauncher? onCallHotline,
   VoidCallback? onFeedbackRequested,
   VoidCallback? onLoginRequested,
+  int unreadNotifications = 0,
+  VoidCallback? onNotificationsTap,
 }) async {
   tester.view.devicePixelRatio = 1;
   tester.view.physicalSize = Size(width, height);
@@ -58,6 +60,8 @@ Future<void> _pumpHome(
       home: HomeScreen(
         key: ValueKey('home-$isLoggedIn'),
         isLoggedIn: isLoggedIn,
+        unreadNotifications: unreadNotifications,
+        onNotificationsTap: onNotificationsTap,
         userName: isLoggedIn ? 'Khanh' : null,
         initialMode: initialMode,
         initialDate: DateTime(2026, 10, 22),
@@ -80,43 +84,80 @@ Future<void> _pumpHome(
 }
 
 void main() {
-  testWidgets('thẻ nhà xe và danh sách chọn dùng logo, tải lỗi vẫn hiện chữ thay thế', (
+  testWidgets(
+    'thẻ nhà xe và danh sách chọn dùng logo, tải lỗi vẫn hiện chữ thay thế',
+    (tester) async {
+      const logo = 'https://cdn.example.test/operator-logo.png';
+      const operators = [
+        HomeOperator(
+          id: 'logo-operator',
+          name: 'Nhà xe Sao Mai',
+          logoUrl: logo,
+          reviewCount: 0,
+          routes: [],
+        ),
+      ];
+      await _pumpHome(
+        tester,
+        width: 412,
+        initialMode: HomeSearchMode.operator,
+        loadFeaturedOperators: () async => operators,
+        searchCatalog: fakeCatalog(operators: operators),
+      );
+      final card = find.byKey(
+        const ValueKey('featured-operator-logo-operator'),
+      );
+      await tester.scrollUntilVisible(card, 200, scrollable: _homeScrollable());
+      final logoImage = find.byWidgetPredicate(
+        (widget) =>
+            widget is Image &&
+            widget.image is NetworkImage &&
+            (widget.image as NetworkImage).url == logo,
+      );
+      expect(find.descendant(of: card, matching: logoImage), findsOneWidget);
+      await tester.ensureVisible(find.byKey(const Key('operator-input')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('operator-input')));
+      await tester.pumpAndSettle();
+      final option = find.byKey(
+        const ValueKey('operator-option-logo-operator'),
+      );
+      expect(find.descendant(of: option, matching: logoImage), findsOneWidget);
+      expect(
+        find.descendant(of: option, matching: find.text('N')),
+        findsOneWidget,
+      );
+      expect(tester.takeException(), isNull);
+    },
+  );
+
+  testWidgets('chuông: chấm đỏ theo số tin chưa đọc, chạm gọi đúng hành động', (
     tester,
   ) async {
-    const logo = 'https://cdn.example.test/operator-logo.png';
-    const operators = [
-      HomeOperator(
-        id: 'logo-operator',
-        name: 'Nhà xe Sao Mai',
-        logoUrl: logo,
-        reviewCount: 0,
-        routes: [],
-      ),
-    ];
+    var taps = 0;
     await _pumpHome(
       tester,
       width: 412,
-      initialMode: HomeSearchMode.operator,
-      loadFeaturedOperators: () async => operators,
-      searchCatalog: fakeCatalog(operators: operators),
+      isLoggedIn: true,
+      unreadNotifications: 3,
+      onNotificationsTap: () => taps++,
     );
-    final card = find.byKey(const ValueKey('featured-operator-logo-operator'));
-    await tester.scrollUntilVisible(card, 200, scrollable: _homeScrollable());
-    final logoImage = find.byWidgetPredicate(
-      (widget) =>
-          widget is Image &&
-          widget.image is NetworkImage &&
-          (widget.image as NetworkImage).url == logo,
+    await tester.pump();
+
+    expect(find.byKey(const Key('home-notification-unread')), findsOneWidget);
+    expect(find.bySemanticsLabel('Thông báo, 3 tin chưa đọc'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('home-notification-bell')));
+    expect(taps, 1);
+
+    await _pumpHome(
+      tester,
+      width: 412,
+      isLoggedIn: true,
+      onNotificationsTap: () => taps++,
     );
-    expect(find.descendant(of: card, matching: logoImage), findsOneWidget);
-    await tester.ensureVisible(find.byKey(const Key('operator-input')));
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const Key('operator-input')));
-    await tester.pumpAndSettle();
-    final option = find.byKey(const ValueKey('operator-option-logo-operator'));
-    expect(find.descendant(of: option, matching: logoImage), findsOneWidget);
-    expect(find.descendant(of: option, matching: find.text('N')), findsOneWidget);
-    expect(tester.takeException(), isNull);
+    await tester.pump();
+    expect(find.byKey(const Key('home-notification-unread')), findsNothing);
+    expect(find.bySemanticsLabel('Thông báo'), findsOneWidget);
   });
 
   testWidgets('bấm thẻ Nhà xe nổi bật mở trang của nhà xe đó', (tester) async {

@@ -408,7 +408,9 @@ class _TicketScreenState extends State<TicketScreen>
               icon: Icons.wifi_off_outlined,
               message: 'Không tải được danh sách nhà xe. Vui lòng thử lại.',
               actionLabel: 'Thử lại',
-              onAction: () => setState(() => _operators = _loadOperators()),
+              onAction: () => setState(() {
+                _operators = _loadOperators();
+              }),
             ),
           );
         }

@@ -7,8 +7,8 @@ import { NAV_GROUPS } from "./nav";
 describe("thanh bên Admin", () => {
   it("16 mục theo Figma + Tuyến & chuyến (chờ duyệt 28/10/2026), không trùng đường dẫn", () => {
     const items = NAV_GROUPS.flatMap((group) => group.items);
-    expect(items).toHaveLength(17);
-    expect(new Set(items.map((item) => item.href)).size).toBe(17);
+    expect(items).toHaveLength(18);
+    expect(new Set(items.map((item) => item.href)).size).toBe(18);
     expect(items.find((item) => item.href === "/routes")).toMatchObject({ label: "Tuyến & chuyến", permissions: ["user:manage"] });
     expect(items.find((item) => item.href === "/payments")?.label).toBe("Giao dịch");
     expect(NAV_GROUPS.map((group) => group.label)).toEqual([

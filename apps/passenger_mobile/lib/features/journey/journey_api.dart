@@ -67,6 +67,7 @@ class JourneyApi {
             departureAt: item.departureAt,
             total: item.total,
             ticketCount: item.ticketCount,
+            ticketStatuses: item.ticketStatuses.toList(growable: false),
             bookedWithAccount: item.bookedWithAccount,
           ),
       ],
@@ -104,6 +105,7 @@ class JourneyApi {
           operatorName: item.operatorName,
           departureAt: item.departureAt,
           total: int.parse(item.total),
+          ticketStatuses: item.ticketStatuses.toList(growable: false),
           bookedWithAccount: true,
         ),
     ];

@@ -39,7 +39,7 @@ describe.skipIf(!ready && !requireDb)("Tra cứu vé khách vãng lai — OTP tr
   const [guestBookingId, accountBookingId, otherBookingId] = [randomUUID(), randomUUID(), randomUUID()];
   const row = (bookingId: string, bookingCode: string, bookedWithAccount: boolean): GuestLookupBooking => ({
     bookingId, bookingCode, status: "CONFIRMED", routeName: "Tuyến", operatorName: "Nhà xe", departureAt: "2026-10-29T15:30:00.000Z",
-    ticketCount: 1, total: 280_000n, bookedWithAccount, createdAt: new Date("2026-10-20T00:00:00Z"),
+    ticketCount: 1, ticketStatuses: ["VALID"], total: 280_000n, bookedWithAccount, createdAt: new Date("2026-10-20T00:00:00Z"),
   });
   /** `email`: hai đơn (một đơn đặt bằng tài khoản); `accountEmail`: một đơn, email có tài khoản; email khác: không có đơn. */
   const owned: Record<string, GuestLookupBooking[]> = {

@@ -265,6 +265,11 @@ Serializers _$serializers = (Serializers().toBuilder()
       ..add(AttachmentUploadInputDto.serializer)
       ..add(AttachmentUploadInputDtoContentTypeEnum.serializer)
       ..add(AttachmentUploadResponseDtoOutput.serializer)
+      ..add(AudienceEstimateDtoOutput.serializer)
+      ..add(AudienceInputDto.serializer)
+      ..add(AudienceInputDtoAudienceEnum.serializer)
+      ..add(AudienceInputDtoTiersEnum.serializer)
+      ..add(AudienceInputDtoTypeEnum.serializer)
       ..add(AuthMeResponseDtoOutput.serializer)
       ..add(AuthMeResponseDtoOutputScopeEnum.serializer)
       ..add(AuthTokenResponseDtoOutput.serializer)
@@ -284,6 +289,33 @@ Serializers _$serializers = (Serializers().toBuilder()
       ..add(BookingResponseDtoOutput.serializer)
       ..add(BookingResponseDtoOutputDiscountFundingEnum.serializer)
       ..add(BookingResponseDtoOutputStatusEnum.serializer)
+      ..add(CampaignDetailDtoOutput.serializer)
+      ..add(CampaignDetailDtoOutputAudienceEnum.serializer)
+      ..add(CampaignDetailDtoOutputStats.serializer)
+      ..add(CampaignDetailDtoOutputStatusEnum.serializer)
+      ..add(CampaignDetailDtoOutputTiersEnum.serializer)
+      ..add(CampaignDetailDtoOutputTypeEnum.serializer)
+      ..add(CampaignDtoOutput.serializer)
+      ..add(CampaignDtoOutputAudienceEnum.serializer)
+      ..add(CampaignDtoOutputStatusEnum.serializer)
+      ..add(CampaignDtoOutputTiersEnum.serializer)
+      ..add(CampaignDtoOutputTypeEnum.serializer)
+      ..add(CampaignInputDto.serializer)
+      ..add(CampaignInputDtoAudienceEnum.serializer)
+      ..add(CampaignInputDtoTiersEnum.serializer)
+      ..add(CampaignInputDtoTypeEnum.serializer)
+      ..add(CampaignOptionsDtoOutput.serializer)
+      ..add(CampaignOptionsDtoOutputArticlesInner.serializer)
+      ..add(CampaignOptionsDtoOutputPromotionsInner.serializer)
+      ..add(CampaignPageDtoOutput.serializer)
+      ..add(CampaignPageDtoOutputItemsInner.serializer)
+      ..add(CampaignPageDtoOutputItemsInnerAudienceEnum.serializer)
+      ..add(CampaignPageDtoOutputItemsInnerStatusEnum.serializer)
+      ..add(CampaignPageDtoOutputItemsInnerTiersEnum.serializer)
+      ..add(CampaignPageDtoOutputItemsInnerTypeEnum.serializer)
+      ..add(CampaignSendInputDto.serializer)
+      ..add(CampaignTestInputDto.serializer)
+      ..add(CampaignTestResultDtoOutput.serializer)
       ..add(CancellationInputDto.serializer)
       ..add(CancellationQuoteDtoOutput.serializer)
       ..add(CancellationQuoteDtoOutputTicketsInner.serializer)
@@ -510,6 +542,10 @@ Serializers _$serializers = (Serializers().toBuilder()
       ..add(FinanceSummaryDtoOutputLastPayout.serializer)
       ..add(HealthResponseDtoOutput.serializer)
       ..add(HealthResponseDtoOutputStatusEnum.serializer)
+      ..add(InboxPageDtoOutput.serializer)
+      ..add(InboxPageDtoOutputItemsInner.serializer)
+      ..add(InboxPageDtoOutputItemsInnerKindEnum.serializer)
+      ..add(InboxPageDtoOutputItemsInnerLinkTypeEnum.serializer)
       ..add(IncidentDtoOutput.serializer)
       ..add(IncidentDtoOutputEvidenceInner.serializer)
       ..add(IncidentDtoOutputSeverityEnum.serializer)
@@ -1020,6 +1056,7 @@ Serializers _$serializers = (Serializers().toBuilder()
       ..add(TripSeatStatusInputDtoStatusEnum.serializer)
       ..add(TripStatusInputDto.serializer)
       ..add(TripStatusInputDtoStatusEnum.serializer)
+      ..add(UnreadCountDtoOutput.serializer)
       ..add(UserVoucherDtoOutput.serializer)
       ..add(UserVoucherDtoOutputDiscountTypeEnum.serializer)
       ..add(UserVoucherDtoOutputSource_Enum.serializer)
@@ -1346,6 +1383,10 @@ Serializers _$serializers = (Serializers().toBuilder()
               const [const FullType(AssigneeListDtoOutputItemsInner)]),
           () => ListBuilder<AssigneeListDtoOutputItemsInner>())
       ..addBuilderFactory(
+          const FullType(
+              BuiltList, const [const FullType(AudienceInputDtoTiersEnum)]),
+          () => ListBuilder<AudienceInputDtoTiersEnum>())
+      ..addBuilderFactory(
           const FullType(BuiltList,
               const [const FullType(BackgroundJobsDtoOutputJobsInner)]),
           () => ListBuilder<BackgroundJobsDtoOutputJobsInner>())
@@ -1361,6 +1402,34 @@ Serializers _$serializers = (Serializers().toBuilder()
           const FullType(BuiltList,
               const [const FullType(BookingInputDtoPassengersInner)]),
           () => ListBuilder<BookingInputDtoPassengersInner>())
+      ..addBuilderFactory(
+          const FullType(BuiltList,
+              const [const FullType(CampaignDetailDtoOutputTiersEnum)]),
+          () => ListBuilder<CampaignDetailDtoOutputTiersEnum>())
+      ..addBuilderFactory(
+          const FullType(
+              BuiltList, const [const FullType(CampaignDtoOutputTiersEnum)]),
+          () => ListBuilder<CampaignDtoOutputTiersEnum>())
+      ..addBuilderFactory(
+          const FullType(
+              BuiltList, const [const FullType(CampaignInputDtoTiersEnum)]),
+          () => ListBuilder<CampaignInputDtoTiersEnum>())
+      ..addBuilderFactory(
+          const FullType(BuiltList,
+              const [const FullType(CampaignOptionsDtoOutputPromotionsInner)]),
+          () => ListBuilder<CampaignOptionsDtoOutputPromotionsInner>())
+      ..addBuilderFactory(
+          const FullType(BuiltList,
+              const [const FullType(CampaignOptionsDtoOutputArticlesInner)]),
+          () => ListBuilder<CampaignOptionsDtoOutputArticlesInner>())
+      ..addBuilderFactory(
+          const FullType(BuiltList,
+              const [const FullType(CampaignPageDtoOutputItemsInner)]),
+          () => ListBuilder<CampaignPageDtoOutputItemsInner>())
+      ..addBuilderFactory(
+          const FullType(BuiltList,
+              const [const FullType(CampaignPageDtoOutputItemsInnerTiersEnum)]),
+          () => ListBuilder<CampaignPageDtoOutputItemsInnerTiersEnum>())
       ..addBuilderFactory(
           const FullType(BuiltList,
               const [const FullType(CancellationQuoteDtoOutputTicketsInner)]),
@@ -1596,6 +1665,10 @@ Serializers _$serializers = (Serializers().toBuilder()
           const FullType(BuiltList,
               const [const FullType(FinanceBookingPageDtoOutputItemsInner)]),
           () => ListBuilder<FinanceBookingPageDtoOutputItemsInner>())
+      ..addBuilderFactory(
+          const FullType(
+              BuiltList, const [const FullType(InboxPageDtoOutputItemsInner)]),
+          () => ListBuilder<InboxPageDtoOutputItemsInner>())
       ..addBuilderFactory(
           const FullType(BuiltList,
               const [const FullType(IncidentDtoOutputEvidenceInner)]),
@@ -1890,6 +1963,12 @@ Serializers _$serializers = (Serializers().toBuilder()
             const FullType(StopPointProposalListResponseDtoOutputItemsInner)
           ]),
           () => ListBuilder<StopPointProposalListResponseDtoOutputItemsInner>())
+      ..addBuilderFactory(
+          const FullType(BuiltList, const [const FullType(String)]),
+          () => ListBuilder<String>())
+      ..addBuilderFactory(
+          const FullType(BuiltList, const [const FullType(String)]),
+          () => ListBuilder<String>())
       ..addBuilderFactory(
           const FullType(BuiltList, const [const FullType(String)]),
           () => ListBuilder<String>())

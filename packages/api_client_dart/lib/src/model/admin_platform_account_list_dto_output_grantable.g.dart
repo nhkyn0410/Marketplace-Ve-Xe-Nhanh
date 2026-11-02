@@ -206,6 +206,10 @@ const AdminPlatformAccountListDtoOutputGrantablePLATFORM_ADMINEnum
     _$adminPlatformAccountListDtoOutputGrantablePLATFORMADMINEnum_refundColonManage =
     const AdminPlatformAccountListDtoOutputGrantablePLATFORM_ADMINEnum._(
         'refundColonManage');
+const AdminPlatformAccountListDtoOutputGrantablePLATFORM_ADMINEnum
+    _$adminPlatformAccountListDtoOutputGrantablePLATFORMADMINEnum_notificationColonBroadcast =
+    const AdminPlatformAccountListDtoOutputGrantablePLATFORM_ADMINEnum._(
+        'notificationColonBroadcast');
 
 AdminPlatformAccountListDtoOutputGrantablePLATFORM_ADMINEnum
     _$adminPlatformAccountListDtoOutputGrantablePLATFORMADMINEnumValueOf(
@@ -311,6 +315,8 @@ AdminPlatformAccountListDtoOutputGrantablePLATFORM_ADMINEnum
       return _$adminPlatformAccountListDtoOutputGrantablePLATFORMADMINEnum_payoutColonManage;
     case 'refundColonManage':
       return _$adminPlatformAccountListDtoOutputGrantablePLATFORMADMINEnum_refundColonManage;
+    case 'notificationColonBroadcast':
+      return _$adminPlatformAccountListDtoOutputGrantablePLATFORMADMINEnum_notificationColonBroadcast;
     default:
       throw ArgumentError(name);
   }
@@ -370,6 +376,7 @@ final BuiltSet<AdminPlatformAccountListDtoOutputGrantablePLATFORM_ADMINEnum>
   _$adminPlatformAccountListDtoOutputGrantablePLATFORMADMINEnum_managerColonManage,
   _$adminPlatformAccountListDtoOutputGrantablePLATFORMADMINEnum_payoutColonManage,
   _$adminPlatformAccountListDtoOutputGrantablePLATFORMADMINEnum_refundColonManage,
+  _$adminPlatformAccountListDtoOutputGrantablePLATFORMADMINEnum_notificationColonBroadcast,
 ]);
 
 const AdminPlatformAccountListDtoOutputGrantablePLATFORM_SUPPORTEnum
@@ -572,6 +579,10 @@ const AdminPlatformAccountListDtoOutputGrantablePLATFORM_SUPPORTEnum
     _$adminPlatformAccountListDtoOutputGrantablePLATFORMSUPPORTEnum_refundColonManage =
     const AdminPlatformAccountListDtoOutputGrantablePLATFORM_SUPPORTEnum._(
         'refundColonManage');
+const AdminPlatformAccountListDtoOutputGrantablePLATFORM_SUPPORTEnum
+    _$adminPlatformAccountListDtoOutputGrantablePLATFORMSUPPORTEnum_notificationColonBroadcast =
+    const AdminPlatformAccountListDtoOutputGrantablePLATFORM_SUPPORTEnum._(
+        'notificationColonBroadcast');
 
 AdminPlatformAccountListDtoOutputGrantablePLATFORM_SUPPORTEnum
     _$adminPlatformAccountListDtoOutputGrantablePLATFORMSUPPORTEnumValueOf(
@@ -677,6 +688,8 @@ AdminPlatformAccountListDtoOutputGrantablePLATFORM_SUPPORTEnum
       return _$adminPlatformAccountListDtoOutputGrantablePLATFORMSUPPORTEnum_payoutColonManage;
     case 'refundColonManage':
       return _$adminPlatformAccountListDtoOutputGrantablePLATFORMSUPPORTEnum_refundColonManage;
+    case 'notificationColonBroadcast':
+      return _$adminPlatformAccountListDtoOutputGrantablePLATFORMSUPPORTEnum_notificationColonBroadcast;
     default:
       throw ArgumentError(name);
   }
@@ -736,6 +749,7 @@ final BuiltSet<AdminPlatformAccountListDtoOutputGrantablePLATFORM_SUPPORTEnum>
   _$adminPlatformAccountListDtoOutputGrantablePLATFORMSUPPORTEnum_managerColonManage,
   _$adminPlatformAccountListDtoOutputGrantablePLATFORMSUPPORTEnum_payoutColonManage,
   _$adminPlatformAccountListDtoOutputGrantablePLATFORMSUPPORTEnum_refundColonManage,
+  _$adminPlatformAccountListDtoOutputGrantablePLATFORMSUPPORTEnum_notificationColonBroadcast,
 ]);
 
 Serializer<AdminPlatformAccountListDtoOutputGrantablePLATFORM_ADMINEnum>
@@ -800,6 +814,7 @@ class _$AdminPlatformAccountListDtoOutputGrantablePLATFORM_ADMINEnumSerializer
     'managerColonManage': 'manager:manage',
     'payoutColonManage': 'payout:manage',
     'refundColonManage': 'refund:manage',
+    'notificationColonBroadcast': 'notification:broadcast',
   };
   static const Map<Object, String> _fromWire = const <Object, String>{
     'profile:manage': 'profileColonManage',
@@ -852,6 +867,7 @@ class _$AdminPlatformAccountListDtoOutputGrantablePLATFORM_ADMINEnumSerializer
     'manager:manage': 'managerColonManage',
     'payout:manage': 'payoutColonManage',
     'refund:manage': 'refundColonManage',
+    'notification:broadcast': 'notificationColonBroadcast',
   };
 
   @override
@@ -931,6 +947,7 @@ class _$AdminPlatformAccountListDtoOutputGrantablePLATFORM_SUPPORTEnumSerializer
     'managerColonManage': 'manager:manage',
     'payoutColonManage': 'payout:manage',
     'refundColonManage': 'refund:manage',
+    'notificationColonBroadcast': 'notification:broadcast',
   };
   static const Map<Object, String> _fromWire = const <Object, String>{
     'profile:manage': 'profileColonManage',
@@ -983,6 +1000,7 @@ class _$AdminPlatformAccountListDtoOutputGrantablePLATFORM_SUPPORTEnumSerializer
     'manager:manage': 'managerColonManage',
     'payout:manage': 'payoutColonManage',
     'refund:manage': 'refundColonManage',
+    'notification:broadcast': 'notificationColonBroadcast',
   };
 
   @override

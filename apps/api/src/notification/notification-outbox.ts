@@ -1,9 +1,11 @@
 import { randomUUID } from "node:crypto";
 import type { DbTransaction } from "../database/prisma.service";
-import { AccountStatus, NotificationChannel, OperatorRole, SubjectType, type NotificationKind } from "../database/prisma.types";
+import { AccountStatus, NotificationChannel, NotificationLinkType, OperatorRole, SubjectType, type NotificationKind } from "../database/prisma.types";
 import { withNotificationSubject } from "../database/preference-scope";
 import { mandatoryNotification } from "./preference.service";
 import { maskEmail } from "../external/notification/email-notifier";
+import { loadTarget } from "./notification-delivery";
+import { renderInboxBody, renderNotification } from "./notification-templates";
 
 // Ghi thông báo TRONG transaction nghiệp vụ (TASK-NSR-001, kiểu outbox): commit thì chắc chắn có bản ghi cần gửi; worker gửi
 // sau commit (người gọi `NotificationDispatcher.dispatch` theo khoá) và job quét gửi lại bản ghi còn `PENDING`. Trùng khoá chống
@@ -57,7 +59,7 @@ export async function queueNotification(tx: DbTransaction, operatorId: string | 
   return true;
 }
 
-/** Bổ sung bản gửi push sau commit, cùng khóa duy nhất loại kênh để gọi lặp an toàn. */
+/** Bổ sung bản gửi push và tin hộp thư sau commit, cùng khóa duy nhất loại kênh để gọi lặp an toàn. */
 export async function prepareNotificationChannels(prisma: Pick<import("../database/prisma.service").PrismaService, "withSystem">, dedupKeys?: string[]): Promise<void> {
   const candidates = await withNotificationSubject(prisma, (tx) => tx.notification.findMany({ where: { channelsPreparedAt: null, ...(dedupKeys ? { dedupKey: { in: dedupKeys } } : {}) }, orderBy: { createdAt: "asc" }, take: 200, select: { id: true } }));
   for (const candidate of candidates) {
@@ -73,6 +75,16 @@ export async function prepareNotificationChannels(prisma: Pick<import("../databa
       const sendEmail = pref?.email !== false || (mandatory && (!devices || pref?.push === false));
       if (!sendEmail) await tx.notificationDelivery.updateMany({ where: { id: email.id, status: "PENDING" }, data: { status: "SKIPPED", lastError: "Người nhận đã tắt kênh email cho loại này." } });
       if (devices && pref?.push !== false) await tx.notificationDelivery.upsert({ where: { notificationId_channel: { notificationId: notification.id, channel: NotificationChannel.PUSH } }, create: { operatorId: notification.operatorId, notificationId: notification.id, channel: NotificationChannel.PUSH, recipientType: email.recipientType, recipientId: email.recipientId, recipientMasked: "Thiết bị đã đăng ký" }, update: {} });
+      // Push giao dịch chỉ nói "mở ứng dụng để xem chi tiết" (BR-53): chi tiết nằm ở hộp thư, cho khách đã đăng nhập.
+      if (email.recipientType === SubjectType.PASSENGER && (mandatory || pref?.email !== false || pref?.push !== false)) {
+        const { content } = await loadTarget(tx, notification.operatorId, notification);
+        if (content) {
+          await tx.notificationInboxMessage.createMany({
+            data: [{ ...subject, notificationId: notification.id, kind: notification.kind, title: renderNotification(content).title, body: renderInboxBody(content), linkType: notification.bookingId ? NotificationLinkType.BOOKING : null, linkTarget: notification.bookingId }],
+            skipDuplicates: true,
+          });
+        }
+      }
       await tx.notification.update({ where: { id: notification.id }, data: { channelsPreparedAt: new Date() } });
     });
   }

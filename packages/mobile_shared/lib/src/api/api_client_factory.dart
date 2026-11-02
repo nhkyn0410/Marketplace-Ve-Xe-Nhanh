@@ -1,7 +1,11 @@
 import 'package:api_client_dart/api_client_dart.dart';
+import 'package:dio/dio.dart';
 
 import '../storage/token_storage.dart';
 import 'auth_interceptor.dart';
+
+const _connectTimeout = Duration(seconds: 10);
+const _receiveTimeout = Duration(seconds: 15);
 
 /// Tạo client API dùng chung cho cả hai app.
 ///
@@ -15,12 +19,25 @@ ApiClientDart createApiClient({
 }) {
   final client = ApiClientDart(basePathOverride: baseUrl);
   client.dio.options
-    ..connectTimeout = const Duration(seconds: 10)
-    ..receiveTimeout = const Duration(seconds: 15);
+    ..connectTimeout = _connectTimeout
+    ..receiveTimeout = _receiveTimeout;
 
   if (tokens != null) {
     client.dio.interceptors.add(
-      AuthInterceptor(tokens, onUnauthorized: onUnauthorized),
+      AuthInterceptor(
+        tokens,
+        onUnauthorized: onUnauthorized,
+        refreshSession: bearerSessionRefresher(
+          Dio(
+            BaseOptions(
+              baseUrl: baseUrl,
+              connectTimeout: _connectTimeout,
+              receiveTimeout: _receiveTimeout,
+            ),
+          ),
+        ),
+        retry: client.dio.fetch,
+      ),
     );
   }
 

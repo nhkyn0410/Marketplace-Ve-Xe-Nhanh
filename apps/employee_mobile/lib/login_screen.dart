@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 
 import 'design_system.dart';
+import 'employee_api.dart';
 import 'profile_screens.dart';
 
-/// Màn đăng nhập theo Figma, mở phiên minh họa sau khi vuốt xác nhận.
+/// Màn đăng nhập theo Figma, hỗ trợ máy chủ và bản xem thử riêng.
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key, required this.onPreview});
+  const LoginScreen({super.key, required this.onPreview, this.onLogin});
   final void Function(BuildContext, String) onPreview;
+  final Future<void> Function(String username, String password)? onLogin;
   @override
   State<LoginScreen> createState() => _LoginScreenState();
 }
@@ -15,6 +17,8 @@ class _LoginScreenState extends State<LoginScreen> {
   final _form = GlobalKey<FormState>();
   final _username = TextEditingController();
   final _password = TextEditingController();
+  bool _submitting = false;
+  String? _error;
   @override
   void dispose() {
     _username.dispose();
@@ -23,8 +27,34 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> _preview() async {
+    if (_submitting) return;
     if (!_form.currentState!.validate()) return;
     FocusScope.of(context).unfocus();
+    if (widget.onLogin != null) {
+      setState(() {
+        _submitting = true;
+        _error = null;
+      });
+      try {
+        await widget.onLogin!(_username.text.trim(), _password.text);
+        if (!mounted) return;
+        _password.clear();
+        widget.onPreview(context, _username.text.trim());
+      } on EmployeeApiException catch (failure) {
+        if (!mounted) return;
+        setState(
+          () => _error = failure.code == 'AUTH_INVALID_CREDENTIALS'
+              ? 'Tên đăng nhập hoặc mật khẩu không đúng.'
+              : failure.message,
+        );
+      } catch (_) {
+        if (!mounted) return;
+        setState(() => _error = 'Không đăng nhập được. Vui lòng thử lại.');
+      } finally {
+        if (mounted) setState(() => _submitting = false);
+      }
+      return;
+    }
     final accepted = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -126,6 +156,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                           const SizedBox(height: 8),
                           TextFormField(
+                            enabled: !_submitting,
                             controller: _username,
                             autocorrect: false,
                             textInputAction: TextInputAction.next,
@@ -162,6 +193,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                           const SizedBox(height: 8),
                           TextFormField(
+                            enabled: !_submitting,
                             controller: _password,
                             obscureText: true,
                             enableSuggestions: false,
@@ -190,22 +222,37 @@ class _LoginScreenState extends State<LoginScreen> {
                           const SizedBox(height: 24),
                           Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 16),
-                            child: SwipeAction(
-                              label: 'Đăng nhập',
-                              onComplete: _preview,
-                            ),
+                            child: _submitting
+                                ? const Center(
+                                    child: CircularProgressIndicator(),
+                                  )
+                                : SwipeAction(
+                                    label: 'Đăng nhập',
+                                    onComplete: _preview,
+                                  ),
                           ),
                           const SizedBox(height: 12),
-                          Center(
-                            child: Text(
-                              'Bản xem thử · Không nhập mật khẩu thật',
+                          if (_error != null)
+                            Text(
+                              _error!,
+                              textAlign: TextAlign.center,
                               style: driverText(
-                                12,
-                                FontWeight.w400,
-                                DriverColors.secondary,
+                                14,
+                                FontWeight.w500,
+                                Colors.red,
                               ),
                             ),
-                          ),
+                          if (widget.onLogin == null)
+                            Center(
+                              child: Text(
+                                'Bản xem thử · Không nhập mật khẩu thật',
+                                style: driverText(
+                                  12,
+                                  FontWeight.w400,
+                                  DriverColors.secondary,
+                                ),
+                              ),
+                            ),
                         ],
                       ),
                     ),

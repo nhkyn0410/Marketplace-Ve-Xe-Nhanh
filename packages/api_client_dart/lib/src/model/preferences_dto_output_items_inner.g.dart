@@ -36,6 +36,12 @@ const PreferencesDtoOutputItemsInnerKindEnum
 const PreferencesDtoOutputItemsInnerKindEnum
     _$preferencesDtoOutputItemsInnerKindEnum_PROMOTION =
     const PreferencesDtoOutputItemsInnerKindEnum._('PROMOTION');
+const PreferencesDtoOutputItemsInnerKindEnum
+    _$preferencesDtoOutputItemsInnerKindEnum_SERVICE_NOTICE =
+    const PreferencesDtoOutputItemsInnerKindEnum._('SERVICE_NOTICE');
+const PreferencesDtoOutputItemsInnerKindEnum
+    _$preferencesDtoOutputItemsInnerKindEnum_NEWS =
+    const PreferencesDtoOutputItemsInnerKindEnum._('NEWS');
 
 PreferencesDtoOutputItemsInnerKindEnum
     _$preferencesDtoOutputItemsInnerKindEnumValueOf(String name) {
@@ -60,6 +66,10 @@ PreferencesDtoOutputItemsInnerKindEnum
       return _$preferencesDtoOutputItemsInnerKindEnum_LOYALTY_UPDATED;
     case 'PROMOTION':
       return _$preferencesDtoOutputItemsInnerKindEnum_PROMOTION;
+    case 'SERVICE_NOTICE':
+      return _$preferencesDtoOutputItemsInnerKindEnum_SERVICE_NOTICE;
+    case 'NEWS':
+      return _$preferencesDtoOutputItemsInnerKindEnum_NEWS;
     default:
       throw ArgumentError(name);
   }
@@ -78,6 +88,8 @@ final BuiltSet<PreferencesDtoOutputItemsInnerKindEnum>
   _$preferencesDtoOutputItemsInnerKindEnum_OPERATIONS_ALERT,
   _$preferencesDtoOutputItemsInnerKindEnum_LOYALTY_UPDATED,
   _$preferencesDtoOutputItemsInnerKindEnum_PROMOTION,
+  _$preferencesDtoOutputItemsInnerKindEnum_SERVICE_NOTICE,
+  _$preferencesDtoOutputItemsInnerKindEnum_NEWS,
 ]);
 
 Serializer<PreferencesDtoOutputItemsInnerKindEnum>
@@ -97,6 +109,8 @@ class _$PreferencesDtoOutputItemsInnerKindEnumSerializer
     'OPERATIONS_ALERT': 'OPERATIONS_ALERT',
     'LOYALTY_UPDATED': 'LOYALTY_UPDATED',
     'PROMOTION': 'PROMOTION',
+    'SERVICE_NOTICE': 'SERVICE_NOTICE',
+    'NEWS': 'NEWS',
   };
   static const Map<Object, String> _fromWire = const <Object, String>{
     'BOOKING_CONFIRMED': 'BOOKING_CONFIRMED',
@@ -109,6 +123,8 @@ class _$PreferencesDtoOutputItemsInnerKindEnumSerializer
     'OPERATIONS_ALERT': 'OPERATIONS_ALERT',
     'LOYALTY_UPDATED': 'LOYALTY_UPDATED',
     'PROMOTION': 'PROMOTION',
+    'SERVICE_NOTICE': 'SERVICE_NOTICE',
+    'NEWS': 'NEWS',
   };
 
   @override

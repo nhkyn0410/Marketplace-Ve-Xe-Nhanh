@@ -19,7 +19,7 @@ part 'preference_input_dto.g.dart';
 abstract class PreferenceInputDto implements Built<PreferenceInputDto, PreferenceInputDtoBuilder> {
   @BuiltValueField(wireName: r'kind')
   PreferenceInputDtoKindEnum get kind;
-  // enum kindEnum {  BOOKING_CONFIRMED,  TICKETS_CANCELLED,  REFUND_SUCCEEDED,  TRIP_CHANGED,  TRIP_CANCELLED,  MANUAL_REFUND,  CASE_UPDATED,  OPERATIONS_ALERT,  LOYALTY_UPDATED,  PROMOTION,  };
+  // enum kindEnum {  BOOKING_CONFIRMED,  TICKETS_CANCELLED,  REFUND_SUCCEEDED,  TRIP_CHANGED,  TRIP_CANCELLED,  MANUAL_REFUND,  CASE_UPDATED,  OPERATIONS_ALERT,  LOYALTY_UPDATED,  PROMOTION,  SERVICE_NOTICE,  NEWS,  };
 
   @BuiltValueField(wireName: r'email')
   bool get email;
@@ -161,6 +161,10 @@ class PreferenceInputDtoKindEnum extends EnumClass {
   static const PreferenceInputDtoKindEnum LOYALTY_UPDATED = _$preferenceInputDtoKindEnum_LOYALTY_UPDATED;
   @BuiltValueEnumConst(wireName: r'PROMOTION')
   static const PreferenceInputDtoKindEnum PROMOTION = _$preferenceInputDtoKindEnum_PROMOTION;
+  @BuiltValueEnumConst(wireName: r'SERVICE_NOTICE')
+  static const PreferenceInputDtoKindEnum SERVICE_NOTICE = _$preferenceInputDtoKindEnum_SERVICE_NOTICE;
+  @BuiltValueEnumConst(wireName: r'NEWS')
+  static const PreferenceInputDtoKindEnum NEWS = _$preferenceInputDtoKindEnum_NEWS;
 
   static Serializer<PreferenceInputDtoKindEnum> get serializer => _$preferenceInputDtoKindEnumSerializer;
 

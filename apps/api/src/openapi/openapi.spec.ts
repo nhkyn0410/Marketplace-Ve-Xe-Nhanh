@@ -62,6 +62,18 @@ describe("OpenAPI generation", () => {
       expect(document.components?.schemas?.SalesOfficeDto_Output).toBeDefined();
       expect(document.components?.schemas?.CounterReceiptResultDto_Output).toBeDefined();
 
+      // TASK-NSR-003: chiến dịch thông báo và hộp thư.
+      for (const [path, method] of [
+        ["/v1/admin/notification-campaigns", "get"],
+        ["/v1/admin/notification-campaigns", "post"],
+        ["/v1/admin/notification-campaigns/estimate", "post"],
+        ["/v1/admin/notification-campaigns/{campaignId}/send", "post"],
+        ["/v1/me/inbox", "get"],
+        ["/v1/me/inbox/read-all", "post"],
+      ] as const) {
+        expect(document.paths[path]?.[method], `${method} ${path}`).toBeDefined();
+      }
+
       // 9 endpoint auth trong phạm vi API §7.1 phải có mặt (`/auth/mfa/verify` = IAM-004): thiếu
       // chúng thì `gen:api-client` sinh client không có auth mà CI vẫn xanh — lỗi im lặng đã từng xảy ra thật.
       for (const path of [

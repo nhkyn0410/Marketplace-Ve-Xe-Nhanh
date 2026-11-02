@@ -18,11 +18,11 @@ part 'admin_platform_account_list_dto_output_grantable.g.dart';
 abstract class AdminPlatformAccountListDtoOutputGrantable implements Built<AdminPlatformAccountListDtoOutputGrantable, AdminPlatformAccountListDtoOutputGrantableBuilder> {
   @BuiltValueField(wireName: r'PLATFORM_ADMIN')
   BuiltList<AdminPlatformAccountListDtoOutputGrantablePLATFORM_ADMINEnum> get PLATFORM_ADMIN;
-  // enum PLATFORM_ADMINEnum {  profile:manage,  loyalty:use,  notification:manage,  incident:create,  journey-log:create,  system:run,  trip:search,  booking:create,  booking:read,  payment:create,  payment:monitor,  refund:request,  vehicle:manage,  vehicle:read,  route:manage,  trip:manage,  trip:dispatch,  office:manage,  office:read,  counter:sell,  counter:collect,  counter:read,  checkin:perform,  checkin:read,  trip:operate,  kyc:submit,  kyc:review,  catalog:manage,  content:moderate,  content:manage,  user:manage,  system:read,  finance:read,  finance:configure,  audit:read,  employee:manage,  account:lock,  support:create,  review:create,  support:respond,  support:manage,  dispute:decide,  promotion:manage,  promotion:configure,  loyalty:manage,  access:manage,  transport:read,  manager:manage,  payout:manage,  refund:manage,  };
+  // enum PLATFORM_ADMINEnum {  profile:manage,  loyalty:use,  notification:manage,  incident:create,  journey-log:create,  system:run,  trip:search,  booking:create,  booking:read,  payment:create,  payment:monitor,  refund:request,  vehicle:manage,  vehicle:read,  route:manage,  trip:manage,  trip:dispatch,  office:manage,  office:read,  counter:sell,  counter:collect,  counter:read,  checkin:perform,  checkin:read,  trip:operate,  kyc:submit,  kyc:review,  catalog:manage,  content:moderate,  content:manage,  user:manage,  system:read,  finance:read,  finance:configure,  audit:read,  employee:manage,  account:lock,  support:create,  review:create,  support:respond,  support:manage,  dispute:decide,  promotion:manage,  promotion:configure,  loyalty:manage,  access:manage,  transport:read,  manager:manage,  payout:manage,  refund:manage,  notification:broadcast,  };
 
   @BuiltValueField(wireName: r'PLATFORM_SUPPORT')
   BuiltList<AdminPlatformAccountListDtoOutputGrantablePLATFORM_SUPPORTEnum> get PLATFORM_SUPPORT;
-  // enum PLATFORM_SUPPORTEnum {  profile:manage,  loyalty:use,  notification:manage,  incident:create,  journey-log:create,  system:run,  trip:search,  booking:create,  booking:read,  payment:create,  payment:monitor,  refund:request,  vehicle:manage,  vehicle:read,  route:manage,  trip:manage,  trip:dispatch,  office:manage,  office:read,  counter:sell,  counter:collect,  counter:read,  checkin:perform,  checkin:read,  trip:operate,  kyc:submit,  kyc:review,  catalog:manage,  content:moderate,  content:manage,  user:manage,  system:read,  finance:read,  finance:configure,  audit:read,  employee:manage,  account:lock,  support:create,  review:create,  support:respond,  support:manage,  dispute:decide,  promotion:manage,  promotion:configure,  loyalty:manage,  access:manage,  transport:read,  manager:manage,  payout:manage,  refund:manage,  };
+  // enum PLATFORM_SUPPORTEnum {  profile:manage,  loyalty:use,  notification:manage,  incident:create,  journey-log:create,  system:run,  trip:search,  booking:create,  booking:read,  payment:create,  payment:monitor,  refund:request,  vehicle:manage,  vehicle:read,  route:manage,  trip:manage,  trip:dispatch,  office:manage,  office:read,  counter:sell,  counter:collect,  counter:read,  checkin:perform,  checkin:read,  trip:operate,  kyc:submit,  kyc:review,  catalog:manage,  content:moderate,  content:manage,  user:manage,  system:read,  finance:read,  finance:configure,  audit:read,  employee:manage,  account:lock,  support:create,  review:create,  support:respond,  support:manage,  dispute:decide,  promotion:manage,  promotion:configure,  loyalty:manage,  access:manage,  transport:read,  manager:manage,  payout:manage,  refund:manage,  notification:broadcast,  };
 
   AdminPlatformAccountListDtoOutputGrantable._();
 
@@ -226,6 +226,8 @@ class AdminPlatformAccountListDtoOutputGrantablePLATFORM_ADMINEnum extends EnumC
   static const AdminPlatformAccountListDtoOutputGrantablePLATFORM_ADMINEnum payoutColonManage = _$adminPlatformAccountListDtoOutputGrantablePLATFORMADMINEnum_payoutColonManage;
   @BuiltValueEnumConst(wireName: r'refund:manage')
   static const AdminPlatformAccountListDtoOutputGrantablePLATFORM_ADMINEnum refundColonManage = _$adminPlatformAccountListDtoOutputGrantablePLATFORMADMINEnum_refundColonManage;
+  @BuiltValueEnumConst(wireName: r'notification:broadcast')
+  static const AdminPlatformAccountListDtoOutputGrantablePLATFORM_ADMINEnum notificationColonBroadcast = _$adminPlatformAccountListDtoOutputGrantablePLATFORMADMINEnum_notificationColonBroadcast;
 
   static Serializer<AdminPlatformAccountListDtoOutputGrantablePLATFORM_ADMINEnum> get serializer => _$adminPlatformAccountListDtoOutputGrantablePLATFORMADMINEnumSerializer;
 
@@ -337,6 +339,8 @@ class AdminPlatformAccountListDtoOutputGrantablePLATFORM_SUPPORTEnum extends Enu
   static const AdminPlatformAccountListDtoOutputGrantablePLATFORM_SUPPORTEnum payoutColonManage = _$adminPlatformAccountListDtoOutputGrantablePLATFORMSUPPORTEnum_payoutColonManage;
   @BuiltValueEnumConst(wireName: r'refund:manage')
   static const AdminPlatformAccountListDtoOutputGrantablePLATFORM_SUPPORTEnum refundColonManage = _$adminPlatformAccountListDtoOutputGrantablePLATFORMSUPPORTEnum_refundColonManage;
+  @BuiltValueEnumConst(wireName: r'notification:broadcast')
+  static const AdminPlatformAccountListDtoOutputGrantablePLATFORM_SUPPORTEnum notificationColonBroadcast = _$adminPlatformAccountListDtoOutputGrantablePLATFORMSUPPORTEnum_notificationColonBroadcast;
 
   static Serializer<AdminPlatformAccountListDtoOutputGrantablePLATFORM_SUPPORTEnum> get serializer => _$adminPlatformAccountListDtoOutputGrantablePLATFORMSUPPORTEnumSerializer;
 

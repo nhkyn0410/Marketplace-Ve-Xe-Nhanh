@@ -74,6 +74,8 @@ Rules:
 | DisputeCase            | Hồ sơ tranh chấp           | A formal dispute with its own state machine; Platform admin is final arbiter (MQ-03).                 |
 | Notification           | Thông báo                  | An outbound message via email, SMS, push or in-app channels.                                          |
 | NotificationPreference | Cấu hình nhận thông báo    | Per-actor preference for non-mandatory notifications; mandatory ones cannot be fully disabled.        |
+| NotificationCampaign   | Chiến dịch thông báo       | A message an Admin sends to many passengers (types `SERVICE`, `PROMOTION`, `NEWS`) through inbox and push only, never bulk email. States: `DRAFT`, `SCHEDULED`, `SENDING`, `COMPLETED`, `CANCELLED`. Pending approval. |
+| NotificationInboxMessage | Tin trong hộp thư        | One in-app message of one passenger, from a campaign or a transactional notification; carries read state and an optional link. Pending approval. |
 | AuditLog               | Nhật ký kiểm toán          | Append-only log of sensitive actions: actor, time, action, target, before / after, reason.            |
 | KycDocument            | Hồ sơ KYC                  | Legal document submitted by an Operator during onboarding; verified by Admin.                         |
 | OperatorApplication    | Hồ sơ đăng ký nhà xe       | Registration submitted by an operator representative **before any account exists**; accessed only through an expiring secure link sent to the contact email; on Admin approval the system creates the Operator and its first Owner account. |

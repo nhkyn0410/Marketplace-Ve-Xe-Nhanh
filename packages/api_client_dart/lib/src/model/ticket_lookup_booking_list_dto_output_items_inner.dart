@@ -19,6 +19,7 @@ part 'ticket_lookup_booking_list_dto_output_items_inner.g.dart';
 /// * [operatorName] 
 /// * [departureAt] 
 /// * [ticketCount] 
+/// * [ticketStatuses] 
 /// * [total] 
 /// * [bookedWithAccount] 
 /// * [createdAt] 
@@ -45,6 +46,9 @@ abstract class TicketLookupBookingListDtoOutputItemsInner implements Built<Ticke
 
   @BuiltValueField(wireName: r'ticketCount')
   int get ticketCount;
+
+  @BuiltValueField(wireName: r'ticketStatuses')
+  BuiltList<String> get ticketStatuses;
 
   @BuiltValueField(wireName: r'total')
   int get total;
@@ -112,6 +116,11 @@ class _$TicketLookupBookingListDtoOutputItemsInnerSerializer implements Primitiv
     yield serializers.serialize(
       object.ticketCount,
       specifiedType: const FullType(int),
+    );
+    yield r'ticketStatuses';
+    yield serializers.serialize(
+      object.ticketStatuses,
+      specifiedType: const FullType(BuiltList, [FullType(String)]),
     );
     yield r'total';
     yield serializers.serialize(
@@ -199,6 +208,13 @@ class _$TicketLookupBookingListDtoOutputItemsInnerSerializer implements Primitiv
             specifiedType: const FullType(int),
           ) as int;
           result.ticketCount = valueDes;
+          break;
+        case r'ticketStatuses':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(BuiltList, [FullType(String)]),
+          ) as BuiltList<String>;
+          result.ticketStatuses.replace(valueDes);
           break;
         case r'total':
           final valueDes = serializers.deserialize(

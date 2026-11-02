@@ -13,7 +13,7 @@
 | Người viết    | Nguyễn Hồng Khanh, AI Agent      |
 | Người duyệt   | Nguyễn Hồng Khanh                |
 | Ngày tạo      | 01/06/2026                       |
-| Ngày cập nhật | 25/10/2026                       |
+| Ngày cập nhật | 02/11/2026                       |
 | Loại (15289)  | Release information / Change log |
 
 ### 1.2. Lịch sử thay đổi
@@ -23,6 +23,7 @@
 | v0.1      | 01/06/2026 | AI Agent       | Tạo **skeleton** Release Notes & Change Log theo ISO/IEC/IEEE 15289 + quy ước Keep a Changelog. Định nghĩa SemVer, quy trình release, phân loại thay đổi, template release log (chưa có release — pre-code). Chưa có nội dung release thật. |
 | v0.2      | 09/09/2026 | AI Agent       | **TASK-DOC-008 — kích hoạt khi vào code v1.** §9 bổ sung **ADR-028** vào phạm vi release `1.0.0` (mapping cũ dừng ở ADR-027) + tách dòng riêng cho Mobile. §7 ghi nhận **kênh phát hành Mobile v1 = phân phối trực tiếp, KHÔNG qua store** (ADR-028) nên `Rollback` của Mobile khác Web. §10 đóng **REL-OQ-04** (kênh phát hành Mobile). Bối cảnh: nền tảng xong (TASK-FND-001..008 Done, thêm **TASK-FND-009** setup Flutter), IAM-001 gần đóng → tài liệu này bắt đầu có việc thật. |
 | v0.3      | 25/10/2026 | AI Agent       | **Ghi mốc demo 10/2026** (Khanh 25/10: cập nhật toàn bộ tài liệu). §7 thêm mục **"Mốc demo nội bộ — 25/10/2026"**: ảnh chụp những gì đã có trên `develop` + môi trường demo (Render + Supabase), **không phải release** — chưa gắn tag / version vì REL-OQ-01 còn mở. §8 ghi lần **reset toàn bộ DB** ngày 21/10/2026 (RB-10) và 3 migration ngày 21/10. §3.2 sửa câu "chưa code v1". Giữ Draft. |
+| v0.4      | 02/11/2026 | AI Agent       | §8 ghi migration `20261102090000_notification_campaign` (`TASK-NSR-003`, chờ duyệt). |
 
 ---
 
@@ -184,6 +185,7 @@ Template entry cho mỗi release (copy khi release thật):
 | ---- | -------- | ---- | -------- | -------- |
 | 21/10/2026 | **Reset toàn bộ DB** (local + production) vì thêm role `OPERATOR_MANAGER` + cột `permissions` (`TASK-IAM-007`) — Khanh quyết xóa mọi tài khoản cũ. Mất toàn bộ tài khoản / nhà xe / dữ liệu nghiệp vụ; giữ Mongo audit + file R2 | RB-10: SQL xóa đối tượng ứng dụng → `prisma migrate deploy` → `db:app-role` → `db:seed:catalog` → kiểm tra Supabase → flush Upstash → tạo quản trị viên đầu tiên | Suốt lúc reset (Render suspend) | Không — chỉ dữ liệu mẫu |
 | 21/10/2026 | 3 migration: `20261021010000_account_permissions` (enum `OPERATOR_MANAGER`, cột `permissions` JSONB, CHECK Owner ⇔ `NULL`), `20261021010000_administrative_units_metadata` (`level`, `decree`, `search_text`), `20261021020000_legacy_administrative_mappings` (bảng ánh xạ hành chính cũ) | `prisma migrate deploy` + `db:app-role` (RB-02) rồi `db:seed:catalog` (RB-08); client TS / Dart sinh lại (RB-04) | Không | Migration mới đảo ngược (không sửa migration đã áp) |
+| 02/11/2026 | Migration `20261102090000_notification_campaign` (`TASK-NSR-003`, chờ duyệt): thêm `NotificationKind` `SERVICE_NOTICE`, `NEWS`; 4 enum; bảng `notification_campaigns`, `notification_inbox_messages` có FORCE RLS. Chỉ thêm, không đổi dữ liệu cũ | `prisma migrate deploy` trên `vexenhanh_dev` + production ngày 02/11/2026. Dev chạy thêm `db:app-role`; production không chạy vì default privileges đã cấp đủ quyền, script sẽ đặt lại mật khẩu role app đang dùng trên Render. Kiểm tra RB-02 ra `D` / `false` / `0`. Client TS + Dart đã sinh lại. Code chưa deploy | Không | Bảng mới trống đến khi deploy code; gỡ được bằng migration đảo ngược. Giá trị enum thêm vào không xóa được nhưng không ảnh hưởng code cũ. Không sửa migration đã áp |
 
 ---
 

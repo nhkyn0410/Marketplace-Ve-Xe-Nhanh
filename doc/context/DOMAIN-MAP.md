@@ -38,7 +38,7 @@ Notes:
 | Payment, Escrow & Payout | `payment/`, `refund/`, `escrow/`, `payout/`, `commission/`    | Payment, Refund, EscrowLedger, CommissionRule, Payout, ReconciliationRecord, CounterCommissionReceivable, CounterCommissionSettlement. Counter money never increases escrow/payout. |
 | Operation & Check-in     | `manifest/`, `check-in/`, `journey-log/`, `incident/`         | CheckInEvent, JourneyLog, IncidentReport, EmployeeAssignment.                                        |
 | Support & Trust          | `support/`, `complaint/`, `review/`, `dispute/`, `scorecard/` | SupportTicket, Complaint, Review, DisputeCase, OperatorScorecard.                                    |
-| Notification & Audit     | `notification/`, `audit/`, `policy/`                          | Notification, NotificationDelivery, NotificationPreference, AuditLog, PolicyVersion, PolicySnapshot. |
+| Notification & Audit     | `notification/`, `audit/`, `policy/`                          | Notification, NotificationDelivery, NotificationPreference, NotificationCampaign, NotificationInboxMessage (`notification/campaign/`, chờ duyệt), AuditLog, PolicyVersion, PolicySnapshot. |
 
 ## 3. Actor ↔ Client app
 

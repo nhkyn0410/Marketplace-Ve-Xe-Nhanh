@@ -127,6 +127,9 @@ export const RLS_TABLES = [
   "notifications",
   "notification_deliveries",
   "trip_changes",
+  // Chiến dịch thông báo + hộp thư (TASK-NSR-003): chỉ platform / system.
+  "notification_campaigns",
+  "notification_inbox_messages",
   // Khiếu nại / tranh chấp / đánh giá (TASK-TRUST-001): tenant_isolation.
   "support_tickets",
   "support_messages",

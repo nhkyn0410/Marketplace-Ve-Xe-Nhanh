@@ -4,7 +4,12 @@ import { cert, getApps, initializeApp } from "firebase-admin/app";
 import { getMessaging } from "firebase-admin/messaging";
 
 export const PUSH_NOTIFIER = Symbol("PUSH_NOTIFIER");
-export type PushMessage = { provider: string; token: string; title: string; body: string; notificationId: string };
+export type PushMessage = { provider: string; token: string; title: string; body: string; notificationId: string; kind: string };
+
+/** Kênh Android do app tạo: tin khuyến mãi tách riêng để khách tắt được mà vẫn nhận tin về vé. */
+function androidChannel(kind: string): string {
+  return kind === "PROMOTION" || kind === "NEWS" || kind === "LOYALTY_UPDATED" ? "vxn_offers" : "vxn_important";
+}
 export interface PushNotifier { send(message: PushMessage): Promise<"SENT" | "UNREGISTERED" | "UNAVAILABLE"> }
 
 /** Gửi push qua adapter FCM hoặc APNs theo cấu hình server, không ghi token vào log. */
@@ -22,7 +27,7 @@ export class ServerPushNotifier implements PushNotifier {
     const name = `vxn-push-${projectId}`;
     const app = getApps().find((item) => item.name === name) ?? initializeApp({ credential: cert({ projectId, clientEmail, privateKey: privateKey.replace(/\\n/g, "\n") }) }, name);
     try {
-      await getMessaging(app).send({ token: message.token, notification: { title: message.title, body: message.body }, data: { notificationId: message.notificationId }, android: { collapseKey: message.notificationId }, apns: { headers: { "apns-collapse-id": message.notificationId } } });
+      await getMessaging(app).send({ token: message.token, notification: { title: message.title, body: message.body }, data: { notificationId: message.notificationId, kind: message.kind }, android: { collapseKey: message.notificationId, notification: { channelId: androidChannel(message.kind) } }, apns: { headers: { "apns-collapse-id": message.notificationId } } });
       return "SENT";
     } catch (error) {
       const code = (error as { code?: string }).code;
@@ -62,7 +67,7 @@ export class ServerPushNotifier implements PushNotifier {
         else if (status === 410 || reason === "BadDeviceToken" || reason === "Unregistered") finish(null, "UNREGISTERED");
         else finish(new Error(`APNs delivery failed (${status}).`));
       });
-      request.end(JSON.stringify({ aps: { alert: { title: message.title, body: message.body }, sound: "default" }, notificationId: message.notificationId }));
+      request.end(JSON.stringify({ aps: { alert: { title: message.title, body: message.body }, sound: "default" }, notificationId: message.notificationId, kind: message.kind }));
     });
   }
 }

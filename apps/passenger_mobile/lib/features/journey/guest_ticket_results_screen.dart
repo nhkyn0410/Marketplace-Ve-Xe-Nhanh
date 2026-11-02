@@ -235,7 +235,9 @@ class _LookupSummary extends StatelessWidget {
 
 /// Màu nhãn trạng thái: chữ + nền.
 (Color, Color) _statusColors(String status) => switch (status) {
-  'CONFIRMED' || 'PAID' => (const Color(0xFF067647), const Color(0xFFECFDF3)),
+  'CONFIRMED' ||
+  'PAID' ||
+  'CHECKED_IN' => (const Color(0xFF067647), const Color(0xFFECFDF3)),
   'PENDING_PAYMENT' ||
   'PENDING_CONFIRMATION' ||
   'REFUND_PENDING' => (const Color(0xFFB54708), const Color(0xFFFFFAEB)),
@@ -253,7 +255,9 @@ class _TicketResultCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final departure = booking.departureAt.toLocal();
-    final (statusColor, statusBackground) = _statusColors(booking.status);
+    final (statusColor, statusBackground) = _statusColors(
+      booking.displayStatus,
+    );
     final count = booking.ticketCount;
     return JourneySurface(
       key: ValueKey('journey-booking-${booking.bookingCode}'),
@@ -347,7 +351,7 @@ class _TicketResultCard extends StatelessWidget {
                   borderRadius: BorderRadius.circular(99),
                 ),
                 child: Text(
-                  journeyBookingStatusLabel(booking.status),
+                  journeyBookingStatusLabel(booking.displayStatus),
                   style: TextStyle(
                     color: statusColor,
                     fontSize: 9.5,

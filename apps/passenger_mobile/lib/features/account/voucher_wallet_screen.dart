@@ -29,6 +29,7 @@ class VoucherWalletItem {
     required this.source,
     this.maxDiscount,
     this.promotionCode,
+    this.appliesTo,
     this.displayValue,
     this.conditionLabel,
     this.artwork,
@@ -43,6 +44,9 @@ class VoucherWalletItem {
   final DateTime expiresAt;
   final VoucherSource source;
   final String? promotionCode;
+
+  /// Phạm vi áp dụng do máy chủ mô tả, vd "Nhà xe Sao Việt · Hà Nội – Sa Pa".
+  final String? appliesTo;
   final String? displayValue;
   final String? conditionLabel;
   final VoucherArtwork? artwork;
@@ -91,9 +95,12 @@ class VoucherWalletScreen extends StatefulWidget {
     required this.onBack,
     this.errorMessage,
     this.onCodeChanged,
+    this.initialCode,
     super.key,
   });
 
+  /// Mã điền sẵn khi khách đi từ thông báo khuyến mãi.
+  final String? initialCode;
   final VoucherWalletLoader loadVouchers;
   final VoucherCodeSaver saveVoucherCode;
   final VoidCallback onBack;
@@ -105,7 +112,7 @@ class VoucherWalletScreen extends StatefulWidget {
 }
 
 class _VoucherWalletScreenState extends State<VoucherWalletScreen> {
-  final _codeController = TextEditingController();
+  late final _codeController = TextEditingController(text: widget.initialCode);
   late Future<List<VoucherWalletItem>> _vouchers = widget.loadVouchers();
   bool _saving = false;
   String? _validationMessage;
@@ -412,12 +419,20 @@ class VoucherCard extends StatelessWidget {
                     style: const TextStyle(color: _muted, fontSize: 11.5),
                   ),
                 ),
-                const Text(
-                  'Xem điều kiện ›',
-                  style: TextStyle(
-                    color: _primary,
-                    fontSize: 11.5,
-                    fontWeight: FontWeight.w600,
+                InkWell(
+                  key: Key('voucher-conditions-${voucher.id}'),
+                  borderRadius: BorderRadius.circular(6),
+                  onTap: () => _showVoucherConditions(context, voucher),
+                  child: const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 4, vertical: 3),
+                    child: Text(
+                      'Xem điều kiện ›',
+                      style: TextStyle(
+                        color: _primary,
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
                   ),
                 ),
               ],
@@ -432,6 +447,161 @@ class VoucherCard extends StatelessWidget {
             right: -10,
             top: 61,
             child: SvgPicture.asset('$_assetRoot/notch.svg'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+Future<void> _showVoucherConditions(
+  BuildContext context,
+  VoucherWalletItem voucher,
+) {
+  return showModalBottomSheet<void>(
+    context: context,
+    isScrollControlled: true,
+    useSafeArea: true,
+    backgroundColor: Colors.transparent,
+    barrierColor: const Color(0xA3707F8D),
+    builder: (_) => _VoucherConditionsSheet(voucher: voucher),
+  );
+}
+
+/// Điều kiện dùng một voucher, lấy từ chính dữ liệu voucher trong ví.
+class _VoucherConditionsSheet extends StatelessWidget {
+  const _VoucherConditionsSheet({required this.voucher});
+
+  final VoucherWalletItem voucher;
+
+  @override
+  Widget build(BuildContext context) {
+    final maximum = voucher.maxDiscount;
+    final minimum = BigInt.tryParse(voucher.minOrder) ?? BigInt.zero;
+    final code = voucher.promotionCode;
+    return Container(
+      key: const Key('voucher-conditions-sheet'),
+      padding: EdgeInsets.fromLTRB(
+        20,
+        12,
+        20,
+        24 + MediaQuery.paddingOf(context).bottom,
+      ),
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(22)),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Center(
+            child: Container(
+              width: 44,
+              height: 5,
+              decoration: BoxDecoration(
+                color: const Color(0xFFAAB9CC),
+                borderRadius: BorderRadius.circular(3),
+              ),
+            ),
+          ),
+          const SizedBox(height: 14),
+          Row(
+            children: [
+              const Expanded(
+                child: Text(
+                  'Điều kiện sử dụng',
+                  style: TextStyle(
+                    color: _ink,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+              IconButton(
+                key: const Key('voucher-conditions-close'),
+                tooltip: 'Đóng',
+                onPressed: () => Navigator.pop(context),
+                icon: const Icon(Icons.close_rounded, color: _muted),
+              ),
+            ],
+          ),
+          Text(
+            voucher.name,
+            style: const TextStyle(color: _muted, fontSize: 13, height: 1.4),
+          ),
+          const SizedBox(height: 14),
+          _ConditionRow(
+            label: 'Mức giảm',
+            value: voucher.displayValue ?? _discountLabel(voucher),
+          ),
+          if (maximum != null && BigInt.tryParse(maximum) != BigInt.zero)
+            _ConditionRow(
+              label: 'Giảm tối đa',
+              value: '${_formatVnd(maximum)}đ',
+            ),
+          _ConditionRow(
+            label: 'Đơn tối thiểu',
+            value: minimum > BigInt.zero
+                ? '${_formatVnd(voucher.minOrder)}đ'
+                : 'Không yêu cầu',
+          ),
+          _ConditionRow(
+            label: 'Áp dụng cho',
+            value: voucher.appliesTo ?? 'Mọi tuyến, mọi nhà xe',
+          ),
+          _ConditionRow(
+            label: 'Hạn dùng',
+            value: 'Đến hết ${_formatDate(voucher.expiresAt)}',
+          ),
+          _ConditionRow(
+            label: 'Nguồn',
+            value: voucher.source == VoucherSource.loyaltyRedemption
+                ? 'Đổi từ điểm VXN Plus'
+                : 'Mã khuyến mãi đã lưu',
+          ),
+          if (code != null) _ConditionRow(label: 'Mã', value: code),
+          const SizedBox(height: 10),
+          const Text(
+            'Mỗi đơn áp dụng tối đa một voucher. Voucher đã dùng không được trả lại khi bạn tự hủy vé.',
+            style: TextStyle(color: _muted, fontSize: 12, height: 1.5),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ConditionRow extends StatelessWidget {
+  const _ConditionRow({required this.label, required this.value});
+
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 104,
+            child: Text(
+              label,
+              style: const TextStyle(color: _muted, fontSize: 13, height: 1.4),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              style: const TextStyle(
+                color: _ink,
+                fontSize: 13,
+                height: 1.4,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
           ),
         ],
       ),

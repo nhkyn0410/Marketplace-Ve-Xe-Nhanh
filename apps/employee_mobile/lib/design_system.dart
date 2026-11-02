@@ -56,6 +56,7 @@ class DriverPage extends StatelessWidget {
     this.statusAsset,
     this.keepTheme = false,
     this.indicatorBackground,
+    this.indicatorColor,
   });
   final Widget child;
   final Widget? bottom;
@@ -65,6 +66,7 @@ class DriverPage extends StatelessWidget {
   final String? statusAsset;
   final bool keepTheme;
   final Color? indicatorBackground;
+  final Color? indicatorColor;
 
   @override
   Widget build(BuildContext context) => Theme(
@@ -113,7 +115,9 @@ class DriverPage extends StatelessWidget {
                       width: 134,
                       height: 5,
                       decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.onSurface,
+                        color:
+                            indicatorColor ??
+                            Theme.of(context).colorScheme.onSurface,
                         borderRadius: BorderRadius.circular(3),
                       ),
                     ),
@@ -141,6 +145,7 @@ class DriverHeading extends StatelessWidget {
     this.backAsset,
     this.padding,
     this.subtitleSpacing = 10,
+    this.backAssetSize = const Size(8, 14),
   });
   final String title;
   final String? subtitle;
@@ -152,6 +157,7 @@ class DriverHeading extends StatelessWidget {
   final String? backAsset;
   final EdgeInsets? padding;
   final double subtitleSpacing;
+  final Size backAssetSize;
 
   @override
   Widget build(BuildContext context) => Container(
@@ -169,7 +175,11 @@ class DriverHeading extends StatelessWidget {
             padding: EdgeInsets.zero,
             icon: backAsset == null
                 ? Icon(Icons.chevron_left, color: foreground)
-                : FigmaAsset(backAsset!, width: 8, height: 14),
+                : FigmaAsset(
+                    backAsset!,
+                    width: backAssetSize.width,
+                    height: backAssetSize.height,
+                  ),
           ),
         Expanded(
           child: Column(
@@ -214,6 +224,7 @@ class SwipeAction extends StatefulWidget {
     this.chevronAsset = 'login-imgFrame1',
     this.border = true,
     this.borderColor,
+    this.handleAsset,
   });
   final String label;
   final VoidCallback onComplete;
@@ -225,6 +236,7 @@ class SwipeAction extends StatefulWidget {
   final String chevronAsset;
   final bool border;
   final Color? borderColor;
+  final String? handleAsset;
 
   @override
   State<SwipeAction> createState() => _SwipeActionState();
@@ -235,7 +247,8 @@ class _SwipeActionState extends State<SwipeAction> {
   @override
   Widget build(BuildContext context) => LayoutBuilder(
     builder: (context, box) {
-      final maxOffset = (box.maxWidth - 48).clamp(0.0, double.infinity);
+      final maxOffset = (box.maxWidth - (widget.handleAsset == null ? 48 : 54))
+          .clamp(0.0, double.infinity);
       return Semantics(
         label: '${widget.label}. Vuốt sang phải để xác nhận.',
         enabled: widget.enabled,
@@ -281,7 +294,7 @@ class _SwipeActionState extends State<SwipeAction> {
               ),
               Positioned(
                 left: 5 + _offset,
-                top: 5,
+                top: widget.handleAsset == null ? 5 : 8,
                 child: GestureDetector(
                   key: ValueKey('swipe-${widget.label}'),
                   onHorizontalDragUpdate: widget.enabled
@@ -301,16 +314,24 @@ class _SwipeActionState extends State<SwipeAction> {
                           if (complete) widget.onComplete();
                         }
                       : null,
-                  child: Container(
-                    width: 36,
-                    height: 36,
-                    decoration: BoxDecoration(
-                      color: widget.enabled ? DriverColors.orange : Colors.grey,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    alignment: Alignment.center,
-                    child: FigmaAsset(widget.arrowAsset, width: 20, height: 20),
-                  ),
+                  child: widget.handleAsset != null
+                      ? FigmaAsset(widget.handleAsset!, width: 44, height: 32)
+                      : Container(
+                          width: 36,
+                          height: 36,
+                          decoration: BoxDecoration(
+                            color: widget.enabled
+                                ? DriverColors.orange
+                                : Colors.grey,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          alignment: Alignment.center,
+                          child: FigmaAsset(
+                            widget.arrowAsset,
+                            width: 20,
+                            height: 20,
+                          ),
+                        ),
                 ),
               ),
             ],
@@ -387,8 +408,15 @@ class StatusPill extends StatelessWidget {
 }
 
 /// Mở màn hình con và giữ thao tác quay lại theo Navigator của Flutter.
-Future<T?> openDriverPage<T>(BuildContext context, Widget page) =>
-    Navigator.of(context).push<T>(MaterialPageRoute(builder: (_) => page));
+Future<T?> openDriverPage<T>(BuildContext context, Widget page) {
+  ScaffoldMessenger.maybeOf(context)?.removeCurrentSnackBar();
+  return Navigator.of(context).push<T>(
+    MaterialPageRoute(
+      settings: RouteSettings(name: page.runtimeType.toString()),
+      builder: (_) => page,
+    ),
+  );
+}
 
 /// Thông báo rõ ràng cho thao tác đang dùng dữ liệu minh họa.
 void showDemoNotice(BuildContext context, [String? message]) =>

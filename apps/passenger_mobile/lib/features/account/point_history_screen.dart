@@ -215,6 +215,12 @@ class _PointHistoryScreenState extends State<PointHistoryScreen> {
     await _reload();
   }
 
+  Future<void> _selectType(PointTypeFilter type) async {
+    if (type == _query.type) return;
+    _query = PointHistoryQuery(type: type, date: _query.date);
+    await _reload();
+  }
+
   @override
   Widget build(BuildContext context) {
     return AnnotatedRegion<SystemUiOverlayStyle>(
@@ -300,7 +306,12 @@ class _PointHistoryScreenState extends State<PointHistoryScreen> {
                               ],
                             ),
                           ),
-                          const SizedBox(height: 25),
+                          const SizedBox(height: 10),
+                          _PointTypeFilterBar(
+                            selected: _query.type,
+                            onSelected: _selectType,
+                          ),
+                          const SizedBox(height: 18),
                           if (data.transactions.isEmpty)
                             const _FilteredEmpty()
                           else
@@ -580,10 +591,14 @@ class _TransactionRow extends StatelessWidget {
               ],
             ),
           ),
-          SizedBox(
-            width: 52,
+          // Số điểm luôn một dòng; số dài thì tiêu đề nhường chỗ.
+          ConstrainedBox(
+            constraints: const BoxConstraints(minWidth: 52),
             child: Text(
               '${positive ? '+' : '−'}${_formatPoints(item.points.abs())}',
+              key: Key('point-amount-${item.id}'),
+              maxLines: 1,
+              softWrap: false,
               textAlign: TextAlign.right,
               style: TextStyle(
                 color: positive ? const Color(0xFF008949) : _ink,
@@ -817,6 +832,52 @@ class _HistoryHeader extends StatelessWidget {
   }
 }
 
+/// Lọc theo loại giao dịch; chọn là tải lại ngay, giữ nguyên bộ lọc thời gian.
+class _PointTypeFilterBar extends StatelessWidget {
+  const _PointTypeFilterBar({required this.selected, required this.onSelected});
+
+  final PointTypeFilter selected;
+  final ValueChanged<PointTypeFilter> onSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      key: const Key('point-type-filter'),
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: [
+          for (final option in PointTypeFilter.values) ...[
+            ChoiceChip(
+              key: Key('point-type-${option.name}'),
+              label: Text(_typeLabel(option)),
+              selected: option == selected,
+              onSelected: (_) => onSelected(option),
+              showCheckmark: false,
+              selectedColor: const Color(0xFFE6F1FF),
+              backgroundColor: Colors.white,
+              side: BorderSide(
+                color: option == selected
+                    ? const Color(0xFF126BB1)
+                    : const Color(0xFFD7E6F7),
+              ),
+              labelStyle: TextStyle(
+                color: option == selected
+                    ? const Color(0xFF126BB1)
+                    : const Color(0xFF66717D),
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+              ),
+              visualDensity: VisualDensity.compact,
+              materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            ),
+            if (option != PointTypeFilter.values.last) const SizedBox(width: 8),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
 class _DateFilterSheet extends StatefulWidget {
   const _DateFilterSheet({required this.selected});
   final PointDateFilter selected;
@@ -1011,6 +1072,13 @@ class _LoadError extends StatelessWidget {
     );
   }
 }
+
+String _typeLabel(PointTypeFilter filter) => switch (filter) {
+  PointTypeFilter.all => 'Tất cả',
+  PointTypeFilter.earn => 'Tích điểm',
+  PointTypeFilter.redeem => 'Đổi điểm',
+  PointTypeFilter.expire => 'Hết hạn',
+};
 
 String _dateLabel(PointDateFilter filter) => switch (filter) {
   PointDateFilter.all => 'Tất cả',

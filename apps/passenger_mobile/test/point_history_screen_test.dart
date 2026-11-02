@@ -143,4 +143,94 @@ void main() {
     await tester.pumpAndSettle();
     expect(requested.last.date, PointDateFilter.previousMonth);
   });
+
+  testWidgets('số điểm lớn vẫn nằm trên một dòng', (tester) async {
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(360, 800);
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(
+      MaterialApp(
+        home: PointHistoryScreen(
+          loadHistory: (query) async => PointHistoryData(
+            availablePoints: 12500,
+            earnedPoints: 12500,
+            redeemedPoints: 0,
+            expiredPoints: 0,
+            transactions: [
+              PointTransactionItem(
+                id: 'lon',
+                kind: PointTransactionKind.earn,
+                points: 12500,
+                title: 'Đơn VXN100099 · hệ số ×1',
+                detail: 'Tích điểm',
+                createdAt: DateTime(2026, 9, 12),
+              ),
+            ],
+          ),
+          onBack: () {},
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final amount = find.byKey(const Key('point-amount-lon'));
+    expect(tester.widget<Text>(amount).data, '+12.500');
+    expect(tester.getSize(amount).height, lessThan(30));
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('lọc theo loại giao dịch, giữ nguyên bộ lọc thời gian', (
+    tester,
+  ) async {
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(412, 915);
+    addTearDown(tester.view.reset);
+    final requested = <PointHistoryQuery>[];
+    await tester.pumpWidget(
+      MaterialApp(
+        home: PointHistoryScreen(
+          loadHistory: (query) async {
+            requested.add(query);
+            return figmaPointHistorySample(query);
+          },
+          onBack: () {},
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('point-type-filter')), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('point-date-filter')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('point-date-all')));
+    await tester.tap(find.byKey(const Key('point-date-filter-apply')));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const Key('point-type-redeem')));
+    await tester.pumpAndSettle();
+    expect(requested.last.type, PointTypeFilter.redeem);
+    expect(requested.last.date, PointDateFilter.all);
+    expect(find.text('Đổi điểm lấy voucher'), findsWidgets);
+
+    // Bấm lại đúng loại đang chọn thì không tải lại.
+    final calls = requested.length;
+    await tester.tap(find.byKey(const Key('point-type-redeem')));
+    await tester.pumpAndSettle();
+    expect(requested.length, calls);
+
+    // Font test rộng hơn font thật nên chip cuối có thể nằm ngoài màn, phải cuộn tới.
+    await tester.ensureVisible(find.byKey(const Key('point-type-expire')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('point-type-expire')));
+    await tester.pumpAndSettle();
+    expect(requested.last.type, PointTypeFilter.expire);
+
+    // Bộ lọc vẫn hiện khi không có kết quả để còn đổi loại khác.
+    await tester.ensureVisible(find.byKey(const Key('point-type-all')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('point-type-all')));
+    await tester.pumpAndSettle();
+    expect(requested.last.type, PointTypeFilter.all);
+    expect(tester.takeException(), isNull);
+  });
 }

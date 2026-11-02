@@ -16,6 +16,10 @@ export const NOTIFICATION_JOB = "deliver";
 export const NOTIFICATION_SWEEP_JOB = "sweep";
 /** Quét bản gửi `PENDING` bị kẹt (xếp hàng lỗi) mỗi 5 phút. */
 export const NOTIFICATION_SWEEP_SCHEDULE = { pattern: "*/5 * * * *" } as const;
+/** Chiến dịch Admin (TASK-NSR-003): quét đến giờ mỗi phút, mỗi lô một job. */
+export const CAMPAIGN_SWEEP_JOB = "campaign-sweep";
+export const CAMPAIGN_SWEEP_SCHEDULE = { pattern: "* * * * *" } as const;
+export const CAMPAIGN_BATCH_JOB = "campaign-batch";
 export const NOTIFICATION_JOB_OPTIONS = {
   attempts: 5,
   backoff: { type: "exponential", delay: 60_000 },
@@ -57,7 +61,7 @@ export async function deliverNotification(
   if (loaded.done) {
     return "ALREADY_DONE";
   }
-  if ((loaded.kind === NotificationKind.OPERATIONS_ALERT || loaded.kind === NotificationKind.LOYALTY_UPDATED || loaded.kind === NotificationKind.PROMOTION) && loaded.recipientId) {
+  if ((loaded.kind === NotificationKind.OPERATIONS_ALERT || loaded.kind === NotificationKind.LOYALTY_UPDATED || loaded.kind === NotificationKind.PROMOTION || loaded.kind === NotificationKind.SERVICE_NOTICE || loaded.kind === NotificationKind.NEWS) && loaded.recipientId) {
     loaded.email = await withNotificationSubject(prisma, async (tx) => {
       if (loaded.recipientType === "PASSENGER") return (await tx.user.findUnique({ where: { id: loaded.recipientId! }, select: { email: true } }))?.email ?? null;
       if (loaded.recipientType === "PLATFORM") return (await tx.platformAccount.findUnique({ where: { id: loaded.recipientId! }, select: { contactEmail: true } }))?.contactEmail ?? null;
@@ -134,6 +138,8 @@ export async function loadTarget(
     case NotificationKind.OPERATIONS_ALERT:
     case NotificationKind.LOYALTY_UPDATED:
     case NotificationKind.PROMOTION:
+    case NotificationKind.SERVICE_NOTICE:
+    case NotificationKind.NEWS:
       return { email: operatorId ? (await tx.operatorAccount.findFirst({ where: { operatorId, role: OperatorRole.OPERATOR_OWNER, status: AccountStatus.ACTIVE }, orderBy: { createdAt: "asc" }, select: { contactEmail: true } }))?.contactEmail ?? null : null, content: { kind: notification.kind, title: String(payload.title ?? "Vé Xe Nhanh"), message: String(payload.message ?? "Có cập nhật mới.") } };
     case NotificationKind.BOOKING_CONFIRMED:
       return booking && snapshot

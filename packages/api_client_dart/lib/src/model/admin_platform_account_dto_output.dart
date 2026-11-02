@@ -42,7 +42,7 @@ abstract class AdminPlatformAccountDtoOutput implements Built<AdminPlatformAccou
 
   @BuiltValueField(wireName: r'permissions')
   BuiltList<AdminPlatformAccountDtoOutputPermissionsEnum> get permissions;
-  // enum permissionsEnum {  profile:manage,  loyalty:use,  notification:manage,  incident:create,  journey-log:create,  system:run,  trip:search,  booking:create,  booking:read,  payment:create,  payment:monitor,  refund:request,  vehicle:manage,  vehicle:read,  route:manage,  trip:manage,  trip:dispatch,  office:manage,  office:read,  counter:sell,  counter:collect,  counter:read,  checkin:perform,  checkin:read,  trip:operate,  kyc:submit,  kyc:review,  catalog:manage,  content:moderate,  content:manage,  user:manage,  system:read,  finance:read,  finance:configure,  audit:read,  employee:manage,  account:lock,  support:create,  review:create,  support:respond,  support:manage,  dispute:decide,  promotion:manage,  promotion:configure,  loyalty:manage,  access:manage,  transport:read,  manager:manage,  payout:manage,  refund:manage,  };
+  // enum permissionsEnum {  profile:manage,  loyalty:use,  notification:manage,  incident:create,  journey-log:create,  system:run,  trip:search,  booking:create,  booking:read,  payment:create,  payment:monitor,  refund:request,  vehicle:manage,  vehicle:read,  route:manage,  trip:manage,  trip:dispatch,  office:manage,  office:read,  counter:sell,  counter:collect,  counter:read,  checkin:perform,  checkin:read,  trip:operate,  kyc:submit,  kyc:review,  catalog:manage,  content:moderate,  content:manage,  user:manage,  system:read,  finance:read,  finance:configure,  audit:read,  employee:manage,  account:lock,  support:create,  review:create,  support:respond,  support:manage,  dispute:decide,  promotion:manage,  promotion:configure,  loyalty:manage,  access:manage,  transport:read,  manager:manage,  payout:manage,  refund:manage,  notification:broadcast,  };
 
   @BuiltValueField(wireName: r'status')
   AdminPlatformAccountDtoOutputStatusEnum get status;
@@ -422,6 +422,8 @@ class AdminPlatformAccountDtoOutputPermissionsEnum extends EnumClass {
   static const AdminPlatformAccountDtoOutputPermissionsEnum payoutColonManage = _$adminPlatformAccountDtoOutputPermissionsEnum_payoutColonManage;
   @BuiltValueEnumConst(wireName: r'refund:manage')
   static const AdminPlatformAccountDtoOutputPermissionsEnum refundColonManage = _$adminPlatformAccountDtoOutputPermissionsEnum_refundColonManage;
+  @BuiltValueEnumConst(wireName: r'notification:broadcast')
+  static const AdminPlatformAccountDtoOutputPermissionsEnum notificationColonBroadcast = _$adminPlatformAccountDtoOutputPermissionsEnum_notificationColonBroadcast;
 
   static Serializer<AdminPlatformAccountDtoOutputPermissionsEnum> get serializer => _$adminPlatformAccountDtoOutputPermissionsEnumSerializer;
 

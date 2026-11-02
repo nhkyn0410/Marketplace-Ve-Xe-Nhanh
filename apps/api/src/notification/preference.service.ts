@@ -11,7 +11,10 @@ import type { Authorization } from "../iam/role/authorization";
 import { permissionDenied } from "../iam/role/authorization.errors";
 
 /** Các thông báo nghiệp vụ bắt buộc còn ít nhất một kênh nhận (BR-52). */
-export function mandatoryNotification(kind: string): boolean { return kind !== "PROMOTION" && kind !== "LOYALTY_UPDATED"; }
+export function mandatoryNotification(kind: string): boolean { return kind !== "PROMOTION" && kind !== "LOYALTY_UPDATED" && kind !== "NEWS"; }
+
+/** Tin tức phải chủ động bật; các loại khác mặc định nhận. */
+function defaultOptIn(kind: string): boolean { return kind !== "NEWS"; }
 
 /** Xác định chủ thể nhận thông báo từ phiên đã xác thực. */
 export function notificationSubject(user: VerifiedAccessToken): { subjectType: SubjectType; subjectId: string; operatorId: string | null } {
@@ -28,7 +31,7 @@ export class PreferenceService {
   async preferences(user: VerifiedAccessToken) {
     const subject = notificationSubject(user);
     const rows = await withNotificationSubject(this.prisma, (tx) => tx.notificationPreference.findMany({ where: subject }));
-    return { items: NotificationKinds.map((kind) => { const row = rows.find((item) => item.kind === kind); return { kind, email: row?.email ?? true, push: row?.push ?? true, mandatory: mandatoryNotification(kind) }; }) };
+    return { items: NotificationKinds.map((kind) => { const row = rows.find((item) => item.kind === kind); return { kind, email: row?.email ?? defaultOptIn(kind), push: row?.push ?? defaultOptIn(kind), mandatory: mandatoryNotification(kind) }; }) };
   }
 
   /** Lưu tùy chọn một loại, bảo vệ kênh bắt buộc và kiểm kênh push trước khi bật. */

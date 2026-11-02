@@ -33,12 +33,14 @@ match:
 ## Kiểm tra
 
 - Đăng nhập app → máy hỏi quyền thông báo → cho phép. Sau khi có sự kiện (đặt / hủy vé), nhật ký gửi xem ở `GET /v1/me/notifications` (kênh `PUSH`, trạng thái `SENT`).
-- Gửi thử ở *Firebase Console → Messaging → New campaign → Send test message* với token (xem log `flutter run`), hoặc đặt / hủy một vé.
-- App đang mở: thông báo hiện thành thanh báo trong app; app ở nền: hiện ở khay hệ thống, chạm vào mở tab Hành trình.
+- Gửi thử ở *Admin → Thông báo → Gửi thử* (`TASK-NSR-003`, tin có nhãn `[Thử]`), ở *Firebase Console → Messaging → New campaign → Send test message* với token (xem log `flutter run`), hoặc đặt / hủy một vé.
+- App đang mở: thông báo hiện thành thanh báo trong app, tự tắt sau 6 giây; app ở nền: hiện ở khay hệ thống. Chạm tin về đơn vé mở tab Hành trình, tin khác (khuyến mãi, tin tức, dịch vụ) mở Hộp thư.
 
 ## Hay lỗi
 
 - Không hỏi quyền / không có token: bản build thiếu một trong 4 biến `FIREBASE_*` (app tự tắt push, không báo lỗi).
+- Log app có `FCM Registration failed`, Google trả `API_KEY_INVALID`: `FIREBASE_API_KEY` hoặc `FIREBASE_APP_ID` không thuộc project (sự cố 02/11/2026). Lấy lại theo bước 3 rồi build lại.
+- Không nhận được chiến dịch hẹn giờ: worker chưa bật. Chiến dịch chỉ phát tán khi worker đang chạy.
 - API không lên sau khi điền env: thiếu một trong 3 biến `FCM_*`, hoặc `FCM_PRIVATE_KEY` bị mất `-----BEGIN/END PRIVATE KEY-----`.
 - Đã gửi nhưng máy không nhận: hành khách tắt kênh push ở *Tài khoản → Cài đặt thông báo*, hoặc tắt thông báo của app trong cài đặt Android.
 - Lộ file JSON khóa dịch vụ: vào *Service accounts* xóa khóa đó, tạo khóa mới, cập nhật Render.

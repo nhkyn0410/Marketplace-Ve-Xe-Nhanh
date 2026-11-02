@@ -196,6 +196,10 @@ const AdminPlatformPermissionsUpdateDtoPermissionsEnum
     _$adminPlatformPermissionsUpdateDtoPermissionsEnum_refundColonManage =
     const AdminPlatformPermissionsUpdateDtoPermissionsEnum._(
         'refundColonManage');
+const AdminPlatformPermissionsUpdateDtoPermissionsEnum
+    _$adminPlatformPermissionsUpdateDtoPermissionsEnum_notificationColonBroadcast =
+    const AdminPlatformPermissionsUpdateDtoPermissionsEnum._(
+        'notificationColonBroadcast');
 
 AdminPlatformPermissionsUpdateDtoPermissionsEnum
     _$adminPlatformPermissionsUpdateDtoPermissionsEnumValueOf(String name) {
@@ -300,6 +304,8 @@ AdminPlatformPermissionsUpdateDtoPermissionsEnum
       return _$adminPlatformPermissionsUpdateDtoPermissionsEnum_payoutColonManage;
     case 'refundColonManage':
       return _$adminPlatformPermissionsUpdateDtoPermissionsEnum_refundColonManage;
+    case 'notificationColonBroadcast':
+      return _$adminPlatformPermissionsUpdateDtoPermissionsEnum_notificationColonBroadcast;
     default:
       throw ArgumentError(name);
   }
@@ -358,6 +364,7 @@ final BuiltSet<AdminPlatformPermissionsUpdateDtoPermissionsEnum>
   _$adminPlatformPermissionsUpdateDtoPermissionsEnum_managerColonManage,
   _$adminPlatformPermissionsUpdateDtoPermissionsEnum_payoutColonManage,
   _$adminPlatformPermissionsUpdateDtoPermissionsEnum_refundColonManage,
+  _$adminPlatformPermissionsUpdateDtoPermissionsEnum_notificationColonBroadcast,
 ]);
 
 Serializer<AdminPlatformPermissionsUpdateDtoPermissionsEnum>
@@ -418,6 +425,7 @@ class _$AdminPlatformPermissionsUpdateDtoPermissionsEnumSerializer
     'managerColonManage': 'manager:manage',
     'payoutColonManage': 'payout:manage',
     'refundColonManage': 'refund:manage',
+    'notificationColonBroadcast': 'notification:broadcast',
   };
   static const Map<Object, String> _fromWire = const <Object, String>{
     'profile:manage': 'profileColonManage',
@@ -470,6 +478,7 @@ class _$AdminPlatformPermissionsUpdateDtoPermissionsEnumSerializer
     'manager:manage': 'managerColonManage',
     'payout:manage': 'payoutColonManage',
     'refund:manage': 'refundColonManage',
+    'notification:broadcast': 'notificationColonBroadcast',
   };
 
   @override

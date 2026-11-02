@@ -4,7 +4,7 @@ import type { Queue } from "bullmq";
 import { pendingDeliveryIds } from "../database/notification-scope";
 import { PrismaService } from "../database/prisma.service";
 import { QUEUE_NAMES } from "../queue/queue.constants";
-import { NOTIFICATION_JOB, NOTIFICATION_JOB_OPTIONS } from "./notification-delivery";
+import { CAMPAIGN_SWEEP_JOB, NOTIFICATION_JOB, NOTIFICATION_JOB_OPTIONS } from "./notification-delivery";
 import { prepareNotificationChannels } from "./notification-outbox";
 
 /**
@@ -29,6 +29,15 @@ export class NotificationDispatcher {
     } catch (error) {
       // Không làm hỏng thao tác nghiệp vụ đã commit — job quét sẽ gửi.
       this.logger.error({ event: "notification.enqueue_failed", dedupKeys, error });
+    }
+  }
+
+  /** "Gửi ngay": không chờ lịch quét mỗi phút. Xếp hàng lỗi thì lịch quét vẫn gửi. */
+  async wakeCampaigns(): Promise<void> {
+    try {
+      await this.queue.add(CAMPAIGN_SWEEP_JOB, {}, { removeOnComplete: true, removeOnFail: true });
+    } catch (error) {
+      this.logger.error({ event: "notification.campaign_wake_failed", error });
     }
   }
 }

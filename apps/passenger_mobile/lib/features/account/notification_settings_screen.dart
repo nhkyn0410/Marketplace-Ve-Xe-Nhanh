@@ -1,11 +1,34 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:passenger_mobile/features/account/account_settings_header.dart';
 
-class NotificationSettingsScreen extends StatefulWidget {
-  const NotificationSettingsScreen({required this.onBack, super.key});
+typedef NotificationPreferenceLoader = Future<Map<String, bool>> Function();
+typedef NotificationPreferenceSaver =
+    Future<void> Function(String kind, {required bool enabled});
 
+const _primary = Color(0xFF1389DD);
+
+/// Loại thông báo ở máy chủ của từng công tắc tùy chọn (FR-NSR-14).
+const _optionalKinds = {
+  'promotion': 'PROMOTION',
+  'loyalty': 'LOYALTY_UPDATED',
+  'news': 'NEWS',
+};
+
+/// Cài đặt thông báo: nhóm quan trọng luôn bật (BR-52), nhóm tùy chọn lưu ở máy chủ.
+class NotificationSettingsScreen extends StatefulWidget {
+  const NotificationSettingsScreen({
+    required this.loadPreferences,
+    required this.savePreference,
+    required this.onBack,
+    super.key,
+  });
+
+  final NotificationPreferenceLoader loadPreferences;
+  final NotificationPreferenceSaver savePreference;
   final VoidCallback onBack;
 
   @override
@@ -15,18 +38,57 @@ class NotificationSettingsScreen extends StatefulWidget {
 
 class _NotificationSettingsScreenState
     extends State<NotificationSettingsScreen> {
-  final _enabled = <String, bool>{
-    'security': true,
-    'ticket': true,
-    'trip': true,
-    'dispute': true,
-    'promotion': true,
-    'loyalty': true,
-    'news': false,
-  };
+  /// `null` = đang tải hoặc tải lỗi.
+  Map<String, bool>? _enabled;
+  bool _failed = false;
+  final _saving = <String>{};
 
-  void _toggle(String id) {
-    setState(() => _enabled[id] = !(_enabled[id] ?? false));
+  @override
+  void initState() {
+    super.initState();
+    unawaited(_load());
+  }
+
+  Future<void> _load() async {
+    if (_failed) setState(() => _failed = false);
+    try {
+      final preferences = await widget.loadPreferences();
+      if (!mounted) return;
+      setState(() {
+        _enabled = {
+          for (final MapEntry(key: id, value: kind) in _optionalKinds.entries)
+            id: preferences[kind] ?? false,
+        };
+      });
+    } catch (_) {
+      if (mounted) setState(() => _failed = true);
+    }
+  }
+
+  /// Đổi ngay trên màn hình; lưu không được thì trả về như cũ và báo cho khách.
+  Future<void> _toggle(String id) async {
+    final enabled = _enabled;
+    if (enabled == null || _saving.contains(id)) return;
+    final next = !(enabled[id] ?? false);
+    setState(() {
+      enabled[id] = next;
+      _saving.add(id);
+    });
+    try {
+      await widget.savePreference(_optionalKinds[id]!, enabled: next);
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => enabled[id] = !next);
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          const SnackBar(
+            content: Text('Chưa lưu được cài đặt. Vui lòng thử lại.'),
+          ),
+        );
+    } finally {
+      if (mounted) setState(() => _saving.remove(id));
+    }
   }
 
   @override
@@ -52,7 +114,17 @@ class _NotificationSettingsScreenState
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       const _SectionTitle('Thông báo quan trọng'),
-                      const SizedBox(height: 14),
+                      const SizedBox(height: 2),
+                      const Text(
+                        'Luôn bật để bạn không bỏ lỡ thay đổi về tài khoản, vé và chuyến đi.',
+                        key: Key('notification-mandatory-note'),
+                        style: TextStyle(
+                          color: accountSettingsMuted,
+                          fontSize: 12,
+                          height: 1.5,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
                       _NotificationGroup(
                         items: [
                           _item(
@@ -87,13 +159,24 @@ class _NotificationSettingsScreenState
                             subtitle: 'Cập nhật trạng thái khiếu nại...',
                           ),
                         ],
-                        enabled: _enabled,
-                        onToggle: _toggle,
                       ),
                       const SizedBox(height: 20),
                       const _SectionTitle('Thông báo tùy chọn'),
                       const SizedBox(height: 14),
-                      _NotificationGroup(
+                      if (_enabled == null)
+                        _failed
+                            ? _PreferenceLoadError(onRetry: _load)
+                            : const SizedBox(
+                                key: Key('notification-settings-loading'),
+                                height: 120,
+                                child: Center(
+                                  child: CircularProgressIndicator(
+                                    color: _primary,
+                                  ),
+                                ),
+                              )
+                      else
+                        _NotificationGroup(
                         items: [
                           _item(
                             id: 'promotion',
@@ -183,16 +266,52 @@ class _NotificationItemData {
   final String subtitle;
 }
 
+class _PreferenceLoadError extends StatelessWidget {
+  const _PreferenceLoadError({required this.onRetry});
+
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      key: const Key('notification-settings-error'),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border.all(color: const Color(0xFFECF1F8)),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(
+        children: [
+          const Text(
+            'Không tải được cài đặt của bạn.',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: accountSettingsMuted,
+              fontSize: 13,
+              height: 1.5,
+            ),
+          ),
+          const SizedBox(height: 8),
+          OutlinedButton(
+            key: const Key('notification-settings-retry'),
+            onPressed: onRetry,
+            child: const Text('Thử lại'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _NotificationGroup extends StatelessWidget {
-  const _NotificationGroup({
-    required this.items,
-    required this.enabled,
-    required this.onToggle,
-  });
+  const _NotificationGroup({required this.items, this.enabled, this.onToggle});
 
   final List<_NotificationItemData> items;
-  final Map<String, bool> enabled;
-  final ValueChanged<String> onToggle;
+
+  /// `null` = nhóm bắt buộc: luôn bật, không đổi được.
+  final Map<String, bool>? enabled;
+  final ValueChanged<String>? onToggle;
 
   @override
   Widget build(BuildContext context) {
@@ -208,9 +327,9 @@ class _NotificationGroup extends StatelessWidget {
           for (var index = 0; index < items.length; index++)
             _NotificationRow(
               item: items[index],
-              enabled: enabled[items[index].id] ?? false,
+              enabled: enabled == null || (enabled![items[index].id] ?? false),
               showDivider: index != items.length - 1,
-              onTap: () => onToggle(items[index].id),
+              onTap: onToggle == null ? null : () => onToggle!(items[index].id),
             ),
         ],
       ),
@@ -229,7 +348,9 @@ class _NotificationRow extends StatelessWidget {
   final _NotificationItemData item;
   final bool enabled;
   final bool showDivider;
-  final VoidCallback onTap;
+
+  /// `null` = luôn bật.
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -311,14 +432,16 @@ class _FigmaSwitch extends StatelessWidget {
   const _FigmaSwitch({required this.value, required this.onTap, super.key});
 
   final bool value;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
+    final locked = onTap == null;
     return Semantics(
       toggled: value,
       button: true,
-      label: value ? 'Đang bật' : 'Đang tắt',
+      enabled: locked ? false : null,
+      label: locked ? 'Luôn bật' : (value ? 'Đang bật' : 'Đang tắt'),
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
         onTap: onTap,
@@ -328,8 +451,10 @@ class _FigmaSwitch extends StatelessWidget {
           height: 26,
           padding: const EdgeInsets.all(2),
           decoration: BoxDecoration(
-            color: value
-                ? const Color(0xFF1389DD)
+            color: locked
+                ? const Color(0xFF9BCBEC)
+                : value
+                ? _primary
                 : const Color(0xFFDCE1E7),
             borderRadius: BorderRadius.circular(13),
           ),

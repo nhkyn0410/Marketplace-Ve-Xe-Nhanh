@@ -234,6 +234,10 @@ const AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum
     _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_refundColonManage =
     const AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum._(
         'refundColonManage');
+const AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum
+    _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_notificationColonBroadcast =
+    const AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum._(
+        'notificationColonBroadcast');
 
 AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum
     _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnumValueOf(
@@ -339,6 +343,8 @@ AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum
       return _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_payoutColonManage;
     case 'refundColonManage':
       return _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_refundColonManage;
+    case 'notificationColonBroadcast':
+      return _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_notificationColonBroadcast;
     default:
       throw ArgumentError(name);
   }
@@ -398,6 +404,7 @@ final BuiltSet<AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnum>
   _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_managerColonManage,
   _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_payoutColonManage,
   _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_refundColonManage,
+  _$adminPlatformAccountListDtoOutputItemsInnerPermissionsEnum_notificationColonBroadcast,
 ]);
 
 const AdminPlatformAccountListDtoOutputItemsInnerStatusEnum
@@ -532,6 +539,7 @@ class _$AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnumSerializer
     'managerColonManage': 'manager:manage',
     'payoutColonManage': 'payout:manage',
     'refundColonManage': 'refund:manage',
+    'notificationColonBroadcast': 'notification:broadcast',
   };
   static const Map<Object, String> _fromWire = const <Object, String>{
     'profile:manage': 'profileColonManage',
@@ -584,6 +592,7 @@ class _$AdminPlatformAccountListDtoOutputItemsInnerPermissionsEnumSerializer
     'manager:manage': 'managerColonManage',
     'payout:manage': 'payoutColonManage',
     'refund:manage': 'refundColonManage',
+    'notification:broadcast': 'notificationColonBroadcast',
   };
 
   @override

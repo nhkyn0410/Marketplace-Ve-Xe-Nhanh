@@ -11,6 +11,13 @@ import 'package:passenger_mobile/features/journey/journey_models.dart';
 
 enum _GuestJourneyStep { lookup, otp, results, detail }
 
+/// Bước con của tab Hành trình không phải route: nút Back của Android phải lùi
+/// đúng bước thay vì rời tab.
+abstract interface class JourneyBackHandler {
+  /// `true` nếu đã lùi một bước; `false` nếu đang ở bước đầu.
+  bool handleBack();
+}
+
 /// Tab Hành trình khi chưa đăng nhập: tra cứu bằng email + OTP → danh sách đơn → chi tiết / hủy vé.
 class GuestJourneyFlow extends StatefulWidget {
   const GuestJourneyFlow({
@@ -32,7 +39,8 @@ class GuestJourneyFlow extends StatefulWidget {
   State<GuestJourneyFlow> createState() => _GuestJourneyFlowState();
 }
 
-class _GuestJourneyFlowState extends State<GuestJourneyFlow> {
+class _GuestJourneyFlowState extends State<GuestJourneyFlow>
+    implements JourneyBackHandler {
   _GuestJourneyStep _step = _GuestJourneyStep.lookup;
   String _email = '';
   JourneyLookupOtp? _otp;
@@ -144,6 +152,26 @@ class _GuestJourneyFlowState extends State<GuestJourneyFlow> {
     _show(_GuestJourneyStep.lookup);
   }
 
+  void _closeDetail() {
+    _show(_GuestJourneyStep.results);
+    _refreshResults();
+  }
+
+  @override
+  bool handleBack() {
+    switch (_step) {
+      case _GuestJourneyStep.lookup:
+        return false;
+      case _GuestJourneyStep.otp:
+        _show(_GuestJourneyStep.lookup);
+      case _GuestJourneyStep.results:
+        _restart();
+      case _GuestJourneyStep.detail:
+        _closeDetail();
+    }
+    return true;
+  }
+
   @override
   Widget build(BuildContext context) {
     // Đổi bước tức thì, không trượt (như màn Tài khoản khi chưa đăng nhập).
@@ -176,10 +204,7 @@ class _GuestJourneyFlowState extends State<GuestJourneyFlow> {
       ),
       _GuestJourneyStep.detail => GuestTicketDetailScreen(
         booking: _booking!,
-        onBack: () {
-          _show(_GuestJourneyStep.results);
-          _refreshResults();
-        },
+        onBack: _closeDetail,
         onTabSelected: widget.onTabSelected,
         onSupportRequested: widget.onSupportRequested,
         quoteCancellation: (ticketIds) => widget.api.quoteCancellation(
@@ -229,7 +254,8 @@ class MyJourneyFlow extends StatefulWidget {
   State<MyJourneyFlow> createState() => _MyJourneyFlowState();
 }
 
-class _MyJourneyFlowState extends State<MyJourneyFlow> {
+class _MyJourneyFlowState extends State<MyJourneyFlow>
+    implements JourneyBackHandler {
   late Future<List<JourneyBookingSummary>> _bookings = widget.api
       .listMyBookings();
   JourneyBooking? _booking;
@@ -237,8 +263,22 @@ class _MyJourneyFlowState extends State<MyJourneyFlow> {
 
   Future<void> _reload() async {
     final next = widget.api.listMyBookings();
-    setState(() => _bookings = next);
+    setState(() {
+      _bookings = next;
+    });
     await next.catchError((_) => const <JourneyBookingSummary>[]);
+  }
+
+  void _closeDetail() {
+    setState(() => _booking = null);
+    _reload();
+  }
+
+  @override
+  bool handleBack() {
+    if (_booking == null) return false;
+    _closeDetail();
+    return true;
   }
 
   Future<void> _open(JourneyBookingSummary summary) async {
@@ -268,10 +308,7 @@ class _MyJourneyFlowState extends State<MyJourneyFlow> {
         key: const ValueKey('my-journey-detail'),
         child: GuestTicketDetailScreen(
           booking: booking,
-          onBack: () {
-            setState(() => _booking = null);
-            _reload();
-          },
+          onBack: _closeDetail,
           onTabSelected: widget.onTabSelected,
           onSupportRequested: widget.onSupportRequested,
           quoteCancellation: (ticketIds) =>

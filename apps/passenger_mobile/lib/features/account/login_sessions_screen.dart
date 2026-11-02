@@ -3,9 +3,63 @@ import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:passenger_mobile/features/account/account_settings_header.dart';
 
-class LoginSessionsScreen extends StatefulWidget {
-  const LoginSessionsScreen({required this.onBack, super.key});
+/// Một phiên đăng nhập của tài khoản (`GET /auth/sessions`).
+class LoginSessionInfo {
+  const LoginSessionInfo({
+    required this.id,
+    required this.current,
+    required this.deviceLabel,
+    required this.createdAt,
+    required this.lastUsedAt,
+    this.ipAddress,
+  });
 
+  final String id;
+  final bool current;
+
+  /// Nhãn thô từ API, vd `Mobile app on Android`.
+  final String deviceLabel;
+
+  /// Đã che, vd `198.51.100.*`.
+  final String? ipAddress;
+  final DateTime createdAt;
+  final DateTime lastUsedAt;
+
+  String get deviceName => deviceLabel
+      .replaceAll('Mobile app', 'Ứng dụng di động')
+      .replaceAll('Unknown device', 'Thiết bị không xác định')
+      .replaceAll('Device', 'Thiết bị')
+      .replaceAll(' on ', ' trên ');
+
+  String get addressLabel => ipAddress == null
+      ? 'Không rõ địa chỉ IP'
+      : 'IP ${ipAddress!}';
+
+  String get signedInLabel => 'Đăng nhập lúc ${_formatMoment(createdAt)}';
+
+  String get lastUsedLabel => 'Hoạt động lúc ${_formatMoment(lastUsedAt)}';
+}
+
+String _formatMoment(DateTime value) {
+  final local = value.toLocal();
+  String two(int number) => number.toString().padLeft(2, '0');
+  return '${two(local.hour)}:${two(local.minute)} • '
+      '${two(local.day)}/${two(local.month)}/${local.year}';
+}
+
+typedef LoginSessionLoader = Future<List<LoginSessionInfo>> Function();
+typedef LoginSessionRevoker = Future<void> Function(String sessionId);
+
+class LoginSessionsScreen extends StatefulWidget {
+  const LoginSessionsScreen({
+    required this.loadSessions,
+    required this.revokeSession,
+    required this.onBack,
+    super.key,
+  });
+
+  final LoginSessionLoader loadSessions;
+  final LoginSessionRevoker revokeSession;
   final VoidCallback onBack;
 
   @override
@@ -13,22 +67,18 @@ class LoginSessionsScreen extends StatefulWidget {
 }
 
 class _LoginSessionsScreenState extends State<LoginSessionsScreen> {
-  final _otherSessions = <_LoginSession>[
-    const _LoginSession(
-      id: 'hanoi',
-      location: 'Hà Nội, Việt Nam',
-      signedInAt: 'Đăng nhập lúc 14:22 • 12/10/2026',
-    ),
-    const _LoginSession(
-      id: 'danang',
-      location: 'Đà Nẵng, Việt Nam',
-      signedInAt: 'Đăng nhập lúc 20:15 • 10/10/2026',
-    ),
-  ];
+  late Future<List<LoginSessionInfo>> _sessions = widget.loadSessions();
 
   bool _showingConfirmation = false;
 
-  Future<void> _confirmLogout({String? sessionId}) async {
+  void _reload() {
+    setState(() {
+      _sessions = widget.loadSessions();
+    });
+  }
+
+  /// [sessionIds] có một phần tử khi đăng xuất một thiết bị, đủ danh sách khi đăng xuất tất cả.
+  Future<void> _confirmLogout(List<String> sessionIds) async {
     setState(() => _showingConfirmation = true);
     final confirmed = await showModalBottomSheet<bool>(
       context: context,
@@ -39,15 +89,24 @@ class _LoginSessionsScreenState extends State<LoginSessionsScreen> {
       builder: (context) => const _LogoutConfirmationSheet(),
     );
     if (!mounted) return;
-    setState(() {
-      _showingConfirmation = false;
-      if (confirmed != true) return;
-      if (sessionId == null) {
-        _otherSessions.clear();
-      } else {
-        _otherSessions.removeWhere((session) => session.id == sessionId);
+    setState(() => _showingConfirmation = false);
+    if (confirmed != true) return;
+    try {
+      for (final sessionId in sessionIds) {
+        await widget.revokeSession(sessionId);
       }
-    });
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar()
+          ..showSnackBar(
+            const SnackBar(
+              content: Text('Chưa đăng xuất được thiết bị. Vui lòng thử lại.'),
+            ),
+          );
+      }
+    }
+    if (mounted) _reload();
   }
 
   @override
@@ -66,19 +125,42 @@ class _LoginSessionsScreenState extends State<LoginSessionsScreen> {
                 onBack: widget.onBack,
               ),
               Expanded(
-                child: AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 150),
-                  child: _showingConfirmation
-                      ? _DetailedSessionsContent(
-                          key: const Key('login-sessions-detailed-content'),
-                          sessions: _otherSessions,
-                          onLogout: _confirmLogout,
-                        )
-                      : _CompactSessionsContent(
-                          key: const Key('login-sessions-compact-content'),
-                          sessions: _otherSessions,
-                          onLogout: _confirmLogout,
-                        ),
+                child: FutureBuilder<List<LoginSessionInfo>>(
+                  future: _sessions,
+                  builder: (context, snapshot) {
+                    final sessions = snapshot.data;
+                    if (snapshot.connectionState != ConnectionState.done) {
+                      return const Center(
+                        key: Key('login-sessions-loading'),
+                        child: CircularProgressIndicator(),
+                      );
+                    }
+                    if (sessions == null) {
+                      return _SessionsLoadError(onRetry: _reload);
+                    }
+                    final current = sessions
+                        .where((session) => session.current)
+                        .firstOrNull;
+                    final others = sessions
+                        .where((session) => !session.current)
+                        .toList(growable: false);
+                    return AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 150),
+                      child: _showingConfirmation
+                          ? _DetailedSessionsContent(
+                              key: const Key('login-sessions-detailed-content'),
+                              current: current,
+                              sessions: others,
+                              onLogout: _confirmLogout,
+                            )
+                          : _CompactSessionsContent(
+                              key: const Key('login-sessions-compact-content'),
+                              current: current,
+                              sessions: others,
+                              onLogout: _confirmLogout,
+                            ),
+                    );
+                  },
                 ),
               ),
             ],
@@ -89,27 +171,44 @@ class _LoginSessionsScreenState extends State<LoginSessionsScreen> {
   }
 }
 
-class _LoginSession {
-  const _LoginSession({
-    required this.id,
-    required this.location,
-    required this.signedInAt,
-  });
+class _SessionsLoadError extends StatelessWidget {
+  const _SessionsLoadError({required this.onRetry});
 
-  final String id;
-  final String location;
-  final String signedInAt;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Text(
+            'Chưa thể tải danh sách phiên đăng nhập.',
+            style: TextStyle(color: accountSettingsMuted, fontSize: 13),
+          ),
+          const SizedBox(height: 10),
+          OutlinedButton(
+            key: const Key('login-sessions-retry'),
+            onPressed: onRetry,
+            child: const Text('Thử lại'),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 class _CompactSessionsContent extends StatelessWidget {
   const _CompactSessionsContent({
+    required this.current,
     required this.sessions,
     required this.onLogout,
     super.key,
   });
 
-  final List<_LoginSession> sessions;
-  final Future<void> Function({String? sessionId}) onLogout;
+  final LoginSessionInfo? current;
+  final List<LoginSessionInfo> sessions;
+  final Future<void> Function(List<String> sessionIds) onLogout;
 
   @override
   Widget build(BuildContext context) {
@@ -124,7 +223,8 @@ class _CompactSessionsContent extends StatelessWidget {
               children: [
                 const _SessionSectionTitle('Thiết bị hiện tại', size: 18),
                 const SizedBox(height: 10),
-                const _CurrentSessionCard(),
+                if (current case final session?)
+                  _CurrentSessionCard(session: session),
                 const SizedBox(height: 19),
                 const Padding(
                   padding: EdgeInsets.only(left: 6),
@@ -134,7 +234,7 @@ class _CompactSessionsContent extends StatelessWidget {
                 for (var index = 0; index < sessions.length; index++) ...[
                   _OtherSessionCard(
                     session: sessions[index],
-                    onLogout: () => onLogout(sessionId: sessions[index].id),
+                    onLogout: () => onLogout([sessions[index].id]),
                   ),
                   if (index != sessions.length - 1) const SizedBox(height: 19),
                 ],
@@ -143,7 +243,11 @@ class _CompactSessionsContent extends StatelessWidget {
                 else ...[
                   const Spacer(),
                   const SizedBox(height: 24),
-                  _LogoutAllButton(onTap: () => onLogout()),
+                  _LogoutAllButton(
+                    onTap: () => onLogout([
+                      for (final session in sessions) session.id,
+                    ]),
+                  ),
                 ],
                 const SizedBox(height: 78),
               ],
@@ -157,13 +261,15 @@ class _CompactSessionsContent extends StatelessWidget {
 
 class _DetailedSessionsContent extends StatelessWidget {
   const _DetailedSessionsContent({
+    required this.current,
     required this.sessions,
     required this.onLogout,
     super.key,
   });
 
-  final List<_LoginSession> sessions;
-  final Future<void> Function({String? sessionId}) onLogout;
+  final LoginSessionInfo? current;
+  final List<LoginSessionInfo> sessions;
+  final Future<void> Function(List<String> sessionIds) onLogout;
 
   @override
   Widget build(BuildContext context) {
@@ -184,7 +290,8 @@ class _DetailedSessionsContent extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 8),
-          const _CurrentSessionCard(),
+          if (current case final session?)
+            _CurrentSessionCard(session: session),
           const SizedBox(height: 14),
           const _SessionSectionTitle('Các phiên đăng nhập khác'),
           const SizedBox(height: 2),
@@ -200,13 +307,17 @@ class _DetailedSessionsContent extends StatelessWidget {
           for (var index = 0; index < sessions.length; index++) ...[
             _OtherSessionCard(
               session: sessions[index],
-              onLogout: () => onLogout(sessionId: sessions[index].id),
+              onLogout: () => onLogout([sessions[index].id]),
             ),
             if (index != sessions.length - 1) const SizedBox(height: 7),
           ],
           if (sessions.isNotEmpty) ...[
             const SizedBox(height: 20),
-            _LogoutAllButton(onTap: () => onLogout()),
+            _LogoutAllButton(
+              onTap: () => onLogout([
+                for (final session in sessions) session.id,
+              ]),
+            ),
             const SizedBox(height: 6),
             const Text(
               'Tất cả các thiết bị khác sẽ bị đăng xuất. Thiết bị hiện tại của bạn vẫn được giữ nguyên.',
@@ -292,7 +403,9 @@ class _SessionSectionTitle extends StatelessWidget {
 }
 
 class _CurrentSessionCard extends StatelessWidget {
-  const _CurrentSessionCard();
+  const _CurrentSessionCard({required this.session});
+
+  final LoginSessionInfo session;
 
   @override
   Widget build(BuildContext context) {
@@ -308,12 +421,12 @@ class _CurrentSessionCard extends StatelessWidget {
             asset: '$accountSettingsAssetRoot/phone.svg',
           ),
           const SizedBox(width: 14),
-          const Expanded(
+          Expanded(
             child: _SessionDetails(
               title: 'Phiên hiện tại',
-              subtitle: 'Ứng dụng Vé Xe Nhanh',
-              location: 'TP. Hồ Chí Minh, Việt Nam',
-              signedInAt: 'Đăng nhập lúc 09:41 • 17/10/2026',
+              subtitle: session.deviceName,
+              location: session.addressLabel,
+              signedInAt: session.signedInLabel,
               active: true,
             ),
           ),
@@ -326,7 +439,7 @@ class _CurrentSessionCard extends StatelessWidget {
 class _OtherSessionCard extends StatelessWidget {
   const _OtherSessionCard({required this.session, required this.onLogout});
 
-  final _LoginSession session;
+  final LoginSessionInfo session;
   final VoidCallback onLogout;
 
   @override
@@ -345,10 +458,10 @@ class _OtherSessionCard extends StatelessWidget {
           const SizedBox(width: 14),
           Expanded(
             child: _SessionDetails(
-              title: 'Phiên đăng nhập khác',
-              subtitle: 'Hoạt động gần đây',
-              location: session.location,
-              signedInAt: session.signedInAt,
+              title: session.deviceName,
+              subtitle: session.lastUsedLabel,
+              location: session.addressLabel,
+              signedInAt: session.signedInLabel,
             ),
           ),
           TextButton.icon(
@@ -614,7 +727,7 @@ class _LogoutConfirmationSheet extends StatelessWidget {
             right: 20,
             top: 160,
             child: Text(
-              'Đăng xuất tài khoản?',
+              'Đăng xuất thiết bị khác?',
               textAlign: TextAlign.center,
               style: TextStyle(
                 color: accountSettingsInk,
@@ -629,7 +742,7 @@ class _LogoutConfirmationSheet extends StatelessWidget {
             right: 20,
             top: 209,
             child: Text(
-              'Bạn sẽ cần đăng nhập lại để tiếp tục sử dụng\ncác tiện ích tài khoản.\nThiết bị hiện tại của bạn cũng sẽ bị đăng xuất.',
+              'Thiết bị đó sẽ cần đăng nhập lại để tiếp tục\nsử dụng các tiện ích tài khoản.\nThiết bị bạn đang dùng vẫn giữ nguyên đăng nhập.',
               textAlign: TextAlign.center,
               style: TextStyle(
                 color: Color(0xFF60799E),

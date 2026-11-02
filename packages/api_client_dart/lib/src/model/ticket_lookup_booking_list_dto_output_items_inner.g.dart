@@ -157,6 +157,8 @@ class _$TicketLookupBookingListDtoOutputItemsInner
   @override
   final int ticketCount;
   @override
+  final BuiltList<String> ticketStatuses;
+  @override
   final int total;
   @override
   final bool bookedWithAccount;
@@ -177,6 +179,7 @@ class _$TicketLookupBookingListDtoOutputItemsInner
       required this.operatorName,
       required this.departureAt,
       required this.ticketCount,
+      required this.ticketStatuses,
       required this.total,
       required this.bookedWithAccount,
       required this.createdAt})
@@ -202,6 +205,7 @@ class _$TicketLookupBookingListDtoOutputItemsInner
         operatorName == other.operatorName &&
         departureAt == other.departureAt &&
         ticketCount == other.ticketCount &&
+        ticketStatuses == other.ticketStatuses &&
         total == other.total &&
         bookedWithAccount == other.bookedWithAccount &&
         createdAt == other.createdAt;
@@ -217,6 +221,7 @@ class _$TicketLookupBookingListDtoOutputItemsInner
     _$hash = $jc(_$hash, operatorName.hashCode);
     _$hash = $jc(_$hash, departureAt.hashCode);
     _$hash = $jc(_$hash, ticketCount.hashCode);
+    _$hash = $jc(_$hash, ticketStatuses.hashCode);
     _$hash = $jc(_$hash, total.hashCode);
     _$hash = $jc(_$hash, bookedWithAccount.hashCode);
     _$hash = $jc(_$hash, createdAt.hashCode);
@@ -235,6 +240,7 @@ class _$TicketLookupBookingListDtoOutputItemsInner
           ..add('operatorName', operatorName)
           ..add('departureAt', departureAt)
           ..add('ticketCount', ticketCount)
+          ..add('ticketStatuses', ticketStatuses)
           ..add('total', total)
           ..add('bookedWithAccount', bookedWithAccount)
           ..add('createdAt', createdAt))
@@ -278,6 +284,12 @@ class TicketLookupBookingListDtoOutputItemsInnerBuilder
   int? get ticketCount => _$this._ticketCount;
   set ticketCount(int? ticketCount) => _$this._ticketCount = ticketCount;
 
+  ListBuilder<String>? _ticketStatuses;
+  ListBuilder<String> get ticketStatuses =>
+      _$this._ticketStatuses ??= ListBuilder<String>();
+  set ticketStatuses(ListBuilder<String>? ticketStatuses) =>
+      _$this._ticketStatuses = ticketStatuses;
+
   int? _total;
   int? get total => _$this._total;
   set total(int? total) => _$this._total = total;
@@ -305,6 +317,7 @@ class TicketLookupBookingListDtoOutputItemsInnerBuilder
       _operatorName = $v.operatorName;
       _departureAt = $v.departureAt;
       _ticketCount = $v.ticketCount;
+      _ticketStatuses = $v.ticketStatuses.toBuilder();
       _total = $v.total;
       _bookedWithAccount = $v.bookedWithAccount;
       _createdAt = $v.createdAt;
@@ -329,31 +342,47 @@ class TicketLookupBookingListDtoOutputItemsInnerBuilder
   TicketLookupBookingListDtoOutputItemsInner build() => _build();
 
   _$TicketLookupBookingListDtoOutputItemsInner _build() {
-    final _$result = _$v ??
-        _$TicketLookupBookingListDtoOutputItemsInner._(
-          bookingId: BuiltValueNullFieldError.checkNotNull(bookingId,
-              r'TicketLookupBookingListDtoOutputItemsInner', 'bookingId'),
-          bookingCode: BuiltValueNullFieldError.checkNotNull(bookingCode,
-              r'TicketLookupBookingListDtoOutputItemsInner', 'bookingCode'),
-          status: BuiltValueNullFieldError.checkNotNull(
-              status, r'TicketLookupBookingListDtoOutputItemsInner', 'status'),
-          routeName: BuiltValueNullFieldError.checkNotNull(routeName,
-              r'TicketLookupBookingListDtoOutputItemsInner', 'routeName'),
-          operatorName: BuiltValueNullFieldError.checkNotNull(operatorName,
-              r'TicketLookupBookingListDtoOutputItemsInner', 'operatorName'),
-          departureAt: BuiltValueNullFieldError.checkNotNull(departureAt,
-              r'TicketLookupBookingListDtoOutputItemsInner', 'departureAt'),
-          ticketCount: BuiltValueNullFieldError.checkNotNull(ticketCount,
-              r'TicketLookupBookingListDtoOutputItemsInner', 'ticketCount'),
-          total: BuiltValueNullFieldError.checkNotNull(
-              total, r'TicketLookupBookingListDtoOutputItemsInner', 'total'),
-          bookedWithAccount: BuiltValueNullFieldError.checkNotNull(
-              bookedWithAccount,
-              r'TicketLookupBookingListDtoOutputItemsInner',
-              'bookedWithAccount'),
-          createdAt: BuiltValueNullFieldError.checkNotNull(createdAt,
-              r'TicketLookupBookingListDtoOutputItemsInner', 'createdAt'),
-        );
+    _$TicketLookupBookingListDtoOutputItemsInner _$result;
+    try {
+      _$result = _$v ??
+          _$TicketLookupBookingListDtoOutputItemsInner._(
+            bookingId: BuiltValueNullFieldError.checkNotNull(bookingId,
+                r'TicketLookupBookingListDtoOutputItemsInner', 'bookingId'),
+            bookingCode: BuiltValueNullFieldError.checkNotNull(bookingCode,
+                r'TicketLookupBookingListDtoOutputItemsInner', 'bookingCode'),
+            status: BuiltValueNullFieldError.checkNotNull(status,
+                r'TicketLookupBookingListDtoOutputItemsInner', 'status'),
+            routeName: BuiltValueNullFieldError.checkNotNull(routeName,
+                r'TicketLookupBookingListDtoOutputItemsInner', 'routeName'),
+            operatorName: BuiltValueNullFieldError.checkNotNull(operatorName,
+                r'TicketLookupBookingListDtoOutputItemsInner', 'operatorName'),
+            departureAt: BuiltValueNullFieldError.checkNotNull(departureAt,
+                r'TicketLookupBookingListDtoOutputItemsInner', 'departureAt'),
+            ticketCount: BuiltValueNullFieldError.checkNotNull(ticketCount,
+                r'TicketLookupBookingListDtoOutputItemsInner', 'ticketCount'),
+            ticketStatuses: ticketStatuses.build(),
+            total: BuiltValueNullFieldError.checkNotNull(
+                total, r'TicketLookupBookingListDtoOutputItemsInner', 'total'),
+            bookedWithAccount: BuiltValueNullFieldError.checkNotNull(
+                bookedWithAccount,
+                r'TicketLookupBookingListDtoOutputItemsInner',
+                'bookedWithAccount'),
+            createdAt: BuiltValueNullFieldError.checkNotNull(createdAt,
+                r'TicketLookupBookingListDtoOutputItemsInner', 'createdAt'),
+          );
+    } catch (_) {
+      late String _$failedField;
+      try {
+        _$failedField = 'ticketStatuses';
+        ticketStatuses.build();
+      } catch (e) {
+        throw BuiltValueNestedFieldError(
+            r'TicketLookupBookingListDtoOutputItemsInner',
+            _$failedField,
+            e.toString());
+      }
+      rethrow;
+    }
     replace(_$result);
     return _$result;
   }

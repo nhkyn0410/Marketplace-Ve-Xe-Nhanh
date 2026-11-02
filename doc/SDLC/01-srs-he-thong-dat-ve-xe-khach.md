@@ -13,7 +13,7 @@
 | Người viết    | Nguyễn Hồng Khanh, AI Agent                                    |
 | Người duyệt   | Nguyễn Hồng Khanh                                              |
 | Ngày tạo      | 05/05/2026                                                     |
-| Ngày cập nhật | 28/10/2026                                                     |
+| Ngày cập nhật | 02/11/2026                                                     |
 
 ### 1.2. Lịch sử thay đổi
 
@@ -59,6 +59,7 @@
 | v1.37     | 27/10/2026 | AI Agent | **Tra cứu vé khách vãng lai không cần mã đặt vé (Khanh 27/10/2026, chờ duyệt):** `UC-35` bước 1–2 — email bắt buộc, mã vé / mã booking tùy chọn, OTP gửi về email; thêm A1b (danh sách đơn 12 tháng gồm cả đơn đặt bằng tài khoản, hỏi đăng nhập), A1c (mất email → CSKH). Giữ trạng thái Review. |
 | v1.38     | 27/10/2026 | AI Agent | **Hủy vé và khiếu nại sau OTP tra cứu vé (Khanh 27/10/2026, chờ duyệt):** `UC-35` bước 6 — OTP của phiên tra cứu đủ cho hủy vé / hoàn tiền / khiếu nại của booking khách vãng lai trong phiên; booking đặt bằng tài khoản phải đăng nhập. Giữ trạng thái Review. |
 | v1.39     | 28/10/2026 | AI Agent | **Người đi cùng trên chỗ đôi (Khanh 28/10/2026, chờ duyệt):** `BR-78` bổ sung — khai họ tên người đi cùng (không bắt buộc), chung một vé / QR. |
+| v1.40     | 02/11/2026 | AI Agent | **Chiến dịch thông báo và hộp thư (Khanh 02/11/2026 "theo đề xuất, không gửi email hàng loạt"; tự thiết kế — chờ duyệt):** §10.9 thêm `FR-NSR-16`, `FR-NSR-17`; §12 thêm `UC-41`, `UC-42`; §14 thêm `BR-82..85`; §15 thêm dòng phân quyền; §18.2 `NTF-20`, `NTF-21` bỏ email, thêm `NTF-27`; §18.3 + §20 thêm tiêu chí. Giữ trạng thái Review. |
 
 ---
 
@@ -842,6 +843,8 @@ Phần này mô tả yêu cầu chức năng ở mức SRS. Mỗi yêu cầu ph�
 | FR-NSR-13 | Admin phải xem báo cáo toàn hệ thống theo thời gian, Operator, tuyến, khu vực, phương thức thanh toán, khiếu nại và audit.                                                                                                                                                          | Admin                  |
 | FR-NSR-14 | User, Operator và Employee phải cấu hình được notification preference cho thông báo không bắt buộc theo loại và kênh; thông báo bắt buộc về bảo mật, vé, thanh toán, đổi / hủy chuyến và dispute không được tắt hoàn toàn.                                                          | User, Nhà xe, Employee |
 | FR-NSR-15 | Hệ thống phải hiển thị Operator scorecard tại profile Operator và các điểm so sánh chuyến theo policy công khai.                                                                                                                                                                    | Hệ thống               |
+| FR-NSR-16 | Admin phải gửi được chiến dịch thông báo tới hành khách có tài khoản theo ba dạng: Dịch vụ (gửi mọi tài khoản đang hoạt động), Khuyến mãi (gắn một khuyến mãi đang chạy), Tin tức (gắn một bài viết đã đăng); chọn đối tượng tất cả hoặc theo hạng VXN Plus, xem trước, ước tính số người nhận, gửi thử cho một tài khoản, gửi ngay hoặc hẹn giờ, hủy và theo dõi kết quả. *(Chờ duyệt.)* | Admin |
+| FR-NSR-17 | User đăng nhập phải xem được hộp thư thông báo trong ứng dụng: tin mới nhất trước, chấm báo tin chưa đọc trên chuông Trang chủ, đánh dấu đã đọc từng tin hoặc tất cả, đọc toàn văn và đi tiếp tới hành trình, bài viết hoặc mã ưu đãi gắn với tin. *(Chờ duyệt.)* | User |
 
 ### 10.10. Dispute Case Workflow
 
@@ -1029,6 +1032,8 @@ Quy ước ký hiệu dùng chung cho mọi sơ đồ:
 | UC-38 | Đọc bài viết tin tức / cẩm nang                   | Người dùng, Khách vãng lai                             | —                                                                                   | `FR-MKT-14`                                        | —                   | Thấp       |
 | UC-39 | Cấu hình và giám sát chương trình VXN Plus        | Admin                                                  | Người dùng (được điều chỉnh điểm)                                                   | `FR-LOY-10..12`                                    | —                   | Trung bình |
 | UC-40 | Quản lý bài viết tin tức / cẩm nang               | Admin                                                  | Dịch vụ lưu trữ tệp                                                                 | `FR-ADM-18..19`                                    | —                   | Thấp       |
+| UC-41 | Gửi chiến dịch thông báo | Admin | Người dùng (người nhận), Dịch vụ push | `FR-NSR-16` | — | Trung bình |
+| UC-42 | Xem hộp thư thông báo | Người dùng | — | `FR-NSR-17` | — | Trung bình |
 | **P4 · Operator OS** |                                    |                                                        |                                                                                     |                                                    |                     |            |
 | UC-10 | Đăng ký Operator và gửi hồ sơ KYC                 | Nhà xe (người đại diện, chưa có tài khoản)                                                 | Admin; Dịch vụ lưu trữ tệp                                                          | `FR-OPR-01..05`, `FR-OPR-12`                                    | BF-01               | Cao        |
 | UC-11 | Quản lý hồ sơ và tài chính Operator               | Nhà xe                                                 | Admin                                                                               | `FR-OPR-02..09`                                    | BF-01, BF-09        | Cao        |
@@ -1087,7 +1092,7 @@ flowchart LR
 
     User --- P1
     Passenger --- P2
-    Passenger ---|UC-38| P3
+    Passenger ---|UC-38, UC-42| P3
     User ---|UC-36, UC-37| P3
     Operator --- P1
     Operator ---|UC-33| P3
@@ -1096,7 +1101,7 @@ flowchart LR
     Employee --- P5
     Admin ---|UC-01| P1
     Admin ---|UC-08| P2
-    Admin ---|UC-33, UC-39, UC-40| P3
+    Admin ---|UC-33, UC-39, UC-40, UC-41| P3
     Admin ---|UC-13| P4
     Admin --- P6
     Admin ---|UC-32| P7
@@ -1152,6 +1157,7 @@ flowchart LR
         UC36(["UC-36<br/>Tích điểm / hạng VXN Plus"])
         UC37(["UC-37<br/>Đổi điểm / ví voucher"])
         UC38(["UC-38<br/>Đọc bài viết"])
+        UC42(["UC-42<br/>Xem hộp thư thông báo"])
         UC31(["UC-31<br/>Gửi notification<br/>(tác vụ hệ thống)"])
         UC27(["UC-27<br/>Dispute / refund thủ công<br/>(Admin)"])
         UC32(["UC-32<br/>Đối soát / chạy lại job<br/>(tác vụ hệ thống, Admin)"])
@@ -1170,6 +1176,7 @@ flowchart LR
     Passenger --- UC07
     Passenger --- UC08
     Passenger --- UC38
+    Passenger --- UC42
     User --- UC01
     User --- UC09
     User --- UC34
@@ -1317,6 +1324,7 @@ flowchart LR
         UC33(["UC-33<br/>Quản lý promotion"])
         UC39(["UC-39<br/>Cấu hình / giám sát VXN Plus"])
         UC40(["UC-40<br/>Quản lý bài viết"])
+        UC41(["UC-41<br/>Gửi chiến dịch thông báo"])
         UC31(["UC-31<br/>Gửi notification<br/>(tác vụ hệ thống)"])
         UC06(["UC-06<br/>Thanh toán booking<br/>(Hành khách)"])
         UC09(["UC-09<br/>Đánh giá / hỗ trợ / khiếu nại<br/>(Hành khách)"])
@@ -1342,6 +1350,7 @@ flowchart LR
     Admin --- UC33
     Admin --- UC39
     Admin --- UC40
+    Admin --- UC41
 
     UC08 -.->|«include»| UC31
     UC27 -.->|«include»| UC31
@@ -2644,6 +2653,59 @@ Luồng thay thế / ngoại lệ:
 
 ---
 
+### UC-41: Gửi chiến dịch thông báo
+
+| Thuộc tính     | Nội dung                                                                                       |
+| -------------- | ---------------------------------------------------------------------------------------------- |
+| Actor chính    | Admin toàn hệ thống (Admin)                                                                    |
+| Actor phụ      | Hệ thống, Dịch vụ push; người nhận là User                                                     |
+| Mục tiêu       | Admin gửi tin dịch vụ, khuyến mãi hoặc tin tức tới hành khách có tài khoản mà không tốn hạn mức email. |
+| Tiền điều kiện | Admin đã đăng nhập và có quyền `notification:broadcast`.                                       |
+| Kích hoạt      | Admin cần báo bảo trì, giới thiệu khuyến mãi đang chạy hoặc bài viết mới.                      |
+| Hậu điều kiện  | Tin vào hộp thư của người nhận, thiết bị đủ điều kiện nhận push; mọi thao tác có audit log.    |
+| Ưu tiên        | Trung bình                                                                                     |
+
+Luồng chính:
+
+1. Admin chọn dạng thông báo, nhập tiêu đề (3–80 ký tự) và nội dung (3–500 ký tự). Dạng Khuyến mãi chọn một khuyến mãi đang chạy; dạng Tin tức chọn một bài đã đăng.
+2. Admin chọn đối tượng tất cả hoặc theo hạng VXN Plus (dạng Dịch vụ luôn gửi mọi tài khoản đang hoạt động), xem trước nội dung và số người nhận dự kiến, rồi lưu nháp.
+3. Admin có thể gửi thử cho một tài khoản hành khách; tin thử mang nhãn `[Thử]` và không tính vào số liệu.
+4. Admin chọn gửi ngay hoặc hẹn giờ trong vòng 30 ngày; màn xác nhận luôn hiện số người nhận vì tin đã gửi không thu hồi được.
+5. Hệ thống phát tán theo lô ở nền, áp dụng tùy chọn nhận và giới hạn theo `BR-83`, `BR-84`; Admin theo dõi số tin đã vào hộp thư, đã đọc và kết quả push.
+
+Luồng thay thế / ngoại lệ:
+
+- A1: Khuyến mãi hoặc bài viết không còn hiệu lực lúc gửi → từ chối; nếu đã hẹn giờ thì chiến dịch tự hủy kèm ghi chú.
+- A2: Giờ gửi khuyến mãi / tin tức rơi vào 21 giờ – 8 giờ → từ chối, yêu cầu chọn giờ khác.
+- A3: Admin hủy khi chưa gửi xong → dừng các lô còn lại; tin đã vào hộp thư giữ nguyên.
+- A4: Email gửi thử không thuộc tài khoản hành khách đang hoạt động → báo lỗi, không gửi.
+
+### UC-42: Xem hộp thư thông báo
+
+| Thuộc tính     | Nội dung                                                                                       |
+| -------------- | ---------------------------------------------------------------------------------------------- |
+| Actor chính    | Người dùng (User)                                                                              |
+| Actor phụ      | Hệ thống                                                                                       |
+| Mục tiêu       | User xem lại toàn bộ thông báo của mình, kể cả khi không bật hoặc đã lỡ thông báo đẩy.         |
+| Tiền điều kiện | User đã đăng nhập ứng dụng.                                                                    |
+| Kích hoạt      | User chạm chuông ở Trang chủ hoặc chạm thông báo đẩy loại không gắn với một đơn vé.            |
+| Hậu điều kiện  | Tin đã mở được đánh dấu đã đọc; chấm báo trên chuông cập nhật theo số tin chưa đọc.            |
+| Ưu tiên        | Trung bình                                                                                     |
+
+Luồng chính:
+
+1. Hệ thống hiển thị tin mới nhất trước kèm số tin chưa đọc và tải thêm khi cuộn.
+2. User chạm một tin để đọc toàn văn; hệ thống đánh dấu tin đã đọc.
+3. Nếu tin có liên kết, User đi tiếp tới tab Hành trình, bài viết hoặc Ví voucher với mã ưu đãi điền sẵn.
+4. User có thể đánh dấu tất cả đã đọc.
+
+Luồng thay thế / ngoại lệ:
+
+- A1: Khách vãng lai chạm chuông → ứng dụng yêu cầu đăng nhập; chuông không có chấm báo.
+- A2: Tải danh sách lỗi → hiển thị thông báo và nút thử lại; hộp thư trống → hiển thị trạng thái trống.
+
+---
+
 ## 14. Business Rules
 
 Mục này chốt các quy tắc nghiệp vụ áp dụng cho v1, được rút từ phạm vi, ràng buộc, FR, NFR và `UC-01..UC-40` ở các mục trước. Các rule dưới đây là đầu vào bắt buộc cho HLD, LLD, Database Design, API Specification, Test Plan và task triển khai.
@@ -2740,6 +2802,10 @@ Mục này chốt các quy tắc nghiệp vụ áp dụng cho v1, được rút 
 | BR-79 | Pickup / Dropoff Eligibility | Quyền đón / trả khách tại một điểm dừng phụ thuộc loại điểm: bến xe, điểm dừng đón trả khách và văn phòng trung chuyển được đón và trả; trạm dừng nghỉ không đón, không trả. Trong phạm vi đó, mỗi điểm dừng của route khai riêng cho đón / cho trả: điểm đầu chỉ đón, điểm cuối chỉ trả, điểm giữa mặc định cả hai và Operator tắt được từng quyền; trạm dừng nghỉ không được là điểm đầu hoặc điểm cuối. Trip chép các quyền này từ route. Văn phòng là điểm trung chuyển: nhà xe đưa đón khách miễn phí giữa văn phòng và bến xe / điểm dừng đón trả khách, hiển thị cho khách kèm nhãn trung chuyển, không thu phụ phí. v1 chỉ cảnh báo khi hai đầu route không phải bến xe (`OQ-24`). | `FR-OPS-04`, `FR-MKT-09`, `UC-04..05`, `UC-13`, `BR-23` |
 | BR-80 | Location Search          | Tìm chuyến khớp theo vị trí, không theo đúng bản ghi điểm dừng. Điểm đi / điểm đến là tỉnh / thành — khớp điểm dừng cho đón (hoặc cho trả) thuộc tỉnh / thành đó — hoặc là một địa danh dùng chung — khớp điểm dừng cho đón (hoặc cho trả), dùng chung hay riêng, nằm trong bán kính quanh địa danh (mặc định 5 km, Admin cấu hình). Điểm đón khớp phải đứng trước điểm trả khớp; trạm dừng nghỉ không tham gia khớp. Khoảng cách tính từ tọa độ đã lưu, không gọi dịch vụ định tuyến lúc tìm. Tìm theo địa chỉ bất kỳ ngoài v1. | `FR-MKT-01..02`, `UC-02`, `BR-22` |
 | BR-81 | Stop Point Moderation    | Admin xem được điểm dừng riêng của mọi nhà xe và khóa điểm sai lệch hoặc vi phạm, bắt buộc lý do, có audit log và thông báo nhà xe. Điểm bị khóa không gắn mới vào route, chuyến dùng điểm đó không mở bán mới; chuyến đã có vé giữ nguyên. Nhà xe không tự mở lại điểm bị khóa; Admin không sửa nội dung điểm riêng. | `FR-ADM-21`, `UC-24`, `BR-39` |
+| BR-82 | Campaign Channel | Chiến dịch thông báo chỉ gửi qua hộp thư trong ứng dụng và push, không gửi email hàng loạt, vì hạn mức email dùng chung với OTP. Người nhận v1 là tài khoản hành khách đang hoạt động. *(Chờ duyệt.)* | `FR-NSR-16`, `UC-41` |
+| BR-83 | Campaign Opt-in | Dịch vụ là bắt buộc: luôn vào hộp thư, tắt push thì không đẩy. Khuyến mãi mặc định nhận, tắt được. Tin tức mặc định không nhận, phải chủ động bật. Tắt nghĩa là tắt cả hai kênh của loại đó. *(Chờ duyệt.)* | `FR-NSR-14`, `FR-NSR-16`, `BR-52` |
+| BR-84 | Campaign Limits | Khuyến mãi: mỗi khách tối đa một tin trong 24 giờ. Khuyến mãi và tin tức không gửi từ 21 giờ đến 8 giờ theo giờ Việt Nam; dịch vụ không chịu giới hạn này. Hẹn giờ tối đa 30 ngày. *(Chờ duyệt.)* | `FR-NSR-16`, `UC-41` |
+| BR-85 | Campaign Content | Nội dung chiến dịch do Admin soạn, gửi chung cho nhiều người nên không được chứa dữ liệu riêng của khách; khuyến mãi / bài viết gắn kèm phải còn hiệu lực lúc gửi. Riêng tin chiến dịch được mang nguyên nội dung trên push; thông báo giao dịch vẫn theo `BR-53`. *(Chờ duyệt.)* | `BR-53`, `FR-NSR-16` |
 
 ---
 
@@ -2804,6 +2870,7 @@ Mục này mô tả phân quyền nghiệp vụ ở mức SRS. Thiết kế API,
 | Ví voucher                                  | Lưu mã công khai; xem và dùng voucher của mình         | Không                                                          | Không                                                              | Không                                                               | Xem để hỗ trợ / đối soát                             | Giữ / tiêu / trả voucher theo trạng thái booking | `UC-05`, `UC-37`, `BR-72`                      |
 | Bài viết tin tức / cẩm nang                 | Xem bài đã xuất bản                                    | Xem bài đã xuất bản                                            | Xem bài đã xuất bản                                                | Không                                                               | Tạo, xuất bản, gỡ, quản lý chuyên mục                | Không                                            | `UC-38`, `UC-40`, `BR-74`                               |
 | Notification preference                     | Cấu hình thông báo không bắt buộc                      | Không; nhận theo contact booking                               | Cấu hình thông báo không bắt buộc                                  | Cấu hình thông báo không bắt buộc                                   | Cấu hình vận hành / template nếu có quyền            | Hệ thống gửi notification bắt buộc / retry       | `UC-31`, `UC-34`, `BR-52..54`                  |
+| Chiến dịch thông báo / hộp thư | Xem hộp thư của mình; tắt loại không bắt buộc | Không | Không (v1) | Không (v1) | Gửi chiến dịch (`notification:broadcast`) | Phát tán theo lô, giới hạn tần suất và giờ gửi | `UC-41`, `UC-42`, `BR-82..85` |
 | Audit log                                   | Không                                                  | Không                                                          | Xem log của nhà xe nếu được cấp quyền                              | Không                                                               | Truy xuất theo quyền Admin                           | Hệ thống ghi audit log                           | `UC-30`, `BR-58..59`                           |
 | Dữ liệu cá nhân / export                    | Dữ liệu của mình                                       | Dữ liệu booking đã xác minh                                    | Theo tenant và mục đích vận hành                                   | Theo phân công, mặc định mask số điện thoại                         | Theo quyền, có kiểm soát export                      | Hệ thống mask / log truy cập nhạy cảm            | `BR-19`, `BR-56`, `BR-60`                      |
 | Job nền / external integration              | Không                                                  | Không                                                          | Không                                                              | Không                                                               | Kích hoạt lại job theo quyền                         | Hệ thống xử lý callback, retry, adapter provider | `UC-31`, `UC-32`, `BR-62..63`                  |
@@ -3456,13 +3523,14 @@ Mục này xác định catalog thông báo nghiệp vụ ở mức SRS. Provide
 | NTF-17 | Support ticket / complaint được tạo hoặc phản hồi | User, Guest, Operator, Admin theo case            | Có       | In-app / Email                | Mã hồ sơ, trạng thái xử lý, yêu cầu bổ sung nếu có.                       |
 | NTF-18 | DisputeCase đổi trạng thái / có quyết định        | User hoặc Guest, Operator, Admin                  | Có       | Email / In-app                | Trạng thái dispute, hạn phản hồi, quyết định refund / không refund.       |
 | NTF-19 | Review được gửi / bị kiểm duyệt                   | User, Operator, Admin nếu cần                     | Không    | In-app                        | Trạng thái review, lý do ẩn / giữ nếu có.                                 |
-| NTF-20 | Promotion khả dụng hoặc sắp hết hạn               | User, Operator theo phạm vi                       | Không    | In-app / Email nếu bật        | Mã promotion, điều kiện chính, thời gian hiệu lực.                        |
-| NTF-21 | Bảo trì hệ thống                                  | User, Guest, Operator, Employee, Admin            | Có       | In-app / Email                | Thời gian dự kiến, phạm vi ảnh hưởng, hướng dẫn thao tác.                 |
+| NTF-20 | Promotion khả dụng hoặc sắp hết hạn               | User, Operator theo phạm vi                       | Không    | In-app / Push nếu bật         | Mã promotion, điều kiện chính, thời gian hiệu lực.                        |
+| NTF-21 | Bảo trì hệ thống                                  | User (v1, qua chiến dịch `UC-41`)                 | Có       | In-app / Push                 | Thời gian dự kiến, phạm vi ảnh hưởng, hướng dẫn thao tác.                 |
 | NTF-22 | Job nền thất bại vượt ngưỡng an toàn              | Admin                                             | Có       | In-app / Email                | Tên job, phạm vi, lỗi, yêu cầu kiểm tra thủ công.                         |
 | NTF-23 | Tích / điều chỉnh / thu hồi điểm                  | User                                              | Không    | In-app / Push nếu bật         | Số điểm, booking nguồn hoặc lý do, số dư mới.                             |
 | NTF-24 | Thay đổi hạng thành viên                          | User                                              | Không    | In-app / Push nếu bật / Email | Hạng mới, hệ số tích điểm mới.                                            |
 | NTF-25 | Điểm sắp hết hạn                                  | User                                              | Không    | In-app / Email nếu bật        | Số điểm và ngày hết hạn.                                                  |
 | NTF-26 | Voucher trong ví sắp hết hạn                      | User                                              | Không    | In-app / Push nếu bật         | Mã / nguồn voucher, giá trị, hạn dùng.                                    |
+| NTF-27 | Tin tức và sản phẩm mới                           | User đã bật nhận                                  | Không    | In-app / Push nếu bật         | Tiêu đề, tóm tắt, liên kết bài viết đã đăng. *(Chờ duyệt.)* |
 
 ### 18.3. Yêu cầu tối thiểu cho thiết kế thông báo
 
@@ -3470,6 +3538,7 @@ Mục này xác định catalog thông báo nghiệp vụ ở mức SRS. Provide
 | ------------------- | ---------------------------------------------------------------------------------------------------------- | ----------------------------- |
 | Template            | Mỗi notification type phải có template, biến dữ liệu được phép dùng và quy tắc che dữ liệu nhạy cảm.       | `FR-NSR-01..03`, `BR-53`      |
 | Preference          | User, Operator và Employee cấu hình được thông báo không bắt buộc; thông báo bắt buộc không tắt hoàn toàn. | `FR-NSR-14`, `UC-34`, `BR-52` |
+| Chiến dịch          | Chiến dịch Admin không gửi email hàng loạt; có giới hạn tần suất, giờ gửi và màn xác nhận số người nhận. *(Chờ duyệt.)* | `FR-NSR-16`, `BR-82..85` |
 | Guest delivery      | Guest chỉ nhận notification qua contact booking và chỉ xem lại dữ liệu sau xác minh.                       | `UC-35`, `BR-21`, `BR-53`     |
 | Retry / idempotency | Gửi lỗi phải được retry có kiểm soát; retry không gửi trùng cùng sự kiện bắt buộc.                         | `UC-31..32`, `BR-54`, `BR-62` |
 | Observability       | Admin xem được lỗi gửi, trạng thái retry và notification quan trọng liên quan payment / refund / trip.     | `FR-ADM-15`, `UC-26`, `UC-32` |
@@ -3534,6 +3603,8 @@ Mục này xác định tiêu chí nghiệm thu cấp SRS cho v1. Test Plan chi 
 | AC-40 | Ảnh phương tiện          | Operator tải lên, sắp xếp, xóa ảnh xe trong tenant của mình trong giới hạn `BR-76`; Marketplace hiển thị ảnh đại diện ở kết quả tìm và bộ ảnh ở chi tiết chuyến, xe chưa có ảnh dùng hình thay thế; Admin gỡ được ảnh vi phạm kèm lý do và audit log. | `FR-OPS-16`, `FR-MKT-15`, `FR-ADM-20`, `UC-02..03`, `UC-12`, `UC-28`, `BR-76` |
 | AC-41 | Phân loại xe và chỗ      | Catalog loại xe cho biết dạng chỗ và hạng xe; xe limousine giường nằm xuất hiện cả khi lọc giường nằm lẫn khi lọc limousine. Sơ đồ ghế nhận đủ năm loại chỗ, sức chứa tính chỗ đôi là hai người; bảng giá đặt được giá riêng cho giường đôi / cabin đôi. | `FR-OPS-03`, `FR-OPS-08`, `FR-MKT-03`, `UC-02`, `UC-12`, `BR-77`, `BR-78` |
 | AC-42 | Điểm dừng                | Nhà xe chỉ tạo được văn phòng trung chuyển và trạm dừng nghỉ; bến xe / điểm dừng đón trả khách chỉ có sau khi Admin lập hoặc duyệt đề xuất kèm căn cứ công bố. Route khai cho đón / cho trả đúng `BR-79`; khách không chọn được trạm dừng nghỉ. Tìm chuyến theo tỉnh / thành và theo địa danh trả đúng chuyến có điểm đón, điểm trả khớp vị trí. Admin khóa được điểm riêng vi phạm, có lý do và audit log. | `FR-OPS-04..05`, `FR-OPS-17`, `FR-ADM-04..05`, `FR-ADM-21`, `FR-MKT-01`, `FR-MKT-09`, `UC-02`, `UC-13`, `UC-24`, `BR-23`, `BR-38`, `BR-79..81` |
+| AC-43 | Chiến dịch thông báo | Admin có quyền `notification:broadcast` soạn, gửi thử, gửi ngay hoặc hẹn giờ, hủy và xem kết quả; chiến dịch không tạo bản gửi email; khách đã tắt loại tin không nhận; khuyến mãi không quá một tin / 24 giờ và không gửi 21 giờ – 8 giờ. *(Chờ duyệt.)* | `FR-NSR-16`, `UC-41`, `BR-82..85` |
+| AC-44 | Hộp thư thông báo | User đăng nhập thấy tin của chính mình, chấm báo trên chuông đúng số chưa đọc, đọc tin thì giảm số chưa đọc; khách vãng lai chạm chuông được yêu cầu đăng nhập. *(Chờ duyệt.)* | `FR-NSR-17`, `UC-42` |
 
 ### 19.3. Điều kiện đủ để chuyển sang tài liệu thiết kế tiếp theo
 

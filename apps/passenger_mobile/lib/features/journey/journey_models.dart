@@ -9,6 +9,7 @@ class JourneyBookingSummary {
     required this.departureAt,
     required this.total,
     this.ticketCount,
+    this.ticketStatuses = const [],
     this.bookedWithAccount = false,
   });
 
@@ -17,6 +18,9 @@ class JourneyBookingSummary {
 
   /// Trạng thái booking như API (`CONFIRMED`, `PENDING_PAYMENT`, `CANCELLED`, …).
   final String status;
+
+  /// Trạng thái từng vé (`VALID`, `USED`, …); rỗng khi đơn chưa phát hành vé.
+  final List<String> ticketStatuses;
   final String routeName;
   final String operatorName;
   final DateTime departureAt;
@@ -29,6 +33,22 @@ class JourneyBookingSummary {
 
   /// Đơn đặt bằng tài khoản: khách vãng lai phải đăng nhập mới xem / hủy được.
   final bool bookedWithAccount;
+
+  /// Trạng thái hiện cho khách: đơn vẫn `CONFIRMED` sau khi đi xong, nên lấy theo
+  /// các vé còn hiệu lực; chưa ai lên xe thì giữ trạng thái đơn.
+  String get displayStatus {
+    if (status != 'CONFIRMED' &&
+        status != 'PAID' &&
+        status != 'PARTIALLY_CANCELLED') {
+      return status;
+    }
+    final live = ticketStatuses.where(
+      (ticket) => ticket != 'CANCELLED' && ticket != 'REFUNDED',
+    );
+    if (live.isEmpty || live.contains('VALID')) return status;
+    if (live.contains('CHECKED_IN')) return 'CHECKED_IN';
+    return live.contains('USED') ? 'USED' : 'NO_SHOW';
+  }
 }
 
 /// Điểm đón / trả của đơn.
@@ -77,6 +97,9 @@ class JourneyTicket {
   final int? price;
 
   bool get isCancelled => status == 'CANCELLED' || status == 'REFUNDED';
+
+  /// Chỉ vé chưa lên xe mới hủy được (cùng quy tắc `buildQuote` ở máy chủ).
+  bool get isCancellable => status == 'VALID';
 }
 
 /// Mốc hủy / hoàn đã chụp lúc đặt.
@@ -154,8 +177,6 @@ class JourneyBooking {
   final String? paymentProvider;
   final String? paymentCode;
   final String? paymentStatus;
-
-  bool get hasActiveTickets => tickets.any((ticket) => !ticket.isCancelled);
 }
 
 /// Điều kiện hủy các vé đã chọn (`GET /bookings/{id}/cancellation-quote`).
@@ -253,9 +274,12 @@ String journeyVnd(int value) {
   return '${value < 0 ? '-' : ''}${chunks.reversed.join('.')}đ';
 }
 
-/// Nhãn trạng thái đơn cho hành khách.
+/// Nhãn trạng thái đơn cho hành khách; nhận cả [JourneyBookingSummary.displayStatus].
 String journeyBookingStatusLabel(String status) => switch (status) {
   'CONFIRMED' || 'PAID' => 'Hợp lệ',
+  'CHECKED_IN' => 'Đã lên xe',
+  'USED' => 'Đã đi',
+  'NO_SHOW' => 'Vắng mặt',
   'PENDING_PAYMENT' => 'Chờ thanh toán',
   'PENDING_CONFIRMATION' => 'Chờ xác nhận',
   'PARTIALLY_CANCELLED' => 'Hủy một phần',

@@ -2,4 +2,5 @@
 <resources>
     <color name="auth_splash_background">#123D5C</color>
     <color name="ic_launcher_background">#FFFFFF</color>
+    <color name="notification_accent">#1389DD</color>
 </resources>

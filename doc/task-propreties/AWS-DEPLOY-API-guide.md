@@ -1,10 +1,25 @@
 # Hướng dẫn đưa API demo lên AWS Lightsail
 
-Ngày: **29/10/2026**. Trạng thái: **Hướng dẫn chuẩn bị; chưa triển khai cloud**.
+Khởi tạo: **29/10/2026**. Cập nhật: **02/11/2026**.
+Trạng thái: **Hướng dẫn chuẩn bị; chưa triển khai cloud**.
 
 Làm [hướng dẫn tài khoản và credit](AWS-ACCOUNT-CREDITS-guide.md) trước. Phương án
 đang dùng: một VM Singapore, API thường trực, worker bật thủ công khi cần demo;
 giữ PostgreSQL, MongoDB, Redis và R2. Đây chưa phải cơ chế tự bật worker khi có request.
+
+Thông tin đã xác nhận ngày 02/11/2026:
+
+- Tài khoản đã tạo; ảnh Console của Khanh hiển thị **100 USD credit**, còn **182 ngày**,
+  mốc kết thúc Free plan **02/05/2027**. Chưa nhận thêm credit từ các activity.
+- Hostname thực tế là **`api.vexenhanh.id.vn`**, DNS do Cloudflare quản lý.
+- GET `https://api.vexenhanh.id.vn/v1/health` trả HTTP 200, `status: ok`;
+  header `Server: cloudflare`, `x-render-origin-server: Render` xác nhận tuyến hiện tại.
+  Đây là kiểm tra liveness, chưa chứng minh các kết nối dữ liệu hoặc nghiệp vụ đều tốt.
+
+Trong lúc dựng AWS, giữ DNS API trỏ tới Render để người dùng tiếp tục sử dụng.
+Kiểm API và kết nối dữ liệu trên VM trước khi đổi origin. Khi chuyển, giữ nguyên
+hostname API; ghi lại cấu hình DNS cũ để quay về Render khi cần. Chưa thay đổi DNS
+hoặc cấu hình Render trong bước chuẩn bị này.
 
 ## 1. Điều kiện và chi phí
 
@@ -15,6 +30,10 @@ giữ PostgreSQL, MongoDB, Redis và R2. Đây chưa phải cơ chế tự bật
 - Giá Lightsail Linux có IPv4 đang công bố: 1 GB = 7 USD/tháng, 2 GB = 12 USD/tháng.
   Kiểm giá cuối trên Console; snapshot và các khoản ngoài gói tính riêng.
   [Giá AWS](https://aws.amazon.com/lightsail/pricing/).
+
+Với gói 2 GB, riêng tiền máy trong sáu tháng khoảng **72 USD**. Đây là ước tính
+chưa tính các khoản ngoài gói/dịch vụ khác; theo dõi số dư thực tế trong Billing.
+Credit bổ sung không tự kéo dài thời hạn Free plan đang hiển thị trên tài khoản.
 
 Nếu Console yêu cầu nâng Paid plan để dùng dịch vụ, kiểm lại điều kiện và chi phí
 trước khi nâng. Free plan có thời hạn theo tài khoản. Stop Lightsail vẫn tính phí;
@@ -182,7 +201,7 @@ worker tự bật lại sau reboot. [Docker profiles](https://docs.docker.com/co
 ## 6. HTTPS và proxy giữ IP người dùng
 
 Giữ Cloudflare proxied cho hostname API. Tạo **Origin Certificate** cho
-`api.vexenhanh.vn` trong Cloudflare → SSL/TLS → Origin Server; lưu certificate và
+`api.vexenhanh.id.vn` trong Cloudflare → SSL/TLS → Origin Server; lưu certificate và
 private key trực tiếp trên VM tại `/etc/nginx/ssl/vxn-origin.crt` và `vxn-origin.key`.
 Tạo folder bằng `sudo install -d -m 0700 /etc/nginx/ssl`; dùng editor `sudo nano`
 và `sudo chmod 600 /etc/nginx/ssl/vxn-origin.key` cho private key.
@@ -202,7 +221,7 @@ Tạo `/etc/nginx/sites-available/vexenhanh-api` bằng `sudo nano`:
 server {
     listen 443 ssl;
     listen [::]:443 ssl;
-    server_name api.vexenhanh.vn;
+    server_name api.vexenhanh.id.vn;
     ssl_certificate /etc/nginx/ssl/vxn-origin.crt;
     ssl_certificate_key /etc/nginx/ssl/vxn-origin.key;
     allow 127.0.0.1;
@@ -239,9 +258,15 @@ Nếu `nginx -t` lỗi, sửa trước khi reload. Mẫu này chưa được ch�
 Trước khi đổi DNS: kiểm image/version, đủ env, DB app role, health dependencies,
 backup và bản Render có thể nhận lại traffic. Ghi lại DNS origin cũ.
 Giữ Render cùng phiên bản và secrets trong khoảng 24–48 giờ quan sát.
+Triển khai cùng phiên bản đã chạy ổn trên Render; không dùng việc chuyển máy để
+đồng thời đưa thay đổi schema hoặc mã đang làm dở lên môi trường dùng chung.
 
-1. Đổi DNS record **hostname API đang dùng** sang static IPv4 Lightsail, bật Cloudflare
-   proxy. Xử lý record AAAA cũ nếu có để traffic không đi nhầm origin.
+1. Trong Cloudflare zone `vexenhanh.id.vn` → DNS → Records, lưu lại type, name,
+   content, proxy status và TTL của record `api` hiện tại. Khi các kiểm tra trước
+   chuyển đạt, đổi record thành **A**, name **api**, content **static IPv4 Lightsail**,
+   proxy status **Proxied**. Nếu record hiện tại là CNAME, thay bằng A cùng tên;
+   không để CNAME và A đồng thời ở tên `api`. Xử lý record AAAA cũ nếu có để traffic
+   không đi nhầm origin. Giữ nguyên nameserver Cloudflare và các hostname frontend.
 2. Kiểm HTTPS, login/refresh/logout/MFA, cookie/CSRF/CORS, upload và OAuth đang bật.
 3. Kiểm hai mạng client và header giả theo [hướng dẫn proxy](PROXY-IP-rollout-guide.md),
    áp dụng tuyến Nginx mới. Production chỉ tin IP khi `req.ip` bằng `CF-Connecting-IP`.

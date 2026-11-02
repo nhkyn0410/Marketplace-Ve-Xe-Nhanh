@@ -118,7 +118,7 @@ export async function guestLookupBookingRows(
       where: { contactEmail: scope.email.toLowerCase(), ...(scope.bookingId ? { id: scope.bookingId } : { createdAt: { gte: since } }) },
       orderBy: [{ createdAt: "desc" }, { id: "desc" }],
       take: limit,
-      select: { id: true, bookingCode: true, status: true, total: true, userId: true, snapshot: true, expiresAt: true, createdAt: true, _count: { select: { tickets: true } } },
+      select: { id: true, bookingCode: true, status: true, total: true, userId: true, snapshot: true, expiresAt: true, createdAt: true, tickets: { select: { status: true } } },
     }),
   );
 }
