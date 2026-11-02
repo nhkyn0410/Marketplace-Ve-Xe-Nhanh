@@ -212,9 +212,10 @@ void main() {
         _expectBlackNavigation(tester);
         expect(tester.takeException(), isNull);
         if (entry.key == 'Chỉnh sửa hồ sơ') {
+          // Màn nền sáng, không còn header ảnh: biểu tượng status bar phải tối mới đọc được.
           expect(
             _styleAt(tester, const Offset(206, 12))?.statusBarIconBrightness,
-            Brightness.light,
+            Brightness.dark,
           );
         }
       },
