@@ -13,6 +13,12 @@ on:
       - reopened
       - ready_for_review
   workflow_dispatch:
+    inputs:
+      source_sha:
+        description: "Source commit SHA; leave empty for the workflow commit"
+        required: false
+        default: ""
+        type: string
 
 permissions:
   contents: read
@@ -27,14 +33,38 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
 
+    outputs:
+      source_sha: ${{ steps.source.outputs.sha }}
+
     env:
       CI: true
       NEXT_TELEMETRY_DISABLED: 1
       TURBO_TELEMETRY_DISABLED: 1
+      SOURCE_SHA: ${{ inputs.source_sha || github.sha }}
 
     steps:
+      - name: Validate source SHA
+        run: |
+          if [[ ! "$SOURCE_SHA" =~ ^[0-9a-fA-F]{40}$ ]]; then
+            echo "::error::source_sha must be a full 40-character commit SHA"
+            exit 1
+          fi
+
       - name: Checkout
         uses: actions/checkout@v6
+        with:
+          ref: ${{ env.SOURCE_SHA }}
+          persist-credentials: false
+
+      - name: Resolve source commit
+        id: source
+        run: |
+          source_sha="$(git rev-parse HEAD)"
+          if [[ "$source_sha" != "${SOURCE_SHA,,}" ]]; then
+            echo "::error::Checked out source does not match the requested commit"
+            exit 1
+          fi
+          printf 'sha=%s\n' "$source_sha" >> "$GITHUB_OUTPUT"
 
       - name: Install pnpm
         uses: pnpm/action-setup@v6
@@ -52,7 +82,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: .turbo
-          key: ${{ runner.os }}-turbo-${{ github.sha }}
+          key: ${{ runner.os }}-turbo-${{ steps.source.outputs.sha }}
           restore-keys: |
             ${{ runner.os }}-turbo-
 
@@ -83,3 +113,48 @@ jobs:
             echo "::error::openapi.json/schema.ts lech code. Chay 'pnpm gen:api-client' roi commit."
             exit 1
           fi
+
+  publish-api:
+    name: Publish API image
+    needs: verify
+    if: >-
+      github.ref == 'refs/heads/develop' &&
+      (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout verified source
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ needs.verify.outputs.source_sha }}
+          persist-credentials: false
+
+      - name: Build and publish API image
+        env:
+          SOURCE_SHA: ${{ needs.verify.outputs.source_sha }}
+          GHCR_USER: ${{ github.actor }}
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          owner="${GITHUB_REPOSITORY_OWNER,,}"
+          image="ghcr.io/${owner}/vexenhanh-api:${SOURCE_SHA}"
+
+          printf '%s' "$GHCR_TOKEN" |
+            docker login ghcr.io \
+              --username "$GHCR_USER" \
+              --password-stdin
+
+          docker build --platform linux/amd64 \
+            --label "org.opencontainers.image.source=https://github.com/${GITHUB_REPOSITORY}" \
+            --label "org.opencontainers.image.revision=${SOURCE_SHA}" \
+            --tag "$image" .
+
+          docker push "$image"
+
+          printf 'Published: `%s`\n' "$image" >> "$GITHUB_STEP_SUMMARY"
