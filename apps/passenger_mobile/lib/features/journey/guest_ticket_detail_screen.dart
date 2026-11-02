@@ -46,6 +46,7 @@ class GuestTicketDetailScreen extends StatefulWidget {
     required this.quoteCancellation,
     required this.cancelTickets,
     this.onSupportRequested,
+    this.journeyDemoPanel,
     super.key,
   });
 
@@ -57,6 +58,7 @@ class GuestTicketDetailScreen extends StatefulWidget {
 
   /// Gọi tổng đài hỗ trợ.
   final VoidCallback? onSupportRequested;
+  final Widget? journeyDemoPanel;
 
   @override
   State<GuestTicketDetailScreen> createState() =>
@@ -253,6 +255,10 @@ class _GuestTicketDetailScreenState extends State<GuestTicketDetailScreen> {
                             ),
                           const SizedBox(height: 9),
                           _JourneyInformationCard(booking: _booking),
+                          if (widget.journeyDemoPanel case final panel?) ...[
+                            const SizedBox(height: 9),
+                            panel,
+                          ],
                           const SizedBox(height: 9),
                           _booking.refunds.isNotEmpty || _cancelled
                               ? _RefundPaymentCard(booking: _booking)

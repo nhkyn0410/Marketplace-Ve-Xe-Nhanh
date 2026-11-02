@@ -287,6 +287,9 @@ Class | Method | HTTP request | Description
 [*IncidentsApi*](doc/IncidentsApi.md) | [**operatorIncidentControllerDownload**](doc/IncidentsApi.md#operatorincidentcontrollerdownload) | **GET** /v1/operator/incidents/{incidentId}/evidence/{index} | 
 [*IncidentsApi*](doc/IncidentsApi.md) | [**operatorIncidentControllerList**](doc/IncidentsApi.md#operatorincidentcontrollerlist) | **GET** /v1/operator/incidents | 
 [*IncidentsApi*](doc/IncidentsApi.md) | [**operatorIncidentControllerResolve**](doc/IncidentsApi.md#operatorincidentcontrollerresolve) | **PUT** /v1/operator/incidents/{incidentId}/resolution | 
+[*JourneyDemoApi*](doc/JourneyDemoApi.md) | [**journeyDemoControllerCurrent**](doc/JourneyDemoApi.md#journeydemocontrollercurrent) | **GET** /v1/me/journey-demo |
+[*JourneyDemoApi*](doc/JourneyDemoApi.md) | [**journeyDemoControllerStart**](doc/JourneyDemoApi.md#journeydemocontrollerstart) | **POST** /v1/me/journey-demo |
+[*JourneyDemoApi*](doc/JourneyDemoApi.md) | [**journeyDemoControllerStop**](doc/JourneyDemoApi.md#journeydemocontrollerstop) | **DELETE** /v1/me/journey-demo/{sessionId} |
 [*JourneyLogsApi*](doc/JourneyLogsApi.md) | [**adminJourneyLogControllerList**](doc/JourneyLogsApi.md#adminjourneylogcontrollerlist) | **GET** /v1/admin/journey-logs | 
 [*JourneyLogsApi*](doc/JourneyLogsApi.md) | [**employeeJourneyLogControllerCreate**](doc/JourneyLogsApi.md#employeejourneylogcontrollercreate) | **POST** /v1/employee/journey-logs | 
 [*JourneyLogsApi*](doc/JourneyLogsApi.md) | [**employeeJourneyLogControllerList**](doc/JourneyLogsApi.md#employeejourneylogcontrollerlist) | **GET** /v1/employee/journey-logs | 
@@ -763,6 +766,9 @@ Class | Method | HTTP request | Description
  - [IncidentPageDtoOutput](doc/IncidentPageDtoOutput.md)
  - [IncidentPageDtoOutputItemsInner](doc/IncidentPageDtoOutputItemsInner.md)
  - [IncidentResolutionDto](doc/IncidentResolutionDto.md)
+ - [JourneyDemoCurrentDtoOutput](doc/JourneyDemoCurrentDtoOutput.md)
+ - [JourneyDemoSnapshotDtoOutput](doc/JourneyDemoSnapshotDtoOutput.md)
+ - [JourneyDemoStartDto](doc/JourneyDemoStartDto.md)
  - [JourneyLogDtoOutput](doc/JourneyLogDtoOutput.md)
  - [JourneyLogInputDto](doc/JourneyLogInputDto.md)
  - [JourneyLogPageDtoOutput](doc/JourneyLogPageDtoOutput.md)

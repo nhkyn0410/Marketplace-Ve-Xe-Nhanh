@@ -13,9 +13,11 @@
 | Người viết    | Nguyễn Hồng Khanh, AI Agent |
 | Người duyệt   | Nguyễn Hồng Khanh           |
 | Ngày tạo      | 11/05/2026                  |
-| Ngày cập nhật | 02/11/2026                  |
+| Ngày cập nhật | 03/11/2026                  |
 
 ### 1.2. Lịch sử thay đổi
+
+**v0.47 — 03/11/2026, AI Agent:** thêm demo thông báo hành trình ngoài app hành khách Android có logo, tiến độ và tỉnh hiện tại; chờ duyệt, giữ trạng thái Review. Bản Figma tham chiếu node `2638:2185` trong file UI-UX `6c81q3DdHVS0anfDw2sVVj`.
 
 31/10/2026 — ghi nhận hiện thực SCR-PSG-19/20 **chờ duyệt** theo ADR-029 Proposed: User chọn voucher AVAILABLE từ ví hoặc nhập mã (tối đa một, quote server, reserve khi tạo booking); Guest chỉ nhập mã. Ví API rỗng giữ rỗng ở tab Tài khoản và bước đặt vé, không thay bằng dữ liệu preview. Màn chọn phương thức có bốn thẻ logo payOS / MoMo / VNPay / DEMO, tách khỏi màn thanh toán QR / hosted. Màn thanh toán poll foreground mỗi 4 giây / resume, không kéo dài hạn giữ ghế; chỉ booking CONFIRMED + payment SUCCESS + vé thật mới mở hoàn tất, RECONCILING không gợi ý trả thêm. Không thêm plugin lưu QR / App Links. Đã kiểm lại Flutter analyze không có issue và 265 tests pass; chưa thử giao dịch / thiết bị thật. Các dòng trước ghi “chờ ADR thay ADR-019” nay tham chiếu ADR-029 Proposed, trạng thái tài liệu không đổi. Xem [PAYOS-plan](../task-propreties/PAYOS-plan.md).
 
@@ -602,6 +604,12 @@ Mỗi màn hình là một bảng đủ 5 trạng thái theo §10.1. Cột **Thi
 | 10  | 15                  | Bộ lọc "Loại xe" là một nhóm duy nhất, limousine đứng ngang hàng với các dạng xe khác | SRS v1.33 `BR-77` | Tách hai nhóm lọc: dạng chỗ (ghế ngồi / giường nằm / cabin) và hạng xe (limousine) |
 
 ---
+
+### 6.5. Demo thông báo hành trình ngoài app — Android
+
+Bản build Android bật `JOURNEY_DEMO_ENABLED=true`: chi tiết vé của tài khoản có khối **Mô phỏng hành trình**, nút **Chạy thử hành trình / Dừng mô phỏng**. Guest và build không bật cờ không có khối này. Dữ liệu demo tách khỏi nghiệp vụ chuyến/vé.
+
+Thông báo hệ thống giữ nhận diện logo, thời gian còn lại, tuyến, thanh tiến độ và **Đang qua {provinceName}**. Android 16 dùng ProgressStyle; bản cũ dùng tiến độ chuẩn, không RemoteViews. Hình thức logo/vị trí chữ tuân theo template Android, không cam kết khớp từng pixel Figma. Chạm thông báo mở đúng booking sau xác thực; thiếu quyền/mất mạng không chặn xem vé. Tỉnh hiện tại là dữ liệu mô phỏng của tuyến đã chọn, không xin quyền GPS hành khách. Dừng/đăng xuất/vuốt bỏ phải chặn update cũ hồi sinh thông báo.
 
 ## 7. Flow Operator
 

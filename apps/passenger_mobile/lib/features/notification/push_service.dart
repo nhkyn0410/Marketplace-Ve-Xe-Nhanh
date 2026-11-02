@@ -3,6 +3,16 @@ import 'dart:async';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
+import 'package:passenger_mobile/features/journey_activity/journey_activity_service.dart';
+
+@pragma('vm:entry-point')
+Future<void> passengerBackgroundMessage(RemoteMessage message) async {
+  if (message.data['type'] != 'journey_demo' || !journeyDemoAvailable) return;
+  final options = PushConfig.options;
+  if (options == null) return;
+  if (Firebase.apps.isEmpty) await Firebase.initializeApp(options: options);
+  await handleJourneyActivityData(message.data);
+}
 
 /// Cấu hình Firebase lấy từ `--dart-define` / `--dart-define-from-file` (cùng file `.env.*` với `API_BASE_URL`),
 /// nên không cần `google-services.json` hay plugin Gradle. Thiếu một giá trị thì tắt push.
@@ -65,18 +75,21 @@ class PushService {
   PushService({
     required this.registerDevice,
     required this.removeDevice,
+    this.onJourneyData,
     FirebaseOptions? Function()? options,
   }) : _options = options ?? (() => PushConfig.options);
 
   /// Đăng ký token, trả id thiết bị ở máy chủ.
   final Future<String> Function(String token) registerDevice;
   final Future<void> Function(String deviceId) removeDevice;
+  final Future<void> Function(Map<String, dynamic> data)? onJourneyData;
   final FirebaseOptions? Function() _options;
 
   final _foreground = StreamController<PushMessage>.broadcast();
   final _opened = StreamController<PushMessage>.broadcast();
   bool _initialized = false;
   String? _deviceId;
+  String? get registeredDeviceId => _deviceId;
   StreamSubscription<String>? _tokenRefresh;
 
   /// Thông báo đến khi app đang mở.
@@ -91,7 +104,14 @@ class PushService {
     if (options == null) return false;
     try {
       if (Firebase.apps.isEmpty) await Firebase.initializeApp(options: options);
+      if (journeyDemoAvailable) {
+        FirebaseMessaging.onBackgroundMessage(passengerBackgroundMessage);
+      }
       FirebaseMessaging.onMessage.listen((message) {
+        if (message.data['type'] == 'journey_demo') {
+          unawaited((onJourneyData ?? handleJourneyActivityData)(message.data));
+          return;
+        }
         final note = _toMessage(message);
         if (note != null) _foreground.add(note);
       });
@@ -117,11 +137,15 @@ class PushService {
     try {
       final messaging = FirebaseMessaging.instance;
       final settings = await messaging.requestPermission();
-      if (settings.authorizationStatus == AuthorizationStatus.denied) return;
+      if (settings.authorizationStatus == AuthorizationStatus.denied) {
+        _deviceId = null;
+        return;
+      }
       final token = await messaging.getToken();
-      if (token == null) return;
-      // Bản debug in token để gửi thử từ Firebase Console (RB-11); bản release không in.
-      if (kDebugMode) debugPrint('FCM token: $token');
+      if (token == null) {
+        _deviceId = null;
+        return;
+      }
       _deviceId = await registerDevice(token);
       await _tokenRefresh?.cancel();
       _tokenRefresh = messaging.onTokenRefresh.listen((fresh) async {
@@ -132,6 +156,7 @@ class PushService {
         }
       });
     } catch (error) {
+      _deviceId = null;
       debugPrint('Không bật được push ($error).');
     }
   }

@@ -420,6 +420,38 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/me/journey-demo": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["JourneyDemoController_current"];
+        put?: never;
+        post: operations["JourneyDemoController_start"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/me/journey-demo/{sessionId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: operations["JourneyDemoController_stop"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/me/inbox": {
         parameters: {
             query?: never;
@@ -5840,6 +5872,56 @@ export interface components {
             provider: string;
             active: boolean;
         };
+        JourneyDemoStartDto: {
+            /** Format: uuid */
+            bookingId: string;
+            /** Format: uuid */
+            deviceId: string;
+        };
+        JourneyDemoSnapshotDto_Output: {
+            /** @constant */
+            type: "journey_demo";
+            schemaVersion: number;
+            /** Format: uuid */
+            sessionId: string;
+            /** Format: uuid */
+            bookingId: string;
+            revision: number;
+            /** @enum {string} */
+            stage: "approaching" | "travelling" | "arrived" | "stopped";
+            routeLabel: string;
+            provinceName: string;
+            /** Format: date-time */
+            etaAt: string;
+            progress: number;
+            /** Format: date-time */
+            updatedAt: string;
+            /** Format: date-time */
+            expiresAt: string;
+            ended: boolean;
+        };
+        JourneyDemoCurrentDto_Output: {
+            /** @constant */
+            type: "journey_demo";
+            schemaVersion: number;
+            /** Format: uuid */
+            sessionId: string;
+            /** Format: uuid */
+            bookingId: string;
+            revision: number;
+            /** @enum {string} */
+            stage: "approaching" | "travelling" | "arrived" | "stopped";
+            routeLabel: string;
+            provinceName: string;
+            /** Format: date-time */
+            etaAt: string;
+            progress: number;
+            /** Format: date-time */
+            updatedAt: string;
+            /** Format: date-time */
+            expiresAt: string;
+            ended: boolean;
+        } | null;
         InboxPageDto_Output: {
             items: {
                 /** Format: uuid */
@@ -13303,6 +13385,119 @@ export interface operations {
                     "application/json": components["schemas"]["NotificationLogDto_Output"];
                 };
             };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    JourneyDemoController_current: {
+        parameters: {
+            query: {
+                deviceId: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Snapshot hiện tại hoặc null. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["JourneyDemoCurrentDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    JourneyDemoController_start: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["JourneyDemoStartDto"];
+            };
+        };
+        responses: {
+            /** @description Phiên mô phỏng hành trình Android. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["JourneyDemoSnapshotDto_Output"];
+                };
+            };
+            /** @description Thiếu hoặc sai access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description `PERMISSION_DENIED` hoặc `TENANT_SCOPE_VIOLATION`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    JourneyDemoController_stop: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                sessionId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
             /** @description Thiếu hoặc sai access token. */
             401: {
                 headers: {

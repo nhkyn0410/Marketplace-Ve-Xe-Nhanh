@@ -47,6 +47,7 @@ export 'package:api_client_dart/src/api/disputes_api.dart';
 export 'package:api_client_dart/src/api/employee_operations_api.dart';
 export 'package:api_client_dart/src/api/health_api.dart';
 export 'package:api_client_dart/src/api/incidents_api.dart';
+export 'package:api_client_dart/src/api/journey_demo_api.dart';
 export 'package:api_client_dart/src/api/journey_logs_api.dart';
 export 'package:api_client_dart/src/api/notification_api.dart';
 export 'package:api_client_dart/src/api/operator_applications_api.dart';
@@ -394,6 +395,9 @@ export 'package:api_client_dart/src/model/incident_input_dto_evidence_inner.dart
 export 'package:api_client_dart/src/model/incident_page_dto_output.dart';
 export 'package:api_client_dart/src/model/incident_page_dto_output_items_inner.dart';
 export 'package:api_client_dart/src/model/incident_resolution_dto.dart';
+export 'package:api_client_dart/src/model/journey_demo_current_dto_output.dart';
+export 'package:api_client_dart/src/model/journey_demo_snapshot_dto_output.dart';
+export 'package:api_client_dart/src/model/journey_demo_start_dto.dart';
 export 'package:api_client_dart/src/model/journey_log_dto_output.dart';
 export 'package:api_client_dart/src/model/journey_log_input_dto.dart';
 export 'package:api_client_dart/src/model/journey_log_page_dto_output.dart';

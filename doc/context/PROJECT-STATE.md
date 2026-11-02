@@ -2,9 +2,11 @@
 
 Live state of the managed marketplace project `Marketplace-Ve-Xe-Nhanh` (codename renamed 25/05/2026 from `Ve_Xe_Nhanh_NestJS_NextJs_ReactNative`). Agents must consult this file before writing or editing any SDLC document. Update this file after every documentation change that affects status, decisions or blockers.
 
-Last updated: 02/11/2026.
+Last updated: 03/11/2026.
 
 ## 1. SDLC document status
+
+03/11/2026: bổ sung demo thông báo hành trình ngoài app hành khách **Android-only**, theo yêu cầu Khanh, có tỉnh hiện tại mô phỏng. API v0.50, UI v0.47, Test v0.33, Task v0.64; giữ nguyên trạng thái tài liệu. App 351 tests pass + test bổ sung, integration PostgreSQL/Redis thật 4/4 pass, APK debug build thành công. Chi tiết triển khai/kiểm chứng ở [kế hoạch](../task-propreties/PSG-journey-notification-demo-plan.md), hướng dẫn ở [guide](../task-propreties/PSG-journey-notification-demo-guide.md). Chưa nghiệm thu thiết bị thật hoặc review độc lập; không thay trạng thái chuyến/vé thật.
 
 > **Version**: bỏ số `Phiên bản` (02/06/2026) — git là nguồn lịch sử. Mỗi doc giữ **Trạng thái** + **Ngày cập nhật**; lịch sử thay đổi xem `git log` + `archive/CHANGELOG.md`.
 

@@ -327,6 +327,9 @@ import 'package:api_client_dart/src/model/incident_input_dto_evidence_inner.dart
 import 'package:api_client_dart/src/model/incident_page_dto_output.dart';
 import 'package:api_client_dart/src/model/incident_page_dto_output_items_inner.dart';
 import 'package:api_client_dart/src/model/incident_resolution_dto.dart';
+import 'package:api_client_dart/src/model/journey_demo_current_dto_output.dart';
+import 'package:api_client_dart/src/model/journey_demo_snapshot_dto_output.dart';
+import 'package:api_client_dart/src/model/journey_demo_start_dto.dart';
 import 'package:api_client_dart/src/model/journey_log_dto_output.dart';
 import 'package:api_client_dart/src/model/journey_log_input_dto.dart';
 import 'package:api_client_dart/src/model/journey_log_page_dto_output.dart';
@@ -964,6 +967,9 @@ part 'serializers.g.dart';
   IncidentPageDtoOutput,
   IncidentPageDtoOutputItemsInner,
   IncidentResolutionDto,
+  JourneyDemoCurrentDtoOutput,
+  JourneyDemoSnapshotDtoOutput,
+  JourneyDemoStartDto,
   JourneyLogDtoOutput,
   JourneyLogInputDto,
   JourneyLogPageDtoOutput,

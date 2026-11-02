@@ -126,6 +126,8 @@ import { VehicleController } from "../vehicle/vehicle.controller";
 import { VehicleService } from "../vehicle/vehicle.service";
 import { AdminNotificationController, PreferenceController } from "../notification/preference.controller";
 import { PreferenceService } from "../notification/preference.service";
+import { JourneyDemoController } from "../notification/journey-demo.controller";
+import { JourneyDemoService } from "../notification/journey-demo.service";
 import { InboxController } from "../notification/inbox.controller";
 import { InboxService } from "../notification/inbox.service";
 import { AdminNotificationCampaignController } from "../notification/campaign/notification-campaign.controller";
@@ -164,6 +166,7 @@ import { OperatorDepartureService } from "../trip/operator-departure.service";
     AdminNotificationCampaignController,
     AdminReconciliationController,
     PreferenceController,
+    JourneyDemoController,
     InboxController,
     EmployeeIncidentController,
     OperatorIncidentController,
@@ -260,6 +263,7 @@ import { OperatorDepartureService } from "../trip/operator-departure.service";
     { provide: APP_INTERCEPTOR, useClass: ZodSerializerInterceptor },
     // Scan-only: chỉ cần metadata route, không cần dependency thật (không Postgres/Redis/Mongo).
     { provide: AuthService, useValue: {} },
+    { provide: JourneyDemoService, useValue: {} },
     { provide: CatalogService, useValue: {} },
     { provide: AdminCatalogService, useValue: {} },
     { provide: VehicleService, useValue: {} },

@@ -18,6 +18,10 @@ abstract interface class JourneyBackHandler {
   bool handleBack();
 }
 
+abstract interface class JourneyBookingOpener {
+  Future<void> openBooking(String bookingId);
+}
+
 /// Tab Hành trình khi chưa đăng nhập: tra cứu bằng email + OTP → danh sách đơn → chi tiết / hủy vé.
 class GuestJourneyFlow extends StatefulWidget {
   const GuestJourneyFlow({
@@ -243,19 +247,21 @@ class MyJourneyFlow extends StatefulWidget {
     required this.api,
     required this.onTabSelected,
     this.onSupportRequested,
+    this.demoPanelBuilder,
     super.key,
   });
 
   final JourneyApi api;
   final ValueChanged<int> onTabSelected;
   final VoidCallback? onSupportRequested;
+  final Widget? Function(JourneyBooking booking)? demoPanelBuilder;
 
   @override
   State<MyJourneyFlow> createState() => _MyJourneyFlowState();
 }
 
 class _MyJourneyFlowState extends State<MyJourneyFlow>
-    implements JourneyBackHandler {
+    implements JourneyBackHandler, JourneyBookingOpener {
   late Future<List<JourneyBookingSummary>> _bookings = widget.api
       .listMyBookings();
   JourneyBooking? _booking;
@@ -282,10 +288,15 @@ class _MyJourneyFlowState extends State<MyJourneyFlow>
   }
 
   Future<void> _open(JourneyBookingSummary summary) async {
+    await openBooking(summary.bookingId);
+  }
+
+  @override
+  Future<void> openBooking(String bookingId) async {
     if (_opening) return;
     setState(() => _opening = true);
     try {
-      final booking = await widget.api.loadBooking(summary.bookingId);
+      final booking = await widget.api.loadBooking(bookingId);
       if (!mounted) return;
       setState(() {
         _booking = booking;
@@ -311,6 +322,7 @@ class _MyJourneyFlowState extends State<MyJourneyFlow>
           onBack: _closeDetail,
           onTabSelected: widget.onTabSelected,
           onSupportRequested: widget.onSupportRequested,
+          journeyDemoPanel: widget.demoPanelBuilder?.call(booking),
           quoteCancellation: (ticketIds) =>
               widget.api.quoteCancellation(booking.bookingId, ticketIds),
           cancelTickets: (ticketIds, expectedRefund, reason) async {

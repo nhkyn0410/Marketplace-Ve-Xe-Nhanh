@@ -1,10 +1,11 @@
 import 'dart:async';
 
-import 'package:api_client_dart/api_client_dart.dart';
+import 'package:api_client_dart/api_client_dart.dart' hide JourneyDemoApi;
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:journey_notification/journey_notification.dart';
 import 'package:mobile_shared/mobile_shared.dart';
 import 'package:passenger_mobile/features/account/account_screen.dart';
 import 'package:passenger_mobile/features/account/edit_profile_screen.dart';
@@ -20,6 +21,9 @@ import 'package:passenger_mobile/features/auth/auth_screen.dart';
 import 'package:passenger_mobile/features/auth/google_auth_service.dart';
 import 'package:passenger_mobile/features/explore/article_api.dart';
 import 'package:passenger_mobile/features/journey/journey_api.dart';
+import 'package:passenger_mobile/features/journey_activity/journey_activity_service.dart';
+import 'package:passenger_mobile/features/journey_activity/journey_demo_api.dart';
+import 'package:passenger_mobile/features/journey_activity/journey_demo_panel.dart';
 import 'package:passenger_mobile/features/notification/inbox_screen.dart';
 import 'package:passenger_mobile/features/notification/notification_center_api.dart';
 import 'package:passenger_mobile/features/notification/push_service.dart';
@@ -200,7 +204,7 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
   );
   late final _articleApi = ArticleApi(_api);
   late final _notificationCenter = NotificationCenterApi(_api);
-  late final _push = PushService(
+  late final PushService _push = PushService(
     registerDevice: (token) async {
       final response = await _api
           .getNotificationApi()
@@ -215,6 +219,15 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
     },
     removeDevice: (id) =>
         _api.getNotificationApi().preferenceControllerRemove(id: id),
+    onJourneyData: (data) => _journeyActivity.acceptPush(data),
+  );
+  late final JourneyActivityService _journeyActivity = JourneyActivityService(
+    api: JourneyDemoApi(_api),
+    ensureDevice: () async {
+      await _push.enable();
+      return _push.registeredDeviceId;
+    },
+    registeredDevice: () => _push.registeredDeviceId,
   );
   final _pushSubscriptions = <StreamSubscription<PushMessage>>[];
   final _myJourneyKey = GlobalKey();
@@ -228,7 +241,7 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
     super.initState();
     // Tin đến lúc app ở nền không chạy code Dart nên đồng bộ lại chuông khi mở lại app.
     _lifecycle = AppLifecycleListener(
-      onResume: () => unawaited(_refreshUnread()),
+      onResume: () => unawaited(_resumeNotifications()),
     );
     _pushSubscriptions
       ..add(_push.foregroundMessages.listen(_showPush))
@@ -271,13 +284,16 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
     } catch (_) {
       // Mất mạng hoặc máy chủ lỗi: vẫn giữ phiên, từng màn tự báo lỗi và cho thử lại.
     }
-    if (mounted && _step != _AuthStep.email) unawaited(_push.enable());
+    if (mounted && _step != _AuthStep.email) unawaited(_enablePush());
   }
 
   /// Refresh token hết hạn hoặc đã bị thu hồi (vd đăng xuất từ thiết bị khác).
   Future<void> _handleSessionExpired() async {
     if (!mounted) return;
     if (_step != _AuthStep.signedIn && _step != _AuthStep.profile) return;
+    if (journeyDemoAvailable) {
+      unawaited(_journeyActivity.stop(ignoreNetworkError: true));
+    }
     unawaited(_push.disable());
     Navigator.of(context).popUntil((route) => route.isFirst);
     setState(() {
@@ -370,6 +386,31 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
     _selectMainTab(3);
   }
 
+  Future<void> _enablePush() async {
+    await _push.enable();
+    await _resumeNotifications();
+  }
+
+  Future<void> _resumeNotifications() async {
+    unawaited(_refreshUnread());
+    if (!journeyDemoAvailable || _step != _AuthStep.signedIn) return;
+    try {
+      final bookingId = await JourneyNotification.consumeOpenedBooking();
+      if (bookingId != null && mounted && _step == _AuthStep.signedIn) {
+        _openJourneyTab();
+        await WidgetsBinding.instance.endOfFrame;
+        if (mounted && _step == _AuthStep.signedIn) {
+          if (_myJourneyKey.currentState case final JourneyBookingOpener flow) {
+            await flow.openBooking(bookingId);
+          }
+        }
+      }
+      await _journeyActivity.restore();
+    } catch (_) {
+      // Mất mạng/không bật demo ở server không chặn tab vé hay thông báo thường.
+    }
+  }
+
   /// Số tin chưa đọc cho chuông; lỗi mạng thì giữ số cũ, chuông không đáng để báo lỗi.
   Future<void> _refreshUnread() async {
     if (_step != _AuthStep.signedIn) return;
@@ -419,6 +460,7 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
         break;
     }
   }
+
   late final _journeyApi = JourneyApi(_api);
   late final _bookingApi = TripBookingApi(
     _api,
@@ -618,7 +660,7 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
       _error = null;
     });
     // Có phiên rồi mới đăng ký thiết bị nhận push; lỗi push không chặn đăng nhập.
-    unawaited(_push.enable());
+    unawaited(_enablePush());
     unawaited(_refreshUnread());
   }
 
@@ -1122,6 +1164,9 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
 
   Future<bool> _logout() async {
     final succeeded = await _run(() async {
+      if (journeyDemoAvailable) {
+        await _journeyActivity.stop(ignoreNetworkError: true);
+      }
       // Gỡ thiết bị khi còn phiên, để tài khoản không nhận push trên máy đã đăng xuất.
       await _push.disable();
       await _api.getAuthApi().authControllerLogout(xAuthTransport: 'bearer');
@@ -1361,6 +1406,15 @@ class _OtpLoginPageState extends State<OtpLoginPage> {
         api: _journeyApi,
         onTabSelected: _selectMainTab,
         onSupportRequested: _callSupport,
+        demoPanelBuilder: journeyDemoAvailable
+            ? (booking) {
+                if (booking.status != 'CONFIRMED') return null;
+                return JourneyDemoPanel(
+                  service: _journeyActivity,
+                  bookingId: booking.bookingId,
+                );
+              }
+            : null,
       );
     }
     if (_step == _AuthStep.guest && _currentTab == 4) {
