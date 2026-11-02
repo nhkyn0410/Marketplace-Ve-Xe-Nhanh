@@ -23,6 +23,9 @@ String resolveEmployeeApiBaseUrl({
       : value;
 }
 
+/// Vai trò API trả về khi đăng nhập nhân viên, khớp danh sách của `AuthService.employeeLogin`.
+const _employeeLoginRoles = {'DRIVER', 'TICKET_STAFF', 'SUPPORT_STAFF'};
+
 class EmployeeApiException implements Exception {
   const EmployeeApiException(this.code, this.message);
   final String code;
@@ -209,7 +212,7 @@ class EmployeeApi {
         refresh.isEmpty ||
         payload['tokenType'] != 'Bearer' ||
         payload['scope'] != 'operator' ||
-        payload['role'] != 'EMPLOYEE' ||
+        !_employeeLoginRoles.contains(payload['role']) ||
         payload['mfaRequired'] != false ||
         (expiry != null && expiry is! int)) {
       throw const EmployeeApiException(

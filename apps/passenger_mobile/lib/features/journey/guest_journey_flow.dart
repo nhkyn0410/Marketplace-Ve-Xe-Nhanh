@@ -8,6 +8,7 @@ import 'package:passenger_mobile/features/journey/guest_ticket_lookup_screen.dar
 import 'package:passenger_mobile/features/journey/guest_ticket_results_screen.dart';
 import 'package:passenger_mobile/features/journey/journey_api.dart';
 import 'package:passenger_mobile/features/journey/journey_models.dart';
+import 'package:passenger_mobile/features/journey/trip_review_panel.dart';
 
 enum _GuestJourneyStep { lookup, otp, results, detail }
 
@@ -318,11 +319,14 @@ class _MyJourneyFlowState extends State<MyJourneyFlow>
       return KeyedSubtree(
         key: const ValueKey('my-journey-detail'),
         child: GuestTicketDetailScreen(
+          // Mở đơn khác từ thông báo khi đang xem chi tiết: vé và khối đánh giá phải theo đơn mới.
+          key: ValueKey(booking.bookingId),
           booking: booking,
           onBack: _closeDetail,
           onTabSelected: widget.onTabSelected,
           onSupportRequested: widget.onSupportRequested,
           journeyDemoPanel: widget.demoPanelBuilder?.call(booking),
+          reviewPanel: TripReviewPanel(api: widget.api, booking: booking),
           quoteCancellation: (ticketIds) =>
               widget.api.quoteCancellation(booking.bookingId, ticketIds),
           cancelTickets: (ticketIds, expectedRefund, reason) async {

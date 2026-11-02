@@ -245,6 +245,51 @@ class JourneyApi {
     );
   }
 
+  /// Đơn đã có đánh giá chưa và còn được gửi không (chỉ tài khoản hành khách).
+  Future<JourneyReviewStatus> loadReview(String bookingId) async {
+    final response = await _call(
+      () => _client.getReviewsApi().customerReviewControllerGet(
+        bookingId: bookingId,
+      ),
+    );
+    final data = response.data!;
+    final review = data.review;
+    return JourneyReviewStatus(
+      canReview: data.canReview,
+      review: review == null
+          ? null
+          : JourneyReview(
+              rating: review.rating,
+              status: review.status.name,
+              comment: review.comment,
+            ),
+    );
+  }
+
+  /// Gửi đánh giá cho đơn; mỗi đơn một lần.
+  Future<JourneyReview> submitReview(
+    String bookingId, {
+    required int rating,
+    String? comment,
+  }) async {
+    final response = await _call(
+      () => _client.getReviewsApi().customerReviewControllerCreate(
+        bookingId: bookingId,
+        reviewInputDto: ReviewInputDto(
+          (b) => b
+            ..rating = rating
+            ..comment = comment,
+        ),
+      ),
+    );
+    final data = response.data!;
+    return JourneyReview(
+      rating: data.rating,
+      status: data.status.name,
+      comment: data.comment,
+    );
+  }
+
   Future<T> _call<T>(Future<T> Function() run) async {
     try {
       return await run();
