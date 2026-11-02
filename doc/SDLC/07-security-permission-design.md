@@ -13,7 +13,7 @@
 | Người viết    | Nguyễn Hồng Khanh, AI Agent   |
 | Người duyệt   | Nguyễn Hồng Khanh             |
 | Ngày tạo      | 11/05/2026                    |
-| Ngày cập nhật | 31/10/2026                    |
+| Ngày cập nhật | 02/11/2026                    |
 
 ### 1.2. Lịch sử thay đổi
 
@@ -49,6 +49,7 @@
 | v0.26     | 27/10/2026 | AI Agent       | **Hủy vé / khiếu nại của khách vãng lai sau OTP tra cứu vé (Khanh 27/10/2026, chờ duyệt):** OTP gửi về email liên hệ là bước xác minh bổ sung; sau đó API cấp mã truy cập phụ cho đúng booking khách vãng lai của phiên (`booking_access_grants`, SHA-256, hết hạn cùng phiên 15 phút), chỉ được nhận ở xem đơn / vé, hủy vé, khiếu nại — không ở thanh toán / tranh chấp; booking đặt bằng tài khoản vẫn chỉ chủ tài khoản; trình duyệt đã có mã gốc thì giữ mã gốc. |
 | v0.27     | 27/10/2026 | AI Agent       | **Logo nhà xe (FR-OPR-02; Khanh 27/10/2026, tự thiết kế — chờ duyệt):** §7 dòng Logo nhà xe (chỉ Owner, `kyc:submit`); §9 dòng Logo nhà xe (public bucket, JPEG / PNG / WebP ≤ 2 MB, khóa theo tiền tố nhà xe, kiểm chữ ký ảnh, audit). |
 | v0.28     | 28/10/2026 | AI Agent       | **Admin giám sát (Khanh 28/10/2026, tự thiết kế — chờ duyệt):** §7 thêm dòng Giám sát nhà xe / hành khách / tuyến / chuyến (`user:manage`, tiền chỉ với `payment:monitor`, không thêm quyền mới); bảng thao tác nhạy cảm thêm dòng xem chi tiết hành khách / danh sách người đi (SĐT che, audit mỗi lượt xem, lỗi audit → 503). |
+| v0.29     | 02/11/2026 | AI Agent       | **Chiến dịch thông báo + hộp thư (`TASK-NSR-003`, tự thiết kế — chờ duyệt):** §7 thêm dòng Chiến dịch thông báo, Hộp thư; quyền mới `notification:broadcast` (PlatformAdmin, tick được theo tài khoản; tài khoản cũ để `permissions = NULL` tự có). §9 thêm dòng Gửi chiến dịch. RLS: hai bảng mới FORCE RLS, chỉ platform / system; hộp thư lọc theo chủ thể lấy từ phiên. |
 
 ---
 
@@ -191,6 +192,8 @@ RBAC 8-role hardcoded enum v1 (Anonymous / Passenger / OperatorOwner / Driver / 
 | Policy/commission/payout | Không              | Không       | Xem phần liên quan (bảng giá nhận cảnh báo khung giá) | Không                  | Cấu hình — `finance:configure` (PlatformAdmin): phiên bản chính sách, hoa hồng, khung giá (chờ duyệt, `ADM-001-policy-todo.md`); thao tác chi trả tách `payout:manage`, hoàn tiền phía Admin tách `refund:manage` (chờ duyệt — `IAM-007-todo.md`) |
 | Loyalty / ví voucher     | Không              | Của mình    | Không                         | Không                  | Cấu hình, xem, điều chỉnh — hiện thực `loyalty:manage` chỉ PlatformAdmin, tham số qua `finance:configure`; RLS sổ điểm chỉ scope platform / system (chờ duyệt — `LOY-001-admin-todo.md`) |
 | Bài viết                 | Đọc bài công khai  | Đọc bài công khai | Đọc bài công khai       | Không                  | Soạn, xuất bản, gỡ — `content:manage`, chỉ PlatformAdmin (`TASK-CNT-001`, chờ duyệt) |
+| Chiến dịch thông báo     | Không              | Không       | Không                         | Không                  | Soạn, gửi thử, gửi, hủy, xem kết quả — `notification:broadcast`, chỉ PlatformAdmin (`TASK-NSR-003`, chờ duyệt) |
+| Hộp thư thông báo        | Không              | Của mình (`notification:manage`) | Không (v1)    | Không (v1)             | Không đọc hộp thư riêng; chỉ thấy số liệu chiến dịch |
 | Nội dung công khai (banner, FAQ, trang tĩnh) | Đọc mục đang hiển thị | Đọc mục đang hiển thị | Đọc mục đang hiển thị | Không | Soạn, hiển thị / ẩn — `content:moderate`, chỉ PlatformAdmin, audit (chờ duyệt — `ADM-003-content-todo.md`) |
 | Báo cáo / Tổng quan      | Không              | Không       | Của tenant (`finance:read`, Owner) | Không | Toàn hệ thống — `payment:monitor` (PlatformAdmin + PlatformSupport; không dùng `finance:read` vì Owner cũng có) (chờ duyệt) |
 | Khiếu nại / tranh chấp   | Đơn đã xác minh (`X-Booking-Token` — mã lúc đặt hoặc mã phụ cấp sau OTP tra cứu vé cho khiếu nại, chờ duyệt 27/10/2026; `support:create`) | Đơn của mình | Chỉ vụ Vé Xe Nhanh đã chuyển (`support:respond`, Owner) | Không | `support:manage` (PlatformAdmin + PlatformSupport); quyết định `dispute:decide` chỉ PlatformAdmin (chờ duyệt — `TRUST-001-todo.md`) |
@@ -231,6 +234,7 @@ Sales staff không có check-in/vận hành chuyến mặc định; driver/check
 | Đổi policy hủy/giữ ghế/commission | Admin permission, effective date, audit, không áp ngược booking cũ (PolicySnapshot) — hiện thực `finance:configure` + re-auth/TOTP + lý do khi kích hoạt / hủy lịch / đổi hoa hồng / khung giá; hiệu lực phải ở tương lai; PolicySnapshot làm cùng `TASK-BTP-*` |
 | Điều chỉnh điểm / đổi tham số loyalty | Admin permission, reason, audit; tham số theo phiên bản có effective date, không áp ngược giao dịch điểm đã ghi |
 | Xuất bản / gỡ bài viết            | Admin permission, audit — hiện thực `content:manage` (chờ duyệt) |
+| Gửi chiến dịch thông báo          | `notification:broadcast`, audit `notification_campaign.*` trong transaction (không ghi được → 503, không có hiệu lực); màn xác nhận hiện số người nhận; gửi thử che email trong audit; nội dung không chứa dữ liệu riêng (BR-85); không gửi email hàng loạt (BR-82). Chưa yêu cầu re-auth — chờ Khanh quyết (chờ duyệt) |
 | Hiển thị / ẩn nội dung công khai  | `content:moderate` + audit trong transaction; liên kết banner chỉ `/…` hoặc `https://` (chặn `//`, `javascript:`); Markdown không render HTML thô (chờ duyệt) |
 | Quyết định tranh chấp (gồm hoàn tiền) | `dispute:decide` (chỉ PlatformAdmin) + re-auth/TOTP + lý do + audit trong transaction; số tiền ≤ phần khách đã trả còn lại; hoàn qua worker refund, trừ sổ giữ hộ nhà xe (chờ duyệt) |
 | Xem tệp minh chứng khiếu nại / tranh chấp | Đúng bên được thấy (khách của đơn / nhà xe được chuyển / Vé Xe Nhanh); URL ký 5 phút; audit mỗi lần (`support.attachment.view`); khóa object do server sinh, kiểm chữ ký định dạng (chờ duyệt) |

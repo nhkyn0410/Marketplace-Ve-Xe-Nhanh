@@ -13,7 +13,7 @@
 | Người viết    | Nguyễn Hồng Khanh, AI Agent |
 | Người duyệt   | Nguyễn Hồng Khanh           |
 | Ngày tạo      | 11/05/2026                  |
-| Ngày cập nhật | 31/10/2026                  |
+| Ngày cập nhật | 02/11/2026                  |
 
 ### 1.2. Lịch sử thay đổi
 
@@ -67,6 +67,7 @@
 | v0.43     | 28/10/2026 | AI Agent | **Admin giám sát (Khanh 28/10/2026 "OK làm theo đề xuất", tự thiết kế — chờ duyệt, chưa có Figma):** §9 thêm dòng **Tuyến & chuyến**; Nhà xe + người dùng: chi tiết nhà xe, tab đổi tên **Tài khoản hành khách** + chi tiết tài khoản; Payment/refund: mục đổi tên **Giao dịch**, tìm theo SĐT / email người đặt; Điểm dừng: bản đồ tab Của nhà xe + dòng nhắc khi thiếu khóa bản đồ; Loyalty: tab **Điểm thành viên**; Report: Theo tuyến / Theo khu vực. |
 | v0.44     | 28/10/2026 | AI Agent | **Người đi cùng trên chỗ đôi (Khanh 28/10/2026, chờ duyệt, BR-78):** SCR-PSG-19 (web + app) và bán vé tại quầy có ô người đi cùng cho chỗ đôi; vé hiện "A và B"; danh sách khách chuyến (Operator OS, Admin) hiện "Đi cùng: …". |
 | v0.45     | 01/11/2026 | AI Agent | **App hành khách: Trang nhà xe + VXN Plus (Khanh 01/11/2026, tự thiết kế — chờ duyệt, Figma Mobile chưa có khung):** `apps/passenger_mobile` thêm SCR-PSG-17 (mở từ "Nhà xe nổi bật" ở Trang chủ, thẻ nhà xe ở tab Mua vé, "Xem nhà xe" ở chi tiết chuyến; "Xem chuyến của nhà xe" → chuyến sắp chạy 14 ngày của nhà xe) và SCR-PSG-33 / 35 (màn VXN Plus, đổi điểm là bottom sheet; mở từ thẻ VXN Plus và mục "Điểm thưởng VXN Plus" ở Tài khoản, nút "Đổi điểm" ở Lịch sử điểm — thẻ VXN Plus không còn mở Lịch sử điểm như v0.42). Nút Back của Android ở màn con Tài khoản về màn trước, không thoát app. **SCR-PSG-19 trên app (Khanh 01/11/2026, chờ duyệt):** tài khoản có hành khách đã lưu thấy thêm thẻ ghế đầu, kể cả khi đặt 1 vé, để chọn người đi khác người liên hệ; để trống thì người liên hệ đi chỗ đó. Khách vãng lai và tài khoản chưa lưu ai giữ form cũ. |
+| v0.46     | 02/11/2026 | AI Agent | **Chiến dịch thông báo + hộp thư + sửa phiên đăng nhập (`TASK-NSR-003`, Khanh 02/11/2026; tự thiết kế — chờ duyệt, Figma chưa có khung):** §6.1 thêm SCR-PSG-38 Hộp thư; SCR-PSG-12, SCR-PSG-13 trên app đã nối API thật; §6.2 thêm luồng Thông báo; §6.3 thêm trạng thái SCR-PSG-38; §9 thêm màn Thông báo của Admin. App: chuông Trang chủ chỉ có chấm đỏ khi có tin chưa đọc; thanh báo push tự tắt sau 6 giây; Back Android theo màn con; vé đã đi ghi "Đã đi" và không còn nút Hủy; Ví voucher có bảng Điều kiện; Lịch sử điểm lọc theo loại. |
 
 ---
 
@@ -149,6 +150,7 @@ Quy ước cột **Thiết kế**:
 | SCR-PSG-11 | Tài khoản của tôi (hồ sơ, hành khách đã lưu, bảo mật)             | `385:14020` | Review ⚠ | FR-IAM-11, FR-MKT-13           |
 | SCR-PSG-12 | Cài đặt thông báo (tab đã có, chưa có frame)                      | —           | Draft    | FR-NSR-14                      |
 | SCR-PSG-13 | Phiên đăng nhập / thiết bị                                        | —           | Draft    | FR-IAM-15                      |
+| SCR-PSG-38 | Hộp thư thông báo (app; mở từ chuông Trang chủ hoặc chạm push)      | —           | Draft    | FR-NSR-17, UC-42               |
 | SCR-PSG-14 | Đánh giá của tôi + form đánh giá chuyến                           | —           | Draft    | FR-NSR-10                      |
 | **Tìm chuyến → đặt vé** |                                                      |             |          |                                |
 | SCR-PSG-15 | Danh sách chuyến (kết quả tìm, lọc, sắp xếp)                      | `385:7387`  | Review   | FR-MKT-01..04                  |
@@ -193,6 +195,7 @@ Quy ước cột **Thiết kế**:
 | Hỗ trợ / đánh giá   | 25 hoặc 30 → 31 → 30; 24 → 14                                              | Đánh giá chỉ khi trip `COMPLETED` và vé hợp lệ                                                             |
 | VXN Plus / ví voucher | 11 → 33 → 35 → 36; 33 → 34; 19 chọn voucher từ ví (36)                   | Chỉ User đăng nhập; tối đa một voucher / mã cho mỗi booking (BR-72); tổng tiền tách dòng giảm (CO-12)     |
 | Khám phá            | 02 → 37                                                                    | Không cần đăng nhập; chỉ bài `PUBLISHED`                                                                  |
+| Thông báo           | Chuông Trang chủ hoặc push → 38 → 24 (đơn vé) / 37 (bài viết) / 36 (mã ưu đãi điền sẵn); 12 tắt / bật loại không bắt buộc | Chỉ User đăng nhập; khách vãng lai chạm chuông được yêu cầu đăng nhập. Push về đơn vé mở thẳng tab Hành trình. Chờ duyệt |
 
 ### 6.3. Trạng thái màn hình (5 Key UI States)
 
@@ -314,11 +317,22 @@ Mỗi màn hình là một bảng đủ 5 trạng thái theo §10.1. Cột **Thi
 
 | Trạng thái     | Nội dung cần có                                                                                               | Thiết kế |
 | -------------- | ------------------------------------------------------------------------------------------------------------- | -------- |
-| Ideal          | Bảng loại thông báo × kênh đang bật (email, push)                                                              | Draft    |
+| Ideal          | Bảng loại thông báo × kênh đang bật (email, push). **App (02/11/2026, chờ duyệt):** một công tắc mỗi loại, đọc / ghi `/me/notification-preferences`; Ưu đãi, VXN Plus, Tin tức đổi được | Draft    |
 | Empty          | — (luôn có danh mục loại thông báo)                                                                           | —        |
 | Loading        | Đang tải / đang lưu                                                                                           | Draft    |
-| Partial / Edge | Thông báo bắt buộc (bảo mật, vé, thanh toán, đổi/hủy chuyến, dispute) khóa, không tắt được (FR-NSR-14)          | Draft    |
+| Partial / Edge | Thông báo bắt buộc (bảo mật, vé, thanh toán, đổi/hủy chuyến, dispute) khóa, không tắt được (FR-NSR-14). Máy chưa đăng ký push vẫn bật được, tin vào hộp thư | Draft    |
 | Error          | Lưu thất bại → giữ giá trị cũ                                                                                 | Draft    |
+
+#### SCR-PSG-38 — Hộp thư thông báo (chưa có frame; chờ duyệt)
+
+| Trạng thái     | Nội dung cần có                                                                                               | Thiết kế |
+| -------------- | ------------------------------------------------------------------------------------------------------------- | -------- |
+| Ideal          | Tin mới nhất trước: biểu tượng theo loại, tiêu đề, hai dòng nội dung, giờ tương đối; tin chưa đọc đậm + chấm đỏ; "N tin chưa đọc" + "Đọc tất cả". Chạm mở bảng toàn văn, có nút đi tiếp nếu tin có liên kết | Draft    |
+| Empty          | "Chưa có thông báo" + lời giải thích; vẫn kéo xuống tải lại được                                              | Draft    |
+| Loading        | Vòng tải; tải thêm khi cuộn gần cuối                                                                          | Draft    |
+| Partial / Edge | Có tin mới khi đang mở màn thì tự tải lại; tải thêm lỗi → nút thử lại ở cuối danh sách, giữ tin đã có         | Draft    |
+| Error          | Lần đầu lỗi → "Không tải được thông báo" + Thử lại; đánh dấu tất cả lỗi → báo và tải lại đúng theo máy chủ    | Draft    |
+
 
 #### SCR-PSG-13 — Phiên đăng nhập / thiết bị (chưa có frame)
 
@@ -725,6 +739,7 @@ Login `platform/{username}` + password + **TOTP bắt buộc** (ADR-017). Dùng 
 | Điểm dừng                 | Ba tab: **Dùng chung** (thêm, sửa, ngừng dùng; bến xe / điểm dừng đón trả bắt buộc căn cứ công bố), **Chờ duyệt** (đề xuất của nhà xe: xem căn cứ, cảnh báo điểm trùng ở gần, chỉnh rồi duyệt hoặc từ chối kèm lý do), **Của nhà xe** (xem toàn hệ thống, khóa / mở khóa) | Khóa và từ chối bắt buộc lý do + audit; không sửa nội dung điểm riêng (FR-ADM-21, BR-81) `TASK-ADM-004` đã làm theo Figma ADM-05a…05e (chờ duyệt): tab trên địa chỉ (`?tab=`), số trên tab, bản đồ tổng quan + hộp thoại thêm / sửa có bản đồ kéo ghim (không có khóa bản đồ thì nhập tay), trang xem xét đề xuất riêng (`/stop-points/proposals/{id}`), hộp thoại khóa có mức ảnh hưởng = số tuyến; chưa có ô lọc theo nhà xe. **28/10/2026 (chờ duyệt):** tab Của nhà xe có bản đồ tổng quan như tab Dùng chung (bấm dòng → bản đồ tới điểm); môi trường thiếu `NEXT_PUBLIC_GOONG_MAPTILES_KEY` thì hiện dòng nhắc thay vì ẩn bản đồ im lặng. |
 | Loyalty                   | Policy editor (phiên bản + effective date), tra cứu tài khoản User, điều chỉnh điểm, báo cáo | Điều chỉnh bắt buộc lý do + audit; tham số không áp ngược (FR-LOY-10..12, UC-39) **28/10/2026 (chờ duyệt):** tab "Tài khoản thành viên" đổi tên **Điểm thành viên** (không nhầm với Người dùng › Tài khoản hành khách); `?email=` mở thẳng từ chi tiết hành khách; thẻ thành viên có liên kết "Xem hồ sơ hành khách" (khi có `user:manage`). |
 | Bài viết                  | Danh sách (lọc trạng thái / chuyên mục), editor Markdown + xem trước, upload ảnh, xuất bản / gỡ, chuyên mục (`TASK-CNT-001` đã làm theo Figma ADM-13a…13c, chờ duyệt) | Audit xuất bản; chỉ `PUBLISHED` công khai (FR-ADM-18..19, UC-40) |
+| Thông báo                 | `/notifications`: danh sách (lọc trạng thái, đã nhận, thời gian gửi); soạn (dạng, khuyến mãi / bài viết, tiêu đề, nội dung, đối tượng, xem trước, người nhận dự kiến, gửi thử); xác nhận gửi ngay / hẹn giờ có số người nhận; kết quả (đã vào hộp thư, đã đọc, push) | Chờ duyệt (`TASK-NSR-003`, `NSR-003-todo.md`): quyền `notification:broadcast`; không gửi email hàng loạt; khuyến mãi / tin tức không gửi 21h–8h; Figma chưa có khung, dựng theo màn Khuyến mãi |
 | Report                    | Dashboard, filter, export job (async BullMQ)                                | Dữ liệu lớn không chặn luồng chính **28/10/2026 (chờ duyệt, FR-NSR-13):** màn Báo cáo thêm khối **Theo tuyến** và **Theo khu vực** (cặp tỉnh đi → đến, mọi nhà xe) + ô "Kiểu tệp xuất" (nhà xe / tuyến / khu vực). |
 | Audit                     | Audit search (Mongo), detail, export                                        | Mask dữ liệu nhạy cảm. `TASK-ADM-002` phần audit đã làm theo Figma ADM-15a/15b (chờ duyệt): `/audit-logs` lọc khoảng thời gian (mặc định 7 ngày) / loại người thực hiện / phân hệ / kết quả, tìm tài khoản hoặc mã đối tượng; `/audit-logs/{id}` trước và sau (đã che), lý do, chuỗi bản ghi, tóm tắt IP / thiết bị; lượt xem được ghi. Chưa làm "Xuất nhật ký" |
 | Tổng quan                 | Thẻ số, Việc cần xử lý, Tiền đang giữ, Trạng thái tích hợp (Figma ADM-01) | Chờ duyệt (`ADM-system-shells-todo.md`): số thật cho nhà xe đang hoạt động, hồ sơ chờ duyệt, đề xuất điểm dừng, yêu cầu đổi tài khoản nhận tiền, tích hợp; chỉ số giao dịch / escrow / chi trả hiện "—" |

@@ -13,7 +13,7 @@
 | Người viết    | Nguyễn Hồng Khanh, AI Agent        |
 | Người duyệt   | Nguyễn Hồng Khanh                |
 | Ngày tạo      | 11/05/2026                       |
-| Ngày cập nhật | 31/10/2026                       |
+| Ngày cập nhật | 02/11/2026                       |
 
 ### 1.2. Lịch sử thay đổi
 
@@ -54,6 +54,7 @@
 | v0.31     | 28/10/2026 | AI Agent       | **Người đi cùng trên chỗ đôi (Khanh 28/10/2026, chờ duyệt):** thêm `TC-BOOK-004`. |
 | v0.29     | 27/10/2026 | AI Agent       | **Logo nhà xe + trang công khai (FR-OPR-02, TASK-MKT-001; Khanh 27/10/2026, tự thiết kế — chờ duyệt):** §9 thêm `TC-OPR-007` (logo: gắn / thay / gỡ, file sai, tenant-RLS, đồng thời, audit lỗi, guard route) và `TC-OPR-008` (E2E logo + Mở trang nhà xe + Xem trước trên ứng dụng). Giữ trạng thái Draft. |
 | v0.30     | 27/10/2026 | AI Agent       | **Tìm theo phường + gợi ý địa điểm (chờ duyệt):** §9 thêm `TC-TRN-027`. Giữ trạng thái Draft. |
+| v0.32     | 02/11/2026 | AI Agent       | **Chiến dịch thông báo + hộp thư + phiên app (`TASK-NSR-003`, chờ duyệt):** §8 thêm tiêu chí; §9 thêm `TC-NSR-001..006`, `TC-IAM-MOB-001`. Giữ trạng thái Draft. |
 
 ---
 
@@ -159,6 +160,7 @@ Tài liệu này mô tả chiến lược kiểm thử, tiêu chí nghiệm thu 
 | Employee | Employee chỉ check-in chuyến được phân công, không xem dữ liệu ngoài scope. |
 | Admin | Admin xử lý KYC/refund/dispute/payout có re-auth/TOTP/audit với quyền phù hợp. |
 | Notification | Ticket vẫn xem được dù email/push thất bại; delivery retry ghi nhận (BullMQ DLQ). |
+| Chiến dịch thông báo | Không sinh bản gửi email; khách đã tắt không nhận; khuyến mãi tối đa một tin / 24 giờ; không gửi 21h–8h; chạy lại lô không trùng; hộp thư chỉ thấy tin của mình (chờ duyệt). |
 | Reporting | Báo cáo lớn không làm chậm luồng booking/payment/check-in chính. |
 | Loyalty | Điểm cộng đúng một lần khi chuyến `COMPLETED`; đổi điểm không âm số dư, không tạo voucher trùng; escrow Operator không bị giảm bởi voucher đổi điểm, phần Platform chịu khớp ledger. |
 | Content | Chỉ bài `PUBLISHED` hiển thị công khai; nội dung chứa script không chạy. |
@@ -263,6 +265,13 @@ Mandatory (rủi ro cao, ADR-025): money math, idempotency, tenant RLS, seat-hol
 | TC-LOY-006 | Hoàn ticket đã tích điểm → `REVERSAL`, số dư không âm Hiện thực (chờ duyệt): thu hồi theo tỷ lệ tiền hoàn, thiếu số dư ghi phần thiếu. | Integration | Cao |
 | TC-LOY-007 | Scope `tenant` không đọc / ghi được `loyalty_accounts`, `loyalty_point_transactions`, `user_vouchers` (RLS) Hiện thực (chờ duyệt): scope tenant không đọc / ghi sổ điểm; sổ điểm không sửa / xóa; `user_vouchers` chưa có. | Security | Cao |
 | TC-CNT-001 | Bài `DRAFT` / `ARCHIVED` không trả qua API công khai; nội dung chứa `<script>` bị loại khi render | Security/E2E | Cao |
+| TC-NSR-001 | Gửi chiến dịch `SERVICE`: mọi tài khoản đang hoạt động có tin trong hộp thư, không có bản gửi `EMAIL`; khách tắt push vẫn có tin, không có bản gửi `PUSH`. Hiện thực: `campaign.int.spec.ts` | Integration | Cao |
+| TC-NSR-002 | `NEWS` mặc định không nhận, bật mới nhận; `PROMOTION` tắt thì không nhận; lọc đúng theo hạng VXN Plus. Hiện thực: `campaign.int.spec.ts`, `campaign-rules.spec.ts` | Integration | Cao |
+| TC-NSR-003 | Trần 24 giờ: khách đã nhận khuyến mãi bị bỏ qua và tính `capped_count`; giờ yên tĩnh 21h–8h bị từ chối, dịch vụ không bị chặn | Integration/Unit | Cao |
+| TC-NSR-004 | Chạy lại một lô không tạo tin trùng; hủy khi đang gửi dừng các lô sau; hẹn giờ mà khuyến mãi / bài viết hết hiệu lực thì tự hủy kèm ghi chú | Integration/Idempotency | Rất cao |
+| TC-NSR-005 | Quyền: chỉ tài khoản có `notification:broadcast` gọi được API chiến dịch; hộp thư không đọc / đánh dấu được tin của người khác. Hiện thực: `notification-campaign.http.spec.ts`, `campaign.int.spec.ts` | Security | Rất cao |
+| TC-NSR-006 | Admin: lưu nháp, xác nhận có số người nhận, gửi, xem kết quả; hẹn giờ rồi hủy (`apps/admin/e2e/notifications.e2e.ts`). App: hộp thư, chuông, cài đặt, chạm push (`inbox_screen_test.dart`, `notification_center_api_test.dart`, `account_settings_screens_test.dart`, `home_screen_test.dart`, `push_service_test.dart`). Thiết bị: máy ảo Android + FCM thật 02/11/2026 | E2E/Widget/Manual | Cao |
+| TC-IAM-MOB-001 | App hành khách: mở lại còn phiên; token hết hạn tự làm mới và gửi lại request; hai request cùng hết hạn chỉ refresh một lần; bị thu hồi từ thiết bị khác → về đăng nhập; mất mạng giữ phiên. Hiện thực: `auth_interceptor_test.dart`, `session_and_back_test.dart`; máy ảo 02/11/2026 | Widget/Manual | Rất cao |
 | TC-CNT-002 | Admin bài viết: chuyên mục trùng slug / ngừng dùng; vòng đời nháp → xuất bản → hẹn giờ (chưa tới giờ không ra API công khai) → gỡ → xuất bản lại, sai trạng thái 409, rỗng 422, xuất bản đồng thời một thành công; ảnh bìa khóa lạ / chưa tải → 422; lượt xem giới hạn theo IP; tenant không ghi được (RLS); audit lỗi → 503 (`article.int.spec.ts`, `article.http.spec.ts`, `articles.e2e.ts`) | E2E/Integration/Security | Cao |
 | TC-OPR-001 | Link hồ sơ nhà xe: token sai / hết hạn / đã thu hồi → `OPERATOR_APPLICATION_LINK_INVALID`; token hồ sơ A không đọc được hồ sơ B; sửa hồ sơ `SUBMITTED` bị chặn; link hết hiệu lực sau `APPROVED` / `REJECTED` | Security | Rất cao |
 | TC-OPR-002 | Duyệt hồ sơ gửi lặp (cùng `Idempotency-Key` và khác key) chỉ tạo một Operator + một Owner; slug trùng → `OPERATOR_SLUG_CONFLICT`, không tạo gì; giấy tờ và tài khoản nhận tiền sang đúng tenant (RLS) | Integration | Rất cao |

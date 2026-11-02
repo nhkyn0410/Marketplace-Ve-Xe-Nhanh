@@ -13,7 +13,7 @@
 | Người viết    | Nguyễn Hồng Khanh, AI Agent |
 | Người duyệt   | Nguyễn Hồng Khanh           |
 | Ngày tạo      | 11/05/2026                  |
-| Ngày cập nhật | 31/10/2026                  |
+| Ngày cập nhật | 02/11/2026                  |
 
 ### 1.2. Lịch sử thay đổi
 
@@ -84,6 +84,7 @@
 | v0.60     | 27/10/2026 | AI Agent       | **Khanh 27/10/2026: "nếu người dùng nhập phường/xã … hoặc địa chỉ hành chính cũ"** — ghi tiến độ vào `TASK-TRN-004` (tìm theo phường, gợi ý địa điểm trên web) và `TASK-CAT-001` (ánh xạ hành chính cũ đầy đủ). Không thêm task, không đổi trạng thái. |
 | v0.61     | 28/10/2026 | AI Agent       | **Khanh 28/10/2026 "OK làm theo đề xuất" (giám sát Admin):** thêm `TASK-ADM-005` (chi tiết nhà xe / tài khoản hành khách, Tuyến & chuyến, đổi tên Giao dịch, bản đồ điểm dừng của nhà xe — In Progress, chờ duyệt); `TASK-RPT-002` ghi phần theo tuyến / khu vực. |
 | v0.62     | 28/10/2026 | AI Agent       | **Người đi cùng trên chỗ đôi (Khanh 28/10/2026, chờ duyệt):** ghi vào `TASK-BTP-002`. |
+| v0.63     | 02/11/2026 | AI Agent       | **Khanh 02/11/2026 "theo đề xuất, không gửi email hàng loạt":** thêm `TASK-NSR-003` (chiến dịch thông báo + hộp thư), ghi sửa phiên đăng nhập app hành khách vào cùng đợt. Chờ duyệt. |
 
 ---
 
@@ -298,6 +299,7 @@ Bảng xếp theo thứ tự làm. ID cũ giữ nguyên để không vỡ tham c
 | ------------- | --------------------------------------------------------------------------------------------------------------------------------------- | ---------------------- | ------------ | ------------ | ------ |
 | TASK-NSR-001  | Notification fan-out BullMQ (Resend email + FCM/APNs push + sms-noop) + retry + DLQ                                                     | FR-NSR-01..05, ADR-020 | BE           | TASK-FND-004 | Draft  |
 | TASK-NSR-002  | Notification preference + `notification_log` Mongo                                                                                      | FR-NSR-14              | BE/FE/Mobile | TASK-NSR-001 | Draft  |
+| TASK-NSR-003  | Chiến dịch thông báo của Admin + hộp thư trong app + cài đặt thông báo nối API + chạm push theo loại tin + kênh Android; không gửi email hàng loạt. **02/11/2026: đã làm** (chờ duyệt, chưa review độc lập — `NSR-003-todo.md`). Migration đã áp `vexenhanh_dev` + production; code chưa deploy | FR-NSR-16/17, BR-82..85, UC-41/42 | BE/FE/Mobile | TASK-NSR-002, TASK-PROM-001, TASK-CNT-001 | Draft  |
 | TASK-RPT-001  | Operator reporting (Postgres CTE/materialized view) **19/10/2026: đã làm** (chờ duyệt) — tính trực tiếp từ Postgres (chưa materialized view), Tổng quan + Báo cáo Operator OS, CSV có audit (`RPT-todo.md`). | FR-NSR-12, ADR-011     | BE/FE        | TASK-BTP-006 | In Progress |
 | TASK-RPT-002  | Admin reporting + Mongo audit aggregation **19/10/2026: đã làm** (chờ duyệt) — Tổng quan + Báo cáo Admin, quyền `payment:monitor` (`RPT-todo.md`). **28/10/2026 (chờ duyệt, `TASK-ADM-005`):** thêm theo tuyến + theo khu vực (cặp tỉnh đi → đến) và xuất CSV theo từng kiểu — lấp phần "theo tuyến, khu vực" của FR-NSR-13. | FR-NSR-13              | BE/FE        | TASK-RPT-001 | In Progress |
 | TASK-OPS-001  | Deployment pipeline Render + GitHub Actions + staging smoke + build mobile Flutter (Android local; iOS tuỳ chọn khi có macOS — ADR-028) | 09 Ops, ADR-023/026    | DevOps/BE    | TASK-FND-002 | Draft  |
